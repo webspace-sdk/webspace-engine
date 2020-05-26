@@ -1,16 +1,16 @@
 {
-  "name": "hubs",
+  "name": "jel",
   "version": "0.0.1",
-  "description": "Duck-themed multi-user virtual spaces in WebVR.",
+  "description": "",
   "main": "src/index.js",
   "license": "MPL-2.0",
-  "homepage": "https://github.com/mozilla/hubs#readme",
+  "homepage": "https://github.com/jel-app/jel#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mozilla/hubs.git"
+    "url": "https://github.com/jel-app/jel.git"
   },
   "bugs": {
-    "url": "https://github.com/mozilla/hubs/issues"
+    "url": "https://github.com/jel-app/jel/issues"
   },
   "scripts": {
     "start": "webpack-dev-server --mode=development --env.loadAppConfig",
