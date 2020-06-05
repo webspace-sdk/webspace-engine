@@ -24,7 +24,7 @@ import "aframe-slice9-component";
 import "./utils/threejs-positional-audio-updatematrixworld";
 import "./utils/threejs-world-update";
 import patchThreeAllocations from "./utils/threejs-allocation-patches";
-import { detectOS } from "detect-browser";
+import { detectOS, detect } from "detect-browser";
 import {
   getReticulumFetchUrl,
   getReticulumMeta,
@@ -36,6 +36,7 @@ import nextTick from "./utils/next-tick";
 import { addAnimationComponents } from "./utils/animation";
 import { authorizeOrSanitizeMessage } from "./utils/permissions-utils";
 import Cookies from "js-cookie";
+import "./naf-dialog-adapter";
 
 import "./components/scene-components";
 import "./components/scale-in-screen-space";
@@ -377,6 +378,7 @@ function setupPeerConnectionConfig(adapter, host, turn) {
     iceServers.push({ urls: "stun:stun1.l.google.com:19302" });
 
     peerConnectionConfig.iceServers = iceServers;
+    peerConnectionConfig.iceTransportPolicy = "all";
 
     if (forceTurn || forceTcp) {
       peerConnectionConfig.iceTransportPolicy = "relay";
@@ -571,12 +573,16 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data)
 
   const objectsScene = document.querySelector("#objects-scene");
   const objectsUrl = getReticulumFetchUrl(`/${hub.hub_id}/objects.gltf`);
-  const objectsEl = document.createElement("a-entity");
-  objectsEl.setAttribute("gltf-model-plus", { src: objectsUrl, useCache: false, inflate: true });
 
-  if (!isBotMode) {
-    objectsScene.appendChild(objectsEl);
-  }
+  scene.addEventListener("adapter-ready", () => {
+    // Append objects once adapter is ready since ownership may be taken.
+    const objectsEl = document.createElement("a-entity");
+    objectsEl.setAttribute("gltf-model-plus", { src: objectsUrl, useCache: false, inflate: true });
+
+    if (!isBotMode) {
+      objectsScene.appendChild(objectsEl);
+    }
+  });
 
   // Wait for scene objects to load before connecting, so there is no race condition on network state.
   const connectToScene = async () => {
@@ -691,14 +697,7 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data)
     loadEnvironmentAndConnect();
   };
 
-  if (!isBotMode) {
-    objectsEl.addEventListener("model-loaded", async el => {
-      if (el.target !== objectsEl) return;
-      connectToScene();
-    });
-  } else {
-    connectToScene();
-  }
+  connectToScene();
 }
 
 async function runBotMode(scene, entryManager) {
@@ -755,6 +754,18 @@ function checkPrerequisites() {
   if ((detectedOS === "iOS" && !navigator.mediaDevices) || /\bfb_iab\b/i.test(navigator.userAgent)) {
     remountUI({ showInAppBrowserDialog: true });
     return false;
+  }
+
+  const browser = detect();
+  // HACK - it seems if we don't initialize the mic track up-front, voices can drop out on iOS
+  // safari when initializing it later.
+  if (["iOS", "Mac OS"].includes(detectedOS) && ["safari", "ios"].includes(browser.name)) {
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) {
+      remountUI({ showSafariMicDialog: true });
+      return;
+    }
   }
 
   const platformUnsupportedReason = getPlatformUnsupportedReason();
