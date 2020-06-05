@@ -24,7 +24,7 @@ function createHTTPSConfig() {
       [
         {
           name: "commonName",
-          value: "localhost"
+          value: "hubs.local"
         }
       ],
       {
@@ -37,7 +37,7 @@ function createHTTPSConfig() {
             altNames: [
               {
                 type: 2,
-                value: "localhost"
+                value: "hubs.local"
               },
               {
                 type: 2,
@@ -149,9 +149,9 @@ async function fetchAppConfigAndEnvironmentVars() {
 
   process.env.RETICULUM_SERVER = host;
   process.env.SHORTLINK_DOMAIN = shortlink_domain;
-  process.env.CORS_PROXY_SERVER = "localhost:8080/cors-proxy";
+  process.env.CORS_PROXY_SERVER = "hubs.local:8080/cors-proxy";
   process.env.THUMBNAIL_SERVER = thumbnail_server;
-  process.env.NON_CORS_PROXY_DOMAINS = "hubs.local,localhost";
+  process.env.NON_CORS_PROXY_DOMAINS = "hubs.local,hubs.local";
 
   return appConfig;
 }
@@ -183,6 +183,10 @@ module.exports = async (env, argv) => {
       appConfig = createDefaultAppConfig();
     }
 
+    Object.assign(process.env, {
+      HOST: "hubs.local"
+    });
+
     if (env.localDev) {
       // Local Dev Environment (npm run local)
       Object.assign(process.env, {
@@ -201,7 +205,7 @@ module.exports = async (env, argv) => {
   // In production, the environment variables are defined in CI or loaded from ita and
   // the app config is injected into the head of the page by Reticulum.
 
-  const host = process.env.HOST_IP || env.localDev ? "hubs.local" : "localhost";
+  const host = process.env.HOST_IP || env.localDev || env.remoteDev ? "hubs.local" : "hubs.local";
 
   // Remove comments from .babelrc
   const babelConfig = JSON.parse(
@@ -258,7 +262,7 @@ module.exports = async (env, argv) => {
           const redirectLocation = req.header("location");
 
           if (redirectLocation) {
-            res.header("Location", "https://localhost:8080/cors-proxy/" + redirectLocation);
+            res.header("Location", "https://hubs.local:8080/cors-proxy/" + redirectLocation);
           }
 
           if (req.method === "OPTIONS") {

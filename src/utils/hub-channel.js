@@ -29,10 +29,9 @@ const VALID_PERMISSIONS =
   ["tweet", "spawn_camera", "spawn_drawing", "spawn_and_move_media", "pin_objects", "spawn_emoji", "fly"];
 
 export default class HubChannel extends EventTarget {
-  constructor(store, hubId) {
+  constructor(store) {
     super();
     this.store = store;
-    this.hubId = hubId;
     this._signedIn = !!this.store.state.credentials.token;
     this._permissions = {};
     this._blockedSessionIds = new Set();
@@ -97,9 +96,10 @@ export default class HubChannel extends EventTarget {
     }
   }
 
-  setPhoenixChannel = channel => {
+  bind = (channel, hubId) => {
     this.channel = channel;
     this.presence = new Presence(channel);
+    this.hubId = hubId;
   };
 
   setPermissionsFromToken = token => {
