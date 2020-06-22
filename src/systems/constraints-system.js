@@ -68,13 +68,9 @@ export class ConstraintsSystem {
       if (!this.constraintPairs[heldEntityId] || this.constraintPairs[heldEntityId].length < 1) {
         prevState.held.setAttribute("body-helper", { activationState: ACTIVATION_STATE.ACTIVE_TAG });
       }
-
-      if (prevState.held.components["shared"]) {
-        SAF.utils.endSyncing(SYNC_SCOPES.GRAB, prevState.held);
-      }
     }
     if (!state.spawning && state.held && state.held.components.tags.data[constraintTag]) {
-      if (!state.held.components["shared"] || SAF.utils.beginSyncing(SYNC_SCOPES.GRAB, state.held)) {
+      if (!state.held.components["shared"] || SAF.utils.isMine(state.held) || SAF.utils.takeOwnership(state.held)) {
         state.held.setAttribute("body-helper", {
           type: "dynamic",
           activationState: ACTIVATION_STATE.DISABLE_DEACTIVATION
@@ -90,6 +86,8 @@ export class ConstraintsSystem {
           }
           this.constraintPairs[heldEntityId].push(entityId);
         }
+      } else {
+        console.log("Failed to obtain ownership while trying to create constraint on networked object.");
       }
     }
   }
