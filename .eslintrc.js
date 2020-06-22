@@ -8,7 +8,8 @@ module.exports = {
   globals: {
     THREE: true,
     AFRAME: true,
-    NAF: true
+    NAF: true,
+    SAF: true
   },
   plugins: ["prettier", "react"],
   rules: {

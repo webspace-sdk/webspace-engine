@@ -8,7 +8,7 @@ AFRAME.registerComponent("quack", {
 
   init: function() {
     this.wasInteracting = false;
-    NAF.utils.getNetworkedEntity(this.el).then(networkedEntity => {
+    SAF.utils.getNetworkedEntity(this.el).then(networkedEntity => {
       this.networkedEntity = networkedEntity;
     });
   },

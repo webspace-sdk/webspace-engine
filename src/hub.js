@@ -17,6 +17,7 @@ patchWebGLRenderingContext();
 
 import "three/examples/js/loaders/GLTFLoader";
 import "networked-aframe/src/index";
+import "shared-aframe/src/index";
 import "naf-janus-adapter";
 import "aframe-rounded";
 import "webrtc-adapter";
@@ -567,6 +568,12 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data)
       adapter
     });
 
+    scene.setAttribute("shared-scene", {
+      room: hub.hub_id,
+      serverURL: `wss://hubs.local:8001`,
+      debug: !!isDebug
+    });
+
     while (!scene.components["networked-scene"] || !scene.components["networked-scene"].data) await nextTick();
 
     scene.addEventListener("adapter-ready", ({ detail: adapter }) => {
@@ -652,6 +659,7 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data)
       const connectionErrorTimeout = setTimeout(onConnectionError, 90000);
       scene.components["networked-scene"]
         .connect()
+        .then(() => scene.components["shared-scene"].connect())
         .then(() => {
           clearTimeout(connectionErrorTimeout);
           scene.emit("didConnectToNetworkedScene");
@@ -1291,7 +1299,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     resolve: null
   };
 
-  hubChannel.setPhoenixChannel(hubPhxChannel);
+  hubChannel.bind(hubPhxChannel, hubId);
 
   hubPhxChannel
     .join()

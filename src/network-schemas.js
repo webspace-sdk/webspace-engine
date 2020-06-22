@@ -82,7 +82,7 @@ function registerNetworkSchemas() {
     ]
   });
 
-  NAF.schemas.add({
+  SAF.schemas.add({
     template: "#interactable-media",
     components: [
       {

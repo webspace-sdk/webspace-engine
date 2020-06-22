@@ -148,7 +148,7 @@ export const addMedia = (
   const entity = document.createElement("a-entity");
 
   if (networked) {
-    entity.setAttribute("networked", { template: template });
+    entity.setAttribute("shared", { template: template });
   } else {
     const templateBody = document
       .importNode(document.body.querySelector(template).content, true)
