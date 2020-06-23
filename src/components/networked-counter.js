@@ -1,4 +1,4 @@
-import { isMine } from "../utils/ownership-utils";
+import { isMine } from "../jel/utils/ownership-utils";
 /* global AFRAME performance */
 /**
  * Limits networked interactables to a maximum number at any given time

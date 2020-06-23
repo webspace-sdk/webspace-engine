@@ -1,5 +1,5 @@
 import { SOUND_MEDIA_LOADING } from "../systems/sound-effects-system";
-import { getNetworkedEntity } from "../utils/ownership-utils";
+import { getNetworkedEntity } from "../jel/utils/ownership-utils";
 
 AFRAME.registerComponent("local-refresh-media-button", {
   init() {

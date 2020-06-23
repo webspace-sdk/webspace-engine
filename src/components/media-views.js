@@ -8,7 +8,7 @@ import {
   getNetworkOwner,
   getNetworkId,
   getNetworkedEntity
-} from "../utils/ownership-utils";
+} from "../jel/utils/ownership-utils";
 import GIFWorker from "../workers/gifparsing.worker.js";
 import errorImageSrc from "!!url-loader!../assets/images/media-error.gif";
 import audioIcon from "../assets/images/audio.png";

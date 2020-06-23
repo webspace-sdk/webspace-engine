@@ -7,7 +7,7 @@ import cStyles from "../assets/stylesheets/client-info-dialog.scss";
 import rootStyles from "../assets/stylesheets/ui-root.scss";
 import oStyles from "../assets/stylesheets/object-info-dialog.scss";
 import { FormattedMessage } from "react-intl";
-import { ensureOwnership, takeOwnership } from "../utils/ownership-utils";
+import { ensureOwnership, takeOwnership } from "../jel/utils/ownership-utils";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft";
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons/faChevronRight";

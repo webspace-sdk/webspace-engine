@@ -1,4 +1,4 @@
-import { isMine, takeOwnership, getNetworkedEntity } from "../../utils/ownership-utils";
+import { ensureOwnership, getNetworkedEntity } from "../../jel/utils/ownership-utils";
 
 /* global THREE */
 /**

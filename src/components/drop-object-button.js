@@ -1,4 +1,4 @@
-import { ensureOwnership, getNetworkedEntity } from "../utils/ownership-utils";
+import { ensureOwnership, getNetworkedEntity } from "../jel/utils/ownership-utils";
 
 const COLLISION_LAYERS = require("../constants").COLLISION_LAYERS;
 

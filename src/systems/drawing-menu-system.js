@@ -1,6 +1,6 @@
 import { waitForDOMContentLoaded } from "../utils/async-utils";
 import { SOUND_PEN_UNDO_DRAW } from "./sound-effects-system";
-import { isMine, takeOwnership } from "../utils/ownership-utils";
+import { isMine, takeOwnership } from "../jel/utils/ownership-utils";
 
 /**
  * Drawing Menu System

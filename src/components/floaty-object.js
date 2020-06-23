@@ -1,6 +1,6 @@
 /* global AFRAME */
 const COLLISION_LAYERS = require("../constants").COLLISION_LAYERS;
-import { isSynchronized, isMine } from "../utils/ownership-utils";
+import { isSynchronized, isMine } from "../jel/utils/ownership-utils";
 
 AFRAME.registerComponent("floaty-object", {
   schema: {

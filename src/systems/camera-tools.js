@@ -1,5 +1,5 @@
 import { waitForDOMContentLoaded } from "../utils/async-utils";
-import { isMine } from "../utils/ownership-utils";
+import { isMine } from "../jel/utils/ownership-utils";
 
 const CAMERA_UPDATE_FRAME_DELAY = 10; // Update one camera every N'th frame
 

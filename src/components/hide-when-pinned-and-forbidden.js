@@ -1,4 +1,4 @@
-import { getNetworkedEntity } from "../utils/ownership-utils";
+import { getNetworkedEntity } from "../jel/utils/ownership-utils";
 
 AFRAME.registerComponent("hide-when-pinned-and-forbidden", {
   schema: {

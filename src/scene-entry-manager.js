@@ -2,7 +2,7 @@ import qsTruthy from "./utils/qs_truthy";
 import nextTick from "./utils/next-tick";
 import pinnedEntityToGltf from "./utils/pinned-entity-to-gltf";
 import { hackyMobileSafariTest } from "./utils/detect-touchscreen";
-import { takeOwnership } from "./utils/ownership-utils";
+import { takeOwnership } from "./jel/utils/ownership-utils";
 
 const isBotMode = qsTruthy("bot");
 const isMobile = AFRAME.utils.device.isMobile();

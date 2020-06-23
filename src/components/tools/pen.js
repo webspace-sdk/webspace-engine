@@ -1,6 +1,6 @@
 import { paths } from "../../systems/userinput/paths";
 import { getLastWorldPosition, getLastWorldQuaternion } from "../../utils/three-utils";
-import { isMine } from "../../utils/ownership-utils";
+import { isMine } from "../../jel/utils/ownership-utils";
 import {
   SOUND_PEN_START_DRAW,
   SOUND_PEN_STOP_DRAW,

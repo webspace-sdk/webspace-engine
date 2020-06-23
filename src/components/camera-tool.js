@@ -1,6 +1,6 @@
 import { addAndArrangeMedia } from "../utils/media-utils";
 import { createImageBitmap } from "../utils/image-bitmap-utils";
-import { ensureOwnership } from "../utils/ownership-utils";
+import { ensureOwnership } from "../jel/utils/ownership-utils";
 import { ObjectTypes } from "../object-types";
 import { paths } from "../systems/userinput/paths";
 import { SOUND_CAMERA_TOOL_TOOK_SNAPSHOT, SOUND_CAMERA_TOOL_COUNTDOWN } from "../systems/sound-effects-system";

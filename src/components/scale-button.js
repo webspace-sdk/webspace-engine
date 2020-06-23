@@ -1,4 +1,4 @@
-import { ensureOwnership, getNetworkedEntity } from "../utils/ownership-utils";
+import { ensureOwnership, getNetworkedEntity } from "../jel/utils/ownership-utils";
 import { setMatrixWorld } from "../utils/three-utils";
 import { TRANSFORM_MODE } from "./transform-object-button";
 

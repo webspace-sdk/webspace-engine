@@ -1,7 +1,7 @@
 import { getPromotionTokenForFile } from "../utils/media-utils";
 import { SOUND_PIN } from "../systems/sound-effects-system";
 import { applyThemeToTextButton } from "../utils/theme";
-import { ensureOwnership, getNetworkedEntity } from "../utils/ownership-utils";
+import { ensureOwnership, getNetworkedEntity } from "../jel/utils/ownership-utils";
 
 AFRAME.registerComponent("pin-networked-object-button", {
   schema: {

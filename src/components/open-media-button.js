@@ -1,4 +1,4 @@
-import { getNetworkedEntity } from "../utils/ownership-utils";
+import { getNetworkedEntity } from "../jel/utils/ownership-utils";
 import { isLocalHubsSceneUrl, isHubsRoomUrl, isLocalHubsAvatarUrl } from "../utils/media-url-utils";
 import { guessContentType } from "../utils/media-url-utils";
 import { handleExitTo2DInterstitial } from "../utils/vr-interstitial";

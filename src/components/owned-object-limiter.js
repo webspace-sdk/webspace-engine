@@ -1,4 +1,4 @@
-import { isSynchronized, isMine } from "../utils/ownership-utils";
+import { isSynchronized, isMine } from "../jel/utils/ownership-utils";
 
 /* global AFRAME performance */
 AFRAME.registerComponent("owned-object-limiter", {

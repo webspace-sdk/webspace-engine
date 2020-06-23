@@ -1,4 +1,4 @@
-import { isMine } from "../../utils/ownership-utils";
+import { isMine } from "../../jel/utils/ownership-utils";
 const InterpolationBuffer = require("buffered-interpolation");
 import MobileStandardMaterial from "../../materials/MobileStandardMaterial";
 

@@ -1,4 +1,4 @@
-import { isMine } from "../utils/ownership-utils";
+import { isMine } from "../jel/utils/ownership-utils";
 
 /*
  * Toggles the visibility of this entity based on networked ownership

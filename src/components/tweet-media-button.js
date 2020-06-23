@@ -1,4 +1,4 @@
-import { getNetworkedEntity } from "../utils/ownership-utils";
+import { getNetworkedEntity } from "../jel/utils/ownership-utils";
 import configs from "../utils/configs";
 
 AFRAME.registerComponent("tweet-media-button", {

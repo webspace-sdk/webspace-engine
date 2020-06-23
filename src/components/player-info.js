@@ -1,4 +1,4 @@
-import { getCreator, getNetworkedEntity } from "../utils/ownership-utils";
+import { getCreator, getNetworkedEntity } from "../jel/utils/ownership-utils";
 import { injectCustomShaderChunks } from "../utils/media-utils";
 import { AVATAR_TYPES } from "../utils/avatar-utils";
 import { registerComponentInstance } from "../utils/component-utils";

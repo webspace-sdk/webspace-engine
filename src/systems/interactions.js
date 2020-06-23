@@ -2,7 +2,7 @@ import { paths } from "./userinput/paths";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
 import { canMove } from "../utils/permissions-utils";
 import { isTagged } from "../components/tags";
-import { isSynchronized, isMine } from "../utils/ownership-utils";
+import { isSynchronized, isMine } from "../jel/utils/ownership-utils";
 
 function findHandCollisionTargetForHand(bodyHelper) {
   const physicsSystem = this.el.sceneEl.systems["hubs-systems"].physicsSystem;

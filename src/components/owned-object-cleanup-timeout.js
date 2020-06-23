@@ -1,4 +1,4 @@
-import { isSynchronized, isMine } from "../utils/ownership-utils";
+import { isSynchronized, isMine } from "../jel/utils/ownership-utils";
 /* global performance */
 AFRAME.registerComponent("owned-object-cleanup-timeout", {
   schema: {

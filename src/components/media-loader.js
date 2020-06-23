@@ -1,5 +1,5 @@
 import { computeObjectAABB, getBox, getScaleCoefficient } from "../utils/auto-box-collider";
-import { ensureOwnership, isMine, getNetworkedEntity } from "../utils/ownership-utils";
+import { ensureOwnership, isMine, getNetworkedEntity } from "../jel/utils/ownership-utils";
 import {
   resolveUrl,
   getDefaultResolveQuality,

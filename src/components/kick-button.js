@@ -1,4 +1,4 @@
-import { getNetworkedEntity, getNetworkOwner } from "../utils/ownership-utils";
+import { getNetworkedEntity, getNetworkOwner } from "../jel/utils/ownership-utils";
 
 AFRAME.registerComponent("kick-button", {
   init() {

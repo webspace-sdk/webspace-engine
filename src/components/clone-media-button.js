@@ -1,4 +1,4 @@
-import { getNetworkedEntity } from "../utils/ownership-utils";
+import { getNetworkedEntity } from "../jel/utils/ownership-utils";
 import { cloneMedia } from "../utils/media-utils";
 import { guessContentType } from "../utils/media-url-utils";
 

@@ -2,7 +2,7 @@ import { setMatrixWorld, affixToWorldUp } from "../utils/three-utils";
 import { isTagged } from "../components/tags";
 import { applyPersistentSync } from "../utils/permissions-utils";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
-import { ensureOwnership, isMine, getNetworkId, isSynchronized, getNetworkOwner } from "../utils/ownership-utils";
+import { ensureOwnership, isMine, getNetworkId, isSynchronized, getNetworkOwner } from "../jel/utils/ownership-utils";
 const calculateIconTransform = (function() {
   const up = new THREE.Vector3();
   const backward = new THREE.Vector3();

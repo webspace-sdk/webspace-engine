@@ -2,7 +2,7 @@ import { paths } from "../paths";
 import { Pose } from "../pose";
 import { touchIsAssigned, jobIsAssigned, assign, unassign, findByJob, findByTouch } from "./touchscreen/assignments";
 import { findRemoteHoverTarget } from "../../interactions";
-import { getNetworkedTemplate } from "../../../utils/ownership-utils";
+import { getNetworkedTemplate } from "../../../jel/utils/ownership-utils";
 import { canMove } from "../../../utils/permissions-utils";
 
 const MOVE_CURSOR_JOB = "MOVE CURSOR";

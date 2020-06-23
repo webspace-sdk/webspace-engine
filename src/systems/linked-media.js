@@ -1,4 +1,4 @@
-import { ensureOwnership, isSynchronized } from "../utils/ownership-utils";
+import { ensureOwnership, isSynchronized } from "../jel/utils/ownership-utils";
 
 // Provides the idea of "media linking" -- if two media objects are linked
 // then updates to one (src, page, etc) will be reflected on the other, and vice versa.

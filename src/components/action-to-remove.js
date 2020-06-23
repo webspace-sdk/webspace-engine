@@ -1,4 +1,4 @@
-import { isMine, getNetworkedEntity } from "../utils/ownership-utils";
+import { isMine, getNetworkedEntity } from "../jel/utils/ownership-utils";
 
 AFRAME.registerComponent("action-to-remove", {
   multiple: true,

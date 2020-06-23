@@ -1,4 +1,4 @@
-import { getCreator, getNetworkedTemplate } from "./ownership-utils";
+import { getCreator, getNetworkedTemplate } from "../jel/utils/ownership-utils";
 
 // Brief overview of client authorization can be found in the wiki:
 // https://github.com/mozilla/hubs/wiki/Hubs-authorization

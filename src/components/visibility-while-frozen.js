@@ -1,6 +1,6 @@
 import { getLastWorldPosition } from "../utils/three-utils";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
-import { isMine } from "../utils/ownership-utils";
+import { isMine } from "../jel/utils/ownership-utils";
 
 const isMobile = AFRAME.utils.device.isMobile();
 

@@ -1,4 +1,4 @@
-import { getNetworkedEntity } from "../utils/ownership-utils";
+import { getNetworkedEntity } from "../jel/utils/ownership-utils";
 
 import { findComponentsInNearestAncestor } from "../utils/scene-graph";
 AFRAME.registerComponent("camera-focus-button", {

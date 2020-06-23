@@ -1,6 +1,6 @@
 import { idForAvatarUrl } from "../utils/media-url-utils";
 import { fetchAvatar, remixAvatar } from "../utils/avatar-utils";
-import { getNetworkedEntity } from "../utils/ownership-utils";
+import { getNetworkedEntity } from "../jel/utils/ownership-utils";
 
 const REMIX_LABEL = "copy avatar";
 AFRAME.registerComponent("remix-avatar-button", {

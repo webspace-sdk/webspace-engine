@@ -1,7 +1,7 @@
 /* global performance */
 
 import { SOUND_SPAWN_EMOJI } from "../systems/sound-effects-system";
-import { isMine } from "../utils/ownership-utils";
+import { isMine } from "../jel/utils/ownership-utils";
 
 AFRAME.registerComponent("emoji", {
   schema: {

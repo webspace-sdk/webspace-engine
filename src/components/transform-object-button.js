@@ -1,4 +1,4 @@
-import { ensureOwnership, takeOwnership, getNetworkedEntity } from "../utils/ownership-utils";
+import { ensureOwnership, takeOwnership, getNetworkedEntity } from "../jel/utils/ownership-utils";
 import { paths } from "../systems/userinput/paths";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
 const COLLISION_LAYERS = require("../constants").COLLISION_LAYERS;

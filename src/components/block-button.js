@@ -1,4 +1,4 @@
-import { getNetworkedEntity, getNetworkOwner } from "../utils/ownership-utils";
+import { getNetworkedEntity, getNetworkOwner } from "../jel/utils/ownership-utils";
 
 /**
  * Registers a click handler and invokes the block method on the NAF adapter for the owner associated with its entity.

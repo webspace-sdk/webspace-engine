@@ -1,6 +1,6 @@
 /* global AFRAME */
 import { CONSTANTS } from "three-ammo";
-import { isNonNetworkedOrEnsureOwnership } from "../utils/ownership-utils";
+import { isNonNetworkedOrEnsureOwnership } from "../jel/utils/ownership-utils";
 
 const ACTIVATION_STATE = CONSTANTS.ACTIVATION_STATE;
 

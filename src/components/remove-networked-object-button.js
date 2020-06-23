@@ -1,4 +1,4 @@
-import { ensureOwnership, takeOwnership, getNetworkedEntity } from "../utils/ownership-utils";
+import { ensureOwnership, takeOwnership, getNetworkedEntity } from "../jel/utils/ownership-utils";
 
 AFRAME.registerComponent("remove-networked-object-button", {
   init() {

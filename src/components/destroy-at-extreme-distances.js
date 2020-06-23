@@ -1,5 +1,5 @@
 import { getLastWorldPosition } from "../utils/three-utils";
-import { isSynchronized, isMine } from "../utils/ownership-utils";
+import { isSynchronized, isMine } from "../jel/utils/ownership-utils";
 
 AFRAME.registerComponent("destroy-at-extreme-distances", {
   schema: {
