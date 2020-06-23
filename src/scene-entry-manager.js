@@ -2,6 +2,7 @@ import qsTruthy from "./utils/qs_truthy";
 import nextTick from "./utils/next-tick";
 import pinnedEntityToGltf from "./utils/pinned-entity-to-gltf";
 import { hackyMobileSafariTest } from "./utils/detect-touchscreen";
+import { takeOwnership } from "./utils/ownership-utils";
 
 const isBotMode = qsTruthy("bot");
 const isMobile = AFRAME.utils.device.isMobile();
@@ -55,6 +56,10 @@ export default class SceneEntryManager {
 
     if (isDebug && NAF.connection.adapter.session) {
       NAF.connection.adapter.session.options.verbose = true;
+    }
+
+    if (isDebug && SAF.connection.adapter.session) {
+      SAF.connection.adapter.session.options.verbose = true;
     }
 
     if (enterInVR) {
@@ -181,6 +186,7 @@ export default class SceneEntryManager {
   _setupKicking = () => {
     // This event is only received by the kicker
     document.body.addEventListener("kicked", ({ detail }) => {
+      // TODO JEL need to handle SAF
       const { clientId: kickedClientId } = detail;
       const { entities } = NAF.connection.entities;
       for (const id in entities) {
@@ -188,7 +194,7 @@ export default class SceneEntryManager {
         if (NAF.utils.getCreator(entity) !== kickedClientId) continue;
 
         if (entity.components.networked.data.persistent) {
-          NAF.utils.takeOwnership(entity);
+          takeOwnership(entity);
           this._unpinElement(entity);
           entity.parentNode.removeChild(entity);
         } else {
@@ -200,15 +206,18 @@ export default class SceneEntryManager {
 
   _setupBlocking = () => {
     document.body.addEventListener("blocked", ev => {
+      // TODO JEL need to handle SAF
       NAF.connection.entities.removeEntitiesOfClient(ev.detail.clientId);
     });
 
     document.body.addEventListener("unblocked", ev => {
+      // TODO JEL need to handle SAF
       NAF.connection.entities.completeSync(ev.detail.clientId, true);
     });
   };
 
   _pinElement = async el => {
+    // TODO JEL remove
     const { networkId } = el.components.networked.data;
 
     const { fileId, src } = el.components["media-loader"].data;
@@ -257,6 +266,7 @@ export default class SceneEntryManager {
   };
 
   _unpinElement = el => {
+    // TODO JEL remove
     const components = el.components;
     const networked = components.networked;
 
@@ -472,7 +482,7 @@ export default class SceneEntryManager {
       isHandlingVideoShare = true;
 
       if (currentVideoShareEntity && currentVideoShareEntity.parentNode) {
-        NAF.utils.takeOwnership(currentVideoShareEntity);
+        takeOwnership(currentVideoShareEntity);
         currentVideoShareEntity.parentNode.removeChild(currentVideoShareEntity);
       }
 
@@ -524,6 +534,7 @@ export default class SceneEntryManager {
         this.scene.removeState("camera");
       } else {
         const entity = document.createElement("a-entity");
+        // TODO JEL make shared?
         entity.setAttribute("networked", { template: "#interactable-camera" });
         entity.setAttribute("offset-relative-to", {
           target: "#avatar-pov-node",

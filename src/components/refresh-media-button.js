@@ -1,4 +1,5 @@
 import { SOUND_MEDIA_LOADING } from "../systems/sound-effects-system";
+import { getNetworkedEntity } from "../utils/ownership-utils";
 
 AFRAME.registerComponent("local-refresh-media-button", {
   init() {
@@ -9,8 +10,7 @@ AFRAME.registerComponent("local-refresh-media-button", {
       }
     };
 
-    NAF.utils
-      .getNetworkedEntity(this.el)
+    getNetworkedEntity(this.el)
       .then(networkedEl => {
         this.targetEl = networkedEl;
         const isNonLiveVideo =
@@ -69,7 +69,7 @@ AFRAME.registerComponent("refresh-media-button", {
       }
     };
 
-    NAF.utils.getNetworkedEntity(this.el).then(networkedEl => {
+    getNetworkedEntity(this.el).then(networkedEl => {
       this.targetEl = networkedEl;
 
       window.APP.hubChannel.addEventListener("permissions_updated", this.updateVisibility);

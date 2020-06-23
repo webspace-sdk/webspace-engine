@@ -1,5 +1,6 @@
 import { idForAvatarUrl } from "../utils/media-url-utils";
 import { fetchAvatar, remixAvatar } from "../utils/avatar-utils";
+import { getNetworkedEntity } from "../utils/ownership-utils";
 
 const REMIX_LABEL = "copy avatar";
 AFRAME.registerComponent("remix-avatar-button", {
@@ -37,7 +38,7 @@ AFRAME.registerComponent("remix-avatar-button", {
       }, 2000);
     };
 
-    NAF.utils.getNetworkedEntity(this.el).then(networkedEl => {
+    getNetworkedEntity(this.el).then(networkedEl => {
       this.targetEl = networkedEl;
       this.targetEl.addEventListener("media_resolved", this.updateSrc, { once: true });
       this.updateSrc();

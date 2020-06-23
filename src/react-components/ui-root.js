@@ -1875,7 +1875,11 @@ class UIRoot extends Component {
                 scene={this.props.scene}
                 el={this.state.objectInfo}
                 src={this.state.objectSrc}
-                pinned={this.state.objectInfo && this.state.objectInfo.components["networked"].data.persistent}
+                pinned={
+                  this.state.objectInfo &&
+                  this.state.objectInfo.components["networked"] &&
+                  this.state.objectInfo.components["networked"].data.persistent
+                }
                 hubChannel={this.props.hubChannel}
                 onPinChanged={() => switchToInspectingObject(this.state.objectInfo)}
                 onNavigated={el => switchToInspectingObject(el)}

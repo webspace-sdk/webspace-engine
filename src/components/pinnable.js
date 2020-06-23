@@ -1,3 +1,4 @@
+// TODO JEL remove
 AFRAME.registerComponent("pinnable", {
   schema: {
     pinned: { default: false }

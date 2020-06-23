@@ -1,4 +1,5 @@
 import { computeObjectAABB, getBox, getScaleCoefficient } from "../utils/auto-box-collider";
+import { ensureOwnership, isMine, getNetworkedEntity } from "../utils/ownership-utils";
 import {
   resolveUrl,
   getDefaultResolveQuality,
@@ -73,14 +74,13 @@ AFRAME.registerComponent("media-loader", {
     this.animating = false;
 
     try {
-      NAF.utils
-        .getNetworkedEntity(this.el)
+      getNetworkedEntity(this.el)
         .then(networkedEl => {
           this.networkedEl = networkedEl;
         })
         .catch(() => {}); //ignore exception, entity might not be networked
     } catch (e) {
-      // NAF may not exist on scene landing page
+      // NAF/SAF may not exist on scene landing page
     }
   },
 
@@ -217,11 +217,7 @@ AFRAME.registerComponent("media-loader", {
       this.loadingScaleClip.play();
     }
 
-    if (
-      this.el.sceneEl.is("entered") &&
-      (!this.networkedEl || NAF.utils.isMine(this.networkedEl)) &&
-      this.data.playSoundEffect
-    ) {
+    if (this.el.sceneEl.is("entered") && (!this.networkedEl || isMine(this.networkedEl)) && this.data.playSoundEffect) {
       this.loadingSoundEffect = this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playPositionalSoundFollowing(
         SOUND_MEDIA_LOADING,
         this.el.object3D,
@@ -318,7 +314,7 @@ AFRAME.registerComponent("media-loader", {
   },
 
   refresh() {
-    if (this.networkedEl && !NAF.utils.isMine(this.networkedEl) && !NAF.utils.takeOwnership(this.networkedEl)) return;
+    if (this.networkedEl && !ensureOwnership(this.networkedEl)) return;
 
     // When we refresh, we bump the version to the current timestamp.
     //
@@ -340,7 +336,7 @@ AFRAME.registerComponent("media-loader", {
       this.data.animate = false;
 
       // Play the sound effect on a refresh only if we are the owner
-      this.data.playSoundEffect = NAF.utils.isMine(this.networkedEl);
+      this.data.playSoundEffect = isMine(this.networkedEl);
     }
 
     if (forceLocalRefresh) {
@@ -655,8 +651,7 @@ AFRAME.registerComponent("media-pager", {
       this.el.emit("pager-loaded");
     });
 
-    NAF.utils
-      .getNetworkedEntity(this.el)
+    getNetworkedEntity(this.el)
       .then(networkedEl => {
         this.networkedEl = networkedEl;
         this.networkedEl.addEventListener("pinned", this.update);
@@ -671,7 +666,7 @@ AFRAME.registerComponent("media-pager", {
   },
 
   async update(oldData) {
-    if (this.networkedEl && NAF.utils.isMine(this.networkedEl)) {
+    if (this.networkedEl && isMine(this.networkedEl)) {
       if (oldData && typeof oldData.index === "number" && oldData.index !== this.data.index) {
         this.el.emit("owned-pager-page-changed");
       }
@@ -690,14 +685,14 @@ AFRAME.registerComponent("media-pager", {
   },
 
   onNext() {
-    if (this.networkedEl && !NAF.utils.isMine(this.networkedEl) && !NAF.utils.takeOwnership(this.networkedEl)) return;
+    if (this.networkedEl && !ensureOwnership(this.networkedEl)) return;
     const newIndex = Math.min(this.data.index + 1, this.data.maxIndex);
     this.el.setAttribute("media-pdf", "index", newIndex);
     this.el.setAttribute("media-pager", "index", newIndex);
   },
 
   onPrev() {
-    if (this.networkedEl && !NAF.utils.isMine(this.networkedEl) && !NAF.utils.takeOwnership(this.networkedEl)) return;
+    if (this.networkedEl && !ensureOwnership(this.networkedEl)) return;
     const newIndex = Math.max(this.data.index - 1, 0);
     this.el.setAttribute("media-pdf", "index", newIndex);
     this.el.setAttribute("media-pager", "index", newIndex);

@@ -1,3 +1,4 @@
+import { getCreator, getNetworkedEntity } from "../utils/ownership-utils";
 import { injectCustomShaderChunks } from "../utils/media-utils";
 import { AVATAR_TYPES } from "../utils/avatar-utils";
 import { registerComponentInstance } from "../utils/component-utils";
@@ -53,8 +54,8 @@ AFRAME.registerComponent("player-info", {
     this.playerSessionId = null;
 
     if (!this.isLocalPlayerInfo) {
-      NAF.utils.getNetworkedEntity(this.el).then(networkedEntity => {
-        this.playerSessionId = NAF.utils.getCreator(networkedEntity);
+      getNetworkedEntity(this.el).then(networkedEntity => {
+        this.playerSessionId = getCreator(networkedEntity);
         const playerPresence = window.APP.hubChannel.presence.state[this.playerSessionId];
         if (playerPresence) {
           this.updateDisplayNameFromPresenceMeta(playerPresence.metas[0]);

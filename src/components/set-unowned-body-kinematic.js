@@ -1,5 +1,5 @@
-/* global NAF */
 const COLLISION_LAYERS = require("../constants").COLLISION_LAYERS;
+import { isSynchronized, isMine } from "../utils/ownership-utils";
 
 AFRAME.registerComponent("set-unowned-body-kinematic", {
   init() {
@@ -12,7 +12,7 @@ AFRAME.registerComponent("set-unowned-body-kinematic", {
       // Do this in play instead of init so that the ammo-body and networked components are done
       this.didThisOnce = true;
 
-      if (!this.el.components.networked || !NAF.utils.isMine(this.el)) {
+      if (!isSynchronized(this.el) || !isMine(this.el)) {
         this.setBodyKinematic();
       }
     }

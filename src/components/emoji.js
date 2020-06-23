@@ -1,6 +1,7 @@
 /* global performance */
 
 import { SOUND_SPAWN_EMOJI } from "../systems/sound-effects-system";
+import { isMine } from "../utils/ownership-utils";
 
 AFRAME.registerComponent("emoji", {
   schema: {
@@ -46,9 +47,7 @@ AFRAME.registerComponent("emoji", {
   },
 
   tick(t, dt) {
-    const isMine = this.el.components.networked.initialized && this.el.components.networked.isMine();
-
-    if (this.particleConfig && isMine) {
+    if (this.particleConfig && isMine(this.el)) {
       const now = performance.now();
 
       const uuid = this.el.components["body-helper"].uuid;

@@ -2,6 +2,7 @@ import { setMatrixWorld, affixToWorldUp } from "../utils/three-utils";
 import { isTagged } from "../components/tags";
 import { applyPersistentSync } from "../utils/permissions-utils";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { ensureOwnership, isMine, getNetworkId, isSynchronized, getNetworkOwner } from "../utils/ownership-utils";
 const calculateIconTransform = (function() {
   const up = new THREE.Vector3();
   const backward = new THREE.Vector3();
@@ -42,9 +43,6 @@ const calculateIconTransform = (function() {
       .setPosition(position);
   };
 })();
-function isMineOrTakeOwnership(el) {
-  return NAF.utils.isMine(el) || NAF.utils.takeOwnership(el);
-}
 function isOccupiableSpawnPoint(waypointData) {
   return waypointData.canBeOccupied && waypointData.canBeSpawnPoint;
 }
@@ -84,10 +82,10 @@ function loadTemplatesForWaypointData(scene, data) {
 function shouldTryToOccupy(waypointComponent) {
   return (
     waypointComponent.data.canBeOccupied &&
-    (NAF.utils.isMine(waypointComponent.el) ||
+    (isMine(waypointComponent.el) ||
       !(
         waypointComponent.data.isOccupied &&
-        NAF.utils.getNetworkOwner(waypointComponent.el) &&
+        getNetworkOwner(waypointComponent.el) &&
         NAF.connection.connectedClients[NAF.utils.getNetworkOwner(waypointComponent.el)]
       ))
   );
@@ -97,8 +95,8 @@ function isOccupiedByMe(waypointComponent) {
   return (
     waypointComponent.data.canBeOccupied &&
     waypointComponent.data.isOccupied &&
-    waypointComponent.el.components.networked &&
-    NAF.utils.isMine(waypointComponent.el)
+    isSynchronized(waypointComponent.el) &&
+    isMine(waypointComponent.el)
   );
 }
 function unoccupyWaypoint(waypointComponent) {
@@ -268,7 +266,7 @@ export class WaypointSystem {
   }
   tryToOccupy(waypointComponent) {
     return new Promise(resolve => {
-      if (shouldTryToOccupy(waypointComponent) && isMineOrTakeOwnership(waypointComponent.el)) {
+      if (shouldTryToOccupy(waypointComponent) && ensureOwnership(waypointComponent.el)) {
         occupyWaypoint(waypointComponent);
         if (this.currentWaypoint) {
           this.currentWaypoint.el.removeEventListener("ownership-lost", this.lostOwnershipOfWaypoint);
@@ -399,8 +397,9 @@ AFRAME.registerComponent("waypoint", {
   },
   play() {
     if (!this.didRegisterWithSystem) {
-      if (this.el.components.networked) {
-        applyPersistentSync(this.el.components.networked.data.networkId);
+      if (isSynchronized(this.el)) {
+        const networkId = getNetworkId(this.el);
+        applyPersistentSync(networkId);
       }
       this.system.registerComponent(this, this.el.sceneEl);
       this.didRegisterWithSystem = true;

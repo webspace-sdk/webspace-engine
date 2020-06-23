@@ -1,3 +1,4 @@
+import { ensureOwnership, takeOwnership, getNetworkedEntity } from "../utils/ownership-utils";
 import { paths } from "../systems/userinput/paths";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
 const COLLISION_LAYERS = require("../constants").COLLISION_LAYERS;
@@ -37,7 +38,7 @@ AFRAME.registerComponent("transform-button", {
     axis: { type: "vec3", default: null }
   },
   init() {
-    NAF.utils.getNetworkedEntity(this.el).then(networkedEl => {
+    getNetworkedEntity(this.el).then(networkedEl => {
       this.targetEl = networkedEl;
     });
     let leftHand, rightHand;
@@ -52,7 +53,7 @@ AFRAME.registerComponent("transform-button", {
       if (!this.targetEl) {
         return;
       }
-      if (!NAF.utils.isMine(this.targetEl) && !NAF.utils.takeOwnership(this.targetEl)) {
+      if (!ensureOwnership(this.targetEl)) {
         return;
       }
       if (this.targetEl.body) {

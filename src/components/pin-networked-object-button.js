@@ -1,6 +1,7 @@
 import { getPromotionTokenForFile } from "../utils/media-utils";
 import { SOUND_PIN } from "../systems/sound-effects-system";
 import { applyThemeToTextButton } from "../utils/theme";
+import { ensureOwnership, getNetworkedEntity } from "../utils/ownership-utils";
 
 AFRAME.registerComponent("pin-networked-object-button", {
   schema: {
@@ -20,7 +21,7 @@ AFRAME.registerComponent("pin-networked-object-button", {
     this.tipEl = this.el.parentNode.querySelector(this.data.tipSelector);
     this.labelEl = this.el.parentNode.querySelector(this.data.labelSelector);
 
-    NAF.utils.getNetworkedEntity(this.el).then(networkedEl => {
+    getNetworkedEntity(this.el).then(networkedEl => {
       this.targetEl = networkedEl;
 
       this._updateUI();
@@ -39,7 +40,7 @@ AFRAME.registerComponent("pin-networked-object-button", {
     };
 
     this.onClick = () => {
-      if (!NAF.utils.isMine(this.targetEl) && !NAF.utils.takeOwnership(this.targetEl)) return;
+      if (!ensureOwnership(this.targetEl)) return;
 
       const wasPinned = this.targetEl.components.pinnable && this.targetEl.components.pinnable.data.pinned;
       this.targetEl.setAttribute("pinnable", "pinned", !wasPinned);

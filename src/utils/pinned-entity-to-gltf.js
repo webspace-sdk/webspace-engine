@@ -1,4 +1,5 @@
 export default function pinnedEntityToGltf(el) {
+  // TODO JEL kill?
   if (!NAF.utils.isMine(el)) return;
 
   // Construct a GLTF node from this entity

@@ -1,10 +1,12 @@
+import { getNetworkedEntity, getNetworkOwner } from "../utils/ownership-utils";
+
 AFRAME.registerComponent("mute-button", {
   init() {
     this.onClick = () => {
       this.mute(this.owner);
     };
-    NAF.utils.getNetworkedEntity(this.el).then(networkedEl => {
-      this.owner = networkedEl.components.networked.data.owner;
+    getNetworkedEntity(this.el).then(networkedEl => {
+      this.owner = getNetworkOwner(networkedEl);
     });
   },
 

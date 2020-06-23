@@ -1,3 +1,5 @@
+import { getNetworkedEntity, getNetworkOwner } from "../utils/ownership-utils";
+
 /**
  * Registers a click handler and invokes the block method on the NAF adapter for the owner associated with its entity.
  * @namespace network
@@ -8,8 +10,8 @@ AFRAME.registerComponent("block-button", {
     this.onClick = () => {
       this.block(this.owner);
     };
-    NAF.utils.getNetworkedEntity(this.el).then(networkedEl => {
-      this.owner = networkedEl.components.networked.data.owner;
+    getNetworkedEntity(this.el).then(networkedEl => {
+      this.owner = getNetworkOwner(networkedEl);
     });
   },
 

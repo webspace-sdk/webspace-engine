@@ -1,3 +1,4 @@
+import { getNetworkedEntity } from "../utils/ownership-utils";
 import { cloneMedia } from "../utils/media-utils";
 import { closeExistingMediaMirror } from "../utils/media-utils";
 
@@ -8,7 +9,7 @@ AFRAME.registerComponent("mirror-media-button", {
       this.src = this.targetEl.components["media-loader"].data.src;
     };
 
-    NAF.utils.getNetworkedEntity(this.el).then(networkedEl => {
+    getNetworkedEntity(this.el).then(networkedEl => {
       this.targetEl = networkedEl;
       this.targetEl.addEventListener("media_resolved", this.updateSrc, { once: true });
       this.updateSrc();

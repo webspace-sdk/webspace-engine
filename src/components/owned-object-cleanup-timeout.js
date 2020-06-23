@@ -1,3 +1,4 @@
+import { isSynchronized, isMine } from "../utils/ownership-utils";
 /* global performance */
 AFRAME.registerComponent("owned-object-cleanup-timeout", {
   schema: {
@@ -11,9 +12,9 @@ AFRAME.registerComponent("owned-object-cleanup-timeout", {
   },
 
   tick() {
-    if (this.el.components["networked"] && NAF.utils.isMine(this.el)) {
+    if (isSynchronized(this.el) && isMine(this.el)) {
       const isPinned = this.el.components["pinnable"] && this.el.components["pinnable"].data.pinned;
-      if (NAF.utils.isMine(this.el) && !isPinned && performance.now() >= this.timeout) {
+      if (isMine(this.el) && !isPinned && performance.now() >= this.timeout) {
         this.el.parentNode.removeChild(this.el);
         this.timeout = Number.POSITIVE_INFINITY;
       }

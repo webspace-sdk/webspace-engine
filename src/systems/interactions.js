@@ -1,8 +1,8 @@
-/* global AFRAME NAF */
 import { paths } from "./userinput/paths";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
 import { canMove } from "../utils/permissions-utils";
 import { isTagged } from "../components/tags";
+import { isSynchronized, isMine } from "../utils/ownership-utils";
 
 function findHandCollisionTargetForHand(bodyHelper) {
   const physicsSystem = this.el.sceneEl.systems["hubs-systems"].physicsSystem;
@@ -206,8 +206,7 @@ AFRAME.registerSystem("interaction", {
   tickInteractor(options, state) {
     const userinput = AFRAME.scenes[0].systems.userinput;
     if (state.held) {
-      const networked = state.held.components["networked"];
-      const lostOwnership = networked && networked.data && networked.data.owner !== NAF.clientId;
+      const lostOwnership = isSynchronized(state.held) && !isMine(state.held);
       if (userinput.get(options.dropPath) || lostOwnership) {
         state.held = null;
       }

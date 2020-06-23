@@ -1,3 +1,5 @@
+import { ensureOwnership, isSynchronized } from "../utils/ownership-utils";
+
 // Provides the idea of "media linking" -- if two media objects are linked
 // then updates to one (src, page, etc) will be reflected on the other, and vice versa.
 //
@@ -73,9 +75,9 @@ AFRAME.registerSystem("linked-media", {
   },
 
   syncLinkage(elA, elB) {
-    if (elB.components["networked"]) {
+    if (isSynchronized(elB)) {
       // Take ownership before updating
-      if (!NAF.utils.isMine(elB) && !NAF.utils.takeOwnership(elB)) return;
+      if (!ensureOwnership(elB)) return;
     }
 
     const { src, version } = elA.components["media-loader"].data;
@@ -94,8 +96,7 @@ AFRAME.registerSystem("linked-media", {
       // Sync time, pause state, playback controls, and tighten sync tolerance since its local
       const syncedVideoAttributes = { time, videoPaused, loop, hidePlaybackControls };
 
-      const targetIsNetworked = !elB.components.networked;
-      if (targetIsNetworked) {
+      if (isSynchronized(elB)) {
         syncedVideoAttributes.syncTolerance = 0.25;
       }
 

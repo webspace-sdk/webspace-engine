@@ -1,7 +1,9 @@
+import { ensureOwnership, takeOwnership, getNetworkedEntity } from "../utils/ownership-utils";
+
 AFRAME.registerComponent("remove-networked-object-button", {
   init() {
     this.onClick = () => {
-      if (!NAF.utils.isMine(this.targetEl) && !NAF.utils.takeOwnership(this.targetEl)) return;
+      if (!ensureOwnership(this.targetEl)) return;
 
       this.targetEl.setAttribute("animation__remove", {
         property: "scale",
@@ -14,12 +16,12 @@ AFRAME.registerComponent("remove-networked-object-button", {
       this.el.parentNode.setAttribute("visible", false);
 
       this.targetEl.addEventListener("animationcomplete", () => {
-        NAF.utils.takeOwnership(this.targetEl);
+        takeOwnership(this.targetEl);
         this.targetEl.parentNode.removeChild(this.targetEl);
       });
     };
 
-    NAF.utils.getNetworkedEntity(this.el).then(networkedEl => {
+    getNetworkedEntity(this.el).then(networkedEl => {
       this.targetEl = networkedEl;
     });
   },

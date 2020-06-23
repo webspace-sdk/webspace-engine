@@ -1,3 +1,5 @@
+import { isMine, takeOwnership, getNetworkedEntity } from "../../utils/ownership-utils";
+
 /* global THREE */
 /**
  * Networked Drawing
@@ -105,7 +107,7 @@ AFRAME.registerComponent("networked-drawing", {
     this.networkBufferHistory = []; //tracks vertexCount and networkBufferCount so that lines can be deleted.
 
     NAF.connection.onConnect(() => {
-      NAF.utils.getNetworkedEntity(this.el).then(networkedEl => {
+      getNetworkedEntity(this.el).then(networkedEl => {
         this.networkedEl = networkedEl;
         this.networkId = NAF.utils.getNetworkId(this.networkedEl);
         this.drawingId = "drawing-" + this.networkId;
@@ -806,7 +808,7 @@ AFRAME.registerComponent("deserialize-drawing-button", {
     this.networkedDrawingBuffer = null;
 
     this.onClick = () => {
-      if (!NAF.utils.isMine(this.targetEl) && !NAF.utils.takeOwnership(this.targetEl)) return;
+      if (!ensureOwnership(this.targetEl)) return;
 
       const finishDrawing = () => {
         drawingManager.drawing.deserializeDrawing(this.networkedDrawingBuffer.data.buffer);
@@ -837,7 +839,7 @@ AFRAME.registerComponent("deserialize-drawing-button", {
     this.el.sceneEl.addEventListener("stateadded", this._updateUIOnStateChange);
     this.el.sceneEl.addEventListener("stateremoved", this._updateUIOnStateChange);
 
-    NAF.utils.getNetworkedEntity(this.el).then(networkedEl => {
+    getNetworkedEntity(this.el).then(networkedEl => {
       this.targetEl = networkedEl;
       this._updateUI();
       this.targetEl.addEventListener("pinned", this._updateUI);

@@ -1,3 +1,5 @@
+import { getNetworkedEntity } from "../utils/ownership-utils";
+
 AFRAME.registerComponent("visibility-on-content-types", {
   schema: {
     contentTypes: { type: "string" }, // Space separate content types. Or partial type, like video/
@@ -8,8 +10,7 @@ AFRAME.registerComponent("visibility-on-content-types", {
   init() {
     this.updateVisibility = this.updateVisibility.bind(this);
 
-    NAF.utils
-      .getNetworkedEntity(this.el)
+    getNetworkedEntity(this.el)
       .then(el => {
         this.networkedEl = el;
         el.addEventListener("media_resolved", ({ detail: { contentType } }) => this.updateVisibility(contentType));

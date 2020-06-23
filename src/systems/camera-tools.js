@@ -1,4 +1,5 @@
 import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { isMine } from "../utils/ownership-utils";
 
 const CAMERA_UPDATE_FRAME_DELAY = 10; // Update one camera every N'th frame
 
@@ -54,7 +55,7 @@ AFRAME.registerSystem("camera-tools", {
     if (!this.cameraEls) {
       this.myCamera = null;
     } else {
-      this.myCamera = this.cameraEls.find(NAF.utils.isMine);
+      this.myCamera = this.cameraEls.find(isMine);
     }
   },
 

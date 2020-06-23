@@ -1,5 +1,6 @@
 /* global AFRAME */
 const COLLISION_LAYERS = require("../constants").COLLISION_LAYERS;
+import { isSynchronized, isMine } from "../utils/ownership-utils";
 
 AFRAME.registerComponent("floaty-object", {
   schema: {
@@ -44,7 +45,7 @@ AFRAME.registerComponent("floaty-object", {
 
     if (!isHeld && this._makeStaticWhenAtRest) {
       const physicsSystem = this.el.sceneEl.systems["hubs-systems"].physicsSystem;
-      const isMine = this.el.components.networked && NAF.utils.isMine(this.el);
+      const objectIsMine = isSynchronized(this.el) && isMine(this.el);
       const linearThreshold = this.bodyHelper.data.linearSleepingThreshold;
       const angularThreshold = this.bodyHelper.data.angularSleepingThreshold;
       const uuid = this.bodyHelper.uuid;
@@ -53,11 +54,11 @@ AFRAME.registerComponent("floaty-object", {
         physicsSystem.getLinearVelocity(uuid) < linearThreshold &&
         physicsSystem.getAngularVelocity(uuid) < angularThreshold;
 
-      if (isAtRest && isMine) {
+      if (isAtRest && objectIsMine) {
         this.el.setAttribute("body-helper", { type: "kinematic" });
       }
 
-      if (isAtRest || !isMine) {
+      if (isAtRest || !objectIsMine) {
         this._makeStaticWhenAtRest = false;
       }
     }
@@ -66,7 +67,7 @@ AFRAME.registerComponent("floaty-object", {
   },
 
   play() {
-    // We do this in play instead of in init because otherwise NAF.utils.isMine fails
+    // We do this in play instead of in init because otherwise isMine fails
     if (this.hasBeenHereBefore) return;
     this.hasBeenHereBefore = true;
     if (this.data.autoLockOnLoad) {
@@ -78,7 +79,7 @@ AFRAME.registerComponent("floaty-object", {
   },
 
   setLocked(locked) {
-    if (this.el.components.networked && !NAF.utils.isMine(this.el)) return;
+    if (isSynchronized(this.el) && !isMine(this.el)) return;
 
     this.locked = locked;
     this.el.setAttribute("body-helper", { type: locked ? "kinematic" : "dynamic" });

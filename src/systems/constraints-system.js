@@ -1,6 +1,7 @@
-/* global NAF AFRAME */
+/* global AFRAME */
 import { CONSTANTS } from "three-ammo";
-import { SYNC_SCOPES } from "../constants";
+import { isNonNetworkedOrEnsureOwnership } from "../utils/ownership-utils";
+
 const ACTIVATION_STATE = CONSTANTS.ACTIVATION_STATE;
 
 export class ConstraintsSystem {
@@ -70,7 +71,7 @@ export class ConstraintsSystem {
       }
     }
     if (!state.spawning && state.held && state.held.components.tags.data[constraintTag]) {
-      if (!state.held.components["shared"] || SAF.utils.isMine(state.held) || SAF.utils.takeOwnership(state.held)) {
+      if (isNonNetworkedOrEnsureOwnership(state.held)) {
         state.held.setAttribute("body-helper", {
           type: "dynamic",
           activationState: ACTIVATION_STATE.DISABLE_DEACTIVATION

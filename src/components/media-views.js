@@ -1,5 +1,14 @@
 /* global performance THREE AFRAME NAF MediaStream setTimeout */
 import configs from "../utils/configs";
+import {
+  takeOwnership,
+  isMine,
+  isSynchronized,
+  ensureOwnership,
+  getNetworkOwner,
+  getNetworkId,
+  getNetworkedEntity
+} from "../utils/ownership-utils";
 import GIFWorker from "../workers/gifparsing.worker.js";
 import errorImageSrc from "!!url-loader!../assets/images/media-error.gif";
 import audioIcon from "../assets/images/audio.png";
@@ -309,11 +318,10 @@ AFRAME.registerComponent("media-video", {
       this.updatePlaybackState();
     });
 
-    NAF.utils
-      .getNetworkedEntity(this.el)
+    getNetworkedEntity(this.el)
       .then(networkedEl => {
         this.networkedEl = networkedEl;
-        applyPersistentSync(this.networkedEl.components.networked.data.networkId);
+        applyPersistentSync(getNetworkId(this.networkedEl));
         this.updatePlaybackState();
 
         this.networkedEl.addEventListener("pinned", this.updateHoverMenu);
@@ -324,10 +332,10 @@ AFRAME.registerComponent("media-video", {
         // else has so there is a timekeeper. Do not due this on iOS because iOS has an
         // annoying "auto-pause" feature that forces one non-autoplaying video to play
         // at once, which will pause the videos for everyone in the room if owned.
-        if (!isIOS && NAF.utils.getNetworkOwner(this.networkedEl) === "scene") {
+        if (!isIOS && getNetworkOwner(this.networkedEl) === "scene") {
           setTimeout(() => {
-            if (NAF.utils.getNetworkOwner(this.networkedEl) === "scene") {
-              NAF.utils.takeOwnership(this.networkedEl);
+            if (getNetworkOwner(this.networkedEl) === "scene") {
+              takeOwnership(this.networkedEl);
             }
           }, 2000 + Math.floor(Math.random() * 2000));
         }
@@ -360,14 +368,11 @@ AFRAME.registerComponent("media-video", {
   },
 
   isMineOrLocal() {
-    return !this.el.components.networked || (this.networkedEl && NAF.utils.isMine(this.networkedEl));
+    return !isSynchronized(this.el) || (this.networkedEl && isMine(this.networkedEl));
   },
 
   ensureOwned() {
-    return (
-      !this.el.components.networked ||
-      ((this.networkedEl && NAF.utils.isMine(this.networkedEl)) || NAF.utils.takeOwnership(this.networkedEl))
-    );
+    return !this.networkedEl || ensureOwnership(this.networkedEl);
   },
 
   seekForward() {
@@ -447,7 +452,7 @@ AFRAME.registerComponent("media-video", {
 
     this.el.setAttribute("media-video", "videoPaused", this.video.paused);
 
-    if (this.networkedEl && NAF.utils.isMine(this.networkedEl)) {
+    if (this.networkedEl && isMine(this.networkedEl)) {
       this.el.emit("owned-video-state-changed");
     }
   },
@@ -456,7 +461,7 @@ AFRAME.registerComponent("media-video", {
     this.updateHoverMenu();
 
     // Only update playback position for videos you don't own
-    if (this.video && (force || (this.networkedEl && !NAF.utils.isMine(this.networkedEl)))) {
+    if (this.video && (force || (this.networkedEl && !isMine(this.networkedEl)))) {
       if (Math.abs(this.data.time - this.video.currentTime) > this.data.syncTolerance) {
         this.tryUpdateVideoPlaybackState(this.data.videoPaused, this.data.time);
       } else {
@@ -921,12 +926,7 @@ AFRAME.registerComponent("media-video", {
       }
 
       // If a known non-live video is currently playing and we own it, send out time updates
-      if (
-        !this.data.videoPaused &&
-        this.videoIsLive === false &&
-        this.networkedEl &&
-        NAF.utils.isMine(this.networkedEl)
-      ) {
+      if (!this.data.videoPaused && this.videoIsLive === false && this.networkedEl && isMine(this.networkedEl)) {
         const now = performance.now();
         if (now - this.lastUpdate > this.data.tickRate) {
           this.el.setAttribute("media-video", "time", this.video.currentTime);

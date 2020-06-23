@@ -1,3 +1,4 @@
+import { getNetworkedEntity } from "../utils/ownership-utils";
 import { cloneMedia } from "../utils/media-utils";
 import { guessContentType } from "../utils/media-url-utils";
 
@@ -10,7 +11,7 @@ AFRAME.registerComponent("clone-media-button", {
       this.el.object3D.visible = !!visible;
     };
 
-    NAF.utils.getNetworkedEntity(this.el).then(networkedEl => {
+    getNetworkedEntity(this.el).then(networkedEl => {
       this.targetEl = networkedEl;
       this.targetEl.addEventListener("media_resolved", this.updateSrc, { once: true });
       this.updateSrc();

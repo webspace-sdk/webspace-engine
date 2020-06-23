@@ -2,6 +2,7 @@ import { sets } from "../sets";
 import { paths } from "../paths";
 import { Pose } from "../pose";
 import { findRemoteHoverTarget } from "../../interactions";
+import { getNetworkedTemplate } from "../../../utils/ownership-utils";
 import { canMove } from "../../../utils/permissions-utils";
 
 const calculateCursorPose = function(camera, coords, origin, direction, cursorPose) {
@@ -68,10 +69,7 @@ export class AppAwareMouseDevice {
       const isPinned =
         remoteHoverTarget && remoteHoverTarget.components.pinnable && remoteHoverTarget.components.pinnable.data.pinned;
       const isFrozen = AFRAME.scenes[0].is("frozen");
-      const template =
-        remoteHoverTarget &&
-        remoteHoverTarget.components.networked &&
-        remoteHoverTarget.components.networked.data.template;
+      const template = remoteHoverTarget && getNetworkedTemplate(remoteHoverTarget);
       const isStaticControlledMedia = template && template === "#static-controlled-media";
       const isStaticMedia = template && template === "#static-media";
       this.clickedOnAnything =

@@ -1,3 +1,5 @@
+import { getNetworkedEntity } from "../utils/ownership-utils";
+
 AFRAME.registerComponent("hide-when-pinned-and-forbidden", {
   schema: {
     // Hide regardless of being forbidden.
@@ -9,7 +11,7 @@ AFRAME.registerComponent("hide-when-pinned-and-forbidden", {
     this.el.sceneEl.addEventListener("stateadded", this._updateUIOnStateChange);
     this.el.sceneEl.addEventListener("stateremoved", this._updateUIOnStateChange);
 
-    NAF.utils.getNetworkedEntity(this.el).then(networkedEl => {
+    getNetworkedEntity(this.el).then(networkedEl => {
       this.targetEl = networkedEl;
 
       this._updateUI();

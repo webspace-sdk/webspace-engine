@@ -2,6 +2,7 @@ import { paths } from "../paths";
 import { Pose } from "../pose";
 import { touchIsAssigned, jobIsAssigned, assign, unassign, findByJob, findByTouch } from "./touchscreen/assignments";
 import { findRemoteHoverTarget } from "../../interactions";
+import { getNetworkedTemplate } from "../../../utils/ownership-utils";
 import { canMove } from "../../../utils/permissions-utils";
 
 const MOVE_CURSOR_JOB = "MOVE CURSOR";
@@ -64,8 +65,7 @@ function shouldMoveCursor(touch, raycaster) {
     remoteHoverTarget && remoteHoverTarget.components.pinnable && remoteHoverTarget.components.pinnable.data.pinned;
   const isFrozen = AFRAME.scenes[0].is("frozen");
 
-  const template =
-    remoteHoverTarget && remoteHoverTarget.components.networked && remoteHoverTarget.components.networked.data.template;
+  const template = remoteHoverTarget && getNetworkedTemplate(remoteHoverTarget);
   const isStaticControlledMedia = template && template === "#static-controlled-media";
   const isStaticMedia = template && template === "#static-media";
   return (

@@ -1,5 +1,6 @@
 import { paths } from "../../systems/userinput/paths";
 import { getLastWorldPosition, getLastWorldQuaternion } from "../../utils/three-utils";
+import { isMine } from "../../utils/ownership-utils";
 import {
   SOUND_PEN_START_DRAW,
   SOUND_PEN_STOP_DRAW,
@@ -185,13 +186,13 @@ AFRAME.registerComponent("pen", {
   },
 
   tick(t, dt) {
-    const isMine = this.el.parentEl.components.networked.initialized && this.el.parentEl.components.networked.isMine();
+    const penIsMine = isMine(this.el.parentEl);
 
-    if (this.penTip.material.visible !== isMine) {
-      this.penTip.material.visible = isMine;
+    if (this.penTip.material.visible !== penIsMine) {
+      this.penTip.material.visible = penIsMine;
     }
 
-    if (isMine) {
+    if (penIsMine) {
       this._handleInput();
 
       const cursorPose =

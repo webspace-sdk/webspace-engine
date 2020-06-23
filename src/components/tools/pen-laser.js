@@ -1,3 +1,4 @@
+import { isMine } from "../../utils/ownership-utils";
 const InterpolationBuffer = require("buffered-interpolation");
 import MobileStandardMaterial from "../../materials/MobileStandardMaterial";
 
@@ -79,11 +80,10 @@ AFRAME.registerComponent("pen-laser", {
     const origin = new THREE.Vector3();
     const target = new THREE.Vector3();
     return function(t, dt) {
-      const isMine =
-        this.el.parentEl.components.networked.initialized && this.el.parentEl.components.networked.isMine();
+      const laserIsMine = isMine(this.el.parentEl);
       let laserVisible = false;
 
-      if (isMine && this.data.laserVisible) {
+      if (laserIsMine && this.data.laserVisible) {
         origin.copy(this.data.laserOrigin);
 
         if (!this.data.laserInHand) {
@@ -93,7 +93,7 @@ AFRAME.registerComponent("pen-laser", {
 
         target.copy(this.data.laserTarget);
         laserVisible = true;
-      } else if (!isMine && this.data.laserVisible) {
+      } else if (!laserIsMine && this.data.laserVisible) {
         this.originBuffer.update(dt);
         this.targetBuffer.update(dt);
         origin.copy(this.originBuffer.getPosition());
@@ -114,7 +114,7 @@ AFRAME.registerComponent("pen-laser", {
         this.laser.material.visible = laserVisible;
       }
 
-      const laserTipVisible = laserVisible ? !(isMine && this.data.laserVisible) : false;
+      const laserTipVisible = laserVisible ? !(laserIsMine && this.data.laserVisible) : false;
       if (this.laserTip.material.visible !== laserTipVisible) {
         this.laserTip.material.visible = laserTipVisible;
       }

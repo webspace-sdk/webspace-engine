@@ -1,5 +1,6 @@
 import { getLastWorldPosition } from "../utils/three-utils";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { isMine } from "../utils/ownership-utils";
 
 const isMobile = AFRAME.utils.device.isMobile();
 
@@ -125,7 +126,7 @@ AFRAME.registerComponent("visibility-while-frozen", {
     }
 
     if (!this.data.visibleIfOwned) {
-      shouldBeVisible = shouldBeVisible && this.networkedEl && !NAF.utils.isMine(this.networkedEl);
+      shouldBeVisible = shouldBeVisible && this.networkedEl && isMine(this.networkedEl);
     }
 
     if (isVisible !== shouldBeVisible) {

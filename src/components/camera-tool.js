@@ -1,5 +1,6 @@
 import { addAndArrangeMedia } from "../utils/media-utils";
 import { createImageBitmap } from "../utils/image-bitmap-utils";
+import { ensureOwnership } from "../utils/ownership-utils";
 import { ObjectTypes } from "../object-types";
 import { paths } from "../systems/userinput/paths";
 import { SOUND_CAMERA_TOOL_TOOK_SNAPSHOT, SOUND_CAMERA_TOOL_COUNTDOWN } from "../systems/sound-effects-system";
@@ -281,7 +282,7 @@ AFRAME.registerComponent("camera-tool", {
 
   snapClicked(isPhoto) {
     if (this.data.isSnapping) return;
-    if (!NAF.utils.isMine(this.el) && !NAF.utils.takeOwnership(this.el)) return;
+    if (!ensureOwnership(this.el)) return;
 
     this.el.setAttribute("camera-tool", "isSnapping", true);
     this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CAMERA_TOOL_COUNTDOWN);
@@ -290,7 +291,7 @@ AFRAME.registerComponent("camera-tool", {
     this.el.setAttribute("camera-tool", "label", `${this.snapCountdown}`);
 
     this.countdownInterval = setInterval(async () => {
-      if (!NAF.utils.isMine(this.el) && !NAF.utils.takeOwnership(this.el)) {
+      if (!ensureOwnership(this.el)) {
         clearInterval(this.countdownInterval);
         this.countdownInterval = null;
         return;
@@ -471,7 +472,7 @@ AFRAME.registerComponent("camera-tool", {
           // a few times and then pause it.
           if (this.data.captureAudio || recordingDuration <= MAX_DURATION_TO_LIMIT_LOOPS * 1000) {
             setTimeout(() => {
-              if (!NAF.utils.isMine(entity) && !NAF.utils.takeOwnership(entity)) return;
+              if (!ensureOwnership(entity)) return;
               entity.components["media-video"].tryUpdateVideoPlaybackState(true);
             }, this.data.captureAudio ? 0 : recordingDuration * VIDEO_LOOPS + 100);
           }

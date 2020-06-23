@@ -1,3 +1,4 @@
+import { ensureOwnership, getNetworkedEntity } from "../utils/ownership-utils";
 import { setMatrixWorld } from "../utils/three-utils";
 import { TRANSFORM_MODE } from "./transform-object-button";
 
@@ -63,7 +64,7 @@ AFRAME.registerComponent("scale-button", {
     this.objectMatrix = new THREE.Matrix4();
     this.dragVector = new THREE.Vector3();
     this.currentObjectScale = new THREE.Vector3();
-    NAF.utils.getNetworkedEntity(this.el).then(networkedEl => {
+    getNetworkedEntity(this.el).then(networkedEl => {
       this.networkedEl = networkedEl;
       this.objectToScale = networkedEl.object3D;
     });
@@ -75,9 +76,7 @@ AFRAME.registerComponent("scale-button", {
         return;
       }
 
-      if (!(NAF.utils.isMine(this.networkedEl) || NAF.utils.takeOwnership(this.networkedEl))) {
-        return;
-      }
+      if (!ensureOwnership(this.networkedEl)) return;
 
       if (!this.didGetObjectReferences) {
         this.didGetObjectReferences = true;

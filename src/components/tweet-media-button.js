@@ -1,9 +1,9 @@
+import { getNetworkedEntity } from "../utils/ownership-utils";
 import configs from "../utils/configs";
 
 AFRAME.registerComponent("tweet-media-button", {
   init() {
-    NAF.utils
-      .getNetworkedEntity(this.el)
+    getNetworkedEntity(this.el)
       .then(networkedEl => {
         this.targetEl = networkedEl;
       })

@@ -1,9 +1,11 @@
+import { ensureOwnership, getNetworkedEntity } from "../utils/ownership-utils";
+
 const COLLISION_LAYERS = require("../constants").COLLISION_LAYERS;
 
 AFRAME.registerComponent("drop-object-button", {
   init() {
     this.onClick = () => {
-      if (!NAF.utils.isMine(this.targetEl) && !NAF.utils.takeOwnership(this.targetEl)) return;
+      if (!ensureOwnership(this.targetEl)) return;
 
       this.targetEl.setAttribute("floaty-object", { modifyGravityOnRelease: false });
       this.targetEl.setAttribute("body-helper", {
@@ -25,7 +27,7 @@ AFRAME.registerComponent("drop-object-button", {
       this.el.parentNode.removeChild(this.el);
     };
 
-    NAF.utils.getNetworkedEntity(this.el).then(networkedEl => {
+    getNetworkedEntity(this.el).then(networkedEl => {
       this.targetEl = networkedEl;
     });
   },

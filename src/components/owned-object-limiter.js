@@ -1,4 +1,6 @@
-/* global AFRAME NAF performance */
+import { isSynchronized, isMine } from "../utils/ownership-utils";
+
+/* global AFRAME performance */
 AFRAME.registerComponent("owned-object-limiter", {
   schema: {
     counter: { type: "selector" }
@@ -22,11 +24,11 @@ AFRAME.registerComponent("owned-object-limiter", {
   },
 
   _syncCounterRegistration() {
-    if (!this.el.components["networked"]) return;
+    if (!isSynchronized(this.el)) return;
 
     const isPinned = this.el.components["pinnable"] && this.el.components["pinnable"].data.pinned;
 
-    if (NAF.utils.isMine(this.el) && !isPinned) {
+    if (isMine(this.el) && !isPinned) {
       this.counter.register(this.el);
     } else {
       this.counter.deregister(this.el);

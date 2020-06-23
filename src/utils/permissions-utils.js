@@ -1,3 +1,5 @@
+import { getCreator, getNetworkedTemplate } from "./ownership-utils";
+
 // Brief overview of client authorization can be found in the wiki:
 // https://github.com/mozilla/hubs/wiki/Hubs-authorization
 export function showHoverEffect(el) {
@@ -16,7 +18,7 @@ export function showHoverEffect(el) {
 
 export function canMove(entity) {
   const isPinned = entity.components.pinnable && entity.components.pinnable.data.pinned;
-  const networkedTemplate = entity && entity.components.networked && entity.components.networked.data.template;
+  const networkedTemplate = entity && getNetworkedTemplate(entity);
   const isCamera = networkedTemplate === "#interactable-camera";
   const isPen = networkedTemplate === "#interactable-pen";
   const spawnerTemplate =
@@ -123,7 +125,9 @@ function getPendingOrExistingEntityMetadata(networkId) {
   const entity = NAF.entities.getEntity(networkId);
   if (!entity) return null;
 
-  const { template, creator } = entity.components.networked.data;
+  const template = getNetworkedTemplate(entity);
+  const creator = getCreator(entity);
+  // TODO JEL kill
   const isPinned = entity.components.pinnable && entity.components.pinnable.data.pinned;
   return { template, creator, isPinned };
 }

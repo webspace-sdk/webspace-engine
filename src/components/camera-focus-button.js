@@ -1,3 +1,5 @@
+import { getNetworkedEntity } from "../utils/ownership-utils";
+
 import { findComponentsInNearestAncestor } from "../utils/scene-graph";
 AFRAME.registerComponent("camera-focus-button", {
   schema: {
@@ -8,7 +10,7 @@ AFRAME.registerComponent("camera-focus-button", {
   init() {
     this.cameraSystem = this.el.sceneEl.systems["camera-tools"];
 
-    NAF.utils.getNetworkedEntity(this.el).then(networkedEl => {
+    getNetworkedEntity(this.el).then(networkedEl => {
       if (this.data.selector) {
         this.targetEl = networkedEl.querySelector(this.data.selector);
       } else {
