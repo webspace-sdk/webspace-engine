@@ -346,13 +346,13 @@ export default class ObjectInfoDialog extends Component {
     uiRoot = uiRoot || document.getElementById("ui-root");
     const isGhost = uiRoot && uiRoot.firstChild && uiRoot.firstChild.classList.contains("isGhost");
     const showGoToButton = this.props.scene.is("entered") || isGhost;
-    const { fileIsOwned, fileId } = this.props.el.components["media-loader"].data;
+    const { fileId } = this.props.el.components["media-loader"].data;
     const showPinOrUnpin =
       this.props.scene.is("entered") &&
       !isStatic &&
       this.props.hubChannel &&
       this.props.hubChannel.can("pin_objects") &&
-      !!(fileIsOwned || (fileId && getPromotionTokenForFile(fileId)));
+      !!(fileId && getPromotionTokenForFile(fileId));
     const showPinButton = showPinOrUnpin && !pinned;
     const showUnpinButton = showPinOrUnpin && pinned;
     const showRemoveButton =

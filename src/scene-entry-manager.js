@@ -234,7 +234,6 @@ export default class SceneEntryManager {
     const gltfNode = pinnedEntityToGltf(el);
     if (!gltfNode) return;
     el.setAttribute("networked", { persistent: true });
-    el.setAttribute("media-loader", { fileIsOwned: true });
 
     try {
       await this.hubChannel.pin(networkId, gltfNode, fileId, fileAccessToken, promotionToken);
@@ -283,14 +282,15 @@ export default class SceneEntryManager {
 
   _setupMedia = mediaStream => {
     const offset = { x: 0, y: 0, z: -1.5 };
-    const spawnMediaInfrontOfPlayer = (src, contentOrigin) => {
+    const spawnMediaInfrontOfPlayer = (src, contents, contentOrigin) => {
       if (!this.hubChannel.can("spawn_and_move_media")) return;
       const { entity, orientation } = addMedia(
         src,
+        contents,
         "#interactable-media",
         contentOrigin,
         null,
-        !(src instanceof MediaStream),
+        !!(src && !(src instanceof MediaStream)),
         true
       );
       orientation.then(or => {
@@ -307,7 +307,7 @@ export default class SceneEntryManager {
     this.scene.addEventListener("add_media", e => {
       const contentOrigin = e.detail instanceof File ? ObjectContentOrigins.FILE : ObjectContentOrigins.URL;
 
-      spawnMediaInfrontOfPlayer(e.detail, contentOrigin);
+      spawnMediaInfrontOfPlayer(e.detail, null, contentOrigin);
     });
 
     const handlePinEvent = (e, pinned) => {
@@ -365,13 +365,18 @@ export default class SceneEntryManager {
       const uiRoot = document.querySelector(".ui-root");
       if (uiRoot && uiRoot.classList.contains("in-modal-or-overlay")) return;
 
-      const url = e.clipboardData.getData("text");
+      const html = e.clipboardData.getData("text/html");
+      const text = e.clipboardData.getData("text/plain");
+      const url = !html && text.toLowerCase().startsWith("http") ? text : null;
+      const contents = html || text ? html || `<html><pre>${text}</pre></html>` : null;
       const files = e.clipboardData.files && e.clipboardData.files;
       if (url) {
-        spawnMediaInfrontOfPlayer(url, ObjectContentOrigins.URL);
+        spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL);
+      } else if (contents) {
+        spawnMediaInfrontOfPlayer(null, contents, ObjectContentOrigins.CLIPBOARD);
       } else {
         for (const file of files) {
-          spawnMediaInfrontOfPlayer(file, ObjectContentOrigins.CLIPBOARD);
+          spawnMediaInfrontOfPlayer(file, null, ObjectContentOrigins.CLIPBOARD);
         }
       }
     });
@@ -395,10 +400,10 @@ export default class SceneEntryManager {
       const files = e.dataTransfer.files;
 
       if (url) {
-        spawnMediaInfrontOfPlayer(url, ObjectContentOrigins.URL);
+        spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL);
       } else {
         for (const file of files) {
-          spawnMediaInfrontOfPlayer(file, ObjectContentOrigins.FILE);
+          spawnMediaInfrontOfPlayer(file, null, ObjectContentOrigins.FILE);
         }
       }
     });
@@ -435,7 +440,7 @@ export default class SceneEntryManager {
         }
 
         await NAF.connection.adapter.setLocalMediaStream(mediaStream);
-        currentVideoShareEntity = spawnMediaInfrontOfPlayer(mediaStream, undefined);
+        currentVideoShareEntity = spawnMediaInfrontOfPlayer(mediaStream, null, undefined);
 
         // Wire up custom removal event which will stop the stream.
         currentVideoShareEntity.setAttribute("emit-scene-event-on-remove", "event:action_end_video_sharing");
@@ -512,10 +517,10 @@ export default class SceneEntryManager {
       // If user has HMD lifted up or gone through interstitial, delay spawning for now. eventually show a modal
       if (delaySpawn) {
         setTimeout(() => {
-          spawnMediaInfrontOfPlayer(entry.url, ObjectContentOrigins.URL);
+          spawnMediaInfrontOfPlayer(entry.url, null, ObjectContentOrigins.URL);
         }, 3000);
       } else {
-        spawnMediaInfrontOfPlayer(entry.url, ObjectContentOrigins.URL);
+        spawnMediaInfrontOfPlayer(entry.url, null, ObjectContentOrigins.URL);
       }
     });
 

@@ -161,7 +161,6 @@ AFRAME.GLTFModelPlus.registerComponent("media", "media", (el, componentName, com
     src: componentData.src,
     fitToBox: componentData.contentSubtype ? false : true,
     resolve: true,
-    fileIsOwned: true,
     animate: false,
     contentSubtype: componentData.contentSubtype
   };
@@ -235,7 +234,6 @@ async function mediaInflator(el, componentName, componentData, components) {
     src,
     fitToBox: true,
     resolve: true,
-    fileIsOwned: true,
     animate: false,
     mediaOptions
   });
@@ -267,7 +265,6 @@ AFRAME.GLTFModelPlus.registerComponent("spawner", "spawner", (el, componentName,
   el.setAttribute("media-loader", {
     src: componentData.src,
     resolve: true,
-    fileIsOwned: true,
     animate: false,
     moveTheParentNotTheMesh: true
   });

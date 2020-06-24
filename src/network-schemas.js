@@ -6,7 +6,7 @@ function registerNetworkSchemas() {
       return curr => {
         if (prev === null) {
           prev = new THREE.Vector3(curr.x, curr.y, curr.z);
-          return true;
+          return false;
         } else if (!NAF.utils.almostEqualVec3(prev, curr, epsilon)) {
           prev.copy(curr);
           return true;
@@ -98,7 +98,35 @@ function registerNetworkSchemas() {
         requiresNetworkUpdate: vectorRequiresUpdate(0.001)
       },
       // TODO: Optimize checking mediaOptions with requiresNetworkUpdate.
-      "media-loader",
+      {
+        component: "media-loader",
+        property: "src"
+      },
+      {
+        component: "media-text",
+        property: "deltaOps",
+        subtype: "rich-text"
+      },
+      {
+        component: "media-loader",
+        property: "fitToBox"
+      },
+      {
+        component: "media-loader",
+        property: "fileId"
+      },
+      {
+        component: "media-loader",
+        property: "contentType"
+      },
+      {
+        component: "media-loader",
+        property: "contentSubtype"
+      },
+      {
+        component: "media-loader",
+        property: "version"
+      },
       {
         component: "media-video",
         property: "time"
@@ -111,7 +139,10 @@ function registerNetworkSchemas() {
         component: "media-pdf",
         property: "index"
       },
-      "pinnable"
+      {
+        component: "media-text",
+        property: "body"
+      }
     ],
     nonAuthorizedComponents: [
       {

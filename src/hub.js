@@ -73,6 +73,7 @@ import "./components/visibility-while-frozen";
 import "./components/stats-plus";
 import "./components/networked-avatar";
 import "./components/media-views";
+import "./jel/components/media-text";
 import "./components/avatar-volume-controls";
 import "./components/pinch-to-move";
 import "./components/pitch-yaw-rotator";
@@ -158,6 +159,7 @@ import "./systems/linked-media";
 import { SOUND_CHAT_MESSAGE } from "./systems/sound-effects-system";
 
 import "./gltf-component-mappings";
+import Quill from "quill";
 
 import { App } from "./App";
 
@@ -712,6 +714,7 @@ function checkForAccountRequired() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  new Quill("#editor", { theme: "snow" });
   await store.initProfile();
 
   const canvas = document.querySelector(".a-canvas");

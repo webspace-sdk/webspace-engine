@@ -132,6 +132,7 @@ export function coerceToUrl(urlOrText) {
 
 export const addMedia = (
   src,
+  contents,
   template,
   contentOrigin,
   contentSubtype = null,
@@ -167,6 +168,7 @@ export const addMedia = (
   }
 
   const needsToBeUploaded = src instanceof File;
+  // TODO JEL deal with text files dropped or uploaded
 
   // If we're re-pasting an existing src in the scene, we should use the latest version
   // seen across any other entities. Otherwise, start with version 1.
@@ -177,9 +179,9 @@ export const addMedia = (
     resolve,
     animate,
     src: typeof src === "string" ? coerceToUrl(src) || src : "",
+    initialContents: contents ? contents : null,
     version,
     contentSubtype,
-    fileIsOwned: !needsToBeUploaded,
     linkedEl,
     mediaOptions
   });
@@ -246,7 +248,8 @@ export const cloneMedia = (sourceEl, template, src = null, networked = true, lin
     mediaOptions,
     networked,
     parentEl,
-    link ? sourceEl : null
+    link ? sourceEl : null,
+    contentType
   );
 };
 

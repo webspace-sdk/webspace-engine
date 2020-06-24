@@ -9,6 +9,10 @@
 @import 'audio';
 @import 'info-dialog';
 
+@import '~quill/dist/quill.core.css';
+@import '~quill/dist/quill.bubble.css';
+@import '~quill/dist/quill.snow.css';
+
 body {
   background-color: var(--loading-background-color);
 }
@@ -19,6 +23,15 @@ body.vr-mode-stretch {
       width: 200% !important;
     }
   }
+}
+
+#editor {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 400px;
+  height: 200px;
+  background-color: white;
 }
 
 .a-enter-vr, .a-orientation-modal {

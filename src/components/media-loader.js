@@ -47,12 +47,12 @@ AFRAME.registerComponent("media-loader", {
   schema: {
     playSoundEffect: { default: true },
     fileId: { type: "string" },
-    fileIsOwned: { type: "boolean" },
     src: { type: "string" },
+    initialContents: { type: "string" },
     version: { type: "number", default: 1 }, // Used to force a re-resolution
     fitToBox: { default: false },
     moveTheParentNotTheMesh: { default: false },
-    resolve: { default: false },
+    resolve: { default: true },
     contentType: { default: null },
     contentSubtype: { default: null },
     animate: { default: true },
@@ -323,10 +323,10 @@ AFRAME.registerComponent("media-loader", {
   },
 
   async update(oldData, forceLocalRefresh) {
-    const { src, version, contentSubtype } = this.data;
-    if (!src) return;
+    const { src, initialContents, version, contentSubtype } = this.data;
+    if (!src && !initialContents) return;
 
-    const srcChanged = oldData.src !== src;
+    const mediaChanged = oldData.initialContents !== initialContents && oldData.src !== src;
     const versionChanged = !!(oldData.version && oldData.version !== version);
 
     if (versionChanged) {
@@ -345,10 +345,11 @@ AFRAME.registerComponent("media-loader", {
       this.el.removeAttribute("media-video");
       this.el.removeAttribute("media-pdf");
       this.el.removeAttribute("media-image");
+      this.el.removeAttribute("media-text");
     }
 
     try {
-      if ((forceLocalRefresh || srcChanged) && !this.showLoaderTimeout) {
+      if ((forceLocalRefresh || mediaChanged) && !this.showLoaderTimeout) {
         this.showLoaderTimeout = setTimeout(this.showLoader, 100);
       }
 
@@ -358,12 +359,12 @@ AFRAME.registerComponent("media-loader", {
       let contentType = this.data.contentType;
       let thumbnail;
 
-      const parsedUrl = new URL(src);
+      const parsedUrl = new URL(src || "about:blank");
 
       // We want to resolve and proxy some hubs urls, like rooms and scene links,
       // but want to avoid proxying assets in order for this to work in dev environments
       const isLocalModelAsset =
-        isNonCorsProxyDomain(parsedUrl.hostname) && (guessContentType(src) || "").startsWith("model/gltf");
+        src && isNonCorsProxyDomain(parsedUrl.hostname) && (guessContentType(src) || "").startsWith("model/gltf");
 
       if (this.data.resolve && !src.startsWith("data:") && !src.startsWith("hubs:") && !isLocalModelAsset) {
         const is360 = !!(this.data.mediaOptions.projection && this.data.mediaOptions.projection.startsWith("360"));
@@ -403,13 +404,20 @@ AFRAME.registerComponent("media-loader", {
       }
 
       // We don't want to emit media_resolved for index updates.
-      if (forceLocalRefresh || srcChanged) {
+      if (forceLocalRefresh || mediaChanged) {
         this.el.emit("media_resolved", { src, raw: accessibleUrl, contentType });
       } else {
         this.el.emit("media_refreshed", { src, raw: accessibleUrl, contentType });
       }
 
-      if (
+      if (initialContents) {
+        this.el.removeAttribute("gltf-model-plus");
+        this.el.removeAttribute("media-image");
+        this.el.removeAttribute("media-video");
+        this.el.removeAttribute("media-pdf");
+        this.el.removeAttribute("media-pager");
+        this.el.setAttribute("media-text");
+      } else if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||
         contentType.startsWith("application/dash") ||
@@ -429,6 +437,7 @@ AFRAME.registerComponent("media-loader", {
         const startTime = hashTime || qsTime || 0;
         this.el.removeAttribute("gltf-model-plus");
         this.el.removeAttribute("media-image");
+        this.el.removeAttribute("media-text");
         this.el.removeAttribute("media-pdf");
         this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
         this.el.addEventListener(
@@ -459,6 +468,7 @@ AFRAME.registerComponent("media-loader", {
       } else if (contentType.startsWith("image/")) {
         this.el.removeAttribute("gltf-model-plus");
         this.el.removeAttribute("media-video");
+        this.el.removeAttribute("media-text");
         this.el.removeAttribute("media-pdf");
         this.el.removeAttribute("media-pager");
         this.el.addEventListener(
@@ -499,6 +509,7 @@ AFRAME.registerComponent("media-loader", {
       } else if (contentType.startsWith("application/pdf")) {
         this.el.removeAttribute("gltf-model-plus");
         this.el.removeAttribute("media-video");
+        this.el.removeAttribute("media-text");
         this.el.removeAttribute("media-image");
         this.el.setAttribute(
           "media-pdf",
@@ -532,6 +543,7 @@ AFRAME.registerComponent("media-loader", {
       ) {
         this.el.removeAttribute("media-image");
         this.el.removeAttribute("media-video");
+        this.el.removeAttribute("media-text");
         this.el.removeAttribute("media-pdf");
         this.el.removeAttribute("media-pager");
         this.el.addEventListener(
@@ -560,6 +572,7 @@ AFRAME.registerComponent("media-loader", {
       } else if (contentType.startsWith("text/html")) {
         this.el.removeAttribute("gltf-model-plus");
         this.el.removeAttribute("media-video");
+        this.el.removeAttribute("media-text");
         this.el.removeAttribute("media-pdf");
         this.el.removeAttribute("media-pager");
         this.el.addEventListener(
