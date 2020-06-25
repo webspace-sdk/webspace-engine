@@ -1,23 +1,91 @@
 import Quill from "quill";
 import { getQuill, hasQuill, destroyQuill } from "../utils/quill-pool";
 import { getNetworkId } from "../utils/ownership-utils";
+import { fromByteArray } from "base64-js";
 
 AFRAME.registerComponent("media-text", {
   schema: {
+    src: { type: "string" },
     deltaOps: { default: null }
   },
 
   async init() {
-    const shared = this.el.components.shared;
-    await shared.whenReadyForBinding();
-    const quill = this.bindQuill();
+    this.renderNextFrame = false;
+    this.onTextChanged = this.onTextChanged.bind(this);
+  },
 
-    const { initialContents } = this.el.components["media-loader"].data;
+  async update(oldData) {
+    const { src } = this.data;
+    if (!src) return;
 
-    if (initialContents) {
-      const delta = quill.clipboard.convert(initialContents);
-      quill.updateContents(delta, Quill.sources.USER);
+    const oldSrc = oldData.src;
+
+    if (!this.mesh) {
+      this.texture = new THREE.Texture();
+      this.texture.encoding = THREE.sRGBEncoding;
+      this.texture.minFilter = THREE.LinearFilter;
+
+      const mat = new THREE.MeshBasicMaterial();
+      const geo = new THREE.PlaneBufferGeometry(1, 1, 1, 1, this.texture.flipY);
+      mat.side = THREE.DoubleSide;
+
+      this.mesh = new THREE.Mesh(geo, mat);
+      this.mesh.material.map = this.texture;
+      this.el.setObject3D("mesh", this.mesh);
     }
+
+    this.el.emit("text-loading");
+
+    if (src && src !== oldSrc) {
+      this.unbindAndRemoveQuill();
+      const shared = this.el.components.shared;
+      await shared.whenReadyForBinding();
+      this.quill = this.bindQuill();
+
+      const { initialContents } = this.el.components["media-loader"].data;
+
+      if (initialContents) {
+        const delta = this.quill.clipboard.convert(initialContents);
+        this.quill.updateContents(delta, Quill.sources.USER);
+      }
+    }
+
+    // TODO move after first frame loaded
+    this.el.emit("text-loaded", { src: this.data.src });
+  },
+
+  tick() {
+    if (this.renderNextFrame && this.quill) {
+      this.renderNextFrame = false;
+      this.render();
+    }
+  },
+
+  render() {
+    const el = this.quill.container;
+    const xml = new XMLSerializer().serializeToString(el);
+
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${el.clientWidth}" height="${el.clientHeight}">
+        <foreignObject width="${el.clientWidth}" height="${el.clientHeight}">
+          ${xml}
+        </foreignObject>
+      </svg>
+    `;
+
+    const b64 = fromByteArray(new TextEncoder().encode(svg));
+    const img = document.createElement("img");
+    img.src = `data:image/svg+xml;base64,${b64}`;
+
+    img.onload = () => {
+      this.texture.image = img;
+      this.texture.needsUpdate = this.mesh.material.needsUpdate = true;
+    };
+  },
+
+  onTextChanged() {
+    this.renderNextFrame = true;
+    // TODO priority queue in a system
   },
 
   bindQuill() {
@@ -25,6 +93,7 @@ AFRAME.registerComponent("media-text", {
     if (hasQuill(networkId)) return;
 
     const quill = getQuill(networkId);
+    quill.on("text-change", this.onTextChanged);
     this.el.components.shared.bindRichTextEditor(quill, this.name, "deltaOps");
     return quill;
   },
@@ -34,8 +103,10 @@ AFRAME.registerComponent("media-text", {
     if (!hasQuill(networkId)) return;
 
     const quill = getQuill(networkId);
+    quill.off("text-change", this.onTextChanged);
     this.el.components.shared.unbindRichTextEditor(quill, this.name, "deltaOps");
     destroyQuill(networkId);
+    this.quill = null;
   },
 
   remove() {

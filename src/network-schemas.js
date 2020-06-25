@@ -157,38 +157,6 @@ function registerNetworkSchemas() {
   });
 
   NAF.schemas.add({
-    template: "#interactable-emoji",
-    components: [
-      {
-        component: "position",
-        requiresNetworkUpdate: vectorRequiresUpdate(0.001)
-      },
-      {
-        component: "rotation",
-        requiresNetworkUpdate: vectorRequiresUpdate(0.5)
-      },
-      {
-        component: "emoji",
-        property: "emitEndTime"
-      },
-      {
-        component: "emoji",
-        property: "particleEmitterConfig"
-      },
-      {
-        component: "scale",
-        requiresNetworkUpdate: vectorRequiresUpdate(0.001)
-      },
-      "media-loader",
-      "pinnable",
-      {
-        selector: ".particle-emitter",
-        component: "particle-emitter"
-      }
-    ]
-  });
-
-  NAF.schemas.add({
     template: "#static-media",
     components: [
       // TODO: Optimize checking mediaOptions with requiresNetworkUpdate.

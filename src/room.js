@@ -71,6 +71,8 @@ import "./components/visibility-while-frozen";
 import "./components/stats-plus";
 import "./components/networked-avatar";
 import "./components/media-views";
+import "./jel/components/media-text";
+import { initMediaTextComponent } from "./jel/components/media-text";
 import "./components/avatar-volume-controls";
 import "./components/pinch-to-move";
 import "./components/pitch-yaw-rotator";
@@ -1034,6 +1036,7 @@ async function start() {
 
   hideCanvas();
   warmSerializeElement();
+  initMediaTextComponent();
 
   const hubId = "d4RYo9G";
 

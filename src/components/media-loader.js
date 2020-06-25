@@ -323,7 +323,7 @@ AFRAME.registerComponent("media-loader", {
   },
 
   async update(oldData, forceLocalRefresh) {
-    const { src, initialContents, version, contentSubtype } = this.data;
+    const { src, version, contentSubtype } = this.data;
     if (!src) return;
 
     const mediaChanged = oldData.src !== src;
@@ -416,7 +416,10 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("media-video");
         this.el.removeAttribute("media-pdf");
         this.el.removeAttribute("media-pager");
-        this.el.setAttribute("media-text", {});
+
+        this.el.addEventListener("text-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
+
+        this.el.setAttribute("media-text", { src: accessibleUrl });
       } else if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||

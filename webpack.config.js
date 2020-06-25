@@ -412,6 +412,12 @@ module.exports = async (env, argv) => {
         maxAsyncRequests: 10,
         maxInitialRequests: 10,
         cacheGroups: {
+          quill: {
+            test: /quill\..+\.css$/,
+            name: "quill-styles",
+            chunks: "initial",
+            priority: 50
+          },
           frontend: {
             test: deepModuleDependencyTest([
               "react",

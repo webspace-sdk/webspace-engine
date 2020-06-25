@@ -73,6 +73,7 @@ import "./components/stats-plus";
 import "./components/networked-avatar";
 import "./components/media-views";
 import "./jel/components/media-text";
+import { initQuillPool } from "./jel/utils/quill-pool";
 import "./components/avatar-volume-controls";
 import "./components/pinch-to-move";
 import "./components/pitch-yaw-rotator";
@@ -718,6 +719,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   canvas.classList.add("a-hidden");
 
   warmSerializeElement();
+  initQuillPool();
 
   if (!window.WebAssembly) {
     remountUI({ showWebAssemblyDialog: true });
