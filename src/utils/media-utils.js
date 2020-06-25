@@ -6,6 +6,7 @@ import { mapMaterials } from "./material-utils";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import { validMaterials } from "../components/hoverable-visuals";
 import { proxiedUrlFor, guessContentType } from "../utils/media-url-utils";
+import { getNetworkedEntity, getNetworkId } from "../jel/utils/ownership-utils";
 import Linkify from "linkify-it";
 import tlds from "tlds";
 
@@ -178,7 +179,7 @@ export const addMedia = (
     fitToBox,
     resolve,
     animate,
-    src: typeof src === "string" ? coerceToUrl(src) || src : "",
+    src: typeof src === "string" && !contents ? coerceToUrl(src) || src : "",
     initialContents: contents ? contents : null,
     version,
     contentSubtype,
@@ -217,7 +218,14 @@ export const addMedia = (
         entity.setAttribute("media-loader", { src: "error" });
       });
   } else if (src instanceof MediaStream) {
-    entity.setAttribute("media-loader", { src: `hubs://clients/${NAF.clientId}/video` });
+    entity.setAttribute("media-loader", { src: `jel://clients/${NAF.clientId}/video` });
+  } else if (contents) {
+    // If contents were set, update the src to reflect the media-text property that is bound.
+    getNetworkedEntity(entity).then(el => {
+      entity.setAttribute("media-loader", {
+        src: `jel://entities/${getNetworkId(el)}/components/media-text/properties/deltaOps/contents`
+      });
+    });
   }
 
   if (contentOrigin) {

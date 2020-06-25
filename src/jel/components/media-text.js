@@ -4,16 +4,18 @@ import { getNetworkId } from "../utils/ownership-utils";
 
 AFRAME.registerComponent("media-text", {
   schema: {
-    initialContents: { type: "string" },
     deltaOps: { default: null }
   },
 
   async init() {
-    if (this.data.initialContents) {
-      await this.el.components.shared.whenReadyForBinding();
+    const shared = this.el.components.shared;
+    await shared.whenReadyForBinding();
+    const quill = this.bindQuill();
 
-      const quill = this.bindQuill();
-      const delta = quill.clipboard.convert(this.data.initialContents);
+    const { initialContents } = shared.data;
+
+    if (initialContents) {
+      const delta = quill.clipboard.convert(initialContents);
       quill.updateContents(delta, Quill.sources.USER);
     }
   },

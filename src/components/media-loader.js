@@ -78,7 +78,7 @@ AFRAME.registerComponent("media-loader", {
         .then(networkedEl => {
           this.networkedEl = networkedEl;
         })
-        .catch(() => {}); //ignore exception, entity might not be networked
+        .catch(); //ignore exception, entity might not be networked
     } catch (e) {
       // NAF/SAF may not exist on scene landing page
     }
@@ -324,9 +324,9 @@ AFRAME.registerComponent("media-loader", {
 
   async update(oldData, forceLocalRefresh) {
     const { src, initialContents, version, contentSubtype } = this.data;
-    if (!src && !initialContents) return;
+    if (!src) return;
 
-    const mediaChanged = oldData.initialContents !== initialContents && oldData.src !== src;
+    const mediaChanged = oldData.src !== src;
     const versionChanged = !!(oldData.version && oldData.version !== version);
 
     if (versionChanged) {
@@ -359,14 +359,14 @@ AFRAME.registerComponent("media-loader", {
       let contentType = this.data.contentType;
       let thumbnail;
 
-      const parsedUrl = new URL(src || "about:blank");
+      const parsedUrl = new URL(src);
 
       // We want to resolve and proxy some hubs urls, like rooms and scene links,
       // but want to avoid proxying assets in order for this to work in dev environments
       const isLocalModelAsset =
-        src && isNonCorsProxyDomain(parsedUrl.hostname) && (guessContentType(src) || "").startsWith("model/gltf");
+        isNonCorsProxyDomain(parsedUrl.hostname) && (guessContentType(src) || "").startsWith("model/gltf");
 
-      if (this.data.resolve && !src.startsWith("data:") && !src.startsWith("hubs:") && !isLocalModelAsset) {
+      if (this.data.resolve && !src.startsWith("data:") && !src.startsWith("jel:") && !isLocalModelAsset) {
         const is360 = !!(this.data.mediaOptions.projection && this.data.mediaOptions.projection.startsWith("360"));
         const quality = getDefaultResolveQuality(is360);
         const result = await resolveUrl(src, quality, version, forceLocalRefresh);
@@ -410,13 +410,18 @@ AFRAME.registerComponent("media-loader", {
         this.el.emit("media_refreshed", { src, raw: accessibleUrl, contentType });
       }
 
-      if (initialContents) {
+      if (src.startsWith("jel://entities/") && src.includes("/components/media-text")) {
         this.el.removeAttribute("gltf-model-plus");
         this.el.removeAttribute("media-image");
         this.el.removeAttribute("media-video");
         this.el.removeAttribute("media-pdf");
         this.el.removeAttribute("media-pager");
-        this.el.setAttribute("media-text", { initialContents });
+
+        if (initialContents) {
+          this.el.setAttribute("media-text", { initialContents });
+        } else {
+          this.el.setAttribute("media-text", {});
+        }
       } else if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||

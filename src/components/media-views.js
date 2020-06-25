@@ -588,7 +588,7 @@ AFRAME.registerComponent("media-video", {
 
       this.mediaElementAudioSource = null;
 
-      if (!src.startsWith("hubs://")) {
+      if (!src.startsWith("jel://")) {
         // iOS video audio is broken, see: https://github.com/mozilla/hubs/issues/1797
         if (!isIOS) {
           // TODO FF error here if binding mediastream: The captured HTMLMediaElement is playing a MediaStream. Applying volume or mute status is not currently supported -- not an issue since we have no audio atm in shared video.
@@ -727,7 +727,7 @@ AFRAME.registerComponent("media-video", {
       }
 
       // Set src on video to begin loading.
-      if (url.startsWith("hubs://")) {
+      if (url.startsWith("jel://")) {
         const streamClientId = url.substring(7).split("/")[1]; // /clients/<client id>/video is only URL for now
         const stream = await NAF.connection.adapter.getMediaStream(streamClientId, "video");
         videoEl.srcObject = new MediaStream(stream.getVideoTracks());

@@ -506,51 +506,6 @@
                 </a-entity>
             </template>
 
-            <template id="interactable-emoji">
-                <a-entity
-                    class="interactable"
-                    emoji
-                    body-helper="type: dynamic; mass: 1; collisionFilterGroup: 1; collisionFilterMask: 15;"
-                    owned-object-limiter="counter: #emoji-counter"
-                    owned-object-cleanup-timeout="counter: #emoji-counter; ttl: 3;"
-                    set-unowned-body-kinematic
-                    is-remote-hover-target
-                    tags="isHandCollisionTarget: true; isHoldable: true; offersHandConstraint: true; offersRemoteConstraint: true; inspectable: true;"
-                    destroy-at-extreme-distances
-                    scalable-when-grabbed
-                    floaty-object="modifyGravityOnRelease: true; autoLockOnLoad: true;"
-                    set-yxz-order
-                    matrix-auto-update
-                    position-at-border__freeze="target:.freeze-menu;"
-                    hoverable-visuals
-                >
-                    <a-entity
-                        class="particle-emitter"
-                        particle-emitter="particleCount: 0"
-                        scale="0.25 0.25 0.25"
-                        position="0 0.25 -0.001"
-                    ></a-entity>
-                    <a-entity class="ui interactable-ui">
-                        <a-entity class="freeze-menu" visibility-while-frozen="withinDistance: 100; withPermission: spawn_and_move_media; visibleIfOwned: false;">
-                            <a-entity
-                                mixin="rounded-button"
-                                is-remote-hover-target
-                                tags="singleActionButton: true;"
-                                hide-when-pinned-and-forbidden="whenPinned: true"
-                                remove-networked-object-button
-                                position="0 -0.375 0.001">
-                                <a-entity
-                                    sprite="name: remove-action.png"
-                                    icon-button="image: remove-action.png; hoverImage: remove-action.png"
-                                    scale="0.165 0.165 0.165"
-                                    position="0 0 0.001"
-                                ></a-entity>
-                            </a-entity>
-                        </a-entity>
-                    </a-entity>
-                </a-entity>
-            </template>
-
             <template id="linked-media">
                 <a-entity
                     class="interactable"
@@ -996,8 +951,6 @@
 
         <a-entity id="pen-counter" networked-counter="max: 10;"></a-entity>
 
-        <a-entity id="emoji-counter" networked-counter="max: 2;"></a-entity>
-
         <a-entity id="camera-counter" networked-counter="max: 1;"></a-entity>
 
         <a-entity id="drawing-manager" drawing-manager="penSpawner: #pen-spawner"></a-entity>
@@ -1165,8 +1118,6 @@
                 ></a-entity>
                 <a-entity id="stats" stats-plus="false" position="0 0 -1"></a-entity>
             </a-entity>
-
-            <a-entity emoji-hud="camera: #avatar-pov-node;"></a-entity>
 
             <a-entity
                 id="player-left-controller"

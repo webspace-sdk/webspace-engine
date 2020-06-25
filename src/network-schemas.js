@@ -138,10 +138,6 @@ function registerNetworkSchemas() {
       {
         component: "media-pdf",
         property: "index"
-      },
-      {
-        component: "media-text",
-        property: "body"
       }
     ],
     nonAuthorizedComponents: [

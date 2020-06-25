@@ -47,7 +47,6 @@ import "./components/bone-visibility";
 import "./components/fader";
 import "./components/in-world-hud";
 import "./components/emoji";
-import "./components/emoji-hud";
 import "./components/virtual-gamepad-controls";
 import "./components/ik-controller";
 import "./components/hand-controls2";
