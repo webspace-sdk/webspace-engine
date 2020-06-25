@@ -159,7 +159,6 @@ import "./systems/linked-media";
 import { SOUND_CHAT_MESSAGE } from "./systems/sound-effects-system";
 
 import "./gltf-component-mappings";
-import Quill from "quill";
 
 import { App } from "./App";
 
@@ -714,7 +713,6 @@ function checkForAccountRequired() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  new Quill("#editor", { theme: "snow" });
   await store.initProfile();
 
   const canvas = document.querySelector(".a-canvas");

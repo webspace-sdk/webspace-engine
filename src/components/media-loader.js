@@ -416,7 +416,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("media-video");
         this.el.removeAttribute("media-pdf");
         this.el.removeAttribute("media-pager");
-        this.el.setAttribute("media-text");
+        this.el.setAttribute("media-text", { initialContents });
       } else if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||
