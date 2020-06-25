@@ -52,7 +52,7 @@ export function getQuill(networkId) {
   const id = `quill-${networkId}`;
   el.setAttribute("id", id);
   el.classList.add("quill-background");
-  el.setAttribute("style", `left: ${Object.values(quills).length * 400}px;`);
+  el.setAttribute("style", `left: ${Object.values(quills).length * 355}px;`);
 
   const styleTag = document.createElement("style");
   styleTag.innerHTML = quillStyles;

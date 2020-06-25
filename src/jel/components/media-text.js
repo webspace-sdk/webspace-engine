@@ -2,6 +2,7 @@ import Quill from "quill";
 import { getQuill, hasQuill, destroyQuill } from "../utils/quill-pool";
 import { getNetworkId } from "../utils/ownership-utils";
 import { fromByteArray } from "base64-js";
+import { scaleToAspectRatio } from "../../components/media-views";
 
 AFRAME.registerComponent("media-text", {
   schema: {
@@ -32,6 +33,7 @@ AFRAME.registerComponent("media-text", {
       this.mesh = new THREE.Mesh(geo, mat);
       this.mesh.material.map = this.texture;
       this.el.setObject3D("mesh", this.mesh);
+      scaleToAspectRatio(this.el, 9.0 / 16.0); // TODO 1080p is default
     }
 
     this.el.emit("text-loading");
@@ -64,10 +66,13 @@ AFRAME.registerComponent("media-text", {
   render() {
     const el = this.quill.container;
     const xml = new XMLSerializer().serializeToString(el);
+    const ratio = el.offsetWidth / el.offsetHeight;
+    const textureSize = 2048; // TODO labels should be smaller
+    const scale = (textureSize * Math.min(1.0, 1.0 / ratio)) / el.offsetWidth;
 
     const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${el.clientWidth}" height="${el.clientHeight}">
-        <foreignObject width="${el.clientWidth}" height="${el.clientHeight}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="${el.offsetWidth * scale}px" height="${el.offsetHeight * scale}px">
+        <foreignObject width="100%" height="100%" style="transform: scale(${scale});">
           ${xml}
         </foreignObject>
       </svg>
@@ -104,7 +109,7 @@ AFRAME.registerComponent("media-text", {
 
     const quill = getQuill(networkId);
     quill.off("text-change", this.onTextChanged);
-    this.el.components.shared.unbindRichTextEditor(quill, this.name, "deltaOps");
+    this.el.components.shared.unbindRichTextEditor(this.name, "deltaOps");
     destroyQuill(networkId);
     this.quill = null;
   },

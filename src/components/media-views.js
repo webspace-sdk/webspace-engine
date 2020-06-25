@@ -138,7 +138,7 @@ function createVideoOrAudioEl(type) {
   return el;
 }
 
-function scaleToAspectRatio(el, ratio) {
+export function scaleToAspectRatio(el, ratio) {
   const width = Math.min(1.0, 1.0 / ratio);
   const height = Math.min(1.0, ratio);
   el.object3DMap.mesh.scale.set(width, height, 1);
