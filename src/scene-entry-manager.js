@@ -361,6 +361,9 @@ export default class SceneEntryManager {
       )
         return;
 
+      // Quill editor
+      if (document.activeElement && document.activeElement.classList.contains("ql-clipboard")) return;
+
       // Never paste into scene if dialog is open
       const uiRoot = document.querySelector(".ui-root");
       if (uiRoot && uiRoot.classList.contains("in-modal-or-overlay")) return;
