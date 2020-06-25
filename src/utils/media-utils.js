@@ -180,7 +180,7 @@ export const addMedia = (
     resolve,
     animate,
     src: typeof src === "string" && !contents ? coerceToUrl(src) || src : "",
-    initialContents: contents ? contents : null,
+    initialContents: contents || null,
     version,
     contentSubtype,
     linkedEl,

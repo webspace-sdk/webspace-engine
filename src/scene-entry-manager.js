@@ -367,8 +367,8 @@ export default class SceneEntryManager {
 
       const html = e.clipboardData.getData("text/html");
       const text = e.clipboardData.getData("text/plain");
-      const url = !html && text.toLowerCase().startsWith("http") ? text : null;
-      const contents = html || text ? html || `<html><pre>${text}</pre></html>` : null;
+      const url = text && text.toLowerCase().startsWith("http") ? text : null;
+      const contents = (!url && (html || text)) || null;
       const files = e.clipboardData.files && e.clipboardData.files;
       if (url) {
         spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL);

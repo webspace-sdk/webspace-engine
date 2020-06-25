@@ -12,7 +12,7 @@ AFRAME.registerComponent("media-text", {
     await shared.whenReadyForBinding();
     const quill = this.bindQuill();
 
-    const { initialContents } = shared.data;
+    const { initialContents } = this.el.components["media-loader"].data;
 
     if (initialContents) {
       const delta = quill.clipboard.convert(initialContents);
