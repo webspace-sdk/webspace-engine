@@ -698,7 +698,7 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data)
       scene.components["networked-scene"]
         .connect()
         .then(() => scene.components["shared-scene"].connect())
-        .then(() => scene.components["shared-scene"].subscribe(hub.hub_id))
+        .then(() => scene.components["shared-scene"].subscribe("b" /*, hub.hub_id*/))
         .then(() => {
           clearTimeout(connectionErrorTimeout);
           scene.emit("didConnectToNetworkedScene");
@@ -1118,7 +1118,7 @@ const getAddToPresenceLog = () => {
   };
 };
 
-const setupHubChannelJoinHandler = (hubPhxChannel, addToPresenceLog, entryManager) => {
+const setupHubChannelJoinHandler = (hubPhxChannel, entryManager, addToPresenceLog) => {
   const scene = document.querySelector("a-scene");
 
   const messageDispatch = new MessageDispatch(

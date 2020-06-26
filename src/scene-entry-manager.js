@@ -370,7 +370,19 @@ export default class SceneEntryManager {
 
       const html = e.clipboardData.getData("text/html");
       const text = e.clipboardData.getData("text/plain");
-      const url = text && text.toLowerCase().startsWith("http") ? text : null;
+      // Check if data or http url
+      const url =
+        text &&
+        (text
+          .substring(0, 4)
+          .toLowerCase()
+          .startsWith("http") ||
+          text
+            .substring(0, 5)
+            .toLowerCase()
+            .startsWith("data:"))
+          ? text
+          : null;
       const contents = (!url && (html || text)) || null;
       const files = e.clipboardData.files && e.clipboardData.files;
       if (url) {
