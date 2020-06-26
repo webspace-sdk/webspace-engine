@@ -1020,16 +1020,6 @@ AFRAME.registerComponent("media-image", {
     this.setMediaPresence = this.setMediaPresence.bind(this);
     this.mediaPresence = MEDIA_PRESENCE.INIT;
     this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
-
-    try {
-      getNetworkedEntity(this.el)
-        .then(networkedEl => {
-          this.networkedEl = networkedEl;
-        })
-        .catch(); //ignore exception, entity might not be networked
-    } catch (e) {
-      // NAF/SAF may not exist on scene landing page
-    }
   },
 
   remove() {
