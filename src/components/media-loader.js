@@ -77,6 +77,10 @@ AFRAME.registerComponent("media-loader", {
       getNetworkedEntity(this.el)
         .then(networkedEl => {
           this.networkedEl = networkedEl;
+          this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.setDesiredMediaPresence(
+            this.el.components.shared.data.networkId,
+            2
+          );
         })
         .catch(); //ignore exception, entity might not be networked
     } catch (e) {

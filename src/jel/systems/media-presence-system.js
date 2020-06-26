@@ -55,8 +55,9 @@ export class MediaPresenceSystem {
         .then(networkedEl => {
           const networkId = getNetworkId(networkedEl);
           this.mediaComponents[networkId] = component;
+          this.checkForNewTransitionsNextTick = true;
         })
-        .catch(); //ignore exception, entity might not be networked
+        .catch(() => {}); //ignore exception, entity might not be networked
     } catch (e) {
       // NAF/SAF may not exist on scene landing page
     }
@@ -68,6 +69,7 @@ export class MediaPresenceSystem {
         .then(networkedEl => {
           const networkId = getNetworkId(networkedEl);
           delete this.mediaComponents[networkId];
+          this.checkForNewTransitionsNextTick = true;
         })
         .catch(); //ignore exception, entity might not be networked
     } catch (e) {
