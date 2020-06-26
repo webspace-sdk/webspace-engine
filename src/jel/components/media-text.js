@@ -66,8 +66,8 @@ AFRAME.registerComponent("media-text", {
   render() {
     const el = this.quill.container;
     const xml = new XMLSerializer().serializeToString(el);
-    const ratio = el.offsetWidth / el.offsetHeight;
-    const textureSize = 2048; // TODO labels should be smaller
+    const ratio = el.offsetHeight / el.offsetWidth;
+    const textureSize = 1024; // TODO labels should be smaller
     const scale = (textureSize * Math.min(1.0, 1.0 / ratio)) / el.offsetWidth;
 
     const svg = `
