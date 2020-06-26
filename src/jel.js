@@ -1,5 +1,4 @@
 import "./webxr-bypass-hacks";
-import configs from "./utils/configs";
 import "./utils/theme";
 import "@babel/polyfill";
 import "./utils/debug-log";
@@ -36,7 +35,6 @@ import {
 import nextTick from "./utils/next-tick";
 import { addAnimationComponents } from "./utils/animation";
 import { authorizeOrSanitizeMessage } from "./utils/permissions-utils";
-import Cookies from "js-cookie";
 import "./naf-dialog-adapter";
 
 import "./components/scene-components";
@@ -135,7 +133,6 @@ import { handleExitTo2DInterstitial, exit2DInterstitialAndEnterVR } from "./util
 import { getAvatarSrc } from "./utils/avatar-utils.js";
 import MessageDispatch from "./message-dispatch";
 import SceneEntryManager from "./scene-entry-manager";
-import Subscriptions from "./subscriptions";
 import { createInWorldLogMessage } from "./react-components/chat-message";
 
 import "./systems/nav";
@@ -190,7 +187,6 @@ const linkChannel = new LinkChannel(store);
 window.APP.hubChannel = hubChannel;
 
 const mediaSearchStore = window.APP.mediaSearchStore;
-const OAUTH_FLOW_PERMS_TOKEN_KEY = "ret-oauth-flow-perms-token";
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
 
 const qs = new URLSearchParams(location.search);
@@ -734,15 +730,6 @@ async function runBotMode(scene, entryManager) {
   entryManager.enterSceneWhenLoaded(new MediaStream(), false);
 }
 
-function checkForAccountRequired() {
-  // If the app requires an account to join a room, redirect to the sign in page.
-  if (!configs.feature("require_account_for_join")) return;
-  if (store.state.credentials && store.state.credentials.token) return;
-  document.location = `/?sign_in&sign_in_destination=hub&sign_in_destination_url=${encodeURIComponent(
-    document.location.toString()
-  )}`;
-}
-
 function initPhysicsAndThree(scene) {
   const physicsSystem = scene.systems["hubs-systems"].physicsSystem;
   physicsSystem.setDebug(isDebug || physicsSystem.debug);
@@ -817,7 +804,7 @@ function initBatching() {
     .setAttribute("media-image", { batch: true, src: initialBatchImage, contentType: "image/png" });
 }
 
-function addGlobalEventListeners(scene) {
+function addGlobalEventListeners(scene, entryManager) {
   window.addEventListener("action_create_avatar", () => {
     performConditionalSignIn(
       () => hubChannel.signedIn,
@@ -1031,7 +1018,31 @@ async function createSocket(entryManager) {
   return socket;
 }
 
+const createHubChannelParams = () => {
+  const params = {
+    profile: store.state.profile,
+    auth_token: null,
+    perms_token: null,
+    context: {
+      mobile: isMobile || isMobileVR
+    }
+  };
+
+  if (isMobileVR) {
+    params.context.hmd = true;
+  }
+
+  const { token } = store.state.credentials;
+  if (token) {
+    console.log(`Logged into account ${store.credentialsAccountId}`);
+    params.auth_token = token;
+  }
+
+  return params;
+};
+
 let retDeployReconnectInterval;
+const retReconnectMaxDelayMs = 15000;
 
 const migrateToNewReticulumServer = async (deployNotification, retPhxChannel) => {
   // On Reticulum deploys, reconnect after a random delay until pool + version match deployed version/pool
@@ -1067,29 +1078,6 @@ const migrateToNewReticulumServer = async (deployNotification, retPhxChannel) =>
     retDeployReconnectInterval = setInterval(tryReconnect, 5000);
     tryReconnect();
   }, Math.floor(Math.random() * retReconnectMaxDelayMs));
-};
-
-const createHubChannelParams = () => {
-  const params = {
-    profile: store.state.profile,
-    auth_token: null,
-    perms_token: null,
-    context: {
-      mobile: isMobile || isMobileVR
-    }
-  };
-
-  if (isMobileVR) {
-    params.context.hmd = true;
-  }
-
-  const { token } = store.state.credentials;
-  if (token) {
-    console.log(`Logged into account ${store.credentialsAccountId}`);
-    params.auth_token = token;
-  }
-
-  return params;
 };
 
 const createRetChannel = (socket, hubId) => {
@@ -1519,7 +1507,7 @@ async function start() {
 
   await initAvatar();
 
-  addGlobalEventListeners(scene);
+  addGlobalEventListeners(scene, entryManager);
 
   entryManager.init();
 
