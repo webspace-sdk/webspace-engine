@@ -25,6 +25,7 @@ import { ScaleInScreenSpaceSystem } from "./scale-in-screen-space";
 import { MenuAnimationSystem } from "./menu-animation-system";
 import { AudioSettingsSystem } from "./audio-settings-system";
 import { EnterVRButtonSystem } from "./enter-vr-button-system";
+import { MediaPresenceSystem } from "../jel/systems/media-presence-system";
 import { AudioSystem } from "./audio-system";
 
 AFRAME.registerSystem("hubs-systems", {
@@ -59,6 +60,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.menuAnimationSystem = new MenuAnimationSystem();
     this.audioSettingsSystem = new AudioSettingsSystem(this.el);
     this.enterVRButtonSystem = new EnterVRButtonSystem(this.el);
+    this.mediaPresenceSystem = new MediaPresenceSystem(this.el);
     this.animationMixerSystem = new AnimationMixerSystem();
     this.boneVisibilitySystem = new BoneVisibilitySystem();
   },
@@ -101,6 +103,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.menuAnimationSystem.tick(t);
     this.spriteSystem.tick(t, dt);
     this.enterVRButtonSystem.tick();
+    this.mediaPresenceSystem.tick();
 
     // We run this late in the frame so that its the last thing to have an opinion about the scale of an object
     this.boneVisibilitySystem.tick();

@@ -124,6 +124,7 @@ AFRAME.registerComponent("super-spawner", {
 
     const spawnedEntity = addMedia(
       this.data.src,
+      null,
       this.data.template,
       ObjectContentOrigins.SPAWNER,
       null,

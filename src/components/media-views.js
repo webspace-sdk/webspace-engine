@@ -23,6 +23,7 @@ import { promisifyWorker } from "../utils/promisify-worker.js";
 import pdfjs from "pdfjs-dist";
 import { applyPersistentSync } from "../utils/permissions-utils";
 import { refreshMediaMirror, getCurrentMirroredMedia } from "../utils/mirror-utils";
+import { MEDIA_PRESENCE } from "../utils/media-utils";
 
 /**
  * Warning! This require statement is fragile!
@@ -149,6 +150,8 @@ export function scaleToAspectRatio(el, ratio) {
 }
 
 function disposeTexture(texture) {
+  if (!texture) return;
+
   if (texture.image instanceof HTMLVideoElement) {
     const video = texture.image;
     video.pause();
@@ -608,6 +611,7 @@ AFRAME.registerComponent("media-video", {
       this.video.addEventListener("pause", this.onPauseStateChange);
       this.video.addEventListener("play", this.onPauseStateChange);
 
+      // Deal with setting LIVE on video or not
       if (texture.hls) {
         const updateLiveState = () => {
           if (texture.hls.currentLevel >= 0) {
@@ -1012,6 +1016,22 @@ AFRAME.registerComponent("media-image", {
     batch: { default: false }
   },
 
+  init() {
+    this.setMediaPresence = this.setMediaPresence.bind(this);
+    this.mediaPresence = MEDIA_PRESENCE.INIT;
+    this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
+
+    try {
+      getNetworkedEntity(this.el)
+        .then(networkedEl => {
+          this.networkedEl = networkedEl;
+        })
+        .catch(); //ignore exception, entity might not be networked
+    } catch (e) {
+      // NAF/SAF may not exist on scene landing page
+    }
+  },
+
   remove() {
     if (this.data.batch && this.mesh) {
       this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.removeObject(this.mesh);
@@ -1020,27 +1040,58 @@ AFRAME.registerComponent("media-image", {
       textureCache.release(this.data.src, this.data.version);
       this.currentSrcIsRetained = false;
     }
+
+    this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
   },
 
-  async update(oldData) {
+  releaseExistingTexture() {
+    if (this.mesh && this.mesh.material) {
+      this.mesh.material.map = null;
+      this.mesh.material.needsUpdate = true;
+    }
+
+    if (this._lastCachedTextureSrc) {
+      textureCache.release(this._lastCachedTextureSrc, this._lastCachedTextureVersion);
+      delete this._lastCachedTextureSrc;
+      delete this._lastCachedTextureVersion;
+      this.currentSrcIsRetained = false;
+    }
+  },
+
+  setMediaPresence(presence, refresh = false) {
+    // Don't allow media presence changes when we're currently transitioning.
+    if (this.mediaPresence === MEDIA_PRESENCE.PENDING) return;
+
+    switch (presence) {
+      case MEDIA_PRESENCE.PRESENT:
+        return this.setMediaToPresent(refresh);
+      case MEDIA_PRESENCE.HIDDEN:
+        return this.setMediaToHidden(refresh);
+    }
+  },
+
+  async setMediaToHidden() {
+    this.mesh.visible = false;
+    this.mediaPresence = MEDIA_PRESENCE.HIDDEN;
+  },
+
+  async setMediaToPresent(refresh = false) {
+    const prevMediaPresence = this.mediaPresence;
+    this.mediaPresence = MEDIA_PRESENCE.PENDING;
+
+    const { src, version, contentType } = this.data;
+
     let texture;
     let ratio = 1;
 
     const batchManagerSystem = this.el.sceneEl.systems["hubs-systems"].batchManagerSystem;
 
     try {
-      const { src, version, contentType } = this.data;
-      if (!src) return;
-
       this.el.emit("image-loading");
 
-      if (this.mesh && this.mesh.material.map && (src !== oldData.src || version !== oldData.version)) {
-        this.mesh.material.map = null;
-        this.mesh.material.needsUpdate = true;
-        if (this.mesh.material.map !== errorTexture) {
-          textureCache.release(oldData.src, oldData.version);
-          this.currentSrcIsRetained = false;
-        }
+      // Release any existing texture
+      if (refresh) {
+        this.releaseExistingTexture();
       }
 
       let cacheItem;
@@ -1056,9 +1107,13 @@ AFRAME.registerComponent("media-image", {
         if (src === "error") {
           cacheItem = errorCacheItem;
         } else if (inflightTextures.has(inflightKey)) {
+          // Texture is already being created
           await inflightTextures.get(inflightKey);
           cacheItem = textureCache.retain(src, version);
+          this._lastCachedTextureSrc = src;
+          this._lastCachedTextureVersion = version;
         } else {
+          // Create a new texture
           let promise;
           if (contentType.includes("image/gif")) {
             promise = createGIFTexture(src);
@@ -1072,12 +1127,16 @@ AFRAME.registerComponent("media-image", {
           inflightTextures.set(inflightKey, promise);
           texture = await promise;
           inflightTextures.delete(inflightKey);
+
           cacheItem = textureCache.set(src, version, texture);
+          this._lastCachedTextureSrc = src;
+          this._lastCachedTextureVersion = version;
         }
 
         // No way to cancel promises, so if src has changed or this entity was removed while we were creating the texture just throw it away.
         if (this.data.src !== src || this.data.version !== version || !this.el.parentNode) {
-          textureCache.release(src, version);
+          this.releaseExistingTexture();
+          this.mediaPresence = prevMediaPresence;
           return;
         }
       }
@@ -1100,7 +1159,7 @@ AFRAME.registerComponent("media-image", {
       batchManagerSystem.removeObject(this.mesh);
     }
 
-    if (!this.mesh || projection !== oldData.projection) {
+    if (!this.mesh || refresh) {
       const material = new THREE.MeshBasicMaterial();
 
       let geometry;
@@ -1125,6 +1184,7 @@ AFRAME.registerComponent("media-image", {
 
       this.mesh = new THREE.Mesh(geometry, material);
       this.el.setObject3D("mesh", this.mesh);
+      this.mediaPresence = MEDIA_PRESENCE.PRESENT;
     }
 
     // We only support transparency on gifs. Other images will support cutout as part of batching, but not alpha transparency for now
@@ -1136,6 +1196,7 @@ AFRAME.registerComponent("media-image", {
 
     this.mesh.material.map = texture;
     this.mesh.material.needsUpdate = true;
+    this.mesh.visible = true;
 
     if (projection === "flat") {
       scaleToAspectRatio(this.el, ratio);
@@ -1146,6 +1207,18 @@ AFRAME.registerComponent("media-image", {
     }
 
     this.el.emit("image-loaded", { src: this.data.src, projection: projection });
+  },
+
+  async update(/*oldData*/) {
+    const { src /*, version, projection */ } = this.data;
+    if (!src) return;
+
+    // TODO refresh
+    //const refresh = oldData.src && (oldData.src !== src || oldData.version !== version || oldData.projection !== projection);
+    //if (refresh) {
+    // tell media manager to refresh this one.
+    //}
+    //this.setMediaPresence(MEDIA_PRESENCE.PRESENT, refresh);
   }
 });
 
@@ -1190,6 +1263,8 @@ AFRAME.registerComponent("media-pdf", {
     if (this.data.batch && this.mesh) {
       this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.removeObject(this.mesh);
     }
+
+    this.releaseExistingTexture();
   },
 
   async update(oldData) {

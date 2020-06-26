@@ -247,6 +247,7 @@ export const cloneMedia = (sourceEl, template, src = null, networked = true, lin
 
   return addMedia(
     src,
+    null,
     template,
     ObjectContentOrigins.URL,
     contentSubtype,
@@ -256,8 +257,7 @@ export const cloneMedia = (sourceEl, template, src = null, networked = true, lin
     mediaOptions,
     networked,
     parentEl,
-    link ? sourceEl : null,
-    contentType
+    link ? sourceEl : null
   );
 };
 
@@ -546,3 +546,10 @@ export function closeExistingMediaMirror() {
     });
   }
 }
+
+export const MEDIA_PRESENCE = {
+  INIT: 0,
+  PENDING: 1,
+  PRESENT: 2,
+  HIDDEN: 8 // Retain CPU resources, remove GPU resources (textures, etc), stop playback/etc
+};
