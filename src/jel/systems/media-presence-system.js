@@ -12,7 +12,6 @@ export class MediaPresenceSystem {
   }
 
   tick() {
-    if (this.transitioningNetworkIds.size >= MAX_CONCURRENT_TRANSITIONS) return;
     if (!this.checkForNewTransitionsNextTick) return;
 
     // Look for new transitions

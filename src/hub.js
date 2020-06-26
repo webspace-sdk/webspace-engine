@@ -658,6 +658,7 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data)
       scene.components["networked-scene"]
         .connect()
         .then(() => scene.components["shared-scene"].connect())
+        .then(() => scene.components["shared-scene"].subscribe(hub.hub_id))
         .then(() => {
           clearTimeout(connectionErrorTimeout);
           scene.emit("didConnectToNetworkedScene");

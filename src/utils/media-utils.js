@@ -551,5 +551,5 @@ export const MEDIA_PRESENCE = {
   INIT: 0,
   PENDING: 1,
   PRESENT: 2,
-  HIDDEN: 8 // Retain CPU resources, remove GPU resources (textures, etc), stop playback/etc
+  HIDDEN: 8
 };
