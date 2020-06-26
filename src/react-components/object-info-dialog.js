@@ -24,7 +24,7 @@ import { HorizontalScrollView } from "./horizontal-scroll-view";
 export function NavigationRowItem(props) {
   const { onClick, icon, isSelected } = props;
   return (
-    <button className={classNames(oStyles.noDefaultButtonStyle, oStyles.innerNavigationRowItem)} onClick={onClick}>
+    <button className={oStyles.innerNavigationRowItem} onClick={onClick}>
       <i className={oStyles.flex}>
         <FontAwesomeIcon
           className={classNames(oStyles.navigationRowItem, { [oStyles.selected]: isSelected })}
@@ -43,7 +43,7 @@ NavigationRowItem.propTypes = {
 function HeaderIcon(props) {
   const { icon, onClick, ariaLabel, small } = props;
   return (
-    <button aria-label={ariaLabel} className={classNames(oStyles.noDefaultButtonStyle)} onClick={onClick}>
+    <button aria-label={ariaLabel} className={oStyles.noDefaultButtonStyle} onClick={onClick}>
       <i className={oStyles.flex}>
         <FontAwesomeIcon className={classNames(oStyles.headerIcon, { [oStyles.small]: small })} icon={icon} />
       </i>
@@ -78,7 +78,7 @@ HeaderIconLink.propTypes = {
 function ActionRowIcon(props) {
   const { icon, onClick, ariaLabel } = props;
   return (
-    <button aria-label={ariaLabel} className={classNames(oStyles.noDefaultButtonStyle)} onClick={onClick}>
+    <button aria-label={ariaLabel} className={oStyles.noDefaultButtonStyle} onClick={onClick}>
       <i className={oStyles.flex}>
         <FontAwesomeIcon className={classNames(oStyles.actionRowIcon)} icon={icon} />
       </i>
@@ -110,6 +110,10 @@ export default class ObjectInfoDialog extends Component {
   };
 
   componentDidMount() {
+    this.onresize = () => {
+      this.forceUpdate();
+    };
+    window.addEventListener("resize", this.onresize);
     this.updateMediaEntities = this.updateMediaEntities.bind(this);
     this.navigateNext = this.navigateNext.bind(this);
     this.navigatePrev = this.navigatePrev.bind(this);
@@ -124,6 +128,10 @@ export default class ObjectInfoDialog extends Component {
     this.setState({ enableLights: cameraSystem.enableLights });
     this.updateMediaEntities();
     this.props.scene.addEventListener("listed_media_changed", () => setTimeout(() => this.updateMediaEntities(), 0));
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("resize", this.onresize);
   }
 
   updateMediaEntities() {
