@@ -160,6 +160,7 @@ import { SOUND_CHAT_MESSAGE } from "./systems/sound-effects-system";
 import "./gltf-component-mappings";
 
 import { App } from "./App";
+import { platformUnsupported } from "./support";
 
 window.APP = new App();
 window.APP.RENDER_ORDER = {
@@ -168,6 +169,7 @@ window.APP.RENDER_ORDER = {
   CURSOR: 3
 };
 const store = window.APP.store;
+store.update({ preferences: { shouldPromptForRefresh: undefined } });
 
 // Hub ID and slug are the basename
 let routerBaseName = document.location.pathname
@@ -248,11 +250,6 @@ if (!isBotMode && !isTelemetryDisabled) {
 
 disableiOSZoom();
 detectConcurrentLoad();
-
-function getPlatformUnsupportedReason() {
-  if (typeof RTCDataChannelEvent === "undefined") return "no_data_channels";
-  return null;
-}
 
 function setupLobbyCamera() {
   const camera = document.getElementById("scene-preview-node");
@@ -734,28 +731,12 @@ async function initAvatar() {
   return avatarSrc;
 }
 
-function checkPrerequisites() {
-  if (!window.WebAssembly) {
-    remountUI({ showWebAssemblyDialog: true });
+async function checkPrerequisites() {
+  if (platformUnsupported()) {
     return false;
   }
 
-  // Some apps like Twitter, Discord and Facebook on Android and iOS open links in
-  // their own embedded preview browsers.
-  //
-  // On iOS this WebView does not have a mediaDevices API at all, but in Android apps
-  // like Facebook, the browser pretends to have a mediaDevices, but never actually
-  // prompts the user for device access. So, we show a dialog that tells users to open
-  // the room in an actual browser like Safari, Chrome or Firefox.
-  //
-  // Facebook Mobile Browser on Android has a userAgent like this:
-  // Mozilla/5.0 (Linux; Android 9; SM-G950U1 Build/PPR1.180610.011; wv) AppleWebKit/537.36 (KHTML, like Gecko)
-  // Version/4.0 Chrome/80.0.3987.149 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/262.0.0.34.117;]
   const detectedOS = detectOS(navigator.userAgent);
-  if ((detectedOS === "iOS" && !navigator.mediaDevices) || /\bfb_iab\b/i.test(navigator.userAgent)) {
-    remountUI({ showInAppBrowserDialog: true });
-    return false;
-  }
 
   const browser = detect();
   // HACK - it seems if we don't initialize the mic track up-front, voices can drop out on iOS
@@ -767,13 +748,6 @@ function checkPrerequisites() {
       remountUI({ showSafariMicDialog: true });
       return;
     }
-  }
-
-  const platformUnsupportedReason = getPlatformUnsupportedReason();
-
-  if (platformUnsupportedReason) {
-    remountUI({ platformUnsupportedReason });
-    return false;
   }
 
   if (qs.get("required_version") && process.env.BUILD_VERSION) {
