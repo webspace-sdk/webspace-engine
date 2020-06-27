@@ -152,6 +152,7 @@ export function scaleToAspectRatio(el, ratio) {
 function disposeTexture(texture) {
   if (!texture) return;
 
+  // Unload the video element to prevent it from continuing to play in the background
   if (texture.image instanceof HTMLVideoElement) {
     const video = texture.image;
     video.pause();
@@ -181,6 +182,10 @@ class TextureCache {
   }
 
   set(src, version, texture) {
+    if (this.has(src, version)) {
+      throw new Error(`Setting existing value over ${src} ${version} in texture class, did you mean to call retain?`);
+    }
+
     const image = texture.image;
     this.cache.set(this.key(src, version), {
       texture,
@@ -216,7 +221,6 @@ class TextureCache {
     cacheItem.count--;
     // console.log("release", src, cacheItem.count);
     if (cacheItem.count <= 0) {
-      // Unload the video element to prevent it from continuing to play in the background
       disposeTexture(cacheItem.texture);
       this.cache.delete(this.key(src, version));
     }
@@ -1026,26 +1030,13 @@ AFRAME.registerComponent("media-image", {
     if (this.data.batch && this.mesh) {
       this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.removeObject(this.mesh);
     }
+
     if (this.currentSrcIsRetained) {
       textureCache.release(this.data.src, this.data.version);
       this.currentSrcIsRetained = false;
     }
 
     this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
-  },
-
-  releaseExistingTexture() {
-    if (this.mesh && this.mesh.material) {
-      this.mesh.material.map = null;
-      this.mesh.material.needsUpdate = true;
-    }
-
-    if (this._lastCachedTextureSrc) {
-      textureCache.release(this._lastCachedTextureSrc, this._lastCachedTextureVersion);
-      delete this._lastCachedTextureSrc;
-      delete this._lastCachedTextureVersion;
-      this.currentSrcIsRetained = false;
-    }
   },
 
   setMediaPresence(presence, refresh = false) {
@@ -1066,7 +1057,6 @@ AFRAME.registerComponent("media-image", {
   },
 
   async setMediaToPresent(refresh = false) {
-    const prevMediaPresence = this.mediaPresence;
     this.mediaPresence = MEDIA_PRESENCE.PENDING;
 
     const { src, version, contentType } = this.data;
@@ -1075,6 +1065,7 @@ AFRAME.registerComponent("media-image", {
     let ratio = 1;
 
     const batchManagerSystem = this.el.sceneEl.systems["hubs-systems"].batchManagerSystem;
+    const isDataUrl = src.startsWith("data:");
 
     try {
       this.el.emit("image-loading");
@@ -1090,18 +1081,24 @@ AFRAME.registerComponent("media-image", {
           cacheItem = textureCache.get(src, version);
         } else {
           cacheItem = textureCache.retain(src, version);
+          this.currentSrcIsRetained = true;
         }
       } else {
         const inflightKey = textureCache.key(src, version);
+
+        // No way to cancel promises, so if src has changed or this entity was removed while we were creating the texture just throw it away.
+        const nowStaleOrRemoved = () => this.data.src !== src || this.data.version !== version || !this.el.parentNode;
 
         if (src === "error") {
           cacheItem = errorCacheItem;
         } else if (inflightTextures.has(inflightKey)) {
           // Texture is already being created
           await inflightTextures.get(inflightKey);
-          cacheItem = textureCache.retain(src, version);
-          this._lastCachedTextureSrc = src;
-          this._lastCachedTextureVersion = version;
+
+          if (!nowStaleOrRemoved()) {
+            cacheItem = textureCache.retain(src, version);
+            this.currentSrcIsRetained = true;
+          }
         } else {
           // Create a new texture
           let promise;
@@ -1114,27 +1111,48 @@ AFRAME.registerComponent("media-image", {
           } else {
             throw new Error(`Unknown image content type: ${contentType}`);
           }
-          inflightTextures.set(inflightKey, promise);
-          texture = await promise;
-          inflightTextures.delete(inflightKey);
 
-          cacheItem = textureCache.set(src, version, texture);
-          this._lastCachedTextureSrc = src;
-          this._lastCachedTextureVersion = version;
+          // Don't cache data:
+          if (!isDataUrl) {
+            const inflightPromise = new Promise(async res => {
+              try {
+                texture = await promise;
+
+                if (!textureCache.has(src, version)) {
+                  cacheItem = textureCache.set(src, version, texture);
+                } else {
+                  cacheItem = textureCache.retain(src, version);
+                }
+
+                if (nowStaleOrRemoved()) {
+                  setTimeout(() => textureCache.release(src, version), 0);
+                } else {
+                  this.currentSrcIsRetained = true;
+                }
+
+                res();
+              } finally {
+                inflightTextures.delete(inflightKey);
+              }
+            });
+
+            inflightTextures.set(inflightKey, inflightPromise);
+            await inflightPromise;
+          } else {
+            texture = await promise;
+            const image = texture.image;
+            ratio = (image.videoHeight || image.height) / (image.videoWidth || image.width);
+            this.currentSrcIsRetained = false;
+          }
         }
 
-        // No way to cancel promises, so if src has changed or this entity was removed while we were creating the texture just throw it away.
-        if (this.data.src !== src || this.data.version !== version || !this.el.parentNode) {
-          this.releaseExistingTexture();
-          this.mediaPresence = prevMediaPresence;
-          return;
-        }
+        if (nowStaleOrRemoved()) return;
       }
 
-      texture = cacheItem.texture;
-      ratio = cacheItem.ratio;
-
-      this.currentSrcIsRetained = true;
+      if (cacheItem) {
+        texture = cacheItem.texture;
+        ratio = cacheItem.ratio;
+      }
     } catch (e) {
       console.error("Error loading image", this.data.src, e);
       texture = errorTexture;
@@ -1174,7 +1192,6 @@ AFRAME.registerComponent("media-image", {
 
       this.mesh = new THREE.Mesh(geometry, material);
       this.el.setObject3D("mesh", this.mesh);
-      this.mediaPresence = MEDIA_PRESENCE.PRESENT;
     }
 
     // We only support transparency on gifs. Other images will support cutout as part of batching, but not alpha transparency for now
@@ -1196,6 +1213,7 @@ AFRAME.registerComponent("media-image", {
       batchManagerSystem.addObject(this.mesh);
     }
 
+    this.mediaPresence = MEDIA_PRESENCE.PRESENT;
     this.el.emit("image-loaded", { src: this.data.src, projection: projection });
   },
 
@@ -1253,8 +1271,6 @@ AFRAME.registerComponent("media-pdf", {
     if (this.data.batch && this.mesh) {
       this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.removeObject(this.mesh);
     }
-
-    this.releaseExistingTexture();
   },
 
   async update(oldData) {
