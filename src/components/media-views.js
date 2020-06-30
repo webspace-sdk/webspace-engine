@@ -346,12 +346,11 @@ AFRAME.registerComponent("media-video", {
         // else has so there is a timekeeper. Do not due this on iOS because iOS has an
         // annoying "auto-pause" feature that forces one non-autoplaying video to play
         // at once, which will pause the videos for everyone in the room if owned.
-        if (!isIOS && getNetworkOwner(this.networkedEl) === "scene") {
-          setTimeout(() => {
-            if (getNetworkOwner(this.networkedEl) === "scene") {
-              takeOwnership(this.networkedEl);
-            }
-          }, 2000 + Math.floor(Math.random() * 2000));
+        if (!isIOS) {
+          this.ensurePresentOwnerInterval = setInterval(
+            () => this.ensurePresentOwner(),
+            10000 + Math.floor(Math.random() * 2000)
+          );
         }
       })
       .catch(() => {
@@ -543,6 +542,19 @@ AFRAME.registerComponent("media-video", {
     if (shouldSetPositionalAudioProperties) {
       this.setPositionalAudioProperties();
       return;
+    }
+  },
+
+  ensurePresentOwner() {
+    if (!this.networkedEl) return;
+    if (isMine(this.networkedEl)) return;
+
+    const owner = getNetworkOwner(this.networkedEl);
+    const occupants = NAF.connection.connectedClients;
+
+    if (!occupants.includes(owner)) {
+      console.log(`Video ${getNetworkId(this.networkedEl)} has non-present owner, taking ownership.`);
+      takeOwnership(this.networkedEl);
     }
   },
 
@@ -976,6 +988,10 @@ AFRAME.registerComponent("media-video", {
   },
 
   remove() {
+    if (this.ensurePresentOwnerInterval) {
+      clearInterval(this.ensurePresentOwnerInterval);
+    }
+
     this.disposeVideoTexture();
 
     if (this.mesh) {

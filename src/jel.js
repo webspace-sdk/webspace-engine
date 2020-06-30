@@ -617,6 +617,7 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data)
     scene.addEventListener("adapter-ready", ({ detail: adapter }) => {
       let newHostPollInterval = null;
 
+      // TODO JEL reconnect shared
       // When reconnecting, update the server URL if necessary
       adapter.setReconnectionListeners(
         () => {
@@ -1376,6 +1377,11 @@ const setupHubChannelJoinHandler = (hubPhxChannel, entryManager, addToPresenceLo
 
       console.error(res);
     });
+
+  scene.addEventListener("shared-adapter-ready", async ({ detail: adapter }) => {
+    // TODO JEL this may not be needed once this is on dyna
+    adapter.setClientId(socket.params().session_id);
+  });
 };
 
 const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager, addToPresenceLog) => {
