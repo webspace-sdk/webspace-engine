@@ -183,6 +183,12 @@ export function cloneObject3D(source, preserveUUIDs) {
     clonedNode.bind(clonedNode.skeleton, sourceNode.bindMatrix);
   });
 
+  // First level of cloned children will have parents pointing to scene,
+  // which can mis-root objects.
+  for (let i = 0; i < clone.children.length; i++) {
+    clone.children[i].parent = clone;
+  }
+
   return clone;
 }
 

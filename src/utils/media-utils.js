@@ -261,6 +261,10 @@ export const cloneMedia = (sourceEl, template, src = null, networked = true, lin
   );
 };
 
+function onInjectedMaterialDispose(evt) {
+  evt.target.onBeforeCompile = null;
+}
+
 export function injectCustomShaderChunks(obj) {
   const vertexRegex = /\bskinning_vertex\b/;
   const fragRegex = /\bgl_FragColor\b/;
@@ -343,6 +347,8 @@ export function injectCustomShaderChunks(obj) {
       };
       newMaterial.needsUpdate = true;
       newMaterial.hubs_InjectedCustomShaderChunks = true;
+      // free closure memory on dispose
+      newMaterial.addEventListener("dispose", onInjectedMaterialDispose);
       return newMaterial;
     });
   });

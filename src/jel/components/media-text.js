@@ -2,7 +2,7 @@ import Quill from "quill";
 import { getQuill, hasQuill, destroyQuill } from "../utils/quill-pool";
 import { getNetworkId } from "../utils/ownership-utils";
 import { fromByteArray } from "base64-js";
-import { scaleToAspectRatio } from "../../components/media-views";
+import { disposeTexture, scaleToAspectRatio } from "../../components/media-views";
 
 AFRAME.registerComponent("media-text", {
   schema: {
@@ -116,5 +116,15 @@ AFRAME.registerComponent("media-text", {
 
   remove() {
     this.unbindAndRemoveQuill();
+
+    if (this.texture) {
+      disposeTexture(this.texture);
+    }
+
+    if (this.mesh) {
+      this.mesh.material.map = null;
+      this.mesh.material.dispose();
+      this.el.removeObject3D("mesh");
+    }
   }
 });

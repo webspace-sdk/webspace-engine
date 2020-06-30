@@ -121,5 +121,9 @@ AFRAME.registerComponent("particle-emitter", {
     if (this.particleEmitter.visible) {
       this.particleEmitter.update(dt / 1000);
     }
+  },
+
+  remove() {
+    this.particleEmitter.material.uniforms.map.value = null;
   }
 });

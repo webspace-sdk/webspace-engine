@@ -1547,6 +1547,7 @@ async function start() {
   const hubPhxChannel = socket.channel(`hub:${hubId}`, createHubChannelParams());
 
   hubChannel.bind(hubPhxChannel, hubId);
+  authChannel.setSocket(socket);
   const addToPresenceLog = getAddToPresenceLog();
   setupHubChannelJoinHandler(hubPhxChannel, entryManager, addToPresenceLog);
   setupHubChannelMessageHandlers(hubPhxChannel, entryManager, addToPresenceLog);

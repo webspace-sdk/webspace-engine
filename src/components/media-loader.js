@@ -185,7 +185,9 @@ AFRAME.registerComponent("media-loader", {
       this.clearLoadingTimeout();
       return;
     }
-    const useFancyLoader = !!loadingObject;
+    // TODO JEL this causes a memory leak, because final loaded
+    // objects end up as children of loader
+    const useFancyLoader = false; //!!loadingObject;
 
     const mesh = useFancyLoader
       ? cloneObject3D(loadingObject.scene)
@@ -255,7 +257,7 @@ AFRAME.registerComponent("media-loader", {
     return function() {
       const hoverableVisuals = this.el.components["hoverable-visuals"];
 
-      if (hoverableVisuals) {
+      if (hoverableVisuals && this.el.object3DMap.mesh) {
         if (!this.injectedCustomShaderChunks) {
           this.injectedCustomShaderChunks = true;
           hoverableVisuals.uniforms = injectCustomShaderChunks(this.el.object3D);

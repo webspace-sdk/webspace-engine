@@ -149,8 +149,20 @@ export function scaleToAspectRatio(el, ratio) {
   el.object3DMap.mesh.matrixNeedsUpdate = true;
 }
 
-function disposeTexture(texture) {
+const inflightTextures = new Map();
+
+const errorImage = new Image();
+errorImage.src = errorImageSrc;
+const errorTexture = new THREE.Texture(errorImage);
+errorTexture.magFilter = THREE.NearestFilter;
+errorImage.onload = () => {
+  errorTexture.needsUpdate = true;
+};
+const errorCacheItem = { texture: errorTexture, ratio: 1 };
+
+export function disposeTexture(texture) {
   if (!texture) return;
+  if (texture === errorTexture) return;
 
   // Unload the video element to prevent it from continuing to play in the background
   if (texture.image instanceof HTMLVideoElement) {
@@ -172,6 +184,7 @@ function disposeTexture(texture) {
   }
 
   texture.dispose();
+  texture.image = null;
 }
 
 class TextureCache {
@@ -228,16 +241,6 @@ class TextureCache {
 }
 
 const textureCache = new TextureCache();
-const inflightTextures = new Map();
-
-const errorImage = new Image();
-errorImage.src = errorImageSrc;
-const errorTexture = new THREE.Texture(errorImage);
-errorTexture.magFilter = THREE.NearestFilter;
-errorImage.onload = () => {
-  errorTexture.needsUpdate = true;
-};
-const errorCacheItem = { texture: errorTexture, ratio: 1 };
 
 function timeFmt(t) {
   let s = Math.floor(t),
@@ -281,6 +284,7 @@ AFRAME.registerComponent("media-video", {
     this.ensureOwned = this.ensureOwned.bind(this);
     this.isMineOrLocal = this.isMineOrLocal.bind(this);
     this.updateSrc = this.updateSrc.bind(this);
+    this.onCameraSetActive = this.onCameraSetActive.bind(this);
 
     this.seekForward = this.seekForward.bind(this);
     this.seekBack = this.seekBack.bind(this);
@@ -361,9 +365,7 @@ AFRAME.registerComponent("media-video", {
     if (sceneEl.camera) {
       sceneEl.camera.add(sceneEl.audioListener);
     }
-    sceneEl.addEventListener("camera-set-active", function(evt) {
-      evt.detail.cameraEl.getObject3D("camera").add(sceneEl.audioListener);
-    });
+    sceneEl.addEventListener("camera-set-active", this.onCameraSetActive);
 
     this.audioOutputModePref = window.APP.store.state.preferences.audioOutputMode;
     this.onPreferenceChanged = () => {
@@ -375,6 +377,10 @@ AFRAME.registerComponent("media-video", {
       }
     };
     window.APP.store.addEventListener("statechanged", this.onPreferenceChanged);
+  },
+
+  onCameraSetActive(evt) {
+    evt.detail.cameraEl.getObject3D("camera").add(this.el.sceneEl.audioListener);
   },
 
   isMineOrLocal() {
@@ -572,10 +578,9 @@ AFRAME.registerComponent("media-video", {
   async updateSrc(oldData) {
     const { src, linkedVideoTexture, linkedAudioSource, linkedMediaElementAudioSource } = this.data;
 
-    this.cleanUp();
+    this.disposeVideoTexture();
     if (this.mesh && this.mesh.material) {
-      this.mesh.material.map = null;
-      this.mesh.material.needsUpdate = true;
+      this.mesh.material.dispose();
     }
 
     let texture, audioSourceEl;
@@ -961,19 +966,21 @@ AFRAME.registerComponent("media-video", {
     };
   })(),
 
-  cleanUp() {
+  disposeVideoTexture() {
     if (this.mesh && this.mesh.material) {
       if (!this.data.linkedVideoTexture) {
         disposeTexture(this.mesh.material.map);
+        this.mesh.material.map = null;
       }
     }
   },
 
   remove() {
-    this.cleanUp();
+    this.disposeVideoTexture();
 
     if (this.mesh) {
       this.el.removeObject3D("mesh");
+      this.mesh.material.dispose();
     }
 
     if (this._audioSyncInterval) {
@@ -991,6 +998,8 @@ AFRAME.registerComponent("media-video", {
       this.networkedEl.removeEventListener("pinned", this.updateHoverMenu);
       this.networkedEl.removeEventListener("unpinned", this.updateHoverMenu);
     }
+
+    this.el.sceneEl.removeEventListener("camera-set-active", this.onCameraSetActive);
 
     window.APP.hubChannel.removeEventListener("permissions_updated", this.updateHoverMenu);
 
@@ -1027,8 +1036,15 @@ AFRAME.registerComponent("media-image", {
   },
 
   remove() {
-    if (this.data.batch && this.mesh) {
-      this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.removeObject(this.mesh);
+    if (this.mesh) {
+      this.el.removeObject3D("mesh");
+      disposeTexture(this.mesh.material.map);
+      this.mesh.material.map = null;
+      this.mesh.material.dispose();
+
+      if (this.data.batch) {
+        this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.removeObject(this.mesh);
+      }
     }
 
     if (this.currentSrcIsRetained) {
@@ -1072,6 +1088,7 @@ AFRAME.registerComponent("media-image", {
 
       // Release any existing texture
       if (refresh) {
+        // TODO JEL
         this.releaseExistingTexture();
       }
 
@@ -1168,6 +1185,14 @@ AFRAME.registerComponent("media-image", {
     }
 
     if (!this.mesh || refresh) {
+      if (this.mesh) {
+        if (this.mesh.material) {
+          this.mesh.material.dispose();
+        }
+
+        this.el.removeObject3D("mesh");
+      }
+
       const material = new THREE.MeshBasicMaterial();
 
       let geometry;
@@ -1268,8 +1293,17 @@ AFRAME.registerComponent("media-pdf", {
   },
 
   remove() {
-    if (this.data.batch && this.mesh) {
-      this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.removeObject(this.mesh);
+    if (this.mesh) {
+      this.el.removeObject3D("mesh");
+      this.mesh.material.dispose();
+
+      if (this.data.batch) {
+        this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.removeObject(this.mesh);
+      }
+    }
+
+    if (this.texture) {
+      disposeTexture(this.texture);
     }
   },
 

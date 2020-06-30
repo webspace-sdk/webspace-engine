@@ -7,7 +7,7 @@ export class MediaPresenceSystem {
   constructor(scene) {
     this.scene = scene;
     this.desiredMediaPresence = {};
-    this.mediaComponents = {};
+    this.mediaComponents = new Map();
     this.transitioningNetworkIds = new Set();
   }
 
@@ -16,7 +16,7 @@ export class MediaPresenceSystem {
 
     // Look for new transitions
     for (const [networkId, desiredMediaPresence] of Object.entries(this.desiredMediaPresence)) {
-      const mediaComponent = this.mediaComponents[networkId];
+      const mediaComponent = this.mediaComponents.get(networkId);
       if (!mediaComponent) continue;
 
       if (
@@ -41,7 +41,7 @@ export class MediaPresenceSystem {
   }
 
   async beginTransitionOfMediaPresence(networkId, presence) {
-    const mediaComponent = this.mediaComponents[networkId];
+    const mediaComponent = this.mediaComponents.get(networkId);
     this.transitioningNetworkIds.add(networkId);
     await mediaComponent.setMediaPresence(presence);
     this.transitioningNetworkIds.delete(networkId);
@@ -53,7 +53,7 @@ export class MediaPresenceSystem {
       getNetworkedEntity(component.el)
         .then(networkedEl => {
           const networkId = getNetworkId(networkedEl);
-          this.mediaComponents[networkId] = component;
+          this.mediaComponents.set(networkId, component);
           this.checkForNewTransitionsNextTick = true;
         })
         .catch(() => {}); //ignore exception, entity might not be networked
@@ -63,16 +63,11 @@ export class MediaPresenceSystem {
   }
 
   unregisterMediaComponent(component) {
-    try {
-      getNetworkedEntity(component.el)
-        .then(networkedEl => {
-          const networkId = getNetworkId(networkedEl);
-          delete this.mediaComponents[networkId];
-          this.checkForNewTransitionsNextTick = true;
-        })
-        .catch(); //ignore exception, entity might not be networked
-    } catch (e) {
-      // NAF/SAF may not exist on scene landing page
+    for (const [networkId, c] of this.mediaComponents) {
+      if (c !== component) continue;
+      this.mediaComponents.delete(networkId);
+      this.checkForNewTransitionsNextTick = true;
+      break;
     }
   }
 }

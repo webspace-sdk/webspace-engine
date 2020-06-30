@@ -80,11 +80,15 @@ export function hasQuill(networkId) {
 }
 
 export function destroyQuill(networkId) {
-  const id = `quill-${networkId}`;
+  const id = `#quill-${networkId}`;
   const node = document.querySelector(id);
 
   if (node) {
-    node.parentEl.removeChild(node);
+    node.parentElement.removeChild(node);
+  }
+
+  if (quills[networkId]) {
+    quills[networkId].quill.enable(false);
   }
 
   delete quills[networkId];
