@@ -51,6 +51,39 @@ export function disposeNode(node) {
   }
 }
 
+export function disposeExistingMesh(el) {
+  const mesh = el.getObject3D("mesh");
+  if (!mesh) return;
+  disposeNode(mesh);
+  el.removeObject3D("mesh");
+}
+
+export function disposeTexture(texture) {
+  if (!texture) return;
+
+  // Unload the video element to prevent it from continuing to play in the background
+  if (texture.image instanceof HTMLVideoElement) {
+    const video = texture.image;
+    video.pause();
+    video.src = "";
+    video.load();
+  }
+
+  if (texture.hls) {
+    texture.hls.stopLoad();
+    texture.hls.detachMedia();
+    texture.hls.destroy();
+    texture.hls = null;
+  }
+
+  if (texture.dash) {
+    texture.dash.reset();
+  }
+
+  texture.dispose();
+  texture.image = null;
+}
+
 const IDENTITY = new THREE.Matrix4().identity();
 export function setMatrixWorld(object3D, m) {
   if (!object3D.matrixIsModified) {

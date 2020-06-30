@@ -2,7 +2,8 @@ import Quill from "quill";
 import { getQuill, hasQuill, destroyQuill } from "../utils/quill-pool";
 import { getNetworkId } from "../utils/ownership-utils";
 import { fromByteArray } from "base64-js";
-import { disposeTexture, scaleToAspectRatio } from "../../components/media-views";
+import { scaleToAspectRatio } from "../../components/media-views";
+import { disposeExistingMesh, disposeTexture } from "../../utils/three-utils";
 
 AFRAME.registerComponent("media-text", {
   schema: {
@@ -22,6 +23,8 @@ AFRAME.registerComponent("media-text", {
     const oldSrc = oldData.src;
 
     if (!this.mesh) {
+      disposeExistingMesh(this.el);
+
       this.texture = new THREE.Texture();
       this.texture.encoding = THREE.sRGBEncoding;
       this.texture.minFilter = THREE.LinearFilter;
@@ -116,15 +119,10 @@ AFRAME.registerComponent("media-text", {
 
   remove() {
     this.unbindAndRemoveQuill();
+    disposeExistingMesh(this.el);
 
     if (this.texture) {
       disposeTexture(this.texture);
-    }
-
-    if (this.mesh) {
-      this.mesh.material.map = null;
-      this.mesh.material.dispose();
-      this.el.removeObject3D("mesh");
     }
   }
 });

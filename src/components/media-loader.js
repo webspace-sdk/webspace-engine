@@ -21,7 +21,7 @@ import qsTruthy from "../utils/qs_truthy";
 import loadingObjectSrc from "../assets/models/LoadingObject_Atom.glb";
 import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
 import { loadModel } from "./gltf-model-plus";
-import { cloneObject3D, setMatrixWorld } from "../utils/three-utils";
+import { cloneObject3D, setMatrixWorld, disposeExistingMesh } from "../utils/three-utils";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
 
 import { SHAPE } from "three-ammo/constants";
@@ -156,6 +156,8 @@ AFRAME.registerComponent("media-loader", {
   },
 
   remove() {
+    disposeExistingMesh(this.el);
+
     if (this.data.linkedEl) {
       this.data.linkedEl.removeEventListener("componentremoved", this.handleLinkedElRemoved);
     }
@@ -191,7 +193,8 @@ AFRAME.registerComponent("media-loader", {
 
     const mesh = useFancyLoader
       ? cloneObject3D(loadingObject.scene)
-      : new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial());
+      : new THREE.Mesh(new THREE.BoxBufferGeometry(), new THREE.MeshBasicMaterial());
+
     this.el.setObject3D("mesh", mesh);
 
     this.updateScale(true, false);

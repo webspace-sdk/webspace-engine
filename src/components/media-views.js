@@ -24,6 +24,7 @@ import pdfjs from "pdfjs-dist";
 import { applyPersistentSync } from "../utils/permissions-utils";
 import { refreshMediaMirror, getCurrentMirroredMedia } from "../utils/mirror-utils";
 import { MEDIA_PRESENCE } from "../utils/media-utils";
+import { disposeExistingMesh, disposeTexture } from "../utils/three-utils";
 
 /**
  * Warning! This require statement is fragile!
@@ -159,32 +160,9 @@ errorImage.onload = () => {
   errorTexture.needsUpdate = true;
 };
 const errorCacheItem = { texture: errorTexture, ratio: 1 };
-
-export function disposeTexture(texture) {
-  if (!texture) return;
+function disposeTextureUnlessError(texture) {
   if (texture === errorTexture) return;
-
-  // Unload the video element to prevent it from continuing to play in the background
-  if (texture.image instanceof HTMLVideoElement) {
-    const video = texture.image;
-    video.pause();
-    video.src = "";
-    video.load();
-  }
-
-  if (texture.hls) {
-    texture.hls.stopLoad();
-    texture.hls.detachMedia();
-    texture.hls.destroy();
-    texture.hls = null;
-  }
-
-  if (texture.dash) {
-    texture.dash.reset();
-  }
-
-  texture.dispose();
-  texture.image = null;
+  disposeTexture(texture);
 }
 
 class TextureCache {
@@ -234,7 +212,7 @@ class TextureCache {
     cacheItem.count--;
     // console.log("release", src, cacheItem.count);
     if (cacheItem.count <= 0) {
-      disposeTexture(cacheItem.texture);
+      disposeTextureUnlessError(cacheItem.texture);
       this.cache.delete(this.key(src, version));
     }
   }
@@ -591,9 +569,6 @@ AFRAME.registerComponent("media-video", {
     const { src, linkedVideoTexture, linkedAudioSource, linkedMediaElementAudioSource } = this.data;
 
     this.disposeVideoTexture();
-    if (this.mesh && this.mesh.material) {
-      this.mesh.material.dispose();
-    }
 
     let texture, audioSourceEl;
     try {
@@ -609,7 +584,7 @@ AFRAME.registerComponent("media-video", {
 
       // No way to cancel promises, so if src has changed while we were creating the texture just throw it away.
       if (this.data.src !== src) {
-        disposeTexture(texture);
+        disposeTextureUnlessError(texture);
         return;
       }
 
@@ -682,6 +657,8 @@ AFRAME.registerComponent("media-video", {
     const projection = this.data.projection;
 
     if (!this.mesh || projection !== oldData.projection) {
+      disposeExistingMesh(this.el);
+
       const material = new THREE.MeshBasicMaterial();
 
       let geometry;
@@ -981,7 +958,7 @@ AFRAME.registerComponent("media-video", {
   disposeVideoTexture() {
     if (this.mesh && this.mesh.material) {
       if (!this.data.linkedVideoTexture) {
-        disposeTexture(this.mesh.material.map);
+        disposeTextureUnlessError(this.mesh.material.map);
         this.mesh.material.map = null;
       }
     }
@@ -993,11 +970,7 @@ AFRAME.registerComponent("media-video", {
     }
 
     this.disposeVideoTexture();
-
-    if (this.mesh) {
-      this.el.removeObject3D("mesh");
-      this.mesh.material.dispose();
-    }
+    disposeExistingMesh(this.el);
 
     if (this._audioSyncInterval) {
       clearInterval(this._audioSyncInterval);
@@ -1052,12 +1025,9 @@ AFRAME.registerComponent("media-image", {
   },
 
   remove() {
-    if (this.mesh) {
-      this.el.removeObject3D("mesh");
-      disposeTexture(this.mesh.material.map);
-      this.mesh.material.map = null;
-      this.mesh.material.dispose();
+    disposeExistingMesh(this.el);
 
+    if (this.mesh) {
       if (this.data.batch) {
         this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.removeObject(this.mesh);
       }
@@ -1201,13 +1171,7 @@ AFRAME.registerComponent("media-image", {
     }
 
     if (!this.mesh || refresh) {
-      if (this.mesh) {
-        if (this.mesh.material) {
-          this.mesh.material.dispose();
-        }
-
-        this.el.removeObject3D("mesh");
-      }
+      disposeExistingMesh(this.el);
 
       const material = new THREE.MeshBasicMaterial();
 
@@ -1308,18 +1272,21 @@ AFRAME.registerComponent("media-pdf", {
     entity.addEventListener("image-loaded", this.onSnapImageLoaded, ONCE_TRUE);
   },
 
-  remove() {
-    if (this.mesh) {
-      this.el.removeObject3D("mesh");
-      this.mesh.material.dispose();
-
-      if (this.data.batch) {
-        this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.removeObject(this.mesh);
-      }
-    }
+  async remove() {
+    disposeExistingMesh(this.el);
 
     if (this.texture) {
-      disposeTexture(this.texture);
+      disposeTextureUnlessError(this.texture);
+      this.texture = null;
+    }
+
+    if (this.pdf) {
+      if (this.renderTask) {
+        await this.renderTask.promise;
+      }
+
+      this.pdf.destroy();
+      this.pdf = null;
     }
   },
 
@@ -1340,7 +1307,7 @@ AFRAME.registerComponent("media-pdf", {
 
       if (src !== oldData.src) {
         const loadingSrc = this.data.src;
-        const pdf = await pdfjs.getDocument(src);
+        const pdf = await pdfjs.getDocument(src).promise;
         if (loadingSrc !== this.data.src) return;
 
         this.pdf = pdf;
@@ -1372,6 +1339,8 @@ AFRAME.registerComponent("media-pdf", {
     }
 
     if (!this.mesh) {
+      disposeExistingMesh(this.el);
+
       const material = new THREE.MeshBasicMaterial();
       const geometry = new THREE.PlaneBufferGeometry(1, 1, 1, 1, texture.flipY);
       material.side = THREE.DoubleSide;
