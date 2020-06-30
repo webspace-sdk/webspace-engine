@@ -34,6 +34,7 @@ export function disposeNode(node) {
 
   if (node.geometry) {
     node.geometry.dispose();
+    node.geometry.boundsTree = null;
   }
 
   if (node.material) {

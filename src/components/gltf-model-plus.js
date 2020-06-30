@@ -505,6 +505,9 @@ AFRAME.registerComponent("gltf-model-plus", {
     if (src) {
       gltfCache.release(src);
     }
+    if (this.inflatedEl) {
+      this.disposeLastInflatedEl();
+    }
   },
 
   loadTemplates() {
@@ -620,26 +623,12 @@ AFRAME.registerComponent("gltf-model-plus", {
   },
 
   disposeLastInflatedEl() {
-    if (this.inflatedEl) {
-      this.inflatedEl.parentNode.removeChild(this.inflatedEl);
+    if (!this.inflatedEl) return;
+    this.inflatedEl.parentNode.removeChild(this.inflatedEl);
 
-      this.inflatedEl.object3D.traverse(x => {
-        if (x.material && x.material.dispose) {
-          x.material.dispose();
-        }
+    this.inflatedEl.object3D.traverse(disposeNode);
+    delete this.inflatedEl;
 
-        if (x.geometry) {
-          if (x.geometry.dispose) {
-            x.geometry.dispose();
-          }
-
-          x.geometry.boundsTree = null;
-        }
-      });
-
-      delete this.inflatedEl;
-
-      this.el.removeAttribute("animation-mixer");
-    }
+    this.el.removeAttribute("animation-mixer");
   }
 });
