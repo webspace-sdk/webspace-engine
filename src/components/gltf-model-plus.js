@@ -97,10 +97,10 @@ function generateMeshBVH(object3D) {
   });
 }
 
-function cloneGltf(gltf) {
+async function cloneGltf(gltf) {
   return {
     animations: gltf.scene.animations,
-    scene: cloneObject3D(gltf.scene)
+    scene: await cloneObject3D(gltf.scene)
   };
 }
 
@@ -553,7 +553,12 @@ AFRAME.registerComponent("gltf-model-plus", {
         this.el.setAttribute("animation-mixer", {});
         this.el.components["animation-mixer"].initMixer(this.model.animations);
       } else {
-        generateMeshBVH(this.model);
+        await new Promise(res =>
+          setTimeout(() => {
+            generateMeshBVH(this.model);
+            res();
+          })
+        );
       }
 
       const indexToEntityMap = {};

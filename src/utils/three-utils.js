@@ -163,7 +163,7 @@ function cloneAnimationClip(sourceAnimationClip, cloneUUIDLookup) {
   return new THREE.AnimationClip(sourceAnimationClip.name, sourceAnimationClip.duration, clonedTracks);
 }
 
-export function cloneObject3D(source, preserveUUIDs) {
+export async function cloneObject3D(source, preserveUUIDs) {
   const cloneLookup = new Map();
   const cloneUUIDLookup = new Map();
 
@@ -183,6 +183,8 @@ export function cloneObject3D(source, preserveUUIDs) {
     cloneUUIDLookup.set(sourceNode.uuid, clonedNode.uuid);
   });
 
+  const clonePromises = [];
+
   source.traverse(sourceNode => {
     const clonedNode = cloneLookup.get(sourceNode);
 
@@ -190,9 +192,18 @@ export function cloneObject3D(source, preserveUUIDs) {
       return;
     }
 
+    // Clone animation and skeleton in microtasks
     if (sourceNode.animations) {
-      clonedNode.animations = sourceNode.animations.map(animationClip =>
-        cloneAnimationClip(animationClip, cloneUUIDLookup)
+      clonePromises.push(
+        new Promise(res => {
+          setTimeout(() => {
+            clonedNode.animations = sourceNode.animations.map(animationClip =>
+              cloneAnimationClip(animationClip, cloneUUIDLookup)
+            );
+
+            res();
+          });
+        })
       );
     }
 
@@ -204,18 +215,27 @@ export function cloneObject3D(source, preserveUUIDs) {
 
     const sourceBones = sourceNode.skeleton.bones;
 
-    clonedNode.skeleton = sourceNode.skeleton.clone();
+    clonePromises.push(
+      new Promise(res => {
+        setTimeout(() => {
+          clonedNode.skeleton = sourceNode.skeleton.clone();
 
-    clonedNode.skeleton.bones = sourceBones.map(sourceBone => {
-      if (!cloneLookup.has(sourceBone)) {
-        throw new Error("Required bones are not descendants of the given object.");
-      }
+          clonedNode.skeleton.bones = sourceBones.map(sourceBone => {
+            if (!cloneLookup.has(sourceBone)) {
+              throw new Error("Required bones are not descendants of the given object.");
+            }
 
-      return cloneLookup.get(sourceBone);
-    });
+            return cloneLookup.get(sourceBone);
+          });
 
-    clonedNode.bind(clonedNode.skeleton, sourceNode.bindMatrix);
+          clonedNode.bind(clonedNode.skeleton, sourceNode.bindMatrix);
+          res();
+        });
+      })
+    );
   });
+
+  await Promise.all(clonePromises);
 
   // First level of cloned children will have parents pointing to scene,
   // which can mis-root objects.
