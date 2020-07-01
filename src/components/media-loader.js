@@ -182,7 +182,7 @@ AFRAME.registerComponent("media-loader", {
     this.clearLoadingTimeout();
   },
 
-  showLoader() {
+  async showLoader() {
     if (this.el.object3DMap.mesh) {
       this.clearLoadingTimeout();
       return;
@@ -192,7 +192,7 @@ AFRAME.registerComponent("media-loader", {
     const useFancyLoader = false; //!!loadingObject;
 
     const mesh = useFancyLoader
-      ? cloneObject3D(loadingObject.scene)
+      ? await cloneObject3D(loadingObject.scene)
       : new THREE.Mesh(new THREE.BoxBufferGeometry(), new THREE.MeshBasicMaterial());
 
     this.el.setObject3D("mesh", mesh);

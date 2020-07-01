@@ -130,8 +130,8 @@ AFRAME.registerComponent("camera-tool", {
     this.el.sceneEl.addEventListener("stateadded", () => this.updateUI());
     this.el.sceneEl.addEventListener("stateremoved", () => this.updateUI());
 
-    cameraModelPromise.then(model => {
-      const mesh = cloneObject3D(model.scene);
+    cameraModelPromise.then(async model => {
+      const mesh = await cloneObject3D(model.scene);
       mesh.scale.set(2, 2, 2);
       mesh.matrixNeedsUpdate = true;
       this.el.setObject3D("mesh", mesh);

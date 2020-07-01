@@ -213,11 +213,11 @@ export async function cloneObject3D(source, preserveUUIDs) {
 
     if (!sourceNode.isSkinnedMesh) return;
 
-    const sourceBones = sourceNode.skeleton.bones;
-
     clonePromises.push(
       new Promise(res => {
         setTimeout(() => {
+          const sourceBones = sourceNode.skeleton.bones;
+
           clonedNode.skeleton = sourceNode.skeleton.clone();
 
           clonedNode.skeleton.bones = sourceBones.map(sourceBone => {
