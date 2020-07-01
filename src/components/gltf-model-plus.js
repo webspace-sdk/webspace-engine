@@ -536,9 +536,9 @@ AFRAME.registerComponent("gltf-model-plus", {
       this.el.emit("model-loading");
       const gltf = await loadModel(src, contentType, this.data.useCache, this.jsonPreprocessor);
 
-      // If we started loading something else already
+      // If we started loading something else already or delete this element
       // TODO: there should be a way to cancel loading instead
-      if (src != this.lastSrc) return;
+      if (src != this.lastSrc || !this.el.parentNode) return;
 
       // If we had inflated something already before, clean that up
       this.disposeLastInflatedEl();
