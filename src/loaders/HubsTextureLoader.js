@@ -1,6 +1,11 @@
+import nextTick from "../utils/next-tick";
+const MIN_FRAMES_BETWEEN_TEXTURE_UPLOADS = 2;
+
 function loadAsync(loader, url, onProgress) {
   return new Promise((resolve, reject) => loader.load(url, resolve, onProgress, reject));
 }
+
+let nextUploadFrame = 0;
 
 export default class HubsTextureLoader {
   static crossOrigin = "anonymous";
@@ -34,7 +39,14 @@ export default class HubsTextureLoader {
 
     const resolvedUrl = this.manager.resolveURL(src);
 
-    texture.image = await loadAsync(imageLoader, resolvedUrl, onProgress);
+    const image = await loadAsync(imageLoader, resolvedUrl, onProgress);
+
+    // Upload one texture per frame
+    const frameScheduler = AFRAME.scenes[0].systems["frame-scheduler"];
+    while (nextUploadFrame > frameScheduler.frameIndex) await nextTick();
+    nextUploadFrame = frameScheduler.frameIndex + MIN_FRAMES_BETWEEN_TEXTURE_UPLOADS;
+
+    texture.image = image;
 
     // Image was just added to cache before this function gets called, disable caching by immediatly removing it
     THREE.Cache.remove(resolvedUrl);
@@ -46,6 +58,8 @@ export default class HubsTextureLoader {
       texture.image.close && texture.image.close();
       delete texture.image;
     };
+
+    AFRAME.scenes[0].renderer.initTexture(texture);
 
     return texture;
   }
