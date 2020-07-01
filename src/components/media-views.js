@@ -530,7 +530,7 @@ AFRAME.registerComponent("media-video", {
     const owner = getNetworkOwner(this.networkedEl);
     const occupants = NAF.connection.connectedClients;
 
-    if (!occupants.includes(owner)) {
+    if (!occupants[owner]) {
       console.log(`Video ${getNetworkId(this.networkedEl)} has non-present owner, taking ownership.`);
       takeOwnership(this.networkedEl);
     }
@@ -1054,7 +1054,10 @@ AFRAME.registerComponent("media-image", {
   },
 
   async setMediaToHidden() {
-    this.mesh.visible = false;
+    if (this.mesh) {
+      this.mesh.visible = false;
+    }
+
     this.mediaPresence = MEDIA_PRESENCE.HIDDEN;
   },
 
