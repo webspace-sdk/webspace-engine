@@ -5,7 +5,7 @@ import MobileStandardMaterial from "../materials/MobileStandardMaterial";
 import { getCustomGLTFParserURLResolver } from "../utils/media-url-utils";
 import { promisifyWorker } from "../utils/promisify-worker.js";
 import { MeshBVH, acceleratedRaycast } from "three-mesh-bvh";
-import { disposeNode, cloneObject3D } from "../utils/three-utils";
+import { disposeNode, disposeExistingMesh, cloneObject3D } from "../utils/three-utils";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import HubsBasisTextureLoader from "../loaders/HubsBasisTextureLoader";
 
@@ -511,9 +511,10 @@ AFRAME.registerComponent("gltf-model-plus", {
     if (src) {
       gltfCache.release(src);
     }
-    if (this.inflatedEl) {
-      this.disposeLastInflatedEl();
-    }
+
+    this.disposeLastInflatedEl();
+    disposeExistingMesh(this.el);
+
     if (this.el.getObject3D("mesh")) {
       this.el.removeObject3D("mesh");
     }
@@ -538,6 +539,7 @@ AFRAME.registerComponent("gltf-model-plus", {
         if (this.inflatedEl) {
           console.warn("gltf-model-plus set to an empty source, unloading inflated model.");
           this.disposeLastInflatedEl();
+          disposeExistingMesh(this.el);
         }
         return;
       }
@@ -551,6 +553,7 @@ AFRAME.registerComponent("gltf-model-plus", {
 
       // If we had inflated something already before, clean that up
       this.disposeLastInflatedEl();
+      disposeExistingMesh(this.el);
 
       this.model = gltf.scene || gltf.scenes[0];
 
@@ -639,13 +642,7 @@ AFRAME.registerComponent("gltf-model-plus", {
   disposeLastInflatedEl() {
     if (!this.inflatedEl) return;
     this.inflatedEl.parentNode.removeChild(this.inflatedEl);
-
-    const obj3D = this.inflatedEl.object3D;
-
-    // Schedule as task since this can be slow.
-    setTimeout(() => obj3D.traverse(disposeNode));
-    delete this.inflatedEl;
-
     this.el.removeAttribute("animation-mixer");
+    delete this.inflatedEl;
   }
 });

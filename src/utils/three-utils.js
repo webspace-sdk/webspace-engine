@@ -30,8 +30,6 @@ export function disposeMaterial(mtrl) {
 }
 
 export function disposeNode(node) {
-  if (!(node instanceof THREE.Mesh)) return;
-
   if (node.geometry) {
     node.geometry.dispose();
     node.geometry.boundsTree = null;
@@ -50,6 +48,9 @@ export function disposeNode(node) {
       disposeMaterial(node.material);
     }
   }
+
+  // Dereference a-frame elements, since stale render list entries may still point to this object.
+  node.el = null;
 }
 
 export function disposeExistingMesh(el) {
