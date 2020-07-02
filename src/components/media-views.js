@@ -184,6 +184,7 @@ class TextureCache {
 
     this.cache.set(this.key(src, version), {
       texture,
+      textureInfo,
       ratio: textureInfo.height / textureInfo.width,
       count: 0
     });
@@ -1162,6 +1163,7 @@ AFRAME.registerComponent("media-image", {
 
       if (cacheItem) {
         texture = cacheItem.texture;
+        textureInfo = cacheItem.textureInfo;
         ratio = cacheItem.ratio;
       }
     } catch (e) {
