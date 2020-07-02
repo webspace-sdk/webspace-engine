@@ -29,7 +29,7 @@ export class BatchManagerSystem {
       return;
     }
 
-    this.batchingEnabled = qsTruthy("forceMeshBatching") || qsTruthy("forceImageBatching");
+    this.batchingEnabled = true; //qsTruthy("forceMeshBatching") || qsTruthy("forceImageBatching");
 
     if (!this.batchingEnabled) {
       console.warn("Batching must be forced on with forceMeshBatching or forceImageBatching. Disabling batching.");

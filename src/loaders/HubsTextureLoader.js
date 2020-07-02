@@ -27,7 +27,7 @@ export default class HubsTextureLoader {
   }
 
   // Returns [texture, { width, height }]
-  async loadTextureAsync(texture, src, onProgress) {
+  async loadTextureAsync(texture, src, preload, onProgress) {
     let imageLoader;
 
     if (window.createImageBitmap !== undefined) {
@@ -46,13 +46,15 @@ export default class HubsTextureLoader {
     const pixels = image.width * image.height;
     const frameScheduler = AFRAME.scenes[0].systems["frame-scheduler"];
 
-    // Rate limit texture loading
-    if (totalPixelsUploaded + pixels >= MAX_TEXTURE_UPLOAD_PIXELS_PER_FRAME) {
-      while (nextUploadFrame > frameScheduler.frameIndex) await nextTick();
-      nextUploadFrame = frameScheduler.frameIndex + MIN_FRAMES_BETWEEN_TEXTURE_UPLOADS;
-      totalPixelsUploaded = 0;
-    } else {
-      totalPixelsUploaded += pixels;
+    if (preload) {
+      // Rate limit texture loading
+      if (totalPixelsUploaded + pixels >= MAX_TEXTURE_UPLOAD_PIXELS_PER_FRAME) {
+        while (nextUploadFrame > frameScheduler.frameIndex) await nextTick();
+        nextUploadFrame = frameScheduler.frameIndex + MIN_FRAMES_BETWEEN_TEXTURE_UPLOADS;
+        totalPixelsUploaded = 0;
+      } else {
+        totalPixelsUploaded += pixels;
+      }
     }
 
     texture.image = image;
@@ -61,20 +63,27 @@ export default class HubsTextureLoader {
     THREE.Cache.remove(resolvedUrl);
 
     texture.needsUpdate = true;
+    const info = { width: image.width, height: image.height, hasAlpha: image.hasAlpha };
 
     return await new Promise(res => {
       texture.onUpdate = function() {
-        const image = texture.image;
-        const info = { width: image.width, height: image.height, hasAlpha: image.hasAlpha };
+        if (texture.image) {
+          // Delete texture data once it has been uploaded to the GPU
+          image.close && image.close();
 
-        // Delete texture data once it has been uploaded to the GPU
-        image.close && image.close();
+          delete texture.image;
+        }
 
-        delete texture.image;
-        res(info);
+        if (preload) {
+          res(info);
+        }
       };
 
-      AFRAME.scenes[0].renderer.initTexture(texture);
+      if (preload) {
+        AFRAME.scenes[0].renderer.initTexture(texture);
+      } else {
+        res(info);
+      }
     });
   }
 

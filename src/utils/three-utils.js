@@ -53,6 +53,21 @@ export function disposeNode(node) {
   node.el = null;
 }
 
+export function disposeTextureImage(texture) {
+  if (!texture.image) return;
+
+  // Unload the video element to prevent it from continuing to play in the background
+  if (texture.image instanceof HTMLVideoElement) {
+    const video = texture.image;
+    video.pause();
+    video.src = "";
+    video.load();
+  }
+
+  texture.image.close && texture.image.close();
+  delete texture.image;
+}
+
 export function disposeExistingMesh(el) {
   const mesh = el.getObject3D("mesh");
   if (!mesh) return;
@@ -63,13 +78,7 @@ export function disposeExistingMesh(el) {
 export function disposeTexture(texture) {
   if (!texture) return;
 
-  // Unload the video element to prevent it from continuing to play in the background
-  if (texture.image instanceof HTMLVideoElement) {
-    const video = texture.image;
-    video.pause();
-    video.src = "";
-    video.load();
-  }
+  disposeTextureImage(texture);
 
   if (texture.hls) {
     texture.hls.stopLoad();

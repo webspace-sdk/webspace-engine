@@ -40,7 +40,7 @@ const fetchContentType = url => {
 };
 
 const forceMeshBatching = qsTruthy("batchMeshes");
-const forceImageBatching = qsTruthy("batchImages");
+const forceImageBatching = true; //qsTruthy("batchImages");
 const disableBatching = qsTruthy("disableBatching");
 
 AFRAME.registerComponent("media-loader", {

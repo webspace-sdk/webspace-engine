@@ -15,7 +15,12 @@ import audioIcon from "../assets/images/audio.png";
 import { paths } from "../systems/userinput/paths";
 import HLS from "hls.js";
 import { MediaPlayer } from "dashjs";
-import { addAndArrangeMedia, createImageTexture, createBasisTexture } from "../utils/media-utils";
+import {
+  addAndArrangeMedia,
+  createImageTexture,
+  createBasisTexture,
+  meetsBatchingCriteria
+} from "../utils/media-utils";
 import { proxiedUrlFor } from "../utils/media-url-utils";
 import { buildAbsoluteURL } from "url-toolkit";
 import { SOUND_CAMERA_TOOL_TOOK_SNAPSHOT } from "../systems/sound-effects-system";
@@ -24,7 +29,7 @@ import pdfjs from "pdfjs-dist";
 import { applyPersistentSync } from "../utils/permissions-utils";
 import { refreshMediaMirror, getCurrentMirroredMedia } from "../utils/mirror-utils";
 import { MEDIA_PRESENCE } from "../utils/media-utils";
-import { disposeExistingMesh, disposeTexture } from "../utils/three-utils";
+import { disposeExistingMesh, disposeTexture, disposeTextureImage } from "../utils/three-utils";
 
 /**
  * Warning! This require statement is fragile!
@@ -1021,14 +1026,16 @@ AFRAME.registerComponent("media-image", {
     this.setMediaPresence = this.setMediaPresence.bind(this);
     this.mediaPresence = MEDIA_PRESENCE.INIT;
     this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
+    this.isBatched = false;
   },
 
   remove() {
     disposeExistingMesh(this.el);
 
     if (this.mesh) {
-      if (this.data.batch) {
+      if (this.isBatched) {
         this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.removeObject(this.mesh);
+        this.isBatched = false;
       }
     }
 
@@ -1112,7 +1119,7 @@ AFRAME.registerComponent("media-image", {
           } else if (contentType.includes("image/basis")) {
             promise = createBasisTexture(src);
           } else if (contentType.startsWith("image/")) {
-            promise = createImageTexture(src);
+            promise = createImageTexture(src, null, !this.data.batch);
           } else {
             throw new Error(`Unknown image content type: ${contentType}`);
           }
@@ -1215,8 +1222,17 @@ AFRAME.registerComponent("media-image", {
       scaleToAspectRatio(this.el, ratio);
     }
 
-    if (texture !== errorTexture && this.data.batch && !texture.isCompressedTexture) {
+    if (
+      texture !== errorTexture &&
+      this.data.batch &&
+      !texture.isCompressedTexture &&
+      meetsBatchingCriteria(textureInfo)
+    ) {
       batchManagerSystem.addObject(this.mesh);
+      this.isBatched = true;
+
+      // Texture will never be used, if onUpdate is set, fire it since this .
+      disposeTextureImage(texture);
     }
 
     this.mediaPresence = MEDIA_PRESENCE.PRESENT;
