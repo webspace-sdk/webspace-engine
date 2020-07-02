@@ -131,6 +131,7 @@ THREE.BasisTextureLoader.prototype = Object.assign(Object.create(THREE.Loader.pr
         var { width, height, mipmaps, format, hasAlpha, buffer } = message;
 
         var texture;
+        var textureInfo = { width, height, hasAlpha };
 
         switch (format) {
           case THREE.BasisTextureLoader.BASIS_FORMAT.cTFASTC_4x4:

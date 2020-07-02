@@ -112,7 +112,7 @@ async function createGIFTexture(url) {
               texture.image.src = url;
               texture.encoding = THREE.sRGBEncoding;
               texture.minFilter = THREE.LinearFilter;
-              resolve(texture);
+              resolve([texture, { width: texture.image.width, height: texture.image.height }]);
             }
           };
           img.src = frames[i];
@@ -172,15 +172,14 @@ class TextureCache {
     return `${src}_${version}`;
   }
 
-  set(src, version, texture) {
+  set(src, version, texture, textureInfo) {
     if (this.has(src, version)) {
       throw new Error(`Setting existing value over ${src} ${version} in texture class, did you mean to call retain?`);
     }
 
-    const image = texture.image;
     this.cache.set(this.key(src, version), {
       texture,
-      ratio: (image.videoHeight || image.height) / (image.videoWidth || image.width),
+      ratio: textureInfo.height / textureInfo.width,
       count: 0
     });
     return this.retain(src, version);
@@ -1066,7 +1065,7 @@ AFRAME.registerComponent("media-image", {
 
     const { src, version, contentType } = this.data;
 
-    let texture;
+    let texture, textureInfo;
     let ratio = 1;
 
     const batchManagerSystem = this.el.sceneEl.systems["hubs-systems"].batchManagerSystem;
@@ -1122,10 +1121,10 @@ AFRAME.registerComponent("media-image", {
           if (!isDataUrl) {
             const inflightPromise = new Promise(async res => {
               try {
-                texture = await promise;
+                [texture, textureInfo] = await promise;
 
                 if (!textureCache.has(src, version)) {
-                  cacheItem = textureCache.set(src, version, texture);
+                  cacheItem = textureCache.set(src, version, texture, textureInfo);
                 } else {
                   cacheItem = textureCache.retain(src, version);
                 }
@@ -1145,9 +1144,8 @@ AFRAME.registerComponent("media-image", {
             inflightTextures.set(inflightKey, inflightPromise);
             await inflightPromise;
           } else {
-            texture = await promise;
-            const image = texture.image;
-            ratio = (image.videoHeight || image.height) / (image.videoWidth || image.width);
+            [texture, textureInfo] = await promise;
+            ratio = textureInfo.height / textureInfo.width;
             this.currentSrcIsRetained = false;
           }
         }
@@ -1207,7 +1205,7 @@ AFRAME.registerComponent("media-image", {
       !this.data.batch ||
       texture == errorTexture ||
       this.data.contentType.includes("image/gif") ||
-      !!(texture.image && texture.image.hasAlpha);
+      !!(textureInfo && textureInfo.hasAlpha);
 
     this.mesh.material.map = texture;
     this.mesh.material.needsUpdate = true;

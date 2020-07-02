@@ -24,6 +24,7 @@ import "aframe-slice9-component";
 import "./utils/threejs-positional-audio-updatematrixworld";
 import "./utils/threejs-world-update";
 import patchThreeAllocations from "./utils/threejs-allocation-patches";
+import patchThreeNoProgramDispose from "./jel/utils/threejs-avoid-disposing-programs";
 import { detectOS, detect } from "detect-browser";
 import {
   getReticulumFetchUrl,
@@ -735,6 +736,7 @@ function initPhysicsAndThree(scene) {
   const physicsSystem = scene.systems["hubs-systems"].physicsSystem;
   physicsSystem.setDebug(isDebug || physicsSystem.debug);
   patchThreeAllocations();
+  patchThreeNoProgramDispose();
 }
 
 async function initAvatar() {

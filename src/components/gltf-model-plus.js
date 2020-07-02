@@ -36,7 +36,13 @@ class GLTFCache {
     return cacheItem;
   }
 
-  release(src) {
+  clear() {
+    for (const src of [...this.cache.keys()]) {
+      this.release(src, true);
+    }
+  }
+
+  release(src, force = false) {
     const cacheItem = this.cache.get(src);
 
     if (!cacheItem) {
@@ -45,7 +51,7 @@ class GLTFCache {
     }
 
     cacheItem.count--;
-    if (cacheItem.count <= 0) {
+    if (cacheItem.count <= 0 || force) {
       cacheItem.gltf.scene.traverse(disposeNode);
       this.cache.delete(src);
     }
@@ -508,6 +514,9 @@ AFRAME.registerComponent("gltf-model-plus", {
     if (this.inflatedEl) {
       this.disposeLastInflatedEl();
     }
+    if (this.el.getObject3D("mesh")) {
+      this.el.removeObject3D("mesh");
+    }
   },
 
   loadTemplates() {
@@ -631,7 +640,10 @@ AFRAME.registerComponent("gltf-model-plus", {
     if (!this.inflatedEl) return;
     this.inflatedEl.parentNode.removeChild(this.inflatedEl);
 
-    this.inflatedEl.object3D.traverse(disposeNode);
+    const obj3D = this.inflatedEl.object3D;
+
+    // Schedule as task since this can be slow.
+    setTimeout(() => obj3D.traverse(disposeNode));
     delete this.inflatedEl;
 
     this.el.removeAttribute("animation-mixer");

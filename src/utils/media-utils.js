@@ -428,6 +428,7 @@ export const textureLoader = new HubsTextureLoader().setCrossOrigin("anonymous")
 
 export async function createImageTexture(url, filter) {
   let texture;
+  let info;
 
   if (filter) {
     const image = new Image();
@@ -443,11 +444,12 @@ export async function createImageTexture(url, filter) {
     await filter(ctx, image.width, image.height);
 
     texture = new THREE.CanvasTexture(canvas);
+    info = { width: image.width, height: image.height, hasAlpha: image.hasAlpha };
   } else {
     texture = new THREE.Texture();
 
     try {
-      await textureLoader.loadTextureAsync(texture, url);
+      info = await textureLoader.loadTextureAsync(texture, url);
     } catch (e) {
       throw new Error(`'${url}' could not be fetched (Error code: ${e.status}; Response: ${e.statusText})`);
     }
@@ -456,7 +458,7 @@ export async function createImageTexture(url, filter) {
   texture.encoding = THREE.sRGBEncoding;
   texture.anisotropy = 4;
 
-  return texture;
+  return [texture, info];
 }
 
 import HubsBasisTextureLoader from "../loaders/HubsBasisTextureLoader";
@@ -466,14 +468,14 @@ export function createBasisTexture(url) {
   return new Promise((resolve, reject) => {
     basisTextureLoader.load(
       url,
-      function(texture) {
+      function(texture, textureInfo) {
         texture.encoding = THREE.sRGBEncoding;
         texture.onUpdate = function() {
           // Delete texture data once it has been uploaded to the GPU
           texture.mipmaps.length = 0;
         };
         // texture.anisotropy = 4;
-        resolve(texture);
+        resolve([texture, textureInfo]);
       },
       undefined,
       function(error) {

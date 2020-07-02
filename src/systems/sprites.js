@@ -237,7 +237,7 @@ export class SpriteSystem {
     Promise.all([domReady]).then(() => {
       for (const [spritesheetPng, type] of [[spritesheetActionPng, "action"], [spritesheetNoticePng, "notice"]]) {
         Promise.all([createImageTexture(spritesheetPng, getThemeColorShifter(type)), waitForDOMContentLoaded()]).then(
-          ([spritesheetTexture]) => {
+          ([[spritesheetTexture]]) => {
             const material = new THREE.RawShaderMaterial({
               uniforms: {
                 u_spritesheet: { value: spritesheetTexture },
