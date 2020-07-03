@@ -56,7 +56,7 @@ AFRAME.registerComponent("media-loader", {
     contentType: { default: null },
     contentSubtype: { default: null },
     animate: { default: true },
-    mediaLayer: { type: "number", default: 0 },
+    mediaLayer: { type: "number", default: null },
     linkedEl: { default: null }, // This is the element of which this is a linked derivative. See linked-media.js
     mediaOptions: {
       default: {},
@@ -74,16 +74,13 @@ AFRAME.registerComponent("media-loader", {
     this.refresh = this.refresh.bind(this);
     this.animating = false;
 
-    try {
-      getNetworkedEntity(this.el)
-        .then(networkedEl => {
-          this.networkedEl = networkedEl;
-          this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.updateDesiredMediaPresence(this.el);
-        })
-        .catch(); //ignore exception, entity might not be networked
-    } catch (e) {
-      // NAF/SAF may not exist on scene landing page
-    }
+    getNetworkedEntity(this.el).then(networkedEl => {
+      this.networkedEl = networkedEl;
+
+      if (typeof this.data.mediaLayer === "number") {
+        this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.updateDesiredMediaPresence(this.el);
+      }
+    });
   },
 
   updateScale: (function() {
@@ -344,7 +341,7 @@ AFRAME.registerComponent("media-loader", {
       this.data.animate = false;
 
       // Play the sound effect on a refresh only if we are the owner
-      this.data.playSoundEffect = isMine(this.networkedEl);
+      this.data.playSoundEffect = this.networkedEl && isMine(this.networkedEl);
     }
 
     if (forceLocalRefresh) {
@@ -357,14 +354,19 @@ AFRAME.registerComponent("media-loader", {
     }
 
     try {
-      if (
-        (forceLocalRefresh || mediaChanged) &&
-        !this.showLoaderTimeout &&
-        this.networkedEl &&
-        isMine(this.networkedEl)
-      ) {
-        this.showLoaderTimeout = setTimeout(this.showLoader, 100);
-      }
+      // TODO JEL
+      // HACK this.networkedEl may be set a tick behind, for now just hack around it to show
+      // loader when spawning objects ourselves
+      setTimeout(() => {
+        if (
+          (forceLocalRefresh || mediaChanged) &&
+          !this.showLoaderTimeout &&
+          this.networkedEl &&
+          isMine(this.networkedEl)
+        ) {
+          this.showLoaderTimeout = setTimeout(this.showLoader, 100);
+        }
+      });
 
       let canonicalUrl = src;
       let canonicalAudioUrl = src;
@@ -415,6 +417,9 @@ AFRAME.registerComponent("media-loader", {
       if (contentType === "audio/x-mpegurl") {
         contentType = "application/vnd.apple.mpegurl";
       }
+
+      // Clear loader, if any.
+      disposeExistingMesh(this.el);
 
       // We don't want to emit media_resolved for index updates.
       if (forceLocalRefresh || mediaChanged) {

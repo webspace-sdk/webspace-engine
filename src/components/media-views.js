@@ -148,6 +148,12 @@ function createVideoOrAudioEl(type) {
   return el;
 }
 
+export function hasMediaLayer(el) {
+  const mediaLoader = el.components["media-loader"];
+  if (!mediaLoader) return false;
+  return typeof mediaLoader.data.mediaLayer === "number";
+}
+
 export function scaleToAspectRatio(el, ratio) {
   const width = Math.min(1.0, 1.0 / ratio);
   const height = Math.min(1.0, ratio);
@@ -1026,8 +1032,11 @@ AFRAME.registerComponent("media-image", {
   init() {
     this.setMediaPresence = this.setMediaPresence.bind(this);
     this.mediaPresence = MEDIA_PRESENCE.INIT;
-    this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
     this.isBatched = false;
+
+    if (hasMediaLayer(this.el)) {
+      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
+    }
   },
 
   remove() {
@@ -1045,7 +1054,9 @@ AFRAME.registerComponent("media-image", {
       this.currentSrcIsRetained = false;
     }
 
-    this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
+    if (hasMediaLayer(this.el)) {
+      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
+    }
   },
 
   setMediaPresence(presence, refresh = false) {
@@ -1245,16 +1256,19 @@ AFRAME.registerComponent("media-image", {
     const { src, version, projection } = this.data;
     if (!src) return;
 
-    const refresh =
-      oldData.src && (oldData.src !== src || oldData.version !== version || oldData.projection !== projection);
-    if (refresh) {
+    const refresh = !!(
+      oldData.src &&
+      (oldData.src !== src || oldData.version !== version || oldData.projection !== projection)
+    );
+
+    if (!hasMediaLayer(this.el) || refresh) {
       // Release any existing texture on a refresh
       if (this.currentSrcIsRetained) {
         textureCache.release(oldData.src, oldData.version);
         this.currentSrcIsRetained = false;
       }
 
-      this.setMediaPresence(this.mediaPresence, true);
+      this.setMediaPresence(MEDIA_PRESENCE.PRESENT, refresh);
     }
   }
 });
