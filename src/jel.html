@@ -54,6 +54,7 @@
         rotate-selected-object
         environment-map
         set-max-resolution
+        media-presenting-scene
         light="defaultLightsEnabled: false"
     >
         <a-assets>
@@ -63,6 +64,10 @@
 
             <a-asset-item id="drawing-pen" response-type="arraybuffer" src="./assets/models/DrawingPen.glb"></a-asset-item>
             <a-asset-item id="spawn-point" response-type="arraybuffer" src="./assets/models/spawn-point.glb"></a-asset-item>
+
+            <template id="shared-space" singleton="true">
+                <a-entity media-presenting-space></a-entity>
+            </template>
 
             <template id="template-waypoint-avatar">
                 <a-entity waypoint></a-entity>

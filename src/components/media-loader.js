@@ -56,6 +56,7 @@ AFRAME.registerComponent("media-loader", {
     contentType: { default: null },
     contentSubtype: { default: null },
     animate: { default: true },
+    mediaLayer: { type: "number", default: 0 },
     linkedEl: { default: null }, // This is the element of which this is a linked derivative. See linked-media.js
     mediaOptions: {
       default: {},

@@ -3,6 +3,13 @@ import { MEDIA_PRESENCE } from "../../utils/media-utils";
 
 const MAX_CONCURRENT_TRANSITIONS = 4;
 
+AFRAME.registerComponent("media-presenting-space", {
+  schema: {
+    selectedMediaLayer: { default: 0 },
+    activeMediaLayers: { default: 0 }
+  }
+});
+
 export class MediaPresenceSystem {
   constructor(scene) {
     this.scene = scene;

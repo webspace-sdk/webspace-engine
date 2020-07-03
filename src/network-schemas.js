@@ -83,6 +83,20 @@ function registerNetworkSchemas() {
   });
 
   SAF.schemas.add({
+    template: "#shared-space",
+    components: [
+      {
+        component: "media-presenting-space",
+        property: "activeMediaLayers"
+      },
+      {
+        component: "media-presenting-space",
+        property: "selectedMediaLayer"
+      }
+    ]
+  });
+
+  SAF.schemas.add({
     template: "#interactable-media",
     components: [
       {
@@ -138,6 +152,10 @@ function registerNetworkSchemas() {
       {
         component: "media-pdf",
         property: "index"
+      },
+      {
+        component: "media-loader",
+        property: "mediaLayer"
       }
     ],
     nonAuthorizedComponents: [
