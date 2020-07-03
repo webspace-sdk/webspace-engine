@@ -335,6 +335,7 @@ AFRAME.registerComponent("media-loader", {
 
     const mediaChanged = oldData.src !== src;
     const versionChanged = !!(oldData.version && oldData.version !== version);
+    if (!mediaChanged && !versionChanged && !forceLocalRefresh) return;
 
     if (versionChanged) {
       this.el.emit("media_refreshing");

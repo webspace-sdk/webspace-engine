@@ -1088,12 +1088,6 @@ AFRAME.registerComponent("media-image", {
     try {
       this.el.emit("image-loading");
 
-      // Release any existing texture
-      if (refresh) {
-        // TODO JEL
-        this.releaseExistingTexture();
-      }
-
       let cacheItem;
       if (textureCache.has(src, version)) {
         if (this.currentSrcIsRetained) {
@@ -1247,16 +1241,21 @@ AFRAME.registerComponent("media-image", {
     this.el.emit("image-loaded", { src: this.data.src, projection: projection });
   },
 
-  async update(/*oldData*/) {
-    const { src /*, version, projection */ } = this.data;
+  async update(oldData) {
+    const { src, version, projection } = this.data;
     if (!src) return;
 
-    // TODO refresh
-    //const refresh = oldData.src && (oldData.src !== src || oldData.version !== version || oldData.projection !== projection);
-    //if (refresh) {
-    // tell media manager to refresh this one.
-    //}
-    //this.setMediaPresence(MEDIA_PRESENCE.PRESENT, refresh);
+    const refresh =
+      oldData.src && (oldData.src !== src || oldData.version !== version || oldData.projection !== projection);
+    if (refresh) {
+      // Release any existing texture on a refresh
+      if (this.currentSrcIsRetained) {
+        textureCache.release(oldData.src, oldData.version);
+        this.currentSrcIsRetained = false;
+      }
+
+      this.setMediaPresence(this.mediaPresence, true);
+    }
   }
 });
 
