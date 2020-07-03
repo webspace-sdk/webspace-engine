@@ -78,10 +78,7 @@ AFRAME.registerComponent("media-loader", {
       getNetworkedEntity(this.el)
         .then(networkedEl => {
           this.networkedEl = networkedEl;
-          this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.setDesiredMediaPresence(
-            this.el.components.shared.data.networkId,
-            2
-          );
+          this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.updateDesiredMediaPresence(this.el);
         })
         .catch(); //ignore exception, entity might not be networked
     } catch (e) {
@@ -359,7 +356,12 @@ AFRAME.registerComponent("media-loader", {
     }
 
     try {
-      if ((forceLocalRefresh || mediaChanged) && !this.showLoaderTimeout) {
+      if (
+        (forceLocalRefresh || mediaChanged) &&
+        !this.showLoaderTimeout &&
+        this.networkedEl &&
+        isMine(this.networkedEl)
+      ) {
         this.showLoaderTimeout = setTimeout(this.showLoader, 100);
       }
 

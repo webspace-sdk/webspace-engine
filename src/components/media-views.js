@@ -1069,6 +1069,12 @@ AFRAME.registerComponent("media-image", {
   },
 
   async setMediaToPresent(refresh = false) {
+    if (this.mediaPresence === MEDIA_PRESENCE.HIDDEN && this.mesh && !this.mesh.visible) {
+      this.mesh.visible = true;
+      this.mediaPresence = MEDIA_PRESENCE.PRESENT;
+      return;
+    }
+
     this.mediaPresence = MEDIA_PRESENCE.PENDING;
 
     const { src, version, contentType } = this.data;
