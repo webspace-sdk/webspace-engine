@@ -39,23 +39,32 @@ AFRAME.registerComponent("media-presenting-space", {
 export class MediaPresenceSystem {
   constructor(scene) {
     this.scene = scene;
+    this.mediaPresence = new Map();
     this.desiredMediaPresence = new Map();
     this.mediaComponents = new Map();
     this.transitioningNetworkIds = new Set();
   }
 
+  getMediaPresence(component) {
+    return this.mediaPresence.get(component);
+  }
+
+  setMediaPresence(component, presence) {
+    this.mediaPresence.set(component, presence);
+    this.checkForNewTransitionsNextTick = true;
+  }
+
   tick() {
     if (!this.checkForNewTransitionsNextTick) return;
+    this.checkForNewTransitionsNextTick = false;
 
     // Look for new transitions
     for (const [networkId, desiredMediaPresence] of this.desiredMediaPresence.entries()) {
       const mediaComponent = this.mediaComponents.get(networkId);
       if (!mediaComponent) continue;
+      const mediaPresence = this.getMediaPresence(mediaComponent);
 
-      if (
-        mediaComponent.mediaPresence !== MEDIA_PRESENCE.PENDING &&
-        mediaComponent.mediaPresence !== desiredMediaPresence
-      ) {
+      if (mediaPresence !== MEDIA_PRESENCE.PENDING && mediaPresence !== desiredMediaPresence) {
         if (desiredMediaPresence === MEDIA_PRESENCE.HIDDEN) {
           // if it's hidden, just do it right away since it's cheap.
           mediaComponent.setMediaPresence(desiredMediaPresence);
@@ -64,8 +73,6 @@ export class MediaPresenceSystem {
         }
       }
     }
-
-    this.checkForNewTransitionsNextTick = false;
   }
 
   getActiveMediaLayers() {
@@ -106,6 +113,7 @@ export class MediaPresenceSystem {
         .then(networkedEl => {
           const networkId = getNetworkId(networkedEl);
           this.mediaComponents.set(networkId, component);
+          this.setMediaPresence(this, MEDIA_PRESENCE.INIT);
           this.checkForNewTransitionsNextTick = true;
         })
         .catch(() => {}); //ignore exception, entity might not be networked
@@ -119,6 +127,7 @@ export class MediaPresenceSystem {
       if (c !== component) continue;
       this.mediaComponents.delete(networkId);
       this.desiredMediaPresence.delete(networkId);
+      this.mediaPresence.delete(networkId);
       this.checkForNewTransitionsNextTick = true;
       break;
     }

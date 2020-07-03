@@ -2,7 +2,7 @@ import Quill from "quill";
 import { getQuill, hasQuill, destroyQuill } from "../utils/quill-pool";
 import { getNetworkId } from "../utils/ownership-utils";
 import { fromByteArray } from "base64-js";
-import { scaleToAspectRatio } from "../../components/media-views";
+import { scaleToAspectRatio } from "../../utils/media-utils";
 import { disposeExistingMesh, disposeTexture } from "../../utils/three-utils";
 
 AFRAME.registerComponent("media-text", {

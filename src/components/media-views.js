@@ -19,7 +19,9 @@ import {
   addAndArrangeMedia,
   createImageTexture,
   createBasisTexture,
-  meetsBatchingCriteria
+  meetsBatchingCriteria,
+  hasMediaLayer,
+  scaleToAspectRatio
 } from "../utils/media-utils";
 import { proxiedUrlFor } from "../utils/media-url-utils";
 import { buildAbsoluteURL } from "url-toolkit";
@@ -146,19 +148,6 @@ function createVideoOrAudioEl(type) {
   el.crossOrigin = "anonymous";
 
   return el;
-}
-
-export function hasMediaLayer(el) {
-  const mediaLoader = el.components["media-loader"];
-  if (!mediaLoader) return false;
-  return typeof mediaLoader.data.mediaLayer === "number";
-}
-
-export function scaleToAspectRatio(el, ratio) {
-  const width = Math.min(1.0, 1.0 / ratio);
-  const height = Math.min(1.0, ratio);
-  el.object3DMap.mesh.scale.set(width, height, 1);
-  el.object3DMap.mesh.matrixNeedsUpdate = true;
 }
 
 const inflightTextures = new Map();
@@ -1031,7 +1020,6 @@ AFRAME.registerComponent("media-image", {
 
   init() {
     this.setMediaPresence = this.setMediaPresence.bind(this);
-    this.mediaPresence = MEDIA_PRESENCE.INIT;
     this.isBatched = false;
 
     if (hasMediaLayer(this.el)) {
@@ -1060,9 +1048,6 @@ AFRAME.registerComponent("media-image", {
   },
 
   setMediaPresence(presence, refresh = false) {
-    // Don't allow media presence changes when we're currently transitioning.
-    if (this.mediaPresence === MEDIA_PRESENCE.PENDING) return;
-
     switch (presence) {
       case MEDIA_PRESENCE.PRESENT:
         return this.setMediaToPresent(refresh);
@@ -1072,194 +1057,204 @@ AFRAME.registerComponent("media-image", {
   },
 
   async setMediaToHidden() {
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+
     if (this.mesh) {
       this.mesh.visible = false;
     }
 
-    this.mediaPresence = MEDIA_PRESENCE.HIDDEN;
+    mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
   },
 
   async setMediaToPresent(refresh = false) {
-    if (this.mediaPresence === MEDIA_PRESENCE.HIDDEN && this.mesh && !this.mesh.visible) {
-      this.mesh.visible = true;
-      this.mediaPresence = MEDIA_PRESENCE.PRESENT;
-      return;
-    }
-
-    this.mediaPresence = MEDIA_PRESENCE.PENDING;
-
-    const { src, version, contentType } = this.data;
-
-    let texture, textureInfo;
-    let ratio = 1;
-
-    const batchManagerSystem = this.el.sceneEl.systems["hubs-systems"].batchManagerSystem;
-    const isDataUrl = src.startsWith("data:");
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
 
     try {
-      this.el.emit("image-loading");
+      if (
+        mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
+        this.mesh &&
+        !this.mesh.visible &&
+        !refresh
+      ) {
+        this.mesh.visible = true;
+        return;
+      }
 
-      let cacheItem;
-      if (textureCache.has(src, version)) {
-        if (this.currentSrcIsRetained) {
-          cacheItem = textureCache.get(src, version);
-        } else {
-          cacheItem = textureCache.retain(src, version);
-          this.currentSrcIsRetained = true;
-        }
-      } else {
-        const inflightKey = textureCache.key(src, version);
+      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
 
-        // No way to cancel promises, so if src has changed or this entity was removed while we were creating the texture just throw it away.
-        const nowStaleOrRemoved = () => this.data.src !== src || this.data.version !== version || !this.el.parentNode;
+      const { src, version, contentType } = this.data;
 
-        if (src === "error") {
-          cacheItem = errorCacheItem;
-        } else if (inflightTextures.has(inflightKey)) {
-          // Texture is already being created
-          await inflightTextures.get(inflightKey);
+      let texture, textureInfo;
+      let ratio = 1;
 
-          if (!nowStaleOrRemoved()) {
+      const batchManagerSystem = this.el.sceneEl.systems["hubs-systems"].batchManagerSystem;
+      const isDataUrl = src.startsWith("data:");
+
+      try {
+        this.el.emit("image-loading");
+
+        let cacheItem;
+        if (textureCache.has(src, version)) {
+          if (this.currentSrcIsRetained) {
+            cacheItem = textureCache.get(src, version);
+          } else {
             cacheItem = textureCache.retain(src, version);
             this.currentSrcIsRetained = true;
           }
         } else {
-          // Create a new texture
-          let promise;
-          if (contentType.includes("image/gif")) {
-            promise = createGIFTexture(src);
-          } else if (contentType.includes("image/basis")) {
-            promise = createBasisTexture(src);
-          } else if (contentType.startsWith("image/")) {
-            promise = createImageTexture(src, null, !this.data.batch);
+          const inflightKey = textureCache.key(src, version);
+
+          // No way to cancel promises, so if src has changed or this entity was removed while we were creating the texture just throw it away.
+          const nowStaleOrRemoved = () => this.data.src !== src || this.data.version !== version || !this.el.parentNode;
+
+          if (src === "error") {
+            cacheItem = errorCacheItem;
+          } else if (inflightTextures.has(inflightKey)) {
+            // Texture is already being created
+            await inflightTextures.get(inflightKey);
+
+            if (!nowStaleOrRemoved()) {
+              cacheItem = textureCache.retain(src, version);
+              this.currentSrcIsRetained = true;
+            }
           } else {
-            throw new Error(`Unknown image content type: ${contentType}`);
+            // Create a new texture
+            let promise;
+            if (contentType.includes("image/gif")) {
+              promise = createGIFTexture(src);
+            } else if (contentType.includes("image/basis")) {
+              promise = createBasisTexture(src);
+            } else if (contentType.startsWith("image/")) {
+              promise = createImageTexture(src, null, !this.data.batch);
+            } else {
+              throw new Error(`Unknown image content type: ${contentType}`);
+            }
+
+            // Don't cache data:
+            if (!isDataUrl) {
+              const inflightPromise = new Promise(async res => {
+                try {
+                  [texture, textureInfo] = await promise;
+
+                  if (!textureCache.has(src, version)) {
+                    cacheItem = textureCache.set(src, version, texture, textureInfo);
+                  } else {
+                    cacheItem = textureCache.retain(src, version);
+                  }
+
+                  if (nowStaleOrRemoved()) {
+                    setTimeout(() => textureCache.release(src, version), 0);
+                  } else {
+                    this.currentSrcIsRetained = true;
+                  }
+
+                  res();
+                } finally {
+                  inflightTextures.delete(inflightKey);
+                }
+              });
+
+              inflightTextures.set(inflightKey, inflightPromise);
+              await inflightPromise;
+            } else {
+              [texture, textureInfo] = await promise;
+              ratio = textureInfo.height / textureInfo.width;
+              this.currentSrcIsRetained = false;
+            }
           }
 
-          // Don't cache data:
-          if (!isDataUrl) {
-            const inflightPromise = new Promise(async res => {
-              try {
-                [texture, textureInfo] = await promise;
-
-                if (!textureCache.has(src, version)) {
-                  cacheItem = textureCache.set(src, version, texture, textureInfo);
-                } else {
-                  cacheItem = textureCache.retain(src, version);
-                }
-
-                if (nowStaleOrRemoved()) {
-                  setTimeout(() => textureCache.release(src, version), 0);
-                } else {
-                  this.currentSrcIsRetained = true;
-                }
-
-                res();
-              } finally {
-                inflightTextures.delete(inflightKey);
-              }
-            });
-
-            inflightTextures.set(inflightKey, inflightPromise);
-            await inflightPromise;
-          } else {
-            [texture, textureInfo] = await promise;
-            ratio = textureInfo.height / textureInfo.width;
-            this.currentSrcIsRetained = false;
+          if (nowStaleOrRemoved()) {
+            return;
           }
         }
 
-        if (nowStaleOrRemoved()) return;
-      }
-
-      if (cacheItem) {
-        texture = cacheItem.texture;
-        textureInfo = cacheItem.textureInfo;
-        ratio = cacheItem.ratio;
-      }
-    } catch (e) {
-      console.error("Error loading image", this.data.src, e);
-      texture = errorTexture;
-      this.currentSrcIsRetained = false;
-    }
-
-    const projection = this.data.projection;
-
-    if (this.mesh && this.data.batch) {
-      // This is a no-op if the mesh was just created.
-      // Otherwise we want to ensure the texture gets updated.
-      batchManagerSystem.removeObject(this.mesh);
-    }
-
-    if (!this.mesh || refresh) {
-      disposeExistingMesh(this.el);
-
-      const material = new THREE.MeshBasicMaterial();
-
-      let geometry;
-
-      if (projection === "360-equirectangular") {
-        geometry = new THREE.SphereBufferGeometry(1, 64, 32);
-        // invert the geometry on the x-axis so that all of the faces point inward
-        geometry.scale(-1, 1, 1);
-
-        // Flip uvs on the geometry
-        if (!texture.flipY) {
-          const uvs = geometry.attributes.uv.array;
-
-          for (let i = 1; i < uvs.length; i += 2) {
-            uvs[i] = 1 - uvs[i];
-          }
+        if (cacheItem) {
+          texture = cacheItem.texture;
+          textureInfo = cacheItem.textureInfo;
+          ratio = cacheItem.ratio;
         }
-      } else {
-        geometry = new THREE.PlaneBufferGeometry(1, 1, 1, 1, texture.flipY);
-        material.side = THREE.DoubleSide;
+      } catch (e) {
+        console.error("Error loading image", this.data.src, e);
+        texture = errorTexture;
+        this.currentSrcIsRetained = false;
       }
 
-      this.mesh = new THREE.Mesh(geometry, material);
-      this.el.setObject3D("mesh", this.mesh);
+      const projection = this.data.projection;
+
+      if (this.mesh && this.data.batch) {
+        // This is a no-op if the mesh was just created.
+        // Otherwise we want to ensure the texture gets updated.
+        batchManagerSystem.removeObject(this.mesh);
+      }
+
+      if (!this.mesh || refresh) {
+        disposeExistingMesh(this.el);
+
+        const material = new THREE.MeshBasicMaterial();
+
+        let geometry;
+
+        if (projection === "360-equirectangular") {
+          geometry = new THREE.SphereBufferGeometry(1, 64, 32);
+          // invert the geometry on the x-axis so that all of the faces point inward
+          geometry.scale(-1, 1, 1);
+
+          // Flip uvs on the geometry
+          if (!texture.flipY) {
+            const uvs = geometry.attributes.uv.array;
+
+            for (let i = 1; i < uvs.length; i += 2) {
+              uvs[i] = 1 - uvs[i];
+            }
+          }
+        } else {
+          geometry = new THREE.PlaneBufferGeometry(1, 1, 1, 1, texture.flipY);
+          material.side = THREE.DoubleSide;
+        }
+
+        this.mesh = new THREE.Mesh(geometry, material);
+        this.el.setObject3D("mesh", this.mesh);
+      }
+
+      // We only support transparency on gifs. Other images will support cutout as part of batching, but not alpha transparency for now
+      this.mesh.material.transparent =
+        !this.data.batch ||
+        texture == errorTexture ||
+        this.data.contentType.includes("image/gif") ||
+        !!(textureInfo && textureInfo.hasAlpha);
+
+      this.mesh.material.map = texture;
+      this.mesh.material.needsUpdate = true;
+      this.mesh.visible = true;
+
+      if (projection === "flat") {
+        scaleToAspectRatio(this.el, ratio);
+      }
+
+      if (
+        texture !== errorTexture &&
+        this.data.batch &&
+        !texture.isCompressedTexture &&
+        meetsBatchingCriteria(textureInfo)
+      ) {
+        batchManagerSystem.addObject(this.mesh);
+        this.isBatched = true;
+
+        // Texture will never be used, dispose it.
+        disposeTextureImage(texture);
+      }
+
+      this.el.emit("image-loaded", { src: this.data.src, projection: projection });
+    } finally {
+      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
     }
-
-    // We only support transparency on gifs. Other images will support cutout as part of batching, but not alpha transparency for now
-    this.mesh.material.transparent =
-      !this.data.batch ||
-      texture == errorTexture ||
-      this.data.contentType.includes("image/gif") ||
-      !!(textureInfo && textureInfo.hasAlpha);
-
-    this.mesh.material.map = texture;
-    this.mesh.material.needsUpdate = true;
-    this.mesh.visible = true;
-
-    if (projection === "flat") {
-      scaleToAspectRatio(this.el, ratio);
-    }
-
-    if (
-      texture !== errorTexture &&
-      this.data.batch &&
-      !texture.isCompressedTexture &&
-      meetsBatchingCriteria(textureInfo)
-    ) {
-      batchManagerSystem.addObject(this.mesh);
-      this.isBatched = true;
-
-      // Texture will never be used, if onUpdate is set, fire it since this .
-      disposeTextureImage(texture);
-    }
-
-    this.mediaPresence = MEDIA_PRESENCE.PRESENT;
-    this.el.emit("image-loaded", { src: this.data.src, projection: projection });
   },
 
   async update(oldData) {
     const { src, version, projection } = this.data;
     if (!src) return;
 
-    const refresh = !!(
-      oldData.src &&
-      (oldData.src !== src || oldData.version !== version || oldData.projection !== projection)
-    );
+    const refresh = !!(oldData.src !== src || oldData.version !== version || oldData.projection !== projection);
 
     if (!hasMediaLayer(this.el) || refresh) {
       // Release any existing texture on a refresh
@@ -1284,6 +1279,7 @@ AFRAME.registerComponent("media-pdf", {
 
   init() {
     this.snap = this.snap.bind(this);
+
     this.canvas = document.createElement("canvas");
     this.canvasContext = this.canvas.getContext("2d");
     this.localSnapCount = 0;
@@ -1295,6 +1291,10 @@ AFRAME.registerComponent("media-pdf", {
     this.texture.minFilter = THREE.LinearFilter;
 
     this.el.addEventListener("pager-snap-clicked", () => this.snap());
+
+    if (hasMediaLayer(this.el)) {
+      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
+    }
   },
 
   async snap() {
@@ -1310,7 +1310,7 @@ AFRAME.registerComponent("media-pdf", {
     entity.addEventListener("image-loaded", this.onSnapImageLoaded, ONCE_TRUE);
   },
 
-  async remove() {
+  remove() {
     disposeExistingMesh(this.el);
 
     if (this.texture) {
@@ -1318,90 +1318,173 @@ AFRAME.registerComponent("media-pdf", {
       this.texture = null;
     }
 
-    if (this.pdf) {
-      if (this.renderTask) {
-        await this.renderTask.promise;
-      }
+    this.disposePdfEngine();
 
-      this.pdf.destroy();
-      this.pdf = null;
+    if (hasMediaLayer(this.el)) {
+      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
     }
   },
 
   async update(oldData) {
-    let texture;
-    let ratio = 1;
+    const { src, version, index } = this.data;
+    if (!src) return;
+
+    const refresh = !!(oldData.src !== src || oldData.version !== version || oldData.index !== index);
+
+    if (!hasMediaLayer(this.el) || refresh) {
+      this.setMediaPresence(MEDIA_PRESENCE.PRESENT, refresh);
+    }
+  },
+
+  setMediaPresence(presence, refresh = false) {
+    switch (presence) {
+      case MEDIA_PRESENCE.PRESENT:
+        return this.setMediaToPresent(refresh);
+      case MEDIA_PRESENCE.HIDDEN:
+        return this.setMediaToHidden(refresh);
+    }
+  },
+
+  async setMediaToHidden() {
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+    mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
 
     try {
+      if (this.mesh) {
+        this.mesh.visible = false;
+        await this.disposePdfEngine();
+      }
+    } finally {
+      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
+    }
+  },
+
+  async setMediaToPresent(refresh = false) {
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+
+    try {
+      let texture;
+      let ratio = 1;
       const { src, index } = this.data;
+
       if (!src) return;
 
-      if (this.renderTask) {
-        await this.renderTask.promise;
-        if (src !== this.data.src || index !== this.data.index) return;
+      if (
+        mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
+        this.mesh &&
+        !this.mesh.visible &&
+        !refresh
+      ) {
+        // No page change, just re-show image
+        this.mesh.visible = true;
+        return;
       }
 
-      this.el.emit("pdf-loading");
+      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
 
-      if (src !== oldData.src) {
-        const loadingSrc = this.data.src;
-        const pdf = await pdfjs.getDocument(src).promise;
-        if (loadingSrc !== this.data.src) return;
+      try {
+        if (this.renderTask) {
+          await this.renderTask.promise;
+          this.renderTask = null;
 
-        this.pdf = pdf;
-        this.el.setAttribute("media-pager", { maxIndex: this.pdf.numPages - 1 });
+          if (src !== this.data.src || index !== this.data.index) return;
+        }
+
+        this.el.emit("pdf-loading");
+
+        if (!this.pdf || refresh) {
+          if (!this.pdf || this.loadedPdfSrc !== this.data.src) {
+            const loadingSrc = this.data.src;
+
+            await this.disposePdfEngine();
+            if (loadingSrc !== this.data.src) return;
+
+            let pdf;
+            try {
+              pdf = await pdfjs.getDocument(src).promise;
+            } catch (e) {
+              pdf.destroy();
+              throw e;
+            }
+
+            if (loadingSrc !== this.data.src) {
+              pdf.destroy();
+              return;
+            }
+
+            this.pdf = pdf;
+            this.loadedPdfSrc = this.data.src;
+            this.el.setAttribute("media-pager", { maxIndex: this.pdf.numPages - 1 });
+          }
+
+          const page = await this.pdf.getPage(index + 1);
+
+          const viewport = page.getViewport({ scale: 3 });
+          const pw = viewport.width;
+          const ph = viewport.height;
+          texture = this.texture;
+          ratio = ph / pw;
+
+          this.canvas.width = pw;
+          this.canvas.height = ph;
+
+          this.renderTask = page.render({ canvasContext: this.canvasContext, viewport });
+
+          await this.renderTask.promise;
+
+          this.renderTask = null;
+
+          if (src !== this.data.src || index !== this.data.index) return;
+        }
+      } catch (e) {
+        console.error("Error loading PDF", this.data.src, e);
+        texture = errorTexture;
       }
 
-      const page = await this.pdf.getPage(index + 1);
-      if (src !== this.data.src || index !== this.data.index) return;
+      if (!this.mesh) {
+        disposeExistingMesh(this.el);
 
-      const viewport = page.getViewport({ scale: 3 });
-      const pw = viewport.width;
-      const ph = viewport.height;
-      texture = this.texture;
-      ratio = ph / pw;
+        const material = new THREE.MeshBasicMaterial();
+        const geometry = new THREE.PlaneBufferGeometry(1, 1, 1, 1, texture.flipY);
+        material.side = THREE.DoubleSide;
 
-      this.canvas.width = pw;
-      this.canvas.height = ph;
+        this.mesh = new THREE.Mesh(geometry, material);
+        this.el.setObject3D("mesh", this.mesh);
+      }
 
-      this.renderTask = page.render({ canvasContext: this.canvasContext, viewport });
+      this.mesh.material.transparent = texture == errorTexture;
+      this.mesh.material.map = texture;
+      this.mesh.material.map.needsUpdate = true;
+      this.mesh.material.needsUpdate = true;
 
+      scaleToAspectRatio(this.el, ratio);
+
+      if (texture !== errorTexture && this.data.batch) {
+        this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.addObject(this.mesh);
+      }
+
+      if (this.el.components["media-pager"] && this.el.components["media-pager"].data.index !== this.data.index) {
+        this.el.setAttribute("media-pager", { index: this.data.index });
+      }
+
+      this.el.emit("pdf-loaded", { src: this.data.src });
+    } finally {
+      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
+    }
+  },
+
+  async disposePdfEngine() {
+    if (!this.pdf) return;
+
+    const pdf = this.pdf;
+    this.pdf = null;
+    this.loadedPdfSrc = null;
+
+    if (this.renderTask) {
       await this.renderTask.promise;
-
       this.renderTask = null;
-
-      if (src !== this.data.src || index !== this.data.index) return;
-    } catch (e) {
-      console.error("Error loading PDF", this.data.src, e);
-      texture = errorTexture;
     }
 
-    if (!this.mesh) {
-      disposeExistingMesh(this.el);
-
-      const material = new THREE.MeshBasicMaterial();
-      const geometry = new THREE.PlaneBufferGeometry(1, 1, 1, 1, texture.flipY);
-      material.side = THREE.DoubleSide;
-
-      this.mesh = new THREE.Mesh(geometry, material);
-      this.el.setObject3D("mesh", this.mesh);
-    }
-
-    this.mesh.material.transparent = texture == errorTexture;
-    this.mesh.material.map = texture;
-    this.mesh.material.map.needsUpdate = true;
-    this.mesh.material.needsUpdate = true;
-
-    scaleToAspectRatio(this.el, ratio);
-
-    if (texture !== errorTexture && this.data.batch) {
-      this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.addObject(this.mesh);
-    }
-
-    if (this.el.components["media-pager"] && this.el.components["media-pager"].data.index !== this.data.index) {
-      this.el.setAttribute("media-pager", { index: this.data.index });
-    }
-
-    this.el.emit("pdf-loaded", { src: this.data.src });
+    pdf.destroy();
   }
 });

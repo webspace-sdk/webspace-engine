@@ -3,11 +3,13 @@ import { mapMaterials } from "../utils/material-utils";
 import SketchfabZipWorker from "../workers/sketchfab-zip.worker.js";
 import MobileStandardMaterial from "../materials/MobileStandardMaterial";
 import { getCustomGLTFParserURLResolver } from "../utils/media-url-utils";
+import { hasMediaLayer } from "../utils/media-utils";
 import { promisifyWorker } from "../utils/promisify-worker.js";
 import { MeshBVH, acceleratedRaycast } from "three-mesh-bvh";
 import { disposeNode, disposeExistingMesh, cloneObject3D } from "../utils/three-utils";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import HubsBasisTextureLoader from "../loaders/HubsBasisTextureLoader";
+import { MEDIA_PRESENCE } from "../utils/media-utils";
 
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
 
@@ -497,10 +499,21 @@ AFRAME.registerComponent("gltf-model-plus", {
     this.jsonPreprocessor = null;
 
     this.loadTemplates();
+
+    if (hasMediaLayer(this.el)) {
+      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
+    }
   },
 
-  update() {
-    this.applySrc(resolveAsset(this.data.src), this.data.contentType);
+  update(oldData) {
+    const { src } = this.data;
+    if (!src) return;
+
+    const refresh = !!(oldData.src && oldData.src !== src);
+
+    if (!hasMediaLayer(this.el) || refresh) {
+      this.setMediaPresence(MEDIA_PRESENCE.PRESENT, refresh);
+    }
   },
 
   remove() {
@@ -518,18 +531,51 @@ AFRAME.registerComponent("gltf-model-plus", {
     if (this.el.getObject3D("mesh")) {
       this.el.removeObject3D("mesh");
     }
+
+    if (hasMediaLayer(this.el)) {
+      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
+    }
   },
 
-  loadTemplates() {
-    this.templates = {};
-    this.el.querySelectorAll(":scope > template").forEach(templateEl => {
-      const root = document.importNode(templateEl.firstElementChild || templateEl.content.firstElementChild, true);
-      this.templates[templateEl.getAttribute("data-name")] = root;
-    });
+  setMediaPresence(presence, refresh = false) {
+    switch (presence) {
+      case MEDIA_PRESENCE.PRESENT:
+        return this.setMediaToPresent(refresh);
+      case MEDIA_PRESENCE.HIDDEN:
+        return this.setMediaToHidden(refresh);
+    }
   },
 
-  async applySrc(src, contentType) {
+  async setMediaToHidden() {
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+
+    if (this.model && this.el.object3DMap.mesh) {
+      this.el.object3DMap.mesh.visible = false;
+      this.stopAnimations();
+    }
+
+    mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
+  },
+
+  async setMediaToPresent() {
+    const src = resolveAsset(this.data.src);
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+
     try {
+      if (
+        mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
+        this.model &&
+        this.el.object3DMap.mesh &&
+        !this.el.object3DMap.mesh.visible
+      ) {
+        this.el.object3DMap.mesh.visible = true;
+        this.startAnimations();
+        return;
+      }
+
+      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
+
+      const contentType = this.data.contentType;
       if (src === this.lastSrc) return;
 
       const lastSrc = this.lastSrc;
@@ -562,8 +608,9 @@ AFRAME.registerComponent("gltf-model-plus", {
       }
 
       if (gltf.animations.length > 0) {
-        this.el.setAttribute("animation-mixer", {});
-        this.el.components["animation-mixer"].initMixer(this.model.animations);
+        // Skip BVH if animated to ensure raycaster is accurate - most likely larger models
+        // won't be animated.
+        this.startAnimations();
       } else {
         await new Promise(res =>
           setTimeout(() => {
@@ -636,7 +683,38 @@ AFRAME.registerComponent("gltf-model-plus", {
       gltfCache.release(src);
       console.error("Failed to load glTF model", e, this);
       this.el.emit("model-error", { format: "gltf", src });
+    } finally {
+      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
     }
+  },
+
+  startAnimations() {
+    const mixerComponent = this.el.components["animation-mixer"];
+    if (mixerComponent) {
+      mixerComponent.play();
+    } else {
+      this.el.setAttribute("animation-mixer", {});
+
+      if (this.model.animations) {
+        this.el.components["animation-mixer"].initMixer(this.model.animations);
+      }
+    }
+  },
+
+  stopAnimations() {
+    const mixerComponent = this.el.components["animation-mixer"];
+
+    if (mixerComponent) {
+      mixerComponent.pause();
+    }
+  },
+
+  loadTemplates() {
+    this.templates = {};
+    this.el.querySelectorAll(":scope > template").forEach(templateEl => {
+      const root = document.importNode(templateEl.firstElementChild || templateEl.content.firstElementChild, true);
+      this.templates[templateEl.getAttribute("data-name")] = root;
+    });
   },
 
   disposeLastInflatedEl() {
