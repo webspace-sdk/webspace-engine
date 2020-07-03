@@ -30,8 +30,12 @@ AFRAME.registerComponent("media-presenting-space", {
   }
 });
 
-// System which manages media presence based upon media layers and eventually
-// other context.
+// System which manages media presence based upon media layers and eventually other contexts.
+//
+// The general contract for this is we publish "desired" media presence state for each network id,
+// and this system will eventually let each relevant media component transition itself. Transitions
+// are transactions and not cancellable, so before we transition to HIDDEN for example if a transition
+// to PRESENT was underway, it will be allowed to complete.
 export class MediaPresenceSystem {
   constructor(scene) {
     this.scene = scene;
