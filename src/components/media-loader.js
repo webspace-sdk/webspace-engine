@@ -56,7 +56,7 @@ AFRAME.registerComponent("media-loader", {
     contentType: { default: null },
     contentSubtype: { default: null },
     animate: { default: true },
-    mediaLayer: { type: "number", default: null },
+    mediaLayer: { default: null },
     linkedEl: { default: null }, // This is the element of which this is a linked derivative. See linked-media.js
     mediaOptions: {
       default: {},
@@ -357,7 +357,9 @@ AFRAME.registerComponent("media-loader", {
       // TODO JEL
       // HACK this.networkedEl may be set a tick behind, for now just hack around it to show
       // loader when spawning objects ourselves
-      setTimeout(() => {
+      // TODO this doesn't work anyway, since we may be the owner when switching rooms and don't want to show
+      // the loader. We should only slow the loader when immediately spawning media ourselves, figure out how.
+      /*setTimeout(() => {
         if (
           (forceLocalRefresh || mediaChanged) &&
           !this.showLoaderTimeout &&
@@ -366,7 +368,7 @@ AFRAME.registerComponent("media-loader", {
         ) {
           this.showLoaderTimeout = setTimeout(this.showLoader, 100);
         }
-      });
+      });*/
 
       let canonicalUrl = src;
       let canonicalAudioUrl = src;

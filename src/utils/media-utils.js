@@ -175,9 +175,10 @@ export const addMedia = (
   // seen across any other entities. Otherwise, start with version 1.
   const version = getLatestMediaVersionOfSrc(src);
   const mediaPresentingSpace = document.querySelector("[media-presenting-space]");
-  const mediaLayer = mediaPresentingSpace
-    ? mediaPresentingSpace.components["media-presenting-space"].data.selectedMediaLayer
-    : 0;
+  const mediaLayer =
+    mediaPresentingSpace && mediaPresentingSpace.components["media-presenting-space"]
+      ? mediaPresentingSpace.components["media-presenting-space"].data.selectedMediaLayer
+      : 0;
 
   entity.setAttribute("media-loader", {
     fitToBox,
