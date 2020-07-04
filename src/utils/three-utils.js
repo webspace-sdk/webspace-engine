@@ -92,7 +92,6 @@ export function disposeTexture(texture) {
   }
 
   texture.dispose();
-  texture.image = null;
 }
 
 const IDENTITY = new THREE.Matrix4().identity();

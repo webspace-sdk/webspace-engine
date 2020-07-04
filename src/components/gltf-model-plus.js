@@ -509,7 +509,7 @@ AFRAME.registerComponent("gltf-model-plus", {
     const { src } = this.data;
     if (!src) return;
 
-    const refresh = !!(oldData.src && oldData.src !== src);
+    const refresh = oldData.src !== src;
 
     if (!hasMediaLayer(this.el) || refresh) {
       this.setMediaPresence(MEDIA_PRESENCE.PRESENT, refresh);

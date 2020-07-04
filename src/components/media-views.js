@@ -261,7 +261,6 @@ AFRAME.registerComponent("media-video", {
     this.tryUpdateVideoPlaybackState = this.tryUpdateVideoPlaybackState.bind(this);
     this.ensureOwned = this.ensureOwned.bind(this);
     this.isMineOrLocal = this.isMineOrLocal.bind(this);
-    this.updateSrc = this.updateSrc.bind(this);
     this.onCameraSetActive = this.onCameraSetActive.bind(this);
 
     this.seekForward = this.seekForward.bind(this);
@@ -308,6 +307,10 @@ AFRAME.registerComponent("media-video", {
       this.updateVolumeLabel();
       this.updateHoverMenu();
       this.updatePlaybackState();
+
+      if (hasMediaLayer(this.el)) {
+        this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
+      }
     });
 
     getNetworkedEntity(this.el)
@@ -500,13 +503,21 @@ AFRAME.registerComponent("media-video", {
   },
 
   update(oldData) {
-    this.updatePlaybackState();
+    const { src } = this.data;
+    if (!src) return;
 
     const shouldUpdateSrc = this.data.src && this.data.src !== oldData.src;
-    if (shouldUpdateSrc) {
-      this.updateSrc(oldData);
+
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+    if (mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT) {
+      this.updatePlaybackState();
+    }
+
+    if (!hasMediaLayer(this.el) || shouldUpdateSrc) {
+      this.setMediaPresence(MEDIA_PRESENCE.PRESENT, shouldUpdateSrc);
       return;
     }
+
     const shouldRecreateAudio =
       !shouldUpdateSrc && this.mediaElementAudioSource && oldData.audioType !== this.data.audioType;
     if (shouldRecreateAudio) {
@@ -565,138 +576,197 @@ AFRAME.registerComponent("media-video", {
     this.audio.panner.coneOuterGain = this.data.coneOuterGain;
   },
 
-  async updateSrc(oldData) {
-    const { src, linkedVideoTexture, linkedAudioSource, linkedMediaElementAudioSource } = this.data;
+  setMediaPresence(presence, refresh = false) {
+    switch (presence) {
+      case MEDIA_PRESENCE.PRESENT:
+        return this.setMediaToPresent(refresh);
+      case MEDIA_PRESENCE.HIDDEN:
+        return this.setMediaToHidden(refresh);
+    }
+  },
 
-    this.disposeVideoTexture();
+  async setMediaToHidden() {
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
 
-    let texture, audioSourceEl;
-    try {
-      if (linkedVideoTexture) {
-        texture = linkedVideoTexture;
-        audioSourceEl = linkedAudioSource;
-      } else {
-        ({ texture, audioSourceEl } = await this.createVideoTextureAudioSourceEl());
-        if (getCurrentMirroredMedia() === this.el) {
-          await refreshMediaMirror();
-        }
+    if (this.mesh) {
+      this.mesh.visible = false;
+    }
+
+    if (this.video) {
+      this.video.removeEventListener("pause", this.onPauseStateChange);
+      this.video.removeEventListener("play", this.onPauseStateChange);
+
+      // Live streams should keep playing while hidden
+      if (!this.videoIsLive) {
+        this.video.pause();
       }
 
-      // No way to cancel promises, so if src has changed while we were creating the texture just throw it away.
-      if (this.data.src !== src) {
-        disposeTextureUnlessError(texture);
+      if (this.audio) {
+        this.audio.gain.gain.value = 0;
+      }
+    }
+
+    mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
+  },
+
+  async setMediaToPresent(refresh) {
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+
+    try {
+      if (
+        mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
+        this.mesh &&
+        !this.mesh.visible &&
+        !refresh
+      ) {
+        this.mesh.visible = true;
+
+        if (this.video) {
+          this.video.addEventListener("pause", this.onPauseStateChange);
+          this.video.addEventListener("play", this.onPauseStateChange);
+          this.updatePlaybackState(true);
+        }
+
         return;
       }
 
-      this.mediaElementAudioSource = null;
+      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
 
-      if (!src.startsWith("jel://")) {
-        // iOS video audio is broken, see: https://github.com/mozilla/hubs/issues/1797
-        if (!isIOS) {
-          // TODO FF error here if binding mediastream: The captured HTMLMediaElement is playing a MediaStream. Applying volume or mute status is not currently supported -- not an issue since we have no audio atm in shared video.
-          this.mediaElementAudioSource =
-            linkedMediaElementAudioSource ||
-            this.el.sceneEl.audioListener.context.createMediaElementSource(audioSourceEl);
+      const { src, linkedVideoTexture, linkedAudioSource, linkedMediaElementAudioSource } = this.data;
+      if (!src) return;
 
-          this.setupAudio();
+      this.disposeVideoTexture();
+
+      let texture, audioSourceEl;
+      try {
+        if (linkedVideoTexture) {
+          texture = linkedVideoTexture;
+          audioSourceEl = linkedAudioSource;
+        } else {
+          ({ texture, audioSourceEl } = await this.createVideoTextureAudioSourceEl());
+          if (getCurrentMirroredMedia() === this.el) {
+            await refreshMediaMirror();
+          }
         }
-      }
 
-      this.video = texture.image;
-      this.video.loop = this.data.loop;
-      this.video.addEventListener("pause", this.onPauseStateChange);
-      this.video.addEventListener("play", this.onPauseStateChange);
+        // No way to cancel promises, so if src has changed while we were creating the texture just throw it away.
+        if (this.data.src !== src) {
+          disposeTextureUnlessError(texture);
+          return;
+        }
 
-      // Deal with setting LIVE on video or not
-      if (texture.hls) {
-        const updateLiveState = () => {
-          if (texture.hls.currentLevel >= 0) {
-            const videoWasLive = !!this.videoIsLive;
-            this.videoIsLive = texture.hls.levels[texture.hls.currentLevel].details.live;
-            this.updateHoverMenu();
+        this.mediaElementAudioSource = null;
 
-            if (!videoWasLive && this.videoIsLive) {
-              this.el.emit("video_is_live_update", { videoIsLive: this.videoIsLive });
-              // We just determined the video is live (there can be a delay due to autoplay issues, etc)
-              // so catch it up to HEAD.
-              if (!isFirefoxReality) {
-                // HACK this causes live streams to freeze in FxR due to https://github.com/MozillaReality/FirefoxReality/issues/1602, TODO remove once 1.4 ships
-                this.video.currentTime = this.video.duration - 0.01;
+        if (!src.startsWith("jel://")) {
+          // iOS video audio is broken, see: https://github.com/mozilla/hubs/issues/1797
+          if (!isIOS) {
+            // TODO FF error here if binding mediastream: The captured HTMLMediaElement is playing a MediaStream. Applying volume or mute status is not currently supported -- not an issue since we have no audio atm in shared video.
+            this.mediaElementAudioSource =
+              linkedMediaElementAudioSource ||
+              this.el.sceneEl.audioListener.context.createMediaElementSource(audioSourceEl);
+
+            this.setupAudio();
+          }
+        }
+
+        this.video = texture.image;
+        this.video.loop = this.data.loop;
+        this.video.addEventListener("pause", this.onPauseStateChange);
+        this.video.addEventListener("play", this.onPauseStateChange);
+
+        // Deal with setting LIVE on video or not
+        if (texture.hls) {
+          const updateLiveState = () => {
+            if (texture.hls.currentLevel >= 0) {
+              const videoWasLive = !!this.videoIsLive;
+              this.videoIsLive = texture.hls.levels[texture.hls.currentLevel].details.live;
+              this.updateHoverMenu();
+
+              if (!videoWasLive && this.videoIsLive) {
+                this.el.emit("video_is_live_update", { videoIsLive: this.videoIsLive });
+                // We just determined the video is live (there can be a delay due to autoplay issues, etc)
+                // so catch it up to HEAD.
+                if (!isFirefoxReality) {
+                  // HACK this causes live streams to freeze in FxR due to https://github.com/MozillaReality/FirefoxReality/issues/1602, TODO remove once 1.4 ships
+                  this.video.currentTime = this.video.duration - 0.01;
+                }
               }
             }
+          };
+          texture.hls.on(HLS.Events.LEVEL_LOADED, updateLiveState);
+          texture.hls.on(HLS.Events.LEVEL_SWITCHED, updateLiveState);
+          if (texture.hls.currentLevel >= 0) {
+            updateLiveState();
           }
-        };
-        texture.hls.on(HLS.Events.LEVEL_LOADED, updateLiveState);
-        texture.hls.on(HLS.Events.LEVEL_SWITCHED, updateLiveState);
-        if (texture.hls.currentLevel >= 0) {
-          updateLiveState();
+        } else {
+          this.videoIsLive = this.video.duration === Infinity;
+          this.el.emit("video_is_live_update", { videoIsLive: this.videoIsLive });
+          this.updateHoverMenu();
         }
+
+        if (isIOS) {
+          const template = document.getElementById("video-unmute");
+          this.el.appendChild(document.importNode(template.content, true));
+          this.el.setAttribute("position-at-border__unmute-ui", {
+            target: ".unmute-ui",
+            isFlat: true
+          });
+        }
+
+        this.videoTexture = texture;
+        this.audioSource = audioSourceEl;
+      } catch (e) {
+        console.error("Error loading video", this.data.src, e);
+        texture = errorTexture;
+        this.videoTexture = this.audioSource = null;
+      }
+
+      const projection = this.data.projection;
+
+      if (!this.mesh /* || projection !== oldData.projection */) {
+        disposeExistingMesh(this.el);
+
+        const material = new THREE.MeshBasicMaterial();
+
+        let geometry;
+
+        if (projection === "360-equirectangular") {
+          geometry = new THREE.SphereBufferGeometry(1, 64, 32);
+          // invert the geometry on the x-axis so that all of the faces point inward
+          geometry.scale(-1, 1, 1);
+        } else {
+          geometry = new THREE.PlaneBufferGeometry();
+          material.side = THREE.DoubleSide;
+        }
+
+        this.mesh = new THREE.Mesh(geometry, material);
+        this.el.setObject3D("mesh", this.mesh);
+      }
+
+      if (this.data.contentType.startsWith("audio/")) {
+        this.mesh.material.map = audioIconTexture;
       } else {
-        this.videoIsLive = this.video.duration === Infinity;
-        this.el.emit("video_is_live_update", { videoIsLive: this.videoIsLive });
-        this.updateHoverMenu();
+        this.mesh.material.map = texture;
+      }
+      this.mesh.material.needsUpdate = true;
+
+      if (projection === "flat" && !this.data.contentType.startsWith("audio/")) {
+        scaleToAspectRatio(
+          this.el,
+          (texture.image.videoHeight || texture.image.height) / (texture.image.videoWidth || texture.image.width)
+        );
       }
 
-      if (isIOS) {
-        const template = document.getElementById("video-unmute");
-        this.el.appendChild(document.importNode(template.content, true));
-        this.el.setAttribute("position-at-border__unmute-ui", {
-          target: ".unmute-ui",
-          isFlat: true
-        });
+      this.updatePlaybackState(true);
+
+      if (this.video && this.video.muted) {
+        this.videoMutedAt = performance.now();
       }
 
-      this.videoTexture = texture;
-      this.audioSource = audioSourceEl;
-    } catch (e) {
-      console.error("Error loading video", this.data.src, e);
-      texture = errorTexture;
-      this.videoTexture = this.audioSource = null;
+      this.el.emit("video-loaded", { projection: projection });
+    } finally {
+      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
     }
-
-    const projection = this.data.projection;
-
-    if (!this.mesh || projection !== oldData.projection) {
-      disposeExistingMesh(this.el);
-
-      const material = new THREE.MeshBasicMaterial();
-
-      let geometry;
-
-      if (projection === "360-equirectangular") {
-        geometry = new THREE.SphereBufferGeometry(1, 64, 32);
-        // invert the geometry on the x-axis so that all of the faces point inward
-        geometry.scale(-1, 1, 1);
-      } else {
-        geometry = new THREE.PlaneBufferGeometry();
-        material.side = THREE.DoubleSide;
-      }
-
-      this.mesh = new THREE.Mesh(geometry, material);
-      this.el.setObject3D("mesh", this.mesh);
-    }
-
-    if (this.data.contentType.startsWith("audio/")) {
-      this.mesh.material.map = audioIconTexture;
-    } else {
-      this.mesh.material.map = texture;
-    }
-    this.mesh.material.needsUpdate = true;
-
-    if (projection === "flat" && !this.data.contentType.startsWith("audio/")) {
-      scaleToAspectRatio(
-        this.el,
-        (texture.image.videoHeight || texture.image.height) / (texture.image.videoWidth || texture.image.width)
-      );
-    }
-
-    this.updatePlaybackState(true);
-
-    if (this.video && this.video.muted) {
-      this.videoMutedAt = performance.now();
-    }
-
-    this.el.emit("video-loaded", { projection: projection });
   },
 
   async createVideoTextureAudioSourceEl() {
@@ -903,6 +973,9 @@ AFRAME.registerComponent("media-video", {
     return function() {
       if (!this.video) return;
 
+      const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+      if (mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN) return;
+
       const userinput = this.el.sceneEl.systems.userinput;
       const interaction = this.el.sceneEl.systems.interaction;
       const volumeModRight = userinput.get(paths.actions.cursor.right.mediaVolumeMod);
@@ -1006,6 +1079,10 @@ AFRAME.registerComponent("media-video", {
     }
 
     window.APP.store.removeEventListener("statechanged", this.onPreferenceChanged);
+
+    if (hasMediaLayer(this.el)) {
+      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
+    }
   }
 });
 
@@ -1130,7 +1207,7 @@ AFRAME.registerComponent("media-image", {
               throw new Error(`Unknown image content type: ${contentType}`);
             }
 
-            // Don't cache data:
+            // Don't cache data: URLs
             if (!isDataUrl) {
               const inflightPromise = new Promise(async res => {
                 try {
@@ -1254,7 +1331,7 @@ AFRAME.registerComponent("media-image", {
     const { src, version, projection } = this.data;
     if (!src) return;
 
-    const refresh = !!(oldData.src !== src || oldData.version !== version || oldData.projection !== projection);
+    const refresh = oldData.src !== src || oldData.version !== version || oldData.projection !== projection;
 
     if (!hasMediaLayer(this.el) || refresh) {
       // Release any existing texture on a refresh
@@ -1329,7 +1406,7 @@ AFRAME.registerComponent("media-pdf", {
     const { src, version, index } = this.data;
     if (!src) return;
 
-    const refresh = !!(oldData.src !== src || oldData.version !== version || oldData.index !== index);
+    const refresh = oldData.src !== src || oldData.version !== version || oldData.index !== index;
 
     if (!hasMediaLayer(this.el) || refresh) {
       this.setMediaPresence(MEDIA_PRESENCE.PRESENT, refresh);
