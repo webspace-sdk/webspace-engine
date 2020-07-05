@@ -2,7 +2,7 @@ import Quill from "quill";
 import { getQuill, hasQuill, destroyQuill } from "../utils/quill-pool";
 import { getNetworkId } from "../utils/ownership-utils";
 import { fromByteArray } from "base64-js";
-import { scaleToAspectRatio } from "../../utils/media-utils";
+import { hasMediaLayer, scaleToAspectRatio, MEDIA_PRESENCE } from "../../utils/media-utils";
 import { disposeExistingMesh, disposeTexture } from "../../utils/three-utils";
 
 AFRAME.registerComponent("media-text", {
@@ -14,49 +14,107 @@ AFRAME.registerComponent("media-text", {
   async init() {
     this.renderNextFrame = false;
     this.onTextChanged = this.onTextChanged.bind(this);
+
+    if (hasMediaLayer(this.el)) {
+      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
+    }
   },
 
   async update(oldData) {
     const { src } = this.data;
     if (!src) return;
 
-    const oldSrc = oldData.src;
+    const refresh = src !== oldData.src;
 
-    if (!this.mesh) {
-      disposeExistingMesh(this.el);
+    // TODO JEL when other attriutes change here like color, etc, update.
+    /*if (mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT) {
+      this.updateColorEtc
+    }*/
 
-      this.texture = new THREE.Texture();
-      this.texture.encoding = THREE.sRGBEncoding;
-      this.texture.minFilter = THREE.LinearFilter;
+    if (!hasMediaLayer(this.el) || refresh) {
+      this.setMediaPresence(MEDIA_PRESENCE.PRESENT, refresh);
+      return;
+    }
+  },
 
-      const mat = new THREE.MeshBasicMaterial();
-      const geo = new THREE.PlaneBufferGeometry(1, 1, 1, 1, this.texture.flipY);
-      mat.side = THREE.DoubleSide;
+  setMediaPresence(presence, refresh = false) {
+    switch (presence) {
+      case MEDIA_PRESENCE.PRESENT:
+        return this.setMediaToPresent(refresh);
+      case MEDIA_PRESENCE.HIDDEN:
+        return this.setMediaToHidden(refresh);
+    }
+  },
 
-      this.mesh = new THREE.Mesh(geo, mat);
-      this.mesh.material.map = this.texture;
-      this.el.setObject3D("mesh", this.mesh);
-      scaleToAspectRatio(this.el, 9.0 / 16.0); // TODO 1080p is default
+  async setMediaToHidden() {
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+
+    if (this.mesh) {
+      this.mesh.visible = false;
     }
 
-    this.el.emit("text-loading");
+    this.unbindAndRemoveQuill();
+    this.quill = null;
 
-    if (src && src !== oldSrc) {
-      this.unbindAndRemoveQuill();
-      const shared = this.el.components.shared;
-      await shared.whenReadyForBinding();
-      this.quill = this.bindQuill();
+    mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
+  },
 
-      const { initialContents } = this.el.components["media-loader"].data;
+  async setMediaToPresent(refresh) {
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
 
-      if (initialContents) {
-        const delta = this.quill.clipboard.convert(initialContents);
-        this.quill.updateContents(delta, Quill.sources.USER);
+    try {
+      if (
+        mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
+        this.mesh &&
+        !this.mesh.visible &&
+        !refresh
+      ) {
+        this.mesh.visible = true;
       }
-    }
 
-    // TODO move after first frame loaded
-    this.el.emit("text-loaded", { src: this.data.src });
+      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
+
+      const { src } = this.data;
+      if (!src) return;
+
+      if (!this.mesh) {
+        disposeExistingMesh(this.el);
+
+        this.texture = new THREE.Texture();
+        this.texture.encoding = THREE.sRGBEncoding;
+        this.texture.minFilter = THREE.LinearFilter;
+
+        const mat = new THREE.MeshBasicMaterial();
+        const geo = new THREE.PlaneBufferGeometry(1, 1, 1, 1, this.texture.flipY);
+        mat.side = THREE.DoubleSide;
+
+        this.mesh = new THREE.Mesh(geo, mat);
+        this.mesh.material.map = this.texture;
+        this.el.setObject3D("mesh", this.mesh);
+        scaleToAspectRatio(this.el, 9.0 / 16.0); // TODO 1080p is default
+      }
+
+      this.el.emit("text-loading");
+
+      if (!this.quill || refresh) {
+        this.unbindAndRemoveQuill();
+        const shared = this.el.components.shared;
+        await shared.whenReadyForBinding();
+        this.quill = this.bindQuill();
+
+        const initialContents = this.el.components["media-loader"].consumeInitialContents();
+
+        if (initialContents) {
+          const delta = this.quill.clipboard.convert(initialContents);
+          this.quill.updateContents(delta, Quill.sources.USER);
+        }
+      }
+
+      // TODO move after first frame loaded
+      this.el.emit("text-loaded", { src: this.data.src });
+    } finally {
+      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
+    }
   },
 
   tick() {
@@ -123,6 +181,10 @@ AFRAME.registerComponent("media-text", {
 
     if (this.texture) {
       disposeTexture(this.texture);
+    }
+
+    if (hasMediaLayer(this.el)) {
+      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
     }
   }
 });

@@ -653,6 +653,14 @@ AFRAME.registerComponent("media-loader", {
       console.error("Error adding media", e);
       this.onError();
     }
+  },
+
+  consumeInitialContents: function() {
+    if (!this.data.initialContents) return;
+
+    const contents = this.data.initialContents;
+    this.el.setAttribute("media-loader", { initialContents: null });
+    return contents;
   }
 });
 
