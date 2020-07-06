@@ -116,7 +116,7 @@ import ReactDOM from "react-dom";
 import React from "react";
 import { Router, Route } from "react-router-dom";
 import { createBrowserHistory } from "history";
-import { pushHistoryState } from "./utils/history";
+import { pushHistoryState, pushHistoryPath } from "./utils/history";
 import UIRoot from "./react-components/ui-root";
 import AuthChannel from "./utils/auth-channel";
 import HubChannel from "./utils/hub-channel";
@@ -564,21 +564,10 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data)
 
   // Wait for scene objects to load before connecting, so there is no race condition on network state.
   const connectToScene = async () => {
-    let adapter = "janus";
-
-    try {
-      // Meta endpoint exists only on dialog
-      await fetch(`https://${hub.host}:${hub.port}/meta`);
-      adapter = "dialog";
-    } catch (e) {
-      // Ignore, set to janus.
-    }
-
     scene.setAttribute("networked-scene", {
       room: hub.hub_id,
       serverURL: `wss://${hub.host}:${hub.port}`,
-      debug: !!isDebug,
-      adapter
+      debug: !!isDebug
     });
 
     scene.setAttribute("shared-scene", {
@@ -711,8 +700,10 @@ function initPhysicsThreeAndCursor(scene) {
   physicsSystem.setDebug(isDebug || physicsSystem.debug);
   patchThreeAllocations();
   patchThreeNoProgramDispose();
-  this.rightCursorController.components["cursor-controller"].enabled = false;
-  this.leftCursorController.components["cursor-controller"].enabled = false;
+
+  for (const side of ["right", "left"]) {
+    document.getElementById(`${side}-cursor-controller`).components["cursor-controller"].enabled = false;
+  }
 }
 
 async function initAvatar() {
@@ -1264,17 +1255,14 @@ const joinHubChannel = (hubPhxChannel, entryManager, addToPresenceLog) => {
       const permsToken = data.perms_token;
       hubChannel.setPermissionsFromToken(permsToken);
 
-      const setupWebRTC = () => {
-        const adapter = NAF.connection.adapter;
-        const { host, turn } = data.hubs[0];
+      const { host, turn } = data.hubs[0];
 
-        setupPeerConnectionConfig(adapter, host, turn);
-      };
+      const setupWebRTC = () => setupPeerConnectionConfig(NAF.connection.adapter, host, turn);
 
       if (NAF.connection.adapter) {
         setupWebRTC();
       } else {
-        scene.addEventListener("adapter-ready", () => setupWebRTC());
+        scene.addEventListener("adapter-ready", setupWebRTC, { once: true });
       }
 
       remountUI({
@@ -1411,14 +1399,19 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager, addToPresen
   });
 };
 
-function joinPhoenixChannels(socket, entryManager) {
+function getHubIdFromHistory() {
+  return qs.get("hub_id") || history.location.pathname.substring(1).split("/")[2];
+}
+
+function joinSpace(socket, entryManager) {
   if (hubChannel.channel) {
     hubChannel.leave();
+    // TODO JEL disconnect from dialog
   }
 
   const addToPresenceLog = getAddToPresenceLog();
 
-  const hubId = qs.get("hub_id") || document.location.pathname.substring(1).split("/")[2];
+  const hubId = getHubIdFromHistory();
   console.log(`Hub ID: ${hubId}`);
   createRetChannel(socket, hubId); // TODO JEL ROUTING switch hub id in ret channel
 
@@ -1490,14 +1483,34 @@ async function start() {
 
   const socket = await createSocket(entryManager);
 
-  scene.addEventListener("adapter-ready", async ({ detail: adapter }) => {
-    adapter.setClientId(socket.params().session_id);
-    hubChannel.addEventListener("permissions-refreshed", e => adapter.setJoinToken(e.detail.permsToken));
+  hubChannel.addEventListener("permissions_updated", e => {
+    const assignJoinToken = () => NAF.connection.adapter.setJoinToken(e.detail.permsToken);
+
+    if (NAF.connection.adapter) {
+      assignJoinToken();
+    } else {
+      scene.addEventListener("adapter-ready", assignJoinToken, { once: true });
+    }
   });
+
+  scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(socket.params().session_id));
 
   authChannel.setSocket(socket);
 
-  joinPhoenixChannels(socket, entryManager);
+  history.listen(() => {
+    const hubId = getHubIdFromHistory();
+    if (hubChannel.hubId !== hubId) {
+      joinSpace(socket, entryManager);
+    }
+  });
+
+  joinSpace(socket, entryManager);
 }
+
+// TODO JEL remove
+window.navigateToSpace = hubId => {
+  const searchParams = new URLSearchParams(history.location.search);
+  pushHistoryPath(history, `/spaces/Abc123/${hubId}/slug`, searchParams);
+};
 
 document.addEventListener("DOMContentLoaded", start);

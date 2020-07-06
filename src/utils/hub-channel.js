@@ -106,14 +106,11 @@ export default class HubChannel extends EventTarget {
     // Note: token is not verified.
     this._permissions = jwtDecode(token);
     configs.setIsAdmin(this._permissions.postgrest_role === "ret_admin");
-    this.dispatchEvent(new CustomEvent("permissions_updated"));
+    this.dispatchEvent(new CustomEvent("permissions_updated", { detail: { permsToken: token } }));
 
     // Refresh the token 1 minute before it expires.
     const nextRefresh = new Date(this._permissions.exp * 1000 - 60 * 1000) - new Date();
-    setTimeout(async () => {
-      const result = await this.fetchPermissions();
-      this.dispatchEvent(new CustomEvent("permissions-refreshed", { detail: result }));
-    }, nextRefresh);
+    setTimeout(async () => await this.fetchPermissions(), nextRefresh);
   };
 
   sendEnteringEvent = async () => {
@@ -210,7 +207,9 @@ export default class HubChannel extends EventTarget {
   };
 
   sendProfileUpdate = () => {
-    this.channel.push("events:profile_updated", { profile: this.store.state.profile });
+    if (this.channel) {
+      this.channel.push("events:profile_updated", { profile: this.store.state.profile });
+    }
   };
 
   updateScene = url => {
@@ -262,7 +261,6 @@ export default class HubChannel extends EventTarget {
         .push("sign_in", { token, creator_assignment_token })
         .receive("ok", ({ perms_token }) => {
           this.setPermissionsFromToken(perms_token);
-          this.dispatchEvent(new CustomEvent("permissions-refreshed", { detail: { permsToken: perms_token } }));
           this._signedIn = true;
           resolve();
         })
