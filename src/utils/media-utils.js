@@ -587,7 +587,7 @@ export function meetsBatchingCriteria(textureInfo) {
 export function hasMediaLayer(el) {
   const mediaLoader = el.components["media-loader"];
   if (!mediaLoader) return false;
-  return typeof mediaLoader.data.mediaLayer === "number";
+  return !!(mediaLoader.data && typeof mediaLoader.data.mediaLayer === "number");
 }
 
 export function scaleToAspectRatio(el, ratio) {

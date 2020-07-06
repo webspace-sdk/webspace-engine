@@ -58,6 +58,7 @@ AFRAME.registerComponent("networked-audio-analyser", {
 
     this._updateAnalysis = this._updateAnalysis.bind(this);
     this._runScheduledWork = this._runScheduledWork.bind(this);
+    this.el.sceneEl.systems["frame-scheduler"].schedule(this._runScheduledWork, "audio-analyser");
     this.el.addEventListener(
       "sound-source-set",
       event => {

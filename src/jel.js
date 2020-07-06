@@ -521,46 +521,7 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data)
 
   const hub = data.hubs[0];
 
-  let embedToken = hub.embed_token;
-
-  if (!embedToken) {
-    const embedTokenEntry = store.state.embedTokens && store.state.embedTokens.find(t => t.hubId === hub.hub_id);
-
-    if (embedTokenEntry) {
-      embedToken = embedTokenEntry.embedToken;
-    }
-  }
-
   console.log(`Janus host: ${hub.host}:${hub.port}`);
-
-  remountUI({
-    onSendMessage: messageDispatch.dispatch,
-    onLoaded: () => store.executeOnLoadActions(scene),
-    onMediaSearchResultEntrySelected: (entry, selectAction) =>
-      scene.emit("action_selected_media_result_entry", { entry, selectAction }),
-    onMediaSearchCancelled: entry => scene.emit("action_media_search_cancelled", entry),
-    onAvatarSaved: entry => scene.emit("action_avatar_saved", entry),
-    embedToken: embedToken
-  });
-
-  scene.addEventListener("action_selected_media_result_entry", e => {
-    const { entry, selectAction } = e.detail;
-    if ((entry.type !== "scene_listing" && entry.type !== "scene") || selectAction !== "use") return;
-    if (!hubChannel.can("update_hub")) return;
-
-    hubChannel.updateScene(entry.url);
-  });
-
-  // Handle request for user gesture
-  scene.addEventListener("2d-interstitial-gesture-required", () => {
-    remountUI({
-      showInterstitialPrompt: true,
-      onInterstitialPromptClicked: () => {
-        remountUI({ showInterstitialPrompt: false, onInterstitialPromptClicked: null });
-        scene.emit("2d-interstitial-gesture-complete");
-      }
-    });
-  });
 
   // Wait for scene objects to load before connecting, so there is no race condition on network state.
   const connectToScene = async () => {
@@ -578,110 +539,33 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data)
 
     while (!scene.components["networked-scene"] || !scene.components["networked-scene"].data) await nextTick();
 
-    scene.addEventListener("adapter-ready", ({ detail: adapter }) => {
-      let newHostPollInterval = null;
-
-      // TODO JEL reconnect shared
-      // When reconnecting, update the server URL if necessary
-      adapter.setReconnectionListeners(
-        () => {
-          if (newHostPollInterval) return;
-
-          newHostPollInterval = setInterval(async () => {
-            const currentServerURL = NAF.connection.adapter.serverUrl;
-            const { host, port, turn } = await hubChannel.getHost();
-            const newServerURL = `wss://${host}:${port}`;
-
-            setupPeerConnectionConfig(adapter, host, turn);
-
-            if (currentServerURL !== newServerURL) {
-              console.log("Connecting to new Janus server " + newServerURL);
-              scene.setAttribute("networked-scene", { serverURL: newServerURL });
-              adapter.serverUrl = newServerURL;
-            }
-          }, 1000);
-        },
-        () => {
-          clearInterval(newHostPollInterval);
-          newHostPollInterval = null;
-        },
-        null
-      );
-
-      const sendViaPhoenix = reliable => (clientId, dataType, data) => {
-        const payload = { dataType, data };
-
-        if (clientId) {
-          payload.clientId = clientId;
-        }
-
-        const isOpen = hubChannel.channel.socket.connectionState() === "open";
-
-        if (isOpen || reliable) {
-          const hasFirstSync =
-            payload.dataType === "um" ? payload.data.d.find(r => r.isFirstSync) : payload.data.isFirstSync;
-
-          if (hasFirstSync) {
-            if (isOpen) {
-              hubChannel.channel.push("naf", payload);
-            } else {
-              // Memory is re-used, so make a copy
-              hubChannel.channel.push("naf", AFRAME.utils.clone(payload));
-            }
-          } else {
-            // Optimization: Strip isFirstSync and send payload as a string to reduce server parsing.
-            // The server will not parse messages without isFirstSync keys when sent to the nafr event.
-            //
-            // The client must assume any payload that does not have a isFirstSync key is not a first sync.
-            const nafrPayload = AFRAME.utils.clone(payload);
-            if (nafrPayload.dataType === "um") {
-              for (let i = 0; i < nafrPayload.data.d.length; i++) {
-                delete nafrPayload.data.d[i].isFirstSync;
-              }
-            } else {
-              delete nafrPayload.data.isFirstSync;
-            }
-
-            hubChannel.channel.push("nafr", { naf: JSON.stringify(nafrPayload) });
-          }
-        }
-      };
-
-      adapter.reliableTransport = sendViaPhoenix(true);
-      adapter.unreliableTransport = sendViaPhoenix(false);
-    });
-
-    const loadEnvironmentAndConnect = () => {
-      updateEnvironmentForHub(hub, entryManager);
-      function onConnectionError() {
-        console.error("Unknown error occurred while attempting to connect to networked scene.");
-        remountUI({ roomUnavailableReason: "connect_error" });
-        entryManager.exitScene();
-      }
-
-      const connectionErrorTimeout = setTimeout(onConnectionError, 90000);
-      scene.components["networked-scene"]
-        .connect()
-        .then(() => scene.components["shared-scene"].connect())
-        .then(() => scene.components["shared-scene"].subscribe("c" /*, hub.hub_id*/))
-        .then(() => {
-          clearTimeout(connectionErrorTimeout);
-          scene.emit("didConnectToNetworkedScene");
-        })
-        .catch(connectError => {
-          clearTimeout(connectionErrorTimeout);
-          // hacky until we get return codes
-          const isFull = connectError.msg && connectError.msg.match(/\bfull\b/i);
-          console.error(connectError);
-          remountUI({ roomUnavailableReason: isFull ? "full" : "connect_error" });
-          entryManager.exitScene();
-
-          return;
-        });
-    };
-
     updateUIForHub(hub, hubChannel);
-    loadEnvironmentAndConnect();
+    updateEnvironmentForHub(hub, entryManager);
+
+    const connectionErrorTimeout = setTimeout(() => {
+      console.error("Unknown error occurred while attempting to connect to networked scene.");
+      remountUI({ roomUnavailableReason: "connect_error" });
+      entryManager.exitScene();
+    }, 90000);
+
+    scene.components["networked-scene"]
+      .connect()
+      .then(() => scene.components["shared-scene"].connect())
+      .then(() => scene.components["shared-scene"].subscribe("c" /*, hub.hub_id*/))
+      .then(() => {
+        clearTimeout(connectionErrorTimeout);
+        scene.emit("didConnectToNetworkedScene");
+      })
+      .catch(connectError => {
+        clearTimeout(connectionErrorTimeout);
+        // hacky until we get return codes
+        const isFull = connectError.msg && connectError.msg.match(/\bfull\b/i);
+        console.error(connectError);
+        remountUI({ roomUnavailableReason: isFull ? "full" : "connect_error" });
+        entryManager.exitScene();
+
+        return;
+      });
   };
 
   connectToScene();
@@ -819,6 +703,25 @@ function addGlobalEventListeners(scene, entryManager) {
 
   scene.addEventListener("action_camera_recording_started", () => hubChannel.beginRecording());
   scene.addEventListener("action_camera_recording_ended", () => hubChannel.endRecording());
+
+  scene.addEventListener("action_selected_media_result_entry", e => {
+    const { entry, selectAction } = e.detail;
+    if ((entry.type !== "scene_listing" && entry.type !== "scene") || selectAction !== "use") return;
+    if (!hubChannel.can("update_hub")) return;
+
+    hubChannel.updateScene(entry.url);
+  });
+
+  // Handle request for user gesture
+  scene.addEventListener("2d-interstitial-gesture-required", () => {
+    remountUI({
+      showInterstitialPrompt: true,
+      onInterstitialPromptClicked: () => {
+        remountUI({ showInterstitialPrompt: false, onInterstitialPromptClicked: null });
+        scene.emit("2d-interstitial-gesture-complete");
+      }
+    });
+  });
 }
 
 function setupVREventHandlers(scene, availableVREntryTypesPromise) {
@@ -1062,11 +965,11 @@ const createRetChannel = (socket, hubId) => {
   });
 };
 
-const getAddToPresenceLog = () => {
-  const scene = document.querySelector("a-scene");
+const addToPresenceLog = (() => {
   const presenceLogEntries = [];
 
   return entry => {
+    const scene = document.querySelector("a-scene");
     entry.key = Date.now().toString();
 
     presenceLogEntries.push(entry);
@@ -1086,21 +989,10 @@ const getAddToPresenceLog = () => {
       }, 5000);
     }, 20000);
   };
-};
+})();
 
-const joinHubChannel = (hubPhxChannel, entryManager, addToPresenceLog) => {
+const joinHubChannel = (hubPhxChannel, entryManager, messageDispatch) => {
   const scene = document.querySelector("a-scene");
-
-  const messageDispatch = new MessageDispatch(
-    scene,
-    entryManager,
-    hubChannel,
-    addToPresenceLog,
-    remountUI,
-    mediaSearchStore
-  );
-
-  document.getElementById("avatar-rig").messageDispatch = messageDispatch;
 
   let isInitialJoin = true;
 
@@ -1257,7 +1149,43 @@ const joinHubChannel = (hubPhxChannel, entryManager, addToPresenceLog) => {
 
       const { host, turn } = data.hubs[0];
 
-      const setupWebRTC = () => setupPeerConnectionConfig(NAF.connection.adapter, host, turn);
+      const setupWebRTC = () => {
+        const adapter = NAF.connection.adapter;
+        setupPeerConnectionConfig(adapter, host, turn);
+
+        let newHostPollInterval = null;
+
+        // TODO JEL reconnect shared
+        // When reconnecting, update the server URL if necessary
+        adapter.setReconnectionListeners(
+          () => {
+            if (newHostPollInterval) return;
+
+            newHostPollInterval = setInterval(async () => {
+              const currentServerURL = NAF.connection.adapter.serverUrl;
+              const { host, port, turn } = await hubChannel.getHost();
+              const newServerURL = `wss://${host}:${port}`;
+
+              setupPeerConnectionConfig(adapter, host, turn);
+
+              if (currentServerURL !== newServerURL) {
+                console.log("Connecting to new webrtc server " + newServerURL);
+                scene.setAttribute("networked-scene", { serverURL: newServerURL });
+                // TODO JEL shared reconnect
+                adapter.serverUrl = newServerURL;
+              }
+            }, 1000);
+          },
+          () => {
+            clearInterval(newHostPollInterval);
+            newHostPollInterval = null;
+          },
+          null
+        );
+
+        adapter.reliableTransport = hubChannel.sendReliableNAF.bind(hubChannel);
+        adapter.unreliableTransport = hubChannel.sendUnreliableNAF.bind(hubChannel);
+      };
 
       if (NAF.connection.adapter) {
         setupWebRTC();
@@ -1299,7 +1227,7 @@ const joinHubChannel = (hubPhxChannel, entryManager, addToPresenceLog) => {
   );
 };
 
-const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager, addToPresenceLog) => {
+const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager) => {
   const scene = document.querySelector("a-scene");
 
   const handleIncomingNAF = data => {
@@ -1403,29 +1331,39 @@ function getHubIdFromHistory() {
   return qs.get("hub_id") || history.location.pathname.substring(1).split("/")[2];
 }
 
-function joinSpace(socket, entryManager) {
+function joinSpace(socket, entryManager, messageDispatch) {
   if (hubChannel.channel) {
     hubChannel.leave();
     // TODO JEL disconnect from dialog
   }
-
-  const addToPresenceLog = getAddToPresenceLog();
 
   const hubId = getHubIdFromHistory();
   console.log(`Hub ID: ${hubId}`);
   createRetChannel(socket, hubId); // TODO JEL ROUTING switch hub id in ret channel
 
   const hubPhxChannel = socket.channel(`hub:${hubId}`, createHubChannelParams());
-  setupHubChannelMessageHandlers(hubPhxChannel, entryManager, addToPresenceLog);
+  setupHubChannelMessageHandlers(hubPhxChannel, entryManager);
   hubChannel.bind(hubPhxChannel, hubId);
 
-  joinHubChannel(hubPhxChannel, entryManager, addToPresenceLog);
+  joinHubChannel(hubPhxChannel, entryManager, messageDispatch);
 }
 
 async function start() {
   if (!checkPrerequisites()) return;
 
+  const scene = document.querySelector("a-scene");
   const entryManager = new SceneEntryManager(hubChannel, authChannel, history);
+  const messageDispatch = new MessageDispatch(
+    scene,
+    entryManager,
+    hubChannel,
+    addToPresenceLog,
+    remountUI,
+    mediaSearchStore
+  );
+
+  document.getElementById("avatar-rig").messageDispatch = messageDispatch;
+
   setupPerformConditionalSignin(entryManager);
   await store.initProfile();
 
@@ -1433,7 +1371,6 @@ async function start() {
   warmSerializeElement();
   initQuillPool();
 
-  const scene = document.querySelector("a-scene");
   window.APP.scene = scene;
 
   scene.setAttribute("shadow", { enabled: window.APP.quality !== "low" }); // Disable shadows on low quality
@@ -1497,14 +1434,23 @@ async function start() {
 
   authChannel.setSocket(socket);
 
+  remountUI({
+    onSendMessage: messageDispatch.dispatch,
+    onLoaded: () => store.executeOnLoadActions(scene),
+    onMediaSearchResultEntrySelected: (entry, selectAction) =>
+      scene.emit("action_selected_media_result_entry", { entry, selectAction }),
+    onMediaSearchCancelled: entry => scene.emit("action_media_search_cancelled", entry),
+    onAvatarSaved: entry => scene.emit("action_avatar_saved", entry)
+  });
+
   history.listen(() => {
     const hubId = getHubIdFromHistory();
     if (hubChannel.hubId !== hubId) {
-      joinSpace(socket, entryManager);
+      joinSpace(socket, entryManager, messageDispatch);
     }
   });
 
-  joinSpace(socket, entryManager);
+  joinSpace(socket, entryManager, messageDispatch);
 }
 
 // TODO JEL remove
