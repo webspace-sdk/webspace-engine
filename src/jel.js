@@ -26,12 +26,7 @@ import "./utils/threejs-world-update";
 import patchThreeAllocations from "./utils/threejs-allocation-patches";
 import patchThreeNoProgramDispose from "./jel/utils/threejs-avoid-disposing-programs";
 import { detectOS, detect } from "detect-browser";
-import {
-  getReticulumFetchUrl,
-  getReticulumMeta,
-  invalidateReticulumMeta,
-  migrateChannelToSocket
-} from "./utils/phoenix-utils";
+import { getReticulumMeta, invalidateReticulumMeta, migrateChannelToSocket } from "./utils/phoenix-utils";
 
 import nextTick from "./utils/next-tick";
 import { addAnimationComponents } from "./utils/animation";
@@ -120,7 +115,7 @@ import { sets as userinputSets } from "./systems/userinput/sets";
 import ReactDOM from "react-dom";
 import React from "react";
 import { Router, Route } from "react-router-dom";
-import { createBrowserHistory, createMemoryHistory } from "history";
+import { createBrowserHistory } from "history";
 import { pushHistoryState } from "./utils/history";
 import UIRoot from "./react-components/ui-root";
 import AuthChannel from "./utils/auth-channel";
@@ -171,22 +166,13 @@ window.APP.RENDER_ORDER = {
 const store = window.APP.store;
 store.update({ preferences: { shouldPromptForRefresh: undefined } });
 
-// Hub ID and slug are the basename
-let routerBaseName = document.location.pathname
-  .split("/")
-  .slice(0, 2)
-  .join("/");
-
-if (document.location.pathname.includes("hub.html")) {
-  routerBaseName = "/";
-}
-
-const history = routerBaseName === "/" ? createMemoryHistory() : createBrowserHistory({ basename: routerBaseName });
+const history = createBrowserHistory();
 window.APP.history = history;
 const authChannel = new AuthChannel(store);
 const hubChannel = new HubChannel(store);
 const linkChannel = new LinkChannel(store);
 window.APP.hubChannel = hubChannel;
+store.addEventListener("profilechanged", hubChannel.sendProfileUpdate.bind(hubChannel));
 
 const mediaSearchStore = window.APP.mediaSearchStore;
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
@@ -576,19 +562,6 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data)
     });
   });
 
-  const objectsScene = document.querySelector("#objects-scene");
-  const objectsUrl = getReticulumFetchUrl(`/${hub.hub_id}/objects.gltf`);
-
-  scene.addEventListener("adapter-ready", () => {
-    // Append objects once adapter is ready since ownership may be taken.
-    const objectsEl = document.createElement("a-entity");
-    objectsEl.setAttribute("gltf-model-plus", { src: objectsUrl, useCache: false, inflate: true });
-
-    if (!isBotMode) {
-      objectsScene.appendChild(objectsEl);
-    }
-  });
-
   // Wait for scene objects to load before connecting, so there is no race condition on network state.
   const connectToScene = async () => {
     let adapter = "janus";
@@ -733,11 +706,13 @@ async function runBotMode(scene, entryManager) {
   entryManager.enterSceneWhenLoaded(new MediaStream(), false);
 }
 
-function initPhysicsAndThree(scene) {
+function initPhysicsThreeAndCursor(scene) {
   const physicsSystem = scene.systems["hubs-systems"].physicsSystem;
   physicsSystem.setDebug(isDebug || physicsSystem.debug);
   patchThreeAllocations();
   patchThreeNoProgramDispose();
+  this.rightCursorController.components["cursor-controller"].enabled = false;
+  this.leftCursorController.components["cursor-controller"].enabled = false;
 }
 
 async function initAvatar() {
@@ -1122,7 +1097,7 @@ const getAddToPresenceLog = () => {
   };
 };
 
-const setupHubChannelJoinHandler = (hubPhxChannel, entryManager, addToPresenceLog) => {
+const joinHubChannel = (hubPhxChannel, entryManager, addToPresenceLog) => {
   const scene = document.querySelector("a-scene");
 
   const messageDispatch = new MessageDispatch(
@@ -1155,13 +1130,9 @@ const setupHubChannelJoinHandler = (hubPhxChannel, entryManager, addToPresenceLo
 
       const vrHudPresenceCount = document.querySelector("#hud-presence-count");
 
-      presenceSync.promise = new Promise(resolve => {
-        presenceSync.resolve = resolve;
-      });
+      presenceSync.promise = new Promise(resolve => (presenceSync.resolve = resolve));
 
       if (isInitialJoin) {
-        store.addEventListener("profilechanged", hubChannel.sendProfileUpdate.bind(hubChannel));
-
         const requestedOccupants = [];
 
         const requestOccupants = async (sessionIds, state) => {
@@ -1293,69 +1264,18 @@ const setupHubChannelJoinHandler = (hubPhxChannel, entryManager, addToPresenceLo
       const permsToken = data.perms_token;
       hubChannel.setPermissionsFromToken(permsToken);
 
-      const janusHost = data.hubs[0].host;
-      const janusTurn = data.hubs[0].turn;
+      const setupWebRTC = () => {
+        const adapter = NAF.connection.adapter;
+        const { host, turn } = data.hubs[0];
 
-      scene.addEventListener("adapter-ready", async ({ detail: adapter }) => {
-        // HUGE HACK Safari does not like it if the first peer seen does not immediately
-        // send audio over its media stream. Otherwise, the stream doesn't work and stays
-        // silent. (Though subsequent peers work fine.) This only affects naf janus adapter
-        // not mediasoup.
-        //
-        // This hooks up a simple audio pipeline to push a short tone over the WebRTC
-        // media stream as its created to mitigate this Safari bug.
-        //
-        // Users will never hear this tone -- the outgoing media track is overwritten
-        // before we spawn our avatar, which is when other users will begin hearing
-        // the audio.
-        //
-        // This only covers the case where a Safari user is in the room and the first
-        // other user joins. If a user is in the room and Safari user joins,
-        // then Safari can fail to receive audio from a single peer (it does not seem
-        // to be related to silence, but may be a factor.)
-        let track, oscillator, stream;
+        setupPeerConnectionConfig(adapter, host, turn);
+      };
 
-        // TODO remove after dialog
-        if (adapter.type !== "dialog") {
-          console.log("Using Janus SFU");
-          const ctx = THREE.AudioContext.getContext();
-          oscillator = ctx.createOscillator();
-          const gain = ctx.createGain();
-          gain.gain.setValueAtTime(0.01, ctx.currentTime);
-          const dest = ctx.createMediaStreamDestination();
-          oscillator.connect(gain);
-          gain.connect(dest);
-          oscillator.start();
-          const stream = dest.stream;
-          track = stream.getAudioTracks()[0];
-        }
-
-        adapter.setClientId(socket.params().session_id);
-        adapter.setJoinToken(data.perms_token);
-        setupPeerConnectionConfig(adapter, janusHost, janusTurn);
-
-        hubChannel.addEventListener("permissions-refreshed", e => adapter.setJoinToken(e.detail.permsToken));
-
-        // Stop the tone after we've connected, which seems to mitigate the issue without actually
-        // having to keep this playing and using bandwidth.
-        scene.addEventListener(
-          "didConnectToNetworkedScene",
-          () => {
-            if (oscillator) {
-              oscillator.stop();
-            }
-
-            if (track) {
-              track.enabled = false;
-            }
-          },
-          { once: true }
-        );
-
-        if (stream) {
-          await adapter.setLocalMediaStream(stream);
-        }
-      });
+      if (NAF.connection.adapter) {
+        setupWebRTC();
+      } else {
+        scene.addEventListener("adapter-ready", () => setupWebRTC());
+      }
 
       remountUI({
         hubIsBound: data.hub_requires_oauth,
@@ -1381,10 +1301,14 @@ const setupHubChannelJoinHandler = (hubPhxChannel, entryManager, addToPresenceLo
       console.error(res);
     });
 
-  scene.addEventListener("shared-adapter-ready", async ({ detail: adapter }) => {
-    // TODO JEL this may not be needed once this is on dyna
-    adapter.setClientId(socket.params().session_id);
-  });
+  scene.addEventListener(
+    "shared-adapter-ready",
+    async ({ detail: adapter }) => {
+      // TODO JEL this may not be needed once this is on dyna
+      adapter.setClientId(socket.params().session_id);
+    },
+    { once: true }
+  );
 };
 
 const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager, addToPresenceLog) => {
@@ -1457,6 +1381,7 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager, addToPresen
       titleParts[0] = hub.name;
       document.title = titleParts.join(" | ");
 
+      // TODO JEL ROUTING
       // Re-write the slug in the browser history
       const pathParts = history.location.pathname.split("/");
       const oldSlug = pathParts[1];
@@ -1486,6 +1411,24 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager, addToPresen
   });
 };
 
+function joinPhoenixChannels(socket, entryManager) {
+  if (hubChannel.channel) {
+    hubChannel.leave();
+  }
+
+  const addToPresenceLog = getAddToPresenceLog();
+
+  const hubId = qs.get("hub_id") || document.location.pathname.substring(1).split("/")[2];
+  console.log(`Hub ID: ${hubId}`);
+  createRetChannel(socket, hubId); // TODO JEL ROUTING switch hub id in ret channel
+
+  const hubPhxChannel = socket.channel(`hub:${hubId}`, createHubChannelParams());
+  setupHubChannelMessageHandlers(hubPhxChannel, entryManager, addToPresenceLog);
+  hubChannel.bind(hubPhxChannel, hubId);
+
+  joinHubChannel(hubPhxChannel, entryManager, addToPresenceLog);
+}
+
 async function start() {
   if (!checkPrerequisites()) return;
 
@@ -1497,9 +1440,6 @@ async function start() {
   warmSerializeElement();
   initQuillPool();
 
-  const hubId = qs.get("hub_id") || document.location.pathname.substring(1).split("/")[0];
-  console.log(`Hub ID: ${hubId}`);
-
   const scene = document.querySelector("a-scene");
   window.APP.scene = scene;
 
@@ -1509,16 +1449,14 @@ async function start() {
   initBatching();
 
   if (scene.hasLoaded) {
-    initPhysicsAndThree(scene);
+    initPhysicsThreeAndCursor(scene);
   } else {
-    scene.addEventListener("loaded", () => initPhysicsAndThree(scene), { once: true });
+    scene.addEventListener("loaded", () => initPhysicsThreeAndCursor(scene), { once: true });
   }
 
   await initAvatar();
 
   addGlobalEventListeners(scene, entryManager);
-
-  entryManager.init();
 
   window.dispatchEvent(new CustomEvent("hub_channel_ready"));
 
@@ -1551,15 +1489,15 @@ async function start() {
   environmentScene.addEventListener("model-loaded", handleEnvironmentLoaded);
 
   const socket = await createSocket(entryManager);
-  createRetChannel(socket, hubId);
 
-  const hubPhxChannel = socket.channel(`hub:${hubId}`, createHubChannelParams());
+  scene.addEventListener("adapter-ready", async ({ detail: adapter }) => {
+    adapter.setClientId(socket.params().session_id);
+    hubChannel.addEventListener("permissions-refreshed", e => adapter.setJoinToken(e.detail.permsToken));
+  });
 
-  hubChannel.bind(hubPhxChannel, hubId);
   authChannel.setSocket(socket);
-  const addToPresenceLog = getAddToPresenceLog();
-  setupHubChannelJoinHandler(hubPhxChannel, entryManager, addToPresenceLog);
-  setupHubChannelMessageHandlers(hubPhxChannel, entryManager, addToPresenceLog);
+
+  joinPhoenixChannels(socket, entryManager);
 }
 
 document.addEventListener("DOMContentLoaded", start);

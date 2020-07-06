@@ -96,12 +96,12 @@ export function navigateToPriorPage(history) {
 // Returns the part of the pathname that does not include the slug
 export function sluglessPath(location) {
   const parts = location.pathname.split("/");
-  return `/${parts.slice(2).join("/")}`;
+  return `/${parts.slice(4).join("/")}`;
 }
 
 // Returns a new path that includes the current slug as a prefix to the
 // provided path.
 export function withSlug(location, path) {
   const parts = location.pathname.split("/");
-  return `/${parts[1]}${path}`;
+  return `/${parts[1]}/${parts[2]}/${parts[3]}${path}`;
 }

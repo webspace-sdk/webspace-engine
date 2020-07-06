@@ -40,13 +40,6 @@ export default class SceneEntryManager {
     this.history = history;
   }
 
-  init = () => {
-    this.whenSceneLoaded(() => {
-      this.rightCursorController.components["cursor-controller"].enabled = false;
-      this.leftCursorController.components["cursor-controller"].enabled = false;
-    });
-  };
-
   hasEntered = () => {
     return this._entered;
   };

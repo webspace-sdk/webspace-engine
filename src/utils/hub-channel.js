@@ -262,6 +262,7 @@ export default class HubChannel extends EventTarget {
         .push("sign_in", { token, creator_assignment_token })
         .receive("ok", ({ perms_token }) => {
           this.setPermissionsFromToken(perms_token);
+          this.dispatchEvent(new CustomEvent("permissions-refreshed", { detail: { permsToken: perms_token } }));
           this._signedIn = true;
           resolve();
         })
@@ -385,6 +386,7 @@ export default class HubChannel extends EventTarget {
   requestSupport = () => this.channel.push("events:request_support", {});
   favorite = () => this.channel.push("favorite", {});
   unfavorite = () => this.channel.push("unfavorite", {});
+  leave = () => this.channel.leave();
 
   disconnect = () => {
     if (this.channel) {
