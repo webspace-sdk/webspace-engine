@@ -43,8 +43,7 @@ export default class DialogAdapter {
     this._frozenUpdates = new Map();
     this._pendingMediaRequests = new Map();
     this._micEnabled = true;
-    this._initialAudioConsumerPromise = null;
-    this._initialAudioConsumerResolvers = new Map();
+    this._audioConsumerResolvers = new Map();
     this._serverTimeRequests = 0;
     this._avgTimeOffset = 0;
     this._blockedClients = new Map();
@@ -145,7 +144,7 @@ export default class DialogAdapter {
             // Store in the map.
             this._consumers.set(consumer.id, consumer);
 
-            consumer.on("transportclose", () => this.removeConsumer(consumer.id));
+            consumer.on("close", () => this.removeConsumer(consumer.id));
 
             // We are ready. Answer the protoo request so the server will
             // resume this Consumer (which was paused for now if video).
@@ -154,11 +153,11 @@ export default class DialogAdapter {
             this.resolvePendingMediaRequestForTrack(peerId, consumer.track);
 
             if (kind === "audio") {
-              const initialAudioResolver = this._initialAudioConsumerResolvers.get(peerId);
+              const audioResolver = this._audioConsumerResolvers.get(peerId);
 
-              if (initialAudioResolver) {
-                initialAudioResolver();
-                this._initialAudioConsumerResolvers.delete(peerId);
+              if (audioResolver) {
+                audioResolver();
+                this._audioConsumerResolvers.delete(peerId);
               }
             }
           } catch (err) {
@@ -176,7 +175,7 @@ export default class DialogAdapter {
       debug('proto "notification" event [method:%s, data:%o]', notification.method, notification.data);
 
       switch (notification.method) {
-        case "newPeer": {
+        case "peerEntered": {
           const peer = notification.data;
           this._onOccupantConnected(peer.id);
           this.occupants[peer.id] = true;
@@ -188,6 +187,7 @@ export default class DialogAdapter {
           break;
         }
 
+        case "peerExited":
         case "peerClosed": {
           const { peerId } = notification.data;
           this._onOccupantDisconnected(peerId);
@@ -238,24 +238,10 @@ export default class DialogAdapter {
 
           break;
         }
-
-        case "peerBlocked": {
-          const { peerId } = notification.data;
-          document.body.dispatchEvent(new CustomEvent("blocked", { detail: { clientId: peerId } }));
-
-          break;
-        }
-
-        case "peerUnblocked": {
-          const { peerId } = notification.data;
-          document.body.dispatchEvent(new CustomEvent("unblocked", { detail: { clientId: peerId } }));
-
-          break;
-        }
       }
     });
 
-    await Promise.all([this.updateTimeOffset(), this._initialAudioConsumerPromise]);
+    await this.updateTimeOffset();
   }
 
   shouldStartConnectionTo() {
@@ -348,6 +334,35 @@ export default class DialogAdapter {
     // Not implemented
   }
 
+  async joinSpace(spaceId) {
+    const peerIds = Object.keys(this.occupants);
+    for (let i = 0; i < peerIds.length; i++) {
+      const peerId = peerIds[i];
+      if (peerId === this._clientId) continue;
+      this._onOccupantDisconnected(peerId);
+    }
+
+    this.occupants = {};
+
+    const audioConsumerPromises = [];
+
+    const { peers } = await this._protoo.request("enter", {
+      spaceId // TODO JEL
+    });
+
+    // Create a promise that will be resolved once we attach to all the initial consumers.
+    // This will gate the connection flow until all voices will be heard.
+    for (let i = 0; i < peers.length; i++) {
+      const peerId = peers[i].id;
+      this._onOccupantConnected(peerId);
+      this.occupants[peerId] = true;
+      if (!peers[i].hasProducers) continue;
+      audioConsumerPromises.push(new Promise(res => this._audioConsumerResolvers.set(peerId, res)));
+    }
+
+    await Promise.all([audioConsumerPromises]);
+  }
+
   async _joinRoom() {
     debug("_joinRoom()");
 
@@ -438,7 +453,7 @@ export default class DialogAdapter {
           .catch(errback);
       });
 
-      const { peers } = await this._protoo.request("join", {
+      await this._protoo.request("join", {
         displayName: this._clientId,
         device: this._device,
         rtpCapabilities: this._mediasoupDevice.rtpCapabilities,
@@ -446,21 +461,9 @@ export default class DialogAdapter {
         token: this._joinToken
       });
 
-      const audioConsumerPromises = [];
       this.occupants = {};
 
-      // Create a promise that will be resolved once we attach to all the initial consumers.
-      // This will gate the connection flow until all voices will be heard.
-      for (let i = 0; i < peers.length; i++) {
-        const peerId = peers[i].id;
-        this._onOccupantConnected(peerId);
-        this.occupants[peerId] = true;
-        if (!peers[i].hasProducers) continue;
-        audioConsumerPromises.push(new Promise(res => this._initialAudioConsumerResolvers.set(peerId, res)));
-      }
-
       this._connectSuccess(this._clientId);
-      this._initialAudioConsumerPromise = Promise.all(audioConsumerPromises);
 
       if (this._onOccupantsChanged) {
         this._onOccupantsChanged(this.occupants);
@@ -648,20 +651,6 @@ export default class DialogAdapter {
       .then(() => {
         document.body.dispatchEvent(new CustomEvent("kicked", { detail: { clientId: clientId } }));
       });
-  }
-
-  block(clientId) {
-    return this._protoo.request("block", { whom: clientId }).then(() => {
-      this._blockedClients.set(clientId, true);
-      document.body.dispatchEvent(new CustomEvent("blocked", { detail: { clientId: clientId } }));
-    });
-  }
-
-  unblock(clientId) {
-    return this._protoo.request("unblock", { whom: clientId }).then(() => {
-      this._blockedClients.delete(clientId);
-      document.body.dispatchEvent(new CustomEvent("unblocked", { detail: { clientId: clientId } }));
-    });
   }
 
   async updateTimeOffset() {
