@@ -551,7 +551,7 @@ function handleHubChannelJoined(isInitialJoin, entryManager, hubChannel, message
 
     (!isConnected ? scene.components["networked-scene"].connect() : Promise.resolve())
       .then(() => (!isConnected ? scene.components["shared-scene"].connect() : Promise.resolve()))
-      .then(() => NAF.connection.adapter.joinSpace(hub.hub_id)) // TODO JEL
+      .then(() => NAF.connection.adapter.joinHub(hub.hub_id)) // TODO JEL
       .then(() => scene.components["shared-scene"].subscribe("c" /*, hub.hub_id*/))
       .then(() => {
         clearTimeout(connectionErrorTimeout);
@@ -1173,7 +1173,7 @@ const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
                   scene.setAttribute("networked-scene", { serverURL: newServerURL });
                   // TODO JEL shared reconnect
                   adapter.serverUrl = newServerURL;
-                  NAF.connection.adapter.joinSpace(hub_id); // TODO JEL TEST
+                  NAF.connection.adapter.joinHub(hub_id); // TODO JEL TEST
                 }
               }, 1000);
             },
@@ -1337,7 +1337,7 @@ function getHubIdFromHistory() {
   return qs.get("hub_id") || history.location.pathname.substring(1).split("/")[2];
 }
 
-async function joinSpace(socket, entryManager, messageDispatch) {
+async function joinHub(socket, entryManager, messageDispatch) {
   if (hubChannel.channel) {
     hubChannel.leave();
     // TODO JEL disconnect from dialog
@@ -1460,7 +1460,7 @@ async function start() {
     joinPromise = null;
 
     if (hubChannel.hubId !== hubId && nextHubToJoin === hubId) {
-      joinPromise = joinSpace(socket, entryManager, messageDispatch);
+      joinPromise = joinHub(socket, entryManager, messageDispatch);
     }
   };
 

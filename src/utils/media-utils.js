@@ -562,6 +562,7 @@ export function closeExistingMediaMirror() {
 }
 
 export const MEDIA_PRESENCE = {
+  UNKNOWN: -1,
   INIT: 0,
   PENDING: 1,
   PRESENT: 2,

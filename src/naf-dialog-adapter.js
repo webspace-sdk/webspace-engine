@@ -334,7 +334,7 @@ export default class DialogAdapter {
     // Not implemented
   }
 
-  async joinSpace(spaceId) {
+  async joinHub(hubId) {
     const peerIds = Object.keys(this.occupants);
     for (let i = 0; i < peerIds.length; i++) {
       const peerId = peerIds[i];
@@ -347,7 +347,7 @@ export default class DialogAdapter {
     const audioConsumerPromises = [];
 
     const { peers } = await this._protoo.request("enter", {
-      spaceId // TODO JEL
+      hubId // TODO JEL
     });
 
     // Create a promise that will be resolved once we attach to all the initial consumers.

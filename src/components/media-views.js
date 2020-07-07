@@ -513,8 +513,12 @@ AFRAME.registerComponent("media-video", {
       this.updatePlaybackState();
     }
 
-    if (!hasMediaLayer(this.el) || shouldUpdateSrc) {
-      this.setMediaPresence(MEDIA_PRESENCE.PRESENT, shouldUpdateSrc);
+    const hasLayer = hasMediaLayer(this.el);
+
+    if (!hasLayer || shouldUpdateSrc) {
+      const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+      const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
+      this.setMediaPresence(newMediaPresence, shouldUpdateSrc);
       return;
     }
 
@@ -1332,15 +1336,18 @@ AFRAME.registerComponent("media-image", {
     if (!src) return;
 
     const refresh = oldData.src !== src || oldData.version !== version || oldData.projection !== projection;
+    const hasLayer = hasMediaLayer(this.el);
 
-    if (!hasMediaLayer(this.el) || refresh) {
+    if (!hasLayer || refresh) {
       // Release any existing texture on a refresh
       if (this.currentSrcIsRetained) {
         textureCache.release(oldData.src, oldData.version);
         this.currentSrcIsRetained = false;
       }
 
-      this.setMediaPresence(MEDIA_PRESENCE.PRESENT, refresh);
+      const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+      const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
+      this.setMediaPresence(newMediaPresence, refresh);
     }
   }
 });
@@ -1407,9 +1414,12 @@ AFRAME.registerComponent("media-pdf", {
     if (!src) return;
 
     const refresh = oldData.src !== src || oldData.version !== version || oldData.index !== index;
+    const hasLayer = hasMediaLayer(this.el);
 
-    if (!hasMediaLayer(this.el) || refresh) {
-      this.setMediaPresence(MEDIA_PRESENCE.PRESENT, refresh);
+    if (!hasLayer || refresh) {
+      const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+      const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
+      this.setMediaPresence(newMediaPresence, refresh);
     }
   },
 

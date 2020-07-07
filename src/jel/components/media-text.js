@@ -31,9 +31,12 @@ AFRAME.registerComponent("media-text", {
       this.updateColorEtc
     }*/
 
-    if (!hasMediaLayer(this.el) || refresh) {
-      this.setMediaPresence(MEDIA_PRESENCE.PRESENT, refresh);
-      return;
+    const hasLayer = hasMediaLayer(this.el);
+
+    if (!hasLayer || refresh) {
+      const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+      const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
+      this.setMediaPresence(newMediaPresence, refresh);
     }
   },
 
