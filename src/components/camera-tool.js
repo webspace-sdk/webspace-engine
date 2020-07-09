@@ -247,6 +247,7 @@ AFRAME.registerComponent("camera-tool", {
 
   remove() {
     this.cameraSystem.deregister(this.el);
+    this.el.sceneEl.removeState("camera");
     this.el.sceneEl.emit("camera_removed");
     this.stopRecording();
   },
