@@ -178,6 +178,15 @@ const mediaSearchStore = window.APP.mediaSearchStore;
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
 
 const qs = new URLSearchParams(location.search);
+
+function getHubIdFromHistory() {
+  return qs.get("hub_id") || history.location.pathname.substring(1).split("/")[2];
+}
+
+function getOrgIdFromHistory() {
+  return qs.get("org_id") || history.location.pathname.substring(1).split("/")[1];
+}
+
 const isMobile = AFRAME.utils.device.isMobile();
 const isMobileVR = AFRAME.utils.device.isMobileVR();
 
@@ -519,19 +528,20 @@ function handleHubChannelJoined(isInitialJoin, entryManager, hubChannel, message
   }
 
   const hub = data.hubs[0];
+  const orgId = getOrgIdFromHistory();
 
-  console.log(`Janus host: ${hub.host}:${hub.port}`);
+  console.log(`Janus host: ${hub.host}:${hub.port}`); // TODO JEL this shoudl come from server channel
 
   // Wait for scene objects to load before connecting, so there is no race condition on network state.
   const connectToScene = async () => {
     scene.setAttribute("networked-scene", {
-      room: "server_id", // JEL
+      room: orgId,
       serverURL: `wss://${hub.host}:${hub.port}`,
       debug: !!isDebug
     });
 
     scene.setAttribute("shared-scene", {
-      room: "server_id",
+      collection: orgId,
       serverURL: `wss://hubs.local:8001`,
       debug: !!isDebug
     });
@@ -552,7 +562,7 @@ function handleHubChannelJoined(isInitialJoin, entryManager, hubChannel, message
     (!isConnected ? scene.components["networked-scene"].connect() : Promise.resolve())
       .then(() => (!isConnected ? scene.components["shared-scene"].connect() : Promise.resolve()))
       .then(() => NAF.connection.adapter.joinHub(hub.hub_id)) // TODO JEL
-      .then(() => scene.components["shared-scene"].subscribe("c" /*, hub.hub_id*/))
+      .then(() => scene.components["shared-scene"].subscribe(hub.hub_id))
       .then(() => {
         clearTimeout(connectionErrorTimeout);
         scene.emit("didConnectToNetworkedScene");
@@ -1332,10 +1342,6 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager) => {
     }
   });
 };
-
-function getHubIdFromHistory() {
-  return qs.get("hub_id") || history.location.pathname.substring(1).split("/")[2];
-}
 
 async function joinHub(socket, entryManager, messageDispatch) {
   if (hubChannel.channel) {

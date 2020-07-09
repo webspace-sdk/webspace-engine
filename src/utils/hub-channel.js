@@ -108,9 +108,9 @@ export default class HubChannel extends EventTarget {
     configs.setIsAdmin(this._permissions.postgrest_role === "ret_admin");
     this.dispatchEvent(new CustomEvent("permissions_updated", { detail: { permsToken: token } }));
 
-    // Refresh the token 1 minute before it expires.
+    // Refresh the token 1 minute before it expires. Refresh at most every 60s.
     const nextRefresh = new Date(this._permissions.exp * 1000 - 60 * 1000) - new Date();
-    setTimeout(async () => await this.fetchPermissions(), nextRefresh);
+    setTimeout(async () => await this.fetchPermissions(), Math.max(nextRefresh, 60000));
   };
 
   sendEnteringEvent = async () => {

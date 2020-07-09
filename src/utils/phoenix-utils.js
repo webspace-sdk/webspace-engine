@@ -157,8 +157,9 @@ export function fetchReticulumAuthenticated(url, method = "GET", payload) {
 }
 
 export async function createAndRedirectToNewHub(name, sceneId, replace) {
+  const orgId = "PGsfonD"; // TODO JEL
   const createUrl = getReticulumFetchUrl("/api/v1/hubs");
-  const payload = { hub: { name: name || generateHubName() } };
+  const payload = { hub: { name: name || generateHubName(), org_id: orgId } };
 
   if (sceneId) {
     payload.hub.scene_id = sceneId;
@@ -206,7 +207,7 @@ export async function createAndRedirectToNewHub(name, sceneId, replace) {
   }
 
   if (isLocalClient()) {
-    url = `/hub.html?hub_id=${hub.hub_id}`;
+    url = `/hub.html?hub_id=${hub.hub_id}&org_id=${orgId}`;
   }
 
   if (replace) {
