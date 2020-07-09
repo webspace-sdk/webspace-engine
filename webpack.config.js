@@ -248,8 +248,7 @@ module.exports = async (env, argv) => {
     },
     entry: {
       support: path.join(__dirname, "src", "support.js"),
-      index: path.join(__dirname, "src", "index.js"),
-      hub: path.join(__dirname, "src", "hub.js"),
+      index: path.join(__dirname, "src", "jel", "ui", "index.js"),
       jel: path.join(__dirname, "src", "jel.js"),
       scene: path.join(__dirname, "src", "scene.js"),
       avatar: path.join(__dirname, "src", "avatar.js"),
@@ -471,16 +470,6 @@ module.exports = async (env, argv) => {
         template: path.join(__dirname, "src", "index.html"),
         chunks: ["support", "index"],
         chunksSortMode: "manual",
-        minify: {
-          removeComments: false
-        }
-      }),
-      new HTMLWebpackPlugin({
-        filename: "hub.html",
-        template: path.join(__dirname, "src", "hub.html"),
-        chunks: ["support", "hub"],
-        chunksSortMode: "manual",
-        inject: "head",
         minify: {
           removeComments: false
         }

@@ -111,7 +111,7 @@ function getPendingOrExistingEntityMetadata(networkId) {
   if (pendingData) {
     if (pendingData.owner) {
       // If owner is no longer present, give up.
-      const presenceState = window.APP.hubChannel.presence.state[pendingData.owner];
+      const presenceState = window.APP.orgChannel.presence.state[pendingData.owner];
       if (!presenceState) return;
     }
 
@@ -176,7 +176,7 @@ export function authorizeOrSanitizeMessage(message) {
     return message;
   }
 
-  const presenceState = window.APP.hubChannel.presence.state[from_session_id];
+  const presenceState = window.APP.orgChannel.presence.state[from_session_id];
 
   if (!presenceState) {
     // We've received a manipulation message from a user that we don't have presence state for yet.

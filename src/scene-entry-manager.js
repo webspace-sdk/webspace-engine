@@ -3,6 +3,7 @@ import nextTick from "./utils/next-tick";
 import pinnedEntityToGltf from "./utils/pinned-entity-to-gltf";
 import { hackyMobileSafariTest } from "./utils/detect-touchscreen";
 import { takeOwnership } from "./jel/utils/ownership-utils";
+import { waitForDOMContentLoaded } from "./utils/async-utils";
 
 const isBotMode = qsTruthy("bot");
 const isMobile = AFRAME.utils.device.isMobile();
@@ -26,18 +27,22 @@ import { SOUND_ENTER_SCENE } from "./systems/sound-effects-system";
 const isIOS = AFRAME.utils.device.isIOS();
 
 export default class SceneEntryManager {
-  constructor(hubChannel, authChannel, history) {
+  constructor(orgChannel, hubChannel, authChannel, history) {
+    this.orgChannel = orgChannel;
     this.hubChannel = hubChannel;
     this.authChannel = authChannel;
     this.store = window.APP.store;
     this.mediaSearchStore = window.APP.mediaSearchStore;
-    this.scene = document.querySelector("a-scene");
-    this.rightCursorController = document.getElementById("right-cursor-controller");
-    this.leftCursorController = document.getElementById("left-cursor-controller");
-    this.avatarRig = document.getElementById("avatar-rig");
     this._entered = false;
     this.performConditionalSignIn = () => {};
     this.history = history;
+
+    waitForDOMContentLoaded().then(() => {
+      this.scene = document.querySelector("a-scene");
+      this.rightCursorController = document.getElementById("right-cursor-controller");
+      this.leftCursorController = document.getElementById("left-cursor-controller");
+      this.avatarRig = document.getElementById("avatar-rig");
+    });
   }
 
   hasEntered = () => {
@@ -89,7 +94,7 @@ export default class SceneEntryManager {
     if (isBotMode) {
       this._runBot(mediaStream);
       this.scene.addState("entered");
-      this.hubChannel.sendEnteredEvent();
+      this.orgChannel.sendEnteredEvent();
       return;
     }
 
@@ -100,8 +105,7 @@ export default class SceneEntryManager {
     this.scene.classList.remove("hand-cursor");
     this.scene.classList.add("no-cursor");
 
-    this.rightCursorController.components["cursor-controller"].enabled = true;
-    this.leftCursorController.components["cursor-controller"].enabled = true;
+    await waitForDOMContentLoaded();
     this._entered = true;
 
     // Delay sending entry event telemetry until VR display is presenting.
@@ -110,7 +114,7 @@ export default class SceneEntryManager {
         await nextTick();
       }
 
-      this.hubChannel.sendEnteredEvent().then(() => {
+      this.orgChannel.sendEnteredEvent().then(() => {
         this.store.update({ activity: { lastEnteredAt: new Date().toISOString() } });
       });
     })();
@@ -233,7 +237,7 @@ export default class SceneEntryManager {
       this.store.update({ activity: { hasPinned: true } });
     } catch (e) {
       if (e.reason === "invalid_token") {
-        await this.authChannel.signOut(this.hubChannel);
+        await this.authChannel.signOut(this.orgChannel);
         this._signInAndPinOrUnpinElement(el);
       } else {
         console.warn("Pin failed for unknown reason", e);
@@ -248,7 +252,7 @@ export default class SceneEntryManager {
           await this._unpinElement(el);
         };
 
-    this.performConditionalSignIn(() => this.hubChannel.signedIn, action, pin ? "pin" : "unpin", () => {
+    this.performConditionalSignIn(() => this.orgChannel.signedIn, action, pin ? "pin" : "unpin", () => {
       // UI pins/un-pins the entity optimistically, so we undo that here.
       // Note we have to disable the sign in flow here otherwise this will recurse.
       this._disableSignInOnPinAction = true;

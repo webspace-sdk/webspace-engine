@@ -6,7 +6,7 @@ const MAX_CONCURRENT_TRANSITIONS = 4;
 AFRAME.registerComponent("media-presenting-space", {
   schema: {
     selectedMediaLayer: { default: 0 },
-    activeMediaLayers: { default: 0 }
+    activeMediaLayers: { default: 1 }
   },
 
   setActiveLayer(mediaLayer) {

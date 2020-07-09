@@ -116,7 +116,7 @@ import ReactDOM from "react-dom";
 import React from "react";
 import { Router, Route } from "react-router-dom";
 import { createBrowserHistory } from "history";
-import { pushHistoryState, pushHistoryPath } from "./utils/history";
+import { pushHistoryState, clearHistoryState } from "./utils/history";
 import UIRoot from "./react-components/ui-root";
 import AuthChannel from "./utils/auth-channel";
 import OrgChannel from "./utils/org-channel";
@@ -183,7 +183,12 @@ const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting j
 const qs = new URLSearchParams(location.search);
 
 function getHubIdFromHistory() {
-  return qs.get("hub_id") || history.location.pathname.substring(1).split("/")[2];
+  if (qs.get("hub_id")) return qs.get("hub_id");
+  const slugParts = history.location.pathname
+    .substring(1)
+    .split("/")[0]
+    .split("-");
+  return slugParts[slugParts.length - 1];
 }
 
 const isMobile = AFRAME.utils.device.isMobile();
@@ -609,10 +614,6 @@ function initPhysicsThreeAndCursor(scene) {
   physicsSystem.setDebug(isDebug || physicsSystem.debug);
   patchThreeAllocations();
   patchThreeNoProgramDispose();
-
-  for (const side of ["right", "left"]) {
-    document.getElementById(`${side}-cursor-controller`).components["cursor-controller"].enabled = false;
-  }
 }
 
 async function initAvatar() {
@@ -686,7 +687,7 @@ function initBatching() {
 function addGlobalEventListeners(scene, entryManager) {
   window.addEventListener("action_create_avatar", () => {
     performConditionalSignIn(
-      () => hubChannel.signedIn,
+      () => orgChannel.signedIn,
       () => pushHistoryState(history, "overlay", "avatar-editor"),
       "create-avatar"
     );
@@ -726,8 +727,8 @@ function addGlobalEventListeners(scene, entryManager) {
     remountUI({ roomUnavailableReason: "closed" });
   });
 
-  scene.addEventListener("action_camera_recording_started", () => hubChannel.beginRecording());
-  scene.addEventListener("action_camera_recording_ended", () => hubChannel.endRecording());
+  scene.addEventListener("action_camera_recording_started", () => orgChannel.beginRecording());
+  scene.addEventListener("action_camera_recording_ended", () => orgChannel.endRecording());
 
   scene.addEventListener("action_selected_media_result_entry", e => {
     const { entry, selectAction } = e.detail;
@@ -1335,7 +1336,7 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager) => {
 
   hubPhxChannel.on("message", ({ session_id, type, body, from }) => {
     const getAuthor = () => {
-      const userInfo = hubChannel.presence.state[session_id];
+      const userInfo = orgChannel.presence.state[session_id];
       if (from) {
         return from;
       } else if (userInfo) {
@@ -1358,7 +1359,7 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager) => {
   });
   hubPhxChannel.on("hub_refresh", ({ session_id, hubs, stale_fields }) => {
     const hub = hubs[0];
-    const userInfo = hubChannel.presence.state[session_id];
+    const userInfo = orgChannel.presence.state[session_id];
 
     updateUIForHub(hub, hubChannel);
 
@@ -1450,7 +1451,7 @@ async function start() {
   if (!checkPrerequisites()) return;
 
   const scene = document.querySelector("a-scene");
-  const entryManager = new SceneEntryManager(hubChannel, authChannel, history);
+  const entryManager = new SceneEntryManager(orgChannel, hubChannel, authChannel, history);
   const messageDispatch = new MessageDispatch(
     scene,
     entryManager,
@@ -1495,6 +1496,7 @@ async function start() {
 
   remountUI({
     authChannel,
+    orgChannel,
     hubChannel,
     linkChannel,
     enterScene: entryManager.enterScene,
@@ -1512,6 +1514,7 @@ async function start() {
   setupVREventHandlers(scene, availableVREntryTypesPromise);
   setupUIBasedUponVRTypes(availableVREntryTypesPromise); // Note no await here, to avoid blocking
   startBotModeIfNecessary(scene, entryManager);
+  clearHistoryState(history);
 
   const environmentScene = document.querySelector("#environment-scene");
   environmentScene.addEventListener("model-loaded", handleEnvironmentLoaded);
@@ -1535,8 +1538,6 @@ async function start() {
 
   scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(socket.params().session_id));
 
-  joinOrg(socket, entryManager, messageDispatch);
-
   authChannel.setSocket(socket);
 
   remountUI({
@@ -1551,7 +1552,7 @@ async function start() {
   let nextHubToJoin;
   let joinPromise;
 
-  /*const performJoin = async () => {
+  const performJoinHub = async () => {
     // Handle rapid history changes, only join last one.
     const hubId = getHubIdFromHistory();
     nextHubToJoin = hubId;
@@ -1563,14 +1564,12 @@ async function start() {
     }
   };
 
-  history.listen(performJoin);
-  performJoin();*/
-}
+  await joinOrg(socket, entryManager, messageDispatch);
 
-// TODO JEL remove
-window.navigateToSpace = hubId => {
-  const searchParams = new URLSearchParams(history.location.search);
-  pushHistoryPath(history, `/spaces/abc123/${hubId}/slug`, searchParams.toString());
-};
+  history.listen(performJoinHub);
+  await performJoinHub();
+
+  entryManager.enterScene(null, false, true);
+}
 
 document.addEventListener("DOMContentLoaded", start);

@@ -127,6 +127,7 @@ class UIRoot extends Component {
     mediaSearchStore: PropTypes.object,
     scene: PropTypes.object,
     authChannel: PropTypes.object,
+    orgChannel: PropTypes.object,
     hubChannel: PropTypes.object,
     linkChannel: PropTypes.object,
     hub: PropTypes.object,
@@ -229,9 +230,9 @@ class UIRoot extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    const { hubChannel, showSignInDialog } = this.props;
+    const { orgChannel, hubChannel, showSignInDialog } = this.props;
     if (hubChannel) {
-      const { signedIn } = hubChannel;
+      const { signedIn } = orgChannel;
       if (signedIn !== this.state.signedIn) {
         this.setState({ signedIn });
       }
@@ -355,16 +356,7 @@ class UIRoot extends Component {
       }
     });
 
-    if (this.props.forcedVREntryType && this.props.forcedVREntryType.endsWith("_now")) {
-      this.props.scene.addEventListener(
-        "loading_finished",
-        () => {
-          setTimeout(() => this.handleForceEntry(), 1000);
-        },
-        { once: true }
-      );
-    }
-
+    this.setState({ entered: true, entering: false, showShareDialog: false, enterInVR: false, waitingOnAudio: false });
     this.playerRig = scene.querySelector("#avatar-rig");
   }
 
@@ -397,7 +389,7 @@ class UIRoot extends Component {
     this.showNonHistoriedDialog(SignInDialog, {
       message: messages[signInMessageId],
       onSignIn: async email => {
-        const { authComplete } = await authChannel.startAuthentication(email, this.props.hubChannel);
+        const { authComplete } = await authChannel.startAuthentication(email, this.props.orgChannel);
 
         this.showNonHistoriedDialog(SignInDialog, { authStarted: true, onClose: onContinueAfterSignIn });
 
@@ -423,7 +415,7 @@ class UIRoot extends Component {
 
   toggleFavorited = () => {
     this.props.performConditionalSignIn(
-      () => this.props.hubChannel.signedIn,
+      () => this.props.orgChannel.signedIn,
       () => {
         const isFavorited = this.isFavorited();
 
@@ -557,19 +549,19 @@ class UIRoot extends Component {
     });
   };
 
-  performDirectEntryFlow = async enterInVR => {
-    this.setState({ enterInVR, waitingOnAudio: true });
+  performDirectEntryFlow = async () => {
+    this.onAudioReadyButton();
 
-    const hasGrantedMic = (await grantedMicLabels()).length > 0;
+    /*const hasGrantedMic = (await grantedMicLabels()).length > 0;
 
     if (hasGrantedMic) {
       await this.setMediaStreamToDefault();
-      this.beginOrSkipAudioSetup();
+      this.onAudioReadyButton();
     } else {
       this.pushHistoryState("entry_step", "mic_grant");
     }
 
-    this.setState({ waitingOnAudio: false });
+    this.setState({ waitingOnAudio: false });*/
   };
 
   enter2D = async () => {
@@ -702,20 +694,10 @@ class UIRoot extends Component {
       if (hasAudio) {
         this.pushHistoryState("entry_step", "mic_granted");
       } else {
-        this.beginOrSkipAudioSetup();
+        this.onAudioReadyButton();
       }
     } else {
-      this.beginOrSkipAudioSetup();
-    }
-  };
-
-  beginOrSkipAudioSetup = () => {
-    const skipAudioSetup = this.props.forcedVREntryType && this.props.forcedVREntryType.endsWith("_now");
-
-    if (skipAudioSetup) {
       this.onAudioReadyButton();
-    } else {
-      this.pushHistoryState("entry_step", "audio");
     }
   };
 
@@ -772,31 +754,7 @@ class UIRoot extends Component {
     );
   };
 
-  onAudioReadyButton = async () => {
-    if (!this.state.enterInVR) {
-      await showFullScreenIfAvailable();
-    }
-
-    // Push the new history state before going into VR, otherwise menu button will take us back
-    clearHistoryState(this.props.history);
-
-    const muteOnEntry = this.props.store.state.preferences["muteMicOnEntry"] || false;
-    await this.props.enterScene(this.state.mediaStream, this.state.enterInVR, muteOnEntry);
-
-    this.setState({ entered: true, entering: false, showShareDialog: false });
-
-    const mediaStream = this.state.mediaStream;
-
-    if (mediaStream) {
-      if (mediaStream.getAudioTracks().length > 0) {
-        console.log(`Using microphone: ${mediaStream.getAudioTracks()[0].label}`);
-      }
-
-      if (mediaStream.getVideoTracks().length > 0) {
-        console.log("Screen sharing enabled.");
-      }
-    }
-  };
+  onAudioReadyButton = async () => {};
 
   attemptLink = async () => {
     this.pushHistoryState("overlay", "link");
@@ -855,10 +813,10 @@ class UIRoot extends Component {
     this.props.scene.systems["hubs-systems"].characterController.fly = enable;
 
     if (enable) {
-      this.props.hubChannel.beginStreaming();
+      this.props.orgChannel.beginStreaming();
       this.setState({ isStreaming: true, showStreamingTip: true });
     } else {
-      this.props.hubChannel.endStreaming();
+      this.props.orgChannel.endStreaming();
       this.setState({ isStreaming: false });
     }
   };
@@ -869,7 +827,7 @@ class UIRoot extends Component {
     this.showNonHistoriedDialog(SignInDialog, {
       message: messages["sign-in.prompt"],
       onSignIn: async email => {
-        const { authComplete } = await this.props.authChannel.startAuthentication(email, this.props.hubChannel);
+        const { authComplete } = await this.props.authChannel.startAuthentication(email, this.props.orgChannel);
 
         this.showNonHistoriedDialog(SignInDialog, { authStarted: true });
 
@@ -882,7 +840,7 @@ class UIRoot extends Component {
   };
 
   signOut = async () => {
-    await this.props.authChannel.signOut(this.props.hubChannel);
+    await this.props.authChannel.signOut(this.props.orgChannel);
     this.setState({ signedIn: false });
   };
 
@@ -1043,7 +1001,7 @@ class UIRoot extends Component {
   };
 
   onEnteringCanceled = () => {
-    this.props.hubChannel.sendEnteringCancelledEvent();
+    this.props.orgChannel.sendEnteringCancelledEvent();
     this.setState({ entering: false });
   };
 
@@ -1149,7 +1107,7 @@ class UIRoot extends Component {
 
                   if (promptForNameAndAvatarBeforeEntry || !this.props.forcedVREntryType) {
                     this.setState({ entering: true });
-                    this.props.hubChannel.sendEnteringEvent();
+                    this.props.orgChannel.sendEnteringEvent();
 
                     const stateValue = promptForNameAndAvatarBeforeEntry ? "profile" : "device";
                     this.pushHistoryState("entry_step", stateValue);
@@ -2089,6 +2047,7 @@ class UIRoot extends Component {
                 mediaSearchStore={this.props.mediaSearchStore}
                 isStreaming={streaming}
                 toggleStreamerMode={this.toggleStreamerMode}
+                orgChannel={this.props.orgChannel}
                 hubChannel={this.props.hubChannel}
                 hubScene={this.props.hub && this.props.hub.scene}
                 scene={this.props.scene}

@@ -19,13 +19,8 @@ export default class HubChannel extends EventTarget {
   constructor(store) {
     super();
     this.store = store;
-    this._signedIn = !!this.store.state.credentials.token;
     this._permissions = {};
     this._blockedSessionIds = new Set();
-  }
-
-  get signedIn() {
-    return this._signedIn;
   }
 
   // Returns true if this current session has the given permission.
@@ -42,8 +37,10 @@ export default class HubChannel extends EventTarget {
 
   canEnterRoom(hub) {
     if (!hub) return false;
-    if (this.canOrWillIfCreator("update_hub")) return true;
+    return true;
+    // TODO JEL figure out limits
 
+    /*if (this.canOrWillIfCreator("update_hub")) return true;
     const roomEntrySlotCount = Object.values(this.presence.state).reduce((acc, { metas }) => {
       const meta = metas[metas.length - 1];
       const usingSlot = meta.presence === "room" || (meta.context && meta.context.entering);
@@ -52,7 +49,7 @@ export default class HubChannel extends EventTarget {
 
     // This now exists in room settings but a default is left here to support old reticulum servers
     const DEFAULT_ROOM_SIZE = 24;
-    return roomEntrySlotCount < (hub.room_size !== undefined ? hub.room_size : DEFAULT_ROOM_SIZE);
+    return roomEntrySlotCount < (hub.room_size !== undefined ? hub.room_size : DEFAULT_ROOM_SIZE);*/
   }
 
   // Migrates this hub channel to a new phoenix channel and presence
@@ -119,17 +116,6 @@ export default class HubChannel extends EventTarget {
   sendMessage = (body, type = "chat") => {
     if (!body) return;
     this.channel.push("message", { body, type });
-  };
-
-  getHost = () => {
-    return new Promise((resolve, reject) => {
-      this.channel
-        .push("get_host")
-        .receive("ok", res => {
-          resolve(res);
-        })
-        .receive("error", reject);
-    });
   };
 
   discordBridges = () => {

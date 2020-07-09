@@ -78,14 +78,6 @@ export default class OrgChannel extends EventTarget {
     setTimeout(async () => await this.fetchPermissions(), Math.max(nextRefresh, 60000));
   };
 
-  sendEnteringEvent = async () => {
-    this.channel.push("events:entering", {});
-  };
-
-  sendEnteringCancelledEvent = async () => {
-    this.channel.push("events:entering_cancelled", {});
-  };
-
   getEntryTimingFlags = () => {
     const entryTimingFlags = { isNewDaily: true, isNewMonthly: true, isNewDayWindow: true, isNewMonthWindow: true };
     const storedLastEnteredAt = this.store.state.activity.lastEnteredAt;

@@ -58,7 +58,7 @@ AFRAME.registerComponent("player-info", {
     if (!this.isLocalPlayerInfo) {
       getNetworkedEntity(this.el).then(networkedEntity => {
         this.playerSessionId = getCreator(networkedEntity);
-        const playerPresence = window.APP.hubChannel.presence.state[this.playerSessionId];
+        const playerPresence = window.APP.orgChannel.presence.state[this.playerSessionId];
         if (playerPresence) {
           this.updateDisplayNameFromPresenceMeta(playerPresence.metas[0]);
         }

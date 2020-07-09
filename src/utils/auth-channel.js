@@ -19,9 +19,9 @@ export default class AuthChannel {
     return this._signedIn;
   }
 
-  signOut = async hubChannel => {
-    if (hubChannel) {
-      await hubChannel.signOut();
+  signOut = async orgChannel => {
+    if (orgChannel) {
+      await orgChannel.signOut();
     }
     this.store.update({ credentials: { token: null, email: null } });
     await this.store.resetToRandomDefaultAvatar();
@@ -50,7 +50,7 @@ export default class AuthChannel {
     });
   }
 
-  async startAuthentication(email, hubChannel) {
+  async startAuthentication(email, orgChannel) {
     const channel = this.socket.channel(`auth:${uuid()}`);
     await new Promise((resolve, reject) =>
       channel
@@ -61,7 +61,7 @@ export default class AuthChannel {
 
     const authComplete = new Promise(resolve =>
       channel.on("auth_credentials", async ({ credentials: token }) => {
-        await this.handleAuthCredentials(email, token, hubChannel);
+        await this.handleAuthCredentials(email, token, orgChannel);
         resolve();
       })
     );
@@ -73,11 +73,11 @@ export default class AuthChannel {
     return { authComplete };
   }
 
-  async handleAuthCredentials(email, token, hubChannel) {
+  async handleAuthCredentials(email, token, orgChannel) {
     this.store.update({ credentials: { email, token } });
 
-    if (hubChannel) {
-      await hubChannel.signIn(token);
+    if (orgChannel) {
+      await orgChannel.signIn(token);
     }
 
     this._signedIn = true;
