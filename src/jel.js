@@ -186,10 +186,6 @@ function getHubIdFromHistory() {
   return qs.get("hub_id") || history.location.pathname.substring(1).split("/")[2];
 }
 
-function getOrgIdFromHistory() {
-  return qs.get("org_id") || history.location.pathname.substring(1).split("/")[1];
-}
-
 const isMobile = AFRAME.utils.device.isMobile();
 const isMobileVR = AFRAME.utils.device.isMobileVR();
 
@@ -1423,7 +1419,7 @@ async function joinOrg(socket, entryManager, messageDispatch) {
     orgChannel.leave();
   }
 
-  const orgId = getOrgIdFromHistory();
+  const orgId = store.state.context.orgId;
   console.log(`Org ID: ${orgId}`);
 
   createRetChannel(socket, orgId); // TODO JEL check reconnect

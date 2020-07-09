@@ -16,6 +16,14 @@ export const SCHEMA = {
   id: "/HubsStore",
 
   definitions: {
+    context: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        orgId: { type: "string" }
+      }
+    },
+
     profile: {
       type: "object",
       additionalProperties: false,
@@ -158,6 +166,7 @@ export const SCHEMA = {
   type: "object",
 
   properties: {
+    context: { $ref: "#/definitions/context" },
     profile: { $ref: "#/definitions/profile" },
     credentials: { $ref: "#/definitions/credentials" },
     activity: { $ref: "#/definitions/activity" },
@@ -190,6 +199,7 @@ export default class Store extends EventTarget {
     });
 
     this.update({
+      context: {},
       activity: {},
       settings: {},
       credentials: {},
@@ -320,6 +330,9 @@ export default class Store extends EventTarget {
 
     if (newState.profile !== undefined) {
       this.dispatchEvent(new CustomEvent("profilechanged"));
+    }
+    if (newState.context !== undefined) {
+      this.dispatchEvent(new CustomEvent("contextchanged"));
     }
     this.dispatchEvent(new CustomEvent("statechanged"));
 
