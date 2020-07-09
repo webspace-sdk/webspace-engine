@@ -330,10 +330,6 @@ export default class DialogAdapter {
     this._reconnectionErrorListener = reconnectionErrorListener;
   }
 
-  syncOccupants() {
-    // Not implemented
-  }
-
   async joinHub(hubId) {
     const peerIds = Object.keys(this.occupants);
     for (let i = 0; i < peerIds.length; i++) {

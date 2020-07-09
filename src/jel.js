@@ -119,6 +119,7 @@ import { createBrowserHistory } from "history";
 import { pushHistoryState, pushHistoryPath } from "./utils/history";
 import UIRoot from "./react-components/ui-root";
 import AuthChannel from "./utils/auth-channel";
+import OrgChannel from "./utils/org-channel";
 import HubChannel from "./utils/hub-channel";
 import LinkChannel from "./utils/link-channel";
 import { connectToReticulum } from "./utils/phoenix-utils";
@@ -169,10 +170,12 @@ store.update({ preferences: { shouldPromptForRefresh: undefined } });
 const history = createBrowserHistory();
 window.APP.history = history;
 const authChannel = new AuthChannel(store);
+const orgChannel = new OrgChannel(store);
 const hubChannel = new HubChannel(store);
 const linkChannel = new LinkChannel(store);
+window.APP.orgChannel = orgChannel;
 window.APP.hubChannel = hubChannel;
-store.addEventListener("profilechanged", hubChannel.sendProfileUpdate.bind(hubChannel));
+store.addEventListener("profilechanged", orgChannel.sendProfileUpdate.bind(hubChannel));
 
 const mediaSearchStore = window.APP.mediaSearchStore;
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
@@ -511,32 +514,27 @@ async function updateUIForHub(hub, hubChannel) {
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
 }
 
-function handleHubChannelJoined(isInitialJoin, entryManager, hubChannel, messageDispatch, data) {
+function handleOrgChannelJoined(isInitialJoin, entryManager, orgChannel, messageDispatch, data) {
   const scene = document.querySelector("a-scene");
 
   if (!isInitialJoin) {
     // Slight hack, to ensure correct presence state we need to re-send the entry event
     // on re-join. Ideally this would be updated into the channel socket state but this
-    // would require significant changes to the hub channel events and socket management.
-    if (scene.is("entered")) {
-      hubChannel.sendEnteredEvent();
-    }
-
-    // Send complete sync on phoenix re-join.
-    NAF.connection.entities.completeSync(null, true);
+    // would require significant changes to the org channel events and socket management.
+    orgChannel.sendEnteredEvent();
     return;
   }
 
-  const hub = data.hubs[0];
-  const orgId = getOrgIdFromHistory();
+  const org = data.orgs[0];
+  const orgId = org.org_id;
 
-  console.log(`Janus host: ${hub.host}:${hub.port}`); // TODO JEL this shoudl come from server channel
+  console.log(`WebRTC host: ${org.host}:${org.port}`);
 
   // Wait for scene objects to load before connecting, so there is no race condition on network state.
-  const connectToScene = async () => {
+  return new Promise(async res => {
     scene.setAttribute("networked-scene", {
       room: orgId,
-      serverURL: `wss://${hub.host}:${hub.port}`,
+      serverURL: `wss://${org.host}:${org.port}`,
       debug: !!isDebug
     });
 
@@ -548,24 +546,19 @@ function handleHubChannelJoined(isInitialJoin, entryManager, hubChannel, message
 
     while (!scene.components["networked-scene"] || !scene.components["networked-scene"].data) await nextTick();
 
-    updateUIForHub(hub, hubChannel);
-    updateEnvironmentForHub(hub, entryManager);
-
     const connectionErrorTimeout = setTimeout(() => {
       console.error("Unknown error occurred while attempting to connect to networked scene.");
       remountUI({ roomUnavailableReason: "connect_error" });
       entryManager.exitScene();
     }, 90000);
 
-    const isConnected = NAF.connection.isConnected();
-
-    (!isConnected ? scene.components["networked-scene"].connect() : Promise.resolve())
-      .then(() => (!isConnected ? scene.components["shared-scene"].connect() : Promise.resolve()))
-      .then(() => NAF.connection.adapter.joinHub(hub.hub_id)) // TODO JEL
-      .then(() => scene.components["shared-scene"].subscribe(hub.hub_id))
+    scene.components["networked-scene"]
+      .connect()
+      .then(() => scene.components["shared-scene"].connect())
       .then(() => {
         clearTimeout(connectionErrorTimeout);
         scene.emit("didConnectToNetworkedScene");
+        res();
       })
       .catch(connectError => {
         clearTimeout(connectionErrorTimeout);
@@ -574,12 +567,37 @@ function handleHubChannelJoined(isInitialJoin, entryManager, hubChannel, message
         console.error(connectError);
         remountUI({ roomUnavailableReason: isFull ? "full" : "connect_error" });
         entryManager.exitScene();
+        res();
 
         return;
       });
-  };
+  });
+}
 
-  connectToScene();
+function handleHubChannelJoined(isInitialJoin, entryManager, hubChannel, messageDispatch, data) {
+  const scene = document.querySelector("a-scene");
+
+  if (!isInitialJoin) {
+    // Send complete sync on phoenix re-join.
+    NAF.connection.entities.completeSync(null, true);
+    return;
+  }
+
+  const hub = data.hubs[0];
+
+  // Wait for scene objects to load before connecting, so there is no race condition on network state.
+  return new Promise(res => {
+    updateUIForHub(hub, hubChannel);
+    updateEnvironmentForHub(hub, entryManager);
+
+    NAF.connection.adapter
+      .joinHub(hub.hub_id)
+      .then(() => scene.components["shared-scene"].subscribe(hub.hub_id))
+      .then(() => {
+        scene.emit("didConnectToHub");
+        res();
+      });
+  });
 }
 
 async function runBotMode(scene, entryManager) {
@@ -902,7 +920,7 @@ async function createSocket(entryManager) {
   return socket;
 }
 
-const createHubChannelParams = () => {
+const createOrgChannelParams = () => {
   const params = {
     profile: store.state.profile,
     auth_token: null,
@@ -919,6 +937,20 @@ const createHubChannelParams = () => {
   const { token } = store.state.credentials;
   if (token) {
     console.log(`Logged into account ${store.credentialsAccountId}`);
+    params.auth_token = token;
+  }
+
+  return params;
+};
+
+const createHubChannelParams = () => {
+  const params = {
+    auth_token: null,
+    perms_token: null
+  };
+
+  const { token } = store.state.credentials;
+  if (token) {
     params.auth_token = token;
   }
 
@@ -947,6 +979,7 @@ const migrateToNewReticulumServer = async (deployNotification, retPhxChannel) =>
         const oldSocket = retPhxChannel.socket;
         const socket = await connectToReticulum(isDebug, oldSocket.params());
         retPhxChannel = await migrateChannelToSocket(retPhxChannel, socket);
+        await orgChannel.migrateToSocket(socket, createOrgChannelParams());
         await hubChannel.migrateToSocket(socket, createHubChannelParams());
         authChannel.setSocket(socket);
         linkChannel.setSocket(socket);
@@ -964,8 +997,8 @@ const migrateToNewReticulumServer = async (deployNotification, retPhxChannel) =>
   }, Math.floor(Math.random() * retReconnectMaxDelayMs));
 };
 
-const createRetChannel = (socket, hubId) => {
-  const retPhxChannel = socket.channel(`ret`, { hub_id: hubId });
+const createRetChannel = (socket, orgId) => {
+  const retPhxChannel = socket.channel(`ret`, { org_id: orgId });
   retPhxChannel.join().receive("error", res => console.error(res));
 
   retPhxChannel.on("notice", async data => {
@@ -1002,7 +1035,7 @@ const addToPresenceLog = (() => {
   };
 })();
 
-const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
+const joinOrgChannel = async (orgPhxChannel, entryManager, messageDispatch) => {
   const scene = document.querySelector("a-scene");
 
   let isInitialJoin = true;
@@ -1014,55 +1047,39 @@ const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
     resolve: null
   };
 
-  const socket = hubPhxChannel.socket;
+  const socket = orgPhxChannel.socket;
 
   return new Promise(joinFinished => {
-    hubPhxChannel
+    orgPhxChannel
       .join()
       .receive("ok", async data => {
         socket.params().session_id = data.session_id;
         socket.params().session_token = data.session_token;
 
-        const vrHudPresenceCount = document.querySelector("#hud-presence-count");
+        //const vrHudPresenceCount = document.querySelector("#hud-presence-count");
 
         presenceSync.promise = new Promise(resolve => (presenceSync.resolve = resolve));
 
         if (isInitialJoin) {
-          const requestedOccupants = [];
-
-          const requestOccupants = async (sessionIds, state) => {
-            requestedOccupants.length = 0;
-            for (let i = 0; i < sessionIds.length; i++) {
-              const sessionId = sessionIds[i];
-              if (sessionId !== NAF.clientId && state[sessionId].metas[0].presence === "room") {
-                requestedOccupants.push(sessionId);
-              }
-            }
-
-            while (!NAF.connection.isConnected()) await nextTick();
-            NAF.connection.adapter.syncOccupants(requestedOccupants);
-          };
-
-          hubChannel.presence.onSync(() => {
-            const presence = hubChannel.presence;
+          orgChannel.presence.onSync(() => {
+            const presence = orgChannel.presence;
 
             remountUI({
               sessionId: socket.params().session_id,
-              presences: presence.state,
-              entryDisallowed: !hubChannel.canEnterRoom(uiProps.hub)
+              presences: presence.state
             });
 
-            const sessionIds = Object.getOwnPropertyNames(presence.state);
-            const occupantCount = sessionIds.length;
+            //const sessionIds = Object.getOwnPropertyNames(presence.state);
+
+            // TODO JEL PRESENCE need to handle here and also when hub changes
+            /*const occupantCount = sessionIds.length;
             vrHudPresenceCount.setAttribute("text", "value", occupantCount.toString());
 
             if (occupantCount > 1) {
               scene.addState("copresent");
             } else {
               scene.removeState("copresent");
-            }
-
-            requestOccupants(sessionIds, presence.state);
+            }*/
 
             // HACK - Set a flag on the presence object indicating if the initial sync has completed,
             // which is used to determine if we should fire join/leave messages into the presence log.
@@ -1075,10 +1092,11 @@ const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
             presence.onJoin((sessionId, current, info) => {
               // Ignore presence join/leaves if this Presence has not yet had its initial sync (o/w the user
               // will see join messages for every user.)
-              if (!hubChannel.presence.__hadInitialSync) return;
+              if (!orgChannel.presence.__hadInitialSync) return;
 
               const meta = info.metas[info.metas.length - 1];
-              const occupantCount = Object.entries(hubChannel.presence.state).length;
+              const occupantCount = 1; // TODO JEL PRESENCE Object.entries(hubChannel.presence.state).length;
+              const isCurrentHub = true; // TODO JEL PRESENCE
 
               if (occupantCount <= NOISY_OCCUPANT_COUNT) {
                 if (current) {
@@ -1088,6 +1106,7 @@ const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
 
                   if (
                     !isSelf &&
+                    isCurrentHub &&
                     currentMeta.presence !== meta.presence &&
                     meta.presence === "room" &&
                     meta.profile.displayName
@@ -1100,6 +1119,7 @@ const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
                   }
 
                   if (
+                    isCurrentHub &&
                     currentMeta.profile &&
                     meta.profile &&
                     currentMeta.profile.displayName !== meta.profile.displayName
@@ -1114,7 +1134,7 @@ const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
                   // New presence
                   const meta = info.metas[0];
 
-                  if (meta.presence && meta.profile.displayName) {
+                  if (isCurrentHub && meta.presence && meta.profile.displayName) {
                     addToPresenceLog({
                       type: "join",
                       presence: meta.presence,
@@ -1136,15 +1156,16 @@ const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
 
             presence.onLeave((sessionId, current, info) => {
               // Ignore presence join/leaves if this Presence has not yet had its initial sync
-              if (!hubChannel.presence.__hadInitialSync) return;
+              if (!orgChannel.presence.__hadInitialSync) return;
 
               if (current && current.metas.length > 0) return;
-              const occupantCount = Object.entries(hubChannel.presence.state).length;
+              const occupantCount = 1; // TODO JEL PRESENCE Object.entries(hubChannel.presence.state).length;
               if (occupantCount > NOISY_OCCUPANT_COUNT) return;
 
               const meta = info.metas[0];
+              const isCurrentHub = true; // TODO JEL PRESENCE
 
-              if (meta.profile.displayName) {
+              if (isCurrentHub && meta.profile.displayName) {
                 addToPresenceLog({
                   type: "leave",
                   name: meta.profile.displayName
@@ -1155,9 +1176,9 @@ const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
         }
 
         const permsToken = data.perms_token;
-        hubChannel.setPermissionsFromToken(permsToken);
+        orgChannel.setPermissionsFromToken(permsToken);
 
-        const { host, turn, hub_id } = data.hubs[0];
+        const { host, turn } = data.orgs[0];
 
         const setupWebRTC = () => {
           const adapter = NAF.connection.adapter;
@@ -1173,7 +1194,7 @@ const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
 
               newHostPollInterval = setInterval(async () => {
                 const currentServerURL = NAF.connection.adapter.serverUrl;
-                const { host, port, turn } = await hubChannel.getHost();
+                const { host, port, turn } = await orgChannel.getHost();
                 const newServerURL = `wss://${host}:${port}`;
 
                 setupPeerConnectionConfig(adapter, host, turn);
@@ -1183,7 +1204,7 @@ const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
                   scene.setAttribute("networked-scene", { serverURL: newServerURL });
                   // TODO JEL shared reconnect
                   adapter.serverUrl = newServerURL;
-                  NAF.connection.adapter.joinHub(hub_id); // TODO JEL TEST
+                  //NAF.connection.adapter.joinHub(currentHub); // TODO JEL RECONNECT
                 }
               }, 1000);
             },
@@ -1193,9 +1214,6 @@ const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
             },
             null
           );
-
-          adapter.reliableTransport = hubChannel.sendReliableNAF.bind(hubChannel);
-          adapter.unreliableTransport = hubChannel.sendUnreliableNAF.bind(hubChannel);
         };
 
         if (NAF.connection.adapter) {
@@ -1204,14 +1222,9 @@ const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
           scene.addEventListener("adapter-ready", setupWebRTC, { once: true });
         }
 
-        remountUI({
-          hubIsBound: data.hub_requires_oauth,
-          initialIsFavorited: data.subscriptions.favorites
-        });
-
         await presenceSync.promise;
 
-        handleHubChannelJoined(isInitialJoin, entryManager, hubChannel, messageDispatch, data);
+        await handleOrgChannelJoined(isInitialJoin, entryManager, orgChannel, messageDispatch, data);
 
         isInitialJoin = false;
         joinFinished();
@@ -1240,6 +1253,70 @@ const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
       },
       { once: true }
     );
+  });
+};
+
+const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
+  const scene = document.querySelector("a-scene");
+
+  let isInitialJoin = true;
+
+  const socket = hubPhxChannel.socket;
+
+  return new Promise(joinFinished => {
+    hubPhxChannel
+      .join()
+      .receive("ok", async data => {
+        socket.params().session_id = data.session_id;
+        socket.params().session_token = data.session_token;
+
+        const permsToken = data.perms_token;
+        hubChannel.setPermissionsFromToken(permsToken);
+
+        const setupAdapter = () => {
+          const adapter = NAF.connection.adapter;
+          adapter.reliableTransport = hubChannel.sendReliableNAF.bind(hubChannel);
+          adapter.unreliableTransport = hubChannel.sendUnreliableNAF.bind(hubChannel);
+        };
+
+        if (NAF.connection.adapter) {
+          setupAdapter();
+        } else {
+          scene.addEventListener("adapter-ready", setupAdapter, { once: true });
+        }
+
+        remountUI({
+          hubIsBound: data.hub_requires_oauth,
+          initialIsFavorited: data.subscriptions.favorites
+        });
+
+        await handleHubChannelJoined(isInitialJoin, entryManager, hubChannel, messageDispatch, data);
+
+        isInitialJoin = false;
+        joinFinished();
+      })
+      .receive("error", res => {
+        if (res.reason === "closed") {
+          entryManager.exitScene();
+          remountUI({ roomUnavailableReason: "closed" });
+        } else if (res.reason === "oauth_required") {
+          entryManager.exitScene();
+          remountUI({ oauthInfo: res.oauth_info, showOAuthDialog: true });
+        } else if (res.reason === "join_denied") {
+          entryManager.exitScene();
+          remountUI({ roomUnavailableReason: "denied" });
+        }
+
+        console.error(res);
+        joinFinished();
+      });
+  });
+};
+
+const setupOrgChannelMessageHandlers = orgPhxChannel => {
+  orgPhxChannel.on("permissions_updated", () => {
+    orgChannel.fetchPermissions();
+    hubChannel.fetchPermissions();
   });
 };
 
@@ -1334,14 +1411,28 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager) => {
     }
   });
 
-  hubPhxChannel.on("permissions_updated", () => hubChannel.fetchPermissions());
-
   hubPhxChannel.on("mute", ({ session_id }) => {
     if (session_id === NAF.clientId && !scene.is("muted")) {
       scene.emit("action_mute");
     }
   });
 };
+
+async function joinOrg(socket, entryManager, messageDispatch) {
+  if (orgChannel.channel) {
+    orgChannel.leave();
+  }
+
+  const orgId = getOrgIdFromHistory();
+  console.log(`Org ID: ${orgId}`);
+
+  createRetChannel(socket, orgId); // TODO JEL check reconnect
+  const orgPhxChannel = socket.channel(`org:${orgId}`, createOrgChannelParams());
+  setupOrgChannelMessageHandlers(orgPhxChannel, entryManager);
+  orgChannel.bind(orgPhxChannel, orgId);
+
+  return joinOrgChannel(orgPhxChannel, entryManager, messageDispatch);
+}
 
 async function joinHub(socket, entryManager, messageDispatch) {
   if (hubChannel.channel) {
@@ -1351,7 +1442,6 @@ async function joinHub(socket, entryManager, messageDispatch) {
 
   const hubId = getHubIdFromHistory();
   console.log(`Hub ID: ${hubId}`);
-  createRetChannel(socket, hubId); // TODO JEL ROUTING switch hub id in ret channel
 
   const hubPhxChannel = socket.channel(`hub:${hubId}`, createHubChannelParams());
   setupHubChannelMessageHandlers(hubPhxChannel, entryManager);
@@ -1432,7 +1522,8 @@ async function start() {
 
   const socket = await createSocket(entryManager);
 
-  hubChannel.addEventListener("permissions_updated", e => {
+  orgChannel.addEventListener("permissions_updated", e => {
+    // TODO JEL AUTH token for joining hub in xana
     const assignJoinToken = () => NAF.connection.adapter.setJoinToken(e.detail.permsToken);
 
     if (NAF.connection.adapter) {
@@ -1442,7 +1533,13 @@ async function start() {
     }
   });
 
+  hubChannel.addEventListener("permissions_updated", () => {
+    // TODO JEL PRESENCE AUTH token for joining hub in xana
+  });
+
   scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(socket.params().session_id));
+
+  joinOrg(socket, entryManager, messageDispatch);
 
   authChannel.setSocket(socket);
 
@@ -1458,7 +1555,7 @@ async function start() {
   let nextHubToJoin;
   let joinPromise;
 
-  const performJoin = async () => {
+  /*const performJoin = async () => {
     // Handle rapid history changes, only join last one.
     const hubId = getHubIdFromHistory();
     nextHubToJoin = hubId;
@@ -1471,7 +1568,7 @@ async function start() {
   };
 
   history.listen(performJoin);
-  performJoin();
+  performJoin();*/
 }
 
 // TODO JEL remove

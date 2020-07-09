@@ -46,7 +46,8 @@ export class MediaPresenceSystem {
   }
 
   getMediaPresence(component) {
-    return this.mediaPresence.get(component);
+    const presence = this.mediaPresence.get(component);
+    return presence || MEDIA_PRESENCE.UNKNOWN;
   }
 
   setMediaPresence(component, presence) {
