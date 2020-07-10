@@ -2,10 +2,8 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
 import copy from "copy-to-clipboard";
-import { IntlProvider, FormattedMessage, addLocaleData } from "react-intl";
-import en from "react-intl/locale-data/en";
+import { IntlProvider, FormattedMessage } from "react-intl";
 import screenfull from "screenfull";
-
 import configs from "../utils/configs";
 import IfFeature from "./if-feature";
 import UnlessFeature from "./unless-feature";
@@ -15,13 +13,7 @@ import styles from "../assets/stylesheets/ui-root.scss";
 import entryStyles from "../assets/stylesheets/entry.scss";
 import inviteStyles from "../assets/stylesheets/invite-dialog.scss";
 import { ReactAudioContext } from "./wrap-with-audio";
-import {
-  pushHistoryState,
-  clearHistoryState,
-  popToBeginningOfHubHistory,
-  navigateToPriorPage,
-  sluglessPath
-} from "../utils/history";
+import { pushHistoryState, popToBeginningOfHubHistory, navigateToPriorPage, sluglessPath } from "../utils/history";
 import StateRoute from "./state-route.js";
 import { getPresenceProfileForSession, discordBridgesForPresences } from "../utils/phoenix-utils";
 import { getClientInfoClientId } from "./client-info-dialog";
@@ -82,8 +74,6 @@ import qsTruthy from "../utils/qs_truthy";
 import { CAMERA_MODE_INSPECT } from "../systems/camera-system";
 const avatarEditorDebug = qsTruthy("avatarEditorDebug");
 
-addLocaleData([...en]);
-
 // This is a list of regexes that match the microphone labels of HMDs.
 //
 // If entering VR mode, and if any of these regexes match an audio device,
@@ -117,6 +107,7 @@ class UIRoot extends Component {
   willCompileAndUploadMaterials = false;
 
   static propTypes = {
+    enterScene: PropTypes.func,
     exitScene: PropTypes.func,
     onSendMessage: PropTypes.func,
     disableAutoExitOnIdle: PropTypes.bool,
@@ -1555,7 +1546,7 @@ class UIRoot extends Component {
     const streaming = this.state.isStreaming;
 
     const showTopHud = enteredOrWatching && !showObjectInfo;
-    const showSettingsMenu = !streaming && !preload && !showObjectInfo;
+    const showSettingsMenu = false; //!streaming && !preload && !showObjectInfo;
     const showObjectList = !showObjectInfo;
     const showPresenceList = !showObjectInfo;
 
@@ -2117,7 +2108,7 @@ class UIRoot extends Component {
                     </IfFeature>
                   )}
 
-                {!streaming && (
+                {false && (
                   <button
                     aria-label="Toggle Favorited"
                     onClick={() => this.toggleFavorited()}

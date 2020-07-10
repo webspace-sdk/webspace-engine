@@ -15,6 +15,46 @@
 
 body {
   background-color: var(--loading-background-color);
+
+  .ui-root {
+    right: 0;
+    left: auto;
+  }
+}
+
+a-scene {
+  height: 100%;
+  width: 100%;
+  top: 0;
+  right: 0;
+  position: fixed;
+}
+
+@keyframes hide-nav { from { width: 85%; } to { width: 100%; } }
+@keyframes expand-nav { from { width: 100%; } to { width: 85%; } }
+
+body.nav-hidden {
+  a-scene {
+    animation: hide-nav 0.75s cubic-bezier(.12,.98,.18,.98);
+    animation-fill-mode: forwards;
+  }
+
+  .ui-root {
+    animation: hide-nav 0.75s cubic-bezier(.12,.98,.18,.98);
+    animation-fill-mode: forwards;
+  }
+}
+
+body.nav-expanded {
+  a-scene {
+    animation: expand-nav 0.75s cubic-bezier(.12,.98,.18,.98);
+    animation-fill-mode: forwards;
+  }
+
+  .ui-root {
+    animation: expand-nav 0.75s cubic-bezier(.12,.98,.18,.98);
+    animation-fill-mode: forwards;
+  }
 }
 
 body.vr-mode-stretch {

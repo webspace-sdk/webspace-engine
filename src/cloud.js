@@ -4,8 +4,7 @@ import "./utils/configs";
 import styles from "./assets/stylesheets/cloud.scss";
 import classNames from "classnames";
 import configs from "./utils/configs";
-import { IntlProvider, FormattedMessage, addLocaleData } from "react-intl";
-import en from "react-intl/locale-data/en";
+import { IntlProvider, FormattedMessage } from "react-intl";
 import { lang, messages } from "./utils/i18n";
 import IfFeature from "./react-components/if-feature";
 import UnlessFeature from "./react-components/unless-feature";
@@ -13,8 +12,6 @@ import UnlessFeature from "./react-components/unless-feature";
 import registerTelemetry from "./telemetry";
 
 registerTelemetry("/cloud", "Hubs Cloud Landing Page");
-
-addLocaleData([...en]);
 
 function Header() {
   return (

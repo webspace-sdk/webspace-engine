@@ -31,6 +31,8 @@ export class MouseDevice {
 
     const queueEvent = this.events.push.bind(this.events);
     const canvas = document.querySelector("canvas");
+    this.canvas = canvas;
+
     canvas.addEventListener("contextmenu", e => {
       if (e.button === 2) {
         e.preventDefault();
@@ -62,7 +64,7 @@ export class MouseDevice {
     const left = event.button === 0;
     const middle = event.button === 1;
     const right = event.button === 2;
-    this.coords[0] = (event.clientX / window.innerWidth) * 2 - 1;
+    this.coords[0] = ((event.clientX - (window.innerWidth - this.canvas.width)) / this.canvas.width) * 2 - 1;
     this.coords[1] = -(event.clientY / window.innerHeight) * 2 + 1;
     this.movementXY[0] += event.movementX;
     this.movementXY[1] += event.movementY;

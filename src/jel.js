@@ -117,6 +117,7 @@ import React from "react";
 import { Router, Route } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import { pushHistoryState, clearHistoryState } from "./utils/history";
+import JelUI from "./jel/react-components/jel-ui";
 import UIRoot from "./react-components/ui-root";
 import AuthChannel from "./utils/auth-channel";
 import OrgChannel from "./utils/org-channel";
@@ -268,6 +269,7 @@ function setupLobbyCamera() {
 }
 
 let uiProps = {};
+let jelUIProps = {};
 
 // when loading the client as a "default room" on the homepage, use MemoryHistory since exposing all the client paths at the root is undesirable
 
@@ -316,6 +318,36 @@ function remountUI(props) {
   uiProps = { ...uiProps, ...props };
   mountUI(uiProps);
 }
+
+function mountJelUI(props = {}) {
+  const scene = document.querySelector("a-scene");
+
+  ReactDOM.render(
+    <Router history={history}>
+      <Route
+        render={routeProps => (
+          <JelUI
+            {...{
+              scene,
+              store,
+              mediaSearchStore,
+              ...props,
+              ...routeProps
+            }}
+          />
+        )}
+      />
+    </Router>,
+    document.getElementById("jel-ui")
+  );
+}
+
+function remountJelUI(props) {
+  jelUIProps = { ...jelUIProps, ...props };
+  mountJelUI(jelUIProps);
+}
+
+window.remountJelUI = remountJelUI;
 
 function setupPerformConditionalSignin(entryManager) {
   entryManager.performConditionalSignIn = performConditionalSignIn = async (
@@ -1480,6 +1512,7 @@ async function start() {
   window.dispatchEvent(new CustomEvent("hub_channel_ready"));
 
   remountUI({ availableVREntryTypes: ONLY_SCREEN_AVAILABLE, checkingForDeviceAvailability: true });
+  remountJelUI({});
   const availableVREntryTypesPromise = getAvailableVREntryTypes();
 
   registerNetworkSchemas();
