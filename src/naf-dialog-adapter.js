@@ -476,66 +476,68 @@ export default class DialogAdapter {
   }
 
   setLocalMediaStream(stream) {
-    this.createMissingProducers(stream);
+    return this.createMissingProducers(stream);
   }
 
-  createMissingProducers(stream) {
+  async createMissingProducers(stream) {
     if (!this._sendTransport) return;
     let sawAudio = false;
     let sawVideo = false;
 
-    stream.getTracks().forEach(async track => {
-      if (track.kind === "audio") {
-        sawAudio = true;
+    await Promise.all(
+      stream.getTracks().map(async track => {
+        if (track.kind === "audio") {
+          sawAudio = true;
 
-        // TODO multiple audio tracks?
-        if (this._micProducer) {
-          if (this._micProducer.track !== track) {
-            this._micProducer.track.stop();
-            this._micProducer.replaceTrack(track);
+          // TODO multiple audio tracks?
+          if (this._micProducer) {
+            if (this._micProducer.track !== track) {
+              this._micProducer.track.stop();
+              this._micProducer.replaceTrack(track);
+            }
+          } else {
+            if (!this._micEnabled) {
+              track.enabled = false;
+            }
+
+            // stopTracks = false because otherwise the track will end during a temporary disconnect
+            this._micProducer = await this._sendTransport.produce({
+              track,
+              stopTracks: false,
+              codecOptions: { opusStereo: false, opusDtx: true }
+            });
+
+            this._micProducer.on("transportclose", () => (this._micProducer = null));
+
+            if (!this._micEnabled) {
+              this._micProducer.pause();
+            }
           }
         } else {
-          if (!this._micEnabled) {
-            track.enabled = false;
-          }
+          sawVideo = true;
 
-          // stopTracks = false because otherwise the track will end during a temporary disconnect
-          this._micProducer = await this._sendTransport.produce({
-            track,
-            stopTracks: false,
-            codecOptions: { opusStereo: false, opusDtx: true }
-          });
+          if (this._videoProducer) {
+            if (this._videoProducer.track !== track) {
+              this._videoProducer.track.stop();
+              this._videoProducer.replaceTrack(track);
+            }
+          } else {
+            // TODO simulcasting
 
-          this._micProducer.on("transportclose", () => (this._micProducer = null));
+            // stopTracks = false because otherwise the track will end during a temporary disconnect
+            this._videoProducer = await this._sendTransport.produce({
+              track,
+              stopTracks: false,
+              codecOptions: { videoGoogleStartBitrate: 1000 }
+            });
 
-          if (!this._micEnabled) {
-            this._micProducer.pause();
+            this._videoProducer.on("transportclose", () => (this._videoProducer = null));
           }
         }
-      } else {
-        sawVideo = true;
 
-        if (this._videoProducer) {
-          if (this._videoProducer.track !== track) {
-            this._videoProducer.track.stop();
-            this._videoProducer.replaceTrack(track);
-          }
-        } else {
-          // TODO simulcasting
-
-          // stopTracks = false because otherwise the track will end during a temporary disconnect
-          this._videoProducer = await this._sendTransport.produce({
-            track,
-            stopTracks: false,
-            codecOptions: { videoGoogleStartBitrate: 1000 }
-          });
-
-          this._videoProducer.on("transportclose", () => (this._videoProducer = null));
-        }
-      }
-
-      this.resolvePendingMediaRequestForTrack(this._clientId, track);
-    });
+        this.resolvePendingMediaRequestForTrack(this._clientId, track);
+      })
+    );
 
     if (!sawAudio && this._micProducer) {
       this._micProducer.close();
