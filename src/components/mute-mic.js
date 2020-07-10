@@ -51,12 +51,16 @@ AFRAME.registerComponent("mute-mic", {
     unbindAllEvents(eventSrc, unmuteEvents, this.onUnmute);
   },
 
-  onToggle: function() {
+  onToggle: async function() {
     if (!NAF.connection.adapter) return;
     if (!this.el.sceneEl.is("entered")) return;
 
     this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_TOGGLE_MIC);
     if (this.el.is("muted")) {
+      if (!this._beganAudioStream) {
+        this._beganAudioStream = true;
+        await this.el.sceneEl.systems["hubs-systems"].mediaStreamSystem.beginStreamingDefaultMic();
+      }
       NAF.connection.adapter.enableMicrophone(true);
       this.el.removeState("muted");
     } else {

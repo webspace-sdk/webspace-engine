@@ -101,10 +101,10 @@ const LOBBY_MODAL_ROUTER_PATHS = ["/media/scenes", "/media/avatars", "/media/fav
 const LOBBY_MODAL_QUERY_VARS = ["media_source"];
 const LOBBY_MODAL_QUERY_VALUES = ["scenes", "avatars", "favorites"];
 
-async function grantedMicLabels() {
+/*async function grantedMicLabels() {
   const mediaDevices = await navigator.mediaDevices.enumerateDevices();
   return mediaDevices.filter(d => d.label && d.kind === "audioinput").map(d => d.label);
-}
+}*/
 
 const isMobile = AFRAME.utils.device.isMobile();
 const isMobileVR = AFRAME.utils.device.isMobileVR();
@@ -117,7 +117,6 @@ class UIRoot extends Component {
   willCompileAndUploadMaterials = false;
 
   static propTypes = {
-    enterScene: PropTypes.func,
     exitScene: PropTypes.func,
     onSendMessage: PropTypes.func,
     disableAutoExitOnIdle: PropTypes.bool,

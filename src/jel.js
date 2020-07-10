@@ -606,7 +606,7 @@ async function runBotMode(scene, entryManager) {
   scene.renderer = { setAnimationLoop: noop, render: noop };
 
   while (!NAF.connection.isConnected()) await nextTick();
-  entryManager.enterSceneWhenLoaded(new MediaStream(), false);
+  entryManager.enterSceneWhenLoaded(false);
 }
 
 function initPhysicsThreeAndCursor(scene) {
@@ -1254,8 +1254,6 @@ const joinOrgChannel = async (orgPhxChannel, entryManager, messageDispatch) => {
 };
 
 const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
-  const scene = document.querySelector("a-scene");
-
   let isInitialJoin = true;
 
   const socket = hubPhxChannel.socket;
@@ -1269,18 +1267,6 @@ const joinHubChannel = async (hubPhxChannel, entryManager, messageDispatch) => {
 
         const permsToken = data.perms_token;
         hubChannel.setPermissionsFromToken(permsToken);
-
-        const setupAdapter = () => {
-          const adapter = NAF.connection.adapter;
-          adapter.reliableTransport = hubChannel.sendReliableNAF.bind(hubChannel);
-          adapter.unreliableTransport = hubChannel.sendUnreliableNAF.bind(hubChannel);
-        };
-
-        if (NAF.connection.adapter) {
-          setupAdapter();
-        } else {
-          scene.addEventListener("adapter-ready", setupAdapter, { once: true });
-        }
 
         remountUI({
           hubIsBound: data.hub_requires_oauth,
@@ -1444,6 +1430,10 @@ async function joinHub(socket, entryManager, messageDispatch) {
   setupHubChannelMessageHandlers(hubPhxChannel, entryManager);
   hubChannel.bind(hubPhxChannel, hubId);
 
+  const adapter = NAF.connection.adapter;
+  adapter.reliableTransport = hubChannel.sendReliableNAF.bind(hubChannel);
+  adapter.unreliableTransport = hubChannel.sendUnreliableNAF.bind(hubChannel);
+
   return joinHubChannel(hubPhxChannel, entryManager, messageDispatch);
 }
 
@@ -1499,7 +1489,6 @@ async function start() {
     orgChannel,
     hubChannel,
     linkChannel,
-    enterScene: entryManager.enterScene,
     exitScene: reason => {
       entryManager.exitScene();
 
@@ -1569,7 +1558,7 @@ async function start() {
   history.listen(performJoinHub);
   await performJoinHub();
 
-  entryManager.enterScene(null, false, true);
+  entryManager.enterScene(false, true);
 }
 
 document.addEventListener("DOMContentLoaded", start);

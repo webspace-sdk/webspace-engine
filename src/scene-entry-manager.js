@@ -22,7 +22,6 @@ import {
 import { ObjectContentOrigins } from "./object-types";
 import { getAvatarSrc, getAvatarType } from "./utils/avatar-utils";
 import { pushHistoryState } from "./utils/history";
-import { SOUND_ENTER_SCENE } from "./systems/sound-effects-system";
 
 const isIOS = AFRAME.utils.device.isIOS();
 
@@ -49,7 +48,7 @@ export default class SceneEntryManager {
     return this._entered;
   };
 
-  enterScene = async (mediaStream, enterInVR, muteOnEntry) => {
+  enterScene = async (enterInVR, muteOnEntry) => {
     if (isDebug && NAF.connection.adapter.session) {
       NAF.connection.adapter.session.options.verbose = true;
     }
@@ -80,24 +79,18 @@ export default class SceneEntryManager {
     this._setupPlayerRig();
     this._setupBlocking();
     this._setupKicking();
-    this._setupMedia(mediaStream);
+    this._setupMedia();
     this._setupCamera();
 
     if (qsTruthy("offline")) return;
 
     this._spawnAvatar();
 
-    this.scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_ENTER_SCENE);
-
     if (isBotMode) {
-      this._runBot(mediaStream);
+      this._runBot(); // TODO JEL bots
       this.scene.addState("entered");
       this.orgChannel.sendEnteredEvent();
       return;
-    }
-
-    if (mediaStream) {
-      await NAF.connection.adapter.setLocalMediaStream(mediaStream);
     }
 
     this.scene.classList.remove("hand-cursor");
@@ -135,8 +128,8 @@ export default class SceneEntryManager {
     }
   };
 
-  enterSceneWhenLoaded = (mediaStream, enterInVR) => {
-    this.whenSceneLoaded(() => this.enterScene(mediaStream, enterInVR));
+  enterSceneWhenLoaded = enterInVR => {
+    this.whenSceneLoaded(() => this.enterScene(enterInVR));
   };
 
   exitScene = () => {
@@ -275,7 +268,7 @@ export default class SceneEntryManager {
     this.hubChannel.unpin(networkId, fileId);
   };
 
-  _setupMedia = mediaStream => {
+  _setupMedia = () => {
     const offset = { x: 0, y: 0, z: -1.5 };
     const spawnMediaInfrontOfPlayer = (src, contents, contentOrigin) => {
       if (!this.hubChannel.can("spawn_and_move_media")) return;
@@ -440,17 +433,17 @@ export default class SceneEntryManager {
       }
 
       const videoTracks = newStream ? newStream.getVideoTracks() : [];
+      const mediaStreamSystem = this.scene.systems["hubs-systems"].mediaStreamSystem;
 
       if (videoTracks.length > 0) {
-        newStream.getVideoTracks().forEach(track => mediaStream.addTrack(track));
+        newStream.getVideoTracks().forEach(track => mediaStreamSystem.addTrack(track));
 
         if (newStream && newStream.getAudioTracks().length > 0) {
           const audioSystem = this.scene.systems["hubs-systems"].audioSystem;
           audioSystem.addStreamToOutboundAudio("screenshare", newStream);
         }
 
-        await NAF.connection.adapter.setLocalMediaStream(mediaStream);
-        currentVideoShareEntity = spawnMediaInfrontOfPlayer(mediaStream, null, undefined);
+        currentVideoShareEntity = spawnMediaInfrontOfPlayer(mediaStreamSystem.mediaStream, null, undefined);
 
         // Wire up custom removal event which will stop the stream.
         currentVideoShareEntity.setAttribute("emit-scene-event-on-remove", "event:action_end_video_sharing");
@@ -501,15 +494,12 @@ export default class SceneEntryManager {
         currentVideoShareEntity.parentNode.removeChild(currentVideoShareEntity);
       }
 
-      for (const track of mediaStream.getVideoTracks()) {
-        track.stop(); // Stop video track to remove the "Stop screen sharing" bar right away.
-        mediaStream.removeTrack(track);
-      }
+      const mediaStreamSystem = this.scene.systems["hubs-systems"].mediaStreamSystem;
+      await mediaStreamSystem.stopVideoTracks();
 
       const audioSystem = this.scene.systems["hubs-systems"].audioSystem;
       audioSystem.removeStreamFromOutboundAudio("screenshare");
 
-      await NAF.connection.adapter.setLocalMediaStream(mediaStream);
       currentVideoShareEntity = null;
 
       this.scene.emit("share_video_disabled");
