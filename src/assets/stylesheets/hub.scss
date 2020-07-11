@@ -17,17 +17,18 @@ body {
   background-color: var(--loading-background-color);
 
   .ui-root {
+    width: 85%;
     right: 0;
     left: auto;
   }
-}
 
-a-scene {
-  height: 100%;
-  width: 100%;
-  top: 0;
-  right: 0;
-  position: fixed;
+  a-scene {
+    height: 100%;
+    width: 85%;
+    top: 0;
+    right: 0;
+    position: fixed;
+  }
 }
 
 @keyframes hide-nav { from { width: 85%; } to { width: 100%; } }

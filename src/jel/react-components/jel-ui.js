@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useCallback } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 import styled, { ThemeProvider } from "styled-components";
 
@@ -17,7 +17,9 @@ const JelWrap = styled.div`
   background: ${p => p.theme.panelBg};
 `;
 
-function JelUI({ navExpanded = false }) {
+const TestButton = styled.button``;
+
+function useNavResize(navExpanded) {
   const scene = useMemo(() => document.querySelector("a-scene"));
 
   const resizeTimeout = useRef();
@@ -40,26 +42,30 @@ function JelUI({ navExpanded = false }) {
       const { body } = document;
 
       if (navExpanded) {
+        const wasHidden = body.classList.contains("nav-hidden");
         body.classList.remove("nav-hidden");
-        body.offsetHeight;
-        body.classList.add("nav-expanded");
-        scene.setAttribute("embedded", true);
-      } else {
-        const shouldHide = body.classList.contains("nav-expanded");
-        body.classList.remove("nav-expanded");
-        body.offsetHeight;
-        scene.removeAttribute("embedded", true);
-        if (shouldHide) {
-          body.classList.add("nav-hidden");
+        body.offsetHeight; // relayout
+        if (wasHidden) {
+          body.classList.add("nav-expanded");
         }
+      } else {
+        body.classList.remove("nav-expanded");
+        body.offsetHeight; // relayout
+        body.classList.add("nav-hidden");
       }
     },
     [navExpanded]
   );
+}
+
+function JelUI({ navExpanded = true }) {
+  useNavResize(navExpanded);
 
   return (
     <ThemeProvider theme={dark}>
-      <JelWrap>hi</JelWrap>
+      <JelWrap>
+        <TestButton onClick={() => console.log("hi")}>Create Orb</TestButton>
+      </JelWrap>
     </ThemeProvider>
   );
 }
