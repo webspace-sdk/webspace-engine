@@ -64,9 +64,134 @@ class NavSync extends EventTarget {
     }
   }
 
-  insertBelow(hubId, belowNodeId, belowNode) {
-    const newNodeId = createNodeId();
+  moveAbove(nodeId, aboveNodeId) {
+    const node = this.doc.data[nodeId];
+    const aboveNode = this.doc.data[aboveNodeId];
+    if (aboveNode.r === nodeId) return; // Already done
 
+    const prevNodeId = node.r;
+    const prevNode = this.doc.data[prevNodeId];
+    const wasTail = node.t;
+    const aboveNodePrevNode = aboveNode.r;
+
+    const newNode = {
+      h: node.h,
+      r: aboveNodePrevNode,
+      p: aboveNode.p,
+      d: aboveNode.d,
+      t: false
+    };
+
+    const ops = [];
+
+    // Replace back link in node pointing to the moved node.
+    for (const [nid, n] of Object.entries(this.doc.data)) {
+      if (n.r !== nodeId) continue;
+
+      ops.push({
+        p: [nid, "r"],
+        od: nodeId,
+        oi: prevNodeId
+      });
+
+      break;
+    }
+
+    ops.push({
+      p: [nodeId],
+      od: node,
+      oi: newNode
+    });
+
+    if (wasTail && prevNode) {
+      ops.push({
+        p: [prevNodeId, "t"],
+        od: false,
+        oi: true
+      });
+    }
+
+    ops.push({
+      p: [aboveNodeId, "r"],
+      od: aboveNodePrevNode,
+      oi: nodeId
+    });
+
+    this.doc.submitOp(ops);
+  }
+
+  moveBelow(nodeId, belowNodeId) {
+    const node = this.doc.data[nodeId];
+    if (node.r === belowNodeId) return; // Already done
+    const belowNode = this.doc.data[belowNodeId];
+    const prevNodeId = node.r;
+    const wasTail = node.t;
+    const willBeTail = belowNode.t;
+    let previousNodeBelowBelowNodeId = null;
+
+    for (const [nid, n] of Object.entries(this.doc.data)) {
+      if (n.r !== belowNodeId) continue;
+      previousNodeBelowBelowNodeId = nid;
+      break;
+    }
+
+    const newNode = {
+      h: node.h,
+      r: belowNodeId,
+      p: belowNode.p,
+      d: belowNode.d,
+      t: willBeTail
+    };
+
+    const ops = [];
+
+    if (willBeTail) {
+      ops.push({
+        p: [belowNodeId, "t"],
+        od: true,
+        oi: false
+      });
+    }
+
+    // Replace back link in node pointing to the moved node.
+    for (const [nid, n] of Object.entries(this.doc.data)) {
+      if (n.r !== nodeId) continue;
+
+      ops.push({
+        p: [nid, "r"],
+        od: nodeId,
+        oi: prevNodeId
+      });
+
+      break;
+    }
+
+    ops.push({
+      p: [nodeId],
+      od: node,
+      oi: newNode
+    });
+
+    if (previousNodeBelowBelowNodeId) {
+      ops.push({
+        p: [previousNodeBelowBelowNodeId, "r"],
+        od: belowNodeId,
+        oi: nodeId
+      });
+    }
+
+    if (wasTail && prevNodeId) {
+      ops.push({
+        p: [prevNodeId, "t"],
+        od: false,
+        oi: true
+      });
+    }
+
+    this.doc.submitOp(ops);
+  }
+
+  insertBelow(hubId, belowNodeId, belowNode) {
     const newNode = {
       h: hubId,
       r: belowNodeId,
@@ -82,7 +207,7 @@ class NavSync extends EventTarget {
         oi: false
       },
       {
-        p: [newNodeId],
+        p: [createNodeId()],
         oi: newNode
       }
     ]);
