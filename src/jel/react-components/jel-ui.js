@@ -82,9 +82,16 @@ function useNavSyncTreeData(navSync, setTreeData) {
 }
 
 function JelUI({ navExpanded = true, navSync }) {
+  let selectedNodeId;
+
   const onCreateClick = async () => {
     const hub = await createHub();
     navSync.addToRoot(hub.hub_id);
+  };
+
+  const onDeleteClick = async () => {
+    if (!selectedNodeId) return;
+    navSync.remove(selectedNodeId);
   };
 
   const [treeData, setTreeData] = useState([]);
@@ -116,8 +123,16 @@ function JelUI({ navExpanded = true, navSync }) {
     <ThemeProvider theme={dark}>
       <JelWrap>
         <Nav>
-          <Tree treeData={treeData} selectable={true} draggable onDragEnter={onTreeDragEnter} onDrop={onTreeDrop} />
+          <Tree
+            treeData={treeData}
+            selectable={true}
+            draggable
+            onDragEnter={onTreeDragEnter}
+            onDrop={onTreeDrop}
+            onSelect={(selectedKeys, { node: { key } }) => (selectedNodeId = key)}
+          />
           <TestButton onClick={onCreateClick}>Create Orb</TestButton>
+          <TestButton onClick={onDeleteClick}>Delete Orb</TestButton>
         </Nav>
       </JelWrap>
     </ThemeProvider>

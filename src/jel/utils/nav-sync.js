@@ -182,6 +182,33 @@ class NavSync extends EventTarget {
     ]);
   }
 
+  remove(nodeId) {
+    const node = this.doc.data[nodeId];
+
+    const ops = [];
+
+    // Replace back link in node pointing to the moved node.
+    for (const [nid, n] of Object.entries(this.doc.data)) {
+      if (n.r !== nodeId) continue;
+
+      ops.push({
+        p: [nid, "r"],
+        od: nodeId,
+        oi: node.r
+      });
+
+      break;
+    }
+
+    // Remove the node
+    ops.push({
+      p: [nodeId],
+      od: node
+    });
+
+    this.doc.submitOp(ops);
+  }
+
   findTailUnder(underParentId) {
     const seenChildren = new Set();
 
@@ -209,14 +236,14 @@ class NavSync extends EventTarget {
           h: hubId,
           r: null,
           p: null,
-          d: 0,
-          t: true
+          d: 0
         }
       }
     ]);
   }
 
   buildTree() {
+    console.log(this.doc.data);
     // The goal here is to convert the OT document to the UI's tree data structure.
     const depths = new Map();
     const tailNodes = new Set();
