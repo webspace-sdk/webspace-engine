@@ -156,10 +156,10 @@ export function fetchReticulumAuthenticated(url, method = "GET", payload) {
   });
 }
 
-export async function createAndRedirectToNewHub(name, sceneId, replace) {
-  const orgId = "PGsfonD"; // TODO JEL
+export async function createHub(name, sceneId) {
+  const orgId = window.APP.store.state.context.orgId;
   const createUrl = getReticulumFetchUrl("/api/v1/hubs");
-  const payload = { hub: { name: name || generateHubName(), org_id: orgId } };
+  const payload = { hub: { name, org_id: orgId } };
 
   if (sceneId) {
     payload.hub.scene_id = sceneId;
@@ -190,24 +190,15 @@ export async function createAndRedirectToNewHub(name, sceneId, replace) {
     }).then(r => r.json());
   }
 
-  const hub = res;
+  return res;
+}
+
+export async function createAndRedirectToNewHub(name, sceneId, replace) {
+  const hub = await createHub(name, sceneId);
   let url = hub.url;
 
-  const creatorAssignmentToken = hub.creator_assignment_token;
-  if (creatorAssignmentToken) {
-    store.update({ creatorAssignmentTokens: [{ hubId: hub.hub_id, creatorAssignmentToken: creatorAssignmentToken }] });
-
-    // Don't need to store the embed token if there's no creator assignment token, since that means
-    // we are the owner and will get the embed token on page load.
-    const embedToken = hub.embed_token;
-
-    if (embedToken) {
-      store.update({ embedTokens: [{ hubId: hub.hub_id, embedToken: embedToken }] });
-    }
-  }
-
   if (isLocalClient()) {
-    url = `/hub.html?hub_id=${hub.hub_id}&org_id=${orgId}`;
+    url = `/hub.html?hub_id=${hub.hub_id}&org_id=${hub.org_id}`;
   }
 
   if (replace) {

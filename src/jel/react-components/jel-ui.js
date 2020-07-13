@@ -1,6 +1,9 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 import styled, { ThemeProvider } from "styled-components";
+import { createHub } from "../../utils/phoenix-utils";
+import "../assets/stylesheets/nav-tree.scss";
+import Tree from "rc-tree";
 
 const dark = {
   text: "white",
@@ -14,8 +17,14 @@ const dark = {
 
 const JelWrap = styled.div`
   color: ${p => p.theme.text};
-  background: ${p => p.theme.panelBg};
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
 `;
+
+const Nav = styled.div``;
 
 const TestButton = styled.button``;
 
@@ -58,20 +67,43 @@ function useNavResize(navExpanded) {
   );
 }
 
-function JelUI({ navExpanded = true }) {
+function JelUI({ navExpanded = true, navSync }) {
+  const onCreateClick = async () => {
+    const hub = await createHub();
+    navSync.addToRoot(hub.hub_id);
+  };
+
+  const [treeData, setTreeData] = useState([]);
+
+  useEffect(
+    () => {
+      const handleTreeData = () => setTreeData(navSync.treeData);
+
+      navSync.addEventListener("treedata_updated", handleTreeData);
+      navSync.buildAndEmitTree();
+
+      () => navSync.removeEventListener("treedata_updated", handleTreeData);
+    },
+    [navSync]
+  );
+
   useNavResize(navExpanded);
 
   return (
     <ThemeProvider theme={dark}>
       <JelWrap>
-        <TestButton onClick={() => console.log("hi")}>Create Orb</TestButton>
+        <Nav>
+          <Tree treeData={treeData} selectable={true} />
+          <TestButton onClick={onCreateClick}>Create Orb</TestButton>
+        </Nav>
       </JelWrap>
     </ThemeProvider>
   );
 }
 
 JelUI.propTypes = {
-  navExpanded: PropTypes.bool
+  navExpanded: PropTypes.bool,
+  navSync: PropTypes.object
 };
 
 export default JelUI;

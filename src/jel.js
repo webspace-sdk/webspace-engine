@@ -130,6 +130,7 @@ import { traverseMeshesAndAddShapes } from "./utils/physics-utils";
 import { handleExitTo2DInterstitial, exit2DInterstitialAndEnterVR } from "./utils/vr-interstitial";
 import { getAvatarSrc } from "./utils/avatar-utils.js";
 import MessageDispatch from "./message-dispatch";
+import NavSync from "./jel/utils/nav-sync";
 import SceneEntryManager from "./scene-entry-manager";
 import { createInWorldLogMessage } from "./react-components/chat-message";
 
@@ -547,7 +548,7 @@ async function updateUIForHub(hub, hubChannel) {
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
 }
 
-function handleOrgChannelJoined(isInitialJoin, entryManager, orgChannel, messageDispatch, data) {
+function handleOrgChannelJoined(isInitialJoin, entryManager, orgChannel, messageDispatch, navSync, data) {
   const scene = document.querySelector("a-scene");
 
   if (!isInitialJoin) {
@@ -560,6 +561,8 @@ function handleOrgChannelJoined(isInitialJoin, entryManager, orgChannel, message
 
   const org = data.orgs[0];
   const orgId = org.org_id;
+
+  navSync.setCollectionId(orgId);
 
   console.log(`WebRTC host: ${org.host}:${org.port}`);
 
@@ -716,13 +719,18 @@ function initBatching() {
     .setAttribute("media-image", { batch: true, src: initialBatchImage, contentType: "image/png" });
 }
 
-function addGlobalEventListeners(scene, entryManager) {
+function addGlobalEventListeners(scene, entryManager, navSync) {
   window.addEventListener("action_create_avatar", () => {
     performConditionalSignIn(
       () => orgChannel.signedIn,
       () => pushHistoryState(history, "overlay", "avatar-editor"),
       "create-avatar"
     );
+  });
+
+  document.body.addEventListener("share-connected", async ({ detail: { connection } }) => {
+    await navSync.init(connection);
+    remountJelUI({ navSync });
   });
 
   scene.addEventListener("scene_media_selected", e => {
@@ -1064,7 +1072,7 @@ const addToPresenceLog = (() => {
   };
 })();
 
-const joinOrgChannel = async (orgPhxChannel, entryManager, messageDispatch) => {
+const joinOrgChannel = async (orgPhxChannel, entryManager, messageDispatch, navSync) => {
   const scene = document.querySelector("a-scene");
 
   let isInitialJoin = true;
@@ -1253,7 +1261,7 @@ const joinOrgChannel = async (orgPhxChannel, entryManager, messageDispatch) => {
 
         await presenceSync.promise;
 
-        await handleOrgChannelJoined(isInitialJoin, entryManager, orgChannel, messageDispatch, data);
+        await handleOrgChannelJoined(isInitialJoin, entryManager, orgChannel, messageDispatch, navSync, data);
 
         isInitialJoin = false;
         joinFinished();
@@ -1433,7 +1441,7 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager) => {
   });
 };
 
-async function joinOrg(socket, entryManager, messageDispatch) {
+async function joinOrg(socket, entryManager, messageDispatch, navSync) {
   if (orgChannel.channel) {
     orgChannel.leave();
   }
@@ -1446,7 +1454,7 @@ async function joinOrg(socket, entryManager, messageDispatch) {
   setupOrgChannelMessageHandlers(orgPhxChannel, entryManager);
   orgChannel.bind(orgPhxChannel, orgId);
 
-  return joinOrgChannel(orgPhxChannel, entryManager, messageDispatch);
+  return joinOrgChannel(orgPhxChannel, entryManager, messageDispatch, navSync);
 }
 
 async function joinHub(socket, entryManager, messageDispatch) {
@@ -1482,6 +1490,7 @@ async function start() {
     remountUI,
     mediaSearchStore
   );
+  const navSync = new NavSync();
 
   document.getElementById("avatar-rig").messageDispatch = messageDispatch;
 
@@ -1507,12 +1516,11 @@ async function start() {
 
   await initAvatar();
 
-  addGlobalEventListeners(scene, entryManager);
+  addGlobalEventListeners(scene, entryManager, navSync);
 
   window.dispatchEvent(new CustomEvent("hub_channel_ready"));
 
   remountUI({ availableVREntryTypes: ONLY_SCREEN_AVAILABLE, checkingForDeviceAvailability: true });
-  remountJelUI({});
   const availableVREntryTypesPromise = getAvailableVREntryTypes();
 
   registerNetworkSchemas();
@@ -1586,7 +1594,7 @@ async function start() {
     }
   };
 
-  await joinOrg(socket, entryManager, messageDispatch);
+  await joinOrg(socket, entryManager, messageDispatch, navSync);
 
   history.listen(performJoinHub);
   await performJoinHub();
