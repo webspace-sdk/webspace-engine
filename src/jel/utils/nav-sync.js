@@ -45,15 +45,6 @@ class NavSync extends EventTarget {
     const aboveNode = this.doc.data[aboveNodeId];
     if (aboveNode.r === nodeId) return; // Already done
 
-    const prevNodeId = node.r;
-    const aboveNodePrevNode = aboveNode.r;
-
-    const newNode = {
-      h: node.h,
-      r: aboveNodePrevNode,
-      p: aboveNode.p
-    };
-
     const ops = [];
 
     // Replace back link in node pointing to the moved node.
@@ -63,21 +54,27 @@ class NavSync extends EventTarget {
       ops.push({
         p: [nid, "r"],
         od: nodeId,
-        oi: prevNodeId
+        oi: node.r
       });
 
       break;
     }
 
+    // Add the new node
     ops.push({
       p: [nodeId],
       od: node,
-      oi: newNode
+      oi: {
+        h: node.h,
+        r: aboveNode.r,
+        p: aboveNode.p
+      }
     });
 
+    // Update the back reference of the node being inserted above
     ops.push({
       p: [aboveNodeId, "r"],
-      od: aboveNodePrevNode,
+      od: aboveNode.r,
       oi: nodeId
     });
 
@@ -88,48 +85,44 @@ class NavSync extends EventTarget {
     const node = this.doc.data[nodeId];
     if (node.r === belowNodeId) return; // Already done
     const belowNode = this.doc.data[belowNodeId];
-    const prevNodeId = node.r;
-    let previousNodeBelowBelowNodeId = null;
-
-    for (const [nid, n] of Object.entries(this.doc.data)) {
-      if (n.r !== belowNodeId) continue;
-      previousNodeBelowBelowNodeId = nid;
-      break;
-    }
-
-    const newNode = {
-      h: node.h,
-      r: belowNodeId,
-      p: belowNode.p
-    };
 
     const ops = [];
 
-    // Replace back link in node pointing to the moved node.
+    // Point the node previously pointing to the moved node to the moved node's back link.
     for (const [nid, n] of Object.entries(this.doc.data)) {
       if (n.r !== nodeId) continue;
 
       ops.push({
         p: [nid, "r"],
         od: nodeId,
-        oi: prevNodeId
+        oi: node.r
       });
 
       break;
     }
 
+    // Add the new node
     ops.push({
       p: [nodeId],
       od: node,
-      oi: newNode
+      oi: {
+        h: node.h,
+        r: belowNodeId,
+        p: belowNode.p
+      }
     });
 
-    if (previousNodeBelowBelowNodeId) {
+    // Point the node previously pointing to the below node to the new node.
+    for (const [nid, n] of Object.entries(this.doc.data)) {
+      if (n.r !== belowNodeId) continue;
+
       ops.push({
-        p: [previousNodeBelowBelowNodeId, "r"],
+        p: [nid, "r"],
         od: belowNodeId,
         oi: nodeId
       });
+
+      break;
     }
 
     this.doc.submitOp(ops);
@@ -149,12 +142,17 @@ class NavSync extends EventTarget {
   }
 
   findTailUnder(underParentId) {
-    for (const entry of Object.entries(this.doc.data)) {
-      const [, { t, p }] = entry;
+    const seenChildren = new Set();
 
-      if (t && p === underParentId) {
-        return entry;
-      }
+    const entries = Object.entries(this.doc.data);
+
+    for (const [, node] of entries) {
+      seenChildren.add(node.r);
+    }
+
+    for (const [nodeId, node] of entries) {
+      if (seenChildren.has(nodeId)) continue;
+      if (node.p === underParentId) return [nodeId, node];
     }
 
     return null;
