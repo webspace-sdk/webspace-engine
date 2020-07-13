@@ -40,6 +40,47 @@ class NavSync extends EventTarget {
     }
   }
 
+  moveWithin(nodeId, withinNodeId) {
+    const node = this.doc.data[nodeId];
+    if (node.p === withinNodeId) return; // Already done
+
+    const [tailNodeId] = this.findTailUnder(withinNodeId);
+
+    if (tailNodeId) {
+      // Already have a tail under the new parent, just move below that one.
+      this.moveBelow(nodeId, tailNodeId);
+    } else {
+      // New tail under a parent.
+      const ops = [];
+
+      // Point the node previously pointing to the moved node to the moved node's back link.
+      for (const [nid, n] of Object.entries(this.doc.data)) {
+        if (n.r !== nodeId) continue;
+
+        ops.push({
+          p: [nid, "r"],
+          od: nodeId,
+          oi: node.r
+        });
+
+        break;
+      }
+
+      // Add the new node
+      ops.push({
+        p: [nodeId],
+        od: node,
+        oi: {
+          h: node.h,
+          r: null,
+          p: withinNodeId
+        }
+      });
+
+      this.doc.submitOp(ops);
+    }
+  }
+
   moveAbove(nodeId, aboveNodeId) {
     const node = this.doc.data[nodeId];
     const aboveNode = this.doc.data[aboveNodeId];
@@ -147,6 +188,7 @@ class NavSync extends EventTarget {
     const entries = Object.entries(this.doc.data);
 
     for (const [, node] of entries) {
+      if (!node.r) continue;
       seenChildren.add(node.r);
     }
 
@@ -155,7 +197,7 @@ class NavSync extends EventTarget {
       if (node.p === underParentId) return [nodeId, node];
     }
 
-    return null;
+    return [null, null];
   }
 
   addInitialItem(hubId) {
@@ -187,9 +229,21 @@ class NavSync extends EventTarget {
     // Also keep a map of node ids to depths.
     for (const [nodeId, node] of entries) {
       // TOOD skip if parent not expanded
+
+      if (node.r) {
+        if (seenChildren.has(node.r)) {
+          // Duplicate backreference, meaning the doc is in an inconsistent state.
+          //
+          // This is a known condition given the fact that several operations are required to perform
+          // a move. As such, stop here and assume it will resolve in the next update.
+          return;
+        }
+
+        seenChildren.add(node.r);
+      }
+
       const depth = this.getNodeDepth(node);
       depths.set(nodeId, depth);
-      seenChildren.add(node.r);
       parentNodes.add(node.p);
     }
 
