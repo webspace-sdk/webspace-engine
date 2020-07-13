@@ -130,7 +130,7 @@ import { traverseMeshesAndAddShapes } from "./utils/physics-utils";
 import { handleExitTo2DInterstitial, exit2DInterstitialAndEnterVR } from "./utils/vr-interstitial";
 import { getAvatarSrc } from "./utils/avatar-utils.js";
 import MessageDispatch from "./message-dispatch";
-import NavSync from "./jel/utils/nav-sync";
+import TreeManager from "./jel/utils/tree-manager";
 import SceneEntryManager from "./scene-entry-manager";
 import { createInWorldLogMessage } from "./react-components/chat-message";
 
@@ -548,7 +548,7 @@ async function updateUIForHub(hub, hubChannel) {
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
 }
 
-function handleOrgChannelJoined(isInitialJoin, entryManager, orgChannel, messageDispatch, navSync, data) {
+function handleOrgChannelJoined(isInitialJoin, entryManager, orgChannel, messageDispatch, treeManager, data) {
   const scene = document.querySelector("a-scene");
 
   if (!isInitialJoin) {
@@ -562,7 +562,7 @@ function handleOrgChannelJoined(isInitialJoin, entryManager, orgChannel, message
   const org = data.orgs[0];
   const orgId = org.org_id;
 
-  navSync.setCollectionId(orgId);
+  treeManager.setCollectionId(orgId);
 
   console.log(`WebRTC host: ${org.host}:${org.port}`);
 
@@ -719,18 +719,13 @@ function initBatching() {
     .setAttribute("media-image", { batch: true, src: initialBatchImage, contentType: "image/png" });
 }
 
-function addGlobalEventListeners(scene, entryManager, navSync) {
+function addGlobalEventListeners(scene, entryManager) {
   window.addEventListener("action_create_avatar", () => {
     performConditionalSignIn(
       () => orgChannel.signedIn,
       () => pushHistoryState(history, "overlay", "avatar-editor"),
       "create-avatar"
     );
-  });
-
-  document.body.addEventListener("share-connected", async ({ detail: { connection } }) => {
-    await navSync.init(connection);
-    remountJelUI({ navSync });
   });
 
   scene.addEventListener("scene_media_selected", e => {
@@ -1072,7 +1067,7 @@ const addToPresenceLog = (() => {
   };
 })();
 
-const joinOrgChannel = async (orgPhxChannel, entryManager, messageDispatch, navSync) => {
+const joinOrgChannel = async (orgPhxChannel, entryManager, messageDispatch, treeManager) => {
   const scene = document.querySelector("a-scene");
 
   let isInitialJoin = true;
@@ -1261,7 +1256,7 @@ const joinOrgChannel = async (orgPhxChannel, entryManager, messageDispatch, navS
 
         await presenceSync.promise;
 
-        await handleOrgChannelJoined(isInitialJoin, entryManager, orgChannel, messageDispatch, navSync, data);
+        await handleOrgChannelJoined(isInitialJoin, entryManager, orgChannel, messageDispatch, treeManager, data);
 
         isInitialJoin = false;
         joinFinished();
@@ -1441,7 +1436,7 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager) => {
   });
 };
 
-async function joinOrg(socket, entryManager, messageDispatch, navSync) {
+async function joinOrg(socket, entryManager, messageDispatch, treeManager) {
   if (orgChannel.channel) {
     orgChannel.leave();
   }
@@ -1454,7 +1449,7 @@ async function joinOrg(socket, entryManager, messageDispatch, navSync) {
   setupOrgChannelMessageHandlers(orgPhxChannel, entryManager);
   orgChannel.bind(orgPhxChannel, orgId);
 
-  return joinOrgChannel(orgPhxChannel, entryManager, messageDispatch, navSync);
+  return joinOrgChannel(orgPhxChannel, entryManager, messageDispatch, treeManager);
 }
 
 async function joinHub(socket, entryManager, messageDispatch) {
@@ -1490,7 +1485,12 @@ async function start() {
     remountUI,
     mediaSearchStore
   );
-  const navSync = new NavSync();
+  const treeManager = new TreeManager();
+
+  document.body.addEventListener("share-connected", async ({ detail: { connection } }) => {
+    await treeManager.init(connection);
+    remountJelUI({ treeManager });
+  });
 
   document.getElementById("avatar-rig").messageDispatch = messageDispatch;
 
@@ -1516,7 +1516,7 @@ async function start() {
 
   await initAvatar();
 
-  addGlobalEventListeners(scene, entryManager, navSync);
+  addGlobalEventListeners(scene, entryManager);
 
   window.dispatchEvent(new CustomEvent("hub_channel_ready"));
 
@@ -1594,7 +1594,7 @@ async function start() {
     }
   };
 
-  await joinOrg(socket, entryManager, messageDispatch, navSync);
+  await joinOrg(socket, entryManager, messageDispatch, treeManager);
 
   history.listen(performJoinHub);
   await performJoinHub();

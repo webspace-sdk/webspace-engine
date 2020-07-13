@@ -9,14 +9,19 @@ function createNodeId() {
     .substring(2, 9);
 }
 
-class NavSync extends EventTarget {
+class TreeSync extends EventTarget {
+  constructor(docId) {
+    super();
+    this.docId = docId;
+  }
+
   setCollectionId(collectionId) {
     this.collectionId = collectionId;
     // TODO create a set of hub ids here that, when updated, should rebuild tree
   }
 
   init(connection) {
-    const doc = connection.get(this.collectionId, "nav");
+    const doc = connection.get(this.collectionId, this.docId);
     this.doc = doc;
 
     return new Promise(res => {
@@ -28,7 +33,7 @@ class NavSync extends EventTarget {
   }
 
   handleNavOp() {
-    this.buildTree();
+    this.rebuildTree();
   }
 
   addToRoot(hubId) {
@@ -242,8 +247,7 @@ class NavSync extends EventTarget {
     ]);
   }
 
-  buildTree() {
-    console.log(this.doc.data);
+  rebuildTree() {
     // The goal here is to convert the OT document to the UI's tree data structure.
     const depths = new Map();
     const tailNodes = new Set();
@@ -328,6 +332,45 @@ class NavSync extends EventTarget {
     this.dispatchEvent(new CustomEvent("treedata_updated"));
   }
 
+  insertOrUpdate(nodeId, n) {
+    const existing = this.doc.data[nodeId];
+    const node = JSON.parse(JSON.stringify(n));
+    const { p, r } = node;
+
+    // If parent is missing, ignore it.
+    if (!this.doc.data[p]) {
+      node.p = null;
+    }
+
+    // If backlink is missing, point to the tail of the parent.
+    if (!this.doc.data[r]) {
+      node.r = null;
+
+      const [tailId] = this.findTailUnder(node.p);
+
+      if (tailId) {
+        node.r = tailId;
+      }
+    }
+
+    if (existing) {
+      this.doc.submitOp([
+        {
+          p: [nodeId],
+          od: existing,
+          oi: node
+        }
+      ]);
+    } else {
+      this.doc.submitOp([
+        {
+          p: [nodeId],
+          oi: node
+        }
+      ]);
+    }
+  }
+
   getNodeDepth(node) {
     let n = node;
     let d = -1;
@@ -341,4 +384,4 @@ class NavSync extends EventTarget {
   }
 }
 
-export default NavSync;
+export default TreeSync;

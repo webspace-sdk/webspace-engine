@@ -67,13 +67,13 @@ function useNavResize(navExpanded) {
   );
 }
 
-function useNavSyncTreeData(navSync, setTreeData) {
+function useTreeData(navSync, setTreeData) {
   useEffect(
     () => {
       const handleTreeData = () => setTreeData(navSync.treeData);
 
       navSync.addEventListener("treedata_updated", handleTreeData);
-      navSync.buildTree();
+      navSync.rebuildTree();
 
       () => navSync.removeEventListener("treedata_updated", handleTreeData);
     },
@@ -81,40 +81,53 @@ function useNavSyncTreeData(navSync, setTreeData) {
   );
 }
 
-function JelUI({ navExpanded = true, navSync }) {
-  let selectedNodeId;
+function JelUI({ navExpanded = true, treeManager }) {
+  let selectedNavNodeId;
+  let selectedTrashNodeId;
 
   const onCreateClick = async () => {
     const hub = await createHub();
-    navSync.addToRoot(hub.hub_id);
+    treeManager.nav.addToRoot(hub.hub_id);
   };
 
   const onDeleteClick = async () => {
-    if (!selectedNodeId) return;
-    navSync.remove(selectedNodeId);
+    if (!selectedNavNodeId) return;
+    treeManager.moveToTrash(selectedNavNodeId);
   };
 
-  const [treeData, setTreeData] = useState([]);
+  const onRestoreClick = async () => {
+    if (!selectedTrashNodeId) return;
+    treeManager.restoreFromTrash(selectedTrashNodeId);
+  };
+
+  const onDestroyClick = async () => {
+    if (!selectedTrashNodeId) return;
+    treeManager.destroyFromTrash(selectedTrashNodeId);
+  };
+
+  const [navTreeData, setNavTreeData] = useState([]);
+  const [trashTreeData, setTrashTreeData] = useState([]);
 
   useNavResize(navExpanded);
-  useNavSyncTreeData(navSync, setTreeData);
+  useTreeData(treeManager.nav, setNavTreeData);
+  useTreeData(treeManager.trash, setTrashTreeData);
 
   const onTreeDragEnter = () => {
     // TODO store + expand
   };
 
-  const onTreeDrop = ({ dragNode, node, dropPosition }) => {
+  const onTreeDrop = tree => ({ dragNode, node, dropPosition }) => {
     const dropPos = node.pos.split("-");
     const dropOffset = dropPosition - Number(dropPos[dropPos.length - 1]);
     switch (dropOffset) {
       case -1:
-        navSync.moveAbove(dragNode.key, node.key);
+        treeManager[tree].moveAbove(dragNode.key, node.key);
         break;
       case 1:
-        navSync.moveBelow(dragNode.key, node.key);
+        treeManager[tree].moveBelow(dragNode.key, node.key);
         break;
       case 0:
-        navSync.moveWithin(dragNode.key, node.key);
+        treeManager[tree].moveWithin(dragNode.key, node.key);
         break;
     }
   };
@@ -124,15 +137,25 @@ function JelUI({ navExpanded = true, navSync }) {
       <JelWrap>
         <Nav>
           <Tree
-            treeData={treeData}
+            treeData={navTreeData}
+            selectable={true}
+            draggable
+            onDragEnter={onTreeDragEnter}
+            onDrop={onTreeDrop("nav")}
+            onSelect={(selectedKeys, { node: { key } }) => (selectedNavNodeId = key)}
+          />
+          <TestButton onClick={onCreateClick}>Create World</TestButton>
+          <TestButton onClick={onDeleteClick}>Delete World</TestButton>
+          <Tree
+            treeData={trashTreeData}
             selectable={true}
             draggable
             onDragEnter={onTreeDragEnter}
             onDrop={onTreeDrop}
-            onSelect={(selectedKeys, { node: { key } }) => (selectedNodeId = key)}
+            onSelect={(selectedKeys, { node: { key } }) => (selectedTrashNodeId = key)}
           />
-          <TestButton onClick={onCreateClick}>Create Orb</TestButton>
-          <TestButton onClick={onDeleteClick}>Delete Orb</TestButton>
+          <TestButton onClick={onRestoreClick}>Restore World</TestButton>
+          <TestButton onClick={onDestroyClick}>Destroy World</TestButton>
         </Nav>
       </JelWrap>
     </ThemeProvider>
@@ -141,7 +164,7 @@ function JelUI({ navExpanded = true, navSync }) {
 
 JelUI.propTypes = {
   navExpanded: PropTypes.bool,
-  navSync: PropTypes.object
+  treeManager: PropTypes.object
 };
 
 export default JelUI;
