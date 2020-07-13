@@ -73,7 +73,7 @@ function useNavSyncTreeData(navSync, setTreeData) {
       const handleTreeData = () => setTreeData(navSync.treeData);
 
       navSync.addEventListener("treedata_updated", handleTreeData);
-      navSync.buildAndEmitTree();
+      navSync.buildTree();
 
       () => navSync.removeEventListener("treedata_updated", handleTreeData);
     },

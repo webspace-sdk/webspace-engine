@@ -1,31 +1,7 @@
 import { EventTarget } from "event-target-shim";
 
 // tree doc data structure is:
-// nodeId -> { h: "hubId", r: "prevNodeId", p: "parentNodeId", d: depth, t: <true/false if tail> }
-//
-// Algorithm:
-//   For depth 0 .. n
-//     Find tail nodes for a given parent
-//       If parent is not expanded, skip.
-//       Recursively build list by walking backwards
-//
-// Operations:
-//
-// Drop node X above node Y
-//   - Find Z with prevNodeId pointing X (maybe keep parent ref in tree data)
-//   - Update Z.prevNodeId to X.prevNodeId
-//   - Update X.prevNodeId to Y.prevNodeId and X.parentId = Y.parentId, X.depth = Y.depth
-//   - Update Y.prevNodeId to X.nodeId
-//
-// Drop node X below node Y
-//   - Update X.prevNodeId = Y.nodeId, X.parentNodeId = Y.parentNodeId, X.tail = Y.tail, X.depth = Y.depth
-//   - if Y is tail, update Y.tail = false
-//
-// Drop node X on node Y
-//   - Perform operations of dropping node X below node Z, where Z is tail under node Y
-//
-// Add new to root
-//   - Perform operations of dropping node X below node Z, where Z is tail and parentId = nil
+// nodeId -> { h: "hubId", r: "prevNodeId", p: "parentNodeId" }
 
 function createNodeId() {
   return Math.random()
@@ -52,7 +28,7 @@ class NavSync extends EventTarget {
   }
 
   handleNavOp() {
-    this.buildAndEmitTree();
+    this.buildTree();
   }
 
   addToRoot(hubId) {
@@ -70,16 +46,12 @@ class NavSync extends EventTarget {
     if (aboveNode.r === nodeId) return; // Already done
 
     const prevNodeId = node.r;
-    const prevNode = this.doc.data[prevNodeId];
-    const wasTail = node.t;
     const aboveNodePrevNode = aboveNode.r;
 
     const newNode = {
       h: node.h,
       r: aboveNodePrevNode,
-      p: aboveNode.p,
-      d: aboveNode.d,
-      t: false
+      p: aboveNode.p
     };
 
     const ops = [];
@@ -103,14 +75,6 @@ class NavSync extends EventTarget {
       oi: newNode
     });
 
-    if (wasTail && prevNode) {
-      ops.push({
-        p: [prevNodeId, "t"],
-        od: false,
-        oi: true
-      });
-    }
-
     ops.push({
       p: [aboveNodeId, "r"],
       od: aboveNodePrevNode,
@@ -125,8 +89,6 @@ class NavSync extends EventTarget {
     if (node.r === belowNodeId) return; // Already done
     const belowNode = this.doc.data[belowNodeId];
     const prevNodeId = node.r;
-    const wasTail = node.t;
-    const willBeTail = belowNode.t;
     let previousNodeBelowBelowNodeId = null;
 
     for (const [nid, n] of Object.entries(this.doc.data)) {
@@ -138,20 +100,10 @@ class NavSync extends EventTarget {
     const newNode = {
       h: node.h,
       r: belowNodeId,
-      p: belowNode.p,
-      d: belowNode.d,
-      t: willBeTail
+      p: belowNode.p
     };
 
     const ops = [];
-
-    if (willBeTail) {
-      ops.push({
-        p: [belowNodeId, "t"],
-        od: true,
-        oi: false
-      });
-    }
 
     // Replace back link in node pointing to the moved node.
     for (const [nid, n] of Object.entries(this.doc.data)) {
@@ -180,35 +132,18 @@ class NavSync extends EventTarget {
       });
     }
 
-    if (wasTail && prevNodeId) {
-      ops.push({
-        p: [prevNodeId, "t"],
-        od: false,
-        oi: true
-      });
-    }
-
     this.doc.submitOp(ops);
   }
 
   insertBelow(hubId, belowNodeId, belowNode) {
-    const newNode = {
-      h: hubId,
-      r: belowNodeId,
-      p: belowNode.p,
-      d: belowNode.d,
-      t: true
-    };
-
     this.doc.submitOp([
       {
-        p: [belowNodeId, "t"],
-        od: belowNode.t,
-        oi: false
-      },
-      {
         p: [createNodeId()],
-        oi: newNode
+        oi: {
+          h: hubId,
+          r: belowNodeId,
+          p: belowNode.p
+        }
       }
     ]);
   }
@@ -241,35 +176,63 @@ class NavSync extends EventTarget {
     ]);
   }
 
-  buildAndEmitTree() {
+  buildTree() {
+    // The goal here is to convert the OT document to the UI's tree data structure.
+    const depths = new Map();
+    const tailNodes = new Set();
+    const seenChildren = new Set();
+    const parentNodes = new Set();
+
+    const entries = Object.entries(this.doc.data);
+
+    // First build a set of "tail" nodes which are the last child node under each parent
+    // Also keep a map of node ids to depths.
+    for (const [nodeId, node] of entries) {
+      // TOOD skip if parent not expanded
+      const depth = this.getNodeDepth(node);
+      depths.set(nodeId, depth);
+      seenChildren.add(node.r);
+      parentNodes.add(node.p);
+    }
+
+    for (const [nodeId] of entries) {
+      // TOOD skip if parent not expanded
+      if (seenChildren.has(nodeId)) continue;
+      tailNodes.add(nodeId);
+    }
+
     const treeData = [];
-    const childMap = new Map();
-    childMap.set(null, treeData);
+    const nodeIdToChildren = new Map();
+    nodeIdToChildren.set(null, treeData);
 
     let depth = 0;
-    let sawAtDepth;
+    let done;
 
+    // Build each layer of the tree data
     do {
-      sawAtDepth = false;
-      const entries = Object.entries(this.doc.data);
+      done = true;
 
       for (const [nodeId, node] of entries) {
-        if (node.d !== depth) continue;
-        if (!node.t) continue;
+        if (depths.get(nodeId) !== depth) continue;
+        if (!tailNodes.has(nodeId)) continue;
 
-        // TODO if not expanded, skip
+        // TODO skip if parent node not expanded
 
         // Tail node for the current depth, build the child list for this node's parent.
-        sawAtDepth = true;
-        const children = childMap.get(node.p);
+        done = false;
+        const children = nodeIdToChildren.get(node.p);
 
         let n = node;
         let nid = nodeId;
 
         do {
-          const subchildren = [];
-          childMap.set(nid, subchildren);
-          children.unshift({ key: nid, title: nid, children: subchildren });
+          if (parentNodes.has(nid)) {
+            const subchildren = [];
+            nodeIdToChildren.set(nid, subchildren);
+            children.unshift({ key: nid, title: nid, children: subchildren });
+          } else {
+            children.unshift({ key: nid, title: nid, isLeaf: true });
+          }
 
           nid = n.r;
 
@@ -277,33 +240,25 @@ class NavSync extends EventTarget {
             n = this.doc.data[nid];
           }
         } while (nid);
-
-        sawAtDepth = true;
       }
 
       depth++;
-    } while (sawAtDepth);
-
-    // DFS to set leaves
-    const walk = children => {
-      const l = children.length;
-
-      for (let i = 0; i < l; i++) {
-        const n = children[i];
-
-        if (n.children.length === 0) {
-          delete n.children;
-          n.isLeaf = true;
-        } else {
-          walk(n.children);
-        }
-      }
-    };
-
-    walk(treeData);
+    } while (!done);
 
     this.treeData = treeData;
     this.dispatchEvent(new CustomEvent("treedata_updated"));
+  }
+
+  getNodeDepth(node) {
+    let n = node;
+    let d = -1;
+
+    do {
+      d++;
+      n = this.doc.data[n.p];
+    } while (n);
+
+    return d;
   }
 }
 
