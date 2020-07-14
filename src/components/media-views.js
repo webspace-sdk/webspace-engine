@@ -1215,7 +1215,7 @@ AFRAME.registerComponent("media-image", {
 
             // Don't cache data: URLs
             if (!isDataUrl) {
-              const inflightPromise = new Promise(async res => {
+              const inflightPromise = new Promise(async (res, rej) => {
                 try {
                   [texture, textureInfo] = await promise;
 
@@ -1232,6 +1232,8 @@ AFRAME.registerComponent("media-image", {
                   }
 
                   res();
+                } catch (e) {
+                  rej(e);
                 } finally {
                   inflightTextures.delete(inflightKey);
                 }
