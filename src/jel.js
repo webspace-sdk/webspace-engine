@@ -121,6 +121,7 @@ import JelUI from "./jel/react-components/jel-ui";
 import UIRoot from "./react-components/ui-root";
 import AuthChannel from "./utils/auth-channel";
 import OrgChannel from "./utils/org-channel";
+import OrgMetadata from "./jel/utils/org-metadata";
 import HubChannel from "./utils/hub-channel";
 import LinkChannel from "./utils/link-channel";
 import { connectToReticulum } from "./utils/phoenix-utils";
@@ -175,6 +176,8 @@ const authChannel = new AuthChannel(store);
 const orgChannel = new OrgChannel(store);
 const hubChannel = new HubChannel(store);
 const linkChannel = new LinkChannel(store);
+const orgMetadata = new OrgMetadata(orgChannel);
+
 window.APP.orgChannel = orgChannel;
 window.APP.hubChannel = hubChannel;
 store.addEventListener("profilechanged", orgChannel.sendProfileUpdate.bind(hubChannel));
@@ -1485,7 +1488,7 @@ async function start() {
     remountUI,
     mediaSearchStore
   );
-  const treeManager = new TreeManager(orgChannel);
+  const treeManager = new TreeManager(orgMetadata);
 
   document.body.addEventListener("share-connected", async ({ detail: { connection } }) => {
     await treeManager.init(connection);
