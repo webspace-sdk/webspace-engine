@@ -228,9 +228,9 @@ export default class OrgChannel extends EventTarget {
     });
   };
 
-  getHubs(hubIds) {
+  getHubMetas(hubIds) {
     return new Promise(res => {
-      this.channel.push("get_hubs", { hub_ids: [...hubIds] }).receive("ok", ({ hubs }) => res(hubs));
+      this.channel.push("get_hub_metas", { hub_ids: [...hubIds] }).receive("ok", ({ hubs }) => res(hubs));
     });
   }
 

@@ -47,7 +47,7 @@ export default class OrgMetadata {
       if (hubIdsToFetch.size === 0) {
         res();
       } else {
-        const hubs = await this._orgChannel.getHubs(hubIdsToFetch);
+        const hubs = await this._orgChannel.getHubMetas(hubIdsToFetch);
 
         for (const hubMetadata of hubs) {
           this._hubMetadata.set(hubMetadata.hub_id, hubMetadata);

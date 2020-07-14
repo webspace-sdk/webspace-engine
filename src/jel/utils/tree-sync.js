@@ -16,12 +16,10 @@ class TreeSync extends EventTarget {
     this.docId = docId;
     this.expandedTreeNodes = expandedTreeNodes;
     this.orgMetadata = orgMetadata;
-    this.subscribedHubIds = new Set();
   }
 
   setCollectionId(collectionId) {
     this.collectionId = collectionId;
-    // TODO create a set of hub ids here that, when updated, should rebuild tree
   }
 
   init(connection) {
@@ -349,19 +347,25 @@ class TreeSync extends EventTarget {
   }
 
   rebuildExpandedTreeData() {
-    const expandedHubIds = new Set();
+    if (this.expandedHubIds) {
+      for (const hubId of this.expandedHubIds) {
+        this.orgMetadata.unsubscribeFromHubMetadata(hubId, this.handleHubMetadataUpdate);
+      }
+    }
+
+    this.expandedHubIds = new Set();
 
     const isExpanded = nodeId => this.expandedTreeNodes.isExpanded(nodeId); // Filter
-    const fillHubIds = (nodeId, node) => expandedHubIds.add(node.h); // Visitor
+    const fillHubIds = (nodeId, node) => this.expandedHubIds.add(node.h); // Visitor
 
     this.expandedTreeData = this.computeTree(isExpanded, fillHubIds);
     this.dispatchEvent(new CustomEvent("expanded_treedata_updated"));
 
-    for (const hubId of expandedHubIds) {
+    for (const hubId of this.expandedHubIds) {
       this.orgMetadata.subscribeToHubMetadata(hubId, this.handleHubMetadataUpdate);
     }
 
-    this.orgMetadata.ensureHubMetadataForHubIds(expandedHubIds);
+    this.orgMetadata.ensureHubMetadataForHubIds(this.expandedHubIds);
   }
 
   insertOrUpdate(nodeId, n) {
