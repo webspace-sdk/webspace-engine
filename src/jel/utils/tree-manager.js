@@ -103,7 +103,7 @@ class TreeManager extends EventTarget {
   moveToTree(nodeId, fromTree, toTree) {
     // Compute the tree again to avoid filtering by expanded nodes in the UI, in order
     // to find the actual full closure of nodes to move.
-    const treeData = fromTree.computeTree(nodeId);
+    const treeData = fromTree.computeTree();
 
     // Copy top-down
     const copyWalk = (children, copy) => {
