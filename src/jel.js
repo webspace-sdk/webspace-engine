@@ -1485,7 +1485,7 @@ async function start() {
     remountUI,
     mediaSearchStore
   );
-  const treeManager = new TreeManager();
+  const treeManager = new TreeManager(orgChannel);
 
   document.body.addEventListener("share-connected", async ({ detail: { connection } }) => {
     await treeManager.init(connection);

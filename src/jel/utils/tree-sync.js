@@ -1,4 +1,5 @@
 import { EventTarget } from "event-target-shim";
+import { DEFAULT_HUB_NAME } from "../../utils/media-utils";
 
 // tree doc data structure is:
 // nodeId -> { h: "hubId", r: "prevNodeId", p: "parentNodeId" }
@@ -10,10 +11,12 @@ function createNodeId() {
 }
 
 class TreeSync extends EventTarget {
-  constructor(docId, expandedTreeNodes) {
+  constructor(docId, expandedTreeNodes, orgChannel) {
     super();
     this.docId = docId;
     this.expandedTreeNodes = expandedTreeNodes;
+    this.orgChannel = orgChannel;
+    this.subscribedHubIds = new Set();
   }
 
   setCollectionId(collectionId) {
@@ -27,15 +30,14 @@ class TreeSync extends EventTarget {
 
     return new Promise(res => {
       doc.subscribe(async () => {
-        doc.on("op", this.handleNavOp.bind(this));
+        doc.on("op", this.handleNavOp);
         res();
       });
     });
   }
 
-  handleNavOp() {
-    this.rebuildTree();
-  }
+  handleNavOp = () => this.rebuildExpandedTreeData();
+  handleHubMetadataUpdate = () => this.rebuildExpandedTreeData();
 
   addToRoot(hubId) {
     if (Object.entries(this.doc.data).length === 0) {
@@ -248,7 +250,7 @@ class TreeSync extends EventTarget {
     ]);
   }
 
-  computeTree(parentFilter = () => true) {
+  computeTree(parentFilter = () => true, visitor = null) {
     // The goal here is to convert the OT document to the UI's tree data structure.
     const depths = new Map();
     const tailNodes = new Set();
@@ -312,12 +314,24 @@ class TreeSync extends EventTarget {
         let nid = nodeId;
 
         do {
+          if (visitor) visitor(nid, n);
+
+          const hubId = n.h;
+          let nodeTitle = "";
+          let nodeUrl = null;
+
+          if (this.orgChannel.hasHubMetaData(n.h)) {
+            const { name, url } = this.orgChannel.getHubMetadata(hubId);
+            nodeTitle = name || DEFAULT_HUB_NAME;
+            nodeUrl = url;
+          }
+
           if (parentNodes.has(nid)) {
             const subchildren = [];
             nodeIdToChildren.set(nid, subchildren);
-            children.unshift({ key: nid, title: nid, children: subchildren, isLeaf: false });
+            children.unshift({ key: nid, title: nodeTitle, children: subchildren, url: nodeUrl, isLeaf: false });
           } else {
-            children.unshift({ key: nid, title: nid, isLeaf: true });
+            children.unshift({ key: nid, title: nodeTitle, url: nodeUrl, isLeaf: true });
           }
 
           nid = n.r;
@@ -334,9 +348,20 @@ class TreeSync extends EventTarget {
     return treeData;
   }
 
-  rebuildTree() {
-    this.treeData = this.computeTree(nodeId => this.expandedTreeNodes.isExpanded(nodeId));
-    this.dispatchEvent(new CustomEvent("treedata_updated"));
+  rebuildExpandedTreeData() {
+    const expandedHubIds = new Set();
+
+    const isExpanded = nodeId => this.expandedTreeNodes.isExpanded(nodeId); // Filter
+    const fillHubIds = (nodeId, node) => expandedHubIds.add(node.h); // Visitor
+
+    this.expandedTreeData = this.computeTree(isExpanded, fillHubIds);
+    this.dispatchEvent(new CustomEvent("expanded_treedata_updated"));
+
+    for (const hubId of expandedHubIds) {
+      this.orgChannel.subscribeToHubMetadata(hubId, this.handleHubMetadataUpdate);
+    }
+
+    this.orgChannel.ensureHubMetadataForHubIds(expandedHubIds);
   }
 
   insertOrUpdate(nodeId, n) {

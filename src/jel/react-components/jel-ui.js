@@ -70,12 +70,12 @@ function useNavResize(navExpanded) {
 function useTreeData(tree, setTreeData) {
   useEffect(
     () => {
-      const handleTreeData = () => setTreeData(tree.treeData);
+      const handleTreeData = () => setTreeData(tree.expandedTreeData);
 
-      tree.addEventListener("treedata_updated", handleTreeData);
-      tree.rebuildTree();
+      tree.addEventListener("expanded_treedata_updated", handleTreeData);
+      tree.rebuildExpandedTreeData();
 
-      () => tree.removeEventListener("treedata_updated", handleTreeData);
+      () => tree.removeEventListener("expanded_treedata_updated", handleTreeData);
     },
     [tree]
   );
@@ -85,8 +85,8 @@ function useExpandableTree(treeManager) {
   useEffect(
     () => {
       const handleExpandedNodeIdsChanged = () => {
-        treeManager.nav.rebuildTree();
-        treeManager.trash.rebuildTree();
+        treeManager.nav.rebuildExpandedTreeData();
+        treeManager.trash.rebuildExpandedTreeData();
       };
 
       treeManager.addEventListener("expanded_nodes_updated", handleExpandedNodeIdsChanged);
