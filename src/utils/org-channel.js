@@ -23,6 +23,7 @@ export default class OrgChannel extends EventTarget {
     this.store = store;
     this._signedIn = !!this.store.state.credentials.token;
     this._permissions = {};
+    this._hubMetadata = new Map();
   }
 
   get signedIn() {
@@ -238,4 +239,25 @@ export default class OrgChannel extends EventTarget {
       this.channel.socket.disconnect();
     }
   };
+
+  ensureHubMetadataForHubIds(hubIds) {
+    let hubIdsToFetch;
+
+    for (let i = 0; i < hubIds.length; i++) {
+      if (!this._hubMetadata.has(hubIds[i])) {
+        if (!hubIdsToFetch) {
+          hubIdsToFetch = [];
+        }
+
+        hubIdsToFetch.push(hubIds[i]);
+      }
+    }
+
+    if (hubIdsToFetch.length) {
+      this.channel.push("get_hubs", { hub_ids: hubIds }).receive("ok", res => {
+        console.log(res);
+        // TODO dispatch
+      });
+    }
+  }
 }
