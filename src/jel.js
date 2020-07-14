@@ -1492,7 +1492,7 @@ async function start() {
 
   document.body.addEventListener("share-connected", async ({ detail: { connection } }) => {
     await treeManager.init(connection);
-    remountJelUI({ treeManager });
+    remountJelUI({ history, treeManager });
   });
 
   document.getElementById("avatar-rig").messageDispatch = messageDispatch;

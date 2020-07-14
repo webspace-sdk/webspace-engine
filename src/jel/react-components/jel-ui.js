@@ -4,6 +4,7 @@ import styled, { ThemeProvider } from "styled-components";
 import { createHub } from "../../utils/phoenix-utils";
 import "../assets/stylesheets/nav-tree.scss";
 import Tree from "rc-tree";
+import { pushHistoryURL } from "../../utils/history";
 
 const dark = {
   text: "white",
@@ -97,7 +98,7 @@ function useExpandableTree(treeManager) {
   );
 }
 
-function JelUI({ navExpanded = true, treeManager }) {
+function JelUI({ navExpanded = true, treeManager, history }) {
   let selectedNavNodeId;
   let selectedTrashNodeId;
 
@@ -161,7 +162,7 @@ function JelUI({ navExpanded = true, treeManager }) {
             draggable
             onDragEnter={onTreeDragEnter}
             onDrop={onTreeDrop("nav")}
-            onSelect={(selectedKeys, { node: { key } }) => (selectedNavNodeId = key)}
+            onSelect={(selectedKeys, { node: { url } }) => pushHistoryURL(history, url)}
             expandedKeys={treeManager.expandedNodeIds()}
             onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
           />
@@ -186,7 +187,8 @@ function JelUI({ navExpanded = true, treeManager }) {
 
 JelUI.propTypes = {
   navExpanded: PropTypes.bool,
-  treeManager: PropTypes.object
+  treeManager: PropTypes.object,
+  history: PropTypes.object
 };
 
 export default JelUI;
