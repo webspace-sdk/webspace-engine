@@ -82,6 +82,7 @@ class TreeManager extends EventTarget {
   }
 
   removeFromTree(nodeId, fromTree) {
+    // Remove bottom up
     const removeWalk = (children, remove) => {
       for (const child of children) {
         const removeChild = remove || child.key === nodeId;
@@ -104,6 +105,7 @@ class TreeManager extends EventTarget {
     // to find the actual full closure of nodes to move.
     const treeData = fromTree.computeTreeBelow(nodeId);
 
+    // Copy top-down
     const copyWalk = (children, copy) => {
       for (const child of children) {
         const copyChild = copy || child.key === nodeId;

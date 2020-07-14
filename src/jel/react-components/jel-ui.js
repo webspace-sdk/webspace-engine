@@ -144,7 +144,7 @@ function JelUI({ navExpanded = true, treeManager }) {
         treeManager[tree].moveBelow(dragNode.key, node.key);
         break;
       case 0:
-        treeManager[tree].moveWithin(dragNode.key, node.key);
+        treeManager[tree].moveInto(dragNode.key, node.key);
         break;
     }
   };

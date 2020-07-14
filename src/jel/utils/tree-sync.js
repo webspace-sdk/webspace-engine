@@ -46,7 +46,7 @@ class TreeSync extends EventTarget {
     }
   }
 
-  moveWithin(nodeId, withinNodeId) {
+  moveInto(nodeId, withinNodeId) {
     const node = this.doc.data[nodeId];
     if (node.p === withinNodeId) return; // Already done
 
