@@ -1546,7 +1546,7 @@ class UIRoot extends Component {
     const streaming = this.state.isStreaming;
 
     const showTopHud = enteredOrWatching && !showObjectInfo;
-    const showSettingsMenu = false; //!streaming && !preload && !showObjectInfo;
+    const showSettingsMenu = !streaming && !preload && !showObjectInfo;
     const showObjectList = !showObjectInfo;
     const showPresenceList = !showObjectInfo;
 

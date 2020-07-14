@@ -329,9 +329,9 @@ class TreeSync extends EventTarget {
           if (parentNodes.has(nid)) {
             const subchildren = [];
             nodeIdToChildren.set(nid, subchildren);
-            children.unshift({ key: nid, title: nodeTitle, children: subchildren, url: nodeUrl, isLeaf: false });
+            children.unshift({ key: nid, title: nodeTitle, children: subchildren, url: nodeUrl, hubId, isLeaf: false });
           } else {
-            children.unshift({ key: nid, title: nodeTitle, url: nodeUrl, isLeaf: true });
+            children.unshift({ key: nid, title: nodeTitle, url: nodeUrl, hubId, isLeaf: true });
           }
 
           nid = n.r;
@@ -413,6 +413,23 @@ class TreeSync extends EventTarget {
     } while (n);
 
     return d;
+  }
+
+  getNodeIdForHubId(hubIdToFind) {
+    const walk = nodes => {
+      for (const { key, hubId, children } of nodes) {
+        if (hubId === hubIdToFind) return key;
+
+        if (children) {
+          const childHubId = walk(children);
+          if (childHubId) return childHubId;
+        }
+      }
+
+      return null;
+    };
+
+    return walk(this.expandedTreeData || []);
   }
 }
 

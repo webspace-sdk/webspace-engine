@@ -98,34 +98,12 @@ function useExpandableTree(treeManager) {
   );
 }
 
-function JelUI({ navExpanded = true, treeManager, history }) {
-  let selectedNavNodeId;
-  let selectedTrashNodeId;
-
-  const onCreateClick = async () => {
-    const hub = await createHub();
-    treeManager.nav.addToRoot(hub.hub_id);
-  };
-
-  const onDeleteClick = async () => {
-    if (!selectedNavNodeId) return;
-    treeManager.moveToTrash(selectedNavNodeId);
-  };
-
-  const onRestoreClick = async () => {
-    if (!selectedTrashNodeId) return;
-    treeManager.restoreFromTrash(selectedTrashNodeId);
-  };
-
-  const onDestroyClick = async () => {
-    if (!selectedTrashNodeId) return;
-    treeManager.destroyFromTrash(selectedTrashNodeId);
-  };
+function HubTree({ treeManager, history, hub }) {
+  if (!treeManager || !hub) return null;
 
   const [navTreeData, setNavTreeData] = useState([]);
   const [trashTreeData, setTrashTreeData] = useState([]);
 
-  useNavResize(navExpanded);
   useTreeData(treeManager.nav, setNavTreeData);
   useTreeData(treeManager.trash, setTrashTreeData);
   useExpandableTree(treeManager);
@@ -150,35 +128,49 @@ function JelUI({ navExpanded = true, treeManager, history }) {
     }
   };
 
+  const selectedKeys = hub ? [treeManager.nav.getNodeIdForHubId(hub.hub_id)] : [];
+
+  return (
+    <div>
+      <Tree
+        treeData={navTreeData}
+        selectable={true}
+        selectedKeys={selectedKeys}
+        draggable
+        onDragEnter={onTreeDragEnter}
+        onDrop={onTreeDrop("nav")}
+        onSelect={(selectedKeys, { node: { url } }) => pushHistoryURL(history, url)}
+        expandedKeys={treeManager.expandedNodeIds()}
+        onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
+      />
+      <Tree
+        treeData={trashTreeData}
+        selectable={true}
+        selectedKeys={selectedKeys}
+        draggable
+        expandedKeys={treeManager.expandedNodeIds()}
+        onDragEnter={onTreeDragEnter}
+        onDrop={onTreeDrop}
+        onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
+      />
+    </div>
+  );
+}
+
+function JelUI({ navExpanded = true, treeManager, history, hub }) {
+  const onCreateClick = async () => {
+    const hub = await createHub();
+    treeManager.nav.addToRoot(hub.hub_id);
+  };
+
+  useNavResize(navExpanded);
+
   return (
     <ThemeProvider theme={dark}>
       <JelWrap>
         <Nav>
           <TestButton onClick={onCreateClick}>Create World</TestButton>
-          <TestButton onClick={onDeleteClick}>Delete World</TestButton>
-          <Tree
-            treeData={navTreeData}
-            selectable={true}
-            draggable
-            onDragEnter={onTreeDragEnter}
-            onDrop={onTreeDrop("nav")}
-            onSelect={(selectedKeys, { node: { url } }) => pushHistoryURL(history, url)}
-            expandedKeys={treeManager.expandedNodeIds()}
-            onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
-          />
-          Trash
-          <Tree
-            treeData={trashTreeData}
-            selectable={true}
-            draggable
-            expandedKeys={treeManager.expandedNodeIds()}
-            onDragEnter={onTreeDragEnter}
-            onDrop={onTreeDrop}
-            onSelect={(selectedKeys, { node: { key } }) => (selectedTrashNodeId = key)}
-            onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
-          />
-          <TestButton onClick={onRestoreClick}>Restore World</TestButton>
-          <TestButton onClick={onDestroyClick}>Destroy World</TestButton>
+          <HubTree treeManager={treeManager} hub={hub} history={history} />
         </Nav>
       </JelWrap>
     </ThemeProvider>
@@ -188,7 +180,14 @@ function JelUI({ navExpanded = true, treeManager, history }) {
 JelUI.propTypes = {
   navExpanded: PropTypes.bool,
   treeManager: PropTypes.object,
-  history: PropTypes.object
+  history: PropTypes.object,
+  hub: PropTypes.object
+};
+
+HubTree.propTypes = {
+  treeManager: PropTypes.object,
+  history: PropTypes.object,
+  hub: PropTypes.object
 };
 
 export default JelUI;

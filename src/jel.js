@@ -549,6 +549,7 @@ async function updateEnvironmentForHub(hub, entryManager) {
 
 async function updateUIForHub(hub, hubChannel) {
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
+  remountJelUI({ hub });
 }
 
 function handleOrgChannelJoined(isInitialJoin, entryManager, orgChannel, messageDispatch, treeManager, data) {
