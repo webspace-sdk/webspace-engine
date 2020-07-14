@@ -7,6 +7,13 @@ export default class OrgMetadata {
     this._hubMetadataSubscribers = new Map();
   }
 
+  init() {
+    this._orgChannel.channel.on("hub_meta_refresh", hubMetadata => {
+      this._hubMetadata.set(hubMetadata.hub_id, hubMetadata);
+      this._fireHandlerForSubscribersForUpdatedHubIds([hubMetadata.hub_id]);
+    });
+  }
+
   // Subscribes to metadata changes for the given hub id.
   //
   // If multiple hub metadatas as updated at once, the handler will only

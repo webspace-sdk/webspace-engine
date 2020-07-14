@@ -1412,12 +1412,9 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager) => {
       titleParts[0] = hub.name;
       document.title = titleParts.join(" | ");
 
-      // TODO JEL ROUTING
-      // Re-write the slug in the browser history
       const pathParts = history.location.pathname.split("/");
-      const oldSlug = pathParts[1];
       const { search, state } = history.location;
-      const pathname = history.location.pathname.replace(`/${oldSlug}`, `/${hub.slug}`);
+      const pathname = history.location.pathname.replace(`/${pathParts[1]}`, `/${hub.slug}-${hub.hub_id}`);
 
       history.replace({ pathname, search, state });
 
@@ -1452,6 +1449,7 @@ async function joinOrg(socket, entryManager, messageDispatch, treeManager) {
   const orgPhxChannel = socket.channel(`org:${orgId}`, createOrgChannelParams());
   setupOrgChannelMessageHandlers(orgPhxChannel, entryManager);
   orgChannel.bind(orgPhxChannel, orgId);
+  orgMetadata.init();
 
   return joinOrgChannel(orgPhxChannel, entryManager, messageDispatch, treeManager);
 }
