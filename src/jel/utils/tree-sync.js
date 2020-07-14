@@ -248,19 +248,6 @@ class TreeSync extends EventTarget {
     ]);
   }
 
-  computeTreeBelow(nodeId) {
-    return this.computeTree(possibleParentId => {
-      const isBelow = id => {
-        if (id === nodeId) return true;
-        const n = this.doc.data[id];
-        if (!n || !n.p) return false;
-        else return isBelow(this.doc.data[n.p]);
-      };
-
-      return isBelow(possibleParentId);
-    });
-  }
-
   computeTree(parentFilter = () => true) {
     // The goal here is to convert the OT document to the UI's tree data structure.
     const depths = new Map();
@@ -297,7 +284,6 @@ class TreeSync extends EventTarget {
     for (const [nodeId, node] of entries) {
       if (seenChildren.has(nodeId)) continue;
 
-      // Skip non expanded nodes, so we don't build child lists
       if (node.p && !parentFilter(node.p)) continue;
       tailNodes.add(nodeId);
     }

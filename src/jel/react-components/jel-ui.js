@@ -153,6 +153,8 @@ function JelUI({ navExpanded = true, treeManager }) {
     <ThemeProvider theme={dark}>
       <JelWrap>
         <Nav>
+          <TestButton onClick={onCreateClick}>Create World</TestButton>
+          <TestButton onClick={onDeleteClick}>Delete World</TestButton>
           <Tree
             treeData={navTreeData}
             selectable={true}
@@ -163,8 +165,7 @@ function JelUI({ navExpanded = true, treeManager }) {
             expandedKeys={treeManager.expandedNodeIds()}
             onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
           />
-          <TestButton onClick={onCreateClick}>Create World</TestButton>
-          <TestButton onClick={onDeleteClick}>Delete World</TestButton>
+          Trash
           <Tree
             treeData={trashTreeData}
             selectable={true}
