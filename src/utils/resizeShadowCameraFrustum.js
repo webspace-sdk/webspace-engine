@@ -20,6 +20,7 @@ export default function resizeShadowCameraFrustum(light, scene) {
   // Reset bounding box
   frustumBox.makeEmpty();
   boundingBox.makeEmpty();
+  let sawShadower = false;
 
   // Grow the extents of boundingBox for every geometry in the scene that has castShadow set to true.
   scene.traverse(node => {
@@ -36,11 +37,13 @@ export default function resizeShadowCameraFrustum(light, scene) {
       tempBox.applyMatrix4(node.matrixWorld);
 
       boundingBox.union(tempBox);
+      sawShadower = true;
     }
   });
 
   // Transform the resulting bounding box from world space to light space.
   // Construct a new bounding box in light space that contains the corners of the bounding box in world space.
+  if (!sawShadower) return;
   const min = boundingBox.min;
   const max = boundingBox.max;
 

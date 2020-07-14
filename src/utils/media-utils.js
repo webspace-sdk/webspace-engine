@@ -12,6 +12,10 @@ import tlds from "tlds";
 
 import anime from "animejs";
 
+export const LOADING_EVENTS = ["model-loading", "image-loading", "text-loading", "pdf-loading"];
+export const LOADED_EVENTS = ["model-loaded", "image-loaded", "text-loaded", "pdf-loaded"];
+export const ERROR_EVENTS = ["model-error", "image-error", "text-error", "pdf-error"];
+
 const linkify = Linkify();
 linkify.tlds(tlds);
 

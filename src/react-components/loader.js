@@ -6,6 +6,7 @@ import UnlessFeature from "./unless-feature";
 import configs from "../utils/configs";
 import { lang, messages } from "../utils/i18n";
 import loaderStyles from "../assets/stylesheets/loader.scss";
+import { LOADING_EVENTS, LOADED_EVENTS, ERROR_EVENTS } from "../utils/media-utils";
 
 class Loader extends Component {
   static propTypes = {
@@ -21,18 +22,14 @@ class Loader extends Component {
   };
 
   componentDidMount() {
-    this.props.scene.addEventListener("model-loading", this.onObjectLoading);
-    this.props.scene.addEventListener("image-loading", this.onObjectLoading);
-    this.props.scene.addEventListener("text-loading", this.onObjectLoading);
-    this.props.scene.addEventListener("pdf-loading", this.onObjectLoading);
-    this.props.scene.addEventListener("model-loaded", this.onObjectLoaded);
-    this.props.scene.addEventListener("image-loaded", this.onObjectLoaded);
-    this.props.scene.addEventListener("text-loaded", this.onObjectLoaded);
-    this.props.scene.addEventListener("pdf-loaded", this.onObjectLoaded);
-    this.props.scene.addEventListener("model-error", this.onObjectLoaded);
-    this.props.scene.addEventListener("image-error", this.onObjectLoaded);
-    this.props.scene.addEventListener("text-error", this.onObjectLoaded);
-    this.props.scene.addEventListener("pdf-error", this.onObjectLoaded);
+    for (const ev of LOADING_EVENTS) {
+      this.props.scene.addEventListener(ev, this.onObjectLoading);
+    }
+
+    for (const ev of [...LOADED_EVENTS, ...ERROR_EVENTS]) {
+      this.props.scene.addEventListener(ev, this.onObjectLoaded);
+    }
+
     this.props.scene.addEventListener(
       "environment-scene-loaded",
       () => {
@@ -44,18 +41,13 @@ class Loader extends Component {
   }
 
   componentWillUnmount() {
-    this.props.scene.removeEventListener("model-loading", this.onObjectLoading);
-    this.props.scene.removeEventListener("text-loading", this.onObjectLoading);
-    this.props.scene.removeEventListener("image-loading", this.onObjectLoading);
-    this.props.scene.removeEventListener("pdf-loading", this.onObjectLoading);
-    this.props.scene.removeEventListener("model-loaded", this.onObjectLoaded);
-    this.props.scene.removeEventListener("image-loaded", this.onObjectLoaded);
-    this.props.scene.removeEventListener("text-loaded", this.onObjectLoaded);
-    this.props.scene.removeEventListener("pdf-loaded", this.onObjectLoaded);
-    this.props.scene.removeEventListener("model-error", this.onObjectLoaded);
-    this.props.scene.removeEventListener("image-error", this.onObjectLoaded);
-    this.props.scene.removeEventListener("text-error", this.onObjectLoaded);
-    this.props.scene.removeEventListener("pdf-error", this.onObjectLoaded);
+    for (const ev of LOADING_EVENTS) {
+      this.props.scene.removeEventListener(ev, this.onObjectLoading);
+    }
+
+    for (const ev of [...LOADED_EVENTS, ...ERROR_EVENTS]) {
+      this.props.scene.removeEventListener(ev, this.onObjectLoaded);
+    }
   }
 
   onObjectLoading = () => {

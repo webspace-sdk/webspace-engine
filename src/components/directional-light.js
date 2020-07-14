@@ -1,4 +1,5 @@
 import resizeShadowCameraFrustum from "../utils/resizeShadowCameraFrustum";
+import { LOADED_EVENTS } from "../utils/media-utils";
 
 AFRAME.registerComponent("directional-light", {
   schema: {
@@ -19,6 +20,14 @@ AFRAME.registerComponent("directional-light", {
     this.el.setObject3D("directional-light", this.light);
     this.el.sceneEl.systems.light.registerLight(el);
     this.rendererSystem = this.el.sceneEl.systems.renderer;
+
+    if (!window.APP || window.APP.quality !== "low") {
+      for (const ev of LOADED_EVENTS) {
+        this.el.sceneEl.addEventListener(ev, () => {
+          resizeShadowCameraFrustum(this.light, this.el.sceneEl.object3D);
+        });
+      }
+    }
   },
 
   update(prevData) {
@@ -59,14 +68,6 @@ AFRAME.registerComponent("directional-light", {
     }
 
     this.light.shadow.camera.matrixNeedsUpdate = true;
-  },
-
-  tick() {
-    if (window.APP && window.APP.quality === "low") {
-      return;
-    }
-
-    resizeShadowCameraFrustum(this.light, this.el.sceneEl.object3D);
   },
 
   remove: function() {
