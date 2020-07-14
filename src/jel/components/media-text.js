@@ -115,6 +115,9 @@ AFRAME.registerComponent("media-text", {
 
       // TODO move after first frame loaded
       this.el.emit("text-loaded", { src: this.data.src });
+    } catch (e) {
+      this.el.emit("text-error", { src: this.data.src });
+      throw e;
     } finally {
       mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
     }

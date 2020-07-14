@@ -30,6 +30,9 @@ class Loader extends Component {
     this.props.scene.addEventListener("text-loaded", this.onObjectLoaded);
     this.props.scene.addEventListener("pdf-loaded", this.onObjectLoaded);
     this.props.scene.addEventListener("model-error", this.onObjectLoaded);
+    this.props.scene.addEventListener("image-error", this.onObjectLoaded);
+    this.props.scene.addEventListener("text-error", this.onObjectLoaded);
+    this.props.scene.addEventListener("pdf-error", this.onObjectLoaded);
     this.props.scene.addEventListener(
       "environment-scene-loaded",
       () => {
@@ -50,6 +53,9 @@ class Loader extends Component {
     this.props.scene.removeEventListener("text-loaded", this.onObjectLoaded);
     this.props.scene.removeEventListener("pdf-loaded", this.onObjectLoaded);
     this.props.scene.removeEventListener("model-error", this.onObjectLoaded);
+    this.props.scene.removeEventListener("image-error", this.onObjectLoaded);
+    this.props.scene.removeEventListener("text-error", this.onObjectLoaded);
+    this.props.scene.removeEventListener("pdf-error", this.onObjectLoaded);
   }
 
   onObjectLoading = () => {

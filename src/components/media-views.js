@@ -1346,6 +1346,9 @@ AFRAME.registerComponent("media-image", {
       }
 
       this.el.emit("image-loaded", { src: this.data.src, projection: projection });
+    } catch (e) {
+      this.el.emit("image-error", { src: this.data.src });
+      throw e;
     } finally {
       mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
     }
@@ -1575,6 +1578,9 @@ AFRAME.registerComponent("media-pdf", {
       }
 
       this.el.emit("pdf-loaded", { src: this.data.src });
+    } catch (e) {
+      this.el.emit("pdf-error", { src: this.data.src });
+      throw e;
     } finally {
       mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
     }
