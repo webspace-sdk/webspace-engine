@@ -67,17 +67,33 @@ function useNavResize(navExpanded) {
   );
 }
 
-function useTreeData(navSync, setTreeData) {
+function useTreeData(tree, setTreeData) {
   useEffect(
     () => {
-      const handleTreeData = () => setTreeData(navSync.treeData);
+      const handleTreeData = () => setTreeData(tree.treeData);
 
-      navSync.addEventListener("treedata_updated", handleTreeData);
-      navSync.rebuildTree();
+      tree.addEventListener("treedata_updated", handleTreeData);
+      tree.rebuildTree();
 
-      () => navSync.removeEventListener("treedata_updated", handleTreeData);
+      () => tree.removeEventListener("treedata_updated", handleTreeData);
     },
-    [navSync]
+    [tree]
+  );
+}
+
+function useExpandableTree(treeManager) {
+  useEffect(
+    () => {
+      const handleExpandedNodeIdsChanged = () => {
+        treeManager.nav.rebuildTree();
+        treeManager.trash.rebuildTree();
+      };
+
+      treeManager.addEventListener("expanded_nodes_updated", handleExpandedNodeIdsChanged);
+
+      () => treeManager.removeEventListener("expanded_nodes_updated", handleExpandedNodeIdsChanged);
+    },
+    [treeManager]
   );
 }
 
@@ -111,6 +127,7 @@ function JelUI({ navExpanded = true, treeManager }) {
   useNavResize(navExpanded);
   useTreeData(treeManager.nav, setNavTreeData);
   useTreeData(treeManager.trash, setTrashTreeData);
+  useExpandableTree(treeManager);
 
   const onTreeDragEnter = () => {
     // TODO store + expand
@@ -143,6 +160,8 @@ function JelUI({ navExpanded = true, treeManager }) {
             onDragEnter={onTreeDragEnter}
             onDrop={onTreeDrop("nav")}
             onSelect={(selectedKeys, { node: { key } }) => (selectedNavNodeId = key)}
+            expandedKeys={treeManager.expandedNodeIds()}
+            onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
           />
           <TestButton onClick={onCreateClick}>Create World</TestButton>
           <TestButton onClick={onDeleteClick}>Delete World</TestButton>
@@ -150,9 +169,11 @@ function JelUI({ navExpanded = true, treeManager }) {
             treeData={trashTreeData}
             selectable={true}
             draggable
+            expandedKeys={treeManager.expandedNodeIds()}
             onDragEnter={onTreeDragEnter}
             onDrop={onTreeDrop}
             onSelect={(selectedKeys, { node: { key } }) => (selectedTrashNodeId = key)}
+            onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
           />
           <TestButton onClick={onRestoreClick}>Restore World</TestButton>
           <TestButton onClick={onDestroyClick}>Destroy World</TestButton>

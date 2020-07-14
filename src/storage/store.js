@@ -160,6 +160,17 @@ export const SCHEMA = {
           args: { type: "object" }
         }
       }
+    },
+
+    expandedTreeNodes: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          nodeId: { type: "string" }
+        }
+      }
     }
   },
 
@@ -177,7 +188,8 @@ export const SCHEMA = {
     uploadPromotionTokens: { $ref: "#/definitions/uploadPromotionTokens" },
     creatorAssignmentTokens: { $ref: "#/definitions/creatorAssignmentTokens" },
     embedTokens: { $ref: "#/definitions/embedTokens" },
-    onLoadActions: { $ref: "#/definitions/onLoadActions" }
+    onLoadActions: { $ref: "#/definitions/onLoadActions" },
+    expandedTreeNodes: { $ref: "#/definitions/expandedTreeNodes" }
   },
 
   additionalProperties: false
@@ -210,6 +222,7 @@ export default class Store extends EventTarget {
       creatorAssignmentTokens: [],
       embedTokens: [],
       onLoadActions: [],
+      expandedTreeNodes: [],
       preferences: {}
     });
 

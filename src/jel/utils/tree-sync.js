@@ -10,9 +10,10 @@ function createNodeId() {
 }
 
 class TreeSync extends EventTarget {
-  constructor(docId) {
+  constructor(docId, expandedTreeNodes) {
     super();
     this.docId = docId;
+    this.expandedTreeNodes = expandedTreeNodes;
   }
 
   setCollectionId(collectionId) {
@@ -247,7 +248,20 @@ class TreeSync extends EventTarget {
     ]);
   }
 
-  rebuildTree() {
+  computeTreeBelow(nodeId) {
+    return this.computeTree(possibleParentId => {
+      const isBelow = id => {
+        if (id === nodeId) return true;
+        const n = this.doc.data[id];
+        if (!n || !n.p) return false;
+        else return isBelow(this.doc.data[n.p]);
+      };
+
+      return isBelow(possibleParentId);
+    });
+  }
+
+  computeTree(parentFilter = () => true) {
     // The goal here is to convert the OT document to the UI's tree data structure.
     const depths = new Map();
     const tailNodes = new Set();
@@ -259,8 +273,6 @@ class TreeSync extends EventTarget {
     // First build a set of "tail" nodes which are the last child node under each parent
     // Also keep a map of node ids to depths.
     for (const [nodeId, node] of entries) {
-      // TOOD skip if parent not expanded
-
       if (node.r) {
         if (seenChildren.has(node.r)) {
           // Duplicate backreference, meaning the doc is in an inconsistent state.
@@ -273,14 +285,20 @@ class TreeSync extends EventTarget {
         seenChildren.add(node.r);
       }
 
+      if (node.p) {
+        parentNodes.add(node.p);
+        if (!parentFilter(node.p)) continue;
+      }
+
       const depth = this.getNodeDepth(node);
       depths.set(nodeId, depth);
-      parentNodes.add(node.p);
     }
 
-    for (const [nodeId] of entries) {
-      // TOOD skip if parent not expanded
+    for (const [nodeId, node] of entries) {
       if (seenChildren.has(nodeId)) continue;
+
+      // Skip non expanded nodes, so we don't build child lists
+      if (node.p && !parentFilter(node.p)) continue;
       tailNodes.add(nodeId);
     }
 
@@ -298,8 +316,7 @@ class TreeSync extends EventTarget {
       for (const [nodeId, node] of entries) {
         if (depths.get(nodeId) !== depth) continue;
         if (!tailNodes.has(nodeId)) continue;
-
-        // TODO skip if parent node not expanded
+        if (node.p && !parentFilter(node.p)) continue;
 
         // Tail node for the current depth, build the child list for this node's parent.
         done = false;
@@ -312,7 +329,7 @@ class TreeSync extends EventTarget {
           if (parentNodes.has(nid)) {
             const subchildren = [];
             nodeIdToChildren.set(nid, subchildren);
-            children.unshift({ key: nid, title: nid, children: subchildren });
+            children.unshift({ key: nid, title: nid, children: subchildren, isLeaf: false });
           } else {
             children.unshift({ key: nid, title: nid, isLeaf: true });
           }
@@ -328,7 +345,11 @@ class TreeSync extends EventTarget {
       depth++;
     } while (!done);
 
-    this.treeData = treeData;
+    return treeData;
+  }
+
+  rebuildTree() {
+    this.treeData = this.computeTree(nodeId => this.expandedTreeNodes.isExpanded(nodeId));
     this.dispatchEvent(new CustomEvent("treedata_updated"));
   }
 

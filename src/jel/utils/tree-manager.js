@@ -1,9 +1,49 @@
 import TreeSync from "./tree-sync";
 
-class TreeManager {
+const EXPANDED_TREE_NODE_STORE_KEY = "__JelExpandedTreeNodes";
+
+class ExpandedTreeNodes {
   constructor() {
-    this.nav = new TreeSync("nav");
-    this.trash = new TreeSync("trash");
+    if (localStorage.getItem(EXPANDED_TREE_NODE_STORE_KEY) === null) {
+      localStorage.setItem(EXPANDED_TREE_NODE_STORE_KEY, JSON.stringify({}));
+    }
+  }
+
+  isExpanded(nodeId) {
+    this.ensureCache();
+    return !!this.cache[nodeId];
+  }
+
+  expandedNodeIds() {
+    this.ensureCache();
+    return Object.keys(this.cache);
+  }
+
+  set(nodeId) {
+    this.ensureCache();
+    this.cache[nodeId] = true;
+    localStorage.setItem(EXPANDED_TREE_NODE_STORE_KEY, JSON.stringify(this.cache));
+  }
+
+  unset(nodeId) {
+    this.ensureCache();
+    delete this.cache[nodeId];
+    localStorage.setItem(EXPANDED_TREE_NODE_STORE_KEY, JSON.stringify(this.cache));
+  }
+
+  ensureCache() {
+    if (!this.cache) {
+      this.cache = JSON.parse(localStorage[EXPANDED_TREE_NODE_STORE_KEY]);
+    }
+  }
+}
+
+class TreeManager extends EventTarget {
+  constructor() {
+    super();
+    this.expandedTreeNodes = new ExpandedTreeNodes();
+    this.nav = new TreeSync("nav", this.expandedTreeNodes);
+    this.trash = new TreeSync("trash", this.expandedTreeNodes);
   }
 
   async init(connection) {
@@ -13,6 +53,20 @@ class TreeManager {
   setCollectionId(collectionId) {
     this.nav.setCollectionId(collectionId);
     this.trash.setCollectionId(collectionId);
+  }
+
+  setNodeExpanded(nodeId, expanded) {
+    if (expanded) {
+      this.expandedTreeNodes.set(nodeId);
+    } else {
+      this.expandedTreeNodes.unset(nodeId);
+    }
+
+    this.dispatchEvent(new CustomEvent("expanded_nodes_updated"));
+  }
+
+  expandedNodeIds() {
+    return this.expandedTreeNodes.expandedNodeIds();
   }
 
   moveToTrash(nodeId) {
@@ -46,6 +100,10 @@ class TreeManager {
   }
 
   moveToTree(nodeId, fromTree, toTree) {
+    // Compute the tree again to avoid filtering by expanded nodes in the UI, in order
+    // to find the actual full closure of nodes to move.
+    const treeData = fromTree.computeTreeBelow(nodeId);
+
     const copyWalk = (children, copy) => {
       for (const child of children) {
         const copyChild = copy || child.key === nodeId;
@@ -65,7 +123,7 @@ class TreeManager {
       }
     };
 
-    copyWalk(fromTree.treeData, false);
+    copyWalk(treeData, false);
   }
 }
 
