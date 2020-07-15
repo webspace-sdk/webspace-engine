@@ -129,7 +129,8 @@ class UIRoot extends Component {
     hubIsBound: PropTypes.bool,
     isSupportAvailable: PropTypes.bool,
     presenceLogEntries: PropTypes.array,
-    presences: PropTypes.object,
+    hubPresences: PropTypes.object,
+    orgPresences: PropTypes.object,
     sessionId: PropTypes.string,
     subscriptions: PropTypes.object,
     initialIsSubscribed: PropTypes.bool,
@@ -858,7 +859,7 @@ class UIRoot extends Component {
   };
 
   occupantCount = () => {
-    return this.props.presences ? Object.entries(this.props.presences).length : 0;
+    return this.props.hubPresences ? Object.entries(this.props.hubPresences).length : 0;
   };
 
   onStoreChanged = () => {
@@ -875,18 +876,18 @@ class UIRoot extends Component {
   };
 
   discordBridges = () => {
-    if (!this.props.presences) {
+    if (!this.props.hubPresences) {
       return [];
     } else {
-      return discordBridgesForPresences(this.props.presences);
+      return discordBridgesForPresences(this.props.hubPresences);
     }
   };
 
   hasEmbedPresence = () => {
-    if (!this.props.presences) {
+    if (!this.props.hubPresences) {
       return false;
     } else {
-      for (const p of Object.values(this.props.presences)) {
+      for (const p of Object.values(this.props.hubPresences)) {
         for (const m of p.metas) {
           if (m.context && m.context.embed) {
             return true;
@@ -1551,7 +1552,7 @@ class UIRoot extends Component {
     const showPresenceList = !showObjectInfo;
 
     const displayNameOverride = this.props.hubIsBound
-      ? getPresenceProfileForSession(this.props.presences, this.props.sessionId).displayName
+      ? getPresenceProfileForSession(this.props.hubPresences, this.props.sessionId).displayName
       : null;
 
     const streamingTip = streaming &&
@@ -1780,7 +1781,7 @@ class UIRoot extends Component {
                 clientId={clientInfoClientId}
                 onClose={this.closeDialog}
                 history={this.props.history}
-                presences={this.props.presences}
+                presences={this.props.orgPresences}
                 hubChannel={this.props.hubChannel}
                 showNonHistoriedDialog={this.showNonHistoriedDialog}
                 performConditionalSignIn={this.props.performConditionalSignIn}
@@ -1812,7 +1813,7 @@ class UIRoot extends Component {
               <div className={styles.uiDialog}>
                 <PresenceLog
                   entries={presenceLogEntries}
-                  presences={this.props.presences}
+                  presences={this.props.orgPresences}
                   hubId={this.props.hub.hub_id}
                   history={this.props.history}
                 />
@@ -1823,7 +1824,7 @@ class UIRoot extends Component {
               this.props.hub && (
                 <PresenceLog
                   inRoom={true}
-                  presences={this.props.presences}
+                  presences={this.props.orgPresences}
                   entries={presenceLogEntries}
                   hubId={this.props.hub.hub_id}
                   history={this.props.history}
@@ -2014,7 +2015,8 @@ class UIRoot extends Component {
               <PresenceList
                 hubChannel={this.props.hubChannel}
                 history={this.props.history}
-                presences={this.props.presences}
+                orgPresences={this.props.orgPresences}
+                hubPresences={this.props.hubPresences}
                 sessionId={this.props.sessionId}
                 signedIn={this.state.signedIn}
                 email={this.props.store.state.credentials.email}

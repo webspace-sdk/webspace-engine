@@ -1,5 +1,5 @@
 import { Socket } from "phoenix";
-import { generateHubName } from "../utils/name-generation";
+import { Presence } from "phoenix";
 import configs from "../utils/configs";
 
 import Store from "../storage/store";
@@ -220,6 +220,29 @@ export function getPresenceContextForSession(presences, sessionId) {
 
 export function getPresenceProfileForSession(presences, sessionId) {
   return (getPresenceEntryForSession(presences, sessionId) || {}).profile || {};
+}
+
+// Unbinds presence, and returns a function that must be passed the new channel to rebind.
+export function unbindPresence(presence) {
+  if (!presence) return () => presence;
+
+  const presenceBindings = {
+    onJoin: presence.caller.onJoin,
+    onLeave: presence.caller.onLeave,
+    onSync: presence.caller.onSync
+  };
+
+  presence.onJoin(function() {});
+  presence.onLeave(function() {});
+  presence.onSync(function() {});
+
+  return channel => {
+    const presence = new Presence(channel);
+    presence.onJoin(presenceBindings.onJoin);
+    presence.onLeave(presenceBindings.onLeave);
+    presence.onSync(presenceBindings.onSync);
+    return presence;
+  };
 }
 
 // Takes the given channel, and creates a new channel with the same bindings

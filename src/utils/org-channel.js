@@ -1,7 +1,7 @@
 import jwtDecode from "jwt-decode";
 import { EventTarget } from "event-target-shim";
 import { Presence } from "phoenix";
-import { migrateChannelToSocket } from "./phoenix-utils";
+import { migrateChannelToSocket, unbindPresence } from "./phoenix-utils";
 
 // Permissions that will be assumed if the user becomes the creator.
 const VALID_PERMISSIONS = [];
@@ -26,29 +26,9 @@ export default class OrgChannel extends EventTarget {
 
   // Migrates this channel to a new phoenix channel and presence
   async migrateToSocket(socket, params) {
-    let presenceBindings;
-
-    // Unbind presence, and then set up bindings after reconnect
-    if (this.presence) {
-      presenceBindings = {
-        onJoin: this.presence.caller.onJoin,
-        onLeave: this.presence.caller.onLeave,
-        onSync: this.presence.caller.onSync
-      };
-
-      this.presence.onJoin(function() {});
-      this.presence.onLeave(function() {});
-      this.presence.onSync(function() {});
-    }
-
+    const rebindPresence = unbindPresence(this.presence);
     this.channel = await migrateChannelToSocket(this.channel, socket, params);
-    this.presence = new Presence(this.channel);
-
-    if (presenceBindings) {
-      this.presence.onJoin(presenceBindings.onJoin);
-      this.presence.onLeave(presenceBindings.onLeave);
-      this.presence.onSync(presenceBindings.onSync);
-    }
+    this.presence = rebindPresence(this.channel);
   }
 
   bind = (channel, orgId) => {

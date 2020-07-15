@@ -185,7 +185,10 @@ JelUI.propTypes = {
   navExpanded: PropTypes.bool,
   treeManager: PropTypes.object,
   history: PropTypes.object,
-  hub: PropTypes.object
+  hub: PropTypes.object,
+  orgPresences: PropTypes.object,
+  hubPresences: PropTypes.object,
+  sessionId: PropTypes.string
 };
 
 HubTree.propTypes = {

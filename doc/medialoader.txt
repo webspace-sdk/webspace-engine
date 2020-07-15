@@ -1,0 +1,72 @@
+Entities always exist if doc is loaded. When doc is unloaded entities are removed.
+unload doc based upon memory pressure or delay
+media presence PENDING -> PRESENT -> HIDDEN
+hidden just hides visibility, stops playback + animations, removes from batch
+loader box just shows for self for now
+maybe fade in stuff after loading
+
+
+have at most N in-flight transitions at once. if flipped to hidden, cut off future
+transitions
+
+Order of features:
+ * Create queue, just empty queue each frame
+ * Flip between present and hidden by adding to queue
+   * Implement promise for transition
+ * Cancel items in queue for previous state change
+ * v1
+
+* Costs:
+  * Texture memory
+  * Animation playback
+  * # materials (draw calls)
+  * Video element/playback
+    * Audio source
+
+Video to check
+
+  * updateSrc
+    * video texture has to wait until height/width
+    * deal with video streaming
+    * dash video player, hls video player
+    * need to keep video + audio elements in sync
+  * setupAudio
+    * creates positional audio node and sets sound on it
+    * can just remove sound on it
+
+* Video out of frustum?
+
+
+Removal steps:
+
+  * Disposing texture
+  * Removing mesh
+
+Rate limit creation steps
+
+Set 'presence level'
+
+  * Present
+  * Low*fidelity (lower texture rez)
+  * Minimal*fidelity (stop animation/playback, keep audio playing)
+  * Hidden (Minimal fidelity + stop audio + hide)
+
+Need to cancel pending steps when switching spaces or scenes
+
+Model steps:
+
+  * Unzip
+  * parser creation
+  * Texture loads + binds
+  * JSON migration
+  * Parse
+  * Traversal to clean up auto*update/materials
+  * Generate BVH
+  * Component inflates
+  * El backup
+  * El re*wire
+
+PDF steps:
+  * getDocument
+  * getPage
+  * renderTask

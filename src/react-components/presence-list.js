@@ -63,7 +63,8 @@ export function navigateToClientInfo(history, clientId) {
 export default class PresenceList extends Component {
   static propTypes = {
     hubChannel: PropTypes.object,
-    presences: PropTypes.object,
+    hubPresences: PropTypes.object,
+    orgPresences: PropTypes.object,
     history: PropTypes.object,
     sessionId: PropTypes.string,
     signedIn: PropTypes.bool,
@@ -91,7 +92,7 @@ export default class PresenceList extends Component {
   };
 
   muteAll = () => {
-    const presences = this.props.presences;
+    const presences = this.props.hubPresences;
     for (const [clientId, presence] of Object.entries(presences)) {
       if (clientId !== this.props.sessionId) {
         const meta = presence.metas[0];
@@ -102,16 +103,15 @@ export default class PresenceList extends Component {
     }
   };
 
-  domForPresence = ([sessionId, data]) => {
-    const meta = data.metas[data.metas.length - 1];
-    const context = meta.context;
-    const profile = meta.profile;
-    const recording = meta.streaming || meta.recording;
-    const icon = recording ? <FontAwesomeIcon icon={faVideo} /> : getPresenceIcon(context);
+  domForPresence = ([sessionId, hubData]) => {
+    const hubMeta = hubData.metas[hubData.metas.length - 1];
+    const orgMetas = this.props.orgPresences[sessionId].metas;
+    const { context, profile, streaming, recording, presence } = orgMetas[orgMetas.length - 1];
+    const icon = streaming || recording ? <FontAwesomeIcon icon={faVideo} /> : getPresenceIcon(context);
     const isBot = context && context.discord;
     const isEntering = context && context.entering;
-    const isOwner = meta.roles && meta.roles.owner;
-    const messageId = isEntering ? "presence.entering" : `presence.in_${meta.presence}`;
+    const isOwner = hubMeta.roles && hubMeta.roles.owner;
+    const messageId = isEntering ? "presence.entering" : `presence.in_${presence}`;
     const badge = isOwner && (
       <span className={styles.moderatorBadge} title="Moderator">
         &#x2605;
@@ -119,8 +119,7 @@ export default class PresenceList extends Component {
     );
     const microphonePresence =
       this.state && this.state.microphonePresences && this.state.microphonePresences.get(sessionId);
-    const micState =
-      microphonePresence && meta.presence === "room" ? getMicrophonePresenceIcon(microphonePresence) : "";
+    const micState = microphonePresence && presence === "room" ? getMicrophonePresenceIcon(microphonePresence) : "";
     const canMuteUsers = this.props.hubChannel.can("mute_users");
     const isMe = sessionId === this.props.sessionId;
     const muted = microphonePresence && microphonePresence.muted;
@@ -192,8 +191,8 @@ export default class PresenceList extends Component {
   }
 
   renderExpandedList() {
-    const meta = this.props.presences[this.props.sessionId].metas[0];
-    const owner = meta.roles && meta.roles.owner;
+    const hubMeta = this.props.hubPresences[this.props.sessionId].metas[0];
+    const owner = hubMeta.roles && hubMeta.roles.owner;
     const muteAll = owner && (
       <div className={styles.muteAll}>
         <button title="Mute All" onClick={this.muteAll} className={styles.muteButton}>
@@ -208,10 +207,10 @@ export default class PresenceList extends Component {
         <div className={styles.contents}>
           {muteAll}
           <div className={styles.rows}>
-            {Object.entries(this.props.presences || {})
+            {Object.entries(this.props.hubPresences || {})
               .filter(([k]) => k === this.props.sessionId)
               .map(this.domForPresence)}
-            {Object.entries(this.props.presences || {})
+            {Object.entries(this.props.hubPresences || {})
               .filter(([k]) => k !== this.props.sessionId)
               .map(this.domForPresence)}
           </div>
@@ -237,7 +236,7 @@ export default class PresenceList extends Component {
   }
 
   render() {
-    const occupantCount = this.props.presences ? Object.entries(this.props.presences).length : 0;
+    const occupantCount = this.props.hubPresences ? Object.entries(this.props.hubPresences).length : 0;
     return (
       <div>
         <button

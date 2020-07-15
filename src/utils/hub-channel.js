@@ -1,6 +1,7 @@
 import jwtDecode from "jwt-decode";
 import { EventTarget } from "event-target-shim";
-import { migrateChannelToSocket, discordBridgesForPresences } from "./phoenix-utils";
+import { Presence } from "phoenix";
+import { migrateChannelToSocket, discordBridgesForPresences, unbindPresence } from "./phoenix-utils";
 
 // Permissions that will be assumed if the user becomes the creator.
 const HUB_CREATOR_PERMISSIONS = [
@@ -52,13 +53,16 @@ export default class HubChannel extends EventTarget {
     return roomEntrySlotCount < (hub.room_size !== undefined ? hub.room_size : DEFAULT_ROOM_SIZE);*/
   }
 
-  // Migrates this hub channel to a new phoenix channel and presence
+  // Migrates this channel to a new phoenix channel and presence
   async migrateToSocket(socket, params) {
+    const rebindPresence = unbindPresence(this.presence);
     this.channel = await migrateChannelToSocket(this.channel, socket, params);
+    this.presence = rebindPresence(this.channel);
   }
 
   bind = (channel, hubId) => {
     this.channel = channel;
+    this.presence = new Presence(channel);
     this.hubId = hubId;
   };
 

@@ -71,7 +71,7 @@ AFRAME.registerComponent("player-info", {
   },
   play() {
     this.el.addEventListener("model-loaded", this.applyProperties);
-    this.el.sceneEl.addEventListener("presence_updated", this.updateDisplayName);
+    this.el.sceneEl.addEventListener("org_presence_updated", this.updateDisplayName);
     if (this.isLocalPlayerInfo) {
       this.el.querySelector(".model").addEventListener("model-error", this.handleModelError);
     }
@@ -87,7 +87,7 @@ AFRAME.registerComponent("player-info", {
   },
   pause() {
     this.el.removeEventListener("model-loaded", this.applyProperties);
-    this.el.sceneEl.removeEventListener("presence_updated", this.updateDisplayName);
+    this.el.sceneEl.removeEventListener("org_presence_updated", this.updateDisplayName);
     if (this.isLocalPlayerInfo) {
       this.el.querySelector(".model").removeEventListener("model-error", this.handleModelError);
     }
