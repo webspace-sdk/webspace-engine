@@ -444,7 +444,8 @@
     "support.copied": "copied!",
     "support.details": "details",
     "support.supported": "supported",
-    "support.unsupported": "unsupported"
+    "support.unsupported": "unsupported",
+    "new-org.create": "Create Worldspace"
   },
    "cn-zh": {
     "app-name": "App",

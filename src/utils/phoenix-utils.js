@@ -2,8 +2,6 @@ import { Socket } from "phoenix";
 import { Presence } from "phoenix";
 import configs from "../utils/configs";
 
-import Store from "../storage/store";
-
 export function hasReticulumServer() {
   return !!configs.RETICULUM_SERVER;
 }
@@ -156,8 +154,36 @@ export function fetchReticulumAuthenticated(url, method = "GET", payload) {
   });
 }
 
+export async function createOrg(name) {
+  const store = window.APP.store;
+  const createUrl = getReticulumFetchUrl("/api/v1/orgs");
+  const payload = { org: { name } };
+
+  const headers = { "content-type": "application/json" };
+  if (!store.state || !store.state.credentials.token) {
+    throw new Error("Must be signed in to create org.");
+  }
+
+  headers.authorization = `bearer ${store.state.credentials.token}`;
+
+  const res = await fetch(createUrl, {
+    body: JSON.stringify(payload),
+    headers,
+    method: "POST"
+  }).then(r => r.json());
+
+  if (res.error === "invalid_token") {
+    // Clear the invalid token from store.
+    store.update({ credentials: { token: null, email: null } });
+    throw new Error("Must be signed in to create org.");
+  }
+
+  return res;
+}
+
 export async function createHub(name, sceneId) {
-  const orgId = window.APP.store.state.context.orgId;
+  const store = window.APP.store;
+  const orgId = store.state.context.orgId;
   const createUrl = getReticulumFetchUrl("/api/v1/hubs");
   const payload = { hub: { name, org_id: orgId } };
 
@@ -166,7 +192,6 @@ export async function createHub(name, sceneId) {
   }
 
   const headers = { "content-type": "application/json" };
-  const store = new Store();
   if (store.state && store.state.credentials.token) {
     headers.authorization = `bearer ${store.state.credentials.token}`;
   }
