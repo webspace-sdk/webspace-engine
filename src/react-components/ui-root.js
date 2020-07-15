@@ -1781,8 +1781,9 @@ class UIRoot extends Component {
                 clientId={clientInfoClientId}
                 onClose={this.closeDialog}
                 history={this.props.history}
-                presences={this.props.orgPresences}
                 hubChannel={this.props.hubChannel}
+                hubPresences={this.props.hubPresences}
+                orgPresences={this.props.orgPresences}
                 showNonHistoriedDialog={this.showNonHistoriedDialog}
                 performConditionalSignIn={this.props.performConditionalSignIn}
               />

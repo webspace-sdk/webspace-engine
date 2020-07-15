@@ -1070,6 +1070,8 @@ const addToPresenceLog = (() => {
 })();
 
 const initOrgPresence = async (presence, socket) => {
+  const scene = document.querySelector("a-scene");
+
   return new Promise(res => {
     presence.onSync(() => {
       const presence = orgChannel.presence;
@@ -1105,13 +1107,18 @@ const initOrgPresence = async (presence, socket) => {
             });
           }
 
-          /*if (currentMeta.profile && meta.profile && currentMeta.profile.displayName !== meta.profile.displayName) {
+          if (
+            currentMeta.profile &&
+            meta.profile &&
+            currentMeta.profile.displayName !== meta.profile.displayName &&
+            isCurrentHub
+          ) {
             addToPresenceLog({
               type: "display_name_changed",
               oldName: currentMeta.profile.displayName,
               newName: meta.profile.displayName
             });
-          }*/
+          }
         } else if (info.metas.length === 1 && isCurrentHub) {
           // New presence
           const meta = info.metas[0];
@@ -1125,6 +1132,13 @@ const initOrgPresence = async (presence, socket) => {
           }
         }
       }
+
+      scene.emit("org_presence_updated", {
+        sessionId,
+        profile: meta.profile,
+        streaming: meta.streaming,
+        recording: meta.recording
+      });
     });
 
     presence.onLeave((sessionId, current, info) => {
@@ -1142,9 +1156,9 @@ const initOrgPresence = async (presence, socket) => {
       const currentHubId = orgChannel.getCurrentHubFromPresence();
       const currentMeta = current.metas[current.metas.length - 1];
       const wasCurrentHub = meta.hub_id === currentHubId;
-      const isCurrentHub = currentMeta.hub_id === currentHubId;
+      const isCurrentHub = currentMeta && currentMeta.hub_id === currentHubId;
 
-      if (!isSelf && meta.profile.displayName && !isCurrentHub && wasCurrentHub) {
+      if (!isSelf && meta && meta.profile.displayName && !isCurrentHub && wasCurrentHub) {
         addToPresenceLog({
           type: "leave",
           name: meta.profile.displayName

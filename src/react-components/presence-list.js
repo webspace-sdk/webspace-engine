@@ -105,7 +105,10 @@ export default class PresenceList extends Component {
 
   domForPresence = ([sessionId, hubData]) => {
     const hubMeta = hubData.metas[hubData.metas.length - 1];
-    const orgMetas = this.props.orgPresences[sessionId].metas;
+    const orgPresence = this.props.orgPresences[sessionId];
+    const orgMetas = orgPresence && orgPresence.metas;
+    if (!orgPresence || !orgMetas || orgMetas.length === 0) return <div />;
+
     const { context, profile, streaming, recording, presence } = orgMetas[orgMetas.length - 1];
     const icon = streaming || recording ? <FontAwesomeIcon icon={faVideo} /> : getPresenceIcon(context);
     const isBot = context && context.discord;

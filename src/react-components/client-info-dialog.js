@@ -21,7 +21,8 @@ export default class ClientInfoDialog extends Component {
     clientId: PropTypes.string,
     history: PropTypes.object,
     hubChannel: PropTypes.object,
-    presences: PropTypes.object,
+    hubPresences: PropTypes.object,
+    orgPresences: PropTypes.object,
     performConditionalSignIn: PropTypes.func,
     onClose: PropTypes.func,
     showNonHistoriedDialog: PropTypes.func
@@ -63,7 +64,7 @@ export default class ClientInfoDialog extends Component {
 
   addOwner() {
     const { clientId, performConditionalSignIn, hubChannel, onClose } = this.props;
-    const { profile } = this.getPresenceEntry();
+    const { profile } = this.getPresenceEntry(this.props.orgPresences);
 
     performConditionalSignIn(
       () => hubChannel.can("update_roles"),
@@ -97,10 +98,10 @@ export default class ClientInfoDialog extends Component {
     onClose();
   }
 
-  getPresenceEntry() {
-    if (!this.props.presences) return null;
+  getPresenceEntry(presences) {
+    if (!presences) return null;
 
-    const presence = Object.entries(this.props.presences).find(([k]) => k === this.props.clientId);
+    const presence = Object.entries(presences).find(([k]) => k === this.props.clientId);
     if (!presence) return { profile: {}, roles: {} };
 
     const metas = presence[1].metas;
@@ -108,14 +109,15 @@ export default class ClientInfoDialog extends Component {
   }
 
   componentDidMount() {
-    const { profile } = this.getPresenceEntry();
+    const { profile } = this.getPresenceEntry(this.props.orgPresences);
     if (profile.avatarId) {
       getAvatarThumbnailUrl(profile.avatarId).then(avatarThumbnailUrl => this.setState({ avatarThumbnailUrl }));
     }
   }
 
   render() {
-    const { profile, roles } = this.getPresenceEntry();
+    const { profile } = this.getPresenceEntry(this.props.orgPresences);
+    const { roles } = this.getPresenceEntry(this.props.hubPresences);
 
     const { displayName, identityName } = profile;
     const { hubChannel, clientId, onClose } = this.props;
