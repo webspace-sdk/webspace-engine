@@ -1399,7 +1399,6 @@ AFRAME.registerComponent("media-pdf", {
     this.texture = new THREE.CanvasTexture(this.canvas);
 
     this.texture.encoding = THREE.sRGBEncoding;
-    this.texture.minFilter = THREE.LinearFilter;
 
     this.el.addEventListener("pager-snap-clicked", () => this.snap());
 
