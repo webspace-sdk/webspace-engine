@@ -323,15 +323,17 @@ AFRAME.registerComponent("media-video", {
         this.networkedEl.addEventListener("unpinned", this.updateHoverMenu);
         window.APP.hubChannel.addEventListener("permissions_updated", this.updateHoverMenu);
 
-        // For scene-owned videos, take ownership after a random delay if nobody
+        // For videos, take ownership after a random delay if nobody
         // else has so there is a timekeeper. Do not due this on iOS because iOS has an
         // annoying "auto-pause" feature that forces one non-autoplaying video to play
         // at once, which will pause the videos for everyone in the room if owned.
         if (!isIOS) {
-          this.ensurePresentOwnerInterval = setInterval(
-            () => this.ensurePresentOwner(),
-            10000 + Math.floor(Math.random() * 2000)
-          );
+          this.ensurePresentOwnerInterval = setInterval(() => {
+            const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+            if (mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT) {
+              this.ensurePresentOwner();
+            }
+          }, 10000 + Math.floor(Math.random() * 2000));
         }
       })
       .catch(() => {

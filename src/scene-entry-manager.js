@@ -89,7 +89,7 @@ export default class SceneEntryManager {
     if (isBotMode) {
       this._runBot(); // TODO JEL bots
       this.scene.addState("entered");
-      this.orgChannel.sendEnteredEvent();
+      this.orgChannel.sendEnteredHubEvent();
       return;
     }
 
@@ -105,7 +105,7 @@ export default class SceneEntryManager {
         await nextTick();
       }
 
-      this.orgChannel.sendEnteredEvent().then(() => {
+      this.orgChannel.sendEnteredHubEvent().then(() => {
         this.store.update({ activity: { lastEnteredAt: new Date().toISOString() } });
       });
     })();

@@ -3,17 +3,6 @@ import { EventTarget } from "event-target-shim";
 import { Presence } from "phoenix";
 import { migrateChannelToSocket } from "./phoenix-utils";
 
-const MS_PER_DAY = 1000 * 60 * 60 * 24;
-const MS_PER_MONTH = 1000 * 60 * 60 * 24 * 30;
-
-function isSameMonth(da, db) {
-  return da.getFullYear() == db.getFullYear() && da.getMonth() == db.getMonth();
-}
-
-function isSameDay(da, db) {
-  return isSameMonth(da, db) && da.getDate() == db.getDate();
-}
-
 // Permissions that will be assumed if the user becomes the creator.
 const VALID_PERMISSIONS = [];
 
@@ -78,28 +67,11 @@ export default class OrgChannel extends EventTarget {
     setTimeout(async () => await this.fetchPermissions(), Math.max(nextRefresh, 60000));
   };
 
-  getEntryTimingFlags = () => {
-    const entryTimingFlags = { isNewDaily: true, isNewMonthly: true, isNewDayWindow: true, isNewMonthWindow: true };
-    const storedLastEnteredAt = this.store.state.activity.lastEnteredAt;
-
-    if (!storedLastEnteredAt) {
-      return entryTimingFlags;
-    }
-
-    const now = new Date();
-    const lastEntered = new Date(storedLastEnteredAt);
-    const msSinceLastEntered = now - lastEntered;
-
-    // note that new daily and new monthly is based on client local time
-    entryTimingFlags.isNewDaily = !isSameDay(now, lastEntered);
-    entryTimingFlags.isNewMonthly = !isSameMonth(now, lastEntered);
-    entryTimingFlags.isNewDayWindow = msSinceLastEntered > MS_PER_DAY;
-    entryTimingFlags.isNewMonthWindow = msSinceLastEntered > MS_PER_MONTH;
-
-    return entryTimingFlags;
+  sendJoinedHubEvent = hub_id => {
+    this.channel.push("events:joined_hub", { hub_id });
   };
 
-  sendEnteredEvent = async () => {
+  sendEnteredHubEvent = async () => {
     if (!this.channel) {
       console.warn("No phoenix channel initialized before room entry.");
       return;
@@ -115,23 +87,12 @@ export default class OrgChannel extends EventTarget {
       }
     }
 
-    // This is fairly hacky, but gets the # of initial occupants
-    let initialOccupantCount = 0;
-
-    if (NAF.connection.adapter && NAF.connection.adapter.publisher) {
-      initialOccupantCount = NAF.connection.adapter.publisher.initialOccupants.length;
-    }
-
-    const entryTimingFlags = this.getEntryTimingFlags();
-
     const entryEvent = {
-      ...entryTimingFlags,
-      initialOccupantCount,
       entryDisplayType,
       userAgent: navigator.userAgent
     };
 
-    this.channel.push("events:entered", entryEvent);
+    this.channel.push("events:entered_hub", entryEvent);
   };
 
   beginStreaming() {
@@ -154,6 +115,28 @@ export default class OrgChannel extends EventTarget {
     if (this.channel) {
       this.channel.push("events:profile_updated", { profile: this.store.state.profile });
     }
+  };
+
+  getCurrentHubFromPresence = () => {
+    const sessionId = this.channel.socket.params().session_id;
+    const metas = this.presence.state[sessionId].metas;
+    return metas[metas.length - 1].hub_id;
+  };
+
+  getPresenceCurrentHubOccupantCount = () => {
+    const currentHubId = this.getCurrentHubFromPresence();
+    if (!currentHubId) return 0;
+
+    let c = 0;
+
+    for (const [, { metas }] of Object.entries(this.presence.state)) {
+      const meta = metas[metas.length - 1];
+      if (meta.hub_id === currentHubId) {
+        c++;
+      }
+    }
+
+    return c;
   };
 
   signIn = token => {

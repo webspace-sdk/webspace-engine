@@ -555,14 +555,6 @@ async function updateUIForHub(hub, hubChannel) {
 function handleOrgChannelJoined(isInitialJoin, entryManager, orgChannel, messageDispatch, treeManager, data) {
   const scene = document.querySelector("a-scene");
 
-  if (!isInitialJoin) {
-    // Slight hack, to ensure correct presence state we need to re-send the entry event
-    // on re-join. Ideally this would be updated into the channel socket state but this
-    // would require significant changes to the org channel events and socket management.
-    orgChannel.sendEnteredEvent();
-    return;
-  }
-
   const org = data.orgs[0];
   const orgId = org.org_id;
 
@@ -617,13 +609,19 @@ function handleOrgChannelJoined(isInitialJoin, entryManager, orgChannel, message
 function handleHubChannelJoined(isInitialJoin, entryManager, hubChannel, messageDispatch, data) {
   const scene = document.querySelector("a-scene");
 
+  const hub = data.hubs[0];
+  orgChannel.sendJoinedHubEvent(hub.hub_id);
+
   if (!isInitialJoin) {
+    // Slight hack, to ensure correct presence state we need to re-send the entry event
+    // on re-join. Ideally this would be updated into the channel socket state but this
+    // would require significant changes to the org channel events and socket management.
+    orgChannel.sendEnteredHubEvent();
+
     // Send complete sync on phoenix re-join.
     NAF.connection.entities.completeSync(null, true);
     return;
   }
-
-  const hub = data.hubs[0];
 
   // Wait for scene objects to load before connecting, so there is no race condition on network state.
   return new Promise(res => {

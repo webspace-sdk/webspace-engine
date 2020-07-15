@@ -4,7 +4,7 @@ import styled, { ThemeProvider } from "styled-components";
 import { createHub } from "../../utils/phoenix-utils";
 import "../assets/stylesheets/nav-tree.scss";
 import Tree from "rc-tree";
-import { pushHistoryURL } from "../../utils/history";
+import { pushHistoryPath } from "../../utils/history";
 
 const dark = {
   text: "white",
@@ -139,7 +139,11 @@ function HubTree({ treeManager, history, hub }) {
         draggable
         onDragEnter={onTreeDragEnter}
         onDrop={onTreeDrop("nav")}
-        onSelect={(selectedKeys, { node: { url } }) => pushHistoryURL(history, url)}
+        onSelect={(selectedKeys, { node: { url } }) => {
+          const search = history.location.search;
+          const path = new URL(url).pathname;
+          pushHistoryPath(history, path, search);
+        }}
         expandedKeys={treeManager.expandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
       />

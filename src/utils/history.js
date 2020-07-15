@@ -56,11 +56,6 @@ export function pushHistoryPath(history, path, search) {
   pushOrUpdateHistory(history, false, null, null, null, path, search);
 }
 
-export function pushHistoryURL(history, url) {
-  const parsed = new URL(url);
-  pushHistoryPath(history, parsed.pathname, parsed.search);
-}
-
 export function clearHistoryState(history) {
   pushOrUpdateHistory(history, false);
 }
