@@ -187,13 +187,21 @@ const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting j
 
 const qs = new URLSearchParams(location.search);
 
-function getHubIdFromHistory() {
+function getSidsFromHistory() {
   if (qs.get("hub_id")) return qs.get("hub_id");
   const slugParts = history.location.pathname
     .substring(1)
     .split("/")[0]
     .split("-");
   return slugParts[slugParts.length - 1];
+}
+
+function getHubIdFromHistory() {
+  return getSidsFromHistory().substring(8);
+}
+
+function getSpaceIdFromHistory() {
+  return getSidsFromHistory().substring(0, 8);
 }
 
 const isMobile = AFRAME.utils.device.isMobile();
@@ -1428,7 +1436,10 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager) => {
 
       const pathParts = history.location.pathname.split("/");
       const { search, state } = history.location;
-      const pathname = history.location.pathname.replace(`/${pathParts[1]}`, `/${hub.slug}-${hub.hub_id}`);
+      const pathname = history.location.pathname.replace(
+        `/${pathParts[1]}`,
+        `/${hub.slug}-${hub.space_id}${hub.hub_id}`
+      );
 
       history.replace({ pathname, search, state });
 
@@ -1456,7 +1467,7 @@ async function joinSpace(socket, entryManager, messageDispatch, treeManager) {
     spaceChannel.leave();
   }
 
-  const spaceId = store.state.context.spaceId;
+  const spaceId = getSpaceIdFromHistory();
   console.log(`Space ID: ${spaceId}`);
 
   createRetChannel(socket, spaceId); // TODO JEL check reconnect
