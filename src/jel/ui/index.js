@@ -13,18 +13,18 @@ async function checkForLoginRedirect() {
   const accountId = store.credentialsAccountId;
   if (!accountId) return;
 
-  let orgId = store.state && store.state.context && store.state.context.orgId;
+  let spaceId = store.state && store.state.context && store.state.context.spaceId;
 
   const res = await fetchReticulumAuthenticated(`/api/v1/accounts/${accountId}`);
 
   if (res.memberships.length === 0) return;
 
-  if (!orgId) {
-    orgId = [...res.memberships].sort(m => m.joined_at).pop().org_id;
-    store.update({ context: { org_id: orgId } });
+  if (!spaceId) {
+    spaceId = [...res.memberships].sort(m => m.joined_at).pop().space_id;
+    store.update({ context: { space_id: spaceId } });
   }
 
-  const homeHub = res.memberships.filter(m => m.org_id === orgId)[0].home_hub;
+  const homeHub = res.memberships.filter(m => m.space_id === spaceId)[0].home_hub;
 
   if (homeHub) {
     document.location = homeHub.url;

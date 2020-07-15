@@ -1,14 +1,14 @@
 import { hasIntersection } from "./set-utils";
 
-export default class OrgMetadata {
-  constructor(orgChannel) {
-    this._orgChannel = orgChannel;
+export default class SpaceMetadata {
+  constructor(spaceChannel) {
+    this._spaceChannel = spaceChannel;
     this._hubMetadata = new Map();
     this._hubMetadataSubscribers = new Map();
   }
 
   init() {
-    this._orgChannel.channel.on("hub_meta_refresh", hubMetadata => {
+    this._spaceChannel.channel.on("hub_meta_refresh", hubMetadata => {
       this._hubMetadata.set(hubMetadata.hub_id, hubMetadata);
       this._fireHandlerForSubscribersForUpdatedHubIds([hubMetadata.hub_id]);
     });
@@ -54,7 +54,7 @@ export default class OrgMetadata {
       if (hubIdsToFetch.size === 0) {
         res();
       } else {
-        const hubs = await this._orgChannel.getHubMetas(hubIdsToFetch);
+        const hubs = await this._spaceChannel.getHubMetas(hubIdsToFetch);
 
         for (const hubMetadata of hubs) {
           this._hubMetadata.set(hubMetadata.hub_id, hubMetadata);

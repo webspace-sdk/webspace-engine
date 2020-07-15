@@ -248,7 +248,8 @@ module.exports = async (env, argv) => {
     },
     entry: {
       support: path.join(__dirname, "src", "support.js"),
-      index: path.join(__dirname, "src", "jel", "ui", "index.js"),
+      //index: path.join(__dirname, "src", "jel", "ui", "index.js"),
+      index: path.join(__dirname, "src", "index.js"),
       new: path.join(__dirname, "src", "jel", "ui", "new.js"),
       jel: path.join(__dirname, "src", "jel.js"),
       scene: path.join(__dirname, "src", "scene.js"),

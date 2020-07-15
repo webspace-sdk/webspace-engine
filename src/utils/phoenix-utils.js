@@ -154,14 +154,14 @@ export function fetchReticulumAuthenticated(url, method = "GET", payload) {
   });
 }
 
-export async function createOrg(name) {
+export async function createSpace(name) {
   const store = window.APP.store;
-  const createUrl = getReticulumFetchUrl("/api/v1/orgs");
-  const payload = { org: { name } };
+  const createUrl = getReticulumFetchUrl("/api/v1/spaces");
+  const payload = { space: { name } };
 
   const headers = { "content-type": "application/json" };
   if (!store.state || !store.state.credentials.token) {
-    throw new Error("Must be signed in to create org.");
+    throw new Error("Must be signed in to create space.");
   }
 
   headers.authorization = `bearer ${store.state.credentials.token}`;
@@ -175,7 +175,7 @@ export async function createOrg(name) {
   if (res.error === "invalid_token") {
     // Clear the invalid token from store.
     store.update({ credentials: { token: null, email: null } });
-    throw new Error("Must be signed in to create org.");
+    throw new Error("Must be signed in to create space.");
   }
 
   return res;
@@ -183,9 +183,9 @@ export async function createOrg(name) {
 
 export async function createHub(name, sceneId) {
   const store = window.APP.store;
-  const orgId = store.state.context.orgId;
+  const spaceId = store.state.context.spaceId;
   const createUrl = getReticulumFetchUrl("/api/v1/hubs");
-  const payload = { hub: { name, org_id: orgId } };
+  const payload = { hub: { name, space_id: spaceId } };
 
   if (sceneId) {
     payload.hub.scene_id = sceneId;
@@ -223,7 +223,7 @@ export async function createAndRedirectToNewHub(name, sceneId, replace) {
   let url = hub.url;
 
   if (isLocalClient()) {
-    url = `/hub.html?hub_id=${hub.hub_id}&org_id=${hub.org_id}`;
+    url = `/hub.html?hub_id=${hub.hub_id}&space_id=${hub.space_id}`;
   }
 
   if (replace) {

@@ -58,7 +58,7 @@ AFRAME.registerComponent("player-info", {
     if (!this.isLocalPlayerInfo) {
       getNetworkedEntity(this.el).then(networkedEntity => {
         this.playerSessionId = getCreator(networkedEntity);
-        const playerPresence = window.APP.orgChannel.presence.state[this.playerSessionId];
+        const playerPresence = window.APP.spaceChannel.presence.state[this.playerSessionId];
         if (playerPresence) {
           this.updateDisplayNameFromPresenceMeta(playerPresence.metas[0]);
         }
@@ -71,7 +71,7 @@ AFRAME.registerComponent("player-info", {
   },
   play() {
     this.el.addEventListener("model-loaded", this.applyProperties);
-    this.el.sceneEl.addEventListener("org_presence_updated", this.updateDisplayName);
+    this.el.sceneEl.addEventListener("space_presence_updated", this.updateDisplayName);
     if (this.isLocalPlayerInfo) {
       this.el.querySelector(".model").addEventListener("model-error", this.handleModelError);
     }
@@ -87,7 +87,7 @@ AFRAME.registerComponent("player-info", {
   },
   pause() {
     this.el.removeEventListener("model-loaded", this.applyProperties);
-    this.el.sceneEl.removeEventListener("org_presence_updated", this.updateDisplayName);
+    this.el.sceneEl.removeEventListener("space_presence_updated", this.updateDisplayName);
     if (this.isLocalPlayerInfo) {
       this.el.querySelector(".model").removeEventListener("model-error", this.handleModelError);
     }

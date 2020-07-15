@@ -11,10 +11,10 @@ export function deregisterComponentInstance(component, name) {
 }
 
 export function getCurrentStreamer() {
-  if (!window.APP || !window.APP.componentRegistry || !window.APP.orgChannel || !window.APP.orgChannel.presence)
+  if (!window.APP || !window.APP.componentRegistry || !window.APP.spaceChannel || !window.APP.spaceChannel.presence)
     return null;
   const playerInfos = window.APP.componentRegistry["player-info"] || [];
-  const presences = window.APP.orgChannel.presence.state;
+  const presences = window.APP.spaceChannel.presence.state;
 
   for (let i = 0; i < playerInfos.length; i++) {
     const playerInfo = playerInfos[i];

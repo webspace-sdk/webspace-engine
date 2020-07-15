@@ -6,7 +6,7 @@ import { migrateChannelToSocket, unbindPresence } from "./phoenix-utils";
 // Permissions that will be assumed if the user becomes the creator.
 const VALID_PERMISSIONS = [];
 
-export default class OrgChannel extends EventTarget {
+export default class SpaceChannel extends EventTarget {
   constructor(store) {
     super();
     this.store = store;
@@ -31,10 +31,10 @@ export default class OrgChannel extends EventTarget {
     this.presence = rebindPresence(this.channel);
   }
 
-  bind = (channel, orgId) => {
+  bind = (channel, spaceId) => {
     this.channel = channel;
     this.presence = new Presence(channel);
-    this.orgId = orgId;
+    this.spaceId = spaceId;
   };
 
   setPermissionsFromToken = token => {

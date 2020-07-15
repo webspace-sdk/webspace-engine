@@ -3,7 +3,7 @@ import merge from "deepmerge";
 import Cookies from "js-cookie";
 import jwtDecode from "jwt-decode";
 
-const LOCAL_STORE_KEY = "___hubs_store";
+const LOCAL_STORE_KEY = "___jel_store";
 const STORE_STATE_CACHE_KEY = Symbol();
 const OAUTH_FLOW_CREDENTIALS_KEY = "ret-oauth-flow-account-credentials";
 const validator = new Validator();
@@ -20,7 +20,7 @@ export const SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
-        orgId: { type: "string" }
+        spaceId: { type: "string" }
       }
     },
 

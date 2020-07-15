@@ -83,14 +83,14 @@ function registerNetworkSchemas() {
   });
 
   SAF.schemas.add({
-    template: "#shared-space",
+    template: "#shared-media",
     components: [
       {
-        component: "media-presenting-space",
+        component: "shared-media",
         property: "activeMediaLayers"
       },
       {
-        component: "media-presenting-space",
+        component: "shared-media",
         property: "selectedMediaLayer"
       }
     ]

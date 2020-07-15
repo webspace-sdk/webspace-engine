@@ -64,7 +64,7 @@ export default class PresenceList extends Component {
   static propTypes = {
     hubChannel: PropTypes.object,
     hubPresences: PropTypes.object,
-    orgPresences: PropTypes.object,
+    spacePresences: PropTypes.object,
     history: PropTypes.object,
     sessionId: PropTypes.string,
     signedIn: PropTypes.bool,
@@ -105,11 +105,11 @@ export default class PresenceList extends Component {
 
   domForPresence = ([sessionId, hubData]) => {
     const hubMeta = hubData.metas[hubData.metas.length - 1];
-    const orgPresence = this.props.orgPresences[sessionId];
-    const orgMetas = orgPresence && orgPresence.metas;
-    if (!orgPresence || !orgMetas || orgMetas.length === 0) return <div />;
+    const spacePresence = this.props.spacePresences[sessionId];
+    const spaceMetas = spacePresence && spacePresence.metas;
+    if (!spacePresence || !spaceMetas || spaceMetas.length === 0) return <div />;
 
-    const { context, profile, streaming, recording, presence } = orgMetas[orgMetas.length - 1];
+    const { context, profile, streaming, recording, presence } = spaceMetas[spaceMetas.length - 1];
     const icon = streaming || recording ? <FontAwesomeIcon icon={faVideo} /> : getPresenceIcon(context);
     const isBot = context && context.discord;
     const isEntering = context && context.entering;

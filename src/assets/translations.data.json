@@ -445,7 +445,7 @@
     "support.details": "details",
     "support.supported": "supported",
     "support.unsupported": "unsupported",
-    "new-org.create": "Create Worldspace"
+    "new-space.create": "Create Space"
   },
    "cn-zh": {
     "app-name": "App",

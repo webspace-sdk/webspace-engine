@@ -117,7 +117,7 @@ class UIRoot extends Component {
     mediaSearchStore: PropTypes.object,
     scene: PropTypes.object,
     authChannel: PropTypes.object,
-    orgChannel: PropTypes.object,
+    spaceChannel: PropTypes.object,
     hubChannel: PropTypes.object,
     linkChannel: PropTypes.object,
     hub: PropTypes.object,
@@ -130,7 +130,7 @@ class UIRoot extends Component {
     isSupportAvailable: PropTypes.bool,
     presenceLogEntries: PropTypes.array,
     hubPresences: PropTypes.object,
-    orgPresences: PropTypes.object,
+    spacePresences: PropTypes.object,
     sessionId: PropTypes.string,
     subscriptions: PropTypes.object,
     initialIsSubscribed: PropTypes.bool,
@@ -221,9 +221,9 @@ class UIRoot extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    const { orgChannel, hubChannel, showSignInDialog } = this.props;
+    const { spaceChannel, hubChannel, showSignInDialog } = this.props;
     if (hubChannel) {
-      const { signedIn } = orgChannel;
+      const { signedIn } = spaceChannel;
       if (signedIn !== this.state.signedIn) {
         this.setState({ signedIn });
       }
@@ -380,7 +380,7 @@ class UIRoot extends Component {
     this.showNonHistoriedDialog(SignInDialog, {
       message: messages[signInMessageId],
       onSignIn: async email => {
-        const { authComplete } = await authChannel.startAuthentication(email, this.props.orgChannel);
+        const { authComplete } = await authChannel.startAuthentication(email, this.props.spaceChannel);
 
         this.showNonHistoriedDialog(SignInDialog, { authStarted: true, onClose: onContinueAfterSignIn });
 
@@ -406,7 +406,7 @@ class UIRoot extends Component {
 
   toggleFavorited = () => {
     this.props.performConditionalSignIn(
-      () => this.props.orgChannel.signedIn,
+      () => this.props.spaceChannel.signedIn,
       () => {
         const isFavorited = this.isFavorited();
 
@@ -804,10 +804,10 @@ class UIRoot extends Component {
     this.props.scene.systems["hubs-systems"].characterController.fly = enable;
 
     if (enable) {
-      this.props.orgChannel.beginStreaming();
+      this.props.spaceChannel.beginStreaming();
       this.setState({ isStreaming: true, showStreamingTip: true });
     } else {
-      this.props.orgChannel.endStreaming();
+      this.props.spaceChannel.endStreaming();
       this.setState({ isStreaming: false });
     }
   };
@@ -818,7 +818,7 @@ class UIRoot extends Component {
     this.showNonHistoriedDialog(SignInDialog, {
       message: messages["sign-in.prompt"],
       onSignIn: async email => {
-        const { authComplete } = await this.props.authChannel.startAuthentication(email, this.props.orgChannel);
+        const { authComplete } = await this.props.authChannel.startAuthentication(email, this.props.spaceChannel);
 
         this.showNonHistoriedDialog(SignInDialog, { authStarted: true });
 
@@ -831,7 +831,7 @@ class UIRoot extends Component {
   };
 
   signOut = async () => {
-    await this.props.authChannel.signOut(this.props.orgChannel);
+    await this.props.authChannel.signOut(this.props.spaceChannel);
     this.setState({ signedIn: false });
   };
 
@@ -992,7 +992,7 @@ class UIRoot extends Component {
   };
 
   onEnteringCanceled = () => {
-    this.props.orgChannel.sendEnteringCancelledEvent();
+    this.props.spaceChannel.sendEnteringCancelledEvent();
     this.setState({ entering: false });
   };
 
@@ -1098,7 +1098,7 @@ class UIRoot extends Component {
 
                   if (promptForNameAndAvatarBeforeEntry || !this.props.forcedVREntryType) {
                     this.setState({ entering: true });
-                    this.props.orgChannel.sendEnteringEvent();
+                    this.props.spaceChannel.sendEnteringEvent();
 
                     const stateValue = promptForNameAndAvatarBeforeEntry ? "profile" : "device";
                     this.pushHistoryState("entry_step", stateValue);
@@ -1783,7 +1783,7 @@ class UIRoot extends Component {
                 history={this.props.history}
                 hubChannel={this.props.hubChannel}
                 hubPresences={this.props.hubPresences}
-                orgPresences={this.props.orgPresences}
+                spacePresences={this.props.spacePresences}
                 showNonHistoriedDialog={this.showNonHistoriedDialog}
                 performConditionalSignIn={this.props.performConditionalSignIn}
               />
@@ -1814,7 +1814,7 @@ class UIRoot extends Component {
               <div className={styles.uiDialog}>
                 <PresenceLog
                   entries={presenceLogEntries}
-                  presences={this.props.orgPresences}
+                  presences={this.props.spacePresences}
                   hubId={this.props.hub.hub_id}
                   history={this.props.history}
                 />
@@ -1825,7 +1825,7 @@ class UIRoot extends Component {
               this.props.hub && (
                 <PresenceLog
                   inRoom={true}
-                  presences={this.props.orgPresences}
+                  presences={this.props.spacePresences}
                   entries={presenceLogEntries}
                   hubId={this.props.hub.hub_id}
                   history={this.props.history}
@@ -2016,7 +2016,7 @@ class UIRoot extends Component {
               <PresenceList
                 hubChannel={this.props.hubChannel}
                 history={this.props.history}
-                orgPresences={this.props.orgPresences}
+                spacePresences={this.props.spacePresences}
                 hubPresences={this.props.hubPresences}
                 sessionId={this.props.sessionId}
                 signedIn={this.state.signedIn}
@@ -2040,7 +2040,7 @@ class UIRoot extends Component {
                 mediaSearchStore={this.props.mediaSearchStore}
                 isStreaming={streaming}
                 toggleStreamerMode={this.toggleStreamerMode}
-                orgChannel={this.props.orgChannel}
+                spaceChannel={this.props.spaceChannel}
                 hubChannel={this.props.hubChannel}
                 hubScene={this.props.hub && this.props.hub.scene}
                 scene={this.props.scene}

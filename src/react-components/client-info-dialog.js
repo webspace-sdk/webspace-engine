@@ -22,7 +22,7 @@ export default class ClientInfoDialog extends Component {
     history: PropTypes.object,
     hubChannel: PropTypes.object,
     hubPresences: PropTypes.object,
-    orgPresences: PropTypes.object,
+    spacePresences: PropTypes.object,
     performConditionalSignIn: PropTypes.func,
     onClose: PropTypes.func,
     showNonHistoriedDialog: PropTypes.func
@@ -64,7 +64,7 @@ export default class ClientInfoDialog extends Component {
 
   addOwner() {
     const { clientId, performConditionalSignIn, hubChannel, onClose } = this.props;
-    const { profile } = this.getPresenceEntry(this.props.orgPresences);
+    const { profile } = this.getPresenceEntry(this.props.spacePresences);
 
     performConditionalSignIn(
       () => hubChannel.can("update_roles"),
@@ -109,14 +109,14 @@ export default class ClientInfoDialog extends Component {
   }
 
   componentDidMount() {
-    const { profile } = this.getPresenceEntry(this.props.orgPresences);
+    const { profile } = this.getPresenceEntry(this.props.spacePresences);
     if (profile.avatarId) {
       getAvatarThumbnailUrl(profile.avatarId).then(avatarThumbnailUrl => this.setState({ avatarThumbnailUrl }));
     }
   }
 
   render() {
-    const { profile } = this.getPresenceEntry(this.props.orgPresences);
+    const { profile } = this.getPresenceEntry(this.props.spacePresences);
     const { roles } = this.getPresenceEntry(this.props.hubPresences);
 
     const { displayName, identityName } = profile;

@@ -35,7 +35,7 @@ export default class SettingsMenu extends Component {
     showAsOverlay: PropTypes.bool, // Shows the settings as an overlay menu, instead of a dropdown
     onCloseOverlay: PropTypes.func,
     hubScene: PropTypes.object,
-    orgChannel: PropTypes.object,
+    spaceChannel: PropTypes.object,
     hubChannel: PropTypes.object,
     performConditionalSignIn: PropTypes.func,
     showNonHistoriedDialog: PropTypes.func,
@@ -132,7 +132,7 @@ export default class SettingsMenu extends Component {
                   className={styles.listItemLink}
                   onClick={() => {
                     this.props.performConditionalSignIn(
-                      () => this.props.orgChannel.signedIn,
+                      () => this.props.spaceChannel.signedIn,
                       () => {
                         showFullScreenIfAvailable();
                         this.props.mediaSearchStore.sourceNavigateWithNoNav("favorites", "use");

@@ -873,7 +873,7 @@ AFRAME.registerComponent("deserialize-drawing-button", {
   _updateUI() {
     if (this.networkedDrawingBuffer) {
       const isPinned = this.targetEl.components.pinnable && this.targetEl.components.pinnable.data.pinned;
-      const canPin = window.APP.hubChannel.can("pin_objects") && window.APP.orgChannel.signedIn;
+      const canPin = window.APP.hubChannel.can("pin_objects") && window.APP.spaceChannel.signedIn;
       this.el.object3D.visible = (!isPinned || canPin) && window.APP.hubChannel.can("spawn_drawing");
     } else {
       this.el.object3D.visible = false;

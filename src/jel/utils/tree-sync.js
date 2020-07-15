@@ -11,11 +11,11 @@ function createNodeId() {
 }
 
 class TreeSync extends EventTarget {
-  constructor(docId, expandedTreeNodes, orgMetadata) {
+  constructor(docId, expandedTreeNodes, spaceMetadata) {
     super();
     this.docId = docId;
     this.expandedTreeNodes = expandedTreeNodes;
-    this.orgMetadata = orgMetadata;
+    this.spaceMetadata = spaceMetadata;
   }
 
   setCollectionId(collectionId) {
@@ -318,8 +318,8 @@ class TreeSync extends EventTarget {
           let nodeTitle = "";
           let nodeUrl = null;
 
-          if (this.orgMetadata.hasHubMetaData(n.h)) {
-            const { name, url } = this.orgMetadata.getHubMetadata(hubId);
+          if (this.spaceMetadata.hasHubMetaData(n.h)) {
+            const { name, url } = this.spaceMetadata.getHubMetadata(hubId);
             nodeTitle = name || DEFAULT_HUB_NAME;
             nodeUrl = url;
           }
@@ -349,7 +349,7 @@ class TreeSync extends EventTarget {
   rebuildExpandedTreeData() {
     if (this.expandedHubIds) {
       for (const hubId of this.expandedHubIds) {
-        this.orgMetadata.unsubscribeFromHubMetadata(hubId, this.handleHubMetadataUpdate);
+        this.spaceMetadata.unsubscribeFromHubMetadata(hubId, this.handleHubMetadataUpdate);
       }
     }
 
@@ -362,10 +362,10 @@ class TreeSync extends EventTarget {
     this.dispatchEvent(new CustomEvent("expanded_treedata_updated"));
 
     for (const hubId of this.expandedHubIds) {
-      this.orgMetadata.subscribeToHubMetadata(hubId, this.handleHubMetadataUpdate);
+      this.spaceMetadata.subscribeToHubMetadata(hubId, this.handleHubMetadataUpdate);
     }
 
-    this.orgMetadata.ensureHubMetadataForHubIds(this.expandedHubIds);
+    this.spaceMetadata.ensureHubMetadataForHubIds(this.expandedHubIds);
   }
 
   insertOrUpdate(nodeId, n) {

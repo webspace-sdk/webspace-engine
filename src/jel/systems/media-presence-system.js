@@ -3,7 +3,7 @@ import { MEDIA_PRESENCE } from "../../utils/media-utils";
 
 const MAX_CONCURRENT_TRANSITIONS = 4;
 
-AFRAME.registerComponent("media-presenting-space", {
+AFRAME.registerComponent("shared-media", {
   schema: {
     selectedMediaLayer: { default: 0 },
     activeMediaLayers: { default: 1 }
@@ -11,7 +11,7 @@ AFRAME.registerComponent("media-presenting-space", {
 
   setActiveLayer(mediaLayer) {
     takeOwnership(this.el);
-    this.el.setAttribute("media-presenting-space", {
+    this.el.setAttribute("shared-media", {
       activeMediaLayers: 0x1 << mediaLayer,
       selectedMediaLayer: mediaLayer
     });
@@ -77,13 +77,13 @@ export class MediaPresenceSystem {
   }
 
   getActiveMediaLayers() {
-    const el = document.querySelector("[media-presenting-space]");
+    const el = document.querySelector("[shared-media]");
     if (!el) {
       console.warn("Trying to get active media layers but no media presenting space entity in scene.");
       return 1;
     }
 
-    return el.components["media-presenting-space"].data.activeMediaLayers;
+    return el.components["shared-media"].data.activeMediaLayers;
   }
 
   isMediaLayerActive(mediaLayer) {

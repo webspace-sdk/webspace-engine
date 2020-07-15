@@ -39,11 +39,11 @@ class ExpandedTreeNodes {
 }
 
 class TreeManager extends EventTarget {
-  constructor(orgMetadata) {
+  constructor(spaceMetadata) {
     super();
     this.expandedTreeNodes = new ExpandedTreeNodes();
-    this.nav = new TreeSync("nav", this.expandedTreeNodes, orgMetadata);
-    this.trash = new TreeSync("trash", this.expandedTreeNodes, orgMetadata);
+    this.nav = new TreeSync("nav", this.expandedTreeNodes, spaceMetadata);
+    this.trash = new TreeSync("trash", this.expandedTreeNodes, spaceMetadata);
   }
 
   async init(connection) {
