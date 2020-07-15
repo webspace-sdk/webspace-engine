@@ -197,11 +197,11 @@ function getSidsFromHistory() {
 }
 
 function getHubIdFromHistory() {
-  return getSidsFromHistory().substring(8);
+  return getSidsFromHistory().substring(5);
 }
 
 function getSpaceIdFromHistory() {
-  return getSidsFromHistory().substring(0, 8);
+  return getSidsFromHistory().substring(0, 5);
 }
 
 const isMobile = AFRAME.utils.device.isMobile();
