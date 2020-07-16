@@ -10,10 +10,9 @@ let nextUploadFrame = 0;
 let totalPixelsUploaded = 0;
 
 export default class HubsTextureLoader {
-  static crossOrigin = "anonymous";
-
   constructor(manager = THREE.DefaultLoadingManager) {
     this.manager = manager;
+    this.crossOrigin = "anonymous";
   }
 
   load(url, onLoad, onProgress, onError) {
