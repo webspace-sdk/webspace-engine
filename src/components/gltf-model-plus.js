@@ -643,7 +643,9 @@ AFRAME.registerComponent("gltf-model-plus", {
         await nextTick();
         if (src != this.lastSrc) return; // TODO: there must be a nicer pattern for this
 
-        await inflateComponents(this.inflatedEl, indexToEntityMap);
+        if (this.inflatedEl) {
+          await inflateComponents(this.inflatedEl, indexToEntityMap);
+        }
 
         for (const name in this.templates) {
           attachTemplate(this.el, name, this.templates[name]);
@@ -718,9 +720,14 @@ AFRAME.registerComponent("gltf-model-plus", {
   },
 
   disposeLastInflatedEl() {
-    if (!this.inflatedEl) return;
-    this.inflatedEl.parentNode.removeChild(this.inflatedEl);
     this.el.removeAttribute("animation-mixer");
-    delete this.inflatedEl;
+
+    if (this.inflatedEl) {
+      if (this.inflatedEl.parentNode) {
+        this.inflatedEl.parentNode.removeChild(this.inflatedEl);
+      }
+
+      delete this.inflatedEl;
+    }
   }
 });

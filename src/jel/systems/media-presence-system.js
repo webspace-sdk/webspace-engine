@@ -128,7 +128,7 @@ export class MediaPresenceSystem {
       if (c !== component) continue;
       this.mediaComponents.delete(networkId);
       this.desiredMediaPresence.delete(networkId);
-      this.mediaPresence.delete(networkId);
+      this.mediaPresence.delete(component);
       this.checkForNewTransitionsNextTick = true;
       break;
     }
