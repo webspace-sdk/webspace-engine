@@ -351,15 +351,9 @@ const joinSpaceChannel = async (
   const { spaceChannel } = window.APP;
 
   let presenceInitPromise;
+  let isInitialJoin = true;
 
   const socket = spacePhxChannel.socket;
-
-  // Disconnect AFrame if already connected
-  scene.removeAttribute("networked-scene");
-  scene.removeAttribute("shared-scene");
-
-  // Allow disconnect cleanup
-  await nextTick();
 
   await new Promise(joinFinished => {
     spacePhxChannel
@@ -377,8 +371,26 @@ const joinSpaceChannel = async (
         remountUI({ sessionId });
         remountJelUI({ sessionId });
 
+        if (isInitialJoin) {
+          // Disconnect + reconnect NAF + SAF unless this is a re-join
+
+          // Disconnect AFrame if already connected
+          scene.removeAttribute("networked-scene");
+          scene.removeAttribute("shared-scene");
+
+          // Allow disconnect cleanup
+          await nextTick();
+        }
+
         const permsToken = data.perms_token;
         spaceChannel.setPermissionsFromToken(permsToken);
+
+        if (!isInitialJoin) {
+          joinFinished();
+          return;
+        }
+
+        isInitialJoin = false;
 
         const { host, turn } = data.spaces[0];
 
@@ -431,6 +443,19 @@ const joinSpaceChannel = async (
           scene.addEventListener("adapter-ready", setupAdapter, { once: true });
         }
 
+        if (SAF.connection.adapter) {
+          SAF.connection.adapter.setClientId(socket.params().session_id);
+        } else {
+          scene.addEventListener(
+            "shared-adapter-ready",
+            async ({ detail: adapter }) => {
+              // TODO JEL this may not be needed once this is on dyna
+              adapter.setClientId(socket.params().session_id);
+            },
+            { once: true }
+          );
+        }
+
         await presenceInitPromise;
 
         const space = data.spaces[0];
@@ -439,7 +464,6 @@ const joinSpaceChannel = async (
         treeManager.setCollectionId(spaceId);
 
         console.log(`WebRTC host: ${space.host}:${space.port}`);
-
         // Wait for scene objects to load before connecting, so there is no race condition on network state.
         scene.setAttribute("networked-scene", {
           audio: true,
@@ -499,15 +523,6 @@ const joinSpaceChannel = async (
         console.error(res);
         joinFinished();
       });
-
-    scene.addEventListener(
-      "shared-adapter-ready",
-      async ({ detail: adapter }) => {
-        // TODO JEL this may not be needed once this is on dyna
-        adapter.setClientId(socket.params().session_id);
-      },
-      { once: true }
-    );
   });
 };
 
@@ -547,9 +562,12 @@ const joinHubChannel = async (hubPhxChannel, entryManager, remountUI, remountJel
       .join()
       .receive("ok", async data => {
         const presence = hubChannel.presence;
-
         const permsToken = data.perms_token;
         hubChannel.setPermissionsFromToken(permsToken);
+
+        const adapter = NAF.connection.adapter;
+        adapter.reliableTransport = hubChannel.sendReliableNAF.bind(hubChannel);
+        adapter.unreliableTransport = hubChannel.sendUnreliableNAF.bind(hubChannel);
 
         remountUI({
           hubIsBound: data.hub_requires_oauth,
@@ -558,6 +576,9 @@ const joinHubChannel = async (hubPhxChannel, entryManager, remountUI, remountJel
 
         if (isInitialJoin) {
           await initHubPresence(presence, remountUI, remountJelUI);
+        } else {
+          // Send complete sync on phoenix re-join.
+          NAF.connection.entities.completeSync(null, true);
         }
 
         const scene = document.querySelector("a-scene");
@@ -570,24 +591,20 @@ const joinHubChannel = async (hubPhxChannel, entryManager, remountUI, remountJel
           // on re-join. Ideally this would be updated into the channel socket state but this
           // would require significant changes to the space channel events and socket management.
           spaceChannel.sendEnteredHubEvent();
+        }
 
-          // Send complete sync on phoenix re-join.
-          NAF.connection.entities.completeSync(null, true);
-        } else {
-          // Wait for scene objects to load before connecting, so there is no race condition on network state.
-          await new Promise(res => {
-            updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
-            updateEnvironmentForHub(hub, entryManager, remountUI);
+        // Wait for scene objects to load before connecting, so there is no race condition on network state.
+        await new Promise(res => {
+          updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
+          updateEnvironmentForHub(hub, entryManager, remountUI);
 
+          if (isInitialJoin) {
             NAF.connection.adapter
               .joinHub(hub.hub_id)
               .then(() => scene.components["shared-scene"].subscribe(hub.hub_id))
-              .then(() => {
-                scene.emit("didConnectToHub");
-                res();
-              });
-          });
-        }
+              .then(res);
+          }
+        });
 
         isInitialJoin = false;
         joinFinished();
@@ -764,10 +781,6 @@ export function joinHub(socket, history, entryManager, remountUI, remountJelUI, 
   const hubPhxChannel = socket.channel(`hub:${hubId}`, createHubChannelParams());
   setupHubChannelMessageHandlers(hubPhxChannel, entryManager, addToPresenceLog);
   hubChannel.bind(hubPhxChannel, hubId);
-
-  const adapter = NAF.connection.adapter;
-  adapter.reliableTransport = hubChannel.sendReliableNAF.bind(hubChannel);
-  adapter.unreliableTransport = hubChannel.sendUnreliableNAF.bind(hubChannel);
 
   return joinHubChannel(hubPhxChannel, entryManager, remountUI, remountJelUI);
 }
