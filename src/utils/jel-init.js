@@ -1,15 +1,14 @@
 import SpaceMetadata from "../jel/utils/space-metadata";
-import TreeManager from "./jel/utils/tree-manager";
+import TreeManager from "../jel/utils/tree-manager";
 import { getHubIdFromHistory, getSpaceIdFromHistory, setupPeerConnectionConfig } from "../jel/utils/jel-url-utils";
-import { createInWorldLogMessage } from "./react-components/chat-message";
-import nextTick from "./utils/next-tick";
-import { authorizeOrSanitizeMessage } from "./utils/permissions-utils";
-import qsTruthy from "./utils/qs_truthy";
-import loadingEnvironment from "./assets/models/LoadingEnvironment.glb";
-import { proxiedUrlFor } from "./utils/media-url-utils";
-import { traverseMeshesAndAddShapes } from "./utils/physics-utils";
-import { getReticulumMeta, invalidateReticulumMeta, migrateChannelToSocket } from "./utils/phoenix-utils";
-import { connectToReticulum } from "./utils/phoenix-utils";
+import { createInWorldLogMessage } from "../react-components/chat-message";
+import nextTick from "./next-tick";
+import { authorizeOrSanitizeMessage } from "./permissions-utils";
+import qsTruthy from "./qs_truthy";
+import loadingEnvironment from "../assets/models/LoadingEnvironment.glb";
+import { proxiedUrlFor } from "./media-url-utils";
+import { traverseMeshesAndAddShapes } from "./physics-utils";
+import { getReticulumMeta, invalidateReticulumMeta, migrateChannelToSocket, connectToReticulum } from "./phoenix-utils";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
@@ -182,36 +181,40 @@ const migrateToNewReticulumServer = async (deployNotification, retPhxChannel) =>
   console.log(`Reticulum deploy detected v${deployNotification.ret_version} on ${deployNotification.ret_pool}`);
   clearInterval(retDeployReconnectInterval);
 
-  setTimeout(() => {
-    const tryReconnect = async () => {
-      invalidateReticulumMeta();
-      const reticulumMeta = await getReticulumMeta();
+  await new Promise(res => {
+    setTimeout(() => {
+      const tryReconnect = async () => {
+        invalidateReticulumMeta();
+        const reticulumMeta = await getReticulumMeta();
 
-      if (
-        reticulumMeta.pool === deployNotification.ret_pool &&
-        reticulumMeta.version === deployNotification.ret_version
-      ) {
-        console.log("Reticulum reconnecting.");
-        clearInterval(retDeployReconnectInterval);
-        const oldSocket = retPhxChannel.socket;
-        const socket = await connectToReticulum(isDebug, oldSocket.params());
-        retPhxChannel = await migrateChannelToSocket(retPhxChannel, socket);
-        await spaceChannel.migrateToSocket(socket, createSpaceChannelParams());
-        await hubChannel.migrateToSocket(socket, createHubChannelParams());
-        authChannel.setSocket(socket);
-        linkChannel.setSocket(socket);
+        if (
+          reticulumMeta.pool === deployNotification.ret_pool &&
+          reticulumMeta.version === deployNotification.ret_version
+        ) {
+          console.log("Reticulum reconnecting.");
+          clearInterval(retDeployReconnectInterval);
+          const oldSocket = retPhxChannel.socket;
+          const socket = await connectToReticulum(isDebug, oldSocket.params());
+          retPhxChannel = await migrateChannelToSocket(retPhxChannel, socket);
+          await spaceChannel.migrateToSocket(socket, createSpaceChannelParams());
+          await hubChannel.migrateToSocket(socket, createHubChannelParams());
+          authChannel.setSocket(socket);
+          linkChannel.setSocket(socket);
 
-        // Disconnect old socket after a delay to ensure this user is always registered in presence.
-        setTimeout(() => {
-          console.log("Reconnection complete. Disconnecting old reticulum socket.");
-          oldSocket.teardown();
-        }, 10000);
-      }
-    };
+          // Disconnect old socket after a delay to ensure this user is always registered in presence.
+          setTimeout(() => {
+            console.log("Reconnection complete. Disconnecting old reticulum socket.");
+            oldSocket.teardown();
+          }, 10000);
 
-    retDeployReconnectInterval = setInterval(tryReconnect, 5000);
-    tryReconnect();
-  }, Math.floor(Math.random() * retReconnectMaxDelayMs));
+          res();
+        }
+      };
+
+      retDeployReconnectInterval = setInterval(tryReconnect, 5000);
+      tryReconnect();
+    }, Math.floor(Math.random() * retReconnectMaxDelayMs));
+  });
 };
 
 const createRetChannel = (socket, spaceId) => {
@@ -230,12 +233,12 @@ const createRetChannel = (socket, spaceId) => {
   });
 };
 
-async function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
+function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
   remountJelUI({ hub });
 }
 
-const initSpacePresence = async (presence, socket, remountUI, remountJelUI, addToPresenceLog) => {
+const initSpacePresence = (presence, socket, remountUI, remountJelUI, addToPresenceLog) => {
   const { hubChannel, spaceChannel } = window.APP;
 
   const scene = document.querySelector("a-scene");
@@ -347,7 +350,7 @@ const joinSpaceChannel = async (
   const scene = document.querySelector("a-scene");
   const { spaceChannel } = window.APP;
 
-  let isInitialJoin = true;
+  let presenceInitPromise;
 
   const socket = spacePhxChannel.socket;
 
@@ -358,16 +361,14 @@ const joinSpaceChannel = async (
   // Allow disconnect cleanup
   await nextTick();
 
-  return new Promise(joinFinished => {
+  await new Promise(joinFinished => {
     spacePhxChannel
       .join()
       .receive("ok", async data => {
         const presence = spaceChannel.presence;
         const sessionId = (socket.params().session_id = data.session_id);
 
-        let presenceInitPromise;
-
-        if (isInitialJoin) {
+        if (!presenceInitPromise) {
           presenceInitPromise = initSpacePresence(presence, socket, remountUI, remountJelUI, addToPresenceLog);
         }
 
@@ -381,8 +382,15 @@ const joinSpaceChannel = async (
 
         const { host, turn } = data.spaces[0];
 
-        const setupWebRTC = () => {
+        const setupAdapter = () => {
           const adapter = NAF.connection.adapter;
+
+          if (!adapter.reliableTransport) {
+            // These will be set later when we join a hub.
+            adapter.reliableTransport = () => {};
+            adapter.unreliableTransport = () => {};
+          }
+
           setupPeerConnectionConfig(adapter, host, turn);
 
           let newHostPollInterval = null;
@@ -418,14 +426,12 @@ const joinSpaceChannel = async (
         };
 
         if (NAF.connection.adapter) {
-          setupWebRTC();
+          setupAdapter();
         } else {
-          scene.addEventListener("adapter-ready", setupWebRTC, { once: true });
+          scene.addEventListener("adapter-ready", setupAdapter, { once: true });
         }
 
-        if (presenceInitPromise) {
-          await presenceInitPromise;
-        }
+        await presenceInitPromise;
 
         const space = data.spaces[0];
         const spaceId = space.space_id;
@@ -466,6 +472,7 @@ const joinSpaceChannel = async (
           .then(() => {
             clearTimeout(connectionErrorTimeout);
             scene.emit("didConnectToNetworkedScene");
+            joinFinished();
           })
           .catch(connectError => {
             clearTimeout(connectionErrorTimeout);
@@ -474,10 +481,8 @@ const joinSpaceChannel = async (
             console.error(connectError);
             remountUI({ roomUnavailableReason: isFull ? "full" : "connect_error" });
             entryManager.exitScene();
+            joinFinished();
           });
-
-        isInitialJoin = false;
-        joinFinished();
       })
       .receive("error", res => {
         if (res.reason === "closed") {
@@ -510,7 +515,7 @@ const initHubPresence = async (presence, remountUI, remountJelUI) => {
   const scene = document.querySelector("a-scene");
   const { hubChannel } = window.APP;
 
-  const promise = new Promise(res => {
+  await new Promise(res => {
     presence.onSync(() => {
       const presence = hubChannel.presence;
 
@@ -531,17 +536,13 @@ const initHubPresence = async (presence, remountUI, remountJelUI) => {
       res();
     });
   });
-
-  return promise;
 };
 
 const joinHubChannel = async (hubPhxChannel, entryManager, remountUI, remountJelUI) => {
   let isInitialJoin = true;
   const { spaceChannel, hubChannel } = window.APP;
 
-  const socket = hubPhxChannel.socket;
-
-  return new Promise(joinFinished => {
+  await new Promise(joinFinished => {
     hubPhxChannel
       .join()
       .receive("ok", async data => {
@@ -556,7 +557,7 @@ const joinHubChannel = async (hubPhxChannel, entryManager, remountUI, remountJel
         });
 
         if (isInitialJoin) {
-          await initHubPresence(presence, socket, remountUI, remountJelUI);
+          await initHubPresence(presence, remountUI, remountJelUI);
         }
 
         const scene = document.querySelector("a-scene");
@@ -716,8 +717,8 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager, addToPresen
   });
 };
 
-export async function joinSpace(socket, entryManager, remountUI, remountJelUI, addToPresenceLog) {
-  const spaceId = getSpaceIdFromHistory();
+export function joinSpace(socket, history, entryManager, remountUI, remountJelUI, addToPresenceLog) {
+  const spaceId = getSpaceIdFromHistory(history);
   const { spaceChannel } = window.APP;
   console.log(`Space ID: ${spaceId}`);
   remountJelUI({ spaceId });
@@ -749,14 +750,14 @@ export async function joinSpace(socket, entryManager, remountUI, remountJelUI, a
   return joinSpaceChannel(spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI, addToPresenceLog);
 }
 
-export async function joinHub(socket, entryManager, remountUI, remountJelUI, addToPresenceLog) {
+export function joinHub(socket, history, entryManager, remountUI, remountJelUI, addToPresenceLog) {
   const { hubChannel } = window.APP;
 
   if (hubChannel.channel) {
     hubChannel.leave();
   }
 
-  const hubId = getHubIdFromHistory();
+  const hubId = getHubIdFromHistory(history);
   console.log(`Hub ID: ${hubId}`);
 
   const hubPhxChannel = socket.channel(`hub:${hubId}`, createHubChannelParams());

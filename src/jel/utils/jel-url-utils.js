@@ -1,6 +1,6 @@
 const qs = new URLSearchParams(location.search);
 
-function getSidsFromHistory() {
+function getSidsFromHistory(history) {
   if (qs.get("hub_id")) return qs.get("hub_id");
   const slugParts = history.location.pathname
     .substring(1)
@@ -9,12 +9,12 @@ function getSidsFromHistory() {
   return slugParts[slugParts.length - 1];
 }
 
-export function getHubIdFromHistory() {
-  return getSidsFromHistory().substring(5);
+export function getHubIdFromHistory(history) {
+  return getSidsFromHistory(history).substring(5);
 }
 
-export function getSpaceIdFromHistory() {
-  return getSidsFromHistory().substring(0, 5);
+export function getSpaceIdFromHistory(history) {
+  return getSidsFromHistory(history).substring(0, 5);
 }
 
 export function setupPeerConnectionConfig(adapter, host, turn) {

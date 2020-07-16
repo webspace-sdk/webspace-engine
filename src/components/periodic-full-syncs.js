@@ -15,7 +15,13 @@ AFRAME.registerComponent("periodic-full-syncs", {
   tick() {
     const now = performance.now();
 
-    if (now - this.lastSync >= SYNC_DURATION_MS && this.el.components && this.el.components.networked) {
+    if (
+      now - this.lastSync >= SYNC_DURATION_MS &&
+      this.el.components &&
+      this.el.components.networked &&
+      NAF.connection.adapter &&
+      NAF.connection.isConnected()
+    ) {
       this.lastSync = now;
 
       // Sends an undirected first sync message.

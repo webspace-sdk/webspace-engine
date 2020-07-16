@@ -847,8 +847,8 @@ async function start() {
 
   const performJoin = async () => {
     // Handle rapid history changes, only join last one.
-    const spaceId = getSpaceIdFromHistory();
-    const hubId = getHubIdFromHistory();
+    const spaceId = getSpaceIdFromHistory(history);
+    const hubId = getHubIdFromHistory(history);
 
     nextSpaceToJoin = spaceId;
     nextHubToJoin = hubId;
@@ -860,7 +860,7 @@ async function start() {
     joinHubPromise = null;
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
-      joinSpacePromise = joinSpace(socket, entryManager, remountUI, remountJelUI, addToPresenceLog);
+      joinSpacePromise = joinSpace(socket, history, entryManager, remountUI, remountJelUI, addToPresenceLog);
       await joinSpacePromise;
     }
 
@@ -868,7 +868,7 @@ async function start() {
     joinHubPromise = null;
 
     if (hubChannel.hubId !== hubId && nextHubToJoin === hubId) {
-      joinHubPromise = joinHub(socket, entryManager, remountUI, remountJelUI, addToPresenceLog);
+      joinHubPromise = joinHub(socket, history, entryManager, remountUI, remountJelUI, addToPresenceLog);
       await joinHubPromise;
     }
   };

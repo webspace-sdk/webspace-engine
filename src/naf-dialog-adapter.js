@@ -597,6 +597,7 @@ export default class DialogAdapter {
     // Close protoo Peer, though may already be closed if this is happening due to websocket breakdown
     if (this._protoo && this._protoo.connected) {
       this._protoo.close();
+      this._protoo = null;
     }
 
     if (this._micProducer) {
@@ -610,43 +611,55 @@ export default class DialogAdapter {
     }
 
     // Close mediasoup Transports.
-    if (this._sendTransport) this._sendTransport.close();
+    if (this._sendTransport) {
+      this._sendTransport.close();
+      this._sendTransport = null;
+    }
 
-    if (this._recvTransport) this._recvTransport.close();
+    if (this._recvTransport) {
+      this._recvTransport.close();
+      this._recvTransport = null;
+    }
   }
 
   reconnect() {
     // Dispose of all networked entities and other resources tied to the session.
     this.disconnect();
 
-    this.connect()
-      .then(() => {
-        this.reconnectionDelay = this.initialReconnectionDelay;
-        this.reconnectionAttempts = 0;
+    return new Promise(res => {
+      this.connect()
+        .then(() => {
+          this.reconnectionDelay = this.initialReconnectionDelay;
+          this.reconnectionAttempts = 0;
 
-        if (this._reconnectedListener) {
-          this._reconnectedListener();
-        }
-      })
-      .catch(error => {
-        this.reconnectionDelay += 1000;
-        this.reconnectionAttempts++;
+          if (this._reconnectedListener) {
+            this._reconnectedListener();
+          }
 
-        if (this.reconnectionAttempts > this.maxReconnectionAttempts && this._reconnectionErrorListener) {
-          return this._reconnectionErrorListener(
-            new Error("Connection could not be reestablished, exceeded maximum number of reconnection attempts.")
-          );
-        }
+          res();
+        })
+        .catch(error => {
+          this.reconnectionDelay += 1000;
+          this.reconnectionAttempts++;
 
-        console.warn("Error during reconnect, retrying.");
-        console.warn(error);
+          if (this.reconnectionAttempts > this.maxReconnectionAttempts && this._reconnectionErrorListener) {
+            res(
+              this._reconnectionErrorListener(
+                new Error("Connection could not be reestablished, exceeded maximum number of reconnection attempts.")
+              )
+            );
+          }
 
-        if (this._reconnectingListener) {
-          this._reconnectingListener(this.reconnectionDelay);
-        }
+          console.warn("Error during reconnect, retrying.");
+          console.warn(error);
 
-        this.reconnectionTimeout = setTimeout(() => this.reconnect(), this.reconnectionDelay);
-      });
+          if (this._reconnectingListener) {
+            this._reconnectingListener(this.reconnectionDelay);
+          }
+
+          this.reconnectionTimeout = setTimeout(() => this.reconnect(), this.reconnectionDelay);
+        });
+    });
   }
 
   kick(clientId, permsToken) {
