@@ -26,7 +26,12 @@ import "./utils/threejs-world-update";
 import patchThreeAllocations from "./utils/threejs-allocation-patches";
 import patchThreeNoProgramDispose from "./jel/utils/threejs-avoid-disposing-programs";
 import { detectOS, detect } from "detect-browser";
-import { getReticulumMeta, invalidateReticulumMeta, migrateChannelToSocket } from "./utils/phoenix-utils";
+import {
+  getReticulumMeta,
+  invalidateReticulumMeta,
+  migrateChannelToSocket,
+  fetchReticulumAuthenticated
+} from "./utils/phoenix-utils";
 
 import nextTick from "./utils/next-tick";
 import { addAnimationComponents } from "./utils/animation";
@@ -117,6 +122,7 @@ import React from "react";
 import { Router, Route } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import { pushHistoryState, clearHistoryState } from "./utils/history";
+import { mapFromArray } from "./jel/utils/map-utils";
 import JelUI from "./jel/react-components/jel-ui";
 import UIRoot from "./react-components/ui-root";
 import AuthChannel from "./utils/auth-channel";
@@ -1469,6 +1475,7 @@ async function joinSpace(socket, entryManager, messageDispatch, treeManager) {
 
   const spaceId = getSpaceIdFromHistory();
   console.log(`Space ID: ${spaceId}`);
+  remountJelUI({ spaceId });
 
   createRetChannel(socket, spaceId); // TODO JEL check reconnect
   const spacePhxChannel = socket.channel(`space:${spaceId}`, createSpaceChannelParams());
@@ -1497,6 +1504,20 @@ async function joinHub(socket, entryManager, messageDispatch) {
   adapter.unreliableTransport = hubChannel.sendUnreliableNAF.bind(hubChannel);
 
   return joinHubChannel(hubPhxChannel, entryManager, messageDispatch);
+}
+
+async function loadMemberships() {
+  const accountId = store.credentialsAccountId;
+  if (!accountId) return;
+
+  const res = await fetchReticulumAuthenticated(`/api/v1/accounts/${accountId}`);
+  if (res.memberships.length === 0) return;
+
+  const spaceIdsToHomeHubUrls = mapFromArray(
+    [...res.memberships].sort(m => m.joined_at).map(m => [m.space_id, m.home_hub.url])
+  );
+
+  remountJelUI({ spaceIdsToHomeHubUrls });
 }
 
 async function start() {
@@ -1608,6 +1629,8 @@ async function start() {
 
   let nextHubToJoin;
   let joinPromise;
+
+  loadMemberships();
 
   const performJoinHub = async () => {
     // Handle rapid history changes, only join last one.

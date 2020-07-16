@@ -98,6 +98,12 @@ function useExpandableTree(treeManager) {
   );
 }
 
+function navigateToHubUrl(history, url) {
+  const search = history.location.search;
+  const path = new URL(url).pathname;
+  pushHistoryPath(history, path, search);
+}
+
 function HubTree({ treeManager, history, hub }) {
   if (!treeManager || !hub) return null;
 
@@ -139,11 +145,7 @@ function HubTree({ treeManager, history, hub }) {
         draggable
         onDragEnter={onTreeDragEnter}
         onDrop={onTreeDrop("nav")}
-        onSelect={(selectedKeys, { node: { url } }) => {
-          const search = history.location.search;
-          const path = new URL(url).pathname;
-          pushHistoryPath(history, path, search);
-        }}
+        onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
         expandedKeys={treeManager.expandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
       />
@@ -161,7 +163,7 @@ function HubTree({ treeManager, history, hub }) {
   );
 }
 
-function JelUI({ navExpanded = true, treeManager, history, hub }) {
+function JelUI({ navExpanded = true, treeManager, history, hub, spaceIdsToHomeHubUrls, spaceId }) {
   const onCreateClick = async () => {
     const hub = await createHub();
     treeManager.nav.addToRoot(hub.hub_id);
@@ -176,6 +178,15 @@ function JelUI({ navExpanded = true, treeManager, history, hub }) {
           <TestButton onClick={onCreateClick}>Create World</TestButton>
           <HubTree treeManager={treeManager} hub={hub} history={history} />
         </Nav>
+        {spaceIdsToHomeHubUrls && (
+          <select onChange={e => navigateToHubUrl(history, spaceIdsToHomeHubUrls.get(e.target.value))} value={spaceId}>
+            {[...spaceIdsToHomeHubUrls.keys()].map(sid => (
+              <option key={sid} value={sid}>
+                {sid}
+              </option>
+            ))}
+          </select>
+        )}
       </JelWrap>
     </ThemeProvider>
   );
@@ -188,7 +199,9 @@ JelUI.propTypes = {
   hub: PropTypes.object,
   orgPresences: PropTypes.object,
   hubPresences: PropTypes.object,
-  sessionId: PropTypes.string
+  sessionId: PropTypes.string,
+  spaceId: PropTypes.string,
+  spaceIdsToHomeHubUrls: PropTypes.object
 };
 
 HubTree.propTypes = {
