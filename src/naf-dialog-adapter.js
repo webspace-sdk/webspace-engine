@@ -599,6 +599,16 @@ export default class DialogAdapter {
       this._protoo.close();
     }
 
+    if (this._micProducer) {
+      this._micProducer.close();
+      this._micProducer = null;
+    }
+
+    if (this._videoProducer) {
+      this._videoProducer.close();
+      this._videoProducer = null;
+    }
+
     // Close mediasoup Transports.
     if (this._sendTransport) this._sendTransport.close();
 

@@ -182,7 +182,6 @@ const authChannel = new AuthChannel(store);
 const spaceChannel = new SpaceChannel(store);
 const hubChannel = new HubChannel(store);
 const linkChannel = new LinkChannel(store);
-const spaceMetadata = new SpaceMetadata(spaceChannel);
 
 window.APP.spaceChannel = spaceChannel;
 window.APP.hubChannel = hubChannel;
@@ -579,12 +578,17 @@ function handleSpaceChannelJoined(isInitialJoin, entryManager, spaceChannel, mes
   // Wait for scene objects to load before connecting, so there is no race condition on network state.
   return new Promise(async res => {
     scene.setAttribute("networked-scene", {
+      audio: true,
+      connectOnLoad: false,
+      adapter: "dialog",
+      app: "jel",
       room: spaceId,
       serverURL: `wss://${space.host}:${space.port}`,
       debug: !!isDebug
     });
 
     scene.setAttribute("shared-scene", {
+      connectOnLoad: false,
       collection: spaceId,
       serverURL: `wss://hubs.local:8001`,
       debug: !!isDebug
@@ -1189,6 +1193,13 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, messageDispatch, 
 
   const socket = spacePhxChannel.socket;
 
+  // Disconnect AFrame if already connected
+  scene.removeAttribute("networked-scene");
+  scene.removeAttribute("shared-scene");
+
+  // Allow disconnect cleanup
+  await nextTick();
+
   return new Promise(joinFinished => {
     spacePhxChannel
       .join()
@@ -1468,19 +1479,35 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager) => {
   });
 };
 
-async function joinSpace(socket, entryManager, messageDispatch, treeManager) {
-  if (spaceChannel.channel) {
-    spaceChannel.leave();
-  }
-
+async function joinSpace(socket, entryManager, messageDispatch) {
   const spaceId = getSpaceIdFromHistory();
   console.log(`Space ID: ${spaceId}`);
   remountJelUI({ spaceId });
 
-  createRetChannel(socket, spaceId); // TODO JEL check reconnect
+  const isFirstJoin = !spaceChannel.channel;
+
+  if (isFirstJoin) {
+    createRetChannel(socket, spaceId); // TODO JEL check reconnect
+  } else {
+    spaceChannel.leave();
+  }
+
   const spacePhxChannel = socket.channel(`space:${spaceId}`, createSpaceChannelParams());
   setupSpaceChannelMessageHandlers(spacePhxChannel, entryManager);
   spaceChannel.bind(spacePhxChannel, spaceId);
+
+  const spaceMetadata = new SpaceMetadata(spaceChannel);
+  const treeManager = new TreeManager(spaceMetadata);
+
+  document.body.addEventListener(
+    "share-connected",
+    async ({ detail: { connection } }) => {
+      await treeManager.init(connection);
+      remountJelUI({ history, treeManager });
+    },
+    { once: true }
+  );
+
   spaceMetadata.init();
 
   return joinSpaceChannel(spacePhxChannel, entryManager, messageDispatch, treeManager);
@@ -1489,7 +1516,6 @@ async function joinSpace(socket, entryManager, messageDispatch, treeManager) {
 async function joinHub(socket, entryManager, messageDispatch) {
   if (hubChannel.channel) {
     hubChannel.leave();
-    // TODO JEL disconnect from dialog
   }
 
   const hubId = getHubIdFromHistory();
@@ -1533,12 +1559,6 @@ async function start() {
     remountUI,
     mediaSearchStore
   );
-  const treeManager = new TreeManager(spaceMetadata);
-
-  document.body.addEventListener("share-connected", async ({ detail: { connection } }) => {
-    await treeManager.init(connection);
-    remountJelUI({ history, treeManager });
-  });
 
   document.getElementById("avatar-rig").messageDispatch = messageDispatch;
 
@@ -1627,27 +1647,43 @@ async function start() {
     onAvatarSaved: entry => scene.emit("action_avatar_saved", entry)
   });
 
+  let nextSpaceToJoin;
   let nextHubToJoin;
-  let joinPromise;
+  let joinSpacePromise;
+  let joinHubPromise;
 
   loadMemberships();
 
-  const performJoinHub = async () => {
+  const performJoin = async () => {
     // Handle rapid history changes, only join last one.
+    const spaceId = getSpaceIdFromHistory();
     const hubId = getHubIdFromHistory();
+
+    nextSpaceToJoin = spaceId;
     nextHubToJoin = hubId;
-    if (joinPromise) await joinPromise;
-    joinPromise = null;
+
+    if (joinSpacePromise) await joinSpacePromise;
+    joinSpacePromise = null;
+
+    if (joinHubPromise) await joinHubPromise;
+    joinHubPromise = null;
+
+    if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
+      joinSpacePromise = joinSpace(socket, entryManager, messageDispatch);
+      await joinSpacePromise;
+    }
+
+    if (joinHubPromise) await joinHubPromise;
+    joinHubPromise = null;
 
     if (hubChannel.hubId !== hubId && nextHubToJoin === hubId) {
-      joinPromise = joinHub(socket, entryManager, messageDispatch);
+      joinHubPromise = joinHub(socket, entryManager, messageDispatch);
+      await joinHubPromise;
     }
   };
 
-  await joinSpace(socket, entryManager, messageDispatch, treeManager);
-
-  history.listen(performJoinHub);
-  await performJoinHub();
+  history.listen(performJoin);
+  await performJoin();
 
   entryManager.enterScene(false, true);
 }
