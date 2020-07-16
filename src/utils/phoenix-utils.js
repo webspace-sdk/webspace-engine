@@ -181,9 +181,8 @@ export async function createSpace(name) {
   return res;
 }
 
-export async function createHub(name, sceneId) {
+export async function createHub(spaceId, name, sceneId) {
   const store = window.APP.store;
-  const spaceId = store.state.context.spaceId;
   const createUrl = getReticulumFetchUrl("/api/v1/hubs");
   const payload = { hub: { name, space_id: spaceId } };
 
@@ -218,7 +217,7 @@ export async function createHub(name, sceneId) {
   return res;
 }
 
-export async function createAndRedirectToNewHub(name, sceneId, replace) {
+export async function createAndRedirectToNewHub(spaceId, name, sceneId, replace) {
   const hub = await createHub(name, sceneId);
   let url = hub.url;
 

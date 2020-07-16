@@ -719,7 +719,7 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager, addToPresen
 
 export function joinSpace(socket, history, entryManager, remountUI, remountJelUI, addToPresenceLog) {
   const spaceId = getSpaceIdFromHistory(history);
-  const { spaceChannel } = window.APP;
+  const { spaceChannel, store } = window.APP;
   console.log(`Space ID: ${spaceId}`);
   remountJelUI({ spaceId });
 
@@ -746,6 +746,7 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
   );
 
   spaceMetadata.init();
+  store.update({ context: { spaceId } });
 
   return joinSpaceChannel(spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI, addToPresenceLog);
 }

@@ -165,7 +165,7 @@ function HubTree({ treeManager, history, hub }) {
 
 function JelUI({ navExpanded = true, treeManager, history, hub, spaceIdsToHomeHubUrls, spaceId }) {
   const onCreateClick = async () => {
-    const hub = await createHub();
+    const hub = await createHub(spaceId);
     treeManager.nav.addToRoot(hub.hub_id);
   };
 

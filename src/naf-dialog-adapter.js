@@ -571,7 +571,7 @@ export default class DialogAdapter {
   }
 
   isDisconnected() {
-    return !this._protoo.connected;
+    return !!(!this._protoo || !this._protoo.connected);
   }
 
   disconnect() {
