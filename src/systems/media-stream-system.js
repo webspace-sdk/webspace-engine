@@ -7,6 +7,10 @@ export class MediaStreamSystem {
     this.scene = sceneEl;
     this.store = window.APP.store;
     this._addedAudioSystemTrack = false;
+
+    document.body.addEventListener("connected", () => {
+      NAF.connection.adapter.setLocalMediaStream(this.mediaStream);
+    });
   }
 
   async addTrack(track) {
