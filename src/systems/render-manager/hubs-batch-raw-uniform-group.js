@@ -23,7 +23,7 @@ const inspectLayer = new THREE.Layers();
 inspectLayer.set(CAMERA_LAYER_BATCH_INSPECT);
 
 export default class HubsBatchRawUniformGroup extends BatchRawUniformGroup {
-  constructor(maxInstances, meshToEl) {
+  constructor(maxInstances) {
     const data = new ArrayBuffer(sizeofInstances(maxInstances));
     super(maxInstances, "InstanceData", data);
 
@@ -45,7 +45,6 @@ export default class HubsBatchRawUniformGroup extends BatchRawUniformGroup {
 
     this.offset = offset;
 
-    this.meshToEl = meshToEl;
     const isMobile = AFRAME.utils.device.isMobile();
     const isMobileVR = AFRAME.utils.device.isMobileVR();
     this.isTouchscreen = isMobile && !isMobileVR;
@@ -76,7 +75,14 @@ export default class HubsBatchRawUniformGroup extends BatchRawUniformGroup {
       );
       this.setInstanceColor(instanceId, mesh.material.color || DEFAULT_COLOR, mesh.material.opacity || 1);
 
-      const el = this.meshToEl.get(mesh);
+      let o = mesh;
+      let el = o.el;
+
+      while (!el && o) {
+        el = o.el;
+        o = o.parent;
+      }
+
       if (el) {
         const obj = el.object3D;
         const hoverableVisuals = el.components["hoverable-visuals"];

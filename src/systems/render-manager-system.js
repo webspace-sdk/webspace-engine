@@ -11,7 +11,6 @@ const UBO_BYTE_LENGTH = sizeofInstances(MAX_INSTANCES);
 
 export class BatchManagerSystem {
   constructor(scene, renderer) {
-    this.meshToEl = new WeakMap();
     const gl = renderer.getContext();
 
     if (qsTruthy("disableBatching")) {
@@ -36,7 +35,7 @@ export class BatchManagerSystem {
       return;
     }
 
-    this.ubo = new HubsBatchRawUniformGroup(MAX_INSTANCES, this.meshToEl);
+    this.ubo = new HubsBatchRawUniformGroup(MAX_INSTANCES);
     this.batchManager = new BatchManager(scene, renderer, {
       maxInstances: MAX_INSTANCES,
       ubo: this.ubo,

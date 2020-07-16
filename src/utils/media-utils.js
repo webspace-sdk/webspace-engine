@@ -280,7 +280,6 @@ export function injectCustomShaderChunks(obj) {
   const fragRegex = /\bgl_FragColor\b/;
 
   const shaderUniforms = [];
-  const batchManagerSystem = AFRAME.scenes[0].systems["hubs-systems"].batchManagerSystem;
 
   obj.traverse(object => {
     if (!object.material) return;
@@ -301,11 +300,6 @@ export function injectCustomShaderChunks(obj) {
         object.el.getAttribute("text-button")
       )
         return material;
-
-      // Used when the object is batched
-      if (batchManagerSystem.batchingEnabled) {
-        batchManagerSystem.meshToEl.set(object, obj.el);
-      }
 
       const newMaterial = material.clone();
       // This will not run if the object is never rendered unbatched, since its unbatched shader will never be compiled
