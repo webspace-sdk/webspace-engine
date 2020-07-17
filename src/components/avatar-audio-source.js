@@ -89,6 +89,12 @@ AFRAME.registerComponent("avatar-audio-source", {
   init() {
     this.el.sceneEl.systems["hubs-systems"].audioSettingsSystem.registerAvatarAudioSource(this);
     this.createAudio();
+
+    NAF.utils.getNetworkedEntity(this.el).then(() => {
+      NAF.connection.adapter.setAudioStreamChangedListener(() => {
+        this.recreateAudio();
+      });
+    });
   },
 
   recreateAudio() {

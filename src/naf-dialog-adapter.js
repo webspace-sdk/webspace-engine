@@ -88,6 +88,10 @@ export default class DialogAdapter {
     this._connectFailure = failureListener;
   }
 
+  setAudioStreamChangedListener(audioStreamChangedListener) {
+    this._audioStreamChangedListener = audioStreamChangedListener;
+  }
+
   setRoomOccupantListener(occupantListener) {
     this._onOccupantsChanged = occupantListener;
   }
@@ -174,6 +178,10 @@ export default class DialogAdapter {
               if (audioResolver) {
                 audioResolver();
                 this._audioConsumerResolvers.delete(peerId);
+              }
+
+              if (this._audioStreamChangedListener) {
+                this._audioStreamChangedListener();
               }
             }
           } catch (err) {
