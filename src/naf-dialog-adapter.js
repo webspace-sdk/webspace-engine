@@ -110,12 +110,28 @@ export default class DialogAdapter {
       this._protoo.on("open", async () => {
         this._closed = false;
         await this._joinRoom();
+
+        if (this.lastJoinedHubId) {
+          this.joinHub(this.lastJoinedHubId);
+        }
+
         res();
       });
     });
 
-    this._protoo.on("disconnected", () => this.disconnect());
     this._protoo.on("close", () => this.disconnect());
+
+    this._protoo.on("disconnected", () => {
+      if (this._sendTransport) {
+        this._sendTransport.close();
+        this._sendTransport = null;
+      }
+
+      if (this._recvTransport) {
+        this._recvTransport.close();
+        this._recvTransport = null;
+      }
+    });
 
     // eslint-disable-next-line no-unused-vars
     this._protoo.on("request", async (request, accept, reject) => {
@@ -331,6 +347,8 @@ export default class DialogAdapter {
   }
 
   async joinHub(hubId) {
+    this.lastJoinedHubId = hubId;
+
     const peerIds = Object.keys(this.occupants);
     for (let i = 0; i < peerIds.length; i++) {
       const peerId = peerIds[i];
@@ -342,9 +360,7 @@ export default class DialogAdapter {
 
     const audioConsumerPromises = [];
 
-    const { peers } = await this._protoo.request("enter", {
-      hubId // TODO JEL
-    });
+    const { peers } = await this._protoo.request("enter", { hubId });
 
     // Create a promise that will be resolved once we attach to all the initial consumers.
     // This will gate the connection flow until all voices will be heard.
@@ -400,6 +416,12 @@ export default class DialogAdapter {
           })
           .then(callback)
           .catch(errback);
+      });
+
+      this._sendTransport.on("connectionstatechange", state => {
+        if (state === "connected" && this._localMediaStream && !this._isSyncingProducers) {
+          this.createMissingProducers(this._localMediaStream);
+        }
       });
 
       this._sendTransport.on("produce", async ({ kind, rtpParameters, appData }, callback, errback) => {
@@ -464,10 +486,6 @@ export default class DialogAdapter {
       if (this._onOccupantsChanged) {
         this._onOccupantsChanged(this.occupants);
       }
-
-      if (this._localMediaStream) {
-        this.createMissingProducers(this._localMediaStream);
-      }
     } catch (err) {
       error("_joinRoom() failed:%o", err);
 
@@ -481,6 +499,8 @@ export default class DialogAdapter {
 
   async createMissingProducers(stream) {
     if (!this._sendTransport) return;
+    this._isSyncingProducers = true;
+
     let sawAudio = false;
     let sawVideo = false;
 
@@ -552,6 +572,7 @@ export default class DialogAdapter {
     }
 
     this._localMediaStream = stream;
+    this._isSyncingProducers = false;
   }
 
   enableMicrophone(enabled) {
