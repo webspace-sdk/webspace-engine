@@ -17,7 +17,6 @@ const isMobile = AFRAME.utils.device.isMobile();
 
 class InWorldChatBox extends Component {
   static propTypes = {
-    discordBridges: PropTypes.array,
     onSendMessage: PropTypes.func,
     onObjectCreated: PropTypes.func,
     history: PropTypes.object,
@@ -40,7 +39,6 @@ class InWorldChatBox extends Component {
     const textRows = this.state.pendingMessage.split("\n").length;
     const pendingMessageTextareaHeight = textRows * 28 + "px";
     const pendingMessageFieldHeight = textRows * 28 + 20 + "px";
-    const discordSnippet = this.props.discordBridges.map(ch => "#" + ch).join(", ");
 
     return (
       <form onSubmit={this.sendMessage}>
@@ -111,7 +109,7 @@ class InWorldChatBox extends Component {
                 e.target.blur();
               }
             }}
-            placeholder={this.props.discordBridges.length ? `Send to room and ${discordSnippet}...` : "Send to room..."}
+            placeholder={"Send to room..."}
           />
           {this.props.enableSpawning && (
             <InlineSVGButton

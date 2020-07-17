@@ -168,17 +168,6 @@ export default class SpaceChannel extends EventTarget {
     });
   };
 
-  getTwitterOAuthURL = () => {
-    return new Promise((resolve, reject) => {
-      this.channel
-        .push("oauth", { type: "twitter" })
-        .receive("ok", res => {
-          resolve(res.oauth_url);
-        })
-        .receive("error", reject);
-    });
-  };
-
   fetchPermissions = () => {
     return new Promise((resolve, reject) => {
       this.channel

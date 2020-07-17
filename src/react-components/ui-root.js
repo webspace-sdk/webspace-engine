@@ -15,7 +15,7 @@ import inviteStyles from "../assets/stylesheets/invite-dialog.scss";
 import { ReactAudioContext } from "./wrap-with-audio";
 import { pushHistoryState, popToBeginningOfHubHistory, navigateToPriorPage, sluglessPath } from "../utils/history";
 import StateRoute from "./state-route.js";
-import { getPresenceProfileForSession, discordBridgesForPresences } from "../utils/phoenix-utils";
+import { getPresenceProfileForSession } from "../utils/phoenix-utils";
 import { getClientInfoClientId } from "./client-info-dialog";
 import { getCurrentStreamer } from "../utils/component-utils";
 
@@ -46,7 +46,6 @@ import RoomInfoDialog from "./room-info-dialog.js";
 import ClientInfoDialog from "./client-info-dialog.js";
 import ObjectInfoDialog from "./object-info-dialog.js";
 import OAuthDialog from "./oauth-dialog.js";
-import TweetDialog from "./tweet-dialog.js";
 import LobbyChatBox from "./lobby-chat-box.js";
 import EntryStartPanel from "./entry-start-panel.js";
 import InWorldChatBox from "./in-world-chat-box.js";
@@ -312,8 +311,6 @@ class UIRoot extends Component {
     this.props.scene.addEventListener("action_toggle_ui", () => this.setState({ hide: !this.state.hide }));
 
     const scene = this.props.scene;
-
-    this.props.store.addEventListener("statechanged", this.onStoreChanged);
 
     const unsubscribe = this.props.history.listen((location, action) => {
       const state = location.state;
@@ -862,27 +859,6 @@ class UIRoot extends Component {
     return this.props.hubPresences ? Object.entries(this.props.hubPresences).length : 0;
   };
 
-  onStoreChanged = () => {
-    if (!this.props.hub) return;
-
-    const broadcastedRoomConfirmed = this.props.store.state.confirmedBroadcastedRooms.includes(this.props.hub.hub_id);
-    if (broadcastedRoomConfirmed !== this.state.broadcastTipDismissed) {
-      this.setState({ broadcastTipDismissed: broadcastedRoomConfirmed });
-    }
-  };
-
-  confirmBroadcastedRoom = () => {
-    this.props.store.update({ confirmedBroadcastedRooms: [this.props.hub.hub_id] });
-  };
-
-  discordBridges = () => {
-    if (!this.props.hubPresences) {
-      return [];
-    } else {
-      return discordBridgesForPresences(this.props.hubPresences);
-    }
-  };
-
   hasEmbedPresence = () => {
     if (!this.props.hubPresences) {
       return false;
@@ -1049,11 +1025,7 @@ class UIRoot extends Component {
         </div>
 
         <div className={entryStyles.center}>
-          <LobbyChatBox
-            occupantCount={this.occupantCount()}
-            discordBridges={this.discordBridges()}
-            onSendMessage={this.sendMessage}
-          />
+          <LobbyChatBox occupantCount={this.occupantCount()} onSendMessage={this.sendMessage} />
         </div>
 
         {!this.state.waitingOnAudio &&
@@ -1512,13 +1484,6 @@ class UIRoot extends Component {
     const showClientInfo = !!clientInfoClientId;
     const showObjectInfo = !!(this.state.objectInfo && this.state.objectInfo.object3D);
 
-    const discordBridges = this.discordBridges();
-    const discordSnippet = discordBridges.map(ch => "#" + ch).join(", ");
-    const hasEmbedPresence = this.hasEmbedPresence();
-    const hasDiscordBridges = discordBridges.length > 0;
-    const showBroadcastTip =
-      (hasDiscordBridges || (hasEmbedPresence && !this.props.embed)) && !this.state.broadcastTipDismissed;
-
     const showInviteButton = !showObjectInfo && !this.state.frozen && !watching && !preload;
 
     const showInviteTip =
@@ -1834,23 +1799,13 @@ class UIRoot extends Component {
             {entered &&
               this.props.activeTips &&
               this.props.activeTips.bottom &&
-              (!presenceLogEntries || presenceLogEntries.length === 0) &&
-              !showBroadcastTip && (
+              (!presenceLogEntries || presenceLogEntries.length === 0) && (
                 <Tip tip={this.props.activeTips.bottom} tipRegion="bottom" pushHistoryState={this.pushHistoryState} />
-              )}
-            {enteredOrWatchingOrPreload &&
-              showBroadcastTip && (
-                <Tip
-                  tip={hasDiscordBridges ? "discord" : "embed"}
-                  broadcastTarget={discordSnippet}
-                  onClose={() => this.confirmBroadcastedRoom()}
-                />
               )}
             {enteredOrWatchingOrPreload &&
               !this.state.objectInfo &&
               !this.state.frozen && (
                 <InWorldChatBox
-                  discordBridges={discordBridges}
                   onSendMessage={this.sendMessage}
                   onObjectCreated={this.createObject}
                   enableSpawning={entered}

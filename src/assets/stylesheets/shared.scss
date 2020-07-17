@@ -195,16 +195,6 @@ $favorited-color: var(--favorited-color, $duck-yellow);
   background-color: var(--spoke-action-color);
 }
 
-%discord-action-button {
-  @extend %action-button;
-  background-color: var(--discord-action-color);
-}
-
-%twitter-action-button {
-  @extend %action-button;
-  background-color: var(--twitter-action-color);
-}
-
 %top-title {
   font-size: 1.5em;
   font-weight: bold;

@@ -1,7 +1,7 @@
 import jwtDecode from "jwt-decode";
 import { EventTarget } from "event-target-shim";
 import { Presence } from "phoenix";
-import { migrateChannelToSocket, discordBridgesForPresences, unbindPresence } from "./phoenix-utils";
+import { migrateChannelToSocket, unbindPresence } from "./phoenix-utils";
 
 // Permissions that will be assumed if the user becomes the creator.
 const HUB_CREATOR_PERMISSIONS = [
@@ -120,34 +120,6 @@ export default class HubChannel extends EventTarget {
   sendMessage = (body, type = "chat") => {
     if (!body) return;
     this.channel.push("message", { body, type });
-  };
-
-  discordBridges = () => {
-    if (!this.presence || !this.presence.state) return [];
-    return discordBridgesForPresences(this.presence.state);
-  };
-
-  pin = (id, gltfNode, fileId, fileAccessToken, promotionToken) => {
-    const payload = { id, gltf_node: gltfNode };
-    if (fileId && promotionToken) {
-      payload.file_id = fileId;
-      payload.file_access_token = fileAccessToken;
-      payload.promotion_token = promotionToken;
-    }
-    return new Promise((resolve, reject) => {
-      this.channel
-        .push("pin", payload)
-        .receive("ok", resolve)
-        .receive("error", reject);
-    });
-  };
-
-  unpin = (id, fileId) => {
-    const payload = { id };
-    if (fileId) {
-      payload.file_id = fileId;
-    }
-    this.channel.push("unpin", payload);
   };
 
   fetchPermissions = () => {

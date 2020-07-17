@@ -36,12 +36,6 @@ export default class Tip extends Component {
           <FormattedMessage id={`tips.${tip}-post`} />
         </div>
       );
-    } else if (tip === "discord") {
-      tipBody = (
-        <div className={styles.tip}>
-          <span>{`Chat in this room is being bridged to ${broadcastTarget} on Discord.`}</span>
-        </div>
-      );
     } else if (tip === "embed") {
       tipBody = (
         <div className={styles.tip}>

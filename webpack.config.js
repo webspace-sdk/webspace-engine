@@ -255,7 +255,6 @@ module.exports = async (env, argv) => {
       scene: path.join(__dirname, "src", "scene.js"),
       avatar: path.join(__dirname, "src", "avatar.js"),
       link: path.join(__dirname, "src", "link.js"),
-      discord: path.join(__dirname, "src", "discord.js"),
       cloud: path.join(__dirname, "src", "cloud.js"),
       "whats-new": path.join(__dirname, "src", "whats-new.js")
     },
@@ -520,14 +519,6 @@ module.exports = async (env, argv) => {
         template: path.join(__dirname, "src", "link.html"),
         chunks: ["support", "link"],
         chunksSortMode: "manual",
-        minify: {
-          removeComments: false
-        }
-      }),
-      new HTMLWebpackPlugin({
-        filename: "discord.html",
-        template: path.join(__dirname, "src", "discord.html"),
-        chunks: ["discord"],
         minify: {
           removeComments: false
         }

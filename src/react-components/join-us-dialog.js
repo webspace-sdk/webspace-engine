@@ -8,13 +8,6 @@ export default class JoinUsDialog extends Component {
       <DialogContainer title="Join Us" {...this.props}>
         <span>
           <p>
-            Join us in the{" "}
-            <a href="https://discord.gg/wHmY4nd" target="_blank" rel="noopener noreferrer">
-              Hubs community Discord server
-            </a>
-            .{"\n"} We host meetups every Friday!
-          </p>
-          <p>
             You can also follow us on Twitter at{" "}
             <a href="https://twitter.com/MozillaHubs" target="_blank" rel="noopener noreferrer">
               @MozillaHubs

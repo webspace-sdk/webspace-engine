@@ -46,22 +46,14 @@ export default class OAuthDialog extends Component {
     );
   }
 
-  renderTweetDisclaimer() {
-    return (
-      <div className={styles.twitterMessage}>
-        <FormattedMessage id="oauth-dialog.message.twitter" />
-      </div>
-    );
-  }
-
   render() {
     const info = this.props.oauthInfo && this.props.oauthInfo[0];
-    const closable = info && info.type === "twitter"; // NOTE: for now, allow closing dialog if doing Twitter sign in (currently just for sharing)
+    const closable = true;
 
     return (
       <DialogContainer title="" closable={closable} {...this.props}>
         <div>
-          {info && (info.type === "twitter" ? this.renderTweetDisclaimer() : this.renderSignInDisclaimer(info.type))}
+          {info && this.renderSignInDisclaimer(info.type)}
           <div className="invite-form">
             <div className={`invite-form__buttons ${styles.oauthButtons}`}>
               {info ? (
@@ -69,9 +61,7 @@ export default class OAuthDialog extends Component {
                   href={info.url}
                   key={info.type}
                   className={classNames({
-                    [styles.oauthButton]: true,
-                    [styles.oauthTwitterButton]: info.type === "twitter",
-                    [styles.oauthDiscordButton]: info.type === "discord"
+                    [styles.oauthButton]: true
                   })}
                 >
                   <FormattedMessage id={`oauth-dialog.sign-in.${info.type}`} />

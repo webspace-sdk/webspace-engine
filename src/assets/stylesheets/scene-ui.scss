@@ -51,20 +51,6 @@
   margin-bottom: 32px;
 }
 
-:local(.tweetButton) {
-  @extend %action-button;
-  background-color: var(--twitter-action-color);
-  align-self: center;
-  padding-right: 32px;
-  display: flex;
-  flex-direction: row;
-
-  img {
-    width: 42px;
-    height: 42px;
-    margin-right: 6px;
-  }
-}
 
 :local(.logo) {
   width: 100%;

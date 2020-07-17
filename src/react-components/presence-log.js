@@ -32,7 +32,6 @@ export default class PresenceLog extends Component {
     };
 
     const presenceContext = e.sessionId ? getPresenceContextForSession(this.props.presences, e.sessionId) : {};
-    const isBot = !!presenceContext.discord;
 
     switch (e.type) {
       case "join":
@@ -75,7 +74,7 @@ export default class PresenceLog extends Component {
             body={e.body}
             maySpawn={e.maySpawn}
             sessionId={e.sessionId}
-            includeFromLink={this.props.inRoom && !isBot}
+            includeFromLink={this.props.inRoom}
             history={this.props.history}
           />
         );

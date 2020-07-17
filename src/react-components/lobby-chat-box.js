@@ -9,7 +9,6 @@ import { InlineSVGButton } from "./svgi";
 
 class LobbyChatBox extends Component {
   static propTypes = {
-    discordBridges: PropTypes.array,
     occupantCount: PropTypes.number,
     onSendMessage: PropTypes.func
   };
@@ -30,14 +29,9 @@ class LobbyChatBox extends Component {
     const textRows = this.state.pendingMessage.split("\n").length;
     const pendingMessageTextareaHeight = textRows * 28 + "px";
     const pendingMessageFieldHeight = textRows * 28 + 20 + "px";
-    const discordSnippet = this.props.discordBridges.map(ch => "#" + ch).join(", ");
     const occupantSnippet = `${this.props.occupantCount - 1} other${this.props.occupantCount > 2 ? "s" : ""}`;
     const messageEntryPlaceholder =
-      this.props.occupantCount <= 1
-        ? "Nobody is here yet..."
-        : this.props.discordBridges.length
-          ? `Send message to ${occupantSnippet} and ${discordSnippet}...`
-          : `Send message to ${occupantSnippet}...`;
+      this.props.occupantCount <= 1 ? "Nobody is here yet..." : `Send message to ${occupantSnippet}...`;
 
     return (
       <form onSubmit={this.sendMessage}>

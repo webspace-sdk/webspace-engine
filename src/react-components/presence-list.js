@@ -15,7 +15,6 @@ import { faUsers } from "@fortawesome/free-solid-svg-icons/faUsers";
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt";
 import { faDesktop } from "@fortawesome/free-solid-svg-icons/faDesktop";
 import { faVideo } from "@fortawesome/free-solid-svg-icons/faVideo";
-import discordIcon from "../assets/images/discord.svgi";
 import hmdIcon from "../assets/images/hmd-icon.svgi";
 import { faMobileAlt } from "@fortawesome/free-solid-svg-icons/faMobileAlt";
 import { pushHistoryPath, withSlug } from "../utils/history";
@@ -32,8 +31,6 @@ function getPresenceIcon(ctx) {
     return <InlineSVG src={hmdIcon} />;
   } else if (ctx && ctx.mobile) {
     return <FontAwesomeIcon icon={faMobileAlt} />;
-  } else if (ctx && ctx.discord) {
-    return <InlineSVG src={discordIcon} />;
   } else {
     return <FontAwesomeIcon icon={faDesktop} />;
   }
@@ -111,7 +108,6 @@ export default class PresenceList extends Component {
 
     const { context, profile, streaming, recording, presence } = spaceMetas[spaceMetas.length - 1];
     const icon = streaming || recording ? <FontAwesomeIcon icon={faVideo} /> : getPresenceIcon(context);
-    const isBot = context && context.discord;
     const isEntering = context && context.entering;
     const isOwner = hubMeta.roles && hubMeta.roles.owner;
     const messageId = isEntering ? "presence.entering" : `presence.in_${presence}`;
@@ -159,13 +155,11 @@ export default class PresenceList extends Component {
               </StateLink>
             ) : (
               <div>
-                {!isBot ? (
+                {
                   <button className={styles.clientLink} onClick={() => this.navigateToClientInfo(sessionId)}>
                     {profile && profile.displayName}
                   </button>
-                ) : (
-                  <span>{profile && profile.displayName}</span>
-                )}
+                }
                 {badge}
               </div>
             )}

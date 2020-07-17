@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
 import InfiniteScroll from "react-infinite-scroller";
-import markdownit from "markdown-it";
 
 import configs from "./utils/configs";
 import registerTelemetry from "./telemetry";
@@ -13,7 +12,7 @@ function formatDate(value) {
   return value && new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
-const md = markdownit();
+const md = () => {};
 function formatBody(pull) {
   const paragraphs = pull.body.split("\r\n\r\n").filter(l => l.trim());
   const paraAndImage = [paragraphs[0]];

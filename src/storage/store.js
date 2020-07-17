@@ -103,17 +103,6 @@ export const SCHEMA = {
       }
     },
 
-    // Legacy
-    confirmedDiscordRooms: {
-      type: "array",
-      items: { type: "string" }
-    },
-
-    confirmedBroadcastedRooms: {
-      type: "array",
-      items: { type: "string" }
-    },
-
     uploadPromotionTokens: {
       type: "array",
       items: {
@@ -183,8 +172,6 @@ export const SCHEMA = {
     activity: { $ref: "#/definitions/activity" },
     settings: { $ref: "#/definitions/settings" },
     preferences: { $ref: "#/definitions/preferences" },
-    confirmedDiscordRooms: { $ref: "#/definitions/confirmedDiscordRooms" }, // Legacy
-    confirmedBroadcastedRooms: { $ref: "#/definitions/confirmedBroadcastedRooms" },
     uploadPromotionTokens: { $ref: "#/definitions/uploadPromotionTokens" },
     creatorAssignmentTokens: { $ref: "#/definitions/creatorAssignmentTokens" },
     embedTokens: { $ref: "#/definitions/embedTokens" },
@@ -216,8 +203,6 @@ export default class Store extends EventTarget {
       settings: {},
       credentials: {},
       profile: {},
-      confirmedDiscordRooms: [],
-      confirmedBroadcastedRooms: [],
       uploadPromotionTokens: [],
       creatorAssignmentTokens: [],
       embedTokens: [],
@@ -282,10 +267,6 @@ export default class Store extends EventTarget {
     } else {
       return null;
     }
-  }
-
-  resetConfirmedBroadcastedRooms() {
-    this.clearStoredArray("confirmedBroadcastedRooms");
   }
 
   resetTipActivityFlags() {

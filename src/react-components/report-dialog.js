@@ -20,14 +20,6 @@ export default class ReportDialog extends Component {
               <a href="mailto:hubs@mozilla.com">hubs@mozilla.com</a>
             </WithHoverSound>
           </p>
-          <p>
-            You can also find us on{" "}
-            <WithHoverSound>
-              <a href="https://discord.gg/wHmY4nd" target="_blank" rel="noopener noreferrer">
-                Discord
-              </a>
-            </WithHoverSound>
-          </p>
         </span>
       </DialogContainer>
     );
