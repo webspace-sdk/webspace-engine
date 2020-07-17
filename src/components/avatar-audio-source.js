@@ -91,6 +91,11 @@ AFRAME.registerComponent("avatar-audio-source", {
     this.createAudio();
   },
 
+  recreateAudio() {
+    this.destroyAudio();
+    this.createAudio();
+  },
+
   update(oldData) {
     if (this.isCreatingAudio) return;
 
@@ -99,8 +104,7 @@ AFRAME.registerComponent("avatar-audio-source", {
 
     const shouldRecreateAudio = oldData.positional !== this.data.positional;
     if (shouldRecreateAudio) {
-      this.destroyAudio();
-      this.createAudio();
+      this.recreateAudio();
     } else if (this.data.positional) {
       setPositionalAudioProperties(audio, this.data);
     }

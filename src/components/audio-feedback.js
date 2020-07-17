@@ -59,17 +59,13 @@ AFRAME.registerComponent("networked-audio-analyser", {
     this._updateAnalysis = this._updateAnalysis.bind(this);
     this._runScheduledWork = this._runScheduledWork.bind(this);
     this.el.sceneEl.systems["frame-scheduler"].schedule(this._runScheduledWork, "audio-analyser");
-    this.el.addEventListener(
-      "sound-source-set",
-      event => {
-        const ctx = THREE.AudioContext.getContext();
-        this.analyser = ctx.createAnalyser();
-        this.analyser.fftSize = 32;
-        this.levels = new Uint8Array(this.analyser.fftSize);
-        event.detail.soundSource.connect(this.analyser);
-      },
-      { once: true }
-    );
+    this.el.addEventListener("sound-source-set", event => {
+      const ctx = THREE.AudioContext.getContext();
+      this.analyser = ctx.createAnalyser();
+      this.analyser.fftSize = 32;
+      this.levels = new Uint8Array(this.analyser.fftSize);
+      event.detail.soundSource.connect(this.analyser);
+    });
     this.playerSessionId = findAncestorWithComponent(this.el, "player-info").components["player-info"].playerSessionId;
     registerComponentInstance(this, "networked-audio-analyser");
   },
