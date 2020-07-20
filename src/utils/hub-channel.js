@@ -72,8 +72,9 @@ export default class HubChannel extends EventTarget {
     this.dispatchEvent(new CustomEvent("permissions_updated", { detail: { permsToken: token } }));
 
     // Refresh the token 1 minute before it expires. Refresh at most every 60s.
+    if (this._refreshTimeout) clearTimeout(this._refreshTimeout);
     const nextRefresh = new Date(this._permissions.exp * 1000 - 60 * 1000) - new Date();
-    setTimeout(async () => await this.fetchPermissions(), Math.max(nextRefresh, 60000));
+    this._refreshTimeout = setTimeout(async () => await this.fetchPermissions(), Math.max(nextRefresh, 60000));
   };
 
   sendObjectSpawnedEvent = objectType => {
@@ -137,8 +138,6 @@ export default class HubChannel extends EventTarget {
   };
 
   mute = sessionId => this.channel.push("mute", { session_id: sessionId });
-  addOwner = sessionId => this.channel.push("add_owner", { session_id: sessionId });
-  removeOwner = sessionId => this.channel.push("remove_owner", { session_id: sessionId });
 
   sendReliableNAF = (clientId, dataType, data) => this.sendNAF(true, clientId, dataType, data);
   sendUnreliableNAF = (clientId, dataType, data) => this.sendNAF(false, clientId, dataType, data);

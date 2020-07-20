@@ -43,8 +43,9 @@ export default class SpaceChannel extends EventTarget {
     this.dispatchEvent(new CustomEvent("permissions_updated", { detail: { permsToken: token } }));
 
     // Refresh the token 1 minute before it expires. Refresh at most every 60s.
+    if (this._refreshTimeout) clearTimeout(this._refreshTimeout);
     const nextRefresh = new Date(this._permissions.exp * 1000 - 60 * 1000) - new Date();
-    setTimeout(async () => await this.fetchPermissions(), Math.max(nextRefresh, 60000));
+    this._refreshTimeout = setTimeout(async () => await this.fetchPermissions(), Math.max(nextRefresh, 60000));
   };
 
   sendJoinedHubEvent = hub_id => {

@@ -59,8 +59,12 @@ export default class DialogAdapter {
     this._serverUrl = url;
   }
 
-  setJoinToken(joinToken) {
-    this._joinToken = joinToken;
+  setSpaceJoinToken(joinToken) {
+    this._spaceJoinToken = joinToken;
+  }
+
+  setHubJoinToken(joinToken) {
+    this._hubJoinToken = joinToken;
   }
 
   setPeerConnectionConfig(peerConnectionConfig) {
@@ -368,7 +372,7 @@ export default class DialogAdapter {
 
     const audioConsumerPromises = [];
 
-    const { peers } = await this._protoo.request("enter", { hubId });
+    const { peers } = await this._protoo.request("enter", { hubId, token: this._hubJoinToken });
 
     // Create a promise that will be resolved once we attach to all the initial consumers.
     // This will gate the connection flow until all voices will be heard.
@@ -484,7 +488,7 @@ export default class DialogAdapter {
         device: this._device,
         rtpCapabilities: this._mediasoupDevice.rtpCapabilities,
         sctpCapabilities: this._useDataChannel ? this._mediasoupDevice.sctpCapabilities : undefined,
-        token: this._joinToken
+        token: this._spaceJoinToken
       });
 
       this.occupants = {};

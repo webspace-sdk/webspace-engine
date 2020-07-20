@@ -635,7 +635,7 @@ const setupSpaceChannelMessageHandlers = spacePhxChannel => {
   });
 };
 
-const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager, addToPresenceLog) => {
+const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager, addToPresenceLog, remountUI, remountJelUI) => {
   const scene = document.querySelector("a-scene");
   const { hubChannel, spaceChannel } = window.APP;
 
@@ -680,7 +680,7 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager, addToPresen
     const hub = hubs[0];
     const userInfo = spaceChannel.presence.state[session_id];
 
-    updateUIForHub(hub, hubChannel);
+    updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
 
     if (stale_fields.includes("scene")) {
       const fader = document.getElementById("viewing-camera").components["fader"];
@@ -697,8 +697,9 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager, addToPresen
       });
     }
 
-    if (stale_fields.includes("member_permissions")) {
+    if (stale_fields.includes("roles")) {
       hubChannel.fetchPermissions();
+      spaceChannel.fetchPermissions();
     }
 
     if (stale_fields.includes("name")) {
@@ -779,7 +780,7 @@ export function joinHub(socket, history, entryManager, remountUI, remountJelUI, 
   console.log(`Hub ID: ${hubId}`);
 
   const hubPhxChannel = socket.channel(`hub:${hubId}`, createHubChannelParams());
-  setupHubChannelMessageHandlers(hubPhxChannel, entryManager, addToPresenceLog);
+  setupHubChannelMessageHandlers(hubPhxChannel, entryManager, addToPresenceLog, remountUI, remountJelUI);
   hubChannel.bind(hubPhxChannel, hubId);
 
   return joinHubChannel(hubPhxChannel, entryManager, remountUI, remountJelUI);

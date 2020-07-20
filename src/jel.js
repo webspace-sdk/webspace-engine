@@ -809,8 +809,7 @@ async function start() {
   const socket = await createSocket(entryManager);
 
   spaceChannel.addEventListener("permissions_updated", e => {
-    // TODO JEL AUTH token for joining hub in xana
-    const assignJoinToken = () => NAF.connection.adapter.setJoinToken(e.detail.permsToken);
+    const assignJoinToken = () => NAF.connection.adapter.setSpaceJoinToken(e.detail.permsToken);
 
     if (NAF.connection.adapter) {
       assignJoinToken();
@@ -819,8 +818,14 @@ async function start() {
     }
   });
 
-  hubChannel.addEventListener("permissions_updated", () => {
-    // TODO JEL PRESENCE AUTH token for joining hub in xana
+  hubChannel.addEventListener("permissions_updated", e => {
+    const assignJoinToken = () => NAF.connection.adapter.setHubJoinToken(e.detail.permsToken);
+
+    if (NAF.connection.adapter) {
+      assignJoinToken();
+    } else {
+      scene.addEventListener("adapter-ready", assignJoinToken, { once: true });
+    }
   });
 
   scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(socket.params().session_id));
