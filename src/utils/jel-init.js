@@ -490,9 +490,14 @@ const joinSpaceChannel = async (
           entryManager.exitScene();
         }, 90000);
 
+        const nafConnected = new Promise(res => document.body.addEventListener("connected", res, { once: true }));
+        const safConnected = new Promise(res => document.body.addEventListener("share-connected", res, { once: true }));
+
         scene.components["networked-scene"]
           .connect()
           .then(() => scene.components["shared-scene"].connect())
+          .then(() => nafConnected)
+          .then(() => safConnected)
           .then(() => {
             clearTimeout(connectionErrorTimeout);
             scene.emit("didConnectToNetworkedScene");

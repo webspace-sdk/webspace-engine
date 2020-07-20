@@ -818,13 +818,21 @@ async function start() {
     }
   });
 
-  hubChannel.addEventListener("permissions_updated", e => {
-    const assignJoinToken = () => NAF.connection.adapter.setHubJoinToken(e.detail.permsToken);
+  hubChannel.addEventListener("permissions_updated", ({ detail: { permsToken } }) => {
+    const assignJoinToken = () => NAF.connection.adapter.setHubJoinToken(permsToken);
 
     if (NAF.connection.adapter) {
       assignJoinToken();
     } else {
       scene.addEventListener("adapter-ready", assignJoinToken, { once: true });
+    }
+
+    const assignDocToken = () => SAF.connection.adapter.setDocPermsToken(hubChannel.hubId, permsToken);
+
+    if (SAF.connection.adapter) {
+      assignDocToken();
+    } else {
+      scene.addEventListener("shared-adapter-ready", assignDocToken, { once: true });
     }
   });
 
