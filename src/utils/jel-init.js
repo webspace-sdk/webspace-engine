@@ -640,7 +640,14 @@ const setupSpaceChannelMessageHandlers = spacePhxChannel => {
   });
 };
 
-const setupHubChannelMessageHandlers = (hubPhxChannel, entryManager, addToPresenceLog, remountUI, remountJelUI) => {
+const setupHubChannelMessageHandlers = (
+  hubPhxChannel,
+  entryManager,
+  addToPresenceLog,
+  history,
+  remountUI,
+  remountJelUI
+) => {
   const scene = document.querySelector("a-scene");
   const { hubChannel, spaceChannel } = window.APP;
 
@@ -785,7 +792,7 @@ export function joinHub(socket, history, entryManager, remountUI, remountJelUI, 
   console.log(`Hub ID: ${hubId}`);
 
   const hubPhxChannel = socket.channel(`hub:${hubId}`, createHubChannelParams());
-  setupHubChannelMessageHandlers(hubPhxChannel, entryManager, addToPresenceLog, remountUI, remountJelUI);
+  setupHubChannelMessageHandlers(hubPhxChannel, entryManager, addToPresenceLog, history, remountUI, remountJelUI);
   hubChannel.bind(hubPhxChannel, hubId);
 
   return joinHubChannel(hubPhxChannel, entryManager, remountUI, remountJelUI);

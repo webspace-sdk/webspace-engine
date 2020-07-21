@@ -148,26 +148,6 @@ export default class RoomSettingsDialog extends Component {
           <span className={styles.subtitle}>
             <FormattedMessage id="room-settings.permissions-subtitle" />
           </span>
-          <div className={styles.permissions}>
-            {this.renderCheckbox("spawn_and_move_media", false, e => {
-              const newMemberPermissions = {
-                spawn_and_move_media: e.target.checked
-              };
-              if (!e.target.checked) {
-                newMemberPermissions.spawn_camera = false;
-                newMemberPermissions.pin_objects = false;
-              }
-              this.setState({ member_permissions: { ...this.state.member_permissions, ...newMemberPermissions } });
-            })}
-            <div className={styles.permissionsGroup}>
-              {this.renderCheckbox("spawn_camera", !this.state.member_permissions.spawn_and_move_media)}
-              {this.renderCheckbox("pin_objects", !this.state.member_permissions.spawn_and_move_media)}
-            </div>
-            {this.renderCheckbox("spawn_drawing")}
-            {this.renderCheckbox("spawn_emoji")}
-            <div />
-            {this.renderCheckbox("fly")}
-          </div>
           <button type="submit" className={styles.nextButton}>
             <FormattedMessage id="room-settings.apply" />
           </button>
