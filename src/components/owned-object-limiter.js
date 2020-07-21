@@ -26,9 +26,7 @@ AFRAME.registerComponent("owned-object-limiter", {
   _syncCounterRegistration() {
     if (!isSynchronized(this.el)) return;
 
-    const isPinned = this.el.components["pinnable"] && this.el.components["pinnable"].data.pinned;
-
-    if (isMine(this.el) && !isPinned) {
+    if (isMine(this.el)) {
       this.counter.register(this.el);
     } else {
       this.counter.deregister(this.el);
