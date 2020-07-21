@@ -29,9 +29,7 @@ export const SCHEMA = {
       additionalProperties: false,
       properties: {
         displayName: { type: "string", pattern: "^[A-Za-z0-9 -]{3,32}$" },
-        avatarId: { type: "string" },
-        // personalAvatarId is obsolete, but we need it here for backwards compatibility.
-        personalAvatarId: { type: "string" }
+        avatarId: { type: "string" }
       }
     },
 
@@ -102,18 +100,6 @@ export const SCHEMA = {
       }
     },
 
-    creatorAssignmentTokens: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        properties: {
-          hubId: { type: "string" },
-          creatorAssignmentToken: { type: "string" }
-        }
-      }
-    },
-
     embedTokens: {
       type: "array",
       items: {
@@ -159,7 +145,6 @@ export const SCHEMA = {
     activity: { $ref: "#/definitions/activity" },
     settings: { $ref: "#/definitions/settings" },
     preferences: { $ref: "#/definitions/preferences" },
-    creatorAssignmentTokens: { $ref: "#/definitions/creatorAssignmentTokens" },
     embedTokens: { $ref: "#/definitions/embedTokens" },
     onLoadActions: { $ref: "#/definitions/onLoadActions" },
     expandedTreeNodes: { $ref: "#/definitions/expandedTreeNodes" }
@@ -189,7 +174,6 @@ export default class Store extends EventTarget {
       settings: {},
       credentials: {},
       profile: {},
-      creatorAssignmentTokens: [],
       embedTokens: [],
       onLoadActions: [],
       expandedTreeNodes: [],

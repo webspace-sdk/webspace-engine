@@ -1,0 +1,13 @@
+@import './root-vars';
+@import './shared';
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  @extend %default-font;
+}
+
