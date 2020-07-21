@@ -1,7 +1,4 @@
 export default function entityToGltf(el) {
-  // TODO JEL kill?
-  if (!NAF.utils.isMine(el)) return;
-
   // Construct a GLTF node from this entity
   const object3D = el.object3D;
   const components = el.components;

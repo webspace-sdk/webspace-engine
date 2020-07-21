@@ -226,6 +226,7 @@ const createRetChannel = (socket, spaceId) => {
   retPhxChannel.join().receive("error", res => console.error(res));
 
   retPhxChannel.on("notice", async data => {
+    // TODO JEL check controlled deploy
     // On Reticulum deploys, reconnect after a random delay until pool + version match deployed version/pool
     if (data.event === "ret-deploy") {
       await migrateToNewReticulumServer(data, retPhxChannel);
@@ -407,7 +408,6 @@ const joinSpaceChannel = async (
 
           let newHostPollInterval = null;
 
-          // TODO JEL reconnect shared
           // When reconnecting, update the server URL if necessary
           adapter.setReconnectionListeners(
             () => {
@@ -421,9 +421,9 @@ const joinSpaceChannel = async (
                 setupPeerConnectionConfig(adapter, host, turn);
 
                 if (currentServerURL !== newServerURL) {
+                  // TODO JEL test coordinated reconnect
                   console.log("Connecting to new webrtc server " + newServerURL);
                   scene.setAttribute("networked-scene", { serverURL: newServerURL });
-                  // TODO JEL shared reconnect
                   adapter.serverUrl = newServerURL;
                   //NAF.connection.adapter.joinHub(currentHub); // TODO JEL RECONNECT
                 }
@@ -449,7 +449,7 @@ const joinSpaceChannel = async (
           scene.addEventListener(
             "shared-adapter-ready",
             async ({ detail: adapter }) => {
-              // TODO JEL this may not be needed once this is on dyna
+              // TODO JEL this may not be needed once sharedb moves to dyna
               adapter.setClientId(socket.params().session_id);
             },
             { once: true }
@@ -753,7 +753,7 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
   console.log(`Space ID: ${spaceId}`);
   remountJelUI({ spaceId });
 
-  createRetChannel(socket, spaceId); // TODO JEL check reconnect
+  createRetChannel(socket, spaceId);
 
   if (spaceChannel.channel) {
     spaceChannel.leave();
