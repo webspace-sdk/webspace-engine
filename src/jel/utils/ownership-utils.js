@@ -12,6 +12,9 @@ export function takeOwnership(el) {
   const isShared = !!el.components.shared;
   if (!isShared && !el.components.networked) return false;
 
+  // Can't take ownership of shared objects without media permissions.
+  if (isShared && !window.APP.hubChannel.can("spawn_and_move_media")) return false;
+
   const utils = (isShared ? SAF : NAF).utils;
   return utils.takeOwnership(el);
 }

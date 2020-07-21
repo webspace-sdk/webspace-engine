@@ -10,7 +10,7 @@ AFRAME.registerComponent("shared-media", {
   },
 
   setActiveLayer(mediaLayer) {
-    takeOwnership(this.el);
+    if (!takeOwnership(this.el)) return;
     this.el.setAttribute("shared-media", {
       activeMediaLayers: 0x1 << mediaLayer,
       selectedMediaLayer: mediaLayer
