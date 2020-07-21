@@ -808,13 +808,21 @@ async function start() {
 
   const socket = await createSocket(entryManager);
 
-  spaceChannel.addEventListener("permissions_updated", e => {
-    const assignJoinToken = () => NAF.connection.adapter.setSpaceJoinToken(e.detail.permsToken);
+  spaceChannel.addEventListener("permissions_updated", ({ detail: { permsToken } }) => {
+    const assignJoinToken = () => NAF.connection.adapter.setSpaceJoinToken(permsToken);
 
     if (NAF.connection.adapter) {
       assignJoinToken();
     } else {
       scene.addEventListener("adapter-ready", assignJoinToken, { once: true });
+    }
+
+    const assignCollectionToken = () => SAF.connection.adapter.setCollectionPermsToken(permsToken);
+
+    if (SAF.connection.adapter) {
+      assignCollectionToken();
+    } else {
+      scene.addEventListener("shared-adapter-ready", assignCollectionToken, { once: true });
     }
   });
 
