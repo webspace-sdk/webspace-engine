@@ -18,7 +18,6 @@ import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalL
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import entryStyles from "../assets/stylesheets/entry.scss";
 import { mediaSort, mediaSortOrder, DISPLAY_IMAGE } from "../utils/media-sorting";
-import { getPromotionTokenForFile } from "../utils/media-utils";
 import { HorizontalScrollView } from "./horizontal-scroll-view";
 
 export function NavigationRowItem(props) {
@@ -96,10 +95,8 @@ export default class ObjectInfoDialog extends Component {
   static propTypes = {
     scene: PropTypes.object,
     el: PropTypes.object,
-    pinned: PropTypes.bool,
     src: PropTypes.string,
     onClose: PropTypes.func,
-    onPinChanged: PropTypes.func,
     onNavigated: PropTypes.func,
     hubChannel: PropTypes.object
   };
@@ -119,8 +116,6 @@ export default class ObjectInfoDialog extends Component {
     this.navigatePrev = this.navigatePrev.bind(this);
     this.navigate = this.navigate.bind(this);
     this.viewingCamera = document.getElementById("viewing-camera");
-    this.pin = this.pin.bind(this);
-    this.unpin = this.unpin.bind(this);
     this.props.scene.addEventListener("uninspect", () => {
       this.props.onClose();
     });
@@ -138,20 +133,6 @@ export default class ObjectInfoDialog extends Component {
     const mediaEntities = [...this.props.scene.systems["listed-media"].els];
     mediaEntities.sort(mediaSort);
     this.setState({ mediaEntities });
-  }
-
-  pin() {
-    if (!ensureOwnership(this.props.el)) return;
-    this.props.el.setAttribute("pinnable", "pinned", true);
-    this.props.el.emit("pinned", { el: this.props.el });
-    this.props.onPinChanged && this.props.onPinChanged();
-  }
-
-  unpin() {
-    if (!ensureOwnership(this.props.el)) return;
-    this.props.el.setAttribute("pinnable", "pinned", false);
-    this.props.el.emit("unpinned", { el: this.props.el });
-    this.props.onPinChanged && this.props.onPinChanged();
   }
 
   toggleLights() {
@@ -243,12 +224,10 @@ export default class ObjectInfoDialog extends Component {
     mediaEntities,
     showNavigationButtons,
     showGoToButton,
-    showPinButton,
-    showUnpinButton,
     showRemoveButton,
     onClose
   ) {
-    const showObjectActionRow = showGoToButton || showPinButton || showUnpinButton || showRemoveButton;
+    const showObjectActionRow = showGoToButton || showRemoveButton;
     return (
       <div>
         {/* Header  */}
@@ -317,20 +296,6 @@ export default class ObjectInfoDialog extends Component {
                   <ActionRowIcon icon={faTrashAlt} onClick={this.remove.bind(this)} ariaLabel={"Remove Object"} />
                 </div>
               )}
-              {showPinButton && (
-                <div className={oStyles.floatCenter}>
-                  <button onClick={this.pin} className={oStyles.actionRowActionButton}>
-                    <FormattedMessage id={"object-info.pin-button"} />
-                  </button>
-                </div>
-              )}
-              {showUnpinButton && (
-                <div className={oStyles.floatCenter}>
-                  <button onClick={this.unpin} className={oStyles.actionRowActionButtonSecondary}>
-                    <FormattedMessage id={"object-info.unpin-button"} />
-                  </button>
-                </div>
-              )}
               {showGoToButton && (
                 <div className={oStyles.floatRight}>
                   <ActionRowIcon
@@ -348,24 +313,14 @@ export default class ObjectInfoDialog extends Component {
   }
 
   render() {
-    const { pinned, onClose } = this.props;
+    const { onClose } = this.props;
     const isStatic = this.props.el.components.tags && this.props.el.components.tags.data.isStatic;
     const showNavigationButtons = this.state.mediaEntities.length > 1;
     uiRoot = uiRoot || document.getElementById("ui-root");
     const isGhost = uiRoot && uiRoot.firstChild && uiRoot.firstChild.classList.contains("isGhost");
     const showGoToButton = this.props.scene.is("entered") || isGhost;
-    const { fileId } = this.props.el.components["media-loader"].data;
-    const showPinOrUnpin =
-      this.props.scene.is("entered") &&
-      !isStatic &&
-      this.props.hubChannel &&
-      this.props.hubChannel.can("pin_objects") &&
-      !!(fileId && getPromotionTokenForFile(fileId));
-    const showPinButton = showPinOrUnpin && !pinned;
-    const showUnpinButton = showPinOrUnpin && pinned;
     const showRemoveButton =
       this.props.scene.is("entered") &&
-      !pinned &&
       !isStatic &&
       this.props.hubChannel &&
       this.props.hubChannel.can("spawn_and_move_media");
@@ -383,8 +338,6 @@ export default class ObjectInfoDialog extends Component {
         this.state.mediaEntities,
         showNavigationButtons,
         showGoToButton,
-        showPinButton,
-        showUnpinButton,
         showRemoveButton,
         onClose
       );
@@ -433,11 +386,6 @@ export default class ObjectInfoDialog extends Component {
                 </button>
               ) : (
                 <div className={cStyles.actionButtonPlaceholder} />
-              )}
-              {showPinOrUnpin && (
-                <button className={pinned ? "" : cStyles.primaryActionButton} onClick={pinned ? this.unpin : this.pin}>
-                  <FormattedMessage id={`object-info.${pinned ? "unpin-button" : "pin-button"}`} />
-                </button>
               )}
               <a className={cStyles.cancelText} href="#" onClick={onClose}>
                 <FormattedMessage id="client-info.cancel" />

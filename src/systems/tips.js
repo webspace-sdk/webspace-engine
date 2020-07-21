@@ -38,7 +38,6 @@ const TIPS = {
       "menu_hover",
       "object_rotate_button",
       "object_scale_button",
-      "object_pin",
       "invite",
       "pen_color",
       "pen_size",
@@ -55,7 +54,6 @@ const TIPS = {
       "freeze_gesture",
       "object_rotate_button",
       "object_scale_button",
-      "object_pin",
       "invite",
       "feedback"
     ]
@@ -64,7 +62,7 @@ const TIPS = {
 };
 
 // These tips, if closed, will only clear themselves, not all tips.
-const LOCAL_CLOSE_TIPS = ["feedback", "invite", "object_pin"];
+const LOCAL_CLOSE_TIPS = ["feedback", "invite"];
 
 // These tips will remain active even if the user closes the tips globally.
 const KEEP_ACTIVE_AFTER_GLOBAL_CLOSE = ["freeze_gesture", "menu_hover", "feedback"];
@@ -224,12 +222,6 @@ const VALIDATORS = {
     if (!scene.is("frozen")) return INVALID;
     if (mediaCounter.count() === 0) return INVALID;
     if (store && store.state.activity.hasRecentered) return FINISH;
-    return VALID;
-  },
-  object_pin: function(userinput, scene, mediaCounter, store) {
-    if (!scene.is("frozen")) return INVALID;
-    if (mediaCounter.count() === 0) return INVALID;
-    if (store && store.state.activity.hasPinned) return FINISH;
     return VALID;
   },
   object_zoom: function(userinput, scene) {

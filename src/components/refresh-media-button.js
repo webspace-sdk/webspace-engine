@@ -74,11 +74,6 @@ AFRAME.registerComponent("refresh-media-button", {
 
       window.APP.hubChannel.addEventListener("permissions_updated", this.updateVisibility);
 
-      if (this.targetEl) {
-        this.targetEl.addEventListener("pinned", this.updateVisibility);
-        this.targetEl.addEventListener("unpinned", this.updateVisibility);
-      }
-
       this.updateVisibility();
     });
   },
@@ -86,9 +81,7 @@ AFRAME.registerComponent("refresh-media-button", {
   updateVisibility() {
     if (!this.targetEl) return;
 
-    const isPinned = this.targetEl.components.pinnable && this.targetEl.components.pinnable.data.pinned;
-    this.el.object3D.visible =
-      (!isPinned && window.APP.hubChannel.can("spawn_and_move_media")) || window.APP.hubChannel.can("pin_objects");
+    this.el.object3D.visible = window.APP.hubChannel.can("spawn_and_move_media");
   },
 
   play() {
@@ -101,10 +94,5 @@ AFRAME.registerComponent("refresh-media-button", {
 
   remove() {
     window.APP.hubChannel.removeEventListener("permissions_updated", this.updateVisibility);
-
-    if (this.targetEl) {
-      this.targetEl.removeEventListener("pinned", this.updateVisibility);
-      this.targetEl.removeEventListener("unpinned", this.updateVisibility);
-    }
   }
 });

@@ -60,7 +60,6 @@ export const resolveUrl = async (url, quality = null, version = 1, bustCache) =>
 export const upload = (file, desiredContentType) => {
   const formData = new FormData();
   formData.append("media", file);
-  formData.append("promotion_mode", "with_token");
 
   if (desiredContentType) {
     formData.append("desired_content_type", desiredContentType);
@@ -219,9 +218,6 @@ export const addMedia = (
         const srcUrl = new URL(proxiedUrlFor(response.origin));
         srcUrl.searchParams.set("token", response.meta.access_token);
         entity.setAttribute("media-loader", { resolve: false, src: srcUrl.href, fileId: response.file_id });
-        window.APP.store.update({
-          uploadPromotionTokens: [{ fileId: response.file_id, promotionToken: response.meta.promotion_token }]
-        });
       })
       .catch(e => {
         console.error("Media upload failed", e);
@@ -358,10 +354,6 @@ export function injectCustomShaderChunks(obj) {
   });
 
   return shaderUniforms;
-}
-
-export function getPromotionTokenForFile(fileId) {
-  return window.APP.store.state.uploadPromotionTokens.find(upload => upload.fileId === fileId);
 }
 
 const mediaPos = new THREE.Vector3();

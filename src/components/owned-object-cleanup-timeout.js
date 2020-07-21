@@ -12,9 +12,9 @@ AFRAME.registerComponent("owned-object-cleanup-timeout", {
   },
 
   tick() {
+    // TODO JEL remove if no emoji
     if (isSynchronized(this.el) && isMine(this.el)) {
-      const isPinned = this.el.components["pinnable"] && this.el.components["pinnable"].data.pinned;
-      if (isMine(this.el) && !isPinned && performance.now() >= this.timeout) {
+      if (isMine(this.el) && performance.now() >= this.timeout) {
         this.el.parentNode.removeChild(this.el);
         this.timeout = Number.POSITIVE_INFINITY;
       }

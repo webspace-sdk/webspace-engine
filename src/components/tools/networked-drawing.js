@@ -814,9 +814,6 @@ AFRAME.registerComponent("deserialize-drawing-button", {
         drawingManager.drawing.deserializeDrawing(this.networkedDrawingBuffer.data.buffer);
         addMeshScaleAnimation(drawingManager.drawing.el.object3DMap.mesh, { x: 0.001, y: 0.001, z: 0.001 });
 
-        if (this.targetEl.components.pinnable && this.targetEl.components.pinnable.data.pinned) {
-          this.targetEl.setAttribute("pinnable", "pinned", false);
-        }
         this.targetEl.parentEl.removeChild(this.targetEl);
         this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_PEN_START_DRAW);
       };
@@ -842,8 +839,6 @@ AFRAME.registerComponent("deserialize-drawing-button", {
     getNetworkedEntity(this.el).then(networkedEl => {
       this.targetEl = networkedEl;
       this._updateUI();
-      this.targetEl.addEventListener("pinned", this._updateUI);
-      this.targetEl.addEventListener("unpinned", this._updateUI);
     });
   },
 
@@ -858,11 +853,6 @@ AFRAME.registerComponent("deserialize-drawing-button", {
   remove() {
     this.el.sceneEl.removeEventListener("stateadded", this._updateUIOnStateChange);
     this.el.sceneEl.removeEventListener("stateremoved", this._updateUIOnStateChange);
-
-    if (this.targetEl) {
-      this.targetEl.removeEventListener("pinned", this._updateUI);
-      this.targetEl.removeEventListener("unpinned", this._updateUI);
-    }
   },
 
   _updateUIOnStateChange(e) {
@@ -872,9 +862,7 @@ AFRAME.registerComponent("deserialize-drawing-button", {
 
   _updateUI() {
     if (this.networkedDrawingBuffer) {
-      const isPinned = this.targetEl.components.pinnable && this.targetEl.components.pinnable.data.pinned;
-      const canPin = window.APP.hubChannel.can("pin_objects") && window.APP.spaceChannel.signedIn;
-      this.el.object3D.visible = (!isPinned || canPin) && window.APP.hubChannel.can("spawn_drawing");
+      this.el.object3D.visible = window.APP.hubChannel.can("spawn_drawing");
     } else {
       this.el.object3D.visible = false;
     }

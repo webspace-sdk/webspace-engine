@@ -1,4 +1,4 @@
-export default function pinnedEntityToGltf(el) {
+export default function entityToGltf(el) {
   // TODO JEL kill?
   if (!NAF.utils.isMine(el)) return;
 

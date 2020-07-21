@@ -319,8 +319,6 @@ AFRAME.registerComponent("media-video", {
         applyPersistentSync(getNetworkId(this.networkedEl));
         this.updatePlaybackState();
 
-        this.networkedEl.addEventListener("pinned", this.updateHoverMenu);
-        this.networkedEl.addEventListener("unpinned", this.updateHoverMenu);
         window.APP.hubChannel.addEventListener("permissions_updated", this.updateHoverMenu);
 
         // For videos, take ownership after a random delay if nobody
@@ -946,8 +944,6 @@ AFRAME.registerComponent("media-video", {
   updateHoverMenu() {
     if (!this.hoverMenu) return;
 
-    const pinnableElement = this.el.components["media-loader"].data.linkedEl || this.el;
-    const isPinned = pinnableElement.components.pinnable && pinnableElement.components.pinnable.data.pinned;
     this.playbackControls.object3D.visible = !this.data.hidePlaybackControls && !!this.video;
     this.timeLabel.object3D.visible = !this.data.hidePlaybackControls;
 
@@ -955,8 +951,7 @@ AFRAME.registerComponent("media-video", {
       !!this.video && !this.data.contentType.startsWith("audio/") && window.APP.hubChannel.can("spawn_and_move_media");
     this.seekForwardButton.object3D.visible = !!this.video && !this.videoIsLive;
 
-    const mayModifyPlayHead =
-      !!this.video && !this.videoIsLive && (!isPinned || window.APP.hubChannel.can("pin_objects"));
+    const mayModifyPlayHead = !!this.video && !this.videoIsLive && window.APP.hubChannel.can("spawn_and_move_media");
 
     this.playPauseButton.object3D.visible = this.seekForwardButton.object3D.visible = this.seekBackButton.object3D.visible = mayModifyPlayHead;
 
@@ -1060,11 +1055,6 @@ AFRAME.registerComponent("media-video", {
       this.el.removeObject3D("sound");
       this.audio.disconnect();
       delete this.audio;
-    }
-
-    if (this.networkedEl) {
-      this.networkedEl.removeEventListener("pinned", this.updateHoverMenu);
-      this.networkedEl.removeEventListener("unpinned", this.updateHoverMenu);
     }
 
     this.el.sceneEl.removeEventListener("camera-set-active", this.onCameraSetActive);

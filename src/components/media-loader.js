@@ -698,8 +698,6 @@ AFRAME.registerComponent("media-pager", {
     getNetworkedEntity(this.el)
       .then(networkedEl => {
         this.networkedEl = networkedEl;
-        this.networkedEl.addEventListener("pinned", this.update);
-        this.networkedEl.addEventListener("unpinned", this.update);
         window.APP.hubChannel.addEventListener("permissions_updated", this.update);
       })
       .catch(() => {}); //ignore exception, entity might not be networked
@@ -718,13 +716,6 @@ AFRAME.registerComponent("media-pager", {
 
     if (this.pageLabel) {
       this.pageLabel.setAttribute("text", "value", `${this.data.index + 1}/${this.data.maxIndex + 1}`);
-    }
-
-    if (this.prevButton && this.nextButton) {
-      const pinnableElement = this.el.components["media-loader"].data.linkedEl || this.el;
-      const isPinned = pinnableElement.components.pinnable && pinnableElement.components.pinnable.data.pinned;
-      this.prevButton.object3D.visible = this.nextButton.object3D.visible =
-        !isPinned || window.APP.hubChannel.can("pin_objects");
     }
   },
 

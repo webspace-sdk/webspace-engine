@@ -1735,12 +1735,6 @@ class UIRoot extends Component {
                 })
               }
             />
-            <StateRoute
-              stateKey="modal"
-              stateValue="tweet"
-              history={this.props.history}
-              render={() => this.renderDialog(TweetDialog, { history: this.props.history, onClose: this.closeDialog })}
-            />
             {showClientInfo && (
               <ClientInfoDialog
                 clientId={clientInfoClientId}
@@ -1758,13 +1752,7 @@ class UIRoot extends Component {
                 scene={this.props.scene}
                 el={this.state.objectInfo}
                 src={this.state.objectSrc}
-                pinned={
-                  this.state.objectInfo &&
-                  this.state.objectInfo.components["networked"] &&
-                  this.state.objectInfo.components["networked"].data.persistent
-                }
                 hubChannel={this.props.hubChannel}
-                onPinChanged={() => switchToInspectingObject(this.state.objectInfo)}
                 onNavigated={el => switchToInspectingObject(el)}
                 onClose={() => {
                   if (this.props.scene.systems["hubs-systems"].cameraSystem.mode === CAMERA_MODE_INSPECT) {

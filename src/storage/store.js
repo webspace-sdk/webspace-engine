@@ -52,7 +52,6 @@ export const SCHEMA = {
         hasChangedName: { type: "boolean" },
         hasAcceptedProfile: { type: "boolean" },
         lastEnteredAt: { type: "string" },
-        hasPinned: { type: "boolean" },
         hasRotated: { type: "boolean" },
         hasRecentered: { type: "boolean" },
         hasScaled: { type: "boolean" },
@@ -100,18 +99,6 @@ export const SCHEMA = {
         disableEchoCancellation: { type: "bool" },
         disableNoiseSuppression: { type: "bool" },
         disableAutoGainControl: { type: "bool" }
-      }
-    },
-
-    uploadPromotionTokens: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        properties: {
-          fileId: { type: "string" },
-          promotionToken: { type: "string" }
-        }
       }
     },
 
@@ -172,7 +159,6 @@ export const SCHEMA = {
     activity: { $ref: "#/definitions/activity" },
     settings: { $ref: "#/definitions/settings" },
     preferences: { $ref: "#/definitions/preferences" },
-    uploadPromotionTokens: { $ref: "#/definitions/uploadPromotionTokens" },
     creatorAssignmentTokens: { $ref: "#/definitions/creatorAssignmentTokens" },
     embedTokens: { $ref: "#/definitions/embedTokens" },
     onLoadActions: { $ref: "#/definitions/onLoadActions" },
@@ -203,7 +189,6 @@ export default class Store extends EventTarget {
       settings: {},
       credentials: {},
       profile: {},
-      uploadPromotionTokens: [],
       creatorAssignmentTokens: [],
       embedTokens: [],
       onLoadActions: [],
@@ -271,7 +256,7 @@ export default class Store extends EventTarget {
 
   resetTipActivityFlags() {
     this.update({
-      activity: { hasRotated: false, hasPinned: false, hasRecentered: false, hasScaled: false, entryCount: 0 }
+      activity: { hasRotated: false, hasRecentered: false, hasScaled: false, entryCount: 0 }
     });
   }
 

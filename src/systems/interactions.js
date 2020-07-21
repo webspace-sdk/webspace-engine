@@ -219,14 +219,7 @@ AFRAME.registerSystem("interaction", {
       );
       if (state.hovered) {
         const entity = state.hovered;
-        const isFrozen = this.el.is("frozen");
-        const isPinned = entity.components.pinnable && entity.components.pinnable.data.pinned;
-        if (
-          isTagged(entity, "isHoldable") &&
-          userinput.get(options.grabPath) &&
-          (isFrozen || !isPinned) &&
-          canMove(entity)
-        ) {
+        if (isTagged(entity, "isHoldable") && userinput.get(options.grabPath) && canMove(entity)) {
           state.held = entity;
         }
       }

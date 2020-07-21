@@ -4,20 +4,18 @@ import { getCreator, getNetworkedTemplate } from "../jel/utils/ownership-utils";
 // https://github.com/mozilla/hubs/wiki/Hubs-authorization
 export function showHoverEffect(el) {
   const isFrozen = el.sceneEl.is("frozen");
-  const isPinned = el.components.pinnable && el.components.pinnable.data.pinned;
   const isSpawner = !!el.components["super-spawner"];
+  const isMedia = !!el.components["media-loader"];
   const isEmojiSpawner = isSpawner && el.components["super-spawner"].data.template === "#interactable-emoji";
   const isEmoji = !!el.components.emoji;
   const canMove =
-    (isEmoji || isEmojiSpawner
+    isEmoji || isEmojiSpawner
       ? window.APP.hubChannel.can("spawn_emoji")
-      : window.APP.hubChannel.can("spawn_and_move_media")) &&
-    (!isPinned || window.APP.hubChannel.can("pin_objects"));
-  return (isSpawner || !isPinned || isFrozen) && canMove;
+      : window.APP.hubChannel.can("spawn_and_move_media");
+  return (isSpawner || isFrozen || isMedia) && canMove;
 }
 
 export function canMove(entity) {
-  const isPinned = entity.components.pinnable && entity.components.pinnable.data.pinned;
   const networkedTemplate = entity && getNetworkedTemplate(entity);
   const isCamera = networkedTemplate === "#interactable-camera";
   const isPen = networkedTemplate === "#interactable-pen";
@@ -31,7 +29,6 @@ export function canMove(entity) {
     ((isEmoji || isEmojiSpawner
       ? window.APP.hubChannel.can("spawn_emoji")
       : window.APP.hubChannel.can("spawn_and_move_media")) &&
-      (!isPinned || window.APP.hubChannel.can("pin_objects")) &&
       (!isCamera || window.APP.hubChannel.can("spawn_camera")) &&
       (!isPen || window.APP.hubChannel.can("spawn_drawing")))
   );
@@ -85,15 +82,13 @@ function sanitizeMessageData(template, data) {
 }
 
 function authorizeEntityManipulation(entityMetadata, sender, senderPermissions) {
-  const { template, creator, isPinned } = entityMetadata;
+  const { template, creator } = entityMetadata;
   const isCreator = sender === creator;
 
   if (template.endsWith("-waypoint-avatar")) {
     return true;
   } else if (template.endsWith("-avatar")) {
     return isCreator;
-  } else if (template.endsWith("-media")) {
-    return (!isPinned || senderPermissions.pin_objects) && (isCreator || senderPermissions.spawn_and_move_media);
   } else if (template.endsWith("-camera")) {
     return isCreator || senderPermissions.spawn_camera;
   } else if (template.endsWith("-pen") || template.endsWith("-drawing")) {
@@ -116,10 +111,7 @@ function getPendingOrExistingEntityMetadata(networkId) {
     }
 
     const { template, creator } = pendingData;
-    const schema = NAF.schemas.schemaDict[template];
-    const pinnableComponent = pendingData.components[indexForComponent("pinnable", schema)];
-    const isPinned = pinnableComponent && pinnableComponent.pinned;
-    return { template, creator, isPinned };
+    return { template, creator };
   }
 
   const entity = NAF.entities.getEntity(networkId);
@@ -127,9 +119,7 @@ function getPendingOrExistingEntityMetadata(networkId) {
 
   const template = getNetworkedTemplate(entity);
   const creator = getCreator(entity);
-  // TODO JEL kill
-  const isPinned = entity.components.pinnable && entity.components.pinnable.data.pinned;
-  return { template, creator, isPinned };
+  return { template, creator };
 }
 
 function authorizeOrSanitizeMessageData(data, sender, senderPermissions) {
@@ -146,7 +136,6 @@ function authorizeOrSanitizeMessageData(data, sender, senderPermissions) {
 }
 
 // If we receive a sync from a persistent object that we don't have an entity for yet, it must be a scene-owned object
-// (since we guarantee that pinned objects are loaded before connecting NAF).
 // Since we need to get metadata (the template id in particular) from the entity, we must stash these messages until
 // the scene has loaded.
 // Components which require this data must call applyPersistentSync after they are initialized

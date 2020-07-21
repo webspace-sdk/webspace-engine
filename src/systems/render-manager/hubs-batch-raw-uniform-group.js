@@ -94,10 +94,9 @@ export default class HubsBatchRawUniformGroup extends BatchRawUniformGroup {
           const worldScale = Math.sqrt(ms1 * ms1 + ms2 * ms2 + ms3 * ms3);
           const scaledRadius = worldScale * hoverableVisuals.geometryRadius;
 
-          const isPinned = el.components.pinnable && el.components.pinnable.data.pinned;
           const isSpawner = !!el.components["super-spawner"];
           const isFrozen = el.sceneEl.is("frozen");
-          const hideDueToPinning = !isSpawner && isPinned && !isFrozen;
+          const hideEffect = !isSpawner && !isFrozen;
 
           let highlightInteractorOne, highlightInteractorTwo;
           if (interaction.state.leftRemote.hovered === el && !interaction.state.leftRemote.held) {
@@ -118,8 +117,8 @@ export default class HubsBatchRawUniformGroup extends BatchRawUniformGroup {
 
           tempVec4[0] = worldY - scaledRadius;
           tempVec4[1] = worldY + scaledRadius;
-          tempVec4[2] = !!highlightInteractorOne && !hideDueToPinning && !this.isTouchscreen;
-          tempVec4[3] = !!highlightInteractorTwo && !hideDueToPinning && !this.isTouchscreen;
+          tempVec4[2] = !!highlightInteractorOne && !hideEffect && !this.isTouchscreen;
+          tempVec4[3] = !!highlightInteractorTwo && !hideEffect && !this.isTouchscreen;
           this.hubs_sweepParams.set(tempVec4, instanceId * 4);
         }
       }

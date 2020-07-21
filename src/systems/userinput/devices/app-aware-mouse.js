@@ -66,15 +66,11 @@ export class AppAwareMouseDevice {
         intersection.object.el.matches(
           ".interactable, .interactable *, .occupiable-waypoint-icon, .teleport-waypoint-icon"
         );
-      const isPinned =
-        remoteHoverTarget && remoteHoverTarget.components.pinnable && remoteHoverTarget.components.pinnable.data.pinned;
-      const isFrozen = AFRAME.scenes[0].is("frozen");
       const template = remoteHoverTarget && getNetworkedTemplate(remoteHoverTarget);
       const isStaticControlledMedia = template && template === "#static-controlled-media";
       const isStaticMedia = template && template === "#static-media";
       this.clickedOnAnything =
         (isInteractable &&
-          (isFrozen || !isPinned) &&
           (remoteHoverTarget && canMove(remoteHoverTarget)) &&
           !isStaticControlledMedia &&
           !isStaticMedia) ||

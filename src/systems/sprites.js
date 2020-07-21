@@ -148,11 +148,10 @@ function enableSweepingEffect(comp) {
     return false;
   }
 
-  const isPinned = hoverableVisuals.el.components.pinnable && hoverableVisuals.el.components.pinnable.data.pinned;
   const isSpawner = !!hoverableVisuals.el.components["super-spawner"];
   const isFrozen = hoverableVisuals.el.sceneEl.is("frozen");
-  const hideDueToPinning = !isSpawner && isPinned && !isFrozen;
-  return hoverableVisuals.data.enableSweepingEffect && !hideDueToPinning;
+  const hideEffect = !isSpawner && !isFrozen;
+  return hoverableVisuals.data.enableSweepingEffect && !hideEffect;
 }
 
 function createGeometry(maxSprites) {
