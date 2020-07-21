@@ -67,7 +67,7 @@ export default class ClientInfoDialog extends Component {
     const { profile } = this.getPresenceEntry(this.props.spacePresences);
 
     performConditionalSignIn(
-      () => hubChannel.can("update_roles"),
+      () => hubChannel.can("update_hub_roles"),
       async () => {
         onClose();
 
@@ -84,7 +84,7 @@ export default class ClientInfoDialog extends Component {
     const { clientId, performConditionalSignIn, hubChannel, onClose } = this.props;
 
     performConditionalSignIn(
-      () => hubChannel.can("update_roles"),
+      () => hubChannel.can("update_hub_roles"),
       async () => await hubChannel.removeOwner(clientId),
       "remove-owner"
     );
@@ -127,13 +127,13 @@ export default class ClientInfoDialog extends Component {
         <div className={styles.identityName}>{identityName}</div>
       </div>
     );
-    const mayKick = hubChannel.canOrWillIfCreator("kick_users");
-    const mayMute = hubChannel.canOrWillIfCreator("mute_users");
+    const mayKick = hubChannel.can("kick_users");
+    const mayMute = hubChannel.can("mute_users");
     const targetIsOwner = !!roles.owner;
     const targetIsCreator = !!roles.creator;
     const targetIsSignedIn = !!roles.signed_in;
-    const mayAddOwner = hubChannel.canOrWillIfCreator("update_roles") && !targetIsOwner && !targetIsCreator;
-    const mayRemoveOwner = hubChannel.canOrWillIfCreator("update_roles") && targetIsOwner && !targetIsCreator;
+    const mayAddOwner = hubChannel.can("update_hub_roles") && !targetIsOwner && !targetIsCreator;
+    const mayRemoveOwner = hubChannel.can("update_hub_roles") && targetIsOwner && !targetIsCreator;
     const isHidden = hubChannel.isHidden(clientId);
 
     return (

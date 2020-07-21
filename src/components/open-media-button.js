@@ -14,7 +14,7 @@ AFRAME.registerComponent("open-media-button", {
       if (!this.targetEl.parentNode) return; // If removed
       const src = (this.src = this.targetEl.components["media-loader"].data.src);
       const visible = src && guessContentType(src) !== "video/vnd.hubs-webrtc";
-      const mayChangeScene = this.el.sceneEl.systems.permissions.canOrWillIfCreator("update_hub");
+      const mayChangeScene = this.el.sceneEl.systems.permissions.can("update_hub_meta");
 
       this.el.object3D.visible = !!visible;
 
@@ -34,7 +34,7 @@ AFRAME.registerComponent("open-media-button", {
     };
 
     this.onClick = async () => {
-      const mayChangeScene = this.el.sceneEl.systems.permissions.canOrWillIfCreator("update_hub");
+      const mayChangeScene = this.el.sceneEl.systems.permissions.can("update_hub_meta");
 
       const exitImmersive = async () => await handleExitTo2DInterstitial(false, () => {}, true);
 

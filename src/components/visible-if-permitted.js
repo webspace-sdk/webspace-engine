@@ -8,7 +8,7 @@ AFRAME.registerComponent("visible-if-permitted", {
     window.APP.hubChannel.addEventListener("permissions_updated", this.updateVisibility);
   },
   updateVisibility() {
-    this.el.object3D.visible = this.el.sceneEl.systems.permissions.canOrWillIfCreator(this.data);
+    this.el.object3D.visible = this.el.sceneEl.systems.permissions.can(this.data);
   },
   remove() {
     window.APP.hubChannel.removeEventListener("permissions_updated", this.updateVisibility);

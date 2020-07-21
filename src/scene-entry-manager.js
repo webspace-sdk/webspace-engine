@@ -540,7 +540,6 @@ export default class SceneEntryManager {
         this.scene.removeState("camera");
       } else {
         const entity = document.createElement("a-entity");
-        // TODO JEL make shared?
         entity.setAttribute("networked", { template: "#interactable-camera" });
         entity.setAttribute("offset-relative-to", {
           target: "#avatar-pov-node",

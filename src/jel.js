@@ -475,7 +475,7 @@ function addGlobalEventListeners(scene, entryManager) {
     const sceneInfo = e.detail;
 
     performConditionalSignIn(
-      () => hubChannel.can("update_hub"),
+      () => hubChannel.can("update_hub_meta"),
       () => hubChannel.updateScene(sceneInfo),
       "change-scene"
     );
@@ -511,7 +511,7 @@ function addGlobalEventListeners(scene, entryManager) {
   scene.addEventListener("action_selected_media_result_entry", e => {
     const { entry, selectAction } = e.detail;
     if ((entry.type !== "scene_listing" && entry.type !== "scene") || selectAction !== "use") return;
-    if (!hubChannel.can("update_hub")) return;
+    if (!hubChannel.can("update_hub_meta")) return;
 
     hubChannel.updateScene(entry.url);
   });

@@ -74,12 +74,12 @@ export default class SettingsMenu extends Component {
     // explicit in code seems like a wise idea.
     const hideExtranousItems = this.props.showAsOverlay;
 
-    const showRoomSettings = !!this.props.hubChannel.canOrWillIfCreator("update_hub");
-    const showCloseRoom = !!this.props.hubChannel.canOrWillIfCreator("close_hub");
+    const showRoomSettings = !!this.props.hubChannel.can("update_hub_meta");
+    const showCloseRoom = !!this.props.hubChannel.can("close_hub");
     const showRoomInfo = !!this.props.hubScene && !hideExtranousItems;
     const showRoomSection = showRoomSettings || showRoomInfo || showCloseRoom;
     const showStreamerMode =
-      this.props.scene.is("entered") && !!this.props.hubChannel.canOrWillIfCreator("kick_users") && !hideExtranousItems;
+      this.props.scene.is("entered") && !!this.props.hubChannel.can("kick_users") && !hideExtranousItems;
 
     // Draw self first
     return (
@@ -180,7 +180,7 @@ export default class SettingsMenu extends Component {
                     className={styles.listItemLink}
                     onClick={() => {
                       this.props.performConditionalSignIn(
-                        () => this.props.hubChannel.can("update_hub"),
+                        () => this.props.hubChannel.can("update_hub_meta"),
                         () => {
                           showFullScreenIfAvailable();
                           this.props.mediaSearchStore.sourceNavigateWithNoNav("scenes", "use");
@@ -209,7 +209,7 @@ export default class SettingsMenu extends Component {
                       e.preventDefault();
 
                       this.props.performConditionalSignIn(
-                        () => this.props.hubChannel.can("update_hub"),
+                        () => this.props.hubChannel.can("update_hub_meta"),
                         () => {
                           this.props.pushHistoryState("modal", "room_settings");
                           this.unexpand();
@@ -237,7 +237,7 @@ export default class SettingsMenu extends Component {
                       e.preventDefault();
 
                       this.props.performConditionalSignIn(
-                        () => this.props.hubChannel.can("update_hub"),
+                        () => this.props.hubChannel.can("update_hub_meta"),
                         () => {
                           this.props.pushHistoryState("modal", "close_room");
                           this.unexpand();

@@ -979,12 +979,12 @@ class UIRoot extends Component {
     return (
       <div className={entryStyles.entryPanel}>
         <div className={entryStyles.name}>
-          {this.props.hubChannel.canOrWillIfCreator("update_hub") ? (
+          {this.props.hubChannel.can("update_hub_meta") ? (
             <button
               className={entryStyles.renameButton}
               onClick={() =>
                 this.props.performConditionalSignIn(
-                  () => this.props.hubChannel.can("update_hub"),
+                  () => this.props.hubChannel.can("update_hub_meta"),
                   () => this.pushHistoryState("modal", "room_settings"),
                   "room-settings"
                 )
@@ -1507,7 +1507,7 @@ class UIRoot extends Component {
       !showInviteTip &&
       !this.state.showShareDialog &&
       this.props.hubChannel &&
-      this.props.hubChannel.canOrWillIfCreator("update_hub");
+      this.props.hubChannel.can("update_hub_meta");
 
     const streaming = this.state.isStreaming;
 
@@ -1646,7 +1646,7 @@ class UIRoot extends Component {
               history={this.props.history}
               render={() =>
                 this.renderDialog(RoomSettingsDialog, {
-                  showRoomAccessSettings: this.props.hubChannel.can("update_hub_promotion"),
+                  showRoomAccessSettings: this.props.hubChannel.can("update_hub_meta"),
                   initialSettings: {
                     name: this.props.hub.name,
                     description: this.props.hub.description,
@@ -1843,7 +1843,7 @@ class UIRoot extends Component {
                     className={classNames([styles.chooseSceneButton])}
                     onClick={() => {
                       this.props.performConditionalSignIn(
-                        () => this.props.hubChannel.can("update_hub"),
+                        () => this.props.hubChannel.can("update_hub_meta"),
                         () => {
                           showFullScreenIfAvailable();
                           this.props.mediaSearchStore.sourceNavigateWithNoNav("scenes", "use");

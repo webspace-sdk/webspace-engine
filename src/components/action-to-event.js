@@ -11,7 +11,7 @@ AFRAME.registerComponent("action-to-event", {
     this.needsPermission = !!this.data.withPermission;
     this.updatePermissions = () => {
       if (!this.needsPermission || !window.APP.hubChannel) return;
-      this.hasPermission = window.APP.hubChannel.canOrWillIfCreator(this.data.withPermission);
+      this.hasPermission = window.APP.hubChannel.can(this.data.withPermission);
     };
   },
 

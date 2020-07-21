@@ -4,14 +4,7 @@ import { Presence } from "phoenix";
 import { migrateChannelToSocket, unbindPresence } from "./phoenix-utils";
 
 // Permissions that will be assumed if the user becomes the creator.
-const HUB_CREATOR_PERMISSIONS = [
-  "update_hub",
-  "update_hub_promotion",
-  "update_roles",
-  "close_hub",
-  "mute_users",
-  "kick_users"
-];
+const HUB_CREATOR_PERMISSIONS = ["update_hub_meta", "update_hub_roles", "close_hub", "mute_users", "kick_users"];
 const VALID_PERMISSIONS =
   HUB_CREATOR_PERMISSIONS +
   ["tweet", "spawn_camera", "spawn_drawing", "spawn_and_move_media", "pin_objects", "spawn_emoji", "fly"];
@@ -30,18 +23,12 @@ export default class HubChannel extends EventTarget {
     return this._permissions && this._permissions[permission];
   }
 
-  // Returns true if the current session has the given permission, *or* will get the permission
-  // if they sign in and become the creator.
-  canOrWillIfCreator(permission) {
-    return this.can(permission); // TODO JEL remove
-  }
-
   canEnterRoom(hub) {
     if (!hub) return false;
     return true;
     // TODO JEL figure out limits
 
-    /*if (this.canOrWillIfCreator("update_hub")) return true;
+    /*if (this.can("update_hub_meta")) return true;
     const roomEntrySlotCount = Object.values(this.presence.state).reduce((acc, { metas }) => {
       const meta = metas[metas.length - 1];
       const usingSlot = meta.presence === "room" || (meta.context && meta.context.entering);
@@ -91,13 +78,13 @@ export default class HubChannel extends EventTarget {
   };
 
   updateScene = url => {
-    if (!this._permissions.update_hub) return "unauthorized";
+    if (!this._permissions.update_hub_meta) return "unauthorized";
     this.channel.push("update_scene", { url });
   };
 
   updateHub = settings => {
-    if (!this._permissions.update_hub) return "unauthorized";
-    this.channel.push("update_hub", settings);
+    if (!this._permissions.update_hub_meta) return "unauthorized";
+    this.channel.push("update_hub_meta", settings);
   };
 
   closeHub = () => {

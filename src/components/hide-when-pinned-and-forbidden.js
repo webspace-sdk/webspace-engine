@@ -42,7 +42,7 @@ AFRAME.registerComponent("hide-when-pinned-and-forbidden", {
     if (this.data.whenPinned) {
       this.el.object3D.visible = !isPinned;
     } else {
-      const pinnedAndForbidden = isPinned && !window.APP.hubChannel.canOrWillIfCreator("pin_objects");
+      const pinnedAndForbidden = isPinned && !window.APP.hubChannel.can("pin_objects");
       this.el.object3D.visible = !pinnedAndForbidden;
     }
   }

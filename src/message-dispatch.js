@@ -109,7 +109,7 @@ export default class MessageDispatch {
           } else {
             this.addToPresenceLog({ type: "log", body: messages["invalid-scene-url"] });
           }
-        } else if (this.hubChannel.canOrWillIfCreator("update_hub")) {
+        } else if (this.hubChannel.can("update_hub_meta")) {
           this.mediaSearchStore.sourceNavigateWithNoNav("scenes", "use");
         }
 

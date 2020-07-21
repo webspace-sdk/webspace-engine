@@ -601,7 +601,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.addEventListener(
           "image-loaded",
           async () => {
-            const mayChangeScene = this.el.sceneEl.systems.permissions.can("update_hub");
+            const mayChangeScene = this.el.sceneEl.systems.permissions.can("update_hub_meta");
 
             if (await isLocalHubsAvatarUrl(src)) {
               this.el.setAttribute("hover-menu__hubs-item", {

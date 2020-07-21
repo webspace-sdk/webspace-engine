@@ -256,8 +256,7 @@ class MediaBrowser extends Component {
     const urlSource = this.getUrlSource(searchParams);
     const isSceneApiType = urlSource === "scenes";
     const isFavorites = urlSource === "favorites";
-    const showCustomOption =
-      !isFavorites && (!isSceneApiType || this.props.hubChannel.canOrWillIfCreator("update_hub"));
+    const showCustomOption = !isFavorites && (!isSceneApiType || this.props.hubChannel.can("update_hub_meta"));
     const entries = (this.state.result && this.state.result.entries) || [];
     const hideSearch = urlSource === "favorites";
     const showEmptyStringOnNoResult = urlSource !== "avatars" && urlSource !== "scenes";
@@ -272,7 +271,7 @@ class MediaBrowser extends Component {
         this.showCustomMediaDialog(urlSource);
       } else {
         this.props.performConditionalSignIn(
-          () => !isSceneApiType || this.props.hubChannel.can("update_hub"),
+          () => !isSceneApiType || this.props.hubChannel.can("update_hub_meta"),
           () => this.showCustomMediaDialog(urlSource),
           "change-scene"
         );
