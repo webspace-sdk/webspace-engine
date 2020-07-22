@@ -30,7 +30,7 @@ const Nav = styled.div``;
 const TestButton = styled.button``;
 
 function useNavResize(navExpanded) {
-  const scene = useMemo(() => document.querySelector("a-scene"));
+  const scene = useMemo(() => document.querySelector("a-scene"), []);
 
   const resizeTimeout = useRef();
   const resizeInterval = useRef();
@@ -64,13 +64,15 @@ function useNavResize(navExpanded) {
         body.classList.add("nav-hidden");
       }
     },
-    [navExpanded]
+    [navExpanded, scene]
   );
 }
 
 function useTreeData(tree, setTreeData) {
   useEffect(
     () => {
+      if (!tree) return () => {};
+
       const handleTreeData = () => setTreeData(tree.expandedTreeData);
 
       tree.addEventListener("expanded_treedata_updated", handleTreeData);
@@ -78,13 +80,15 @@ function useTreeData(tree, setTreeData) {
 
       () => tree.removeEventListener("expanded_treedata_updated", handleTreeData);
     },
-    [tree]
+    [tree, setTreeData]
   );
 }
 
 function useExpandableTree(treeManager) {
   useEffect(
     () => {
+      if (!treeManager) return () => {};
+
       const handleExpandedNodeIdsChanged = () => {
         treeManager.nav.rebuildExpandedTreeData();
         treeManager.trash.rebuildExpandedTreeData();
@@ -105,14 +109,14 @@ function navigateToHubUrl(history, url) {
 }
 
 function HubTree({ treeManager, history, hub }) {
-  if (!treeManager || !hub) return null;
-
   const [navTreeData, setNavTreeData] = useState([]);
   const [trashTreeData, setTrashTreeData] = useState([]);
 
-  useTreeData(treeManager.nav, setNavTreeData);
-  useTreeData(treeManager.trash, setTrashTreeData);
+  useTreeData(treeManager && treeManager.nav, setNavTreeData);
+  useTreeData(treeManager && treeManager.trash, setTrashTreeData);
   useExpandableTree(treeManager);
+
+  if (!treeManager || !hub) return null;
 
   const onTreeDragEnter = () => {
     // TODO store + expand
@@ -134,14 +138,15 @@ function HubTree({ treeManager, history, hub }) {
     }
   };
 
-  const selectedKeys = hub ? [treeManager.nav.getNodeIdForHubId(hub.hub_id)] : [];
+  const navSelectedKeys = hub ? [treeManager.nav.getNodeIdForHubId(hub.hub_id)] : [];
+  const trashSelectedKeys = hub ? [treeManager.trash.getNodeIdForHubId(hub.hub_id)] : [];
 
   return (
     <div>
       <Tree
         treeData={navTreeData}
         selectable={true}
-        selectedKeys={selectedKeys}
+        selectedKeys={navSelectedKeys}
         draggable
         onDragEnter={onTreeDragEnter}
         onDrop={onTreeDrop("nav")}
@@ -149,12 +154,14 @@ function HubTree({ treeManager, history, hub }) {
         expandedKeys={treeManager.expandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
       />
+      Trash
       <Tree
         treeData={trashTreeData}
         selectable={true}
-        selectedKeys={selectedKeys}
+        selectedKeys={trashSelectedKeys}
         draggable
         expandedKeys={treeManager.expandedNodeIds()}
+        onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
         onDragEnter={onTreeDragEnter}
         onDrop={onTreeDrop}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
@@ -169,6 +176,24 @@ function JelUI({ navExpanded = true, treeManager, history, hub, spaceIdsToHomeHu
     treeManager.nav.addToRoot(hub.hub_id);
   };
 
+  const onTrashClick = () => {
+    const nodeId = treeManager.nav.getNodeIdForHubId(hub.hub_id);
+    treeManager.moveToTrash(nodeId);
+  };
+
+  const onDestroyClick = async () => {
+    const nodeId = treeManager.trash.getNodeIdForHubId(hub.hub_id);
+
+    if (!nodeId) return;
+
+    treeManager.destroyFromTrash(nodeId, async node => {
+      console.log(node);
+    });
+
+    const homeHubUrl = spaceIdsToHomeHubUrls.get(spaceId);
+    navigateToHubUrl(history, homeHubUrl);
+  };
+
   useNavResize(navExpanded);
 
   return (
@@ -176,7 +201,9 @@ function JelUI({ navExpanded = true, treeManager, history, hub, spaceIdsToHomeHu
       <JelWrap>
         <Nav>
           <TestButton onClick={onCreateClick}>Create World</TestButton>
+          <TestButton onClick={onTrashClick}>Trash World</TestButton>
           <HubTree treeManager={treeManager} hub={hub} history={history} />
+          <TestButton onClick={onDestroyClick}>Destroy World</TestButton>
         </Nav>
         {spaceIdsToHomeHubUrls && (
           <select onChange={e => navigateToHubUrl(history, spaceIdsToHomeHubUrls.get(e.target.value))} value={spaceId}>

@@ -77,27 +77,36 @@ class TreeManager extends EventTarget {
     this.moveToTree(nodeId, this.trash, this.nav);
   }
 
-  destroyFromTrash(nodeId) {
-    this.removeFromTree(nodeId, this.trash);
+  async destroyFromTrash(nodeId, visitor = async () => {}) {
+    await this.removeFromTree(nodeId, this.trash, visitor);
   }
 
-  removeFromTree(nodeId, fromTree) {
+  async removeFromTree(nodeId, fromTree, visitor = async () => {}) {
+    // Compute the tree again to avoid filtering by expanded nodes in the UI, in order
+    // to find the actual full closure of nodes to remove.
+    const treeData = fromTree.computeTree();
+
     // Remove bottom up
-    const removeWalk = (children, remove) => {
+    const removeWalk = async (children, remove) => {
       for (const child of children) {
         const removeChild = remove || child.key === nodeId;
 
         if (child.children) {
-          removeWalk(child.children, removeChild);
+          await removeWalk(child.children, removeChild);
         }
 
         if (removeChild) {
+          //try {
+          await visitor(child);
           fromTree.remove(child.key);
+          /*} catch (e) {
+            console.error(`Error when removing from tree ${e}`);
+          }*/
         }
       }
     };
 
-    removeWalk(fromTree.treeData, false);
+    await removeWalk(treeData, false);
   }
 
   moveToTree(nodeId, fromTree, toTree) {
