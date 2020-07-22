@@ -4,7 +4,7 @@ import styled, { ThemeProvider } from "styled-components";
 import { createHub } from "../../utils/phoenix-utils";
 import "../assets/stylesheets/nav-tree.scss";
 import Tree from "rc-tree";
-import { pushHistoryPath } from "../../utils/history";
+import { pushHistoryPath, replaceHistoryPath } from "../../utils/history";
 
 const dark = {
   text: "white",
@@ -102,10 +102,10 @@ function useExpandableTree(treeManager) {
   );
 }
 
-function navigateToHubUrl(history, url) {
+function navigateToHubUrl(history, url, replace = false) {
   const search = history.location.search;
   const path = new URL(url).pathname;
-  pushHistoryPath(history, path, search);
+  (replace ? replaceHistoryPath : pushHistoryPath)(history, path, search);
 }
 
 function HubTree({ treeManager, history, hub }) {
@@ -211,7 +211,7 @@ function JelUI({
     }
 
     const homeHubUrl = spaceIdsToHomeHubUrls.get(spaceId);
-    navigateToHubUrl(history, homeHubUrl);
+    navigateToHubUrl(history, homeHubUrl, true);
   };
 
   useNavResize(navExpanded);
