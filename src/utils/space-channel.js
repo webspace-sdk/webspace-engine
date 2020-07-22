@@ -187,6 +187,12 @@ export default class SpaceChannel extends EventTarget {
     });
   }
 
+  createInvite() {
+    return new Promise(res => {
+      this.channel.push("create_invite", {}).receive("ok", ({ url }) => res(url));
+    });
+  }
+
   leave = () => {
     this.channel.leave();
     this.channel = null;

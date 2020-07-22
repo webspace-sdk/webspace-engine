@@ -119,9 +119,14 @@ export default class ClientInfoDialog extends Component {
     const { profile } = this.getPresenceEntry(this.props.spacePresences);
     const { roles } = this.getPresenceEntry(this.props.hubPresences);
 
-    const { displayName } = profile;
+    const { displayName, identityName } = profile;
     const { hubChannel, clientId, onClose } = this.props;
-    const title = <div className={styles.title}>{displayName}</div>;
+    const title = (
+      <div className={styles.title}>
+        {displayName}
+        <div className={styles.identityName}>{identityName}</div>
+      </div>
+    );
     const mayKick = hubChannel.can("kick_users");
     const mayMute = hubChannel.can("mute_users");
     const targetIsOwner = !!roles.owner;

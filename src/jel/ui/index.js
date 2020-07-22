@@ -51,6 +51,7 @@ async function checkForCredentials() {
 
   const homeHub = res.memberships.filter(m => m.space_id === spaceId)[0].home_hub;
   document.location = homeHub.url;
+  return true;
 }
 
 function JelHome() {
