@@ -7,7 +7,7 @@ import { createBrowserHistory } from "history";
 import { connectToReticulum, fetchReticulumAuthenticated } from "../../utils/phoenix-utils";
 import AuthChannel from "../../utils/auth-channel";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../../utils/focus-utils";
-import { pushHistoryPath } from "../../utils/history";
+import { replaceHistoryPath, pushHistoryPath } from "../../utils/history";
 import NewUI from "../react-components/new-ui";
 
 const store = new Store();
@@ -17,19 +17,27 @@ const authChannel = new AuthChannel(store);
 
 window.APP = { store };
 
-async function checkForAuthentication() {
+async function authenticateAndDidRedirect() {
   const authToken = qs.get("auth_token");
-  if (!authToken) return;
+  if (!authToken) return false;
 
   const authTopic = qs.get("auth_topic");
   const authPayload = qs.get("auth_payload");
 
   const authChannel = new AuthChannel(store);
   authChannel.setSocket(await connectToReticulum());
-  await authChannel.verifyAuthentication(authTopic, authToken, authPayload);
+  const decryptedPayload = await authChannel.verifyAuthentication(authTopic, authToken, authPayload);
+
+  if (decryptedPayload.post_auth_url) {
+    // Original auth request included a URL to redirect to after logging in. (Eg invites.)
+    document.location = decryptedPayload.post_auth_url;
+    return true;
+  }
+
+  return false;
 }
 
-async function redirectToLoggedInRoot() {
+async function redirectedToLoggedInRoot() {
   const accountId = store.credentialsAccountId;
   if (!accountId) {
     return false;
@@ -61,7 +69,7 @@ async function redirectToLoggedInRoot() {
   return true;
 }
 
-function SigninUI() {
+function SigninUI({ postAuthUrl }) {
   const [email, setEmail] = useState("");
   const [flowState, flowDispatch] = useReducer((state, action) => {
     switch (action) {
@@ -80,7 +88,7 @@ function SigninUI() {
     e.preventDefault();
     flowDispatch("submit");
     authChannel.setSocket(await connectToReticulum());
-    await authChannel.startAuthentication(email);
+    await authChannel.startAuthentication(email, null, { post_auth_url: postAuthUrl });
     flowDispatch("finish");
   };
 
@@ -156,16 +164,27 @@ function SetupUI({ onSetupComplete }) {
 
 function JelIndex() {
   const [path, setPath] = useState(history.location.pathname);
+  const [postAuthUrl, setPostAuthUrl] = useState(null);
 
   useEffect(() => {
-    history.listen(() => {
+    return history.listen(() => {
       setPath(history.location.pathname);
     });
   });
 
-  const signInUI = <SigninUI />;
-  const newUI = <NewUI onSpaceCreated={() => redirectToLoggedInRoot()} />;
-  const setupUI = <SetupUI onSetupComplete={() => redirectToLoggedInRoot()} />;
+  useEffect(
+    () => {
+      if (path.startsWith("/i/") && !store.credentialsAccountId) {
+        setPostAuthUrl(document.location.toString());
+        replaceHistoryPath(history, "/signin", "");
+      }
+    },
+    [path]
+  );
+
+  const signInUI = <SigninUI postAuthUrl={postAuthUrl} />;
+  const newUI = <NewUI onSpaceCreated={() => redirectedToLoggedInRoot()} />;
+  const setupUI = <SetupUI onSetupComplete={() => redirectedToLoggedInRoot()} />;
 
   if (path.startsWith("/signin")) {
     return signInUI;
@@ -173,6 +192,8 @@ function JelIndex() {
     return newUI;
   } else if (path.startsWith("/setup")) {
     return setupUI;
+  } else if (path.startsWith("/i/")) {
+    return <div>Invite</div>;
   } else {
     return (
       <div>
@@ -183,14 +204,18 @@ function JelIndex() {
   }
 }
 
+SigninUI.propTypes = {
+  postAuthUrl: PropTypes.string
+};
+
 SetupUI.propTypes = {
   onSetupComplete: PropTypes.func
 };
 
 (async () => {
   if (history.location.pathname === "/" || history.location.pathname === "") {
-    if (await checkForAuthentication()) return;
-    if (await redirectToLoggedInRoot()) return;
+    if (await authenticateAndDidRedirect()) return;
+    if (await redirectedToLoggedInRoot()) return;
   }
 
   const root = <JelIndex />;

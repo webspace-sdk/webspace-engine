@@ -41,7 +41,7 @@ export default class AuthChannel {
         .receive("ok", () => {
           channel.on("auth_credentials", async ({ credentials: token, payload: payload }) => {
             await this.handleAuthCredentials(payload.email, token);
-            resolve();
+            resolve(payload);
           });
 
           channel.push("auth_verified", { token: authToken, payload: authPayload });
@@ -50,7 +50,7 @@ export default class AuthChannel {
     });
   }
 
-  async startAuthentication(email, spaceChannel) {
+  async startAuthentication(email, spaceChannel, extraPayload = {}) {
     const channel = this.socket.channel(`auth:${uuid()}`);
     await new Promise((resolve, reject) =>
       channel
@@ -66,7 +66,7 @@ export default class AuthChannel {
       })
     );
 
-    channel.push("auth_request", { email, origin: "jel" });
+    channel.push("auth_request", { ...extraPayload, ...{ email, origin: "jel" } });
 
     // Returning an object with the authComplete promise since we want the caller to wait for the above await but not
     // for authComplete.
