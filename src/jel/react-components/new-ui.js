@@ -15,7 +15,9 @@ const NewWrap = styled.div``;
 function NewUI({ onSpaceCreated }) {
   const [name, setName] = useState("");
 
-  useEffect(() => (document.title = "Setup"), []);
+  useEffect(() => {
+    document.title = "Create Space";
+  }, []);
 
   const onSubmit = async e => {
     e.preventDefault();

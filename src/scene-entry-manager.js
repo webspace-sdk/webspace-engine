@@ -206,6 +206,8 @@ export default class SceneEntryManager {
     const offset = { x: 0, y: 0, z: -1.5 };
     const spawnMediaInfrontOfPlayer = (src, contents, contentOrigin) => {
       if (!this.hubChannel.can("spawn_and_move_media")) return;
+      if (src instanceof File && !this.hubChannel.can("upload_files")) return;
+
       const { entity, orientation } = addMedia(
         src,
         contents,

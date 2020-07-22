@@ -57,19 +57,31 @@ export const resolveUrl = async (url, quality = null, version = 1, bustCache) =>
   return resultPromise;
 };
 
-export const upload = (file, desiredContentType) => {
+export const upload = (file, desiredContentType, hubId) => {
   const formData = new FormData();
   formData.append("media", file);
 
+  if (hubId) {
+    formData.append("hub_id", hubId);
+  }
+
   if (desiredContentType) {
     formData.append("desired_content_type", desiredContentType);
+  }
+
+  const headers = {};
+  const { token } = window.APP.store.state.credentials;
+
+  if (token) {
+    headers.authorization = `bearer ${token}`;
   }
 
   // To eliminate the extra hop and avoid proxy timeouts, upload files directly
   // to a reticulum host.
   return fetch(getDirectMediaAPIEndpoint(), {
     method: "POST",
-    body: formData
+    body: formData,
+    headers
   }).then(r => r.json());
 };
 
@@ -213,7 +225,9 @@ export const addMedia = (
     // Video camera videos are converted to mp4 for compatibility
     const desiredContentType = contentSubtype === "video-camera" ? "video/mp4" : src.type || guessContentType(src.name);
 
-    upload(src, desiredContentType)
+    const hubId = window.APP.hubChannel.hubId;
+
+    upload(src, desiredContentType, hubId)
       .then(response => {
         const srcUrl = new URL(proxiedUrlFor(response.origin));
         srcUrl.searchParams.set("token", response.meta.access_token);

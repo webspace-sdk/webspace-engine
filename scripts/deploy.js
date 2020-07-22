@@ -114,7 +114,6 @@ const getTs = (() => {
 
     const formData = new FormData();
     formData.append("media", createReadStream("_build.tar.gz"));
-    formData.append("promotion_mode", "with_token");
 
     try {
       const res = await fetch(`https://${host}/api/v1/media`, { method: "POST", body: formData });

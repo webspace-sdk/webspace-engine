@@ -3,10 +3,20 @@ import { EventTarget } from "event-target-shim";
 import { Presence } from "phoenix";
 import { migrateChannelToSocket, unbindPresence } from "./phoenix-utils";
 
-// Permissions that will be assumed if the user becomes the creator.
-const HUB_CREATOR_PERMISSIONS = ["update_hub_meta", "update_hub_roles", "close_hub", "mute_users", "kick_users"];
-const VALID_PERMISSIONS =
-  HUB_CREATOR_PERMISSIONS + ["tweet", "spawn_camera", "spawn_drawing", "spawn_and_move_media", "spawn_emoji", "fly"];
+const VALID_PERMISSIONS = [
+  "update_hub_meta",
+  "update_hub_roles",
+  "close_hub",
+  "mute_users",
+  "kick_users",
+  "tweet",
+  "spawn_camera",
+  "spawn_drawing",
+  "spawn_and_move_media",
+  "spawn_emoji",
+  "fly",
+  "upload_files"
+];
 
 export default class HubChannel extends EventTarget {
   constructor(store) {

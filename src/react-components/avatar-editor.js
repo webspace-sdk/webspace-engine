@@ -164,7 +164,7 @@ export default class AvatarEditor extends Component {
         creator: this.state.avatar.creatorAttribution
       },
       files: fileUploads
-        .map((resp, i) => [filesToUpload[i], resp && [resp.file_id, resp.meta.access_token, resp.meta.promotion_token]])
+        .map((resp, i) => [filesToUpload[i], resp && [resp.file_id, resp.meta.access_token]])
         .reduce((o, [k, v]) => ({ ...o, [k]: v }), {})
     };
 
