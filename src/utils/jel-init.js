@@ -749,8 +749,9 @@ const setupHubChannelMessageHandlers = (
 
 const setupUIEventHandlers = (hubChannel, remountJelUI) => {
   const onHubDestroyConfirmed = async hubId => {
-    if (hubId !== hubChannel.hubId) return;
-    await hubChannel.destroyHub();
+    if (hubId !== hubChannel.hubId) return false;
+    await hubChannel.closeHub();
+    return true;
   };
 
   remountJelUI({ onHubDestroyConfirmed });

@@ -205,8 +205,10 @@ function JelUI({
     const nodeId = treeManager.trash.getNodeIdForHubId(hubId);
     if (!nodeId) return;
 
-    await onHubDestroyConfirmed(hubId);
-    treeManager.removeFromTrash(nodeId);
+    const destroyed = await onHubDestroyConfirmed(hubId);
+    if (destroyed) {
+      treeManager.removeFromTrash(nodeId);
+    }
 
     const homeHubUrl = spaceIdsToHomeHubUrls.get(spaceId);
     navigateToHubUrl(history, homeHubUrl);
@@ -219,10 +221,10 @@ function JelUI({
       <JelWrap>
         <Nav>
           {spaceCan("create_hub") && <TestButton onClick={onCreateClick}>Create World</TestButton>}
-          {spaceCan("edit_nav") && hubCan("delete_hub") && <TestButton onClick={onTrashClick}>Trash World</TestButton>}
+          {spaceCan("edit_nav") && hubCan("close_hub") && <TestButton onClick={onTrashClick}>Trash World</TestButton>}
           <HubTree treeManager={treeManager} hub={hub} history={history} />
           {spaceCan("edit_nav") && <TestButton onClick={onRestoreClick}>Restore World</TestButton>}
-          {hubCan("delete_hub") && <TestButton onClick={onDestroyClick}>Destroy World</TestButton>}
+          {hubCan("close_hub") && <TestButton onClick={onDestroyClick}>Destroy World</TestButton>}
         </Nav>
         {spaceIdsToHomeHubUrls && (
           <select onChange={e => navigateToHubUrl(history, spaceIdsToHomeHubUrls.get(e.target.value))} value={spaceId}>
