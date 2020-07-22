@@ -70,46 +70,41 @@ class TreeManager extends EventTarget {
   }
 
   moveToTrash(nodeId) {
-    this.moveToTree(nodeId, this.nav, this.trash);
+    this.moveSubtreeToTree(nodeId, this.nav, this.trash);
   }
 
   restoreFromTrash(nodeId) {
-    this.moveToTree(nodeId, this.trash, this.nav);
+    this.moveSubtreeToTree(nodeId, this.trash, this.nav);
   }
 
-  async destroyFromTrash(nodeId, visitor = async () => {}) {
-    await this.removeFromTree(nodeId, this.trash, visitor);
+  removeFromTrash(nodeId) {
+    this.trash.remove(nodeId);
   }
 
-  async removeFromTree(nodeId, fromTree, visitor = async () => {}) {
+  removeSubtreeFromTree(nodeId, fromTree) {
     // Compute the tree again to avoid filtering by expanded nodes in the UI, in order
     // to find the actual full closure of nodes to remove.
     const treeData = fromTree.computeTree();
 
     // Remove bottom up
-    const removeWalk = async (children, remove) => {
+    const removeWalk = (children, remove) => {
       for (const child of children) {
         const removeChild = remove || child.key === nodeId;
 
         if (child.children) {
-          await removeWalk(child.children, removeChild);
+          removeWalk(child.children, removeChild);
         }
 
         if (removeChild) {
-          //try {
-          await visitor(child);
           fromTree.remove(child.key);
-          /*} catch (e) {
-            console.error(`Error when removing from tree ${e}`);
-          }*/
         }
       }
     };
 
-    await removeWalk(treeData, false);
+    removeWalk(treeData, false);
   }
 
-  moveToTree(nodeId, fromTree, toTree) {
+  moveSubtreeToTree(nodeId, fromTree, toTree) {
     // Compute the tree again to avoid filtering by expanded nodes in the UI, in order
     // to find the actual full closure of nodes to move.
     const treeData = fromTree.computeTree();

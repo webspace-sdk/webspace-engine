@@ -747,6 +747,15 @@ const setupHubChannelMessageHandlers = (
   });
 };
 
+const setupUIEventHandlers = (hubChannel, remountJelUI) => {
+  const onHubDestroyConfirmed = async hubId => {
+    if (hubId !== hubChannel.hubId) return;
+    await hubChannel.destroyHub();
+  };
+
+  remountJelUI({ onHubDestroyConfirmed });
+};
+
 export function joinSpace(socket, history, entryManager, remountUI, remountJelUI, addToPresenceLog) {
   const spaceId = getSpaceIdFromHistory(history);
   const { spaceChannel, store } = window.APP;
@@ -794,6 +803,7 @@ export function joinHub(socket, history, entryManager, remountUI, remountJelUI, 
   const hubPhxChannel = socket.channel(`hub:${hubId}`, createHubChannelParams());
   setupHubChannelMessageHandlers(hubPhxChannel, entryManager, addToPresenceLog, history, remountUI, remountJelUI);
   hubChannel.bind(hubPhxChannel, hubId);
+  setupUIEventHandlers(hubChannel, remountJelUI);
 
   return joinHubChannel(hubPhxChannel, entryManager, remountUI, remountJelUI);
 }

@@ -3,8 +3,7 @@ import { EventTarget } from "event-target-shim";
 import { Presence } from "phoenix";
 import { migrateChannelToSocket, unbindPresence } from "./phoenix-utils";
 
-// Permissions that will be assumed if the user becomes the creator.
-const VALID_PERMISSIONS = [];
+const VALID_PERMISSIONS = ["create_hub", "view_nav", "edit_nav"];
 
 export default class SpaceChannel extends EventTarget {
   constructor(store) {

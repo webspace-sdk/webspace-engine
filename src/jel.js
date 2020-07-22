@@ -822,6 +822,8 @@ async function start() {
     } else {
       scene.addEventListener("shared-adapter-ready", assignCollectionToken, { once: true });
     }
+
+    remountJelUI({ spaceCan: spaceChannel.can.bind(spaceChannel) });
   });
 
   hubChannel.addEventListener("permissions_updated", ({ detail: { permsToken } }) => {
@@ -840,6 +842,8 @@ async function start() {
     } else {
       scene.addEventListener("shared-adapter-ready", assignDocToken, { once: true });
     }
+
+    remountJelUI({ hubCan: hubChannel.can.bind(hubChannel) });
   });
 
   scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(socket.params().session_id));

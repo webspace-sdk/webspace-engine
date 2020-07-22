@@ -170,7 +170,17 @@ function HubTree({ treeManager, history, hub }) {
   );
 }
 
-function JelUI({ navExpanded = true, treeManager, history, hub, spaceIdsToHomeHubUrls, spaceId }) {
+function JelUI({
+  navExpanded = true,
+  treeManager,
+  history,
+  hub,
+  hubCan = () => false,
+  spaceCan = () => false,
+  onHubDestroyConfirmed,
+  spaceIdsToHomeHubUrls,
+  spaceId
+}) {
   const onCreateClick = async () => {
     const hub = await createHub(spaceId);
     treeManager.nav.addToRoot(hub.hub_id);
@@ -178,17 +188,25 @@ function JelUI({ navExpanded = true, treeManager, history, hub, spaceIdsToHomeHu
 
   const onTrashClick = () => {
     const nodeId = treeManager.nav.getNodeIdForHubId(hub.hub_id);
+    if (!nodeId) return;
+
     treeManager.moveToTrash(nodeId);
   };
 
-  const onDestroyClick = async () => {
+  const onRestoreClick = () => {
     const nodeId = treeManager.trash.getNodeIdForHubId(hub.hub_id);
-
     if (!nodeId) return;
 
-    treeManager.destroyFromTrash(nodeId, async node => {
-      console.log(node);
-    });
+    treeManager.restoreFromTrash(nodeId);
+  };
+
+  const onDestroyClick = async () => {
+    const hubId = hub.hub_id;
+    const nodeId = treeManager.trash.getNodeIdForHubId(hubId);
+    if (!nodeId) return;
+
+    await onHubDestroyConfirmed(hubId);
+    treeManager.removeFromTrash(nodeId);
 
     const homeHubUrl = spaceIdsToHomeHubUrls.get(spaceId);
     navigateToHubUrl(history, homeHubUrl);
@@ -200,10 +218,11 @@ function JelUI({ navExpanded = true, treeManager, history, hub, spaceIdsToHomeHu
     <ThemeProvider theme={dark}>
       <JelWrap>
         <Nav>
-          <TestButton onClick={onCreateClick}>Create World</TestButton>
-          <TestButton onClick={onTrashClick}>Trash World</TestButton>
+          {spaceCan("create_hub") && <TestButton onClick={onCreateClick}>Create World</TestButton>}
+          {spaceCan("edit_nav") && hubCan("delete_hub") && <TestButton onClick={onTrashClick}>Trash World</TestButton>}
           <HubTree treeManager={treeManager} hub={hub} history={history} />
-          <TestButton onClick={onDestroyClick}>Destroy World</TestButton>
+          {spaceCan("edit_nav") && <TestButton onClick={onRestoreClick}>Restore World</TestButton>}
+          {hubCan("delete_hub") && <TestButton onClick={onDestroyClick}>Destroy World</TestButton>}
         </Nav>
         {spaceIdsToHomeHubUrls && (
           <select onChange={e => navigateToHubUrl(history, spaceIdsToHomeHubUrls.get(e.target.value))} value={spaceId}>
@@ -224,11 +243,14 @@ JelUI.propTypes = {
   treeManager: PropTypes.object,
   history: PropTypes.object,
   hub: PropTypes.object,
+  spaceCan: PropTypes.func,
+  hubCan: PropTypes.func,
   orgPresences: PropTypes.object,
   hubPresences: PropTypes.object,
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,
-  spaceIdsToHomeHubUrls: PropTypes.object
+  spaceIdsToHomeHubUrls: PropTypes.object,
+  onHubDestroyConfirmed: PropTypes.func
 };
 
 HubTree.propTypes = {

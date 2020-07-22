@@ -189,6 +189,27 @@ class TreeSync extends EventTarget {
   }
 
   remove(nodeId) {
+    const treeData = this.computeTree();
+
+    // Move all children to node's parent
+    const moveWalk = (parent, children, moveBelowNode) => {
+      for (const child of children) {
+        if (child.children) {
+          if (child.key === nodeId) {
+            moveWalk(child, child.children, parent);
+          } else if (!moveBelowNode) {
+            moveWalk(child, child.children, null);
+          }
+        }
+
+        if (moveBelowNode) {
+          this.moveBelow(child.key, parent.key);
+        }
+      }
+    };
+
+    moveWalk(null, treeData, null);
+
     const node = this.doc.data[nodeId];
 
     const ops = [];

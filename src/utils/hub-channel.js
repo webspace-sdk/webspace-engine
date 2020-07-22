@@ -15,7 +15,8 @@ const VALID_PERMISSIONS = [
   "spawn_and_move_media",
   "spawn_emoji",
   "fly",
-  "upload_files"
+  "upload_files",
+  "delete_hub"
 ];
 
 export default class HubChannel extends EventTarget {
@@ -96,9 +97,9 @@ export default class HubChannel extends EventTarget {
     this.channel.push("update_hub_meta", settings);
   };
 
-  closeHub = () => {
-    if (!this._permissions.close_hub) return "unauthorized";
-    this.channel.push("close_hub", {});
+  destroyHub = async () => {
+    if (!this._permissions.delete_hub) return "unauthorized";
+    await new Promise(res => this.channel.push("delete_hub", {}).receive("ok", res));
   };
 
   subscribe = subscription => {
