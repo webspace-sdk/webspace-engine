@@ -1,5 +1,5 @@
 import { EventTarget } from "event-target-shim";
-import { DEFAULT_HUB_NAME } from "../../utils/media-utils";
+import { DEFAULT_HUB_NAME } from "../../hubs/utils/media-utils";
 
 // tree doc data structure is:
 // nodeId -> { h: "hubId", r: "prevNodeId", p: "parentNodeId" }

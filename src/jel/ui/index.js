@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import "../assets/stylesheets/index.scss";
-import Store from "../../storage/store";
+import Store from "../../hubs/storage/store";
 import { createBrowserHistory } from "history";
-import { connectToReticulum, fetchReticulumAuthenticated } from "../../utils/phoenix-utils";
-import AuthChannel from "../../utils/auth-channel";
-import { replaceHistoryPath, pushHistoryPath } from "../../utils/history";
+import { connectToReticulum, fetchReticulumAuthenticated } from "../../hubs/utils/phoenix-utils";
+import AuthChannel from "../../hubs/utils/auth-channel";
+import { replaceHistoryPath, pushHistoryPath } from "../../hubs/utils/history";
 import NewUI from "../react-components/new-ui";
 import SetupUI from "../react-components/setup-ui";
 import InviteUI from "../react-components/invite-ui";

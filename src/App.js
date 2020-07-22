@@ -1,5 +1,5 @@
-import Store from "./storage/store";
-import MediaSearchStore from "./storage/media-search-store";
+import Store from "./hubs/storage/store";
+import MediaSearchStore from "./hubs/storage/media-search-store";
 
 export class App {
   constructor() {

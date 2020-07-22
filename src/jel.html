@@ -57,12 +57,12 @@
         light="defaultLightsEnabled: false"
     >
         <a-assets>
-            <img id="presence-count" crossorigin="anonymous" src="./assets/hud/presence-count.png">
-            <img id="action-button" crossorigin="anonymous" src="./assets/hud/action_button.9.png">
-            <img id="button" crossorigin="anonymous" src="./assets/hud/button.9.png">
+            <img id="presence-count" crossorigin="anonymous" src="./hubs/assets/hud/presence-count.png">
+            <img id="action-button" crossorigin="anonymous" src="./hubs/assets/hud/action_button.9.png">
+            <img id="button" crossorigin="anonymous" src="./hubs/assets/hud/button.9.png">
 
-            <a-asset-item id="drawing-pen" response-type="arraybuffer" src="./assets/models/DrawingPen.glb"></a-asset-item>
-            <a-asset-item id="spawn-point" response-type="arraybuffer" src="./assets/models/spawn-point.glb"></a-asset-item>
+            <a-asset-item id="drawing-pen" response-type="arraybuffer" src="./hubs/assets/models/DrawingPen.glb"></a-asset-item>
+            <a-asset-item id="spawn-point" response-type="arraybuffer" src="./hubs/assets/models/spawn-point.glb"></a-asset-item>
 
             <template id="shared-media" singleton="true">
                 <a-entity shared-media></a-entity>
@@ -555,9 +555,6 @@
                         position="0 0.225 0"
                         class="video-snap-button"
                     ></a-entity>
-                    <a-entity mixin="rounded-twitter-text-action-button ui" is-remote-hover-target tags="singleActionButton: true; isHoverMenuChild: true;" tweet-media-button visibility-on-content-types="contentTypes: video/mp4; contentSubtype: video-camera; visible: true;" position="0 0.285 0.001">
-                        <a-entity text="value:tweet; width:1.5; align:center;" text-raycast-hack position="0 0 0.02"></a-entity>
-                    </a-entity>
                     <a-entity class="video-time-label" text="value: 0; anchor: center; align: center; color: #aaa;" text-raycast-hack position="0 -0.24 0" scale="0.75 0.75 0.75"></a-entity>
                     <a-entity class="video-volume-label" text="value: 0%; anchor: center; align: center; color: #ccc; letterSpacing: 4;" text-raycast-hack position="0.0 0.14 0.0015" scale="1.25 1.25 1.25"></a-entity>
                     <a-entity
@@ -648,9 +645,6 @@
 
             <template id="photo-hover-menu">
                 <a-entity class="ui interactable-ui hover-container" visible="false">
-                    <a-entity mixin="rounded-twitter-text-action-button ui" is-remote-hover-target tags="singleActionButton: true; isHoverMenuChild: true;" tweet-media-button position="0 0.285 0.001">
-                        <a-entity text="value:tweet; width:1.5; align:center;" text-raycast-hack position="0 0 0.02"></a-entity>
-                    </a-entity>
                 </a-entity>
             </template>
 
@@ -712,24 +706,6 @@
                     bottom: 66;
                     opacity: 1.0;
                     src: #action-button"
-            ></a-mixin>
-
-            <a-mixin id="rounded-twitter-text-action-button"
-                text-button="
-                    textHoverColor: #fff;
-                    textColor: #fff;
-                    backgroundColor: #1da1f2;
-                    backgroundHoverColor: #2db1ff;
-                    "
-                slice9="
-                    width: 0.45;
-                    height: 0.2;
-                    left: 64;
-                    top: 64;
-                    right: 66;
-                    bottom: 66;
-                    opacity: 1.0;
-                    src: #button"
             ></a-mixin>
         </a-assets>
 

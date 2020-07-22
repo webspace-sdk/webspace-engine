@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useReducer } from "react";
 import PropTypes from "prop-types";
-import { handleTextFieldFocus, handleTextFieldBlur } from "../../utils/focus-utils";
-import { fetchReticulumAuthenticated } from "../../utils/phoenix-utils";
+import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
+import { fetchReticulumAuthenticated } from "../../hubs/utils/phoenix-utils";
 
 export default function SetupUI({ store, onSetupComplete }) {
   const [name, setName] = useState("");

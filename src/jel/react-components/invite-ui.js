@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useReducer } from "react";
 import PropTypes from "prop-types";
-import { fetchReticulumAuthenticated } from "../../utils/phoenix-utils";
+import { fetchReticulumAuthenticated } from "../../hubs/utils/phoenix-utils";
 
 export default function InviteUI({ store, inviteId, onInviteAccepted }) {
   const [spaceName, setSpaceName] = useState("");

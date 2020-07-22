@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { IntlProvider, FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
-import { lang, messages } from "../../utils/i18n";
+import { lang, messages } from "../../hubs/utils/i18n";
 import styled, { ThemeProvider } from "styled-components";
-import { createSpace } from "../../utils/phoenix-utils";
+import { createSpace } from "../../hubs/utils/phoenix-utils";
 
 const base = {
   text: "white",

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 import styled, { ThemeProvider } from "styled-components";
-import { createHub } from "../../utils/phoenix-utils";
+import { createHub } from "../../hubs/utils/phoenix-utils";
 import "../assets/stylesheets/nav-tree.scss";
 import Tree from "rc-tree";
-import { pushHistoryPath, replaceHistoryPath } from "../../utils/history";
+import { pushHistoryPath, replaceHistoryPath } from "../../hubs/utils/history";
 
 const dark = {
   text: "white",

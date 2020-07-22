@@ -1,5 +1,5 @@
 import { takeOwnership, getNetworkId, getNetworkedEntity } from "../utils/ownership-utils";
-import { MEDIA_PRESENCE } from "../../utils/media-utils";
+import { MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 
 const MAX_CONCURRENT_TRANSITIONS = 4;
 

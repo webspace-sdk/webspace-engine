@@ -1,33 +1,33 @@
-import "./webxr-bypass-hacks";
-import "./utils/theme";
-import "./utils/configs";
+import "./hubs/webxr-bypass-hacks";
+import "./hubs/utils/theme";
+import "./hubs/utils/configs";
 
 console.log(`Hubs version: ${process.env.BUILD_VERSION || "?"}`);
 
-import "./assets/stylesheets/scene.scss";
+import "./hubs/assets/stylesheets/scene.scss";
 
 import "aframe";
-import "./utils/logging";
-import "./utils/threejs-world-update";
-import { patchWebGLRenderingContext } from "./utils/webgl";
+import "./hubs/utils/logging";
+import "./hubs/utils/threejs-world-update";
+import { patchWebGLRenderingContext } from "./hubs/utils/webgl";
 patchWebGLRenderingContext();
 
 import "three/examples/js/loaders/GLTFLoader";
 
-import "./components/scene-components";
-import "./components/debug";
-import "./systems/nav";
+import "./hubs/components/scene-components";
+import "./hubs/components/debug";
+import "./hubs/systems/nav";
 
-import { connectToReticulum, fetchReticulumAuthenticated } from "./utils/phoenix-utils";
+import { connectToReticulum, fetchReticulumAuthenticated } from "./hubs/utils/phoenix-utils";
 
 import ReactDOM from "react-dom";
 import React from "react";
 import jwtDecode from "jwt-decode";
-import SceneUI from "./react-components/scene-ui";
-import { disableiOSZoom } from "./utils/disable-ios-zoom";
+import SceneUI from "./hubs/react-components/scene-ui";
+import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
 
-import "./systems/scene-systems";
-import "./gltf-component-mappings";
+import "./hubs/systems/scene-systems";
+import "./hubs/gltf-component-mappings";
 
 import { App } from "./App";
 
@@ -38,9 +38,9 @@ const isMobile = AFRAME.utils.device.isMobile() || AFRAME.utils.device.isMobileV
 
 window.APP.quality = window.APP.store.state.preferences.materialQualitySetting || isMobile ? "low" : "high";
 
-import "./components/event-repeater";
+import "./hubs/components/event-repeater";
 
-import registerTelemetry from "./telemetry";
+import registerTelemetry from "./hubs/telemetry";
 
 disableiOSZoom();
 

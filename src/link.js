@@ -1,15 +1,15 @@
-import "./webxr-bypass-hacks";
-import "./utils/theme";
-import "./utils/configs";
-import "./assets/stylesheets/link.scss";
+import "./hubs/webxr-bypass-hacks";
+import "./hubs/utils/theme";
+import "./hubs/utils/configs";
+import "./hubs/assets/stylesheets/link.scss";
 import "aframe";
 import React from "react";
 import ReactDOM from "react-dom";
-import registerTelemetry from "./telemetry";
-import LinkRoot from "./react-components/link-root";
-import LinkChannel from "./utils/link-channel";
-import { connectToReticulum } from "./utils/phoenix-utils";
-import Store from "./storage/store";
+import registerTelemetry from "./hubs/telemetry";
+import LinkRoot from "./hubs/react-components/link-root";
+import LinkChannel from "./hubs/utils/link-channel";
+import { connectToReticulum } from "./hubs/utils/phoenix-utils";
+import Store from "./hubs/storage/store";
 
 registerTelemetry("/link", "Hubs Device Link");
 

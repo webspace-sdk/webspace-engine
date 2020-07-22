@@ -2,8 +2,8 @@ import Quill from "quill";
 import { getQuill, hasQuill, destroyQuill } from "../utils/quill-pool";
 import { getNetworkId } from "../utils/ownership-utils";
 import { fromByteArray } from "base64-js";
-import { hasMediaLayer, scaleToAspectRatio, MEDIA_PRESENCE } from "../../utils/media-utils";
-import { disposeExistingMesh, disposeTexture } from "../../utils/three-utils";
+import { hasMediaLayer, scaleToAspectRatio, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
+import { disposeExistingMesh, disposeTexture } from "../../hubs/utils/three-utils";
 
 AFRAME.registerComponent("media-text", {
   schema: {

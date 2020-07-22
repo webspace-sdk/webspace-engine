@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useReducer } from "react";
 import PropTypes from "prop-types";
-import { handleTextFieldFocus, handleTextFieldBlur } from "../../utils/focus-utils";
-import { connectToReticulum } from "../../utils/phoenix-utils";
+import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
+import { connectToReticulum } from "../../hubs/utils/phoenix-utils";
 
 export default function LoginUI({ authChannel, postAuthUrl, isSignUp }) {
   const [email, setEmail] = useState("");

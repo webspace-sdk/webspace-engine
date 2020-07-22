@@ -1,10 +1,10 @@
-import "./webxr-bypass-hacks";
+import "./hubs/webxr-bypass-hacks";
 // We should technically be able to just include three here, but our dependancies are tangled such that not having aframe is a bit difficult
-import "./utils/theme";
+import "./hubs/utils/theme";
 console.log(`Hubs version: ${process.env.BUILD_VERSION || "?"}`);
 
 import "aframe";
-import "./utils/logging";
+import "./hubs/utils/logging";
 
 import ReactDOM from "react-dom";
 import React from "react";
@@ -12,19 +12,19 @@ import PropTypes from "prop-types";
 import classNames from "classnames";
 import { IntlProvider, FormattedMessage } from "react-intl";
 
-import configs from "./utils/configs";
-import { lang, messages } from "./utils/i18n";
+import configs from "./hubs/utils/configs";
+import { lang, messages } from "./hubs/utils/i18n";
 
-import { disableiOSZoom } from "./utils/disable-ios-zoom";
+import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
 disableiOSZoom();
 
 import { App } from "./App";
 
-import AvatarPreview from "./react-components/avatar-preview";
+import AvatarPreview from "./hubs/react-components/avatar-preview";
 
-import { fetchAvatar, remixAvatar } from "./utils/avatar-utils";
+import { fetchAvatar, remixAvatar } from "./hubs/utils/avatar-utils";
 
-import styles from "./assets/stylesheets/avatar.scss";
+import styles from "./hubs/assets/stylesheets/avatar.scss";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClone } from "@fortawesome/free-solid-svg-icons/faClone";
