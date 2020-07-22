@@ -110,6 +110,10 @@ export default class HubChannel extends EventTarget {
     this.channel.push(allow ? "unblock_naf" : "block_naf", {});
   };
 
+  setFileInactive = fileId => {
+    this.channel.push("set_file_inactive", { file_id: fileId });
+  };
+
   unsubscribe = subscription => {
     return new Promise(resolve => this.channel.push("unsubscribe", { subscription }).receive("ok", resolve));
   };

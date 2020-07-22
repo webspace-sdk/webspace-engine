@@ -7,7 +7,7 @@ import cStyles from "../assets/stylesheets/client-info-dialog.scss";
 import rootStyles from "../assets/stylesheets/ui-root.scss";
 import oStyles from "../assets/stylesheets/object-info-dialog.scss";
 import { FormattedMessage } from "react-intl";
-import { ensureOwnership, takeOwnership } from "../jel/utils/ownership-utils";
+import { ensureOwnership } from "../jel/utils/ownership-utils";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft";
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons/faChevronRight";
@@ -18,6 +18,7 @@ import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalL
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import entryStyles from "../assets/stylesheets/entry.scss";
 import { mediaSort, mediaSortOrder, DISPLAY_IMAGE } from "../utils/media-sorting";
+import { removeMediaElement } from "../utils/media-utils";
 import { HorizontalScrollView } from "./horizontal-scroll-view";
 
 export function NavigationRowItem(props) {
@@ -204,9 +205,8 @@ export default class ObjectInfoDialog extends Component {
 
     targetEl.addEventListener("animationcomplete", () => {
       const exitAfterRemove = this.state.mediaEntities.length <= 1;
+      removeMediaElement(targetEl);
       this.props.scene.systems["hubs-systems"].cameraSystem.uninspect();
-      takeOwnership(targetEl);
-      targetEl.parentNode.removeChild(targetEl);
 
       if (exitAfterRemove) {
         this.props.onClose();

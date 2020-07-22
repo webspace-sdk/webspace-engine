@@ -6,7 +6,7 @@ import { mapMaterials } from "./material-utils";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import { validMaterials } from "../components/hoverable-visuals";
 import { proxiedUrlFor, guessContentType } from "../utils/media-url-utils";
-import { getNetworkedEntity, getNetworkId } from "../jel/utils/ownership-utils";
+import { getNetworkedEntity, getNetworkId, ensureOwnership } from "../jel/utils/ownership-utils";
 import Linkify from "linkify-it";
 import tlds from "tlds";
 
@@ -601,4 +601,19 @@ export function scaleToAspectRatio(el, ratio) {
   const height = Math.min(1.0, ratio);
   el.object3DMap.mesh.scale.set(width, height, 1);
   el.object3DMap.mesh.matrixNeedsUpdate = true;
+}
+
+export function removeMediaElement(el) {
+  if (!ensureOwnership(el)) {
+    console.warn("Cannot remove element because unable to become owner.");
+    return;
+  }
+
+  const fileId = el.components["media-loader"].data.fileId;
+
+  if (fileId) {
+    window.APP.hubChannel.setFileInactive(fileId);
+  }
+
+  el.parentNode.removeChild(el);
 }
