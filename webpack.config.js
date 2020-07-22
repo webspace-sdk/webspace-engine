@@ -247,15 +247,12 @@ module.exports = async (env, argv) => {
       fs: "empty"
     },
     entry: {
-      support: path.join(__dirname, "src", "support.js"),
-      //index: path.join(__dirname, "src", "index.js"),
+      support: path.join(__dirname, "src", "hubs", "support.js"),
       index: path.join(__dirname, "src", "jel", "ui", "index.js"),
       jel: path.join(__dirname, "src", "jel.js"),
       scene: path.join(__dirname, "src", "scene.js"),
       avatar: path.join(__dirname, "src", "avatar.js"),
-      link: path.join(__dirname, "src", "link.js"),
-      cloud: path.join(__dirname, "src", "cloud.js"),
-      "whats-new": path.join(__dirname, "src", "whats-new.js")
+      link: path.join(__dirname, "src", "link.js")
     },
     output: {
       filename: "assets/js/[name]-[chunkhash].js",
@@ -344,9 +341,9 @@ module.exports = async (env, argv) => {
         },
         {
           test: [
-            path.resolve(__dirname, "src", "utils", "configs.js"),
-            path.resolve(__dirname, "src", "utils", "i18n.js"),
-            path.resolve(__dirname, "src", "support.js")
+            path.resolve(__dirname, "src", "hubs", "utils", "configs.js"),
+            path.resolve(__dirname, "src", "hubs", "utils", "i18n.js"),
+            path.resolve(__dirname, "src", "hubs", "support.js")
           ],
           loader: "babel-loader",
           options: legacyBabelConfig
@@ -513,28 +510,10 @@ module.exports = async (env, argv) => {
           removeComments: false
         }
       }),
-      new HTMLWebpackPlugin({
-        filename: "whats-new.html",
-        template: path.join(__dirname, "src", "whats-new.html"),
-        chunks: ["whats-new"],
-        inject: "head",
-        minify: {
-          removeComments: false
-        }
-      }),
-      new HTMLWebpackPlugin({
-        filename: "cloud.html",
-        template: path.join(__dirname, "src", "cloud.html"),
-        chunks: ["cloud"],
-        inject: "head",
-        minify: {
-          removeComments: false
-        }
-      }),
       new CopyWebpackPlugin([
         {
-          from: "src/hub.service.js",
-          to: "hub.service.js"
+          from: "src/jel.service.js",
+          to: "jel.service.js"
         }
       ]),
       new CopyWebpackPlugin([
