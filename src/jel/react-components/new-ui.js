@@ -12,14 +12,14 @@ const base = {
 
 const NewWrap = styled.div``;
 
-function NewUI() {
+function NewUI({ onSpaceCreated }) {
   const [name, setName] = useState("");
 
   const onSubmit = async e => {
     e.preventDefault();
     const { space_id } = await createSpace(name);
     window.APP.store.update({ context: { spaceId: space_id } });
-    document.location = "/";
+    onSpaceCreated();
   };
 
   return (

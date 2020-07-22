@@ -250,10 +250,6 @@ module.exports = async (env, argv) => {
       support: path.join(__dirname, "src", "support.js"),
       //index: path.join(__dirname, "src", "index.js"),
       index: path.join(__dirname, "src", "jel", "ui", "index.js"),
-      new: path.join(__dirname, "src", "jel", "ui", "new.js"),
-      signin: path.join(__dirname, "src", "signin.js"),
-      signup: path.join(__dirname, "src", "signup.js"),
-      setup: path.join(__dirname, "src", "setup.js"),
       jel: path.join(__dirname, "src", "jel.js"),
       scene: path.join(__dirname, "src", "scene.js"),
       avatar: path.join(__dirname, "src", "avatar.js"),
@@ -473,42 +469,6 @@ module.exports = async (env, argv) => {
         filename: "index.html",
         template: path.join(__dirname, "src", "index.html"),
         chunks: ["support", "index"],
-        chunksSortMode: "manual",
-        minify: {
-          removeComments: false
-        }
-      }),
-      new HTMLWebpackPlugin({
-        filename: "signup.html",
-        template: path.join(__dirname, "src", "signup.html"),
-        chunks: ["support", "signup"],
-        chunksSortMode: "manual",
-        minify: {
-          removeComments: false
-        }
-      }),
-      new HTMLWebpackPlugin({
-        filename: "signin.html",
-        template: path.join(__dirname, "src", "signin.html"),
-        chunks: ["support", "signin"],
-        chunksSortMode: "manual",
-        minify: {
-          removeComments: false
-        }
-      }),
-      new HTMLWebpackPlugin({
-        filename: "setup.html",
-        template: path.join(__dirname, "src", "setup.html"),
-        chunks: ["support", "setup"],
-        chunksSortMode: "manual",
-        minify: {
-          removeComments: false
-        }
-      }),
-      new HTMLWebpackPlugin({
-        filename: "new.html",
-        template: path.join(__dirname, "src", "new.html"),
-        chunks: ["support", "new"],
         chunksSortMode: "manual",
         minify: {
           removeComments: false

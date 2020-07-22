@@ -21,5 +21,5 @@ module.exports = {
     // Light console usage is useful but remove debug logs before merging to master.
     "no-console": "off"
   },
-  extends: ["prettier", "plugin:react/recommended", "eslint:recommended"]
+  extends: ["prettier", "plugin:react/recommended", "eslint:recommended", "plugin:react-hooks/recommended"]
 };
