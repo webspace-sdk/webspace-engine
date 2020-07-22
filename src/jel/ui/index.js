@@ -69,7 +69,7 @@ async function redirectedToLoggedInRoot() {
   return true;
 }
 
-function SigninUI({ postAuthUrl }) {
+function LoginUI({ postAuthUrl, isSignUp }) {
   const [email, setEmail] = useState("");
   const [flowState, flowDispatch] = useReducer((state, action) => {
     switch (action) {
@@ -81,6 +81,13 @@ function SigninUI({ postAuthUrl }) {
         return { signingIn: false, signedIn: true };
     }
   }, "init");
+
+  useEffect(
+    () => {
+      document.title = isSignUp ? "Sign Up" : "Sign In";
+    },
+    [isSignUp]
+  );
 
   const onSubmit = async e => {
     if (flowState.signingIn || flowState.signedIn) return;
@@ -104,17 +111,19 @@ function SigninUI({ postAuthUrl }) {
         onBlur={() => handleTextFieldBlur()}
         onChange={e => setEmail(e.target.value)}
       />
-      <p>
-        {" "}
-        By proceeding, you agree to the{" "}
-        <a rel="noopener noreferrer" target="_blank" href="https://jel.app/terms">
+      {isSignUp && (
+        <p>
           {" "}
-          terms of use
-        </a>{" "}
-        <a rel="noopener noreferrer" target="_blank" href="https://jel.app/privacy">
-          privacy notice
-        </a>
-      </p>
+          By proceeding, you agree to the{" "}
+          <a rel="noopener noreferrer" target="_blank" href="https://jel.app/terms">
+            {" "}
+            terms of use
+          </a>{" "}
+          <a rel="noopener noreferrer" target="_blank" href="https://jel.app/privacy">
+            privacy notice
+          </a>
+        </p>
+      )}
       {flowState.signingIn && <span>Signing In...</span>}
       {flowState.signedIn && <span>Check your email</span>}
       {!flowState.signingIn && !flowState.signedIn && <button type="submit">sign in</button>}
@@ -132,6 +141,10 @@ function SetupUI({ onSetupComplete }) {
         return { settingUp: true };
     }
   }, "init");
+
+  useEffect(() => {
+    document.title = "Setup";
+  }, []);
 
   const onSubmit = async e => {
     if (flowState.settingUp || flowState.setUp) return;
@@ -162,6 +175,71 @@ function SetupUI({ onSetupComplete }) {
   );
 }
 
+function InviteUI({ inviteId, onInviteAccepted }) {
+  const [spaceName, setSpaceName] = useState("");
+  const [spaceId, setSpaceId] = useState(null);
+  const [isExpired, setIsExpired] = useState(false);
+
+  const [flowState, flowDispatch] = useReducer((state, action) => {
+    switch (action) {
+      case "init":
+        return { loadingInvite: true, submittingInvite: false };
+      case "ready":
+        return { loadingInvite: false, submittingInvite: false };
+      case "submit":
+        return { loadingInvite: false, submittingInvite: true };
+    }
+  }, "init");
+
+  useEffect(() => {
+    document.title = "Join Space";
+  }, []);
+
+  const fetchInvite = async inviteId => {
+    try {
+      const res = await fetchReticulumAuthenticated(`/api/v1/invites/${inviteId}`);
+      setSpaceName(res.space.name);
+      setSpaceId(res.space.space_id);
+      document.title = `Join ${res.space.name}`;
+    } catch (e) {
+      setIsExpired(true);
+    }
+
+    flowDispatch("ready");
+  };
+
+  useEffect(
+    () => {
+      fetchInvite(inviteId);
+    },
+    [inviteId]
+  );
+
+  const onSubmit = async e => {
+    if (flowState.submittingInvite) return;
+
+    e.preventDefault();
+    flowDispatch("submit");
+    await fetchReticulumAuthenticated(`/api/v1/accounts/${store.credentialsAccountId}/memberships`, "POST", {
+      invite_id: inviteId
+    });
+    store.update({ context: { spaceId } });
+    onInviteAccepted();
+  };
+
+  if (isExpired) {
+    return <div>expired</div>;
+  }
+
+  return (
+    <form onSubmit={onSubmit}>
+      {flowState.loadingInvite && <span>Loading...</span>}
+      {flowState.submittingInvite && <span>Joining...</span>}
+      {!flowState.submittingInvite && <button type="submit">Join {spaceName}</button>}
+    </form>
+  );
+}
+
 function JelIndex() {
   const [path, setPath] = useState(history.location.pathname);
   const [postAuthUrl, setPostAuthUrl] = useState(null);
@@ -182,18 +260,22 @@ function JelIndex() {
     [path]
   );
 
-  const signInUI = <SigninUI postAuthUrl={postAuthUrl} />;
+  const signInUI = <LoginUI postAuthUrl={postAuthUrl} />;
+  const signUpUI = <LoginUI isSignUp={true} postAuthUrl={postAuthUrl} />;
   const newUI = <NewUI onSpaceCreated={() => redirectedToLoggedInRoot()} />;
   const setupUI = <SetupUI onSetupComplete={() => redirectedToLoggedInRoot()} />;
+  const inviteUI = <InviteUI onInviteAccepted={() => redirectedToLoggedInRoot()} inviteId={path.split("/")[2]} />;
 
   if (path.startsWith("/signin")) {
     return signInUI;
+  } else if (path.startsWith("/signup")) {
+    return signUpUI;
   } else if (path.startsWith("/new")) {
     return newUI;
   } else if (path.startsWith("/setup")) {
     return setupUI;
   } else if (path.startsWith("/i/")) {
-    return <div>Invite</div>;
+    return inviteUI;
   } else {
     return (
       <div>
@@ -204,12 +286,18 @@ function JelIndex() {
   }
 }
 
-SigninUI.propTypes = {
-  postAuthUrl: PropTypes.string
+LoginUI.propTypes = {
+  postAuthUrl: PropTypes.string,
+  isSignUp: PropTypes.bool
 };
 
 SetupUI.propTypes = {
   onSetupComplete: PropTypes.func
+};
+
+InviteUI.propTypes = {
+  inviteId: PropTypes.string,
+  onInviteAccepted: PropTypes.func
 };
 
 (async () => {

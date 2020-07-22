@@ -1,6 +1,6 @@
-import React, { useState /*, useEffect, useMemo, useRef*/ } from "react";
+import React, { useState, useEffect } from "react";
 import { IntlProvider, FormattedMessage } from "react-intl";
-//import PropTypes from "prop-types";
+import PropTypes from "prop-types";
 import { lang, messages } from "../../utils/i18n";
 import styled, { ThemeProvider } from "styled-components";
 import { createSpace } from "../../utils/phoenix-utils";
@@ -14,6 +14,8 @@ const NewWrap = styled.div``;
 
 function NewUI({ onSpaceCreated }) {
   const [name, setName] = useState("");
+
+  useEffect(() => (document.title = "Setup"), []);
 
   const onSubmit = async e => {
     e.preventDefault();
@@ -38,6 +40,8 @@ function NewUI({ onSpaceCreated }) {
   );
 }
 
-NewUI.propTypes = {};
+NewUI.propTypes = {
+  onSpaceCreated: PropTypes.func
+};
 
 export default NewUI;
