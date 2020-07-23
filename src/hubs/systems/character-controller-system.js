@@ -9,8 +9,7 @@ import {
   calculateCameraTransformForWaypoint,
   interpolateAffine,
   affixToWorldUp,
-  ONES,
-  IDENTITY_QUATERNION
+  ONES
 } from "../utils/three-utils";
 import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
 import qsTruthy from "../utils/qs_truthy";
@@ -81,14 +80,16 @@ export class CharacterControllerSystem {
   }
   // We assume the rig is at the root, and its local position === its world position.
   teleportTo = (function() {
-    const transform = new THREE.Matrix4();
+    const inMat = new THREE.Matrix4();
+    const outMat = new THREE.Matrix4();
     return function teleportTo(targetWorldPosition, targetWorldRotation) {
-      transform.compose(
+      inMat.compose(
         targetWorldPosition,
-        targetWorldRotation || IDENTITY_QUATERNION,
+        targetWorldRotation,
         ONES
       );
-      this.enqueueWaypointTravelTo(transform, true, {});
+      rotateInPlaceAroundWorldUp(inMat, Math.PI, outMat);
+      this.enqueueWaypointTravelTo(outMat, true, {});
     };
   })();
 

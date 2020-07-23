@@ -20,13 +20,25 @@ export const SCHEMA = {
         y: { type: "number" },
         z: { type: "number" }
       }
+    },
+
+    lastRotation: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        x: { type: "number" },
+        y: { type: "number" },
+        z: { type: "number" },
+        w: { type: "number" }
+      }
     }
   },
 
   type: "object",
 
   properties: {
-    lastPosition: { $ref: "#/definitions/lastPosition" }
+    lastPosition: { $ref: "#/definitions/lastPosition" },
+    lastRotation: { $ref: "#/definitions/lastRotation" }
   },
 
   additionalProperties: false
@@ -50,7 +62,8 @@ export default class HubStore extends EventTarget {
     });
 
     this.update({
-      lastPosition: {}
+      lastPosition: {},
+      lastRotation: {}
     });
   }
 

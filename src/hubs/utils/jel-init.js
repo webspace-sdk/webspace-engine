@@ -20,7 +20,30 @@ const isMobileVR = AFRAME.utils.device.isMobileVR();
 
 let retPhxChannel;
 let retDeployReconnectInterval;
+let positionTrackerInterval = null;
+
 const retReconnectMaxDelayMs = 15000;
+const stopTrackingPosition = () => clearInterval(positionTrackerInterval);
+
+const startTrackingPosition = (() => {
+  const position = new THREE.Vector3();
+  const rotation = new THREE.Quaternion();
+
+  return hubStore => {
+    stopTrackingPosition();
+    const avatarRig = document.getElementById("avatar-rig");
+
+    positionTrackerInterval = setInterval(() => {
+      avatarRig.object3D.getWorldPosition(position);
+      avatarRig.object3D.getWorldQuaternion(rotation);
+
+      hubStore.update({
+        lastPosition: { x: position.x, y: position.y, z: position.z },
+        lastRotation: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w }
+      });
+    }, 1000);
+  };
+})();
 
 async function updateEnvironmentForHub(hub, hubStore, entryManager, remountUI) {
   let sceneUrl;
@@ -93,18 +116,30 @@ async function updateEnvironmentForHub(hub, hubStore, entryManager, remountUI) {
   const onLoadingEnvironmentLoaded = () => {
     const onEnvironmentLoaded = () => {
       document.querySelector(".a-canvas").classList.remove("a-hidden");
-
       sceneEl.addState("visible");
       environmentEl.removeEventListener("model-error", sceneErrorHandler);
       traverseMeshesAndAddShapes(environmentEl);
 
-      const pos = new THREE.Vector3(1, 1, 1);
+      if (hubStore.state.lastPosition.x) {
+        const lastPosition = new THREE.Vector3(
+          hubStore.state.lastPosition.x,
+          hubStore.state.lastPosition.y,
+          hubStore.state.lastPosition.z
+        );
 
-      /*if (pos) {
-        characterController.teleportTo(pos);
-      } else {*/
-      waypointSystem.moveToSpawnPoint();
-      //}
+        const lastRotation = new THREE.Quaternion(
+          hubStore.state.lastRotation.x,
+          hubStore.state.lastRotation.y,
+          hubStore.state.lastRotation.z,
+          hubStore.state.lastRotation.w
+        );
+
+        characterController.teleportTo(lastPosition, lastRotation);
+      } else {
+        waypointSystem.moveToSpawnPoint();
+      }
+
+      startTrackingPosition(hubStore);
 
       const fader = document.getElementById("viewing-camera").components["fader"];
 
@@ -116,10 +151,9 @@ async function updateEnvironmentForHub(hub, hubStore, entryManager, remountUI) {
       onEnvironmentLoaded();
     } else {
       environmentEl.addEventListener("model-loaded", onEnvironmentLoaded, { once: true });
+      sceneEl.emit("leaving_loading_environment");
+      environmentEl.setAttribute("gltf-model-plus", { src: sceneUrl });
     }
-
-    sceneEl.emit("leaving_loading_environment");
-    environmentEl.setAttribute("gltf-model-plus", { src: sceneUrl });
   };
 
   if (environmentHasSrc(loadingEnvironment)) {
@@ -805,6 +839,8 @@ export function joinHub(socket, history, entryManager, remountUI, remountJelUI, 
 
   const hubStore = new HubStore(hubId);
   const hubPhxChannel = socket.channel(`hub:${hubId}`, createHubChannelParams());
+
+  stopTrackingPosition();
   setupHubChannelMessageHandlers(
     hubPhxChannel,
     hubStore,
