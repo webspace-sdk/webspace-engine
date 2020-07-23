@@ -1,4 +1,4 @@
-import { foo, WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../hubs/systems/character-controller-system";
+import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../hubs/systems/character-controller-system";
 import { ensureOwnership } from "../utils/ownership-utils";
 
 AFRAME.registerComponent("wrapped-entity", {

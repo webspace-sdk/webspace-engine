@@ -85,19 +85,27 @@ export class CharacterControllerSystem {
   }
   // We assume the rig is at the root, and its local position === its world position.
   teleportTo = (function() {
-    const inMat = new THREE.Matrix4();
+    /*const inMat = new THREE.Matrix4();
     const outMat = new THREE.Matrix4();
-    const translation = new THREE.Matrix4();
+    const translation = new THREE.Matrix4();*/
+    const rig = new THREE.Vector3();
+    const head = new THREE.Vector3();
+    const deltaFromHeadToTargetForHead = new THREE.Vector3();
+    const targetForHead = new THREE.Vector3();
+    const targetForRig = new THREE.Vector3();
     return function teleportTo(targetWorldPosition, targetWorldRotation) {
-      inMat.compose(
-        targetWorldPosition,
-        targetWorldRotation,
-        ONES
-      );
-      rotateInPlaceAroundWorldUp(inMat, Math.PI, outMat);
-      translation.makeTranslation(0, -getCurrentPlayerHeight(), -0.15);
-      outMat.multiply(translation);
-      this.enqueueWaypointTravelTo(outMat, true, {});
+      this.isMotionDisabled = false;
+      this.avatarRig.object3D.getWorldPosition(rig);
+      this.avatarPOV.object3D.getWorldPosition(head);
+      targetForHead.copy(targetWorldPosition);
+      targetForHead.y += this.avatarPOV.object3D.position.y;
+      deltaFromHeadToTargetForHead.copy(targetForHead).sub(head);
+      targetForRig.copy(rig).add(deltaFromHeadToTargetForHead);
+      const navMeshExists = NAV_ZONE in this.scene.systems.nav.pathfinder.zones;
+      this.findPositionOnNavMesh(targetForRig, targetForRig, this.avatarRig.object3D.position, navMeshExists);
+      this.avatarPOV.object3D.rotation.setFromQuaternion(targetWorldRotation);
+      this.avatarPOV.object3D.matrixNeedsUpdate = true;
+      this.avatarRig.object3D.matrixNeedsUpdate = true;
     };
   })();
 
