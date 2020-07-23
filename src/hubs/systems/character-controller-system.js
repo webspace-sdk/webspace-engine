@@ -17,7 +17,7 @@ import qsTruthy from "../utils/qs_truthy";
 const NAV_ZONE = "character";
 const qsAllowWaypointLerp = qsTruthy("waypointLerp");
 const isMobile = AFRAME.utils.device.isMobile();
-export const WORLD_RADIUS = 5.0;
+export const WORLD_RADIUS = 7.5;
 export const WORLD_CIRCUMFERENCE = 2 * WORLD_RADIUS * Math.PI;
 export const WORLD_MAX_COORD = WORLD_CIRCUMFERENCE / 2 - 0.5;
 export const WORLD_MIN_COORD = -WORLD_MAX_COORD;

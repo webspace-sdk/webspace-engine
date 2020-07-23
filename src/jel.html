@@ -292,6 +292,7 @@
                     hoverable-visuals
                     listed-media
                     use-audio-system-settings
+                    wrapped-entity
                 >
                 </a-entity>
             </template>
@@ -1007,7 +1008,7 @@
         <a-entity id="viewing-rig" set-yxz-order matrix-auto-update>
             <a-entity
                 id="viewing-camera"
-                camera="near: 0.05"
+                camera="near: 0.05; far: 15;"
                 set-active-camera
                 rotation
                 fader

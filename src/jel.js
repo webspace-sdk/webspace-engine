@@ -146,6 +146,7 @@ import "./hubs/systems/capture-system";
 import "./hubs/systems/listed-media";
 import "./hubs/systems/linked-media";
 import "./jel/systems/media-presence-system";
+import "./jel/systems/wrapped-entity-system";
 import { SOUND_CHAT_MESSAGE } from "./hubs/systems/sound-effects-system";
 
 import "./hubs/gltf-component-mappings";

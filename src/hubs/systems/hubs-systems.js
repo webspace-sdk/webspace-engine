@@ -29,6 +29,7 @@ import { EnterVRButtonSystem } from "./enter-vr-button-system";
 import { MediaPresenceSystem } from "../../jel/systems/media-presence-system";
 import { AudioSystem } from "./audio-system";
 import { MediaStreamSystem } from "./media-stream-system";
+import { WrappedEntitySystem } from "../../jel/systems/wrapped-entity-system";
 
 AFRAME.registerSystem("hubs-systems", {
   init() {
@@ -67,6 +68,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.boneVisibilitySystem = new BoneVisibilitySystem();
     this.uvScrollSystem = new UVScrollSystem();
     this.mediaStreamSystem = new MediaStreamSystem(this.el);
+    this.wrappedEntitySystem = new WrappedEntitySystem(this.el);
   },
 
   tick(t, dt) {
@@ -79,6 +81,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.animationMixerSystem.tick(dt);
 
     this.characterController.tick(t, dt);
+    this.wrappedEntitySystem.tick();
     this.cursorTogglingSystem.tick(systems.interaction, systems.userinput, this.el);
     this.interactionSfxSystem.tick(systems.interaction, systems.userinput, this.soundEffectsSystem);
     this.superSpawnerSystem.tick();
