@@ -82,6 +82,7 @@ export class CharacterControllerSystem {
   teleportTo = (function() {
     const inMat = new THREE.Matrix4();
     const outMat = new THREE.Matrix4();
+    const translation = new THREE.Matrix4();
     return function teleportTo(targetWorldPosition, targetWorldRotation) {
       inMat.compose(
         targetWorldPosition,
@@ -89,6 +90,8 @@ export class CharacterControllerSystem {
         ONES
       );
       rotateInPlaceAroundWorldUp(inMat, Math.PI, outMat);
+      translation.makeTranslation(0, -getCurrentPlayerHeight(), -0.15);
+      outMat.multiply(translation);
       this.enqueueWaypointTravelTo(outMat, true, {});
     };
   })();

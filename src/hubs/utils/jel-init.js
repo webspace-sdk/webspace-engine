@@ -31,11 +31,11 @@ const startTrackingPosition = (() => {
 
   return hubStore => {
     stopTrackingPosition();
-    const avatarRig = document.getElementById("avatar-rig");
+    const avatarPov = document.getElementById("avatar-pov-node");
 
     positionTrackerInterval = setInterval(() => {
-      avatarRig.object3D.getWorldPosition(position);
-      avatarRig.object3D.getWorldQuaternion(rotation);
+      avatarPov.object3D.getWorldPosition(position);
+      avatarPov.object3D.getWorldQuaternion(rotation);
 
       hubStore.update({
         lastPosition: { x: position.x, y: position.y, z: position.z },
