@@ -94,7 +94,10 @@ export function disposeTexture(texture) {
   texture.dispose();
 }
 
-const IDENTITY = new THREE.Matrix4().identity();
+export const IDENTITY = new THREE.Matrix4().identity();
+export const IDENTITY_QUATERNION = new THREE.Quaternion();
+export const ONES = new THREE.Vector3(1, 1, 1);
+
 export function setMatrixWorld(object3D, m) {
   if (!object3D.matrixIsModified) {
     object3D.applyMatrix(IDENTITY); // hack around our matrix optimizations

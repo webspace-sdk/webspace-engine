@@ -9,6 +9,7 @@ import loadingEnvironment from "../assets/models/LoadingEnvironment.glb";
 import { proxiedUrlFor } from "./media-url-utils";
 import { traverseMeshesAndAddShapes } from "./physics-utils";
 import { getReticulumMeta, invalidateReticulumMeta, migrateChannelToSocket, connectToReticulum } from "./phoenix-utils";
+import HubStore from "../storage/hub-store";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
@@ -21,7 +22,7 @@ let retPhxChannel;
 let retDeployReconnectInterval;
 const retReconnectMaxDelayMs = 15000;
 
-async function updateEnvironmentForHub(hub, entryManager, remountUI) {
+async function updateEnvironmentForHub(hub, hubStore, entryManager, remountUI) {
   let sceneUrl;
   let isLegacyBundle; // Deprecated
 
@@ -60,79 +61,79 @@ async function updateEnvironmentForHub(hub, entryManager, remountUI) {
 
   console.log(`Scene URL: ${sceneUrl}`);
 
-  let environmentEl = null;
-
   if (environmentScene.childNodes.length === 0) {
     const environmentEl = document.createElement("a-entity");
 
-    environmentEl.addEventListener(
-      "model-loaded",
-      () => {
-        environmentEl.removeEventListener("model-error", sceneErrorHandler);
-
-        // Show the canvas once the model has loaded
-        document.querySelector(".a-canvas").classList.remove("a-hidden");
-
-        sceneEl.addState("visible");
-
-        //TODO: check if the environment was made with spoke to determine if a shape should be added
-        traverseMeshesAndAddShapes(environmentEl);
-      },
-      { once: true }
-    );
-
-    environmentEl.addEventListener("model-error", sceneErrorHandler, { once: true });
-
     environmentEl.setAttribute("gltf-model-plus", {
-      src: sceneUrl,
       useCache: false,
       inflate: true,
       useECSY: qsTruthy("ecsy")
     });
+
     environmentScene.appendChild(environmentEl);
-  } else {
-    // Change environment
-    environmentEl = environmentScene.childNodes[0];
+  }
 
-    // Clear the three.js image cache and load the loading environment before switching to the new one.
-    THREE.Cache.clear();
-    const waypointSystem = sceneEl.systems["hubs-systems"].waypointSystem;
-    waypointSystem.releaseAnyOccupiedWaypoints();
+  // Change environment
+  const environmentEl = environmentScene.childNodes[0];
 
-    environmentEl.addEventListener(
-      "model-loaded",
-      () => {
-        environmentEl.addEventListener(
-          "model-loaded",
-          () => {
-            environmentEl.removeEventListener("model-error", sceneErrorHandler);
-            traverseMeshesAndAddShapes(environmentEl);
+  // Clear the three.js image cache and load the loading environment before switching to the new one.
+  THREE.Cache.clear();
+  const waypointSystem = sceneEl.systems["hubs-systems"].waypointSystem;
+  waypointSystem.releaseAnyOccupiedWaypoints();
+  const characterController = sceneEl.systems["hubs-systems"].characterController;
 
-            // We've already entered, so move to new spawn point once new environment is loaded
-            if (sceneEl.is("entered")) {
-              waypointSystem.moveToSpawnPoint();
-            }
-
-            const fader = document.getElementById("viewing-camera").components["fader"];
-
-            // Add a slight delay before de-in to reduce hitching.
-            setTimeout(() => fader.fadeIn(), 2000);
-          },
-          { once: true }
-        );
-
-        sceneEl.emit("leaving_loading_environment");
-        environmentEl.setAttribute("gltf-model-plus", { src: sceneUrl });
-      },
-      { once: true }
+  const environmentHasSrc = src => {
+    return (
+      environmentEl.components["gltf-model-plus"] &&
+      environmentEl.components["gltf-model-plus"].data &&
+      environmentEl.components["gltf-model-plus"].data.src === src
     );
+  };
 
-    if (!sceneEl.is("entered")) {
-      environmentEl.addEventListener("model-error", sceneErrorHandler, { once: true });
+  const onLoadingEnvironmentLoaded = () => {
+    const onEnvironmentLoaded = () => {
+      document.querySelector(".a-canvas").classList.remove("a-hidden");
+
+      sceneEl.addState("visible");
+      environmentEl.removeEventListener("model-error", sceneErrorHandler);
+      traverseMeshesAndAddShapes(environmentEl);
+
+      const pos = new THREE.Vector3(1, 1, 1);
+
+      /*if (pos) {
+        characterController.teleportTo(pos);
+      } else {*/
+      waypointSystem.moveToSpawnPoint();
+      //}
+
+      const fader = document.getElementById("viewing-camera").components["fader"];
+
+      // Add a slight delay before de-in to reduce hitching.
+      setTimeout(() => fader.fadeIn(), 2000);
+    };
+
+    if (environmentHasSrc(sceneUrl)) {
+      onEnvironmentLoaded();
+    } else {
+      environmentEl.addEventListener("model-loaded", onEnvironmentLoaded, { once: true });
     }
 
+    sceneEl.emit("leaving_loading_environment");
+    environmentEl.setAttribute("gltf-model-plus", { src: sceneUrl });
+  };
+
+  if (environmentHasSrc(loadingEnvironment)) {
+    onLoadingEnvironmentLoaded();
+  } else {
+    environmentEl.addEventListener("model-loaded", onLoadingEnvironmentLoaded, { once: true });
     environmentEl.setAttribute("gltf-model-plus", { src: loadingEnvironment });
   }
+
+  if (!sceneEl.is("entered")) {
+    environmentEl.addEventListener("model-error", sceneErrorHandler, { once: true });
+  }
+
+  environmentEl.setAttribute("gltf-model-plus", { src: loadingEnvironment });
 }
 
 const createSpaceChannelParams = () => {
@@ -558,7 +559,7 @@ const initHubPresence = async (presence, remountUI, remountJelUI) => {
   });
 };
 
-const joinHubChannel = async (hubPhxChannel, entryManager, remountUI, remountJelUI) => {
+const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI) => {
   let isInitialJoin = true;
   const { spaceChannel, hubChannel } = window.APP;
 
@@ -601,7 +602,7 @@ const joinHubChannel = async (hubPhxChannel, entryManager, remountUI, remountJel
         // Wait for scene objects to load before connecting, so there is no race condition on network state.
         await new Promise(res => {
           updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
-          updateEnvironmentForHub(hub, entryManager, remountUI);
+          updateEnvironmentForHub(hub, hubStore, entryManager, remountUI);
 
           if (isInitialJoin) {
             NAF.connection.adapter
@@ -642,6 +643,7 @@ const setupSpaceChannelMessageHandlers = spacePhxChannel => {
 
 const setupHubChannelMessageHandlers = (
   hubPhxChannel,
+  hubStore,
   entryManager,
   addToPresenceLog,
   history,
@@ -699,7 +701,7 @@ const setupHubChannelMessageHandlers = (
 
       fader.fadeOut().then(() => {
         scene.emit("reset_scene");
-        updateEnvironmentForHub(hub, entryManager);
+        updateEnvironmentForHub(hub, hubStore, entryManager);
       });
 
       addToPresenceLog({
@@ -801,10 +803,19 @@ export function joinHub(socket, history, entryManager, remountUI, remountJelUI, 
   const hubId = getHubIdFromHistory(history);
   console.log(`Hub ID: ${hubId}`);
 
+  const hubStore = new HubStore(hubId);
   const hubPhxChannel = socket.channel(`hub:${hubId}`, createHubChannelParams());
-  setupHubChannelMessageHandlers(hubPhxChannel, entryManager, addToPresenceLog, history, remountUI, remountJelUI);
+  setupHubChannelMessageHandlers(
+    hubPhxChannel,
+    hubStore,
+    entryManager,
+    addToPresenceLog,
+    history,
+    remountUI,
+    remountJelUI
+  );
   hubChannel.bind(hubPhxChannel, hubId);
   setupUIEventHandlers(hubChannel, remountJelUI);
 
-  return joinHubChannel(hubPhxChannel, entryManager, remountUI, remountJelUI);
+  return joinHubChannel(hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI);
 }

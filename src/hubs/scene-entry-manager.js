@@ -68,9 +68,6 @@ export default class SceneEntryManager {
       await exit2DInterstitialAndEnterVR(true);
     }
 
-    const waypointSystem = this.scene.systems["hubs-systems"].waypointSystem;
-    waypointSystem.moveToSpawnPoint();
-
     if (isMobile || forceEnableTouchscreen || qsTruthy("mobile")) {
       this.avatarRig.setAttribute("virtual-gamepad-controls", {});
     }

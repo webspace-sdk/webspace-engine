@@ -8,7 +8,9 @@ import {
   rotateInPlaceAroundWorldUp,
   calculateCameraTransformForWaypoint,
   interpolateAffine,
-  affixToWorldUp
+  affixToWorldUp,
+  ONES,
+  IDENTITY_QUATERNION
 } from "../utils/three-utils";
 import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
 import qsTruthy from "../utils/qs_truthy";
@@ -79,23 +81,14 @@ export class CharacterControllerSystem {
   }
   // We assume the rig is at the root, and its local position === its world position.
   teleportTo = (function() {
-    const rig = new THREE.Vector3();
-    const head = new THREE.Vector3();
-    const deltaFromHeadToTargetForHead = new THREE.Vector3();
-    const targetForHead = new THREE.Vector3();
-    const targetForRig = new THREE.Vector3();
-    //TODO: Use enqueue waypoint
-    return function teleportTo(targetWorldPosition) {
-      this.isMotionDisabled = false;
-      this.avatarRig.object3D.getWorldPosition(rig);
-      this.avatarPOV.object3D.getWorldPosition(head);
-      targetForHead.copy(targetWorldPosition);
-      targetForHead.y += this.avatarPOV.object3D.position.y;
-      deltaFromHeadToTargetForHead.copy(targetForHead).sub(head);
-      targetForRig.copy(rig).add(deltaFromHeadToTargetForHead);
-      const navMeshExists = NAV_ZONE in this.scene.systems.nav.pathfinder.zones;
-      this.findPositionOnNavMesh(targetForRig, targetForRig, this.avatarRig.object3D.position, navMeshExists);
-      this.avatarRig.object3D.matrixNeedsUpdate = true;
+    const transform = new THREE.Matrix4();
+    return function teleportTo(targetWorldPosition, targetWorldRotation) {
+      transform.compose(
+        targetWorldPosition,
+        targetWorldRotation || IDENTITY_QUATERNION,
+        ONES
+      );
+      this.enqueueWaypointTravelTo(transform, true, {});
     };
   })();
 
