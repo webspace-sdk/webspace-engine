@@ -17,6 +17,11 @@ import qsTruthy from "../utils/qs_truthy";
 const NAV_ZONE = "character";
 const qsAllowWaypointLerp = qsTruthy("waypointLerp");
 const isMobile = AFRAME.utils.device.isMobile();
+export const WORLD_RADIUS = 5.0;
+export const WORLD_CIRCUMFERENCE = 2 * WORLD_RADIUS * Math.PI;
+export const WORLD_MAX_COORD = WORLD_CIRCUMFERENCE / 2 - 0.5;
+export const WORLD_MIN_COORD = -WORLD_MAX_COORD;
+export const WORLD_SIZE = WORLD_MAX_COORD - WORLD_MIN_COORD;
 
 const calculateDisplacementToDesiredPOV = (function() {
   const translationCoordinateSpace = new THREE.Matrix4();
@@ -333,6 +338,21 @@ export class CharacterControllerSystem {
             this.fly = false;
           }
         }
+      }
+
+      const newX = newPOV.elements[12];
+      const newZ = newPOV.elements[14];
+
+      if (newX > WORLD_MAX_COORD) {
+        newPOV.elements[12] = -WORLD_SIZE + newX;
+      } else if (newX < WORLD_MIN_COORD) {
+        newPOV.elements[12] = WORLD_SIZE + newX;
+      }
+
+      if (newZ > WORLD_MAX_COORD) {
+        newPOV.elements[14] = -WORLD_SIZE + newZ;
+      } else if (newZ < WORLD_MIN_COORD) {
+        newPOV.elements[14] = WORLD_SIZE + newZ;
       }
 
       childMatch(this.avatarRig.object3D, this.avatarPOV.object3D, newPOV);
