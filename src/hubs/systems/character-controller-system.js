@@ -103,9 +103,12 @@ export class CharacterControllerSystem {
       targetForRig.copy(rig).add(deltaFromHeadToTargetForHead);
       const navMeshExists = NAV_ZONE in this.scene.systems.nav.pathfinder.zones;
       this.findPositionOnNavMesh(targetForRig, targetForRig, this.avatarRig.object3D.position, navMeshExists);
-      this.avatarPOV.object3D.rotation.setFromQuaternion(targetWorldRotation);
-      this.avatarPOV.object3D.matrixNeedsUpdate = true;
       this.avatarRig.object3D.matrixNeedsUpdate = true;
+
+      if (targetWorldRotation) {
+        this.avatarPOV.object3D.rotation.setFromQuaternion(targetWorldRotation);
+        this.avatarPOV.object3D.matrixNeedsUpdate = true;
+      }
     };
   })();
 
