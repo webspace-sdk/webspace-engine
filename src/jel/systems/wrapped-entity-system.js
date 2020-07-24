@@ -1,5 +1,39 @@
-import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../hubs/systems/character-controller-system";
-import { ensureOwnership } from "../utils/ownership-utils";
+export const WORLD_RADIUS = 7.5;
+export const WORLD_CIRCUMFERENCE = 2 * WORLD_RADIUS * Math.PI;
+export const WORLD_MAX_COORD = WORLD_CIRCUMFERENCE / 2 - 0.5;
+export const WORLD_MIN_COORD = -WORLD_MAX_COORD;
+export const WORLD_SIZE = WORLD_MAX_COORD - WORLD_MIN_COORD;
+
+// This code is used to wrap objects around in world space, to simulate the experience of walking
+// around a planet.
+
+const normalizeCoord = c => {
+  if (c < WORLD_MIN_COORD) {
+    return WORLD_SIZE + c;
+  } else if (c > WORLD_MAX_COORD) {
+    return -WORLD_SIZE + c;
+  } else {
+    return c;
+  }
+};
+
+export const registerWrappedEntityPositionNormalizers = () => {
+  const pos = new THREE.Vector3();
+
+  const normalizer = data => {
+    pos.x = normalizeCoord(data.x);
+    pos.y = data.y;
+    pos.z = normalizeCoord(data.z);
+
+    return new THREE.Vector3(pos.x, pos.y, pos.z);
+  };
+
+  NAF.entities.setPositionNormalizer(normalizer);
+  SAF.entities.setPositionNormalizer(normalizer);
+
+  NAF.options.maxLerpDistance = WORLD_SIZE - 1;
+  SAF.options.maxLerpDistance = WORLD_SIZE - 1;
+};
 
 AFRAME.registerComponent("wrapped-entity", {
   init() {
@@ -38,17 +72,11 @@ export class WrappedEntitySystem {
   }
 
   moveElForWrap = (function() {
+    // There are 9 possible positions for this entity in world space that could be seen by the player.
+    // (Planet space is bounded, world space is not.)
+    //
+    // Move the entity to the one nearest the player.
     const pos = new THREE.Vector3();
-
-    const normalizeCoord = c => {
-      if (c < WORLD_MIN_COORD) {
-        return WORLD_SIZE + c;
-      } else if (c > WORLD_MAX_COORD) {
-        return -WORLD_SIZE + c;
-      } else {
-        return c;
-      }
-    };
 
     return function(el) {
       const avatar = this.avatarPovEl.object3D;
@@ -104,7 +132,6 @@ export class WrappedEntitySystem {
         (changeZ < 0 && changeZ < -0.001)
       ) {
         // Change
-        ensureOwnership(el);
         obj.position.x = outX;
         obj.position.z = outZ;
         obj.matrixNeedsUpdate = true;

@@ -8,8 +8,7 @@ import {
   rotateInPlaceAroundWorldUp,
   calculateCameraTransformForWaypoint,
   interpolateAffine,
-  affixToWorldUp,
-  ONES
+  affixToWorldUp
 } from "../utils/three-utils";
 import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
 import qsTruthy from "../utils/qs_truthy";
@@ -17,11 +16,7 @@ import qsTruthy from "../utils/qs_truthy";
 const NAV_ZONE = "character";
 const qsAllowWaypointLerp = qsTruthy("waypointLerp");
 const isMobile = AFRAME.utils.device.isMobile();
-export const WORLD_RADIUS = 7.5;
-export const WORLD_CIRCUMFERENCE = 2 * WORLD_RADIUS * Math.PI;
-export const WORLD_MAX_COORD = WORLD_CIRCUMFERENCE / 2 - 0.5;
-export const WORLD_MIN_COORD = -WORLD_MAX_COORD;
-export const WORLD_SIZE = WORLD_MAX_COORD - WORLD_MIN_COORD;
+import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../jel/systems/wrapped-entity-system";
 
 const calculateDisplacementToDesiredPOV = (function() {
   const translationCoordinateSpace = new THREE.Matrix4();
@@ -85,9 +80,6 @@ export class CharacterControllerSystem {
   }
   // We assume the rig is at the root, and its local position === its world position.
   teleportTo = (function() {
-    /*const inMat = new THREE.Matrix4();
-    const outMat = new THREE.Matrix4();
-    const translation = new THREE.Matrix4();*/
     const rig = new THREE.Vector3();
     const head = new THREE.Vector3();
     const deltaFromHeadToTargetForHead = new THREE.Vector3();
@@ -178,6 +170,7 @@ export class CharacterControllerSystem {
       if (!isGhost && !entered) return;
       const vrMode = this.scene.is("vr-mode");
       this.sfx = this.sfx || this.scene.systems["hubs-systems"].soundEffectsSystem;
+      this.interaction = this.interaction || AFRAME.scenes[0].systems.interaction;
       this.waypointSystem = this.waypointSystem || this.scene.systems["hubs-systems"].waypointSystem;
 
       if (!this.activeWaypoint && this.waypoints.length) {
@@ -354,16 +347,24 @@ export class CharacterControllerSystem {
       const newX = newPOV.elements[12];
       const newZ = newPOV.elements[14];
 
-      if (newX > WORLD_MAX_COORD) {
-        newPOV.elements[12] = -WORLD_SIZE + newX;
-      } else if (newX < WORLD_MIN_COORD) {
-        newPOV.elements[12] = WORLD_SIZE + newX;
-      }
+      if (
+        !this.interaction ||
+        (!this.interaction.state.rightHand.held &&
+          !this.interaction.state.leftHand.held &&
+          !this.interaction.state.leftRemote.held &&
+          !this.interaction.state.rightRemote.held)
+      ) {
+        if (newX > WORLD_MAX_COORD) {
+          newPOV.elements[12] = -WORLD_SIZE + newX;
+        } else if (newX < WORLD_MIN_COORD) {
+          newPOV.elements[12] = WORLD_SIZE + newX;
+        }
 
-      if (newZ > WORLD_MAX_COORD) {
-        newPOV.elements[14] = -WORLD_SIZE + newZ;
-      } else if (newZ < WORLD_MIN_COORD) {
-        newPOV.elements[14] = WORLD_SIZE + newZ;
+        if (newZ > WORLD_MAX_COORD) {
+          newPOV.elements[14] = -WORLD_SIZE + newZ;
+        } else if (newZ < WORLD_MIN_COORD) {
+          newPOV.elements[14] = WORLD_SIZE + newZ;
+        }
       }
 
       childMatch(this.avatarRig.object3D, this.avatarPOV.object3D, newPOV);
