@@ -3,6 +3,7 @@ export const WORLD_CIRCUMFERENCE = 2 * WORLD_RADIUS * Math.PI;
 export const WORLD_MAX_COORD = WORLD_CIRCUMFERENCE / 2 - 0.5;
 export const WORLD_MIN_COORD = -WORLD_MAX_COORD;
 export const WORLD_SIZE = WORLD_MAX_COORD - WORLD_MIN_COORD;
+const MAX_AVATAR_DISTANCE_TO_ALLOW_SCHEDULED_WRAP = 5;
 
 // This code is used to wrap objects around in world space, to simulate the experience of walking
 // around a planet.
@@ -62,14 +63,42 @@ export class WrappedEntitySystem {
     this.els.splice(this.els.indexOf(el), 1);
   }
 
-  tick() {
-    this.frame++;
-    if (this.els.length === 0) return;
+  tick = (function() {
+    const pos = new THREE.Vector3();
 
-    for (let i = 0; i < this.els.length; i++) {
-      this.moveElForWrap(this.els[i]);
-    }
-  }
+    return function() {
+      this.frame++;
+      if (this.els.length === 0) return;
+
+      const avatar = this.avatarPovEl.object3D;
+
+      avatar.getWorldPosition(pos);
+
+      // Avatar x, z
+      const ax = pos.x;
+      const az = pos.z;
+
+      const avatarJumpedThisFrame =
+        !this.previousAvatarX ||
+        Math.abs(this.previousAvatarX - ax) > MAX_AVATAR_DISTANCE_TO_ALLOW_SCHEDULED_WRAP ||
+        Math.abs(this.previousAvatarZ - az) > MAX_AVATAR_DISTANCE_TO_ALLOW_SCHEDULED_WRAP;
+
+      this.previousAvatarX = ax;
+      this.previousAvatarZ = az;
+
+      if (avatarJumpedThisFrame) {
+        // If our avatar just jumped across the map this frame, we need to reposition everything
+        // since we may now be right up against an object on an edge.
+        for (let i = 0; i < this.els.length; i++) {
+          this.moveElForWrap(this.els[i], ax, az);
+        }
+      } else {
+        // Otherwise just reposition stuff lazily, since it's beyond the horizon.
+        const el = this.els[this.frame % this.els.length];
+        this.moveElForWrap(el, ax, az);
+      }
+    };
+  })();
 
   moveElForWrap = (function() {
     // There are 9 possible positions for this entity in world space that could be seen by the player.
@@ -78,15 +107,8 @@ export class WrappedEntitySystem {
     // Move the entity to the one nearest the player.
     const pos = new THREE.Vector3();
 
-    return function(el) {
-      const avatar = this.avatarPovEl.object3D;
+    return function(el, avatarX, avatarZ) {
       const obj = el.object3D;
-
-      avatar.getWorldPosition(pos);
-
-      // Avatar x, z
-      const ax = pos.x;
-      const az = pos.z;
 
       obj.getWorldPosition(pos);
 
@@ -108,8 +130,8 @@ export class WrappedEntitySystem {
           const cz = objZ + j * WORLD_SIZE;
 
           // Compute distance to avatar
-          const dx = cx - ax;
-          const dz = cz - az;
+          const dx = cx - avatarX;
+          const dz = cz - avatarZ;
 
           const distSq = dx * dx + dz * dz;
 
