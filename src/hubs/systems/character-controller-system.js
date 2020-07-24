@@ -8,7 +8,8 @@ import {
   rotateInPlaceAroundWorldUp,
   calculateCameraTransformForWaypoint,
   interpolateAffine,
-  affixToWorldUp
+  affixToWorldUp,
+  IDENTITY_QUATERNION
 } from "../utils/three-utils";
 import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
 import qsTruthy from "../utils/qs_truthy";
@@ -98,6 +99,7 @@ export class CharacterControllerSystem {
       this.avatarRig.object3D.matrixNeedsUpdate = true;
 
       if (targetWorldRotation) {
+        this.avatarRig.object3D.rotation.setFromQuaternion(IDENTITY_QUATERNION);
         this.avatarPOV.object3D.rotation.setFromQuaternion(targetWorldRotation);
         this.avatarPOV.object3D.matrixNeedsUpdate = true;
       }
