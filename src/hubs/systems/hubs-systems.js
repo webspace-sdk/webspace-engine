@@ -30,6 +30,7 @@ import { MediaPresenceSystem } from "../../jel/systems/media-presence-system";
 import { AudioSystem } from "./audio-system";
 import { MediaStreamSystem } from "./media-stream-system";
 import { WrappedEntitySystem } from "../../jel/systems/wrapped-entity-system";
+import { TerrainSystem } from "../../jel/systems/terrain-system";
 
 AFRAME.registerSystem("hubs-systems", {
   init() {
@@ -69,6 +70,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.uvScrollSystem = new UVScrollSystem();
     this.mediaStreamSystem = new MediaStreamSystem(this.el);
     this.wrappedEntitySystem = new WrappedEntitySystem(this.el);
+    this.terrainSystem = new TerrainSystem();
   },
 
   tick(t, dt) {
@@ -112,6 +114,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.enterVRButtonSystem.tick();
     this.uvScrollSystem.tick(dt);
     this.mediaPresenceSystem.tick();
+    this.terrainSystem.tick();
 
     // We run this late in the frame so that its the last thing to have an opinion about the scale of an object
     this.boneVisibilitySystem.tick();
