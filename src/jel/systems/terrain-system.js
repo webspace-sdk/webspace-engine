@@ -1,7 +1,21 @@
 import Pako from "pako";
 import { protocol } from "../protocol/protocol";
+import Terrain from "../objects/terrain";
 
 const TERRAIN_RADIUS = 2;
+const RENDER_GRID = [];
+const SUBCHUNKS = 1;
+const center = new THREE.Vector3();
+
+for (let x = -TERRAIN_RADIUS; x <= TERRAIN_RADIUS; x += 1) {
+  for (let z = -TERRAIN_RADIUS; z <= TERRAIN_RADIUS; z += 1) {
+    const chunk = new THREE.Vector3(x, 0, z);
+    if (chunk.distanceTo(center) <= TERRAIN_RADIUS) {
+      RENDER_GRID.push(chunk);
+    }
+  }
+}
+RENDER_GRID.sort((a, b) => a.distanceTo(center) - b.distanceTo(center));
 
 const keyForChunk = ({ x, z }) => `${x}_${z}`;
 
@@ -18,23 +32,10 @@ export class TerrainSystem {
     this.avatarPovEl = document.getElementById("avatar-pov-node");
     this.avatarRigEl = document.getElementById("avatar-rig");
     this.avatarChunk = new THREE.Vector3(Infinity, 0, Infinity);
+    this.pool = [...Array(RENDER_GRID.length)].map(() => new Terrain());
     this.loadedChunks = new Map();
     this.loadingChunks = new Map();
-
-    const grid = [];
-    const center = new THREE.Vector3();
-
-    for (let x = -TERRAIN_RADIUS; x <= TERRAIN_RADIUS; x += 1) {
-      for (let z = -TERRAIN_RADIUS; z <= TERRAIN_RADIUS; z += 1) {
-        const chunk = new THREE.Vector3(x, 0, z);
-        if (chunk.distanceTo(center) <= TERRAIN_RADIUS) {
-          grid.push(chunk);
-        }
-      }
-    }
-    grid.sort((a, b) => a.distanceTo(center) - b.distanceTo(center));
-
-    this.renderGrid = grid;
+    this.terrains = new Map();
   }
 
   loadChunk(chunk) {
@@ -56,20 +57,53 @@ export class TerrainSystem {
   }
 
   chunksLoaded(chunks) {
-    chunks.forEach(({ x, /*height, */ z /*, meshes, features*/ }) => {
-      const key = keyForChunk({ x, z });
-      if (!this.loadedChunks.has(key) && !this.loadingChunks.has(key)) return;
+    const { loadedChunks, loadingChunks, terrains, pool } = this;
 
-      this.loadedChunks.set(key, { x, z });
-      this.loadingChunks.delete(key);
-      console.log(`loaded ${x} ${z}`);
+    chunks.forEach(({ x, height, z, meshes /*features*/ }) => {
+      const key = keyForChunk({ x, z });
+      if (!loadedChunks.has(key) && !loadingChunks.has(key)) return;
+
+      loadedChunks.set(key, { x, z });
+      loadingChunks.delete(key);
+
+      meshes.forEach((geometries, subchunk) => {
+        const key = `${x}:${z}:${subchunk}`;
+        let terrain = terrains.get(key);
+
+        if (!terrain) {
+          terrain = pool.shift();
+
+          if (!terrain) {
+            terrain = new Terrain();
+          }
+        }
+
+        terrain.update({
+          chunk: { x, y: subchunk, z, height },
+          geometries
+        });
+
+        // TODO add to entity
+        terrains.set(key, terrain);
+      });
     });
   }
 
   unloadChunk(chunk) {
-    const { loadedChunks } = this;
+    const { loadedChunks, pool, terrains } = this;
     const key = keyForChunk(chunk);
     loadedChunks.delete(key);
+
+    for (let subchunk = 0; subchunk < SUBCHUNKS; subchunk += 1) {
+      const subkey = `${key}:${subchunk}`;
+      const terrain = terrains.get(subkey);
+
+      if (terrain) {
+        // TODO remove from entity
+        terrains.delete(subkey);
+        pool.push(terrain);
+      }
+    }
   }
 
   tick = (function() {
@@ -78,7 +112,7 @@ export class TerrainSystem {
     const v = new THREE.Vector3();
 
     return function() {
-      const { loadedChunks, loadingChunks, avatarChunk, renderGrid } = this;
+      const { terrains, loadedChunks, loadingChunks, avatarChunk } = this;
       const avatar = this.avatarPovEl.object3D;
 
       avatar.getWorldPosition(avatarPos);
@@ -107,11 +141,17 @@ export class TerrainSystem {
               loadingChunks.delete(key);
             }
           });
-          renderGrid.forEach(({ x, z }) => {
+          RENDER_GRID.forEach(({ x, z }) => {
             this.loadChunk({ x: avatarChunk.x + x, z: avatarChunk.z + z });
           });
         }
       }
+
+      // Sort render order for chunks
+      terrains.forEach(terrain => {
+        const dist = Math.abs(avatarChunk.x - terrain.chunk.x) + Math.abs(avatarChunk.z - terrain.chunk.z);
+        terrain.renderOrder = dist + 10; // Render from front to back.
+      });
     };
   })();
 }
