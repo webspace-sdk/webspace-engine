@@ -2,6 +2,12 @@ const { Mesh, MeshStandardMaterial, Vector3, VertexColors, BufferGeometry, Box3,
 const material = new MeshStandardMaterial({ vertexColors: VertexColors });
 const tmp = new Vector3();
 
+const setVertexColor = shader => {
+  shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
+};
+
+material.onBeforeCompile = setVertexColor;
+
 class Terrain extends Object3D {
   constructor() {
     super();
@@ -18,8 +24,6 @@ class Terrain extends Object3D {
   update({ chunk, geometries }) {
     const { mesh } = this;
     this.chunk = chunk;
-    this.position.set(chunk.x, chunk.y, chunk.z).multiplyScalar(8);
-    this.scale.setScalar(1 / 16);
     this.matrixNeedsUpdate = true;
 
     const { color, position, uv, normal } = geometries.opaque;

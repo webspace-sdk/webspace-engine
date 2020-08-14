@@ -70,7 +70,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.uvScrollSystem = new UVScrollSystem();
     this.mediaStreamSystem = new MediaStreamSystem(this.el);
     this.wrappedEntitySystem = new WrappedEntitySystem(this.el);
-    this.terrainSystem = new TerrainSystem();
+    this.terrainSystem = new TerrainSystem(this.el);
   },
 
   tick(t, dt) {
@@ -113,8 +113,8 @@ AFRAME.registerSystem("hubs-systems", {
     this.spriteSystem.tick(t, dt);
     this.enterVRButtonSystem.tick();
     this.uvScrollSystem.tick(dt);
-    this.mediaPresenceSystem.tick();
     this.terrainSystem.tick();
+    this.mediaPresenceSystem.tick();
 
     // We run this late in the frame so that its the last thing to have an opinion about the scale of an object
     this.boneVisibilitySystem.tick();

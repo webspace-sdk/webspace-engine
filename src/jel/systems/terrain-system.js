@@ -1,23 +1,42 @@
 import Pako from "pako";
 import { protocol } from "../protocol/protocol";
 import Terrain from "../objects/terrain";
+import { WORLD_MIN_COORD, WORLD_MAX_COORD } from "./wrapped-entity-system";
 
-const TERRAIN_RADIUS = 2;
+const { Box3Helper, Box3, Vector3 } = THREE;
+
+const LOAD_RADIUS = 2;
+const VOXEL_SIZE = 1 / 8;
+const VOXELS_PER_CHUNK = 64;
+const CHUNK_WORLD_SIZE = VOXELS_PER_CHUNK * VOXEL_SIZE;
+const MIN_CHUNK_COORD = Math.floor(WORLD_MIN_COORD / CHUNK_WORLD_SIZE);
+const MAX_CHUNK_COORD = Math.floor(WORLD_MAX_COORD / CHUNK_WORLD_SIZE);
+console.log("Chunks " + MIN_CHUNK_COORD + " " + MAX_CHUNK_COORD);
 const RENDER_GRID = [];
 const SUBCHUNKS = 1;
 const center = new THREE.Vector3();
 
-for (let x = -TERRAIN_RADIUS; x <= TERRAIN_RADIUS; x += 1) {
-  for (let z = -TERRAIN_RADIUS; z <= TERRAIN_RADIUS; z += 1) {
+const normalizeChunkCoord = c => {
+  if (c < MIN_CHUNK_COORD) {
+    return MAX_CHUNK_COORD + c - MIN_CHUNK_COORD + 1;
+  } else if (c > MAX_CHUNK_COORD) {
+    return MIN_CHUNK_COORD + (c - MAX_CHUNK_COORD - 1);
+  } else {
+    return c;
+  }
+};
+
+for (let x = -LOAD_RADIUS; x <= LOAD_RADIUS; x += 1) {
+  for (let z = -LOAD_RADIUS; z <= LOAD_RADIUS; z += 1) {
     const chunk = new THREE.Vector3(x, 0, z);
-    if (chunk.distanceTo(center) <= TERRAIN_RADIUS) {
+    if (chunk.distanceTo(center) <= LOAD_RADIUS) {
       RENDER_GRID.push(chunk);
     }
   }
 }
 RENDER_GRID.sort((a, b) => a.distanceTo(center) - b.distanceTo(center));
 
-const keyForChunk = ({ x, z }) => `${x}_${z}`;
+const keyForChunk = ({ x, z }) => `${x}:${z}`;
 
 const decodeChunks = buffer => {
   if (buffer[0] === 0x78 && buffer[1] === 0x9c) {
@@ -28,7 +47,7 @@ const decodeChunks = buffer => {
 };
 
 export class TerrainSystem {
-  constructor() {
+  constructor(scene) {
     this.avatarPovEl = document.getElementById("avatar-pov-node");
     this.avatarRigEl = document.getElementById("avatar-rig");
     this.avatarChunk = new THREE.Vector3(Infinity, 0, Infinity);
@@ -36,6 +55,35 @@ export class TerrainSystem {
     this.loadedChunks = new Map();
     this.loadingChunks = new Map();
     this.terrains = new Map();
+    this.entities = new Map();
+
+    for (let x = MIN_CHUNK_COORD; x <= MAX_CHUNK_COORD; x++) {
+      for (let z = MIN_CHUNK_COORD; z <= MAX_CHUNK_COORD; z++) {
+        for (let subchunk = 0; subchunk < SUBCHUNKS; subchunk++) {
+          const pos = new Vector3(
+            x * CHUNK_WORLD_SIZE + CHUNK_WORLD_SIZE / 2,
+            0,
+            z * CHUNK_WORLD_SIZE + CHUNK_WORLD_SIZE / 2
+          );
+          const el = document.createElement("a-entity");
+          const key = `${keyForChunk({ x, z })}:${subchunk}`;
+          el.setAttribute("text", `value: ${key}; width: 150; align:center; position: 0 10 0;`);
+          el.setAttribute("text-raycast-hack", "");
+          el.setAttribute("wrapped-entity", "");
+          scene.appendChild(el);
+          el.object3D.position.copy(pos);
+          el.object3D.scale.setScalar(1 / 16);
+          el.object3D.matrixNeedsUpdate = true;
+          const box = new Box3();
+          box.setFromCenterAndSize(
+            new Vector3(0, 2, 0),
+            new Vector3(CHUNK_WORLD_SIZE, CHUNK_WORLD_SIZE, CHUNK_WORLD_SIZE)
+          );
+          el.object3D.add(new Box3Helper(box));
+          this.entities.set(key, el);
+        }
+      }
+    }
   }
 
   loadChunk(chunk) {
@@ -57,7 +105,7 @@ export class TerrainSystem {
   }
 
   chunksLoaded(chunks) {
-    const { loadedChunks, loadingChunks, terrains, pool } = this;
+    const { entities, loadedChunks, loadingChunks, terrains, pool } = this;
 
     chunks.forEach(({ x, height, z, meshes /*features*/ }) => {
       const key = keyForChunk({ x, z });
@@ -83,20 +131,28 @@ export class TerrainSystem {
           geometries
         });
 
-        // TODO add to entity
         terrains.set(key, terrain);
+        terrain.position.set(0, 0, 0);
+        terrain.matrixNeedsUpdate = true;
+
+        entities.get(key).setObject3D("mesh", terrain);
       });
     });
   }
 
   unloadChunk(chunk) {
-    const { loadedChunks, pool, terrains } = this;
+    const { entities, loadedChunks, pool, terrains } = this;
     const key = keyForChunk(chunk);
     loadedChunks.delete(key);
 
     for (let subchunk = 0; subchunk < SUBCHUNKS; subchunk += 1) {
       const subkey = `${key}:${subchunk}`;
       const terrain = terrains.get(subkey);
+      const entity = entities.get(subkey);
+
+      if (entity) {
+        entity.removeObject3D("mesh");
+      }
 
       if (terrain) {
         // TODO remove from entity
@@ -112,6 +168,9 @@ export class TerrainSystem {
     const v = new THREE.Vector3();
 
     return function() {
+      // TODO skip if avatar hasn't spawned yet.
+      if (!this.avatarPovEl) return;
+
       const { terrains, loadedChunks, loadingChunks, avatarChunk } = this;
       const avatar = this.avatarPovEl.object3D;
 
@@ -120,7 +179,7 @@ export class TerrainSystem {
       // Get chunk space coordinate
       chunk
         .copy(avatarPos)
-        .divideScalar(8)
+        .divideScalar(CHUNK_WORLD_SIZE)
         .floor();
 
       chunk.y = 0;
@@ -128,9 +187,10 @@ export class TerrainSystem {
       if (!chunk.equals(avatarChunk)) {
         const hasCrossedBorder = avatarChunk.x !== chunk.x || avatarChunk.z !== chunk.z;
         avatarChunk.copy(chunk);
+        console.log("avatar at " + avatarChunk.x + " " + avatarChunk.z);
 
         if (hasCrossedBorder) {
-          const maxDistance = TERRAIN_RADIUS * 1.25;
+          const maxDistance = LOAD_RADIUS * 1.25;
           loadedChunks.forEach(chunk => {
             if (avatarChunk.distanceTo(v.set(chunk.x, avatarPos.y, chunk.z)) > maxDistance) {
               this.unloadChunk(chunk);
@@ -141,8 +201,16 @@ export class TerrainSystem {
               loadingChunks.delete(key);
             }
           });
+
+          // Wrap chunks so they pre-emptively load over border
           RENDER_GRID.forEach(({ x, z }) => {
-            this.loadChunk({ x: avatarChunk.x + x, z: avatarChunk.z + z });
+            let cx = avatarChunk.x + x;
+            let cz = avatarChunk.z + z;
+            console.log(`${cx} -> ${normalizeChunkCoord(cx)} ${cz} -> ${normalizeChunkCoord(cz)}`);
+            cx = normalizeChunkCoord(avatarChunk.x + x);
+            cz = normalizeChunkCoord(avatarChunk.z + z);
+
+            this.loadChunk({ x: cx, z: cz });
           });
         }
       }

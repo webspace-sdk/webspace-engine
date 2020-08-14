@@ -1,4 +1,4 @@
-export const WORLD_RADIUS = 7.5;
+export const WORLD_RADIUS = 10;
 export const WORLD_CIRCUMFERENCE = 2 * WORLD_RADIUS * Math.PI;
 export const WORLD_MAX_COORD = WORLD_CIRCUMFERENCE / 2 - 0.5;
 export const WORLD_MIN_COORD = -WORLD_MAX_COORD;
@@ -53,6 +53,8 @@ export class WrappedEntitySystem {
     this.els = [];
     this.avatarPovEl = document.getElementById("avatar-pov-node");
     this.avatarRigEl = document.getElementById("avatar-rig");
+    this.previousAvatarX = null;
+    this.previousAvatarZ = null;
   }
 
   register(el) {
@@ -79,7 +81,7 @@ export class WrappedEntitySystem {
       const az = pos.z;
 
       const avatarJumpedThisFrame =
-        !this.previousAvatarX ||
+        this.previousAvatarX === null ||
         Math.abs(this.previousAvatarX - ax) > MAX_AVATAR_DISTANCE_TO_ALLOW_SCHEDULED_WRAP ||
         Math.abs(this.previousAvatarZ - az) > MAX_AVATAR_DISTANCE_TO_ALLOW_SCHEDULED_WRAP;
 
@@ -87,6 +89,7 @@ export class WrappedEntitySystem {
       this.previousAvatarZ = az;
 
       if (avatarJumpedThisFrame) {
+        console.log("Jump");
         // If our avatar just jumped across the map this frame, we need to reposition everything
         // since we may now be right up against an object on an edge.
         for (let i = 0; i < this.els.length; i++) {

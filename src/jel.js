@@ -641,20 +641,21 @@ async function setupUIBasedUponVRTypes(availableVREntryTypesPromise) {
   }
 }
 
-function startBotModeIfNecessary(scene, entryManager) {
-  const environmentScene = document.querySelector("#environment-scene");
-
-  const onFirstEnvironmentLoad = () => {
-    // Replace renderer with a noop renderer to reduce bot resource usage.
-    if (isBotMode) {
-      runBotMode(scene, entryManager);
-    }
-
-    environmentScene.removeEventListener("model-loaded", onFirstEnvironmentLoad);
-  };
-
-  environmentScene.addEventListener("model-loaded", onFirstEnvironmentLoad);
-}
+// function startBotModeIfNecessary(scene, entryManager) {
+//   // TODO JEL bots
+//   const environmentScene = document.querySelector("#environment-scene");
+//
+//   const onFirstEnvironmentLoad = () => {
+//     // Replace renderer with a noop renderer to reduce bot resource usage.
+//     if (isBotMode) {
+//       runBotMode(scene, entryManager);
+//     }
+//
+//     environmentScene.removeEventListener("model-loaded", onFirstEnvironmentLoad);
+//   };
+//
+//   environmentScene.addEventListener("model-loaded", onFirstEnvironmentLoad);
+// }
 
 function handleEnvironmentLoaded() {
   const scene = document.querySelector("a-scene");
@@ -802,7 +803,7 @@ async function start() {
 
   setupVREventHandlers(scene, availableVREntryTypesPromise);
   setupUIBasedUponVRTypes(availableVREntryTypesPromise); // Note no await here, to avoid blocking
-  startBotModeIfNecessary(scene, entryManager);
+  // startBotModeIfNecessary(scene, entryManager); TODO JEL
   clearHistoryState(history);
 
   const environmentScene = document.querySelector("#environment-scene");
