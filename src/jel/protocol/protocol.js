@@ -198,6 +198,126 @@ export const protocol = $root.protocol = (() => {
         return Geometry;
     })();
 
+    protocol.NavGeometry = (function() {
+
+        function NavGeometry(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        NavGeometry.prototype.position = $util.newBuffer([]);
+        NavGeometry.prototype.index = $util.newBuffer([]);
+
+        NavGeometry.create = function create(properties) {
+            return new NavGeometry(properties);
+        };
+
+        NavGeometry.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.position != null && Object.hasOwnProperty.call(message, "position"))
+                writer.uint32(10).bytes(message.position);
+            if (message.index != null && Object.hasOwnProperty.call(message, "index"))
+                writer.uint32(18).bytes(message.index);
+            return writer;
+        };
+
+        NavGeometry.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        NavGeometry.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.protocol.NavGeometry();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1:
+                    message.position = reader.bytes();
+                    break;
+                case 2:
+                    message.index = reader.bytes();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        NavGeometry.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = new $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        NavGeometry.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            if (message.position != null && message.hasOwnProperty("position"))
+                if (!(message.position && typeof message.position.length === "number" || $util.isString(message.position)))
+                    return "position: buffer expected";
+            if (message.index != null && message.hasOwnProperty("index"))
+                if (!(message.index && typeof message.index.length === "number" || $util.isString(message.index)))
+                    return "index: buffer expected";
+            return null;
+        };
+
+        NavGeometry.fromObject = function fromObject(object) {
+            if (object instanceof $root.protocol.NavGeometry)
+                return object;
+            let message = new $root.protocol.NavGeometry();
+            if (object.position != null)
+                if (typeof object.position === "string")
+                    $util.base64.decode(object.position, message.position = $util.newBuffer($util.base64.length(object.position)), 0);
+                else if (object.position.length)
+                    message.position = object.position;
+            if (object.index != null)
+                if (typeof object.index === "string")
+                    $util.base64.decode(object.index, message.index = $util.newBuffer($util.base64.length(object.index)), 0);
+                else if (object.index.length)
+                    message.index = object.index;
+            return message;
+        };
+
+        NavGeometry.toObject = function toObject(message, options) {
+            if (!options)
+                options = {};
+            let object = {};
+            if (options.defaults) {
+                if (options.bytes === String)
+                    object.position = "";
+                else {
+                    object.position = [];
+                    if (options.bytes !== Array)
+                        object.position = $util.newBuffer(object.position);
+                }
+                if (options.bytes === String)
+                    object.index = "";
+                else {
+                    object.index = [];
+                    if (options.bytes !== Array)
+                        object.index = $util.newBuffer(object.index);
+                }
+            }
+            if (message.position != null && message.hasOwnProperty("position"))
+                object.position = options.bytes === String ? $util.base64.encode(message.position, 0, message.position.length) : options.bytes === Array ? Array.prototype.slice.call(message.position) : message.position;
+            if (message.index != null && message.hasOwnProperty("index"))
+                object.index = options.bytes === String ? $util.base64.encode(message.index, 0, message.index.length) : options.bytes === Array ? Array.prototype.slice.call(message.index) : message.index;
+            return object;
+        };
+
+        NavGeometry.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        return NavGeometry;
+    })();
+
     protocol.Mesh = (function() {
 
         function Mesh(properties) {
@@ -209,6 +329,7 @@ export const protocol = $root.protocol = (() => {
 
         Mesh.prototype.opaque = null;
         Mesh.prototype.transparent = null;
+        Mesh.prototype.nav = null;
 
         Mesh.create = function create(properties) {
             return new Mesh(properties);
@@ -221,6 +342,8 @@ export const protocol = $root.protocol = (() => {
                 $root.protocol.Geometry.encode(message.opaque, writer.uint32(10).fork()).ldelim();
             if (message.transparent != null && Object.hasOwnProperty.call(message, "transparent"))
                 $root.protocol.Geometry.encode(message.transparent, writer.uint32(18).fork()).ldelim();
+            if (message.nav != null && Object.hasOwnProperty.call(message, "nav"))
+                $root.protocol.NavGeometry.encode(message.nav, writer.uint32(26).fork()).ldelim();
             return writer;
         };
 
@@ -240,6 +363,9 @@ export const protocol = $root.protocol = (() => {
                     break;
                 case 2:
                     message.transparent = $root.protocol.Geometry.decode(reader, reader.uint32());
+                    break;
+                case 3:
+                    message.nav = $root.protocol.NavGeometry.decode(reader, reader.uint32());
                     break;
                 default:
                     reader.skipType(tag & 7);
@@ -268,6 +394,11 @@ export const protocol = $root.protocol = (() => {
                 if (error)
                     return "transparent." + error;
             }
+            if (message.nav != null && message.hasOwnProperty("nav")) {
+                let error = $root.protocol.NavGeometry.verify(message.nav);
+                if (error)
+                    return "nav." + error;
+            }
             return null;
         };
 
@@ -285,6 +416,11 @@ export const protocol = $root.protocol = (() => {
                     throw TypeError(".protocol.Mesh.transparent: object expected");
                 message.transparent = $root.protocol.Geometry.fromObject(object.transparent);
             }
+            if (object.nav != null) {
+                if (typeof object.nav !== "object")
+                    throw TypeError(".protocol.Mesh.nav: object expected");
+                message.nav = $root.protocol.NavGeometry.fromObject(object.nav);
+            }
             return message;
         };
 
@@ -295,11 +431,14 @@ export const protocol = $root.protocol = (() => {
             if (options.defaults) {
                 object.opaque = null;
                 object.transparent = null;
+                object.nav = null;
             }
             if (message.opaque != null && message.hasOwnProperty("opaque"))
                 object.opaque = $root.protocol.Geometry.toObject(message.opaque, options);
             if (message.transparent != null && message.hasOwnProperty("transparent"))
                 object.transparent = $root.protocol.Geometry.toObject(message.transparent, options);
+            if (message.nav != null && message.hasOwnProperty("nav"))
+                object.nav = $root.protocol.NavGeometry.toObject(message.nav, options);
             return object;
         };
 
@@ -626,341 +765,6 @@ export const protocol = $root.protocol = (() => {
         };
 
         return Chunk;
-    })();
-
-    protocol.Signal = (function() {
-
-        function Signal(properties) {
-            if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-
-        Signal.prototype.peer = "";
-        Signal.prototype.signal = "";
-
-        Signal.create = function create(properties) {
-            return new Signal(properties);
-        };
-
-        Signal.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.peer != null && Object.hasOwnProperty.call(message, "peer"))
-                writer.uint32(10).string(message.peer);
-            if (message.signal != null && Object.hasOwnProperty.call(message, "signal"))
-                writer.uint32(18).string(message.signal);
-            return writer;
-        };
-
-        Signal.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
-        };
-
-        Signal.decode = function decode(reader, length) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.protocol.Signal();
-            while (reader.pos < end) {
-                let tag = reader.uint32();
-                switch (tag >>> 3) {
-                case 1:
-                    message.peer = reader.string();
-                    break;
-                case 2:
-                    message.signal = reader.string();
-                    break;
-                default:
-                    reader.skipType(tag & 7);
-                    break;
-                }
-            }
-            return message;
-        };
-
-        Signal.decodeDelimited = function decodeDelimited(reader) {
-            if (!(reader instanceof $Reader))
-                reader = new $Reader(reader);
-            return this.decode(reader, reader.uint32());
-        };
-
-        Signal.verify = function verify(message) {
-            if (typeof message !== "object" || message === null)
-                return "object expected";
-            if (message.peer != null && message.hasOwnProperty("peer"))
-                if (!$util.isString(message.peer))
-                    return "peer: string expected";
-            if (message.signal != null && message.hasOwnProperty("signal"))
-                if (!$util.isString(message.signal))
-                    return "signal: string expected";
-            return null;
-        };
-
-        Signal.fromObject = function fromObject(object) {
-            if (object instanceof $root.protocol.Signal)
-                return object;
-            let message = new $root.protocol.Signal();
-            if (object.peer != null)
-                message.peer = String(object.peer);
-            if (object.signal != null)
-                message.signal = String(object.signal);
-            return message;
-        };
-
-        Signal.toObject = function toObject(message, options) {
-            if (!options)
-                options = {};
-            let object = {};
-            if (options.defaults) {
-                object.peer = "";
-                object.signal = "";
-            }
-            if (message.peer != null && message.hasOwnProperty("peer"))
-                object.peer = message.peer;
-            if (message.signal != null && message.hasOwnProperty("signal"))
-                object.signal = message.signal;
-            return object;
-        };
-
-        Signal.prototype.toJSON = function toJSON() {
-            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-        };
-
-        return Signal;
-    })();
-
-    protocol.Message = (function() {
-
-        function Message(properties) {
-            this.chunks = [];
-            if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-
-        Message.prototype.type = 1;
-        Message.prototype.json = "";
-        Message.prototype.text = "";
-        Message.prototype.chunks = $util.emptyArray;
-        Message.prototype.signal = null;
-
-        Message.create = function create(properties) {
-            return new Message(properties);
-        };
-
-        Message.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
-                writer.uint32(8).int32(message.type);
-            if (message.json != null && Object.hasOwnProperty.call(message, "json"))
-                writer.uint32(18).string(message.json);
-            if (message.text != null && Object.hasOwnProperty.call(message, "text"))
-                writer.uint32(26).string(message.text);
-            if (message.chunks != null && message.chunks.length)
-                for (let i = 0; i < message.chunks.length; ++i)
-                    $root.protocol.Chunk.encode(message.chunks[i], writer.uint32(34).fork()).ldelim();
-            if (message.signal != null && Object.hasOwnProperty.call(message, "signal"))
-                $root.protocol.Signal.encode(message.signal, writer.uint32(42).fork()).ldelim();
-            return writer;
-        };
-
-        Message.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
-        };
-
-        Message.decode = function decode(reader, length) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.protocol.Message();
-            while (reader.pos < end) {
-                let tag = reader.uint32();
-                switch (tag >>> 3) {
-                case 1:
-                    message.type = reader.int32();
-                    break;
-                case 2:
-                    message.json = reader.string();
-                    break;
-                case 3:
-                    message.text = reader.string();
-                    break;
-                case 4:
-                    if (!(message.chunks && message.chunks.length))
-                        message.chunks = [];
-                    message.chunks.push($root.protocol.Chunk.decode(reader, reader.uint32()));
-                    break;
-                case 5:
-                    message.signal = $root.protocol.Signal.decode(reader, reader.uint32());
-                    break;
-                default:
-                    reader.skipType(tag & 7);
-                    break;
-                }
-            }
-            return message;
-        };
-
-        Message.decodeDelimited = function decodeDelimited(reader) {
-            if (!(reader instanceof $Reader))
-                reader = new $Reader(reader);
-            return this.decode(reader, reader.uint32());
-        };
-
-        Message.verify = function verify(message) {
-            if (typeof message !== "object" || message === null)
-                return "object expected";
-            if (message.type != null && message.hasOwnProperty("type"))
-                switch (message.type) {
-                default:
-                    return "type: enum value expected";
-                case 1:
-                case 2:
-                case 3:
-                case 4:
-                case 5:
-                case 6:
-                case 7:
-                case 8:
-                case 9:
-                    break;
-                }
-            if (message.json != null && message.hasOwnProperty("json"))
-                if (!$util.isString(message.json))
-                    return "json: string expected";
-            if (message.text != null && message.hasOwnProperty("text"))
-                if (!$util.isString(message.text))
-                    return "text: string expected";
-            if (message.chunks != null && message.hasOwnProperty("chunks")) {
-                if (!Array.isArray(message.chunks))
-                    return "chunks: array expected";
-                for (let i = 0; i < message.chunks.length; ++i) {
-                    let error = $root.protocol.Chunk.verify(message.chunks[i]);
-                    if (error)
-                        return "chunks." + error;
-                }
-            }
-            if (message.signal != null && message.hasOwnProperty("signal")) {
-                let error = $root.protocol.Signal.verify(message.signal);
-                if (error)
-                    return "signal." + error;
-            }
-            return null;
-        };
-
-        Message.fromObject = function fromObject(object) {
-            if (object instanceof $root.protocol.Message)
-                return object;
-            let message = new $root.protocol.Message();
-            switch (object.type) {
-            case "ERROR":
-            case 1:
-                message.type = 1;
-                break;
-            case "INIT":
-            case 2:
-                message.type = 2;
-                break;
-            case "JOIN":
-            case 3:
-                message.type = 3;
-                break;
-            case "LEAVE":
-            case 4:
-                message.type = 4;
-                break;
-            case "LOAD":
-            case 5:
-                message.type = 5;
-                break;
-            case "PICK":
-            case 6:
-                message.type = 6;
-                break;
-            case "SIGNAL":
-            case 7:
-                message.type = 7;
-                break;
-            case "TELEPORT":
-            case 8:
-                message.type = 8;
-                break;
-            case "UPDATE":
-            case 9:
-                message.type = 9;
-                break;
-            }
-            if (object.json != null)
-                message.json = String(object.json);
-            if (object.text != null)
-                message.text = String(object.text);
-            if (object.chunks) {
-                if (!Array.isArray(object.chunks))
-                    throw TypeError(".protocol.Message.chunks: array expected");
-                message.chunks = [];
-                for (let i = 0; i < object.chunks.length; ++i) {
-                    if (typeof object.chunks[i] !== "object")
-                        throw TypeError(".protocol.Message.chunks: object expected");
-                    message.chunks[i] = $root.protocol.Chunk.fromObject(object.chunks[i]);
-                }
-            }
-            if (object.signal != null) {
-                if (typeof object.signal !== "object")
-                    throw TypeError(".protocol.Message.signal: object expected");
-                message.signal = $root.protocol.Signal.fromObject(object.signal);
-            }
-            return message;
-        };
-
-        Message.toObject = function toObject(message, options) {
-            if (!options)
-                options = {};
-            let object = {};
-            if (options.arrays || options.defaults)
-                object.chunks = [];
-            if (options.defaults) {
-                object.type = options.enums === String ? "ERROR" : 1;
-                object.json = "";
-                object.text = "";
-                object.signal = null;
-            }
-            if (message.type != null && message.hasOwnProperty("type"))
-                object.type = options.enums === String ? $root.protocol.Message.Type[message.type] : message.type;
-            if (message.json != null && message.hasOwnProperty("json"))
-                object.json = message.json;
-            if (message.text != null && message.hasOwnProperty("text"))
-                object.text = message.text;
-            if (message.chunks && message.chunks.length) {
-                object.chunks = [];
-                for (let j = 0; j < message.chunks.length; ++j)
-                    object.chunks[j] = $root.protocol.Chunk.toObject(message.chunks[j], options);
-            }
-            if (message.signal != null && message.hasOwnProperty("signal"))
-                object.signal = $root.protocol.Signal.toObject(message.signal, options);
-            return object;
-        };
-
-        Message.prototype.toJSON = function toJSON() {
-            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-        };
-
-        Message.Type = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[1] = "ERROR"] = 1;
-            values[valuesById[2] = "INIT"] = 2;
-            values[valuesById[3] = "JOIN"] = 3;
-            values[valuesById[4] = "LEAVE"] = 4;
-            values[valuesById[5] = "LOAD"] = 5;
-            values[valuesById[6] = "PICK"] = 6;
-            values[valuesById[7] = "SIGNAL"] = 7;
-            values[valuesById[8] = "TELEPORT"] = 8;
-            values[valuesById[9] = "UPDATE"] = 9;
-            return values;
-        })();
-
-        return Message;
     })();
 
     protocol.Chunks = (function() {

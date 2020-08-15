@@ -27,8 +27,6 @@ import patchThreeNoProgramDispose from "./jel/utils/threejs-avoid-disposing-prog
 import { detectOS, detect } from "detect-browser";
 import { getReticulumMeta, fetchReticulumAuthenticated } from "./hubs/utils/phoenix-utils";
 
-import nextTick from "./hubs/utils/next-tick";
-import { addAnimationComponents } from "./hubs/utils/animation";
 import "./hubs/naf-dialog-adapter";
 
 import "./hubs/components/scene-components";
@@ -240,7 +238,8 @@ registerWrappedEntityPositionNormalizers();
 disableiOSZoom();
 detectConcurrentLoad();
 
-function setupLobbyCamera() {
+// TODO JEL do we need lobby camera?
+/*function setupLobbyCamera() {
   const camera = document.getElementById("scene-preview-node");
   const previewCamera = document.getElementById("environment-scene").object3D.getObjectByName("scene-preview-camera");
 
@@ -257,7 +256,7 @@ function setupLobbyCamera() {
 
   camera.removeAttribute("scene-preview-camera");
   camera.setAttribute("scene-preview-camera", "positionOnly: true; duration: 60");
-}
+}*/
 
 let uiProps = {};
 let jelUIProps = {};
@@ -381,13 +380,14 @@ function setupPerformConditionalSignin(entryManager) {
   remountUI({ performConditionalSignIn });
 }
 
-async function runBotMode(scene, entryManager) {
-  const noop = () => {};
-  scene.renderer = { setAnimationLoop: noop, render: noop };
-
-  while (!NAF.connection.isConnected()) await nextTick();
-  entryManager.enterSceneWhenLoaded(false);
-}
+// TODO JEL
+//async function runBotMode(scene, entryManager) {
+//  const noop = () => {};
+//  scene.renderer = { setAnimationLoop: noop, render: noop };
+//
+//  while (!NAF.connection.isConnected()) await nextTick();
+//  entryManager.enterSceneWhenLoaded(false);
+//}
 
 function initPhysicsThreeAndCursor(scene) {
   const physicsSystem = scene.systems["hubs-systems"].physicsSystem;
@@ -657,26 +657,6 @@ async function setupUIBasedUponVRTypes(availableVREntryTypesPromise) {
 //   environmentScene.addEventListener("model-loaded", onFirstEnvironmentLoad);
 // }
 
-function handleEnvironmentLoaded() {
-  const scene = document.querySelector("a-scene");
-  const environmentScene = document.querySelector("#environment-scene");
-
-  if (!scene.is("entered")) {
-    setupLobbyCamera();
-  }
-
-  // This will be run every time the environment is changed (including the first load.)
-  remountUI({ environmentSceneLoaded: true });
-  scene.emit("environment-scene-loaded");
-
-  // Re-bind the teleporter controls collision meshes in case the scene changed.
-  document.querySelectorAll("a-entity[teleporter]").forEach(x => x.components["teleporter"].queryCollisionEntities());
-
-  for (const modelEl of environmentScene.children) {
-    addAnimationComponents(modelEl);
-  }
-}
-
 async function createSocket(entryManager) {
   let isReloading = false;
   window.addEventListener("beforeunload", () => (isReloading = true));
@@ -805,9 +785,6 @@ async function start() {
   setupUIBasedUponVRTypes(availableVREntryTypesPromise); // Note no await here, to avoid blocking
   // startBotModeIfNecessary(scene, entryManager); TODO JEL
   clearHistoryState(history);
-
-  const environmentScene = document.querySelector("#environment-scene");
-  environmentScene.addEventListener("model-loaded", handleEnvironmentLoaded);
 
   const socket = await createSocket(entryManager);
 

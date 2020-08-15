@@ -41,8 +41,6 @@ export class AudioSettingsSystem {
     this.mediaVideos = [];
     this.avatarAudioSources = [];
 
-    this.sceneEl.addEventListener("reset_scene", this.onSceneReset);
-
     if (window.APP.store.state.preferences.audioOutputMode === "audio") {
       //hack to always reset to "panner"
       window.APP.store.update({
@@ -101,10 +99,6 @@ export class AudioSettingsSystem {
       updateAvatarAudioSettings(avatarAudioSource, settings, positional);
     }
   }
-
-  onSceneReset = () => {
-    this.updateAudioSettings(this.defaultSettings);
-  };
 }
 
 AFRAME.registerComponent("use-audio-system-settings", {

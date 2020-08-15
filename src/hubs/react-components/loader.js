@@ -29,15 +29,6 @@ class Loader extends Component {
     for (const ev of [...LOADED_EVENTS, ...ERROR_EVENTS]) {
       this.props.scene.addEventListener(ev, this.onObjectLoaded);
     }
-
-    this.props.scene.addEventListener(
-      "environment-scene-loaded",
-      () => {
-        this.environmentSceneLoaded = true;
-        this.tryFinishLoading();
-      },
-      { once: true }
-    );
   }
 
   componentWillUnmount() {
@@ -72,14 +63,12 @@ class Loader extends Component {
   tryFinishLoading = () => {
     if (!this.doneWithInitialLoad && this.loadingTimeout) window.clearTimeout(this.loadingTimeout);
 
-    if (this.environmentSceneLoaded) {
-      this.loadingTimeout = window.setTimeout(() => {
-        this.doneWithInitialLoad = true;
-        if (this.props.onLoaded) {
-          this.props.onLoaded();
-        }
-      }, 1500);
-    }
+    this.loadingTimeout = window.setTimeout(() => {
+      this.doneWithInitialLoad = true;
+      if (this.props.onLoaded) {
+        this.props.onLoaded();
+      }
+    }, 1500);
   };
 
   render() {

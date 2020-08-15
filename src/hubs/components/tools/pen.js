@@ -487,7 +487,7 @@ AFRAME.registerComponent("pen", {
   populateEntities(targets) {
     targets.length = 0;
     // TODO: Do not querySelectorAll on the entire scene every time anything changes!
-    const els = AFRAME.scenes[0].querySelectorAll(".collidable, .interactable, #environment-root");
+    const els = AFRAME.scenes[0].querySelectorAll(".collidable, .interactable");
     for (let i = 0; i < els.length; i++) {
       if (!els[i].classList.contains("pen") && els[i].object3D) {
         targets.push(els[i].object3D);

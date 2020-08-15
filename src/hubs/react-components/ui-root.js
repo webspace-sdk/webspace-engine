@@ -122,7 +122,6 @@ class UIRoot extends Component {
     hub: PropTypes.object,
     availableVREntryTypes: PropTypes.object,
     checkingForDeviceAvailability: PropTypes.bool,
-    environmentSceneLoaded: PropTypes.bool,
     entryDisallowed: PropTypes.bool,
     roomUnavailableReason: PropTypes.string,
     hubIsBound: PropTypes.bool,

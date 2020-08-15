@@ -5,9 +5,6 @@ import { createInWorldLogMessage } from "../react-components/chat-message";
 import nextTick from "./next-tick";
 import { authorizeOrSanitizeMessage } from "./permissions-utils";
 import qsTruthy from "./qs_truthy";
-import loadingEnvironment from "../assets/models/LoadingEnvironment.glb";
-import { proxiedUrlFor } from "./media-url-utils";
-import { traverseMeshesAndAddShapes } from "./physics-utils";
 import { getReticulumMeta, invalidateReticulumMeta, migrateChannelToSocket, connectToReticulum } from "./phoenix-utils";
 import HubStore from "../storage/hub-store";
 
@@ -46,59 +43,8 @@ const startTrackingPosition = (() => {
   };
 })();
 
-async function updateEnvironmentForHub(hub, hubStore, entryManager, remountUI) {
-  let sceneUrl;
-  let isLegacyBundle; // Deprecated
-
-  const sceneErrorHandler = () => {
-    remountUI({ roomUnavailableReason: "scene_error" });
-    entryManager.exitScene();
-  };
-
-  const environmentScene = document.querySelector("#environment-scene");
+async function updateEnvironmentForHub(hub, hubStore) {
   const sceneEl = document.querySelector("a-scene");
-
-  if (hub.scene) {
-    isLegacyBundle = false;
-    sceneUrl = hub.scene.model_url;
-  } else if (hub.scene === null) {
-    // delisted/removed scene
-    sceneUrl = loadingEnvironment;
-  } else {
-    const defaultSpaceTopic = hub.topics[0];
-    const glbAsset = defaultSpaceTopic.assets.find(a => a.asset_type === "glb");
-    const bundleAsset = defaultSpaceTopic.assets.find(a => a.asset_type === "gltf_bundle");
-    sceneUrl = (glbAsset || bundleAsset).src || loadingEnvironment;
-    const hasExtension = /\.gltf/i.test(sceneUrl) || /\.glb/i.test(sceneUrl);
-    isLegacyBundle = !(glbAsset || hasExtension);
-  }
-
-  if (isLegacyBundle) {
-    // Deprecated
-    const res = await fetch(sceneUrl);
-    const data = await res.json();
-    const baseURL = new URL(THREE.LoaderUtils.extractUrlBase(sceneUrl), window.location.href);
-    sceneUrl = new URL(data.assets[0].src, baseURL).href;
-  } else {
-    sceneUrl = proxiedUrlFor(sceneUrl);
-  }
-
-  console.log(`Scene URL: ${sceneUrl}`);
-
-  if (environmentScene.childNodes.length === 0) {
-    const environmentEl = document.createElement("a-entity");
-
-    environmentEl.setAttribute("gltf-model-plus", {
-      useCache: false,
-      inflate: true,
-      useECSY: qsTruthy("ecsy")
-    });
-
-    environmentScene.appendChild(environmentEl);
-  }
-
-  // Change environment
-  const environmentEl = environmentScene.childNodes[0];
 
   // Clear the three.js image cache and load the loading environment before switching to the new one.
   THREE.Cache.clear();
@@ -106,69 +52,33 @@ async function updateEnvironmentForHub(hub, hubStore, entryManager, remountUI) {
   waypointSystem.releaseAnyOccupiedWaypoints();
   const characterController = sceneEl.systems["hubs-systems"].characterController;
 
-  const environmentHasSrc = src => {
-    return (
-      environmentEl.components["gltf-model-plus"] &&
-      environmentEl.components["gltf-model-plus"].data &&
-      environmentEl.components["gltf-model-plus"].data.src === src
+  document.querySelector(".a-canvas").classList.remove("a-hidden");
+  sceneEl.addState("visible");
+
+  if (hubStore.state.lastPosition.x) {
+    const lastPosition = new THREE.Vector3(
+      hubStore.state.lastPosition.x,
+      hubStore.state.lastPosition.y,
+      hubStore.state.lastPosition.z
     );
-  };
 
-  const onLoadingEnvironmentLoaded = () => {
-    const onEnvironmentLoaded = () => {
-      document.querySelector(".a-canvas").classList.remove("a-hidden");
-      sceneEl.addState("visible");
-      environmentEl.removeEventListener("model-error", sceneErrorHandler);
-      traverseMeshesAndAddShapes(environmentEl);
+    const lastRotation = new THREE.Quaternion(
+      hubStore.state.lastRotation.x,
+      hubStore.state.lastRotation.y,
+      hubStore.state.lastRotation.z,
+      hubStore.state.lastRotation.w
+    );
 
-      if (hubStore.state.lastPosition.x) {
-        const lastPosition = new THREE.Vector3(
-          hubStore.state.lastPosition.x,
-          hubStore.state.lastPosition.y,
-          hubStore.state.lastPosition.z
-        );
-
-        const lastRotation = new THREE.Quaternion(
-          hubStore.state.lastRotation.x,
-          hubStore.state.lastRotation.y,
-          hubStore.state.lastRotation.z,
-          hubStore.state.lastRotation.w
-        );
-
-        characterController.teleportTo(lastPosition, lastRotation);
-      } else {
-        waypointSystem.moveToSpawnPoint();
-      }
-
-      startTrackingPosition(hubStore);
-
-      const fader = document.getElementById("viewing-camera").components["fader"];
-
-      // Add a slight delay before de-in to reduce hitching.
-      setTimeout(() => fader.fadeIn(), 2000);
-    };
-
-    if (environmentHasSrc(sceneUrl)) {
-      onEnvironmentLoaded();
-    } else {
-      environmentEl.addEventListener("model-loaded", onEnvironmentLoaded, { once: true });
-      sceneEl.emit("leaving_loading_environment");
-      environmentEl.setAttribute("gltf-model-plus", { src: sceneUrl });
-    }
-  };
-
-  if (environmentHasSrc(loadingEnvironment)) {
-    onLoadingEnvironmentLoaded();
+    characterController.teleportTo(lastPosition, lastRotation);
   } else {
-    environmentEl.addEventListener("model-loaded", onLoadingEnvironmentLoaded, { once: true });
-    environmentEl.setAttribute("gltf-model-plus", { src: loadingEnvironment });
+    waypointSystem.moveToSpawnPoint();
   }
 
-  if (!sceneEl.is("entered")) {
-    environmentEl.addEventListener("model-error", sceneErrorHandler, { once: true });
-  }
+  startTrackingPosition(hubStore);
 
-  environmentEl.setAttribute("gltf-model-plus", { src: loadingEnvironment });
+  // Re-bind the teleporter controls collision meshes in case the scene changed.
+  // TODO JEL check with terrain
+  //document.querySelectorAll("a-entity[teleporter]").forEach(x => x.components["teleporter"].queryCollisionEntities());
 }
 
 const createSpaceChannelParams = () => {
@@ -730,21 +640,6 @@ const setupHubChannelMessageHandlers = (
     const userInfo = spaceChannel.presence.state[session_id];
 
     updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
-
-    if (stale_fields.includes("scene")) {
-      const fader = document.getElementById("viewing-camera").components["fader"];
-
-      fader.fadeOut().then(() => {
-        scene.emit("reset_scene");
-        updateEnvironmentForHub(hub, hubStore, entryManager);
-      });
-
-      addToPresenceLog({
-        type: "scene_changed",
-        name: userInfo.metas[0].profile.displayName,
-        sceneName: hub.scene ? hub.scene.name : "a custom URL"
-      });
-    }
 
     if (stale_fields.includes("roles")) {
       hubChannel.fetchPermissions();

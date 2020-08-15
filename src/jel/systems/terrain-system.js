@@ -3,15 +3,14 @@ import { protocol } from "../protocol/protocol";
 import Terrain from "../objects/terrain";
 import { WORLD_MIN_COORD, WORLD_MAX_COORD } from "./wrapped-entity-system";
 
-const { Box3Helper, Box3, Vector3 } = THREE;
+const { Vector3 } = THREE;
 
-const LOAD_RADIUS = 2;
+const LOAD_RADIUS = 4;
 const VOXEL_SIZE = 1 / 8;
 const VOXELS_PER_CHUNK = 64;
 const CHUNK_WORLD_SIZE = VOXELS_PER_CHUNK * VOXEL_SIZE;
 const MIN_CHUNK_COORD = Math.floor(WORLD_MIN_COORD / CHUNK_WORLD_SIZE);
 const MAX_CHUNK_COORD = Math.floor(WORLD_MAX_COORD / CHUNK_WORLD_SIZE);
-console.log("Chunks " + MIN_CHUNK_COORD + " " + MAX_CHUNK_COORD);
 const RENDER_GRID = [];
 const SUBCHUNKS = 1;
 const center = new THREE.Vector3();
@@ -67,19 +66,19 @@ export class TerrainSystem {
           );
           const el = document.createElement("a-entity");
           const key = `${keyForChunk({ x, z })}:${subchunk}`;
-          el.setAttribute("text", `value: ${key}; width: 150; align:center; position: 0 10 0;`);
-          el.setAttribute("text-raycast-hack", "");
+          //el.setAttribute("text", `value: ${key}; width: 150; align:center; position: 0 10 0;`);
+          //el.setAttribute("text-raycast-hack", "");
           el.setAttribute("wrapped-entity", "");
           scene.appendChild(el);
           el.object3D.position.copy(pos);
           el.object3D.scale.setScalar(1 / 16);
           el.object3D.matrixNeedsUpdate = true;
-          const box = new Box3();
-          box.setFromCenterAndSize(
-            new Vector3(0, 2, 0),
-            new Vector3(CHUNK_WORLD_SIZE, CHUNK_WORLD_SIZE, CHUNK_WORLD_SIZE)
-          );
-          el.object3D.add(new Box3Helper(box));
+          //const box = new Box3();
+          //box.setFromCenterAndSize(
+          //  new Vector3(0, 2, 0),
+          //  new Vector3(CHUNK_WORLD_SIZE, CHUNK_WORLD_SIZE, CHUNK_WORLD_SIZE)
+          //);
+          //el.object3D.add(new Box3Helper(box));
           this.entities.set(key, el);
         }
       }
@@ -165,7 +164,6 @@ export class TerrainSystem {
   tick = (function() {
     const avatarPos = new THREE.Vector3();
     const chunk = new THREE.Vector3();
-    const v = new THREE.Vector3();
 
     return function() {
       // TODO skip if avatar hasn't spawned yet.
@@ -187,30 +185,31 @@ export class TerrainSystem {
       if (!chunk.equals(avatarChunk)) {
         const hasCrossedBorder = avatarChunk.x !== chunk.x || avatarChunk.z !== chunk.z;
         avatarChunk.copy(chunk);
-        console.log("avatar at " + avatarChunk.x + " " + avatarChunk.z);
 
         if (hasCrossedBorder) {
-          const maxDistance = LOAD_RADIUS * 1.25;
-          loadedChunks.forEach(chunk => {
-            if (avatarChunk.distanceTo(v.set(chunk.x, avatarPos.y, chunk.z)) > maxDistance) {
-              this.unloadChunk(chunk);
-            }
-          });
-          loadingChunks.forEach((chunk, key) => {
-            if (avatarChunk.distanceTo(v.set(chunk.x, avatarPos.y, chunk.z)) > maxDistance) {
-              loadingChunks.delete(key);
-            }
-          });
+          const newChunks = [];
 
           // Wrap chunks so they pre-emptively load over border
           RENDER_GRID.forEach(({ x, z }) => {
             let cx = avatarChunk.x + x;
             let cz = avatarChunk.z + z;
-            console.log(`${cx} -> ${normalizeChunkCoord(cx)} ${cz} -> ${normalizeChunkCoord(cz)}`);
             cx = normalizeChunkCoord(avatarChunk.x + x);
             cz = normalizeChunkCoord(avatarChunk.z + z);
 
-            this.loadChunk({ x: cx, z: cz });
+            const newChunk = { x: cx, z: cz };
+            newChunks.push(newChunk);
+            this.loadChunk(newChunk);
+          });
+
+          loadedChunks.forEach(chunk => {
+            if (!newChunks.find(({ x, z }) => chunk.x === x && chunk.z === z)) {
+              this.unloadChunk(chunk);
+            }
+          });
+          loadingChunks.forEach((chunk, key) => {
+            if (!newChunks.find(({ x, z }) => chunk.x === x && chunk.z === z)) {
+              loadingChunks.delete(key);
+            }
           });
         }
       }
