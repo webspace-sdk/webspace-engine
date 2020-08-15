@@ -1,5 +1,5 @@
 const { Mesh, MeshStandardMaterial, Vector3, VertexColors, BufferGeometry, Box3, BufferAttribute, Object3D } = THREE;
-const material = new MeshStandardMaterial({ vertexColors: VertexColors });
+const material = new MeshStandardMaterial({ vertexColors: VertexColors, metalness: 0, roughness: 1 });
 const tmp = new Vector3();
 
 const setVertexColor = shader => {

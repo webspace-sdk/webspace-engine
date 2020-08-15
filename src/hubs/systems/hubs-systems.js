@@ -31,6 +31,7 @@ import { AudioSystem } from "./audio-system";
 import { MediaStreamSystem } from "./media-stream-system";
 import { WrappedEntitySystem } from "../../jel/systems/wrapped-entity-system";
 import { TerrainSystem } from "../../jel/systems/terrain-system";
+import { AtmosphereSystem } from "../../jel/systems/atmosphere-system";
 
 AFRAME.registerSystem("hubs-systems", {
   init() {
@@ -71,6 +72,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.mediaStreamSystem = new MediaStreamSystem(this.el);
     this.wrappedEntitySystem = new WrappedEntitySystem(this.el);
     this.terrainSystem = new TerrainSystem(this.el);
+    this.atmosphereSystem = new AtmosphereSystem(this.el);
   },
 
   tick(t, dt) {
@@ -114,6 +116,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.enterVRButtonSystem.tick();
     this.uvScrollSystem.tick(dt);
     this.terrainSystem.tick();
+    this.atmosphereSystem.tick();
     this.mediaPresenceSystem.tick();
 
     // We run this late in the frame so that its the last thing to have an opinion about the scale of an object

@@ -2,6 +2,7 @@ import Pako from "pako";
 import { protocol } from "../protocol/protocol";
 import Terrain from "../objects/terrain";
 import { WORLD_MIN_COORD, WORLD_MAX_COORD } from "./wrapped-entity-system";
+import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 const { Vector3 } = THREE;
 
@@ -47,8 +48,10 @@ const decodeChunks = buffer => {
 
 export class TerrainSystem {
   constructor(scene) {
-    this.avatarPovEl = document.getElementById("avatar-pov-node");
-    this.avatarRigEl = document.getElementById("avatar-rig");
+    waitForDOMContentLoaded().then(() => {
+      this.avatarPovEl = document.getElementById("avatar-pov-node");
+    });
+
     this.avatarChunk = new THREE.Vector3(Infinity, 0, Infinity);
     this.pool = [...Array(RENDER_GRID.length)].map(() => new Terrain());
     this.loadedChunks = new Map();
