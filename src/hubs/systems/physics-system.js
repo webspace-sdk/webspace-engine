@@ -15,9 +15,10 @@ const WORLD_CONFIG = {
 const MAX_BODIES = 512;
 
 export class PhysicsSystem {
-  constructor(scene) {
+  constructor(scene, atmosphereSystem) {
     this.ammoWorker = new AmmoWorker();
     this.workerHelpers = new WorkerHelpers(this.ammoWorker);
+    this.atmosphereSystem = atmosphereSystem;
 
     this.bodyHelpers = [];
     this.shapeHelpers = [];
@@ -170,6 +171,7 @@ export class PhysicsSystem {
               transform.multiplyMatrices(inverse, matrix);
               transform.decompose(object3D.position, object3D.quaternion, scale);
               object3D.matrixNeedsUpdate = true;
+              this.atmosphereSystem.updateShadows();
             }
 
             object3D.updateMatrices();

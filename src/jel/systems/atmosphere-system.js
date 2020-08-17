@@ -1,4 +1,5 @@
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import Sky from "../objects/sky";
 
 // Responsible for managing shadows, environmental lighting, sky, and environment map.
 export class AtmosphereSystem {
@@ -16,7 +17,7 @@ export class AtmosphereSystem {
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.x = 1024 * 4;
     this.sunLight.shadow.mapSize.y = 1024 * 4;
-    this.sunLight.shadow.bias = -0.0008;
+    this.sunLight.shadow.bias = -0.0006;
     this.sunLight.shadow.camera.left = 15;
     this.sunLight.shadow.camera.right = -15;
     this.sunLight.shadow.camera.top = 15;
@@ -25,8 +26,19 @@ export class AtmosphereSystem {
     this.sunLight.shadow.camera.far = 20;
     this.sunLight.shadow.radius = 2;
 
+    this.sky = new Sky();
+    this.sky.position.y = 0;
+    this.sky.scale.setScalar(100000);
+    this.sky.material.uniforms.turbidity.value = 10;
+    this.sky.material.uniforms.rayleigh.value = 0.5;
+    this.sky.material.uniforms.mieCoefficient.value = 0.005;
+    this.sky.material.uniforms.mieDirectionalG.value = 0.5;
+    this.sky.material.uniforms.luminance.value = 1;
+    this.sky.material.uniforms.sunPosition.value.set(-80000, 100000, -80000);
+
     scene.add(this.ambientLight);
     scene.add(this.sunLight);
+    scene.add(this.sky);
 
     this.renderer = sceneEl.renderer;
     this.renderer.outputEncoding = THREE.sRGBEncoding;
@@ -64,8 +76,6 @@ export class AtmosphereSystem {
       const playerMoved =
         Math.abs(sunPos.x - pos.x) > 0.001 || Math.abs(sunPos.y - pos.y) > 0.001 || Math.abs(sunPos.z - pos.z) > 0.001;
 
-      this.sunLight.shadow.camera.matrixAutoUpdate = false;
-
       if (playerMoved) {
         this.sunLight.position.x = pos.x;
         this.sunLight.position.y = pos.y;
@@ -80,7 +90,6 @@ export class AtmosphereSystem {
         // HACK - somewhere in three code matrix is stale by a frame because of auto updates off
         // For now, flip it on if we move shadow camera.
         this.sunLight.shadow.camera.matrixNeedsUpdate = true;
-        this.sunLight.shadow.camera.matrixAutoUpdate = true;
 
         this.sunLight.updateMatrices();
         this.sunLight.target.updateMatrices();

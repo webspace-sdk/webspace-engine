@@ -47,8 +47,9 @@ AFRAME.registerComponent("wrapped-entity", {
 });
 
 export class WrappedEntitySystem {
-  constructor(scene) {
+  constructor(scene, atmosphereSystem) {
     this.scene = scene;
+    this.atmosphereSystem = atmosphereSystem;
     this.frame = 0;
     this.els = [];
     this.avatarPovEl = document.getElementById("avatar-pov-node");
@@ -160,6 +161,7 @@ export class WrappedEntitySystem {
         obj.position.x = outX;
         obj.position.z = outZ;
         obj.matrixNeedsUpdate = true;
+        this.atmosphereSystem.updateShadows();
       }
     };
   })();

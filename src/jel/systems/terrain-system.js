@@ -4,7 +4,7 @@ import Terrain from "../objects/terrain";
 import { WORLD_MIN_COORD, WORLD_MAX_COORD } from "./wrapped-entity-system";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
-const { Vector3 } = THREE;
+const { Vector3, Vector4, Matrix4 } = THREE;
 
 const LOAD_RADIUS = 4;
 const VOXEL_SIZE = 1 / 8;
@@ -46,12 +46,225 @@ const decodeChunks = buffer => {
   return chunks.chunks;
 };
 
+const cullChunks = (() => {
+  // Chunk culling based upon AABB
+  // https://iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm
+  const frustumMatrix = new Matrix4();
+  const tmp = new Vector3();
+  const n1 = new Vector4();
+  const n2 = new Vector4();
+  const n3 = new Vector4();
+  const n4 = new Vector4();
+  const n5 = new Vector4();
+  const n6 = new Vector4();
+  const norms = [n1, n2, n3, n4, n5, n6];
+
+  // Get camera frustum points
+  const p1 = new Vector3();
+  const p2 = new Vector3();
+  const p3 = new Vector3();
+  const p4 = new Vector3();
+  const p5 = new Vector3();
+  const p6 = new Vector3();
+  const p7 = new Vector3();
+  const p8 = new Vector3();
+  const points = [p1, p2, p3, p4, p5, p6, p7, p8];
+  const bv = new Vector4(0, 0, 0, 1);
+
+  return (camera, terrains) => {
+    frustumMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+
+    // HACK extract near and far from matrix due to cube SSAO hack for z-buffer
+    const c = camera.projectionMatrix.elements[10];
+    const d = camera.projectionMatrix.elements[14];
+
+    const near = d / (c - 1.0);
+    const far = d / (c + 1.0);
+
+    // Ger camera plane normals
+    const me0 = frustumMatrix.elements[0];
+    const me1 = frustumMatrix.elements[1];
+    const me2 = frustumMatrix.elements[2];
+    const me3 = frustumMatrix.elements[3];
+    const me4 = frustumMatrix.elements[4];
+    const me5 = frustumMatrix.elements[5];
+    const me6 = frustumMatrix.elements[6];
+    const me7 = frustumMatrix.elements[7];
+    const me8 = frustumMatrix.elements[8];
+    const me9 = frustumMatrix.elements[9];
+    const me10 = frustumMatrix.elements[10];
+    const me11 = frustumMatrix.elements[11];
+    const me12 = frustumMatrix.elements[12];
+    const me13 = frustumMatrix.elements[13];
+    const me14 = frustumMatrix.elements[14];
+    const me15 = frustumMatrix.elements[15];
+
+    n1.set(me3 - me0, me7 - me4, me11 - me8, me15 - me12).normalize();
+    n2.set(me3 + me0, me7 + me4, me11 + me8, me15 + me12).normalize();
+    n3.set(me3 + me1, me7 + me5, me11 + me9, me15 + me13).normalize();
+    n4.set(me3 - me1, me7 - me5, me11 - me9, me15 - me13).normalize();
+    n5.set(me3 - me2, me7 - me6, me11 - me10, me15 - me14).normalize();
+    n6.set(me3 + me2, me7 + me6, me11 + me10, me15 + me14).normalize();
+
+    const hNear = 2 * Math.tan((camera.fov * Math.PI) / 180 / 2) * near;
+    const wNear = hNear * camera.aspect;
+
+    const hFar = 2 * Math.tan((camera.fov * Math.PI) / 180 / 2) * far;
+    const wFar = hFar * camera.aspect;
+
+    p1.set(wNear / 2, hNear / 2, -near);
+    p2.set(-wNear / 2, hNear / 2, -near);
+    p3.set(wNear / 2, -hNear / 2, -near);
+    p4.set(-wNear / 2, -hNear / 2, -near);
+    p5.set(wFar / 2, hFar / 2, -far);
+    p6.set(-wFar / 2, hFar / 2, -far);
+    p7.set(wFar / 2, -hFar / 2, -far);
+    p8.set(-wFar / 2, -hFar / 2, -far);
+    p1.applyMatrix4(camera.matrixWorld);
+    p2.applyMatrix4(camera.matrixWorld);
+    p3.applyMatrix4(camera.matrixWorld);
+    p4.applyMatrix4(camera.matrixWorld);
+    p5.applyMatrix4(camera.matrixWorld);
+    p6.applyMatrix4(camera.matrixWorld);
+    p7.applyMatrix4(camera.matrixWorld);
+    p8.applyMatrix4(camera.matrixWorld);
+
+    for (const t of terrains) {
+      // eslint-disable-line no-restricted-syntax
+      let show = true;
+
+      // Compute terrain AABB
+      t.getWorldPosition(tmp);
+      const bminx = tmp.x;
+      const bmaxx = tmp.x + 8;
+      const bminz = tmp.z;
+      const bmaxz = tmp.z + 8;
+      const bminy = 0;
+      const bmaxy = t.height / 8 + 1 / 8;
+
+      for (const n of norms) {
+        // eslint-disable-line no-restricted-syntax
+        let c = 0;
+
+        bv.x = bminx;
+        bv.y = bminy;
+        bv.z = bminz;
+        if (bv.dot(n) < 0) c += 1;
+        bv.x = bminx;
+        bv.y = bminy;
+        bv.z = bmaxz;
+        if (bv.dot(n) < 0) c += 1;
+        bv.x = bminx;
+        bv.y = bmaxy;
+        bv.z = bminz;
+        if (bv.dot(n) < 0) c += 1;
+        bv.x = bminx;
+        bv.y = bmaxy;
+        bv.z = bmaxz;
+        if (bv.dot(n) < 0) c += 1;
+        bv.x = bmaxx;
+        bv.y = bminy;
+        bv.z = bminz;
+        if (bv.dot(n) < 0) c += 1;
+        bv.x = bmaxx;
+        bv.y = bminy;
+        bv.z = bmaxz;
+        if (bv.dot(n) < 0) c += 1;
+        bv.x = bmaxx;
+        bv.y = bmaxy;
+        bv.z = bminz;
+        if (bv.dot(n) < 0) c += 1;
+        bv.x = bmaxx;
+        bv.y = bmaxy;
+        bv.z = bmaxz;
+        if (bv.dot(n) < 0) c += 1;
+
+        if (c === 8) {
+          show = false;
+          break;
+        }
+      }
+
+      if (show) {
+        let c = 0;
+
+        for (const p of points) {
+          // eslint-disable-line no-restricted-syntax
+          if (p.x > bmaxx) c += 1;
+        }
+
+        if (c === 8) show = false;
+      }
+
+      if (show) {
+        let c = 0;
+
+        for (const p of points) {
+          // eslint-disable-line no-restricted-syntax
+          if (p.x < bminx) c += 1;
+        }
+
+        if (c === 8) show = false;
+      }
+
+      if (show) {
+        let c = 0;
+
+        for (const p of points) {
+          // eslint-disable-line no-restricted-syntax
+          if (p.y > bmaxy) c += 1;
+        }
+
+        if (c === 8) show = false;
+      }
+
+      if (show) {
+        let c = 0;
+
+        for (const p of points) {
+          // eslint-disable-line no-restricted-syntax
+          if (p.y < bminy) c += 1;
+        }
+
+        if (c === 8) show = false;
+      }
+
+      if (show) {
+        let c = 0;
+
+        for (const p of points) {
+          // eslint-disable-line no-restricted-syntax
+          if (p.z > bmaxz) c += 1;
+        }
+
+        if (c === 8) show = false;
+      }
+
+      if (show) {
+        let c = 0;
+
+        for (const p of points) {
+          // eslint-disable-line no-restricted-syntax
+          if (p.z < bminz) c += 1;
+        }
+
+        if (c === 8) show = false;
+      }
+
+      t.visible = show;
+      t.castShadow = show;
+    }
+  };
+})();
+
 export class TerrainSystem {
-  constructor(scene) {
+  constructor(scene, atmosphereSystem) {
     waitForDOMContentLoaded().then(() => {
       this.avatarPovEl = document.getElementById("avatar-pov-node");
+      this.viewingCameraEl = document.getElementById("viewing-camera");
     });
 
+    this.atmosphereSystem = atmosphereSystem;
     this.avatarChunk = new THREE.Vector3(Infinity, 0, Infinity);
     this.pool = [...Array(RENDER_GRID.length)].map(() => new Terrain());
     this.loadedChunks = new Map();
@@ -129,16 +342,17 @@ export class TerrainSystem {
           }
         }
 
+        entities.get(key).setObject3D("mesh", terrain);
+        terrain.position.set(0, 0, 0);
+        terrain.matrixNeedsUpdate = true;
+
         terrain.update({
           chunk: { x, y: subchunk, z, height },
           geometries
         });
 
         terrains.set(key, terrain);
-        terrain.position.set(0, 0, 0);
-        terrain.matrixNeedsUpdate = true;
 
-        entities.get(key).setObject3D("mesh", terrain);
         this.atmosphereSystem.updateShadows();
       });
     });
@@ -171,12 +385,15 @@ export class TerrainSystem {
     const chunk = new THREE.Vector3();
 
     return function() {
-      if (!this.atmosphereSystem) {
-        this.atmosphereSystem = this.scene.systems["hubs-systems"].atmosphereSystem;
-      }
-
       // TODO skip if avatar hasn't spawned yet.
       if (!this.avatarPovEl) return;
+
+      // Wait until we have the camera;
+      if (!this.playerCamera) {
+        if (!this.viewingCameraEl) return;
+        this.playerCamera = this.viewingCameraEl.getObject3D("camera");
+        if (!this.playerCamera) return;
+      }
 
       const { terrains, loadedChunks, loadingChunks, avatarChunk } = this;
       const avatar = this.avatarPovEl.object3D;
@@ -228,6 +445,11 @@ export class TerrainSystem {
         const dist = Math.abs(avatarChunk.x - terrain.chunk.x) + Math.abs(avatarChunk.z - terrain.chunk.z);
         terrain.renderOrder = dist + 10; // Render from front to back.
       });
+
+      if (this.playerCamera) {
+        // Cull chunks
+        cullChunks(this.playerCamera, this.terrains.values());
+      }
     };
   })();
 }

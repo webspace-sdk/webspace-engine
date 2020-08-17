@@ -43,7 +43,8 @@ AFRAME.registerSystem("hubs-systems", {
     this.superSpawnerSystem = new SuperSpawnerSystem();
     this.cursorTargettingSystem = new CursorTargettingSystem();
     this.positionAtBorderSystem = new PositionAtBorderSystem();
-    this.physicsSystem = new PhysicsSystem(this.el.object3D);
+    this.atmosphereSystem = new AtmosphereSystem(this.el);
+    this.physicsSystem = new PhysicsSystem(this.el.object3D, this.atmosphereSystem);
     this.constraintsSystem = new ConstraintsSystem(this.physicsSystem);
     this.twoPointStretchingSystem = new TwoPointStretchingSystem();
     this.singleActionButtonSystem = new SingleActionButtonSystem();
@@ -70,9 +71,8 @@ AFRAME.registerSystem("hubs-systems", {
     this.boneVisibilitySystem = new BoneVisibilitySystem();
     this.uvScrollSystem = new UVScrollSystem();
     this.mediaStreamSystem = new MediaStreamSystem(this.el);
-    this.wrappedEntitySystem = new WrappedEntitySystem(this.el);
-    this.terrainSystem = new TerrainSystem(this.el);
-    this.atmosphereSystem = new AtmosphereSystem(this.el);
+    this.wrappedEntitySystem = new WrappedEntitySystem(this.el, this.atmosphereSystem);
+    this.terrainSystem = new TerrainSystem(this.el, this.atmosphereSystem);
   },
 
   tick(t, dt) {

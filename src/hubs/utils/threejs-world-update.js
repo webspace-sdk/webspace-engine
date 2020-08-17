@@ -255,3 +255,57 @@ THREE.Object3D.prototype.lookAt = (function() {
     this.matrixNeedsUpdate = true;
   };
 })();
+
+// Camera needs to update inverse properly, copy implementation to reduce branching/dispatch
+THREE.Camera.prototype.updateMatrices = function(forceLocalUpdate, forceWorldUpdate, skipParents) {
+  if (!this.hasHadFirstMatrixUpdate) {
+    if (
+      !this.position.equals(zeroPos) ||
+      !this.quaternion.equals(zeroQuat) ||
+      !this.scale.equals(oneScale) ||
+      !this.matrix.equals(identity)
+    ) {
+      // Only update the matrix the first time if its non-identity, this way
+      // this.matrixIsModified will remain false until the default
+      // identity matrix is updated.
+      this.updateMatrix();
+    }
+
+    this.hasHadFirstMatrixUpdate = true;
+    this.matrixWorldNeedsUpdate = true;
+    this.cachedMatrixWorld = this.matrixWorld;
+  } else if (this.matrixNeedsUpdate || this.matrixAutoUpdate || forceLocalUpdate) {
+    // updateMatrix() sets matrixWorldNeedsUpdate = true
+    this.updateMatrix();
+    if (this.matrixNeedsUpdate) this.matrixNeedsUpdate = false;
+  }
+
+  if (!skipParents && this.parent) {
+    this.parent.updateMatrices(false, forceWorldUpdate, false);
+    this.matrixWorldNeedsUpdate = this.matrixWorldNeedsUpdate || this.parent.childrenNeedMatrixWorldUpdate;
+  }
+
+  if (this.matrixWorldNeedsUpdate || forceWorldUpdate) {
+    if (this.parent === null) {
+      this.matrixWorld.copy(this.matrix);
+    } else {
+      // If the matrix is unmodified, it is the identity matrix,
+      // and hence we can use the parent's world matrix directly.
+      //
+      // Note this assumes all callers will either not pass skipParents=true
+      // *or* will update the parent themselves beforehand as is done in
+      // updateMatrixWorld.
+      if (!this.matrixIsModified) {
+        this.matrixWorld = this.parent.matrixWorld;
+      } else {
+        // Once matrixIsModified === true, this.matrixWorld has been updated to be a local
+        // copy, not a reference to this.parent.matrixWorld (see updateMatrix/applyMatrix)
+        this.matrixWorld.multiplyMatrices(this.parent.matrixWorld, this.matrix);
+      }
+    }
+
+    this.childrenNeedMatrixWorldUpdate = true;
+    this.matrixWorldNeedsUpdate = false;
+    this.matrixWorldInverse.getInverse(this.matrixWorld);
+  }
+};

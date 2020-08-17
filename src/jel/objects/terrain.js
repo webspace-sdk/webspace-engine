@@ -16,7 +16,6 @@ class Terrain extends Object3D {
     mesh.castShadow = true;
     this.add(mesh);
     this.mesh = mesh;
-    this.worldAABB = new Box3();
     this.frustumCulled = false;
     this.heightmap = new Uint8Array(64 * 64);
   }
@@ -55,13 +54,7 @@ class Terrain extends Object3D {
 
     this.updateHeightmap({ chunk, geometry });
 
-    this.getWorldPosition(tmp);
-    this.worldAABB.min.x = tmp.x;
-    this.worldAABB.max.x = tmp.x + 8;
-    this.worldAABB.min.z = tmp.z;
-    this.worldAABB.max.z = tmp.z + 8;
-    this.worldAABB.min.y = 0;
-    this.worldAABB.max.y = chunk.height / 8 + 1 / 8;
+    this.height = chunk.height;
   }
 
   updateHeightmap({ chunk, geometry }) {
