@@ -58,6 +58,7 @@ export class TerrainSystem {
     this.loadingChunks = new Map();
     this.terrains = new Map();
     this.entities = new Map();
+    this.scene = scene;
 
     for (let x = MIN_CHUNK_COORD; x <= MAX_CHUNK_COORD; x++) {
       for (let z = MIN_CHUNK_COORD; z <= MAX_CHUNK_COORD; z++) {
@@ -138,6 +139,7 @@ export class TerrainSystem {
         terrain.matrixNeedsUpdate = true;
 
         entities.get(key).setObject3D("mesh", terrain);
+        this.atmosphereSystem.updateShadows();
       });
     });
   }
@@ -169,6 +171,10 @@ export class TerrainSystem {
     const chunk = new THREE.Vector3();
 
     return function() {
+      if (!this.atmosphereSystem) {
+        this.atmosphereSystem = this.scene.systems["hubs-systems"].atmosphereSystem;
+      }
+
       // TODO skip if avatar hasn't spawned yet.
       if (!this.avatarPovEl) return;
 

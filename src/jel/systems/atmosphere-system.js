@@ -38,19 +38,14 @@ export class AtmosphereSystem {
     this.renderer.antialias = false;
     this.renderer.stencil = false;
     this.renderer.powerPreference = "high-performance";
-
-    this.shadowsNeedUpdate = true;
-
-    setInterval(() => {
-      if (this.shadowsNeedUpdate) {
-        this.renderer.shadowMap.needsUpdate = true;
-        this.shadowsNeedUpdate = false;
-      }
-    }, 250);
   }
 
   tick() {
     this.moveSunlight();
+  }
+
+  updateShadows() {
+    this.renderer.shadowMap.needsUpdate = true;
   }
 
   moveSunlight = (() => {
@@ -69,18 +64,29 @@ export class AtmosphereSystem {
       const playerMoved =
         Math.abs(sunPos.x - pos.x) > 0.001 || Math.abs(sunPos.y - pos.y) > 0.001 || Math.abs(sunPos.z - pos.z) > 0.001;
 
+      this.sunLight.shadow.camera.matrixAutoUpdate = false;
+
       if (playerMoved) {
         this.sunLight.position.x = pos.x;
         this.sunLight.position.y = pos.y;
         this.sunLight.position.z = pos.z;
+        this.sunLight.matrixNeedsUpdate = true;
+
         this.sunLight.target.position.x = pos.x + 4;
         this.sunLight.target.position.y = pos.y - 5;
         this.sunLight.target.position.z = pos.z + 4;
-        this.sunLight.target.updateMatrixWorld();
+        this.sunLight.target.matrixNeedsUpdate = true;
+
+        // HACK - somewhere in three code matrix is stale by a frame because of auto updates off
+        // For now, flip it on if we move shadow camera.
+        this.sunLight.shadow.camera.matrixNeedsUpdate = true;
+        this.sunLight.shadow.camera.matrixAutoUpdate = true;
+
+        this.sunLight.updateMatrices();
+        this.sunLight.target.updateMatrices();
         this.sunLight.shadow.camera.updateProjectionMatrix();
-        this.sunLight.shadow.camera.updateMatrixWorld();
-        this.sunLight.matrixNeedsUpdate = true;
-        this.shadowsNeedUpdate = true;
+
+        this.renderer.shadowMap.needsUpdate = true;
       }
     };
   })();
