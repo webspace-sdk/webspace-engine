@@ -59,7 +59,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.batchManagerSystem = new BatchManagerSystem(this.el.object3D, this.el.renderer);
     this.cameraSystem = new CameraSystem(this.el);
     this.drawingMenuSystem = new DrawingMenuSystem(this.el);
-    this.characterController = new CharacterControllerSystem(this.el);
     this.waypointSystem = new WaypointSystem(this.el, this.characterController);
     this.cursorPoseTrackingSystem = new CursorPoseTrackingSystem();
     this.scaleInScreenSpaceSystem = new ScaleInScreenSpaceSystem();
@@ -73,6 +72,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.mediaStreamSystem = new MediaStreamSystem(this.el);
     this.wrappedEntitySystem = new WrappedEntitySystem(this.el, this.atmosphereSystem);
     this.terrainSystem = new TerrainSystem(this.el, this.atmosphereSystem);
+    this.characterController = new CharacterControllerSystem(this.el, this.terrainSystem);
   },
 
   tick(t, dt) {

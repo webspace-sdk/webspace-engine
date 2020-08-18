@@ -1,17 +1,23 @@
 import Pako from "pako";
 import { protocol } from "../protocol/protocol";
 import Terrain from "../objects/terrain";
-import { WORLD_MIN_COORD, WORLD_MAX_COORD } from "./wrapped-entity-system";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+const { Pathfinding } = require("three-pathfinding");
 
-const { Vector3, Vector4, Matrix4 } = THREE;
+const { Vector3, Vector4, Matrix4, BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute } = THREE;
 
 const LOAD_RADIUS = 4;
-const VOXEL_SIZE = 1 / 8;
-const VOXELS_PER_CHUNK = 64;
-const CHUNK_WORLD_SIZE = VOXELS_PER_CHUNK * VOXEL_SIZE;
-const MIN_CHUNK_COORD = Math.floor(WORLD_MIN_COORD / CHUNK_WORLD_SIZE);
-const MAX_CHUNK_COORD = Math.floor(WORLD_MAX_COORD / CHUNK_WORLD_SIZE);
+export const VOXEL_SIZE = 1 / 8;
+export const VOXELS_PER_CHUNK = 64;
+export const CHUNK_WORLD_SIZE = VOXELS_PER_CHUNK * VOXEL_SIZE;
+export const WORLD_CHUNK_SIZE = 8;
+export const MIN_CHUNK_COORD = -WORLD_CHUNK_SIZE / 2;
+export const MAX_CHUNK_COORD = -MIN_CHUNK_COORD - 1;
+export const WORLD_MAX_COORD = (WORLD_CHUNK_SIZE * CHUNK_WORLD_SIZE) / 2;
+export const WORLD_MIN_COORD = -WORLD_MAX_COORD;
+export const WORLD_SIZE = WORLD_MAX_COORD - WORLD_MIN_COORD;
+export const WORLD_RADIUS = (WORLD_SIZE / 2) * Math.PI;
+
 const RENDER_GRID = [];
 const SUBCHUNKS = 1;
 const center = new THREE.Vector3();
@@ -25,6 +31,9 @@ const normalizeChunkCoord = c => {
     return c;
   }
 };
+
+const entityWorldCoordToChunkCoord = c => c / CHUNK_WORLD_SIZE;
+const chunkCoordToEntityWorldCoord = c => c * CHUNK_WORLD_SIZE;
 
 for (let x = -LOAD_RADIUS; x <= LOAD_RADIUS; x += 1) {
   for (let z = -LOAD_RADIUS; z <= LOAD_RADIUS; z += 1) {
@@ -266,21 +275,19 @@ export class TerrainSystem {
 
     this.atmosphereSystem = atmosphereSystem;
     this.avatarChunk = new THREE.Vector3(Infinity, 0, Infinity);
+    this.avatarZone = null;
     this.pool = [...Array(RENDER_GRID.length)].map(() => new Terrain());
     this.loadedChunks = new Map();
     this.loadingChunks = new Map();
     this.terrains = new Map();
     this.entities = new Map();
     this.scene = scene;
+    this.pathfinder = new Pathfinding();
 
     for (let x = MIN_CHUNK_COORD; x <= MAX_CHUNK_COORD; x++) {
       for (let z = MIN_CHUNK_COORD; z <= MAX_CHUNK_COORD; z++) {
         for (let subchunk = 0; subchunk < SUBCHUNKS; subchunk++) {
-          const pos = new Vector3(
-            x * CHUNK_WORLD_SIZE + CHUNK_WORLD_SIZE / 2,
-            0,
-            z * CHUNK_WORLD_SIZE + CHUNK_WORLD_SIZE / 2
-          );
+          const pos = new Vector3(chunkCoordToEntityWorldCoord(x), 0, chunkCoordToEntityWorldCoord(z));
           const el = document.createElement("a-entity");
           const key = `${keyForChunk({ x, z })}:${subchunk}`;
           //el.setAttribute("text", `value: ${key}; width: 150; align:center; position: 0 10 0;`);
@@ -320,43 +327,85 @@ export class TerrainSystem {
     loadingChunks.set(key, chunk);
   }
 
-  chunksLoaded(chunks) {
-    const { entities, loadedChunks, loadingChunks, terrains, pool } = this;
+  chunksLoaded = (() => {
+    const navTransform = new Matrix4();
 
-    chunks.forEach(({ x, height, z, meshes /*features*/ }) => {
-      const key = keyForChunk({ x, z });
-      if (!loadedChunks.has(key) && !loadingChunks.has(key)) return;
+    return chunks => {
+      const { entities, loadedChunks, loadingChunks, terrains, pool } = this;
 
-      loadedChunks.set(key, { x, z });
-      loadingChunks.delete(key);
+      chunks.forEach(({ x, height, z, meshes /*features*/ }) => {
+        const key = keyForChunk({ x, z });
+        if (!loadedChunks.has(key) && !loadingChunks.has(key)) return;
 
-      meshes.forEach((geometries, subchunk) => {
-        const key = `${x}:${z}:${subchunk}`;
-        let terrain = terrains.get(key);
+        loadedChunks.set(key, { x, z });
+        loadingChunks.delete(key);
 
-        if (!terrain) {
-          terrain = pool.shift();
+        meshes.forEach((geometries, subchunk) => {
+          const key = `${x}:${z}:${subchunk}`;
+          let terrain = terrains.get(key);
 
           if (!terrain) {
-            terrain = new Terrain();
+            terrain = pool.shift();
+
+            if (!terrain) {
+              terrain = new Terrain();
+            }
           }
-        }
 
-        entities.get(key).setObject3D("mesh", terrain);
-        terrain.position.set(0, 0, 0);
-        terrain.matrixNeedsUpdate = true;
+          entities.get(key).setObject3D("mesh", terrain);
+          terrain.position.set(0, 0, 0);
+          terrain.matrixNeedsUpdate = true;
 
-        terrain.update({
-          chunk: { x, y: subchunk, z, height },
-          geometries
+          terrain.update({
+            chunk: { x, y: subchunk, z, height },
+            geometries
+          });
+
+          terrains.set(key, terrain);
+
+          const navGeometry = new BufferGeometry();
+          const tmpPos = new Uint8Array(geometries.nav.position.length);
+          tmpPos.set(geometries.nav.position);
+          const tmpIdx = new Uint8Array(geometries.nav.index.length);
+          tmpIdx.set(geometries.nav.index);
+          const pos = new Float32Array(tmpPos.buffer, tmpPos.byteOffset, tmpPos.length / 4);
+          const idx = new Uint16Array(tmpIdx.buffer, tmpIdx.byteOffset, tmpIdx.length / 2);
+          navGeometry.setAttribute("position", new Float32BufferAttribute(pos, 3));
+          navGeometry.setIndex(new Uint16BufferAttribute(idx, 1));
+          const p = new THREE.Vector3();
+          terrain.updateMatrices();
+          terrain.getWorldPosition(p);
+          //console.log(terrain.parent.position);
+          navTransform.copy(terrain.matrixWorld);
+
+          // Terrain position may be out of bounds/wrapped, so normalize by
+          // converting to normalized chunk coordinates and back
+          const ctx = entityWorldCoordToChunkCoord(navTransform.elements[12]);
+          const ctz = entityWorldCoordToChunkCoord(navTransform.elements[14]);
+          const tx = chunkCoordToEntityWorldCoord(normalizeChunkCoord(ctx));
+          const tz = chunkCoordToEntityWorldCoord(normalizeChunkCoord(ctz));
+
+          navTransform.elements[12] = tx;
+          navTransform.elements[14] = tz;
+          navGeometry.applyMatrix(navTransform);
+
+          this.pathfinder.setZoneData(key, Pathfinding.createZone(navGeometry));
+
+          const navMaterial = new THREE.MeshBasicMaterial({ color: Math.floor(Math.random() * 0xffffff) });
+          const navMesh = new THREE.Mesh(navGeometry, navMaterial);
+          navMesh.position.y += 0.5;
+          navMesh.matrixNeedsUpdate = true;
+          this.scene.object3D.add(navMesh);
+
+          // TODO verify this works ok navGeometry.dispose();
+
+          this.scene.emit("terrain-chunk-loaded");
+
+          this.atmosphereSystem.updateShadows();
         });
-
-        terrains.set(key, terrain);
-
-        this.atmosphereSystem.updateShadows();
       });
-    });
-  }
+    };
+  })();
 
   unloadChunk(chunk) {
     const { entities, loadedChunks, pool, terrains } = this;
@@ -373,11 +422,53 @@ export class TerrainSystem {
       }
 
       if (terrain) {
-        // TODO remove from entity
+        terrain.dispose();
         terrains.delete(subkey);
         pool.push(terrain);
       }
+
+      delete this.pathfinder.zones[subkey];
     }
+  }
+
+  getClosestNavNode(pos, navZone, navGroup) {
+    if (this.pathfinder.zones[navZone] && this.pathfinder.zones[navZone].groups[navGroup]) {
+      return (
+        this.pathfinder.getClosestNode(pos, navZone, navGroup, true) ||
+        this.pathfinder.getClosestNode(pos, navZone, navGroup)
+      );
+    }
+
+    return null;
+  }
+
+  getNavZoneAndGroup(pos) {
+    const { avatarChunk, avatarZone } = this;
+
+    const group = this.pathfinder.getGroup(avatarZone, pos, true, true);
+    if (group !== null) return [avatarZone, group];
+
+    // Optimization - check current zone first, then neighboring zones, then all zones.
+    // Otherwise, we might be spanning zones.
+    for (let x = -1; x <= 1; x++) {
+      for (let z = -1; z <= 1; z++) {
+        if (x === 0 && z === 0) continue;
+        let cx = avatarChunk.x + x;
+        let cz = avatarChunk.z + z;
+        cx = normalizeChunkCoord(avatarChunk.x + x);
+        cz = normalizeChunkCoord(avatarChunk.z + z);
+
+        const zone = `${keyForChunk({ x: cx, z: cz })}:0`;
+        const group = this.pathfinder.getGroup(zone, pos, true, true);
+        if (group !== null) return [zone, group];
+      }
+    }
+
+    return [null, null];
+  }
+
+  clampStep(start, end, fromNode, navZone, navGroup, outPos) {
+    return this.pathfinder.clampStep(start, end, fromNode, navZone, navGroup, outPos);
   }
 
   tick = (function() {
@@ -409,10 +500,15 @@ export class TerrainSystem {
       chunk.y = 0;
 
       if (!chunk.equals(avatarChunk)) {
+        console.log(avatarPos.x, avatarPos.z);
+
         const hasCrossedBorder = avatarChunk.x !== chunk.x || avatarChunk.z !== chunk.z;
-        avatarChunk.copy(chunk);
 
         if (hasCrossedBorder) {
+          avatarChunk.copy(chunk);
+          console.log(avatarChunk);
+          this.avatarZone = `${keyForChunk(chunk)}:0`; // This will need fixing if we re-enable subchunks
+
           const newChunks = [];
 
           // Wrap chunks so they pre-emptively load over border

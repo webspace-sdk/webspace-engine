@@ -69,7 +69,7 @@ async function updateEnvironmentForHub(hub, hubStore) {
       hubStore.state.lastRotation.w
     );
 
-    characterController.teleportTo(lastPosition, lastRotation);
+    //characterController.teleportTo(lastPosition, lastRotation);
   } else {
     waypointSystem.moveToSpawnPoint();
   }

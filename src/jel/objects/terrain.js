@@ -1,6 +1,5 @@
-const { Mesh, MeshStandardMaterial, Vector3, VertexColors, BufferGeometry, Box3, BufferAttribute, Object3D } = THREE;
+const { Mesh, MeshStandardMaterial, VertexColors, BufferGeometry, BufferAttribute, Object3D } = THREE;
 const material = new MeshStandardMaterial({ vertexColors: VertexColors, metalness: 0, roughness: 1 });
-const tmp = new Vector3();
 
 const setVertexColor = shader => {
   shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
@@ -17,7 +16,6 @@ class Terrain extends Object3D {
     this.add(mesh);
     this.mesh = mesh;
     this.frustumCulled = false;
-    this.heightmap = new Uint8Array(64 * 64);
   }
 
   update({ chunk, geometries }) {
@@ -30,7 +28,10 @@ class Terrain extends Object3D {
       mesh.visible = false;
     }
 
-    const { geometry } = mesh;
+    mesh.geometry.dispose();
+
+    const geometry = new BufferGeometry();
+    mesh.geometry = geometry;
 
     geometry.setAttribute("color", new BufferAttribute(color, 3));
     geometry.setAttribute("position", new BufferAttribute(position, 3));
@@ -58,7 +59,8 @@ class Terrain extends Object3D {
   }
 
   updateHeightmap({ chunk, geometry }) {
-    const { heightmap } = this;
+    this.heightmap = new Uint8Array(64 * 64);
+    const heightmap = this.heightmap;
     const aux = { x: 0, y: 0, z: 0 };
     const position = geometry.getAttribute("position");
     const uv = geometry.getAttribute("uv");
@@ -81,9 +83,8 @@ class Terrain extends Object3D {
   }
 
   dispose() {
-    const { mesh, geometry } = this;
-    geometry.dispose();
-    mesh.geometry.dispose();
+    this.mesh.geometry.dispose();
+    this.heightmap = null;
   }
 }
 

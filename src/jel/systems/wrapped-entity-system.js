@@ -1,8 +1,4 @@
-export const WORLD_RADIUS = 10;
-export const WORLD_CIRCUMFERENCE = 2 * WORLD_RADIUS * Math.PI;
-export const WORLD_MAX_COORD = WORLD_CIRCUMFERENCE / 2 - 0.5;
-export const WORLD_MIN_COORD = -WORLD_MAX_COORD;
-export const WORLD_SIZE = WORLD_MAX_COORD - WORLD_MIN_COORD;
+import { WORLD_SIZE, WORLD_MIN_COORD, WORLD_MAX_COORD } from "./terrain-system";
 const MAX_AVATAR_DISTANCE_TO_ALLOW_SCHEDULED_WRAP = 5;
 
 // This code is used to wrap objects around in world space, to simulate the experience of walking

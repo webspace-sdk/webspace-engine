@@ -14,10 +14,9 @@ import {
 import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
 import qsTruthy from "../utils/qs_truthy";
 //import { m4String } from "../utils/pretty-print";
-const NAV_ZONE = "character";
 const qsAllowWaypointLerp = qsTruthy("waypointLerp");
 const isMobile = AFRAME.utils.device.isMobile();
-import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../jel/systems/wrapped-entity-system";
+import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../jel/systems/terrain-system";
 
 const calculateDisplacementToDesiredPOV = (function() {
   const translationCoordinateSpace = new THREE.Matrix4();
@@ -47,10 +46,12 @@ const calculateDisplacementToDesiredPOV = (function() {
 const SNAP_ROTATION_RADIAN = THREE.Math.DEG2RAD * 45;
 const BASE_SPEED = 3.2; //TODO: in what units?
 export class CharacterControllerSystem {
-  constructor(scene) {
+  constructor(scene, terrainSystem) {
     this.scene = scene;
+    this.terrainSystem = terrainSystem;
     this.fly = false;
     this.shouldLandWhenPossible = false;
+    this.lastSnappedAvatarZone = null;
     this.waypoints = [];
     this.waypointTravelStartTime = 0;
     this.waypointTravelTime = 0;
@@ -59,7 +60,7 @@ export class CharacterControllerSystem {
     this.relativeMotion = new THREE.Vector3(0, 0, 0);
     this.nextRelativeMotion = new THREE.Vector3(0, 0, 0);
     this.dXZ = 0;
-    this.scene.addEventListener("nav-mesh-loaded", () => {
+    this.scene.addEventListener("terrain-chunk-loaded", () => {
       this.navGroup = null;
       this.navNode = null;
     });
@@ -94,12 +95,7 @@ export class CharacterControllerSystem {
       targetForHead.y += this.avatarPOV.object3D.position.y;
       deltaFromHeadToTargetForHead.copy(targetForHead).sub(head);
       targetForRig.copy(rig).add(deltaFromHeadToTargetForHead);
-      const navMeshExists = NAV_ZONE in this.scene.systems.nav.pathfinder.zones;
-      if (navMeshExists) {
-        this.findPositionOnNavMesh(targetForRig, targetForRig, this.avatarRig.object3D.position, navMeshExists);
-      } else {
-        this.avatarRig.object3D.position.copy(targetWorldPosition);
-      }
+      this.findPositionOnNavMesh(targetForRig, targetForRig, this.avatarRig.object3D.position, true);
 
       this.avatarRig.object3D.matrixNeedsUpdate = true;
 
@@ -129,11 +125,7 @@ export class CharacterControllerSystem {
       }
       inMat4Copy.copy(inMat4);
       rotateInPlaceAroundWorldUp(inMat4Copy, Math.PI, finalPOV);
-      const navMeshExists = NAV_ZONE in this.scene.systems.nav.pathfinder.zones;
-      if (!navMeshExists && snapToNavMesh) {
-        console.warn("Tried to travel to a waypoint that wants to snap to the nav mesh, but there is no nav mesh");
-      }
-      if (navMeshExists && snapToNavMesh) {
+      if (snapToNavMesh) {
         inPosition.setFromMatrixPosition(inMat4Copy);
         this.findPositionOnNavMesh(inPosition, inPosition, outPosition, true);
         finalPOV.setPosition(outPosition);
@@ -290,7 +282,6 @@ export class CharacterControllerSystem {
 
       newPOV.copy(snapRotatedPOV);
 
-      const navMeshExists = NAV_ZONE in this.scene.systems.nav.pathfinder.zones;
       if (!this.isMotionDisabled) {
         const playerScale = v.setFromMatrixColumn(this.avatarPOV.object3D.matrixWorld, 1).length();
         const triedToMove = this.relativeMotion.lengthSq() > 0.000001;
@@ -299,7 +290,7 @@ export class CharacterControllerSystem {
           const speedModifier = preferences.movementSpeedModifier || 1;
           calculateDisplacementToDesiredPOV(
             snapRotatedPOV,
-            this.fly || !navMeshExists,
+            this.fly,
             this.relativeMotion.multiplyScalar(
               ((userinput.get(paths.actions.boost) ? 2 : 1) *
                 speedModifier *
@@ -317,7 +308,7 @@ export class CharacterControllerSystem {
         }
 
         const shouldRecomputeNavGroupAndNavNode = didStopFlying || this.shouldLandWhenPossible;
-        const shouldResnapToNavMesh = navMeshExists && (shouldRecomputeNavGroupAndNavNode || triedToMove);
+        const shouldResnapToNavMesh = shouldRecomputeNavGroupAndNavNode || triedToMove;
 
         let squareDistNavMeshCorrection = 0;
 
@@ -380,17 +371,6 @@ export class CharacterControllerSystem {
     };
   })();
 
-  getClosestNode(pos) {
-    const pathfinder = this.scene.systems.nav.pathfinder;
-    if (!pathfinder.zones[NAV_ZONE].groups[this.navGroup]) {
-      return null;
-    }
-    return (
-      pathfinder.getClosestNode(pos, NAV_ZONE, this.navGroup, true) ||
-      pathfinder.getClosestNode(pos, NAV_ZONE, this.navGroup)
-    );
-  }
-
   findPOVPositionAboveNavMesh = (function() {
     const startingFeetPosition = new THREE.Vector3();
     const desiredFeetPosition = new THREE.Vector3();
@@ -421,16 +401,31 @@ export class CharacterControllerSystem {
   })();
 
   findPositionOnNavMesh(start, end, outPos, shouldRecomputeGroupAndNode) {
-    const pathfinder = this.scene.systems.nav.pathfinder;
-    if (!(NAV_ZONE in pathfinder.zones)) return;
-    this.navGroup =
-      shouldRecomputeGroupAndNode || this.navGroup === null
-        ? pathfinder.getGroup(NAV_ZONE, end, true, true)
-        : this.navGroup;
+    const { terrainSystem } = this;
+    const avatarZoneChanged = this.lastSnappedAvatarZone !== this.terrainSystem.avatarZone;
+
+    if (avatarZoneChanged) {
+      this.lastSnappedAvatarZone = this.terrainSystem.avatarZone;
+      shouldRecomputeGroupAndNode = true;
+    }
+    shouldRecomputeGroupAndNode = true;
+    let zoneChanged = false;
+
+    if (shouldRecomputeGroupAndNode || this.navGroup === null || this.navNode === null) {
+      const [navZone, navGroup] = terrainSystem.getNavZoneAndGroup(end);
+      zoneChanged = this.navZone !== navZone;
+      this.navZone = navZone;
+      this.navGroup = navGroup;
+    }
+    if (zoneChanged) {
+      //console.log("changed");
+    }
+
     this.navNode =
       shouldRecomputeGroupAndNode || this.navNode === null || this.navNode === undefined
-        ? this.getClosestNode(end)
+        ? this.terrainSystem.getClosestNavNode(end, this.navZone, this.navGroup)
         : this.navNode;
+
     if (this.navNode === null || this.navNode === undefined) {
       // this.navNode can be null if it has never been set or if getClosestNode fails,
       // and it can be undefined if clampStep fails, so we have to check both. We do not
@@ -438,8 +433,12 @@ export class CharacterControllerSystem {
       // and 0 is falsey.
       outPos.copy(end);
     } else {
-      this.navNode = pathfinder.clampStep(start, end, this.navNode, NAV_ZONE, this.navGroup, outPos);
+      this.navNode = terrainSystem.clampStep(start, end, this.navNode, this.navZone, this.navGroup, outPos);
     }
+
+    //console.log(end);
+    //console.log("to " + zoneChanged);
+    //console.log(outPos);
     return outPos;
   }
 
