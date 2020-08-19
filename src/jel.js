@@ -145,6 +145,7 @@ import "./hubs/systems/listed-media";
 import "./hubs/systems/linked-media";
 import "./jel/systems/media-presence-system";
 import "./jel/systems/wrapped-entity-system";
+import "./jel/systems/effects-system";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
 import { SOUND_CHAT_MESSAGE } from "./hubs/systems/sound-effects-system";
 
