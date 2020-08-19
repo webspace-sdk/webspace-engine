@@ -32,7 +32,7 @@ const normalizeChunkCoord = c => {
   }
 };
 
-const entityWorldCoordToChunkCoord = c => c / CHUNK_WORLD_SIZE;
+const entityWorldCoordToChunkCoord = c => Math.floor(c / CHUNK_WORLD_SIZE);
 const chunkCoordToEntityWorldCoord = c => c * CHUNK_WORLD_SIZE;
 
 for (let x = -LOAD_RADIUS; x <= LOAD_RADIUS; x += 1) {
@@ -279,6 +279,7 @@ export class TerrainSystem {
     this.pool = [...Array(RENDER_GRID.length)].map(() => new Terrain());
     this.loadedChunks = new Map();
     this.loadingChunks = new Map();
+    this.spawningChunks = new Map();
     this.terrains = new Map();
     this.entities = new Map();
     this.scene = scene;
@@ -310,35 +311,37 @@ export class TerrainSystem {
   }
 
   loadChunk(chunk) {
-    const { loadedChunks, loadingChunks } = this;
+    const { loadedChunks, loadingChunks, spawningChunks } = this;
     const key = keyForChunk(chunk);
-    if (loadedChunks.has(key) || loadingChunks.has(key)) return;
+    if (loadedChunks.has(key) || loadingChunks.has(key) || spawningChunks.has(key)) return;
 
     fetch(`https://hubs.local:8003/chunks/${chunk.x}/${chunk.z}/1`).then(res => {
       res.text().then(b64 => {
-        // TODO avoid atob
-        // const encoded = Base64Binary.decodeArrayBuffer(b64);
-        const encoded = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-        const chunks = decodeChunks(encoded);
-        this.chunksLoaded(chunks);
+        if (!loadingChunks.has(key)) return;
+        loadingChunks.delete(key);
+        spawningChunks.set(key, b64);
       });
     });
 
     loadingChunks.set(key, chunk);
   }
 
-  chunksLoaded = (() => {
+  spawnChunk = (() => {
     const navTransform = new Matrix4();
 
-    return chunks => {
-      const { entities, loadedChunks, loadingChunks, terrains, pool } = this;
+    return b64chunks => {
+      // TODO avoid atob
+      const encoded = Uint8Array.from(atob(b64chunks), c => c.charCodeAt(0));
+      const chunks = decodeChunks(encoded);
+
+      const { entities, loadedChunks, spawningChunks, terrains, pool } = this;
 
       chunks.forEach(({ x, height, z, meshes /*features*/ }) => {
         const key = keyForChunk({ x, z });
-        if (!loadedChunks.has(key) && !loadingChunks.has(key)) return;
+        if (!loadedChunks.has(key) && !spawningChunks.has(key)) return;
 
         loadedChunks.set(key, { x, z });
-        loadingChunks.delete(key);
+        spawningChunks.delete(key);
 
         meshes.forEach((geometries, subchunk) => {
           const key = `${x}:${z}:${subchunk}`;
@@ -375,7 +378,6 @@ export class TerrainSystem {
           const p = new THREE.Vector3();
           terrain.updateMatrices();
           terrain.getWorldPosition(p);
-          //console.log(terrain.parent.position);
           navTransform.copy(terrain.matrixWorld);
 
           // Terrain position may be out of bounds/wrapped, so normalize by
@@ -389,13 +391,18 @@ export class TerrainSystem {
           navTransform.elements[14] = tz;
           navGeometry.applyMatrix(navTransform);
 
-          this.pathfinder.setZoneData(key, Pathfinding.createZone(navGeometry));
+          // Navmesh vis
+          //const navMaterial = new THREE.MeshBasicMaterial({
+          //  color: Math.floor(Math.random() * 0xffffff),
+          //  transparent: true,
+          //  opacity: 0.2
+          //});
+          //const navMesh = new THREE.Mesh(navGeometry, navMaterial);
+          //navMesh.position.y += 0.5;
+          //navMesh.matrixNeedsUpdate = true;
+          //this.scene.object3D.add(navMesh);
 
-          const navMaterial = new THREE.MeshBasicMaterial({ color: Math.floor(Math.random() * 0xffffff) });
-          const navMesh = new THREE.Mesh(navGeometry, navMaterial);
-          navMesh.position.y += 0.5;
-          navMesh.matrixNeedsUpdate = true;
-          this.scene.object3D.add(navMesh);
+          this.pathfinder.setZoneData(key, Pathfinding.createZone(navGeometry));
 
           // TODO verify this works ok navGeometry.dispose();
 
@@ -408,9 +415,10 @@ export class TerrainSystem {
   })();
 
   unloadChunk(chunk) {
-    const { entities, loadedChunks, pool, terrains } = this;
+    const { entities, loadedChunks, spawningChunks, pool, terrains } = this;
     const key = keyForChunk(chunk);
     loadedChunks.delete(key);
+    spawningChunks.delete(key);
 
     for (let subchunk = 0; subchunk < SUBCHUNKS; subchunk += 1) {
       const subkey = `${key}:${subchunk}`;
@@ -443,28 +451,11 @@ export class TerrainSystem {
   }
 
   getNavZoneAndGroup(pos) {
-    const { avatarChunk, avatarZone } = this;
-
-    const group = this.pathfinder.getGroup(avatarZone, pos, true, true);
-    if (group !== null) return [avatarZone, group];
-
-    // Optimization - check current zone first, then neighboring zones, then all zones.
-    // Otherwise, we might be spanning zones.
-    for (let x = -1; x <= 1; x++) {
-      for (let z = -1; z <= 1; z++) {
-        if (x === 0 && z === 0) continue;
-        let cx = avatarChunk.x + x;
-        let cz = avatarChunk.z + z;
-        cx = normalizeChunkCoord(avatarChunk.x + x);
-        cz = normalizeChunkCoord(avatarChunk.z + z);
-
-        const zone = `${keyForChunk({ x: cx, z: cz })}:0`;
-        const group = this.pathfinder.getGroup(zone, pos, true, true);
-        if (group !== null) return [zone, group];
-      }
-    }
-
-    return [null, null];
+    const cx = entityWorldCoordToChunkCoord(pos.x);
+    const cz = entityWorldCoordToChunkCoord(pos.z);
+    const zone = `${keyForChunk({ x: cx, z: cz })}:0`;
+    const group = this.pathfinder.getGroup(zone, pos, true, true);
+    return [zone, group];
   }
 
   clampStep(start, end, fromNode, navZone, navGroup, outPos) {
@@ -486,7 +477,7 @@ export class TerrainSystem {
         if (!this.playerCamera) return;
       }
 
-      const { terrains, loadedChunks, loadingChunks, avatarChunk } = this;
+      const { terrains, loadedChunks, loadingChunks, spawningChunks, avatarChunk } = this;
       const avatar = this.avatarPovEl.object3D;
 
       avatar.getWorldPosition(avatarPos);
@@ -500,13 +491,10 @@ export class TerrainSystem {
       chunk.y = 0;
 
       if (!chunk.equals(avatarChunk)) {
-        console.log(avatarPos.x, avatarPos.z);
-
         const hasCrossedBorder = avatarChunk.x !== chunk.x || avatarChunk.z !== chunk.z;
 
         if (hasCrossedBorder) {
           avatarChunk.copy(chunk);
-          console.log(avatarChunk);
           this.avatarZone = `${keyForChunk(chunk)}:0`; // This will need fixing if we re-enable subchunks
 
           const newChunks = [];
@@ -531,8 +519,17 @@ export class TerrainSystem {
           loadingChunks.forEach((chunk, key) => {
             if (!newChunks.find(({ x, z }) => chunk.x === x && chunk.z === z)) {
               loadingChunks.delete(key);
+              spawningChunks.delete(key);
             }
           });
+        }
+      }
+
+      if (this.spawningChunks.size > 0) {
+        // Spawn a single chunk that's enqueued.
+        for (const [, b64chunk] of this.spawningChunks) {
+          this.spawnChunk(b64chunk);
+          break;
         }
       }
 

@@ -116,7 +116,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.enterVRButtonSystem.tick();
     this.uvScrollSystem.tick(dt);
     this.terrainSystem.tick();
-    this.atmosphereSystem.tick();
+    this.atmosphereSystem.tick(dt);
     this.mediaPresenceSystem.tick();
 
     // We run this late in the frame so that its the last thing to have an opinion about the scale of an object

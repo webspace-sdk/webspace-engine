@@ -1,5 +1,6 @@
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import Sky from "../objects/sky";
+import Water from "../objects/water";
 
 // Responsible for managing shadows, environmental lighting, sky, and environment map.
 export class AtmosphereSystem {
@@ -8,7 +9,19 @@ export class AtmosphereSystem {
     this.sceneEl = sceneEl;
     waitForDOMContentLoaded().then(() => {
       this.avatarPovEl = document.getElementById("avatar-pov-node");
+      this.viewingCameraEl = document.getElementById("viewing-camera");
     });
+
+    this.renderer = sceneEl.renderer;
+    this.renderer.outputEncoding = THREE.sRGBEncoding;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.autoUpdate = false;
+    this.renderer.shadowMap.soft = true;
+    this.renderer.antialias = false;
+    this.renderer.stencil = false;
+    this.renderer.powerPreference = "high-performance";
 
     this.ambientLight = new THREE.AmbientLight(0x808080);
 
@@ -36,28 +49,32 @@ export class AtmosphereSystem {
     this.sky.material.uniforms.luminance.value = 1;
     this.sky.material.uniforms.sunPosition.value.set(-80000, 100000, -80000);
 
+    this.water = new Water(this.sky, this.renderer, scene, this.renderer.camera);
+    this.water.position.y = 4.45 * (1 / 8);
+    this.water.matrixNeedsUpdate = true;
+
     scene.add(this.ambientLight);
     scene.add(this.sunLight);
     scene.add(this.sky);
-
-    this.renderer = sceneEl.renderer;
-    this.renderer.outputEncoding = THREE.sRGBEncoding;
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.shadowMap.autoUpdate = false;
-    this.renderer.shadowMap.soft = true;
-    this.renderer.antialias = false;
-    this.renderer.stencil = false;
-    this.renderer.powerPreference = "high-performance";
+    scene.add(this.water); // TODO water needs to become a wrapped entity
   }
 
-  tick() {
+  tick(dt) {
+    if (!this.playerCamera) {
+      if (!this.viewingCameraEl) return;
+      this.playerCamera = this.viewingCameraEl.getObject3D("camera");
+      if (!this.playerCamera) return;
+      this.water.camera = this.playerCamera;
+    }
+
     this.moveSunlight();
+    this.sky.onAnimationTick({ delta: dt / 1000.0 });
+    this.water.onAnimationTick({ delta: dt / 1000.0 });
   }
 
   updateShadows() {
     this.renderer.shadowMap.needsUpdate = true;
+    this.water.needsUpdate = true;
   }
 
   moveSunlight = (() => {
@@ -96,6 +113,7 @@ export class AtmosphereSystem {
         this.sunLight.shadow.camera.updateProjectionMatrix();
 
         this.renderer.shadowMap.needsUpdate = true;
+        this.water.needsUpdate = true;
       }
     };
   })();

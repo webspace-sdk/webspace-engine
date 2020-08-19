@@ -408,17 +408,11 @@ export class CharacterControllerSystem {
       this.lastSnappedAvatarZone = this.terrainSystem.avatarZone;
       shouldRecomputeGroupAndNode = true;
     }
-    shouldRecomputeGroupAndNode = true;
-    let zoneChanged = false;
 
     if (shouldRecomputeGroupAndNode || this.navGroup === null || this.navNode === null) {
       const [navZone, navGroup] = terrainSystem.getNavZoneAndGroup(end);
-      zoneChanged = this.navZone !== navZone;
       this.navZone = navZone;
       this.navGroup = navGroup;
-    }
-    if (zoneChanged) {
-      //console.log("changed");
     }
 
     this.navNode =
@@ -434,11 +428,12 @@ export class CharacterControllerSystem {
       outPos.copy(end);
     } else {
       this.navNode = terrainSystem.clampStep(start, end, this.navNode, this.navZone, this.navGroup, outPos);
+      // Always allow x, z movement, smooth y
+      outPos.x = end.x;
+      outPos.y = 0.25 * outPos.y + 0.75 * end.y;
+      outPos.z = end.z;
     }
 
-    //console.log(end);
-    //console.log("to " + zoneChanged);
-    //console.log(outPos);
     return outPos;
   }
 
