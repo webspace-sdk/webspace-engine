@@ -2,9 +2,26 @@ import Pako from "pako";
 import { protocol } from "../protocol/protocol";
 import Terrain from "../objects/terrain";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { VOXLoader } from "../objects/VOXLoader";
+import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
+import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
+import treesVoxSrc from "!!url-loader!../assets/models/trees1.vox";
+import rocksVoxSrc from "!!url-loader!../assets/models/rocks1.vox";
+import grassVoxSrc from "!!url-loader!../assets/models/grass1.vox";
+
 const { Pathfinding } = require("three-pathfinding");
 
-const { Vector3, Vector4, Matrix4, BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute } = THREE;
+const {
+  Vector3,
+  Vector4,
+  Matrix4,
+  BufferGeometry,
+  Float32BufferAttribute,
+  Uint16BufferAttribute,
+  MeshStandardMaterial,
+  VertexColors,
+  Object3D
+} = THREE;
 
 const LOAD_RADIUS = 4;
 export const VOXEL_SIZE = 1 / 8;
@@ -20,7 +37,7 @@ export const WORLD_RADIUS = (WORLD_SIZE / 2) * Math.PI;
 
 const RENDER_GRID = [];
 const SUBCHUNKS = 1;
-const center = new THREE.Vector3();
+const center = new Vector3();
 
 const normalizeChunkCoord = c => {
   if (c < MIN_CHUNK_COORD) {
@@ -284,6 +301,8 @@ export class TerrainSystem {
     this.entities = new Map();
     this.scene = scene;
     this.pathfinder = new Pathfinding();
+    this.featureMeshesLoaded = false;
+    this.loadFeatureMeshes();
 
     for (let x = MIN_CHUNK_COORD; x <= MAX_CHUNK_COORD; x++) {
       for (let z = MIN_CHUNK_COORD; z <= MAX_CHUNK_COORD; z++) {
@@ -336,7 +355,7 @@ export class TerrainSystem {
 
       const { entities, loadedChunks, spawningChunks, terrains, pool } = this;
 
-      chunks.forEach(({ x, height, z, meshes /*features*/ }) => {
+      chunks.forEach(({ x, height, z, meshes, features }) => {
         const key = keyForChunk({ x, z });
         if (!loadedChunks.has(key) && !spawningChunks.has(key)) return;
 
@@ -389,7 +408,7 @@ export class TerrainSystem {
 
           navTransform.elements[12] = tx;
           navTransform.elements[14] = tz;
-          navGeometry.applyMatrix(navTransform);
+          navGeometry.applyMatrix4(navTransform);
 
           // Navmesh vis
           //const navMaterial = new THREE.MeshBasicMaterial({
@@ -404,8 +423,9 @@ export class TerrainSystem {
 
           this.pathfinder.setZoneData(key, Pathfinding.createZone(navGeometry));
 
-          // TODO verify this works ok navGeometry.dispose();
+          navGeometry.dispose();
 
+          this.spawnFeatureMeshes(x, z, features);
           this.scene.emit("terrain-chunk-loaded");
 
           this.atmosphereSystem.updateShadows();
@@ -413,6 +433,186 @@ export class TerrainSystem {
       });
     };
   })();
+
+  loadFeatureMeshes() {
+    const voxLoader = new VOXLoader();
+
+    this.trees = [];
+    this.rocks = [];
+    this.grasses = [];
+
+    const promises = [];
+
+    promises.push(
+      new Promise(res => {
+        voxLoader.load(treesVoxSrc, chunks => {
+          for (let j = 0; j < chunks.length; j += 1) {
+            const geometry = new VOXBufferGeometry(chunks[j]);
+            const material = new MeshStandardMaterial({ vertexColors: VertexColors });
+            const mesh = new DynamicInstancedMesh(geometry, material);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            geometry.translate(0, 38, 0);
+            this.trees.push(mesh);
+          }
+
+          res();
+        });
+      })
+    );
+
+    promises.push(
+      new Promise(res => {
+        voxLoader.load(rocksVoxSrc, chunks => {
+          for (let j = 0; j < chunks.length; j += 1) {
+            const geometry = new VOXBufferGeometry(chunks[j]);
+            const material = new MeshStandardMaterial({ vertexColors: VertexColors });
+            const mesh = new DynamicInstancedMesh(geometry, material);
+            geometry.translate(0, 9, 0);
+            this.rocks.push(mesh);
+            mesh.castShadow = true;
+          }
+          res();
+        });
+      })
+    );
+
+    promises.push(
+      new Promise(res => {
+        voxLoader.load(grassVoxSrc, chunks => {
+          for (let j = 0; j < chunks.length; j += 1) {
+            const geometry = new VOXBufferGeometry(chunks[j]);
+            const material = new MeshStandardMaterial({
+              vertexColors: VertexColors,
+              transparent: true,
+              opacity: 0.3
+            });
+
+            const mesh = new DynamicInstancedMesh(geometry, material);
+            geometry.translate(0, 6, 0);
+            mesh.receiveShadow = true;
+            this.grasses.push(mesh);
+          }
+          res();
+        });
+      })
+    );
+
+    Promise.all(promises).then(() => (this.featureMeshesLoaded = true));
+  }
+
+  async spawnFeatureMeshes(x, z, features) {
+    const featureInstances = [];
+    const freeFeatures = () => {
+      for (let i = 0; i < featureInstances.length; i += 1) {
+        featureInstances[i][0].removeMatrix(featureInstances[i][1]);
+      }
+    };
+    // TODO free
+
+    const atOrBelowGround = (x, y, z) => {
+      return true;
+      const size = 64;
+      const scale = 0.125;
+      const cx = Math.floor(x * scale);
+      const cz = Math.floor(z * scale);
+      x -= cx / scale;
+      z -= cz / scale;
+      x *= 8;
+      z *= 8;
+      x = Math.ceil(x);
+      z = Math.ceil(z);
+
+      const key = `${cx}:${cz}`;
+      if (!chunks.heightmaps.has(key)) {
+        return false;
+      }
+
+      const heightMap = chunks.heightmaps.get(key);
+      return y <= heightMap[x * size + z] / 8;
+    };
+
+    const addInstancedMesh = (() => {
+      const dummy = new Object3D();
+      return (x, y, z, from, minScale, maxScale) => {
+        const entry = from[Math.floor(Math.random() * from.length)];
+        const mesh = entry;
+
+        dummy.position.set(x, y, z);
+        dummy.rotation.set(0, Math.random() * 2 * Math.PI, 0);
+        dummy.scale.setScalar((Math.random() * (maxScale - minScale) + minScale) * (1 / 32));
+        dummy.matrixNeedsUpdate = true;
+        dummy.updateMatrices();
+
+        const id = mesh.addMatrix(dummy.matrix);
+        featureInstances.push([mesh, id]);
+
+        const scene = this.scene.object3D;
+
+        if (!scene.children.includes(mesh)) {
+          scene.add(mesh);
+        }
+      };
+    })();
+
+    for (let i = 0; i < features.length; i += 1) {
+      const feature = features[i];
+      const featureWorldX = x * 8 + feature.x * (1 / 8);
+      const featureWorldY = feature.y * (1 / 8);
+      const featureWorldZ = z * 8 + feature.z * (1 / 8);
+
+      if (feature.types & 2) {
+        // Trim
+        addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.rocks, 0.4, 0.9);
+      }
+
+      if (feature.types & 4) {
+        // Field
+        addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.grasses, 0.05, 0.45);
+      }
+
+      if (feature.types & 1) {
+        // Foilage
+        // Create primary tree
+        addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.trees, 0.8, 1.3);
+
+        const maxClusterTrees = 3;
+
+        // Create clustered trees
+        for (let i = 0; i < Math.floor(Math.random() * (maxClusterTrees + 1)); i += 1) {
+          let dx = (Math.random() - 0.5) * 10;
+          let dz = (Math.random() - 0.5) * 10;
+          dx += dx < 0 ? -2 : 1;
+          dz += dz < 0 ? -2 : 1;
+
+          if (atOrBelowGround(featureWorldX + dx, featureWorldY, featureWorldZ + dz)) {
+            addInstancedMesh(featureWorldX + dx, featureWorldY, featureWorldZ + dz, this.trees, 0.5, 0.8);
+          }
+        }
+
+        // const maxClusterFerns = 8;
+
+        // Create clustered ferns
+        /* for (let i = 0; i < Math.floor(Math.random() * (maxClusterFerns + 1)); i += 1) {
+            let dx = (Math.random() - 0.5) * 3;
+            let dz = (Math.random() - 0.5) * 3;
+            dx += dx < 0 ? -0.25 : 0.25;
+            dz += dz < 0 ? -0.25 : 0.25;
+
+            if (atOrBelowGround(obj.position.x + dx, obj.position.y, obj.position.z + dz)) {
+              const fern = this.ferns[Math.floor(Math.random() * this.ferns.length)];
+              const scale = Math.random() * 0.3 + 0.6;
+              const obj2 = new Group();
+              obj2.add(fern.clone());
+              obj2.position.set(obj.position.x + dx, obj.position.y, obj.position.z + dz);
+              obj.rotation.set(obj.rotation.x, Math.random() * 2 * Math.PI, obj.rotation.z);
+              obj2.scale.set(scale, scale, scale);
+              this.add(obj2);
+            }
+          } */
+      }
+    }
+  }
 
   unloadChunk(chunk) {
     const { entities, loadedChunks, spawningChunks, pool, terrains } = this;
@@ -525,7 +725,7 @@ export class TerrainSystem {
         }
       }
 
-      if (this.spawningChunks.size > 0) {
+      if (this.spawningChunks.size > 0 && this.featureMeshesLoaded) {
         // Spawn a single chunk that's enqueued.
         for (const [, b64chunk] of this.spawningChunks) {
           this.spawnChunk(b64chunk);
