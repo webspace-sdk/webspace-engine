@@ -231,6 +231,9 @@ class Water extends Mesh {
     if (!this.needsUpdate || !this.camera) return;
     this.needsUpdate = false;
 
+    this.updateMatrices();
+    camera.updateMatrices();
+
     reflectorWorldPosition.setFromMatrixPosition(this.matrixWorld);
     cameraWorldPosition.setFromMatrixPosition(camera.matrixWorld);
 
@@ -261,6 +264,9 @@ class Water extends Mesh {
 
     view.y -= 0.1; // HACK to avoid artifacts at grazing angles
     virtualCamera.position.copy(view);
+    virtualCamera.matrixNeedsUpdate = true;
+    virtualCamera.updateMatrices();
+
     virtualCamera.up.set(0, 1, 0);
     virtualCamera.up.applyMatrix4(rotationMatrix);
     virtualCamera.up.reflect(normal);
@@ -268,7 +274,6 @@ class Water extends Mesh {
 
     virtualCamera.far = camera.far; // Used in WebGLBackground
 
-    virtualCamera.updateMatrixWorld();
     virtualCamera.projectionMatrix.copy(camera.projectionMatrix);
 
     virtualCamera.userData.recursion = 0;
