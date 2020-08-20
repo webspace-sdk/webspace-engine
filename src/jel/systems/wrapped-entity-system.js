@@ -86,7 +86,7 @@ export class WrappedEntitySystem {
       this.previousAvatarZ = az;
 
       if (avatarJumpedThisFrame) {
-        console.log("Jump");
+        // console.log("Avatar moved across world.");
 
         // If our avatar just jumped across the map this frame, we need to reposition everything
         // since we may now be right up against an object on an edge.
