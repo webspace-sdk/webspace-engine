@@ -1,12 +1,15 @@
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import Sky from "../objects/sky";
 import Water from "../objects/water";
+import { Layers } from "../../hubs/components/layers";
 
 // Responsible for managing shadows, environmental lighting, sky, and environment map.
 export class AtmosphereSystem {
   constructor(sceneEl) {
     const scene = sceneEl.object3D;
     this.sceneEl = sceneEl;
+    this.effectsSystem = sceneEl.systems["effects"];
+
     waitForDOMContentLoaded().then(() => {
       this.avatarPovEl = document.getElementById("avatar-pov-node");
       this.viewingCameraEl = document.getElementById("viewing-camera");
@@ -24,6 +27,7 @@ export class AtmosphereSystem {
     this.renderer.powerPreference = "high-performance";
 
     this.ambientLight = new THREE.AmbientLight(0x808080);
+    this.ambientLight.layers.enable(Layers.reflection);
 
     this.sunLight = new THREE.DirectionalLight(0xa0a0a0, 1);
     this.sunLight.position.set(10.25, 10, 10.25);
@@ -38,6 +42,7 @@ export class AtmosphereSystem {
     this.sunLight.shadow.camera.near = 0.005;
     this.sunLight.shadow.camera.far = 20;
     this.sunLight.shadow.radius = 2;
+    this.sunLight.layers.enable(Layers.reflection);
 
     this.sky = new Sky();
     this.sky.position.y = 0;
@@ -68,8 +73,12 @@ export class AtmosphereSystem {
     }
 
     this.moveSunlight();
+
+    // Disable effects for subrenders to water and/or sky
+    this.effectsSystem.disableEffects = true;
     this.sky.onAnimationTick({ delta: dt / 1000.0 });
     this.water.onAnimationTick({ delta: dt / 1000.0 });
+    this.effectsSystem.disableEffects = false;
   }
 
   updateShadows() {

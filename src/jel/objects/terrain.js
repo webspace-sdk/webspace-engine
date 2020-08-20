@@ -1,3 +1,5 @@
+import { Layers } from "../../hubs/components/layers";
+
 const { Mesh, MeshStandardMaterial, VertexColors, BufferGeometry, BufferAttribute, Object3D } = THREE;
 const material = new MeshStandardMaterial({ vertexColors: VertexColors, metalness: 0, roughness: 1 });
 
@@ -13,6 +15,8 @@ class Terrain extends Object3D {
     const mesh = new Mesh(new BufferGeometry(), material);
     mesh.receiveShadow = true;
     mesh.castShadow = true;
+    this.layers.enable(Layers.reflection);
+    mesh.layers.enable(Layers.reflection);
     this.add(mesh);
     this.mesh = mesh;
     this.frustumCulled = false;

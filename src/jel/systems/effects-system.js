@@ -56,12 +56,19 @@ AFRAME.registerSystem("effects", {
         this.composer.addPass(this.brightPass);
         this.composer.addPass(this.fxaaPass);
 
+        // TODO quality
+        this.highQuality = true;
+        this.renderPass.enabled = !this.highQuality;
+        this.ssaoPass.enabled = this.highQuality;
+
+        this.disableEffects = false;
+
         const render = renderer.render;
         let isEffectSystem = false;
         const self = this;
 
         renderer.render = function() {
-          if (isEffectSystem) {
+          if (isEffectSystem || self.disableEffects) {
             render.apply(this, arguments);
           } else {
             isEffectSystem = true;

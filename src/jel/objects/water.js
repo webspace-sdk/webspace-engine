@@ -1,4 +1,5 @@
 import waterImageSrc from "!!url-loader!../assets/images/water.png";
+import { Layers } from "../../hubs/components/layers";
 
 /**
  * Zelda-style water shader from https://medium.com/@gordonnl/the-ocean-170fdfd659f1
@@ -149,6 +150,7 @@ class Water extends Mesh {
     this.target = new Vector3();
     this.q = new Vector4();
     this.virtualCamera = new PerspectiveCamera();
+    this.virtualCamera.layers.set(Layers.reflection);
     this.rotateX = new Matrix4();
     this.rotateX.makeRotationAxis(new Vector3(1, 0, 0), -Math.PI / 2);
 

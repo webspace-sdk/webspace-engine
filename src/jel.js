@@ -139,13 +139,13 @@ import "./hubs/systems/userinput/userinput-debug";
 import "./hubs/systems/ui-hotkeys";
 import "./hubs/systems/tips";
 import "./hubs/systems/interactions";
+import "./jel/systems/effects-system";
 import "./hubs/systems/hubs-systems";
 import "./hubs/systems/capture-system";
 import "./hubs/systems/listed-media";
 import "./hubs/systems/linked-media";
 import "./jel/systems/media-presence-system";
 import "./jel/systems/wrapped-entity-system";
-import "./jel/systems/effects-system";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
 import { SOUND_CHAT_MESSAGE } from "./hubs/systems/sound-effects-system";
 

@@ -32,12 +32,12 @@
     <a-scene
         embedded
         loading-screen="enabled: false"
+        effects
         hubs-systems
         capture-system
         listed-media
         local-audio-analyser
         class="grab-cursor"
-        effects
         renderer="
             antialias: false;
             colorManagement: true;
@@ -994,7 +994,7 @@
         <a-entity id="viewing-rig" set-yxz-order matrix-auto-update>
             <a-entity
                 id="viewing-camera"
-                camera="near: 0.05; far: 30;"
+                camera="near: 0.05; far: 24;"
                 set-active-camera
                 rotation
                 fader
