@@ -315,6 +315,7 @@ class Water extends Mesh {
 
     const currentXrEnabled = renderer.xr && renderer.xr.enabled;
     const currentShadowAutoUpdate = renderer.shadowMap.autoUpdate;
+    const currentShadowNeedsUpdate = renderer.shadowMap.needsUpdate;
     const currentSkyVisible = this.sky && this.sky.visible;
 
     if (this.sky) {
@@ -322,12 +323,14 @@ class Water extends Mesh {
     }
 
     renderer.shadowMap.autoUpdate = false; // Avoid re-computing shadows
+    renderer.shadowMap.needsUpdate = false;
 
     renderer.setRenderTarget(this.renderTarget);
     renderer.clear();
     renderer.render(scene, virtualCamera);
 
     renderer.shadowMap.autoUpdate = currentShadowAutoUpdate;
+    renderer.shadowMap.needsUpdate = currentShadowNeedsUpdate;
 
     renderer.setRenderTarget(currentRenderTarget);
     if (renderer.xr) renderer.xr.enabled = currentXrEnabled;
