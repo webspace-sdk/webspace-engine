@@ -1,12 +1,12 @@
-const { BufferAttribute, InstancedMesh, Matrix4 } = THREE;
+const { InstancedMesh, Matrix4 } = THREE;
 
-const GROWTH_RATE = 1.3;
+function DynamicInstancedMesh(geometry, material, maxCount) {
+  InstancedMesh.call(this, geometry, material, maxCount);
 
-function DynamicInstancedMesh(geometry, material) {
-  InstancedMesh.call(this, geometry, material, 1);
-
+  this.count = 0;
   this.nextIndex = 0;
   this.matrixAutoUpdate = false;
+  this.frustumCulled = false;
   this.freeIndices = new Set();
 }
 
@@ -18,7 +18,6 @@ DynamicInstancedMesh.prototype = Object.assign(Object.create(InstancedMesh.proto
 
   addMatrix(matrix) {
     const { nextIndex, freeIndices } = this;
-
     let index;
 
     if (freeIndices.size > 0) {
@@ -26,15 +25,7 @@ DynamicInstancedMesh.prototype = Object.assign(Object.create(InstancedMesh.proto
       freeIndices.delete(index);
     } else {
       index = nextIndex;
-    }
-
-    if (this.instanceMatrix.array.length <= index * 16) {
-      // Need to grow array
-      this.count = Math.max(index + 1, Math.floor((this.instanceMatrix.array.length / 16) * GROWTH_RATE));
-
-      const arr = new Float32Array(this.count * 16);
-      arr.set(this.instanceMatrix.array); // Copy existing
-      this.instanceMatrix = new BufferAttribute(arr, 16);
+      this.count++;
     }
 
     matrix.toArray(this.instanceMatrix.array, index * 16);
@@ -52,11 +43,11 @@ DynamicInstancedMesh.prototype = Object.assign(Object.create(InstancedMesh.proto
     zeroMatrix.toArray(instanceMatrix.array, index * 16);
     instanceMatrix.needsUpdate = true;
     freeIndices.add(index);
-  } //,
+  },
 
-  //setColorAt() {
-  //  throw new Error("dynamic color instancing not supported");
-  //}
+  setColorAt() {
+    throw new Error("dynamic color instancing not supported");
+  }
 });
 
 export { DynamicInstancedMesh };

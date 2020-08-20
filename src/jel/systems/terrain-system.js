@@ -20,10 +20,11 @@ const {
   Uint16BufferAttribute,
   MeshStandardMaterial,
   VertexColors,
-  Object3D
+  Object3D,
+  Group
 } = THREE;
 
-const LOAD_RADIUS = 4;
+const LOAD_RADIUS = 3;
 export const VOXEL_SIZE = 1 / 8;
 export const VOXELS_PER_CHUNK = 64;
 export const CHUNK_WORLD_SIZE = VOXELS_PER_CHUNK * VOXEL_SIZE;
@@ -72,7 +73,7 @@ const decodeChunks = buffer => {
   return chunks.chunks;
 };
 
-const cullChunks = (() => {
+const cullChunksAndFeatureGroups = (() => {
   // Chunk culling based upon AABB
   // https://iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm
   const frustumMatrix = new Matrix4();
@@ -97,7 +98,7 @@ const cullChunks = (() => {
   const points = [p1, p2, p3, p4, p5, p6, p7, p8];
   const bv = new Vector4(0, 0, 0, 1);
 
-  return (camera, terrains) => {
+  return (camera, terrains, featureGroups) => {
     frustumMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
 
     // HACK extract near and far from matrix due to cube SSAO hack for z-buffer
@@ -280,6 +281,131 @@ const cullChunks = (() => {
       t.visible = show;
       t.castShadow = show;
     }
+
+    for (const t of featureGroups) {
+      // eslint-disable-line no-restricted-syntax
+      let show = true;
+
+      // Compute featureGroup AABB
+      t.getWorldPosition(tmp);
+      const bminx = tmp.x;
+      const bmaxx = tmp.x + WORLD_SIZE;
+      const bminz = tmp.z;
+      const bmaxz = tmp.z + WORLD_SIZE;
+      const bminy = 0;
+      const bmaxy = 128;
+
+      for (const n of norms) {
+        // eslint-disable-line no-restricted-syntax
+        let c = 0;
+
+        bv.x = bminx;
+        bv.y = bminy;
+        bv.z = bminz;
+        if (bv.dot(n) < 0) c += 1;
+        bv.x = bminx;
+        bv.y = bminy;
+        bv.z = bmaxz;
+        if (bv.dot(n) < 0) c += 1;
+        bv.x = bminx;
+        bv.y = bmaxy;
+        bv.z = bminz;
+        if (bv.dot(n) < 0) c += 1;
+        bv.x = bminx;
+        bv.y = bmaxy;
+        bv.z = bmaxz;
+        if (bv.dot(n) < 0) c += 1;
+        bv.x = bmaxx;
+        bv.y = bminy;
+        bv.z = bminz;
+        if (bv.dot(n) < 0) c += 1;
+        bv.x = bmaxx;
+        bv.y = bminy;
+        bv.z = bmaxz;
+        if (bv.dot(n) < 0) c += 1;
+        bv.x = bmaxx;
+        bv.y = bmaxy;
+        bv.z = bminz;
+        if (bv.dot(n) < 0) c += 1;
+        bv.x = bmaxx;
+        bv.y = bmaxy;
+        bv.z = bmaxz;
+        if (bv.dot(n) < 0) c += 1;
+
+        if (c === 8) {
+          show = false;
+          break;
+        }
+      }
+
+      if (show) {
+        let c = 0;
+
+        for (const p of points) {
+          // eslint-disable-line no-restricted-syntax
+          if (p.x > bmaxx) c += 1;
+        }
+
+        if (c === 8) show = false;
+      }
+
+      if (show) {
+        let c = 0;
+
+        for (const p of points) {
+          // eslint-disable-line no-restricted-syntax
+          if (p.x < bminx) c += 1;
+        }
+
+        if (c === 8) show = false;
+      }
+
+      if (show) {
+        let c = 0;
+
+        for (const p of points) {
+          // eslint-disable-line no-restricted-syntax
+          if (p.y > bmaxy) c += 1;
+        }
+
+        if (c === 8) show = false;
+      }
+
+      if (show) {
+        let c = 0;
+
+        for (const p of points) {
+          // eslint-disable-line no-restricted-syntax
+          if (p.y < bminy) c += 1;
+        }
+
+        if (c === 8) show = false;
+      }
+
+      if (show) {
+        let c = 0;
+
+        for (const p of points) {
+          // eslint-disable-line no-restricted-syntax
+          if (p.z > bmaxz) c += 1;
+        }
+
+        if (c === 8) show = false;
+      }
+
+      if (show) {
+        let c = 0;
+
+        for (const p of points) {
+          // eslint-disable-line no-restricted-syntax
+          if (p.z < bminz) c += 1;
+        }
+
+        if (c === 8) show = false;
+      }
+
+      t.visible = show;
+    }
   };
 })();
 
@@ -298,11 +424,29 @@ export class TerrainSystem {
     this.loadingChunks = new Map();
     this.spawningChunks = new Map();
     this.terrains = new Map();
+    this.featureInstances = new Map();
     this.entities = new Map();
     this.scene = scene;
     this.pathfinder = new Pathfinding();
     this.featureMeshesLoaded = false;
     this.loadFeatureMeshes();
+
+    // We create duplicates of the instanced feature meshes around torodial hyperspace
+    // so they appear across edges.
+    this.featureGroups = [];
+
+    for (let x = -1; x <= 1; x++) {
+      for (let z = -1; z <= 1; z++) {
+        const group = new Group();
+        group.position.x = x * WORLD_SIZE;
+        group.position.y = 0;
+        group.position.z = z * WORLD_SIZE;
+        group.frustumCulled = false;
+        group.matrixNeedsUpdate = true;
+        this.scene.object3D.add(group);
+        this.featureGroups.push(group);
+      }
+    }
 
     for (let x = MIN_CHUNK_COORD; x <= MAX_CHUNK_COORD; x++) {
       for (let z = MIN_CHUNK_COORD; z <= MAX_CHUNK_COORD; z++) {
@@ -408,7 +552,7 @@ export class TerrainSystem {
 
           navTransform.elements[12] = tx;
           navTransform.elements[14] = tz;
-          navGeometry.applyMatrix4(navTransform);
+          navGeometry.applyMatrix(navTransform);
 
           // Navmesh vis
           //const navMaterial = new THREE.MeshBasicMaterial({
@@ -425,7 +569,7 @@ export class TerrainSystem {
 
           navGeometry.dispose();
 
-          this.spawnFeatureMeshes(x, z, features);
+          this.spawnFeatureMeshes(x, z, subchunk, features);
           this.scene.emit("terrain-chunk-loaded");
 
           this.atmosphereSystem.updateShadows();
@@ -449,11 +593,16 @@ export class TerrainSystem {
           for (let j = 0; j < chunks.length; j += 1) {
             const geometry = new VOXBufferGeometry(chunks[j]);
             const material = new MeshStandardMaterial({ vertexColors: VertexColors });
-            const mesh = new DynamicInstancedMesh(geometry, material);
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-            geometry.translate(0, 38, 0);
-            this.trees.push(mesh);
+            const meshes = [];
+            this.trees.push(meshes);
+
+            for (let i = 0; i < 9; i++) {
+              const mesh = new DynamicInstancedMesh(geometry, material, 64);
+              mesh.castShadow = true;
+              mesh.receiveShadow = true;
+              geometry.translate(0, 4.15, 0);
+              meshes.push(mesh);
+            }
           }
 
           res();
@@ -467,10 +616,16 @@ export class TerrainSystem {
           for (let j = 0; j < chunks.length; j += 1) {
             const geometry = new VOXBufferGeometry(chunks[j]);
             const material = new MeshStandardMaterial({ vertexColors: VertexColors });
-            const mesh = new DynamicInstancedMesh(geometry, material);
-            geometry.translate(0, 9, 0);
-            this.rocks.push(mesh);
-            mesh.castShadow = true;
+
+            const meshes = [];
+            this.rocks.push(meshes);
+
+            for (let i = 0; i < 9; i++) {
+              const mesh = new DynamicInstancedMesh(geometry, material, 256);
+              mesh.castShadow = true;
+              geometry.translate(0, 1.0, 0);
+              meshes.push(mesh);
+            }
           }
           res();
         });
@@ -485,13 +640,18 @@ export class TerrainSystem {
             const material = new MeshStandardMaterial({
               vertexColors: VertexColors,
               transparent: true,
-              opacity: 0.3
+              opacity: 0.2
             });
 
-            const mesh = new DynamicInstancedMesh(geometry, material);
-            geometry.translate(0, 6, 0);
-            mesh.receiveShadow = true;
-            this.grasses.push(mesh);
+            const meshes = [];
+            this.grasses.push(meshes);
+
+            for (let i = 0; i < 9; i++) {
+              const mesh = new DynamicInstancedMesh(geometry, material, 1024 * 16);
+              geometry.translate(0, 1, 0);
+              mesh.receiveShadow = true;
+              meshes.push(mesh);
+            }
           }
           res();
         });
@@ -501,14 +661,23 @@ export class TerrainSystem {
     Promise.all(promises).then(() => (this.featureMeshesLoaded = true));
   }
 
-  async spawnFeatureMeshes(x, z, features) {
-    const featureInstances = [];
-    const freeFeatures = () => {
-      for (let i = 0; i < featureInstances.length; i += 1) {
-        featureInstances[i][0].removeMatrix(featureInstances[i][1]);
+  freeFeatureInstances(x, z, subchunk) {
+    const key = `${keyForChunk({ x, z })}:${subchunk}`;
+    if (this.featureInstances.has(key)) {
+      for (const [mesh, id] of this.featureInstances.get(key)) {
+        mesh.removeMatrix(id);
       }
-    };
-    // TODO free
+
+      this.featureInstances.delete(key);
+    }
+  }
+
+  async spawnFeatureMeshes(x, z, subchunk, features) {
+    this.freeFeatureInstances(x, z, subchunk);
+    const featureInstances = [];
+    const key = `${keyForChunk({ x, z })}:${subchunk}`;
+
+    this.featureInstances.set(key, featureInstances);
 
     const atOrBelowGround = (x, y, z) => {
       return true;
@@ -535,8 +704,8 @@ export class TerrainSystem {
     const addInstancedMesh = (() => {
       const dummy = new Object3D();
       return (x, y, z, from, minScale, maxScale) => {
-        const entry = from[Math.floor(Math.random() * from.length)];
-        const mesh = entry;
+        const idx = Math.floor(Math.random() * from.length);
+        const entry = from[idx];
 
         dummy.position.set(x, y, z);
         dummy.rotation.set(0, Math.random() * 2 * Math.PI, 0);
@@ -544,13 +713,18 @@ export class TerrainSystem {
         dummy.matrixNeedsUpdate = true;
         dummy.updateMatrices();
 
-        const id = mesh.addMatrix(dummy.matrix);
-        featureInstances.push([mesh, id]);
+        const featureGroups = this.featureGroups;
 
-        const scene = this.scene.object3D;
+        for (let i = 0; i < featureGroups.length; i++) {
+          const mesh = entry[i];
 
-        if (!scene.children.includes(mesh)) {
-          scene.add(mesh);
+          const id = mesh.addMatrix(dummy.matrix);
+          featureInstances.push([mesh, id]);
+
+          if (featureGroups[i].children.indexOf(mesh) === -1) {
+            this.scene.object3D.add(mesh);
+            featureGroups[i].add(mesh);
+          }
         }
       };
     })();
@@ -563,7 +737,7 @@ export class TerrainSystem {
 
       if (feature.types & 2) {
         // Trim
-        addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.rocks, 0.4, 0.9);
+        addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.rocks, 0.6, 1.35);
       }
 
       if (feature.types & 4) {
@@ -574,7 +748,7 @@ export class TerrainSystem {
       if (feature.types & 1) {
         // Foilage
         // Create primary tree
-        addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.trees, 0.8, 1.3);
+        addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.trees, 1.2, 1.9);
 
         const maxClusterTrees = 3;
 
@@ -586,7 +760,7 @@ export class TerrainSystem {
           dz += dz < 0 ? -2 : 1;
 
           if (atOrBelowGround(featureWorldX + dx, featureWorldY, featureWorldZ + dz)) {
-            addInstancedMesh(featureWorldX + dx, featureWorldY, featureWorldZ + dz, this.trees, 0.5, 0.8);
+            addInstancedMesh(featureWorldX + dx, featureWorldY, featureWorldZ + dz, this.trees, 0.8, 1.4);
           }
         }
 
@@ -628,6 +802,8 @@ export class TerrainSystem {
       if (entity) {
         entity.removeObject3D("mesh");
       }
+
+      this.freeFeatureInstances(chunk.x, chunk.z, subchunk);
 
       if (terrain) {
         terrain.dispose();
@@ -741,7 +917,7 @@ export class TerrainSystem {
 
       if (this.playerCamera) {
         // Cull chunks
-        cullChunks(this.playerCamera, this.terrains.values());
+        cullChunksAndFeatureGroups(this.playerCamera, this.terrains.values(), this.featureGroups);
       }
     };
   })();
