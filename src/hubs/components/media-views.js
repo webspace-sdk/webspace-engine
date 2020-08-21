@@ -751,6 +751,7 @@ AFRAME.registerComponent("media-video", {
         }
 
         this.mesh = new THREE.Mesh(geometry, material);
+        this.mesh.castShadow = true;
         this.el.setObject3D("mesh", this.mesh);
       }
 
@@ -1297,6 +1298,7 @@ AFRAME.registerComponent("media-image", {
         }
 
         this.mesh = new THREE.Mesh(geometry, material);
+        this.mesh.castShadow = true;
         this.el.setObject3D("mesh", this.mesh);
       }
 
@@ -1559,6 +1561,7 @@ AFRAME.registerComponent("media-pdf", {
         material.side = THREE.DoubleSide;
 
         this.mesh = new THREE.Mesh(geometry, material);
+        this.mesh.castShadow = true;
         this.el.setObject3D("mesh", this.mesh);
       }
 

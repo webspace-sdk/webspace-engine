@@ -92,6 +92,7 @@ AFRAME.registerComponent("media-text", {
         mat.side = THREE.DoubleSide;
 
         this.mesh = new THREE.Mesh(geo, mat);
+        this.mesh.castShadow = true;
         this.mesh.material.map = this.texture;
         this.el.setObject3D("mesh", this.mesh);
         scaleToAspectRatio(this.el, 9.0 / 16.0); // TODO 1080p is default
