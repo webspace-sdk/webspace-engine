@@ -58,7 +58,9 @@ export class AtmosphereSystem {
     this.water.position.y = 4.45 * (1 / 8);
     this.water.matrixNeedsUpdate = true;
 
-    this.fog = new THREE.FogExp2(0x89badd, 0.035);
+    // Fog color is the midpoint of the horizon colors across the sky.
+    // Might need to compute this based upon skybox math at some point.
+    this.fog = new THREE.Fog(0x96c3db, 20.5, 22.0);
 
     scene.add(this.ambientLight);
     scene.add(this.sunLight);
