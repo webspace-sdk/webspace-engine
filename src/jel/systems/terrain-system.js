@@ -56,12 +56,18 @@ export const addVertexCurvingToShader = shader => {
       "#endif",
       "vec4 pos = modelMatrix * mvPosition;",
       "mvPosition = modelViewMatrix * mvPosition;", // Leave mvPosition correct for remainder of shader.
-      "vec2 planedir = normalize(vec2(pos.x - cameraPosition.x, pos.z - cameraPosition.z));",
-      "cplx plane = cplx_new(pos.y - cameraPosition.y, sqrt((pos.x - cameraPosition.x) * (pos.x - cameraPosition.x) + (pos.z - cameraPosition.z) * (pos.z - cameraPosition.z)));",
+      "#ifdef STANDARD",
+      "vec3 camPos = cameraPosition;",
+      "#else",
+      "mat4 worldViewMatrix = inverse(viewMatrix);",
+      "vec3 camPos = worldViewMatrix[3].xyz;",
+      "#endif",
+      "vec2 planedir = normalize(vec2(pos.x - camPos.x, pos.z - camPos.z));",
+      "cplx plane = cplx_new(pos.y - camPos.y, sqrt((pos.x - camPos.x) * (pos.x - camPos.x) + (pos.z - camPos.z) * (pos.z - camPos.z)));",
       "cplx circle = rp * cplx_exp(cplx_scale(plane, 1.0 / rp)) - cplx_new(rp, 0);",
-      "pos.x = cplx_im(circle) * planedir.x + cameraPosition.x;",
-      "pos.z = cplx_im(circle) * planedir.y + cameraPosition.z;",
-      "pos.y = cplx_re(circle) + cameraPosition.y;",
+      "pos.x = cplx_im(circle) * planedir.x + camPos.x;",
+      "pos.z = cplx_im(circle) * planedir.y + camPos.z;",
+      "pos.y = cplx_re(circle) + camPos.y;",
       "gl_Position = projectionMatrix * viewMatrix * pos;"
     ].join("\n")
   );

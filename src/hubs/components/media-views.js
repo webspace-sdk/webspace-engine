@@ -746,7 +746,7 @@ AFRAME.registerComponent("media-video", {
           // invert the geometry on the x-axis so that all of the faces point inward
           geometry.scale(-1, 1, 1);
         } else {
-          geometry = new THREE.PlaneBufferGeometry();
+          geometry = new THREE.PlaneBufferGeometry(1, 1, 10, 10);
           material.side = THREE.DoubleSide;
         }
 
@@ -1292,7 +1292,7 @@ AFRAME.registerComponent("media-image", {
             }
           }
         } else {
-          geometry = new THREE.PlaneBufferGeometry(1, 1, 1, 1, texture.flipY);
+          geometry = new THREE.PlaneBufferGeometry(1, 1, 10, 10, texture.flipY);
           material.side = THREE.DoubleSide;
         }
 
@@ -1555,7 +1555,7 @@ AFRAME.registerComponent("media-pdf", {
         disposeExistingMesh(this.el);
 
         const material = new THREE.MeshBasicMaterial();
-        const geometry = new THREE.PlaneBufferGeometry(1, 1, 1, 1, texture.flipY);
+        const geometry = new THREE.PlaneBufferGeometry(1, 1, 10, 10, texture.flipY);
         material.side = THREE.DoubleSide;
 
         this.mesh = new THREE.Mesh(geometry, material);
