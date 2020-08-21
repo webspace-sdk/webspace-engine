@@ -7,6 +7,8 @@ import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import { validMaterials } from "../components/hoverable-visuals";
 import { proxiedUrlFor, guessContentType } from "../utils/media-url-utils";
 import { getNetworkedEntity, getNetworkId, ensureOwnership } from "../../jel/utils/ownership-utils";
+import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
+
 import Linkify from "linkify-it";
 import tlds from "tlds";
 
@@ -314,6 +316,7 @@ export function injectCustomShaderChunks(obj) {
       const newMaterial = material.clone();
       // This will not run if the object is never rendered unbatched, since its unbatched shader will never be compiled
       newMaterial.onBeforeCompile = shader => {
+        addVertexCurvingToShader(shader);
         if (!vertexRegex.test(shader.vertexShader)) return;
 
         shader.uniforms.hubs_IsFrozen = { value: false };

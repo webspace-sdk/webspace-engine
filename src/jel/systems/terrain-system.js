@@ -34,7 +34,38 @@ export const MAX_CHUNK_COORD = -MIN_CHUNK_COORD - 1;
 export const WORLD_MAX_COORD = (WORLD_CHUNK_SIZE * CHUNK_WORLD_SIZE) / 2;
 export const WORLD_MIN_COORD = -WORLD_MAX_COORD;
 export const WORLD_SIZE = WORLD_MAX_COORD - WORLD_MIN_COORD;
-export const WORLD_RADIUS = (WORLD_SIZE / 2) * Math.PI;
+
+// Radius is artificial, want to have a specific curve effect not accurancy
+export const WORLD_RADIUS = 128.0;
+
+export const addVertexCurvingToShader = shader => {
+  shader.vertexShader = shader.vertexShader.replace(
+    "#include <project_vertex>",
+    [
+      "#define cplx vec2",
+      "#define cplx_new(re, im) vec2(re, im)",
+      "#define cplx_re(z) z.x",
+      "#define cplx_im(z) z.y",
+      "#define cplx_exp(z) (exp(z.x) * cplx_new(cos(z.y), sin(z.y)))",
+      "#define cplx_scale(z, scalar) (z * scalar)",
+      "#define cplx_abs(z) (sqrt(z.x * z.x + z.y * z.y))",
+      `float rp = ${WORLD_RADIUS.toFixed(2)};`,
+      "vec4 mvPosition = vec4( transformed, 1.0 );",
+      "#ifdef USE_INSTANCING",
+      "mvPosition = instanceMatrix * mvPosition;",
+      "#endif",
+      "vec4 pos = modelMatrix * mvPosition;",
+      "mvPosition = modelViewMatrix * mvPosition;", // Leave mvPosition correct for remainder of shader.
+      "vec2 planedir = normalize(vec2(pos.x - cameraPosition.x, pos.z - cameraPosition.z));",
+      "cplx plane = cplx_new(pos.y - cameraPosition.y, sqrt((pos.x - cameraPosition.x) * (pos.x - cameraPosition.x) + (pos.z - cameraPosition.z) * (pos.z - cameraPosition.z)));",
+      "cplx circle = rp * cplx_exp(cplx_scale(plane, 1.0 / rp)) - cplx_new(rp, 0);",
+      "pos.x = cplx_im(circle) * planedir.x + cameraPosition.x;",
+      "pos.z = cplx_im(circle) * planedir.y + cameraPosition.z;",
+      "pos.y = cplx_re(circle) + cameraPosition.y;",
+      "gl_Position = projectionMatrix * viewMatrix * pos;"
+    ].join("\n")
+  );
+};
 
 const LOAD_RADIUS = 4;
 const BIG_FEATURE_RADIUS = 4;
@@ -631,6 +662,7 @@ export class TerrainSystem {
               geometry.translate(0, 37, 0);
 
               const material = new MeshStandardMaterial({ vertexColors: VertexColors });
+              material.onBeforeCompile = addVertexCurvingToShader;
               const mesh = new DynamicInstancedMesh(geometry, material, 32);
               // Trees are reflected since they are so big and often visible from water
               mesh.layers.enable(Layers.reflection);
@@ -657,6 +689,7 @@ export class TerrainSystem {
               geometry.translate(0, 9, 0);
 
               const material = new MeshStandardMaterial({ vertexColors: VertexColors });
+              material.onBeforeCompile = addVertexCurvingToShader;
               const mesh = new DynamicInstancedMesh(geometry, material, 256);
               mesh.castShadow = true;
               meshes.push(mesh);
@@ -683,6 +716,7 @@ export class TerrainSystem {
                 transparent: true,
                 opacity: 0.2
               });
+              material.onBeforeCompile = addVertexCurvingToShader;
               const mesh = new DynamicInstancedMesh(geometry, material, 1024 * 8);
               mesh.receiveShadow = true;
               meshes.push(mesh);

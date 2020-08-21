@@ -1,9 +1,10 @@
 import { Layers } from "../../hubs/components/layers";
+import { addVertexCurvingToShader } from "../systems/terrain-system";
 
 const { Mesh, MeshStandardMaterial, VertexColors, BufferGeometry, BufferAttribute, Object3D } = THREE;
 const material = new MeshStandardMaterial({ vertexColors: VertexColors, metalness: 0, roughness: 1 });
-
 const setVertexColor = shader => {
+  addVertexCurvingToShader(shader);
   shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
 };
 
