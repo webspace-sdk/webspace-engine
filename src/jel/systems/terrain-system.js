@@ -34,7 +34,9 @@ export const MAX_CHUNK_COORD = -MIN_CHUNK_COORD - 1;
 export const WORLD_MAX_COORD = (WORLD_CHUNK_SIZE * CHUNK_WORLD_SIZE) / 2;
 export const WORLD_MIN_COORD = -WORLD_MAX_COORD;
 export const WORLD_SIZE = WORLD_MAX_COORD - WORLD_MIN_COORD;
-export const WORLD_RADIUS = (WORLD_SIZE / 2) * Math.PI;
+
+// Radius is artificial, want to have a specific curve effect not accurancy
+export const WORLD_RADIUS = 128.0;
 
 export const addVertexCurvingToShader = shader => {
   shader.vertexShader = shader.vertexShader.replace(
@@ -47,7 +49,7 @@ export const addVertexCurvingToShader = shader => {
       "#define cplx_exp(z) (exp(z.x) * cplx_new(cos(z.y), sin(z.y)))",
       "#define cplx_scale(z, scalar) (z * scalar)",
       "#define cplx_abs(z) (sqrt(z.x * z.x + z.y * z.y))",
-      `float rp = ${WORLD_RADIUS};`,
+      `float rp = ${WORLD_RADIUS.toFixed(2)};`,
       "vec4 mvPosition = vec4( transformed, 1.0 );",
       "#ifdef USE_INSTANCING",
       "mvPosition = instanceMatrix * mvPosition;",

@@ -63,7 +63,7 @@ export class AtmosphereSystem {
     scene.add(this.ambientLight);
     scene.add(this.sunLight);
     scene.add(this.sky);
-    //scene.add(this.water); // TODO water needs to become a wrapped entity
+    scene.add(this.water); // TODO water needs to become a wrapped entity
     scene.fog = this.fog;
   }
 
