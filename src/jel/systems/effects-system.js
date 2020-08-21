@@ -18,7 +18,7 @@ AFRAME.registerSystem("effects", {
     this.updateComposer = true;
   },
 
-  tick: function() {
+  tick: function(t, dt) {
     if (!this.playerCamera) {
       if (!this.viewingCameraEl) return;
       this.playerCamera = this.viewingCameraEl.getObject3D("camera");
@@ -45,7 +45,8 @@ AFRAME.registerSystem("effects", {
         this.brightPass = new ShaderPass(BrightnessContrastShader);
         this.renderPass = new RenderPass(scene, camera);
 
-        this.vignettePass.material.uniforms.offset.value = 0.9;
+        this.vignettePass.material.uniforms.offset.value = 0.35;
+        this.vignettePass.material.uniforms.darkness.value = 5.0;
         this.satPass.material.uniforms.saturation.value = 0.35;
         this.brightPass.material.uniforms.brightness.value = 0.1;
 
@@ -72,7 +73,7 @@ AFRAME.registerSystem("effects", {
             render.apply(this, arguments);
           } else {
             isEffectSystem = true;
-            self.composer.render(scene, camera);
+            self.composer.render(dt * 1000);
             isEffectSystem = false;
           }
         };
