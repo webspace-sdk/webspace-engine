@@ -157,6 +157,7 @@ const SkyShader = {
     "const float cloudcover = 0.2;",
     "const float cloudalpha = 8.0;",
     "const float skytint = 0.5;",
+    "const vec3 horizontint = vec3(0.5, 0.72, 0.86);",
     "const vec3 skycolour1 = vec3(0.2, 0.4, 0.6);",
     "const vec3 skycolour2 = vec3(0.4, 0.7, 1.0);",
 
@@ -308,7 +309,7 @@ const SkyShader = {
 
     "  f = cloudcover + cloudalpha*f*r;",
 
-    "  vec3 cloudResult = mix(retColor, clamp(skytint * skycolour + cloudcolour, 0.0, 1.0), clamp((f + c) * clamp((normalize(vWorldPosition)).y, 0.0, 1.0), 0.0, 1.0));",
+    "  vec3 cloudResult = mix(0.5 * horizontint + 0.5 * retColor, clamp(skytint * skycolour + cloudcolour, 0.0, 1.0), clamp((f + c) * clamp((normalize(vWorldPosition)).y, 0.0, 1.0), 0.0, 1.0));",
 
     "  gl_FragColor = vec4(cloudResult, 1.0);",
     "  float hue = 0.0;",

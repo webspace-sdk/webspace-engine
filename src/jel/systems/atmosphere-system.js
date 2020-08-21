@@ -55,7 +55,7 @@ export class AtmosphereSystem {
     this.sky.material.uniforms.sunPosition.value.set(-80000, 100000, -80000);
 
     this.water = new Water(this.sky, this.renderer, scene, this.renderer.camera);
-    this.water.position.y = 4.4 * (1 / 8);
+    this.water.position.y = 4.45 * (1 / 8);
     this.water.matrixNeedsUpdate = true;
 
     this.fog = new THREE.FogExp2(0x89badd, 0.035);

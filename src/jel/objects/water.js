@@ -1,5 +1,6 @@
 import waterImageSrc from "!!url-loader!../assets/images/water.png";
 import { Layers } from "../../hubs/components/layers";
+import { WORLD_RADIUS } from "../systems/terrain-system";
 
 /**
  * Zelda-style water shader from https://medium.com/@gordonnl/the-ocean-170fdfd659f1
@@ -48,13 +49,6 @@ const WaterShader = {
 
   vertexShader: [
     "#define SCALE 10.0",
-    "#define cplx vec2",
-    "#define cplx_new(re, im) vec2(re, im)",
-    "#define cplx_re(z) z.x",
-    "#define cplx_im(z) z.y",
-    "#define cplx_exp(z) (exp(z.x) * cplx_new(cos(z.y), sin(z.y)))",
-    "#define cplx_scale(z, scalar) (z * scalar)",
-    "#define cplx_abs(z) (sqrt(z.x * z.x + z.y * z.y))",
 
     "varying vec4 vUv;",
     "varying vec2 vUv2;",
@@ -77,17 +71,22 @@ const WaterShader = {
     "    pos1.y += strength * calculateSurface(pos1.x, pos1.z);",
     "    pos1.y -= strength * calculateSurface(0.0, 0.0);",
     "",
-    "mat4 viewModel = inverse(modelViewMatrix);",
-    "vec3 camPos = viewModel[3].xyz;",
-    "vec4 pos = vec4( pos1, 1.0 );",
-    "float rp = 50.0 * 0.125 * 16.0;",
-    "vec2 planedir = normalize(vec2(pos.x - camPos.x, pos.z - camPos.z));",
-    "cplx plane = cplx_new(pos.y - camPos.y, sqrt((pos.x - camPos.x) * (pos.x - camPos.x) + (pos.z - camPos.z) * (pos.z - camPos.z)));",
+    "#define cplx vec2",
+    "#define cplx_new(re, im) vec2(re, im)",
+    "#define cplx_re(z) z.x",
+    "#define cplx_im(z) z.y",
+    "#define cplx_exp(z) (exp(z.x) * cplx_new(cos(z.y), sin(z.y)))",
+    "#define cplx_scale(z, scalar) (z * scalar)",
+    "#define cplx_abs(z) (sqrt(z.x * z.x + z.y * z.y))",
+    `float rp = ${WORLD_RADIUS.toFixed(2)};`,
+    "vec4 pos = modelMatrix * vec4( pos1, 1.0 );",
+    "vec2 planedir = normalize(vec2(pos.x - cameraPosition.x, pos.z - cameraPosition.z));",
+    "cplx plane = cplx_new(pos.y - cameraPosition.y, sqrt((pos.x - cameraPosition.x) * (pos.x - cameraPosition.x) + (pos.z - cameraPosition.z) * (pos.z - cameraPosition.z)));",
     "cplx circle = rp * cplx_exp(cplx_scale(plane, 1.0 / rp)) - cplx_new(rp, 0);",
-    "pos.x = cplx_im(circle) * planedir.x + camPos.x;",
-    "pos.z = cplx_im(circle) * planedir.y + camPos.z;",
-    "pos.y = cplx_re(circle) + camPos.y;",
-    "gl_Position = projectionMatrix * modelViewMatrix * vec4(pos.xyz, 1.0);",
+    "pos.x = cplx_im(circle) * planedir.x + cameraPosition.x;",
+    "pos.z = cplx_im(circle) * planedir.y + cameraPosition.z;",
+    "pos.y = cplx_re(circle) + cameraPosition.y;",
+    "gl_Position = projectionMatrix * viewMatrix * pos;",
     "}  "
   ].join("\n"),
 

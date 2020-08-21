@@ -2,9 +2,18 @@
 precision highp float;
 precision highp int;
 
+#define cplx vec2
+#define cplx_new(re, im) vec2(re, im)
+#define cplx_re(z) z.x
+#define cplx_im(z) z.y
+#define cplx_exp(z) (exp(z.x) * cplx_new(cos(z.y), sin(z.y)))
+#define cplx_scale(z, scalar) (z * scalar)
+#define cplx_abs(z) (sqrt(z.x * z.x + z.y * z.y))
+
 // Keep these separate so three only sets them once
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
+uniform vec3 cameraPosition;
 
 layout(std140) uniform InstanceData {
   mat4 transforms[MAX_INSTANCES];
@@ -60,9 +69,18 @@ void main() {
   vUVTransform = instanceData.uvTransforms[instanceIndex];
   vMapSettings = instanceData.mapSettings[instanceIndex];
 
-  vec4 mvPosition = viewMatrix * instanceData.transforms[instanceIndex] * vec4(position, 1.0);
+  vec4 mvPosition = instanceData.transforms[instanceIndex] * vec4(position, 1.0);
 
-  gl_Position = projectionMatrix * mvPosition;
+  float rp = 128.0;
+  vec4 pos = mvPosition;
+  mvPosition = viewMatrix * mvPosition;
+  vec2 planedir = normalize(vec2(pos.x - cameraPosition.x, pos.z - cameraPosition.z));
+  cplx plane = cplx_new(pos.y - cameraPosition.y, sqrt((pos.x - cameraPosition.x) * (pos.x - cameraPosition.x) + (pos.z - cameraPosition.z) * (pos.z - cameraPosition.z)));
+  cplx circle = rp * cplx_exp(cplx_scale(plane, 1.0 / rp)) - cplx_new(rp, 0);
+  pos.x = cplx_im(circle) * planedir.x + cameraPosition.x;
+  pos.z = cplx_im(circle) * planedir.y + cameraPosition.z;
+  pos.y = cplx_re(circle) + cameraPosition.y;
+  gl_Position = projectionMatrix * viewMatrix * pos;
 
   hubs_WorldPosition = (instanceData.transforms[instanceIndex] * vec4(position, 1.0)).xyz;
   vInstance = instanceIndex;
