@@ -58,10 +58,13 @@ export class AtmosphereSystem {
     this.water.position.y = 4.45 * (1 / 8);
     this.water.matrixNeedsUpdate = true;
 
+    //this.fog = new THREE.FogExp2(0xddddff, 0.035);
+
     scene.add(this.ambientLight);
     scene.add(this.sunLight);
     scene.add(this.sky);
     scene.add(this.water); // TODO water needs to become a wrapped entity
+    //scene.fog = this.fog;
   }
 
   tick(dt) {

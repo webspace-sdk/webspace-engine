@@ -316,6 +316,37 @@ export function injectCustomShaderChunks(obj) {
       newMaterial.onBeforeCompile = shader => {
         if (!vertexRegex.test(shader.vertexShader)) return;
 
+        shader.vertexShader =
+          [
+            "#define STANDARD",
+            "#define cplx vec2",
+            "#define cplx_new(re, im) vec2(re, im)",
+            "#define cplx_re(z) z.x",
+            "#define cplx_im(z) z.y",
+            "#define cplx_exp(z) (exp(z.x) * cplx_new(cos(z.y), sin(z.y)))",
+            "#define cplx_scale(z, scalar) (z * scalar)",
+            "#define cplx_abs(z) (sqrt(z.x * z.x + z.y * z.y))"
+          ].join("\n") + shader.vertexShader;
+
+        shader.vertexShader = shader.vertexShader.replace(
+          "#include <project_vertex>",
+          [
+            "vec4 mvPosition = vec4( transformed, 1.0 );",
+            "mat4 viewModel = inverse(modelViewMatrix);",
+            "vec3 camPos = viewModel[3].xyz;",
+            "vec4 pos = mvPosition;",
+            "float rp = 32.0 / jel_BoundingRadius;",
+            "vec2 planedir = normalize(vec2(pos.x - camPos.x, pos.z - camPos.z));",
+            "cplx plane = cplx_new(pos.y - camPos.y, sqrt((pos.x - camPos.x) * (pos.x - camPos.x) + (pos.z - camPos.z) * (pos.z - camPos.z)));",
+            "cplx circle = rp * cplx_exp(cplx_scale(plane, 1.0 / rp)) - cplx_new(rp, 0);",
+            "pos.x = cplx_im(circle) * planedir.x + camPos.x;",
+            "pos.z = cplx_im(circle) * planedir.y + camPos.z;",
+            "pos.y = cplx_re(circle) + camPos.y;",
+            "gl_Position = projectionMatrix * modelViewMatrix * pos;"
+          ].join("\n")
+        );
+
+        shader.uniforms.jel_BoundingRadius = { value: 1.0 };
         shader.uniforms.hubs_IsFrozen = { value: false };
         shader.uniforms.hubs_EnableSweepingEffect = { value: false };
         shader.uniforms.hubs_SweepParams = { value: [0, 0] };
@@ -338,6 +369,7 @@ export function injectCustomShaderChunks(obj) {
         const vindex = vlines.findIndex(line => vertexRegex.test(line));
         vlines.splice(vindex + 1, 0, vchunk);
         vlines.unshift("varying vec3 hubs_WorldPosition;");
+        vlines.unshift("uniform float jel_BoundingRadius;");
         vlines.unshift("uniform bool hubs_IsFrozen;");
         vlines.unshift("uniform bool hubs_HighlightInteractorOne;");
         vlines.unshift("uniform bool hubs_HighlightInteractorTwo;");

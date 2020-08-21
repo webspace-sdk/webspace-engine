@@ -87,7 +87,7 @@ const WaterShader = {
     "pos.x = cplx_im(circle) * planedir.x + camPos.x;",
     "pos.z = cplx_im(circle) * planedir.y + camPos.z;",
     "pos.y = cplx_re(circle) + camPos.y;",
-    "gl_Position = projectionMatrix * modelViewMatrix * vec4(pos1.xyz, 1.0);",
+    "gl_Position = projectionMatrix * modelViewMatrix * vec4(pos.xyz, 1.0);",
     "}  "
   ].join("\n"),
 

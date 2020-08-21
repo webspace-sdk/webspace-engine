@@ -81,19 +81,21 @@ AFRAME.registerComponent("hoverable-visuals", {
       interactorTwo.matrixWorld.toArray(interactorTwoTransform);
     }
 
+    const worldY = this.el.object3D.matrixWorld.elements[13];
+    const ms1 = this.el.object3D.matrixWorld.elements[4];
+    const ms2 = this.el.object3D.matrixWorld.elements[5];
+    const ms3 = this.el.object3D.matrixWorld.elements[6];
+    const worldScale = Math.sqrt(ms1 * ms1 + ms2 * ms2 + ms3 * ms3);
+    const scaledRadius = worldScale * this.geometryRadius;
+
     if (interactorOne || interactorTwo || isFrozen) {
-      const worldY = this.el.object3D.matrixWorld.elements[13];
-      const ms1 = this.el.object3D.matrixWorld.elements[4];
-      const ms2 = this.el.object3D.matrixWorld.elements[5];
-      const ms3 = this.el.object3D.matrixWorld.elements[6];
-      const worldScale = Math.sqrt(ms1 * ms1 + ms2 * ms2 + ms3 * ms3);
-      const scaledRadius = worldScale * this.geometryRadius;
       this.sweepParams[0] = worldY - scaledRadius;
       this.sweepParams[1] = worldY + scaledRadius;
     }
 
     for (let i = 0, l = this.uniforms.length; i < l; i++) {
       const uniform = this.uniforms[i];
+      uniform.jel_BoundingRadius.value = scaledRadius;
       uniform.hubs_EnableSweepingEffect.value = this.data.enableSweepingEffect && showEffect;
       uniform.hubs_IsFrozen.value = isFrozen;
       uniform.hubs_SweepParams.value = this.sweepParams;

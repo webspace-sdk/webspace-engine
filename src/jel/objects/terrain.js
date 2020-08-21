@@ -2,9 +2,39 @@ import { Layers } from "../../hubs/components/layers";
 
 const { Mesh, MeshStandardMaterial, VertexColors, BufferGeometry, BufferAttribute, Object3D } = THREE;
 const material = new MeshStandardMaterial({ vertexColors: VertexColors, metalness: 0, roughness: 1 });
-
 const setVertexColor = shader => {
-  shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
+  shader.vertexShader = shader.vertexShader
+    .replace(
+      "#define STANDARD",
+      [
+        "#define STANDARD",
+        "#define cplx vec2",
+        "#define cplx_new(re, im) vec2(re, im)",
+        "#define cplx_re(z) z.x",
+        "#define cplx_im(z) z.y",
+        "#define cplx_exp(z) (exp(z.x) * cplx_new(cos(z.y), sin(z.y)))",
+        "#define cplx_scale(z, scalar) (z * scalar)",
+        "#define cplx_abs(z) (sqrt(z.x * z.x + z.y * z.y))"
+      ].join("\n")
+    )
+    .replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;")
+    .replace(
+      "#include <project_vertex>",
+      [
+        "vec4 mvPosition = vec4( transformed, 1.0 );",
+        "mat4 viewModel = inverse(modelViewMatrix);",
+        "vec3 camPos = viewModel[3].xyz;",
+        "vec4 pos = mvPosition;",
+        "float rp = 850.0 * 0.125 * 16.0;",
+        "vec2 planedir = normalize(vec2(pos.x - camPos.x, pos.z - camPos.z));",
+        "cplx plane = cplx_new(pos.y - camPos.y, sqrt((pos.x - camPos.x) * (pos.x - camPos.x) + (pos.z - camPos.z) * (pos.z - camPos.z)));",
+        "cplx circle = rp * cplx_exp(cplx_scale(plane, 1.0 / rp)) - cplx_new(rp, 0);",
+        "pos.x = cplx_im(circle) * planedir.x + camPos.x;",
+        "pos.z = cplx_im(circle) * planedir.y + camPos.z;",
+        "pos.y = cplx_re(circle) + camPos.y;",
+        "gl_Position = projectionMatrix * modelViewMatrix * pos;"
+      ].join("\n")
+    );
 };
 
 material.onBeforeCompile = setVertexColor;
