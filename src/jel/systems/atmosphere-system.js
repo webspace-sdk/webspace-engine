@@ -88,6 +88,9 @@ export class AtmosphereSystem {
 
   updateShadows() {
     this.renderer.shadowMap.needsUpdate = true;
+  }
+
+  updateWater() {
     this.water.needsUpdate = true;
   }
 

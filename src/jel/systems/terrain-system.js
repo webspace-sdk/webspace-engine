@@ -643,6 +643,7 @@ export class TerrainSystem {
         this.scene.emit("terrain-chunk-loaded");
 
         this.atmosphereSystem.updateShadows();
+        this.atmosphereSystem.updateWater();
       });
     };
   })();

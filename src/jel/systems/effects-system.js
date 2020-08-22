@@ -55,7 +55,8 @@ AFRAME.registerSystem("effects", {
         this.composer.addPass(this.vignettePass);
         this.composer.addPass(this.satPass);
         this.composer.addPass(this.brightPass);
-        this.composer.addPass(this.fxaaPass);
+        // TODO need to stencil this against text
+        // this.composer.addPass(this.fxaaPass);
 
         // TODO quality
         this.highQuality = true;
