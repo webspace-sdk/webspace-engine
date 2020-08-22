@@ -1,6 +1,6 @@
 import waterImageSrc from "!!url-loader!../assets/images/water.png";
 import { Layers } from "../../hubs/components/layers";
-import { WORLD_RADIUS } from "../systems/terrain-system";
+import { WORLD_SIZE, WORLD_RADIUS } from "../systems/terrain-system";
 
 /**
  * Zelda-style water shader from https://medium.com/@gordonnl/the-ocean-170fdfd659f1
@@ -114,7 +114,7 @@ const WaterShader = {
 
     "void main() {",
     "     vec4 uv = vUv * 2.5 + vec4(sin(time) * -0.005);",
-    "     vec2 uv2 = vUv2 * 500.0 + vec2(time * -0.05);",
+    `     vec2 uv2 = vUv2 * ${(WORLD_SIZE * 2).toFixed(2)} + vec2(time * -0.05);`,
     "     uv2.y += 0.01 * (sin(uv2.x * 3.5 + time * 0.35) + sin(uv2.x * 4.8 + time * 1.05) + sin(uv2.x * 7.3 + time * 0.45)) / 3.0;",
     "     uv2.x += 0.12 * (sin(uv2.y * 4.0 + time * 0.5) + sin(uv2.y * 6.8 + time * 0.75) + sin(uv2.y * 11.3 + time * 0.2)) / 3.0;",
     "     uv2.y += 0.12 * (sin(uv2.x * 4.2 + time * 0.64) + sin(uv2.x * 6.3 + time * 1.65) + sin(uv2.x * 8.2 + time * 0.45)) / 3.0;",
@@ -162,7 +162,7 @@ class Water extends Mesh {
       transparent: true
     });
 
-    this.geometry = new PlaneBufferGeometry(500, 500, 150, 150);
+    this.geometry = new PlaneBufferGeometry(WORLD_SIZE * 2, WORLD_SIZE * 2, 30, 30);
     this.geometry.rotateX(-Math.PI / 2);
     this.renderOrder = 1;
 
