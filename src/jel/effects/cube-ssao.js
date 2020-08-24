@@ -9,14 +9,12 @@ const {
   DepthStencilFormat,
   WebGLRenderTarget,
   NotEqualStencilFunc,
-  KeepStencilOp,
   UnsignedInt248Type,
   Vector2
 } = THREE;
 
-import { CopyShader } from "three/examples/jsm/shaders/CopyShader.js";
 import { Pass } from "three/examples/jsm/postprocessing/Pass.js";
-import { FXAAShader } from "./fxaa-shader";
+import { FXAAFunc } from "./fxaa-shader";
 
 const FAR_PLANE_FOR_SSAO = 2;
 
@@ -26,6 +24,18 @@ const CubeSSAOShader = {
   },
 
   uniforms: {
+    runAO: {
+      type: "i",
+      value: 0
+    },
+    runFXAA: {
+      type: "i",
+      value: 0
+    },
+    runCopy: {
+      type: "i",
+      value: 0
+    },
     tDiffuse: {
       type: "t",
       value: null
@@ -38,6 +48,7 @@ const CubeSSAOShader = {
       type: "v2",
       value: new Vector2()
     },
+    aaresolution: { value: new THREE.Vector2(1 / 1024, 1 / 512) },
     cameraNear: {
       type: "f",
       value: 1
@@ -100,6 +111,7 @@ const CubeSSAOShader = {
     "uniform bool fogEnabled;",
     "uniform bool onlyAO;",
     "uniform vec2 resolution;",
+    "uniform vec2 aaresolution;",
     "uniform float aoClamp;",
     "uniform float lumInfluence;",
     "uniform sampler2D tDiffuse;",
@@ -110,6 +122,9 @@ const CubeSSAOShader = {
     "uniform float saturation;",
     "uniform float darkness;",
     "uniform float offset;",
+    "uniform bool runAO;",
+    "uniform bool runFXAA;",
+    "uniform bool runCopy;",
     "varying vec2 vUv;",
     "#define DL 2.399963229728653",
     "#define EULER 2.718281828459045",
@@ -275,7 +290,9 @@ const CubeSSAOShader = {
     "	vec2 uv = ( vUv - vec2( 0.5 ) ) * vec2( offset );",
     "	return vec3( mix( v.rgb, vec3( 1.0 - darkness ), dot( uv, uv ) ));",
     "}",
+    FXAAFunc,
     "void main() {",
+    "if (runAO) { ",
     "float AO = getBlurredAO(vUv);",
     "vec3 color = texture2D( tDiffuse, vUv ).rgb;",
     "vec3 AOcolor = vec3(color * AO);",
@@ -283,6 +300,32 @@ const CubeSSAOShader = {
     "vec3 brightColor = brighten(satColor);",
     "vec3 vignetteColor = vignette(brightColor);",
     "gl_FragColor = vec4(vignetteColor, 1.0);",
+    "} else if (runFXAA) {",
+    "  gl_FragColor = FxaaPixelShader(",
+    "    vUv,",
+    "    vec4(0.0),",
+    "    tDiffuse,",
+    "    tDiffuse,",
+    "    tDiffuse,",
+    "    aaresolution,",
+    "    vec4(0.0),",
+    "    vec4(0.0),",
+    "    vec4(0.0),",
+    "    0.75,",
+    "    0.166,",
+    "    0.0833,",
+    "    0.0,",
+    "    0.0,",
+    "    0.0,",
+    "    vec4(0.0)",
+    "  );",
+    "",
+    "  // TODO avoid querying texture twice for same texel",
+    "  gl_FragColor.a = 1.0;",
+    "} else if (runCopy) {",
+    "	vec4 texel = texture2D( tDiffuse, vUv );",
+    "	gl_FragColor = texel;",
+    "}",
     "}"
   ].join("\n")
 };
@@ -334,43 +377,15 @@ const CubeSSAOPass = function CubeSSAOPass(scene, camera, width, height) {
     uniforms: UniformsUtils.clone(CubeSSAOShader.uniforms),
     vertexShader: CubeSSAOShader.vertexShader,
     fragmentShader: CubeSSAOShader.fragmentShader,
+    stencilWrite: false,
+    stencilFunc: NotEqualStencilFunc,
+    stencilRef: 1,
     blending: NoBlending
   });
 
-  this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
-  this.material.uniforms.tDepth.value = this.sceneRenderTarget.depthTexture;
   this.material.uniforms.cameraNear.value = this.camera.near;
   this.material.uniforms.cameraFar.value = FAR_PLANE_FOR_SSAO;
   this.material.uniforms.resolution.value.set(this.width, this.height);
-
-  this.fxaaMaterial = new ShaderMaterial({
-    defines: { ...FXAAShader.defines },
-    uniforms: UniformsUtils.clone(FXAAShader.uniforms),
-    vertexShader: FXAAShader.vertexShader,
-    fragmentShader: FXAAShader.fragmentShader,
-    //blending: NoBlending,
-    stencilWrite: true,
-    stencilFunc: NotEqualStencilFunc,
-    stencilRef: 1,
-    stencilFuncMask: 0xff,
-    stencilZPass: KeepStencilOp,
-    stencilFail: KeepStencilOp,
-    stencilZFail: KeepStencilOp
-  });
-
-  this.fxaaMaterial.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
-
-  this.copyMaterial = new ShaderMaterial({
-    uniforms: UniformsUtils.clone(CopyShader.uniforms),
-    vertexShader: CopyShader.vertexShader,
-    fragmentShader: CopyShader.fragmentShader,
-    transparent: true,
-    depthTest: false,
-    depthWrite: false,
-    blending: NoBlending
-  });
-
-  this.copyMaterial.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
 
   this.fsQuad = new Pass.FullScreenQuad(null);
 
@@ -410,16 +425,28 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
     this.camera.far = f;
 
     // render SSAO + colorize
+    this.material.uniforms.runAO.value = true;
+    this.material.uniforms.runFXAA.value = false;
+    this.material.uniforms.runCopy.value = false;
+    this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
+    this.material.uniforms.tDepth.value = this.sceneRenderTarget.depthTexture;
     this.renderPass(renderer, this.material, this.ssaoRenderTarget);
 
     // render stencilled FXAA
-    const autoClearStencil = renderer.autoClearStencil;
-    renderer.autoClearStencil = false;
-    this.renderPass(renderer, this.fxaaMaterial, this.sceneRenderTarget);
-    renderer.autoClearStencil = autoClearStencil;
+    this.material.stencilWrite = true;
+    this.material.uniforms.runAO.value = false;
+    this.material.uniforms.runFXAA.value = true;
+    this.material.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
+    this.material.uniforms.tDepth.value = null;
+    this.renderPass(renderer, this.material, this.sceneRenderTarget);
+    this.material.stencilWrite = false;
+
+    this.material.uniforms.runFXAA.value = false;
+    this.material.uniforms.runCopy.value = true;
+    this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
 
     // Copy composed buffer to screen
-    this.renderPass(renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer);
+    this.renderPass(renderer, this.material, this.renderToScreen ? null : writeBuffer);
   },
 
   renderPass(renderer, passMaterial, renderTarget, clearColor, clearAlpha) {
