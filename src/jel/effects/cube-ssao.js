@@ -2,17 +2,21 @@ const {
   Color,
   DepthTexture,
   LinearFilter,
-  NearestFilter,
   NoBlending,
   RGBAFormat,
   ShaderMaterial,
   UniformsUtils,
-  UnsignedShortType,
+  DepthStencilFormat,
   WebGLRenderTarget,
+  NotEqualStencilFunc,
+  KeepStencilOp,
+  UnsignedInt248Type,
   Vector2
 } = THREE;
 
+import { CopyShader } from "three/examples/jsm/shaders/CopyShader.js";
 import { Pass } from "three/examples/jsm/postprocessing/Pass.js";
+import { FXAAShader } from "./fxaa-shader";
 
 const FAR_PLANE_FOR_SSAO = 2;
 
@@ -294,22 +298,36 @@ const CubeSSAOPass = function CubeSSAOPass(scene, camera, width, height) {
   this.camera = camera;
   this.scene = scene;
 
-  // scene render target with depth buffer
+  // scene render target with depth + stencil buffer
 
-  const depthTexture = new DepthTexture();
-  depthTexture.type = UnsignedShortType;
-  depthTexture.minFilter = NearestFilter;
-  depthTexture.maxFilter = NearestFilter;
+  const depthTexture = new DepthTexture(
+    this.width,
+    this.height,
+    UnsignedInt248Type,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    DepthStencilFormat
+  );
 
   this.sceneRenderTarget = new WebGLRenderTarget(this.width, this.height, {
     minFilter: LinearFilter,
     magFilter: LinearFilter,
     format: RGBAFormat,
     depthTexture,
-    depthBuffer: true
+    depthBuffer: true,
+    stencilBuffer: true
   });
 
   // ssao render target
+  this.ssaoRenderTarget = new WebGLRenderTarget(this.width, this.height, {
+    minFilter: LinearFilter,
+    magFilter: LinearFilter,
+    format: RGBAFormat
+  });
 
   this.material = new ShaderMaterial({
     defines: { ...CubeSSAOShader.defines },
@@ -325,6 +343,35 @@ const CubeSSAOPass = function CubeSSAOPass(scene, camera, width, height) {
   this.material.uniforms.cameraFar.value = FAR_PLANE_FOR_SSAO;
   this.material.uniforms.resolution.value.set(this.width, this.height);
 
+  this.fxaaMaterial = new ShaderMaterial({
+    defines: { ...FXAAShader.defines },
+    uniforms: UniformsUtils.clone(FXAAShader.uniforms),
+    vertexShader: FXAAShader.vertexShader,
+    fragmentShader: FXAAShader.fragmentShader,
+    //blending: NoBlending,
+    stencilWrite: true,
+    stencilFunc: NotEqualStencilFunc,
+    stencilRef: 1,
+    stencilFuncMask: 0xff,
+    stencilZPass: KeepStencilOp,
+    stencilFail: KeepStencilOp,
+    stencilZFail: KeepStencilOp
+  });
+
+  this.fxaaMaterial.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
+
+  this.copyMaterial = new ShaderMaterial({
+    uniforms: UniformsUtils.clone(CopyShader.uniforms),
+    vertexShader: CopyShader.vertexShader,
+    fragmentShader: CopyShader.fragmentShader,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+    blending: NoBlending
+  });
+
+  this.copyMaterial.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
+
   this.fsQuad = new Pass.FullScreenQuad(null);
 
   this.originalClearColor = new Color();
@@ -335,8 +382,8 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
 
   dispose() {
     // dispose render targets
-
     this.sceneRenderTarget.dispose();
+    this.ssaoRenderTarget.dispose();
 
     // dispose geometry
 
@@ -362,9 +409,17 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
 
     this.camera.far = f;
 
-    // render CubeSSAO
+    // render SSAO + colorize
+    this.renderPass(renderer, this.material, this.ssaoRenderTarget);
 
-    this.renderPass(renderer, this.material, this.renderToScreen ? null : writeBuffer);
+    // render stencilled FXAA
+    const autoClearStencil = renderer.autoClearStencil;
+    renderer.autoClearStencil = false;
+    this.renderPass(renderer, this.fxaaMaterial, this.sceneRenderTarget);
+    renderer.autoClearStencil = autoClearStencil;
+
+    // Copy composed buffer to screen
+    this.renderPass(renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer);
   },
 
   renderPass(renderer, passMaterial, renderTarget, clearColor, clearAlpha) {
@@ -397,6 +452,7 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
     this.height = height;
 
     this.sceneRenderTarget.setSize(width, height);
+    this.ssaoRenderTarget.setSize(width, height);
 
     this.material.uniforms.resolution.value.set(width, height);
   }

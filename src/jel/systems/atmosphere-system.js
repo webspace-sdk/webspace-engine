@@ -23,7 +23,7 @@ export class AtmosphereSystem {
     this.renderer.shadowMap.autoUpdate = false;
     this.renderer.shadowMap.soft = true;
     this.renderer.antialias = false;
-    this.renderer.stencil = false;
+    this.renderer.stencil = true;
     this.renderer.powerPreference = "high-performance";
 
     this.ambientLight = new THREE.AmbientLight(0x808080);

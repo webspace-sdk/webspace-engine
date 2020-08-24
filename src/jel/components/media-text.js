@@ -87,7 +87,13 @@ AFRAME.registerComponent("media-text", {
         this.texture.encoding = THREE.sRGBEncoding;
         this.texture.minFilter = THREE.LinearFilter;
 
-        const mat = new THREE.MeshBasicMaterial();
+        // Stencil out text so we don't FXAA it.
+        const mat = new THREE.MeshBasicMaterial({
+          stencilWrite: true,
+          stencilFunc: THREE.AlwaysStencilFunc,
+          stencilRef: 1,
+          stencilZPass: THREE.ReplaceStencilOp
+        });
         const geo = new THREE.PlaneBufferGeometry(1, 1, 1, 1, this.texture.flipY);
         mat.side = THREE.DoubleSide;
 

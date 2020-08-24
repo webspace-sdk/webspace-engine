@@ -1557,6 +1557,13 @@ AFRAME.registerComponent("media-pdf", {
         disposeExistingMesh(this.el);
 
         const material = new THREE.MeshBasicMaterial();
+        // Stencil out text so we don't FXAA it.
+        const mat = new THREE.MeshBasicMaterial({
+          stencilWrite: true,
+          stencilFunc: THREE.AlwaysStencilFunc,
+          stencilRef: 1,
+          stencilZPass: THREE.ReplaceStencilOp
+        });
         const geometry = new THREE.PlaneBufferGeometry(1, 1, 10, 10, texture.flipY);
         material.side = THREE.DoubleSide;
 
