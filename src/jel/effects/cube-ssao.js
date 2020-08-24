@@ -48,7 +48,6 @@ const CubeSSAOShader = {
       type: "v2",
       value: new Vector2()
     },
-    aaresolution: { value: new THREE.Vector2(1 / 1024, 1 / 512) },
     cameraNear: {
       type: "f",
       value: 1
@@ -111,7 +110,6 @@ const CubeSSAOShader = {
     "uniform bool fogEnabled;",
     "uniform bool onlyAO;",
     "uniform vec2 resolution;",
-    "uniform vec2 aaresolution;",
     "uniform float aoClamp;",
     "uniform float lumInfluence;",
     "uniform sampler2D tDiffuse;",
@@ -140,6 +138,7 @@ const CubeSSAOShader = {
     "#ifndef ONLY_AO_COLOR",
     "#define ONLY_AO_COLOR 1.0, 1.0, 1.0",
     "#endif",
+    FXAAFunc,
     "const int samples = SAMPLES;",
     "#include <packing>",
     "const float radius = RADIUS;",
@@ -290,7 +289,6 @@ const CubeSSAOShader = {
     "	vec2 uv = ( vUv - vec2( 0.5 ) ) * vec2( offset );",
     "	return vec3( mix( v.rgb, vec3( 1.0 - darkness ), dot( uv, uv ) ));",
     "}",
-    FXAAFunc,
     "void main() {",
     "if (runAO) { ",
     "float AO = getBlurredAO(vUv);",
@@ -307,7 +305,7 @@ const CubeSSAOShader = {
     "    tDiffuse,",
     "    tDiffuse,",
     "    tDiffuse,",
-    "    aaresolution,",
+    "    1.0 / resolution,",
     "    vec4(0.0),",
     "    vec4(0.0),",
     "    vec4(0.0),",
