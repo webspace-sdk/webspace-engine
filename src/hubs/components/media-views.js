@@ -737,7 +737,13 @@ AFRAME.registerComponent("media-video", {
       if (!this.mesh /* || projection !== oldData.projection */) {
         disposeExistingMesh(this.el);
 
-        const material = new THREE.MeshBasicMaterial();
+        // Stencil out text so we don't FXAA it.
+        const material = new THREE.MeshBasicMaterial({
+          stencilWrite: true,
+          stencilFunc: THREE.AlwaysStencilFunc,
+          stencilRef: 1,
+          stencilZPass: THREE.ReplaceStencilOp
+        });
 
         let geometry;
 
@@ -1275,7 +1281,13 @@ AFRAME.registerComponent("media-image", {
       if (!this.mesh || refresh) {
         disposeExistingMesh(this.el);
 
-        const material = new THREE.MeshBasicMaterial();
+        // Stencil out text so we don't FXAA it.
+        const material = new THREE.MeshBasicMaterial({
+          stencilWrite: true,
+          stencilFunc: THREE.AlwaysStencilFunc,
+          stencilRef: 1,
+          stencilZPass: THREE.ReplaceStencilOp
+        });
 
         let geometry;
 
@@ -1556,9 +1568,8 @@ AFRAME.registerComponent("media-pdf", {
       if (!this.mesh) {
         disposeExistingMesh(this.el);
 
-        const material = new THREE.MeshBasicMaterial();
         // Stencil out text so we don't FXAA it.
-        const mat = new THREE.MeshBasicMaterial({
+        const material = new THREE.MeshBasicMaterial({
           stencilWrite: true,
           stencilFunc: THREE.AlwaysStencilFunc,
           stencilRef: 1,
