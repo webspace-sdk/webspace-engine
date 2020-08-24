@@ -2,11 +2,8 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
-import { VignetteShader } from "three/examples/jsm/shaders/VignetteShader.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import CubeSSAOPass from "../effects/cube-ssao";
-import HueSaturationShader from "../effects/hue-sat-shader";
-import BrightnessContrastShader from "../effects/brightness-contrast-shader";
 
 AFRAME.registerSystem("effects", {
   init: function() {
@@ -39,22 +36,16 @@ AFRAME.registerSystem("effects", {
       if (!this.composer) {
         this.composer = new EffectComposer(renderer);
         this.ssaoPass = new CubeSSAOPass(scene, camera, w, h);
-        this.vignettePass = new ShaderPass(VignetteShader);
         this.fxaaPass = new ShaderPass(FXAAShader);
-        this.satPass = new ShaderPass(HueSaturationShader);
-        this.brightPass = new ShaderPass(BrightnessContrastShader);
         this.renderPass = new RenderPass(scene, camera);
 
-        this.vignettePass.material.uniforms.offset.value = 0.35;
-        this.vignettePass.material.uniforms.darkness.value = 5.0;
-        this.satPass.material.uniforms.saturation.value = 0.35;
-        this.brightPass.material.uniforms.brightness.value = 0.1;
+        this.ssaoPass.material.uniforms.offset.value = 0.35;
+        this.ssaoPass.material.uniforms.darkness.value = 5.0;
+        this.ssaoPass.material.uniforms.saturation.value = 0.35;
+        this.ssaoPass.material.uniforms.brightness.value = 0.1;
 
         this.composer.addPass(this.renderPass);
         this.composer.addPass(this.ssaoPass);
-        this.composer.addPass(this.vignettePass);
-        this.composer.addPass(this.satPass);
-        this.composer.addPass(this.brightPass);
         // TODO need to stencil this against text
         // this.composer.addPass(this.fxaaPass);
 

@@ -868,21 +868,19 @@ export class TerrainSystem {
 
       if (feature.types & 2 && smallMeshes) {
         // Trim
-        addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.rocks, 0.6, 1.35);
+        //addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.rocks, 0.6, 1.35);
       }
 
       if (feature.types & 4 && smallMeshes) {
         // Field
-        addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.grasses, 0.05, 0.45);
+        //addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.grasses, 0.05, 0.45);
       }
 
       if (feature.types & 1 && !smallMeshes) {
         // Foilage
         // Create primary tree
-        addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.trees, 1.2, 1.9);
-
+        //addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.trees, 1.2, 1.9);
         // const maxClusterFerns = 8;
-
         // Create clustered ferns
         /* for (let i = 0; i < Math.floor(Math.random() * (maxClusterFerns + 1)); i += 1) {
               let dx = (Math.random() - 0.5) * 3;
