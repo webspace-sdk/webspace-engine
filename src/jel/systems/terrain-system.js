@@ -73,7 +73,7 @@ export const addVertexCurvingToShader = shader => {
   );
 };
 
-const LOAD_RADIUS = 3;
+const LOAD_RADIUS = 3.5;
 const BIG_FEATURE_RADIUS = 3;
 const SMALL_FEATURE_RADIUS = 2;
 
@@ -102,8 +102,8 @@ for (const [grid, radius] of [
   [SMALL_FEATURE_GRID, SMALL_FEATURE_RADIUS],
   [BIG_FEATURE_GRID, BIG_FEATURE_RADIUS]
 ]) {
-  for (let x = -radius; x <= radius; x += 1) {
-    for (let z = -radius; z <= radius; z += 1) {
+  for (let x = -Math.floor(radius * 2); x <= Math.ceil(radius * 2); x += 1) {
+    for (let z = -Math.floor(radius * 2); z <= Math.ceil(radius * 2); z += 1) {
       const chunk = new THREE.Vector3(x, 0, z);
       if (chunk.distanceTo(center) <= radius) {
         grid.push(chunk);

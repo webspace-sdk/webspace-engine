@@ -210,6 +210,7 @@ const CubeSSAOShader = {
     "vec4 getAO(vec2 uv) {",
     "vec2 noise = rand( uv );",
     "float depth = readDepth( uv );",
+    "depth = clamp(depth, 0.0, 0.92);", // don't add edges to faraway objects
     "float tt = clamp( depth, aoClamp, 1.0 );",
     "float w = ( 1.0 / resolution.x )  / tt + ( noise.x * ( 1.0 - noise.x ) );",
     "float h = ( 1.0 / resolution.y ) / tt + ( noise.y * ( 1.0 - noise.y ) );",
@@ -309,7 +310,7 @@ const CubeSSAOShader = {
     "    vec4(0.0),",
     "    vec4(0.0),",
     "    vec4(0.0),",
-    "    0.75,",
+    "    1.0,", // Tuned to remove gaps in curved meshes
     "    0.166,",
     "    0.0833,",
     "    0.0,",
