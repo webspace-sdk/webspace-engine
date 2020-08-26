@@ -155,11 +155,6 @@ import { App } from "./App";
 import { platformUnsupported } from "./hubs/support";
 
 window.APP = new App();
-window.APP.RENDER_ORDER = {
-  HUD_BACKGROUND: 1,
-  HUD_ICONS: 2,
-  CURSOR: 3
-};
 const store = window.APP.store;
 store.update({ preferences: { shouldPromptForRefresh: undefined } });
 

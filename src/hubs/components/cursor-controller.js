@@ -1,6 +1,7 @@
 import { paths } from "../systems/userinput/paths";
 import { sets } from "../systems/userinput/sets";
 import { getLastWorldPosition } from "../utils/three-utils";
+import { RENDER_ORDER } from "../constants";
 
 const HIGHLIGHT = new THREE.Color(23 / 255, 64 / 255, 118 / 255);
 const NO_HIGHLIGHT = new THREE.Color(190 / 255, 190 / 255, 190 / 255);
@@ -22,7 +23,7 @@ AFRAME.registerComponent("cursor-controller", {
     this.data.cursor.addEventListener(
       "loaded",
       () => {
-        this.data.cursor.object3DMap.mesh.renderOrder = window.APP.RENDER_ORDER.CURSOR;
+        this.data.cursor.object3DMap.mesh.renderOrder = RENDER_ORDER.CURSOR;
       },
       { once: true }
     );

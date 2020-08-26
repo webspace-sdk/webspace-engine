@@ -1,3 +1,5 @@
+import { RENDER_ORDER } from "../../hubs/constants";
+
 /**
  * @author zz85 / https://github.com/zz85
  *
@@ -338,7 +340,7 @@ class Sky extends Mesh {
     });
 
     this.geometry = new BoxBufferGeometry(1, 1, 1);
-    this.renderOrder = 100000;
+    this.renderOrder = RENDER_ORDER.SKY;
     this.frustumCulled = false;
   }
 

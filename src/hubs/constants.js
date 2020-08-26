@@ -9,5 +9,15 @@ module.exports = {
     DEFAULT_INTERACTABLE: 1 | 2 | 4 | 8,
     UNOWNED_INTERACTABLE: 1 | 8,
     DEFAULT_SPAWNER: 1 | 8
+  },
+  RENDER_ORDER: {
+    HUD_BACKGROUND: 1,
+    WATER: 1,
+    HUD_ICONS: 2,
+    CURSOR: 3,
+    TERRAIN: 10,
+    PHYSICS_DEBUG: 1000,
+    MEDIA: 10000, // Render last because of stencil ops
+    SKY: 100000
   }
 };

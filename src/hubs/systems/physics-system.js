@@ -1,5 +1,6 @@
 import { AmmoWorker, WorkerHelpers, CONSTANTS } from "three-ammo";
 import { AmmoDebugConstants, DefaultBufferSize } from "ammo-debug-drawer";
+import { RENDER_ORDER } from "../constants";
 import configs from "../utils/configs";
 import * as ammoWasmUrl from "ammo.js/builds/ammo.wasm.wasm";
 
@@ -114,7 +115,7 @@ export class PhysicsSystem {
       });
       this.debugMesh = new THREE.LineSegments(this.debugGeometry, debugMaterial);
       this.debugMesh.frustumCulled = false;
-      this.debugMesh.renderOrder = 999;
+      this.debugMesh.renderOrder = RENDER_ORDER.PHYSICS_DEBUG;
     }
 
     if (!this.debugMesh.parent) {

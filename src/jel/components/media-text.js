@@ -4,6 +4,7 @@ import { getNetworkId } from "../utils/ownership-utils";
 import { fromByteArray } from "base64-js";
 import { hasMediaLayer, scaleToAspectRatio, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh, disposeTexture } from "../../hubs/utils/three-utils";
+import { RENDER_ORDER } from "../../hubs/constants";
 
 AFRAME.registerComponent("media-text", {
   schema: {
@@ -99,6 +100,7 @@ AFRAME.registerComponent("media-text", {
 
         this.mesh = new THREE.Mesh(geo, mat);
         this.mesh.castShadow = true;
+        this.mesh.renderOrder = RENDER_ORDER.MEDIA;
         this.mesh.material.map = this.texture;
         this.el.setObject3D("mesh", this.mesh);
         scaleToAspectRatio(this.el, 9.0 / 16.0); // TODO 1080p is default

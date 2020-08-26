@@ -14,6 +14,7 @@ import errorImageSrc from "!!url-loader!../assets/images/media-error.gif";
 import audioIcon from "../assets/images/audio.png";
 import { paths } from "../systems/userinput/paths";
 import HLS from "hls.js";
+import { RENDER_ORDER } from "../constants";
 import { MediaPlayer } from "dashjs";
 import {
   addAndArrangeMedia,
@@ -758,6 +759,7 @@ AFRAME.registerComponent("media-video", {
 
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.castShadow = true;
+        this.mesh.renderOrder = RENDER_ORDER.MEDIA;
         this.el.setObject3D("mesh", this.mesh);
       }
 
@@ -1311,6 +1313,7 @@ AFRAME.registerComponent("media-image", {
 
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.castShadow = true;
+        this.mesh.renderOrder = RENDER_ORDER.MEDIA;
         this.el.setObject3D("mesh", this.mesh);
       }
 
@@ -1580,6 +1583,7 @@ AFRAME.registerComponent("media-pdf", {
 
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.castShadow = true;
+        this.mesh.renderOrder = RENDER_ORDER.MEDIA;
         this.el.setObject3D("mesh", this.mesh);
       }
 

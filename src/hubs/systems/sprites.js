@@ -10,6 +10,7 @@ import { waitForDOMContentLoaded } from "../utils/async-utils";
 import vert from "./sprites/sprite.vert";
 import frag from "./sprites/sprite.frag";
 import { getThemeColorShifter } from "../utils/theme-sprites";
+import { RENDER_ORDER } from "../constants";
 
 const multiviewVertPrefix = [
   // GLSL 3.0 conversion
@@ -253,7 +254,7 @@ export class SpriteSystem {
             scene.appendChild(el);
             el.setObject3D("mesh", mesh);
             mesh.frustumCulled = false;
-            mesh.renderOrder = window.APP.RENDER_ORDER.HUD_ICONS;
+            mesh.renderOrder = RENDER_ORDER.HUD_ICONS;
             mesh.raycast = this.raycast.bind(this);
           }
         );

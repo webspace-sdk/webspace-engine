@@ -9,6 +9,7 @@ import treesVoxSrc from "!!url-loader!../assets/models/trees1.vox";
 import rocksVoxSrc from "!!url-loader!../assets/models/rocks1.vox";
 import grassVoxSrc from "!!url-loader!../assets/models/grass1.vox";
 import { Layers } from "../../hubs/components/layers";
+import { RENDER_ORDER } from "../../hubs/constants";
 
 const { Pathfinding } = require("three-pathfinding");
 
@@ -1031,7 +1032,7 @@ export class TerrainSystem {
       // Sort render order for chunks
       terrains.forEach(terrain => {
         const dist = Math.abs(avatarChunk.x - terrain.chunk.x) + Math.abs(avatarChunk.z - terrain.chunk.z);
-        terrain.renderOrder = dist + 10; // Render from front to back.
+        terrain.renderOrder = dist + RENDER_ORDER.TERRAIN; // Render from front to back.
       });
 
       if (this.playerCamera) {

@@ -1,6 +1,7 @@
 import waterImageSrc from "!!url-loader!../assets/images/water.png";
 import { Layers } from "../../hubs/components/layers";
 import { WORLD_SIZE, WORLD_RADIUS } from "../systems/terrain-system";
+import { RENDER_ORDER } from "../../hubs/constants";
 
 /**
  * Zelda-style water shader from https://medium.com/@gordonnl/the-ocean-170fdfd659f1
@@ -164,7 +165,7 @@ class Water extends Mesh {
 
     this.geometry = new PlaneBufferGeometry(WORLD_SIZE * 2, WORLD_SIZE * 2, 30, 30);
     this.geometry.rotateX(-Math.PI / 2);
-    this.renderOrder = 1;
+    this.renderOrder = RENDER_ORDER.WATER;
 
     this.frustumCulled = false;
 
