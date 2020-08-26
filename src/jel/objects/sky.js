@@ -1,4 +1,5 @@
 import { RENDER_ORDER } from "../../hubs/constants";
+import SkyboxBufferGeometry from "./skybox-buffer-geometry";
 
 /**
  * @author zz85 / https://github.com/zz85
@@ -16,7 +17,7 @@ import { RENDER_ORDER } from "../../hubs/constants";
  * Three.js integration by zz85 http://twitter.com/blurspline
  */
 
-const { Vector3, Mesh, BoxBufferGeometry, BackSide, ShaderMaterial, UniformsUtils } = THREE;
+const { Vector3, Mesh, ShaderMaterial, UniformsUtils } = THREE;
 
 const SkyShader = {
   uniforms: {
@@ -335,11 +336,11 @@ class Sky extends Mesh {
     this.material = new ShaderMaterial({
       fragmentShader: shader.fragmentShader,
       vertexShader: shader.vertexShader,
-      uniforms: UniformsUtils.clone(shader.uniforms),
-      side: BackSide
+      uniforms: UniformsUtils.clone(shader.uniforms)
     });
 
-    this.geometry = new BoxBufferGeometry(1, 1, 1);
+    this.geometry = new SkyboxBufferGeometry(1, 1, 1);
+
     this.renderOrder = RENDER_ORDER.SKY;
     this.frustumCulled = false;
   }

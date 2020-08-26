@@ -4,6 +4,7 @@ import { paths } from "./userinput/paths";
 import { getBox } from "../utils/auto-box-collider";
 import qsTruthy from "../utils/qs_truthy";
 import { qsGet } from "../utils/qs_truthy";
+import SkyboxBufferGeometry from "../../jel/objects/skybox-buffer-geometry";
 const customFOV = qsGet("fov");
 const enableThirdPersonMode = qsTruthy("thirdPerson");
 
@@ -184,8 +185,8 @@ export class CameraSystem {
       this.viewingRig = document.getElementById("viewing-rig");
 
       const bg = new THREE.Mesh(
-        new THREE.BoxGeometry(100, 100, 100),
-        new THREE.MeshBasicMaterial({ color: 0x020202, side: THREE.BackSide })
+        new SkyboxBufferGeometry(100, 100, 100),
+        new THREE.MeshBasicMaterial({ color: 0x020202 })
       );
       bg.layers.set(CAMERA_LAYER_INSPECT);
       this.viewingRig.object3D.add(bg);

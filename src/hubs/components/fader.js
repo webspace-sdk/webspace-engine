@@ -1,6 +1,7 @@
 /**
  * Creates a box around the element (assumed to be the camera's PoV) which can be used for fade-to-black.
  */
+import SkyboxBufferGeometry from "../../jel/objects/skybox-buffer-geometry";
 
 const FADE_DURATION_MS = 750;
 
@@ -11,8 +12,8 @@ AFRAME.registerComponent("fader", {
 
   init() {
     const mesh = new THREE.Mesh(
-      new THREE.BoxGeometry(),
-      new THREE.MeshBasicMaterial({ color: 0x0, side: THREE.BackSide, opacity: 0, transparent: true, fog: false })
+      new SkyboxBufferGeometry(),
+      new THREE.MeshBasicMaterial({ color: 0x0, opacity: 0, transparent: true, fog: false })
     );
     mesh.scale.x = mesh.scale.y = 1;
     mesh.scale.z = 0.15;

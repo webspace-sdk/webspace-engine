@@ -740,7 +740,7 @@ async function start() {
   window.APP.scene = scene;
 
   scene.setAttribute("shadow", { enabled: window.APP.quality !== "low" }); // Disable shadows on low quality
-  scene.renderer.debug.checkShaderErrors = true;
+  scene.renderer.debug.checkShaderErrors = false;
 
   initBatching();
 

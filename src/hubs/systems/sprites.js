@@ -270,6 +270,7 @@ export class SpriteSystem {
       const mesh = this.meshes[sheetType];
       mesh.material.uniforms.hubs_Time.value = t;
       mesh.material.uniformsNeedUpdate = true;
+      let anyVisible = false;
 
       const mvCols = mesh.geometry.attributes["mvCol0"].data; // interleaved
       const aEnableSweepingEffect = mesh.geometry.attributes["a_hubs_EnableSweepingEffect"];
@@ -284,6 +285,7 @@ export class SpriteSystem {
 
         if (isVisible(sprite.el.object3D)) {
           const enableSweepingEffectValue = enableSweepingEffect(sprite) ? 1 : 0;
+          anyVisible = true;
           aEnableSweepingEffect.array[i * 4 + 0] = enableSweepingEffectValue;
           aEnableSweepingEffect.array[i * 4 + 1] = enableSweepingEffectValue;
           aEnableSweepingEffect.array[i * 4 + 2] = enableSweepingEffectValue;
@@ -315,6 +317,8 @@ export class SpriteSystem {
           mvCols.needsUpdate = true;
         }
       }
+
+      mesh.visible = anyVisible;
     }
   }
 
