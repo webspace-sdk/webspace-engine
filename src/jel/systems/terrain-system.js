@@ -74,7 +74,7 @@ export const addVertexCurvingToShader = shader => {
   );
 };
 
-const LOAD_RADIUS = 3;
+const LOAD_RADIUS = 3.5;
 const BIG_FEATURE_RADIUS = 3;
 const SMALL_FEATURE_RADIUS = 2;
 
