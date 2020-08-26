@@ -33,7 +33,11 @@ const voxelMaterial = new ShaderMaterial({
 
 voxelMaterial.uniforms.metalness.value = 0;
 voxelMaterial.uniforms.roughness.value = 1;
-voxelMaterial.onBeforeCompile = shader => addVertexCurvingToShader(shader);
+
+voxelMaterial.onBeforeCompile = shader => {
+  addVertexCurvingToShader(shader);
+  shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
+};
 
 class Terrain extends Object3D {
   constructor() {
@@ -49,7 +53,6 @@ class Terrain extends Object3D {
     this.add(mesh);
     this.mesh = mesh;
     this.frustumCulled = false;
-    this.colorBuffer = null;
   }
 
   update({ chunk, geometries }) {
@@ -67,16 +70,7 @@ class Terrain extends Object3D {
     const geometry = new BufferGeometry();
     mesh.geometry = geometry;
 
-    if (!this.colorBuffer || this.colorBuffer.length < color.length) {
-      this.colorBuffer = new Float32Array(Math.floor(color.length * 1.5));
-    }
-
-    for (let i = 0; i < color.length; i++) {
-      this.colorBuffer[i] = color[i] / 255.0;
-    }
-
-    const colorAttributeValues = new Float32Array(this.colorBuffer.buffer, 0, color.length);
-    geometry.setAttribute("color", new BufferAttribute(colorAttributeValues, 3));
+    geometry.setAttribute("color", new BufferAttribute(color, 3));
     geometry.setAttribute("position", new BufferAttribute(position, 3));
     geometry.setAttribute("uv", new BufferAttribute(uv, 2));
     geometry.setAttribute("normal", new BufferAttribute(normal, 3));

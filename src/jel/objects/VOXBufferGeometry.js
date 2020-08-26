@@ -143,7 +143,7 @@ class VOXBufferGeometry extends BufferGeometry {
 
       for (let i = 0; i < 4; i++) {
         normals.push(...[nx, nz, -ny]);
-        colors.push(...[r, g, b]);
+        colors.push(...[Math.floor(r * 255.0), Math.floor(g * 255.0), Math.floor(b * 255.0)]);
       }
     };
 
