@@ -12,12 +12,15 @@ module.exports = {
   },
   RENDER_ORDER: {
     HUD_BACKGROUND: 1,
-    WATER: 1,
     HUD_ICONS: 2,
     CURSOR: 3,
     TERRAIN: 10,
+    FIELD: 100,
     PHYSICS_DEBUG: 1000,
     MEDIA: 10000, // Render last because of stencil ops
-    SKY: 100000
+    SKY: 100000,
+
+    // Transparent objects:
+    WATER: 1
   }
 };

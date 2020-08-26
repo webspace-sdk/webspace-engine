@@ -1,6 +1,6 @@
 import Pako from "pako";
 import { protocol } from "../protocol/protocol";
-import Terrain from "../objects/terrain";
+import { voxelMaterial, Terrain } from "../objects/terrain";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { VOXLoader } from "../objects/VOXLoader";
 import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
@@ -74,7 +74,7 @@ export const addVertexCurvingToShader = shader => {
   );
 };
 
-const LOAD_RADIUS = 3.5;
+const LOAD_RADIUS = 3;
 const BIG_FEATURE_RADIUS = 3;
 const SMALL_FEATURE_RADIUS = 2;
 
@@ -719,13 +719,28 @@ export class TerrainSystem {
               const geometry = new VOXBufferGeometry(chunks[j]);
               geometry.translate(0, 6, 0);
 
-              const material = new MeshStandardMaterial({
-                vertexColors: VertexColors,
-                transparent: true,
-                opacity: 0.2
-              });
-              material.onBeforeCompile = addVertexCurvingToShader;
-              const mesh = new DynamicInstancedMesh(geometry, material, 1024 * 8);
+              const mesh = new DynamicInstancedMesh(geometry, voxelMaterial, 1024 * 8);
+              mesh.renderOrder = RENDER_ORDER.FIELD;
+
+              let op;
+              let t;
+
+              // Re-use shader for normal voxels to reduce
+              // program switching, but tweak uniform.
+              mesh.onBeforeRender = () => {
+                op = voxelMaterial.uniforms.opacity.value;
+                t = voxelMaterial.transparent;
+                voxelMaterial.uniforms.opacity.value = 0.2;
+                voxelMaterial.uniformsNeedUpdate = true;
+                voxelMaterial.transparent = true;
+              };
+
+              mesh.onAfterRender = () => {
+                voxelMaterial.uniforms.opacity.value = op;
+                voxelMaterial.uniformsNeedUpdate = true;
+                voxelMaterial.transparent = t;
+              };
+
               mesh.receiveShadow = true;
               meshes.push(mesh);
             }
@@ -874,7 +889,7 @@ export class TerrainSystem {
 
       if (feature.types & 4 && smallMeshes) {
         // Field
-        //addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.grasses, 0.05, 0.45);
+        addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.grasses, 0.05, 0.45);
       }
 
       if (feature.types & 1 && !smallMeshes) {
@@ -1032,7 +1047,7 @@ export class TerrainSystem {
       // Sort render order for chunks
       terrains.forEach(terrain => {
         const dist = Math.abs(avatarChunk.x - terrain.chunk.x) + Math.abs(avatarChunk.z - terrain.chunk.z);
-        terrain.renderOrder = dist + RENDER_ORDER.TERRAIN; // Render from front to back.
+        terrain.mesh.renderOrder = dist + RENDER_ORDER.TERRAIN; // Render from front to back.
       });
 
       if (this.playerCamera) {

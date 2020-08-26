@@ -1,26 +1,55 @@
 import { Layers } from "../../hubs/components/layers";
 import { addVertexCurvingToShader } from "../systems/terrain-system";
 
-const { Mesh, MeshStandardMaterial, VertexColors, BufferGeometry, BufferAttribute, Object3D } = THREE;
-const material = new MeshStandardMaterial({ vertexColors: VertexColors, metalness: 0, roughness: 1 });
-const setVertexColor = shader => {
-  addVertexCurvingToShader(shader);
-  shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
-};
+const {
+  InstancedMesh,
+  ShaderMaterial,
+  MeshStandardMaterial,
+  VertexColors,
+  BufferGeometry,
+  BufferAttribute,
+  Object3D,
+  Matrix4,
+  ShaderLib,
+  UniformsUtils
+} = THREE;
 
-material.onBeforeCompile = setVertexColor;
+const IDENTITY = new Matrix4();
+
+const voxelMaterial = new ShaderMaterial({
+  name: "voxels",
+  vertexColors: VertexColors,
+  fog: true,
+  fragmentShader: ShaderLib.standard.fragmentShader,
+  vertexShader: ShaderLib.standard.vertexShader,
+  lights: true,
+  defines: {
+    ...MeshStandardMaterial.defines
+  },
+  uniforms: {
+    ...UniformsUtils.clone(ShaderLib.standard.uniforms)
+  }
+});
+
+voxelMaterial.uniforms.metalness.value = 0;
+voxelMaterial.uniforms.roughness.value = 1;
+voxelMaterial.onBeforeCompile = shader => addVertexCurvingToShader(shader);
 
 class Terrain extends Object3D {
   constructor() {
     super();
-    const mesh = new Mesh(new BufferGeometry(), material);
+
+    // Use an instanced mesh so shader can be shared with instanced voxel objects.
+    const mesh = new InstancedMesh(new BufferGeometry(), voxelMaterial, 1);
     mesh.receiveShadow = true;
+    mesh.setMatrixAt(0, IDENTITY);
     mesh.castShadow = true;
     this.layers.enable(Layers.reflection);
     mesh.layers.enable(Layers.reflection);
     this.add(mesh);
     this.mesh = mesh;
     this.frustumCulled = false;
+    this.colorBuffer = null;
   }
 
   update({ chunk, geometries }) {
@@ -38,7 +67,16 @@ class Terrain extends Object3D {
     const geometry = new BufferGeometry();
     mesh.geometry = geometry;
 
-    geometry.setAttribute("color", new BufferAttribute(color, 3));
+    if (!this.colorBuffer || this.colorBuffer.length < color.length) {
+      this.colorBuffer = new Float32Array(Math.floor(color.length * 1.5));
+    }
+
+    for (let i = 0; i < color.length; i++) {
+      this.colorBuffer[i] = color[i] / 255.0;
+    }
+
+    const colorAttributeValues = new Float32Array(this.colorBuffer.buffer, 0, color.length);
+    geometry.setAttribute("color", new BufferAttribute(colorAttributeValues, 3));
     geometry.setAttribute("position", new BufferAttribute(position, 3));
     geometry.setAttribute("uv", new BufferAttribute(uv, 2));
     geometry.setAttribute("normal", new BufferAttribute(normal, 3));
@@ -93,4 +131,4 @@ class Terrain extends Object3D {
   }
 }
 
-export default Terrain;
+export { voxelMaterial, Terrain };

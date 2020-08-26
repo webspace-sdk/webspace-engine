@@ -96,6 +96,18 @@ const CubeSSAOShader = {
       type: "f",
       value: 0
     },
+    fxaaQualitySubpix: {
+      type: "f",
+      value: 0.75
+    },
+    fxaaEdgeThreshold: {
+      type: "f",
+      value: 0.166
+    },
+    fxaaEdgeThresholdMin: {
+      type: "f",
+      value: 0.0833
+    },
     offset: { value: 1.0 },
     darkness: { value: 1.0 }
   },
@@ -123,6 +135,9 @@ const CubeSSAOShader = {
     "uniform bool runAO;",
     "uniform bool runFXAA;",
     "uniform bool runCopy;",
+    "uniform float fxaaQualitySubpix;",
+    "uniform float fxaaEdgeThreshold;",
+    "uniform float fxaaEdgeThresholdMin;",
     "varying vec2 vUv;",
     "#define DL 2.399963229728653",
     "#define EULER 2.718281828459045",
@@ -310,9 +325,9 @@ const CubeSSAOShader = {
     "    vec4(0.0),",
     "    vec4(0.0),",
     "    vec4(0.0),",
-    "    1.0,", // Tuned to remove gaps in curved meshes
-    "    0.166,",
-    "    0.0833,",
+    "    fxaaQualitySubpix,", // Tuned to remove gaps in curved meshes
+    "    fxaaEdgeThreshold,",
+    "    fxaaEdgeThresholdMin,",
     "    0.0,",
     "    0.0,",
     "    0.0,",
@@ -425,8 +440,14 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
 
     // render SSAO + colorize
     this.material.uniforms.runAO.value = true;
-    this.material.uniforms.runFXAA.value = false;
     this.material.uniforms.runCopy.value = false;
+
+    // Cause FXAA to not run, and reduce quality knobs.
+    this.material.uniforms.runFXAA.value = false;
+    this.material.uniforms.fxaaQualitySubpix.value = 0.0;
+    this.material.uniforms.fxaaEdgeThreshold.value = 1.0;
+    this.material.uniforms.fxaaEdgeThresholdMin.value = 1.0;
+
     this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
     this.material.uniforms.tDepth.value = this.sceneRenderTarget.depthTexture;
     this.renderPass(renderer, this.material, this.ssaoRenderTarget);
@@ -435,6 +456,9 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
     this.material.stencilWrite = true;
     this.material.uniforms.runAO.value = false;
     this.material.uniforms.runFXAA.value = true;
+    this.material.uniforms.fxaaQualitySubpix.value = 1.0;
+    this.material.uniforms.fxaaEdgeThreshold.value = 0.166;
+    this.material.uniforms.fxaaEdgeThresholdMin.value = 0.0833;
     this.material.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
     this.material.uniforms.tDepth.value = null;
     this.renderPass(renderer, this.material, this.sceneRenderTarget);
