@@ -5,10 +5,7 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { VOXLoader } from "../objects/VOXLoader";
 import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
-import treesVoxSrc from "!!url-loader!../assets/models/trees1.vox";
-import rocksVoxSrc from "!!url-loader!../assets/models/rocks1.vox";
 import grassVoxSrc from "!!url-loader!../assets/models/grass1.vox";
-import { Layers } from "../../hubs/components/layers";
 import { RENDER_ORDER } from "../../hubs/constants";
 
 const { Pathfinding } = require("three-pathfinding");
@@ -20,8 +17,6 @@ const {
   BufferGeometry,
   Float32BufferAttribute,
   Uint16BufferAttribute,
-  MeshStandardMaterial,
-  VertexColors,
   Object3D,
   Group
 } = THREE;
@@ -75,12 +70,10 @@ export const addVertexCurvingToShader = shader => {
 };
 
 const LOAD_RADIUS = 3.5;
-const BIG_FEATURE_RADIUS = 3;
-const SMALL_FEATURE_RADIUS = 2;
+const FIELD_FEATURE_RADIUS = 2;
 
 const LOAD_GRID = [];
-const BIG_FEATURE_GRID = [];
-const SMALL_FEATURE_GRID = [];
+const FIELD_FEATURE_GRID = [];
 
 const SUBCHUNKS = 1;
 const center = new Vector3();
@@ -98,11 +91,7 @@ const normalizeChunkCoord = c => {
 const entityWorldCoordToChunkCoord = c => Math.floor(c / CHUNK_WORLD_SIZE);
 const chunkCoordToEntityWorldCoord = c => c * CHUNK_WORLD_SIZE;
 
-for (const [grid, radius] of [
-  [LOAD_GRID, LOAD_RADIUS],
-  [SMALL_FEATURE_GRID, SMALL_FEATURE_RADIUS],
-  [BIG_FEATURE_GRID, BIG_FEATURE_RADIUS]
-]) {
+for (const [grid, radius] of [[LOAD_GRID, LOAD_RADIUS], [FIELD_FEATURE_GRID, FIELD_FEATURE_RADIUS]]) {
   for (let x = -Math.floor(radius * 2); x <= Math.ceil(radius * 2); x += 1) {
     for (let z = -Math.floor(radius * 2); z <= Math.ceil(radius * 2); z += 1) {
       const chunk = new THREE.Vector3(x, 0, z);
@@ -334,7 +323,7 @@ const cullChunksAndFeatureGroups = (() => {
     }
 
     // Cull features based upon half of feature culling radius
-    far = Math.max(BIG_FEATURE_RADIUS, SMALL_FEATURE_RADIUS) * (CHUNK_WORLD_SIZE / 2);
+    far = FIELD_FEATURE_RADIUS * (CHUNK_WORLD_SIZE / 2);
     hFar = 2 * Math.tan((camera.fov * Math.PI) / 180 / 2) * far;
     wFar = hFar * camera.aspect;
 
@@ -490,8 +479,7 @@ export class TerrainSystem {
     this.spawningChunks = new Map();
     this.chunkFeatures = new Map();
     this.terrains = new Map();
-    this.smallFeatureInstances = new Map();
-    this.bigFeatureInstances = new Map();
+    this.fieldFeatureInstances = new Map();
     this.entities = new Map();
     this.scene = scene;
     this.pathfinder = new Pathfinding();
@@ -649,61 +637,9 @@ export class TerrainSystem {
   loadFeatureMeshes() {
     const voxLoader = new VOXLoader();
 
-    this.trees = [];
-    this.rocks = [];
     this.grasses = [];
 
     const promises = [];
-
-    promises.push(
-      new Promise(res => {
-        voxLoader.load(treesVoxSrc, chunks => {
-          for (let j = 0; j < chunks.length; j += 1) {
-            const meshes = [];
-            this.trees.push(meshes);
-
-            for (let i = 0; i < 9; i++) {
-              const geometry = new VOXBufferGeometry(chunks[j]);
-              geometry.translate(0, 37, 0);
-
-              const material = new MeshStandardMaterial({ vertexColors: VertexColors });
-              material.onBeforeCompile = addVertexCurvingToShader;
-              const mesh = new DynamicInstancedMesh(geometry, material, 32);
-              // Trees are reflected since they are so big and often visible from water
-              mesh.layers.enable(Layers.reflection);
-
-              mesh.castShadow = true;
-              meshes.push(mesh);
-            }
-          }
-
-          res();
-        });
-      })
-    );
-
-    promises.push(
-      new Promise(res => {
-        voxLoader.load(rocksVoxSrc, chunks => {
-          for (let j = 0; j < chunks.length; j += 1) {
-            const meshes = [];
-            this.rocks.push(meshes);
-
-            for (let i = 0; i < 9; i++) {
-              const geometry = new VOXBufferGeometry(chunks[j]);
-              geometry.translate(0, 9, 0);
-
-              const material = new MeshStandardMaterial({ vertexColors: VertexColors });
-              material.onBeforeCompile = addVertexCurvingToShader;
-              const mesh = new DynamicInstancedMesh(geometry, material, 256);
-              mesh.castShadow = true;
-              meshes.push(mesh);
-            }
-          }
-          res();
-        });
-      })
-    );
 
     promises.push(
       new Promise(res => {
@@ -750,8 +686,8 @@ export class TerrainSystem {
     Promise.all(promises).then(() => (this.featureMeshesLoaded = true));
   }
 
-  ensureFeatureMeshesFreed(x, z, subchunk, smallMeshes) {
-    const instances = smallMeshes ? this.smallFeatureInstances : this.bigFeatureInstances;
+  ensureFeatureMeshesFreed(x, z, subchunk) {
+    const instances = this.fieldFeatureInstances;
     const key = `${keyForChunk({ x, z })}:${subchunk}`;
     if (instances.has(key)) {
       for (const [mesh, id] of instances.get(key)) {
@@ -764,10 +700,9 @@ export class TerrainSystem {
 
   ensureFeatureMeshesSpawnedOrFree(chunkX = null, chunkZ = null) {
     const { avatarChunk, loadedChunks } = this;
-    const smallChunks = [];
-    const bigChunks = [];
+    const fieldChunks = [];
 
-    SMALL_FEATURE_GRID.forEach(({ x, z }) => {
+    FIELD_FEATURE_GRID.forEach(({ x, z }) => {
       const cx = normalizeChunkCoord(avatarChunk.x + x);
       const cz = normalizeChunkCoord(avatarChunk.z + z);
 
@@ -778,21 +713,7 @@ export class TerrainSystem {
         this.ensureFeatureMeshesSpawned(cx, cz, subchunk, true);
       }
 
-      smallChunks.push({ x: cx, z: cz });
-    });
-
-    BIG_FEATURE_GRID.forEach(({ x, z }) => {
-      const cx = normalizeChunkCoord(avatarChunk.x + x);
-      const cz = normalizeChunkCoord(avatarChunk.z + z);
-
-      if (chunkX !== null && cx !== chunkX) return;
-      if (chunkZ !== null && cz !== chunkZ) return;
-
-      for (let subchunk = 0; subchunk < SUBCHUNKS; subchunk++) {
-        this.ensureFeatureMeshesSpawned(cx, cz, subchunk, false);
-      }
-
-      bigChunks.push({ x: cx, z: cz });
+      fieldChunks.push({ x: cx, z: cz });
     });
 
     loadedChunks.forEach(chunk => {
@@ -800,50 +721,24 @@ export class TerrainSystem {
       if (chunkZ !== null && chunk.z !== chunkZ) return;
 
       for (let subchunk = 0; subchunk < SUBCHUNKS; subchunk += 1) {
-        if (!smallChunks.find(({ x, z }) => chunk.x === x && chunk.z === z)) {
+        if (!fieldChunks.find(({ x, z }) => chunk.x === x && chunk.z === z)) {
           this.ensureFeatureMeshesFreed(chunk.x, chunk.z, subchunk, true);
-        }
-
-        if (!bigChunks.find(({ x, z }) => chunk.x === x && chunk.z === z)) {
-          this.ensureFeatureMeshesFreed(chunk.x, chunk.z, subchunk, false);
         }
       }
     });
   }
 
-  ensureFeatureMeshesSpawned(x, z, subchunk, smallMeshes) {
+  ensureFeatureMeshesSpawned(x, z, subchunk, fieldMeshes) {
     const key = `${keyForChunk({ x, z })}:${subchunk}`;
     const features = this.chunkFeatures.get(key);
     if (!features) return;
 
-    const instances = smallMeshes ? this.smallFeatureInstances : this.bigFeatureInstances;
+    const instances = this.fieldFeatureInstances;
     if (instances.has(key)) return; // Already spawned
 
     const featureMeshKeys = [];
 
     instances.set(key, featureMeshKeys);
-
-    //const atOrBelowGround = (x, y, z) => {
-    //  return true;
-    //  const size = 64;
-    //  const scale = 0.125;
-    //  const cx = Math.floor(x * scale);
-    //  const cz = Math.floor(z * scale);
-    //  x -= cx / scale;
-    //  z -= cz / scale;
-    //  x *= 8;
-    //  z *= 8;
-    //  x = Math.ceil(x);
-    //  z = Math.ceil(z);
-
-    //  const key = `${cx}:${cz}`;
-    //  if (!chunks.heightmaps.has(key)) {
-    //    return false;
-    //  }
-
-    //  const heightMap = chunks.heightmaps.get(key);
-    //  return y <= heightMap[x * size + z] / 8;
-    //};
 
     const addInstancedMesh = (() => {
       const dummy = new Object3D();
@@ -879,39 +774,9 @@ export class TerrainSystem {
       const featureWorldY = feature.y * (1 / 8) - WORLD_SIZE / 2;
       const featureWorldZ = z * 8 + feature.z * (1 / 8);
 
-      if (feature.types & 2 && smallMeshes) {
-        // Trim
-        //addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.rocks, 0.6, 1.35);
-      }
-
-      if (feature.types & 4 && smallMeshes) {
+      if (feature.types & 4 && fieldMeshes) {
         // Field
         addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.grasses, 0.05, 0.45);
-      }
-
-      if (feature.types & 1) {
-        // Foilage
-        // Create primary tree
-        //addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.trees, 1.2, 1.9);
-        // const maxClusterFerns = 8;
-        // Create clustered ferns
-        /* for (let i = 0; i < Math.floor(Math.random() * (maxClusterFerns + 1)); i += 1) {
-              let dx = (Math.random() - 0.5) * 3;
-              let dz = (Math.random() - 0.5) * 3;
-              dx += dx < 0 ? -0.25 : 0.25;
-              dz += dz < 0 ? -0.25 : 0.25;
-
-              if (atOrBelowGround(obj.position.x + dx, obj.position.y, obj.position.z + dz)) {
-                const fern = this.ferns[Math.floor(Math.random() * this.ferns.length)];
-                const scale = Math.random() * 0.3 + 0.6;
-                const obj2 = new Group();
-                obj2.add(fern.clone());
-                obj2.position.set(obj.position.x + dx, obj.position.y, obj.position.z + dz);
-                obj.rotation.set(obj.rotation.x, Math.random() * 2 * Math.PI, obj.rotation.z);
-                obj2.scale.set(scale, scale, scale);
-                this.add(obj2);
-              }
-            } */
       }
     }
   }
