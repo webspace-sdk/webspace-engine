@@ -12,15 +12,15 @@ export const protocol = $root.protocol = (() => {
     protocol.Geometry = (function() {
 
         function Geometry(properties) {
+            this.position = [];
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
 
+        Geometry.prototype.position = $util.emptyArray;
         Geometry.prototype.color = $util.newBuffer([]);
-        Geometry.prototype.light = $util.newBuffer([]);
-        Geometry.prototype.position = $util.newBuffer([]);
         Geometry.prototype.uv = $util.newBuffer([]);
         Geometry.prototype.normal = $util.newBuffer([]);
 
@@ -31,16 +31,18 @@ export const protocol = $root.protocol = (() => {
         Geometry.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
+            if (message.position != null && message.position.length) {
+                writer.uint32(10).fork();
+                for (let i = 0; i < message.position.length; ++i)
+                    writer.float(message.position[i]);
+                writer.ldelim();
+            }
             if (message.color != null && Object.hasOwnProperty.call(message, "color"))
-                writer.uint32(10).bytes(message.color);
-            if (message.light != null && Object.hasOwnProperty.call(message, "light"))
-                writer.uint32(18).bytes(message.light);
-            if (message.position != null && Object.hasOwnProperty.call(message, "position"))
-                writer.uint32(26).bytes(message.position);
+                writer.uint32(18).bytes(message.color);
             if (message.uv != null && Object.hasOwnProperty.call(message, "uv"))
-                writer.uint32(34).bytes(message.uv);
+                writer.uint32(26).bytes(message.uv);
             if (message.normal != null && Object.hasOwnProperty.call(message, "normal"))
-                writer.uint32(42).bytes(message.normal);
+                writer.uint32(34).bytes(message.normal);
             return writer;
         };
 
@@ -56,18 +58,22 @@ export const protocol = $root.protocol = (() => {
                 let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
-                    message.color = reader.bytes();
+                    if (!(message.position && message.position.length))
+                        message.position = [];
+                    if ((tag & 7) === 2) {
+                        let end2 = reader.uint32() + reader.pos;
+                        while (reader.pos < end2)
+                            message.position.push(reader.float());
+                    } else
+                        message.position.push(reader.float());
                     break;
                 case 2:
-                    message.light = reader.bytes();
+                    message.color = reader.bytes();
                     break;
                 case 3:
-                    message.position = reader.bytes();
-                    break;
-                case 4:
                     message.uv = reader.bytes();
                     break;
-                case 5:
+                case 4:
                     message.normal = reader.bytes();
                     break;
                 default:
@@ -87,15 +93,16 @@ export const protocol = $root.protocol = (() => {
         Geometry.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
+            if (message.position != null && message.hasOwnProperty("position")) {
+                if (!Array.isArray(message.position))
+                    return "position: array expected";
+                for (let i = 0; i < message.position.length; ++i)
+                    if (typeof message.position[i] !== "number")
+                        return "position: number[] expected";
+            }
             if (message.color != null && message.hasOwnProperty("color"))
                 if (!(message.color && typeof message.color.length === "number" || $util.isString(message.color)))
                     return "color: buffer expected";
-            if (message.light != null && message.hasOwnProperty("light"))
-                if (!(message.light && typeof message.light.length === "number" || $util.isString(message.light)))
-                    return "light: buffer expected";
-            if (message.position != null && message.hasOwnProperty("position"))
-                if (!(message.position && typeof message.position.length === "number" || $util.isString(message.position)))
-                    return "position: buffer expected";
             if (message.uv != null && message.hasOwnProperty("uv"))
                 if (!(message.uv && typeof message.uv.length === "number" || $util.isString(message.uv)))
                     return "uv: buffer expected";
@@ -109,21 +116,18 @@ export const protocol = $root.protocol = (() => {
             if (object instanceof $root.protocol.Geometry)
                 return object;
             let message = new $root.protocol.Geometry();
+            if (object.position) {
+                if (!Array.isArray(object.position))
+                    throw TypeError(".protocol.Geometry.position: array expected");
+                message.position = [];
+                for (let i = 0; i < object.position.length; ++i)
+                    message.position[i] = Number(object.position[i]);
+            }
             if (object.color != null)
                 if (typeof object.color === "string")
                     $util.base64.decode(object.color, message.color = $util.newBuffer($util.base64.length(object.color)), 0);
                 else if (object.color.length)
                     message.color = object.color;
-            if (object.light != null)
-                if (typeof object.light === "string")
-                    $util.base64.decode(object.light, message.light = $util.newBuffer($util.base64.length(object.light)), 0);
-                else if (object.light.length)
-                    message.light = object.light;
-            if (object.position != null)
-                if (typeof object.position === "string")
-                    $util.base64.decode(object.position, message.position = $util.newBuffer($util.base64.length(object.position)), 0);
-                else if (object.position.length)
-                    message.position = object.position;
             if (object.uv != null)
                 if (typeof object.uv === "string")
                     $util.base64.decode(object.uv, message.uv = $util.newBuffer($util.base64.length(object.uv)), 0);
@@ -141,6 +145,8 @@ export const protocol = $root.protocol = (() => {
             if (!options)
                 options = {};
             let object = {};
+            if (options.arrays || options.defaults)
+                object.position = [];
             if (options.defaults) {
                 if (options.bytes === String)
                     object.color = "";
@@ -148,20 +154,6 @@ export const protocol = $root.protocol = (() => {
                     object.color = [];
                     if (options.bytes !== Array)
                         object.color = $util.newBuffer(object.color);
-                }
-                if (options.bytes === String)
-                    object.light = "";
-                else {
-                    object.light = [];
-                    if (options.bytes !== Array)
-                        object.light = $util.newBuffer(object.light);
-                }
-                if (options.bytes === String)
-                    object.position = "";
-                else {
-                    object.position = [];
-                    if (options.bytes !== Array)
-                        object.position = $util.newBuffer(object.position);
                 }
                 if (options.bytes === String)
                     object.uv = "";
@@ -178,12 +170,13 @@ export const protocol = $root.protocol = (() => {
                         object.normal = $util.newBuffer(object.normal);
                 }
             }
+            if (message.position && message.position.length) {
+                object.position = [];
+                for (let j = 0; j < message.position.length; ++j)
+                    object.position[j] = options.json && !isFinite(message.position[j]) ? String(message.position[j]) : message.position[j];
+            }
             if (message.color != null && message.hasOwnProperty("color"))
                 object.color = options.bytes === String ? $util.base64.encode(message.color, 0, message.color.length) : options.bytes === Array ? Array.prototype.slice.call(message.color) : message.color;
-            if (message.light != null && message.hasOwnProperty("light"))
-                object.light = options.bytes === String ? $util.base64.encode(message.light, 0, message.light.length) : options.bytes === Array ? Array.prototype.slice.call(message.light) : message.light;
-            if (message.position != null && message.hasOwnProperty("position"))
-                object.position = options.bytes === String ? $util.base64.encode(message.position, 0, message.position.length) : options.bytes === Array ? Array.prototype.slice.call(message.position) : message.position;
             if (message.uv != null && message.hasOwnProperty("uv"))
                 object.uv = options.bytes === String ? $util.base64.encode(message.uv, 0, message.uv.length) : options.bytes === Array ? Array.prototype.slice.call(message.uv) : message.uv;
             if (message.normal != null && message.hasOwnProperty("normal"))
@@ -201,13 +194,14 @@ export const protocol = $root.protocol = (() => {
     protocol.NavGeometry = (function() {
 
         function NavGeometry(properties) {
+            this.position = [];
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
 
-        NavGeometry.prototype.position = $util.newBuffer([]);
+        NavGeometry.prototype.position = $util.emptyArray;
         NavGeometry.prototype.index = $util.newBuffer([]);
 
         NavGeometry.create = function create(properties) {
@@ -217,8 +211,12 @@ export const protocol = $root.protocol = (() => {
         NavGeometry.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.position != null && Object.hasOwnProperty.call(message, "position"))
-                writer.uint32(10).bytes(message.position);
+            if (message.position != null && message.position.length) {
+                writer.uint32(10).fork();
+                for (let i = 0; i < message.position.length; ++i)
+                    writer.float(message.position[i]);
+                writer.ldelim();
+            }
             if (message.index != null && Object.hasOwnProperty.call(message, "index"))
                 writer.uint32(18).bytes(message.index);
             return writer;
@@ -236,7 +234,14 @@ export const protocol = $root.protocol = (() => {
                 let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
-                    message.position = reader.bytes();
+                    if (!(message.position && message.position.length))
+                        message.position = [];
+                    if ((tag & 7) === 2) {
+                        let end2 = reader.uint32() + reader.pos;
+                        while (reader.pos < end2)
+                            message.position.push(reader.float());
+                    } else
+                        message.position.push(reader.float());
                     break;
                 case 2:
                     message.index = reader.bytes();
@@ -258,9 +263,13 @@ export const protocol = $root.protocol = (() => {
         NavGeometry.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (message.position != null && message.hasOwnProperty("position"))
-                if (!(message.position && typeof message.position.length === "number" || $util.isString(message.position)))
-                    return "position: buffer expected";
+            if (message.position != null && message.hasOwnProperty("position")) {
+                if (!Array.isArray(message.position))
+                    return "position: array expected";
+                for (let i = 0; i < message.position.length; ++i)
+                    if (typeof message.position[i] !== "number")
+                        return "position: number[] expected";
+            }
             if (message.index != null && message.hasOwnProperty("index"))
                 if (!(message.index && typeof message.index.length === "number" || $util.isString(message.index)))
                     return "index: buffer expected";
@@ -271,11 +280,13 @@ export const protocol = $root.protocol = (() => {
             if (object instanceof $root.protocol.NavGeometry)
                 return object;
             let message = new $root.protocol.NavGeometry();
-            if (object.position != null)
-                if (typeof object.position === "string")
-                    $util.base64.decode(object.position, message.position = $util.newBuffer($util.base64.length(object.position)), 0);
-                else if (object.position.length)
-                    message.position = object.position;
+            if (object.position) {
+                if (!Array.isArray(object.position))
+                    throw TypeError(".protocol.NavGeometry.position: array expected");
+                message.position = [];
+                for (let i = 0; i < object.position.length; ++i)
+                    message.position[i] = Number(object.position[i]);
+            }
             if (object.index != null)
                 if (typeof object.index === "string")
                     $util.base64.decode(object.index, message.index = $util.newBuffer($util.base64.length(object.index)), 0);
@@ -288,14 +299,9 @@ export const protocol = $root.protocol = (() => {
             if (!options)
                 options = {};
             let object = {};
-            if (options.defaults) {
-                if (options.bytes === String)
-                    object.position = "";
-                else {
-                    object.position = [];
-                    if (options.bytes !== Array)
-                        object.position = $util.newBuffer(object.position);
-                }
+            if (options.arrays || options.defaults)
+                object.position = [];
+            if (options.defaults)
                 if (options.bytes === String)
                     object.index = "";
                 else {
@@ -303,9 +309,11 @@ export const protocol = $root.protocol = (() => {
                     if (options.bytes !== Array)
                         object.index = $util.newBuffer(object.index);
                 }
+            if (message.position && message.position.length) {
+                object.position = [];
+                for (let j = 0; j < message.position.length; ++j)
+                    object.position[j] = options.json && !isFinite(message.position[j]) ? String(message.position[j]) : message.position[j];
             }
-            if (message.position != null && message.hasOwnProperty("position"))
-                object.position = options.bytes === String ? $util.base64.encode(message.position, 0, message.position.length) : options.bytes === Array ? Array.prototype.slice.call(message.position) : message.position;
             if (message.index != null && message.hasOwnProperty("index"))
                 object.index = options.bytes === String ? $util.base64.encode(message.index, 0, message.index.length) : options.bytes === Array ? Array.prototype.slice.call(message.index) : message.index;
             return object;

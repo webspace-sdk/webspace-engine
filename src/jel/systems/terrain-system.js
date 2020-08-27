@@ -599,13 +599,10 @@ export class TerrainSystem {
           terrains.set(key, terrain);
 
           const navGeometry = new BufferGeometry();
-          const tmpPos = new Uint8Array(geometries.nav.position.length);
-          tmpPos.set(geometries.nav.position);
           const tmpIdx = new Uint8Array(geometries.nav.index.length);
           tmpIdx.set(geometries.nav.index);
-          const pos = new Float32Array(tmpPos.buffer, tmpPos.byteOffset, tmpPos.length / 4);
           const idx = new Uint16Array(tmpIdx.buffer, tmpIdx.byteOffset, tmpIdx.length / 2);
-          navGeometry.setAttribute("position", new Float32BufferAttribute(pos, 3));
+          navGeometry.setAttribute("position", new Float32BufferAttribute(geometries.nav.position, 3));
           navGeometry.setIndex(new Uint16BufferAttribute(idx, 1));
           const p = new THREE.Vector3();
           terrain.updateMatrices();
@@ -892,7 +889,7 @@ export class TerrainSystem {
         addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.grasses, 0.05, 0.45);
       }
 
-      if (feature.types & 1 && !smallMeshes) {
+      if (feature.types & 1) {
         // Foilage
         // Create primary tree
         //addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.trees, 1.2, 1.9);

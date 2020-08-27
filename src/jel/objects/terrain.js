@@ -11,6 +11,7 @@ const {
   Object3D,
   Matrix4,
   ShaderLib,
+  Float32BufferAttribute,
   UniformsUtils
 } = THREE;
 
@@ -65,18 +66,17 @@ class Terrain extends Object3D {
       mesh.visible = false;
     }
 
-    mesh.geometry.dispose();
-
     const geometry = new BufferGeometry();
     mesh.geometry = geometry;
 
     geometry.setAttribute("color", new BufferAttribute(color, 3));
-    geometry.setAttribute("position", new BufferAttribute(position, 3));
+    geometry.setAttribute("position", new Float32BufferAttribute(position, 3));
     geometry.setAttribute("uv", new BufferAttribute(uv, 2));
     geometry.setAttribute("normal", new BufferAttribute(normal, 3));
     {
       const len = (position.length / 3 / 4) * 6;
-      const index = new Uint16Array(len);
+      const index = len >= 1024 * 64 ? new Uint32Array(len) : new Uint16Array(len);
+
       for (let i = 0, v = 0; i < len; i += 6, v += 4) {
         index[i] = v;
         index[i + 1] = v + 1;
