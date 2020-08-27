@@ -1,3 +1,4 @@
+// TODO deal with thrown physics object disappearing - wait for rest
 import { WORLD_SIZE, WORLD_MIN_COORD, WORLD_MAX_COORD } from "./terrain-system";
 const MAX_AVATAR_DISTANCE_TO_ALLOW_SCHEDULED_WRAP = 5;
 

@@ -1,6 +1,5 @@
 /* eslint-disable */
 import $protobuf from "protobufjs";
-
 const $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
 
 const $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
@@ -601,6 +600,7 @@ export const protocol = $root.protocol = (() => {
         Chunk.prototype.x = 0;
         Chunk.prototype.z = 0;
         Chunk.prototype.height = 0;
+        Chunk.prototype.heightmap = $util.newBuffer([]);
         Chunk.prototype.meshes = $util.emptyArray;
         Chunk.prototype.features = $util.emptyArray;
 
@@ -617,12 +617,14 @@ export const protocol = $root.protocol = (() => {
                 writer.uint32(16).int32(message.z);
             if (message.height != null && Object.hasOwnProperty.call(message, "height"))
                 writer.uint32(24).int32(message.height);
+            if (message.heightmap != null && Object.hasOwnProperty.call(message, "heightmap"))
+                writer.uint32(34).bytes(message.heightmap);
             if (message.meshes != null && message.meshes.length)
                 for (let i = 0; i < message.meshes.length; ++i)
-                    $root.protocol.Mesh.encode(message.meshes[i], writer.uint32(34).fork()).ldelim();
+                    $root.protocol.Mesh.encode(message.meshes[i], writer.uint32(42).fork()).ldelim();
             if (message.features != null && message.features.length)
                 for (let i = 0; i < message.features.length; ++i)
-                    $root.protocol.Feature.encode(message.features[i], writer.uint32(42).fork()).ldelim();
+                    $root.protocol.Feature.encode(message.features[i], writer.uint32(50).fork()).ldelim();
             return writer;
         };
 
@@ -647,11 +649,14 @@ export const protocol = $root.protocol = (() => {
                     message.height = reader.int32();
                     break;
                 case 4:
+                    message.heightmap = reader.bytes();
+                    break;
+                case 5:
                     if (!(message.meshes && message.meshes.length))
                         message.meshes = [];
                     message.meshes.push($root.protocol.Mesh.decode(reader, reader.uint32()));
                     break;
-                case 5:
+                case 6:
                     if (!(message.features && message.features.length))
                         message.features = [];
                     message.features.push($root.protocol.Feature.decode(reader, reader.uint32()));
@@ -682,6 +687,9 @@ export const protocol = $root.protocol = (() => {
             if (message.height != null && message.hasOwnProperty("height"))
                 if (!$util.isInteger(message.height))
                     return "height: integer expected";
+            if (message.heightmap != null && message.hasOwnProperty("heightmap"))
+                if (!(message.heightmap && typeof message.heightmap.length === "number" || $util.isString(message.heightmap)))
+                    return "heightmap: buffer expected";
             if (message.meshes != null && message.hasOwnProperty("meshes")) {
                 if (!Array.isArray(message.meshes))
                     return "meshes: array expected";
@@ -713,6 +721,11 @@ export const protocol = $root.protocol = (() => {
                 message.z = object.z | 0;
             if (object.height != null)
                 message.height = object.height | 0;
+            if (object.heightmap != null)
+                if (typeof object.heightmap === "string")
+                    $util.base64.decode(object.heightmap, message.heightmap = $util.newBuffer($util.base64.length(object.heightmap)), 0);
+                else if (object.heightmap.length)
+                    message.heightmap = object.heightmap;
             if (object.meshes) {
                 if (!Array.isArray(object.meshes))
                     throw TypeError(".protocol.Chunk.meshes: array expected");
@@ -748,6 +761,13 @@ export const protocol = $root.protocol = (() => {
                 object.x = 0;
                 object.z = 0;
                 object.height = 0;
+                if (options.bytes === String)
+                    object.heightmap = "";
+                else {
+                    object.heightmap = [];
+                    if (options.bytes !== Array)
+                        object.heightmap = $util.newBuffer(object.heightmap);
+                }
             }
             if (message.x != null && message.hasOwnProperty("x"))
                 object.x = message.x;
@@ -755,6 +775,8 @@ export const protocol = $root.protocol = (() => {
                 object.z = message.z;
             if (message.height != null && message.hasOwnProperty("height"))
                 object.height = message.height;
+            if (message.heightmap != null && message.hasOwnProperty("heightmap"))
+                object.heightmap = options.bytes === String ? $util.base64.encode(message.heightmap, 0, message.heightmap.length) : options.bytes === Array ? Array.prototype.slice.call(message.heightmap) : message.heightmap;
             if (message.meshes && message.meshes.length) {
                 object.meshes = [];
                 for (let j = 0; j < message.meshes.length; ++j)

@@ -1,5 +1,5 @@
 import { Layers } from "../../hubs/components/layers";
-import { addVertexCurvingToShader } from "../systems/terrain-system";
+import { addVertexCurvingToShader, VOXELS_PER_CHUNK } from "../systems/terrain-system";
 
 const {
   InstancedMesh,
@@ -54,6 +54,11 @@ class Terrain extends Object3D {
     this.add(mesh);
     this.mesh = mesh;
     this.frustumCulled = false;
+    this.heightfieldData = [];
+
+    for (let z = 0; z < VOXELS_PER_CHUNK; z += 8) {
+      this.heightfieldData.push(new Array(VOXELS_PER_CHUNK / 8));
+    }
   }
 
   update({ chunk, geometries }) {

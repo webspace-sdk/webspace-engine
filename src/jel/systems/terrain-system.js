@@ -1,4 +1,5 @@
 import Pako from "pako";
+import { CONSTANTS } from "three-ammo";
 import { protocol } from "../protocol/protocol";
 import { voxelMaterial, Terrain } from "../objects/terrain";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
@@ -9,6 +10,7 @@ import grassVoxSrc from "!!url-loader!../assets/models/grass1.vox";
 import { RENDER_ORDER } from "../../hubs/constants";
 
 const { Pathfinding } = require("three-pathfinding");
+const { SHAPE, TYPE, FIT } = CONSTANTS;
 
 const {
   Vector3,
@@ -64,16 +66,18 @@ export const addVertexCurvingToShader = shader => {
       "pos.x = cplx_im(circle) * planedir.x + camPos.x;",
       "pos.z = cplx_im(circle) * planedir.y + camPos.z;",
       "pos.y = cplx_re(circle) + camPos.y;",
-      "gl_Position = projectionMatrix * viewMatrix * pos;"
+      "gl_Position = projectionMatrix * mvPosition;"
     ].join("\n")
   );
 };
 
 const LOAD_RADIUS = 3.5;
 const FIELD_FEATURE_RADIUS = 2;
+const BODY_RADIUS = 2;
 
 const LOAD_GRID = [];
 const FIELD_FEATURE_GRID = [];
+const BODY_GRID = [];
 
 const SUBCHUNKS = 1;
 const center = new Vector3();
@@ -91,7 +95,11 @@ const normalizeChunkCoord = c => {
 const entityWorldCoordToChunkCoord = c => Math.floor(c / CHUNK_WORLD_SIZE);
 const chunkCoordToEntityWorldCoord = c => c * CHUNK_WORLD_SIZE;
 
-for (const [grid, radius] of [[LOAD_GRID, LOAD_RADIUS], [FIELD_FEATURE_GRID, FIELD_FEATURE_RADIUS]]) {
+for (const [grid, radius] of [
+  [LOAD_GRID, LOAD_RADIUS],
+  [FIELD_FEATURE_GRID, FIELD_FEATURE_RADIUS],
+  [BODY_GRID, BODY_RADIUS]
+]) {
   for (let x = -Math.floor(radius * 2); x <= Math.ceil(radius * 2); x += 1) {
     for (let z = -Math.floor(radius * 2); z <= Math.ceil(radius * 2); z += 1) {
       const chunk = new THREE.Vector3(x, 0, z);
@@ -478,6 +486,7 @@ export class TerrainSystem {
     this.loadingChunks = new Map();
     this.spawningChunks = new Map();
     this.chunkFeatures = new Map();
+    this.chunkHeightMaps = new Map();
     this.terrains = new Map();
     this.fieldFeatureInstances = new Map();
     this.entities = new Map();
@@ -552,9 +561,9 @@ export class TerrainSystem {
       const encoded = Uint8Array.from(atob(b64chunks), c => c.charCodeAt(0));
       const chunks = decodeChunks(encoded);
 
-      const { entities, chunkFeatures, loadedChunks, spawningChunks, terrains, pool } = this;
+      const { entities, chunkFeatures, chunkHeightMaps, loadedChunks, spawningChunks, terrains, pool } = this;
 
-      chunks.forEach(({ x, height, z, meshes, features }) => {
+      chunks.forEach(({ x, height, heightmap, z, meshes, features }) => {
         const key = keyForChunk({ x, z });
         if (!loadedChunks.has(key) && !spawningChunks.has(key)) return;
 
@@ -564,6 +573,7 @@ export class TerrainSystem {
         meshes.forEach((geometries, subchunk) => {
           const key = `${x}:${z}:${subchunk}`;
           chunkFeatures.set(key, features);
+          chunkHeightMaps.set(key, heightmap);
 
           let terrain = terrains.get(key);
 
@@ -575,12 +585,14 @@ export class TerrainSystem {
             }
           }
 
-          entities.get(key).setObject3D("mesh", terrain);
+          const el = entities.get(key);
+          el.setObject3D("mesh", terrain);
           terrain.position.set(0, 0, 0);
           terrain.matrixNeedsUpdate = true;
+          terrain.updateMatrices();
 
           terrain.update({
-            chunk: { x, y: subchunk, z, height },
+            chunk: { x, y: subchunk, z, height, heightmap },
             geometries
           });
 
@@ -625,6 +637,7 @@ export class TerrainSystem {
         });
 
         this.ensureFeatureMeshesSpawnedOrFree(x, z);
+        this.ensureBodiesSpawnedOrFree(x, z);
 
         this.scene.emit("terrain-chunk-loaded");
 
@@ -728,7 +741,7 @@ export class TerrainSystem {
     });
   }
 
-  ensureFeatureMeshesSpawned(x, z, subchunk, fieldMeshes) {
+  ensureFeatureMeshesSpawned(x, z, subchunk) {
     const key = `${keyForChunk({ x, z })}:${subchunk}`;
     const features = this.chunkFeatures.get(key);
     if (!features) return;
@@ -774,11 +787,96 @@ export class TerrainSystem {
       const featureWorldY = feature.y * (1 / 8) - WORLD_SIZE / 2;
       const featureWorldZ = z * 8 + feature.z * (1 / 8);
 
-      if (feature.types & 4 && fieldMeshes) {
+      if (feature.types & 4) {
         // Field
         addInstancedMesh(featureWorldX, featureWorldY, featureWorldZ, this.grasses, 0.05, 0.45);
       }
     }
+  }
+
+  ensureBodiesSpawnedOrFree(chunkX = null, chunkZ = null) {
+    const { avatarChunk, loadedChunks } = this;
+    const bodyChunks = [];
+
+    BODY_GRID.forEach(({ x, z }) => {
+      const cx = normalizeChunkCoord(avatarChunk.x + x);
+      const cz = normalizeChunkCoord(avatarChunk.z + z);
+
+      if (chunkX !== null && cx !== chunkX) return;
+      if (chunkZ !== null && cz !== chunkZ) return;
+
+      for (let subchunk = 0; subchunk < SUBCHUNKS; subchunk++) {
+        this.ensureBodiesSpawned(cx, cz, subchunk);
+      }
+
+      bodyChunks.push({ x: cx, z: cz });
+    });
+
+    loadedChunks.forEach(chunk => {
+      if (chunkX !== null && chunk.x !== chunkX) return;
+      if (chunkZ !== null && chunk.z !== chunkZ) return;
+
+      for (let subchunk = 0; subchunk < SUBCHUNKS; subchunk += 1) {
+        if (!bodyChunks.find(({ x, z }) => chunk.x === x && chunk.z === z)) {
+          const key = `${keyForChunk(chunk)}:${subchunk}`;
+          const el = this.entities.get(key);
+          el.removeAttribute("body-helper");
+          el.removeAttribute("shape-helper");
+        }
+      }
+    });
+  }
+
+  ensureBodiesSpawned(x, z, subchunk) {
+    const key = `${keyForChunk({ x, z })}:${subchunk}`;
+    const el = this.entities.get(key);
+    if (el.components["body-helper"]) return;
+    const heightmap = this.chunkHeightMaps.get(key);
+    if (!heightmap) return;
+
+    let min = Infinity;
+    let max = 0;
+
+    const terrain = this.terrains.get(key);
+    const { heightfieldData } = terrain;
+    for (let z = 0; z < VOXELS_PER_CHUNK; z += 8) {
+      for (let x = 0; x < VOXELS_PER_CHUNK; x += 8) {
+        const h = heightmap[x * VOXELS_PER_CHUNK + z] * VOXEL_SIZE;
+        min = Math.min(h, min);
+        max = Math.max(h, max);
+        heightfieldData[z / 8][x / 8] = h;
+      }
+    }
+
+    el.removeAttribute("body-helper");
+    el.removeAttribute("shape-helper");
+
+    el.setAttribute("body-helper", {
+      type: TYPE.STATIC,
+      mass: 1,
+      collisionFilterGroup: 1,
+      collisionFilterMask: 1
+    });
+
+    el.setAttribute("shape-helper", {
+      type: SHAPE.HEIGHTFIELD,
+      fit: FIT.MANUAL,
+      margin: 0.01,
+      heightfieldDistance: (VOXEL_SIZE + VOXEL_SIZE / 8) * 8 + VOXEL_SIZE / 8,
+      offset: {
+        x: CHUNK_WORLD_SIZE / 2 - VOXEL_SIZE * 4,
+        y: (min + max) / 2 + VOXEL_SIZE,
+        z: CHUNK_WORLD_SIZE / 2 - VOXEL_SIZE * 4
+      },
+      heightfieldData
+    });
+  }
+
+  ensureBodiesFreed(x, z, subchunk) {
+    const key = `${keyForChunk({ x, z })}:${subchunk}`;
+    const el = this.entities.get(key);
+    el.removeAttribute("body-helper");
+    el.removeAttribute("shape-helper");
   }
 
   unloadChunk(chunk) {
@@ -796,10 +894,11 @@ export class TerrainSystem {
         entity.removeObject3D("mesh");
       }
 
-      this.ensureFeatureMeshesFreed(chunk.x, chunk.z, subchunk, false);
-      this.ensureFeatureMeshesFreed(chunk.x, chunk.z, subchunk, true);
+      this.ensureFeatureMeshesFreed(chunk.x, chunk.z, subchunk);
+      this.ensureBodiesFreed(chunk.x, chunk.z, subchunk);
 
       this.chunkFeatures.delete(subkey);
+      this.chunkHeightMaps.delete(subkey);
 
       if (terrain) {
         terrain.dispose();
@@ -895,6 +994,7 @@ export class TerrainSystem {
           });
 
           this.ensureFeatureMeshesSpawnedOrFree();
+          this.ensureBodiesSpawnedOrFree();
         }
       }
 
