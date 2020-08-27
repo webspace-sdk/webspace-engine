@@ -66,7 +66,7 @@ export const addVertexCurvingToShader = shader => {
       "pos.x = cplx_im(circle) * planedir.x + camPos.x;",
       "pos.z = cplx_im(circle) * planedir.y + camPos.z;",
       "pos.y = cplx_re(circle) + camPos.y;",
-      "gl_Position = projectionMatrix * mvPosition;"
+      "gl_Position = projectionMatrix * viewMatrix * pos;"
     ].join("\n")
   );
 };
