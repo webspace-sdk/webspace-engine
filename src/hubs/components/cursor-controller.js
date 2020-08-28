@@ -7,6 +7,8 @@ const HIGHLIGHT = new THREE.Color(23 / 255, 64 / 255, 118 / 255);
 const NO_HIGHLIGHT = new THREE.Color(190 / 255, 190 / 255, 190 / 255);
 const TRANSFORM_COLOR_1 = new THREE.Color(150 / 255, 80 / 255, 150 / 255);
 const TRANSFORM_COLOR_2 = new THREE.Color(23 / 255, 64 / 255, 118 / 255);
+import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
+
 AFRAME.registerComponent("cursor-controller", {
   schema: {
     cursor: { type: "selector" },
@@ -24,6 +26,9 @@ AFRAME.registerComponent("cursor-controller", {
       "loaded",
       () => {
         this.data.cursor.object3DMap.mesh.renderOrder = RENDER_ORDER.CURSOR;
+        this.data.cursor.object3DMap.mesh.material.onBeforeCompile = shader => {
+          addVertexCurvingToShader(shader);
+        };
       },
       { once: true }
     );

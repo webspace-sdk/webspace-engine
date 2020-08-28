@@ -61,6 +61,9 @@ export class AtmosphereSystem {
     // Fog color is the midpoint of the horizon colors across the sky.
     // Might need to compute this based upon skybox math at some point.
     this.fog = new THREE.Fog(0x96c3db, 20.5, 22.0);
+    this.frame = 0;
+    this.shadowsNeedsUpdate = true;
+    this.waterNeedsUpdate = true;
 
     scene.add(this.ambientLight);
     scene.add(this.sunLight);
@@ -70,6 +73,8 @@ export class AtmosphereSystem {
   }
 
   tick(dt) {
+    this.frame++;
+
     if (!this.playerCamera) {
       if (!this.viewingCameraEl) return;
       this.playerCamera = this.viewingCameraEl.getObject3D("camera");
@@ -84,14 +89,31 @@ export class AtmosphereSystem {
     this.sky.onAnimationTick({ delta: dt / 1000.0 });
     this.water.onAnimationTick({ delta: dt / 1000.0 });
     this.effectsSystem.disableEffects = false;
+
+    // Update shadows or water each frame, but not both.
+    if (this.waterNeedsUpdate && this.shadowsNeedsUpdate) {
+      if (this.frame % 2 == 0) {
+        this.renderer.shadowMap.needsUpdate = true;
+        this.shadowsNeedsUpdate = false;
+      } else {
+        this.water.needsUpdate = true;
+        this.waterNeedsUpdate = false;
+      }
+    } else if (this.waterNeedsUpdate) {
+      this.water.needsUpdate = true;
+      this.waterNeedsUpdate = false;
+    } else if (this.shadowsNeedsUpdate) {
+      this.renderer.shadowMap.needsUpdate = true;
+      this.shadowsNeedsUpdate = false;
+    }
   }
 
   updateShadows() {
-    this.renderer.shadowMap.needsUpdate = true;
+    this.shadowsNeedsUpdate = true;
   }
 
   updateWater() {
-    this.water.needsUpdate = true;
+    this.waterNeedsUpdate = true;
   }
 
   moveSunlight = (() => {
