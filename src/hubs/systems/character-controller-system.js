@@ -367,6 +367,11 @@ export class CharacterControllerSystem {
 
       childMatch(this.avatarRig.object3D, this.avatarPOV.object3D, newPOV);
       this.relativeMotion.copy(this.nextRelativeMotion);
+
+      if (this.dXZ) {
+        this.scene.systems["hubs-systems"].atmosphereSystem.updateWater();
+      }
+
       this.dXZ = 0;
     };
   })();

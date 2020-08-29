@@ -71,6 +71,7 @@ AFRAME.registerComponent("pitch-yaw-rotator", {
           this.pendingXRotation + cameraDelta[1],
           cameraDelta[0]
         );
+        scene.systems["hubs-systems"].atmosphereSystem.updateWater();
       } else if (this.pendingXRotation) {
         rotatePitchAndYaw(lobby && !isGhost ? scenePreviewNode.object3D : this.el.object3D, this.pendingXRotation, 0);
       }

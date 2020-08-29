@@ -104,7 +104,7 @@ for (const [grid, radius] of [
   for (let x = -Math.floor(radius * 2); x <= Math.ceil(radius * 2); x += 1) {
     for (let z = -Math.floor(radius * 2); z <= Math.ceil(radius * 2); z += 1) {
       const chunk = new THREE.Vector3(x, 0, z);
-      if (chunk.distanceTo(center) <= radius) {
+      if (chunk.distanceTo(center) <= radius * Math.sqrt(2) + 0.01) {
         grid.push(chunk);
       }
     }
