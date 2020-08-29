@@ -542,13 +542,16 @@ export class TerrainSystem {
     const key = keyForChunk(chunk);
     if (loadedChunks.has(key) || loadingChunks.has(key) || spawningChunks.has(key)) return;
 
-    fetch(`https://hubs.local:8003/chunks/${chunk.x}/${chunk.z}/1`).then(res => {
-      res.text().then(b64 => {
+    // terra local:
+    // fetch(`https://hubs.local:8003/chunks/${chunk.x}/${chunk.z}`).then(res => {
+    fetch(`https://orfbs3eth9.execute-api.us-west-1.amazonaws.com/dev/chunks/0/6/${chunk.x}/${chunk.z}/1`).then(
+      async res => {
         if (!loadingChunks.has(key)) return;
+        const arr = await res.arrayBuffer();
         loadingChunks.delete(key);
-        spawningChunks.set(key, b64);
-      });
-    });
+        spawningChunks.set(key, new Uint8Array(arr));
+      }
+    );
 
     loadingChunks.set(key, chunk);
   }
@@ -556,9 +559,7 @@ export class TerrainSystem {
   spawnChunk = (() => {
     const navTransform = new Matrix4();
 
-    return b64chunks => {
-      // TODO avoid atob
-      const encoded = Uint8Array.from(atob(b64chunks), c => c.charCodeAt(0));
+    return encoded => {
       const chunks = decodeChunks(encoded);
 
       const { entities, chunkFeatures, chunkHeightMaps, loadedChunks, spawningChunks, terrains, pool } = this;
@@ -1000,8 +1001,8 @@ export class TerrainSystem {
 
       if (this.spawningChunks.size > 0 && this.featureMeshesLoaded) {
         // Spawn a single chunk that's enqueued.
-        for (const [, b64chunk] of this.spawningChunks) {
-          this.spawnChunk(b64chunk);
+        for (const [, encodedChunk] of this.spawningChunks) {
+          this.spawnChunk(encodedChunk);
           break;
         }
       }
