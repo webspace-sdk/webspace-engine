@@ -168,12 +168,13 @@ async function fetchAppConfigAndEnvironmentVars() {
     throw new Error(`Error fetching Hubs Cloud config "${hubsConfigsResponse.statusText}"`);
   }
 
-  const { shortlink_domain, thumbnail_server } = hubsConfigs.general;
+  const { shortlink_domain, thumbnail_server, terra_server } = hubsConfigs.general;
 
   process.env.RETICULUM_SERVER = host;
   process.env.SHORTLINK_DOMAIN = shortlink_domain;
   process.env.CORS_PROXY_SERVER = "hubs.local:8080/cors-proxy";
   process.env.THUMBNAIL_SERVER = thumbnail_server;
+  process.env.TERRA_SERVER = terra_server;
   process.env.NON_CORS_PROXY_DOMAINS = "hubs.local,hubs.local";
 
   return appConfig;
@@ -535,6 +536,7 @@ module.exports = async (env, argv) => {
           RETICULUM_SERVER: process.env.RETICULUM_SERVER,
           RETICULUM_SOCKET_SERVER: process.env.RETICULUM_SOCKET_SERVER,
           THUMBNAIL_SERVER: process.env.THUMBNAIL_SERVER,
+          TERRA_SERVER: process.env.TERRA_SERVER,
           CORS_PROXY_SERVER: process.env.CORS_PROXY_SERVER,
           NON_CORS_PROXY_DOMAINS: process.env.NON_CORS_PROXY_DOMAINS,
           BUILD_VERSION: process.env.BUILD_VERSION,

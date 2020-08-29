@@ -8,6 +8,7 @@ import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import grassVoxSrc from "!!url-loader!../assets/models/grass1.vox";
 import { RENDER_ORDER } from "../../hubs/constants";
+import configs from "../../hubs/utils/configs";
 
 const { Pathfinding } = require("three-pathfinding");
 const { SHAPE, TYPE, FIT } = CONSTANTS;
@@ -542,16 +543,12 @@ export class TerrainSystem {
     const key = keyForChunk(chunk);
     if (loadedChunks.has(key) || loadingChunks.has(key) || spawningChunks.has(key)) return;
 
-    // terra local:
-    // fetch(`https://hubs.local:8003/chunks/${chunk.x}/${chunk.z}`).then(res => {
-    fetch(`https://orfbs3eth9.execute-api.us-west-1.amazonaws.com/dev/chunks/0/6/${chunk.x}/${chunk.z}/1`).then(
-      async res => {
-        if (!loadingChunks.has(key)) return;
-        const arr = await res.arrayBuffer();
-        loadingChunks.delete(key);
-        spawningChunks.set(key, new Uint8Array(arr));
-      }
-    );
+    fetch(`https://${configs.TERRA_SERVER}/chunks/0/9/${chunk.x}/${chunk.z}/1`).then(async res => {
+      if (!loadingChunks.has(key)) return;
+      const arr = await res.arrayBuffer();
+      loadingChunks.delete(key);
+      spawningChunks.set(key, new Uint8Array(arr));
+    });
 
     loadingChunks.set(key, chunk);
   }

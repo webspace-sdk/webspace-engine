@@ -4,13 +4,14 @@ export BASE_ASSETS_PATH=$1
 export SHORTLINK_DOMAIN=$2
 export RETICULUM_SERVER=$3
 export THUMBNAIL_SERVER=$4
-export CORS_PROXY_SERVER=$5
-export NON_CORS_PROXY_DOMAINS=$6
-export TARGET_S3_BUCKET=$7
-export SENTRY_DSN=$8
-export GA_TRACKING_ID=$9
-export BUILD_NUMBER=${10}
-export GIT_COMMIT=${11}
+export TERRA_SERVER=$5
+export CORS_PROXY_SERVER=$6
+export NON_CORS_PROXY_DOMAINS=$7
+export TARGET_S3_BUCKET=$8
+export SENTRY_DSN=$9
+export GA_TRACKING_ID=${10}
+export BUILD_NUMBER=${11}
+export GIT_COMMIT=${12}
 export BUILD_VERSION="${BUILD_NUMBER} (${GIT_COMMIT})"
 
 # Build the package, upload it, and start the service so we deploy to staging target.

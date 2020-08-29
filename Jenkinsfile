@@ -39,11 +39,12 @@ pipeline {
           def smokeURL = env.SMOKE_URL
           def reticulumServer = env.RETICULUM_SERVER
           def thumbnailServer = env.THUMBNAIL_SERVER
+          def terraServer = env.TERRA_SERVER
           def corsProxyServer = env.CORS_PROXY_SERVER
           def nonCorsProxyDomains = env.NON_CORS_PROXY_DOMAINS
           def slackURL = env.SLACK_URL
 
-          def habCommand = "/bin/bash scripts/hab-build-and-push.sh \\\"${baseAssetsPath}\\\" \\\"${shortlinkDomain}\\\" \\\"${reticulumServer}\\\" \\\"${thumbnailServer}\\\" \\\"${corsProxyServer}\\\" \\\"${nonCorsProxyDomains}\\\" \\\"${targetS3Bucket}\\\" \\\"${sentryDsn}\\\" \\\"${gaTrackingId}\\\" \\\"${env.BUILD_NUMBER}\\\" \\\"${env.GIT_COMMIT}\\\""
+          def habCommand = "/bin/bash scripts/hab-build-and-push.sh \\\"${baseAssetsPath}\\\" \\\"${shortlinkDomain}\\\" \\\"${reticulumServer}\\\" \\\"${thumbnailServer}\\\" \\\"${terraServer}\\\" \\\"${corsProxyServer}\\\" \\\"${nonCorsProxyDomains}\\\" \\\"${targetS3Bucket}\\\" \\\"${sentryDsn}\\\" \\\"${gaTrackingId}\\\" \\\"${env.BUILD_NUMBER}\\\" \\\"${env.GIT_COMMIT}\\\""
           sh "/usr/bin/script --return -c ${shellString(habCommand)} /dev/null"
 
           def s = $/eval 'ls -rt results/*.hart | head -n 1'/$
