@@ -76,6 +76,7 @@ async function updateEnvironmentForHub(hub, hubStore) {
   }
 
   terrainSystem.refreshTerrainLODs();
+  terrainSystem.updateWorld(hub.world.type, hub.world.seed);
 
   startTrackingPosition(hubStore);
 

@@ -502,6 +502,8 @@ export class TerrainSystem {
     this.pathfinder = new Pathfinding();
     this.featureMeshesLoaded = false;
     this.loadFeatureMeshes();
+    this.worldType = null;
+    this.worldSeed = null;
 
     // We create duplicates of the instanced feature meshes around torodial hyperspace
     // so they appear across edges.
@@ -545,19 +547,34 @@ export class TerrainSystem {
     }
   }
 
-  loadChunk(chunk) {
-    const { loadedChunks, loadingChunks, spawningChunks } = this;
+  async loadChunk(chunk) {
+    if (this.worldType === null) return;
+    const { loadedChunks, loadingChunks, spawningChunks, worldType, worldSeed } = this;
     const key = keyForChunk(chunk);
     if (loadedChunks.has(key) || loadingChunks.has(key) || spawningChunks.has(key)) return;
 
-    fetch(`https://${configs.TERRA_SERVER}/chunks/0/10/${chunk.x}/${chunk.z}/1`).then(async res => {
-      if (!loadingChunks.has(key)) return;
-      const arr = await res.arrayBuffer();
-      loadingChunks.delete(key);
-      spawningChunks.set(key, new Uint8Array(arr));
-    });
-
     loadingChunks.set(key, chunk);
+
+    // 3 Retries, sometimes lambda times out.
+    for (let i = 0; i < 3; i++) {
+      try {
+        await new Promise(async resolve => {
+          const res = await fetch(
+            `https://${configs.TERRA_SERVER}/chunks/${worldType}/${worldSeed}/${chunk.x}/${chunk.z}/1`
+          );
+          if (!loadingChunks.has(key)) return;
+          loadingChunks.delete(key);
+
+          if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
+          const arr = await res.arrayBuffer();
+          spawningChunks.set(key, new Uint8Array(arr));
+          resolve();
+        });
+      } catch (e) {
+        // Retry loop
+        await new Promise(res => setTimeout(res, 1000));
+      }
+    }
   }
 
   spawnChunk = (() => {
@@ -654,6 +671,12 @@ export class TerrainSystem {
       });
     };
   })();
+
+  updateWorld(type, seed) {
+    this.worldType = type;
+    this.worldSeed = seed;
+    this.unloadWorld();
+  }
 
   loadFeatureMeshes() {
     const voxLoader = new VOXLoader();
@@ -948,6 +971,16 @@ export class TerrainSystem {
 
       delete this.pathfinder.zones[subkey];
     }
+  }
+
+  unloadWorld() {
+    const { avatarChunk, loadedChunks, loadingChunks, spawningChunks } = this;
+    loadedChunks.forEach(chunk => this.unloadChunk(chunk));
+    loadedChunks.clear();
+    loadingChunks.clear();
+    spawningChunks.clear();
+    avatarChunk.x = Infinity;
+    avatarChunk.z = Infinity;
   }
 
   getClosestNavNode(pos, navZone, navGroup) {
