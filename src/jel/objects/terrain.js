@@ -18,8 +18,8 @@ const {
   LOD
 } = THREE;
 
-const IDENTITY = new Matrix4();
-const LOD_DISTANCES = [0, 20, 25];
+const MESH_OFFSET = new Matrix4();
+const LOD_DISTANCES = [0, 20, 24];
 
 const voxelMaterial = new ShaderMaterial({
   name: "voxels",
@@ -53,7 +53,8 @@ class Terrain extends Object3D {
     const createMesh = () => {
       const mesh = new InstancedMesh(new BufferGeometry(), voxelMaterial, 1);
       mesh.receiveShadow = true;
-      mesh.setMatrixAt(0, IDENTITY);
+      MESH_OFFSET.makeTranslation(-VOXELS_PER_CHUNK / 2, 0, -VOXELS_PER_CHUNK / 2);
+      mesh.setMatrixAt(0, MESH_OFFSET);
       mesh.castShadow = true;
       mesh.layers.enable(Layers.reflection);
       this.meshes.push(mesh);
@@ -64,7 +65,12 @@ class Terrain extends Object3D {
 
     this.lod = new LOD();
     this.lod.layers.enable(Layers.reflection);
+    // Offset LOD/group because we want the proper center distance to chunk.
+    this.lod.position.x = VOXELS_PER_CHUNK / 2;
+    this.lod.position.z = VOXELS_PER_CHUNK / 2;
     this.lod.autoUpdate = false;
+    this.add(this.lod);
+    this.node = this.lod;
 
     // Use an instanced mesh so shader can be shared with instanced voxel objects.
     for (let i = 0; i < 3; i++) {
@@ -82,21 +88,16 @@ class Terrain extends Object3D {
   }
 
   enableLod(enable) {
-    let visible = true;
-
-    if (this.node) {
-      visible = this.node.visible;
-      this.remove(this.node);
-    }
-
-    this.node = enable ? this.lod : this.meshes[0];
-    this.add(this.node);
-    this.node.visible = visible;
+    this.lodEnabled = enable;
+    this.updateLodNextFrame = true;
+    this.lod.levels[1].distance = enable ? LOD_DISTANCES[1] : 100;
+    this.lod.levels[2].distance = enable ? LOD_DISTANCES[2] : 100;
   }
 
   performWork(camera) {
-    if (this.node == this.lod) {
-      this.node.update(camera); // this.node is a THREE.LOD
+    if (this.updateLodNextFrame || this.lodEnabled) {
+      this.lod.update(camera);
+      this.updateLodNextFrame = false;
     }
   }
 
