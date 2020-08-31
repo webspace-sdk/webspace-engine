@@ -56,6 +56,7 @@ class Terrain extends Object3D {
       MESH_OFFSET.makeTranslation(-VOXELS_PER_CHUNK / 2, 0, -VOXELS_PER_CHUNK / 2);
       mesh.setMatrixAt(0, MESH_OFFSET);
       mesh.castShadow = true;
+      mesh.frustumCulled = false;
       mesh.layers.enable(Layers.reflection);
       this.meshes.push(mesh);
       return mesh;
@@ -69,6 +70,7 @@ class Terrain extends Object3D {
     this.lod.position.x = VOXELS_PER_CHUNK / 2;
     this.lod.position.z = VOXELS_PER_CHUNK / 2;
     this.lod.autoUpdate = false;
+    this.lod.frustumCulled = false;
     this.add(this.lod);
     this.node = this.lod;
 
