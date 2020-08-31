@@ -12,7 +12,9 @@ const {
   Matrix4,
   ShaderLib,
   Float32BufferAttribute,
-  UniformsUtils
+  UniformsUtils,
+  Uint16BufferAttribute,
+  Uint32BufferAttribute
 } = THREE;
 
 const IDENTITY = new Matrix4();
@@ -55,6 +57,7 @@ class Terrain extends Object3D {
     this.mesh = mesh;
     this.frustumCulled = false;
     this.heightfieldData = [];
+    this.lod = null;
 
     for (let z = 0; z < VOXELS_PER_CHUNK; z += 8) {
       this.heightfieldData.push(new Array(VOXELS_PER_CHUNK / 8));
@@ -65,22 +68,28 @@ class Terrain extends Object3D {
     const { mesh } = this;
     this.chunk = chunk;
     this.matrixNeedsUpdate = true;
+    this.attributes = []; // Indexed by LOD
 
-    const { color, position, uv, normal } = geometries.opaque;
-    if (!position.length) {
-      mesh.visible = false;
-    }
+    this.geometry = new BufferGeometry();
+    mesh.geometry = this.geometry;
 
-    const geometry = new BufferGeometry();
-    mesh.geometry = geometry;
+    for (let i = 0; i < geometries.opaque.length; i++) {
+      const { color, position, uv, normal } = geometries.opaque[i];
 
-    geometry.setAttribute("color", new BufferAttribute(color, 3));
-    geometry.setAttribute("position", new Float32BufferAttribute(position, 3));
-    geometry.setAttribute("uv", new BufferAttribute(uv, 2));
-    geometry.setAttribute("normal", new BufferAttribute(normal, 3));
-    {
+      if (!position.length) {
+        mesh.visible = false;
+        return;
+      }
+
+      const attrs = {
+        color: new BufferAttribute(color, 3),
+        position: new Float32BufferAttribute(position, 3),
+        uv: new BufferAttribute(uv, 2),
+        normal: new BufferAttribute(normal, 3)
+      };
+
       const len = (position.length / 3 / 4) * 6;
-      const index = len >= 1024 * 64 ? new Uint32Array(len) : new Uint16Array(len);
+      const index = new (len >= 1024 * 64 ? Uint32Array : Uint16Array)(len);
 
       for (let i = 0, v = 0; i < len; i += 6, v += 4) {
         index[i] = v;
@@ -90,38 +99,36 @@ class Terrain extends Object3D {
         index[i + 4] = v + 3;
         index[i + 5] = v;
       }
-      geometry.setIndex(new BufferAttribute(index, 1));
+
+      attrs.index = new (len >= 1024 * 64 ? Uint32BufferAttribute : Uint16BufferAttribute)(index, 1);
+      this.attributes.push(attrs);
     }
 
     mesh.visible = true;
 
-    this.updateHeightmap({ chunk, geometry });
-
+    this.setToLOD(0);
     this.height = chunk.height;
   }
 
-  updateHeightmap({ chunk, geometry }) {
-    this.heightmap = new Uint8Array(64 * 64);
-    const heightmap = this.heightmap;
-    const aux = { x: 0, y: 0, z: 0 };
-    const position = geometry.getAttribute("position");
-    const uv = geometry.getAttribute("uv");
-    const { count } = uv;
-    const offsetY = chunk.y * 16;
-    for (let i = 0; i < count; i += 4) {
-      if (uv.getY(i) === 0) {
-        aux.x = 0xff;
-        aux.y = 0;
-        aux.z = 0xff;
-        for (let j = 0; j < 4; j += 1) {
-          aux.x = Math.min(aux.x, Math.floor(position.getX(i + j) / 8));
-          aux.y = Math.max(aux.y, offsetY + Math.ceil(position.getY(i + j) / 8));
-          aux.z = Math.min(aux.z, Math.floor(position.getZ(i + j) / 8));
-        }
-        const index = aux.x * 64 + aux.z;
-        heightmap[index] = Math.max(heightmap[index], aux.y);
-      }
-    }
+  setToLOD(lod) {
+    if (this.lod === lod) return;
+
+    const { attributes, geometry } = this;
+    const attrs = attributes[lod];
+
+    this.lod = lod;
+
+    geometry.setAttribute("color", attrs.color);
+    geometry.setAttribute("position", attrs.position);
+    geometry.setAttribute("uv", attrs.uv);
+    geometry.setAttribute("normal", attrs.normal);
+    geometry.setIndex(attrs.index);
+
+    attrs.color.needsUpdate = true;
+    attrs.position.needsUpdate = true;
+    attrs.uv.needsUpdate = true;
+    attrs.normal.needsUpdate = true;
+    attrs.index.needsUpdate = true;
   }
 
   dispose() {

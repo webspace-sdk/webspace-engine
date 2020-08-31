@@ -75,10 +75,16 @@ export const addVertexCurvingToShader = shader => {
 const LOAD_RADIUS = 3;
 const FIELD_FEATURE_RADIUS = 2;
 const BODY_RADIUS = 2;
+const LOD1_RADIUS = 3;
+const LOD0_RADIUS = 2;
+const REFLECT_RADIUS = 2;
 
 const LOAD_GRID = [];
 const FIELD_FEATURE_GRID = [];
 const BODY_GRID = [];
+const LOD1_GRID = [];
+const LOD0_GRID = [];
+const REFLECT_GRID = [];
 
 const SUBCHUNKS = 1;
 const center = new Vector3();
@@ -99,7 +105,9 @@ const chunkCoordToEntityWorldCoord = c => c * CHUNK_WORLD_SIZE;
 for (const [grid, radius] of [
   [LOAD_GRID, LOAD_RADIUS],
   [FIELD_FEATURE_GRID, FIELD_FEATURE_RADIUS],
-  [BODY_GRID, BODY_RADIUS]
+  [BODY_GRID, BODY_RADIUS],
+  [LOD1_GRID, LOD1_RADIUS],
+  [LOD0_GRID, LOD0_RADIUS]
 ]) {
   for (let x = -Math.floor(radius * 2); x <= Math.ceil(radius * 2); x += 1) {
     for (let z = -Math.floor(radius * 2); z <= Math.ceil(radius * 2); z += 1) {
@@ -543,7 +551,7 @@ export class TerrainSystem {
     const key = keyForChunk(chunk);
     if (loadedChunks.has(key) || loadingChunks.has(key) || spawningChunks.has(key)) return;
 
-    fetch(`https://${configs.TERRA_SERVER}/chunks/0/9/${chunk.x}/${chunk.z}/1`).then(async res => {
+    fetch(`https://${configs.TERRA_SERVER}/chunks/0/10/${chunk.x}/${chunk.z}/1`).then(async res => {
       if (!loadingChunks.has(key)) return;
       const arr = await res.arrayBuffer();
       loadingChunks.delete(key);
@@ -636,6 +644,7 @@ export class TerrainSystem {
 
         this.ensureFeatureMeshesSpawnedOrFree(x, z);
         this.ensureBodiesSpawnedOrFree(x, z);
+        this.ensureLodsAndLayers(x, z);
 
         this.scene.emit("terrain-chunk-loaded");
 
@@ -736,6 +745,28 @@ export class TerrainSystem {
           this.ensureFeatureMeshesFreed(chunk.x, chunk.z, subchunk, true);
         }
       }
+    });
+  }
+
+  ensureLodsAndLayers(chunkX = null, chunkZ = null) {
+    const { avatarChunk, terrains } = this;
+
+    [[LOAD_GRID, 2], [LOD1_GRID, 1], [LOD0_GRID, 0]].forEach(([grid, lod]) => {
+      grid.forEach(({ x, z }) => {
+        const cx = normalizeChunkCoord(avatarChunk.x + x);
+        const cz = normalizeChunkCoord(avatarChunk.z + z);
+
+        if (chunkX !== null && cx !== chunkX) return;
+        if (chunkZ !== null && cz !== chunkZ) return;
+
+        for (let subchunk = 0; subchunk < SUBCHUNKS; subchunk++) {
+          const key = `${keyForChunk({ x: cx, z: cz })}:${subchunk}`;
+
+          if (terrains.has(key)) {
+            terrains.get(key).setToLOD(lod);
+          }
+        }
+      });
     });
   }
 
@@ -993,6 +1024,7 @@ export class TerrainSystem {
 
           this.ensureFeatureMeshesSpawnedOrFree();
           this.ensureBodiesSpawnedOrFree();
+          this.ensureLodsAndLayers();
         }
       }
 

@@ -1,5 +1,6 @@
 /* eslint-disable */
 import $protobuf from "protobufjs";
+
 const $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
 
 const $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
@@ -328,14 +329,16 @@ export const protocol = $root.protocol = (() => {
     protocol.Mesh = (function() {
 
         function Mesh(properties) {
+            this.opaque = [];
+            this.transparent = [];
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
 
-        Mesh.prototype.opaque = null;
-        Mesh.prototype.transparent = null;
+        Mesh.prototype.opaque = $util.emptyArray;
+        Mesh.prototype.transparent = $util.emptyArray;
         Mesh.prototype.nav = null;
 
         Mesh.create = function create(properties) {
@@ -345,10 +348,12 @@ export const protocol = $root.protocol = (() => {
         Mesh.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.opaque != null && Object.hasOwnProperty.call(message, "opaque"))
-                $root.protocol.Geometry.encode(message.opaque, writer.uint32(10).fork()).ldelim();
-            if (message.transparent != null && Object.hasOwnProperty.call(message, "transparent"))
-                $root.protocol.Geometry.encode(message.transparent, writer.uint32(18).fork()).ldelim();
+            if (message.opaque != null && message.opaque.length)
+                for (let i = 0; i < message.opaque.length; ++i)
+                    $root.protocol.Geometry.encode(message.opaque[i], writer.uint32(10).fork()).ldelim();
+            if (message.transparent != null && message.transparent.length)
+                for (let i = 0; i < message.transparent.length; ++i)
+                    $root.protocol.Geometry.encode(message.transparent[i], writer.uint32(18).fork()).ldelim();
             if (message.nav != null && Object.hasOwnProperty.call(message, "nav"))
                 $root.protocol.NavGeometry.encode(message.nav, writer.uint32(26).fork()).ldelim();
             return writer;
@@ -366,10 +371,14 @@ export const protocol = $root.protocol = (() => {
                 let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
-                    message.opaque = $root.protocol.Geometry.decode(reader, reader.uint32());
+                    if (!(message.opaque && message.opaque.length))
+                        message.opaque = [];
+                    message.opaque.push($root.protocol.Geometry.decode(reader, reader.uint32()));
                     break;
                 case 2:
-                    message.transparent = $root.protocol.Geometry.decode(reader, reader.uint32());
+                    if (!(message.transparent && message.transparent.length))
+                        message.transparent = [];
+                    message.transparent.push($root.protocol.Geometry.decode(reader, reader.uint32()));
                     break;
                 case 3:
                     message.nav = $root.protocol.NavGeometry.decode(reader, reader.uint32());
@@ -392,14 +401,22 @@ export const protocol = $root.protocol = (() => {
             if (typeof message !== "object" || message === null)
                 return "object expected";
             if (message.opaque != null && message.hasOwnProperty("opaque")) {
-                let error = $root.protocol.Geometry.verify(message.opaque);
-                if (error)
-                    return "opaque." + error;
+                if (!Array.isArray(message.opaque))
+                    return "opaque: array expected";
+                for (let i = 0; i < message.opaque.length; ++i) {
+                    let error = $root.protocol.Geometry.verify(message.opaque[i]);
+                    if (error)
+                        return "opaque." + error;
+                }
             }
             if (message.transparent != null && message.hasOwnProperty("transparent")) {
-                let error = $root.protocol.Geometry.verify(message.transparent);
-                if (error)
-                    return "transparent." + error;
+                if (!Array.isArray(message.transparent))
+                    return "transparent: array expected";
+                for (let i = 0; i < message.transparent.length; ++i) {
+                    let error = $root.protocol.Geometry.verify(message.transparent[i]);
+                    if (error)
+                        return "transparent." + error;
+                }
             }
             if (message.nav != null && message.hasOwnProperty("nav")) {
                 let error = $root.protocol.NavGeometry.verify(message.nav);
@@ -413,15 +430,25 @@ export const protocol = $root.protocol = (() => {
             if (object instanceof $root.protocol.Mesh)
                 return object;
             let message = new $root.protocol.Mesh();
-            if (object.opaque != null) {
-                if (typeof object.opaque !== "object")
-                    throw TypeError(".protocol.Mesh.opaque: object expected");
-                message.opaque = $root.protocol.Geometry.fromObject(object.opaque);
+            if (object.opaque) {
+                if (!Array.isArray(object.opaque))
+                    throw TypeError(".protocol.Mesh.opaque: array expected");
+                message.opaque = [];
+                for (let i = 0; i < object.opaque.length; ++i) {
+                    if (typeof object.opaque[i] !== "object")
+                        throw TypeError(".protocol.Mesh.opaque: object expected");
+                    message.opaque[i] = $root.protocol.Geometry.fromObject(object.opaque[i]);
+                }
             }
-            if (object.transparent != null) {
-                if (typeof object.transparent !== "object")
-                    throw TypeError(".protocol.Mesh.transparent: object expected");
-                message.transparent = $root.protocol.Geometry.fromObject(object.transparent);
+            if (object.transparent) {
+                if (!Array.isArray(object.transparent))
+                    throw TypeError(".protocol.Mesh.transparent: array expected");
+                message.transparent = [];
+                for (let i = 0; i < object.transparent.length; ++i) {
+                    if (typeof object.transparent[i] !== "object")
+                        throw TypeError(".protocol.Mesh.transparent: object expected");
+                    message.transparent[i] = $root.protocol.Geometry.fromObject(object.transparent[i]);
+                }
             }
             if (object.nav != null) {
                 if (typeof object.nav !== "object")
@@ -435,15 +462,22 @@ export const protocol = $root.protocol = (() => {
             if (!options)
                 options = {};
             let object = {};
-            if (options.defaults) {
-                object.opaque = null;
-                object.transparent = null;
-                object.nav = null;
+            if (options.arrays || options.defaults) {
+                object.opaque = [];
+                object.transparent = [];
             }
-            if (message.opaque != null && message.hasOwnProperty("opaque"))
-                object.opaque = $root.protocol.Geometry.toObject(message.opaque, options);
-            if (message.transparent != null && message.hasOwnProperty("transparent"))
-                object.transparent = $root.protocol.Geometry.toObject(message.transparent, options);
+            if (options.defaults)
+                object.nav = null;
+            if (message.opaque && message.opaque.length) {
+                object.opaque = [];
+                for (let j = 0; j < message.opaque.length; ++j)
+                    object.opaque[j] = $root.protocol.Geometry.toObject(message.opaque[j], options);
+            }
+            if (message.transparent && message.transparent.length) {
+                object.transparent = [];
+                for (let j = 0; j < message.transparent.length; ++j)
+                    object.transparent[j] = $root.protocol.Geometry.toObject(message.transparent[j], options);
+            }
             if (message.nav != null && message.hasOwnProperty("nav"))
                 object.nav = $root.protocol.NavGeometry.toObject(message.nav, options);
             return object;
