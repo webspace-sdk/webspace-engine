@@ -9,6 +9,7 @@ import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import grassVoxSrc from "!!url-loader!../assets/models/grass1.vox";
 import { RENDER_ORDER } from "../../hubs/constants";
 import configs from "../../hubs/utils/configs";
+import { Layers } from "../../hubs/components/layers";
 
 const { Pathfinding } = require("three-pathfinding");
 const { SHAPE, TYPE, FIT } = CONSTANTS;
@@ -73,17 +74,13 @@ export const addVertexCurvingToShader = shader => {
 };
 
 const LOAD_RADIUS = 3;
-const FIELD_FEATURE_RADIUS = 2;
-const BODY_RADIUS = 2;
-const LOD1_RADIUS = 3;
-const LOD0_RADIUS = 2;
-const REFLECT_RADIUS = 2;
+const FIELD_FEATURE_RADIUS = 1;
+const BODY_RADIUS = 1;
+const REFLECT_RADIUS = 1;
 
 const LOAD_GRID = [];
 const FIELD_FEATURE_GRID = [];
 const BODY_GRID = [];
-const LOD1_GRID = [];
-const LOD0_GRID = [];
 const REFLECT_GRID = [];
 
 const SUBCHUNKS = 1;
@@ -106,8 +103,7 @@ for (const [grid, radius] of [
   [LOAD_GRID, LOAD_RADIUS],
   [FIELD_FEATURE_GRID, FIELD_FEATURE_RADIUS],
   [BODY_GRID, BODY_RADIUS],
-  [LOD1_GRID, LOD1_RADIUS],
-  [LOD0_GRID, LOD0_RADIUS]
+  [REFLECT_GRID, REFLECT_RADIUS]
 ]) {
   for (let x = -Math.floor(radius * 2); x <= Math.ceil(radius * 2); x += 1) {
     for (let z = -Math.floor(radius * 2); z <= Math.ceil(radius * 2); z += 1) {
@@ -491,6 +487,8 @@ export class TerrainSystem {
     this.avatarChunk = new THREE.Vector3(Infinity, 0, Infinity);
     this.avatarZone = null;
     this.pool = [...Array(LOAD_GRID.length)].map(() => new Terrain());
+    this.activeTerrains = [];
+    this.frame = 0;
     this.loadedChunks = new Map();
     this.loadingChunks = new Map();
     this.spawningChunks = new Map();
@@ -603,6 +601,7 @@ export class TerrainSystem {
           });
 
           terrains.set(key, terrain);
+          this.activeTerrains.push(terrain);
 
           const navGeometry = new BufferGeometry();
           const tmpIdx = new Uint8Array(geometries.nav.index.length);
@@ -644,7 +643,7 @@ export class TerrainSystem {
 
         this.ensureFeatureMeshesSpawnedOrFree(x, z);
         this.ensureBodiesSpawnedOrFree(x, z);
-        this.ensureLodsAndLayers(x, z);
+        this.ensureLayers(x, z);
 
         this.scene.emit("terrain-chunk-loaded");
 
@@ -748,10 +747,10 @@ export class TerrainSystem {
     });
   }
 
-  ensureLodsAndLayers(chunkX = null, chunkZ = null) {
+  ensureLayers(chunkX = null, chunkZ = null) {
     const { avatarChunk, terrains } = this;
 
-    [[LOAD_GRID, 2], [LOD1_GRID, 1], [LOD0_GRID, 0]].forEach(([grid, lod]) => {
+    [[LOAD_GRID, false], [REFLECT_GRID, true]].forEach(([grid, enable]) => {
       grid.forEach(({ x, z }) => {
         const cx = normalizeChunkCoord(avatarChunk.x + x);
         const cz = normalizeChunkCoord(avatarChunk.z + z);
@@ -763,7 +762,13 @@ export class TerrainSystem {
           const key = `${keyForChunk({ x: cx, z: cz })}:${subchunk}`;
 
           if (terrains.has(key)) {
-            terrains.get(key).setToLOD(lod);
+            const terrain = terrains.get(key);
+
+            if (enable) {
+              terrain.node.layers.enable(Layers.reflection);
+            } else {
+              terrain.node.layers.disable(Layers.reflection);
+            }
           }
         }
       });
@@ -932,6 +937,8 @@ export class TerrainSystem {
       if (terrain) {
         terrain.dispose();
         terrains.delete(subkey);
+        const idx = this.activeTerrains.indexOf(terrain);
+        this.activeTerrains.splice(idx, 1);
         pool.push(terrain);
       }
 
@@ -969,12 +976,21 @@ export class TerrainSystem {
     return function() {
       // TODO skip if avatar hasn't spawned yet.
       if (!this.avatarPovEl) return;
+      this.frame++;
 
       // Wait until we have the camera;
       if (!this.playerCamera) {
         if (!this.viewingCameraEl) return;
         this.playerCamera = this.viewingCameraEl.getObject3D("camera");
         if (!this.playerCamera) return;
+      }
+
+      if (this.activeTerrains.length) {
+        // Call perform work on four terrains per frame.
+        // Usually about 60 active terrains so this adds ~250ms latency to LOD updates.
+        for (let i = 0, n = 4; i < n; i++) {
+          this.activeTerrains[(this.frame * n + i) % this.activeTerrains.length].performWork(this.playerCamera);
+        }
       }
 
       const { terrains, loadedChunks, loadingChunks, spawningChunks, avatarChunk } = this;
@@ -1024,7 +1040,7 @@ export class TerrainSystem {
 
           this.ensureFeatureMeshesSpawnedOrFree();
           this.ensureBodiesSpawnedOrFree();
-          this.ensureLodsAndLayers();
+          this.ensureLayers();
         }
       }
 
@@ -1039,7 +1055,7 @@ export class TerrainSystem {
       // Sort render order for chunks
       terrains.forEach(terrain => {
         const dist = Math.abs(avatarChunk.x - terrain.chunk.x) + Math.abs(avatarChunk.z - terrain.chunk.z);
-        terrain.mesh.renderOrder = dist + RENDER_ORDER.TERRAIN; // Render from front to back.
+        terrain.node.renderOrder = dist + RENDER_ORDER.TERRAIN; // Render from front to back.
       });
 
       if (this.playerCamera) {
