@@ -49,6 +49,7 @@ async function updateEnvironmentForHub(hub, hubStore) {
   // Clear the three.js image cache and load the loading environment before switching to the new one.
   THREE.Cache.clear();
   const waypointSystem = sceneEl.systems["hubs-systems"].waypointSystem;
+  const terrainSystem = sceneEl.systems["hubs-systems"].terrainSystem;
   waypointSystem.releaseAnyOccupiedWaypoints();
   const characterController = sceneEl.systems["hubs-systems"].characterController;
 
@@ -73,6 +74,8 @@ async function updateEnvironmentForHub(hub, hubStore) {
   } else {
     waypointSystem.moveToSpawnPoint();
   }
+
+  terrainSystem.refreshTerrainLODs();
 
   startTrackingPosition(hubStore);
 

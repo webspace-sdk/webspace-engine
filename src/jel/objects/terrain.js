@@ -72,7 +72,6 @@ class Terrain extends Object3D {
     this.lod.autoUpdate = false;
     this.lod.frustumCulled = false;
     this.add(this.lod);
-    this.node = this.lod;
 
     // Use an instanced mesh so shader can be shared with instanced voxel objects.
     for (let i = 0; i < 3; i++) {
@@ -98,6 +97,9 @@ class Terrain extends Object3D {
 
   performWork(camera) {
     if (this.updateLodNextFrame || this.lodEnabled) {
+      camera.updateMatrices();
+      this.lod.updateMatrices();
+
       this.lod.update(camera);
       this.updateLodNextFrame = false;
     }
@@ -115,7 +117,8 @@ class Terrain extends Object3D {
 
       if (!position.length) continue;
 
-      const geometry = mesh.geometry;
+      const geometry = new BufferGeometry();
+      mesh.geometry = geometry;
 
       geometry.setAttribute("color", new BufferAttribute(color, 3));
       geometry.setAttribute("position", new Float32BufferAttribute(position, 3));

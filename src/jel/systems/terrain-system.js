@@ -76,7 +76,7 @@ export const addVertexCurvingToShader = shader => {
 const LOAD_RADIUS = 3;
 const FIELD_FEATURE_RADIUS = 1;
 const BODY_RADIUS = 2;
-const REFLECT_RADIUS = 1;
+const REFLECT_RADIUS = 2;
 
 const LOAD_GRID = [];
 const FIELD_FEATURE_GRID = [];
@@ -495,6 +495,7 @@ export class TerrainSystem {
     this.chunkFeatures = new Map();
     this.chunkHeightMaps = new Map();
     this.terrains = new Map();
+    this.performFullTerrainWorkOnNextTick = false;
     this.fieldFeatureInstances = new Map();
     this.entities = new Map();
     this.scene = scene;
@@ -600,6 +601,7 @@ export class TerrainSystem {
             geometries
           });
 
+          terrain.performWork(this.playerCamera);
           terrains.set(key, terrain);
           this.activeTerrains.push(terrain);
 
@@ -764,11 +766,13 @@ export class TerrainSystem {
           if (terrains.has(key)) {
             const terrain = terrains.get(key);
 
-            if (enable) {
-              terrain.node.layers.enable(Layers.reflection);
-            } else {
-              terrain.node.layers.disable(Layers.reflection);
-            }
+            terrain.meshes.forEach(m => {
+              if (enable) {
+                m.layers.enable(Layers.reflection);
+              } else {
+                m.layers.disable(Layers.reflection);
+              }
+            });
           }
         }
       });
@@ -988,7 +992,14 @@ export class TerrainSystem {
       if (this.activeTerrains.length) {
         // Call perform work on four terrains per frame.
         // Usually about 60 active terrains so this adds ~250ms latency to LOD updates.
-        for (let i = 0, n = 4; i < n; i++) {
+        let n = 4;
+
+        if (this.performFullTerrainWorkOnNextTick) {
+          n = this.activeTerrains.length;
+          this.performFullTerrainWorkOnNextTick = false;
+        }
+
+        for (let i = 0; i < n; i++) {
           this.activeTerrains[(this.frame * n + i) % this.activeTerrains.length].performWork(this.playerCamera);
         }
       }
@@ -1055,7 +1066,10 @@ export class TerrainSystem {
       // Sort render order for chunks
       terrains.forEach(terrain => {
         const dist = Math.abs(avatarChunk.x - terrain.chunk.x) + Math.abs(avatarChunk.z - terrain.chunk.z);
-        terrain.node.renderOrder = dist + RENDER_ORDER.TERRAIN; // Render from front to back.
+
+        terrain.meshes.forEach(m => {
+          m.renderOrder = dist + RENDER_ORDER.TERRAIN; // Render from front to back.
+        });
       });
 
       if (this.playerCamera) {
@@ -1064,4 +1078,8 @@ export class TerrainSystem {
       }
     };
   })();
+
+  refreshTerrainLODs() {
+    this.performFullTerrainWorkOnNextTick = true;
+  }
 }
