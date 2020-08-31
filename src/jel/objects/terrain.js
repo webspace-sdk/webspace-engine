@@ -19,6 +19,7 @@ const {
 } = THREE;
 
 const IDENTITY = new Matrix4();
+const LOD_DISTANCES = [0, 20, 25];
 
 const voxelMaterial = new ShaderMaterial({
   name: "voxels",
@@ -42,8 +43,6 @@ voxelMaterial.onBeforeCompile = shader => {
   addVertexCurvingToShader(shader);
   shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
 };
-
-const LOD_DISTANCES = [13, 17, 26];
 
 class Terrain extends Object3D {
   constructor(lodEnabled = true) {
