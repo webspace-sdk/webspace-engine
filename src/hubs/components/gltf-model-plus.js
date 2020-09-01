@@ -12,6 +12,20 @@ import HubsBasisTextureLoader from "../loaders/HubsBasisTextureLoader";
 import { MEDIA_PRESENCE } from "../utils/media-utils";
 
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
+let toonGradientMap;
+
+(() => {
+  const colors = new Uint8Array(4);
+
+  for (let c = 0; c <= colors.length; c++) {
+    colors[c] = (c / colors.length) * 256;
+  }
+
+  toonGradientMap = new THREE.DataTexture(colors, colors.length, 1, THREE.LuminanceFormat);
+  toonGradientMap.minFilter = THREE.NearestFilter;
+  toonGradientMap.magFilter = THREE.NearestFilter;
+  toonGradientMap.generateMipmaps = false;
+})();
 
 class GLTFCache {
   cache = new Map();
@@ -425,6 +439,52 @@ export async function loadGLTF(src, contentType, preferredTechnique, onProgress,
       if (material.isMeshStandardMaterial && preferredTechnique === "KHR_materials_unlit") {
         return MobileStandardMaterial.fromStandardMaterial(material);
       }
+      if (preferredTechnique === "JEL_materials_toon") {
+        if (material.isMeshBasicMaterial) {
+          return new THREE.MeshToonMaterial({
+            alphaMap: material.alphaMap,
+            color: material.color,
+            map: material.map,
+            morphTargets: material.morphTargets,
+            reflectivity: material.reflectivity,
+            refractionRatio: material.refractionRatio,
+            skinning: material.skinning,
+            wireframe: material.wireframe,
+            wireframeLinecap: material.wireframeLinecap,
+            wireframeLinejoin: material.wireframeLinejoin,
+            wireframeLinewidt: material.wireframeLinewidth,
+            gradientMap: toonGradientMap,
+            shininess: 0
+          });
+        } else if (material.isMeshStandardMaterial) {
+          return new THREE.MeshToonMaterial({
+            alphaMap: material.alphaMap,
+            color: material.color,
+            combine: material.combine,
+            displacementMap: material.displacementMap,
+            displacementScale: material.displacementScale,
+            displacementBias: material.displacementBias,
+            emissive: material.emissive,
+            emissiveMap: material.emissiveMap,
+            emissiveIntensity: material.emissiveIntensity,
+            map: material.map,
+            morphNormals: material.morphNormals,
+            morphTargets: material.morphTargets,
+            normalMap: material.normalMap,
+            normalMapType: material.normalMapType,
+            normalScale: material.normalScale,
+            reflectivity: material.reflectivity,
+            refractionRatio: material.refractionRatio,
+            skinning: material.skinning,
+            wireframe: material.wireframe,
+            wireframeLinecap: material.wireframeLinecap,
+            wireframeLinejoin: material.wireframeLinejoin,
+            wireframeLinewidt: material.wireframeLinewidth,
+            gradientMap: toonGradientMap,
+            shininess: 0
+          });
+        }
+      }
 
       return material;
     });
@@ -440,9 +500,12 @@ export async function loadGLTF(src, contentType, preferredTechnique, onProgress,
   return gltf;
 }
 
-export async function loadModel(src, contentType = null, useCache = false, jsonPreprocessor = null) {
-  const preferredTechnique =
-    window.APP && window.APP.quality === "low" ? "KHR_materials_unlit" : "pbrMetallicRoughness";
+export async function loadModel(src, contentType = null, useCache = false, jsonPreprocessor = null, toon = false) {
+  let preferredTechnique = window.APP && window.APP.quality === "low" ? "KHR_materials_unlit" : "pbrMetallicRoughness";
+
+  if (toon) {
+    preferredTechnique = "JEL_materials_toon";
+  }
 
   if (useCache) {
     if (gltfCache.has(src)) {
@@ -491,6 +554,7 @@ AFRAME.registerComponent("gltf-model-plus", {
     useCache: { default: true },
     inflate: { default: false },
     batch: { default: false },
+    toon: { default: false },
     modelToWorldScale: { type: "number", default: 1 }
   },
 
@@ -591,7 +655,7 @@ AFRAME.registerComponent("gltf-model-plus", {
       }
 
       this.el.emit("model-loading");
-      const gltf = await loadModel(src, contentType, this.data.useCache, this.jsonPreprocessor);
+      const gltf = await loadModel(src, contentType, this.data.useCache, this.jsonPreprocessor, this.data.toon);
 
       // If we started loading something else already or delete this element
       // TODO: there should be a way to cancel loading instead

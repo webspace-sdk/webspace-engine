@@ -8,6 +8,7 @@ const {
   UniformsUtils,
   DepthStencilFormat,
   WebGLRenderTarget,
+  EqualStencilFunc,
   NotEqualStencilFunc,
   UnsignedInt248Type,
   Vector2
