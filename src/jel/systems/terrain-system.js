@@ -223,6 +223,14 @@ const cullChunksAndFeatureGroups = (() => {
       const bminy = 0;
       const bmaxy = t.height / 8 + 1 / 8;
 
+      // Visualize box
+      //if (!t.showedBox) {
+      //  t.showedBox = true;
+
+      //  const box = new Box3(new Vector3(bminx, bminy, bminz), new Vector3(bmaxx, bmaxy, bmaxz));
+      //  t.parent.parent.add(new Box3Helper(box));
+      //}
+
       for (const n of norms) {
         // eslint-disable-line no-restricted-syntax
         let c = 0;
@@ -561,7 +569,8 @@ export class TerrainSystem {
         await new Promise(async (resolve, reject) => {
           try {
             const res = await fetch(
-              `https://${configs.TERRA_SERVER}/chunks/${worldType}/${worldSeed}/${chunk.x}/${chunk.z}/1`
+              `https://${configs.TERRA_SERVER}/chunks/${worldType}/${worldSeed}/${chunk.x}/${chunk.z}/1`,
+              { cache: i === 0 ? "default" : "reload" }
             );
 
             if (!loadingChunks.has(key)) return;
@@ -576,9 +585,9 @@ export class TerrainSystem {
             return;
           }
         });
+        break;
       } catch (e) {
         // Retry loop
-        await new Promise(res => setTimeout(res, 1000));
       }
     }
   }
