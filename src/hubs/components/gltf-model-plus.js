@@ -10,7 +10,7 @@ import { disposeNode, disposeExistingMesh, cloneObject3D } from "../utils/three-
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import HubsBasisTextureLoader from "../loaders/HubsBasisTextureLoader";
 import { MEDIA_PRESENCE } from "../utils/media-utils";
-import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
+import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
 import { RENDER_ORDER } from "../constants";
 
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
@@ -500,7 +500,7 @@ export async function loadGLTF(src, contentType, preferredTechnique, onProgress,
       }
 
       if (mat !== material) {
-        mat.onBeforeCompile = shader => addVertexCurvingToShader(shader);
+        addVertexCurvingToMaterial(mat);
       }
 
       return mat;

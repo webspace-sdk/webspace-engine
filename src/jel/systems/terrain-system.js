@@ -73,6 +73,19 @@ export const addVertexCurvingToShader = shader => {
   );
 };
 
+export const addVertexCurvingToMaterial = material => {
+  if (material.onBeforeCompile) {
+    const onBeforeCompile = material.onBeforeCompile;
+
+    material.onBeforeCompile = shader => {
+      addVertexCurvingToShader(shader);
+      return onBeforeCompile(shader);
+    };
+  } else {
+    material.onBeforeCompile = shader => addVertexCurvingToShader(shader);
+  }
+};
+
 const LOAD_RADIUS = 3;
 const FIELD_FEATURE_RADIUS = 1;
 const BODY_RADIUS = 2;

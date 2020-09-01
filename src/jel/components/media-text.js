@@ -5,6 +5,7 @@ import { fromByteArray } from "base64-js";
 import { hasMediaLayer, scaleToAspectRatio, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh, disposeTexture } from "../../hubs/utils/three-utils";
 import { RENDER_ORDER } from "../../hubs/constants";
+import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
 
 AFRAME.registerComponent("media-text", {
   schema: {
@@ -95,6 +96,7 @@ AFRAME.registerComponent("media-text", {
           stencilRef: 1,
           stencilZPass: THREE.ReplaceStencilOp
         });
+        addVertexCurvingToMaterial(mat);
         const geo = new THREE.PlaneBufferGeometry(1, 1, 1, 1, this.texture.flipY);
         mat.side = THREE.DoubleSide;
 

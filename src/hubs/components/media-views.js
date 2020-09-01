@@ -33,6 +33,7 @@ import { applyPersistentSync } from "../utils/permissions-utils";
 import { refreshMediaMirror, getCurrentMirroredMedia } from "../utils/mirror-utils";
 import { MEDIA_PRESENCE } from "../utils/media-utils";
 import { disposeExistingMesh, disposeTexture, disposeTextureImage } from "../utils/three-utils";
+import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
 
 /**
  * Warning! This require statement is fragile!
@@ -746,6 +747,8 @@ AFRAME.registerComponent("media-video", {
           stencilZPass: THREE.ReplaceStencilOp
         });
 
+        addVertexCurvingToMaterial(material);
+
         let geometry;
 
         if (projection === "360-equirectangular") {
@@ -1291,6 +1294,8 @@ AFRAME.registerComponent("media-image", {
           stencilZPass: THREE.ReplaceStencilOp
         });
 
+        addVertexCurvingToMaterial(material);
+
         let geometry;
 
         if (projection === "360-equirectangular") {
@@ -1578,6 +1583,9 @@ AFRAME.registerComponent("media-pdf", {
           stencilRef: 1,
           stencilZPass: THREE.ReplaceStencilOp
         });
+
+        addVertexCurvingToMaterial(material);
+
         const geometry = new THREE.PlaneBufferGeometry(1, 1, 10, 10, texture.flipY);
         material.side = THREE.DoubleSide;
 
