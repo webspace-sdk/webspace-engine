@@ -18,6 +18,7 @@ module.exports = {
     FIELD: 100,
     PHYSICS_DEBUG: 1000,
     MEDIA: 10000, // Render last because of stencil ops
+    TOONS: 20000, // Render last because of stencil ops
     SKY: 100000,
 
     // Transparent objects:

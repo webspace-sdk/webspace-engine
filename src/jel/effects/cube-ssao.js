@@ -308,13 +308,10 @@ const CubeSSAOShader = {
     "}",
     "void main() {",
     "if (runAO) { ",
-    "float AO = getBlurredAO(vUv);",
-    "vec3 color = texture2D( tDiffuse, vUv ).rgb;",
-    "vec3 AOcolor = vec3(color * AO);",
-    "vec3 satColor = huesat(AOcolor);",
-    "vec3 brightColor = brighten(satColor);",
-    "vec3 vignetteColor = vignette(brightColor);",
-    "gl_FragColor = vec4(vignetteColor, 1.0);",
+    "  float AO = getBlurredAO(vUv);",
+    "  vec3 color = texture2D( tDiffuse, vUv ).rgb;",
+    "  vec3 AOcolor = vec3(color * AO);",
+    "  gl_FragColor = vec4(AOcolor, 1.0);",
     "} else if (runFXAA) {",
     "  gl_FragColor = FxaaPixelShader(",
     "    vUv,",
@@ -338,8 +335,11 @@ const CubeSSAOShader = {
     "  // TODO avoid querying texture twice for same texel",
     "  gl_FragColor.a = 1.0;",
     "} else if (runCopy) {",
-    "	vec4 texel = texture2D( tDiffuse, vUv );",
-    "	gl_FragColor = texel;",
+    "	vec3 texel = texture2D( tDiffuse, vUv ).rgb;",
+    " vec3 satColor = huesat(texel);",
+    " vec3 brightColor = brighten(satColor);",
+    " vec3 vignetteColor = vignette(brightColor);",
+    "	gl_FragColor = vec4(vignetteColor, 1.0);",
     "}",
     "}"
   ].join("\n")
@@ -442,8 +442,6 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
     // render SSAO + colorize
     this.material.uniforms.runAO.value = true;
     this.material.uniforms.runCopy.value = false;
-
-    // Cause FXAA to not run, and reduce quality knobs.
     this.material.uniforms.runFXAA.value = false;
     this.material.uniforms.fxaaQualitySubpix.value = 0.0;
     this.material.uniforms.fxaaEdgeThreshold.value = 1.0;
@@ -453,8 +451,11 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
     this.material.uniforms.tDepth.value = this.sceneRenderTarget.depthTexture;
     this.renderPass(renderer, this.material, this.ssaoRenderTarget);
 
-    // render stencilled FXAA
+    // render stencilled FXAA + SSAO
+    // toons and text aren't FXAA'd
     this.material.stencilWrite = true;
+    this.material.stencilFunc = EqualStencilFunc;
+    this.material.stencilRef = 0;
     this.material.uniforms.runAO.value = false;
     this.material.uniforms.runFXAA.value = true;
     this.material.uniforms.fxaaQualitySubpix.value = 1.0;
@@ -463,8 +464,8 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
     this.material.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
     this.material.uniforms.tDepth.value = null;
     this.renderPass(renderer, this.material, this.sceneRenderTarget);
-    this.material.stencilWrite = false;
 
+    this.material.stencilWrite = false;
     this.material.uniforms.runFXAA.value = false;
     this.material.uniforms.runCopy.value = true;
     this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;

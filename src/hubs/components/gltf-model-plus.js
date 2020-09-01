@@ -10,12 +10,14 @@ import { disposeNode, disposeExistingMesh, cloneObject3D } from "../utils/three-
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import HubsBasisTextureLoader from "../loaders/HubsBasisTextureLoader";
 import { MEDIA_PRESENCE } from "../utils/media-utils";
+import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
+import { RENDER_ORDER } from "../constants";
 
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
 let toonGradientMap;
 
 (() => {
-  const colors = new Uint8Array(4);
+  const colors = new Uint8Array(3);
 
   for (let c = 0; c <= colors.length; c++) {
     colors[c] = (c / colors.length) * 256;
@@ -435,13 +437,19 @@ export async function loadGLTF(src, contentType, preferredTechnique, onProgress,
     // GLTFLoader sets matrixAutoUpdate on animated objects, we want to keep the defaults
     object.matrixAutoUpdate = THREE.Object3D.DefaultMatrixAutoUpdate;
 
+    if (preferredTechnique === "JEL_materials_toon") {
+      object.renderOrder = RENDER_ORDER.TOON;
+    }
+
     object.material = mapMaterials(object, material => {
+      let mat = material;
+
       if (material.isMeshStandardMaterial && preferredTechnique === "KHR_materials_unlit") {
-        return MobileStandardMaterial.fromStandardMaterial(material);
+        mat = MobileStandardMaterial.fromStandardMaterial(material);
       }
       if (preferredTechnique === "JEL_materials_toon") {
         if (material.isMeshBasicMaterial) {
-          return new THREE.MeshToonMaterial({
+          mat = new THREE.MeshToonMaterial({
             alphaMap: material.alphaMap,
             color: material.color,
             map: material.map,
@@ -454,10 +462,14 @@ export async function loadGLTF(src, contentType, preferredTechnique, onProgress,
             wireframeLinejoin: material.wireframeLinejoin,
             wireframeLinewidt: material.wireframeLinewidth,
             gradientMap: toonGradientMap,
-            shininess: 0
+            shininess: 0,
+            stencilWrite: true,
+            stencilFunc: THREE.AlwaysStencilFunc,
+            stencilRef: 2,
+            stencilZPass: THREE.ReplaceStencilOp
           });
         } else if (material.isMeshStandardMaterial) {
-          return new THREE.MeshToonMaterial({
+          mat = new THREE.MeshToonMaterial({
             alphaMap: material.alphaMap,
             color: material.color,
             combine: material.combine,
@@ -481,12 +493,20 @@ export async function loadGLTF(src, contentType, preferredTechnique, onProgress,
             wireframeLinejoin: material.wireframeLinejoin,
             wireframeLinewidt: material.wireframeLinewidth,
             gradientMap: toonGradientMap,
-            shininess: 0
+            shininess: 0,
+            stencilWrite: true,
+            stencilFunc: THREE.AlwaysStencilFunc,
+            stencilRef: 2,
+            stencilZPass: THREE.ReplaceStencilOp
           });
         }
       }
 
-      return material;
+      if (mat !== material) {
+        mat.onBeforeCompile = shader => addVertexCurvingToShader(shader);
+      }
+
+      return mat;
     });
   });
 
