@@ -558,17 +558,23 @@ export class TerrainSystem {
     // 3 Retries, sometimes lambda times out.
     for (let i = 0; i < 3; i++) {
       try {
-        await new Promise(async resolve => {
-          const res = await fetch(
-            `https://${configs.TERRA_SERVER}/chunks/${worldType}/${worldSeed}/${chunk.x}/${chunk.z}/1`
-          );
-          if (!loadingChunks.has(key)) return;
-          loadingChunks.delete(key);
+        await new Promise(async (resolve, reject) => {
+          try {
+            const res = await fetch(
+              `https://${configs.TERRA_SERVER}/chunks/${worldType}/${worldSeed}/${chunk.x}/${chunk.z}/1`
+            );
 
-          if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
-          const arr = await res.arrayBuffer();
-          spawningChunks.set(key, new Uint8Array(arr));
-          resolve();
+            if (!loadingChunks.has(key)) return;
+            loadingChunks.delete(key);
+
+            if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
+            const arr = await res.arrayBuffer();
+            spawningChunks.set(key, new Uint8Array(arr));
+            resolve();
+          } catch (e) {
+            reject();
+            return;
+          }
         });
       } catch (e) {
         // Retry loop
