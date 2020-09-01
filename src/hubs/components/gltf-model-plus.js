@@ -459,13 +459,7 @@ export async function loadGLTF(src, contentType, preferredTechnique, onProgress,
             wireframe: material.wireframe,
             wireframeLinecap: material.wireframeLinecap,
             wireframeLinejoin: material.wireframeLinejoin,
-            wireframeLinewidth: material.wireframeLinewidth,
-            gradientMap: toonGradientMap,
-            shininess: 0,
-            stencilWrite: true,
-            stencilFunc: THREE.AlwaysStencilFunc,
-            stencilRef: 2,
-            stencilZPass: THREE.ReplaceStencilOp
+            wireframeLinewidth: material.wireframeLinewidth
           });
         } else if (material.isMeshStandardMaterial) {
           mat = new THREE.MeshToonMaterial({
@@ -485,15 +479,22 @@ export async function loadGLTF(src, contentType, preferredTechnique, onProgress,
             wireframe: material.wireframe,
             wireframeLinecap: material.wireframeLinecap,
             wireframeLinejoin: material.wireframeLinejoin,
-            wireframeLinewidth: material.wireframeLinewidth,
-            gradientMap: toonGradientMap,
-            shininess: 0,
-            stencilWrite: true,
-            stencilFunc: THREE.AlwaysStencilFunc,
-            stencilRef: 2,
-            stencilZPass: THREE.ReplaceStencilOp
+            wireframeLinewidth: material.wireframeLinewidth
+          });
+        } else {
+          mat = new THREE.MeshToonMaterial({
+            color: material.color,
+            map: material.map,
+            skinning: material.skinning
           });
         }
+
+        mat.gradientMap = toonGradientMap;
+        mat.shininess = 0;
+        mat.stencilWrite = true;
+        mat.stencilFunc = THREE.AlwaysStencilFunc;
+        mat.stencilRef = 2;
+        mat.stencilZPass = THREE.ReplaceStencilOp;
       }
 
       if (mat !== material) {
