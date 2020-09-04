@@ -582,8 +582,11 @@ export class TerrainSystem {
         await new Promise(async (resolve, reject) => {
           try {
             const res = await fetch(
-              `https://${configs.TERRA_SERVER}/chunks/${worldType}/${worldSeed}/${chunk.x}/${chunk.z}/1`,
-              { cache: i === 0 ? "default" : "reload" }
+              // cache: reload not working, use a hack for now
+              // to force avoiding cache
+              `https://${configs.TERRA_SERVER}/chunks/${worldType}/${worldSeed}/${chunk.x}/${chunk.z}/1${
+                i === 0 ? "" : `?r=${Math.floor(Math.random() * 10000)}`
+              }`
             );
 
             if (!loadingChunks.has(key)) return;
@@ -595,7 +598,6 @@ export class TerrainSystem {
             resolve();
           } catch (e) {
             reject();
-            return;
           }
         });
         break;
