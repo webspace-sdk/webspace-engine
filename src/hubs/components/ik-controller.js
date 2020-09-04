@@ -80,12 +80,18 @@ AFRAME.registerComponent("ik-controller", {
     chest: { type: "string", default: "Spine" },
     rotationSpeed: { default: 8 },
     maxLerpAngle: { default: 90 * THREE.Math.DEG2RAD },
-    alwaysUpdate: { type: "boolean", default: false }
+    alwaysUpdate: { type: "boolean", default: false },
+    instanceHeads: { type: "boolean", default: false }
   },
 
   init() {
     this._runScheduledWork = this._runScheduledWork.bind(this);
     this._updateIsInView = this._updateIsInView.bind(this);
+    this.avatarSystem = this.el.sceneEl.systems["hubs-systems"].avatarSystem;
+
+    if (this.data.instanceHeads) {
+      this.avatarSystem.register(this.el);
+    }
 
     this.flipY = new Matrix4().makeRotationY(Math.PI);
 
@@ -118,11 +124,16 @@ AFRAME.registerComponent("ik-controller", {
     });
 
     this.el.sceneEl.systems["frame-scheduler"].schedule(this._runScheduledWork, "ik");
+
     this.forceIkUpdate = true;
   },
 
   remove() {
     this.el.sceneEl.systems["frame-scheduler"].unschedule(this._runScheduledWork, "ik");
+
+    if (this.data.instanceHeads) {
+      this.avatarSystem.unregister(this.el);
+    }
   },
 
   update(oldData) {
@@ -276,6 +287,11 @@ AFRAME.registerComponent("ik-controller", {
       } else {
         this.hasConvergedHips = true;
         head.quaternion.setFromRotationMatrix(headTransform);
+      }
+
+      if (this.data.instanceHeads) {
+        this.avatarSystem.markDirty(this.el);
+        this.head.visible = false;
       }
 
       root.matrixNeedsUpdate = true;
