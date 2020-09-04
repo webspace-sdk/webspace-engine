@@ -172,10 +172,10 @@ AFRAME.registerComponent("ik-controller", {
     if (!this.ikRoot) {
       return;
     }
+    const { camera, leftController, rightController } = this.ikRoot;
 
     const root = this.ikRoot.el.object3D;
     root.updateMatrices();
-    const { camera, leftController, rightController } = this.ikRoot;
 
     camera.object3D.updateMatrix();
 
@@ -194,6 +194,10 @@ AFRAME.registerComponent("ik-controller", {
         this.lastCameraTransform.copy(camera.object3D.matrix);
       }
 
+      // Avoid expensive body lerping if no hands, since we don't show body etc without hands.
+      const hasHands =
+        this.leftHand && this.rightHand && leftController.object3D.visible && rightController.object3D.visible;
+
       const {
         avatar,
         head,
@@ -204,9 +208,6 @@ AFRAME.registerComponent("ik-controller", {
         invMiddleEyeToHead,
         invHipsToHeadVector,
         flipY,
-        cameraYRotation,
-        cameraYQuaternion,
-        invHipsQuaternion,
         rootToChest,
         invRootToChest
       } = this;
@@ -224,50 +225,61 @@ AFRAME.registerComponent("ik-controller", {
       // hips will use vertex skinning to do the root displacement, which results in
       // frustum culling errors since three.js does not take into account skinning when
       // computing frustum culling sphere bounds.
-      avatar.position.setFromMatrixPosition(headTransform).add(invHipsToHeadVector);
+      avatar.position.x = headTransform.elements[12] + invHipsToHeadVector.x;
+      avatar.position.y = headTransform.elements[13] + invHipsToHeadVector.y;
+      avatar.position.z = headTransform.elements[14] + invHipsToHeadVector.z;
       avatar.matrixNeedsUpdate = true;
 
-      // Animate the hip rotation to follow the Y rotation of the camera with some damping.
-      cameraYRotation.setFromRotationMatrix(cameraForward, "YXZ");
-      cameraYRotation.x = 0;
-      cameraYRotation.z = 0;
-      cameraYQuaternion.setFromEuler(cameraYRotation);
+      if (hasHands) {
+        const { invHipsQuaternion, cameraYRotation, cameraYQuaternion } = this;
 
-      if (this._hadFirstTick) {
-        camera.object3D.updateMatrices();
-        avatar.updateMatrices();
-        // Note: Camera faces down -Z, avatar faces down +Z
-        const yDelta = Math.PI - angleOnXZPlaneBetweenMatrixRotations(camera.object3D.matrixWorld, avatar.matrixWorld);
+        // Animate the hip rotation to follow the Y rotation of the camera with some damping.
+        cameraYRotation.setFromRotationMatrix(cameraForward, "YXZ");
+        cameraYRotation.x = 0;
+        cameraYRotation.z = 0;
+        cameraYQuaternion.setFromEuler(cameraYRotation);
 
-        if (yDelta > this.data.maxLerpAngle) {
-          avatar.quaternion.copy(cameraYQuaternion);
+        if (this._hadFirstTick) {
+          camera.object3D.updateMatrices();
+          avatar.updateMatrices();
+          // Note: Camera faces down -Z, avatar faces down +Z
+          const yDelta =
+            Math.PI - angleOnXZPlaneBetweenMatrixRotations(camera.object3D.matrixWorld, avatar.matrixWorld);
+          if (yDelta > this.data.maxLerpAngle) {
+            avatar.quaternion.copy(cameraYQuaternion);
+          } else {
+            Quaternion.slerp(
+              avatar.quaternion,
+              cameraYQuaternion,
+              avatar.quaternion,
+              (this.data.rotationSpeed * dt) / 1000
+            );
+          }
         } else {
-          Quaternion.slerp(
-            avatar.quaternion,
-            cameraYQuaternion,
-            avatar.quaternion,
-            (this.data.rotationSpeed * dt) / 1000
-          );
+          avatar.quaternion.copy(cameraYQuaternion);
         }
+
+        this.hasConvergedHips = quaternionAlmostEquals(0.0001, cameraYQuaternion, avatar.quaternion);
+
+        // Take the head orientation computed from the hmd, remove the Y rotation already applied to it by the hips,
+        // and apply it to the head
+        invHipsQuaternion.copy(avatar.quaternion).inverse();
+        head.quaternion.setFromRotationMatrix(headTransform).premultiply(invHipsQuaternion);
+
+        avatar.updateMatrix();
+
+        rootToChest.multiplyMatrices(avatar.matrix, chest.matrix);
+        invRootToChest.getInverse(rootToChest);
+
+        neck.matrixNeedsUpdate = true;
+        chest.matrixNeedsUpdate = true;
       } else {
-        avatar.quaternion.copy(cameraYQuaternion);
+        this.hasConvergedHips = true;
+        head.quaternion.setFromRotationMatrix(headTransform);
       }
 
-      this.hasConvergedHips = quaternionAlmostEquals(0.0001, cameraYQuaternion, avatar.quaternion);
-
-      // Take the head orientation computed from the hmd, remove the Y rotation already applied to it by the hips,
-      // and apply it to the head
-      invHipsQuaternion.copy(avatar.quaternion).inverse();
-      head.quaternion.setFromRotationMatrix(headTransform).premultiply(invHipsQuaternion);
-
-      avatar.updateMatrix();
-      rootToChest.multiplyMatrices(avatar.matrix, chest.matrix);
-      invRootToChest.getInverse(rootToChest);
-
       root.matrixNeedsUpdate = true;
-      neck.matrixNeedsUpdate = true;
       head.matrixNeedsUpdate = true;
-      chest.matrixNeedsUpdate = true;
     }
 
     const { leftHand, rightHand } = this;
