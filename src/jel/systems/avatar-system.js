@@ -70,6 +70,10 @@ avatarMaterial.onBeforeCompile = shader => {
 
 const MAX_AVATARS = 128;
 
+// The is the number of ticks we continue to update the instance matrices of dirty
+// avatars, since lerping may need to occur.
+const MAX_LERP_TICKS = 30;
+
 // Draws instanced avatar heads. IK controller now sets instanced heads to non-visible to avoid draw calls.
 export class AvatarSystem {
   constructor(sceneEl, atmosphereSystem) {
@@ -78,7 +82,7 @@ export class AvatarSystem {
     this.avatarEls = Array(MAX_AVATARS);
 
     this.dirtyAvatars = Array(MAX_AVATARS);
-    this.dirtyAvatars.fill(false);
+    this.dirtyAvatars.fill(0);
 
     this.maxRegisteredIndex = -1;
     this.createMesh();
@@ -88,7 +92,7 @@ export class AvatarSystem {
     const index = this.mesh.addMatrix(IDENITTY);
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.avatarEls[index] = el;
-    this.dirtyAvatars[index] = true;
+    this.dirtyAvatars[index] = 0;
   }
 
   unregister(el) {
@@ -104,14 +108,14 @@ export class AvatarSystem {
   markDirty(el) {
     for (let i = 0; i <= this.maxRegisteredIndex; i++) {
       if (this.avatarEls[i] === el) {
-        this.dirtyAvatars[i] = true;
+        this.dirtyAvatars[i] = MAX_LERP_TICKS;
         return;
       }
     }
   }
 
   createMesh() {
-    this.mesh = new DynamicInstancedMesh(new SphereBufferGeometry(0.25, 30, 30), avatarMaterial, 128);
+    this.mesh = new DynamicInstancedMesh(new SphereBufferGeometry(0.5, 30, 30), avatarMaterial, 128);
     this.mesh.renderOrder = RENDER_ORDER.INSTANCED_AVATAR;
     this.mesh.castShadow = true;
     this.sceneEl.object3D.add(this.mesh);
@@ -119,7 +123,7 @@ export class AvatarSystem {
 
   tick() {
     for (let i = 0; i <= this.maxRegisteredIndex; i++) {
-      if (this.dirtyAvatars[i] === false) continue;
+      if (this.dirtyAvatars[i] === 0) continue;
 
       const el = this.avatarEls[i];
       if (el === null) continue;
@@ -133,7 +137,7 @@ export class AvatarSystem {
       this.mesh.instanceMatrix.needsUpdate = true;
       this.atmosphereSystem.updateShadows();
 
-      this.dirtyAvatars[i] = false;
+      this.dirtyAvatars[i] -= 1;
     }
   }
 }
