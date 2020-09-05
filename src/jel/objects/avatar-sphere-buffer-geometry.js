@@ -37,11 +37,29 @@ function AvatarSphereBufferGeometry(radius, invert = false) {
   const vertices = [];
   const normals = [];
   const uvs = [];
+  const duvs = [];
 
   // generate vertices, normals and uvs
 
   for (iy = 0; iy <= heightSegments; iy++) {
     const verticesRow = [];
+
+    // Decal u, v, w
+    let dv, dw;
+
+    if (iy <= mapSegmentLength * 0.5) {
+      dw = MAP_COORD_POLES;
+      dv = iy / mapSegmentLength;
+    } else if (iy <= mapSegmentLength * 1.5) {
+      dw = MAP_COORD_UPPER;
+      dv = (iy - mapSegmentLength * 0.5) / mapSegmentLength;
+    } else if (iy <= mapSegmentLength * 2.5) {
+      dw = MAP_COORD_LOWER;
+      dv = (iy - mapSegmentLength * 1.5) / mapSegmentLength;
+    } else {
+      dw = MAP_COORD_POLES;
+      dv = 0.5 + (iy - mapSegmentLength * 2.5) / mapSegmentLength;
+    }
 
     const v = iy / heightSegments;
 
@@ -76,7 +94,9 @@ function AvatarSphereBufferGeometry(radius, invert = false) {
       // uv
 
       uvs.push(u + uOffset, 1 - v);
+      duvs.push(u + uOffset, dv, dw);
 
+      // TODO add color and decal UVs to instances
       verticesRow.push(index++);
     }
 
