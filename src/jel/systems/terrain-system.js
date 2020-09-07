@@ -765,7 +765,7 @@ export class TerrainSystem {
     const key = `${keyForChunk({ x, z })}:${subchunk}`;
     if (instances.has(key)) {
       for (const [mesh, id] of instances.get(key)) {
-        mesh.removeMatrix(id);
+        mesh.freeInstance(id);
       }
 
       instances.delete(key);
@@ -861,7 +861,7 @@ export class TerrainSystem {
         for (let i = 0; i < featureGroups.length; i++) {
           const mesh = entry[i];
 
-          const id = mesh.addMatrix(dummy.matrix);
+          const id = mesh.addInstance(dummy.matrix);
           featureMeshKeys.push([mesh, id]);
 
           if (featureGroups[i].children.indexOf(mesh) === -1) {

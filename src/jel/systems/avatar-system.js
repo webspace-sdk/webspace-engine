@@ -1,7 +1,28 @@
+import avatarEyeImgSrc from "!!url-loader!../assets/images/avatar-eyes.png";
+import avatarMouthImgSrc from "!!url-loader!../assets/images/avatar-mouths.png";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { AvatarSphereBufferGeometry } from "../objects/avatar-sphere-buffer-geometry";
+
+const {
+  ShaderMaterial,
+  Color,
+  MeshBasicMaterial,
+  VertexColors,
+  Matrix4,
+  ShaderLib,
+  UniformsUtils,
+  RGBAFormat,
+  DataTexture3D,
+  MeshToonMaterial,
+  ImageLoader,
+  NearestFilter,
+  DataTexture
+} = THREE;
+
+const DECAL_MAP_SIZE = 1024;
+const NUM_DECAL_MAPS = 3;
 
 let toonGradientMap;
 
@@ -12,30 +33,11 @@ let toonGradientMap;
     colors[c] = (c / colors.length) * 256;
   }
 
-  toonGradientMap = new THREE.DataTexture(colors, colors.length, 1, THREE.LuminanceFormat);
-  toonGradientMap.minFilter = THREE.NearestFilter;
-  toonGradientMap.magFilter = THREE.NearestFilter;
+  toonGradientMap = new DataTexture(colors, colors.length, 1, THREE.LuminanceFormat);
+  toonGradientMap.minFilter = NearestFilter;
+  toonGradientMap.magFilter = NearestFilter;
   toonGradientMap.generateMipmaps = false;
 })();
-
-const {
-  //InstancedMesh,
-  ShaderMaterial,
-  Color,
-  MeshBasicMaterial,
-  VertexColors,
-  //BufferGeometry,
-  //BufferAttribute,
-  //Object3D,
-  Matrix4,
-  ShaderLib,
-  //Float32BufferAttribute,
-  UniformsUtils,
-  //Uint16BufferAttribute,
-  //Uint32BufferAttribute,
-  //LOD,
-  MeshToonMaterial
-} = THREE;
 
 const IDENITTY = new Matrix4();
 const AVATAR_RADIUS = 0.4;
@@ -53,7 +55,13 @@ const avatarMaterial = new ShaderMaterial({
     ...new MeshToonMaterial().defines
   },
   uniforms: {
-    ...UniformsUtils.clone(ShaderLib.phong.uniforms)
+    ...UniformsUtils.clone(ShaderLib.phong.uniforms),
+    ...{
+      decalMap: {
+        type: "t",
+        value: null
+      }
+    }
   }
 });
 
@@ -71,7 +79,52 @@ const highlightMaterial = new MeshBasicMaterial({ color: new Color(1, 1, 1) });
 
 avatarMaterial.onBeforeCompile = shader => {
   addVertexCurvingToShader(shader);
-  //shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
+
+  // Add shader code to add decals
+  shader.vertexShader = shader.vertexShader.replace(
+    "#include <uv2_pars_vertex>",
+    [
+      "#include <uv2_pars_vertex>",
+      "attribute vec3 duv;",
+      "varying vec3 vDuv;",
+      "attribute vec4 duvOffset;",
+      "varying vec4 vDuvOffset;"
+    ].join("\n")
+  );
+
+  shader.vertexShader = shader.vertexShader.replace(
+    "#include <uv2_vertex>",
+    ["#include <uv2_vertex>", "vDuv = duv;", "vDuvOffset = duvOffset;"].join("\n")
+  );
+
+  shader.fragmentShader = shader.fragmentShader.replace(
+    "#include <gradientmap_pars_fragment>",
+    [
+      "#include <gradientmap_pars_fragment>",
+      "precision mediump sampler3D;",
+      "uniform sampler3D decalMap;",
+      "varying vec3 vDuv;",
+      "varying vec4 vDuvOffset;"
+    ].join("\n")
+  );
+
+  shader.fragmentShader = shader.fragmentShader.replace(
+    "#include <tonemapping_fragment>",
+    [
+      //"if (abs(vDuv.z - 1.0) < 0.0001) {",
+      //"gl_FragColor = vec4(1.0, vDuv.x, vDuv.y, 1.0);",
+      //"} else if (abs(vDuv.z) < 0.0001) {",
+      //"gl_FragColor = vec4(vDuv.x, 1.0, vDuv.y, 1.0);",
+      //"} else if (abs(vDuv.z - 2.0) < 0.0001) {",
+      //"gl_FragColor = vec4(vDuv.x, vDuv.y, 1.0, 1.0);",
+      //"} else {",
+      //"gl_FragColor = vec4(vDuv.z, vDuv.z, vDuv.z, 1.0);",
+      //"}",
+      ////"gl_FragColor = vec4(vDuv.x, vDuv.y, 0.0, 1.0);",
+      "gl_FragColor = texture(decalMap, vec3(vDuv.x, vDuv.y, vDuv.z));",
+      "#include <tonemapping_fragment>"
+    ].join("\n")
+  );
 };
 
 outlineMaterial.onBeforeCompile = shader => addVertexCurvingToShader(shader);
@@ -94,13 +147,46 @@ export class AvatarSystem {
     this.dirtyAvatars.fill(0);
 
     this.maxRegisteredIndex = -1;
+
     this.createMesh();
+    this.loadDecalMap();
+  }
+
+  async loadDecalMap() {
+    const loader = new ImageLoader();
+    const canvas = document.createElement("canvas");
+    canvas.width = DECAL_MAP_SIZE;
+    canvas.height = DECAL_MAP_SIZE;
+    const ctx = canvas.getContext("2d");
+
+    const data = new Uint8Array(DECAL_MAP_SIZE * DECAL_MAP_SIZE * NUM_DECAL_MAPS * 4);
+
+    const loadImage = async (src, mapIndex) => {
+      await new Promise(res => {
+        loader.load(src, image => {
+          ctx.drawImage(image, 0, 0);
+          const d = ctx.getImageData(0, 0, DECAL_MAP_SIZE, DECAL_MAP_SIZE);
+          data.set(new Uint8Array(d.data), mapIndex * DECAL_MAP_SIZE * DECAL_MAP_SIZE * 4);
+          res();
+        });
+      });
+    };
+
+    await loadImage(avatarEyeImgSrc, 0);
+    await loadImage(avatarMouthImgSrc, 1);
+
+    const decalMap = new DataTexture3D(data, DECAL_MAP_SIZE, DECAL_MAP_SIZE, NUM_DECAL_MAPS);
+
+    decalMap.magFilter = NearestFilter;
+    decalMap.minFilter = NearestFilter;
+    decalMap.format = RGBAFormat;
+    avatarMaterial.uniforms.decalMap.value = decalMap;
   }
 
   register(el) {
-    const index = this.mesh.addMatrix(IDENITTY);
-    this.outlineMesh.addMatrix(IDENITTY);
-    this.highlightMesh.addMatrix(IDENITTY);
+    const index = this.mesh.addInstance(IDENITTY);
+    this.outlineMesh.addInstance(IDENITTY);
+    this.highlightMesh.addInstance(IDENITTY);
 
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.avatarEls[index] = el;
@@ -111,9 +197,9 @@ export class AvatarSystem {
     for (let i = 0; i <= this.maxRegisteredIndex; i++) {
       if (el === this.avatarEls[i]) {
         this.avatarEls[i] = null;
-        this.mesh.removeMatrix(i);
-        this.outlineMesh.removeMatrix(i);
-        this.highlightMesh.removeMatrix(i);
+        this.mesh.freeInstance(i);
+        this.outlineMesh.freeInstance(i);
+        this.highlightMesh.freeInstance(i);
         return;
       }
     }
@@ -129,27 +215,31 @@ export class AvatarSystem {
   }
 
   createMesh() {
-    this.mesh = new DynamicInstancedMesh(new AvatarSphereBufferGeometry(AVATAR_RADIUS, 30, 30), avatarMaterial, 128);
+    this.mesh = new DynamicInstancedMesh(
+      new AvatarSphereBufferGeometry(AVATAR_RADIUS, MAX_AVATARS),
+      avatarMaterial,
+      MAX_AVATARS
+    );
     this.mesh.renderOrder = RENDER_ORDER.INSTANCED_AVATAR;
     this.mesh.castShadow = true;
 
     this.outlineMesh = new DynamicInstancedMesh(
-      new AvatarSphereBufferGeometry(AVATAR_RADIUS + AVATAR_RADIUS * OUTLINE_SIZE, 30, 30, true),
+      new AvatarSphereBufferGeometry(AVATAR_RADIUS + AVATAR_RADIUS * OUTLINE_SIZE, MAX_AVATARS, true),
       outlineMaterial,
-      128
+      MAX_AVATARS
     );
     this.outlineMesh.renderOrder = RENDER_ORDER.INSTANCED_AVATAR + 1;
 
     this.highlightMesh = new DynamicInstancedMesh(
-      new AvatarSphereBufferGeometry(AVATAR_RADIUS + AVATAR_RADIUS * HIGHLIGHT_SIZE, 30, 30, true),
+      new AvatarSphereBufferGeometry(AVATAR_RADIUS + AVATAR_RADIUS * HIGHLIGHT_SIZE, MAX_AVATARS, true),
       highlightMaterial,
-      128
+      MAX_AVATARS
     );
     this.highlightMesh.renderOrder = RENDER_ORDER.INSTANCED_AVATAR + 2;
 
     this.sceneEl.object3D.add(this.mesh);
-    this.sceneEl.object3D.add(this.outlineMesh);
-    this.sceneEl.object3D.add(this.highlightMesh);
+    //this.sceneEl.object3D.add(this.outlineMesh);
+    //this.sceneEl.object3D.add(this.highlightMesh);
   }
 
   tick() {
