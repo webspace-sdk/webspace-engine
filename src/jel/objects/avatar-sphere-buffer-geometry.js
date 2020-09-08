@@ -9,9 +9,6 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
   this.type = "SphereBufferGeometry";
   this.instanceAttributes = []; // For DynamicMultiInstacnedMesh
 
-  const widthSegments = 30;
-  const heightSegments = 30;
-
   const indices = [];
   const vertices = [];
   const normals = [];
@@ -19,7 +16,18 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
   const duvs = [];
   const colorScales = [];
 
-  const addLayer = (radius, phiStart, phiLength, thetaStart, thetaLength, dw, colorScale, invert) => {
+  const addLayer = (
+    radius,
+    widthSegments,
+    heightSegments,
+    phiStart,
+    phiLength,
+    thetaStart,
+    thetaLength,
+    dw,
+    colorScale,
+    invert
+  ) => {
     const layerIndexOffset = vertices.length / 3;
     const thetaEnd = Math.min(thetaStart + thetaLength, Math.PI);
 
@@ -102,11 +110,13 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
     // build geometry
   };
 
-  addLayer(coreRadius, 0, Math.PI * 2.0, 0, Math.PI, 2.0, 1.0, false);
+  addLayer(coreRadius, 30, 30, 0, Math.PI * 2.0, 0, Math.PI, 2.0, 1.0, false);
 
   // Upper
   addLayer(
-    coreRadius + 0.001,
+    coreRadius + 0.005,
+    12,
+    12,
     Math.PI / 6.0,
     (Math.PI * 2.0) / 3.0,
     Math.PI / 6.0,
@@ -118,7 +128,9 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
 
   // Lower
   addLayer(
-    coreRadius + 0.001,
+    coreRadius + 0.005,
+    12,
+    12,
     Math.PI / 6.0,
     (Math.PI * 2.0) / 3.0,
     Math.PI / 2.0 + 0.001,
@@ -129,10 +141,10 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
   );
 
   // Outline
-  addLayer(coreRadius + 0.01 + coreRadius * OUTLINE_SIZE, 0, Math.PI * 2.0, 0, Math.PI, 2.0, 0.0, true);
+  addLayer(coreRadius + 0.01 + coreRadius * OUTLINE_SIZE, 30, 30, 0, Math.PI * 2.0, 0, Math.PI, 2.0, 0.0, true);
 
   // Highlight
-  addLayer(coreRadius + 0.01 + coreRadius * HIGHLIGHT_SIZE, 0, Math.PI * 2.0, 0, Math.PI, 2.0, 100000.0, true);
+  addLayer(coreRadius + 0.01 + coreRadius * HIGHLIGHT_SIZE, 30, 30, 0, Math.PI * 2.0, 0, Math.PI, 2.0, 100000.0, true);
 
   this.setIndex(indices);
   this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
