@@ -91,8 +91,8 @@ DynamicInstancedMesh.prototype = Object.assign(Object.create(InstancedMesh.proto
   freeInstance(index) {
     const { freeIndices } = this;
 
-    for (let i = 0; i < arguments.length; i++) {
-      this.instanceFreers[i](arguments[i], index);
+    for (let i = 0; i < this.instanceFreers.length; i++) {
+      this.instanceFreers[i](index);
       this.instanceAttributes[i].needsUpdate = true;
     }
 
