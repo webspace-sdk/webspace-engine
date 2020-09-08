@@ -18,10 +18,11 @@ const {
   MeshToonMaterial,
   ImageLoader,
   NearestFilter,
+  LinearFilter,
   DataTexture
 } = THREE;
 
-const DECAL_MAP_SIZE = 1024;
+const DECAL_MAP_SIZE = 4096;
 const NUM_DECAL_MAPS = 3;
 
 let toonGradientMap;
@@ -41,8 +42,6 @@ let toonGradientMap;
 
 const IDENITTY = new Matrix4();
 const AVATAR_RADIUS = 0.4;
-const OUTLINE_SIZE = 0.05;
-const HIGHLIGHT_SIZE = 0.15;
 
 const avatarMaterial = new ShaderMaterial({
   name: "avatar",
@@ -111,17 +110,9 @@ avatarMaterial.onBeforeCompile = shader => {
   shader.fragmentShader = shader.fragmentShader.replace(
     "#include <tonemapping_fragment>",
     [
-      //"if (abs(vDuv.z - 1.0) < 0.0001) {",
-      //"gl_FragColor = vec4(1.0, vDuv.x, vDuv.y, 1.0);",
-      //"} else if (abs(vDuv.z) < 0.0001) {",
-      //"gl_FragColor = vec4(vDuv.x, 1.0, vDuv.y, 1.0);",
-      //"} else if (abs(vDuv.z - 2.0) < 0.0001) {",
-      //"gl_FragColor = vec4(vDuv.x, vDuv.y, 1.0, 1.0);",
-      //"} else {",
-      //"gl_FragColor = vec4(vDuv.z, vDuv.z, vDuv.z, 1.0);",
-      //"}",
-      ////"gl_FragColor = vec4(vDuv.x, vDuv.y, 0.0, 1.0);",
-      "gl_FragColor = texture(decalMap, vec3(vDuv.x, vDuv.y, vDuv.z));",
+      "vec4 texel = texture(decalMap, vec3(vDuv.x / 8.0, vDuv.y / 8.0, 0.6));",
+      "gl_FragColor = vec4(gl_FragColor.rgb * (1.0 - texel.a) + texel.rgb * texel.a, gl_FragColor.a);",
+      //"gl_FragColor = texel;",
       "#include <tonemapping_fragment>"
     ].join("\n")
   );
@@ -177,16 +168,14 @@ export class AvatarSystem {
 
     const decalMap = new DataTexture3D(data, DECAL_MAP_SIZE, DECAL_MAP_SIZE, NUM_DECAL_MAPS);
 
-    decalMap.magFilter = NearestFilter;
-    decalMap.minFilter = NearestFilter;
+    decalMap.magFilter = LinearFilter;
+    decalMap.minFilter = LinearFilter;
     decalMap.format = RGBAFormat;
     avatarMaterial.uniforms.decalMap.value = decalMap;
   }
 
   register(el) {
     const index = this.mesh.addInstance(IDENITTY);
-    this.outlineMesh.addInstance(IDENITTY);
-    this.highlightMesh.addInstance(IDENITTY);
 
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.avatarEls[index] = el;
@@ -198,8 +187,6 @@ export class AvatarSystem {
       if (el === this.avatarEls[i]) {
         this.avatarEls[i] = null;
         this.mesh.freeInstance(i);
-        this.outlineMesh.freeInstance(i);
-        this.highlightMesh.freeInstance(i);
         return;
       }
     }
@@ -223,23 +210,7 @@ export class AvatarSystem {
     this.mesh.renderOrder = RENDER_ORDER.INSTANCED_AVATAR;
     this.mesh.castShadow = true;
 
-    this.outlineMesh = new DynamicInstancedMesh(
-      new AvatarSphereBufferGeometry(AVATAR_RADIUS + AVATAR_RADIUS * OUTLINE_SIZE, MAX_AVATARS, true),
-      outlineMaterial,
-      MAX_AVATARS
-    );
-    this.outlineMesh.renderOrder = RENDER_ORDER.INSTANCED_AVATAR + 1;
-
-    this.highlightMesh = new DynamicInstancedMesh(
-      new AvatarSphereBufferGeometry(AVATAR_RADIUS + AVATAR_RADIUS * HIGHLIGHT_SIZE, MAX_AVATARS, true),
-      highlightMaterial,
-      MAX_AVATARS
-    );
-    this.highlightMesh.renderOrder = RENDER_ORDER.INSTANCED_AVATAR + 2;
-
     this.sceneEl.object3D.add(this.mesh);
-    //this.sceneEl.object3D.add(this.outlineMesh);
-    //this.sceneEl.object3D.add(this.highlightMesh);
   }
 
   tick() {
@@ -256,12 +227,6 @@ export class AvatarSystem {
 
       this.mesh.setMatrixAt(i, head.matrixWorld);
       this.mesh.instanceMatrix.needsUpdate = true;
-
-      this.outlineMesh.setMatrixAt(i, head.matrixWorld);
-      this.outlineMesh.instanceMatrix.needsUpdate = true;
-
-      this.highlightMesh.setMatrixAt(i, head.matrixWorld);
-      this.highlightMesh.instanceMatrix.needsUpdate = true;
 
       this.atmosphereSystem.updateShadows();
 

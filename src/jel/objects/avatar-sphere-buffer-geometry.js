@@ -18,7 +18,6 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
   const uvs = [];
   const duvs = [];
 
-  // 0.0, 0.5, 0.667
   const addLayer = (radius, phiStart, phiLength, thetaStart, thetaLength, dw, invert) => {
     const layerIndexOffset = vertices.length / 3;
     const thetaEnd = Math.min(thetaStart + thetaLength, Math.PI);
@@ -101,7 +100,7 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
     // build geometry
   };
 
-  addLayer(coreRadius, 0, Math.PI * 2.0, 0, Math.PI, 0.667, false);
+  addLayer(coreRadius, 0, Math.PI * 2.0, 0, Math.PI, 1.0, false);
 
   // Upper
   addLayer(
@@ -126,10 +125,10 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
   );
 
   // Outline
-  addLayer(coreRadius + 0.01 + coreRadius * OUTLINE_SIZE, 0, Math.PI * 2.0, 0, Math.PI, 0.667, true);
+  addLayer(coreRadius + 0.01 + coreRadius * OUTLINE_SIZE, 0, Math.PI * 2.0, 0, Math.PI, 1.0, true);
 
   // Highlight
-  addLayer(coreRadius + 0.01 + coreRadius * HIGHLIGHT_SIZE, 0, Math.PI * 2.0, 0, Math.PI, 0.667, true);
+  addLayer(coreRadius + 0.01 + coreRadius * HIGHLIGHT_SIZE, 0, Math.PI * 2.0, 0, Math.PI, 1.0, true);
 
   this.setIndex(indices);
   this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
