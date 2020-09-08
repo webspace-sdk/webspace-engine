@@ -17,8 +17,9 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
   const normals = [];
   const uvs = [];
   const duvs = [];
+  const colorScales = [];
 
-  const addLayer = (radius, phiStart, phiLength, thetaStart, thetaLength, dw, invert) => {
+  const addLayer = (radius, phiStart, phiLength, thetaStart, thetaLength, dw, colorScale, invert) => {
     const layerIndexOffset = vertices.length / 3;
     const thetaEnd = Math.min(thetaStart + thetaLength, Math.PI);
 
@@ -57,6 +58,7 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
         vertex.z = radius * Math.sin(phiStart + u * phiLength) * Math.sin(thetaStart + v * thetaLength);
 
         vertices.push(vertex.x, vertex.y, vertex.z);
+        colorScales.push(colorScale);
 
         // normal
 
@@ -100,41 +102,44 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
     // build geometry
   };
 
-  addLayer(coreRadius, 0, Math.PI * 2.0, 0, Math.PI, 2.0, false);
+  addLayer(coreRadius, 0, Math.PI * 2.0, 0, Math.PI, 2.0, 1.0, false);
 
   // Upper
   addLayer(
-    coreRadius + 0.01,
+    coreRadius + 0.001,
     Math.PI / 6.0,
     (Math.PI * 2.0) / 3.0,
     Math.PI / 6.0,
     (Math.PI * 2.0) / 6.0 - 0.001,
     0.0,
+    1.0,
     false
   );
 
   // Lower
   addLayer(
-    coreRadius + 0.01,
+    coreRadius + 0.001,
     Math.PI / 6.0,
     (Math.PI * 2.0) / 3.0,
     Math.PI / 2.0 + 0.001,
     (Math.PI * 2.0) / 6.0,
     1.0,
+    1.0,
     false
   );
 
   // Outline
-  addLayer(coreRadius + 0.01 + coreRadius * OUTLINE_SIZE, 0, Math.PI * 2.0, 0, Math.PI, 2.0, true);
+  addLayer(coreRadius + 0.01 + coreRadius * OUTLINE_SIZE, 0, Math.PI * 2.0, 0, Math.PI, 2.0, 0.0, true);
 
   // Highlight
-  addLayer(coreRadius + 0.01 + coreRadius * HIGHLIGHT_SIZE, 0, Math.PI * 2.0, 0, Math.PI, 2.0, true);
+  addLayer(coreRadius + 0.01 + coreRadius * HIGHLIGHT_SIZE, 0, Math.PI * 2.0, 0, Math.PI, 2.0, 100000.0, true);
 
   this.setIndex(indices);
   this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
   this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
   this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
   this.setAttribute("duv", new Float32BufferAttribute(duvs, 3));
+  this.setAttribute("colorScale", new Float32BufferAttribute(colorScales, 1));
 
   const duvOffsets = [];
 

@@ -87,6 +87,8 @@ avatarMaterial.onBeforeCompile = shader => {
       "#include <uv2_pars_vertex>",
       "attribute vec3 duv;",
       "varying vec3 vDuv;",
+      "attribute float colorScale;",
+      "varying float vColorScale;",
       "attribute vec4 duvOffset;",
       "varying vec4 vDuvOffset;"
     ].join("\n")
@@ -94,7 +96,7 @@ avatarMaterial.onBeforeCompile = shader => {
 
   shader.vertexShader = shader.vertexShader.replace(
     "#include <uv2_vertex>",
-    ["#include <uv2_vertex>", "vDuv = duv;", "vDuvOffset = duvOffset;"].join("\n")
+    ["#include <uv2_vertex>", "vDuv = duv;", "vDuvOffset = duvOffset;", "vColorScale = colorScale;"].join("\n")
   );
 
   shader.fragmentShader = shader.fragmentShader.replace(
@@ -104,7 +106,8 @@ avatarMaterial.onBeforeCompile = shader => {
       "precision mediump sampler2DArray;",
       "uniform sampler2DArray decalMap;",
       "varying vec3 vDuv;",
-      "varying vec4 vDuvOffset;"
+      "varying vec4 vDuvOffset;",
+      "varying float vColorScale;"
     ].join("\n")
   );
 
@@ -112,7 +115,9 @@ avatarMaterial.onBeforeCompile = shader => {
     "#include <tonemapping_fragment>",
     [
       "vec4 texel = texture(decalMap, vec3(vDuv.x / 8.0, vDuv.y / 8.0, vDuv.z));",
-      "gl_FragColor = vec4(gl_FragColor.rgb * (1.0 - texel.a) + texel.rgb * texel.a, gl_FragColor.a);",
+      "vec3 color = gl_FragColor.rgb * (1.0 - texel.a) + texel.rgb * texel.a;",
+      "vec3 scaled = clamp(max(color * vColorScale, step(1.1, vColorScale)), 0.0, 1.0);",
+      "gl_FragColor = vec4(scaled, gl_FragColor.a);",
       //"gl_FragColor = texel;",
       "#include <tonemapping_fragment>"
     ].join("\n")
