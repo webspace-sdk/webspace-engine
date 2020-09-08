@@ -13,8 +13,9 @@ const {
   Matrix4,
   ShaderLib,
   UniformsUtils,
+  UnsignedByteType,
   RGBAFormat,
-  DataTexture3D,
+  DataTexture2DArray,
   MeshToonMaterial,
   ImageLoader,
   NearestFilter,
@@ -100,8 +101,8 @@ avatarMaterial.onBeforeCompile = shader => {
     "#include <gradientmap_pars_fragment>",
     [
       "#include <gradientmap_pars_fragment>",
-      "precision mediump sampler3D;",
-      "uniform sampler3D decalMap;",
+      "precision mediump sampler2DArray;",
+      "uniform sampler2DArray decalMap;",
       "varying vec3 vDuv;",
       "varying vec4 vDuvOffset;"
     ].join("\n")
@@ -110,7 +111,7 @@ avatarMaterial.onBeforeCompile = shader => {
   shader.fragmentShader = shader.fragmentShader.replace(
     "#include <tonemapping_fragment>",
     [
-      "vec4 texel = texture(decalMap, vec3(vDuv.x / 8.0, vDuv.y / 8.0, 0.6));",
+      "vec4 texel = texture(decalMap, vec3(vDuv.x / 8.0, vDuv.y / 8.0, vDuv.z));",
       "gl_FragColor = vec4(gl_FragColor.rgb * (1.0 - texel.a) + texel.rgb * texel.a, gl_FragColor.a);",
       //"gl_FragColor = texel;",
       "#include <tonemapping_fragment>"
@@ -155,6 +156,7 @@ export class AvatarSystem {
     const loadImage = async (src, mapIndex) => {
       await new Promise(res => {
         loader.load(src, image => {
+          ctx.clearRect(0, 0, DECAL_MAP_SIZE, DECAL_MAP_SIZE);
           ctx.drawImage(image, 0, 0);
           const d = ctx.getImageData(0, 0, DECAL_MAP_SIZE, DECAL_MAP_SIZE);
           data.set(new Uint8Array(d.data), mapIndex * DECAL_MAP_SIZE * DECAL_MAP_SIZE * 4);
@@ -166,11 +168,12 @@ export class AvatarSystem {
     await loadImage(avatarEyeImgSrc, 0);
     await loadImage(avatarMouthImgSrc, 1);
 
-    const decalMap = new DataTexture3D(data, DECAL_MAP_SIZE, DECAL_MAP_SIZE, NUM_DECAL_MAPS);
+    const decalMap = new DataTexture2DArray(data, DECAL_MAP_SIZE, DECAL_MAP_SIZE, NUM_DECAL_MAPS);
 
     decalMap.magFilter = LinearFilter;
     decalMap.minFilter = LinearFilter;
     decalMap.format = RGBAFormat;
+    decalMap.type = UnsignedByteType;
     avatarMaterial.uniforms.decalMap.value = decalMap;
   }
 

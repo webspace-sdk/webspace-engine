@@ -100,7 +100,7 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
     // build geometry
   };
 
-  addLayer(coreRadius, 0, Math.PI * 2.0, 0, Math.PI, 1.0, false);
+  addLayer(coreRadius, 0, Math.PI * 2.0, 0, Math.PI, 2.0, false);
 
   // Upper
   addLayer(
@@ -120,15 +120,15 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
     (Math.PI * 2.0) / 3.0,
     Math.PI / 2.0 + 0.001,
     (Math.PI * 2.0) / 6.0,
-    0.5,
+    1.0,
     false
   );
 
   // Outline
-  addLayer(coreRadius + 0.01 + coreRadius * OUTLINE_SIZE, 0, Math.PI * 2.0, 0, Math.PI, 1.0, true);
+  addLayer(coreRadius + 0.01 + coreRadius * OUTLINE_SIZE, 0, Math.PI * 2.0, 0, Math.PI, 2.0, true);
 
   // Highlight
-  addLayer(coreRadius + 0.01 + coreRadius * HIGHLIGHT_SIZE, 0, Math.PI * 2.0, 0, Math.PI, 1.0, true);
+  addLayer(coreRadius + 0.01 + coreRadius * HIGHLIGHT_SIZE, 0, Math.PI * 2.0, 0, Math.PI, 2.0, true);
 
   this.setIndex(indices);
   this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
