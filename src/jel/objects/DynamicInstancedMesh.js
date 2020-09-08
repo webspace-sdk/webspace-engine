@@ -1,4 +1,7 @@
-const { InstancedMesh, Matrix4 } = THREE;
+const { InstancedMesh, Matrix4, Vector3, Vector4 } = THREE;
+
+const zeroMatrix = new Matrix4();
+zeroMatrix.makeScale(0, 0, 0);
 
 function DynamicInstancedMesh(geometry, material, maxCount) {
   InstancedMesh.call(this, geometry, material, maxCount);
@@ -8,15 +11,60 @@ function DynamicInstancedMesh(geometry, material, maxCount) {
   this.matrixAutoUpdate = false;
   this.frustumCulled = false;
   this.freeIndices = new Set();
-}
 
-const zeroMatrix = new Matrix4();
-zeroMatrix.makeScale(0, 0, 0);
+  this.instanceAttributes = [...(geometry.instanceAttributes || []), ...[[Matrix4, this.instanceMatrix]]];
+  this.instanceWriters = [];
+  this.instanceFreers = [];
+
+  for (let i = 0; i < this.instanceAttributes.length; i++) {
+    const [type, attribute] = this.instanceAttributes[i];
+
+    if (type === Matrix4) {
+      this.instanceWriters.push((matrix, index) => {
+        matrix.toArray(attribute.array, index * 16);
+      });
+
+      this.instanceFreers.push(index => {
+        zeroMatrix.toArray(attribute.array, index * 16);
+      });
+    }
+
+    if (type === Vector3) {
+      this.instanceWriters.push((v, index) => {
+        attribute.array[index * 4] = v.x;
+        attribute.array[index * 4 + 1] = v.y;
+        attribute.array[index * 4 + 2] = v.z;
+      });
+
+      this.instanceFreers.push(index => {
+        attribute.array[index * 4] = 0.0;
+        attribute.array[index * 4 + 1] = 0.0;
+        attribute.array[index * 4 + 2] = 0.0;
+      });
+    }
+
+    if (type === Vector4) {
+      this.instanceWriters.push((v, index) => {
+        attribute.array[index * 4] = v.x;
+        attribute.array[index * 4 + 1] = v.y;
+        attribute.array[index * 4 + 2] = v.z;
+        attribute.array[index * 4 + 3] = v.w;
+      });
+
+      this.instanceFreers.push(index => {
+        attribute.array[index * 4] = 0.0;
+        attribute.array[index * 4 + 1] = 0.0;
+        attribute.array[index * 4 + 2] = 0.0;
+        attribute.array[index * 4 + 3] = 0.0;
+      });
+    }
+  }
+}
 
 DynamicInstancedMesh.prototype = Object.assign(Object.create(InstancedMesh.prototype), {
   constructor: DynamicInstancedMesh,
 
-  addMatrix(matrix) {
+  addInstance() {
     const { nextIndex, freeIndices } = this;
     let index;
 
@@ -28,8 +76,10 @@ DynamicInstancedMesh.prototype = Object.assign(Object.create(InstancedMesh.proto
       this.count++;
     }
 
-    matrix.toArray(this.instanceMatrix.array, index * 16);
-    this.instanceMatrix.needsUpdate = true;
+    for (let i = 0; i < arguments.length; i++) {
+      this.instanceWriters[i](arguments[i], index);
+      this.instanceAttributes[i].needsUpdate = true;
+    }
 
     if (index === nextIndex) {
       this.nextIndex += 1;
@@ -38,10 +88,14 @@ DynamicInstancedMesh.prototype = Object.assign(Object.create(InstancedMesh.proto
     return index;
   },
 
-  removeMatrix(index) {
-    const { instanceMatrix, freeIndices } = this;
-    zeroMatrix.toArray(instanceMatrix.array, index * 16);
-    instanceMatrix.needsUpdate = true;
+  freeInstance(index) {
+    const { freeIndices } = this;
+
+    for (let i = 0; i < this.instanceFreers.length; i++) {
+      this.instanceFreers[i](index);
+      this.instanceAttributes[i].needsUpdate = true;
+    }
+
     freeIndices.add(index);
   },
 

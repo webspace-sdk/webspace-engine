@@ -15,6 +15,21 @@ const normalizeCoord = c => {
   }
 };
 
+const denormalizeCoord = (c, p) => {
+  // Bring new point to same area as previous point.
+  if (c < p) {
+    while (Math.abs(p - c) > WORLD_SIZE / 2) {
+      c += WORLD_SIZE;
+    }
+  } else if (c > p) {
+    while (Math.abs(p - c) > WORLD_SIZE / 2) {
+      c -= WORLD_SIZE;
+    }
+  }
+
+  return c;
+};
+
 export const registerWrappedEntityPositionNormalizers = () => {
   const pos = new THREE.Vector3();
 
@@ -26,8 +41,18 @@ export const registerWrappedEntityPositionNormalizers = () => {
     return new THREE.Vector3(pos.x, pos.y, pos.z);
   };
 
+  const denormalizer = (data, prev) => {
+    data.x = denormalizeCoord(data.x, prev.x);
+    data.z = denormalizeCoord(data.z, prev.z);
+
+    return data;
+  };
+
   NAF.entities.setPositionNormalizer(normalizer);
   SAF.entities.setPositionNormalizer(normalizer);
+
+  NAF.entities.setPositionDenormalizer(denormalizer);
+  SAF.entities.setPositionDenormalizer(denormalizer);
 
   NAF.options.maxLerpDistance = WORLD_SIZE - 1;
   SAF.options.maxLerpDistance = WORLD_SIZE - 1;
