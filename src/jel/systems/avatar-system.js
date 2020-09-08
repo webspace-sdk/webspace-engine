@@ -1,5 +1,6 @@
 import avatarSheetImgSrc from "!!url-loader!../assets/images/avatar-sheet.png";
 import avatarSheetBasisSrc from "!!url-loader!../assets/images/avatar-sheet.basis";
+import HubsTextureLoader from "../../hubs/loaders/HubsTextureLoader";
 import { createBasisTexture } from "../../hubs/utils/media-utils";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { RENDER_ORDER } from "../../hubs/constants";
@@ -15,7 +16,6 @@ const {
   ShaderLib,
   UniformsUtils,
   MeshToonMaterial,
-  ImageLoader,
   NearestFilter,
   LinearFilter,
   DataTexture,
@@ -178,14 +178,7 @@ export class AvatarSystem {
     if (USE_BASIS) {
       decalMap = (await createBasisTexture(avatarSheetBasisSrc))[0];
     } else {
-      decalMap = await new Promise(res => {
-        new ImageLoader().load(avatarSheetImgSrc, image => {
-          const texture = new THREE.Texture();
-          texture.image = image;
-          texture.needsUpdate = true;
-          res(texture);
-        });
-      });
+      decalMap = await new HubsTextureLoader().load(avatarSheetImgSrc);
     }
 
     decalMap.magFilter = LinearFilter;
