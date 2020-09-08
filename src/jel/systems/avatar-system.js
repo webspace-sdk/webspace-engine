@@ -1,5 +1,6 @@
-import avatarEyeImgSrc from "!!url-loader!../assets/images/avatar-eyes.png";
-import avatarMouthImgSrc from "!!url-loader!../assets/images/avatar-mouths.png";
+import avatarSheetImgSrc from "!!url-loader!../assets/images/avatar-sheet.png";
+import avatarSheetBasisSrc from "!!url-loader!../assets/images/avatar-sheet.basis";
+import { createBasisTexture } from "../../hubs/utils/media-utils";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { addVertexCurvingToShader } from "./terrain-system";
@@ -13,9 +14,6 @@ const {
   Matrix4,
   ShaderLib,
   UniformsUtils,
-  UnsignedByteType,
-  RGBAFormat,
-  DataTexture2DArray,
   MeshToonMaterial,
   ImageLoader,
   NearestFilter,
@@ -24,8 +22,8 @@ const {
   Vector4
 } = THREE;
 
-const DECAL_MAP_SIZE = 4096;
-const NUM_DECAL_MAPS = 3;
+const USE_BASIS = true;
+const MAX_ANISOTROPY = 16;
 
 const EYE_DECAL_NEUTRAL = 0;
 const EYE_DECAL_UP = 1;
@@ -120,8 +118,8 @@ avatarMaterial.onBeforeCompile = shader => {
     "#include <gradientmap_pars_fragment>",
     [
       "#include <gradientmap_pars_fragment>",
-      "precision mediump sampler2DArray;",
-      "uniform sampler2DArray decalMap;",
+      "precision highp sampler2D;",
+      "uniform sampler2D decalMap;",
       "varying vec3 vDuv;",
       "varying vec4 vDuvOffset;",
       "varying float vColorScale;"
@@ -135,11 +133,10 @@ avatarMaterial.onBeforeCompile = shader => {
       "float clampedLayer = clamp(vDuv.z, 0.0, 1.0);",
       "float duOffset = mix(vDuvOffset.x, vDuvOffset.z, clampedLayer);",
       "float dvOffset = mix(vDuvOffset.y, vDuvOffset.w, clampedLayer);",
-      "vec4 texel = texture(decalMap, vec3(vDuv.x / 8.0 + duOffset / 8.0, vDuv.y / 8.0 + dvOffset / 8.0, vDuv.z));",
+      "vec4 texel = texture(decalMap, vec2(vDuv.x / 8.0 + duOffset / 8.0, vDuv.y / 16.0 + dvOffset / 16.0 + vDuv.z * 0.5));",
       "vec3 color = gl_FragColor.rgb * (1.0 - texel.a) + texel.rgb * texel.a;",
       "vec3 scaled = clamp(max(color * vColorScale, step(1.1, vColorScale)), 0.0, 1.0);",
       "gl_FragColor = vec4(scaled, gl_FragColor.a);",
-      //"gl_FragColor = texel;",
       "#include <tonemapping_fragment>"
     ].join("\n")
   );
@@ -170,42 +167,32 @@ export class AvatarSystem {
     this.dirtyAvatars.fill(0);
 
     this.maxRegisteredIndex = -1;
+    this.loadedDecals = false;
 
     this.createMesh();
-    this.loadDecalMap();
   }
 
   async loadDecalMap() {
-    const loader = new ImageLoader();
-    const canvas = document.createElement("canvas");
-    canvas.width = DECAL_MAP_SIZE;
-    canvas.height = DECAL_MAP_SIZE;
-    const ctx = canvas.getContext("2d");
+    let decalMap;
 
-    const data = new Uint8Array(DECAL_MAP_SIZE * DECAL_MAP_SIZE * NUM_DECAL_MAPS * 4);
-
-    const loadImage = async (src, mapIndex) => {
-      await new Promise(res => {
-        loader.load(src, image => {
-          ctx.clearRect(0, 0, DECAL_MAP_SIZE, DECAL_MAP_SIZE);
-          ctx.drawImage(image, 0, 0);
-          const d = ctx.getImageData(0, 0, DECAL_MAP_SIZE, DECAL_MAP_SIZE);
-          data.set(new Uint8Array(d.data), mapIndex * DECAL_MAP_SIZE * DECAL_MAP_SIZE * 4);
-          res();
+    if (USE_BASIS) {
+      decalMap = (await createBasisTexture(avatarSheetBasisSrc))[0];
+    } else {
+      decalMap = await new Promise(res => {
+        new ImageLoader().load(avatarSheetImgSrc, image => {
+          const texture = new THREE.Texture();
+          texture.image = image;
+          texture.needsUpdate = true;
+          res(texture);
         });
       });
-    };
-
-    await loadImage(avatarEyeImgSrc, 0);
-    await loadImage(avatarMouthImgSrc, 1);
-
-    const decalMap = new DataTexture2DArray(data, DECAL_MAP_SIZE, DECAL_MAP_SIZE, NUM_DECAL_MAPS);
+    }
 
     decalMap.magFilter = LinearFilter;
     decalMap.minFilter = LinearFilter;
-    decalMap.format = RGBAFormat;
-    decalMap.type = UnsignedByteType;
+    decalMap.anisotropy = MAX_ANISOTROPY;
     avatarMaterial.uniforms.decalMap.value = decalMap;
+    avatarMaterial.uniformsNeedUpdate = true;
   }
 
   register(el) {
@@ -249,6 +236,13 @@ export class AvatarSystem {
   }
 
   tick(t) {
+    if (!this.loadedDecals) {
+      this.loadDecalMap();
+      this.loadedDecals = true;
+    }
+
+    if (!avatarMaterial.uniforms.decalMap.value) return;
+
     const {
       scheduledEyeDecals,
       avatarEls,
