@@ -94,7 +94,6 @@ const meydaFeatures = ["mfcc", "energy"];
 
 async function performPrediction(model, frameData) {
   const { mfcc, energy } = meydaExtract(meydaFeatures, frameData);
-  if (energy < 0.1) return; // Skip low energy frames
 
   // Buffer frame to write
   const d = buf[ibuf];
