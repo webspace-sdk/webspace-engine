@@ -6,6 +6,8 @@ const tfjsSrc = require("!!file-loader!../assets/js/tfjs.js");
 const tfjsWasmBackendSrc = require("!!file-loader!../assets/js/tfjs-backend-wasm.js");
 importScripts(tfjsSrc);
 importScripts(tfjsWasmBackendSrc);
+//importScripts("https://s3.amazonaws.com/jel.ai/js/tfjs.js");
+//importScripts("https://s3.amazonaws.com/jel.ai/js/tfjs-backend-wasm.js");
 
 const modelSrc = "https://s3.amazonaws.com/jel.ai/lipsync-quant/model.json";
 

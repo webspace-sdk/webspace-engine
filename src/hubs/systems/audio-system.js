@@ -176,7 +176,7 @@ export class AudioSystem {
 
       if (newViseme !== this.curViseme) {
         this.curViseme = newViseme;
-        console.log(newViseme);
+        //console.log(newViseme);
       }
     }
   }
