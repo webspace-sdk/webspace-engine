@@ -1,7 +1,7 @@
-// Trouble loading wasm backend in worker, revisit this once wasm is included in tfjs proper
-// and import it normally via NPM
 import Meyda from "meyda";
 
+// Trouble loading wasm backend in worker, revisit this once wasm is included in tfjs proper
+// and import it normally via NPM
 const tfjsSrc = require("!!file-loader!../assets/js/tfjs.js");
 const tfjsWasmBackendSrc = require("!!file-loader!../assets/js/tfjs-backend-wasm.js");
 importScripts(tfjsSrc);
@@ -154,9 +154,9 @@ async function performPrediction(model, frameData) {
   }
 
   if (model) {
-    const f = Array.from(featureArr);
-    const features = tf.tensor3d(f);
+    const features = tf.tensor3d(featureArr);
     const pred = model.predict(features);
+
     const result = pred.dataSync();
     features.dispose();
     pred.dispose();
