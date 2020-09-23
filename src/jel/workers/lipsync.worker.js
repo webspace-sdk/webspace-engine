@@ -1,15 +1,17 @@
 // Trouble loading wasm backend in worker, revisit this once wasm is included in tfjs proper
 // and import it normally via NPM
-importScripts("https://s3.amazonaws.com/jel.ai/js/tfjs.js");
-importScripts("https://s3.amazonaws.com/jel.ai/js/tfjs-backend-wasm.js");
-
 import Meyda from "meyda";
+
+const tfjsSrc = require("!!file-loader!../assets/js/tfjs.js");
+const tfjsWasmBackendSrc = require("!!file-loader!../assets/js/tfjs-backend-wasm.js");
+importScripts(tfjsSrc);
+importScripts(tfjsWasmBackendSrc);
 
 const modelSrc = "https://s3.amazonaws.com/jel.ai/lipsync-quant/model.json";
 
 // HACK this was manually added to the wasm-backend.js file since no other way to get at it
 // this too should be removed once wasm is properly added to the tfjs bundle
-self.tfjsSetWasmPaths("https://s3.amazonaws.com/jel.ai/js/");
+self.tfjsSetWasmPaths("https://s3.amazonaws.com/jel.ai/wasm/");
 
 const buf = Array(5); // Need to keep two windows on each side for computing derivatives
 let ibuf = 0;
