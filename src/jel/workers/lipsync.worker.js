@@ -1,6 +1,6 @@
-importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.4.0/dist/tf.min.js");
-importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm/dist/tf-backend-wasm.js");
-importScripts("/assets/js/dependencies/meyda/meyda.min.js");
+import * as tf from "@tensorflow/tfjs";
+import "@tensorflow/tfjs-backend-wasm";
+import Meyda from "meyda";
 
 const LIP_SYNC_WORKER_COMMAND_INIT = 0;
 const LIP_SYNC_WORKER_COMMAND_FRAME_1_READY = 1;
@@ -210,7 +210,7 @@ onmessage = async function(event) {
     audioFrame2Data = new Float32Array(event.data);
   } else {
     switch (event.data) {
-      case ML_WORKER_COMMAND_INIT:
+      case LIP_SYNC_WORKER_COMMAND_INIT:
         tf.setBackend("wasm").then(() => {
           tf.loadLayersModel("http://localhost:3000/assets/model/mid-250.tf/model.json").then(m => {
             model = m;
@@ -219,9 +219,9 @@ onmessage = async function(event) {
 
         break;
 
-      case ML_WORKER_COMMAND_FRAME_1_READY:
-      case ML_WORKER_COMMAND_FRAME_2_READY:
-        performPrediction(event.data === ML_WORKER_COMMAND_FRAME_1_READY ? audioFrame1Data : audioFrame2Data);
+      case LIP_SYNC_WORKER_COMMAND_FRAME_1_READY:
+      case LIP_SYNC_WORKER_COMMAND_FRAME_2_READY:
+        performPrediction(event.data === LIP_SYNC_WORKER_COMMAND_FRAME_1_READY ? audioFrame1Data : audioFrame2Data);
         break;
     }
   }

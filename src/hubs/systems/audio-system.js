@@ -99,7 +99,7 @@ export class AudioSystem {
       this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer1);
       this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer2);
 
-      this.lipSyncWorkeh.postMessage(LIP_SYNC_WORKER_COMMAND_INIT);
+      this.lipSyncWorker.postMessage(LIP_SYNC_WORKER_COMMAND_INIT);
       this.lipsyncGain = this.audioContext.createGain();
       this.lipsyncGain.gain.setValueAtTime(3.0, this.audioContext.currentTime);
       this.outboundGainNode.connect(this.lipsyncGain);
