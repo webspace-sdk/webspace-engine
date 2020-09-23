@@ -106,6 +106,7 @@
     "three-to-ammo": "github:infinitelee/three-to-ammo",
     "uuid": "^3.2.1",
     "webrtc-adapter": "^6.0.2",
+    "worklet-loader": "^1.0.0",
     "zip-loader": "^1.1.0"
   },
   "devDependencies": {
