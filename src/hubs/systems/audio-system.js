@@ -93,7 +93,7 @@ export class AudioSystem {
       this.lipSyncResultData = new Uint8Array(this.lipSyncResultBuffer);
 
       this.lipSyncGain = this.audioContext.createGain();
-      this.lipSyncGain.gain.setValueAtTime(3.0, this.audioContext.currentTime);
+      this.lipSyncGain.gain.setValueAtTime(2.0, this.audioContext.currentTime);
       this.outboundGainNode.connect(this.lipSyncGain);
 
       this.lipSyncHardLimit = this.audioContext.createDynamicsCompressor();

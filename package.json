@@ -52,8 +52,6 @@
     "@fortawesome/react-fontawesome": "^0.1.0",
     "@mozillareality/easing-functions": "^0.1.1",
     "@mozillareality/three-batch-manager": "github:mozillareality/three-batch-manager#master",
-    "@tensorflow/tfjs": "^2.4.0",
-    "@tensorflow/tfjs-backend-wasm": "^2.4.0",
     "aframe": "github:jel-app/aframe#hubs/master",
     "aframe-rounded": "^1.0.3",
     "aframe-slice9-component": "github:jel-app/aframe-slice9-component#master",
