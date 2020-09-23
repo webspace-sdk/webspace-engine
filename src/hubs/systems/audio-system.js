@@ -1,10 +1,6 @@
 import audioForwardWorkletSrc from "worklet-loader!../../jel/worklets/audio-forward-worklet";
 import lipSyncWorker from "../../jel/workers/lipsync.worker.js";
 
-const LIP_SYNC_WORKER_COMMAND_INIT = 0;
-//const LIP_SYNC_WORKER_COMMAND_FRAME_1_READY = 1;
-//const LIP_SYNC_WORKER_COMMAND_FRAME_2_READY = 2;
-
 async function enableChromeAEC(gainNode) {
   /**
    *  workaround for: https://bugs.chromium.org/p/chromium/issues/detail?id=687574
@@ -73,13 +69,6 @@ export class AudioSystem {
       evt.detail.cameraEl.getObject3D("camera").add(sceneEl.audioListener);
     });
 
-    this.lipsyncFeatureBuffer = new SharedArrayBuffer(28 * Float32Array.BYTES_PER_ELEMENT);
-    this.lipsyncResultBuffer = new SharedArrayBuffer(1);
-    this.lipsyncAudioFrameBuffer1 = new SharedArrayBuffer(1024 * 4);
-    this.lipsyncAudioFrameBuffer2 = new SharedArrayBuffer(1024 * 4);
-    this.lipsyncFeatureData = new Float32Array(this.lipsyncFeatureBuffer.featureBuffer);
-    this.lipsyncResultData = new Uint8Array(this.lipsyncResultBuffer);
-
     this.audioContext = THREE.AudioContext.getContext();
     this.audioNodes = new Map();
     this.mediaStreamDestinationNode = this.audioContext.createMediaStreamDestination();
@@ -91,39 +80,49 @@ export class AudioSystem {
     this.outboundGainNode.connect(this.outboundAnalyser);
     this.outboundAnalyser.connect(this.mediaStreamDestinationNode);
 
+    this.enableLipSync = this.audioContext.audioWorklet && window.SharedArrayBuffer;
+
     // Lip syncing - add gain and compress and then the forwarding worklet
-    if (this.audioContext.audioWorklet && window.SharedArrayBuffer) {
-      this.lipSyncWorker = new lipSyncWorker();
-      this.lipSyncWorker.postMessage(this.lipSyncFeatureBuffer);
-      this.lipSyncWorker.postMessage(this.lipSyncResultBuffer);
-      this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer1);
-      this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer2);
+    if (this.enableLipSync) {
+      this.curViseme = -1;
+      this.lipSyncFeatureBuffer = new SharedArrayBuffer(28 * Float32Array.BYTES_PER_ELEMENT);
+      this.lipSyncResultBuffer = new SharedArrayBuffer(1);
+      this.lipSyncAudioFrameBuffer1 = new SharedArrayBuffer(1024 * 4);
+      this.lipSyncAudioFrameBuffer2 = new SharedArrayBuffer(1024 * 4);
+      this.lipSyncFeatureData = new Float32Array(this.lipSyncFeatureBuffer.featureBuffer);
+      this.lipSyncResultData = new Uint8Array(this.lipSyncResultBuffer);
 
-      this.lipSyncWorker.postMessage(LIP_SYNC_WORKER_COMMAND_INIT);
-      this.lipsyncGain = this.audioContext.createGain();
-      this.lipsyncGain.gain.setValueAtTime(3.0, this.audioContext.currentTime);
-      this.outboundGainNode.connect(this.lipsyncGain);
+      this.lipSyncGain = this.audioContext.createGain();
+      this.lipSyncGain.gain.setValueAtTime(3.0, this.audioContext.currentTime);
+      this.outboundGainNode.connect(this.lipSyncGain);
 
-      this.lipsyncHardLimit = this.audioContext.createDynamicsCompressor();
-      this.lipsyncHardLimit.threshold.value = -12;
-      this.lipsyncHardLimit.knee.value = 0.0;
-      this.lipsyncHardLimit.ratio.value = 20.0;
-      this.lipsyncHardLimit.attack.value = 0.005;
-      this.lipsyncHardLimit.release.value = 0.05;
+      this.lipSyncHardLimit = this.audioContext.createDynamicsCompressor();
+      this.lipSyncHardLimit.threshold.value = -12;
+      this.lipSyncHardLimit.knee.value = 0.0;
+      this.lipSyncHardLimit.ratio.value = 20.0;
+      this.lipSyncHardLimit.attack.value = 0.005;
+      this.lipSyncHardLimit.release.value = 0.05;
 
-      this.lipsyncGain.connect(this.lipsyncHardLimit);
+      this.lipSyncGain.connect(this.lipSyncHardLimit);
 
-      this.lipsyncDestination = this.audioContext.createMediaStreamDestination();
+      this.lipSyncDestination = this.audioContext.createMediaStreamDestination();
       this.audioContext.audioWorklet.addModule(audioForwardWorkletSrc).then(() => {
-        const audioFrameBuffer1 = null;
-        const audioFrameBuffer2 = null;
-
-        this.lipsyncForwardingNode = new AudioWorkletNode(this.audioContext, "audio-forwarder", {
-          processorOptions: { audioFrameBuffer1, audioFrameBuffer2 }
+        this.lipSyncForwardingNode = new AudioWorkletNode(this.audioContext, "audio-forwarder", {
+          processorOptions: {
+            audioFrameBuffer1: this.lipSyncAudioFrameBuffer1,
+            audioFrameBuffer2: this.lipSyncAudioFrameBuffer2
+          }
         });
 
-        this.lipsyncHardLimit.connect(this.lipsyncForwardingNode);
-        this.lipsyncForwardingNode.connect(this.lipsyncDestination);
+        this.lipSyncHardLimit.connect(this.lipSyncForwardingNode);
+        this.lipSyncForwardingNode.connect(this.lipSyncDestination);
+
+        this.lipSyncWorker = new lipSyncWorker();
+        this.lipSyncWorker.postMessage(this.lipSyncFeatureBuffer);
+        this.lipSyncWorker.postMessage(this.lipSyncResultBuffer);
+        this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer1);
+        this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer2);
+        this.lipSyncWorker.postMessage(this.lipSyncForwardingNode.port, [this.lipSyncForwardingNode.port]);
       });
     }
 
@@ -168,6 +167,17 @@ export class AudioSystem {
       nodes.sourceNode.disconnect();
       nodes.gainNode.disconnect();
       this.audioNodes.delete(id);
+    }
+  }
+
+  tick() {
+    if (this.enableLipSync) {
+      const newViseme = this.lipSyncResultData[0];
+
+      if (newViseme !== this.curViseme) {
+        this.curViseme = newViseme;
+        console.log(newViseme);
+      }
     }
   }
 }

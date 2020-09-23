@@ -1,10 +1,7 @@
 import * as tf from "@tensorflow/tfjs";
-import "@tensorflow/tfjs-backend-wasm";
+//import "@tensorflow/tfjs-backend-wasm";
 import Meyda from "meyda";
-
-const LIP_SYNC_WORKER_COMMAND_INIT = 0;
-const LIP_SYNC_WORKER_COMMAND_FRAME_1_READY = 1;
-const LIP_SYNC_WORKER_COMMAND_FRAME_2_READY = 2;
+const modelSrc = "https://s3.amazonaws.com/jel.ai/lipsync-quant/model.json";
 
 const buf = Array(5); // Need to keep two windows on each side for computing derivatives
 let ibuf = 0;
@@ -76,7 +73,6 @@ const variances = [
   5.21265506744384765625e-1
 ];
 
-let model;
 const vbuf = [0, 0, 0];
 let curViseme = 0;
 let curVisemeDuration = 0;
@@ -85,16 +81,20 @@ let featureData;
 let resultData;
 let audioFrame1Data;
 let audioFrame2Data;
+let workletPort;
 let featureArr;
 
 const meydaExtract = Meyda.extract.bind(Meyda);
-Meyda.sampleRate = 44100; // TODO input
+Meyda.sampleRate = 44100; // TODO use input sample rate properly
 Meyda.bufferSize = 1024;
 Meyda.hopSize = Math.floor(Meyda.sampleRate / 100.0);
 Meyda.melBands = 26;
 
-async function performPrediction(frameData) {
-  const { mfcc, energy } = meydaExtract(["mfcc", "energy"], frameData);
+const meydaFeatures = ["mfcc", "energy"];
+
+async function performPrediction(model, frameData) {
+  const { mfcc, energy } = meydaExtract(meydaFeatures, frameData);
+  if (energy < 0.1) return; // Skip low energy frames
 
   // Buffer frame to write
   const d = buf[ibuf];
@@ -185,7 +185,6 @@ async function performPrediction(frameData) {
           curViseme = v;
           curVisemeDuration = 0;
           resultData[0] = v;
-          postMessage("");
         }
       }
 
@@ -209,20 +208,18 @@ onmessage = async function(event) {
   } else if (!audioFrame2Data) {
     audioFrame2Data = new Float32Array(event.data);
   } else {
-    switch (event.data) {
-      case LIP_SYNC_WORKER_COMMAND_INIT:
-        tf.setBackend("wasm").then(() => {
-          tf.loadLayersModel("http://localhost:3000/assets/model/mid-250.tf/model.json").then(m => {
-            model = m;
-          });
-        });
+    workletPort = event.data;
 
-        break;
-
-      case LIP_SYNC_WORKER_COMMAND_FRAME_1_READY:
-      case LIP_SYNC_WORKER_COMMAND_FRAME_2_READY:
-        performPrediction(event.data === LIP_SYNC_WORKER_COMMAND_FRAME_1_READY ? audioFrame1Data : audioFrame2Data);
-        break;
-    }
+    tf.setBackend("cpu").then(() => {
+      tf.loadLayersModel(modelSrc).then(model => {
+        workletPort.onmessage = event => {
+          if (event.data.frame1Ready) {
+            performPrediction(model, audioFrame1Data);
+          } else {
+            performPrediction(model, audioFrame2Data);
+          }
+        };
+      });
+    });
   }
 };

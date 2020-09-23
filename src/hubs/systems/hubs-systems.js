@@ -120,6 +120,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.terrainSystem.tick();
     this.atmosphereSystem.tick(dt);
     this.mediaPresenceSystem.tick();
+    this.audioSystem.tick(t, dt);
     this.avatarSystem.tick(t, dt);
 
     // We run this late in the frame so that its the last thing to have an opinion about the scale of an object
