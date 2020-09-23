@@ -106,6 +106,7 @@ export class AudioSystem {
       this.lipSyncGain.connect(this.lipSyncHardLimit);
 
       this.lipSyncDestination = this.audioContext.createMediaStreamDestination();
+
       this.audioContext.audioWorklet.addModule(audioForwardWorkletSrc).then(() => {
         this.lipSyncForwardingNode = new AudioWorkletNode(this.audioContext, "audio-forwarder", {
           processorOptions: {
@@ -176,7 +177,7 @@ export class AudioSystem {
 
       if (newViseme !== this.curViseme) {
         this.curViseme = newViseme;
-        //console.log(newViseme);
+        console.log(newViseme);
       }
     }
   }

@@ -21,23 +21,19 @@ class AudioForwarder extends AudioWorkletProcessor {
   process(inputs) {
     const inbuf = inputs[0][0];
     const { frameLength, frameData, sendPort } = this;
+    const insertAt = this.iFrame;
+    this.iFrame += inbuf.length;
+    frameData.set(inbuf, insertAt);
 
-    // Assume one channel
-    for (let i = 0, l = inbuf.length; i < l; i++) {
-      const v = inbuf[i];
-      frameData[this.iFrame] = v;
-      this.iFrame++;
+    if (this.iFrame > frameLength - 1) {
+      this.iFrame = this.iFrame % frameLength;
 
-      if (this.iFrame == frameLength) {
-        this.iFrame = 0;
-
-        if (frameData === this.frameData1) {
-          sendPort.postMessage(ready1Message);
-          this.frameData = this.frameData2;
-        } else {
-          sendPort.postMessage(ready2Message);
-          this.frameData = this.frameData1;
-        }
+      if (frameData === this.frameData1) {
+        sendPort.postMessage(ready1Message);
+        this.frameData = this.frameData2;
+      } else {
+        sendPort.postMessage(ready2Message);
+        this.frameData = this.frameData1;
       }
     }
 

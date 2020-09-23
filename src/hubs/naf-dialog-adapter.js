@@ -592,6 +592,11 @@ export default class DialogAdapter {
                 },
 
                 async transform(encodedFrame, controller) {
+                  if (encodedFrame.data.byteLength < 2) {
+                    controller.enqueue(encodedFrame);
+                    return;
+                  }
+
                   // Create a new buffer with 1 byte for viseme.
                   const newData = new ArrayBuffer(encodedFrame.data.byteLength + 1 + visemeMagicBytes.length);
                   const arr = new Uint8Array(newData);
