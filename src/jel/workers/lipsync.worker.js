@@ -148,9 +148,20 @@ async function performPrediction(model, frameData) {
   const ahead2 = buf[ahead2i];
   const behind2 = buf[behind2i];
 
-  for (let i = 0; i < 14; i++) {
-    featureData[i] = (current[i] - means[i]) / variances[i];
-  }
+  featureData[0] = (current[0] - means[0]) / variances[0];
+  featureData[1] = (current[1] - means[1]) / variances[1];
+  featureData[2] = (current[2] - means[2]) / variances[2];
+  featureData[3] = (current[3] - means[3]) / variances[3];
+  featureData[4] = (current[4] - means[4]) / variances[4];
+  featureData[5] = (current[5] - means[5]) / variances[5];
+  featureData[6] = (current[6] - means[6]) / variances[6];
+  featureData[7] = (current[7] - means[7]) / variances[7];
+  featureData[8] = (current[8] - means[8]) / variances[8];
+  featureData[9] = (current[9] - means[9]) / variances[9];
+  featureData[10] = (current[10] - means[10]) / variances[10];
+  featureData[11] = (current[11] - means[11]) / variances[11];
+  featureData[12] = (current[12] - means[12]) / variances[12];
+  featureData[13] = (current[13] - means[13]) / variances[13];
 
   // Build derivative estimates
   for (let i = 0; i < 14; i++) {
