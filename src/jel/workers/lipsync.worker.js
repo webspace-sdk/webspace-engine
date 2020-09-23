@@ -239,7 +239,8 @@ onmessage = async function(event) {
     tf.setBackend("wasm").then(() => {
       tf.loadLayersModel(modelSrc).then(model => {
         workletPort.onmessage = event => {
-          if (event.data.frame1Ready) {
+          if (event.data) {
+            // Worklet sends true or false depending on frame ready.
             performPrediction(model, audioFrame1Data);
           } else {
             performPrediction(model, audioFrame2Data);

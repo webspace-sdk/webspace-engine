@@ -1,7 +1,3 @@
-const ready1Message = { frame1Ready: true };
-const ready2Message = { frame2Ready: true };
-const messages = [ready1Message, ready1Message];
-
 const PROCESSOR_NAME = "audio-forwarder";
 
 class AudioForwarder extends AudioWorkletProcessor {
@@ -30,7 +26,9 @@ class AudioForwarder extends AudioWorkletProcessor {
 
     if (this.iSample > frameLength - 1) {
       this.iSample = 0;
-      this.sendPort.postMessage(messages[this.iFrame]);
+      // Send true if frame 1 ready, false if frame 2 ready
+      this.sendPort.postMessage(this.iFrame % 2 === 0);
+
       this.iFrame = (this.iFrame + 1) % 2;
       this.frameData = this.frameDatas[this.iFrame];
     }
