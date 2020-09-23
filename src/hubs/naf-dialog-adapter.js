@@ -2,6 +2,10 @@ import * as mediasoupClient from "mediasoup-client";
 import protooClient from "protoo-client";
 import { debug as newDebug } from "debug";
 
+// If the browser supports insertable streams, we insert a 5 byte payload at the end of the voice
+// frame encoding 4 magic bytes and 1 viseme byte. This is a hack because on older browsers
+// this data will be injested into the codec, but since the values are near zero it seems to have
+// minimal effect. (Eventually all browsers will support insertable streams.)
 const supportsInsertableStreams = !!(window.RTCRtpSender && !!RTCRtpSender.prototype.createEncodedStreams);
 const visemeMagicBytes = [0x00, 0x00, 0x00, 0x01]; // Bytes to add to end of frame to indicate a viseme will follow
 
@@ -586,6 +590,7 @@ export default class DialogAdapter {
             });
 
             if (supportsInsertableStreams) {
+              // Add viseme encoder
               const senderTransform = new TransformStream({
                 start() {
                   // Called on startup.

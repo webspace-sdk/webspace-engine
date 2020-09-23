@@ -124,15 +124,19 @@ async function performPrediction(model, frameData) {
   // update spectral data size
 
   // Store mfccs and energy
-  for (let i = 0; i < 13; i++) {
-    d[i] = mfcc[i];
-
-    if (i === 0) {
-      // pytorch mel0 is negated at this window size
-      d[i] = -d[i];
-    }
-  }
-
+  d[0] = -mfcc[0]; // pytorch mel0 is negated at this window size
+  d[1] = mfcc[1];
+  d[2] = mfcc[2];
+  d[3] = mfcc[3];
+  d[4] = mfcc[4];
+  d[5] = mfcc[5];
+  d[6] = mfcc[6];
+  d[7] = mfcc[7];
+  d[8] = mfcc[8];
+  d[9] = mfcc[9];
+  d[10] = mfcc[10];
+  d[11] = mfcc[11];
+  d[12] = mfcc[12];
   d[13] = Math.log(energy);
 
   // Current frame is now stored in buf[ibuf]
@@ -145,13 +149,13 @@ async function performPrediction(model, frameData) {
   const behind2 = buf[behind2i];
 
   for (let i = 0; i < 14; i++) {
-    featureData[i] = (current[i] - means[i]) / (variances[i] + 0.001);
+    featureData[i] = (current[i] - means[i]) / variances[i];
   }
 
   // Build derivative estimates
   for (let i = 0; i < 14; i++) {
-    const dv = ((ahead2[i] + ahead1[i]) / 2.0 - (behind1[i] + behind2[i]) / 2.0) / 2.0;
-    const d = (dv - means[14 + i]) / (variances[14 + i] + 0.001); // Normalize
+    const dv = (ahead2[i] + ahead1[i] - (behind1[i] + behind2[i])) / 4.0;
+    const d = (dv - means[14 + i]) / variances[14 + i]; // Normalize
     featureData[14 + i] = d;
   }
 
