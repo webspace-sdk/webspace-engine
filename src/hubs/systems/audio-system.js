@@ -85,7 +85,7 @@ export class AudioSystem {
     // Lip syncing - add gain and compress and then the forwarding worklet
     if (this.enableLipSync) {
       this.delayVoiceNode = this.audioContext.createDelay();
-      this.delayVoiceNode.delayTime.value = 0.15;
+      this.delayVoiceNode.delayTime.value = 0.1; // Delay bc of inference
       this.outboundAnalyser.connect(this.delayVoiceNode);
       this.delayVoiceNode.connect(this.mediaStreamDestinationNode);
 
