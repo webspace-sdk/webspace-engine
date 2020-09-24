@@ -54,8 +54,13 @@ export default class DialogAdapter {
     this._serverTimeRequests = 0;
     this._avgTimeOffset = 0;
     this._blockedClients = new Map();
+    this._visemeBuffer = null;
     this.type = "dialog";
     this.occupants = {}; // This is a public field
+  }
+
+  setVisemeBuffer(visemeBuffer) {
+    this._visemeBuffer = visemeBuffer;
   }
 
   setForceTcp(forceTcp) {
@@ -590,6 +595,8 @@ export default class DialogAdapter {
             });
 
             if (supportsInsertableStreams) {
+              const self = this;
+
               // Add viseme encoder
               const senderTransform = new TransformStream({
                 start() {
@@ -611,7 +618,10 @@ export default class DialogAdapter {
                     arr[encodedFrame.data.byteLength + i] = visemeMagicBytes[i];
                   }
 
-                  arr[encodedFrame.data.byteLength + visemeMagicBytes.length] = 42;
+                  if (self._visemeBuffer) {
+                    console.log("send: " + self._visemeBuffer[0]);
+                    arr[encodedFrame.data.byteLength + visemeMagicBytes.length] = self._visemeBuffer[0];
+                  }
 
                   encodedFrame.data = newData;
                   controller.enqueue(encodedFrame);

@@ -65,7 +65,7 @@ export class AudioSystem {
     if (sceneEl.camera) {
       sceneEl.camera.add(sceneEl.audioListener);
     }
-    sceneEl.addEventListener("camera-set- active", evt => {
+    sceneEl.addEventListener("camera-set-active", evt => {
       evt.detail.cameraEl.getObject3D("camera").add(sceneEl.audioListener);
     });
 
@@ -84,7 +84,11 @@ export class AudioSystem {
 
     // Lip syncing - add gain and compress and then the forwarding worklet
     if (this.enableLipSync) {
-      this.curViseme = -1;
+      this.delayVoiceNode = this.audioContext.createDelay();
+      this.delayVoiceNode.delayTime.value = 0.15;
+      this.outboundAnalyser.connect(this.delayVoiceNode);
+      this.delayVoiceNode.connect(this.mediaStreamDestinationNode);
+
       this.lipSyncFeatureBuffer = new SharedArrayBuffer(28 * Float32Array.BYTES_PER_ELEMENT);
       this.lipSyncResultBuffer = new SharedArrayBuffer(1);
       this.lipSyncAudioFrameBuffer1 = new SharedArrayBuffer(1024 * 4);
@@ -125,6 +129,18 @@ export class AudioSystem {
         this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer2);
         this.lipSyncWorker.postMessage(this.lipSyncForwardingNode.port, [this.lipSyncForwardingNode.port]);
       });
+
+      if (NAF.connection.adapter) {
+        NAF.connection.adapter.setVisemeBuffer(this.lipSyncResultData);
+      } else {
+        sceneEl.addEventListener(
+          "adapter-ready",
+          () => {
+            NAF.connection.adapter.setVisemeBuffer(this.lipSyncResultData);
+          },
+          { once: true }
+        );
+      }
     }
 
     /**
@@ -168,17 +184,6 @@ export class AudioSystem {
       nodes.sourceNode.disconnect();
       nodes.gainNode.disconnect();
       this.audioNodes.delete(id);
-    }
-  }
-
-  tick() {
-    if (this.enableLipSync) {
-      const newViseme = this.lipSyncResultData[0];
-
-      if (newViseme !== this.curViseme) {
-        this.curViseme = newViseme;
-        console.log(newViseme);
-      }
     }
   }
 }
