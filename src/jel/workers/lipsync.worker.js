@@ -86,7 +86,7 @@ const variances = [
   5.21265506744384765625e-1
 ];
 
-const vbuf = [0, 0, 0];
+const vbuf = [0, 0, 0, 0];
 let curViseme = 0;
 let curVisemeDuration = 0;
 let ivbuf = 0;
@@ -100,6 +100,8 @@ let audioVadData;
 let featureArr;
 let isPredicting = false;
 let lastAudioOffset = -1;
+let predictionFrame = 0;
+let lastSpeakingPredictionFrame = 0;
 
 const meydaExtract = Meyda.extract.bind(Meyda);
 Meyda.sampleRate = 44100; // TODO use input sample rate properly
@@ -110,15 +112,18 @@ Meyda.melBands = 26;
 const meydaFeatures = ["mfcc", "energy"];
 
 async function performPrediction(model) {
+  predictionFrame++;
   const audioOffset = audioOffsetData[0];
 
   // Skip predicting if audio buffer hasn't changed.
   if (lastAudioOffset === audioOffset) return;
 
   // Generate neutral viseme if person isn't speaking.
-  const isSpeaking = audioVadData[0] === 1;
+  const isSpeaking = audioVadData[0] >= 0.8;
 
-  if (!isSpeaking) {
+  if (isSpeaking) {
+    lastSpeakingPredictionFrame = predictionFrame;
+  } else if (lastSpeakingPredictionFrame < predictionFrame - 50) {
     resultData[0] = 0;
     return;
   }
@@ -220,16 +225,15 @@ async function performPrediction(model) {
 
         if (curVisemeDuration < 2) {
           allowTransition = false;
-        }
-        /* else {
-        //  allowTransition = true;
+        } else {
+          allowTransition = true;
 
-        //  for (let iv = 0; iv < vbuf.length; iv++) {
-        //    if (vbuf[iv] !== v) {
-        //      allowTransition = false;
-        //    }
-        //  }
-        //}*/
+          for (let iv = 0; iv < vbuf.length; iv++) {
+            if (vbuf[iv] !== v) {
+              allowTransition = false;
+            }
+          }
+        }
 
         if (allowTransition) {
           curViseme = v;
@@ -280,7 +284,7 @@ onmessage = async function(event) {
       new Float32Array(audioFrame2Buffer, 128 * 7 * 4, 1024)
     ];
   } else if (!audioVadData) {
-    audioVadData = new Uint8Array(event.data);
+    audioVadData = new Float32Array(event.data);
   } else if (!audioOffsetData) {
     audioOffsetData = new Uint8Array(event.data);
 

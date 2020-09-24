@@ -1,6 +1,9 @@
 import audioForwardWorkletSrc from "worklet-loader!../../jel/worklets/audio-forward-worklet";
+import vadWorkletSrc from "worklet-loader!../../jel/worklets/vad-worklet";
 import lipSyncWorker from "../../jel/workers/lipsync.worker.js";
-import loadRnnNoiseVad from "../../jel/wasm/rnnoise-vad.js";
+
+// Built via https://github.com/sipavlovic/wasm2js to load in worklet
+import rnnWasm from "../../jel/wasm/rnnoise-vad-wasm.js";
 
 async function enableChromeAEC(gainNode) {
   /**
@@ -124,10 +127,10 @@ export class AudioSystem {
     this.lipSyncAudioFrameBuffer1 = new SharedArrayBuffer(2048 * 4);
     this.lipSyncAudioFrameBuffer2 = new SharedArrayBuffer(2048 * 4);
     this.lipSyncAudioOffsetBuffer = new SharedArrayBuffer(1);
-    this.lipSyncVadBuffer = new SharedArrayBuffer(1);
+    this.lipSyncVadBuffer = new SharedArrayBuffer(4);
     this.lipSyncFeatureData = new Float32Array(this.lipSyncFeatureBuffer.featureBuffer);
     this.lipSyncResultData = new Uint8Array(this.lipSyncResultBuffer);
-    this.lipSyncVadData = new Uint8Array(this.lipSyncVadBuffer);
+    this.lipSyncVadData = new Float32Array(this.lipSyncVadBuffer);
 
     this.lipSyncGain = this.audioContext.createGain();
     this.lipSyncGain.gain.setValueAtTime(2.0, this.audioContext.currentTime);
@@ -143,83 +146,28 @@ export class AudioSystem {
     this.lipSyncForwardingDestination = this.audioContext.createMediaStreamDestination();
 
     this.audioContext.audioWorklet.addModule(audioForwardWorkletSrc).then(() => {
-      this.lipSyncForwardingNode = new AudioWorkletNode(this.audioContext, "audio-forwarder", {
-        processorOptions: {
-          audioFrameBuffer1: this.lipSyncAudioFrameBuffer1,
-          audioFrameBuffer2: this.lipSyncAudioFrameBuffer2,
-          audioOffsetBuffer: this.lipSyncAudioOffsetBuffer
-        }
-      });
-
-      this.lipSyncVadProcessor = this.audioContext.createScriptProcessor(512, 1, 1);
-
-      this.outboundGainNode.connect(this.lipSyncGain);
-      this.lipSyncGain.connect(this.lipSyncHardLimit);
-      this.lipSyncHardLimit.connect(this.lipSyncForwardingNode);
-      this.lipSyncHardLimit.connect(this.lipSyncVadProcessor);
-      this.lipSyncVadProcessor.connect(this.lipSyncVadDestination);
-      this.lipSyncForwardingNode.connect(this.lipSyncForwardingDestination);
-
-      // TODO move wasm to CDN
-      loadRnnNoiseVad({ locateFile: f => `https://s3.amazonaws.com/jel.ai/wasm/${f}` }).then(async rnnoise => {
-        const {
-          _rnnoise_create: createNoise,
-          _free: free,
-          _malloc: malloc,
-          _rnnoise_process_frame_vad: processNoiseVad,
-          _rnnoise_destroy: destroyNoise,
-          HEAPF32
-        } = rnnoise;
-
-        const SAMPLE_LENGTH = 480;
-        const BUFFER_SIZE = SAMPLE_LENGTH * 4;
-        const pcmInputBuf = malloc(BUFFER_SIZE);
-        const pcmInputIndex = pcmInputBuf / 4;
-
-        let rnn = createNoise();
-        let bufferResidue = new Float32Array([]);
-
-        window.addEventListener("onunload", () => {
-          if (!rnn) return;
-          pcmInputBuf && free(pcmInputBuf);
-          destroyNoise(rnn);
-          rnn = 0;
+      this.audioContext.audioWorklet.addModule(vadWorkletSrc).then(() => {
+        this.lipSyncForwardingNode = new AudioWorkletNode(this.audioContext, "audio-forwarder", {
+          processorOptions: {
+            audioFrameBuffer1: this.lipSyncAudioFrameBuffer1,
+            audioFrameBuffer2: this.lipSyncAudioFrameBuffer2,
+            audioOffsetBuffer: this.lipSyncAudioOffsetBuffer
+          }
         });
 
-        const processFrame = sample => {
-          for (const [i, value] of sample.entries()) sample[i] = value * 0x7fff;
-          HEAPF32.set(sample, pcmInputIndex);
-          return processNoiseVad(rnn, pcmInputBuf);
-        };
-
-        let nextVadCheckSample = -1;
-        let vadSampleCount = 0;
-        const vadSampleDelay = 35;
-
-        this.lipSyncVadProcessor.onaudioprocess = e => {
-          vadSampleCount++;
-
-          if (vadSampleCount < nextVadCheckSample) return;
-
-          // proces data based on the sample length, use leftover buffer from previous process
-          const inData = [...bufferResidue, ...e.inputBuffer.getChannelData(0)];
-
-          let i = 0;
-
-          // process each viable sample
-          for (; i + SAMPLE_LENGTH < inData.length; i += SAMPLE_LENGTH) {
-            const sample = inData.slice(i, i + SAMPLE_LENGTH);
-
-            const value = processFrame(sample) > 0.8 ? 1 : 0;
-            this.lipSyncVadData[0] = value;
-
-            // WHen we detect speech, stop doing VAD detection for a while
-            // to offset lip syncing inference CPU load.
-            nextVadCheckSample = vadSampleCount + value * vadSampleDelay;
+        this.lipSyncVadProcessor = new AudioWorkletNode(this.audioContext, "vad", {
+          processorOptions: {
+            vadBuffer: this.lipSyncVadBuffer,
+            rnnWasm
           }
+        });
 
-          bufferResidue = inData.slice(i);
-        };
+        this.outboundGainNode.connect(this.lipSyncGain);
+        this.lipSyncGain.connect(this.lipSyncHardLimit);
+        this.lipSyncHardLimit.connect(this.lipSyncForwardingNode);
+        this.lipSyncHardLimit.connect(this.lipSyncVadProcessor);
+        this.lipSyncVadProcessor.connect(this.lipSyncVadDestination);
+        this.lipSyncForwardingNode.connect(this.lipSyncForwardingDestination);
 
         this.lipSyncWorker = new lipSyncWorker();
         this.lipSyncWorker.postMessage(this.lipSyncFeatureBuffer);

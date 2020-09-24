@@ -619,7 +619,6 @@ export default class DialogAdapter {
                   }
 
                   if (self._visemeBuffer) {
-                    console.log("send: " + self._visemeBuffer[0]);
                     arr[encodedFrame.data.byteLength + visemeMagicBytes.length] = self._visemeBuffer[0];
                   }
 
