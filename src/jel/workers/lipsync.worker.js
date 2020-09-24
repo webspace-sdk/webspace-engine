@@ -96,6 +96,7 @@ let audioFrame1Buffer;
 let audioFrame2Buffer;
 let audioOffsetData;
 let audioFrameViews;
+let audioVadData;
 let featureArr;
 let isPredicting = false;
 let lastAudioOffset = -1;
@@ -113,6 +114,15 @@ async function performPrediction(model) {
 
   // Skip predicting if audio buffer hasn't changed.
   if (lastAudioOffset === audioOffset) return;
+
+  // Generate neutral viseme if person isn't speaking.
+  const isSpeaking = audioVadData[0] === 1;
+
+  if (!isSpeaking) {
+    resultData[0] = 0;
+    return;
+  }
+
   if (isPredicting) return;
 
   isPredicting = true;
@@ -269,6 +279,8 @@ onmessage = async function(event) {
       new Float32Array(audioFrame2Buffer, 128 * 6 * 4, 1024),
       new Float32Array(audioFrame2Buffer, 128 * 7 * 4, 1024)
     ];
+  } else if (!audioVadData) {
+    audioVadData = new Uint8Array(event.data);
   } else if (!audioOffsetData) {
     audioOffsetData = new Uint8Array(event.data);
 

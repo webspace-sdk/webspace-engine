@@ -1,5 +1,6 @@
 import audioForwardWorkletSrc from "worklet-loader!../../jel/worklets/audio-forward-worklet";
 import lipSyncWorker from "../../jel/workers/lipsync.worker.js";
+import loadRnnNoiseVad from "../../jel/wasm/rnnoise-vad.js";
 
 async function enableChromeAEC(gainNode) {
   /**
@@ -84,65 +85,7 @@ export class AudioSystem {
 
     // Lip syncing - add gain and compress and then the forwarding worklet
     if (this.enableLipSync) {
-      this.delayVoiceNode = this.audioContext.createDelay();
-      this.delayVoiceNode.delayTime.value = 0.1; // Delay bc of inference
-      this.outboundAnalyser.connect(this.delayVoiceNode);
-      this.delayVoiceNode.connect(this.mediaStreamDestinationNode);
-
-      this.lipSyncFeatureBuffer = new SharedArrayBuffer(28 * Float32Array.BYTES_PER_ELEMENT);
-      this.lipSyncResultBuffer = new SharedArrayBuffer(1);
-      this.lipSyncAudioFrameBuffer1 = new SharedArrayBuffer(2048 * 4);
-      this.lipSyncAudioFrameBuffer2 = new SharedArrayBuffer(2048 * 4);
-      this.lipSyncAudioOffsetBuffer = new SharedArrayBuffer(1);
-      this.lipSyncFeatureData = new Float32Array(this.lipSyncFeatureBuffer.featureBuffer);
-      this.lipSyncResultData = new Uint8Array(this.lipSyncResultBuffer);
-
-      this.lipSyncGain = this.audioContext.createGain();
-      this.lipSyncGain.gain.setValueAtTime(2.0, this.audioContext.currentTime);
-      this.outboundGainNode.connect(this.lipSyncGain);
-
-      this.lipSyncHardLimit = this.audioContext.createDynamicsCompressor();
-      this.lipSyncHardLimit.threshold.value = -12;
-      this.lipSyncHardLimit.knee.value = 0.0;
-      this.lipSyncHardLimit.ratio.value = 20.0;
-      this.lipSyncHardLimit.attack.value = 0.005;
-      this.lipSyncHardLimit.release.value = 0.05;
-
-      this.lipSyncGain.connect(this.lipSyncHardLimit);
-
-      this.lipSyncDestination = this.audioContext.createMediaStreamDestination();
-
-      this.audioContext.audioWorklet.addModule(audioForwardWorkletSrc).then(() => {
-        this.lipSyncForwardingNode = new AudioWorkletNode(this.audioContext, "audio-forwarder", {
-          processorOptions: {
-            audioFrameBuffer1: this.lipSyncAudioFrameBuffer1,
-            audioFrameBuffer2: this.lipSyncAudioFrameBuffer2,
-            audioOffsetBuffer: this.lipSyncAudioOffsetBuffer
-          }
-        });
-
-        this.lipSyncHardLimit.connect(this.lipSyncForwardingNode);
-        this.lipSyncForwardingNode.connect(this.lipSyncDestination);
-
-        this.lipSyncWorker = new lipSyncWorker();
-        this.lipSyncWorker.postMessage(this.lipSyncFeatureBuffer);
-        this.lipSyncWorker.postMessage(this.lipSyncResultBuffer);
-        this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer1);
-        this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer2);
-        this.lipSyncWorker.postMessage(this.lipSyncAudioOffsetBuffer);
-      });
-
-      if (NAF.connection.adapter) {
-        NAF.connection.adapter.setVisemeBuffer(this.lipSyncResultData);
-      } else {
-        sceneEl.addEventListener(
-          "adapter-ready",
-          () => {
-            NAF.connection.adapter.setVisemeBuffer(this.lipSyncResultData);
-          },
-          { once: true }
-        );
-      }
+      this.startLipSync(sceneEl);
     }
 
     /**
@@ -168,6 +111,138 @@ export class AudioSystem {
     document.body.addEventListener("mouseup", resume, false);
   }
 
+  startLipSync(sceneEl) {
+    // Create buffers, worklet, VAD detector, and lip sync worker.
+    this.delayVoiceNode = this.audioContext.createDelay();
+    this.delayVoiceNode.delayTime.value = 0.1; // Delay bc of inference
+    this.outboundAnalyser.disconnect(this.mediaStreamDestinationNode);
+    this.outboundAnalyser.connect(this.delayVoiceNode);
+    this.delayVoiceNode.connect(this.mediaStreamDestinationNode);
+
+    this.lipSyncFeatureBuffer = new SharedArrayBuffer(28 * Float32Array.BYTES_PER_ELEMENT);
+    this.lipSyncResultBuffer = new SharedArrayBuffer(1);
+    this.lipSyncAudioFrameBuffer1 = new SharedArrayBuffer(2048 * 4);
+    this.lipSyncAudioFrameBuffer2 = new SharedArrayBuffer(2048 * 4);
+    this.lipSyncAudioOffsetBuffer = new SharedArrayBuffer(1);
+    this.lipSyncVadBuffer = new SharedArrayBuffer(1);
+    this.lipSyncFeatureData = new Float32Array(this.lipSyncFeatureBuffer.featureBuffer);
+    this.lipSyncResultData = new Uint8Array(this.lipSyncResultBuffer);
+    this.lipSyncVadData = new Uint8Array(this.lipSyncVadBuffer);
+
+    this.lipSyncGain = this.audioContext.createGain();
+    this.lipSyncGain.gain.setValueAtTime(2.0, this.audioContext.currentTime);
+
+    this.lipSyncHardLimit = this.audioContext.createDynamicsCompressor();
+    this.lipSyncHardLimit.threshold.value = -12;
+    this.lipSyncHardLimit.knee.value = 0.0;
+    this.lipSyncHardLimit.ratio.value = 20.0;
+    this.lipSyncHardLimit.attack.value = 0.005;
+    this.lipSyncHardLimit.release.value = 0.05;
+
+    this.lipSyncVadDestination = this.audioContext.createMediaStreamDestination();
+    this.lipSyncForwardingDestination = this.audioContext.createMediaStreamDestination();
+
+    this.audioContext.audioWorklet.addModule(audioForwardWorkletSrc).then(() => {
+      this.lipSyncForwardingNode = new AudioWorkletNode(this.audioContext, "audio-forwarder", {
+        processorOptions: {
+          audioFrameBuffer1: this.lipSyncAudioFrameBuffer1,
+          audioFrameBuffer2: this.lipSyncAudioFrameBuffer2,
+          audioOffsetBuffer: this.lipSyncAudioOffsetBuffer
+        }
+      });
+
+      this.lipSyncVadProcessor = this.audioContext.createScriptProcessor(512, 1, 1);
+
+      this.outboundGainNode.connect(this.lipSyncGain);
+      this.lipSyncGain.connect(this.lipSyncHardLimit);
+      this.lipSyncHardLimit.connect(this.lipSyncForwardingNode);
+      this.lipSyncHardLimit.connect(this.lipSyncVadProcessor);
+      this.lipSyncVadProcessor.connect(this.lipSyncVadDestination);
+      this.lipSyncForwardingNode.connect(this.lipSyncForwardingDestination);
+
+      // TODO move wasm to CDN
+      loadRnnNoiseVad({ locateFile: f => `https://s3.amazonaws.com/jel.ai/wasm/${f}` }).then(async rnnoise => {
+        const {
+          _rnnoise_create: createNoise,
+          _free: free,
+          _malloc: malloc,
+          _rnnoise_process_frame_vad: processNoiseVad,
+          _rnnoise_destroy: destroyNoise,
+          HEAPF32
+        } = rnnoise;
+
+        const SAMPLE_LENGTH = 480;
+        const BUFFER_SIZE = SAMPLE_LENGTH * 4;
+        const pcmInputBuf = malloc(BUFFER_SIZE);
+        const pcmInputIndex = pcmInputBuf / 4;
+
+        let rnn = createNoise();
+        let bufferResidue = new Float32Array([]);
+
+        window.addEventListener("onunload", () => {
+          if (!rnn) return;
+          pcmInputBuf && free(pcmInputBuf);
+          destroyNoise(rnn);
+          rnn = 0;
+        });
+
+        const processFrame = sample => {
+          for (const [i, value] of sample.entries()) sample[i] = value * 0x7fff;
+          HEAPF32.set(sample, pcmInputIndex);
+          return processNoiseVad(rnn, pcmInputBuf);
+        };
+
+        let nextVadCheckSample = -1;
+        let vadSampleCount = 0;
+        const vadSampleDelay = 35;
+
+        this.lipSyncVadProcessor.onaudioprocess = e => {
+          vadSampleCount++;
+
+          if (vadSampleCount < nextVadCheckSample) return;
+
+          // proces data based on the sample length, use leftover buffer from previous process
+          const inData = [...bufferResidue, ...e.inputBuffer.getChannelData(0)];
+
+          let i = 0;
+
+          // process each viable sample
+          for (; i + SAMPLE_LENGTH < inData.length; i += SAMPLE_LENGTH) {
+            const sample = inData.slice(i, i + SAMPLE_LENGTH);
+
+            const value = processFrame(sample) > 0.8 ? 1 : 0;
+            this.lipSyncVadData[0] = value;
+
+            // WHen we detect speech, stop doing VAD detection for a while
+            // to offset lip syncing inference CPU load.
+            nextVadCheckSample = vadSampleCount + value * vadSampleDelay;
+          }
+
+          bufferResidue = inData.slice(i);
+        };
+
+        this.lipSyncWorker = new lipSyncWorker();
+        this.lipSyncWorker.postMessage(this.lipSyncFeatureBuffer);
+        this.lipSyncWorker.postMessage(this.lipSyncResultBuffer);
+        this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer1);
+        this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer2);
+        this.lipSyncWorker.postMessage(this.lipSyncVadBuffer);
+        this.lipSyncWorker.postMessage(this.lipSyncAudioOffsetBuffer);
+      });
+    });
+
+    if (NAF.connection.adapter) {
+      NAF.connection.adapter.setVisemeBuffer(this.lipSyncResultData);
+    } else {
+      sceneEl.addEventListener(
+        "adapter-ready",
+        () => {
+          NAF.connection.adapter.setVisemeBuffer(this.lipSyncResultData);
+        },
+        { once: true }
+      );
+    }
+  }
   addStreamToOutboundAudio(id, mediaStream) {
     if (this.audioNodes.has(id)) {
       this.removeStreamFromOutboundAudio(id);
