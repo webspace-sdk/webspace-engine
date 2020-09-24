@@ -91,8 +91,9 @@ export class AudioSystem {
 
       this.lipSyncFeatureBuffer = new SharedArrayBuffer(28 * Float32Array.BYTES_PER_ELEMENT);
       this.lipSyncResultBuffer = new SharedArrayBuffer(1);
-      this.lipSyncAudioFrameBuffer1 = new SharedArrayBuffer(1024 * 4);
-      this.lipSyncAudioFrameBuffer2 = new SharedArrayBuffer(1024 * 4);
+      this.lipSyncAudioFrameBuffer1 = new SharedArrayBuffer(2048 * 4);
+      this.lipSyncAudioFrameBuffer2 = new SharedArrayBuffer(2048 * 4);
+      this.lipSyncAudioOffsetBuffer = new SharedArrayBuffer(1);
       this.lipSyncFeatureData = new Float32Array(this.lipSyncFeatureBuffer.featureBuffer);
       this.lipSyncResultData = new Uint8Array(this.lipSyncResultBuffer);
 
@@ -115,7 +116,8 @@ export class AudioSystem {
         this.lipSyncForwardingNode = new AudioWorkletNode(this.audioContext, "audio-forwarder", {
           processorOptions: {
             audioFrameBuffer1: this.lipSyncAudioFrameBuffer1,
-            audioFrameBuffer2: this.lipSyncAudioFrameBuffer2
+            audioFrameBuffer2: this.lipSyncAudioFrameBuffer2,
+            audioOffsetBuffer: this.lipSyncAudioOffsetBuffer
           }
         });
 
@@ -127,7 +129,7 @@ export class AudioSystem {
         this.lipSyncWorker.postMessage(this.lipSyncResultBuffer);
         this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer1);
         this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer2);
-        this.lipSyncWorker.postMessage(this.lipSyncForwardingNode.port, [this.lipSyncForwardingNode.port]);
+        this.lipSyncWorker.postMessage(this.lipSyncAudioOffsetBuffer);
       });
 
       if (NAF.connection.adapter) {

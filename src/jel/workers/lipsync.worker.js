@@ -9,6 +9,7 @@ importScripts(tfjsWasmBackendSrc);
 //importScripts("https://s3.amazonaws.com/jel.ai/js/tfjs.js");
 //importScripts("https://s3.amazonaws.com/jel.ai/js/tfjs-backend-wasm.js");
 
+const PREDICTION_INTERVAL = 10; // TODO can reduce quality by less predictions
 const modelSrc = "https://s3.amazonaws.com/jel.ai/lipsync-quant/model.json";
 
 // HACK this was manually added to the wasm-backend.js file since no other way to get at it
@@ -91,10 +92,13 @@ let curVisemeDuration = 0;
 let ivbuf = 0;
 let featureData;
 let resultData;
-let audioFrame1Data;
-let audioFrame2Data;
-let workletPort;
+let audioFrame1Buffer;
+let audioFrame2Buffer;
+let audioOffsetData;
+let audioFrameViews;
 let featureArr;
+let isPredicting = false;
+let lastAudioOffset = -1;
 
 const meydaExtract = Meyda.extract.bind(Meyda);
 Meyda.sampleRate = 44100; // TODO use input sample rate properly
@@ -104,7 +108,17 @@ Meyda.melBands = 26;
 
 const meydaFeatures = ["mfcc", "energy"];
 
-async function performPrediction(model, frameData) {
+async function performPrediction(model) {
+  const audioOffset = audioOffsetData[0];
+
+  // Skip predicting if audio buffer hasn't changed.
+  if (lastAudioOffset === audioOffset) return;
+  if (isPredicting) return;
+
+  isPredicting = true;
+  lastAudioOffset = audioOffset;
+
+  const frameData = audioFrameViews[audioOffset];
   const { mfcc, energy } = meydaExtract(meydaFeatures, frameData);
 
   // Buffer frame to write
@@ -221,6 +235,8 @@ async function performPrediction(model, frameData) {
       model.layers[1].resetStates();
     }
   }
+
+  isPredicting = false;
 }
 
 onmessage = async function(event) {
@@ -229,23 +245,36 @@ onmessage = async function(event) {
     featureArr = [[featureData]];
   } else if (!resultData) {
     resultData = new Uint8Array(event.data);
-  } else if (!audioFrame1Data) {
-    audioFrame1Data = new Float32Array(event.data);
-  } else if (!audioFrame2Data) {
-    audioFrame2Data = new Float32Array(event.data);
-  } else {
-    workletPort = event.data;
+  } else if (!audioFrame1Buffer) {
+    audioFrame1Buffer = event.data;
+  } else if (!audioFrame2Buffer) {
+    audioFrame2Buffer = event.data;
+
+    // Views into data buffers to grab frame data
+    audioFrameViews = [
+      new Float32Array(audioFrame1Buffer, 128 * 0 * 4, 1024),
+      new Float32Array(audioFrame1Buffer, 128 * 1 * 4, 1024),
+      new Float32Array(audioFrame1Buffer, 128 * 2 * 4, 1024),
+      new Float32Array(audioFrame1Buffer, 128 * 3 * 4, 1024),
+      new Float32Array(audioFrame1Buffer, 128 * 4 * 4, 1024),
+      new Float32Array(audioFrame1Buffer, 128 * 5 * 4, 1024),
+      new Float32Array(audioFrame1Buffer, 128 * 6 * 4, 1024),
+      new Float32Array(audioFrame1Buffer, 128 * 7 * 4, 1024),
+      new Float32Array(audioFrame2Buffer, 128 * 0 * 4, 1024),
+      new Float32Array(audioFrame2Buffer, 128 * 1 * 4, 1024),
+      new Float32Array(audioFrame2Buffer, 128 * 2 * 4, 1024),
+      new Float32Array(audioFrame2Buffer, 128 * 3 * 4, 1024),
+      new Float32Array(audioFrame2Buffer, 128 * 4 * 4, 1024),
+      new Float32Array(audioFrame2Buffer, 128 * 5 * 4, 1024),
+      new Float32Array(audioFrame2Buffer, 128 * 6 * 4, 1024),
+      new Float32Array(audioFrame2Buffer, 128 * 7 * 4, 1024)
+    ];
+  } else if (!audioOffsetData) {
+    audioOffsetData = new Uint8Array(event.data);
 
     tf.setBackend("wasm").then(() => {
       tf.loadLayersModel(modelSrc).then(model => {
-        workletPort.onmessage = event => {
-          if (event.data) {
-            // Worklet sends true or false depending on frame ready.
-            performPrediction(model, audioFrame1Data);
-          } else {
-            performPrediction(model, audioFrame2Data);
-          }
-        };
+        setInterval(() => performPrediction(model), PREDICTION_INTERVAL);
       });
     });
   }
