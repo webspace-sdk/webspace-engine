@@ -14,8 +14,7 @@ class VadWorklet extends AudioWorkletProcessor {
     this.bufferResidue = new Float32Array([]);
     this.vadData = new Float32Array(processorOptions.vadBuffer);
     this.rnn = null;
-    this.processFrame = (sample, i) => 0; // eslint-disable-line
-    this.processFrame([0.1], 0); // Prime JIT, hacky
+    this.processFrame = (sample, i) => 0.1; // eslint-disable-line
     const rnnWasm = processorOptions.rnnWasm;
 
     const instantiateWasm = (imports, cb) =>
