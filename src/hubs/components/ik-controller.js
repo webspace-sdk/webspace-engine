@@ -1,4 +1,5 @@
 import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { disposeNodeContents } from "../utils/three-utils";
 const { Vector3, Quaternion, Matrix4, Euler } = THREE;
 
 function quaternionAlmostEquals(epsilon, u, v) {
@@ -291,7 +292,9 @@ AFRAME.registerComponent("ik-controller", {
 
       if (this.data.instanceHeads) {
         this.avatarSystem.markDirty(this.el);
-        this.head.visible = false;
+
+        // Keep head entity so behaviors work, but remove mesh/material.
+        disposeNodeContents(this.head);
       }
 
       root.matrixNeedsUpdate = true;

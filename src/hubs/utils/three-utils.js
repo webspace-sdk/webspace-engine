@@ -29,7 +29,7 @@ export function disposeMaterial(mtrl) {
   mtrl.dispose();
 }
 
-export function disposeNode(node) {
+export function disposeNode(node, dereference = true) {
   if (node.geometry) {
     node.geometry.dispose();
     node.geometry.boundsTree = null;
@@ -49,8 +49,14 @@ export function disposeNode(node) {
     }
   }
 
-  // Dereference a-frame elements, since stale render list entries may still point to this object.
-  node.el = null;
+  if (dereference) {
+    // Dereference a-frame elements, since stale render list entries may still point to this object.
+    node.el = null;
+  }
+}
+
+export function disposeNodeContents(node) {
+  disposeNode(node, false);
 }
 
 export function disposeTextureImage(texture) {
