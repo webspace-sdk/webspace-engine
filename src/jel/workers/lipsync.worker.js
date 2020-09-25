@@ -119,7 +119,7 @@ async function performPrediction(model) {
   if (lastAudioOffset === audioOffset) return;
 
   // Generate neutral viseme if person isn't speaking.
-  const isSpeaking = audioVadData[0] >= 0.8;
+  const isSpeaking = audioVadData[0] >= 0.7;
 
   if (isSpeaking) {
     lastSpeakingPredictionFrame = predictionFrame;

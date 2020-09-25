@@ -22,7 +22,7 @@ const {
   Vector4
 } = THREE;
 
-const USE_BASIS = true;
+const USE_BASIS = false;
 const MAX_ANISOTROPY = 16;
 
 const EYE_DECAL_NEUTRAL = 0;
