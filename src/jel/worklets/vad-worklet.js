@@ -49,9 +49,10 @@ class VadWorklet extends AudioWorkletProcessor {
     const inData = [...this.bufferResidue, ...inputs[0][0]];
 
     let i = 0;
+    const l = inData.length - SAMPLE_LENGTH;
 
     // process each viable sample
-    for (; i + SAMPLE_LENGTH < inData.length; i += SAMPLE_LENGTH) {
+    for (; i < l; i += SAMPLE_LENGTH) {
       this.vadData[0] = this.processFrame(inData, i);
     }
 
