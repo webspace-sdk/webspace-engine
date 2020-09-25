@@ -87,7 +87,6 @@ export class AudioSystem {
 
     this.enableLipSync = this.audioContext.audioWorklet && window.SharedArrayBuffer && supportsInsertableStreams;
 
-    // Lip syncing - add gain and compress and then the forwarding worklet
     if (this.enableLipSync) {
       this.startLipSync(sceneEl);
     }
@@ -116,6 +115,7 @@ export class AudioSystem {
   }
 
   startLipSync(sceneEl) {
+    // Lip syncing - add gain and compress and then send to forwarding and VAD worklets
     // Create buffers, worklet, VAD detector, and lip sync worker.
     this.delayVoiceNode = this.audioContext.createDelay();
     this.delayVoiceNode.delayTime.value = 0.05; // Delay bc of inference

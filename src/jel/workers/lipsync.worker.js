@@ -6,8 +6,6 @@ const tfjsSrc = require("!!file-loader!../assets/js/tfjs.js");
 const tfjsWasmBackendSrc = require("!!file-loader!../assets/js/tfjs-backend-wasm.js");
 importScripts(tfjsSrc);
 importScripts(tfjsWasmBackendSrc);
-//importScripts("https://s3.amazonaws.com/jel.ai/js/tfjs.js");
-//importScripts("https://s3.amazonaws.com/jel.ai/js/tfjs-backend-wasm.js");
 
 const PREDICTION_INTERVAL = 10; // TODO can reduce quality by less predictions
 const modelSrc = "https://s3.amazonaws.com/jel.ai/lipsync/model.json";
@@ -223,6 +221,8 @@ async function performPrediction(model) {
       if (v !== curViseme) {
         let allowTransition = true;
 
+        // Viseme smoothing - always show viseme at least 2 frames
+        // and only show viseme if vbuf.length frames all agree.
         if (curVisemeDuration < 2) {
           allowTransition = false;
         } else {
