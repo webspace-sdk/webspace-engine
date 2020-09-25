@@ -14,8 +14,8 @@ class VadWorklet extends AudioWorkletProcessor {
     this.bufferResidue = new Float32Array([]);
     this.vadData = new Float32Array(processorOptions.vadBuffer);
     this.rnn = null;
-    this.processFrame = sample => 0; // eslint-disable-line
-    this.processFrame([0.1]); // Prime JIT, hacky
+    this.processFrame = (sample, i) => 0; // eslint-disable-line
+    this.processFrame([0.1], 0); // Prime JIT, hacky
     const rnnWasm = processorOptions.rnnWasm;
 
     const instantiateWasm = (imports, cb) =>
@@ -35,9 +35,10 @@ class VadWorklet extends AudioWorkletProcessor {
 
       this.rnn = createNoise();
 
-      this.processFrame = sample => {
-        for (const [i, value] of sample.entries()) sample[i] = value * 0x7fff;
-        HEAPF32.set(sample, pcmInputIndex);
+      this.processFrame = (data, idx) => {
+        for (let i = 0; i < SAMPLE_LENGTH; i++) {
+          HEAPF32[pcmInputIndex + i] = data[idx + i] * 0x7fff;
+        }
         return processNoiseVad(this.rnn, pcmInputBuf);
       };
     });
@@ -51,8 +52,7 @@ class VadWorklet extends AudioWorkletProcessor {
 
     // process each viable sample
     for (; i + SAMPLE_LENGTH < inData.length; i += SAMPLE_LENGTH) {
-      const sample = inData.slice(i, i + SAMPLE_LENGTH);
-      this.vadData[0] = this.processFrame(sample);
+      this.vadData[0] = this.processFrame(inData, i);
     }
 
     this.bufferResidue = inData.slice(i);

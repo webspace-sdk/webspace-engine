@@ -104,7 +104,7 @@ let predictionFrame = 0;
 let lastSpeakingPredictionFrame = 0;
 
 const meydaExtract = Meyda.extract.bind(Meyda);
-Meyda.sampleRate = 44100; // TODO use input sample rate properly
+Meyda.sampleRate = 44100; // TODO use input sample rate properly, should test on 48k first
 Meyda.bufferSize = 1024;
 Meyda.hopSize = Math.floor(Meyda.sampleRate / 100.0);
 Meyda.melBands = 26;
