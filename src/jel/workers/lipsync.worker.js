@@ -1,18 +1,20 @@
 import Meyda from "meyda";
 
-// Trouble loading wasm backend in worker, revisit this once wasm is included in tfjs proper
+// TODO Trouble loading wasm backend in worker, revisit this once wasm is included in tfjs proper
 // and import it normally via NPM
-const tfjsSrc = require("!!file-loader!../assets/js/tfjs.js");
-const tfjsWasmBackendSrc = require("!!file-loader!../assets/js/tfjs-backend-wasm.js");
+const tfjsSrc = "https://assets.jel.dev/static/js/tfjs.js";
+
+// This is a patched version of the backend wasm loader that exposes tfjsSetWasmPaths
+const tfjsWasmBackendSrc = "https://assets.jel.dev/static/js/tfjs-backend-wasm.js";
 importScripts(tfjsSrc);
 importScripts(tfjsWasmBackendSrc);
 
-const PREDICTION_INTERVAL = 10; // TODO can reduce quality by less predictions
-const modelSrc = "https://s3.amazonaws.com/jel.ai/lipsync/model.json";
+const PREDICTION_INTERVAL = 10; // NOTE can improve perf but reduce quality by increasing
+const modelSrc = "https://assets.jel.dev/static/ai/lipsync/model.json";
 
 // HACK this was manually added to the wasm-backend.js file since no other way to get at it
 // this too should be removed once wasm is properly added to the tfjs bundle
-self.tfjsSetWasmPaths("https://s3.amazonaws.com/jel.ai/wasm/");
+self.tfjsSetWasmPaths("https://assets.jel.dev/static/wasm/");
 
 const buf = Array(5); // Need to keep two windows on each side for computing derivatives
 let ibuf = 0;
