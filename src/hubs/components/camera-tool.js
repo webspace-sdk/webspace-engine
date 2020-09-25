@@ -604,7 +604,7 @@ AFRAME.registerComponent("camera-tool", {
           const analyser = this.el.sceneEl.systems["local-audio-analyser"];
 
           if (analyser && playerHead.el.components["scale-audio-feedback"]) {
-            scale = getAudioFeedbackScale(this.el.object3D, playerHead, 1, 2, analyser.volume);
+            scale = getAudioFeedbackScale(this.el.object3D, playerHead, 0.3, 1, 2, analyser.volume);
           }
 
           playerHead.visible = true;

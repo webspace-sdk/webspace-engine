@@ -26,11 +26,15 @@ const calculateVolume = (analyser, levels) => {
 const tempScaleFromPosition = new THREE.Vector3();
 const tempScaleToPosition = new THREE.Vector3();
 
-export function getAudioFeedbackScale(fromObject, toObject, minScale, maxScale, volume) {
+export function getAudioFeedbackScale(fromObject, toObject, minDistance, minScale, maxScale, volume) {
   tempScaleToPosition.setFromMatrixPosition(toObject.matrixWorld);
   tempScaleFromPosition.setFromMatrixPosition(fromObject.matrixWorld);
-  const distance = tempScaleFromPosition.distanceTo(tempScaleToPosition) / 10;
-  return Math.min(maxScale, minScale + (maxScale - minScale) * volume * 8 * distance);
+  const distance = tempScaleFromPosition.distanceTo(tempScaleToPosition);
+  if (distance < minDistance) {
+    return minScale;
+  } else {
+    return Math.min(maxScale, minScale + (maxScale - minScale) * volume * 8 * (distance / 25));
+  }
 }
 
 function updateVolume(component) {
@@ -151,7 +155,8 @@ AFRAME.registerSystem("local-audio-analyser", {
 AFRAME.registerComponent("scale-audio-feedback", {
   schema: {
     minScale: { default: 1 },
-    maxScale: { default: 1.5 }
+    maxScale: { default: 1.25 },
+    minDistance: { default: 0.3 }
   },
 
   async init() {
@@ -166,13 +171,14 @@ AFRAME.registerComponent("scale-audio-feedback", {
     if (!this.cameraEl) return;
     if (!this.analyser) this.analyser = getAnalyser(this.el);
 
-    const { minScale, maxScale } = this.data;
+    const { minDistance, minScale, maxScale } = this.data;
 
     const { object3D } = this.el;
 
     const scale = getAudioFeedbackScale(
       this.el.object3D,
       this.cameraEl.object3DMap.camera,
+      minDistance,
       minScale,
       maxScale,
       this.analyser ? this.analyser.volume : 0

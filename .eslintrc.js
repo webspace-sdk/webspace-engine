@@ -6,6 +6,7 @@ module.exports = {
     node: true
   },
   globals: {
+    SharedArrayBuffer: true,
     THREE: true,
     AFRAME: true,
     NAF: true,

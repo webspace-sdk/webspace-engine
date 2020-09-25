@@ -1,3 +1,11 @@
+import audioForwardWorkletSrc from "worklet-loader!../../jel/worklets/audio-forward-worklet";
+import vadWorkletSrc from "worklet-loader!../../jel/worklets/vad-worklet";
+import lipSyncWorker from "../../jel/workers/lipsync.worker.js";
+
+// Built via https://github.com/sipavlovic/wasm2js to load in worklet
+import rnnWasm from "../../jel/wasm/rnnoise-vad-wasm.js";
+const supportsInsertableStreams = !!(window.RTCRtpSender && !!RTCRtpSender.prototype.createEncodedStreams);
+
 async function enableChromeAEC(gainNode) {
   /**
    *  workaround for: https://bugs.chromium.org/p/chromium/issues/detail?id=687574
@@ -62,7 +70,7 @@ export class AudioSystem {
     if (sceneEl.camera) {
       sceneEl.camera.add(sceneEl.audioListener);
     }
-    sceneEl.addEventListener("camera-set- active", evt => {
+    sceneEl.addEventListener("camera-set-active", evt => {
       evt.detail.cameraEl.getObject3D("camera").add(sceneEl.audioListener);
     });
 
@@ -76,6 +84,12 @@ export class AudioSystem {
     this.analyserLevels = new Uint8Array(this.outboundAnalyser.fftSize);
     this.outboundGainNode.connect(this.outboundAnalyser);
     this.outboundAnalyser.connect(this.mediaStreamDestinationNode);
+
+    this.enableLipSync = this.audioContext.audioWorklet && window.SharedArrayBuffer && supportsInsertableStreams;
+
+    if (this.enableLipSync) {
+      this.startLipSync(sceneEl);
+    }
 
     /**
      * Chrome and Safari will start Audio contexts in a "suspended" state.
@@ -100,6 +114,84 @@ export class AudioSystem {
     document.body.addEventListener("mouseup", resume, false);
   }
 
+  startLipSync(sceneEl) {
+    // Lip syncing - add gain and compress and then send to forwarding and VAD worklets
+    // Create buffers, worklet, VAD detector, and lip sync worker.
+    this.delayVoiceNode = this.audioContext.createDelay();
+    this.delayVoiceNode.delayTime.value = 0.05; // Delay bc of inference
+    this.outboundAnalyser.disconnect(this.mediaStreamDestinationNode);
+    this.outboundAnalyser.connect(this.delayVoiceNode);
+    this.delayVoiceNode.connect(this.mediaStreamDestinationNode);
+
+    this.lipSyncFeatureBuffer = new SharedArrayBuffer(28 * Float32Array.BYTES_PER_ELEMENT);
+    this.lipSyncResultBuffer = new SharedArrayBuffer(1);
+    this.lipSyncAudioFrameBuffer1 = new SharedArrayBuffer(2048 * 4);
+    this.lipSyncAudioFrameBuffer2 = new SharedArrayBuffer(2048 * 4);
+    this.lipSyncAudioOffsetBuffer = new SharedArrayBuffer(1);
+    this.lipSyncVadBuffer = new SharedArrayBuffer(4);
+    this.lipSyncFeatureData = new Float32Array(this.lipSyncFeatureBuffer.featureBuffer);
+    this.lipSyncResultData = new Uint8Array(this.lipSyncResultBuffer);
+    this.lipSyncVadData = new Float32Array(this.lipSyncVadBuffer);
+
+    this.lipSyncGain = this.audioContext.createGain();
+    this.lipSyncGain.gain.setValueAtTime(2.0, this.audioContext.currentTime);
+
+    this.lipSyncHardLimit = this.audioContext.createDynamicsCompressor();
+    this.lipSyncHardLimit.threshold.value = -12;
+    this.lipSyncHardLimit.knee.value = 0.0;
+    this.lipSyncHardLimit.ratio.value = 20.0;
+    this.lipSyncHardLimit.attack.value = 0.005;
+    this.lipSyncHardLimit.release.value = 0.05;
+
+    this.lipSyncVadDestination = this.audioContext.createMediaStreamDestination();
+    this.lipSyncForwardingDestination = this.audioContext.createMediaStreamDestination();
+
+    this.audioContext.audioWorklet.addModule(audioForwardWorkletSrc).then(() => {
+      this.audioContext.audioWorklet.addModule(vadWorkletSrc).then(() => {
+        this.lipSyncForwardingNode = new AudioWorkletNode(this.audioContext, "audio-forwarder", {
+          processorOptions: {
+            audioFrameBuffer1: this.lipSyncAudioFrameBuffer1,
+            audioFrameBuffer2: this.lipSyncAudioFrameBuffer2,
+            audioOffsetBuffer: this.lipSyncAudioOffsetBuffer
+          }
+        });
+
+        this.lipSyncVadProcessor = new AudioWorkletNode(this.audioContext, "vad", {
+          processorOptions: {
+            vadBuffer: this.lipSyncVadBuffer,
+            rnnWasm
+          }
+        });
+
+        this.outboundGainNode.connect(this.lipSyncGain);
+        this.lipSyncGain.connect(this.lipSyncHardLimit);
+        this.lipSyncHardLimit.connect(this.lipSyncForwardingNode);
+        this.lipSyncHardLimit.connect(this.lipSyncVadProcessor);
+        this.lipSyncVadProcessor.connect(this.lipSyncVadDestination);
+        this.lipSyncForwardingNode.connect(this.lipSyncForwardingDestination);
+
+        this.lipSyncWorker = new lipSyncWorker();
+        this.lipSyncWorker.postMessage(this.lipSyncFeatureBuffer);
+        this.lipSyncWorker.postMessage(this.lipSyncResultBuffer);
+        this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer1);
+        this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer2);
+        this.lipSyncWorker.postMessage(this.lipSyncVadBuffer);
+        this.lipSyncWorker.postMessage(this.lipSyncAudioOffsetBuffer);
+      });
+    });
+
+    if (NAF.connection.adapter) {
+      NAF.connection.adapter.setOutgoingVisemeBuffer(this.lipSyncResultData);
+    } else {
+      sceneEl.addEventListener(
+        "adapter-ready",
+        () => {
+          NAF.connection.adapter.setOutgoingVisemeBuffer(this.lipSyncResultData);
+        },
+        { once: true }
+      );
+    }
+  }
   addStreamToOutboundAudio(id, mediaStream) {
     if (this.audioNodes.has(id)) {
       this.removeStreamFromOutboundAudio(id);

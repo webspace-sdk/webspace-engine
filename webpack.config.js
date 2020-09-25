@@ -341,6 +341,15 @@ module.exports = async (env, argv) => {
           }
         },
         {
+          test: /\.worklet\.js$/,
+          loader: "worklet-loader",
+          options: {
+            name: "assets/js/[name]-[hash].js",
+            publicPath: "/",
+            inline: true
+          }
+        },
+        {
           test: [
             path.resolve(__dirname, "src", "hubs", "utils", "configs.js"),
             path.resolve(__dirname, "src", "hubs", "utils", "i18n.js"),

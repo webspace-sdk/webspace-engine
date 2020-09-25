@@ -2,6 +2,13 @@ import * as mediasoupClient from "mediasoup-client";
 import protooClient from "protoo-client";
 import { debug as newDebug } from "debug";
 
+// If the browser supports insertable streams, we insert a 5 byte payload at the end of the voice
+// frame encoding 4 magic bytes and 1 viseme byte. This is a hack because on older browsers
+// this data will be injested into the codec, but since the values are near zero it seems to have
+// minimal effect. (Eventually all browsers will support insertable streams.)
+const supportsInsertableStreams = !!(window.RTCRtpSender && !!RTCRtpSender.prototype.createEncodedStreams);
+const visemeMagicBytes = [0x00, 0x00, 0x00, 0x01]; // Bytes to add to end of frame to indicate a viseme will follow
+
 // NOTE this adapter does not properly fire the onOccupantsReceived events since those are only needed for
 // data channels, which are not yet supported. To fire that event, this class would need to keep a list of
 // occupants around and manage it.
@@ -47,8 +54,19 @@ export default class DialogAdapter {
     this._serverTimeRequests = 0;
     this._avgTimeOffset = 0;
     this._blockedClients = new Map();
+    this._outgoingVisemeBuffer = null;
+    this._visemeMap = new Map();
     this.type = "dialog";
     this.occupants = {}; // This is a public field
+  }
+
+  setOutgoingVisemeBuffer(buffer) {
+    this._outgoingVisemeBuffer = buffer;
+  }
+
+  getCurrentViseme(peerId) {
+    if (!this._visemeMap.has(peerId)) return 0;
+    return this._visemeMap.get(peerId);
   }
 
   setForceTcp(forceTcp) {
@@ -186,6 +204,50 @@ export default class DialogAdapter {
 
               if (this._audioStreamChangedListener) {
                 this._audioStreamChangedListener();
+              }
+
+              if (supportsInsertableStreams) {
+                // Add viseme decoder
+                const self = this;
+
+                const receiverTransform = new TransformStream({
+                  start() {},
+                  flush() {},
+
+                  async transform(encodedFrame, controller) {
+                    if (encodedFrame.data.byteLength < visemeMagicBytes.length + 1) {
+                      controller.enqueue(encodedFrame);
+                    } else {
+                      const view = new DataView(encodedFrame.data);
+                      let hasViseme = true;
+
+                      for (let i = 0, l = visemeMagicBytes.length; i < l; i++) {
+                        if (
+                          view.getUint8(encodedFrame.data.byteLength - 1 - visemeMagicBytes.length + i) !==
+                          visemeMagicBytes[i]
+                        ) {
+                          hasViseme = false;
+                        }
+                      }
+
+                      if (hasViseme) {
+                        const viseme = view.getInt8(encodedFrame.data.byteLength - 1);
+                        self._visemeMap.set(peerId, viseme);
+
+                        encodedFrame.data = encodedFrame.data.slice(
+                          0,
+                          encodedFrame.data.byteLength - 1 - visemeMagicBytes.length
+                        );
+                      }
+
+                      controller.enqueue(encodedFrame);
+                    }
+                  }
+                });
+
+                const receiver = consumer.rtpReceiver;
+                const receiverStreams = receiver.createEncodedStreams();
+                receiverStreams.readable.pipeThrough(receiverTransform).pipeTo(receiverStreams.writable);
               }
             }
           } catch (err) {
@@ -413,7 +475,8 @@ export default class DialogAdapter {
         sctpParameters: sendTransportInfo.sctpParameters,
         iceServers: this._iceServers,
         iceTransportPolicy: this._iceTransportPolicy,
-        proprietaryConstraints: PC_PROPRIETARY_CONSTRAINTS
+        proprietaryConstraints: PC_PROPRIETARY_CONSTRAINTS,
+        additionalSettings: { encodedInsertableStreams: supportsInsertableStreams }
       });
 
       this._sendTransport.on("connect", (
@@ -466,7 +529,8 @@ export default class DialogAdapter {
         iceCandidates: recvTransportInfo.iceCandidates,
         dtlsParameters: recvTransportInfo.dtlsParameters,
         sctpParameters: recvTransportInfo.sctpParameters,
-        iceServers: this._iceServers
+        iceServers: this._iceServers,
+        additionalSettings: { encodedInsertableStreams: supportsInsertableStreams }
       });
 
       this._recvTransport.on("connect", (
@@ -538,6 +602,49 @@ export default class DialogAdapter {
               stopTracks: false,
               codecOptions: { opusStereo: false, opusDtx: true }
             });
+
+            if (supportsInsertableStreams) {
+              const self = this;
+
+              // Add viseme encoder
+              const senderTransform = new TransformStream({
+                start() {
+                  // Called on startup.
+                },
+
+                async transform(encodedFrame, controller) {
+                  if (encodedFrame.data.byteLength < 2) {
+                    controller.enqueue(encodedFrame);
+                    return;
+                  }
+
+                  // Create a new buffer with 1 byte for viseme.
+                  const newData = new ArrayBuffer(encodedFrame.data.byteLength + 1 + visemeMagicBytes.length);
+                  const arr = new Uint8Array(newData);
+                  arr.set(new Uint8Array(encodedFrame.data), 0);
+
+                  for (let i = 0, l = visemeMagicBytes.length; i < l; i++) {
+                    arr[encodedFrame.data.byteLength + i] = visemeMagicBytes[i];
+                  }
+
+                  if (self._outgoingVisemeBuffer) {
+                    const viseme = self._micEnabled ? self._outgoingVisemeBuffer[0] : 0;
+                    arr[encodedFrame.data.byteLength + visemeMagicBytes.length] = viseme;
+                    self._visemeMap.set(self._clientId, viseme);
+                  }
+
+                  encodedFrame.data = newData;
+                  controller.enqueue(encodedFrame);
+                },
+
+                flush() {
+                  // Called when the stream is about to be closed.
+                }
+              });
+
+              const senderStreams = this._micProducer.rtpSender.createEncodedStreams();
+              senderStreams.readable.pipeThrough(senderTransform).pipeTo(senderStreams.writable);
+            }
 
             this._micProducer.on("transportclose", () => (this._micProducer = null));
 
