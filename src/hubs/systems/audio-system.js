@@ -117,7 +117,7 @@ export class AudioSystem {
   startLipSync(sceneEl) {
     // Create buffers, worklet, VAD detector, and lip sync worker.
     this.delayVoiceNode = this.audioContext.createDelay();
-    this.delayVoiceNode.delayTime.value = 0.1; // Delay bc of inference
+    this.delayVoiceNode.delayTime.value = 0.05; // Delay bc of inference
     this.outboundAnalyser.disconnect(this.mediaStreamDestinationNode);
     this.outboundAnalyser.connect(this.delayVoiceNode);
     this.delayVoiceNode.connect(this.mediaStreamDestinationNode);
