@@ -86,7 +86,7 @@ const variances = [
   5.21265506744384765625e-1
 ];
 
-const vbuf = [0, 0];
+const vbuf = [0, 0, 0];
 let curViseme = 0;
 let curVisemeDuration = 0;
 let ivbuf = 0;
