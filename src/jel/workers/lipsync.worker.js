@@ -10,7 +10,7 @@ importScripts(tfjsWasmBackendSrc);
 //importScripts("https://s3.amazonaws.com/jel.ai/js/tfjs-backend-wasm.js");
 
 const PREDICTION_INTERVAL = 10; // TODO can reduce quality by less predictions
-const modelSrc = "https://s3.amazonaws.com/jel.ai/lipsync-quant/model.json";
+const modelSrc = "https://s3.amazonaws.com/jel.ai/lipsync/model.json";
 
 // HACK this was manually added to the wasm-backend.js file since no other way to get at it
 // this too should be removed once wasm is properly added to the tfjs bundle
