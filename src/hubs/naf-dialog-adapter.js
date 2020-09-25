@@ -224,7 +224,13 @@ export default class DialogAdapter {
 
                       if (hasViseme) {
                         const viseme = view.getInt8(encodedFrame.data.byteLength - 1);
-                        console.log(viseme);
+                        const avatarSystem = document.querySelector("a-scene").systems["hubs-systems"].avatarSystem;
+                        if (avatarSystem) {
+                          const el = document.querySelectorAll("[ik-controller]")[1];
+                          if (el) {
+                            avatarSystem.setAvatarToViseme(el, viseme);
+                          }
+                        }
                         encodedFrame.data = encodedFrame.data.slice(
                           0,
                           encodedFrame.data.byteLength - 1 - visemeMagicBytes.length

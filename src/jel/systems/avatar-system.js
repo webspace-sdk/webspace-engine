@@ -151,6 +151,8 @@ const MAX_AVATARS = 128;
 // avatars, since lerping may need to occur.
 const MAX_LERP_TICKS = 30;
 
+const NO_VISEME_VALUE = -1;
+
 // Draws instanced avatar heads. IK controller now sets instanced heads to non-visible to avoid draw calls.
 export class AvatarSystem {
   constructor(sceneEl, atmosphereSystem) {
@@ -158,9 +160,14 @@ export class AvatarSystem {
     this.atmosphereSystem = atmosphereSystem;
     this.avatarEls = Array(MAX_AVATARS);
     this.scheduledEyeDecals = Array(MAX_AVATARS);
+    this.pendingVisemes = Array(MAX_AVATARS);
 
     for (let i = 0; i < this.scheduledEyeDecals.length; i++) {
       this.scheduledEyeDecals[i] = { t: 0.0, decal: 0, state: 0 };
+    }
+
+    for (let i = 0; i < this.pendingVisemes.length; i++) {
+      this.pendingVisemes[i] = 0;
     }
 
     this.dirtyAvatars = Array(MAX_AVATARS);
@@ -215,6 +222,15 @@ export class AvatarSystem {
     }
   }
 
+  setAvatarToViseme(el, viseme) {
+    for (let i = 0; i <= this.maxRegisteredIndex; i++) {
+      if (this.avatarEls[i] === el) {
+        this.pendingVisemes[i] = viseme;
+        return;
+      }
+    }
+  }
+
   createMesh() {
     this.mesh = new DynamicInstancedMesh(
       new AvatarSphereBufferGeometry(AVATAR_RADIUS, MAX_AVATARS),
@@ -238,6 +254,7 @@ export class AvatarSystem {
 
     const {
       scheduledEyeDecals,
+      pendingVisemes,
       avatarEls,
       maxRegisteredIndex,
       duvOffsetAttribute,
@@ -256,6 +273,8 @@ export class AvatarSystem {
 
       const isDirty = dirtyAvatars[i] !== 0;
       const hasEyeDecalChange = hasScheduledDecal && scheduledEyeDecal.t < t;
+      const pendingViseme = pendingVisemes[i];
+      const hasPendingViseme = pendingViseme !== NO_VISEME_VALUE;
 
       if (!isDirty && !hasEyeDecalChange) continue;
 
@@ -267,6 +286,20 @@ export class AvatarSystem {
         duvOffsetAttribute.needsUpdate = true;
 
         this.eyeDecalStateTransition(t, i);
+      }
+
+      if (hasPendingViseme) {
+        pendingVisemes[i] = NO_VISEME_VALUE;
+
+        if (pendingViseme <= 7) {
+          duvOffsetAttribute.array[i * 4 + 2] = pendingViseme;
+          duvOffsetAttribute.array[i * 4 + 3] = 0;
+        } else {
+          duvOffsetAttribute.array[i * 4 + 2] = pendingViseme - 8;
+          duvOffsetAttribute.array[i * 4 + 3] = 1;
+        }
+
+        duvOffsetAttribute.needsUpdate = true;
       }
 
       const { head } = el.components["ik-controller"];
