@@ -628,7 +628,7 @@ export default class DialogAdapter {
                   }
 
                   if (self._outgoingVisemeBuffer) {
-                    const viseme = self._outgoingVisemeBuffer[0];
+                    const viseme = self._micEnabled ? self._outgoingVisemeBuffer[0] : 0;
                     arr[encodedFrame.data.byteLength + visemeMagicBytes.length] = viseme;
                     self._visemeMap.set(self._clientId, viseme);
                   }
