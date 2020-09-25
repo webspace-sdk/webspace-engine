@@ -2,6 +2,7 @@ import avatarSheetImgSrc from "!!url-loader!../assets/images/avatar-sheet.png";
 import avatarSheetBasisSrc from "!!url-loader!../assets/images/avatar-sheet.basis";
 import HubsTextureLoader from "../../hubs/loaders/HubsTextureLoader";
 import { createBasisTexture } from "../../hubs/utils/media-utils";
+import { getCreator, getNetworkedEntity } from "../../jel/utils/ownership-utils";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { addVertexCurvingToShader } from "./terrain-system";
@@ -151,27 +152,25 @@ const MAX_AVATARS = 128;
 // avatars, since lerping may need to occur.
 const MAX_LERP_TICKS = 30;
 
-const NO_VISEME_VALUE = -1;
-
 // Draws instanced avatar heads. IK controller now sets instanced heads to non-visible to avoid draw calls.
 export class AvatarSystem {
   constructor(sceneEl, atmosphereSystem) {
     this.sceneEl = sceneEl;
     this.atmosphereSystem = atmosphereSystem;
-    this.avatarEls = Array(MAX_AVATARS);
+    this.avatarEls = Array(MAX_AVATARS).fill(null);
+    this.avatarCreatorIds = Array(MAX_AVATARS).fill(null);
+    this.currentVisemes = Array(MAX_AVATARS).fill(-1);
+    this.dirtyAvatars = Array(MAX_AVATARS).fill(0);
+
     this.scheduledEyeDecals = Array(MAX_AVATARS);
-    this.pendingVisemes = Array(MAX_AVATARS);
 
     for (let i = 0; i < this.scheduledEyeDecals.length; i++) {
       this.scheduledEyeDecals[i] = { t: 0.0, decal: 0, state: 0 };
     }
 
-    for (let i = 0; i < this.pendingVisemes.length; i++) {
-      this.pendingVisemes[i] = 0;
+    for (let i = 0; i < this.currentVisemes.length; i++) {
+      this.currentVisemes[i] = -1;
     }
-
-    this.dirtyAvatars = Array(MAX_AVATARS);
-    this.dirtyAvatars.fill(0);
 
     this.maxRegisteredIndex = -1;
     this.loadedDecals = false;
@@ -197,16 +196,18 @@ export class AvatarSystem {
 
   register(el) {
     const index = this.mesh.addInstance(ZERO, IDENTITY);
-
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.avatarEls[index] = el;
     this.dirtyAvatars[index] = 0;
+
+    getNetworkedEntity(el).then(e => (this.avatarCreatorIds[index] = getCreator(e)));
   }
 
   unregister(el) {
     for (let i = 0; i <= this.maxRegisteredIndex; i++) {
       if (el === this.avatarEls[i]) {
         this.avatarEls[i] = null;
+        this.avatarCreatorIds[i] = null;
         this.mesh.freeInstance(i);
         return;
       }
@@ -217,15 +218,6 @@ export class AvatarSystem {
     for (let i = 0; i <= this.maxRegisteredIndex; i++) {
       if (this.avatarEls[i] === el) {
         this.dirtyAvatars[i] = MAX_LERP_TICKS;
-        return;
-      }
-    }
-  }
-
-  setAvatarToViseme(el, viseme) {
-    for (let i = 0; i <= this.maxRegisteredIndex; i++) {
-      if (this.avatarEls[i] === el) {
-        this.pendingVisemes[i] = viseme;
         return;
       }
     }
@@ -254,7 +246,8 @@ export class AvatarSystem {
 
     const {
       scheduledEyeDecals,
-      pendingVisemes,
+      currentVisemes,
+      avatarCreatorIds,
       avatarEls,
       maxRegisteredIndex,
       duvOffsetAttribute,
@@ -262,6 +255,8 @@ export class AvatarSystem {
       atmosphereSystem,
       dirtyAvatars
     } = this;
+
+    const nafAdapter = NAF.connection.adapter;
 
     for (let i = 0; i <= maxRegisteredIndex; i++) {
       const scheduledEyeDecal = scheduledEyeDecals[i];
@@ -271,12 +266,19 @@ export class AvatarSystem {
         this.maybeScheduleEyeDecal(t, i);
       }
 
+      const networkId = avatarCreatorIds[i];
       const isDirty = dirtyAvatars[i] !== 0;
       const hasEyeDecalChange = hasScheduledDecal && scheduledEyeDecal.t < t;
-      const pendingViseme = pendingVisemes[i];
-      const hasPendingViseme = pendingViseme !== NO_VISEME_VALUE;
+      const prevViseme = currentVisemes[i];
+      let currentViseme = 0;
 
-      if (!isDirty && !hasEyeDecalChange) continue;
+      if (nafAdapter && networkId !== null) {
+        currentViseme = nafAdapter.getCurrentViseme(networkId);
+      }
+
+      const hasNewViseme = currentViseme !== prevViseme;
+
+      if (!isDirty && !hasEyeDecalChange && !hasNewViseme) continue;
 
       const el = avatarEls[i];
       if (el === null) continue;
@@ -288,14 +290,14 @@ export class AvatarSystem {
         this.eyeDecalStateTransition(t, i);
       }
 
-      if (hasPendingViseme) {
-        pendingVisemes[i] = NO_VISEME_VALUE;
+      if (hasNewViseme) {
+        currentVisemes[i] = currentViseme;
 
-        if (pendingViseme <= 7) {
-          duvOffsetAttribute.array[i * 4 + 2] = pendingViseme;
+        if (currentViseme <= 7) {
+          duvOffsetAttribute.array[i * 4 + 2] = currentViseme;
           duvOffsetAttribute.array[i * 4 + 3] = 0;
         } else {
-          duvOffsetAttribute.array[i * 4 + 2] = pendingViseme - 8;
+          duvOffsetAttribute.array[i * 4 + 2] = currentViseme - 8;
           duvOffsetAttribute.array[i * 4 + 3] = 1;
         }
 

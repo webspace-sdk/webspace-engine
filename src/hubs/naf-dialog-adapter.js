@@ -54,13 +54,19 @@ export default class DialogAdapter {
     this._serverTimeRequests = 0;
     this._avgTimeOffset = 0;
     this._blockedClients = new Map();
-    this._visemeBuffer = null;
+    this._outgoingVisemeBuffer = null;
+    this._visemeMap = new Map();
     this.type = "dialog";
     this.occupants = {}; // This is a public field
   }
 
-  setVisemeBuffer(visemeBuffer) {
-    this._visemeBuffer = visemeBuffer;
+  setOutgoingVisemeBuffer(buffer) {
+    this._outgoingVisemeBuffer = buffer;
+  }
+
+  getCurrentViseme(peerId) {
+    if (!this._visemeMap.has(peerId)) return 0;
+    return this._visemeMap.get(peerId);
   }
 
   setForceTcp(forceTcp) {
@@ -202,6 +208,8 @@ export default class DialogAdapter {
 
               if (supportsInsertableStreams) {
                 // Add viseme decoder
+                const self = this;
+
                 const receiverTransform = new TransformStream({
                   start() {},
                   flush() {},
@@ -224,13 +232,8 @@ export default class DialogAdapter {
 
                       if (hasViseme) {
                         const viseme = view.getInt8(encodedFrame.data.byteLength - 1);
-                        const avatarSystem = document.querySelector("a-scene").systems["hubs-systems"].avatarSystem;
-                        if (avatarSystem) {
-                          const el = document.querySelectorAll("[ik-controller]")[1];
-                          if (el) {
-                            avatarSystem.setAvatarToViseme(el, viseme);
-                          }
-                        }
+                        self._visemeMap.set(peerId, viseme);
+
                         encodedFrame.data = encodedFrame.data.slice(
                           0,
                           encodedFrame.data.byteLength - 1 - visemeMagicBytes.length
@@ -624,8 +627,10 @@ export default class DialogAdapter {
                     arr[encodedFrame.data.byteLength + i] = visemeMagicBytes[i];
                   }
 
-                  if (self._visemeBuffer) {
-                    arr[encodedFrame.data.byteLength + visemeMagicBytes.length] = self._visemeBuffer[0];
+                  if (self._outgoingVisemeBuffer) {
+                    const viseme = self._outgoingVisemeBuffer[0];
+                    arr[encodedFrame.data.byteLength + visemeMagicBytes.length] = viseme;
+                    self._visemeMap.set(self._clientId, viseme);
                   }
 
                   encodedFrame.data = newData;

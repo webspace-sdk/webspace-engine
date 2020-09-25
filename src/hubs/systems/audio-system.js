@@ -4,6 +4,7 @@ import lipSyncWorker from "../../jel/workers/lipsync.worker.js";
 
 // Built via https://github.com/sipavlovic/wasm2js to load in worklet
 import rnnWasm from "../../jel/wasm/rnnoise-vad-wasm.js";
+const supportsInsertableStreams = !!(window.RTCRtpSender && !!RTCRtpSender.prototype.createEncodedStreams);
 
 async function enableChromeAEC(gainNode) {
   /**
@@ -84,7 +85,7 @@ export class AudioSystem {
     this.outboundGainNode.connect(this.outboundAnalyser);
     this.outboundAnalyser.connect(this.mediaStreamDestinationNode);
 
-    this.enableLipSync = this.audioContext.audioWorklet && window.SharedArrayBuffer;
+    this.enableLipSync = this.audioContext.audioWorklet && window.SharedArrayBuffer && supportsInsertableStreams;
 
     // Lip syncing - add gain and compress and then the forwarding worklet
     if (this.enableLipSync) {
@@ -180,12 +181,12 @@ export class AudioSystem {
     });
 
     if (NAF.connection.adapter) {
-      NAF.connection.adapter.setVisemeBuffer(this.lipSyncResultData);
+      NAF.connection.adapter.setOutgoingVisemeBuffer(this.lipSyncResultData);
     } else {
       sceneEl.addEventListener(
         "adapter-ready",
         () => {
-          NAF.connection.adapter.setVisemeBuffer(this.lipSyncResultData);
+          NAF.connection.adapter.setOutgoingVisemeBuffer(this.lipSyncResultData);
         },
         { once: true }
       );
