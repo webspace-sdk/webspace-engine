@@ -878,8 +878,11 @@ AFRAME.registerComponent("media-video", {
             });
 
             texture.hls = hls;
-            hls.loadSource(url);
             hls.attachMedia(videoEl);
+
+            hls.on(HLS.Events.MEDIA_ATTACHED, () => {
+              hls.loadSource(url);
+            });
 
             hls.on(HLS.Events.ERROR, function(event, data) {
               if (data.fatal) {
