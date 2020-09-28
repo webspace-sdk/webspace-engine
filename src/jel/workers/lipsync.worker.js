@@ -10,7 +10,7 @@ importScripts(tfjsSrc);
 importScripts(tfjsWasmBackendSrc);
 
 const PREDICTION_INTERVAL = 10; // NOTE can improve perf but reduce quality by increasing
-const modelSrc = "https://assets.jel.dev/static/ai/lipsync2/model.json";
+const modelSrc = "https://assets.jel.dev/static/ai/lipsync/model.json";
 
 // HACK this was manually added to the wasm-backend.js file since no other way to get at it
 // this too should be removed once wasm is properly added to the tfjs bundle
