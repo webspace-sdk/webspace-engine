@@ -134,7 +134,7 @@ export class AudioSystem {
     this.lipSyncVadData = new Float32Array(this.lipSyncVadBuffer);
 
     this.lipSyncGain = this.audioContext.createGain();
-    this.lipSyncGain.gain.setValueAtTime(2.0, this.audioContext.currentTime);
+    this.lipSyncGain.gain.setValueAtTime(3.0, this.audioContext.currentTime);
 
     this.lipSyncHardLimit = this.audioContext.createDynamicsCompressor();
     this.lipSyncHardLimit.threshold.value = -12;
