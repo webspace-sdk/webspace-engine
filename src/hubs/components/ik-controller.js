@@ -292,9 +292,6 @@ AFRAME.registerComponent("ik-controller", {
 
       if (this.data.instanceHeads) {
         this.avatarSystem.markDirty(this.el);
-
-        // Keep head entity so behaviors work, but remove mesh/material.
-        disposeNodeContents(this.head);
       }
 
       root.matrixNeedsUpdate = true;

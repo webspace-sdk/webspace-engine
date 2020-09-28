@@ -42,9 +42,7 @@ then
 
   $AWSCLI s3 sync --region {{ cfg.deploy.region }} --acl public-read --cache-control "public, max-age=31536000" --include "*" --exclude "*.wasm" "$TEMP_DIST_PATH/assets" "s3://{{ cfg.deploy.target }}/hubs/assets"
 
-  # HACK - make the content type application/json for wasm so Cloudfront compresses it. Currently wasm is not on the approved mime type list for compression.
-  # See: https://forums.aws.amazon.com/thread.jspa?threadID=322902
-  $AWSCLI s3 sync --region {{ cfg.deploy.region }} --acl public-read --cache-control "public, max-age=31536000" --exclude "*" --include "*.wasm" --content-type "application/json" "$TEMP_DIST_PATH/assets" "s3://{{ cfg.deploy.target }}/hubs/assets"
+  $AWSCLI s3 sync --region {{ cfg.deploy.region }} --acl public-read --cache-control "public, max-age=31536000" --exclude "*" --include "*.wasm" --content-type "application/wasm" "$TEMP_DIST_PATH/assets" "s3://{{ cfg.deploy.target }}/hubs/assets"
   
   $AWSCLI s3 sync --region {{ cfg.deploy.region }} --acl public-read --cache-control "no-cache" --delete "$TEMP_DIST_PATH/pages" "s3://{{ cfg.deploy.target }}/hubs/pages/latest"
   $AWSCLI s3 sync --region {{ cfg.deploy.region }} --acl public-read --cache-control "no-cache" --delete "$TEMP_DIST_PATH/pages" "s3://{{ cfg.deploy.target }}/hubs/pages/releases/{{ pkg.version }}.{{ pkg.release }}"

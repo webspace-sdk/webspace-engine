@@ -159,9 +159,19 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
     duvOffsets.push(...[0.0, 0.0, 0.0, 0.0]); // Upper, lower duv offset
   }
 
+  const instanceIndices = [];
+
+  for (let i = 0; i < instanceCount; i++) {
+    instanceIndices.push(i * 1.0);
+  }
+
   const duvOffsetAttribute = new InstancedBufferAttribute(new Float32Array(duvOffsets), 4);
   this.setAttribute("duvOffset", duvOffsetAttribute);
   this.instanceAttributes.push([Vector4, duvOffsetAttribute]);
+
+  const instanceIndexAttribute = new InstancedBufferAttribute(new Float32Array(instanceIndices), 4);
+  this.setAttribute("instanceIndex", instanceIndexAttribute);
+  this.instanceAttributes.push([Number, instanceIndexAttribute]);
 }
 
 AvatarSphereBufferGeometry.prototype = Object.create(BufferGeometry.prototype);

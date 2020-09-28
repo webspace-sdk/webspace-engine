@@ -68,7 +68,8 @@ const avatarMaterial = new ShaderMaterial({
   vertexShader: ShaderLib.phong.vertexShader,
   lights: true,
   defines: {
-    ...new MeshToonMaterial().defines
+    ...new MeshToonMaterial().defines,
+    TWOPI: 3.1415926538
   },
   uniforms: {
     ...UniformsUtils.clone(ShaderLib.phong.uniforms),
@@ -76,7 +77,8 @@ const avatarMaterial = new ShaderMaterial({
       decalMap: {
         type: "t",
         value: null
-      }
+      },
+      time: { value: 0.0 }
     }
   }
 });
@@ -94,18 +96,25 @@ const outlineMaterial = new MeshBasicMaterial({ color: new Color(0, 0, 0) });
 const highlightMaterial = new MeshBasicMaterial({ color: new Color(1, 1, 1) });
 
 avatarMaterial.onBeforeCompile = shader => {
-  addVertexCurvingToShader(shader);
+  // Float oscillation, vary period and freq by instance index
+  const postCurveShader = [
+    "gl_Position.y = gl_Position.y + sin(time * TWOPI * 0.001 * (mod(instanceIndex, 10.0) / 10.0) + instanceIndex * 7.0) * 0.025;"
+  ].join("\n");
+
+  addVertexCurvingToShader(shader, postCurveShader);
 
   // Add shader code to add decals
   shader.vertexShader = shader.vertexShader.replace(
     "#include <uv2_pars_vertex>",
     [
       "#include <uv2_pars_vertex>",
+      "uniform float time;",
       "attribute vec3 duv;",
       "varying vec3 vDuv;",
       "attribute float colorScale;",
       "varying float vColorScale;",
       "attribute vec4 duvOffset;",
+      "attribute float instanceIndex;",
       "varying vec4 vDuvOffset;"
     ].join("\n")
   );
@@ -243,6 +252,8 @@ export class AvatarSystem {
     }
 
     if (!avatarMaterial.uniforms.decalMap.value) return;
+
+    avatarMaterial.uniforms.time.value = t;
 
     const {
       scheduledEyeDecals,

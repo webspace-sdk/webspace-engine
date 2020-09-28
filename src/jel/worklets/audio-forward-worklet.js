@@ -1,4 +1,5 @@
 const PROCESSOR_NAME = "audio-forwarder";
+const EMPTY = [];
 
 class AudioForwarder extends AudioWorkletProcessor {
   constructor({ audioContext, processorOptions }) {
@@ -16,7 +17,7 @@ class AudioForwarder extends AudioWorkletProcessor {
     this.offset = 0;
   }
   process(inputs) {
-    const inbuf = inputs[0][0]; // Always 128 bytes per spec
+    const inbuf = inputs[0][0] || EMPTY; // Always 128 bytes per spec
     const { frameData1, frameData2 } = this;
 
     const dataOffset = this.offset * 128;

@@ -38,7 +38,7 @@ export const WORLD_SIZE = WORLD_MAX_COORD - WORLD_MIN_COORD;
 // Radius is artificial, want to have a specific curve effect not accurancy
 export const WORLD_RADIUS = 128.0;
 
-export const addVertexCurvingToShader = shader => {
+export const addVertexCurvingToShader = (shader, postCurveShader = "") => {
   shader.vertexShader = shader.vertexShader.replace(
     "#include <project_vertex>",
     [
@@ -68,7 +68,8 @@ export const addVertexCurvingToShader = shader => {
       "pos.x = cplx_im(circle) * planedir.x + camPos.x;",
       "pos.z = cplx_im(circle) * planedir.y + camPos.z;",
       "pos.y = cplx_re(circle) + camPos.y;",
-      "gl_Position = projectionMatrix * viewMatrix * pos;"
+      "gl_Position = projectionMatrix * viewMatrix * pos;",
+      postCurveShader
     ].join("\n")
   );
 };

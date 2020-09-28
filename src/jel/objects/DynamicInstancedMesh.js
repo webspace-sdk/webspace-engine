@@ -58,6 +58,16 @@ function DynamicInstancedMesh(geometry, material, maxCount) {
         attribute.array[index * 4 + 3] = 0.0;
       });
     }
+
+    if (type === Number) {
+      this.instanceWriters.push((v, index) => {
+        attribute.array[index * 4] = v;
+      });
+
+      this.instanceFreers.push(index => {
+        attribute.array[index * 4] = 0.0;
+      });
+    }
   }
 }
 
