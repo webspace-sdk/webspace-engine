@@ -1,4 +1,5 @@
 import { findAncestorWithComponent } from "../utils/scene-graph";
+import { getNetworkedAvatar } from "../../jel/utils/ownership-utils";
 
 const POSES = {
   open: "allOpen",
@@ -35,21 +36,7 @@ AFRAME.registerComponent("hand-pose", {
     this.from = this.to = this.mixer.clipAction(POSES.open + suffix);
     this.from.play();
     this.networkField = `${this.id}_hand_pose`;
-
-    const getNetworkedAvatar = el => {
-      if (!el) {
-        window.setTimeout(() => {
-          getNetworkedAvatar(this.el);
-        }, 1000);
-        return;
-      }
-      const networkedAvatar = el.components && el.components["networked-avatar"];
-      if (networkedAvatar) {
-        return networkedAvatar;
-      }
-      return getNetworkedAvatar(el.parentEl);
-    };
-    this.networkedAvatar = getNetworkedAvatar(this.el);
+    this.networkedAvatar = getNetworkedAvatar(this);
   },
 
   tick() {

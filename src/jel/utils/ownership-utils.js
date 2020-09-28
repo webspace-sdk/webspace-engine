@@ -105,3 +105,18 @@ export function getNetworkedEntity(entity) {
     }
   });
 }
+export const getNetworkedAvatar = component => {
+  if (!component.el) {
+    window.setTimeout(() => {
+      getNetworkedAvatar(component.el);
+    }, 1000);
+    return;
+  }
+
+  const el = component.el;
+  const networkedAvatar = el.components && el.components["networked-avatar"];
+  if (networkedAvatar) {
+    return networkedAvatar;
+  }
+  return getNetworkedAvatar(el.parentEl);
+};

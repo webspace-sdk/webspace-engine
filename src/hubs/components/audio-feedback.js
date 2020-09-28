@@ -162,6 +162,7 @@ AFRAME.registerComponent("scale-audio-feedback", {
   async init() {
     await waitForDOMContentLoaded();
     this.cameraEl = document.getElementById("viewing-camera");
+    this.audioFeedbackScale = 1.0;
   },
 
   tick() {
@@ -175,7 +176,7 @@ AFRAME.registerComponent("scale-audio-feedback", {
 
     const { object3D } = this.el;
 
-    const scale = getAudioFeedbackScale(
+    this.audioFeedbackScale = getAudioFeedbackScale(
       this.el.object3D,
       this.cameraEl.object3DMap.camera,
       minDistance,
@@ -184,7 +185,6 @@ AFRAME.registerComponent("scale-audio-feedback", {
       this.analyser ? this.analyser.volume : 0
     );
 
-    object3D.scale.setScalar(scale);
     object3D.matrixNeedsUpdate = true;
   }
 });

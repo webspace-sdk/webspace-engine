@@ -67,6 +67,18 @@ export class CharacterControllerSystem {
     waitForDOMContentLoaded().then(() => {
       this.avatarPOV = document.getElementById("avatar-pov-node");
       this.avatarRig = document.getElementById("avatar-rig");
+
+      if (this.avatarRig.components["networked-avatar"]) {
+        this.networkedAvatar = this.avatarRig.components["networked-avatar"];
+      } else {
+        this.avatarRig.addEventListener(
+          "entered",
+          () => {
+            this.networkedAvatar = this.avatarRig.components["networked-avatar"];
+          },
+          { once: true }
+        );
+      }
     });
   }
   // Use this API for waypoint travel so that your matrix doesn't end up in the pool
@@ -259,6 +271,9 @@ export class CharacterControllerSystem {
         this.scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_SNAP_ROTATE);
       }
       const characterAcceleration = userinput.get(paths.actions.characterAcceleration);
+
+      const boost = userinput.get(paths.actions.boost) ? 2 : 1;
+
       if (characterAcceleration) {
         const zCharacterAcceleration = -1 * characterAcceleration[1];
         this.relativeMotion.set(
@@ -272,12 +287,22 @@ export class CharacterControllerSystem {
                 ? Math.min(0, zCharacterAcceleration)
                 : zCharacterAcceleration)
         );
+
+        if (this.networkedAvatar) {
+          this.networkedAvatar.data.relative_motion = characterAcceleration[1] * boost;
+        }
+      } else {
+        if (this.networkedAvatar) {
+          this.networkedAvatar.data.relative_motion = 0;
+        }
       }
+
       const lerpC = vrMode ? 0 : 0.85; // TODO: To support drifting ("ice skating"), motion needs to keep initial direction
       this.nextRelativeMotion.copy(this.relativeMotion).multiplyScalar(lerpC);
       this.relativeMotion.multiplyScalar(1 - lerpC);
 
       this.avatarPOV.object3D.updateMatrices();
+
       rotateInPlaceAroundWorldUp(this.avatarPOV.object3D.matrixWorld, this.dXZ, snapRotatedPOV);
 
       newPOV.copy(snapRotatedPOV);
@@ -292,12 +317,7 @@ export class CharacterControllerSystem {
             snapRotatedPOV,
             this.fly,
             this.relativeMotion.multiplyScalar(
-              ((userinput.get(paths.actions.boost) ? 2 : 1) *
-                speedModifier *
-                BASE_SPEED *
-                Math.sqrt(playerScale) *
-                dt) /
-                1000
+              (boost * speedModifier * BASE_SPEED * Math.sqrt(playerScale) * dt) / 1000
             ),
             displacementToDesiredPOV
           );
