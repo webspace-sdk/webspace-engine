@@ -218,7 +218,7 @@ export class AvatarSystem {
   }
 
   register(el) {
-    const index = this.mesh.addInstance(ZERO, new THREE.Vector3(0.5, 0.5, 0.0), IDENTITY);
+    const index = this.mesh.addInstance(ZERO, ZERO, IDENTITY);
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.avatarEls[index] = el;
     this.dirtyMatrices[index] = 0;
