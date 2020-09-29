@@ -96,7 +96,7 @@ const highlightMaterial = new MeshBasicMaterial({ color: new Color(1, 1, 1) });
 avatarMaterial.onBeforeCompile = shader => {
   // Float oscillation, vary period and freq by instance index
   const postCurveShader = [
-    "gl_Position.y = gl_Position.y + sin(time * TWOPI * 0.001 * (mod(instanceIndex, 10.0) / 10.0) + instanceIndex * 7.0) * 0.025;"
+    "gl_Position.y = gl_Position.y + sin(time * TWOPI * 0.001 * (mod(instanceIndex, 10.0) / 7.0) + instanceIndex * 7.0) * 0.025;"
   ].join("\n");
 
   addVertexCurvingToShader(shader, postCurveShader);
