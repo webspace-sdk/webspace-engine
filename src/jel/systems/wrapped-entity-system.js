@@ -94,6 +94,7 @@ export class WrappedEntitySystem {
     return function() {
       this.frame++;
       if (this.els.length === 0) return;
+      if (!this.avatarPovEl) return;
 
       const avatar = this.avatarPovEl.object3D;
 
