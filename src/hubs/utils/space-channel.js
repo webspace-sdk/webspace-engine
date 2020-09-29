@@ -93,7 +93,13 @@ export default class SpaceChannel extends EventTarget {
 
   sendProfileUpdate = () => {
     if (this.channel) {
-      this.channel.push("events:profile_updated", { profile: this.store.state.profile });
+      this.channel.push("update_profile", { profile: this.store.state.profile });
+    }
+  };
+
+  sendPersonaUpdate = persona => {
+    if (this.channel) {
+      this.channel.push("update_persona", { persona });
     }
   };
 

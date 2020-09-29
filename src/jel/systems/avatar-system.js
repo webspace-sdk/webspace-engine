@@ -249,9 +249,9 @@ export class AvatarSystem {
     }
   }
 
-  markColorDirty(el) {
+  markPersonaAvatarDirty(creatorId) {
     for (let i = 0; i <= this.maxRegisteredIndex; i++) {
-      if (this.avatarEls[i] === el) {
+      if (this.avatarCreatorIds[i] === creatorId) {
         this.dirtyColors[i] = true;
         return;
       }

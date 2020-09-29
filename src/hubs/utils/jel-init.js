@@ -588,6 +588,13 @@ const setupSpaceChannelMessageHandlers = spacePhxChannel => {
     spaceChannel.fetchPermissions();
     hubChannel.fetchPermissions();
   });
+
+  spacePhxChannel.on("persona_refresh", ({ session_id }) => {
+    const scene = document.querySelector("a-scene");
+
+    // If persona changed, update avatar color
+    scene.systems["hubs-systems"].avatarSystem.markPersonaAvatarDirty(session_id);
+  });
 };
 
 const setupHubChannelMessageHandlers = (
