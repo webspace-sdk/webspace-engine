@@ -12,7 +12,6 @@ const {
   ShaderMaterial,
   Color,
   MeshBasicMaterial,
-  VertexColors,
   Matrix4,
   ShaderLib,
   UniformsUtils,
@@ -62,7 +61,6 @@ const AVATAR_RADIUS = 0.4;
 
 const avatarMaterial = new ShaderMaterial({
   name: "avatar",
-  vertexColors: VertexColors,
   fog: true,
   fragmentShader: ShaderLib.phong.fragmentShader,
   vertexShader: ShaderLib.phong.vertexShader,
@@ -85,7 +83,7 @@ const avatarMaterial = new ShaderMaterial({
 
 avatarMaterial.uniforms.gradientMap.value = toonGradientMap;
 avatarMaterial.uniforms.shininess.value = 0.0001;
-avatarMaterial.uniforms.diffuse.value = new Color(0.0, 0.22, 0.66);
+avatarMaterial.uniforms.diffuse.value = new Color(0.5, 0.5, 0.5);
 
 avatarMaterial.stencilWrite = true; // Avoid SSAO
 avatarMaterial.stencilFunc = THREE.AlwaysStencilFunc;
@@ -108,6 +106,8 @@ avatarMaterial.onBeforeCompile = shader => {
     "#include <uv2_pars_vertex>",
     [
       "#include <uv2_pars_vertex>",
+      "attribute vec3 instanceColor;",
+      "varying vec3 vInstanceColor;",
       "uniform float time;",
       "attribute vec3 duv;",
       "varying vec3 vDuv;",
@@ -120,8 +120,14 @@ avatarMaterial.onBeforeCompile = shader => {
   );
 
   shader.vertexShader = shader.vertexShader.replace(
-    "#include <uv2_vertex>",
-    ["#include <uv2_vertex>", "vDuv = duv;", "vDuvOffset = duvOffset;", "vColorScale = colorScale;"].join("\n")
+    "#include <color_vertex>",
+    [
+      "#include <color_vertex>",
+      "vDuv = duv;",
+      "vDuvOffset = duvOffset;",
+      "vColorScale = colorScale;",
+      "vInstanceColor = instanceColor;"
+    ].join("\n")
   );
 
   shader.fragmentShader = shader.fragmentShader.replace(
@@ -132,8 +138,14 @@ avatarMaterial.onBeforeCompile = shader => {
       "uniform sampler2D decalMap;",
       "varying vec3 vDuv;",
       "varying vec4 vDuvOffset;",
+      "varying vec3 vInstanceColor;",
       "varying float vColorScale;"
     ].join("\n")
+  );
+
+  shader.fragmentShader = shader.fragmentShader.replace(
+    "#include <color_fragment>",
+    ["#include <color_fragment>", "diffuseColor.rgb = vInstanceColor.rgb;"].join("\n")
   );
 
   shader.fragmentShader = shader.fragmentShader.replace(
@@ -169,7 +181,8 @@ export class AvatarSystem {
     this.avatarEls = Array(MAX_AVATARS).fill(null);
     this.avatarCreatorIds = Array(MAX_AVATARS).fill(null);
     this.currentVisemes = Array(MAX_AVATARS).fill(-1);
-    this.dirtyAvatars = Array(MAX_AVATARS).fill(0);
+    this.dirtyMatrices = Array(MAX_AVATARS).fill(0);
+    this.dirtyColors = Array(MAX_AVATARS).fill(false);
     this.avatarIkControllers = Array(MAX_AVATARS).fill(null);
 
     this.scheduledEyeDecals = Array(MAX_AVATARS);
@@ -205,10 +218,11 @@ export class AvatarSystem {
   }
 
   register(el) {
-    const index = this.mesh.addInstance(ZERO, IDENTITY);
+    const index = this.mesh.addInstance(ZERO, new THREE.Vector3(0.5, 0.5, 0.0), IDENTITY);
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.avatarEls[index] = el;
-    this.dirtyAvatars[index] = 0;
+    this.dirtyMatrices[index] = 0;
+    this.dirtyColors[index] = true;
     this.avatarIkControllers[index] = el.components["ik-controller"];
 
     getNetworkedEntity(el).then(e => (this.avatarCreatorIds[index] = getCreator(e)));
@@ -226,10 +240,19 @@ export class AvatarSystem {
     }
   }
 
-  markDirty(el) {
+  markMatrixDirty(el) {
     for (let i = 0; i <= this.maxRegisteredIndex; i++) {
       if (this.avatarEls[i] === el) {
-        this.dirtyAvatars[i] = MAX_LERP_TICKS;
+        this.dirtyMatrices[i] = MAX_LERP_TICKS;
+        return;
+      }
+    }
+  }
+
+  markColorDirty(el) {
+    for (let i = 0; i <= this.maxRegisteredIndex; i++) {
+      if (this.avatarEls[i] === el) {
+        this.dirtyColors[i] = true;
         return;
       }
     }
@@ -244,6 +267,7 @@ export class AvatarSystem {
     this.mesh.renderOrder = RENDER_ORDER.INSTANCED_AVATAR;
     this.mesh.castShadow = true;
     this.duvOffsetAttribute = this.mesh.geometry.instanceAttributes[0][1];
+    this.instanceColorAttribute = this.mesh.geometry.instanceAttributes[1][1];
 
     this.sceneEl.object3D.add(this.mesh);
   }
@@ -265,19 +289,28 @@ export class AvatarSystem {
       avatarEls,
       maxRegisteredIndex,
       duvOffsetAttribute,
+      instanceColorAttribute,
       mesh,
       atmosphereSystem,
-      dirtyAvatars,
+      dirtyMatrices,
+      dirtyColors,
       avatarIkControllers
     } = this;
 
     const nafAdapter = NAF.connection.adapter;
     let duvNeedsUpdate = false,
-      instanceMatrixNeedsUpdate = false;
+      instanceMatrixNeedsUpdate = false,
+      instanceColorNeedsUpdate = false;
 
     for (let i = 0; i <= maxRegisteredIndex; i++) {
       const el = avatarEls[i];
       if (el === null) continue;
+
+      const hasDirtyColor = dirtyColors[i];
+      if (hasDirtyColor) {
+        instanceColorNeedsUpdate = true;
+        dirtyColors[i] = false;
+      }
 
       const scheduledEyeDecal = scheduledEyeDecals[i];
       const hasScheduledDecal = scheduledEyeDecal.t > 0.0;
@@ -287,7 +320,7 @@ export class AvatarSystem {
       }
 
       const networkId = avatarCreatorIds[i];
-      const isDirty = dirtyAvatars[i] > 0;
+      const hasDirtyMatrix = dirtyMatrices[i] > 0;
       const hasEyeDecalChange = hasScheduledDecal && scheduledEyeDecal.t < t;
       const prevViseme = currentVisemes[i];
       let currentViseme = 0;
@@ -298,7 +331,7 @@ export class AvatarSystem {
 
       const hasNewViseme = currentViseme !== prevViseme;
 
-      if (!isDirty && !hasEyeDecalChange && !hasNewViseme) continue;
+      if (!hasDirtyMatrix && !hasEyeDecalChange && !hasNewViseme && !hasDirtyColor) continue;
 
       if (hasEyeDecalChange) {
         duvOffsetAttribute.array[i * 4] = scheduledEyeDecal.decal;
@@ -321,22 +354,22 @@ export class AvatarSystem {
         duvNeedsUpdate = true;
       }
 
-      if (isDirty) {
+      if (hasDirtyMatrix) {
         const head = avatarIkControllers[i].head;
 
-        // Force update if flags set since head will be marked not visible
         head.updateMatrices();
 
         mesh.setMatrixAt(i, head.matrixWorld);
         instanceMatrixNeedsUpdate = true;
 
         atmosphereSystem.updateShadows();
-      }
 
-      dirtyAvatars[i] -= 1;
+        dirtyMatrices[i] -= 1;
+      }
     }
 
     duvOffsetAttribute.needsUpdate = duvNeedsUpdate;
+    instanceColorAttribute.needsUpdate = instanceColorNeedsUpdate;
     mesh.instanceMatrix.needsUpdate = instanceMatrixNeedsUpdate;
   }
 

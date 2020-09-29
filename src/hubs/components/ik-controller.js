@@ -327,7 +327,6 @@ AFRAME.registerComponent("ik-controller", {
 
       // Perform head velocity squish + rotate
       if (relativeMotionSpring !== 0) {
-        console.log(relativeMotionSpring);
         const scaleDXZ = 1.0 + relativeMotionSpring * 0.1 * this.relativeMotionMaxMagnitude;
         const scaleDY = 1.0 - relativeMotionSpring * 0.1 * this.relativeMotionMaxMagnitude;
         let feedbackScale = 1.0;
@@ -342,7 +341,7 @@ AFRAME.registerComponent("ik-controller", {
       }
 
       if (this.data.instanceHeads) {
-        this.avatarSystem.markDirty(this.el);
+        this.avatarSystem.markMatrixDirty(this.el);
       }
 
       root.matrixNeedsUpdate = true;

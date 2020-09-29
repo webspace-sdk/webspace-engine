@@ -159,6 +159,12 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
     duvOffsets.push(...[0.0, 0.0, 0.0, 0.0]); // Upper, lower duv offset
   }
 
+  const colors = [];
+
+  for (let i = 0; i < instanceCount; i++) {
+    colors.push(...[0.0, 0.0, 0.0]);
+  }
+
   const instanceIndices = [];
 
   for (let i = 0; i < instanceCount; i++) {
@@ -169,9 +175,9 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
   this.setAttribute("duvOffset", duvOffsetAttribute);
   this.instanceAttributes.push([Vector4, duvOffsetAttribute]);
 
-  const instanceIndexAttribute = new InstancedBufferAttribute(new Float32Array(instanceIndices), 4);
-  this.setAttribute("instanceIndex", instanceIndexAttribute);
-  this.instanceAttributes.push([Number, instanceIndexAttribute]);
+  const instanceColorAttribute = new InstancedBufferAttribute(new Float32Array(colors), 3);
+  this.setAttribute("instanceColor", instanceColorAttribute);
+  this.instanceAttributes.push([Vector3, instanceColorAttribute]);
 }
 
 AvatarSphereBufferGeometry.prototype = Object.create(BufferGeometry.prototype);
