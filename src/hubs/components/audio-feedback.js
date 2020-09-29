@@ -176,6 +176,7 @@ AFRAME.registerComponent("scale-audio-feedback", {
 
     const { object3D } = this.el;
 
+    // Set here, but updated in ik-controller since we also scale head there.
     this.audioFeedbackScale = getAudioFeedbackScale(
       this.el.object3D,
       this.cameraEl.object3DMap.camera,

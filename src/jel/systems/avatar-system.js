@@ -170,6 +170,7 @@ export class AvatarSystem {
     this.avatarCreatorIds = Array(MAX_AVATARS).fill(null);
     this.currentVisemes = Array(MAX_AVATARS).fill(-1);
     this.dirtyAvatars = Array(MAX_AVATARS).fill(0);
+    this.avatarIkControllers = Array(MAX_AVATARS).fill(null);
 
     this.scheduledEyeDecals = Array(MAX_AVATARS);
 
@@ -208,6 +209,7 @@ export class AvatarSystem {
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.avatarEls[index] = el;
     this.dirtyAvatars[index] = 0;
+    this.avatarIkControllers[index] = el.components["ik-controller"];
 
     getNetworkedEntity(el).then(e => (this.avatarCreatorIds[index] = getCreator(e)));
   }
@@ -217,6 +219,7 @@ export class AvatarSystem {
       if (el === this.avatarEls[i]) {
         this.avatarEls[i] = null;
         this.avatarCreatorIds[i] = null;
+        this.avatarIkControllers[i] = null;
         this.mesh.freeInstance(i);
         return;
       }
@@ -264,12 +267,18 @@ export class AvatarSystem {
       duvOffsetAttribute,
       mesh,
       atmosphereSystem,
-      dirtyAvatars
+      dirtyAvatars,
+      avatarIkControllers
     } = this;
 
     const nafAdapter = NAF.connection.adapter;
+    let duvNeedsUpdate = false,
+      instanceMatrixNeedsUpdate = false;
 
     for (let i = 0; i <= maxRegisteredIndex; i++) {
+      const el = avatarEls[i];
+      if (el === null) continue;
+
       const scheduledEyeDecal = scheduledEyeDecals[i];
       const hasScheduledDecal = scheduledEyeDecal.t > 0.0;
 
@@ -278,7 +287,7 @@ export class AvatarSystem {
       }
 
       const networkId = avatarCreatorIds[i];
-      const isDirty = dirtyAvatars[i] !== 0;
+      const isDirty = dirtyAvatars[i] > 0;
       const hasEyeDecalChange = hasScheduledDecal && scheduledEyeDecal.t < t;
       const prevViseme = currentVisemes[i];
       let currentViseme = 0;
@@ -291,12 +300,9 @@ export class AvatarSystem {
 
       if (!isDirty && !hasEyeDecalChange && !hasNewViseme) continue;
 
-      const el = avatarEls[i];
-      if (el === null) continue;
-
       if (hasEyeDecalChange) {
         duvOffsetAttribute.array[i * 4] = scheduledEyeDecal.decal;
-        duvOffsetAttribute.needsUpdate = true;
+        duvNeedsUpdate = true;
 
         this.eyeDecalStateTransition(t, i);
       }
@@ -312,23 +318,26 @@ export class AvatarSystem {
           duvOffsetAttribute.array[i * 4 + 3] = 1;
         }
 
-        duvOffsetAttribute.needsUpdate = true;
+        duvNeedsUpdate = true;
       }
 
-      const { head } = el.components["ik-controller"];
+      if (isDirty) {
+        const head = avatarIkControllers[i].head;
 
-      // Force update if flags set since head will be marked not visible
-      head.updateMatrices();
+        // Force update if flags set since head will be marked not visible
+        head.updateMatrices();
 
-      mesh.setMatrixAt(i, head.matrixWorld);
-      mesh.instanceMatrix.needsUpdate = true;
+        mesh.setMatrixAt(i, head.matrixWorld);
+        instanceMatrixNeedsUpdate = true;
 
-      atmosphereSystem.updateShadows();
-
-      if (dirtyAvatars[i] > 0) {
-        dirtyAvatars[i] -= 1;
+        atmosphereSystem.updateShadows();
       }
+
+      dirtyAvatars[i] -= 1;
     }
+
+    duvOffsetAttribute.needsUpdate = duvNeedsUpdate;
+    mesh.instanceMatrix.needsUpdate = instanceMatrixNeedsUpdate;
   }
 
   maybeScheduleEyeDecal(t, i) {
