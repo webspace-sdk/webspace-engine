@@ -297,6 +297,8 @@ export class AvatarSystem {
       avatarIkControllers
     } = this;
 
+    const presenceState = window.APP.spaceChannel.presence.state;
+
     const nafAdapter = NAF.connection.adapter;
     let duvNeedsUpdate = false,
       instanceMatrixNeedsUpdate = false,
@@ -305,12 +307,6 @@ export class AvatarSystem {
     for (let i = 0; i <= maxRegisteredIndex; i++) {
       const el = avatarEls[i];
       if (el === null) continue;
-
-      const hasDirtyColor = dirtyColors[i];
-      if (hasDirtyColor) {
-        instanceColorNeedsUpdate = true;
-        dirtyColors[i] = false;
-      }
 
       const scheduledEyeDecal = scheduledEyeDecals[i];
       const hasScheduledDecal = scheduledEyeDecal.t > 0.0;
@@ -323,6 +319,17 @@ export class AvatarSystem {
       const hasDirtyMatrix = dirtyMatrices[i] > 0;
       const hasEyeDecalChange = hasScheduledDecal && scheduledEyeDecal.t < t;
       const prevViseme = currentVisemes[i];
+
+      const hasDirtyColor = dirtyColors[i];
+      if (hasDirtyColor && networkId) {
+        const { r, g, b } = presenceState[networkId].metas[0].profile.persona.avatar.primary_color;
+        instanceColorAttribute.array[i * 3 + 0] = r;
+        instanceColorAttribute.array[i * 3 + 1] = g;
+        instanceColorAttribute.array[i * 3 + 2] = b;
+        instanceColorNeedsUpdate = true;
+        dirtyColors[i] = false;
+      }
+
       let currentViseme = 0;
 
       if (nafAdapter && networkId !== null) {

@@ -289,7 +289,8 @@ export class CharacterControllerSystem {
         );
 
         if (this.networkedAvatar) {
-          this.networkedAvatar.data.relative_motion = characterAcceleration[1] * boost;
+          this.networkedAvatar.data.relative_motion =
+            Math.max(Math.abs(characterAcceleration[0]), Math.abs(characterAcceleration[1])) * boost;
         }
       } else {
         if (this.networkedAvatar) {
