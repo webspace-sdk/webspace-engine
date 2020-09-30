@@ -48,7 +48,7 @@ function useNavResize(navExpanded) {
       }, 800);
 
       // Don't run during RAF to reduce chop.
-      resizeInterval.current = setInterval(() => scene.resize(), 100);
+      resizeInterval.current = setInterval(() => scene.resize(), 15);
       const { body } = document;
 
       if (navExpanded) {

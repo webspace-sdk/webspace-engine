@@ -479,6 +479,10 @@ function addGlobalEventListeners(scene, entryManager) {
     );
   });
 
+  document.addEventListener("pointerlockchange", () => {
+    remountJelUI({ navExpanded: !document.pointerLockElement });
+  });
+
   scene.addEventListener("action_focus_chat", () => {
     const chatFocusTarget = document.querySelector(".chat-focus-target");
     chatFocusTarget && chatFocusTarget.focus();

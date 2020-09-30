@@ -10,10 +10,8 @@ const keyboardCharacterAcceleration = "/var/mouse-and-keyboard/keyboardCharacter
 const arrows_vec2 = "/var/mouse-and-keyboard/arrows_vec2";
 const togglePenWithRMB = "/vars/mouse-and-keyboard/drop_pen_with_RMB";
 const togglePenWithEsc = "/vars/mouse-and-keyboard/drop_pen_with_esc";
-const togglePenWithP = "/vars/mouse-and-keyboard/drop_pen_with_p";
 const togglePenWithHud = "/vars/mouse-and-keyboard/drop_pen_with_hud";
 const togglePen = "/vars/mouse-and-keyboard/togglePen";
-const startInspectingViaMouse = "/vars/mouse-and-keyboard/startInspectingViaMouse";
 const startInspectingViaKeyboard = "/vars/mouse-and-keyboard/startInspectingViaKeyboard";
 const stopInspectingViaMouse = "/vars/mouse-and-keyboard/stopInspectingViaMouse";
 const stopInspectingViaKeyboardEscape = "/vars/mouse-and-keyboard/stopInspectingViaKeyboardEscape";
@@ -88,48 +86,8 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 1
     },
     {
-      src: { value: paths.device.keyboard.key("Escape") },
-      dest: { value: paths.actions.camera.exitMirror },
-      xform: xforms.falling
-    },
-    {
-      src: { value: paths.device.keyboard.key("q") },
-      dest: { value: paths.actions.snapRotateLeft },
-      xform: xforms.rising
-    },
-    {
-      src: { value: paths.device.keyboard.key("g") },
-      dest: { value: paths.actions.toggleFly },
-      xform: xforms.rising
-    },
-    {
       src: { value: paths.device.keyboard.key("`") },
       dest: { value: paths.actions.toggleUI },
-      xform: xforms.rising
-    },
-    {
-      src: { value: paths.device.keyboard.key("e") },
-      dest: { value: paths.actions.snapRotateRight },
-      xform: xforms.rising
-    },
-    {
-      src: { value: paths.device.keyboard.key("Tab") },
-      dest: { value: paths.actions.toggleFreeze },
-      xform: xforms.rising
-    },
-    {
-      src: { value: paths.device.keyboard.key(" ") },
-      dest: { value: paths.actions.ensureFrozen },
-      xform: xforms.copy
-    },
-    {
-      src: { value: paths.device.keyboard.key(" ") },
-      dest: { value: paths.actions.thaw },
-      xform: xforms.falling
-    },
-    {
-      src: { value: paths.device.keyboard.key("p") },
-      dest: { value: togglePenWithP },
       xform: xforms.rising
     },
     {
@@ -138,7 +96,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
-      src: [togglePenWithHud, togglePenWithP],
+      src: [togglePenWithHud],
       dest: { value: togglePen },
       xform: xforms.any
     },
@@ -149,56 +107,8 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 100
     },
     {
-      src: { value: paths.device.keyboard.key("c") },
-      dest: { value: paths.actions.toggleCamera },
-      xform: xforms.rising
-    },
-    {
-      src: { value: paths.device.keyboard.key("x") },
-      dest: { value: paths.actions.takeSnapshot },
-      xform: xforms.copy
-    },
-    {
       src: { value: paths.device.smartMouse.cursorPose },
       dest: { value: paths.actions.cursor.right.pose },
-      xform: xforms.copy
-    },
-    {
-      src: { value: paths.device.mouse.coords },
-      dest: { value: "/var/mouseCoordsDelta" },
-      xform: xforms.diff_vec2
-    },
-    {
-      src: { value: "/var/mouseCoordsDelta" },
-      dest: { x: "/var/mouseCoordsX", y: "/var/mouseCoordsY" },
-      xform: xforms.split_vec2
-    },
-    {
-      src: { value: "/var/mouseCoordsX" },
-      dest: { value: "/var/mouseCoordsXScaled" },
-      xform: xforms.scale(-Math.PI)
-    },
-    {
-      src: { value: "/var/mouseCoordsY" },
-      dest: { value: "/var/mouseCoordsYScaled" },
-      xform: xforms.scale((2 * Math.PI) / 3)
-    },
-    {
-      src: { x: "/var/mouseCoordsXScaled", y: "/var/mouseCoordsYScaled" },
-      dest: { value: "/var/actions/cameraDelta" },
-      xform: xforms.compose_vec2
-    },
-    {
-      src: {
-        value: "/var/actions/cameraDelta",
-        bool: paths.device.smartMouse.shouldMoveCamera
-      },
-      dest: { value: paths.actions.cameraDelta },
-      xform: xforms.copyVec2IfTrue
-    },
-    {
-      src: { value: paths.actions.cameraDelta },
-      dest: { value: paths.actions.lobbyCameraDelta },
       xform: xforms.copy
     },
     {
@@ -221,124 +131,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
-        value: paths.device.keyboard.key("/")
-      },
-      dest: {
-        value: paths.actions.focusChatCommand
-      },
-      xform: xforms.rising
-    },
-    {
-      src: { value: paths.device.keyboard.key("Escape") },
-      dest: { value: paths.actions.mediaExit },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("1")
-      },
-      dest: { value: "/var/control+1" },
-      xform: xforms.copyIfTrue
-    },
-    {
-      src: { value: "/var/control+1" },
-      dest: { value: paths.actions.mediaSearch1 },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("2")
-      },
-      dest: { value: "/var/control+2" },
-      xform: xforms.copyIfTrue
-    },
-    {
-      src: { value: "/var/control+2" },
-      dest: { value: paths.actions.mediaSearch2 },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("3")
-      },
-      dest: { value: "/var/control+3" },
-      xform: xforms.copyIfTrue
-    },
-    {
-      src: { value: "/var/control+3" },
-      dest: { value: paths.actions.mediaSearch3 },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("4")
-      },
-      dest: { value: "/var/control+4" },
-      xform: xforms.copyIfTrue
-    },
-    {
-      src: { value: "/var/control+4" },
-      dest: { value: paths.actions.mediaSearch4 },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("5")
-      },
-      dest: { value: "/var/control+5" },
-      xform: xforms.copyIfTrue
-    },
-    {
-      src: { value: "/var/control+5" },
-      dest: { value: paths.actions.mediaSearch5 },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("6")
-      },
-      dest: { value: "/var/control+6" },
-      xform: xforms.copyIfTrue
-    },
-    {
-      src: { value: "/var/control+6" },
-      dest: { value: paths.actions.mediaSearch6 },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("7")
-      },
-      dest: { value: "/var/control+7" },
-      xform: xforms.copyIfTrue
-    },
-    {
-      src: { value: "/var/control+7" },
-      dest: { value: paths.actions.mediaSearch7 },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("8")
-      },
-      dest: { value: "/var/control+8" },
-      xform: xforms.copyIfTrue
-    },
-    {
-      src: { value: "/var/control+8" },
-      dest: { value: paths.actions.mediaSearch8 },
-      xform: xforms.rising
-    },
-    {
-      src: {
         value: paths.device.keyboard.key("l")
       },
       dest: {
@@ -353,122 +145,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       dest: {
         value: paths.actions.logInteractionState
       },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        value: paths.device.mouse.buttonRight
-      },
-      dest: {
-        value: paths.actions.startGazeTeleport
-      },
-      xform: xforms.rising,
-      priority: 100
-    },
-    {
-      src: {
-        value: paths.device.mouse.buttonRight
-      },
-      dest: {
-        value: paths.actions.stopGazeTeleport
-      },
-      xform: xforms.falling,
-      priority: 100
-    },
-    {
-      src: { value: paths.device.keyboard.key("o") },
-      dest: { value: paths.actions.nextCameraMode },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("1")
-      },
-      dest: { value: "/var/notcontrol+1" },
-      xform: xforms.copyIfFalse
-    },
-    {
-      src: { value: "/var/notcontrol+1" },
-      dest: { value: paths.actions.spawnEmoji0 },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("2")
-      },
-      dest: { value: "/var/notcontrol+2" },
-      xform: xforms.copyIfFalse
-    },
-    {
-      src: { value: "/var/notcontrol+2" },
-      dest: { value: paths.actions.spawnEmoji1 },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("3")
-      },
-      dest: { value: "/var/notcontrol+3" },
-      xform: xforms.copyIfFalse
-    },
-    {
-      src: { value: "/var/notcontrol+3" },
-      dest: { value: paths.actions.spawnEmoji2 },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("4")
-      },
-      dest: { value: "/var/notcontrol+4" },
-      xform: xforms.copyIfFalse
-    },
-    {
-      src: { value: "/var/notcontrol+4" },
-      dest: { value: paths.actions.spawnEmoji3 },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("5")
-      },
-      dest: { value: "/var/notcontrol+5" },
-      xform: xforms.copyIfFalse
-    },
-    {
-      src: { value: "/var/notcontrol+5" },
-      dest: { value: paths.actions.spawnEmoji4 },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("6")
-      },
-      dest: { value: "/var/notcontrol+6" },
-      xform: xforms.copyIfFalse
-    },
-    {
-      src: { value: "/var/notcontrol+6" },
-      dest: { value: paths.actions.spawnEmoji5 },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("7")
-      },
-      dest: { value: "/var/notcontrol+7" },
-      xform: xforms.copyIfFalse
-    },
-    {
-      src: { value: "/var/notcontrol+7" },
-      dest: { value: paths.actions.spawnEmoji6 },
       xform: xforms.rising
     }
     // Helpful bindings for debugging hands in 2D
@@ -592,7 +268,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
-      src: [togglePenWithRMB, togglePenWithEsc, togglePenWithP, togglePenWithHud],
+      src: [togglePenWithRMB, togglePenWithEsc, togglePenWithHud],
       dest: { value: togglePen },
       xform: xforms.any
     },
@@ -702,19 +378,13 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 1
     },
     {
-      src: { value: paths.device.mouse.buttonRight },
-      dest: { value: startInspectingViaMouse },
-      xform: xforms.rising,
-      priority: 200
-    },
-    {
       src: { value: paths.device.keyboard.key("f") },
       dest: { value: startInspectingViaKeyboard },
       xform: xforms.rising,
       priority: 200
     },
     {
-      src: [startInspectingViaMouse, startInspectingViaKeyboard],
+      src: [startInspectingViaKeyboard],
       dest: { value: paths.actions.startInspecting },
       xform: xforms.any,
       priority: 201

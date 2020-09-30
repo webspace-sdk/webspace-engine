@@ -11,6 +11,19 @@ export class KeyboardDevice {
         if (!e.key) return;
         this.events.push(e);
 
+        // Non-repeated ctrl-space is cursor lock hotkey.
+        if (e.type === "keydown" && e.key === " " && e.ctrlKey && !e.repeat) {
+          const canvas = AFRAME.scenes[0].canvas;
+
+          if (canvas.requestPointerLock) {
+            if (document.pointerLockElement === canvas) {
+              document.exitPointerLock();
+            } else {
+              canvas.requestPointerLock();
+            }
+          }
+        }
+
         // Block browser hotkeys for chat command, media browser and freeze
         if (
           (e.type === "keydown" &&

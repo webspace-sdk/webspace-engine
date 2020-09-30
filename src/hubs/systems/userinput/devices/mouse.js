@@ -64,7 +64,8 @@ export class MouseDevice {
     const left = event.button === 0;
     const middle = event.button === 1;
     const right = event.button === 2;
-    this.coords[0] = ((event.clientX - (window.innerWidth - this.canvas.width)) / this.canvas.width) * 2 - 1;
+    const canvasLeft = this.canvas.parentElement.offsetLeft;
+    this.coords[0] = ((event.clientX - canvasLeft) / (window.innerWidth - canvasLeft)) * 2 - 1;
     this.coords[1] = -(event.clientY / window.innerHeight) * 2 + 1;
     this.movementXY[0] += event.movementX;
     this.movementXY[1] += event.movementY;

@@ -38,24 +38,24 @@ body {
 
 body.nav-hidden {
   a-scene {
-    animation: hide-nav 0.75s cubic-bezier(.12,.98,.18,.98);
+    animation: hide-nav 0.25s cubic-bezier(.12,.98,.18,.98);
     animation-fill-mode: forwards;
   }
 
   .ui-root {
-    animation: hide-nav 0.75s cubic-bezier(.12,.98,.18,.98);
+    animation: hide-nav 0.25s cubic-bezier(.12,.98,.18,.98);
     animation-fill-mode: forwards;
   }
 }
 
 body.nav-expanded {
   a-scene {
-    animation: expand-nav 0.75s cubic-bezier(.12,.98,.18,.98);
+    animation: expand-nav 0.25s cubic-bezier(.12,.98,.18,.98);
     animation-fill-mode: forwards;
   }
 
   .ui-root {
-    animation: expand-nav 0.75s cubic-bezier(.12,.98,.18,.98);
+    animation: expand-nav 0.25s cubic-bezier(.12,.98,.18,.98);
     animation-fill-mode: forwards;
   }
 }
