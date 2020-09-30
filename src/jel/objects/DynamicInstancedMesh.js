@@ -96,7 +96,7 @@ DynamicInstancedMesh.prototype = Object.assign(Object.create(InstancedMesh.proto
 
     for (let i = 0; i < arguments.length; i++) {
       this.instanceWriters[i](arguments[i], index);
-      this.instanceAttributes[i].needsUpdate = true;
+      this.instanceAttributes[i][1].needsUpdate = true;
     }
 
     if (index === nextIndex) {
@@ -111,7 +111,7 @@ DynamicInstancedMesh.prototype = Object.assign(Object.create(InstancedMesh.proto
 
     for (let i = 0; i < this.instanceFreers.length; i++) {
       this.instanceFreers[i](index);
-      this.instanceAttributes[i].needsUpdate = true;
+      this.instanceAttributes[i][1].needsUpdate = true;
     }
 
     freeIndices.add(index);
