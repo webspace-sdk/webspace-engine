@@ -23,7 +23,8 @@ export const MEDIA_INTERACTION_TYPES = {
   DOWN: 5,
   ROTATE: 6,
   SCALE: 7,
-  TRANSFORM_RELEASE: 8
+  TRANSFORM_RELEASE: 8,
+  REMOVE: 9
 };
 
 export const LOADING_EVENTS = ["model-loading", "image-loading", "text-loading", "pdf-loading"];
@@ -641,4 +642,18 @@ export function getMediaViewComponent(el) {
   }
 
   return null;
+}
+
+export function performAnimatedRemove(el, callback) {
+  el.setAttribute("animation__remove", {
+    property: "scale",
+    dur: 200,
+    to: { x: 0.01, y: 0.01, z: 0.01 },
+    easing: "easeInQuad"
+  });
+
+  el.addEventListener("animationcomplete", () => {
+    removeMediaElement(el);
+    if (callback) callback();
+  });
 }

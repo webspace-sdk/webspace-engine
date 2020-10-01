@@ -420,6 +420,11 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       src: { value: paths.device.keyboard.key("v") },
       dest: { value: paths.actions.mediaScaleAction },
       xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("x") },
+      dest: { value: paths.actions.mediaRemoveAction },
+      xform: xforms.rising
     }
   ],
   [sets.rightCursorHoveringOnVideo]: [
@@ -468,6 +473,11 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: { value: paths.device.keyboard.key("v") },
       dest: { value: paths.actions.mediaScaleAction },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("x") },
+      dest: { value: paths.actions.mediaRemoveAction },
       xform: xforms.rising
     }
   ],

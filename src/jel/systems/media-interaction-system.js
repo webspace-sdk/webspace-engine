@@ -1,8 +1,10 @@
 import { paths } from "../../hubs/systems/userinput/paths";
-import { getMediaViewComponent, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
+import { getMediaViewComponent, performAnimatedRemove, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
 import { TRANSFORM_MODE } from "../../hubs/components/transform-object-button";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { ensureOwnership, getNetworkedEntity } from "../../jel/utils/ownership-utils";
+
+const REMOVE_ACTION_MAX_DELAY_MS = 500.0;
 
 // System which manages keyboard-based media interactions
 export class MediaInteractionSystem {
@@ -11,6 +13,7 @@ export class MediaInteractionSystem {
     this.rightHand = null;
     this.transformSystem = null;
     this.scalingSystem = null;
+    this.lastRemoveActionTarget = null;
 
     waitForDOMContentLoaded().then(() => {
       this.rightHand = document.getElementById("player-right-controller");
@@ -57,6 +60,13 @@ export class MediaInteractionSystem {
       interactionType = MEDIA_INTERACTION_TYPES.ROTATE;
     } else if (this.userinput.get(paths.actions.mediaScaleAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.SCALE;
+    } else if (this.userinput.get(paths.actions.mediaRemoveAction)) {
+      if (this.lastRemoveActionTarget !== hoverEl) {
+        this.lastRemoveActionTarget = hoverEl;
+        setTimeout(() => (this.lastRemoveActionTarget = null), REMOVE_ACTION_MAX_DELAY_MS);
+      } else {
+        interactionType = MEDIA_INTERACTION_TYPES.REMOVE;
+      }
     }
 
     if (interactionType !== null) {
@@ -74,6 +84,8 @@ export class MediaInteractionSystem {
           } else if (interactionType === MEDIA_INTERACTION_TYPES.SCALE) {
             this.scaleSystem = this.scaleSystem || this.scene.systems["scale-object"];
             this.scaleSystem.startScaling(targetEl.object3D, this.rightHand.object3D);
+          } else if (interactionType === MEDIA_INTERACTION_TYPES.REMOVE) {
+            performAnimatedRemove(targetEl);
           } else {
             component.handleMediaInteraction(interactionType);
           }

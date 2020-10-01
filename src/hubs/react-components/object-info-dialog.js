@@ -18,7 +18,7 @@ import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalL
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import entryStyles from "../assets/stylesheets/entry.scss";
 import { mediaSort, mediaSortOrder, DISPLAY_IMAGE } from "../utils/media-sorting";
-import { removeMediaElement } from "../utils/media-utils";
+import { performAnimatedRemove } from "../utils/media-utils";
 import { HorizontalScrollView } from "./horizontal-scroll-view";
 
 export function NavigationRowItem(props) {
@@ -196,16 +196,8 @@ export default class ObjectInfoDialog extends Component {
 
     if (!ensureOwnership(targetEl)) return;
 
-    targetEl.setAttribute("animation__remove", {
-      property: "scale",
-      dur: 200,
-      to: { x: 0.01, y: 0.01, z: 0.01 },
-      easing: "easeInQuad"
-    });
-
-    targetEl.addEventListener("animationcomplete", () => {
+    performAnimatedRemove(targetEl, () => {
       const exitAfterRemove = this.state.mediaEntities.length <= 1;
-      removeMediaElement(targetEl);
       this.props.scene.systems["hubs-systems"].cameraSystem.uninspect();
 
       if (exitAfterRemove) {
