@@ -1,15 +1,40 @@
 import { paths } from "../../hubs/systems/userinput/paths";
 import { getMediaViewComponent, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
+import { TRANSFORM_MODE } from "../../hubs/components/transform-object-button";
+import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { ensureOwnership, getNetworkedEntity } from "../../jel/utils/ownership-utils";
 
 // System which manages keyboard-based media interactions
 export class MediaInteractionSystem {
   constructor(scene) {
     this.scene = scene;
+    this.rightHand = null;
+    this.transformSystem = null;
+    this.scalingSystem = null;
+
+    waitForDOMContentLoaded().then(() => {
+      this.rightHand = document.getElementById("player-right-controller");
+    });
   }
 
   tick() {
-    const { scene } = this;
+    const { scene, rightHand } = this;
+
+    if (!rightHand) return;
+
     this.userinput = this.userinput || scene.systems.userinput;
+    if (this.userinput.get(paths.actions.mediaTransformReleaseAction)) {
+      this.transformSystem = this.transformSystem || this.scene.systems["transform-selected-object"];
+      this.transformSystem.stopTransform();
+      return;
+    }
+
+    if (this.userinput.get(paths.actions.mediaScaleReleaseAction)) {
+      this.scaleSystem = this.scaleSystem || this.scene.systems["scale-object"];
+      this.scaleSystem.endScaling();
+      return;
+    }
+
     this.interaction = this.interaction || scene.systems.interaction;
     const hoverEl = this.interaction.state.rightRemote.hovered || this.interaction.state.leftRemote.hovered;
 
@@ -28,13 +53,31 @@ export class MediaInteractionSystem {
       interactionType = MEDIA_INTERACTION_TYPES.DOWN;
     } else if (this.userinput.get(paths.actions.mediaSnapshotAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.SNAPSHOT;
+    } else if (this.userinput.get(paths.actions.mediaRotateAction)) {
+      interactionType = MEDIA_INTERACTION_TYPES.ROTATE;
+    } else if (this.userinput.get(paths.actions.mediaScaleAction)) {
+      interactionType = MEDIA_INTERACTION_TYPES.SCALE;
     }
 
     if (interactionType !== null) {
       const component = getMediaViewComponent(hoverEl);
 
       if (component) {
-        component.handleMediaInteraction(interactionType);
+        getNetworkedEntity(hoverEl).then(targetEl => {
+          if (!ensureOwnership(targetEl)) return;
+
+          if (interactionType === MEDIA_INTERACTION_TYPES.ROTATE) {
+            this.transformSystem = this.transformSystem || this.scene.systems["transform-selected-object"];
+            this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
+              mode: TRANSFORM_MODE.CURSOR
+            });
+          } else if (interactionType === MEDIA_INTERACTION_TYPES.SCALE) {
+            this.scaleSystem = this.scaleSystem || this.scene.systems["scale-object"];
+            this.scaleSystem.startScaling(targetEl.object3D, this.rightHand.object3D);
+          } else {
+            component.handleMediaInteraction(interactionType);
+          }
+        });
       }
     }
   }

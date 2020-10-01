@@ -137,6 +137,16 @@ export const keyboardMouseUserBindings = addSetsToBindings({
         value: paths.actions.logInteractionState
       },
       xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("r") },
+      dest: { value: paths.actions.mediaTransformReleaseAction },
+      xform: xforms.falling
+    },
+    {
+      src: { value: paths.device.keyboard.key("v") },
+      dest: { value: paths.actions.mediaScaleReleaseAction },
+      xform: xforms.falling
     }
     // Helpful bindings for debugging hands in 2D
     // {
@@ -389,20 +399,27 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: { value: paths.device.keyboard.key("q") },
       dest: { value: paths.actions.mediaBackAction },
-      xform: xforms.rising,
-      priority: 201
+      xform: xforms.rising
     },
     {
       src: { value: paths.device.keyboard.key("e") },
       dest: { value: paths.actions.mediaNextAction },
-      xform: xforms.rising,
-      priority: 201
+      xform: xforms.rising
     },
     {
       src: { value: paths.device.keyboard.key("c") },
       dest: { value: paths.actions.mediaSnapshotAction },
-      xform: xforms.rising,
-      priority: 201
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("r") },
+      dest: { value: paths.actions.mediaRotateAction },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("v") },
+      dest: { value: paths.actions.mediaScaleAction },
+      xform: xforms.rising
     }
   ],
   [sets.rightCursorHoveringOnVideo]: [
@@ -421,32 +438,37 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: { value: paths.device.keyboard.key("q") },
       dest: { value: paths.actions.mediaBackAction },
-      xform: xforms.rising,
-      priority: 201
+      xform: xforms.rising
     },
     {
       src: { value: paths.device.keyboard.key("e") },
       dest: { value: paths.actions.mediaNextAction },
-      xform: xforms.rising,
-      priority: 201
+      xform: xforms.rising
     },
     {
       src: { value: paths.device.keyboard.key("c") },
       dest: { value: paths.actions.mediaSnapshotAction },
-      xform: xforms.rising,
-      priority: 201
+      xform: xforms.rising
     },
     {
       src: { value: paths.device.keyboard.key("t") },
       dest: { value: paths.actions.mediaUpAction },
-      xform: xforms.rising,
-      priority: 201
+      xform: xforms.rising
     },
     {
       src: { value: paths.device.keyboard.key("g") },
       dest: { value: paths.actions.mediaDownAction },
-      xform: xforms.rising,
-      priority: 201
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("r") },
+      dest: { value: paths.actions.mediaRotateAction },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("v") },
+      dest: { value: paths.actions.mediaScaleAction },
+      xform: xforms.rising
     }
   ],
   [sets.inputFocused]: [

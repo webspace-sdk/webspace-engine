@@ -809,5 +809,9 @@ AFRAME.registerComponent("gltf-model-plus", {
 
       delete this.inflatedEl;
     }
+  },
+
+  handleMediaInteraction() {
+    // No interactions
   }
 });

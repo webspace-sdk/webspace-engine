@@ -1,6 +1,5 @@
-import { ensureOwnership, getNetworkedEntity } from "../../jel/utils/ownership-utils";
 import { setMatrixWorld } from "../utils/three-utils";
-import { TRANSFORM_MODE } from "./transform-object-button";
+import { TRANSFORM_MODE } from "../components/transform-object-button";
 
 const calculatePlaneMatrix = (function() {
   const planeMatrix = new THREE.Matrix4();
@@ -49,7 +48,7 @@ const planeForRightCursor = new THREE.Mesh(
   })
 );
 
-AFRAME.registerComponent("scale-button", {
+AFRAME.registerSystem("scale-object", {
   init() {
     this.isScaling = false;
     this.planeRotation = new THREE.Matrix4();
@@ -64,74 +63,72 @@ AFRAME.registerComponent("scale-button", {
     this.objectMatrix = new THREE.Matrix4();
     this.dragVector = new THREE.Vector3();
     this.currentObjectScale = new THREE.Vector3();
-    getNetworkedEntity(this.el).then(networkedEl => {
-      this.networkedEl = networkedEl;
-      this.objectToScale = networkedEl.object3D;
-    });
     const camPosition = new THREE.Vector3();
     const objectPosition = new THREE.Vector3();
     const objectToCam = new THREE.Vector3();
-    this.startScaling = e => {
-      if (this.isScaling || !this.objectToScale) {
-        return;
-      }
+    const camRotation = new THREE.Quaternion();
+    this.startScaling = (object, hand) => {
+      if (this.isScaling) return;
 
-      if (!ensureOwnership(this.networkedEl)) return;
+      this.objectToScale = object;
 
       if (!this.didGetObjectReferences) {
         this.didGetObjectReferences = true;
-        this.leftEventer = document.getElementById("left-cursor").object3D;
-        this.leftCursorController = document.getElementById("left-cursor-controller");
-        this.leftRaycaster = this.leftCursorController.components["cursor-controller"].raycaster;
-        this.rightCursorController = document.getElementById("right-cursor-controller");
-        this.rightRaycaster = this.rightCursorController.components["cursor-controller"].raycaster;
+        const leftCursorController = document.getElementById("left-cursor-controller");
+        this.leftRaycaster = leftCursorController.components["cursor-controller"].raycaster;
+        const rightCursorController = document.getElementById("right-cursor-controller");
+        this.rightRaycaster = rightCursorController.components["cursor-controller"].raycaster;
         this.viewingCamera = document.getElementById("viewing-camera").object3DMap.camera;
       }
-      this.plane = e.object3D === this.leftEventer ? planeForLeftCursor : planeForRightCursor;
-      setMatrixWorld(this.plane, calculatePlaneMatrix(this.viewingCamera, this.el.object3D));
+      this.isScalingLeft = hand.el.id === "player-left-controller";
+      this.plane = this.isScalingLeft ? planeForLeftCursor : planeForRightCursor;
+      this.viewingCamera.getWorldQuaternion(camRotation);
+      this.plane.quaternion.copy(camRotation);
+
+      this.objectToScale.updateMatrices();
+      this.objectToScale.getWorldPosition(this.plane.position);
+      this.plane.matrixNeedsUpdate = true;
+      this.plane.updateMatrixWorld(true);
+
+      //setMatrixWorld(this.plane, calculatePlaneMatrix(this.viewingCamera, this.el.object3D));
       this.planeRotation.extractRotation(this.plane.matrixWorld);
       this.planeUp.set(0, 1, 0).applyMatrix4(this.planeRotation);
       this.planeRight.set(1, 0, 0).applyMatrix4(this.planeRotation);
-      this.raycaster = e.object3D === this.leftEventer ? this.leftRaycaster : this.rightRaycaster;
+      this.raycaster = this.isScalingLeft ? this.leftRaycaster : this.rightRaycaster;
       const intersection = this.raycastOnPlane();
       if (!intersection) return;
       this.isScaling = true;
       this.initialIntersectionPoint.copy(intersection.point);
-      this.objectToScale.updateMatrices();
       this.initialObjectScale.setFromMatrixScale(this.objectToScale.matrixWorld);
       this.initialDistanceToObject = objectToCam
         .subVectors(
           camPosition.setFromMatrixPosition(this.viewingCamera.matrixWorld),
-          objectPosition.setFromMatrixPosition(this.el.object3D.matrixWorld)
+          objectPosition.setFromMatrixPosition(this.objectToScale.matrixWorld)
         )
         .length();
       window.APP.store.update({ activity: { hasScaled: true } });
 
       // TODO: Refactor transform-selected-object system so this isn't so awkward
       this.transformSelectedObjectSystem =
-        this.transformSelectedObjectSystem || this.el.sceneEl.systems["transform-selected-object"];
+        this.transformSelectedObjectSystem || this.el.systems["transform-selected-object"];
       this.transformSelectedObjectSystem.transforming = true;
       this.transformSelectedObjectSystem.mode = TRANSFORM_MODE.SCALE;
       this.transformSelectedObjectSystem.target = this.objectToScale;
-      this.transformSelectedObjectSystem.hand =
-        e.object3D === this.leftEventer ? this.leftCursorController.object3D : this.rightCursorController.object3D;
+      this.transformSelectedObjectSystem.hand = hand;
     };
-    this.endScaling = e => {
-      if (!this.isScaling) {
-        return;
-      }
+    this.endScaling = () => {
+      if (!this.isScaling) return;
+
       if (
-        (e.object3D === this.leftEventer && this.raycaster === this.leftRaycaster) ||
-        (e.object3D !== this.leftEventer && this.raycaster === this.rightRaycaster)
+        (this.isScalingLeft && this.raycaster === this.leftRaycaster) ||
+        (!this.isScalingLeft && this.raycaster === this.rightRaycaster)
       ) {
         this.isScaling = false;
         this.transformSelectedObjectSystem =
-          this.transformSelectedObjectSystem || this.el.sceneEl.systems["transform-selected-object"];
+          this.transformSelectedObjectSystem || this.el.systems["transform-selected-object"];
         this.transformSelectedObjectSystem.transforming = false;
       }
     };
-    this.el.object3D.addEventListener("holdable-button-down", this.startScaling);
-    this.el.object3D.addEventListener("holdable-button-up", this.endScaling);
   },
   raycastOnPlane() {
     this.intersections.length = 0;
@@ -147,8 +144,8 @@ AFRAME.registerComponent("scale-button", {
     if (!intersection) return;
     this.intersectionPoint.copy(intersection.point);
     this.dragVector.subVectors(this.intersectionPoint, this.initialIntersectionPoint);
-    const dotFactor =
-      (this.dragVector.dot(this.planeUp) + this.dragVector.dot(this.planeRight)) / this.initialDistanceToObject;
+    const SENSITIVITY = 3;
+    const dotFactor = (this.dragVector.dot(this.planeUp) / this.initialDistanceToObject) * SENSITIVITY;
 
     let scaleFactor = 1;
     if (dotFactor > 0) {

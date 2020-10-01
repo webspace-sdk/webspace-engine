@@ -30,6 +30,7 @@ export class AppAwareMouseDevice {
     this.prevButtonLeft = false;
     this.clickedOnAnything = false;
     this.lockClickCoordDelta = [0, 0];
+    this.transformStartCoordDelta = [0, 0];
     this.prevCoords = [Infinity, Infinity];
     this.cursorPose = new Pose();
     this.prevCursorPose = new Pose();
@@ -37,6 +38,7 @@ export class AppAwareMouseDevice {
     this.prevOrigin = new THREE.Vector3();
     this.direction = new THREE.Vector3();
     this.prevDirection = new THREE.Vector3();
+    this.transformSystem = null;
   }
 
   write(frame) {
@@ -98,6 +100,9 @@ export class AppAwareMouseDevice {
 
     const lockedMode = !!document.pointerLockElement;
 
+    this.transformSystem = this.transformSystem || AFRAME.scenes[0].systems["transform-selected-object"];
+    const isTransforming = this.transformSystem && this.transformSystem.transforming;
+
     // Reset gaze cursor to center if user moves or clicks on environment
     if (lockedMode) {
       // HACK, can't read character acceleration yet here, so just look at keys (which are added before mouse.)
@@ -110,6 +115,7 @@ export class AppAwareMouseDevice {
         userinput.get(downKeyPath) ||
         userinput.get(leftKeyPath) ||
         userinput.get(rightKeyPath);
+
       if (!this.clickedOnAnything && (buttonLeft || isMoving)) {
         this.lockClickCoordDelta[0] = 0;
         this.lockClickCoordDelta[1] = 0;
@@ -120,17 +126,35 @@ export class AppAwareMouseDevice {
     const movementXScreen = movementXY[0] / 1000.0;
     const movementYScreen = -movementXY[1] / 1000.0;
 
-    if (lockedMode && this.clickedOnAnything) {
+    if (lockedMode && (this.clickedOnAnything || isTransforming)) {
       this.lockClickCoordDelta[0] += movementXScreen;
       this.lockClickCoordDelta[1] += movementYScreen;
+
+      if (isTransforming) {
+        this.transformStartCoordDelta[0] += movementXScreen;
+        this.transformStartCoordDelta[1] += movementYScreen;
+      }
+    }
+
+    if (lockedMode && !isTransforming) {
+      // Return cursor to original position before transforming began.
+      if (this.transformStartCoordDelta[0] !== 0 || this.transformStartCoordDelta[0] !== 0) {
+        this.lockClickCoordDelta[0] -= this.transformStartCoordDelta[0];
+        this.lockClickCoordDelta[1] -= this.transformStartCoordDelta[1];
+      }
+
+      this.transformStartCoordDelta[0] = 0;
+      this.transformStartCoordDelta[1] = 0;
     }
 
     // Move camera out of lock mode on RMB, or, in lock mode, when not holding something or
     // when holding something after panning past a certain FOV angle.
     const shouldMoveCamera =
       buttonRight ||
-      (lockedMode && !this.clickedOnAnything) ||
-      (lockedMode && (Math.abs(this.lockClickCoordDelta[0]) > 0.2 || Math.abs(this.lockClickCoordDelta[1]) > 0.2));
+      (lockedMode && !this.clickedOnAnything && !isTransforming) ||
+      (lockedMode &&
+        (Math.abs(this.lockClickCoordDelta[0]) > 0.2 || Math.abs(this.lockClickCoordDelta[1]) > 0.2) &&
+        !isTransforming);
 
     const coords = frame.get(paths.device.mouse.coords);
 

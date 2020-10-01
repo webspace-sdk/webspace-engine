@@ -87,7 +87,7 @@ import "./hubs/components/open-media-button";
 import "./hubs/components/refresh-media-button";
 import "./hubs/components/remix-avatar-button";
 import "./hubs/components/transform-object-button";
-import "./hubs/components/scale-button";
+import "./hubs/systems/scale-object";
 import "./hubs/components/hover-menu";
 import "./hubs/components/disable-frustum-culling";
 import "./hubs/components/teleporter";

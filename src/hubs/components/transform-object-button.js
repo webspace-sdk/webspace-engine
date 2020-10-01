@@ -133,12 +133,14 @@ AFRAME.registerSystem("transform-selected-object", {
   },
 
   stopTransform: (function() {
-    const q = new THREE.Quaternion();
-    const PI_AROUND_Y = new THREE.Quaternion(0, 1, 0, 0);
-    const pInv = new THREE.Quaternion();
+    //const q = new THREE.Quaternion();
+    //const PI_AROUND_Y = new THREE.Quaternion(0, 1, 0, 0);
+    //const pInv = new THREE.Quaternion();
     return function stopTransform() {
       this.transforming = false;
-      if (this.mode === TRANSFORM_MODE.CURSOR) {
+
+      // Flips object, taken out for now but maybe put on another hotkey
+      /*if (this.mode === TRANSFORM_MODE.CURSOR) {
         this.target.getWorldQuaternion(q);
         if (qAlmostEquals(q, this.startQ)) {
           q.multiply(PI_AROUND_Y);
@@ -147,7 +149,7 @@ AFRAME.registerSystem("transform-selected-object", {
           this.target.quaternion.copy(pInv).multiply(q);
           this.target.matrixNeedsUpdate = true;
         }
-      }
+      }*/
     };
   })(),
 
@@ -273,7 +275,7 @@ AFRAME.registerSystem("transform-selected-object", {
 
     currentPointOnPlane.copy(intersection.point);
     deltaOnPlane.copy(currentPointOnPlane).sub(previousPointOnPlane);
-    const SENSITIVITY = 10;
+    const SENSITIVITY = 5;
     finalProjectedVec
       .copy(deltaOnPlane)
       .projectOnPlane(normal)

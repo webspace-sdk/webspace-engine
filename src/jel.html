@@ -50,7 +50,6 @@
         action-to-event__mute="path: /actions/muteMic; event: action_mute;"
         freeze-controller
         personal-space-bubble="debug: false;"
-        rotate-selected-object
         environment-map
         set-max-resolution
         media-presenting-scene
@@ -662,14 +661,6 @@
             body-helper="type: kinematic; disableCollision: true; collisionFilterGroup: 8; collisionFilterMask: 0; scaleAutoUpdate: false; activationState: disable_deactivation;"
             shape-helper="type: sphere; sphereRadius: 0.02; fit: manual;"
             scale-in-screen-space="baseScale: 0.10 0.10 0.10; addedScale: 0.4 0.4 0.4">
-            <a-entity
-                sprite
-                icon-button="image: rotate-cursor.png"
-                scale="0.1 0.1 0.1"
-                position="0.0 0 0"
-                class="hud"
-                visible-if-transforming="hand:right"
-            ></a-entity>
         </a-sphere>
 
         <a-sphere

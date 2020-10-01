@@ -20,13 +20,16 @@ export const MEDIA_INTERACTION_TYPES = {
   BACK: 2,
   SNAPSHOT: 3,
   UP: 4,
-  DOWN: 5
+  DOWN: 5,
+  ROTATE: 6,
+  SCALE: 7,
+  TRANSFORM_RELEASE: 8
 };
 
 export const LOADING_EVENTS = ["model-loading", "image-loading", "text-loading", "pdf-loading"];
 export const LOADED_EVENTS = ["model-loaded", "image-loaded", "text-loaded", "pdf-loaded"];
 export const ERROR_EVENTS = ["model-error", "image-error", "text-error", "pdf-error"];
-const MEDIA_VIEW_COMPONENTS = ["media-video", "media-image", "media-text", "media-pdf"];
+const MEDIA_VIEW_COMPONENTS = ["media-video", "media-image", "media-text", "media-pdf", "gltf-model-plus"];
 
 const linkify = Linkify();
 linkify.tlds(tlds);
