@@ -41,6 +41,7 @@ paths.actions.mediaScaleAction = "/actions/mediaScale";
 paths.actions.mediaScaleReleaseAction = "/actions/mediaScaleRelease";
 paths.actions.mediaRemoveAction = "/actions/mediaRemoveAction";
 paths.actions.mediaTransformReleaseAction = "/actions/mediaTransformRelease";
+paths.actions.mediaCloneAction = "/actions/mediaClone";
 paths.actions.mediaSearch1 = "/actions/mediaSearch1";
 paths.actions.mediaSearch2 = "/actions/mediaSearch2";
 paths.actions.mediaSearch3 = "/actions/mediaSearch3";

@@ -1,5 +1,10 @@
 import { paths } from "../../hubs/systems/userinput/paths";
-import { getMediaViewComponent, performAnimatedRemove, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
+import {
+  getMediaViewComponent,
+  performAnimatedRemove,
+  MEDIA_INTERACTION_TYPES,
+  cloneMedia
+} from "../../hubs/utils/media-utils";
 import { TRANSFORM_MODE } from "../../hubs/components/transform-object-button";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { ensureOwnership, getNetworkedEntity } from "../../jel/utils/ownership-utils";
@@ -60,6 +65,8 @@ export class MediaInteractionSystem {
       interactionType = MEDIA_INTERACTION_TYPES.ROTATE;
     } else if (this.userinput.get(paths.actions.mediaScaleAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.SCALE;
+    } else if (this.userinput.get(paths.actions.mediaCloneAction)) {
+      interactionType = MEDIA_INTERACTION_TYPES.CLONE;
     } else if (this.userinput.get(paths.actions.mediaRemoveAction)) {
       if (this.lastRemoveActionTarget !== hoverEl) {
         this.lastRemoveActionTarget = hoverEl;
@@ -73,23 +80,35 @@ export class MediaInteractionSystem {
       const component = getMediaViewComponent(hoverEl);
 
       if (component) {
-        getNetworkedEntity(hoverEl).then(targetEl => {
-          if (!ensureOwnership(targetEl)) return;
+        if (interactionType === MEDIA_INTERACTION_TYPES.CLONE) {
+          const { entity } = cloneMedia(component.el, "#interactable-media");
 
-          if (interactionType === MEDIA_INTERACTION_TYPES.ROTATE) {
-            this.transformSystem = this.transformSystem || this.scene.systems["transform-selected-object"];
-            this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
-              mode: TRANSFORM_MODE.CURSOR
-            });
-          } else if (interactionType === MEDIA_INTERACTION_TYPES.SCALE) {
-            this.scaleSystem = this.scaleSystem || this.scene.systems["scale-object"];
-            this.scaleSystem.startScaling(targetEl.object3D, this.rightHand.object3D);
-          } else if (interactionType === MEDIA_INTERACTION_TYPES.REMOVE) {
-            performAnimatedRemove(targetEl);
-          } else {
-            component.handleMediaInteraction(interactionType);
-          }
-        });
+          entity.object3D.scale.copy(component.el.object3D.scale);
+          entity.object3D.matrixNeedsUpdate = true;
+
+          entity.setAttribute("offset-relative-to", {
+            target: "#avatar-pov-node",
+            offset: { x: 0, y: 0, z: -1.15 * component.el.object3D.scale.z }
+          });
+        } else {
+          getNetworkedEntity(hoverEl).then(targetEl => {
+            if (!ensureOwnership(targetEl)) return;
+
+            if (interactionType === MEDIA_INTERACTION_TYPES.ROTATE) {
+              this.transformSystem = this.transformSystem || this.scene.systems["transform-selected-object"];
+              this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
+                mode: TRANSFORM_MODE.CURSOR
+              });
+            } else if (interactionType === MEDIA_INTERACTION_TYPES.SCALE) {
+              this.scaleSystem = this.scaleSystem || this.scene.systems["scale-object"];
+              this.scaleSystem.startScaling(targetEl.object3D, this.rightHand.object3D);
+            } else if (interactionType === MEDIA_INTERACTION_TYPES.REMOVE) {
+              performAnimatedRemove(targetEl);
+            } else {
+              component.handleMediaInteraction(interactionType);
+            }
+          });
+        }
       }
     }
   }

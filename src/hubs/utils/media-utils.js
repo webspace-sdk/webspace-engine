@@ -24,7 +24,8 @@ export const MEDIA_INTERACTION_TYPES = {
   ROTATE: 6,
   SCALE: 7,
   TRANSFORM_RELEASE: 8,
-  REMOVE: 9
+  REMOVE: 9,
+  CLONE: 10
 };
 
 export const LOADING_EVENTS = ["model-loading", "image-loading", "text-loading", "pdf-loading"];

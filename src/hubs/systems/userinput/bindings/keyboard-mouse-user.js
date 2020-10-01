@@ -407,7 +407,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("c") },
+      src: { value: paths.device.keyboard.key("t") },
       dest: { value: paths.actions.mediaSnapshotAction },
       xform: xforms.rising
     },
@@ -424,6 +424,11 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: { value: paths.device.keyboard.key("x") },
       dest: { value: paths.actions.mediaRemoveAction },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("c") },
+      dest: { value: paths.actions.mediaCloneAction },
       xform: xforms.rising
     }
   ],
@@ -451,7 +456,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("c") },
+      src: { value: paths.device.keyboard.key("b") },
       dest: { value: paths.actions.mediaSnapshotAction },
       xform: xforms.rising
     },
@@ -478,6 +483,11 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: { value: paths.device.keyboard.key("x") },
       dest: { value: paths.actions.mediaRemoveAction },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("c") },
+      dest: { value: paths.actions.mediaCloneAction },
       xform: xforms.rising
     }
   ],
