@@ -1,4 +1,5 @@
 import { paths } from "../systems/userinput/paths";
+const SENSITIVITY = 2.5;
 
 AFRAME.registerComponent("scalable-when-grabbed", {
   tick: function() {
@@ -13,7 +14,7 @@ AFRAME.registerComponent("scalable-when-grabbed", {
     }
     if (!deltaScale) return;
 
-    this.el.object3D.scale.addScalar(deltaScale).clampScalar(0.1, 100);
+    this.el.object3D.scale.addScalar(SENSITIVITY * deltaScale).clampScalar(0.1, 100);
     this.el.object3D.matrixNeedsUpdate = true;
   }
 });
