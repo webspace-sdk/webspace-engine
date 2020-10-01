@@ -11,8 +11,8 @@ export class KeyboardDevice {
         if (!e.key) return;
         this.events.push(e);
 
-        // Non-repeated ctrl-space is cursor lock hotkey.
-        if (e.type === "keydown" && e.key === " " && e.ctrlKey && !e.repeat) {
+        // Non-repeated shift-space is cursor lock hotkey.
+        if (e.type === "keydown" && e.key === " " && e.shiftKey && !e.repeat) {
           const canvas = AFRAME.scenes[0].canvas;
 
           if (canvas.requestPointerLock) {
@@ -41,7 +41,8 @@ export class KeyboardDevice {
               e.key === "8" ||
               e.key === "9" ||
               e.key === "0")) ||
-          (e.key === "Tab" && !(window.APP && window.APP.preferenceScreenIsVisible))
+          (e.key === "Tab" && !(window.APP && window.APP.preferenceScreenIsVisible)) ||
+          (e.key === " " && document.activeElement === document.body) // Disable scrolling in main window
         ) {
           e.preventDefault();
           return false;

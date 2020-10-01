@@ -507,37 +507,7 @@
 
             <template id="pager-hover-menu">
                 <a-entity class="ui interactable-ui hover-container" visible="false">
-                    <a-entity class="prev-button" position="-0.35 0 0">
-                        <a-entity is-remote-hover-target tags="singleActionButton:true; isHoverMenuChild: true;" mixin="rounded-text-button" slice9="width: 0.2">
-                            <a-entity
-                                sprite
-                                icon-button="image: prev.png; hoverImage: prev.png;"
-                                scale="0.075 0.075 0.075"
-                                position="0 0 0.001"
-                            ></a-entity>
-                        </a-entity>
-                    </a-entity>
-                    <a-entity class="page-label" position="0 -0.2 0" text="value:.; width:2; align:center;" text-raycast-hack></a-entity>
-                    <a-entity class="snap-button" position="0 0.175 0" scale="0.75 0.75 1">
-                        <a-entity is-remote-hover-target tags="singleActionButton:true; isHoverMenuChild: true;" mixin="rounded-text-button" slice9="width: 0.2">
-                            <a-entity
-                                sprite
-                                icon-button="image: snap-page.png; hoverImage: snap-page.png;"
-                                scale="0.115 0.115 0.115"
-                                position="0 0 0.001"
-                            ></a-entity>
-                        </a-entity>
-                    </a-entity>
-                    <a-entity class="next-button" position="0.35 0 0">
-                        <a-entity is-remote-hover-target tags="singleActionButton:true; isHoverMenuChild: true;" mixin="rounded-text-button" slice9="width: 0.2">
-                            <a-entity
-                                sprite
-                                icon-button="image: next.png; hoverImage: next.png;"
-                                scale="0.075 0.075 0.075"
-                                position="0 0 0.001"
-                            ></a-entity>
-                        </a-entity>
-                    </a-entity>
+                    <a-entity class="page-label" position="0 -0.6 0" text="value:.; width:2; align:center;" text-raycast-hack></a-entity>
                 </a-entity>
             </template>
 
@@ -545,47 +515,9 @@
 
             <template id="video-hover-menu">
                 <a-entity class="ui interactable-ui hover-container" visible="false">
-                    <a-entity
-                        is-remote-hover-target
-                        tags="singleActionButton: true; isHoverMenuChild: true;"
-                        sprite
-                        icon-button="image: snap.png; hoverImage: snap-hover.png; activeImage: snap.png; activeHoverImage: snap-hover.png"
-                        visibility-on-content-types="contentTypes: video/mp4; contentSubtype: video-camera; visible: false;"
-                        scale="0.075 0.075 0.075"
-                        position="0 0.225 0"
-                        class="video-snap-button"
-                    ></a-entity>
                     <a-entity class="video-time-label" text="value: 0; anchor: center; align: center; color: #aaa;" text-raycast-hack position="0 -0.24 0" scale="0.75 0.75 0.75"></a-entity>
                     <a-entity class="video-volume-label" text="value: 0%; anchor: center; align: center; color: #ccc; letterSpacing: 4;" text-raycast-hack position="0.0 0.14 0.0015" scale="1.25 1.25 1.25"></a-entity>
-                    <a-entity
-                        is-remote-hover-target
-                        tags="singleActionButton: true; isHoverMenuChild: true;"
-                        sprite
-                        icon-button="image: volume_down.png; hoverImage: volume_down-hover.png;"
-                        scale="0.075 0.075 0.075"
-                        position="-0.275 0.14 0"
-                        class="ui video-volume-down-button"
-                    ></a-entity>
-                    <a-entity
-                        is-remote-hover-target
-                        tags="singleActionButton: true; isHoverMenuChild: true;"
-                        sprite
-                        icon-button="image: volume_up.png; hoverImage: volume_up-hover.png;"
-                        scale="0.075 0.075 0.075"
-                        position="0.275 0.14 0"
-                        class="ui video-volume-up-button"
-                    ></a-entity>
                     <a-entity class="video-playback">
-                        <a-entity
-                            is-remote-hover-target
-                            tags="singleActionButton: true; isHoverMenuChild: true;"
-                            sprite
-                            icon-button="image: seek_back.png; hoverImage: seek_back-hover.png;"
-                            scale="0.1 0.1 0.1"
-                            position="-0.3 -0.125 0"
-                            class="ui video-seek-back-button"
-                            visible="false"
-                        ></a-entity>
                         <a-entity
                             is-remote-hover-target
                             tags="singleActionButton: true; isHoverMenuChild: true;"
@@ -594,16 +526,6 @@
                             scale="0.15 0.15 0.15"
                             position="0 -0.125 0"
                             class="ui video-playpause-button"
-                            visible="false"
-                        ></a-entity>
-                        <a-entity
-                            is-remote-hover-target
-                            tags="singleActionButton: true; isHoverMenuChild: true;"
-                            sprite
-                            icon-button="image: seek_fwd.png; hoverImage: seek_fwd-hover.png;"
-                            scale="0.1 0.1 0.1"
-                            position="0.3 -0.125 0"
-                            class="ui video-seek-forward-button"
                             visible="false"
                         ></a-entity>
                     </a-entity>

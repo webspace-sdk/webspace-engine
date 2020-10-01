@@ -672,9 +672,6 @@ AFRAME.registerComponent("media-pager", {
   },
 
   init() {
-    this.onNext = this.onNext.bind(this);
-    this.onPrev = this.onPrev.bind(this);
-    this.onSnap = this.onSnap.bind(this);
     this.update = this.update.bind(this);
 
     this.el.setAttribute("hover-menu__pager", { template: "#pager-hover-menu", isFlat: true });
@@ -683,14 +680,7 @@ AFRAME.registerComponent("media-pager", {
       if (!this.el.parentNode) return;
 
       this.hoverMenu = menu;
-      this.nextButton = this.el.querySelector(".next-button [text-button]");
-      this.prevButton = this.el.querySelector(".prev-button [text-button]");
-      this.snapButton = this.el.querySelector(".snap-button [text-button]");
       this.pageLabel = this.el.querySelector(".page-label");
-
-      this.nextButton.object3D.addEventListener("interact", this.onNext);
-      this.prevButton.object3D.addEventListener("interact", this.onPrev);
-      this.snapButton.object3D.addEventListener("interact", this.onSnap);
 
       this.update();
       this.el.emit("pager-loaded");
@@ -708,42 +698,9 @@ AFRAME.registerComponent("media-pager", {
     });
   },
 
-  async update(oldData) {
-    if (this.networkedEl && isMine(this.networkedEl)) {
-      if (oldData && typeof oldData.index === "number" && oldData.index !== this.data.index) {
-        this.el.emit("owned-pager-page-changed");
-      }
-    }
-
+  async update() {
     if (this.pageLabel) {
       this.pageLabel.setAttribute("text", "value", `${this.data.index + 1}/${this.data.maxIndex + 1}`);
     }
-  },
-
-  onNext() {
-    if (this.networkedEl && !ensureOwnership(this.networkedEl)) return;
-    const newIndex = Math.min(this.data.index + 1, this.data.maxIndex);
-    this.el.setAttribute("media-pdf", "index", newIndex);
-    this.el.setAttribute("media-pager", "index", newIndex);
-  },
-
-  onPrev() {
-    if (this.networkedEl && !ensureOwnership(this.networkedEl)) return;
-    const newIndex = Math.max(this.data.index - 1, 0);
-    this.el.setAttribute("media-pdf", "index", newIndex);
-    this.el.setAttribute("media-pager", "index", newIndex);
-  },
-
-  onSnap() {
-    this.el.emit("pager-snap-clicked");
-  },
-
-  remove() {
-    if (this.networkedEl) {
-      this.networkedEl.removeEventListener("pinned", this.update);
-      this.networkedEl.removeEventListener("unpinned", this.update);
-    }
-
-    window.APP.hubChannel.removeEventListener("permissions_updated", this.update);
   }
 });

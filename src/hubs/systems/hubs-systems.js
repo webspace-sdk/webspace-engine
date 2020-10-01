@@ -33,6 +33,7 @@ import { WrappedEntitySystem } from "../../jel/systems/wrapped-entity-system";
 import { TerrainSystem } from "../../jel/systems/terrain-system";
 import { AtmosphereSystem } from "../../jel/systems/atmosphere-system";
 import { AvatarSystem } from "../../jel/systems/avatar-system";
+import { MediaInteractionSystem } from "../../jel/systems/media-interaction-system";
 
 AFRAME.registerSystem("hubs-systems", {
   init() {
@@ -66,6 +67,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.menuAnimationSystem = new MenuAnimationSystem();
     this.audioSettingsSystem = new AudioSettingsSystem(this.el);
     this.enterVRButtonSystem = new EnterVRButtonSystem(this.el);
+    this.mediaInteractionSystem = new MediaInteractionSystem(this.el);
     this.mediaPresenceSystem = new MediaPresenceSystem(this.el);
     this.animationMixerSystem = new AnimationMixerSystem();
     this.boneVisibilitySystem = new BoneVisibilitySystem();
@@ -119,6 +121,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.uvScrollSystem.tick(dt);
     this.terrainSystem.tick();
     this.atmosphereSystem.tick(dt);
+    this.mediaInteractionSystem.tick(t, dt);
     this.mediaPresenceSystem.tick();
     this.avatarSystem.tick(t, dt);
 

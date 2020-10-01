@@ -122,15 +122,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
-        value: paths.device.keyboard.key("t")
-      },
-      dest: {
-        value: paths.actions.focusChat
-      },
-      xform: xforms.rising
-    },
-    {
-      src: {
         value: paths.device.keyboard.key("l")
       },
       dest: {
@@ -388,6 +379,30 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       dest: { value: paths.actions.startInspecting },
       xform: xforms.any,
       priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.key(" ") },
+      dest: { value: paths.actions.mediaPrimaryAction },
+      xform: xforms.rising,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.key("q") },
+      dest: { value: paths.actions.mediaBackAction },
+      xform: xforms.rising,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.key("e") },
+      dest: { value: paths.actions.mediaNextAction },
+      xform: xforms.rising,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.key("c") },
+      dest: { value: paths.actions.mediaSnapshotAction },
+      xform: xforms.rising,
+      priority: 201
     }
   ],
   [sets.rightCursorHoveringOnVideo]: [
@@ -396,6 +411,42 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       dest: { value: paths.actions.cursor.right.mediaVolumeMod },
       xform: xforms.scale(-0.3),
       priority: 1
+    },
+    {
+      src: { value: paths.device.keyboard.key(" ") },
+      dest: { value: paths.actions.mediaPrimaryAction },
+      xform: xforms.rising,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.key("q") },
+      dest: { value: paths.actions.mediaBackAction },
+      xform: xforms.rising,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.key("e") },
+      dest: { value: paths.actions.mediaNextAction },
+      xform: xforms.rising,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.key("c") },
+      dest: { value: paths.actions.mediaSnapshotAction },
+      xform: xforms.rising,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.key("t") },
+      dest: { value: paths.actions.mediaUpAction },
+      xform: xforms.rising,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.key("g") },
+      dest: { value: paths.actions.mediaDownAction },
+      xform: xforms.rising,
+      priority: 201
     }
   ],
   [sets.inputFocused]: [

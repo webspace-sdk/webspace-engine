@@ -203,5 +203,9 @@ AFRAME.registerComponent("media-text", {
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
     }
+  },
+
+  handleMediaInteraction() {
+    // No interactions
   }
 });

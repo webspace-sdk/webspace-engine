@@ -22,7 +22,8 @@ import {
   createBasisTexture,
   meetsBatchingCriteria,
   hasMediaLayer,
-  scaleToAspectRatio
+  scaleToAspectRatio,
+  MEDIA_INTERACTION_TYPES
 } from "../utils/media-utils";
 import { proxiedUrlFor } from "../utils/media-url-utils";
 import { buildAbsoluteURL } from "url-toolkit";
@@ -291,20 +292,10 @@ AFRAME.registerComponent("media-video", {
 
       this.playbackControls = this.el.querySelector(".video-playback");
       this.playPauseButton = this.el.querySelector(".video-playpause-button");
-      this.volumeUpButton = this.el.querySelector(".video-volume-up-button");
-      this.volumeDownButton = this.el.querySelector(".video-volume-down-button");
-      this.seekForwardButton = this.el.querySelector(".video-seek-forward-button");
-      this.seekBackButton = this.el.querySelector(".video-seek-back-button");
-      this.snapButton = this.el.querySelector(".video-snap-button");
       this.timeLabel = this.el.querySelector(".video-time-label");
       this.volumeLabel = this.el.querySelector(".video-volume-label");
 
       this.playPauseButton.object3D.addEventListener("interact", this.togglePlaying);
-      this.seekForwardButton.object3D.addEventListener("interact", this.seekForward);
-      this.seekBackButton.object3D.addEventListener("interact", this.seekBack);
-      this.volumeUpButton.object3D.addEventListener("interact", this.volumeUp);
-      this.volumeDownButton.object3D.addEventListener("interact", this.volumeDown);
-      this.snapButton.object3D.addEventListener("interact", this.snap);
 
       this.updateVolumeLabel();
       this.updateHoverMenu();
@@ -970,13 +961,9 @@ AFRAME.registerComponent("media-video", {
     this.playbackControls.object3D.visible = !this.data.hidePlaybackControls && !!this.video;
     this.timeLabel.object3D.visible = !this.data.hidePlaybackControls;
 
-    this.snapButton.object3D.visible =
-      !!this.video && !this.data.contentType.startsWith("audio/") && window.APP.hubChannel.can("spawn_and_move_media");
-    this.seekForwardButton.object3D.visible = !!this.video && !this.videoIsLive;
-
     const mayModifyPlayHead = !!this.video && !this.videoIsLive && window.APP.hubChannel.can("spawn_and_move_media");
 
-    this.playPauseButton.object3D.visible = this.seekForwardButton.object3D.visible = this.seekBackButton.object3D.visible = mayModifyPlayHead;
+    this.playPauseButton.object3D.visible = mayModifyPlayHead;
 
     if (this.videoIsLive) {
       this.timeLabel.setAttribute("text", "value", "LIVE");
@@ -1091,16 +1078,30 @@ AFRAME.registerComponent("media-video", {
 
     if (this.hoverMenu) {
       this.playPauseButton.object3D.removeEventListener("interact", this.togglePlaying);
-      this.volumeUpButton.object3D.removeEventListener("interact", this.volumeUp);
-      this.volumeDownButton.object3D.removeEventListener("interact", this.volumeDown);
-      this.seekForwardButton.object3D.removeEventListener("interact", this.seekForward);
-      this.seekBackButton.object3D.removeEventListener("interact", this.seekBack);
     }
 
     window.APP.store.removeEventListener("statechanged", this.onPreferenceChanged);
 
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
+    }
+  },
+
+  handleMediaInteraction(type) {
+    const mayModifyPlayHead = !!this.video && !this.videoIsLive && window.APP.hubChannel.can("spawn_and_move_media");
+
+    if (type === MEDIA_INTERACTION_TYPES.PRIMARY && mayModifyPlayHead) {
+      this.togglePlaying();
+    } else if (type === MEDIA_INTERACTION_TYPES.NEXT && mayModifyPlayHead) {
+      this.seekForward();
+    } else if (type === MEDIA_INTERACTION_TYPES.BACK && mayModifyPlayHead) {
+      this.seekBack();
+    } else if (type === MEDIA_INTERACTION_TYPES.UP) {
+      this.volumeUp();
+    } else if (type === MEDIA_INTERACTION_TYPES.DOWN) {
+      this.volumeDown();
+    } else if (type === MEDIA_INTERACTION_TYPES.SNAPSHOT) {
+      this.snap();
     }
   }
 });
@@ -1399,6 +1400,10 @@ AFRAME.registerComponent("media-image", {
       const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
       this.setMediaPresence(newMediaPresence, refresh);
     }
+  },
+
+  handleMediaInteraction() {
+    // No interactions
   }
 });
 
@@ -1422,8 +1427,6 @@ AFRAME.registerComponent("media-pdf", {
     this.texture = new THREE.CanvasTexture(this.canvas);
 
     this.texture.encoding = THREE.sRGBEncoding;
-
-    this.el.addEventListener("pager-snap-clicked", () => this.snap());
 
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
@@ -1636,5 +1639,26 @@ AFRAME.registerComponent("media-pdf", {
     }
 
     pdf.destroy();
+  },
+
+  handleMediaInteraction(type) {
+    if (!this.pdf) return;
+    if (this.networkedEl && !ensureOwnership(this.networkedEl)) return;
+
+    if (type === MEDIA_INTERACTION_TYPES.SNAPSHOT) {
+      this.snap();
+      return;
+    }
+
+    let newIndex;
+
+    if (type === MEDIA_INTERACTION_TYPES.BACK) {
+      newIndex = Math.max(this.data.index - 1, 0);
+    } else if (type === MEDIA_INTERACTION_TYPES.PRIMARY || type === MEDIA_INTERACTION_TYPES.NEXT) {
+      const maxIndex = this.pdf.numPages - 1;
+      newIndex = Math.min(this.data.index + 1, maxIndex);
+    }
+
+    this.el.setAttribute("media-pdf", "index", newIndex);
   }
 });

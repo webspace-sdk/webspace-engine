@@ -14,9 +14,19 @@ import tlds from "tlds";
 
 import anime from "animejs";
 
+export const MEDIA_INTERACTION_TYPES = {
+  PRIMARY: 0,
+  NEXT: 1,
+  BACK: 2,
+  SNAPSHOT: 3,
+  UP: 4,
+  DOWN: 5
+};
+
 export const LOADING_EVENTS = ["model-loading", "image-loading", "text-loading", "pdf-loading"];
 export const LOADED_EVENTS = ["model-loaded", "image-loaded", "text-loaded", "pdf-loaded"];
 export const ERROR_EVENTS = ["model-error", "image-error", "text-error", "pdf-error"];
+const MEDIA_VIEW_COMPONENTS = ["media-video", "media-image", "media-text", "media-pdf"];
 
 const linkify = Linkify();
 linkify.tlds(tlds);
@@ -376,7 +386,7 @@ export function injectCustomShaderChunks(obj) {
 const mediaPos = new THREE.Vector3();
 
 export function addAndArrangeMedia(el, media, contentSubtype, snapCount, mirrorOrientation = false, distance = 0.75) {
-  const { entity, orientation } = addMedia(media, "#interactable-media", undefined, contentSubtype, false);
+  const { entity, orientation } = addMedia(media, null, "#interactable-media", undefined, contentSubtype, false);
 
   const pos = el.object3D.position;
 
@@ -619,4 +629,13 @@ export function removeMediaElement(el) {
   }
 
   el.parentNode.removeChild(el);
+}
+
+export function getMediaViewComponent(el) {
+  for (let i = 0; i < MEDIA_VIEW_COMPONENTS.length; i++) {
+    const c = el.components[MEDIA_VIEW_COMPONENTS[i]];
+    if (c) return c;
+  }
+
+  return null;
 }
