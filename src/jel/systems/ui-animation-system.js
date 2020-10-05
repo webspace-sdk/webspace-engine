@@ -7,7 +7,10 @@ export const PANEL_EXPANSION_STATES = {
 
 const DEFAULT_NAV_PANEL_WIDTH = 300;
 const DEFAULT_PRESENCE_PANEL_WIDTH = 300;
-const PANEL_EXPAND_DURATION_MS = 100;
+const PANEL_EXPAND_DURATION_MS = 250;
+
+import BezierEasing from "bezier-easing";
+const panelExpandStep = BezierEasing(0.12, 0.98, 0.18, 0.98);
 
 export class UIAnimationSystem {
   constructor(sceneEl) {
@@ -15,10 +18,14 @@ export class UIAnimationSystem {
     this.lastTickT = 0;
     this.panelExpansionState = PANEL_EXPANSION_STATES.EXPANDING;
 
-    this.navWidth = -1;
-    this.presenceWidth = -1;
+    this.sceneLeft = -1;
+    this.sceneRight = -1;
     this.panelExpandStartT = 0;
-    this.setPanelTargetWidths();
+    this.setTargetSceneSizes();
+
+    // Initialize nav and presence width CSS vars to stored state.
+    document.documentElement.style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
+    document.documentElement.style.setProperty("--presence-width", `${this.targetSceneRight}px`);
   }
 
   togglePanelExpansion() {
@@ -34,14 +41,14 @@ export class UIAnimationSystem {
       this.panelExpansionState = PANEL_EXPANSION_STATES.EXPANDING;
     }
 
-    this.setPanelTargetWidths();
+    this.setTargetSceneSizes();
     this.panelExpandStartT = this.lastTickT;
   }
 
-  setPanelTargetWidths() {
+  setTargetSceneSizes() {
     const store = window.APP.store;
-    this.targetNavWidth = store.state.uiState.navPanelWidth || DEFAULT_NAV_PANEL_WIDTH;
-    this.targetPresenceWidth = store.state.uiState.presencePanelWidth || DEFAULT_PRESENCE_PANEL_WIDTH;
+    this.targetSceneLeft = store.state.uiState.navPanelWidth || DEFAULT_NAV_PANEL_WIDTH;
+    this.targetSceneRight = store.state.uiState.presencePanelWidth || DEFAULT_PRESENCE_PANEL_WIDTH;
   }
 
   tick(t) {
@@ -57,14 +64,16 @@ export class UIAnimationSystem {
       return;
 
     let animT = Math.min(1.0, Math.max(0.0, (t - this.panelExpandStartT) / PANEL_EXPAND_DURATION_MS));
+    animT = panelExpandStep(animT);
     animT = this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDING ? animT : 1 - animT;
-    const navWidth = Math.floor(animT * this.targetNavWidth);
-    const presenceWidth = Math.floor(animT * this.targetPresenceWidth);
 
-    if (navWidth !== this.navWidth || presenceWidth !== this.presenceWidth) {
-      this.navWidth = navWidth;
-      this.presenceWidth = presenceWidth;
-      this.applyPanelWidths();
+    const sceneLeft = Math.floor(animT * this.targetSceneLeft);
+    const sceneRight = Math.floor(animT * this.targetSceneRight);
+
+    if (sceneLeft !== this.sceneLeft || sceneRight !== this.sceneRight) {
+      this.sceneLeft = sceneLeft;
+      this.sceneRight = sceneRight;
+      this.applySceneSize();
       this.sceneEl.resize();
     } else {
       if (this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDING) {
@@ -75,8 +84,8 @@ export class UIAnimationSystem {
     }
   }
 
-  applyPanelWidths() {
-    document.documentElement.style.setProperty("--nav-width", `${this.navWidth}px`);
-    document.documentElement.style.setProperty("--presence-width", `${this.presenceWidth}px`);
+  applySceneSize() {
+    document.documentElement.style.setProperty("--scene-left", `${this.sceneLeft}px`);
+    document.documentElement.style.setProperty("--scene-right", `${this.sceneRight}px`);
   }
 }

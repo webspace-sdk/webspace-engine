@@ -14,8 +14,11 @@
 @import '~quill/dist/quill.snow.css';
 
 :root {
+  // CSS vars for laying out side panels + primary scene view, mutated by UIAnimationSystem
   --nav-width: 300px;
   --presence-width: 200px;
+  --scene-left: 300px;
+  --scene-right: 200px;
 }
 
 body {
@@ -23,17 +26,16 @@ body {
 
   a-scene {
     height: 100%;
-    width: calc(100% - var(--nav-width) - var(--presence-width));
     top: 0;
-    right: var(--presence-width);
+    left: var(--scene-left);
+    width: calc(100% - var(--scene-right) - var(--scene-left));
     position: fixed;
-    z-index: 2;
+    z-index: 3;
   }
 
   #nav-drag-target {
     position: absolute;
     width: 16px;
-    //background-color: red;
     left: calc(var(--nav-width) - 8px); 
     top: 0;
     z-index: 100;
@@ -44,7 +46,6 @@ body {
   #presence-drag-target {
     position: absolute;
     width: 16px;
-    //background-color: red;
     right: calc(var(--presence-width) - 8px); 
     top: 0;
     z-index: 100;

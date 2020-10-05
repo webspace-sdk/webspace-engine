@@ -533,11 +533,15 @@ function addGlobalEventListeners(scene, entryManager) {
 }
 
 function setupSidePanelLayout(scene) {
-  const handleSidebarResizerDrag = (selector, cssVar, min, max, xToWidth, storeCallback) => {
+  const handleSidebarResizerDrag = (selector, cssVars, min, max, xToWidth, storeCallback) => {
     document.querySelector(selector).addEventListener("mousedown", () => {
       const handleMove = e => {
         const w = Math.min(max, Math.max(min, xToWidth(e.clientX)));
-        document.documentElement.style.setProperty(`--${cssVar}`, `${w}px`);
+
+        for (let i = 0; i < cssVars.length; i++) {
+          document.documentElement.style.setProperty(`--${cssVars[i]}`, `${w}px`);
+        }
+
         scene.resize();
         storeCallback(w);
         e.preventDefault();
@@ -551,7 +555,7 @@ function setupSidePanelLayout(scene) {
 
   handleSidebarResizerDrag(
     "#nav-drag-target",
-    "nav-width",
+    ["nav-width", "scene-left"],
     150,
     500,
     x => x,
@@ -560,7 +564,7 @@ function setupSidePanelLayout(scene) {
 
   handleSidebarResizerDrag(
     "#presence-drag-target",
-    "presence-width",
+    ["presence-width", "scene-right"],
     150,
     350,
     x => window.innerWidth - x,

@@ -23,7 +23,7 @@ const JelWrap = styled.div`
   height: 100%;
   left: 0;
   top: 0;
-  z-index: 3;
+  z-index: 2;
   pointer-events: none;
   display: flex;
 `;
