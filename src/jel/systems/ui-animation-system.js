@@ -28,19 +28,22 @@ export class UIAnimationSystem {
     document.documentElement.style.setProperty("--presence-width", `${this.targetSceneRight}px`);
   }
 
-  togglePanelExpansion() {
+  expandSidePanels() {
+    this.performPanelExpansion(PANEL_EXPANSION_STATES.EXPANDING);
+  }
+
+  collapseSidePanels() {
+    this.performPanelExpansion(PANEL_EXPANSION_STATES.COLLAPSING);
+  }
+
+  performPanelExpansion(newState) {
     if (
       this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDING ||
       this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSING
     )
       return;
 
-    if (this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDED) {
-      this.panelExpansionState = PANEL_EXPANSION_STATES.COLLAPSING;
-    } else {
-      this.panelExpansionState = PANEL_EXPANSION_STATES.EXPANDING;
-    }
-
+    this.panelExpansionState = newState;
     this.setTargetSceneSizes();
     this.panelExpandStartT = this.lastTickT;
   }
