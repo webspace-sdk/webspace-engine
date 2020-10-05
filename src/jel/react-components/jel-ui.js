@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import styled, { ThemeProvider } from "styled-components";
 import { createHub } from "../../hubs/utils/phoenix-utils";
@@ -52,45 +52,6 @@ const Overlay = styled.div.attrs(props => ({
 `;
 
 const TestButton = styled.button``;
-
-function useNavResize(navExpanded) {
-  const scene = useMemo(() => document.querySelector("a-scene"), []);
-
-  const resizeTimeout = useRef();
-  const resizeInterval = useRef();
-
-  useEffect(
-    () => {
-      if (resizeTimeout.current) {
-        clearInterval(resizeInterval.current);
-        clearTimeout(resizeTimeout.current);
-      }
-
-      resizeTimeout.current = setTimeout(() => {
-        clearInterval(resizeInterval.current);
-        resizeTimeout.current = null;
-      }, 800);
-
-      // Don't run during RAF to reduce chop.
-      resizeInterval.current = setInterval(() => scene.resize(), 15);
-      const { body } = document;
-
-      if (navExpanded) {
-        const wasHidden = body.classList.contains("nav-hidden");
-        body.classList.remove("nav-hidden");
-        body.offsetHeight; // relayout
-        if (wasHidden) {
-          body.classList.add("nav-expanded");
-        }
-      } else {
-        body.classList.remove("nav-expanded");
-        body.offsetHeight; // relayout
-        body.classList.add("nav-hidden");
-      }
-    },
-    [navExpanded, scene]
-  );
-}
 
 function useTreeData(tree, setTreeData) {
   useEffect(
@@ -195,7 +156,6 @@ function HubTree({ treeManager, history, hub }) {
 }
 
 function JelUI({
-  navExpanded = true,
   treeManager,
   history,
   hub,
@@ -238,8 +198,6 @@ function JelUI({
     navigateToHubUrl(history, homeHubUrl, true);
   };
 
-  useNavResize(navExpanded);
-
   return (
     <ThemeProvider theme={dark}>
       <JelWrap>
@@ -262,7 +220,6 @@ function JelUI({
             </select>
           )}
         </Nav>
-        <Overlay className="jel-ui-overlay">Center</Overlay>
         <Presence>Presence</Presence>
       </JelWrap>
     </ThemeProvider>

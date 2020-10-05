@@ -146,6 +146,7 @@ import "./hubs/systems/listed-media";
 import "./hubs/systems/linked-media";
 import "./jel/systems/media-presence-system";
 import "./jel/systems/wrapped-entity-system";
+import { DEFAULT_NAV_PANEL_WIDTH, DEFAULT_PRESENCE_PANEL_WIDTH } from "./jel/systems/ui-animation-system";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
 import { SOUND_CHAT_MESSAGE } from "./hubs/systems/sound-effects-system";
 
@@ -480,7 +481,8 @@ function addGlobalEventListeners(scene, entryManager) {
   });
 
   document.addEventListener("pointerlockchange", () => {
-    remountJelUI({ navExpanded: !document.pointerLockElement });
+    const expanded = !document.pointerLockElement;
+    remountJelUI({ navExpanded: expanded });
   });
 
   scene.addEventListener("action_focus_chat", () => {
@@ -528,6 +530,42 @@ function addGlobalEventListeners(scene, entryManager) {
       }
     });
   });
+}
+
+function setupSidePanelLayout(scene) {
+  const handleSidebarResizerDrag = (selector, cssVar, min, max, xToWidth, storeCallback) => {
+    document.querySelector(selector).addEventListener("mousedown", () => {
+      const handleMove = e => {
+        const w = Math.min(max, Math.max(min, xToWidth(e.clientX)));
+        document.documentElement.style.setProperty(`--${cssVar}`, `${w}px`);
+        scene.resize();
+        storeCallback(w);
+        e.preventDefault();
+      };
+
+      document.addEventListener("mousemove", handleMove);
+
+      document.addEventListener("mouseup", () => document.removeEventListener("mousemove", handleMove), { once: true });
+    });
+  };
+
+  handleSidebarResizerDrag(
+    "#nav-drag-target",
+    "nav-width",
+    150,
+    500,
+    x => x,
+    w => store.update({ uiState: { navPanelWidth: w } })
+  );
+
+  handleSidebarResizerDrag(
+    "#presence-drag-target",
+    "presence-width",
+    150,
+    350,
+    x => window.innerWidth - x,
+    w => store.update({ uiState: { presencePanelWidth: w } })
+  );
 }
 
 function setupVREventHandlers(scene, availableVREntryTypesPromise) {
@@ -757,6 +795,7 @@ async function start() {
   await initAvatar();
 
   addGlobalEventListeners(scene, entryManager);
+  setupSidePanelLayout(scene);
 
   window.dispatchEvent(new CustomEvent("hub_channel_ready"));
 
