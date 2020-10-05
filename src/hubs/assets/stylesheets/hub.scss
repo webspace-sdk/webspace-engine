@@ -13,50 +13,43 @@
 @import '~quill/dist/quill.bubble.css';
 @import '~quill/dist/quill.snow.css';
 
+:root {
+  --nav-width: 300px;
+  --presence-width: 200px;
+}
+
 body {
   background-color: var(--loading-background-color);
 
-  .ui-root {
-    width: 85%;
-    right: 0;
-    left: auto;
-    z-index: 3;
-  }
-
   a-scene {
     height: 100%;
-    width: 85%;
+    width: calc(100% - var(--nav-width) - var(--presence-width));
     top: 0;
-    right: 0;
+    right: var(--presence-width);
     position: fixed;
     z-index: 2;
   }
-}
 
-@keyframes hide-nav { from { width: 85%; } to { width: 100%; } }
-@keyframes expand-nav { from { width: 100%; } to { width: 85%; } }
-
-body.nav-hidden {
-  a-scene {
-    animation: hide-nav 0.25s cubic-bezier(.12,.98,.18,.98);
-    animation-fill-mode: forwards;
+  #nav-drag-target {
+    position: absolute;
+    width: 16px;
+    //background-color: red;
+    left: calc(var(--nav-width) - 8px); 
+    top: 0;
+    z-index: 100;
+    height: 100%;
+    cursor: col-resize;
   }
 
-  .ui-root {
-    animation: hide-nav 0.25s cubic-bezier(.12,.98,.18,.98);
-    animation-fill-mode: forwards;
-  }
-}
-
-body.nav-expanded {
-  a-scene {
-    animation: expand-nav 0.25s cubic-bezier(.12,.98,.18,.98);
-    animation-fill-mode: forwards;
-  }
-
-  .ui-root {
-    animation: expand-nav 0.25s cubic-bezier(.12,.98,.18,.98);
-    animation-fill-mode: forwards;
+  #presence-drag-target {
+    position: absolute;
+    width: 16px;
+    //background-color: red;
+    right: calc(var(--presence-width) - 8px); 
+    top: 0;
+    z-index: 100;
+    height: 100%;
+    cursor: col-resize;
   }
 }
 

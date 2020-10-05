@@ -23,9 +23,33 @@ const JelWrap = styled.div`
   height: 100%;
   left: 0;
   top: 0;
+  z-index: 3;
+  pointer-events: none;
+  display: flex;
 `;
 
-const Nav = styled.div``;
+const Nav = styled.div`
+  pointer-events: auto;
+  width: var(--nav-width);
+  overflow: hidden;
+`;
+
+const Presence = styled.div`
+  pointer-events: auto;
+  width: var(--presence-width);
+  overflow: hidden;
+`;
+
+const Overlay = styled.div.attrs(props => ({
+  className: props.className
+}))`
+  color: ${p => p.theme.text};
+  width: calc(100% - var(--presence-width) - var(--nav-width));
+  background-color: rgba(0, 0, 128, 0.5);
+  height: 100%;
+  top: 0;
+  overflow: hidden;
+`;
 
 const TestButton = styled.button``;
 
@@ -225,16 +249,21 @@ function JelUI({
           <HubTree treeManager={treeManager} hub={hub} history={history} />
           {spaceCan("edit_nav") && <TestButton onClick={onRestoreClick}>Restore World</TestButton>}
           {hubCan("close_hub") && <TestButton onClick={onDestroyClick}>Destroy World</TestButton>}
+          {spaceIdsToHomeHubUrls && (
+            <select
+              onChange={e => navigateToHubUrl(history, spaceIdsToHomeHubUrls.get(e.target.value))}
+              value={spaceId}
+            >
+              {[...spaceIdsToHomeHubUrls.keys()].map(sid => (
+                <option key={sid} value={sid}>
+                  {sid}
+                </option>
+              ))}
+            </select>
+          )}
         </Nav>
-        {spaceIdsToHomeHubUrls && (
-          <select onChange={e => navigateToHubUrl(history, spaceIdsToHomeHubUrls.get(e.target.value))} value={spaceId}>
-            {[...spaceIdsToHomeHubUrls.keys()].map(sid => (
-              <option key={sid} value={sid}>
-                {sid}
-              </option>
-            ))}
-          </select>
-        )}
+        <Overlay className="jel-ui-overlay">Center</Overlay>
+        <Presence>Presence</Presence>
       </JelWrap>
     </ThemeProvider>
   );
