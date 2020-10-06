@@ -124,6 +124,15 @@ export const SCHEMA = {
       }
     },
 
+    uiState: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        navPanelWidth: { type: "number" },
+        presencePanelWidth: { type: "number" }
+      }
+    },
+
     expandedTreeNodes: {
       type: "array",
       items: {
@@ -145,6 +154,7 @@ export const SCHEMA = {
     activity: { $ref: "#/definitions/activity" },
     settings: { $ref: "#/definitions/settings" },
     preferences: { $ref: "#/definitions/preferences" },
+    uiState: { $ref: "#/definitions/uiState" },
     embedTokens: { $ref: "#/definitions/embedTokens" },
     onLoadActions: { $ref: "#/definitions/onLoadActions" },
     expandedTreeNodes: { $ref: "#/definitions/expandedTreeNodes" }
@@ -177,7 +187,8 @@ export default class Store extends EventTarget {
       embedTokens: [],
       onLoadActions: [],
       expandedTreeNodes: [],
-      preferences: {}
+      preferences: {},
+      uiState: {}
     });
 
     this._shouldResetAvatarOnInit = false;

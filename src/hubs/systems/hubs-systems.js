@@ -32,6 +32,7 @@ import { MediaStreamSystem } from "./media-stream-system";
 import { WrappedEntitySystem } from "../../jel/systems/wrapped-entity-system";
 import { TerrainSystem } from "../../jel/systems/terrain-system";
 import { AtmosphereSystem } from "../../jel/systems/atmosphere-system";
+import { UIAnimationSystem } from "../../jel/systems/ui-animation-system";
 import { AvatarSystem } from "../../jel/systems/avatar-system";
 import { MediaInteractionSystem } from "../../jel/systems/media-interaction-system";
 
@@ -76,6 +77,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.wrappedEntitySystem = new WrappedEntitySystem(this.el, this.atmosphereSystem);
     this.terrainSystem = new TerrainSystem(this.el, this.atmosphereSystem);
     this.characterController = new CharacterControllerSystem(this.el, this.terrainSystem);
+    this.uiAnimationSystem = new UIAnimationSystem(this.el, this.atmosphereSystem);
     this.avatarSystem = new AvatarSystem(this.el, this.atmosphereSystem);
   },
 
@@ -123,6 +125,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.atmosphereSystem.tick(dt);
     this.mediaInteractionSystem.tick(t, dt);
     this.mediaPresenceSystem.tick();
+    this.uiAnimationSystem.tick(t, dt);
     this.avatarSystem.tick(t, dt);
 
     // We run this late in the frame so that its the last thing to have an opinion about the scale of an object

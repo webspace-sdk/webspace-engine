@@ -46,8 +46,8 @@ export class MouseDevice {
     document.addEventListener(
       "wheel",
       e => {
-        // Do not capture wheel events if they are being sent to an modal/overlay
-        if (!isInModal() && !window.APP.preferenceScreenIsVisible) {
+        // Only capture wheel events if canvas is focused
+        if (document.activeElement.classList.contains("a-canvas")) {
           e.preventDefault();
         }
       },
@@ -65,7 +65,8 @@ export class MouseDevice {
     const middle = event.button === 1;
     const right = event.button === 2;
     const canvasLeft = this.canvas.parentElement.offsetLeft;
-    this.coords[0] = ((event.clientX - canvasLeft) / (window.innerWidth - canvasLeft)) * 2 - 1;
+    const canvasRight = window.innerWidth - (this.canvas.parentElement.clientWidth + canvasLeft);
+    this.coords[0] = ((event.clientX - canvasLeft) / (window.innerWidth - canvasLeft - canvasRight)) * 2 - 1;
     this.coords[1] = -(event.clientY / window.innerHeight) * 2 + 1;
     this.movementXY[0] += event.movementX;
     this.movementXY[1] += event.movementY;

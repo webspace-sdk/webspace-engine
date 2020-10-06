@@ -110,6 +110,7 @@ import { Router, Route } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import { pushHistoryState, clearHistoryState } from "./hubs/utils/history";
 import { mapFromArray } from "./jel/utils/map-utils";
+import JelSidePanels from "./jel/react-components/jel-side-panels";
 import JelUI from "./jel/react-components/jel-ui";
 import UIRoot from "./hubs/react-components/ui-root";
 import AuthChannel from "./hubs/utils/auth-channel";
@@ -146,6 +147,7 @@ import "./hubs/systems/listed-media";
 import "./hubs/systems/linked-media";
 import "./jel/systems/media-presence-system";
 import "./jel/systems/wrapped-entity-system";
+import { DEFAULT_NAV_PANEL_WIDTH, DEFAULT_PRESENCE_PANEL_WIDTH } from "./jel/systems/ui-animation-system";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
 import { SOUND_CHAT_MESSAGE } from "./hubs/systems/sound-effects-system";
 
@@ -312,11 +314,28 @@ function mountJelUI(props = {}) {
     <Router history={history}>
       <Route
         render={routeProps => (
+          <JelSidePanels
+            {...{
+              scene,
+              store,
+              ...props,
+              ...routeProps
+            }}
+          />
+        )}
+      />
+    </Router>,
+    document.getElementById("jel-side-panels")
+  );
+
+  ReactDOM.render(
+    <Router history={history}>
+      <Route
+        render={routeProps => (
           <JelUI
             {...{
               scene,
               store,
-              mediaSearchStore,
               ...props,
               ...routeProps
             }}
@@ -480,7 +499,9 @@ function addGlobalEventListeners(scene, entryManager) {
   });
 
   document.addEventListener("pointerlockchange", () => {
-    remountJelUI({ navExpanded: !document.pointerLockElement });
+    const expanded = !document.pointerLockElement;
+    scene.systems["hubs-systems"].uiAnimationSystem[expanded ? "expandSidePanels" : "collapseSidePanels"]();
+    remountJelUI({ navExpanded: expanded });
   });
 
   scene.addEventListener("action_focus_chat", () => {
@@ -528,6 +549,46 @@ function addGlobalEventListeners(scene, entryManager) {
       }
     });
   });
+}
+
+function setupSidePanelLayout(scene) {
+  const handleSidebarResizerDrag = (selector, cssVars, min, max, xToWidth, storeCallback) => {
+    document.querySelector(selector).addEventListener("mousedown", () => {
+      const handleMove = e => {
+        const w = Math.min(max, Math.max(min, xToWidth(e.clientX)));
+
+        for (let i = 0; i < cssVars.length; i++) {
+          document.documentElement.style.setProperty(`--${cssVars[i]}`, `${w}px`);
+        }
+
+        scene.resize();
+        storeCallback(w);
+        e.preventDefault();
+      };
+
+      document.addEventListener("mousemove", handleMove);
+
+      document.addEventListener("mouseup", () => document.removeEventListener("mousemove", handleMove), { once: true });
+    });
+  };
+
+  handleSidebarResizerDrag(
+    "#nav-drag-target",
+    ["nav-width", "scene-left"],
+    150,
+    500,
+    x => x,
+    w => store.update({ uiState: { navPanelWidth: w } })
+  );
+
+  handleSidebarResizerDrag(
+    "#presence-drag-target",
+    ["presence-width", "scene-right"],
+    150,
+    350,
+    x => window.innerWidth - x,
+    w => store.update({ uiState: { presencePanelWidth: w } })
+  );
 }
 
 function setupVREventHandlers(scene, availableVREntryTypesPromise) {
@@ -757,6 +818,7 @@ async function start() {
   await initAvatar();
 
   addGlobalEventListeners(scene, entryManager);
+  setupSidePanelLayout(scene);
 
   window.dispatchEvent(new CustomEvent("hub_channel_ready"));
 
