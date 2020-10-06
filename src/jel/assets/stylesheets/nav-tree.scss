@@ -17,13 +17,12 @@ $treeNodePrefixCls: rc-tree-treenode;
   // padding: 5px;
   .#{$treeNodePrefixCls} {
     margin: 0;
-    padding: 0;
+    padding: 0 8px;
     line-height: 28px;
     white-space: nowrap;
     list-style: none;
     outline: 0;
     .draggable {
-      color: #333;
       -moz-user-select: none;
       -khtml-user-select: none;
       -webkit-user-select: none;
@@ -40,9 +39,7 @@ $treeNodePrefixCls: rc-tree-treenode;
     }
     &.drag-over {
       > .draggable {
-        color: white;
-        background-color: #316ac5;
-        border: 1px #316ac5 solid;
+        background-color: var(--panel-item-hover-background-color);
         opacity: 0.8;
       }
     }
@@ -58,8 +55,6 @@ $treeNodePrefixCls: rc-tree-treenode;
     }
     &.filter-node {
       > .#{$treePrefixCls}-node-content-wrapper {
-        color: #a60000 !important;
-        font-weight: bold !important;
       }
     }
     ul {
@@ -111,15 +106,15 @@ $treeNodePrefixCls: rc-tree-treenode;
           cursor: auto;
         }
         &.#{$treePrefixCls}-switcher_open {
-          mask: url('../images/icons/switcher.svg') 0 0/14px 14px;
-          -webkit-mask: url('../images/icons/switcher.svg') 0 0/14px 14px;
+          mask: url('../images/icons/switcher.svg') 0 0/15px 15px;
+          -webkit-mask: url('../images/icons/switcher.svg') 0 0/15px 15px;
           background-color: var(--panel-text-color);
           transform: rotate(90deg);
           transition: transform 0.25s;
         }
         &.#{$treePrefixCls}-switcher_close {
-          mask: url('../images/icons/switcher.svg') 0 0/14px 14px;
-          -webkit-mask: url('../images/icons/switcher.svg') 0 0/14px 14px;
+          mask: url('../images/icons/switcher.svg') 0 0/15px 15px;
+          -webkit-mask: url('../images/icons/switcher.svg') 0 0/15px 15px;
           background-color: var(--panel-text-color);
           transform: rotate(0deg);
           transition: transform 0.25s;

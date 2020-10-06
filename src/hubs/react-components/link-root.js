@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import { IntlProvider, FormattedMessage } from "react-intl";
+import { FormattedMessage } from "react-intl";
+import { WrappedIntlProvider } from "./wrapped-intl-provider";
 
 import configs from "../utils/configs";
-import { lang, messages } from "../utils/i18n";
 import classNames from "classnames";
 import styles from "../assets/stylesheets/link.scss";
 import { disableiOSZoom } from "../utils/disable-ios-zoom";
@@ -157,7 +157,7 @@ class LinkRoot extends Component {
     // Note we use type "tel" for the input due to https://bugzilla.mozilla.org/show_bug.cgi?id=1005603
 
     return (
-      <IntlProvider locale={lang} messages={messages}>
+      <WrappedIntlProvider>
         <div className={styles.link}>
           <div className={styles.linkContents}>
             <a className={styles.logo} href="/">
@@ -287,7 +287,7 @@ class LinkRoot extends Component {
             </div>
           </div>
         </div>
-      </IntlProvider>
+      </WrappedIntlProvider>
     );
   }
 }

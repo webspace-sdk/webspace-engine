@@ -2,7 +2,8 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
 import copy from "copy-to-clipboard";
-import { IntlProvider, FormattedMessage } from "react-intl";
+import { FormattedMessage } from "react-intl";
+import { WrappedIntlProvider } from "./wrapped-intl-provider";
 import screenfull from "screenfull";
 import configs from "../utils/configs";
 import IfFeature from "./if-feature";
@@ -19,7 +20,6 @@ import { getPresenceProfileForSession } from "../utils/phoenix-utils";
 import { getClientInfoClientId } from "./client-info-dialog";
 import { getCurrentStreamer } from "../utils/component-utils";
 
-import { lang, messages } from "../utils/i18n";
 import Loader from "./loader";
 import AutoExitWarning from "./auto-exit-warning";
 import { TwoDEntryButton, GenericEntryButton, DaydreamEntryButton } from "./entry-buttons.js";
@@ -878,13 +878,13 @@ class UIRoot extends Component {
 
   renderInterstitialPrompt = () => {
     return (
-      <IntlProvider locale={lang} messages={messages}>
+      <WrappedIntlProvider>
         <div className={styles.interstitial} onClick={() => this.props.onInterstitialPromptClicked()}>
           <div>
             <FormattedMessage id="interstitial.prompt" />
           </div>
         </div>
-      </IntlProvider>
+      </WrappedIntlProvider>
     );
   };
 

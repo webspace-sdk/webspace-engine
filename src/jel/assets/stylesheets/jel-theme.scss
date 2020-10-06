@@ -70,7 +70,12 @@ $xsmall-text-weight: $text-1-weight;
 $xsmall-text-bold-weight: $text-2-weight;
 
 :root {
+  --panel-header-text-color: #{$primary-6};
+  --panel-header-text-size: #{$text-2-size};
+  --panel-header-text-weight: #{$text-2-weight};
   --panel-selected-text-color: #{$primary-12};
+  --panel-text-size: #{$text-3-size};
+  --panel-text-weight: #{$text-1-weight};
   --panel-text-color: #{$primary-10};
   --panel-background-color: #{$primary-1};
   --panel-item-selected-background-color: #{$primary-3};

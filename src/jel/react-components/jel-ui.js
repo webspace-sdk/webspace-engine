@@ -13,7 +13,6 @@ const Wrap = styled.div`
   left: var(--scene-left);
   width: calc(100% - var(--scene-right) - var(--scene-left));
   position: fixed;
-  background-color: rgba(0, 0, 128, 0.5);
   z-index: 4;
 `;
 

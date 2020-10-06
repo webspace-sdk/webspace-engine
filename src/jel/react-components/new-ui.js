@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { IntlProvider, FormattedMessage } from "react-intl";
+import { FormattedMessage } from "react-intl";
+import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import PropTypes from "prop-types";
-import { lang, messages } from "../../hubs/utils/i18n";
 import styled, { ThemeProvider } from "styled-components";
 import { createSpace } from "../../hubs/utils/phoenix-utils";
 
@@ -28,7 +28,7 @@ function NewUI({ onSpaceCreated }) {
 
   return (
     <ThemeProvider theme={base}>
-      <IntlProvider locale={lang} messages={messages}>
+      <WrappedIntlProvider>
         <NewWrap>
           <form onSubmit={onSubmit}>
             <input required name="name" type="text" value={name} onChange={e => setName(e.target.value)} />
@@ -37,7 +37,7 @@ function NewUI({ onSpaceCreated }) {
             </button>
           </form>
         </NewWrap>
-      </IntlProvider>
+      </WrappedIntlProvider>
     </ThemeProvider>
   );
 }

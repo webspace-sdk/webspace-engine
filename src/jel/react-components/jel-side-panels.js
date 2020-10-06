@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from "react";
+import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
+import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
-import styled, { ThemeProvider } from "styled-components";
+import styled from "styled-components";
 import { createHub } from "../../hubs/utils/phoenix-utils";
-import { dark } from "./theme";
 import "../assets/stylesheets/nav-tree.scss";
 import Tree from "rc-tree";
 import { pushHistoryPath, replaceHistoryPath } from "../../hubs/utils/history";
+import PanelSectionHeader from "./panel-section-header";
 
 const JelWrap = styled.div`
-  color: ${p => p.theme.text};
+  color: var(--panel-text-color);
+  background-color: var(--panel-background-color);
+  font-size: var(--panel-text-size);
+  font-weight: var(--panel-text-weight);
   position: absolute;
   width: 100%;
   height: 100%;
@@ -29,7 +34,6 @@ const Nav = styled.div`
 const Presence = styled.div`
   pointer-events: auto;
   width: var(--presence-width);
-  overflow: hidden;
 `;
 
 const NavHead = styled.div`
@@ -41,7 +45,8 @@ const NavFoot = styled.div`
 `;
 
 const NavSpill = styled.div`
-  overflow-y: scroll;
+  overflow-x: hidden;
+  overflow-y: auto;
 `;
 
 const TestButton = styled.button``;
@@ -192,7 +197,7 @@ function JelSidePanels({
   };
 
   return (
-    <ThemeProvider theme={dark}>
+    <WrappedIntlProvider>
       <JelWrap>
         <Nav>
           <NavHead>
@@ -200,6 +205,10 @@ function JelSidePanels({
             {spaceCan("edit_nav") && hubCan("close_hub") && <TestButton onClick={onTrashClick}>Trash World</TestButton>}
           </NavHead>
           <NavSpill>
+            <PanelSectionHeader>
+              {" "}
+              <FormattedMessage id="nav.shared-worlds" />
+            </PanelSectionHeader>
             <HubTree treeManager={treeManager} hub={hub} history={history} />
           </NavSpill>
           <NavFoot>
@@ -221,7 +230,7 @@ function JelSidePanels({
         </Nav>
         <Presence>Presence</Presence>
       </JelWrap>
-    </ThemeProvider>
+    </WrappedIntlProvider>
   );
 }
 

@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
-import { IntlProvider, FormattedMessage } from "react-intl";
+import { FormattedMessage } from "react-intl";
+import { WrappedIntlProvider } from ".//wrapped-intl-provider";
 
 import configs from "../utils/configs";
 import IfFeature from "./if-feature";
@@ -13,8 +14,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons/faEllipsisH";
 import { faCodeBranch } from "@fortawesome/free-solid-svg-icons/faCodeBranch";
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt";
-
-import { lang, messages } from "../utils/i18n";
 
 class SceneUI extends Component {
   static propTypes = {
@@ -64,7 +63,7 @@ class SceneUI extends Component {
   render() {
     if (this.props.unavailable) {
       return (
-        <IntlProvider locale={lang} messages={messages}>
+        <WrappedIntlProvider>
           <div className={styles.ui}>
             <div className={styles.unavailable}>
               <div>
@@ -72,7 +71,7 @@ class SceneUI extends Component {
               </div>
             </div>
           </div>
-        </IntlProvider>
+        </WrappedIntlProvider>
       );
     }
 
