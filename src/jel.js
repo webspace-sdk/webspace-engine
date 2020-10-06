@@ -266,45 +266,44 @@ const qsVREntryType = qs.get("vr_entry_type");
 let performConditionalSignIn;
 
 function mountUI(props = {}) {
-  const scene = document.querySelector("a-scene");
-  const disableAutoExitOnIdle =
-    qsTruthy("allow_idle") || (process.env.NODE_ENV === "development" && !qs.get("idle_timeout"));
-  const isCursorHoldingPen =
-    scene &&
-    (scene.systems.userinput.activeSets.includes(userinputSets.rightCursorHoldingPen) ||
-      scene.systems.userinput.activeSets.includes(userinputSets.leftCursorHoldingPen));
-  const hasActiveCamera = scene && !!scene.systems["camera-tools"].getMyCamera();
-  const forcedVREntryType = qsVREntryType;
-
-  ReactDOM.render(
-    <Router history={history}>
-      <Route
-        render={routeProps => (
-          <UIRoot
-            {...{
-              scene,
-              isBotMode,
-              disableAutoExitOnIdle,
-              forcedVREntryType,
-              store,
-              mediaSearchStore,
-              isCursorHoldingPen,
-              hasActiveCamera,
-              performConditionalSignIn,
-              ...props,
-              ...routeProps
-            }}
-          />
-        )}
-      />
-    </Router>,
-    document.getElementById("ui-root")
-  );
+  //const scene = document.querySelector("a-scene");
+  //const disableAutoExitOnIdle =
+  //  qsTruthy("allow_idle") || (process.env.NODE_ENV === "development" && !qs.get("idle_timeout"));
+  //const isCursorHoldingPen =
+  //  scene &&
+  //  (scene.systems.userinput.activeSets.includes(userinputSets.rightCursorHoldingPen) ||
+  //    scene.systems.userinput.activeSets.includes(userinputSets.leftCursorHoldingPen));
+  //const hasActiveCamera = scene && !!scene.systems["camera-tools"].getMyCamera();
+  //const forcedVREntryType = qsVREntryType;
+  //ReactDOM.render(
+  //  <Router history={history}>
+  //    <Route
+  //      render={routeProps => (
+  //        <UIRoot
+  //          {...{
+  //            scene,
+  //            isBotMode,
+  //            disableAutoExitOnIdle,
+  //            forcedVREntryType,
+  //            store,
+  //            mediaSearchStore,
+  //            isCursorHoldingPen,
+  //            hasActiveCamera,
+  //            performConditionalSignIn,
+  //            ...props,
+  //            ...routeProps
+  //          }}
+  //        />
+  //      )}
+  //    />
+  //  </Router>,
+  //  document.getElementById("ui-root")
+  //);
 }
 
 function remountUI(props) {
   uiProps = { ...uiProps, ...props };
-  //mountUI(uiProps);
+  mountUI(uiProps);
 }
 
 function mountJelUI(props = {}) {
@@ -772,11 +771,11 @@ async function loadMemberships() {
   const res = await fetchReticulumAuthenticated(`/api/v1/accounts/${accountId}`);
   if (res.memberships.length === 0) return;
 
-  const spaceIdsToHomeHubUrls = mapFromArray(
-    [...res.memberships].sort(m => m.joined_at).map(m => [m.space_id, m.home_hub.url])
+  const spaceIdsToHomeHubs = mapFromArray(
+    [...res.memberships].sort(m => m.joined_at).map(m => [m.space_id, m.home_hub])
   );
 
-  remountJelUI({ spaceIdsToHomeHubUrls });
+  remountJelUI({ spaceIdsToHomeHubs });
 }
 
 async function start() {

@@ -5,5 +5,5 @@ export default styled.div`
   font-size: var(--panel-header-text-size);
   font-weight: var(--panel-header-text-weight);
   text-transform: uppercase;
-  margin: 8px 16px;
+  margin: 32px 16px 8px 16px;
 `;

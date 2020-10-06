@@ -18,7 +18,7 @@ $treeNodePrefixCls: rc-tree-treenode;
   .#{$treeNodePrefixCls} {
     margin: 0;
     padding: 0 8px;
-    line-height: 28px;
+    line-height: 30px;
     white-space: nowrap;
     list-style: none;
     outline: 0;
@@ -64,11 +64,11 @@ $treeNodePrefixCls: rc-tree-treenode;
     &-selected {
       background-color: var(--panel-item-selected-background-color);
       color: var(--panel-selected-text-color);
-      font-weight: jel-theme.$small-text-semi-bold-weight;
+      font-weight: var(--panel-selected-text-weight);
     }
     .#{$treePrefixCls}-node-content-wrapper {
       display: inline-block;
-      height: 28px;
+      height: 30px;
       width: 100%;
       margin: 0;
       padding: 1px 3px 0 0;
@@ -203,7 +203,6 @@ $treeNodePrefixCls: rc-tree-treenode;
     // }
   }
   &-node-selected {
-    opacity: 0.8;
   }
   &-icon__open {
     margin-right: 2px;
