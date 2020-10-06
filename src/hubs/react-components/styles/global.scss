@@ -1,13 +1,17 @@
-@use "../../../hubs/react-components/styles/theme.scss";
-@use "../../../jel/react-components/styles/theme.scss";
+@use "../../../hubs/react-components/styles/hubs-theme.scss";
+@use "../../../jel/react-components/styles/jel-theme.scss";
 @import "~normalize.css";
 
 /**
  * https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/
+ * https://css-tricks.com/snippets/css/system-font-stack/
  */
+
 html {
   box-sizing: border-box;
   line-height: 1;
+
+  font-family: Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"
 }
 
 *, *:before, *:after {
@@ -50,13 +54,6 @@ ul {
   padding: 0;
 }
 
-/**
- * https://css-tricks.com/snippets/css/system-font-stack/
- */
-
-html {
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"
-}
 
 /*
  * Ensure horizontal rules are visible by default
@@ -88,16 +85,6 @@ h5,
 h6 {
   font-size: inherit;
   font-weight: inherit;
-}
-
-/**
- * Reset links to optimize for opt-in styling instead of
- * opt-out.
- */
-
-a {
-  color: inherit;
-  text-decoration: inherit;
 }
 
 /**
@@ -163,8 +150,8 @@ video {
 }
 
 label {
-  font-size: theme.$small-text-size;
-  font-weight: theme.$small-text-weight;
+  font-size: jel-theme.$small-text-size;
+  font-weight: jel-theme.$small-text-weight;
 }
 
 body :focus {
@@ -185,25 +172,25 @@ body::before {
   display: none;
 }
 
-@media (min-width: theme.$breakpoint-md) {
+@media (min-width: hubs-theme.$breakpoint-md) {
   body::before {
     content: "md";
   }
 }
 
-@media (min-width: theme.$breakpoint-lg) {
+@media (min-width: hubs-theme.$breakpoint-lg) {
   body::before {
     content: "lg";
   }
 }
 
-@media (min-width: theme.$breakpoint-xl) {
+@media (min-width: hubs-theme.$breakpoint-xl) {
   body::before {
     content: "xl";
   }
 }
 
-@media (min-width: theme.$breakpoint-xxl) {
+@media (min-width: hubs-theme.$breakpoint-xxl) {
   body::before {
     content: "xxl";
   }
@@ -212,27 +199,35 @@ body::before {
 // TODO: Add the rest of the base typography styles
 
 h5 {
-  font-size: theme.$xsmall-text-size;
-  font-weight: theme.$xsmall-text-weight;
+  font-size: jel-theme.$xsmall-text-size;
+  font-weight: jel-theme.$xsmall-text-weight;
 }
 
 label, small {
-  font-size: theme.$xsmall-text-size
-  font-weight: theme.$xsmall-text-weight;
+  font-size: jel-theme.$xsmall-text-size;
+  font-weight: jel-theme.$xsmall-text-weight;
 }
 
+/**
+ * Reset links to optimize for opt-in styling instead of
+ * opt-out.
+ */
+
 a {
-  color: theme.$action;
+  color: jel-theme.$action;
 
   &:hover {
-    color: theme.$action-hover;
+    color: jel-theme.$action-hover;
   }
 
   &:active {
-    color: theme.$action-pressed;
+    color: jel-theme.$action-pressed;
   }
+
+  color: inherit;
+  text-decoration: inherit;
 }
 
 input::placeholder {
-  color: theme.$input-text;
+  color: jel-theme.$input-text;
 }

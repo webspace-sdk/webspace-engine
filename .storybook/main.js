@@ -1,7 +1,7 @@
 const path = require("path");
 
 module.exports = {
-  stories: ["../src/jel/react-components/**/*.stories.mdx", "../src/jel/react-components/**/*.stories.js"],
+  stories: ["../src/jel/react-components/**/*.stories.mdx", "../src/jel/react-components/*.stories.js"],
   addons: ["@storybook/addon-links", "@storybook/addon-essentials", "storybook-addon-designs"],
   webpackFinal: async config => {
     config.module.rules.push({
@@ -13,7 +13,7 @@ module.exports = {
           options: {
             importLoaders: "1",
             localIdentName: "[name]__[local]___[hash:base64:5]",
-            modules: true,
+            modules: false,
             camelCase: true
           }
         },
