@@ -31,26 +31,6 @@ module.exports = {
       ]
     });
 
-    config.module.rules.push({
-      test: /\.svgi$/,
-      use: [
-        {
-          loader: "@svgr/webpack",
-          options: {
-            titleProp: true,
-            replaceAttrValues: { "#000": "{props.color}" },
-            template: require("../src/hubs/react-components/icons/IconTemplate"),
-            svgoConfig: {
-              plugins: {
-                removeViewBox: false
-              }
-            }
-          }
-        },
-        "url-loader"
-      ]
-    });
-
     return config;
   }
 };
