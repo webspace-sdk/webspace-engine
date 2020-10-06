@@ -41,8 +41,8 @@ export class KeyboardDevice {
               e.key === "8" ||
               e.key === "9" ||
               e.key === "0")) ||
-          (e.key === "Tab" && !(window.APP && window.APP.preferenceScreenIsVisible)) ||
-          (e.key === " " && document.activeElement === document.body) // Disable scrolling in main window
+          (e.key === "Tab" && document.activeElement.classList.contains("a-canvas")) ||
+          (e.key === " " && document.activeElement === document.body) // Disable spacebar scrolling in main window
         ) {
           e.preventDefault();
           return false;

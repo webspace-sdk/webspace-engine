@@ -22,13 +22,26 @@ const JelWrap = styled.div`
 const Nav = styled.div`
   pointer-events: auto;
   width: var(--nav-width);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 `;
 
 const Presence = styled.div`
   pointer-events: auto;
   width: var(--presence-width);
   overflow: hidden;
+`;
+
+const NavHead = styled.div`
+  flex: 0 0 auto;
+`;
+
+const NavFoot = styled.div`
+  flex: 0 0 auto;
+`;
+
+const NavSpill = styled.div`
+  overflow-y: scroll;
 `;
 
 const TestButton = styled.button``;
@@ -182,23 +195,29 @@ function JelSidePanels({
     <ThemeProvider theme={dark}>
       <JelWrap>
         <Nav>
-          {spaceCan("create_hub") && <TestButton onClick={onCreateClick}>Create World</TestButton>}
-          {spaceCan("edit_nav") && hubCan("close_hub") && <TestButton onClick={onTrashClick}>Trash World</TestButton>}
-          <HubTree treeManager={treeManager} hub={hub} history={history} />
-          {spaceCan("edit_nav") && <TestButton onClick={onRestoreClick}>Restore World</TestButton>}
-          {hubCan("close_hub") && <TestButton onClick={onDestroyClick}>Destroy World</TestButton>}
-          {spaceIdsToHomeHubUrls && (
-            <select
-              onChange={e => navigateToHubUrl(history, spaceIdsToHomeHubUrls.get(e.target.value))}
-              value={spaceId}
-            >
-              {[...spaceIdsToHomeHubUrls.keys()].map(sid => (
-                <option key={sid} value={sid}>
-                  {sid}
-                </option>
-              ))}
-            </select>
-          )}
+          <NavHead>
+            {spaceCan("create_hub") && <TestButton onClick={onCreateClick}>Create World</TestButton>}
+            {spaceCan("edit_nav") && hubCan("close_hub") && <TestButton onClick={onTrashClick}>Trash World</TestButton>}
+          </NavHead>
+          <NavSpill>
+            <HubTree treeManager={treeManager} hub={hub} history={history} />
+          </NavSpill>
+          <NavFoot>
+            {spaceCan("edit_nav") && <TestButton onClick={onRestoreClick}>Restore World</TestButton>}
+            {hubCan("close_hub") && <TestButton onClick={onDestroyClick}>Destroy World</TestButton>}
+            {spaceIdsToHomeHubUrls && (
+              <select
+                onChange={e => navigateToHubUrl(history, spaceIdsToHomeHubUrls.get(e.target.value))}
+                value={spaceId}
+              >
+                {[...spaceIdsToHomeHubUrls.keys()].map(sid => (
+                  <option key={sid} value={sid}>
+                    {sid}
+                  </option>
+                ))}
+              </select>
+            )}
+          </NavFoot>
         </Nav>
         <Presence>Presence</Presence>
       </JelWrap>
