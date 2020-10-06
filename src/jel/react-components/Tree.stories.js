@@ -1,10 +1,11 @@
 import React from "react";
 import Tree from "rc-tree";
-import foo from "../assets/stylesheets/nav-tree.scss";
-console.log(foo);
+import "../assets/stylesheets/nav-tree.scss";
+import sharedStyles from "../assets/stylesheets/shared.scss";
+import classNames from "classnames";
 
 const treeData = [
-  { key: "3ub5q94", title: "First Node", url: null, hubId: "QxRKdNF", isLeaf: true },
+  { key: "3ub5q94", title: "Super Cool World", url: null, hubId: "QxRKdNF", isLeaf: true },
   { key: "f9g20et", title: "Second Node", url: null, hubId: "7gNqKfG", isLeaf: true },
   {
     key: "lsgr9la",
@@ -12,7 +13,7 @@ const treeData = [
     children: [
       {
         key: "nq106el",
-        title: "Child Node",
+        title: "My Subworld",
         children: [{ key: "l5k090y", title: "Inner Child", url: null, hubId: "JRrZerh", isLeaf: true }],
         url: null,
         hubId: "uxj79J5",
@@ -28,8 +29,7 @@ const treeData = [
 ];
 
 export const Normal = () => (
-  <div style={{ display: "flex" }}>
-    Hello
+  <div className={classNames(sharedStyles.basePanel)} style={{ display: "flex" }}>
     <Tree treeData={treeData} selectable={true} selectedKeys={["nq106el"]} />
   </div>
 );

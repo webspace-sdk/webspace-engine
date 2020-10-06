@@ -11,7 +11,7 @@ html {
   box-sizing: border-box;
   line-height: 1;
 
-  font-family: Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"
+  font-family: Lato, Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"
 }
 
 *, *:before, *:after {
@@ -214,14 +214,14 @@ label, small {
  */
 
 a {
-  color: jel-theme.$action;
+  color: var(--action-color);
 
   &:hover {
-    color: jel-theme.$action-hover;
+    color: var(--action-hover-color);
   }
 
   &:active {
-    color: jel-theme.$action-pressed;
+    color: var(--action-pressed-color);
   }
 
   color: inherit;
@@ -229,5 +229,5 @@ a {
 }
 
 input::placeholder {
-  color: jel-theme.$input-text;
+  color: var(--input-text-color);
 }

@@ -383,7 +383,7 @@ module.exports = async (env, argv) => {
           ]
         },
         {
-          test: /\.svg$/,
+          test: /\.svgr$/,
           include: [path.resolve(__dirname, "src", "react-components")],
           use: [
             {

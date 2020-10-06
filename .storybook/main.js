@@ -22,10 +22,17 @@ module.exports = {
       include: path.resolve(__dirname, "..", "src")
     });
 
-    const fileLoaderRule = config.module.rules.find(rule => rule.test.test(".svg"));
-    fileLoaderRule.exclude = /\.svg$/;
+    const svgLoaderRule = config.module.rules.find(rule => rule.test.test(".svg"));
+    svgLoaderRule.exclude = /\.svg$/;
     config.module.rules.push({
       test: /\.svg$/,
+      use: [
+        "url-loader"
+      ]
+    });
+
+    config.module.rules.push({
+      test: /\.svgi$/,
       use: [
         {
           loader: "@svgr/webpack",
