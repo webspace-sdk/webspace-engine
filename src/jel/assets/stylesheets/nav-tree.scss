@@ -32,6 +32,12 @@ $treeNodePrefixCls: rc-tree-treenode;
       -khtml-user-drag: element;
       -webkit-user-drag: element;
     }
+    &:hover {
+      background-color: var(--panel-item-hover-background-color);
+    }
+    &:active {
+      background-color: var(--panel-item-active-background-color);
+    }
     &.drag-over {
       > .draggable {
         color: white;
@@ -62,7 +68,7 @@ $treeNodePrefixCls: rc-tree-treenode;
     }
     &-selected {
       background-color: var(--panel-item-selected-background-color);
-      color: var(--panel-highlight-text-color);
+      color: var(--panel-selected-text-color);
       font-weight: jel-theme.$small-text-semi-bold-weight;
     }
     .#{$treePrefixCls}-node-content-wrapper {
@@ -99,8 +105,6 @@ $treeNodePrefixCls: rc-tree-treenode;
       &.#{$treePrefixCls}-icon_loading {
         margin-right: 2px;
         vertical-align: top;
-        background: url('data:image/gif;base64,R0lGODlhEAAQAKIGAMLY8YSx5HOm4Mjc88/g9Ofw+v///wAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQFCgAGACwAAAAAEAAQAAADMGi6RbUwGjKIXCAA016PgRBElAVlG/RdLOO0X9nK61W39qvqiwz5Ls/rRqrggsdkAgAh+QQFCgAGACwCAAAABwAFAAADD2hqELAmiFBIYY4MAutdCQAh+QQFCgAGACwGAAAABwAFAAADD1hU1kaDOKMYCGAGEeYFCQAh+QQFCgAGACwKAAIABQAHAAADEFhUZjSkKdZqBQG0IELDQAIAIfkEBQoABgAsCgAGAAUABwAAAxBoVlRKgyjmlAIBqCDCzUoCACH5BAUKAAYALAYACgAHAAUAAAMPaGpFtYYMAgJgLogA610JACH5BAUKAAYALAIACgAHAAUAAAMPCAHWFiI4o1ghZZJB5i0JACH5BAUKAAYALAAABgAFAAcAAAMQCAFmIaEp1motpDQySMNFAgA7')
-          no-repeat scroll 0 0 transparent;
       }
       &.#{$treePrefixCls}-switcher {
         &.#{$treePrefixCls}-switcher-noop {

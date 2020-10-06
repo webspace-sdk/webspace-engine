@@ -70,10 +70,12 @@ $xsmall-text-weight: $text-1-weight;
 $xsmall-text-bold-weight: $text-2-weight;
 
 :root {
-  --panel-highlight-text-color: #{$primary-12};
-  --panel-text-color: #{$primary-11};
+  --panel-selected-text-color: #{$primary-12};
+  --panel-text-color: #{$primary-10};
   --panel-background-color: #{$primary-1};
   --panel-item-selected-background-color: #{$primary-3};
+  --panel-item-hover-background-color: #{$primary-3};
+  --panel-item-active-background-color: #{$primary-5};
   --action-color: black;
   --action-hover-color: black;
   --action-pressed-color: black;
