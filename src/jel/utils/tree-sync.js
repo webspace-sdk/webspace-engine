@@ -11,11 +11,11 @@ function createNodeId() {
 }
 
 class TreeSync extends EventTarget {
-  constructor(docId, expandedTreeNodes, hubMetadata) {
+  constructor(docId, expandedTreeNodes, atomMetadata) {
     super();
     this.docId = docId;
     this.expandedTreeNodes = expandedTreeNodes;
-    this.hubMetadata = hubMetadata;
+    this.atomMetadata = atomMetadata;
   }
 
   setCollectionId(collectionId) {
@@ -23,6 +23,8 @@ class TreeSync extends EventTarget {
   }
 
   init(connection) {
+    if (!this.collectionId || !this.docId) return Promise.resolved();
+
     const doc = connection.get(this.collectionId, this.docId);
     this.doc = doc;
 
@@ -35,14 +37,14 @@ class TreeSync extends EventTarget {
   }
 
   handleNavOp = () => this.rebuildExpandedTreeData();
-  handleHubMetadataUpdate = () => this.rebuildExpandedTreeData();
+  handleMetadataUpdate = () => this.rebuildExpandedTreeData();
 
-  addToRoot(hubId) {
+  addToRoot(atomId) {
     if (Object.entries(this.doc.data).length === 0) {
-      this.addInitialItem(hubId);
+      this.addInitialItem(atomId);
     } else {
       const [nodeId, node] = this.findTailUnder(null);
-      this.insertBelow(hubId, nodeId, node);
+      this.insertBelow(atomId, nodeId, node);
     }
   }
 
@@ -175,12 +177,12 @@ class TreeSync extends EventTarget {
     this.doc.submitOp(ops);
   }
 
-  insertBelow(hubId, belowNodeId, belowNode) {
+  insertBelow(atomId, belowNodeId, belowNode) {
     this.doc.submitOp([
       {
         p: [createNodeId()],
         oi: {
-          h: hubId,
+          h: atomId,
           r: belowNodeId,
           p: belowNode.p
         }
@@ -254,13 +256,13 @@ class TreeSync extends EventTarget {
     return [null, null];
   }
 
-  addInitialItem(hubId) {
+  addInitialItem(atomId) {
     const nodeId = createNodeId();
     this.doc.submitOp([
       {
         p: [nodeId],
         oi: {
-          h: hubId,
+          h: atomId,
           r: null,
           p: null,
           d: 0
@@ -335,12 +337,12 @@ class TreeSync extends EventTarget {
         do {
           if (visitor) visitor(nid, n);
 
-          const hubId = n.h;
+          const atomId = n.h;
           let nodeTitle = "";
           let nodeUrl = null;
 
-          if (this.hubMetadata.hasMetadata(n.h)) {
-            const { name, url } = this.hubMetadata.getMetadata(hubId);
+          if (this.atomMetadata.hasMetadata(n.h)) {
+            const { name, url } = this.atomMetadata.getMetadata(atomId);
             nodeTitle = name || DEFAULT_HUB_NAME;
             nodeUrl = url;
           }
@@ -348,9 +350,16 @@ class TreeSync extends EventTarget {
           if (parentNodes.has(nid)) {
             const subchildren = [];
             nodeIdToChildren.set(nid, subchildren);
-            children.unshift({ key: nid, title: nodeTitle, children: subchildren, url: nodeUrl, hubId, isLeaf: false });
+            children.unshift({
+              key: nid,
+              title: nodeTitle,
+              children: subchildren,
+              url: nodeUrl,
+              atomId,
+              isLeaf: false
+            });
           } else {
-            children.unshift({ key: nid, title: nodeTitle, url: nodeUrl, hubId, isLeaf: true });
+            children.unshift({ key: nid, title: nodeTitle, url: nodeUrl, atomId, isLeaf: true });
           }
 
           nid = n.r;
@@ -368,25 +377,25 @@ class TreeSync extends EventTarget {
   }
 
   rebuildExpandedTreeData() {
-    if (this.expandedHubIds) {
-      for (const hubId of this.expandedHubIds) {
-        this.hubMetadata.unsubscribeFromMetadata(hubId, this.handleHubMetadataUpdate);
+    if (this.expandedIds) {
+      for (const atomId of this.expandedIds) {
+        this.atomMetadata.unsubscribeFromMetadata(atomId, this.handleMetadataUpdate);
       }
     }
 
-    this.expandedHubIds = new Set();
+    this.expandedIds = new Set();
 
     const isExpanded = nodeId => this.expandedTreeNodes.isExpanded(nodeId); // Filter
-    const fillHubIds = (nodeId, node) => this.expandedHubIds.add(node.h); // Visitor
+    const fillIds = (nodeId, node) => this.expandedIds.add(node.h); // Visitor
 
-    this.expandedTreeData = this.computeTree(isExpanded, fillHubIds);
+    this.expandedTreeData = this.computeTree(isExpanded, fillIds);
     this.dispatchEvent(new CustomEvent("expanded_treedata_updated"));
 
-    for (const hubId of this.expandedHubIds) {
-      this.hubMetadata.subscribeToMetadata(hubId, this.handleHubMetadataUpdate);
+    for (const atomId of this.expandedIds) {
+      this.atomMetadata.subscribeToMetadata(atomId, this.handleMetadataUpdate);
     }
 
-    this.hubMetadata.ensureMetadataForIds(this.expandedHubIds);
+    this.atomMetadata.ensureMetadataForIds(this.expandedIds);
   }
 
   insertOrUpdate(nodeId, n) {
@@ -440,14 +449,14 @@ class TreeSync extends EventTarget {
     return d;
   }
 
-  getNodeIdForHubId(hubIdToFind) {
+  getNodeIdForAtomId(atomIdToFind) {
     const walk = nodes => {
-      for (const { key, hubId, children } of nodes) {
-        if (hubId === hubIdToFind) return key;
+      for (const { key, atomId, children } of nodes) {
+        if (atomId === atomIdToFind) return key;
 
         if (children) {
-          const childHubId = walk(children);
-          if (childHubId) return childHubId;
+          const childAtomId = walk(children);
+          if (childAtomId) return childAtomId;
         }
       }
 

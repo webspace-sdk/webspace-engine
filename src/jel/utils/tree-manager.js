@@ -41,13 +41,29 @@ class ExpandedTreeNodes {
 class TreeManager extends EventTarget {
   constructor(spaceMetadata, hubMetadata) {
     super();
-    this.expandedTreeNodes = new ExpandedTreeNodes();
-    this.sharedNav = new TreeSync("nav", this.expandedTreeNodes, hubMetadata);
-    this.sharedTrash = new TreeSync("trash", this.expandedTreeNodes, hubMetadata);
+    this.privateExpandedTreeNodes = new ExpandedTreeNodes();
+    this.sharedExpandedTreeNodes = new ExpandedTreeNodes();
+
+    // Private space tree
+    this.privateSpace = new TreeSync("space", this.privateExpandedTreeNodes, spaceMetadata);
+
+    // Shared world navigation tree
+    this.sharedNav = new TreeSync("nav", this.sharedExpandedTreeNodes, hubMetadata);
+
+    // Shared world trash
+    this.sharedTrash = new TreeSync("trash", this.sharedExpandedTreeNodes, hubMetadata);
   }
 
   async init(connection) {
-    await Promise.all([await this.sharedNav.init(connection), await this.sharedTrash.init(connection)]);
+    await Promise.all([
+      await this.privateSpace.init(connection),
+      await this.sharedNav.init(connection),
+      await this.sharedTrash.init(connection)
+    ]);
+  }
+
+  setAccountCollectionId(collectionId) {
+    this.privateSpace.setCollectionId(collectionId);
   }
 
   setSpaceCollectionId(collectionId) {
@@ -56,17 +72,18 @@ class TreeManager extends EventTarget {
   }
 
   setNodeExpanded(nodeId, expanded) {
+    // TODO private
     if (expanded) {
-      this.expandedTreeNodes.set(nodeId);
+      this.sharedExpandedTreeNodes.set(nodeId);
     } else {
-      this.expandedTreeNodes.unset(nodeId);
+      this.sharedExpandedTreeNodes.unset(nodeId);
     }
 
     this.dispatchEvent(new CustomEvent("expanded_nodes_updated"));
   }
 
-  expandedNodeIds() {
-    return this.expandedTreeNodes.expandedNodeIds();
+  sharedExpandedNodeIds() {
+    return this.sharedExpandedTreeNodes.expandedNodeIds();
   }
 
   moveToTrash(nodeId) {

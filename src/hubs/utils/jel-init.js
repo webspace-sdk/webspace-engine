@@ -281,7 +281,7 @@ const joinSpaceChannel = async (
   addToPresenceLog
 ) => {
   const scene = document.querySelector("a-scene");
-  const { spaceChannel } = window.APP;
+  const { store, spaceChannel } = window.APP;
 
   let presenceInitPromise;
   let isInitialJoin = true;
@@ -392,7 +392,9 @@ const joinSpaceChannel = async (
 
         const space = data.spaces[0];
         const spaceId = space.space_id;
+        const accountId = store.credentialsAccountId;
 
+        treeManager.setAccountCollectionId(accountId);
         treeManager.setSpaceCollectionId(spaceId);
 
         console.log(`WebRTC host: ${space.host}:${space.port}`);
@@ -690,7 +692,7 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
 
   dynaChannel.leave();
 
-  const dynaPhxChannel = socket.channel(`ret`, {});
+  const dynaPhxChannel = socket.channel(`dyna`, {});
   dynaPhxChannel.join().receive("error", res => console.error(res));
   dynaChannel.bind(dynaPhxChannel);
 

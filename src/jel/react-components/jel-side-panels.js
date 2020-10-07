@@ -195,17 +195,17 @@ function HubTree({ treeManager, history, hub }) {
     }
   };
 
-  const navSelectedKeys = hub ? [treeManager.sharedNav.getNodeIdForHubId(hub.hub_id)] : [];
+  const navSelectedKeys = hub ? [treeManager.sharedNav.getNodeIdForAtomId(hub.hub_id)] : [];
 
   // TODO TRASH
-  //const trashSelectedKeys = hub ? [treeManager.sharedTrash.getNodeIdForHubId(hub.hub_id)] : [];
+  //const trashSelectedKeys = hub ? [treeManager.sharedTrash.getNodeIdForAtomd(hub.hub_id)] : [];
   /* Trash
       <Tree
         treeData={trashTreeData}
         selectable={true}
         selectedKeys={trashSelectedKeys}
         draggable
-        expandedKeys={treeManager.expandedNodeIds()}
+        expandedKeys={treeManager.sharedExpandedNodeIds()}
         onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
         onDragEnter={onTreeDragEnter}
         onDrop={onTreeDrop}
@@ -223,7 +223,7 @@ function HubTree({ treeManager, history, hub }) {
         onDragEnter={onTreeDragEnter}
         onDrop={onTreeDrop("sharedNav")}
         onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
-        expandedKeys={treeManager.expandedNodeIds()}
+        expandedKeys={treeManager.sharedExpandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
       />
     </div>
@@ -273,14 +273,14 @@ function JelSidePanels({
   };
 
   //const onTrashClick = () => {
-  //  const nodeId = treeManager.sharedNav.getNodeIdForHubId(hub.hub_id);
+  //  const nodeId = treeManager.sharedNav.getNodeIdForAtomId(hub.hub_id);
   //  if (!nodeId) return;
 
   //  treeManager.moveToTrash(nodeId);
   //};
 
   //const onRestoreClick = () => {
-  //  const nodeId = treeManager.sharedTrash.getNodeIdForHubId(hub.hub_id);
+  //  const nodeId = treeManager.sharedTrash.getNodeIdForAtomId(hub.hub_id);
   //  if (!nodeId) return;
 
   //  treeManager.restoreFromTrash(nodeId);
@@ -290,7 +290,7 @@ function JelSidePanels({
 
   //const onDestroyClick = async () => {
   //  const hubId = hub.hub_id;
-  //  const nodeId = treeManager.sharedTrash.getNodeIdForHubId(hubId);
+  //  const nodeId = treeManager.sharedTrash.getNodeIdForAtomId(hubId);
   //  if (!nodeId) return;
 
   //  const destroyed = await onHubDestroyConfirmed(hubId);
