@@ -8,6 +8,7 @@ import { validMaterials } from "../components/hoverable-visuals";
 import { proxiedUrlFor, guessContentType } from "../utils/media-url-utils";
 import { getNetworkedEntity, getNetworkId, ensureOwnership } from "../../jel/utils/ownership-utils";
 import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
+import { getMessages } from "../../hubs/utils/i18n";
 
 import Linkify from "linkify-it";
 import tlds from "tlds";
@@ -595,7 +596,7 @@ export const MEDIA_PRESENCE = {
 const MIN_ASPECT_RATIO_TO_BATCH = 1.0 / 8.0;
 const MAX_ASPECT_RATIO_TO_BATCH = 1.0 / MIN_ASPECT_RATIO_TO_BATCH;
 const MAX_PIXELS_TO_BATCH = 1024 * 1024 * 4;
-export const DEFAULT_HUB_NAME = "Unnamed";
+export const DEFAULT_HUB_NAME = getMessages()["hub.unnamed-title"];
 
 export function meetsBatchingCriteria(textureInfo) {
   if (!textureInfo.width || !textureInfo.height) return false;
