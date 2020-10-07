@@ -139,7 +139,6 @@ function navigateToHubUrl(history, url, replace = false) {
 
 function HubTree({ treeManager, history, hub }) {
   const [navTreeData, setNavTreeData] = useState([]);
-  const navRef = React.createRef();
   //const [trashTreeData, setTrashTreeData] = useState([]);
 
   useTreeData(treeManager && treeManager.nav, setNavTreeData);
@@ -149,8 +148,18 @@ function HubTree({ treeManager, history, hub }) {
   // Ensure current selected node is always visible
   useEffect(
     () => {
-      const el = document.querySelector(".rc-tree-node-selected");
-      if (el) scrollIntoView(el, { scrollMode: "if-needed", block: "center", behavior: "smooth" });
+      const node = document.querySelector(".rc-tree-treenode-selected");
+      if (node) {
+        scrollIntoView(node, { scrollMode: "if-needed", inline: "start" });
+
+        // Undo any horizontal scrolling, we don't want nav to horizontal scroll
+        let e = node;
+
+        while (e) {
+          e.scrollLeft = 0;
+          e = e.parentElement;
+        }
+      }
       return () => {};
     },
     [hub]
@@ -208,7 +217,6 @@ function HubTree({ treeManager, history, hub }) {
         onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
         expandedKeys={treeManager.expandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
-        ref={navRef}
       />
     </div>
   );

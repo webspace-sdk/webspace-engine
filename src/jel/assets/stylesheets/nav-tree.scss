@@ -71,6 +71,7 @@ $treeNodePrefixCls: rc-tree-treenode;
     .#{$treePrefixCls}-node-content-wrapper {
       display: inline-block;
       height: 30px;
+      width: 100%;
       margin: 0;
       padding: 1px 3px 0 0;
       text-decoration: none;
