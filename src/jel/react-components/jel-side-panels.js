@@ -9,6 +9,7 @@ import "../assets/stylesheets/nav-tree.scss";
 import Tree from "rc-tree";
 import { pushHistoryPath, replaceHistoryPath } from "../../hubs/utils/history";
 import PanelSectionHeader from "./panel-section-header";
+import ActionButton from "./action-button";
 import scrollIntoView from "scroll-into-view-if-needed";
 
 const JelWrap = styled.div`
@@ -46,14 +47,55 @@ const NavHead = styled.div`
 
 const NavFoot = styled.div`
   flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin-top: 16px;
 `;
 
 const NavSpill = styled.div`
   overflow-x: hidden;
   overflow-y: auto;
-`;
 
-const TestButton = styled.button``;
+  scrollbar-color: transparent transparent;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    visibility: hidden;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-clip: padding-box;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    background-color: transparent;
+    transition: background-color 0.25s;
+    min-height: 40px;
+  }
+
+  &::-webkit-scrollbar-corner {
+    background-color: transparent;
+  }
+
+  &::-webkit-scrollbar-track {
+    border-color: transparent;
+    background-color: transparent;
+    border: 2px solid transparent;
+    visibility: hidden;
+  }
+
+  &:hover {
+    scrollbar-color: var(--scroll-thumb-color) transparent;
+
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--scroll-thumb-color);
+      transition: background-color 0.25s;
+    }
+  }
+`;
 
 function useTreeData(tree, setTreeData) {
   useEffect(
@@ -260,9 +302,9 @@ function JelSidePanels({
           </NavSpill>
           <NavFoot>
             {spaceCan("create_hub") && (
-              <TestButton onClick={onCreateClick}>
+              <ActionButton onClick={onCreateClick} style={{ width: "80%" }}>
                 <FormattedMessage id="nav.create-world" />
-              </TestButton>
+              </ActionButton>
             )}
             {spaceIdsToHomeHubs && (
               <select
