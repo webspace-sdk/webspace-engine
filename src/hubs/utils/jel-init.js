@@ -1,4 +1,4 @@
-import SpaceMetadata from "../../jel/utils/space-metadata";
+import { AtomMetadata, ATOM_TYPES } from "../../jel/utils/atom-metadata";
 import TreeManager from "../../jel/utils/tree-manager";
 import { getHubIdFromHistory, getSpaceIdFromHistory, setupPeerConnectionConfig } from "../../jel/utils/jel-url-utils";
 import { createInWorldLogMessage } from "../react-components/chat-message";
@@ -716,8 +716,8 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
   setupSpaceChannelMessageHandlers(spacePhxChannel, entryManager);
   spaceChannel.bind(spacePhxChannel, spaceId);
 
-  const spaceMetadata = new SpaceMetadata(spaceChannel);
-  const treeManager = new TreeManager(spaceMetadata);
+  const hubMetadata = new AtomMetadata(spaceChannel, ATOM_TYPES.HUB);
+  const treeManager = new TreeManager(hubMetadata);
 
   document.body.addEventListener(
     "share-connected",
@@ -728,7 +728,7 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
     { once: true }
   );
 
-  spaceMetadata.init();
+  hubMetadata.init();
   store.update({ context: { spaceId } });
 
   return joinSpaceChannel(spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI, addToPresenceLog);

@@ -22,7 +22,7 @@ function JelUI({
   hubCan = () => false,
   spaceCan = () => false,
   onHubDestroyConfirmed,
-  spaceIdsToHomeHubUrls,
+  memberships,
   spaceId
 }) {
   return (
@@ -43,7 +43,7 @@ JelUI.propTypes = {
   hubPresences: PropTypes.object,
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,
-  spaceIdsToHomeHubUrls: PropTypes.object,
+  memberships: PropTypes.array,
   onHubDestroyConfirmed: PropTypes.func
 };
 

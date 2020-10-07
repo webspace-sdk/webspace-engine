@@ -771,11 +771,7 @@ async function loadMemberships() {
   const res = await fetchReticulumAuthenticated(`/api/v1/accounts/${accountId}`);
   if (res.memberships.length === 0) return;
 
-  const spaceIdsToHomeHubs = mapFromArray(
-    [...res.memberships].sort(m => m.joined_at).map(m => [m.space_id, m.home_hub])
-  );
-
-  remountJelUI({ spaceIdsToHomeHubs });
+  remountJelUI({ memberships: res.memberships });
 }
 
 async function start() {

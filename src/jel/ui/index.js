@@ -61,11 +61,11 @@ async function redirectedToLoggedInRoot() {
   }
 
   if (!spaceId) {
-    spaceId = [...res.memberships].sort(m => m.joined_at).pop().space_id;
+    spaceId = [...res.memberships].sort(m => m.joined_at).pop().space.space_id;
     store.update({ context: { spaceId } });
   }
 
-  const homeHub = res.memberships.filter(m => m.space_id === spaceId)[0].home_hub;
+  const homeHub = res.memberships.filter(m => m.space.space_id === spaceId)[0].home_hub;
   document.location = homeHub.url;
   return true;
 }

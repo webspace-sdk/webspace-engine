@@ -46,6 +46,13 @@ const NavHead = styled.div`
   flex: 0 0 auto;
 `;
 
+const SpaceBanner = styled.div`
+  font-size: var(--panel-banner-text-size);
+  font-weight: var(--panel-banner-text-weight);
+  color: var(--panel-banner-text-color);
+  margin: 32px 0px 0px 32px;
+`;
+
 const NavFoot = styled.div`
   flex: 0 0 auto;
   display: flex;
@@ -223,6 +230,30 @@ function HubTree({ treeManager, history, hub }) {
   );
 }
 
+function membershipForSpaceId(spaceId, memberships) {
+  if (!memberships) return null;
+
+  for (let i = 0; i < memberships.length; i++) {
+    const membership = memberships[i];
+
+    if (membership.space.space_id === spaceId) {
+      return membership;
+    }
+  }
+
+  return null;
+}
+
+function homeHubForSpaceId(spaceId, memberships) {
+  const m = membershipForSpaceId(spaceId, memberships);
+  return m ? m.home_hub : null;
+}
+
+function spaceForSpaceId(spaceId, memberships) {
+  const m = membershipForSpaceId(spaceId, memberships);
+  return m ? m.space : null;
+}
+
 function JelSidePanels({
   treeManager,
   history,
@@ -230,7 +261,7 @@ function JelSidePanels({
   //hubCan = () => false,
   spaceCan = () => false,
   //onHubDestroyConfirmed,
-  spaceIdsToHomeHubs,
+  memberships,
   spaceId
 }) {
   const messages = getMessages();
@@ -255,7 +286,7 @@ function JelSidePanels({
   //  treeManager.restoreFromTrash(nodeId);
   //};
 
-  const homeHub = spaceIdsToHomeHubs ? spaceIdsToHomeHubs.get(spaceId) : null;
+  const homeHub = homeHubForSpaceId(spaceId, memberships);
 
   //const onDestroyClick = async () => {
   //  const hubId = hub.hub_id;
@@ -285,6 +316,8 @@ function JelSidePanels({
       ]
     : [];
 
+  const space = spaceForSpaceId(spaceId, memberships);
+
   //{spaceCan("edit_nav") && hubCan("close_hub") && <TestButton onClick={onTrashClick}>Trash World</TestButton>}
   //{spaceCan("edit_nav") && <TestButton onClick={onRestoreClick}>Restore World</TestButton>}
   //{hubCan("close_hub") && <TestButton onClick={onDestroyClick}>Destroy World</TestButton>}
@@ -293,7 +326,9 @@ function JelSidePanels({
     <WrappedIntlProvider>
       <JelWrap>
         <Nav>
-          <NavHead />
+          <NavHead>
+            <SpaceBanner>{space && space.name}</SpaceBanner>
+          </NavHead>
           <NavSpill>
             <PanelSectionHeader>
               <FormattedMessage id="nav.private-worlds" />
@@ -315,14 +350,14 @@ function JelSidePanels({
                 <FormattedMessage id="nav.create-world" />
               </ActionButton>
             )}
-            {spaceIdsToHomeHubs && (
+            {memberships && (
               <select
-                onChange={e => navigateToHubUrl(history, spaceIdsToHomeHubs.get(e.target.value).url)}
+                onChange={e => navigateToHubUrl(history, homeHubForSpaceId(e.target.value, memberships).url)}
                 value={spaceId}
               >
-                {[...spaceIdsToHomeHubs.keys()].map(sid => (
-                  <option key={sid} value={sid}>
-                    {sid}
+                {memberships.map(m => (
+                  <option key={m.space.space_id} value={m.space.space_id}>
+                    {m.space.name}
                   </option>
                 ))}
               </select>
@@ -346,7 +381,7 @@ JelSidePanels.propTypes = {
   hubPresences: PropTypes.object,
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,
-  spaceIdsToHomeHubs: PropTypes.object,
+  memberships: PropTypes.array,
   onHubDestroyConfirmed: PropTypes.func
 };
 
