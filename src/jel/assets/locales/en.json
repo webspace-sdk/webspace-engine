@@ -1,5 +1,6 @@
 {
   "nav.shared-worlds": "Shared Worlds",
   "nav.private-worlds": "Private Worlds",
-  "nav.home-world": "Home World"
+  "nav.home-world": "Home World",
+  "nav.create-world": "Create World"
 }

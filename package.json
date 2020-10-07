@@ -102,6 +102,7 @@
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
     "screenfull": "^4.0.1",
+    "scroll-into-view-if-needed": "^2.2.26",
     "shared-aframe": "github:jel-app/shared-aframe#master",
     "storybook-addon-designs": "^5.4.2",
     "three": "github:jel-app/three.js#hubs/master",

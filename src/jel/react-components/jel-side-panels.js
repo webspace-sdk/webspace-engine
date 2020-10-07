@@ -9,6 +9,7 @@ import "../assets/stylesheets/nav-tree.scss";
 import Tree from "rc-tree";
 import { pushHistoryPath, replaceHistoryPath } from "../../hubs/utils/history";
 import PanelSectionHeader from "./panel-section-header";
+import scrollIntoView from "scroll-into-view-if-needed";
 
 const JelWrap = styled.div`
   color: var(--panel-text-color);
@@ -96,11 +97,23 @@ function navigateToHubUrl(history, url, replace = false) {
 
 function HubTree({ treeManager, history, hub }) {
   const [navTreeData, setNavTreeData] = useState([]);
+  const navRef = React.createRef();
   //const [trashTreeData, setTrashTreeData] = useState([]);
 
   useTreeData(treeManager && treeManager.nav, setNavTreeData);
   //useTreeData(treeManager && treeManager.trash, setTrashTreeData);
   useExpandableTree(treeManager);
+
+  // Ensure current selected node is always visible
+  useEffect(
+    () => {
+      const el = document.querySelector(".rc-tree-node-selected");
+      if (el) scrollIntoView(el, { scrollMode: "if-needed", block: "center", inline: "center" });
+
+      return () => {};
+    },
+    [hub]
+  );
 
   if (!treeManager || !hub) return null;
 
@@ -154,6 +167,7 @@ function HubTree({ treeManager, history, hub }) {
         onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
         expandedKeys={treeManager.expandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
+        ref={navRef}
       />
     </div>
   );
@@ -163,9 +177,9 @@ function JelSidePanels({
   treeManager,
   history,
   hub,
-  hubCan = () => false,
+  //hubCan = () => false,
   spaceCan = () => false,
-  onHubDestroyConfirmed,
+  //onHubDestroyConfirmed,
   spaceIdsToHomeHubs,
   spaceId
 }) {
@@ -174,36 +188,37 @@ function JelSidePanels({
   const onCreateClick = async () => {
     const hub = await createHub(spaceId);
     treeManager.nav.addToRoot(hub.hub_id);
+    navigateToHubUrl(history, hub.url);
   };
 
-  const onTrashClick = () => {
-    const nodeId = treeManager.nav.getNodeIdForHubId(hub.hub_id);
-    if (!nodeId) return;
+  //const onTrashClick = () => {
+  //  const nodeId = treeManager.nav.getNodeIdForHubId(hub.hub_id);
+  //  if (!nodeId) return;
 
-    treeManager.moveToTrash(nodeId);
-  };
+  //  treeManager.moveToTrash(nodeId);
+  //};
 
-  const onRestoreClick = () => {
-    const nodeId = treeManager.trash.getNodeIdForHubId(hub.hub_id);
-    if (!nodeId) return;
+  //const onRestoreClick = () => {
+  //  const nodeId = treeManager.trash.getNodeIdForHubId(hub.hub_id);
+  //  if (!nodeId) return;
 
-    treeManager.restoreFromTrash(nodeId);
-  };
+  //  treeManager.restoreFromTrash(nodeId);
+  //};
 
   const homeHub = spaceIdsToHomeHubs ? spaceIdsToHomeHubs.get(spaceId) : null;
 
-  const onDestroyClick = async () => {
-    const hubId = hub.hub_id;
-    const nodeId = treeManager.trash.getNodeIdForHubId(hubId);
-    if (!nodeId) return;
+  //const onDestroyClick = async () => {
+  //  const hubId = hub.hub_id;
+  //  const nodeId = treeManager.trash.getNodeIdForHubId(hubId);
+  //  if (!nodeId) return;
 
-    const destroyed = await onHubDestroyConfirmed(hubId);
-    if (destroyed) {
-      treeManager.removeFromTrash(nodeId);
-    }
+  //  const destroyed = await onHubDestroyConfirmed(hubId);
+  //  if (destroyed) {
+  //    treeManager.removeFromTrash(nodeId);
+  //  }
 
-    navigateToHubUrl(history, homeHub.url, true);
-  };
+  //  navigateToHubUrl(history, homeHub.url, true);
+  //};
 
   // For now private tree is just home hub
   const privateSelectedKeys = hub && homeHub && hub.hub_id === homeHub.hub_id ? [hub.hub_id] : [];
@@ -220,14 +235,15 @@ function JelSidePanels({
       ]
     : [];
 
+  //{spaceCan("edit_nav") && hubCan("close_hub") && <TestButton onClick={onTrashClick}>Trash World</TestButton>}
+  //{spaceCan("edit_nav") && <TestButton onClick={onRestoreClick}>Restore World</TestButton>}
+  //{hubCan("close_hub") && <TestButton onClick={onDestroyClick}>Destroy World</TestButton>}
+  //
   return (
     <WrappedIntlProvider>
       <JelWrap>
         <Nav>
-          <NavHead>
-            {spaceCan("create_hub") && <TestButton onClick={onCreateClick}>Create World</TestButton>}
-            {spaceCan("edit_nav") && hubCan("close_hub") && <TestButton onClick={onTrashClick}>Trash World</TestButton>}
-          </NavHead>
+          <NavHead />
           <NavSpill>
             <PanelSectionHeader>
               <FormattedMessage id="nav.private-worlds" />
@@ -244,8 +260,11 @@ function JelSidePanels({
             <HubTree treeManager={treeManager} hub={hub} history={history} />
           </NavSpill>
           <NavFoot>
-            {spaceCan("edit_nav") && <TestButton onClick={onRestoreClick}>Restore World</TestButton>}
-            {hubCan("close_hub") && <TestButton onClick={onDestroyClick}>Destroy World</TestButton>}
+            {spaceCan("create_hub") && (
+              <TestButton onClick={onCreateClick}>
+                <FormattedMessage id="nav.create-world" />
+              </TestButton>
+            )}
             {spaceIdsToHomeHubs && (
               <select
                 onChange={e => navigateToHubUrl(history, spaceIdsToHomeHubs.get(e.target.value).url)}
