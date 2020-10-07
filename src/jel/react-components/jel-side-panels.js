@@ -108,7 +108,7 @@ function HubTree({ treeManager, history, hub }) {
   useEffect(
     () => {
       const el = document.querySelector(".rc-tree-node-selected");
-      if (el) scrollIntoView(el, { scrollMode: "if-needed", block: "center" });
+      if (el) scrollIntoView(el, { scrollMode: "if-needed", block: "center", behavior: "smooth" });
       return () => {};
     },
     [hub]
