@@ -11,6 +11,7 @@ import { pushHistoryPath, replaceHistoryPath } from "../../hubs/utils/history";
 import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
 import scrollIntoView from "scroll-into-view-if-needed";
+import addIcon from "../assets/images/icons/add.svgi";
 
 const JelWrap = styled.div`
   color: var(--panel-text-color);
@@ -310,7 +311,7 @@ function JelSidePanels({
           </NavSpill>
           <NavFoot>
             {spaceCan("create_hub") && (
-              <ActionButton onClick={onCreateClick} style={{ width: "80%" }}>
+              <ActionButton iconSrc={addIcon} onClick={onCreateClick} style={{ width: "80%" }}>
                 <FormattedMessage id="nav.create-world" />
               </ActionButton>
             )}

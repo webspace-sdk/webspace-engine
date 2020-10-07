@@ -31,6 +31,13 @@ module.exports = {
       ]
     });
 
+    config.module.rules.push({
+      test: /\.svgi$/,
+      use: [
+        "svg-inline-loader"
+      ]
+    });
+
     return config;
   }
 };

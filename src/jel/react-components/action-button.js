@@ -1,14 +1,20 @@
+import PropTypes from "prop-types";
+import React from "react";
+
 import styled from "styled-components";
 
-export default styled.button`
+const ActionButtonElement = styled.button`
   background-color: var(--action-button-background-color);
   border: 1px solid var(--action-button-border-color);
   color: var(--action-button-text-color);
   font-weight: var(--action-button-text-weight);
+  font-size: var(--action-button-text-size);
   padding: 12px;
   min-width: 196px;
+  max-width: 250px;
   border-radius: 6px;
   margin: 12px;
+  position: relative;
 
   &:hover {
     background-color: var(--action-button-hover-background-color);
@@ -18,3 +24,53 @@ export default styled.button`
     background-color: var(--action-button-active-background-color);
   }
 `;
+
+const ActionButtonIconHolder = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-left: 10px;
+`;
+
+const ActionButtonIcon = styled.div`
+  width: 24px;
+  height: 24px;
+`;
+
+const TextContainer = styled.div`
+  height: calc(var(--action-button-text-size) + 2px);
+  line-height: calc(var(--action-button-text-size) + 4px);
+`;
+
+export default function ActionButton(props) {
+  if (props.iconSrc) {
+    const filteredProps = { ...props };
+    delete filteredProps.iconSrc;
+    delete filteredProps.children;
+    return (
+      <ActionButtonElement {...filteredProps}>
+        <ActionButtonIconHolder>
+          <ActionButtonIcon dangerouslySetInnerHTML={{ __html: props.iconSrc }} />
+        </ActionButtonIconHolder>
+        <TextContainer>{props.children}</TextContainer>
+      </ActionButtonElement>
+    );
+  } else {
+    const filteredProps = { ...props };
+    delete filteredProps.children;
+    return (
+      <ActionButtonElement {...props}>
+        <TextContainer>{props.children}</TextContainer>
+      </ActionButtonElement>
+    );
+  }
+}
+
+ActionButton.propTypes = {
+  iconSrc: PropTypes.string
+};
