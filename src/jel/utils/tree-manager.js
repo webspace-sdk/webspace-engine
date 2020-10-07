@@ -39,20 +39,20 @@ class ExpandedTreeNodes {
 }
 
 class TreeManager extends EventTarget {
-  constructor(hubMetadata) {
+  constructor(spaceMetadata, hubMetadata) {
     super();
     this.expandedTreeNodes = new ExpandedTreeNodes();
-    this.nav = new TreeSync("nav", this.expandedTreeNodes, hubMetadata);
-    this.trash = new TreeSync("trash", this.expandedTreeNodes, hubMetadata);
+    this.sharedNav = new TreeSync("nav", this.expandedTreeNodes, hubMetadata);
+    this.sharedTrash = new TreeSync("trash", this.expandedTreeNodes, hubMetadata);
   }
 
   async init(connection) {
-    await Promise.all([await this.nav.init(connection), await this.trash.init(connection)]);
+    await Promise.all([await this.sharedNav.init(connection), await this.sharedTrash.init(connection)]);
   }
 
-  setCollectionId(collectionId) {
-    this.nav.setCollectionId(collectionId);
-    this.trash.setCollectionId(collectionId);
+  setSpaceCollectionId(collectionId) {
+    this.sharedNav.setCollectionId(collectionId);
+    this.sharedTrash.setCollectionId(collectionId);
   }
 
   setNodeExpanded(nodeId, expanded) {
@@ -70,15 +70,15 @@ class TreeManager extends EventTarget {
   }
 
   moveToTrash(nodeId) {
-    this.moveSubtreeToTree(nodeId, this.nav, this.trash);
+    this.moveSubtreeToTree(nodeId, this.sharedNav, this.sharedTrash);
   }
 
   restoreFromTrash(nodeId) {
-    this.moveSubtreeToTree(nodeId, this.trash, this.nav);
+    this.moveSubtreeToTree(nodeId, this.sharedTrash, this.sharedNav);
   }
 
   removeFromTrash(nodeId) {
-    this.trash.remove(nodeId);
+    this.sharedTrash.remove(nodeId);
   }
 
   removeSubtreeFromTree(nodeId, fromTree) {

@@ -127,8 +127,8 @@ function useExpandableTree(treeManager) {
       if (!treeManager) return () => {};
 
       const handleExpandedNodeIdsChanged = () => {
-        treeManager.nav.rebuildExpandedTreeData();
-        treeManager.trash.rebuildExpandedTreeData();
+        treeManager.sharedNav.rebuildExpandedTreeData();
+        treeManager.sharedTrash.rebuildExpandedTreeData();
       };
 
       treeManager.addEventListener("expanded_nodes_updated", handleExpandedNodeIdsChanged);
@@ -149,8 +149,8 @@ function HubTree({ treeManager, history, hub }) {
   const [navTreeData, setNavTreeData] = useState([]);
   //const [trashTreeData, setTrashTreeData] = useState([]);
 
-  useTreeData(treeManager && treeManager.nav, setNavTreeData);
-  //useTreeData(treeManager && treeManager.trash, setTrashTreeData);
+  useTreeData(treeManager && treeManager.sharedNav, setNavTreeData);
+  //useTreeData(treeManager && treeManager.sharedTrash, setTrashTreeData);
   useExpandableTree(treeManager);
 
   // Ensure current selected node is always visible
@@ -195,10 +195,10 @@ function HubTree({ treeManager, history, hub }) {
     }
   };
 
-  const navSelectedKeys = hub ? [treeManager.nav.getNodeIdForHubId(hub.hub_id)] : [];
+  const navSelectedKeys = hub ? [treeManager.sharedNav.getNodeIdForHubId(hub.hub_id)] : [];
 
   // TODO TRASH
-  //const trashSelectedKeys = hub ? [treeManager.trash.getNodeIdForHubId(hub.hub_id)] : [];
+  //const trashSelectedKeys = hub ? [treeManager.sharedTrash.getNodeIdForHubId(hub.hub_id)] : [];
   /* Trash
       <Tree
         treeData={trashTreeData}
@@ -221,7 +221,7 @@ function HubTree({ treeManager, history, hub }) {
         selectedKeys={navSelectedKeys}
         draggable
         onDragEnter={onTreeDragEnter}
-        onDrop={onTreeDrop("nav")}
+        onDrop={onTreeDrop("sharedNav")}
         onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
         expandedKeys={treeManager.expandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
@@ -268,19 +268,19 @@ function JelSidePanels({
 
   const onCreateClick = async () => {
     const hub = await createHub(spaceId);
-    treeManager.nav.addToRoot(hub.hub_id);
+    treeManager.sharedNav.addToRoot(hub.hub_id);
     navigateToHubUrl(history, hub.url);
   };
 
   //const onTrashClick = () => {
-  //  const nodeId = treeManager.nav.getNodeIdForHubId(hub.hub_id);
+  //  const nodeId = treeManager.sharedNav.getNodeIdForHubId(hub.hub_id);
   //  if (!nodeId) return;
 
   //  treeManager.moveToTrash(nodeId);
   //};
 
   //const onRestoreClick = () => {
-  //  const nodeId = treeManager.trash.getNodeIdForHubId(hub.hub_id);
+  //  const nodeId = treeManager.sharedTrash.getNodeIdForHubId(hub.hub_id);
   //  if (!nodeId) return;
 
   //  treeManager.restoreFromTrash(nodeId);
@@ -290,7 +290,7 @@ function JelSidePanels({
 
   //const onDestroyClick = async () => {
   //  const hubId = hub.hub_id;
-  //  const nodeId = treeManager.trash.getNodeIdForHubId(hubId);
+  //  const nodeId = treeManager.sharedTrash.getNodeIdForHubId(hubId);
   //  if (!nodeId) return;
 
   //  const destroyed = await onHubDestroyConfirmed(hubId);
@@ -371,7 +371,6 @@ function JelSidePanels({
 }
 
 JelSidePanels.propTypes = {
-  navExpanded: PropTypes.bool,
   treeManager: PropTypes.object,
   history: PropTypes.object,
   hub: PropTypes.object,

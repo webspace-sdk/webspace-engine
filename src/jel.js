@@ -102,18 +102,19 @@ import "./hubs/components/periodic-full-syncs";
 import "./hubs/components/inspect-button";
 import "./hubs/components/set-max-resolution";
 import "./hubs/components/avatar-audio-source";
-import { sets as userinputSets } from "./hubs/systems/userinput/sets";
+//import { sets as userinputSets } from "./hubs/systems/userinput/sets";
 
 import ReactDOM from "react-dom";
 import React from "react";
 import { Router, Route } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import { pushHistoryState, clearHistoryState } from "./hubs/utils/history";
-import { mapFromArray } from "./jel/utils/map-utils";
+//import { mapFromArray } from "./jel/utils/map-utils";
 import JelSidePanels from "./jel/react-components/jel-side-panels";
 import JelUI from "./jel/react-components/jel-ui";
-import UIRoot from "./hubs/react-components/ui-root";
+//import UIRoot from "./hubs/react-components/ui-root";
 import AuthChannel from "./hubs/utils/auth-channel";
+import DynaChannel from "./jel/utils/dyna-channel";
 import SpaceChannel from "./hubs/utils/space-channel";
 import HubChannel from "./hubs/utils/hub-channel";
 import LinkChannel from "./hubs/utils/link-channel";
@@ -147,7 +148,6 @@ import "./hubs/systems/listed-media";
 import "./hubs/systems/linked-media";
 import "./jel/systems/media-presence-system";
 import "./jel/systems/wrapped-entity-system";
-import { DEFAULT_NAV_PANEL_WIDTH, DEFAULT_PRESENCE_PANEL_WIDTH } from "./jel/systems/ui-animation-system";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
 import { SOUND_CHAT_MESSAGE } from "./hubs/systems/sound-effects-system";
 
@@ -162,11 +162,13 @@ store.update({ preferences: { shouldPromptForRefresh: undefined } });
 
 const history = createBrowserHistory();
 const authChannel = new AuthChannel(store);
+const dynaChannel = new DynaChannel(store);
 const spaceChannel = new SpaceChannel(store);
 const hubChannel = new HubChannel(store);
 const linkChannel = new LinkChannel(store);
 
 window.APP.history = history;
+window.APP.dynaChannel = dynaChannel;
 window.APP.spaceChannel = spaceChannel;
 window.APP.hubChannel = hubChannel;
 window.APP.authChannel = authChannel;
@@ -265,7 +267,7 @@ const qsVREntryType = qs.get("vr_entry_type");
 
 let performConditionalSignIn;
 
-function mountUI(props = {}) {
+function mountUI(/*props = {}*/) {
   //const scene = document.querySelector("a-scene");
   //const disableAutoExitOnIdle =
   //  qsTruthy("allow_idle") || (process.env.NODE_ENV === "development" && !qs.get("idle_timeout"));

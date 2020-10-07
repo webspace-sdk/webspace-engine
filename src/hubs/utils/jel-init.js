@@ -15,7 +15,6 @@ const isDebug = qsTruthy("debug");
 const isMobile = AFRAME.utils.device.isMobile();
 const isMobileVR = AFRAME.utils.device.isMobileVR();
 
-let retPhxChannel;
 let retDeployReconnectInterval;
 let positionTrackerInterval = null;
 
@@ -124,8 +123,8 @@ const createHubChannelParams = () => {
   return params;
 };
 
-const migrateToNewReticulumServer = async (deployNotification, retPhxChannel) => {
-  const { authChannel, linkChannel, hubChannel, spaceChannel } = window.APP;
+const migrateToNewReticulumServer = async deployNotification => {
+  const { authChannel, linkChannel, hubChannel, retChannel, spaceChannel } = window.APP;
 
   // On Reticulum deploys, reconnect after a random delay until pool + version match deployed version/pool
   console.log(`Reticulum deploy detected v${deployNotification.ret_version} on ${deployNotification.ret_pool}`);
@@ -143,9 +142,9 @@ const migrateToNewReticulumServer = async (deployNotification, retPhxChannel) =>
         ) {
           console.log("Reticulum reconnecting.");
           clearInterval(retDeployReconnectInterval);
-          const oldSocket = retPhxChannel.socket;
+          const oldSocket = retChannel.channel.socket;
           const socket = await connectToReticulum(isDebug, oldSocket.params());
-          retPhxChannel = await migrateChannelToSocket(retPhxChannel, socket);
+          await retChannel.migrateToSocket(socket, {});
           await spaceChannel.migrateToSocket(socket, createSpaceChannelParams());
           await hubChannel.migrateToSocket(socket, createHubChannelParams());
           authChannel.setSocket(socket);
@@ -164,23 +163,6 @@ const migrateToNewReticulumServer = async (deployNotification, retPhxChannel) =>
       retDeployReconnectInterval = setInterval(tryReconnect, 5000);
       tryReconnect();
     }, Math.floor(Math.random() * retReconnectMaxDelayMs));
-  });
-};
-
-const createRetChannel = (socket, spaceId) => {
-  if (retPhxChannel) {
-    retPhxChannel.leave();
-  }
-
-  retPhxChannel = socket.channel(`ret`, { space_id: spaceId });
-  retPhxChannel.join().receive("error", res => console.error(res));
-
-  retPhxChannel.on("notice", async data => {
-    // TODO JEL check controlled deploy
-    // On Reticulum deploys, reconnect after a random delay until pool + version match deployed version/pool
-    if (data.event === "ret-deploy") {
-      await migrateToNewReticulumServer(data, retPhxChannel);
-    }
   });
 };
 
@@ -411,7 +393,7 @@ const joinSpaceChannel = async (
         const space = data.spaces[0];
         const spaceId = space.space_id;
 
-        treeManager.setCollectionId(spaceId);
+        treeManager.setSpaceCollectionId(spaceId);
 
         console.log(`WebRTC host: ${space.host}:${space.port}`);
         // Wait for scene objects to load before connecting, so there is no race condition on network state.
@@ -702,22 +684,23 @@ const setupUIEventHandlers = (hubChannel, remountJelUI) => {
 
 export function joinSpace(socket, history, entryManager, remountUI, remountJelUI, addToPresenceLog) {
   const spaceId = getSpaceIdFromHistory(history);
-  const { spaceChannel, store } = window.APP;
+  const { dynaChannel, spaceChannel, store } = window.APP;
   console.log(`Space ID: ${spaceId}`);
   remountJelUI({ spaceId });
 
-  createRetChannel(socket, spaceId);
+  dynaChannel.leave();
 
-  if (spaceChannel.channel) {
-    spaceChannel.leave();
-  }
+  const dynaPhxChannel = socket.channel(`ret`, {});
+  dynaPhxChannel.join().receive("error", res => console.error(res));
+  dynaChannel.bind(dynaPhxChannel);
 
   const spacePhxChannel = socket.channel(`space:${spaceId}`, createSpaceChannelParams());
   setupSpaceChannelMessageHandlers(spacePhxChannel, entryManager);
   spaceChannel.bind(spacePhxChannel, spaceId);
 
+  const spaceMetadata = new AtomMetadata(spaceChannel, ATOM_TYPES.SPACE);
   const hubMetadata = new AtomMetadata(spaceChannel, ATOM_TYPES.HUB);
-  const treeManager = new TreeManager(hubMetadata);
+  const treeManager = new TreeManager(spaceMetadata, hubMetadata);
 
   document.body.addEventListener(
     "share-connected",
