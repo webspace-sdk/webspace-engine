@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import styled, { ThemeProvider } from "styled-components";
 import { dark } from "./theme";
-import "../assets/stylesheets/nav-tree.scss";
 import { pushHistoryPath, replaceHistoryPath } from "../../hubs/utils/history";
 
 const Wrap = styled.div`

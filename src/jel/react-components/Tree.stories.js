@@ -1,6 +1,6 @@
 import React from "react";
 import Tree from "rc-tree";
-import "../assets/stylesheets/nav-tree.scss";
+import "../assets/stylesheets/hub-tree.scss";
 import sharedStyles from "../assets/stylesheets/shared.scss";
 import classNames from "classnames";
 
@@ -28,9 +28,9 @@ const treeData = [
   { key: "3ofrzv8", title: "Fifth Node", url: null, hubId: "UyvPPEf", isLeaf: true }
 ];
 
-export const Normal = () => (
+export const HubTree = () => (
   <div className={classNames(sharedStyles.basePanel)} style={{ display: "flex" }}>
-    <Tree treeData={treeData} selectable={true} selectedKeys={["nq106el"]} />
+    <Tree prefixCls="hub-tree" treeData={treeData} selectable={true} selectedKeys={["nq106el"]} />
   </div>
 );
 

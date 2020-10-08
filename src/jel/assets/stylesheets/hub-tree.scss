@@ -1,7 +1,7 @@
 @use "./jel-theme.scss";
 
-$treePrefixCls: rc-tree;
-$treeNodePrefixCls: rc-tree-treenode;
+$treePrefixCls: hub-tree;
+$treeNodePrefixCls: hub-tree-treenode;
 
 @keyframes expand-tree-node { from { transform: rotate(0deg); } to { transform: rotate(90deg); } }
 @keyframes collapse-tree-node { from { transform: rotate(90deg); } to { transform: rotate(0deg); } }

@@ -5,7 +5,8 @@ import { getMessages } from "../../hubs/utils/i18n";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import { createHub } from "../../hubs/utils/phoenix-utils";
-import "../assets/stylesheets/nav-tree.scss";
+import "../assets/stylesheets/hub-tree.scss";
+import "../assets/stylesheets/space-tree.scss";
 import Tree from "rc-tree";
 import { pushHistoryPath, replaceHistoryPath } from "../../hubs/utils/history";
 import PanelSectionHeader from "./panel-section-header";
@@ -145,7 +146,7 @@ function useExpandableTree(treeManager) {
 function useScrollToSelectedTreeNode(atom) {
   useEffect(
     () => {
-      const node = document.querySelector(".rc-tree-treenode-selected");
+      const node = document.querySelector(".hub-tree-treenode-selected");
       if (node) {
         scrollIntoView(node, { scrollMode: "if-needed", inline: "start" });
 
@@ -225,6 +226,7 @@ function SpaceTree({ treeManager, history, space, memberships }) {
   return (
     <div>
       <Tree
+        prefixCls="space-tree"
         treeData={spaceTreeData}
         selectable={true}
         selectedKeys={spaceSelectedKeys}
@@ -258,6 +260,7 @@ function HubTree({ treeManager, history, hub }) {
   //const trashSelectedKeys = hub ? [treeManager.sharedTrash.getNodeIdForAtomd(hub.hub_id)] : [];
   /* Trash
       <Tree
+        prefixCls="hub-tree"
         treeData={trashTreeData}
         selectable={true}
         selectedKeys={trashSelectedKeys}
@@ -273,6 +276,7 @@ function HubTree({ treeManager, history, hub }) {
   return (
     <div>
       <Tree
+        prefixCls="hub-tree"
         treeData={navTreeData}
         selectable={true}
         selectedKeys={navSelectedKeys}
@@ -367,6 +371,7 @@ function JelSidePanels({
               <FormattedMessage id="nav.private-worlds" />
             </PanelSectionHeader>
             <Tree
+              prefixCls="hub-tree"
               treeData={privateTreeData}
               selectable={true}
               selectedKeys={privateSelectedKeys}
