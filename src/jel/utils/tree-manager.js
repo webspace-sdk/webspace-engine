@@ -182,6 +182,16 @@ class TreeManager extends EventTarget {
 
       return null;
     };
+
+    walk(tree.expandedTreeData);
+
+    for (const spaceId of spaceIdsToRemove) {
+      const nodeId = tree.getNodeIdForAtomId(spaceId);
+
+      if (nodeId) {
+        tree.remove(nodeId);
+      }
+    }
   }
 }
 

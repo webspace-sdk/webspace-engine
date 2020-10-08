@@ -167,7 +167,7 @@ const onTreeDragEnter = () => {
   // TODO store + expand
 };
 
-const createTreeDropHandler = treeManager => tree => ({ dragNode, node, dropPosition }) => {
+const createTreeDropHandler = treeManager => (tree, allowNesting = true) => ({ dragNode, node, dropPosition }) => {
   const dropPos = node.pos.split("-");
   const dropOffset = dropPosition - Number(dropPos[dropPos.length - 1]);
   switch (dropOffset) {
@@ -178,7 +178,9 @@ const createTreeDropHandler = treeManager => tree => ({ dragNode, node, dropPosi
       treeManager[tree].moveBelow(dragNode.key, node.key);
       break;
     case 0:
-      treeManager[tree].moveInto(dragNode.key, node.key);
+      if (allowNesting) {
+        treeManager[tree].moveInto(dragNode.key, node.key);
+      }
       break;
   }
 };
@@ -228,8 +230,10 @@ function SpaceTree({ treeManager, history, space, memberships }) {
         selectedKeys={spaceSelectedKeys}
         draggable
         onDragEnter={onTreeDragEnter}
-        onDrop={createTreeDropHandler(treeManager)("privateSpace")}
-        onSelect={(selectedKeys, { node: { key } }) => navigateToHubUrl(history, homeHubForSpaceId(key, memberships))}
+        onDrop={createTreeDropHandler(treeManager)("privateSpace", false)}
+        onSelect={(selectedKeys, { node: { atomId } }) =>
+          navigateToHubUrl(history, homeHubForSpaceId(atomId, memberships).url)
+        }
       />
     </div>
   );
