@@ -48,6 +48,14 @@ class TreeSync extends EventTarget {
     }
   }
 
+  addToRootIfNotExists(atomId) {
+    const nodeId = this.getNodeIdForAtomId(atomId);
+
+    if (!nodeId) {
+      this.addToRoot(atomId);
+    }
+  }
+
   moveInto(nodeId, withinNodeId) {
     const node = this.doc.data[nodeId];
     if (node.p === withinNodeId) return; // Already done

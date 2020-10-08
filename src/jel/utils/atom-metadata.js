@@ -6,9 +6,10 @@ export const ATOM_TYPES = {
 };
 
 // Class which is used to track realtime updates to metadata for hubs and spaces.
+// Used for filling into the tree controls.
 export class AtomMetadata {
-  constructor(spaceChannel, atomType) {
-    this._spaceChannel = spaceChannel;
+  constructor(channel, atomType) {
+    this._channel = channel;
     this._metadata = new Map();
     this._metadataSubscribers = new Map();
     this._atomType = atomType;
@@ -28,7 +29,7 @@ export class AtomMetadata {
   }
 
   init() {
-    this._spaceChannel.channel.on(this._refreshMessage, metadata => {
+    this._channel.channel.on(this._refreshMessage, metadata => {
       const id = metadata[this._idColumn];
       this._atomMetadata.set(id, metadata);
       this._fireHandlerForSubscribersForUpdatedIds([id]);
@@ -74,7 +75,7 @@ export class AtomMetadata {
       if (idsToFetch.size === 0) {
         res();
       } else {
-        const atoms = await this._spaceChannel[this._channelGetMethod](idsToFetch);
+        const atoms = await this._channel[this._channelGetMethod](idsToFetch);
 
         for (const metadata of atoms) {
           this._metadata.set(metadata[this._idColumn], metadata);

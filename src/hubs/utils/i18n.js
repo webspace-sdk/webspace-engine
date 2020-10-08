@@ -43,6 +43,8 @@ function findLocale() {
 }
 
 function updateLocale() {
+  if (!document.body) return;
+
   const locale = findLocale();
 
   if (locale === DEFAULT_LOCALE) {

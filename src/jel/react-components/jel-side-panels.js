@@ -26,6 +26,8 @@ const JelWrap = styled.div`
   z-index: 2;
   pointer-events: none;
   display: flex;
+  justify-content: space-between;
+  overflow: hidden;
 `;
 
 const Nav = styled.div`
@@ -44,6 +46,7 @@ const Presence = styled.div`
 
 const NavHead = styled.div`
   flex: 0 0 auto;
+  margin-bottom: 32px;
 `;
 
 const SpaceBanner = styled.div`
@@ -139,21 +142,7 @@ function useExpandableTree(treeManager) {
   );
 }
 
-function navigateToHubUrl(history, url, replace = false) {
-  const search = history.location.search;
-  const path = new URL(url).pathname;
-  (replace ? replaceHistoryPath : pushHistoryPath)(history, path, search);
-}
-
-function HubTree({ treeManager, history, hub }) {
-  const [navTreeData, setNavTreeData] = useState([]);
-  //const [trashTreeData, setTrashTreeData] = useState([]);
-
-  useTreeData(treeManager && treeManager.sharedNav, setNavTreeData);
-  //useTreeData(treeManager && treeManager.sharedTrash, setTrashTreeData);
-  useExpandableTree(treeManager);
-
-  // Ensure current selected node is always visible
+function useScrollToSelectedTreeNode(atom) {
   useEffect(
     () => {
       const node = document.querySelector(".rc-tree-treenode-selected");
@@ -170,30 +159,94 @@ function HubTree({ treeManager, history, hub }) {
       }
       return () => {};
     },
-    [hub]
+    [atom]
   );
+}
+
+const onTreeDragEnter = () => {
+  // TODO store + expand
+};
+
+const createTreeDropHandler = treeManager => tree => ({ dragNode, node, dropPosition }) => {
+  const dropPos = node.pos.split("-");
+  const dropOffset = dropPosition - Number(dropPos[dropPos.length - 1]);
+  switch (dropOffset) {
+    case -1:
+      treeManager[tree].moveAbove(dragNode.key, node.key);
+      break;
+    case 1:
+      treeManager[tree].moveBelow(dragNode.key, node.key);
+      break;
+    case 0:
+      treeManager[tree].moveInto(dragNode.key, node.key);
+      break;
+  }
+};
+
+function navigateToHubUrl(history, url, replace = false) {
+  const search = history.location.search;
+  const path = new URL(url).pathname;
+  (replace ? replaceHistoryPath : pushHistoryPath)(history, path, search);
+}
+
+function membershipForSpaceId(spaceId, memberships) {
+  if (!memberships) return null;
+
+  for (let i = 0; i < memberships.length; i++) {
+    const membership = memberships[i];
+
+    if (membership.space.space_id === spaceId) {
+      return membership;
+    }
+  }
+
+  return null;
+}
+
+function homeHubForSpaceId(spaceId, memberships) {
+  const m = membershipForSpaceId(spaceId, memberships);
+  return m ? m.home_hub : null;
+}
+
+function spaceForSpaceId(spaceId, memberships) {
+  const m = membershipForSpaceId(spaceId, memberships);
+  return m ? m.space : null;
+}
+
+function SpaceTree({ treeManager, history, space, memberships }) {
+  const [spaceTreeData, setSpaceTreeData] = useState([]);
+  useTreeData(treeManager && treeManager.privateSpace, setSpaceTreeData);
+  useScrollToSelectedTreeNode(space);
+
+  const spaceSelectedKeys = space && treeManager ? [treeManager.privateSpace.getNodeIdForAtomId(space.space_id)] : [];
+
+  return (
+    <div>
+      <Tree
+        treeData={spaceTreeData}
+        selectable={true}
+        selectedKeys={spaceSelectedKeys}
+        draggable
+        onDragEnter={onTreeDragEnter}
+        onDrop={createTreeDropHandler(treeManager)("privateSpace")}
+        onSelect={(selectedKeys, { node: { key } }) => navigateToHubUrl(history, homeHubForSpaceId(key, memberships))}
+      />
+    </div>
+  );
+}
+
+function HubTree({ treeManager, history, hub }) {
+  const [navTreeData, setNavTreeData] = useState([]);
+  //const [trashTreeData, setTrashTreeData] = useState([]);
+
+  useTreeData(treeManager && treeManager.sharedNav, setNavTreeData);
+  //useTreeData(treeManager && treeManager.sharedTrash, setTrashTreeData);
+  useExpandableTree(treeManager);
+
+  // Ensure current selected node is always visible
+  useScrollToSelectedTreeNode(hub);
 
   if (!treeManager || !hub) return null;
-
-  const onTreeDragEnter = () => {
-    // TODO store + expand
-  };
-
-  const onTreeDrop = tree => ({ dragNode, node, dropPosition }) => {
-    const dropPos = node.pos.split("-");
-    const dropOffset = dropPosition - Number(dropPos[dropPos.length - 1]);
-    switch (dropOffset) {
-      case -1:
-        treeManager[tree].moveAbove(dragNode.key, node.key);
-        break;
-      case 1:
-        treeManager[tree].moveBelow(dragNode.key, node.key);
-        break;
-      case 0:
-        treeManager[tree].moveInto(dragNode.key, node.key);
-        break;
-    }
-  };
 
   const navSelectedKeys = hub ? [treeManager.sharedNav.getNodeIdForAtomId(hub.hub_id)] : [];
 
@@ -221,37 +274,13 @@ function HubTree({ treeManager, history, hub }) {
         selectedKeys={navSelectedKeys}
         draggable
         onDragEnter={onTreeDragEnter}
-        onDrop={onTreeDrop("sharedNav")}
+        onDrop={createTreeDropHandler(treeManager)("sharedNav")}
         onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
         expandedKeys={treeManager.sharedExpandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
       />
     </div>
   );
-}
-
-function membershipForSpaceId(spaceId, memberships) {
-  if (!memberships) return null;
-
-  for (let i = 0; i < memberships.length; i++) {
-    const membership = memberships[i];
-
-    if (membership.space.space_id === spaceId) {
-      return membership;
-    }
-  }
-
-  return null;
-}
-
-function homeHubForSpaceId(spaceId, memberships) {
-  const m = membershipForSpaceId(spaceId, memberships);
-  return m ? m.home_hub : null;
-}
-
-function spaceForSpaceId(spaceId, memberships) {
-  const m = membershipForSpaceId(spaceId, memberships);
-  return m ? m.space : null;
 }
 
 function JelSidePanels({
@@ -350,21 +379,11 @@ function JelSidePanels({
                 <FormattedMessage id="nav.create-world" />
               </ActionButton>
             )}
-            {memberships && (
-              <select
-                onChange={e => navigateToHubUrl(history, homeHubForSpaceId(e.target.value, memberships).url)}
-                value={spaceId}
-              >
-                {memberships.map(m => (
-                  <option key={m.space.space_id} value={m.space.space_id}>
-                    {m.space.name}
-                  </option>
-                ))}
-              </select>
-            )}
           </NavFoot>
         </Nav>
-        <Presence>Presence</Presence>
+        <Presence>
+          <SpaceTree treeManager={treeManager} space={space} history={history} memberships={memberships} />
+        </Presence>
       </JelWrap>
     </WrappedIntlProvider>
   );
@@ -388,6 +407,13 @@ HubTree.propTypes = {
   treeManager: PropTypes.object,
   history: PropTypes.object,
   hub: PropTypes.object
+};
+
+SpaceTree.propTypes = {
+  treeManager: PropTypes.object,
+  history: PropTypes.object,
+  space: PropTypes.object,
+  memberships: PropTypes.array
 };
 
 export default JelSidePanels;

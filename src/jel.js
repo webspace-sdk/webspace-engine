@@ -586,7 +586,7 @@ function setupSidePanelLayout(scene) {
     "#presence-drag-target",
     ["presence-width", "scene-right"],
     150,
-    350,
+    500,
     x => window.innerWidth - x,
     w => store.update({ uiState: { presencePanelWidth: w } })
   );
@@ -768,12 +768,13 @@ const addToPresenceLog = (() => {
 
 async function loadMemberships() {
   const accountId = store.credentialsAccountId;
-  if (!accountId) return;
+  if (!accountId) return [];
 
   const res = await fetchReticulumAuthenticated(`/api/v1/accounts/${accountId}`);
-  if (res.memberships.length === 0) return;
+  if (res.memberships.length === 0) return [];
 
   remountJelUI({ memberships: res.memberships });
+  return res.memberships;
 }
 
 async function start() {
@@ -905,7 +906,7 @@ async function start() {
   let joinSpacePromise;
   let joinHubPromise;
 
-  loadMemberships();
+  const membershipsPromise = loadMemberships();
 
   const performJoin = async () => {
     // Handle rapid history changes, only join last one.
@@ -922,7 +923,15 @@ async function start() {
     joinHubPromise = null;
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
-      joinSpacePromise = joinSpace(socket, history, entryManager, remountUI, remountJelUI, addToPresenceLog);
+      joinSpacePromise = joinSpace(
+        socket,
+        history,
+        entryManager,
+        remountUI,
+        remountJelUI,
+        addToPresenceLog,
+        membershipsPromise
+      );
       await joinSpacePromise;
     }
 

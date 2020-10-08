@@ -84,6 +84,22 @@ async function updateEnvironmentForHub(hub, hubStore) {
   //document.querySelectorAll("a-entity[teleporter]").forEach(x => x.components["teleporter"].queryCollisionEntities());
 }
 
+const createDynaChannelParams = () => {
+  const store = window.APP.store;
+
+  const params = {
+    auth_token: null,
+    perms_token: null
+  };
+
+  const { token } = store.state.credentials;
+  if (token) {
+    params.auth_token = token;
+  }
+
+  return params;
+};
+
 const createSpaceChannelParams = () => {
   const store = window.APP.store;
 
@@ -144,7 +160,7 @@ const migrateToNewReticulumServer = async deployNotification => {
           clearInterval(retDeployReconnectInterval);
           const oldSocket = retChannel.channel.socket;
           const socket = await connectToReticulum(isDebug, oldSocket.params());
-          await retChannel.migrateToSocket(socket, {});
+          await retChannel.migrateToSocket(socket, createDynaChannelParams());
           await spaceChannel.migrateToSocket(socket, createSpaceChannelParams());
           await hubChannel.migrateToSocket(socket, createHubChannelParams());
           authChannel.setSocket(socket);
@@ -684,7 +700,15 @@ const setupUIEventHandlers = (hubChannel, remountJelUI) => {
   remountJelUI({ onHubDestroyConfirmed });
 };
 
-export function joinSpace(socket, history, entryManager, remountUI, remountJelUI, addToPresenceLog) {
+export function joinSpace(
+  socket,
+  history,
+  entryManager,
+  remountUI,
+  remountJelUI,
+  addToPresenceLog,
+  membershipsPromise
+) {
   const spaceId = getSpaceIdFromHistory(history);
   const { dynaChannel, spaceChannel, store } = window.APP;
   console.log(`Space ID: ${spaceId}`);
@@ -692,7 +716,7 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
 
   dynaChannel.leave();
 
-  const dynaPhxChannel = socket.channel(`dyna`, {});
+  const dynaPhxChannel = socket.channel(`dyna`, createDynaChannelParams());
   dynaPhxChannel.join().receive("error", res => console.error(res));
   dynaChannel.bind(dynaPhxChannel);
 
@@ -700,14 +724,15 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
   setupSpaceChannelMessageHandlers(spacePhxChannel, entryManager);
   spaceChannel.bind(spacePhxChannel, spaceId);
 
-  const spaceMetadata = new AtomMetadata(spaceChannel, ATOM_TYPES.SPACE);
+  const spaceMetadata = new AtomMetadata(dynaChannel, ATOM_TYPES.SPACE);
   const hubMetadata = new AtomMetadata(spaceChannel, ATOM_TYPES.HUB);
   const treeManager = new TreeManager(spaceMetadata, hubMetadata);
 
   document.body.addEventListener(
     "share-connected",
     async ({ detail: { connection } }) => {
-      await treeManager.init(connection);
+      const memberships = await membershipsPromise;
+      await treeManager.init(connection, memberships);
       remountJelUI({ history, treeManager });
     },
     { once: true }

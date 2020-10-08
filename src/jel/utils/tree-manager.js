@@ -46,6 +46,7 @@ class TreeManager extends EventTarget {
 
     // Private space tree
     this.privateSpace = new TreeSync("space", this.privateExpandedTreeNodes, spaceMetadata);
+    this.hasPrivateSpaceTree = false;
 
     // Shared world navigation tree
     this.sharedNav = new TreeSync("nav", this.sharedExpandedTreeNodes, hubMetadata);
@@ -54,15 +55,18 @@ class TreeManager extends EventTarget {
     this.sharedTrash = new TreeSync("trash", this.sharedExpandedTreeNodes, hubMetadata);
   }
 
-  async init(connection) {
+  async init(connection, memberships) {
     await Promise.all([
       await this.privateSpace.init(connection),
       await this.sharedNav.init(connection),
       await this.sharedTrash.init(connection)
     ]);
+
+    await this.syncMembershipsToPrivateSpaceTree(memberships);
   }
 
   setAccountCollectionId(collectionId) {
+    this.hasPrivateSpaceTree = true;
     this.privateSpace.setCollectionId(collectionId);
   }
 
@@ -72,7 +76,7 @@ class TreeManager extends EventTarget {
   }
 
   setNodeExpanded(nodeId, expanded) {
-    // TODO private
+    // TODO private hubs
     if (expanded) {
       this.sharedExpandedTreeNodes.set(nodeId);
     } else {
@@ -147,6 +151,37 @@ class TreeManager extends EventTarget {
     };
 
     copyWalk(treeData, false);
+  }
+
+  async syncMembershipsToPrivateSpaceTree(memberships) {
+    if (!this.hasPrivateSpaceTree) return;
+
+    const tree = this.privateSpace;
+    tree.rebuildExpandedTreeData();
+
+    [...memberships].sort(m => m.joined_at).forEach(({ space: { space_id } }) => {
+      tree.addToRootIfNotExists(space_id);
+    });
+
+    // Remove memberships no longer value.
+    const spaceIdsToRemove = new Set();
+
+    const walk = nodes => {
+      for (const { atomId, children } of nodes) {
+        const membership = memberships.find(m => m.space.space_id === atomId);
+
+        if (!membership) {
+          spaceIdsToRemove.add(atomId);
+        }
+
+        if (children) {
+          const childAtomId = walk(children);
+          if (childAtomId) return childAtomId;
+        }
+      }
+
+      return null;
+    };
   }
 }
 
