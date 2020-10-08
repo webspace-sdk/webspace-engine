@@ -11,6 +11,7 @@ import Tree from "rc-tree";
 import { pushHistoryPath, replaceHistoryPath } from "../../hubs/utils/history";
 import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
+import SpaceNodeIcon from "./space-node-icon";
 import scrollIntoView from "scroll-into-view-if-needed";
 import addIcon from "../assets/images/icons/add.svgi";
 
@@ -43,6 +44,12 @@ const Presence = styled.div`
   pointer-events: auto;
   width: var(--presence-width);
   box-shadow: 0px 0px 4px;
+  display: flex;
+  flex-direction: row;
+`;
+
+const PresenceContent = styled.div`
+  flex: 1 1 auto;
 `;
 
 const NavHead = styled.div`
@@ -104,6 +111,55 @@ const NavSpill = styled.div`
 
     &::-webkit-scrollbar-thumb {
       background-color: var(--scroll-thumb-color);
+      transition: background-color 0.25s;
+    }
+  }
+`;
+
+const SpaceTreeSpill = styled.div`
+  overflow-x: hidden;
+  overflow-y: scroll;
+
+  scrollbar-color: transparent transparent;
+  scrollbar-width: thin;
+  background-color: var(--secondary-panel-background-color);
+  width: fit-content;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    visibility: hidden;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-clip: padding-box;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    background-color: transparent;
+    transition: background-color 0.25s;
+    min-height: 40px;
+  }
+
+  &::-webkit-scrollbar-corner {
+    background-color: transparent;
+  }
+
+  &::-webkit-scrollbar-track {
+    border-color: transparent;
+    background-color: transparent;
+    border: 2px solid transparent;
+    visibility: hidden;
+  }
+
+  &:hover {
+    scrollbar-color: var(--secondary-scroll-thumb-color) transparent;
+
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--secondary-scroll-thumb-color);
       transition: background-color 0.25s;
     }
   }
@@ -228,6 +284,7 @@ function SpaceTree({ treeManager, history, space, memberships }) {
       <Tree
         prefixCls="space-tree"
         treeData={spaceTreeData}
+        icon={spaceTreeData => <SpaceNodeIcon spaceTreeData={spaceTreeData} />}
         selectable={true}
         selectedKeys={spaceSelectedKeys}
         draggable
@@ -391,7 +448,10 @@ function JelSidePanels({
           </NavFoot>
         </Nav>
         <Presence>
-          <SpaceTree treeManager={treeManager} space={space} history={history} memberships={memberships} />
+          <PresenceContent>Presence</PresenceContent>
+          <SpaceTreeSpill>
+            <SpaceTree treeManager={treeManager} space={space} history={history} memberships={memberships} />
+          </SpaceTreeSpill>
         </Presence>
       </JelWrap>
     </WrappedIntlProvider>
