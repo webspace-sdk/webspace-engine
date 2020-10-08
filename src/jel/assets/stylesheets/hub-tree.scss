@@ -72,6 +72,7 @@ $treeNodePrefixCls: hub-tree-treenode;
       flex-direction: row;
       height: 30px;
       width: 100%;
+      flex-shrink: 10; // Hacky - deeply nested nodes start shrinking expander 
       margin: 0;
       padding: 1px 3px 0 0;
       text-decoration: none;
