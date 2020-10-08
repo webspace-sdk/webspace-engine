@@ -576,7 +576,7 @@ function setupSidePanelLayout(scene) {
   handleSidebarResizerDrag(
     "#nav-drag-target",
     ["nav-width", "scene-left"],
-    150,
+    300,
     500,
     x => x,
     w => store.update({ uiState: { navPanelWidth: w } })
@@ -585,7 +585,7 @@ function setupSidePanelLayout(scene) {
   handleSidebarResizerDrag(
     "#presence-drag-target",
     ["presence-width", "scene-right"],
-    150,
+    300,
     500,
     x => window.innerWidth - x,
     w => store.update({ uiState: { presencePanelWidth: w } })
