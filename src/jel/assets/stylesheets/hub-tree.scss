@@ -9,19 +9,18 @@ $treeNodePrefixCls: hub-tree-treenode;
 .#{$treePrefixCls} {
   margin: 0;
   border: 1px solid transparent;
+  width: 100%;
   
-  &-focused:not(&-active-focused) {
-    border-color: cyan;
-  }
-
   // padding: 5px;
   .#{$treeNodePrefixCls} {
     margin: 0;
     padding: 0 8px;
-    line-height: 30px;
+    line-height: 28px;
     white-space: nowrap;
     list-style: none;
     outline: 0;
+    display: flex;
+    align-items: center;
     .draggable {
       -moz-user-select: none;
       -khtml-user-select: none;
@@ -69,16 +68,23 @@ $treeNodePrefixCls: hub-tree-treenode;
       font-weight: var(--panel-selected-text-weight);
     }
     .#{$treePrefixCls}-node-content-wrapper {
-      display: inline-block;
+      display: flex;
+      flex-direction: row;
       height: 30px;
       width: 100%;
       margin: 0;
       padding: 1px 3px 0 0;
       text-decoration: none;
       vertical-align: top;
+      overflow: hidden;
       cursor: pointer;
     }
     span {
+      &.#{$treePrefixCls}-title {
+        overflow: hidden;
+        flex: 1;
+      }
+
       &.#{$treePrefixCls}-switcher,
       &.#{$treePrefixCls}-checkbox,
       &.#{$treePrefixCls}-iconEle {

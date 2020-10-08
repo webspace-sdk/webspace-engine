@@ -30,6 +30,7 @@ const JelWrap = styled.div`
   display: flex;
   justify-content: space-between;
   overflow: hidden;
+  user-select: none;
 `;
 
 const Nav = styled.div`

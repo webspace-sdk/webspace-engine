@@ -11,11 +11,12 @@ function createNodeId() {
 }
 
 class TreeSync extends EventTarget {
-  constructor(docId, expandedTreeNodes, atomMetadata) {
+  constructor(docId, expandedTreeNodes, atomMetadata, titleControl = null) {
     super();
     this.docId = docId;
     this.expandedTreeNodes = expandedTreeNodes;
     this.atomMetadata = atomMetadata;
+    this.titleControl = titleControl;
   }
 
   setCollectionId(collectionId) {
@@ -346,12 +347,12 @@ class TreeSync extends EventTarget {
           if (visitor) visitor(nid, n);
 
           const atomId = n.h;
-          let nodeTitle = "";
+          let nodeName = "";
           let nodeUrl = null;
 
           if (this.atomMetadata.hasMetadata(n.h)) {
             const { name, url } = this.atomMetadata.getMetadata(atomId);
-            nodeTitle = name || DEFAULT_HUB_NAME;
+            nodeName = name || DEFAULT_HUB_NAME;
             nodeUrl = url;
           }
 
@@ -360,14 +361,22 @@ class TreeSync extends EventTarget {
             nodeIdToChildren.set(nid, subchildren);
             children.unshift({
               key: nid,
-              title: nodeTitle,
+              name: nodeName,
+              title: this.titleControl || nodeName,
               children: subchildren,
               url: nodeUrl,
               atomId,
               isLeaf: false
             });
           } else {
-            children.unshift({ key: nid, title: nodeTitle, url: nodeUrl, atomId, isLeaf: true });
+            children.unshift({
+              key: nid,
+              name: nodeName,
+              title: this.titleControl || nodeName,
+              url: nodeUrl,
+              atomId,
+              isLeaf: true
+            });
           }
 
           nid = n.r;

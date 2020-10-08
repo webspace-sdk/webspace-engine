@@ -1,4 +1,5 @@
 import TreeSync from "./tree-sync";
+import HubNodeTitle from "../react-components/hub-node-title";
 
 const EXPANDED_TREE_NODE_STORE_KEY = "__JelExpandedTreeNodes";
 
@@ -49,10 +50,10 @@ class TreeManager extends EventTarget {
     this.hasPrivateSpaceTree = false;
 
     // Shared world navigation tree
-    this.sharedNav = new TreeSync("nav", this.sharedExpandedTreeNodes, hubMetadata);
+    this.sharedNav = new TreeSync("nav", this.sharedExpandedTreeNodes, hubMetadata, HubNodeTitle);
 
     // Shared world trash
-    this.sharedTrash = new TreeSync("trash", this.sharedExpandedTreeNodes, hubMetadata);
+    this.sharedTrash = new TreeSync("trash", this.sharedExpandedTreeNodes, hubMetadata, HubNodeTitle);
   }
 
   async init(connection, memberships) {

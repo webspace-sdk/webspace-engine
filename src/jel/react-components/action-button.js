@@ -4,6 +4,10 @@ import React from "react";
 import styled from "styled-components";
 
 const ActionButtonElement = styled.button`
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
   background-color: var(--action-button-background-color);
   border: 1px solid var(--action-button-border-color);
   color: var(--action-button-text-color);
