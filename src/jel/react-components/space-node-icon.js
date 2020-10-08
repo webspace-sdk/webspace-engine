@@ -27,12 +27,16 @@ const SpaceNodeIconNonImage = styled.div`
   color: var(--secondary-panel-item-text-color);
 `;
 
-export default function SpaceNodeIcon({ spaceTreeData }) {
-  return (
-    <SpaceNodeIconElement className="spaceNodeIcon">
-      <SpaceNodeIconNonImage>{spaceTreeData.title.substring(0, 1)}</SpaceNodeIconNonImage>
-    </SpaceNodeIconElement>
-  );
+export default function SpaceNodeIcon({ spaceTreeData: { icon, title } }) {
+  if (icon) {
+    return <SpaceNodeIconElement className="spaceNodeIcon" style={{ backgroundImage: `url(${icon})` }} />;
+  } else {
+    return (
+      <SpaceNodeIconElement className="spaceNodeIcon">
+        <SpaceNodeIconNonImage>{title.substring(0, 1)}</SpaceNodeIconNonImage>
+      </SpaceNodeIconElement>
+    );
+  }
 }
 
 SpaceNodeIcon.propTypes = {
