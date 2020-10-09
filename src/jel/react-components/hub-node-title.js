@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React from "react";
+import React, { Component } from "react";
 import styled from "styled-components";
 import IconButton from "./icon-button";
 import dotsIcon from "../assets/images/icons/dots-horizontal.svgi";
@@ -37,20 +37,22 @@ const HubTitle = styled.div`
   flex-basis: 100%;
 `;
 
-export default function HubNodeTitle({ name, onAddClick, onDotsClick }) {
-  return (
-    <HubNodeElement>
-      <HubTitle className="title">{name}</HubTitle>
-      <HubControls className="controls">
-        <IconButton iconSrc={dotsIcon} onClick={onDotsClick} />
-        <IconButton iconSrc={addIcon} onClick={onAddClick} />
-      </HubControls>
-    </HubNodeElement>
-  );
-}
+export default class HubNodeTitle extends Component {
+  static propTypes = {
+    name: PropTypes.string,
+    onAddClick: PropTypes.func,
+    onDotsClick: PropTypes.func
+  };
 
-HubNodeTitle.propTypes = {
-  name: PropTypes.string,
-  onAddClick: PropTypes.func,
-  onDotsClick: PropTypes.func
-};
+  render() {
+    return (
+      <HubNodeElement>
+        <HubTitle className="title">{this.props.name}</HubTitle>
+        <HubControls className="controls">
+          <IconButton iconSrc={dotsIcon} onClick={this.props.onDotsClick} />
+          <IconButton iconSrc={addIcon} onClick={this.props.onAddClick} />
+        </HubControls>
+      </HubNodeElement>
+    );
+  }
+}

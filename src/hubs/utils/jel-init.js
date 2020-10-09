@@ -5,7 +5,8 @@ import { createInWorldLogMessage } from "../react-components/chat-message";
 import nextTick from "./next-tick";
 import { authorizeOrSanitizeMessage } from "./permissions-utils";
 import qsTruthy from "./qs_truthy";
-import { getReticulumMeta, invalidateReticulumMeta, migrateChannelToSocket, connectToReticulum } from "./phoenix-utils";
+//import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
+import { createHubNodeTitleFactory } from "../../jel/react-components/hub-node-title";
 import HubStore from "../storage/hub-store";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
@@ -15,10 +16,10 @@ const isDebug = qsTruthy("debug");
 const isMobile = AFRAME.utils.device.isMobile();
 const isMobileVR = AFRAME.utils.device.isMobileVR();
 
-let retDeployReconnectInterval;
+//let retDeployReconnectInterval;
 let positionTrackerInterval = null;
 
-const retReconnectMaxDelayMs = 15000;
+//const retReconnectMaxDelayMs = 15000;
 const stopTrackingPosition = () => clearInterval(positionTrackerInterval);
 
 const startTrackingPosition = (() => {
@@ -139,48 +140,49 @@ const createHubChannelParams = () => {
   return params;
 };
 
-const migrateToNewReticulumServer = async deployNotification => {
-  const { authChannel, linkChannel, hubChannel, retChannel, spaceChannel } = window.APP;
-
-  // On Reticulum deploys, reconnect after a random delay until pool + version match deployed version/pool
-  console.log(`Reticulum deploy detected v${deployNotification.ret_version} on ${deployNotification.ret_pool}`);
-  clearInterval(retDeployReconnectInterval);
-
-  await new Promise(res => {
-    setTimeout(() => {
-      const tryReconnect = async () => {
-        invalidateReticulumMeta();
-        const reticulumMeta = await getReticulumMeta();
-
-        if (
-          reticulumMeta.pool === deployNotification.ret_pool &&
-          reticulumMeta.version === deployNotification.ret_version
-        ) {
-          console.log("Reticulum reconnecting.");
-          clearInterval(retDeployReconnectInterval);
-          const oldSocket = retChannel.channel.socket;
-          const socket = await connectToReticulum(isDebug, oldSocket.params());
-          await retChannel.migrateToSocket(socket, createDynaChannelParams());
-          await spaceChannel.migrateToSocket(socket, createSpaceChannelParams());
-          await hubChannel.migrateToSocket(socket, createHubChannelParams());
-          authChannel.setSocket(socket);
-          linkChannel.setSocket(socket);
-
-          // Disconnect old socket after a delay to ensure this user is always registered in presence.
-          setTimeout(() => {
-            console.log("Reconnection complete. Disconnecting old reticulum socket.");
-            oldSocket.teardown();
-          }, 10000);
-
-          res();
-        }
-      };
-
-      retDeployReconnectInterval = setInterval(tryReconnect, 5000);
-      tryReconnect();
-    }, Math.floor(Math.random() * retReconnectMaxDelayMs));
-  });
-};
+// TODO JEL
+//const migrateToNewReticulumServer = async deployNotification => {
+//  const { authChannel, linkChannel, hubChannel, retChannel, spaceChannel } = window.APP;
+//
+//  // On Reticulum deploys, reconnect after a random delay until pool + version match deployed version/pool
+//  console.log(`Reticulum deploy detected v${deployNotification.ret_version} on ${deployNotification.ret_pool}`);
+//  clearInterval(retDeployReconnectInterval);
+//
+//  await new Promise(res => {
+//    setTimeout(() => {
+//      const tryReconnect = async () => {
+//        invalidateReticulumMeta();
+//        const reticulumMeta = await getReticulumMeta();
+//
+//        if (
+//          reticulumMeta.pool === deployNotification.ret_pool &&
+//          reticulumMeta.version === deployNotification.ret_version
+//        ) {
+//          console.log("Reticulum reconnecting.");
+//          clearInterval(retDeployReconnectInterval);
+//          const oldSocket = retChannel.channel.socket;
+//          const socket = await connectToReticulum(isDebug, oldSocket.params());
+//          await retChannel.migrateToSocket(socket, createDynaChannelParams());
+//          await spaceChannel.migrateToSocket(socket, createSpaceChannelParams());
+//          await hubChannel.migrateToSocket(socket, createHubChannelParams());
+//          authChannel.setSocket(socket);
+//          linkChannel.setSocket(socket);
+//
+//          // Disconnect old socket after a delay to ensure this user is always registered in presence.
+//          setTimeout(() => {
+//            console.log("Reconnection complete. Disconnecting old reticulum socket.");
+//            oldSocket.teardown();
+//          }, 10000);
+//
+//          res();
+//        }
+//      };
+//
+//      retDeployReconnectInterval = setInterval(tryReconnect, 5000);
+//      tryReconnect();
+//    }, Math.floor(Math.random() * retReconnectMaxDelayMs));
+//  });
+//};
 
 function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
@@ -726,6 +728,7 @@ export function joinSpace(
 
   const spaceMetadata = new AtomMetadata(dynaChannel, ATOM_TYPES.SPACE);
   const hubMetadata = new AtomMetadata(spaceChannel, ATOM_TYPES.HUB);
+
   const treeManager = new TreeManager(spaceMetadata, hubMetadata);
 
   document.body.addEventListener(

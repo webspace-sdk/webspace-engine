@@ -11,16 +11,20 @@ function createNodeId() {
 }
 
 class TreeSync extends EventTarget {
-  constructor(docId, expandedTreeNodes, atomMetadata, titleControl = null) {
+  constructor(docId, expandedTreeNodes, atomMetadata) {
     super();
     this.docId = docId;
     this.expandedTreeNodes = expandedTreeNodes;
     this.atomMetadata = atomMetadata;
-    this.titleControl = titleControl;
+    this.titleControl = null;
   }
 
   setCollectionId(collectionId) {
     this.collectionId = collectionId;
+  }
+
+  setTitleControl(titleControl) {
+    this.titleControl = titleControl;
   }
 
   init(connection) {

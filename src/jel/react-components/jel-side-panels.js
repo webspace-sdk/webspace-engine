@@ -14,6 +14,7 @@ import ActionButton from "./action-button";
 import SpaceNodeIcon from "./space-node-icon";
 import scrollIntoView from "scroll-into-view-if-needed";
 import addIcon from "../assets/images/icons/add.svgi";
+import HubNodeTitle from "./hub-node-title";
 
 const JelWrap = styled.div`
   color: var(--panel-text-color);
@@ -301,6 +302,8 @@ function SpaceTree({ treeManager, history, space, memberships }) {
 
 function HubTree({ treeManager, history, hub }) {
   const [navTreeData, setNavTreeData] = useState([]);
+  const [hubContextMenuHubId, setHubContextMenuHubId] = useState(null);
+  const [hubContextMenuReferenceElement, setHubContextMenuReferenceElement] = useState(null);
   //const [trashTreeData, setTrashTreeData] = useState([]);
 
   useTreeData(treeManager && treeManager.sharedNav, setNavTreeData);
@@ -309,6 +312,29 @@ function HubTree({ treeManager, history, hub }) {
 
   // Ensure current selected node is always visible
   useScrollToSelectedTreeNode(hub);
+
+  useEffect(
+    () => {
+      if (!treeManager) return;
+      treeManager.setNavTitleControl(data => {
+        const ref = React.createRef();
+
+        return (
+          <HubNodeTitle
+            name={data.name}
+            ref={ref}
+            onDotsClick={e => {
+              setHubContextMenuHubId(data.atomId);
+              setHubContextMenuReferenceElement(ref.current);
+              e.preventDefault();
+            }}
+          />
+        );
+      });
+      return () => {};
+    },
+    [treeManager]
+  );
 
   if (!treeManager || !hub) return null;
 
