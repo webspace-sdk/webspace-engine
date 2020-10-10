@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { FormattedMessage } from "react-intl";
 import { getMessages } from "../../hubs/utils/i18n";
@@ -15,6 +16,15 @@ import SpaceNodeIcon from "./space-node-icon";
 import scrollIntoView from "scroll-into-view-if-needed";
 import addIcon from "../assets/images/icons/add.svgi";
 import HubNodeTitle from "./hub-node-title";
+import PopupMenu from "./popup-menu";
+import { usePopper } from "react-popper";
+import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+
+let popupRoot = null;
+
+waitForDOMContentLoaded().then(() => {
+  popupRoot = document.getElementById("jel-popup-root");
+});
 
 const JelWrap = styled.div`
   color: var(--panel-text-color);
@@ -222,8 +232,43 @@ function useScrollToSelectedTreeNode(atom) {
   );
 }
 
+function useHubTreeTitleControls(treeManager, setHubContextMenuHubId, setHubContextMenuReferenceElement) {
+  useEffect(
+    () => {
+      if (!treeManager) return;
+      treeManager.setNavTitleControl(data => {
+        return (
+          <HubNodeTitle
+            name={data.name}
+            onDotsClick={(e, ref) => {
+              setHubContextMenuHubId(data.atomId);
+              setHubContextMenuReferenceElement(ref.current);
+              e.preventDefault();
+            }}
+          />
+        );
+      });
+      return () => {};
+    },
+    [treeManager, setHubContextMenuReferenceElement, setHubContextMenuHubId]
+  );
+}
+
 const onTreeDragEnter = () => {
   // TODO store + expand
+};
+
+const PopperPopupMenu = function({ styles, attributes, setPopperElement, setPopperArrowElement, hubId }) {
+  if (!popupRoot) return null;
+
+  const popupMenu = (
+    <div ref={setPopperElement} style={styles.popper} {...attributes.popper}>
+      <PopupMenu>{hubId}</PopupMenu>
+      <div ref={setPopperArrowElement} style={styles.arrow} />
+    </div>
+  );
+
+  return ReactDOM.createPortal(popupMenu, popupRoot);
 };
 
 const createTreeDropHandler = treeManager => (tree, allowNesting = true) => ({ dragNode, node, dropPosition }) => {
@@ -304,6 +349,17 @@ function HubTree({ treeManager, history, hub }) {
   const [navTreeData, setNavTreeData] = useState([]);
   const [hubContextMenuHubId, setHubContextMenuHubId] = useState(null);
   const [hubContextMenuReferenceElement, setHubContextMenuReferenceElement] = useState(null);
+  const [hubContextMenuArrowElement, setHubContextMenuArrowElement] = useState(null);
+  const [hubContextMenuElement, setHubContextMenuElement] = useState(null);
+
+  const { styles: hubContextMenuStyles, attributes: hubContextMenuAttributes } = usePopper(
+    hubContextMenuReferenceElement,
+    hubContextMenuElement,
+    {
+      placement: "bottom-end",
+      modifiers: [{ name: "arrow", options: { element: hubContextMenuArrowElement } }]
+    }
+  );
   //const [trashTreeData, setTrashTreeData] = useState([]);
 
   useTreeData(treeManager && treeManager.sharedNav, setNavTreeData);
@@ -313,28 +369,7 @@ function HubTree({ treeManager, history, hub }) {
   // Ensure current selected node is always visible
   useScrollToSelectedTreeNode(hub);
 
-  useEffect(
-    () => {
-      if (!treeManager) return;
-      treeManager.setNavTitleControl(data => {
-        const ref = React.createRef();
-
-        return (
-          <HubNodeTitle
-            name={data.name}
-            ref={ref}
-            onDotsClick={e => {
-              setHubContextMenuHubId(data.atomId);
-              setHubContextMenuReferenceElement(ref.current);
-              e.preventDefault();
-            }}
-          />
-        );
-      });
-      return () => {};
-    },
-    [treeManager]
-  );
+  useHubTreeTitleControls(treeManager, setHubContextMenuHubId, setHubContextMenuReferenceElement);
 
   if (!treeManager || !hub) return null;
 
@@ -370,6 +405,13 @@ function HubTree({ treeManager, history, hub }) {
         onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
         expandedKeys={treeManager.sharedExpandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
+      />
+      <PopperPopupMenu
+        setPopperElement={setHubContextMenuElement}
+        setPopperArrowElement={setHubContextMenuArrowElement}
+        styles={hubContextMenuStyles}
+        attributes={hubContextMenuAttributes}
+        hubId={hubContextMenuHubId}
       />
     </div>
   );

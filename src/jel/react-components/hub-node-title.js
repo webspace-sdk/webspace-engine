@@ -29,6 +29,7 @@ const HubControls = styled.div`
   align-items: center;
   flex: 1;
   display: none;
+  position: relative;
 `;
 
 const HubTitle = styled.div`
@@ -37,19 +38,35 @@ const HubTitle = styled.div`
   flex-basis: 100%;
 `;
 
+const PopupRef = styled.div`
+  position: absolute;
+  width: 0;
+  height: 0;
+  left: 10px;
+  top: 12px;
+`;
+
 export default class HubNodeTitle extends Component {
   static propTypes = {
     name: PropTypes.string,
     onAddClick: PropTypes.func,
-    onDotsClick: PropTypes.func
+    onDotsClick: PropTypes.func,
+    popupRef: PropTypes.object
   };
+
+  constructor() {
+    super();
+
+    this.popupRef = React.createRef();
+  }
 
   render() {
     return (
       <HubNodeElement>
         <HubTitle className="title">{this.props.name}</HubTitle>
         <HubControls className="controls">
-          <IconButton iconSrc={dotsIcon} onClick={this.props.onDotsClick} />
+          <IconButton iconSrc={dotsIcon} onClick={e => this.props.onDotsClick(e, this.popupRef)} />
+          <PopupRef ref={this.popupRef} />
           <IconButton iconSrc={addIcon} onClick={this.props.onAddClick} />
         </HubControls>
       </HubNodeElement>
