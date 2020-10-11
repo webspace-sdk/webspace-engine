@@ -6,7 +6,6 @@ import nextTick from "./next-tick";
 import { authorizeOrSanitizeMessage } from "./permissions-utils";
 import qsTruthy from "./qs_truthy";
 //import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
-import { createHubNodeTitleFactory } from "../../jel/react-components/hub-node-title";
 import HubStore from "../storage/hub-store";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";

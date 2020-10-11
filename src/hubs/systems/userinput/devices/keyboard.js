@@ -11,6 +11,13 @@ export class KeyboardDevice {
         if (!e.key) return;
         this.events.push(e);
 
+        // Global hotkey to hide any popups
+        if (e.type === "keydown" && e.key === "Escape") {
+          document.querySelectorAll("[data-popped-menu]").forEach(e => {
+            e.removeAttribute("data-popped-menu");
+          });
+        }
+
         // Non-repeated shift-space is cursor lock hotkey.
         if (e.type === "keydown" && e.key === " " && e.shiftKey && !e.repeat) {
           const canvas = AFRAME.scenes[0].canvas;

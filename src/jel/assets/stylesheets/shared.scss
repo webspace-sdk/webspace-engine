@@ -5,3 +5,17 @@
   background-color: var(--panel-background-color);
   font-weight: jel-theme.$small-text-weight;
 }
+
+:local(.show-when-popped) {
+  opacity: 0;
+  pointer-events: none;
+
+  transition: opacity 0.15s linear;
+
+  &[data-popped-menu] {
+    opacity: 1;
+    pointer-events: auto;
+
+    transition: opacity 0.15s linear;
+  }
+}

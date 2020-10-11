@@ -8,6 +8,7 @@ import styled from "styled-components";
 import { createHub } from "../../hubs/utils/phoenix-utils";
 import "../assets/stylesheets/hub-tree.scss";
 import "../assets/stylesheets/space-tree.scss";
+import sharedStyles from "../assets/stylesheets/shared.scss";
 import Tree from "rc-tree";
 import { pushHistoryPath, replaceHistoryPath } from "../../hubs/utils/history";
 import PanelSectionHeader from "./panel-section-header";
@@ -232,7 +233,12 @@ function useScrollToSelectedTreeNode(atom) {
   );
 }
 
-function useHubTreeTitleControls(treeManager, setHubContextMenuHubId, setHubContextMenuReferenceElement) {
+function useHubTreeTitleControls(
+  treeManager,
+  hubContextMenuElement,
+  setHubContextMenuHubId,
+  setHubContextMenuReferenceElement
+) {
   useEffect(
     () => {
       if (!treeManager) return;
@@ -243,14 +249,17 @@ function useHubTreeTitleControls(treeManager, setHubContextMenuHubId, setHubCont
             onDotsClick={(e, ref) => {
               setHubContextMenuHubId(data.atomId);
               setHubContextMenuReferenceElement(ref.current);
+              hubContextMenuElement.setAttribute("data-popped-menu", "");
+              hubContextMenuElement.focus();
               e.preventDefault();
+              e.stopPropagation();
             }}
           />
         );
       });
       return () => {};
     },
-    [treeManager, setHubContextMenuReferenceElement, setHubContextMenuHubId]
+    [treeManager, hubContextMenuElement, setHubContextMenuReferenceElement, setHubContextMenuHubId]
   );
 }
 
@@ -258,13 +267,19 @@ const onTreeDragEnter = () => {
   // TODO store + expand
 };
 
-const PopperPopupMenu = function({ styles, attributes, setPopperElement, setPopperArrowElement, hubId }) {
+const PopperPopupMenu = function({ styles, attributes, setPopperElement, hubId }) {
   if (!popupRoot) return null;
 
   const popupMenu = (
-    <div ref={setPopperElement} style={styles.popper} {...attributes.popper}>
+    <div
+      tabIndex={100} // Ensures can be focused
+      className={sharedStyles.showWhenPopped}
+      ref={setPopperElement}
+      onBlur={e => e.target.removeAttribute("data-popped-menu")}
+      style={styles.popper}
+      {...attributes.popper}
+    >
       <PopupMenu>{hubId}</PopupMenu>
-      <div ref={setPopperArrowElement} style={styles.arrow} />
     </div>
   );
 
@@ -349,15 +364,13 @@ function HubTree({ treeManager, history, hub }) {
   const [navTreeData, setNavTreeData] = useState([]);
   const [hubContextMenuHubId, setHubContextMenuHubId] = useState(null);
   const [hubContextMenuReferenceElement, setHubContextMenuReferenceElement] = useState(null);
-  const [hubContextMenuArrowElement, setHubContextMenuArrowElement] = useState(null);
   const [hubContextMenuElement, setHubContextMenuElement] = useState(null);
 
   const { styles: hubContextMenuStyles, attributes: hubContextMenuAttributes } = usePopper(
     hubContextMenuReferenceElement,
     hubContextMenuElement,
     {
-      placement: "bottom-end",
-      modifiers: [{ name: "arrow", options: { element: hubContextMenuArrowElement } }]
+      placement: "bottom-end"
     }
   );
   //const [trashTreeData, setTrashTreeData] = useState([]);
@@ -369,7 +382,12 @@ function HubTree({ treeManager, history, hub }) {
   // Ensure current selected node is always visible
   useScrollToSelectedTreeNode(hub);
 
-  useHubTreeTitleControls(treeManager, setHubContextMenuHubId, setHubContextMenuReferenceElement);
+  useHubTreeTitleControls(
+    treeManager,
+    hubContextMenuElement,
+    setHubContextMenuHubId,
+    setHubContextMenuReferenceElement
+  );
 
   if (!treeManager || !hub) return null;
 
@@ -408,7 +426,6 @@ function HubTree({ treeManager, history, hub }) {
       />
       <PopperPopupMenu
         setPopperElement={setHubContextMenuElement}
-        setPopperArrowElement={setHubContextMenuArrowElement}
         styles={hubContextMenuStyles}
         attributes={hubContextMenuAttributes}
         hubId={hubContextMenuHubId}
