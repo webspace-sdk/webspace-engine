@@ -39,7 +39,7 @@ body {
     height: 100%;
     top: 0;
     left: 0;
-    z-index: 6;
+    z-index: 7;
   }
 
   #nav-drag-target {
@@ -47,7 +47,7 @@ body {
     width: 16px;
     left: calc(var(--nav-width) - 8px); 
     top: 0;
-    z-index: 100;
+    z-index: 6;
     height: 100%;
     cursor: col-resize;
   }
@@ -57,7 +57,7 @@ body {
     width: 16px;
     right: calc(var(--presence-width) - 8px); 
     top: 0;
-    z-index: 100;
+    z-index: 6;
     height: 100%;
     cursor: col-resize;
   }
