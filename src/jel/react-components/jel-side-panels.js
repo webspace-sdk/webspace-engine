@@ -370,7 +370,7 @@ function HubTree({ treeManager, history, hub }) {
     hubContextMenuReferenceElement,
     hubContextMenuElement,
     {
-      placement: "bottom-end"
+      placement: "bottom-start"
     }
   );
   //const [trashTreeData, setTrashTreeData] = useState([]);
