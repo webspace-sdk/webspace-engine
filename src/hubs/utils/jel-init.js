@@ -1,4 +1,3 @@
-import { AtomMetadata, ATOM_TYPES } from "../../jel/utils/atom-metadata";
 import TreeManager from "../../jel/utils/tree-manager";
 import { getHubIdFromHistory, getSpaceIdFromHistory, setupPeerConnectionConfig } from "../../jel/utils/jel-url-utils";
 import { createInWorldLogMessage } from "../react-components/chat-message";
@@ -711,7 +710,7 @@ export function joinSpace(
   membershipsPromise
 ) {
   const spaceId = getSpaceIdFromHistory(history);
-  const { dynaChannel, spaceChannel, store } = window.APP;
+  const { dynaChannel, spaceChannel, spaceMetadata, hubMetadata, store } = window.APP;
   console.log(`Space ID: ${spaceId}`);
   remountJelUI({ spaceId });
 
@@ -720,13 +719,11 @@ export function joinSpace(
   const dynaPhxChannel = socket.channel(`dyna`, createDynaChannelParams());
   dynaPhxChannel.join().receive("error", res => console.error(res));
   dynaChannel.bind(dynaPhxChannel);
+  spaceMetadata.bind(dynaChannel);
 
   const spacePhxChannel = socket.channel(`space:${spaceId}`, createSpaceChannelParams());
   setupSpaceChannelMessageHandlers(spacePhxChannel, entryManager);
   spaceChannel.bind(spacePhxChannel, spaceId);
-
-  const spaceMetadata = new AtomMetadata(dynaChannel, ATOM_TYPES.SPACE);
-  const hubMetadata = new AtomMetadata(spaceChannel, ATOM_TYPES.HUB);
 
   const treeManager = new TreeManager(spaceMetadata, hubMetadata);
 
@@ -740,14 +737,16 @@ export function joinSpace(
     { once: true }
   );
 
-  hubMetadata.init();
+  hubMetadata.bind(spaceChannel);
+  spaceMetadata.ensureMetadataForIds([spaceId]);
+
   store.update({ context: { spaceId } });
 
   return joinSpaceChannel(spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI, addToPresenceLog);
 }
 
-export function joinHub(socket, history, entryManager, remountUI, remountJelUI, addToPresenceLog) {
-  const { hubChannel } = window.APP;
+export async function joinHub(socket, history, entryManager, remountUI, remountJelUI, addToPresenceLog) {
+  const { hubChannel, hubMetadata } = window.APP;
 
   if (hubChannel.channel) {
     hubChannel.leave();
@@ -769,8 +768,10 @@ export function joinHub(socket, history, entryManager, remountUI, remountJelUI, 
     remountUI,
     remountJelUI
   );
-  hubChannel.bind(hubPhxChannel, hubId);
   setupUIEventHandlers(hubChannel, remountJelUI);
 
-  return joinHubChannel(hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI);
+  await hubMetadata.ensureMetadataForIds([hubId], true);
+  hubChannel.bind(hubPhxChannel, hubId);
+
+  await joinHubChannel(hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI);
 }

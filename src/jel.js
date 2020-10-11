@@ -118,6 +118,7 @@ import DynaChannel from "./jel/utils/dyna-channel";
 import SpaceChannel from "./hubs/utils/space-channel";
 import HubChannel from "./hubs/utils/hub-channel";
 import LinkChannel from "./hubs/utils/link-channel";
+import { AtomMetadata, ATOM_TYPES } from "./jel/utils/atom-metadata";
 import { joinSpace, joinHub } from "./hubs/utils/jel-init";
 import { connectToReticulum } from "./hubs/utils/phoenix-utils";
 import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
@@ -166,6 +167,8 @@ const dynaChannel = new DynaChannel(store);
 const spaceChannel = new SpaceChannel(store);
 const hubChannel = new HubChannel(store);
 const linkChannel = new LinkChannel(store);
+const spaceMetadata = new AtomMetadata(ATOM_TYPES.SPACE);
+const hubMetadata = new AtomMetadata(ATOM_TYPES.HUB);
 
 window.APP.history = history;
 window.APP.dynaChannel = dynaChannel;
@@ -173,6 +176,9 @@ window.APP.spaceChannel = spaceChannel;
 window.APP.hubChannel = hubChannel;
 window.APP.authChannel = authChannel;
 window.APP.linkChannel = linkChannel;
+window.APP.hubMetadata = hubMetadata;
+window.APP.spaceMetadata = spaceMetadata;
+
 store.addEventListener("profilechanged", spaceChannel.sendProfileUpdate.bind(hubChannel));
 
 const mediaSearchStore = window.APP.mediaSearchStore;

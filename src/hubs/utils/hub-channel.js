@@ -3,21 +3,6 @@ import { EventTarget } from "event-target-shim";
 import { Presence } from "phoenix";
 import { migrateChannelToSocket, unbindPresence } from "./phoenix-utils";
 
-const VALID_PERMISSIONS = [
-  "update_hub_meta",
-  "update_hub_roles",
-  "close_hub",
-  "mute_users",
-  "kick_users",
-  "tweet",
-  "spawn_camera",
-  "spawn_drawing",
-  "spawn_and_move_media",
-  "spawn_emoji",
-  "fly",
-  "upload_files"
-];
-
 export default class HubChannel extends EventTarget {
   constructor(store) {
     super();
@@ -26,10 +11,10 @@ export default class HubChannel extends EventTarget {
     this._blockedSessionIds = new Set();
   }
 
-  // Returns true if this current session has the given permission.
+  // Returns true if this current session has the given permission for the currently connected hub.
   can(permission) {
-    if (!VALID_PERMISSIONS.includes(permission)) throw new Error(`Invalid permission name: ${permission}`);
-    return this._permissions && this._permissions[permission];
+    if (!this.hubId) return false;
+    return window.APP.hubMetadata.can(permission, this.hubId);
   }
 
   canEnterRoom(hub) {

@@ -251,6 +251,7 @@ function useHubTreeTitleControls(
               setHubContextMenuHubId(data.atomId);
               setHubContextMenuReferenceElement(ref.current);
               hubContextMenuElement.querySelector("button").focus();
+
               e.preventDefault();
               e.stopPropagation();
             }}
@@ -267,7 +268,7 @@ const onTreeDragEnter = () => {
   // TODO store + expand
 };
 
-const PopperPopupMenu = function({ styles, attributes, setPopperElement, hubId }) {
+const PopperPopupMenu = function({ styles, attributes, setPopperElement, hubId, spaceCan, hubCan, onTrash }) {
   if (!popupRoot) return null;
 
   const popupMenu = (
@@ -279,17 +280,23 @@ const PopperPopupMenu = function({ styles, attributes, setPopperElement, hubId }
       {...attributes.popper}
     >
       <PopupMenu>
-        <PopupMenuItem
-          onClick={e => {
-            console.log(hubId);
-            e.target.parentElement.blur(); // Blur button so menu hides
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-          iconSrc={trashIcon}
-        >
-          <FormattedMessage id="hub-context.move-to-trash" />
-        </PopupMenuItem>
+        {spaceCan("edit_nav") ? (
+          <PopupMenuItem
+            onClick={e => {
+              onTrash(hubId);
+              e.target.parentElement.blur(); // Blur button so menu hides
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            iconSrc={trashIcon}
+          >
+            <FormattedMessage id="hub-context.move-to-trash" />
+          </PopupMenuItem>
+        ) : (
+          <PopupMenuItem>
+            <div>No Actions</div>
+          </PopupMenuItem>
+        )}
       </PopupMenu>
     </div>
   );
@@ -371,7 +378,7 @@ function SpaceTree({ treeManager, history, space, memberships }) {
   );
 }
 
-function HubTree({ treeManager, history, hub }) {
+function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships }) {
   const [navTreeData, setNavTreeData] = useState([]);
   const [hubContextMenuHubId, setHubContextMenuHubId] = useState(null);
   const [hubContextMenuReferenceElement, setHubContextMenuReferenceElement] = useState(null);
@@ -440,6 +447,20 @@ function HubTree({ treeManager, history, hub }) {
         styles={hubContextMenuStyles}
         attributes={hubContextMenuAttributes}
         hubId={hubContextMenuHubId}
+        spaceCan={spaceCan}
+        hubCan={hubCan}
+        onTrash={hubId => {
+          const nodeId = treeManager.sharedNav.getNodeIdForAtomId(hubId);
+          if (!nodeId) return;
+
+          treeManager.moveToTrash(nodeId);
+
+          // If this hub was deleted, go home.
+          if (hubId === hub.hub_id) {
+            const homeHub = homeHubForSpaceId(hub.space_id, memberships);
+            navigateToHubUrl(history, homeHub.url);
+          }
+        }}
       />
     </div>
   );
@@ -449,7 +470,7 @@ function JelSidePanels({
   treeManager,
   history,
   hub,
-  //hubCan = () => false,
+  hubCan = () => false,
   spaceCan = () => false,
   //onHubDestroyConfirmed,
   memberships,
@@ -462,13 +483,6 @@ function JelSidePanels({
     treeManager.sharedNav.addToRoot(hub.hub_id);
     navigateToHubUrl(history, hub.url);
   };
-
-  //const onTrashClick = () => {
-  //  const nodeId = treeManager.sharedNav.getNodeIdForAtomId(hub.hub_id);
-  //  if (!nodeId) return;
-
-  //  treeManager.moveToTrash(nodeId);
-  //};
 
   //const onRestoreClick = () => {
   //  const nodeId = treeManager.sharedTrash.getNodeIdForAtomId(hub.hub_id);
@@ -534,7 +548,14 @@ function JelSidePanels({
             <PanelSectionHeader>
               <FormattedMessage id="nav.shared-worlds" />
             </PanelSectionHeader>
-            <HubTree treeManager={treeManager} hub={hub} history={history} />
+            <HubTree
+              treeManager={treeManager}
+              hub={hub}
+              history={history}
+              spaceCan={spaceCan}
+              hubCan={hubCan}
+              memberships={memberships}
+            />
           </NavSpill>
           <NavFoot>
             {spaceCan("create_hub") && (
@@ -572,7 +593,10 @@ JelSidePanels.propTypes = {
 HubTree.propTypes = {
   treeManager: PropTypes.object,
   history: PropTypes.object,
-  hub: PropTypes.object
+  hub: PropTypes.object,
+  spaceCan: PropTypes.func,
+  hubCan: PropTypes.func,
+  memberships: PropTypes.array
 };
 
 SpaceTree.propTypes = {

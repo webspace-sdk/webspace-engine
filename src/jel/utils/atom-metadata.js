@@ -5,11 +5,28 @@ export const ATOM_TYPES = {
   SPACE: 1
 };
 
+const VALID_PERMISSIONS = {
+  [ATOM_TYPES.HUB]: [
+    "update_hub_meta",
+    "update_hub_roles",
+    "close_hub",
+    "mute_users",
+    "kick_users",
+    "tweet",
+    "spawn_camera",
+    "spawn_drawing",
+    "spawn_and_move_media",
+    "spawn_emoji",
+    "fly",
+    "upload_files"
+  ],
+  [ATOM_TYPES.SPACE]: []
+};
+
 // Class which is used to track realtime updates to metadata for hubs and spaces.
 // Used for filling into the tree controls.
 export class AtomMetadata {
-  constructor(channel, atomType) {
-    this._channel = channel;
+  constructor(atomType) {
     this._metadata = new Map();
     this._metadataSubscribers = new Map();
     this._atomType = atomType;
@@ -28,12 +45,13 @@ export class AtomMetadata {
     }
   }
 
-  init() {
-    this._channel.channel.on(this._refreshMessage, metadata => {
-      const id = metadata[this._idColumn];
-      this._atomMetadata.set(id, metadata);
-      this._fireHandlerForSubscribersForUpdatedIds([id]);
-    });
+  bind(channel) {
+    if (this._channel) {
+      this._channel.channel.off(this._refreshMessage, this.handleChannelRefreshMessage);
+    }
+
+    this._channel = channel;
+    this._channel.channel.on(this._refreshMessage, this.handleChannelRefreshMessage);
   }
 
   // Subscribes to metadata changes for the given atom id.
@@ -62,12 +80,23 @@ export class AtomMetadata {
     }
   };
 
-  ensureMetadataForIds(ids) {
+  can(permission, atomId) {
+    if (!VALID_PERMISSIONS[this._atomType].includes(permission))
+      throw new Error(`Invalid permission name: ${permission}`);
+
+    if (!this.hasMetadata(atomId)) {
+      throw new Error(`Tried to fetch permissions for ${atomId} type ${this._atomType} but not loaded.`);
+    }
+
+    return !!this.getMetadata(atomId).permissions[permission];
+  }
+
+  ensureMetadataForIds(ids, force = false) {
     return new Promise(async res => {
       const idsToFetch = new Set();
 
       for (const id of ids) {
-        if (!this._metadata.has(id)) {
+        if (!this._metadata.has(id) || force) {
           idsToFetch.add(id);
         }
       }
@@ -101,6 +130,12 @@ export class AtomMetadata {
   getMetadata(id) {
     const metadata = this._metadata.get(id);
     return metadata || null;
+  }
+
+  handleChannelRefreshMessage(metadata) {
+    const id = metadata[this._idColumn];
+    this._atomMetadata.set(id, metadata);
+    this._fireHandlerForSubscribersForUpdatedIds([id]);
   }
 
   async getOrFetchMetadata(id) {
