@@ -12,7 +12,7 @@
 
   transition: opacity 0.05s linear;
 
-  &[data-popped-menu] {
+  &:focus-within {
     opacity: 1;
     pointer-events: auto;
 

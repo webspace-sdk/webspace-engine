@@ -3,5 +3,6 @@
   "nav.private-worlds": "Private Worlds",
   "nav.home-world": "Home World",
   "nav.create-world": "Create World",
-  "hub.unnamed-title": "Unnamed World"
+  "hub.unnamed-title": "Unnamed World",
+  "hub-context.move-to-trash": "Move to Trash"
 }

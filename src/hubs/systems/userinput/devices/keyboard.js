@@ -11,11 +11,9 @@ export class KeyboardDevice {
         if (!e.key) return;
         this.events.push(e);
 
-        // Global hotkey to hide any popups
-        if (e.type === "keydown" && e.key === "Escape") {
-          document.querySelectorAll("[data-popped-menu]").forEach(e => {
-            e.removeAttribute("data-popped-menu");
-          });
+        // Blur focused elements when a popup menu is open so it is closed
+        if (e.type === "keydown" && e.key === "Escape" && document.querySelector("#jel-popup-root:focus-within")) {
+          document.activeElement.blur();
         }
 
         // Non-repeated shift-space is cursor lock hotkey.

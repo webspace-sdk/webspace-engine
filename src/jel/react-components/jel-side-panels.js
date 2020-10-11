@@ -16,8 +16,9 @@ import ActionButton from "./action-button";
 import SpaceNodeIcon from "./space-node-icon";
 import scrollIntoView from "scroll-into-view-if-needed";
 import addIcon from "../assets/images/icons/add.svgi";
+import trashIcon from "../assets/images/icons/trash.svgi";
 import HubNodeTitle from "./hub-node-title";
-import PopupMenu from "./popup-menu";
+import { PopupMenu, PopupMenuItem } from "./popup-menu";
 import { usePopper } from "react-popper";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
@@ -249,8 +250,7 @@ function useHubTreeTitleControls(
             onDotsClick={(e, ref) => {
               setHubContextMenuHubId(data.atomId);
               setHubContextMenuReferenceElement(ref.current);
-              hubContextMenuElement.setAttribute("data-popped-menu", "");
-              hubContextMenuElement.focus();
+              hubContextMenuElement.querySelector("button").focus();
               e.preventDefault();
               e.stopPropagation();
             }}
@@ -275,11 +275,22 @@ const PopperPopupMenu = function({ styles, attributes, setPopperElement, hubId }
       tabIndex={100} // Ensures can be focused
       className={sharedStyles.showWhenPopped}
       ref={setPopperElement}
-      onBlur={e => e.target.removeAttribute("data-popped-menu")}
       style={styles.popper}
       {...attributes.popper}
     >
-      <PopupMenu>{hubId}</PopupMenu>
+      <PopupMenu>
+        <PopupMenuItem
+          onClick={e => {
+            console.log(hubId);
+            e.target.parentElement.blur(); // Blur button so menu hides
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          iconSrc={trashIcon}
+        >
+          <FormattedMessage id="hub-context.move-to-trash" />
+        </PopupMenuItem>
+      </PopupMenu>
     </div>
   );
 

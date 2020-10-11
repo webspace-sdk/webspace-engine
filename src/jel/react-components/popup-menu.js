@@ -1,14 +1,68 @@
 import styled from "styled-components";
-import React, { Component } from "react";
+import PropTypes from "prop-types";
+import React from "react";
 
-const MenuElement = styled.div`
-  background-color: red;
+export const PopupMenu = styled.div`
+  background-color: var(--menu-background-color);
   width: 256px;
-  height: 256px;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  border-radius: 3px;
+  border: 1px solid var(--menu-border-color);
+  box-shadow: 2px 2px 2px var(--menu-shadow-color);
 `;
 
-export default class PopupMenu extends Component {
-  render() {
-    return <MenuElement />;
+const PopupMenuItemElement = styled.button`
+  color: var(--menu-item-text-color);
+  font-size: var(--menu-item-text-size);
+  background-color: transparent;
+  appearance: none;
+  border: 0;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  text-align: left;
+  padding: 5px 10px;
+  width: 100%;
+  border-radius: 3px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  line-height: 26px;
+
+  &:hover {
+    background-color: var(--menu-item-hover-background-color);
   }
+
+  &:active {
+    color: var(--menu-item-active-text-color);
+    background-color: var(--menu-item-active-background-color);
+  }
+`;
+
+const PopupMenuIconElement = styled.div`
+  margin-left: 4px;
+  margin-right: 14px;
+  width: 24px;
+  height: 24px;
+`;
+
+export function PopupMenuItem(props) {
+  const filteredProps = { ...props };
+  delete filteredProps.iconSrc;
+
+  return (
+    <PopupMenuItemElement {...filteredProps}>
+      <PopupMenuIconElement dangerouslySetInnerHTML={{ __html: props.iconSrc }} />
+      <div>{props.children}</div>
+    </PopupMenuItemElement>
+  );
 }
+
+PopupMenuItem.propTypes = {
+  iconSrc: PropTypes.string,
+  children: PropTypes.object
+};
