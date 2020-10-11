@@ -453,7 +453,9 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships }) {
           const nodeId = treeManager.sharedNav.getNodeIdForAtomId(hubId);
           if (!nodeId) return;
 
-          treeManager.moveToTrash(nodeId);
+          window.APP.spaceChannel.trashHub(hubId);
+          // TODO deal with trashing
+          //treeManager.moveToTrash(nodeId);
 
           // If this hub was deleted, go home.
           if (hubId === hub.hub_id) {

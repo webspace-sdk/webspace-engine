@@ -75,6 +75,10 @@ export default class SpaceChannel extends EventTarget {
     this.channel.push("events:entered_hub", entryEvent);
   };
 
+  trashHub(hub_id) {
+    this.channel.push("trash_hub", { hub_id });
+  }
+
   beginStreaming() {
     this.channel.push("events:begin_streaming", {});
   }
