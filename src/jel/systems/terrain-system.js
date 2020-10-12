@@ -706,7 +706,6 @@ export class TerrainSystem {
   updateWorld(type, seed) {
     this.worldType = type;
     this.worldSeed = seed;
-    this.avatarZone = null;
     this.unloadWorld();
   }
 
@@ -1013,6 +1012,7 @@ export class TerrainSystem {
     spawningChunks.clear();
     avatarChunk.x = Infinity;
     avatarChunk.z = Infinity;
+    this.avatarZone = null;
   }
 
   getClosestNavNode(pos, navZone, navGroup) {
