@@ -891,7 +891,7 @@ async function start() {
       scene.addEventListener("shared-adapter-ready", assignDocToken, { once: true });
     }
 
-    remountJelUI({ hubCan: hubChannel.can.bind(hubChannel) });
+    remountJelUI({ hubCan: hubMetadata.can.bind(hubMetadata) });
   });
 
   scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(socket.params().session_id));

@@ -133,11 +133,11 @@ export class AtomMetadata {
     return metadata || null;
   }
 
-  handleChannelRefreshMessage(metadata) {
+  handleChannelRefreshMessage = metadata => {
     const id = metadata[this._idColumn];
-    this._atomMetadata.set(id, metadata);
+    this._metadata.set(id, metadata);
     this._fireHandlerForSubscribersForUpdatedIds([id]);
-  }
+  };
 
   async getOrFetchMetadata(id) {
     if (this._metadata.has(id)) {

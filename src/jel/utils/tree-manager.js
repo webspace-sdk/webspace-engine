@@ -49,18 +49,14 @@ class TreeManager extends EventTarget {
     this.hasPrivateSpaceTree = false;
 
     // Shared world navigation tree
-    this.sharedNav = new TreeSync("nav", this.sharedExpandedTreeNodes, hubMetadata);
+    // Filter out trashed nodes
+    const isNotTrashed = node => !hubMetadata.hasMetadata(node.h) || !hubMetadata.getMetadata(node.h).is_trashed;
 
-    // Shared world trash
-    this.sharedTrash = new TreeSync("trash", this.sharedExpandedTreeNodes, hubMetadata);
+    this.sharedNav = new TreeSync("nav", this.sharedExpandedTreeNodes, hubMetadata, isNotTrashed);
   }
 
   async init(connection, memberships) {
-    await Promise.all([
-      await this.privateSpace.init(connection),
-      await this.sharedNav.init(connection),
-      await this.sharedTrash.init(connection)
-    ]);
+    await Promise.all([await this.privateSpace.init(connection), await this.sharedNav.init(connection)]);
 
     await this.syncMembershipsToPrivateSpaceTree(memberships);
   }
@@ -76,7 +72,6 @@ class TreeManager extends EventTarget {
 
   setSpaceCollectionId(collectionId) {
     this.sharedNav.setCollectionId(collectionId);
-    this.sharedTrash.setCollectionId(collectionId);
   }
 
   setNodeExpanded(nodeId, expanded) {
@@ -92,18 +87,6 @@ class TreeManager extends EventTarget {
 
   sharedExpandedNodeIds() {
     return this.sharedExpandedTreeNodes.expandedNodeIds();
-  }
-
-  moveToTrash(nodeId) {
-    this.moveSubtreeToTree(nodeId, this.sharedNav, this.sharedTrash);
-  }
-
-  restoreFromTrash(nodeId) {
-    this.moveSubtreeToTree(nodeId, this.sharedTrash, this.sharedNav);
-  }
-
-  removeFromTrash(nodeId) {
-    this.sharedTrash.remove(nodeId);
   }
 
   removeSubtreeFromTree(nodeId, fromTree) {
@@ -161,7 +144,7 @@ class TreeManager extends EventTarget {
     if (!this.hasPrivateSpaceTree) return;
 
     const tree = this.privateSpace;
-    tree.rebuildExpandedTreeData();
+    tree.rebuildFilteredTreeData();
 
     [...memberships].sort(m => m.joined_at).forEach(({ space: { space_id } }) => {
       tree.addToRootIfNotExists(space_id);
@@ -187,7 +170,7 @@ class TreeManager extends EventTarget {
       return null;
     };
 
-    walk(tree.expandedTreeData);
+    walk(tree.filteredTreeData);
 
     for (const spaceId of spaceIdsToRemove) {
       const nodeId = tree.getNodeIdForAtomId(spaceId);

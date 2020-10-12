@@ -184,12 +184,9 @@ function useTreeData(tree, setTreeData) {
     () => {
       if (!tree) return () => {};
 
-      const handleTreeData = () => setTreeData(tree.expandedTreeData);
-
-      tree.addEventListener("expanded_treedata_updated", handleTreeData);
-      tree.rebuildExpandedTreeData();
-
-      () => tree.removeEventListener("expanded_treedata_updated", handleTreeData);
+      const handleTreeData = () => setTreeData(tree.filteredTreeData);
+      tree.addEventListener("filtered_treedata_updated", handleTreeData);
+      return () => tree.removeEventListener("filtered_treedata_updated", handleTreeData);
     },
     [tree, setTreeData]
   );
@@ -201,8 +198,7 @@ function useExpandableTree(treeManager) {
       if (!treeManager) return () => {};
 
       const handleExpandedNodeIdsChanged = () => {
-        treeManager.sharedNav.rebuildExpandedTreeData();
-        treeManager.sharedTrash.rebuildExpandedTreeData();
+        treeManager.sharedNav.rebuildFilteredTreeData();
       };
 
       treeManager.addEventListener("expanded_nodes_updated", handleExpandedNodeIdsChanged);
@@ -280,11 +276,12 @@ const PopperPopupMenu = function({ styles, attributes, setPopperElement, hubId, 
       {...attributes.popper}
     >
       <PopupMenu>
-        {spaceCan("edit_nav") ? (
+        {spaceCan("edit_nav") && hubId && hubCan("trash_hub", hubId) ? (
           <PopupMenuItem
             onClick={e => {
               onTrash(hubId);
-              e.target.parentElement.blur(); // Blur button so menu hides
+              // Blur button so menu hides
+              document.activeElement.blur();
               e.preventDefault();
               e.stopPropagation();
             }}
@@ -411,23 +408,6 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships }) {
 
   const navSelectedKeys = hub ? [treeManager.sharedNav.getNodeIdForAtomId(hub.hub_id)] : [];
 
-  // TODO TRASH
-  //const trashSelectedKeys = hub ? [treeManager.sharedTrash.getNodeIdForAtomd(hub.hub_id)] : [];
-  /* Trash
-      <Tree
-        prefixCls="hub-tree"
-        treeData={trashTreeData}
-        selectable={true}
-        selectedKeys={trashSelectedKeys}
-        draggable
-        expandedKeys={treeManager.sharedExpandedNodeIds()}
-        onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
-        onDragEnter={onTreeDragEnter}
-        onDrop={onTreeDrop}
-        onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
-      />{" "}
-      */
-
   return (
     <div>
       <Tree
@@ -525,10 +505,6 @@ function JelSidePanels({
 
   const space = spaceForSpaceId(spaceId, memberships);
 
-  //{spaceCan("edit_nav") && hubCan("close_hub") && <TestButton onClick={onTrashClick}>Trash World</TestButton>}
-  //{spaceCan("edit_nav") && <TestButton onClick={onRestoreClick}>Restore World</TestButton>}
-  //{hubCan("close_hub") && <TestButton onClick={onDestroyClick}>Destroy World</TestButton>}
-  //
   return (
     <WrappedIntlProvider>
       <JelWrap>
@@ -550,6 +526,7 @@ function JelSidePanels({
             <PanelSectionHeader>
               <FormattedMessage id="nav.shared-worlds" />
             </PanelSectionHeader>
+
             <HubTree
               treeManager={treeManager}
               hub={hub}

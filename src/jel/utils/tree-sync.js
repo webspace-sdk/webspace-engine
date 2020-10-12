@@ -11,12 +11,13 @@ function createNodeId() {
 }
 
 class TreeSync extends EventTarget {
-  constructor(docId, expandedTreeNodes, atomMetadata) {
+  constructor(docId, expandedTreeNodes, atomMetadata, nodeFilter = () => true) {
     super();
     this.docId = docId;
     this.expandedTreeNodes = expandedTreeNodes;
     this.atomMetadata = atomMetadata;
     this.titleControl = null;
+    this.nodeFilter = nodeFilter;
   }
 
   setCollectionId(collectionId) {
@@ -36,13 +37,14 @@ class TreeSync extends EventTarget {
     return new Promise(res => {
       doc.subscribe(async () => {
         doc.on("op", this.handleNavOp);
+        this.rebuildFilteredTreeData();
         res();
       });
     });
   }
 
-  handleNavOp = () => this.rebuildExpandedTreeData();
-  handleMetadataUpdate = () => this.rebuildExpandedTreeData();
+  handleNavOp = () => this.rebuildFilteredTreeData();
+  handleMetadataUpdate = () => this.rebuildFilteredTreeData();
 
   addToRoot(atomId) {
     if (Object.entries(this.doc.data).length === 0) {
@@ -284,12 +286,13 @@ class TreeSync extends EventTarget {
     ]);
   }
 
-  computeTree(parentFilter = () => true, visitor = null) {
+  computeTree(nodeFilter = () => true, parentFilter = () => true, visitor = null) {
     // The goal here is to convert the OT document to the UI's tree data structure.
     const depths = new Map();
     const tailNodes = new Set();
     const seenChildren = new Set();
     const parentNodes = new Set();
+    const filteredNodes = new Set();
 
     const entries = Object.entries(this.doc.data);
 
@@ -311,6 +314,10 @@ class TreeSync extends EventTarget {
       if (node.p) {
         parentNodes.add(node.p);
         if (!parentFilter(node.p)) continue;
+      }
+
+      if (!nodeFilter(node)) {
+        filteredNodes.add(nodeId);
       }
 
       const depth = this.getNodeDepth(node);
@@ -337,6 +344,7 @@ class TreeSync extends EventTarget {
 
       for (const [nodeId, node] of entries) {
         if (depths.get(nodeId) !== depth) continue;
+        if (node.p && filteredNodes.has(node.p)) filteredNodes.add(nodeId);
         if (!tailNodes.has(nodeId)) continue;
         if (node.p && !parentFilter(node.p)) continue;
 
@@ -360,27 +368,29 @@ class TreeSync extends EventTarget {
             nodeUrl = url;
           }
 
-          if (parentNodes.has(nid)) {
-            const subchildren = [];
-            nodeIdToChildren.set(nid, subchildren);
-            children.unshift({
-              key: nid,
-              name: nodeName,
-              title: this.titleControl || nodeName,
-              children: subchildren,
-              url: nodeUrl,
-              atomId,
-              isLeaf: false
-            });
-          } else {
-            children.unshift({
-              key: nid,
-              name: nodeName,
-              title: this.titleControl || nodeName,
-              url: nodeUrl,
-              atomId,
-              isLeaf: true
-            });
+          if (!filteredNodes.has(nid)) {
+            if (parentNodes.has(nid)) {
+              const subchildren = [];
+              nodeIdToChildren.set(nid, subchildren);
+              children.unshift({
+                key: nid,
+                name: nodeName,
+                title: this.titleControl || nodeName,
+                children: subchildren,
+                url: nodeUrl,
+                atomId,
+                isLeaf: false
+              });
+            } else {
+              children.unshift({
+                key: nid,
+                name: nodeName,
+                title: this.titleControl || nodeName,
+                url: nodeUrl,
+                atomId,
+                isLeaf: true
+              });
+            }
           }
 
           nid = n.r;
@@ -397,7 +407,7 @@ class TreeSync extends EventTarget {
     return treeData;
   }
 
-  rebuildExpandedTreeData() {
+  rebuildFilteredTreeData() {
     if (this.expandedIds) {
       for (const atomId of this.expandedIds) {
         this.atomMetadata.unsubscribeFromMetadata(atomId, this.handleMetadataUpdate);
@@ -406,11 +416,12 @@ class TreeSync extends EventTarget {
 
     this.expandedIds = new Set();
 
-    const isExpanded = nodeId => this.expandedTreeNodes.isExpanded(nodeId); // Filter
+    const isExpanded = nodeId => this.expandedTreeNodes.isExpanded(nodeId);
+
     const fillIds = (nodeId, node) => this.expandedIds.add(node.h); // Visitor
 
-    this.expandedTreeData = this.computeTree(isExpanded, fillIds);
-    this.dispatchEvent(new CustomEvent("expanded_treedata_updated"));
+    this.filteredTreeData = this.computeTree(this.nodeFilter, isExpanded, fillIds);
+    this.dispatchEvent(new CustomEvent("filtered_treedata_updated"));
 
     for (const atomId of this.expandedIds) {
       this.atomMetadata.subscribeToMetadata(atomId, this.handleMetadataUpdate);
@@ -484,7 +495,7 @@ class TreeSync extends EventTarget {
       return null;
     };
 
-    return walk(this.expandedTreeData || []);
+    return walk(this.filteredTreeData || []);
   }
 }
 

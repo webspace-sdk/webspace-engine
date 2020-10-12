@@ -1,24 +1,24 @@
 import { addMedia } from "../utils/media-utils";
 import { ObjectContentOrigins } from "../object-types";
 
+const isPermitted = superSpawner =>
+  window.APP.hubChannel &&
+  (superSpawner && superSpawner.data.template === "#interactable-emoji"
+    ? window.APP.hubChannel.can("spawn_emoji")
+    : window.APP.hubChannel.can("spawn_and_move_media"));
+
 // WARNING: This system mutates interaction system state!
 export class SuperSpawnerSystem {
   maybeSpawn(state, grabPath) {
     const userinput = AFRAME.scenes[0].systems.userinput;
     const superSpawner = state.hovered && state.hovered.components["super-spawner"];
 
-    const isPermitted =
-      window.APP.hubChannel &&
-      (superSpawner && superSpawner.data.template === "#interactable-emoji"
-        ? window.APP.hubChannel.can("spawn_emoji")
-        : window.APP.hubChannel.can("spawn_and_move_media"));
-
     if (
       superSpawner &&
       superSpawner.spawnedMediaScale &&
       !superSpawner.cooldownTimeout &&
       userinput.get(grabPath) &&
-      isPermitted
+      isPermitted(superSpawner)
     ) {
       this.performSpawn(state, grabPath, userinput, superSpawner);
     }
