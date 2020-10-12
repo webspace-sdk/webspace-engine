@@ -50,8 +50,8 @@ class TreeSync extends EventTarget {
     if (Object.entries(this.doc.data).length === 0) {
       this.addInitialItem(atomId);
     } else {
-      const [nodeId, node] = this.findTailUnder(null);
-      this.insertBelow(atomId, nodeId, node);
+      const belowNodeId = this.findTailNodeIdUnder(null);
+      this.insertBelow(atomId, belowNodeId);
     }
   }
 
@@ -75,7 +75,7 @@ class TreeSync extends EventTarget {
     const node = this.doc.data[nodeId];
     if (node.p === withinNodeId) return; // Already done
 
-    const [tailNodeId] = this.findTailUnder(withinNodeId);
+    const tailNodeId = this.findTailNodeIdUnder(withinNodeId);
 
     if (tailNodeId) {
       // Already have a tail under the new parent, just move below that one.
@@ -200,7 +200,9 @@ class TreeSync extends EventTarget {
     this.doc.submitOp(ops);
   }
 
-  insertBelow(atomId, belowNodeId, belowNode) {
+  insertBelow(atomId, belowNodeId) {
+    const belowNode = this.doc.data[belowNodeId];
+
     this.doc.submitOp([
       {
         p: [createNodeId()],
@@ -211,6 +213,37 @@ class TreeSync extends EventTarget {
         }
       }
     ]);
+  }
+
+  // Inserts a new node for atomId as the first child of underNodeId
+  insertUnder(atomId, underNodeId) {
+    const nodeId = createNodeId();
+
+    this.doc.submitOp([
+      {
+        p: [nodeId],
+        oi: {
+          h: atomId,
+          r: null,
+          p: underNodeId
+        }
+      }
+    ]);
+
+    for (const [nid, n] of Object.entries(this.doc.data)) {
+      if (n.p !== underNodeId || n.r) break;
+
+      // Update back ref of old node at top
+      this.doc.submitOp([
+        {
+          p: [nid, "r"],
+          od: n.r,
+          oi: nodeId
+        }
+      ]);
+    }
+
+    return nodeId;
   }
 
   remove(nodeId) {
@@ -261,7 +294,7 @@ class TreeSync extends EventTarget {
     this.doc.submitOp(ops);
   }
 
-  findTailUnder(underParentId) {
+  findTailNodeIdUnder(underParentId) {
     const seenChildren = new Set();
 
     const entries = Object.entries(this.doc.data);
@@ -273,10 +306,10 @@ class TreeSync extends EventTarget {
 
     for (const [nodeId, node] of entries) {
       if (seenChildren.has(nodeId)) continue;
-      if (node.p === underParentId) return [nodeId, node];
+      if (node.p === underParentId) return nodeId;
     }
 
-    return [null, null];
+    return null;
   }
 
   addInitialItem(atomId) {
@@ -453,7 +486,7 @@ class TreeSync extends EventTarget {
     if (!this.doc.data[r]) {
       node.r = null;
 
-      const [tailId] = this.findTailUnder(node.p);
+      const tailId = this.findTailNodeIdUnder(node.p);
 
       if (tailId) {
         node.r = tailId;

@@ -179,6 +179,27 @@ const SpaceTreeSpill = styled.div`
   }
 `;
 
+function navigateToHubUrl(history, url, replace = false) {
+  const search = history.location.search;
+  const path = new URL(url).pathname;
+  (replace ? replaceHistoryPath : pushHistoryPath)(history, path, search);
+}
+
+async function createNewHub(history, treeManager, spaceId, insertUnderAtomId) {
+  const tree = treeManager.sharedNav;
+  const hub = await createHub(spaceId);
+  const insertUnderNodeId = insertUnderAtomId ? tree.getNodeIdForAtomId(insertUnderAtomId) : null;
+
+  if (insertUnderNodeId) {
+    treeManager.sharedNav.insertUnder(hub.hub_id, insertUnderNodeId);
+    treeManager.setNodeIsExpanded(insertUnderNodeId, true);
+  } else {
+    treeManager.sharedNav.addToRoot(hub.hub_id);
+  }
+
+  navigateToHubUrl(history, hub.url);
+}
+
 function useTreeData(tree, setTreeData) {
   useEffect(
     () => {
@@ -237,6 +258,8 @@ function useScrollToSelectedTreeNode(atom) {
 
 function useHubTreeTitleControls(
   treeManager,
+  history,
+  hub,
   hubContextMenuElement,
   setHubContextMenuHubId,
   setHubContextMenuReferenceElement
@@ -248,6 +271,7 @@ function useHubTreeTitleControls(
         return (
           <HubNodeTitle
             name={data.name}
+            onAddClick={() => createNewHub(history, treeManager, hub.space_id, data.atomId)}
             onDotsClick={(e, ref) => {
               setHubContextMenuHubId(data.atomId);
               setHubContextMenuReferenceElement(ref.current);
@@ -261,7 +285,7 @@ function useHubTreeTitleControls(
       });
       return () => {};
     },
-    [treeManager, hubContextMenuElement, setHubContextMenuReferenceElement, setHubContextMenuHubId]
+    [treeManager, history, hub, hubContextMenuElement, setHubContextMenuReferenceElement, setHubContextMenuHubId]
   );
 }
 
@@ -315,17 +339,11 @@ const createTreeDropHandler = treeManager => (tree, allowNesting = true) => ({ d
     case 0:
       if (allowNesting) {
         treeManager[tree].moveInto(dragNode.key, node.key);
-        treeManager.setNodeExpanded(node.key, true);
+        treeManager.setNodeIsExpanded(node.key, true);
       }
       break;
   }
 };
-
-function navigateToHubUrl(history, url, replace = false) {
-  const search = history.location.search;
-  const path = new URL(url).pathname;
-  (replace ? replaceHistoryPath : pushHistoryPath)(history, path, search);
-}
 
 function membershipForSpaceId(spaceId, memberships) {
   if (!memberships) return null;
@@ -400,6 +418,8 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships }) {
 
   useHubTreeTitleControls(
     treeManager,
+    history,
+    hub,
     hubContextMenuElement,
     setHubContextMenuHubId,
     setHubContextMenuReferenceElement
@@ -417,11 +437,11 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships }) {
         selectable={true}
         selectedKeys={navSelectedKeys}
         draggable
-        onDragEnter={({ node }) => treeManager.setNodeExpanded(node.key, true)}
+        onDragEnter={({ node }) => treeManager.setNodeIsExpanded(node.key, true)}
         onDrop={createTreeDropHandler(treeManager)("sharedNav")}
         onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
         expandedKeys={treeManager.sharedExpandedNodeIds()}
-        onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeExpanded(key, expanded)}
+        onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeIsExpanded(key, expanded)}
       />
       <PopperPopupMenu
         setPopperElement={setHubContextMenuElement}
@@ -473,33 +493,7 @@ function JelSidePanels({
 }) {
   const messages = getMessages();
 
-  const onCreateClick = async () => {
-    const hub = await createHub(spaceId);
-    treeManager.sharedNav.addToRoot(hub.hub_id);
-    navigateToHubUrl(history, hub.url);
-  };
-
-  //const onRestoreClick = () => {
-  //  const nodeId = treeManager.sharedTrash.getNodeIdForAtomId(hub.hub_id);
-  //  if (!nodeId) return;
-
-  //  treeManager.restoreFromTrash(nodeId);
-  //};
-
   const homeHub = homeHubForSpaceId(spaceId, memberships);
-
-  //const onDestroyClick = async () => {
-  //  const hubId = hub.hub_id;
-  //  const nodeId = treeManager.sharedTrash.getNodeIdForAtomId(hubId);
-  //  if (!nodeId) return;
-
-  //  const destroyed = await onHubDestroyConfirmed(hubId);
-  //  if (destroyed) {
-  //    treeManager.removeFromTrash(nodeId);
-  //  }
-
-  //  navigateToHubUrl(history, homeHub.url, true);
-  //};
 
   // For now private tree is just home hub
   const privateSelectedKeys = hub && homeHub && hub.hub_id === homeHub.hub_id ? [hub.hub_id] : [];
@@ -551,7 +545,11 @@ function JelSidePanels({
           </NavSpill>
           <NavFoot>
             {spaceCan("create_hub") && (
-              <ActionButton iconSrc={addIcon} onClick={onCreateClick} style={{ width: "80%" }}>
+              <ActionButton
+                iconSrc={addIcon}
+                onClick={() => createNewHub(history, treeManager, spaceId)}
+                style={{ width: "80%" }}
+              >
                 <FormattedMessage id="nav.create-world" />
               </ActionButton>
             )}

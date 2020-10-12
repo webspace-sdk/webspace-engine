@@ -31,6 +31,7 @@ const PopupMenuItemElement = styled.button`
   display: flex;
   flex-direction: row;
   align-items: flex-start;
+  height: 32px;
   line-height: 26px;
 
   &:hover {

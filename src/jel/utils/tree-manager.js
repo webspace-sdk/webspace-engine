@@ -74,7 +74,7 @@ class TreeManager extends EventTarget {
     this.sharedNav.setCollectionId(collectionId);
   }
 
-  setNodeExpanded(nodeId, expanded) {
+  setNodeIsExpanded(nodeId, expanded) {
     // TODO private hubs
     if (expanded) {
       // Expand node + all parents
