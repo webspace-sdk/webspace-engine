@@ -77,7 +77,13 @@ class TreeManager extends EventTarget {
   setNodeExpanded(nodeId, expanded) {
     // TODO private hubs
     if (expanded) {
-      this.sharedExpandedTreeNodes.set(nodeId);
+      // Expand node + all parents
+      let nid = nodeId;
+
+      do {
+        this.sharedExpandedTreeNodes.set(nid);
+        nid = this.sharedNav.getParentNodeId(nid);
+      } while (nid);
     } else {
       this.sharedExpandedTreeNodes.unset(nodeId);
     }

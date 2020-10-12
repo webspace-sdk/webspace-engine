@@ -260,10 +260,6 @@ function useHubTreeTitleControls(
   );
 }
 
-const onTreeDragEnter = () => {
-  // TODO store + expand
-};
-
 const PopperPopupMenu = function({ styles, attributes, setPopperElement, hubId, spaceCan, hubCan, onTrash }) {
   if (!popupRoot) return null;
 
@@ -314,6 +310,7 @@ const createTreeDropHandler = treeManager => (tree, allowNesting = true) => ({ d
     case 0:
       if (allowNesting) {
         treeManager[tree].moveInto(dragNode.key, node.key);
+        treeManager.setNodeExpanded(node.key, true);
       }
       break;
   }
@@ -365,7 +362,6 @@ function SpaceTree({ treeManager, history, space, memberships }) {
         selectable={true}
         selectedKeys={spaceSelectedKeys}
         draggable
-        onDragEnter={onTreeDragEnter}
         onDrop={createTreeDropHandler(treeManager)("privateSpace", false)}
         onSelect={(selectedKeys, { node: { atomId } }) =>
           navigateToHubUrl(history, homeHubForSpaceId(atomId, memberships).url)
@@ -416,7 +412,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships }) {
         selectable={true}
         selectedKeys={navSelectedKeys}
         draggable
-        onDragEnter={onTreeDragEnter}
+        onDragEnter={({ node }) => treeManager.setNodeExpanded(node.key, true)}
         onDrop={createTreeDropHandler(treeManager)("sharedNav")}
         onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
         expandedKeys={treeManager.sharedExpandedNodeIds()}
@@ -430,18 +426,30 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships }) {
         spaceCan={spaceCan}
         hubCan={hubCan}
         onTrash={hubId => {
-          const nodeId = treeManager.sharedNav.getNodeIdForAtomId(hubId);
-          if (!nodeId) return;
+          const tree = treeManager.sharedNav;
+          if (!tree.getNodeIdForAtomId(hubId)) return;
+
+          // If this hub or any of its parents were deleted, go home.
+          let nodeId = tree.getNodeIdForAtomId(hub.hub_id);
+
+          if (nodeId) {
+            let removedSelfSubtree = false;
+
+            do {
+              if (tree.getAtomIdForNodeId(nodeId) === hubId) {
+                removedSelfSubtree = true;
+              }
+
+              nodeId = tree.getParentNodeId(nodeId);
+            } while (nodeId);
+
+            if (removedSelfSubtree) {
+              const homeHub = homeHubForSpaceId(hub.space_id, memberships);
+              navigateToHubUrl(history, homeHub.url);
+            }
+          }
 
           window.APP.spaceChannel.trashHub(hubId);
-          // TODO deal with trashing
-          //treeManager.moveToTrash(nodeId);
-
-          // If this hub was deleted, go home.
-          if (hubId === hub.hub_id) {
-            const homeHub = homeHubForSpaceId(hub.space_id, memberships);
-            navigateToHubUrl(history, homeHub.url);
-          }
         }}
       />
     </div>

@@ -72,11 +72,13 @@ export default class HubChannel extends EventTarget {
   };
 
   updateScene = url => {
+    if (!this.channel) return;
     if (!this._permissions.update_hub_meta) return "unauthorized";
     this.channel.push("update_scene", { url });
   };
 
   updateHub = settings => {
+    if (!this.channel) return;
     if (!this._permissions.update_hub_meta) return "unauthorized";
     this.channel.push("update_hub_meta", settings);
   };
@@ -104,6 +106,7 @@ export default class HubChannel extends EventTarget {
   };
 
   sendMessage = (body, type = "chat") => {
+    if (!this.channel) return;
     if (!body) return;
     this.channel.push("message", { body, type });
   };
@@ -129,6 +132,7 @@ export default class HubChannel extends EventTarget {
   sendNAF = (reliable, clientId, dataType, data) => {
     const payload = { dataType, data };
     const { channel } = this;
+    if (!channel) return;
 
     if (clientId) {
       payload.clientId = clientId;
@@ -167,12 +171,14 @@ export default class HubChannel extends EventTarget {
   };
 
   hide = sessionId => {
+    if (!this.channel) return;
     NAF.connection.adapter.block(sessionId);
     this.channel.push("block", { session_id: sessionId });
     this._blockedSessionIds.add(sessionId);
   };
 
   unhide = sessionId => {
+    if (!this.channel) return;
     if (!this._blockedSessionIds.has(sessionId)) return;
     NAF.connection.adapter.unblock(sessionId);
     NAF.connection.entities.completeSync(sessionId);
@@ -183,6 +189,7 @@ export default class HubChannel extends EventTarget {
   isHidden = sessionId => this._blockedSessionIds.has(sessionId);
 
   kick = async sessionId => {
+    if (!this.channel) return;
     const permsToken = await this.fetchPermissions();
     NAF.connection.adapter.kick(sessionId, permsToken);
     this.channel.push("kick", { session_id: sessionId });
@@ -192,13 +199,17 @@ export default class HubChannel extends EventTarget {
   favorite = () => this.channel.push("favorite", {});
   unfavorite = () => this.channel.push("unfavorite", {});
   leave = () => {
-    this.channel.leave();
+    if (this.channel) {
+      this.channel.leave();
+    }
+
     this.channel = null;
   };
 
   disconnect = () => {
     if (this.channel) {
       this.channel.socket.disconnect();
+      this.channel = null;
     }
   };
 }

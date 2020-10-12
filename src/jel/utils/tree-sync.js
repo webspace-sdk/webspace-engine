@@ -63,6 +63,14 @@ class TreeSync extends EventTarget {
     }
   }
 
+  getParentNodeId(nodeId) {
+    return (this.doc.data[nodeId] || {}).p;
+  }
+
+  getAtomIdForNodeId(nodeId) {
+    return (this.doc.data[nodeId] || {}).h;
+  }
+
   moveInto(nodeId, withinNodeId) {
     const node = this.doc.data[nodeId];
     if (node.p === withinNodeId) return; // Already done
@@ -311,7 +319,7 @@ class TreeSync extends EventTarget {
         seenChildren.add(node.r);
       }
 
-      if (node.p) {
+      if (node.p && nodeFilter(node)) {
         parentNodes.add(node.p);
         if (!parentFilter(node.p)) continue;
       }
@@ -358,20 +366,21 @@ class TreeSync extends EventTarget {
         do {
           if (visitor) visitor(nid, n);
 
-          const atomId = n.h;
-          let nodeName = "";
-          let nodeUrl = null;
+          const subchildren = [];
+          nodeIdToChildren.set(nid, subchildren);
 
-          if (this.atomMetadata.hasMetadata(n.h)) {
-            const { name, url } = this.atomMetadata.getMetadata(atomId);
-            nodeName = name || DEFAULT_HUB_NAME;
-            nodeUrl = url;
-          }
+          if (!filteredNodes.has(nid) && children) {
+            const atomId = n.h;
+            let nodeName = "";
+            let nodeUrl = null;
 
-          if (!filteredNodes.has(nid)) {
+            if (this.atomMetadata.hasMetadata(n.h)) {
+              const { name, url } = this.atomMetadata.getMetadata(atomId);
+              nodeName = name || DEFAULT_HUB_NAME;
+              nodeUrl = url;
+            }
+
             if (parentNodes.has(nid)) {
-              const subchildren = [];
-              nodeIdToChildren.set(nid, subchildren);
               children.unshift({
                 key: nid,
                 name: nodeName,
