@@ -18,6 +18,7 @@ import HubNodeTitle from "./hub-node-title";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { FormattedMessage } from "react-intl";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import "../assets/stylesheets/hub-tree.scss";
 
 let popupRoot = null;
 
