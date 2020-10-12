@@ -1,3 +1,5 @@
+import { pushHistoryPath, replaceHistoryPath } from "../../hubs/utils/history";
+
 const qs = new URLSearchParams(location.search);
 
 function getSidsFromHistory(history) {
@@ -15,6 +17,12 @@ export function getHubIdFromHistory(history) {
 
 export function getSpaceIdFromHistory(history) {
   return getSidsFromHistory(history).substring(0, 5);
+}
+
+export function navigateToHubUrl(history, url, replace = false) {
+  const search = history.location.search;
+  const path = new URL(url).pathname;
+  (replace ? replaceHistoryPath : pushHistoryPath)(history, path, search);
 }
 
 export function setupPeerConnectionConfig(adapter, host, turn) {
