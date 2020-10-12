@@ -706,6 +706,7 @@ export class TerrainSystem {
   updateWorld(type, seed) {
     this.worldType = type;
     this.worldSeed = seed;
+    this.avatarZone = null;
     this.unloadWorld();
   }
 
