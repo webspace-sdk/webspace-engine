@@ -51,7 +51,8 @@ export default class HubNodeTitle extends Component {
     name: PropTypes.string,
     onAddClick: PropTypes.func,
     onDotsClick: PropTypes.func,
-    popupRef: PropTypes.object
+    popupRef: PropTypes.object,
+    showAdd: PropTypes.bool
   };
 
   constructor() {
@@ -67,7 +68,7 @@ export default class HubNodeTitle extends Component {
         <HubControls className="controls">
           <IconButton iconSrc={dotsIcon} onClick={e => this.props.onDotsClick(e, this.popupRef)} />
           <PopupRef ref={this.popupRef} />
-          <IconButton iconSrc={addIcon} onClick={this.props.onAddClick} />
+          {this.props.showAdd && <IconButton iconSrc={addIcon} onClick={this.props.onAddClick} />}
         </HubControls>
       </HubNodeElement>
     );

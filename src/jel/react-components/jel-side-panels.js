@@ -4,8 +4,6 @@ import { FormattedMessage } from "react-intl";
 import { getMessages } from "../../hubs/utils/i18n";
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import "../assets/stylesheets/hub-tree.scss";
-import "../assets/stylesheets/space-tree.scss";
 import Tree from "rc-tree";
 import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";

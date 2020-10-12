@@ -21,15 +21,13 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import "../assets/stylesheets/hub-tree.scss";
 
 let popupRoot = null;
-
-waitForDOMContentLoaded().then(() => {
-  popupRoot = document.getElementById("jel-popup-root");
-});
+waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
 
 export function useHubTreeTitleControls(
   treeManager,
   history,
   hub,
+  spaceCan,
   hubContextMenuElement,
   setHubContextMenuHubId,
   setHubContextMenuReferenceElement
@@ -37,10 +35,13 @@ export function useHubTreeTitleControls(
   useEffect(
     () => {
       if (!treeManager) return;
+      const showAdd = spaceCan("create_hub");
+
       treeManager.setNavTitleControl(data => {
         return (
           <HubNodeTitle
             name={data.name}
+            showAdd={showAdd}
             onAddClick={() => addNewHubToTree(history, treeManager, hub.space_id, data.atomId)}
             onDotsClick={(e, ref) => {
               setHubContextMenuHubId(data.atomId);
@@ -55,7 +56,15 @@ export function useHubTreeTitleControls(
       });
       return () => {};
     },
-    [treeManager, history, hub, hubContextMenuElement, setHubContextMenuReferenceElement, setHubContextMenuHubId]
+    [
+      treeManager,
+      history,
+      hub,
+      spaceCan,
+      hubContextMenuElement,
+      setHubContextMenuReferenceElement,
+      setHubContextMenuHubId
+    ]
   );
 }
 
@@ -122,6 +131,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships }) {
     treeManager,
     history,
     hub,
+    spaceCan,
     hubContextMenuElement,
     setHubContextMenuHubId,
     setHubContextMenuReferenceElement
