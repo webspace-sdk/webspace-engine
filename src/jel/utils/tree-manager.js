@@ -50,7 +50,7 @@ class TreeManager extends EventTarget {
 
     // Shared world navigation tree
     // Filter out trashed nodes
-    const isNotTrashed = node => !hubMetadata.hasMetadata(node.h) || !hubMetadata.getMetadata(node.h).is_trashed;
+    const isNotTrashed = node => hubMetadata.hasMetadata(node.h) && !hubMetadata.getMetadata(node.h).is_trashed;
 
     this.sharedNav = new TreeSync("nav", this.sharedExpandedTreeNodes, hubMetadata, isNotTrashed);
   }

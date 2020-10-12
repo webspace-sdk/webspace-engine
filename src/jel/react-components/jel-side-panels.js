@@ -185,6 +185,11 @@ function useTreeData(tree, setTreeData) {
       if (!tree) return () => {};
 
       const handleTreeData = () => setTreeData(tree.filteredTreeData);
+
+      // Tree itself changed because effect was fired
+      handleTreeData();
+
+      // Tree internal state changed
       tree.addEventListener("filtered_treedata_updated", handleTreeData);
       return () => tree.removeEventListener("filtered_treedata_updated", handleTreeData);
     },
