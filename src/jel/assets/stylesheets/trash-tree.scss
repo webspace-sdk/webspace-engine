@@ -1,0 +1,5 @@
+:local(.trash-tree) {
+  .hub-tree-switcher, .hub-tree-iconEle {
+    display: none !important; // Hacky, hide switcher + icon
+  }
+}
