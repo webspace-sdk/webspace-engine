@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React from "react";
+import React, { forwardRef } from "react";
 
 import styled from "styled-components";
 
@@ -64,16 +64,15 @@ const TextContainer = styled.div`
   margin-left: 33px;
 `;
 
-function PanelItemButton(props) {
+const PanelItemButton = forwardRef((props, ref) => {
   const popupRef = React.createRef();
   const filteredProps = { ...props };
   delete filteredProps.iconSrc;
-  delete filteredProps.onClick;
   delete filteredProps.children;
 
   if (props.iconSrc) {
     return (
-      <PanelItemButtonElement {...filteredProps} ref={popupRef} onClick={e => props.onClick(e, popupRef)}>
+      <PanelItemButtonElement {...filteredProps} ref={ref}>
         <PanelItemButtonIconHolder>
           <PanelItemButtonIcon dangerouslySetInnerHTML={{ __html: props.iconSrc }} />
         </PanelItemButtonIconHolder>
@@ -82,16 +81,19 @@ function PanelItemButton(props) {
     );
   } else {
     return (
-      <PanelItemButtonElement {...filteredProps} ref={popupRef} onClick={e => props.onClick(e, popupRef)}>
+      <PanelItemButtonElement {...filteredProps} ref={popupRef}>
         <TextContainer>{props.children}</TextContainer>
       </PanelItemButtonElement>
     );
   }
-}
+});
+
+PanelItemButton.displayName = "PanelItemButton";
 
 PanelItemButton.propTypes = {
   iconSrc: PropTypes.string,
-  onClick: PropTypes.func
+  onClick: PropTypes.func,
+  children: PropTypes.array
 };
 
-export { PanelItemButtonSection, PanelItemButton };
+export { PanelItemButton as default, PanelItemButtonSection };

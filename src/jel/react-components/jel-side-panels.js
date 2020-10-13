@@ -14,7 +14,7 @@ import { homeHubForSpaceId, spaceForSpaceId } from "../utils/membership-utils";
 import { addNewHubToTree } from "../utils/tree-utils";
 import SpaceTree from "./space-tree";
 import HubTree from "./hub-tree";
-import { PanelItemButton, PanelItemButtonSection } from "./panel-item-button";
+import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
 import trashIcon from "../assets/images/icons/trash.svgi";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import ReactDOM from "react-dom";
@@ -205,6 +205,8 @@ function JelSidePanels({
   const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
   const [trashMenuElement, setTrashMenuElement] = useState(null);
 
+  const trashButtonRef = React.createRef();
+
   const { styles: trashMenuStyles, attributes: trashMenuAttributes } = usePopper(
     trashMenuReferenceElement,
     trashMenuElement,
@@ -269,9 +271,12 @@ function JelSidePanels({
             <PanelItemButtonSection>
               <PanelItemButton
                 iconSrc={trashIcon}
-                onClick={(e, ref) => {
-                  setTrashMenuReferenceElement(ref.current);
+                ref={trashButtonRef}
+                onClick={e => {
+                  setTrashMenuReferenceElement(trashButtonRef.current);
                   trashMenuElement.focus();
+                  e.preventDefault();
+                  e.stopPropagation();
                 }}
               >
                 <FormattedMessage id="nav.trash" />

@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React from "react";
+import React, { forwardRef } from "react";
 
 import styled from "styled-components";
 
@@ -33,18 +33,20 @@ const IconButtonIcon = styled.div`
   height: 22px;
 `;
 
-export default function IconButton(props) {
+const IconButton = forwardRef((props, ref) => {
   const filteredProps = { ...props };
   delete filteredProps.iconSrc;
   delete filteredProps.children;
   return (
-    <IconButtonElement {...filteredProps}>
+    <IconButtonElement {...filteredProps} ref={ref}>
       <IconButtonIcon dangerouslySetInnerHTML={{ __html: props.iconSrc }} />
     </IconButtonElement>
   );
-}
+});
 
 IconButton.propTypes = {
   iconSrc: PropTypes.string,
   includeBorder: PropTypes.bool
 };
+
+export default IconButton;

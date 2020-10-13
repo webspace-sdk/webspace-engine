@@ -4,6 +4,9 @@ import styled from "styled-components";
 import IconButton from "./icon-button";
 import restoreIcon from "../assets/images/icons/restore.svgi";
 import trashIcon from "../assets/images/icons/trash.svgi";
+import Tippy, { TippySingleton } from "@tippy.js/react";
+import "tippy.js/dist/tippy.css";
+import { getMessages } from "../../hubs/utils/i18n";
 
 const HubTrashNodeElement = styled.div`
   display: flex;
@@ -27,14 +30,6 @@ const HubTitle = styled.div`
   flex-basis: calc(100% - 58px);
 `;
 
-const PopupRef = styled.div`
-  position: absolute;
-  width: 0;
-  height: 0;
-  left: 10px;
-  top: 12px;
-`;
-
 export default class HubTrashNodeTitle extends Component {
   static propTypes = {
     name: PropTypes.string,
@@ -45,12 +40,20 @@ export default class HubTrashNodeTitle extends Component {
   };
 
   render() {
+    const messages = getMessages();
+
     return (
       <HubTrashNodeElement>
         <HubTitle className="title">{this.props.name}</HubTitle>
         <HubControls className="controls">
-          <IconButton iconSrc={restoreIcon} onClick={e => this.props.onRestoreClick(e)} />
-          <IconButton iconSrc={trashIcon} onClick={this.props.onDestroyClick} />
+          <TippySingleton delay={500}>
+            <Tippy content={messages["trash.restore"]} placement="bottom">
+              <IconButton iconSrc={restoreIcon} onClick={e => this.props.onRestoreClick(e)} />
+            </Tippy>
+            <Tippy content={messages["trash.destroy"]} placement="bottom">
+              <IconButton iconSrc={trashIcon} onClick={this.props.onDestroyClick} />
+            </Tippy>
+          </TippySingleton>
         </HubControls>
       </HubTrashNodeElement>
     );

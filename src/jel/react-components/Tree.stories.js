@@ -7,7 +7,7 @@ import HubNodeTitle from "./hub-node-title";
 import HubTrashNodeTitle from "./hub-trash-node-title";
 import classNames from "classnames";
 import PanelSectionHeader from "./panel-section-header";
-import { PanelItemButton, PanelItemButtonSection } from "./panel-item-button";
+import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
 import trashIcon from "../assets/images/icons/trash.svgi";
 
 const createHubTitleNode = props => {
