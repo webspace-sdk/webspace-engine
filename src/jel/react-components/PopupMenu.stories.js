@@ -1,5 +1,5 @@
 import React from "react";
-import { PopupMenu, PopupMenuItem } from "./popup-menu";
+import PopupMenu, { PopupMenuItem } from "./popup-menu";
 import sharedStyles from "../assets/stylesheets/shared.scss";
 import classNames from "classnames";
 import addIcon from "../assets/images/icons/add.svgi";

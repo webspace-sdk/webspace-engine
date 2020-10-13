@@ -12,7 +12,7 @@ import {
   findChildrenAtomsInTreeData
 } from "../utils/tree-utils";
 import { homeHubForSpaceId } from "../utils/membership-utils";
-import { PopupMenu, PopupMenuItem } from "./popup-menu";
+import PopupMenu, { PopupMenuItem } from "./popup-menu";
 import trashIcon from "../assets/images/icons/trash.svgi";
 import sharedStyles from "../assets/stylesheets/shared.scss";
 import HubNodeTitle from "./hub-node-title";
@@ -123,10 +123,8 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships }) {
       placement: "bottom-start"
     }
   );
-  //const [trashTreeData, setTrashTreeData] = useState([]);
 
   useTreeData(treeManager && treeManager.sharedNav, setNavTreeData);
-  //useTreeData(treeManager && treeManager.sharedTrash, setTrashTreeData);
   useExpandableTree(treeManager);
 
   // Ensure current selected node is always visible

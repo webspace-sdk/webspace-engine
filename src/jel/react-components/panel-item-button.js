@@ -93,7 +93,7 @@ PanelItemButton.displayName = "PanelItemButton";
 PanelItemButton.propTypes = {
   iconSrc: PropTypes.string,
   onClick: PropTypes.func,
-  children: PropTypes.array
+  children: PropTypes.node
 };
 
 export { PanelItemButton as default, PanelItemButtonSection };

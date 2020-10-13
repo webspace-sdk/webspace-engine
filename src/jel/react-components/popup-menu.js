@@ -2,7 +2,7 @@ import styled from "styled-components";
 import PropTypes from "prop-types";
 import React from "react";
 
-export const PopupMenu = styled.div`
+const PopupMenu = styled.div`
   background-color: var(--menu-background-color);
   width: 256px;
   height: fit-content;
@@ -51,7 +51,7 @@ const PopupMenuIconElement = styled.div`
   height: 24px;
 `;
 
-export function PopupMenuItem(props) {
+function PopupMenuItem(props) {
   const filteredProps = { ...props };
   delete filteredProps.iconSrc;
 
@@ -67,3 +67,5 @@ PopupMenuItem.propTypes = {
   iconSrc: PropTypes.string,
   children: PropTypes.object
 };
+
+export { PopupMenu as default, PopupMenuItem };

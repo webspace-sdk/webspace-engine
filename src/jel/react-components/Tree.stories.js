@@ -2,7 +2,7 @@ import React from "react";
 import Tree from "rc-tree";
 import "../assets/stylesheets/hub-tree.scss";
 import sharedStyles from "../assets/stylesheets/shared.scss";
-import trashTreeStyles from "../assets/stylesheets/trash-tree.scss";
+import trashTreeStyles from "../assets/stylesheets/hub-trash-tree.scss";
 import HubNodeTitle from "./hub-node-title";
 import HubTrashNodeTitle from "./hub-trash-node-title";
 import classNames from "classnames";
@@ -32,11 +32,11 @@ const createHubTrashTitleNode = props => {
     <HubTrashNodeTitle
       {...props}
       showAdd={true}
-      onRestoreClicked={e => {
+      onRestoreClick={e => {
         e.preventDefault();
         console.log("restore clicked");
       }}
-      onDestroyClicked={e => {
+      onDestroyClick={e => {
         e.preventDefault();
         console.log("destroy clicked");
       }}

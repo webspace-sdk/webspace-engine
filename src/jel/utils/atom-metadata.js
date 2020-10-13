@@ -9,6 +9,7 @@ const VALID_PERMISSIONS = {
   [ATOM_TYPES.HUB]: [
     "update_hub_meta",
     "update_hub_roles",
+    "join_hub",
     "close_hub",
     "trash_hub",
     "mute_users",

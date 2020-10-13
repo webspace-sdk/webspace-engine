@@ -1,6 +1,13 @@
 import { EventTarget } from "event-target-shim";
 import { DEFAULT_HUB_NAME } from "../../hubs/utils/media-utils";
 
+// Nested will generate a nested tree with leaves, flat will generate all the nodes
+// in a flat list, with the deepest nodes last.
+const TREE_PROJECTION_TYPE = {
+  NESTED: 0,
+  FLAT: 1
+};
+
 // tree doc data structure is:
 // nodeId -> { h: "hubId", r: "prevNodeId", p: "parentNodeId" }
 
@@ -11,13 +18,20 @@ function createNodeId() {
 }
 
 class TreeSync extends EventTarget {
-  constructor(docId, expandedTreeNodes, atomMetadata, nodeFilter = () => true) {
+  constructor(
+    docId,
+    expandedTreeNodes,
+    atomMetadata,
+    nodeFilter = () => true,
+    projectionType = TREE_PROJECTION_TYPE.NESTED
+  ) {
     super();
     this.docId = docId;
     this.expandedTreeNodes = expandedTreeNodes;
     this.atomMetadata = atomMetadata;
     this.titleControl = null;
     this.nodeFilter = nodeFilter;
+    this.projectionType = projectionType;
   }
 
   setCollectionId(collectionId) {
@@ -29,7 +43,7 @@ class TreeSync extends EventTarget {
   }
 
   init(connection) {
-    if (!this.collectionId || !this.docId) return Promise.resolved();
+    if (!this.collectionId || !this.docId) return Promise.resolve();
 
     const doc = connection.get(this.collectionId, this.docId);
     this.doc = doc;
@@ -391,7 +405,7 @@ class TreeSync extends EventTarget {
 
         // Tail node for the current depth, build the child list for this node's parent.
         done = false;
-        const children = nodeIdToChildren.get(node.p);
+        const children = nodeIdToChildren.get(this.projectionType === TREE_PROJECTION_TYPE.NESTED ? node.p : null);
 
         let n = node;
         let nid = nodeId;
@@ -421,7 +435,7 @@ class TreeSync extends EventTarget {
                 children: subchildren,
                 url: nodeUrl,
                 atomId,
-                isLeaf: false
+                isLeaf: this.projectionType === TREE_PROJECTION_TYPE.FLAT
               });
             } else {
               children.unshift({
@@ -458,7 +472,7 @@ class TreeSync extends EventTarget {
 
     this.expandedIds = new Set();
 
-    const isExpanded = nodeId => this.expandedTreeNodes.isExpanded(nodeId);
+    const isExpanded = nodeId => this.expandedTreeNodes && this.expandedTreeNodes.isExpanded(nodeId);
 
     const fillIds = (nodeId, node) => this.expandedIds.add(node.h); // Visitor
 
@@ -541,4 +555,4 @@ class TreeSync extends EventTarget {
   }
 }
 
-export default TreeSync;
+export { TreeSync as default, TREE_PROJECTION_TYPE };

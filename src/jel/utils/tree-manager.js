@@ -1,4 +1,4 @@
-import TreeSync from "./tree-sync";
+import TreeSync, { TREE_PROJECTION_TYPE } from "./tree-sync";
 
 const EXPANDED_TREE_NODE_STORE_KEY = "__JelExpandedTreeNodes";
 
@@ -48,21 +48,34 @@ class TreeManager extends EventTarget {
     this.privateSpace = new TreeSync("space", this.privateExpandedTreeNodes, spaceMetadata);
     this.hasPrivateSpaceTree = false;
 
-    // Shared world navigation tree
-    // Filter out trashed nodes
-    const isNotTrashed = node => hubMetadata.hasMetadata(node.h) && !hubMetadata.getMetadata(node.h).is_trashed;
+    const filterByMetadata = filter => node => {
+      if (!hubMetadata.hasMetadata(node.h)) return false;
+      return filter(hubMetadata.getMetadata(node.h));
+    };
+
+    const isNotTrashed = filterByMetadata(m => !m.is_trashed && m.permissions.join_hub);
+    const isTrashed = filterByMetadata(m => m.is_trashed && m.permissions.join_hub);
 
     this.sharedNav = new TreeSync("nav", this.sharedExpandedTreeNodes, hubMetadata, isNotTrashed);
+    this.trashNav = new TreeSync("nav", null, hubMetadata, isTrashed, TREE_PROJECTION_TYPE.FLAT);
   }
 
   async init(connection, memberships) {
-    await Promise.all([await this.privateSpace.init(connection), await this.sharedNav.init(connection)]);
+    await Promise.all([
+      await this.privateSpace.init(connection),
+      await this.sharedNav.init(connection),
+      await this.trashNav.init(connection)
+    ]);
 
     await this.syncMembershipsToPrivateSpaceTree(memberships);
   }
 
   setNavTitleControl(titleControl) {
     this.sharedNav.setTitleControl(titleControl);
+  }
+
+  setTrashNavTitleControl(titleControl) {
+    this.trashNav.setTitleControl(titleControl);
   }
 
   setAccountCollectionId(collectionId) {
@@ -72,6 +85,7 @@ class TreeManager extends EventTarget {
 
   setSpaceCollectionId(collectionId) {
     this.sharedNav.setCollectionId(collectionId);
+    this.trashNav.setCollectionId(collectionId);
   }
 
   setNodeIsExpanded(nodeId, expanded) {

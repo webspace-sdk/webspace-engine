@@ -7,5 +7,6 @@
   "hub.unnamed-title": "Unnamed World",
   "hub-context.move-to-trash": "Move to Trash",
   "trash.restore": "Restore",
-  "trash.destroy": "Delete Permanently"
+  "trash.destroy": "Delete Permanently",
+  "trash.empty": "Trash is empty."
 }

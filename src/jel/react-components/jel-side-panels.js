@@ -14,12 +14,13 @@ import { homeHubForSpaceId, spaceForSpaceId } from "../utils/membership-utils";
 import { addNewHubToTree } from "../utils/tree-utils";
 import SpaceTree from "./space-tree";
 import HubTree from "./hub-tree";
+import HubTrashTree from "./hub-trash-tree";
 import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
 import trashIcon from "../assets/images/icons/trash.svgi";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import ReactDOM from "react-dom";
 import sharedStyles from "../assets/stylesheets/shared.scss";
-import { PopupMenu } from "./popup-menu";
+import PopupPanel from "./popup-panel";
 
 const JelWrap = styled.div`
   color: var(--panel-text-color);
@@ -123,6 +124,54 @@ const NavSpill = styled.div`
   }
 `;
 
+const TrashSpill = styled.div`
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  scrollbar-color: transparent transparent;
+  scrollbar-width: thin;
+
+  max-height: 256px;
+  max-width: 512px;
+  min-width: 256px;
+  padding: 8px 16px;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    visibility: hidden;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-clip: padding-box;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    background-color: transparent;
+    transition: background-color 0.25s;
+    min-height: 40px;
+  }
+
+  &::-webkit-scrollbar-corner {
+    background-color: transparent;
+  }
+
+  &::-webkit-scrollbar-track {
+    border-color: transparent;
+    background-color: transparent;
+    border: 2px solid transparent;
+    visibility: hidden;
+  }
+
+  &:hover {
+    scrollbar-color: var(--scroll-thumb-color) transparent;
+
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--scroll-thumb-color);
+      transition: background-color 0.25s;
+    }
+  }
+`;
+
 const SpaceTreeSpill = styled.div`
   overflow-x: hidden;
   overflow-y: scroll;
@@ -175,18 +224,21 @@ const SpaceTreeSpill = styled.div`
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
 
-function TrashMenu({ styles, attributes, setPopperElement }) {
+function TrashMenu({ styles, attributes, setPopperElement, children }) {
   if (!popupRoot) return null;
   const popupMenu = (
-    <div
+    <PopupPanel
       tabIndex={100} // Ensures can be focused
       className={sharedStyles.showWhenPopped}
       ref={setPopperElement}
       style={styles.popper}
       {...attributes.popper}
     >
-      <PopupMenu>Stuff</PopupMenu>
-    </div>
+      <PanelSectionHeader>
+        <FormattedMessage id="nav.trash" />
+      </PanelSectionHeader>
+      <TrashSpill>{children}</TrashSpill>
+    </PopupPanel>
   );
 
   return ReactDOM.createPortal(popupMenu, popupRoot);
@@ -300,7 +352,16 @@ function JelSidePanels({
           </SpaceTreeSpill>
         </Presence>
       </JelWrap>
-      <TrashMenu setPopperElement={setTrashMenuElement} styles={trashMenuStyles} attributes={trashMenuAttributes} />
+      <TrashMenu setPopperElement={setTrashMenuElement} styles={trashMenuStyles} attributes={trashMenuAttributes}>
+        <HubTrashTree
+          treeManager={treeManager}
+          hub={hub}
+          history={history}
+          spaceCan={spaceCan}
+          hubCan={hubCan}
+          memberships={memberships}
+        />
+      </TrashMenu>
     </WrappedIntlProvider>
   );
 }
