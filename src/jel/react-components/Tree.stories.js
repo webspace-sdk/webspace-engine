@@ -4,11 +4,15 @@ import "../assets/stylesheets/hub-tree.scss";
 import sharedStyles from "../assets/stylesheets/shared.scss";
 import HubNodeTitle from "./hub-node-title";
 import classNames from "classnames";
+import PanelSectionHeader from "./panel-section-header";
+import { PanelItemButton, PanelItemButtonSection } from "./panel-item-button";
+import trashIcon from "../assets/images/icons/trash.svgi";
 
 const createTitleNode = props => {
   return (
     <HubNodeTitle
       {...props}
+      showAdd={true}
       onAddClick={e => {
         e.preventDefault();
         console.log("add clicked");
@@ -57,8 +61,15 @@ const treeData = [
 ];
 
 export const HubTree = () => (
-  <div className={classNames(sharedStyles.basePanel)} style={{ display: "flex", width: "200px" }}>
+  <div
+    className={classNames(sharedStyles.basePanel)}
+    style={{ display: "flex", width: "400px", height: "600px", marginTop: "32px", flexDirection: "column" }}
+  >
+    <PanelSectionHeader>Section Name</PanelSectionHeader>
     <Tree prefixCls="hub-tree" treeData={treeData} selectable={true} selectedKeys={["nq106el"]} />
+    <PanelItemButtonSection>
+      <PanelItemButton iconSrc={trashIcon}>Trash</PanelItemButton>
+    </PanelItemButtonSection>
   </div>
 );
 

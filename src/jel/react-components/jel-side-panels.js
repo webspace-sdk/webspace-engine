@@ -13,6 +13,8 @@ import { homeHubForSpaceId, spaceForSpaceId } from "../utils/membership-utils";
 import { addNewHubToTree } from "../utils/tree-utils";
 import SpaceTree from "./space-tree";
 import HubTree from "./hub-tree";
+import { PanelItemButton, PanelItemButtonSection } from "./panel-item-button";
+import trashIcon from "../assets/images/icons/trash.svgi";
 
 const JelWrap = styled.div`
   color: var(--panel-text-color);
@@ -228,6 +230,11 @@ function JelSidePanels({
             />
           </NavSpill>
           <NavFoot>
+            <PanelItemButtonSection>
+              <PanelItemButton iconSrc={trashIcon}>
+                <FormattedMessage id="nav.trash" />
+              </PanelItemButton>
+            </PanelItemButtonSection>
             {spaceCan("create_hub") && (
               <ActionButton
                 iconSrc={addIcon}
