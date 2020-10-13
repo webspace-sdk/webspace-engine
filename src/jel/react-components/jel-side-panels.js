@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { FormattedMessage } from "react-intl";
 import { getMessages } from "../../hubs/utils/i18n";
@@ -224,6 +224,16 @@ const SpaceTreeSpill = styled.div`
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
 
+function useRunOnSidePanelResize(f) {
+  useEffect(
+    () => {
+      document.addEventListener("side-panel-resize", f);
+      return () => document.removeEventListener("side-panel-resize", f);
+    },
+    [f]
+  );
+}
+
 function TrashMenu({ styles, attributes, setPopperElement, children }) {
   if (!popupRoot) return null;
   const popupMenu = (
@@ -259,13 +269,15 @@ function JelSidePanels({
 
   const trashButtonRef = React.createRef();
 
-  const { styles: trashMenuStyles, attributes: trashMenuAttributes } = usePopper(
+  const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: popperUpdate } = usePopper(
     trashMenuReferenceElement,
     trashMenuElement,
     {
       placement: "right-start"
     }
   );
+
+  useRunOnSidePanelResize(popperUpdate);
 
   const messages = getMessages();
 
