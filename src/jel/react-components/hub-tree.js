@@ -46,7 +46,11 @@ export function useHubTreeTitleControls(
             onDotsClick={(e, ref) => {
               setHubContextMenuHubId(data.atomId);
               setHubContextMenuReferenceElement(ref.current);
-              hubContextMenuElement.querySelector("button").focus();
+              const button = hubContextMenuElement.querySelector("button");
+
+              if (button) {
+                button.focus();
+              }
 
               e.preventDefault();
               e.stopPropagation();
@@ -186,7 +190,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships }) {
             }
           }
 
-          window.APP.spaceChannel.trashHub(hubId);
+          window.APP.spaceChannel.trashHubs([hubId]);
         }}
       />
     </div>
