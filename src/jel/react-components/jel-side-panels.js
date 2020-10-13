@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { FormattedMessage } from "react-intl";
 import { getMessages } from "../../hubs/utils/i18n";
+import { usePopper } from "react-popper";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import Tree from "rc-tree";
@@ -15,6 +16,10 @@ import SpaceTree from "./space-tree";
 import HubTree from "./hub-tree";
 import { PanelItemButton, PanelItemButtonSection } from "./panel-item-button";
 import trashIcon from "../assets/images/icons/trash.svgi";
+import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import ReactDOM from "react-dom";
+import sharedStyles from "../assets/stylesheets/shared.scss";
+import { PopupMenu } from "./popup-menu";
 
 const JelWrap = styled.div`
   color: var(--panel-text-color);
@@ -167,6 +172,26 @@ const SpaceTreeSpill = styled.div`
   }
 `;
 
+let popupRoot = null;
+waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
+
+function TrashMenu({ styles, attributes, setPopperElement }) {
+  if (!popupRoot) return null;
+  const popupMenu = (
+    <div
+      tabIndex={100} // Ensures can be focused
+      className={sharedStyles.showWhenPopped}
+      ref={setPopperElement}
+      style={styles.popper}
+      {...attributes.popper}
+    >
+      <PopupMenu>Stuff</PopupMenu>
+    </div>
+  );
+
+  return ReactDOM.createPortal(popupMenu, popupRoot);
+}
+
 function JelSidePanels({
   treeManager,
   history,
@@ -177,6 +202,17 @@ function JelSidePanels({
   memberships,
   spaceId
 }) {
+  const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
+  const [trashMenuElement, setTrashMenuElement] = useState(null);
+
+  const { styles: trashMenuStyles, attributes: trashMenuAttributes } = usePopper(
+    trashMenuReferenceElement,
+    trashMenuElement,
+    {
+      placement: "right-start"
+    }
+  );
+
   const messages = getMessages();
 
   const homeHub = homeHubForSpaceId(spaceId, memberships);
@@ -231,7 +267,13 @@ function JelSidePanels({
           </NavSpill>
           <NavFoot>
             <PanelItemButtonSection>
-              <PanelItemButton iconSrc={trashIcon}>
+              <PanelItemButton
+                iconSrc={trashIcon}
+                onClick={(e, ref) => {
+                  setTrashMenuReferenceElement(ref.current);
+                  trashMenuElement.focus();
+                }}
+              >
                 <FormattedMessage id="nav.trash" />
               </PanelItemButton>
             </PanelItemButtonSection>
@@ -253,6 +295,7 @@ function JelSidePanels({
           </SpaceTreeSpill>
         </Presence>
       </JelWrap>
+      <TrashMenu setPopperElement={setTrashMenuElement} styles={trashMenuStyles} attributes={trashMenuAttributes} />
     </WrappedIntlProvider>
   );
 }

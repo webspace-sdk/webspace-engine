@@ -73,7 +73,7 @@ export function useHubTreeTitleControls(
   );
 }
 
-const PopperPopupMenu = function({ styles, attributes, setPopperElement, hubId, spaceCan, hubCan, onTrash }) {
+const HubTreeContextMenu = function({ styles, attributes, setPopperElement, hubId, spaceCan, hubCan, onTrash }) {
   if (!popupRoot) return null;
 
   const popupMenu = (
@@ -160,7 +160,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships }) {
         expandedKeys={treeManager.sharedExpandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeIsExpanded(key, expanded)}
       />
-      <PopperPopupMenu
+      <HubTreeContextMenu
         setPopperElement={setHubContextMenuElement}
         styles={hubContextMenuStyles}
         attributes={hubContextMenuAttributes}
@@ -191,6 +191,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships }) {
             }
           }
 
+          // All trashable children are trashed too.
           const trashableChildrenHubIds = findChildrenAtomsInTreeData(navTreeData, hubId).filter(hubId =>
             hubCan("trash_hub", hubId)
           );

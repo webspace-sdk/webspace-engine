@@ -65,12 +65,15 @@ const TextContainer = styled.div`
 `;
 
 function PanelItemButton(props) {
+  const popupRef = React.createRef();
+  const filteredProps = { ...props };
+  delete filteredProps.iconSrc;
+  delete filteredProps.onClick;
+  delete filteredProps.children;
+
   if (props.iconSrc) {
-    const filteredProps = { ...props };
-    delete filteredProps.iconSrc;
-    delete filteredProps.children;
     return (
-      <PanelItemButtonElement {...filteredProps}>
+      <PanelItemButtonElement {...filteredProps} ref={popupRef} onClick={e => props.onClick(e, popupRef)}>
         <PanelItemButtonIconHolder>
           <PanelItemButtonIcon dangerouslySetInnerHTML={{ __html: props.iconSrc }} />
         </PanelItemButtonIconHolder>
@@ -78,10 +81,8 @@ function PanelItemButton(props) {
       </PanelItemButtonElement>
     );
   } else {
-    const filteredProps = { ...props };
-    delete filteredProps.children;
     return (
-      <PanelItemButtonElement {...props}>
+      <PanelItemButtonElement {...filteredProps} ref={popupRef} onClick={e => props.onClick(e, popupRef)}>
         <TextContainer>{props.children}</TextContainer>
       </PanelItemButtonElement>
     );
@@ -89,7 +90,8 @@ function PanelItemButton(props) {
 }
 
 PanelItemButton.propTypes = {
-  iconSrc: PropTypes.string
+  iconSrc: PropTypes.string,
+  onClick: PropTypes.func
 };
 
 export { PanelItemButtonSection, PanelItemButton };
