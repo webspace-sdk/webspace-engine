@@ -12,6 +12,7 @@ const VALID_PERMISSIONS = {
     "join_hub",
     "close_hub",
     "trash_hub",
+    "destroy_hub",
     "mute_users",
     "kick_users",
     "tweet",

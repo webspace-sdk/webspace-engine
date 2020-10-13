@@ -33,6 +33,9 @@ const HubTitle = styled.div`
 export default class HubTrashNodeTitle extends Component {
   static propTypes = {
     name: PropTypes.string,
+    hubId: PropTypes.string,
+    showRestore: PropTypes.bool,
+    showDestroy: PropTypes.bool,
     onRestoreClick: PropTypes.func,
     onDestroyClick: PropTypes.func,
     popupRef: PropTypes.object,
@@ -42,18 +45,29 @@ export default class HubTrashNodeTitle extends Component {
   render() {
     const messages = getMessages();
 
+    const buttons = [];
+
+    if (this.props.showRestore) {
+      buttons.push(
+        <Tippy content={messages["trash.restore"]} placement="bottom" key="restore">
+          <IconButton iconSrc={restoreIcon} onClick={e => this.props.onRestoreClick(e)} />
+        </Tippy>
+      );
+    }
+
+    if (this.props.showDestroy) {
+      buttons.push(
+        <Tippy content={messages["trash.destroy"]} placement="bottom" key="destroy">
+          <IconButton iconSrc={trashIcon} onClick={this.props.onDestroyClick} />
+        </Tippy>
+      );
+    }
+
     return (
       <HubTrashNodeElement>
         <HubTitle className="title">{this.props.name}</HubTitle>
         <HubControls className="controls">
-          <TippySingleton delay={500}>
-            <Tippy content={messages["trash.restore"]} placement="bottom">
-              <IconButton iconSrc={restoreIcon} onClick={e => this.props.onRestoreClick(e)} />
-            </Tippy>
-            <Tippy content={messages["trash.destroy"]} placement="bottom">
-              <IconButton iconSrc={trashIcon} onClick={this.props.onDestroyClick} />
-            </Tippy>
-          </TippySingleton>
+          {buttons.length > 0 && <TippySingleton delay={500}>{buttons}</TippySingleton>}
         </HubControls>
       </HubTrashNodeElement>
     );

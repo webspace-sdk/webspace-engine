@@ -4,6 +4,7 @@ import styles from "../assets/stylesheets/hub-trash-tree.scss";
 import classNames from "classnames";
 import Tree from "rc-tree";
 import styled from "styled-components";
+import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { useTreeData } from "../utils/tree-utils";
 //import sharedStyles from "../assets/stylesheets/shared.scss";
 import HubTrashNodeTitle from "./hub-trash-node-title";
@@ -18,6 +19,7 @@ export function useHubTrashTreeTitleControls(
   history,
   hub,
   spaceCan,
+  hubCan,
   hubContextMenuElement,
   setHubContextMenuHubId,
   setHubContextMenuReferenceElement
@@ -30,6 +32,8 @@ export function useHubTrashTreeTitleControls(
         return (
           <HubTrashNodeTitle
             name={data.name}
+            showRestore={hubCan("trash_hub", data.atomId)}
+            showDestroy={hubCan("destroy_hub", data.atomId)}
             onRestoreClick={e => {
               e.preventDefault();
               console.log(data);
@@ -50,6 +54,7 @@ export function useHubTrashTreeTitleControls(
       history,
       hub,
       spaceCan,
+      hubCan,
       hubContextMenuElement,
       setHubContextMenuReferenceElement,
       setHubContextMenuHubId
@@ -62,7 +67,7 @@ function HubTrashTree({ treeManager, history, hub, spaceCan, hubCan, memberships
 
   useTreeData(treeManager && treeManager.trashNav, setTrashTreeData);
 
-  useHubTrashTreeTitleControls(treeManager, history, hub, spaceCan);
+  useHubTrashTreeTitleControls(treeManager, history, hub, spaceCan, hubCan);
 
   if (!treeManager || !hub) return null;
 
@@ -74,13 +79,17 @@ function HubTrashTree({ treeManager, history, hub, spaceCan, hubCan, memberships
     );
   }
 
+  const navSelectedKeys = hub ? [treeManager.trashNav.getNodeIdForAtomId(hub.hub_id)] : [];
+
   return (
     <TrashWrap>
       <Tree
         prefixCls="hub-tree"
         className={classNames(styles.trashTree)}
         treeData={trashTreeData}
-        selectable={false}
+        selectedKeys={navSelectedKeys}
+        onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
+        selectable={true}
         expandable={false}
         draggable={false}
       />
