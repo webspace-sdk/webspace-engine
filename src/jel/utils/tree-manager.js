@@ -57,7 +57,7 @@ class TreeManager extends EventTarget {
     const isTrashed = filterByMetadata(m => m.is_trashed && m.permissions.join_hub);
 
     this.sharedNav = new TreeSync("nav", this.sharedExpandedTreeNodes, hubMetadata, isNotTrashed);
-    this.trashNav = new TreeSync("nav", null, hubMetadata, isTrashed, TREE_PROJECTION_TYPE.FLAT);
+    this.trashNav = new TreeSync("nav", null, hubMetadata, isTrashed, TREE_PROJECTION_TYPE.FLAT, false);
   }
 
   async init(connection, memberships) {
@@ -86,6 +86,10 @@ class TreeManager extends EventTarget {
   setSpaceCollectionId(collectionId) {
     this.sharedNav.setCollectionId(collectionId);
     this.trashNav.setCollectionId(collectionId);
+  }
+
+  rebuildSharedTrashTree() {
+    this.trashNav.rebuildFilteredTreeData();
   }
 
   setNodeIsExpanded(nodeId, expanded) {

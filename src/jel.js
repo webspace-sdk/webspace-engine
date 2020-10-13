@@ -559,8 +559,6 @@ function addGlobalEventListeners(scene, entryManager) {
 }
 
 function setupSidePanelLayout(scene) {
-  const resizeEvent = new Event("side-panel-resize");
-
   const handleSidebarResizerDrag = (selector, cssVars, min, max, xToWidth, storeCallback) => {
     document.querySelector(selector).addEventListener("mousedown", () => {
       const handleMove = e => {
@@ -570,7 +568,6 @@ function setupSidePanelLayout(scene) {
           document.documentElement.style.setProperty(`--${cssVars[i]}`, `${w}px`);
         }
 
-        document.dispatchEvent(resizeEvent);
         scene.resize();
         storeCallback(w);
         e.preventDefault();

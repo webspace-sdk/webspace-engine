@@ -224,16 +224,6 @@ const SpaceTreeSpill = styled.div`
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
 
-function useRunOnSidePanelResize(f) {
-  useEffect(
-    () => {
-      document.addEventListener("side-panel-resize", f);
-      return () => document.removeEventListener("side-panel-resize", f);
-    },
-    [f]
-  );
-}
-
 function TrashMenu({ styles, attributes, setPopperElement, children }) {
   if (!popupRoot) return null;
   const popupMenu = (
@@ -260,7 +250,6 @@ function JelSidePanels({
   hub,
   hubCan = () => false,
   spaceCan = () => false,
-  //onHubDestroyConfirmed,
   memberships,
   spaceId
 }) {
@@ -269,7 +258,7 @@ function JelSidePanels({
 
   const trashButtonRef = React.createRef();
 
-  const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: popperUpdate } = usePopper(
+  const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: updateTrashPopper } = usePopper(
     trashMenuReferenceElement,
     trashMenuElement,
     {
@@ -277,10 +266,7 @@ function JelSidePanels({
     }
   );
 
-  useRunOnSidePanelResize(popperUpdate);
-
   const messages = getMessages();
-
   const homeHub = homeHubForSpaceId(spaceId, memberships);
 
   // For now private tree is just home hub
@@ -338,6 +324,8 @@ function JelSidePanels({
                 ref={trashButtonRef}
                 onClick={e => {
                   setTrashMenuReferenceElement(trashButtonRef.current);
+                  treeManager.rebuildSharedTrashTree();
+                  updateTrashPopper();
                   trashMenuElement.focus();
                   e.preventDefault();
                   e.stopPropagation();
@@ -388,8 +376,7 @@ JelSidePanels.propTypes = {
   hubPresences: PropTypes.object,
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,
-  memberships: PropTypes.array,
-  onHubDestroyConfirmed: PropTypes.func
+  memberships: PropTypes.array
 };
 
 export default JelSidePanels;

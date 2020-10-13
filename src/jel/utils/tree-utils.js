@@ -104,6 +104,21 @@ export function findChildrenAtomsInTreeData(treeData, atomId) {
   return atomIds;
 }
 
+export function isAtomInSubtree(tree, subtreeAtomId, targetAtomId) {
+  let nodeId = tree.getNodeIdForAtomId(targetAtomId);
+  if (!nodeId) return false;
+
+  do {
+    if (tree.getAtomIdForNodeId(nodeId) === targetAtomId) {
+      return true;
+    }
+
+    nodeId = tree.getParentNodeId(nodeId);
+  } while (nodeId);
+
+  return false;
+}
+
 export async function addNewHubToTree(history, treeManager, spaceId, insertUnderAtomId) {
   const tree = treeManager.sharedNav;
   const hub = await createHub(spaceId);

@@ -9,7 +9,8 @@ import {
   useTreeData,
   useExpandableTree,
   useScrollToSelectedTreeNode,
-  findChildrenAtomsInTreeData
+  findChildrenAtomsInTreeData,
+  isAtomInSubtree
 } from "../utils/tree-utils";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import PopupMenu, { PopupMenuItem } from "./popup-menu";
@@ -73,7 +74,7 @@ export function useHubTreeTitleControls(
   );
 }
 
-const HubTreeContextMenu = function({ styles, attributes, setPopperElement, hubId, spaceCan, hubCan, onTrash }) {
+const HubTreeContextMenu = function({ styles, attributes, setPopperElement, hubId, spaceCan, hubCan, onTrashClick }) {
   if (!popupRoot) return null;
 
   const popupMenu = (
@@ -88,7 +89,7 @@ const HubTreeContextMenu = function({ styles, attributes, setPopperElement, hubI
         {spaceCan("edit_nav") && hubId && hubCan("trash_hub", hubId) ? (
           <PopupMenuItem
             onClick={e => {
-              onTrash(hubId);
+              onTrashClick(hubId);
               // Blur button so menu hides
               document.activeElement.blur();
               e.preventDefault();
@@ -165,28 +166,14 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships }) {
         hubId={hubContextMenuHubId}
         spaceCan={spaceCan}
         hubCan={hubCan}
-        onTrash={hubId => {
+        onTrashClick={hubId => {
           const tree = treeManager.sharedNav;
           if (!tree.getNodeIdForAtomId(hubId)) return;
 
           // If this hub or any of its parents were deleted, go home.
-          let nodeId = tree.getNodeIdForAtomId(hub.hub_id);
-
-          if (nodeId) {
-            let removedSelfSubtree = false;
-
-            do {
-              if (tree.getAtomIdForNodeId(nodeId) === hubId) {
-                removedSelfSubtree = true;
-              }
-
-              nodeId = tree.getParentNodeId(nodeId);
-            } while (nodeId);
-
-            if (removedSelfSubtree) {
-              const homeHub = homeHubForSpaceId(hub.space_id, memberships);
-              navigateToHubUrl(history, homeHub.url);
-            }
+          if (isAtomInSubtree(tree, hubId, hub.hub_id)) {
+            const homeHub = homeHubForSpaceId(hub.space_id, memberships);
+            navigateToHubUrl(history, homeHub.url);
           }
 
           // All trashable children are trashed too.

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import styled, { ThemeProvider } from "styled-components";
 import { dark } from "./theme";
-import { pushHistoryPath, replaceHistoryPath } from "../../hubs/utils/history";
 
 const Wrap = styled.div`
   color: ${p => p.theme.text};
@@ -15,15 +14,7 @@ const Wrap = styled.div`
   z-index: 4;
 `;
 
-function JelUI({
-  history,
-  hub,
-  hubCan = () => false,
-  spaceCan = () => false,
-  onHubDestroyConfirmed,
-  memberships,
-  spaceId
-}) {
+function JelUI() {
   return (
     <ThemeProvider theme={dark}>
       <Wrap>Hello</Wrap>
@@ -42,8 +33,7 @@ JelUI.propTypes = {
   hubPresences: PropTypes.object,
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,
-  memberships: PropTypes.array,
-  onHubDestroyConfirmed: PropTypes.func
+  memberships: PropTypes.array
 };
 
 export default JelUI;

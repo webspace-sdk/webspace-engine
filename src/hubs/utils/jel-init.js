@@ -690,16 +690,6 @@ const setupHubChannelMessageHandlers = (
   });
 };
 
-const setupUIEventHandlers = (hubChannel, remountJelUI) => {
-  const onHubDestroyConfirmed = async hubId => {
-    if (hubId !== hubChannel.hubId) return false;
-    await hubChannel.closeHub();
-    return true;
-  };
-
-  remountJelUI({ onHubDestroyConfirmed });
-};
-
 export function joinSpace(
   socket,
   history,
@@ -768,7 +758,6 @@ export async function joinHub(socket, history, entryManager, remountUI, remountJ
     remountUI,
     remountJelUI
   );
-  setupUIEventHandlers(hubChannel, remountJelUI);
 
   await hubMetadata.ensureMetadataForIds([hubId], true);
   hubChannel.bind(hubPhxChannel, hubId);

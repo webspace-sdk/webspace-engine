@@ -8,57 +8,42 @@ import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { useTreeData } from "../utils/tree-utils";
 //import sharedStyles from "../assets/stylesheets/shared.scss";
 import HubTrashNodeTitle from "./hub-trash-node-title";
-//import { navigateToHubUrl } from "../utils/jel-url-utils";
+import { homeHubForSpaceId } from "../utils/membership-utils";
 import { FormattedMessage } from "react-intl";
 import "../assets/stylesheets/hub-tree.scss";
 
 const TrashWrap = styled.div``;
 
-export function useHubTrashTreeTitleControls(
-  treeManager,
-  history,
-  hub,
-  spaceCan,
-  hubCan,
-  hubContextMenuElement,
-  setHubContextMenuHubId,
-  setHubContextMenuReferenceElement
-) {
+export function useHubTrashTreeTitleControls(treeManager, history, hub, spaceCan, hubCan, memberships) {
   useEffect(
     () => {
       if (!treeManager) return;
 
-      treeManager.setTrashNavTitleControl(data => {
-        return (
-          <HubTrashNodeTitle
-            name={data.name}
-            showRestore={hubCan("trash_hub", data.atomId)}
-            showDestroy={hubCan("destroy_hub", data.atomId)}
-            onRestoreClick={e => {
-              e.preventDefault();
-              console.log(data);
-              console.log("restore clicked");
-            }}
-            onDestroyClick={e => {
-              e.preventDefault();
-              console.log(data);
-              console.log("destroy clicked");
-            }}
-          />
-        );
-      });
+      treeManager.setTrashNavTitleControl(data => (
+        <HubTrashNodeTitle
+          name={data.name}
+          showRestore={hubCan("trash_hub", data.atomId)}
+          showDestroy={hubCan("destroy_hub", data.atomId)}
+          onRestoreClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onDestroyClick={e => {
+            const hubIdToDestroy = data.atomId;
+
+            if (hub.hub_id === hubIdToDestroy) {
+              const homeHub = homeHubForSpaceId(hub.space_id, memberships);
+              navigateToHubUrl(history, homeHub.url);
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        />
+      ));
       return () => {};
     },
-    [
-      treeManager,
-      history,
-      hub,
-      spaceCan,
-      hubCan,
-      hubContextMenuElement,
-      setHubContextMenuReferenceElement,
-      setHubContextMenuHubId
-    ]
+    [treeManager, history, hub, spaceCan, hubCan, memberships]
   );
 }
 
@@ -67,7 +52,7 @@ function HubTrashTree({ treeManager, history, hub, spaceCan, hubCan, memberships
 
   useTreeData(treeManager && treeManager.trashNav, setTrashTreeData);
 
-  useHubTrashTreeTitleControls(treeManager, history, hub, spaceCan, hubCan);
+  useHubTrashTreeTitleControls(treeManager, history, hub, spaceCan, hubCan, memberships);
 
   if (!treeManager || !hub) return null;
 

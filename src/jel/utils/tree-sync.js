@@ -23,7 +23,8 @@ class TreeSync extends EventTarget {
     expandedTreeNodes,
     atomMetadata,
     nodeFilter = () => true,
-    projectionType = TREE_PROJECTION_TYPE.NESTED
+    projectionType = TREE_PROJECTION_TYPE.NESTED,
+    autoRefresh = true
   ) {
     super();
     this.docId = docId;
@@ -32,6 +33,7 @@ class TreeSync extends EventTarget {
     this.titleControl = null;
     this.nodeFilter = nodeFilter;
     this.projectionType = projectionType;
+    this.autoRefresh = autoRefresh;
   }
 
   setCollectionId(collectionId) {
@@ -50,15 +52,18 @@ class TreeSync extends EventTarget {
 
     return new Promise(res => {
       doc.subscribe(async () => {
-        doc.on("op", this.handleNavOp);
-        this.rebuildFilteredTreeData();
+        doc.on("op", this.rebuildFilteredTreeDataIfAutoRefresh);
+        this.rebuildFilteredTreeDataIfAutoRefresh();
         res();
       });
     });
   }
 
-  handleNavOp = () => this.rebuildFilteredTreeData();
-  handleMetadataUpdate = () => this.rebuildFilteredTreeData();
+  rebuildFilteredTreeDataIfAutoRefresh = () => {
+    if (this.autoRefresh) {
+      this.rebuildFilteredTreeData();
+    }
+  };
 
   addToRoot(atomId) {
     if (Object.entries(this.doc.data).length === 0) {
@@ -466,7 +471,7 @@ class TreeSync extends EventTarget {
   rebuildFilteredTreeData() {
     if (this.expandedIds) {
       for (const atomId of this.expandedIds) {
-        this.atomMetadata.unsubscribeFromMetadata(atomId, this.handleMetadataUpdate);
+        this.atomMetadata.unsubscribeFromMetadata(atomId, this.rebuildFilteredTreeDataIfAutoRefresh);
       }
     }
 
@@ -480,7 +485,7 @@ class TreeSync extends EventTarget {
     this.dispatchEvent(new CustomEvent("filtered_treedata_updated"));
 
     for (const atomId of this.expandedIds) {
-      this.atomMetadata.subscribeToMetadata(atomId, this.handleMetadataUpdate);
+      this.atomMetadata.subscribeToMetadata(atomId, this.rebuildFilteredTreeDataIfAutoRefresh);
     }
 
     this.atomMetadata.ensureMetadataForIds(this.expandedIds);
