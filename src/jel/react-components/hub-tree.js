@@ -8,7 +8,8 @@ import {
   createTreeDropHandler,
   useTreeData,
   useExpandableTree,
-  useScrollToSelectedTreeNode
+  useScrollToSelectedTreeNode,
+  findChildrenAtomsInTreeData
 } from "../utils/tree-utils";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { PopupMenu, PopupMenuItem } from "./popup-menu";
@@ -190,7 +191,11 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships }) {
             }
           }
 
-          window.APP.spaceChannel.trashHubs([hubId]);
+          const trashableChildrenHubIds = findChildrenAtomsInTreeData(navTreeData, hubId).filter(hubId =>
+            hubCan("trash_hub", hubId)
+          );
+
+          window.APP.spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
         }}
       />
     </div>

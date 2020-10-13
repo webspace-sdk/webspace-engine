@@ -82,6 +82,28 @@ export const createTreeDropHandler = treeManager => (tree, allowNesting = true) 
   }
 };
 
+export function findChildrenAtomsInTreeData(treeData, atomId) {
+  const atomIds = [];
+
+  const walk = (n, collect) => {
+    if (collect) {
+      atomIds.push(n.atomId);
+    } else if (n.atomId === atomId) {
+      collect = true;
+    }
+
+    if (n.children) {
+      for (let i = 0; i < n.children.length; i++) {
+        const c = n.children[i];
+        walk(c, collect);
+      }
+    }
+  };
+
+  walk({ children: treeData, atomId: null }, false);
+  return atomIds;
+}
+
 export async function addNewHubToTree(history, treeManager, spaceId, insertUnderAtomId) {
   const tree = treeManager.sharedNav;
   const hub = await createHub(spaceId);
