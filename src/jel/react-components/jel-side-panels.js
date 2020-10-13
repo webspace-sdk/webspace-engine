@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { FormattedMessage } from "react-intl";
 import { getMessages } from "../../hubs/utils/i18n";
@@ -325,7 +325,11 @@ function JelSidePanels({
                 onClick={e => {
                   setTrashMenuReferenceElement(trashButtonRef.current);
                   treeManager.rebuildSharedTrashTree();
-                  updateTrashPopper();
+
+                  if (updateTrashPopper) {
+                    updateTrashPopper();
+                  }
+
                   trashMenuElement.focus();
                   e.preventDefault();
                   e.stopPropagation();
@@ -353,14 +357,7 @@ function JelSidePanels({
         </Presence>
       </JelWrap>
       <TrashMenu setPopperElement={setTrashMenuElement} styles={trashMenuStyles} attributes={trashMenuAttributes}>
-        <HubTrashTree
-          treeManager={treeManager}
-          hub={hub}
-          history={history}
-          spaceCan={spaceCan}
-          hubCan={hubCan}
-          memberships={memberships}
-        />
+        <HubTrashTree treeManager={treeManager} hub={hub} history={history} hubCan={hubCan} memberships={memberships} />
       </TrashMenu>
     </WrappedIntlProvider>
   );

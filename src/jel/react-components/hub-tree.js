@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import ReactDOM from "react-dom";
 import Tree from "rc-tree";
 import { usePopper } from "react-popper";
@@ -24,55 +24,6 @@ import "../assets/stylesheets/hub-tree.scss";
 
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
-
-export function useHubTreeTitleControls(
-  treeManager,
-  history,
-  hub,
-  spaceCan,
-  hubContextMenuElement,
-  setHubContextMenuHubId,
-  setHubContextMenuReferenceElement
-) {
-  useEffect(
-    () => {
-      if (!treeManager) return;
-      const showAdd = spaceCan("create_hub");
-
-      treeManager.setNavTitleControl(data => {
-        return (
-          <HubNodeTitle
-            name={data.name}
-            showAdd={showAdd}
-            onAddClick={() => addNewHubToTree(history, treeManager, hub.space_id, data.atomId)}
-            onDotsClick={(e, ref) => {
-              setHubContextMenuHubId(data.atomId);
-              setHubContextMenuReferenceElement(ref.current);
-              const button = hubContextMenuElement.querySelector("button");
-
-              if (button) {
-                button.focus();
-              }
-
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-          />
-        );
-      });
-      return () => {};
-    },
-    [
-      treeManager,
-      history,
-      hub,
-      spaceCan,
-      hubContextMenuElement,
-      setHubContextMenuReferenceElement,
-      setHubContextMenuHubId
-    ]
-  );
-}
 
 const HubTreeContextMenu = function({ styles, attributes, setPopperElement, hubId, spaceCan, hubCan, onTrashClick }) {
   if (!popupRoot) return null;
@@ -131,17 +82,40 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships }) {
   // Ensure current selected node is always visible
   useScrollToSelectedTreeNode(hub);
 
-  useHubTreeTitleControls(
-    treeManager,
-    history,
-    hub,
-    spaceCan,
-    hubContextMenuElement,
-    setHubContextMenuHubId,
-    setHubContextMenuReferenceElement
+  const navTitleControl = useCallback(
+    data => (
+      <HubNodeTitle
+        name={data.name}
+        showAdd={spaceCan("create_hub")}
+        onAddClick={() => addNewHubToTree(history, treeManager, hub.space_id, data.atomId)}
+        onDotsClick={(e, ref) => {
+          setHubContextMenuHubId(data.atomId);
+          setHubContextMenuReferenceElement(ref.current);
+          const button = hubContextMenuElement.querySelector("button");
+
+          if (button) {
+            button.focus();
+          }
+
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+      />
+    ),
+    [
+      history,
+      hub,
+      treeManager,
+      hubContextMenuElement,
+      setHubContextMenuHubId,
+      setHubContextMenuReferenceElement,
+      spaceCan
+    ]
   );
 
   if (!treeManager || !hub) return null;
+
+  treeManager.setNavTitleControl(navTitleControl);
 
   const navSelectedKeys = hub ? [treeManager.sharedNav.getNodeIdForAtomId(hub.hub_id)] : [];
 

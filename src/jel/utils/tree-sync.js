@@ -34,6 +34,7 @@ class TreeSync extends EventTarget {
     this.nodeFilter = nodeFilter;
     this.projectionType = projectionType;
     this.autoRefresh = autoRefresh;
+    this.filteredTreeData = [];
   }
 
   setCollectionId(collectionId) {
@@ -41,7 +42,22 @@ class TreeSync extends EventTarget {
   }
 
   setTitleControl(titleControl) {
+    if (this.filteredTreeData.length === 0) return;
+
     this.titleControl = titleControl;
+
+    const walk = children => {
+      for (let i = 0; i < children.length; i++) {
+        const node = children[i];
+        node.title = titleControl;
+
+        if (node.children) {
+          walk(node.children);
+        }
+      }
+    };
+
+    walk(this.filteredTreeData);
   }
 
   init(connection) {
