@@ -188,6 +188,52 @@ class TreeSync extends EventTarget {
     this.doc.submitOp(ops);
   }
 
+  moveBelowRoot(nodeId) {
+    const node = this.doc.data[nodeId];
+    if (node.r === null && node.p === null) return; // Already done
+
+    const ops = [];
+
+    // Point the node previously pointing to the moved node to the moved node's back link.
+    for (const [nid, n] of Object.entries(this.doc.data)) {
+      if (n.r !== nodeId) continue;
+
+      ops.push({
+        p: [nid, "r"],
+        od: nodeId,
+        oi: node.r
+      });
+
+      break;
+    }
+
+    // Add the new node
+    ops.push({
+      p: [nodeId],
+      od: node,
+      oi: {
+        h: node.h,
+        r: null,
+        p: null
+      }
+    });
+
+    // Point the node previously pointing to the below node to the new node.
+    for (const [nid, n] of Object.entries(this.doc.data)) {
+      if (n.r !== null) continue;
+
+      ops.push({
+        p: [nid, "r"],
+        od: null,
+        oi: nodeId
+      });
+
+      break;
+    }
+
+    this.doc.submitOp(ops);
+  }
+
   moveBelow(nodeId, belowNodeId) {
     const node = this.doc.data[nodeId];
     if (node.r === belowNodeId) return; // Already done

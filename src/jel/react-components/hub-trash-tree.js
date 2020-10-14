@@ -31,18 +31,29 @@ function HubTrashTree({ treeManager, history, hub, hubCan, memberships }) {
 
           const hubId = data.atomId;
           const tree = treeManager.trashNav;
-          if (!tree.getNodeIdForAtomId(hubId)) return;
+          const nodeId = tree.getNodeIdForAtomId(hubId);
+          if (!nodeId) return;
 
           const trashTreeData = treeManager.getNestedTrashTreeData();
-          console.log(trashTreeData);
+
+          // If the node we want to restore has a parent that is trashed, we need to move it below the root so it will show up.
+          const parentNodeId = tree.getParentNodeId(nodeId);
+
+          if (parentNodeId) {
+            const parentHubId = tree.getAtomIdForNodeId(parentNodeId);
+            const hubMetadata = treeManager.hubMetadata;
+            const parentMetadata = hubMetadata && hubMetadata.getMetadata(parentHubId);
+            if (parentMetadata && parentMetadata.is_trashed) {
+              treeManager.trashNav.moveBelowRoot(nodeId);
+            }
+          }
 
           // Restore this node and all the children we have permission to restore
-          const restorableHubIds = [
-            hubId,
-            ...findChildrenAtomsInTreeData(trashTreeData, hubId).filter(hubId => hubCan("trash_hub", hubId))
-          ];
+          const restorableHubIds = findChildrenAtomsInTreeData(trashTreeData, hubId).filter(hubId =>
+            hubCan("trash_hub", hubId)
+          );
 
-          console.log(restorableHubIds);
+          window.APP.spaceChannel.restoreHubs([...restorableHubIds, hubId]);
         }}
         onDestroyClick={e => {
           e.preventDefault();

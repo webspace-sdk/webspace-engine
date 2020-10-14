@@ -45,7 +45,14 @@ class TreeManager extends EventTarget {
     this.sharedExpandedTreeNodes = new ExpandedTreeNodes();
 
     // Private space tree
-    this.privateSpace = new TreeSync("space", this.privateExpandedTreeNodes, spaceMetadata);
+    this.privateSpace = new TreeSync(
+      "space",
+      this.privateExpandedTreeNodes,
+      spaceMetadata,
+      () => true,
+      TREE_PROJECTION_TYPE.NESTED,
+      true
+    );
     this.hasPrivateSpaceTree = false;
 
     const filterByMetadata = filter => node => {
@@ -65,7 +72,7 @@ class TreeManager extends EventTarget {
       true
     );
     this.trashNav = new TreeSync("nav", null, hubMetadata, isTrashed, TREE_PROJECTION_TYPE.FLAT, false);
-    this.trashNested = new TreeSync("nav", null, hubMetadata, () => true, TREE_PROJECTION_TYPE.NESTED, false);
+    this.trashNested = new TreeSync("nav", null, hubMetadata, isTrashed, TREE_PROJECTION_TYPE.NESTED, false);
   }
 
   async init(connection, memberships) {
