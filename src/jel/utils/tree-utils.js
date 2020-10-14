@@ -111,7 +111,7 @@ export function isAtomInSubtree(tree, subtreeAtomId, targetAtomId) {
   if (!nodeId) return false;
 
   do {
-    if (tree.getAtomIdForNodeId(nodeId) === targetAtomId) {
+    if (tree.getAtomIdForNodeId(nodeId) === subtreeAtomId) {
       return true;
     }
 

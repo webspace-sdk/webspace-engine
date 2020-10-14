@@ -41,7 +41,7 @@ function HubTrashTree({ treeManager, history, hub, hubCan, memberships }) {
 
           if (parentNodeId) {
             const parentHubId = tree.getAtomIdForNodeId(parentNodeId);
-            const hubMetadata = treeManager.hubMetadata;
+            const hubMetadata = tree.atomMetadata;
             const parentMetadata = hubMetadata && hubMetadata.getMetadata(parentHubId);
             if (parentMetadata && parentMetadata.is_trashed) {
               treeManager.trashNav.moveBelowRoot(nodeId);
@@ -49,11 +49,19 @@ function HubTrashTree({ treeManager, history, hub, hubCan, memberships }) {
           }
 
           // Restore this node and all the children we have permission to restore
-          const restorableHubIds = findChildrenAtomsInTreeData(trashTreeData, hubId).filter(hubId =>
-            hubCan("trash_hub", hubId)
+          const restorableHubIds = findChildrenAtomsInTreeData(trashTreeData, hubId).filter(
+            hubId => hubCan("trash_hub", hubId) && hubCan("join_hub", hubId)
           );
 
           window.APP.spaceChannel.restoreHubs([...restorableHubIds, hubId]);
+
+          // Blur so tree hides. This is important because we will re-load
+          // the trash tree next time user clicks.
+          document.activeElement.blur();
+
+          // Navigate to restored node.
+          const url = trashTreeData.find(node => node.key === nodeId).url;
+          navigateToHubUrl(history, url);
         }}
         onDestroyClick={e => {
           e.preventDefault();

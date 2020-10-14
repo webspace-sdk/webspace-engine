@@ -207,7 +207,7 @@ class TreeSync extends EventTarget {
       break;
     }
 
-    // Add the new node
+    // Add the new node to the top of root
     ops.push({
       p: [nodeId],
       od: node,
@@ -218,9 +218,9 @@ class TreeSync extends EventTarget {
       }
     });
 
-    // Point the node previously pointing to the below node to the new node.
+    // Point the node previously pointing to the top to the new node.
     for (const [nid, n] of Object.entries(this.doc.data)) {
-      if (n.r !== null) continue;
+      if (n.p !== null || n.r !== null) continue;
 
       ops.push({
         p: [nid, "r"],
@@ -460,19 +460,26 @@ class TreeSync extends EventTarget {
     let depth = 0;
     let done;
 
+    const isNestedProjection = this.projectionType === TREE_PROJECTION_TYPE.NESTED;
+    const isFlatProjection = this.projectionType === TREE_PROJECTION_TYPE.FLAT;
+
     // Build each layer of the tree data
     do {
       done = true;
 
       for (const [nodeId, node] of entries) {
         if (depths.get(nodeId) !== depth) continue;
-        if (node.p && filteredNodes.has(node.p)) filteredNodes.add(nodeId);
+
+        // Build recurive filter iff we're not doing flat projection
+        // since flat projection doesn't care about parents being filtered.
+        if (isNestedProjection && node.p && filteredNodes.has(node.p)) filteredNodes.add(nodeId);
+
         if (!tailNodes.has(nodeId)) continue;
         if (node.p && !parentFilter(node.p)) continue;
 
         // Tail node for the current depth, build the child list for this node's parent.
         done = false;
-        const children = nodeIdToChildren.get(this.projectionType === TREE_PROJECTION_TYPE.NESTED ? node.p : null);
+        const children = nodeIdToChildren.get(isNestedProjection ? node.p : null);
 
         let n = node;
         let nid = nodeId;
@@ -502,7 +509,7 @@ class TreeSync extends EventTarget {
                 children: subchildren,
                 url: nodeUrl,
                 atomId,
-                isLeaf: this.projectionType === TREE_PROJECTION_TYPE.FLAT
+                isLeaf: isFlatProjection
               });
             } else {
               children.unshift({
