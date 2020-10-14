@@ -2,4 +2,12 @@
   .hub-tree-switcher, .hub-tree-iconEle {
     display: none !important; // Hacky, hide switcher + icon
   }
+
+  .hub-tree-treenode {
+    border-radius: 2px;
+  }
+
+  .hub-tree-node-content-wrapper {
+    padding-left: 8px !important; // Hacky, add some side padding to cells
+  }
 }

@@ -1,10 +1,11 @@
 import PropTypes from "prop-types";
-import React, { Component } from "react";
+import React from "react";
 import styled from "styled-components";
 import IconButton from "./icon-button";
 import restoreIcon from "../assets/images/icons/restore.svgi";
 import trashIcon from "../assets/images/icons/trash.svgi";
-import Tippy, { TippySingleton } from "@tippy.js/react";
+import Tooltip from "./tooltip";
+import { useSingleton } from "@tippyjs/react";
 import "tippy.js/dist/tippy.css";
 import { getMessages } from "../../hubs/utils/i18n";
 
@@ -30,46 +31,40 @@ const HubTitle = styled.div`
   flex-basis: calc(100% - 58px);
 `;
 
-export default class HubTrashNodeTitle extends Component {
-  static propTypes = {
-    name: PropTypes.string,
-    hubId: PropTypes.string,
-    showRestore: PropTypes.bool,
-    showRemove: PropTypes.bool,
-    onRestoreClick: PropTypes.func,
-    onRemoveClick: PropTypes.func,
-    popupRef: PropTypes.object,
-    showAdd: PropTypes.bool
-  };
+const HubTrashNodeTitle = function({ name, showRestore, showRemove, onRemoveClick, onRestoreClick }) {
+  const [tippySource, tippyTarget] = useSingleton();
 
-  render() {
-    const messages = getMessages();
+  const messages = getMessages();
 
-    const buttons = [];
+  return (
+    <HubTrashNodeElement>
+      <HubTitle className="title">{name}</HubTitle>
+      <HubControls className="controls">
+        <Tooltip delay={500} singleton={tippySource} />
+        {showRestore && (
+          <Tooltip content={messages["trash.restore"]} placement="bottom" key="restore" singleton={tippyTarget}>
+            <IconButton iconSrc={restoreIcon} onClick={e => onRestoreClick(e)} />
+          </Tooltip>
+        )}
+        {showRemove && (
+          <Tooltip content={messages["trash.destroy"]} placement="bottom" key="destroy" singleton={tippyTarget}>
+            <IconButton iconSrc={trashIcon} onClick={onRemoveClick} />
+          </Tooltip>
+        )}
+      </HubControls>
+    </HubTrashNodeElement>
+  );
+};
 
-    if (this.props.showRestore) {
-      buttons.push(
-        <Tippy content={messages["trash.restore"]} placement="bottom" key="restore">
-          <IconButton iconSrc={restoreIcon} onClick={e => this.props.onRestoreClick(e)} />
-        </Tippy>
-      );
-    }
+HubTrashNodeTitle.propTypes = {
+  name: PropTypes.string,
+  hubId: PropTypes.string,
+  showRestore: PropTypes.bool,
+  showRemove: PropTypes.bool,
+  onRestoreClick: PropTypes.func,
+  onRemoveClick: PropTypes.func,
+  popupRef: PropTypes.object,
+  showAdd: PropTypes.bool
+};
 
-    if (this.props.showRemove) {
-      buttons.push(
-        <Tippy content={messages["trash.destroy"]} placement="bottom" key="destroy">
-          <IconButton iconSrc={trashIcon} onClick={this.props.onRemoveClick} />
-        </Tippy>
-      );
-    }
-
-    return (
-      <HubTrashNodeElement>
-        <HubTitle className="title">{this.props.name}</HubTitle>
-        <HubControls className="controls">
-          {buttons.length > 0 && <TippySingleton delay={500}>{buttons}</TippySingleton>}
-        </HubControls>
-      </HubTrashNodeElement>
-    );
-  }
-}
+export default HubTrashNodeTitle;

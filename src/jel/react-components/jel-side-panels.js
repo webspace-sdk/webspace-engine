@@ -134,6 +134,7 @@ const TrashSpill = styled.div`
   max-height: 256px;
   max-width: 512px;
   min-width: 256px;
+  min-height: 96px;
   padding: 8px 16px;
 
   &::-webkit-scrollbar {

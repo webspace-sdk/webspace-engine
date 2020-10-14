@@ -124,7 +124,14 @@ export const HubTree = () => (
 export const TrashTree = () => (
   <div
     className={classNames(sharedStyles.basePanel)}
-    style={{ display: "flex", width: "400px", height: "600px", marginTop: "32px", flexDirection: "column" }}
+    style={{
+      display: "flex",
+      width: "400px",
+      height: "600px",
+      marginTop: "32px",
+      padding: "32px",
+      flexDirection: "column"
+    }}
   >
     <Tree
       prefixCls="hub-tree"
