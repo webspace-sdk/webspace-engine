@@ -5,7 +5,7 @@ import classNames from "classnames";
 import Tree from "rc-tree";
 import styled from "styled-components";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
-import { useTreeData } from "../utils/tree-utils";
+import { useTreeData, findChildrenAtomsInTreeData } from "../utils/tree-utils";
 //import sharedStyles from "../assets/stylesheets/shared.scss";
 import HubTrashNodeTitle from "./hub-trash-node-title";
 import { homeHubForSpaceId } from "../utils/membership-utils";
@@ -26,31 +26,42 @@ function HubTrashTree({ treeManager, history, hub, hubCan, memberships }) {
         showRestore={hubCan("trash_hub", data.atomId)}
         showDestroy={hubCan("destroy_hub", data.atomId)}
         onRestoreClick={e => {
-          console.log("restore", data.atomId);
-
           e.preventDefault();
           e.stopPropagation();
+
+          const hubId = data.atomId;
+          const tree = treeManager.trashNav;
+          if (!tree.getNodeIdForAtomId(hubId)) return;
+
+          const trashTreeData = treeManager.getNestedTrashTreeData();
+          console.log(trashTreeData);
+
+          // Restore this node and all the children we have permission to restore
+          const restorableHubIds = [
+            hubId,
+            ...findChildrenAtomsInTreeData(trashTreeData, hubId).filter(hubId => hubCan("trash_hub", hubId))
+          ];
+
+          console.log(restorableHubIds);
         }}
         onDestroyClick={e => {
-          console.log("destroy", data.atomId, hub.hub_id);
+          e.preventDefault();
+          e.stopPropagation();
+
           const hubIdToDestroy = data.atomId;
 
           if (hub.hub_id === hubIdToDestroy) {
             const homeHub = homeHubForSpaceId(hub.space_id, memberships);
             navigateToHubUrl(history, homeHub.url);
           }
-
-          e.preventDefault();
-          e.stopPropagation();
         }}
       />
     ),
-    [history, memberships, hub, hubCan]
+    [treeManager, history, memberships, hub, hubCan]
   );
 
   if (!treeManager || !hub) return null;
 
-  console.log("set title control " + hub.hub_id);
   treeManager.setTrashNavTitleControl(trashNavTitleControl);
 
   if (!trashTreeData || trashTreeData.length === 0) {

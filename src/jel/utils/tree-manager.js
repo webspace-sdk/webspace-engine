@@ -56,15 +56,24 @@ class TreeManager extends EventTarget {
     const isNotTrashed = filterByMetadata(m => !m.is_trashed && m.permissions.join_hub);
     const isTrashed = filterByMetadata(m => m.is_trashed && m.permissions.join_hub);
 
-    this.sharedNav = new TreeSync("nav", this.sharedExpandedTreeNodes, hubMetadata, isNotTrashed);
+    this.sharedNav = new TreeSync(
+      "nav",
+      this.sharedExpandedTreeNodes,
+      hubMetadata,
+      isNotTrashed,
+      TREE_PROJECTION_TYPE.NESTED,
+      true
+    );
     this.trashNav = new TreeSync("nav", null, hubMetadata, isTrashed, TREE_PROJECTION_TYPE.FLAT, false);
+    this.trashNested = new TreeSync("nav", null, hubMetadata, () => true, TREE_PROJECTION_TYPE.NESTED, false);
   }
 
   async init(connection, memberships) {
     await Promise.all([
       await this.privateSpace.init(connection),
       await this.sharedNav.init(connection),
-      await this.trashNav.init(connection)
+      await this.trashNav.init(connection),
+      await this.trashNested.init(connection)
     ]);
 
     await this.syncMembershipsToPrivateSpaceTree(memberships);
@@ -86,10 +95,17 @@ class TreeManager extends EventTarget {
   setSpaceCollectionId(collectionId) {
     this.sharedNav.setCollectionId(collectionId);
     this.trashNav.setCollectionId(collectionId);
+    this.trashNested.setCollectionId(collectionId);
   }
 
   rebuildSharedTrashTree() {
     this.trashNav.rebuildFilteredTreeData();
+  }
+
+  // Returns a nested representation of the trash
+  getNestedTrashTreeData() {
+    this.trashNested.rebuildFilteredTreeData();
+    return this.trashNested.filteredTreeData;
   }
 
   setNodeIsExpanded(nodeId, expanded) {

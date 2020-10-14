@@ -82,6 +82,8 @@ export const createTreeDropHandler = treeManager => (tree, allowNesting = true) 
   }
 };
 
+// Returns all the children atoms in the given tree data under atomId's node,
+// with the deepest nodes last.
 export function findChildrenAtomsInTreeData(treeData, atomId) {
   const atomIds = [];
 

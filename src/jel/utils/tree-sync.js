@@ -24,7 +24,7 @@ class TreeSync extends EventTarget {
     atomMetadata,
     nodeFilter = () => true,
     projectionType = TREE_PROJECTION_TYPE.NESTED,
-    autoRefresh = true
+    autoRefresh = false
   ) {
     super();
     this.docId = docId;
@@ -493,7 +493,7 @@ class TreeSync extends EventTarget {
 
     this.expandedIds = new Set();
 
-    const isExpanded = nodeId => this.expandedTreeNodes && this.expandedTreeNodes.isExpanded(nodeId);
+    const isExpanded = nodeId => !this.expandedTreeNodes || this.expandedTreeNodes.isExpanded(nodeId);
 
     const fillIds = (nodeId, node) => this.expandedIds.add(node.h); // Visitor
 
