@@ -35,9 +35,9 @@ export default class HubTrashNodeTitle extends Component {
     name: PropTypes.string,
     hubId: PropTypes.string,
     showRestore: PropTypes.bool,
-    showDestroy: PropTypes.bool,
+    showRemove: PropTypes.bool,
     onRestoreClick: PropTypes.func,
-    onDestroyClick: PropTypes.func,
+    onRemoveClick: PropTypes.func,
     popupRef: PropTypes.object,
     showAdd: PropTypes.bool
   };
@@ -55,10 +55,10 @@ export default class HubTrashNodeTitle extends Component {
       );
     }
 
-    if (this.props.showDestroy) {
+    if (this.props.showRemove) {
       buttons.push(
         <Tippy content={messages["trash.destroy"]} placement="bottom" key="destroy">
-          <IconButton iconSrc={trashIcon} onClick={this.props.onDestroyClick} />
+          <IconButton iconSrc={trashIcon} onClick={this.props.onRemoveClick} />
         </Tippy>
       );
     }

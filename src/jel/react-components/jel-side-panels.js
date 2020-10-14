@@ -357,7 +357,38 @@ function JelSidePanels({
         </Presence>
       </JelWrap>
       <TrashMenu setPopperElement={setTrashMenuElement} styles={trashMenuStyles} attributes={trashMenuAttributes}>
-        <HubTrashTree treeManager={treeManager} hub={hub} history={history} hubCan={hubCan} memberships={memberships} />
+        <HubTrashTree
+          treeManager={treeManager}
+          tree={treeManager && treeManager.trashNav}
+          hub={hub}
+          history={history}
+          hubCan={hubCan}
+          onRestore={(hubId, hubIdsToRestore) => {
+            window.APP.spaceChannel.restoreHubs(hubIdsToRestore);
+
+            // Blur so tree hides. This is important because we will re-load
+            // the trash tree next time user clicks.
+            document.activeElement.blur();
+
+            // Navigate to restored node.
+            const metadata = treeManager.sharedNav.atomMetadata.getMetadata(hubId);
+
+            if (metadata) {
+              navigateToHubUrl(history, metadata.url);
+            }
+          }}
+          onRemove={hubIdToRemove => {
+            // Focus trash menu so it stays open.
+            trashMenuElement.focus();
+
+            if (hub.hub_id === hubIdToRemove) {
+              const homeHub = homeHubForSpaceId(hub.space_id, memberships);
+              navigateToHubUrl(history, homeHub.url);
+            }
+
+            window.APP.spaceChannel.removeHubs([hubIdToRemove]);
+          }}
+        />
       </TrashMenu>
     </WrappedIntlProvider>
   );

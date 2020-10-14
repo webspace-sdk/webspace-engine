@@ -60,14 +60,14 @@ class TreeManager extends EventTarget {
       return filter(hubMetadata.getMetadata(node.h));
     };
 
-    const isNotTrashed = filterByMetadata(m => !m.is_trashed && m.permissions.join_hub);
-    const isTrashed = filterByMetadata(m => m.is_trashed && m.permissions.join_hub);
+    const isActive = filterByMetadata(m => m.state === "active" && m.permissions.join_hub);
+    const isTrashed = filterByMetadata(m => m.state === "trashed" && m.permissions.join_hub);
 
     this.sharedNav = new TreeSync(
       "nav",
       this.sharedExpandedTreeNodes,
       hubMetadata,
-      isNotTrashed,
+      isActive,
       TREE_PROJECTION_TYPE.NESTED,
       true
     );

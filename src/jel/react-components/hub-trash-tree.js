@@ -8,29 +8,27 @@ import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { useTreeData, findChildrenAtomsInTreeData } from "../utils/tree-utils";
 //import sharedStyles from "../assets/stylesheets/shared.scss";
 import HubTrashNodeTitle from "./hub-trash-node-title";
-import { homeHubForSpaceId } from "../utils/membership-utils";
 import { FormattedMessage } from "react-intl";
 import "../assets/stylesheets/hub-tree.scss";
 
 const TrashWrap = styled.div``;
 
-function HubTrashTree({ treeManager, history, hub, hubCan, memberships }) {
+function HubTrashTree({ treeManager, tree, history, hub, hubCan, onRestore, onRemove }) {
   const [trashTreeData, setTrashTreeData] = useState([]);
 
-  useTreeData(treeManager && treeManager.trashNav, setTrashTreeData);
+  useTreeData(tree, setTrashTreeData);
 
   const trashNavTitleControl = useCallback(
     data => (
       <HubTrashNodeTitle
         name={data.name}
         showRestore={hubCan("trash_hub", data.atomId)}
-        showDestroy={hubCan("destroy_hub", data.atomId)}
+        showRemove={hubCan("remove_hub", data.atomId)}
         onRestoreClick={e => {
           e.preventDefault();
           e.stopPropagation();
 
           const hubId = data.atomId;
-          const tree = treeManager.trashNav;
           const nodeId = tree.getNodeIdForAtomId(hubId);
           if (!nodeId) return;
 
@@ -43,8 +41,8 @@ function HubTrashTree({ treeManager, history, hub, hubCan, memberships }) {
             const parentHubId = tree.getAtomIdForNodeId(parentNodeId);
             const hubMetadata = tree.atomMetadata;
             const parentMetadata = hubMetadata && hubMetadata.getMetadata(parentHubId);
-            if (parentMetadata && parentMetadata.is_trashed) {
-              treeManager.trashNav.moveBelowRoot(nodeId);
+            if (parentMetadata && parentMetadata.state === "trashed") {
+              tree.moveBelowRoot(nodeId);
             }
           }
 
@@ -53,33 +51,36 @@ function HubTrashTree({ treeManager, history, hub, hubCan, memberships }) {
             hubId => hubCan("trash_hub", hubId) && hubCan("join_hub", hubId)
           );
 
-          window.APP.spaceChannel.restoreHubs([...restorableHubIds, hubId]);
-
-          // Blur so tree hides. This is important because we will re-load
-          // the trash tree next time user clicks.
-          document.activeElement.blur();
-
-          // Navigate to restored node.
-          const url = trashTreeData.find(node => node.key === nodeId).url;
-          navigateToHubUrl(history, url);
+          if (onRestore) {
+            onRestore(hubId, [hubId, ...restorableHubIds]);
+          }
         }}
-        onDestroyClick={e => {
+        onRemoveClick={e => {
           e.preventDefault();
           e.stopPropagation();
 
-          const hubIdToDestroy = data.atomId;
+          const hubId = data.atomId;
+          const nodeId = tree.getNodeIdForAtomId(hubId);
 
-          if (hub.hub_id === hubIdToDestroy) {
-            const homeHub = homeHubForSpaceId(hub.space_id, memberships);
-            navigateToHubUrl(history, homeHub.url);
+          if (!nodeId) return;
+
+          const hubIdToRemove = data.atomId;
+
+          tree.remove(nodeId);
+
+          // Rebuild trash to reflect that the node has been removed
+          tree.rebuildFilteredTreeData();
+
+          if (onRemove) {
+            onRemove(hubIdToRemove);
           }
         }}
       />
     ),
-    [treeManager, history, memberships, hub, hubCan]
+    [treeManager, tree, hubCan, onRemove, onRestore]
   );
 
-  if (!treeManager || !hub) return null;
+  if (!treeManager || !tree || !hub) return null;
 
   treeManager.setTrashNavTitleControl(trashNavTitleControl);
 
@@ -111,10 +112,12 @@ function HubTrashTree({ treeManager, history, hub, hubCan, memberships }) {
 
 HubTrashTree.propTypes = {
   treeManager: PropTypes.object,
+  tree: PropTypes.object,
   history: PropTypes.object,
   hub: PropTypes.object,
   hubCan: PropTypes.func,
-  memberships: PropTypes.array
+  onRestore: PropTypes.func,
+  onRemove: PropTypes.func
 };
 
 export default HubTrashTree;
