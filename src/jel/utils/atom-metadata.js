@@ -99,35 +99,30 @@ class AtomMetadata {
     return !!this.getMetadata(atomId).permissions[permission];
   }
 
-  ensureMetadataForIds(ids, force = false) {
-    return new Promise(async res => {
-      const idsToFetch = new Set();
+  async ensureMetadataForIds(ids, force = false) {
+    const idsToFetch = new Set();
+
+    for (const id of ids) {
+      if (!this._metadata.has(id) || force) {
+        idsToFetch.add(id);
+      }
+    }
+
+    if (idsToFetch.size !== 0) {
+      const atoms = await this._channel[this._channelGetMethod](idsToFetch);
+      for (const metadata of atoms) {
+        this._metadata.set(metadata[this._idColumn], metadata);
+      }
 
       for (const id of ids) {
-        if (!this._metadata.has(id) || force) {
-          idsToFetch.add(id);
+        // Mark nulls for invalid/inaccessible hub ids.
+        if (!this._metadata.has(id)) {
+          this._metadata.set(id, null);
         }
       }
 
-      if (idsToFetch.size === 0) {
-        res();
-      } else {
-        const atoms = await this._channel[this._channelGetMethod](idsToFetch);
-        for (const metadata of atoms) {
-          this._metadata.set(metadata[this._idColumn], metadata);
-        }
-
-        for (const id of ids) {
-          // Mark nulls for invalid/inaccessible hub ids.
-          if (!this._metadata.has(id)) {
-            this._metadata.set(id, null);
-          }
-        }
-
-        this._fireHandlerForSubscribersForUpdatedIds(ids);
-        res();
-      }
-    });
+      this._fireHandlerForSubscribersForUpdatedIds(ids);
+    }
   }
 
   hasMetadata(id) {
