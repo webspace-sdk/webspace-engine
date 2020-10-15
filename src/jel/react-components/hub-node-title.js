@@ -4,7 +4,7 @@ import styled from "styled-components";
 import IconButton from "./icon-button";
 import dotsIcon from "../assets/images/icons/dots-horizontal.svgi";
 import addIcon from "../assets/images/icons/add.svgi";
-import { useNameUpdateFromMetadata } from "../utils/tree-utils";
+import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 
 const HubNodeElement = styled.div`
   display: flex;

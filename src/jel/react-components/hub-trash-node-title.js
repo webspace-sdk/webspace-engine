@@ -7,7 +7,7 @@ import trashIcon from "../assets/images/icons/trash.svgi";
 import Tooltip from "./tooltip";
 import { useSingleton } from "@tippyjs/react";
 import "tippy.js/dist/tippy.css";
-import { useNameUpdateFromMetadata } from "../utils/tree-utils";
+import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 import { getMessages } from "../../hubs/utils/i18n";
 
 const HubTrashNodeElement = styled.div`

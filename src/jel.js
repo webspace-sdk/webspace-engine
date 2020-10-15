@@ -118,7 +118,7 @@ import DynaChannel from "./jel/utils/dyna-channel";
 import SpaceChannel from "./hubs/utils/space-channel";
 import HubChannel from "./hubs/utils/hub-channel";
 import LinkChannel from "./hubs/utils/link-channel";
-import { AtomMetadata, ATOM_TYPES } from "./jel/utils/atom-metadata";
+import AtomMetadata, { ATOM_TYPES } from "./jel/utils/atom-metadata";
 import { joinSpace, joinHub } from "./hubs/utils/jel-init";
 import { connectToReticulum } from "./hubs/utils/phoenix-utils";
 import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";

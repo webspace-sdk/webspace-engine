@@ -134,26 +134,3 @@ export async function addNewHubToTree(history, treeManager, spaceId, insertUnder
 
   navigateToHubUrl(history, hub.url);
 }
-
-export function useNameUpdateFromMetadata(hubId, metadata, setName) {
-  useEffect(
-    () => {
-      const defaultName = metadata.getDefaultName();
-
-      const updateName = () => {
-        let name = null;
-
-        if (metadata.hasMetadata(hubId)) {
-          name = metadata.getMetadata(hubId).name;
-        }
-
-        setName(name || defaultName);
-      };
-
-      updateName();
-      metadata.subscribeToMetadata(hubId, updateName);
-      return () => metadata.unsubscribeFromMetadata(updateName);
-    },
-    [hubId, metadata, setName]
-  );
-}

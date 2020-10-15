@@ -1,8 +1,9 @@
 import { hasIntersection } from "./set-utils";
 import fastDeepEqual from "fast-deep-equal";
 import { getMessages } from "../../hubs/utils/i18n";
+import { useEffect } from "react";
 
-export const ATOM_TYPES = {
+const ATOM_TYPES = {
   HUB: 0,
   SPACE: 1
 };
@@ -30,7 +31,7 @@ const VALID_PERMISSIONS = {
 
 // Class which is used to track realtime updates to metadata for hubs and spaces.
 // Used for filling into the tree controls.
-export class AtomMetadata {
+class AtomMetadata {
   constructor(atomType) {
     this._metadata = new Map();
     this._metadataSubscribers = new Map();
@@ -171,3 +172,28 @@ export class AtomMetadata {
     }
   }
 }
+
+function useNameUpdateFromMetadata(hubId, metadata, setName) {
+  useEffect(
+    () => {
+      const defaultName = metadata.getDefaultName();
+
+      const updateName = () => {
+        let name = null;
+
+        if (metadata.hasMetadata(hubId)) {
+          name = metadata.getMetadata(hubId).name;
+        }
+
+        setName(name || defaultName);
+      };
+
+      updateName();
+      metadata.subscribeToMetadata(hubId, updateName);
+      return () => metadata.unsubscribeFromMetadata(updateName);
+    },
+    [hubId, metadata, setName]
+  );
+}
+
+export { AtomMetadata as default, useNameUpdateFromMetadata, ATOM_TYPES };

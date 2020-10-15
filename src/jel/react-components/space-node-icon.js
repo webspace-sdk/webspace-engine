@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import styled from "styled-components";
-import { useNameUpdateFromMetadata } from "../utils/tree-utils";
+import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 
 const SpaceNodeIconElement = styled.div`
   width: 64px;
