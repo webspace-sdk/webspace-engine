@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
+import { useNameUpdateFromMetadata } from "../utils/tree-utils";
 
 const SpaceNodeIconElement = styled.div`
   width: 64px;
@@ -27,18 +28,24 @@ const SpaceNodeIconNonImage = styled.div`
   color: var(--secondary-panel-item-text-color);
 `;
 
-export default function SpaceNodeIcon({ spaceTreeDataItem: { icon, title } }) {
+export default function SpaceNodeIcon({ spaceId, spaceMetadata }) {
+  const [name, setName] = useState("");
+  const icon = null; // TODO
+
+  useNameUpdateFromMetadata(spaceId, spaceMetadata, setName);
+
   if (icon) {
     return <SpaceNodeIconElement className="spaceNodeIcon" style={{ backgroundImage: `url(${icon})` }} />;
   } else {
     return (
       <SpaceNodeIconElement className="spaceNodeIcon">
-        <SpaceNodeIconNonImage>{title && title.substring(0, 1)}</SpaceNodeIconNonImage>
+        <SpaceNodeIconNonImage>{name.substring(0, 1)}</SpaceNodeIconNonImage>
       </SpaceNodeIconElement>
     );
   }
 }
 
 SpaceNodeIcon.propTypes = {
-  spaceTreeDataItem: PropTypes.object
+  spaceId: PropTypes.string,
+  spaceMetadata: PropTypes.object
 };

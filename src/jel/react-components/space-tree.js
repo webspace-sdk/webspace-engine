@@ -11,6 +11,7 @@ function SpaceTree({ treeManager, history, space, memberships }) {
   const [spaceTreeData, setSpaceTreeData] = useState([]);
   const [spaceTreeDataVersion, setSpaceTreeDataVersion] = useState(0);
   const tree = treeManager && treeManager.privateSpace;
+  const spaceMetadata = tree && tree.atomMetadata;
   useTreeData(tree, spaceTreeDataVersion, setSpaceTreeData, setSpaceTreeDataVersion);
   useScrollToSelectedTreeNode(space);
 
@@ -21,7 +22,7 @@ function SpaceTree({ treeManager, history, space, memberships }) {
       <Tree
         prefixCls="space-tree"
         treeData={spaceTreeData}
-        icon={item => <SpaceNodeIcon spaceTreeDataItem={item} />}
+        icon={item => <SpaceNodeIcon spaceId={item.atomId} spaceMetadata={spaceMetadata} />}
         selectable={true}
         selectedKeys={spaceSelectedKeys}
         draggable

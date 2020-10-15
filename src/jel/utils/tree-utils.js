@@ -2,8 +2,6 @@ import scrollIntoView from "scroll-into-view-if-needed";
 import { useEffect } from "react";
 import { createHub } from "../../hubs/utils/phoenix-utils";
 import { navigateToHubUrl } from "./jel-url-utils";
-import { getMessages } from "../../hubs/utils/i18n";
-const DEFAULT_HUB_NAME = getMessages()["hub.unnamed-title"];
 
 export function useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersion) {
   useEffect(
@@ -137,23 +135,25 @@ export async function addNewHubToTree(history, treeManager, spaceId, insertUnder
   navigateToHubUrl(history, hub.url);
 }
 
-export function useNameUpdateFromHubMetadata(hubId, hubMetadata, setName) {
+export function useNameUpdateFromMetadata(hubId, metadata, setName) {
   useEffect(
     () => {
+      const defaultName = metadata.getDefaultName();
+
       const updateName = () => {
         let name = null;
 
-        if (hubMetadata.hasMetadata(hubId)) {
-          name = hubMetadata.getMetadata(hubId).name;
+        if (metadata.hasMetadata(hubId)) {
+          name = metadata.getMetadata(hubId).name;
         }
 
-        setName(name || DEFAULT_HUB_NAME);
+        setName(name || defaultName);
       };
 
       updateName();
-      hubMetadata.subscribeToMetadata(hubId, updateName);
-      return () => hubMetadata.unsubscribeFromMetadata(updateName);
+      metadata.subscribeToMetadata(hubId, updateName);
+      return () => metadata.unsubscribeFromMetadata(updateName);
     },
-    [hubId, hubMetadata, setName]
+    [hubId, metadata, setName]
   );
 }

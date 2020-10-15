@@ -493,18 +493,11 @@ class TreeSync extends EventTarget {
 
           if (!filteredNodes.has(nid) && children) {
             const atomId = n.h;
-            const nodeName = "";
-            let nodeTitle = null;
-
-            if (this.atomMetadata.hasMetadata(n.h)) {
-              const nodeData = this.getNodeDataFromMetadata(n.h);
-              nodeTitle = nodeData.title;
-            }
 
             if (parentNodes.has(nid)) {
               item = {
                 key: nid,
-                title: nodeTitle,
+                title: this.titleControl,
                 children: subchildren,
                 atomId,
                 isLeaf: isFlatProjection
@@ -512,7 +505,7 @@ class TreeSync extends EventTarget {
             } else {
               item = {
                 key: nid,
-                title: nodeTitle,
+                title: this.titleControl,
                 atomId,
                 isLeaf: true
               };
@@ -549,59 +542,50 @@ class TreeSync extends EventTarget {
 
     const hasAlreadyGeneratedItems = updatedIds && isSubset(updatedIds, new Set(atomIdToFilteredTreeDataItem.keys()));
 
-    let performInPlaceUpdate = hasAlreadyGeneratedItems;
+    let treeHasNoChanges = hasAlreadyGeneratedItems;
 
     if (hasAlreadyGeneratedItems) {
       // Edge case, if an updated node has been filtered out, we regen since its items need to be removed.
       for (const atomId of updatedIds) {
         if (this.isAtomIdFiltered(atomId)) {
-          performInPlaceUpdate = false;
+          treeHasNoChanges = false;
           break;
         }
       }
     }
 
-    if (performInPlaceUpdate) {
-      // Check to see if we can perform an in-place update instead of re-generating everything.
-      // This is possible if all updatedIds exist in the existing filteredTreeData.
-      for (const atomId of updatedIds) {
-        const item = atomIdToFilteredTreeDataItem.get(atomId);
-        const nodeData = this.getNodeDataFromMetadata(atomId);
-        item.title = nodeData.title;
-      }
+    // If we already have all the items in the update, and no items are being filtered, we can skip this update.
+    // Note that changes to properties on the items will not be reflected, and so components are responsible
+    // for subscribing to metadata changes.
+    if (treeHasNoChanges) return;
 
-      // For now, we don't fire the filtered tree data updated event when tree data is updated
-      // in-place. It's expected that the individual tree nodes will handle their local updates
-      // in the case of live metadata changes without structural changes (eg renames.)
-    } else {
-      for (const atomId of subscribedAtomIds) {
-        atomMetadata.unsubscribeFromMetadata(atomId, this.rebuildFilteredTreeDataIfAutoRefresh);
-      }
-
-      const isExpanded = nodeId => !this.expandedTreeNodes || this.expandedTreeNodes.isExpanded(nodeId);
-
-      this.atomIdToFilteredTreeDataItem.clear();
-      subscribedAtomIds.clear();
-
-      this.filteredTreeData = this.computeTree(this.nodeFilter, isExpanded, (nodeId, node, item) => {
-        // This visitor is passed every document node that is expanded, even if it is filtered
-        // via the node filter. So we add all the relevant atoms to the subscriber list,
-        // and then subscribe, and also maintain a map to generated treedata for in-place updating.
-        subscribedAtomIds.add(node.h);
-
-        if (item) {
-          this.atomIdToFilteredTreeDataItem.set(node.h, item);
-        }
-      });
-
-      this.dispatchEvent(new CustomEvent("filtered_treedata_updated"));
-
-      for (const atomId of subscribedAtomIds) {
-        atomMetadata.subscribeToMetadata(atomId, this.rebuildFilteredTreeDataIfAutoRefresh);
-      }
-
-      atomMetadata.ensureMetadataForIds(subscribedAtomIds);
+    for (const atomId of subscribedAtomIds) {
+      atomMetadata.unsubscribeFromMetadata(atomId, this.rebuildFilteredTreeDataIfAutoRefresh);
     }
+
+    const isExpanded = nodeId => !this.expandedTreeNodes || this.expandedTreeNodes.isExpanded(nodeId);
+
+    this.atomIdToFilteredTreeDataItem.clear();
+    subscribedAtomIds.clear();
+
+    this.filteredTreeData = this.computeTree(this.nodeFilter, isExpanded, (nodeId, node, item) => {
+      // This visitor is passed every document node that is expanded, even if it is filtered
+      // via the node filter. So we add all the relevant atoms to the subscriber list,
+      // and then subscribe, and also maintain a map to generated treedata for in-place updating.
+      subscribedAtomIds.add(node.h);
+
+      if (item) {
+        this.atomIdToFilteredTreeDataItem.set(node.h, item);
+      }
+    });
+
+    this.dispatchEvent(new CustomEvent("filtered_treedata_updated"));
+
+    for (const atomId of subscribedAtomIds) {
+      atomMetadata.subscribeToMetadata(atomId, this.rebuildFilteredTreeDataIfAutoRefresh);
+    }
+
+    atomMetadata.ensureMetadataForIds(subscribedAtomIds);
   }
 
   insertOrUpdate(nodeId, n) {
@@ -670,11 +654,6 @@ class TreeSync extends EventTarget {
     };
 
     return walk(this.filteredTreeData || []);
-  }
-
-  getNodeDataFromMetadata(atomId) {
-    const { name } = this.atomMetadata.getMetadata(atomId);
-    return { title: this.titleControl || name };
   }
 }
 

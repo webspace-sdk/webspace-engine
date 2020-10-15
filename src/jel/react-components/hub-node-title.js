@@ -4,7 +4,7 @@ import styled from "styled-components";
 import IconButton from "./icon-button";
 import dotsIcon from "../assets/images/icons/dots-horizontal.svgi";
 import addIcon from "../assets/images/icons/add.svgi";
-import { useNameUpdateFromHubMetadata } from "../utils/tree-utils";
+import { useNameUpdateFromMetadata } from "../utils/tree-utils";
 
 const HubNodeElement = styled.div`
   display: flex;
@@ -52,7 +52,7 @@ const HubNodeTitle = ({ hubId, onDotsClick, showAdd, onAddClick, hubMetadata }) 
 
   const popupRef = React.createRef();
 
-  useNameUpdateFromHubMetadata(hubId, hubMetadata, setName);
+  useNameUpdateFromMetadata(hubId, hubMetadata, setName);
 
   return (
     <HubNodeElement>

@@ -7,7 +7,7 @@ import trashIcon from "../assets/images/icons/trash.svgi";
 import Tooltip from "./tooltip";
 import { useSingleton } from "@tippyjs/react";
 import "tippy.js/dist/tippy.css";
-import { useNameUpdateFromHubMetadata } from "../utils/tree-utils";
+import { useNameUpdateFromMetadata } from "../utils/tree-utils";
 import { getMessages } from "../../hubs/utils/i18n";
 
 const HubTrashNodeElement = styled.div`
@@ -36,7 +36,7 @@ const HubTrashNodeTitle = function({ hubId, hubMetadata, showRestore, showRemove
   const [tippySource, tippyTarget] = useSingleton();
   const [name, setName] = useState("");
 
-  useNameUpdateFromHubMetadata(hubId, hubMetadata, setName);
+  useNameUpdateFromMetadata(hubId, hubMetadata, setName);
 
   const messages = getMessages();
 

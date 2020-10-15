@@ -1,5 +1,6 @@
 import { hasIntersection } from "./set-utils";
 import fastDeepEqual from "fast-deep-equal";
+import { getMessages } from "../../hubs/utils/i18n";
 
 export const ATOM_TYPES = {
   HUB: 0,
@@ -40,11 +41,13 @@ export class AtomMetadata {
         this._refreshMessage = "hub_meta_refresh";
         this._idColumn = "hub_id";
         this._channelGetMethod = "getHubMetas";
+        this._defaultName = getMessages()["hub.unnamed-title"];
         break;
       case ATOM_TYPES.SPACE:
         this._refreshMessage = "space_meta_refresh";
         this._idColumn = "space_id";
         this._channelGetMethod = "getSpaceMetas";
+        this._defaultName = getMessages()["space.unnamed-title"];
         break;
     }
   }
@@ -133,6 +136,10 @@ export class AtomMetadata {
   getMetadata(id) {
     const metadata = this._metadata.get(id);
     return metadata || null;
+  }
+
+  getDefaultName() {
+    return this._defaultName;
   }
 
   handleChannelRefreshMessage = ({ metas }) => {
