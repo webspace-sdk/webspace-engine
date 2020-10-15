@@ -543,10 +543,29 @@ class TreeSync extends EventTarget {
     return treeData;
   }
 
+  isAtomIdFiltered(atomId) {
+    const nodeId = this.getNodeIdForAtomId(atomId);
+    if (!nodeId) return false;
+    const node = this.doc.data[nodeId];
+    return !this.nodeFilter(node);
+  }
+
   rebuildFilteredTreeData(updatedIds) {
     const { atomMetadata, subscribedAtomIds, atomIdToFilteredTreeDataItem } = this;
 
-    const performInPlaceUpdate = updatedIds && isSubset(updatedIds, new Set(atomIdToFilteredTreeDataItem.keys()));
+    const hasAlreadyGeneratedItems = updatedIds && isSubset(updatedIds, new Set(atomIdToFilteredTreeDataItem.keys()));
+
+    let performInPlaceUpdate = hasAlreadyGeneratedItems;
+
+    if (hasAlreadyGeneratedItems) {
+      // Edge case, if an updated node has been filtered out, we regen since its items need to be removed.
+      for (const atomId of updatedIds) {
+        if (this.isAtomIdFiltered(atomId)) {
+          performInPlaceUpdate = false;
+          break;
+        }
+      }
+    }
 
     if (performInPlaceUpdate) {
       // Check to see if we can perform an in-place update instead of re-generating everything.

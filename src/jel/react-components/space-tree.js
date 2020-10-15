@@ -9,8 +9,9 @@ import "../assets/stylesheets/space-tree.scss";
 
 function SpaceTree({ treeManager, history, space, memberships }) {
   const [spaceTreeData, setSpaceTreeData] = useState([]);
+  const [spaceTreeDataVersion, setSpaceTreeDataVersion] = useState(0);
   const tree = treeManager && treeManager.privateSpace;
-  useTreeData(tree, setSpaceTreeData);
+  useTreeData(tree, spaceTreeDataVersion, setSpaceTreeData, setSpaceTreeDataVersion);
   useScrollToSelectedTreeNode(space);
 
   const spaceSelectedKeys = space && treeManager ? [tree.getNodeIdForAtomId(space.space_id)] : [];

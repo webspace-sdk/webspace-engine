@@ -15,8 +15,9 @@ const TrashWrap = styled.div``;
 
 function HubTrashTree({ treeManager, tree, history, hub, hubCan, onRestore, onRemove }) {
   const [trashTreeData, setTrashTreeData] = useState([]);
+  const [trashTreeDataVersion, setTrashTreeDataVersion] = useState(0);
 
-  useTreeData(tree, setTrashTreeData);
+  useTreeData(tree, trashTreeDataVersion, setTrashTreeData, setTrashTreeDataVersion);
 
   const trashNavTitleControl = useCallback(
     data => (

@@ -116,6 +116,7 @@ const HubTreeContextMenu = function({
 
 function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onHubNameChanged }) {
   const [navTreeData, setNavTreeData] = useState([]);
+  const [navTreeDataVersion, setNavTreeDataVersion] = useState(0);
   const [hubContextMenuHubId, setHubContextMenuHubId] = useState(null);
   const [hubContextMenuReferenceElement, setHubContextMenuReferenceElement] = useState(null);
   const [hubContextMenuElement, setHubContextMenuElement] = useState(null);
@@ -138,7 +139,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
     }
   );
 
-  useTreeData(treeManager && treeManager.sharedNav, setNavTreeData);
+  useTreeData(treeManager && treeManager.sharedNav, navTreeDataVersion, setNavTreeData, setNavTreeDataVersion);
   useExpandableTree(treeManager);
 
   // Ensure current selected node is always visible
@@ -154,6 +155,9 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
           setHubContextMenuHubId(data.atomId);
           setHubContextMenuReferenceElement(ref.current);
           hubContextMenuElement.focus();
+          // HACK need to remove this ref after menu is positioned by popper otherwise
+          // scrolling tree causes re-render :P
+          setTimeout(() => setHubContextMenuReferenceElement(null), 0);
           e.preventDefault();
           e.stopPropagation();
         }}
@@ -190,7 +194,6 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
         onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
         expandedKeys={treeManager.sharedExpandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeIsExpanded(key, expanded)}
-        height={100}
       />
       <HubTreeContextMenu
         setPopperElement={setHubContextMenuElement}

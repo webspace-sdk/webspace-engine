@@ -3,21 +3,24 @@ import { useEffect } from "react";
 import { createHub } from "../../hubs/utils/phoenix-utils";
 import { navigateToHubUrl } from "./jel-url-utils";
 
-export function useTreeData(tree, setTreeData) {
+export function useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersion) {
   useEffect(
     () => {
       if (!tree) return () => {};
 
-      const handleTreeData = () => setTreeData(tree.filteredTreeData);
+      const handleTreeData = () => {
+        setTreeData(tree.filteredTreeData);
+        setTreeDataVersion(treeDataVersion + 1);
+      };
 
       // Tree itself changed because effect was fired
-      handleTreeData();
+      setTreeData(tree.filteredTreeData);
 
       // Tree internal state changed
       tree.addEventListener("filtered_treedata_updated", handleTreeData);
       return () => tree.removeEventListener("filtered_treedata_updated", handleTreeData);
     },
-    [tree, setTreeData]
+    [tree, setTreeData, treeDataVersion, setTreeDataVersion]
   );
 }
 
@@ -59,11 +62,7 @@ export function useScrollToSelectedTreeNode(atom) {
   );
 }
 
-export const createTreeDropHandler = () => (treeManager, tree, allowNesting = true) => ({
-  dragNode,
-  node,
-  dropPosition
-}) => {
+export const createTreeDropHandler = (treeManager, tree, allowNesting = true) => ({ dragNode, node, dropPosition }) => {
   const dropPos = node.pos.split("-");
   const dropOffset = dropPosition - Number(dropPos[dropPos.length - 1]);
   switch (dropOffset) {
