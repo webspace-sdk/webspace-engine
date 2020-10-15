@@ -59,7 +59,7 @@ export function useScrollToSelectedTreeNode(atom) {
   );
 }
 
-export const createTreeDropHandler = treeManager => (tree, allowNesting = true) => ({
+export const createTreeDropHandler = () => (treeManager, tree, allowNesting = true) => ({
   dragNode,
   node,
   dropPosition
@@ -68,14 +68,14 @@ export const createTreeDropHandler = treeManager => (tree, allowNesting = true) 
   const dropOffset = dropPosition - Number(dropPos[dropPos.length - 1]);
   switch (dropOffset) {
     case -1:
-      treeManager[tree].moveAbove(dragNode.key, node.key);
+      tree.moveAbove(dragNode.key, node.key);
       break;
     case 1:
-      treeManager[tree].moveBelow(dragNode.key, node.key);
+      tree.moveBelow(dragNode.key, node.key);
       break;
     case 0:
       if (allowNesting) {
-        treeManager[tree].moveInto(dragNode.key, node.key);
+        tree.moveInto(dragNode.key, node.key);
         treeManager.setNodeIsExpanded(node.key, true);
       }
       break;

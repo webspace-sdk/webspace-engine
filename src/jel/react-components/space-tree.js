@@ -9,10 +9,11 @@ import "../assets/stylesheets/space-tree.scss";
 
 function SpaceTree({ treeManager, history, space, memberships }) {
   const [spaceTreeData, setSpaceTreeData] = useState([]);
-  useTreeData(treeManager && treeManager.privateSpace, setSpaceTreeData);
+  const tree = treeManager && treeManager.privateSpace;
+  useTreeData(tree, setSpaceTreeData);
   useScrollToSelectedTreeNode(space);
 
-  const spaceSelectedKeys = space && treeManager ? [treeManager.privateSpace.getNodeIdForAtomId(space.space_id)] : [];
+  const spaceSelectedKeys = space && treeManager ? [tree.getNodeIdForAtomId(space.space_id)] : [];
 
   return (
     <div>
@@ -23,7 +24,7 @@ function SpaceTree({ treeManager, history, space, memberships }) {
         selectable={true}
         selectedKeys={spaceSelectedKeys}
         draggable
-        onDrop={createTreeDropHandler(treeManager)("privateSpace", false)}
+        onDrop={createTreeDropHandler(treeManager, tree, false)}
         onSelect={(selectedKeys, { node: { atomId } }) =>
           navigateToHubUrl(history, homeHubForSpaceId(atomId, memberships).url)
         }

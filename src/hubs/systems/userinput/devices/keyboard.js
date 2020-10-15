@@ -1,5 +1,9 @@
 import { paths } from "../paths";
 import { ArrayBackedSet } from "../array-backed-set";
+const isInEditableField = () =>
+  !["TEXTAREA", "INPUT"].includes(document.activeElement && document.activeElement.nodeName) &&
+  !(document.activeElement && document.activeElement.contentEditable === "true");
+
 export class KeyboardDevice {
   constructor() {
     this.seenKeys = new ArrayBackedSet();
@@ -17,7 +21,7 @@ export class KeyboardDevice {
         }
 
         // Non-repeated shift-space is cursor lock hotkey.
-        if (e.type === "keydown" && e.key === " " && e.shiftKey && !e.repeat) {
+        if (e.type === "keydown" && e.key === " " && e.shiftKey && !e.repeat && !isInEditableField()) {
           const canvas = AFRAME.scenes[0].canvas;
 
           if (canvas.requestPointerLock) {
@@ -31,10 +35,7 @@ export class KeyboardDevice {
 
         // Block browser hotkeys for chat command, media browser and freeze
         if (
-          (e.type === "keydown" &&
-            e.key === "/" &&
-            !["TEXTAREA", "INPUT"].includes(document.activeElement && document.activeElement.nodeName) &&
-            !(document.activeElement && document.activeElement.contentEditable === "true")) ||
+          (e.type === "keydown" && e.key === "/" && !isInEditableField()) ||
           (e.ctrlKey &&
             (e.key === "1" ||
               e.key === "2" ||

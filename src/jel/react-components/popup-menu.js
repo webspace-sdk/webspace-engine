@@ -6,6 +6,7 @@ const PopupMenu = styled.div`
   background-color: var(--menu-background-color);
   width: 256px;
   height: fit-content;
+  padding: 4px 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;

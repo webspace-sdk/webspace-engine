@@ -71,21 +71,19 @@ export default class HubChannel extends EventTarget {
     this.channel.push("events:object_spawned", spawnEvent);
   };
 
-  updateScene = url => {
-    if (!this.channel) return;
-    if (!this._permissions.update_hub_meta) return "unauthorized";
-    this.channel.push("update_scene", { url });
+  updateScene = () => {
+    // TODO REMOVE call sites
   };
 
   updateHub = settings => {
+    // TODO move call sites to space channel
     if (!this.channel) return;
     if (!this._permissions.update_hub_meta) return "unauthorized";
     this.channel.push("update_hub_meta", settings);
   };
 
   closeHub = async () => {
-    if (!this._permissions.close_hub) return "unauthorized";
-    await new Promise(res => this.channel.push("close_hub", {}).receive("ok", res));
+    // TODO REMOVE call sites
   };
 
   subscribe = subscription => {

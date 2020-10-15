@@ -286,6 +286,7 @@ function JelSidePanels({
     : [];
 
   const space = spaceForSpaceId(spaceId, memberships);
+  const spaceChannel = window.APP.spaceChannel;
 
   return (
     <WrappedIntlProvider>
@@ -316,6 +317,9 @@ function JelSidePanels({
               spaceCan={spaceCan}
               hubCan={hubCan}
               memberships={memberships}
+              onHubNameChanged={(hubId, name) => {
+                spaceChannel.updateHub(hubId, { name });
+              }}
             />
           </NavSpill>
           <NavFoot>
@@ -365,7 +369,7 @@ function JelSidePanels({
           history={history}
           hubCan={hubCan}
           onRestore={(hubId, hubIdsToRestore) => {
-            window.APP.spaceChannel.restoreHubs(hubIdsToRestore);
+            spaceChannel.restoreHubs(hubIdsToRestore);
 
             // Blur so tree hides. This is important because we will re-load
             // the trash tree next time user clicks.
@@ -387,7 +391,7 @@ function JelSidePanels({
               navigateToHubUrl(history, homeHub.url);
             }
 
-            window.APP.spaceChannel.removeHubs([hubIdToRemove]);
+            spaceChannel.removeHubs([hubIdToRemove]);
           }}
         />
       </TrashMenu>

@@ -1,7 +1,5 @@
 import "./utils/configs";
 import { getAbsoluteHref } from "./utils/media-url-utils";
-import { isValidSceneUrl } from "./utils/scene-url-utils";
-import { getMessages } from "./utils/i18n";
 import { spawnChatMessage } from "./react-components/chat-message";
 import { SOUND_QUACK, SOUND_SPECIAL_QUACK } from "./systems/sound-effects-system";
 import ducky from "./assets/models/DuckyMesh.glb";
@@ -98,21 +96,6 @@ export default class MessageDispatch {
         break;
       case "vrstats":
         document.getElementById("stats").components["stats-plus"].toggleVRStats();
-        break;
-      case "scene":
-        if (args[0]) {
-          if (await isValidSceneUrl(args[0])) {
-            err = this.hubChannel.updateScene(args[0]);
-            if (err === "unauthorized") {
-              this.addToPresenceLog({ type: "log", body: "You do not have permission to change the scene." });
-            }
-          } else {
-            this.addToPresenceLog({ type: "log", body: getMessages()["invalid-scene-url"] });
-          }
-        } else if (this.hubChannel.can("update_hub_meta")) {
-          this.mediaSearchStore.sourceNavigateWithNoNav("scenes", "use");
-        }
-
         break;
       case "rename":
         err = this.hubChannel.rename(args.join(" "));

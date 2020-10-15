@@ -10,12 +10,12 @@
   opacity: 0;
   pointer-events: none;
 
-  transition: opacity 0.05s linear;
+  transition: opacity 0.15s linear;
 
   &:focus-within {
     opacity: 1;
     pointer-events: auto;
 
-    transition: opacity 0.05s linear;
+    transition: opacity 0.15s linear;
   }
 }
