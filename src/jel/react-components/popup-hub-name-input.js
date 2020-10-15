@@ -45,7 +45,7 @@ function PopupHubNameInput({ hubId, hubMetadata, onNameChanged }) {
         setName((hubMetadata && hubMetadata.name) || "");
       }
     },
-    [hubId, hubMetadata]
+    [hubId, hubMetadata, editingHubId, setEditingHubId]
   );
 
   const messages = getMessages();

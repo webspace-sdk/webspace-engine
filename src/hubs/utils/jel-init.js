@@ -646,15 +646,24 @@ const setupHubChannelMessageHandlers = (
 
     addToPresenceLog(incomingMessage);
   });
-  hubPhxChannel.on("hub_refresh", ({ session_id, hubs, stale_fields }) => {
+  hubPhxChannel.on("hub_refresh", ({ hubs, stale_fields }) => {
     const hub = hubs[0];
-    const userInfo = spaceChannel.presence.state[session_id];
 
-    updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
+    // Special case: don't do anything, we rely upon the metadata subscriptions to quickly update
+    // references to hub names in-place.
+    const isJustName = stale_fields.length === 1 && stale_fields[0] === "name";
 
-    if (stale_fields.includes("roles")) {
-      hubChannel.fetchPermissions();
-      spaceChannel.fetchPermissions();
+    if (!isJustName) {
+      updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
+
+      if (stale_fields.includes("roles")) {
+        hubChannel.fetchPermissions();
+        spaceChannel.fetchPermissions();
+      }
+
+      if (hub.entry_mode === "deny") {
+        scene.emit("hub_closed");
+      }
     }
 
     if (stale_fields.includes("name")) {
@@ -670,16 +679,6 @@ const setupHubChannelMessageHandlers = (
       );
 
       history.replace({ pathname, search, state });
-
-      addToPresenceLog({
-        type: "hub_name_changed",
-        name: userInfo.metas[0].profile.displayName,
-        hubName: hub.name
-      });
-    }
-
-    if (hub.entry_mode === "deny") {
-      scene.emit("hub_closed");
     }
   });
 

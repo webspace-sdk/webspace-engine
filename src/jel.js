@@ -320,16 +320,18 @@ function mountJelUI(props = {}) {
   ReactDOM.render(
     <Router history={history}>
       <Route
-        render={routeProps => (
-          <JelSidePanels
-            {...{
-              scene,
-              store,
-              ...props,
-              ...routeProps
-            }}
-          />
-        )}
+        render={routeProps => {
+          return (
+            <JelSidePanels
+              {...{
+                scene,
+                store,
+                history: routeProps.history,
+                ...props
+              }}
+            />
+          );
+        }}
       />
     </Router>,
     document.getElementById("jel-side-panels")

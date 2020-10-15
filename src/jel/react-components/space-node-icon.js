@@ -33,7 +33,7 @@ export default function SpaceNodeIcon({ spaceTreeDataItem: { icon, title } }) {
   } else {
     return (
       <SpaceNodeIconElement className="spaceNodeIcon">
-        <SpaceNodeIconNonImage>{title.substring(0, 1)}</SpaceNodeIconNonImage>
+        <SpaceNodeIconNonImage>{title && title.substring(0, 1)}</SpaceNodeIconNonImage>
       </SpaceNodeIconElement>
     );
   }
