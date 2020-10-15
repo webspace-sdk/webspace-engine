@@ -78,7 +78,7 @@ export class AtomMetadata {
   _fireHandlerForSubscribersForUpdatedIds = updatedIds => {
     for (const [handler, ids] of this._metadataSubscribers) {
       if (hasIntersection(updatedIds, ids)) {
-        handler();
+        handler(updatedIds);
       }
     }
   };

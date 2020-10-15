@@ -1,5 +1,6 @@
 import { EventTarget } from "event-target-shim";
 import { DEFAULT_HUB_NAME } from "../../hubs/utils/media-utils";
+import { isSubset } from "./set-utils";
 
 // Nested will generate a nested tree with leaves, flat will generate all the nodes
 // in a flat list, with the deepest nodes last.
@@ -35,6 +36,8 @@ class TreeSync extends EventTarget {
     this.projectionType = projectionType;
     this.autoRefresh = autoRefresh;
     this.filteredTreeData = [];
+    this.subscribedAtomIds = new Set();
+    this.atomIdToFilteredTreeDataItem = new Map();
   }
 
   setCollectionId(collectionId) {
@@ -75,9 +78,9 @@ class TreeSync extends EventTarget {
     });
   }
 
-  rebuildFilteredTreeDataIfAutoRefresh = () => {
+  rebuildFilteredTreeDataIfAutoRefresh = updatedIds => {
     if (this.autoRefresh) {
-      this.rebuildFilteredTreeData();
+      this.rebuildFilteredTreeData(updatedIds);
     }
   };
 
@@ -485,10 +488,9 @@ class TreeSync extends EventTarget {
         let nid = nodeId;
 
         do {
-          if (visitor) visitor(nid, n);
-
           const subchildren = [];
           nodeIdToChildren.set(nid, subchildren);
+          let item;
 
           if (!filteredNodes.has(nid) && children) {
             const atomId = n.h;
@@ -496,13 +498,13 @@ class TreeSync extends EventTarget {
             let nodeUrl = null;
 
             if (this.atomMetadata.hasMetadata(n.h)) {
-              const { name, url } = this.atomMetadata.getMetadata(atomId);
-              nodeName = name || DEFAULT_HUB_NAME;
-              nodeUrl = url;
+              const nodeData = this.getNodeDataFromMetadata(n.h);
+              nodeName = nodeData.name;
+              nodeUrl = nodeData.url;
             }
 
             if (parentNodes.has(nid)) {
-              children.unshift({
+              item = {
                 key: nid,
                 name: nodeName,
                 title: this.titleControl || nodeName,
@@ -510,18 +512,22 @@ class TreeSync extends EventTarget {
                 url: nodeUrl,
                 atomId,
                 isLeaf: isFlatProjection
-              });
+              };
             } else {
-              children.unshift({
+              item = {
                 key: nid,
                 name: nodeName,
                 title: this.titleControl || nodeName,
                 url: nodeUrl,
                 atomId,
                 isLeaf: true
-              });
+              };
             }
+
+            children.unshift(item);
           }
+
+          if (visitor) visitor(nid, n, item);
 
           nid = n.r;
 
@@ -537,27 +543,51 @@ class TreeSync extends EventTarget {
     return treeData;
   }
 
-  rebuildFilteredTreeData() {
-    if (this.expandedIds) {
-      for (const atomId of this.expandedIds) {
-        this.atomMetadata.unsubscribeFromMetadata(atomId, this.rebuildFilteredTreeDataIfAutoRefresh);
+  rebuildFilteredTreeData(updatedIds) {
+    const { atomMetadata, subscribedAtomIds, atomIdToFilteredTreeDataItem } = this;
+
+    const performInPlaceUpdate = updatedIds && isSubset(updatedIds, new Set(atomIdToFilteredTreeDataItem.keys()));
+
+    if (performInPlaceUpdate) {
+      // Check to see if we can perform an in-place update instead of re-generating everything.
+      // This is possible if all updatedIds exist in the existing filteredTreeData.
+      for (const atomId of updatedIds) {
+        const item = atomIdToFilteredTreeDataItem.get(atomId);
+        const nodeData = this.getNodeDataFromMetadata(atomId);
+        item.name = nodeData.name;
+        item.url = nodeData.url;
       }
+
+      this.dispatchEvent(new CustomEvent("filtered_treedata_updated"));
+    } else {
+      for (const atomId of subscribedAtomIds) {
+        atomMetadata.unsubscribeFromMetadata(atomId, this.rebuildFilteredTreeDataIfAutoRefresh);
+      }
+
+      const isExpanded = nodeId => !this.expandedTreeNodes || this.expandedTreeNodes.isExpanded(nodeId);
+
+      this.atomIdToFilteredTreeDataItem.clear();
+      subscribedAtomIds.clear();
+
+      this.filteredTreeData = this.computeTree(this.nodeFilter, isExpanded, (nodeId, node, item) => {
+        // This visitor is passed every document node that is expanded, even if it is filtered
+        // via the node filter. So we add all the relevant atoms to the subscriber list,
+        // and then subscribe, and also maintain a map to generated treedata for in-place updating.
+        subscribedAtomIds.add(node.h);
+
+        if (item) {
+          this.atomIdToFilteredTreeDataItem.set(node.h, item);
+        }
+      });
+
+      this.dispatchEvent(new CustomEvent("filtered_treedata_updated"));
+
+      for (const atomId of subscribedAtomIds) {
+        atomMetadata.subscribeToMetadata(atomId, this.rebuildFilteredTreeDataIfAutoRefresh);
+      }
+
+      atomMetadata.ensureMetadataForIds(subscribedAtomIds);
     }
-
-    this.expandedIds = new Set();
-
-    const isExpanded = nodeId => !this.expandedTreeNodes || this.expandedTreeNodes.isExpanded(nodeId);
-
-    const fillIds = (nodeId, node) => this.expandedIds.add(node.h); // Visitor
-
-    this.filteredTreeData = this.computeTree(this.nodeFilter, isExpanded, fillIds);
-    this.dispatchEvent(new CustomEvent("filtered_treedata_updated"));
-
-    for (const atomId of this.expandedIds) {
-      this.atomMetadata.subscribeToMetadata(atomId, this.rebuildFilteredTreeDataIfAutoRefresh);
-    }
-
-    this.atomMetadata.ensureMetadataForIds(this.expandedIds);
   }
 
   insertOrUpdate(nodeId, n) {
@@ -626,6 +656,11 @@ class TreeSync extends EventTarget {
     };
 
     return walk(this.filteredTreeData || []);
+  }
+
+  getNodeDataFromMetadata(atomId) {
+    const { name, url } = this.atomMetadata.getMetadata(atomId);
+    return { name: name || DEFAULT_HUB_NAME, url };
   }
 }
 

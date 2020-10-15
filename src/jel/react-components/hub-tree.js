@@ -190,6 +190,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
         onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
         expandedKeys={treeManager.sharedExpandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeIsExpanded(key, expanded)}
+        height={100}
       />
       <HubTreeContextMenu
         setPopperElement={setHubContextMenuElement}

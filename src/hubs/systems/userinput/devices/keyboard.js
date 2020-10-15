@@ -1,8 +1,8 @@
 import { paths } from "../paths";
 import { ArrayBackedSet } from "../array-backed-set";
 const isInEditableField = () =>
-  !["TEXTAREA", "INPUT"].includes(document.activeElement && document.activeElement.nodeName) &&
-  !(document.activeElement && document.activeElement.contentEditable === "true");
+  ["TEXTAREA", "INPUT"].includes(document.activeElement && document.activeElement.nodeName) ||
+  (document.activeElement && document.activeElement.contentEditable === "true");
 
 export class KeyboardDevice {
   constructor() {
