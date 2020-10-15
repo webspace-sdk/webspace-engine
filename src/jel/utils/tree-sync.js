@@ -496,18 +496,20 @@ class TreeSync extends EventTarget {
             const atomId = n.h;
             let nodeName = "";
             let nodeUrl = null;
+            let nodeTitle = null;
 
             if (this.atomMetadata.hasMetadata(n.h)) {
               const nodeData = this.getNodeDataFromMetadata(n.h);
               nodeName = nodeData.name;
               nodeUrl = nodeData.url;
+              nodeTitle = nodeData.title;
             }
 
             if (parentNodes.has(nid)) {
               item = {
                 key: nid,
                 name: nodeName,
-                title: this.titleControl || nodeName,
+                title: nodeTitle,
                 children: subchildren,
                 url: nodeUrl,
                 atomId,
@@ -517,7 +519,7 @@ class TreeSync extends EventTarget {
               item = {
                 key: nid,
                 name: nodeName,
-                title: this.titleControl || nodeName,
+                title: nodeTitle,
                 url: nodeUrl,
                 atomId,
                 isLeaf: true
@@ -575,6 +577,7 @@ class TreeSync extends EventTarget {
         const nodeData = this.getNodeDataFromMetadata(atomId);
         item.name = nodeData.name;
         item.url = nodeData.url;
+        item.title = nodeData.title;
       }
 
       this.dispatchEvent(new CustomEvent("filtered_treedata_updated"));
@@ -679,7 +682,7 @@ class TreeSync extends EventTarget {
 
   getNodeDataFromMetadata(atomId) {
     const { name, url } = this.atomMetadata.getMetadata(atomId);
-    return { name: name || DEFAULT_HUB_NAME, url };
+    return { name: name || DEFAULT_HUB_NAME, url, title: this.titleControl || name || DEFAULT_HUB_NAME };
   }
 }
 

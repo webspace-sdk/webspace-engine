@@ -27,7 +27,7 @@ const SpaceNodeIconNonImage = styled.div`
   color: var(--secondary-panel-item-text-color);
 `;
 
-export default function SpaceNodeIcon({ spaceTreeData: { icon, title } }) {
+export default function SpaceNodeIcon({ spaceTreeDataItem: { icon, title } }) {
   if (icon) {
     return <SpaceNodeIconElement className="spaceNodeIcon" style={{ backgroundImage: `url(${icon})` }} />;
   } else {
@@ -40,5 +40,5 @@ export default function SpaceNodeIcon({ spaceTreeData: { icon, title } }) {
 }
 
 SpaceNodeIcon.propTypes = {
-  spaceTreeData: PropTypes.object
+  spaceTreeDataItem: PropTypes.object
 };

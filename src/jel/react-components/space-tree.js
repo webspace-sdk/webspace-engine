@@ -21,7 +21,7 @@ function SpaceTree({ treeManager, history, space, memberships }) {
       <Tree
         prefixCls="space-tree"
         treeData={spaceTreeData}
-        icon={spaceTreeData => <SpaceNodeIcon spaceTreeData={spaceTreeData} />}
+        icon={item => <SpaceNodeIcon spaceTreeDataItem={item} />}
         selectable={true}
         selectedKeys={spaceSelectedKeys}
         draggable

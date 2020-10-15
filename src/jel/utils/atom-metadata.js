@@ -108,7 +108,6 @@ export class AtomMetadata {
         res();
       } else {
         const atoms = await this._channel[this._channelGetMethod](idsToFetch);
-
         for (const metadata of atoms) {
           this._metadata.set(metadata[this._idColumn], metadata);
         }
