@@ -53,18 +53,26 @@ function PopupHubNameInput({ hubId, hubMetadata, onNameChanged }) {
   return (
     <PopupHubNameInputPanel>
       <PopupHubNameInputWrap>
-        <PopupHubNameInputElement
-          type="text"
-          value={name}
-          placeholder={messages["hub.unnamed-title"]}
-          onChange={e => {
-            const newName = e.target.value;
-            setName(newName);
-            if (onNameChanged) {
-              onNameChanged(newName);
-            }
+        <form
+          onSubmit={e => {
+            e.preventDefault();
+            e.stopPropagation();
+            document.activeElement.blur(); // This causes this element to hide via CSS
           }}
-        />
+        >
+          <PopupHubNameInputElement
+            type="text"
+            value={name}
+            placeholder={messages["hub.unnamed-title"]}
+            onChange={e => {
+              const newName = e.target.value;
+              setName(newName);
+              if (onNameChanged) {
+                onNameChanged(newName);
+              }
+            }}
+          />
+        </form>
       </PopupHubNameInputWrap>
     </PopupHubNameInputPanel>
   );
