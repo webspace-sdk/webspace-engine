@@ -1,4 +1,5 @@
 import { hasIntersection } from "./set-utils";
+import fastDeepEqual from "fast-deep-equal";
 
 export const ATOM_TYPES = {
   HUB: 0,
@@ -140,11 +141,18 @@ export class AtomMetadata {
     for (let i = 0; i < metas.length; i++) {
       const metadata = metas[i];
       const id = metadata[this._idColumn];
-      this._metadata.set(id, metadata);
-      ids.push(id);
+
+      const existing = this._metadata.get(id);
+
+      if (!existing || !fastDeepEqual(existing, metadata)) {
+        ids.push(id);
+        this._metadata.set(id, metadata);
+      }
     }
 
-    this._fireHandlerForSubscribersForUpdatedIds(ids);
+    if (ids.length > 0) {
+      this._fireHandlerForSubscribersForUpdatedIds(ids);
+    }
   };
 
   async getOrFetchMetadata(id) {

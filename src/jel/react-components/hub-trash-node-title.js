@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import IconButton from "./icon-button";
 import restoreIcon from "../assets/images/icons/restore.svgi";
@@ -7,6 +7,7 @@ import trashIcon from "../assets/images/icons/trash.svgi";
 import Tooltip from "./tooltip";
 import { useSingleton } from "@tippyjs/react";
 import "tippy.js/dist/tippy.css";
+import { useNameUpdateFromHubMetadata } from "../utils/tree-utils";
 import { getMessages } from "../../hubs/utils/i18n";
 
 const HubTrashNodeElement = styled.div`
@@ -31,8 +32,11 @@ const HubTitle = styled.div`
   flex-basis: calc(100% - 58px);
 `;
 
-const HubTrashNodeTitle = function({ name, showRestore, showRemove, onRemoveClick, onRestoreClick }) {
+const HubTrashNodeTitle = function({ hubId, hubMetadata, showRestore, showRemove, onRemoveClick, onRestoreClick }) {
   const [tippySource, tippyTarget] = useSingleton();
+  const [name, setName] = useState("");
+
+  useNameUpdateFromHubMetadata(hubId, hubMetadata, setName);
 
   const messages = getMessages();
 
@@ -57,8 +61,8 @@ const HubTrashNodeTitle = function({ name, showRestore, showRemove, onRemoveClic
 };
 
 HubTrashNodeTitle.propTypes = {
-  name: PropTypes.string,
   hubId: PropTypes.string,
+  hubMetadata: PropTypes.object,
   showRestore: PropTypes.bool,
   showRemove: PropTypes.bool,
   onRestoreClick: PropTypes.func,

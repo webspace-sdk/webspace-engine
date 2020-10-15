@@ -13,7 +13,7 @@ import "../assets/stylesheets/hub-tree.scss";
 
 const TrashWrap = styled.div``;
 
-function HubTrashTree({ treeManager, tree, history, hub, hubCan, onRestore, onRemove }) {
+function HubTrashTree({ treeManager, hubMetadata, tree, history, hub, hubCan, onRestore, onRemove }) {
   const [trashTreeData, setTrashTreeData] = useState([]);
   const [trashTreeDataVersion, setTrashTreeDataVersion] = useState(0);
 
@@ -22,7 +22,8 @@ function HubTrashTree({ treeManager, tree, history, hub, hubCan, onRestore, onRe
   const trashNavTitleControl = useCallback(
     data => (
       <HubTrashNodeTitle
-        name={data.name}
+        hubId={data.atomId}
+        hubMetadata={hubMetadata}
         showRestore={hubCan("trash_hub", data.atomId)}
         showRemove={hubCan("remove_hub", data.atomId)}
         onRestoreClick={e => {
@@ -116,6 +117,7 @@ HubTrashTree.propTypes = {
   tree: PropTypes.object,
   history: PropTypes.object,
   hub: PropTypes.object,
+  hubMetadata: PropTypes.object,
   hubCan: PropTypes.func,
   onRestore: PropTypes.func,
   onRemove: PropTypes.func

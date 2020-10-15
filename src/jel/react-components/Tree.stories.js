@@ -10,6 +10,7 @@ import PanelSectionHeader from "./panel-section-header";
 import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
 import trashIcon from "../assets/images/icons/trash.svgi";
 
+// TODO this needs to use the metadata API, no longer storing this stuff in tree data
 const createHubTitleNode = props => {
   return (
     <HubNodeTitle

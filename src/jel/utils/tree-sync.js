@@ -1,5 +1,4 @@
 import { EventTarget } from "event-target-shim";
-import { DEFAULT_HUB_NAME } from "../../hubs/utils/media-utils";
 import { isSubset } from "./set-utils";
 
 // Nested will generate a nested tree with leaves, flat will generate all the nodes
@@ -45,7 +44,7 @@ class TreeSync extends EventTarget {
   }
 
   setTitleControl(titleControl) {
-    if (this.filteredTreeData.length === 0) return;
+    if (!this.filteredTreeData || this.filteredTreeData.length === 0) return;
 
     this.titleControl = titleControl;
 
@@ -494,33 +493,26 @@ class TreeSync extends EventTarget {
 
           if (!filteredNodes.has(nid) && children) {
             const atomId = n.h;
-            let nodeName = "";
-            let nodeUrl = null;
+            const nodeName = "";
             let nodeTitle = null;
 
             if (this.atomMetadata.hasMetadata(n.h)) {
               const nodeData = this.getNodeDataFromMetadata(n.h);
-              nodeName = nodeData.name;
-              nodeUrl = nodeData.url;
               nodeTitle = nodeData.title;
             }
 
             if (parentNodes.has(nid)) {
               item = {
                 key: nid,
-                name: nodeName,
                 title: nodeTitle,
                 children: subchildren,
-                url: nodeUrl,
                 atomId,
                 isLeaf: isFlatProjection
               };
             } else {
               item = {
                 key: nid,
-                name: nodeName,
                 title: nodeTitle,
-                url: nodeUrl,
                 atomId,
                 isLeaf: true
               };
@@ -575,12 +567,12 @@ class TreeSync extends EventTarget {
       for (const atomId of updatedIds) {
         const item = atomIdToFilteredTreeDataItem.get(atomId);
         const nodeData = this.getNodeDataFromMetadata(atomId);
-        item.name = nodeData.name;
-        item.url = nodeData.url;
         item.title = nodeData.title;
       }
 
-      this.dispatchEvent(new CustomEvent("filtered_treedata_updated"));
+      // For now, we don't fire the filtered tree data updated event when tree data is updated
+      // in-place. It's expected that the individual tree nodes will handle their local updates
+      // in the case of live metadata changes without structural changes (eg renames.)
     } else {
       for (const atomId of subscribedAtomIds) {
         atomMetadata.unsubscribeFromMetadata(atomId, this.rebuildFilteredTreeDataIfAutoRefresh);
@@ -681,8 +673,8 @@ class TreeSync extends EventTarget {
   }
 
   getNodeDataFromMetadata(atomId) {
-    const { name, url } = this.atomMetadata.getMetadata(atomId);
-    return { name: name || DEFAULT_HUB_NAME, url, title: this.titleControl || name || DEFAULT_HUB_NAME };
+    const { name } = this.atomMetadata.getMetadata(atomId);
+    return { title: this.titleControl || name };
   }
 }
 

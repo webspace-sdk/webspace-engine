@@ -3,6 +3,7 @@ import { getHubIdFromHistory, getSpaceIdFromHistory, setupPeerConnectionConfig }
 import { createInWorldLogMessage } from "../react-components/chat-message";
 import nextTick from "./next-tick";
 import { authorizeOrSanitizeMessage } from "./permissions-utils";
+import { isSetEqual } from "../../jel/utils/set-utils";
 import qsTruthy from "./qs_truthy";
 //import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
 import HubStore from "../storage/hub-store";
@@ -646,14 +647,18 @@ const setupHubChannelMessageHandlers = (
 
     addToPresenceLog(incomingMessage);
   });
+
+  // Avoid updating the history frequently, as users type new hub names
+  let historyReplaceTimeout = null;
+
   hubPhxChannel.on("hub_refresh", ({ hubs, stale_fields }) => {
     const hub = hubs[0];
 
     // Special case: don't do anything, we rely upon the metadata subscriptions to quickly update
-    // references to hub names in-place.
-    const isJustName = stale_fields.length === 1 && stale_fields[0] === "name";
+    // references to hub names + icon in-place.
+    const isJustLabel = isSetEqual(new Set(["name"]), new Set(stale_fields));
 
-    if (!isJustName) {
+    if (!isJustLabel) {
       updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
 
       if (stale_fields.includes("roles")) {
@@ -678,7 +683,11 @@ const setupHubChannelMessageHandlers = (
         `/${hub.slug}-${hub.space_id}${hub.hub_id}`
       );
 
-      history.replace({ pathname, search, state });
+      if (historyReplaceTimeout) {
+        clearTimeout(historyReplaceTimeout);
+      }
+
+      historyReplaceTimeout = setTimeout(() => history.replace({ pathname, search, state }), 1000);
     }
   });
 

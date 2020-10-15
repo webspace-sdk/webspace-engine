@@ -1,9 +1,10 @@
 import PropTypes from "prop-types";
-import React, { Component } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import IconButton from "./icon-button";
 import dotsIcon from "../assets/images/icons/dots-horizontal.svgi";
 import addIcon from "../assets/images/icons/add.svgi";
+import { useNameUpdateFromHubMetadata } from "../utils/tree-utils";
 
 const HubNodeElement = styled.div`
   display: flex;
@@ -46,31 +47,32 @@ const PopupRef = styled.div`
   top: 12px;
 `;
 
-export default class HubNodeTitle extends Component {
-  static propTypes = {
-    name: PropTypes.string,
-    onAddClick: PropTypes.func,
-    onDotsClick: PropTypes.func,
-    popupRef: PropTypes.object,
-    showAdd: PropTypes.bool
-  };
+const HubNodeTitle = ({ hubId, onDotsClick, showAdd, onAddClick, hubMetadata }) => {
+  const [name, setName] = useState("");
 
-  constructor() {
-    super();
+  const popupRef = React.createRef();
 
-    this.popupRef = React.createRef();
-  }
+  useNameUpdateFromHubMetadata(hubId, hubMetadata, setName);
 
-  render() {
-    return (
-      <HubNodeElement>
-        <HubTitle className="title">{this.props.name}</HubTitle>
-        <HubControls className="controls">
-          <IconButton iconSrc={dotsIcon} onClick={e => this.props.onDotsClick(e, this.popupRef)} />
-          <PopupRef ref={this.popupRef} />
-          {this.props.showAdd && <IconButton iconSrc={addIcon} onClick={this.props.onAddClick} />}
-        </HubControls>
-      </HubNodeElement>
-    );
-  }
-}
+  return (
+    <HubNodeElement>
+      <HubTitle className="title">{name}</HubTitle>
+      <HubControls className="controls">
+        <IconButton iconSrc={dotsIcon} onClick={e => onDotsClick(e, popupRef)} />
+        <PopupRef ref={popupRef} />
+        {showAdd && <IconButton iconSrc={addIcon} onClick={onAddClick} />}
+      </HubControls>
+    </HubNodeElement>
+  );
+};
+
+HubNodeTitle.propTypes = {
+  hubId: PropTypes.string,
+  onAddClick: PropTypes.func,
+  onDotsClick: PropTypes.func,
+  popupRef: PropTypes.object,
+  showAdd: PropTypes.bool,
+  hubMetadata: PropTypes.object
+};
+
+export default HubNodeTitle;

@@ -14,3 +14,9 @@ export function isSubset(a, b) {
 
   return true;
 }
+
+export function isSetEqual(a, b) {
+  if (a.size !== b.size) return false;
+  for (const x of a) if (!b.has(x)) return false;
+  return true;
+}

@@ -139,7 +139,10 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
     }
   );
 
-  useTreeData(treeManager && treeManager.sharedNav, navTreeDataVersion, setNavTreeData, setNavTreeDataVersion);
+  const tree = treeManager && treeManager.sharedNav;
+  const atomMetadata = tree && tree.atomMetadata;
+
+  useTreeData(tree, navTreeDataVersion, setNavTreeData, setNavTreeDataVersion);
   useExpandableTree(treeManager);
 
   // Ensure current selected node is always visible
@@ -148,8 +151,9 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
   const navTitleControl = useCallback(
     data => (
       <HubNodeTitle
-        name={data.name}
+        hubId={data.atomId}
         showAdd={spaceCan("create_hub")}
+        hubMetadata={atomMetadata}
         onAddClick={() => addNewHubToTree(history, treeManager, hub.space_id, data.atomId)}
         onDotsClick={(e, ref) => {
           setHubContextMenuHubId(data.atomId);
@@ -169,6 +173,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
       history,
       hub,
       treeManager,
+      atomMetadata,
       hubContextMenuElement,
       setHubContextMenuHubId,
       setHubContextMenuReferenceElement,
@@ -179,7 +184,6 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
   if (!treeManager || !hub) return null;
 
   treeManager.setNavTitleControl(navTitleControl);
-  const tree = treeManager.sharedNav;
 
   const navSelectedKeys = hub ? [tree.getNodeIdForAtomId(hub.hub_id)] : [];
 
@@ -193,7 +197,13 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
         draggable
         onDragEnter={({ node }) => treeManager.setNodeIsExpanded(node.key, true)}
         onDrop={createTreeDropHandler(treeManager, tree)}
-        onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
+        onSelect={(selectedKeys, { node: { atomId } }) => {
+          const metadata = tree.atomMetadata.getMetadata(atomId);
+
+          if (metadata) {
+            navigateToHubUrl(history, metadata.url);
+          }
+        }}
         expandedKeys={treeManager.sharedExpandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeIsExpanded(key, expanded)}
       />

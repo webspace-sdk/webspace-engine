@@ -287,6 +287,7 @@ function JelSidePanels({
 
   const space = spaceForSpaceId(spaceId, memberships);
   const spaceChannel = window.APP.spaceChannel;
+  const hubMetadata = treeManager && treeManager.sharedNav && treeManager.sharedNav.atomMetadata;
 
   return (
     <WrappedIntlProvider>
@@ -317,9 +318,7 @@ function JelSidePanels({
               spaceCan={spaceCan}
               hubCan={hubCan}
               memberships={memberships}
-              onHubNameChanged={(hubId, name) => {
-                spaceChannel.updateHub(hubId, { name });
-              }}
+              onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
             />
           </NavSpill>
           <NavFoot>
@@ -366,6 +365,7 @@ function JelSidePanels({
           treeManager={treeManager}
           tree={treeManager && treeManager.trashNav}
           hub={hub}
+          hubMetadata={hubMetadata}
           history={history}
           hubCan={hubCan}
           onRestore={(hubId, hubIdsToRestore) => {
@@ -376,7 +376,7 @@ function JelSidePanels({
             document.activeElement.blur();
 
             // Navigate to restored node.
-            const metadata = treeManager.sharedNav.atomMetadata.getMetadata(hubId);
+            const metadata = hubMetadata.getMetadata(hubId);
 
             if (metadata) {
               navigateToHubUrl(history, metadata.url);
