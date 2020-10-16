@@ -15,7 +15,7 @@ const PopupHubNameInputPanel = styled.div`
   justify-content: flex-start;
   border-radius: 4px;
   border: 1px solid var(--menu-border-color);
-  box-shadow: 0px 0px 8px var(--menu-shadow-color);
+  box-shadow: 0px 12px 28px var(--menu-shadow-color);
   padding: 6px;
 `;
 

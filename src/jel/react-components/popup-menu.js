@@ -13,7 +13,7 @@ const PopupMenu = styled.div`
   justify-content: flex-start;
   border-radius: 3px;
   border: 1px solid var(--menu-border-color);
-  box-shadow: 2px 2px 2px var(--menu-shadow-color);
+  box-shadow: 0px 12px 28px var(--menu-shadow-color);
 `;
 
 const PopupMenuItemElement = styled.button`

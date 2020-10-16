@@ -54,6 +54,7 @@ const HubTrailHubItem = styled.button`
   text-align: left;
   max-width: fit-content;
   line-height: calc(var(--canvas-overlay-text-size) + 2px);
+  text-shadow: 0px 0px 4px var(--menu-shadow-color);
 
   &.short {
     flex: 1;
@@ -143,7 +144,6 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata, history, onHubNa
       key="primary-item"
       ref={primaryItemRef}
       onClick={() => {
-        console.log(primaryItemRef.current);
         setHubRenameReferenceElement(primaryItemRef.current);
         renameFocusRef.current.focus();
 
