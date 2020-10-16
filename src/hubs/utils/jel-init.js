@@ -2,6 +2,7 @@ import TreeManager from "../../jel/utils/tree-manager";
 import { getHubIdFromHistory, getSpaceIdFromHistory, setupPeerConnectionConfig } from "../../jel/utils/jel-url-utils";
 import { createInWorldLogMessage } from "../react-components/chat-message";
 import nextTick from "./next-tick";
+import { getMessages } from "../../hubs/utils/i18n";
 import { authorizeOrSanitizeMessage } from "./permissions-utils";
 import { isSetEqual } from "../../jel/utils/set-utils";
 import qsTruthy from "./qs_truthy";
@@ -14,6 +15,7 @@ const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting j
 const isDebug = qsTruthy("debug");
 const isMobile = AFRAME.utils.device.isMobile();
 const isMobileVR = AFRAME.utils.device.isMobileVR();
+const i18nMessages = getMessages();
 
 //let retDeployReconnectInterval;
 let positionTrackerInterval = null;
@@ -182,6 +184,10 @@ const createHubChannelParams = () => {
 //    }, Math.floor(Math.random() * retReconnectMaxDelayMs));
 //  });
 //};
+
+function updateTitleForHub(hub) {
+  document.title = `${hub.name || i18nMessages["hub.unnamed-title"]} | Jel`;
+}
 
 function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
@@ -551,6 +557,7 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
 
         // Wait for scene objects to load before connecting, so there is no race condition on network state.
         await new Promise(res => {
+          updateTitleForHub(hub);
           updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
           updateEnvironmentForHub(hub, hubStore, entryManager, remountUI);
 
