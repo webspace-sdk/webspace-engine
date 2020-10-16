@@ -151,6 +151,7 @@ import "./jel/systems/media-presence-system";
 import "./jel/systems/wrapped-entity-system";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
 import { SOUND_CHAT_MESSAGE } from "./hubs/systems/sound-effects-system";
+import { isInEditableField } from "./jel/utils/dom-utils";
 
 import "./hubs/gltf-component-mappings";
 
@@ -813,6 +814,22 @@ async function start() {
   initQuillPool();
 
   window.APP.scene = scene;
+
+  let focusCanvasTimeout = null;
+
+  // Focus canvas if we mouse over it and aren't in an input field
+  canvas.addEventListener("mouseover", () => {
+    if (!isInEditableField()) {
+      clearTimeout(focusCanvasTimeout);
+      focusCanvasTimeout = setTimeout(() => canvas.focus(), 3000);
+    }
+  });
+
+  canvas.addEventListener("mouseout", () => {
+    clearTimeout(focusCanvasTimeout);
+    canvas.blur();
+  });
+
   canvas.focus();
 
   scene.setAttribute("shadow", { enabled: window.APP.quality !== "low" }); // Disable shadows on low quality

@@ -1,8 +1,6 @@
 import { paths } from "../paths";
 import { ArrayBackedSet } from "../array-backed-set";
-const isInEditableField = () =>
-  ["TEXTAREA", "INPUT"].includes(document.activeElement && document.activeElement.nodeName) ||
-  (document.activeElement && document.activeElement.contentEditable === "true");
+import { isInEditableField } from "../../../../jel/utils/dom-utils";
 
 export class KeyboardDevice {
   constructor() {
