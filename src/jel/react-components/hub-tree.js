@@ -60,8 +60,12 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
         showAdd={spaceCan("create_hub")}
         showDots={true}
         hubMetadata={atomMetadata}
-        onAddClick={() => addNewHubToTree(history, treeManager, hub.space_id, data.atomId)}
+        onAddClick={e => {
+          e.stopPropagation(); // Otherwise this will perform a tree node click event
+          addNewHubToTree(history, treeManager, hub.space_id, data.atomId);
+        }}
         onDotsClick={(e, ref) => {
+          e.stopPropagation(); // Otherwise this will perform a tree node click event
           setHubContextMenuHubId(data.atomId);
           setHubContextMenuReferenceElement(ref.current);
           hubContextMenuElement.focus();

@@ -66,6 +66,8 @@ const PopupHubNameInput = forwardRef(({ hubId, hubMetadata, onNameChanged }, ref
   });
 
   const messages = getMessages();
+  const isHome = metadata && !!metadata.is_home;
+  const placeholder = messages[isHome ? "hub.unnamed-home-title" : "hub.unnamed-title"];
 
   return (
     <PopupHubNameInputPanel>
@@ -80,7 +82,7 @@ const PopupHubNameInput = forwardRef(({ hubId, hubMetadata, onNameChanged }, ref
           <PopupHubNameInputElement
             type="text"
             value={name}
-            placeholder={messages["hub.unnamed-title"]}
+            placeholder={placeholder}
             ref={ref}
             onFocus={e => handleTextFieldFocus(e.target)}
             onBlur={e => {
