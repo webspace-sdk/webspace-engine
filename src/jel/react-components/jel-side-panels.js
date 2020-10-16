@@ -369,18 +369,23 @@ function JelSidePanels({
           history={history}
           hubCan={hubCan}
           onRestore={(hubId, hubIdsToRestore) => {
+            const navigateToRestoredHub = () => {
+              // Navigate to restored node.
+              const metadata = hubMetadata.getMetadata(hubId);
+
+              if (metadata) {
+                navigateToHubUrl(history, metadata.url);
+              }
+
+              hubMetadata.unsubscribeFromMetadata(navigateToRestoredHub);
+            };
+
+            hubMetadata.subscribeToMetadata(hubId, navigateToRestoredHub);
             spaceChannel.restoreHubs(hubIdsToRestore);
 
             // Blur so tree hides. This is important because we will re-load
             // the trash tree next time user clicks.
             document.activeElement.blur();
-
-            // Navigate to restored node.
-            const metadata = hubMetadata.getMetadata(hubId);
-
-            if (metadata) {
-              navigateToHubUrl(history, metadata.url);
-            }
           }}
           onRemove={hubIdToRemove => {
             // Focus trash menu so it stays open.
