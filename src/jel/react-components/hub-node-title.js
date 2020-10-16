@@ -47,7 +47,7 @@ const PopupRef = styled.div`
   top: 12px;
 `;
 
-const HubNodeTitle = ({ hubId, onDotsClick, showAdd, onAddClick, hubMetadata }) => {
+const HubNodeTitle = ({ hubId, onDotsClick, showAdd, showDots, onAddClick, hubMetadata }) => {
   const [name, setName] = useState("");
 
   const popupRef = React.createRef();
@@ -58,7 +58,7 @@ const HubNodeTitle = ({ hubId, onDotsClick, showAdd, onAddClick, hubMetadata }) 
     <HubNodeElement>
       <HubTitle className="title">{name}</HubTitle>
       <HubControls className="controls">
-        <IconButton iconSrc={dotsIcon} onClick={e => onDotsClick(e, popupRef)} />
+        {showDots && <IconButton iconSrc={dotsIcon} onClick={e => onDotsClick(e, popupRef)} />}
         <PopupRef ref={popupRef} />
         {showAdd && <IconButton iconSrc={addIcon} onClick={onAddClick} />}
       </HubControls>
@@ -72,6 +72,7 @@ HubNodeTitle.propTypes = {
   onDotsClick: PropTypes.func,
   popupRef: PropTypes.object,
   showAdd: PropTypes.bool,
+  showDots: PropTypes.bool,
   hubMetadata: PropTypes.object
 };
 

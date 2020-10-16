@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { FormattedMessage } from "react-intl";
-import { getMessages } from "../../hubs/utils/i18n";
 import { usePopper } from "react-popper";
 import PropTypes from "prop-types";
 import styled from "styled-components";
@@ -21,6 +20,7 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import ReactDOM from "react-dom";
 import sharedStyles from "../assets/stylesheets/shared.scss";
 import PopupPanel from "./popup-panel";
+import HubNodeTitle from "./hub-node-title";
 
 const JelWrap = styled.div`
   color: var(--panel-text-color);
@@ -69,7 +69,7 @@ const SpaceBanner = styled.div`
   font-size: var(--panel-banner-text-size);
   font-weight: var(--panel-banner-text-weight);
   color: var(--panel-banner-text-color);
-  margin: 32px 0px 0px 32px;
+  margin: 18px 0px 0px 16px;
 `;
 
 const NavFoot = styled.div`
@@ -267,8 +267,8 @@ function JelSidePanels({
     }
   );
 
-  const messages = getMessages();
   const homeHub = homeHubForSpaceId(spaceId, memberships);
+  const hubMetadata = treeManager && treeManager.sharedNav && treeManager.sharedNav.atomMetadata;
 
   // For now private tree is just home hub
   const privateSelectedKeys = hub && homeHub && hub.hub_id === homeHub.hub_id ? [hub.hub_id] : [];
@@ -277,9 +277,8 @@ function JelSidePanels({
     ? [
         {
           key: homeHub.hub_id,
-          title: messages["nav.home-world"],
-          url: homeHub.url,
-          hubId: homeHub.hub_id,
+          title: <HubNodeTitle hubId={homeHub.hub_id} showDots={false} showAdd={false} hubMetadata={hubMetadata} />,
+          atomId: homeHub.hub_id,
           isLeaf: true
         }
       ]
@@ -287,7 +286,6 @@ function JelSidePanels({
 
   const space = spaceForSpaceId(spaceId, memberships);
   const spaceChannel = window.APP.spaceChannel;
-  const hubMetadata = treeManager && treeManager.sharedNav && treeManager.sharedNav.atomMetadata;
 
   return (
     <WrappedIntlProvider>
@@ -305,7 +303,9 @@ function JelSidePanels({
               treeData={privateTreeData}
               selectable={true}
               selectedKeys={privateSelectedKeys}
-              onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
+              onSelect={(selectedKeys, { node: { atomId } }) =>
+                navigateToHubUrl(history, hubMetadata.getMetadata(atomId).url)
+              }
             />
             <PanelSectionHeader>
               <FormattedMessage id="nav.shared-worlds" />

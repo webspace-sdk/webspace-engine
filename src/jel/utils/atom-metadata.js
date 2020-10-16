@@ -37,18 +37,22 @@ class AtomMetadata {
     this._metadataSubscribers = new Map();
     this._atomType = atomType;
 
+    const messages = getMessages();
+
     switch (this._atomType) {
       case ATOM_TYPES.HUB:
         this._refreshMessage = "hub_meta_refresh";
         this._idColumn = "hub_id";
         this._channelGetMethod = "getHubMetas";
-        this._defaultName = getMessages()["hub.unnamed-title"];
+        this._defaultName = messages["hub.unnamed-title"];
+        this._defaultHomeName = messages["hub.unnamed-home-title"];
         break;
       case ATOM_TYPES.SPACE:
         this._refreshMessage = "space_meta_refresh";
         this._idColumn = "space_id";
         this._channelGetMethod = "getSpaceMetas";
-        this._defaultName = getMessages()["space.unnamed-title"];
+        this._defaultName = messages["space.unnamed-title"];
+        this._defaultHomeName = messages["space.unnamed-home-title"];
         break;
     }
   }
@@ -83,7 +87,7 @@ class AtomMetadata {
   _fireHandlerForSubscribersForUpdatedIds = updatedIds => {
     for (const [handler, ids] of this._metadataSubscribers) {
       if (hasIntersection(updatedIds, ids)) {
-        handler(updatedIds);
+        handler(updatedIds, this);
       }
     }
   };
@@ -111,6 +115,7 @@ class AtomMetadata {
     if (idsToFetch.size !== 0) {
       const atoms = await this._channel[this._channelGetMethod](idsToFetch);
       for (const metadata of atoms) {
+        metadata.displayName = metadata.name || (metadata.is_home ? this._defaultHomeName : this._defaultName);
         this._metadata.set(metadata[this._idColumn], metadata);
       }
 
@@ -134,10 +139,6 @@ class AtomMetadata {
     return metadata || null;
   }
 
-  getDefaultName() {
-    return this._defaultName;
-  }
-
   handleChannelRefreshMessage = ({ metas }) => {
     const ids = [];
 
@@ -149,6 +150,7 @@ class AtomMetadata {
 
       if (!existing || !fastDeepEqual(existing, metadata)) {
         ids.push(id);
+        metadata.displayName = metadata.name || (metadata.is_home ? this._defaultHomeName : this._defaultName);
         this._metadata.set(id, metadata);
       }
     }
@@ -168,26 +170,27 @@ class AtomMetadata {
   }
 }
 
-function useNameUpdateFromMetadata(hubId, metadata, setName) {
+function useNameUpdateFromMetadata(atomId, metadata, setName) {
   useEffect(
     () => {
-      const defaultName = metadata.getDefaultName();
+      if (!metadata) return () => {};
 
       const updateName = () => {
-        let name = null;
+        let displayName = null;
 
-        if (metadata.hasMetadata(hubId)) {
-          name = metadata.getMetadata(hubId).name;
+        if (atomId && metadata.hasMetadata(atomId)) {
+          const { displayName: atomDisplayName } = metadata.getMetadata(atomId);
+          displayName = atomDisplayName;
         }
 
-        setName(name || defaultName);
+        setName(displayName || "");
       };
 
       updateName();
-      metadata.subscribeToMetadata(hubId, updateName);
+      metadata.subscribeToMetadata(atomId, updateName);
       return () => metadata.unsubscribeFromMetadata(updateName);
     },
-    [hubId, metadata, setName]
+    [atomId, metadata, setName]
   );
 }
 

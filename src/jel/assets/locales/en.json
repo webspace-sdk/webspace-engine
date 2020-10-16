@@ -1,11 +1,12 @@
 {
   "nav.shared-worlds": "Shared Worlds",
   "nav.private-worlds": "Private Worlds",
-  "nav.home-world": "Home World",
   "nav.create-world": "Create World",
   "nav.trash": "Trash",
+  "hub.unnamed-home-title": "Home World",
   "hub.unnamed-title": "Unnamed World",
   "space.unnamed-title": "Unnamed Space",
+  "space.unnamed-home-title": "Home Space",
   "hub-context.rename": "Rename...",
   "hub-context.move-to-trash": "Move to Trash",
   "trash.restore": "Restore",

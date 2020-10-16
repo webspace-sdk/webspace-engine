@@ -1,6 +1,5 @@
 import PropTypes from "prop-types";
 import React, { useState, useCallback } from "react";
-import ReactDOM from "react-dom";
 import Tree from "rc-tree";
 import { usePopper } from "react-popper";
 import {
@@ -13,106 +12,11 @@ import {
   isAtomInSubtree
 } from "../utils/tree-utils";
 import { homeHubForSpaceId } from "../utils/membership-utils";
-import PopupMenu, { PopupMenuItem } from "./popup-menu";
-import trashIcon from "../assets/images/icons/trash.svgi";
-import sharedStyles from "../assets/stylesheets/shared.scss";
 import HubNodeTitle from "./hub-node-title";
-import PopupHubNameInput from "./popup-hub-name-input";
+import HubRenamePopup from "./hub-rename-popup";
+import HubContextMenu from "./hub-context-menu";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
-import { FormattedMessage } from "react-intl";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import "../assets/stylesheets/hub-tree.scss";
-
-let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
-
-const HubRenamePopup = function({ styles, attributes, hubMetadata, setPopperElement, onNameChanged, hubId }) {
-  const metadata = hubMetadata.getMetadata(hubId);
-
-  const popupInput = (
-    <div
-      tabIndex={-1} // Ensures can be focused
-      className={sharedStyles.showWhenPopped}
-      ref={setPopperElement}
-      style={styles.popper}
-      {...attributes.popper}
-    >
-      <PopupHubNameInput hubId={hubId} hubMetadata={metadata} onNameChanged={onNameChanged} />
-    </div>
-  );
-
-  return ReactDOM.createPortal(popupInput, popupRoot);
-};
-
-const HubTreeContextMenu = function({
-  styles,
-  attributes,
-  setPopperElement,
-  hubId,
-  spaceCan,
-  hubCan,
-  onRenameClick,
-  onTrashClick
-}) {
-  if (!popupRoot) return null;
-
-  const items = [];
-
-  if (hubId && hubCan("update_hub_meta", hubId)) {
-    items.push(
-      <PopupMenuItem
-        key={`rename-${hubId}`}
-        onClick={e => {
-          onRenameClick(hubId);
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-      >
-        <FormattedMessage id="hub-context.rename" />
-      </PopupMenuItem>
-    );
-  }
-
-  if (spaceCan("edit_nav") && hubId && hubCan("trash_hub", hubId)) {
-    items.push(
-      <PopupMenuItem
-        key={`trash-${hubId}`}
-        onClick={e => {
-          onTrashClick(hubId);
-          // Blur button so menu hides
-          document.activeElement.blur();
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-        iconSrc={trashIcon}
-      >
-        <FormattedMessage id="hub-context.move-to-trash" />
-      </PopupMenuItem>
-    );
-  }
-
-  const popupMenu = (
-    <div
-      tabIndex={-1} // Ensures can be focused
-      className={sharedStyles.showWhenPopped}
-      ref={setPopperElement}
-      style={styles.popper}
-      {...attributes.popper}
-    >
-      <PopupMenu>
-        {items.length > 0 ? (
-          items
-        ) : (
-          <PopupMenuItem key={`no-actions-${hubId}`}>
-            <div>No Actions</div>
-          </PopupMenuItem>
-        )}
-      </PopupMenu>
-    </div>
-  );
-
-  return ReactDOM.createPortal(popupMenu, popupRoot);
-};
 
 function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onHubNameChanged }) {
   const [navTreeData, setNavTreeData] = useState([]);
@@ -153,6 +57,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
       <HubNodeTitle
         hubId={data.atomId}
         showAdd={spaceCan("create_hub")}
+        showDots={true}
         hubMetadata={atomMetadata}
         onAddClick={() => addNewHubToTree(history, treeManager, hub.space_id, data.atomId)}
         onDotsClick={(e, ref) => {
@@ -207,7 +112,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
         expandedKeys={treeManager.sharedExpandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeIsExpanded(key, expanded)}
       />
-      <HubTreeContextMenu
+      <HubContextMenu
         setPopperElement={setHubContextMenuElement}
         styles={hubContextMenuStyles}
         attributes={hubContextMenuAttributes}

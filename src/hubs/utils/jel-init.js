@@ -2,9 +2,9 @@ import TreeManager from "../../jel/utils/tree-manager";
 import { getHubIdFromHistory, getSpaceIdFromHistory, setupPeerConnectionConfig } from "../../jel/utils/jel-url-utils";
 import { createInWorldLogMessage } from "../react-components/chat-message";
 import nextTick from "./next-tick";
-import { getMessages } from "../../hubs/utils/i18n";
 import { authorizeOrSanitizeMessage } from "./permissions-utils";
 import { isSetEqual } from "../../jel/utils/set-utils";
+import { homeHubForSpaceId } from "../../jel/utils/membership-utils";
 import qsTruthy from "./qs_truthy";
 //import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
 import HubStore from "../storage/hub-store";
@@ -15,7 +15,6 @@ const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting j
 const isDebug = qsTruthy("debug");
 const isMobile = AFRAME.utils.device.isMobile();
 const isMobileVR = AFRAME.utils.device.isMobileVR();
-const i18nMessages = getMessages();
 
 //let retDeployReconnectInterval;
 let positionTrackerInterval = null;
@@ -184,10 +183,6 @@ const createHubChannelParams = () => {
 //    }, Math.floor(Math.random() * retReconnectMaxDelayMs));
 //  });
 //};
-
-function updateTitleForHub(hub) {
-  document.title = `${hub.name || i18nMessages["hub.unnamed-title"]} | Jel`;
-}
 
 function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
@@ -515,9 +510,19 @@ const initHubPresence = async (presence, remountUI, remountJelUI) => {
   });
 };
 
+function updateTitleForHub(updatedIds, hubMetadata) {
+  const metadata = hubMetadata && hubMetadata.getMetadata(updatedIds[0]);
+
+  if (metadata) {
+    document.title = `${metadata.displayName} | Jel`;
+  } else {
+    document.title = `Jel`;
+  }
+}
+
 const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI) => {
   let isInitialJoin = true;
-  const { spaceChannel, hubChannel } = window.APP;
+  const { spaceChannel, hubChannel, hubMetadata } = window.APP;
 
   await new Promise(joinFinished => {
     hubPhxChannel
@@ -557,7 +562,10 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
 
         // Wait for scene objects to load before connecting, so there is no race condition on network state.
         await new Promise(res => {
-          updateTitleForHub(hub);
+          hubMetadata.unsubscribeFromMetadata(updateTitleForHub);
+          hubMetadata.subscribeToMetadata(hub.hub_id, updateTitleForHub);
+          updateTitleForHub([hub.hub_id], hubMetadata);
+          hubMetadata.ensureMetadataForIds([hub.hub_id]);
           updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
           updateEnvironmentForHub(hub, hubStore, entryManager, remountUI);
 
@@ -737,6 +745,9 @@ export function joinSpace(
     async ({ detail: { connection } }) => {
       const memberships = await membershipsPromise;
       await treeManager.init(connection, memberships);
+      const homeHub = homeHubForSpaceId(spaceId, memberships);
+      hubMetadata.ensureMetadataForIds([homeHub.hub_id]);
+
       remountJelUI({ history, treeManager });
     },
     { once: true }

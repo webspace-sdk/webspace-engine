@@ -108,6 +108,25 @@ class TreeSync extends EventTarget {
     return (this.doc.data[nodeId] || {}).h;
   }
 
+  getAtomTrailForAtomId(atomId) {
+    const atomTrail = [];
+
+    let nid = this.getNodeIdForAtomId(atomId);
+
+    do {
+      const node = this.doc.data[nid];
+
+      if (node) {
+        atomTrail.unshift(node.h);
+        nid = node && node.p;
+      } else {
+        break;
+      }
+    } while (nid);
+
+    return atomTrail.length === 0 ? null : atomTrail;
+  }
+
   moveInto(nodeId, withinNodeId) {
     const node = this.doc.data[nodeId];
     if (node.p === withinNodeId) return; // Already done

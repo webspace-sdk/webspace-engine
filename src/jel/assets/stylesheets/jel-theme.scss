@@ -124,4 +124,12 @@ $xsmall-text-bold-weight: $text-2-weight;
   --input-text-color: black;
   --tooltip-background-color: #{$neutral-2};
   --tooltip-text-color: #{$neutral-11};
+  --canvas-overlay-text-color: #{$neutral-11};
+  --canvas-overlay-text-size: #{$text-4-size};
+  --canvas-overlay-secondary-text-size: #{$text-2-size};
+  --canvas-overlay-item-text-weight: #{$text-2-weight};
+  --canvas-overlay-item-secondary-text-weight: #{$text-1-weight};
+  --canvas-overlay-item-hover-text-shadow-color: #{$neutral-3};
+  --canvas-overlay-item-hover-background-color: #{$primary-3};
+  --canvas-overlay-item-active-background-color: #{$primary-2};
 }

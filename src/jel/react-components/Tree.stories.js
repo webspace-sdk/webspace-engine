@@ -21,6 +21,7 @@ const createHubTitleNode = props => {
     <HubNodeTitle
       {...props}
       showAdd={true}
+      showDots={true}
       hubMetadata={metadata}
       onAddClick={e => {
         e.preventDefault();

@@ -346,8 +346,8 @@ function mountJelUI(props = {}) {
             {...{
               scene,
               store,
-              ...props,
-              ...routeProps
+              history: routeProps.history,
+              ...props
             }}
           />
         )}
