@@ -789,6 +789,10 @@ async function start() {
   if (!checkPrerequisites()) return;
 
   const scene = document.querySelector("a-scene");
+  const canvas = document.querySelector(".a-canvas");
+
+  canvas.setAttribute("tabindex", 0); // Make it so canvas can be focused
+
   const entryManager = new SceneEntryManager(spaceChannel, hubChannel, authChannel, history);
   const messageDispatch = new MessageDispatch(
     scene,
@@ -809,6 +813,7 @@ async function start() {
   initQuillPool();
 
   window.APP.scene = scene;
+  canvas.focus();
 
   scene.setAttribute("shadow", { enabled: window.APP.quality !== "low" }); // Disable shadows on low quality
   scene.renderer.debug.checkShaderErrors = false;
