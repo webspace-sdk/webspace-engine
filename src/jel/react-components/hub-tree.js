@@ -146,7 +146,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
   useExpandableTree(treeManager);
 
   // Ensure current selected node is always visible
-  useScrollToSelectedTreeNode(hub);
+  useScrollToSelectedTreeNode(navTreeData, hub);
 
   const navTitleControl = useCallback(
     data => (

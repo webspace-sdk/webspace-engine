@@ -41,10 +41,11 @@ export function useExpandableTree(treeManager) {
   );
 }
 
-export function useScrollToSelectedTreeNode(atom) {
+export function useScrollToSelectedTreeNode(treeData, atom) {
   useEffect(
     () => {
       const node = document.querySelector(".hub-tree-treenode-selected");
+
       if (node) {
         scrollIntoView(node, { scrollMode: "if-needed", inline: "start" });
 
@@ -58,7 +59,7 @@ export function useScrollToSelectedTreeNode(atom) {
       }
       return () => {};
     },
-    [atom]
+    [treeData, atom]
   );
 }
 

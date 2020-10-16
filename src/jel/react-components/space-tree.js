@@ -13,7 +13,7 @@ function SpaceTree({ treeManager, history, space, memberships }) {
   const tree = treeManager && treeManager.privateSpace;
   const spaceMetadata = tree && tree.atomMetadata;
   useTreeData(tree, spaceTreeDataVersion, setSpaceTreeData, setSpaceTreeDataVersion);
-  useScrollToSelectedTreeNode(space);
+  useScrollToSelectedTreeNode(spaceTreeData, space);
 
   const spaceSelectedKeys = space && treeManager ? [tree.getNodeIdForAtomId(space.space_id)] : [];
 
