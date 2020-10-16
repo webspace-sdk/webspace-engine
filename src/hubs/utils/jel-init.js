@@ -510,15 +510,7 @@ const initHubPresence = async (presence, remountUI, remountJelUI) => {
   });
 };
 
-function updateTitleForHub(updatedIds, hubMetadata) {
-  const metadata = hubMetadata && hubMetadata.getMetadata(updatedIds[0]);
-
-  if (metadata) {
-    document.title = `${metadata.displayName} | Jel`;
-  } else {
-    document.title = `Jel`;
-  }
-}
+let updateTitleForHubHandler;
 
 const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI) => {
   let isInitialJoin = true;
@@ -562,9 +554,20 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
 
         // Wait for scene objects to load before connecting, so there is no race condition on network state.
         await new Promise(res => {
-          hubMetadata.unsubscribeFromMetadata(updateTitleForHub);
-          hubMetadata.subscribeToMetadata(hub.hub_id, updateTitleForHub);
-          updateTitleForHub([hub.hub_id], hubMetadata);
+          if (updateTitleForHubHandler) {
+            hubMetadata.unsubscribeFromMetadata(updateTitleForHubHandler);
+          }
+          updateTitleForHubHandler = (updatedIds, hubMetadata) => {
+            const metadata = hubMetadata && hubMetadata.getMetadata(hub.hub_id);
+
+            if (metadata) {
+              document.title = `${metadata.displayName} | Jel`;
+            } else {
+              document.title = `Jel`;
+            }
+          };
+          hubMetadata.subscribeToMetadata(hub.hub_id, updateTitleForHubHandler);
+          updateTitleForHubHandler([hub.hub_id], hubMetadata);
           hubMetadata.ensureMetadataForIds([hub.hub_id]);
           updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
           updateEnvironmentForHub(hub, hubStore, entryManager, remountUI);

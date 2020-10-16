@@ -68,9 +68,6 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
           // HACK, once popper has positioned the context/rename popups, remove this ref
           // since otherwise popper will re-render everything when the tree is scrolled.
           setTimeout(() => setHubContextMenuReferenceElement(null), 0);
-
-          e.preventDefault();
-          e.stopPropagation();
         }}
       />
     ),

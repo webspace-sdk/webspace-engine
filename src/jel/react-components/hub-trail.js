@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
+import { usePopper } from "react-popper";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
+import { navigateToHubUrl } from "../utils/jel-url-utils";
+import HubRenamePopup from "./hub-rename-popup";
 
 const MAX_ITEMS_IN_TRAIL = 3;
 
@@ -61,12 +64,10 @@ const HubTrailHubItem = styled.button`
 
   &:hover {
     background-color: var(--canvas-overlay-item-hover-background-color);
-    text-shadow: 1px 1px var(--canvas-overlay-item-hover-text-shadow-color);
   }
 
   &:active {
     background-color: var(--canvas-overlay-item-active-background-color);
-    text-shadow: 1px 1px var(--canvas-overlay-item-hover-text-shadow-color);
   }
 `;
 
@@ -74,7 +75,28 @@ const HubTrailSeparatorItem = styled.div`
   width: 8px;
 `;
 
-export default function HubTrail({ hubIds, hubCan, hubMetadata }) {
+export default function HubTrail({ hubIds, hubCan, hubMetadata, onHubNameChanged }) {
+  const [hubRenameReferenceElement, setHubRenameReferenceElement] = useState(null);
+  const [hubRenamePopupElement, setHubRenamePopupElement] = useState(null);
+
+  const primaryItemRef = React.createRef();
+
+  const { styles: hubRenamePopupStyles, attributes: hubRenamePopupAttributes } = usePopper(
+    hubRenameReferenceElement,
+    hubRenamePopupElement,
+    {
+      placement: "bottom",
+      modifiers: [
+        {
+          name: "offset",
+          options: {
+            offset: [0, 8]
+          }
+        }
+      ]
+    }
+  );
+
   const hubIdsToShow = hubIds || [];
   const names = [];
 
@@ -101,7 +123,11 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata }) {
 
       if (hubCan("join_hub", hubId)) {
         items.push(
-          <HubTrailHubItem key={`item-${i}`} className="short">
+          <HubTrailHubItem
+            key={`item-${i}`}
+            className="short"
+            onClick={() => navigateToHubUrl(history, hubMetadata.getMetadata(hubId).url)}
+          >
             {names[i]}
           </HubTrailHubItem>
         );
@@ -110,15 +136,43 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata }) {
     }
   }
 
-  items.push(<HubTrailHubItem key="primary-item">{names[hubIdsToShow.length - 1]}</HubTrailHubItem>);
+  const primaryHubId = hubIdsToShow[hubIdsToShow.length - 1];
+  items.push(
+    <HubTrailHubItem
+      key="primary-item"
+      ref={primaryItemRef}
+      onClick={() => {
+        console.log(primaryItemRef.current);
+        setHubRenameReferenceElement(primaryItemRef.current);
+        hubRenamePopupElement.focus();
 
-  return <HubTrailElement>{items}</HubTrailElement>;
+        // HACK, once popper has positioned the context/rename popups, remove this ref
+        // since otherwise popper will re-render everything if pane is scrolled
+        setTimeout(() => setHubRenameReferenceElement(null), 0);
+      }}
+    >
+      {names[hubIdsToShow.length - 1]}
+    </HubTrailHubItem>
+  );
+
+  return (
+    <HubTrailElement>
+      {items}
+      <HubRenamePopup
+        setPopperElement={setHubRenamePopupElement}
+        styles={hubRenamePopupStyles}
+        attributes={hubRenamePopupAttributes}
+        hubId={primaryHubId}
+        hubMetadata={hubMetadata}
+        onNameChanged={name => onHubNameChanged(primaryHubId, name)}
+      />
+    </HubTrailElement>
+  );
 }
 
 HubTrail.propTypes = {
   hubIds: PropTypes.array,
   hubMetadata: PropTypes.object,
   hubCan: PropTypes.func,
-  onCurrentItemClick: PropTypes.func,
-  onParentItemClick: PropTypes.func
+  onHubNameChanged: PropTypes.func
 };

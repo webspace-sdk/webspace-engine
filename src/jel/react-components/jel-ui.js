@@ -18,13 +18,21 @@ const Wrap = styled.div`
 
 function JelUI({ treeManager, hubCan, hub }) {
   const tree = treeManager && treeManager.sharedNav;
+  const spaceChannel = window.APP.spaceChannel;
   const hubMetadata = tree && tree.atomMetadata;
   const hubTrailHubIds = (tree && hub && tree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
 
   return (
     <ThemeProvider theme={dark}>
       <Wrap>
-        <HubTrail hubMetadata={hubMetadata} hubCan={hubCan} hubIds={hubTrailHubIds} />
+        {hubMetadata && (
+          <HubTrail
+            hubMetadata={hubMetadata}
+            hubCan={hubCan}
+            hubIds={hubTrailHubIds}
+            onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
+          />
+        )}
       </Wrap>
     </ThemeProvider>
   );

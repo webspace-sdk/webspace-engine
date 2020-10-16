@@ -12,8 +12,8 @@ import trashIcon from "../assets/images/icons/trash.svgi";
 import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
 
 const metadata = new AtomMetadata(ATOM_TYPES.HUB);
-metadata._metadata.set("QxRKdNF", { name: "Test Name" });
-metadata._metadata.set("JRrZerh", { name: "Test Very Long Name That Keeps Going and Going" });
+metadata._metadata.set("QxRKdNF", { displayName: "Test Name" });
+metadata._metadata.set("JRrZerh", { displayName: "Test Very Long Name That Keeps Going and Going" });
 
 // TODO this needs to use the metadata API
 const createHubTitleNode = props => {

@@ -326,7 +326,7 @@ function JelSidePanels({
               <PanelItemButton
                 iconSrc={trashIcon}
                 ref={trashButtonRef}
-                onClick={e => {
+                onClick={() => {
                   setTrashMenuReferenceElement(trashButtonRef.current);
                   treeManager.rebuildSharedTrashTree();
 
@@ -335,8 +335,6 @@ function JelSidePanels({
                   }
 
                   trashMenuElement.focus();
-                  e.preventDefault();
-                  e.stopPropagation();
                 }}
               >
                 <FormattedMessage id="nav.trash" />
