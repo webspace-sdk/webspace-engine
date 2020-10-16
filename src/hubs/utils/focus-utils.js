@@ -27,7 +27,8 @@ export function handleTextFieldFocus(target) {
     });
   }
 
-  if (!isMobile) target.select();
+  // Need to add a delay since this happens before the focus actually occurs.
+  if (!isMobile) setTimeout(() => target.select(), 0);
 }
 
 export function handleTextFieldBlur() {
