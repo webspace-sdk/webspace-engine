@@ -1,5 +1,5 @@
 import React from "react";
-import PopupHubNameInput from "./popup-text-input";
+import PopupHubNameInput from "./popup-hub-name-input";
 import sharedStyles from "../assets/stylesheets/shared.scss";
 import classNames from "classnames";
 

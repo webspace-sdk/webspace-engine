@@ -9,13 +9,19 @@ import classNames from "classnames";
 import PanelSectionHeader from "./panel-section-header";
 import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
 import trashIcon from "../assets/images/icons/trash.svgi";
+import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
 
-// TODO this needs to use the metadata API, no longer storing this stuff in tree data
+const metadata = new AtomMetadata(ATOM_TYPES.HUB);
+metadata._metadata.set("QxRKdNF", { name: "Test Name" });
+metadata._metadata.set("JRrZerh", { name: "Test Very Long Name That Keeps Going and Going" });
+
+// TODO this needs to use the metadata API
 const createHubTitleNode = props => {
   return (
     <HubNodeTitle
       {...props}
       showAdd={true}
+      hubMetadata={metadata}
       onAddClick={e => {
         e.preventDefault();
         console.log("add clicked");
@@ -32,6 +38,7 @@ const createHubTrashTitleNode = props => {
   return (
     <HubTrashNodeTitle
       {...props}
+      hubMetadata={metadata}
       showAdd={true}
       onRestoreClick={e => {
         e.preventDefault();
@@ -46,27 +53,22 @@ const createHubTrashTitleNode = props => {
 };
 
 const hubTreeData = [
-  { key: "3ub5q94", title: createHubTitleNode, name: "Super Cool World", url: null, hubId: "QxRKdNF", isLeaf: true },
+  { key: "3ub5q94", title: createHubTitleNode, url: null, hubId: "QxRKdNF", isLeaf: true },
   {
     key: "f9g20et",
     title: createHubTitleNode,
-    name: "Second Node With Really Really Long Name",
     url: null,
     hubId: "7gNqKfG",
     isLeaf: true
   },
   {
     key: "lsgr9la",
-    name: "Third Node",
     title: createHubTitleNode,
     children: [
       {
         key: "nq106el",
         title: createHubTitleNode,
-        name: "My Subworld",
-        children: [
-          { key: "l5k090y", name: "Inner Child", title: createHubTitleNode, url: null, hubId: "JRrZerh", isLeaf: true }
-        ],
+        children: [{ key: "l5k090y", title: createHubTitleNode, url: null, hubId: "JRrZerh", isLeaf: true }],
         url: null,
         hubId: "uxj79J5",
         isLeaf: false
@@ -76,15 +78,14 @@ const hubTreeData = [
     hubId: "jPCgYSA",
     isLeaf: false
   },
-  { key: "qdtt3v2", title: createHubTitleNode, name: "Fourth Node", url: null, hubId: "T6uis47", isLeaf: true },
-  { key: "3ofrzv8", title: createHubTitleNode, name: "Fifth Node", url: null, hubId: "UyvPPEf", isLeaf: true }
+  { key: "qdtt3v2", title: createHubTitleNode, url: null, hubId: "T6uis47", isLeaf: true },
+  { key: "3ofrzv8", title: createHubTitleNode, url: null, hubId: "UyvPPEf", isLeaf: true }
 ];
 
 const trashTreeData = [
   {
     key: "3ub5q94",
     title: createHubTrashTitleNode,
-    name: "Super Cool World",
     url: null,
     hubId: "QxRKdNF",
     isLeaf: true
@@ -92,21 +93,19 @@ const trashTreeData = [
   {
     key: "f9g20et",
     title: createHubTrashTitleNode,
-    name: "Second Node With Really Really Long Name",
     url: null,
     hubId: "7gNqKfG",
     isLeaf: true
   },
   {
     key: "lsgr9la",
-    name: "Third Node",
     title: createHubTrashTitleNode,
     url: null,
     hubId: "jPCgYSA",
     isLeaf: true
   },
-  { key: "qdtt3v2", title: createHubTrashTitleNode, name: "Fourth Node", url: null, hubId: "T6uis47", isLeaf: true },
-  { key: "3ofrzv8", title: createHubTrashTitleNode, name: "Fifth Node", url: null, hubId: "UyvPPEf", isLeaf: true }
+  { key: "qdtt3v2", title: createHubTrashTitleNode, url: null, hubId: "T6uis47", isLeaf: true },
+  { key: "3ofrzv8", title: createHubTrashTitleNode, url: null, hubId: "UyvPPEf", isLeaf: true }
 ];
 
 export const HubTree = () => (

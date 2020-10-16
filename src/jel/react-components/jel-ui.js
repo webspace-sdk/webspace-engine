@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import HubTrail from "./hub-trail";
 import styled, { ThemeProvider } from "styled-components";
 import { dark } from "./theme";
 
@@ -17,7 +18,9 @@ const Wrap = styled.div`
 function JelUI() {
   return (
     <ThemeProvider theme={dark}>
-      <Wrap>Hello</Wrap>
+      <Wrap>
+        <HubTrail />
+      </Wrap>
     </ThemeProvider>
   );
 }
