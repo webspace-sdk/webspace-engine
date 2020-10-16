@@ -31,7 +31,7 @@ const HubRenamePopup = function({ styles, attributes, hubMetadata, setPopperElem
 
   const popupInput = (
     <div
-      tabIndex={100} // Ensures can be focused
+      tabIndex={-1} // Ensures can be focused
       className={sharedStyles.showWhenPopped}
       ref={setPopperElement}
       style={styles.popper}
@@ -93,7 +93,7 @@ const HubTreeContextMenu = function({
 
   const popupMenu = (
     <div
-      tabIndex={100} // Ensures can be focused
+      tabIndex={-1} // Ensures can be focused
       className={sharedStyles.showWhenPopped}
       ref={setPopperElement}
       style={styles.popper}

@@ -229,7 +229,7 @@ function TrashMenu({ styles, attributes, setPopperElement, children }) {
   if (!popupRoot) return null;
   const popupMenu = (
     <PopupPanel
-      tabIndex={100} // Ensures can be focused
+      tabIndex={-1} // Ensures can be focused
       className={sharedStyles.showWhenPopped}
       ref={setPopperElement}
       style={styles.popper}
