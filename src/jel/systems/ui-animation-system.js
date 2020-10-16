@@ -81,7 +81,7 @@ export class UIAnimationSystem {
     } else {
       if (this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDING) {
         this.panelExpansionState = PANEL_EXPANSION_STATES.EXPANDED;
-      } else {
+      } else if (this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSING) {
         this.panelExpansionState = PANEL_EXPANSION_STATES.COLLAPSED;
       }
     }

@@ -26,6 +26,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
   const [hubContextMenuElement, setHubContextMenuElement] = useState(null);
   const [hubRenamePopupHubId, setHubRenamePopupHubId] = useState(null);
   const [hubRenamePopupElement, setHubRenamePopupElement] = useState(null);
+  const hubRenameRef = React.createRef();
 
   const { styles: hubContextMenuStyles, attributes: hubContextMenuAttributes } = usePopper(
     hubContextMenuReferenceElement,
@@ -118,7 +119,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
         hubCan={hubCan}
         onRenameClick={hubId => {
           setHubRenamePopupHubId(hubId);
-          hubRenamePopupElement.querySelector("input").focus();
+          hubRenameRef.current.focus();
         }}
         onTrashClick={hubId => {
           if (!tree.getNodeIdForAtomId(hubId)) return;
@@ -143,6 +144,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
         attributes={hubRenamePopupAttributes}
         hubId={hubRenamePopupHubId}
         hubMetadata={tree.atomMetadata}
+        ref={hubRenameRef}
         onNameChanged={name => onHubNameChanged(hubRenamePopupHubId, name)}
       />
     </div>

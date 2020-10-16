@@ -80,6 +80,7 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata, history, onHubNa
   const [hubRenamePopupElement, setHubRenamePopupElement] = useState(null);
 
   const primaryItemRef = React.createRef();
+  const renameFocusRef = React.createRef();
 
   const { styles: hubRenamePopupStyles, attributes: hubRenamePopupAttributes } = usePopper(
     hubRenameReferenceElement,
@@ -144,7 +145,7 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata, history, onHubNa
       onClick={() => {
         console.log(primaryItemRef.current);
         setHubRenameReferenceElement(primaryItemRef.current);
-        hubRenamePopupElement.focus();
+        renameFocusRef.current.focus();
 
         // HACK, once popper has positioned the context/rename popups, remove this ref
         // since otherwise popper will re-render everything if pane is scrolled
@@ -164,6 +165,7 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata, history, onHubNa
         attributes={hubRenamePopupAttributes}
         hubId={primaryHubId}
         hubMetadata={hubMetadata}
+        ref={renameFocusRef}
         onNameChanged={name => onHubNameChanged(primaryHubId, name)}
       />
     </HubTrailElement>

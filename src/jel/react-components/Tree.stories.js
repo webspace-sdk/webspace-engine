@@ -12,8 +12,6 @@ import trashIcon from "../assets/images/icons/trash.svgi";
 import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
 
 const metadata = new AtomMetadata(ATOM_TYPES.HUB);
-metadata._metadata.set("QxRKdNF", { displayName: "Test Name" });
-metadata._metadata.set("JRrZerh", { displayName: "Test Very Long Name That Keeps Going and Going" });
 
 // TODO this needs to use the metadata API
 const createHubTitleNode = props => {
@@ -108,6 +106,20 @@ const trashTreeData = [
   { key: "qdtt3v2", title: createHubTrashTitleNode, url: null, hubId: "T6uis47", isLeaf: true },
   { key: "3ofrzv8", title: createHubTrashTitleNode, url: null, hubId: "UyvPPEf", isLeaf: true }
 ];
+
+const fill = children => {
+  for (let i = 0; i < children.length; i++) {
+    metadata._metadata.set(children[i].hubId, { displayName: "Unnamed World" });
+
+    fill(children[i].children || []);
+  }
+};
+
+fill(hubTreeData);
+fill(trashTreeData);
+
+metadata._metadata.set("QxRKdNF", { displayName: "Test Name" });
+metadata._metadata.set("JRrZerh", { displayName: "Test Very Long Name That Keeps Going and Going" });
 
 export const HubTree = () => (
   <div

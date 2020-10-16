@@ -511,7 +511,6 @@ function addGlobalEventListeners(scene, entryManager) {
   document.addEventListener("pointerlockchange", () => {
     const expanded = !document.pointerLockElement;
     scene.systems["hubs-systems"].uiAnimationSystem[expanded ? "expandSidePanels" : "collapseSidePanels"]();
-    remountJelUI({ navExpanded: expanded });
   });
 
   scene.addEventListener("action_focus_chat", () => {

@@ -170,27 +170,35 @@ class AtomMetadata {
   }
 }
 
-function useNameUpdateFromMetadata(atomId, metadata, setName) {
+function useNameUpdateFromMetadata(atomId, metadata, setDisplayName, setRawName) {
   useEffect(
     () => {
       if (!metadata) return () => {};
 
       const updateName = () => {
+        let rawName = null;
         let displayName = null;
 
         if (atomId && metadata.hasMetadata(atomId)) {
-          const { displayName: atomDisplayName } = metadata.getMetadata(atomId);
+          const { name: atomRawName, displayName: atomDisplayName } = metadata.getMetadata(atomId);
+          rawName = atomRawName;
           displayName = atomDisplayName;
         }
 
-        setName(displayName || "");
+        if (setDisplayName) {
+          setDisplayName(displayName || "");
+        }
+
+        if (setRawName) {
+          setRawName(rawName);
+        }
       };
 
       updateName();
       metadata.subscribeToMetadata(atomId, updateName);
       return () => metadata.unsubscribeFromMetadata(updateName);
     },
-    [atomId, metadata, setName]
+    [atomId, metadata, setDisplayName, setRawName]
   );
 }
 
