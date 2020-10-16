@@ -35,6 +35,7 @@ class TreeSync extends EventTarget {
     this.projectionType = projectionType;
     this.autoRefresh = autoRefresh;
     this.filteredTreeData = [];
+    this.filteredTreeDataVersion = 0;
     this.subscribedAtomIds = new Set();
     this.atomIdToFilteredTreeDataItem = new Map();
   }
@@ -572,6 +573,8 @@ class TreeSync extends EventTarget {
         }
       }
     }
+
+    this.filteredTreeDataVersion++;
 
     // If we already have all the items in the update, and no items are being filtered, we can skip this update.
     // Note that changes to properties on the items will not be reflected, and so components are responsible

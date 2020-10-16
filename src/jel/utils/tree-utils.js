@@ -10,7 +10,7 @@ export function useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersi
 
       const handleTreeData = () => {
         setTreeData(tree.filteredTreeData);
-        setTreeDataVersion(treeDataVersion + 1);
+        setTreeDataVersion(tree.filteredTreeDataVersion);
       };
 
       // Tree itself changed because effect was fired

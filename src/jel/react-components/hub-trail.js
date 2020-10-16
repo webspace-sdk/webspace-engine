@@ -75,7 +75,7 @@ const HubTrailSeparatorItem = styled.div`
   width: 8px;
 `;
 
-export default function HubTrail({ hubIds, hubCan, hubMetadata, onHubNameChanged }) {
+export default function HubTrail({ hubIds, hubCan, hubMetadata, history, onHubNameChanged }) {
   const [hubRenameReferenceElement, setHubRenameReferenceElement] = useState(null);
   const [hubRenamePopupElement, setHubRenamePopupElement] = useState(null);
 
@@ -171,6 +171,7 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata, onHubNameChanged
 }
 
 HubTrail.propTypes = {
+  history: PropTypes.object,
   hubIds: PropTypes.array,
   hubMetadata: PropTypes.object,
   hubCan: PropTypes.func,
