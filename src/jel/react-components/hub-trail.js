@@ -10,6 +10,7 @@ const MAX_ITEMS_IN_TRAIL = 3;
 
 const HubTrailElement = styled.div`
   display: flex;
+  flex: 1;
   flex-direction: row;
   justify-content: flex-start;
   width: fit-content;

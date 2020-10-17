@@ -44,6 +44,8 @@ const IconButton = forwardRef((props, ref) => {
   );
 });
 
+IconButton.displayName = "IconButton";
+
 IconButton.propTypes = {
   iconSrc: PropTypes.string,
   includeBorder: PropTypes.bool

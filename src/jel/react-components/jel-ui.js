@@ -4,6 +4,7 @@ import HubTrail from "./hub-trail";
 import styled, { ThemeProvider } from "styled-components";
 import { dark } from "./theme";
 import { useTreeData } from "../utils/tree-utils";
+import dotsIcon from "../assets/images/icons/dots-horizontal-overlay-shadow.svgi";
 
 const Wrap = styled.div`
   color: ${p => p.theme.text};
@@ -15,7 +16,60 @@ const Wrap = styled.div`
   position: fixed;
   z-index: 4;
   background: linear-gradient(180deg, rgba(64, 64, 64, 0.4) 0%, rgba(32, 32, 32, 0) 128px);
+  display: flex;
+  flex-direction: column;
 `;
+
+const Top = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: flex-start;
+`;
+
+const HubContextButtonElement = styled.button`
+  width: content-width;
+  margin: 11px 12px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 4px;
+  cursor: pointer;
+  pointer-events: auto;
+  padding: 6px 10px;
+  border: 0;
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  background-color: transparent;
+  font-weight: var(--canvas-overlay-item-text-weight);
+  text-align: left;
+  max-width: fit-content;
+  text-shadow: 0px 0px 4px;
+
+  &:hover {
+    background-color: var(--canvas-overlay-item-hover-background-color);
+  }
+
+  &:active {
+    background-color: var(--canvas-overlay-item-active-background-color);
+  }
+`;
+
+const HubContextButtonIcon = styled.div`
+  width: 22px;
+  height: 22px;
+`;
+
+const HubContextButton = props => {
+  return (
+    <HubContextButtonElement {...props}>
+      <HubContextButtonIcon dangerouslySetInnerHTML={{ __html: dotsIcon }} />
+    </HubContextButtonElement>
+  );
+};
 
 function JelUI({ treeManager, history, hubCan, hub }) {
   const tree = treeManager && treeManager.sharedNav;
@@ -31,16 +85,19 @@ function JelUI({ treeManager, history, hubCan, hub }) {
   return (
     <ThemeProvider theme={dark}>
       <Wrap>
-        {hubMetadata && (
-          <HubTrail
-            tree={tree}
-            history={history}
-            hubMetadata={hubMetadata}
-            hubCan={hubCan}
-            hubIds={hubTrailHubIds}
-            onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
-          />
-        )}
+        <Top>
+          {hubMetadata && (
+            <HubTrail
+              tree={tree}
+              history={history}
+              hubMetadata={hubMetadata}
+              hubCan={hubCan}
+              hubIds={hubTrailHubIds}
+              onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
+            />
+          )}
+          <HubContextButton />
+        </Top>
       </Wrap>
     </ThemeProvider>
   );
