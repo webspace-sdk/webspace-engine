@@ -4,6 +4,7 @@ import HubTrail from "./hub-trail";
 import styled, { ThemeProvider } from "styled-components";
 import { dark } from "./theme";
 import { useTreeData } from "../utils/tree-utils";
+import JelSidePanels from "./jel-side-panels";
 import dotsIcon from "../assets/images/icons/dots-horizontal-overlay-shadow.svgi";
 
 const Wrap = styled.div`
@@ -71,7 +72,8 @@ const HubContextButton = props => {
   );
 };
 
-function JelUI({ treeManager, history, hubCan, hub }) {
+function JelUI(props) {
+  const { treeManager, history, hubCan, hub } = props;
   const tree = treeManager && treeManager.sharedNav;
   const spaceChannel = window.APP.spaceChannel;
   const hubMetadata = tree && tree.atomMetadata;
@@ -84,21 +86,24 @@ function JelUI({ treeManager, history, hubCan, hub }) {
 
   return (
     <ThemeProvider theme={dark}>
-      <Wrap>
-        <Top>
-          {hubMetadata && (
-            <HubTrail
-              tree={tree}
-              history={history}
-              hubMetadata={hubMetadata}
-              hubCan={hubCan}
-              hubIds={hubTrailHubIds}
-              onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
-            />
-          )}
-          <HubContextButton />
-        </Top>
-      </Wrap>
+      <div>
+        <Wrap>
+          <Top>
+            {hubMetadata && (
+              <HubTrail
+                tree={tree}
+                history={history}
+                hubMetadata={hubMetadata}
+                hubCan={hubCan}
+                hubIds={hubTrailHubIds}
+                onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
+              />
+            )}
+            <HubContextButton />
+          </Top>
+        </Wrap>
+        <JelSidePanels {...props} />
+      </div>
     </ThemeProvider>
   );
 }

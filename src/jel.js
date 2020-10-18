@@ -110,7 +110,6 @@ import { Router, Route } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import { pushHistoryState, clearHistoryState } from "./hubs/utils/history";
 //import { mapFromArray } from "./jel/utils/map-utils";
-import JelSidePanels from "./jel/react-components/jel-side-panels";
 import JelUI from "./jel/react-components/jel-ui";
 //import UIRoot from "./hubs/react-components/ui-root";
 import AuthChannel from "./hubs/utils/auth-channel";
@@ -317,26 +316,6 @@ function remountUI(props) {
 
 function mountJelUI(props = {}) {
   const scene = document.querySelector("a-scene");
-
-  ReactDOM.render(
-    <Router history={history}>
-      <Route
-        render={routeProps => {
-          return (
-            <JelSidePanels
-              {...{
-                scene,
-                store,
-                history: routeProps.history,
-                ...props
-              }}
-            />
-          );
-        }}
-      />
-    </Router>,
-    document.getElementById("jel-side-panels")
-  );
 
   ReactDOM.render(
     <Router history={history}>
