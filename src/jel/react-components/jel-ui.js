@@ -1,16 +1,18 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import HubTrail from "./hub-trail";
-import styled, { ThemeProvider } from "styled-components";
-import { dark } from "./theme";
-import { useTreeData } from "../utils/tree-utils";
+import styled from "styled-components";
+import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../utils/tree-utils";
+import { navigateToHubUrl } from "../utils/jel-url-utils";
 import JelSidePanels from "./jel-side-panels";
 import dotsIcon from "../assets/images/icons/dots-horizontal-overlay-shadow.svgi";
 import HubRenamePopup from "./hub-rename-popup";
+import HubContextMenu from "./hub-context-menu";
 import { usePopper } from "react-popper";
+import { homeHubForSpaceId } from "../utils/membership-utils";
+import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 
 const Wrap = styled.div`
-  color: ${p => p.theme.text};
   pointer-events: none;
   height: 100%;
   top: 0;
@@ -75,18 +77,24 @@ const HubContextButton = props => {
 };
 
 function JelUI(props) {
-  const { treeManager, history, hubCan, hub } = props;
+  const { treeManager, history, spaceCan, hubCan, hub, memberships } = props;
   const tree = treeManager && treeManager.sharedNav;
   const spaceChannel = window.APP.spaceChannel;
   const hubMetadata = tree && tree.atomMetadata;
   const hubTrailHubIds = (tree && hub && tree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
-  const [, setTreeData] = useState([]);
+  const [treeData, setTreeData] = useState([]);
   const [treeDataVersion, setTreeDataVersion] = useState(0);
   const [hubRenameReferenceElement, setHubRenameReferenceElement] = useState(null);
   const [hubRenamePopupElement, setHubRenamePopupElement] = useState(null);
   const [hubRenameHubId, setHubRenameHubId] = useState(null);
   const [hubRenamePlacement, setHubRenamePlacement] = useState("bottom");
   const [hubRenameOffset, setHubRenameOffset] = useState([0, 0]);
+  const [hubContextMenuHubId, setHubContextMenuHubId] = useState(null);
+  const [hubContextMenuReferenceElement, setHubContextMenuReferenceElement] = useState(null);
+  const [hubContextMenuElement, setHubContextMenuElement] = useState(null);
+  const [hubContextMenuPlacement, setHubContextMenuPlacement] = useState("bottom");
+  const [hubContextMenuOffset, setHubContextMenuOffset] = useState([0, 0]);
+
   const renameFocusRef = React.createRef();
 
   const showHubRenamePopup = (hubId, ref, placement, offset) => {
@@ -111,6 +119,28 @@ function JelUI(props) {
     setTimeout(() => setHubRenameReferenceElement(null), 0);
   };
 
+  const showHubContextMenuPopup = (hubId, ref, placement, offset) => {
+    setHubContextMenuHubId(hubId);
+
+    if (ref) {
+      setHubContextMenuReferenceElement(ref.current);
+    }
+
+    if (placement) {
+      setHubContextMenuPlacement(placement);
+    }
+
+    if (offset) {
+      setHubContextMenuOffset(offset);
+    }
+
+    hubContextMenuElement.focus();
+
+    // HACK, once popper has positioned the context/rename popups, remove this ref
+    // since otherwise popper will re-render everything if pane is scrolled
+    setTimeout(() => setHubContextMenuReferenceElement(null), 0);
+  };
+
   const { styles: hubRenamePopupStyles, attributes: hubRenamePopupAttributes } = usePopper(
     hubRenameReferenceElement,
     hubRenamePopupElement,
@@ -127,11 +157,27 @@ function JelUI(props) {
     }
   );
 
+  const { styles: hubContextMenuStyles, attributes: hubContextMenuAttributes } = usePopper(
+    hubContextMenuReferenceElement,
+    hubContextMenuElement,
+    {
+      placement: hubContextMenuPlacement,
+      modifiers: [
+        {
+          name: "offset",
+          options: {
+            offset: hubContextMenuOffset
+          }
+        }
+      ]
+    }
+  );
+
   // Consume tree updates so redraws if user manipulates tree
   useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersion);
 
   return (
-    <ThemeProvider theme={dark}>
+    <WrappedIntlProvider>
       <div>
         <Wrap>
           <Top>
@@ -153,6 +199,7 @@ function JelUI(props) {
           {...props}
           showHubRenamePopup={showHubRenamePopup}
           setHubRenameReferenceElement={ref => setHubRenameReferenceElement(ref.current)}
+          showHubContextMenuPopup={showHubContextMenuPopup}
         />
       </div>
       <HubRenamePopup
@@ -164,7 +211,32 @@ function JelUI(props) {
         ref={renameFocusRef}
         onNameChanged={name => window.APP.spaceChannel.updateHub(hubRenameHubId, { name })}
       />
-    </ThemeProvider>
+      <HubContextMenu
+        setPopperElement={setHubContextMenuElement}
+        styles={hubContextMenuStyles}
+        attributes={hubContextMenuAttributes}
+        hubId={hubContextMenuHubId}
+        spaceCan={spaceCan}
+        hubCan={hubCan}
+        onRenameClick={hubId => showHubRenamePopup(hubId, null, "bottom", [0, 0])}
+        onTrashClick={hubId => {
+          if (!tree.getNodeIdForAtomId(hubId)) return;
+
+          // If this hub or any of its parents were deleted, go home.
+          if (isAtomInSubtree(tree, hubId, hub.hub_id)) {
+            const homeHub = homeHubForSpaceId(hub.space_id, memberships);
+            navigateToHubUrl(history, homeHub.url);
+          }
+
+          // All trashable children are trashed too.
+          const trashableChildrenHubIds = findChildrenAtomsInTreeData(treeData, hubId).filter(hubId =>
+            hubCan("trash_hub", hubId)
+          );
+
+          window.APP.spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
+        }}
+      />
+    </WrappedIntlProvider>
   );
 }
 
@@ -172,13 +244,13 @@ JelUI.propTypes = {
   treeManager: PropTypes.object,
   history: PropTypes.object,
   hub: PropTypes.object,
-  //spaceCan: PropTypes.func,
-  hubCan: PropTypes.func
+  spaceCan: PropTypes.func,
+  hubCan: PropTypes.func,
   //orgPresences: PropTypes.object,
   //hubPresences: PropTypes.object,
   //sessionId: PropTypes.string,
   //spaceId: PropTypes.string,
-  //memberships: PropTypes.array
+  memberships: PropTypes.array
 };
 
 export default JelUI;

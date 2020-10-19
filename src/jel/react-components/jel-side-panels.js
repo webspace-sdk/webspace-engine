@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { FormattedMessage } from "react-intl";
 import { usePopper } from "react-popper";
 import PropTypes from "prop-types";
@@ -22,7 +21,7 @@ import sharedStyles from "../assets/stylesheets/shared.scss";
 import PopupPanel from "./popup-panel";
 import HubNodeTitle from "./hub-node-title";
 
-const JelWrap = styled.div`
+const Wrap = styled.div`
   color: var(--panel-text-color);
   background-color: var(--panel-background-color);
   font-size: var(--panel-text-size);
@@ -252,7 +251,7 @@ function JelSidePanels({
   hubCan = () => false,
   spaceCan = () => false,
   memberships,
-  showHubRenamePopup,
+  showHubContextMenuPopup,
   setHubRenameReferenceElement,
   spaceId
 }) {
@@ -290,78 +289,76 @@ function JelSidePanels({
   const spaceChannel = window.APP.spaceChannel;
 
   return (
-    <WrappedIntlProvider>
-      <JelWrap>
-        <Nav>
-          <NavHead>
-            <SpaceBanner>{space && space.name}</SpaceBanner>
-          </NavHead>
-          <NavSpill>
-            <PanelSectionHeader>
-              <FormattedMessage id="nav.private-worlds" />
-            </PanelSectionHeader>
-            <Tree
-              prefixCls="hub-tree"
-              treeData={privateTreeData}
-              selectable={true}
-              selectedKeys={privateSelectedKeys}
-              onSelect={(selectedKeys, { node: { atomId } }) =>
-                navigateToHubUrl(history, hubMetadata.getMetadata(atomId).url)
-              }
-            />
-            <PanelSectionHeader>
-              <FormattedMessage id="nav.shared-worlds" />
-            </PanelSectionHeader>
+    <Wrap>
+      <Nav>
+        <NavHead>
+          <SpaceBanner>{space && space.name}</SpaceBanner>
+        </NavHead>
+        <NavSpill>
+          <PanelSectionHeader>
+            <FormattedMessage id="nav.private-worlds" />
+          </PanelSectionHeader>
+          <Tree
+            prefixCls="hub-tree"
+            treeData={privateTreeData}
+            selectable={true}
+            selectedKeys={privateSelectedKeys}
+            onSelect={(selectedKeys, { node: { atomId } }) =>
+              navigateToHubUrl(history, hubMetadata.getMetadata(atomId).url)
+            }
+          />
+          <PanelSectionHeader>
+            <FormattedMessage id="nav.shared-worlds" />
+          </PanelSectionHeader>
 
-            <HubTree
-              treeManager={treeManager}
-              hub={hub}
-              history={history}
-              spaceCan={spaceCan}
-              hubCan={hubCan}
-              memberships={memberships}
-              showHubRenamePopup={showHubRenamePopup}
-              setHubRenameReferenceElement={setHubRenameReferenceElement}
-              onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
-            />
-          </NavSpill>
-          <NavFoot>
-            <PanelItemButtonSection>
-              <PanelItemButton
-                iconSrc={trashIcon}
-                ref={trashButtonRef}
-                onClick={() => {
-                  setTrashMenuReferenceElement(trashButtonRef.current);
-                  treeManager.rebuildSharedTrashTree();
+          <HubTree
+            treeManager={treeManager}
+            hub={hub}
+            history={history}
+            spaceCan={spaceCan}
+            hubCan={hubCan}
+            memberships={memberships}
+            showHubContextMenuPopup={showHubContextMenuPopup}
+            setHubRenameReferenceElement={setHubRenameReferenceElement}
+            onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
+          />
+        </NavSpill>
+        <NavFoot>
+          <PanelItemButtonSection>
+            <PanelItemButton
+              iconSrc={trashIcon}
+              ref={trashButtonRef}
+              onClick={() => {
+                setTrashMenuReferenceElement(trashButtonRef.current);
+                treeManager.rebuildSharedTrashTree();
 
-                  if (updateTrashPopper) {
-                    updateTrashPopper();
-                  }
+                if (updateTrashPopper) {
+                  updateTrashPopper();
+                }
 
-                  trashMenuElement.focus();
-                }}
-              >
-                <FormattedMessage id="nav.trash" />
-              </PanelItemButton>
-            </PanelItemButtonSection>
-            {spaceCan("create_hub") && (
-              <ActionButton
-                iconSrc={addIcon}
-                onClick={() => addNewHubToTree(history, treeManager, spaceId)}
-                style={{ width: "80%" }}
-              >
-                <FormattedMessage id="nav.create-world" />
-              </ActionButton>
-            )}
-          </NavFoot>
-        </Nav>
-        <Presence>
-          <PresenceContent>Presence</PresenceContent>
-          <SpaceTreeSpill>
-            <SpaceTree treeManager={treeManager} space={space} history={history} memberships={memberships} />
-          </SpaceTreeSpill>
-        </Presence>
-      </JelWrap>
+                trashMenuElement.focus();
+              }}
+            >
+              <FormattedMessage id="nav.trash" />
+            </PanelItemButton>
+          </PanelItemButtonSection>
+          {spaceCan("create_hub") && (
+            <ActionButton
+              iconSrc={addIcon}
+              onClick={() => addNewHubToTree(history, treeManager, spaceId)}
+              style={{ width: "80%" }}
+            >
+              <FormattedMessage id="nav.create-world" />
+            </ActionButton>
+          )}
+        </NavFoot>
+      </Nav>
+      <Presence>
+        <PresenceContent>Presence</PresenceContent>
+        <SpaceTreeSpill>
+          <SpaceTree treeManager={treeManager} space={space} history={history} memberships={memberships} />
+        </SpaceTreeSpill>
+      </Presence>
       <TrashMenu setPopperElement={setTrashMenuElement} styles={trashMenuStyles} attributes={trashMenuAttributes}>
         <HubTrashTree
           treeManager={treeManager}
@@ -402,7 +399,7 @@ function JelSidePanels({
           }}
         />
       </TrashMenu>
-    </WrappedIntlProvider>
+    </Wrap>
   );
 }
 
@@ -417,7 +414,7 @@ JelSidePanels.propTypes = {
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
-  showHubRenamePopup: PropTypes.func,
+  showHubContextMenuPopup: PropTypes.func,
   setHubRenameReferenceElement: PropTypes.func
 };
 

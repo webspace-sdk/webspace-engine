@@ -1,45 +1,20 @@
 import PropTypes from "prop-types";
 import React, { useState, useCallback } from "react";
 import Tree from "rc-tree";
-import { usePopper } from "react-popper";
 import {
   addNewHubToTree,
   createTreeDropHandler,
   useTreeData,
   useExpandableTree,
-  useScrollToSelectedTreeNode,
-  findChildrenAtomsInTreeData,
-  isAtomInSubtree
+  useScrollToSelectedTreeNode
 } from "../utils/tree-utils";
-import { homeHubForSpaceId } from "../utils/membership-utils";
 import HubNodeTitle from "./hub-node-title";
-import HubContextMenu from "./hub-context-menu";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import "../assets/stylesheets/hub-tree.scss";
 
-function HubTree({
-  treeManager,
-  history,
-  hub,
-  spaceCan,
-  hubCan,
-  memberships,
-  showHubRenamePopup,
-  setHubRenameReferenceElement
-}) {
+function HubTree({ treeManager, history, hub, spaceCan, setHubRenameReferenceElement, showHubContextMenuPopup }) {
   const [navTreeData, setNavTreeData] = useState([]);
   const [navTreeDataVersion, setNavTreeDataVersion] = useState(0);
-  const [hubContextMenuHubId, setHubContextMenuHubId] = useState(null);
-  const [hubContextMenuReferenceElement, setHubContextMenuReferenceElement] = useState(null);
-  const [hubContextMenuElement, setHubContextMenuElement] = useState(null);
-
-  const { styles: hubContextMenuStyles, attributes: hubContextMenuAttributes } = usePopper(
-    hubContextMenuReferenceElement,
-    hubContextMenuElement,
-    {
-      placement: "bottom-start"
-    }
-  );
 
   const tree = treeManager && treeManager.sharedNav;
   const atomMetadata = tree && tree.atomMetadata;
@@ -63,28 +38,12 @@ function HubTree({
         }}
         onDotsClick={(e, ref) => {
           e.stopPropagation(); // Otherwise this will perform a tree node click event
-          setHubContextMenuHubId(data.atomId);
-          setHubContextMenuReferenceElement(ref.current);
-          hubContextMenuElement.focus();
+          showHubContextMenuPopup(data.atomId, ref, "bottom-start");
           setHubRenameReferenceElement(ref);
-
-          // HACK, once popper has positioned the context/rename popups, remove this ref
-          // since otherwise popper will re-render everything when the tree is scrolled.
-          setTimeout(() => setHubContextMenuReferenceElement(null), 0);
         }}
       />
     ),
-    [
-      history,
-      hub,
-      treeManager,
-      atomMetadata,
-      hubContextMenuElement,
-      setHubContextMenuHubId,
-      setHubContextMenuReferenceElement,
-      setHubRenameReferenceElement,
-      spaceCan
-    ]
+    [history, hub, treeManager, atomMetadata, showHubContextMenuPopup, setHubRenameReferenceElement, spaceCan]
   );
 
   if (!treeManager || !hub) return null;
@@ -113,31 +72,6 @@ function HubTree({
         expandedKeys={treeManager.sharedExpandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeIsExpanded(key, expanded)}
       />
-      <HubContextMenu
-        setPopperElement={setHubContextMenuElement}
-        styles={hubContextMenuStyles}
-        attributes={hubContextMenuAttributes}
-        hubId={hubContextMenuHubId}
-        spaceCan={spaceCan}
-        hubCan={hubCan}
-        onRenameClick={hubId => showHubRenamePopup(hubId, null, "bottom", [0, 0])}
-        onTrashClick={hubId => {
-          if (!tree.getNodeIdForAtomId(hubId)) return;
-
-          // If this hub or any of its parents were deleted, go home.
-          if (isAtomInSubtree(tree, hubId, hub.hub_id)) {
-            const homeHub = homeHubForSpaceId(hub.space_id, memberships);
-            navigateToHubUrl(history, homeHub.url);
-          }
-
-          // All trashable children are trashed too.
-          const trashableChildrenHubIds = findChildrenAtomsInTreeData(navTreeData, hubId).filter(hubId =>
-            hubCan("trash_hub", hubId)
-          );
-
-          window.APP.spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
-        }}
-      />
     </div>
   );
 }
@@ -150,8 +84,8 @@ HubTree.propTypes = {
   hubCan: PropTypes.func,
   spaceChannel: PropTypes.object,
   memberships: PropTypes.array,
-  showHubRenamePopup: PropTypes.func,
-  setHubRenameReferenceElement: PropTypes.func
+  setHubRenameReferenceElement: PropTypes.func,
+  showHubContextMenuPopup: PropTypes.func
 };
 
 export default HubTree;

@@ -19,7 +19,7 @@ function HubContextMenu({
   onRenameClick,
   onTrashClick
 }) {
-  if (!popupRoot) return null;
+  if (!popupRoot || !spaceCan || !hubCan) return null;
 
   const items = [];
 
