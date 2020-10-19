@@ -76,6 +76,48 @@ const HubContextButton = props => {
   );
 };
 
+function useHubBoundPopupPopper(focusRef) {
+  const [referenceElement, setReferenceElement] = useState(null);
+  const [popupElement, setPopupElement] = useState(null);
+  const [hubId, setHubId] = useState(null);
+  const [placement, setPlacement] = useState("bottom");
+  const [offset, setOffset] = useState([0, 0]);
+
+  const show = (hubId, ref, placement, offset) => {
+    setHubId(hubId);
+    if (placement) setPlacement(placement);
+    if (offset) setOffset(offset);
+    if (ref && ref.current) setReferenceElement(ref.current);
+
+    focusRef.current.focus();
+
+    // HACK, once popper has positioned the context/rename popups, remove this ref
+    // since otherwise popper will re-render everything if pane is scrolled
+    //setTimeout(() => setReferenceElement(null), 0);
+  };
+
+  const { styles, attributes } = usePopper(referenceElement, popupElement, {
+    placement: placement,
+    modifiers: [
+      {
+        name: "offset",
+        options: {
+          offset: offset
+        }
+      }
+    ]
+  });
+
+  return {
+    show,
+    hubId,
+    setPopup: setPopupElement,
+    setRef: ref => setReferenceElement(ref.current),
+    styles,
+    attributes
+  };
+}
+
 function JelUI(props) {
   const { treeManager, history, spaceCan, hubCan, hub, memberships } = props;
   const tree = treeManager && treeManager.sharedNav;
@@ -84,94 +126,25 @@ function JelUI(props) {
   const hubTrailHubIds = (tree && hub && tree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
   const [treeData, setTreeData] = useState([]);
   const [treeDataVersion, setTreeDataVersion] = useState(0);
-  const [hubRenameReferenceElement, setHubRenameReferenceElement] = useState(null);
-  const [hubRenamePopupElement, setHubRenamePopupElement] = useState(null);
-  const [hubRenameHubId, setHubRenameHubId] = useState(null);
-  const [hubRenamePlacement, setHubRenamePlacement] = useState("bottom");
-  const [hubRenameOffset, setHubRenameOffset] = useState([0, 0]);
-  const [hubContextMenuHubId, setHubContextMenuHubId] = useState(null);
-  const [hubContextMenuReferenceElement, setHubContextMenuReferenceElement] = useState(null);
-  const [hubContextMenuElement, setHubContextMenuElement] = useState(null);
-  const [hubContextMenuPlacement, setHubContextMenuPlacement] = useState("bottom");
-  const [hubContextMenuOffset, setHubContextMenuOffset] = useState([0, 0]);
 
   const renameFocusRef = React.createRef();
+  const contextMenuRef = React.createRef();
 
-  const showHubRenamePopup = (hubId, ref, placement, offset) => {
-    setHubRenameHubId(hubId);
+  const {
+    styles: hubRenamePopupStyles,
+    attributes: hubRenamePopupAttributes,
+    setPopup: setHubRenamePopupElement,
+    setRef: setHubRenameReferenceElement,
+    hubId: hubRenameHubId,
+    show: showHubRenamePopup
+  } = useHubBoundPopupPopper(renameFocusRef);
 
-    if (ref) {
-      setHubRenameReferenceElement(ref.current);
-    }
-
-    if (placement) {
-      setHubRenamePlacement(placement);
-    }
-
-    if (offset) {
-      setHubRenameOffset(offset);
-    }
-
-    renameFocusRef.current.focus();
-
-    // HACK, once popper has positioned the context/rename popups, remove this ref
-    // since otherwise popper will re-render everything if pane is scrolled
-    setTimeout(() => setHubRenameReferenceElement(null), 0);
-  };
-
-  const showHubContextMenuPopup = (hubId, ref, placement, offset) => {
-    setHubContextMenuHubId(hubId);
-
-    if (ref) {
-      setHubContextMenuReferenceElement(ref.current);
-    }
-
-    if (placement) {
-      setHubContextMenuPlacement(placement);
-    }
-
-    if (offset) {
-      setHubContextMenuOffset(offset);
-    }
-
-    hubContextMenuElement.focus();
-
-    // HACK, once popper has positioned the context/rename popups, remove this ref
-    // since otherwise popper will re-render everything if pane is scrolled
-    setTimeout(() => setHubContextMenuReferenceElement(null), 0);
-  };
-
-  const { styles: hubRenamePopupStyles, attributes: hubRenamePopupAttributes } = usePopper(
-    hubRenameReferenceElement,
-    hubRenamePopupElement,
-    {
-      placement: hubRenamePlacement,
-      modifiers: [
-        {
-          name: "offset",
-          options: {
-            offset: hubRenameOffset
-          }
-        }
-      ]
-    }
-  );
-
-  const { styles: hubContextMenuStyles, attributes: hubContextMenuAttributes } = usePopper(
-    hubContextMenuReferenceElement,
-    hubContextMenuElement,
-    {
-      placement: hubContextMenuPlacement,
-      modifiers: [
-        {
-          name: "offset",
-          options: {
-            offset: hubContextMenuOffset
-          }
-        }
-      ]
-    }
-  );
+  const {
+    styles: hubContextMenuStyles,
+    attributes: hubContextMenuAttributes,
+    hubId: hubContextMenuHubId,
+    show: showHubContextMenuPopup
+  } = useHubBoundPopupPopper(contextMenuRef);
 
   // Consume tree updates so redraws if user manipulates tree
   useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersion);
@@ -198,7 +171,7 @@ function JelUI(props) {
         <JelSidePanels
           {...props}
           showHubRenamePopup={showHubRenamePopup}
-          setHubRenameReferenceElement={ref => setHubRenameReferenceElement(ref.current)}
+          setHubRenameReferenceElement={setHubRenameReferenceElement}
           showHubContextMenuPopup={showHubContextMenuPopup}
         />
       </div>
@@ -212,7 +185,7 @@ function JelUI(props) {
         onNameChanged={name => window.APP.spaceChannel.updateHub(hubRenameHubId, { name })}
       />
       <HubContextMenu
-        setPopperElement={setHubContextMenuElement}
+        setPopperElement={contextMenuRef}
         styles={hubContextMenuStyles}
         attributes={hubContextMenuAttributes}
         hubId={hubContextMenuHubId}
