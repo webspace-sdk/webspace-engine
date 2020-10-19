@@ -13,32 +13,29 @@ import {
 } from "../utils/tree-utils";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import HubNodeTitle from "./hub-node-title";
-import HubRenamePopup from "./hub-rename-popup";
 import HubContextMenu from "./hub-context-menu";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import "../assets/stylesheets/hub-tree.scss";
 
-function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onHubNameChanged }) {
+function HubTree({
+  treeManager,
+  history,
+  hub,
+  spaceCan,
+  hubCan,
+  memberships,
+  showHubRenamePopup,
+  setHubRenameReferenceElement
+}) {
   const [navTreeData, setNavTreeData] = useState([]);
   const [navTreeDataVersion, setNavTreeDataVersion] = useState(0);
   const [hubContextMenuHubId, setHubContextMenuHubId] = useState(null);
   const [hubContextMenuReferenceElement, setHubContextMenuReferenceElement] = useState(null);
   const [hubContextMenuElement, setHubContextMenuElement] = useState(null);
-  const [hubRenamePopupHubId, setHubRenamePopupHubId] = useState(null);
-  const [hubRenamePopupElement, setHubRenamePopupElement] = useState(null);
-  const hubRenameRef = React.createRef();
 
   const { styles: hubContextMenuStyles, attributes: hubContextMenuAttributes } = usePopper(
     hubContextMenuReferenceElement,
     hubContextMenuElement,
-    {
-      placement: "bottom-start"
-    }
-  );
-
-  const { styles: hubRenamePopupStyles, attributes: hubRenamePopupAttributes } = usePopper(
-    hubContextMenuReferenceElement,
-    hubRenamePopupElement,
     {
       placement: "bottom-start"
     }
@@ -69,6 +66,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
           setHubContextMenuHubId(data.atomId);
           setHubContextMenuReferenceElement(ref.current);
           hubContextMenuElement.focus();
+          setHubRenameReferenceElement(ref);
 
           // HACK, once popper has positioned the context/rename popups, remove this ref
           // since otherwise popper will re-render everything when the tree is scrolled.
@@ -84,6 +82,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
       hubContextMenuElement,
       setHubContextMenuHubId,
       setHubContextMenuReferenceElement,
+      setHubRenameReferenceElement,
       spaceCan
     ]
   );
@@ -121,10 +120,7 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
         hubId={hubContextMenuHubId}
         spaceCan={spaceCan}
         hubCan={hubCan}
-        onRenameClick={hubId => {
-          setHubRenamePopupHubId(hubId);
-          hubRenameRef.current.focus();
-        }}
+        onRenameClick={hubId => showHubRenamePopup(hubId, null, "bottom", [0, 0])}
         onTrashClick={hubId => {
           if (!tree.getNodeIdForAtomId(hubId)) return;
 
@@ -142,15 +138,6 @@ function HubTree({ treeManager, history, hub, spaceCan, hubCan, memberships, onH
           window.APP.spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
         }}
       />
-      <HubRenamePopup
-        setPopperElement={setHubRenamePopupElement}
-        styles={hubRenamePopupStyles}
-        attributes={hubRenamePopupAttributes}
-        hubId={hubRenamePopupHubId}
-        hubMetadata={tree.atomMetadata}
-        ref={hubRenameRef}
-        onNameChanged={name => onHubNameChanged(hubRenamePopupHubId, name)}
-      />
     </div>
   );
 }
@@ -163,7 +150,8 @@ HubTree.propTypes = {
   hubCan: PropTypes.func,
   spaceChannel: PropTypes.object,
   memberships: PropTypes.array,
-  onHubNameChanged: PropTypes.func
+  showHubRenamePopup: PropTypes.func,
+  setHubRenameReferenceElement: PropTypes.func
 };
 
 export default HubTree;

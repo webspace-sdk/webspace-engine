@@ -252,6 +252,8 @@ function JelSidePanels({
   hubCan = () => false,
   spaceCan = () => false,
   memberships,
+  showHubRenamePopup,
+  setHubRenameReferenceElement,
   spaceId
 }) {
   const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
@@ -318,6 +320,8 @@ function JelSidePanels({
               spaceCan={spaceCan}
               hubCan={hubCan}
               memberships={memberships}
+              showHubRenamePopup={showHubRenamePopup}
+              setHubRenameReferenceElement={setHubRenameReferenceElement}
               onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
             />
           </NavSpill>
@@ -412,7 +416,9 @@ JelSidePanels.propTypes = {
   hubPresences: PropTypes.object,
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,
-  memberships: PropTypes.array
+  memberships: PropTypes.array,
+  showHubRenamePopup: PropTypes.func,
+  setHubRenameReferenceElement: PropTypes.func
 };
 
 export default JelSidePanels;

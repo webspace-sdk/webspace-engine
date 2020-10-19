@@ -6,6 +6,8 @@ import { dark } from "./theme";
 import { useTreeData } from "../utils/tree-utils";
 import JelSidePanels from "./jel-side-panels";
 import dotsIcon from "../assets/images/icons/dots-horizontal-overlay-shadow.svgi";
+import HubRenamePopup from "./hub-rename-popup";
+import { usePopper } from "react-popper";
 
 const Wrap = styled.div`
   color: ${p => p.theme.text};
@@ -80,6 +82,50 @@ function JelUI(props) {
   const hubTrailHubIds = (tree && hub && tree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
   const [, setTreeData] = useState([]);
   const [treeDataVersion, setTreeDataVersion] = useState(0);
+  const [hubRenameReferenceElement, setHubRenameReferenceElement] = useState(null);
+  const [hubRenamePopupElement, setHubRenamePopupElement] = useState(null);
+  const [hubRenameHubId, setHubRenameHubId] = useState(null);
+  const [hubRenamePlacement, setHubRenamePlacement] = useState("bottom");
+  const [hubRenameOffset, setHubRenameOffset] = useState([0, 0]);
+  const renameFocusRef = React.createRef();
+
+  const showHubRenamePopup = (hubId, ref, placement, offset) => {
+    setHubRenameHubId(hubId);
+
+    if (ref) {
+      setHubRenameReferenceElement(ref.current);
+    }
+
+    if (placement) {
+      setHubRenamePlacement(placement);
+    }
+
+    if (offset) {
+      setHubRenameOffset(offset);
+    }
+
+    renameFocusRef.current.focus();
+
+    // HACK, once popper has positioned the context/rename popups, remove this ref
+    // since otherwise popper will re-render everything if pane is scrolled
+    setTimeout(() => setHubRenameReferenceElement(null), 0);
+  };
+
+  const { styles: hubRenamePopupStyles, attributes: hubRenamePopupAttributes } = usePopper(
+    hubRenameReferenceElement,
+    hubRenamePopupElement,
+    {
+      placement: hubRenamePlacement,
+      modifiers: [
+        {
+          name: "offset",
+          options: {
+            offset: hubRenameOffset
+          }
+        }
+      ]
+    }
+  );
 
   // Consume tree updates so redraws if user manipulates tree
   useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersion);
@@ -96,14 +142,28 @@ function JelUI(props) {
                 hubMetadata={hubMetadata}
                 hubCan={hubCan}
                 hubIds={hubTrailHubIds}
+                showHubRenamePopup={showHubRenamePopup}
                 onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
               />
             )}
             <HubContextButton />
           </Top>
         </Wrap>
-        <JelSidePanels {...props} />
+        <JelSidePanels
+          {...props}
+          showHubRenamePopup={showHubRenamePopup}
+          setHubRenameReferenceElement={ref => setHubRenameReferenceElement(ref.current)}
+        />
       </div>
+      <HubRenamePopup
+        setPopperElement={setHubRenamePopupElement}
+        styles={hubRenamePopupStyles}
+        attributes={hubRenamePopupAttributes}
+        hubId={hubRenameHubId}
+        hubMetadata={hubMetadata}
+        ref={renameFocusRef}
+        onNameChanged={name => window.APP.spaceChannel.updateHub(hubRenameHubId, { name })}
+      />
     </ThemeProvider>
   );
 }
