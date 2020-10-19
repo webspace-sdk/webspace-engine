@@ -16,6 +16,7 @@ function HubContextMenu({
   hubId,
   spaceCan,
   hubCan,
+  hideRename,
   onRenameClick,
   onTrashClick
 }) {
@@ -23,7 +24,7 @@ function HubContextMenu({
 
   const items = [];
 
-  if (hubId && hubCan("update_hub_meta", hubId)) {
+  if (hubId && hubCan("update_hub_meta", hubId) && !hideRename) {
     items.push(
       <PopupMenuItem
         key={`rename-${hubId}`}

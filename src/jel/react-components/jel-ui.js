@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, forwardRef } from "react";
 import PropTypes from "prop-types";
 import HubTrail from "./hub-trail";
 import styled from "styled-components";
 import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../utils/tree-utils";
+import { useHubBoundPopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import JelSidePanels from "./jel-side-panels";
 import dotsIcon from "../assets/images/icons/dots-horizontal-overlay-shadow.svgi";
 import HubRenamePopup from "./hub-rename-popup";
 import HubContextMenu from "./hub-context-menu";
-import { usePopper } from "react-popper";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 
@@ -69,59 +69,15 @@ const HubContextButtonIcon = styled.div`
   height: 22px;
 `;
 
-const HubContextButton = props => {
+const HubContextButton = forwardRef((props, ref) => {
   return (
-    <HubContextButtonElement {...props}>
+    <HubContextButtonElement {...props} ref={ref}>
       <HubContextButtonIcon dangerouslySetInnerHTML={{ __html: dotsIcon }} />
     </HubContextButtonElement>
   );
-};
+});
 
-function useHubBoundPopupPopper(focusRef) {
-  const [referenceElement, setReferenceElement] = useState(null);
-  const [popupElement, setPopupElement] = useState(null);
-  const [hubId, setHubId] = useState(null);
-  const [placement, setPlacement] = useState("bottom");
-  const [offset, setOffset] = useState([0, 0]);
-
-  const show = (hubId, ref, placement, offset) => {
-    setHubId(hubId);
-    if (placement) setPlacement(placement);
-    if (offset) setOffset(offset);
-    if (ref && ref.current) setReferenceElement(ref.current);
-
-    if (focusRef) {
-      focusRef.current.focus();
-    } else {
-      popupElement.focus();
-    }
-
-    // HACK, once popper has positioned the context/rename popups, remove this ref
-    // since otherwise popper will re-render everything if pane is scrolled
-    //setTimeout(() => setReferenceElement(null), 0);
-  };
-
-  const { styles, attributes } = usePopper(referenceElement, popupElement, {
-    placement: placement,
-    modifiers: [
-      {
-        name: "offset",
-        options: {
-          offset: offset
-        }
-      }
-    ]
-  });
-
-  return {
-    show,
-    hubId,
-    setPopup: setPopupElement,
-    setRef: ref => setReferenceElement(ref.current),
-    styles,
-    attributes
-  };
-}
+HubContextButton.displayName = "HubContextButton";
 
 function JelUI(props) {
   const { treeManager, history, spaceCan, hubCan, hub, memberships } = props;
@@ -133,6 +89,7 @@ function JelUI(props) {
   const [treeDataVersion, setTreeDataVersion] = useState(0);
 
   const renameFocusRef = React.createRef();
+  const hubContextButtonRef = React.createRef();
 
   const {
     styles: hubRenamePopupStyles,
@@ -148,7 +105,8 @@ function JelUI(props) {
     attributes: hubContextMenuAttributes,
     hubId: hubContextMenuHubId,
     show: showHubContextMenuPopup,
-    setPopup: setHubContextMenuElement
+    setPopup: setHubContextMenuElement,
+    popupOpenOptions: hubContextMenuOpenOptions
   } = useHubBoundPopupPopper();
 
   // Consume tree updates so redraws if user manipulates tree
@@ -170,7 +128,14 @@ function JelUI(props) {
                 onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
               />
             )}
-            <HubContextButton />
+            <HubContextButton
+              ref={hubContextButtonRef}
+              onClick={() => {
+                showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", null, {
+                  hideRename: true
+                });
+              }}
+            />
           </Top>
         </Wrap>
         <JelSidePanels
@@ -191,6 +156,7 @@ function JelUI(props) {
       />
       <HubContextMenu
         setPopperElement={setHubContextMenuElement}
+        hideRename={!!hubContextMenuOpenOptions.hideRename}
         styles={hubContextMenuStyles}
         attributes={hubContextMenuAttributes}
         hubId={hubContextMenuHubId}
