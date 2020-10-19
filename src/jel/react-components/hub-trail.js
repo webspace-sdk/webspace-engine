@@ -122,7 +122,7 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata, history, showHub
     <HubTrailHubItem
       key="primary-item"
       ref={primaryItemRef}
-      onClick={() => showHubRenamePopup(primaryHubId, primaryItemRef, "bottom", [0, 8])}
+      onClick={() => showHubRenamePopup(primaryHubId, primaryItemRef)}
     >
       {names[hubIdsToShow.length - 1]}
     </HubTrailHubItem>

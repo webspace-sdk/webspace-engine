@@ -98,7 +98,7 @@ function JelUI(props) {
     setRef: setHubRenameReferenceElement,
     hubId: hubRenameHubId,
     show: showHubRenamePopup
-  } = useHubBoundPopupPopper(renameFocusRef);
+  } = useHubBoundPopupPopper(renameFocusRef, "bottom-start", [0, 8]);
 
   const {
     styles: hubContextMenuStyles,
@@ -162,7 +162,7 @@ function JelUI(props) {
         hubId={hubContextMenuHubId}
         spaceCan={spaceCan}
         hubCan={hubCan}
-        onRenameClick={hubId => showHubRenamePopup(hubId, null, "bottom", [0, 0])}
+        onRenameClick={hubId => showHubRenamePopup(hubId, null)}
         onTrashClick={hubId => {
           if (!tree.getNodeIdForAtomId(hubId)) return;
 
