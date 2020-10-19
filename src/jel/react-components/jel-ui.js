@@ -34,6 +34,7 @@ const Top = styled.div`
 `;
 
 const HubContextButtonElement = styled.button`
+  color: var(--canvas-overlay-text-color);
   width: content-width;
   margin: 11px 12px 0 0;
   white-space: nowrap;
@@ -89,7 +90,11 @@ function useHubBoundPopupPopper(focusRef) {
     if (offset) setOffset(offset);
     if (ref && ref.current) setReferenceElement(ref.current);
 
-    focusRef.current.focus();
+    if (focusRef) {
+      focusRef.current.focus();
+    } else {
+      popupElement.focus();
+    }
 
     // HACK, once popper has positioned the context/rename popups, remove this ref
     // since otherwise popper will re-render everything if pane is scrolled
@@ -128,7 +133,6 @@ function JelUI(props) {
   const [treeDataVersion, setTreeDataVersion] = useState(0);
 
   const renameFocusRef = React.createRef();
-  const contextMenuRef = React.createRef();
 
   const {
     styles: hubRenamePopupStyles,
@@ -143,8 +147,9 @@ function JelUI(props) {
     styles: hubContextMenuStyles,
     attributes: hubContextMenuAttributes,
     hubId: hubContextMenuHubId,
-    show: showHubContextMenuPopup
-  } = useHubBoundPopupPopper(contextMenuRef);
+    show: showHubContextMenuPopup,
+    setPopup: setHubContextMenuElement
+  } = useHubBoundPopupPopper();
 
   // Consume tree updates so redraws if user manipulates tree
   useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersion);
@@ -185,7 +190,7 @@ function JelUI(props) {
         onNameChanged={name => window.APP.spaceChannel.updateHub(hubRenameHubId, { name })}
       />
       <HubContextMenu
-        setPopperElement={contextMenuRef}
+        setPopperElement={setHubContextMenuElement}
         styles={hubContextMenuStyles}
         attributes={hubContextMenuAttributes}
         hubId={hubContextMenuHubId}
