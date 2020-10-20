@@ -17,6 +17,8 @@ import HubTrashTree from "./hub-trash-tree";
 import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
 import verticalDotsIcon from "../assets/images/icons/dots-vertical.svgi";
 import trashIcon from "../assets/images/icons/trash.svgi";
+import mutedIcon from "../assets/images/icons/mic-muted.svgi";
+import unmutedIcon from "../assets/images/icons/mic-unmuted.svgi";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import ReactDOM from "react-dom";
 import sharedStyles from "../assets/stylesheets/shared.scss";
@@ -243,7 +245,7 @@ const SelfPanel = styled.div`
 
 const DeviceControls = styled.div`
   display: flex;
-  margin-right: 12px;
+  margin-right: 18px;
 `;
 
 let popupRoot = null;
@@ -468,7 +470,7 @@ function JelSidePanels({
               />
               <BigIconButton
                 style={{ margin: "0px 4px" }}
-                iconSrc={trashIcon}
+                iconSrc={muted ? mutedIcon : unmutedIcon}
                 onClick={() => scene.emit("action_mute")}
               />
             </DeviceControls>
