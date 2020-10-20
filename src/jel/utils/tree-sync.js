@@ -662,20 +662,11 @@ class TreeSync extends EventTarget {
   }
 
   getNodeIdForAtomId(atomIdToFind) {
-    const walk = nodes => {
-      for (const { key, atomId, children } of nodes) {
-        if (atomId === atomIdToFind) return key;
+    for (const [nid, data] of Object.entries(this.doc.data)) {
+      if (data.h === atomIdToFind) return nid;
+    }
 
-        if (children) {
-          const childAtomId = walk(children);
-          if (childAtomId) return childAtomId;
-        }
-      }
-
-      return null;
-    };
-
-    return walk(this.filteredTreeData || []);
+    return null;
   }
 }
 

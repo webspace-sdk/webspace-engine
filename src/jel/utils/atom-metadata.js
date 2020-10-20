@@ -97,7 +97,7 @@ class AtomMetadata {
       throw new Error(`Invalid permission name: ${permission}`);
 
     if (!this.hasMetadata(atomId)) {
-      throw new Error(`Tried to fetch permissions for ${atomId} type ${this._atomType} but not loaded.`);
+      return false; // This used to throw an error, should it still?
     }
 
     return !!this.getMetadata(atomId).permissions[permission];
@@ -195,6 +195,7 @@ function useNameUpdateFromMetadata(atomId, metadata, setDisplayName, setRawName)
       };
 
       updateName();
+      metadata.ensureMetadataForIds([atomId]);
       metadata.subscribeToMetadata(atomId, updateName);
       return () => metadata.unsubscribeFromMetadata(updateName);
     },
