@@ -57,20 +57,20 @@ async function updateEnvironmentForHub(hub, hubStore) {
   sceneEl.addState("visible");
 
   if (hubStore.state.lastPosition.x) {
-    const lastPosition = new THREE.Vector3(
+    const startPosition = new THREE.Vector3(
       hubStore.state.lastPosition.x,
       hubStore.state.lastPosition.y,
       hubStore.state.lastPosition.z
     );
 
-    const lastRotation = new THREE.Quaternion(
+    const startRotation = new THREE.Quaternion(
       hubStore.state.lastRotation.x,
       hubStore.state.lastRotation.y,
       hubStore.state.lastRotation.z,
       hubStore.state.lastRotation.w
     );
 
-    characterController.teleportTo(lastPosition, lastRotation);
+    characterController.teleportTo(startPosition, startRotation);
   } else {
     waypointSystem.moveToSpawnPoint();
   }

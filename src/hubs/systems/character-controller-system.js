@@ -108,7 +108,7 @@ export class CharacterControllerSystem {
       targetForHead.y += this.avatarPOV.object3D.position.y;
       deltaFromHeadToTargetForHead.copy(targetForHead).sub(head);
       targetForRig.copy(rig).add(deltaFromHeadToTargetForHead);
-      this.findPositionOnNavMesh(targetForRig, targetForRig, this.avatarRig.object3D.position, true);
+      this.findPositionOnNavMesh(targetForRig, targetForRig, this.avatarRig.object3D.position, true, true);
 
       this.avatarRig.object3D.matrixNeedsUpdate = true;
 
@@ -463,8 +463,7 @@ export class CharacterControllerSystem {
       this.navGroup === null ||
       this.navGroup === undefined ||
       this.navZone === null ||
-      this.navZone === undefined ||
-      shouldSnapImmediately
+      this.navZone === undefined
     ) {
       // this.navNode can be null if it has never been set or if getClosestNode fails,
       // and it can be undefined if clampStep fails, so we have to check both. We do not
@@ -475,7 +474,7 @@ export class CharacterControllerSystem {
       this.navNode = terrainSystem.clampStep(start, end, this.navNode, this.navZone, this.navGroup, outPos);
       // Always allow x, z movement, smooth y
       outPos.x = end.x;
-      outPos.y = 0.25 * outPos.y + 0.75 * end.y;
+      outPos.y = shouldSnapImmediately ? outPos.y : 0.25 * outPos.y + 0.75 * end.y;
       outPos.z = end.z;
     }
 
