@@ -17,7 +17,7 @@ const DeviceSelectorPopup = ({ setPopperElement, styles, attributes, children })
       style={styles.popper}
       {...attributes.popper}
     >
-      <PopupPanelMenu>
+      <PopupPanelMenu className={sharedStyles.slideUpWhenPopped}>
         <PopupPanelMenuSectionHeader>Input Device</PopupPanelMenuSectionHeader>
         <PopupPanelMenuItem>AT202USB+ Analog Stereo</PopupPanelMenuItem>
         <PopupPanelMenuItem iconSrc={checkIcon}>ThinkPad Thunderbold 3 Dock USB Audio Multichannel</PopupPanelMenuItem>

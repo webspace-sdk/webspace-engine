@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { usePopper } from "react-popper";
+import { toggleFocus } from "./dom-utils";
+
+const EMPTY = {};
 
 export function useHubBoundPopupPopper(focusRef, initialPlacement = "bottom", initialOffset = [0, 0]) {
   const [referenceElement, setReferenceElement] = useState(null);
@@ -7,7 +10,7 @@ export function useHubBoundPopupPopper(focusRef, initialPlacement = "bottom", in
   const [hubId, setHubId] = useState(null);
   const [placement, setPlacement] = useState(initialPlacement);
   const [offset, setOffset] = useState(initialOffset);
-  const [popupOpenOptions, setPopupOpenOptions] = useState({});
+  const [popupOpenOptions, setPopupOpenOptions] = useState(EMPTY);
 
   const { styles, attributes } = usePopper(referenceElement, popupElement, {
     placement: placement,
@@ -21,17 +24,19 @@ export function useHubBoundPopupPopper(focusRef, initialPlacement = "bottom", in
     ]
   });
 
-  const show = (hubId, ref, placement, offset, popupOpenOptions) => {
-    setHubId(hubId);
-    if (placement) setPlacement(placement);
-    if (offset) setOffset(offset);
-    if (ref && ref.current) setReferenceElement(ref.current);
-    setPopupOpenOptions(popupOpenOptions || {});
+  const show = (newHubId, ref, newPlacement, newOffset, newPopupOpenOptions = EMPTY) => {
+    if (newHubId !== hubId) setHubId(newHubId);
+    if (newPlacement && newPlacement !== placement) setPlacement(newPlacement);
+    if (newOffset && newOffset !== offset) setOffset(newOffset);
+    if (ref && ref.current !== referenceElement) setReferenceElement(ref.current);
+    if (newPopupOpenOptions !== popupOpenOptions) setPopupOpenOptions(newPopupOpenOptions || EMPTY);
 
-    if (focusRef) {
-      focusRef.current.focus();
+    const elToFocus = focusRef ? focusRef.current : popupElement;
+
+    if (popupOpenOptions.toggle) {
+      toggleFocus(elToFocus);
     } else {
-      popupElement.focus();
+      elToFocus.focus();
     }
 
     // HACK, once popper has positioned the context/rename popups, remove this ref
@@ -42,6 +47,7 @@ export function useHubBoundPopupPopper(focusRef, initialPlacement = "bottom", in
   return {
     show,
     hubId,
+    popupElement,
     setPopup: setPopupElement,
     setRef: ref => setReferenceElement(ref.current),
     setPlacement,

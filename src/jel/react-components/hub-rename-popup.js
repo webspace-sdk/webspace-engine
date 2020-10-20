@@ -18,7 +18,13 @@ const HubRenamePopup = forwardRef(
         style={styles.popper}
         {...attributes.popper}
       >
-        <PopupHubNameInput hubId={hubId} hubMetadata={hubMetadata} onNameChanged={onNameChanged} ref={ref} />
+        <PopupHubNameInput
+          className={sharedStyles.slideDownWhenPopped}
+          hubId={hubId}
+          hubMetadata={hubMetadata}
+          onNameChanged={onNameChanged}
+          ref={ref}
+        />
       </div>
     );
 

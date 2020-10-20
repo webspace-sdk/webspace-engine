@@ -38,7 +38,7 @@ function HubTree({ treeManager, history, hub, spaceCan, setHubRenameReferenceEle
         }}
         onDotsClick={(e, ref) => {
           e.stopPropagation(); // Otherwise this will perform a tree node click event
-          showHubContextMenuPopup(data.atomId, ref, "bottom-start");
+          showHubContextMenuPopup(data.atomId, ref, "bottom-start", [0, 0]);
           setHubRenameReferenceElement(ref);
         }}
       />

@@ -7,16 +7,32 @@
 }
 
 :local(.show-when-popped) {
+  position: relative;
   opacity: 0;
   pointer-events: none;
 
   transition: opacity 0.15s linear;
+
+  & :local(.slide-down-when-popped) {
+    transform: translateY(-4px) scale(0.95,0.95);
+    transition: transform 0.15s linear
+  }
+
+  & :local(.slide-up-when-popped) {
+    transform: translateY(4px) scale(0.95,0.95);
+    transition: transform 0.15s linear
+  }
 
   &:focus-within {
     opacity: 1;
     pointer-events: auto;
 
     transition: opacity 0.15s linear;
+
+    & :local(.slide-down-when-popped),:local(.slide-up-when-popped) {
+      transform: translateY(0px) scale(1, 1);
+      transition: transform 0.15s cubic-bezier(0.760, -0.005, 0.515, 2.25);
+    }
   }
 }
 

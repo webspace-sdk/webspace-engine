@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import styled from "styled-components";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
+import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 
 const MAX_ITEMS_IN_TRAIL = 3;
 
@@ -75,7 +76,7 @@ const HubTrailSeparatorItem = styled.div`
   width: 8px;
 `;
 
-export default function HubTrail({ hubIds, hubCan, hubMetadata, history, showHubRenamePopup }) {
+export default function HubTrail({ hubIds, hubCan, hubMetadata, history, hubRenamePopupElement, showHubRenamePopup }) {
   const primaryItemRef = React.createRef();
 
   const hubIdsToShow = hubIds || [];
@@ -122,7 +123,8 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata, history, showHub
     <HubTrailHubItem
       key="primary-item"
       ref={primaryItemRef}
-      onClick={() => showHubRenamePopup(primaryHubId, primaryItemRef)}
+      onMouseDown={e => cancelEventIfFocusedWithin(e, hubRenamePopupElement)}
+      onClick={() => showHubRenamePopup(primaryHubId, primaryItemRef, null, null, { toggle: true })}
     >
       {names[hubIdsToShow.length - 1]}
     </HubTrailHubItem>
@@ -137,5 +139,6 @@ HubTrail.propTypes = {
   hubMetadata: PropTypes.object,
   hubCan: PropTypes.func,
   onHubNameChanged: PropTypes.func,
+  hubRenamePopupElement: PropTypes.object,
   showHubRenamePopup: PropTypes.func
 };

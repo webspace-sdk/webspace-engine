@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../utils/tree-utils";
 import { useHubBoundPopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
+import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 import JelSidePanels from "./jel-side-panels";
 import dotsIcon from "../assets/images/icons/dots-horizontal-overlay-shadow.svgi";
 import HubRenamePopup from "./hub-rename-popup";
@@ -97,7 +98,8 @@ function JelUI(props) {
     setPopup: setHubRenamePopupElement,
     setRef: setHubRenameReferenceElement,
     hubId: hubRenameHubId,
-    show: showHubRenamePopup
+    show: showHubRenamePopup,
+    popupElement: hubRenamePopupElement
   } = useHubBoundPopupPopper(renameFocusRef, "bottom-start", [0, 8]);
 
   const {
@@ -106,7 +108,8 @@ function JelUI(props) {
     hubId: hubContextMenuHubId,
     show: showHubContextMenuPopup,
     setPopup: setHubContextMenuElement,
-    popupOpenOptions: hubContextMenuOpenOptions
+    popupOpenOptions: hubContextMenuOpenOptions,
+    popupElement: hubContextMenuElement
   } = useHubBoundPopupPopper();
 
   // Consume tree updates so redraws if user manipulates tree
@@ -124,15 +127,18 @@ function JelUI(props) {
                 hubMetadata={hubMetadata}
                 hubCan={hubCan}
                 hubIds={hubTrailHubIds}
+                hubRenamePopupElement={hubRenamePopupElement}
                 showHubRenamePopup={showHubRenamePopup}
                 onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
               />
             )}
             <HubContextButton
               ref={hubContextButtonRef}
+              onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
               onClick={() => {
-                showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", null, {
-                  hideRename: true
+                showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
+                  hideRename: true,
+                  toggle: true
                 });
               }}
             />

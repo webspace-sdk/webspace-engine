@@ -65,7 +65,7 @@ function HubContextMenu({
       style={styles.popper}
       {...attributes.popper}
     >
-      <PopupMenu>
+      <PopupMenu className={sharedStyles.slideDownWhenPopped}>
         {items.length > 0 ? (
           items
         ) : (

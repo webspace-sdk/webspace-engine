@@ -42,7 +42,8 @@ const PopupHubNameInputElement = styled.input`
   }
 `;
 
-const PopupHubNameInput = forwardRef(({ hubId, hubMetadata, onNameChanged }, ref) => {
+const PopupHubNameInput = forwardRef((props, ref) => {
+  const { hubId, hubMetadata, onNameChanged } = props;
   const metadata = hubMetadata && hubMetadata.getMetadata(hubId);
   const [editingHubId, setEditingHubId] = useState(hubId);
   const [name, setName] = useState((metadata && metadata.name) || "");
@@ -70,7 +71,7 @@ const PopupHubNameInput = forwardRef(({ hubId, hubMetadata, onNameChanged }, ref
   const placeholder = messages[isHome ? "hub.unnamed-home-title" : "hub.unnamed-title"];
 
   return (
-    <PopupHubNameInputPanel>
+    <PopupHubNameInputPanel className={props.className}>
       <PopupHubNameInputWrap>
         <form
           onSubmit={e => {
@@ -107,6 +108,7 @@ PopupHubNameInput.displayName = "PopupHubNameInput";
 
 PopupHubNameInput.propTypes = {
   hubId: PropTypes.string,
+  className: PropTypes.string,
   hubMetadata: PropTypes.object,
   onNameChanged: PropTypes.func
 };

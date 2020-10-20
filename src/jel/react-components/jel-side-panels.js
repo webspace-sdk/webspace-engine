@@ -10,6 +10,7 @@ import addIcon from "../assets/images/icons/add.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { homeHubForSpaceId, spaceForSpaceId } from "../utils/membership-utils";
 import { addNewHubToTree } from "../utils/tree-utils";
+import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
 import SpaceTree from "./space-tree";
 import HubTree from "./hub-tree";
 import HubTrashTree from "./hub-trash-tree";
@@ -231,13 +232,18 @@ const SelfPanel = styled.div`
   width: 100%;
   height: 60px;
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   flex-direction: row;
   background-color: var(--secondary-panel-background-color);
   color: var(--secondary-panel-text-color);
   align-self: flex-end;
   margin-top: 18px;
+`;
+
+const DeviceControls = styled.div`
+  display: flex;
+  margin-right: 12px;
 `;
 
 let popupRoot = null;
@@ -335,21 +341,12 @@ function JelSidePanels({
 
   useSceneMuteState(scene, setMuted);
   useMicDevices(muted, setMicDevices);
-  console.log(micDevices);
 
   const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: updateTrashPopper } = usePopper(
     trashMenuReferenceElement,
     trashMenuElement,
     {
-      placement: "right-start",
-      modifiers: [
-        {
-          name: "offset",
-          options: {
-            offset: [-46, 0]
-          }
-        }
-      ]
+      placement: "right"
     }
   );
 
@@ -358,12 +355,12 @@ function JelSidePanels({
     attributes: deviceSelectorAttributes,
     update: updateDeviceSelectorPopper
   } = usePopper(deviceSelectorReferenceElement, deviceSelectorElement, {
-    placement: "top-start",
+    placement: "top",
     modifiers: [
       {
         name: "offset",
         options: {
-          offset: [0, 12]
+          offset: [0, 36]
         }
       },
       {
@@ -433,6 +430,7 @@ function JelSidePanels({
             <PanelItemButton
               iconSrc={trashIcon}
               ref={setTrashMenuReferenceElement}
+              onMouseDown={e => cancelEventIfFocusedWithin(e, trashMenuElement)}
               onClick={() => {
                 treeManager.rebuildSharedTrashTree();
 
@@ -440,7 +438,7 @@ function JelSidePanels({
                   updateTrashPopper();
                 }
 
-                trashMenuElement.focus();
+                toggleFocus(trashMenuElement);
               }}
             >
               <FormattedMessage id="nav.trash" />
@@ -457,16 +455,18 @@ function JelSidePanels({
           )}
           <SelfPanel>
             <div style={{ width: "150px" }} />
-            <IconButton
-              iconSrc={verticalDotsIcon}
-              onClick={() => {
-                updateDeviceSelectorPopper();
-                deviceSelectorElement.focus();
-              }}
-              ref={setDeviceSelectorReferenceElement}
-            />
-            <IconButton iconSrc={trashIcon} onClick={() => scene.emit("action_mute")} />
-            {muted ? "Muted" : "Not Muted"}
+            <DeviceControls>
+              <IconButton
+                iconSrc={verticalDotsIcon}
+                onMouseDown={e => cancelEventIfFocusedWithin(e, deviceSelectorElement)}
+                onClick={() => {
+                  updateDeviceSelectorPopper();
+                  toggleFocus(deviceSelectorElement);
+                }}
+                ref={setDeviceSelectorReferenceElement}
+              />
+              <IconButton iconSrc={trashIcon} onClick={() => scene.emit("action_mute")} />
+            </DeviceControls>
           </SelfPanel>
         </NavFoot>
       </Nav>
