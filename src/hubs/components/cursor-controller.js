@@ -64,7 +64,8 @@ AFRAME.registerComponent("cursor-controller", {
     const v = new THREE.Vector3();
 
     return function(t, left) {
-      const userinput = AFRAME.scenes[0].systems.userinput;
+      const scene = AFRAME.scenes[0];
+      const userinput = scene.systems.userinput;
       const cursorPose = userinput.get(left ? paths.actions.cursor.left.pose : paths.actions.cursor.right.pose);
       const hideLine = userinput.get(left ? paths.actions.cursor.left.hideLine : paths.actions.cursor.right.hideLine);
 
@@ -117,7 +118,7 @@ AFRAME.registerComponent("cursor-controller", {
       cursor.object3D.lookAt(cameraPos);
       cursor.object3D.matrixNeedsUpdate = true;
 
-      let showCursor = true;
+      let showCursor = !scene.is("pointer-exited");
 
       // TODO : Check if the selected object being transformed is for this cursor!
       const transformObjectSystem = AFRAME.scenes[0].systems["transform-selected-object"];

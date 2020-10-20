@@ -542,6 +542,12 @@ function addGlobalEventListeners(scene, entryManager) {
       }
     });
   });
+
+  ["#jel-ui", "#jel-popup-root"].forEach(selector => {
+    const el = document.querySelector(selector);
+    el.addEventListener("mouseover", () => scene.addState("pointer-exited"));
+    el.addEventListener("mouseout", () => scene.removeState("pointer-exited"));
+  });
 }
 
 function setupSidePanelLayout(scene) {
