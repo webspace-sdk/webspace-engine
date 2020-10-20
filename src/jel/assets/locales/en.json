@@ -14,5 +14,8 @@
   "trash.empty": "Trash is empty.",
   "device-selector.mic-devices": "Microphone Devices",
   "device-selector.mic-inactive": "Unmute to choose microphone.",
-  "device-selector.no-mics": "No devices found."
+  "device-selector.no-mics": "No devices found.",
+  "self.unmute-tip": "Unmute (Ctrl-M)",
+  "self.mute-tip": "Mute (Ctrl-M)",
+  "self.select-tip": "Change Devices"
 }

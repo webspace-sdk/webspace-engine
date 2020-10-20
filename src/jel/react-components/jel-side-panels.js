@@ -7,6 +7,7 @@ import Tree from "rc-tree";
 import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
 import addIcon from "../assets/images/icons/add.svgi";
+import { getMessages } from "../../hubs/utils/i18n";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { homeHubForSpaceId, spaceForSpaceId } from "../utils/membership-utils";
 import { addNewHubToTree } from "../utils/tree-utils";
@@ -19,6 +20,7 @@ import verticalDotsIcon from "../assets/images/icons/dots-vertical.svgi";
 import trashIcon from "../assets/images/icons/trash.svgi";
 import mutedIcon from "../assets/images/icons/mic-muted.svgi";
 import unmutedIcon from "../assets/images/icons/mic-unmuted.svgi";
+import { useSingleton } from "@tippyjs/react";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import ReactDOM from "react-dom";
 import sharedStyles from "../assets/stylesheets/shared.scss";
@@ -27,6 +29,7 @@ import { PopupPanelMenuArrow } from "./popup-panel-menu";
 import HubNodeTitle from "./hub-node-title";
 import { BigIconButton } from "./icon-button";
 import DeviceSelectorPopup from "./device-selector-popup";
+import Tooltip from "./tooltip";
 
 const Wrap = styled.div`
   color: var(--panel-text-color);
@@ -335,6 +338,7 @@ function JelSidePanels({
 }) {
   const [muted, setMuted] = useState(false);
   const [micDevices, setMicDevices] = useState([]);
+  const [selfPanelTipSource, selfPanelTipTarget] = useSingleton();
   const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
   const [trashMenuElement, setTrashMenuElement] = useState(null);
   const [deviceSelectorReferenceElement, setDeviceSelectorReferenceElement] = useState(null);
@@ -391,6 +395,7 @@ function JelSidePanels({
 
   const space = spaceForSpaceId(spaceId, memberships);
   const spaceChannel = window.APP.spaceChannel;
+  const messages = getMessages();
 
   return (
     <Wrap>
@@ -456,23 +461,33 @@ function JelSidePanels({
             </ActionButton>
           )}
           <SelfPanel>
+            <Tooltip singleton={selfPanelTipSource} />
             <div style={{ width: "150px" }} />
             <DeviceControls>
-              <BigIconButton
-                style={{ margin: "0px 4px" }}
-                iconSrc={verticalDotsIcon}
-                onMouseDown={e => cancelEventIfFocusedWithin(e, deviceSelectorElement)}
-                onClick={() => {
-                  updateDeviceSelectorPopper();
-                  toggleFocus(deviceSelectorElement);
-                }}
-                ref={setDeviceSelectorReferenceElement}
-              />
-              <BigIconButton
-                style={{ margin: "0px 4px" }}
-                iconSrc={muted ? mutedIcon : unmutedIcon}
-                onClick={() => scene.emit("action_mute")}
-              />
+              <Tooltip content={messages["self.select-tip"]} placement="top" key="mute" singleton={selfPanelTipTarget}>
+                <BigIconButton
+                  style={{ margin: 0 }}
+                  iconSrc={verticalDotsIcon}
+                  onMouseDown={e => cancelEventIfFocusedWithin(e, deviceSelectorElement)}
+                  onClick={() => {
+                    updateDeviceSelectorPopper();
+                    toggleFocus(deviceSelectorElement);
+                  }}
+                  ref={setDeviceSelectorReferenceElement}
+                />
+              </Tooltip>
+              <Tooltip
+                content={messages[muted ? "self.unmute-tip" : "self.mute-tip"]}
+                placement="top"
+                key="select"
+                singleton={selfPanelTipTarget}
+              >
+                <BigIconButton
+                  style={{ margin: 0 }}
+                  iconSrc={muted ? mutedIcon : unmutedIcon}
+                  onClick={() => scene.emit("action_mute")}
+                />
+              </Tooltip>
             </DeviceControls>
           </SelfPanel>
         </NavFoot>

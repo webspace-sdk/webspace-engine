@@ -113,7 +113,16 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
+        bool: paths.device.keyboard.key("control"),
         value: paths.device.keyboard.key("m")
+      },
+      dest: { value: "/var/control+m" },
+      priority: 1001,
+      xform: xforms.copyIfTrue
+    },
+    {
+      src: {
+        value: "/var/control+m"
       },
       dest: {
         value: paths.actions.muteMic
