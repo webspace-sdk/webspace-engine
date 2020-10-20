@@ -346,7 +346,8 @@ export class CharacterControllerSystem {
             startPOVPosition.setFromMatrixPosition(this.avatarPOV.object3D.matrixWorld),
             desiredPOVPosition.setFromMatrixPosition(newPOV),
             navMeshSnappedPOVPosition,
-            shouldRecomputeNavGroupAndNavNode
+            shouldRecomputeNavGroupAndNavNode,
+            hasNewNavVersion
           );
 
           squareDistNavMeshCorrection = desiredPOVPosition.distanceToSquared(navMeshSnappedPOVPosition);
@@ -416,7 +417,8 @@ export class CharacterControllerSystem {
       startPOVPosition,
       desiredPOVPosition,
       outPOVPosition,
-      shouldRecomputeGroupAndNode
+      shouldRecomputeGroupAndNode,
+      shouldSnapImmediately
     ) {
       const playerHeight = getCurrentPlayerHeight(true);
       startingFeetPosition.copy(startPOVPosition);
@@ -427,14 +429,15 @@ export class CharacterControllerSystem {
         startingFeetPosition,
         desiredFeetPosition,
         outPOVPosition,
-        shouldRecomputeGroupAndNode
+        shouldRecomputeGroupAndNode,
+        shouldSnapImmediately
       );
       outPOVPosition.y += playerHeight;
       return outPOVPosition;
     };
   })();
 
-  findPositionOnNavMesh(start, end, outPos, shouldRecomputeGroupAndNode) {
+  findPositionOnNavMesh(start, end, outPos, shouldRecomputeGroupAndNode, shouldSnapImmediately = false) {
     const { terrainSystem } = this;
     const avatarZoneChanged = this.lastSnappedAvatarZone !== this.terrainSystem.avatarZone;
 
@@ -464,7 +467,7 @@ export class CharacterControllerSystem {
       this.navNode = terrainSystem.clampStep(start, end, this.navNode, this.navZone, this.navGroup, outPos);
       // Always allow x, z movement, smooth y
       outPos.x = end.x;
-      outPos.y = 0.25 * outPos.y + 0.75 * end.y;
+      outPos.y = shouldSnapImmediately ? end.y : 0.25 * outPos.y + 0.75 * end.y;
       outPos.z = end.z;
     }
 
