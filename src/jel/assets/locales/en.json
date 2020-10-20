@@ -13,7 +13,7 @@
   "trash.restore": "Restore",
   "trash.destroy": "Delete Permanently",
   "trash.empty": "Trash is empty.",
-  "device-selector.mic-devices": "Microphone Devices",
+  "device-selector.mic-devices": "Use Microphone",
   "device-selector.mic-inactive": "Unmute to choose microphone.",
   "device-selector.no-mics": "No devices found.",
   "self.unmute-tip": "Unmute (Ctrl-M)",
