@@ -66,7 +66,7 @@ function PopupMenuItem(props) {
 
 PopupMenuItem.propTypes = {
   iconSrc: PropTypes.string,
-  children: PropTypes.object
+  children: PropTypes.node
 };
 
 export { PopupMenu as default, PopupMenuItem };

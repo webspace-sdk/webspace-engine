@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
 import { usePopper } from "react-popper";
 import PropTypes from "prop-types";
@@ -14,12 +14,16 @@ import SpaceTree from "./space-tree";
 import HubTree from "./hub-tree";
 import HubTrashTree from "./hub-trash-tree";
 import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
+import verticalDotsIcon from "../assets/images/icons/dots-vertical.svgi";
 import trashIcon from "../assets/images/icons/trash.svgi";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import ReactDOM from "react-dom";
 import sharedStyles from "../assets/stylesheets/shared.scss";
 import PopupPanel from "./popup-panel";
+import { PopupPanelMenuArrow } from "./popup-panel-menu";
 import HubNodeTitle from "./hub-node-title";
+import IconButton from "./icon-button";
+import DeviceSelectorPopup from "./device-selector-popup";
 
 const Wrap = styled.div`
   color: var(--panel-text-color);
@@ -86,6 +90,8 @@ const NavSpill = styled.div`
 
   scrollbar-color: transparent transparent;
   scrollbar-width: thin;
+
+  flex-grow: 100;
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -221,6 +227,19 @@ const SpaceTreeSpill = styled.div`
   }
 `;
 
+const SelfPanel = styled.div`
+  width: 100%;
+  height: 60px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-direction: row;
+  background-color: var(--secondary-panel-background-color);
+  color: var(--secondary-panel-text-color);
+  align-self: flex-end;
+  margin-top: 18px;
+`;
+
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
 
@@ -244,6 +263,56 @@ function TrashMenu({ styles, attributes, setPopperElement, children }) {
   return ReactDOM.createPortal(popupMenu, popupRoot);
 }
 
+const useSceneMuteState = (scene, setMuted) => {
+  useEffect(
+    () => {
+      const onAframeStateChanged = e => {
+        if (e.detail === "muted") {
+          setMuted(scene.is("muted"));
+        }
+      };
+
+      scene.addEventListener("stateadded", onAframeStateChanged);
+      scene.addEventListener("stateremoved", onAframeStateChanged);
+
+      return () => {
+        scene.removeEventListener("stateadded", onAframeStateChanged);
+        scene.removeEventListener("stateremoved", onAframeStateChanged);
+      };
+    },
+    [scene, setMuted]
+  );
+};
+
+const fillMicDevices = async setMicDevices => {
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  setMicDevices(
+    devices.filter(d => d.kind === "audioinput").map(({ deviceId, label }) => ({
+      deviceId,
+      label
+    }))
+  );
+};
+
+const useMicDevices = (muted, setMicDevices) => {
+  useEffect(
+    () => {
+      const { mediaDevices } = navigator;
+      if (!mediaDevices) return;
+
+      const fill = () => fillMicDevices(setMicDevices);
+
+      if (!muted) {
+        fill();
+      }
+
+      mediaDevices.addEventListener("devicechange", fill);
+      return () => mediaDevices.removeEventListener("devicechange", fill);
+    },
+    [muted, setMicDevices]
+  );
+};
+
 function JelSidePanels({
   treeManager,
   history,
@@ -253,20 +322,56 @@ function JelSidePanels({
   memberships,
   showHubContextMenuPopup,
   setHubRenameReferenceElement,
-  spaceId
+  spaceId,
+  scene
 }) {
+  const [muted, setMuted] = useState(false);
+  const [micDevices, setMicDevices] = useState([]);
   const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
   const [trashMenuElement, setTrashMenuElement] = useState(null);
+  const [deviceSelectorReferenceElement, setDeviceSelectorReferenceElement] = useState(null);
+  const [deviceSelectorElement, setDeviceSelectorElement] = useState(null);
+  const [deviceSelectorArrowElement, setDeviceSelectorArrowElement] = useState(null);
 
-  const trashButtonRef = React.createRef();
+  useSceneMuteState(scene, setMuted);
+  useMicDevices(muted, setMicDevices);
+  console.log(micDevices);
 
   const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: updateTrashPopper } = usePopper(
     trashMenuReferenceElement,
     trashMenuElement,
     {
-      placement: "right-start"
+      placement: "right-start",
+      modifiers: [
+        {
+          name: "offset",
+          options: {
+            offset: [-46, 0]
+          }
+        }
+      ]
     }
   );
+
+  const {
+    styles: deviceSelectorStyles,
+    attributes: deviceSelectorAttributes,
+    update: updateDeviceSelectorPopper
+  } = usePopper(deviceSelectorReferenceElement, deviceSelectorElement, {
+    placement: "top-start",
+    modifiers: [
+      {
+        name: "offset",
+        options: {
+          offset: [0, 12]
+        }
+      },
+      {
+        name: "arrow",
+        options: { element: deviceSelectorArrowElement }
+      }
+    ]
+  });
 
   const homeHub = homeHubForSpaceId(spaceId, memberships);
   const hubMetadata = treeManager && treeManager.sharedNav && treeManager.sharedNav.atomMetadata;
@@ -327,9 +432,8 @@ function JelSidePanels({
           <PanelItemButtonSection>
             <PanelItemButton
               iconSrc={trashIcon}
-              ref={trashButtonRef}
+              ref={setTrashMenuReferenceElement}
               onClick={() => {
-                setTrashMenuReferenceElement(trashButtonRef.current);
                 treeManager.rebuildSharedTrashTree();
 
                 if (updateTrashPopper) {
@@ -346,11 +450,24 @@ function JelSidePanels({
             <ActionButton
               iconSrc={addIcon}
               onClick={() => addNewHubToTree(history, treeManager, spaceId)}
-              style={{ width: "80%" }}
+              style={{ width: "60%" }}
             >
               <FormattedMessage id="nav.create-world" />
             </ActionButton>
           )}
+          <SelfPanel>
+            <div style={{ width: "150px" }} />
+            <IconButton
+              iconSrc={verticalDotsIcon}
+              onClick={() => {
+                updateDeviceSelectorPopper();
+                deviceSelectorElement.focus();
+              }}
+              ref={setDeviceSelectorReferenceElement}
+            />
+            <IconButton iconSrc={trashIcon} onClick={() => scene.emit("action_mute")} />
+            {muted ? "Muted" : "Not Muted"}
+          </SelfPanel>
         </NavFoot>
       </Nav>
       <Presence>
@@ -399,6 +516,17 @@ function JelSidePanels({
           }}
         />
       </TrashMenu>
+      <DeviceSelectorPopup
+        setPopperElement={setDeviceSelectorElement}
+        styles={deviceSelectorStyles}
+        attributes={deviceSelectorAttributes}
+      >
+        <PopupPanelMenuArrow
+          ref={setDeviceSelectorArrowElement}
+          style={deviceSelectorStyles.arrow}
+          className={sharedStyles.popperArrow}
+        />
+      </DeviceSelectorPopup>
     </Wrap>
   );
 }
@@ -415,7 +543,8 @@ JelSidePanels.propTypes = {
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
   showHubContextMenuPopup: PropTypes.func,
-  setHubRenameReferenceElement: PropTypes.func
+  setHubRenameReferenceElement: PropTypes.func,
+  scene: PropTypes.object
 };
 
 export default JelSidePanels;

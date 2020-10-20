@@ -79,7 +79,7 @@ function HubTrashTree({ treeManager, hubMetadata, tree, history, hub, hubCan, on
         }}
       />
     ),
-    [treeManager, tree, hubCan, onRemove, onRestore]
+    [treeManager, tree, hubMetadata, hubCan, onRemove, onRestore]
   );
 
   if (!treeManager || !tree || !hub) return null;
