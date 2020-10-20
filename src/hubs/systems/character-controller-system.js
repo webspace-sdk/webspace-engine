@@ -108,6 +108,7 @@ export class CharacterControllerSystem {
       targetForHead.y += this.avatarPOV.object3D.position.y;
       deltaFromHeadToTargetForHead.copy(targetForHead).sub(head);
       targetForRig.copy(rig).add(deltaFromHeadToTargetForHead);
+
       this.findPositionOnNavMesh(targetForRig, targetForRig, this.avatarRig.object3D.position, true, true);
 
       this.avatarRig.object3D.matrixNeedsUpdate = true;

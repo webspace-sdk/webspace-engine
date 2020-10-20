@@ -1040,7 +1040,12 @@ export class TerrainSystem {
   }
 
   clampStep(start, end, fromNode, navZone, navGroup, outPos) {
-    return this.pathfinder.clampStep(start, end, fromNode, navZone, navGroup, outPos);
+    if (this.pathfinder.zones[navZone]) {
+      // Race condition here when loading new nav meshes sometimes
+      return this.pathfinder.clampStep(start, end, fromNode, navZone, navGroup, outPos);
+    } else {
+      outPos.copy(end);
+    }
   }
 
   tick = (function() {
