@@ -143,9 +143,7 @@ const TrashSpill = styled.div`
   scrollbar-width: thin;
 
   max-height: 256px;
-  max-width: 512px;
-  min-width: 256px;
-  min-height: 96px;
+  width: 400px;
   padding: 8px 16px;
 
   &::-webkit-scrollbar {
@@ -438,6 +436,8 @@ function JelSidePanels({
               ref={setTrashMenuReferenceElement}
               onMouseDown={e => cancelEventIfFocusedWithin(e, trashMenuElement)}
               onClick={() => {
+                if (!treeManager) return;
+
                 treeManager.rebuildSharedTrashTree();
 
                 if (updateTrashPopper) {
