@@ -14,6 +14,7 @@ const PopupMenu = styled.div`
   border-radius: 3px;
   border: 1px solid var(--menu-border-color);
   box-shadow: 0px 12px 28px var(--menu-shadow-color);
+  user-select: none;
 `;
 
 const PopupMenuItemElement = styled.button`

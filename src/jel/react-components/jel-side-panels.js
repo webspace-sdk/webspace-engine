@@ -23,7 +23,7 @@ import sharedStyles from "../assets/stylesheets/shared.scss";
 import PopupPanel from "./popup-panel";
 import { PopupPanelMenuArrow } from "./popup-panel-menu";
 import HubNodeTitle from "./hub-node-title";
-import IconButton from "./icon-button";
+import { BigIconButton } from "./icon-button";
 import DeviceSelectorPopup from "./device-selector-popup";
 
 const Wrap = styled.div`
@@ -360,7 +360,7 @@ function JelSidePanels({
       {
         name: "offset",
         options: {
-          offset: [0, 36]
+          offset: [0, 28]
         }
       },
       {
@@ -456,7 +456,8 @@ function JelSidePanels({
           <SelfPanel>
             <div style={{ width: "150px" }} />
             <DeviceControls>
-              <IconButton
+              <BigIconButton
+                style={{ margin: "0px 4px" }}
                 iconSrc={verticalDotsIcon}
                 onMouseDown={e => cancelEventIfFocusedWithin(e, deviceSelectorElement)}
                 onClick={() => {
@@ -465,7 +466,11 @@ function JelSidePanels({
                 }}
                 ref={setDeviceSelectorReferenceElement}
               />
-              <IconButton iconSrc={trashIcon} onClick={() => scene.emit("action_mute")} />
+              <BigIconButton
+                style={{ margin: "0px 4px" }}
+                iconSrc={trashIcon}
+                onClick={() => scene.emit("action_mute")}
+              />
             </DeviceControls>
           </SelfPanel>
         </NavFoot>
