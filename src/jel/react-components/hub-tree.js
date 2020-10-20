@@ -1,6 +1,8 @@
 import PropTypes from "prop-types";
 import React, { useState, useCallback } from "react";
+import { FormattedMessage } from "react-intl";
 import Tree from "rc-tree";
+import styled from "styled-components";
 import {
   addNewHubToTree,
   createTreeDropHandler,
@@ -11,6 +13,12 @@ import {
 import HubNodeTitle from "./hub-node-title";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import "../assets/stylesheets/hub-tree.scss";
+
+const EmptyMessage = styled.div`
+  margin-left: 16px;
+  margin-top: 8px;
+  font-size: var(--panel-header-text-size);
+`;
 
 function HubTree({ treeManager, history, hub, spaceCan, setHubRenameReferenceElement, showHubContextMenuPopup }) {
   const [navTreeData, setNavTreeData] = useState([]);
@@ -72,6 +80,11 @@ function HubTree({ treeManager, history, hub, spaceCan, setHubRenameReferenceEle
         expandedKeys={treeManager.sharedExpandedNodeIds()}
         onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeIsExpanded(key, expanded)}
       />
+      {navTreeData.length === 0 && (
+        <EmptyMessage>
+          <FormattedMessage id="nav.empty" />
+        </EmptyMessage>
+      )}
     </div>
   );
 }

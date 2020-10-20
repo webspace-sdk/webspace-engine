@@ -462,6 +462,8 @@ export class CharacterControllerSystem {
       this.navNode === undefined ||
       this.navGroup === null ||
       this.navGroup === undefined ||
+      this.navZone === null ||
+      this.navZone === undefined ||
       shouldSnapImmediately
     ) {
       // this.navNode can be null if it has never been set or if getClosestNode fails,

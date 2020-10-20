@@ -1,7 +1,8 @@
 {
-  "nav.shared-worlds": "Shared Worlds",
+  "nav.space-worlds": "Space Worlds",
   "nav.private-worlds": "Private Worlds",
   "nav.create-world": "Create World",
+  "nav.empty": "Click or tap \"Create World\" below to create a new world.",
   "nav.trash": "Trash",
   "hub.unnamed-home-title": "Home World",
   "hub.unnamed-title": "Unnamed World",

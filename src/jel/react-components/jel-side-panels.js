@@ -405,21 +405,8 @@ function JelSidePanels({
         </NavHead>
         <NavSpill>
           <PanelSectionHeader>
-            <FormattedMessage id="nav.private-worlds" />
+            <FormattedMessage id="nav.space-worlds" />
           </PanelSectionHeader>
-          <Tree
-            prefixCls="hub-tree"
-            treeData={privateTreeData}
-            selectable={true}
-            selectedKeys={privateSelectedKeys}
-            onSelect={(selectedKeys, { node: { atomId } }) =>
-              navigateToHubUrl(history, hubMetadata.getMetadata(atomId).url)
-            }
-          />
-          <PanelSectionHeader>
-            <FormattedMessage id="nav.shared-worlds" />
-          </PanelSectionHeader>
-
           <HubTree
             treeManager={treeManager}
             hub={hub}
@@ -430,6 +417,18 @@ function JelSidePanels({
             showHubContextMenuPopup={showHubContextMenuPopup}
             setHubRenameReferenceElement={setHubRenameReferenceElement}
             onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
+          />
+          <PanelSectionHeader>
+            <FormattedMessage id="nav.private-worlds" />
+          </PanelSectionHeader>
+          <Tree
+            prefixCls="hub-tree"
+            treeData={privateTreeData}
+            selectable={true}
+            selectedKeys={privateSelectedKeys}
+            onSelect={(selectedKeys, { node: { atomId } }) =>
+              navigateToHubUrl(history, hubMetadata.getMetadata(atomId).url)
+            }
           />
         </NavSpill>
         <NavFoot>
