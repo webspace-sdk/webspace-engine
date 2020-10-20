@@ -57,6 +57,7 @@ export class CharacterControllerSystem {
     this.waypointTravelTime = 0;
     this.navGroup = null;
     this.navNode = null;
+    this.lastSeenNavVersion = -1;
     this.relativeMotion = new THREE.Vector3(0, 0, 0);
     this.nextRelativeMotion = new THREE.Vector3(0, 0, 0);
     this.dXZ = 0;
@@ -328,7 +329,14 @@ export class CharacterControllerSystem {
             .multiply(snapRotatedPOV);
         }
 
-        const shouldRecomputeNavGroupAndNavNode = didStopFlying || this.shouldLandWhenPossible;
+        let hasNewNavVersion;
+
+        if (this.lastSeenNavVersion !== this.terrainSystem.navVersion) {
+          hasNewNavVersion = true;
+          this.lastSeenNavVersion = this.terrainSystem.navVersion;
+        }
+
+        const shouldRecomputeNavGroupAndNavNode = didStopFlying || this.shouldLandWhenPossible || hasNewNavVersion;
         const shouldResnapToNavMesh = shouldRecomputeNavGroupAndNavNode || triedToMove;
 
         let squareDistNavMeshCorrection = 0;
@@ -446,7 +454,7 @@ export class CharacterControllerSystem {
         ? this.terrainSystem.getClosestNavNode(end, this.navZone, this.navGroup)
         : this.navNode;
 
-    if (this.navNode === null || this.navNode === undefined) {
+    if (this.navNode === null || this.navNode === undefined || this.navGroup === null || this.navGroup === undefined) {
       // this.navNode can be null if it has never been set or if getClosestNode fails,
       // and it can be undefined if clampStep fails, so we have to check both. We do not
       // simply check if it is falsey (!this.navNode), because 0 (zero) is a valid value,

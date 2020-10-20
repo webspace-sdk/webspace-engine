@@ -511,6 +511,7 @@ export class TerrainSystem {
     this.pool = [...Array(LOAD_GRID.length)].map(() => new Terrain());
     this.activeTerrains = [];
     this.frame = 0;
+    this.navVersion = 0;
     this.loadedChunks = new Map();
     this.loadingChunks = new Map();
     this.spawningChunks = new Map();
@@ -687,6 +688,7 @@ export class TerrainSystem {
           //this.scene.object3D.add(navMesh);
 
           this.pathfinder.setZoneData(key, Pathfinding.createZone(navGeometry));
+          this.navVersion++;
 
           navGeometry.dispose();
         });
