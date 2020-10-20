@@ -706,6 +706,9 @@ export class TerrainSystem {
   })();
 
   updateWorld(type, seed) {
+    // Perform fog effect since terr
+    this.atmosphereSystem.maximizeFog();
+
     this.worldType = type;
     this.worldSeed = seed;
     this.unloadWorld();

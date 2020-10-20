@@ -2,6 +2,10 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import Sky from "../objects/sky";
 import Water from "../objects/water";
 import { Layers } from "../../hubs/components/layers";
+const FOG_NEAR = 20.5;
+const FOG_SPAN = 1.5;
+const FOG_SPEED = 0.01;
+const INITIAL_FOG_NEAR = 1.5;
 
 // Responsible for managing shadows, environmental lighting, sky, and environment map.
 export class AtmosphereSystem {
@@ -60,7 +64,7 @@ export class AtmosphereSystem {
 
     // Fog color is the midpoint of the horizon colors across the sky.
     // Might need to compute this based upon skybox math at some point.
-    this.fog = new THREE.Fog(0x96c3db, 20.5, 22.0);
+    this.fog = new THREE.Fog(0x96c3db, FOG_NEAR, FOG_NEAR + FOG_SPAN);
     this.frame = 0;
     this.shadowsNeedsUpdate = true;
     this.waterNeedsUpdate = true;
@@ -73,8 +77,22 @@ export class AtmosphereSystem {
     scene.fog = this.fog;
   }
 
+  maximizeFog() {
+    this.fog.near = INITIAL_FOG_NEAR;
+    this.fog.far = INITIAL_FOG_NEAR + FOG_SPAN;
+    this.fog.needsUpdate = true;
+  }
+
   tick(dt) {
     this.frame++;
+
+    if (this.fog.near < FOG_NEAR || this.fog.far < FOG_NEAR + FOG_SPAN) {
+      const dv = FOG_SPEED * dt;
+      this.fog.near = Math.min(FOG_NEAR, this.fog.near + dv);
+      this.fog.far = Math.min(FOG_NEAR + FOG_SPAN, this.fog.far + dv);
+
+      this.fog.needsUpdate = true;
+    }
 
     if (!this.playerCamera) {
       if (!this.viewingCameraEl) return;
