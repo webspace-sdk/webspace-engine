@@ -568,8 +568,7 @@ JelSidePanels.propTypes = {
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
   showHubContextMenuPopup: PropTypes.func,
-  setHubRenameReferenceElement: PropTypes.func,
-  scene: PropTypes.object
+  setHubRenameReferenceElement: PropTypes.func
 };
 
 export default JelSidePanels;

@@ -33,10 +33,7 @@ const DeviceSelectorPopup = ({ scene, setPopperElement, styles, attributes, chil
   const micItems = (micDevices || []).map(({ deviceId, label }) => (
     <PopupPanelMenuItem
       iconSrc={activeMicDeviceId === deviceId ? checkIcon : null}
-      onClick={() => {
-        scene.emit("preferred_mic_changed", deviceId);
-        document.activeElement.blur();
-      }}
+      onClick={() => scene.emit("preferred_mic_changed", deviceId)}
       key={deviceId}
     >
       {label}
