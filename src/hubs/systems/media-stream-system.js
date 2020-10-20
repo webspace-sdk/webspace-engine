@@ -98,7 +98,6 @@ export class MediaStreamSystem {
         const micDeviceLabel = this.micAudioTrack.label;
         const devices = await navigator.mediaDevices.enumerateDevices();
         const micDeviceId = devices.filter(d => d.label === micDeviceLabel).map(d => d.deviceId)[0];
-        console.log(micDeviceId);
         this.scene.emit("mic_stream_created", micDeviceId);
       }
 
