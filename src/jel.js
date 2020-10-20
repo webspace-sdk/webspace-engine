@@ -477,6 +477,11 @@ function addGlobalEventListeners(scene, entryManager) {
     );
   });
 
+  scene.addEventListener("preferred_mic_changed", e => {
+    const deviceId = e.detail;
+    scene.systems["hubs-systems"].mediaStreamSystem.updatePreferredMicDevice(deviceId);
+  });
+
   scene.addEventListener("scene_media_selected", e => {
     const sceneInfo = e.detail;
 

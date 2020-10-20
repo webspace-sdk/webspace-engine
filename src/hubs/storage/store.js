@@ -63,7 +63,7 @@ export const SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
-        lastUsedMicDeviceId: { type: "string" }
+        preferredMicDeviceId: { type: "string" }
       }
     },
 

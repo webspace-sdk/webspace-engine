@@ -73,6 +73,14 @@ const PopupPanelMenuIconElement = styled.div`
 const PopupPanelMenuLabel = styled.div`
   overflow: hidden;
   text-overflow: ellipsis;
+  padding: 0 4px;
+`;
+
+const PopupPanelMenuMessage = styled.div`
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 4px;
+  margin: 12px 12px 4px 12px;
 `;
 
 const PopupPanelMenuArrow = styled.div`
@@ -110,4 +118,10 @@ PopupPanelMenuItem.propTypes = {
   children: PropTypes.node
 };
 
-export { PopupPanelMenu as default, PopupPanelMenuItem, PopupPanelMenuSectionHeader, PopupPanelMenuArrow };
+export {
+  PopupPanelMenu as default,
+  PopupPanelMenuItem,
+  PopupPanelMenuSectionHeader,
+  PopupPanelMenuArrow,
+  PopupPanelMenuMessage
+};

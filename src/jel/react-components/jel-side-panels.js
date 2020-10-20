@@ -522,9 +522,11 @@ function JelSidePanels({
         />
       </TrashMenu>
       <DeviceSelectorPopup
+        scene={scene}
         setPopperElement={setDeviceSelectorElement}
         styles={deviceSelectorStyles}
         attributes={deviceSelectorAttributes}
+        micDevices={micDevices}
       >
         <PopupPanelMenuArrow
           ref={setDeviceSelectorArrowElement}
@@ -542,6 +544,7 @@ JelSidePanels.propTypes = {
   hub: PropTypes.object,
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,
+  scene: PropTypes.object,
   orgPresences: PropTypes.object,
   hubPresences: PropTypes.object,
   sessionId: PropTypes.string,

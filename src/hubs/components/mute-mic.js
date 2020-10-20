@@ -59,7 +59,7 @@ AFRAME.registerComponent("mute-mic", {
     if (this.el.is("muted")) {
       if (!this._beganAudioStream) {
         this._beganAudioStream = true;
-        await this.el.sceneEl.systems["hubs-systems"].mediaStreamSystem.beginStreamingDefaultMic();
+        await this.el.sceneEl.systems["hubs-systems"].mediaStreamSystem.beginStreamingPreferredMic();
       }
       NAF.connection.adapter.enableMicrophone(true);
       this.el.removeState("muted");

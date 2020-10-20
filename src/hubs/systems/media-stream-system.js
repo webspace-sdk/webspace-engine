@@ -32,26 +32,34 @@ export class MediaStreamSystem {
     await NAF.connection.adapter.setLocalMediaStream(this.mediaStream);
   }
 
-  async beginStreamingDefaultMic() {
-    const { lastUsedMicDeviceId } = this.store.state.settings;
-    await this.enableMicAudioStream(lastUsedMicDeviceId);
+  async updatePreferredMicDevice(deviceId) {
+    this.store.update({ settings: { preferredMicDeviceId: deviceId } });
+
+    if (this.micAudioTrack) {
+      // We're already streaming audio, start streaming new mic.
+      await this.beginStreamingPreferredMic();
+    }
   }
 
-  async enableMicAudioStream(/*deviceId*/) {
-    // TODO JEL deal with mic prefs
-    /*if (deviceId) {
+  async beginStreamingPreferredMic() {
+    const { preferredMicDeviceId } = this.store.state.settings;
+    await this.enableMicAudioStream(preferredMicDeviceId);
+  }
+
+  async enableMicAudioStream(deviceId) {
+    if (deviceId) {
       await this.fetchAndAddAudioTrack({ audio: { deviceId: { ideal: deviceId } } });
-    } else {*/
-    await this.fetchAndAddAudioTrack({ audio: {} });
-    //}
+    } else {
+      await this.fetchAndAddAudioTrack({ audio: {} });
+    }
 
     this.scene.emit("local-media-stream-created");
   }
 
   async fetchAndAddAudioTrack(constraints) {
-    if (this.audioTrack) {
-      this.audioTrack.stop();
-      this.audioTrack = null;
+    if (this.micAudioTrack) {
+      this.micAudioTrack.stop();
+      this.micAudioTrack = null;
     }
 
     constraints.audio.echoCancellation =
@@ -84,7 +92,17 @@ export class MediaStreamSystem {
 
       const audioSystem = this.scene.systems["hubs-systems"].audioSystem;
       audioSystem.addStreamToOutboundAudio("microphone", newStream);
-      this.audioTrack = newStream.getAudioTracks()[0];
+      this.micAudioTrack = newStream.getAudioTracks()[0];
+
+      if (this.micAudioTrack) {
+        const micDeviceLabel = this.micAudioTrack.label;
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const micDeviceId = devices.filter(d => d.label === micDeviceLabel).map(d => d.deviceId)[0];
+        console.log(micDeviceId);
+        this.scene.emit("mic_stream_created", micDeviceId);
+      }
+
+      this.scene.emit("local-media-stream-created");
 
       // If the audio system track has yet to be added to the outgoing media stream, add it.
       if (!this._addedAudioSystemTrack) {
@@ -110,7 +128,7 @@ export class MediaStreamSystem {
           audioTrack.addEventListener("ended", recreateAudioStream, { once: true });
         };
 
-        this.audioTrack.addEventListener("ended", recreateAudioStream, { once: true });
+        this.micAudioTrack.addEventListener("ended", recreateAudioStream, { once: true });
       }
 
       return true;
