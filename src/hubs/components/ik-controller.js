@@ -85,7 +85,8 @@ AFRAME.registerComponent("ik-controller", {
     rotationSpeed: { default: 8 },
     maxLerpAngle: { default: 90 * THREE.Math.DEG2RAD },
     alwaysUpdate: { type: "boolean", default: false },
-    instanceHeads: { type: "boolean", default: false }
+    instanceHeads: { type: "boolean", default: false },
+    isSelf: { type: "boolean", default: false }
   },
 
   init() {
@@ -94,7 +95,7 @@ AFRAME.registerComponent("ik-controller", {
     this.avatarSystem = this.el.sceneEl.systems["hubs-systems"].avatarSystem;
 
     if (this.data.instanceHeads) {
-      this.avatarSystem.register(this.el);
+      this.avatarSystem.register(this.el, this.data.isSelf);
     }
 
     this.flipY = new Matrix4().makeRotationY(Math.PI);

@@ -15,6 +15,7 @@ const leftKeyPath = paths.device.keyboard.key("arrowleft");
 const rightKeyPath = paths.device.keyboard.key("arrowright");
 
 const calculateCursorPose = function(camera, coords, origin, direction, cursorPose) {
+  camera.updateMatrices();
   origin.setFromMatrixPosition(camera.matrixWorld);
   direction
     .set(coords[0], coords[1], 0.5)

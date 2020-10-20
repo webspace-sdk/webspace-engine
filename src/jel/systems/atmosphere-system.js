@@ -64,6 +64,7 @@ export class AtmosphereSystem {
     this.frame = 0;
     this.shadowsNeedsUpdate = true;
     this.waterNeedsUpdate = true;
+    this.rateLimitUpdates = true;
 
     scene.add(this.ambientLight);
     scene.add(this.sunLight);
@@ -92,12 +93,18 @@ export class AtmosphereSystem {
 
     // Update shadows or water each frame, but not both.
     if (this.waterNeedsUpdate && this.shadowsNeedsUpdate) {
-      if (this.frame % 2 == 0) {
-        this.renderer.shadowMap.needsUpdate = true;
-        this.shadowsNeedsUpdate = false;
+      if (this.rateLimitUpdates) {
+        if (this.frame % 2 == 0) {
+          this.renderer.shadowMap.needsUpdate = true;
+          this.shadowsNeedsUpdate = false;
+        } else {
+          this.water.needsUpdate = true;
+          this.waterNeedsUpdate = false;
+        }
       } else {
         this.water.needsUpdate = true;
-        this.waterNeedsUpdate = false;
+        this.renderer.shadowMap.needsUpdate = true;
+        this.rateLimitUpdates = false;
       }
     } else if (this.waterNeedsUpdate) {
       this.water.needsUpdate = true;
@@ -108,12 +115,20 @@ export class AtmosphereSystem {
     }
   }
 
-  updateShadows() {
+  updateShadows(force) {
     this.shadowsNeedsUpdate = true;
+
+    if (force) {
+      this.rateLimitUpdates = false;
+    }
   }
 
-  updateWater() {
+  updateWater(force) {
     this.waterNeedsUpdate = true;
+
+    if (force) {
+      this.rateLimitUpdates = false;
+    }
   }
 
   moveSunlight = (() => {

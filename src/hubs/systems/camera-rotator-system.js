@@ -45,37 +45,67 @@ const rotatePitchAndYaw = (function() {
   };
 })();
 
-let uiRoot;
-let scenePreviewNode;
-AFRAME.registerComponent("pitch-yaw-rotator", {
+AFRAME.registerComponent("camera-rotator", {
   init() {
-    this.pendingXRotation = 0;
-    this.el.sceneEl.addEventListener("rotateX", e => {
-      this.pendingXRotation += e.detail;
-    });
     this.on = true;
+    this.el.sceneEl.systems["hubs-systems"].cameraRotatorSystem.register(this.el);
   },
 
-  tick() {
-    if (this.on) {
-      const scene = AFRAME.scenes[0];
+  remove() {
+    this.el.sceneEl.systems["hubs-systems"].cameraRotatorSystem.unregister(this.el);
+  }
+});
+
+let uiRoot;
+let scenePreviewNode;
+
+export class CameraRotatorSystem {
+  constructor(scene) {
+    this.scene = scene;
+    this.els = [];
+
+    this.pendingXRotation = 0;
+    this.scene.addEventListener("rotateX", e => (this.pendingXRotation += e.detail));
+  }
+
+  register(el) {
+    this.els.push(el);
+  }
+
+  unregister(el) {
+    this.els.splice(this.els.indexOf(el), 1);
+  }
+
+  tick = (function() {
+    return function() {
+      const { scene } = this;
       const userinput = scene.systems.userinput;
       uiRoot = uiRoot || document.getElementById("ui-root");
       scenePreviewNode = scenePreviewNode || document.getElementById("scene-preview-node");
       const lobby = !scene.is("entered");
-      const isGhost = lobby && uiRoot && uiRoot.firstChild && uiRoot.firstChild.classList.contains("isGhost");
+      let rotated = false;
+
       const cameraDelta = userinput.get(lobby ? paths.actions.lobbyCameraDelta : paths.actions.cameraDelta);
-      if (cameraDelta) {
-        rotatePitchAndYaw(
-          lobby && !isGhost ? scenePreviewNode.object3D : this.el.object3D,
-          this.pendingXRotation + cameraDelta[1],
-          cameraDelta[0]
-        );
-        scene.systems["hubs-systems"].atmosphereSystem.updateWater();
-      } else if (this.pendingXRotation) {
-        rotatePitchAndYaw(lobby && !isGhost ? scenePreviewNode.object3D : this.el.object3D, this.pendingXRotation, 0);
+      for (let i = 0; i < this.els.length; i++) {
+        const el = this.els[i];
+        const rotator = el.components["camera-rotator"];
+        if (!rotator.on) continue;
+        const camera = el.getObject3D("camera") || el.object3D;
+
+        if (cameraDelta) {
+          rotated = true;
+          rotatePitchAndYaw(camera, this.pendingXRotation + cameraDelta[1], cameraDelta[0]);
+        } else if (this.pendingXRotation) {
+          rotated = true;
+          rotatePitchAndYaw(camera, this.pendingXRotation, 0);
+        }
       }
-    }
-    this.pendingXRotation = 0;
-  }
-});
+
+      if (rotated) {
+        scene.systems["hubs-systems"].atmosphereSystem.updateWater(true);
+      }
+
+      this.pendingXRotation = 0;
+    };
+  })();
+}

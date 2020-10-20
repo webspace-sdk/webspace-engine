@@ -655,7 +655,7 @@
         <a-sphere
             id="right-cursor"
             material="shader: flat; depthTest: false; opacity:0.9;"
-            radius="0.02"
+            radius="0.01"
             segments-width="9"
             segments-height="9"
             body-helper="type: kinematic; disableCollision: true; collisionFilterGroup: 8; collisionFilterMask: 0; scaleAutoUpdate: false; activationState: disable_deactivation;"
@@ -666,7 +666,7 @@
         <a-sphere
             id="left-cursor"
             material="shader: flat; depthTest: false; opacity:0.9;"
-            radius="0.02"
+            radius="0.01"
             segments-width="9"
             segments-height="9"
             body-helper="type: kinematic; disableCollision: true; collisionFilterGroup: 8; collisionFilterMask: 0; scaleAutoUpdate: false; activationState: disable_deactivation;"
@@ -786,7 +786,7 @@
                 class="camera"
                 personal-space-bubble="radius: 0.4;"
                 rotation
-                pitch-yaw-rotator
+                camera-rotator
                 set-yxz-order
                 position="0 1.6 0"
             >
@@ -829,7 +829,7 @@
             <a-entity gltf-model-plus="inflate: true;" class="model">
                 <template data-name="AvatarRoot">
                     <a-entity
-                        ik-controller="alwaysUpdate: true; instanceHeads: true;"
+                        ik-controller="alwaysUpdate: true; instanceHeads: true; isSelf: true;"
                         disable-frustum-culling
                         hand-pose__left
                         hand-pose__right
@@ -911,7 +911,7 @@
                 rotation
                 fader
                 set-yxz-order
-                pitch-yaw-rotator
+                camera-rotator
                 matrix-auto-update>
             </a-entity>
         </a-entity>

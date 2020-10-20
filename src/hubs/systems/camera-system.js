@@ -347,8 +347,8 @@ export class CameraSystem {
         this.enteredScene = true;
         this.mode = CAMERA_MODE_FIRST_PERSON;
       }
-      this.avatarPOVRotator = this.avatarPOVRotator || this.avatarPOV.components["pitch-yaw-rotator"];
-      this.viewingCameraRotator = this.viewingCameraRotator || this.viewingCamera.components["pitch-yaw-rotator"];
+      this.avatarPOVRotator = this.avatarPOVRotator || this.avatarPOV.components["camera-rotator"];
+      this.viewingCameraRotator = this.viewingCameraRotator || this.viewingCamera.components["camera-rotator"];
       this.avatarPOVRotator.on = true;
       this.viewingCameraRotator.on = true;
 

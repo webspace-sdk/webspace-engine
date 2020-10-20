@@ -184,6 +184,7 @@ export class AvatarSystem {
     this.dirtyMatrices = Array(MAX_AVATARS).fill(0);
     this.dirtyColors = Array(MAX_AVATARS).fill(false);
     this.avatarIkControllers = Array(MAX_AVATARS).fill(null);
+    this.selfEl = null;
 
     this.scheduledEyeDecals = Array(MAX_AVATARS);
 
@@ -217,13 +218,17 @@ export class AvatarSystem {
     avatarMaterial.uniformsNeedUpdate = true;
   }
 
-  register(el) {
+  register(el, isSelf) {
     const index = this.mesh.addInstance(ZERO, ZERO, IDENTITY);
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.avatarEls[index] = el;
     this.dirtyMatrices[index] = 0;
     this.dirtyColors[index] = true;
     this.avatarIkControllers[index] = el.components["ik-controller"];
+
+    if (isSelf) {
+      this.selfEl = el;
+    }
 
     getNetworkedEntity(el).then(e => (this.avatarCreatorIds[index] = getCreator(e)));
   }
@@ -235,6 +240,11 @@ export class AvatarSystem {
         this.avatarCreatorIds[i] = null;
         this.avatarIkControllers[i] = null;
         this.mesh.freeInstance(i);
+
+        if (this.selfEl === el) {
+          this.selfEl = null;
+        }
+
         return;
       }
     }
@@ -369,7 +379,10 @@ export class AvatarSystem {
         mesh.setMatrixAt(i, head.matrixWorld);
         instanceMatrixNeedsUpdate = true;
 
-        atmosphereSystem.updateShadows();
+        if (el !== this.selfEl) {
+          // Don't need to update shadows when rotating self
+          atmosphereSystem.updateShadows();
+        }
 
         dirtyMatrices[i] -= 1;
       }

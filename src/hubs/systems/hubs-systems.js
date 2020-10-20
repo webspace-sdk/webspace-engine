@@ -35,6 +35,7 @@ import { AtmosphereSystem } from "../../jel/systems/atmosphere-system";
 import { UIAnimationSystem } from "../../jel/systems/ui-animation-system";
 import { AvatarSystem } from "../../jel/systems/avatar-system";
 import { MediaInteractionSystem } from "../../jel/systems/media-interaction-system";
+import { CameraRotatorSystem } from "../../hubs/systems/camera-rotator-system";
 
 AFRAME.registerSystem("hubs-systems", {
   init() {
@@ -46,7 +47,8 @@ AFRAME.registerSystem("hubs-systems", {
     this.superSpawnerSystem = new SuperSpawnerSystem();
     this.cursorTargettingSystem = new CursorTargettingSystem();
     this.positionAtBorderSystem = new PositionAtBorderSystem();
-    this.atmosphereSystem = new AtmosphereSystem(this.el);
+    this.cameraSystem = new CameraSystem(this.el);
+    this.atmosphereSystem = new AtmosphereSystem(this.el, this.cameraSystem);
     this.physicsSystem = new PhysicsSystem(this.el.object3D, this.atmosphereSystem);
     this.constraintsSystem = new ConstraintsSystem(this.physicsSystem);
     this.twoPointStretchingSystem = new TwoPointStretchingSystem();
@@ -60,7 +62,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.scenePreviewCameraSystem = new ScenePreviewCameraSystem();
     this.spriteSystem = new SpriteSystem(this.el);
     this.batchManagerSystem = new BatchManagerSystem(this.el.object3D, this.el.renderer);
-    this.cameraSystem = new CameraSystem(this.el);
     this.drawingMenuSystem = new DrawingMenuSystem(this.el);
     this.waypointSystem = new WaypointSystem(this.el, this.characterController);
     this.cursorPoseTrackingSystem = new CursorPoseTrackingSystem();
@@ -79,6 +80,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.characterController = new CharacterControllerSystem(this.el, this.terrainSystem);
     this.uiAnimationSystem = new UIAnimationSystem(this.el, this.atmosphereSystem);
     this.avatarSystem = new AvatarSystem(this.el, this.atmosphereSystem);
+    this.cameraRotatorSystem = new CameraRotatorSystem(this.el);
   },
 
   tick(t, dt) {
@@ -90,6 +92,7 @@ AFRAME.registerSystem("hubs-systems", {
     // We run this earlier in the frame so things have a chance to override properties run by animations
     this.animationMixerSystem.tick(dt);
 
+    this.cameraRotatorSystem.tick();
     this.characterController.tick(t, dt);
     this.wrappedEntitySystem.tick();
     this.cursorTogglingSystem.tick(systems.interaction, systems.userinput, this.el);
