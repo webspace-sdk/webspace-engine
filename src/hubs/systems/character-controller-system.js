@@ -457,7 +457,13 @@ export class CharacterControllerSystem {
         ? this.terrainSystem.getClosestNavNode(end, this.navZone, this.navGroup)
         : this.navNode;
 
-    if (this.navNode === null || this.navNode === undefined || this.navGroup === null || this.navGroup === undefined) {
+    if (
+      this.navNode === null ||
+      this.navNode === undefined ||
+      this.navGroup === null ||
+      this.navGroup === undefined ||
+      shouldSnapImmediately
+    ) {
       // this.navNode can be null if it has never been set or if getClosestNode fails,
       // and it can be undefined if clampStep fails, so we have to check both. We do not
       // simply check if it is falsey (!this.navNode), because 0 (zero) is a valid value,
@@ -467,7 +473,7 @@ export class CharacterControllerSystem {
       this.navNode = terrainSystem.clampStep(start, end, this.navNode, this.navZone, this.navGroup, outPos);
       // Always allow x, z movement, smooth y
       outPos.x = end.x;
-      outPos.y = shouldSnapImmediately ? end.y : 0.25 * outPos.y + 0.75 * end.y;
+      outPos.y = 0.25 * outPos.y + 0.75 * end.y;
       outPos.z = end.z;
     }
 
