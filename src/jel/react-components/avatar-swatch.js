@@ -62,6 +62,18 @@ const AvatarSwatchElement = styled.button`
     transform: translate(0px, 1px);
   }
 
+  filter: brightness(100%);
+  transform: scale(1, 1);
+  transition-property: filter, transform;
+  transition-duration: 75ms, 75ms;
+  transition-delay: 1500ms;
+
+  &:not([data-mouth="0"]) {
+    filter: brightness(110%);
+    transform: scale(1.05, 1.05);
+    transition-delay: 0ms;
+  }
+
   &[data-eyes="0"] .eyes-0 {
     visibility: visible;
   }
@@ -85,11 +97,6 @@ const AvatarSwatchElement = styled.button`
   }
   &[data-eyes="7"] .eyes-7 {
     visibility: visible;
-  }
-
-  &:not([data-mouth="0"]) {
-    filter: brightness(110%);
-    transform: scale(1.05, 1.05);
   }
 
   &[data-mouth="0"] .mouth-0 {
