@@ -47,7 +47,7 @@ const DisplayName = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 `;
 
 const IdentityName = styled.div`
@@ -149,16 +149,26 @@ const SelfPanel = ({ scene, spacePresences, sessionId }) => {
 
   const spacePresence = spacePresences && spacePresences[sessionId];
   const meta = spacePresence && spacePresence.metas[spacePresence.metas.length - 1];
-  const { profile } = meta || { };
+  const { profile } = meta || {};
   const messages = getMessages();
+  const displayName = profile && profile.displayName;
+  let identityName = profile && profile.identityName;
+
+  if (identityName) {
+    // Strip redunant name off of identity name
+    const displayNameSlug = displayName.replace(/ /g, "");
+    if (identityName.startsWith(`${displayNameSlug}#`)) {
+      identityName = identityName.substring(displayNameSlug.length);
+    }
+  }
 
   return (
     <SelfPanelElement>
       <Tooltip singleton={tipSource} />
       <AvatarSwatch id="self-avatar-swatch" />
       <SelfName>
-        <DisplayName>{profile && profile.displayName}</DisplayName>
-        {profile && profile.identityName && <IdentityName>{profile.identityName}</IdentityName>}
+        {displayName && <DisplayName>{displayName}</DisplayName>}
+        {identityName && <IdentityName>{identityName}</IdentityName>}
       </SelfName>
       <DeviceControls>
         <Tooltip content={messages["self.select-tip"]} placement="top" key="mute" singleton={tipTarget}>
@@ -204,7 +214,9 @@ const SelfPanel = ({ scene, spacePresences, sessionId }) => {
 };
 
 SelfPanel.propTypes = {
-  scene: PropTypes.object
+  scene: PropTypes.object,
+  spacePresences: PropTypes.object,
+  sessionId: PropTypes.string
 };
 
 export { SelfPanel as default };
