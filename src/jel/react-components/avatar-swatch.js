@@ -86,6 +86,12 @@ const AvatarSwatchElement = styled.button`
   &[data-eyes="7"] .eyes-7 {
     visibility: visible;
   }
+
+  &:not([data-mouth="0"]) {
+    filter: brightness(110%);
+    transform: scale(1.05, 1.05);
+  }
+
   &[data-mouth="0"] .mouth-0 {
     visibility: visible;
   }
