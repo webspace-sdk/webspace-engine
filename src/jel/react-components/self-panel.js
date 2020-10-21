@@ -28,17 +28,42 @@ const SelfPanelElement = styled.div`
   margin-top: 18px;
 `;
 
-const SelfInfo = styled.div`
-  display: flex;
-`;
-
 const SelfName = styled.div`
   display: flex;
+  flex: 1 1;
+  justify-content: space-around;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 12px 8px;
+  min-width: 0;
+`;
+
+const DisplayName = styled.div`
+  width: 100%;
+  flex: 0 0 100%;
+  color: var(--panel-small-banner-text-color);
+  font-weight: var(--panel-small-banner-text-weight);
+  font-size: var(--panel-small-banner-text-size);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+`;
+
+const IdentityName = styled.div`
+  width: 100%;
+  color: var(--panel-small-banner-text-secondary-color);
+  font-weight: var(--panel-small-banner-text-secondary-weight);
+  font-size: var(--panel-small-banner-text-secondary-size);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const DeviceControls = styled.div`
   display: flex;
   margin-right: 18px;
+  flex: 0 0 fit-content;
 `;
 
 const useSceneMuteState = (scene, setMuted) => {
@@ -91,7 +116,7 @@ const useMicDevices = (muted, setMicDevices) => {
   );
 };
 
-const SelfPanel = ({ scene }) => {
+const SelfPanel = ({ scene, spacePresences, sessionId }) => {
   const [tipSource, tipTarget] = useSingleton();
   const [deviceSelectorReferenceElement, setDeviceSelectorReferenceElement] = useState(null);
   const [deviceSelectorElement, setDeviceSelectorElement] = useState(null);
@@ -101,8 +126,6 @@ const SelfPanel = ({ scene }) => {
 
   useMicDevices(muted, setMicDevices);
   useSceneMuteState(scene, setMuted);
-
-  const messages = getMessages();
 
   const {
     styles: deviceSelectorStyles,
@@ -124,13 +147,19 @@ const SelfPanel = ({ scene }) => {
     ]
   });
 
+  const spacePresence = spacePresences && spacePresences[sessionId];
+  const meta = spacePresence && spacePresence.metas[spacePresence.metas.length - 1];
+  const { profile } = meta || { };
+  const messages = getMessages();
+
   return (
     <SelfPanelElement>
       <Tooltip singleton={tipSource} />
-      <SelfInfo>
-        <AvatarSwatch id="self-avatar-swatch" />
-        <SelfName />
-      </SelfInfo>
+      <AvatarSwatch id="self-avatar-swatch" />
+      <SelfName>
+        <DisplayName>{profile && profile.displayName}</DisplayName>
+        {profile && profile.identityName && <IdentityName>{profile.identityName}</IdentityName>}
+      </SelfName>
       <DeviceControls>
         <Tooltip content={messages["self.select-tip"]} placement="top" key="mute" singleton={tipTarget}>
           <BigIconButton

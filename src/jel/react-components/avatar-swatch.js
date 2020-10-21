@@ -45,6 +45,7 @@ const AvatarSwatchElement = styled.div`
   align-items: center;
   width: 64px;
   height: 64px;
+  flex: 0 0 64px;
   position: relative;
   color: transparent;
 
