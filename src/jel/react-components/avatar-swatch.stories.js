@@ -23,7 +23,16 @@ export const Normal = () => {
   });
 
   return (
-    <div className={classNames(sharedStyles.basePanel)} style={{ display: "flex", width: "300px", height: "60px" }}>
+    <div
+      className={classNames(sharedStyles.basePanel)}
+      style={{
+        display: "flex",
+        width: "300px",
+        height: "60px",
+        justifyContent: "flex-start",
+        alignItems: "center"
+      }}
+    >
       <AvatarSwatch ref={swatchRef} eyeIndex={0} mouthIndex={0} color="#D52D55" />
     </div>
   );
