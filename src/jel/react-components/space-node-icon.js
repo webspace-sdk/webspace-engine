@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
+import BigTooltip from "./big-tooltip";
 
 const SpaceNodeIconElement = styled.div`
   width: 64px;
@@ -34,15 +35,22 @@ export default function SpaceNodeIcon({ spaceId, spaceMetadata }) {
 
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setName);
 
+  let el;
   if (icon) {
-    return <SpaceNodeIconElement className="spaceNodeIcon" style={{ backgroundImage: `url(${icon})` }} />;
+    el = <SpaceNodeIconElement className="spaceNodeIcon" style={{ backgroundImage: `url(${icon})` }} />;
   } else {
-    return (
+    el = (
       <SpaceNodeIconElement className="spaceNodeIcon">
         <SpaceNodeIconNonImage>{name.substring(0, 1)}</SpaceNodeIconNonImage>
       </SpaceNodeIconElement>
     );
   }
+
+  return (
+    <BigTooltip content={name} placement="left">
+      {el}
+    </BigTooltip>
+  );
 }
 
 SpaceNodeIcon.propTypes = {

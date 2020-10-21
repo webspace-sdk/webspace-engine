@@ -4,6 +4,9 @@ import Tippy from "@tippyjs/react";
 
 const TooltipStyled = styled(Tippy)`
   background: var(--tooltip-background-color);
+  font-size: var(--tooltip-text-size);
+  font-weight: var(--tooltip-text-weight);
+  line-height: calc(var(--tooltip-text-size) + 4px);
   color: var(--tooltip-text-color);
 
   & .tippy-arrow {

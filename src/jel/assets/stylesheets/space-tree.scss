@@ -44,10 +44,9 @@ $treeNodePrefixCls: space-tree-treenode;
       background-color: var(--secondary-panel-item-background-color);
     }
     &:hover .#{$treePrefixCls}-iconEle .spaceNodeIcon {
-      background-color: var(--secondary-panel-item-hover-background-color);
     }
     &:active .#{$treePrefixCls}-iconEle .spaceNodeIcon {
-      background-color: var(--secondary-panel-item-active-background-color);
+      transform: translate(0px, 2px);
     }
     &.drag-over {
       > .draggable {

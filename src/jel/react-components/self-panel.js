@@ -47,7 +47,7 @@ const DisplayName = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 `;
 
 const IdentityName = styled.div`

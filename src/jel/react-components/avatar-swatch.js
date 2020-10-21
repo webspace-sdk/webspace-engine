@@ -1,5 +1,4 @@
 import React, { forwardRef } from "react";
-import PropTypes from "prop-types";
 import styled from "styled-components";
 import avatarBodyIcon from "../assets/images/avatar/avatar.svgi";
 import eyes1 from "../assets/images/avatar/eyes-1.svg";
@@ -39,7 +38,7 @@ const VISEMES = [
   viseme12
 ];
 
-const AvatarSwatchElement = styled.div`
+const AvatarSwatchElement = styled.button`
   display: flex;
   justify-content: center;
   align-items: center;
@@ -48,6 +47,20 @@ const AvatarSwatchElement = styled.div`
   flex: 0 0 64px;
   position: relative;
   color: transparent;
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  border: 0;
+  background: transparent;
+
+  &:hover {
+    filter: brightness(80%);
+  }
+
+  &:active {
+    transform: translate(0px, 1px);
+  }
 
   &[data-eyes="0"] .eyes-0 {
     visibility: visible;
