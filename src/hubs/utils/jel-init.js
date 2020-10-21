@@ -496,8 +496,6 @@ const initHubPresence = async (presence, remountUI, remountJelUI) => {
 
       const sessionIds = Object.getOwnPropertyNames(presence.state);
       const occupantCount = sessionIds.length;
-      const vrHudPresenceCount = document.querySelector("#hud-presence-count");
-      vrHudPresenceCount.setAttribute("text", "value", occupantCount.toString());
 
       if (occupantCount > 1) {
         scene.addState("copresent");
