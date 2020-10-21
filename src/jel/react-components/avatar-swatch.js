@@ -1,4 +1,4 @@
-import React from "react";
+import React, { forwardRef } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import avatarBodyIcon from "../assets/images/avatar/avatar.svgi";
@@ -6,6 +6,10 @@ import eyes1 from "../assets/images/avatar/eyes-1.svg";
 import eyes2 from "../assets/images/avatar/eyes-1.svg";
 import eyes3 from "../assets/images/avatar/eyes-1.svg";
 import eyes4 from "../assets/images/avatar/eyes-1.svg";
+import eyes5 from "../assets/images/avatar/eyes-1.svg";
+import eyes6 from "../assets/images/avatar/eyes-2.svg";
+import eyes7 from "../assets/images/avatar/eyes-3.svg";
+import eyes8 from "../assets/images/avatar/eyes-4.svg";
 import viseme1 from "../assets/images/avatar/viseme-0.svg";
 import viseme2 from "../assets/images/avatar/viseme-1.svg";
 import viseme3 from "../assets/images/avatar/viseme-2.svg";
@@ -19,7 +23,7 @@ import viseme10 from "../assets/images/avatar/viseme-9.svg";
 import viseme11 from "../assets/images/avatar/viseme-10.svg";
 import viseme12 from "../assets/images/avatar/viseme-11.svg";
 
-const EYES = [eyes1, eyes2, eyes3, eyes4];
+const EYES = [eyes1, eyes2, eyes3, eyes4, eyes5, eyes6, eyes7, eyes8];
 const VISEMES = [
   viseme1,
   viseme2,
@@ -43,6 +47,67 @@ const AvatarSwatchElement = styled.div`
   height: 100%;
   background-color: green;
   position: relative;
+
+  &[data-eyes="0"] .eyes-0 {
+    visibility: visible;
+  }
+  &[data-eyes="1"] .eyes-1 {
+    visibility: visible;
+  }
+  &[data-eyes="2"] .eyes-2 {
+    visibility: visible;
+  }
+  &[data-eyes="3"] .eyes-3 {
+    visibility: visible;
+  }
+  &[data-eyes="4"] .eyes-4 {
+    visibility: visible;
+  }
+  &[data-eyes="5"] .eyes-5 {
+    visibility: visible;
+  }
+  &[data-eyes="6"] .eyes-6 {
+    visibility: visible;
+  }
+  &[data-eyes="7"] .eyes-7 {
+    visibility: visible;
+  }
+  &[data-mouth="0"] .mouth-0 {
+    visibility: visible;
+  }
+  &[data-mouth="1"] .mouth-1 {
+    visibility: visible;
+  }
+  &[data-mouth="2"] .mouth-2 {
+    visibility: visible;
+  }
+  &[data-mouth="3"] .mouth-3 {
+    visibility: visible;
+  }
+  &[data-mouth="4"] .mouth-4 {
+    visibility: visible;
+  }
+  &[data-mouth="5"] .mouth-5 {
+    visibility: visible;
+  }
+  &[data-mouth="6"] .mouth-6 {
+    visibility: visible;
+  }
+  &[data-mouth="7"] .mouth-7 {
+    visibility: visible;
+  }
+  &[data-mouth="8"] .mouth-8 {
+    visibility: visible;
+  }
+  &[data-mouth="9"] .mouth-9 {
+    visibility: visible;
+  }
+  &[data-mouth="10"] .mouth-10 {
+    visibility: visible;
+  }
+  &[data-mouth="11"] .mouth-11 {
+    visibility: visible;
+  }
 `;
 
 const AvatarBody = styled.div`
@@ -52,31 +117,49 @@ const AvatarBody = styled.div`
 
 const AvatarEyes = styled.img`
   position: absolute;
-  top: 6px;
-  left: 7px;
-  width: 48px;
-  height: 38px;
+  top: 9px;
+  left: 9px;
+  width: 46px;
+  height: 32px;
+  visibility: hidden;
 `;
 
 const AvatarMouth = styled.img`
   position: absolute;
-  top: 20px;
+  top: 19px;
   left: 11px;
   width: 42px;
   height: 42px;
   transform: scale(1, 0.6);
+  visibility: hidden;
 `;
 
-export default function AvatarSwatch({ color }) {
+const AvatarSwatch = forwardRef(({ color, eyeIndex, mouthIndex }, ref) => {
+  const eyes = [];
+  for (let i = 0; i < EYES.length; i++) {
+    eyes.push(<AvatarEyes className={`eyes-${i}`} key={`eyes-${i}`} src={EYES[i]} />);
+  }
+
+  const mouths = [];
+  for (let i = 0; i < VISEMES.length; i++) {
+    mouths.push(<AvatarMouth className={`mouth-${i}`} key={`mouth-${i}`} src={VISEMES[i]} />);
+  }
+
   return (
-    <AvatarSwatchElement>
-      <AvatarBody style={{ color }} dangerouslySetInnerHTML={{ __html: avatarBodyIcon }} />
-      <AvatarEyes src={EYES[0]} />
-      <AvatarMouth src={VISEMES[2]} />
+    <AvatarSwatchElement ref={ref} data-eyes={eyeIndex} data-mouth={mouthIndex}>
+      <AvatarBody key="body" style={{ color }} dangerouslySetInnerHTML={{ __html: avatarBodyIcon }} />
+      {eyes}
+      {mouths}
     </AvatarSwatchElement>
   );
-}
+});
+
+AvatarSwatch.displayName = "AvatarSwatch";
 
 AvatarSwatch.propTypes = {
-  color: PropTypes.string
+  color: PropTypes.string,
+  eyeIndex: PropTypes.number,
+  mouthIndex: PropTypes.number
 };
+
+export default AvatarSwatch;
