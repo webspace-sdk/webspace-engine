@@ -16,6 +16,7 @@ export const Normal = () => {
       mouthIndex = (mouthIndex + 1) % 12;
       swatchRef.current.setAttribute("data-eyes", eyeIndex);
       swatchRef.current.setAttribute("data-mouth", mouthIndex);
+      swatchRef.current.setAttribute("style", "color: blue;");
     }, 150);
 
     return () => clearInterval(interval);

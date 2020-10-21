@@ -27,6 +27,7 @@ import sharedStyles from "../assets/stylesheets/shared.scss";
 import PopupPanel from "./popup-panel";
 import { PopupPanelMenuArrow } from "./popup-panel-menu";
 import HubNodeTitle from "./hub-node-title";
+import AvatarSwatch from "./avatar-swatch";
 import { BigIconButton } from "./icon-button";
 import DeviceSelectorPopup from "./device-selector-popup";
 import Tooltip from "./tooltip";
@@ -242,6 +243,10 @@ const SelfPanel = styled.div`
   color: var(--secondary-panel-text-color);
   align-self: flex-end;
   margin-top: 18px;
+`;
+
+const SelfInfo = styled.div`
+  display: flex;
 `;
 
 const DeviceControls = styled.div`
@@ -461,7 +466,9 @@ function JelSidePanels({
           )}
           <SelfPanel>
             <Tooltip singleton={selfPanelTipSource} />
-            <div style={{ width: "150px" }} />
+            <SelfInfo>
+              <AvatarSwatch id="self-avatar-swatch" />
+            </SelfInfo>
             <DeviceControls>
               <Tooltip content={messages["self.select-tip"]} placement="top" key="mute" singleton={selfPanelTipTarget}>
                 <BigIconButton

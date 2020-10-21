@@ -44,9 +44,9 @@ const AvatarSwatchElement = styled.div`
   justify-content: center;
   align-items: center;
   width: 64px;
-  height: 100%;
-  background-color: green;
+  height: 64px;
   position: relative;
+  color: transparent;
 
   &[data-eyes="0"] .eyes-0 {
     visibility: visible;
@@ -111,13 +111,13 @@ const AvatarSwatchElement = styled.div`
 `;
 
 const AvatarBody = styled.div`
-  width: 48px;
-  height: 48px;
+  width: 46px;
+  height: 46px;
 `;
 
 const AvatarEyes = styled.img`
   position: absolute;
-  top: 9px;
+  top: 10px;
   left: 9px;
   width: 46px;
   height: 32px;
@@ -126,7 +126,7 @@ const AvatarEyes = styled.img`
 
 const AvatarMouth = styled.img`
   position: absolute;
-  top: 19px;
+  top: 21px;
   left: 11px;
   width: 42px;
   height: 42px;
@@ -134,7 +134,7 @@ const AvatarMouth = styled.img`
   visibility: hidden;
 `;
 
-const AvatarSwatch = forwardRef(({ color, eyeIndex, mouthIndex }, ref) => {
+const AvatarSwatch = forwardRef((props, ref) => {
   const eyes = [];
   for (let i = 0; i < EYES.length; i++) {
     eyes.push(<AvatarEyes className={`eyes-${i}`} key={`eyes-${i}`} src={EYES[i]} />);
@@ -146,8 +146,8 @@ const AvatarSwatch = forwardRef(({ color, eyeIndex, mouthIndex }, ref) => {
   }
 
   return (
-    <AvatarSwatchElement ref={ref} data-eyes={eyeIndex} data-mouth={mouthIndex}>
-      <AvatarBody key="body" style={{ color }} dangerouslySetInnerHTML={{ __html: avatarBodyIcon }} />
+    <AvatarSwatchElement ref={ref} {...props}>
+      <AvatarBody key="body" dangerouslySetInnerHTML={{ __html: avatarBodyIcon }} />
       {eyes}
       {mouths}
     </AvatarSwatchElement>
@@ -156,10 +156,6 @@ const AvatarSwatch = forwardRef(({ color, eyeIndex, mouthIndex }, ref) => {
 
 AvatarSwatch.displayName = "AvatarSwatch";
 
-AvatarSwatch.propTypes = {
-  color: PropTypes.string,
-  eyeIndex: PropTypes.number,
-  mouthIndex: PropTypes.number
-};
+AvatarSwatch.propTypes = {};
 
 export default AvatarSwatch;

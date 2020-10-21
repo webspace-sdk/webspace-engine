@@ -38,6 +38,7 @@ const BLINK_TRIGGER_PROBABILITY = 0.005;
 const SHIFT_TRIGGER_PROBABILITY = 0.005;
 const BLINK_FRAME_DURATION_MS = 25.0;
 const EYE_SHIFT_DURATION_MS = 500.0;
+const rgbToCssRgb = v => Math.floor(v * 255.0);
 
 let toonGradientMap;
 
@@ -185,6 +186,7 @@ export class AvatarSystem {
     this.dirtyColors = Array(MAX_AVATARS).fill(false);
     this.avatarIkControllers = Array(MAX_AVATARS).fill(null);
     this.selfEl = null;
+    this.selfAvatarSwatch = null;
 
     this.scheduledEyeDecals = Array(MAX_AVATARS);
 
@@ -314,10 +316,16 @@ export class AvatarSystem {
       instanceMatrixNeedsUpdate = false,
       instanceColorNeedsUpdate = false;
 
+    let selfChanged = false;
+    let newSelfEyeDecal = null,
+      newSelfViseme = null,
+      newSelfColor = null;
+
     for (let i = 0; i <= maxRegisteredIndex; i++) {
       const el = avatarEls[i];
       if (el === null) continue;
 
+      const isSelf = el === this.selfEl;
       const scheduledEyeDecal = scheduledEyeDecals[i];
       const hasScheduledDecal = scheduledEyeDecal.t > 0.0;
 
@@ -332,10 +340,17 @@ export class AvatarSystem {
 
       const hasDirtyColor = dirtyColors[i];
       if (hasDirtyColor && networkId) {
-        const { r, g, b } = presenceState[networkId].metas[0].profile.persona.avatar.primary_color;
-        instanceColorAttribute.array[i * 3 + 0] = r;
-        instanceColorAttribute.array[i * 3 + 1] = g;
-        instanceColorAttribute.array[i * 3 + 2] = b;
+        const color = presenceState[networkId].metas[0].profile.persona.avatar.primary_color;
+
+        if (isSelf) {
+          newSelfColor = color;
+          selfChanged = true;
+        }
+
+        instanceColorAttribute.array[i * 3 + 0] = color.r;
+        instanceColorAttribute.array[i * 3 + 1] = color.g;
+        instanceColorAttribute.array[i * 3 + 2] = color.b;
+
         instanceColorNeedsUpdate = true;
         dirtyColors[i] = false;
       }
@@ -351,8 +366,14 @@ export class AvatarSystem {
       if (!hasDirtyMatrix && !hasEyeDecalChange && !hasNewViseme && !hasDirtyColor) continue;
 
       if (hasEyeDecalChange) {
-        duvOffsetAttribute.array[i * 4] = scheduledEyeDecal.decal;
+        const newDecal = scheduledEyeDecal.decal;
+        duvOffsetAttribute.array[i * 4] = newDecal;
         duvNeedsUpdate = true;
+
+        if (isSelf) {
+          newSelfEyeDecal = newDecal;
+          selfChanged = true;
+        }
 
         this.eyeDecalStateTransition(t, i);
       }
@@ -369,6 +390,11 @@ export class AvatarSystem {
         }
 
         duvNeedsUpdate = true;
+
+        if (isSelf) {
+          newSelfViseme = currentViseme;
+          selfChanged = true;
+        }
       }
 
       if (hasDirtyMatrix) {
@@ -386,6 +412,10 @@ export class AvatarSystem {
 
         dirtyMatrices[i] -= 1;
       }
+    }
+
+    if (selfChanged) {
+      this.updateSelfAvatarSwatch(newSelfEyeDecal, newSelfViseme, newSelfColor);
     }
 
     duvOffsetAttribute.needsUpdate = duvNeedsUpdate;
@@ -439,6 +469,35 @@ export class AvatarSystem {
         // Eye now neutral, deschedule decals.
         scheduledEyeDecal.t = 0.0;
         scheduledEyeDecal.state = 0;
+    }
+  }
+
+  updateSelfAvatarSwatch(eyeDecal, viseme, color) {
+    let swatch = this.selfAvatarSwatch;
+
+    if (!swatch) {
+      swatch = document.getElementById("self-avatar-swatch");
+
+      if (swatch) {
+        swatch.setAttribute("data-eyes", 0);
+        swatch.setAttribute("data-mouth", 0);
+        this.selfAvatarSwatch = swatch;
+      }
+    }
+
+    if (swatch) {
+      if (eyeDecal !== null) {
+        swatch.setAttribute("data-eyes", eyeDecal);
+      }
+
+      if (viseme !== null) {
+        swatch.setAttribute("data-mouth", viseme);
+      }
+
+      if (color !== null) {
+        const { r, g, b } = color;
+        swatch.setAttribute("style", `color: rgb(${rgbToCssRgb(r)}, ${rgbToCssRgb(g)}, ${rgbToCssRgb(b)});`);
+      }
     }
   }
 }
