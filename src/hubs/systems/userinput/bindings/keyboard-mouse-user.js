@@ -400,7 +400,16 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
-      src: { value: paths.device.keyboard.key(" ") },
+      src: {
+        bool: paths.device.keyboard.key("shift"),
+        value: paths.device.keyboard.key(" ")
+      },
+      dest: { value: "/var/no+shift+space" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: { value: "/var/no+shift+space" },
       dest: { value: paths.actions.mediaPrimaryAction },
       xform: xforms.rising,
       priority: 201
