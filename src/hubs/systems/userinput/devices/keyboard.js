@@ -66,6 +66,26 @@ export class KeyboardDevice {
         const key = event.key.toLowerCase();
         this.keys[key] = event.type === "keydown";
         this.seenKeys.add(key);
+
+        if (event.ctrlKey) {
+          this.keys["control"] = event.type === "keydown";
+          this.seenKeys.add("control");
+        }
+
+        if (event.altKey) {
+          this.keys["alt"] = event.type === "keydown";
+          this.seenKeys.add("alt");
+        }
+
+        if (event.metaKey) {
+          this.keys["meta"] = event.type === "keydown";
+          this.seenKeys.add("meta");
+        }
+
+        if (event.shiftKey) {
+          this.keys["shift"] = event.type === "keydown";
+          this.seenKeys.add("shift");
+        }
       }
     }
 
