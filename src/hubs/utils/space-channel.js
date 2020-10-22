@@ -95,6 +95,7 @@ export default class SpaceChannel extends EventTarget {
     if (!canUpdateHubMeta) return "unauthorized";
     if (newHubFields.roles && !canUpdateHubRoles) return "unauthorized";
     this.channel.push("update_hub", { ...newHubFields, hub_id: hubId });
+    hubMetadata.optimisticUpdate(hubId, newHubFields);
   };
 
   beginStreaming() {

@@ -59,11 +59,11 @@ class AtomMetadata {
 
   bind(channel) {
     if (this._channel) {
-      this._channel.channel.off(this._refreshMessage, this.handleChannelRefreshMessage);
+      this._channel.channel.off(this._refreshMessage, this._handleChannelRefreshMessage);
     }
 
     this._channel = channel;
-    this._channel.channel.on(this._refreshMessage, this.handleChannelRefreshMessage);
+    this._channel.channel.on(this._refreshMessage, this._handleChannelRefreshMessage);
   }
 
   // Subscribes to metadata changes for the given atom id.
@@ -84,10 +84,18 @@ class AtomMetadata {
     subs.delete(handler);
   };
 
-  _fireHandlerForSubscribersForUpdatedIds = updatedIds => {
-    for (const [handler, ids] of this._metadataSubscribers) {
-      if (hasIntersection(updatedIds, ids)) {
-        handler(updatedIds, this);
+  // Performs a local optimistic update + fires events
+  optimisticUpdate = (id, metadata) => {
+    if (!this.hasMetadata(id)) return;
+    const existing = this.getMetadata(id);
+
+    // TODO generalize this
+    if (this._atomType === ATOM_TYPES.HUB) {
+      if (metadata.name) {
+        const newMetadata = { ...existing, name: metadata.name };
+        this._setDisplayNameOnMetadata(newMetadata);
+        this._metadata.set(id, newMetadata);
+        this._fireHandlerForSubscribersForUpdatedIds([id]);
       }
     }
   };
@@ -115,7 +123,7 @@ class AtomMetadata {
     if (idsToFetch.size !== 0) {
       const atoms = await this._channel[this._channelGetMethod](idsToFetch);
       for (const metadata of atoms) {
-        metadata.displayName = metadata.name || (metadata.is_home ? this._defaultHomeName : this._defaultName);
+        this._setDisplayNameOnMetadata(metadata);
         this._metadata.set(metadata[this._idColumn], metadata);
       }
 
@@ -139,7 +147,24 @@ class AtomMetadata {
     return metadata || null;
   }
 
-  handleChannelRefreshMessage = ({ metas }) => {
+  async getOrFetchMetadata(id) {
+    if (this._metadata.has(id)) {
+      return this.getMetadata(id);
+    } else {
+      await this.ensureMetadataForIds([id]);
+      return this.getMetadata(id);
+    }
+  }
+
+  _fireHandlerForSubscribersForUpdatedIds = updatedIds => {
+    for (const [handler, ids] of this._metadataSubscribers) {
+      if (hasIntersection(updatedIds, ids)) {
+        handler(updatedIds, this);
+      }
+    }
+  };
+
+  _handleChannelRefreshMessage = ({ metas }) => {
     const ids = [];
 
     for (let i = 0; i < metas.length; i++) {
@@ -150,7 +175,7 @@ class AtomMetadata {
 
       if (!existing || !fastDeepEqual(existing, metadata)) {
         ids.push(id);
-        metadata.displayName = metadata.name || (metadata.is_home ? this._defaultHomeName : this._defaultName);
+        this._setDisplayNameOnMetadata(metadata);
         this._metadata.set(id, metadata);
       }
     }
@@ -160,14 +185,9 @@ class AtomMetadata {
     }
   };
 
-  async getOrFetchMetadata(id) {
-    if (this._metadata.has(id)) {
-      return this.getMetadata(id);
-    } else {
-      await this.ensureMetadataForIds([id]);
-      return this.getMetadata(id);
-    }
-  }
+  _setDisplayNameOnMetadata = metadata => {
+    metadata.displayName = metadata.name || (metadata.is_home ? this._defaultHomeName : this._defaultName);
+  };
 }
 
 function useNameUpdateFromMetadata(atomId, metadata, setDisplayName, setRawName) {
