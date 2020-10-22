@@ -197,7 +197,7 @@ JelUI.propTypes = {
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,
   scene: PropTypes.object,
-  hubPresences: PropTypes.object,
+  spacePresences: PropTypes.object,
   //sessionId: PropTypes.string,
   spaceId: PropTypes.string,
   memberships: PropTypes.array

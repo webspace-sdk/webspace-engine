@@ -1,0 +1,10 @@
+:local(.presence-list) {
+  .rc-virtual-list-scrollbar {
+    background-color: transparent;
+  }
+
+  .rc-virtual-list-scrollbar-thumb {
+    background-color: var(--scroll-thumb-color) !important;
+    width: 4px !important;
+  }
+}
