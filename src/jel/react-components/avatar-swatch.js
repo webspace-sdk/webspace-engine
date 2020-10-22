@@ -22,8 +22,8 @@ import viseme10 from "../assets/images/avatar/viseme-9.svg";
 import viseme11 from "../assets/images/avatar/viseme-10.svg";
 import viseme12 from "../assets/images/avatar/viseme-11.svg";
 
-const EYES = [eyes1, eyes2, eyes3, eyes4, eyes5, eyes6, eyes7, eyes8];
-const VISEMES = [
+const AvatarSwatchEyeSrcs = [eyes1, eyes2, eyes3, eyes4, eyes5, eyes6, eyes7, eyes8];
+const AvatarSwatchVisemeSrcs = [
   viseme1,
   viseme2,
   viseme3,
@@ -149,7 +149,7 @@ const AvatarSwatchElement = styled.button`
   }
 `;
 
-const AvatarBody = styled.div`
+const AvatarBodyElement = styled.div`
   width: 46px;
   height: 46px;
 `;
@@ -173,15 +173,17 @@ const AvatarMouth = styled.img`
   visibility: hidden;
 `;
 
+const AvatarBody = () => <AvatarBodyElement key="body" dangerouslySetInnerHTML={{ __html: avatarBodyIcon }} />;
+
 const AvatarSwatch = forwardRef((props, ref) => {
   const eyes = [];
-  for (let i = 0; i < EYES.length; i++) {
-    eyes.push(<AvatarEyes className={`eyes-${i}`} key={`eyes-${i}`} src={EYES[i]} />);
+  for (let i = 0; i < AvatarSwatchEyeSrcs.length; i++) {
+    eyes.push(<AvatarEyes className={`eyes-${i}`} key={`eyes-${i}`} src={AvatarSwatchEyeSrcs[i]} />);
   }
 
   const mouths = [];
-  for (let i = 0; i < VISEMES.length; i++) {
-    mouths.push(<AvatarMouth className={`mouth-${i}`} key={`mouth-${i}`} src={VISEMES[i]} />);
+  for (let i = 0; i < AvatarSwatchVisemeSrcs.length; i++) {
+    mouths.push(<AvatarMouth className={`mouth-${i}`} key={`mouth-${i}`} src={AvatarSwatchVisemeSrcs[i]} />);
   }
 
   return (
@@ -197,4 +199,11 @@ AvatarSwatch.displayName = "AvatarSwatch";
 
 AvatarSwatch.propTypes = {};
 
-export default AvatarSwatch;
+export {
+  AvatarSwatch as default,
+  AvatarMouth as AvatarSwatchMouth,
+  AvatarBody as AvatarSwatchBody,
+  AvatarEyes as AvatarSwatchEyes,
+  AvatarSwatchEyeSrcs,
+  AvatarSwatchVisemeSrcs
+};

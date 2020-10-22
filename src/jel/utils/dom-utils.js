@@ -32,3 +32,5 @@ export const cancelEventIfFocusedWithin = (e, el) => {
     e.stopPropagation();
   }
 };
+
+export const rgbToCssRgb = v => Math.floor(v * 255.0);

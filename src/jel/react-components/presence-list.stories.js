@@ -19,7 +19,26 @@ const spacePresences = {
         presence: "room",
         profile: {
           avatarId: "https://hubs.local:8080/hubs/assets/models/DefaultAvatar-dc6216902968b75a81ab6df90fb07bb3.glb",
-          displayName: "Greg Fodor",
+          displayName: "Sally Jonsey",
+          identityName: "GregFodor#001",
+          persona: {
+            avatar: { primary_color: { b: 0.8705882352941177, g: 0.5803921568627451, r: 0.12156862745098039 } }
+          }
+        }
+      }
+    ]
+  },
+  "0dea1949-b385-4c60-966d-c45988fbdb7b": {
+    metas: [
+      {
+        context: { mobile: false },
+        hub_id: "ZJenEkZ",
+        phx_ref: "D8cBgniuRC0=",
+        phx_ref_prev: "9c71qUGEl3U=",
+        presence: "room",
+        profile: {
+          avatarId: "https://hubs.local:8080/hubs/assets/models/DefaultAvatar-dc6216902968b75a81ab6df90fb07bb3.glb",
+          displayName: "Really Long Name Goes Here Testingtesting",
           identityName: "GregFodor#001",
           persona: {
             avatar: { primary_color: { b: 0.8705882352941177, g: 0.5803921568627451, r: 0.12156862745098039 } }
@@ -77,7 +96,12 @@ export const Normal = () => {
         height: "100vh"
       }}
     >
-      <PresenceList spacePresences={spacePresences} hubId={"jdF66eU"} />
+      <PresenceList
+        spacePresences={spacePresences}
+        hubMetadata={metadata}
+        hubId={"jdF66eU"}
+        onGoToClicked={hubId => console.log(hubId)}
+      />
     </div>
   );
 };

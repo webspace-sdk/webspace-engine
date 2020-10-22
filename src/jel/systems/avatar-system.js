@@ -7,6 +7,7 @@ import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { AvatarSphereBufferGeometry } from "../objects/avatar-sphere-buffer-geometry";
+import { rgbToCssRgb } from "../utils/dom-utils";
 
 const {
   ShaderMaterial,
@@ -38,7 +39,6 @@ const BLINK_TRIGGER_PROBABILITY = 0.005;
 const SHIFT_TRIGGER_PROBABILITY = 0.005;
 const BLINK_FRAME_DURATION_MS = 25.0;
 const EYE_SHIFT_DURATION_MS = 500.0;
-const rgbToCssRgb = v => Math.floor(v * 255.0);
 
 let toonGradientMap;
 
