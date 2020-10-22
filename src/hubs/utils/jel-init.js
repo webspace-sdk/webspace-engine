@@ -43,13 +43,22 @@ const startTrackingPosition = (() => {
   };
 })();
 
-async function updateEnvironmentForHub(hub, hubStore) {
+async function updateEnvironmentForHub(hub) {
   const sceneEl = document.querySelector("a-scene");
 
   // Clear the three.js image cache and load the loading environment before switching to the new one.
-  THREE.Cache.clear();
-  const waypointSystem = sceneEl.systems["hubs-systems"].waypointSystem;
   const terrainSystem = sceneEl.systems["hubs-systems"].terrainSystem;
+
+  document.querySelector(".a-canvas").classList.remove("a-hidden");
+  sceneEl.addState("visible");
+
+  terrainSystem.updateWorld(hub.world.type, hub.world.seed);
+}
+
+async function moveToInitialHubLocation(hub, hubStore) {
+  const sceneEl = document.querySelector("a-scene");
+
+  const waypointSystem = sceneEl.systems["hubs-systems"].waypointSystem;
   waypointSystem.releaseAnyOccupiedWaypoints();
   const characterController = sceneEl.systems["hubs-systems"].characterController;
 
@@ -75,14 +84,7 @@ async function updateEnvironmentForHub(hub, hubStore) {
     waypointSystem.moveToSpawnPoint();
   }
 
-  terrainSystem.refreshTerrainLODs();
-  terrainSystem.updateWorld(hub.world.type, hub.world.seed);
-
   startTrackingPosition(hubStore);
-
-  // Re-bind the teleporter controls collision meshes in case the scene changed.
-  // TODO JEL check with terrain
-  //document.querySelectorAll("a-entity[teleporter]").forEach(x => x.components["teleporter"].queryCollisionEntities());
 }
 
 const createDynaChannelParams = () => {
@@ -568,9 +570,13 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
           updateTitleForHubHandler([hub.hub_id], hubMetadata);
           hubMetadata.ensureMetadataForIds([hub.hub_id]);
           updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
-          updateEnvironmentForHub(hub, hubStore, entryManager, remountUI);
+          updateEnvironmentForHub(hub);
 
           if (isInitialJoin) {
+            THREE.Cache.clear();
+
+            moveToInitialHubLocation(hub, hubStore);
+
             NAF.connection.adapter
               .joinHub(hub.hub_id)
               .then(() => scene.components["shared-scene"].subscribe(hub.hub_id))

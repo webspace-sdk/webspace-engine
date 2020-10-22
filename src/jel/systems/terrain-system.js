@@ -706,12 +706,16 @@ export class TerrainSystem {
   })();
 
   updateWorld(type, seed) {
+    if (this.worldType === type && this.worldSeed === seed) return;
+
     // Perform fog effect since terr
     this.atmosphereSystem.maximizeFog();
 
     this.worldType = type;
     this.worldSeed = seed;
     this.unloadWorld();
+
+    this.performFullTerrainWorkOnNextTick = true;
   }
 
   loadFeatureMeshes() {
@@ -1153,8 +1157,4 @@ export class TerrainSystem {
       }
     };
   })();
-
-  refreshTerrainLODs() {
-    this.performFullTerrainWorkOnNextTick = true;
-  }
 }

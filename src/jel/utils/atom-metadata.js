@@ -89,14 +89,12 @@ class AtomMetadata {
     if (!this.hasMetadata(id)) return;
     const existing = this.getMetadata(id);
 
-    // TODO generalize this
-    if (this._atomType === ATOM_TYPES.HUB) {
-      if (metadata.name) {
-        const newMetadata = { ...existing, name: metadata.name };
-        this._setDisplayNameOnMetadata(newMetadata);
-        this._metadata.set(id, newMetadata);
-        this._fireHandlerForSubscribersForUpdatedIds([id]);
-      }
+    // For now can only optimistically update name
+    if (metadata.name) {
+      const newMetadata = { ...existing, name: metadata.name };
+      this._setDisplayNameOnMetadata(newMetadata);
+      this._metadata.set(id, newMetadata);
+      this._fireHandlerForSubscribersForUpdatedIds([id]);
     }
   };
 
