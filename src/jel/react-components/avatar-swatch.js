@@ -53,6 +53,7 @@ const AvatarSwatchElement = styled.button`
   outline-style: none;
   border: 0;
   background: transparent;
+  margin-left: 8px;
 
   &:hover {
     filter: brightness(80%);

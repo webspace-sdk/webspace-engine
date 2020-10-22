@@ -7,6 +7,7 @@ import unmutedIcon from "../assets/images/icons/mic-unmuted.svgi";
 import AvatarSwatch from "./avatar-swatch";
 import { PopupPanelMenuArrow } from "./popup-panel-menu";
 import DeviceSelectorPopup from "./device-selector-popup";
+import AvatarEditorPopup from "./avatar-editor-popup";
 import { BigIconButton } from "./icon-button";
 import Tooltip from "./tooltip";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
@@ -121,6 +122,9 @@ const SelfPanel = ({ scene, spacePresences, sessionId }) => {
   const [deviceSelectorReferenceElement, setDeviceSelectorReferenceElement] = useState(null);
   const [deviceSelectorElement, setDeviceSelectorElement] = useState(null);
   const [deviceSelectorArrowElement, setDeviceSelectorArrowElement] = useState(null);
+  const [avatarEditorReferenceElement, setAvatarEditorReferenceElement] = useState(null);
+  const [avatarEditorElement, setAvatarEditorElement] = useState(null);
+  const [avatarEditorArrowElement, setAvatarEditorArrowElement] = useState(null);
   const [micDevices, setMicDevices] = useState([]);
   const [muted, setMuted] = useState(false);
 
@@ -147,6 +151,26 @@ const SelfPanel = ({ scene, spacePresences, sessionId }) => {
     ]
   });
 
+  const {
+    styles: avatarEditorStyles,
+    attributes: avatarEditorAttributes,
+    update: updateAvatarEditorPopper
+  } = usePopper(avatarEditorReferenceElement, avatarEditorElement, {
+    placement: "top-start",
+    modifiers: [
+      {
+        name: "offset",
+        options: {
+          offset: [0, 4]
+        }
+      },
+      {
+        name: "arrow",
+        options: { element: avatarEditorArrowElement }
+      }
+    ]
+  });
+
   const spacePresence = spacePresences && spacePresences[sessionId];
   const meta = spacePresence && spacePresence.metas[spacePresence.metas.length - 1];
   const { profile } = meta || {};
@@ -165,7 +189,14 @@ const SelfPanel = ({ scene, spacePresences, sessionId }) => {
   return (
     <SelfPanelElement>
       <Tooltip singleton={tipSource} />
-      <AvatarSwatch id="self-avatar-swatch" />
+      <AvatarSwatch
+        ref={setAvatarEditorReferenceElement}
+        id="self-avatar-swatch"
+        onClick={() => {
+          updateAvatarEditorPopper();
+          toggleFocus(avatarEditorElement);
+        }}
+      />
       <SelfName>
         {displayName && <DisplayName>{displayName}</DisplayName>}
         {identityName && <IdentityName>{identityName}</IdentityName>}
@@ -209,6 +240,17 @@ const SelfPanel = ({ scene, spacePresences, sessionId }) => {
           className={sharedStyles.popperArrow}
         />
       </DeviceSelectorPopup>
+      <AvatarEditorPopup
+        setPopperElement={setAvatarEditorElement}
+        styles={avatarEditorStyles}
+        attributes={avatarEditorAttributes}
+      >
+        <PopupPanelMenuArrow
+          ref={setAvatarEditorArrowElement}
+          style={avatarEditorStyles.arrow}
+          className={sharedStyles.popperArrow}
+        />
+      </AvatarEditorPopup>
     </SelfPanelElement>
   );
 };

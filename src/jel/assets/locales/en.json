@@ -16,6 +16,7 @@
   "device-selector.mic-devices": "Use Microphone",
   "device-selector.mic-inactive": "Unmute to choose microphone.",
   "device-selector.no-mics": "No devices found.",
+  "avatar-editor.header": "Edit Avatar",
   "self.unmute-tip": "Unmute (Ctrl-M)",
   "self.mute-tip": "Mute (Ctrl-M)",
   "self.select-tip": "Change Devices"
