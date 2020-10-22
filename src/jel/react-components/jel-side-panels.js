@@ -54,7 +54,6 @@ const Nav = styled.div`
   width: calc(var(--nav-width) - 88px);
   display: flex;
   flex-direction: column;
-  box-shadow: 0px 0px 4px;
 `;
 
 const Presence = styled.div`
@@ -188,7 +187,7 @@ const SpaceTreeSpill = styled.div`
 
   scrollbar-color: transparent transparent;
   scrollbar-width: thin;
-  background-color: var(--secondary-panel-background-color);
+  background-color: var(--tertiary-panel-background-color);
   width: fit-content;
   height: 100%;
   display: flex;
