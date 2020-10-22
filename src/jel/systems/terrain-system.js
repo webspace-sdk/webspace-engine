@@ -36,7 +36,7 @@ export const WORLD_MIN_COORD = -WORLD_MAX_COORD;
 export const WORLD_SIZE = WORLD_MAX_COORD - WORLD_MIN_COORD;
 
 // Radius is artificial, want to have a specific curve effect not accurancy
-export const WORLD_RADIUS = 96.0;
+export const WORLD_RADIUS = 128.0;
 
 export const addVertexCurvingToShader = (shader, postCurveShader = "") => {
   shader.vertexShader = shader.vertexShader.replace(

@@ -101,6 +101,8 @@ const WaterShader = {
     "uniform float reflections;",
     "uniform vec3 color;",
 
+    "float speed = 1.75;",
+
     "float blendOverlay( float base, float blend ) {",
 
     "  return( base < 0.5 ? ( 2.0 * base * blend ) : ( 1.0 - 2.0 * ( 1.0 - base ) * ( 1.0 - blend ) ) );",
@@ -114,17 +116,17 @@ const WaterShader = {
     "}",
 
     "void main() {",
-    "     vec4 uv = vUv * 2.5 + vec4(sin(time) * -0.01);",
-    `     vec2 uv2 = vUv2 * ${(WORLD_SIZE * 2).toFixed(2)} + vec2(time * -0.1);`,
-    "     uv2.y += 0.01 * (sin(uv2.x * 3.5 + time * 0.7) + sin(uv2.x * 4.8 + time * 1.05) + sin(uv2.x * 7.3 + time * 0.9)) / 3.0;",
-    "     uv2.x += 0.12 * (sin(uv2.y * 4.0 + time * 1.0) + sin(uv2.y * 6.8 + time * 0.75) + sin(uv2.y * 11.3 + time * 0.4)) / 3.0;",
-    "     uv2.y += 0.12 * (sin(uv2.x * 4.2 + time * 1.28) + sin(uv2.x * 6.3 + time * 1.65) + sin(uv2.x * 8.2 + time * 0.9)) / 3.0;",
+    "     vec4 uv = vUv * 2.5 + vec4(sin(time) * -0.01 * speed);",
+    `     vec2 uv2 = vUv2 * ${(WORLD_SIZE * 2).toFixed(2)} + vec2(time * -0.1 * speed);`,
+    "     uv2.y += 0.01 * (sin(uv2.x * 3.5 + time * 0.7 * speed) + sin(uv2.x * 4.8 + time * 1.05 * speed) + sin(uv2.x * 7.3 + time * 0.9 * speed)) / 3.0;",
+    "     uv2.x += 0.12 * (sin(uv2.y * 4.0 + time * 1.0 * speed) + sin(uv2.y * 6.8 + time * 0.75 * speed) + sin(uv2.y * 11.3 + time * 0.4 * speed)) / 3.0;",
+    "     uv2.y += 0.12 * (sin(uv2.x * 4.2 + time * 1.28 * speed) + sin(uv2.x * 6.3 + time * 1.65 * speed) + sin(uv2.x * 8.2 + time * 0.9 * speed)) / 3.0;",
     "     vec4 wave1 = texture2D(wave, uv2 * 0.5);",
     "     vec4 wave2 = texture2D(wave, uv2 * 0.5 + vec2(0.2));",
     "     vec3 waves = vec3(wave1.aaa * 0.9 - wave2.aaa * 0.02);",
     "     vec4 base = texture2DProj( map, uv );",
     "     vec3 surface = blendOverlay( color, base.rgb * step(1.0, reflections) + vec3(0.5, 0.5, 0.5) * step(1.0, 1.0 - reflections));",
-    "     gl_FragColor = vec4( 0.075 * waves + 0.925 * surface, 0.75 );",
+    "     gl_FragColor = vec4( 0.175 * waves + 0.825 * surface, 0.75 );",
     "}"
   ].join("\n")
 };
