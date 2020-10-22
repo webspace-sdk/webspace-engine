@@ -41,12 +41,19 @@ const Wrap = styled.div`
   user-select: none;
 `;
 
-const Nav = styled.div`
+const Left = styled.div`
   pointer-events: auto;
   width: var(--nav-width);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   box-shadow: 0px 0px 4px;
+`;
+
+const Nav = styled.div`
+  pointer-events: auto;
+  width: calc(var(--nav-width) - 88px);
+  display: flex;
+  flex-direction: column;
 `;
 
 const Presence = styled.div`
@@ -180,7 +187,7 @@ const SpaceTreeSpill = styled.div`
 
   scrollbar-color: transparent transparent;
   scrollbar-width: thin;
-  background-color: var(--secondary-panel-background-color);
+  background-color: var(--tertiary-panel-background-color);
   width: fit-content;
   height: 100%;
   display: flex;
@@ -293,76 +300,78 @@ function JelSidePanels({
 
   return (
     <Wrap>
-      <Nav>
-        <NavHead>
-          <SpaceBanner>{space && space.name}</SpaceBanner>
-        </NavHead>
-        <NavSpill>
-          <PanelSectionHeader>
-            <FormattedMessage id="nav.space-worlds" />
-          </PanelSectionHeader>
-          <HubTree
-            treeManager={treeManager}
-            hub={hub}
-            history={history}
-            spaceCan={spaceCan}
-            hubCan={hubCan}
-            memberships={memberships}
-            showHubContextMenuPopup={showHubContextMenuPopup}
-            setHubRenameReferenceElement={setHubRenameReferenceElement}
-            onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
-          />
-          <PanelSectionHeader>
-            <FormattedMessage id="nav.private-worlds" />
-          </PanelSectionHeader>
-          <Tree
-            prefixCls="hub-tree"
-            treeData={privateTreeData}
-            selectable={true}
-            selectedKeys={privateSelectedKeys}
-            onSelect={(selectedKeys, { node: { atomId } }) =>
-              navigateToHubUrl(history, hubMetadata.getMetadata(atomId).url)
-            }
-          />
-        </NavSpill>
-        <NavFoot>
-          <PanelItemButtonSection>
-            <PanelItemButton
-              iconSrc={trashIcon}
-              ref={setTrashMenuReferenceElement}
-              onMouseDown={e => cancelEventIfFocusedWithin(e, trashMenuElement)}
-              onClick={() => {
-                if (!treeManager) return;
-
-                treeManager.rebuildSharedTrashTree();
-
-                if (updateTrashPopper) {
-                  updateTrashPopper();
-                }
-
-                toggleFocus(trashMenuElement);
-              }}
-            >
-              <FormattedMessage id="nav.trash" />
-            </PanelItemButton>
-          </PanelItemButtonSection>
-          {spaceCan("create_hub") && (
-            <ActionButton
-              iconSrc={addIcon}
-              onClick={() => addNewHubToTree(history, treeManager, spaceId)}
-              style={{ width: "60%" }}
-            >
-              <FormattedMessage id="nav.create-world" />
-            </ActionButton>
-          )}
-          <SelfPanel spacePresences={spacePresences} scene={scene} sessionId={sessionId} />
-        </NavFoot>
-      </Nav>
-      <Presence>
-        <PresenceContent>Presence</PresenceContent>
+      <Left>
         <SpaceTreeSpill>
           <SpaceTree treeManager={treeManager} space={space} history={history} memberships={memberships} />
         </SpaceTreeSpill>
+        <Nav>
+          <NavHead>
+            <SpaceBanner>{space && space.name}</SpaceBanner>
+          </NavHead>
+          <NavSpill>
+            <PanelSectionHeader>
+              <FormattedMessage id="nav.space-worlds" />
+            </PanelSectionHeader>
+            <HubTree
+              treeManager={treeManager}
+              hub={hub}
+              history={history}
+              spaceCan={spaceCan}
+              hubCan={hubCan}
+              memberships={memberships}
+              showHubContextMenuPopup={showHubContextMenuPopup}
+              setHubRenameReferenceElement={setHubRenameReferenceElement}
+              onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
+            />
+            <PanelSectionHeader>
+              <FormattedMessage id="nav.private-worlds" />
+            </PanelSectionHeader>
+            <Tree
+              prefixCls="hub-tree"
+              treeData={privateTreeData}
+              selectable={true}
+              selectedKeys={privateSelectedKeys}
+              onSelect={(selectedKeys, { node: { atomId } }) =>
+                navigateToHubUrl(history, hubMetadata.getMetadata(atomId).url)
+              }
+            />
+          </NavSpill>
+          <NavFoot>
+            <PanelItemButtonSection>
+              <PanelItemButton
+                iconSrc={trashIcon}
+                ref={setTrashMenuReferenceElement}
+                onMouseDown={e => cancelEventIfFocusedWithin(e, trashMenuElement)}
+                onClick={() => {
+                  if (!treeManager) return;
+
+                  treeManager.rebuildSharedTrashTree();
+
+                  if (updateTrashPopper) {
+                    updateTrashPopper();
+                  }
+
+                  toggleFocus(trashMenuElement);
+                }}
+              >
+                <FormattedMessage id="nav.trash" />
+              </PanelItemButton>
+            </PanelItemButtonSection>
+            {spaceCan("create_hub") && (
+              <ActionButton
+                iconSrc={addIcon}
+                onClick={() => addNewHubToTree(history, treeManager, spaceId)}
+                style={{ width: "60%" }}
+              >
+                <FormattedMessage id="nav.create-world" />
+              </ActionButton>
+            )}
+            <SelfPanel spacePresences={spacePresences} scene={scene} sessionId={sessionId} />
+          </NavFoot>
+        </Nav>
+      </Left>
+      <Presence>
+        <PresenceContent>Presence</PresenceContent>
       </Presence>
       <TrashMenu setPopperElement={setTrashMenuElement} styles={trashMenuStyles} attributes={trashMenuAttributes}>
         <HubTrashTree
