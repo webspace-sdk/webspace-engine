@@ -43,7 +43,6 @@ const PresenceListHubName = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  font-weight: var(--panel-selected-text-weight);
   margin-left: 24px;
   margin-right: 12px;
   flex: 1 1;
@@ -51,6 +50,9 @@ const PresenceListHubName = styled.div`
 `;
 
 const PresenceListHubNameText = styled.div`
+  color: var(--panel-text-color);
+  font-weight: var(--panel-selected-text-weight);
+  font-size: var(--panel-small-banner-text-size);
   width: 100%;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -208,7 +210,7 @@ const ListWrap = styled.div`
   height: 100%;
 `;
 
-function PresenceList({ spacePresences, hubId, hubMetadata, onGoToClicked }) {
+function PresenceList({ spacePresences, sessionId, hubMetadata, onGoToClicked, hubCan }) {
   const [height, setHeight] = useState(100);
   const outerRef = React.createRef();
   const data = [];
@@ -230,22 +232,33 @@ function PresenceList({ spacePresences, hubId, hubMetadata, onGoToClicked }) {
     [outerRef]
   );
 
-  data.push({ key: "this-header", messageId: "presence-list.this-header", type: "header" });
+  let hubId = null;
+
+  if (spacePresences[sessionId]) {
+    const metas = spacePresences[sessionId].metas;
+    hubId = metas[metas.length - 1].hub_id;
+  }
 
   for (const [sessionId, presence] of Object.entries(spacePresences)) {
     const meta = presence.metas[presence.metas.length - 1];
     const metaHubId = meta.hub_id;
 
     if (metaHubId === hubId) {
-      data.push({ key: sessionId, meta, type: "member" });
-    } else {
-      if (!otherHubIdsToSessionMetas.has(metaHubId)) {
-        otherHubIdsToSessionMetas.set(metaHubId, []);
+      if (data.length === 0) {
+        data.push({ key: "this-header", messageId: "presence-list.this-header", type: "header" });
       }
 
-      const otherSessionMetas = otherHubIdsToSessionMetas.get(metaHubId);
-      otherSessionMetas.push(sessionId);
-      otherSessionMetas.push(meta);
+      data.push({ key: sessionId, meta, type: "member" });
+    } else {
+      if (hubCan("join_hub", metaHubId)) {
+        if (!otherHubIdsToSessionMetas.has(metaHubId)) {
+          otherHubIdsToSessionMetas.set(metaHubId, []);
+        }
+
+        const otherSessionMetas = otherHubIdsToSessionMetas.get(metaHubId);
+        otherSessionMetas.push(sessionId);
+        otherSessionMetas.push(meta);
+      }
     }
   }
 
@@ -256,16 +269,14 @@ function PresenceList({ spacePresences, hubId, hubMetadata, onGoToClicked }) {
 
       const sessionIdAndMetas = otherHubIdsToSessionMetas.get(hubId);
       for (let i = 0; i < sessionIdAndMetas.length; i += 2) {
-        for (let j = 0; j < 20; j++) {
-          data.push({ key: sessionIdAndMetas[i] + j, meta: sessionIdAndMetas[i + 1], type: "member" });
-        }
+        data.push({ key: sessionIdAndMetas[i], meta: sessionIdAndMetas[i + 1], type: "member" });
       }
     }
   }
 
   return (
     <ListWrap ref={outerRef} className={styles.presenceList}>
-      <List height={height} itemHeight={128} itemKey="key" data={data}>
+      <List height={height} itemHeight={64} itemKey="key" data={data}>
         {(item, _, props) => {
           if (item.type === "member") {
             return <PresenceListMemberItem {...item} {...props} />;
@@ -282,9 +293,10 @@ function PresenceList({ spacePresences, hubId, hubMetadata, onGoToClicked }) {
 
 PresenceList.propTypes = {
   spacePresences: PropTypes.object,
-  hubId: PropTypes.string,
+  sessionId: PropTypes.string,
   hubMetadata: PropTypes.object,
-  onGoToClicked: PropTypes.func
+  onGoToClicked: PropTypes.func,
+  hubCan: PropTypes.func
 };
 
 export { PresenceList as default };

@@ -99,7 +99,8 @@ export const Normal = () => {
       <PresenceList
         spacePresences={spacePresences}
         hubMetadata={metadata}
-        hubId={"jdF66eU"}
+        hubCan={() => true}
+        sessionId={"d929d0df-eb53-4bed-aa22-b87c67f1ab28"}
         onGoToClicked={hubId => console.log(hubId)}
       />
     </div>

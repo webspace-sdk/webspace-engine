@@ -15,6 +15,7 @@ import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
 import SpaceTree from "./space-tree";
 import HubTree from "./hub-tree";
 import HubTrashTree from "./hub-trash-tree";
+import PresenceList from "./presence-list";
 import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
 import trashIcon from "../assets/images/icons/trash.svgi";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
@@ -61,11 +62,16 @@ const Presence = styled.div`
   width: var(--presence-width);
   box-shadow: 0px 0px 4px;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
 `;
 
 const PresenceContent = styled.div`
   flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  padding: 16px 0;
 `;
 
 const NavHead = styled.div`
@@ -378,7 +384,21 @@ function JelSidePanels({
         </Nav>
       </Left>
       <Presence>
-        <PresenceContent>Presence</PresenceContent>
+        <PresenceContent>
+          <PresenceList
+            spacePresences={spacePresences || {}}
+            hubMetadata={hubMetadata}
+            hubCan={hubCan}
+            sessionId={sessionId}
+            onGoToClicked={hubId => {
+              const metadata = hubMetadata.getMetadata(hubId);
+
+              if (metadata) {
+                navigateToHubUrl(history, metadata.url);
+              }
+            }}
+          />
+        </PresenceContent>
       </Presence>
       <TrashMenu setPopperElement={setTrashMenuElement} styles={trashMenuStyles} attributes={trashMenuAttributes}>
         <HubTrashTree
