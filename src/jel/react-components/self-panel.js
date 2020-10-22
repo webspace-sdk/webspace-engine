@@ -192,6 +192,7 @@ const SelfPanel = ({ scene, spacePresences, sessionId }) => {
       <AvatarSwatch
         ref={setAvatarEditorReferenceElement}
         id="self-avatar-swatch"
+        onMouseDown={e => cancelEventIfFocusedWithin(e, avatarEditorElement)}
         onClick={() => {
           updateAvatarEditorPopper();
           toggleFocus(avatarEditorElement);
