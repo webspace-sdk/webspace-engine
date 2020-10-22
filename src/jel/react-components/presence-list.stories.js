@@ -93,7 +93,7 @@ export const Normal = () => {
       className={classNames(sharedStyles.basePanel)}
       style={{
         width: "300px",
-        height: "100vh"
+        height: "300px"
       }}
     >
       <PresenceList

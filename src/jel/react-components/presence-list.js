@@ -256,14 +256,16 @@ function PresenceList({ spacePresences, hubId, hubMetadata, onGoToClicked }) {
 
       const sessionIdAndMetas = otherHubIdsToSessionMetas.get(hubId);
       for (let i = 0; i < sessionIdAndMetas.length; i += 2) {
-        data.push({ key: sessionIdAndMetas[i], meta: sessionIdAndMetas[i + 1], type: "member" });
+        for (let j = 0; j < 20; j++) {
+          data.push({ key: sessionIdAndMetas[i] + j, meta: sessionIdAndMetas[i + 1], type: "member" });
+        }
       }
     }
   }
 
   return (
     <ListWrap ref={outerRef} className={styles.presenceList}>
-      <List virtual={true} height={height} itemKey="key" data={data}>
+      <List height={height} itemHeight={128} itemKey="key" data={data}>
         {(item, _, props) => {
           if (item.type === "member") {
             return <PresenceListMemberItem {...item} {...props} />;
