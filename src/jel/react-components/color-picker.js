@@ -78,13 +78,18 @@ const InnerPicker = CustomPicker(({ hsl, hsv, onChange }) => {
   );
 });
 
-const Picker = ({ onChangeComplete }) => {
+const Picker = ({ onChange, onChangeComplete }) => {
   const [color, setColor] = useState("orange");
-  const handleColorChange = ({ hex }) => setColor(hex);
+  const handleColorChange = data => {
+    setColor(data.hex);
+    if (onChange) onChange(data);
+  };
+
   return <InnerPicker color={color} onChange={handleColorChange} onChangeComplete={onChangeComplete} />;
 };
 
 Picker.propTypes = {
+  onChange: PropTypes.func,
   onChangeComplete: PropTypes.func
 };
 

@@ -117,7 +117,7 @@ const useMicDevices = (muted, setMicDevices) => {
   );
 };
 
-const SelfPanel = ({ scene, spacePresences, sessionId }) => {
+const SelfPanel = ({ scene, spacePresences, sessionId, onAvatarColorChange, onAvatarColorChangeComplete }) => {
   const [tipSource, tipTarget] = useSingleton();
   const [deviceSelectorReferenceElement, setDeviceSelectorReferenceElement] = useState(null);
   const [deviceSelectorElement, setDeviceSelectorElement] = useState(null);
@@ -245,6 +245,8 @@ const SelfPanel = ({ scene, spacePresences, sessionId }) => {
         setPopperElement={setAvatarEditorElement}
         styles={avatarEditorStyles}
         attributes={avatarEditorAttributes}
+        onColorChange={onAvatarColorChange}
+        onColorChangeComplete={onAvatarColorChangeComplete}
       >
         <PopupPanelMenuArrow
           ref={setAvatarEditorArrowElement}
@@ -259,7 +261,9 @@ const SelfPanel = ({ scene, spacePresences, sessionId }) => {
 SelfPanel.propTypes = {
   scene: PropTypes.object,
   spacePresences: PropTypes.object,
-  sessionId: PropTypes.string
+  sessionId: PropTypes.string,
+  onAvatarColorChange: PropTypes.func,
+  onAvatarColorChangeComplete: PropTypes.func
 };
 
 export { SelfPanel as default };

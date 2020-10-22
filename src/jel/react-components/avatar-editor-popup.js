@@ -15,7 +15,14 @@ const PickerWrap = styled.div`
   height: 128px;
 `;
 
-const AvatarEditorPopup = ({ setPopperElement, styles, attributes, onChangeComplete, children }) => {
+const AvatarEditorPopup = ({
+  setPopperElement,
+  styles,
+  attributes,
+  onColorChange,
+  onColorChangeComplete,
+  children
+}) => {
   const popupInput = (
     <div
       tabIndex={-1} // Ensures can be focused
@@ -26,7 +33,7 @@ const AvatarEditorPopup = ({ setPopperElement, styles, attributes, onChangeCompl
     >
       <PopupPanelMenu style={{ padding: "12px", borderRadius: "12px" }} className={sharedStyles.slideUpWhenPopped}>
         <PickerWrap>
-          <ColorPicker onChangeComplete={onChangeComplete} />
+          <ColorPicker onChangeComplete={onColorChangeComplete} onChange={onColorChange} />
         </PickerWrap>
       </PopupPanelMenu>
       {children}
@@ -37,7 +44,8 @@ const AvatarEditorPopup = ({ setPopperElement, styles, attributes, onChangeCompl
 };
 
 AvatarEditorPopup.propTypes = {
-  onChangeComplete: PropTypes.func
+  onColorChange: PropTypes.func,
+  onColorChangeComplete: PropTypes.func
 };
 
 export { AvatarEditorPopup as default };

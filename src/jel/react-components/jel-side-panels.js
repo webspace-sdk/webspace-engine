@@ -366,7 +366,14 @@ function JelSidePanels({
                 <FormattedMessage id="nav.create-world" />
               </ActionButton>
             )}
-            <SelfPanel spacePresences={spacePresences} scene={scene} sessionId={sessionId} />
+            <SelfPanel
+              spacePresences={spacePresences}
+              scene={scene}
+              sessionId={sessionId}
+              onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {
+                spaceChannel.sendAvatarColorUpdate(r / 255.0, g / 255.0, b / 255.0);
+              }}
+            />
           </NavFoot>
         </Nav>
       </Left>
