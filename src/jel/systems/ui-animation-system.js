@@ -5,8 +5,8 @@ export const PANEL_EXPANSION_STATES = {
   COLLAPSED: 3
 };
 
-const DEFAULT_NAV_PANEL_WIDTH = 300;
-const DEFAULT_PRESENCE_PANEL_WIDTH = 300;
+const DEFAULT_NAV_PANEL_WIDTH = 400;
+const DEFAULT_PRESENCE_PANEL_WIDTH = 220;
 const PANEL_EXPAND_DURATION_MS = 250;
 
 import BezierEasing from "bezier-easing";

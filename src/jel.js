@@ -584,7 +584,7 @@ function setupSidePanelLayout(scene) {
     "#presence-drag-target",
     ["presence-width", "scene-right"],
     220,
-    220,
+    300,
     x => window.innerWidth - x,
     w => store.update({ uiState: { presencePanelWidth: w } })
   );

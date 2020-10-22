@@ -41,7 +41,7 @@ $treeNodePrefixCls: space-tree-treenode;
       -webkit-user-drag: element;
     }
     & .#{$treePrefixCls}-iconEle .spaceNodeIcon {
-      background-color: var(--secondary-panel-item-background-color);
+      background-color: var(--tertiary-panel-item-background-color);
     }
     &:hover .#{$treePrefixCls}-iconEle .spaceNodeIcon {
     }
@@ -50,18 +50,18 @@ $treeNodePrefixCls: space-tree-treenode;
     }
     &.drag-over {
       > .draggable {
-        background-color: var(--secondary-panel-item-hover-background-color);
+        background-color: var(--tertiary-panel-item-hover-background-color);
         opacity: 0.8;
       }
     }
     &.drag-over-gap-top {
       > .draggable {
-        border-top: 2px var(--secondary-panel-item-drag-line-color) solid;
+        border-top: 2px var(--tertiary-panel-item-drag-line-color) solid;
       }
     }
     &.drag-over-gap-bottom {
       > .draggable {
-        border-bottom: 2px var(--secondary-panel-item-drag-line-color) solid;
+        border-bottom: 2px var(--tertiary-panel-item-drag-line-color) solid;
       }
     }
     ul {
@@ -69,8 +69,8 @@ $treeNodePrefixCls: space-tree-treenode;
       padding: 0;
     }
     &-selected .#{$treePrefixCls}-iconEle .spaceNodeIcon {
-      background-color: var(--secondary-panel-item-selected-background-color);
-      border: 3px solid var(--secondary-panel-item-selected-border-color);
+      background-color: var(--tertiary-panel-item-selected-background-color);
+      border: 3px solid var(--tertiary-panel-item-selected-border-color);
     }
     .#{$treePrefixCls}-node-content-wrapper {
       display: inline-block;
