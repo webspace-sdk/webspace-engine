@@ -172,11 +172,12 @@ $xsmall-text-bold-weight: $text-2-weight;
   --text-input-text-weight: #{$text-1-weight};
   --canvas-overlay-text-color: #{$neutral-11};
   --canvas-overlay-text-size: #{$text-3-size};
+  --canvas-overlay-secondary-text-weight: #{$text-1-weight};
   --canvas-overlay-secondary-text-size: #{$text-3-size};
   --canvas-overlay-tertiary-text-size: #{$text-2-size};
   --canvas-overlay-item-text-weight: #{$text-2-weight};
   --canvas-overlay-item-secondary-text-weight: #{$text-1-weight};
   --canvas-overlay-item-hover-background-color: #{$primary-4}60;
   --canvas-overlay-item-active-background-color: #{$primary-3}60;
-  --key-label-font: 700 14px "Raleway", monospace;
+  --key-label-font: 600 13px "Raleway", monospace;
 }

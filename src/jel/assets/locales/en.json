@@ -25,6 +25,7 @@
   "presence-list.go-to-world": "Go To World",
   "key-tips.space": "Space",
   "key-tips.shift": "Shift",
+  "key-tips.chat": "Chat",
   "key-tips.control": "Control",
   "key-tips.alt": "Alt",
   "key-tips.rotate": "Rotate",
@@ -39,10 +40,16 @@
   "key-tips.remove": "Remove",
   "key-tips.page": "Page",
   "key-tips.expand": "Expand",
-  "key-tips.shrink": "Release",
+  "key-tips.release": "Release",
   "key-tips.run": "Run",
   "key-tips.move": "Move",
   "key-tips.create": "Create",
   "key-tips.pull": "Pull",
-  "key-tips.edit": "Edit"
+  "key-tips.edit": "Edit",
+  "key-tips.scroll": "Scroll",
+  "key-tips.next": "Scroll",
+  "key-tips.hide": "Hide",
+  "key-tips.help": "Help",
+  "key-tips.tab": "Tab",
+  "key-tips.drag": "Drag"
 }

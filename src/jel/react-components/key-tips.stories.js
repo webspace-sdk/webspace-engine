@@ -1,9 +1,25 @@
-import React from "react";
+import React, { useEffect } from "react";
 import sharedStyles from "../assets/stylesheets/shared.scss";
 import classNames from "classnames";
-import KeyTips from "./key-tips";
+import KeyTips, { KEY_TIP_TYPES } from "./key-tips";
+
+let curTipType = -1;
 
 export const IdlePanels = () => {
+  const ref = React.createRef();
+
+  useEffect(
+    () => {
+      const interval = setInterval(() => {
+        curTipType = (curTipType + 1) % KEY_TIP_TYPES.length;
+        ref.current.setAttribute("data-show-tips", KEY_TIP_TYPES[curTipType]);
+      }, 1000);
+
+      return () => clearInterval(interval);
+    },
+    [ref]
+  );
+
   return (
     <div
       className={classNames(sharedStyles.basePanel)}
@@ -15,7 +31,7 @@ export const IdlePanels = () => {
       }}
     >
       <div style={{ position: "absolute", right: 0, bottom: 0 }}>
-        <KeyTips />
+        <KeyTips ref={ref} />
       </div>
     </div>
   );
