@@ -16,6 +16,7 @@ const MEDIA_SEARCH_PATHS = [
 AFRAME.registerSystem("ui-hotkeys", {
   init() {
     this.mediaSearchStore = window.APP.mediaSearchStore;
+    this.store = window.APP.store;
   },
 
   tick: function() {
@@ -29,6 +30,10 @@ AFRAME.registerSystem("ui-hotkeys", {
 
     if (this.userinput.get(paths.actions.focusChatCommand)) {
       this.focusChat("/");
+    }
+
+    if (this.userinput.get(paths.actions.toggleKeyTips)) {
+      this.store.update({ settings: { hideKeyTips: !this.store.state.settings.hideKeyTips } });
     }
 
     if (this.userinput.get(paths.actions.mediaExit)) {

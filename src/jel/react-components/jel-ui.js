@@ -156,8 +156,12 @@ function JelUI(props) {
               }}
             />
           </Top>
-          <KeyTipsWrap>
-            <KeyTips />
+          <KeyTipsWrap
+            onClick={() =>
+              window.APP.store.update({ settings: { hideKeyTips: !window.APP.store.state.settings.hideKeyTips } })
+            }
+          >
+            <KeyTips id="key-tips" />
           </KeyTipsWrap>
         </Wrap>
         <JelSidePanels

@@ -63,7 +63,8 @@ export const SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
-        preferredMicDeviceId: { type: "string" }
+        preferredMicDeviceId: { type: "string" },
+        hideKeyTips: { type: "boolean" }
       }
     },
 

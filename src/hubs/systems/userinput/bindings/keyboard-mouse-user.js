@@ -148,6 +148,15 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
+      src: {
+        value: paths.device.keyboard.key("?")
+      },
+      dest: {
+        value: paths.actions.toggleKeyTips
+      },
+      xform: xforms.rising
+    },
+    {
       src: { value: paths.device.keyboard.key("r") },
       dest: { value: paths.actions.mediaTransformReleaseAction },
       xform: xforms.falling

@@ -27,6 +27,7 @@ paths.actions.toggleUI = "/actions/toggleUI";
 paths.actions.waypointDeltaDistance = "/actions/waypointDeltaDistance";
 paths.actions.focusChat = "/actions/focusChat";
 paths.actions.focusChatCommand = "/actions/focusChatCommand";
+paths.actions.toggleKeyTips = "/actions/toggleKeyTips";
 paths.actions.toggleCamera = "/actions/toggleCamera";
 paths.actions.takeSnapshot = "/actions/takeSnapshot";
 paths.actions.mediaPrimaryAction = "/actions/mediaPrimaryAction";

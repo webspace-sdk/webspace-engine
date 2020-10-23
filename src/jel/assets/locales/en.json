@@ -26,7 +26,7 @@
   "key-tips.space": "Space",
   "key-tips.shift": "Shift",
   "key-tips.chat": "Chat",
-  "key-tips.control": "Control",
+  "key-tips.control": "Ctrl",
   "key-tips.alt": "Alt",
   "key-tips.rotate": "Rotate",
   "key-tips.scale": "Scale",
@@ -39,8 +39,8 @@
   "key-tips.volume": "Volume",
   "key-tips.remove": "Remove",
   "key-tips.page": "Page",
-  "key-tips.expand": "Expand",
-  "key-tips.release": "Release",
+  "key-tips.expand": "Widen",
+  "key-tips.release": "Narrow",
   "key-tips.run": "Run",
   "key-tips.move": "Move",
   "key-tips.create": "Create",
@@ -51,5 +51,10 @@
   "key-tips.hide": "Hide",
   "key-tips.help": "Help",
   "key-tips.tab": "Tab",
-  "key-tips.drag": "Drag"
+  "key-tips.drag": "Drag",
+  "key-tips.look": "Look",
+  "key-tips.rightdrag": "Right Drag",
+  "key-tips.orbit": "Orbit",
+  "key-tips.escape": "ESC",
+  "key-tips.or": "or"
 }

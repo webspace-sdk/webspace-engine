@@ -24,11 +24,19 @@ const KeyTipItem = styled.div`
   margin: 6px 0;
 `;
 
-const KeyLabels = styled.div`
+const KeyTipButton = styled.button`
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
   align-items: center;
+  margin: 6px 0;
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  background: transparent;
+  border: 0;
+  text-align: left;
 `;
 
 const LetterKey = styled.div`
@@ -62,6 +70,7 @@ const NamedKey = styled.div`
   box-shadow: inset 0px 1px 3px rgba(32, 32, 32, 0.6);
   backdrop-filter: blur(2px);
   font: var(--key-label-font);
+  white-space: nowrap;
 `;
 
 const WideNamedKey = styled.div`
@@ -89,6 +98,14 @@ const TipLabel = styled.div`
   margin-left: 16px;
 `;
 
+const KeyWideSeparator = styled.div`
+  margin: 0px 12px;
+  font-weight: var(--canvas-overlay-item-text-weight);
+  color: var(--canvas-overlay-text-color);
+  font-size: var(--canvas-overlay-tertiary-text-size);
+  text-shadow: 0px 0px 4px var(--menu-shadow-color);
+`;
+
 const KeySeparator = styled.div`
   margin: 0px 6px;
   font-weight: var(--canvas-overlay-item-text-weight);
@@ -106,6 +123,7 @@ const KeySmallSeparator = styled.div`
 `;
 
 const objectCommonTips = [
+  ["move", "G"],
   ["rotate", "r"],
   ["scale", "v"],
   ["focus", "f"],
@@ -116,16 +134,32 @@ const objectCommonTips = [
 
 const TIP_DATA = {
   closed: [["help", "?"]],
-  idle_panels: [["move", "w a s d"], ["run", "H"], ["chat", "S"], ["expand", "H+S"], ["create", "/"], ["hide", "?"]],
-  idle_full: [["move", "w a s d"], ["run", "H"], ["chat", "S"], ["release", "H+S"], ["create", "/"], ["hide", "?"]],
+  idle_panels: [
+    ["move", "w a s d"],
+    ["run", "H"],
+    ["look", "I"],
+    ["chat", "S"],
+    ["expand", "H+S"],
+    ["create", "L+V|/"],
+    ["hide", "?"]
+  ],
+  idle_full: [
+    ["move", "w a s d"],
+    ["run", "H"],
+    ["chat", "S"],
+    ["release", "[|H+S"],
+    ["create", "L+V|/"],
+    ["hide", "?"]
+  ],
   holding_interactable: [["pull", "R"], ["scale", "H+R"]],
   hover_interactable: objectCommonTips,
-  video_playing: [["play", "S"], ["seek", "q|e"], ["volume", "t|g"], ...objectCommonTips],
-  video_paused: [["pause", "S"], ["seek", "q|e"], ["volume", "t|g"], ...objectCommonTips],
-  pdf: [["next", "S"], ["page", "q|e"], ...objectCommonTips],
-  text: [["edit", "T"], ...objectCommonTips],
+  video_playing: [["pause", "S"], ["seek", "q\\e"], ["volume", "t\\g"], ...objectCommonTips],
+  video_paused: [["play", "S"], ["seek", "q\\e"], ["volume", "t\\g"], ...objectCommonTips],
+  pdf: [["next", "S"], ["page", "q\\e"], ...objectCommonTips],
+  text: [["edit", "T"], ...objectCommonTips.filter(t => t[0] !== "bake" && t[0] !== "clone")], // TODO bake text, clone text
   rotate: [["rotate", "G"]],
-  scale: [["scale", "G"]]
+  scale: [["scale", "G"]],
+  focus: [["orbit", "I"]]
 };
 
 const KEY_TIP_TYPES = Object.keys(TIP_DATA);
@@ -170,26 +204,49 @@ const itemForData = ([label, keys]) => {
           <FormattedMessage id="key-tips.drag" />
         </NamedKey>
       );
+    } else if (key === "I") {
+      els.push(
+        <NamedKey key={key}>
+          <FormattedMessage id="key-tips.rightdrag" />
+        </NamedKey>
+      );
+    } else if (key === "[") {
+      els.push(
+        <NamedKey key={key}>
+          <FormattedMessage id="key-tips.escape" />
+        </NamedKey>
+      );
+    } else if (key === "L") {
+      els.push(
+        <NamedKey key={key}>
+          <FormattedMessage id="key-tips.control" />
+        </NamedKey>
+      );
     } else if (key === " ") {
       els.push(<KeySeparator key={key} />);
-    } else if (key === "+") {
-      els.push(<KeySmallSeparator key={key}>+</KeySmallSeparator>);
     } else if (key === "|") {
-      els.push(<KeySeparator key={key}>/</KeySeparator>);
+      els.push(
+        <KeyWideSeparator key={key}>
+          <FormattedMessage id="key-tips.or" />
+        </KeyWideSeparator>
+      );
+    } else if (key === "+") {
+      els.push(<KeySmallSeparator key={key}>{key}</KeySmallSeparator>);
     } else if (key === ",") {
-      els.push(<KeySeparator key={key}>,</KeySeparator>);
+      els.push(<KeySeparator key={key}>{key}</KeySeparator>);
+    } else if (key === "\\") {
+      els.push(<KeySeparator key={key}>/</KeySeparator>);
     } else {
       els.push(<LetterKey key={key}>{key}</LetterKey>);
     }
     return els;
   });
 
-  return (
-    <KeyTipItem key={label}>
-      {keyLabels}
-      {tipLabel}
-    </KeyTipItem>
-  );
+  // Allow clicking on help item
+  const style = label === "help" || label === "hide" ? { pointerEvents: "auto" } : null;
+  const component = label === "help" || label === "hide" ? KeyTipButton : KeyTipItem;
+
+  return React.createElement(component, { key: label, style: style }, [keyLabels, tipLabel]);
 };
 
 const genTips = tips => {
@@ -216,7 +273,11 @@ const KeyTipChooser = styled.div`
 `;
 
 const KeyTips = forwardRef((props, ref) => {
-  return <KeyTipChooser ref={ref}>{[...Object.keys(TIP_DATA)].map(genTips)}</KeyTipChooser>;
+  return (
+    <KeyTipChooser {...props} ref={ref}>
+      {[...Object.keys(TIP_DATA)].map(genTips)}
+    </KeyTipChooser>
+  );
 });
 
 KeyTips.displayName = "KeyTips";

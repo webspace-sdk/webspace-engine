@@ -297,6 +297,10 @@ export class CameraSystem {
     }
   }
 
+  isInAvatarView() {
+    return this.mode !== CAMERA_MODE_INSPECT && this.mode !== CAMERA_MODE_SCENE_PREVIEW;
+  }
+
   showEverythingAsNormal() {
     if (this.inspected) {
       this.inspected.traverse(disableInspectLayer);
