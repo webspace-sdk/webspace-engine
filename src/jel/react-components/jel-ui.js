@@ -12,6 +12,7 @@ import HubRenamePopup from "./hub-rename-popup";
 import HubContextMenu from "./hub-context-menu";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
+import KeyTips from "./key-tips";
 
 const Wrap = styled.div`
   pointer-events: none;
@@ -21,7 +22,13 @@ const Wrap = styled.div`
   width: calc(100% - var(--scene-right) - var(--scene-left));
   position: fixed;
   z-index: 4;
-  background: linear-gradient(180deg, rgba(64, 64, 64, 0.4) 0%, rgba(32, 32, 32, 0) 128px);
+  background: linear-gradient(
+    180deg,
+    rgba(64, 64, 64, 0.4) 0%,
+    rgba(32, 32, 32, 0) 128px,
+    rgba(32, 32, 32, 0) calc(100% - 500px),
+    rgba(64, 64, 64, 0.4) 100%
+  );
   display: flex;
   flex-direction: column;
 `;
@@ -77,6 +84,12 @@ const HubContextButton = forwardRef((props, ref) => {
     </HubContextButtonElement>
   );
 });
+
+const KeyTipsWrap = styled.div`
+  position: absolute;
+  bottom: 0;
+  right: 0;
+`;
 
 HubContextButton.displayName = "HubContextButton";
 
@@ -143,6 +156,9 @@ function JelUI(props) {
               }}
             />
           </Top>
+          <KeyTipsWrap>
+            <KeyTips />
+          </KeyTipsWrap>
         </Wrap>
         <JelSidePanels
           {...props}
