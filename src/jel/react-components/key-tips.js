@@ -138,17 +138,17 @@ const TIP_DATA = {
     ["move", "w a s d"],
     ["run", "H"],
     ["look", "I"],
-    ["chat", "S"],
-    ["expand", "H+S"],
     ["create", "L+V|/"],
+    ["chat", "S"],
+    ["widen", "H+S"],
     ["hide", "?"]
   ],
   idle_full: [
     ["move", "w a s d"],
     ["run", "H"],
-    ["chat", "S"],
-    ["release", "[|H+S"],
     ["create", "L+V|/"],
+    ["chat", "S"],
+    ["narrow", "[|H+S"],
     ["hide", "?"]
   ],
   holding_interactable: [["pull", "R"], ["scale", "H+R"]],
@@ -159,7 +159,8 @@ const TIP_DATA = {
   text: [["edit", "T"], ...objectCommonTips.filter(t => t[0] !== "bake" && t[0] !== "clone")], // TODO bake text, clone text
   rotate: [["rotate", "G"]],
   scale: [["scale", "G"]],
-  focus: [["orbit", "I"]]
+  focus_full: [["orbit", "G"]],
+  focus_panels: [["orbit", "I"]]
 };
 
 const KEY_TIP_TYPES = Object.keys(TIP_DATA);

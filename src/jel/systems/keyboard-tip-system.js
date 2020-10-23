@@ -56,7 +56,7 @@ export class KeyboardTipSystem {
           }
         }
       } else {
-        showTips = "focus";
+        showTips = document.pointerLockElement ? "focus_full" : "focus_panels";
       }
     } else {
       showTips = "closed";
