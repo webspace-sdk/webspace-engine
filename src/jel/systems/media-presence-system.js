@@ -1,4 +1,4 @@
-import { takeOwnership, getNetworkId, getNetworkedEntity } from "../utils/ownership-utils";
+import { ensureOwnership, getNetworkId, getNetworkedEntity } from "../utils/ownership-utils";
 import { MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 
 const MAX_CONCURRENT_TRANSITIONS = 4;
@@ -10,7 +10,7 @@ AFRAME.registerComponent("shared-media", {
   },
 
   setActiveLayer(mediaLayer) {
-    if (!takeOwnership(this.el)) return;
+    if (!ensureOwnership(this.el)) return;
     this.el.setAttribute("shared-media", {
       activeMediaLayers: 0x1 << mediaLayer,
       selectedMediaLayer: mediaLayer
@@ -84,6 +84,15 @@ export class MediaPresenceSystem {
     }
 
     return el.components["shared-media"].data.activeMediaLayers;
+  }
+
+  setActiveLayer(mediaLayer) {
+    const el = document.querySelector("[shared-media]");
+    if (!el) {
+      console.warn("Trying to get active media layers but no media presenting space entity in scene.");
+    }
+
+    el.components["shared-media"].setActiveLayer(mediaLayer);
   }
 
   isMediaLayerActive(mediaLayer) {
