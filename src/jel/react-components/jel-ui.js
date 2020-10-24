@@ -1,6 +1,7 @@
 import React, { useState, forwardRef } from "react";
 import PropTypes from "prop-types";
 import HubTrail from "./hub-trail";
+import HubPager from "./hub-pager";
 import styled from "styled-components";
 import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../utils/tree-utils";
 import { useHubBoundPopupPopper } from "../utils/popup-utils";
@@ -91,6 +92,12 @@ const KeyTipsWrap = styled.div`
   right: 0;
 `;
 
+const HubPagerWrap = styled.div`
+  position: absolute;
+  bottom: 14px;
+  left: 0;
+`;
+
 HubContextButton.displayName = "HubContextButton";
 
 function JelUI(props) {
@@ -163,6 +170,9 @@ function JelUI(props) {
           >
             <KeyTips id="key-tips" />
           </KeyTipsWrap>
+          <HubPagerWrap>
+            <HubPager page={1} maxPage={9} />
+          </HubPagerWrap>
         </Wrap>
         <JelSidePanels
           {...props}

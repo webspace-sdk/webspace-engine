@@ -23,16 +23,6 @@ const HubTrailElement = styled.div`
   user-select: none;
   pointer-events: auto;
   width: 50%;
-
-  &:hover {
-    .controls {
-      display: flex;
-    }
-
-    .title {
-      flex-basis: calc(100% - 58px);
-    }
-  }
 `;
 
 const HubTrailHubItem = styled.button`
