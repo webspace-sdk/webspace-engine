@@ -13,7 +13,6 @@ const togglePenWithEsc = "/vars/mouse-and-keyboard/drop_pen_with_esc";
 const togglePenWithHud = "/vars/mouse-and-keyboard/drop_pen_with_hud";
 const togglePen = "/vars/mouse-and-keyboard/togglePen";
 const startInspectingViaKeyboard = "/vars/mouse-and-keyboard/startInspectingViaKeyboard";
-const stopInspectingViaMouse = "/vars/mouse-and-keyboard/stopInspectingViaMouse";
 const stopInspectingViaKeyboardEscape = "/vars/mouse-and-keyboard/stopInspectingViaKeyboardEscape";
 const stopInspectingViaKeyboardFocusRelease = "/vars/mouse-and-keyboard/stopInspectingViaKeyboardFocusRelease";
 
@@ -692,13 +691,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.falling
     },
     {
-      src: { value: paths.device.mouse.buttonRight },
-      dest: { value: stopInspectingViaMouse },
-      xform: xforms.falling,
-      priority: 101
-    },
-    {
-      src: [stopInspectingViaMouse, stopInspectingViaKeyboardEscape, stopInspectingViaKeyboardFocusRelease],
+      src: [stopInspectingViaKeyboardEscape, stopInspectingViaKeyboardFocusRelease],
       dest: { value: paths.actions.stopInspecting },
       xform: xforms.any
     }

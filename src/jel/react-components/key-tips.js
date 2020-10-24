@@ -159,8 +159,8 @@ const TIP_DATA = {
   text: [["edit", "T"], ...objectCommonTips.filter(t => t[0] !== "bake" && t[0] !== "clone")], // TODO bake text, clone text
   rotate: [["rotate", "G"]],
   scale: [["scale", "G"]],
-  focus_full: [["orbit", "G"]],
-  focus_panels: [["orbit", "I"]]
+  focus_full: [["orbit", "G"], ["zoom", "R"]],
+  focus_panels: [["orbit", "I"], ["zoom", "R"]]
 };
 
 const KEY_TIP_TYPES = Object.keys(TIP_DATA);
