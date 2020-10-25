@@ -18,14 +18,20 @@ AFRAME.registerComponent("shared-media", {
   },
 
   update(oldData) {
-    if (oldData.activeMediaLayers !== this.data.activeMediaLayers) {
-      const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
 
+    if (oldData.activeMediaLayers !== this.data.activeMediaLayers) {
       for (const entity of Object.values(SAF.entities.entities)) {
         if (entity.components["media-loader"]) {
           mediaPresenceSystem.updateDesiredMediaPresence(entity);
         }
       }
+    }
+
+    if (oldData.selectedMediaLayer !== this.data.selectedMediaLayer) {
+      this.el.sceneEl.emit("scene_selected_media_layer_changed", {
+        selectedMediaLayer: this.data.selectedMediaLayer
+      });
     }
   }
 });
@@ -84,6 +90,16 @@ export class MediaPresenceSystem {
     }
 
     return el.components["shared-media"].data.activeMediaLayers;
+  }
+
+  getSelectedMediaLayer() {
+    const el = document.querySelector("[shared-media]");
+    if (!el) {
+      console.warn("Trying to get seleced media layers but no media presenting space entity in scene.");
+      return 0;
+    }
+
+    return el.components["shared-media"].data.selectedMediaLayer;
   }
 
   setActiveLayer(mediaLayer) {

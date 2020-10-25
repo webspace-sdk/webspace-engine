@@ -101,7 +101,7 @@ const HubPagerWrap = styled.div`
 HubContextButton.displayName = "HubContextButton";
 
 function JelUI(props) {
-  const { treeManager, history, spaceCan, hubCan, hub, memberships } = props;
+  const { scene, selectedMediaLayer, treeManager, history, spaceCan, hubCan, hub, memberships } = props;
   const tree = treeManager && treeManager.sharedNav;
   const spaceChannel = window.APP.spaceChannel;
   const hubMetadata = tree && tree.atomMetadata;
@@ -171,7 +171,11 @@ function JelUI(props) {
             <KeyTips id="key-tips" />
           </KeyTipsWrap>
           <HubPagerWrap>
-            <HubPager page={1} maxPage={9} />
+            <HubPager
+              page={selectedMediaLayer + 1}
+              maxPage={8}
+              onPageChanged={newPage => scene.systems["hubs-systems"].mediaPresenceSystem.setActiveLayer(newPage - 1)}
+            />
           </HubPagerWrap>
         </Wrap>
         <JelSidePanels
@@ -228,6 +232,7 @@ JelUI.propTypes = {
   hubCan: PropTypes.func,
   scene: PropTypes.object,
   spacePresences: PropTypes.object,
+  selectedMediaLayer: PropTypes.number,
   //sessionId: PropTypes.string,
   spaceId: PropTypes.string,
   memberships: PropTypes.array

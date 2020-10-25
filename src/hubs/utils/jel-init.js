@@ -187,8 +187,11 @@ const createHubChannelParams = () => {
 //};
 
 function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
+  const scene = document.querySelector("a-scene");
+  const mediaPresenceSystem = scene.systems["hubs-systems"].mediaPresenceSystem;
+  const selectedMediaLayer = mediaPresenceSystem.getSelectedMediaLayer();
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
-  remountJelUI({ hub });
+  remountJelUI({ hub, selectedMediaLayer });
 }
 
 const initSpacePresence = (presence, socket, remountUI, remountJelUI, addToPresenceLog) => {
@@ -527,11 +530,6 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
         const adapter = NAF.connection.adapter;
         adapter.reliableTransport = hubChannel.sendReliableNAF.bind(hubChannel);
         adapter.unreliableTransport = hubChannel.sendUnreliableNAF.bind(hubChannel);
-
-        remountUI({
-          hubIsBound: data.hub_requires_oauth,
-          initialIsFavorited: data.subscriptions.favorites
-        });
 
         if (isInitialJoin) {
           await initHubPresence(presence, remountUI, remountJelUI);

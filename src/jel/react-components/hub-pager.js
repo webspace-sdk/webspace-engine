@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import { FormattedMessage } from "react-intl";
 import styled from "styled-components";
 import nextPageIconSrc from "../assets/images/icons/next-page.svgi";
 import prevPageIconSrc from "../assets/images/icons/prev-page.svgi";
-import { getMessages } from "../../hubs/utils/i18n";
 
 const HubPagerElement = styled.div`
   display: flex;
@@ -97,43 +96,36 @@ const HubPagerPageButtonIcon = styled.div`
 `;
 
 export default function HubPager({ page, maxPage, onPageChanged }) {
-  const [currentPage, setCurrentPage] = useState(page);
-
-  useEffect(() => setCurrentPage(page), [page]);
-  const messages = getMessages();
-
   return (
     <HubPagerElement>
       <HubPagerPageButton
         onClick={e => {
           e.preventDefault();
 
-          const newPage = Math.max(1, currentPage - 1);
+          const newPage = Math.max(1, page - 1);
 
-          if (currentPage !== newPage) {
-            setCurrentPage(newPage);
+          if (page !== newPage) {
             if (onPageChanged) onPageChanged(newPage);
           }
         }}
-        disabled={currentPage === 1}
+        disabled={page === 1}
       >
         <HubPagerPageButtonIcon dangerouslySetInnerHTML={{ __html: prevPageIconSrc }} />
       </HubPagerPageButton>
       <HubPagerPage>
-        <FormattedMessage id="hub-pager.page" />&nbsp;{currentPage}
+        <FormattedMessage id="hub-pager.layer" />&nbsp;{page}
       </HubPagerPage>
       <HubPagerPageButton
         onClick={e => {
           e.preventDefault();
 
-          const newPage = Math.min(maxPage, currentPage + 1);
+          const newPage = Math.min(maxPage, page + 1);
 
-          if (currentPage !== newPage) {
-            setCurrentPage(newPage);
+          if (page !== newPage) {
             if (onPageChanged) onPageChanged(newPage);
           }
         }}
-        disabled={currentPage === maxPage}
+        disabled={page === maxPage}
       >
         <HubPagerPageButtonIcon dangerouslySetInnerHTML={{ __html: nextPageIconSrc }} />
       </HubPagerPageButton>
