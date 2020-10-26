@@ -1476,7 +1476,6 @@ AFRAME.registerComponent("media-pdf", {
     try {
       if (this.mesh) {
         this.mesh.visible = false;
-        await this.disposePdfEngine();
       }
     } finally {
       mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
