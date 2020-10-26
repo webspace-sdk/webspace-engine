@@ -13,7 +13,7 @@
 @import '~quill/dist/quill.snow.css';
 
 :root {
-  // CSS vars for laying out side panels + primary scene view, mutated by UIAnimationSystem
+  // CSS vars for laying out side panels. Center canvas and UI are laid out in UIAnimationSystem
   --nav-width: 300px;
   --presence-width: 200px;
 }
