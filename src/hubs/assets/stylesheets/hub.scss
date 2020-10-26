@@ -16,20 +16,21 @@
   // CSS vars for laying out side panels + primary scene view, mutated by UIAnimationSystem
   --nav-width: 300px;
   --presence-width: 200px;
-  --scene-left: 300px;
-  --scene-right: 200px;
 }
 
 body {
   background-color: var(--loading-background-color);
 
   a-scene {
+    --scene-left: 300px;
+    --scene-right: 200px;
+
     height: 100%;
     top: 0;
-    left: var(--scene-left);
-    width: calc(100% - var(--scene-right) - var(--scene-left));
     position: fixed;
     z-index: 3;
+    left: var(--scene-left);
+    width: calc(100% - var(--scene-right) - var(--scene-left));
   }
 
   #jel-popup-root {

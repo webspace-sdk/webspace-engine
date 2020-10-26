@@ -7,7 +7,7 @@ export const PANEL_EXPANSION_STATES = {
 
 const DEFAULT_NAV_PANEL_WIDTH = 400;
 const DEFAULT_PRESENCE_PANEL_WIDTH = 220;
-const PANEL_EXPAND_DURATION_MS = 250;
+export const PANEL_EXPAND_DURATION_MS = 150;
 
 import BezierEasing from "bezier-easing";
 const panelExpandStep = BezierEasing(0.12, 0.98, 0.18, 0.98);
@@ -79,7 +79,10 @@ export class UIAnimationSystem {
       this.sceneLeft = sceneLeft;
       this.sceneRight = sceneRight;
       this.applySceneSize();
-      this.sceneEl.resize();
+
+      const width = document.body.clientWidth - sceneLeft - sceneRight;
+      this.sceneEl.camera.aspect = width / this.sceneEl.canvas.height;
+      this.sceneEl.camera.updateProjectionMatrix();
     } else {
       let finished = false;
 
@@ -92,13 +95,19 @@ export class UIAnimationSystem {
       }
 
       if (finished) {
+        this.sceneEl.resize();
         this.sceneEl.emit("animated_resize_complete");
       }
     }
   }
 
   applySceneSize() {
-    document.documentElement.style.setProperty("--scene-left", `${this.sceneLeft}px`);
-    document.documentElement.style.setProperty("--scene-right", `${this.sceneRight}px`);
+    const scene = document.querySelector("a-scene");
+    const uiWrap = document.querySelector("#jel-ui-wrap");
+
+    scene.style.setProperty("--scene-left", `${this.sceneLeft}px`);
+    scene.style.setProperty("--scene-right", `${this.sceneRight}px`);
+    uiWrap.style.setProperty("--scene-left", `${this.sceneLeft}px`);
+    uiWrap.style.setProperty("--scene-right", `${this.sceneRight}px`);
   }
 }

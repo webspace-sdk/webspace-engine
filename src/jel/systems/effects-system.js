@@ -10,15 +10,7 @@ AFRAME.registerSystem("effects", {
 
     window.addEventListener("resize", () => (this.updateComposer = true));
 
-    this.el.addEventListener("animated_resize_started", () => {
-      // Speed up framerate while resizing by disabling FXAA and copy passes
-      this.ssaoPass.enableFXAA = false;
-    });
-
-    this.el.addEventListener("animated_resize_complete", () => {
-      this.ssaoPass.enableFXAA = true;
-      this.updateComposer = true;
-    });
+    this.el.addEventListener("animated_resize_complete", () => (this.updateComposer = true));
 
     this.updateComposer = true;
   },

@@ -18,14 +18,13 @@ import HubContextMenu from "./hub-context-menu";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
+import { PANEL_EXPAND_DURATION_MS } from "../systems/ui-animation-system";
 import KeyTips from "./key-tips";
 
 const Wrap = styled.div`
   pointer-events: none;
   height: 100%;
   top: 0;
-  left: var(--scene-left);
-  width: calc(100% - var(--scene-right) - var(--scene-left));
   position: fixed;
   z-index: 4;
   background: linear-gradient(
@@ -37,6 +36,11 @@ const Wrap = styled.div`
   );
   display: flex;
   flex-direction: column;
+
+  --scene-left: 300px;
+  --scene-right: 200px;
+  left: var(--scene-left);
+  width: calc(100% - var(--scene-right) - var(--scene-left));
 `;
 
 const Top = styled.div`
@@ -114,11 +118,23 @@ HubContextButton.displayName = "HubContextButton";
 function useSetFullScreenOnPointerLock(setIsFullScreen) {
   useEffect(
     () => {
-      const handlePointerLockChange = () => setIsFullScreen(!!document.pointerLockElement);
+      let timeout;
+      const handlePointerLockChange = () => {
+        if (timeout) {
+          clearTimeout(timeout);
+        }
 
-      handlePointerLockChange();
+        timeout = setTimeout(() => setIsFullScreen(!!document.pointerLockElement), PANEL_EXPAND_DURATION_MS + 20);
+      };
+
+      setIsFullScreen(!!document.pointerLockElement);
       document.addEventListener("pointerlockchange", handlePointerLockChange);
-      return () => document.removeEventListener("pointerlockchange", handlePointerLockChange);
+      return () => {
+        if (timeout) {
+          clearTimeout(timeout);
+        }
+        document.removeEventListener("pointerlockchange", handlePointerLockChange);
+      };
     },
     [setIsFullScreen]
   );
@@ -167,7 +183,7 @@ function JelUI(props) {
   return (
     <WrappedIntlProvider>
       <div>
-        <Wrap>
+        <Wrap id="jel-ui-wrap">
           <Top>
             {hubMetadata && (
               <HubTrail

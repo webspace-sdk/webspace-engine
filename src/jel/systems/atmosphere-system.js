@@ -19,6 +19,14 @@ export class AtmosphereSystem {
       this.viewingCameraEl = document.getElementById("viewing-camera");
     });
 
+    sceneEl.addEventListener("animated_resize_started", () => {
+      this.disableExtraPasses = true;
+    });
+
+    sceneEl.addEventListener("animated_resize_complete", () => {
+      this.disableExtraPasses = false;
+    });
+
     this.renderer = sceneEl.renderer;
     this.renderer.outputEncoding = THREE.sRGBEncoding;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -29,6 +37,7 @@ export class AtmosphereSystem {
     this.renderer.antialias = false;
     this.renderer.stencil = true;
     this.renderer.powerPreference = "high-performance";
+    this.disableExtraPasses = false;
 
     this.ambientLight = new THREE.AmbientLight(0x808080);
     this.ambientLight.layers.enable(Layers.reflection);
@@ -109,27 +118,32 @@ export class AtmosphereSystem {
     this.water.onAnimationTick({ delta: dt / 1000.0 });
     this.effectsSystem.disableEffects = false;
 
-    // Update shadows or water each frame, but not both.
-    if (this.waterNeedsUpdate && this.shadowsNeedsUpdate) {
-      if (this.rateLimitUpdates) {
-        if (this.frame % 2 == 0) {
-          this.renderer.shadowMap.needsUpdate = true;
-          this.shadowsNeedsUpdate = false;
+    if (!this.disableExtraPasses) {
+      // Update shadows or water each frame, but not both.
+      if (this.waterNeedsUpdate && this.shadowsNeedsUpdate) {
+        if (this.rateLimitUpdates) {
+          if (this.frame % 2 == 0) {
+            this.renderer.shadowMap.needsUpdate = true;
+            this.shadowsNeedsUpdate = false;
+          } else {
+            this.water.needsUpdate = true;
+            this.waterNeedsUpdate = false;
+          }
         } else {
           this.water.needsUpdate = true;
-          this.waterNeedsUpdate = false;
+          this.renderer.shadowMap.needsUpdate = true;
+          this.rateLimitUpdates = false;
         }
-      } else {
+      } else if (this.waterNeedsUpdate) {
         this.water.needsUpdate = true;
+        this.waterNeedsUpdate = false;
+      } else if (this.shadowsNeedsUpdate) {
         this.renderer.shadowMap.needsUpdate = true;
-        this.rateLimitUpdates = false;
+        this.shadowsNeedsUpdate = false;
       }
-    } else if (this.waterNeedsUpdate) {
-      this.water.needsUpdate = true;
-      this.waterNeedsUpdate = false;
-    } else if (this.shadowsNeedsUpdate) {
-      this.renderer.shadowMap.needsUpdate = true;
-      this.shadowsNeedsUpdate = false;
+    } else {
+      this.water.needsUpdate = false;
+      this.renderer.shadowMap.needsUpdate = false;
     }
   }
 

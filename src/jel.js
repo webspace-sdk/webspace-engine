@@ -561,7 +561,7 @@ function setupSidePanelLayout(scene) {
         const w = Math.min(max, Math.max(min, xToWidth(e.clientX)));
 
         for (let i = 0; i < cssVars.length; i++) {
-          document.documentElement.style.setProperty(`--${cssVars[i]}`, `${w}px`);
+          document.querySelector(cssVars[i][0]).style.setProperty(`--${cssVars[i][1]}`, `${w}px`);
         }
 
         scene.resize();
@@ -577,7 +577,7 @@ function setupSidePanelLayout(scene) {
 
   handleSidebarResizerDrag(
     "#nav-drag-target",
-    ["nav-width", "scene-left"],
+    [["body", "nav-width"], ["a-scene", "scene-left"], ["#jel-ui-wrap", "scene-left"]],
     400,
     600,
     x => x,
@@ -586,7 +586,7 @@ function setupSidePanelLayout(scene) {
 
   handleSidebarResizerDrag(
     "#presence-drag-target",
-    ["presence-width", "scene-right"],
+    [["body", "presence-width"], ["a-scene", "scene-right"], ["#jel-ui-wrap", "scene-right"]],
     220,
     300,
     x => window.innerWidth - x,
