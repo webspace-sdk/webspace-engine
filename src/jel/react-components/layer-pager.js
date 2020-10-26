@@ -94,40 +94,44 @@ const LayerPagerPageButtonIcon = styled.div`
   height: 12px;
 `;
 
-export default function LayerPager({ page, maxPage, onPageChanged }) {
+export default function LayerPager({ page, maxPage, onPageChanged, showButtons }) {
   return (
     <LayerPagerElement>
-      <LayerPagerPageButton
-        onClick={e => {
-          e.preventDefault();
+      {showButtons && (
+        <LayerPagerPageButton
+          onClick={e => {
+            e.preventDefault();
 
-          const newPage = Math.max(1, page - 1);
+            const newPage = Math.max(1, page - 1);
 
-          if (page !== newPage) {
-            if (onPageChanged) onPageChanged(newPage);
-          }
-        }}
-        className={page === 1 ? "disabled-page-button" : ""}
-      >
-        <LayerPagerPageButtonIcon dangerouslySetInnerHTML={{ __html: prevPageIconSrc }} />
-      </LayerPagerPageButton>
+            if (page !== newPage) {
+              if (onPageChanged) onPageChanged(newPage);
+            }
+          }}
+          className={page === 1 ? "disabled-page-button" : ""}
+        >
+          <LayerPagerPageButtonIcon dangerouslySetInnerHTML={{ __html: prevPageIconSrc }} />
+        </LayerPagerPageButton>
+      )}
       <LayerPagerPage>
         <FormattedMessage id="hub-pager.layer" />&nbsp;{page}
       </LayerPagerPage>
-      <LayerPagerPageButton
-        onClick={e => {
-          e.preventDefault();
+      {showButtons && (
+        <LayerPagerPageButton
+          onClick={e => {
+            e.preventDefault();
 
-          const newPage = Math.min(maxPage, page + 1);
+            const newPage = Math.min(maxPage, page + 1);
 
-          if (page !== newPage) {
-            if (onPageChanged) onPageChanged(newPage);
-          }
-        }}
-        className={page === maxPage ? "disabled-page-button" : ""}
-      >
-        <LayerPagerPageButtonIcon dangerouslySetInnerHTML={{ __html: nextPageIconSrc }} />
-      </LayerPagerPageButton>
+            if (page !== newPage) {
+              if (onPageChanged) onPageChanged(newPage);
+            }
+          }}
+          className={page === maxPage ? "disabled-page-button" : ""}
+        >
+          <LayerPagerPageButtonIcon dangerouslySetInnerHTML={{ __html: nextPageIconSrc }} />
+        </LayerPagerPageButton>
+      )}
     </LayerPagerElement>
   );
 }
@@ -135,5 +139,6 @@ export default function LayerPager({ page, maxPage, onPageChanged }) {
 LayerPager.propTypes = {
   page: PropTypes.number,
   maxPage: PropTypes.number,
-  onPageChanged: PropTypes.func
+  onPageChanged: PropTypes.func,
+  showButtons: PropTypes.bool
 };

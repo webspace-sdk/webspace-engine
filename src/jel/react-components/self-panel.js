@@ -15,6 +15,7 @@ import sharedStyles from "../assets/stylesheets/shared.scss";
 import { usePopper } from "react-popper";
 import { useSingleton } from "@tippyjs/react";
 import { getMessages } from "../../hubs/utils/i18n";
+import { useSceneMuteState } from "../utils/shared-effects";
 
 const SelfPanelElement = styled.div`
   width: 100%;
@@ -66,27 +67,6 @@ const DeviceControls = styled.div`
   margin-right: 18px;
   flex: 0 0 fit-content;
 `;
-
-const useSceneMuteState = (scene, setMuted) => {
-  useEffect(
-    () => {
-      const onAframeStateChanged = e => {
-        if (e.detail === "muted") {
-          setMuted(scene.is("muted"));
-        }
-      };
-
-      scene.addEventListener("stateadded", onAframeStateChanged);
-      scene.addEventListener("stateremoved", onAframeStateChanged);
-
-      return () => {
-        scene.removeEventListener("stateadded", onAframeStateChanged);
-        scene.removeEventListener("stateremoved", onAframeStateChanged);
-      };
-    },
-    [scene, setMuted]
-  );
-};
 
 const fillMicDevices = async setMicDevices => {
   const devices = await navigator.mediaDevices.enumerateDevices();

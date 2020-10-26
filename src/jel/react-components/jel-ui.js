@@ -1,8 +1,11 @@
-import React, { useState, forwardRef } from "react";
+import React, { useState, useEffect, forwardRef } from "react";
 import PropTypes from "prop-types";
 import HubTrail from "./hub-trail";
 import LayerPager from "./layer-pager";
 import styled from "styled-components";
+import mutedIcon from "../assets/images/icons/mic-muted.svgi";
+import unmutedIcon from "../assets/images/icons/mic-unmuted.svgi";
+import { BigIconButton } from "./icon-button";
 import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../utils/tree-utils";
 import { useHubBoundPopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
@@ -14,6 +17,7 @@ import HubRenamePopup from "./hub-rename-popup";
 import HubContextMenu from "./hub-context-menu";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
+import { useSceneMuteState } from "../utils/shared-effects";
 import KeyTips from "./key-tips";
 
 const Wrap = styled.div`
@@ -93,13 +97,32 @@ const KeyTipsWrap = styled.div`
   right: 0;
 `;
 
-const LayerPagerWrap = styled.div`
+const BottomLeftPanels = styled.div`
   position: absolute;
   bottom: 14px;
   left: 0;
 `;
 
+const DeviceStatuses = styled.div`
+  display: flex;
+  flex-direction: row;
+  margin: 8px 12px;
+`;
+
 HubContextButton.displayName = "HubContextButton";
+
+function useSetFullScreenOnPointerLock(setIsFullScreen) {
+  useEffect(
+    () => {
+      const handlePointerLockChange = () => setIsFullScreen(!!document.pointerLockElement);
+
+      handlePointerLockChange();
+      document.addEventListener("pointerlockchange", handlePointerLockChange);
+      return () => document.removeEventListener("pointerlockchange", handlePointerLockChange);
+    },
+    [setIsFullScreen]
+  );
+}
 
 function JelUI(props) {
   const { scene, selectedMediaLayer, treeManager, history, spaceCan, hubCan, hub, memberships } = props;
@@ -107,6 +130,8 @@ function JelUI(props) {
   const spaceChannel = window.APP.spaceChannel;
   const hubMetadata = tree && tree.atomMetadata;
   const hubTrailHubIds = (tree && hub && tree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [muted, setMuted] = useState(false);
   const [treeData, setTreeData] = useState([]);
   const [treeDataVersion, setTreeDataVersion] = useState(0);
 
@@ -133,6 +158,9 @@ function JelUI(props) {
     popupElement: hubContextMenuElement
   } = useHubBoundPopupPopper();
 
+  useSceneMuteState(scene, setMuted);
+  useSetFullScreenOnPointerLock(setIsFullScreen);
+
   // Consume tree updates so redraws if user manipulates tree
   useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersion);
 
@@ -153,16 +181,18 @@ function JelUI(props) {
                 onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
               />
             )}
-            <HubContextButton
-              ref={hubContextButtonRef}
-              onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
-              onClick={() => {
-                showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
-                  hideRename: true,
-                  toggle: true
-                });
-              }}
-            />
+            {!isFullScreen && (
+              <HubContextButton
+                ref={hubContextButtonRef}
+                onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
+                onClick={() => {
+                  showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
+                    hideRename: true,
+                    toggle: true
+                  });
+                }}
+              />
+            )}
           </Top>
           <KeyTipsWrap
             onClick={() =>
@@ -171,13 +201,19 @@ function JelUI(props) {
           >
             <KeyTips id="key-tips" />
           </KeyTipsWrap>
-          <LayerPagerWrap>
+          <BottomLeftPanels>
+            {isFullScreen && (
+              <DeviceStatuses>
+                <BigIconButton tabIndex={-1} iconSrc={muted ? mutedIcon : unmutedIcon} />
+              </DeviceStatuses>
+            )}
             <LayerPager
+              showButtons={!isFullScreen}
               page={selectedMediaLayer + 1}
               maxPage={MAX_MEDIA_LAYER + 1}
               onPageChanged={newPage => scene.systems["hubs-systems"].mediaPresenceSystem.setActiveLayer(newPage - 1)}
             />
-          </LayerPagerWrap>
+          </BottomLeftPanels>
         </Wrap>
         <JelSidePanels
           {...props}
