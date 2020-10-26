@@ -208,7 +208,7 @@ function JelUI(props) {
               </DeviceStatuses>
             )}
             <LayerPager
-              showButtons={!isFullScreen && hubCan("spawn_and_move_media")}
+              showButtons={!isFullScreen && hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id)}
               page={selectedMediaLayer + 1}
               maxPage={MAX_MEDIA_LAYER + 1}
               onPageChanged={newPage => scene.systems["hubs-systems"].mediaPresenceSystem.setActiveLayer(newPage - 1)}
