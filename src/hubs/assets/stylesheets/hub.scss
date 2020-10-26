@@ -22,15 +22,10 @@ body {
   background-color: var(--loading-background-color);
 
   a-scene {
-    --scene-left: 300px;
-    --scene-right: 200px;
-
     height: 100%;
     top: 0;
     position: fixed;
     z-index: 3;
-    left: var(--scene-left);
-    width: calc(100% - var(--scene-right) - var(--scene-left));
   }
 
   #jel-popup-root {

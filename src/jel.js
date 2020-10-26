@@ -555,16 +555,19 @@ function addGlobalEventListeners(scene, entryManager) {
 }
 
 function setupSidePanelLayout(scene) {
-  const handleSidebarResizerDrag = (selector, cssVars, min, max, xToWidth, storeCallback) => {
+  const handleSidebarResizerDrag = (selector, cssVars, isLeft, min, max, xToWidth, storeCallback) => {
     document.querySelector(selector).addEventListener("mousedown", () => {
       const handleMove = e => {
         const w = Math.min(max, Math.max(min, xToWidth(e.clientX)));
 
         for (let i = 0; i < cssVars.length; i++) {
-          document.querySelector(cssVars[i][0]).style.setProperty(`--${cssVars[i][1]}`, `${w}px`);
+          document.documentElement.style.setProperty(`--${cssVars[i]}`, `${w}px`);
         }
 
+        scene.systems["hubs-systems"].uiAnimationSystem.applySceneSize(isLeft ? w : null, !isLeft ? w : null);
         scene.resize();
+        scene.emit("animated_resize_complete");
+
         storeCallback(w);
         e.preventDefault();
       };
@@ -577,7 +580,8 @@ function setupSidePanelLayout(scene) {
 
   handleSidebarResizerDrag(
     "#nav-drag-target",
-    [["body", "nav-width"], ["a-scene", "scene-left"], ["#jel-ui-wrap", "scene-left"]],
+    ["nav-width"],
+    true,
     400,
     600,
     x => x,
@@ -586,7 +590,8 @@ function setupSidePanelLayout(scene) {
 
   handleSidebarResizerDrag(
     "#presence-drag-target",
-    [["body", "presence-width"], ["a-scene", "scene-right"], ["#jel-ui-wrap", "scene-right"]],
+    ["presence-width"],
+    false,
     220,
     300,
     x => window.innerWidth - x,

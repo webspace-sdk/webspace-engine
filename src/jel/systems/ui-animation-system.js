@@ -7,7 +7,7 @@ export const PANEL_EXPANSION_STATES = {
 
 const DEFAULT_NAV_PANEL_WIDTH = 400;
 const DEFAULT_PRESENCE_PANEL_WIDTH = 220;
-export const PANEL_EXPAND_DURATION_MS = 150;
+export const PANEL_EXPAND_DURATION_MS = 250;
 
 import BezierEasing from "bezier-easing";
 const panelExpandStep = BezierEasing(0.12, 0.98, 0.18, 0.98);
@@ -76,9 +76,7 @@ export class UIAnimationSystem {
     const sceneRight = Math.floor(animT * this.targetSceneRight);
 
     if (sceneLeft !== this.sceneLeft || sceneRight !== this.sceneRight) {
-      this.sceneLeft = sceneLeft;
-      this.sceneRight = sceneRight;
-      this.applySceneSize();
+      this.applySceneSize(sceneLeft, sceneRight);
 
       const width = document.body.clientWidth - sceneLeft - sceneRight;
       this.sceneEl.camera.aspect = width / this.sceneEl.canvas.height;
@@ -101,13 +99,19 @@ export class UIAnimationSystem {
     }
   }
 
-  applySceneSize() {
+  applySceneSize(sceneLeft, sceneRight) {
+    if (sceneLeft !== null) {
+      this.sceneLeft = sceneLeft;
+    }
+
+    if (sceneRight !== null) {
+      this.sceneRight = sceneRight;
+    }
+
     const scene = document.querySelector("a-scene");
     const uiWrap = document.querySelector("#jel-ui-wrap");
 
-    scene.style.setProperty("--scene-left", `${this.sceneLeft}px`);
-    scene.style.setProperty("--scene-right", `${this.sceneRight}px`);
-    uiWrap.style.setProperty("--scene-left", `${this.sceneLeft}px`);
-    uiWrap.style.setProperty("--scene-right", `${this.sceneRight}px`);
+    scene.style.cssText = `left: ${this.sceneLeft}px; width: calc(100% - ${this.sceneRight}px - ${this.sceneLeft}px)`;
+    uiWrap.style.cssText = `left: ${this.sceneLeft}px; width: calc(100% - ${this.sceneRight}px - ${this.sceneLeft}px)`;
   }
 }

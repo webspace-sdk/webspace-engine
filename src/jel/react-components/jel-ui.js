@@ -36,11 +36,6 @@ const Wrap = styled.div`
   );
   display: flex;
   flex-direction: column;
-
-  --scene-left: 300px;
-  --scene-right: 200px;
-  left: var(--scene-left);
-  width: calc(100% - var(--scene-right) - var(--scene-left));
 `;
 
 const Top = styled.div`
