@@ -1,6 +1,7 @@
 import { ensureOwnership, getNetworkId, getNetworkedEntity } from "../utils/ownership-utils";
 import { MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 
+export const MAX_MEDIA_LAYER = 7;
 const MAX_CONCURRENT_TRANSITIONS = 4;
 
 AFRAME.registerComponent("shared-media", {
@@ -109,6 +110,18 @@ export class MediaPresenceSystem {
     }
 
     el.components["shared-media"].setActiveLayer(mediaLayer);
+  }
+
+  selectNextMediaLayer() {
+    const currentSelectedMediaLayer = this.getSelectedMediaLayer();
+    if (currentSelectedMediaLayer >= MAX_MEDIA_LAYER) return;
+    this.setActiveLayer(currentSelectedMediaLayer + 1);
+  }
+
+  selecPreviousMediaLayer() {
+    const currentSelectedMediaLayer = this.getSelectedMediaLayer();
+    if (currentSelectedMediaLayer <= 0) return;
+    this.setActiveLayer(currentSelectedMediaLayer - 1);
   }
 
   isMediaLayerActive(mediaLayer) {

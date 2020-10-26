@@ -1,12 +1,13 @@
 import React, { useState, forwardRef } from "react";
 import PropTypes from "prop-types";
 import HubTrail from "./hub-trail";
-import HubPager from "./hub-pager";
+import LayerPager from "./layer-pager";
 import styled from "styled-components";
 import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../utils/tree-utils";
 import { useHubBoundPopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
+import { MAX_MEDIA_LAYER } from "../systems/media-presence-system";
 import JelSidePanels from "./jel-side-panels";
 import dotsIcon from "../assets/images/icons/dots-horizontal-overlay-shadow.svgi";
 import HubRenamePopup from "./hub-rename-popup";
@@ -92,7 +93,7 @@ const KeyTipsWrap = styled.div`
   right: 0;
 `;
 
-const HubPagerWrap = styled.div`
+const LayerPagerWrap = styled.div`
   position: absolute;
   bottom: 14px;
   left: 0;
@@ -170,13 +171,13 @@ function JelUI(props) {
           >
             <KeyTips id="key-tips" />
           </KeyTipsWrap>
-          <HubPagerWrap>
-            <HubPager
+          <LayerPagerWrap>
+            <LayerPager
               page={selectedMediaLayer + 1}
-              maxPage={8}
+              maxPage={MAX_MEDIA_LAYER + 1}
               onPageChanged={newPage => scene.systems["hubs-systems"].mediaPresenceSystem.setActiveLayer(newPage - 1)}
             />
-          </HubPagerWrap>
+          </LayerPagerWrap>
         </Wrap>
         <JelSidePanels
           {...props}
