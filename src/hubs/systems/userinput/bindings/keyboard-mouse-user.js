@@ -121,25 +121,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
-        bool: paths.device.keyboard.key("control"),
         value: paths.device.keyboard.key("[")
-      },
-      dest: { value: "/var/control+[" },
-      priority: 1001,
-      xform: xforms.copyIfTrue
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("]")
-      },
-      dest: { value: "/var/control+]" },
-      priority: 1001,
-      xform: xforms.copyIfTrue
-    },
-    {
-      src: {
-        value: "/var/control+["
       },
       dest: {
         value: paths.actions.previousMediaLayer
@@ -148,7 +130,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
-        value: "/var/control+]"
+        value: paths.device.keyboard.key("]")
       },
       dest: {
         value: paths.actions.nextMediaLayer
