@@ -63,6 +63,14 @@ AFRAME.registerSystem("ui-hotkeys", {
         this.el.emit("action_toggle_ui");
       }
     }
+
+    if (this.userinput.get(paths.actions.nextMediaLayer)) {
+      this.el.systems["hubs-systems"].mediaPresenceSystem.selectNextMediaLayer();
+    }
+
+    if (this.userinput.get(paths.actions.previousMediaLayer)) {
+      this.el.systems["hubs-systems"].mediaPresenceSystem.selectPreviousMediaLayer();
+    }
   },
 
   focusChat: function(prefix) {

@@ -118,7 +118,7 @@ export class MediaPresenceSystem {
     this.setActiveLayer(currentSelectedMediaLayer + 1);
   }
 
-  selecPreviousMediaLayer() {
+  selectPreviousMediaLayer() {
     const currentSelectedMediaLayer = this.getSelectedMediaLayer();
     if (currentSelectedMediaLayer <= 0) return;
     this.setActiveLayer(currentSelectedMediaLayer - 1);

@@ -1,5 +1,6 @@
 export class KeyboardTipSystem {
   constructor(sceneEl, cameraSystem) {
+    this.scene = sceneEl;
     this.tipsToShow = null;
     this.store = window.APP.store;
     this.interaction = sceneEl.systems.interaction;
@@ -19,44 +20,48 @@ export class KeyboardTipSystem {
     const hidden = this.store.state.settings.hideKeyTips;
 
     if (!hidden) {
-      if (this.cameraSystem.isInAvatarView()) {
-        showTips = document.pointerLockElement ? "idle_full" : "idle_panels";
+      if (this.scene.is("pointer-exited")) {
+        showTips = this.scene.is("muted") ? "pointer_exited_muted" : "pointer_exited_unmuted";
+      } else {
+        if (this.cameraSystem.isInAvatarView()) {
+          showTips = document.pointerLockElement ? "idle_full" : "idle_panels";
 
-        if (this.transformSystem.transforming) {
-          showTips = this.scaleSystem.isScaling ? "scale" : "rotate";
-        } else {
-          const held =
-            this.interaction.state.leftHand.held ||
-            this.interaction.state.rightHand.held ||
-            this.interaction.state.rightRemote.held ||
-            this.interaction.state.leftRemote.held;
-
-          if (held) {
-            showTips = "holding_interactable";
+          if (this.transformSystem.transforming) {
+            showTips = this.scaleSystem.isScaling ? "scale" : "rotate";
           } else {
-            const hovered =
-              this.interaction.state.leftHand.hovered ||
-              this.interaction.state.rightHand.hovered ||
-              this.interaction.state.rightRemote.hovered ||
-              this.interaction.state.leftRemote.hovered;
+            const held =
+              this.interaction.state.leftHand.held ||
+              this.interaction.state.rightHand.held ||
+              this.interaction.state.rightRemote.held ||
+              this.interaction.state.leftRemote.held;
 
-            if (hovered) {
-              const { components } = hovered;
+            if (held) {
+              showTips = "holding_interactable";
+            } else {
+              const hovered =
+                this.interaction.state.leftHand.hovered ||
+                this.interaction.state.rightHand.hovered ||
+                this.interaction.state.rightRemote.hovered ||
+                this.interaction.state.leftRemote.hovered;
 
-              if (components["media-text"]) {
-                showTips = "text";
-              } else if (components["media-video"]) {
-                showTips = components["media-video"].data.videoPaused ? "video_paused" : "video_playing";
-              } else if (components["media-pdf"]) {
-                showTips = "pdf";
-              } else {
-                showTips = "hover_interactable";
+              if (hovered) {
+                const { components } = hovered;
+
+                if (components["media-text"]) {
+                  showTips = "text";
+                } else if (components["media-video"]) {
+                  showTips = components["media-video"].data.videoPaused ? "video_paused" : "video_playing";
+                } else if (components["media-pdf"]) {
+                  showTips = "pdf";
+                } else {
+                  showTips = "hover_interactable";
+                }
               }
             }
           }
+        } else {
+          showTips = document.pointerLockElement ? "focus_full" : "focus_panels";
         }
-      } else {
-        showTips = document.pointerLockElement ? "focus_full" : "focus_panels";
       }
     } else {
       showTips = "closed";

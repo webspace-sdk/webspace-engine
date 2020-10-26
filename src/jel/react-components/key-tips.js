@@ -148,9 +148,11 @@ const TIP_DATA = {
     ["run", "H"],
     ["create", "L+V|/"],
     ["chat", "S"],
-    ["narrow", "[|H+S"],
+    ["narrow", "Z|H+S"],
     ["hide", "?"]
   ],
+  pointer_exited_muted: [["layers", "L+[\\]"], ["unmute", "L+m"], ["hide", "?"]],
+  pointer_exited_unmuted: [["layers", "L+[\\]"], ["mute", "L+m"], ["hide", "?"]],
   holding_interactable: [["pull", "R"], ["scale", "H+R"]],
   hover_interactable: objectCommonTips,
   video_playing: [["pause", "S"], ["seek", "q\\e"], ["volume", "t\\g"], ...objectCommonTips],
@@ -211,7 +213,7 @@ const itemForData = ([label, keys]) => {
           <FormattedMessage id="key-tips.rightdrag" />
         </NamedKey>
       );
-    } else if (key === "[") {
+    } else if (key === "Z") {
       els.push(
         <NamedKey key={key}>
           <FormattedMessage id="key-tips.escape" />

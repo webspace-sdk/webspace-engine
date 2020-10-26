@@ -17,8 +17,8 @@
   "device-selector.mic-inactive": "Unmute to choose microphone.",
   "device-selector.no-mics": "No devices found.",
   "avatar-editor.header": "Edit Avatar",
-  "self.unmute-tip": "Unmute | Ctrl-M",
-  "self.mute-tip": "Mute | Ctrl-M",
+  "self.unmute-tip": "Unmute",
+  "self.mute-tip": "Mute",
   "self.select-tip": "Change Devices",
   "presence-list.this-header": "This World",
   "presence-list.active-header": "Active Worlds",
@@ -58,5 +58,8 @@
   "key-tips.escape": "ESC",
   "key-tips.or": "or",
   "key-tips.zoom": "Zoom",
+  "key-tips.layers": "Layers",
+  "key-tips.mute": "Mute",
+  "key-tips.unmute": "Unmute",
   "hub-pager.layer": "Layer"
 }
