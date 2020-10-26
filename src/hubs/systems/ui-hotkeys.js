@@ -65,10 +65,12 @@ AFRAME.registerSystem("ui-hotkeys", {
     }
 
     if (this.userinput.get(paths.actions.nextMediaLayer)) {
+      if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
       this.el.systems["hubs-systems"].mediaPresenceSystem.selectNextMediaLayer();
     }
 
     if (this.userinput.get(paths.actions.previousMediaLayer)) {
+      if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
       this.el.systems["hubs-systems"].mediaPresenceSystem.selectPreviousMediaLayer();
     }
   },

@@ -121,7 +121,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
-        value: paths.device.keyboard.key("[")
+        value: paths.device.keyboard.key("v")
       },
       dest: {
         value: paths.actions.previousMediaLayer
@@ -130,7 +130,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
-        value: paths.device.keyboard.key("]")
+        value: paths.device.keyboard.key("b")
       },
       dest: {
         value: paths.actions.nextMediaLayer
