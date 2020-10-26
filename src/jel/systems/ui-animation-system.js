@@ -23,6 +23,12 @@ export class UIAnimationSystem {
     this.panelExpandStartT = 0;
     this.setTargetSceneSizes();
 
+    // Hacky, need to apply continuously until react renders DOM.
+    const initialUIApplyInterval = setInterval(() => {
+      if (!this.applyUI(this.targetSceneLeft, this.targetSceneRight)) return;
+      clearInterval(initialUIApplyInterval);
+    }, 250);
+
     // Initialize nav and presence width CSS vars to stored state.
     document.documentElement.style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
     document.documentElement.style.setProperty("--presence-width", `${this.targetSceneRight}px`);
@@ -48,6 +54,13 @@ export class UIAnimationSystem {
     this.panelExpansionState = newState;
     this.setTargetSceneSizes();
     this.panelExpandStartT = this.lastTickT;
+
+    // Pre-emptively re-layout UI since doing it every frame causes FPS drop
+    if (newState === PANEL_EXPANSION_STATES.EXPANDING) {
+      this.applyUI(this.targetSceneLeft, this.targetSceneRight);
+    } else {
+      this.applyUI(0, 0);
+    }
   }
 
   setTargetSceneSizes() {
@@ -99,7 +112,7 @@ export class UIAnimationSystem {
     }
   }
 
-  applySceneSize(sceneLeft, sceneRight) {
+  applySceneSize(sceneLeft, sceneRight, includeUI = false) {
     if (sceneLeft !== null) {
       this.sceneLeft = sceneLeft;
     }
@@ -108,10 +121,23 @@ export class UIAnimationSystem {
       this.sceneRight = sceneRight;
     }
 
-    const scene = document.querySelector("a-scene");
-    const uiWrap = document.querySelector("#jel-ui-wrap");
+    const width = document.body.clientWidth - this.sceneLeft - this.sceneRight;
+    this.sceneEl.style.cssText = `left: ${this.sceneLeft}px; width: ${width}px;`;
 
-    scene.style.cssText = `left: ${this.sceneLeft}px; width: calc(100% - ${this.sceneRight}px - ${this.sceneLeft}px)`;
-    uiWrap.style.cssText = `left: ${this.sceneLeft}px; width: calc(100% - ${this.sceneRight}px - ${this.sceneLeft}px)`;
+    if (includeUI) {
+      this.applyUI(this.sceneLeft, this.sceneRight);
+    }
+  }
+
+  // Returns true if was applied successfully
+  applyUI(left, right) {
+    const width = document.body.clientWidth - left - right;
+    const wrap = document.getElementById("jel-ui-wrap");
+    if (wrap) {
+      wrap.style.cssText = `left: ${left}px; width: ${width}px;`;
+      return true;
+    } else {
+      return false;
+    }
   }
 }

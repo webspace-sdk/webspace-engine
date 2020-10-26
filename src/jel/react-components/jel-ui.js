@@ -27,13 +27,6 @@ const Wrap = styled.div`
   top: 0;
   position: fixed;
   z-index: 4;
-  background: linear-gradient(
-    180deg,
-    rgba(64, 64, 64, 0.4) 0%,
-    rgba(32, 32, 32, 0) 128px,
-    rgba(32, 32, 32, 0) calc(100% - 500px),
-    rgba(64, 64, 64, 0.4) 100%
-  );
   display: flex;
   flex-direction: column;
 `;
