@@ -121,7 +121,25 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
-        value: paths.device.keyboard.key("v")
+        bool: paths.device.keyboard.key("shift"),
+        value: paths.device.keyboard.key("q")
+      },
+      dest: { value: "/var/shift+q" },
+      priority: 1001,
+      xform: xforms.copyIfTrue
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("shift"),
+        value: paths.device.keyboard.key("e")
+      },
+      dest: { value: "/var/shift+e" },
+      priority: 1001,
+      xform: xforms.copyIfTrue
+    },
+    {
+      src: {
+        value: "/var/shift+q"
       },
       dest: {
         value: paths.actions.previousMediaLayer
@@ -130,7 +148,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
-        value: paths.device.keyboard.key("b")
+        value: "/var/shift+e"
       },
       dest: {
         value: paths.actions.nextMediaLayer
@@ -179,7 +197,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.falling
     },
     {
-      src: { value: paths.device.keyboard.key("z") },
+      src: { value: paths.device.keyboard.key("v") },
       dest: { value: paths.actions.mediaScaleReleaseAction },
       xform: xforms.falling
     }
@@ -236,36 +254,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       src: { value: "/var/shift+e" },
       dest: { value: paths.actions.cursor.right.penNextColor },
       xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("shift"),
-        value: paths.device.keyboard.key("q")
-      },
-      dest: { value: "/var/notshift+q" },
-      xform: xforms.copyIfFalse,
-      priority: 1
-    },
-    {
-      src: { value: "/var/notshift+q" },
-      dest: { value: paths.actions.snapRotateLeft },
-      xform: xforms.rising,
-      priority: 200
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("shift"),
-        value: paths.device.keyboard.key("e")
-      },
-      dest: { value: "/var/notshift+e" },
-      xform: xforms.copyIfFalse,
-      priority: 1
-    },
-    {
-      src: { value: "/var/notshift+e" },
-      dest: { value: paths.actions.snapRotateRight },
-      xform: xforms.rising,
-      priority: 200
     },
     {
       src: { value: paths.device.mouse.buttonLeft },
@@ -432,17 +420,35 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
-      src: { value: paths.device.keyboard.key("q") },
+      src: {
+        bool: paths.device.keyboard.key("shift"),
+        value: paths.device.keyboard.key("q")
+      },
+      dest: { value: "/var/notshift+q" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("shift"),
+        value: paths.device.keyboard.key("e")
+      },
+      dest: { value: "/var/notshift+e" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: { value: "/var/notshift+q" },
       dest: { value: paths.actions.mediaBackAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("e") },
+      src: { value: "/var/notshift+e" },
       dest: { value: paths.actions.mediaNextAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("t") },
+      src: { value: paths.device.keyboard.key("b") },
       dest: { value: paths.actions.mediaSnapshotAction },
       xform: xforms.rising
     },
@@ -452,7 +458,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("z") },
+      src: { value: paths.device.keyboard.key("v") },
       dest: { value: paths.actions.mediaScaleAction },
       xform: xforms.rising
     },
@@ -481,12 +487,30 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
-      src: { value: paths.device.keyboard.key("q") },
+      src: {
+        bool: paths.device.keyboard.key("shift"),
+        value: paths.device.keyboard.key("q")
+      },
+      dest: { value: "/var/notshift+q" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("shift"),
+        value: paths.device.keyboard.key("e")
+      },
+      dest: { value: "/var/notshift+e" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: { value: "/var/notshift+q" },
       dest: { value: paths.actions.mediaBackAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("e") },
+      src: { value: "/var/notshift+e" },
       dest: { value: paths.actions.mediaNextAction },
       xform: xforms.rising
     },
@@ -511,7 +535,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("z") },
+      src: { value: paths.device.keyboard.key("v") },
       dest: { value: paths.actions.mediaScaleAction },
       xform: xforms.rising
     },

@@ -64,7 +64,7 @@ export class KeyboardTipSystem {
             }
           }
         } else {
-          showTips = document.pointerLockElement ? "focus_full" : "focus_panels";
+          showTips = "focus";
         }
       }
     } else {

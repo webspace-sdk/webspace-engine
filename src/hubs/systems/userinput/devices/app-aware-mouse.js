@@ -103,6 +103,7 @@ export class AppAwareMouseDevice {
 
     this.transformSystem = this.transformSystem || AFRAME.scenes[0].systems["transform-selected-object"];
     this.scaleSystem = this.transformSystem || AFRAME.scenes[0].systems["scale-object"];
+    this.cameraSystem = this.cameraSystem || AFRAME.scenes[0].systems["hubs-systems"].cameraSystem;
     const isTransforming =
       (this.transformSystem && this.transformSystem.transforming) ||
       (this.scalingSystem && this.scalingSystem.isScaling);
@@ -158,7 +159,8 @@ export class AppAwareMouseDevice {
       (lockedMode && !this.clickedOnAnything && !isTransforming) ||
       (lockedMode &&
         (Math.abs(this.lockClickCoordDelta[0]) > 0.2 || Math.abs(this.lockClickCoordDelta[1]) > 0.2) &&
-        !isTransforming);
+        !isTransforming) ||
+      !this.cameraSystem.isInAvatarView();
 
     const coords = frame.get(paths.device.mouse.coords);
 

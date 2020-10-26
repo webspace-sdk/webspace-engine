@@ -128,7 +128,7 @@ const KeySmallSeparator = styled.div`
 const objectCommonTips = [
   ["move", "G"],
   ["rotate", "_r"],
-  ["scale", "_z"],
+  ["scale", "_v"],
   ["focus", "_f"],
   ["clone", "c"],
   ["bake", "b"],
@@ -164,7 +164,7 @@ const TIP_DATA = {
     ["narrow", "Z|H+S"],
     ["hide", "?"]
   ],
-  pointer_exited_muted: [["layers", "v\\b"], ["unmute", "L+m"], ["hide", "?"]],
+  pointer_exited_muted: [["layers", "H+q\\e"], ["unmute", "L+m"], ["hide", "?"]],
   pointer_exited_unmuted: [["layers", "v\\b"], ["mute", "L+m"], ["hide", "?"]],
   holding_interactable: [["pull", "R"], ["scale", "H+R"]],
   hover_interactable: objectCommonTips,
@@ -174,8 +174,7 @@ const TIP_DATA = {
   text: [["edit", "T"], ...objectCommonTips.filter(t => t[0] !== "bake" && t[0] !== "clone")], // TODO bake text, clone text
   rotate: [["rotate", "G"]],
   scale: [["scale", "G"]],
-  focus_full: [["orbit", "G"], ["zoom", "R"]],
-  focus_panels: [["orbit", "I"], ["zoom", "R"]]
+  focus: [["orbit", "G"], ["zoom", "R"]]
 };
 
 const KEY_TIP_TYPES = Object.keys(TIP_DATA);
