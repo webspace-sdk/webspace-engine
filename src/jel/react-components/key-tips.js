@@ -143,9 +143,19 @@ const TIP_DATA = {
     ["widen", "H+S"],
     ["hide", "?"]
   ],
-  idle_full: [
+  idle_full_muted: [
     ["move", "w a s d"],
     ["run", "H"],
+    ["unmute", "L+m"],
+    ["create", "L+V|/"],
+    ["chat", "S"],
+    ["narrow", "Z|H+S"],
+    ["hide", "?"]
+  ],
+  idle_full_unmuted: [
+    ["move", "w a s d"],
+    ["run", "H"],
+    ["mute", "L+m"],
     ["create", "L+V|/"],
     ["chat", "S"],
     ["narrow", "Z|H+S"],

@@ -24,7 +24,11 @@ export class KeyboardTipSystem {
         showTips = this.scene.is("muted") ? "pointer_exited_muted" : "pointer_exited_unmuted";
       } else {
         if (this.cameraSystem.isInAvatarView()) {
-          showTips = document.pointerLockElement ? "idle_full" : "idle_panels";
+          showTips = document.pointerLockElement
+            ? this.scene.is("muted")
+              ? "idle_full_muted"
+              : "idle_full_unmuted"
+            : "idle_panels";
 
           if (this.transformSystem.transforming) {
             showTips = this.scaleSystem.isScaling ? "scale" : "rotate";
