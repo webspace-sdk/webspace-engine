@@ -76,7 +76,7 @@ const HubPagerPageButton = styled.button`
     background-color: var(--canvas-overlay-item-active-background-color);
   }
 
-  :disabled {
+  &.disabled-page-button {
     opacity: 0.4;
     pointer-events: none;
 
@@ -108,7 +108,7 @@ export default function HubPager({ page, maxPage, onPageChanged }) {
             if (onPageChanged) onPageChanged(newPage);
           }
         }}
-        disabled={page === 1}
+        className={page === 1 ? "disabled-page-button" : ""}
       >
         <HubPagerPageButtonIcon dangerouslySetInnerHTML={{ __html: prevPageIconSrc }} />
       </HubPagerPageButton>
@@ -125,7 +125,7 @@ export default function HubPager({ page, maxPage, onPageChanged }) {
             if (onPageChanged) onPageChanged(newPage);
           }
         }}
-        disabled={page === maxPage}
+        className={page === maxPage ? "disabled-page-button" : ""}
       >
         <HubPagerPageButtonIcon dangerouslySetInnerHTML={{ __html: nextPageIconSrc }} />
       </HubPagerPageButton>
