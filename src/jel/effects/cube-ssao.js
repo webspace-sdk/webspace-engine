@@ -355,6 +355,7 @@ const CubeSSAOPass = function CubeSSAOPass(scene, camera, width, height) {
 
   this.camera = camera;
   this.scene = scene;
+  this.enableFXAA = true;
 
   // scene render target with depth + stencil buffer
 
@@ -451,24 +452,32 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
     this.material.uniforms.tDepth.value = this.sceneRenderTarget.depthTexture;
     this.renderPass(renderer, this.material, this.ssaoRenderTarget);
 
-    // render stencilled FXAA + SSAO
-    // toons and text aren't FXAA'd
-    this.material.stencilWrite = true;
-    this.material.stencilFunc = EqualStencilFunc;
-    this.material.stencilRef = 0;
-    this.material.uniforms.runAO.value = false;
-    this.material.uniforms.runFXAA.value = true;
-    this.material.uniforms.fxaaQualitySubpix.value = 1.0;
-    this.material.uniforms.fxaaEdgeThreshold.value = 0.166;
-    this.material.uniforms.fxaaEdgeThresholdMin.value = 0.0833;
-    this.material.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
-    this.material.uniforms.tDepth.value = null;
-    this.renderPass(renderer, this.material, this.sceneRenderTarget);
+    if (this.enableFXAA) {
+      // render stencilled FXAA + SSAO
+      // toons and text aren't FXAA'd
+      this.material.stencilWrite = true;
+      this.material.stencilFunc = EqualStencilFunc;
+      this.material.stencilRef = 0;
+      this.material.uniforms.runAO.value = false;
+      this.material.uniforms.runFXAA.value = true;
+      this.material.uniforms.fxaaQualitySubpix.value = 1.0;
+      this.material.uniforms.fxaaEdgeThreshold.value = 0.166;
+      this.material.uniforms.fxaaEdgeThresholdMin.value = 0.0833;
+      this.material.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
+      this.material.uniforms.tDepth.value = null;
+      this.renderPass(renderer, this.material, this.sceneRenderTarget);
 
-    this.material.stencilWrite = false;
-    this.material.uniforms.runFXAA.value = false;
-    this.material.uniforms.runCopy.value = true;
-    this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
+      this.material.stencilWrite = false;
+      this.material.uniforms.runFXAA.value = false;
+      this.material.uniforms.runCopy.value = true;
+      this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
+    } else {
+      this.material.uniforms.runAO.value = false;
+      this.material.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
+      this.material.uniforms.tDepth.value = null;
+      this.material.uniforms.runCopy.value = true;
+      this.material.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
+    }
 
     // Copy composed buffer to screen
     this.renderPass(renderer, this.material, this.renderToScreen ? null : writeBuffer);

@@ -30,10 +30,12 @@ export class UIAnimationSystem {
 
   expandSidePanels() {
     this.performPanelExpansion(PANEL_EXPANSION_STATES.EXPANDING);
+    this.sceneEl.emit("animated_resize_started");
   }
 
   collapseSidePanels() {
     this.performPanelExpansion(PANEL_EXPANSION_STATES.COLLAPSING);
+    this.sceneEl.emit("animated_resize_started");
   }
 
   performPanelExpansion(newState) {
@@ -79,10 +81,18 @@ export class UIAnimationSystem {
       this.applySceneSize();
       this.sceneEl.resize();
     } else {
+      let finished = false;
+
       if (this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDING) {
         this.panelExpansionState = PANEL_EXPANSION_STATES.EXPANDED;
+        finished = true;
       } else if (this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSING) {
         this.panelExpansionState = PANEL_EXPANSION_STATES.COLLAPSED;
+        finished = true;
+      }
+
+      if (finished) {
+        this.sceneEl.emit("animated_resize_complete");
       }
     }
   }
