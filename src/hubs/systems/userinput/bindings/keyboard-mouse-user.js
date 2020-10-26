@@ -82,7 +82,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       src: { value: paths.device.keyboard.key("shift") },
       dest: { value: paths.actions.boost },
       xform: xforms.copy,
-      priority: 1
+      priority: 1001
     },
     {
       src: { value: paths.device.keyboard.key("`") },
@@ -346,7 +346,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
         value: k("wheelWithShift")
       },
       xform: xforms.copyIfTrue,
-      priority: 1
+      priority: 1001
     },
     {
       src: {
@@ -357,7 +357,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
         value: k("wheelWithoutShift")
       },
       xform: xforms.copyIfFalse,
-      priority: 1
+      priority: 1001
     },
     {
       src: {
