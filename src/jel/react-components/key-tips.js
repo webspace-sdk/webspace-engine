@@ -141,7 +141,8 @@ const TIP_DATA = {
     ["move", "w a s d"],
     ["run", "H"],
     ["look", "I"],
-    ["create", "L+V|/"],
+    ["create", "/"],
+    ["paste", "L+v"],
     ["chat", "S"],
     ["widen", "H+S"],
     ["hide", "?"]
@@ -150,7 +151,8 @@ const TIP_DATA = {
     ["move", "w a s d"],
     ["run", "H"],
     ["unmute", "L+m"],
-    ["create", "L+V|/"],
+    ["create", "/"],
+    ["paste", "L+v"],
     ["chat", "S"],
     ["narrow", "Z|H+S"],
     ["hide", "?"]
@@ -159,7 +161,8 @@ const TIP_DATA = {
     ["move", "w a s d"],
     ["run", "H"],
     ["mute", "L+m"],
-    ["create", "L+V|/"],
+    ["create", "/"],
+    ["paste", "L+v"],
     ["chat", "S"],
     ["narrow", "Z|H+S"],
     ["hide", "?"]
@@ -172,7 +175,7 @@ const TIP_DATA = {
   video_paused: [["play", "T"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
   pdf: [["next", "T"], ["page", "q\\e"], ...objectCommonTips],
   text: [["edit", "T"], ...objectCommonTips.filter(t => t[0] !== "bake" && t[0] !== "clone")], // TODO bake text, clone text
-  rotate: [["rotate", "G"]],
+  rotate: [["rotate", "G"], ["no_snap", "H+G"]],
   scale: [["scale", "G"]],
   focus: [["orbit", "G"], ["zoom", "R"]]
 };

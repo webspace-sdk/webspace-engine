@@ -403,13 +403,13 @@ export function addAndArrangeMedia(el, media, contentSubtype, snapCount, mirrorO
     entity.object3D.rotateY(Math.PI);
   }
 
-  // Generate photos in a circle around camera, starting from the bottom.
+  // Generate photos in a arc around top.
   // Prevent z-fighting but place behind viewfinder
-  const idx = (snapCount % 6) + 3;
+  const idx = (snapCount % 9) + 3;
 
   mediaPos.set(
-    Math.cos(Math.PI * 2 * (idx / 6.0)) * distance,
-    Math.sin(Math.PI * 2 * (idx / 6.0)) * distance,
+    Math.cos(Math.PI * (2 / 3) * (idx / 6.0) - Math.PI * (1 / 3)) * distance,
+    Math.sin(Math.PI * (2 / 3) * (idx / 6.0) - Math.PI * (1 / 3)) * distance,
     -0.05 + idx * 0.001
   );
 

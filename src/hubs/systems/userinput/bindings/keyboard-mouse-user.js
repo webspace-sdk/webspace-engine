@@ -85,6 +85,12 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 1001
     },
     {
+      src: { value: paths.device.keyboard.key("shift") },
+      dest: { value: paths.actions.transformModifier },
+      xform: xforms.copy,
+      priority: 1001
+    },
+    {
       src: { value: paths.device.keyboard.key("`") },
       dest: { value: paths.actions.toggleUI },
       xform: xforms.rising
