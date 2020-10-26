@@ -60,7 +60,6 @@ const NamedKey = styled.div`
   justify-content: center;
   align-items: center;
   width: fit-content;
-  height: 18px;
   height: 28px;
   border-radius: 5px;
   padding: 0 14px;
@@ -71,6 +70,10 @@ const NamedKey = styled.div`
   backdrop-filter: blur(2px);
   font: var(--key-label-font);
   white-space: nowrap;
+
+  .caps {
+    text-transform: uppercase;
+  }
 `;
 
 const WideNamedKey = styled.div`
@@ -124,9 +127,9 @@ const KeySmallSeparator = styled.div`
 
 const objectCommonTips = [
   ["move", "G"],
-  ["rotate", "r"],
-  ["scale", "v"],
-  ["focus", "f"],
+  ["rotate", "_r"],
+  ["scale", "_z"],
+  ["focus", "_f"],
   ["clone", "c"],
   ["bake", "b"],
   ["remove", "x,x"]
@@ -165,9 +168,9 @@ const TIP_DATA = {
   pointer_exited_unmuted: [["layers", "v\\b"], ["mute", "L+m"], ["hide", "?"]],
   holding_interactable: [["pull", "R"], ["scale", "H+R"]],
   hover_interactable: objectCommonTips,
-  video_playing: [["pause", "S"], ["seek", "q\\e"], ["volume", "t\\g"], ...objectCommonTips],
-  video_paused: [["play", "S"], ["seek", "q\\e"], ["volume", "t\\g"], ...objectCommonTips],
-  pdf: [["next", "S"], ["page", "q\\e"], ...objectCommonTips],
+  video_playing: [["pause", "T"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
+  video_paused: [["play", "T"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
+  pdf: [["next", "T"], ["page", "q\\e"], ...objectCommonTips],
   text: [["edit", "T"], ...objectCommonTips.filter(t => t[0] !== "bake" && t[0] !== "clone")], // TODO bake text, clone text
   rotate: [["rotate", "G"]],
   scale: [["scale", "G"]],
@@ -184,74 +187,93 @@ const itemForData = ([label, keys]) => {
     </TipLabel>
   );
 
+  // Hacky, if key is _ then the next key is labelled "hold"
+  let hold = false;
+
   const keyLabels = keys.split("").map(key => {
+    if (key === "_") {
+      hold = true;
+      return null;
+    }
+
     const els = [];
 
-    if (key === "S") {
-      els.push(
-        <WideNamedKey key={key}>
-          <FormattedMessage id="key-tips.space" />
-        </WideNamedKey>
-      );
-    } else if (key === "H") {
+    if (hold) {
       els.push(
         <NamedKey key={key}>
-          <FormattedMessage id="key-tips.shift" />
+          <FormattedMessage id="key-tips.hold" />&nbsp;&nbsp;<span className="caps">{key}</span>
         </NamedKey>
       );
-    } else if (key === "R") {
-      els.push(
-        <NamedKey key={key}>
-          <FormattedMessage id="key-tips.scroll" />
-        </NamedKey>
-      );
-    } else if (key === "T") {
-      els.push(
-        <NamedKey key={key}>
-          <FormattedMessage id="key-tips.tab" />
-        </NamedKey>
-      );
-    } else if (key === "G") {
-      els.push(
-        <NamedKey key={key}>
-          <FormattedMessage id="key-tips.drag" />
-        </NamedKey>
-      );
-    } else if (key === "I") {
-      els.push(
-        <NamedKey key={key}>
-          <FormattedMessage id="key-tips.rightdrag" />
-        </NamedKey>
-      );
-    } else if (key === "Z") {
-      els.push(
-        <NamedKey key={key}>
-          <FormattedMessage id="key-tips.escape" />
-        </NamedKey>
-      );
-    } else if (key === "L") {
-      els.push(
-        <NamedKey key={key}>
-          <FormattedMessage id="key-tips.control" />
-        </NamedKey>
-      );
-    } else if (key === " ") {
-      els.push(<KeySeparator key={key} />);
-    } else if (key === "|") {
-      els.push(
-        <KeyWideSeparator key={key}>
-          <FormattedMessage id="key-tips.or" />
-        </KeyWideSeparator>
-      );
-    } else if (key === "+") {
-      els.push(<KeySmallSeparator key={key}>{key}</KeySmallSeparator>);
-    } else if (key === ",") {
-      els.push(<KeySeparator key={key}>{key}</KeySeparator>);
-    } else if (key === "\\") {
-      els.push(<KeySeparator key={key}>/</KeySeparator>);
     } else {
-      els.push(<LetterKey key={key}>{key}</LetterKey>);
+      if (key === "S") {
+        els.push(
+          <WideNamedKey key={key}>
+            <FormattedMessage id="key-tips.space" />
+          </WideNamedKey>
+        );
+      } else if (key === "H") {
+        els.push(
+          <NamedKey key={key}>
+            <FormattedMessage id="key-tips.shift" />
+          </NamedKey>
+        );
+      } else if (key === "R") {
+        els.push(
+          <NamedKey key={key}>
+            <FormattedMessage id="key-tips.scroll" />
+          </NamedKey>
+        );
+      } else if (key === "T") {
+        els.push(
+          <NamedKey key={key}>
+            <FormattedMessage id="key-tips.tab" />
+          </NamedKey>
+        );
+      } else if (key === "G") {
+        els.push(
+          <NamedKey key={key}>
+            <FormattedMessage id="key-tips.drag" />
+          </NamedKey>
+        );
+      } else if (key === "I") {
+        els.push(
+          <NamedKey key={key}>
+            <FormattedMessage id="key-tips.rightdrag" />
+          </NamedKey>
+        );
+      } else if (key === "Z") {
+        els.push(
+          <NamedKey key={key}>
+            <FormattedMessage id="key-tips.escape" />
+          </NamedKey>
+        );
+      } else if (key === "L") {
+        els.push(
+          <NamedKey key={key}>
+            <FormattedMessage id="key-tips.control" />
+          </NamedKey>
+        );
+      } else if (key === " ") {
+        els.push(<KeySeparator key={key} />);
+      } else if (key === "|") {
+        els.push(
+          <KeyWideSeparator key={key}>
+            <FormattedMessage id="key-tips.or" />
+          </KeyWideSeparator>
+        );
+      } else if (key === "+") {
+        els.push(<KeySmallSeparator key={key}>{key}</KeySmallSeparator>);
+      } else if (key === ",") {
+        els.push(<KeySeparator key={key}>{key}</KeySeparator>);
+      } else if (key === "\\") {
+        els.push(<KeySeparator key={key}>/</KeySeparator>);
+      } else {
+        els.push(<LetterKey key={key}>{key}</LetterKey>);
+      }
     }
+
+    hold = false;
+
     return els;
   });
 

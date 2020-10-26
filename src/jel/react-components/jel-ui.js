@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef } from "react";
+import React, { useState, forwardRef } from "react";
 import PropTypes from "prop-types";
 import HubTrail from "./hub-trail";
 import LayerPager from "./layer-pager";
@@ -18,7 +18,6 @@ import HubContextMenu from "./hub-context-menu";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
-import { PANEL_EXPAND_DURATION_MS } from "../systems/ui-animation-system";
 import KeyTips from "./key-tips";
 
 const Wrap = styled.div`

@@ -290,12 +290,8 @@ AFRAME.registerComponent("media-video", {
 
       this.hoverMenu = menu;
 
-      this.playbackControls = this.el.querySelector(".video-playback");
-      this.playPauseButton = this.el.querySelector(".video-playpause-button");
       this.timeLabel = this.el.querySelector(".video-time-label");
       this.volumeLabel = this.el.querySelector(".video-volume-label");
-
-      this.playPauseButton.object3D.addEventListener("interact", this.togglePlaying);
 
       this.updateVolumeLabel();
       this.updateHoverMenu();
@@ -478,10 +474,6 @@ AFRAME.registerComponent("media-video", {
     // update the video to currentTime = 0
     if (this.videoIsLive === false && currentTime !== undefined) {
       this.video.currentTime = currentTime;
-    }
-
-    if (this.hoverMenu) {
-      this.playPauseButton.setAttribute("icon-button", "active", pause);
     }
 
     if (pause) {
@@ -958,12 +950,9 @@ AFRAME.registerComponent("media-video", {
   updateHoverMenu() {
     if (!this.hoverMenu) return;
 
-    this.playbackControls.object3D.visible = !this.data.hidePlaybackControls && !!this.video;
     this.timeLabel.object3D.visible = !this.data.hidePlaybackControls;
 
     const mayModifyPlayHead = !!this.video && !this.videoIsLive && window.APP.hubChannel.can("spawn_and_move_media");
-
-    this.playPauseButton.object3D.visible = mayModifyPlayHead;
 
     if (this.videoIsLive) {
       this.timeLabel.setAttribute("text", "value", "LIVE");
@@ -1074,10 +1063,6 @@ AFRAME.registerComponent("media-video", {
     if (this.video) {
       this.video.removeEventListener("pause", this.onPauseStateChange);
       this.video.removeEventListener("play", this.onPauseStateChange);
-    }
-
-    if (this.hoverMenu) {
-      this.playPauseButton.object3D.removeEventListener("interact", this.togglePlaying);
     }
 
     window.APP.store.removeEventListener("statechanged", this.onPreferenceChanged);

@@ -179,7 +179,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.falling
     },
     {
-      src: { value: paths.device.keyboard.key("v") },
+      src: { value: paths.device.keyboard.key("z") },
       dest: { value: paths.actions.mediaScaleReleaseAction },
       xform: xforms.falling
     }
@@ -426,16 +426,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
-      src: {
-        bool: paths.device.keyboard.key("shift"),
-        value: paths.device.keyboard.key(" ")
-      },
-      dest: { value: "/var/no+shift+space" },
-      xform: xforms.copyIfFalse,
-      priority: 1001
-    },
-    {
-      src: { value: "/var/no+shift+space" },
+      src: { value: paths.device.keyboard.key("tab") },
       dest: { value: paths.actions.mediaPrimaryAction },
       xform: xforms.rising,
       priority: 201
@@ -461,7 +452,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("v") },
+      src: { value: paths.device.keyboard.key("z") },
       dest: { value: paths.actions.mediaScaleAction },
       xform: xforms.rising
     },
@@ -484,7 +475,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 1
     },
     {
-      src: { value: paths.device.keyboard.key(" ") },
+      src: { value: paths.device.keyboard.key("tab") },
       dest: { value: paths.actions.mediaPrimaryAction },
       xform: xforms.rising,
       priority: 201
@@ -520,7 +511,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("v") },
+      src: { value: paths.device.keyboard.key("z") },
       dest: { value: paths.actions.mediaScaleAction },
       xform: xforms.rising
     },

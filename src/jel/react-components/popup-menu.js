@@ -58,7 +58,7 @@ function PopupMenuItem(props) {
   delete filteredProps.iconSrc;
 
   return (
-    <PopupMenuItemElement {...filteredProps}>
+    <PopupMenuItemElement {...filteredProps} tabIndex={-1}>
       <PopupMenuIconElement dangerouslySetInnerHTML={{ __html: props.iconSrc }} />
       <div>{props.children}</div>
     </PopupMenuItemElement>

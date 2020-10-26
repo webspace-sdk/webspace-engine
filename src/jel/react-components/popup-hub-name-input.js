@@ -82,6 +82,7 @@ const PopupHubNameInput = forwardRef((props, ref) => {
         >
           <PopupHubNameInputElement
             type="text"
+            tabIndex={-1}
             value={name}
             placeholder={placeholder}
             ref={ref}
