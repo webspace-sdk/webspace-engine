@@ -68,6 +68,10 @@ const HubContextButtonElement = styled.button`
   &:active {
     background-color: var(--canvas-overlay-item-active-background-color);
   }
+
+  .panels-expanded & {
+    display: none;
+  }
 `;
 
 const HubContextButtonIcon = styled.div`
@@ -99,34 +103,14 @@ const DeviceStatuses = styled.div`
   display: flex;
   flex-direction: row;
   margin: 8px 12px;
+  display: none;
+
+  .panels-expanded & {
+    display: block;
+  }
 `;
 
 HubContextButton.displayName = "HubContextButton";
-
-function useSetFullScreenOnPointerLock(setIsFullScreen) {
-  useEffect(
-    () => {
-      let timeout;
-      const handlePointerLockChange = () => {
-        if (timeout) {
-          clearTimeout(timeout);
-        }
-
-        timeout = setTimeout(() => setIsFullScreen(!!document.pointerLockElement), PANEL_EXPAND_DURATION_MS + 20);
-      };
-
-      setIsFullScreen(!!document.pointerLockElement);
-      document.addEventListener("pointerlockchange", handlePointerLockChange);
-      return () => {
-        if (timeout) {
-          clearTimeout(timeout);
-        }
-        document.removeEventListener("pointerlockchange", handlePointerLockChange);
-      };
-    },
-    [setIsFullScreen]
-  );
-}
 
 function JelUI(props) {
   const { scene, selectedMediaLayer, treeManager, history, spaceCan, hubCan, hub, memberships } = props;
@@ -134,7 +118,6 @@ function JelUI(props) {
   const spaceChannel = window.APP.spaceChannel;
   const hubMetadata = tree && tree.atomMetadata;
   const hubTrailHubIds = (tree && hub && tree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
-  const [isFullScreen, setIsFullScreen] = useState(false);
   const [muted, setMuted] = useState(false);
   const [treeData, setTreeData] = useState([]);
   const [treeDataVersion, setTreeDataVersion] = useState(0);
@@ -163,7 +146,6 @@ function JelUI(props) {
   } = useHubBoundPopupPopper();
 
   useSceneMuteState(scene, setMuted);
-  useSetFullScreenOnPointerLock(setIsFullScreen);
 
   // Consume tree updates so redraws if user manipulates tree
   useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersion);
@@ -185,18 +167,16 @@ function JelUI(props) {
                 onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
               />
             )}
-            {!isFullScreen && (
-              <HubContextButton
-                ref={hubContextButtonRef}
-                onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
-                onClick={() => {
-                  showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
-                    hideRename: true,
-                    toggle: true
-                  });
-                }}
-              />
-            )}
+            <HubContextButton
+              ref={hubContextButtonRef}
+              onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
+              onClick={() => {
+                showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
+                  hideRename: true,
+                  toggle: true
+                });
+              }}
+            />
           </Top>
           <KeyTipsWrap
             onClick={() =>
@@ -206,13 +186,11 @@ function JelUI(props) {
             <KeyTips id="key-tips" />
           </KeyTipsWrap>
           <BottomLeftPanels>
-            {isFullScreen && (
-              <DeviceStatuses>
-                <BigIconButton tabIndex={-1} iconSrc={muted ? mutedIcon : unmutedIcon} />
-              </DeviceStatuses>
-            )}
+            <DeviceStatuses>
+              <BigIconButton tabIndex={-1} iconSrc={muted ? mutedIcon : unmutedIcon} />
+            </DeviceStatuses>
             <LayerPager
-              showButtons={!isFullScreen && hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id)}
+              showButtons={hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id)}
               page={selectedMediaLayer + 1}
               maxPage={MAX_MEDIA_LAYER + 1}
               onPageChanged={newPage => scene.systems["hubs-systems"].mediaPresenceSystem.setActiveLayer(newPage - 1)}

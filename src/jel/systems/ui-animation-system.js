@@ -135,6 +135,13 @@ export class UIAnimationSystem {
     const wrap = document.getElementById("jel-ui-wrap");
     if (wrap) {
       wrap.style.cssText = `left: ${left}px; width: ${width}px;`;
+
+      if (left === 0) {
+        wrap.classList.add("panels-expanded");
+      } else {
+        wrap.classList.remove("panels-expanded");
+      }
+
       return true;
     } else {
       return false;
