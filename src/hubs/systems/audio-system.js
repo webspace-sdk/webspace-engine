@@ -183,13 +183,9 @@ export class AudioSystem {
     if (NAF.connection.adapter) {
       NAF.connection.adapter.setOutgoingVisemeBuffer(this.lipSyncResultData);
     } else {
-      sceneEl.addEventListener(
-        "adapter-ready",
-        () => {
-          NAF.connection.adapter.setOutgoingVisemeBuffer(this.lipSyncResultData);
-        },
-        { once: true }
-      );
+      sceneEl.addEventListener("adapter-ready", () => {
+        NAF.connection.adapter.setOutgoingVisemeBuffer(this.lipSyncResultData);
+      });
     }
   }
   addStreamToOutboundAudio(id, mediaStream) {
