@@ -65,5 +65,15 @@
   "key-tips.mute": "Mute",
   "key-tips.unmute": "Unmute",
   "key-tips.hold": "Hold",
-  "hub-pager.layer": "Layer"
+  "hub-pager.layer": "Layer",
+  "create-select.image_url.title": "Embed Image",
+  "create-select.image_url.key": "Embed Image",
+  "create-select.image_url.description": "Link to an image on the web.",
+  "create-select.image_url.tokens": "image pic embed link url jpg jpeg gif png svg",
+  "create-select.image_upload.tokens": "image pic upload jpg jpeg gif png svg",
+  "create-select.image_upload.title": "Upload Image",
+  "create-select.image_upload.description": "Upload an image from your device. (Limit 20MB)",
+  "create-select.image_search_bing.tokens": "image pic find search jpg jpeg gif png svg",
+  "create-select.image_search_bing.title": "Image Search",
+  "create-select.image_search_bing.description": "Search the web for images."
 }
