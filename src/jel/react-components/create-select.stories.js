@@ -1,12 +1,44 @@
+import PropTypes from "prop-types";
+import styled from "styled-components";
 import React, { useState, forwardRef } from "react";
-import Select, { Option } from "rc-select";
+import Select, { Option, OptGroup } from "rc-select";
 import "../assets/stylesheets/create-select.scss";
 import { getMessages } from "../../hubs/utils/i18n";
 
 const Input = forwardRef((props, ref) => <input ref={ref} {...props} />);
 Input.displayName = "Input";
 
-const sortedItems = ["image_url", "image_upload", "image_search_bing"];
+const items = [
+  ["images", [["image_url", null, null], ["image_upload", null, null], ["image_search_bing", null, null]]]
+];
+
+const CreateSelectItemElement = styled.div``;
+const CreateSelectItemThumb = styled.div``;
+const CreateSelectItemBody = styled.div``;
+const CreateSelectItemTitle = styled.div``;
+const CreateSelectItemTitleIcon = styled.div``;
+const CreateSelectItemTitleText = styled.div``;
+const CreateSelectItemDescription = styled.div``;
+
+const CreateSelectItem = ({ title, description, iconSrc, thumbSrc }) => (
+  <CreateSelectItemElement>
+    <CreateSelectItemThumb src={thumbSrc} />
+    <CreateSelectItemBody>
+      <CreateSelectItemTitle>
+        {iconSrc && <CreateSelectItemTitleIcon dangerouslySetInnerHTML={{ __html: iconSrc }} />}
+        <CreateSelectItemTitleText>{title}</CreateSelectItemTitleText>
+      </CreateSelectItemTitle>
+      <CreateSelectItemDescription>{description}</CreateSelectItemDescription>
+    </CreateSelectItemBody>
+  </CreateSelectItemElement>
+);
+
+CreateSelectItem.propTypes = {
+  title: PropTypes.string,
+  description: PropTypes.string,
+  iconSrc: PropTypes.string,
+  thumbSrc: PropTypes.string
+};
 
 const CreateSelect = forwardRef((props, ref) => {
   const [value, setValue] = useState("");
@@ -54,10 +86,19 @@ const CreateSelect = forwardRef((props, ref) => {
     return matchCount === vs.length;
   };
 
-  const options = sortedItems.map(id => (
-    <Option tokens={messages[`create-select.${id}.tokens`]} key={id}>
-      {messages[`create-select.${id}.title`]}
-    </Option>
+  const options = items.map(([groupName, groupItems]) => (
+    <OptGroup key={groupName} label={messages[`create-select.${groupName}_group.title`]}>
+      {groupItems.map(([id, iconSrc, thumbSrc]) => (
+        <Option tokens={messages[`create-select.${id}.tokens`]} key={id}>
+          <CreateSelectItem
+            title={messages[`create-select.${id}.title`]}
+            description={messages[`create-select.${id}.description`]}
+            iconSrc={iconSrc}
+            thumbSrc={thumbSrc}
+          />
+        </Option>
+      ))}
+    </OptGroup>
   ));
 
   return (
