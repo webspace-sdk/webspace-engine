@@ -34,7 +34,7 @@ export function useHubBoundPopupPopper(focusRef, initialPlacement = "bottom", in
 
   const show = useCallback(
     (newHubId, ref, newPlacement, newOffset, newPopupOpenOptions = EMPTY) => {
-      if (newHubId !== hubId) setHubId(newHubId);
+      if (newHubId) setHubId(newHubId);
       if (newPlacement) setPlacement(newPlacement);
       if (newOffset) setOffset(newOffset);
       if (ref && ref.current) setReferenceElement(ref.current);
@@ -43,7 +43,7 @@ export function useHubBoundPopupPopper(focusRef, initialPlacement = "bottom", in
       const elToFocus = focusRef ? focusRef.current : popupElement;
       toggleFocus(elToFocus);
     },
-    [hubId, focusRef, popupElement]
+    [focusRef, popupElement]
   );
 
   const setRef = useCallback(ref => setReferenceElement(ref.current), []);

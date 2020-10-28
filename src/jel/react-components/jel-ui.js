@@ -1,4 +1,4 @@
-import React, { useState, forwardRef, useEffect } from "react";
+import React, { useState, useCallback, forwardRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import HubTrail from "./hub-trail";
 import LayerPager from "./layer-pager";
@@ -220,6 +220,8 @@ function JelUI(props) {
     [scene, centerPopupRef, showCreateSelectPopup]
   );
 
+  const onTrailHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
+
   return (
     <WrappedIntlProvider>
       <div>
@@ -236,7 +238,7 @@ function JelUI(props) {
                 hubIds={hubTrailHubIds}
                 hubRenamePopupElement={hubRenamePopupElement}
                 showHubRenamePopup={showHubRenamePopup}
-                onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
+                onHubNameChanged={onTrailHubNameChanged}
               />
             )}
             <HubCornerButtons>
@@ -291,7 +293,10 @@ function JelUI(props) {
         hubId={hubRenameHubId}
         hubMetadata={hubMetadata}
         ref={renameFocusRef}
-        onNameChanged={name => window.APP.spaceChannel.updateHub(hubRenameHubId, { name })}
+        onNameChanged={useCallback(name => spaceChannel.updateHub(hubRenameHubId, { name }), [
+          spaceChannel,
+          hubRenameHubId
+        ])}
       />
       <HubContextMenu
         setPopperElement={setHubContextMenuElement}
@@ -301,23 +306,26 @@ function JelUI(props) {
         hubId={hubContextMenuHubId}
         spaceCan={spaceCan}
         hubCan={hubCan}
-        onRenameClick={hubId => showHubRenamePopup(hubId, null)}
-        onTrashClick={hubId => {
-          if (!tree.getNodeIdForAtomId(hubId)) return;
+        onRenameClick={useCallback(hubId => showHubRenamePopup(hubId, null), [showHubRenamePopup])}
+        onTrashClick={useCallback(
+          hubId => {
+            if (!tree.getNodeIdForAtomId(hubId)) return;
 
-          // If this hub or any of its parents were deleted, go home.
-          if (isAtomInSubtree(tree, hubId, hub.hub_id)) {
-            const homeHub = homeHubForSpaceId(hub.space_id, memberships);
-            navigateToHubUrl(history, homeHub.url);
-          }
+            // If this hub or any of its parents were deleted, go home.
+            if (isAtomInSubtree(tree, hubId, hub.hub_id)) {
+              const homeHub = homeHubForSpaceId(hub.space_id, memberships);
+              navigateToHubUrl(history, homeHub.url);
+            }
 
-          // All trashable children are trashed too.
-          const trashableChildrenHubIds = findChildrenAtomsInTreeData(treeData, hubId).filter(hubId =>
-            hubCan("trash_hub", hubId)
-          );
+            // All trashable children are trashed too.
+            const trashableChildrenHubIds = findChildrenAtomsInTreeData(treeData, hubId).filter(hubId =>
+              hubCan("trash_hub", hubId)
+            );
 
-          window.APP.spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
-        }}
+            spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
+          },
+          [tree, hub, history, hubCan, memberships, spaceChannel, treeData]
+        )}
       />
       <CreateSelectPopup
         popperElement={createSelectPopupElement}
