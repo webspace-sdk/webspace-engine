@@ -1,3 +1,5 @@
+// Used for managing the animation of the major UI panels
+
 export const PANEL_EXPANSION_STATES = {
   EXPANDING: 0,
   EXPANDED: 1,
@@ -32,6 +34,7 @@ export class UIAnimationSystem {
     // Initialize nav and presence width CSS vars to stored state.
     document.documentElement.style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
     document.documentElement.style.setProperty("--presence-width", `${this.targetSceneRight}px`);
+    window.addEventListener("resize", () => this.applySceneSize(null, null, true));
   }
 
   expandSidePanels() {

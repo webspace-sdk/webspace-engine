@@ -1,13 +1,17 @@
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import React, { useState, forwardRef, useCallback } from "react";
+import React, { useEffect, useMemo, useRef, useState, forwardRef, useCallback } from "react";
 import Select, { Option, OptGroup } from "rc-select";
 import "../assets/stylesheets/create-select.scss";
 import { getMessages } from "../../hubs/utils/i18n";
 import trashIconSrc from "../assets/images/icons/trash.svgi";
 
+export const CREATE_SELECT_WIDTH = 375;
+export const CREATE_SELECT_LIST_HEIGHT = 350;
+
 const items = [
-  ["images", [["image_url", trashIconSrc, null], ["image_upload", null, null], ["image_search_bing", null, null]]]
+  ["images", [["image_url", trashIconSrc, null], ["image_upload", null, null], ["image_search_bing", null, null]]],
+  ["tools", [["duck", null, null]]]
 ];
 
 const CreateSelectInputElement = styled.input``;
@@ -88,103 +92,119 @@ CreateSelectItem.propTypes = {
   thumbSrc: PropTypes.string
 };
 
-const CreateSelectInput = forwardRef((props, ref) => <input {...props} ref={ref} tabIndex={-1} />);
+const CreateSelectInput = forwardRef((props, ref) => <CreateSelectInputElement {...props} ref={ref} tabIndex={-1} />);
 CreateSelectInput.displayName = "CreateSelectInput";
 
-const CreateSelect = forwardRef((props, ref) => {
-  const [value, setValue] = useState("");
-  const messages = getMessages();
+const filterByTokenMatch = (value, { tokens }) => {
+  const search = value.replace(/  */g, " ").replace(/ *$/, "");
+  if (search === "") return true;
 
-  const jump = v => {
-    console.log("jump ", v);
-    // location.href = 'https://s.taobao.com/search?q=' + encodeURIComponent(v);
-  };
+  const ts = (tokens || "").split(" ");
+  const vs = (search || "").toLowerCase().split(" ");
+  let matchCount = 0;
 
-  const onSelect = value => {
-    console.log("select ", value);
-    jump(value);
-  };
-
-  const fetchData = value => {
-    setValue(value);
-  };
-
-  const onKeyDown = e => {
-    if (e.keyCode === 13) {
-      console.log("onEnter", value);
-      jump(value);
-    }
-  };
-
-  const filterByTokenMatch = (value, { tokens }) => {
-    const search = value.replace(/  */g, " ").replace(/ *$/, "");
-    if (search === "") return true;
-    console.log(search);
-
-    const ts = (tokens || "").split(" ");
-    const vs = (search || "").toLowerCase().split(" ");
-    let matchCount = 0;
-
-    for (let i = 0; i < ts.length; i++) {
-      for (let j = 0; j < vs.length; j++) {
-        if (ts[i].startsWith(vs[j])) {
-          matchCount++;
-          break;
-        }
+  for (let i = 0; i < ts.length; i++) {
+    for (let j = 0; j < vs.length; j++) {
+      if (ts[i].startsWith(vs[j])) {
+        matchCount++;
+        break;
       }
     }
+  }
 
-    return matchCount === vs.length;
-  };
+  return matchCount === vs.length;
+};
 
-  const options = items.map(([groupName, groupItems]) => (
-    <OptGroup key={groupName} label={messages[`create-select.${groupName}_group.title`]}>
-      {groupItems.map(([id, iconSrc, thumbSrc]) => (
-        <Option tokens={messages[`create-select.${id}.tokens`]} key={id}>
-          <CreateSelectItem
-            title={messages[`create-select.${id}.title`]}
-            description={messages[`create-select.${id}.description`]}
-            iconSrc={iconSrc}
-            thumbSrc={thumbSrc}
-          />
-        </Option>
-      ))}
-    </OptGroup>
-  ));
+const CreateSelect = forwardRef((props, ref) => {
+  const { onActionSelected } = props;
+  const [value, setValue] = useState("");
+  const messages = getMessages();
+  const inputRef = useRef();
+
+  useEffect(
+    () => {
+      // Hack - this will trigger the effect to reset to the default by changing the search.
+      const resetOnBlur = () => {
+        setTimeout(() => {
+          setValue(" ");
+          setValue("");
+        }, 500);
+      };
+
+      if (inputRef.current) {
+        const el = inputRef.current;
+        el.addEventListener("blur", resetOnBlur);
+        return () => el.removeEventListener("blur", resetOnBlur);
+      }
+    },
+    [inputRef]
+  );
+
+  const onSelect = useCallback(
+    v => {
+      onActionSelected(v);
+      setValue("");
+      inputRef.current.blur();
+    },
+    [onActionSelected]
+  );
+
+  const onChange = useCallback(v => setValue(v), []);
+  const getInputElement = useCallback(() => {
+    return <CreateSelectInput ref={inputRef} id="create-select-input" />;
+  }, []);
+  const showAction = useMemo(() => ["focus", "click"], []);
+
+  const options = useMemo(
+    () =>
+      items.map(([groupName, groupItems]) => (
+        <OptGroup key={groupName} label={messages[`create-select.${groupName}_group.title`]}>
+          {groupItems.map(([id, iconSrc, thumbSrc]) => (
+            <Option tokens={messages[`create-select.${id}.tokens`]} key={id}>
+              <CreateSelectItem
+                title={messages[`create-select.${id}.title`]}
+                description={messages[`create-select.${id}.description`]}
+                iconSrc={iconSrc}
+                thumbSrc={thumbSrc}
+              />
+            </Option>
+          ))}
+        </OptGroup>
+      )),
+    [messages]
+  );
 
   return (
     <div>
-      <div onKeyDown={onKeyDown}>
-        <Select
-          virtual={false}
-          prefixCls="create-select"
-          style={{ width: 375 }}
-          mode="combobox"
-          value={value}
-          placeholder={messages["create-select.placeholder"]}
-          defaultActiveFirstOption
-          ref={ref}
-          getInputElement={useCallback(() => {
-            return <CreateSelectInput id="create-select-input" />;
-          }, [])}
-          showArrow={false}
-          showAction={["focus", "click"]}
-          notFoundContent=""
-          onChange={fetchData}
-          onSelect={onSelect}
-          getPopupContainer={props.getPopupContainer}
-          filterOption={filterByTokenMatch}
-        >
-          {options}
-        </Select>
-      </div>
+      <Select
+        virtual={false}
+        listHeight={CREATE_SELECT_LIST_HEIGHT}
+        prefixCls="create-select"
+        style={{ width: CREATE_SELECT_WIDTH }}
+        mode="combobox"
+        value={value}
+        placeholder={messages["create-select.placeholder"]}
+        defaultActiveFirstOption
+        ref={ref}
+        getInputElement={getInputElement}
+        showArrow={false}
+        showAction={showAction}
+        notFoundContent=""
+        onChange={onChange}
+        onSelect={onSelect}
+        getPopupContainer={props.getPopupContainer}
+        filterOption={filterByTokenMatch}
+      >
+        {options}
+      </Select>
     </div>
   );
 });
 
 CreateSelect.displayName = "CreateSelect";
 CreateSelect.propTypes = {
-  getPopupContainer: PropTypes.func
+  getPopupContainer: PropTypes.func,
+  onActionSelected: PropTypes.func
 };
 
 export { CreateSelect as default };

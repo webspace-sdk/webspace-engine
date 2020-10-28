@@ -25,7 +25,8 @@ export function useHubBoundPopupPopper(focusRef, initialPlacement = "bottom", in
       {
         name: "eventListeners",
         options: {
-          scroll: false
+          scroll: false,
+          resize: true
         }
       }
     ]
@@ -80,7 +81,8 @@ export function usePopupPopper(focusRefOrSelector, initialPlacement = "bottom", 
       {
         name: "eventListeners",
         options: {
-          scroll: false
+          scroll: false,
+          resize: true
         }
       }
     ]

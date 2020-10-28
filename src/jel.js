@@ -101,16 +101,16 @@ import "./hubs/components/periodic-full-syncs";
 import "./hubs/components/inspect-button";
 import "./hubs/components/set-max-resolution";
 import "./hubs/components/avatar-audio-source";
-//import { sets as userinputSets } from "./hubs/systems/userinput/sets";
+import { SOUND_QUACK, SOUND_SPECIAL_QUACK } from "./hubs/systems/sound-effects-system";
+import ducky from "./hubs/assets/models/DuckyMesh.glb";
+import { getAbsoluteHref } from "./hubs/utils/media-url-utils";
 
 import ReactDOM from "react-dom";
 import React from "react";
 import { Router, Route } from "react-router-dom";
 import { createBrowserHistory } from "history";
-import { pushHistoryState, clearHistoryState } from "./hubs/utils/history";
-//import { mapFromArray } from "./jel/utils/map-utils";
+import { clearHistoryState } from "./hubs/utils/history";
 import JelUI from "./jel/react-components/jel-ui";
-//import UIRoot from "./hubs/react-components/ui-root";
 import AuthChannel from "./hubs/utils/auth-channel";
 import DynaChannel from "./jel/utils/dyna-channel";
 import SpaceChannel from "./hubs/utils/space-channel";
@@ -469,14 +469,6 @@ function initBatching() {
 }
 
 function addGlobalEventListeners(scene, entryManager) {
-  window.addEventListener("action_create_avatar", () => {
-    performConditionalSignIn(
-      () => spaceChannel.signedIn,
-      () => pushHistoryState(history, "overlay", "avatar-editor"),
-      "create-avatar"
-    );
-  });
-
   scene.addEventListener("scene_selected_media_layer_changed", ({ detail: { selectedMediaLayer } }) => {
     remountJelUI({ selectedMediaLayer });
   });
@@ -494,6 +486,21 @@ function addGlobalEventListeners(scene, entryManager) {
       () => hubChannel.updateScene(sceneInfo),
       "change-scene"
     );
+  });
+
+  // Fired when the user chooses a create action from the create action menu
+  scene.addEventListener("create_action_exec", e => {
+    const createAction = e.detail;
+
+    if (createAction === "duck") {
+      scene.emit("add_media", getAbsoluteHref(location.href, ducky));
+
+      if (Math.random() < 0.01) {
+        scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_SPECIAL_QUACK);
+      } else {
+        scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_QUACK);
+      }
+    }
   });
 
   document.addEventListener("pointerlockchange", () => {

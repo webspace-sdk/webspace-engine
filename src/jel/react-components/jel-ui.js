@@ -23,6 +23,7 @@ import { useSceneMuteState } from "../utils/shared-effects";
 import { getMessages } from "../../hubs/utils/i18n";
 import Tooltip from "./tooltip";
 import KeyTips from "./key-tips";
+import { CREATE_SELECT_WIDTH, CREATE_SELECT_LIST_HEIGHT } from "./create-select";
 
 const Wrap = styled.div`
   pointer-events: none;
@@ -63,10 +64,10 @@ const Top = styled.div`
 // for the create select dropdown, which is necessary to support the top
 // corner button variant. So we keep it bottom-end, and offset the ref here
 // for when we want it centered.
-const SelectCreatePopupRef = styled.div`
+const CreateSelectPopupRef = styled.div`
   position: absolute;
-  top: 70%;
-  left: calc(50% + 187px);
+  top: calc(100% - ${Math.floor(CREATE_SELECT_LIST_HEIGHT) + 100}px);
+  left: calc(50% + ${Math.floor(CREATE_SELECT_WIDTH / 2)}px);
   width: 1px;
   height: 1px;
   pointer-events: none;
@@ -180,7 +181,7 @@ function JelUI(props) {
   const hubContextButtonRef = React.createRef();
   const hubCreateButtonRef = React.createRef();
   const createSelectFocusRef = React.createRef();
-  const selectCreatePopupRef = React.createRef();
+  const createSelectPopupRef = React.createRef();
 
   const {
     styles: hubRenamePopupStyles,
@@ -218,12 +219,14 @@ function JelUI(props) {
   // Handle create hotkey (typically /)
   useEffect(
     () => {
-      const handleCreateHotkey = () => showCreateSelectPopup(selectCreatePopupRef);
+      const handleCreateHotkey = () => showCreateSelectPopup(createSelectPopupRef);
       scene.addEventListener("action_create", handleCreateHotkey);
       return () => scene.removeEventListener("action_create", handleCreateHotkey);
     },
-    [scene, selectCreatePopupRef, showCreateSelectPopup]
+    [scene, createSelectPopupRef, showCreateSelectPopup]
   );
+
+  const onCreateActionSelected = useCallback(a => scene.emit("create_action_exec", a), [scene]);
 
   const onTrailHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
 
@@ -231,8 +234,8 @@ function JelUI(props) {
     <WrappedIntlProvider>
       <div>
         <Wrap id="jel-ui-wrap">
-          <SelectCreatePopupRef ref={selectCreatePopupRef} />
           <FadeEdges />
+          <CreateSelectPopupRef ref={createSelectPopupRef} />
           <Top>
             {hubMetadata && (
               <HubTrail
@@ -338,6 +341,7 @@ function JelUI(props) {
         styles={createSelectPopupStyles}
         attributes={createSelectPopupAttributes}
         ref={createSelectFocusRef}
+        onActionSelected={onCreateActionSelected}
       />
     </WrappedIntlProvider>
   );

@@ -118,14 +118,12 @@ $selectPrefixCls: 'create-select';
     min-height: 100px;
     position: absolute;
     background: transparent;
-    pointer-events: auto;
   }
 
   // =============== Option ================
   &-item {
     padding: 8px 16px;
 
-    // >>> Group
     &-group {
       color: var(--panel-subheader-text-color);
       font-size: var(--panel-subheader-text-size);
@@ -134,7 +132,6 @@ $selectPrefixCls: 'create-select';
       margin: 0px 8px;
     }
 
-    // >>> Option
     &-option {
       position: relative;
       cursor: pointer;
@@ -143,16 +140,18 @@ $selectPrefixCls: 'create-select';
         padding-left: 24px;
       }
 
-      // ------- Active -------
       &-active {
         background-color: var(--panel-item-hover-background-color);
       }
     }
 
-    // >>> Empty
+    // Hide checkbox on selected itmes
+    &-option-state {
+      display: none;
+    }
+
     &-empty {
       text-align: center;
-      color: #999;
     }
   }
 }

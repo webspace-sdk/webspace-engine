@@ -77,6 +77,10 @@
   "create-select.image_search_bing.title": "Image Search",
   "create-select.image_search_bing.description": "Search the web for images.",
   "create-select.images_group.title": "Images",
+  "create-select.tools_group.title": "Images",
+  "create-select.duck.tokens": "duck quack",
+  "create-select.duck.title": "Duck",
+  "create-select.duck.description": "Create a duck. Quack.",
   "create-select.placeholder": "Create",
   "create.tip": "Create"
 }

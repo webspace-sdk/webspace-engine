@@ -36,6 +36,21 @@
   }
 }
 
+:local(.fast-show-when-popped) {
+  position: relative;
+  opacity: 0;
+  pointer-events: none;
+
+  transition: opacity 0.025s linear;
+
+  &:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+
+    transition: opacity 0.025s linear;
+  }
+}
+
 .svg-overlay-shadow {
   filter: drop-shadow(0px 0px 4px var(--menu-shadow-color));
 }

@@ -22,7 +22,7 @@ export const Basic = () => {
       }}
     >
       <div style={{ position: "absolute", top: "200px", left: "200px" }}>
-        <CreateSelect ref={ref} />
+        <CreateSelect ref={ref} onActionSelected={a => console.log("exec", a)} />
       </div>
     </div>
   );
