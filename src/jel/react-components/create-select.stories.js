@@ -4,9 +4,11 @@ import React, { useState, forwardRef } from "react";
 import Select, { Option, OptGroup } from "rc-select";
 import "../assets/stylesheets/create-select.scss";
 import { getMessages } from "../../hubs/utils/i18n";
+import trashIconSrc from "../assets/images/icons/trash.svgi";
 
 const items = [
-  ["images", [["image_url", null, null], ["image_upload", null, null], ["image_search_bing", null, null]]]
+  ["images", [["image_url", trashIconSrc, null], ["image_upload", null, null], ["image_search_bing", null, null]]],
+  ["images", [["image_url", trashIconSrc, null], ["image_upload", null, null], ["image_search_bing", null, null]]]
 ];
 
 const CreateSelectInputElement = styled.input``;
@@ -17,16 +19,21 @@ const CreateSelectItemElement = styled.div`
   align-items: center;
   justify-content: flex-start;
 `;
-const CreateSelectItemThumb = styled.img`
+const CreateSelectItemThumb = styled.div`
   width: 54px;
   height: 54px;
-  border: 1px solid black;
+  min-width: 54px;
+  margin-right: 12px;
+  border: 2px solid var(--menu-border-color);
+  border-radius: 4px;
 `;
 const CreateSelectItemBody = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
+  flex: 1 1;
+  max-width: 260px;
 `;
 const CreateSelectItemTitle = styled.div`
   display: flex;
@@ -35,24 +42,31 @@ const CreateSelectItemTitle = styled.div`
   align-items: center;
   min-width: 0;
   text-overflow: ellipsis;
+  color: var(--panel-banner-text-color);
 `;
 const CreateSelectItemTitleIcon = styled.div`
-  width: 18px;
-  height: 18px;
-  border: 1px solid black;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  margin-right: 6px;
+  color: var(--panel-text-color);
 `;
 
 const CreateSelectItemTitleText = styled.div`
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 250px;
+  line-height: 20px;
 `;
 const CreateSelectItemDescription = styled.div`
+  width: 100%;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  max-width: 250px;
+  color: var(--panel-text-color);
+  font-size: var(--panel-subheader-text-size);
+  margin-top: 3px;
 `;
 
 const CreateSelectItem = ({ title, description, iconSrc, thumbSrc }) => (
@@ -108,8 +122,8 @@ const CreateSelect = forwardRef((props, ref) => {
     if (search === "") return true;
     console.log(search);
 
-    const ts = tokens.split(" ");
-    const vs = search.toLowerCase().split(" ");
+    const ts = (tokens || "").split(" ");
+    const vs = (search || "").toLowerCase().split(" ");
     let matchCount = 0;
 
     for (let i = 0; i < ts.length; i++) {
@@ -143,11 +157,12 @@ const CreateSelect = forwardRef((props, ref) => {
     <div>
       <div onKeyDown={onKeyDown}>
         <Select
+          virtual={false}
           prefixCls="create-select"
-          style={{ width: 500 }}
+          style={{ width: 375 }}
           mode="combobox"
           value={value}
-          placeholder="placeholder"
+          placeholder={messages["create-select.placeholder"]}
           defaultActiveFirstOption
           getInputElement={() => <CreateSelectInput ref={ref} />}
           showArrow={false}
@@ -177,7 +192,7 @@ export const Basic = () => {
   return (
     <div
       style={{
-        background: "linear-gradient(177deg, rgba(2,0,85,1) 0%, rgba(16,16,170,1) 10%, rgba(0,212,255,1) 100%)",
+        background: "linear-gradient(177deg, rgba(2,0,35,1) 0%, rgba(86,16,70,1) 10%, rgba(200,212,255,1) 100%)",
         display: "flex",
         width: "800px",
         height: "800px",

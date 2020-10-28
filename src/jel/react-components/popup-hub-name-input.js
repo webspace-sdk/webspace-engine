@@ -31,7 +31,6 @@ const PopupHubNameInputWrap = styled.div`
 const PopupHubNameInputElement = styled.input`
   width: 100%;
   border: 0;
-  font-size: 18px;
   color: var(--text-input-text-color);
   font-size: var(--text-input-text-size);
   font-weight: var(--text-input-text-weight);

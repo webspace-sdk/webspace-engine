@@ -76,5 +76,6 @@
   "create-select.image_search_bing.tokens": "image pic find search jpg jpeg gif png svg",
   "create-select.image_search_bing.title": "Image Search",
   "create-select.image_search_bing.description": "Search the web for images. Long long olong long ong long ong.",
-  "create-select.images_group.title": "Images"
+  "create-select.images_group.title": "Images",
+  "create-select.placeholder": "Create"
 }
