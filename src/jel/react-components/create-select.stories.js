@@ -5,20 +5,55 @@ import Select, { Option, OptGroup } from "rc-select";
 import "../assets/stylesheets/create-select.scss";
 import { getMessages } from "../../hubs/utils/i18n";
 
-const Input = forwardRef((props, ref) => <input ref={ref} {...props} />);
-Input.displayName = "Input";
-
 const items = [
   ["images", [["image_url", null, null], ["image_upload", null, null], ["image_search_bing", null, null]]]
 ];
 
-const CreateSelectItemElement = styled.div``;
-const CreateSelectItemThumb = styled.div``;
-const CreateSelectItemBody = styled.div``;
-const CreateSelectItemTitle = styled.div``;
-const CreateSelectItemTitleIcon = styled.div``;
-const CreateSelectItemTitleText = styled.div``;
-const CreateSelectItemDescription = styled.div``;
+const CreateSelectInputElement = styled.input``;
+
+const CreateSelectItemElement = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+`;
+const CreateSelectItemThumb = styled.img`
+  width: 54px;
+  height: 54px;
+  border: 1px solid black;
+`;
+const CreateSelectItemBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+`;
+const CreateSelectItemTitle = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  min-width: 0;
+  text-overflow: ellipsis;
+`;
+const CreateSelectItemTitleIcon = styled.div`
+  width: 18px;
+  height: 18px;
+  border: 1px solid black;
+`;
+
+const CreateSelectItemTitleText = styled.div`
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 250px;
+`;
+const CreateSelectItemDescription = styled.div`
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 250px;
+`;
 
 const CreateSelectItem = ({ title, description, iconSrc, thumbSrc }) => (
   <CreateSelectItemElement>
@@ -39,6 +74,9 @@ CreateSelectItem.propTypes = {
   iconSrc: PropTypes.string,
   thumbSrc: PropTypes.string
 };
+
+const CreateSelectInput = forwardRef((props, ref) => <CreateSelectInputElement ref={ref} {...props} />);
+CreateSelectInput.displayName = "CreateSelectInput";
 
 const CreateSelect = forwardRef((props, ref) => {
   const [value, setValue] = useState("");
@@ -111,7 +149,7 @@ const CreateSelect = forwardRef((props, ref) => {
           value={value}
           placeholder="placeholder"
           defaultActiveFirstOption
-          getInputElement={() => <Input ref={ref} />}
+          getInputElement={() => <CreateSelectInput ref={ref} />}
           showArrow={false}
           showAction={["focus", "click"]}
           notFoundContent=""
