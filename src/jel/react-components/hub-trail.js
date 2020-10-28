@@ -114,7 +114,7 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata, history, hubRena
       key="primary-item"
       ref={primaryItemRef}
       onMouseDown={e => cancelEventIfFocusedWithin(e, hubRenamePopupElement)}
-      onClick={() => showHubRenamePopup(primaryHubId, primaryItemRef, null, null, { toggle: true })}
+      onClick={() => showHubRenamePopup(primaryHubId, primaryItemRef, null, null)}
     >
       {names[hubIdsToShow.length - 1]}
     </HubTrailHubItem>

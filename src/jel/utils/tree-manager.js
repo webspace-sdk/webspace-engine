@@ -7,33 +7,51 @@ class ExpandedTreeNodes {
     if (localStorage.getItem(EXPANDED_TREE_NODE_STORE_KEY) === null) {
       localStorage.setItem(EXPANDED_TREE_NODE_STORE_KEY, JSON.stringify({}));
     }
+
+    this.cache = null;
+    this.cacheKeys = null;
   }
 
   isExpanded(nodeId) {
     this.ensureCache();
-    return !!this.cache[nodeId];
+    return this.cache.has(nodeId);
   }
 
   expandedNodeIds() {
     this.ensureCache();
-    return Object.keys(this.cache);
+    return this.cacheKeys;
   }
 
   set(nodeId) {
     this.ensureCache();
-    this.cache[nodeId] = true;
-    localStorage.setItem(EXPANDED_TREE_NODE_STORE_KEY, JSON.stringify(this.cache));
+    this.cache.add(nodeId);
+    this.cacheKeys = null;
+    this.writeCache();
   }
 
   unset(nodeId) {
     this.ensureCache();
-    delete this.cache[nodeId];
-    localStorage.setItem(EXPANDED_TREE_NODE_STORE_KEY, JSON.stringify(this.cache));
+    this.cache.delete(nodeId);
+    this.cacheKeys = null;
+    this.writeCache();
+  }
+
+  writeCache() {
+    const out = {};
+    for (const nodeId of this.cache) {
+      out[nodeId] = true;
+    }
+
+    localStorage.setItem(EXPANDED_TREE_NODE_STORE_KEY, JSON.stringify(out));
   }
 
   ensureCache() {
     if (!this.cache) {
-      this.cache = JSON.parse(localStorage[EXPANDED_TREE_NODE_STORE_KEY]);
+      this.cache = new Set([...Object.keys(JSON.parse(localStorage[EXPANDED_TREE_NODE_STORE_KEY]))]);
+    }
+
+    if (!this.cacheKeys) {
+      this.cacheKeys = [...this.cache.keys()];
     }
   }
 }

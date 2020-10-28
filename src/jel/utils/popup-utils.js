@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { usePopper } from "react-popper";
 import { toggleFocus } from "./dom-utils";
 
@@ -14,42 +14,46 @@ export function useHubBoundPopupPopper(focusRef, initialPlacement = "bottom", in
 
   const { styles, attributes } = usePopper(referenceElement, popupElement, {
     placement: placement,
+    scroll: false,
     modifiers: [
       {
         name: "offset",
         options: {
           offset: offset
         }
+      },
+      {
+        name: "eventListeners",
+        options: {
+          scroll: false,
+          resize: false
+        }
       }
     ]
   });
 
-  const show = (newHubId, ref, newPlacement, newOffset, newPopupOpenOptions = EMPTY) => {
-    if (newHubId !== hubId) setHubId(newHubId);
-    if (newPlacement && newPlacement !== placement) setPlacement(newPlacement);
-    if (newOffset && newOffset !== offset) setOffset(newOffset);
-    if (ref && ref.current !== referenceElement) setReferenceElement(ref.current);
-    if (newPopupOpenOptions !== popupOpenOptions) setPopupOpenOptions(newPopupOpenOptions || EMPTY);
+  const show = useCallback(
+    (newHubId, ref, newPlacement, newOffset, newPopupOpenOptions = EMPTY) => {
+      if (newHubId !== hubId) setHubId(newHubId);
+      if (newPlacement) setPlacement(newPlacement);
+      if (newOffset) setOffset(newOffset);
+      if (ref && ref.current) setReferenceElement(ref.current);
+      if (newPopupOpenOptions) setPopupOpenOptions(newPopupOpenOptions || EMPTY);
 
-    const elToFocus = focusRef ? focusRef.current : popupElement;
-
-    if (popupOpenOptions.toggle) {
+      const elToFocus = focusRef ? focusRef.current : popupElement;
       toggleFocus(elToFocus);
-    } else {
-      elToFocus.focus();
-    }
+    },
+    [hubId, focusRef, popupElement]
+  );
 
-    // HACK, once popper has positioned the context/rename popups, remove this ref
-    // since otherwise popper will re-render everything if pane is scrolled
-    setTimeout(() => setReferenceElement(null), 0);
-  };
+  const setRef = useCallback(ref => setReferenceElement(ref.current), []);
 
   return {
     show,
     hubId,
     popupElement,
     setPopup: setPopupElement,
-    setRef: ref => setReferenceElement(ref.current),
+    setRef,
     setPlacement,
     setOffset,
     styles,
@@ -73,34 +77,37 @@ export function usePopupPopper(focusRef, initialPlacement = "bottom", initialOff
         options: {
           offset: offset
         }
+      },
+      {
+        name: "eventListeners",
+        options: {
+          scroll: false,
+          resize: false
+        }
       }
     ]
   });
 
-  const show = (ref, newPlacement, newOffset, newPopupOpenOptions = EMPTY) => {
-    if (newPlacement && newPlacement !== placement) setPlacement(newPlacement);
-    if (newOffset && newOffset !== offset) setOffset(newOffset);
-    if (ref && ref.current !== referenceElement) setReferenceElement(ref.current);
-    if (newPopupOpenOptions !== popupOpenOptions) setPopupOpenOptions(newPopupOpenOptions || EMPTY);
+  const show = useCallback(
+    (ref, newPlacement, newOffset, newPopupOpenOptions = EMPTY) => {
+      if (newPlacement) setPlacement(newPlacement);
+      if (newOffset) setOffset(newOffset);
+      if (ref && ref.current) setReferenceElement(ref.current);
+      if (newPopupOpenOptions) setPopupOpenOptions(newPopupOpenOptions || EMPTY);
 
-    const elToFocus = focusRef ? focusRef.current : popupElement;
-
-    if (popupOpenOptions.toggle) {
+      const elToFocus = focusRef ? focusRef.current : popupElement;
       toggleFocus(elToFocus);
-    } else {
-      elToFocus.focus();
-    }
+    },
+    [focusRef, popupElement]
+  );
 
-    // HACK, once popper has positioned the context/rename popups, remove this ref
-    // since otherwise popper will re-render everything if pane is scrolled
-    setTimeout(() => setReferenceElement(null), 0);
-  };
+  const setRef = useCallback(ref => setReferenceElement(ref.current), []);
 
   return {
     show,
     popupElement,
     setPopup: setPopupElement,
-    setRef: ref => setReferenceElement(ref.current),
+    setRef,
     setPlacement,
     setOffset,
     styles,

@@ -1,5 +1,5 @@
 import scrollIntoView from "scroll-into-view-if-needed";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { createHub } from "../../hubs/utils/phoenix-utils";
 import { navigateToHubUrl } from "./jel-url-utils";
 
@@ -63,24 +63,28 @@ export function useScrollToSelectedTreeNode(treeData, atom) {
   );
 }
 
-export const createTreeDropHandler = (treeManager, tree, allowNesting = true) => ({ dragNode, node, dropPosition }) => {
-  const dropPos = node.pos.split("-");
-  const dropOffset = dropPosition - Number(dropPos[dropPos.length - 1]);
-  switch (dropOffset) {
-    case -1:
-      tree.moveAbove(dragNode.key, node.key);
-      break;
-    case 1:
-      tree.moveBelow(dragNode.key, node.key);
-      break;
-    case 0:
-      if (allowNesting) {
-        tree.moveInto(dragNode.key, node.key);
-        treeManager.setNodeIsExpanded(node.key, true);
+export const useTreeDropHandler = (treeManager, tree, allowNesting = true) =>
+  useCallback(
+    ({ dragNode, node, dropPosition }) => {
+      const dropPos = node.pos.split("-");
+      const dropOffset = dropPosition - Number(dropPos[dropPos.length - 1]);
+      switch (dropOffset) {
+        case -1:
+          tree.moveAbove(dragNode.key, node.key);
+          break;
+        case 1:
+          tree.moveBelow(dragNode.key, node.key);
+          break;
+        case 0:
+          if (allowNesting) {
+            tree.moveInto(dragNode.key, node.key);
+            treeManager.setNodeIsExpanded(node.key, true);
+          }
+          break;
       }
-      break;
-  }
-};
+    },
+    [treeManager, tree, allowNesting]
+  );
 
 // Returns all the children atoms in the given tree data under atomId's node,
 // with the deepest nodes last.

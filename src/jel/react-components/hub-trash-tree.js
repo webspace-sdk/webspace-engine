@@ -1,12 +1,11 @@
 import PropTypes from "prop-types";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import styles from "../assets/stylesheets/hub-trash-tree.scss";
 import classNames from "classnames";
 import Tree from "rc-tree";
 import styled from "styled-components";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { useTreeData, findChildrenAtomsInTreeData } from "../utils/tree-utils";
-//import sharedStyles from "../assets/stylesheets/shared.scss";
 import HubTrashNodeTitle from "./hub-trash-node-title";
 import { FormattedMessage } from "react-intl";
 import "../assets/stylesheets/hub-tree.scss";
@@ -82,6 +81,13 @@ function HubTrashTree({ treeManager, hubMetadata, tree, history, hub, hubCan, on
     [treeManager, tree, hubMetadata, hubCan, onRemove, onRestore]
   );
 
+  const trashNav = treeManager && treeManager.trashNav;
+  const navSelectedKeys = useMemo(() => (hub && trashNav ? [trashNav.getNodeIdForAtomId(hub.hub_id)] : []), [
+    hub,
+    trashNav
+  ]);
+  const onSelect = useCallback((selectedKeys, { node: { url } }) => navigateToHubUrl(history, url), [history]);
+
   if (!treeManager || !tree || !hub) return null;
 
   treeManager.setTrashNavTitleControl(trashNavTitleControl);
@@ -94,16 +100,14 @@ function HubTrashTree({ treeManager, hubMetadata, tree, history, hub, hubCan, on
     );
   }
 
-  const navSelectedKeys = hub ? [treeManager.trashNav.getNodeIdForAtomId(hub.hub_id)] : [];
-
   return (
     <TrashWrap>
       <Tree
         prefixCls="hub-tree"
+        onSelect={onSelect}
         className={classNames(styles.trashTree)}
         treeData={trashTreeData}
         selectedKeys={navSelectedKeys}
-        onSelect={(selectedKeys, { node: { url } }) => navigateToHubUrl(history, url)}
         selectable={true}
         expandable={false}
         draggable={false}

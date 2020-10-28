@@ -1,11 +1,11 @@
 import PropTypes from "prop-types";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { FormattedMessage } from "react-intl";
 import Tree from "rc-tree";
 import styled from "styled-components";
 import {
   addNewHubToTree,
-  createTreeDropHandler,
+  useTreeDropHandler,
   useTreeData,
   useExpandableTree,
   useScrollToSelectedTreeNode
@@ -54,11 +54,28 @@ function HubTree({ treeManager, history, hub, spaceCan, setHubRenameReferenceEle
     [history, hub, treeManager, atomMetadata, showHubContextMenuPopup, setHubRenameReferenceElement, spaceCan]
   );
 
+  const onDragEnter = useCallback(({ node }) => treeManager.setNodeIsExpanded(node.key, true), [treeManager]);
+  const onDrop = useTreeDropHandler(treeManager, tree);
+  const onSelect = useCallback(
+    (selectedKeys, { node: { atomId } }) => {
+      const metadata = tree.atomMetadata.getMetadata(atomId);
+
+      if (metadata) {
+        navigateToHubUrl(history, metadata.url);
+      }
+    },
+    [tree, history]
+  );
+  const onExpand = useCallback(
+    (expandedKeys, { expanded, node: { key } }) => treeManager.setNodeIsExpanded(key, expanded),
+    [treeManager]
+  );
+
+  const navSelectedKeys = useMemo(() => (hub && tree ? [tree.getNodeIdForAtomId(hub.hub_id)] : []), [hub, tree]);
+
   if (!treeManager || !hub) return null;
 
   treeManager.setNavTitleControl(navTitleControl);
-
-  const navSelectedKeys = hub ? [tree.getNodeIdForAtomId(hub.hub_id)] : [];
 
   return (
     <div>
@@ -68,17 +85,11 @@ function HubTree({ treeManager, history, hub, spaceCan, setHubRenameReferenceEle
         selectable={true}
         selectedKeys={navSelectedKeys}
         draggable
-        onDragEnter={({ node }) => treeManager.setNodeIsExpanded(node.key, true)}
-        onDrop={createTreeDropHandler(treeManager, tree)}
-        onSelect={(selectedKeys, { node: { atomId } }) => {
-          const metadata = tree.atomMetadata.getMetadata(atomId);
-
-          if (metadata) {
-            navigateToHubUrl(history, metadata.url);
-          }
-        }}
+        onDragEnter={onDragEnter}
+        onDrop={onDrop}
+        onSelect={onSelect}
         expandedKeys={treeManager.sharedExpandedNodeIds()}
-        onExpand={(expandedKeys, { expanded, node: { key } }) => treeManager.setNodeIsExpanded(key, expanded)}
+        onExpand={onExpand}
       />
       {navTreeData.length === 0 && (
         <EmptyMessage>

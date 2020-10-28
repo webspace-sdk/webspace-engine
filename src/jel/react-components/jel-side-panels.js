@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { FormattedMessage } from "react-intl";
 import { usePopper } from "react-popper";
 import PropTypes from "prop-types";
@@ -286,23 +286,31 @@ function JelSidePanels({
 
   const homeHub = homeHubForSpaceId(spaceId, memberships);
   const hubMetadata = treeManager && treeManager.sharedNav && treeManager.sharedNav.atomMetadata;
+  const privateTreeData = useMemo(
+    () =>
+      homeHub
+        ? [
+            {
+              key: homeHub.hub_id,
+              title: <HubNodeTitle hubId={homeHub.hub_id} showDots={false} showAdd={false} hubMetadata={hubMetadata} />,
+              atomId: homeHub.hub_id,
+              isLeaf: true
+            }
+          ]
+        : [],
+    [homeHub, hubMetadata]
+  );
 
   // For now private tree is just home hub
-  const privateSelectedKeys = hub && homeHub && hub.hub_id === homeHub.hub_id ? [hub.hub_id] : [];
-
-  const privateTreeData = homeHub
-    ? [
-        {
-          key: homeHub.hub_id,
-          title: <HubNodeTitle hubId={homeHub.hub_id} showDots={false} showAdd={false} hubMetadata={hubMetadata} />,
-          atomId: homeHub.hub_id,
-          isLeaf: true
-        }
-      ]
-    : [];
+  const privateSelectedKeys = useMemo(() => (hub && homeHub && hub.hub_id === homeHub.hub_id ? [hub.hub_id] : []), [
+    hub,
+    homeHub
+  ]);
 
   const space = spaceForSpaceId(spaceId, memberships);
   const spaceChannel = window.APP.spaceChannel;
+  const onHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
+  const hubId = hub && hub.hub_id;
 
   return (
     <Wrap>
@@ -324,10 +332,9 @@ function JelSidePanels({
               history={history}
               spaceCan={spaceCan}
               hubCan={hubCan}
-              memberships={memberships}
               showHubContextMenuPopup={showHubContextMenuPopup}
               setHubRenameReferenceElement={setHubRenameReferenceElement}
-              onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
+              onHubNameChanged={onHubNameChanged}
             />
             <PanelSectionHeader>
               <FormattedMessage id="nav.private-worlds" />
@@ -337,9 +344,10 @@ function JelSidePanels({
               treeData={privateTreeData}
               selectable={true}
               selectedKeys={privateSelectedKeys}
-              onSelect={(selectedKeys, { node: { atomId } }) =>
-                navigateToHubUrl(history, hubMetadata.getMetadata(atomId).url)
-              }
+              onSelect={useCallback(
+                (selectedKeys, { node: { atomId } }) => navigateToHubUrl(history, hubMetadata.getMetadata(atomId).url),
+                [history, hubMetadata]
+              )}
             />
           </NavSpill>
           <NavFoot>
@@ -408,36 +416,42 @@ function JelSidePanels({
           hubMetadata={hubMetadata}
           history={history}
           hubCan={hubCan}
-          onRestore={(hubId, hubIdsToRestore) => {
-            const navigateToRestoredHub = () => {
-              // Navigate to restored node.
-              const metadata = hubMetadata.getMetadata(hubId);
+          onRestore={useCallback(
+            (hubId, hubIdsToRestore) => {
+              const navigateToRestoredHub = () => {
+                // Navigate to restored node.
+                const metadata = hubMetadata.getMetadata(hubId);
 
-              if (metadata) {
-                navigateToHubUrl(history, metadata.url);
+                if (metadata) {
+                  navigateToHubUrl(history, metadata.url);
+                }
+
+                hubMetadata.unsubscribeFromMetadata(navigateToRestoredHub);
+              };
+
+              hubMetadata.subscribeToMetadata(hubId, navigateToRestoredHub);
+              spaceChannel.restoreHubs(hubIdsToRestore);
+
+              // Blur so tree hides. This is important because we will re-load
+              // the trash tree next time user clicks.
+              document.activeElement.blur();
+            },
+            [history, hubMetadata, spaceChannel]
+          )}
+          onRemove={useCallback(
+            hubIdToRemove => {
+              // Focus trash menu so it stays open.
+              trashMenuElement.focus();
+
+              if (hubId === hubIdToRemove) {
+                const homeHub = homeHubForSpaceId(spaceId, memberships);
+                navigateToHubUrl(history, homeHub.url);
               }
 
-              hubMetadata.unsubscribeFromMetadata(navigateToRestoredHub);
-            };
-
-            hubMetadata.subscribeToMetadata(hubId, navigateToRestoredHub);
-            spaceChannel.restoreHubs(hubIdsToRestore);
-
-            // Blur so tree hides. This is important because we will re-load
-            // the trash tree next time user clicks.
-            document.activeElement.blur();
-          }}
-          onRemove={hubIdToRemove => {
-            // Focus trash menu so it stays open.
-            trashMenuElement.focus();
-
-            if (hub.hub_id === hubIdToRemove) {
-              const homeHub = homeHubForSpaceId(hub.space_id, memberships);
-              navigateToHubUrl(history, homeHub.url);
-            }
-
-            spaceChannel.removeHubs([hubIdToRemove]);
-          }}
+              spaceChannel.removeHubs([hubIdToRemove]);
+            },
+            [history, hubId, spaceId, spaceChannel, memberships, trashMenuElement]
+          )}
         />
       </TrashMenu>
     </Wrap>

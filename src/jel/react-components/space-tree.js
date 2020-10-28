@@ -1,10 +1,10 @@
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import Tree from "rc-tree";
 import SpaceNodeIcon from "./space-node-icon";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { homeHubForSpaceId } from "../utils/membership-utils";
-import { createTreeDropHandler, useTreeData, useScrollToSelectedTreeNode } from "../utils/tree-utils";
+import { useTreeDropHandler, useTreeData, useScrollToSelectedTreeNode } from "../utils/tree-utils";
 import "../assets/stylesheets/space-tree.scss";
 
 function SpaceTree({ treeManager, history, space, memberships }) {
@@ -15,21 +15,29 @@ function SpaceTree({ treeManager, history, space, memberships }) {
   useTreeData(tree, spaceTreeDataVersion, setSpaceTreeData, setSpaceTreeDataVersion);
   useScrollToSelectedTreeNode(spaceTreeData, space);
 
-  const spaceSelectedKeys = space && treeManager ? [tree.getNodeIdForAtomId(space.space_id)] : [];
+  const spaceSelectedKeys = useMemo(() => (space && tree ? [tree.getNodeIdForAtomId(space.space_id)] : []), [
+    space,
+    tree
+  ]);
+  const icon = useCallback(item => <SpaceNodeIcon spaceId={item.atomId} spaceMetadata={spaceMetadata} />, [
+    spaceMetadata
+  ]);
+  const onSelect = useCallback(
+    (selectedKeys, { node: { atomId } }) => navigateToHubUrl(history, homeHubForSpaceId(atomId, memberships).url),
+    [history, memberships]
+  );
 
   return (
     <div>
       <Tree
         prefixCls="space-tree"
         treeData={spaceTreeData}
-        icon={item => <SpaceNodeIcon spaceId={item.atomId} spaceMetadata={spaceMetadata} />}
+        icon={icon}
         selectable={true}
         selectedKeys={spaceSelectedKeys}
         draggable
-        onDrop={createTreeDropHandler(treeManager, tree, false)}
-        onSelect={(selectedKeys, { node: { atomId } }) =>
-          navigateToHubUrl(history, homeHubForSpaceId(atomId, memberships).url)
-        }
+        onDrop={useTreeDropHandler(treeManager, tree, false)}
+        onSelect={onSelect}
       />
     </div>
   );

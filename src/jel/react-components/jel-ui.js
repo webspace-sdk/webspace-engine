@@ -1,4 +1,4 @@
-import React, { useState, forwardRef } from "react";
+import React, { useState, forwardRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import HubTrail from "./hub-trail";
 import LayerPager from "./layer-pager";
@@ -244,9 +244,7 @@ function JelUI(props) {
                 ref={hubCreateButtonRef}
                 onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
                 onClick={() => {
-                  showCreateSelectPopup(hubCreateButtonRef, "bottom-end", [0, 8], {
-                    toggle: true
-                  });
+                  showCreateSelectPopup(hubCreateButtonRef, null, null);
                 }}
               />
               <HubContextButton
@@ -254,8 +252,7 @@ function JelUI(props) {
                 onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
                 onClick={() => {
                   showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
-                    hideRename: true,
-                    toggle: true
+                    hideRename: true
                   });
                 }}
               />
