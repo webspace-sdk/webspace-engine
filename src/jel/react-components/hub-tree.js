@@ -95,8 +95,6 @@ HubTree.propTypes = {
   hub: PropTypes.object,
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,
-  spaceChannel: PropTypes.object,
-  memberships: PropTypes.array,
   setHubRenameReferenceElement: PropTypes.func,
   showHubContextMenuPopup: PropTypes.func
 };

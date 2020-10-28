@@ -206,6 +206,11 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       src: { value: paths.device.keyboard.key("v") },
       dest: { value: paths.actions.mediaScaleReleaseAction },
       xform: xforms.falling
+    },
+    {
+      src: { value: paths.device.keyboard.key("/") },
+      dest: { value: paths.actions.create },
+      xform: xforms.falling
     }
     // Helpful bindings for debugging hands in 2D
     // {

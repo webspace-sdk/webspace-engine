@@ -31,7 +31,7 @@ CreateSelectPopup.propTypes = {
   styles: PropTypes.object,
   attributes: PropTypes.object,
   setPopperElement: PropTypes.func,
-  popperElement: PropTypes.node
+  popperElement: PropTypes.object
 };
 
 export default CreateSelectPopup;

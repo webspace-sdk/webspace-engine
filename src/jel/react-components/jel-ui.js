@@ -20,6 +20,8 @@ import CreateSelectPopup from "./create-select-popup";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
+import { getMessages } from "../../hubs/utils/i18n";
+import Tooltip from "./tooltip";
 import KeyTips from "./key-tips";
 
 const Wrap = styled.div`
@@ -54,6 +56,15 @@ const Top = styled.div`
   flex-direction: row;
   width: 100%;
   align-items: flex-start;
+`;
+
+const CenterPopupRef = styled.div`
+  position: absolute;
+  top: 70vh;
+  left: 50vw;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
 `;
 
 const HubCornerButtonElement = styled.button`
@@ -114,10 +125,14 @@ const HubContextButton = forwardRef((props, ref) => {
 HubContextButton.displayName = "HubContextButton";
 
 const HubCreateButton = forwardRef((props, ref) => {
+  const messages = getMessages();
+
   return (
-    <HubCornerButtonElement {...props} ref={ref}>
-      <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: addIcon }} />
-    </HubCornerButtonElement>
+    <Tooltip content={messages["create.tip"]} placement="top" key="mute" delay={500}>
+      <HubCornerButtonElement {...props} ref={ref}>
+        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: addIcon }} />
+      </HubCornerButtonElement>
+    </Tooltip>
   );
 });
 
@@ -160,6 +175,7 @@ function JelUI(props) {
   const hubContextButtonRef = React.createRef();
   const hubCreateButtonRef = React.createRef();
   const createSelectFocusRef = React.createRef();
+  const centerPopupRef = React.createRef();
 
   const {
     styles: hubRenamePopupStyles,
@@ -187,17 +203,28 @@ function JelUI(props) {
     show: showCreateSelectPopup,
     setPopup: setCreateSelectPopupElement,
     popupElement: createSelectPopupElement
-  } = usePopupPopper(createSelectFocusRef);
+  } = usePopupPopper(createSelectFocusRef, "bottom-end", [0, 8]);
 
   useSceneMuteState(scene, setMuted);
 
   // Consume tree updates so redraws if user manipulates tree
   useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersion);
 
+  // Handle create hotkey (typically /)
+  useEffect(
+    () => {
+      const handleCreateHotkey = () => showCreateSelectPopup(centerPopupRef, "bottom");
+      scene.addEventListener("action_create", handleCreateHotkey);
+      return () => scene.removeEventListener("action_create", handleCreateHotkey);
+    },
+    [scene, centerPopupRef, showCreateSelectPopup]
+  );
+
   return (
     <WrappedIntlProvider>
       <div>
         <Wrap id="jel-ui-wrap">
+          <CenterPopupRef ref={centerPopupRef} />
           <FadeEdges />
           <Top>
             {hubMetadata && (

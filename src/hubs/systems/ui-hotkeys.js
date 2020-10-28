@@ -64,6 +64,12 @@ AFRAME.registerSystem("ui-hotkeys", {
       }
     }
 
+    if (this.userinput.get(paths.actions.create)) {
+      if (this.el.sceneEl.is("entered")) {
+        this.el.emit("action_create");
+      }
+    }
+
     if (this.userinput.get(paths.actions.nextMediaLayer)) {
       if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
       this.el.systems["hubs-systems"].mediaPresenceSystem.selectNextMediaLayer();

@@ -77,5 +77,6 @@
   "create-select.image_search_bing.title": "Image Search",
   "create-select.image_search_bing.description": "Search the web for images.",
   "create-select.images_group.title": "Images",
-  "create-select.placeholder": "Create"
+  "create-select.placeholder": "Create",
+  "create.tip": "Create"
 }
