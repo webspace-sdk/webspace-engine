@@ -25,15 +25,14 @@ export function useHubBoundPopupPopper(focusRef, initialPlacement = "bottom", in
       {
         name: "eventListeners",
         options: {
-          scroll: false,
-          resize: false
+          scroll: false
         }
       }
     ]
   });
 
   const show = useCallback(
-    (newHubId, ref, newPlacement, newOffset, newPopupOpenOptions = EMPTY) => {
+    (newHubId, ref, newPlacement, newOffset, newPopupOpenOptions = null) => {
       if (newHubId) setHubId(newHubId);
       if (newPlacement) setPlacement(newPlacement);
       if (newOffset) setOffset(newOffset);
@@ -62,7 +61,7 @@ export function useHubBoundPopupPopper(focusRef, initialPlacement = "bottom", in
   };
 }
 
-export function usePopupPopper(focusRef, initialPlacement = "bottom", initialOffset = [0, 0]) {
+export function usePopupPopper(focusRefOrSelector, initialPlacement = "bottom", initialOffset = [0, 0]) {
   const [referenceElement, setReferenceElement] = useState(null);
   const [popupElement, setPopupElement] = useState(null);
   const [placement, setPlacement] = useState(initialPlacement);
@@ -81,24 +80,30 @@ export function usePopupPopper(focusRef, initialPlacement = "bottom", initialOff
       {
         name: "eventListeners",
         options: {
-          scroll: false,
-          resize: false
+          scroll: false
         }
       }
     ]
   });
 
   const show = useCallback(
-    (ref, newPlacement, newOffset, newPopupOpenOptions = EMPTY) => {
+    (ref, newPlacement, newOffset, newPopupOpenOptions = null) => {
       if (newPlacement) setPlacement(newPlacement);
       if (newOffset) setOffset(newOffset);
       if (ref && ref.current) setReferenceElement(ref.current);
       if (newPopupOpenOptions) setPopupOpenOptions(newPopupOpenOptions || EMPTY);
 
-      const elToFocus = focusRef ? focusRef.current : popupElement;
+      let elToFocus;
+
+      if (typeof focusRefOrSelector === "string") {
+        elToFocus = document.querySelector(focusRefOrSelector);
+      } else {
+        elToFocus = focusRefOrSelector ? focusRefOrSelector.current : popupElement;
+      }
+
       toggleFocus(elToFocus);
     },
-    [focusRef, popupElement]
+    [focusRefOrSelector, popupElement]
   );
 
   const setRef = useCallback(ref => setReferenceElement(ref.current), []);

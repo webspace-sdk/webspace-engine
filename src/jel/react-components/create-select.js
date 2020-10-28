@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import React, { useState, forwardRef } from "react";
+import React, { useState, forwardRef, useCallback } from "react";
 import Select, { Option, OptGroup } from "rc-select";
 import "../assets/stylesheets/create-select.scss";
 import { getMessages } from "../../hubs/utils/i18n";
@@ -88,7 +88,7 @@ CreateSelectItem.propTypes = {
   thumbSrc: PropTypes.string
 };
 
-const CreateSelectInput = forwardRef((props, ref) => <CreateSelectInputElement tabIndex={-1} ref={ref} {...props} />);
+const CreateSelectInput = forwardRef((props, ref) => <input {...props} ref={ref} tabIndex={-1} />);
 CreateSelectInput.displayName = "CreateSelectInput";
 
 const CreateSelect = forwardRef((props, ref) => {
@@ -163,7 +163,10 @@ const CreateSelect = forwardRef((props, ref) => {
           value={value}
           placeholder={messages["create-select.placeholder"]}
           defaultActiveFirstOption
-          getInputElement={() => <CreateSelectInput ref={ref} />}
+          ref={ref}
+          getInputElement={useCallback(() => {
+            return <CreateSelectInput id="create-select-input" />;
+          }, [])}
           showArrow={false}
           showAction={["focus", "click"]}
           notFoundContent=""

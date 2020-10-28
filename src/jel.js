@@ -819,7 +819,11 @@ async function start() {
   canvas.addEventListener("mouseover", () => {
     if (!isInEditableField()) {
       clearTimeout(focusCanvasTimeout);
-      focusCanvasTimeout = setTimeout(() => canvas.focus(), 3000);
+      focusCanvasTimeout = setTimeout(() => {
+        if (!isInEditableField()) {
+          canvas.focus();
+        }
+      }, 3000);
     }
   });
 
