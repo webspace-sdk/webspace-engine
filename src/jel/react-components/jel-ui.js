@@ -7,14 +7,16 @@ import mutedIcon from "../assets/images/icons/mic-muted.svgi";
 import unmutedIcon from "../assets/images/icons/mic-unmuted.svgi";
 import { BigIconButton } from "./icon-button";
 import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../utils/tree-utils";
-import { useHubBoundPopupPopper } from "../utils/popup-utils";
+import { useHubBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 import { MAX_MEDIA_LAYER } from "../systems/media-presence-system";
 import JelSidePanels from "./jel-side-panels";
 import dotsIcon from "../assets/images/icons/dots-horizontal-overlay-shadow.svgi";
+import addIcon from "../assets/images/icons/add-shadow.svgi";
 import HubRenamePopup from "./hub-rename-popup";
 import HubContextMenu from "./hub-context-menu";
+import CreateSelectPopup from "./create-select-popup";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
@@ -30,6 +32,22 @@ const Wrap = styled.div`
   flex-direction: column;
 `;
 
+const FadeEdges = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(64, 64, 64, 0.4) 0%,
+    rgba(32, 32, 32, 0) 128px,
+    rgba(32, 32, 32, 0) calc(100% - 500px),
+    rgba(64, 64, 64, 0.4) 100%
+  );
+  pointer-events: none;
+`;
+
 const Top = styled.div`
   flex: 1;
   display: flex;
@@ -38,7 +56,7 @@ const Top = styled.div`
   align-items: flex-start;
 `;
 
-const HubContextButtonElement = styled.button`
+const HubCornerButtonElement = styled.button`
   color: var(--canvas-overlay-text-color);
   width: content-width;
   margin: 11px 12px 0 0;
@@ -73,18 +91,37 @@ const HubContextButtonElement = styled.button`
   }
 `;
 
-const HubContextButtonIcon = styled.div`
+const HubCornerButtons = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+`;
+
+const HubCornerButtonIcon = styled.div`
   width: 22px;
   height: 22px;
 `;
 
 const HubContextButton = forwardRef((props, ref) => {
   return (
-    <HubContextButtonElement {...props} ref={ref}>
-      <HubContextButtonIcon dangerouslySetInnerHTML={{ __html: dotsIcon }} />
-    </HubContextButtonElement>
+    <HubCornerButtonElement {...props} ref={ref}>
+      <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: dotsIcon }} />
+    </HubCornerButtonElement>
   );
 });
+
+HubContextButton.displayName = "HubContextButton";
+
+const HubCreateButton = forwardRef((props, ref) => {
+  return (
+    <HubCornerButtonElement {...props} ref={ref}>
+      <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: addIcon }} />
+    </HubCornerButtonElement>
+  );
+});
+
+HubCreateButton.displayName = "HubCreateButton";
 
 const KeyTipsWrap = styled.div`
   position: absolute;
@@ -109,8 +146,6 @@ const DeviceStatuses = styled.div`
   }
 `;
 
-HubContextButton.displayName = "HubContextButton";
-
 function JelUI(props) {
   const { scene, selectedMediaLayer, treeManager, history, spaceCan, hubCan, hub, memberships } = props;
   const tree = treeManager && treeManager.sharedNav;
@@ -123,6 +158,8 @@ function JelUI(props) {
 
   const renameFocusRef = React.createRef();
   const hubContextButtonRef = React.createRef();
+  const hubCreateButtonRef = React.createRef();
+  const createSelectFocusRef = React.createRef();
 
   const {
     styles: hubRenamePopupStyles,
@@ -144,6 +181,14 @@ function JelUI(props) {
     popupElement: hubContextMenuElement
   } = useHubBoundPopupPopper();
 
+  const {
+    styles: createSelectPopupStyles,
+    attributes: createSelectPopupAttributes,
+    show: showCreateSelectPopup,
+    setPopup: setCreateSelectPopupElement,
+    popupElement: createSelectPopupElement
+  } = usePopupPopper(createSelectFocusRef);
+
   useSceneMuteState(scene, setMuted);
 
   // Consume tree updates so redraws if user manipulates tree
@@ -153,6 +198,7 @@ function JelUI(props) {
     <WrappedIntlProvider>
       <div>
         <Wrap id="jel-ui-wrap">
+          <FadeEdges />
           <Top>
             {hubMetadata && (
               <HubTrail
@@ -166,16 +212,27 @@ function JelUI(props) {
                 onHubNameChanged={(hubId, name) => spaceChannel.updateHub(hubId, { name })}
               />
             )}
-            <HubContextButton
-              ref={hubContextButtonRef}
-              onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
-              onClick={() => {
-                showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
-                  hideRename: true,
-                  toggle: true
-                });
-              }}
-            />
+            <HubCornerButtons>
+              <HubCreateButton
+                ref={hubCreateButtonRef}
+                onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
+                onClick={() => {
+                  showCreateSelectPopup(hubCreateButtonRef, "bottom-end", [0, 8], {
+                    toggle: true
+                  });
+                }}
+              />
+              <HubContextButton
+                ref={hubContextButtonRef}
+                onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
+                onClick={() => {
+                  showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
+                    hideRename: true,
+                    toggle: true
+                  });
+                }}
+              />
+            </HubCornerButtons>
           </Top>
           <KeyTipsWrap
             onClick={() =>
@@ -237,6 +294,13 @@ function JelUI(props) {
 
           window.APP.spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
         }}
+      />
+      <CreateSelectPopup
+        popperElement={createSelectPopupElement}
+        setPopperElement={setCreateSelectPopupElement}
+        styles={createSelectPopupStyles}
+        attributes={createSelectPopupAttributes}
+        ref={createSelectFocusRef}
       />
     </WrappedIntlProvider>
   );

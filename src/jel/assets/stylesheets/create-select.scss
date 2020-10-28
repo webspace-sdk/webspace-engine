@@ -33,8 +33,6 @@ $selectPrefixCls: 'create-select';
         border-bottom-color: transparent;
         transform: none;
         margin-top: 4px;
-
-        animation: rcSelectLoadingIcon 0.5s infinite;
       }
     }
   }
@@ -120,6 +118,7 @@ $selectPrefixCls: 'create-select';
     min-height: 100px;
     position: absolute;
     background: transparent;
+    pointer-events: auto;
   }
 
   // =============== Option ================
@@ -159,7 +158,8 @@ $selectPrefixCls: 'create-select';
 }
 
 .#{$selectPrefixCls}-dropdown {
-  position: relative;
+  z-index: 5;
+  opacity: 1 !important; // rc-select sets opacity to 0 on initial frame it seems.
 
   & > div { // HACK to overcome the offset rc-select places panel below
     background-color: var(--panel-background-color);
