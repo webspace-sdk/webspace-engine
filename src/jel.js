@@ -833,7 +833,7 @@ async function start() {
 
   hideCanvas();
   warmSerializeElement();
-  initQuillPool();
+  const quillPoolPromise = initQuillPool();
 
   window.APP.scene = scene;
 
@@ -999,6 +999,8 @@ async function start() {
       await joinHubPromise;
     }
   };
+
+  await quillPoolPromise;
 
   history.listen(performJoin);
   await performJoin();

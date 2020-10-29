@@ -1,7 +1,7 @@
 const path = require("path");
 
 module.exports = {
-  stories: ["../src/jel/react-components/**/*.stories.mdx", "../src/jel/react-components/*.stories.js"],
+  stories: ["../src/jel/react-components/**/*.stories.mdx", "../src/jel/react-components/*.stories.js", "../src/jel/utils/*.stories.js"],
   addons: ["@storybook/addon-links", "@storybook/addon-essentials", "storybook-addon-designs"],
   webpackFinal: async config => {
     config.module.rules.push({
