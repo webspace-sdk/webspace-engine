@@ -218,7 +218,7 @@ export const addMedia = (
     fitToBox,
     resolve,
     animate,
-    src: typeof src === "string" && contents !== null ? coerceToUrl(src) || src : "",
+    src: typeof src === "string" && contents === null ? coerceToUrl(src) || src : "",
     initialContents: contents != null ? contents : null,
     version,
     contentSubtype,

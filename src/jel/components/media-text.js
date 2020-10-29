@@ -13,7 +13,7 @@ import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
 import { renderQuillToImg } from "../utils/quill-utils";
 import { paths } from "../../hubs/systems/userinput/paths";
 
-const SCROLL_SENSITIVITY = 350.0;
+const SCROLL_SENSITIVITY = 500.0;
 
 AFRAME.registerComponent("media-text", {
   schema: {
