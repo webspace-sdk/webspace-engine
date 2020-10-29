@@ -1,6 +1,7 @@
 import { sets } from "./sets";
 import { isUI } from "./../interactions";
 import { CAMERA_MODE_INSPECT } from "../camera-system";
+import { isInEditableField } from "../../../jel/utils/dom-utils";
 import qsTruthy from "../../utils/qs_truthy";
 const debugUserInput = qsTruthy("dui");
 
@@ -225,14 +226,7 @@ export function resolveActionSets() {
 
   userinput.toggleSet(sets.leftHandTeleporting, leftTeleporter.isTeleporting);
   userinput.toggleSet(sets.rightHandTeleporting, rightTeleporter.isTeleporting);
-
-  userinput.toggleSet(
-    sets.inputFocused,
-    document.activeElement.nodeName === "INPUT" ||
-      document.activeElement.nodeName === "TEXTAREA" ||
-      document.activeElement.contentEditable === "true"
-  );
-
+  userinput.toggleSet(sets.inputFocused, isInEditableField());
   userinput.toggleSet(sets.debugUserInput, debugUserInput);
 
   if (AFRAME.scenes[0] && AFRAME.scenes[0].systems["hubs-systems"]) {

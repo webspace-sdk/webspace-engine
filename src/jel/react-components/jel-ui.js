@@ -190,7 +190,8 @@ function JelUI(props) {
     setRef: setHubRenameReferenceElement,
     hubId: hubRenameHubId,
     show: showHubRenamePopup,
-    popupElement: hubRenamePopupElement
+    popupElement: hubRenamePopupElement,
+    update: updateHubRenamePopup
   } = useHubBoundPopupPopper(renameFocusRef, "bottom-start", [0, 8]);
 
   const {
@@ -200,7 +201,8 @@ function JelUI(props) {
     show: showHubContextMenuPopup,
     setPopup: setHubContextMenuElement,
     popupOpenOptions: hubContextMenuOpenOptions,
-    popupElement: hubContextMenuElement
+    popupElement: hubContextMenuElement,
+    update: updateHubContextMenu
   } = useHubBoundPopupPopper();
 
   const {
@@ -208,8 +210,24 @@ function JelUI(props) {
     attributes: createSelectPopupAttributes,
     show: showCreateSelectPopup,
     setPopup: setCreateSelectPopupElement,
-    popupElement: createSelectPopupElement
+    popupElement: createSelectPopupElement,
+    update: updateCreateSelectPopup
   } = usePopupPopper(".create-select-selection-search-input", "bottom-end", [0, 8]);
+
+  // When panels are re-sized we need to re-layout popups
+  useEffect(
+    () => {
+      const handleResizeComplete = () => {
+        if (updateHubRenamePopup) updateHubRenamePopup();
+        if (updateHubContextMenu) updateHubContextMenu();
+        if (updateCreateSelectPopup) updateCreateSelectPopup();
+      };
+
+      scene.addEventListener("animated_resize_complete", handleResizeComplete);
+      () => scene.removeEventListener("animated_resize_complete", handleResizeComplete);
+    },
+    [scene, updateHubRenamePopup, updateHubContextMenu, updateCreateSelectPopup]
+  );
 
   useSceneMuteState(scene, setMuted);
 

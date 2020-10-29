@@ -33,7 +33,9 @@ export class KeyboardDevice {
 
         // Block browser hotkeys for chat command, media browser and freeze
         if (
-          (e.type === "keydown" && e.key === "/" && !isInEditableField()) ||
+          (e.type === "keydown" &&
+            e.key === "/" &&
+            (!isInEditableField() || document.activeElement.getAttribute("id") !== "create-select-input")) || // Cancel slash in create select input since it hides it
           (e.ctrlKey &&
             (e.key === "1" ||
               e.key === "2" ||

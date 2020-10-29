@@ -147,6 +147,7 @@ const CreateSelect = forwardRef((props, ref) => {
   );
 
   const onChange = useCallback(v => setValue(v), []);
+
   const getInputElement = useCallback(() => {
     return <CreateSelectInput ref={inputRef} id="create-select-input" />;
   }, []);

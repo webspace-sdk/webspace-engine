@@ -12,7 +12,7 @@ export function useHubBoundPopupPopper(focusRef, initialPlacement = "bottom", in
   const [offset, setOffset] = useState(initialOffset);
   const [popupOpenOptions, setPopupOpenOptions] = useState(EMPTY);
 
-  const { styles, attributes } = usePopper(referenceElement, popupElement, {
+  const { styles, attributes, update } = usePopper(referenceElement, popupElement, {
     placement: placement,
     scroll: false,
     modifiers: [
@@ -58,6 +58,7 @@ export function useHubBoundPopupPopper(focusRef, initialPlacement = "bottom", in
     setOffset,
     styles,
     attributes,
+    update,
     popupOpenOptions
   };
 }
@@ -69,7 +70,7 @@ export function usePopupPopper(focusRefOrSelector, initialPlacement = "bottom", 
   const [offset, setOffset] = useState(initialOffset);
   const [popupOpenOptions, setPopupOpenOptions] = useState(EMPTY);
 
-  const { styles, attributes } = usePopper(referenceElement, popupElement, {
+  const { styles, attributes, update } = usePopper(referenceElement, popupElement, {
     placement: placement,
     modifiers: [
       {
@@ -119,6 +120,7 @@ export function usePopupPopper(focusRefOrSelector, initialPlacement = "bottom", 
     setOffset,
     styles,
     attributes,
-    popupOpenOptions
+    popupOpenOptions,
+    update
   };
 }

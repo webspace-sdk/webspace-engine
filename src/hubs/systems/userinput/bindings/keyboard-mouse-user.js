@@ -210,7 +210,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: { value: paths.device.keyboard.key("/") },
       dest: { value: paths.actions.create },
-      xform: xforms.falling
+      xform: xforms.rising
     }
     // Helpful bindings for debugging hands in 2D
     // {
@@ -679,6 +679,12 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       src: { value: "/var/control+8" },
       dest: { value: paths.actions.mediaSearch8 },
       xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("/") },
+      dest: { value: paths.actions.create },
+      xform: xforms.rising,
+      priority: 1001
     }
   ],
 

@@ -81,6 +81,6 @@
   "create-select.duck.tokens": "duck quack",
   "create-select.duck.title": "Duck",
   "create-select.duck.description": "Create a duck. Quack.",
-  "create-select.placeholder": "Create",
+  "create-select.placeholder": "Type '/' to toggle",
   "create.tip": "Create"
 }

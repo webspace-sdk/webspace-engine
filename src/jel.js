@@ -506,7 +506,6 @@ function addGlobalEventListeners(scene, entryManager) {
       case "image_upload":
         el = document.querySelector("#file-upload-input");
         el.accept = "image/*";
-        console.log(el);
         el.click();
         break;
     }
@@ -582,7 +581,6 @@ function setupSidePanelLayout(scene) {
 
         scene.systems["hubs-systems"].uiAnimationSystem.applySceneSize(isLeft ? w : null, !isLeft ? w : null, true);
         scene.resize();
-        scene.emit("animated_resize_complete");
 
         storeCallback(w);
         e.preventDefault();
@@ -590,7 +588,14 @@ function setupSidePanelLayout(scene) {
 
       document.addEventListener("mousemove", handleMove);
 
-      document.addEventListener("mouseup", () => document.removeEventListener("mousemove", handleMove), { once: true });
+      document.addEventListener(
+        "mouseup",
+        () => {
+          scene.emit("animated_resize_complete");
+          document.removeEventListener("mousemove", handleMove);
+        },
+        { once: true }
+      );
     });
   };
 
