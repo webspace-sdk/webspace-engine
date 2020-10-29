@@ -29,6 +29,7 @@ export class MediaInteractionSystem {
     const { scene, rightHand } = this;
 
     if (!rightHand) return;
+    if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
 
     this.userinput = this.userinput || scene.systems.userinput;
     if (this.userinput.get(paths.actions.mediaTransformReleaseAction)) {
@@ -67,6 +68,8 @@ export class MediaInteractionSystem {
       interactionType = MEDIA_INTERACTION_TYPES.SCALE;
     } else if (this.userinput.get(paths.actions.mediaCloneAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.CLONE;
+    } else if (this.userinput.get(paths.actions.mediaEditAction)) {
+      interactionType = MEDIA_INTERACTION_TYPES.EDIT;
     } else if (this.userinput.get(paths.actions.mediaRemoveAction)) {
       if (this.lastRemoveActionTarget !== hoverEl) {
         this.lastRemoveActionTarget = hoverEl;

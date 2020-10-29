@@ -2,6 +2,7 @@ import "./hubs/webxr-bypass-hacks";
 import "./hubs/utils/theme";
 import "@babel/polyfill";
 import "./hubs/utils/debug-log";
+import { isInQuillEditor } from "./jel/utils/quill-utils";
 
 console.log(`App version: ${process.env.BUILD_VERSION || "?"}`);
 
@@ -516,7 +517,10 @@ function addGlobalEventListeners(scene, entryManager) {
 
   document.addEventListener("pointerlockchange", () => {
     const expanded = !document.pointerLockElement;
-    scene.systems["hubs-systems"].uiAnimationSystem[expanded ? "expandSidePanels" : "collapseSidePanels"]();
+
+    if (!isInQuillEditor()) {
+      scene.systems["hubs-systems"].uiAnimationSystem[expanded ? "expandSidePanels" : "collapseSidePanels"]();
+    }
   });
 
   scene.addEventListener("action_focus_chat", () => {
@@ -840,6 +844,8 @@ async function start() {
   let focusCanvasTimeout = null;
 
   // Focus canvas if we mouse over it and aren't in an input field
+  // Delay the focus change unless we're focused on the body, which means nothing
+  // was focused.
   canvas.addEventListener("mouseover", () => {
     if (!isInEditableField()) {
       clearTimeout(focusCanvasTimeout);
@@ -847,7 +853,7 @@ async function start() {
         if (!isInEditableField()) {
           canvas.focus();
         }
-      }, 3000);
+      }, document.activeElement === document.body ? 0 : 3000);
     }
   });
 

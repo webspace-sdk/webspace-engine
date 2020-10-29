@@ -50,9 +50,23 @@ const LetterKey = styled.div`
   box-shadow: inset 0px 1px 4px rgba(32, 32, 32, 0.6);
   backdrop-filter: blur(8px);
   color: var(--canvas-overlay-text-color);
-  font-size: var(--canvas-overlay-tertiary-text-size);
   text-transform: uppercase;
   font: var(--key-label-font);
+`;
+
+const BigLetterKey = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+  background-color: rgba(32, 32, 32, 0.2);
+  box-shadow: inset 0px 1px 4px rgba(32, 32, 32, 0.6);
+  backdrop-filter: blur(8px);
+  color: var(--canvas-overlay-text-color);
+  text-transform: uppercase;
+  font: var(--big-key-label-font);
 `;
 
 const NamedKey = styled.div`
@@ -90,6 +104,7 @@ const WideNamedKey = styled.div`
   box-shadow: inset 0px 1px 3px rgba(32, 32, 32, 0.6);
   backdrop-filter: blur(2px);
   font: var(--key-label-font);
+  white-space: nowrap;
 `;
 
 const TipLabel = styled.div`
@@ -171,13 +186,14 @@ const TIP_DATA = {
   pointer_exited_unmuted: [["layers", "v\\b"], ["mute", "L+m"], ["hide", "?"]],
   holding_interactable: [["pull", "R"], ["scale", "H+R"]],
   hover_interactable: objectCommonTips,
-  video_playing: [["pause", "S"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
-  video_paused: [["play", "S"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
-  pdf: [["next", "S"], ["page", "q\\e"], ...objectCommonTips],
-  text: [["edit", "S"], ...objectCommonTips.filter(t => t[0] !== "bake" && t[0] !== "clone")], // TODO bake text, clone text
+  video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
+  video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
+  pdf: [["next", "L+S"], ["page", "q\\e"], ...objectCommonTips],
+  text: [["edit", "~"], ...objectCommonTips.filter(t => t[0] !== "bake" && t[0] !== "clone")], // TODO bake text, clone text
   rotate: [["rotate", "G"], ["no_snap", "H+G"]],
   scale: [["scale", "G"]],
-  focus: [["orbit", "G"], ["zoom", "R"]]
+  focus: [["orbit", "G"], ["zoom", "R"]],
+  text_editor: [["close", "~"], ["bold", "L+b"], ["italic", "L+i"], ["underline", "L+u"], ["list", "-,S"]]
 };
 
 const KEY_TIP_TYPES = Object.keys(TIP_DATA);
@@ -269,6 +285,9 @@ const itemForData = ([label, keys]) => {
         els.push(<KeySeparator key={key}>{key}</KeySeparator>);
       } else if (key === "\\") {
         els.push(<KeySeparator key={key}>/</KeySeparator>);
+      } else if (key === "~" || key === "*" || key === "-") {
+        // Some characters are hard to see
+        els.push(<BigLetterKey key={key}>{key}</BigLetterKey>);
       } else {
         els.push(<LetterKey key={key}>{key}</LetterKey>);
       }

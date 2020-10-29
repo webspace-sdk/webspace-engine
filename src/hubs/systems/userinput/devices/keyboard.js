@@ -1,6 +1,7 @@
 import { paths } from "../paths";
 import { ArrayBackedSet } from "../array-backed-set";
 import { isInEditableField } from "../../../../jel/utils/dom-utils";
+import { isInQuillEditor } from "../../../../jel/utils/quill-utils";
 
 export class KeyboardDevice {
   constructor() {
@@ -11,11 +12,12 @@ export class KeyboardDevice {
     ["keydown", "keyup"].map(x =>
       document.addEventListener(x, e => {
         if (!e.key) return;
-        this.events.push(e);
+        let pushEvent = true;
 
         // Blur focused elements when a popup menu is open so it is closed
         if (e.type === "keydown" && e.key === "Escape" && isInEditableField()) {
-          document.activeElement.blur();
+          AFRAME.scenes[0].canvas.focus();
+          e.preventDefault();
         }
 
         // Non-repeated shift-space is cursor lock hotkey.
@@ -29,13 +31,32 @@ export class KeyboardDevice {
               canvas.requestPointerLock();
             }
           }
+
+          e.preventDefault();
+        }
+
+        // ` in text editor blurs it
+        if (e.type === "keydown" && e.key === "`" && isInQuillEditor()) {
+          AFRAME.scenes[0].canvas.focus();
+          pushEvent = false; // Prevent primary action this tick if cursor still over 3d text page
+          e.preventDefault();
+        }
+
+        // / in create popup blurs it
+        if (
+          e.type === "keydown" &&
+          e.key === "/" &&
+          document.activeElement &&
+          document.activeElement.classList.contains("create-select-selection-search-input")
+        ) {
+          AFRAME.scenes[0].canvas.focus();
+          pushEvent = false; // Prevent primary action this tick if cursor still over 3d text page
+          e.preventDefault();
         }
 
         // Block browser hotkeys for chat command, media browser and freeze
         if (
-          (e.type === "keydown" &&
-            e.key === "/" &&
-            (!isInEditableField() || document.activeElement.getAttribute("id") !== "create-select-input")) || // Cancel slash in create select input since it hides it
+          (e.type === "keydown" && e.key === "/" && !isInEditableField()) || // Cancel slash in create select input since it hides it
           (e.ctrlKey &&
             (e.key === "1" ||
               e.key === "2" ||
@@ -47,11 +68,14 @@ export class KeyboardDevice {
               e.key === "8" ||
               e.key === "9" ||
               e.key === "0")) ||
-          (e.key === "Tab" && document.activeElement.classList.contains("a-canvas")) ||
           (e.key === " " && document.activeElement === document.body) // Disable spacebar scrolling in main window
         ) {
           e.preventDefault();
-          return false;
+        }
+
+        // Process event with user input system
+        if (pushEvent) {
+          this.events.push(e);
         }
       })
     );

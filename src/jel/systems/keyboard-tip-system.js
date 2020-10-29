@@ -1,3 +1,5 @@
+import { isInQuillEditor } from "../utils/quill-utils";
+
 export class KeyboardTipSystem {
   constructor(sceneEl, cameraSystem) {
     this.scene = sceneEl;
@@ -20,7 +22,9 @@ export class KeyboardTipSystem {
     const hidden = this.store.state.settings.hideKeyTips;
 
     if (!hidden) {
-      if (this.scene.is("pointer-exited")) {
+      if (isInQuillEditor()) {
+        showTips = "text_editor";
+      } else if (this.scene.is("pointer-exited")) {
         showTips = this.scene.is("muted") ? "pointer_exited_muted" : "pointer_exited_unmuted";
       } else {
         if (this.cameraSystem.isInAvatarView()) {

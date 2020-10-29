@@ -65,6 +65,11 @@
   "key-tips.mute": "Mute",
   "key-tips.unmute": "Unmute",
   "key-tips.hold": "Hold",
+  "key-tips.close": "Close",
+  "key-tips.bold": "Bold",
+  "key-tips.italic": "Italic",
+  "key-tips.underline": "Underline",
+  "key-tips.list": "List",
   "hub-pager.layer": "Layer",
   "create-select.image_url.title": "Embed Image",
   "create-select.image_url.key": "Embed Image",
@@ -86,5 +91,6 @@
   "create-select.duck.title": "Duck",
   "create-select.duck.description": "Create a duck. Quack.",
   "create-select.placeholder": "Type '/' to toggle",
+  "text-editor.placeholder": "Hover and press tidle (~) to edit",
   "create.tip": "Create"
 }

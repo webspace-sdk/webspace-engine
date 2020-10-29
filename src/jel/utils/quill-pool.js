@@ -3,6 +3,8 @@ import "../assets/stylesheets/quill-pool.scss";
 import javascript from "highlight.js/lib/languages/javascript";
 hljs.registerLanguage("javascript", javascript);
 import "highlight.js/styles/github.css";
+import { getMessages } from "../../hubs/utils/i18n";
+
 hljs.configure({
   languages: ["javascript"]
 });
@@ -10,6 +12,8 @@ hljs.configure({
 import Quill from "quill";
 import styles from "../assets/stylesheets/text-editor.scss";
 import sharedStyles from "../assets/stylesheets/shared.scss";
+export const EDITOR_WIDTH = 600;
+export const EDITOR_HEIGHT = Math.floor(EDITOR_WIDTH * 0.5625);
 
 // Create one quill for initial renders of text upon spawn
 // Create one quill for on-screen text editor
@@ -57,7 +61,6 @@ export function initQuillPool() {
             font-size: 100%;
             font: inherit;
             vertical-align: baseline;
-            font-weight: normal;
           }
           /* HTML5 display-role reset for older browsers */
           article, aside, details, figcaption, figure, 
@@ -82,6 +85,77 @@ export function initQuillPool() {
             border-collapse: collapse;
             border-spacing: 0;
           }
+
+          padding-top: 8px !important;
+          padding-bottom: 8px !important;
+
+          scrollbar-color: transparent transparent !important;
+          scrollbar-width: thin !important;
+
+          pre.ql-syntax {
+            font-family: Inconsolata, monospace !important;
+            border-radius: 6px !important;
+            background-color: #333 !important;
+            width: 100% !important;
+          }
+        }
+
+        .ql-container:hover {
+          scrollbar-color: #aaa transparent !important;
+        }
+
+        .ql-container:hover ::-webkit-scrollbar-thumb {
+          background-color: var(--scroll-thumb-color);
+          transition: background-color 0.25s;
+        }
+
+        .ql-container ::-webkit-scrollbar-thumb {
+          background-color: #aaa !important;
+          transition: background-color 0.25s !important;
+        }
+
+        .ql-container ::-webkit-scrollbar {
+          width: 8px !important;
+          height: 8px !important;
+          visibility: hidden !important;
+        }
+
+        .ql-container ::-webkit-scrollbar-thumb {
+          background-clip: padding-box !important;
+          border: 2px solid transparent !important;
+          border-radius: 4px !important;
+          background-color: transparen !importantt;
+          transition: background-color 0.25s !important;
+          min-height: 40px !important;
+        }
+
+        .ql-container ::-webkit-scrollbar-corner {
+          background-color: transparent !important;
+        }
+
+        .ql-container ::-webkit-scrollbar-track {
+          border-color: transparent !important;
+          background-color: transparent !important;
+          border: 2px solid transparent !important;
+          visibility: hidden !important;
+        }
+
+        .ql-blank::before {
+          display: none !important;
+          font-size: 32px !important;
+          font-style: normal !important;
+          color: #888 !important;
+          width: 100% !important;
+          height: 100% !important;
+          justify-content: center !important;
+          align-items: center !important;
+        }
+
+        .ql-editor {
+          font-family: Lato, Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !important;
+          font-size: 1.5em !important;
+          width: 100% !important;
+
         }
         ${styleTag.innerHTML}
       `;
@@ -128,7 +202,7 @@ export function getQuill(networkId) {
   editor.setAttribute("id", `${id}-editor`);
   editor.setAttribute(
     "style",
-    "border-radius: 6px 6px 0 0; z-index: 1000; width: 355px; height: 200px; background-color: white"
+    `border-radius: 6px 6px 0 0; box-shadow: 0px 12px 28px #111749cc; z-index: 10; width: ${EDITOR_WIDTH}px; height: ${EDITOR_HEIGHT}px; background-color: white`
   ); // TODO JEL styling based upon colors
   el.prepend(editor);
 
@@ -141,6 +215,8 @@ export function getQuill(networkId) {
     [{ align: [] }]
   ];
   document.querySelector("#jel-ui-wrap").appendChild(el);
+  const messages = getMessages();
+
   quills[networkId] = {
     quill: new Quill(`#${id}-editor`, {
       modules: {
@@ -149,7 +225,8 @@ export function getQuill(networkId) {
          * syntax: { highlight: c => hljs.highlightAuto(c).value }, */
         toolbar
       },
-      theme: "bubble"
+      theme: "bubble",
+      placeholder: messages["text-editor.placeholder"]
     }),
     lastUpdated: performance.now()
   };

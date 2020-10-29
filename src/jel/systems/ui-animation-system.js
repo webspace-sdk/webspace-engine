@@ -40,11 +40,13 @@ export class UIAnimationSystem {
   }
 
   expandSidePanels() {
+    if (this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDED) return;
     this.performPanelExpansion(PANEL_EXPANSION_STATES.EXPANDING);
     this.sceneEl.emit("animated_resize_started");
   }
 
   collapseSidePanels() {
+    if (this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSED) return;
     this.performPanelExpansion(PANEL_EXPANSION_STATES.COLLAPSING);
     this.sceneEl.emit("animated_resize_started");
   }

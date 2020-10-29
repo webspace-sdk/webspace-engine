@@ -119,6 +119,15 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: {
         bool: paths.device.keyboard.key("control"),
+        value: paths.device.keyboard.key(" ")
+      },
+      dest: { value: "/var/control+space" },
+      priority: 1001,
+      xform: xforms.copyIfTrue
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("control"),
         value: paths.device.keyboard.key("m")
       },
       dest: { value: "/var/control+m" },
@@ -425,8 +434,14 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
-      src: { value: paths.device.keyboard.key(" ") },
+      src: { value: "/var/control+space" },
       dest: { value: paths.actions.mediaPrimaryAction },
+      xform: xforms.rising,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.key("`") },
+      dest: { value: paths.actions.mediaEditAction },
       xform: xforms.rising,
       priority: 201
     },
@@ -482,6 +497,12 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       src: { value: paths.device.keyboard.key("c") },
       dest: { value: paths.actions.mediaCloneAction },
       xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.mouse.wheel },
+      dest: { value: paths.actions.cursor.right.mediaScroll },
+      xform: xforms.scale(-0.3),
+      priority: 1
     }
   ],
   [sets.rightCursorHoveringOnVideo]: [
@@ -492,7 +513,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 1
     },
     {
-      src: { value: paths.device.keyboard.key(" ") },
+      src: { value: "/var/control+space" },
       dest: { value: paths.actions.mediaPrimaryAction },
       xform: xforms.rising,
       priority: 201
@@ -566,7 +587,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       src: { value: "/device/keyboard" },
       dest: { value: paths.noop },
       xform: xforms.noop,
-      priority: 1000
+      priority: 2000
     },
     {
       src: {
@@ -575,7 +596,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       },
       dest: { value: "/var/control+1" },
       xform: xforms.copyIfTrue,
-      priority: 1001
+      priority: 2001
     },
     {
       src: { value: "/var/control+1" },
@@ -588,7 +609,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
         value: paths.device.keyboard.key("2")
       },
       dest: { value: "/var/control+2" },
-      priority: 1001,
+      priority: 2001,
       xform: xforms.copyIfTrue
     },
     {
@@ -602,7 +623,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
         value: paths.device.keyboard.key("3")
       },
       dest: { value: "/var/control+3" },
-      priority: 1001,
+      priority: 2001,
       xform: xforms.copyIfTrue
     },
     {
@@ -616,7 +637,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
         value: paths.device.keyboard.key("4")
       },
       dest: { value: "/var/control+4" },
-      priority: 1001,
+      priority: 2001,
       xform: xforms.copyIfTrue
     },
     {
@@ -630,7 +651,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
         value: paths.device.keyboard.key("5")
       },
       dest: { value: "/var/control+5" },
-      priority: 1001,
+      priority: 2001,
       xform: xforms.copyIfTrue
     },
     {
@@ -644,7 +665,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
         value: paths.device.keyboard.key("6")
       },
       dest: { value: "/var/control+6" },
-      priority: 1001,
+      priority: 2001,
       xform: xforms.copyIfTrue
     },
     {
@@ -658,7 +679,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
         value: paths.device.keyboard.key("7")
       },
       dest: { value: "/var/control+7" },
-      priority: 1001,
+      priority: 2001,
       xform: xforms.copyIfTrue
     },
     {
@@ -672,19 +693,13 @@ export const keyboardMouseUserBindings = addSetsToBindings({
         value: paths.device.keyboard.key("8")
       },
       dest: { value: "/var/control+8" },
-      priority: 1001,
+      priority: 2001,
       xform: xforms.copyIfTrue
     },
     {
       src: { value: "/var/control+8" },
       dest: { value: paths.actions.mediaSearch8 },
       xform: xforms.rising
-    },
-    {
-      src: { value: paths.device.keyboard.key("/") },
-      dest: { value: paths.actions.create },
-      xform: xforms.rising,
-      priority: 1001
     }
   ],
 

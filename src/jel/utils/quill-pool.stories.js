@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 //import Quill from "quill";
-import { initQuillPool, getQuill, destroyQuill } from "../utils/quill-pool";
+import { EDITOR_WIDTH, EDITOR_HEIGHT, initQuillPool, getQuill, destroyQuill } from "../utils/quill-pool";
 import { renderQuillToImg } from "../utils/quill-utils";
 
 const networkId = "abc";
@@ -33,7 +33,7 @@ export const QuillBasic = () => {
       style={{ backgroundColor: "#444444", position: "absolute", width: "100%", height: "100%", top: 0, left: 0 }}
       id="jel-ui-wrap"
     >
-      <img width={355} height={200} id="editor-image" />
+      <img width={EDITOR_WIDTH} height={EDITOR_HEIGHT} id="editor-image" />
       <button
         onClick={() => {
           document.querySelector("#quill-abc [contenteditable=true]").focus();

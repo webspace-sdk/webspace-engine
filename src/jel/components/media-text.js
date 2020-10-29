@@ -11,6 +11,9 @@ import { disposeExistingMesh, disposeTexture } from "../../hubs/utils/three-util
 import { RENDER_ORDER } from "../../hubs/constants";
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
 import { renderQuillToImg } from "../utils/quill-utils";
+import { paths } from "../../hubs/systems/userinput/paths";
+
+const SCROLL_SENSITIVITY = 350.0;
 
 AFRAME.registerComponent("media-text", {
   schema: {
@@ -140,10 +143,30 @@ AFRAME.registerComponent("media-text", {
   },
 
   tick() {
+    const userinput = this.el.sceneEl.systems.userinput;
+    const interaction = this.el.sceneEl.systems.interaction;
+
+    const volumeModRight = userinput.get(paths.actions.cursor.right.mediaScroll);
+    if (interaction.state.rightRemote.hovered === this.el && volumeModRight) {
+      this.scrollBy(volumeModRight);
+    }
+    const volumeModLeft = userinput.get(paths.actions.cursor.left.mediaScroll);
+    if (interaction.state.leftRemote.hovered === this.el && volumeModLeft) {
+      this.scrollBy(volumeModLeft);
+    }
+
     if (this.renderNextFrame && this.quill) {
       this.renderNextFrame = false;
       this.render();
     }
+  },
+
+  scrollBy(amount) {
+    if (!amount || !this.quill) return;
+    const scrollDistance = Math.floor(-amount * SCROLL_SENSITIVITY);
+    this.quill.container.querySelector(".ql-editor").scrollBy(0, scrollDistance);
+
+    this.renderNextFrame = true;
   },
 
   render() {
@@ -199,10 +222,25 @@ AFRAME.registerComponent("media-text", {
   },
 
   handleMediaInteraction(type) {
-    if (type === MEDIA_INTERACTION_TYPES.PRIMARY) {
-      const networkId = getNetworkId(this.el);
-      const editorId = `quill-${networkId}`;
-      document.querySelector(`#${editorId} [contenteditable=true]`).focus();
+    if (type === MEDIA_INTERACTION_TYPES.EDIT && this.quill) {
+      this.quill.focus();
+
+      const canvas = this.el.sceneEl.canvas;
+
+      // Temporarily release pointer lock while editor is focused
+      if (canvas.requestPointerLock) {
+        if (document.pointerLockElement === canvas) {
+          document.exitPointerLock();
+
+          canvas.addEventListener(
+            "focus",
+            () => {
+              canvas.requestPointerLock();
+            },
+            { once: true }
+          );
+        }
+      }
     }
   }
 });
