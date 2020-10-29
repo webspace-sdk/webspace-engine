@@ -189,7 +189,7 @@ const TIP_DATA = {
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
   video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
   pdf: [["next", "L+S"], ["page", "q\\e"], ...objectCommonTips],
-  text: [["edit", "~"], ...objectCommonTips.filter(t => t[0] !== "bake" && t[0] !== "clone")], // TODO bake text, clone text
+  text: [["edit", "~"], ...objectCommonTips],
   rotate: [["rotate", "G"], ["no_snap", "H+G"]],
   scale: [["scale", "G"]],
   focus: [["orbit", "G"], ["zoom", "R"]],

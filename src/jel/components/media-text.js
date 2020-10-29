@@ -1,9 +1,10 @@
 import Quill from "quill";
-import { getQuill, hasQuill, destroyQuill } from "../utils/quill-pool";
+import { getQuill, hasQuill, destroyQuill, EDITOR_WIDTH, EDITOR_HEIGHT } from "../utils/quill-pool";
 import { getNetworkId } from "../utils/ownership-utils";
 import {
   hasMediaLayer,
   scaleToAspectRatio,
+  addAndArrangeMedia,
   MEDIA_PRESENCE,
   MEDIA_INTERACTION_TYPES
 } from "../../hubs/utils/media-utils";
@@ -24,6 +25,8 @@ AFRAME.registerComponent("media-text", {
   async init() {
     this.renderNextFrame = false;
     this.rerenderQuill = this.rerenderQuill.bind(this);
+    this.localSnapCount = 0;
+    this.isSnapping = false;
 
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
@@ -208,6 +211,11 @@ AFRAME.registerComponent("media-text", {
     this.quill = null;
   },
 
+  getContents() {
+    if (!this.quill) return "";
+    return this.quill.container.querySelector(".ql-editor").innerHTML;
+  },
+
   remove() {
     this.unbindAndRemoveQuill();
     disposeExistingMesh(this.el);
@@ -222,7 +230,8 @@ AFRAME.registerComponent("media-text", {
   },
 
   handleMediaInteraction(type) {
-    if (type === MEDIA_INTERACTION_TYPES.EDIT && this.quill) {
+    if (!this.quill) return;
+    if (type === MEDIA_INTERACTION_TYPES.EDIT) {
       this.quill.focus();
 
       const canvas = this.el.sceneEl.canvas;
@@ -241,6 +250,29 @@ AFRAME.registerComponent("media-text", {
           );
         }
       }
+    } else if (type === MEDIA_INTERACTION_TYPES.SNAPSHOT) {
+      if (this.isSnapping) return;
+      this.isSnapping = true;
+
+      const canvas = document.createElement("canvas");
+      canvas.height = 1080;
+      canvas.width = Math.floor((EDITOR_WIDTH / EDITOR_HEIGHT) * canvas.height);
+      const context = canvas.getContext("2d");
+      const img = document.createElement("img");
+
+      img.onload = () => {
+        context.drawImage(img, 0, 0, canvas.width, canvas.height);
+        img.onload = null;
+        img.src = "";
+        canvas.toBlob(blob => {
+          const file = new File([blob], "text.png", { type: "image/png" });
+          this.localSnapCount++;
+          const { entity } = addAndArrangeMedia(this.el, file, "photo-snapshot", this.localSnapCount);
+          entity.addEventListener("image-loaded", () => (this.isSnapping = false), { once: true });
+        });
+      };
+
+      renderQuillToImg(this.quill, img);
     }
   }
 });

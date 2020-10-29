@@ -278,15 +278,21 @@ export const addMedia = (
 };
 
 export const cloneMedia = (sourceEl, template, src = null, networked = true, link = false, parentEl = null) => {
-  if (!src) {
-    ({ src } = sourceEl.components["media-loader"].data);
+  let contents = null;
+
+  if (sourceEl.components["media-text"]) {
+    contents = sourceEl.components["media-text"].getContents();
+  } else {
+    if (!src) {
+      ({ src } = sourceEl.components["media-loader"].data);
+    }
   }
 
   const { contentSubtype, fitToBox, mediaOptions } = sourceEl.components["media-loader"].data;
 
   return addMedia(
     src,
-    null,
+    contents,
     template,
     ObjectContentOrigins.URL,
     contentSubtype,
