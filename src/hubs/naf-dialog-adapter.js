@@ -56,6 +56,7 @@ export default class DialogAdapter {
     this._blockedClients = new Map();
     this._outgoingVisemeBuffer = null;
     this._visemeMap = new Map();
+    this._reconnecting = false;
     this.type = "dialog";
     this.occupants = {}; // This is a public field
   }
@@ -717,6 +718,10 @@ export default class DialogAdapter {
   disconnect() {
     if (this._closed) return;
 
+    if (this._reconnecting && this._reconnectionErrorListener) {
+      this._reconnectionErrorListener(new Error("Reconnection failed, networking shut down."));
+    }
+
     this._closed = true;
 
     const peerIds = Object.keys(this.occupants);
@@ -764,11 +769,13 @@ export default class DialogAdapter {
 
   reconnect() {
     // Dispose of all networked entities and other resources tied to the session.
+    this._reconnecting = true;
     this.disconnect();
 
     return new Promise(res => {
       this.connect()
         .then(() => {
+          this._reconnecting = false;
           this.reconnectionDelay = this.initialReconnectionDelay;
           this.reconnectionAttempts = 0;
 

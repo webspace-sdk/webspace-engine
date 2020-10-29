@@ -388,7 +388,10 @@ const joinSpaceChannel = async (
               clearInterval(newHostPollInterval);
               newHostPollInterval = null;
             },
-            null
+            () => {
+              clearInterval(newHostPollInterval);
+              newHostPollInterval = null;
+            }
           );
         };
 
