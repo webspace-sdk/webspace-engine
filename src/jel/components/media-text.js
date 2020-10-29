@@ -1,7 +1,6 @@
 import Quill from "quill";
 import { getQuill, hasQuill, destroyQuill } from "../utils/quill-pool";
 import { getNetworkId } from "../utils/ownership-utils";
-import { fromByteArray } from "base64-js";
 import {
   hasMediaLayer,
   scaleToAspectRatio,
@@ -11,6 +10,7 @@ import {
 import { disposeExistingMesh, disposeTexture } from "../../hubs/utils/three-utils";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
+import { renderQuillToImg } from "../utils/quill-utils";
 
 AFRAME.registerComponent("media-text", {
   schema: {
@@ -20,7 +20,7 @@ AFRAME.registerComponent("media-text", {
 
   async init() {
     this.renderNextFrame = false;
-    this.onTextChanged = this.onTextChanged.bind(this);
+    this.rerenderQuill = this.rerenderQuill.bind(this);
 
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
@@ -147,31 +147,17 @@ AFRAME.registerComponent("media-text", {
   },
 
   render() {
-    const el = this.quill.container;
-    const xml = new XMLSerializer().serializeToString(el);
-    const ratio = el.offsetHeight / el.offsetWidth;
-    const textureSize = 1024; // TODO labels should be smaller
-    const scale = (textureSize * Math.min(1.0, 1.0 / ratio)) / el.offsetWidth;
-
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${el.offsetWidth * scale}px" height="${el.offsetHeight * scale}px">
-        <foreignObject width="100%" height="100%" style="transform: scale(${scale});">
-          ${xml}
-        </foreignObject>
-      </svg>
-    `;
-
-    const b64 = fromByteArray(new TextEncoder().encode(svg));
     const img = document.createElement("img");
-    img.src = `data:image/svg+xml;base64,${b64}`;
 
     img.onload = () => {
       this.texture.image = img;
       this.texture.needsUpdate = this.mesh.material.needsUpdate = true;
     };
+
+    renderQuillToImg(this.quill, img);
   },
 
-  onTextChanged() {
+  rerenderQuill() {
     this.renderNextFrame = true;
     // TODO priority queue in a system
   },
@@ -181,7 +167,9 @@ AFRAME.registerComponent("media-text", {
     if (hasQuill(networkId)) return;
 
     const quill = getQuill(networkId);
-    quill.on("text-change", this.onTextChanged);
+    quill.on("text-change", this.rerenderQuill);
+    quill.container.querySelector(".ql-editor").addEventListener("scroll", this.rerenderQuill);
+
     this.el.components.shared.bindRichTextEditor(quill, this.name, "deltaOps");
     return quill;
   },
@@ -191,7 +179,7 @@ AFRAME.registerComponent("media-text", {
     if (!hasQuill(networkId)) return;
 
     const quill = getQuill(networkId);
-    quill.off("text-change", this.onTextChanged);
+    quill.off("text-change", this.rerenderQuill);
     this.el.components.shared.unbindRichTextEditor(this.name, "deltaOps");
     destroyQuill(networkId);
     this.quill = null;
