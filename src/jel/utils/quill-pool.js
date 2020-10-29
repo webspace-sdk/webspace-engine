@@ -57,6 +57,7 @@ export function initQuillPool() {
             font-size: 100%;
             font: inherit;
             vertical-align: baseline;
+            font-weight: normal;
           }
           /* HTML5 display-role reset for older browsers */
           article, aside, details, figcaption, figure, 
@@ -125,7 +126,10 @@ export function getQuill(networkId) {
 
   const editor = document.createElement("div");
   editor.setAttribute("id", `${id}-editor`);
-  editor.setAttribute("style", "z-index: 1000; width: 355px; height: 200px; background-color: white"); // TODO JEL styling based upon colors
+  editor.setAttribute(
+    "style",
+    "border-radius: 6px 6px 0 0; z-index: 1000; width: 355px; height: 200px; background-color: white"
+  ); // TODO JEL styling based upon colors
   el.prepend(editor);
 
   const toolbar = [

@@ -171,10 +171,10 @@ const TIP_DATA = {
   pointer_exited_unmuted: [["layers", "v\\b"], ["mute", "L+m"], ["hide", "?"]],
   holding_interactable: [["pull", "R"], ["scale", "H+R"]],
   hover_interactable: objectCommonTips,
-  video_playing: [["pause", "T"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
-  video_paused: [["play", "T"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
-  pdf: [["next", "T"], ["page", "q\\e"], ...objectCommonTips],
-  text: [["edit", "T"], ...objectCommonTips.filter(t => t[0] !== "bake" && t[0] !== "clone")], // TODO bake text, clone text
+  video_playing: [["pause", "S"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
+  video_paused: [["play", "S"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
+  pdf: [["next", "S"], ["page", "q\\e"], ...objectCommonTips],
+  text: [["edit", "S"], ...objectCommonTips.filter(t => t[0] !== "bake" && t[0] !== "clone")], // TODO bake text, clone text
   rotate: [["rotate", "G"], ["no_snap", "H+G"]],
   scale: [["scale", "G"]],
   focus: [["orbit", "G"], ["zoom", "R"]]

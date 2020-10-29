@@ -13,6 +13,10 @@ export function renderQuillToImg(quill, img) {
       <svg xmlns="http://www.w3.org/2000/svg" width="${el.offsetWidth * scale}px" height="${el.offsetHeight * scale}px">
         <foreignObject width="100%" height="100%" style="transform: scale(${scale});">
           <style>
+            .ql-container {
+              border-radius: 0;
+            }
+
             .ql-editor {
               position: absolute;
               overflow: visible !important;

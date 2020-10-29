@@ -34,6 +34,13 @@ export const QuillBasic = () => {
       id="jel-ui-wrap"
     >
       <img width={355} height={200} id="editor-image" />
+      <button
+        onClick={() => {
+          document.querySelector("#quill-abc [contenteditable=true]").focus();
+        }}
+      >
+        Focus
+      </button>
     </div>
   );
 };

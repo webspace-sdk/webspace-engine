@@ -425,7 +425,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
-      src: { value: paths.device.keyboard.key("tab") },
+      src: { value: paths.device.keyboard.key(" ") },
       dest: { value: paths.actions.mediaPrimaryAction },
       xform: xforms.rising,
       priority: 201
@@ -492,7 +492,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 1
     },
     {
-      src: { value: paths.device.keyboard.key("tab") },
+      src: { value: paths.device.keyboard.key(" ") },
       dest: { value: paths.actions.mediaPrimaryAction },
       xform: xforms.rising,
       priority: 201

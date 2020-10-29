@@ -14,7 +14,7 @@ export class KeyboardDevice {
         this.events.push(e);
 
         // Blur focused elements when a popup menu is open so it is closed
-        if (e.type === "keydown" && e.key === "Escape" && document.querySelector("#jel-popup-root:focus-within")) {
+        if (e.type === "keydown" && e.key === "Escape" && isInEditableField()) {
           document.activeElement.blur();
         }
 

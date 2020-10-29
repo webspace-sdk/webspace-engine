@@ -1,4 +1,3 @@
-/* global performance THREE AFRAME NAF MediaStream setTimeout */
 import configs from "../utils/configs";
 import {
   takeOwnership,
@@ -780,7 +779,7 @@ AFRAME.registerComponent("media-video", {
     const contentType = this.data.contentType;
     let pollTimeout;
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve, reject) => { // eslint-disable-line
       if (this._audioSyncInterval) {
         clearInterval(this._audioSyncInterval);
         this._audioSyncInterval = null;
@@ -951,8 +950,6 @@ AFRAME.registerComponent("media-video", {
     if (!this.hoverMenu) return;
 
     this.timeLabel.object3D.visible = !this.data.hidePlaybackControls;
-
-    const mayModifyPlayHead = !!this.video && !this.videoIsLive && window.APP.hubChannel.can("spawn_and_move_media");
 
     if (this.videoIsLive) {
       this.timeLabel.setAttribute("text", "value", "LIVE");
@@ -1216,7 +1213,7 @@ AFRAME.registerComponent("media-image", {
 
             // Don't cache data: URLs
             if (!isDataUrl) {
-              const inflightPromise = new Promise(async (res, rej) => {
+              const inflightPromise = new Promise(async (res, rej) => { // eslint-disable-line
                 try {
                   [texture, textureInfo] = await promise;
 
