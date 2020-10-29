@@ -231,6 +231,10 @@ export default class SceneEntryManager {
       spawnMediaInfrontOfPlayer(e.detail, null, contentOrigin);
     });
 
+    this.scene.addEventListener("add_media_contents", e => {
+      spawnMediaInfrontOfPlayer(null, e.detail, null);
+    });
+
     this.scene.addEventListener("object_spawned", e => {
       this.hubChannel.sendObjectSpawnedEvent(e.detail.objectType);
     });

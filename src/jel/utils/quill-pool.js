@@ -147,5 +147,8 @@ export function getQuill(networkId) {
   };
   editor.prepend(styleTag);
 
+  // Prevent cycling via tab
+  document.querySelector(`#${id}-editor [contenteditable=true]`).tabIndex = -1;
+
   return getQuill(networkId);
 }

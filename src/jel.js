@@ -503,6 +503,9 @@ function addGlobalEventListeners(scene, entryManager) {
           scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_QUACK);
         }
         break;
+      case "page":
+        scene.emit("add_media_contents", "");
+        break;
       case "image_upload":
         el = document.querySelector("#file-upload-input");
         el.accept = "image/*";

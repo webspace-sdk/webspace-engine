@@ -9,7 +9,11 @@ import uploadIconSrc from "../assets/images/icons/upload.svgi";
 export const CREATE_SELECT_WIDTH = 375;
 export const CREATE_SELECT_LIST_HEIGHT = 350;
 
-const items = [["images", [["image_upload", uploadIconSrc, null]]], ["tools", [["duck", null, null]]]];
+const items = [
+  ["text", [["page", null, null]]],
+  ["images", [["image_upload", uploadIconSrc, null]]],
+  ["tools", [["duck", null, null]]]
+];
 
 const CreateSelectInputElement = styled.input``;
 

@@ -217,8 +217,8 @@ export const addMedia = (
     fitToBox,
     resolve,
     animate,
-    src: typeof src === "string" && !contents ? coerceToUrl(src) || src : "",
-    initialContents: contents || null,
+    src: typeof src === "string" && contents !== null ? coerceToUrl(src) || src : "",
+    initialContents: contents != null ? contents : null,
     version,
     contentSubtype,
     linkedEl,
@@ -257,7 +257,7 @@ export const addMedia = (
       });
   } else if (src instanceof MediaStream) {
     entity.setAttribute("media-loader", { src: `jel://clients/${NAF.clientId}/video` });
-  } else if (contents) {
+  } else if (contents !== null) {
     // If contents were set, update the src to reflect the media-text property that is bound.
     getNetworkedEntity(entity).then(el => {
       entity.setAttribute("media-loader", {
