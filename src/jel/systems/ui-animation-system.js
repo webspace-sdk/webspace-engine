@@ -1,3 +1,6 @@
+import BezierEasing from "bezier-easing";
+import qsTruthy from "../../hubs/utils/qs_truthy";
+
 // Used for managing the animation of the major UI panels
 
 export const PANEL_EXPANSION_STATES = {
@@ -11,7 +14,6 @@ const DEFAULT_NAV_PANEL_WIDTH = 400;
 const DEFAULT_PRESENCE_PANEL_WIDTH = 220;
 export const PANEL_EXPAND_DURATION_MS = 250;
 
-import BezierEasing from "bezier-easing";
 const panelExpandStep = BezierEasing(0.12, 0.98, 0.18, 0.98);
 
 export class UIAnimationSystem {

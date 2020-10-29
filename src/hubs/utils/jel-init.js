@@ -377,7 +377,6 @@ const joinSpaceChannel = async (
 
                 if (currentServerURL !== newServerURL) {
                   // TODO JEL test coordinated reconnect
-                  console.log("Connecting to new webrtc server " + newServerURL);
                   scene.setAttribute("networked-scene", { serverURL: newServerURL });
                   adapter.serverUrl = newServerURL;
                   //NAF.connection.adapter.joinHub(currentHub); // TODO JEL RECONNECT

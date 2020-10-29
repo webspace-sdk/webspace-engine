@@ -37,17 +37,16 @@
 }
 
 :local(.fast-show-when-popped) {
-  position: relative;
   opacity: 0;
   pointer-events: none;
 
-  transition: opacity 0.025s linear;
+  transition: opacity 0.05s linear;
 
   &:focus-within {
     opacity: 1;
     pointer-events: auto;
 
-    transition: opacity 0.025s linear;
+    transition: opacity 0.05s linear;
   }
 }
 

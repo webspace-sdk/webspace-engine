@@ -2,7 +2,12 @@ import Quill from "quill";
 import { getQuill, hasQuill, destroyQuill } from "../utils/quill-pool";
 import { getNetworkId } from "../utils/ownership-utils";
 import { fromByteArray } from "base64-js";
-import { hasMediaLayer, scaleToAspectRatio, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
+import {
+  hasMediaLayer,
+  scaleToAspectRatio,
+  MEDIA_PRESENCE,
+  MEDIA_INTERACTION_TYPES
+} from "../../hubs/utils/media-utils";
 import { disposeExistingMesh, disposeTexture } from "../../hubs/utils/three-utils";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
@@ -205,7 +210,11 @@ AFRAME.registerComponent("media-text", {
     }
   },
 
-  handleMediaInteraction() {
-    // No interactions
+  handleMediaInteraction(type) {
+    if (type === MEDIA_INTERACTION_TYPES.PRIMARY) {
+      const networkId = getNetworkId(this.el);
+      const editorId = `quill-${networkId}`;
+      document.querySelector(`#${editorId} [contenteditable=true]`).focus();
+    }
   }
 });

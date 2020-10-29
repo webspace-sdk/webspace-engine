@@ -1,4 +1,14 @@
+import hljs from "highlight.js/lib/core";
+import javascript from "highlight.js/lib/languages/javascript";
+hljs.registerLanguage("javascript", javascript);
+import "highlight.js/styles/github.css";
+hljs.configure({
+  languages: ["javascript"]
+});
+
 import Quill from "quill";
+import styles from "../assets/stylesheets/text-editor.scss";
+import sharedStyles from "../assets/stylesheets/shared.scss";
 
 // Create one quill for initial renders of text upon spawn
 // Create one quill for on-screen text editor
@@ -102,19 +112,39 @@ export function getQuill(networkId) {
   const el = document.createElement("div");
   const id = `quill-${networkId}`;
   el.setAttribute("id", id);
-  el.classList.add("quill-background");
-  el.setAttribute("style", `left: ${Object.values(quills).length * 355}px;`);
+  el.classList.add(styles.editorWrap);
+  el.classList.add(sharedStyles.fastShowWhenPopped);
 
   const styleTag = document.createElement("style");
   styleTag.innerHTML = quillStyles;
 
   const editor = document.createElement("div");
   editor.setAttribute("id", `${id}-editor`);
-  editor.setAttribute("style", "width: 355px; height: 200px; background-color: white"); // TODO JEL styling based upon colors
+  editor.classList.add(styles.editor);
+  editor.setAttribute("style", "z-index: 1000; width: 355px; height: 200px; background-color: white"); // TODO JEL styling based upon colors
   el.prepend(editor);
 
-  document.body.appendChild(el);
-  quills[networkId] = { quill: new Quill(`#${id}-editor`, { theme: "snow" }), lastUpdated: performance.now() };
+  const toolbar = [
+    [{ header: 1 }, { header: 2 }], // custom button values
+    ["bold", "italic", "underline", "strike"], // toggled buttons
+    ["code-block"],
+
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ align: [] }]
+  ];
+  document.querySelector("#jel-ui-wrap").appendChild(el);
+  quills[networkId] = {
+    quill: new Quill(`#${id}-editor`, {
+      modules: {
+        /*
+         * TODO highlighting - need to inline CSS
+         * syntax: { highlight: c => hljs.highlightAuto(c).value }, */
+        toolbar
+      },
+      theme: "bubble"
+    }),
+    lastUpdated: performance.now()
+  };
   editor.prepend(styleTag);
 
   return getQuill(networkId);

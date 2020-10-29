@@ -24,6 +24,9 @@ import { getMessages } from "../../hubs/utils/i18n";
 import Tooltip from "./tooltip";
 import KeyTips from "./key-tips";
 import { CREATE_SELECT_WIDTH, CREATE_SELECT_LIST_HEIGHT } from "./create-select";
+import qsTruthy from "../../hubs/utils/qs_truthy";
+
+const skipSidePanels = qsTruthy("skip_panels");
 
 const Wrap = styled.div`
   pointer-events: none;
@@ -305,12 +308,14 @@ function JelUI(props) {
             />
           </BottomLeftPanels>
         </Wrap>
-        <JelSidePanels
-          {...props}
-          showHubRenamePopup={showHubRenamePopup}
-          setHubRenameReferenceElement={setHubRenameReferenceElement}
-          showHubContextMenuPopup={showHubContextMenuPopup}
-        />
+        {!skipSidePanels && (
+          <JelSidePanels
+            {...props}
+            showHubRenamePopup={showHubRenamePopup}
+            setHubRenameReferenceElement={setHubRenameReferenceElement}
+            showHubContextMenuPopup={showHubContextMenuPopup}
+          />
+        )}
       </div>
       <HubRenamePopup
         setPopperElement={setHubRenamePopupElement}
