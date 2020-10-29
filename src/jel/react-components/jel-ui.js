@@ -343,6 +343,18 @@ function JelUI(props) {
         ref={createSelectFocusRef}
         onActionSelected={onCreateActionSelected}
       />
+      <input
+        id="file-upload-input"
+        type="file"
+        style={{ display: "none" }}
+        accept={"*"}
+        multiple
+        onChange={e => {
+          for (const file of e.target.files) {
+            scene.emit("add_media", file);
+          }
+        }}
+      />
     </WrappedIntlProvider>
   );
 }

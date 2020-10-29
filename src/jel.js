@@ -491,15 +491,24 @@ function addGlobalEventListeners(scene, entryManager) {
   // Fired when the user chooses a create action from the create action menu
   scene.addEventListener("create_action_exec", e => {
     const createAction = e.detail;
+    let el;
 
-    if (createAction === "duck") {
-      scene.emit("add_media", getAbsoluteHref(location.href, ducky));
+    switch (createAction) {
+      case "duck":
+        scene.emit("add_media", getAbsoluteHref(location.href, ducky));
 
-      if (Math.random() < 0.01) {
-        scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_SPECIAL_QUACK);
-      } else {
-        scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_QUACK);
-      }
+        if (Math.random() < 0.01) {
+          scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_SPECIAL_QUACK);
+        } else {
+          scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_QUACK);
+        }
+        break;
+      case "image_upload":
+        el = document.querySelector("#file-upload-input");
+        el.accept = "image/*";
+        console.log(el);
+        el.click();
+        break;
     }
   });
 

@@ -4,15 +4,12 @@ import React, { useEffect, useMemo, useRef, useState, forwardRef, useCallback } 
 import Select, { Option, OptGroup } from "rc-select";
 import "../assets/stylesheets/create-select.scss";
 import { getMessages } from "../../hubs/utils/i18n";
-import trashIconSrc from "../assets/images/icons/trash.svgi";
+import uploadIconSrc from "../assets/images/icons/upload.svgi";
 
 export const CREATE_SELECT_WIDTH = 375;
 export const CREATE_SELECT_LIST_HEIGHT = 350;
 
-const items = [
-  ["images", [["image_url", trashIconSrc, null], ["image_upload", null, null], ["image_search_bing", null, null]]],
-  ["tools", [["duck", null, null]]]
-];
+const items = [["images", [["image_upload", uploadIconSrc, null]]], ["tools", [["duck", null, null]]]];
 
 const CreateSelectInputElement = styled.input``;
 
