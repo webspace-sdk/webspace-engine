@@ -34,7 +34,7 @@ const CreateEmbedFormRow = styled.div`
 
 const CreateEmbedInputWrap = styled.div`
   flex: 1;
-  padding: 2px;
+  padding: 2px 4px;
   margin: 0 8px;
   border-radius: 4px;
   border: 0;
@@ -111,6 +111,8 @@ const CreateEmbedInputPanel = forwardRef((props, ref) => {
     e => {
       e.preventDefault();
       e.stopPropagation();
+
+      if (url === "") return;
 
       if (onURLEntered) {
         onURLEntered(url);

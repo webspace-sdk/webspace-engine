@@ -21,7 +21,7 @@ const HubNameInputPanelElement = styled.div`
 
 const HubNameInputWrap = styled.div`
   flex: 1;
-  padding: 2px;
+  padding: 2px 4px;
   border-radius: 4px;
   border: 0;
   background: var(--text-input-background-color);

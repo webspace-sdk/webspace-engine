@@ -15,7 +15,7 @@ import duckThumbSrc from "../assets/images/icons/thumb-duck.svg";
 import pdfThumbSrc from "../assets/images/icons/thumb-pdf.svg";
 import modelThumbSrc from "../assets/images/icons/thumb-model.svg";
 
-export const CREATE_SELECT_WIDTH = 375;
+export const CREATE_SELECT_WIDTH = 325;
 export const CREATE_SELECT_LIST_HEIGHT = 350;
 
 const items = [
