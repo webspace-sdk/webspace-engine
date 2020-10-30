@@ -52,6 +52,7 @@ const CreateSelectItemBody = styled.div`
   align-items: flex-start;
   flex: 1 1;
   max-width: 260px;
+  margin-left: 2px;
 `;
 const CreateSelectItemTitle = styled.div`
   display: flex;
@@ -59,6 +60,7 @@ const CreateSelectItemTitle = styled.div`
   justify-content: flex-start;
   align-items: center;
   min-width: 0;
+  height: 20px;
   text-overflow: ellipsis;
   color: var(--panel-banner-text-color);
 `;
@@ -84,7 +86,7 @@ const CreateSelectItemDescription = styled.div`
   text-overflow: ellipsis;
   color: var(--panel-text-color);
   font-size: var(--panel-subheader-text-size);
-  margin-top: 3px;
+  margin-top: 4px;
 `;
 
 const CreateSelectItem = ({ title, description, iconSrc, thumbSrc }) => (

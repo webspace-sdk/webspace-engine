@@ -5,6 +5,7 @@ import { FormattedMessage } from "react-intl";
 import { getMessages } from "../../hubs/utils/i18n";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
 import SmallActionButton from "./small-action-button";
+import linkIconSrc from "../assets/images/icons/link.svgi";
 
 const CreateEmbedInputPanelElement = styled.div`
   background-color: var(--dialog-background-color);
@@ -41,13 +42,35 @@ const CreateEmbedInputWrap = styled.div`
   box-shadow: inset 0px 0px 2px var(--menu-background-color);
 `;
 
+const CreateEmbedTitleWrap = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  align-self: flex-start;
+  margin-left: 10px;
+`;
+
 const CreateEmbedTitle = styled.div`
   color: var(--dialog-title-text-color);
   font-size: var(--dialog-title-text-size);
   font-weight: var(--dialog-title-text-weight);
   text-transform: uppercase;
-  align-self: flex-start;
-  margin: 6px 6px 2px 6px;
+  margin-top: 4px;
+  margin-left: 4px;
+  line-height: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const CreateEmbedTitleIcon = styled.div`
+  width: 18px;
+  height: 18px;
+  margin-top: 7px;
+  margin-right: 6px;
+  color: var(--panel-text-color);
+  color: var(--dialog-title-text-color);
 `;
 
 const CreateEmbedInfo = styled.div`
@@ -100,9 +123,12 @@ const CreateEmbedInputPanel = forwardRef((props, ref) => {
 
   return (
     <CreateEmbedInputPanelElement>
-      <CreateEmbedTitle>
-        <FormattedMessage id={`create-embed.${embedType}-title`} />
-      </CreateEmbedTitle>
+      <CreateEmbedTitleWrap>
+        <CreateEmbedTitleIcon dangerouslySetInnerHTML={{ __html: linkIconSrc }} />
+        <CreateEmbedTitle>
+          <FormattedMessage id={`create-embed.${embedType}-title`} />
+        </CreateEmbedTitle>
+      </CreateEmbedTitleWrap>
 
       <CreateEmbedFormRow>
         <CreateEmbedInputWrap>
