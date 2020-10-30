@@ -70,6 +70,8 @@ export class MediaInteractionSystem {
       interactionType = MEDIA_INTERACTION_TYPES.CLONE;
     } else if (this.userinput.get(paths.actions.mediaEditAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.EDIT;
+    } else if (this.userinput.get(paths.actions.mediaOpenAction)) {
+      interactionType = MEDIA_INTERACTION_TYPES.OPEN;
     } else if (this.userinput.get(paths.actions.mediaRemoveAction)) {
       if (this.lastRemoveActionTarget !== hoverEl) {
         this.lastRemoveActionTarget = hoverEl;

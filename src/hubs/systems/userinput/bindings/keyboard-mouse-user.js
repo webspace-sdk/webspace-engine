@@ -440,6 +440,12 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
+      src: { value: paths.device.keyboard.key("o") },
+      dest: { value: paths.actions.mediaOpenAction },
+      xform: xforms.rising,
+      priority: 201
+    },
+    {
       src: { value: paths.device.keyboard.key("`") },
       dest: { value: paths.actions.mediaEditAction },
       xform: xforms.rising,
@@ -515,6 +521,12 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: { value: "/var/control+space" },
       dest: { value: paths.actions.mediaPrimaryAction },
+      xform: xforms.rising,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.key("o") },
+      dest: { value: paths.actions.mediaOpenAction },
       xform: xforms.rising,
       priority: 201
     },

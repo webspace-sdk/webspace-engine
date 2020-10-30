@@ -27,7 +27,8 @@ export const MEDIA_INTERACTION_TYPES = {
   TRANSFORM_RELEASE: 8,
   REMOVE: 9,
   CLONE: 10,
-  EDIT: 11
+  EDIT: 11,
+  OPEN: 12
 };
 
 export const LOADING_EVENTS = ["model-loading", "image-loading", "text-loading", "pdf-loading"];

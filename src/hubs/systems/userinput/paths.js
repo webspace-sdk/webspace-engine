@@ -31,6 +31,7 @@ paths.actions.toggleKeyTips = "/actions/toggleKeyTips";
 paths.actions.toggleCamera = "/actions/toggleCamera";
 paths.actions.takeSnapshot = "/actions/takeSnapshot";
 paths.actions.mediaPrimaryAction = "/actions/mediaPrimaryAction";
+paths.actions.mediaOpenAction = "/actions/mediaOpenAction";
 paths.actions.mediaEditAction = "/actions/mediaEditAction";
 paths.actions.mediaBackAction = "/actions/mediaBackAction";
 paths.actions.mediaNextAction = "/actions/mediaNextAction";

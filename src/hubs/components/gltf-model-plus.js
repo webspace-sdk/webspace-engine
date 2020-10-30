@@ -3,7 +3,7 @@ import { mapMaterials } from "../utils/material-utils";
 import SketchfabZipWorker from "../workers/sketchfab-zip.worker.js";
 import MobileStandardMaterial from "../materials/MobileStandardMaterial";
 import { getCustomGLTFParserURLResolver } from "../utils/media-url-utils";
-import { hasMediaLayer } from "../utils/media-utils";
+import { hasMediaLayer, MEDIA_INTERACTION_TYPES } from "../utils/media-utils";
 import { promisifyWorker } from "../utils/promisify-worker.js";
 import { MeshBVH, acceleratedRaycast } from "three-mesh-bvh";
 import { disposeNode, disposeExistingMesh, cloneObject3D } from "../utils/three-utils";
@@ -811,7 +811,9 @@ AFRAME.registerComponent("gltf-model-plus", {
     }
   },
 
-  handleMediaInteraction() {
-    // No interactions
+  handleMediaInteraction(type) {
+    if (type === MEDIA_INTERACTION_TYPES.OPEN) {
+      window.open(this.data.src);
+    }
   }
 });

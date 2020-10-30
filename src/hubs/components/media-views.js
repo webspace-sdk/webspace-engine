@@ -1084,6 +1084,8 @@ AFRAME.registerComponent("media-video", {
       this.volumeDown();
     } else if (type === MEDIA_INTERACTION_TYPES.SNAPSHOT) {
       this.snap();
+    } else if (type === MEDIA_INTERACTION_TYPES.OPEN) {
+      window.open(this.data.src);
     }
   }
 });
@@ -1384,8 +1386,10 @@ AFRAME.registerComponent("media-image", {
     }
   },
 
-  handleMediaInteraction() {
-    // No interactions
+  handleMediaInteraction(type) {
+    if (type === MEDIA_INTERACTION_TYPES.OPEN) {
+      window.open(this.data.src);
+    }
   }
 });
 
@@ -1628,6 +1632,11 @@ AFRAME.registerComponent("media-pdf", {
 
     if (type === MEDIA_INTERACTION_TYPES.SNAPSHOT) {
       this.snap();
+      return;
+    }
+
+    if (type === MEDIA_INTERACTION_TYPES.OPEN) {
+      window.open(this.data.src);
       return;
     }
 

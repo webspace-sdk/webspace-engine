@@ -4,7 +4,7 @@ import { getLastWorldPosition } from "../utils/three-utils";
 import { RENDER_ORDER } from "../constants";
 
 const HIGHLIGHT = new THREE.Color(0, 0xec / 255, 0xff / 255);
-const NO_HIGHLIGHT = new THREE.Color(0, 0xec / 255, 0xff / 255);
+const NO_HIGHLIGHT = new THREE.Color(0.2, 0.2, 0.2);
 const TRANSFORM_COLOR_1 = new THREE.Color(150 / 255, 80 / 255, 150 / 255);
 const TRANSFORM_COLOR_2 = new THREE.Color(23 / 255, 64 / 255, 118 / 255);
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
