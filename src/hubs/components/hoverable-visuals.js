@@ -4,7 +4,12 @@ import { showHoverEffect } from "../utils/permissions-utils";
 const interactorOneTransform = [];
 const interactorTwoTransform = [];
 
-export const validMaterials = ["MeshStandardMaterial", "MeshBasicMaterial", "MobileStandardMaterial"];
+export const validMaterials = [
+  "MeshStandardMaterial",
+  "MeshBasicMaterial",
+  "MobileStandardMaterial",
+  "MeshToonMaterial"
+];
 /**
  * Applies effects to a hoverable based on hover state.
  * @namespace interactables
