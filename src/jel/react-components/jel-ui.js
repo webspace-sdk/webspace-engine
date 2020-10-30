@@ -15,6 +15,7 @@ import JelSidePanels from "./jel-side-panels";
 import dotsIcon from "../assets/images/icons/dots-horizontal-overlay-shadow.svgi";
 import addIcon from "../assets/images/icons/add-shadow.svgi";
 import HubRenamePopup from "./hub-rename-popup";
+import CreateEmbedPopup from "./create-embed-popup";
 import HubContextMenu from "./hub-context-menu";
 import CreateSelectPopup from "./create-select-popup";
 import { homeHubForSpaceId } from "../utils/membership-utils";
@@ -71,6 +72,15 @@ const CreateSelectPopupRef = styled.div`
   position: absolute;
   top: calc(100% - ${Math.floor(CREATE_SELECT_LIST_HEIGHT) + 100}px);
   left: calc(50% + ${Math.floor(CREATE_SELECT_WIDTH / 2)}px);
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+`;
+
+const CenterPopupRef = styled.div`
+  position: absolute;
+  top: 70%;
+  left: 50%;
   width: 1px;
   height: 1px;
   pointer-events: none;
@@ -179,12 +189,15 @@ function JelUI(props) {
   const [muted, setMuted] = useState(false);
   const [treeData, setTreeData] = useState([]);
   const [treeDataVersion, setTreeDataVersion] = useState(0);
+  const [createEmbedType, setCreateEmbedType] = useState("image");
 
   const renameFocusRef = React.createRef();
   const hubContextButtonRef = React.createRef();
   const hubCreateButtonRef = React.createRef();
   const createSelectFocusRef = React.createRef();
   const createSelectPopupRef = React.createRef();
+  const centerPopupRef = React.createRef();
+  const createEmbedFocusRef = React.createRef();
 
   const {
     styles: hubRenamePopupStyles,
@@ -217,6 +230,14 @@ function JelUI(props) {
     update: updateCreateSelectPopup
   } = usePopupPopper(".create-select-selection-search-input", "bottom-end", [0, 8]);
 
+  const {
+    styles: createEmbedPopupStyles,
+    attributes: createEmbedPopupAttributes,
+    show: showCreateEmbedPopup,
+    setPopup: setCreateEmbedPopupElement,
+    update: updateCreateEmbedPopup
+  } = usePopupPopper(createEmbedFocusRef, "bottom", [0, 8]);
+
   // When panels are re-sized we need to re-layout popups
   useEffect(
     () => {
@@ -224,12 +245,13 @@ function JelUI(props) {
         if (updateHubRenamePopup) updateHubRenamePopup();
         if (updateHubContextMenu) updateHubContextMenu();
         if (updateCreateSelectPopup) updateCreateSelectPopup();
+        if (updateCreateEmbedPopup) updateCreateEmbedPopup();
       };
 
       scene.addEventListener("animated_resize_complete", handleResizeComplete);
       () => scene.removeEventListener("animated_resize_complete", handleResizeComplete);
     },
-    [scene, updateHubRenamePopup, updateHubContextMenu, updateCreateSelectPopup]
+    [scene, updateHubRenamePopup, updateHubContextMenu, updateCreateSelectPopup, updateCreateEmbedPopup]
   );
 
   useSceneMuteState(scene, setMuted);
@@ -247,6 +269,21 @@ function JelUI(props) {
     [scene, createSelectPopupRef, showCreateSelectPopup]
   );
 
+  // Handle embed popup trigger
+  useEffect(
+    () => {
+      const handleCreateEmbed = e => {
+        console.log(e.detail);
+        setCreateEmbedType(e.detail);
+        showCreateEmbedPopup(centerPopupRef);
+      };
+
+      scene.addEventListener("action_show_create_embed", handleCreateEmbed);
+      return () => scene.removeEventListener("action_show_create_embed", handleCreateEmbed);
+    },
+    [scene, centerPopupRef, showCreateEmbedPopup]
+  );
+
   const onCreateActionSelected = useCallback(a => scene.emit("create_action_exec", a), [scene]);
 
   const onTrailHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
@@ -257,6 +294,7 @@ function JelUI(props) {
         <Wrap id="jel-ui-wrap">
           <FadeEdges />
           <CreateSelectPopupRef ref={createSelectPopupRef} />
+          <CenterPopupRef ref={centerPopupRef} />
           <Top>
             {hubMetadata && (
               <HubTrail
@@ -328,6 +366,20 @@ function JelUI(props) {
           spaceChannel,
           hubRenameHubId
         ])}
+      />
+      <CreateEmbedPopup
+        setPopperElement={setCreateEmbedPopupElement}
+        styles={createEmbedPopupStyles}
+        attributes={createEmbedPopupAttributes}
+        embedType={createEmbedType}
+        ref={createEmbedFocusRef}
+        onURLEntered={useCallback(
+          url => {
+            console.log(url);
+            scene.emit("add_media", url);
+          },
+          [scene]
+        )}
       />
       <HubContextMenu
         setPopperElement={setHubContextMenuElement}

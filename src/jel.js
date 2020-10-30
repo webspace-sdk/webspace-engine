@@ -507,9 +507,36 @@ function addGlobalEventListeners(scene, entryManager) {
       case "page":
         scene.emit("add_media_contents", "");
         break;
+      case "image_embed":
+        scene.emit("action_show_create_embed", "image");
+        break;
       case "image_upload":
         el = document.querySelector("#file-upload-input");
         el.accept = "image/*";
+        el.click();
+        break;
+      case "video_embed":
+        scene.emit("action_show_create_embed", "video");
+        break;
+      case "video_upload":
+        el = document.querySelector("#file-upload-input");
+        el.accept = "video/*";
+        el.click();
+        break;
+      case "pdf_embed":
+        scene.emit("action_show_create_embed", "pdf");
+        break;
+      case "pdf_upload":
+        el = document.querySelector("#file-upload-input");
+        el.accept = "application/pdf";
+        el.click();
+        break;
+      case "model_embed":
+        scene.emit("action_show_create_embed", "model");
+        break;
+      case "model_upload":
+        el = document.querySelector("#file-upload-input");
+        el.accept = ".glb";
         el.click();
         break;
     }

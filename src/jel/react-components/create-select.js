@@ -11,7 +11,10 @@ export const CREATE_SELECT_LIST_HEIGHT = 350;
 
 const items = [
   ["text", [["page", null, null]]],
-  ["images", [["image_upload", uploadIconSrc, null]]],
+  ["images", [["image_embed", uploadIconSrc, null], ["image_upload", uploadIconSrc, null]]],
+  ["videos", [["video_embed", uploadIconSrc, null], ["video_upload", uploadIconSrc, null]]],
+  ["models", [["model_embed", uploadIconSrc, null], ["model_upload", uploadIconSrc, null]]],
+  ["docs", [["pdf_embed", uploadIconSrc, null], ["pdf_upload", uploadIconSrc, null]]],
   ["tools", [["duck", null, null]]]
 ];
 

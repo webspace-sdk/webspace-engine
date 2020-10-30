@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import React, { forwardRef } from "react";
 import ReactDOM from "react-dom";
-import PopupHubNameInput from "./popup-hub-name-input";
+import HubNameInputPanel from "./hub-name-input-panel";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import sharedStyles from "../assets/stylesheets/shared.scss";
 
@@ -18,7 +18,7 @@ const HubRenamePopup = forwardRef(
         style={styles.popper}
         {...attributes.popper}
       >
-        <PopupHubNameInput
+        <HubNameInputPanel
           className={sharedStyles.slideDownWhenPopped}
           hubId={hubId}
           hubMetadata={hubMetadata}

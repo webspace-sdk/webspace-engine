@@ -5,7 +5,7 @@ import { getMessages } from "../../hubs/utils/i18n";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 
-const PopupHubNameInputPanel = styled.div`
+const HubNameInputPanelElement = styled.div`
   background-color: var(--menu-background-color);
   min-width: 512px;
   height: fit-content;
@@ -19,7 +19,7 @@ const PopupHubNameInputPanel = styled.div`
   padding: 6px;
 `;
 
-const PopupHubNameInputWrap = styled.div`
+const HubNameInputWrap = styled.div`
   flex: 1;
   padding: 2px;
   border-radius: 4px;
@@ -28,7 +28,7 @@ const PopupHubNameInputWrap = styled.div`
   box-shadow: inset 0px 0px 2px var(--menu-background-color);
 `;
 
-const PopupHubNameInputElement = styled.input`
+const HubNameInputElement = styled.input`
   width: 100%;
   border: 0;
   color: var(--text-input-text-color);
@@ -41,7 +41,7 @@ const PopupHubNameInputElement = styled.input`
   }
 `;
 
-const PopupHubNameInput = forwardRef((props, ref) => {
+const HubNameInputPanel = forwardRef((props, ref) => {
   const { hubId, hubMetadata, onNameChanged } = props;
   const metadata = hubMetadata && hubMetadata.getMetadata(hubId);
   const [editingHubId, setEditingHubId] = useState(hubId);
@@ -70,8 +70,8 @@ const PopupHubNameInput = forwardRef((props, ref) => {
   const placeholder = messages[isHome ? "hub.unnamed-home-title" : "hub.unnamed-title"];
 
   return (
-    <PopupHubNameInputPanel className={props.className}>
-      <PopupHubNameInputWrap>
+    <HubNameInputPanelElement className={props.className}>
+      <HubNameInputWrap>
         <form
           onSubmit={e => {
             e.preventDefault();
@@ -79,7 +79,7 @@ const PopupHubNameInput = forwardRef((props, ref) => {
             document.activeElement.blur(); // This causes this element to hide via CSS
           }}
         >
-          <PopupHubNameInputElement
+          <HubNameInputElement
             type="text"
             tabIndex={-1}
             value={name}
@@ -99,18 +99,18 @@ const PopupHubNameInput = forwardRef((props, ref) => {
             }}
           />
         </form>
-      </PopupHubNameInputWrap>
-    </PopupHubNameInputPanel>
+      </HubNameInputWrap>
+    </HubNameInputPanelElement>
   );
 });
 
-PopupHubNameInput.displayName = "PopupHubNameInput";
+HubNameInputPanel.displayName = "HubNameInputPanel";
 
-PopupHubNameInput.propTypes = {
+HubNameInputPanel.propTypes = {
   hubId: PropTypes.string,
   className: PropTypes.string,
   hubMetadata: PropTypes.object,
   onNameChanged: PropTypes.func
 };
 
-export default PopupHubNameInput;
+export default HubNameInputPanel;
