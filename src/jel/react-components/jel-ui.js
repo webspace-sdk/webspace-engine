@@ -273,7 +273,6 @@ function JelUI(props) {
   useEffect(
     () => {
       const handleCreateEmbed = e => {
-        console.log(e.detail);
         setCreateEmbedType(e.detail);
         showCreateEmbedPopup(centerPopupRef);
       };
@@ -373,13 +372,7 @@ function JelUI(props) {
         attributes={createEmbedPopupAttributes}
         embedType={createEmbedType}
         ref={createEmbedFocusRef}
-        onURLEntered={useCallback(
-          url => {
-            console.log(url);
-            scene.emit("add_media", url);
-          },
-          [scene]
-        )}
+        onURLEntered={useCallback(url => scene.emit("add_media", url), [scene])}
       />
       <HubContextMenu
         setPopperElement={setHubContextMenuElement}

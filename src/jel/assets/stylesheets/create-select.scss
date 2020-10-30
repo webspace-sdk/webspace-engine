@@ -142,6 +142,10 @@ $selectPrefixCls: 'create-select';
 
       &-active {
         background-color: var(--panel-item-hover-background-color);
+
+        img { 
+          background-color: var(--dropdown-thumb-active-background-color);
+        }
       }
     }
 

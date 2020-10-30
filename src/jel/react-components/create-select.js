@@ -5,17 +5,26 @@ import Select, { Option, OptGroup } from "rc-select";
 import "../assets/stylesheets/create-select.scss";
 import { getMessages } from "../../hubs/utils/i18n";
 import uploadIconSrc from "../assets/images/icons/upload.svgi";
+import linkIconSrc from "../assets/images/icons/link.svgi";
+import heartIconSrc from "../assets/images/icons/heart.svgi";
+import newPageIconSrc from "../assets/images/icons/page.svgi";
+import videoThumbSrc from "../assets/images/icons/thumb-video.svg";
+import imageThumbSrc from "../assets/images/icons/thumb-image.svg";
+import pageThumbSrc from "../assets/images/icons/thumb-page.svg";
+import duckThumbSrc from "../assets/images/icons/thumb-duck.svg";
+import pdfThumbSrc from "../assets/images/icons/thumb-pdf.svg";
+import modelThumbSrc from "../assets/images/icons/thumb-model.svg";
 
 export const CREATE_SELECT_WIDTH = 375;
 export const CREATE_SELECT_LIST_HEIGHT = 350;
 
 const items = [
-  ["text", [["page", null, null]]],
-  ["images", [["image_embed", uploadIconSrc, null], ["image_upload", uploadIconSrc, null]]],
-  ["videos", [["video_embed", uploadIconSrc, null], ["video_upload", uploadIconSrc, null]]],
-  ["models", [["model_embed", uploadIconSrc, null], ["model_upload", uploadIconSrc, null]]],
-  ["docs", [["pdf_embed", uploadIconSrc, null], ["pdf_upload", uploadIconSrc, null]]],
-  ["tools", [["duck", null, null]]]
+  ["text", [["page", newPageIconSrc, pageThumbSrc]]],
+  ["images", [["image_embed", linkIconSrc, imageThumbSrc], ["image_upload", uploadIconSrc, imageThumbSrc]]],
+  ["videos", [["video_embed", linkIconSrc, videoThumbSrc], ["video_upload", uploadIconSrc, videoThumbSrc]]],
+  ["models", [["model_embed", linkIconSrc, modelThumbSrc], ["model_upload", uploadIconSrc, modelThumbSrc]]],
+  ["docs", [["pdf_embed", linkIconSrc, pdfThumbSrc], ["pdf_upload", uploadIconSrc, pdfThumbSrc]]],
+  ["tools", [["duck", heartIconSrc, duckThumbSrc]]]
 ];
 
 const CreateSelectInputElement = styled.input``;
@@ -26,13 +35,15 @@ const CreateSelectItemElement = styled.div`
   align-items: center;
   justify-content: flex-start;
 `;
-const CreateSelectItemThumb = styled.div`
+const CreateSelectItemThumb = styled.img`
   width: 54px;
   height: 54px;
   min-width: 54px;
   margin-right: 12px;
-  border: 2px solid var(--menu-border-color);
-  border-radius: 4px;
+  border: 2px solid var(--dropdown-thumb-border-color);
+  border-radius: 8px;
+  background-color: var(--dropdown-thumb-background-color);
+  padding: 6px;
 `;
 const CreateSelectItemBody = styled.div`
   display: flex;
@@ -52,9 +63,9 @@ const CreateSelectItemTitle = styled.div`
   color: var(--panel-banner-text-color);
 `;
 const CreateSelectItemTitleIcon = styled.div`
-  width: 20px;
-  height: 20px;
-  margin-top: 2px;
+  width: 22px;
+  height: 22px;
+  margin-top: 7px;
   margin-right: 6px;
   color: var(--panel-text-color);
 `;

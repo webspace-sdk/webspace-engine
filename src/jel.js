@@ -492,7 +492,7 @@ function addGlobalEventListeners(scene, entryManager) {
   // Fired when the user chooses a create action from the create action menu
   scene.addEventListener("create_action_exec", e => {
     const createAction = e.detail;
-    let el;
+    let uploadAccept;
 
     switch (createAction) {
       case "duck":
@@ -507,38 +507,30 @@ function addGlobalEventListeners(scene, entryManager) {
       case "page":
         scene.emit("add_media_contents", "");
         break;
+      case "video_embed":
       case "image_embed":
-        scene.emit("action_show_create_embed", "image");
+      case "pdf_embed":
+      case "model_embed":
+        scene.emit("action_show_create_embed", createAction.replace("_embed", ""));
         break;
       case "image_upload":
-        el = document.querySelector("#file-upload-input");
-        el.accept = "image/*";
-        el.click();
-        break;
-      case "video_embed":
-        scene.emit("action_show_create_embed", "video");
+        uploadAccept = "image/*";
         break;
       case "video_upload":
-        el = document.querySelector("#file-upload-input");
-        el.accept = "video/*";
-        el.click();
-        break;
-      case "pdf_embed":
-        scene.emit("action_show_create_embed", "pdf");
+        uploadAccept = "video/*";
         break;
       case "pdf_upload":
-        el = document.querySelector("#file-upload-input");
-        el.accept = "application/pdf";
-        el.click();
-        break;
-      case "model_embed":
-        scene.emit("action_show_create_embed", "model");
+        uploadAccept = "application/pdf";
         break;
       case "model_upload":
-        el = document.querySelector("#file-upload-input");
-        el.accept = ".glb";
-        el.click();
+        uploadAccept = ".glb";
         break;
+    }
+
+    if (uploadAccept) {
+      const el = document.querySelector("#file-upload-input");
+      el.accept = uploadAccept;
+      el.click();
     }
   });
 
