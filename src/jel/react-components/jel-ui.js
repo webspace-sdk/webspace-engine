@@ -376,6 +376,7 @@ function JelUI(props) {
           for (const file of e.target.files) {
             scene.emit("add_media", file);
           }
+          e.target.value = null;
         }}
       />
     </WrappedIntlProvider>
