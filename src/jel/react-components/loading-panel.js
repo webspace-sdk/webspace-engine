@@ -39,7 +39,7 @@ const LoadingPanelElement = styled.div`
   justify-content: center;
   align-items: center;
   pointer-events: none;
-  transition: opacity 0.25s;
+  transition: opacity 0.33s;
 `;
 
 const LoadingPanel = ({ isLoading }) => {
