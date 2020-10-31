@@ -850,11 +850,11 @@ async function start() {
   );
 
   document.getElementById("avatar-rig").messageDispatch = messageDispatch;
+  hideCanvas();
 
   setupPerformConditionalSignin(entryManager);
   await store.initProfile();
 
-  hideCanvas();
   warmSerializeElement();
   const quillPoolPromise = initQuillPool();
 
