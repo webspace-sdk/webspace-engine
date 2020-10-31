@@ -5,6 +5,27 @@ import jelLoadingSrc from "../assets/images/jel-loading.svg";
 import jelLoadingShadowSrc from "../assets/images/jel-loading-shadow.svg";
 import "../assets/stylesheets/shared.scss";
 
+const LoadingPanelElement = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  background-color: #333;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  display: flex;
+  transition: opacity 0.25s, visibility 0s linear 0.25s;
+  opacity: 0;
+  visibility: hidden;
+
+  &.loading {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+  }
+`;
+
 const LogoElement = styled.img`
   position: absolute;
   top: 0;
@@ -29,22 +50,9 @@ const SplashWrap = styled.div`
   height: 128px;
 `;
 
-const LoadingPanelElement = styled.div`
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  z-index: 100;
-  background-color: #333;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  pointer-events: none;
-  transition: opacity 0.33s;
-`;
-
 const LoadingPanel = ({ isLoading }) => {
   return (
-    <LoadingPanelElement style={{ opacity: isLoading ? 1 : 0, pointerEvents: isLoading }}>
+    <LoadingPanelElement className={isLoading ? "loading" : ""}>
       <SplashWrap>
         <LogoShadowElement src={jelLoadingShadowSrc} />
         <LogoElement src={jelLoadingSrc} />

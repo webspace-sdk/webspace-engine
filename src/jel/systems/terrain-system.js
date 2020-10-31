@@ -615,7 +615,16 @@ export class TerrainSystem {
     return encoded => {
       const chunks = decodeChunks(encoded);
 
-      const { entities, chunkFeatures, chunkHeightMaps, loadedChunks, spawningChunks, terrains, pool } = this;
+      const {
+        entities,
+        chunkFeatures,
+        chunkHeightMaps,
+        loadedChunks,
+        spawningChunks,
+        loadingChunks,
+        terrains,
+        pool
+      } = this;
 
       chunks.forEach(({ x, height, heightmap, z, meshes, features }) => {
         const key = keyForChunk({ x, z });
@@ -698,6 +707,10 @@ export class TerrainSystem {
         this.ensureLayers(x, z);
 
         this.scene.emit("terrain-chunk-loaded");
+
+        if (spawningChunks.size === 0 && loadingChunks.size === 0) {
+          this.scene.emit("terrain_chunk_loading_complete");
+        }
 
         this.atmosphereSystem.updateShadows();
         this.atmosphereSystem.updateWater();

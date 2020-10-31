@@ -262,7 +262,9 @@ function JelUI(props) {
   useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersion);
 
   useEffect(() => {
-    setTimeout(() => setIsLoading(false), 5000);
+    const handler = () => setIsLoading(false);
+    scene.addEventListener("terrain_chunk_loading_complete", handler);
+    () => scene.removeEventListener("terrain_chunk_loading_complete", handler);
   });
 
   // Handle create hotkey (typically /)
