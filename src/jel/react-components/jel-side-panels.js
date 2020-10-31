@@ -14,9 +14,11 @@ import { addNewHubToTree } from "../utils/tree-utils";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
 import SpaceTree from "./space-tree";
 import HubTree from "./hub-tree";
+import InvitePanel from "./invite-panel";
 import HubTrashTree from "./hub-trash-tree";
 import PresenceList from "./presence-list";
 import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
+import inviteIcon from "../assets/images/icons/invite.svgi";
 import trashIcon from "../assets/images/icons/trash.svgi";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import ReactDOM from "react-dom";
@@ -76,14 +78,14 @@ const PresenceContent = styled.div`
 
 const NavHead = styled.div`
   flex: 0 0 auto;
-  margin-bottom: 32px;
+  margin-bottom: 16px;
 `;
 
 const SpaceBanner = styled.div`
   font-size: var(--panel-banner-text-size);
   font-weight: var(--panel-banner-text-weight);
   color: var(--panel-banner-text-color);
-  margin: 18px 0px 0px 16px;
+  margin: 18px 0px 18px 16px;
 `;
 
 const NavFoot = styled.div`
@@ -259,6 +261,26 @@ function TrashMenu({ styles, attributes, setPopperElement, children }) {
   return ReactDOM.createPortal(popupMenu, popupRoot);
 }
 
+function Invite({ styles, attributes, setPopperElement, children }) {
+  if (!popupRoot) return null;
+  const popupMenu = (
+    <PopupPanel
+      tabIndex={-1} // Ensures can be focused
+      className={sharedStyles.showWhenPopped}
+      ref={setPopperElement}
+      style={styles.popper}
+      {...attributes.popper}
+    >
+      <PanelSectionHeader>
+        <FormattedMessage id="nav.invite" />
+      </PanelSectionHeader>
+      {children}
+    </PopupPanel>
+  );
+
+  return ReactDOM.createPortal(popupMenu, popupRoot);
+}
+
 function JelSidePanels({
   treeManager,
   history,
@@ -275,12 +297,22 @@ function JelSidePanels({
 }) {
   const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
   const [trashMenuElement, setTrashMenuElement] = useState(null);
+  const [inviteReferenceElement, setInviteReferenceElement] = useState(null);
+  const [inviteElement, setInviteElement] = useState(null);
 
   const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: updateTrashPopper } = usePopper(
     trashMenuReferenceElement,
     trashMenuElement,
     {
       placement: "right"
+    }
+  );
+
+  const { styles: inviteStyles, attributes: inviteAttributes, update: updateInvitePopper } = usePopper(
+    inviteReferenceElement,
+    inviteElement,
+    {
+      placement: "right-end"
     }
   );
 
@@ -321,6 +353,23 @@ function JelSidePanels({
         <Nav>
           <NavHead>
             <SpaceBanner>{space && space.name}</SpaceBanner>
+            {spaceCan("create_invite") && (
+              <PanelItemButtonSection>
+                <PanelItemButton
+                  iconSrc={inviteIcon}
+                  ref={setInviteReferenceElement}
+                  onMouseDown={e => cancelEventIfFocusedWithin(e, inviteElement)}
+                  onClick={() => {
+                    if (updateInvitePopper) {
+                      updateInvitePopper();
+                    }
+                    toggleFocus(inviteElement);
+                  }}
+                >
+                  <FormattedMessage id="nav.invite" />
+                </PanelItemButton>
+              </PanelItemButtonSection>
+            )}
           </NavHead>
           <NavSpill>
             <PanelSectionHeader>
@@ -408,6 +457,9 @@ function JelSidePanels({
           />
         </PresenceContent>
       </Presence>
+      <Invite setPopperElement={setInviteElement} styles={inviteStyles} attributes={inviteAttributes}>
+        <InvitePanel fetchInviteUrl={async () => await spaceChannel.createInvite()} />
+      </Invite>
       <TrashMenu setPopperElement={setTrashMenuElement} styles={trashMenuStyles} attributes={trashMenuAttributes}>
         <HubTrashTree
           treeManager={treeManager}

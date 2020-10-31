@@ -3,7 +3,7 @@ import { EventTarget } from "event-target-shim";
 import { Presence } from "phoenix";
 import { migrateChannelToSocket, unbindPresence } from "./phoenix-utils";
 
-const VALID_PERMISSIONS = ["create_hub", "view_nav", "edit_nav"];
+const VALID_PERMISSIONS = ["create_hub", "view_nav", "edit_nav", "create_invite"];
 
 export default class SpaceChannel extends EventTarget {
   constructor(store) {
@@ -220,6 +220,8 @@ export default class SpaceChannel extends EventTarget {
   }
 
   createInvite() {
+    if (!this.channel) return Promise.resolve(null);
+
     return new Promise(res => {
       this.channel.push("create_invite", {}).receive("ok", ({ url }) => res(url));
     });

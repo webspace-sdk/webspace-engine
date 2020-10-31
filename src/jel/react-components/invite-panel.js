@@ -14,6 +14,7 @@ const InvitePanelElement = styled.div`
   align-items: center;
   justify-content: flex-start;
   user-select: none;
+  padding: 0 36px;
 `;
 
 const InviteFormRow = styled.div`
@@ -71,7 +72,8 @@ const InviteElement = styled.input`
   padding: 4px;
 `;
 
-const InvitePanel = forwardRef(({ fetchInviteUrl }, ref) => {
+const InvitePanel = forwardRef((props, ref) => {
+  const { fetchInviteUrl } = props;
   const [inviteUrl, setInviteUrl] = useState("");
   const [inviteUrlCreatedAt, setInviteUrlCreatedAt] = useState(null);
   const [isCopied, setIsCopied] = useState(false);
@@ -83,7 +85,7 @@ const InvitePanel = forwardRef(({ fetchInviteUrl }, ref) => {
   useEffect(() => {
     if (shouldRefetch()) {
       fetchInviteUrl().then(url => {
-        if (shouldRefetch()) {
+        if (url && shouldRefetch()) {
           setInviteUrl(url);
           setInviteUrlCreatedAt(performance.now());
         }

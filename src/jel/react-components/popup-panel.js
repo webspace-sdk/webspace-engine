@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-// Note we only use this for trash so border radii assume left side.
+// Note we only use this for trash and invite popouts from left panel so border radii assume left side.
 
 const PopupPanel = styled.div`
   color: var(--panel-text-color);
@@ -11,8 +11,8 @@ const PopupPanel = styled.div`
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  border-radius: 0px 3px 3px 0px;
-  box-shadow: 0px 12px 28px var(--menu-shadow-color);
+  border-radius: 0px 4px 4px 0px;
+  box-shadow: 12px 12px 28px var(--menu-shadow-color);
   pointer-events: none;
   padding: 16px 0px;
 `;
