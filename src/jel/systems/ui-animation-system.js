@@ -98,8 +98,9 @@ export class UIAnimationSystem {
     if (sceneLeft !== this.sceneLeft || sceneRight !== this.sceneRight) {
       this.applySceneSize(sceneLeft, sceneRight);
 
-      const width = document.body.clientWidth - sceneLeft - sceneRight;
-      this.sceneEl.camera.aspect = width / this.sceneEl.canvas.height;
+      const width = this.sceneEl.canvas.parentElement.offsetWidth;
+      const height = this.sceneEl.canvas.parentElement.offsetHeight;
+      this.sceneEl.camera.aspect = width / height;
       this.sceneEl.camera.updateProjectionMatrix();
     } else {
       let finished = false;
