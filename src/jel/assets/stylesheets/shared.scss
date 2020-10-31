@@ -53,3 +53,6 @@
 .svg-overlay-shadow {
   filter: drop-shadow(0px 0px 4px var(--menu-shadow-color));
 }
+
+@keyframes float_logo { from { top: -12px; } to { top: -5px; }  }
+@keyframes float_logo_shadow { from { transform: scaleX(1.1) } to { transform: scaleX(1.0); }  }

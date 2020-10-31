@@ -24,6 +24,7 @@ import { useSceneMuteState } from "../utils/shared-effects";
 import { getMessages } from "../../hubs/utils/i18n";
 import Tooltip from "./tooltip";
 import KeyTips from "./key-tips";
+import LoadingPanel from "./loading-panel";
 import { CREATE_SELECT_WIDTH, CREATE_SELECT_LIST_HEIGHT } from "./create-select";
 import qsTruthy from "../../hubs/utils/qs_truthy";
 
@@ -189,6 +190,7 @@ function JelUI(props) {
   const [muted, setMuted] = useState(false);
   const [treeData, setTreeData] = useState([]);
   const [treeDataVersion, setTreeDataVersion] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const [createEmbedType, setCreateEmbedType] = useState("image");
 
   const renameFocusRef = React.createRef();
@@ -259,6 +261,10 @@ function JelUI(props) {
   // Consume tree updates so redraws if user manipulates tree
   useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersion);
 
+  useEffect(() => {
+    setTimeout(() => setIsLoading(false), 5000);
+  });
+
   // Handle create hotkey (typically /)
   useEffect(
     () => {
@@ -290,6 +296,7 @@ function JelUI(props) {
   return (
     <WrappedIntlProvider>
       <div>
+        <LoadingPanel isLoading={isLoading} />
         <Wrap id="jel-ui-wrap">
           <FadeEdges />
           <CreateSelectPopupRef ref={createSelectPopupRef} />
