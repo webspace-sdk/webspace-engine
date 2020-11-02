@@ -130,5 +130,6 @@
   "invite-panel.expires-info": "It will expire in 7 days.",
   "invite-panel.copy": "Copy",
   "invite-panel.copied": "Copied!",
-  "profile-editor.sign-out": "Sign Out"
+  "profile-editor.sign-out": "Sign Out",
+  "new-space.create": "Create a Space"
 }

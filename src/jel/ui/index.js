@@ -6,10 +6,11 @@ import { createBrowserHistory } from "history";
 import { connectToReticulum, fetchReticulumAuthenticated } from "../../hubs/utils/phoenix-utils";
 import AuthChannel from "../../hubs/utils/auth-channel";
 import { replaceHistoryPath, pushHistoryPath } from "../../hubs/utils/history";
-import NewUI from "../react-components/new-ui";
-import SetupUI from "../react-components/setup-ui";
+import { FormattedMessage } from "react-intl";
 import InviteUI from "../react-components/invite-ui";
 import LoginUI from "../react-components/login-ui";
+import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
+import { createSpace } from "../../hubs/utils/phoenix-utils";
 
 const store = new Store();
 const qs = new URLSearchParams(location.search);
@@ -48,12 +49,6 @@ async function redirectedToLoggedInRoot() {
 
   const res = await fetchReticulumAuthenticated(`/api/v1/accounts/${accountId}`);
 
-  if (!res.identity) {
-    // Go to account setup flow if account is created but no identity.
-    pushHistoryPath(history, "/setup", "");
-    return false;
-  }
-
   if (res.memberships.length === 0) {
     // Go to new space page if not yet a member of a space.
     pushHistoryPath(history, "/new", "");
@@ -72,6 +67,7 @@ async function redirectedToLoggedInRoot() {
 
 function JelIndex() {
   const [path, setPath] = useState(history.location.pathname);
+  const [spaceName, setSpaceName] = useState("");
   const [postAuthUrl, setPostAuthUrl] = useState(null);
 
   useEffect(() => {
@@ -92,8 +88,7 @@ function JelIndex() {
 
   const signInUI = <LoginUI authChannel={authChannel} postAuthUrl={postAuthUrl} />;
   const signUpUI = <LoginUI authChannel={authChannel} isSignUp={true} postAuthUrl={postAuthUrl} />;
-  const newUI = <NewUI onSpaceCreated={() => redirectedToLoggedInRoot()} />;
-  const setupUI = <SetupUI store={store} onSetupComplete={() => redirectedToLoggedInRoot()} />;
+  //  const newUI = <NewUI onSpaceCreated={() => redirectedToLoggedInRoot()} />;
   const inviteUI = (
     <InviteUI store={store} onInviteAccepted={() => redirectedToLoggedInRoot()} inviteId={path.split("/")[2]} />
   );
@@ -102,15 +97,35 @@ function JelIndex() {
     return signInUI;
   } else if (path.startsWith("/signup")) {
     return signUpUI;
-  } else if (path.startsWith("/new")) {
-    return newUI;
-  } else if (path.startsWith("/setup")) {
-    return setupUI;
   } else if (path.startsWith("/i/")) {
     return inviteUI;
   } else {
     return (
       <div>
+        <form
+          onSubmit={async e => {
+            e.preventDefault();
+            const accountId = store.credentialsAccountId;
+
+            if (!accountId) {
+              // Create a new account and set creds
+              const { credentials } = await fetchReticulumAuthenticated("/api/v1/accounts", "POST", {});
+              store.update({ credentials: { token: credentials } });
+
+              // Pause due to rate limiter
+              await new Promise(res => setTimeout(res, 1250));
+            }
+
+            const { space_id } = await createSpace(spaceName);
+            store.update({ context: { spaceId: space_id } });
+            redirectedToLoggedInRoot();
+          }}
+        >
+          <input required name="name" type="text" value={spaceName} onChange={e => setSpaceName(e.target.value)} />
+          <button type="submit">
+            <FormattedMessage id="new-space.create" />
+          </button>
+        </form>
         <a href="/signin">Sign In</a>
         {path}
       </div>
@@ -124,6 +139,10 @@ function JelIndex() {
     if (await redirectedToLoggedInRoot()) return;
   }
 
-  const root = <JelIndex />;
+  const root = (
+    <WrappedIntlProvider>
+      <JelIndex />
+    </WrappedIntlProvider>
+  );
   ReactDOM.render(root, document.getElementById("home-root"));
 })();
