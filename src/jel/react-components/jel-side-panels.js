@@ -436,6 +436,10 @@ function JelSidePanels({
               onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {
                 spaceChannel.sendAvatarColorUpdate(r / 255.0, g / 255.0, b / 255.0);
               }}
+              onSignOutClicked={() => {
+                window.APP.store.clearCredentials();
+                document.location = "/";
+              }}
             />
           </NavFoot>
         </Nav>

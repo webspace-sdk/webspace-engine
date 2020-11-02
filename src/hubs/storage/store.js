@@ -209,9 +209,13 @@ export default class Store extends EventTarget {
 
     const expiry = jwtDecode(this.state.credentials.token).exp * 1000;
     if (expiry <= Date.now()) {
-      this.update({ credentials: { token: null, email: null } });
+      this.clearCredentials();
     }
   };
+
+  clearCredentials() {
+    this.update({ credentials: { token: null, email: null } });
+  }
 
   initProfile = async () => {
     if (this._shouldResetAvatarOnInit) {

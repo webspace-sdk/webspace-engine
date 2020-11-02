@@ -129,5 +129,6 @@
   "invite-panel.info": "This link lets others join your space.",
   "invite-panel.expires-info": "It will expire in 7 days.",
   "invite-panel.copy": "Copy",
-  "invite-panel.copied": "Copied!"
+  "invite-panel.copied": "Copied!",
+  "profile-editor.sign-out": "Sign Out"
 }

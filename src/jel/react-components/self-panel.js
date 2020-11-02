@@ -7,6 +7,7 @@ import unmutedIcon from "../assets/images/icons/mic-unmuted.svgi";
 import AvatarSwatch from "./avatar-swatch";
 import { PopupPanelMenuArrow } from "./popup-panel-menu";
 import DeviceSelectorPopup from "./device-selector-popup";
+import ProfileEditorPopup from "./profile-editor-popup";
 import AvatarEditorPopup from "./avatar-editor-popup";
 import { BigIconButton } from "./icon-button";
 import Tooltip from "./tooltip";
@@ -38,6 +39,7 @@ const SelfName = styled.div`
   align-items: flex-start;
   margin: 12px 8px;
   min-width: 0;
+  cursor: pointer;
 `;
 
 const DisplayName = styled.div`
@@ -97,14 +99,24 @@ const useMicDevices = (muted, setMicDevices) => {
   );
 };
 
-const SelfPanel = ({ scene, spacePresences, sessionId, onAvatarColorChange, onAvatarColorChangeComplete }) => {
+const SelfPanel = ({
+  scene,
+  spacePresences,
+  sessionId,
+  onAvatarColorChange,
+  onAvatarColorChangeComplete,
+  onSignOutClicked
+}) => {
   const [tipSource, tipTarget] = useSingleton();
   const [deviceSelectorReferenceElement, setDeviceSelectorReferenceElement] = useState(null);
   const [deviceSelectorElement, setDeviceSelectorElement] = useState(null);
   const [deviceSelectorArrowElement, setDeviceSelectorArrowElement] = useState(null);
   const [avatarEditorReferenceElement, setAvatarEditorReferenceElement] = useState(null);
+  const [profileEditorReferenceElement, setProfileEditorReferenceElement] = useState(null);
   const [avatarEditorElement, setAvatarEditorElement] = useState(null);
+  const [profileEditorElement, setProfileEditorElement] = useState(null);
   const [avatarEditorArrowElement, setAvatarEditorArrowElement] = useState(null);
+  const [profileEditorArrowElement, setProfileEditorArrowElement] = useState(null);
   const [micDevices, setMicDevices] = useState([]);
   const [muted, setMuted] = useState(false);
 
@@ -151,6 +163,26 @@ const SelfPanel = ({ scene, spacePresences, sessionId, onAvatarColorChange, onAv
     ]
   });
 
+  const {
+    styles: profileEditorStyles,
+    attributes: profileEditorAttributes,
+    update: updateProfileEditorPopper
+  } = usePopper(profileEditorReferenceElement, profileEditorElement, {
+    placement: "top-start",
+    modifiers: [
+      {
+        name: "offset",
+        options: {
+          offset: [-32, 18]
+        }
+      },
+      {
+        name: "arrow",
+        options: { element: profileEditorArrowElement }
+      }
+    ]
+  });
+
   const spacePresence = spacePresences && spacePresences[sessionId];
   const meta = spacePresence && spacePresence.metas[spacePresence.metas.length - 1];
   const { profile } = meta || {};
@@ -178,7 +210,13 @@ const SelfPanel = ({ scene, spacePresences, sessionId, onAvatarColorChange, onAv
           toggleFocus(avatarEditorElement);
         }}
       />
-      <SelfName>
+      <SelfName
+        ref={setProfileEditorReferenceElement}
+        onClick={() => {
+          updateProfileEditorPopper();
+          toggleFocus(profileEditorElement);
+        }}
+      >
         {displayName && <DisplayName>{displayName}</DisplayName>}
         {identityName && <IdentityName>{identityName}</IdentityName>}
       </SelfName>
@@ -234,6 +272,18 @@ const SelfPanel = ({ scene, spacePresences, sessionId, onAvatarColorChange, onAv
           className={sharedStyles.popperArrow}
         />
       </AvatarEditorPopup>
+      <ProfileEditorPopup
+        setPopperElement={setProfileEditorElement}
+        styles={profileEditorStyles}
+        attributes={profileEditorAttributes}
+        onSignOutClicked={onSignOutClicked}
+      >
+        <PopupPanelMenuArrow
+          ref={setProfileEditorArrowElement}
+          style={profileEditorStyles.arrow}
+          className={sharedStyles.popperArrow}
+        />
+      </ProfileEditorPopup>
     </SelfPanelElement>
   );
 };
@@ -243,7 +293,8 @@ SelfPanel.propTypes = {
   spacePresences: PropTypes.object,
   sessionId: PropTypes.string,
   onAvatarColorChange: PropTypes.func,
-  onAvatarColorChangeComplete: PropTypes.func
+  onAvatarColorChangeComplete: PropTypes.func,
+  onSignOutClicked: PropTypes.func
 };
 
 export { SelfPanel as default };

@@ -174,7 +174,7 @@ export async function createSpace(name) {
 
   if (res.error === "invalid_token") {
     // Clear the invalid token from store.
-    store.update({ credentials: { token: null, email: null } });
+    store.clearCredentials();
     throw new Error("Must be signed in to create space.");
   }
 
@@ -203,7 +203,7 @@ export async function createHub(spaceId, name, sceneId) {
 
   if (res.error === "invalid_token") {
     // Clear the invalid token from store.
-    store.update({ credentials: { token: null, email: null } });
+    store.clearCredentials();
 
     // Create hub anonymously
     delete headers.authorization;

@@ -23,7 +23,7 @@ export default class AuthChannel {
     if (spaceChannel) {
       await spaceChannel.signOut();
     }
-    this.store.update({ credentials: { token: null, email: null } });
+    this.store.clearCredentials();
     await this.store.resetToRandomDefaultAvatar();
     this._signedIn = false;
   };
