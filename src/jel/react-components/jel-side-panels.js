@@ -430,7 +430,10 @@ function JelSidePanels({
               </ActionButton>
             )}
             <SelfPanel
+              spaceId={spaceId}
               spacePresences={spacePresences}
+              spaceChannel={spaceChannel}
+              memberships={memberships}
               scene={scene}
               sessionId={sessionId}
               onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {

@@ -86,7 +86,7 @@ export class MediaPresenceSystem {
   getActiveMediaLayers() {
     const el = document.querySelector("[shared-media]");
     if (!el) {
-      console.warn("Trying to get active media layers but no media presenting space entity in scene.");
+      console.warn("Trying to get active media layers but shared media space entity in scene.");
       return 1;
     }
 
@@ -96,7 +96,7 @@ export class MediaPresenceSystem {
   getSelectedMediaLayer() {
     const el = document.querySelector("[shared-media]");
     if (!el) {
-      console.warn("Trying to get seleced media layers but no media presenting space entity in scene.");
+      console.warn("Trying to get seleced media layers but shared media space entity in scene.");
       return 0;
     }
 
@@ -106,7 +106,7 @@ export class MediaPresenceSystem {
   setActiveLayer(mediaLayer) {
     const el = document.querySelector("[shared-media]");
     if (!el) {
-      console.warn("Trying to get active media layers but no media presenting space entity in scene.");
+      console.warn("Trying to get active media layers but shared media space entity in scene.");
     }
 
     el.components["shared-media"].setActiveLayer(mediaLayer);

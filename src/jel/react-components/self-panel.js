@@ -10,14 +10,17 @@ import { PopupPanelMenuArrow } from "./popup-panel-menu";
 import DeviceSelectorPopup from "./device-selector-popup";
 import ProfileEditorPopup, { PROFILE_EDITOR_MODES } from "./profile-editor-popup";
 import AvatarEditorPopup from "./avatar-editor-popup";
+import { isAdminOfSpaceId } from "../utils/membership-utils";
 import { BigIconButton } from "./icon-button";
 import Tooltip from "./tooltip";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
 import sharedStyles from "../assets/stylesheets/shared.scss";
 import { usePopper } from "react-popper";
+import { connectToReticulum } from "../../hubs/utils/phoenix-utils";
 import { useSingleton } from "@tippyjs/react";
 import { getMessages } from "../../hubs/utils/i18n";
 import { useSceneMuteState } from "../utils/shared-effects";
+import AuthChannel from "../../hubs/utils/auth-channel";
 
 const SelfPanelElement = styled.div`
   width: 100%;
@@ -114,7 +117,10 @@ const useMicDevices = (muted, setMicDevices) => {
 
 const SelfPanel = ({
   scene,
+  spaceId,
+  spaceChannel,
   spacePresences,
+  memberships,
   sessionId,
   onAvatarColorChange,
   onAvatarColorChangeComplete,
@@ -208,6 +214,7 @@ const SelfPanel = ({
         ? PROFILE_EDITOR_MODES.VERIFYING
         : PROFILE_EDITOR_MODES.UNVERIFIED;
   const isUnverified = profileEditorMode === PROFILE_EDITOR_MODES.UNVERIFIED;
+  const isSpaceAdmin = isAdminOfSpaceId(spaceId, memberships);
   const messages = getMessages();
   const displayName = profile && profile.displayName;
   let identityName = profile && profile.identityName;
@@ -312,11 +319,15 @@ const SelfPanel = ({
         setPopperElement={setProfileEditorElement}
         styles={profileEditorStyles}
         attributes={profileEditorAttributes}
+        isSpaceAdmin={isSpaceAdmin}
         onSignOutClicked={onSignOutClicked}
-        onSignUp={(email, name) => {
-          console.log(email, name);
+        onSignUp={async (email, name) => {
           setIsVerifying(true);
           profileEditorElement.focus();
+          const authChannel = new AuthChannel(window.APP.store);
+          authChannel.setSocket(await connectToReticulum());
+          await authChannel.startAuthentication(email, spaceChannel);
+          spaceChannel.updateIdentity({ name });
         }}
         mode={profileEditorMode}
       >
@@ -332,8 +343,11 @@ const SelfPanel = ({
 
 SelfPanel.propTypes = {
   scene: PropTypes.object,
+  spaceId: PropTypes.string,
   spacePresences: PropTypes.object,
+  spaceChannel: PropTypes.object,
   sessionId: PropTypes.string,
+  memberships: PropTypes.array,
   onAvatarColorChange: PropTypes.func,
   onAvatarColorChangeComplete: PropTypes.func,
   onSignOutClicked: PropTypes.func

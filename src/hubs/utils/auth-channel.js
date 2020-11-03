@@ -51,7 +51,11 @@ export default class AuthChannel {
   }
 
   async startAuthentication(email, spaceChannel, extraPayload = {}) {
-    const channel = this.socket.channel(`auth:${uuid()}`);
+    // Use existing auth token if this is binding the login to an unverified account.
+    const auth_token = this.store.state.credentials && this.store.state.credentials.token;
+    const params = auth_token ? { auth_token } : {};
+    const channel = this.socket.channel(`auth:${uuid()}`, params);
+
     await new Promise((resolve, reject) =>
       channel
         .join()

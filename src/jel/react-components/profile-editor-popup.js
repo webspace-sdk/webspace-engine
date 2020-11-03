@@ -9,6 +9,7 @@ import SmallActionButton from "./small-action-button";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
 import { FormattedMessage } from "react-intl";
 import { getMessages } from "../../hubs/utils/i18n";
+import { fetchReticulumAuthenticated } from "../../hubs/utils/phoenix-utils";
 import { SCHEMA } from "../../hubs/storage/store";
 
 export const PROFILE_EDITOR_MODES = {
@@ -25,7 +26,7 @@ const PanelWrap = styled.div`
   height: fit-content;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 0 32px;
 `;
@@ -35,6 +36,7 @@ const Info = styled.div`
   font-size: var(--dialog-info-text-size);
   font-weight: var(--dialog-info-text-weight);
   margin-top: 12px;
+  margin-left: 12px;
 `;
 
 const Tip = styled.div`
@@ -43,6 +45,13 @@ const Tip = styled.div`
   font-weight: var(--dialog-tip-text-weight);
   margin-top: 6px;
   margin-bottom: 8px;
+  margin-left: 12px;
+  white-space: pre;
+  line-height: 16px;
+
+  & a {
+    text-decoration: underline;
+  }
 `;
 
 const VerifyInputWrap = styled.div`
@@ -71,10 +80,20 @@ const VerifyInput = styled.input`
   width: 300px;
 `;
 
-const ProfileEditorPopup = ({ setPopperElement, styles, attributes, onSignOutClicked, onSignUp, mode, children }) => {
+const ProfileEditorPopup = ({
+  setPopperElement,
+  styles,
+  attributes,
+  onSignOutClicked,
+  onSignUp,
+  mode,
+  children,
+  isSpaceAdmin
+}) => {
   const messages = getMessages();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [exists, setExists] = useState(false);
 
   const popupInput = (
     <div
@@ -111,9 +130,13 @@ const ProfileEditorPopup = ({ setPopperElement, styles, attributes, onSignOutCli
               <FormattedMessage id="profile-editor.unverified-tip" />
             </Tip>
             <form
-              onSubmit={e => {
+              onSubmit={async e => {
                 e.preventDefault();
                 e.stopPropagation();
+                const existing = await fetchReticulumAuthenticated("/api/v1/accounts/search", "POST", { email });
+                const exists = existing.data && existing.data.length > 0;
+                setExists(exists);
+                if (exists) return;
                 onSignUp(email, name);
               }}
             >
@@ -150,6 +173,20 @@ const ProfileEditorPopup = ({ setPopperElement, styles, attributes, onSignOutCli
                   }}
                 />
               </VerifyInputWrap>
+              {exists && (
+                <Tip>
+                  <FormattedMessage id={isSpaceAdmin ? "profile-editor.exists-admin" : "profile-editor.exists"} />&nbsp;
+                  <a
+                    onClick={e => {
+                      e.preventDefault();
+                      onSignOutClicked();
+                    }}
+                    href="#"
+                  >
+                    <FormattedMessage id="profile-editor.sign-out" />
+                  </a>
+                </Tip>
+              )}
               <SmallActionButton type="submit">
                 <FormattedMessage id="profile-editor.sign-up" />
               </SmallActionButton>
@@ -167,7 +204,8 @@ const ProfileEditorPopup = ({ setPopperElement, styles, attributes, onSignOutCli
 ProfileEditorPopup.propTypes = {
   onSignOutClicked: PropTypes.func,
   onSignUp: PropTypes.func,
-  mode: PropTypes.number
+  mode: PropTypes.number,
+  isSpaceAdmin: PropTypes.bool
 };
 
 export { ProfileEditorPopup as default };

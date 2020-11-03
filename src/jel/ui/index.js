@@ -19,7 +19,7 @@ const authChannel = new AuthChannel(store);
 
 window.APP = { store };
 
-async function authenticateAndDidRedirect() {
+async function authenticate() {
   const authToken = qs.get("auth_token");
   if (!authToken) return false;
 
@@ -28,15 +28,7 @@ async function authenticateAndDidRedirect() {
 
   const authChannel = new AuthChannel(store);
   authChannel.setSocket(await connectToReticulum());
-  const decryptedPayload = await authChannel.verifyAuthentication(authTopic, authToken, authPayload);
-
-  if (decryptedPayload.post_auth_url) {
-    // Original auth request included a URL to redirect to after logging in. (Eg invites.)
-    document.location = decryptedPayload.post_auth_url;
-    return true;
-  }
-
-  return false;
+  await authChannel.verifyAuthentication(authTopic, authToken, authPayload);
 }
 
 async function redirectedToLoggedInRoot() {
@@ -49,18 +41,15 @@ async function redirectedToLoggedInRoot() {
 
   const res = await fetchReticulumAuthenticated(`/api/v1/accounts/${accountId}`);
 
-  if (res.memberships.length === 0) {
-    // Go to new space page if not yet a member of a space.
-    pushHistoryPath(history, "/new", "");
-    return false;
-  }
+  let membership = res.memberships.filter(m => m.space.space_id === spaceId)[0];
 
-  if (!spaceId) {
+  if (!membership) {
     spaceId = [...res.memberships].sort(m => m.joined_at).pop().space.space_id;
+    membership = res.memberships.filter(m => m.space.space_id === spaceId)[0];
     store.update({ context: { spaceId } });
   }
 
-  const homeHub = res.memberships.filter(m => m.space.space_id === spaceId)[0].home_hub;
+  const homeHub = membership.home_hub;
   document.location = homeHub.url;
   return true;
 }
@@ -88,12 +77,15 @@ function JelIndex() {
 
   const signInUI = <LoginUI authChannel={authChannel} postAuthUrl={postAuthUrl} />;
   const signUpUI = <LoginUI authChannel={authChannel} isSignUp={true} postAuthUrl={postAuthUrl} />;
-  //  const newUI = <NewUI onSpaceCreated={() => redirectedToLoggedInRoot()} />;
   const inviteUI = (
     <InviteUI store={store} onInviteAccepted={() => redirectedToLoggedInRoot()} inviteId={path.split("/")[2]} />
   );
 
-  if (path.startsWith("/signin")) {
+  const authToken = qs.get("auth_token");
+
+  if (authToken) {
+    return <div>Logged in</div>;
+  } else if (path.startsWith("/signin")) {
     return signInUI;
   } else if (path.startsWith("/signup")) {
     return signUpUI;
@@ -113,7 +105,7 @@ function JelIndex() {
               store.update({ credentials: { token: credentials } });
 
               // Pause due to rate limiter
-              await new Promise(res => setTimeout(res, 1250));
+              await new Promise(res => setTimeout(res, 1050));
             }
 
             const { space_id } = await createSpace(spaceName);
@@ -134,9 +126,16 @@ function JelIndex() {
 }
 
 (async () => {
-  if (history.location.pathname === "/" || history.location.pathname === "") {
-    if (await authenticateAndDidRedirect()) return;
-    if (await redirectedToLoggedInRoot()) return;
+  const hasAuthToken = !!qs.get("auth_token");
+
+  if (hasAuthToken) {
+    authenticate().then(() => {
+      console.log("authenticated");
+    });
+  } else {
+    if (history.location.pathname === "/" || history.location.pathname === "") {
+      if (await redirectedToLoggedInRoot()) return;
+    }
   }
 
   const root = (

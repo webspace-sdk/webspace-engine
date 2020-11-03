@@ -18,6 +18,8 @@ const EmptyMessage = styled.div`
   margin-left: 16px;
   margin-top: 8px;
   font-size: var(--panel-header-text-size);
+  line-height: calc(var(--panel-header-text-size) + 2px);
+  white-space: pre;
 `;
 
 function HubTree({ treeManager, history, hub, spaceCan, setHubRenameReferenceElement, showHubContextMenuPopup }) {

@@ -120,6 +120,12 @@ export default class SpaceChannel extends EventTarget {
     }
   };
 
+  updateIdentity = identity => {
+    if (this.channel) {
+      this.channel.push("update_identity", { identity });
+    }
+  };
+
   sendAvatarColorUpdate = (r, g, b) => {
     this.sendPersonaUpdate({ avatar: { primary_color: { r, g, b } } });
   };
