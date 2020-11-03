@@ -5,7 +5,6 @@ import Store from "../../hubs/storage/store";
 import { createBrowserHistory } from "history";
 import { connectToReticulum, fetchReticulumAuthenticated } from "../../hubs/utils/phoenix-utils";
 import AuthChannel from "../../hubs/utils/auth-channel";
-import { replaceHistoryPath, pushHistoryPath } from "../../hubs/utils/history";
 import { FormattedMessage } from "react-intl";
 import InviteUI from "../react-components/invite-ui";
 import LoginUI from "../react-components/login-ui";
@@ -19,7 +18,7 @@ const authChannel = new AuthChannel(store);
 
 window.APP = { store };
 
-async function authenticate() {
+async function authenticateAndDidNotRedirect() {
   const authToken = qs.get("auth_token");
   if (!authToken) return false;
 
@@ -28,7 +27,15 @@ async function authenticate() {
 
   const authChannel = new AuthChannel(store);
   authChannel.setSocket(await connectToReticulum());
-  await authChannel.verifyAuthentication(authTopic, authToken, authPayload);
+  const decryptedPayload = await authChannel.verifyAuthentication(authTopic, authToken, authPayload);
+
+  if (decryptedPayload.post_auth_url) {
+    // Original auth request included a URL to redirect to after logging in. (Eg invites.)
+    document.location = decryptedPayload.post_auth_url;
+    return true;
+  }
+
+  return false;
 }
 
 async function redirectedToLoggedInRoot() {
@@ -57,7 +64,6 @@ async function redirectedToLoggedInRoot() {
 function JelIndex() {
   const [path, setPath] = useState(history.location.pathname);
   const [spaceName, setSpaceName] = useState("");
-  const [postAuthUrl, setPostAuthUrl] = useState(null);
 
   useEffect(() => {
     return history.listen(() => {
@@ -65,20 +71,15 @@ function JelIndex() {
     });
   });
 
-  useEffect(
-    () => {
-      if (path.startsWith("/i/") && !store.credentialsAccountId) {
-        setPostAuthUrl(document.location.toString());
-        replaceHistoryPath(history, "/signin", "");
-      }
-    },
-    [path]
-  );
-
-  const signInUI = <LoginUI authChannel={authChannel} postAuthUrl={postAuthUrl} />;
-  const signUpUI = <LoginUI authChannel={authChannel} isSignUp={true} postAuthUrl={postAuthUrl} />;
+  const signInUI = <LoginUI authChannel={authChannel} postAuthUrl={"/"} />;
+  const signUpUI = <LoginUI authChannel={authChannel} postAuthUrl={"/"} isSignUp={true} />;
   const inviteUI = (
-    <InviteUI store={store} onInviteAccepted={() => redirectedToLoggedInRoot()} inviteId={path.split("/")[2]} />
+    <InviteUI
+      store={store}
+      showSignIn={!store.credentialsAccountId}
+      onInviteAccepted={() => redirectedToLoggedInRoot()}
+      inviteId={path.split("/")[2]}
+    />
   );
 
   const authToken = qs.get("auth_token");
@@ -129,9 +130,8 @@ function JelIndex() {
   const hasAuthToken = !!qs.get("auth_token");
 
   if (hasAuthToken) {
-    authenticate().then(() => {
-      console.log("authenticated");
-    });
+    const authDidNotRedirect = await authenticateAndDidNotRedirect();
+    if (!authDidNotRedirect) return;
   } else {
     if (history.location.pathname === "/" || history.location.pathname === "") {
       if (await redirectedToLoggedInRoot()) return;
