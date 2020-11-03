@@ -21,6 +21,7 @@
   "self.unmute-tip": "Unmute",
   "self.mute-tip": "Mute",
   "self.select-tip": "Change Devices",
+  "self.unverified-tip": "Click to set up your Jel account.",
   "presence-list.this-header": "This World",
   "presence-list.active-header": "Active Worlds",
   "presence-list.go-to-world": "Go To World",
@@ -131,5 +132,12 @@
   "invite-panel.copy": "Copy",
   "invite-panel.copied": "Copied!",
   "profile-editor.sign-out": "Sign Out",
-  "new-space.create": "Create a Space"
+  "new-space.create": "Create a Space",
+  "profile-editor.verifying-info": "Email sent!",
+  "profile-editor.verifying-tip": "Please click on the link in your email.",
+  "profile-editor.unverified-info": "You need to set up your Jel account.",
+  "profile-editor.unverified-tip": "Enter your email and set your name.",
+  "profile-editor.email-placeholder": "your@email.com",
+  "profile-editor.name-placeholder": "Your Name (will be seen by others)",
+  "profile-editor.sign-up": "Sign Up"
 }

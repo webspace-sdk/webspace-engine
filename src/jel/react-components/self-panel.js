@@ -4,10 +4,11 @@ import styled from "styled-components";
 import verticalDotsIcon from "../assets/images/icons/dots-vertical.svgi";
 import mutedIcon from "../assets/images/icons/mic-muted.svgi";
 import unmutedIcon from "../assets/images/icons/mic-unmuted.svgi";
+import importantIcon from "../assets/images/icons/important.svgi";
 import AvatarSwatch from "./avatar-swatch";
 import { PopupPanelMenuArrow } from "./popup-panel-menu";
 import DeviceSelectorPopup from "./device-selector-popup";
-import ProfileEditorPopup from "./profile-editor-popup";
+import ProfileEditorPopup, { PROFILE_EDITOR_MODES } from "./profile-editor-popup";
 import AvatarEditorPopup from "./avatar-editor-popup";
 import { BigIconButton } from "./icon-button";
 import Tooltip from "./tooltip";
@@ -52,6 +53,10 @@ const DisplayName = styled.div`
   overflow: hidden;
   text-overflow: ellipsis;
   margin-bottom: 4px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
 `;
 
 const IdentityName = styled.div`
@@ -68,6 +73,14 @@ const DeviceControls = styled.div`
   display: flex;
   margin-right: 18px;
   flex: 0 0 fit-content;
+`;
+
+const ImportantIcon = styled.div`
+  width: 16px;
+  height: 16px;
+  color: var(--important-icon-color);
+  margin-right: 2px;
+  margin-bottom: 1px;
 `;
 
 const fillMicDevices = async setMicDevices => {
@@ -119,6 +132,7 @@ const SelfPanel = ({
   const [profileEditorArrowElement, setProfileEditorArrowElement] = useState(null);
   const [micDevices, setMicDevices] = useState([]);
   const [muted, setMuted] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   useMicDevices(muted, setMicDevices);
   useSceneMuteState(scene, setMuted);
@@ -173,7 +187,7 @@ const SelfPanel = ({
       {
         name: "offset",
         options: {
-          offset: [-32, 18]
+          offset: [-44, 18]
         }
       },
       {
@@ -186,6 +200,13 @@ const SelfPanel = ({
   const spacePresence = spacePresences && spacePresences[sessionId];
   const meta = spacePresence && spacePresence.metas[spacePresence.metas.length - 1];
   const { profile } = meta || {};
+
+  const profileEditorMode = isVerifying
+    ? PROFILE_EDITOR_MODES.VERIFYING
+    : profile && profile.verified
+      ? PROFILE_EDITOR_MODES.VERIFIED
+      : PROFILE_EDITOR_MODES.UNVERIFIED;
+  const isUnverified = profileEditorMode === PROFILE_EDITOR_MODES.UNVERIFIED;
   const messages = getMessages();
   const displayName = profile && profile.displayName;
   let identityName = profile && profile.identityName;
@@ -210,16 +231,29 @@ const SelfPanel = ({
           toggleFocus(avatarEditorElement);
         }}
       />
-      <SelfName
-        ref={setProfileEditorReferenceElement}
-        onClick={() => {
-          updateProfileEditorPopper();
-          toggleFocus(profileEditorElement);
-        }}
+      <Tooltip
+        content={messages["self.unverified-tip"]}
+        placement="top"
+        key="unverified"
+        singleton={tipTarget}
+        style={{ visibility: isUnverified ? "visible" : "hidden" }}
       >
-        {displayName && <DisplayName>{displayName}</DisplayName>}
-        {identityName && <IdentityName>{identityName}</IdentityName>}
-      </SelfName>
+        <SelfName
+          ref={setProfileEditorReferenceElement}
+          onClick={() => {
+            updateProfileEditorPopper();
+            toggleFocus(profileEditorElement);
+          }}
+        >
+          {displayName && (
+            <DisplayName>
+              {isUnverified && <ImportantIcon dangerouslySetInnerHTML={{ __html: importantIcon }} />}
+              {displayName}
+            </DisplayName>
+          )}
+          {identityName && <IdentityName>{identityName}</IdentityName>}
+        </SelfName>
+      </Tooltip>
       <DeviceControls>
         <Tooltip content={messages["self.select-tip"]} placement="top" key="mute" singleton={tipTarget}>
           <BigIconButton
@@ -277,6 +311,7 @@ const SelfPanel = ({
         styles={profileEditorStyles}
         attributes={profileEditorAttributes}
         onSignOutClicked={onSignOutClicked}
+        mode={profileEditorMode}
       >
         <PopupPanelMenuArrow
           ref={setProfileEditorArrowElement}
