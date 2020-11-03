@@ -2,7 +2,7 @@
   "nav.space-worlds": "Space Worlds",
   "nav.private-worlds": "Private Worlds",
   "nav.create-world": "Create World",
-  "nav.empty": "Click or tap \"Create World\" below to create a new world.",
+  "nav.empty": "Click or tap \"Create World\" below to create a new world that others can join you in.",
   "nav.trash": "Trash",
   "nav.invite": "Invite People",
   "hub.unnamed-home-title": "Home World",
@@ -139,5 +139,6 @@
   "profile-editor.unverified-tip": "Enter your email and set your name.",
   "profile-editor.email-placeholder": "your@email.com",
   "profile-editor.name-placeholder": "Your Name (will be seen by others)",
-  "profile-editor.sign-up": "Sign Up"
+  "profile-editor.sign-up": "Sign Up",
+  "profile-editor.name-validation-warning": "Name must be between 3 and 32 alphanumeric characters"
 }

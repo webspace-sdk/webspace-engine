@@ -9,6 +9,7 @@ import SmallActionButton from "./small-action-button";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
 import { FormattedMessage } from "react-intl";
 import { getMessages } from "../../hubs/utils/i18n";
+import { SCHEMA } from "../../hubs/storage/store";
 
 export const PROFILE_EDITOR_MODES = {
   UNVERIFIED: 0,
@@ -70,7 +71,7 @@ const VerifyInput = styled.input`
   width: 300px;
 `;
 
-const ProfileEditorPopup = ({ setPopperElement, styles, attributes, onSignOutClicked, mode, children }) => {
+const ProfileEditorPopup = ({ setPopperElement, styles, attributes, onSignOutClicked, onSignUp, mode, children }) => {
   const messages = getMessages();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -109,10 +110,19 @@ const ProfileEditorPopup = ({ setPopperElement, styles, attributes, onSignOutCli
             <Tip>
               <FormattedMessage id="profile-editor.unverified-tip" />
             </Tip>
-            <form>
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSignUp(email, name);
+              }}
+            >
               <VerifyInputWrap>
                 <VerifyInput
+                  value={email}
+                  name="email"
                   type="email"
+                  required
                   placeholder={messages["profile-editor.email-placeholder"]}
                   onFocus={e => handleTextFieldFocus(e.target)}
                   onBlur={e => handleTextFieldBlur(e.target)}
@@ -125,7 +135,13 @@ const ProfileEditorPopup = ({ setPopperElement, styles, attributes, onSignOutCli
               <VerifyInputWrap>
                 <VerifyInput
                   type="text"
+                  name="name"
+                  value={name}
+                  pattern={SCHEMA.definitions.profile.properties.displayName.pattern}
+                  required
+                  spellCheck="false"
                   placeholder={messages["profile-editor.name-placeholder"]}
+                  title={messages["profile-editor.name-validation-warning"]}
                   onFocus={e => handleTextFieldFocus(e.target)}
                   onBlur={e => handleTextFieldBlur(e.target)}
                   onChange={e => {
@@ -134,10 +150,10 @@ const ProfileEditorPopup = ({ setPopperElement, styles, attributes, onSignOutCli
                   }}
                 />
               </VerifyInputWrap>
+              <SmallActionButton type="submit">
+                <FormattedMessage id="profile-editor.sign-up" />
+              </SmallActionButton>
             </form>
-            <SmallActionButton>
-              <FormattedMessage id="profile-editor.sign-up" />
-            </SmallActionButton>
           </PanelWrap>
         )}
       </PopupPanelMenu>
@@ -149,7 +165,8 @@ const ProfileEditorPopup = ({ setPopperElement, styles, attributes, onSignOutCli
 };
 
 ProfileEditorPopup.propTypes = {
-  onSignoutClicked: PropTypes.func,
+  onSignOutClicked: PropTypes.func,
+  onSignUp: PropTypes.func,
   mode: PropTypes.number
 };
 

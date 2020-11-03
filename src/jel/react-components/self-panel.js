@@ -201,11 +201,12 @@ const SelfPanel = ({
   const meta = spacePresence && spacePresence.metas[spacePresence.metas.length - 1];
   const { profile } = meta || {};
 
-  const profileEditorMode = isVerifying
-    ? PROFILE_EDITOR_MODES.VERIFYING
-    : profile && profile.verified
+  const profileEditorMode =
+    profile && profile.verified
       ? PROFILE_EDITOR_MODES.VERIFIED
-      : PROFILE_EDITOR_MODES.UNVERIFIED;
+      : isVerifying
+        ? PROFILE_EDITOR_MODES.VERIFYING
+        : PROFILE_EDITOR_MODES.UNVERIFIED;
   const isUnverified = profileEditorMode === PROFILE_EDITOR_MODES.UNVERIFIED;
   const messages = getMessages();
   const displayName = profile && profile.displayName;
@@ -219,6 +220,23 @@ const SelfPanel = ({
     }
   }
 
+  const selfName = (
+    <SelfName
+      ref={setProfileEditorReferenceElement}
+      onClick={() => {
+        updateProfileEditorPopper();
+        toggleFocus(profileEditorElement);
+      }}
+    >
+      {displayName && (
+        <DisplayName>
+          {isUnverified && <ImportantIcon dangerouslySetInnerHTML={{ __html: importantIcon }} />}
+          {displayName}
+        </DisplayName>
+      )}
+      {identityName && <IdentityName>{identityName}</IdentityName>}
+    </SelfName>
+  );
   return (
     <SelfPanelElement>
       <Tooltip singleton={tipSource} />
@@ -231,29 +249,13 @@ const SelfPanel = ({
           toggleFocus(avatarEditorElement);
         }}
       />
-      <Tooltip
-        content={messages["self.unverified-tip"]}
-        placement="top"
-        key="unverified"
-        singleton={tipTarget}
-        style={{ visibility: isUnverified ? "visible" : "hidden" }}
-      >
-        <SelfName
-          ref={setProfileEditorReferenceElement}
-          onClick={() => {
-            updateProfileEditorPopper();
-            toggleFocus(profileEditorElement);
-          }}
-        >
-          {displayName && (
-            <DisplayName>
-              {isUnverified && <ImportantIcon dangerouslySetInnerHTML={{ __html: importantIcon }} />}
-              {displayName}
-            </DisplayName>
-          )}
-          {identityName && <IdentityName>{identityName}</IdentityName>}
-        </SelfName>
-      </Tooltip>
+      {isUnverified ? (
+        <Tooltip content={messages["self.unverified-tip"]} placement="top" key="unverified" singleton={tipTarget}>
+          {selfName}
+        </Tooltip>
+      ) : (
+        selfName
+      )}
       <DeviceControls>
         <Tooltip content={messages["self.select-tip"]} placement="top" key="mute" singleton={tipTarget}>
           <BigIconButton
@@ -311,6 +313,11 @@ const SelfPanel = ({
         styles={profileEditorStyles}
         attributes={profileEditorAttributes}
         onSignOutClicked={onSignOutClicked}
+        onSignUp={(email, name) => {
+          console.log(email, name);
+          setIsVerifying(true);
+          profileEditorElement.focus();
+        }}
         mode={profileEditorMode}
       >
         <PopupPanelMenuArrow
