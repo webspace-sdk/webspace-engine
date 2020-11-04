@@ -146,5 +146,11 @@
   "profile-editor.exists-admin": "An account with this email already exists.\nTo use it, sign out and re-create this space.",
   "home.tagline": "The fun collaboration tool.",
   "home.have-account": "Already have an account?",
-  "home.sign-in": "Sign In"
+  "home.sign-in": "Sign In",
+  "home.signing-in": "Email Sent!",
+  "home.signing-in-tip": "Open the magic link in your email.",
+  "home.signin-complete": "You've been signed in.",
+  "home.signin-complete-close": "You can close this page and return to Jel.",
+  "invite.info": "You've been invited to join a space.",
+  "invite.join": "Join"
 }

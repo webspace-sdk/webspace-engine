@@ -109,16 +109,23 @@ const Wrap = styled.div`
   height: 100%;
 `;
 
-const SignInWrap = styled.div`
+const Tip = styled.div`
   display: flex;
   color: var(--dialog-tip-text-color);
   font-size: var(--dialog-tip-text-size);
   font-weight: var(--dialog-tip-text-weight);
-  margin-top: 24px;
+  margin-top: 6px;
 
   & a {
     text-decoration: underline;
   }
+`;
+
+const SignedIn = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 `;
 
 async function authenticateAndDidNotRedirect() {
@@ -176,7 +183,6 @@ function JelIndexUI() {
   });
 
   const signInUI = <LoginUI authChannel={authChannel} postAuthUrl={"/"} />;
-  const signUpUI = <LoginUI authChannel={authChannel} postAuthUrl={"/"} isSignUp={true} />;
   const inviteUI = (
     <InviteUI
       store={store}
@@ -189,61 +195,71 @@ function JelIndexUI() {
   const authToken = qs.get("auth_token");
 
   if (authToken) {
-    return <div>Logged in</div>;
+    return (
+      <SignedIn>
+        <FormattedMessage id="home.signin-complete" />
+        <Tip>
+          <FormattedMessage id="home.signin-complete-close" />
+        </Tip>
+      </SignedIn>
+    );
   } else if (path.startsWith("/signin")) {
-    return signInUI;
-  } else if (path.startsWith("/signup")) {
-    return signUpUI;
+    return <InfoPanel>{signInUI}</InfoPanel>;
   } else if (path.startsWith("/i/")) {
     return inviteUI;
   } else {
     return (
-      <form
-        onSubmit={async e => {
-          setIsLoading(true);
-          e.preventDefault();
-          const accountId = store.credentialsAccountId;
+      <InfoPanel>
+        <Tagline>
+          <FormattedMessage id="home.tagline" />
+        </Tagline>
+        <form
+          onSubmit={async e => {
+            setIsLoading(true);
+            e.preventDefault();
+            const accountId = store.credentialsAccountId;
 
-          if (!accountId) {
-            // Create a new account and set creds
-            const { credentials } = await fetchReticulumAuthenticated("/api/v1/accounts", "POST", {});
-            store.update({ credentials: { token: credentials } });
+            if (!accountId) {
+              // Create a new account and set creds
+              const { credentials } = await fetchReticulumAuthenticated("/api/v1/accounts", "POST", {});
+              store.update({ credentials: { token: credentials } });
 
-            // Pause due to rate limiter
-            await new Promise(res => setTimeout(res, 1050));
-          }
+              // Pause due to rate limiter
+              await new Promise(res => setTimeout(res, 1050));
+            }
 
-          const { space_id } = await createSpace(spaceName);
-          store.update({ context: { spaceId: space_id } });
-          redirectedToLoggedInRoot();
-        }}
-      >
-        <Panel>
-          <InputWrap>
-            <Input
-              placeholder={messages["new-space.placeholder"]}
-              required
-              name="name"
-              type="text"
-              autoComplete={"off"}
-              value={spaceName}
-              onChange={e => setSpaceName(e.target.value)}
-            />
-          </InputWrap>
-          {isLoading ? (
-            <DotSpinner style={{ transform: "scale(0.4)" }} />
-          ) : (
-            <SmallActionButton type="submit" style={{ width: "250px" }}>
-              <FormattedMessage id="new-space.create" />
-            </SmallActionButton>
-          )}
-          <SignInWrap>
-            <FormattedMessage id="home.have-account" />&nbsp;<a href="/signin">
-              <FormattedMessage id="home.sign-in" />
-            </a>
-          </SignInWrap>
-        </Panel>
-      </form>
+            const { space_id } = await createSpace(spaceName);
+            store.update({ context: { spaceId: space_id } });
+            redirectedToLoggedInRoot();
+          }}
+        >
+          <Panel>
+            <InputWrap>
+              <Input
+                placeholder={messages["new-space.placeholder"]}
+                required
+                name="name"
+                type="text"
+                autoComplete={"off"}
+                value={spaceName}
+                onChange={e => setSpaceName(e.target.value)}
+              />
+            </InputWrap>
+            {isLoading ? (
+              <DotSpinner style={{ transform: "scale(0.4)" }} />
+            ) : (
+              <SmallActionButton type="submit" style={{ width: "250px" }}>
+                <FormattedMessage id="new-space.create" />
+              </SmallActionButton>
+            )}
+            <Tip style={{ marginTop: "24px" }}>
+              <FormattedMessage id="home.have-account" />&nbsp;<a href="/signin">
+                <FormattedMessage id="home.sign-in" />
+              </a>
+            </Tip>
+          </Panel>
+        </form>
+      </InfoPanel>
     );
   }
 }
@@ -265,12 +281,7 @@ function JelIndexUI() {
       <Wrap>
         <Grass />
         <IndexWrap>
-          <InfoPanel>
-            <Logo src={logoSrc} />
-            <Tagline>
-              <FormattedMessage id="home.tagline" />
-            </Tagline>
-          </InfoPanel>
+          <Logo src={logoSrc} />
           <JelIndexUI />
         </IndexWrap>
       </Wrap>

@@ -190,6 +190,16 @@ const ProfileEditorPopup = ({
               <SmallActionButton type="submit">
                 <FormattedMessage id="profile-editor.sign-up" />
               </SmallActionButton>
+              <Tip>
+                {" "}
+                By proceeding, you agree to the{" "}
+                <a rel="noopener noreferrer" target="_blank" href="https://jel.app/terms">
+                  terms of use
+                </a>&nbsp;&amp;&nbsp;
+                <a rel="noopener noreferrer" target="_blank" href="https://jel.app/privacy">
+                  privacy notice
+                </a>
+              </Tip>
             </form>
           </PanelWrap>
         )}

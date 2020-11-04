@@ -1,6 +1,29 @@
 import React, { useState, useEffect, useReducer } from "react";
 import PropTypes from "prop-types";
 import { fetchReticulumAuthenticated } from "../../hubs/utils/phoenix-utils";
+import styled from "styled-components";
+import SmallActionButton from "../react-components/small-action-button";
+import { FormattedMessage } from "react-intl";
+import DotSpinner from "../react-components/dot-spinner";
+
+const Message = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--panel-banner-text-color);
+  font-size: var(--panel-banner-text-size);
+  margin-top: 10px;
+  margin-bottom: 20px;
+`;
+
+const Wrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+`;
 
 export default function InviteUI({ store, inviteId, onInviteAccepted, showSignIn }) {
   const [spaceName, setSpaceName] = useState("");
@@ -70,14 +93,20 @@ export default function InviteUI({ store, inviteId, onInviteAccepted, showSignIn
   }
 
   return (
-    <div>
+    <Wrap>
+      <Message>
+        <FormattedMessage id="invite.info" />
+      </Message>
       <form onSubmit={onSubmit}>
-        {flowState.loadingInvite && <span>Loading...</span>}
-        {flowState.submittingInvite && <span>Joining...</span>}
-        {!flowState.submittingInvite && <button type="submit">Join {spaceName}</button>}
+        {flowState.submittingInvite && <DotSpinner style={{ transform: "scale(0.4)" }} />}
+        {!flowState.submittingInvite && (
+          <SmallActionButton type="submit">
+            <FormattedMessage id="invite.join" />&nbsp;{spaceName}
+          </SmallActionButton>
+        )}
       </form>
       {showSignIn && <a href="/signin">Sign In</a>}
-    </div>
+    </Wrap>
   );
 }
 
