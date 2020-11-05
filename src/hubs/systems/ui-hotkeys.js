@@ -20,6 +20,8 @@ AFRAME.registerSystem("ui-hotkeys", {
   },
 
   tick: function() {
+    const canSpawnMedia = window.APP.hubChannel.can("spawn_and_move_media");
+
     if (!this.userinput) {
       this.userinput = this.el.systems.userinput;
     }
@@ -48,12 +50,6 @@ AFRAME.registerSystem("ui-hotkeys", {
       this.el.emit("action_exit_watch");
     }
 
-    for (let i = 0; i < MEDIA_SEARCH_PATHS.length; i++) {
-      if (this.userinput.get(MEDIA_SEARCH_PATHS[i]) && window.APP.hubChannel.can("spawn_and_move_media")) {
-        this.mediaSearchStore.sourceNavigate(SOURCES[i]);
-      }
-    }
-
     if (this.userinput.get(paths.actions.toggleCamera)) {
       this.el.emit("action_toggle_camera");
     }
@@ -70,14 +66,20 @@ AFRAME.registerSystem("ui-hotkeys", {
       }
     }
 
-    if (this.userinput.get(paths.actions.nextMediaLayer)) {
-      if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
-      this.el.systems["hubs-systems"].mediaPresenceSystem.selectNextMediaLayer();
-    }
+    if (canSpawnMedia) {
+      for (let i = 0; i < MEDIA_SEARCH_PATHS.length; i++) {
+        if (this.userinput.get(MEDIA_SEARCH_PATHS[i]) && canSpawnMedia) {
+          this.mediaSearchStore.sourceNavigate(SOURCES[i]);
+        }
+      }
 
-    if (this.userinput.get(paths.actions.previousMediaLayer)) {
-      if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
-      this.el.systems["hubs-systems"].mediaPresenceSystem.selectPreviousMediaLayer();
+      if (this.userinput.get(paths.actions.nextMediaLayer)) {
+        this.el.systems["hubs-systems"].mediaPresenceSystem.selectNextMediaLayer();
+      }
+
+      if (this.userinput.get(paths.actions.previousMediaLayer)) {
+        this.el.systems["hubs-systems"].mediaPresenceSystem.selectPreviousMediaLayer();
+      }
     }
   },
 

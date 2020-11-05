@@ -97,12 +97,12 @@
                 </a-entity>
             </template>
             <template id="remote-avatar">
-                <a-entity networked-avatar ik-root player-info matrix-auto-update wrapped-entity visible="false">
-                    <a-entity class="camera" matrix-auto-update></a-entity>
+                <a-entity networked-avatar ik-root player-info wrapped-entity visible="false">
+                    <a-entity class="camera"></a-entity>
 
-                    <a-entity class="left-controller" matrix-auto-update></a-entity>
+                    <a-entity class="left-controller"></a-entity>
 
-                    <a-entity class="right-controller" matrix-auto-update></a-entity>
+                    <a-entity class="right-controller"></a-entity>
 
                     <a-entity class="model" gltf-model-plus="inflate: true">
                         <template data-name="AvatarRoot">
@@ -288,7 +288,6 @@
                     scalable-when-grabbed
                     floaty-object="modifyGravityOnRelease: true; autoLockOnLoad: true;"
                     set-yxz-order
-                    matrix-auto-update
                     hoverable-visuals
                     listed-media
                     use-audio-system-settings
@@ -803,7 +802,7 @@
                 ></a-entity>
             </a-entity>
         </a-entity>
-        <a-entity id="viewing-rig" set-yxz-order matrix-auto-update>
+        <a-entity id="viewing-rig" set-yxz-order>
             <a-entity
                 id="viewing-camera"
                 camera="near: 0.05; far: 26;"
@@ -811,8 +810,7 @@
                 rotation
                 fader
                 set-yxz-order
-                camera-rotator
-                matrix-auto-update>
+                camera-rotator>
             </a-entity>
         </a-entity>
         <a-entity id="scene-preview-node">
