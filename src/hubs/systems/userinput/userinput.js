@@ -458,6 +458,7 @@ AFRAME.registerSystem("userinput", {
   },
 
   tick2() {
+    this.frame.clear();
     const registeredMappingsChanged = this.registeredMappingsChanged;
     if (registeredMappingsChanged) {
       this.registeredMappingsChanged = false;
@@ -546,9 +547,5 @@ AFRAME.registerSystem("userinput", {
     this.prevSortedBindings = this.sortedBindings;
 
     this.maybeToggleXboxMapping();
-  },
-
-  tock() {
-    this.frame.clear();
   }
 });

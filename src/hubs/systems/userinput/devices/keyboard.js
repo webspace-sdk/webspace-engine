@@ -6,7 +6,7 @@ import { isInQuillEditor } from "../../../../jel/utils/quill-utils";
 export class KeyboardDevice {
   constructor() {
     this.seenKeys = new ArrayBackedSet();
-    this.keys = {};
+    this.keys = new Map();
     this.events = [];
 
     ["keydown", "keyup"].map(x =>
@@ -86,31 +86,48 @@ export class KeyboardDevice {
     for (let i = 0; i < this.events.length; i++) {
       const event = this.events[i];
       if (event.type === "blur") {
-        this.keys = {};
-        this.seenKeys.clear();
+        this.keys.clear();
       } else {
         const key = event.key.toLowerCase();
-        this.keys[key] = event.type === "keydown";
-        this.seenKeys.add(key);
+        const isDown = event.type === "keydown";
+        this.keys.set(key, isDown);
+
+        if (isDown) {
+          this.seenKeys.add(key);
+        } else {
+          this.seenKeys.delete(key);
+        }
 
         if (event.ctrlKey) {
-          this.keys["control"] = event.type === "keydown";
+          this.keys.set("control", true);
           this.seenKeys.add("control");
+        } else {
+          this.keys.set("control", false);
+          this.seenKeys.delete("control");
         }
 
         if (event.altKey) {
-          this.keys["alt"] = event.type === "keydown";
+          this.keys.set("alt", true);
           this.seenKeys.add("alt");
+        } else {
+          this.keys.set("alt", false);
+          this.seenKeys.delete("alt");
         }
 
         if (event.metaKey) {
-          this.keys["meta"] = event.type === "keydown";
+          this.keys.set("meta", true);
           this.seenKeys.add("meta");
+        } else {
+          this.keys.set("meta", false);
+          this.seenKeys.delete("meta");
         }
 
         if (event.shiftKey) {
-          this.keys["shift"] = event.type === "keydown";
+          this.keys.set("shift", true);
           this.seenKeys.add("shift");
+        } else {
+          this.keys.set("shift", false);
+          this.seenKeys.delete("shift");
         }
       }
     }
@@ -120,7 +137,7 @@ export class KeyboardDevice {
     for (let i = 0; i < this.seenKeys.items.length; i++) {
       const key = this.seenKeys.items[i];
       const path = paths.device.keyboard.key(key);
-      frame.setValueType(path, this.keys[key]);
+      frame.setValueType(path, this.keys.get(key));
     }
   }
 }
