@@ -159,7 +159,6 @@ const TIP_DATA = {
     ["look", "I"],
     ["create", "/"],
     ["paste", "L+v"],
-    ["chat", "S"],
     ["widen", "H+S"],
     ["hide", "?"]
   ],
@@ -169,7 +168,6 @@ const TIP_DATA = {
     ["unmute", "L+m"],
     ["create", "/"],
     ["paste", "L+v"],
-    ["chat", "S"],
     ["narrow", "Z|H+S"],
     ["hide", "?"]
   ],
@@ -179,7 +177,6 @@ const TIP_DATA = {
     ["mute", "L+m"],
     ["create", "/"],
     ["paste", "L+v"],
-    ["chat", "S"],
     ["narrow", "Z|H+S"],
     ["hide", "?"]
   ],
