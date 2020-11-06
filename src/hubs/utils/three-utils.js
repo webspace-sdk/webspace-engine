@@ -393,11 +393,15 @@ export const rotateInPlaceAroundWorldUp = (function() {
   const endRotation = new THREE.Matrix4();
   const v = new THREE.Vector3();
   return function rotateInPlaceAroundWorldUp(inMat4, theta, outMat4) {
-    inMat4Copy.copy(inMat4);
-    return outMat4
-      .copy(endRotation.makeRotationY(theta).multiply(startRotation.extractRotation(inMat4Copy)))
-      .scale(v.setFromMatrixScale(inMat4Copy))
-      .setPosition(v.setFromMatrixPosition(inMat4Copy));
+    if (theta !== 0) {
+      inMat4Copy.copy(inMat4);
+      return outMat4
+        .copy(endRotation.makeRotationY(theta).multiply(startRotation.extractRotation(inMat4Copy)))
+        .scale(v.setFromMatrixScale(inMat4Copy))
+        .setPosition(v.setFromMatrixPosition(inMat4Copy));
+    } else {
+      outMat4.copy(inMat4);
+    }
   };
 })();
 
