@@ -180,7 +180,7 @@ export class PhysicsSystem {
 
             object3D.updateMatrices();
 
-            if (object3D.physicsNeedsUpdate) {
+            if (object3D.physicsNeedsUpdate && object3D.visible) {
               object3D.physicsNeedsUpdate = false;
 
               this.objectMatricesFloatArray.set(

@@ -157,7 +157,7 @@ THREE.Object3D.prototype.updateMatrices = function(forceLocalUpdate, forceWorldU
     this.hasHadFirstMatrixUpdate = true;
     this.matrixWorldNeedsUpdate = true;
     this.matrixNeedsUpdate = false;
-    this.physicsNeedsUpdate = false;
+    this.physicsNeedsUpdate = true;
     this.cachedMatrixWorld = this.matrixWorld;
   } else if (this.matrixNeedsUpdate || this.matrixAutoUpdate || forceLocalUpdate) {
     // updateMatrix() sets matrixWorldNeedsUpdate = true
@@ -276,7 +276,7 @@ THREE.Camera.prototype.updateMatrices = function(forceLocalUpdate, forceWorldUpd
 
     this.hasHadFirstMatrixUpdate = true;
     this.matrixNeedsUpdate = false;
-    this.physicsNeedsUpdate = false;
+    this.physicsNeedsUpdate = true;
     this.matrixWorldNeedsUpdate = true;
     this.cachedMatrixWorld = this.matrixWorld;
   } else if (this.matrixNeedsUpdate || this.matrixAutoUpdate || forceLocalUpdate) {
