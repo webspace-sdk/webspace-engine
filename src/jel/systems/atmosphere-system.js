@@ -70,6 +70,7 @@ export class AtmosphereSystem {
     this.water = new Water(this.sky, this.renderer, scene, this.renderer.camera);
     this.water.position.y = 4.5 * (1 / 8);
     this.water.matrixNeedsUpdate = true;
+    this.water.physicsNeedsUpdate = true;
 
     // Fog color is the midpoint of the horizon colors across the sky.
     // Might need to compute this based upon skybox math at some point.

@@ -54,6 +54,7 @@ export class TwoPointStretchingSystem {
         .copy(this.initialScale)
         .multiplyScalar(distanceBetweenStretchers(leftStretcher, rightStretcher) / this.initialStretchDistance);
       this.stretched.object3D.matrixNeedsUpdate = true;
+      this.stretched.object3D.physicsNeedsUpdate = true;
     }
 
     this.previousLeftStretcher = leftStretcher;

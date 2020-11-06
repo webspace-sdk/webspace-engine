@@ -185,6 +185,7 @@ export class WrappedEntitySystem {
         obj.position.x = outX;
         obj.position.z = outZ;
         obj.matrixNeedsUpdate = true;
+        obj.physicsNeedsUpdate = true;
         this.atmosphereSystem.updateShadows();
         this.atmosphereSystem.updateWater();
       }

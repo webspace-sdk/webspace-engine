@@ -319,10 +319,6 @@ export class CameraSystem {
     const translation = new THREE.Matrix4();
     let uiRoot;
     return function tick(scene, dt) {
-      this.viewingCamera.object3DMap.camera.matrixNeedsUpdate = true;
-      this.viewingCamera.object3DMap.camera.updateMatrix();
-      this.viewingCamera.object3DMap.camera.updateMatrixWorld();
-
       const entered = scene.is("entered");
       uiRoot = uiRoot || document.getElementById("ui-root");
       const isGhost = !entered && uiRoot && uiRoot.firstChild && uiRoot.firstChild.classList.contains("isGhost");

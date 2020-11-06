@@ -272,6 +272,8 @@ THREE.Camera.prototype.updateMatrices = function(forceLocalUpdate, forceWorldUpd
     }
 
     this.hasHadFirstMatrixUpdate = true;
+    this.matrixNeedsUpdate = false;
+    this.physicsNeedsUpdate = false;
     this.matrixWorldNeedsUpdate = true;
     this.cachedMatrixWorld = this.matrixWorld;
   } else if (this.matrixNeedsUpdate || this.matrixAutoUpdate || forceLocalUpdate) {

@@ -1,6 +1,6 @@
 import { paths } from "../systems/userinput/paths";
 import { sets } from "../systems/userinput/sets";
-import { getLastWorldPosition } from "../utils/three-utils";
+import { almostEqualVec3, getLastWorldPosition } from "../utils/three-utils";
 import { RENDER_ORDER } from "../constants";
 
 const HIGHLIGHT = new THREE.Color(0, 0xec / 255, 0xff / 255);
@@ -62,6 +62,7 @@ AFRAME.registerComponent("cursor-controller", {
     const rawIntersections = [];
     const cameraPos = new THREE.Vector3();
     const v = new THREE.Vector3();
+    const prevCursorPos = new THREE.Vector3(Infinity, Infinity, Infinity);
 
     return function(t, left) {
       const scene = AFRAME.scenes[0];
@@ -116,7 +117,15 @@ AFRAME.registerComponent("cursor-controller", {
       getLastWorldPosition(camera.object3D, cameraPos);
       cameraPos.y = cursor.object3D.position.y;
       cursor.object3D.lookAt(cameraPos);
-      cursor.object3D.matrixNeedsUpdate = true;
+
+      const pos = cursor.object3D.position;
+
+      if (!almostEqualVec3(pos, prevCursorPos)) {
+        prevCursorPos.copy(pos);
+
+        cursor.object3D.matrixNeedsUpdate = true;
+        cursor.object3D.physicsNeedsUpdate = true;
+      }
 
       let showCursor = !scene.is("pointer-exited");
 

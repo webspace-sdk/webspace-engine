@@ -18,9 +18,11 @@ export class BoneVisibilitySystem {
         if (visible && (scale.x !== 1 || scale.y !== 1 || scale.z !== 1)) {
           scale.setScalar(1);
           obj.matrixNeedsUpdate = true;
+          obj.physicsNeedsUpdate = true;
         } else if (!visible && (scale.x !== HIDDEN_SCALE || scale.y !== HIDDEN_SCALE || scale.z !== HIDDEN_SCALE)) {
           scale.setScalar(HIDDEN_SCALE);
           obj.matrixNeedsUpdate = true;
+          obj.physicsNeedsUpdate = true;
         }
 
         // Normally this object being invisible would cause it not to get updated even though the matrixNeedsUpdate flag is set, force it

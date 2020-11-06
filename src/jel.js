@@ -59,7 +59,6 @@ import "./hubs/components/leave-room-button";
 import "./hubs/components/visible-if-permitted";
 import "./hubs/components/visibility-on-content-types";
 import "./hubs/components/visibility-while-frozen";
-import "./hubs/components/stats-plus";
 import "./hubs/components/networked-avatar";
 import "./hubs/components/media-views";
 import "./jel/components/media-text";

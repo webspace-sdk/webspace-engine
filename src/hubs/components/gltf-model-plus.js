@@ -191,6 +191,7 @@ const inflateEntities = function(indexToEntityMap, node, templates, isRoot, mode
   el.object3D.rotation.copy(node.rotation);
   el.object3D.scale.copy(node.scale).multiplyScalar(modelToWorldScale);
   el.object3D.matrixNeedsUpdate = true;
+  el.object3D.physicsNeedsUpdate = true;
 
   node.matrixAutoUpdate = false;
   node.matrix.identity();

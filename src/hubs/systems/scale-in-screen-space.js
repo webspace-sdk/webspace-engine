@@ -33,6 +33,7 @@ export class ScaleInScreenSpaceSystem {
           );
         }
         component.el.object3D.matrixNeedsUpdate = true;
+        component.el.object3D.physicsNeedsUpdate = true;
       }
     };
   })();

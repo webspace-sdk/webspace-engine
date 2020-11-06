@@ -92,6 +92,7 @@ AFRAME.registerComponent("offset-relative-to", {
       }
 
       obj.matrixNeedsUpdate = true;
+      obj.physicsNeedsUpdate = true;
 
       if (this.data.selfDestruct) {
         if (this.data.on) {

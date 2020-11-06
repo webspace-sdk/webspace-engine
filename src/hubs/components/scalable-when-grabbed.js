@@ -16,5 +16,6 @@ AFRAME.registerComponent("scalable-when-grabbed", {
 
     this.el.object3D.scale.addScalar(SENSITIVITY * deltaScale).clampScalar(0.1, 100);
     this.el.object3D.matrixNeedsUpdate = true;
+    this.el.object3D.physicsNeedsUpdate = true;
   }
 });

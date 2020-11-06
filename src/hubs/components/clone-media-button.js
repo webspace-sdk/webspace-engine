@@ -22,6 +22,7 @@ AFRAME.registerComponent("clone-media-button", {
 
       entity.object3D.scale.copy(this.targetEl.object3D.scale);
       entity.object3D.matrixNeedsUpdate = true;
+      entity.object3D.physicsNeedsUpdate = true;
 
       entity.setAttribute("offset-relative-to", {
         target: "#avatar-pov-node",

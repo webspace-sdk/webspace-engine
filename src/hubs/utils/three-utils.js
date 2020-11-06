@@ -331,6 +331,9 @@ export function isAlmostUniformVector3(v, epsilonHalf = 0.005) {
 export function almostEqual(a, b, epsilon = 0.01) {
   return Math.abs(a - b) < epsilon;
 }
+export function almostEqualVec3(a, b, epsilon = 0.01) {
+  return almostEqual(a.x, b.x, epsilon) && almostEqual(a.y, b.y, epsilon) && almostEqual(a.z, b.z, epsilon);
+}
 
 export const affixToWorldUp = (function() {
   const inRotationMat4 = new THREE.Matrix4();

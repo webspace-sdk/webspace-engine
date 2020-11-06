@@ -90,6 +90,7 @@ export class MediaInteractionSystem {
 
           entity.object3D.scale.copy(component.el.object3D.scale);
           entity.object3D.matrixNeedsUpdate = true;
+          entity.object3D.physicsNeedsUpdate = true;
 
           entity.setAttribute("offset-relative-to", {
             target: "#avatar-pov-node",

@@ -88,6 +88,7 @@ export function getBox(entity, boxRoot, worldSpace) {
   entity.object3D.updateMatrices(true, true);
   boxRoot.updateMatrices(true, true);
   boxRoot.updateMatrixWorld(true);
+  boxRoot.physicsNeedsUpdate = true;
 
   computeObjectAABB(boxRoot, box, false);
 
@@ -98,6 +99,7 @@ export function getBox(entity, boxRoot, worldSpace) {
     }
     entity.object3D.rotation.copy(rotation);
     entity.object3D.matrixNeedsUpdate = true;
+    entity.object3D.physicsNeedsUpdate = true;
   }
 
   boxRoot.matrixWorldNeedsUpdate = true;

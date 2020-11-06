@@ -125,6 +125,7 @@ AFRAME.registerComponent("emoji-hud", {
           cameraObject3D.getWorldPosition(cameraWorldPosition);
           object3D.lookAt(cameraWorldPosition.x, object3D.position.y, cameraWorldPosition.z);
           object3D.matrixNeedsUpdate = true;
+          object3D.physicsNeedsUpdate = true;
         });
 
         spawnerEntity.addEventListener("spawned-entity-loaded", e => {
@@ -243,6 +244,7 @@ AFRAME.registerComponent("emoji-hud", {
       cameraObject3D.getWorldPosition(targetWorldPos);
       obj.lookAt(targetWorldPos);
       obj.matrixNeedsUpdate = true;
+      obj.physicsNeedsUpdate = true;
     };
   })()
 });
