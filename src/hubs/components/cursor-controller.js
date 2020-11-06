@@ -113,15 +113,16 @@ AFRAME.registerComponent("cursor-controller", {
         this.distance = THREE.Math.clamp(this.distance - cursorModDelta, minDistance, far * playerScale);
       }
       cursor.object3D.position.copy(cursorPose.position).addScaledVector(cursorPose.direction, this.distance);
-      // The cursor will always be oriented towards the player about its Y axis, so objects held by the cursor will rotate towards the player.
-      getLastWorldPosition(camera.object3D, cameraPos);
-      cameraPos.y = cursor.object3D.position.y;
-      cursor.object3D.lookAt(cameraPos);
 
       const pos = cursor.object3D.position;
 
       if (!almostEqualVec3(pos, prevCursorPos)) {
         prevCursorPos.copy(pos);
+
+        // The cursor will always be oriented towards the player about its Y axis, so objects held by the cursor will rotate towards the player.
+        getLastWorldPosition(camera.object3D, cameraPos);
+        cameraPos.y = cursor.object3D.position.y;
+        cursor.object3D.lookAt(cameraPos);
 
         cursor.object3D.matrixNeedsUpdate = true;
       }
