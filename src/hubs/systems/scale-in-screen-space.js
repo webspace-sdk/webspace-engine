@@ -38,7 +38,6 @@ export class ScaleInScreenSpaceSystem {
         if (!almostEqual(curScale.x, newX) || !almostEqual(curScale.y, newY) || !almostEqual(curScale.z, newZ)) {
           component.el.object3D.scale.set(newX, newY, newZ);
           component.el.object3D.matrixNeedsUpdate = true;
-          component.el.object3D.physicsNeedsUpdate = true;
         }
       }
     };

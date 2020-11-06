@@ -108,7 +108,6 @@ class Terrain extends Object3D {
   update({ chunk, geometries }) {
     this.chunk = chunk;
     this.matrixNeedsUpdate = true;
-    this.physicsNeedsUpdate = true;
 
     for (let i = 0; i < geometries.opaque.length; i++) {
       const mesh = this.meshes[i];

@@ -115,7 +115,6 @@ AFRAME.registerComponent("media-loader", {
         setMatrixWorld(this.el.object3D, desiredObjectMatrix);
         mesh.updateMatrices();
         setMatrixWorld(mesh, originalMeshMatrix);
-        mesh.physicsNeedsUpdate = true;
       } else {
         // Move the mesh such that the center of its bounding box is in the same position as the parent matrix position
         const box = getBox(this.el, mesh);
@@ -125,7 +124,6 @@ AFRAME.registerComponent("media-loader", {
         mesh.scale.multiplyScalar(scaleCoefficient);
         mesh.position.sub(center);
         mesh.matrixNeedsUpdate = true;
-        mesh.physicsNeedsUpdate = true;
       }
     };
   })(),

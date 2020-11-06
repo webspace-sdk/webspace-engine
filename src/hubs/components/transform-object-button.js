@@ -244,7 +244,6 @@ AFRAME.registerSystem("transform-selected-object", {
       .premultiply(controllerOrientationDelta)
       .premultiply(controllerOrientationDelta);
     this.target.matrixNeedsUpdate = true;
-    this.target.physicsNeedsUpdate = true;
   },
 
   cursorAxisOrScaleTick() {
@@ -309,7 +308,6 @@ AFRAME.registerSystem("transform-selected-object", {
       }
 
       this.target.matrixNeedsUpdate = true;
-      this.target.physicsNeedsUpdate = true;
     } else if (this.mode === TRANSFORM_MODE.AXIS) {
       this.dxAll = this.dxStore + finalProjectedVec.x;
       this.dxApplied = Math.round(this.dxAll / STEP_LENGTH) * STEP_LENGTH;
@@ -317,7 +315,6 @@ AFRAME.registerSystem("transform-selected-object", {
 
       this.target.quaternion.multiply(q.setFromAxisAngle(this.axis, -this.sign * this.dxApplied));
       this.target.matrixNeedsUpdate = true;
-      this.target.physicsNeedsUpdate = true;
     }
 
     previousPointOnPlane.copy(currentPointOnPlane);
@@ -382,7 +379,6 @@ AFRAME.registerComponent("visible-if-transforming", {
     if (shouldBeVisible) {
       this.el.object3D.quaternion.setFromAxisAngle(FORWARD, TWO_PI * Math.sin(t / 1000.0));
       this.el.object3D.matrixNeedsUpdate = true;
-      this.el.object3D.physicsNeedsUpdate = true;
     }
   }
 });

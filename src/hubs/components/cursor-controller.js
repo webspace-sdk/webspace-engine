@@ -124,7 +124,6 @@ AFRAME.registerComponent("cursor-controller", {
         prevCursorPos.copy(pos);
 
         cursor.object3D.matrixNeedsUpdate = true;
-        cursor.object3D.physicsNeedsUpdate = true;
       }
 
       let showCursor = !scene.is("pointer-exited");

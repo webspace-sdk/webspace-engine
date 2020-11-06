@@ -42,7 +42,6 @@ export class SuperSpawnerSystem {
     superSpawner.el.object3D.getWorldPosition(spawnedEntity.object3D.position);
     superSpawner.el.object3D.getWorldQuaternion(spawnedEntity.object3D.quaternion);
     spawnedEntity.object3D.matrixNeedsUpdate = true;
-    spawnedEntity.object3D.physicsNeedsUpdate = true;
 
     superSpawner.el.emit("spawned-entity-created", { target: spawnedEntity });
 
@@ -56,7 +55,6 @@ export class SuperSpawnerSystem {
       () => {
         spawnedEntity.object3D.scale.copy(superSpawner.spawnedMediaScale);
         spawnedEntity.object3D.matrixNeedsUpdate = true;
-        spawnedEntity.object3D.physicsNeedsUpdate = true;
         state.spawning = false;
         superSpawner.el.emit("spawned-entity-loaded", { target: spawnedEntity });
       },

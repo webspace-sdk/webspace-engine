@@ -178,9 +178,10 @@ export class PhysicsSystem {
               this.atmosphereSystem.updateShadows();
             }
 
+            object3D.updateMatrices();
+
             if (object3D.physicsNeedsUpdate) {
               object3D.physicsNeedsUpdate = false;
-              object3D.updateMatrices();
 
               this.objectMatricesFloatArray.set(
                 object3D.matrixWorld.elements,

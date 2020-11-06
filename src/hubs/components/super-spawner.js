@@ -146,7 +146,6 @@ AFRAME.registerComponent("super-spawner", {
     cursor.getWorldPosition(spawnedEntity.object3D.position);
     cursor.getWorldQuaternion(spawnedEntity.object3D.quaternion);
     spawnedEntity.object3D.matrixNeedsUpdate = true;
-    spawnedEntity.object3D.physicsNeedsUpdate = true;
 
     this.el.emit("spawned-entity-created", { target: spawnedEntity });
 
@@ -169,7 +168,6 @@ AFRAME.registerComponent("super-spawner", {
     cursor.getWorldPosition(spawnedEntity.object3D.position);
     cursor.getWorldQuaternion(spawnedEntity.object3D.quaternion);
     spawnedEntity.object3D.matrixNeedsUpdate = true;
-    spawnedEntity.object3D.physicsNeedsUpdate = true;
 
     if (willAnimateFromCursor) {
       hand.getWorldPosition(this.handPosition);
@@ -211,7 +209,6 @@ AFRAME.registerComponent("super-spawner", {
       this.el.setAttribute("visible", false);
       this.el.object3D.scale.set(0.001, 0.001, 0.001);
       this.el.object3D.matrixNeedsUpdate = true;
-      this.el.object3D.physicsNeedsUpdate = true;
       this.el.classList.remove("interactable");
       this.el.setAttribute("body-helper", { collisionFilterMask: COLLISION_LAYERS.NONE });
       this.cooldownTimeout = setTimeout(() => {

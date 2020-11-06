@@ -134,13 +134,11 @@ AFRAME.registerComponent("camera-tool", {
       const mesh = await cloneObject3D(model.scene);
       mesh.scale.set(2, 2, 2);
       mesh.matrixNeedsUpdate = true;
-      mesh.physicsNeedsUpdate = true;
       this.el.setObject3D("mesh", mesh);
 
       this.el.object3D.visible = true;
       this.el.object3D.scale.set(0.5, 0.5, 0.5);
       this.el.object3D.matrixNeedsUpdate = true;
-      this.el.object3D.physicsNeedsUpdate = true;
 
       const obj = this.el.object3D;
 
@@ -164,7 +162,6 @@ AFRAME.registerComponent("camera-tool", {
 
           obj.scale.set(value.x, value.y, value.z);
           obj.matrixNeedsUpdate = true;
-          obj.physicsNeedsUpdate = true;
         };
       })();
 
@@ -281,7 +278,6 @@ AFRAME.registerComponent("camera-tool", {
       targetPos.setFromMatrixPosition(el.object3D.matrixWorld);
       this.el.object3D.lookAt(targetPos);
       this.el.object3D.matrixNeedsUpdate = true;
-      this.el.object3D.physicsNeedsUpdate = true;
     };
   })(),
 

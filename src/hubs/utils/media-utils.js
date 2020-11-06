@@ -229,7 +229,6 @@ export const addMedia = (
   });
 
   entity.object3D.matrixNeedsUpdate = true;
-  entity.object3D.physicsNeedsUpdate = true;
 
   (parentEl || scene).appendChild(entity);
 
@@ -450,7 +449,6 @@ export function addAndArrangeMedia(el, media, contentSubtype, snapCount, mirrorO
   }
 
   entity.object3D.matrixNeedsUpdate = true;
-  entity.object3D.physicsNeedsUpdate = true;
 
   entity.addEventListener(
     "media_resolved",
@@ -546,7 +544,6 @@ export function addMeshScaleAnimation(mesh, initialScale, onComplete) {
 
       mesh.scale.set(value.x, value.y, value.z);
       mesh.matrixNeedsUpdate = true;
-      mesh.physicsNeedsUpdate = true;
     };
   })();
 
@@ -569,7 +566,6 @@ export function addMeshScaleAnimation(mesh, initialScale, onComplete) {
 
   mesh.scale.copy(initialScale);
   mesh.matrixNeedsUpdate = true;
-  mesh.physicsNeedsUpdate = true;
 
   return anime(config);
 }
@@ -632,7 +628,6 @@ export function scaleToAspectRatio(el, ratio) {
   const height = Math.min(1.0, ratio);
   el.object3DMap.mesh.scale.set(width, height, 1);
   el.object3DMap.mesh.matrixNeedsUpdate = true;
-  el.object3DMap.mesh.physicsNeedsUpdate = true;
 }
 
 export function removeMediaElement(el) {
