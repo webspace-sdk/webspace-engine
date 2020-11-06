@@ -210,6 +210,7 @@ export class PhysicsSystem {
 
           if (this.needsTransfer) {
             this.transferDataToWorker();
+            this.needsTransfer = false;
           }
         }
 

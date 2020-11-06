@@ -348,7 +348,7 @@ export class CameraSystem {
         this.mode = CAMERA_MODE_FIRST_PERSON;
       }
       this.avatarPOVRotator = this.avatarPOVRotator || this.avatarPOV.components["camera-rotator"];
-      this.viewingCameraRotator = this.viewingCameraRotator || this.viewingCamera.components["camera-rotator"];
+      this.viewingCameraRotator = this.viewingCameraRotator || this.viewingRig.components["camera-rotator"];
       this.avatarPOVRotator.on = true;
       this.viewingCameraRotator.on = true;
 
@@ -396,7 +396,7 @@ export class CameraSystem {
           setMatrixWorld(this.avatarPOV.object3D, this.viewingCamera.object3DMap.camera.matrixWorld);
         } else {
           this.avatarPOV.object3D.updateMatrices();
-          setMatrixWorld(this.viewingCamera.object3DMap.camera, this.avatarPOV.object3D.matrixWorld);
+          setMatrixWorld(this.viewingRig.object3D, this.avatarPOV.object3D.matrixWorld);
         }
       } else if (this.mode === CAMERA_MODE_THIRD_PERSON_NEAR || this.mode === CAMERA_MODE_THIRD_PERSON_FAR) {
         if (this.mode === CAMERA_MODE_THIRD_PERSON_NEAR) {
