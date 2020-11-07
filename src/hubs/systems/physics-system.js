@@ -47,7 +47,8 @@ export class PhysicsSystem {
         worldConfig: WORLD_CONFIG,
         arrayBuffer,
         maxBodies: MAX_BODIES,
-        wasmUrl: new URL(ammoWasmUrl, configs.BASE_ASSETS_PATH || window.location).href
+        wasmUrl: new URL(ammoWasmUrl, configs.BASE_ASSETS_PATH || window.location).href,
+        simulationRate: 1000.0 / 90.0
       },
       [arrayBuffer]
     );
@@ -232,6 +233,13 @@ export class PhysicsSystem {
   transferDataToWorker() {
     this.ammoWorker.postMessage(
       { type: MESSAGE_TYPES.TRANSFER_DATA, objectMatricesFloatArray: this.objectMatricesFloatArray },
+      [this.objectMatricesFloatArray.buffer]
+    );
+  }
+
+  updateSimulationRate(simulationRate) {
+    this.ammoWorker.postMessage(
+      { type: MESSAGE_TYPES.TRANSFER_DATA, objectMatricesFloatArray: this.objectMatricesFloatArray, simulationRate },
       [this.objectMatricesFloatArray.buffer]
     );
   }
