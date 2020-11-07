@@ -216,7 +216,11 @@ class TextureCache {
     if (cacheItem.count <= 0) {
       disposeTextureUnlessError(cacheItem.texture);
       this.cache.delete(this.key(src, version));
+      return true;
     }
+
+    // Return false if not disposed
+    return false;
   }
 }
 
@@ -1111,6 +1115,17 @@ AFRAME.registerComponent("media-image", {
   },
 
   remove() {
+    let disposeTexture = false;
+
+    if (this.currentSrcIsRetained) {
+      disposeTexture = textureCache.release(this.data.src, this.data.version);
+      this.currentSrcIsRetained = false;
+
+      if (!disposeTexture) {
+        this.mesh.material.map = null;
+      }
+    }
+
     disposeExistingMesh(this.el);
 
     if (this.mesh) {
@@ -1119,12 +1134,6 @@ AFRAME.registerComponent("media-image", {
         this.isBatched = false;
       }
     }
-
-    if (this.currentSrcIsRetained) {
-      textureCache.release(this.data.src, this.data.version);
-      this.currentSrcIsRetained = false;
-    }
-
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
     }

@@ -151,8 +151,6 @@ AFRAME.registerComponent("media-loader", {
   },
 
   remove() {
-    disposeExistingMesh(this.el);
-
     if (this.data.linkedEl) {
       this.data.linkedEl.removeEventListener("componentremoved", this.handleLinkedElRemoved);
     }
