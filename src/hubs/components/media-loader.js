@@ -171,6 +171,7 @@ AFRAME.registerComponent("media-loader", {
     this.el.removeAttribute("media-pager");
     this.el.removeAttribute("media-video");
     this.el.removeAttribute("media-pdf");
+    this.el.removeAttribute("media-text");
     this.el.setAttribute("media-image", { src: "error" });
     this.clearLoadingTimeout();
   },
