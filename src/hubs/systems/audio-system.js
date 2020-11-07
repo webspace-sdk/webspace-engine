@@ -74,6 +74,8 @@ export class AudioSystem {
       evt.detail.cameraEl.getObject3D("camera").add(sceneEl.audioListener);
     });
 
+    this.scene = sceneEl;
+    this.lipSyncEnabled = false;
     this.audioContext = THREE.AudioContext.getContext();
     this.audioNodes = new Map();
     this.mediaStreamDestinationNode = this.audioContext.createMediaStreamDestination();
@@ -85,10 +87,10 @@ export class AudioSystem {
     this.outboundGainNode.connect(this.outboundAnalyser);
     this.outboundAnalyser.connect(this.mediaStreamDestinationNode);
 
-    this.enableLipSync = this.audioContext.audioWorklet && window.SharedArrayBuffer && supportsInsertableStreams;
+    const supportsLipSync = this.audioContext.audioWorklet && window.SharedArrayBuffer && supportsInsertableStreams;
 
-    if (this.enableLipSync) {
-      this.startLipSync(sceneEl);
+    if (supportsLipSync) {
+      //this.startLipSync(sceneEl);
     }
 
     /**
@@ -114,14 +116,46 @@ export class AudioSystem {
     document.body.addEventListener("mouseup", resume, false);
   }
 
+  disableLipSync() {
+    if (!this.lipSyncEnabled) return;
+
+    if (this.lipSyncGain) {
+      this.outboundGainNode.disconnect(this.lipSyncGain);
+      this.outboundAnalyser.connect(this.mediaStreamDestinationNode);
+      this.outboundAnalyser.disconnect(this.delayVoiceNode);
+      this.delayVoiceNode.disconnect(this.mediaStreamDestinationNode);
+      this.lipSyncForwardingNode.disconnect(this.lipSyncForwardingDestination);
+      this.lipSyncHardLimit.disconnect(this.lipSyncVadProcessor);
+      this.lipSyncGain.disconnect(this.lipSyncHardLimit);
+      this.lipSyncHardLimit.disconnect(this.lipSyncForwardingNode);
+      this.lipSyncVadProcessor.disconnect(this.lipSyncVadDestination);
+      this.lipSyncEnabled = false;
+    }
+  }
+
+  enableLipSync() {
+    if (this.lipSyncEnabled) return;
+
+    if (this.lipSyncGain) {
+      this.outboundGainNode.connect(this.lipSyncGain);
+      this.outboundAnalyser.disconnect(this.mediaStreamDestinationNode);
+      this.outboundAnalyser.connect(this.delayVoiceNode);
+      this.delayVoiceNode.connect(this.mediaStreamDestinationNode);
+      this.lipSyncForwardingNode.connect(this.lipSyncForwardingDestination);
+      this.lipSyncHardLimit.connect(this.lipSyncVadProcessor);
+      this.lipSyncGain.connect(this.lipSyncHardLimit);
+      this.lipSyncHardLimit.connect(this.lipSyncForwardingNode);
+      this.lipSyncVadProcessor.connect(this.lipSyncVadDestination);
+
+      this.lipSyncEnabled = true;
+    }
+  }
+
   startLipSync(sceneEl) {
     // Lip syncing - add gain and compress and then send to forwarding and VAD worklets
     // Create buffers, worklet, VAD detector, and lip sync worker.
     this.delayVoiceNode = this.audioContext.createDelay();
     this.delayVoiceNode.delayTime.value = 0.05; // Delay bc of inference
-    this.outboundAnalyser.disconnect(this.mediaStreamDestinationNode);
-    this.outboundAnalyser.connect(this.delayVoiceNode);
-    this.delayVoiceNode.connect(this.mediaStreamDestinationNode);
 
     this.lipSyncFeatureBuffer = new SharedArrayBuffer(28 * Float32Array.BYTES_PER_ELEMENT);
     this.lipSyncResultBuffer = new SharedArrayBuffer(1);
@@ -163,13 +197,6 @@ export class AudioSystem {
           }
         });
 
-        this.outboundGainNode.connect(this.lipSyncGain);
-        this.lipSyncGain.connect(this.lipSyncHardLimit);
-        this.lipSyncHardLimit.connect(this.lipSyncForwardingNode);
-        this.lipSyncHardLimit.connect(this.lipSyncVadProcessor);
-        this.lipSyncVadProcessor.connect(this.lipSyncVadDestination);
-        this.lipSyncForwardingNode.connect(this.lipSyncForwardingDestination);
-
         this.lipSyncWorker = new lipSyncWorker();
         this.lipSyncWorker.postMessage(this.lipSyncFeatureBuffer);
         this.lipSyncWorker.postMessage(this.lipSyncResultBuffer);
@@ -177,6 +204,19 @@ export class AudioSystem {
         this.lipSyncWorker.postMessage(this.lipSyncAudioFrameBuffer2);
         this.lipSyncWorker.postMessage(this.lipSyncVadBuffer);
         this.lipSyncWorker.postMessage(this.lipSyncAudioOffsetBuffer);
+
+        if (!this.scene.is("muted")) {
+          this.enableLipSync();
+        }
+
+        const handleStateChange = e => {
+          if (e.detail === "muted") {
+            this.scene.is("muted") ? this.disableLipSync() : this.enableLipSync();
+          }
+        };
+
+        this.scene.addEventListener("stateadded", handleStateChange);
+        this.scene.addEventListener("stateremoved", handleStateChange);
       });
     });
 
@@ -188,6 +228,29 @@ export class AudioSystem {
       });
     }
   }
+
+  enableOutboundAudioStream(id) {
+    if (this.audioNodes.has(id)) {
+      const { sourceNode, gainNode, connected } = this.audioNodes.get(id);
+
+      if (!connected) {
+        sourceNode.connect(gainNode);
+        this.audioNodes.set(id, { sourceNode, gainNode, connected: true });
+      }
+    }
+  }
+
+  disableOutboundAudioStream(id) {
+    if (this.audioNodes.has(id)) {
+      const { sourceNode, gainNode, connected } = this.audioNodes.get(id);
+
+      if (connected) {
+        sourceNode.disconnect(gainNode);
+        this.audioNodes.set(id, { sourceNode, gainNode, connected: false });
+      }
+    }
+  }
+
   addStreamToOutboundAudio(id, mediaStream) {
     if (this.audioNodes.has(id)) {
       this.removeStreamFromOutboundAudio(id);
@@ -195,9 +258,9 @@ export class AudioSystem {
 
     const sourceNode = this.audioContext.createMediaStreamSource(mediaStream);
     const gainNode = this.audioContext.createGain();
-    sourceNode.connect(gainNode);
     gainNode.connect(this.outboundGainNode);
-    this.audioNodes.set(id, { sourceNode, gainNode });
+    this.audioNodes.set(id, { sourceNode, gainNode, connected: false });
+    this.enableOutboundAudioStream(id);
   }
 
   removeStreamFromOutboundAudio(id) {

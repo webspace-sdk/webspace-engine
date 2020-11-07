@@ -90,24 +90,24 @@ export class MediaStreamSystem {
     try {
       const newStream = await navigator.mediaDevices.getUserMedia(constraints);
 
-      const audioSystem = this.scene.systems["hubs-systems"].audioSystem;
-      audioSystem.addStreamToOutboundAudio("microphone", newStream);
-      this.micAudioTrack = newStream.getAudioTracks()[0];
+      //const audioSystem = this.scene.systems["hubs-systems"].audioSystem;
+      //audioSystem.addStreamToOutboundAudio("microphone", newStream);
+      //this.micAudioTrack = newStream.getAudioTracks()[0];
 
-      if (this.micAudioTrack) {
-        const micDeviceLabel = this.micAudioTrack.label;
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const micDeviceId = devices.filter(d => d.label === micDeviceLabel).map(d => d.deviceId)[0];
-        this.scene.emit("mic_stream_created", micDeviceId);
-      }
+      //if (this.micAudioTrack) {
+      //  const micDeviceLabel = this.micAudioTrack.label;
+      //  const devices = await navigator.mediaDevices.enumerateDevices();
+      //  const micDeviceId = devices.filter(d => d.label === micDeviceLabel).map(d => d.deviceId)[0];
+      //  this.scene.emit("mic_stream_created", micDeviceId);
+      //}
 
-      this.scene.emit("local-media-stream-created");
+      //this.scene.emit("local-media-stream-created");
 
       // If the audio system track has yet to be added to the outgoing media stream, add it.
-      if (!this._addedAudioSystemTrack) {
-        await this.addTrack(audioSystem.outboundStream.getAudioTracks()[0]);
-        this._addedAudioSystemTrack = true;
-      }
+      //if (!this._addedAudioSystemTrack) {
+      //  await this.addTrack(audioSystem.outboundStream.getAudioTracks()[0]);
+      //  this._addedAudioSystemTrack = true;
+      //}
 
       if (/Oculus/.test(navigator.userAgent)) {
         // HACK Oculus Browser 6 seems to randomly end the microphone audio stream. This re-creates it.
