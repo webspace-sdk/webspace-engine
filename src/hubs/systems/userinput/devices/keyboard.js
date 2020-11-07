@@ -87,47 +87,31 @@ export class KeyboardDevice {
       const event = this.events[i];
       if (event.type === "blur") {
         this.keys.clear();
+        this.seenKeys.clear();
       } else {
         const key = event.key.toLowerCase();
         const isDown = event.type === "keydown";
         this.keys.set(key, isDown);
-
-        if (isDown) {
-          this.seenKeys.add(key);
-        } else {
-          this.seenKeys.delete(key);
-        }
+        this.seenKeys.add(key);
 
         if (event.ctrlKey) {
-          this.keys.set("control", true);
+          this.keys.set("control", isDown);
           this.seenKeys.add("control");
-        } else {
-          this.keys.set("control", false);
-          this.seenKeys.delete("control");
         }
 
         if (event.altKey) {
-          this.keys.set("alt", true);
+          this.keys.set("alt", isDown);
           this.seenKeys.add("alt");
-        } else {
-          this.keys.set("alt", false);
-          this.seenKeys.delete("alt");
         }
 
         if (event.metaKey) {
-          this.keys.set("meta", true);
+          this.keys.set("meta", isDown);
           this.seenKeys.add("meta");
-        } else {
-          this.keys.set("meta", false);
-          this.seenKeys.delete("meta");
         }
 
         if (event.shiftKey) {
-          this.keys.set("shift", true);
+          this.keys.set("shift", isDown);
           this.seenKeys.add("shift");
-        } else {
-          this.keys.set("shift", false);
-          this.seenKeys.delete("shift");
         }
       }
     }
