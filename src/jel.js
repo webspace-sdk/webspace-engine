@@ -600,16 +600,14 @@ function setupNonVisibleHandler(scene) {
   const physics = scene.systems["hubs-systems"].physicsSystem;
 
   const apply = hidden => {
-    if (scene.isPlaying !== !hidden) {
-      if (hidden || document.visibilityState === "hidden") {
-        physics.updateSimulationRate(1000.0 / 15.0);
-        effects.disableRendering();
-        scene.pause();
-      } else {
-        physics.updateSimulationRate(1000.0 / 90.0);
-        effects.enableRendering();
-        scene.play();
-      }
+    if (document.visibilityState === "hidden" || hidden) {
+      physics.updateSimulationRate(1000.0 / 15.0);
+      effects.disableRendering();
+      scene.pause();
+    } else {
+      physics.updateSimulationRate(1000.0 / 90.0);
+      effects.enableRendering();
+      scene.play();
     }
   };
 

@@ -44,6 +44,8 @@ class VadWorklet extends AudioWorkletProcessor {
   }
 
   process(inputs) {
+    if (inputs[0].length === 0) return true;
+
     // proces data based on the sample length, use leftover buffer from previous process
     const inData = [...this.bufferResidue, ...inputs[0][0]];
 
