@@ -30,8 +30,9 @@ export class PhysicsSystem {
     this.debugRequested = false;
     this.debugEnabled = false;
     this.scene = scene;
-    this.stepDuration = 0;
+    this.simulationRate = 1000.0 / 90.0;
     this.needsTransfer = true;
+    this.simulationRateChangePending = false;
 
     this.ready = false;
     this.nextBodyUuid = 0;
@@ -48,7 +49,7 @@ export class PhysicsSystem {
         arrayBuffer,
         maxBodies: MAX_BODIES,
         wasmUrl: new URL(ammoWasmUrl, configs.BASE_ASSETS_PATH || window.location).href,
-        simulationRate: 1000.0 / 90.0
+        simulationRate: this.simulationRate
       },
       [arrayBuffer]
     );
@@ -86,7 +87,15 @@ export class PhysicsSystem {
       } else if (event.data.type === MESSAGE_TYPES.TRANSFER_DATA) {
         this.objectMatricesFloatArray = event.data.objectMatricesFloatArray;
         this.objectMatricesIntArray = new Int32Array(this.objectMatricesFloatArray.buffer);
-        this.stepDuration = event.data.stepDuration;
+
+        if (this.simulationRateChangePending) {
+          // A-Frame scene may be paused, so we need to do one more transfer.
+          if (!this.scene.isPlaying) {
+            this.transferDataToWorker();
+          }
+
+          this.simulationRateChangePending = false;
+        }
       }
     };
   }
@@ -230,16 +239,18 @@ export class PhysicsSystem {
     };
   })();
 
-  transferDataToWorker() {
-    this.ammoWorker.postMessage(
-      { type: MESSAGE_TYPES.TRANSFER_DATA, objectMatricesFloatArray: this.objectMatricesFloatArray },
-      [this.objectMatricesFloatArray.buffer]
-    );
+  updateSimulationRate(rate) {
+    this.simulationRate = rate;
+    this.simulationRateChangePending = true;
   }
 
-  updateSimulationRate(simulationRate) {
+  transferDataToWorker() {
     this.ammoWorker.postMessage(
-      { type: MESSAGE_TYPES.TRANSFER_DATA, objectMatricesFloatArray: this.objectMatricesFloatArray, simulationRate },
+      {
+        type: MESSAGE_TYPES.TRANSFER_DATA,
+        objectMatricesFloatArray: this.objectMatricesFloatArray,
+        simulationRate: this.simulationRate
+      },
       [this.objectMatricesFloatArray.buffer]
     );
   }
