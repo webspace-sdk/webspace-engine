@@ -263,6 +263,7 @@ export class SpriteSystem {
   }
 
   tick(t) {
+    return; // TODO JEL kill this if we don't need any in game sprite hover actions
     if (!this.meshes.action || !this.meshes.notice) return;
 
     for (let i = 0; i < SHEET_TYPES.length; i++) {

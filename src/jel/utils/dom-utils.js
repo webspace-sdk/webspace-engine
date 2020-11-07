@@ -1,5 +1,6 @@
+const editableTagNames = ["TEXTAREA", "INPUT"];
 export const isInEditableField = () =>
-  ["TEXTAREA", "INPUT"].includes(document.activeElement && document.activeElement.nodeName) ||
+  editableTagNames.includes(document.activeElement && document.activeElement.nodeName) ||
   (document.activeElement && document.activeElement.contentEditable === "true");
 
 export const isFocusedWithin = el => {

@@ -109,7 +109,9 @@ export function setMatrixWorld(object3D, m) {
     object3D.applyMatrix(IDENTITY); // hack around our matrix optimizations
   }
   object3D.matrixWorld.copy(m);
-  if (object3D.parent) {
+
+  // Deal with parent transform unless it is the scene
+  if (object3D.parent && object3D.parent.parent !== null) {
     object3D.parent.updateMatrices();
     object3D.matrix = object3D.matrix.getInverse(object3D.parent.matrixWorld).multiply(object3D.matrixWorld);
   } else {
@@ -331,6 +333,9 @@ export function isAlmostUniformVector3(v, epsilonHalf = 0.005) {
 export function almostEqual(a, b, epsilon = 0.01) {
   return Math.abs(a - b) < epsilon;
 }
+export function almostEqualVec3(a, b, epsilon = 0.01) {
+  return almostEqual(a.x, b.x, epsilon) && almostEqual(a.y, b.y, epsilon) && almostEqual(a.z, b.z, epsilon);
+}
 
 export const affixToWorldUp = (function() {
   const inRotationMat4 = new THREE.Matrix4();
@@ -388,11 +393,15 @@ export const rotateInPlaceAroundWorldUp = (function() {
   const endRotation = new THREE.Matrix4();
   const v = new THREE.Vector3();
   return function rotateInPlaceAroundWorldUp(inMat4, theta, outMat4) {
-    inMat4Copy.copy(inMat4);
-    return outMat4
-      .copy(endRotation.makeRotationY(theta).multiply(startRotation.extractRotation(inMat4Copy)))
-      .scale(v.setFromMatrixScale(inMat4Copy))
-      .setPosition(v.setFromMatrixPosition(inMat4Copy));
+    if (theta !== 0) {
+      inMat4Copy.copy(inMat4);
+      return outMat4
+        .copy(endRotation.makeRotationY(theta).multiply(startRotation.extractRotation(inMat4Copy)))
+        .scale(v.setFromMatrixScale(inMat4Copy))
+        .setPosition(v.setFromMatrixPosition(inMat4Copy));
+    } else {
+      outMat4.copy(inMat4);
+    }
   };
 })();
 

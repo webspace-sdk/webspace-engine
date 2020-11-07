@@ -204,33 +204,30 @@ AFRAME.registerSystem("userinput", {
 
   init() {
     this.frame = {
-      generation: 0,
-      values: {},
-      generations: {},
+      values: new Map(),
       get: function(path) {
-        if (this.generations[path] !== this.generation) return undefined;
-        return this.values[path];
+        return this.values.get(path);
       },
       setValueType: function(path, value) {
-        this.values[path] = value;
-        this.generations[path] = this.generation;
+        this.values.set(path, value);
       },
       setVector2: function(path, a, b) {
-        const value = this.values[path] || [];
+        const value = this.values.get(path) || [];
         value[0] = a;
         value[1] = b;
-        this.values[path] = value;
-        this.generations[path] = this.generation;
+        this.values.set(path, value);
       },
       setPose: function(path, pose) {
         this.setValueType(path, pose);
       },
       setMatrix4: function(path, mat4) {
         // Should we assume the incoming mat4 is safe to store instead of copying values?
-        const value = this.values[path] || new THREE.Matrix4();
+        const value = this.values.get(path) || new THREE.Matrix4();
         value.copy(mat4);
-        this.values[path] = value;
-        this.generations[path] = this.generation;
+        this.values.set(path, value);
+      },
+      clear: function() {
+        this.values.clear();
       }
     };
 
@@ -461,7 +458,7 @@ AFRAME.registerSystem("userinput", {
   },
 
   tick2() {
-    this.frame.generation += 1;
+    this.frame.clear();
     const registeredMappingsChanged = this.registeredMappingsChanged;
     if (registeredMappingsChanged) {
       this.registeredMappingsChanged = false;

@@ -23,7 +23,6 @@ import { CharacterControllerSystem } from "./character-controller-system";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
 import { CursorPoseTrackingSystem } from "./cursor-pose-tracking";
 import { ScaleInScreenSpaceSystem } from "./scale-in-screen-space";
-import { MenuAnimationSystem } from "./menu-animation-system";
 import { AudioSettingsSystem } from "./audio-settings-system";
 import { EnterVRButtonSystem } from "./enter-vr-button-system";
 import { MediaPresenceSystem } from "../../jel/systems/media-presence-system";
@@ -67,7 +66,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.waypointSystem = new WaypointSystem(this.el, this.characterController);
     this.cursorPoseTrackingSystem = new CursorPoseTrackingSystem();
     this.scaleInScreenSpaceSystem = new ScaleInScreenSpaceSystem();
-    this.menuAnimationSystem = new MenuAnimationSystem();
     this.audioSettingsSystem = new AudioSettingsSystem(this.el);
     this.enterVRButtonSystem = new EnterVRButtonSystem(this.el);
     this.mediaInteractionSystem = new MediaInteractionSystem(this.el);
@@ -122,7 +120,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.batchManagerSystem.tick(t);
     this.cameraSystem.tick(this.el, dt);
     this.waypointSystem.tick(t, dt);
-    this.menuAnimationSystem.tick(t);
     this.spriteSystem.tick(t, dt);
     this.enterVRButtonSystem.tick();
     this.uvScrollSystem.tick(dt);

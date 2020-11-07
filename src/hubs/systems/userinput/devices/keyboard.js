@@ -6,7 +6,7 @@ import { isInQuillEditor } from "../../../../jel/utils/quill-utils";
 export class KeyboardDevice {
   constructor() {
     this.seenKeys = new ArrayBackedSet();
-    this.keys = {};
+    this.keys = new Map();
     this.events = [];
 
     ["keydown", "keyup"].map(x =>
@@ -86,30 +86,31 @@ export class KeyboardDevice {
     for (let i = 0; i < this.events.length; i++) {
       const event = this.events[i];
       if (event.type === "blur") {
-        this.keys = {};
+        this.keys.clear();
         this.seenKeys.clear();
       } else {
         const key = event.key.toLowerCase();
-        this.keys[key] = event.type === "keydown";
+        const isDown = event.type === "keydown";
+        this.keys.set(key, isDown);
         this.seenKeys.add(key);
 
         if (event.ctrlKey) {
-          this.keys["control"] = event.type === "keydown";
+          this.keys.set("control", isDown);
           this.seenKeys.add("control");
         }
 
         if (event.altKey) {
-          this.keys["alt"] = event.type === "keydown";
+          this.keys.set("alt", isDown);
           this.seenKeys.add("alt");
         }
 
         if (event.metaKey) {
-          this.keys["meta"] = event.type === "keydown";
+          this.keys.set("meta", isDown);
           this.seenKeys.add("meta");
         }
 
         if (event.shiftKey) {
-          this.keys["shift"] = event.type === "keydown";
+          this.keys.set("shift", isDown);
           this.seenKeys.add("shift");
         }
       }
@@ -120,7 +121,7 @@ export class KeyboardDevice {
     for (let i = 0; i < this.seenKeys.items.length; i++) {
       const key = this.seenKeys.items[i];
       const path = paths.device.keyboard.key(key);
-      frame.setValueType(path, this.keys[key]);
+      frame.setValueType(path, this.keys.get(key));
     }
   }
 }

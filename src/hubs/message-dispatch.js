@@ -94,9 +94,6 @@ export default class MessageDispatch {
         physicsSystem = document.querySelector("a-scene").systems["hubs-systems"].physicsSystem;
         physicsSystem.setDebug(!physicsSystem.debugEnabled);
         break;
-      case "vrstats":
-        document.getElementById("stats").components["stats-plus"].toggleVRStats();
-        break;
       case "rename":
         err = this.hubChannel.rename(args.join(" "));
         if (err === "unauthorized") {

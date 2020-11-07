@@ -156,6 +156,8 @@ THREE.Object3D.prototype.updateMatrices = function(forceLocalUpdate, forceWorldU
 
     this.hasHadFirstMatrixUpdate = true;
     this.matrixWorldNeedsUpdate = true;
+    this.matrixNeedsUpdate = false;
+    this.physicsNeedsUpdate = true;
     this.cachedMatrixWorld = this.matrixWorld;
   } else if (this.matrixNeedsUpdate || this.matrixAutoUpdate || forceLocalUpdate) {
     // updateMatrix() sets matrixWorldNeedsUpdate = true
@@ -189,6 +191,7 @@ THREE.Object3D.prototype.updateMatrices = function(forceLocalUpdate, forceWorldU
 
     this.childrenNeedMatrixWorldUpdate = true;
     this.matrixWorldNeedsUpdate = false;
+    this.physicsNeedsUpdate = true;
   }
 };
 
@@ -272,6 +275,8 @@ THREE.Camera.prototype.updateMatrices = function(forceLocalUpdate, forceWorldUpd
     }
 
     this.hasHadFirstMatrixUpdate = true;
+    this.matrixNeedsUpdate = false;
+    this.physicsNeedsUpdate = true;
     this.matrixWorldNeedsUpdate = true;
     this.cachedMatrixWorld = this.matrixWorld;
   } else if (this.matrixNeedsUpdate || this.matrixAutoUpdate || forceLocalUpdate) {
@@ -307,5 +312,6 @@ THREE.Camera.prototype.updateMatrices = function(forceLocalUpdate, forceWorldUpd
     this.childrenNeedMatrixWorldUpdate = true;
     this.matrixWorldNeedsUpdate = false;
     this.matrixWorldInverse.getInverse(this.matrixWorld);
+    this.physicsNeedsUpdate = true;
   }
 };

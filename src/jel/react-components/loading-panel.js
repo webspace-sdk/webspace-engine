@@ -32,7 +32,10 @@ const LogoElement = styled.img`
   left: 0;
   width: 128px;
   height: 128px;
-  animation: 1.25s ease-in-out 0s infinite alternate float_logo;
+
+  .loading & {
+    animation: 1.25s ease-in-out 0s infinite alternate float_logo;
+  }
 `;
 
 const LogoShadowElement = styled.img`
@@ -41,7 +44,10 @@ const LogoShadowElement = styled.img`
   left: 0;
   width: 128px;
   height: 128px;
-  animation: 1.25s ease-in-out 0s infinite alternate float_logo_shadow;
+
+  .loading & {
+    animation: 1.25s ease-in-out 0s infinite alternate float_logo_shadow;
+  }
 `;
 
 const SplashWrap = styled.div`

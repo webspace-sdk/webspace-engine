@@ -31,6 +31,7 @@ export class PhysicsSystem {
     this.debugEnabled = false;
     this.scene = scene;
     this.stepDuration = 0;
+    this.needsTransfer = true;
 
     this.ready = false;
     this.nextBodyUuid = 0;
@@ -54,6 +55,7 @@ export class PhysicsSystem {
     this.ammoWorker.onmessage = async event => {
       if (event.data.type === MESSAGE_TYPES.READY) {
         this.ready = true;
+        this.needsTransfer = true;
         for (const bodyHelper of this.bodyHelpers) {
           if (bodyHelper.alive) bodyHelper.init2();
         }
@@ -172,14 +174,22 @@ export class PhysicsSystem {
               transform.multiplyMatrices(inverse, matrix);
               transform.decompose(object3D.position, object3D.quaternion, scale);
               object3D.matrixNeedsUpdate = true;
+              object3D.physicsNeedsUpdate = true;
               this.atmosphereSystem.updateShadows();
             }
 
             object3D.updateMatrices();
-            this.objectMatricesFloatArray.set(
-              object3D.matrixWorld.elements,
-              index * BUFFER_CONFIG.BODY_DATA_SIZE + BUFFER_CONFIG.MATRIX_OFFSET
-            );
+
+            if (object3D.physicsNeedsUpdate && object3D.visible) {
+              object3D.physicsNeedsUpdate = false;
+
+              this.objectMatricesFloatArray.set(
+                object3D.matrixWorld.elements,
+                index * BUFFER_CONFIG.BODY_DATA_SIZE + BUFFER_CONFIG.MATRIX_OFFSET
+              );
+
+              this.needsTransfer = true;
+            }
 
             body.linearVelocity = this.objectMatricesFloatArray[
               index * BUFFER_CONFIG.BODY_DATA_SIZE + BUFFER_CONFIG.LINEAR_VELOCITY_OFFSET
@@ -199,10 +209,10 @@ export class PhysicsSystem {
             }
           }
 
-          this.ammoWorker.postMessage(
-            { type: MESSAGE_TYPES.TRANSFER_DATA, objectMatricesFloatArray: this.objectMatricesFloatArray },
-            [this.objectMatricesFloatArray.buffer]
-          );
+          if (this.needsTransfer) {
+            this.transferDataToWorker();
+            this.needsTransfer = false;
+          }
         }
 
         /* DEBUG RENDERING */
@@ -218,6 +228,13 @@ export class PhysicsSystem {
       }
     };
   })();
+
+  transferDataToWorker() {
+    this.ammoWorker.postMessage(
+      { type: MESSAGE_TYPES.TRANSFER_DATA, objectMatricesFloatArray: this.objectMatricesFloatArray },
+      [this.objectMatricesFloatArray.buffer]
+    );
+  }
 
   addBody(object3D, options) {
     this.workerHelpers.addBody(this.nextBodyUuid, object3D, options);

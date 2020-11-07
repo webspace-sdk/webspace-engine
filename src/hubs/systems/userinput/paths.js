@@ -186,6 +186,7 @@ paths.device.gyro.averageDeltaX = "/device/gyro/averageDeltaX";
 paths.device.gyro.averageDeltaY = "/device/gyro/averageDeltaY";
 paths.device.hud = {};
 paths.device.hud.penButton = "/device/hud/penButton";
+paths.device.keyboardPath = "/device/keyboard";
 
 paths.device.keyboard = {
   map: new Map(),
