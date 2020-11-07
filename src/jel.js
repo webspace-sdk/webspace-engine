@@ -594,6 +594,27 @@ function addGlobalEventListeners(scene, entryManager) {
   });
 }
 
+// Attempts to pause a-frame scene and rendering if tabbed away
+function setupNonVisibleHandler(scene) {
+  const effects = scene.systems["effects"];
+
+  const handle = () => {
+    const hidden = document.visibilityState === "hidden";
+
+    if (scene.isPlaying !== !hidden) {
+      if (hidden) {
+        effects.disableRendering();
+        scene.pause();
+      } else {
+        effects.enableRendering();
+        scene.play();
+      }
+    }
+  };
+
+  document.addEventListener("visibilitychange", handle);
+}
+
 function setupSidePanelLayout(scene) {
   const handleSidebarResizerDrag = (selector, cssVars, isLeft, min, max, xToWidth, storeCallback) => {
     document.querySelector(selector).addEventListener("mousedown", () => {
@@ -897,6 +918,7 @@ async function start() {
 
   addGlobalEventListeners(scene, entryManager);
   setupSidePanelLayout(scene);
+  setupNonVisibleHandler(scene);
 
   window.dispatchEvent(new CustomEvent("hub_channel_ready"));
 

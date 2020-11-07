@@ -13,6 +13,15 @@ AFRAME.registerSystem("effects", {
     this.el.addEventListener("animated_resize_complete", () => (this.updateComposer = true));
 
     this.updateComposer = true;
+    this.renderingEnabled = true;
+  },
+
+  enableRendering: function() {
+    this.renderingEnabled = true;
+  },
+
+  disableRendering: function() {
+    this.renderingEnabled = false;
   },
 
   tick: function(t, dt) {
@@ -54,6 +63,8 @@ AFRAME.registerSystem("effects", {
         const self = this;
 
         renderer.render = function() {
+          if (!self.renderingEnabled) return;
+
           if (isEffectSystem || self.disableEffects) {
             render.apply(this, arguments);
           } else {
