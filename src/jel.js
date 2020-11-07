@@ -594,15 +594,13 @@ function addGlobalEventListeners(scene, entryManager) {
   });
 }
 
-// Attempts to pause a-frame scene and rendering if tabbed away
+// Attempts to pause a-frame scene and rendering if tabbed away or maximized and window is blurred
 function setupNonVisibleHandler(scene) {
   const effects = scene.systems["effects"];
 
-  const handle = () => {
-    const hidden = document.visibilityState === "hidden";
-
+  const apply = hidden => {
     if (scene.isPlaying !== !hidden) {
-      if (hidden) {
+      if (hidden || document.visibilityState === "hidden") {
         effects.disableRendering();
         scene.pause();
       } else {
@@ -612,7 +610,15 @@ function setupNonVisibleHandler(scene) {
     }
   };
 
-  document.addEventListener("visibilitychange", handle);
+  const isProbablyMaximized = () => screen.availWidth - window.innerWidth === 0;
+  document.addEventListener("visibilitychange", () => apply());
+
+  window.addEventListener("blur", () => {
+    if (isProbablyMaximized()) apply(true);
+  });
+  window.addEventListener("focus", () => {
+    if (isProbablyMaximized()) apply(false);
+  });
 }
 
 function setupSidePanelLayout(scene) {
