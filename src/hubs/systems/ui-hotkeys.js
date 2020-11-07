@@ -24,6 +24,10 @@ AFRAME.registerSystem("ui-hotkeys", {
       }
     }
 
+    if (this.userinput.get(paths.actions.muteMic)) {
+      this.el.emit("action_mute");
+    }
+
     if (canSpawnMedia) {
       if (this.userinput.get(paths.actions.nextMediaLayer)) {
         this.el.systems["hubs-systems"].mediaPresenceSystem.selectNextMediaLayer();
