@@ -31,10 +31,10 @@ const cursorScalePenTipWheel = "/var/cursorScalePenTipWheel";
 
 const kMap = new Map();
 const k = name => {
-  if (!kMap.has(k)) {
-    kMap.set(k, `/keyboard-mouse-user/keyboard-var/${name}`);
+  if (!kMap.has(name)) {
+    kMap.set(name, `/keyboard-mouse-user/keyboard-var/${name}`);
   }
-  return kMap.get(k);
+  return kMap.get(name);
 };
 
 export const keyboardMouseUserBindings = addSetsToBindings({
