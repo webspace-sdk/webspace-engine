@@ -90,7 +90,7 @@ export class AudioSystem {
     const supportsLipSync = this.audioContext.audioWorklet && window.SharedArrayBuffer && supportsInsertableStreams;
 
     if (supportsLipSync) {
-      //this.startLipSync(sceneEl);
+      this.startLipSync(sceneEl);
     }
 
     /**
