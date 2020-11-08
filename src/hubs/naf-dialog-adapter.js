@@ -37,6 +37,9 @@ const PC_PROPRIETARY_CONSTRAINTS = {
   optional: [{ googDscp: true }]
 };
 
+const CLOSE_MIC_PRODUCER_WITH_NO_PEERS_DURATION_MS = 5000;
+const CLOSE_MIC_PRODUCER_WITH_PEERS_DURATION_MS = 60000;
+
 export default class DialogAdapter {
   constructor() {
     this._forceTcp = false;
@@ -696,11 +699,31 @@ export default class DialogAdapter {
   }
 
   enableMicrophone(enabled) {
+    if (enabled && this._localMediaStream && !this._micProducer) {
+      this.createMissingProducers(this._localMediaStream);
+    }
+
+    clearTimeout(this._micProducerCloseTimeout);
+
     if (this._micProducer) {
       if (enabled) {
         this._micProducer.resume();
       } else {
         this._micProducer.pause();
+
+        const closeAfterDelay =
+          this._consumers.size > 0
+            ? CLOSE_MIC_PRODUCER_WITH_PEERS_DURATION_MS
+            : CLOSE_MIC_PRODUCER_WITH_NO_PEERS_DURATION_MS;
+        console.log(closeAfterDelay);
+
+        // Close mic after a delay to reduce local processing
+        this._micProducerCloseTimeout = setTimeout(() => {
+          if (this._micProducer) {
+            this._micProducer.close();
+            this._micProducer = null;
+          }
+        }, closeAfterDelay);
       }
     }
 
