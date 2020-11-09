@@ -10,7 +10,8 @@ module.exports = {
     THREE: true,
     AFRAME: true,
     NAF: true,
-    SAF: true
+    SAF: true,
+    TransformStream: true
   },
   plugins: ["prettier", "react"],
   rules: {
