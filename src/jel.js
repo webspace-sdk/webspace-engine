@@ -596,18 +596,17 @@ function addGlobalEventListeners(scene, entryManager) {
 
 // Attempts to pause a-frame scene and rendering if tabbed away or maximized and window is blurred
 function setupNonVisibleHandler(scene) {
-  const effects = scene.systems["effects"];
   const physics = scene.systems["hubs-systems"].physicsSystem;
 
   const apply = hidden => {
     if (document.visibilityState === "hidden" || hidden) {
-      physics.updateSimulationRate(1000.0 / 15.0);
-      effects.disableRendering();
       scene.pause();
+      physics.updateSimulationRate(1000.0 / 15.0);
+      scene.renderer.animation.stop();
     } else {
-      physics.updateSimulationRate(1000.0 / 90.0);
-      effects.enableRendering();
       scene.play();
+      physics.updateSimulationRate(1000.0 / 90.0);
+      scene.renderer.animation.start();
     }
   };
 

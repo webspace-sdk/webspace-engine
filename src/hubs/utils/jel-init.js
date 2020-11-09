@@ -30,8 +30,11 @@ const startTrackingPosition = (() => {
     stopTrackingPosition();
     const avatarRig = document.getElementById("avatar-rig");
     const avatarPov = document.getElementById("avatar-pov-node");
+    const scene = document.querySelector("a-scene");
 
     positionTrackerInterval = setInterval(() => {
+      if (!scene.isPlaying) return;
+
       avatarRig.object3D.getWorldPosition(position);
       avatarPov.object3D.getWorldQuaternion(rotation);
 
