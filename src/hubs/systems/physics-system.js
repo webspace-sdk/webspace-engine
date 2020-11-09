@@ -240,12 +240,10 @@ export class PhysicsSystem {
   updateSimulationRate(rate) {
     this.simulationRate = rate;
 
-    if (!this.scene.isPlaying) {
-      if (this.ownsBuffer) {
-        this.transferDataToWorker();
-      } else {
-        this.immediatelyTransferNextBuffer = true;
-      }
+    if (this.ownsBuffer) {
+      this.transferDataToWorker();
+    } else {
+      this.immediatelyTransferNextBuffer = true;
     }
   }
 
