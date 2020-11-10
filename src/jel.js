@@ -596,28 +596,40 @@ function addGlobalEventListeners(scene, entryManager) {
 
 // Attempts to pause a-frame scene and rendering if tabbed away or maximized and window is blurred
 function setupNonVisibleHandler(scene) {
-  const effects = scene.systems["effects"];
   const physics = scene.systems["hubs-systems"].physicsSystem;
 
   const apply = hidden => {
     if (document.visibilityState === "hidden" || hidden) {
+      if (document.visibilityState === "visible") {
+        scene.pause();
+        scene.renderer.animation.stop();
+      }
+
       physics.updateSimulationRate(1000.0 / 15.0);
-      effects.disableRendering();
-      scene.pause();
     } else {
+      if (document.visibilityState === "visible") {
+        scene.play();
+        scene.renderer.animation.start();
+      }
+
       physics.updateSimulationRate(1000.0 / 90.0);
-      effects.enableRendering();
-      scene.play();
     }
   };
 
   const isProbablyMaximized = () => screen.availWidth - window.innerWidth === 0;
   document.addEventListener("visibilitychange", () => apply());
 
+  // Need a timeout since tabbing in browser causes blur then focus rapidly
+  let windowBlurredTimeout = null;
+
   window.addEventListener("blur", () => {
-    if (isProbablyMaximized()) apply(true);
+    windowBlurredTimeout = setTimeout(() => {
+      if (isProbablyMaximized()) apply(true);
+    }, 500);
   });
+
   window.addEventListener("focus", () => {
+    clearTimeout(windowBlurredTimeout);
     if (isProbablyMaximized()) apply(false);
   });
 }

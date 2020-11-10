@@ -37,6 +37,9 @@ const PC_PROPRIETARY_CONSTRAINTS = {
   optional: [{ googDscp: true }]
 };
 
+const CLOSE_MIC_PRODUCER_WITH_NO_PEERS_DURATION_MS = 5000;
+const CLOSE_MIC_PRODUCER_WITH_PEERS_DURATION_MS = 60000;
+
 export default class DialogAdapter {
   constructor() {
     this._forceTcp = false;
@@ -57,6 +60,7 @@ export default class DialogAdapter {
     this._outgoingVisemeBuffer = null;
     this._visemeMap = new Map();
     this._reconnecting = false;
+    this._transportCleanupTimeout = null;
     this.type = "dialog";
     this.occupants = {}; // This is a public field
   }
@@ -165,6 +169,33 @@ export default class DialogAdapter {
       debug('proto "request" event [method:%s, data:%o]', request.method, request.data);
 
       switch (request.method) {
+        case "sendTransportClosed": {
+          if (this._micProducer) {
+            this._micProducer.close();
+            this._micProducer = null;
+          }
+
+          if (this._videoProducer) {
+            this._videoProducer.close();
+            this._videoProducer = null;
+          }
+
+          this._sendTransport.close();
+          this._sendTransport = null;
+          accept();
+          break;
+        }
+        case "recvTransportClosed": {
+          this._recvTransport.close();
+          this._recvTransport = null;
+          accept();
+          break;
+        }
+        case "recvTransportNeeded": {
+          await this.ensureRecvTransport();
+          accept();
+          break;
+        }
         case "newConsumer": {
           const {
             peerId,
@@ -176,6 +207,8 @@ export default class DialogAdapter {
           } = request.data;
 
           try {
+            await this.ensureRecvTransport();
+
             const consumer = await this._recvTransport.consume({
               id,
               producerId,
@@ -326,6 +359,7 @@ export default class DialogAdapter {
 
           consumer.close();
           this.removeConsumer(consumer.id);
+          this.closeUnneededTransportsAfterDelay();
 
           break;
         }
@@ -460,94 +494,6 @@ export default class DialogAdapter {
 
       await this._mediasoupDevice.load({ routerRtpCapabilities });
 
-      // Create mediasoup Transport for sending (unless we don't want to produce).
-      const sendTransportInfo = await this._protoo.request("createWebRtcTransport", {
-        forceTcp: this._forceTcp,
-        producing: true,
-        consuming: false,
-        sctpCapabilities: undefined
-      });
-
-      this._sendTransport = this._mediasoupDevice.createSendTransport({
-        id: sendTransportInfo.id,
-        iceParameters: sendTransportInfo.iceParameters,
-        iceCandidates: sendTransportInfo.iceCandidates,
-        dtlsParameters: sendTransportInfo.dtlsParameters,
-        sctpParameters: sendTransportInfo.sctpParameters,
-        iceServers: this._iceServers,
-        iceTransportPolicy: this._iceTransportPolicy,
-        proprietaryConstraints: PC_PROPRIETARY_CONSTRAINTS,
-        additionalSettings: { encodedInsertableStreams: supportsInsertableStreams }
-      });
-
-      this._sendTransport.on("connect", (
-        { dtlsParameters },
-        callback,
-        errback // eslint-disable-line no-shadow
-      ) => {
-        this._protoo
-          .request("connectWebRtcTransport", {
-            transportId: this._sendTransport.id,
-            dtlsParameters
-          })
-          .then(callback)
-          .catch(errback);
-      });
-
-      this._sendTransport.on("connectionstatechange", state => {
-        if (state === "connected" && this._localMediaStream && !this._isSyncingProducers) {
-          this.createMissingProducers(this._localMediaStream);
-        }
-      });
-
-      this._sendTransport.on("produce", async ({ kind, rtpParameters, appData }, callback, errback) => {
-        try {
-          // eslint-disable-next-line no-shadow
-          const { id } = await this._protoo.request("produce", {
-            transportId: this._sendTransport.id,
-            kind,
-            rtpParameters,
-            appData
-          });
-
-          callback({ id });
-        } catch (error) {
-          errback(error);
-        }
-      });
-
-      // Create mediasoup Transport for sending (unless we don't want to consume).
-      const recvTransportInfo = await this._protoo.request("createWebRtcTransport", {
-        forceTcp: this._forceTcp,
-        producing: false,
-        consuming: true,
-        sctpCapabilities: undefined
-      });
-
-      this._recvTransport = this._mediasoupDevice.createRecvTransport({
-        id: recvTransportInfo.id,
-        iceParameters: recvTransportInfo.iceParameters,
-        iceCandidates: recvTransportInfo.iceCandidates,
-        dtlsParameters: recvTransportInfo.dtlsParameters,
-        sctpParameters: recvTransportInfo.sctpParameters,
-        iceServers: this._iceServers,
-        additionalSettings: { encodedInsertableStreams: supportsInsertableStreams }
-      });
-
-      this._recvTransport.on("connect", (
-        { dtlsParameters },
-        callback,
-        errback // eslint-disable-line no-shadow
-      ) => {
-        this._protoo
-          .request("connectWebRtcTransport", {
-            transportId: this._recvTransport.id,
-            dtlsParameters
-          })
-          .then(callback)
-          .catch(errback);
-      });
-
       await this._protoo.request("join", {
         displayName: this._clientId,
         device: this._device,
@@ -574,8 +520,131 @@ export default class DialogAdapter {
     return this.createMissingProducers(stream);
   }
 
+  async ensureSendTransport() {
+    if (this._closed || this._sendTransport) return;
+
+    // Create mediasoup Transport for sending (unless we don't want to produce).
+    const sendTransportInfo = await this._protoo.request("createWebRtcTransport", {
+      forceTcp: this._forceTcp,
+      producing: true,
+      consuming: false,
+      sctpCapabilities: undefined
+    });
+
+    this._sendTransport = this._mediasoupDevice.createSendTransport({
+      id: sendTransportInfo.id,
+      iceParameters: sendTransportInfo.iceParameters,
+      iceCandidates: sendTransportInfo.iceCandidates,
+      dtlsParameters: sendTransportInfo.dtlsParameters,
+      sctpParameters: sendTransportInfo.sctpParameters,
+      iceServers: this._iceServers,
+      iceTransportPolicy: this._iceTransportPolicy,
+      proprietaryConstraints: PC_PROPRIETARY_CONSTRAINTS,
+      additionalSettings: { encodedInsertableStreams: supportsInsertableStreams }
+    });
+
+    this._sendTransport.on("connect", (
+      { dtlsParameters },
+      callback,
+      errback // eslint-disable-line no-shadow
+    ) => {
+      this._protoo
+        .request("connectWebRtcTransport", {
+          transportId: this._sendTransport.id,
+          dtlsParameters
+        })
+        .then(callback)
+        .catch(errback);
+    });
+
+    this._sendTransport.on("connectionstatechange", state => {
+      if (state === "connected" && this._localMediaStream && !this._isSyncingProducers) {
+        this.createMissingProducers(this._localMediaStream);
+      }
+    });
+
+    this._sendTransport.on("produce", async ({ kind, rtpParameters, appData }, callback, errback) => {
+      try {
+        // eslint-disable-next-line no-shadow
+        const { id } = await this._protoo.request("produce", {
+          transportId: this._sendTransport.id,
+          kind,
+          rtpParameters,
+          appData
+        });
+
+        callback({ id });
+      } catch (error) {
+        errback(error);
+      }
+    });
+  }
+
+  async ensureRecvTransport() {
+    if (this._closed || this._recvTransport) return;
+
+    // Create mediasoup Transport for sending (unless we don't want to consume).
+    const recvTransportInfo = await this._protoo.request("createWebRtcTransport", {
+      forceTcp: this._forceTcp,
+      producing: false,
+      consuming: true,
+      sctpCapabilities: undefined
+    });
+
+    this._recvTransport = this._mediasoupDevice.createRecvTransport({
+      id: recvTransportInfo.id,
+      iceParameters: recvTransportInfo.iceParameters,
+      iceCandidates: recvTransportInfo.iceCandidates,
+      dtlsParameters: recvTransportInfo.dtlsParameters,
+      sctpParameters: recvTransportInfo.sctpParameters,
+      iceServers: this._iceServers,
+      additionalSettings: { encodedInsertableStreams: supportsInsertableStreams }
+    });
+
+    this._recvTransport.on("connect", (
+      { dtlsParameters },
+      callback,
+      errback // eslint-disable-line no-shadow
+    ) => {
+      this._protoo
+        .request("connectWebRtcTransport", {
+          transportId: this._recvTransport.id,
+          dtlsParameters
+        })
+        .then(callback)
+        .catch(errback);
+    });
+  }
+
+  async closeUnneededTransports() {
+    if (this._sendTransport) {
+      const micIsAlive = !!(this._micProducer && this._micEnabled);
+      const videoIsAlive = !!this._videoProducer;
+
+      if (!micIsAlive && !videoIsAlive) {
+        this._protoo.request("closeSendTransport", {});
+      }
+    }
+
+    if (this._recvTransport) {
+      if (this._consumers.size === 0) {
+        this._protoo.request("closeRecvTransport", {});
+      }
+    }
+  }
+
+  closeUnneededTransportsAfterDelay() {
+    const delay =
+      this._consumers.size > 0
+        ? CLOSE_MIC_PRODUCER_WITH_PEERS_DURATION_MS
+        : CLOSE_MIC_PRODUCER_WITH_NO_PEERS_DURATION_MS;
+
+    clearTimeout(this._transportCleanupTimeout);
+    this._transportCleanupTimeout = setTimeout(() => this.closeUnneededTransports(), delay);
+  }
+
   async createMissingProducers(stream) {
-    if (!this._sendTransport) return;
+    if (this._closed) return;
     this._isSyncingProducers = true;
 
     let sawAudio = false;
@@ -596,6 +665,8 @@ export default class DialogAdapter {
             if (!this._micEnabled) {
               track.enabled = false;
             }
+
+            await this.ensureSendTransport();
 
             // stopTracks = false because otherwise the track will end during a temporary disconnect
             this._micProducer = await this._sendTransport.produce({
@@ -662,7 +733,7 @@ export default class DialogAdapter {
               this._videoProducer.replaceTrack(track);
             }
           } else {
-            // TODO simulcasting
+            await this.ensureSendTransport();
 
             // stopTracks = false because otherwise the track will end during a temporary disconnect
             this._videoProducer = await this._sendTransport.produce({
@@ -696,11 +767,18 @@ export default class DialogAdapter {
   }
 
   enableMicrophone(enabled) {
+    if (enabled && this._localMediaStream && !this._micProducer) {
+      this.createMissingProducers(this._localMediaStream);
+    }
+
+    clearTimeout(this._transportCleanupTimeout);
+
     if (this._micProducer) {
       if (enabled) {
         this._micProducer.resume();
       } else {
         this._micProducer.pause();
+        this.closeUnneededTransportsAfterDelay();
       }
     }
 

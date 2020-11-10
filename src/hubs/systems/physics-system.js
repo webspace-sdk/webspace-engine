@@ -32,7 +32,8 @@ export class PhysicsSystem {
     this.scene = scene;
     this.simulationRate = 1000.0 / 90.0;
     this.needsTransfer = true;
-    this.simulationRateChangePending = false;
+    this.ownsBuffer = false;
+    this.immediatelyTransferNextBuffer = false;
 
     this.ready = false;
     this.nextBodyUuid = 0;
@@ -87,14 +88,11 @@ export class PhysicsSystem {
       } else if (event.data.type === MESSAGE_TYPES.TRANSFER_DATA) {
         this.objectMatricesFloatArray = event.data.objectMatricesFloatArray;
         this.objectMatricesIntArray = new Int32Array(this.objectMatricesFloatArray.buffer);
+        this.ownsBuffer = true;
 
-        if (this.simulationRateChangePending) {
-          // A-Frame scene may be paused, so we need to do one more transfer.
-          if (!this.scene.isPlaying) {
-            this.transferDataToWorker();
-          }
-
-          this.simulationRateChangePending = false;
+        if (this.immediatelyTransferNextBuffer) {
+          this.transferDataToWorker();
+          this.immediatelyTransferNextBuffer = false;
         }
       }
     };
@@ -150,7 +148,7 @@ export class PhysicsSystem {
     const matrix = new THREE.Matrix4();
     const scale = new THREE.Vector3();
     return function() {
-      if (this.ready) {
+      if (this.ready && this.ownsBuffer) {
         if (this.debugRequested !== this.debugEnabled) {
           if (this.debugRequested) {
             this.enableDebug();
@@ -241,7 +239,12 @@ export class PhysicsSystem {
 
   updateSimulationRate(rate) {
     this.simulationRate = rate;
-    this.simulationRateChangePending = true;
+
+    if (this.ownsBuffer) {
+      this.transferDataToWorker();
+    } else {
+      this.immediatelyTransferNextBuffer = true;
+    }
   }
 
   transferDataToWorker() {
@@ -253,6 +256,8 @@ export class PhysicsSystem {
       },
       [this.objectMatricesFloatArray.buffer]
     );
+
+    this.ownsBuffer = false;
   }
 
   addBody(object3D, options) {

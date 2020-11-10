@@ -46,6 +46,12 @@ export class MediaStreamSystem {
     await this.enableMicAudioStream(preferredMicDeviceId);
   }
 
+  async stopMicrophoneTrack() {
+    if (!this.micAudioTrack) return;
+    this.micAudioTrack.stop();
+    this.micAudioTrack = null;
+  }
+
   async enableMicAudioStream(deviceId) {
     if (deviceId) {
       await this.fetchAndAddAudioTrack({ audio: { deviceId: { ideal: deviceId } } });

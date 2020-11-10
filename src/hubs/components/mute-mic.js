@@ -62,9 +62,15 @@ AFRAME.registerComponent("mute-mic", {
         await this.el.sceneEl.systems["hubs-systems"].mediaStreamSystem.beginStreamingPreferredMic();
       }
       NAF.connection.adapter.enableMicrophone(true);
+      this.el.sceneEl.systems["hubs-systems"].audioSystem.enableOutboundAudioStream("microphone");
       this.el.removeState("muted");
     } else {
+      if (this._beganAudioStream) {
+        this._beganAudioStream = false;
+        await this.el.sceneEl.systems["hubs-systems"].mediaStreamSystem.stopMicrophoneTrack();
+      }
       NAF.connection.adapter.enableMicrophone(false);
+      this.el.sceneEl.systems["hubs-systems"].audioSystem.disableOutboundAudioStream("microphone");
       this.el.addState("muted");
     }
   },
