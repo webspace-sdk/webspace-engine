@@ -771,7 +771,7 @@ export default class DialogAdapter {
       this.createMissingProducers(this._localMediaStream);
     }
 
-    clearTimeout(this._micProducerCloseTimeout);
+    clearTimeout(this._transportCleanupTimeout);
 
     if (this._micProducer) {
       if (enabled) {
