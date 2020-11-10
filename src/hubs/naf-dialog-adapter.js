@@ -169,6 +169,33 @@ export default class DialogAdapter {
       debug('proto "request" event [method:%s, data:%o]', request.method, request.data);
 
       switch (request.method) {
+        case "sendTransportClosed": {
+          if (this._micProducer) {
+            this._micProducer.close();
+            this._micProducer = null;
+          }
+
+          if (this._videoProducer) {
+            this._videoProducer.close();
+            this._videoProducer = null;
+          }
+
+          this._sendTransport.close();
+          this._sendTransport = null;
+          accept();
+          break;
+        }
+        case "recvTransportClosed": {
+          this._recvTransport.close();
+          this._recvTransport = null;
+          accept();
+          break;
+        }
+        case "consumerTransportNeeded": {
+          await this.ensureRecvTransport();
+          accept();
+          break;
+        }
         case "newConsumer": {
           const {
             peerId,
@@ -595,24 +622,13 @@ export default class DialogAdapter {
       const videoIsAlive = !!this._videoProducer;
 
       if (!micIsAlive && !videoIsAlive) {
-        if (this._micProducer) {
-          // Mic may be muted
-          this._micProducer.close();
-          this._micProducer = null;
-        }
-
-        console.log("send transport autoclose");
-        this._sendTransport.close();
-        this._sendTransport = null;
+        this._protoo.request("closeSendTransport", {});
       }
     }
 
     if (this._recvTransport) {
-      if (this.consumers.size === 0) {
-        console.log("send transport autoclose");
-
-        this._recvTransport.close();
-        this._recvTransport = null;
+      if (this._consumers.size === 0) {
+        this._protoo.request("closeRecvTransport", {});
       }
     }
   }
