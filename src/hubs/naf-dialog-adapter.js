@@ -191,7 +191,7 @@ export default class DialogAdapter {
           accept();
           break;
         }
-        case "consumerTransportNeeded": {
+        case "recvTransportNeeded": {
           await this.ensureRecvTransport();
           accept();
           break;
