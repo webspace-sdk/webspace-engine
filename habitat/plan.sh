@@ -1,11 +1,11 @@
-pkg_name=hubs
-pkg_origin=mozillareality
-pkg_maintainer="Mozilla Mixed Reality <mixreality@mozilla.com>"
+pkg_name=jel
+pkg_origin=jel
+pkg_maintainer="Greg Fodor <gfodor@jel.app>"
 
 pkg_version="1.0.0"
-pkg_license=('MPLv2')
-pkg_description="Duck-powered web-based social VR."
-pkg_upstream_url="https://hubs.mozilla.com/"
+pkg_license=('None')
+pkg_description="Collaboration made fun"
+pkg_upstream_url="https://jel.app/"
 pkg_build_deps=(
     core/coreutils
     core/bash
@@ -18,7 +18,7 @@ pkg_deps=(
 )
 
 do_build() {
-  ln -s "$(hab pkg path core/coreutils)/bin/env" /usr/bin/env
+  ln -fs "$(bio pkg path core/coreutils)/bin/env" /usr/bin/env
 
   # main client
   npm ci --verbose --no-progress
@@ -39,7 +39,7 @@ do_build() {
 
   mkdir -p dist/pages
   mv dist/*.html dist/pages
-  mv dist/hub.service.js dist/pages
+  mv dist/jel.service.js dist/pages
   mv dist/schema.toml dist/pages
 }
 
