@@ -33,12 +33,12 @@ do_build() {
   npm_config_cache=.npm npm run build
 
   # admin
-  cd admin
-  npm_config_cache=.npm npm ci --verbose --no-progress
+  # cd admin
+  # npm_config_cache=.npm npm ci --verbose --no-progress
 
-  npm_config_cache=.npm npm run build
-  cp -R dist/* ../dist # it will get packaged with the rest of the stuff, below
-  cd ..
+  # npm_config_cache=.npm npm run build
+  # cp -R dist/* ../dist # it will get packaged with the rest of the stuff, below
+  # cd ..
 
   mkdir -p dist/pages
   mv dist/*.html dist/pages
