@@ -14,7 +14,7 @@ pkg_build_deps=(
 )
 
 pkg_deps=(
-    core/aws-cli/1.16.154/20190508172831 # AWS cli used for run hook when uploading to S3
+    core/aws-cli # AWS cli used for run hook when uploading to S3
 )
 
 do_build() {
