@@ -22,7 +22,8 @@ PKG="$pkg_origin/$pkg_name"
 
 pushd "$DIR/.."
 
-trap "rm /hab/svc/$pkg_name/var/deploying && sudo /usr/bin/hab-clean-perms && chmod -R a+rw ." EXIT
+#trap "rm /hab/svc/$pkg_name/var/deploying && sudo /usr/bin/hab-clean-perms && chmod -R a+rw ." EXIT
+trap "sudo /usr/bin/hab-clean-perms && chmod -R a+rw ." EXIT
 
 # Wait for a lock file so we serialize deploys
 mkdir -p /hab/svc/$pkg_name/var
