@@ -83,7 +83,7 @@
     "js-cookie": "^2.2.0",
     "jsonschema": "^1.2.2",
     "jwt-decode": "^2.2.0",
-    "lib-hubs": "github:mozillareality/lib-hubs#master",
+    "lib-hubs": "github:jel-app/lib-hubs#master",
     "meyda": "github:jel-app/meyda#master",
     "moving-average": "^1.0.0",
     "naf-janus-adapter": "^4.0.1",
