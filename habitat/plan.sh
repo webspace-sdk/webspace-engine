@@ -23,19 +23,19 @@ do_build() {
   [ -d "./dotssh" ] && rm -rf ~/.ssh && mv dotssh ~/.ssh
 
   # main client
-  npm ci --verbose --no-progress
+  npm_config_cache=.npm npm ci --verbose --no-progress
 
   # We inject a random token into the build for the base assets path
   export BASE_ASSETS_PATH="$(echo "base_assets_path" | sha256sum | cut -d' ' -f1)/" # HACK need a trailing slash so webpack'ed semantics line up
   export BUILD_VERSION="${pkg_version}.$(echo $pkg_prefix | cut -d '/' -f 7)"
 
-  npm run build
+  npm_config_cache=.npm npm run build
 
   # admin
   cd admin
-  npm ci --verbose --no-progress
+  npm_config_cache=.npm npm ci --verbose --no-progress
 
-  npm run build
+  npm_config_cache=.npm npm run build
   cp -R dist/* ../dist # it will get packaged with the rest of the stuff, below
   cd ..
 
