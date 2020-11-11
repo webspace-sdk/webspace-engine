@@ -1,4 +1,4 @@
-import { upload } from "hubs/src/utils/media-utils";
+import { upload } from "hubs/src/hubs/utils/media-utils";
 
 let currentAuthToken = null;
 

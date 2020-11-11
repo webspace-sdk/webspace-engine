@@ -23,7 +23,7 @@ import { withStyles } from "@material-ui/core/styles";
 // We can technically untangle the dependencies for this, but doesn't seem worth it for admin.
 import "aframe";
 import AvatarPreview from "./avatar-preview";
-import { getReticulumFetchUrl } from "hubs/src/utils/phoenix-utils";
+import { getReticulumFetchUrl } from "hubs/src/hubs/utils/phoenix-utils";
 
 const AvatarFilter = props => (
   <Filter {...props}>

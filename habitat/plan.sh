@@ -21,6 +21,7 @@ do_build() {
   ln -fs "$(hab pkg path core/coreutils)/bin/env" /usr/bin/env
 
   [ -d "./dotssh" ] && rm -rf ~/.ssh && mv dotssh ~/.ssh
+  [ -d "./dotaws" ] && rm -rf ~/.aws && mv dotaws ~/.aws
 
   # main client
   npm_config_cache=.npm npm ci --verbose --no-progress

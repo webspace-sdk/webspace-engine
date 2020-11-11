@@ -10,7 +10,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import Warning from "@material-ui/icons/Warning";
 import Info from "@material-ui/icons/Info";
-import { fetchReticulumAuthenticated } from "hubs/src/utils/phoenix-utils";
+import { fetchReticulumAuthenticated } from "hubs/src/hubs/utils/phoenix-utils";
 import withCommonStyles from "../utils/with-common-styles";
 import { getAdminInfo, getEditableConfig } from "../utils/ita";
 

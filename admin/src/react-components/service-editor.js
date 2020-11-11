@@ -18,7 +18,7 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import clsx from "classnames";
 import { Title } from "react-admin";
 
-import Store from "hubs/src/storage/store";
+import Store from "hubs/src/hubs/storage/store";
 import withCommonStyles from "../utils/with-common-styles";
 import {
   getEditableConfig,

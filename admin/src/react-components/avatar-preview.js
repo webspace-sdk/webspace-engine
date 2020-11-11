@@ -4,12 +4,12 @@ import { injectIntl, FormattedMessage } from "react-intl";
 import classNames from "classnames";
 import "three/examples/js/controls/OrbitControls";
 
-import { createDefaultEnvironmentMap } from "hubs/src/components/environment-map";
-import { loadGLTF } from "hubs/src/components/gltf-model-plus";
-import { disposeNode, findNode } from "hubs/src/utils/three-utils";
-import { ensureAvatarMaterial, MAT_NAME } from "hubs/src/utils/avatar-utils";
-import { createImageBitmap, disposeImageBitmap } from "hubs/src/utils/image-bitmap-utils";
-import styles from "hubs/src/assets/stylesheets/avatar-preview.scss";
+import { createDefaultEnvironmentMap } from "hubs/src/hubs/components/environment-map";
+import { loadGLTF } from "hubs/src/hubs/components/gltf-model-plus";
+import { disposeNode, findNode } from "hubs/src/hubs/utils/three-utils";
+import { ensureAvatarMaterial, MAT_NAME } from "hubs/src/hubs/utils/avatar-utils";
+import { createImageBitmap, disposeImageBitmap } from "hubs/src/hubs/utils/image-bitmap-utils";
+import styles from "hubs/src/hubs/assets/stylesheets/avatar-preview.scss";
 
 const TEXTURE_PROPS = {
   base_map: ["map"],
@@ -302,8 +302,8 @@ class AvatarPreview extends Component {
         {this.props.avatarGltfUrl && (this.state.error && !this.state.loading) && (
           <div className="error">
             <img
-              src="hubs/src/assets/images/warning_icon.png"
-              srcSet="hubs/src/assets/images/warning_icon@2x.png 2x"
+              src="hubs/src/hubs/assets/images/warning_icon.png"
+              srcSet="hubs/src/hubs/assets/images/warning_icon@2x.png 2x"
               className="error-icon"
             />
             <FormattedMessage id="avatar-preview.loading-failed" />

@@ -12,7 +12,7 @@ import {
   setAuthToken as setItaAuthToken
 } from "./utils/ita";
 import { detectIdle } from "./utils/idle-detector";
-import { connectToReticulum } from "hubs/src/utils/phoenix-utils";
+import { connectToReticulum } from "hubs/src/hubs/utils/phoenix-utils";
 import { AppBar, Admin, Layout, Resource } from "react-admin";
 import { postgrestClient, postgrestAuthenticatior } from "./utils/postgrest-data-provider";
 import { AdminMenu } from "./react-components/admin-menu";
@@ -31,8 +31,8 @@ import { ServerAccess } from "./react-components/server-access";
 import { ContentCDN } from "./react-components/content-cdn";
 import { ImportContent } from "./react-components/import-content";
 import { AutoEndSessionDialog } from "./react-components/auto-end-session-dialog";
-import Store from "hubs/src/storage/store";
-import registerTelemetry from "hubs/src/telemetry";
+import Store from "hubs/src/hubs/storage/store";
+import registerTelemetry from "hubs/src/hubs/telemetry";
 import { createMuiTheme, withStyles } from "@material-ui/core/styles";
 
 const qs = new URLSearchParams(location.hash.split("?")[1]);

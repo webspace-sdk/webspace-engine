@@ -28,7 +28,7 @@ import Paper from "@material-ui/core/Paper";
 import { Title } from "react-admin";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
-import { fetchReticulumAuthenticated } from "hubs/src/utils/phoenix-utils";
+import { fetchReticulumAuthenticated } from "hubs/src/hubs/utils/phoenix-utils";
 import clsx from "classnames";
 import { GET_MANY_REFERENCE } from "react-admin";
 import { sceneApproveNew, sceneApproveExisting, sceneReviewed } from "./scene-actions";
