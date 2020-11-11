@@ -13,6 +13,7 @@ export GA_TRACKING_ID=${10}
 export BUILD_NUMBER=${11}
 export GIT_COMMIT=${12}
 export BUILD_VERSION="${BUILD_NUMBER} (${GIT_COMMIT})"
+export HAB_BLDR_URL="https://bldr.biome.sh"
 
 # Build the package, upload it, and start the service so we deploy to staging target.
 

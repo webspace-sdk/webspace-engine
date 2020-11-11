@@ -9,12 +9,12 @@ pkg_upstream_url="https://jel.app/"
 pkg_build_deps=(
     core/coreutils
     core/bash
-    core/node10/10.16.1/20190801173856 # Latest node10 fails during npm ci due to a permissions error creating tmp dir
+    core/node10/10.16.2 # Latest node10 fails during npm ci due to a permissions error creating tmp dir
     core/git
 )
 
 pkg_deps=(
-    core/aws-cli/1.16.118/20190305224525 # AWS cli used for run hook when uploading to S3
+    core/aws-cli/1.16.154/20190508172831 # AWS cli used for run hook when uploading to S3
 )
 
 do_build() {
