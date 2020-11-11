@@ -31,7 +31,8 @@ touch /hab/svc/$pkg_name/var/deploying
 
 rm -rf results
 mkdir -p results
-sudo /usr/bin/hab-docker-studio -k jel run build
+cp -R ~/.ssh ./dotssh # Copy github.com credentials becuase of shared-aframe private repo dep
+sudo /usr/bin/hab-docker-studio run build
 hab svc unload $PKG
 sudo /usr/bin/hab-pkg-install results/*.hart
 hab svc load $PKG
@@ -42,6 +43,7 @@ cat > build-config.toml << EOTOML
 [general]
 base_assets_path = $BASE_ASSETS_PATH
 shortlink_domain = $SHORTLINK_DOMAIN
+terra_server = $TERRA_SERVER
 reticulum_server = $RETICULUM_SERVER
 thumbnail_server = $THUMBNAIL_SERVER
 cors_proxy_server = $CORS_PROXY_SERVER

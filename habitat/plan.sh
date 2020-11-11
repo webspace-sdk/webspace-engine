@@ -20,6 +20,8 @@ pkg_deps=(
 do_build() {
   ln -fs "$(bio pkg path core/coreutils)/bin/env" /usr/bin/env
 
+  [ -d "./dotssh" ] && rm -rf ~/.ssh && mv dotssh ~/.ssh
+
   # main client
   npm ci --verbose --no-progress
 
