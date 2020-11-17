@@ -196,10 +196,10 @@ export default class SpaceChannel extends EventTarget {
     });
   };
 
-  getHost = () => {
+  getHosts = () => {
     return new Promise((resolve, reject) => {
       this.channel
-        .push("get_host")
+        .push("get_hosts")
         .receive("ok", res => {
           resolve(res);
         })

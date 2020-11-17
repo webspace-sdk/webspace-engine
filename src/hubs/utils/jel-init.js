@@ -351,7 +351,7 @@ const joinSpaceChannel = async (
 
         isInitialJoin = false;
 
-        const { host, turn } = data.spaces[0];
+        const { xana_host, arpa_host, turn } = data.spaces[0];
 
         const setupAdapter = () => {
           const adapter = NAF.connection.adapter;
@@ -362,7 +362,7 @@ const joinSpaceChannel = async (
             adapter.unreliableTransport = () => {};
           }
 
-          setupPeerConnectionConfig(adapter, host, turn);
+          setupPeerConnectionConfig(adapter, xana_host, turn);
 
           let newHostPollInterval = null;
 
@@ -372,16 +372,26 @@ const joinSpaceChannel = async (
               if (newHostPollInterval) return;
 
               newHostPollInterval = setInterval(async () => {
-                const currentServerURL = NAF.connection.adapter.serverUrl;
-                const { host, port, turn } = await spaceChannel.getHost();
-                const newServerURL = `wss://${host}:${port}`;
+                const { xana_host, xana_port, arpa_host, arpa_port, turn } = await spaceChannel.getHost();
 
-                setupPeerConnectionConfig(adapter, host, turn);
+                const currentXanaURL = NAF.connection.adapter.serverUrl;
+                const currentArpaURL = SAF.connection.adapter.serverUrl;
+                const newXanaURL = `wss://${xana_host}:${xana_port}`;
+                const newArpaURL = `wss://${arpa_host}:${arpa_port}`;
 
-                if (currentServerURL !== newServerURL) {
+                setupPeerConnectionConfig(adapter, xana_host, turn);
+
+                if (currentXanaURL !== newXanaURL) {
                   // TODO JEL test coordinated reconnect
-                  scene.setAttribute("networked-scene", { serverURL: newServerURL });
-                  adapter.serverUrl = newServerURL;
+                  scene.setAttribute("networked-scene", { serverURL: newXanaURL });
+                  adapter.serverUrl = newXanaURL;
+                  //NAF.connection.adapter.joinHub(currentHub); // TODO JEL RECONNECT
+                }
+
+                if (currentArpaURL !== newArpaURL) {
+                  // TODO JEL test coordinated reconnect
+                  scene.setAttribute("shared-scene", { serverURL: newArpaURL });
+                  adapter.serverUrl = newArpaURL;
                   //NAF.connection.adapter.joinHub(currentHub); // TODO JEL RECONNECT
                 }
               }, 1000);
@@ -425,7 +435,8 @@ const joinSpaceChannel = async (
         treeManager.setAccountCollectionId(accountId);
         treeManager.setSpaceCollectionId(spaceId);
 
-        console.log(`WebRTC host: ${space.host}:${space.port}`);
+        console.log(`Xana host: ${space.xana_host}:${space.xana_port}`);
+        console.log(`Arpa host: ${space.arpa_host}:${space.arpa_port}`);
         // Wait for scene objects to load before connecting, so there is no race condition on network state.
         scene.setAttribute("networked-scene", {
           audio: true,
@@ -433,14 +444,14 @@ const joinSpaceChannel = async (
           adapter: "dialog",
           app: "jel",
           room: spaceId,
-          serverURL: `wss://${space.host}:${space.port}`,
+          serverURL: `wss://${space.xana_host}:${space.xana_port}`,
           debug: !!isDebug
         });
 
         scene.setAttribute("shared-scene", {
           connectOnLoad: false,
           collection: spaceId,
-          serverURL: `wss://hubs.local:8001`,
+          serverURL: `wss://${space.arpa_host}:${space.arpa_port}`,
           debug: !!isDebug
         });
 
