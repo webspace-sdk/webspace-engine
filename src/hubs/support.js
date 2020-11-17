@@ -11,7 +11,7 @@ import { detectOS } from "detect-browser";
 import { FormattedMessage } from "react-intl";
 import { WrappedIntlProvider } from "./react-components/wrapped-intl-provider";
 
-import styles from "./assets/stylesheets/support.scss";
+import styles from "../assets/hubs/stylesheets/support.scss";
 import configs from "./utils/configs";
 
 const SHORTHAND_INITIALIZER = "var foo = 'bar'; var baz = { foo };";

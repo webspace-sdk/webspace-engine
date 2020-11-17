@@ -2,7 +2,7 @@ import "./utils/configs";
 import { getAbsoluteHref } from "./utils/media-url-utils";
 import { spawnChatMessage } from "./react-components/chat-message";
 import { SOUND_QUACK, SOUND_SPECIAL_QUACK } from "./systems/sound-effects-system";
-import ducky from "./assets/models/DuckyMesh.glb";
+import ducky from "../assets/hubs/models/DuckyMesh.glb";
 
 let uiRoot;
 // Handles user-entered messages
