@@ -1,7 +1,7 @@
 import "./hubs/webxr-bypass-hacks";
 import "./hubs/utils/theme";
 import "./hubs/utils/configs";
-import "./hubs/assets/stylesheets/link.scss";
+import "./assets/hubs/stylesheets/link.scss";
 import "aframe";
 import React from "react";
 import ReactDOM from "react-dom";

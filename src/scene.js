@@ -4,7 +4,7 @@ import "./hubs/utils/configs";
 
 console.log(`Hubs version: ${process.env.BUILD_VERSION || "?"}`);
 
-import "./hubs/assets/stylesheets/scene.scss";
+import "./assets/hubs/stylesheets/scene.scss";
 
 import "aframe";
 import "./hubs/utils/logging";

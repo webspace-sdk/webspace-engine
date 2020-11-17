@@ -6,8 +6,8 @@ import { isInQuillEditor } from "./jel/utils/quill-utils";
 
 console.log(`App version: ${process.env.BUILD_VERSION || "?"}`);
 
-import "./hubs/assets/stylesheets/hub.scss";
-import initialBatchImage from "./hubs/assets/images/warning_icon.png";
+import "./assets/hubs/stylesheets/hub.scss";
+import initialBatchImage from "./assets/hubs/images/warning_icon.png";
 
 import "aframe";
 import "./hubs/utils/logging";
@@ -102,7 +102,7 @@ import "./hubs/components/inspect-button";
 import "./hubs/components/set-max-resolution";
 import "./hubs/components/avatar-audio-source";
 import { SOUND_QUACK, SOUND_SPECIAL_QUACK } from "./hubs/systems/sound-effects-system";
-import ducky from "./hubs/assets/models/DuckyMesh.glb";
+import ducky from "./assets/hubs/models/DuckyMesh.glb";
 import { getAbsoluteHref } from "./hubs/utils/media-url-utils";
 
 import ReactDOM from "react-dom";
