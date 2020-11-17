@@ -6,7 +6,7 @@ import classNames from "classnames";
 import configs from "../utils/configs";
 import IfFeature from "./if-feature";
 import DialogContainer from "./dialog-container.js";
-import styles from "../assets/stylesheets/oauth-dialog.scss";
+import styles from "../../assets/hubs/stylesheets/oauth-dialog.scss";
 
 export default class OAuthDialog extends Component {
   static propTypes = {

@@ -1,5 +1,5 @@
 import hljs from "highlight.js/lib/core";
-import "../assets/stylesheets/quill-pool.scss";
+import "../../assets/jel/stylesheets/quill-pool.scss";
 import javascript from "highlight.js/lib/languages/javascript";
 hljs.registerLanguage("javascript", javascript);
 import "highlight.js/styles/github.css";
@@ -10,8 +10,8 @@ hljs.configure({
 });
 
 import Quill from "quill";
-import styles from "../assets/stylesheets/text-editor.scss";
-import sharedStyles from "../assets/stylesheets/shared.scss";
+import styles from "../../assets/jel/stylesheets/text-editor.scss";
+import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 export const EDITOR_WIDTH = 600;
 export const EDITOR_HEIGHT = Math.floor(EDITOR_WIDTH * 0.5625);
 

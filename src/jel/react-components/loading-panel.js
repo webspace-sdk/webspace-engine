@@ -1,9 +1,9 @@
 import React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import jelLoadingSrc from "../assets/images/jel-loading.svg";
-import jelLoadingShadowSrc from "../assets/images/jel-loading-shadow.svg";
-import "../assets/stylesheets/shared.scss";
+import jelLoadingSrc from "../../assets/jel/images/jel-loading.svg";
+import jelLoadingShadowSrc from "../../assets/jel/images/jel-loading-shadow.svg";
+import "../../assets/jel/stylesheets/shared.scss";
 
 const LoadingPanelElement = styled.div`
   position: absolute;

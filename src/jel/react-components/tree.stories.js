@@ -1,14 +1,14 @@
 import React from "react";
 import Tree from "rc-tree";
-import "../assets/stylesheets/hub-tree.scss";
-import sharedStyles from "../assets/stylesheets/shared.scss";
-import trashTreeStyles from "../assets/stylesheets/hub-trash-tree.scss";
+import "../../assets/jel/stylesheets/hub-tree.scss";
+import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
+import trashTreeStyles from "../../assets/jel/stylesheets/hub-trash-tree.scss";
 import HubNodeTitle from "./hub-node-title";
 import HubTrashNodeTitle from "./hub-trash-node-title";
 import classNames from "classnames";
 import PanelSectionHeader from "./panel-section-header";
 import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
-import trashIcon from "../assets/images/icons/trash.svgi";
+import trashIcon from "../../assets/jel/images/icons/trash.svgi";
 import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
 
 const metadata = new AtomMetadata(ATOM_TYPES.HUB);

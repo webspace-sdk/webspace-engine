@@ -71,14 +71,14 @@ export default class MicLevelWidget extends Component {
         )}
         {this.props.hasAudioTrack && !this.props.muteOnEntry ? (
           <img
-            src="../assets/images/mic_level.png"
-            srcSet="../assets/images/mic_level@2x.png 2x"
+            src="../../assets/hubs/images/mic_level.png"
+            srcSet="../../assets/hubs/images/mic_level@2x.png 2x"
             className="audio-setup-panel__levels__icon-part"
           />
         ) : (
           <img
-            src="../assets/images/mic_denied.png"
-            srcSet="../assets/images/mic_denied@2x.png 2x"
+            src="../../assets/hubs/images/mic_denied.png"
+            srcSet="../../assets/hubs/images/mic_denied@2x.png 2x"
             className="audio-setup-panel__levels__icon-part"
           />
         )}

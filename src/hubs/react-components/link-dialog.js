@@ -4,10 +4,10 @@ import classNames from "classnames";
 import { FormattedMessage } from "react-intl";
 
 import configs from "../utils/configs";
-import LinkDialogHeader from "../assets/images/link_dialog_header.svg";
+import LinkDialogHeader from "../../assets/hubs/images/link_dialog_header.svg";
 import { WithHoverSound } from "./wrap-with-audio";
 
-import styles from "../assets/stylesheets/link-dialog.scss";
+import styles from "../../assets/hubs/stylesheets/link-dialog.scss";
 
 export default class LinkDialog extends Component {
   static propTypes = {

@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { FormattedMessage } from "react-intl";
 
 import configs from "../utils/configs";
-import styles from "../assets/stylesheets/preload-overlay.scss";
+import styles from "../../assets/hubs/stylesheets/preload-overlay.scss";
 
 const isMobile = AFRAME.utils.device.isMobile();
 

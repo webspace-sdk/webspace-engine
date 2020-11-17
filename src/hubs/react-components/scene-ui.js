@@ -6,7 +6,7 @@ import { WrappedIntlProvider } from ".//wrapped-intl-provider";
 
 import configs from "../utils/configs";
 import IfFeature from "./if-feature";
-import styles from "../assets/stylesheets/scene-ui.scss";
+import styles from "../../assets/hubs/stylesheets/scene-ui.scss";
 import { createAndRedirectToNewHub, getReticulumFetchUrl } from "../utils/phoenix-utils";
 import { WithHoverSound } from "./wrap-with-audio";
 import CreateRoomDialog from "./create-room-dialog.js";
@@ -205,7 +205,7 @@ class SceneUI extends Component {
               </IfFeature>
               <WithHoverSound>
                 <a href={tweetLink} rel="noopener noreferrer" target="_blank" className={styles.tweetButton}>
-                  <img src="../assets/images/twitter.svg" />
+                  <img src="../../assets/hubs/images/twitter.svg" />
                   <div>
                     <FormattedMessage id="scene.tweet_button" />
                   </div>

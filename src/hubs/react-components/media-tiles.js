@@ -17,7 +17,7 @@ import { faUsers } from "@fortawesome/free-solid-svg-icons/faUsers";
 import { faStar } from "@fortawesome/free-solid-svg-icons/faStar";
 
 import IfFeature from "./if-feature";
-import styles from "../assets/stylesheets/media-browser.scss";
+import styles from "../../assets/hubs/stylesheets/media-browser.scss";
 import { proxiedUrlFor, scaledThumbnailUrlFor } from "../utils/media-url-utils";
 import StateLink from "./state-link";
 import { remixAvatar } from "../utils/avatar-utils";

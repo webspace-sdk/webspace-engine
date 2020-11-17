@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { injectIntl, FormattedMessage } from "react-intl";
 
 import DialogContainer from "./dialog-container.js";
-import styles from "../assets/stylesheets/room-info-dialog.scss";
+import styles from "../../assets/hubs/stylesheets/room-info-dialog.scss";
 import { scaledThumbnailUrlFor } from "../utils/media-url-utils";
 import { allowDisplayOfSceneLink } from "../utils/scene-url-utils";
 

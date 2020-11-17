@@ -4,7 +4,7 @@ import cx from "classnames";
 import { FormattedMessage } from "react-intl";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../utils/focus-utils";
 
-import styles from "../assets/stylesheets/room-settings-dialog.scss";
+import styles from "../../assets/hubs/stylesheets/room-settings-dialog.scss";
 import DialogContainer from "./dialog-container";
 import configs from "../utils/configs";
 

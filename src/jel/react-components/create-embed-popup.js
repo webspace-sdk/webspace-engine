@@ -3,7 +3,7 @@ import React, { forwardRef } from "react";
 import ReactDOM from "react-dom";
 import CreateEmbedInputPanel from "./create-embed-input-panel";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
-import sharedStyles from "../assets/stylesheets/shared.scss";
+import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));

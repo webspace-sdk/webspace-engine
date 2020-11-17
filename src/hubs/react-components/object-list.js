@@ -2,9 +2,9 @@ import React, { Component } from "react";
 import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
 import classNames from "classnames";
-import rootStyles from "../assets/stylesheets/ui-root.scss";
-import objectListStyles from "../assets/stylesheets/object-list-styles.scss";
-import styles from "../assets/stylesheets/presence-list.scss";
+import rootStyles from "../../assets/hubs/stylesheets/ui-root.scss";
+import objectListStyles from "../../assets/hubs/stylesheets/object-list-styles.scss";
+import styles from "../../assets/hubs/stylesheets/presence-list.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCubes } from "@fortawesome/free-solid-svg-icons/faCubes";
 import {

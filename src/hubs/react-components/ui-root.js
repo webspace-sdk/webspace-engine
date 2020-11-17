@@ -10,9 +10,9 @@ import IfFeature from "./if-feature";
 import UnlessFeature from "./unless-feature";
 import { VR_DEVICE_AVAILABILITY } from "../utils/vr-caps-detect";
 import { canShare } from "../utils/share";
-import styles from "../assets/stylesheets/ui-root.scss";
-import entryStyles from "../assets/stylesheets/entry.scss";
-import inviteStyles from "../assets/stylesheets/invite-dialog.scss";
+import styles from "../../assets/hubs/stylesheets/ui-root.scss";
+import entryStyles from "../../assets/hubs/stylesheets/entry.scss";
+import inviteStyles from "../../assets/hubs/stylesheets/invite-dialog.scss";
 import { ReactAudioContext } from "./wrap-with-audio";
 import { pushHistoryState, popToBeginningOfHubHistory, navigateToPriorPage, sluglessPath } from "../utils/history";
 import StateRoute from "./state-route.js";
@@ -1200,11 +1200,11 @@ class UIRoot extends Component {
           <div className="mic-grant-panel__button-container">
             {granted ? (
               <button autoFocus className="mic-grant-panel__button" onClick={this.onMicGrantButton}>
-                <img src="../assets/images/mic_granted.png" srcSet="../assets/images/mic_granted@2x.png 2x" />
+                <img src="../../assets/hubs/images/mic_granted.png" srcSet="../../assets/hubs/images/mic_granted@2x.png 2x" />
               </button>
             ) : (
               <button autoFocus className="mic-grant-panel__button" onClick={this.onMicGrantButton}>
-                <img src="../assets/images/mic_denied.png" srcSet="../assets/images/mic_denied@2x.png 2x" />
+                <img src="../../assets/hubs/images/mic_denied.png" srcSet="../../assets/hubs/images/mic_denied@2x.png 2x" />
               </button>
             )}
           </div>
@@ -1266,13 +1266,13 @@ class UIRoot extends Component {
               </select>
               <img
                 className="audio-setup-panel__device-chooser__mic-icon"
-                src="../assets/images/mic_small.png"
-                srcSet="../assets/images/mic_small@2x.png 2x"
+                src="../../assets/hubs/images/mic_small.png"
+                srcSet="../../assets/hubs/images/mic_small@2x.png 2x"
               />
               <img
                 className="audio-setup-panel__device-chooser__dropdown-arrow"
-                src="../assets/images/dropdown_arrow.png"
-                srcSet="../assets/images/dropdown_arrow@2x.png 2x"
+                src="../../assets/hubs/images/dropdown_arrow.png"
+                srcSet="../../assets/hubs/images/dropdown_arrow@2x.png 2x"
               />
             </div>
           ) : (
@@ -1281,8 +1281,8 @@ class UIRoot extends Component {
           {this.shouldShowHmdMicWarning() && (
             <div className="audio-setup-panel__hmd-mic-warning">
               <img
-                src="../assets/images/warning_icon.png"
-                srcSet="../assets/images/warning_icon@2x.png 2x"
+                src="../../assets/hubs/images/warning_icon.png"
+                srcSet="../../assets/hubs/images/warning_icon@2x.png 2x"
                 className="audio-setup-panel__hmd-mic-warning__icon"
               />
               <span className="audio-setup-panel__hmd-mic-warning__label">

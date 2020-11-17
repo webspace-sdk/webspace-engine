@@ -11,7 +11,7 @@ import { getMessages } from "../utils/i18n";
 import { share, canShare } from "../utils/share";
 
 import { WithHoverSound } from "./wrap-with-audio";
-import styles from "../assets/stylesheets/invite-dialog.scss";
+import styles from "../../assets/hubs/stylesheets/invite-dialog.scss";
 
 function pad(num, size) {
   let s = `${num}`;

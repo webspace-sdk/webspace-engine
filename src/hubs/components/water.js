@@ -1,6 +1,6 @@
 import { Layers } from "./layers";
 import "../../vendor/Water";
-import waterNormalMap from "../assets/waternormals.jpg";
+import waterNormalMap from "../../assets/hubs/waternormals.jpg";
 
 /**
  * @author jbouny / https://github.com/jbouny

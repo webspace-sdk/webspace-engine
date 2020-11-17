@@ -5,7 +5,7 @@ import SpaceNodeIcon from "./space-node-icon";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { useTreeDropHandler, useTreeData, useScrollToSelectedTreeNode } from "../utils/tree-utils";
-import "../assets/stylesheets/space-tree.scss";
+import "../../assets/jel/stylesheets/space-tree.scss";
 
 function SpaceTree({ treeManager, history, space, memberships }) {
   const [spaceTreeData, setSpaceTreeData] = useState([]);

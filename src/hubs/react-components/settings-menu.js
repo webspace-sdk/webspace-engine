@@ -22,8 +22,8 @@ import { resetTips } from "../systems/tips";
 import { showFullScreenIfAvailable } from "../utils/fullscreen";
 import LeaveRoomDialog from "./leave-room-dialog.js";
 
-import styles from "../assets/stylesheets/settings-menu.scss";
-import rootStyles from "../assets/stylesheets/ui-root.scss";
+import styles from "../../assets/hubs/stylesheets/settings-menu.scss";
+import rootStyles from "../../assets/hubs/stylesheets/ui-root.scss";
 
 export default class SettingsMenu extends Component {
   static propTypes = {

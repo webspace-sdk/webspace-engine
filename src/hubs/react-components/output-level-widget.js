@@ -2,10 +2,10 @@ import React, { Component } from "react";
 import { FormattedMessage } from "react-intl";
 import { WithHoverSound } from "./wrap-with-audio";
 
-import webmTone from "../assets/sfx/tone.webm";
-import mp3Tone from "../assets/sfx/tone.mp3";
-import oggTone from "../assets/sfx/tone.ogg";
-import wavTone from "../assets/sfx/tone.wav";
+import webmTone from "../../assets/hubs/sfx/tone.webm";
+import mp3Tone from "../../assets/hubs/sfx/tone.mp3";
+import oggTone from "../../assets/hubs/sfx/tone.ogg";
+import wavTone from "../../assets/hubs/sfx/tone.wav";
 
 export default class OutputLevelWidget extends Component {
   state = {
@@ -54,8 +54,8 @@ export default class OutputLevelWidget extends Component {
       <WithHoverSound>
         <div className="audio-setup-panel__levels__icon_clickable" onClick={this.playTestTone}>
           <img
-            src="../assets/images/speaker_level.png"
-            srcSet="../assets/images/speaker_level@2x.png 2x"
+            src="../../assets/hubs/images/speaker_level.png"
+            srcSet="../../assets/hubs/images/speaker_level@2x.png 2x"
             className="audio-setup-panel__levels__icon-part"
           />
           <div className={iconClass}>

@@ -4,7 +4,7 @@ import { FormattedMessage } from "react-intl";
 import cx from "classnames";
 
 import IfFeature from "./if-feature";
-import styles from "../assets/stylesheets/change-scene-dialog.scss";
+import styles from "../../assets/hubs/stylesheets/change-scene-dialog.scss";
 import DialogContainer from "./dialog-container.js";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../utils/focus-utils";
 import { getMessages } from "../utils/i18n";

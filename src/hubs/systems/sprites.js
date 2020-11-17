@@ -1,11 +1,11 @@
 /* global AFRAME THREE */
 
 // See doc/spritesheet-generation.md for information about this spritesheet
-import spritesheetAction from "../assets/images/spritesheets/sprite-system-action-spritesheet.json";
-import spritesheetNotice from "../assets/images/spritesheets/sprite-system-notice-spritesheet.json";
+import spritesheetAction from "../../assets/hubs/images/spritesheets/sprite-system-action-spritesheet.json";
+import spritesheetNotice from "../../assets/hubs/images/spritesheets/sprite-system-notice-spritesheet.json";
 import { createImageTexture } from "../utils/media-utils";
-import spritesheetActionPng from "../assets/images/spritesheets/sprite-system-action-spritesheet.png";
-import spritesheetNoticePng from "../assets/images/spritesheets/sprite-system-notice-spritesheet.png";
+import spritesheetActionPng from "../../assets/hubs/images/spritesheets/sprite-system-action-spritesheet.png";
+import spritesheetNoticePng from "../../assets/hubs/images/spritesheets/sprite-system-notice-spritesheet.png";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
 import vert from "./sprites/sprite.vert";
 import frag from "./sprites/sprite.frag";

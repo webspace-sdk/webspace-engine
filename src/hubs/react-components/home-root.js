@@ -8,20 +8,20 @@ import IfFeature from "./if-feature";
 import UnlessFeature from "./unless-feature";
 import { lang, messages } from "../utils/i18n";
 import { playVideoWithStopOnBlur } from "../utils/video-utils.js";
-import homeVideoWebM from "../assets/video/home.webm";
-import homeVideoMp4 from "../assets/video/home.mp4";
-import discordLogoSmall from "../assets/images/discord-logo-small.png";
+import homeVideoWebM from "../../assets/hubs/video/home.webm";
+import homeVideoMp4 from "../../assets/hubs/video/home.mp4";
+import discordLogoSmall from "../../assets/hubs/images/discord-logo-small.png";
 import classNames from "classnames";
 import { isLocalClient, createAndRedirectToNewHub, connectToReticulum } from "../utils/phoenix-utils";
 import maskEmail from "../utils/mask-email";
 import checkIsMobile from "../utils/is-mobile";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { faCog } from "@fortawesome/free-solid-svg-icons/faCog";
-import mediaBrowserStyles from "../assets/stylesheets/media-browser.scss";
+import mediaBrowserStyles from "../../assets/hubs/stylesheets/media-browser.scss";
 import AuthChannel from "../utils/auth-channel";
 import RoomInfoDialog from "./room-info-dialog.js";
 
-import styles from "../assets/stylesheets/index.scss";
+import styles from "../../assets/hubs/stylesheets/index.scss";
 
 import AuthDialog from "./auth-dialog.js";
 import SignInDialog from "./sign-in-dialog.js";

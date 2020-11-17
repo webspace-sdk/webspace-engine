@@ -10,7 +10,7 @@ import { disposeNode, findNode } from "../utils/three-utils";
 import { ensureAvatarMaterial, MAT_NAME } from "../utils/avatar-utils";
 import { createImageBitmap, disposeImageBitmap } from "../utils/image-bitmap-utils";
 import { proxiedUrlFor } from "../utils/media-url-utils";
-import styles from "../assets/stylesheets/avatar-preview.scss";
+import styles from "../../assets/hubs/stylesheets/avatar-preview.scss";
 
 const TEXTURE_PROPS = {
   base_map: ["map"],
@@ -339,8 +339,8 @@ class AvatarPreview extends Component {
           (this.state.error && !this.state.loading) && (
             <div className="error">
               <img
-                src="../assets/images/warning_icon.png"
-                srcSet="../assets/images/warning_icon@2x.png 2x"
+                src="../../assets/hubs/images/warning_icon.png"
+                srcSet="../../assets/hubs/images/warning_icon@2x.png 2x"
                 className="error-icon"
               />
               <FormattedMessage id="avatar-preview.loading-failed" />

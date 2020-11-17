@@ -18,7 +18,7 @@ import {
 import { addAnimationComponents } from "../utils/animation";
 import qsTruthy from "../utils/qs_truthy";
 
-import loadingObjectSrc from "../assets/models/LoadingObject_Atom.glb";
+import loadingObjectSrc from "../../assets/hubs/models/LoadingObject_Atom.glb";
 import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
 import { loadModel } from "./gltf-model-plus";
 import { cloneObject3D, setMatrixWorld, disposeExistingMesh } from "../utils/three-utils";

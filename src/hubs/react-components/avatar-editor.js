@@ -14,7 +14,7 @@ import { upload } from "../utils/media-utils";
 import { ensureAvatarMaterial } from "../utils/avatar-utils";
 
 import AvatarPreview from "./avatar-preview";
-import styles from "../assets/stylesheets/avatar-editor.scss";
+import styles from "../../assets/hubs/stylesheets/avatar-editor.scss";
 
 const AVATARS_API = "/api/v1/avatars";
 
@@ -342,8 +342,8 @@ export default class AvatarEditor extends Component {
       </select>
       <img
         className="arrow"
-        src="../assets/images/dropdown_arrow.png"
-        srcSet="../assets/images/dropdown_arrow@2x.png 2x"
+        src="../../assets/hubs/images/dropdown_arrow.png"
+        srcSet="../../assets/hubs/images/dropdown_arrow@2x.png 2x"
       />
     </div>
   );

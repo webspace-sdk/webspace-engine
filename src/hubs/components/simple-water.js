@@ -1,5 +1,5 @@
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise";
-import waterNormalsUrl from "../assets/waternormals.jpg";
+import waterNormalsUrl from "../../assets/hubs/waternormals.jpg";
 
 const {
   Mesh,

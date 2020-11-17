@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
-import styles from "../assets/stylesheets/presence-log.scss";
+import styles from "../../assets/hubs/stylesheets/presence-log.scss";
 import classNames from "classnames";
 import Linkify from "react-linkify";
 import { toArray as toEmojis } from "react-emoji-render";

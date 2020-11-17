@@ -1,5 +1,5 @@
 import { fetchReticulumAuthenticated } from "./phoenix-utils";
-import defaultAvatar from "../assets/models/DefaultAvatar.glb";
+import defaultAvatar from "../../assets/hubs/models/DefaultAvatar.glb";
 
 const names = [
   "Baers-Pochard",

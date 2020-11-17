@@ -6,7 +6,7 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { VOXLoader } from "../objects/VOXLoader";
 import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
-import grassVoxSrc from "!!url-loader!../assets/models/grass1.vox";
+import grassVoxSrc from "!!url-loader!../../assets/jel/models/grass1.vox";
 import { RENDER_ORDER } from "../../hubs/constants";
 import configs from "../../hubs/utils/configs";
 import { Layers } from "../../hubs/components/layers";

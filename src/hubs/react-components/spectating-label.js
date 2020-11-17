@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import styles from "../assets/stylesheets/spectating-label.scss";
+import styles from "../../assets/hubs/stylesheets/spectating-label.scss";
 import { FormattedMessage } from "react-intl";
 
 export class SpectatingLabel extends Component {

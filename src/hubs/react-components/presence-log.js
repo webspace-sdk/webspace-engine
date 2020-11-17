@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import styles from "../assets/stylesheets/presence-log.scss";
+import styles from "../../assets/hubs/stylesheets/presence-log.scss";
 import classNames from "classnames";
 import { FormattedMessage } from "react-intl";
 

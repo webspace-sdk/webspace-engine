@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 import NewUI from "../react-components/new-ui";
 import Store from "../../storage/store";
 
-import "../assets/stylesheets/new.scss";
+import "../../assets/jel/stylesheets/new.scss";
 
 const store = new Store();
 window.APP = { store };

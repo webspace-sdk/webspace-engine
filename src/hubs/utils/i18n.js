@@ -1,6 +1,6 @@
 import configs from "./configs";
-import { AVAILABLE_LOCALES, FALLBACK_LOCALES } from "../assets/locales/locale_configs";
-import defaultLocaleData from "../../jel/assets/locales/en.json";
+import { AVAILABLE_LOCALES, FALLBACK_LOCALES } from "../../assets/hubs/locales/locale_configs";
+import defaultLocaleData from "../../assets/jel/locales/en.json";
 
 const DEFAULT_LOCALE = "en";
 const cachedMessages = new Map();
@@ -56,7 +56,7 @@ function updateLocale() {
       _locale = locale;
       document.body.dispatchEvent(new CustomEvent("locale-updated"));
     } else {
-      import(`../assets/locales/${locale}.json`).then(({ default: localeData }) => {
+      import(`../../assets/hubs/locales/${locale}.json`).then(({ default: localeData }) => {
         _locale = locale;
         _localeData = localeData;
         document.body.dispatchEvent(new CustomEvent("locale-updated"));

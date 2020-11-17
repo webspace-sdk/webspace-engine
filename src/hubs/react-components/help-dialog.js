@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import DialogContainer from "./dialog-container.js";
 import PropTypes from "prop-types";
-import styles from "../assets/stylesheets/help-dialog.scss";
+import styles from "../../assets/hubs/stylesheets/help-dialog.scss";
 import configs from "../utils/configs";
 import { resetTips } from "../systems/tips";
 

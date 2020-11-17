@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import oStyles from "../assets/stylesheets/object-info-dialog.scss";
+import oStyles from "../../assets/hubs/stylesheets/object-info-dialog.scss";
 
 function getWidth(ref) {
   return (ref && ref.current && parseInt(window.getComputedStyle(ref.current).width)) || 0;

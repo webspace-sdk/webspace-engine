@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { FormattedMessage } from "react-intl";
 
-import styles from "../assets/stylesheets/promote-client-dialog.scss";
+import styles from "../../assets/hubs/stylesheets/promote-client-dialog.scss";
 import DialogContainer from "./dialog-container";
 
 export default class PromoteClientDialog extends Component {

@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
-import styles from "../assets/stylesheets/message-entry.scss";
+import styles from "../../assets/hubs/stylesheets/message-entry.scss";
 import { WithHoverSound } from "./wrap-with-audio";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../utils/focus-utils";
-import sendMessageIcon from "../assets/images/send_message.svgi";
+import sendMessageIcon from "../../assets/hubs/images/send_message.svgi";
 import { InlineSVGButton } from "./svgi";
 
 class LobbyChatBox extends Component {

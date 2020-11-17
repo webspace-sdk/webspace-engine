@@ -2,12 +2,12 @@ import React from "react";
 import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
 
-import MobileScreenEntryImg from "../assets/images/mobile_screen_entry.svgi";
-import DesktopScreenEntryImg from "../assets/images/desktop_screen_entry.svgi";
-import GenericVREntryImg from "../assets/images/generic_vr_entry.svgi";
-import GearVREntryImg from "../assets/images/gearvr_entry.svgi";
-import DaydreamEntryImg from "../assets/images/daydream_entry.svgi";
-import styles from "../assets/stylesheets/entry.scss";
+import MobileScreenEntryImg from "../../assets/hubs/images/mobile_screen_entry.svgi";
+import DesktopScreenEntryImg from "../../assets/hubs/images/desktop_screen_entry.svgi";
+import GenericVREntryImg from "../../assets/hubs/images/generic_vr_entry.svgi";
+import GearVREntryImg from "../../assets/hubs/images/gearvr_entry.svgi";
+import DaydreamEntryImg from "../../assets/hubs/images/daydream_entry.svgi";
+import styles from "../../assets/hubs/stylesheets/entry.scss";
 import { WithHoverSound } from "./wrap-with-audio";
 import cx from "classnames";
 import { InlineSVG } from "./svgi";

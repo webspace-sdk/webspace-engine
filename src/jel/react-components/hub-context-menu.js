@@ -1,9 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
-import sharedStyles from "../assets/stylesheets/shared.scss";
+import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import PopupMenu, { PopupMenuItem } from "./popup-menu";
-import trashIcon from "../assets/images/icons/trash.svgi";
+import trashIcon from "../../assets/jel/images/icons/trash.svgi";
 import { FormattedMessage } from "react-intl";
 
 let popupRoot = null;

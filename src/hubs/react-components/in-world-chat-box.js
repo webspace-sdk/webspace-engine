@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
-import styles from "../assets/stylesheets/message-entry.scss";
+import styles from "../../assets/hubs/stylesheets/message-entry.scss";
 import ChatCommandHelp from "./chat-command-help";
-import sendMessageIcon from "../assets/images/send_message.svgi";
-import spawnMessageIcon from "../assets/images/spawn_message.svgi";
+import sendMessageIcon from "../../assets/hubs/images/send_message.svgi";
+import spawnMessageIcon from "../../assets/hubs/images/spawn_message.svgi";
 import { faCamera } from "@fortawesome/free-solid-svg-icons/faCamera";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

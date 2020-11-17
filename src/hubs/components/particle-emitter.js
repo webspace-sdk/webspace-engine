@@ -2,7 +2,7 @@ import { ParticleEmitter } from "lib-hubs/packages/three-particle-emitter/lib/es
 import { textureLoader } from "../utils/media-utils";
 import { resolveUrl } from "../utils/media-utils";
 import { proxiedUrlFor } from "../utils/media-url-utils";
-import defaultSrcImage from "../assets/images/warning_icon.png";
+import defaultSrcImage from "../../assets/hubs/images/warning_icon.png";
 
 const defaultSrcUrl = new URL(defaultSrcImage, window.location.href).href;
 

@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import configs from "../utils/configs";
 
 import { getMessages } from "../utils/i18n";
-import styles from "../assets/stylesheets/presence-log.scss";
+import styles from "../../assets/hubs/stylesheets/presence-log.scss";
 import classNames from "classnames";
 
 import { share } from "../utils/share";

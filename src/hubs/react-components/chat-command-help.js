@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import styles from "../assets/stylesheets/chat-command-help.scss";
+import styles from "../../assets/hubs/stylesheets/chat-command-help.scss";
 import classNames from "classnames";
 import { FormattedMessage } from "react-intl";
 import qsTruthy from "../utils/qs_truthy";

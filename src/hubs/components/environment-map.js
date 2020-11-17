@@ -1,10 +1,10 @@
 import { forEachMaterial } from "../utils/material-utils";
-import cubeMapPosX from "../assets/images/cubemap/posx.jpg";
-import cubeMapNegX from "../assets/images/cubemap/negx.jpg";
-import cubeMapPosY from "../assets/images/cubemap/posy.jpg";
-import cubeMapNegY from "../assets/images/cubemap/negy.jpg";
-import cubeMapPosZ from "../assets/images/cubemap/posz.jpg";
-import cubeMapNegZ from "../assets/images/cubemap/negz.jpg";
+import cubeMapPosX from "../../assets/hubs/images/cubemap/posx.jpg";
+import cubeMapNegX from "../../assets/hubs/images/cubemap/negx.jpg";
+import cubeMapPosY from "../../assets/hubs/images/cubemap/posy.jpg";
+import cubeMapNegY from "../../assets/hubs/images/cubemap/negy.jpg";
+import cubeMapPosZ from "../../assets/hubs/images/cubemap/posz.jpg";
+import cubeMapNegZ from "../../assets/hubs/images/cubemap/negz.jpg";
 
 export async function createDefaultEnvironmentMap() {
   const urls = [cubeMapPosX, cubeMapNegX, cubeMapPosY, cubeMapNegY, cubeMapPosZ, cubeMapNegZ];

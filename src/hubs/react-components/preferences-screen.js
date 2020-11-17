@@ -7,7 +7,7 @@ import { faUndo } from "@fortawesome/free-solid-svg-icons/faUndo";
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle";
 import { FormattedMessage } from "react-intl";
 import { WrappedIntlProvider } from "./wrapped-intl-provider";
-import styles from "../assets/stylesheets/preferences-screen.scss";
+import styles from "../../assets/hubs/stylesheets/preferences-screen.scss";
 import { getMessages } from "../utils/i18n";
 
 const isMobile = AFRAME.utils.device.isMobile() || AFRAME.utils.device.isMobileVR();
@@ -240,8 +240,8 @@ class Select extends React.Component {
         <img
           alt="dropdown arrow"
           className={styles.dropdownArrow}
-          src="../assets/images/dropdown_arrow.png"
-          srcSet="../assets/images/dropdown_arrow@2x.png 2x"
+          src="../../assets/hubs/images/dropdown_arrow.png"
+          srcSet="../../assets/hubs/images/dropdown_arrow@2x.png 2x"
         />
       </div>
     );

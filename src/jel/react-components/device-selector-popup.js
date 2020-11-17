@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
-import sharedStyles from "../assets/stylesheets/shared.scss";
-import checkIcon from "../assets/images/icons/check.svgi";
+import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
+import checkIcon from "../../assets/jel/images/icons/check.svgi";
 import PopupPanelMenu, {
   PopupPanelMenuItem,
   PopupPanelMenuSectionHeader,

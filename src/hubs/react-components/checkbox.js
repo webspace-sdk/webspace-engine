@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
-import styles from "../assets/stylesheets/preferences-screen.scss";
+import styles from "../../assets/hubs/stylesheets/preferences-screen.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckSquare } from "@fortawesome/free-solid-svg-icons/faCheckSquare";
 import { faSquare } from "@fortawesome/free-solid-svg-icons/faSquare";

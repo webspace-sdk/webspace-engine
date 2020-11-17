@@ -9,8 +9,8 @@ import {
   getNetworkedEntity
 } from "../../jel/utils/ownership-utils";
 import GIFWorker from "../workers/gifparsing.worker.js";
-import errorImageSrc from "!!url-loader!../assets/images/media-error.gif";
-import audioIcon from "../assets/images/audio.png";
+import errorImageSrc from "!!url-loader!../../assets/hubs/images/media-error.gif";
+import audioIcon from "../../assets/hubs/images/audio.png";
 import { paths } from "../systems/userinput/paths";
 import HLS from "hls.js";
 import { RENDER_ORDER } from "../constants";

@@ -17,7 +17,7 @@ export const ProfileInfoHeader = props => (
     </div>
     <div className="profile-info-header__profile_display_name">
       <WithHoverSound>
-        <img src="../assets/images/account.svg" onClick={props.onClickName} className="profile-info-header__icon" />
+        <img src="../../assets/hubs/images/account.svg" onClick={props.onClickName} className="profile-info-header__icon" />
       </WithHoverSound>
       <WithHoverSound>
         <div onClick={props.onClickName} title={props.name}>

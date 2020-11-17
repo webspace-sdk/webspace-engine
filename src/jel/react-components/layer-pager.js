@@ -2,8 +2,8 @@ import React from "react";
 import PropTypes from "prop-types";
 import { FormattedMessage } from "react-intl";
 import styled from "styled-components";
-import nextPageIconSrc from "../assets/images/icons/next-page.svgi";
-import prevPageIconSrc from "../assets/images/icons/prev-page.svgi";
+import nextPageIconSrc from "../../assets/jel/images/icons/next-page.svgi";
+import prevPageIconSrc from "../../assets/jel/images/icons/prev-page.svgi";
 
 const LayerPagerElement = styled.div`
   display: flex;

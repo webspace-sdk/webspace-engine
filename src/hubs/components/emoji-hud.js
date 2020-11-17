@@ -1,18 +1,18 @@
-import emoji_particle_0 from "../assets/images/emojis/emoji_0.png";
-import emoji_particle_1 from "../assets/images/emojis/emoji_1.png";
-import emoji_particle_2 from "../assets/images/emojis/emoji_2.png";
-import emoji_particle_3 from "../assets/images/emojis/emoji_3.png";
-import emoji_particle_4 from "../assets/images/emojis/emoji_4.png";
-import emoji_particle_5 from "../assets/images/emojis/emoji_5.png";
-import emoji_particle_6 from "../assets/images/emojis/emoji_6.png";
+import emoji_particle_0 from "../../assets/hubs/images/emojis/emoji_0.png";
+import emoji_particle_1 from "../../assets/hubs/images/emojis/emoji_1.png";
+import emoji_particle_2 from "../../assets/hubs/images/emojis/emoji_2.png";
+import emoji_particle_3 from "../../assets/hubs/images/emojis/emoji_3.png";
+import emoji_particle_4 from "../../assets/hubs/images/emojis/emoji_4.png";
+import emoji_particle_5 from "../../assets/hubs/images/emojis/emoji_5.png";
+import emoji_particle_6 from "../../assets/hubs/images/emojis/emoji_6.png";
 
-import emoji_0 from "../assets/models/emojis/emoji_0.glb";
-import emoji_1 from "../assets/models/emojis/emoji_1.glb";
-import emoji_2 from "../assets/models/emojis/emoji_2.glb";
-import emoji_3 from "../assets/models/emojis/emoji_3.glb";
-import emoji_4 from "../assets/models/emojis/emoji_4.glb";
-import emoji_5 from "../assets/models/emojis/emoji_5.glb";
-import emoji_6 from "../assets/models/emojis/emoji_6.glb";
+import emoji_0 from "../../assets/hubs/models/emojis/emoji_0.glb";
+import emoji_1 from "../../assets/hubs/models/emojis/emoji_1.glb";
+import emoji_2 from "../../assets/hubs/models/emojis/emoji_2.glb";
+import emoji_3 from "../../assets/hubs/models/emojis/emoji_3.glb";
+import emoji_4 from "../../assets/hubs/models/emojis/emoji_4.glb";
+import emoji_5 from "../../assets/hubs/models/emojis/emoji_5.glb";
+import emoji_6 from "../../assets/hubs/models/emojis/emoji_6.glb";
 
 import { TYPE } from "three-ammo/constants";
 

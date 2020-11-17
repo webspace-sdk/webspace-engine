@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import styled from "styled-components";
-import "../assets/stylesheets/index.scss";
+import "../../assets/jel/stylesheets/index.scss";
 import Store from "../../hubs/storage/store";
 import { createBrowserHistory } from "history";
 import { connectToReticulum, fetchReticulumAuthenticated } from "../../hubs/utils/phoenix-utils";
@@ -12,8 +12,8 @@ import LoginUI from "../react-components/login-ui";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { createSpace } from "../../hubs/utils/phoenix-utils";
 import { getMessages } from "../../hubs/utils/i18n";
-import grassSrc from "../assets/images/landing-grass.svg";
-import logoSrc from "../assets/images/landing-logo.png";
+import grassSrc from "../../assets/jel/images/landing-grass.svg";
+import logoSrc from "../../assets/jel/images/landing-logo.png";
 import SmallActionButton from "../react-components/small-action-button";
 import DotSpinner from "../react-components/dot-spinner";
 

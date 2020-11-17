@@ -4,7 +4,7 @@ import { FormattedMessage } from "react-intl";
 
 import configs from "../utils/configs";
 import IfFeature from "./if-feature";
-import styles from "../assets/stylesheets/sign-in-dialog.scss";
+import styles from "../../assets/hubs/stylesheets/sign-in-dialog.scss";
 import DialogContainer from "./dialog-container";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../utils/focus-utils";
 

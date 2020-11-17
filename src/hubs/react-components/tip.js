@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { FormattedMessage } from "react-intl";
 import classNames from "classnames";
-import styles from "../assets/stylesheets/tip.scss";
+import styles from "../../assets/hubs/stylesheets/tip.scss";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
 import { handleTipClose } from "../systems/tips.js";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

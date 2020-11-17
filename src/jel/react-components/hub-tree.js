@@ -12,7 +12,7 @@ import {
 } from "../utils/tree-utils";
 import HubNodeTitle from "./hub-node-title";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
-import "../assets/stylesheets/hub-tree.scss";
+import "../../assets/jel/stylesheets/hub-tree.scss";
 
 const EmptyMessage = styled.div`
   margin-left: 16px;

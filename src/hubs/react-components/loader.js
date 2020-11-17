@@ -5,7 +5,7 @@ import { WrappedIntlProvider } from "./wrapped-intl-provider";
 import UnlessFeature from "./unless-feature";
 
 import configs from "../utils/configs";
-import loaderStyles from "../assets/stylesheets/loader.scss";
+import loaderStyles from "../../assets/hubs/stylesheets/loader.scss";
 import { LOADING_EVENTS, LOADED_EVENTS, ERROR_EVENTS } from "../utils/media-utils";
 
 class Loader extends Component {

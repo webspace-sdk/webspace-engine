@@ -5,11 +5,11 @@ import React, { useState, useEffect, forwardRef } from "react";
 import List from "rc-virtual-list";
 import PanelSectionHeader from "./panel-section-header";
 import { outerHeight } from "../utils/layout-utils";
-import styles from "../assets/stylesheets/presence-list.scss";
+import styles from "../../assets/jel/stylesheets/presence-list.scss";
 import { AvatarSwatchBody, AvatarSwatchEyeSrcs, AvatarSwatchVisemeSrcs } from "./avatar-swatch";
 import { rgbToCssRgb } from "../utils/dom-utils";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
-import goToIcon from "../assets/images/icons/go-to.svgi";
+import goToIcon from "../../assets/jel/images/icons/go-to.svgi";
 import Tooltip from "./tooltip";
 import { getMessages } from "../../hubs/utils/i18n";
 

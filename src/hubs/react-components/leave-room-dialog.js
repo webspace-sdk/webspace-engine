@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import DialogContainer from "./dialog-container.js";
-import styles from "../assets/stylesheets/leave-room-dialog.scss";
+import styles from "../../assets/hubs/stylesheets/leave-room-dialog.scss";
 import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
 

@@ -12,7 +12,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import configs from "../utils/configs";
 import IfFeature from "./if-feature";
-import styles from "../assets/stylesheets/media-browser.scss";
+import styles from "../../assets/hubs/stylesheets/media-browser.scss";
 import { pushHistoryPath, pushHistoryState, sluglessPath } from "../utils/history";
 import { SOURCES } from "../storage/media-search-store";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../utils/focus-utils";

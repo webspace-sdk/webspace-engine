@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import DialogContainer from "./dialog-container.js";
-import styles from "../assets/stylesheets/feedback-dialog.scss";
+import styles from "../../assets/hubs/stylesheets/feedback-dialog.scss";
 
 export default class FeedbackDialog extends Component {
   render() {

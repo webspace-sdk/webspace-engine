@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import DialogContainer from "./dialog-container.js";
 import PromoteClientDialog from "./promote-client-dialog.js";
-import styles from "../assets/stylesheets/client-info-dialog.scss";
+import styles from "../../assets/hubs/stylesheets/client-info-dialog.scss";
 import { FormattedMessage } from "react-intl";
 import { sluglessPath } from "../utils/history";
 import { getAvatarThumbnailUrl } from "../utils/avatar-utils";
@@ -149,13 +149,13 @@ export default class ClientInfoDialog extends Component {
                 disabled={!targetIsSignedIn}
                 title={targetIsSignedIn ? "Promote" : `${profile.displayName} is signed out.`}
               >
-                <img className={styles.buttonIcon} src="../assets/images/add-owner.png" />
+                <img className={styles.buttonIcon} src="../../assets/hubs/images/add-owner.png" />
                 <FormattedMessage id="client-info.add-owner" />
               </button>
             )}
             {mayRemoveOwner && (
               <button onClick={() => this.removeOwner()}>
-                <img className={styles.buttonIcon} src="../assets/images/remove-owner.png" />
+                <img className={styles.buttonIcon} src="../../assets/hubs/images/remove-owner.png" />
                 <FormattedMessage id="client-info.remove-owner" />
               </button>
             )}

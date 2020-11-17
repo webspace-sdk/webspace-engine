@@ -1,4 +1,4 @@
-import waterImageSrc from "!!url-loader!../assets/images/water.png";
+import waterImageSrc from "!!url-loader!../../assets/jel/images/water.png";
 import { Layers } from "../../hubs/components/layers";
 import { WORLD_SIZE, WORLD_RADIUS } from "../systems/terrain-system";
 import { RENDER_ORDER } from "../../hubs/constants";

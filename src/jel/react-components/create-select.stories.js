@@ -1,5 +1,5 @@
 import React from "react";
-import "../assets/stylesheets/create-select.scss";
+import "../../assets/jel/stylesheets/create-select.scss";
 import CreateSelect from "./create-select";
 
 export const Basic = () => {

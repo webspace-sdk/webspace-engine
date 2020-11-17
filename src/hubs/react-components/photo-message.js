@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 
 import { getMessages } from "../utils/i18n";
-import styles from "../assets/stylesheets/presence-log.scss";
+import styles from "../../assets/hubs/stylesheets/presence-log.scss";
 import configs from "../utils/configs";
 import classNames from "classnames";
 

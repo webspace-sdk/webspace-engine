@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import styled from "styled-components";
 import PropTypes from "prop-types";
-import sharedStyles from "../assets/stylesheets/shared.scss";
+import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import ColorPicker from "./color-picker";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupPanelMenu from "./popup-panel-menu";
