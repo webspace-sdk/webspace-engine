@@ -113,6 +113,7 @@ const Wrap = styled.div`
   justify-content: center;
   align-items: center;
   height: 100%;
+  background: linear-gradient(180deg, #001409 0%, #00182f 16.67%, #002b53 56.25%, #0068c9 98.44%);
 `;
 
 const Tip = styled.div`
