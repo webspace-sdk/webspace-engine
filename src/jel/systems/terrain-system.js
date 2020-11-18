@@ -581,23 +581,27 @@ export class TerrainSystem {
     // 3 Retries, sometimes lambda times out.
     for (let i = 0; i < 3; i++) {
       try {
-        await new Promise(async (resolve, reject) => {
+        await new Promise((resolve, reject) => {
           try {
-            const res = await fetch(
+            fetch(
               // cache: reload not working, use a hack for now
               // to force avoiding cache
               `https://${configs.TERRA_SERVER}/chunks/${worldType}/${worldSeed}/${chunk.x}/${chunk.z}/1${
                 i === 0 ? "" : `?r=${Math.floor(Math.random() * 10000)}`
               }`
-            );
+            )
+              .then(async res => {
+                if (!loadingChunks.has(key)) return;
+                loadingChunks.delete(key);
 
-            if (!loadingChunks.has(key)) return;
-            loadingChunks.delete(key);
-
-            if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
-            const arr = await res.arrayBuffer();
-            spawningChunks.set(key, new Uint8Array(arr));
-            resolve();
+                if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
+                const arr = await res.arrayBuffer();
+                spawningChunks.set(key, new Uint8Array(arr));
+                resolve();
+              })
+              .catch(() => {
+                reject();
+              });
           } catch (e) {
             reject();
           }
@@ -706,7 +710,7 @@ export class TerrainSystem {
         this.ensureBodiesSpawnedOrFree(x, z);
         this.ensureLayers(x, z);
 
-        this.scene.emit("terrain-chunk-loaded");
+        this.scene.emit("terrain_chunk_loaded");
 
         if (spawningChunks.size === 0 && loadingChunks.size === 0) {
           this.scene.emit("terrain_chunk_loading_complete");

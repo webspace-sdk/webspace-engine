@@ -61,7 +61,7 @@ export class CharacterControllerSystem {
     this.relativeMotion = new THREE.Vector3(0, 0, 0);
     this.nextRelativeMotion = new THREE.Vector3(0, 0, 0);
     this.dXZ = 0;
-    this.scene.addEventListener("terrain-chunk-loaded", () => {
+    this.scene.addEventListener("terrain_chunk_loaded", () => {
       this.navGroup = null;
       this.navNode = null;
     });
