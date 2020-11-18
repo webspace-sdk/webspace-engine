@@ -372,7 +372,7 @@ const joinSpaceChannel = async (
               if (newHostPollInterval) return;
 
               newHostPollInterval = setInterval(async () => {
-                const { xana_host, xana_port, arpa_host, arpa_port, turn } = await spaceChannel.getHost();
+                const { xana_host, xana_port, arpa_host, arpa_port, turn } = await spaceChannel.getHosts();
 
                 const currentXanaURL = NAF.connection.adapter.serverUrl;
                 const currentArpaURL = SAF.connection.adapter.serverUrl;
