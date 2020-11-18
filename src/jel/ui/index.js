@@ -25,6 +25,12 @@ const authChannel = new AuthChannel(store);
 
 window.APP = { store };
 
+const AUTH_RESULT = {
+  OK: 1,
+  FAILED: 2,
+  REDIRECTED: 3
+};
+
 const Panel = styled.div`
   min-width: 400px;
   height: fit-content;
@@ -128,7 +134,7 @@ const SignedIn = styled.div`
   align-items: center;
 `;
 
-async function authenticateAndDidNotRedirect() {
+async function authenticate() {
   const authToken = qs.get("auth_token");
   if (!authToken) return false;
 
@@ -137,15 +143,21 @@ async function authenticateAndDidNotRedirect() {
 
   const authChannel = new AuthChannel(store);
   authChannel.setSocket(await connectToReticulum());
-  const decryptedPayload = await authChannel.verifyAuthentication(authTopic, authToken, authPayload);
+  let decryptedPayload;
+
+  try {
+    decryptedPayload = await authChannel.verifyAuthentication(authTopic, authToken, authPayload);
+  } catch {
+    return AUTH_RESULT.FAILED;
+  }
 
   if (decryptedPayload.post_auth_url) {
     // Original auth request included a URL to redirect to after logging in. (Eg invites.)
     document.location = decryptedPayload.post_auth_url;
-    return true;
+    return AUTH_RESULT.REDIRECTED;
   }
 
-  return false;
+  return AUTH_RESULT.OK;
 }
 
 async function redirectedToLoggedInRoot() {
@@ -171,7 +183,7 @@ async function redirectedToLoggedInRoot() {
   return true;
 }
 
-function JelIndexUI() {
+function JelIndexUI({ authResult }) {
   const [path, setPath] = useState(history.location.pathname);
   const [spaceName, setSpaceName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -195,14 +207,25 @@ function JelIndexUI() {
   const authToken = qs.get("auth_token");
 
   if (authToken) {
-    return (
-      <SignedIn>
-        <FormattedMessage id="home.signin-complete" />
-        <Tip>
-          <FormattedMessage id="home.signin-complete-close" />
-        </Tip>
-      </SignedIn>
-    );
+    if (authResult === AUTH_RESULT.OK) {
+      return (
+        <SignedIn>
+          <FormattedMessage id="home.signin-complete" />
+          <Tip>
+            <FormattedMessage id="home.signin-complete-close" />
+          </Tip>
+        </SignedIn>
+      );
+    } else {
+      return (
+        <SignedIn>
+          <FormattedMessage id="home.signin-failed" />
+          <Tip>
+            <FormattedMessage id="home.signin-failed-close" />
+          </Tip>
+        </SignedIn>
+      );
+    }
   } else if (path.startsWith("/signin")) {
     return <InfoPanel>{signInUI}</InfoPanel>;
   } else if (path.startsWith("/i/")) {
@@ -266,10 +289,11 @@ function JelIndexUI() {
 
 (async () => {
   const hasAuthToken = !!qs.get("auth_token");
+  let authResult;
 
   if (hasAuthToken) {
-    const authDidNotRedirect = await authenticateAndDidNotRedirect();
-    if (!authDidNotRedirect) return;
+    authResult = await authenticate();
+    if (authResult == AUTH_RESULT.REDIRECTED) return;
   } else {
     if (history.location.pathname === "/" || history.location.pathname === "") {
       if (await redirectedToLoggedInRoot()) return;
@@ -282,7 +306,7 @@ function JelIndexUI() {
         <Grass />
         <IndexWrap>
           <Logo src={logoSrc} />
-          <JelIndexUI />
+          <JelIndexUI authResult={authResult} />
         </IndexWrap>
       </Wrap>
     </WrappedIntlProvider>

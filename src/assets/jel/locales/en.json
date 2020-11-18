@@ -151,6 +151,8 @@
   "home.signing-in-tip": "Open the magic link in your email.",
   "home.signin-complete": "You've been signed in.",
   "home.signin-complete-close": "You can close this page and return to Jel.",
+  "home.signin-failed": "This link has expired.",
+  "home.signin-failed-close": "You'll need to send yourself a new magic link.",
   "invite.info": "You've been invited to join a space.",
   "invite.join": "Join"
 }

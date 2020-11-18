@@ -44,7 +44,6 @@ do_build() {
   mv dist/*.html dist/pages
   mv dist/jel.service.js dist/pages
   mv dist/schema.toml dist/pages
-  mv dist/*worklet* dist/assets/js
 }
 
 do_install() {
