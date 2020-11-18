@@ -1,5 +1,5 @@
-import audioForwardWorkletSrc from "worklet-loader!../../jel/worklets/audio-forward-worklet";
-import vadWorkletSrc from "worklet-loader!../../jel/worklets/vad-worklet";
+import audioForwardWorkletSrc from "../../jel/worklets/audio-forward.worklet.js";
+import vadWorkletSrc from "../../jel/worklets/vad.worklet.js";
 import lipSyncWorker from "../../jel/workers/lipsync.worker.js";
 
 // Built via https://github.com/sipavlovic/wasm2js to load in worklet

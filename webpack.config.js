@@ -344,9 +344,7 @@ module.exports = async (env, argv) => {
           test: /\.worklet\.js$/,
           loader: "worklet-loader",
           options: {
-            name: "assets/js/[name]-[hash].js",
-            publicPath: "/assets/js",
-            inline: true
+            name: "[path][name]-[hash].[ext]"
           }
         },
         {
