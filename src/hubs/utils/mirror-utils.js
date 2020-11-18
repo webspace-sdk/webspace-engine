@@ -1,10 +1,12 @@
 import { cloneMedia, closeExistingMediaMirror } from "./media-utils";
 let mirrorTarget;
 export function getCurrentMirroredMedia() {
-  mirrorTarget = mirrorTarget || document.querySelector("#media-mirror-target");
+  // TODO JEL
+  return null;
+  /*mirrorTarget = mirrorTarget || document.querySelector("#media-mirror-target");
   const mirrorEl = mirrorTarget.firstChild;
   const linkedEl = mirrorEl && mirrorEl.components["media-loader"] && mirrorEl.components["media-loader"].data.linkedEl;
-  return linkedEl;
+  return linkedEl;*/
 }
 export async function refreshMediaMirror() {
   const linkedEl = getCurrentMirroredMedia();
