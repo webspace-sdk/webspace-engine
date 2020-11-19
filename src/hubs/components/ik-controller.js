@@ -326,19 +326,25 @@ AFRAME.registerComponent("ik-controller", {
         head.quaternion.setFromRotationMatrix(headTransform);
       }
 
-      // Perform head velocity squish + rotate
-      if (relativeMotionSpring !== 0) {
-        const scaleDXZ = 1.0 + relativeMotionSpring * 0.1 * this.relativeMotionMaxMagnitude;
-        const scaleDY = 1.0 - relativeMotionSpring * 0.1 * this.relativeMotionMaxMagnitude;
-        let feedbackScale = 1.0;
+      let feedbackScale = 1.0;
 
-        if (this.scaleAudioFeedback) {
-          feedbackScale = this.scaleAudioFeedback.audioFeedbackScale;
+      if (this.scaleAudioFeedback) {
+        feedbackScale = this.scaleAudioFeedback.audioFeedbackScale;
+      }
+
+      // Perform head velocity squish + rotate on other avatars
+      if (!this.data.isSelf) {
+        if (relativeMotionSpring !== 0) {
+          const scaleDXZ = 1.0 + relativeMotionSpring * 0.1 * this.relativeMotionMaxMagnitude;
+          const scaleDY = 1.0 - relativeMotionSpring * 0.1 * this.relativeMotionMaxMagnitude;
+          head.scale.x = scaleDXZ * feedbackScale;
+          head.scale.y = scaleDY * feedbackScale;
+          head.scale.z = scaleDXZ * feedbackScale;
+        } else {
+          head.scale.x = feedbackScale;
+          head.scale.y = feedbackScale;
+          head.scale.z = feedbackScale;
         }
-
-        head.scale.x = scaleDXZ * feedbackScale;
-        head.scale.y = scaleDY * feedbackScale;
-        head.scale.z = scaleDXZ * feedbackScale;
       }
 
       if (this.data.instanceHeads) {
