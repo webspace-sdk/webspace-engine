@@ -662,10 +662,7 @@ export default class DialogAdapter {
               this._micProducer.replaceTrack(track);
             }
           } else {
-            if (!this._micEnabled) {
-              track.enabled = false;
-            }
-
+            track.enabled = this._micEnabled;
             await this.ensureSendTransport();
 
             // stopTracks = false because otherwise the track will end during a temporary disconnect
@@ -720,8 +717,10 @@ export default class DialogAdapter {
 
             this._micProducer.on("transportclose", () => (this._micProducer = null));
 
-            if (!this._micEnabled) {
+            if (!this._micEnabled && !this._micProducer.paused) {
               this._micProducer.pause();
+            } else if (this._micEnabled && this._micProducer.paused) {
+              this._micProducer.resume();
             }
           }
         } else {
