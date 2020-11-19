@@ -173,15 +173,19 @@ async function redirectedToLoggedInRoot() {
 
   let membership = res.memberships.filter(m => m.space.space_id === spaceId)[0];
 
-  if (!membership) {
+  if (!membership && res.memberships.length > 0) {
     spaceId = [...res.memberships].sort(m => m.joined_at).pop().space.space_id;
     membership = res.memberships.filter(m => m.space.space_id === spaceId)[0];
     store.update({ context: { spaceId } });
   }
 
-  const homeHub = membership.home_hub;
-  document.location = homeHub.url;
-  return true;
+  if (membership) {
+    const homeHub = membership.home_hub;
+    document.location = homeHub.url;
+    return true;
+  }
+
+  return false;
 }
 
 function JelIndexUI({ authResult }) {
@@ -276,11 +280,13 @@ function JelIndexUI({ authResult }) {
                 <FormattedMessage id="new-space.create" />
               </SmallActionButton>
             )}
-            <Tip style={{ marginTop: "24px" }}>
-              <FormattedMessage id="home.have-account" />&nbsp;<a href="/signin">
-                <FormattedMessage id="home.sign-in" />
-              </a>
-            </Tip>
+            {!store.credentialsAccountId && (
+              <Tip style={{ marginTop: "24px" }}>
+                <FormattedMessage id="home.have-account" />&nbsp;<a href="/signin">
+                  <FormattedMessage id="home.sign-in" />
+                </a>
+              </Tip>
+            )}
           </Panel>
         </form>
       </InfoPanel>
