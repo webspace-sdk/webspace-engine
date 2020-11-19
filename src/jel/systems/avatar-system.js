@@ -291,6 +291,7 @@ export class AvatarSystem {
     }
 
     if (!avatarMaterial.uniforms.decalMap.value) return;
+    if (!window.APP.spaceChannel.presence) return;
 
     avatarMaterial.uniforms.time.value = t;
 
