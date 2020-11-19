@@ -3,8 +3,26 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 import BigTooltip from "./big-tooltip";
+import { getMessages } from "../../hubs/utils/i18n";
 
 const SpaceNodeIconElement = styled.div`
+  width: 64px;
+  height: 64px;
+
+  border-radius: 32px;
+  transition: border-radius 0.1s;
+
+  &:hover {
+    transition: border-radius 0.1s;
+    border-radius: 12px;
+  }
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const SpaceNodeIconLink = styled.a`
   width: 64px;
   height: 64px;
 
@@ -49,6 +67,18 @@ export default function SpaceNodeIcon({ spaceId, spaceMetadata }) {
   return (
     <BigTooltip content={name} placement="left">
       {el}
+    </BigTooltip>
+  );
+}
+
+export function AddSpaceIcon() {
+  const tip = getMessages()["space-tree.create"];
+
+  return (
+    <BigTooltip content={tip} placement="left">
+      <SpaceNodeIconLink className="spaceNodeIcon" href="/new" onClick={e => e.stopPropagation()}>
+        <SpaceNodeIconNonImage>+</SpaceNodeIconNonImage>
+      </SpaceNodeIconLink>
     </BigTooltip>
   );
 }

@@ -43,9 +43,9 @@ $treeNodePrefixCls: space-tree-treenode;
     & .#{$treePrefixCls}-iconEle .spaceNodeIcon {
       background-color: var(--tertiary-panel-item-background-color);
     }
-    &:hover .#{$treePrefixCls}-iconEle .spaceNodeIcon {
+    &:hover .#{$treePrefixCls}-iconEle .spaceNodeIcon,.spaceAddIcon {
     }
-    &:active .#{$treePrefixCls}-iconEle .spaceNodeIcon {
+    &:active .#{$treePrefixCls}-iconEle .spaceNodeIcon,.spaceAddIcon {
       transform: translate(0px, 2px);
     }
     &.drag-over {
@@ -70,6 +70,9 @@ $treeNodePrefixCls: space-tree-treenode;
     }
     &-selected .#{$treePrefixCls}-iconEle .spaceNodeIcon {
       background-color: var(--tertiary-panel-item-selected-background-color);
+      border: 3px solid var(--tertiary-panel-item-selected-border-color);
+    }
+    &-selected .#{$treePrefixCls}-iconEle .spaceAddIcon {
       border: 3px solid var(--tertiary-panel-item-selected-border-color);
     }
     .#{$treePrefixCls}-node-content-wrapper {

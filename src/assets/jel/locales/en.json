@@ -154,5 +154,6 @@
   "home.signin-failed": "This link has expired.",
   "home.signin-failed-close": "You'll need to send yourself a new magic link.",
   "invite.info": "You've been invited to join a space.",
-  "invite.join": "Join"
+  "invite.join": "Join",
+  "space-tree.create": "Create a Space"
 }

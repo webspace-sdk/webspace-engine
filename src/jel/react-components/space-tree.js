@@ -1,11 +1,13 @@
 import PropTypes from "prop-types";
 import React, { useState, useCallback, useMemo } from "react";
 import Tree from "rc-tree";
-import SpaceNodeIcon from "./space-node-icon";
+import SpaceNodeIcon, { AddSpaceIcon } from "./space-node-icon";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { useTreeDropHandler, useTreeData, useScrollToSelectedTreeNode } from "../utils/tree-utils";
 import "../../assets/jel/stylesheets/space-tree.scss";
+
+const addSpaceIconTreeItem = { key: "add", children: null, isLeaf: true };
 
 function SpaceTree({ treeManager, history, space, memberships }) {
   const [spaceTreeData, setSpaceTreeData] = useState([]);
@@ -19,9 +21,16 @@ function SpaceTree({ treeManager, history, space, memberships }) {
     space,
     tree
   ]);
-  const icon = useCallback(item => <SpaceNodeIcon spaceId={item.atomId} spaceMetadata={spaceMetadata} />, [
-    spaceMetadata
-  ]);
+  const icon = useCallback(
+    item => {
+      if (item.eventKey === "add") {
+        return <AddSpaceIcon />;
+      } else {
+        return <SpaceNodeIcon spaceId={item.atomId} spaceMetadata={spaceMetadata} />;
+      }
+    },
+    [spaceMetadata]
+  );
   const onSelect = useCallback(
     (selectedKeys, { node: { atomId } }) => navigateToHubUrl(history, homeHubForSpaceId(atomId, memberships).url),
     [history, memberships]
@@ -31,7 +40,7 @@ function SpaceTree({ treeManager, history, space, memberships }) {
     <div>
       <Tree
         prefixCls="space-tree"
-        treeData={spaceTreeData}
+        treeData={[...spaceTreeData, addSpaceIconTreeItem]}
         icon={icon}
         selectable={true}
         selectedKeys={spaceSelectedKeys}
