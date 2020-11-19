@@ -154,57 +154,6 @@ class TreeManager extends EventTarget {
     return this.sharedExpandedTreeNodes.expandedNodeIds();
   }
 
-  removeSubtreeFromTree(nodeId, fromTree) {
-    // Compute the tree again to avoid filtering by expanded nodes in the UI, in order
-    // to find the actual full closure of nodes to remove.
-    const treeData = fromTree.computeTree();
-
-    // Remove bottom up
-    const removeWalk = (children, remove) => {
-      for (const child of children) {
-        const removeChild = remove || child.key === nodeId;
-
-        if (child.children) {
-          removeWalk(child.children, removeChild);
-        }
-
-        if (removeChild) {
-          fromTree.remove(child.key);
-        }
-      }
-    };
-
-    removeWalk(treeData, false);
-  }
-
-  moveSubtreeToTree(nodeId, fromTree, toTree) {
-    // Compute the tree again to avoid filtering by expanded nodes in the UI, in order
-    // to find the actual full closure of nodes to move.
-    const treeData = fromTree.computeTree();
-
-    // Copy top-down
-    const copyWalk = (children, copy) => {
-      for (const child of children) {
-        const copyChild = copy || child.key === nodeId;
-
-        if (copyChild) {
-          const node = fromTree.doc.data[child.key];
-          toTree.insertOrUpdate(child.key, node);
-        }
-
-        if (child.children) {
-          copyWalk(child.children, copyChild);
-        }
-
-        if (copyChild) {
-          fromTree.remove(child.key);
-        }
-      }
-    };
-
-    copyWalk(treeData, false);
-  }
-
   async syncMembershipsToPrivateSpaceTree(memberships) {
     if (!this.hasPrivateSpaceTree) return;
 

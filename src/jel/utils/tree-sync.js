@@ -352,6 +352,11 @@ class TreeSync extends EventTarget {
   remove(nodeId) {
     const treeData = this.computeTree();
 
+    if (!treeData) {
+      console.warn("Failed to remove node from tree since tree is in inconsistent state.");
+      return;
+    }
+
     // Move all children to node's parent
     const moveWalk = (parent, children, moveBelowNode) => {
       for (const child of children) {
@@ -430,7 +435,7 @@ class TreeSync extends EventTarget {
     ]);
   }
 
-  computeTree(nodeFilter = () => true, parentFilter = () => true, visitor = null) {
+  computeTree(prepare = () => true, nodeFilter = () => true, parentFilter = () => true, visitor = null) {
     // The goal here is to convert the OT document to the UI's tree data structure.
     const depths = new Map();
     const tailNodes = new Set();
@@ -449,7 +454,7 @@ class TreeSync extends EventTarget {
           //
           // This is a known condition given the fact that several operations are required to perform
           // a move. As such, stop here and assume it will resolve in the next update.
-          return;
+          return null;
         }
 
         seenChildren.add(node.r);
@@ -484,6 +489,12 @@ class TreeSync extends EventTarget {
 
     const isNestedProjection = this.projectionType === TREE_PROJECTION_TYPE.NESTED;
     const isFlatProjection = this.projectionType === TREE_PROJECTION_TYPE.FLAT;
+
+    // Run prepare step provided by caller since we didn't reject the tree as
+    // being in an inconsistent state.
+    if (prepare) {
+      prepare();
+    }
 
     // Build each layer of the tree data
     do {
@@ -581,27 +592,37 @@ class TreeSync extends EventTarget {
     // for subscribing to metadata changes.
     if (treeHasNoChanges) return;
 
-    for (const atomId of subscribedAtomIds) {
-      atomMetadata.unsubscribeFromMetadata(atomId, this.rebuildFilteredTreeDataIfAutoRefresh);
-    }
-
     const isExpanded = nodeId => !this.expandedTreeNodes || this.expandedTreeNodes.isExpanded(nodeId);
 
-    this.atomIdToFilteredTreeDataItem.clear();
-    subscribedAtomIds.clear();
-
-    this.filteredTreeData = this.computeTree(this.nodeFilter, isExpanded, (nodeId, node, item) => {
-      // This visitor is passed every document node that is expanded, even if it is filtered
-      // via the node filter. So we add all the relevant atoms to the subscriber list,
-      // and then subscribe, and also maintain a map to generated treedata for in-place updating.
-      subscribedAtomIds.add(node.h);
-
-      if (item) {
-        this.atomIdToFilteredTreeDataItem.set(node.h, item);
+    const clearExistingSubscriptions = () => {
+      for (const atomId of subscribedAtomIds) {
+        atomMetadata.unsubscribeFromMetadata(atomId, this.rebuildFilteredTreeDataIfAutoRefresh);
       }
-    });
 
-    this.dispatchEvent(new CustomEvent("filtered_treedata_updated"));
+      this.atomIdToFilteredTreeDataItem.clear();
+      subscribedAtomIds.clear();
+    };
+
+    const newTreeData = this.computeTree(
+      clearExistingSubscriptions,
+      this.nodeFilter,
+      isExpanded,
+      (nodeId, node, item) => {
+        // This visitor is passed every document node that is expanded, even if it is filtered
+        // via the node filter. So we add all the relevant atoms to the subscriber list,
+        // and then subscribe, and also maintain a map to generated treedata for in-place updating.
+        subscribedAtomIds.add(node.h);
+
+        if (item) {
+          this.atomIdToFilteredTreeDataItem.set(node.h, item);
+        }
+      }
+    );
+
+    if (newTreeData) {
+      this.filteredTreeData = newTreeData;
+      this.dispatchEvent(new CustomEvent("filtered_treedata_updated"));
+    }
 
     for (const atomId of subscribedAtomIds) {
       atomMetadata.subscribeToMetadata(atomId, this.rebuildFilteredTreeDataIfAutoRefresh);
