@@ -435,7 +435,7 @@ class TreeSync extends EventTarget {
     ]);
   }
 
-  computeTree(prepare = () => true, nodeFilter = () => true, parentFilter = () => true, visitor = null) {
+  computeTree(nodeFilter = () => true, parentFilter = () => true) {
     // The goal here is to convert the OT document to the UI's tree data structure.
     const depths = new Map();
     const tailNodes = new Set();
@@ -490,12 +490,6 @@ class TreeSync extends EventTarget {
     const isNestedProjection = this.projectionType === TREE_PROJECTION_TYPE.NESTED;
     const isFlatProjection = this.projectionType === TREE_PROJECTION_TYPE.FLAT;
 
-    // Run prepare step provided by caller since we didn't reject the tree as
-    // being in an inconsistent state.
-    if (prepare) {
-      prepare();
-    }
-
     // Build each layer of the tree data
     do {
       done = true;
@@ -545,8 +539,6 @@ class TreeSync extends EventTarget {
             children.unshift(item);
           }
 
-          if (visitor) visitor(nid, n, item);
-
           nid = n.r;
 
           if (nid) {
@@ -594,32 +586,38 @@ class TreeSync extends EventTarget {
 
     const isExpanded = nodeId => !this.expandedTreeNodes || this.expandedTreeNodes.isExpanded(nodeId);
 
-    const clearExistingSubscriptions = () => {
+    const newTreeData = this.computeTree(this.nodeFilter, isExpanded);
+
+    if (newTreeData) {
+      // If the tree data has changed, we need to subscribe to all the nodes
+      // in the underlying document so that the tree will reflect the visibliity
+      // properly. The map of atom ids to items is updated, and the event is fired
+      // to refresh the UI.
       for (const atomId of subscribedAtomIds) {
         atomMetadata.unsubscribeFromMetadata(atomId, this.rebuildFilteredTreeDataIfAutoRefresh);
       }
 
-      this.atomIdToFilteredTreeDataItem.clear();
       subscribedAtomIds.clear();
-    };
 
-    const newTreeData = this.computeTree(
-      clearExistingSubscriptions,
-      this.nodeFilter,
-      isExpanded,
-      (nodeId, node, item) => {
-        // This visitor is passed every document node that is expanded, even if it is filtered
-        // via the node filter. So we add all the relevant atoms to the subscriber list,
-        // and then subscribe, and also maintain a map to generated treedata for in-place updating.
-        subscribedAtomIds.add(node.h);
-
-        if (item) {
-          this.atomIdToFilteredTreeDataItem.set(node.h, item);
-        }
+      for (const { h } of Object.values(this.doc.data)) {
+        subscribedAtomIds.add(h);
       }
-    );
 
-    if (newTreeData) {
+      this.atomIdToFilteredTreeDataItem.clear();
+
+      const walk = children => {
+        for (let i = 0; i < children.length; i++) {
+          const item = children[i];
+          this.atomIdToFilteredTreeDataItem.set(item.atomId, item);
+
+          if (item.children) {
+            walk(item.children);
+          }
+        }
+      };
+
+      walk(newTreeData);
+
       this.filteredTreeData = newTreeData;
       this.dispatchEvent(new CustomEvent("filtered_treedata_updated"));
     }
