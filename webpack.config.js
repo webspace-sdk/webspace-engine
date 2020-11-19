@@ -278,7 +278,7 @@ module.exports = async (env, argv) => {
           res.header("Access-Control-Allow-Headers", "Range");
           res.header(
             "Access-Control-Expose-Headers",
-            "Accept-Ranges, Content-Encoding, Content-Length, Content-Range, Hub-Name, Hub-Entity-Type"
+            "Accept-Ranges, Content-Encoding, Content-Length, Content-Range, Jel-Name, Jel-Entity-Type"
           );
           res.header("Vary", "Origin");
           res.header("X-Content-Type-Options", "nosniff");
