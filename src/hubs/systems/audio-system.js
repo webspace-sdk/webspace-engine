@@ -181,6 +181,7 @@ export class AudioSystem {
       }
     }
 
+    clearTimeout(this.disableAECHackTimeout);
     this.applyAECHack();
   }
 
@@ -195,7 +196,7 @@ export class AudioSystem {
     }
 
     // Delay disabling AEC hack to avoid rapid oscillations of WebRTC setup if muting/unmuting
-    setTimeout(() => this.applyAECHack(), 5000);
+    this.disableAECHackTimeout = setTimeout(() => this.applyAECHack(), 5000);
   }
 
   addStreamToOutboundAudio(id, mediaStream) {
