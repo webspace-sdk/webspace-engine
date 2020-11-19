@@ -36,6 +36,42 @@ AFRAME.registerSystem("ui-hotkeys", {
       if (this.userinput.get(paths.actions.previousMediaLayer)) {
         this.el.systems["hubs-systems"].mediaPresenceSystem.selectPreviousMediaLayer();
       }
+
+      if (this.userinput.get(paths.actions.mediaLayer1)) {
+        this.el.systems["hubs-systems"].mediaPresenceSystem.setActiveLayer(0);
+      }
+
+      if (this.userinput.get(paths.actions.mediaLayer2)) {
+        this.el.systems["hubs-systems"].mediaPresenceSystem.setActiveLayer(1);
+      }
+
+      if (this.userinput.get(paths.actions.mediaLayer3)) {
+        this.el.systems["hubs-systems"].mediaPresenceSystem.setActiveLayer(2);
+      }
+
+      if (this.userinput.get(paths.actions.mediaLayer4)) {
+        this.el.systems["hubs-systems"].mediaPresenceSystem.setActiveLayer(3);
+      }
+
+      if (this.userinput.get(paths.actions.mediaLayer5)) {
+        this.el.systems["hubs-systems"].mediaPresenceSystem.setActiveLayer(4);
+      }
+
+      if (this.userinput.get(paths.actions.mediaLayer6)) {
+        this.el.systems["hubs-systems"].mediaPresenceSystem.setActiveLayer(5);
+      }
+
+      if (this.userinput.get(paths.actions.mediaLayer7)) {
+        this.el.systems["hubs-systems"].mediaPresenceSystem.setActiveLayer(6);
+      }
+
+      if (this.userinput.get(paths.actions.mediaLayer8)) {
+        this.el.systems["hubs-systems"].mediaPresenceSystem.setActiveLayer(7);
+      }
+
+      if (this.userinput.get(paths.actions.mediaLayer9)) {
+        this.el.systems["hubs-systems"].mediaPresenceSystem.setActiveLayer(8);
+      }
     }
   },
 

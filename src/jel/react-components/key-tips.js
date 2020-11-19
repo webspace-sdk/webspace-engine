@@ -180,8 +180,8 @@ const TIP_DATA = {
     ["narrow", "Z|H+S"],
     ["hide", "?"]
   ],
-  pointer_exited_muted: [["layers", "H+q\\e"], ["unmute", "L+m"], ["hide", "?"]],
-  pointer_exited_unmuted: [["layers", "H+q\\e"], ["mute", "L+m"], ["hide", "?"]],
+  pointer_exited_muted: [["layers", "1^9"], ["unmute", "L+m"], ["hide", "?"]],
+  pointer_exited_unmuted: [["layers", "1^9"], ["mute", "L+m"], ["hide", "?"]],
   holding_interactable: [["pull", "R"], ["scale", "H+R"]],
   hover_interactable: objectCommonTips,
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
@@ -281,6 +281,8 @@ const itemForData = ([label, keys]) => {
         els.push(<KeySmallSeparator key={key}>{key}</KeySmallSeparator>);
       } else if (key === ",") {
         els.push(<KeySeparator key={key}>{key}</KeySeparator>);
+      } else if (key === "^") {
+        els.push(<KeySeparator key={key}>-</KeySeparator>);
       } else if (key === "\\") {
         els.push(<KeySeparator key={key}>/</KeySeparator>);
       } else if (key === "~" || key === "*" || key === "-") {

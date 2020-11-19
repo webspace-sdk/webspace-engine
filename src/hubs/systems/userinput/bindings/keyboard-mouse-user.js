@@ -185,6 +185,51 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
+      src: { value: paths.device.keyboard.key("1") },
+      dest: { value: paths.actions.mediaLayer1 },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("2") },
+      dest: { value: paths.actions.mediaLayer2 },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("3") },
+      dest: { value: paths.actions.mediaLayer3 },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("4") },
+      dest: { value: paths.actions.mediaLayer4 },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("5") },
+      dest: { value: paths.actions.mediaLayer5 },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("6") },
+      dest: { value: paths.actions.mediaLayer6 },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("7") },
+      dest: { value: paths.actions.mediaLayer7 },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("8") },
+      dest: { value: paths.actions.mediaLayer8 },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("9") },
+      dest: { value: paths.actions.mediaLayer9 },
+      xform: xforms.rising
+    },
+    {
       src: {
         value: controlM
       },
