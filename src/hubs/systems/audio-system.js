@@ -297,6 +297,7 @@ export class AudioSystem {
       this.aecHackOutboundPeer = null;
       this.aecHackInboundPeer = null;
       gainNode.disconnect();
+      gainNode.connect(this.audioContext.destination);
     }
   }
 }
