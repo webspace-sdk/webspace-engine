@@ -3,14 +3,14 @@
 // which will only be used if the specified locale file doesn't exist.
 
 export const AVAILABLE_LOCALES = {
-  en: "English",
-  zh: "简体中文",
-  jp: "日本語"
+  en: "English" //,
+  // zh: "简体中文",
+  // jp: "日本語"
 };
 
 export const FALLBACK_LOCALES = {
-  "zh-cn": "zh",
-  "zh-hans": "zh",
-  "zh-hans-cn": "zh",
-  ja: "jp"
+  //"zh-cn": "zh",
+  //"zh-hans": "zh",
+  //"zh-hans-cn": "zh",
+  //ja: "jp"
 };
