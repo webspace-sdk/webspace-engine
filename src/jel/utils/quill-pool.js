@@ -30,7 +30,8 @@ export function initQuillPool() {
     // Need to load CSS again because webpack does not seem to want to let us add
     // crossorigin=anonymous
     const linkTag = document.createElement("link");
-    linkTag.setAttribute("href", cssUrl);
+    // Need to add a hacky qs var since chrome mac will re-use cached non-CORS response
+    linkTag.setAttribute("href", `${cssUrl}?force`);
     linkTag.setAttribute("rel", "stylesheet");
     linkTag.setAttribute("crossorigin", "anonymous");
 
