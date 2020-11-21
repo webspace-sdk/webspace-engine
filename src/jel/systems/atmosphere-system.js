@@ -122,15 +122,29 @@ export class AtmosphereSystem {
     this.water.onAnimationTick({ delta: dt / 1000.0 });
     this.effectsSystem.disableEffects = false;
 
-    const enableShadows = !window.APP.lowDetail;
+    // If low quality is tripped, reduce shadow map size and distance
+    if (this.sunLight.shadow.mapSize.x === 1024 * 4 && window.APP.lowDetail) {
+      this.sunLight.shadow.mapSize.x = 1024;
+      this.sunLight.shadow.mapSize.y = 1024;
+      this.sunLight.shadow.camera.far = 16;
+      this.sunLight.shadow.bias = -0.0017;
 
-    if (this.renderer.shadowMap.enabled !== enableShadows) {
-      this.renderer.shadowMap.enabled = enableShadows;
-      this.sunLight.castShadow = enableShadows;
-
-      if (!enableShadows) {
-        this.renderer.clearTarget(this.sunLight.shadow.map);
+      if (this.sunLight.shadow.map) {
+        this.sunLight.shadow.map.dispose();
       }
+
+      this.sunLight.shadow.map = null;
+    } else if (this.sunLight.shadow.mapSize.x === 1024 && !window.APP.lowDetail) {
+      this.sunLight.shadow.mapSize.x = 1024 * 4;
+      this.sunLight.shadow.mapSize.y = 1024 * 4;
+      this.sunLight.shadow.camera.far = 20;
+      this.sunLight.shadow.bias = -0.0006;
+
+      if (this.sunLight.shadow.map) {
+        this.sunLight.shadow.map.dispose();
+      }
+
+      this.sunLight.shadow.map = null;
     }
 
     if (!this.disableExtraPasses) {
