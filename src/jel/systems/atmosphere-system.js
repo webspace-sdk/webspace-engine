@@ -122,7 +122,7 @@ export class AtmosphereSystem {
     this.water.onAnimationTick({ delta: dt / 1000.0 });
     this.effectsSystem.disableEffects = false;
 
-    const enableShadows = !window.APP.disableEffects;
+    const enableShadows = !window.APP.lowDetail;
 
     if (this.renderer.shadowMap.enabled !== enableShadows) {
       this.renderer.shadowMap.enabled = enableShadows;

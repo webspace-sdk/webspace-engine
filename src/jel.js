@@ -132,7 +132,6 @@ import "./hubs/systems/personal-space-bubble";
 import "./hubs/systems/app-mode";
 import "./hubs/systems/permissions";
 import "./hubs/systems/exit-on-blur";
-import "./hubs/systems/auto-pixel-ratio";
 import "./hubs/systems/idle-detector";
 import "./hubs/systems/camera-tools";
 import "./hubs/systems/userinput/userinput";
@@ -198,7 +197,7 @@ window.APP.materialQuality =
         ? "low"
         : "high";
 
-window.APP.disableEffects = true;
+window.APP.lowDetail = true;
 
 import "./hubs/components/owned-object-limiter";
 import "./hubs/components/owned-object-cleanup-timeout";
@@ -596,14 +595,17 @@ function addGlobalEventListeners(scene, entryManager) {
   });
 
   // The app starts in low quality mode so loading screen runs OK, boost quality once loading is complete.
-  let didPerformInitialQualityBoost = false;
+  // The auto detail system will then lower the quality again if needed.
+  let performedInitialQualityBoost = false;
 
   scene.addEventListener("terrain_chunk_loading_complete", () => {
-    if (!didPerformInitialQualityBoost) {
-      window.APP.disableEffects = false;
-      didPerformInitialQualityBoost = true;
-      scene.systems["hubs-systems"].autoQualitySystem.startTracking();
+    if (!performedInitialQualityBoost) {
+      performedInitialQualityBoost = true;
+      window.APP.lowDetail = false;
+      scene.renderer.setPixelRatio(window.devicePixelRatio);
     }
+
+    scene.systems["hubs-systems"].autoQualitySystem.startTracking();
   });
 }
 
@@ -891,6 +893,7 @@ async function start() {
 
   const scene = document.querySelector("a-scene");
   const canvas = document.querySelector(".a-canvas");
+  scene.renderer.setPixelRatio(1); // Start with low pixel ratio, quality adjustment system will raise
 
   canvas.setAttribute("tabindex", 0); // Make it so canvas can be focused
 

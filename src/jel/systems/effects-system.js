@@ -42,10 +42,9 @@ AFRAME.registerSystem("effects", {
         this.ssaoPass.material.uniforms.darkness.value = 5.0;
         this.ssaoPass.material.uniforms.saturation.value = 0.35;
         this.ssaoPass.material.uniforms.brightness.value = 0.1;
+        this.ssaoPass.needsSwap = false;
 
         this.composer.addPass(this.ssaoPass);
-
-        this.ssaoPass.enabled = this.highQuality;
 
         this.disableEffects = false;
 

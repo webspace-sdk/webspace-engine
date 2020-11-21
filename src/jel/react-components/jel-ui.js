@@ -46,6 +46,7 @@ const FadeEdges = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
+
   background: linear-gradient(
     180deg,
     rgba(64, 64, 64, 0.4) 0%,
@@ -53,6 +54,11 @@ const FadeEdges = styled.div`
     rgba(32, 32, 32, 0) calc(100% - 500px),
     rgba(64, 64, 64, 0.4) 100%
   );
+
+  body.low-detail & {
+    background: none;
+  }
+
   pointer-events: none;
 `;
 

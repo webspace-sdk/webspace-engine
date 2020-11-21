@@ -428,6 +428,12 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
 
   render(renderer, writeBuffer /* , readBuffer, deltaTime, maskActive */) {
     // render scene and depth
+    if (window.APP.lowDetail) {
+      renderer.setRenderTarget(this.renderToScreen ? null : writeBuffer);
+      renderer.clear();
+      renderer.render(this.scene, this.camera);
+      return;
+    }
 
     const f = this.camera.far;
     // HACK make shallow z-buffer, but keep projection matrix for proper frustum culling.

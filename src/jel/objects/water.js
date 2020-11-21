@@ -226,11 +226,11 @@ class Water extends Mesh {
     const time = this.material.uniforms.time.value + delta;
     this.material.uniforms.time.value = time;
 
-    if (this.material.uniforms.reflections.value !== !window.APP.disableEffects) {
-      this.material.uniforms.reflections.value = !window.APP.disableEffects;
+    if (this.material.uniforms.reflections.value !== !window.APP.lowDetail) {
+      this.material.uniforms.reflections.value = !window.APP.lowDetail;
     }
 
-    if (!this.needsUpdate || !this.camera || window.APP.disableEffects) return;
+    if (!this.needsUpdate || !this.camera || window.APP.lowDetail) return;
     this.needsUpdate = false;
 
     this.updateMatrices();

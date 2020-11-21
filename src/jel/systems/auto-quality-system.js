@@ -1,20 +1,22 @@
 import Heap from "heap-js";
-const SAMPLING_DURATION_MS = 1000.0 * 5.0;
+const SAMPLING_DURATION_MS = 1000.0 * 3.0;
 const NUM_ALLOWED_OUTLIERS_PCT = 0.15;
-const MAX_AVERAGE_FRAME_LENGTH = 1000.0 / 29.5; // Ensure at least 30 FPS
-const MIN_SAMPLES_NEEDED = 10;
+const LOWER_QUALITY_FRAME_LENGTH = 1000.0 / 29.5; // Ensure at least 30 FPS
+const MIN_SAMPLES_NEEDED = 6;
 
 // Keeps a heap of frame times, and every SAMPLING_DURATION_MS we check
 // sum the fastest frames - NUM_ALLOWED_OUTLIERS_PCT percent of outliers
 // to determine average time per frame. Quality is lowered if it exceeds
-// MAX_AVERAGE_FRAME_LENGTH.
+// LOWER_QUALITY_FRAME_LENGTH.
 export class AutoQualitySystem {
   constructor(sceneEl) {
-    this.sceneEl = sceneEl;
+    this.scene = sceneEl;
     this.enableTracking = false;
   }
 
   startTracking() {
+    if (this.enableTracking) return;
+
     this.samples = new Heap(Heap.maxComparator);
     this.samples.limit = 500;
     this.timeSinceLastCheck = 0.0;
@@ -50,10 +52,14 @@ export class AutoQualitySystem {
 
         const averageFrameTime = sum / (c * 1.0);
 
-        if (averageFrameTime > MAX_AVERAGE_FRAME_LENGTH) {
-          console.warn("Slow framerate detected, disabling effects to speed it up.");
-          window.APP.disableEffects = true;
+        if (averageFrameTime > LOWER_QUALITY_FRAME_LENGTH) {
+          console.warn(
+            "Slow framerate detected, disabling effects, fancy CSS, and reducing pixel ratio to speed it up."
+          );
+          window.APP.lowDetail = true;
+          this.scene.renderer.setPixelRatio(1);
           this.enableTracking = false;
+          document.body.classList.add("low-detail");
         }
       }
     }

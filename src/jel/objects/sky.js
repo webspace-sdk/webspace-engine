@@ -539,14 +539,14 @@ class Sky extends Mesh {
 
     this.skyMaterials = [this.lowMaterial, this.highMaterial];
     this.geometry = new SkyboxBufferGeometry(1, 1, 1);
-    this.material = window.APP.disableEffects ? this.lowMaterial : this.highMaterial;
+    this.material = window.APP.lowDetail ? this.lowMaterial : this.highMaterial;
 
     this.renderOrder = RENDER_ORDER.SKY;
     this.frustumCulled = false;
   }
 
   onAnimationTick({ delta }) {
-    const mat = window.APP.disableEffects ? this.lowMaterial : this.highMaterial;
+    const mat = window.APP.lowDetail ? this.lowMaterial : this.highMaterial;
     const time = this.material.uniforms.time.value + delta;
 
     if (this.material !== mat) {
