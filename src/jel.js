@@ -602,6 +602,7 @@ function addGlobalEventListeners(scene, entryManager) {
     if (!didPerformInitialQualityBoost) {
       window.APP.disableEffects = false;
       didPerformInitialQualityBoost = true;
+      scene.systems["hubs-systems"].autoQualitySystem.startTracking();
     }
   });
 }
@@ -609,12 +610,14 @@ function addGlobalEventListeners(scene, entryManager) {
 // Attempts to pause a-frame scene and rendering if tabbed away or maximized and window is blurred
 function setupNonVisibleHandler(scene) {
   const physics = scene.systems["hubs-systems"].physicsSystem;
+  const autoQuality = scene.systems["hubs-systems"].autoQualitySystem;
 
   const apply = hidden => {
     if (document.visibilityState === "hidden" || hidden) {
       if (document.visibilityState === "visible") {
         scene.pause();
         scene.renderer.animation.stop();
+        autoQuality.stopTracking();
       }
 
       physics.updateSimulationRate(1000.0 / 15.0);
@@ -622,6 +625,7 @@ function setupNonVisibleHandler(scene) {
       if (document.visibilityState === "visible") {
         scene.play();
         scene.renderer.animation.start();
+        autoQuality.startTracking();
       }
 
       physics.updateSimulationRate(1000.0 / 90.0);
