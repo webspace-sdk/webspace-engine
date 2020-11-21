@@ -18,7 +18,7 @@ AFRAME.registerComponent("pen-laser", {
 
   init() {
     let material = new THREE.MeshStandardMaterial({ color: "red", opacity: 0.5, transparent: true, visible: true });
-    if (window.APP && window.APP.quality === "low") {
+    if (window.APP && window.APP.materialQuality === "low") {
       material = MobileStandardMaterial.fromStandardMaterial(material);
     }
 

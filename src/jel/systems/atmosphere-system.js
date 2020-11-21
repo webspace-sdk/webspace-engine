@@ -60,12 +60,16 @@ export class AtmosphereSystem {
     this.sky = new Sky();
     this.sky.position.y = 0;
     this.sky.scale.setScalar(100000);
-    this.sky.material.uniforms.turbidity.value = 10;
-    this.sky.material.uniforms.rayleigh.value = 0.5;
-    this.sky.material.uniforms.mieCoefficient.value = 0.005;
-    this.sky.material.uniforms.mieDirectionalG.value = 0.5;
-    this.sky.material.uniforms.luminance.value = 1;
-    this.sky.material.uniforms.sunPosition.value.set(-80000, 100000, -80000);
+
+    for (let i = 0; i < this.sky.skyMaterials.length; i++) {
+      const material = this.sky.skyMaterials[i];
+      material.uniforms.turbidity.value = 10;
+      material.uniforms.rayleigh.value = 0.5;
+      material.uniforms.mieCoefficient.value = 0.005;
+      material.uniforms.mieDirectionalG.value = 0.5;
+      material.uniforms.luminance.value = 1;
+      material.uniforms.sunPosition.value.set(-80000, 100000, -80000);
+    }
 
     this.water = new Water(this.sky, this.renderer, scene, this.renderer.camera);
     this.water.position.y = 4.5 * (1 / 8);

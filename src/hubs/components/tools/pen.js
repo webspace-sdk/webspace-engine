@@ -132,7 +132,7 @@ AFRAME.registerComponent("pen", {
     this.dirty = true;
 
     let material = new THREE.MeshStandardMaterial();
-    if (window.APP && window.APP.quality === "low") {
+    if (window.APP && window.APP.materialQuality === "low") {
       material = MobileStandardMaterial.fromStandardMaterial(material);
     }
     this.penTip = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 16, 12), material);

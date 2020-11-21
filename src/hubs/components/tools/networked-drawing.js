@@ -61,7 +61,7 @@ AFRAME.registerComponent("networked-drawing", {
     this.segments = this.data.segments;
 
     let material = new THREE.MeshStandardMaterial(options);
-    if (window.APP && window.APP.quality === "low") {
+    if (window.APP && window.APP.materialQuality === "low") {
       material = MobileStandardMaterial.fromStandardMaterial(material);
     }
 

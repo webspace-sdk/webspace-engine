@@ -189,7 +189,7 @@ const isMobile = AFRAME.utils.device.isMobile();
 const isMobileVR = AFRAME.utils.device.isMobileVR();
 
 THREE.Object3D.DefaultMatrixAutoUpdate = false;
-window.APP.quality =
+window.APP.materialQuality =
   window.APP.store.state.preferences.materialQualitySetting === "low"
     ? "low"
     : window.APP.store.state.preferences.materialQualitySetting === "high"
@@ -197,6 +197,8 @@ window.APP.quality =
       : isMobile || isMobileVR
         ? "low"
         : "high";
+
+window.APP.effectsQuality = "low";
 
 import "./hubs/components/owned-object-limiter";
 import "./hubs/components/owned-object-cleanup-timeout";
@@ -922,8 +924,7 @@ async function start() {
 
   canvas.focus();
 
-  scene.setAttribute("shadow", { enabled: window.APP.quality !== "low" }); // Disable shadows on low quality
-  scene.renderer.debug.checkShaderErrors = false;
+  scene.renderer.debug.checkShaderErrors = true;
 
   initBatching();
 

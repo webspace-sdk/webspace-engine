@@ -516,7 +516,8 @@ export async function loadGLTF(src, contentType, preferredTechnique, onProgress,
 }
 
 export async function loadModel(src, contentType = null, useCache = false, jsonPreprocessor = null, toon = false) {
-  let preferredTechnique = window.APP && window.APP.quality === "low" ? "KHR_materials_unlit" : "pbrMetallicRoughness";
+  let preferredTechnique =
+    window.APP && window.APP.materialQuality === "low" ? "KHR_materials_unlit" : "pbrMetallicRoughness";
 
   if (toon) {
     preferredTechnique = "JEL_materials_toon";
