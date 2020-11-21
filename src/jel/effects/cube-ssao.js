@@ -438,9 +438,9 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
         this.material.stencilRef = 0;
         this.material.uniforms.runAO.value = false;
         this.material.uniforms.runFXAA.value = true;
-        this.material.uniforms.fxaaQualitySubpix.value = 1.0;
+        this.material.uniforms.fxaaQualitySubpix.value = 0.5;
         this.material.uniforms.fxaaEdgeThreshold.value = 0.166;
-        this.material.uniforms.fxaaEdgeThresholdMin.value = 0.0833;
+        this.material.uniforms.fxaaEdgeThresholdMin.value = 0.0625;
         this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
         this.material.uniforms.tDepth.value = null;
         this.renderPass(renderer, this.material, this.renderToScreen ? null : writeBuffer);
