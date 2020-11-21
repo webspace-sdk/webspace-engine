@@ -198,7 +198,7 @@ window.APP.materialQuality =
         ? "low"
         : "high";
 
-window.APP.disableEffects = false;
+window.APP.disableEffects = true;
 
 import "./hubs/components/owned-object-limiter";
 import "./hubs/components/owned-object-cleanup-timeout";
@@ -593,6 +593,16 @@ function addGlobalEventListeners(scene, entryManager) {
     const el = document.querySelector(selector);
     el.addEventListener("mouseover", () => scene.addState("pointer-exited"));
     el.addEventListener("mouseout", () => scene.removeState("pointer-exited"));
+  });
+
+  // The app starts in low quality mode so loading screen runs OK, boost quality once loading is complete.
+  let didPerformInitialQualityBoost = false;
+
+  scene.addEventListener("terrain_chunk_loading_complete", () => {
+    if (!didPerformInitialQualityBoost) {
+      window.APP.disableEffects = false;
+      didPerformInitialQualityBoost = true;
+    }
   });
 }
 
