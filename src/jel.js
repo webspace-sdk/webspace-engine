@@ -198,7 +198,7 @@ window.APP.materialQuality =
         ? "low"
         : "high";
 
-window.APP.effectsQuality = "low";
+window.APP.disableEffects = false;
 
 import "./hubs/components/owned-object-limiter";
 import "./hubs/components/owned-object-cleanup-timeout";

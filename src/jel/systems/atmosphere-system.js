@@ -122,6 +122,17 @@ export class AtmosphereSystem {
     this.water.onAnimationTick({ delta: dt / 1000.0 });
     this.effectsSystem.disableEffects = false;
 
+    const enableShadows = !window.APP.disableEffects;
+
+    if (this.renderer.shadowMap.enabled !== enableShadows) {
+      this.renderer.shadowMap.enabled = enableShadows;
+      this.sunLight.castShadow = enableShadows;
+
+      if (!enableShadows) {
+        this.renderer.clearTarget(this.sunLight.shadow.map);
+      }
+    }
+
     if (!this.disableExtraPasses) {
       // Update shadows or water each frame, but not both.
       if (this.waterNeedsUpdate && this.shadowsNeedsUpdate) {

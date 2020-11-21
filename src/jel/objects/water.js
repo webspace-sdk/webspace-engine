@@ -204,10 +204,6 @@ class Water extends Mesh {
     this.material = material;
   }
 
-  setReflections(reflections) {
-    this.material.uniforms.reflections.value = reflections;
-  }
-
   onAnimationTick({ delta }) {
     const {
       renderer,
@@ -230,7 +226,11 @@ class Water extends Mesh {
     const time = this.material.uniforms.time.value + delta;
     this.material.uniforms.time.value = time;
 
-    if (!this.needsUpdate || !this.camera) return;
+    if (this.material.uniforms.reflections.value !== !window.APP.disableEffects) {
+      this.material.uniforms.reflections.value = !window.APP.disableEffects;
+    }
+
+    if (!this.needsUpdate || !this.camera || window.APP.disableEffects) return;
     this.needsUpdate = false;
 
     this.updateMatrices();
