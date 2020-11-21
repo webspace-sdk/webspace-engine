@@ -48,12 +48,6 @@ const LetterKey = styled.div`
   border-radius: 5px;
   background-color: rgba(32, 32, 32, 0.2);
   box-shadow: inset 0px 1px 4px rgba(32, 32, 32, 0.6);
-  backdrop-filter: blur(8px);
-
-  body.low-detail & {
-    backdrop-filter: none;
-  }
-
   color: var(--canvas-overlay-text-color);
   text-transform: uppercase;
   font: var(--key-label-font);
@@ -68,12 +62,6 @@ const BigLetterKey = styled.div`
   border-radius: 5px;
   background-color: rgba(32, 32, 32, 0.2);
   box-shadow: inset 0px 1px 4px rgba(32, 32, 32, 0.6);
-  backdrop-filter: blur(8px);
-
-  body.low-detail & {
-    backdrop-filter: none;
-  }
-
   color: var(--canvas-overlay-text-color);
   text-transform: uppercase;
   font: var(--big-key-label-font);
@@ -91,12 +79,6 @@ const NamedKey = styled.div`
   font-size: var(--canvas-overlay-tertiary-text-size);
   background-color: rgba(32, 32, 32, 0.2);
   box-shadow: inset 0px 1px 3px rgba(32, 32, 32, 0.6);
-  backdrop-filter: blur(2px);
-
-  body.low-detail & {
-    backdrop-filter: none;
-  }
-
   font: var(--key-label-font);
   white-space: nowrap;
 
@@ -117,12 +99,6 @@ const WideNamedKey = styled.div`
   color: var(--canvas-overlay-text-color);
   background-color: rgba(32, 32, 32, 0.2);
   box-shadow: inset 0px 1px 3px rgba(32, 32, 32, 0.6);
-  backdrop-filter: blur(2px);
-
-  body.low-detail & {
-    backdrop-filter: none;
-  }
-
   font: var(--key-label-font);
   white-space: nowrap;
 `;
