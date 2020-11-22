@@ -809,7 +809,7 @@ export class TerrainSystem {
 
       if (chunkX !== null && cx !== chunkX) return;
       if (chunkZ !== null && cz !== chunkZ) return;
-      if (window.APP.lowDetail) return;
+      if (window.APP.detailLevel !== 0) return;
 
       for (let subchunk = 0; subchunk < SUBCHUNKS; subchunk++) {
         this.ensureFeatureMeshesSpawned(cx, cz, subchunk, true);
@@ -823,7 +823,7 @@ export class TerrainSystem {
       if (chunkZ !== null && chunk.z !== chunkZ) return;
 
       for (let subchunk = 0; subchunk < SUBCHUNKS; subchunk += 1) {
-        if (!fieldChunks.find(({ x, z }) => chunk.x === x && chunk.z === z) || window.APP.lowDetail) {
+        if (!fieldChunks.find(({ x, z }) => chunk.x === x && chunk.z === z) || window.APP.detailLevel !== 0) {
           this.ensureFeatureMeshesFreed(chunk.x, chunk.z, subchunk, true);
         }
       }

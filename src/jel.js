@@ -197,7 +197,13 @@ window.APP.materialQuality =
         ? "low"
         : "high";
 
-window.APP.lowDetail = true;
+// Detail levels
+// 0 - Full
+// 1 - Reduce shadow map, no reflections, simple sky, no SSAO, no terrain detail meshes
+// 2 - Also disable shadows and FXAA
+//
+// Start at lowest detail level, so app boots quickly.
+window.APP.detailLevel = 2;
 
 import "./hubs/components/owned-object-limiter";
 import "./hubs/components/owned-object-cleanup-timeout";
@@ -601,7 +607,7 @@ function addGlobalEventListeners(scene, entryManager) {
   scene.addEventListener("terrain_chunk_loading_complete", () => {
     if (!performedInitialQualityBoost) {
       performedInitialQualityBoost = true;
-      window.APP.lowDetail = false;
+      window.APP.detailLevel = 0;
       scene.renderer.setPixelRatio(window.devicePixelRatio);
     }
 
@@ -941,7 +947,7 @@ async function start() {
 
   canvas.focus();
 
-  scene.renderer.debug.checkShaderErrors = true;
+  scene.renderer.debug.checkShaderErrors = false;
 
   initBatching();
 

@@ -546,7 +546,7 @@ class Sky extends Mesh {
   }
 
   onAnimationTick({ delta }) {
-    const mat = window.APP.lowDetail ? this.lowMaterial : this.highMaterial;
+    const mat = window.APP.detailLevel === 0 ? this.highMaterial : this.lowMaterial;
     const time = this.material.uniforms.time.value + delta;
 
     if (this.material !== mat) {

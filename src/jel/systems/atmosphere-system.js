@@ -121,30 +121,35 @@ export class AtmosphereSystem {
     this.sky.onAnimationTick({ delta: dt / 1000.0 });
     this.water.onAnimationTick({ delta: dt / 1000.0 });
     this.effectsSystem.disableEffects = false;
+    this.sunLight.castShadow = window.APP.detailLevel !== 2;
 
     // If low quality is tripped, reduce shadow map size and distance
-    if (this.sunLight.shadow.mapSize.x === 1024 * 4 && window.APP.lowDetail) {
-      this.sunLight.shadow.mapSize.x = 512;
-      this.sunLight.shadow.mapSize.y = 512;
-      this.sunLight.shadow.camera.far = 16;
-      this.sunLight.shadow.bias = -0.0036;
+    if (window.APP.detailLevel === 0) {
+      if (this.sunLight.shadow.mapSize.x !== 1024 * 4) {
+        this.sunLight.shadow.mapSize.x = 1024 * 4;
+        this.sunLight.shadow.mapSize.y = 1024 * 4;
+        this.sunLight.shadow.camera.far = 20;
+        this.sunLight.shadow.bias = -0.0006;
 
-      if (this.sunLight.shadow.map) {
-        this.sunLight.shadow.map.dispose();
+        if (this.sunLight.shadow.map) {
+          this.sunLight.shadow.map.dispose();
+        }
+
+        this.sunLight.shadow.map = null;
       }
+    } else if (window.APP.detailLevel === 1) {
+      if (this.sunLight.shadow.mapSize.x !== 1024) {
+        this.sunLight.shadow.mapSize.x = 1024;
+        this.sunLight.shadow.mapSize.y = 1024;
+        this.sunLight.shadow.camera.far = 16;
+        this.sunLight.shadow.bias = -0.0017;
 
-      this.sunLight.shadow.map = null;
-    } else if (this.sunLight.shadow.mapSize.x === 512 && !window.APP.lowDetail) {
-      this.sunLight.shadow.mapSize.x = 1024 * 4;
-      this.sunLight.shadow.mapSize.y = 1024 * 4;
-      this.sunLight.shadow.camera.far = 20;
-      this.sunLight.shadow.bias = -0.0006;
+        if (this.sunLight.shadow.map) {
+          this.sunLight.shadow.map.dispose();
+        }
 
-      if (this.sunLight.shadow.map) {
-        this.sunLight.shadow.map.dispose();
+        this.sunLight.shadow.map = null;
       }
-
-      this.sunLight.shadow.map = null;
     }
 
     if (!this.disableExtraPasses) {

@@ -428,37 +428,34 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
 
   render(renderer, writeBuffer /* , readBuffer, deltaTime, maskActive */) {
     // render scene and depth
-    if (window.APP.lowDetail) {
-      renderer.setRenderTarget(this.renderToScreen ? null : writeBuffer);
+    if (window.APP.detailLevel === 0) {
+      const f = this.camera.far;
+      // HACK make shallow z-buffer, but keep projection matrix for proper frustum culling.
+      this.camera.far = FAR_PLANE_FOR_SSAO;
+      // TODO this.camera.updateProjectionMatrix();
+
+      renderer.setRenderTarget(this.sceneRenderTarget);
       renderer.clear();
       renderer.render(this.scene, this.camera);
-      return;
-    }
 
-    const f = this.camera.far;
-    // HACK make shallow z-buffer, but keep projection matrix for proper frustum culling.
-    this.camera.far = FAR_PLANE_FOR_SSAO;
-    // TODO this.camera.updateProjectionMatrix();
+      this.camera.far = f;
 
-    renderer.setRenderTarget(this.sceneRenderTarget);
-    renderer.clear();
-    renderer.render(this.scene, this.camera);
+      // render SSAO + colorize
+      this.material.uniforms.runAO.value = true;
+      this.material.uniforms.runCopy.value = false;
+      this.material.uniforms.runFXAA.value = false;
+      this.material.uniforms.fxaaQualitySubpix.value = 0.0;
+      this.material.uniforms.fxaaEdgeThreshold.value = 1.0;
+      this.material.uniforms.fxaaEdgeThresholdMin.value = 1.0;
+      this.material.uniforms.offset.value = 0.35;
+      this.material.uniforms.darkness.value = 5.0;
+      this.material.uniforms.saturation.value = 0.35;
+      this.material.uniforms.brightness.value = 0.1;
 
-    this.camera.far = f;
+      this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
+      this.material.uniforms.tDepth.value = this.sceneRenderTarget.depthTexture;
+      this.renderPass(renderer, this.material, this.ssaoRenderTarget);
 
-    // render SSAO + colorize
-    this.material.uniforms.runAO.value = true;
-    this.material.uniforms.runCopy.value = false;
-    this.material.uniforms.runFXAA.value = false;
-    this.material.uniforms.fxaaQualitySubpix.value = 0.0;
-    this.material.uniforms.fxaaEdgeThreshold.value = 1.0;
-    this.material.uniforms.fxaaEdgeThresholdMin.value = 1.0;
-
-    this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
-    this.material.uniforms.tDepth.value = this.sceneRenderTarget.depthTexture;
-    this.renderPass(renderer, this.material, this.ssaoRenderTarget);
-
-    if (this.enableFXAA) {
       // render stencilled FXAA + SSAO
       // toons and text aren't FXAA'd
       this.material.stencilWrite = true;
@@ -477,16 +474,37 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
       this.material.uniforms.runFXAA.value = false;
       this.material.uniforms.runCopy.value = true;
       this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
-    } else {
+      // Copy composed buffer to screen
+      this.renderPass(renderer, this.material, this.renderToScreen ? null : writeBuffer);
+    } else if (window.APP.detailLevel === 1) {
+      renderer.setRenderTarget(this.sceneRenderTarget);
+      renderer.clear();
+      renderer.render(this.scene, this.camera);
+      this.material.stencilWrite = true;
+      this.material.stencilFunc = EqualStencilFunc;
+      this.material.stencilRef = 0;
       this.material.uniforms.runAO.value = false;
-      this.material.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
+      this.material.uniforms.runFXAA.value = true;
+      this.material.uniforms.fxaaQualitySubpix.value = 0.5;
+      this.material.uniforms.fxaaEdgeThreshold.value = 0.166;
+      this.material.uniforms.fxaaEdgeThresholdMin.value = 0.0625;
+      this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
       this.material.uniforms.tDepth.value = null;
+      this.renderPass(renderer, this.material, this.ssaoRenderTarget);
+      this.material.stencilWrite = false;
+      this.material.uniforms.runFXAA.value = false;
       this.material.uniforms.runCopy.value = true;
       this.material.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
+      this.material.uniforms.offset.value = 0.35;
+      this.material.uniforms.darkness.value = 5.0;
+      this.material.uniforms.saturation.value = 0.15;
+      this.material.uniforms.brightness.value = 0.05;
+      this.renderPass(renderer, this.material, this.renderToScreen ? null : writeBuffer);
+    } else if (window.APP.detailLevel === 2) {
+      renderer.setRenderTarget(this.renderToScreen ? null : writeBuffer);
+      renderer.clear();
+      renderer.render(this.scene, this.camera);
     }
-
-    // Copy composed buffer to screen
-    this.renderPass(renderer, this.material, this.renderToScreen ? null : writeBuffer);
   },
 
   renderPass(renderer, passMaterial, renderTarget, clearColor, clearAlpha) {
