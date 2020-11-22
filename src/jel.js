@@ -625,9 +625,9 @@ function setupNonVisibleHandler(scene) {
       if (document.visibilityState === "visible") {
         scene.pause();
         scene.renderer.animation.stop();
-        autoQuality.stopTracking();
       }
 
+      autoQuality.stopTracking();
       physics.updateSimulationRate(1000.0 / 15.0);
     } else {
       if (document.visibilityState === "visible") {

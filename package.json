@@ -77,7 +77,6 @@
     "fast-deep-equal": "^3.1.3",
     "form-data": "^3.0.0",
     "form-urlencoded": "^2.0.4",
-    "heap-js": "^2.1.2",
     "highlight.js": "^10.3.1",
     "history": "^4.7.2",
     "hls.js": "^0.13.2",
