@@ -1,13 +1,12 @@
 import Heap from "heap-js";
 const SAMPLING_DURATION_MS = 1000.0 * 4.0;
-const NUM_ALLOWED_OUTLIERS_PCT = 0.15;
+const PCT_REQUIRED_FAST_FRAMES = 0.15;
 const LOWER_QUALITY_FRAME_LENGTH = 1000.0 / 45; // Ensure at least 45 FPS
 const MIN_SAMPLES_NEEDED = 6;
 
 // Keeps a heap of frame times, and every SAMPLING_DURATION_MS we check
-// sum the fastest frames - NUM_ALLOWED_OUTLIERS_PCT percent of outliers
-// to determine average time per frame. Quality is lowered if it exceeds
-// LOWER_QUALITY_FRAME_LENGTH.
+// that PCT_REQUIRED_FAST_FRAMES percent of frames met
+// LOWER_QUALITY_FRAME_LENGTH, or else we lower the detail level.
 export class AutoQualitySystem {
   constructor(sceneEl) {
     this.scene = sceneEl;
@@ -17,7 +16,7 @@ export class AutoQualitySystem {
   startTracking() {
     if (this.enableTracking) return;
 
-    this.samples = new Heap(Heap.maxComparator);
+    this.samples = new Heap();
     this.samples.limit = 500;
     this.timeSinceLastCheck = 0.0;
     this.enableTracking = true;
@@ -37,31 +36,27 @@ export class AutoQualitySystem {
     if (this.timeSinceLastCheck > SAMPLING_DURATION_MS) {
       this.timeSinceLastCheck = 0;
 
-      if (this.samples.length > MIN_SAMPLES_NEEDED) {
-        let i = 0;
-        let c = 0;
-        let sum = 0.0;
+      if (this.samples.length < MIN_SAMPLES_NEEDED) return;
+      let i = 0;
+      let isRunningFast = true;
 
-        for (const frameDt of this.samples) {
-          i++;
-          if (i < Math.floor(NUM_ALLOWED_OUTLIERS_PCT * this.samples.length)) continue; // Skip slowest outliers
-
-          c++;
-          sum += frameDt;
+      for (const frameDt of this.samples) {
+        if (frameDt > LOWER_QUALITY_FRAME_LENGTH) {
+          isRunningFast = false;
+          break;
         }
 
-        const averageFrameTime = sum / (c * 1.0);
+        i++;
+        if (i > Math.floor(PCT_REQUIRED_FAST_FRAMES * this.samples.length)) break;
+      }
 
-        if (averageFrameTime > LOWER_QUALITY_FRAME_LENGTH) {
-          console.warn(
-            "Slow framerate detected, disabling effects, fancy CSS, and reducing pixel ratio to speed it up."
-          );
+      if (!isRunningFast) {
+        console.warn("Slow framerate detected, disabling effects, fancy CSS, and reducing pixel ratio to speed it up.");
 
-          window.APP.detailLevel++;
-          this.scene.renderer.setPixelRatio(1);
-          this.enableTracking = window.APP.detailLevel === 2; // Stop tracking at lowest detail level
-          document.body.classList.add("low-detail");
-        }
+        window.APP.detailLevel++;
+        this.scene.renderer.setPixelRatio(1);
+        this.enableTracking = window.APP.detailLevel === 2; // Stop tracking at lowest detail level
+        document.body.classList.add("low-detail");
       }
     }
   }
