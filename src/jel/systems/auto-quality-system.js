@@ -1,5 +1,5 @@
 import Heap from "heap-js";
-const SAMPLING_DURATION_MS = 1000.0 * 3.0;
+const SAMPLING_DURATION_MS = 1000.0 * 4.0;
 const NUM_ALLOWED_OUTLIERS_PCT = 0.15;
 const LOWER_QUALITY_FRAME_LENGTH = 1000.0 / 45; // Ensure at least 45 FPS
 const MIN_SAMPLES_NEEDED = 6;
