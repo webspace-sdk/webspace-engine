@@ -155,5 +155,7 @@
   "home.signin-failed-close": "You'll need to send yourself a new magic link.",
   "invite.info": "You've been invited to join a space.",
   "invite.join": "Join",
-  "space-tree.create": "Create a Space"
+  "space-tree.create": "Create a Space",
+  "unsupported.mobile": "Jel only works on a laptop or PC.\nMobile app coming soon!",
+  "unsupported.non-mobile": "Your browser is currently unsupported by Jel.\nTry latest Chrome or Firefox."
 }

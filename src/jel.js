@@ -418,9 +418,7 @@ async function initAvatar() {
 }
 
 async function checkPrerequisites() {
-  if (platformUnsupported()) {
-    return false;
-  }
+  if (platformUnsupported()) return false;
 
   const detectedOS = detectOS(navigator.userAgent);
 
@@ -895,7 +893,7 @@ async function loadMemberships() {
 }
 
 async function start() {
-  if (!checkPrerequisites()) return;
+  if (!(await checkPrerequisites())) return;
 
   const scene = document.querySelector("a-scene");
   const canvas = document.querySelector(".a-canvas");

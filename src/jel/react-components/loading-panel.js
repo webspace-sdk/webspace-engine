@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import jelLoadingSrc from "../../assets/jel/images/jel-loading.svg";
+import { FormattedMessage } from "react-intl";
 import jelLoadingShadowSrc from "../../assets/jel/images/jel-loading-shadow.svg";
 import "../../assets/jel/stylesheets/shared.scss";
 
@@ -56,19 +57,36 @@ const SplashWrap = styled.div`
   height: 128px;
 `;
 
-const LoadingPanel = ({ isLoading }) => {
+const Tip = styled.div`
+  position: absolute;
+  top: 148px;
+  left: -110px;
+  white-space: pre;
+  width: 352px;
+  line-height: 24px;
+  text-align: center;
+  color: var(--tooltip-text-color);
+`;
+
+const LoadingPanel = ({ isLoading, unsupportedMessage }) => {
   return (
     <LoadingPanelElement className={isLoading ? "loading" : ""}>
       <SplashWrap>
         <LogoShadowElement src={jelLoadingShadowSrc} />
         <LogoElement src={jelLoadingSrc} />
+        {unsupportedMessage && (
+          <Tip>
+            <FormattedMessage id={`unsupported.${unsupportedMessage}`} />
+          </Tip>
+        )}
       </SplashWrap>
     </LoadingPanelElement>
   );
 };
 
 LoadingPanel.propTypes = {
-  isLoading: PropTypes.bool
+  isLoading: PropTypes.bool,
+  unsupportedMessage: PropTypes.string
 };
 
 export default LoadingPanel;
