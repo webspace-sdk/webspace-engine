@@ -54,7 +54,6 @@ export class AutoQualitySystem {
       const totalFrames = this.fastCount + this.slowCount;
       if (totalFrames < MIN_SAMPLES_NEEDED) return;
 
-      console.log(this.slowCount, totalFrames, totalFrames * 1.0 * PCT_REQUIRED_FAST_FRAMES);
       if (this.slowCount > totalFrames * 1.0 * PCT_REQUIRED_FAST_FRAMES) {
         console.warn("Slow framerate detected, disabling effects, fancy CSS, and reducing pixel ratio to speed it up.");
 
