@@ -41,16 +41,11 @@ export default function InviteUI({ store, inviteId, onInviteAccepted, showSignIn
     }
   }, "init");
 
-  useEffect(() => {
-    document.title = "Join Space";
-  }, []);
-
   const fetchInvite = async inviteId => {
     try {
       const res = await fetchReticulumAuthenticated(`/api/v1/invites/${inviteId}`);
       setSpaceName(res.space.name);
       setSpaceId(res.space.space_id);
-      document.title = `Join ${res.space.name}`;
     } catch (e) {
       setIsExpired(true);
     }
