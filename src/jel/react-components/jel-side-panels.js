@@ -42,6 +42,10 @@ const Wrap = styled.div`
   justify-content: space-between;
   overflow: hidden;
   user-select: none;
+
+  #jel-interface:focus-within & {
+    pointer-events: auto;
+  }
 `;
 
 const Left = styled.div`
