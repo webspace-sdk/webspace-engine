@@ -1,26 +1,22 @@
 const SAMPLING_DURATION_MS = 1000.0 * 4.0;
-const PCT_REQUIRED_FAST_FRAMES = 0.15;
-const LOWER_QUALITY_FRAME_LENGTH = 1000.0 / 40; // Ensure at least 40 FPS
-const MIN_SAMPLES_NEEDED = 6;
+const LOWER_QUALITY_FRAME_LENGTH = 1000.0 / 40; // Ensure at least 50 FPS
+const MIN_SAMPLES_NEEDED = 15;
 const RESET_ON_TIME_JUMP_MS = 2000.0;
 
-// Keeps a heap of frame times, and every SAMPLING_DURATION_MS we check
-// that PCT_REQUIRED_FAST_FRAMES percent of frames met
-// LOWER_QUALITY_FRAME_LENGTH, or else we lower the detail level.
+// Conservative quality adjuster, take frames during a SAMPLING_DURATION_MS
+// period and if all frames fail to run fast enough (LOWER_QUALITY_FRAME_LENGTH)
+// then lower quality.
 export class AutoQualitySystem {
   constructor(sceneEl) {
     this.scene = sceneEl;
     this.enableTracking = false;
-    this.fastCount = 0;
-    this.slowCount = 0;
-    this.lastT = 0;
+    this.sawFastFrame = false;
+    this.slowFrames = 0;
   }
 
   startTracking() {
     if (this.enableTracking) return;
 
-    this.fastCount = 0;
-    this.slowCount = 0;
     this.timeSinceLastCheck = 0.0;
     this.enableTracking = true;
   }
@@ -34,16 +30,15 @@ export class AutoQualitySystem {
 
     if (dt > RESET_ON_TIME_JUMP_MS) {
       // Process was likely suspended
-      this.slowCount = 0;
-      this.fastCount = 0;
       this.timeSinceLastCheck = 0;
+      this.sawFastFrame = false;
       return;
     }
 
-    if (dt > LOWER_QUALITY_FRAME_LENGTH) {
-      this.slowCount++;
+    if (dt < LOWER_QUALITY_FRAME_LENGTH) {
+      this.sawFastFrame = true;
     } else {
-      this.fastCount++;
+      this.slowFrames++;
     }
 
     this.timeSinceLastCheck += dt;
@@ -54,7 +49,7 @@ export class AutoQualitySystem {
       const totalFrames = this.fastCount + this.slowCount;
       if (totalFrames < MIN_SAMPLES_NEEDED) return;
 
-      if (this.slowCount > totalFrames * 1.0 * PCT_REQUIRED_FAST_FRAMES) {
+      if (!this.sawFastFrame) {
         console.warn("Slow framerate detected, disabling effects, fancy CSS, and reducing pixel ratio to speed it up.");
 
         window.APP.detailLevel++;
@@ -63,7 +58,8 @@ export class AutoQualitySystem {
         document.body.classList.add("low-detail");
       }
 
-      this.fastCount = this.slowCount = 0;
+      this.sawFastFrame = false;
+      this.slowFrames = 0;
     }
   }
 }
