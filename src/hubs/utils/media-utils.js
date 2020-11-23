@@ -52,6 +52,8 @@ export const getDefaultResolveQuality = (is360 = false) => {
   return !is360 ? (useLowerQuality ? "low" : "high") : useLowerQuality ? "low_360" : "high_360";
 };
 
+export const clearResolveUrlCache = () => resolveUrlCache.clear();
+
 export const resolveUrl = async (url, quality = null, version = 1, bustCache) => {
   const key = `${url}_${version}`;
   if (!bustCache && resolveUrlCache.has(key)) return resolveUrlCache.get(key);

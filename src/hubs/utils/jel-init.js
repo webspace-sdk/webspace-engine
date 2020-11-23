@@ -5,6 +5,7 @@ import nextTick from "./next-tick";
 import { authorizeOrSanitizeMessage } from "./permissions-utils";
 import { isSetEqual } from "../../jel/utils/set-utils";
 import { homeHubForSpaceId } from "../../jel/utils/membership-utils";
+import { clearResolveUrlCache } from "./media-utils";
 import qsTruthy from "./qs_truthy";
 //import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
 import HubStore from "../storage/hub-store";
@@ -588,6 +589,7 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
 
           if (isInitialJoin) {
             THREE.Cache.clear();
+            clearResolveUrlCache();
 
             moveToInitialHubLocation(hub, hubStore);
 
