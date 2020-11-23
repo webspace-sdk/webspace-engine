@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState, forwardRef, useCallback } 
 import Select, { Option, OptGroup } from "rc-select";
 import "../../assets/jel/stylesheets/create-select.scss";
 import { getMessages } from "../../hubs/utils/i18n";
+import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
 import uploadIconSrc from "../../assets/jel/images/icons/upload.svgi";
 import linkIconSrc from "../../assets/jel/images/icons/link.svgi";
 import heartIconSrc from "../../assets/jel/images/icons/heart.svgi";
@@ -169,7 +170,16 @@ const CreateSelect = forwardRef((props, ref) => {
   const onChange = useCallback(v => setValue(v), []);
 
   const getInputElement = useCallback(() => {
-    return <CreateSelectInput ref={inputRef} id="create-select-input" />;
+    return (
+      <CreateSelectInput
+        ref={inputRef}
+        id="create-select-input"
+        onFocus={e => handleTextFieldFocus(e.target)}
+        onBlur={e => {
+          handleTextFieldBlur(e.target);
+        }}
+      />
+    );
   }, []);
   const showAction = useMemo(() => ["focus", "click"], []);
 

@@ -29,6 +29,23 @@ export function handleTextFieldFocus(target) {
 
   // Need to add a delay since this happens before the focus actually occurs.
   if (!isMobile) setTimeout(() => target.select(), 0);
+
+  const canvas = document.querySelector(".a-canvas");
+
+  // Temporarily release pointer lock while text field is focused
+  if (canvas.requestPointerLock) {
+    if (document.pointerLockElement === canvas) {
+      document.exitPointerLock();
+
+      canvas.addEventListener(
+        "focus",
+        () => {
+          canvas.requestPointerLock();
+        },
+        { once: true }
+      );
+    }
+  }
 }
 
 export function handleTextFieldBlur() {

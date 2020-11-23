@@ -1,5 +1,4 @@
 import BezierEasing from "bezier-easing";
-import qsTruthy from "../../hubs/utils/qs_truthy";
 
 // Used for managing the animation of the major UI panels
 

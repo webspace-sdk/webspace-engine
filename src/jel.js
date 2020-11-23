@@ -541,7 +541,7 @@ function addGlobalEventListeners(scene, entryManager) {
   document.addEventListener("pointerlockchange", () => {
     const expanded = !document.pointerLockElement;
 
-    if (!isInQuillEditor()) {
+    if (!isInQuillEditor() && !(expanded && isInEditableField())) {
       scene.systems["hubs-systems"].uiAnimationSystem[expanded ? "expandSidePanels" : "collapseSidePanels"]();
     }
   });
