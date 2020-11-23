@@ -76,9 +76,12 @@ export const isNonCorsProxyDomain = hostname => {
   return nonCorsProxyDomains.find(domain => hostname.endsWith(domain));
 };
 
+let currentCorsServerIndex = 0;
+
 export const getCorsProxyServer = () => {
   const servers = configs.CORS_PROXY_SERVER.split(",");
-  return servers[Math.floor(Math.random() * servers.length)];
+  currentCorsServerIndex++;
+  return servers[currentCorsServerIndex % servers.length];
 };
 
 export const proxiedUrlFor = url => {
