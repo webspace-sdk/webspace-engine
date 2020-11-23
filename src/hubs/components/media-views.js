@@ -1,4 +1,4 @@
-import configs from "../utils/configs";
+import "../utils/configs";
 import {
   takeOwnership,
   isMine,
@@ -24,7 +24,7 @@ import {
   scaleToAspectRatio,
   MEDIA_INTERACTION_TYPES
 } from "../utils/media-utils";
-import { proxiedUrlFor } from "../utils/media-url-utils";
+import { proxiedUrlFor, getCorsProxyServer } from "../utils/media-url-utils";
 import { buildAbsoluteURL } from "url-toolkit";
 import { SOUND_CAMERA_TOOL_TOOK_SNAPSHOT } from "../systems/sound-effects-system";
 import { promisifyWorker } from "../utils/promisify-worker.js";
@@ -837,7 +837,7 @@ AFRAME.registerComponent("media-video", {
         texture.dash = dashPlayer;
       } else if (AFRAME.utils.material.isHLS(url, contentType)) {
         if (HLS.isSupported()) {
-          const corsProxyPrefix = `https://${configs.CORS_PROXY_SERVER}/`;
+          const corsProxyPrefix = `https://${getCorsProxyServer()}/`;
           const baseUrl = url.startsWith(corsProxyPrefix) ? url.substring(corsProxyPrefix.length) : url;
           const setupHls = () => {
             if (texture.hls) {

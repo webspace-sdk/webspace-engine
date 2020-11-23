@@ -76,6 +76,11 @@ export const isNonCorsProxyDomain = hostname => {
   return nonCorsProxyDomains.find(domain => hostname.endsWith(domain));
 };
 
+export const getCorsProxyServer = () => {
+  const servers = configs.CORS_PROXY_SERVER.split(",");
+  return servers[Math.floor(Math.random() * servers.length)];
+};
+
 export const proxiedUrlFor = url => {
   if (!(url.startsWith("http:") || url.startsWith("https:"))) return url;
 
@@ -87,7 +92,7 @@ export const proxiedUrlFor = url => {
     // Ignore
   }
 
-  return `https://${configs.CORS_PROXY_SERVER}/${url}`;
+  return `https://${getCorsProxyServer()}/${url}`;
 };
 
 export function getAbsoluteUrl(baseUrl, relativeUrl) {

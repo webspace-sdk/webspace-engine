@@ -216,7 +216,7 @@ module.exports = async (env, argv) => {
       Object.assign(process.env, {
         HOST: "hubs.local",
         RETICULUM_SOCKET_SERVER: "hubs.local",
-        CORS_PROXY_SERVER: "hubs-proxy.local:4000",
+        CORS_PROXY_SERVER: "cors-proxy.jel.app",
         NON_CORS_PROXY_DOMAINS: "hubs.local,dev.reticulum.io",
         BASE_ASSETS_PATH: "https://hubs.local:8080/",
         RETICULUM_SERVER: "hubs.local:4000",
