@@ -755,6 +755,14 @@ export function joinSpace(
   const dynaPhxChannel = socket.channel(`dyna`, createDynaChannelParams());
   dynaPhxChannel.join().receive("error", res => console.error(res));
   dynaChannel.bind(dynaPhxChannel);
+  dynaPhxChannel.on("notice", async data => {
+    // On dyna deploys, reconnect after a random delay until pool + version match deployed version/pool
+    if (data.event === "dyna-deploy") {
+      // TODO JEL
+      //await migrateToNewReticulumServer(data);
+    }
+  });
+
   spaceMetadata.bind(dynaChannel);
 
   const spacePhxChannel = socket.channel(`space:${spaceId}`, createSpaceChannelParams());
