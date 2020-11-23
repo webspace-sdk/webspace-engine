@@ -7,7 +7,7 @@ import { isSetEqual } from "../../jel/utils/set-utils";
 import { homeHubForSpaceId } from "../../jel/utils/membership-utils";
 import { clearResolveUrlCache } from "./media-utils";
 import qsTruthy from "./qs_truthy";
-//import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
+import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
 import HubStore from "../storage/hub-store";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
@@ -17,10 +17,10 @@ const isDebug = qsTruthy("debug");
 const isMobile = AFRAME.utils.device.isMobile();
 const isMobileVR = AFRAME.utils.device.isMobileVR();
 
-//let retDeployReconnectInterval;
+let dynaDeployReconnectInterval;
 let positionTrackerInterval = null;
 
-//const retReconnectMaxDelayMs = 15000;
+const dynaReconnectMaxDelayMs = 15000;
 const stopTrackingPosition = () => clearInterval(positionTrackerInterval);
 
 const startTrackingPosition = (() => {
@@ -146,49 +146,48 @@ const createHubChannelParams = () => {
   return params;
 };
 
-// TODO JEL
-//const migrateToNewReticulumServer = async deployNotification => {
-//  const { authChannel, linkChannel, hubChannel, retChannel, spaceChannel } = window.APP;
-//
-//  // On Reticulum deploys, reconnect after a random delay until pool + version match deployed version/pool
-//  console.log(`Reticulum deploy detected v${deployNotification.ret_version} on ${deployNotification.ret_pool}`);
-//  clearInterval(retDeployReconnectInterval);
-//
-//  await new Promise(res => {
-//    setTimeout(() => {
-//      const tryReconnect = async () => {
-//        invalidateReticulumMeta();
-//        const reticulumMeta = await getReticulumMeta();
-//
-//        if (
-//          reticulumMeta.pool === deployNotification.ret_pool &&
-//          reticulumMeta.version === deployNotification.ret_version
-//        ) {
-//          console.log("Reticulum reconnecting.");
-//          clearInterval(retDeployReconnectInterval);
-//          const oldSocket = retChannel.channel.socket;
-//          const socket = await connectToReticulum(isDebug, oldSocket.params());
-//          await retChannel.migrateToSocket(socket, createDynaChannelParams());
-//          await spaceChannel.migrateToSocket(socket, createSpaceChannelParams());
-//          await hubChannel.migrateToSocket(socket, createHubChannelParams());
-//          authChannel.setSocket(socket);
-//          linkChannel.setSocket(socket);
-//
-//          // Disconnect old socket after a delay to ensure this user is always registered in presence.
-//          setTimeout(() => {
-//            console.log("Reconnection complete. Disconnecting old reticulum socket.");
-//            oldSocket.teardown();
-//          }, 10000);
-//
-//          res();
-//        }
-//      };
-//
-//      retDeployReconnectInterval = setInterval(tryReconnect, 5000);
-//      tryReconnect();
-//    }, Math.floor(Math.random() * retReconnectMaxDelayMs));
-//  });
-//};
+const migrateToNewDynaServer = async deployNotification => {
+  const { authChannel, linkChannel, hubChannel, dynaChannel, spaceChannel } = window.APP;
+
+  // On Reticulum deploys, reconnect after a random delay until pool + version match deployed version/pool
+  console.log(`Dyna deploy detected on ${deployNotification.dyna_pool}`);
+  clearInterval(dynaDeployReconnectInterval);
+
+  await new Promise(res => {
+    setTimeout(() => {
+      const tryReconnect = async () => {
+        invalidateReticulumMeta();
+        const reticulumMeta = await getReticulumMeta();
+
+        if (
+          reticulumMeta.pool === deployNotification.dyna_pool &&
+          reticulumMeta.version === deployNotification.dyna_version
+        ) {
+          console.log("Dyna reconnecting.");
+          clearInterval(dynaDeployReconnectInterval);
+          const oldSocket = dynaChannel.channel.socket;
+          const socket = await connectToReticulum(isDebug, oldSocket.params());
+          await dynaChannel.migrateToSocket(socket, createDynaChannelParams());
+          await spaceChannel.migrateToSocket(socket, createSpaceChannelParams());
+          await hubChannel.migrateToSocket(socket, createHubChannelParams());
+          authChannel.setSocket(socket);
+          linkChannel.setSocket(socket);
+
+          // Disconnect old socket after a delay to ensure this user is always registered in presence.
+          setTimeout(() => {
+            console.log("Reconnection complete. Disconnecting old dyna socket.");
+            oldSocket.teardown();
+          }, 10000);
+
+          res();
+        }
+      };
+
+      dynaDeployReconnectInterval = setInterval(tryReconnect, 5000);
+      tryReconnect();
+    }, Math.floor(Math.random() * dynaReconnectMaxDelayMs));
+  });
+};
 
 function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
   const scene = document.querySelector("a-scene");
@@ -352,7 +351,7 @@ const joinSpaceChannel = async (
 
         isInitialJoin = false;
 
-        const { xana_host, arpa_host, turn } = data.spaces[0];
+        const { xana_host, turn } = data.spaces[0];
 
         const setupAdapter = () => {
           const adapter = NAF.connection.adapter;
@@ -758,8 +757,7 @@ export function joinSpace(
   dynaPhxChannel.on("notice", async data => {
     // On dyna deploys, reconnect after a random delay until pool + version match deployed version/pool
     if (data.event === "dyna-deploy") {
-      // TODO JEL
-      //await migrateToNewReticulumServer(data);
+      await migrateToNewDynaServer(data);
     }
   });
 
