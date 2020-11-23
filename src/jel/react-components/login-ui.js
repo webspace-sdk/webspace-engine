@@ -63,7 +63,7 @@ const Tip = styled.div`
   margin-top: 6px;
 `;
 
-export default function LoginUI({ authChannel, postAuthUrl, isSignUp }) {
+export default function LoginUI({ authChannel, postAuthUrl }) {
   const [email, setEmail] = useState("");
   const [flowState, flowDispatch] = useReducer((state, action) => {
     switch (action) {
@@ -75,13 +75,6 @@ export default function LoginUI({ authChannel, postAuthUrl, isSignUp }) {
         return { signingIn: false, signedIn: true };
     }
   }, "init");
-
-  useEffect(
-    () => {
-      document.title = isSignUp ? "Sign Up" : "Sign In";
-    },
-    [isSignUp]
-  );
 
   const onSubmit = async e => {
     e.preventDefault();
@@ -130,6 +123,5 @@ export default function LoginUI({ authChannel, postAuthUrl, isSignUp }) {
 
 LoginUI.propTypes = {
   authChannel: PropTypes.object,
-  postAuthUrl: PropTypes.string,
-  isSignUp: PropTypes.bool
+  postAuthUrl: PropTypes.string
 };
