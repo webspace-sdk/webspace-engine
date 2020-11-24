@@ -87,7 +87,7 @@ export default class DialogAdapter {
       const urlWithParams = new URL(url);
       urlWithParams.searchParams.append("roomId", this._roomId);
       urlWithParams.searchParams.append("peerId", this._clientId);
-      this._protoo._transport._url = url;
+      this._protoo._transport._url = urlWithParams.toString();
     }
 
     this._serverUrl = url;
