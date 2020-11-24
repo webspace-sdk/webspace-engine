@@ -353,7 +353,7 @@ const joinSpaceChannel = async (
 
         const { xana_host, turn } = data.spaces[0];
 
-        const setupAdapter = () => {
+        const setupNAFAdapter = () => {
           const adapter = NAF.connection.adapter;
 
           if (!adapter.reliableTransport) {
@@ -364,66 +364,80 @@ const joinSpaceChannel = async (
 
           setupPeerConnectionConfig(adapter, xana_host, turn);
 
-          let newHostPollInterval = null;
+          let newXanaHostPollInterval = null;
 
           // When reconnecting, update the server URL if necessary
           adapter.setReconnectionListeners(
             () => {
-              if (newHostPollInterval) return;
+              if (newXanaHostPollInterval) return;
 
-              newHostPollInterval = setInterval(async () => {
-                const { xana_host, xana_port, arpa_host, arpa_port, turn } = await spaceChannel.getHosts();
+              newXanaHostPollInterval = setInterval(async () => {
+                const { xana_host, xana_port } = await spaceChannel.getHosts();
 
                 const currentXanaURL = NAF.connection.adapter.serverUrl;
-                const currentArpaURL = SAF.connection.adapter.serverUrl;
                 const newXanaURL = `wss://${xana_host}:${xana_port}`;
-                const newArpaURL = `wss://${arpa_host}:${arpa_port}`;
 
                 setupPeerConnectionConfig(adapter, xana_host, turn);
 
                 if (currentXanaURL !== newXanaURL) {
-                  // TODO JEL test coordinated reconnect
+                  console.log(`Updated Xana Host: ${newXanaURL}`);
                   scene.setAttribute("networked-scene", { serverURL: newXanaURL });
                   adapter.serverUrl = newXanaURL;
-                  //NAF.connection.adapter.joinHub(currentHub); // TODO JEL RECONNECT
-                }
-
-                if (currentArpaURL !== newArpaURL) {
-                  // TODO JEL test coordinated reconnect
-                  scene.setAttribute("shared-scene", { serverURL: newArpaURL });
-                  adapter.serverUrl = newArpaURL;
-                  //NAF.connection.adapter.joinHub(currentHub); // TODO JEL RECONNECT
                 }
               }, 1000);
             },
             () => {
-              clearInterval(newHostPollInterval);
-              newHostPollInterval = null;
+              clearInterval(newXanaHostPollInterval);
+              newXanaHostPollInterval = null;
             },
             () => {
-              clearInterval(newHostPollInterval);
-              newHostPollInterval = null;
+              clearInterval(newXanaHostPollInterval);
+              newXanaHostPollInterval = null;
+            }
+          );
+        };
+
+        const setupSAFAdapter = () => {
+          SAF.connection.adapter.setClientId(socket.params().session_id);
+          const adapter = SAF.connection.adapter;
+
+          let newArpaHostPollInterval = null;
+
+          // When reconnecting, update the server URL if necessary
+          adapter.setReconnectionListeners(
+            () => {
+              if (newArpaHostPollInterval) return;
+
+              newArpaHostPollInterval = setInterval(async () => {
+                const { arpa_host, arpa_port } = await spaceChannel.getHosts();
+
+                const currentArpaURL = NAF.connection.adapter.serverUrl;
+                const newArpaURL = `wss://${arpa_host}:${arpa_port}`;
+
+                if (currentArpaURL !== newArpaURL) {
+                  console.log(`Updated Arpa Host: ${newArpaURL}`);
+                  scene.setAttribute("shared-scene", { serverURL: newArpaURL });
+                  adapter.serverUrl = newArpaURL;
+                }
+              }, 1000);
+            },
+            () => {
+              clearInterval(newArpaHostPollInterval);
+              newArpaHostPollInterval = null;
             }
           );
         };
 
         if (NAF.connection.adapter) {
-          setupAdapter();
+          setupNAFAdapter();
         } else {
-          scene.addEventListener("adapter-ready", setupAdapter, { once: true });
+          scene.addEventListener("adapter-ready", setupNAFAdapter, { once: true });
         }
 
         if (SAF.connection.adapter) {
-          SAF.connection.adapter.setClientId(socket.params().session_id);
+          setupSAFAdapter();
         } else {
-          scene.addEventListener(
-            "shared-adapter-ready",
-            async ({ detail: adapter }) => {
-              // TODO JEL this may not be needed once sharedb moves to dyna
-              adapter.setClientId(socket.params().session_id);
-            },
-            { once: true }
-          );
+          scene.addEventListener("shared-adapter-ready", setupSAFAdapter, { once: true });
         }
 
         await presenceInitPromise;
