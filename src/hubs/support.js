@@ -31,7 +31,7 @@ function getPlatformSupport() {
     { name: "Spread syntax", supported: syntaxSupported(SPREAD_SYNTAX) },
     { name: "Optional catch syntax", supported: syntaxSupported(CATCH_SYNTAX) },
     { name: "WebGL2", supported: !!window.WebGL2RenderingContext },
-    { name: "Mobile App", supported: !AFRAME.utils.device.isMobile() }
+    { name: "Mobile App", supported: () => !AFRAME.utils.device.isMobile() }
   ];
 }
 
@@ -52,7 +52,10 @@ function isInAppBrowser() {
 }
 
 export function platformUnsupported() {
-  return getPlatformSupport().some(s => !s.supported) || isInAppBrowser();
+  return (
+    getPlatformSupport().some(({ supported }) => (typeof supported === "function" ? !supported() : !supported)) ||
+    isInAppBrowser()
+  );
 }
 
 document.addEventListener("DOMContentLoaded", () => {
