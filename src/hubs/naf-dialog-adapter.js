@@ -32,8 +32,6 @@ const debug = newDebug("naf-dialog-adapter:debug");
 //const warn = newDebug("naf-dialog-adapter:warn");
 const error = newDebug("naf-dialog-adapter:error");
 const info = newDebug("naf-dialog-adapter:info");
-const INITIAL_RECONNECTION_DELAY = 5000;
-const MAX_RECONNECTION_DELAY = 30000;
 
 const PC_PROPRIETARY_CONSTRAINTS = {
   optional: [{ googDscp: true }]
@@ -82,6 +80,10 @@ export default class DialogAdapter {
 
   setServerUrl(url) {
     this._serverUrl = url;
+
+    if (this._protoo) {
+      this._protoo._url = url;
+    }
   }
 
   setSpaceJoinToken(joinToken) {
@@ -136,11 +138,26 @@ export default class DialogAdapter {
     urlWithParams.searchParams.append("roomId", this._roomId);
     urlWithParams.searchParams.append("peerId", this._clientId);
 
-    const protooTransport = new protooClient.WebSocketTransport(urlWithParams.toString());
+    const protooTransport = new protooClient.WebSocketTransport(urlWithParams.toString(), {
+      retry: {
+        factor: 2,
+        minTimeout: 1 * 1000,
+        maxTimeout: 8 * 1000,
+        retries: 100000
+      }
+    });
     this._protoo = new protooClient.Peer(protooTransport);
 
     await new Promise(res => {
       this._protoo.on("open", async () => {
+        if (this._reconnecting) {
+          this._reconnecting = false;
+
+          if (this._reconnectedListener) {
+            this._reconnectedListener();
+          }
+        }
+
         this._closed = false;
         await this._joinRoom();
 
@@ -152,9 +169,27 @@ export default class DialogAdapter {
       });
     });
 
-    this._protoo.on("close", () => this.disconnect());
+    this._protoo.on("close", () => {
+      if (this._reconnecting) {
+        this._reconnecting = false;
+
+        if (this._reconnectionErrorListener) {
+          this._reconnectionErrorListener(
+            new Error("Connection could not be reestablished, exceeded maximum number of reconnection attempts.")
+          );
+        }
+      }
+
+      this.disconnect();
+    });
 
     this._protoo.on("disconnected", () => {
+      this._reconnecting = true;
+
+      if (this._reconnectingListener) {
+        this._reconnectingListener(this.reconnectionDelay);
+      }
+
       if (this._sendTransport) {
         this._sendTransport.close();
         this._sendTransport = null;
@@ -844,48 +879,6 @@ export default class DialogAdapter {
       this._recvTransport.close();
       this._recvTransport = null;
     }
-  }
-
-  reconnect() {
-    // Dispose of all networked entities and other resources tied to the session.
-    this._reconnecting = true;
-    this.disconnect();
-
-    return new Promise(res => {
-      this.connect()
-        .then(() => {
-          this._reconnecting = false;
-          this.reconnectionDelay = INITIAL_RECONNECTION_DELAY;
-          this.reconnectionAttempts = 0;
-
-          if (this._reconnectedListener) {
-            this._reconnectedListener();
-          }
-
-          res();
-        })
-        .catch(error => {
-          this.reconnectionDelay = Math.min(MAX_RECONNECTION_DELAY, this.reconnectionDelay + 1000);
-          this.reconnectionAttempts++;
-
-          if (this._reconnectionErrorListener) {
-            res(
-              this._reconnectionErrorListener(
-                new Error("Connection could not be reestablished, exceeded maximum number of reconnection attempts.")
-              )
-            );
-          }
-
-          console.warn("Error during reconnect, retrying.");
-          console.warn(error);
-
-          if (this._reconnectingListener) {
-            this._reconnectingListener(this.reconnectionDelay);
-          }
-
-          this.reconnectionTimeout = setTimeout(() => this.reconnect(), this.reconnectionDelay);
-        });
-    });
   }
 
   kick(clientId, permsToken) {
