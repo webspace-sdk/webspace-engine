@@ -30,6 +30,7 @@ function getPlatformSupport() {
     { name: "Shorthand initializer syntax", supported: syntaxSupported(SHORTHAND_INITIALIZER) },
     { name: "Spread syntax", supported: syntaxSupported(SPREAD_SYNTAX) },
     { name: "Optional catch syntax", supported: syntaxSupported(CATCH_SYNTAX) },
+    { name: "WebGL2", supported: !!window.WebGL2RenderingContext },
     { name: "Mobile App", supported: !AFRAME.utils.device.isMobile() }
   ];
 }
