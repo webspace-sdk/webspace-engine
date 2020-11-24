@@ -382,7 +382,7 @@ const joinSpaceChannel = async (
                 if (currentXanaURL !== newXanaURL) {
                   console.log(`Updated Xana Host: ${newXanaURL}`);
                   scene.setAttribute("networked-scene", { serverURL: newXanaURL });
-                  adapter.serverUrl = newXanaURL;
+                  adapter.setServerUrl(newXanaURL);
                 }
               }, 1000);
             },
@@ -417,7 +417,7 @@ const joinSpaceChannel = async (
                 if (currentArpaURL !== newArpaURL) {
                   console.log(`Updated Arpa Host: ${newArpaURL}`);
                   scene.setAttribute("shared-scene", { serverURL: newArpaURL });
-                  adapter.serverUrl = newArpaURL;
+                  adapter.setServerUrl(newArpaURL);
                 }
               }, 1000);
             },
