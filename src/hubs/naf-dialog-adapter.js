@@ -84,8 +84,10 @@ export default class DialogAdapter {
 
   setServerUrl(url) {
     if (this._protoo) {
-      const existingUrl = new URL(this._protoo._transport._url);
-      this._protoo._transport._url = `${url}${existingUrl.search}`;
+      const urlWithParams = new URL(url);
+      urlWithParams.searchParams.append("roomId", this._roomId);
+      urlWithParams.searchParams.append("peerId", this._clientId);
+      this._protoo._transport._url = url;
     }
 
     this._serverUrl = url;
