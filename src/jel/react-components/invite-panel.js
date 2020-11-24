@@ -76,22 +76,15 @@ const InvitePanel = forwardRef((props, ref) => {
   const { fetchInviteUrl } = props;
   const [inviteUrl, setInviteUrl] = useState("");
   const [inviteUrlCreatedAt, setInviteUrlCreatedAt] = useState(null);
+  const [inviteUrlSpaceId, setInviteUrlSpaceId] = useState(null);
   const [isCopied, setIsCopied] = useState(false);
-  const shouldRefetch = useCallback(
-    () => !inviteUrl || performance.now() - inviteUrlCreatedAt >= REFETCH_INVITE_LINK_MS,
-    [inviteUrl, inviteUrlCreatedAt]
-  );
+  const spaceId = props.spaceId;
 
-  useEffect(() => {
-    if (shouldRefetch()) {
-      fetchInviteUrl().then(url => {
-        if (url && shouldRefetch()) {
-          setInviteUrl(url);
-          setInviteUrlCreatedAt(performance.now());
-        }
-      });
-    }
-  });
+  const shouldRefetch = useCallback(
+    () =>
+      !inviteUrl || performance.now() - inviteUrlCreatedAt >= REFETCH_INVITE_LINK_MS || inviteUrlSpaceId !== spaceId,
+    [inviteUrl, inviteUrlCreatedAt, inviteUrlSpaceId, spaceId]
+  );
 
   return (
     <InvitePanelElement>
@@ -103,7 +96,23 @@ const InvitePanel = forwardRef((props, ref) => {
             readOnly
             value={inviteUrl}
             ref={ref}
-            onFocus={e => e.target.select()}
+            onFocus={e => {
+              const target = e.target;
+
+              if (shouldRefetch()) {
+                fetchInviteUrl().then(url => {
+                  if (url && shouldRefetch()) {
+                    setInviteUrl(url);
+                    setInviteUrlCreatedAt(performance.now());
+                    setInviteUrlSpaceId(spaceId);
+                  }
+
+                  target.select();
+                });
+              } else {
+                target.select();
+              }
+            }}
           />
         </InviteWrap>
         <SmallActionButton
@@ -135,7 +144,8 @@ const InvitePanel = forwardRef((props, ref) => {
 InvitePanel.displayName = "InvitePanel";
 
 InvitePanel.propTypes = {
-  fetchInviteUrl: PropTypes.func
+  fetchInviteUrl: PropTypes.func,
+  spaceId: PropTypes.string
 };
 
 export default InvitePanel;

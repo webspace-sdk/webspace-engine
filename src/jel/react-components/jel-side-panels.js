@@ -303,6 +303,7 @@ function JelSidePanels({
   const [trashMenuElement, setTrashMenuElement] = useState(null);
   const [inviteReferenceElement, setInviteReferenceElement] = useState(null);
   const [inviteElement, setInviteElement] = useState(null);
+  const invitePanelFieldElement = React.createRef();
 
   const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: updateTrashPopper } = usePopper(
     trashMenuReferenceElement,
@@ -367,7 +368,7 @@ function JelSidePanels({
                     if (updateInvitePopper) {
                       updateInvitePopper();
                     }
-                    toggleFocus(inviteElement);
+                    toggleFocus(invitePanelFieldElement.current);
                   }}
                 >
                   <FormattedMessage id="nav.invite" />
@@ -469,7 +470,11 @@ function JelSidePanels({
         </PresenceContent>
       </Presence>
       <Invite setPopperElement={setInviteElement} styles={inviteStyles} attributes={inviteAttributes}>
-        <InvitePanel fetchInviteUrl={async () => await spaceChannel.createInvite()} />
+        <InvitePanel
+          spaceId={spaceId}
+          ref={invitePanelFieldElement}
+          fetchInviteUrl={async () => await spaceChannel.createInvite()}
+        />
       </Invite>
       <TrashMenu setPopperElement={setTrashMenuElement} styles={trashMenuStyles} attributes={trashMenuAttributes}>
         <HubTrashTree
