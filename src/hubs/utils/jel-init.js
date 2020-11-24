@@ -374,7 +374,7 @@ const joinSpaceChannel = async (
               newXanaHostPollInterval = setInterval(async () => {
                 const { xana_host, xana_port } = await spaceChannel.getHosts();
 
-                const currentXanaURL = NAF.connection.adapter.serverUrl;
+                const currentXanaURL = adapter.getServerUrl();
                 const newXanaURL = `wss://${xana_host}:${xana_port}`;
 
                 setupPeerConnectionConfig(adapter, xana_host, turn);
@@ -411,7 +411,7 @@ const joinSpaceChannel = async (
               newArpaHostPollInterval = setInterval(async () => {
                 const { arpa_host, arpa_port } = await spaceChannel.getHosts();
 
-                const currentArpaURL = NAF.connection.adapter.serverUrl;
+                const currentArpaURL = adapter.getServerUrl();
                 const newArpaURL = `wss://${arpa_host}:${arpa_port}`;
 
                 if (currentArpaURL !== newArpaURL) {

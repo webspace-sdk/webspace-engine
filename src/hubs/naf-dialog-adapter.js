@@ -78,12 +78,16 @@ export default class DialogAdapter {
     this._forceTcp = forceTcp;
   }
 
-  setServerUrl(url) {
-    this._serverUrl = url;
+  getServerUrl() {
+    return this._serverUrl;
+  }
 
+  setServerUrl(url) {
     if (this._protoo) {
-      this._protoo._url = url;
+      this._protoo._transport._url = this._protoo._transport._url.replaceAll(this._serverUrl, url);
     }
+
+    this._serverUrl = url;
   }
 
   setSpaceJoinToken(joinToken) {
