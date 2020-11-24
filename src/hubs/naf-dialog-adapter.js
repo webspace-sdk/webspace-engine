@@ -32,6 +32,8 @@ const debug = newDebug("naf-dialog-adapter:debug");
 //const warn = newDebug("naf-dialog-adapter:warn");
 const error = newDebug("naf-dialog-adapter:error");
 const info = newDebug("naf-dialog-adapter:info");
+const INITIAL_RECONNECTION_DELAY = 5000;
+const MAX_RECONNECTION_DELAY = 30000;
 
 const PC_PROPRIETARY_CONSTRAINTS = {
   optional: [{ googDscp: true }]
@@ -853,7 +855,7 @@ export default class DialogAdapter {
       this.connect()
         .then(() => {
           this._reconnecting = false;
-          this.reconnectionDelay = this.initialReconnectionDelay;
+          this.reconnectionDelay = INITIAL_RECONNECTION_DELAY;
           this.reconnectionAttempts = 0;
 
           if (this._reconnectedListener) {
@@ -863,10 +865,10 @@ export default class DialogAdapter {
           res();
         })
         .catch(error => {
-          this.reconnectionDelay += 1000;
+          this.reconnectionDelay = Math.min(MAX_RECONNECTION_DELAY, this.reconnectionDelay + 1000);
           this.reconnectionAttempts++;
 
-          if (this.reconnectionAttempts > this.maxReconnectionAttempts && this._reconnectionErrorListener) {
+          if (this._reconnectionErrorListener) {
             res(
               this._reconnectionErrorListener(
                 new Error("Connection could not be reestablished, exceeded maximum number of reconnection attempts.")
