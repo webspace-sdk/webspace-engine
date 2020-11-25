@@ -10,6 +10,8 @@ import grassVoxSrc from "!!url-loader!../../assets/jel/models/grass1.vox";
 import { RENDER_ORDER } from "../../hubs/constants";
 import configs from "../../hubs/utils/configs";
 import { Layers } from "../../hubs/components/layers";
+import qsTruthy from "../../hubs/utils/qs_truthy";
+const debugNavMesh = qsTruthy("debug_nav");
 
 const { Pathfinding } = require("three-pathfinding");
 const { SHAPE, TYPE, FIT } = CONSTANTS;
@@ -690,15 +692,17 @@ export class TerrainSystem {
           navGeometry.applyMatrix(navTransform);
 
           // Navmesh vis
-          //const navMaterial = new THREE.MeshBasicMaterial({
-          //  color: Math.floor(Math.random() * 0xffffff),
-          //  transparent: true,
-          //  opacity: 0.2
-          //});
-          //const navMesh = new THREE.Mesh(navGeometry, navMaterial);
-          //navMesh.position.y += 0.5;
-          //navMesh.matrixNeedsUpdate = true;
-          //this.scene.object3D.add(navMesh);
+          if (debugNavMesh) {
+            const navMaterial = new THREE.MeshBasicMaterial({
+              color: Math.floor(Math.random() * 0xffffff),
+              transparent: true,
+              opacity: 0.6
+            });
+            const navMesh = new THREE.Mesh(navGeometry, navMaterial);
+            navMesh.position.y += 0.5;
+            navMesh.matrixNeedsUpdate = true;
+            this.scene.object3D.add(navMesh);
+          }
 
           this.pathfinder.setZoneData(key, Pathfinding.createZone(navGeometry));
           this.navVersion++;
