@@ -183,11 +183,11 @@ export class PhysicsSystem {
                 object3D.parent.updateMatrices();
                 inverse.getInverse(object3D.parent.matrixWorld);
                 transform.multiplyMatrices(inverse, matrix);
+                transform.decompose(object3D.position, object3D.quaternion, scale);
               } else {
-                transform.copy(matrix);
+                matrix.decompose(object3D.position, object3D.quaternion, scale);
               }
 
-              transform.decompose(object3D.position, object3D.quaternion, scale);
               object3D.matrixNeedsUpdate = true;
               object3D.physicsNeedsUpdate = true;
               this.atmosphereSystem.updateShadows();
