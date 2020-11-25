@@ -177,9 +177,16 @@ export class PhysicsSystem {
                 this.objectMatricesFloatArray,
                 index * BUFFER_CONFIG.BODY_DATA_SIZE + BUFFER_CONFIG.MATRIX_OFFSET
               );
-              object3D.parent.updateMatrices();
-              inverse.getInverse(object3D.parent.matrixWorld);
-              transform.multiplyMatrices(inverse, matrix);
+
+              // Skip inversion if child of scene (since there is no transform) or if parent has been removed
+              if (object3D.parent && object3D.parent.parent) {
+                object3D.parent.updateMatrices();
+                inverse.getInverse(object3D.parent.matrixWorld);
+                transform.multiplyMatrices(inverse, matrix);
+              } else {
+                transform.copy(matrix);
+              }
+
               transform.decompose(object3D.position, object3D.quaternion, scale);
               object3D.matrixNeedsUpdate = true;
               object3D.physicsNeedsUpdate = true;
