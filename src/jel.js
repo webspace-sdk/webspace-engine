@@ -625,6 +625,7 @@ function setupNonVisibleHandler(scene) {
         scene.renderer.animation.stop();
       }
 
+      document.body.classList.add("paused");
       autoQuality.stopTracking();
       physics.updateSimulationRate(1000.0 / 15.0);
     } else {
@@ -634,6 +635,7 @@ function setupNonVisibleHandler(scene) {
         autoQuality.startTracking();
       }
 
+      document.body.classList.remove("paused");
       physics.updateSimulationRate(1000.0 / 90.0);
     }
   };

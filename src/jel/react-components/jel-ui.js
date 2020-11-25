@@ -40,6 +40,10 @@ const Wrap = styled.div`
   #jel-interface:focus-within & {
     pointer-events: auto;
   }
+
+  body.paused & {
+    pointer-events: auto;
+  }
 `;
 
 const FadeEdges = styled.div`
