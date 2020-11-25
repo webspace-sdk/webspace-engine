@@ -1,31 +1,31 @@
 import { setMatrixWorld } from "../utils/three-utils";
 import { TRANSFORM_MODE } from "../components/transform-object-button";
 
-const calculatePlaneMatrix = (function() {
-  const planeMatrix = new THREE.Matrix4();
-  const planeUp = new THREE.Vector3();
-  const planeForward = new THREE.Vector3();
-  const planeRight = new THREE.Vector3();
-  const planePosition = new THREE.Vector3();
-  const camPosition = new THREE.Vector3();
-
-  return function calculatePlaneMatrix(camera, button) {
-    camera.updateMatrices();
-    camPosition.setFromMatrixPosition(camera.matrixWorld);
-    button.updateMatrices();
-    planePosition.setFromMatrixPosition(button.matrixWorld);
-    planeForward.subVectors(planePosition, camPosition);
-    planeForward.y = 0;
-    planeForward.normalize();
-    planeUp.set(0, 1, 0);
-    planeRight.crossVectors(planeForward, planeUp);
-    planeMatrix.makeBasis(planeRight, planeUp, planeForward.multiplyScalar(-1));
-    planeMatrix.elements[12] = planePosition.x;
-    planeMatrix.elements[13] = planePosition.y;
-    planeMatrix.elements[14] = planePosition.z;
-    return planeMatrix;
-  };
-})();
+//const calculatePlaneMatrix = (function() {
+//  const planeMatrix = new THREE.Matrix4();
+//  const planeUp = new THREE.Vector3();
+//  const planeForward = new THREE.Vector3();
+//  const planeRight = new THREE.Vector3();
+//  const planePosition = new THREE.Vector3();
+//  const camPosition = new THREE.Vector3();
+//
+//  return function calculatePlaneMatrix(camera, button) {
+//    camera.updateMatrices();
+//    camPosition.setFromMatrixPosition(camera.matrixWorld);
+//    button.updateMatrices();
+//    planePosition.setFromMatrixPosition(button.matrixWorld);
+//    planeForward.subVectors(planePosition, camPosition);
+//    planeForward.y = 0;
+//    planeForward.normalize();
+//    planeUp.set(0, 1, 0);
+//    planeRight.crossVectors(planeForward, planeUp);
+//    planeMatrix.makeBasis(planeRight, planeUp, planeForward.multiplyScalar(-1));
+//    planeMatrix.elements[12] = planePosition.x;
+//    planeMatrix.elements[13] = planePosition.y;
+//    planeMatrix.elements[14] = planePosition.z;
+//    return planeMatrix;
+//  };
+//})();
 
 const planeForLeftCursor = new THREE.Mesh(
   new THREE.PlaneBufferGeometry(100000, 100000, 2, 2),
@@ -164,5 +164,6 @@ AFRAME.registerSystem("scale-object", {
     this.objectMatrix.copy(this.objectToScale.matrixWorld);
     this.objectMatrix.scale(this.deltaScale);
     setMatrixWorld(this.objectToScale, this.objectMatrix);
+    this.objectToScale.matrixNeedsUpdate = true;
   }
 });
