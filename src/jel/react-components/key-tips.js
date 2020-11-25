@@ -21,7 +21,13 @@ const KeyTipItem = styled.div`
   flex-direction: row;
   justify-content: flex-end;
   align-items: center;
-  margin: 6px 0;
+  margin: 0;
+  border-radius: 8px;
+  padding: 6px 8px;
+
+  &.highlight {
+    box-shadow: 0px 0px 6px var(--canvas-overlay-highlight-color);
+  }
 `;
 
 const KeyTipButton = styled.button`
@@ -173,6 +179,7 @@ const objectCommonTips = [
 
 const TIP_DATA = {
   closed: [["help", "?"]],
+  idle_panels_no_widen: [["move", "w a s d"], ["widen", "H+S", true]],
   idle_panels: [
     ["move", "w a s d"],
     ["run", "H"],
@@ -216,7 +223,7 @@ const TIP_DATA = {
 
 const KEY_TIP_TYPES = Object.keys(TIP_DATA);
 
-const itemForData = ([label, keys]) => {
+const itemForData = ([label, keys, highlight]) => {
   const tipLabel = (
     <TipLabel key={label}>
       <FormattedMessage id={`key-tips.${label}`} />
@@ -321,8 +328,9 @@ const itemForData = ([label, keys]) => {
   // Allow clicking on help item
   const style = label === "help" || label === "hide" ? { pointerEvents: "auto" } : null;
   const component = label === "help" || label === "hide" ? KeyTipButton : KeyTipItem;
+  const className = highlight ? "highlight" : "";
 
-  return React.createElement(component, { key: label, style: style }, [keyLabels, tipLabel]);
+  return React.createElement(component, { key: label, style: style, className }, [keyLabels, tipLabel]);
 };
 
 const genTips = tips => {

@@ -46,16 +46,11 @@ export const SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
-        hasFoundFreeze: { type: "boolean" },
-        hasChangedName: { type: "boolean" },
-        hasAcceptedProfile: { type: "boolean" },
         lastEnteredAt: { type: "string" },
         hasRotated: { type: "boolean" },
-        hasRecentered: { type: "boolean" },
         hasScaled: { type: "boolean" },
-        hasHoveredInWorldHud: { type: "boolean" },
-        hasOpenedShare: { type: "boolean" },
-        entryCount: { type: "number" }
+        entryCount: { type: "number" },
+        hasFoundWiden: { type: "boolean" }
       }
     },
 

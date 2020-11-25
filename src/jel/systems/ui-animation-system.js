@@ -25,6 +25,7 @@ export class UIAnimationSystem {
     this.sceneRight = -1;
     this.panelExpandStartT = 0;
     this.setTargetSceneSizes();
+    this.store = window.APP.store;
 
     // Hacky, need to apply continuously until react renders DOM.
     const initialUIApplyInterval = setInterval(() => {
@@ -42,6 +43,10 @@ export class UIAnimationSystem {
     if (this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDED) return;
     this.performPanelExpansion(PANEL_EXPANSION_STATES.EXPANDING);
     this.sceneEl.emit("animated_resize_started");
+
+    if (!this.store.state.activity.hasFoundWiden) {
+      this.store.update({ activity: { hasFoundWiden: true } });
+    }
   }
 
   collapseSidePanels() {

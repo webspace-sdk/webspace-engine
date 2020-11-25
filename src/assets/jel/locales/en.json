@@ -160,6 +160,6 @@
   "unsupported.non-mobile": "Your browser is currently unsupported by Jel.\nTry latest Chrome or Firefox.",
   "unavailable.denied": "You don't have access to this world.\nYou must be a space member or an allowed guest.",
   "unavailable.closed": "This world is no longer available",
-  "unavailable.connect_error": "Unable to connect. Please check your Internet connection.",
+  "unavailable.connect_error": "Unable to connect.\nCheck your Internet connection.",
   "unavailable.full": "Unable to join, world is full."
 }
