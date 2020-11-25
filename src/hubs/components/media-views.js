@@ -97,7 +97,11 @@ class GIFTexture extends THREE.Texture {
       }
       this.frame = (this.frame + 1) % this.frames.length;
       this.frameStartTime = now;
-      this._ctx.drawImage(this.frames[this.frame], 0, 0, this.image.width, this.image.height);
+
+      if (this.image) {
+        this._ctx.drawImage(this.frames[this.frame], 0, 0, this.image.width, this.image.height);
+      }
+
       this.needsUpdate = true;
     }
   }
@@ -1214,8 +1218,10 @@ AFRAME.registerComponent("media-image", {
             let promise;
             if (contentType.includes("image/gif")) {
               promise = createGIFTexture(src);
+              this.data.batch = false;
             } else if (contentType.includes("image/basis")) {
               promise = createBasisTexture(src);
+              this.data.batch = false;
             } else if (contentType.startsWith("image/")) {
               promise = createImageTexture(src, null, !this.data.batch);
             } else {
