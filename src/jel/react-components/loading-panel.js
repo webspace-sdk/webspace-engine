@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import jelLoadingSrc from "../../assets/jel/images/jel-loading.svg";
-import { FormattedMessage } from "react-intl";
+import { getMessages } from "../../hubs/utils/i18n";
 import jelLoadingShadowSrc from "../../assets/jel/images/jel-loading-shadow.svg";
 import "../../assets/jel/stylesheets/shared.scss";
 
@@ -68,17 +68,21 @@ const Tip = styled.div`
   color: var(--tooltip-text-color);
 `;
 
-const LoadingPanel = ({ isLoading, unsupportedMessage }) => {
+const LoadingPanel = ({ isLoading, unsupportedMessage, unavailableReason }) => {
+  let tipMessage = null;
+  const messages = getMessages();
+  if (unsupportedMessage) {
+    tipMessage = messages[`unsupported.${unsupportedMessage}`];
+  } else if (unavailableReason) {
+    tipMessage = messages[`unavailable.${unavailableReason}`];
+  }
+
   return (
-    <LoadingPanelElement className={isLoading ? "loading" : ""}>
+    <LoadingPanelElement className={isLoading || unsupportedMessage || unavailableReason ? "loading" : ""}>
       <SplashWrap>
         <LogoShadowElement src={jelLoadingShadowSrc} />
         <LogoElement src={jelLoadingSrc} />
-        {unsupportedMessage && (
-          <Tip>
-            <FormattedMessage id={`unsupported.${unsupportedMessage}`} />
-          </Tip>
-        )}
+        {tipMessage && <Tip>{tipMessage}</Tip>}
       </SplashWrap>
     </LoadingPanelElement>
   );
@@ -86,7 +90,8 @@ const LoadingPanel = ({ isLoading, unsupportedMessage }) => {
 
 LoadingPanel.propTypes = {
   isLoading: PropTypes.bool,
-  unsupportedMessage: PropTypes.string
+  unsupportedMessage: PropTypes.string,
+  unavailableReason: PropTypes.string
 };
 
 export default LoadingPanel;

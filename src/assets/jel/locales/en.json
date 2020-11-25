@@ -157,5 +157,9 @@
   "invite.join": "Join",
   "space-tree.create": "Create a Space",
   "unsupported.mobile": "Jel only works on a laptop or PC.\nMobile app coming soon!",
-  "unsupported.non-mobile": "Your browser is currently unsupported by Jel.\nTry latest Chrome or Firefox."
+  "unsupported.non-mobile": "Your browser is currently unsupported by Jel.\nTry latest Chrome or Firefox.",
+  "unavailable.denied": "You don't have access to this world.\nYou must be a space member or an allowed guest.",
+  "unavailable.closed": "This world is no longer available",
+  "unavailable.connect_error": "Unable to connect. Please check your Internet connection.",
+  "unavailable.full": "Unable to join, world is full."
 }

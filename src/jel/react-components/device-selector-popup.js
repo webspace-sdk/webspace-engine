@@ -24,8 +24,8 @@ const DeviceSelectorPopup = ({ scene, setPopperElement, styles, attributes, chil
         setSelectedMicDeviceId(deviceId);
       };
 
-      scene.addEventListener("mic_stream_created", handleMicDeviceActivated);
-      () => scene.removeEventListener("mic_stream_created", handleMicDeviceActivated);
+      scene && scene.addEventListener("mic_stream_created", handleMicDeviceActivated);
+      () => scene && scene.removeEventListener("mic_stream_created", handleMicDeviceActivated);
     },
     [scene]
   );

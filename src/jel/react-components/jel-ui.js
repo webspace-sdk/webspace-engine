@@ -190,7 +190,7 @@ const DeviceStatuses = styled.div`
 `;
 
 function JelUI(props) {
-  const { scene, selectedMediaLayer, treeManager, history, spaceCan, hubCan, hub, memberships } = props;
+  const { scene, treeManager, history, spaceCan, hubCan, hub, memberships, unavailableReason } = props;
   const tree = treeManager && treeManager.sharedNav;
   const spaceChannel = window.APP.spaceChannel;
   const hubMetadata = tree && tree.atomMetadata;
@@ -258,8 +258,8 @@ function JelUI(props) {
         if (updateCreateEmbedPopup) updateCreateEmbedPopup();
       };
 
-      scene.addEventListener("animated_resize_complete", handleResizeComplete);
-      () => scene.removeEventListener("animated_resize_complete", handleResizeComplete);
+      scene && scene.addEventListener("animated_resize_complete", handleResizeComplete);
+      () => scene && scene.removeEventListener("animated_resize_complete", handleResizeComplete);
     },
     [scene, updateHubRenamePopup, updateHubContextMenu, updateCreateSelectPopup, updateCreateEmbedPopup]
   );
@@ -271,16 +271,16 @@ function JelUI(props) {
 
   useEffect(() => {
     const handler = () => setIsLoading(false);
-    scene.addEventListener("terrain_chunk_loading_complete", handler);
-    () => scene.removeEventListener("terrain_chunk_loading_complete", handler);
+    scene && scene.addEventListener("terrain_chunk_loading_complete", handler);
+    () => scene && scene.removeEventListener("terrain_chunk_loading_complete", handler);
   });
 
   // Handle create hotkey (typically /)
   useEffect(
     () => {
       const handleCreateHotkey = () => showCreateSelectPopup(createSelectPopupRef);
-      scene.addEventListener("action_create", handleCreateHotkey);
-      return () => scene.removeEventListener("action_create", handleCreateHotkey);
+      scene && scene.addEventListener("action_create", handleCreateHotkey);
+      return () => scene && scene.removeEventListener("action_create", handleCreateHotkey);
     },
     [scene, createSelectPopupRef, showCreateSelectPopup]
   );
@@ -293,8 +293,8 @@ function JelUI(props) {
         showCreateEmbedPopup(centerPopupRef);
       };
 
-      scene.addEventListener("action_show_create_embed", handleCreateEmbed);
-      return () => scene.removeEventListener("action_show_create_embed", handleCreateEmbed);
+      scene && scene.addEventListener("action_show_create_embed", handleCreateEmbed);
+      return () => scene && scene.removeEventListener("action_show_create_embed", handleCreateEmbed);
     },
     [scene, centerPopupRef, showCreateEmbedPopup]
   );
@@ -306,7 +306,7 @@ function JelUI(props) {
   return (
     <WrappedIntlProvider>
       <div>
-        <LoadingPanel isLoading={isLoading} />
+        <LoadingPanel isLoading={isLoading} unavailableReason={unavailableReason} />
         <Wrap id="jel-ui-wrap">
           <FadeEdges />
           <CreateSelectPopupRef ref={createSelectPopupRef} />
@@ -450,7 +450,8 @@ JelUI.propTypes = {
   selectedMediaLayer: PropTypes.number,
   //sessionId: PropTypes.string,
   spaceId: PropTypes.string,
-  memberships: PropTypes.array
+  memberships: PropTypes.array,
+  unavailableReason: PropTypes.string
 };
 
 export default JelUI;

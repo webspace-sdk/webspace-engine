@@ -9,12 +9,12 @@ export const useSceneMuteState = (scene, setMuted) => {
         }
       };
 
-      scene.addEventListener("stateadded", onAframeStateChanged);
-      scene.addEventListener("stateremoved", onAframeStateChanged);
+      scene && scene.addEventListener("stateadded", onAframeStateChanged);
+      scene && scene.addEventListener("stateremoved", onAframeStateChanged);
 
       return () => {
-        scene.removeEventListener("stateadded", onAframeStateChanged);
-        scene.removeEventListener("stateremoved", onAframeStateChanged);
+        scene && scene.removeEventListener("stateadded", onAframeStateChanged);
+        scene && scene.removeEventListener("stateremoved", onAframeStateChanged);
       };
     },
     [scene, setMuted]

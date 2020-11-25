@@ -94,10 +94,7 @@ async function moveToInitialHubLocation(hub, hubStore) {
 const createDynaChannelParams = () => {
   const store = window.APP.store;
 
-  const params = {
-    auth_token: null,
-    perms_token: null
-  };
+  const params = {};
 
   const { token } = store.state.credentials;
   if (token) {
@@ -473,7 +470,7 @@ const joinSpaceChannel = async (
 
         const connectionErrorTimeout = setTimeout(() => {
           console.error("Unknown error occurred while attempting to connect to networked scene.");
-          remountUI({ roomUnavailableReason: "connect_error" });
+          remountJelUI({ unavailableReason: "connect_error" });
           entryManager.exitScene();
         }, 90000);
 
@@ -495,7 +492,7 @@ const joinSpaceChannel = async (
             // hacky until we get return codes
             const isFull = connectError.msg && connectError.msg.match(/\bfull\b/i);
             console.error(connectError);
-            remountUI({ roomUnavailableReason: isFull ? "full" : "connect_error" });
+            remountJelUI({ unavailableReason: isFull ? "full" : "connect_error" });
             entryManager.exitScene();
             joinFinished();
           });
@@ -503,13 +500,10 @@ const joinSpaceChannel = async (
       .receive("error", res => {
         if (res.reason === "closed") {
           entryManager.exitScene();
-          remountUI({ roomUnavailableReason: "closed" });
-        } else if (res.reason === "oauth_required") {
-          entryManager.exitScene();
-          remountUI({ oauthInfo: res.oauth_info, showOAuthDialog: true });
+          remountJelUI({ unavailableReason: "closed" });
         } else if (res.reason === "join_denied") {
           entryManager.exitScene();
-          remountUI({ roomUnavailableReason: "denied" });
+          remountJelUI({ unavailableReason: "denied" });
         }
 
         console.error(res);
@@ -619,13 +613,10 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
       .receive("error", res => {
         if (res.reason === "closed") {
           entryManager.exitScene();
-          remountUI({ roomUnavailableReason: "closed" });
-        } else if (res.reason === "oauth_required") {
-          entryManager.exitScene();
-          remountUI({ oauthInfo: res.oauth_info, showOAuthDialog: true });
+          remountJelUI({ unavailableReason: "closed" });
         } else if (res.reason === "join_denied") {
           entryManager.exitScene();
-          remountUI({ roomUnavailableReason: "denied" });
+          remountJelUI({ unavailableReason: "denied" });
         }
 
         joinFinished();
