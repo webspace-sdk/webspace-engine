@@ -61,7 +61,7 @@ AFRAME.registerComponent("mute-mic", {
         this._beganAudioStream = true;
         await this.el.sceneEl.systems["hubs-systems"].mediaStreamSystem.beginStreamingPreferredMic();
       }
-      NAF.connection.adapter.enableMicrophone(true);
+      await NAF.connection.adapter.enableMicrophone(true);
       this.el.sceneEl.systems["hubs-systems"].audioSystem.enableOutboundAudioStream("microphone");
       this.el.removeState("muted");
     } else {
@@ -69,23 +69,23 @@ AFRAME.registerComponent("mute-mic", {
         this._beganAudioStream = false;
         await this.el.sceneEl.systems["hubs-systems"].mediaStreamSystem.stopMicrophoneTrack();
       }
-      NAF.connection.adapter.enableMicrophone(false);
+      await NAF.connection.adapter.enableMicrophone(false);
       this.el.sceneEl.systems["hubs-systems"].audioSystem.disableOutboundAudioStream("microphone");
       this.el.addState("muted");
     }
   },
 
-  onMute: function() {
+  onMute: async function() {
     if (!NAF.connection.adapter) return;
     if (!this.el.is("muted")) {
-      NAF.connection.adapter.enableMicrophone(false);
+      await NAF.connection.adapter.enableMicrophone(false);
       this.el.addState("muted");
     }
   },
 
-  onUnmute: function() {
+  onUnmute: async function() {
     if (this.el.is("muted")) {
-      NAF.connection.adapter.enableMicrophone(true);
+      await NAF.connection.adapter.enableMicrophone(true);
       this.el.removeState("muted");
     }
   }

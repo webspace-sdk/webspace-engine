@@ -64,6 +64,7 @@ export default class DialogAdapter {
     this._closed = true;
     this._creatingSendTransportPromise = null;
     this._creatingRecvTransportPromise = null;
+    this._createMissingProducersPromise = null;
     this._sendTransport = null;
     this._recvTransport = null;
     this.type = "dialog";
@@ -610,7 +611,7 @@ export default class DialogAdapter {
             });
 
             this._sendTransport.on("connectionstatechange", state => {
-              if (state === "connected" && this._localMediaStream && !this._isSyncingProducers) {
+              if (state === "connected" && this._localMediaStream) {
                 this.createMissingProducers(this._localMediaStream);
               }
             });
@@ -645,7 +646,7 @@ export default class DialogAdapter {
     if (this._closed || this._recvTransport) return;
 
     if (!this._creatingRecvTransportPromise) {
-      // Create mediasoup Transport for sending (unless we don't want to consume).
+      // Create mediasoup Transport for receiving
       this._creatingRecvTransportPromise = new Promise(res => {
         this._protoo
           .request("createWebRtcTransport", {
@@ -679,8 +680,9 @@ export default class DialogAdapter {
                 .catch(errback);
             });
 
-            res();
             this._creatingRecvTransportPromise = null;
+
+            res();
           });
       });
     }
@@ -717,129 +719,133 @@ export default class DialogAdapter {
 
   async createMissingProducers(stream) {
     if (this._closed) return;
-    this._isSyncingProducers = true;
 
-    let sawAudio = false;
-    let sawVideo = false;
+    if (!this._createMissingProducersPromise) {
+      this._createMissingProducersPromise = new Promise(res => {
+        let sawAudio = false;
+        let sawVideo = false;
 
-    await Promise.all(
-      stream.getTracks().map(async track => {
-        if (track.kind === "audio") {
-          sawAudio = true;
+        Promise.all(
+          stream.getTracks().map(async track => {
+            if (track.kind === "audio") {
+              sawAudio = true;
 
-          // TODO multiple audio tracks?
-          if (this._micProducer) {
-            if (this._micProducer.track !== track) {
-              this._micProducer.track.stop();
-              this._micProducer.replaceTrack(track);
-            }
-          } else {
-            track.enabled = this._micEnabled;
-            await this.ensureSendTransport();
-
-            // stopTracks = false because otherwise the track will end during a temporary disconnect
-            this._micProducer = await this._sendTransport.produce({
-              track,
-              stopTracks: false,
-              codecOptions: { opusStereo: false, opusDtx: true }
-            });
-
-            if (supportsInsertableStreams) {
-              const self = this;
-
-              // Add viseme encoder
-              const senderTransform = new TransformStream({
-                start() {
-                  // Called on startup.
-                },
-
-                async transform(encodedFrame, controller) {
-                  if (encodedFrame.data.byteLength < 2) {
-                    controller.enqueue(encodedFrame);
-                    return;
-                  }
-
-                  // Create a new buffer with 1 byte for viseme.
-                  const newData = new ArrayBuffer(encodedFrame.data.byteLength + 1 + visemeMagicBytes.length);
-                  const arr = new Uint8Array(newData);
-                  arr.set(new Uint8Array(encodedFrame.data), 0);
-
-                  for (let i = 0, l = visemeMagicBytes.length; i < l; i++) {
-                    arr[encodedFrame.data.byteLength + i] = visemeMagicBytes[i];
-                  }
-
-                  if (self._outgoingVisemeBuffer) {
-                    const viseme = self._micEnabled ? self._outgoingVisemeBuffer[0] : 0;
-                    arr[encodedFrame.data.byteLength + visemeMagicBytes.length] = viseme;
-                    self._visemeMap.set(self._clientId, viseme);
-                  }
-
-                  encodedFrame.data = newData;
-                  controller.enqueue(encodedFrame);
-                },
-
-                flush() {
-                  // Called when the stream is about to be closed.
+              // TODO multiple audio tracks?
+              if (this._micProducer) {
+                if (this._micProducer.track !== track) {
+                  this._micProducer.track.stop();
+                  this._micProducer.replaceTrack(track);
                 }
-              });
+              } else {
+                track.enabled = this._micEnabled;
+                await this.ensureSendTransport();
 
-              const senderStreams = this._micProducer.rtpSender.createEncodedStreams();
-              senderStreams.readable.pipeThrough(senderTransform).pipeTo(senderStreams.writable);
+                // stopTracks = false because otherwise the track will end during a temporary disconnect
+                this._micProducer = await this._sendTransport.produce({
+                  track,
+                  stopTracks: false,
+                  codecOptions: { opusStereo: false, opusDtx: true }
+                });
+
+                if (supportsInsertableStreams) {
+                  const self = this;
+
+                  // Add viseme encoder
+                  const senderTransform = new TransformStream({
+                    start() {
+                      // Called on startup.
+                    },
+
+                    async transform(encodedFrame, controller) {
+                      if (encodedFrame.data.byteLength < 2) {
+                        controller.enqueue(encodedFrame);
+                        return;
+                      }
+
+                      // Create a new buffer with 1 byte for viseme.
+                      const newData = new ArrayBuffer(encodedFrame.data.byteLength + 1 + visemeMagicBytes.length);
+                      const arr = new Uint8Array(newData);
+                      arr.set(new Uint8Array(encodedFrame.data), 0);
+
+                      for (let i = 0, l = visemeMagicBytes.length; i < l; i++) {
+                        arr[encodedFrame.data.byteLength + i] = visemeMagicBytes[i];
+                      }
+
+                      if (self._outgoingVisemeBuffer) {
+                        const viseme = self._micEnabled ? self._outgoingVisemeBuffer[0] : 0;
+                        arr[encodedFrame.data.byteLength + visemeMagicBytes.length] = viseme;
+                        self._visemeMap.set(self._clientId, viseme);
+                      }
+
+                      encodedFrame.data = newData;
+                      controller.enqueue(encodedFrame);
+                    },
+
+                    flush() {
+                      // Called when the stream is about to be closed.
+                    }
+                  });
+
+                  const senderStreams = this._micProducer.rtpSender.createEncodedStreams();
+                  senderStreams.readable.pipeThrough(senderTransform).pipeTo(senderStreams.writable);
+                }
+
+                this._micProducer.on("transportclose", () => (this._micProducer = null));
+
+                if (!this._micEnabled && !this._micProducer.paused) {
+                  this._micProducer.pause();
+                } else if (this._micEnabled && this._micProducer.paused) {
+                  this._micProducer.resume();
+                }
+              }
+            } else {
+              sawVideo = true;
+
+              if (this._videoProducer) {
+                if (this._videoProducer.track !== track) {
+                  this._videoProducer.track.stop();
+                  this._videoProducer.replaceTrack(track);
+                }
+              } else {
+                await this.ensureSendTransport();
+
+                // stopTracks = false because otherwise the track will end during a temporary disconnect
+                this._videoProducer = await this._sendTransport.produce({
+                  track,
+                  stopTracks: false,
+                  codecOptions: { videoGoogleStartBitrate: 1000 }
+                });
+
+                this._videoProducer.on("transportclose", () => (this._videoProducer = null));
+              }
             }
 
-            this._micProducer.on("transportclose", () => (this._micProducer = null));
-
-            if (!this._micEnabled && !this._micProducer.paused) {
-              this._micProducer.pause();
-            } else if (this._micEnabled && this._micProducer.paused) {
-              this._micProducer.resume();
-            }
+            this.resolvePendingMediaRequestForTrack(this._clientId, track);
+          })
+        ).then(() => {
+          if (!sawAudio && this._micProducer) {
+            this._micProducer.close();
+            this._protoo.request("closeProducer", { producerId: this._micProducer.id });
+            this._micProducer = null;
           }
-        } else {
-          sawVideo = true;
 
-          if (this._videoProducer) {
-            if (this._videoProducer.track !== track) {
-              this._videoProducer.track.stop();
-              this._videoProducer.replaceTrack(track);
-            }
-          } else {
-            await this.ensureSendTransport();
-
-            // stopTracks = false because otherwise the track will end during a temporary disconnect
-            this._videoProducer = await this._sendTransport.produce({
-              track,
-              stopTracks: false,
-              codecOptions: { videoGoogleStartBitrate: 1000 }
-            });
-
-            this._videoProducer.on("transportclose", () => (this._videoProducer = null));
+          if (!sawVideo && this._videoProducer) {
+            this._videoProducer.close();
+            this._protoo.request("closeProducer", { producerId: this._videoProducer.id });
+            this._videoProducer = null;
           }
-        }
 
-        this.resolvePendingMediaRequestForTrack(this._clientId, track);
-      })
-    );
-
-    if (!sawAudio && this._micProducer) {
-      this._micProducer.close();
-      this._protoo.request("closeProducer", { producerId: this._micProducer.id });
-      this._micProducer = null;
+          this._localMediaStream = stream;
+          this._createMissingProducersPromise = null;
+          res();
+        });
+      });
     }
-
-    if (!sawVideo && this._videoProducer) {
-      this._videoProducer.close();
-      this._protoo.request("closeProducer", { producerId: this._videoProducer.id });
-      this._videoProducer = null;
-    }
-
-    this._localMediaStream = stream;
-    this._isSyncingProducers = false;
   }
 
-  enableMicrophone(enabled) {
+  async enableMicrophone(enabled) {
     if (enabled && this._localMediaStream && !this._micProducer) {
-      this.createMissingProducers(this._localMediaStream);
+      await this.createMissingProducers(this._localMediaStream);
     }
 
     clearTimeout(this._transportCleanupTimeout);
