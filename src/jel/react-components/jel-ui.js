@@ -1,7 +1,6 @@
 import React, { useState, useCallback, forwardRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import HubTrail from "./hub-trail";
-import LayerPager from "./layer-pager";
 import styled from "styled-components";
 import mutedIcon from "../../assets/jel/images/icons/mic-muted.svgi";
 import unmutedIcon from "../../assets/jel/images/icons/mic-unmuted.svgi";
@@ -10,7 +9,6 @@ import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../ut
 import { useHubBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
-import { MAX_MEDIA_LAYER } from "../systems/media-presence-system";
 import JelSidePanels from "./jel-side-panels";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shadow.svgi";
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
@@ -356,12 +354,6 @@ function JelUI(props) {
             <DeviceStatuses>
               <BigIconButton tabIndex={-1} iconSrc={muted ? mutedIcon : unmutedIcon} />
             </DeviceStatuses>
-            <LayerPager
-              showButtons={hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id)}
-              page={selectedMediaLayer + 1}
-              maxPage={MAX_MEDIA_LAYER + 1}
-              onPageChanged={newPage => scene.systems["hubs-systems"].mediaPresenceSystem.setActiveLayer(newPage - 1)}
-            />
           </BottomLeftPanels>
         </Wrap>
         {!skipSidePanels && (
