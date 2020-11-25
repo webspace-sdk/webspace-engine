@@ -200,8 +200,8 @@ const TIP_DATA = {
     ["narrow", "Z|H+S"],
     ["hide", "?"]
   ],
-  pointer_exited_muted: [["layers", "1^9"], ["unmute", "L+m"], ["hide", "?"]],
-  pointer_exited_unmuted: [["layers", "1^9"], ["mute", "L+m"], ["hide", "?"]],
+  pointer_exited_muted: [["unmute", "L+m"], ["hide", "?"]],
+  pointer_exited_unmuted: [["mute", "L+m"], ["hide", "?"]],
   holding_interactable: [["pull", "R"], ["scale", "H+R"]],
   hover_interactable: objectCommonTips,
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
