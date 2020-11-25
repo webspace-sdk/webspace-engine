@@ -1,6 +1,7 @@
 // TODO deal with thrown physics object disappearing - wait for rest
 import { WORLD_SIZE, WORLD_MIN_COORD, WORLD_MAX_COORD } from "./terrain-system";
 const MAX_AVATAR_DISTANCE_TO_ALLOW_SCHEDULED_WRAP = 5;
+import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 // This code is used to wrap objects around in world space, to simulate the experience of walking
 // around a planet.
@@ -74,8 +75,10 @@ export class WrappedEntitySystem {
     this.atmosphereSystem = atmosphereSystem;
     this.frame = 0;
     this.els = [];
-    this.avatarPovEl = document.getElementById("avatar-pov-node");
-    this.avatarRigEl = document.getElementById("avatar-rig");
+    waitForDOMContentLoaded().then(() => {
+      this.avatarPovEl = document.getElementById("avatar-pov-node");
+      this.avatarRigEl = document.getElementById("avatar-rig");
+    });
     this.previousAvatarX = null;
     this.previousAvatarZ = null;
   }
