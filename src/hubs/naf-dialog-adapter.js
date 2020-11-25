@@ -61,6 +61,11 @@ export default class DialogAdapter {
     this._visemeMap = new Map();
     this._reconnecting = false;
     this._transportCleanupTimeout = null;
+    this._closed = true;
+    this._creatingSendTransportPromise = null;
+    this._creatingRecvTransportPromise = null;
+    this._sendTransport = null;
+    this._recvTransport = null;
     this.type = "dialog";
     this.occupants = {}; // This is a public field
   }
@@ -564,100 +569,123 @@ export default class DialogAdapter {
     return this.createMissingProducers(stream);
   }
 
-  async ensureSendTransport() {
+  ensureSendTransport() {
     if (this._closed || this._sendTransport) return;
 
-    // Create mediasoup Transport for sending (unless we don't want to produce).
-    const sendTransportInfo = await this._protoo.request("createWebRtcTransport", {
-      forceTcp: this._forceTcp,
-      producing: true,
-      consuming: false,
-      sctpCapabilities: undefined
-    });
+    if (!this._creatingSendTransportPromise) {
+      this._creatingSendTransportPromise = new Promise(res => {
+        // Create mediasoup Transport for sending (unless we don't want to produce).
+        this._protoo
+          .request("createWebRtcTransport", {
+            forceTcp: this._forceTcp,
+            producing: true,
+            consuming: false,
+            sctpCapabilities: undefined
+          })
+          .then(sendTransportInfo => {
+            this._sendTransport = this._mediasoupDevice.createSendTransport({
+              id: sendTransportInfo.id,
+              iceParameters: sendTransportInfo.iceParameters,
+              iceCandidates: sendTransportInfo.iceCandidates,
+              dtlsParameters: sendTransportInfo.dtlsParameters,
+              sctpParameters: sendTransportInfo.sctpParameters,
+              iceServers: this._iceServers,
+              iceTransportPolicy: this._iceTransportPolicy,
+              proprietaryConstraints: PC_PROPRIETARY_CONSTRAINTS,
+              additionalSettings: { encodedInsertableStreams: supportsInsertableStreams }
+            });
 
-    this._sendTransport = this._mediasoupDevice.createSendTransport({
-      id: sendTransportInfo.id,
-      iceParameters: sendTransportInfo.iceParameters,
-      iceCandidates: sendTransportInfo.iceCandidates,
-      dtlsParameters: sendTransportInfo.dtlsParameters,
-      sctpParameters: sendTransportInfo.sctpParameters,
-      iceServers: this._iceServers,
-      iceTransportPolicy: this._iceTransportPolicy,
-      proprietaryConstraints: PC_PROPRIETARY_CONSTRAINTS,
-      additionalSettings: { encodedInsertableStreams: supportsInsertableStreams }
-    });
+            this._sendTransport.on("connect", (
+              { dtlsParameters },
+              callback,
+              errback // eslint-disable-line no-shadow
+            ) => {
+              this._protoo
+                .request("connectWebRtcTransport", {
+                  transportId: this._sendTransport.id,
+                  dtlsParameters
+                })
+                .then(callback)
+                .catch(errback);
+            });
 
-    this._sendTransport.on("connect", (
-      { dtlsParameters },
-      callback,
-      errback // eslint-disable-line no-shadow
-    ) => {
-      this._protoo
-        .request("connectWebRtcTransport", {
-          transportId: this._sendTransport.id,
-          dtlsParameters
-        })
-        .then(callback)
-        .catch(errback);
-    });
+            this._sendTransport.on("connectionstatechange", state => {
+              if (state === "connected" && this._localMediaStream && !this._isSyncingProducers) {
+                this.createMissingProducers(this._localMediaStream);
+              }
+            });
 
-    this._sendTransport.on("connectionstatechange", state => {
-      if (state === "connected" && this._localMediaStream && !this._isSyncingProducers) {
-        this.createMissingProducers(this._localMediaStream);
-      }
-    });
+            this._sendTransport.on("produce", async ({ kind, rtpParameters, appData }, callback, errback) => {
+              try {
+                // eslint-disable-next-line no-shadow
+                const { id } = await this._protoo.request("produce", {
+                  transportId: this._sendTransport.id,
+                  kind,
+                  rtpParameters,
+                  appData
+                });
 
-    this._sendTransport.on("produce", async ({ kind, rtpParameters, appData }, callback, errback) => {
-      try {
-        // eslint-disable-next-line no-shadow
-        const { id } = await this._protoo.request("produce", {
-          transportId: this._sendTransport.id,
-          kind,
-          rtpParameters,
-          appData
-        });
+                callback({ id });
+              } catch (error) {
+                errback(error);
+              }
+            });
 
-        callback({ id });
-      } catch (error) {
-        errback(error);
-      }
-    });
+            this._creatingSendTransportPromise = null;
+
+            res();
+          });
+      });
+    }
+
+    return this._creatingSendTransportPromise;
   }
 
   async ensureRecvTransport() {
     if (this._closed || this._recvTransport) return;
 
-    // Create mediasoup Transport for sending (unless we don't want to consume).
-    const recvTransportInfo = await this._protoo.request("createWebRtcTransport", {
-      forceTcp: this._forceTcp,
-      producing: false,
-      consuming: true,
-      sctpCapabilities: undefined
-    });
+    if (!this._creatingRecvTransportPromise) {
+      // Create mediasoup Transport for sending (unless we don't want to consume).
+      this._creatingRecvTransportPromise = new Promise(res => {
+        this._protoo
+          .request("createWebRtcTransport", {
+            forceTcp: this._forceTcp,
+            producing: false,
+            consuming: true,
+            sctpCapabilities: undefined
+          })
+          .then(recvTransportInfo => {
+            this._recvTransport = this._mediasoupDevice.createRecvTransport({
+              id: recvTransportInfo.id,
+              iceParameters: recvTransportInfo.iceParameters,
+              iceCandidates: recvTransportInfo.iceCandidates,
+              dtlsParameters: recvTransportInfo.dtlsParameters,
+              sctpParameters: recvTransportInfo.sctpParameters,
+              iceServers: this._iceServers,
+              additionalSettings: { encodedInsertableStreams: supportsInsertableStreams }
+            });
 
-    this._recvTransport = this._mediasoupDevice.createRecvTransport({
-      id: recvTransportInfo.id,
-      iceParameters: recvTransportInfo.iceParameters,
-      iceCandidates: recvTransportInfo.iceCandidates,
-      dtlsParameters: recvTransportInfo.dtlsParameters,
-      sctpParameters: recvTransportInfo.sctpParameters,
-      iceServers: this._iceServers,
-      additionalSettings: { encodedInsertableStreams: supportsInsertableStreams }
-    });
+            this._recvTransport.on("connect", (
+              { dtlsParameters },
+              callback,
+              errback // eslint-disable-line no-shadow
+            ) => {
+              this._protoo
+                .request("connectWebRtcTransport", {
+                  transportId: this._recvTransport.id,
+                  dtlsParameters
+                })
+                .then(callback)
+                .catch(errback);
+            });
 
-    this._recvTransport.on("connect", (
-      { dtlsParameters },
-      callback,
-      errback // eslint-disable-line no-shadow
-    ) => {
-      this._protoo
-        .request("connectWebRtcTransport", {
-          transportId: this._recvTransport.id,
-          dtlsParameters
-        })
-        .then(callback)
-        .catch(errback);
-    });
+            res();
+            this._creatingRecvTransportPromise = null;
+          });
+      });
+    }
+
+    return this._creatingRecvTransportPromise;
   }
 
   async closeUnneededTransports() {
