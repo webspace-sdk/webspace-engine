@@ -52,7 +52,7 @@ export class AutoQualitySystem {
       if (!this.sawFastFrame) {
         console.warn("Slow framerate detected, disabling effects, fancy CSS, and reducing pixel ratio to speed it up.");
 
-        window.APP.detailLevel++;
+        window.APP.detailLevel = Math.min(2, window.APP.detailLevel + 1);
         this.scene.renderer.setPixelRatio(1);
         this.enableTracking = window.APP.detailLevel !== 2; // Stop tracking at lowest detail level
         document.body.classList.add("low-detail");
