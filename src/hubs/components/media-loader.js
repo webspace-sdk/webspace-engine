@@ -40,7 +40,6 @@ loadingParticleImage.onload = () => (loadingParticleTexture.needsUpdate = true);
 
 AFRAME.registerComponent("media-loader", {
   schema: {
-    playSoundEffect: { default: true },
     fileId: { type: "string" },
     src: { type: "string" },
     initialContents: { type: "string" },
@@ -208,7 +207,7 @@ AFRAME.registerComponent("media-loader", {
 
     this.updateScale(true, false);
 
-    if (this.el.sceneEl.is("entered") && this.data.addedLocally && this.data.playSoundEffect) {
+    if (this.el.sceneEl.is("entered") && this.data.addedLocally) {
       this.loadingSoundEffect = this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playPositionalSoundFollowing(
         SOUND_MEDIA_LOADING,
         this.el.object3D,
@@ -271,7 +270,7 @@ AFRAME.registerComponent("media-loader", {
     const el = this.el;
     this.cleanupLoader();
 
-    if (this.el.sceneEl.is("entered") && this.data.playSoundEffect) {
+    if (this.el.sceneEl.is("entered") && this.data.addedLocally) {
       this.loadedSoundEffect = this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playPositionalSoundFollowing(
         SOUND_MEDIA_LOADED,
         this.el.object3D,
@@ -338,9 +337,6 @@ AFRAME.registerComponent("media-loader", {
 
       // Don't animate if its a refresh.
       this.data.animate = false;
-
-      // Play the sound effect on a refresh only if we are the owner
-      this.data.playSoundEffect = this.networkedEl && isMine(this.networkedEl);
     }
 
     if (forceLocalRefresh) {
