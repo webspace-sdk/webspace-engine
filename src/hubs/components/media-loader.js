@@ -1,5 +1,7 @@
 import { computeObjectAABB, getBox, getScaleCoefficient } from "../utils/auto-box-collider";
 import { ensureOwnership, isMine, getNetworkedEntity } from "../../jel/utils/ownership-utils";
+import { ParticleEmitter } from "lib-hubs/packages/three-particle-emitter/lib/esm/index";
+import loadingParticleSrc from "!!url-loader!../../assets/jel/images/loading-particle.png";
 import {
   resolveUrl,
   getDefaultResolveQuality,
@@ -18,22 +20,10 @@ import {
 import { addAnimationComponents } from "../utils/animation";
 import qsTruthy from "../utils/qs_truthy";
 
-import loadingObjectSrc from "../../assets/hubs/models/LoadingObject_Atom.glb";
 import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
-import { loadModel } from "./gltf-model-plus";
-import { cloneObject3D, setMatrixWorld, disposeExistingMesh } from "../utils/three-utils";
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { setMatrixWorld, disposeExistingMesh } from "../utils/three-utils";
 
 import { SHAPE } from "three-ammo/constants";
-
-let loadingObjectEnvMap;
-let loadingObject;
-
-waitForDOMContentLoaded().then(() => {
-  loadModel(loadingObjectSrc).then(gltf => {
-    loadingObject = gltf;
-  });
-});
 
 const fetchContentType = url => {
   return fetch(url, { method: "HEAD" }).then(r => r.headers.get("content-type"));
@@ -42,6 +32,11 @@ const fetchContentType = url => {
 const forceMeshBatching = qsTruthy("batchMeshes");
 const forceImageBatching = true; //qsTruthy("batchImages");
 const disableBatching = qsTruthy("disableBatching");
+
+const loadingParticleImage = new Image();
+loadingParticleImage.src = loadingParticleSrc;
+const loadingParticleTexture = new THREE.Texture(loadingParticleImage);
+loadingParticleImage.onload = () => (loadingParticleTexture.needsUpdate = true);
 
 AFRAME.registerComponent("media-loader", {
   schema: {
@@ -94,6 +89,7 @@ AFRAME.registerComponent("media-loader", {
     return function(fitToBox, moveTheParentNotTheMesh) {
       this.el.object3D.updateMatrices();
       const mesh = this.el.getObject3D("mesh");
+      if (!mesh) return;
       mesh.updateMatrices();
       if (moveTheParentNotTheMesh) {
         if (fitToBox) {
@@ -138,6 +134,10 @@ AFRAME.registerComponent("media-loader", {
     if (this.loaderMixer) {
       this.loaderMixer.update(dt / 1000);
     }
+
+    if (this.loaderParticles) {
+      this.loaderParticles.update(dt / 1000);
+    }
   },
 
   handleLinkedElRemoved(e) {
@@ -181,52 +181,42 @@ AFRAME.registerComponent("media-loader", {
       this.clearLoadingTimeout();
       return;
     }
-    // TODO JEL this causes a memory leak, because final loaded
-    // objects end up as children of loader
-    const useFancyLoader = false; //!!loadingObject;
 
-    const mesh = useFancyLoader
-      ? await cloneObject3D(loadingObject.scene)
-      : new THREE.Mesh(new THREE.BoxBufferGeometry(), new THREE.MeshBasicMaterial());
-
-    this.el.setObject3D("mesh", mesh);
+    this.loaderParticles = new ParticleEmitter(null);
+    this.loaderParticles.startOpacity = 1.0;
+    this.loaderParticles.middleOpacity = 1.0;
+    this.loaderParticles.endOpacity = 1.0;
+    this.loaderParticles.colorCurve = "linear";
+    this.loaderParticles.sizeCurve = "linear";
+    this.loaderParticles.startSize = window.APP.detailLevel === 0 ? 0.05 : 0.2;
+    this.loaderParticles.endSize = window.APP.detailLevel === 0 ? 0.025 : 0.15;
+    this.loaderParticles.sizeRandomness = 0.2;
+    this.loaderParticles.ageRandomness = 10.0;
+    this.loaderParticles.angularVelocity = 0;
+    this.loaderParticles.lifetime = 0.6;
+    this.loaderParticles.lifetimeRandomness = 1.2;
+    this.loaderParticles.particleCount = window.APP.detailLevel === 0 ? 150 : 20;
+    this.loaderParticles.startVelocity = new THREE.Vector3(0, 0, 1.25);
+    this.loaderParticles.endVelocity = new THREE.Vector3(0, 0, 1.75);
+    this.loaderParticles.velocityCurve = "linear";
+    this.loaderParticles.material.uniforms.map.value = loadingParticleTexture;
+    this.loaderParticles.updateParticles();
+    this.loaderParticles.position.y = -0.5;
+    this.loaderParticles.scale.x = 0.5;
+    this.loaderParticles.scale.y = 0.5;
+    this.loaderParticles.rotation.set(-Math.PI / 2, 0, 0);
+    this.loaderParticles.matrixNeedsUpdate = true;
+    this.el.setObject3D("loader-particles", this.loaderParticles);
 
     this.updateScale(true, false);
 
-    if (useFancyLoader) {
-      const environmentMapComponent = this.el.sceneEl.components["environment-map"];
-      if (environmentMapComponent) {
-        const currentEnivronmentMap = environmentMapComponent.environmentMap;
-        if (loadingObjectEnvMap !== currentEnivronmentMap) {
-          environmentMapComponent.applyEnvironmentMap(mesh);
-          loadingObjectEnvMap = currentEnivronmentMap;
-        }
-      }
-
-      this.loaderMixer = new THREE.AnimationMixer(mesh);
-
-      this.loadingClip = this.loaderMixer.clipAction(mesh.animations[0]);
-      this.loadingScaleClip = this.loaderMixer.clipAction(
-        new THREE.AnimationClip(null, 1000, [
-          new THREE.VectorKeyframeTrack(".scale", [0, 0.2], [0, 0, 0, mesh.scale.x, mesh.scale.y, mesh.scale.z])
-        ])
-      );
-      setTimeout(() => {
-        if (!this.loaderMixer) return; // Animation/loader was stopped early
-        this.el.setAttribute("shape-helper__loader", { type: SHAPE.BOX });
-      }, 200);
-
-      this.loadingClip.play();
-      this.loadingScaleClip.play();
-    }
-
-    if (this.el.sceneEl.is("entered") && (!this.networkedEl || isMine(this.networkedEl)) && this.data.playSoundEffect) {
-      this.loadingSoundEffect = this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playPositionalSoundFollowing(
-        SOUND_MEDIA_LOADING,
-        this.el.object3D,
-        true
-      );
-    }
+    //if (this.el.sceneEl.is("entered") && (!this.networkedEl || isMine(this.networkedEl)) && this.data.playSoundEffect) {
+    //  this.loadingSoundEffect = this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playPositionalSoundFollowing(
+    //    SOUND_MEDIA_LOADING,
+    //    this.el.object3D,
+    //    true
+    //  );
+    //}
 
     delete this.showLoaderTimeout;
   },
@@ -243,6 +233,18 @@ AFRAME.registerComponent("media-loader", {
       delete this.loaderMixer;
       delete this.loadingScaleClip;
       delete this.loadingClip;
+    }
+    if (this.loaderParticles) {
+      for (let i = 0; i < this.loaderParticles.lifetimes.length; i++) {
+        this.loaderParticles.lifetimes[i] = 100.0;
+      }
+
+      setTimeout(() => {
+        if (this.loaderParticles) {
+          this.el.removeObject3D("loader-particles");
+          this.loaderParticles = null;
+        }
+      }, 3000);
     }
     delete this.showLoaderTimeout;
     this.removeShape("loader");
@@ -358,7 +360,7 @@ AFRAME.registerComponent("media-loader", {
       // loader when spawning objects ourselves
       // TODO this doesn't work anyway, since we may be the owner when switching rooms and don't want to show
       // the loader. We should only slow the loader when immediately spawning media ourselves, figure out how.
-      /*setTimeout(() => {
+      setTimeout(() => {
         if (
           (forceLocalRefresh || mediaChanged) &&
           !this.showLoaderTimeout &&
@@ -367,7 +369,7 @@ AFRAME.registerComponent("media-loader", {
         ) {
           this.showLoaderTimeout = setTimeout(this.showLoader, 100);
         }
-      });*/
+      });
 
       let canonicalUrl = src;
       let canonicalAudioUrl = src;
