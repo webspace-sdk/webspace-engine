@@ -191,11 +191,11 @@ AFRAME.registerComponent("media-loader", {
     this.loaderParticles.startSize = window.APP.detailLevel === 0 ? 0.05 : 0.2;
     this.loaderParticles.endSize = window.APP.detailLevel === 0 ? 0.025 : 0.15;
     this.loaderParticles.sizeRandomness = 0.2;
-    this.loaderParticles.ageRandomness = 10.0;
+    this.loaderParticles.ageRandomness = 1.5;
     this.loaderParticles.angularVelocity = 0;
     this.loaderParticles.lifetime = 0.6;
     this.loaderParticles.lifetimeRandomness = 1.2;
-    this.loaderParticles.particleCount = window.APP.detailLevel === 0 ? 150 : 20;
+    this.loaderParticles.particleCount = window.APP.detailLevel === 0 ? 35 : 20;
     this.loaderParticles.startVelocity = new THREE.Vector3(0, 0, 1.25);
     this.loaderParticles.endVelocity = new THREE.Vector3(0, 0, 1.75);
     this.loaderParticles.velocityCurve = "linear";
@@ -235,16 +235,18 @@ AFRAME.registerComponent("media-loader", {
       delete this.loadingClip;
     }
     if (this.loaderParticles) {
-      for (let i = 0; i < this.loaderParticles.lifetimes.length; i++) {
-        this.loaderParticles.lifetimes[i] = 100.0;
+      this.loaderParticles.lifetime = 6;
+      this.loaderParticles.middleOpacity = 0.0;
+      this.loaderParticles.endOpacity = 0.0;
+      for (let i = 0; i < this.loaderParticles.particleCount; i++) {
+        this.loaderParticles.lifetimes[i] = 6;
       }
-
       setTimeout(() => {
         if (this.loaderParticles) {
           this.el.removeObject3D("loader-particles");
           this.loaderParticles = null;
         }
-      }, 3000);
+      }, 5000);
     }
     delete this.showLoaderTimeout;
     this.removeShape("loader");
