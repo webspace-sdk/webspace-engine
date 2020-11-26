@@ -722,6 +722,7 @@ AFRAME.registerComponent("media-video", {
         console.error("Error loading video", this.data.src, e);
         texture = errorTexture;
         this.videoTexture = this.audioSource = null;
+        this.el.emit("media-load-error", {});
       }
 
       const projection = this.data.projection;
@@ -1277,6 +1278,7 @@ AFRAME.registerComponent("media-image", {
         console.error("Error loading image", this.data.src, e);
         texture = errorTexture;
         this.currentSrcIsRetained = false;
+        this.el.emit("media-load-error", {});
       }
 
       const projection = this.data.projection;
@@ -1542,11 +1544,13 @@ AFRAME.registerComponent("media-pdf", {
             try {
               pdf = await pdfjs.getDocument(src).promise;
             } catch (e) {
-              pdf.destroy();
+              if (pdf) {
+                pdf.destroy();
+              }
               throw e;
             }
 
-            if (loadingSrc !== this.data.src) {
+            if (loadingSrc !== this.data.src && pdf) {
               pdf.destroy();
               return;
             }
@@ -1578,6 +1582,7 @@ AFRAME.registerComponent("media-pdf", {
       } catch (e) {
         console.error("Error loading PDF", this.data.src, e);
         texture = errorTexture;
+        this.el.emit("media-load-error", {});
       }
 
       if (!this.mesh) {

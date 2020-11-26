@@ -1,5 +1,5 @@
 import { computeObjectAABB, getBox, getScaleCoefficient } from "../utils/auto-box-collider";
-import { ensureOwnership, isMine, getNetworkedEntity } from "../../jel/utils/ownership-utils";
+import { ensureOwnership, getNetworkedEntity } from "../../jel/utils/ownership-utils";
 import { ParticleEmitter } from "lib-hubs/packages/three-particle-emitter/lib/esm/index";
 import loadingParticleSrc from "!!url-loader!../../assets/jel/images/loading-particle.png";
 import {
@@ -49,7 +49,6 @@ AFRAME.registerComponent("media-loader", {
     resolve: { default: true },
     contentType: { default: null },
     contentSubtype: { default: null },
-    animate: { default: true },
     mediaLayer: { default: null },
     addedLocally: { default: false },
     linkedEl: { default: null }, // This is the element of which this is a linked derivative. See linked-media.js
@@ -214,9 +213,14 @@ AFRAME.registerComponent("media-loader", {
         true
       );
     }
+
+    delete this.showLoaderTimeout;
   },
 
   cleanupLoader(skipClosingAnimation) {
+    clearTimeout(this.showLoaderTimeout);
+    delete this.showLoaderTimeout;
+
     if (this.loadingSoundEffect) {
       this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.stopPositionalAudio(this.loadingSoundEffect);
       this.loadingSoundEffect = null;
@@ -298,7 +302,7 @@ AFRAME.registerComponent("media-loader", {
       el.emit("media-loaded");
     };
 
-    if (this.data.animate) {
+    if (this.data.addedLocally) {
       if (!this.animating) {
         this.animating = true;
         if (shouldUpdateScale) this.updateScale(this.data.fitToBox, this.data.moveTheParentNotTheMesh);
@@ -334,9 +338,6 @@ AFRAME.registerComponent("media-loader", {
 
     if (versionChanged) {
       this.el.emit("media_refreshing");
-
-      // Don't animate if its a refresh.
-      this.data.animate = false;
     }
 
     if (forceLocalRefresh) {
@@ -350,7 +351,8 @@ AFRAME.registerComponent("media-loader", {
 
     try {
       if ((forceLocalRefresh || mediaChanged) && !this.showLoaderTimeout && this.data.addedLocally) {
-        this.showLoader();
+        // Delay loader so we don't do it if media is locally cached, etc.
+        this.showLoaderTimeout = setTimeout(this.showLoader, 100);
       }
 
       let canonicalUrl = src;
@@ -412,6 +414,8 @@ AFRAME.registerComponent("media-loader", {
       } else {
         this.el.emit("media_refreshed", { src, raw: accessibleUrl, contentType });
       }
+
+      this.el.addEventListener("media-load-error", () => this.cleanupLoader());
 
       if (src.startsWith("jel://entities/") && src.includes("/components/media-text")) {
         this.el.removeAttribute("gltf-model-plus");
