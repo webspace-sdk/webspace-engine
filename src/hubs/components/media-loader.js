@@ -20,8 +20,8 @@ import {
 import { addAnimationComponents } from "../utils/animation";
 import qsTruthy from "../utils/qs_truthy";
 
-import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
-import { setMatrixWorld, disposeExistingMesh } from "../utils/three-utils";
+import { /*SOUND_MEDIA_LOADING, */ SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
+import { setMatrixWorld, disposeExistingMesh, disposeNode } from "../utils/three-utils";
 
 import { SHAPE } from "three-ammo/constants";
 
@@ -131,10 +131,6 @@ AFRAME.registerComponent("media-loader", {
   },
 
   tick(t, dt) {
-    if (this.loaderMixer) {
-      this.loaderMixer.update(dt / 1000);
-    }
-
     if (this.loaderParticles) {
       this.loaderParticles.update(dt / 1000);
     }
@@ -164,6 +160,7 @@ AFRAME.registerComponent("media-loader", {
       sfx.stopPositionalAudio(this.loadedSoundEffect);
       this.loadedSoundEffect = null;
     }
+    this.clearLoadingTimeout(true);
   },
 
   onError() {
@@ -173,7 +170,7 @@ AFRAME.registerComponent("media-loader", {
     this.el.removeAttribute("media-pdf");
     this.el.removeAttribute("media-text");
     this.el.setAttribute("media-image", { src: "error" });
-    this.clearLoadingTimeout();
+    this.clearLoadingTimeout(true);
   },
 
   async showLoader() {
@@ -184,26 +181,26 @@ AFRAME.registerComponent("media-loader", {
 
     this.loaderParticles = new ParticleEmitter(null);
     this.loaderParticles.startOpacity = 1.0;
-    this.loaderParticles.middleOpacity = 1.0;
-    this.loaderParticles.endOpacity = 1.0;
+    this.loaderParticles.middleOpacity = 0.8;
+    this.loaderParticles.endOpacity = 0.7;
     this.loaderParticles.colorCurve = "linear";
     this.loaderParticles.sizeCurve = "linear";
-    this.loaderParticles.startSize = window.APP.detailLevel === 0 ? 0.05 : 0.2;
-    this.loaderParticles.endSize = window.APP.detailLevel === 0 ? 0.025 : 0.15;
-    this.loaderParticles.sizeRandomness = 0.2;
+    this.loaderParticles.startSize = 0.005;
+    this.loaderParticles.endSize = 0;
+    this.loaderParticles.sizeRandomness = 0.075;
     this.loaderParticles.ageRandomness = 1.5;
     this.loaderParticles.angularVelocity = 0;
-    this.loaderParticles.lifetime = 0.6;
+    this.loaderParticles.lifetime = 0.2;
     this.loaderParticles.lifetimeRandomness = 1.2;
-    this.loaderParticles.particleCount = window.APP.detailLevel === 0 ? 35 : 20;
+    this.loaderParticles.particleCount = window.APP.detailLevel === 0 ? 30 : 20;
     this.loaderParticles.startVelocity = new THREE.Vector3(0, 0, 1.25);
     this.loaderParticles.endVelocity = new THREE.Vector3(0, 0, 1.75);
     this.loaderParticles.velocityCurve = "linear";
     this.loaderParticles.material.uniforms.map.value = loadingParticleTexture;
     this.loaderParticles.updateParticles();
     this.loaderParticles.position.y = -0.5;
-    this.loaderParticles.scale.x = 0.5;
-    this.loaderParticles.scale.y = 0.5;
+    this.loaderParticles.scale.x = 0.35;
+    this.loaderParticles.scale.y = 0.35;
     this.loaderParticles.rotation.set(-Math.PI / 2, 0, 0);
     this.loaderParticles.matrixNeedsUpdate = true;
     this.el.setObject3D("loader-particles", this.loaderParticles);
@@ -221,32 +218,35 @@ AFRAME.registerComponent("media-loader", {
     delete this.showLoaderTimeout;
   },
 
-  clearLoadingTimeout() {
+  clearLoadingTimeout(skipClosingAnimation) {
     clearTimeout(this.showLoaderTimeout);
     if (this.loadingSoundEffect) {
       this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.stopPositionalAudio(this.loadingSoundEffect);
       this.loadingSoundEffect = null;
     }
-    if (this.loaderMixer) {
-      this.loadingClip.stop();
-      this.loadingScaleClip.stop();
-      delete this.loaderMixer;
-      delete this.loadingScaleClip;
-      delete this.loadingClip;
-    }
     if (this.loaderParticles) {
-      this.loaderParticles.lifetime = 6;
-      this.loaderParticles.middleOpacity = 0.0;
-      this.loaderParticles.endOpacity = 0.0;
-      for (let i = 0; i < this.loaderParticles.particleCount; i++) {
-        this.loaderParticles.lifetimes[i] = 6;
-      }
-      setTimeout(() => {
-        if (this.loaderParticles) {
-          this.el.removeObject3D("loader-particles");
-          this.loaderParticles = null;
+      if (skipClosingAnimation) {
+        this.el.removeObject3D("loader-particles");
+        this.loaderParticles.material.uniforms.map.value = null;
+        disposeNode(this.loaderParticles);
+        this.loaderParticles = null;
+      } else {
+        this.loaderParticles.lifetime = 6.5;
+        this.loaderParticles.middleOpacity = 0.0;
+        this.loaderParticles.endOpacity = 0.0;
+        for (let i = 0; i < this.loaderParticles.particleCount; i++) {
+          this.loaderParticles.lifetimes[i] = 6;
         }
-      }, 5000);
+
+        setTimeout(() => {
+          if (this.loaderParticles) {
+            this.el.removeObject3D("loader-particles");
+            this.loaderParticles.material.uniforms.map.value = null;
+            disposeNode(this.loaderParticles);
+            this.loaderParticles = null;
+          }
+        }, 5000);
+      }
     }
     delete this.showLoaderTimeout;
     this.removeShape("loader");
