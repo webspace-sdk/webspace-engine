@@ -14,6 +14,7 @@ import URL_FREEZE from "../../assets/hubs/sfx/Eb_blip.mp3";
 import URL_TACK from "../../assets/hubs/sfx/tack.mp3";
 import URL_MEDIA_LOADED from "../../assets/jel/sfx/loaded.mp3";
 import URL_MEDIA_LOADING from "../../assets/jel/sfx/loading.mp3";
+import URL_MEDIA_REMOVED from "../../assets/jel/sfx/remove.mp3";
 import URL_SPAWN_EMOJI from "../../assets/hubs/sfx/emoji.mp3";
 import { setMatrixWorld } from "../utils/three-utils";
 
@@ -40,6 +41,7 @@ export const SOUND_FREEZE = soundEnum++;
 export const SOUND_PIN = soundEnum++;
 export const SOUND_MEDIA_LOADING = soundEnum++;
 export const SOUND_MEDIA_LOADED = soundEnum++;
+export const SOUND_MEDIA_REMOVED = soundEnum++;
 export const SOUND_CAMERA_TOOL_COUNTDOWN = soundEnum++;
 export const SOUND_PREFERENCE_MENU_HOVER = soundEnum++;
 export const SOUND_SPAWN_EMOJI = soundEnum++;
@@ -85,6 +87,7 @@ export class SoundEffectsSystem {
       [SOUND_PIN, URL_TACK],
       [SOUND_MEDIA_LOADING, URL_MEDIA_LOADING],
       [SOUND_MEDIA_LOADED, URL_MEDIA_LOADED],
+      [SOUND_MEDIA_REMOVED, URL_MEDIA_REMOVED],
       [SOUND_PREFERENCE_MENU_HOVER, URL_FREEZE],
       [SOUND_SPAWN_EMOJI, URL_SPAWN_EMOJI]
     ];

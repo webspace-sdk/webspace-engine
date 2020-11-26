@@ -9,6 +9,7 @@ import { proxiedUrlFor, guessContentType } from "../utils/media-url-utils";
 import { getNetworkedEntity, getNetworkId, ensureOwnership } from "../../jel/utils/ownership-utils";
 import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
 import { getMessages } from "../../hubs/utils/i18n";
+import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
 
 import Linkify from "linkify-it";
 import tlds from "tlds";
@@ -658,6 +659,10 @@ export function getMediaViewComponent(el) {
 }
 
 export function performAnimatedRemove(el, callback) {
+  const sfx = el.sceneEl.systems["hubs-systems"].soundEffectsSystem;
+
+  const removeSoundEffect = sfx.playPositionalSoundFollowing(SOUND_MEDIA_REMOVED, el.object3D, false);
+
   el.setAttribute("animation__remove", {
     property: "scale",
     dur: 200,
@@ -666,7 +671,11 @@ export function performAnimatedRemove(el, callback) {
   });
 
   el.addEventListener("animationcomplete", () => {
-    removeMediaElement(el);
-    if (callback) callback();
+    // Let sound finish
+    setTimeout(() => {
+      removeMediaElement(el);
+      sfx.stopPositionalAudio(removeSoundEffect);
+      if (callback) callback();
+    }, 500);
   });
 }
