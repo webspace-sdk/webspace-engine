@@ -12,8 +12,8 @@ import URL_SPECIAL_QUACK from "../../assets/hubs/sfx/specialquack.mp3";
 import URL_POP from "../../assets/hubs/sfx/pop.mp3";
 import URL_FREEZE from "../../assets/hubs/sfx/Eb_blip.mp3";
 import URL_TACK from "../../assets/hubs/sfx/tack.mp3";
-import URL_MEDIA_LOADED from "../../assets/hubs/sfx/A_bendUp.mp3";
-import URL_MEDIA_LOADING from "../../assets/hubs/sfx/suspense.mp3";
+import URL_MEDIA_LOADED from "../../assets/jel/sfx/loaded.mp3";
+import URL_MEDIA_LOADING from "../../assets/jel/sfx/loading.mp3";
 import URL_SPAWN_EMOJI from "../../assets/hubs/sfx/emoji.mp3";
 import { setMatrixWorld } from "../utils/three-utils";
 

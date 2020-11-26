@@ -20,7 +20,7 @@ import {
 import { addAnimationComponents } from "../utils/animation";
 import qsTruthy from "../utils/qs_truthy";
 
-import { /*SOUND_MEDIA_LOADING, */ SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
+import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
 import { setMatrixWorld, disposeExistingMesh, disposeNode } from "../utils/three-utils";
 
 import { SHAPE } from "three-ammo/constants";
@@ -188,14 +188,14 @@ AFRAME.registerComponent("media-loader", {
     this.loaderParticles.sizeCurve = "linear";
     this.loaderParticles.startSize = 0.005;
     this.loaderParticles.endSize = 0;
-    this.loaderParticles.sizeRandomness = 0.075;
+    this.loaderParticles.sizeRandomness = 0.05;
     this.loaderParticles.ageRandomness = 1.5;
     this.loaderParticles.angularVelocity = 0;
     this.loaderParticles.lifetime = 0.2;
     this.loaderParticles.lifetimeRandomness = 1.2;
     this.loaderParticles.particleCount = window.APP.detailLevel === 0 ? 30 : 20;
-    this.loaderParticles.startVelocity = new THREE.Vector3(0, 0, 1.25);
-    this.loaderParticles.endVelocity = new THREE.Vector3(0, 0, 1.75);
+    this.loaderParticles.startVelocity = new THREE.Vector3(0, 0, 0.55);
+    this.loaderParticles.endVelocity = new THREE.Vector3(0, 0, 1.05);
     this.loaderParticles.velocityCurve = "linear";
     this.loaderParticles.material.uniforms.map.value = loadingParticleTexture;
     this.loaderParticles.updateParticles();
@@ -208,13 +208,13 @@ AFRAME.registerComponent("media-loader", {
 
     this.updateScale(true, false);
 
-    //if (this.el.sceneEl.is("entered") && (!this.networkedEl || isMine(this.networkedEl)) && this.data.playSoundEffect) {
-    //  this.loadingSoundEffect = this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playPositionalSoundFollowing(
-    //    SOUND_MEDIA_LOADING,
-    //    this.el.object3D,
-    //    true
-    //  );
-    //}
+    if (this.el.sceneEl.is("entered") && this.data.addedLocally && this.data.playSoundEffect) {
+      this.loadingSoundEffect = this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playPositionalSoundFollowing(
+        SOUND_MEDIA_LOADING,
+        this.el.object3D,
+        true
+      );
+    }
   },
 
   cleanupLoader(skipClosingAnimation) {
