@@ -223,6 +223,7 @@ export const addMedia = (
     animate,
     src: typeof src === "string" && contents === null ? coerceToUrl(src) || src : "",
     initialContents: contents != null ? contents : null,
+    addedLocally: true,
     version,
     contentSubtype,
     linkedEl,

@@ -52,6 +52,7 @@ AFRAME.registerComponent("media-loader", {
     contentSubtype: { default: null },
     animate: { default: true },
     mediaLayer: { default: null },
+    addedLocally: { default: false },
     linkedEl: { default: null }, // This is the element of which this is a linked derivative. See linked-media.js
     mediaOptions: {
       default: {},
@@ -63,7 +64,7 @@ AFRAME.registerComponent("media-loader", {
   init() {
     this.onError = this.onError.bind(this);
     this.showLoader = this.showLoader.bind(this);
-    this.clearLoadingTimeout = this.clearLoadingTimeout.bind(this);
+    this.cleanupLoader = this.cleanupLoader.bind(this);
     this.onMediaLoaded = this.onMediaLoaded.bind(this);
     this.handleLinkedElRemoved = this.handleLinkedElRemoved.bind(this);
     this.refresh = this.refresh.bind(this);
@@ -160,7 +161,7 @@ AFRAME.registerComponent("media-loader", {
       sfx.stopPositionalAudio(this.loadedSoundEffect);
       this.loadedSoundEffect = null;
     }
-    this.clearLoadingTimeout(true);
+    this.cleanupLoader(true);
   },
 
   onError() {
@@ -170,12 +171,12 @@ AFRAME.registerComponent("media-loader", {
     this.el.removeAttribute("media-pdf");
     this.el.removeAttribute("media-text");
     this.el.setAttribute("media-image", { src: "error" });
-    this.clearLoadingTimeout(true);
+    this.cleanupLoader(true);
   },
 
   async showLoader() {
     if (this.el.object3DMap.mesh) {
-      this.clearLoadingTimeout();
+      this.cleanupLoader();
       return;
     }
 
@@ -214,12 +215,9 @@ AFRAME.registerComponent("media-loader", {
     //    true
     //  );
     //}
-
-    delete this.showLoaderTimeout;
   },
 
-  clearLoadingTimeout(skipClosingAnimation) {
-    clearTimeout(this.showLoaderTimeout);
+  cleanupLoader(skipClosingAnimation) {
     if (this.loadingSoundEffect) {
       this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.stopPositionalAudio(this.loadingSoundEffect);
       this.loadingSoundEffect = null;
@@ -248,8 +246,6 @@ AFRAME.registerComponent("media-loader", {
         }, 5000);
       }
     }
-    delete this.showLoaderTimeout;
-    this.removeShape("loader");
   },
 
   updateHoverableVisuals: (function() {
@@ -273,7 +269,7 @@ AFRAME.registerComponent("media-loader", {
 
   onMediaLoaded(physicsShape = null, shouldUpdateScale) {
     const el = this.el;
-    this.clearLoadingTimeout();
+    this.cleanupLoader();
 
     if (this.el.sceneEl.is("entered") && this.data.playSoundEffect) {
       this.loadedSoundEffect = this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playPositionalSoundFollowing(
@@ -357,21 +353,9 @@ AFRAME.registerComponent("media-loader", {
     }
 
     try {
-      // TODO JEL
-      // HACK this.networkedEl may be set a tick behind, for now just hack around it to show
-      // loader when spawning objects ourselves
-      // TODO this doesn't work anyway, since we may be the owner when switching rooms and don't want to show
-      // the loader. We should only slow the loader when immediately spawning media ourselves, figure out how.
-      setTimeout(() => {
-        if (
-          (forceLocalRefresh || mediaChanged) &&
-          !this.showLoaderTimeout &&
-          this.networkedEl &&
-          isMine(this.networkedEl)
-        ) {
-          this.showLoaderTimeout = setTimeout(this.showLoader, 100);
-        }
-      });
+      if ((forceLocalRefresh || mediaChanged) && !this.showLoaderTimeout && this.data.addedLocally) {
+        this.showLoader();
+      }
 
       let canonicalUrl = src;
       let canonicalAudioUrl = src;
@@ -550,7 +534,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.addEventListener(
           "pdf-loaded",
           () => {
-            this.clearLoadingTimeout();
+            this.cleanupLoader();
             this.onMediaLoaded(SHAPE.BOX);
           },
           { once: true }
