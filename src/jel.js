@@ -22,6 +22,7 @@ import "naf-janus-adapter";
 import "aframe-rounded";
 import "webrtc-adapter";
 import "aframe-slice9-component";
+import configs from "./hubs/utils/configs";
 import "./hubs/utils/threejs-positional-audio-updatematrixworld";
 import "./hubs/utils/threejs-world-update";
 import patchThreeAllocations from "./hubs/utils/threejs-allocation-patches";
@@ -261,6 +262,11 @@ const isDebug = qsTruthy("debug");
 
 if (!isBotMode && !isTelemetryDisabled) {
   registerTelemetry("/hub", "Room Landing Page");
+
+  // Can't do this in the other file otherwise get a mixpanel error
+  if (configs.MIXPANEL_TOKEN) {
+    mixpanel.init(configs.MIXPANEL_TOKEN, { batch_requests: true });
+  }
 }
 
 registerWrappedEntityPositionNormalizers();
