@@ -1,15 +1,21 @@
 import Raven from "raven-js";
 import configs from "./utils/configs";
+import mixpanel from "mixpanel-browser";
 
 const ga = window.ga;
 
 export default function registerTelemetry(trackedPage, trackedTitle) {
-  const sentryDsn = "https://fcfe2540fcca4a5f8a55a17090f8a447@o481800.ingest.sentry.io/5535590";
+  const sentryDsn = configs.SENTRY_DSN;
+  const mixpanelToken = configs.MIXPANEL_TOKEN;
   const gaTrackingId = configs.GA_TRACKING_ID;
 
   if (sentryDsn) {
     console.log("Tracking: Sentry DSN: " + sentryDsn);
     Raven.config(sentryDsn).install();
+  }
+
+  if (mixpanelToken) {
+    mixpanel.init(mixpanelToken, { batch_requests: true });
   }
 
   if (ga && gaTrackingId) {

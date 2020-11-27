@@ -10,8 +10,9 @@ export NON_CORS_PROXY_DOMAINS=$7
 export TARGET_S3_BUCKET=$8
 export SENTRY_DSN=$9
 export GA_TRACKING_ID=${10}
-export BUILD_NUMBER=${11}
-export GIT_COMMIT=${12}
+export MIXPANEL_TOKEN=${11}
+export BUILD_NUMBER=${12}
+export GIT_COMMIT=${13}
 export BUILD_VERSION="${BUILD_NUMBER} (${GIT_COMMIT})"
 export HAB_BLDR_URL="https://bldr.biome.sh"
 
@@ -52,6 +53,7 @@ cors_proxy_server = $CORS_PROXY_SERVER
 non_cors_proxy_domains = $NON_CORS_PROXY_DOMAINS
 sentry_dsn = $SENTRY_DSN
 ga_tracking_id = $GA_TRACKING_ID
+mixpanel_token = $MIXPANEL_TOKEN
 
 [deploy]
 type = "s3"

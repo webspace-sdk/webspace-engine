@@ -548,6 +548,7 @@ module.exports = async (env, argv) => {
           NON_CORS_PROXY_DOMAINS: process.env.NON_CORS_PROXY_DOMAINS,
           BUILD_VERSION: process.env.BUILD_VERSION,
           SENTRY_DSN: process.env.SENTRY_DSN,
+          MIXPANEL_TOKEN: process.env.MIXPANEL_TOKEN,
           GA_TRACKING_ID: process.env.GA_TRACKING_ID,
           POSTGREST_SERVER: process.env.POSTGREST_SERVER,
           APP_CONFIG: appConfig

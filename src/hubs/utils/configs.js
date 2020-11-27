@@ -15,6 +15,7 @@ let isAdmin = false;
   "NON_CORS_PROXY_DOMAINS",
   "SENTRY_DSN",
   "GA_TRACKING_ID",
+  "MIXPANEL_TOKEN",
   "SHORTLINK_DOMAIN",
   "BASE_ASSETS_PATH"
 ].forEach(x => {
