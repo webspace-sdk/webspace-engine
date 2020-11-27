@@ -105,11 +105,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 1001
     },
     {
-      src: { value: paths.device.keyboard.key("`") },
-      dest: { value: paths.actions.toggleUI },
-      xform: xforms.rising
-    },
-    {
       src: { value: paths.device.hud.penButton },
       dest: { value: togglePenWithHud },
       xform: xforms.rising

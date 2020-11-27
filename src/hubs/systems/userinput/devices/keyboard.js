@@ -2,6 +2,7 @@ import { paths } from "../paths";
 import { ArrayBackedSet } from "../array-backed-set";
 import { isInEditableField } from "../../../../jel/utils/dom-utils";
 import { isInQuillEditor } from "../../../../jel/utils/quill-utils";
+import mixpanel from "mixpanel-browser";
 
 export class KeyboardDevice {
   constructor() {

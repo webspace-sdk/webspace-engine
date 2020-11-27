@@ -3,6 +3,7 @@ import "./hubs/utils/theme";
 import "@babel/polyfill";
 import "./hubs/utils/debug-log";
 import { isInQuillEditor } from "./jel/utils/quill-utils";
+import mixpanel from "mixpanel-browser";
 
 console.log(`App version: ${process.env.BUILD_VERSION || "?"}`);
 
@@ -177,6 +178,24 @@ window.APP.authChannel = authChannel;
 window.APP.linkChannel = linkChannel;
 window.APP.hubMetadata = hubMetadata;
 window.APP.spaceMetadata = spaceMetadata;
+
+mixpanel.init("296d49623bf27e940c3aaf9f770d50a1", { batch_requests: true });
+
+if (store.credentialsAccountId) {
+  // Perform a simple hash to track the account in mixpanel to increase user privacy
+  const accountId = store.credentialsAccountId;
+
+  let hash = 0;
+
+  for (let i = 0; i < accountId.length; i++) {
+    const chr = accountId.charCodeAt(i);
+    hash = (hash << 5) - hash + chr;
+    hash |= 0;
+  }
+
+  hash = Math.abs(hash);
+  mixpanel.identify(`${hash}`);
+}
 
 store.addEventListener("profilechanged", spaceChannel.sendProfileUpdate.bind(hubChannel));
 
@@ -607,6 +626,7 @@ function addGlobalEventListeners(scene, entryManager) {
       performedInitialQualityBoost = true;
       window.APP.detailLevel = 0;
       scene.renderer.setPixelRatio(window.devicePixelRatio);
+      mixpanel.track("Event First World Load Complete", {});
     }
 
     scene.systems["hubs-systems"].autoQualitySystem.startTracking();
@@ -896,6 +916,7 @@ async function loadMemberships() {
 
 async function start() {
   if (!(await checkPrerequisites())) return;
+  mixpanel.track("Startup Start", {});
 
   const scene = document.querySelector("a-scene");
   const canvas = document.querySelector(".a-canvas");
@@ -1092,7 +1113,9 @@ async function start() {
   await quillPoolPromise;
 
   history.listen(performJoin);
+  mixpanel.track("Startup Joining", {});
   await performJoin();
+  mixpanel.track("Startup Joined", {});
 
   entryManager.enterScene(false, true);
 }

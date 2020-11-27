@@ -9,6 +9,7 @@ import { clearResolveUrlCache } from "./media-utils";
 import qsTruthy from "./qs_truthy";
 import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
 import HubStore from "../storage/hub-store";
+import mixpanel from "mixpanel-browser";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
@@ -198,13 +199,13 @@ const initSpacePresence = (presence, socket, remountUI, remountJelUI, addToPrese
   const { hubChannel, spaceChannel } = window.APP;
 
   const scene = document.querySelector("a-scene");
+  let sentMultipleOccupantGaugeThisSession = false;
 
   return new Promise(res => {
     presence.onSync(() => {
       const presence = spaceChannel.presence;
       remountUI({ spacePresences: presence.state });
       remountJelUI({ spacePresences: presence.state });
-
       presence.__hadInitialSync = true;
       res();
     });
@@ -258,6 +259,11 @@ const initSpacePresence = (presence, socket, remountUI, remountJelUI, addToPrese
             });
           }
         }
+      }
+
+      if (occupantCount > 1 && !sentMultipleOccupantGaugeThisSession) {
+        sentMultipleOccupantGaugeThisSession = true;
+        mixpanel.track("Gauge Multiple Occupants", {});
       }
 
       scene.emit("space_presence_updated", {

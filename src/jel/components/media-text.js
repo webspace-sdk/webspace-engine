@@ -232,6 +232,7 @@ AFRAME.registerComponent("media-text", {
   handleMediaInteraction(type) {
     if (!this.quill) return;
     if (type === MEDIA_INTERACTION_TYPES.EDIT) {
+      window.APP.store.handleActivityFlag("mediaTextEdit");
       this.quill.focus();
 
       const canvas = this.el.sceneEl.canvas;

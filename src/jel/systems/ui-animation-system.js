@@ -43,16 +43,14 @@ export class UIAnimationSystem {
     if (this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDED) return;
     this.performPanelExpansion(PANEL_EXPANSION_STATES.EXPANDING);
     this.sceneEl.emit("animated_resize_started");
-
-    if (!this.store.state.activity.hasFoundWiden) {
-      this.store.update({ activity: { hasFoundWiden: true } });
-    }
+    this.store.handleActivityFlag("widen");
   }
 
   collapseSidePanels() {
     if (this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSED) return;
     this.performPanelExpansion(PANEL_EXPANSION_STATES.COLLAPSING);
     this.sceneEl.emit("animated_resize_started");
+    this.store.handleActivityFlag("narrow");
   }
 
   performPanelExpansion(newState) {

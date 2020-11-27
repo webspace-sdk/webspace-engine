@@ -232,6 +232,10 @@ export const addMedia = (
     mediaOptions
   });
 
+  if (contents) {
+    window.APP.store.handleActivityFlag("mediaTextCreate");
+  }
+
   entity.object3D.matrixNeedsUpdate = true;
 
   (parentEl || scene).appendChild(entity);

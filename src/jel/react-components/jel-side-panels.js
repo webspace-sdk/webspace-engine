@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo } from "react";
+import mixpanel from "mixpanel-browser";
 import { FormattedMessage } from "react-intl";
 import { usePopper } from "react-popper";
 import PropTypes from "prop-types";
@@ -368,6 +369,7 @@ function JelSidePanels({
                     if (updateInvitePopper) {
                       updateInvitePopper();
                     }
+                    window.APP.store.handleActivityFlag("showInvite");
                     toggleFocus(invitePanelFieldElement.current);
                   }}
                 >
@@ -428,7 +430,10 @@ function JelSidePanels({
             {spaceCan("create_hub") && (
               <ActionButton
                 iconSrc={addIcon}
-                onClick={() => addNewHubToTree(history, treeManager, spaceId)}
+                onClick={() => {
+                  window.APP.store.handleActivityFlag("createWorld");
+                  addNewHubToTree(history, treeManager, spaceId);
+                }}
                 style={{ width: "60%" }}
               >
                 <FormattedMessage id="nav.create-world" />

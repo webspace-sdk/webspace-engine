@@ -176,6 +176,7 @@ export class AppAwareMouseDevice {
             movementYScreen * ((2 * Math.PI) / 3)
           );
         } else {
+          window.APP.store.handleActivityFlag("rightDrag");
           frame.setVector2(paths.actions.cameraDelta, dCoordX * -Math.PI, dCoordY * ((2 * Math.PI) / 3));
         }
       }

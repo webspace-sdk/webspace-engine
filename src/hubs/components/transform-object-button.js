@@ -209,7 +209,7 @@ AFRAME.registerSystem("transform-selected-object", {
       this.store.update({ activity: { hasRecentered: true } });
       return;
     } else {
-      this.store.update({ activity: { hasRotated: true } });
+      this.store.handleActivityFlag("rotated");
     }
 
     if (this.mode === TRANSFORM_MODE.CURSOR) {

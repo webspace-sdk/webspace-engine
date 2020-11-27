@@ -21,6 +21,7 @@ import { useSingleton } from "@tippyjs/react";
 import { getMessages } from "../../hubs/utils/i18n";
 import { useSceneMuteState } from "../utils/shared-effects";
 import AuthChannel from "../../hubs/utils/auth-channel";
+import mixpanel from "mixpanel-browser";
 
 const SelfPanelElement = styled.div`
   width: 100%;
@@ -233,6 +234,10 @@ const SelfPanel = ({
       onClick={() => {
         updateProfileEditorPopper();
         toggleFocus(profileEditorElement);
+
+        if (isUnverified) {
+          mixpanel.track("Event Open Verify Panel");
+        }
       }}
     >
       {displayName && (
@@ -254,6 +259,7 @@ const SelfPanel = ({
         onClick={() => {
           updateAvatarEditorPopper();
           toggleFocus(avatarEditorElement);
+          window.APP.store.handleActivityFlag("avatarEdit");
         }}
       />
       {isUnverified ? (
@@ -324,9 +330,11 @@ const SelfPanel = ({
         onSignUp={async (email, name) => {
           setIsVerifying(true);
           profileEditorElement.focus();
+          mixpanel.track("Event Submit Verify Panel", {});
           const authChannel = new AuthChannel(window.APP.store);
           authChannel.setSocket(await connectToReticulum());
           await authChannel.startAuthentication(email, spaceChannel);
+          mixpanel.track("Event Confirm Verify Panel", {});
           spaceChannel.updateIdentity({ name });
         }}
         mode={profileEditorMode}

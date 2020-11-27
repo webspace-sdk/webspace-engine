@@ -106,7 +106,7 @@ AFRAME.registerSystem("scale-object", {
           objectPosition.setFromMatrixPosition(this.objectToScale.matrixWorld)
         )
         .length();
-      window.APP.store.update({ activity: { hasScaled: true } });
+      window.APP.store.handleActivityFlag("scaled");
 
       // TODO: Refactor transform-selected-object system so this isn't so awkward
       this.transformSelectedObjectSystem =

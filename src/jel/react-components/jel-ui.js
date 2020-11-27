@@ -1,4 +1,5 @@
 import React, { useState, useCallback, forwardRef, useEffect } from "react";
+import mixpanel from "mixpanel-browser";
 import PropTypes from "prop-types";
 import HubTrail from "./hub-trail";
 import styled from "styled-components";
@@ -275,6 +276,7 @@ function JelUI(props) {
 
   useEffect(() => {
     const handler = () => setIsLoading(false);
+
     scene && scene.addEventListener("terrain_chunk_loading_complete", handler);
     () => scene && scene.removeEventListener("terrain_chunk_loading_complete", handler);
   });
@@ -333,6 +335,7 @@ function JelUI(props) {
                 ref={hubCreateButtonRef}
                 onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
                 onClick={() => {
+                  window.APP.store.handleActivityFlag("createMenu");
                   showCreateSelectPopup(hubCreateButtonRef, "bottom-end");
                 }}
               />

@@ -277,6 +277,10 @@ export class CharacterControllerSystem {
       const boost = userinput.get(paths.actions.boost) ? 2 : 1;
 
       if (characterAcceleration) {
+        if (characterAcceleration[0] || characterAcceleration[1]) {
+          window.APP.store.handleActivityFlag("wasd");
+        }
+
         const zCharacterAcceleration = -1 * characterAcceleration[1];
         this.relativeMotion.set(
           this.relativeMotion.x +

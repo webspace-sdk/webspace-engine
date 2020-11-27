@@ -78,6 +78,7 @@ export class MediaInteractionSystem {
         setTimeout(() => (this.lastRemoveActionTarget = null), REMOVE_ACTION_MAX_DELAY_MS);
       } else {
         interactionType = MEDIA_INTERACTION_TYPES.REMOVE;
+        window.APP.store.handleActivityFlag("mediaRemove");
       }
     }
 

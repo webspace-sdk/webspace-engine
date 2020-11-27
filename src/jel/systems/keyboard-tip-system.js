@@ -32,7 +32,7 @@ export class KeyboardTipSystem {
             ? this.scene.is("muted")
               ? "idle_full_muted"
               : "idle_full_unmuted"
-            : this.store.state.activity.hasFoundWiden
+            : this.store.state.activity.widen
               ? "idle_panels"
               : "idle_panels_no_widen";
 
