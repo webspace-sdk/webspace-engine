@@ -179,8 +179,6 @@ window.APP.linkChannel = linkChannel;
 window.APP.hubMetadata = hubMetadata;
 window.APP.spaceMetadata = spaceMetadata;
 
-mixpanel.init("296d49623bf27e940c3aaf9f770d50a1", { batch_requests: true });
-
 if (store.credentialsAccountId) {
   // Perform a simple hash to track the account in mixpanel to increase user privacy
   const accountId = store.credentialsAccountId;
