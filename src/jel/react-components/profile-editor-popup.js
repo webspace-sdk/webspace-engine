@@ -193,10 +193,18 @@ const ProfileEditorPopup = ({
               <Tip>
                 {" "}
                 By proceeding, you agree to the{" "}
-                <a rel="noopener noreferrer" target="_blank" href="https://jel.app/terms">
+                <a
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  href="https://github.com/jel-app/policies/blob/master/TERMS.md"
+                >
                   terms of use
                 </a>&nbsp;&amp;&nbsp;
-                <a rel="noopener noreferrer" target="_blank" href="https://jel.app/privacy">
+                <a
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  href="https://github.com/jel-app/policies/blob/master/PRIVACY.md"
+                >
                   privacy notice
                 </a>
               </Tip>
