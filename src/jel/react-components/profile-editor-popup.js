@@ -198,7 +198,7 @@ const ProfileEditorPopup = ({
                   target="_blank"
                   href="https://github.com/jel-app/policies/blob/master/TERMS.md"
                 >
-                  terms of use
+                  terms of service
                 </a>&nbsp;&amp;&nbsp;
                 <a
                   rel="noopener noreferrer"
