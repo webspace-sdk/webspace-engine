@@ -9,13 +9,13 @@ function SkyBeamBufferGeometry(instanceCount) {
   const heightSegments = 3;
   const flipY = true;
   const width = 1;
-  const height = 1;
+  const height = 150;
 
   const indices = [];
   const vertices = [];
   const normals = [];
   const uvs = [];
-  const alphas = [];
+  //  const alphas = [];
 
   const width_half = width / 2;
   const height_half = height / 2;
@@ -42,11 +42,11 @@ function SkyBeamBufferGeometry(instanceCount) {
       uvs.push(flipY ? 1 - iy / gridY : iy / gridY);
 
       // Blend alpha to zero at top
-      if (iy == gridY1 - 1) {
-        alphas.push(0.0);
-      } else {
-        alphas.push(1.0);
-      }
+      //if (iy == gridY1 - 1) {
+      //  alphas.push(0.0);
+      //} else {
+      //  alphas.push(1.0);
+      //}
     }
   }
 
@@ -57,8 +57,11 @@ function SkyBeamBufferGeometry(instanceCount) {
       const c = ix + 1 + gridX1 * (iy + 1);
       const d = ix + 1 + gridX1 * iy;
 
+      // Vert on both sides
       indices.push(a, b, d);
       indices.push(b, c, d);
+      indices.push(d, b, a);
+      indices.push(d, c, b);
     }
   }
 
@@ -66,7 +69,6 @@ function SkyBeamBufferGeometry(instanceCount) {
   this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
   this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
   this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
-  this.setAttribute("alpha", new Float32BufferAttribute(alphas, 1));
 
   const colors = [];
 

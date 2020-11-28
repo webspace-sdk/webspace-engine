@@ -1,12 +1,16 @@
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { SkyBeamBufferGeometry } from "../objects/sky-beam-buffer-geometry";
+import { addVertexCurvingToShader } from "./terrain-system";
 
-const { ShaderMaterial, MeshBasicMaterial, Matrix4, ShaderLib, UniformsUtils, Vector4 } = THREE;
+const { ShaderMaterial, MeshBasicMaterial, Matrix4, ShaderLib, UniformsUtils, Vector3 } = THREE;
 
 const IDENTITY = new Matrix4();
-const ZERO = new Vector4();
-ZERO.w = 0.0;
+const ZERO = new Vector3();
+const UP = new Vector3(0, 1, 0);
+const tmpMatrix = new Matrix4();
+const tmpPos = new Vector3();
+const tmpPos2 = new Vector3();
 
 const beamMaterial = new ShaderMaterial({
   name: "beam",
@@ -30,78 +34,52 @@ beamMaterial.stencilFunc = THREE.AlwaysStencilFunc;
 beamMaterial.stencilRef = 2;
 beamMaterial.stencilZPass = THREE.ReplaceStencilOp;
 
-//avatarMaterial.onBeforeCompile = shader => {
-//  // Float oscillation, vary period and freq by instance index
-//  const postCurveShader = [
-//    "gl_Position.y = gl_Position.y + sin(time * TWOPI * 0.001 * (mod(instanceIndex, 10.0) / 7.0) + instanceIndex * 7.0) * 0.025;"
-//  ].join("\n");
-//
-//  addVertexCurvingToShader(shader, postCurveShader);
-//
-//  // Add shader code to add decals
-//  shader.vertexShader = shader.vertexShader.replace(
-//    "#include <uv2_pars_vertex>",
-//    [
-//      "#include <uv2_pars_vertex>",
-//      "attribute vec3 instanceColor;",
-//      "varying vec3 vInstanceColor;",
-//      "uniform float time;",
-//      "attribute vec3 duv;",
-//      "varying vec3 vDuv;",
-//      "attribute float colorScale;",
-//      "varying float vColorScale;",
-//      "attribute vec4 duvOffset;",
-//      "attribute float instanceIndex;",
-//      "varying vec4 vDuvOffset;"
-//    ].join("\n")
-//  );
-//
-//  shader.vertexShader = shader.vertexShader.replace(
-//    "#include <color_vertex>",
-//    [
-//      "#include <color_vertex>",
-//      "vDuv = duv;",
-//      "vDuvOffset = duvOffset;",
-//      "vColorScale = colorScale;",
-//      "vInstanceColor = instanceColor;"
-//    ].join("\n")
-//  );
-//
-//  shader.fragmentShader = shader.fragmentShader.replace(
-//    "#include <gradientmap_pars_fragment>",
-//    [
-//      "#include <gradientmap_pars_fragment>",
-//      "precision highp sampler2D;",
-//      "uniform sampler2D decalMap;",
-//      "varying vec3 vDuv;",
-//      "varying vec4 vDuvOffset;",
-//      "varying vec3 vInstanceColor;",
-//      "varying float vColorScale;"
-//    ].join("\n")
-//  );
-//
-//  shader.fragmentShader = shader.fragmentShader.replace(
-//    "#include <color_fragment>",
-//    ["#include <color_fragment>", "diffuseColor.rgb = vInstanceColor.rgb;"].join("\n")
-//  );
-//
-//  shader.fragmentShader = shader.fragmentShader.replace(
-//    "#include <tonemapping_fragment>",
-//    [
-//      // Refactored below: "float duOffset = vDuv.z == 0.0 ? vDuvOffset.x : vDuvOffset.z;",
-//      "float clampedLayer = clamp(vDuv.z, 0.0, 1.0);",
-//      "float duOffset = mix(vDuvOffset.x, vDuvOffset.z, clampedLayer);",
-//      "float dvOffset = mix(vDuvOffset.y, vDuvOffset.w, clampedLayer);",
-//      "vec4 texel = texture(decalMap, vec2(vDuv.x / 8.0 + duOffset / 8.0, vDuv.y / 16.0 + dvOffset / 16.0 + vDuv.z * 0.5));",
-//      "vec3 color = gl_FragColor.rgb * (1.0 - texel.a) + texel.rgb * texel.a;",
-//      "vec3 scaled = clamp(max(color * vColorScale, step(1.1, vColorScale)), 0.0, 1.0);",
-//      "gl_FragColor = vec4(scaled, gl_FragColor.a);",
-//      "#include <tonemapping_fragment>"
-//    ].join("\n")
-//  );
-//};
+beamMaterial.onBeforeCompile = shader => {
+  addVertexCurvingToShader(shader);
 
-const MAX_BEAMS = 128;
+  // Add shader code to add decals
+  shader.vertexShader = shader.vertexShader.replace(
+    "#include <uv2_pars_vertex>",
+    [
+      "#include <uv2_pars_vertex>",
+      "attribute vec3 instanceColor;",
+      "varying vec3 vInstanceColor;",
+      "attribute float instanceIndex;"
+    ].join("\n")
+  );
+
+  shader.vertexShader = shader.vertexShader.replace(
+    "#include <color_vertex>",
+    ["#include <color_vertex>", "vInstanceColor = instanceColor;"].join("\n")
+  );
+
+  shader.fragmentShader = shader.fragmentShader.replace(
+    "#include <color_pars_fragment>",
+    ["#include <color_pars_fragment>", "varying vec3 vInstanceColor;"].join("\n")
+  );
+
+  shader.fragmentShader = shader.fragmentShader.replace(
+    "#include <color_fragment>",
+    ["#include <color_fragment>", "diffuseColor.rgb = vInstanceColor.rgb;"].join("\n")
+  );
+
+  //shader.fragmentShader = shader.fragmentShader.replace(
+  //  "#include <tonemapping_fragment>",
+  //  [
+  //    // Refactored below: "float duOffset = vDuv.z == 0.0 ? vDuvOffset.x : vDuvOffset.z;",
+  //    "float clampedLayer = clamp(vDuv.z, 0.0, 1.0);",
+  //    "float duOffset = mix(vDuvOffset.x, vDuvOffset.z, clampedLayer);",
+  //    "float dvOffset = mix(vDuvOffset.y, vDuvOffset.w, clampedLayer);",
+  //    "vec4 texel = texture(decalMap, vec2(vDuv.x / 8.0 + duOffset / 8.0, vDuv.y / 16.0 + dvOffset / 16.0 + vDuv.z * 0.5));",
+  //    "vec3 color = gl_FragColor.rgb * (1.0 - texel.a) + texel.rgb * texel.a;",
+  //    "vec3 scaled = clamp(max(color * vColorScale, step(1.1, vColorScale)), 0.0, 1.0);",
+  //    "gl_FragColor = vec4(scaled, gl_FragColor.a);",
+  //    "#include <tonemapping_fragment>"
+  //  ].join("\n")
+  //);
+};
+
+const MAX_BEAMS = 256;
 
 // Draws instanced sky beams.
 export class SkyBeamSystem {
@@ -117,7 +95,7 @@ export class SkyBeamSystem {
   }
 
   register(el) {
-    const index = this.mesh.addInstance(ZERO, ZERO, IDENTITY);
+    const index = this.mesh.addInstance(ZERO, IDENTITY);
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.beamEls[index] = el;
     this.dirtyMatrices[index] = 0;
@@ -144,31 +122,29 @@ export class SkyBeamSystem {
   }
 
   createMesh() {
-    this.mesh = new DynamicInstancedMesh(new SkyBeamBufferGeometry(), beamMaterial, MAX_BEAMS);
+    this.mesh = new DynamicInstancedMesh(new SkyBeamBufferGeometry(MAX_BEAMS), beamMaterial, MAX_BEAMS);
     this.mesh.renderOrder = RENDER_ORDER.INSTANCED_BEAM;
-    this.mesh.castShadow = true;
+    this.mesh.castShadow = false;
+    this.mesh.frustumCulled = false;
     this.instanceColorAttribute = this.mesh.geometry.instanceAttributes[0][1];
 
     this.sceneEl.object3D.add(this.mesh);
   }
 
   tick() {
-    if (!this.loadedDecals) {
-      this.loadDecalMap();
-      this.loadedDecals = true;
-    }
-
     const { beamEls, maxRegisteredIndex, instanceColorAttribute, mesh, dirtyMatrices, dirtyColors } = this;
 
     let instanceMatrixNeedsUpdate = false,
       instanceColorNeedsUpdate = false;
 
+    const camera = this.sceneEl.camera;
+
     for (let i = 0; i <= maxRegisteredIndex; i++) {
       const el = beamEls[i];
       if (el === null) continue;
 
-      const hasDirtyMatrix = dirtyMatrices[i] > 0;
-      const hasDirtyColor = dirtyColors[i];
+      const hasDirtyMatrix = true; //dirtyMatrices[i] > 0;
+      const hasDirtyColor = true; //dirtyColors[i];
 
       if (hasDirtyColor) {
         const color = { r: 128, g: 0, b: 0 };
@@ -188,7 +164,25 @@ export class SkyBeamSystem {
 
         obj.updateMatrices();
 
-        mesh.setMatrixAt(i, obj.matrixWorld);
+        // Set position (x, z) from object
+        const x = obj.matrixWorld.elements[12];
+        const z = obj.matrixWorld.elements[14];
+        tmpPos.x = x;
+        tmpPos.y = 0;
+        tmpPos.z = z;
+
+        if (camera) {
+          camera.updateMatrices();
+          tmpPos2.x = camera.matrixWorld.elements[12];
+          tmpPos2.y = camera.matrixWorld.elements[13];
+          tmpPos2.z = camera.matrixWorld.elements[14];
+          tmpMatrix.lookAt(tmpPos, tmpPos2, UP);
+          mesh.setMatrixAt(i, tmpMatrix);
+        }
+
+        mesh.instanceMatrix.array[i * 16 + 12] = x;
+        mesh.instanceMatrix.array[i * 16 + 14] = z;
+
         instanceMatrixNeedsUpdate = true;
 
         dirtyMatrices[i] -= 1;

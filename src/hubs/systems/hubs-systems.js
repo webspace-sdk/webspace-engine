@@ -133,6 +133,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.mediaPresenceSystem.tick();
     this.uiAnimationSystem.tick(t, dt);
     this.avatarSystem.tick(t, dt);
+    this.skyBeamSystem.tick(t, dt);
     this.keyboardTipSystem.tick();
     this.autoQualitySystem.tick(dt);
 
