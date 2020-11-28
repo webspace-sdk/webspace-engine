@@ -8,7 +8,7 @@ function SkyBeamBufferGeometry(instanceCount) {
   const widthSegments = 2;
   const heightSegments = 3;
   const flipY = true;
-  const width = 1;
+  const width = 0.5;
   const height = 150;
 
   const indices = [];
@@ -71,14 +71,23 @@ function SkyBeamBufferGeometry(instanceCount) {
   this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
 
   const colors = [];
+  const alphas = [];
 
   for (let i = 0; i < instanceCount; i++) {
     colors.push(...[0.0, 0.0, 0.0]);
   }
 
+  for (let i = 0; i < instanceCount; i++) {
+    alphas.push(0.0);
+  }
+
   const instanceColorAttribute = new InstancedBufferAttribute(new Float32Array(colors), 3);
   this.setAttribute("instanceColor", instanceColorAttribute);
   this.instanceAttributes.push([Vector3, instanceColorAttribute]);
+
+  const instanceAlphaAttribute = new InstancedBufferAttribute(new Float32Array(alphas), 1);
+  this.setAttribute("instanceAlpha", instanceAlphaAttribute);
+  this.instanceAttributes.push([Number, instanceAlphaAttribute]);
 }
 
 SkyBeamBufferGeometry.prototype = Object.create(BufferGeometry.prototype);
