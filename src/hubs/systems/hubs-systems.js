@@ -33,6 +33,7 @@ import { TerrainSystem } from "../../jel/systems/terrain-system";
 import { AtmosphereSystem } from "../../jel/systems/atmosphere-system";
 import { UIAnimationSystem } from "../../jel/systems/ui-animation-system";
 import { AvatarSystem } from "../../jel/systems/avatar-system";
+import { SkyBeamSystem } from "../../jel/systems/sky-beam-system";
 import { MediaInteractionSystem } from "../../jel/systems/media-interaction-system";
 import { CameraRotatorSystem } from "../../hubs/systems/camera-rotator-system";
 import { KeyboardTipSystem } from "../../jel/systems/keyboard-tip-system";
@@ -80,6 +81,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.characterController = new CharacterControllerSystem(this.el, this.terrainSystem);
     this.uiAnimationSystem = new UIAnimationSystem(this.el, this.atmosphereSystem);
     this.avatarSystem = new AvatarSystem(this.el, this.atmosphereSystem);
+    this.skyBeamSystem = new SkyBeamSystem(this.el);
     this.cameraRotatorSystem = new CameraRotatorSystem(this.el);
     this.keyboardTipSystem = new KeyboardTipSystem(this.el, this.cameraSystem);
     this.autoQualitySystem = new AutoQualitySystem(this.el);

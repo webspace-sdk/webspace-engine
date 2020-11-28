@@ -68,11 +68,14 @@ AFRAME.registerComponent("media-loader", {
     this.refresh = this.refresh.bind(this);
     this.animating = false;
 
+    const hubsSystems = this.el.sceneEl.systems["hubs-systems"];
+    hubsSystems.skyBeamSystem.register(this.el);
+
     getNetworkedEntity(this.el).then(networkedEl => {
       this.networkedEl = networkedEl;
 
       if (typeof this.data.mediaLayer === "number") {
-        this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.updateDesiredMediaPresence(this.el);
+        hubsSystems.mediaPresenceSystem.updateDesiredMediaPresence(this.el);
       }
     });
   },
@@ -150,7 +153,11 @@ AFRAME.registerComponent("media-loader", {
       this.data.linkedEl.removeEventListener("componentremoved", this.handleLinkedElRemoved);
     }
 
-    const sfx = this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem;
+    const hubsSystems = this.el.sceneEl.systems["hubs-systems"];
+    hubsSystems.skyBeamSystem.unregister(this.el);
+
+    const sfx = hubsSystems.soundEffectsSystem;
+
     if (this.loadingSoundEffect) {
       sfx.stopPositionalAudio(this.loadingSoundEffect);
       this.loadingSoundEffect = null;
@@ -497,7 +504,7 @@ AFRAME.registerComponent("media-loader", {
         );
         this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
         let batch = !disableBatching && forceImageBatching;
-        if (this.data.mediaOptions.hasOwnProperty("batch") && !this.data.mediaOptions.batch) {
+        if (typeof this.data.mediaOptions.batch !== "undefined" && !this.data.mediaOptions.batch) {
           batch = false;
         }
         this.el.setAttribute(
@@ -566,7 +573,7 @@ AFRAME.registerComponent("media-loader", {
         );
         this.el.addEventListener("model-error", this.onError, { once: true });
         let batch = !disableBatching && forceMeshBatching;
-        if (this.data.mediaOptions.hasOwnProperty("batch") && !this.data.mediaOptions.batch) {
+        if (typeof this.data.mediaOptions.batch !== "undefined" && !this.data.mediaOptions.batch) {
           batch = false;
         }
         this.el.setAttribute(
@@ -610,7 +617,7 @@ AFRAME.registerComponent("media-loader", {
         );
         this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
         let batch = !disableBatching && forceImageBatching;
-        if (this.data.mediaOptions.hasOwnProperty("batch") && !this.data.mediaOptions.batch) {
+        if (typeof this.data.mediaOptions.batch !== "undefined" && !this.data.mediaOptions.batch) {
           batch = false;
         }
         this.el.setAttribute(

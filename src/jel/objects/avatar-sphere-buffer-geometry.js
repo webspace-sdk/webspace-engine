@@ -7,7 +7,7 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
   BufferGeometry.call(this);
 
   this.type = "SphereBufferGeometry";
-  this.instanceAttributes = []; // For DynamicMultiInstacnedMesh
+  this.instanceAttributes = []; // For DynamicMultiInstancedMesh
 
   const indices = [];
   const vertices = [];
@@ -163,12 +163,6 @@ function AvatarSphereBufferGeometry(coreRadius, instanceCount) {
 
   for (let i = 0; i < instanceCount; i++) {
     colors.push(...[0.0, 0.0, 0.0]);
-  }
-
-  const instanceIndices = [];
-
-  for (let i = 0; i < instanceCount; i++) {
-    instanceIndices.push(i * 1.0);
   }
 
   const duvOffsetAttribute = new InstancedBufferAttribute(new Float32Array(duvOffsets), 4);
