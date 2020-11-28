@@ -473,7 +473,7 @@ module.exports = async (env, argv) => {
       new HTMLWebpackPlugin({
         filename: "index.html",
         template: path.join(__dirname, "src", "index.html"),
-        chunks: ["support", "index"],
+        chunks: ["index"],
         chunksSortMode: "manual",
         minify: {
           removeComments: false
