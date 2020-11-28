@@ -31,7 +31,7 @@ function getPlatformSupport() {
     { name: "Spread syntax", supported: syntaxSupported(SPREAD_SYNTAX) },
     { name: "Optional catch syntax", supported: syntaxSupported(CATCH_SYNTAX) },
     { name: "WebGL2", supported: !!window.WebGL2RenderingContext },
-    { name: "Mobile App", supported: () => !AFRAME.utils.device.isMobile() }
+    { name: "Mobile App", supported: () => typeof AFRAME !== "undefined" && !AFRAME.utils.device.isMobile() }
   ];
 }
 
@@ -60,7 +60,7 @@ export function platformUnsupported() {
 
 document.addEventListener("DOMContentLoaded", () => {
   if (platformUnsupported()) {
-    const isMobile = AFRAME.utils.device.isMobile();
+    const isMobile = typeof AFRAME !== "undefined" && AFRAME.utils.device.isMobile();
 
     ReactDOM.render(
       <WrappedIntlProvider>

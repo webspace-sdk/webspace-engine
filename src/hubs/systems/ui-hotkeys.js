@@ -27,6 +27,7 @@ AFRAME.registerSystem("ui-hotkeys", {
     }
 
     if (this.userinput.get(paths.actions.muteMic)) {
+      window.APP.store.handleActivityFlag("toggleMuteKey");
       this.el.emit("action_mute");
     }
 

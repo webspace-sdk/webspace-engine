@@ -38,6 +38,7 @@ export class KeyboardDevice {
 
         // ` in text editor blurs it
         if (e.type === "keydown" && e.key === "`" && isInQuillEditor()) {
+          window.APP.store.handleActivityFlag("mediaTextEditClose");
           AFRAME.scenes[0].canvas.focus();
           pushEvent = false; // Prevent primary action this tick if cursor still over 3d text page
           e.preventDefault();

@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { FormattedMessage } from "react-intl";
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState, useEffect } from "react";
 
 const KeyTipsElement = styled.div`
   position: absolute;
@@ -179,12 +179,12 @@ const objectCommonTips = [
 
 const TIP_DATA = {
   closed: [["help", "?"]],
-  idle_panels_no_widen: [["move", "w a s d"], ["widen", "H+S", true]],
+  idle_panels_no_widen: [["move", "w a s d"], ["widen", "H+S", "widen"]],
   idle_panels: [
     ["move", "w a s d"],
+    ["look", "I", "rightDrag"],
     ["run", "H"],
-    ["look", "I"],
-    ["create", "/"],
+    ["create", "/", "createMenu"],
     ["paste", "L+v"],
     ["widen", "H+S"],
     ["hide", "?"]
@@ -192,38 +192,44 @@ const TIP_DATA = {
   idle_full_muted: [
     ["move", "w a s d"],
     ["run", "H"],
-    ["unmute", "L+m"],
-    ["create", "/"],
+    ["unmute", "L+m", "toggleMuteKey"],
     ["paste", "L+v"],
+    ["create", "/", "createMenu"],
     ["narrow", "Z|H+S"],
     ["hide", "?"]
   ],
   idle_full_unmuted: [
     ["move", "w a s d"],
     ["run", "H"],
-    ["mute", "L+m"],
-    ["create", "/"],
+    ["mute", "L+m", "toggleMuteKey"],
     ["paste", "L+v"],
+    ["create", "/", "createMenu"],
     ["narrow", "Z|H+S"],
     ["hide", "?"]
   ],
-  pointer_exited_muted: [["unmute", "L+m"], ["hide", "?"]],
-  pointer_exited_unmuted: [["mute", "L+m"], ["hide", "?"]],
+  pointer_exited_muted: [["unmute", "L+m", "toggleMuteKey"], ["hide", "?"]],
+  pointer_exited_unmuted: [["mute", "L+m", "toggleMuteKey"], ["hide", "?"]],
   holding_interactable: [["pull", "R"], ["scale", "H+R"]],
   hover_interactable: objectCommonTips,
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
   video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
   pdf: [["next", "L+S"], ["page", "q\\e"], ...objectCommonTips],
-  text: [["edit", "~"], ...objectCommonTips.filter(t => t[0] !== "open")],
+  text: [["edit", "~", "mediaTextEdit"], ...objectCommonTips.filter(t => t[0] !== "open")],
   rotate: [["rotate", "G"], ["no_snap", "H+G"]],
   scale: [["scale", "G"]],
   focus: [["orbit", "G"], ["zoom", "R"]],
-  text_editor: [["close", "~"], ["bold", "L+b"], ["italic", "L+i"], ["underline", "L+u"], ["list", "-,S"]]
+  text_editor: [
+    ["close", "~", "mediaTextEditClose"],
+    ["bold", "L+b"],
+    ["italic", "L+i"],
+    ["underline", "L+u"],
+    ["list", "-,S"]
+  ]
 };
 
 const KEY_TIP_TYPES = Object.keys(TIP_DATA);
 
-const itemForData = ([label, keys, highlight]) => {
+const itemForData = ([label, keys, flag]) => {
   const tipLabel = (
     <TipLabel key={label}>
       <FormattedMessage id={`key-tips.${label}`} />
@@ -328,7 +334,7 @@ const itemForData = ([label, keys, highlight]) => {
   // Allow clicking on help item
   const style = label === "help" || label === "hide" ? { pointerEvents: "auto" } : null;
   const component = label === "help" || label === "hide" ? KeyTipButton : KeyTipItem;
-  const className = highlight ? "highlight" : "";
+  const className = flag && !window.APP.store.state.activity[flag] ? "highlight" : "";
 
   return React.createElement(component, { key: label, style: style, className }, [keyLabels, tipLabel]);
 };
@@ -357,6 +363,18 @@ const KeyTipChooser = styled.div`
 `;
 
 const KeyTips = forwardRef((props, ref) => {
+  const [flagVersion, setFlagVersion] = useState(0);
+  const store = window.APP.store;
+
+  useEffect(
+    () => {
+      const handler = () => setFlagVersion(flagVersion + 1);
+      store.addEventListener("activityflagged", handler);
+      return () => store.removeEventListener("activityflagged", handler);
+    },
+    [store, flagVersion]
+  );
+
   return (
     <KeyTipChooser {...props} ref={ref}>
       {[...Object.keys(TIP_DATA)].map(genTips)}

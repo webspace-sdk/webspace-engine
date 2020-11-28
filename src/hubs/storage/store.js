@@ -57,6 +57,7 @@ export const SCHEMA = {
         narrow: { type: "boolean" },
         widen: { type: "boolean" },
         unmute: { type: "boolean" },
+        toggleMuteKey: { type: "boolean" },
         wasd: { type: "boolean" },
         createMenu: { type: "boolean" },
         createWorld: { type: "boolean" },
@@ -66,6 +67,7 @@ export const SCHEMA = {
         rotated: { type: "boolean" },
         scaled: { type: "boolean" },
         mediaTextEdit: { type: "boolean" },
+        mediaTextEditClose: { type: "boolean" },
         mediaTextCreate: { type: "boolean" },
         mediaRemove: { type: "boolean" }
       }
@@ -330,6 +332,7 @@ export default class Store extends EventTarget {
     if (val === undefined) {
       this.update({ activity: { [flag]: true } });
       mixpanel.track(`First ${capitalize(flag)}`, {});
+      this.dispatchEvent(new CustomEvent("activityflagged"));
     }
   }
 }
