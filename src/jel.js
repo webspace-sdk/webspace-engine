@@ -180,22 +180,6 @@ window.APP.linkChannel = linkChannel;
 window.APP.hubMetadata = hubMetadata;
 window.APP.spaceMetadata = spaceMetadata;
 
-if (store.credentialsAccountId) {
-  // Perform a simple hash to track the account in mixpanel to increase user privacy
-  const accountId = store.credentialsAccountId;
-
-  let hash = 0;
-
-  for (let i = 0; i < accountId.length; i++) {
-    const chr = accountId.charCodeAt(i);
-    hash = (hash << 5) - hash + chr;
-    hash |= 0;
-  }
-
-  hash = Math.abs(hash);
-  mixpanel.identify(`${hash}`);
-}
-
 store.addEventListener("profilechanged", spaceChannel.sendProfileUpdate.bind(hubChannel));
 
 const mediaSearchStore = window.APP.mediaSearchStore;
@@ -266,6 +250,22 @@ if (!isBotMode && !isTelemetryDisabled) {
   // Can't do this in the other file otherwise get a mixpanel error
   if (configs.MIXPANEL_TOKEN) {
     mixpanel.init(configs.MIXPANEL_TOKEN, { batch_requests: true });
+
+    if (store.credentialsAccountId) {
+      // Perform a simple hash to track the account in mixpanel to increase user privacy
+      const accountId = store.credentialsAccountId;
+
+      let hash = 0;
+
+      for (let i = 0; i < accountId.length; i++) {
+        const chr = accountId.charCodeAt(i);
+        hash = (hash << 5) - hash + chr;
+        hash |= 0;
+      }
+
+      hash = Math.abs(hash);
+      mixpanel.identify(`${hash}`);
+    }
   }
 }
 
