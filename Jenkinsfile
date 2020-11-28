@@ -45,7 +45,7 @@ pipeline {
           def nonCorsProxyDomains = env.NON_CORS_PROXY_DOMAINS
           def slackURL = env.SLACK_URL
 
-          def habCommand = "/bin/bash scripts/hab-build-and-push.sh \\\"${baseAssetsPath}\\\" \\\"${shortlinkDomain}\\\" \\\"${reticulumServer}\\\" \\\"${thumbnailServer}\\\" \\\"${terraServer}\\\" \\\"${corsProxyServer}\\\" \\\"${nonCorsProxyDomains}\\\" \\\"${targetS3Bucket}\\\" \\\"${sentryDsn}\\\" \\\"${gaTrackingId}\\\"\\\"${mixpanelToken}\\\"  \\\"${env.BUILD_NUMBER}\\\" \\\"${env.GIT_COMMIT}\\\""
+          def habCommand = "/bin/bash scripts/hab-build-and-push.sh \\\"${baseAssetsPath}\\\" \\\"${shortlinkDomain}\\\" \\\"${reticulumServer}\\\" \\\"${thumbnailServer}\\\" \\\"${terraServer}\\\" \\\"${corsProxyServer}\\\" \\\"${nonCorsProxyDomains}\\\" \\\"${targetS3Bucket}\\\" \\\"${sentryDsn}\\\" \\\"${gaTrackingId}\\\" \\\"${mixpanelToken}\\\"  \\\"${env.BUILD_NUMBER}\\\" \\\"${env.GIT_COMMIT}\\\""
           sh "/usr/bin/script --return -c ${shellString(habCommand)} /dev/null"
 
           def s = $/eval 'ls -rt results/*.hart | head -n 1'/$
