@@ -221,7 +221,7 @@ export class SkyBeamSystem {
           const t1 = 0.1; // % head within to hide
           const t2 = 0.8; // % tail within to fade back to zero
           const minAlphaMid = 0.06;
-          const minAlphaEnd = 0.25;
+          const minAlphaEnd = 0.33;
           const maxAlpha = 0.6;
 
           if (alphaDistPct < t1) {
