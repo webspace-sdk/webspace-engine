@@ -158,7 +158,7 @@ export class SkyBeamSystem {
       const hasDirtyColor = true; //dirtyColors[i];
 
       if (hasDirtyColor) {
-        const color = { r: 0.1, g: 0.5, b: 0.8 };
+        const color = { r: 0.1, g: 0.6, b: 0.8 };
 
         instanceColorAttribute.array[i * 3 + 0] = color.r;
         instanceColorAttribute.array[i * 3 + 1] = color.g;
@@ -208,13 +208,14 @@ export class SkyBeamSystem {
           const alphaDistPct = Math.min(1.0, Math.abs(distSq / maxDistSq));
 
           let newAlpha;
-          const t1 = 0.08;
-          const t2 = 0.8;
-          const maxAlpha = 0.5;
-          const minAlpha = 0.15;
 
           // Three bands of alpha, close is zero alpha, then fade in, then
           // quick fade out at far distance.
+          const t1 = 0.12; // % head within to hide
+          const t2 = 0.8; // % tail within to fade back to zero
+          const maxAlpha = 0.6;
+          const minAlpha = 0.25;
+
           if (alphaDistPct < t1) {
             newAlpha = 0.0;
             // Scale to zero to hide
