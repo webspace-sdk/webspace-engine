@@ -1,7 +1,7 @@
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { WORLD_SIZE, VOXELS_PER_CHUNK, VOXEL_SIZE } from "./terrain-system";
-import { SkyBeamBufferGeometry } from "../objects/sky-beam-buffer-geometry";
+import { SkyBeamBufferGeometry, BEAM_HEIGHT } from "../objects/sky-beam-buffer-geometry";
 import { addVertexCurvingToShader } from "./terrain-system";
 
 const { Color, ShaderMaterial, MeshBasicMaterial, Matrix4, ShaderLib, UniformsUtils, Vector3 } = THREE;
@@ -239,7 +239,7 @@ export class SkyBeamSystem {
         }
 
         mesh.instanceMatrix.array[i * 16 + 12] = x;
-        mesh.instanceMatrix.array[i * 16 + 13] = y + 7;
+        mesh.instanceMatrix.array[i * 16 + 13] = y + BEAM_HEIGHT / 2;
         mesh.instanceMatrix.array[i * 16 + 14] = z;
 
         instanceMatrixNeedsUpdate = true;

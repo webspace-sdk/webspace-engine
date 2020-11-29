@@ -1,5 +1,7 @@
 const { BufferGeometry, Float32BufferAttribute, InstancedBufferAttribute, Vector3 } = THREE;
 
+const BEAM_HEIGHT = 14;
+
 function SkyBeamBufferGeometry(instanceCount) {
   BufferGeometry.call(this);
 
@@ -9,7 +11,7 @@ function SkyBeamBufferGeometry(instanceCount) {
   const heightSegments = 4;
   const flipY = true;
   const width = 0.3;
-  const height = 14;
+  const height = BEAM_HEIGHT;
 
   const indices = [];
   const vertices = [];
@@ -94,4 +96,4 @@ function SkyBeamBufferGeometry(instanceCount) {
 SkyBeamBufferGeometry.prototype = Object.create(BufferGeometry.prototype);
 SkyBeamBufferGeometry.prototype.constructor = SkyBeamBufferGeometry;
 
-export { SkyBeamBufferGeometry };
+export { SkyBeamBufferGeometry, BEAM_HEIGHT };
