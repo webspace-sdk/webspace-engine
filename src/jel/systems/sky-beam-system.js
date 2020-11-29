@@ -8,10 +8,7 @@ const { Color, ShaderMaterial, MeshBasicMaterial, Matrix4, ShaderLib, UniformsUt
 
 const IDENTITY = new Matrix4();
 const ZERO = new Vector3();
-const UP = new Vector3(0, 1, 0);
-const tmpMatrix = new Matrix4();
 const tmpPos = new Vector3();
-const tmpPos2 = new Vector3();
 
 const beamMaterial = new ShaderMaterial({
   name: "beam",
@@ -51,6 +48,8 @@ beamMaterial.onBeforeCompile = shader => {
       "varying float vAlpha;",
       "attribute float illumination;",
       "varying float vIllumination;",
+      "attribute float xOffset;",
+      "varying float vXOffset;",
       "attribute float instanceIndex;"
     ].join("\n")
   );
@@ -59,7 +58,20 @@ beamMaterial.onBeforeCompile = shader => {
     "#include <color_vertex>",
     [
       "#include <color_vertex>",
-      "vIllumination = illumination; vAlpha = alpha; vInstanceColor = instanceColor; vInstanceAlpha = instanceAlpha;"
+      "vXOffset = xOffset; vIllumination = illumination; vAlpha = alpha; vInstanceColor = instanceColor; vInstanceAlpha = instanceAlpha;"
+    ].join("\n")
+  );
+
+  shader.vertexShader = shader.vertexShader.replace(
+    "#include <fog_vertex>",
+    [
+      "#include <fog_vertex>",
+      "mvPosition.z = min(mvPosition.z, gl_Position.w - 0.01);", // Avoid clipping by clamping by far distance
+      "gl_Position.z = min(gl_Position.z, gl_Position.w - 0.01);",
+      // Perform offset in view space to give beam width
+      "gl_Position.x = gl_Position.x + vXOffset;",
+      // Clip verts to hide them if too close, to skip drawing this beam.
+      "gl_Position.w = gl_Position.w * step(10.0, gl_Position.z);"
     ].join("\n")
   );
 
@@ -67,7 +79,7 @@ beamMaterial.onBeforeCompile = shader => {
     "#include <color_pars_fragment>",
     [
       "#include <color_pars_fragment>",
-      "varying float vIllumination; varying float vAlpha; varying vec3 vInstanceColor; varying float vInstanceAlpha;"
+      "varying float vXOffset; varying float vIllumination; varying float vAlpha; varying vec3 vInstanceColor; varying float vInstanceAlpha;"
     ].join("\n")
   );
 
@@ -82,7 +94,11 @@ beamMaterial.onBeforeCompile = shader => {
 
   shader.fragmentShader = shader.fragmentShader.replace(
     "#include <tonemapping_fragment>",
-    ["gl_FragColor.a = vInstanceAlpha * vAlpha;", "#include <tonemapping_fragment>"].join("\n")
+    [
+      //"gl_FragColor.a = mvPosition.z * vInstanceAlpha * vAlpha;",
+      "gl_FragColor.a = clamp(mvPosition.z, 0.0, 1.0);",
+      "#include <tonemapping_fragment>"
+    ].join("\n")
   );
 };
 
@@ -183,9 +199,9 @@ export class SkyBeamSystem {
         obj.updateMatrices();
 
         // Set position (x, z) from object
-        let x = obj.matrixWorld.elements[12];
+        const x = obj.matrixWorld.elements[12];
         const y = obj.matrixWorld.elements[13];
-        let z = obj.matrixWorld.elements[14];
+        const z = obj.matrixWorld.elements[14];
 
         tmpPos.x = x;
         tmpPos.y = 0;
@@ -196,20 +212,12 @@ export class SkyBeamSystem {
           camera.updateMatrices();
           const cx = camera.matrixWorld.elements[12];
           const cz = camera.matrixWorld.elements[14];
-          tmpPos2.x = cx;
-          tmpPos2.y = 0;
-          tmpPos2.z = cz;
-          tmpMatrix.lookAt(tmpPos, tmpPos2, UP);
-          mesh.setMatrixAt(i, tmpMatrix);
 
           // Constraint x and z to be before the far plane
-          const farDistSq = camera.far * camera.far * 0.7;
           const maxDistSq = WORLD_SIZE * VOXELS_PER_CHUNK * VOXEL_SIZE * 2;
           const dcx = cx - x;
           const dcz = cz - z;
           const distSq = dcx * dcx + dcz * dcz;
-
-          const ratio = 1.0 - farDistSq / distSq;
 
           const curAlpha = instanceAlphaAttribute.array[i];
           const alphaDistPct = Math.min(1.0, Math.abs(distSq / maxDistSq));
@@ -226,25 +234,22 @@ export class SkyBeamSystem {
 
           if (alphaDistPct < t1) {
             newAlpha = 0.0;
-            // Scale to zero to hide
-            mesh.instanceMatrix.array[i * 16 + 5] = 0.0;
           } else if (alphaDistPct < t2) {
             newAlpha = Math.min(maxAlpha, Math.max(minAlphaMid, (alphaDistPct - t1 - (1.0 - t2)) / (t2 - t1)));
-            mesh.instanceMatrix.array[i * 16 + 5] = 1.0;
           } else {
             newAlpha = Math.min(maxAlpha, Math.max(minAlphaEnd, 1.0 - (alphaDistPct - t2) / (1.0 - t2)));
-            mesh.instanceMatrix.array[i * 16 + 5] = 1.0;
           }
+          newAlpha = 1.0;
 
           if (Math.abs(curAlpha - newAlpha) > 0.01) {
             instanceAlphaAttribute.array[i] = newAlpha;
             instanceAlphaNeedsUpdate = true;
           }
 
-          if (distSq > farDistSq) {
-            x = x + dcx * ratio * 0.5;
-            z = z + dcz * ratio * 0.5;
-          }
+          //if (distSq > farDistSq) {
+          //  x = x + dcx * ratio * 0.5;
+          //  z = z + dcz * ratio * 0.5;
+          //}
         }
 
         mesh.instanceMatrix.array[i * 16 + 12] = x;

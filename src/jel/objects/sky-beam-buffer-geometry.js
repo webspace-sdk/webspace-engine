@@ -10,7 +10,7 @@ function SkyBeamBufferGeometry(instanceCount) {
   const widthSegments = 2;
   const heightSegments = 3;
   const flipY = true;
-  const width = 0.3;
+  const width = 0.2;
   const height = BEAM_HEIGHT;
 
   const indices = [];
@@ -19,8 +19,8 @@ function SkyBeamBufferGeometry(instanceCount) {
   const uvs = [];
   const valphas = [];
   const illuminations = [];
+  const xOffsets = [];
 
-  const width_half = width / 2;
   const height_half = height / 2;
 
   const gridX = Math.floor(widthSegments) || 1;
@@ -37,7 +37,7 @@ function SkyBeamBufferGeometry(instanceCount) {
   for (iy = 0; iy < gridY1; iy++) {
     const y = iy * segment_height - height_half;
     for (ix = 0; ix < gridX1; ix++) {
-      const x = ix * segment_width - width_half;
+      const x = ix * segment_width;
       vertices.push(x, -y, 0);
       normals.push(0, 0, 1);
 
@@ -56,6 +56,8 @@ function SkyBeamBufferGeometry(instanceCount) {
       } else {
         valphas.push(1.0);
       }
+
+      xOffsets.push((ix === 0 ? -1 : 1) * width);
     }
   }
 
@@ -80,6 +82,7 @@ function SkyBeamBufferGeometry(instanceCount) {
   this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
   this.setAttribute("alpha", new Float32BufferAttribute(valphas, 1));
   this.setAttribute("illumination", new Float32BufferAttribute(illuminations, 1));
+  this.setAttribute("xOffset", new Float32BufferAttribute(xOffsets, 1));
 
   const colors = [];
   const alphas = [];

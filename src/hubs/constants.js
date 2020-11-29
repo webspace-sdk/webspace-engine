@@ -20,7 +20,7 @@ module.exports = {
     MEDIA: 10000,
     TOON: 20000, // Render last because of stencil ops
     INSTANCED_AVATAR: 21000, // Render last because of stencil ops
-    INSTANCED_BEAM: 21001, // Render last because of stencil ops
+    INSTANCED_BEAM: 22000, // Render last because of stencil ops
     SKY: 100000,
 
     // Transparent objects:
