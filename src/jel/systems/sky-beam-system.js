@@ -116,6 +116,7 @@ export class SkyBeamSystem {
     this.mesh = new DynamicInstancedMesh(new SkyBeamBufferGeometry(MAX_BEAMS), beamMaterial, MAX_BEAMS);
     this.mesh.renderOrder = RENDER_ORDER.INSTANCED_BEAM;
     this.mesh.castShadow = false;
+    this.mesh.receiveShadow = false;
     this.mesh.frustumCulled = false;
     this.instanceColorAttribute = this.mesh.geometry.instanceAttributes[0][1];
     this.instanceAlphaAttribute = this.mesh.geometry.instanceAttributes[1][1];
@@ -195,19 +196,24 @@ export class SkyBeamSystem {
 
           const curAlpha = instanceAlphaAttribute.array[i];
           const alphaDistPct = Math.min(1.0, Math.abs(distSq / maxDistSq));
+          console.log(distSq, maxDistSq, alphaDistPct);
 
           let newAlpha;
-          const t1 = 0.05;
-          const t2 = 0.98;
+          const t1 = 0.08;
+          const t2 = 0.8;
 
           // Three bands of alpha, close is zero alpha, then fade in, then
           // quick fade out at far distance.
           if (alphaDistPct < t1) {
             newAlpha = 0.0;
-          } else if (alphaDistPct < 0.9) {
-            newAlpha = (alphaDistPct - t1 - (1.0 - t2)) / (t2 - t1);
+            // Scale to zero to hide
+            mesh.instanceMatrix.array[i * 16 + 5] = 0.0;
+          } else if (alphaDistPct < t2) {
+            newAlpha = (alphaDistPct - t1 - (1.0 - t2)) / (t2 - t1) + 0.05;
+            mesh.instanceMatrix.array[i * 16 + 5] = 1.0;
           } else {
-            newAlpha = 1.0 - (alphaDistPct - t2) / (1.0 - t2);
+            newAlpha = Math.max(0.2, 1.0 - (alphaDistPct - t2) / (1.0 - t2));
+            mesh.instanceMatrix.array[i * 16 + 5] = 1.0;
           }
 
           if (Math.abs(curAlpha - newAlpha) > 0.01) {
