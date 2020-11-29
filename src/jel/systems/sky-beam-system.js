@@ -2,8 +2,9 @@ import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { WORLD_SIZE, VOXELS_PER_CHUNK, VOXEL_SIZE } from "./terrain-system";
 import { SkyBeamBufferGeometry } from "../objects/sky-beam-buffer-geometry";
+import { addVertexCurvingToShader } from "./terrain-system";
 
-const { ShaderMaterial, MeshBasicMaterial, Matrix4, ShaderLib, UniformsUtils, Vector3 } = THREE;
+const { Color, ShaderMaterial, MeshBasicMaterial, Matrix4, ShaderLib, UniformsUtils, Vector3 } = THREE;
 
 const IDENTITY = new Matrix4();
 const ZERO = new Vector3();
@@ -23,12 +24,11 @@ const beamMaterial = new ShaderMaterial({
     ...new MeshBasicMaterial().defines
   },
   uniforms: {
-    ...UniformsUtils.clone(ShaderLib.standard.uniforms)
+    ...UniformsUtils.clone(ShaderLib.basic.uniforms)
   }
 });
 
-//beamMaterial.uniforms.shininess.value = 0.0001;
-//beamMaterial.uniforms.diffuse.value = new Color(0.5, 0.5, 0.5);
+beamMaterial.uniforms.diffuse.value = new Color(0.5, 0.5, 0.5);
 
 beamMaterial.stencilWrite = true; // Avoid SSAO
 beamMaterial.stencilFunc = THREE.AlwaysStencilFunc;
@@ -36,6 +36,8 @@ beamMaterial.stencilRef = 2;
 beamMaterial.stencilZPass = THREE.ReplaceStencilOp;
 
 beamMaterial.onBeforeCompile = shader => {
+  addVertexCurvingToShader(shader);
+
   // Add shader code to add decals
   shader.vertexShader = shader.vertexShader.replace(
     "#include <uv2_pars_vertex>",
@@ -45,18 +47,25 @@ beamMaterial.onBeforeCompile = shader => {
       "varying vec3 vInstanceColor;",
       "attribute float instanceAlpha;",
       "varying float vInstanceAlpha;",
+      "attribute float alpha;",
+      "varying float vAlpha;",
       "attribute float instanceIndex;"
     ].join("\n")
   );
 
   shader.vertexShader = shader.vertexShader.replace(
     "#include <color_vertex>",
-    ["#include <color_vertex>", "vInstanceColor = instanceColor; vInstanceAlpha = instanceAlpha;"].join("\n")
+    ["#include <color_vertex>", "vAlpha = alpha; vInstanceColor = instanceColor; vInstanceAlpha = instanceAlpha;"].join(
+      "\n"
+    )
   );
 
   shader.fragmentShader = shader.fragmentShader.replace(
     "#include <color_pars_fragment>",
-    ["#include <color_pars_fragment>", "varying vec3 vInstanceColor; varying float vInstanceAlpha;"].join("\n")
+    [
+      "#include <color_pars_fragment>",
+      "varying float vAlpha; varying vec3 vInstanceColor; varying float vInstanceAlpha;"
+    ].join("\n")
   );
 
   shader.fragmentShader = shader.fragmentShader.replace(
@@ -66,7 +75,7 @@ beamMaterial.onBeforeCompile = shader => {
 
   shader.fragmentShader = shader.fragmentShader.replace(
     "#include <tonemapping_fragment>",
-    ["gl_FragColor.a = vInstanceAlpha;", "#include <tonemapping_fragment>"].join("\n")
+    ["gl_FragColor.a = vInstanceAlpha * vAlpha;", "#include <tonemapping_fragment>"].join("\n")
   );
 };
 
@@ -149,7 +158,7 @@ export class SkyBeamSystem {
       const hasDirtyColor = true; //dirtyColors[i];
 
       if (hasDirtyColor) {
-        const color = { r: 128, g: 0, b: 0 };
+        const color = { r: 0.1, g: 0.5, b: 0.8 };
 
         instanceColorAttribute.array[i * 3 + 0] = color.r;
         instanceColorAttribute.array[i * 3 + 1] = color.g;
@@ -168,6 +177,7 @@ export class SkyBeamSystem {
 
         // Set position (x, z) from object
         let x = obj.matrixWorld.elements[12];
+        const y = obj.matrixWorld.elements[13];
         let z = obj.matrixWorld.elements[14];
 
         tmpPos.x = x;
@@ -196,11 +206,12 @@ export class SkyBeamSystem {
 
           const curAlpha = instanceAlphaAttribute.array[i];
           const alphaDistPct = Math.min(1.0, Math.abs(distSq / maxDistSq));
-          console.log(distSq, maxDistSq, alphaDistPct);
 
           let newAlpha;
           const t1 = 0.08;
           const t2 = 0.8;
+          const maxAlpha = 0.5;
+          const minAlpha = 0.15;
 
           // Three bands of alpha, close is zero alpha, then fade in, then
           // quick fade out at far distance.
@@ -209,10 +220,10 @@ export class SkyBeamSystem {
             // Scale to zero to hide
             mesh.instanceMatrix.array[i * 16 + 5] = 0.0;
           } else if (alphaDistPct < t2) {
-            newAlpha = (alphaDistPct - t1 - (1.0 - t2)) / (t2 - t1) + 0.05;
+            newAlpha = Math.min(maxAlpha, (alphaDistPct - t1 - (1.0 - t2)) / (t2 - t1) + 0.05);
             mesh.instanceMatrix.array[i * 16 + 5] = 1.0;
           } else {
-            newAlpha = Math.max(0.2, 1.0 - (alphaDistPct - t2) / (1.0 - t2));
+            newAlpha = Math.min(maxAlpha, Math.max(minAlpha, 1.0 - (alphaDistPct - t2) / (1.0 - t2)));
             mesh.instanceMatrix.array[i * 16 + 5] = 1.0;
           }
 
@@ -228,6 +239,7 @@ export class SkyBeamSystem {
         }
 
         mesh.instanceMatrix.array[i * 16 + 12] = x;
+        mesh.instanceMatrix.array[i * 16 + 13] = y + 7;
         mesh.instanceMatrix.array[i * 16 + 14] = z;
 
         instanceMatrixNeedsUpdate = true;
