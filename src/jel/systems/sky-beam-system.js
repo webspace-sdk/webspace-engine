@@ -49,28 +49,35 @@ beamMaterial.onBeforeCompile = shader => {
       "varying float vInstanceAlpha;",
       "attribute float alpha;",
       "varying float vAlpha;",
+      "attribute float illumination;",
+      "varying float vIllumination;",
       "attribute float instanceIndex;"
     ].join("\n")
   );
 
   shader.vertexShader = shader.vertexShader.replace(
     "#include <color_vertex>",
-    ["#include <color_vertex>", "vAlpha = alpha; vInstanceColor = instanceColor; vInstanceAlpha = instanceAlpha;"].join(
-      "\n"
-    )
+    [
+      "#include <color_vertex>",
+      "vIllumination = illumination; vAlpha = alpha; vInstanceColor = instanceColor; vInstanceAlpha = instanceAlpha;"
+    ].join("\n")
   );
 
   shader.fragmentShader = shader.fragmentShader.replace(
     "#include <color_pars_fragment>",
     [
       "#include <color_pars_fragment>",
-      "varying float vAlpha; varying vec3 vInstanceColor; varying float vInstanceAlpha;"
+      "varying float vIllumination; varying float vAlpha; varying vec3 vInstanceColor; varying float vInstanceAlpha;"
     ].join("\n")
   );
 
   shader.fragmentShader = shader.fragmentShader.replace(
     "#include <color_fragment>",
-    ["#include <color_fragment>", "diffuseColor.rgb = vInstanceColor.rgb;"].join("\n")
+    [
+      "#include <color_fragment>",
+      "diffuseColor.rgb = vInstanceColor.rgb;",
+      "diffuseColor.rgb = clamp(diffuseColor.rgb + vIllumination, 0.0, 1.0);"
+    ].join("\n")
   );
 
   shader.fragmentShader = shader.fragmentShader.replace(
@@ -211,20 +218,21 @@ export class SkyBeamSystem {
 
           // Three bands of alpha, close is zero alpha, then fade in, then
           // quick fade out at far distance.
-          const t1 = 0.12; // % head within to hide
+          const t1 = 0.1; // % head within to hide
           const t2 = 0.8; // % tail within to fade back to zero
+          const minAlphaMid = 0.06;
+          const minAlphaEnd = 0.25;
           const maxAlpha = 0.6;
-          const minAlpha = 0.25;
 
           if (alphaDistPct < t1) {
             newAlpha = 0.0;
             // Scale to zero to hide
             mesh.instanceMatrix.array[i * 16 + 5] = 0.0;
           } else if (alphaDistPct < t2) {
-            newAlpha = Math.min(maxAlpha, (alphaDistPct - t1 - (1.0 - t2)) / (t2 - t1) + 0.05);
+            newAlpha = Math.min(maxAlpha, Math.max(minAlphaMid, (alphaDistPct - t1 - (1.0 - t2)) / (t2 - t1)));
             mesh.instanceMatrix.array[i * 16 + 5] = 1.0;
           } else {
-            newAlpha = Math.min(maxAlpha, Math.max(minAlpha, 1.0 - (alphaDistPct - t2) / (1.0 - t2)));
+            newAlpha = Math.min(maxAlpha, Math.max(minAlphaEnd, 1.0 - (alphaDistPct - t2) / (1.0 - t2)));
             mesh.instanceMatrix.array[i * 16 + 5] = 1.0;
           }
 

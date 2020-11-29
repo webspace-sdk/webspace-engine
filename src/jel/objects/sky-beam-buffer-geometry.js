@@ -8,7 +8,7 @@ function SkyBeamBufferGeometry(instanceCount) {
   this.type = "SkyBeamBufferGeometry";
   this.instanceAttributes = []; // For DynamicMultiInstancedMesh
   const widthSegments = 2;
-  const heightSegments = 4;
+  const heightSegments = 3;
   const flipY = true;
   const width = 0.3;
   const height = BEAM_HEIGHT;
@@ -18,6 +18,7 @@ function SkyBeamBufferGeometry(instanceCount) {
   const normals = [];
   const uvs = [];
   const valphas = [];
+  const illuminations = [];
 
   const width_half = width / 2;
   const height_half = height / 2;
@@ -42,6 +43,12 @@ function SkyBeamBufferGeometry(instanceCount) {
 
       uvs.push(ix / gridX);
       uvs.push(flipY ? 1 - iy / gridY : iy / gridY);
+
+      if (iy === gridY1 - 1) {
+        illuminations.push(0.5);
+      } else {
+        illuminations.push(0.0);
+      }
 
       // Blend alpha to zero at top
       if (iy === 0 || iy == gridY1 - 1) {
@@ -72,6 +79,7 @@ function SkyBeamBufferGeometry(instanceCount) {
   this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
   this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
   this.setAttribute("alpha", new Float32BufferAttribute(valphas, 1));
+  this.setAttribute("illumination", new Float32BufferAttribute(illuminations, 1));
 
   const colors = [];
   const alphas = [];
