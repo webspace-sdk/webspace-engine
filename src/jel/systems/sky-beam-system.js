@@ -69,11 +69,11 @@ beamMaterial.onBeforeCompile = shader => {
       "mvPosition.z = min(mvPosition.z, gl_Position.w - 0.01);",
       "gl_Position.z = min(gl_Position.z, gl_Position.w - 0.01);",
       // Alpha increases with distance
-      "vBeamAlpha = clamp(gl_Position.z * gl_Position.z / 2800.0, 0.06, 0.6);",
+      "vBeamAlpha = clamp(gl_Position.z * gl_Position.z / 2800.0, 0.06, 0.7);",
       // Perform offset in view space to give beam width
       "gl_Position.x = gl_Position.x + vXOffset;",
       // Clip verts to hide them if too close, to skip drawing this beam to avoid stencil buffer write.
-      "gl_Position.w = gl_Position.w * step(17.5, gl_Position.z);"
+      "gl_Position.w = gl_Position.w * step(13.5, gl_Position.z);"
     ].join("\n")
   );
 
