@@ -641,8 +641,9 @@ const setupSpaceChannelMessageHandlers = spacePhxChannel => {
   spacePhxChannel.on("persona_refresh", ({ session_id }) => {
     const scene = document.querySelector("a-scene");
 
-    // If persona changed, update avatar color
+    // If persona changed, update avatar color + sky beam color
     scene.systems["hubs-systems"].avatarSystem.markPersonaAvatarDirty(session_id);
+    scene.systems["hubs-systems"].skyBeamSystem.markColorDirtyForCreator(session_id);
   });
 };
 

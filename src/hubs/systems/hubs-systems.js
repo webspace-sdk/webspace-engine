@@ -51,7 +51,8 @@ AFRAME.registerSystem("hubs-systems", {
     this.positionAtBorderSystem = new PositionAtBorderSystem();
     this.cameraSystem = new CameraSystem(this.el);
     this.atmosphereSystem = new AtmosphereSystem(this.el, this.cameraSystem);
-    this.physicsSystem = new PhysicsSystem(this.el.object3D, this.atmosphereSystem);
+    this.skyBeamSystem = new SkyBeamSystem(this.el);
+    this.physicsSystem = new PhysicsSystem(this.el.object3D, this.atmosphereSystem, this.skyBeamSystem);
     this.constraintsSystem = new ConstraintsSystem(this.physicsSystem);
     this.twoPointStretchingSystem = new TwoPointStretchingSystem();
     this.singleActionButtonSystem = new SingleActionButtonSystem();
@@ -81,7 +82,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.characterController = new CharacterControllerSystem(this.el, this.terrainSystem);
     this.uiAnimationSystem = new UIAnimationSystem(this.el, this.atmosphereSystem);
     this.avatarSystem = new AvatarSystem(this.el, this.atmosphereSystem);
-    this.skyBeamSystem = new SkyBeamSystem(this.el);
     this.cameraRotatorSystem = new CameraRotatorSystem(this.el);
     this.keyboardTipSystem = new KeyboardTipSystem(this.el, this.cameraSystem);
     this.autoQualitySystem = new AutoQualitySystem(this.el);

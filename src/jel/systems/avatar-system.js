@@ -180,6 +180,7 @@ export class AvatarSystem {
     this.sceneEl = sceneEl;
     this.atmosphereSystem = atmosphereSystem;
     this.avatarEls = Array(MAX_AVATARS).fill(null);
+    this.avatarToIndex = new Map();
     this.avatarCreatorIds = Array(MAX_AVATARS).fill(null);
     this.currentVisemes = Array(MAX_AVATARS).fill(-1);
     this.dirtyMatrices = Array(MAX_AVATARS).fill(0);
@@ -224,6 +225,7 @@ export class AvatarSystem {
     const index = this.mesh.addInstance(ZERO, ZERO, IDENTITY);
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.avatarEls[index] = el;
+    this.avatarToIndex.set(el, index);
     this.dirtyMatrices[index] = 0;
     this.dirtyColors[index] = true;
     this.avatarIkControllers[index] = el.components["ik-controller"];
@@ -236,29 +238,23 @@ export class AvatarSystem {
   }
 
   unregister(el) {
-    for (let i = 0; i <= this.maxRegisteredIndex; i++) {
-      if (el === this.avatarEls[i]) {
-        this.avatarEls[i] = null;
-        this.avatarCreatorIds[i] = null;
-        this.avatarIkControllers[i] = null;
-        this.mesh.freeInstance(i);
+    if (!this.avatarToIndex.has(el)) return;
+    const i = this.avatarToIndex.get(el);
+    this.avatarEls[i] = null;
+    this.avatarCreatorIds[i] = null;
+    this.avatarIkControllers[i] = null;
+    this.mesh.freeInstance(i);
+    this.avatarToIndex.delete(el);
 
-        if (this.selfEl === el) {
-          this.selfEl = null;
-        }
-
-        return;
-      }
+    if (this.selfEl === el) {
+      this.selfEl = null;
     }
   }
 
   markMatrixDirty(el) {
-    for (let i = 0; i <= this.maxRegisteredIndex; i++) {
-      if (this.avatarEls[i] === el) {
-        this.dirtyMatrices[i] = MAX_LERP_TICKS;
-        return;
-      }
-    }
+    if (!this.avatarToIndex.has(el)) return;
+    const i = this.avatarToIndex.get(el);
+    this.dirtyMatrices[i] = MAX_LERP_TICKS;
   }
 
   markPersonaAvatarDirty(creatorId) {
@@ -334,14 +330,14 @@ export class AvatarSystem {
         this.maybeScheduleEyeDecal(t, i);
       }
 
-      const networkId = avatarCreatorIds[i];
+      const creatorId = avatarCreatorIds[i];
       const hasDirtyMatrix = dirtyMatrices[i] > 0;
       const hasEyeDecalChange = hasScheduledDecal && scheduledEyeDecal.t < t;
       const prevViseme = currentVisemes[i];
 
       const hasDirtyColor = dirtyColors[i];
-      if (hasDirtyColor && networkId && presenceState[networkId].metas) {
-        const color = presenceState[networkId].metas[0].profile.persona.avatar.primary_color;
+      if (hasDirtyColor && creatorId && presenceState[creatorId].metas) {
+        const color = presenceState[creatorId].metas[0].profile.persona.avatar.primary_color;
 
         if (isSelf) {
           newSelfColor = color;
@@ -358,8 +354,8 @@ export class AvatarSystem {
 
       let currentViseme = 0;
 
-      if (nafAdapter && networkId !== null) {
-        currentViseme = nafAdapter.getCurrentViseme(networkId);
+      if (nafAdapter && creatorId !== null) {
+        currentViseme = nafAdapter.getCurrentViseme(creatorId);
       }
 
       const hasNewViseme = currentViseme !== prevViseme;

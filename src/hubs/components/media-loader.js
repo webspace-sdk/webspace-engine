@@ -69,7 +69,7 @@ AFRAME.registerComponent("media-loader", {
     this.animating = false;
 
     const hubsSystems = this.el.sceneEl.systems["hubs-systems"];
-    hubsSystems.skyBeamSystem.register(this.el);
+    hubsSystems.skyBeamSystem.register(this.el.object3D);
 
     getNetworkedEntity(this.el).then(networkedEl => {
       this.networkedEl = networkedEl;
@@ -154,7 +154,7 @@ AFRAME.registerComponent("media-loader", {
     }
 
     const hubsSystems = this.el.sceneEl.systems["hubs-systems"];
-    hubsSystems.skyBeamSystem.unregister(this.el);
+    hubsSystems.skyBeamSystem.unregister(this.el.object3D);
 
     const sfx = hubsSystems.soundEffectsSystem;
 

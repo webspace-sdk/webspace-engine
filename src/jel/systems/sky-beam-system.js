@@ -2,13 +2,13 @@ import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { SkyBeamBufferGeometry, BEAM_HEIGHT } from "../objects/sky-beam-buffer-geometry";
 import { addVertexCurvingToShader } from "./terrain-system";
+import { getCreator, getNetworkedEntity } from "../utils/ownership-utils";
+const BEAM_Y_OFFSET = BEAM_HEIGHT / 2;
 
 const { Color, ShaderMaterial, MeshBasicMaterial, Matrix4, ShaderLib, UniformsUtils, Vector3 } = THREE;
 
 const IDENTITY = new Matrix4();
 const ZERO = new Vector3();
-
-const PCT_BEAMS_TO_UPDATE_PER_FRAME = 0.1;
 
 const beamMaterial = new ShaderMaterial({
   name: "beam",
@@ -106,25 +106,53 @@ const MAX_BEAMS = 256;
 export class SkyBeamSystem {
   constructor(sceneEl) {
     this.sceneEl = sceneEl;
-    this.beamEls = Array(MAX_BEAMS).fill(null);
+    this.beamSources = Array(MAX_BEAMS).fill(null);
+    this.sourceToIndex = new Map();
+    this.dirtyMatrices = Array(MAX_BEAMS).fill(0);
+    this.dirtyColors = Array(MAX_BEAMS).fill(false);
+    this.sourceCreatorIds = Array(MAX_BEAMS).fill(null);
 
     this.maxRegisteredIndex = -1;
+    this.frame = 0;
 
     this.createMesh();
-    this.beamUpdateIndex = 0;
   }
 
-  register(el) {
+  register(source) {
     const index = this.mesh.addInstance(ZERO, IDENTITY);
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
-    this.beamEls[index] = el;
+    this.sourceToIndex.set(source, index);
+    this.beamSources[index] = source;
+    this.dirtyMatrices[index] = 0;
+    this.dirtyColors[index] = true;
+
+    getNetworkedEntity(source.el).then(e => (this.sourceCreatorIds[index] = getCreator(e)));
   }
 
-  unregister(el) {
+  unregister(source) {
+    if (!this.sourceToIndex.has(source));
+    const i = this.sourceToIndex.get(source);
+    this.beamSources[i] = null;
+    this.sourceCreatorIds[i] = null;
+    this.mesh.freeInstance(i);
+    this.sourceToIndex.delete(source);
+  }
+
+  isRegistered(source) {
+    return this.sourceToIndex.has(source);
+  }
+
+  markMatrixDirty(source) {
+    if (!this.sourceToIndex.has(source)) return;
+
+    const i = this.sourceToIndex.get(source);
+    this.dirtyMatrices[i] = 1;
+  }
+
+  markColorDirtyForCreator(creatorId) {
     for (let i = 0; i <= this.maxRegisteredIndex; i++) {
-      if (el === this.beamEls[i]) {
-        this.beamEls[i] = null;
-        this.mesh.freeInstance(i);
+      if (this.sourceCreatorIds[i] === creatorId) {
+        this.dirtyColors[i] = true;
         return;
       }
     }
@@ -142,65 +170,99 @@ export class SkyBeamSystem {
   }
 
   tick() {
-    if (this.maxRegisteredIndex === -1) return;
+    if (!window.APP.spaceChannel.presence) return;
 
-    const { beamEls, maxRegisteredIndex, instanceColorAttribute, mesh } = this;
+    const {
+      beamSources,
+      sourceCreatorIds,
+      maxRegisteredIndex,
+      instanceColorAttribute,
+      mesh,
+      dirtyMatrices,
+      dirtyColors
+    } = this;
+    if (maxRegisteredIndex === -1) return;
 
-    const numToUpdate = Math.max(1, Math.floor((maxRegisteredIndex + 1) * PCT_BEAMS_TO_UPDATE_PER_FRAME));
+    this.frame++;
 
-    let instanceColorNeedsUpdate = false,
-      instanceMatrixNeedsUpdate = false;
+    // Some pathways of object motion will not flip dirty matrix bit, such as remote media object moving.
+    // As such every frame do a delta check on one source to flip its dirty bit if its moved.
+    this.checkOneSourceForDirty();
 
-    for (let i = 0; i < numToUpdate; i++) {
-      this.beamUpdateIndex++;
+    let instanceMatrixNeedsUpdate = false,
+      instanceColorNeedsUpdate = false;
 
-      const idx = this.beamUpdateIndex % (maxRegisteredIndex + 1);
-      const el = beamEls[idx];
-      if (el === null) continue;
+    const presenceState = window.APP.spaceChannel.presence.state;
 
-      const r = 0.1;
-      const g = 0.6;
-      const b = 0.8;
+    for (let i = 0; i <= maxRegisteredIndex; i++) {
+      const source = beamSources[i];
+      if (source === null) continue;
 
-      const carray = instanceColorAttribute.array;
-      const cr = carray[idx * 3];
-      const cg = carray[idx * 3 + 1];
-      const cb = carray[idx * 3 + 2];
+      const hasDirtyMatrix = dirtyMatrices[i] > 0;
+      const hasDirtyColor = dirtyColors[i];
 
-      if (Math.abs(r - cr) > 0.01 || Math.abs(g - cg) > 0.01 || Math.abs(b - cb) > 0.01) {
-        carray[idx * 3] = r;
-        carray[idx * 3 + 1] = g;
-        carray[idx * 3 + 2] = b;
+      if (hasDirtyColor) {
+        let color = { r: 0.1, g: 0.6, b: 0.8 };
+
+        // Check if the color is for an avatar and is in presence
+        const creatorId = sourceCreatorIds[i];
+
+        if (presenceState[creatorId] && presenceState[creatorId].metas) {
+          color = presenceState[creatorId].metas[0].profile.persona.avatar.primary_color;
+        }
+
+        instanceColorAttribute.array[i * 3 + 0] = color.r;
+        instanceColorAttribute.array[i * 3 + 1] = color.g;
+        instanceColorAttribute.array[i * 3 + 2] = color.b;
 
         instanceColorNeedsUpdate = true;
+        dirtyColors[i] = false;
       }
 
-      const obj = el.object3D;
+      if (!hasDirtyMatrix && !hasDirtyColor) continue;
 
-      obj.updateMatrices();
+      if (hasDirtyMatrix) {
+        source.updateMatrices();
 
-      const elements = obj.matrixWorld.elements;
-      const array = mesh.instanceMatrix.array;
+        // Set position (x, z) from object
+        const elements = source.matrixWorld.elements;
+        const array = mesh.instanceMatrix.array;
 
-      // See if position changed, if so, update
-      const x = elements[12];
-      const y = elements[13] + BEAM_HEIGHT / 2;
-      const z = elements[14];
+        const x = elements[12];
+        const y = elements[13];
+        const z = elements[14];
 
-      const cx = array[idx * 16 + 12];
-      const cy = array[idx * 16 + 13];
-      const cz = array[idx * 16 + 14];
-
-      if (Math.abs(x - cx) > 0.01 || Math.abs(y - cy) > 0.01 || Math.abs(z - cz) > 0.01) {
-        array[idx * 16 + 12] = x;
-        array[idx * 16 + 13] = y;
-        array[idx * 16 + 14] = z;
+        array[i * 16 + 12] = x;
+        array[i * 16 + 13] = y + BEAM_Y_OFFSET;
+        array[i * 16 + 14] = z;
 
         instanceMatrixNeedsUpdate = true;
+
+        dirtyMatrices[i] -= 1;
       }
     }
 
     instanceColorAttribute.needsUpdate = instanceColorNeedsUpdate;
     mesh.instanceMatrix.needsUpdate = instanceMatrixNeedsUpdate;
+  }
+
+  checkOneSourceForDirty() {
+    const { beamSources, maxRegisteredIndex, frame, mesh } = this;
+    const i = frame % (maxRegisteredIndex + 1);
+    const source = beamSources[i];
+    const elements = source.matrixWorld.elements;
+    const array = mesh.instanceMatrix.array;
+
+    const x = elements[12];
+    const y = elements[13] + BEAM_Y_OFFSET;
+    const z = elements[14];
+
+    const cx = array[i * 16 + 12];
+    const cy = array[i * 16 + 13];
+    const cz = array[i * 16 + 14];
+
+    if (Math.abs(x - cx) > 0.01 || Math.abs(y - cy) > 0.01 || Math.abs(z - cz) > 0.01) {
+      this.markMatrixDirty(source);
+    }
   }
 }
