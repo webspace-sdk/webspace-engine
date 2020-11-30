@@ -10,7 +10,6 @@ function SkyBeamBufferGeometry(instanceCount) {
   const widthSegments = 2;
   const heightSegments = 3;
   const flipY = true;
-  const width = 0.2;
   const height = BEAM_HEIGHT;
 
   const indices = [];
@@ -29,7 +28,7 @@ function SkyBeamBufferGeometry(instanceCount) {
   const gridX1 = gridX + 1;
   const gridY1 = gridY + 1;
 
-  const segment_width = width / gridX;
+  const segment_width = 0;
   const segment_height = height / gridY;
 
   let ix, iy;
@@ -57,7 +56,7 @@ function SkyBeamBufferGeometry(instanceCount) {
         alphas.push(1.0);
       }
 
-      xOffsets.push((ix === 0 ? -1 : 1) * width);
+      xOffsets.push(ix === 0 ? -1 : 1);
     }
   }
 
@@ -90,9 +89,19 @@ function SkyBeamBufferGeometry(instanceCount) {
     colors.push(...[0.0, 0.0, 0.0]);
   }
 
+  const widths = [];
+
+  for (let i = 0; i < instanceCount; i++) {
+    widths.push(0.0);
+  }
+
   const instanceColorAttribute = new InstancedBufferAttribute(new Float32Array(colors), 3);
   this.setAttribute("instanceColor", instanceColorAttribute);
   this.instanceAttributes.push([Vector3, instanceColorAttribute]);
+
+  const instanceWidthAttribute = new InstancedBufferAttribute(new Float32Array(widths), 1);
+  this.setAttribute("instanceWidth", instanceWidthAttribute);
+  this.instanceAttributes.push([Number, instanceWidthAttribute]);
 }
 
 SkyBeamBufferGeometry.prototype = Object.create(BufferGeometry.prototype);

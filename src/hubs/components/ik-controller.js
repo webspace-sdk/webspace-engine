@@ -168,7 +168,7 @@ AFRAME.registerComponent("ik-controller", {
       this.head = this.el.object3D.getObjectByName(this.data.head);
 
       if (!this.data.isSelf) {
-        this.skyBeamSystem.register(this.head);
+        this.skyBeamSystem.register(this.head, true);
       }
 
       this.scaleAudioFeedback = this.head.el.components["scale-audio-feedback"];

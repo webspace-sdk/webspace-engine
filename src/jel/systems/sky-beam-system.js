@@ -10,6 +10,9 @@ const { Color, ShaderMaterial, MeshBasicMaterial, Matrix4, ShaderLib, UniformsUt
 const IDENTITY = new Matrix4();
 const ZERO = new Vector3();
 
+const NARROW_BEAM_WIDTH = 0.1;
+const WIDE_BEAM_WIDTH = 0.4;
+
 const beamMaterial = new ShaderMaterial({
   name: "beam",
   fog: false,
@@ -42,6 +45,8 @@ beamMaterial.onBeforeCompile = shader => {
       "#include <uv2_pars_vertex>",
       "attribute vec3 instanceColor;",
       "varying vec3 vInstanceColor;",
+      "attribute float instanceWidth;",
+      "varying float vInstanceWidth;",
       "varying float vBeamAlpha;",
       "attribute float alpha;",
       "varying float vAlpha;",
@@ -57,7 +62,7 @@ beamMaterial.onBeforeCompile = shader => {
     "#include <color_vertex>",
     [
       "#include <color_vertex>",
-      "vXOffset = xOffset; vIllumination = illumination; vAlpha = alpha; vInstanceColor = instanceColor;"
+      "vXOffset = xOffset; vIllumination = illumination; vAlpha = alpha; vInstanceColor = instanceColor; vInstanceWidth = instanceWidth;"
     ].join("\n")
   );
 
@@ -71,7 +76,7 @@ beamMaterial.onBeforeCompile = shader => {
       // Alpha increases with distance
       "vBeamAlpha = clamp(gl_Position.z * gl_Position.z / 2800.0, 0.06, 0.7);",
       // Perform offset in view space to give beam width
-      "gl_Position.x = gl_Position.x + vXOffset;",
+      "gl_Position.x = gl_Position.x + (vXOffset * vInstanceWidth);",
       // Clip verts to hide them if too close, to skip drawing this beam to avoid stencil buffer write.
       "gl_Position.w = gl_Position.w * step(11.5, gl_Position.z);"
     ].join("\n")
@@ -81,17 +86,13 @@ beamMaterial.onBeforeCompile = shader => {
     "#include <color_pars_fragment>",
     [
       "#include <color_pars_fragment>",
-      "varying float vXOffset; varying float vIllumination; varying float vAlpha; varying vec3 vInstanceColor; varying float vBeamAlpha;"
+      "varying float vIllumination; varying float vAlpha; varying vec3 vInstanceColor; varying float vBeamAlpha;"
     ].join("\n")
   );
 
   shader.fragmentShader = shader.fragmentShader.replace(
     "#include <color_fragment>",
-    [
-      "#include <color_fragment>",
-      "diffuseColor.rgb = vInstanceColor.rgb;",
-      "diffuseColor.rgb = clamp(diffuseColor.rgb + vIllumination, 0.0, 1.0);"
-    ].join("\n")
+    ["#include <color_fragment>", "diffuseColor.rgb = clamp(vInstanceColor.rgb + vIllumination, 0.0, 1.0);"].join("\n")
   );
 
   shader.fragmentShader = shader.fragmentShader.replace(
@@ -118,13 +119,15 @@ export class SkyBeamSystem {
     this.createMesh();
   }
 
-  register(source) {
-    const index = this.mesh.addInstance(ZERO, IDENTITY);
+  register(source, wide = false) {
+    const index = this.mesh.addInstance(ZERO, 0.0, IDENTITY);
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.sourceToIndex.set(source, index);
     this.beamSources[index] = source;
     this.dirtyMatrices[index] = 0;
     this.dirtyColors[index] = true;
+    this.instanceWidthAttribute.array[index] = wide ? WIDE_BEAM_WIDTH : NARROW_BEAM_WIDTH;
+    this.instanceWidthAttribute.needsUpdate = true;
 
     getNetworkedEntity(source.el).then(e => (this.sourceCreatorIds[index] = getCreator(e)));
   }
@@ -165,6 +168,7 @@ export class SkyBeamSystem {
     this.mesh.receiveShadow = false;
     this.mesh.frustumCulled = false;
     this.instanceColorAttribute = this.mesh.geometry.instanceAttributes[0][1];
+    this.instanceWidthAttribute = this.mesh.geometry.instanceAttributes[1][1];
 
     this.sceneEl.object3D.add(this.mesh);
   }
