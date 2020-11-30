@@ -254,6 +254,8 @@ export class SkyBeamSystem {
     const { beamSources, maxRegisteredIndex, frame, mesh } = this;
     const i = frame % (maxRegisteredIndex + 1);
     const source = beamSources[i];
+    if (!source) return;
+
     const elements = source.matrixWorld.elements;
     const array = mesh.instanceMatrix.array;
 
