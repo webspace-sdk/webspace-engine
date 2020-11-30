@@ -119,17 +119,19 @@ export class SkyBeamSystem {
     this.createMesh();
   }
 
-  register(source, wide = false) {
+  register(source, isAvatar = false) {
     const index = this.mesh.addInstance(ZERO, 0.0, IDENTITY);
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.sourceToIndex.set(source, index);
     this.beamSources[index] = source;
     this.dirtyMatrices[index] = 0;
     this.dirtyColors[index] = true;
-    this.instanceWidthAttribute.array[index] = wide ? WIDE_BEAM_WIDTH : NARROW_BEAM_WIDTH;
+    this.instanceWidthAttribute.array[index] = isAvatar ? WIDE_BEAM_WIDTH : NARROW_BEAM_WIDTH;
     this.instanceWidthAttribute.needsUpdate = true;
 
-    getNetworkedEntity(source.el).then(e => (this.sourceCreatorIds[index] = getCreator(e)));
+    if (isAvatar) {
+      getNetworkedEntity(source.el).then(e => (this.sourceCreatorIds[index] = getCreator(e)));
+    }
   }
 
   unregister(source) {
@@ -211,7 +213,7 @@ export class SkyBeamSystem {
         // Check if the color is for an avatar and is in presence
         const creatorId = sourceCreatorIds[i];
 
-        if (presenceState[creatorId] && presenceState[creatorId].metas) {
+        if (creatorId && presenceState[creatorId] && presenceState[creatorId].metas) {
           color = presenceState[creatorId].metas[0].profile.persona.avatar.primary_color;
         }
 
