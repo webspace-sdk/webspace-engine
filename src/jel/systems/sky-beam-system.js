@@ -73,7 +73,7 @@ beamMaterial.onBeforeCompile = shader => {
       // Perform offset in view space to give beam width
       "gl_Position.x = gl_Position.x + vXOffset;",
       // Clip verts to hide them if too close, to skip drawing this beam to avoid stencil buffer write.
-      "gl_Position.w = gl_Position.w * step(13.5, gl_Position.z);"
+      "gl_Position.w = gl_Position.w * step(11.5, gl_Position.z);"
     ].join("\n")
   );
 
