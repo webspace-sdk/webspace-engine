@@ -146,6 +146,10 @@ AFRAME.registerComponent("ik-controller", {
 
     if (this.data.instanceHeads) {
       this.avatarSystem.unregister(this.el);
+
+      if (this.head) {
+        this.skyBeamSystem.unregister(this.head);
+      }
     }
   },
 
