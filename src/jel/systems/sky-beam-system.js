@@ -1,6 +1,5 @@
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { RENDER_ORDER } from "../../hubs/constants";
-import { WORLD_SIZE, VOXELS_PER_CHUNK, VOXEL_SIZE } from "./terrain-system";
 import { SkyBeamBufferGeometry, BEAM_HEIGHT } from "../objects/sky-beam-buffer-geometry";
 import { addVertexCurvingToShader } from "./terrain-system";
 
@@ -8,7 +7,8 @@ const { Color, ShaderMaterial, MeshBasicMaterial, Matrix4, ShaderLib, UniformsUt
 
 const IDENTITY = new Matrix4();
 const ZERO = new Vector3();
-const tmpPos = new Vector3();
+
+const PCT_BEAMS_TO_UPDATE_PER_FRAME = 0.1;
 
 const beamMaterial = new ShaderMaterial({
   name: "beam",
@@ -107,20 +107,17 @@ export class SkyBeamSystem {
   constructor(sceneEl) {
     this.sceneEl = sceneEl;
     this.beamEls = Array(MAX_BEAMS).fill(null);
-    this.dirtyMatrices = Array(MAX_BEAMS).fill(0);
-    this.dirtyColors = Array(MAX_BEAMS).fill(false);
 
     this.maxRegisteredIndex = -1;
 
     this.createMesh();
+    this.beamUpdateIndex = 0;
   }
 
   register(el) {
     const index = this.mesh.addInstance(ZERO, IDENTITY);
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.beamEls[index] = el;
-    this.dirtyMatrices[index] = 0;
-    this.dirtyColors[index] = true;
   }
 
   unregister(el) {
@@ -128,15 +125,6 @@ export class SkyBeamSystem {
       if (el === this.beamEls[i]) {
         this.beamEls[i] = null;
         this.mesh.freeInstance(i);
-        return;
-      }
-    }
-  }
-
-  markMatrixDirty(el) {
-    for (let i = 0; i <= this.maxRegisteredIndex; i++) {
-      if (this.beamEls[i] === el) {
-        this.dirtyMatrices[i] = 1;
         return;
       }
     }
@@ -154,48 +142,61 @@ export class SkyBeamSystem {
   }
 
   tick() {
-    const { beamEls, maxRegisteredIndex, instanceColorAttribute, mesh, dirtyMatrices, dirtyColors } = this;
+    if (this.maxRegisteredIndex === -1) return;
 
-    let instanceMatrixNeedsUpdate = false,
-      instanceColorNeedsUpdate = false;
+    const { beamEls, maxRegisteredIndex, instanceColorAttribute, mesh } = this;
 
-    for (let i = 0; i <= maxRegisteredIndex; i++) {
-      const el = beamEls[i];
+    const numToUpdate = Math.max(1, Math.floor((maxRegisteredIndex + 1) * PCT_BEAMS_TO_UPDATE_PER_FRAME));
+
+    let instanceColorNeedsUpdate = false,
+      instanceMatrixNeedsUpdate = false;
+
+    for (let i = 0; i < numToUpdate; i++) {
+      this.beamUpdateIndex++;
+
+      const idx = this.beamUpdateIndex % (maxRegisteredIndex + 1);
+      const el = beamEls[idx];
       if (el === null) continue;
 
-      const hasDirtyMatrix = true; //dirtyMatrices[i] > 0;
-      const hasDirtyColor = true; //dirtyColors[i];
+      const r = 0.1;
+      const g = 0.6;
+      const b = 0.8;
 
-      if (hasDirtyColor) {
-        const color = { r: 0.1, g: 0.6, b: 0.8 };
+      const carray = instanceColorAttribute.array;
+      const cr = carray[idx * 3];
+      const cg = carray[idx * 3 + 1];
+      const cb = carray[idx * 3 + 2];
 
-        instanceColorAttribute.array[i * 3 + 0] = color.r;
-        instanceColorAttribute.array[i * 3 + 1] = color.g;
-        instanceColorAttribute.array[i * 3 + 2] = color.b;
+      if (Math.abs(r - cr) > 0.01 || Math.abs(g - cg) > 0.01 || Math.abs(b - cb) > 0.01) {
+        carray[idx * 3] = r;
+        carray[idx * 3 + 1] = g;
+        carray[idx * 3 + 2] = b;
 
         instanceColorNeedsUpdate = true;
-        dirtyColors[i] = false;
       }
 
-      if (!hasDirtyMatrix && !hasDirtyColor) continue;
+      const obj = el.object3D;
 
-      if (hasDirtyMatrix) {
-        const obj = beamEls[i].object3D;
+      obj.updateMatrices();
 
-        obj.updateMatrices();
+      const elements = obj.matrixWorld.elements;
+      const array = mesh.instanceMatrix.array;
 
-        // Set position (x, z) from object
-        const x = obj.matrixWorld.elements[12];
-        const y = obj.matrixWorld.elements[13];
-        const z = obj.matrixWorld.elements[14];
+      // See if position changed, if so, update
+      const x = elements[12];
+      const y = elements[13] + BEAM_HEIGHT / 2;
+      const z = elements[14];
 
-        mesh.instanceMatrix.array[i * 16 + 12] = x;
-        mesh.instanceMatrix.array[i * 16 + 13] = y + BEAM_HEIGHT / 2;
-        mesh.instanceMatrix.array[i * 16 + 14] = z;
+      const cx = array[idx * 16 + 12];
+      const cy = array[idx * 16 + 13];
+      const cz = array[idx * 16 + 14];
+
+      if (Math.abs(x - cx) > 0.01 || Math.abs(y - cy) > 0.01 || Math.abs(z - cz) > 0.01) {
+        array[idx * 16 + 12] = x;
+        array[idx * 16 + 13] = y;
+        array[idx * 16 + 14] = z;
 
         instanceMatrixNeedsUpdate = true;
-
-        dirtyMatrices[i] -= 1;
       }
     }
 
