@@ -17,7 +17,7 @@ function SkyBeamBufferGeometry(instanceCount) {
   const vertices = [];
   const normals = [];
   const uvs = [];
-  const valphas = [];
+  const alphas = [];
   const illuminations = [];
   const xOffsets = [];
 
@@ -52,9 +52,9 @@ function SkyBeamBufferGeometry(instanceCount) {
 
       // Blend alpha to zero at top
       if (iy === 0 || iy == gridY1 - 1) {
-        valphas.push(0.0);
+        alphas.push(0.0);
       } else {
-        valphas.push(1.0);
+        alphas.push(1.0);
       }
 
       xOffsets.push((ix === 0 ? -1 : 1) * width);
@@ -80,28 +80,19 @@ function SkyBeamBufferGeometry(instanceCount) {
   this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
   this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
   this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
-  this.setAttribute("alpha", new Float32BufferAttribute(valphas, 1));
+  this.setAttribute("alpha", new Float32BufferAttribute(alphas, 1));
   this.setAttribute("illumination", new Float32BufferAttribute(illuminations, 1));
   this.setAttribute("xOffset", new Float32BufferAttribute(xOffsets, 1));
 
   const colors = [];
-  const alphas = [];
 
   for (let i = 0; i < instanceCount; i++) {
     colors.push(...[0.0, 0.0, 0.0]);
   }
 
-  for (let i = 0; i < instanceCount; i++) {
-    alphas.push(0.0);
-  }
-
   const instanceColorAttribute = new InstancedBufferAttribute(new Float32Array(colors), 3);
   this.setAttribute("instanceColor", instanceColorAttribute);
   this.instanceAttributes.push([Vector3, instanceColorAttribute]);
-
-  const instanceAlphaAttribute = new InstancedBufferAttribute(new Float32Array(alphas), 1);
-  this.setAttribute("instanceAlpha", instanceAlphaAttribute);
-  this.instanceAttributes.push([Number, instanceAlphaAttribute]);
 }
 
 SkyBeamBufferGeometry.prototype = Object.create(BufferGeometry.prototype);

@@ -42,8 +42,7 @@ beamMaterial.onBeforeCompile = shader => {
       "#include <uv2_pars_vertex>",
       "attribute vec3 instanceColor;",
       "varying vec3 vInstanceColor;",
-      "attribute float instanceAlpha;",
-      "varying float vInstanceAlpha;",
+      "varying float vBeamAlpha;",
       "attribute float alpha;",
       "varying float vAlpha;",
       "attribute float illumination;",
@@ -58,7 +57,7 @@ beamMaterial.onBeforeCompile = shader => {
     "#include <color_vertex>",
     [
       "#include <color_vertex>",
-      "vXOffset = xOffset; vIllumination = illumination; vAlpha = alpha; vInstanceColor = instanceColor; vInstanceAlpha = instanceAlpha;"
+      "vXOffset = xOffset; vIllumination = illumination; vAlpha = alpha; vInstanceColor = instanceColor;"
     ].join("\n")
   );
 
@@ -66,12 +65,15 @@ beamMaterial.onBeforeCompile = shader => {
     "#include <fog_vertex>",
     [
       "#include <fog_vertex>",
-      "mvPosition.z = min(mvPosition.z, gl_Position.w - 0.01);", // Avoid clipping by clamping by far distance
+      // Avoid clipping by clamping by far distance
+      "mvPosition.z = min(mvPosition.z, gl_Position.w - 0.01);",
       "gl_Position.z = min(gl_Position.z, gl_Position.w - 0.01);",
+      // Alpha increases with distance
+      "vBeamAlpha = clamp(gl_Position.z * gl_Position.z / 2800.0, 0.06, 0.6);",
       // Perform offset in view space to give beam width
       "gl_Position.x = gl_Position.x + vXOffset;",
-      // Clip verts to hide them if too close, to skip drawing this beam.
-      "gl_Position.w = gl_Position.w * step(10.0, gl_Position.z);"
+      // Clip verts to hide them if too close, to skip drawing this beam to avoid stencil buffer write.
+      "gl_Position.w = gl_Position.w * step(17.5, gl_Position.z);"
     ].join("\n")
   );
 
@@ -79,7 +81,7 @@ beamMaterial.onBeforeCompile = shader => {
     "#include <color_pars_fragment>",
     [
       "#include <color_pars_fragment>",
-      "varying float vXOffset; varying float vIllumination; varying float vAlpha; varying vec3 vInstanceColor; varying float vInstanceAlpha;"
+      "varying float vXOffset; varying float vIllumination; varying float vAlpha; varying vec3 vInstanceColor; varying float vBeamAlpha;"
     ].join("\n")
   );
 
@@ -94,11 +96,7 @@ beamMaterial.onBeforeCompile = shader => {
 
   shader.fragmentShader = shader.fragmentShader.replace(
     "#include <tonemapping_fragment>",
-    [
-      //"gl_FragColor.a = mvPosition.z * vInstanceAlpha * vAlpha;",
-      "gl_FragColor.a = clamp(mvPosition.z, 0.0, 1.0);",
-      "#include <tonemapping_fragment>"
-    ].join("\n")
+    ["gl_FragColor.a = vBeamAlpha * vAlpha;", "#include <tonemapping_fragment>"].join("\n")
   );
 };
 
@@ -118,7 +116,7 @@ export class SkyBeamSystem {
   }
 
   register(el) {
-    const index = this.mesh.addInstance(ZERO, 0.0, IDENTITY);
+    const index = this.mesh.addInstance(ZERO, IDENTITY);
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.beamEls[index] = el;
     this.dirtyMatrices[index] = 0;
@@ -151,27 +149,15 @@ export class SkyBeamSystem {
     this.mesh.receiveShadow = false;
     this.mesh.frustumCulled = false;
     this.instanceColorAttribute = this.mesh.geometry.instanceAttributes[0][1];
-    this.instanceAlphaAttribute = this.mesh.geometry.instanceAttributes[1][1];
 
     this.sceneEl.object3D.add(this.mesh);
   }
 
   tick() {
-    const {
-      beamEls,
-      maxRegisteredIndex,
-      instanceColorAttribute,
-      instanceAlphaAttribute,
-      mesh,
-      dirtyMatrices,
-      dirtyColors
-    } = this;
+    const { beamEls, maxRegisteredIndex, instanceColorAttribute, mesh, dirtyMatrices, dirtyColors } = this;
 
     let instanceMatrixNeedsUpdate = false,
-      instanceColorNeedsUpdate = false,
-      instanceAlphaNeedsUpdate = false;
-
-    const camera = this.sceneEl.camera;
+      instanceColorNeedsUpdate = false;
 
     for (let i = 0; i <= maxRegisteredIndex; i++) {
       const el = beamEls[i];
@@ -203,55 +189,6 @@ export class SkyBeamSystem {
         const y = obj.matrixWorld.elements[13];
         const z = obj.matrixWorld.elements[14];
 
-        tmpPos.x = x;
-        tmpPos.y = 0;
-        tmpPos.z = z;
-
-        // Billboard the beam
-        if (camera) {
-          camera.updateMatrices();
-          const cx = camera.matrixWorld.elements[12];
-          const cz = camera.matrixWorld.elements[14];
-
-          // Constraint x and z to be before the far plane
-          const maxDistSq = WORLD_SIZE * VOXELS_PER_CHUNK * VOXEL_SIZE * 2;
-          const dcx = cx - x;
-          const dcz = cz - z;
-          const distSq = dcx * dcx + dcz * dcz;
-
-          const curAlpha = instanceAlphaAttribute.array[i];
-          const alphaDistPct = Math.min(1.0, Math.abs(distSq / maxDistSq));
-
-          let newAlpha;
-
-          // Three bands of alpha, close is zero alpha, then fade in, then
-          // quick fade out at far distance.
-          const t1 = 0.1; // % head within to hide
-          const t2 = 0.8; // % tail within to fade back to zero
-          const minAlphaMid = 0.06;
-          const minAlphaEnd = 0.33;
-          const maxAlpha = 0.6;
-
-          if (alphaDistPct < t1) {
-            newAlpha = 0.0;
-          } else if (alphaDistPct < t2) {
-            newAlpha = Math.min(maxAlpha, Math.max(minAlphaMid, (alphaDistPct - t1 - (1.0 - t2)) / (t2 - t1)));
-          } else {
-            newAlpha = Math.min(maxAlpha, Math.max(minAlphaEnd, 1.0 - (alphaDistPct - t2) / (1.0 - t2)));
-          }
-          newAlpha = 1.0;
-
-          if (Math.abs(curAlpha - newAlpha) > 0.01) {
-            instanceAlphaAttribute.array[i] = newAlpha;
-            instanceAlphaNeedsUpdate = true;
-          }
-
-          //if (distSq > farDistSq) {
-          //  x = x + dcx * ratio * 0.5;
-          //  z = z + dcz * ratio * 0.5;
-          //}
-        }
-
         mesh.instanceMatrix.array[i * 16 + 12] = x;
         mesh.instanceMatrix.array[i * 16 + 13] = y + BEAM_HEIGHT / 2;
         mesh.instanceMatrix.array[i * 16 + 14] = z;
@@ -263,7 +200,6 @@ export class SkyBeamSystem {
     }
 
     instanceColorAttribute.needsUpdate = instanceColorNeedsUpdate;
-    instanceAlphaAttribute.needsUpdate = instanceAlphaNeedsUpdate;
     mesh.instanceMatrix.needsUpdate = instanceMatrixNeedsUpdate;
   }
 }
