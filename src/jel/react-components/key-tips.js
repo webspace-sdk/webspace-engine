@@ -179,14 +179,14 @@ const objectCommonTips = [
 
 const TIP_DATA = {
   closed: [["help", "?"]],
-  idle_panels_no_widen: [["move", "w a s d"], ["widen", "H+S", "widen"]],
+  idle_panels_no_widen: [["move", "w a s d"], ["look", "H,I", "rightDrag"], ["widen", "H+S", "widen"]],
   idle_panels: [
     ["move", "w a s d"],
-    ["widen", "H+S"],
-    ["look", "I", "rightDrag"],
+    ["look", "H,I", "rightDrag"],
     ["run", "H"],
     ["create", "/", "createMenu"],
     ["paste", "L+v"],
+    ["widen", "H+S"],
     ["hide", "?"]
   ],
   idle_full_muted: [

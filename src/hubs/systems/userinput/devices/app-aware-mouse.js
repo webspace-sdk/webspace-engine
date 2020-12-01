@@ -9,6 +9,7 @@ const wKeyPath = paths.device.keyboard.key("w");
 const aKeyPath = paths.device.keyboard.key("a");
 const sKeyPath = paths.device.keyboard.key("s");
 const dKeyPath = paths.device.keyboard.key("d");
+const shiftKeyPath = paths.device.keyboard.key("shift");
 const upKeyPath = paths.device.keyboard.key("arrowup");
 const downKeyPath = paths.device.keyboard.key("arrowdown");
 const leftKeyPath = paths.device.keyboard.key("arrowleft");
@@ -65,6 +66,7 @@ export class AppAwareMouseDevice {
 
     const buttonLeft = frame.get(paths.device.mouse.buttonLeft);
     const buttonRight = frame.get(paths.device.mouse.buttonRight);
+    const mouseLookKey = frame.get(shiftKeyPath);
     const userinput = AFRAME.scenes[0].systems.userinput;
 
     if (buttonLeft && !this.prevButtonLeft && this.cursorController) {
@@ -156,6 +158,7 @@ export class AppAwareMouseDevice {
     // when holding something after panning past a certain FOV angle.
     const shouldMoveCamera =
       buttonRight ||
+      mouseLookKey ||
       (lockedMode && !this.clickedOnAnything && !isTransforming) ||
       (lockedMode &&
         (Math.abs(this.lockClickCoordDelta[0]) > 0.2 || Math.abs(this.lockClickCoordDelta[1]) > 0.2) &&
@@ -176,8 +179,8 @@ export class AppAwareMouseDevice {
             movementYScreen * ((2 * Math.PI) / 3)
           );
         } else {
-          if (buttonRight) {
-            window.APP.store.handleActivityFlag("rightDrag");
+          if (buttonRight || mouseLookKey) {
+            window.APP.store.handleActivityFlag("rightDrag"); // Unfortunate naming :(
           }
           frame.setVector2(paths.actions.cameraDelta, dCoordX * -Math.PI, dCoordY * ((2 * Math.PI) / 3));
         }
