@@ -28,6 +28,12 @@ const KeyTipItem = styled.div`
   &.highlight {
     box-shadow: 0px 0px 6px var(--canvas-overlay-highlight-color);
   }
+
+  @media (pointer: coarse) {
+    &.mouse-only {
+      display: none;
+    }
+  }
 `;
 
 const KeyTipButton = styled.button`
@@ -179,10 +185,15 @@ const objectCommonTips = [
 
 const TIP_DATA = {
   closed: [["help", "?"]],
-  idle_panels_no_widen: [["move", "w a s d"], ["look", "I", "rightDrag"], ["run", "H"], ["widen", "H+S", "widen"]],
+  idle_panels_no_widen: [
+    ["move", "w a s d"],
+    ["look", "I", "rightDrag", true],
+    ["run", "H"],
+    ["widen", "H+S", "widen"]
+  ],
   idle_panels: [
     ["move", "w a s d"],
-    ["look", "I", "rightDrag"],
+    ["look", "I", "rightDrag", true],
     ["run", "H"],
     ["create", "/", "createMenu"],
     ["paste", "L+v"],
@@ -229,7 +240,7 @@ const TIP_DATA = {
 
 const KEY_TIP_TYPES = Object.keys(TIP_DATA);
 
-const itemForData = ([label, keys, flag]) => {
+const itemForData = ([label, keys, flag, mouseOnly]) => {
   const tipLabel = (
     <TipLabel key={label}>
       <FormattedMessage id={`key-tips.${label}`} />
@@ -334,7 +345,10 @@ const itemForData = ([label, keys, flag]) => {
   // Allow clicking on help item
   const style = label === "help" || label === "hide" ? { pointerEvents: "auto" } : null;
   const component = label === "help" || label === "hide" ? KeyTipButton : KeyTipItem;
-  const className = flag && !window.APP.store.state.activity[flag] ? "highlight" : "";
+  const className =
+    flag && !window.APP.store.state.activity[flag]
+      ? `highlight ${mouseOnly ? "mouse-only" : ""}`
+      : `${mouseOnly ? "mouse-only" : ""}`;
 
   return React.createElement(component, { key: label, style: style, className }, [keyLabels, tipLabel]);
 };

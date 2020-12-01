@@ -253,7 +253,7 @@ const ProfileEditorPopup = ({
                     setAllowEmails(allowEmails);
                   }}
                 />
-                <Label for="allow_emails" style={{ cursor: "pointer" }}>
+                <Label htmlFor="allow_emails" style={{ cursor: "pointer" }}>
                   <FormattedMessage id="profile-editor.allow-emails" />
                 </Label>
               </VerifyInputWrap>

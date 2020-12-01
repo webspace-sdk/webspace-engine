@@ -39,6 +39,7 @@ export class AutoQualitySystem {
     }
 
     if (dt < LOWER_QUALITY_FRAME_LENGTH) {
+      console.log("Fast frame", dt, LOWER_QUALITY_FRAME_LENGTH);
       this.sawFastFrame = true;
     } else {
       this.slowFrames++;
@@ -49,8 +50,10 @@ export class AutoQualitySystem {
     if (this.timeSinceLastCheck > SAMPLING_DURATION_MS) {
       this.timeSinceLastCheck = 0;
 
+      console.log("Pre-Check", this.sampledFrames);
       if (this.sampledFrames < MIN_SAMPLES_NEEDED) return;
       this.sampledFrames = 0;
+      console.log("Check", this.sawFastFrame);
 
       if (!this.sawFastFrame) {
         console.warn("Slow framerate detected, disabling effects, fancy CSS, and reducing pixel ratio to speed it up.");
