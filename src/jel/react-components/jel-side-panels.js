@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useMemo } from "react";
-import mixpanel from "mixpanel-browser";
 import { FormattedMessage } from "react-intl";
 import { usePopper } from "react-popper";
 import PropTypes from "prop-types";

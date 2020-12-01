@@ -21,7 +21,6 @@ const HubTrailElement = styled.div`
   position: relative;
   margin: 11px 0 0 8px;
   user-select: none;
-  pointer-events: auto;
   width: 50%;
 `;
 
@@ -45,6 +44,7 @@ const HubTrailHubItem = styled.button`
   max-width: fit-content;
   line-height: calc(var(--canvas-overlay-text-size) + 2px);
   text-shadow: 0px 0px 4px var(--menu-shadow-color);
+  pointer-events: auto;
 
   &.short {
     flex: 1;

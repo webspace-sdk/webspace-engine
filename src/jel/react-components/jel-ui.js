@@ -1,5 +1,5 @@
 import React, { useState, useCallback, forwardRef, useEffect } from "react";
-import mixpanel from "mixpanel-browser";
+import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
 import HubTrail from "./hub-trail";
 import styled from "styled-components";
@@ -26,6 +26,7 @@ import KeyTips from "./key-tips";
 import LoadingPanel from "./loading-panel";
 import { CREATE_SELECT_WIDTH, CREATE_SELECT_LIST_HEIGHT } from "./create-select";
 import qsTruthy from "../../hubs/utils/qs_truthy";
+import { useInstallPWA } from "../../hubs/react-components/input/useInstallPWA";
 
 const skipSidePanels = qsTruthy("skip_panels");
 
@@ -140,6 +141,42 @@ const HubCornerButtons = styled.div`
   flex-direction: row;
   justify-content: flex-end;
   align-items: center;
+`;
+
+const HubCornerButton = styled.button`
+  position: relative;
+  color: var(--canvas-overlay-text-color);
+  width: content-width;
+  margin: 11px 12px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 4px;
+  cursor: pointer;
+  pointer-events: auto;
+  padding: 6px 10px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  background-color: transparent;
+  font-weight: var(--canvas-overlay-item-text-weight);
+  text-align: left;
+  max-width: fit-content;
+  text-shadow: 0px 0px 4px var(--menu-shadow-color);
+
+  &:hover {
+    background-color: var(--canvas-overlay-item-hover-background-color);
+  }
+
+  &:active {
+    background-color: var(--canvas-overlay-item-active-background-color);
+  }
+
+  .panels-expanded & {
+    display: none;
+  }
 `;
 
 const HubCornerButtonIcon = styled.div`
@@ -305,6 +342,8 @@ function JelUI(props) {
     [scene, centerPopupRef, showCreateEmbedPopup]
   );
 
+  const [pwaAvailable, installPWA] = useInstallPWA();
+
   const onCreateActionSelected = useCallback(a => scene.emit("create_action_exec", a), [scene]);
 
   const onTrailHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
@@ -331,6 +370,11 @@ function JelUI(props) {
               />
             )}
             <HubCornerButtons>
+              {pwaAvailable && (
+                <HubCornerButton onClick={installPWA}>
+                  <FormattedMessage id="install.desktop" />
+                </HubCornerButton>
+              )}
               <HubCreateButton
                 ref={hubCreateButtonRef}
                 onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}

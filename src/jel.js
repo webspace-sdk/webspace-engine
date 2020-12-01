@@ -928,6 +928,23 @@ async function start() {
 
   canvas.setAttribute("tabindex", 0); // Make it so canvas can be focused
 
+  if (navigator.serviceWorker) {
+    try {
+      navigator.serviceWorker
+        .register("/jel.service.js")
+        .then(() => {
+          //navigator.serviceWorker.ready;
+          //  .then(registration => subscriptions.setRegistration(registration))
+          //  .catch(() => subscriptions.setRegistrationFailed());
+        })
+        .catch(() => /*subscriptions.setRegistrationFailed()*/ {});
+    } catch (e) {
+      //subscriptions.setRegistrationFailed();
+    }
+  } else {
+    //subscriptions.setRegistrationFailed();
+  }
+
   const entryManager = new SceneEntryManager(spaceChannel, hubChannel, authChannel, history);
   const messageDispatch = new MessageDispatch(
     scene,
