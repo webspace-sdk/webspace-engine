@@ -664,7 +664,6 @@ function setupNonVisibleHandler(scene) {
     }
   };
 
-  const isProbablyMaximized = () => screen.availWidth - window.innerWidth === 0;
   document.addEventListener("visibilitychange", () => apply());
 
   // Need a timeout since tabbing in browser causes blur then focus rapidly
@@ -672,13 +671,13 @@ function setupNonVisibleHandler(scene) {
 
   window.addEventListener("blur", () => {
     windowBlurredTimeout = setTimeout(() => {
-      if (isProbablyMaximized()) apply(true);
+      apply(true);
     }, 500);
   });
 
   window.addEventListener("focus", () => {
     clearTimeout(windowBlurredTimeout);
-    if (isProbablyMaximized()) apply(false);
+    apply(false);
   });
 }
 
