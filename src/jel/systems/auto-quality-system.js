@@ -12,6 +12,7 @@ export class AutoQualitySystem {
     this.enableTracking = false;
     this.sawFastFrame = false;
     this.slowFrames = 0;
+    this.sampledFrames = 0;
   }
 
   startTracking() {
@@ -27,6 +28,8 @@ export class AutoQualitySystem {
 
   tick(dt) {
     if (!this.enableTracking) return;
+
+    this.sampledFrames++;
 
     if (dt > RESET_ON_TIME_JUMP_MS) {
       // Process was likely suspended
@@ -46,8 +49,8 @@ export class AutoQualitySystem {
     if (this.timeSinceLastCheck > SAMPLING_DURATION_MS) {
       this.timeSinceLastCheck = 0;
 
-      const totalFrames = this.fastCount + this.slowCount;
-      if (totalFrames < MIN_SAMPLES_NEEDED) return;
+      if (this.sampledFrames < MIN_SAMPLES_NEEDED) return;
+      this.sampledFrames = 0;
 
       if (!this.sawFastFrame) {
         console.warn("Slow framerate detected, disabling effects, fancy CSS, and reducing pixel ratio to speed it up.");
