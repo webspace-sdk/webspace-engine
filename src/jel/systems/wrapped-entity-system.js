@@ -70,9 +70,10 @@ AFRAME.registerComponent("wrapped-entity", {
 });
 
 export class WrappedEntitySystem {
-  constructor(scene, atmosphereSystem) {
+  constructor(scene, atmosphereSystem, skyBeamSystem) {
     this.scene = scene;
     this.atmosphereSystem = atmosphereSystem;
+    this.skyBeamSystem = skyBeamSystem;
     this.frame = 0;
     this.els = [];
     waitForDOMContentLoaded().then(() => {
@@ -190,6 +191,7 @@ export class WrappedEntitySystem {
         obj.matrixNeedsUpdate = true;
         this.atmosphereSystem.updateShadows();
         this.atmosphereSystem.updateWater();
+        this.skyBeamSystem.markMatrixDirty(obj);
       }
     };
   })();
