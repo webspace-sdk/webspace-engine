@@ -87,6 +87,8 @@ const ImportantIcon = styled.div`
   margin-bottom: 1px;
 `;
 
+const AllowCheckbox = styled.input``;
+
 const fillMicDevices = async setMicDevices => {
   const devices = await navigator.mediaDevices.enumerateDevices();
   setMicDevices(
@@ -327,13 +329,13 @@ const SelfPanel = ({
         attributes={profileEditorAttributes}
         isSpaceAdmin={isSpaceAdmin}
         onSignOutClicked={onSignOutClicked}
-        onSignUp={async (email, name) => {
+        onSignUp={async (email, name, allowEmails) => {
           setIsVerifying(true);
           profileEditorElement.focus();
           mixpanel.track("Event Submit Verify Panel", {});
           const authChannel = new AuthChannel(window.APP.store);
           authChannel.setSocket(await connectToReticulum());
-          await authChannel.startAuthentication(email, spaceChannel);
+          await authChannel.startAuthentication(email, spaceChannel, { allow_emails: allowEmails });
           mixpanel.track("Event Confirm Verify Panel", {});
           spaceChannel.updateIdentity({ name });
         }}

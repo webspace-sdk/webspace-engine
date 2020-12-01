@@ -54,7 +54,26 @@ const Tip = styled.div`
   }
 `;
 
-const VerifyInputWrap = styled.div`
+const Label = styled.label`
+  color: var(--dialog-label-text-color);
+  font-size: var(--dialog-label-text-size);
+  font-weight: var(--dialog-label-text-weight);
+  margin-top: 6px;
+  margin-bottom: 8px;
+  margin-left: 12px;
+  white-space: pre;
+  line-height: 16px;
+
+  & a {
+    text-decoration: underline;
+  }
+`;
+
+const VerifyTextInputWrap = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
   flex: 1;
   padding: 2px 4px;
   margin: 0 8px;
@@ -63,6 +82,17 @@ const VerifyInputWrap = styled.div`
   background: var(--text-input-background-color);
   box-shadow: inset 0px 0px 2px var(--menu-background-color);
   margin: 12px;
+`;
+
+const VerifyInputWrap = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 1;
+  padding: 2px 4px;
+  margin: 0 8px;
+  border: 0;
 `;
 
 const VerifyInput = styled.input`
@@ -80,6 +110,44 @@ const VerifyInput = styled.input`
   width: 300px;
 `;
 
+const VerifyCheckbox = styled.input`
+  color: var(--dialog-tip-text-color);
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: transparent;
+  height: 16px;
+  width: 16px;
+  border: 1px solid var(--panel-item-active-background-color);
+  border-radius: 2px;
+  vertical-align: -2px;
+  color: var(--panel-item-active-text-color);
+  cursor: pointer;
+  position: relative;
+  background-color: transparent;
+  margin-bottom: 2px;
+
+  &:checked {
+    background-color: var(--panel-item-active-background-color);
+  }
+
+  & ::before {
+    content: "✔";
+    padding: 2px;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    visibility: hidden;
+  }
+
+  &:checked ::before {
+    visibility: visible;
+  }
+`;
+
 const ProfileEditorPopup = ({
   setPopperElement,
   styles,
@@ -94,6 +162,7 @@ const ProfileEditorPopup = ({
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [exists, setExists] = useState(false);
+  const [allowEmails, setAllowEmails] = useState(true);
 
   const popupInput = (
     <div
@@ -137,10 +206,10 @@ const ProfileEditorPopup = ({
                 const exists = existing.data && existing.data.length > 0;
                 setExists(exists);
                 if (exists) return;
-                onSignUp(email, name);
+                onSignUp(email, name, allowEmails);
               }}
             >
-              <VerifyInputWrap>
+              <VerifyTextInputWrap>
                 <VerifyInput
                   value={email}
                   name="email"
@@ -154,8 +223,8 @@ const ProfileEditorPopup = ({
                     setEmail(email);
                   }}
                 />
-              </VerifyInputWrap>
-              <VerifyInputWrap>
+              </VerifyTextInputWrap>
+              <VerifyTextInputWrap>
                 <VerifyInput
                   type="text"
                   name="name"
@@ -172,6 +241,21 @@ const ProfileEditorPopup = ({
                     setName(name);
                   }}
                 />
+              </VerifyTextInputWrap>
+              <VerifyInputWrap>
+                <VerifyCheckbox
+                  type="checkbox"
+                  id="allow_emails"
+                  name="allow_emails"
+                  checked={allowEmails}
+                  onChange={e => {
+                    const allowEmails = e.target.checked;
+                    setAllowEmails(allowEmails);
+                  }}
+                />
+                <Label for="allow_emails" style={{ cursor: "pointer" }}>
+                  <FormattedMessage id="profile-editor.allow-emails" />
+                </Label>
               </VerifyInputWrap>
               {exists && (
                 <Tip>
