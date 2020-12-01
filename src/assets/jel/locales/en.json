@@ -163,5 +163,6 @@
   "unavailable.closed": "This world is no longer available",
   "unavailable.connect_error": "Unable to connect.\nCheck your Internet connection.",
   "unavailable.full": "Unable to join, world is full.",
-  "install.desktop": "Install App"
+  "install.desktop": "Install App",
+  "paused.info": "Jel is Paused. Focus to resume."
 }

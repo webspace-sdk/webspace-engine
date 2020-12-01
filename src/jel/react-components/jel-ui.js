@@ -45,6 +45,7 @@ const Wrap = styled.div`
 
   body.paused & {
     pointer-events: auto;
+    background-color: rgba(0, 0, 0, 0.6);
   }
 `;
 
@@ -76,6 +77,10 @@ const Top = styled.div`
   flex-direction: row;
   width: 100%;
   align-items: flex-start;
+
+  body.paused & {
+    opacity: 0.4;
+  }
 `;
 
 // Note the hack left: here is because the popper position update
@@ -184,6 +189,21 @@ const HubCornerButtonIcon = styled.div`
   height: 22px;
 `;
 
+const PausedInfoLabel = styled.div`
+  display: none;
+  color: var(--canvas-overlay-text-color);
+  text-shadow: 0px 0px 4px var(--menu-shadow-color);
+  line-height: calc(var(--canvas-overlay-text-size) + 2px);
+  font-weight: var(--canvas-overlay-item-text-weight);
+  font-size: var(--canvas-overlay-text-size);
+  margin: 11px 0 0 8px;
+  padding: 6px 10px;
+
+  body.paused & {
+    display: block;
+  }
+`;
+
 const HubContextButton = forwardRef((props, ref) => {
   return (
     <HubCornerButtonElement {...props} ref={ref}>
@@ -212,6 +232,10 @@ const KeyTipsWrap = styled.div`
   position: absolute;
   bottom: 0;
   right: 0;
+
+  body.paused & {
+    opacity: 0.4;
+  }
 `;
 
 const BottomLeftPanels = styled.div`
@@ -405,6 +429,9 @@ function JelUI(props) {
             <DeviceStatuses>
               <BigIconButton tabIndex={-1} iconSrc={muted ? mutedIcon : unmutedIcon} />
             </DeviceStatuses>
+            <PausedInfoLabel>
+              <FormattedMessage id="paused.info" />
+            </PausedInfoLabel>
           </BottomLeftPanels>
         </Wrap>
         {!skipSidePanels && (
