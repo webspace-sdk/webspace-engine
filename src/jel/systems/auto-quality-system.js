@@ -13,6 +13,7 @@ export class AutoQualitySystem {
     this.sawFastFrame = false;
     this.slowFrames = 0;
     this.sampledFrames = 0;
+    this.lastTick = 0;
   }
 
   startTracking() {
@@ -26,8 +27,15 @@ export class AutoQualitySystem {
     this.enableTracking = false;
   }
 
-  tick(dt) {
+  tick() {
     if (!this.enableTracking) return;
+    if (this.lastTick === 0) {
+      this.lastTick = performance.now();
+      return;
+    }
+
+    const dt = performance.now() - this.lastTick;
+    this.lastTick = performance.now();
 
     this.sampledFrames++;
 
