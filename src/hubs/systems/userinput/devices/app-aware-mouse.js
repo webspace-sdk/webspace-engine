@@ -158,7 +158,7 @@ export class AppAwareMouseDevice {
     // when holding something after panning past a certain FOV angle.
     const shouldMoveCamera =
       buttonRight ||
-      mouseLookKey ||
+      (mouseLookKey && !isTransforming) ||
       (lockedMode && !this.clickedOnAnything && !isTransforming) ||
       (lockedMode &&
         (Math.abs(this.lockClickCoordDelta[0]) > 0.2 || Math.abs(this.lockClickCoordDelta[1]) > 0.2) &&
