@@ -257,7 +257,7 @@ function JelIndexUI({ authResult }) {
             }
 
             const { space_id } = await createSpace(spaceName);
-            store.update({ context: { spaceId: space_id } });
+            store.update({ context: { spaceId: space_id, isFirstVisitToSpace: true } });
             redirectedToLoggedInRoot();
           }}
         >

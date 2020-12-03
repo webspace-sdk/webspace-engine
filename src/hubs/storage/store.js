@@ -23,7 +23,8 @@ export const SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
-        spaceId: { type: "string" }
+        spaceId: { type: "string" },
+        isFirstVisitToSpace: { type: "boolean" } // true the very first time a space is visited, for initial setup
       }
     },
 

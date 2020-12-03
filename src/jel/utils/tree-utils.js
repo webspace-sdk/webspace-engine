@@ -125,9 +125,9 @@ export function isAtomInSubtree(tree, subtreeAtomId, targetAtomId) {
   return false;
 }
 
-export async function addNewHubToTree(history, treeManager, spaceId, insertUnderAtomId) {
+export async function addNewHubToTree(history, treeManager, spaceId, insertUnderAtomId, name = null) {
   const tree = treeManager.sharedNav;
-  const hub = await createHub(spaceId);
+  const hub = await createHub(spaceId, name);
   const insertUnderNodeId = insertUnderAtomId ? tree.getNodeIdForAtomId(insertUnderAtomId) : null;
 
   if (insertUnderNodeId) {

@@ -6,6 +6,8 @@ import { authorizeOrSanitizeMessage } from "./permissions-utils";
 import { isSetEqual } from "../../jel/utils/set-utils";
 import { homeHubForSpaceId } from "../../jel/utils/membership-utils";
 import { clearResolveUrlCache } from "./media-utils";
+import { addNewHubToTree } from "../../jel/utils/tree-utils";
+import { getMessages } from "./i18n";
 import qsTruthy from "./qs_truthy";
 import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
 import HubStore from "../storage/hub-store";
@@ -788,6 +790,14 @@ export function joinSpace(
       await treeManager.init(connection, memberships);
       const homeHub = homeHubForSpaceId(spaceId, memberships);
       hubMetadata.ensureMetadataForIds([homeHub.hub_id]);
+
+      if (store.state.context.isFirstVisitToSpace) {
+        // First time space setup, create initial public world. TODO do this server-side.
+        const firstWorldName = getMessages()["space.initial-world-name"];
+        await addNewHubToTree(history, treeManager, spaceId, null, firstWorldName);
+
+        store.update({ context: { isFirstVisitToSpace: false } });
+      }
 
       remountJelUI({ history, treeManager });
     },
