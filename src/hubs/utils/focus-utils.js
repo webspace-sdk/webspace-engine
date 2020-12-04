@@ -9,7 +9,7 @@ let isExitingFullscreenDueToFocus = false;
 //
 // - On non-mobile platforms, selects the value on focus
 // - If full screen, exits/enters full screen because of firefox full screen issues
-export function handleTextFieldFocus(target) {
+export function handleTextFieldFocus(target, doNotSelect) {
   if (!window.AFRAME) return;
   const isMobile = AFRAME.utils.device.isMobile();
 
@@ -28,7 +28,7 @@ export function handleTextFieldFocus(target) {
   }
 
   // Need to add a delay since this happens before the focus actually occurs.
-  if (!isMobile) setTimeout(() => target.select(), 0);
+  if (!isMobile && !doNotSelect) setTimeout(() => target.select(), 0);
 
   const canvas = document.querySelector(".a-canvas");
 

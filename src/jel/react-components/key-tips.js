@@ -174,7 +174,7 @@ const objectCommonTips = [
   ["focus", "_f"],
   ["clone", "c"],
   ["bake", "b"],
-  ["remove", "x,x"]
+  ["remove", "x x"]
 ];
 
 const TIP_DATA = {

@@ -141,18 +141,30 @@ const CreateSelect = forwardRef((props, ref) => {
 
   useEffect(
     () => {
+      let blurTimeout;
       // Hack - this will trigger the effect to reset to the default by changing the search.
       const resetOnBlur = () => {
-        setTimeout(() => {
+        blurTimeout = setTimeout(() => {
           setValue(" ");
           setValue("");
         }, 500);
       };
 
+      const resetOnFocus = () => {
+        clearTimeout(blurTimeout);
+        setValue(" ");
+        setValue("");
+      };
+
       if (inputRef.current) {
         const el = inputRef.current;
         el.addEventListener("blur", resetOnBlur);
-        return () => el.removeEventListener("blur", resetOnBlur);
+        el.addEventListener("focus", resetOnFocus);
+
+        return () => {
+          el.removeEventListener("focus", resetOnFocus);
+          el.removeEventListener("blur", resetOnBlur);
+        };
       }
     },
     [inputRef]
@@ -174,7 +186,7 @@ const CreateSelect = forwardRef((props, ref) => {
       <CreateSelectInput
         ref={inputRef}
         id="create-select-input"
-        onFocus={e => handleTextFieldFocus(e.target)}
+        onFocus={e => handleTextFieldFocus(e.target, true)}
         onBlur={e => {
           handleTextFieldBlur(e.target);
         }}

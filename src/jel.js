@@ -243,6 +243,7 @@ NAF.options.syncSource = PHOENIX_RELIABLE_NAF;
 const isBotMode = qsTruthy("bot");
 const isTelemetryDisabled = qsTruthy("disable_telemetry");
 const isDebug = qsTruthy("debug");
+const disablePausing = qsTruthy("no_pause");
 
 if (!isBotMode && !isTelemetryDisabled) {
   registerTelemetry("/hub", "Room Landing Page");
@@ -664,21 +665,23 @@ function setupNonVisibleHandler(scene) {
     }
   };
 
-  document.addEventListener("visibilitychange", () => apply());
-
   // Need a timeout since tabbing in browser causes blur then focus rapidly
   let windowBlurredTimeout = null;
 
-  window.addEventListener("blur", () => {
-    windowBlurredTimeout = setTimeout(() => {
-      apply(true);
-    }, 500);
-  });
+  document.addEventListener("visibilitychange", () => apply());
 
-  window.addEventListener("focus", () => {
-    clearTimeout(windowBlurredTimeout);
-    apply(false);
-  });
+  if (!disablePausing) {
+    window.addEventListener("blur", () => {
+      windowBlurredTimeout = setTimeout(() => {
+        apply(true);
+      }, 500);
+    });
+
+    window.addEventListener("focus", () => {
+      clearTimeout(windowBlurredTimeout);
+      apply(false);
+    });
+  }
 }
 
 function setupSidePanelLayout(scene) {
