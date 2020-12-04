@@ -82,6 +82,7 @@ export class AutoQualitySystem {
 
       if (this.sampledFrames < MIN_SAMPLES_NEEDED) {
         this.debugLog("Insufficient samples at ", t, dt);
+        return;
       }
 
       this.sampledFrames = 0;
