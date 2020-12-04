@@ -120,7 +120,10 @@ AFRAME.registerComponent("floaty-object", {
       });
     }
 
-    if (this.data.autoLockOnRelease) {
+    const characterController = this.el.sceneEl.systems["hubs-systems"].characterController;
+
+    // Lock on release if auto lock is true or if we were moving, which would undesirably throw the object.
+    if (this.data.autoLockOnRelease || characterController.movedThisFrame) {
       this.setLocked(true);
     }
   },

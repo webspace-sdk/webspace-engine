@@ -61,6 +61,7 @@ export class CharacterControllerSystem {
     this.relativeMotion = new THREE.Vector3(0, 0, 0);
     this.nextRelativeMotion = new THREE.Vector3(0, 0, 0);
     this.dXZ = 0;
+    this.movedThisFrame = false;
     this.scene.addEventListener("terrain_chunk_loaded", () => {
       this.navGroup = null;
       this.navNode = null;
@@ -375,6 +376,8 @@ export class CharacterControllerSystem {
             this.fly = false;
           }
         }
+
+        this.movedThisFrame = triedToMove;
       }
 
       const newX = newPOV.elements[12];
