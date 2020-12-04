@@ -23,7 +23,13 @@ export class AutoQualitySystem {
 
   debugLog() {
     if (!debugAutoQuality) return;
-    if (performance.now() - this.debugStartTime > DEBUG_DURATION_MS) return;
+    if (performance.now() - this.debugStartTime > DEBUG_DURATION_MS) {
+      if (window.APP.detailLevel !== 2) {
+        window.APP.detailLevel = 2;
+        console.log("Quality debug complete. Dropping quality level.");
+      }
+      return;
+    }
 
     console.log(...arguments);
   }
