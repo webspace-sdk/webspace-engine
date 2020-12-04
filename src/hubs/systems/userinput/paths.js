@@ -198,14 +198,20 @@ paths.device.hud.penButton = "/device/hud/penButton";
 paths.device.keyboardPath = "/device/keyboard";
 
 paths.device.keyboard = {
-  map: new Map(),
+  keyMap: new Map(),
+  codeMap: new Map(),
   key: function(k) {
-    let path = this.map.get(k);
-    if (path) {
-      return path;
-    }
+    let path = this.keyMap.get(k);
+    if (path) return path;
     path = `/device/keyboard/${k === " " ? "space" : k.toLowerCase()}`;
-    this.map.set(k, path);
+    this.keyMap.set(k, path);
+    return path;
+  },
+  code: function(k) {
+    let path = this.codeMap.get(k);
+    if (path) return path;
+    path = `/device/keyboard/codes/${k === " " ? "space" : k.toLowerCase()}`;
+    this.codeMap.set(k, path);
     return path;
   }
 };

@@ -500,7 +500,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
-      src: { value: paths.device.keyboard.key("`") },
+      src: { value: paths.device.keyboard.code("backquote") },
       dest: { value: paths.actions.mediaEditAction },
       xform: xforms.rising,
       priority: 201
