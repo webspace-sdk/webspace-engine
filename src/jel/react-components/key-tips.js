@@ -318,6 +318,8 @@ const itemForData = ([label, keys, flag]) => {
         els.push(<KeySeparator key={key}>-</KeySeparator>);
       } else if (key === "\\") {
         els.push(<KeySeparator key={key}>/</KeySeparator>);
+      } else if (key === " ") {
+        els.push(<KeySeparator key={key}>&nbsp;</KeySeparator>);
       } else if (key === "~" || key === "*" || key === "-") {
         // Some characters are hard to see
         els.push(<BigLetterKey key={key}>{key}</BigLetterKey>);
