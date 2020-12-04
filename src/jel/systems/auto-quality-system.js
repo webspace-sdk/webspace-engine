@@ -2,6 +2,10 @@ const SAMPLING_DURATION_MS = 1000.0 * 4.0;
 const LOWER_QUALITY_FRAME_LENGTH = 1000.0 / 40; // Ensure at least 50 FPS
 const MIN_SAMPLES_NEEDED = 15;
 const RESET_ON_TIME_JUMP_MS = 2000.0;
+const DEBUG_DURATION_MS = 20000.0;
+
+import qsTruthy from "../../hubs/utils/qs_truthy";
+const debugAutoQuality = qsTruthy("debug_auto_quality");
 
 // Conservative quality adjuster, take frames during a SAMPLING_DURATION_MS
 // period and if all frames fail to run fast enough (LOWER_QUALITY_FRAME_LENGTH)
@@ -14,6 +18,14 @@ export class AutoQualitySystem {
     this.slowFrames = 0;
     this.sampledFrames = 0;
     this.lastTick = 0;
+    this.debugStartTime = performance.now();
+  }
+
+  debugLog() {
+    if (!debugAutoQuality) return;
+    if (performance.now() - this.debugStartTime > DEBUG_DURATION_MS) return;
+
+    console.log(...arguments);
   }
 
   startTracking() {
@@ -27,7 +39,7 @@ export class AutoQualitySystem {
     this.enableTracking = false;
   }
 
-  tick() {
+  tick(t) {
     if (!this.enableTracking) return;
     if (this.lastTick === 0) {
       this.lastTick = performance.now();
@@ -43,11 +55,16 @@ export class AutoQualitySystem {
       // Process was likely suspended
       this.timeSinceLastCheck = 0;
       this.sawFastFrame = false;
+
+      this.debugLog("Adjust for suspend at ", t);
+
       return;
     }
 
     if (dt < LOWER_QUALITY_FRAME_LENGTH) {
       this.sawFastFrame = true;
+
+      this.debugLog("Fast frame at ", t, dt);
     } else {
       this.slowFrames++;
     }
@@ -57,13 +74,16 @@ export class AutoQualitySystem {
     if (this.timeSinceLastCheck > SAMPLING_DURATION_MS) {
       this.timeSinceLastCheck = 0;
 
-      if (this.sampledFrames < MIN_SAMPLES_NEEDED) return;
+      if (this.sampledFrames < MIN_SAMPLES_NEEDED) {
+        this.debugLog("Insufficient samples at ", t, dt);
+      }
+
       this.sampledFrames = 0;
 
       if (!this.sawFastFrame) {
-        console.warn("Slow framerate detected, disabling effects, fancy CSS, and reducing pixel ratio to speed it up.");
-
         window.APP.detailLevel = Math.min(2, window.APP.detailLevel + 1);
+        console.warn("Slow framerate detected New detail level: ", window.APP.detailLevel);
+
         this.scene.renderer.setPixelRatio(1);
         this.enableTracking = window.APP.detailLevel !== 2; // Stop tracking at lowest detail level
         document.body.classList.add("low-detail");
