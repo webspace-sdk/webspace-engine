@@ -2,7 +2,11 @@ const SAMPLING_DURATION_MS = 1000.0 * 4.0;
 const LOWER_QUALITY_FRAME_LENGTH = 1000.0 / 40; // Ensure at least 50 FPS
 const MIN_SAMPLES_NEEDED = 15;
 const RESET_ON_TIME_JUMP_MS = 2000.0;
+const DEBUG_DURATION_MS = 60000.0;
 const MIN_NUM_CONSECUTIVE_FAST_FRAMES = 2;
+
+import qsTruthy from "../../hubs/utils/qs_truthy";
+const debugAutoQuality = qsTruthy("debug_auto_quality");
 
 // Conservative quality adjuster, take frames during a SAMPLING_DURATION_MS
 // period and if we never see MIN_NUM_CONSECUTIVE_FAST_FRAMES consecutive fast frames then lower quality.
@@ -17,6 +21,19 @@ export class AutoQualitySystem {
     this.debugStartTime = performance.now();
   }
 
+  debugLog() {
+    if (!debugAutoQuality) return;
+    if (performance.now() - this.debugStartTime > DEBUG_DURATION_MS) {
+      if (window.APP.detailLevel !== 2) {
+        window.APP.detailLevel = 2;
+        console.log("Quality debug complete. Dropping quality level.");
+      }
+      return;
+    }
+
+    console.log(...arguments);
+  }
+
   startTracking() {
     if (this.enableTracking) return;
 
@@ -28,7 +45,7 @@ export class AutoQualitySystem {
     this.enableTracking = false;
   }
 
-  tick() {
+  tick(t) {
     if (!this.enableTracking) return;
     if (this.lastTick === 0) {
       this.lastTick = performance.now();
@@ -47,11 +64,14 @@ export class AutoQualitySystem {
       this.metFastFrameTest = false;
       this.numConsecutiveFastFrames = 0;
 
+      this.debugLog("Adjust for suspend at ", t);
+
       return;
     }
 
     if (dt < LOWER_QUALITY_FRAME_LENGTH) {
       this.consecutiveFastFrames++;
+      this.debugLog("Fast frame at ", t, dt, this.consecutiveFastFrames);
 
       if (this.consecutiveFastFrames >= MIN_NUM_CONSECUTIVE_FAST_FRAMES) {
         this.metFastFrameTest = true;
@@ -63,10 +83,12 @@ export class AutoQualitySystem {
     this.timeSinceLastCheck += dt;
 
     if (this.timeSinceLastCheck > SAMPLING_DURATION_MS) {
-      if (this.sampledFrames < MIN_SAMPLES_NEEDED) return;
+      if (this.sampledFrames < MIN_SAMPLES_NEEDED) {
+        this.debugLog("Insufficient samples at ", t, dt);
+        return;
+      }
 
       this.timeSinceLastCheck = 0;
-
       this.sampledFrames = 0;
 
       if (!this.metFastFrameTest) {
