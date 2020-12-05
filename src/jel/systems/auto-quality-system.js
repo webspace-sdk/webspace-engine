@@ -2,7 +2,7 @@ const SAMPLING_DURATION_MS = 1000.0 * 4.0;
 const LOWER_QUALITY_FRAME_LENGTH = 1000.0 / 40; // Ensure at least 50 FPS
 const MIN_SAMPLES_NEEDED = 15;
 const RESET_ON_TIME_JUMP_MS = 2000.0;
-const DEBUG_DURATION_MS = 60000.0;
+const DEBUG_DURATION_MS = 30000.0;
 const MIN_NUM_CONSECUTIVE_FAST_FRAMES = 2;
 
 import qsTruthy from "../../hubs/utils/qs_truthy";
