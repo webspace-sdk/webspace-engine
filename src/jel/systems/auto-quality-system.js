@@ -63,9 +63,9 @@ export class AutoQualitySystem {
     this.timeSinceLastCheck += dt;
 
     if (this.timeSinceLastCheck > SAMPLING_DURATION_MS) {
-      this.timeSinceLastCheck = 0;
-
       if (this.sampledFrames < MIN_SAMPLES_NEEDED) return;
+
+      this.timeSinceLastCheck = 0;
 
       this.sampledFrames = 0;
 
