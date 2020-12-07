@@ -105,9 +105,7 @@ const useMicDevices = (unmuted, setMicDevices) => {
 
       const fill = () => fillMicDevices(setMicDevices);
 
-      if (unmuted) {
-        fill();
-      }
+      fill();
 
       mediaDevices.addEventListener("devicechange", fill);
       return () => mediaDevices.removeEventListener("devicechange", fill);

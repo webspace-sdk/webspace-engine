@@ -74,7 +74,8 @@ const DeviceSelectorPopup = ({ scene, setPopperElement, styles, attributes, chil
 
 DeviceSelectorPopup.propTypes = {
   scene: PropTypes.object,
-  micDevices: PropTypes.array
+  micDevices: PropTypes.array,
+  unmuted: PropTypes.bool
 };
 
 export { DeviceSelectorPopup as default };
