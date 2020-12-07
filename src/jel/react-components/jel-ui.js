@@ -261,7 +261,7 @@ function JelUI(props) {
   const spaceChannel = window.APP.spaceChannel;
   const hubMetadata = tree && tree.atomMetadata;
   const hubTrailHubIds = (tree && hub && tree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
-  const [muted, setMuted] = useState(false);
+  const [unmuted, setUnmuted] = useState(false);
   const [treeData, setTreeData] = useState([]);
   const [treeDataVersion, setTreeDataVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -330,7 +330,7 @@ function JelUI(props) {
     [scene, updateHubRenamePopup, updateHubContextMenu, updateCreateSelectPopup, updateCreateEmbedPopup]
   );
 
-  useSceneMuteState(scene, setMuted);
+  useSceneMuteState(scene, setUnmuted);
 
   // Consume tree updates so redraws if user manipulates tree
   useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersion);
@@ -427,7 +427,7 @@ function JelUI(props) {
           </KeyTipsWrap>
           <BottomLeftPanels>
             <DeviceStatuses>
-              <BigIconButton tabIndex={-1} iconSrc={muted ? mutedIcon : unmutedIcon} />
+              <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
             </DeviceStatuses>
             <PausedInfoLabel>
               <FormattedMessage id="paused.info" />

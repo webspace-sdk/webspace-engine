@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import verticalDotsIcon from "../../assets/jel/images/icons/dots-vertical.svgi";
@@ -87,8 +87,6 @@ const ImportantIcon = styled.div`
   margin-bottom: 1px;
 `;
 
-const AllowCheckbox = styled.input``;
-
 const fillMicDevices = async setMicDevices => {
   const devices = await navigator.mediaDevices.enumerateDevices();
   setMicDevices(
@@ -99,7 +97,7 @@ const fillMicDevices = async setMicDevices => {
   );
 };
 
-const useMicDevices = (muted, setMicDevices) => {
+const useMicDevices = (unmuted, setMicDevices) => {
   useEffect(
     () => {
       const { mediaDevices } = navigator;
@@ -107,14 +105,14 @@ const useMicDevices = (muted, setMicDevices) => {
 
       const fill = () => fillMicDevices(setMicDevices);
 
-      if (!muted) {
+      if (unmuted) {
         fill();
       }
 
       mediaDevices.addEventListener("devicechange", fill);
       return () => mediaDevices.removeEventListener("devicechange", fill);
     },
-    [muted, setMicDevices]
+    [unmuted, setMicDevices]
   );
 };
 
@@ -140,11 +138,8 @@ const SelfPanel = ({
   const [avatarEditorArrowElement, setAvatarEditorArrowElement] = useState(null);
   const [profileEditorArrowElement, setProfileEditorArrowElement] = useState(null);
   const [micDevices, setMicDevices] = useState([]);
-  const [muted, setMuted] = useState(false);
+  const [unmuted, setUnmuted] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-
-  useMicDevices(muted, setMicDevices);
-  useSceneMuteState(scene, setMuted);
 
   const {
     styles: deviceSelectorStyles,
@@ -165,6 +160,18 @@ const SelfPanel = ({
       }
     ]
   });
+
+  const showMicDevicesOnFirstUnmute = useCallback(
+    unmuted => {
+      if (unmuted && !window.APP.store.state.activity.unmute) {
+        toggleFocus(deviceSelectorElement);
+      }
+    },
+    [deviceSelectorElement]
+  );
+
+  useMicDevices(unmuted, setMicDevices);
+  useSceneMuteState(scene, setUnmuted, showMicDevicesOnFirstUnmute);
 
   const {
     styles: avatarEditorStyles,
@@ -285,14 +292,14 @@ const SelfPanel = ({
           />
         </Tooltip>
         <Tooltip
-          content={messages[muted ? "self.unmute-tip" : "self.mute-tip"]}
+          content={messages[unmuted ? "self.mute-tip" : "self.unmute-tip"]}
           placement="top"
           key="select"
           singleton={tipTarget}
         >
           <BigIconButton
             style={{ margin: 0 }}
-            iconSrc={muted ? mutedIcon : unmutedIcon}
+            iconSrc={unmuted ? unmutedIcon : mutedIcon}
             onClick={() => scene.emit("action_mute")}
           />
         </Tooltip>

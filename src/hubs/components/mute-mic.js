@@ -56,14 +56,14 @@ AFRAME.registerComponent("mute-mic", {
     if (!this.el.sceneEl.is("entered")) return;
 
     this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_TOGGLE_MIC);
-    if (this.el.is("muted")) {
+    if (!this.el.is("unmuted")) {
       if (!this._beganAudioStream) {
         this._beganAudioStream = true;
         await this.el.sceneEl.systems["hubs-systems"].mediaStreamSystem.beginStreamingPreferredMic();
       }
       await NAF.connection.adapter.enableMicrophone(true);
       this.el.sceneEl.systems["hubs-systems"].audioSystem.enableOutboundAudioStream("microphone");
-      this.el.removeState("muted");
+      this.el.addState("unmuted");
       window.APP.store.handleActivityFlag("unmute");
     } else {
       if (this._beganAudioStream) {
@@ -72,22 +72,22 @@ AFRAME.registerComponent("mute-mic", {
       }
       await NAF.connection.adapter.enableMicrophone(false);
       this.el.sceneEl.systems["hubs-systems"].audioSystem.disableOutboundAudioStream("microphone");
-      this.el.addState("muted");
+      this.el.removeState("unmuted");
     }
   },
 
   onMute: async function() {
     if (!NAF.connection.adapter) return;
-    if (!this.el.is("muted")) {
+    if (this.el.is("unmuted")) {
       await NAF.connection.adapter.enableMicrophone(false);
-      this.el.addState("muted");
+      this.el.removeState("unmuted");
     }
   },
 
   onUnmute: async function() {
-    if (this.el.is("muted")) {
+    if (!this.el.is("unmuted")) {
       await NAF.connection.adapter.enableMicrophone(true);
-      this.el.removeState("muted");
+      this.el.addState("unmuted");
     }
   }
 });

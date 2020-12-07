@@ -148,13 +148,13 @@ export class AudioSystem {
         this.lipSyncWorker.postMessage(this.lipSyncVadBuffer);
         this.lipSyncWorker.postMessage(this.lipSyncAudioOffsetBuffer);
 
-        if (!this.scene.is("muted")) {
+        if (this.scene.is("unmuted")) {
           this.enableLipSync();
         }
 
         const handleStateChange = e => {
-          if (e.detail === "muted") {
-            this.scene.is("muted") ? this.disableLipSync() : this.enableLipSync();
+          if (e.detail === "unmuted") {
+            this.scene.is("unmuted") ? this.enableLipSync() : this.disableLipSync();
           }
         };
 

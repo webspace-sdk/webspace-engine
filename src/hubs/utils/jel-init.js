@@ -743,7 +743,7 @@ const setupHubChannelMessageHandlers = (
   });
 
   hubPhxChannel.on("mute", ({ session_id }) => {
-    if (session_id === NAF.clientId && !scene.is("muted")) {
+    if (session_id === NAF.clientId && scene.is("unmuted")) {
       scene.emit("action_mute");
     }
   });

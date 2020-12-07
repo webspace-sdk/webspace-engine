@@ -47,7 +47,7 @@ export default class SceneEntryManager {
     return this._entered;
   };
 
-  enterScene = async (enterInVR, muteOnEntry) => {
+  enterScene = async enterInVR => {
     if (isDebug && NAF.connection.adapter.session) {
       NAF.connection.adapter.session.options.verbose = true;
     }
@@ -110,10 +110,6 @@ export default class SceneEntryManager {
     setTimeout(() => this.store.bumpEntryCount(), 30000);
 
     this.scene.addState("entered");
-
-    if (muteOnEntry) {
-      this.scene.emit("action_mute");
-    }
   };
 
   whenSceneLoaded = callback => {

@@ -25,13 +25,13 @@ export class KeyboardTipSystem {
       if (isInQuillEditor()) {
         showTips = "text_editor";
       } else if (this.scene.is("pointer-exited")) {
-        showTips = this.scene.is("muted") ? "pointer_exited_muted" : "pointer_exited_unmuted";
+        showTips = this.scene.is("unmuted") ? "pointer_exited_unmuted" : "pointer_exited_muted";
       } else {
         if (this.cameraSystem.isInAvatarView()) {
           showTips = document.pointerLockElement
-            ? this.scene.is("muted")
-              ? "idle_full_muted"
-              : "idle_full_unmuted"
+            ? this.scene.is("unmuted")
+              ? "idle_full_unmuted"
+              : "idle_full_muted"
             : this.store.state.activity.widen
               ? "idle_panels"
               : "idle_panels_no_widen";

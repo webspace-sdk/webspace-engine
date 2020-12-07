@@ -14,7 +14,7 @@ AFRAME.registerComponent("in-world-hud", {
     this.background = this.el.querySelector(".bg");
 
     this.updateButtonStates = () => {
-      this.mic.setAttribute("mic-button", "active", this.el.sceneEl.is("muted"));
+      this.mic.setAttribute("mic-button", "active", !this.el.sceneEl.is("unmuted"));
       this.pen.setAttribute("icon-button", "active", this.el.sceneEl.is("pen"));
       this.cameraBtn.setAttribute("icon-button", "active", this.el.sceneEl.is("camera"));
       if (window.APP.hubChannel) {
@@ -25,7 +25,7 @@ AFRAME.registerComponent("in-world-hud", {
     };
 
     this.onStateChange = evt => {
-      if (!(evt.detail === "muted" || evt.detail === "frozen" || evt.detail === "pen" || evt.detail === "camera"))
+      if (!(evt.detail === "unmuted" || evt.detail === "frozen" || evt.detail === "pen" || evt.detail === "camera"))
         return;
       this.updateButtonStates();
     };

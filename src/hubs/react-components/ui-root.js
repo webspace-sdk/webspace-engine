@@ -433,7 +433,7 @@ class UIRoot extends Component {
 
   // TODO: we need to come up with a cleaner way to handle the shared state between aframe and react than emmitting events and setting state on the scene
   onAframeStateChanged = e => {
-    if (!(e.detail === "muted" || e.detail === "frozen")) return;
+    if (!(e.detail === "unmuted" || e.detail === "frozen")) return;
     this.setState({
       [e.detail]: this.props.scene.is(e.detail)
     });
@@ -1200,11 +1200,17 @@ class UIRoot extends Component {
           <div className="mic-grant-panel__button-container">
             {granted ? (
               <button autoFocus className="mic-grant-panel__button" onClick={this.onMicGrantButton}>
-                <img src="../../assets/hubs/images/mic_granted.png" srcSet="../../assets/hubs/images/mic_granted@2x.png 2x" />
+                <img
+                  src="../../assets/hubs/images/mic_granted.png"
+                  srcSet="../../assets/hubs/images/mic_granted@2x.png 2x"
+                />
               </button>
             ) : (
               <button autoFocus className="mic-grant-panel__button" onClick={this.onMicGrantButton}>
-                <img src="../../assets/hubs/images/mic_denied.png" srcSet="../../assets/hubs/images/mic_denied@2x.png 2x" />
+                <img
+                  src="../../assets/hubs/images/mic_denied.png"
+                  srcSet="../../assets/hubs/images/mic_denied@2x.png 2x"
+                />
               </button>
             )}
           </div>

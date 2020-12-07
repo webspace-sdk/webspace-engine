@@ -1,11 +1,16 @@
 import { useEffect } from "react";
 
-export const useSceneMuteState = (scene, setMuted) => {
+export const useSceneMuteState = (scene, setUnmuted, additionalHandler = null) => {
   useEffect(
     () => {
       const onAframeStateChanged = e => {
-        if (e.detail === "muted") {
-          setMuted(scene.is("muted"));
+        const unmuted = scene.is("unmuted");
+        if (e.detail === "unmuted") {
+          setUnmuted(unmuted);
+
+          if (additionalHandler) {
+            additionalHandler(unmuted);
+          }
         }
       };
 
@@ -17,6 +22,6 @@ export const useSceneMuteState = (scene, setMuted) => {
         scene && scene.removeEventListener("stateremoved", onAframeStateChanged);
       };
     },
-    [scene, setMuted]
+    [scene, setUnmuted, additionalHandler]
   );
 };

@@ -168,13 +168,13 @@ AFRAME.registerComponent("player-info", {
     window.APP.store.resetToRandomDefaultAvatar();
   },
   localStateAdded(e) {
-    if (e.detail === "muted") {
-      this.el.setAttribute("player-info", { muted: true });
+    if (e.detail === "unmuted") {
+      this.el.setAttribute("player-info", { muted: false });
     }
   },
   localStateRemoved(e) {
-    if (e.detail === "muted") {
-      this.el.setAttribute("player-info", { muted: false });
+    if (e.detail === "unmuted") {
+      this.el.setAttribute("player-info", { muted: true });
     }
   }
 });

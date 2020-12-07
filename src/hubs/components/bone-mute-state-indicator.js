@@ -33,15 +33,15 @@ AFRAME.registerComponent("bone-mute-state-indicator", {
   },
 
   onStateToggled(e) {
-    if (!e.detail.state === "muted") return;
+    if (!e.detail.state === "unmuted") return;
     this.updateMuteState();
   },
 
   updateMuteState() {
     if (!this.modelLoaded) return;
-    const muted = this.el.sceneEl.is("muted");
-    this.mutedBone.position.y = muted ? this.data.onPos : this.data.offPos;
-    this.unmutedBone.position.y = !muted ? this.data.onPos : this.data.offPos;
+    const unmuted = this.el.sceneEl.is("unmuted");
+    this.mutedBone.position.y = !unmuted ? this.data.onPos : this.data.offPos;
+    this.unmutedBone.position.y = unmuted ? this.data.onPos : this.data.offPos;
     this.mutedBone.matrixNeedsUpdate = true;
     this.unmutedBone.matrixNeedsUpdate = true;
   }

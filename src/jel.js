@@ -1140,7 +1140,7 @@ async function start() {
   await performJoin();
   mixpanel.track("Startup Joined", {});
 
-  entryManager.enterScene(false, true);
+  entryManager.enterScene(false);
 }
 
 document.addEventListener("DOMContentLoaded", start);
