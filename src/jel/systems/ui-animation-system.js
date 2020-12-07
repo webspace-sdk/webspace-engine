@@ -147,9 +147,9 @@ export class UIAnimationSystem {
       wrap.style.cssText = `left: ${left}px; width: ${width}px;`;
 
       if (left === 0) {
-        wrap.classList.add("panels-expanded");
+        document.body.classList.add("panels-expanded");
       } else {
-        wrap.classList.remove("panels-expanded");
+        document.body.classList.remove("panels-expanded");
       }
 
       return true;

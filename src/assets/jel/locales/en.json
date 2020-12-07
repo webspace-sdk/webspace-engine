@@ -23,6 +23,7 @@
   "self.mute-tip": "Mute",
   "self.select-tip": "Change Devices",
   "self.unverified-tip": "You haven't set your name.",
+  "invite.tip": "Invite others to get started!",
   "presence-list.this-header": "This World",
   "presence-list.active-header": "Active Worlds",
   "presence-list.go-to-world": "Go To World",

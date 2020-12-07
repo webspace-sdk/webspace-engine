@@ -24,7 +24,8 @@ export const SCHEMA = {
       additionalProperties: false,
       properties: {
         spaceId: { type: "string" },
-        isFirstVisitToSpace: { type: "boolean" } // true the very first time a space is visited, for initial setup
+        isFirstVisitToSpace: { type: "boolean" }, // true the very first time a space is visited, for initial setup
+        isSpaceCreator: { type: "boolean" } // true if this user ever created a space on this device
       }
     },
 

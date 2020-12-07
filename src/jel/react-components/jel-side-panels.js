@@ -17,9 +17,11 @@ import HubTree from "./hub-tree";
 import InvitePanel from "./invite-panel";
 import HubTrashTree from "./hub-trash-tree";
 import PresenceList from "./presence-list";
+import Tooltip from "./tooltip";
 import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
 import inviteIcon from "../../assets/jel/images/icons/invite.svgi";
 import trashIcon from "../../assets/jel/images/icons/trash.svgi";
+import { getMessages } from "../../hubs/utils/i18n";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import ReactDOM from "react-dom";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
@@ -299,10 +301,12 @@ function JelSidePanels({
   sessionId,
   scene
 }) {
+  const store = window.APP.store;
   const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
   const [trashMenuElement, setTrashMenuElement] = useState(null);
   const [inviteReferenceElement, setInviteReferenceElement] = useState(null);
   const [inviteElement, setInviteElement] = useState(null);
+  const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const invitePanelFieldElement = React.createRef();
 
   const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: updateTrashPopper } = usePopper(
@@ -348,6 +352,7 @@ function JelSidePanels({
   const spaceChannel = window.APP.spaceChannel;
   const onHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
   const hubId = hub && hub.hub_id;
+  const messages = getMessages();
 
   return (
     <Wrap>
@@ -360,20 +365,29 @@ function JelSidePanels({
             <SpaceBanner>{space && space.name}</SpaceBanner>
             {spaceCan("create_invite") && (
               <PanelItemButtonSection>
-                <PanelItemButton
-                  iconSrc={inviteIcon}
-                  ref={setInviteReferenceElement}
-                  onMouseDown={e => cancelEventIfFocusedWithin(e, inviteElement)}
-                  onClick={() => {
-                    if (updateInvitePopper) {
-                      updateInvitePopper();
-                    }
-                    window.APP.store.handleActivityFlag("showInvite");
-                    toggleFocus(invitePanelFieldElement.current);
-                  }}
+                <Tooltip
+                  visible={store.state.context.isSpaceCreator && !hasShownInvite}
+                  content={messages["invite.tip"]}
+                  placement="right"
+                  className="hide-when-expanded"
+                  key="invite"
                 >
-                  <FormattedMessage id="nav.invite" />
-                </PanelItemButton>
+                  <PanelItemButton
+                    iconSrc={inviteIcon}
+                    ref={setInviteReferenceElement}
+                    onMouseDown={e => cancelEventIfFocusedWithin(e, inviteElement)}
+                    onClick={() => {
+                      if (updateInvitePopper) {
+                        updateInvitePopper();
+                      }
+                      setHasShownInvite(true);
+                      store.handleActivityFlag("showInvite");
+                      toggleFocus(invitePanelFieldElement.current);
+                    }}
+                  >
+                    <FormattedMessage id="nav.invite" />
+                  </PanelItemButton>
+                </Tooltip>
               </PanelItemButtonSection>
             )}
           </NavHead>
@@ -430,7 +444,7 @@ function JelSidePanels({
               <ActionButton
                 iconSrc={addIcon}
                 onClick={() => {
-                  window.APP.store.handleActivityFlag("createWorld");
+                  store.handleActivityFlag("createWorld");
                   addNewHubToTree(history, treeManager, spaceId);
                 }}
                 style={{ width: "60%" }}
@@ -449,7 +463,7 @@ function JelSidePanels({
                 spaceChannel.sendAvatarColorUpdate(r / 255.0, g / 255.0, b / 255.0);
               }}
               onSignOutClicked={() => {
-                window.APP.store.clearCredentials();
+                store.clearCredentials();
                 document.location = "/";
               }}
             />
