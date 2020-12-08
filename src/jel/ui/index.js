@@ -81,31 +81,6 @@ const Logo = styled.img`
   width: 200px;
 `;
 
-const InputWrap = styled.div`
-  flex: 1;
-  padding: 2px 4px;
-  border-radius: 4px;
-  border: 0;
-  background: var(--text-input-background-color);
-  box-shadow: inset 0px 0px 2px var(--menu-background-color);
-  width: 250px;
-  margin-top: 12px;
-  margin-bottom: 4px;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  border: 0;
-  color: var(--text-input-text-color);
-  font-size: var(--text-input-text-size);
-  font-weight: var(--text-input-text-weight);
-  padding: 4px;
-
-  &::placeholder {
-    color: var(--text-input-placeholder-color);
-  }
-`;
-
 const Wrap = styled.div`
   display: flex;
   justify-content: center;
@@ -131,6 +106,33 @@ const SignedIn = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
+`;
+
+const Footer = styled.div`
+  position: fixed;
+  width: 100%;
+  bottom: 125px;
+  left: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  a {
+    color: var(--footer-link-text-color);
+    font-size: var(--footer-link-text-size);
+    font-weight: var(--footer-link-text-weight);
+    text-decoration: none;
+    margin: 0 16px;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  span {
+    color: var(--dialog-tip-text-color);
+  }
 `;
 
 async function authenticate() {
@@ -188,7 +190,6 @@ async function redirectedToLoggedInRoot() {
 
 function JelIndexUI({ authResult }) {
   const [path, setPath] = useState(history.location.pathname);
-  const [spaceName, setSpaceName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -235,48 +236,63 @@ function JelIndexUI({ authResult }) {
     return inviteUI;
   } else {
     return (
-      <InfoPanel>
-        <Tagline>
-          <FormattedMessage id="home.tagline" />
-        </Tagline>
-        <form
-          onSubmit={async e => {
-            setIsLoading(true);
-            e.preventDefault();
-            const accountId = store.credentialsAccountId;
+      <div>
+        <InfoPanel>
+          <Tagline>
+            <FormattedMessage id="home.tagline" />
+          </Tagline>
+          <form
+            onSubmit={async e => {
+              setIsLoading(true);
+              e.preventDefault();
+              const accountId = store.credentialsAccountId;
 
-            if (!accountId) {
-              // Create a new account and set creds
-              const { credentials } = await fetchReticulumAuthenticated("/api/v1/accounts", "POST", {});
-              store.update({ credentials: { token: credentials } });
+              if (!accountId) {
+                // Create a new account and set creds
+                const { credentials } = await fetchReticulumAuthenticated("/api/v1/accounts", "POST", {});
+                store.update({ credentials: { token: credentials } });
 
-              // Pause due to rate limiter
-              await new Promise(res => setTimeout(res, 1050));
-            }
+                // Pause due to rate limiter
+                await new Promise(res => setTimeout(res, 1050));
+              }
 
-            const { space_id } = await createSpace();
-            store.update({ context: { spaceId: space_id, isSpaceCreator: true, isFirstVisitToSpace: true } });
-            redirectedToLoggedInRoot();
-          }}
-        >
-          <Panel>
-            {isLoading ? (
-              <DotSpinner style={{ transform: "scale(0.4)" }} />
-            ) : (
-              <SmallActionButton type="submit" style={{ width: "250px" }}>
-                <FormattedMessage id="new-space.create" />
-              </SmallActionButton>
-            )}
-            {!store.credentialsAccountId && (
-              <Tip style={{ marginTop: "24px" }}>
-                <FormattedMessage id="home.have-account" />&nbsp;<a href="/signin">
-                  <FormattedMessage id="home.sign-in" />
-                </a>
-              </Tip>
-            )}
-          </Panel>
-        </form>
-      </InfoPanel>
+              const { space_id } = await createSpace();
+              store.update({ context: { spaceId: space_id, isSpaceCreator: true, isFirstVisitToSpace: true } });
+              redirectedToLoggedInRoot();
+            }}
+          >
+            <Panel>
+              {isLoading ? (
+                <DotSpinner style={{ transform: "scale(0.4)" }} />
+              ) : (
+                <SmallActionButton type="submit" style={{ width: "250px" }}>
+                  <FormattedMessage id="new-space.create" />
+                </SmallActionButton>
+              )}
+              {!store.credentialsAccountId && (
+                <Tip style={{ marginTop: "24px" }}>
+                  <FormattedMessage id="home.have-account" />&nbsp;<a href="/signin">
+                    <FormattedMessage id="home.sign-in" />
+                  </a>
+                </Tip>
+              )}
+            </Panel>
+          </form>
+        </InfoPanel>
+        <Footer>
+          <a href="https://discord.gg/wSCy58w54j">
+            <FormattedMessage id="home.join-discord" />
+          </a>
+          <span>-</span>
+          <a href="https://gfodor.medium.com/introducing-jel-the-un-zoom-320d3dcfd8f6">
+            <FormattedMessage id="home.launch-post" />
+          </a>
+          <span>-</span>
+          <a href="https://twitter.com/jel_app">
+            <FormattedMessage id="home.twitter" />
+          </a>
+        </Footer>
+      </div>
     );
   }
 }
