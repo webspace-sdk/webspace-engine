@@ -291,6 +291,14 @@ function JelIndexUI({ authResult }) {
           <a href="https://twitter.com/jel_app">
             <FormattedMessage id="home.twitter" />
           </a>
+          <span>-</span>
+          <a href="https://github.com/jel-app/policies/blob/master/TERMS.md">
+            <FormattedMessage id="home.terms" />
+          </a>
+          <span>-</span>
+          <a href="https://github.com/jel-app/policies/blob/master/PRIVACY.md">
+            <FormattedMessage id="home.privacy" />
+          </a>
         </Footer>
       </div>
     );
