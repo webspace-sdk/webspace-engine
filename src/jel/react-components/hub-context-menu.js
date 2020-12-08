@@ -70,7 +70,9 @@ function HubContextMenu({
           items
         ) : (
           <PopupMenuItem key={`no-actions-${hubId}`}>
-            <div>No Actions</div>
+            <div>
+              <FormattedMessage id="hub-context.empty" />
+            </div>
           </PopupMenuItem>
         )}
       </PopupMenu>

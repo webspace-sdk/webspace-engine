@@ -7,13 +7,13 @@ import mutedIcon from "../../assets/jel/images/icons/mic-muted.svgi";
 import unmutedIcon from "../../assets/jel/images/icons/mic-unmuted.svgi";
 import { BigIconButton } from "./icon-button";
 import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../utils/tree-utils";
-import { useHubBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
+import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 import JelSidePanels from "./jel-side-panels";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shadow.svgi";
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
-import HubRenamePopup from "./hub-rename-popup";
+import RenamePopup from "./rename-popup";
 import CreateEmbedPopup from "./create-embed-popup";
 import HubContextMenu from "./hub-context-menu";
 import CreateSelectPopup from "./create-select-popup";
@@ -258,7 +258,9 @@ const DeviceStatuses = styled.div`
 function JelUI(props) {
   const { scene, treeManager, history, spaceCan, hubCan, hub, memberships, unavailableReason } = props;
   const tree = treeManager && treeManager.sharedNav;
-  const spaceChannel = window.APP.spaceChannel;
+  const spaceTree = treeManager && treeManager.privateSpace;
+  const { spaceChannel, dynaChannel } = window.APP;
+  const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = tree && tree.atomMetadata;
   const hubTrailHubIds = (tree && hub && tree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
   const [unmuted, setUnmuted] = useState(false);
@@ -267,7 +269,8 @@ function JelUI(props) {
   const [isLoading, setIsLoading] = useState(true);
   const [createEmbedType, setCreateEmbedType] = useState("image");
 
-  const renameFocusRef = React.createRef();
+  const hubRenameFocusRef = React.createRef();
+  const spaceRenameFocusRef = React.createRef();
   const hubContextButtonRef = React.createRef();
   const hubCreateButtonRef = React.createRef();
   const createSelectFocusRef = React.createRef();
@@ -280,22 +283,32 @@ function JelUI(props) {
     attributes: hubRenamePopupAttributes,
     setPopup: setHubRenamePopupElement,
     setRef: setHubRenameReferenceElement,
-    hubId: hubRenameHubId,
+    atomId: hubRenameHubId,
     show: showHubRenamePopup,
     popupElement: hubRenamePopupElement,
     update: updateHubRenamePopup
-  } = useHubBoundPopupPopper(renameFocusRef, "bottom-start", [0, 8]);
+  } = useAtomBoundPopupPopper(hubRenameFocusRef, "bottom-start", [0, 8]);
+
+  const {
+    styles: spaceRenamePopupStyles,
+    attributes: spaceRenamePopupAttributes,
+    setPopup: setSpaceRenamePopupElement,
+    atomId: spaceRenameSpaceId,
+    show: showSpaceRenamePopup,
+    popupElement: spaceRenamePopupElement,
+    update: updateSpaceRenamePopup
+  } = useAtomBoundPopupPopper(spaceRenameFocusRef, "bottom-start", [0, 16]);
 
   const {
     styles: hubContextMenuStyles,
     attributes: hubContextMenuAttributes,
-    hubId: hubContextMenuHubId,
+    atomId: hubContextMenuHubId,
     show: showHubContextMenuPopup,
     setPopup: setHubContextMenuElement,
     popupOpenOptions: hubContextMenuOpenOptions,
     popupElement: hubContextMenuElement,
     update: updateHubContextMenu
-  } = useHubBoundPopupPopper();
+  } = useAtomBoundPopupPopper();
 
   const {
     styles: createSelectPopupStyles,
@@ -318,6 +331,7 @@ function JelUI(props) {
   useEffect(
     () => {
       const handleResizeComplete = () => {
+        if (updateSpaceRenamePopup) updateSpaceRenamePopup();
         if (updateHubRenamePopup) updateHubRenamePopup();
         if (updateHubContextMenu) updateHubContextMenu();
         if (updateCreateSelectPopup) updateCreateSelectPopup();
@@ -327,7 +341,14 @@ function JelUI(props) {
       scene && scene.addEventListener("animated_resize_complete", handleResizeComplete);
       () => scene && scene.removeEventListener("animated_resize_complete", handleResizeComplete);
     },
-    [scene, updateHubRenamePopup, updateHubContextMenu, updateCreateSelectPopup, updateCreateEmbedPopup]
+    [
+      scene,
+      updateHubRenamePopup,
+      updateSpaceRenamePopup,
+      updateHubContextMenu,
+      updateCreateSelectPopup,
+      updateCreateEmbedPopup
+    ]
   );
 
   useSceneMuteState(scene, setUnmuted);
@@ -388,8 +409,8 @@ function JelUI(props) {
                 hubMetadata={hubMetadata}
                 hubCan={hubCan}
                 hubIds={hubTrailHubIds}
-                hubRenamePopupElement={hubRenamePopupElement}
-                showHubRenamePopup={showHubRenamePopup}
+                renamePopupElement={hubRenamePopupElement}
+                showRenamePopup={showHubRenamePopup}
                 onHubNameChanged={onTrailHubNameChanged}
               />
             )}
@@ -437,22 +458,37 @@ function JelUI(props) {
         {!skipSidePanels && (
           <JelSidePanels
             {...props}
+            spaceMetadata={spaceMetadata}
             showHubRenamePopup={showHubRenamePopup}
             setHubRenameReferenceElement={setHubRenameReferenceElement}
             showHubContextMenuPopup={showHubContextMenuPopup}
+            showSpaceRenamePopup={showSpaceRenamePopup}
+            spaceRenamePopupElement={spaceRenamePopupElement}
           />
         )}
       </div>
-      <HubRenamePopup
+      <RenamePopup
         setPopperElement={setHubRenamePopupElement}
         styles={hubRenamePopupStyles}
         attributes={hubRenamePopupAttributes}
-        hubId={hubRenameHubId}
-        hubMetadata={hubMetadata}
-        ref={renameFocusRef}
+        atomId={hubRenameHubId}
+        atomMetadata={hubMetadata}
+        ref={hubRenameFocusRef}
         onNameChanged={useCallback(name => spaceChannel.updateHub(hubRenameHubId, { name }), [
           spaceChannel,
           hubRenameHubId
+        ])}
+      />
+      <RenamePopup
+        setPopperElement={setSpaceRenamePopupElement}
+        styles={spaceRenamePopupStyles}
+        attributes={spaceRenamePopupAttributes}
+        atomId={spaceRenameSpaceId}
+        atomMetadata={spaceMetadata}
+        ref={spaceRenameFocusRef}
+        onNameChanged={useCallback(name => dynaChannel.updateSpace(spaceRenameSpaceId, { name }), [
+          dynaChannel,
+          spaceRenameSpaceId
         ])}
       />
       <CreateEmbedPopup

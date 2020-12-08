@@ -4,10 +4,10 @@ import { toggleFocus } from "./dom-utils";
 
 const EMPTY = {};
 
-export function useHubBoundPopupPopper(focusRef, initialPlacement = "bottom", initialOffset = [0, 0]) {
+export function useAtomBoundPopupPopper(focusRef, initialPlacement = "bottom", initialOffset = [0, 0]) {
   const [referenceElement, setReferenceElement] = useState(null);
   const [popupElement, setPopupElement] = useState(null);
-  const [hubId, setHubId] = useState(null);
+  const [atomId, setAtomId] = useState(null);
   const [placement, setPlacement] = useState(initialPlacement);
   const [offset, setOffset] = useState(initialOffset);
   const [popupOpenOptions, setPopupOpenOptions] = useState(EMPTY);
@@ -33,8 +33,8 @@ export function useHubBoundPopupPopper(focusRef, initialPlacement = "bottom", in
   });
 
   const show = useCallback(
-    (newHubId, ref, newPlacement, newOffset, newPopupOpenOptions = null) => {
-      if (newHubId) setHubId(newHubId);
+    (newAtomId, ref, newPlacement, newOffset, newPopupOpenOptions = null) => {
+      if (newAtomId) setAtomId(newAtomId);
       if (newPlacement) setPlacement(newPlacement);
       if (newOffset) setOffset(newOffset);
       if (ref && ref.current) setReferenceElement(ref.current);
@@ -50,7 +50,7 @@ export function useHubBoundPopupPopper(focusRef, initialPlacement = "bottom", in
 
   return {
     show,
-    hubId,
+    atomId,
     popupElement,
     setPopup: setPopupElement,
     setRef,

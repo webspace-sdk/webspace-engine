@@ -26,6 +26,7 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import ReactDOM from "react-dom";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import PopupPanel from "./popup-panel";
+import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 import HubNodeTitle from "./hub-node-title";
 
 const Wrap = styled.div`
@@ -92,6 +93,38 @@ const SpaceBanner = styled.div`
   font-weight: var(--panel-banner-text-weight);
   color: var(--panel-banner-text-color);
   margin: 18px 0px 18px 16px;
+`;
+
+const SpaceNameButton = styled.button`
+  font-size: var(--panel-banner-text-size);
+  font-weight: var(--panel-banner-text-weight);
+  color: var(--panel-banner-text-color);
+  margin: 12px 0px 12px 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border: 0;
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  background-color: transparent;
+  text-align: left;
+  max-width: fit-content;
+  line-height: calc(var(--panel-banner-text-size) + 2px);
+  text-shadow: 0px 0px 4px var(--menu-shadow-color);
+  pointer-events: auto;
+
+  &:hover {
+    background-color: var(--panel-item-hover-background-color);
+  }
+
+  &:active {
+    background-color: var(--panel-item-active-background-color);
+  }
 `;
 
 const NavFoot = styled.div`
@@ -293,21 +326,27 @@ function JelSidePanels({
   hub,
   hubCan = () => false,
   spaceCan = () => false,
+  spaceMetadata,
   memberships,
   showHubContextMenuPopup,
   setHubRenameReferenceElement,
+  showSpaceRenamePopup,
+  spaceRenamePopupElement,
   spaceId,
   spacePresences,
   sessionId,
   scene
 }) {
   const store = window.APP.store;
+  const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
   const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
   const [trashMenuElement, setTrashMenuElement] = useState(null);
   const [inviteReferenceElement, setInviteReferenceElement] = useState(null);
   const [inviteElement, setInviteElement] = useState(null);
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
+  const [spaceName, setSpaceName] = useState((metadata && metadata.name) || "");
   const invitePanelFieldElement = React.createRef();
+  const spaceBannerRef = React.createRef();
 
   const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: updateTrashPopper } = usePopper(
     trashMenuReferenceElement,
@@ -324,6 +363,8 @@ function JelSidePanels({
       placement: "right-end"
     }
   );
+
+  useNameUpdateFromMetadata(spaceId, spaceMetadata, setSpaceName);
 
   const homeHub = homeHubForSpaceId(spaceId, memberships);
   const hubMetadata = treeManager && treeManager.sharedNav && treeManager.sharedNav.atomMetadata;
@@ -363,7 +404,16 @@ function JelSidePanels({
         </SpaceTreeSpill>
         <Nav>
           <NavHead>
-            <SpaceBanner>{space && space.name}</SpaceBanner>
+            {spaceCan("update_space_meta") && (
+              <SpaceNameButton
+                ref={spaceBannerRef}
+                onMouseDown={e => cancelEventIfFocusedWithin(e, spaceRenamePopupElement)}
+                onClick={() => showSpaceRenamePopup(spaceId, spaceBannerRef)}
+              >
+                {spaceName}
+              </SpaceNameButton>
+            )}
+            {!spaceCan("update_space_meta") && <SpaceBanner>{spaceName}</SpaceBanner>}
             {spaceCan("create_invite") && (
               <PanelItemButtonSection>
                 <Tooltip
@@ -554,11 +604,14 @@ JelSidePanels.propTypes = {
   hubCan: PropTypes.func,
   scene: PropTypes.object,
   spacePresences: PropTypes.object,
+  spaceMetadata: PropTypes.object,
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
   showHubContextMenuPopup: PropTypes.func,
-  setHubRenameReferenceElement: PropTypes.func
+  setHubRenameReferenceElement: PropTypes.func,
+  showSpaceRenamePopup: PropTypes.func,
+  spaceRenamePopupElement: PropTypes.object
 };
 
 export default JelSidePanels;

@@ -389,7 +389,7 @@ const joinSpaceChannel = async (
                   scene.setAttribute("networked-scene", { serverURL: newXanaURL });
                   adapter.setServerUrl(newXanaURL);
                 }
-              }, 1000);
+              }, 10000);
             },
             () => {
               clearInterval(newXanaHostPollInterval);

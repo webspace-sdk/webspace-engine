@@ -36,6 +36,16 @@ export default class DynaChannel extends EventTarget {
     });
   }
 
+  updateSpace = (spaceId, newSpaceFields) => {
+    if (!this.channel) return;
+    const spaceMetadata = window.APP.spaceMetadata;
+    const canUpdateSpaceMeta = spaceMetadata.can("update_space_meta", spaceId);
+    if (!canUpdateSpaceMeta) return "unauthorized";
+    if (newSpaceFields.roles && !canUpdateSpaceMeta) return "unauthorized";
+    this.channel.push("update_space", { ...newSpaceFields, space_id: spaceId });
+    spaceMetadata.optimisticUpdate(spaceId, newSpaceFields);
+  };
+
   leave = () => {
     if (this.channel) {
       this.channel.leave();

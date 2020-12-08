@@ -66,7 +66,7 @@ const HubTrailSeparatorItem = styled.div`
   width: 8px;
 `;
 
-export default function HubTrail({ hubIds, hubCan, hubMetadata, history, hubRenamePopupElement, showHubRenamePopup }) {
+export default function HubTrail({ hubIds, hubCan, hubMetadata, history, renamePopupElement, showRenamePopup }) {
   const primaryItemRef = React.createRef();
 
   const hubIdsToShow = hubIds || [];
@@ -113,8 +113,8 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata, history, hubRena
     <HubTrailHubItem
       key="primary-item"
       ref={primaryItemRef}
-      onMouseDown={e => cancelEventIfFocusedWithin(e, hubRenamePopupElement)}
-      onClick={() => showHubRenamePopup(primaryHubId, primaryItemRef, null, null)}
+      onMouseDown={e => cancelEventIfFocusedWithin(e, renamePopupElement)}
+      onClick={() => showRenamePopup(primaryHubId, primaryItemRef, null, null)}
     >
       {names[hubIdsToShow.length - 1]}
     </HubTrailHubItem>
@@ -129,6 +129,6 @@ HubTrail.propTypes = {
   hubMetadata: PropTypes.object,
   hubCan: PropTypes.func,
   onHubNameChanged: PropTypes.func,
-  hubRenamePopupElement: PropTypes.object,
-  showHubRenamePopup: PropTypes.func
+  renamePopupElement: PropTypes.object,
+  showRenamePopup: PropTypes.func
 };

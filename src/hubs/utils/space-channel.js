@@ -3,8 +3,6 @@ import { EventTarget } from "event-target-shim";
 import { Presence } from "phoenix";
 import { migrateChannelToSocket, unbindPresence } from "./phoenix-utils";
 
-const VALID_PERMISSIONS = ["create_hub", "view_nav", "edit_nav", "create_invite"];
-
 export default class SpaceChannel extends EventTarget {
   constructor(store) {
     super();
@@ -19,8 +17,8 @@ export default class SpaceChannel extends EventTarget {
 
   // Returns true if this current session has the given permission.
   can(permission) {
-    if (!VALID_PERMISSIONS.includes(permission)) throw new Error(`Invalid permission name: ${permission}`);
-    return this._permissions && this._permissions[permission];
+    if (!this.spaceId) return false;
+    return window.APP.spaceMetadata.can(permission, this.spaceId);
   }
 
   // Migrates this channel to a new phoenix channel and presence

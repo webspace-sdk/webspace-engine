@@ -11,13 +11,11 @@ import InviteUI from "../react-components/invite-ui";
 import LoginUI from "../react-components/login-ui";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { createSpace } from "../../hubs/utils/phoenix-utils";
-import { getMessages } from "../../hubs/utils/i18n";
 import grassSrc from "../../assets/jel/images/landing-grass.svg";
 import logoSrc from "../../assets/jel/images/landing-logo.png";
 import SmallActionButton from "../react-components/small-action-button";
 import DotSpinner from "../react-components/dot-spinner";
 
-const messages = getMessages();
 const store = new Store();
 const qs = new URLSearchParams(location.search);
 const history = createBrowserHistory();
@@ -256,23 +254,12 @@ function JelIndexUI({ authResult }) {
               await new Promise(res => setTimeout(res, 1050));
             }
 
-            const { space_id } = await createSpace(spaceName);
+            const { space_id } = await createSpace();
             store.update({ context: { spaceId: space_id, isSpaceCreator: true, isFirstVisitToSpace: true } });
             redirectedToLoggedInRoot();
           }}
         >
           <Panel>
-            <InputWrap>
-              <Input
-                placeholder={messages["new-space.placeholder"]}
-                required
-                name="name"
-                type="text"
-                autoComplete={"off"}
-                value={spaceName}
-                onChange={e => setSpaceName(e.target.value)}
-              />
-            </InputWrap>
             {isLoading ? (
               <DotSpinner style={{ transform: "scale(0.4)" }} />
             ) : (
