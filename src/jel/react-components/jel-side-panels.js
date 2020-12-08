@@ -353,6 +353,7 @@ function JelSidePanels({
   const onHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
   const hubId = hub && hub.hub_id;
   const messages = getMessages();
+  const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
 
   return (
     <Wrap>
@@ -366,7 +367,8 @@ function JelSidePanels({
             {spaceCan("create_invite") && (
               <PanelItemButtonSection>
                 <Tooltip
-                  visible={store.state.context.isSpaceCreator && !hasShownInvite}
+                  visible={showInviteTip}
+                  disabled={!showInviteTip}
                   content={messages["invite.tip"]}
                   placement="right"
                   className="hide-when-expanded"
