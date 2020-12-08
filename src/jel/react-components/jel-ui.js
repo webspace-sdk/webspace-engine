@@ -259,7 +259,7 @@ function JelUI(props) {
   const { scene, treeManager, history, spaceCan, hubCan, hub, memberships, unavailableReason } = props;
   const tree = treeManager && treeManager.sharedNav;
   const spaceTree = treeManager && treeManager.privateSpace;
-  const spaceChannel = window.APP.spaceChannel;
+  const { spaceChannel, dynaChannel } = window.APP;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = tree && tree.atomMetadata;
   const hubTrailHubIds = (tree && hub && tree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
@@ -293,12 +293,11 @@ function JelUI(props) {
     styles: spaceRenamePopupStyles,
     attributes: spaceRenamePopupAttributes,
     setPopup: setSpaceRenamePopupElement,
-    setRef: setSpaceRenameReferenceElement,
     atomId: spaceRenameSpaceId,
     show: showSpaceRenamePopup,
     popupElement: spaceRenamePopupElement,
     update: updateSpaceRenamePopup
-  } = useAtomBoundPopupPopper(spaceRenameFocusRef, "bottom-start", [0, 8]);
+  } = useAtomBoundPopupPopper(spaceRenameFocusRef, "bottom-start", [0, 16]);
 
   const {
     styles: hubContextMenuStyles,
@@ -463,7 +462,6 @@ function JelUI(props) {
             showHubRenamePopup={showHubRenamePopup}
             setHubRenameReferenceElement={setHubRenameReferenceElement}
             showHubContextMenuPopup={showHubContextMenuPopup}
-            setSpaceRenameReferenceElement={setSpaceRenameReferenceElement}
             showSpaceRenamePopup={showSpaceRenamePopup}
             spaceRenamePopupElement={spaceRenamePopupElement}
           />
@@ -488,8 +486,8 @@ function JelUI(props) {
         atomId={spaceRenameSpaceId}
         atomMetadata={spaceMetadata}
         ref={spaceRenameFocusRef}
-        onNameChanged={useCallback(name => spaceChannel.updateSpace(spaceRenameSpaceId, { name }), [
-          spaceChannel,
+        onNameChanged={useCallback(name => dynaChannel.updateSpace(spaceRenameSpaceId, { name }), [
+          dynaChannel,
           spaceRenameSpaceId
         ])}
       />
