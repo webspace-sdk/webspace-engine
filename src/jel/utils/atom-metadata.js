@@ -66,6 +66,14 @@ class AtomMetadata {
     this._channel.channel.on(this._refreshMessage, this._handleChannelRefreshMessage);
   }
 
+  get defaultName() {
+    return this._defaultName;
+  }
+
+  get defaultHomeName() {
+    return this._defaultHomeName;
+  }
+
   // Subscribes to metadata changes for the given atom id.
   //
   // If multiple metadatas as updated at once, the handler will only be fired once.

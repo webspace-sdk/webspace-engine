@@ -13,7 +13,7 @@ import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 import JelSidePanels from "./jel-side-panels";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shadow.svgi";
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
-import HubRenamePopup from "./hub-rename-popup";
+import RenamePopup from "./rename-popup";
 import CreateEmbedPopup from "./create-embed-popup";
 import HubContextMenu from "./hub-context-menu";
 import CreateSelectPopup from "./create-select-popup";
@@ -285,7 +285,7 @@ function JelUI(props) {
     hubId: hubRenameHubId,
     show: showHubRenamePopup,
     popupElement: hubRenamePopupElement,
-    update: updateHubRenamePopup
+    update: updateRenamePopup
   } = useHubBoundPopupPopper(renameFocusRef, "bottom-start", [0, 8]);
 
   const {
@@ -320,7 +320,7 @@ function JelUI(props) {
   useEffect(
     () => {
       const handleResizeComplete = () => {
-        if (updateHubRenamePopup) updateHubRenamePopup();
+        if (updateRenamePopup) updateRenamePopup();
         if (updateHubContextMenu) updateHubContextMenu();
         if (updateCreateSelectPopup) updateCreateSelectPopup();
         if (updateCreateEmbedPopup) updateCreateEmbedPopup();
@@ -329,7 +329,7 @@ function JelUI(props) {
       scene && scene.addEventListener("animated_resize_complete", handleResizeComplete);
       () => scene && scene.removeEventListener("animated_resize_complete", handleResizeComplete);
     },
-    [scene, updateHubRenamePopup, updateHubContextMenu, updateCreateSelectPopup, updateCreateEmbedPopup]
+    [scene, updateRenamePopup, updateHubContextMenu, updateCreateSelectPopup, updateCreateEmbedPopup]
   );
 
   useSceneMuteState(scene, setUnmuted);
@@ -390,8 +390,8 @@ function JelUI(props) {
                 hubMetadata={hubMetadata}
                 hubCan={hubCan}
                 hubIds={hubTrailHubIds}
-                hubRenamePopupElement={hubRenamePopupElement}
-                showHubRenamePopup={showHubRenamePopup}
+                renamePopupElement={hubRenamePopupElement}
+                showRenamePopup={showHubRenamePopup}
                 onHubNameChanged={onTrailHubNameChanged}
               />
             )}
@@ -446,12 +446,12 @@ function JelUI(props) {
           />
         )}
       </div>
-      <HubRenamePopup
+      <RenamePopup
         setPopperElement={setHubRenamePopupElement}
         styles={hubRenamePopupStyles}
         attributes={hubRenamePopupAttributes}
-        hubId={hubRenameHubId}
-        hubMetadata={hubMetadata}
+        atomId={hubRenameHubId}
+        atomMetadata={hubMetadata}
         ref={renameFocusRef}
         onNameChanged={useCallback(name => spaceChannel.updateHub(hubRenameHubId, { name }), [
           spaceChannel,
