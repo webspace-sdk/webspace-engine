@@ -26,8 +26,12 @@ const VALID_PERMISSIONS = {
     "fly",
     "upload_files"
   ],
-  [ATOM_TYPES.SPACE]: []
+  [ATOM_TYPES.SPACE]: ["create_hub", "view_nav", "edit_nav", "update_space_meta", "create_invite", "go_home"]
 };
+
+// This value is placed in the metadata lookup table while a fetch is
+// in-flight, to debounce the function that enqueues fetching.
+const pendingMetadataValue = Symbol("pending");
 
 // Class which is used to track realtime updates to metadata for hubs and spaces.
 // Used for filling into the tree controls.
@@ -64,6 +68,14 @@ class AtomMetadata {
 
     this._channel = channel;
     this._channel.channel.on(this._refreshMessage, this._handleChannelRefreshMessage);
+  }
+
+  get defaultName() {
+    return this._defaultName;
+  }
+
+  get defaultHomeName() {
+    return this._defaultHomeName;
   }
 
   // Subscribes to metadata changes for the given atom id.
@@ -113,8 +125,10 @@ class AtomMetadata {
     const idsToFetch = new Set();
 
     for (const id of ids) {
+      // Only fetch things not in the map, which will skip attempts to re-fetch pending ids.
       if (!this._metadata.has(id) || force) {
         idsToFetch.add(id);
+        this._metadata.set(id, pendingMetadataValue);
       }
     }
 
@@ -126,8 +140,8 @@ class AtomMetadata {
       }
 
       for (const id of ids) {
-        // Mark nulls for invalid/inaccessible hub ids.
-        if (!this._metadata.has(id)) {
+        // Mark nulls for invalid/inaccessible hub ids. TODO Need to deal with permission changes.
+        if (!this.hasMetadata(id)) {
           this._metadata.set(id, null);
         }
       }
@@ -137,16 +151,17 @@ class AtomMetadata {
   }
 
   hasMetadata(id) {
-    return !!this._metadata.get(id);
+    const metadata = this._metadata.get(id);
+    return metadata && metadata !== pendingMetadataValue;
   }
 
   getMetadata(id) {
     const metadata = this._metadata.get(id);
-    return metadata || null;
+    return metadata && metadata !== pendingMetadataValue ? metadata : null;
   }
 
   async getOrFetchMetadata(id) {
-    if (this._metadata.has(id)) {
+    if (this.hasMetadata(id)) {
       return this.getMetadata(id);
     } else {
       await this.ensureMetadataForIds([id]);
@@ -213,8 +228,12 @@ function useNameUpdateFromMetadata(atomId, metadata, setDisplayName, setRawName)
       };
 
       updateName();
-      metadata.ensureMetadataForIds([atomId]);
-      metadata.subscribeToMetadata(atomId, updateName);
+
+      if (atomId) {
+        metadata.ensureMetadataForIds([atomId]);
+        metadata.subscribeToMetadata(atomId, updateName);
+      }
+
       return () => metadata.unsubscribeFromMetadata(updateName);
     },
     [atomId, metadata, setDisplayName, setRawName]

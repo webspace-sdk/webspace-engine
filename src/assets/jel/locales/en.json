@@ -10,6 +10,8 @@
   "space.unnamed-title": "Unnamed Space",
   "space.unnamed-home-title": "Home Space",
   "space.initial-world-name": "Hello World",
+  "space.rename-tip": "Rename Space",
+  "hub-context.empty": "No Actions",
   "hub-context.rename": "Rename...",
   "hub-context.move-to-trash": "Move to Trash",
   "trash.restore": "Restore",

@@ -1,11 +1,10 @@
 import styled from "styled-components";
 import PropTypes from "prop-types";
 import React, { useState, useEffect, forwardRef } from "react";
-import { getMessages } from "../../hubs/utils/i18n";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 
-const HubNameInputPanelElement = styled.div`
+const NameInputPanelElement = styled.div`
   background-color: var(--menu-background-color);
   min-width: 512px;
   height: fit-content;
@@ -19,7 +18,7 @@ const HubNameInputPanelElement = styled.div`
   padding: 6px;
 `;
 
-const HubNameInputWrap = styled.div`
+const NameInputWrap = styled.div`
   flex: 1;
   padding: 2px 4px;
   border-radius: 4px;
@@ -28,7 +27,7 @@ const HubNameInputWrap = styled.div`
   box-shadow: inset 0px 0px 2px var(--menu-background-color);
 `;
 
-const HubNameInputElement = styled.input`
+const NameInputElement = styled.input`
   width: 100%;
   border: 0;
   color: var(--text-input-text-color);
@@ -41,37 +40,36 @@ const HubNameInputElement = styled.input`
   }
 `;
 
-const HubNameInputPanel = forwardRef((props, ref) => {
-  const { hubId, hubMetadata, onNameChanged } = props;
-  const metadata = hubMetadata && hubMetadata.getMetadata(hubId);
-  const [editingHubId, setEditingHubId] = useState(hubId);
+const NameInputPanel = forwardRef((props, ref) => {
+  const { atomId, atomMetadata, onNameChanged } = props;
+  const metadata = atomMetadata && atomMetadata.getMetadata(atomId);
+  const [editingAtomId, setEditingAtomId] = useState(atomId);
   const [name, setName] = useState((metadata && metadata.name) || "");
 
   useEffect(
     () => {
-      // If we are now editing a new hub, reset the input field. Otherwise ignore metadata changes.
-      if (editingHubId !== hubId) {
-        setEditingHubId(hubId);
+      // If we are now editing a new atom, reset the input field. Otherwise ignore metadata changes.
+      if (editingAtomId !== atomId) {
+        setEditingAtomId(atomId);
         setName((metadata && metadata.name) || "");
       }
     },
-    [hubId, metadata, editingHubId, setEditingHubId]
+    [atomId, metadata, editingAtomId, setEditingAtomId]
   );
 
   // If text field isn't focused, keep it up to date with metadata
-  useNameUpdateFromMetadata(hubId, hubMetadata, null, rawName => {
+  useNameUpdateFromMetadata(atomId, atomMetadata, null, rawName => {
     if (ref && document.activeElement !== ref.current) {
       setName(rawName || "");
     }
   });
 
-  const messages = getMessages();
   const isHome = metadata && !!metadata.is_home;
-  const placeholder = messages[isHome ? "hub.unnamed-home-title" : "hub.unnamed-title"];
+  const placeholder = isHome ? atomMetadata && atomMetadata.defaultHomeName : atomMetadata && atomMetadata.defaultName;
 
   return (
-    <HubNameInputPanelElement className={props.className}>
-      <HubNameInputWrap>
+    <NameInputPanelElement className={props.className}>
+      <NameInputWrap>
         <form
           onSubmit={e => {
             e.preventDefault();
@@ -79,7 +77,7 @@ const HubNameInputPanel = forwardRef((props, ref) => {
             document.activeElement.blur(); // This causes this element to hide via CSS
           }}
         >
-          <HubNameInputElement
+          <NameInputElement
             type="text"
             tabIndex={-1}
             value={name}
@@ -99,18 +97,18 @@ const HubNameInputPanel = forwardRef((props, ref) => {
             }}
           />
         </form>
-      </HubNameInputWrap>
-    </HubNameInputPanelElement>
+      </NameInputWrap>
+    </NameInputPanelElement>
   );
 });
 
-HubNameInputPanel.displayName = "HubNameInputPanel";
+NameInputPanel.displayName = "NameInputPanel";
 
-HubNameInputPanel.propTypes = {
-  hubId: PropTypes.string,
+NameInputPanel.propTypes = {
+  atomId: PropTypes.string,
   className: PropTypes.string,
-  hubMetadata: PropTypes.object,
+  atomMetadata: PropTypes.object,
   onNameChanged: PropTypes.func
 };
 
-export default HubNameInputPanel;
+export default NameInputPanel;
