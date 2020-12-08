@@ -258,7 +258,9 @@ const DeviceStatuses = styled.div`
 function JelUI(props) {
   const { scene, treeManager, history, spaceCan, hubCan, hub, memberships, unavailableReason } = props;
   const tree = treeManager && treeManager.sharedNav;
+  const spaceTree = treeManager && treeManager.privateSpace;
   const spaceChannel = window.APP.spaceChannel;
+  const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = tree && tree.atomMetadata;
   const hubTrailHubIds = (tree && hub && tree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
   const [unmuted, setUnmuted] = useState(false);
@@ -437,6 +439,7 @@ function JelUI(props) {
         {!skipSidePanels && (
           <JelSidePanels
             {...props}
+            spaceMetadata={spaceMetadata}
             showHubRenamePopup={showHubRenamePopup}
             setHubRenameReferenceElement={setHubRenameReferenceElement}
             showHubContextMenuPopup={showHubContextMenuPopup}

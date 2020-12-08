@@ -26,7 +26,7 @@ const VALID_PERMISSIONS = {
     "fly",
     "upload_files"
   ],
-  [ATOM_TYPES.SPACE]: []
+  [ATOM_TYPES.SPACE]: ["update_space_meta", "create_invite", "go_home"]
 };
 
 // Class which is used to track realtime updates to metadata for hubs and spaces.

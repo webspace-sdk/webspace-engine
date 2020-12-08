@@ -26,6 +26,7 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import ReactDOM from "react-dom";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import PopupPanel from "./popup-panel";
+import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 import HubNodeTitle from "./hub-node-title";
 
 const Wrap = styled.div`
@@ -293,6 +294,7 @@ function JelSidePanels({
   hub,
   hubCan = () => false,
   spaceCan = () => false,
+  spaceMetadata,
   memberships,
   showHubContextMenuPopup,
   setHubRenameReferenceElement,
@@ -302,11 +304,13 @@ function JelSidePanels({
   scene
 }) {
   const store = window.APP.store;
+  const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
   const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
   const [trashMenuElement, setTrashMenuElement] = useState(null);
   const [inviteReferenceElement, setInviteReferenceElement] = useState(null);
   const [inviteElement, setInviteElement] = useState(null);
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
+  const [spaceName, setSpaceName] = useState((metadata && metadata.name) || "");
   const invitePanelFieldElement = React.createRef();
 
   const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: updateTrashPopper } = usePopper(
@@ -324,6 +328,8 @@ function JelSidePanels({
       placement: "right-end"
     }
   );
+
+  useNameUpdateFromMetadata(spaceId, spaceMetadata, setSpaceName);
 
   const homeHub = homeHubForSpaceId(spaceId, memberships);
   const hubMetadata = treeManager && treeManager.sharedNav && treeManager.sharedNav.atomMetadata;
@@ -362,7 +368,7 @@ function JelSidePanels({
         </SpaceTreeSpill>
         <Nav>
           <NavHead>
-            <SpaceBanner>{space && space.name}</SpaceBanner>
+            <SpaceBanner>{spaceName}</SpaceBanner>
             {spaceCan("create_invite") && (
               <PanelItemButtonSection>
                 <Tooltip
@@ -552,6 +558,7 @@ JelSidePanels.propTypes = {
   hubCan: PropTypes.func,
   scene: PropTypes.object,
   spacePresences: PropTypes.object,
+  spaceMetadata: PropTypes.object,
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
