@@ -102,6 +102,7 @@
     "rc-tree": "^3.6.0",
     "rc-virtual-list": "^3.2.0",
     "react": "^16.13.1",
+    "react-addons-css-transition-group": "^15.6.2",
     "react-color": "^2.18.1",
     "react-dom": "^16.13.1",
     "react-emoji-render": "^0.4.6",
