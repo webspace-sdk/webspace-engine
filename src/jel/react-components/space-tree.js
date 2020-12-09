@@ -43,7 +43,7 @@ function SpaceTree({ treeManager, history, space, memberships }) {
     <div>
       <Tree
         prefixCls="space-tree"
-        treeData={[...spaceTreeData, addSpaceIconTreeItem, joinDiscordSpaceIconTreeItem]}
+        treeData={[...spaceTreeData, joinDiscordSpaceIconTreeItem, addSpaceIconTreeItem]}
         icon={icon}
         selectable={true}
         selectedKeys={spaceSelectedKeys}

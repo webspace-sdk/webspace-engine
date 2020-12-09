@@ -576,6 +576,7 @@ AFRAME.registerComponent("media-loader", {
         if (typeof this.data.mediaOptions.batch !== "undefined" && !this.data.mediaOptions.batch) {
           batch = false;
         }
+        this.el.setAttribute("floaty-object", { gravitySpeedLimit: 1.85 });
         this.el.setAttribute(
           "gltf-model-plus",
           Object.assign({}, this.data.mediaOptions, {
