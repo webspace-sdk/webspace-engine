@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import classNames from "classnames";
 import KeyTips, { KEY_TIP_TYPES } from "./key-tips";
-
 let curTipType = -1;
 
 export const IdlePanels = () => {
