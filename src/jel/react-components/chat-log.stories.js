@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import ChatLog from "./chat-log";
 
 let c = 0;
-const MAX_MESSAGES = 8;
+const MAX_MESSAGES = 10;
 
 const pushMessage = (messages, setMessages) => {
   c++;

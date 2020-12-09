@@ -4,9 +4,10 @@ import styled from "styled-components";
 import ReactCSSTransitionGroup from "react-addons-css-transition-group";
 
 const ChatLogElement = styled.div`
-  height: 250px;
   position: relative;
   overflow: hidden;
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), 80%, transparent);
+  margin-top: 40px;
 `;
 
 const ChatLogMessage = styled.div`
@@ -66,8 +67,13 @@ export default function ChatLog({ messages }) {
         const el = messageEls[i];
         measureMessage.innerHTML = el.innerHTML;
         const height = measureMessage.offsetHeight + MESSAGE_MARGIN;
+        const currentOffset = el.getAttribute("data-offset");
 
-        el.setAttribute("style", `bottom: ${offset}px;`);
+        if (currentOffset !== offset) {
+          el.setAttribute("data-offset", offset);
+          el.setAttribute("style", `bottom: ${offset}px;`);
+        }
+
         offset += height;
       }
 
