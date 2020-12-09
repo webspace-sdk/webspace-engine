@@ -179,10 +179,10 @@ const objectCommonTips = [
 
 const TIP_DATA = {
   closed: [["help", "?"]],
-  idle_panels_no_widen: [["move", "w a s d"], ["look", "H,I", "rightDrag"], ["widen", "H+S", "widen"]],
+  idle_panels_no_widen: [["move", "w a s d"], ["look", "H;I", "rightDrag"], ["widen", "H+S", "widen"]],
   idle_panels: [
     ["move", "w a s d"],
-    ["look", "H,I", "rightDrag"],
+    ["look", "H;I", "rightDrag"],
     ["run", "H"],
     ["create", "/", "createMenu"],
     ["paste", "L+v"],
@@ -211,8 +211,8 @@ const TIP_DATA = {
   pointer_exited_unmuted: [["mute", "L+m", "toggleMuteKey"], ["hide", "?"]],
   holding_interactable: [["pull", "R"], ["scale", "H+R"]],
   hover_interactable: objectCommonTips,
-  video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
-  video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R,t\\g"], ...objectCommonTips],
+  video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
+  video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   pdf: [["next", "L+S"], ["page", "q\\e"], ...objectCommonTips],
   text: [["edit", "~", "mediaTextEdit"], ...objectCommonTips.filter(t => t[0] !== "open")],
   rotate: [["rotate", "G"], ["no_snap", "H+G"]],
@@ -314,6 +314,8 @@ const itemForData = ([label, keys, flag]) => {
         els.push(<KeySmallSeparator key={key}>{key}</KeySmallSeparator>);
       } else if (key === ",") {
         els.push(<KeySeparator key={key}>{key}</KeySeparator>);
+      } else if (key === ";") {
+        els.push(<KeySeparator key={key}>or</KeySeparator>);
       } else if (key === "^") {
         els.push(<KeySeparator key={key}>-</KeySeparator>);
       } else if (key === "\\") {

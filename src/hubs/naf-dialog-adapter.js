@@ -744,7 +744,8 @@ export default class DialogAdapter {
                 this._micProducer = await this._sendTransport.produce({
                   track,
                   stopTracks: false,
-                  codecOptions: { opusStereo: false, opusDtx: true }
+                  codecOptions: { opusStereo: false, opusDtx: true },
+                  encodings: [{ maxBitrate: 40000 }]
                 });
 
                 if (supportsInsertableStreams) {
