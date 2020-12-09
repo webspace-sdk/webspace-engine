@@ -107,23 +107,31 @@ export class KeyboardDevice {
         this.seenCodes.add(code);
 
         if (event.ctrlKey) {
-          this.keys.set("control", isDown);
+          this.keys.set("control", true);
           this.seenKeys.add("control");
+        } else {
+          this.keys.set("control", false);
         }
 
         if (event.altKey) {
-          this.keys.set("alt", isDown);
+          this.keys.set("alt", true);
           this.seenKeys.add("alt");
+        } else {
+          this.keys.set("alt", false);
         }
 
         if (event.metaKey) {
-          this.keys.set("meta", isDown);
+          this.keys.set("meta", true);
           this.seenKeys.add("meta");
+        } else {
+          this.keys.set("meta", false);
         }
 
         if (event.shiftKey) {
-          this.keys.set("shift", isDown);
+          this.keys.set("shift", true);
           this.seenKeys.add("shift");
+        } else {
+          this.keys.set("shift", false);
         }
       }
     }
