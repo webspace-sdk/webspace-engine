@@ -12,6 +12,10 @@ const togglePenWithRMB = "/vars/mouse-and-keyboard/drop_pen_with_RMB";
 const togglePenWithEsc = "/vars/mouse-and-keyboard/drop_pen_with_esc";
 const togglePenWithHud = "/vars/mouse-and-keyboard/drop_pen_with_hud";
 const togglePen = "/vars/mouse-and-keyboard/togglePen";
+const grabViaKeyboard = "/vars/mouse-and-keyboard/grabViaKeyboard";
+const grabViaMouse = "/vars/mouse-and-keyboard/grabViaMouse";
+const dropViaKeyboard = "/vars/mouse-and-keyboard/dropViaKeyboard";
+const dropViaMouse = "/vars/mouse-and-keyboard/dropViaMouse";
 const startInspectingViaKeyboard = "/vars/mouse-and-keyboard/startInspectingViaKeyboard";
 const stopInspectingViaKeyboardEscape = "/vars/mouse-and-keyboard/stopInspectingViaKeyboardEscape";
 const stopInspectingViaKeyboardFocusRelease = "/vars/mouse-and-keyboard/stopInspectingViaKeyboardFocusRelease";
@@ -448,10 +452,22 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.copy
     },
     {
-      src: { value: paths.device.mouse.buttonLeft },
-      dest: { value: paths.actions.cursor.right.drop },
+      src: { value: paths.device.mouse.buttonRight },
+      dest: { value: dropViaMouse },
       xform: xforms.falling,
       priority: 2
+    },
+    {
+      src: { value: paths.device.keyboard.key("tab") },
+      dest: { value: dropViaKeyboard },
+      xform: xforms.falling,
+      priority: 2
+    },
+    {
+      src: [dropViaMouse, dropViaKeyboard],
+      dest: { value: paths.actions.cursor.right.drop },
+      xform: xforms.any,
+      priority: 201
     }
   ],
   [sets.rightCursorHoldingUI]: [
@@ -470,10 +486,22 @@ export const keyboardMouseUserBindings = addSetsToBindings({
   ],
   [sets.rightCursorHoveringOnInteractable]: [
     {
-      src: { value: paths.device.mouse.buttonLeft },
-      dest: { value: paths.actions.cursor.right.grab },
+      src: { value: paths.device.mouse.buttonRight },
+      dest: { value: grabViaMouse },
       xform: xforms.rising,
-      priority: 1
+      priority: 2
+    },
+    {
+      src: { value: paths.device.keyboard.key("tab") },
+      dest: { value: grabViaKeyboard },
+      xform: xforms.rising,
+      priority: 2
+    },
+    {
+      src: [grabViaMouse, grabViaKeyboard],
+      dest: { value: paths.actions.cursor.right.grab },
+      xform: xforms.any,
+      priority: 201
     },
     {
       src: { value: paths.device.keyboard.key("f") },

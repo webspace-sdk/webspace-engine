@@ -66,6 +66,7 @@ export const SCHEMA = {
         avatarEdit: { type: "boolean" },
         showInvite: { type: "boolean" },
         rightDrag: { type: "boolean" },
+        narrowMouseLook: { type: "boolean" },
         rotated: { type: "boolean" },
         scaled: { type: "boolean" },
         mediaTextEdit: { type: "boolean" },

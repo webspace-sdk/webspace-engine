@@ -10,6 +10,7 @@ const aKeyPath = paths.device.keyboard.key("a");
 const sKeyPath = paths.device.keyboard.key("s");
 const dKeyPath = paths.device.keyboard.key("d");
 const shiftKeyPath = paths.device.keyboard.key("shift");
+const tabKeyPath = paths.device.keyboard.key("tab");
 const upKeyPath = paths.device.keyboard.key("arrowup");
 const downKeyPath = paths.device.keyboard.key("arrowdown");
 const leftKeyPath = paths.device.keyboard.key("arrowleft");
@@ -29,8 +30,9 @@ const calculateCursorPose = function(camera, coords, origin, direction, cursorPo
 
 export class AppAwareMouseDevice {
   constructor() {
-    this.prevButtonLeft = false;
-    this.clickedOnAnything = false;
+    this.prevButtonRight = false;
+    this.prevGrabKey = false;
+    this.grabGesturedAnything = false;
     this.lockClickCoordDelta = [0, 0];
     this.transformStartCoordDelta = [0, 0];
     this.prevCoords = [Infinity, Infinity];
@@ -67,9 +69,10 @@ export class AppAwareMouseDevice {
     const buttonLeft = frame.get(paths.device.mouse.buttonLeft);
     const buttonRight = frame.get(paths.device.mouse.buttonRight);
     const mouseLookKey = frame.get(shiftKeyPath);
+    const grabKey = frame.get(tabKeyPath);
     const userinput = AFRAME.scenes[0].systems.userinput;
 
-    if (buttonLeft && !this.prevButtonLeft && this.cursorController) {
+    if (((buttonRight && !this.prevButtonRight) || (grabKey && !this.prevGrabKey)) && this.cursorController) {
       const rawIntersections = [];
       this.cursorController.raycaster.intersectObjects(
         AFRAME.scenes[0].systems["hubs-systems"].cursorTargettingSystem.targets,
@@ -86,7 +89,7 @@ export class AppAwareMouseDevice {
       const template = remoteHoverTarget && getNetworkedTemplate(remoteHoverTarget);
       const isStaticControlledMedia = template && template === "#static-controlled-media";
       const isStaticMedia = template && template === "#static-media";
-      this.clickedOnAnything =
+      this.grabGesturedAnything =
         (isInteractable &&
           (remoteHoverTarget && canMove(remoteHoverTarget)) &&
           !isStaticControlledMedia &&
@@ -95,10 +98,11 @@ export class AppAwareMouseDevice {
         userinput.activeSets.includes(sets.rightCursorHoldingInteractable) ||
         userinput.activeSets.includes(sets.rightCursorHoldingCamera);
     }
-    this.prevButtonLeft = buttonLeft;
+    this.prevButtonRight = buttonRight;
+    this.prevGrabKey = grabKey;
 
-    if (!buttonLeft) {
-      this.clickedOnAnything = false;
+    if (!buttonRight && !grabKey) {
+      this.grabGesturedAnything = false;
     }
 
     const lockedMode = !!document.pointerLockElement;
@@ -123,7 +127,7 @@ export class AppAwareMouseDevice {
         userinput.get(leftKeyPath) ||
         userinput.get(rightKeyPath);
 
-      if (!this.clickedOnAnything && (buttonLeft || isMoving)) {
+      if (!this.grabGesturedAnything && (buttonRight || isMoving)) {
         this.lockClickCoordDelta[0] = 0;
         this.lockClickCoordDelta[1] = 0;
       }
@@ -133,7 +137,7 @@ export class AppAwareMouseDevice {
     const movementXScreen = movementXY[0] / 1000.0;
     const movementYScreen = -movementXY[1] / 1000.0;
 
-    if (lockedMode && (this.clickedOnAnything || isTransforming)) {
+    if (lockedMode && (this.grabGesturedAnything || isTransforming)) {
       this.lockClickCoordDelta[0] += movementXScreen;
       this.lockClickCoordDelta[1] += movementYScreen;
 
@@ -154,12 +158,12 @@ export class AppAwareMouseDevice {
       this.transformStartCoordDelta[1] = 0;
     }
 
-    // Move camera out of lock mode on RMB, or, in lock mode, when not holding something or
+    // Move camera out of lock mode on LMB, or, in lock mode, when not holding something or
     // when holding something after panning past a certain FOV angle.
     const shouldMoveCamera =
-      buttonRight ||
+      buttonLeft ||
       (mouseLookKey && !isTransforming) ||
-      (lockedMode && !this.clickedOnAnything && !isTransforming) ||
+      (lockedMode && !this.grabGesturedAnything && !isTransforming) ||
       (lockedMode &&
         (Math.abs(this.lockClickCoordDelta[0]) > 0.2 || Math.abs(this.lockClickCoordDelta[1]) > 0.2) &&
         !isTransforming) ||
@@ -180,7 +184,7 @@ export class AppAwareMouseDevice {
           );
         } else {
           if (buttonRight || mouseLookKey) {
-            window.APP.store.handleActivityFlag("rightDrag"); // Unfortunate naming :(
+            window.APP.store.handleActivityFlag("narrowMouseLook");
           }
           frame.setVector2(paths.actions.cameraDelta, dCoordX * -Math.PI, dCoordY * ((2 * Math.PI) / 3));
         }

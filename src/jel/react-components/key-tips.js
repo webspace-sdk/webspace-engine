@@ -167,7 +167,7 @@ const KeySmallSeparator = styled.div`
 `;
 
 const objectCommonTips = [
-  ["move", "G"],
+  ["move", "T;I"],
   ["open", "o"],
   ["rotate", "_r"],
   ["scale", "_v"],
@@ -179,14 +179,13 @@ const objectCommonTips = [
 
 const TIP_DATA = {
   closed: [["help", "?"]],
-  idle_panels_no_widen: [["move", "w a s d"], ["look", "H;I", "rightDrag"], ["widen", "H+S", "widen"]],
   idle_panels: [
     ["move", "w a s d"],
-    ["look", "H;I", "rightDrag"],
+    ["look", "H;G", "narrowMouseLook"],
     ["run", "H"],
     ["create", "/", "createMenu"],
     ["paste", "L+v"],
-    ["widen", "H+S"],
+    ["widen", "H+S", "widen"],
     ["hide", "?"]
   ],
   idle_full_muted: [
@@ -217,7 +216,7 @@ const TIP_DATA = {
   text: [["edit", "~", "mediaTextEdit"], ...objectCommonTips.filter(t => t[0] !== "open")],
   rotate: [["rotate", "G"], ["no_snap", "H+G"]],
   scale: [["scale", "G"]],
-  focus: [["orbit", "G"], ["zoom", "R"]],
+  focus: [["zoom", "R"]],
   text_editor: [
     ["close", "~", "mediaTextEditClose"],
     ["bold", "L+b"],
@@ -281,13 +280,13 @@ const itemForData = ([label, keys, flag]) => {
       } else if (key === "G") {
         els.push(
           <NamedKey key={key}>
-            <FormattedMessage id="key-tips.drag" />
+            <FormattedMessage id="key-tips.leftDrag" />
           </NamedKey>
         );
       } else if (key === "I") {
         els.push(
           <NamedKey key={key}>
-            <FormattedMessage id="key-tips.rightdrag" />
+            <FormattedMessage id="key-tips.rightDrag" />
           </NamedKey>
         );
       } else if (key === "Z") {

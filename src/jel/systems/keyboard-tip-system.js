@@ -32,9 +32,7 @@ export class KeyboardTipSystem {
             ? this.scene.is("unmuted")
               ? "idle_full_unmuted"
               : "idle_full_muted"
-            : this.store.state.activity.widen
-              ? "idle_panels"
-              : "idle_panels_no_widen";
+            : "idle_panels";
 
           if (this.transformSystem.transforming) {
             showTips = this.scaleSystem.isScaling ? "scale" : "rotate";

@@ -15,17 +15,21 @@ export class KeyboardDevice {
       document.addEventListener(x, e => {
         if (!e.key) return;
         let pushEvent = true;
+        const canvas = AFRAME.scenes[0].canvas;
+
+        if (document.activeElement === canvas && e.key === "Tab") {
+          // Tab is used for object movement
+          e.preventDefault();
+        }
 
         // Blur focused elements when a popup menu is open so it is closed
         if (e.type === "keydown" && e.key === "Escape" && isInEditableField()) {
-          AFRAME.scenes[0].canvas.focus();
+          canvas.focus();
           e.preventDefault();
         }
 
         // Non-repeated shift-space is cursor lock hotkey.
         if (e.type === "keydown" && e.key === " " && e.shiftKey && !e.repeat && !isInEditableField()) {
-          const canvas = AFRAME.scenes[0].canvas;
-
           if (canvas.requestPointerLock) {
             if (document.pointerLockElement === canvas) {
               document.exitPointerLock();
@@ -43,7 +47,7 @@ export class KeyboardDevice {
           // Without this, quill grabs focus when others types
           document.activeElement.parentElement.__quill.blur();
 
-          AFRAME.scenes[0].canvas.focus();
+          canvas.focus();
           pushEvent = false; // Prevent primary action this tick if cursor still over 3d text page
           e.preventDefault();
         }
@@ -55,7 +59,7 @@ export class KeyboardDevice {
           document.activeElement &&
           document.activeElement.classList.contains("create-select-selection-search-input")
         ) {
-          AFRAME.scenes[0].canvas.focus();
+          canvas.focus();
           pushEvent = false; // Prevent primary action this tick if cursor still over 3d text page
           e.preventDefault();
         }
