@@ -745,7 +745,7 @@ export default class DialogAdapter {
                   track,
                   stopTracks: false,
                   codecOptions: { opusStereo: false, opusDtx: true },
-                  encodings: [{ maxBitrate: 40000 }]
+                  encodings: [{ maxBitrate: 64000 }]
                 });
 
                 if (supportsInsertableStreams) {
