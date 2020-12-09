@@ -4,10 +4,10 @@ import styled from "styled-components";
 import ReactCSSTransitionGroup from "react-addons-css-transition-group";
 
 const ChatLogElement = styled.div`
+  height: 250px;
   position: relative;
   overflow: hidden;
   mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), 80%, transparent);
-  margin-top: 40px;
 `;
 
 const ChatLogMessage = styled.div`
