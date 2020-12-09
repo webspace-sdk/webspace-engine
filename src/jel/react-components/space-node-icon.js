@@ -83,7 +83,7 @@ export function AddSpaceIcon() {
 
   return (
     <BigTooltip content={tip} placement="left">
-      <SpaceNodeIconLink className="spaceNodeIcon" href="/new" onClick={e => e.stopPropagation()}>
+      <SpaceNodeIconLink className="spaceNodeIcon" href="/new" title="" onClick={e => e.stopPropagation()}>
         <SpaceNodeIconNonImage>+</SpaceNodeIconNonImage>
       </SpaceNodeIconLink>
     </BigTooltip>
@@ -98,6 +98,7 @@ export function JoinDiscordIcon() {
       <SpaceNodeIconLink
         className="spaceNodeIcon"
         href="https://discord.gg/RMBamMXBkA"
+        title=""
         target="_blank"
         onClick={e => e.stopPropagation()}
       >
