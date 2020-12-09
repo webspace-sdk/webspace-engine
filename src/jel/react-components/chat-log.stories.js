@@ -2,10 +2,19 @@ import React, { useState, useEffect } from "react";
 import ChatLog from "./chat-log";
 
 let c = 0;
+const MAX_MESSAGES = 8;
 
 const pushMessage = (messages, setMessages) => {
   c++;
-  const newMessages = [...messages, { body: `Next Message ${c}`, posted_at: performance.now() }];
+  const newMessage =
+    Math.random() < 0.3 ? `Next Message ${c}` : Math.random() < 0.3 ? `Next\nMessage ${c}` : `Next\n\nMessage ${c}`;
+
+  let newMessages = [...messages, { body: newMessage, posted_at: performance.now() }];
+
+  if (newMessages.length >= MAX_MESSAGES) {
+    newMessages = newMessages.slice(newMessages.length - MAX_MESSAGES);
+  }
+
   setMessages(newMessages);
 };
 

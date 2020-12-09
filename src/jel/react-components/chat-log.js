@@ -1,17 +1,23 @@
-import React from "react";
+import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import ReactCSSTransitionGroup from "react-addons-css-transition-group";
 
 const ChatLogElement = styled.div`
-  background-color: red;
-  height: 200px;
+  height: 250px;
   position: relative;
   overflow: hidden;
 `;
 
 const ChatLogMessage = styled.div`
-  background-color: green;
+  color: var(--canvas-overlay-text-color);
+  font-size: var(--canvas-overlay-text-size);
+  text-shadow: 0px 0px 4px var(--menu-shadow-color);
+  padding: 6px 10px;
+  white-space: pre;
+
+  background-color: var(--canvas-overlay-item-hover-background-color);
+
   position: absolute;
   left: 0;
   bottom: 0;
@@ -29,15 +35,11 @@ const ChatLogMessage = styled.div`
   }
 `;
 
-const MESSAGE_HEIGHT = 32;
+const MESSAGE_MARGIN = 8;
 
-const messageToEl = (message, idx) => {
+const messageToEl = message => {
   return (
-    <ChatLogMessage
-      className="chat-log-message"
-      style={{ bottom: `${idx * MESSAGE_HEIGHT}px` }}
-      key={message.posted_at}
-    >
+    <ChatLogMessage className="chat-log-message" key={message.posted_at}>
       {message.body}
     </ChatLogMessage>
   );
@@ -49,14 +51,38 @@ export default function ChatLog({ messages }) {
   const messageComponents = [];
 
   for (let i = messages.length - 1; i >= 0; i--) {
-    messageComponents.push(messageToEl(messages[i], messages.length - i));
+    messageComponents.push(messageToEl(messages[i]));
   }
+
+  useEffect(
+    () => {
+      if (!ref.current) return;
+      const messageEls = ref.current.querySelectorAll(".chat-log-message");
+      const measureMessage = ref.current.querySelector("#chat-message-measure");
+
+      let offset = 0;
+
+      for (let i = 0; i < messageEls.length; i++) {
+        const el = messageEls[i];
+        measureMessage.innerHTML = el.innerHTML;
+        const height = measureMessage.offsetHeight + MESSAGE_MARGIN;
+
+        el.setAttribute("style", `bottom: ${offset}px;`);
+        offset += height;
+      }
+
+      return () => {};
+    },
+    [ref]
+  );
 
   return (
     <ChatLogElement ref={ref}>
       <ReactCSSTransitionGroup transitionName="appear" transitionEnterTimeout={1} transitionLeaveTimeout={1}>
         {messageComponents}
       </ReactCSSTransitionGroup>
+
+      <ChatLogMessage id="chat-message-measure" style={{ visibility: "hidden" }} />
     </ChatLogElement>
   );
 }
