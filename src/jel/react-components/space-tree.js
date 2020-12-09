@@ -1,13 +1,14 @@
 import PropTypes from "prop-types";
 import React, { useState, useCallback, useMemo } from "react";
 import Tree from "rc-tree";
-import SpaceNodeIcon, { AddSpaceIcon } from "./space-node-icon";
+import SpaceNodeIcon, { AddSpaceIcon, JoinDiscordIcon } from "./space-node-icon";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { useTreeDropHandler, useTreeData, useScrollToSelectedTreeNode } from "../utils/tree-utils";
 import "../../assets/jel/stylesheets/space-tree.scss";
 
 const addSpaceIconTreeItem = { key: "add", children: null, isLeaf: true };
+const joinDiscordSpaceIconTreeItem = { key: "discord", children: null, isLeaf: true };
 
 function SpaceTree({ treeManager, history, space, memberships }) {
   const [spaceTreeData, setSpaceTreeData] = useState([]);
@@ -25,6 +26,8 @@ function SpaceTree({ treeManager, history, space, memberships }) {
     item => {
       if (item.eventKey === "add") {
         return <AddSpaceIcon />;
+      } else if (item.eventKey === "discord") {
+        return <JoinDiscordIcon />;
       } else {
         return <SpaceNodeIcon spaceId={item.atomId} spaceMetadata={spaceMetadata} />;
       }
@@ -40,7 +43,7 @@ function SpaceTree({ treeManager, history, space, memberships }) {
     <div>
       <Tree
         prefixCls="space-tree"
-        treeData={[...spaceTreeData, addSpaceIconTreeItem]}
+        treeData={[...spaceTreeData, addSpaceIconTreeItem, joinDiscordSpaceIconTreeItem]}
         icon={icon}
         selectable={true}
         selectedKeys={spaceSelectedKeys}

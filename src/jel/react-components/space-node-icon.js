@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 import BigTooltip from "./big-tooltip";
 import { getMessages } from "../../hubs/utils/i18n";
+import discordSpaceIcon from "../../assets/jel/images/icons/discord-space-icon.svgi";
 
 const SpaceNodeIconElement = styled.div`
   width: 64px;
@@ -47,6 +48,12 @@ const SpaceNodeIconNonImage = styled.div`
   color: var(--secondary-panel-item-text-color);
 `;
 
+const SpaceNodeIconImage = styled.div`
+  color: var(--secondary-panel-item-text-color);
+  width: 42px;
+  height: 42px;
+`;
+
 export default function SpaceNodeIcon({ spaceId, spaceMetadata }) {
   const [name, setName] = useState("");
   const icon = null; // TODO
@@ -78,6 +85,23 @@ export function AddSpaceIcon() {
     <BigTooltip content={tip} placement="left">
       <SpaceNodeIconLink className="spaceNodeIcon" href="/new" onClick={e => e.stopPropagation()}>
         <SpaceNodeIconNonImage>+</SpaceNodeIconNonImage>
+      </SpaceNodeIconLink>
+    </BigTooltip>
+  );
+}
+
+export function JoinDiscordIcon() {
+  const tip = getMessages()["space-tree.discord"];
+
+  return (
+    <BigTooltip content={tip} placement="left">
+      <SpaceNodeIconLink
+        className="spaceNodeIcon"
+        href="https://discord.gg/RMBamMXBkA"
+        target="_blank"
+        onClick={e => e.stopPropagation()}
+      >
+        <SpaceNodeIconImage dangerouslySetInnerHTML={{ __html: discordSpaceIcon }} />
       </SpaceNodeIconLink>
     </BigTooltip>
   );
