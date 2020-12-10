@@ -4,6 +4,8 @@ import { FormattedMessage } from "react-intl";
 import styled from "styled-components";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 
+const CHAT_HIDE_TIMEOUT = 15000;
+
 const ChatLogElement = styled.div`
   height: 250px;
   position: absolute;
@@ -128,7 +130,7 @@ export default function ChatLog({ scene, entries }) {
 
         chatLogHideTimeout = setTimeout(() => {
           el.classList.add("hidden");
-        }, 5000);
+        }, CHAT_HIDE_TIMEOUT);
       };
 
       resetHide();
