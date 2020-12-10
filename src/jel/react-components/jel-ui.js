@@ -11,6 +11,7 @@ import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 import JelSidePanels from "./jel-side-panels";
+import ChatLog from "./chat-log";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shadow.svgi";
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
 import RenamePopup from "./rename-popup";
@@ -242,6 +243,7 @@ const BottomLeftPanels = styled.div`
   position: absolute;
   bottom: 14px;
   left: 0;
+  width: 50%;
 `;
 
 const DeviceStatuses = styled.div`
@@ -453,6 +455,7 @@ function JelUI(props) {
             <PausedInfoLabel>
               <FormattedMessage id="paused.info" />
             </PausedInfoLabel>
+            <ChatLog entries={[{ body: "Hi", type: "message", name: "Foo" }]} />
           </BottomLeftPanels>
         </Wrap>
         {!skipSidePanels && (

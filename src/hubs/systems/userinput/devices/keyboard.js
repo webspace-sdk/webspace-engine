@@ -15,6 +15,8 @@ export class KeyboardDevice {
       document.addEventListener(x, e => {
         if (!e.key) return;
         let pushEvent = true;
+        if (!AFRAME.scenes[0]) return;
+
         const canvas = AFRAME.scenes[0].canvas;
 
         if (document.activeElement === canvas && e.key === "Tab") {

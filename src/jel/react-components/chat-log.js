@@ -9,7 +9,13 @@ const ChatLogElement = styled.div`
   position: relative;
   overflow: hidden;
   mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), 80%, transparent);
-  width: 33%;
+  width: 50%;
+  margin: 11px 0 0 8px;
+  padding: 6px 10px;
+
+  body.paused & {
+    display: none;
+  }
 `;
 
 const ChatLogLine = styled.div`
@@ -22,7 +28,7 @@ const ChatLogLine = styled.div`
   border-radius: 4px;
   line-height: calc(var(--canvas-overlay-text-size) + 2px);
 
-  background-color: var(--canvas-overlay-item-hover-background-color);
+  background-color: var(--canvas-overlay-neutral-item-background-color);
   max-width: 100%;
 
   position: absolute;
@@ -42,7 +48,7 @@ const ChatLogLine = styled.div`
   }
 `;
 
-const MESSAGE_MARGIN = 4;
+const MESSAGE_MARGIN = 6;
 
 const entryToEl = ({ body, type, posted_at, name }) => {
   if (type === "message") {
