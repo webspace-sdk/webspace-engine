@@ -2,34 +2,48 @@ import React, { useState, useEffect } from "react";
 import ChatLog from "./chat-log";
 
 let c = 0;
-const MAX_MESSAGES = 10;
+const MAX_ENTRIES = 10;
 
-const pushMessage = (messages, setMessages) => {
+const pushMessage = (entries, setEntries) => {
   c++;
-  const newMessage =
-    Math.random() < 0.3 ? `Next Message ${c}` : Math.random() < 0.3 ? `Next\nMessage ${c}` : `Next\n\nMessage ${c}`;
+  let entry;
 
-  let newMessages = [...messages, { body: newMessage, posted_at: performance.now() }];
+  if (Math.random() < 0.1) {
+    entry = { name: "Another Person With Long Name", type: "join", posted_at: performance.now() };
+  } else if (Math.random() < 0.1) {
+    entry = { name: "Some Person", type: "leave", posted_at: performance.now() };
+  } else {
+    const newMessage =
+      Math.random() < 0.3
+        ? `Next Message ${c}`
+        : Math.random() < 0.3
+          ? `Next Message this is very long very very on the second part. Testing wrap and overflow ${c}`
+          : `Multi\nLine\nMessage Hello! ${c}`;
 
-  if (newMessages.length >= MAX_MESSAGES) {
-    newMessages = newMessages.slice(newMessages.length - MAX_MESSAGES);
+    entry = { name: "New Member", body: newMessage, type: "message", posted_at: performance.now() };
   }
 
-  setMessages(newMessages);
+  let newEntries = [...entries, entry];
+
+  if (newEntries.length >= MAX_ENTRIES) {
+    newEntries = newEntries.slice(newEntries.length - MAX_ENTRIES);
+  }
+
+  setEntries(newEntries);
 };
 
 export const ChatLogAdd = () => {
-  const [messages, setMessages] = useState([{ body: "First Message", posted_at: performance.now() }]);
+  const [entries, setEntries] = useState([]);
 
   useEffect(() => {
-    const interval = setInterval(() => pushMessage(messages, setMessages), Math.floor(Math.random() * 1500));
+    const interval = setInterval(() => pushMessage(entries, setEntries), Math.floor(Math.random() * 1500));
     return () => clearInterval(interval);
   });
 
   return (
     <div
       style={{
-        background: "linear-gradient(177deg, rgba(2,0,85,1) 0%, rgba(16,16,170,1) 10%, rgba(0,212,255,1) 100%)",
+        background: "linear-gradient(177deg, rgba(2,59,85,1) 0%, rgba(16,160,170,1) 10%, rgba(0,212,255,1) 100%)",
         display: "flex",
         width: "800px",
         height: "600px",
@@ -37,10 +51,10 @@ export const ChatLogAdd = () => {
         flexDirection: "column"
       }}
     >
-      <ChatLog messages={messages} />
+      <ChatLog entries={entries} />
       <button
         style={{ position: "fixed", left: "48px", top: "400px", width: "150px" }}
-        onClick={() => pushMessage(messages, setMessages)}
+        onClick={() => pushMessage(entries, setEntries)}
       >
         Add
       </button>

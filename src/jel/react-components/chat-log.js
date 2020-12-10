@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import PropTypes from "prop-types";
+import { FormattedMessage } from "react-intl";
 import styled from "styled-components";
 import ReactCSSTransitionGroup from "react-addons-css-transition-group";
 
@@ -8,16 +9,21 @@ const ChatLogElement = styled.div`
   position: relative;
   overflow: hidden;
   mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), 80%, transparent);
+  width: 33%;
 `;
 
-const ChatLogMessage = styled.div`
+const ChatLogLine = styled.div`
   color: var(--canvas-overlay-text-color);
   font-size: var(--canvas-overlay-text-size);
   text-shadow: 0px 0px 4px var(--menu-shadow-color);
-  padding: 6px 10px;
-  white-space: pre;
+  padding: 8px 12px;
+  white-space: pre-wrap;
+  overflow-wrap: normal;
+  border-radius: 4px;
+  line-height: calc(var(--canvas-overlay-text-size) + 2px);
 
   background-color: var(--canvas-overlay-item-hover-background-color);
+  max-width: 100%;
 
   position: absolute;
   left: 0;
@@ -36,37 +42,45 @@ const ChatLogMessage = styled.div`
   }
 `;
 
-const MESSAGE_MARGIN = 8;
+const MESSAGE_MARGIN = 4;
 
-const messageToEl = message => {
-  return (
-    <ChatLogMessage className="chat-log-message" key={message.posted_at}>
-      {message.body}
-    </ChatLogMessage>
-  );
+const entryToEl = ({ body, type, posted_at, name }) => {
+  if (type === "message") {
+    return (
+      <ChatLogLine className="chat-log-entry" key={posted_at}>
+        <b>{name}</b>:&nbsp;{body}
+      </ChatLogLine>
+    );
+  } else if (type === "join" || type === "leave") {
+    return (
+      <ChatLogLine className="chat-log-entry" key={posted_at}>
+        <b>{name}</b>&nbsp;<FormattedMessage id={`chat-log.${type}`} />
+      </ChatLogLine>
+    );
+  }
 };
 
-export default function ChatLog({ messages }) {
+export default function ChatLog({ entries }) {
   const ref = React.createRef();
 
-  const messageComponents = [];
+  const entryComponents = [];
 
-  for (let i = messages.length - 1; i >= 0; i--) {
-    messageComponents.push(messageToEl(messages[i]));
+  for (let i = entries.length - 1; i >= 0; i--) {
+    entryComponents.push(entryToEl(entries[i]));
   }
 
   useEffect(
     () => {
       if (!ref.current) return;
-      const messageEls = ref.current.querySelectorAll(".chat-log-message");
-      const measureMessage = ref.current.querySelector("#chat-message-measure");
+      const entryEls = ref.current.querySelectorAll(".chat-log-entry");
+      const measureEntry = ref.current.querySelector("#chat-message-measure");
 
       let offset = 0;
 
-      for (let i = 0; i < messageEls.length; i++) {
-        const el = messageEls[i];
-        measureMessage.innerHTML = el.innerHTML;
-        const height = measureMessage.offsetHeight + MESSAGE_MARGIN;
+      for (let i = 0; i < entryEls.length; i++) {
+        const el = entryEls[i];
+        measureEntry.innerHTML = el.innerHTML;
+        const height = measureEntry.offsetHeight + MESSAGE_MARGIN;
         const currentOffset = el.getAttribute("data-offset");
 
         if (currentOffset !== offset) {
@@ -85,14 +99,14 @@ export default function ChatLog({ messages }) {
   return (
     <ChatLogElement ref={ref}>
       <ReactCSSTransitionGroup transitionName="appear" transitionEnterTimeout={1} transitionLeaveTimeout={1}>
-        {messageComponents}
+        {entryComponents}
       </ReactCSSTransitionGroup>
 
-      <ChatLogMessage id="chat-message-measure" style={{ visibility: "hidden" }} />
+      <ChatLogLine id="chat-message-measure" style={{ visibility: "hidden" }} />
     </ChatLogElement>
   );
 }
 
 ChatLog.propTypes = {
-  messages: PropTypes.array
+  entries: PropTypes.array
 };

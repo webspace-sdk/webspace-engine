@@ -175,5 +175,7 @@
   "unavailable.connect_error": "Unable to connect.\nCheck your Internet connection.",
   "unavailable.full": "Unable to join, world is full.",
   "install.desktop": "Install App",
-  "paused.info": "Jel is Paused. Focus to resume."
+  "paused.info": "Jel is Paused. Focus to resume.",
+  "chat-log.join": "joined this World.",
+  "chat-log.leave": "left this World."
 }
