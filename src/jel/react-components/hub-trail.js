@@ -19,7 +19,7 @@ const HubTrailElement = styled.div`
   display: flex;
   align-items: center;
   position: relative;
-  margin: 11px 0 0 8px;
+  margin: 14px 0 0 8px;
   user-select: none;
   width: 50%;
 `;

@@ -111,7 +111,7 @@ const CenterPopupRef = styled.div`
 const HubCornerButtonElement = styled.button`
   color: var(--canvas-overlay-text-color);
   width: content-width;
-  margin: 11px 12px 0 0;
+  margin: 14px 12px 0 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
