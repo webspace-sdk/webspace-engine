@@ -20,8 +20,9 @@ export class KeyboardDevice {
         const scene = AFRAME.scenes[0];
         const canvas = scene.canvas;
         const store = window.APP.store;
+        const isGameFocused = document.activeElement === canvas || document.activeElement === document.body;
 
-        if (document.activeElement === canvas && e.key === "Tab") {
+        if (isGameFocused && e.key === "Tab") {
           // Tab is used for object movement
           e.preventDefault();
         }
@@ -104,7 +105,7 @@ export class KeyboardDevice {
               e.key === "8" ||
               e.key === "9" ||
               e.key === "0")) ||
-          (e.key === " " && document.activeElement === document.body) // Disable spacebar scrolling in main window
+          (e.key === " " && isGameFocused) // Disable spacebar scrolling in main window
         ) {
           e.preventDefault();
         }
