@@ -1,6 +1,5 @@
 import TreeManager from "../../jel/utils/tree-manager";
 import { getHubIdFromHistory, getSpaceIdFromHistory, setupPeerConnectionConfig } from "../../jel/utils/jel-url-utils";
-import { createInWorldLogMessage } from "../react-components/chat-message";
 import nextTick from "./next-tick";
 import { authorizeOrSanitizeMessage } from "./permissions-utils";
 import { isSetEqual } from "../../jel/utils/set-utils";
@@ -8,6 +7,7 @@ import { homeHubForSpaceId } from "../../jel/utils/membership-utils";
 import { clearResolveUrlCache } from "./media-utils";
 import { addNewHubToTree } from "../../jel/utils/tree-utils";
 import { getMessages } from "./i18n";
+import { SOUND_CHAT_MESSAGE } from "../systems/sound-effects-system";
 import qsTruthy from "./qs_truthy";
 import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
 import HubStore from "../storage/hub-store";
@@ -241,7 +241,8 @@ const initSpacePresence = (presence, socket, remountUI, remountJelUI) => {
             scene.emit("chat_log_entry", {
               type: "display_name_changed",
               oldName: currentMeta.profile.displayName,
-              name: meta.profile.displayName
+              name: meta.profile.displayName,
+              posted_at: performance.now()
             });
           }
         } else if (info.metas.length === 1 && isCurrentHub) {
@@ -634,15 +635,7 @@ const setupSpaceChannelMessageHandlers = spacePhxChannel => {
   });
 };
 
-const setupHubChannelMessageHandlers = (
-  hubPhxChannel,
-  hubStore,
-  entryManager,
-  addToPresenceLog,
-  history,
-  remountUI,
-  remountJelUI
-) => {
+const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, history, remountUI, remountJelUI) => {
   const scene = document.querySelector("a-scene");
   const { hubChannel, spaceChannel } = window.APP;
 
@@ -660,28 +653,22 @@ const setupHubChannelMessageHandlers = (
     handleIncomingNAF(data);
   });
 
-  hubPhxChannel.on("message", ({ session_id, type, body, from }) => {
+  hubPhxChannel.on("message", ({ session_id, type, body }) => {
     const getAuthor = () => {
       const userInfo = spaceChannel.presence.state[session_id];
-      if (from) {
-        return from;
-      } else if (userInfo) {
+      if (userInfo) {
         return userInfo.metas[0].profile.displayName;
       } else {
-        return "Mystery user";
+        return "New Member";
       }
     };
 
     const name = getAuthor();
-    const maySpawn = scene.is("entered");
+    const entry = { name, type, body, posted_at: performance.now() };
 
-    const incomingMessage = { name, type, body, maySpawn, sessionId: session_id };
+    scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
 
-    if (scene.is("vr-mode")) {
-      createInWorldLogMessage(incomingMessage);
-    }
-
-    addToPresenceLog(incomingMessage);
+    scene.emit("chat_log_entry", entry);
   });
 
   // Avoid updating the history frequently, as users type new hub names
@@ -789,7 +776,7 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
   return joinSpaceChannel(spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI);
 }
 
-export async function joinHub(socket, history, entryManager, remountUI, remountJelUI, addToPresenceLog) {
+export async function joinHub(socket, history, entryManager, remountUI, remountJelUI) {
   const { hubChannel, hubMetadata } = window.APP;
 
   if (hubChannel.channel) {
@@ -803,15 +790,7 @@ export async function joinHub(socket, history, entryManager, remountUI, remountJ
   const hubPhxChannel = socket.channel(`hub:${hubId}`, createHubChannelParams());
 
   stopTrackingPosition();
-  setupHubChannelMessageHandlers(
-    hubPhxChannel,
-    hubStore,
-    entryManager,
-    addToPresenceLog,
-    history,
-    remountUI,
-    remountJelUI
-  );
+  setupHubChannelMessageHandlers(hubPhxChannel, hubStore, entryManager, history, remountUI, remountJelUI);
 
   await hubMetadata.ensureMetadataForIds([hubId], true);
   hubChannel.bind(hubPhxChannel, hubId);

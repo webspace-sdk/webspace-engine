@@ -12,13 +12,10 @@ const ChatLogElement = styled.div`
   overflow: hidden;
   mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), 80%, transparent);
   width: 50%;
+  min-width: 200px;
   margin: 6px 24px;
 
   body.paused & {
-    visibility: hidden;
-  }
-
-  &.hidden {
     visibility: hidden;
   }
 `;
@@ -51,16 +48,12 @@ const ChatLogLine = styled.div`
     opacity: 1;
     transform: translateY(0px) scale(1, 1);
   }
-
-  &.no-animate {
-    transition: none;
-  }
 `;
 
 const MESSAGE_MARGIN = 6;
 
 const entryToEl = ({ body, type, posted_at, name, oldName }) => {
-  if (type === "message") {
+  if (type === "chat") {
     return (
       <CSSTransition key={posted_at} classNames="appear" timeout={{ enter: 0, exit: 0 }}>
         <ChatLogLine className="chat-log-entry">
@@ -99,12 +92,7 @@ export default function ChatLog({ entries }) {
 
   useEffect(
     () => {
-      const hide = () => {
-        if (!ref.current) return;
-        ref.current.classList.add("hidden");
-      };
-
-      const relayout = animate => {
+      const relayout = () => {
         if (!ref.current) return;
         const entryEls = ref.current.querySelectorAll(".chat-log-entry");
         const measureEntry = ref.current.querySelector("#chat-message-measure");
@@ -119,35 +107,21 @@ export default function ChatLog({ entries }) {
 
           if (currentOffset !== offset) {
             el.setAttribute("data-offset", offset);
-
-            if (!animate) {
-              el.classList.add("no-animate");
-            }
-
             el.setAttribute("style", `bottom: ${offset}px;`);
-
-            if (animate) {
-              el.classList.remove("no-animate");
-            }
           }
 
           offset += height;
         }
-
-        ref.current.classList.remove("hidden");
       };
 
-      const nonAnimatedRelayout = () => relayout(false);
-      relayout(true);
+      relayout();
 
-      window.addEventListener("resize", nonAnimatedRelayout);
-      window.addEventListener("animated_resize_complete", nonAnimatedRelayout);
-      window.addEventListener("animated_resize_started", hide);
+      window.addEventListener("resize", relayout);
+      window.addEventListener("animated_resize_complete", relayout);
 
       return () => {
-        window.removeEventListener("resize", nonAnimatedRelayout);
-        window.removeEventListener("animated_resize_complete", nonAnimatedRelayout);
-        window.removeEventListener("animated_resize_started", hide);
+        window.removeEventListener("resize", relayout);
+        window.removeEventListener("animated_resize_complete", relayout);
       };
     },
     [ref]

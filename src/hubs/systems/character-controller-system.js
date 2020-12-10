@@ -246,7 +246,6 @@ export class CharacterControllerSystem {
       const wasFlying = this.fly;
       if (userinput.get(paths.actions.toggleFly)) {
         this.shouldLandWhenPossible = false;
-        this.avatarRig.messageDispatch.dispatch("/fly"); // TODO: Separate the logic about displaying the message from toggling the fly state in such a way that it is clear that this.fly will be toggled here
       }
       const didStopFlying = wasFlying && !this.fly;
       if (!this.fly && this.shouldLandWhenPossible) {

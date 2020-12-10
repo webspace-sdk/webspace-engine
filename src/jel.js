@@ -125,7 +125,6 @@ import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "./jel/utils/jel-url-utils";
 import { handleExitTo2DInterstitial, exit2DInterstitialAndEnterVR } from "./hubs/utils/vr-interstitial";
 import { getAvatarSrc } from "./hubs/utils/avatar-utils.js";
-import MessageDispatch from "./hubs/message-dispatch";
 import SceneEntryManager from "./hubs/scene-entry-manager";
 
 import "./hubs/systems/nav";
@@ -150,7 +149,6 @@ import "./hubs/systems/camera-rotator-system";
 import "./jel/systems/media-presence-system";
 import "./jel/systems/wrapped-entity-system";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
-import { SOUND_CHAT_MESSAGE } from "./hubs/systems/sound-effects-system";
 import { isInEditableField } from "./jel/utils/dom-utils";
 
 import "./hubs/gltf-component-mappings";
@@ -883,32 +881,6 @@ async function createSocket(entryManager) {
   return socket;
 }
 
-const addToPresenceLog = (() => {
-  const presenceLogEntries = [];
-
-  return entry => {
-    const scene = document.querySelector("a-scene");
-    entry.key = Date.now().toString();
-
-    presenceLogEntries.push(entry);
-    remountUI({ presenceLogEntries });
-    if (entry.type === "chat" && scene.is("loaded")) {
-      scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
-    }
-
-    // Fade out and then remove
-    setTimeout(() => {
-      entry.expired = true;
-      remountUI({ presenceLogEntries });
-
-      setTimeout(() => {
-        presenceLogEntries.splice(presenceLogEntries.indexOf(entry), 1);
-        remountUI({ presenceLogEntries });
-      }, 5000);
-    }, 20000);
-  };
-})();
-
 async function loadMemberships() {
   const accountId = store.credentialsAccountId;
   if (!accountId) return [];
@@ -948,16 +920,7 @@ async function start() {
   }
 
   const entryManager = new SceneEntryManager(spaceChannel, hubChannel, authChannel, history);
-  const messageDispatch = new MessageDispatch(
-    scene,
-    entryManager,
-    hubChannel,
-    addToPresenceLog,
-    remountUI,
-    mediaSearchStore
-  );
 
-  document.getElementById("avatar-rig").messageDispatch = messageDispatch;
   hideCanvas();
 
   setupPerformConditionalSignin(entryManager);
@@ -1082,7 +1045,6 @@ async function start() {
   authChannel.setSocket(socket);
 
   remountUI({
-    onSendMessage: messageDispatch.dispatch,
     onLoaded: () => store.executeOnLoadActions(scene),
     onMediaSearchResultEntrySelected: (entry, selectAction) =>
       scene.emit("action_selected_media_result_entry", { entry, selectAction }),
@@ -1120,7 +1082,7 @@ async function start() {
     joinHubPromise = null;
 
     if (hubChannel.hubId !== hubId && nextHubToJoin === hubId) {
-      joinHubPromise = joinHub(socket, history, entryManager, remountUI, remountJelUI, addToPresenceLog);
+      joinHubPromise = joinHub(socket, history, entryManager, remountUI, remountJelUI);
       await joinHubPromise;
     }
   };
