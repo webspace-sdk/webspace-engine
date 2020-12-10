@@ -177,5 +177,7 @@
   "install.desktop": "Install App",
   "paused.info": "Jel is Paused. Focus to resume.",
   "chat-log.join": "joined this World.",
-  "chat-log.leave": "left this World."
+  "chat-log.leave": "left this World.",
+  "chat-log.display_name_changed": "is now known as",
+  "chat-log.display_name_changed_end": "."
 }

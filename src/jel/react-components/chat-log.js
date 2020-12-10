@@ -17,6 +17,10 @@ const ChatLogElement = styled.div`
   body.paused & {
     visibility: hidden;
   }
+
+  &.hidden {
+    visibility: hidden;
+  }
 `;
 
 const ChatLogLine = styled.div`
@@ -47,11 +51,15 @@ const ChatLogLine = styled.div`
     opacity: 1;
     transform: translateY(0px) scale(1, 1);
   }
+
+  &.no-animate {
+    transition: none;
+  }
 `;
 
 const MESSAGE_MARGIN = 6;
 
-const entryToEl = ({ body, type, posted_at, name }) => {
+const entryToEl = ({ body, type, posted_at, name, oldName }) => {
   if (type === "message") {
     return (
       <CSSTransition key={posted_at} classNames="appear" timeout={{ enter: 0, exit: 0 }}>
@@ -65,6 +73,15 @@ const entryToEl = ({ body, type, posted_at, name }) => {
       <CSSTransition key={posted_at} classNames="appear" timeout={{ enter: 0, exit: 0 }}>
         <ChatLogLine className="chat-log-entry" key={posted_at}>
           <b>{name}</b>&nbsp;<FormattedMessage id={`chat-log.${type}`} />
+        </ChatLogLine>
+      </CSSTransition>
+    );
+  } else if (type === "display_name_changed") {
+    return (
+      <CSSTransition key={posted_at} classNames="appear" timeout={{ enter: 0, exit: 0 }}>
+        <ChatLogLine className="chat-log-entry" key={posted_at}>
+          <b>{oldName}</b>&nbsp;<FormattedMessage id={`chat-log.${type}`} />&nbsp;<b>{name}</b>
+          <FormattedMessage id={`chat-log.${type}_end`} />
         </ChatLogLine>
       </CSSTransition>
     );
@@ -82,27 +99,56 @@ export default function ChatLog({ entries }) {
 
   useEffect(
     () => {
-      if (!ref.current) return;
-      const entryEls = ref.current.querySelectorAll(".chat-log-entry");
-      const measureEntry = ref.current.querySelector("#chat-message-measure");
+      const hide = () => {
+        if (!ref.current) return;
+        ref.current.classList.add("hidden");
+      };
 
-      let offset = 0;
+      const relayout = animate => {
+        if (!ref.current) return;
+        const entryEls = ref.current.querySelectorAll(".chat-log-entry");
+        const measureEntry = ref.current.querySelector("#chat-message-measure");
 
-      for (let i = 0; i < entryEls.length; i++) {
-        const el = entryEls[i];
-        measureEntry.innerHTML = el.innerHTML;
-        const height = measureEntry.offsetHeight + MESSAGE_MARGIN;
-        const currentOffset = el.getAttribute("data-offset");
+        let offset = 0;
 
-        if (currentOffset !== offset) {
-          el.setAttribute("data-offset", offset);
-          el.setAttribute("style", `bottom: ${offset}px;`);
+        for (let i = 0; i < entryEls.length; i++) {
+          const el = entryEls[i];
+          measureEntry.innerHTML = el.innerHTML;
+          const height = measureEntry.offsetHeight + MESSAGE_MARGIN;
+          const currentOffset = el.getAttribute("data-offset");
+
+          if (currentOffset !== offset) {
+            el.setAttribute("data-offset", offset);
+
+            if (!animate) {
+              el.classList.add("no-animate");
+            }
+
+            el.setAttribute("style", `bottom: ${offset}px;`);
+
+            if (animate) {
+              el.classList.remove("no-animate");
+            }
+          }
+
+          offset += height;
         }
 
-        offset += height;
-      }
+        ref.current.classList.remove("hidden");
+      };
 
-      return () => {};
+      const nonAnimatedRelayout = () => relayout(false);
+      relayout(true);
+
+      window.addEventListener("resize", nonAnimatedRelayout);
+      window.addEventListener("animated_resize_complete", nonAnimatedRelayout);
+      window.addEventListener("animated_resize_started", hide);
+
+      return () => {
+        window.removeEventListener("resize", nonAnimatedRelayout);
+        window.removeEventListener("animated_resize_complete", nonAnimatedRelayout);
+        window.removeEventListener("animated_resize_started", hide);
+      };
     },
     [ref]
   );

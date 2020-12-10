@@ -1112,15 +1112,7 @@ async function start() {
     joinHubPromise = null;
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
-      joinSpacePromise = joinSpace(
-        socket,
-        history,
-        entryManager,
-        remountUI,
-        remountJelUI,
-        addToPresenceLog,
-        membershipsPromise
-      );
+      joinSpacePromise = joinSpace(socket, history, entryManager, remountUI, remountJelUI, membershipsPromise);
       await joinSpacePromise;
     }
 

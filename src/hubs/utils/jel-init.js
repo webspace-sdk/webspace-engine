@@ -197,7 +197,7 @@ function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
   remountJelUI({ hub, selectedMediaLayer });
 }
 
-const initSpacePresence = (presence, socket, remountUI, remountJelUI, addToPresenceLog) => {
+const initSpacePresence = (presence, socket, remountUI, remountJelUI) => {
   const { hubChannel, spaceChannel } = window.APP;
 
   const scene = document.querySelector("a-scene");
@@ -230,23 +230,18 @@ const initSpacePresence = (presence, socket, remountUI, remountJelUI, addToPrese
           const currentMeta = current.metas[0];
 
           if (!isSelf && currentMeta.hub_id !== meta.hub_id && meta.profile.displayName && isCurrentHub) {
-            addToPresenceLog({
-              type: "entered",
-              presence: meta.presence,
-              name: meta.profile.displayName
+            scene.emit("chat_log_entry", {
+              type: "join",
+              name: meta.profile.displayName,
+              posted_at: performance.now()
             });
           }
 
-          if (
-            currentMeta.profile &&
-            meta.profile &&
-            currentMeta.profile.displayName !== meta.profile.displayName &&
-            isCurrentHub
-          ) {
-            addToPresenceLog({
+          if (currentMeta.profile && meta.profile && currentMeta.profile.displayName !== meta.profile.displayName) {
+            scene.emit("chat_log_entry", {
               type: "display_name_changed",
               oldName: currentMeta.profile.displayName,
-              newName: meta.profile.displayName
+              name: meta.profile.displayName
             });
           }
         } else if (info.metas.length === 1 && isCurrentHub) {
@@ -254,10 +249,10 @@ const initSpacePresence = (presence, socket, remountUI, remountJelUI, addToPrese
           const meta = info.metas[0];
 
           if (meta.presence && meta.profile.displayName) {
-            addToPresenceLog({
+            scene.emit("chat_log_entry", {
               type: "join",
-              presence: meta.presence,
-              name: meta.profile.displayName
+              name: meta.profile.displayName,
+              posted_at: performance.now()
             });
           }
         }
@@ -294,23 +289,13 @@ const initSpacePresence = (presence, socket, remountUI, remountJelUI, addToPrese
       const isCurrentHub = currentMeta && currentMeta.hub_id === currentHubId;
 
       if (!isSelf && meta && meta.profile.displayName && !isCurrentHub && wasCurrentHub) {
-        addToPresenceLog({
-          type: "leave",
-          name: meta.profile.displayName
-        });
+        scene.emit("chat_log_entry", { type: "leave", name: meta.profile.displayName, posted_at: performance.now() });
       }
     });
   });
 };
 
-const joinSpaceChannel = async (
-  spacePhxChannel,
-  entryManager,
-  treeManager,
-  remountUI,
-  remountJelUI,
-  addToPresenceLog
-) => {
+const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI) => {
   const scene = document.querySelector("a-scene");
   const { store, spaceChannel } = window.APP;
 
@@ -327,7 +312,7 @@ const joinSpaceChannel = async (
         const sessionId = (socket.params().session_id = data.session_id);
 
         if (!presenceInitPromise) {
-          presenceInitPromise = initSpacePresence(presence, socket, remountUI, remountJelUI, addToPresenceLog);
+          presenceInitPromise = initSpacePresence(presence, socket, remountUI, remountJelUI);
         }
 
         socket.params().session_token = data.session_token;
@@ -749,15 +734,7 @@ const setupHubChannelMessageHandlers = (
   });
 };
 
-export function joinSpace(
-  socket,
-  history,
-  entryManager,
-  remountUI,
-  remountJelUI,
-  addToPresenceLog,
-  membershipsPromise
-) {
+export function joinSpace(socket, history, entryManager, remountUI, remountJelUI, membershipsPromise) {
   const spaceId = getSpaceIdFromHistory(history);
   const { dynaChannel, spaceChannel, spaceMetadata, hubMetadata, store } = window.APP;
   console.log(`Space ID: ${spaceId}`);
@@ -809,7 +786,7 @@ export function joinSpace(
 
   store.update({ context: { spaceId } });
 
-  return joinSpaceChannel(spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI, addToPresenceLog);
+  return joinSpaceChannel(spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI);
 }
 
 export async function joinHub(socket, history, entryManager, remountUI, remountJelUI, addToPresenceLog) {
