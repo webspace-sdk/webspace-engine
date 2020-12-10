@@ -15,7 +15,7 @@ const ChatLogElement = styled.div`
   mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), 80%, transparent);
   width: 50%;
   min-width: 200px;
-  margin: 6px 24px;
+  margin: 12px 24px;
   transition: transform 0.15s linear, opacity 0.15s linear;
 
   body.paused & {

@@ -13,6 +13,7 @@ const KeyTipsElement = styled.div`
   height: fit-content;
   border-radius: 6px;
   padding: 12px 24px;
+  margin: 6px 0;
   user-select: none;
 `;
 
