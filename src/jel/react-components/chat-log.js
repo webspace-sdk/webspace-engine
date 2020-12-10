@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import { FormattedMessage } from "react-intl";
 import styled from "styled-components";
-import ReactCSSTransitionGroup from "react-addons-css-transition-group";
+import { CSSTransition, TransitionGroup } from "react-transition-group";
 
 const ChatLogElement = styled.div`
   height: 250px;
@@ -36,7 +36,7 @@ const ChatLogLine = styled.div`
     transform: translateY(0px) scale(0.5, 0.5);
   }
 
-  &.appear-leave {
+  &.appear-exit {
     opacity: 1;
     transform: translateY(0px) scale(1, 1);
   }
@@ -47,15 +47,19 @@ const MESSAGE_MARGIN = 4;
 const entryToEl = ({ body, type, posted_at, name }) => {
   if (type === "message") {
     return (
-      <ChatLogLine className="chat-log-entry" key={posted_at}>
-        <b>{name}</b>:&nbsp;{body}
-      </ChatLogLine>
+      <CSSTransition key={posted_at} classNames="appear" timeout={{ enter: 0, exit: 0 }}>
+        <ChatLogLine className="chat-log-entry">
+          <b>{name}</b>:&nbsp;{body}
+        </ChatLogLine>
+      </CSSTransition>
     );
   } else if (type === "join" || type === "leave") {
     return (
-      <ChatLogLine className="chat-log-entry" key={posted_at}>
-        <b>{name}</b>&nbsp;<FormattedMessage id={`chat-log.${type}`} />
-      </ChatLogLine>
+      <CSSTransition key={posted_at} classNames="appear" timeout={{ enter: 0, exit: 0 }}>
+        <ChatLogLine className="chat-log-entry" key={posted_at}>
+          <b>{name}</b>&nbsp;<FormattedMessage id={`chat-log.${type}`} />
+        </ChatLogLine>
+      </CSSTransition>
     );
   }
 };
@@ -98,9 +102,7 @@ export default function ChatLog({ entries }) {
 
   return (
     <ChatLogElement ref={ref}>
-      <ReactCSSTransitionGroup transitionName="appear" transitionEnterTimeout={1} transitionLeaveTimeout={1}>
-        {entryComponents}
-      </ReactCSSTransitionGroup>
+      <TransitionGroup>{entryComponents}</TransitionGroup>
 
       <ChatLogLine id="chat-message-measure" style={{ visibility: "hidden" }} />
     </ChatLogElement>
