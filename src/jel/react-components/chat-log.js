@@ -6,12 +6,13 @@ import { CSSTransition, TransitionGroup } from "react-transition-group";
 
 const ChatLogElement = styled.div`
   height: 250px;
-  position: relative;
+  position: absolute;
+  left: 0;
+  bottom: 0;
   overflow: hidden;
   mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), 80%, transparent);
   width: 50%;
-  margin: 11px 0 0 8px;
-  padding: 6px 10px;
+  margin: 6px 24px;
 
   body.paused & {
     visibility: hidden;

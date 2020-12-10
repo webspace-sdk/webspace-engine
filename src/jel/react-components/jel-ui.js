@@ -252,7 +252,7 @@ const BottomLeftPanels = styled.div`
 const DeviceStatuses = styled.div`
   display: flex;
   flex-direction: row;
-  margin: 8px 12px;
+  margin: 11px 12px 0 0;
   display: none;
 
   .panels-expanded & {
@@ -461,6 +461,9 @@ function JelUI(props) {
                   });
                 }}
               />
+              <DeviceStatuses>
+                <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
+              </DeviceStatuses>
             </HubCornerButtons>
           </Top>
           <KeyTipsWrap
@@ -471,9 +474,6 @@ function JelUI(props) {
             <KeyTips id="key-tips" />
           </KeyTipsWrap>
           <BottomLeftPanels>
-            <DeviceStatuses>
-              <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
-            </DeviceStatuses>
             <PausedInfoLabel>
               <FormattedMessage id="paused.info" />
             </PausedInfoLabel>
