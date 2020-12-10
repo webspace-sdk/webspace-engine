@@ -36,6 +36,7 @@ const ChatLogLine = styled.div`
   border-radius: 4px;
   line-height: calc(var(--canvas-overlay-text-size) + 2px);
   pointer-events: auto;
+  user-select: none;
 
   background-color: var(--canvas-overlay-neutral-item-background-color);
   max-width: 100%;
@@ -55,6 +56,10 @@ const ChatLogLine = styled.div`
     opacity: 1;
     transform: scale(1, 1);
   }
+
+  & .selectable {
+    user-select: text;
+  }
 `;
 
 const MESSAGE_MARGIN = 6;
@@ -64,7 +69,7 @@ const entryToEl = ({ body, type, posted_at, name, oldName }) => {
     return (
       <CSSTransition key={posted_at} classNames="appear" timeout={{ enter: 0, exit: 0 }}>
         <ChatLogLine className="chat-log-entry">
-          <b>{name}</b>:&nbsp;{body}
+          <b>{name}</b>:&nbsp;<span className="selectable">{body}</span>
         </ChatLogLine>
       </CSSTransition>
     );
@@ -108,6 +113,8 @@ export default function ChatLog({ scene, entries }) {
   // Deal with mouse events to hide
   useEffect(
     () => {
+      if (!scene) return;
+
       const el = ref && ref.current;
       if (!el) return;
 
@@ -134,22 +141,18 @@ export default function ChatLog({ scene, entries }) {
       el.addEventListener("mouseenter", disableHide);
       el.addEventListener("mouseleave", resetHide);
 
-      if (scene) {
-        scene.addEventListener("action_chat_entry", disableHide);
-        scene.addEventListener("chat_entry_complete", resetHide);
-      }
+      scene.addEventListener("action_chat_entry", disableHide);
+      scene.addEventListener("chat_entry_complete", resetHide);
 
       return () => {
         el.removeEventListener("mouseenter", disableHide);
         el.removeEventListener("mouseleave", resetHide);
 
-        if (scene) {
-          scene.removeEventListener("action_chat_entry", disableHide);
-          scene.addEventListener("chat_entry_complete", resetHide);
-        }
+        scene.removeEventListener("action_chat_entry", disableHide);
+        scene.addEventListener("chat_entry_complete", resetHide);
       };
     },
-    [scene, ref]
+    [scene, ref, entryHash]
   );
 
   // Update positions for chat log entries

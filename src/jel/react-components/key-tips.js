@@ -23,9 +23,10 @@ const KeyTipItem = styled.div`
   align-items: center;
   margin: 0;
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 6px 10px;
 
   &.highlight {
+    margin: 8px 0;
     box-shadow: 0px 0px 6px var(--canvas-overlay-highlight-color);
   }
 `;
@@ -185,7 +186,7 @@ const TIP_DATA = {
     ["run", "H"],
     ["create", "/", "createMenu"],
     ["paste", "L+v"],
-    ["chat", "S"],
+    ["chat", "S", "chat"],
     ["widen", "H+S", "widen"],
     ["hide", "?"]
   ],
@@ -195,7 +196,7 @@ const TIP_DATA = {
     ["unmute", "L+m", "toggleMuteKey"],
     ["paste", "L+v"],
     ["create", "/", "createMenu"],
-    ["chat", "S"],
+    ["chat", "S", "chat"],
     ["narrow", "Z|H+S"],
     ["hide", "?"]
   ],
@@ -205,7 +206,7 @@ const TIP_DATA = {
     ["mute", "L+m", "toggleMuteKey"],
     ["paste", "L+v"],
     ["create", "/", "createMenu"],
-    ["chat", "S"],
+    ["chat", "S", "chat"],
     ["narrow", "Z|H+S"],
     ["hide", "?"]
   ],
@@ -340,7 +341,20 @@ const itemForData = ([label, keys, flag]) => {
   // Allow clicking on help item
   const style = label === "help" || label === "hide" ? { pointerEvents: "auto" } : null;
   const component = label === "help" || label === "hide" ? KeyTipButton : KeyTipItem;
-  const className = flag && !window.APP.store.state.activity[flag] ? "highlight" : "";
+
+  let className = "";
+
+  if (flag && !window.APP.store.state.activity[flag]) {
+    if (flag === "chat") {
+      const hubChannel = window.APP.hubChannel;
+
+      const hasOtherOccupants =
+        hubChannel.presence && hubChannel.presence.state && Object.entries(hubChannel.presence.state).length > 1;
+      className = hasOtherOccupants ? "highlight" : "";
+    } else {
+      className = "highlight";
+    }
+  }
 
   return React.createElement(component, { key: label, style: style, className }, [keyLabels, tipLabel]);
 };

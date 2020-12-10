@@ -176,6 +176,7 @@
   "unavailable.full": "Unable to join, world is full.",
   "install.desktop": "Install App",
   "paused.info": "Jel is Paused. Focus to resume.",
+  "chat.info": "Others are here. Press space to chat.",
   "chat-log.join": "joined this World.",
   "chat-log.leave": "left this World.",
   "chat-log.display_name_changed": "is now known as",

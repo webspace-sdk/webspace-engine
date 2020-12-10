@@ -209,6 +209,24 @@ const PausedInfoLabel = styled.div`
   }
 `;
 
+const ChatInfoLabel = styled.div`
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  display: block;
+  color: var(--canvas-overlay-text-color);
+  text-shadow: 0px 0px 4px var(--menu-shadow-color);
+  line-height: calc(var(--canvas-overlay-text-size) + 2px);
+  font-weight: var(--canvas-overlay-item-text-weight);
+  font-size: var(--canvas-overlay-text-size);
+  margin: 11px 0 0 8px;
+  padding: 6px 10px;
+
+  body.paused & {
+    display: none;
+  }
+`;
+
 const HubContextButton = forwardRef((props, ref) => {
   return (
     <HubCornerButtonElement {...props} ref={ref}>
@@ -265,7 +283,7 @@ function JelUI(props) {
   const { scene, treeManager, history, spaceCan, hubCan, hub, memberships, unavailableReason } = props;
   const tree = treeManager && treeManager.sharedNav;
   const spaceTree = treeManager && treeManager.privateSpace;
-  const { hubChannel, spaceChannel, dynaChannel } = window.APP;
+  const { store, hubChannel, spaceChannel, dynaChannel } = window.APP;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = tree && tree.atomMetadata;
   const hubTrailHubIds = (tree && hub && tree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
@@ -421,6 +439,8 @@ function JelUI(props) {
   // Chat log entries
   useEffect(
     () => {
+      if (!scene) return;
+
       const handler = ({ detail: newEntry }) => {
         let newEntries = [...chatLogEntries, newEntry];
         if (newEntries.length >= 10) {
@@ -439,6 +459,9 @@ function JelUI(props) {
   const onCreateActionSelected = useCallback(a => scene.emit("create_action_exec", a), [scene]);
 
   const onTrailHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
+
+  const hasOtherOccupants =
+    hubChannel.presence && hubChannel.presence.state && Object.entries(hubChannel.presence.state).length > 1;
 
   return (
     <WrappedIntlProvider>
@@ -471,7 +494,7 @@ function JelUI(props) {
                 ref={hubCreateButtonRef}
                 onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
                 onClick={() => {
-                  window.APP.store.handleActivityFlag("createMenu");
+                  store.handleActivityFlag("createMenu");
                   showCreateSelectPopup(hubCreateButtonRef, "bottom-end");
                 }}
               />
@@ -489,18 +512,23 @@ function JelUI(props) {
               </DeviceStatuses>
             </HubCornerButtons>
           </Top>
-          <KeyTipsWrap
-            onClick={() =>
-              window.APP.store.update({ settings: { hideKeyTips: !window.APP.store.state.settings.hideKeyTips } })
-            }
-          >
+          <KeyTipsWrap onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}>
             <KeyTips id="key-tips" />
           </KeyTipsWrap>
           <BottomLeftPanels>
             <PausedInfoLabel>
               <FormattedMessage id="paused.info" />
             </PausedInfoLabel>
-            <ChatLog entries={chatLogEntries} scene={scene} />
+
+            {hasOtherOccupants &&
+            !store.state.activity.chat &&
+            chatLogEntries.filter(({ type }) => type === "chat").length === 0 ? (
+              <ChatInfoLabel>
+                <FormattedMessage id="chat.info" />
+              </ChatInfoLabel>
+            ) : (
+              <ChatLog entries={chatLogEntries} scene={scene} />
+            )}
           </BottomLeftPanels>
         </Wrap>
         {!skipSidePanels && (
