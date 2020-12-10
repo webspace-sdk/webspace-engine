@@ -456,6 +456,8 @@ function JelUI(props) {
     [scene, chatLogEntries, setChatLogEntries]
   );
 
+  useEffect(() => setChatLogEntries([]), [hub]);
+
   const onCreateActionSelected = useCallback(a => scene.emit("create_action_exec", a), [scene]);
 
   const onTrailHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
