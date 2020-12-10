@@ -191,6 +191,9 @@ const HubCornerButtonIcon = styled.div`
 `;
 
 const PausedInfoLabel = styled.div`
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
   display: none;
   color: var(--canvas-overlay-text-color);
   text-shadow: 0px 0px 4px var(--menu-shadow-color);
@@ -270,6 +273,7 @@ function JelUI(props) {
   const [treeDataVersion, setTreeDataVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [createEmbedType, setCreateEmbedType] = useState("image");
+  const [chatLogEntries, setChatLogEntries] = useState([]);
 
   const hubRenameFocusRef = React.createRef();
   const spaceRenameFocusRef = React.createRef();
@@ -391,6 +395,24 @@ function JelUI(props) {
 
   const [pwaAvailable, installPWA] = useInstallPWA();
 
+  // Chat log entries
+  useEffect(
+    () => {
+      const handler = ({ detail: newEntry }) => {
+        let newEntries = [...chatLogEntries, newEntry];
+        if (newEntries.length >= 10) {
+          newEntries = newEntries.slice(newEntries.length - 10);
+        }
+
+        setChatLogEntries(newEntries);
+      };
+
+      scene.addEventListener("chat_log_entry", handler);
+      return () => scene.removeEventListener("chat_log_entry", handler);
+    },
+    [scene, chatLogEntries, setChatLogEntries]
+  );
+
   const onCreateActionSelected = useCallback(a => scene.emit("create_action_exec", a), [scene]);
 
   const onTrailHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
@@ -455,7 +477,7 @@ function JelUI(props) {
             <PausedInfoLabel>
               <FormattedMessage id="paused.info" />
             </PausedInfoLabel>
-            <ChatLog entries={[{ body: "Hi", type: "message", name: "Foo" }]} />
+            <ChatLog entries={chatLogEntries} />
           </BottomLeftPanels>
         </Wrap>
         {!skipSidePanels && (

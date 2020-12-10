@@ -14,7 +14,7 @@ const ChatLogElement = styled.div`
   padding: 6px 10px;
 
   body.paused & {
-    display: none;
+    visibility: hidden;
   }
 `;
 
