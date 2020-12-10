@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { FormattedMessage } from "react-intl";
 import styled from "styled-components";
+import Linkify from "react-linkify";
+import { toArray as convertToEmojis } from "react-emoji-render";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 
 const CHAT_HIDE_TIMEOUT = 15000;
@@ -49,6 +51,11 @@ const ChatLogLine = styled.div`
   transition: transform 0.2s cubic-bezier(0.76, -0.005, 0.515, 1.75), opacity 0.4s linear,
     bottom 0.2s cubic-bezier(0.76, -0.005, 0.515, 1.25);
 
+  a {
+    text-decoration: underline;
+    color: var(--canvas-overlay-neutral-item-link-color);
+  }
+
   &.appear-enter {
     opacity: 0;
     transform: scale(0.5, 0.5);
@@ -71,7 +78,11 @@ const entryToEl = ({ body, type, posted_at, name, oldName }) => {
     return (
       <CSSTransition key={posted_at} classNames="appear" timeout={{ enter: 0, exit: 0 }}>
         <ChatLogLine className="chat-log-entry">
-          <b>{name}</b>:&nbsp;<span className="selectable">{body}</span>
+          <b>{name}</b>:&nbsp;<span className="selectable">
+            <Linkify properties={{ target: "_blank", rel: "noopener referrer" }}>
+              {convertToEmojis(body.trim())}
+            </Linkify>
+          </span>
         </ChatLogLine>
       </CSSTransition>
     );
