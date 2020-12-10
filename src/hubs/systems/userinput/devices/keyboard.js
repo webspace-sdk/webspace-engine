@@ -15,9 +15,14 @@ export class KeyboardDevice {
       document.addEventListener(x, e => {
         if (!e.key) return;
         let pushEvent = true;
-        const canvas = AFRAME.scenes[0].canvas;
+        if (!AFRAME.scenes[0]) return;
 
-        if (document.activeElement === canvas && e.key === "Tab") {
+        const scene = AFRAME.scenes[0];
+        const canvas = scene.canvas;
+        const store = window.APP.store;
+        const isGameFocused = document.activeElement === canvas || document.activeElement === document.body;
+
+        if (isGameFocused && e.key === "Tab") {
           // Tab is used for object movement
           e.preventDefault();
         }
@@ -28,17 +33,39 @@ export class KeyboardDevice {
           e.preventDefault();
         }
 
-        // Non-repeated shift-space is cursor lock hotkey.
-        if (e.type === "keydown" && e.key === " " && e.shiftKey && !e.repeat && !isInEditableField()) {
-          if (canvas.requestPointerLock) {
-            if (document.pointerLockElement === canvas) {
-              document.exitPointerLock();
+        // Handle spacebar here since input system can't differentiate with and without modifier key held, and deal with repeats
+        if (e.type === "keydown" && e.key === " " && !e.repeat) {
+          if (!e.ctrlKey && !e.altKey && !e.metaKey) {
+            if (e.shiftKey && !isInEditableField()) {
+              // Shift+Space widen
+              if (canvas.requestPointerLock) {
+                if (document.pointerLockElement === canvas) {
+                  document.exitPointerLock();
+                } else {
+                  canvas.requestPointerLock();
+                }
+              }
+
+              e.preventDefault();
             } else {
-              canvas.requestPointerLock();
+              // Space without widen, show or hide chat.
+              if (scene.is("entered")) {
+                if (!isInEditableField()) {
+                  scene.emit("action_chat_entry");
+                  store.handleActivityFlag("chat");
+                  e.preventDefault();
+                } else {
+                  // If space is entered while inside of chat message entry input, and it's empty, blur it.
+                  const el = document.activeElement;
+
+                  if (el.classList.contains("blur-on-empty-space") && el.value === "") {
+                    canvas.focus();
+                    e.preventDefault();
+                  }
+                }
+              }
             }
           }
-
-          e.preventDefault();
         }
 
         // ` in text editor blurs it
@@ -78,7 +105,7 @@ export class KeyboardDevice {
               e.key === "8" ||
               e.key === "9" ||
               e.key === "0")) ||
-          (e.key === " " && document.activeElement === document.body) // Disable spacebar scrolling in main window
+          (e.key === " " && isGameFocused) // Disable spacebar scrolling in main window
         ) {
           e.preventDefault();
         }

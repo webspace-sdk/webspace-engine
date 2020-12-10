@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useRef } from "react";
 import "../../assets/jel/stylesheets/create-select.scss";
 import CreateSelect from "./create-select";
 
 export const Basic = () => {
-  const ref = React.createRef();
+  const ref = useRef();
 
   setTimeout(() => {
     console.log(ref.current);

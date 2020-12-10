@@ -22,6 +22,19 @@ module.exports = {
       include: path.resolve(__dirname, "..", "src")
     });
 
+    config.module.rules.push({
+      test: /\.(png|jpg|gif|glb|ogg|mp3|mp4|wav|woff2|svg|webm)$/,
+      use: {
+        loader: "file-loader",
+        options: {
+          // move required assets to output dir and add a hash for cache busting
+          name: "[path][name]-[hash].[ext]",
+          // Make asset paths relative to /src
+          context: path.join(__dirname, "src")
+        }
+      }
+    });
+
     const svgLoaderRule = config.module.rules.find(rule => rule.test.test(".svg"));
     svgLoaderRule.exclude = /\.svg$/;
     config.module.rules.push({

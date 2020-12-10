@@ -175,5 +175,12 @@
   "unavailable.connect_error": "Unable to connect.\nCheck your Internet connection.",
   "unavailable.full": "Unable to join, world is full.",
   "install.desktop": "Install App",
-  "paused.info": "Jel is Paused. Focus to resume."
+  "paused.info": "Jel is Paused. Focus to resume.",
+  "chat.info": "Others are here. Press space to chat.",
+  "chat-log.join": "joined this World.",
+  "chat-log.leave": "left this World.",
+  "chat-log.display_name_changed": "is now known as",
+  "chat-log.display_name_changed_end": ".",
+  "chat.placeholder": "Type a message to send. Press space to toggle.",
+  "chat.default-name": "New Member"
 }

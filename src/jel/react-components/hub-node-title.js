@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import styled from "styled-components";
 import IconButton from "./icon-button";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal.svgi";
@@ -50,7 +50,7 @@ const PopupRef = styled.div`
 const HubNodeTitle = ({ hubId, onDotsClick, showAdd, showDots, onAddClick, hubMetadata }) => {
   const [name, setName] = useState("");
 
-  const popupRef = React.createRef();
+  const popupRef = useRef();
 
   useNameUpdateFromMetadata(hubId, hubMetadata, setName);
 

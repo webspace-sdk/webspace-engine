@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React, { forwardRef } from "react";
+import React, { useRef, forwardRef } from "react";
 
 import styled from "styled-components";
 
@@ -65,7 +65,6 @@ const TextContainer = styled.div`
 `;
 
 const PanelItemButton = forwardRef((props, ref) => {
-  const popupRef = React.createRef();
   const filteredProps = { ...props };
   delete filteredProps.iconSrc;
   delete filteredProps.children;
@@ -81,7 +80,7 @@ const PanelItemButton = forwardRef((props, ref) => {
     );
   } else {
     return (
-      <PanelItemButtonElement {...filteredProps} ref={popupRef}>
+      <PanelItemButtonElement {...filteredProps} ref={ref}>
         <TextContainer>{props.children}</TextContainer>
       </PanelItemButtonElement>
     );

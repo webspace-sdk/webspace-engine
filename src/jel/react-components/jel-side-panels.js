@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useRef } from "react";
 import { FormattedMessage } from "react-intl";
 import { usePopper } from "react-popper";
 import PropTypes from "prop-types";
@@ -345,8 +345,8 @@ function JelSidePanels({
   const [inviteElement, setInviteElement] = useState(null);
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const [spaceName, setSpaceName] = useState((metadata && metadata.name) || "");
-  const invitePanelFieldElement = React.createRef();
-  const spaceBannerRef = React.createRef();
+  const invitePanelFieldElement = useRef();
+  const spaceBannerRef = useRef();
 
   const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: updateTrashPopper } = usePopper(
     trashMenuReferenceElement,

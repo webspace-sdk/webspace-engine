@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import { FormattedMessage } from "react-intl";
-import React, { useState, useEffect, forwardRef } from "react";
+import React, { useRef, useState, useEffect, forwardRef } from "react";
 import List from "rc-virtual-list";
 import PanelSectionHeader from "./panel-section-header";
 import { outerHeight } from "../utils/layout-utils";
@@ -213,7 +213,7 @@ const ListWrap = styled.div`
 
 function PresenceList({ spacePresences, sessionId, hubMetadata, onGoToClicked, hubCan }) {
   const [height, setHeight] = useState(100);
-  const outerRef = React.createRef();
+  const outerRef = useRef();
   const data = [];
   const otherHubIdsToSessionMetas = new Map();
 

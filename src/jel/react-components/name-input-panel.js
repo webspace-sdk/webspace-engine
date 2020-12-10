@@ -1,44 +1,8 @@
-import styled from "styled-components";
 import PropTypes from "prop-types";
 import React, { useState, useEffect, forwardRef } from "react";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
-
-const NameInputPanelElement = styled.div`
-  background-color: var(--menu-background-color);
-  min-width: 512px;
-  height: fit-content;
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: flex-start;
-  border-radius: 4px;
-  border: 1px solid var(--menu-border-color);
-  box-shadow: 0px 12px 28px var(--menu-shadow-color);
-  padding: 6px;
-`;
-
-const NameInputWrap = styled.div`
-  flex: 1;
-  padding: 2px 4px;
-  border-radius: 4px;
-  border: 0;
-  background: var(--text-input-background-color);
-  box-shadow: inset 0px 0px 2px var(--menu-background-color);
-`;
-
-const NameInputElement = styled.input`
-  width: 100%;
-  border: 0;
-  color: var(--text-input-text-color);
-  font-size: var(--text-input-text-size);
-  font-weight: var(--text-input-text-weight);
-  padding: 4px;
-
-  &::placeholder {
-    color: var(--text-input-placeholder-color);
-  }
-`;
+import { FloatingTextPanelElement, FloatingTextWrap, FloatingTextElement } from "./floating-text-input";
 
 const NameInputPanel = forwardRef((props, ref) => {
   const { atomId, atomMetadata, onNameChanged } = props;
@@ -68,8 +32,8 @@ const NameInputPanel = forwardRef((props, ref) => {
   const placeholder = isHome ? atomMetadata && atomMetadata.defaultHomeName : atomMetadata && atomMetadata.defaultName;
 
   return (
-    <NameInputPanelElement className={props.className}>
-      <NameInputWrap>
+    <FloatingTextPanelElement className={props.className}>
+      <FloatingTextWrap>
         <form
           onSubmit={e => {
             e.preventDefault();
@@ -77,7 +41,7 @@ const NameInputPanel = forwardRef((props, ref) => {
             document.activeElement.blur(); // This causes this element to hide via CSS
           }}
         >
-          <NameInputElement
+          <FloatingTextElement
             type="text"
             tabIndex={-1}
             value={name}
@@ -97,8 +61,8 @@ const NameInputPanel = forwardRef((props, ref) => {
             }}
           />
         </form>
-      </NameInputWrap>
-    </NameInputPanelElement>
+      </FloatingTextWrap>
+    </FloatingTextPanelElement>
   );
 });
 

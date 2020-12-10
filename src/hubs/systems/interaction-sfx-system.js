@@ -1,5 +1,5 @@
 import { paths } from "./userinput/paths";
-import { SOUND_HOVER_OR_GRAB } from "./sound-effects-system";
+import { SOUND_HOVER_OR_GRAB, SOUND_RELEASE } from "./sound-effects-system";
 import { isUI } from "./interactions";
 
 export class InteractionSfxSystem {
@@ -9,15 +9,16 @@ export class InteractionSfxSystem {
     const state = interaction.state;
     const previousState = interaction.previousState;
 
-    if (
-      state.leftHand.held !== previousState.leftHand.held ||
-      state.rightHand.held !== previousState.rightHand.held ||
-      state.rightRemote.held !== previousState.rightRemote.held ||
-      (isUI(state.rightRemote.hovered) && state.rightRemote.hovered !== previousState.rightRemote.hovered) ||
-      state.leftRemote.held !== previousState.leftRemote.held ||
-      (isUI(state.leftRemote.hovered) && state.leftRemote.hovered !== previousState.leftRemote.hovered)
-    ) {
-      sfx.playSoundOneShot(SOUND_HOVER_OR_GRAB);
+    if (state.leftHand.held !== previousState.leftHand.held) {
+      sfx.playSoundOneShot(state.leftHand.held ? SOUND_HOVER_OR_GRAB : SOUND_RELEASE);
+    }
+
+    if (state.rightHand.held !== previousState.rightHand.held) {
+      sfx.playSoundOneShot(state.rightHand.held ? SOUND_HOVER_OR_GRAB : SOUND_RELEASE);
+    }
+
+    if (state.rightRemote.held !== previousState.rightRemote.held) {
+      sfx.playSoundOneShot(state.rightRemote.held ? SOUND_HOVER_OR_GRAB : SOUND_RELEASE);
     }
 
     if (userinput.get(paths.actions.logInteractionState)) {

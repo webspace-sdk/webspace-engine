@@ -1,6 +1,5 @@
 import TreeManager from "../../jel/utils/tree-manager";
 import { getHubIdFromHistory, getSpaceIdFromHistory, setupPeerConnectionConfig } from "../../jel/utils/jel-url-utils";
-import { createInWorldLogMessage } from "../react-components/chat-message";
 import nextTick from "./next-tick";
 import { authorizeOrSanitizeMessage } from "./permissions-utils";
 import { isSetEqual } from "../../jel/utils/set-utils";
@@ -8,6 +7,7 @@ import { homeHubForSpaceId } from "../../jel/utils/membership-utils";
 import { clearResolveUrlCache } from "./media-utils";
 import { addNewHubToTree } from "../../jel/utils/tree-utils";
 import { getMessages } from "./i18n";
+import { SOUND_CHAT_MESSAGE } from "../systems/sound-effects-system";
 import qsTruthy from "./qs_truthy";
 import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
 import HubStore from "../storage/hub-store";
@@ -197,7 +197,7 @@ function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
   remountJelUI({ hub, selectedMediaLayer });
 }
 
-const initSpacePresence = (presence, socket, remountUI, remountJelUI, addToPresenceLog) => {
+const initSpacePresence = (presence, socket, remountUI, remountJelUI) => {
   const { hubChannel, spaceChannel } = window.APP;
 
   const scene = document.querySelector("a-scene");
@@ -230,23 +230,19 @@ const initSpacePresence = (presence, socket, remountUI, remountJelUI, addToPrese
           const currentMeta = current.metas[0];
 
           if (!isSelf && currentMeta.hub_id !== meta.hub_id && meta.profile.displayName && isCurrentHub) {
-            addToPresenceLog({
-              type: "entered",
-              presence: meta.presence,
-              name: meta.profile.displayName
+            scene.emit("chat_log_entry", {
+              type: "join",
+              name: meta.profile.displayName,
+              posted_at: performance.now()
             });
           }
 
-          if (
-            currentMeta.profile &&
-            meta.profile &&
-            currentMeta.profile.displayName !== meta.profile.displayName &&
-            isCurrentHub
-          ) {
-            addToPresenceLog({
+          if (currentMeta.profile && meta.profile && currentMeta.profile.displayName !== meta.profile.displayName) {
+            scene.emit("chat_log_entry", {
               type: "display_name_changed",
               oldName: currentMeta.profile.displayName,
-              newName: meta.profile.displayName
+              name: meta.profile.displayName,
+              posted_at: performance.now()
             });
           }
         } else if (info.metas.length === 1 && isCurrentHub) {
@@ -254,10 +250,10 @@ const initSpacePresence = (presence, socket, remountUI, remountJelUI, addToPrese
           const meta = info.metas[0];
 
           if (meta.presence && meta.profile.displayName) {
-            addToPresenceLog({
+            scene.emit("chat_log_entry", {
               type: "join",
-              presence: meta.presence,
-              name: meta.profile.displayName
+              name: meta.profile.displayName,
+              posted_at: performance.now()
             });
           }
         }
@@ -294,23 +290,13 @@ const initSpacePresence = (presence, socket, remountUI, remountJelUI, addToPrese
       const isCurrentHub = currentMeta && currentMeta.hub_id === currentHubId;
 
       if (!isSelf && meta && meta.profile.displayName && !isCurrentHub && wasCurrentHub) {
-        addToPresenceLog({
-          type: "leave",
-          name: meta.profile.displayName
-        });
+        scene.emit("chat_log_entry", { type: "leave", name: meta.profile.displayName, posted_at: performance.now() });
       }
     });
   });
 };
 
-const joinSpaceChannel = async (
-  spacePhxChannel,
-  entryManager,
-  treeManager,
-  remountUI,
-  remountJelUI,
-  addToPresenceLog
-) => {
+const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI) => {
   const scene = document.querySelector("a-scene");
   const { store, spaceChannel } = window.APP;
 
@@ -327,7 +313,7 @@ const joinSpaceChannel = async (
         const sessionId = (socket.params().session_id = data.session_id);
 
         if (!presenceInitPromise) {
-          presenceInitPromise = initSpacePresence(presence, socket, remountUI, remountJelUI, addToPresenceLog);
+          presenceInitPromise = initSpacePresence(presence, socket, remountUI, remountJelUI);
         }
 
         socket.params().session_token = data.session_token;
@@ -649,17 +635,10 @@ const setupSpaceChannelMessageHandlers = spacePhxChannel => {
   });
 };
 
-const setupHubChannelMessageHandlers = (
-  hubPhxChannel,
-  hubStore,
-  entryManager,
-  addToPresenceLog,
-  history,
-  remountUI,
-  remountJelUI
-) => {
+const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, history, remountUI, remountJelUI) => {
   const scene = document.querySelector("a-scene");
   const { hubChannel, spaceChannel } = window.APP;
+  const messages = getMessages();
 
   const handleIncomingNAF = data => {
     if (!NAF.connection.adapter) return;
@@ -675,28 +654,22 @@ const setupHubChannelMessageHandlers = (
     handleIncomingNAF(data);
   });
 
-  hubPhxChannel.on("message", ({ session_id, type, body, from }) => {
+  hubPhxChannel.on("message", ({ session_id, type, body }) => {
     const getAuthor = () => {
       const userInfo = spaceChannel.presence.state[session_id];
-      if (from) {
-        return from;
-      } else if (userInfo) {
+      if (userInfo) {
         return userInfo.metas[0].profile.displayName;
       } else {
-        return "Mystery user";
+        return messages["chat.default-name"];
       }
     };
 
     const name = getAuthor();
-    const maySpawn = scene.is("entered");
+    const entry = { name, type, body, posted_at: performance.now() };
 
-    const incomingMessage = { name, type, body, maySpawn, sessionId: session_id };
+    scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
 
-    if (scene.is("vr-mode")) {
-      createInWorldLogMessage(incomingMessage);
-    }
-
-    addToPresenceLog(incomingMessage);
+    scene.emit("chat_log_entry", entry);
   });
 
   // Avoid updating the history frequently, as users type new hub names
@@ -749,15 +722,7 @@ const setupHubChannelMessageHandlers = (
   });
 };
 
-export function joinSpace(
-  socket,
-  history,
-  entryManager,
-  remountUI,
-  remountJelUI,
-  addToPresenceLog,
-  membershipsPromise
-) {
+export function joinSpace(socket, history, entryManager, remountUI, remountJelUI, membershipsPromise) {
   const spaceId = getSpaceIdFromHistory(history);
   const { dynaChannel, spaceChannel, spaceMetadata, hubMetadata, store } = window.APP;
   console.log(`Space ID: ${spaceId}`);
@@ -809,10 +774,10 @@ export function joinSpace(
 
   store.update({ context: { spaceId } });
 
-  return joinSpaceChannel(spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI, addToPresenceLog);
+  return joinSpaceChannel(spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI);
 }
 
-export async function joinHub(socket, history, entryManager, remountUI, remountJelUI, addToPresenceLog) {
+export async function joinHub(socket, history, entryManager, remountUI, remountJelUI) {
   const { hubChannel, hubMetadata } = window.APP;
 
   if (hubChannel.channel) {
@@ -826,15 +791,7 @@ export async function joinHub(socket, history, entryManager, remountUI, remountJ
   const hubPhxChannel = socket.channel(`hub:${hubId}`, createHubChannelParams());
 
   stopTrackingPosition();
-  setupHubChannelMessageHandlers(
-    hubPhxChannel,
-    hubStore,
-    entryManager,
-    addToPresenceLog,
-    history,
-    remountUI,
-    remountJelUI
-  );
+  setupHubChannelMessageHandlers(hubPhxChannel, hubStore, entryManager, history, remountUI, remountJelUI);
 
   await hubMetadata.ensureMetadataForIds([hubId], true);
   hubChannel.bind(hubPhxChannel, hubId);
