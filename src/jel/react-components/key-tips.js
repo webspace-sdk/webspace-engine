@@ -347,6 +347,7 @@ const itemForData = ([label, keys, flag]) => {
 
   if (flag && !window.APP.store.state.activity[flag]) {
     if (flag === "chat") {
+      // Special case: highlight chat when others are co-present
       const hubChannel = window.APP.hubChannel;
 
       const hasOtherOccupants =

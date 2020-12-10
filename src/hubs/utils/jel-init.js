@@ -638,6 +638,7 @@ const setupSpaceChannelMessageHandlers = spacePhxChannel => {
 const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, history, remountUI, remountJelUI) => {
   const scene = document.querySelector("a-scene");
   const { hubChannel, spaceChannel } = window.APP;
+  const messages = getMessages();
 
   const handleIncomingNAF = data => {
     if (!NAF.connection.adapter) return;
@@ -659,7 +660,7 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
       if (userInfo) {
         return userInfo.metas[0].profile.displayName;
       } else {
-        return "New Member";
+        return messages["chat.default-name"];
       }
     };
 
