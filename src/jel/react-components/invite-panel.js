@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import PropTypes from "prop-types";
-import React, { useCallback, useEffect, useState, forwardRef } from "react";
+import React, { useCallback, useState, forwardRef } from "react";
 import { FormattedMessage } from "react-intl";
 import copy from "copy-to-clipboard";
 import SmallActionButton from "./small-action-button";

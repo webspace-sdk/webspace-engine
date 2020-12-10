@@ -1,4 +1,4 @@
-import React, { useState, useCallback, forwardRef, useEffect } from "react";
+import React, { useRef, useState, useCallback, forwardRef, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
 import HubTrail from "./hub-trail";
@@ -276,15 +276,15 @@ function JelUI(props) {
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [chatLogEntries, setChatLogEntries] = useState([]);
 
-  const hubRenameFocusRef = React.createRef();
-  const spaceRenameFocusRef = React.createRef();
-  const hubContextButtonRef = React.createRef();
-  const hubCreateButtonRef = React.createRef();
-  const createSelectFocusRef = React.createRef();
-  const createSelectPopupRef = React.createRef();
-  const chatInputFocusRef = React.createRef();
-  const centerPopupRef = React.createRef();
-  const createEmbedFocusRef = React.createRef();
+  const hubRenameFocusRef = useRef();
+  const spaceRenameFocusRef = useRef();
+  const hubContextButtonRef = useRef();
+  const hubCreateButtonRef = useRef();
+  const createSelectFocusRef = useRef();
+  const createSelectPopupRef = useRef();
+  const chatInputFocusRef = useRef();
+  const centerPopupRef = useRef();
+  const createEmbedFocusRef = useRef();
 
   const {
     styles: hubRenamePopupStyles,
@@ -333,7 +333,7 @@ function JelUI(props) {
     show: showChatInputPopup,
     setPopup: setChatInputPopupElement,
     update: updateChatInputPopup
-  } = usePopupPopper(chatInputFocusRef, "bottom", [0, 8]);
+  } = usePopupPopper(chatInputFocusRef, "top", [0, 8]);
 
   const {
     styles: createEmbedPopupStyles,
@@ -500,7 +500,7 @@ function JelUI(props) {
             <PausedInfoLabel>
               <FormattedMessage id="paused.info" />
             </PausedInfoLabel>
-            <ChatLog entries={chatLogEntries} />
+            <ChatLog entries={chatLogEntries} scene={scene} />
           </BottomLeftPanels>
         </Wrap>
         {!skipSidePanels && (
@@ -545,6 +545,7 @@ function JelUI(props) {
         attributes={chatInputPopupAttributes}
         ref={chatInputFocusRef}
         onMessageEntered={useCallback(message => hubChannel.sendMessage(message), [hubChannel])}
+        onEntryComplete={useCallback(() => scene.emit("chat_entry_complete"), [scene])}
       />
       <CreateEmbedPopup
         setPopperElement={setCreateEmbedPopupElement}

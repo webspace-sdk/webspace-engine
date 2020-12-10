@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
@@ -67,7 +67,7 @@ const HubTrailSeparatorItem = styled.div`
 `;
 
 export default function HubTrail({ hubIds, hubCan, hubMetadata, history, renamePopupElement, showRenamePopup }) {
-  const primaryItemRef = React.createRef();
+  const primaryItemRef = useRef();
 
   const hubIdsToShow = hubIds || [];
   const names = [];

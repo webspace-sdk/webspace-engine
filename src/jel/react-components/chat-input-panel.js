@@ -5,7 +5,7 @@ import { FloatingTextPanelElement, FloatingTextWrap, FloatingTextElement } from 
 import { getMessages } from "../../hubs/utils/i18n";
 
 const ChatInputPanel = forwardRef((props, ref) => {
-  const { className, onMessageEntered } = props;
+  const { className, onMessageEntered, onEntryComplete } = props;
   const [message, setMessage] = useState("");
   const messages = getMessages();
 
@@ -21,6 +21,7 @@ const ChatInputPanel = forwardRef((props, ref) => {
             document.activeElement.blur(); // This causes this element to hide via CSS
             if (message !== "") {
               onMessageEntered(message);
+              onEntryComplete();
             }
           }}
         >
@@ -30,8 +31,15 @@ const ChatInputPanel = forwardRef((props, ref) => {
             value={message}
             placeholder={placeholder}
             ref={ref}
-            onFocus={({ target }) => handleTextFieldFocus(target)}
-            onBlur={({ target }) => handleTextFieldBlur(target)}
+            className="blur-on-empty-space"
+            onFocus={({ target }) => {
+              handleTextFieldFocus(target, true);
+              setMessage("");
+            }}
+            onBlur={({ target }) => {
+              handleTextFieldBlur(target);
+              onEntryComplete();
+            }}
             onChange={({ target }) => setMessage(target.value)}
           />
         </form>
@@ -46,7 +54,8 @@ ChatInputPanel.propTypes = {
   atomId: PropTypes.string,
   className: PropTypes.string,
   atomMetadata: PropTypes.object,
-  onMessageEntered: PropTypes.func
+  onMessageEntered: PropTypes.func,
+  onEntryComplete: PropTypes.func
 };
 
 export default ChatInputPanel;

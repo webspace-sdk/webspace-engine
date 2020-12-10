@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { FormattedMessage } from "react-intl";
 import styled from "styled-components";
@@ -90,8 +90,8 @@ const entryToEl = ({ body, type, posted_at, name, oldName }) => {
 
 let chatLogHideTimeout;
 
-export default function ChatLog({ entries }) {
-  const ref = React.createRef();
+export default function ChatLog({ scene, entries }) {
+  const ref = useRef();
 
   const entryComponents = [];
 
@@ -99,10 +99,17 @@ export default function ChatLog({ entries }) {
     entryComponents.push(entryToEl(entries[i]));
   }
 
+  let entryHash = 0;
+
+  for (let i = 0; i < entries.length; i++) {
+    entryHash += entries[i].posted_at;
+  }
+
   // Deal with mouse events to hide
   useEffect(
     () => {
-      if (!ref.current) return;
+      const el = ref && ref.current;
+      if (!el) return;
 
       const resetHide = () => {
         if (chatLogHideTimeout) {
@@ -110,10 +117,10 @@ export default function ChatLog({ entries }) {
         }
 
         chatLogHideTimeout = null;
-        ref.current.classList.remove("hidden");
+        el.classList.remove("hidden");
 
         chatLogHideTimeout = setTimeout(() => {
-          ref.current.classList.add("hidden");
+          el.classList.add("hidden");
         }, 5000);
       };
 
@@ -121,20 +128,28 @@ export default function ChatLog({ entries }) {
 
       const disableHide = () => {
         clearTimeout(chatLogHideTimeout);
-        ref.current.classList.remove("hidden");
+        el.classList.remove("hidden");
       };
-
-      const el = ref.current;
 
       el.addEventListener("mouseenter", disableHide);
       el.addEventListener("mouseleave", resetHide);
 
+      if (scene) {
+        scene.addEventListener("action_chat_entry", disableHide);
+        scene.addEventListener("chat_entry_complete", resetHide);
+      }
+
       return () => {
         el.removeEventListener("mouseenter", disableHide);
         el.removeEventListener("mouseleave", resetHide);
+
+        if (scene) {
+          scene.removeEventListener("action_chat_entry", disableHide);
+          scene.addEventListener("chat_entry_complete", resetHide);
+        }
       };
     },
-    [ref]
+    [scene, ref]
   );
 
   // Update positions for chat log entries
@@ -172,7 +187,7 @@ export default function ChatLog({ entries }) {
         window.removeEventListener("animated_resize_complete", relayout);
       };
     },
-    [ref]
+    [ref, entryHash]
   );
 
   return (
@@ -185,5 +200,6 @@ export default function ChatLog({ entries }) {
 }
 
 ChatLog.propTypes = {
-  entries: PropTypes.array
+  entries: PropTypes.array,
+  scene: PropTypes.object
 };

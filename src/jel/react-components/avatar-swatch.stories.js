@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import classNames from "classnames";
 
@@ -8,19 +8,22 @@ let eyeIndex = 0;
 let mouthIndex = 0;
 
 export const Normal = () => {
-  const swatchRef = React.createRef();
+  const swatchRef = useRef();
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      eyeIndex = (eyeIndex + 1) % 8;
-      mouthIndex = (mouthIndex + 1) % 12;
-      swatchRef.current.setAttribute("data-eyes", eyeIndex);
-      swatchRef.current.setAttribute("data-mouth", mouthIndex);
-      swatchRef.current.setAttribute("style", "color: blue;");
-    }, 150);
+  useEffect(
+    () => {
+      const interval = setInterval(() => {
+        eyeIndex = (eyeIndex + 1) % 8;
+        mouthIndex = (mouthIndex + 1) % 12;
+        swatchRef.current.setAttribute("data-eyes", eyeIndex);
+        swatchRef.current.setAttribute("data-mouth", mouthIndex);
+        swatchRef.current.setAttribute("style", "color: blue;");
+      }, 150);
 
-    return () => clearInterval(interval);
-  });
+      return () => clearInterval(interval);
+    },
+    [swatchRef]
+  );
 
   return (
     <div

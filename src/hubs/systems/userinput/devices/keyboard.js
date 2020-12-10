@@ -33,9 +33,9 @@ export class KeyboardDevice {
         }
 
         // Handle spacebar here since input system can't differentiate with and without odifier key held, and deal with repeats
-        if (e.type === "keydown" && e.key === " " && !e.repeat && !isInEditableField()) {
+        if (e.type === "keydown" && e.key === " " && !e.repeat) {
           if (!e.ctrlKey && !e.altKey && !e.metaKey) {
-            if (e.shiftKey) {
+            if (e.shiftKey && !isInEditableField()) {
               // Shift+Space widen
               if (canvas.requestPointerLock) {
                 if (document.pointerLockElement === canvas) {
@@ -44,16 +44,27 @@ export class KeyboardDevice {
                   canvas.requestPointerLock();
                 }
               }
+
+              e.preventDefault();
             } else {
-              // Space without widen, chat.
+              // Space without widen, show or hide chat.
               if (scene.is("entered")) {
-                scene.emit("action_chat_entry");
-                store.handleActivityFlag("chat");
+                if (!isInEditableField()) {
+                  scene.emit("action_chat_entry");
+                  store.handleActivityFlag("chat");
+                  e.preventDefault();
+                } else {
+                  // If space is entered while inside of chat message entry input, and it's empty, blur it.
+                  const el = document.activeElement;
+
+                  if (el.classList.contains("blur-on-empty-space") && el.value === "") {
+                    canvas.focus();
+                    e.preventDefault();
+                  }
+                }
               }
             }
           }
-
-          e.preventDefault();
         }
 
         // ` in text editor blurs it

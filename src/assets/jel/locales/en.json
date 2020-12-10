@@ -180,5 +180,5 @@
   "chat-log.leave": "left this World.",
   "chat-log.display_name_changed": "is now known as",
   "chat-log.display_name_changed_end": ".",
-  "chat.placeholder": "Type a message. Press space to toggle."
+  "chat.placeholder": "Type a message to send. Press space to toggle."
 }

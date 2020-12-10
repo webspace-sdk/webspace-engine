@@ -3,7 +3,7 @@ import ChatLog from "./chat-log";
 
 let c = 0;
 const MAX_ENTRIES = 10;
-const STOP_AFTER_ENTRIES = 3;
+const STOP_AFTER_ENTRIES = 100;
 
 const pushMessage = (entries, setEntries) => {
   if (c >= STOP_AFTER_ENTRIES) return;
