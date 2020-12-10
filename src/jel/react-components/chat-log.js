@@ -14,9 +14,15 @@ const ChatLogElement = styled.div`
   width: 50%;
   min-width: 200px;
   margin: 6px 24px;
+  transition: transform 0.15s linear, opacity 0.15s linear;
 
   body.paused & {
     visibility: hidden;
+  }
+
+  &.hidden {
+    opacity: 0;
+    transform: translateY(-6px);
   }
 `;
 
@@ -29,6 +35,7 @@ const ChatLogLine = styled.div`
   overflow-wrap: normal;
   border-radius: 4px;
   line-height: calc(var(--canvas-overlay-text-size) + 2px);
+  pointer-events: auto;
 
   background-color: var(--canvas-overlay-neutral-item-background-color);
   max-width: 100%;
@@ -41,12 +48,12 @@ const ChatLogLine = styled.div`
 
   &.appear-enter {
     opacity: 0;
-    transform: translateY(0px) scale(0.5, 0.5);
+    transform: scale(0.5, 0.5);
   }
 
   &.appear-exit {
     opacity: 1;
-    transform: translateY(0px) scale(1, 1);
+    transform: scale(1, 1);
   }
 `;
 
@@ -81,6 +88,8 @@ const entryToEl = ({ body, type, posted_at, name, oldName }) => {
   }
 };
 
+let chatLogHideTimeout;
+
 export default function ChatLog({ entries }) {
   const ref = React.createRef();
 
@@ -90,6 +99,45 @@ export default function ChatLog({ entries }) {
     entryComponents.push(entryToEl(entries[i]));
   }
 
+  // Deal with mouse events to hide
+  useEffect(
+    () => {
+      if (!ref.current) return;
+
+      const resetHide = () => {
+        if (chatLogHideTimeout) {
+          clearTimeout(chatLogHideTimeout);
+        }
+
+        chatLogHideTimeout = null;
+        ref.current.classList.remove("hidden");
+
+        chatLogHideTimeout = setTimeout(() => {
+          ref.current.classList.add("hidden");
+        }, 5000);
+      };
+
+      resetHide();
+
+      const disableHide = () => {
+        clearTimeout(chatLogHideTimeout);
+        ref.current.classList.remove("hidden");
+      };
+
+      const el = ref.current;
+
+      el.addEventListener("mouseenter", disableHide);
+      el.addEventListener("mouseleave", resetHide);
+
+      return () => {
+        el.removeEventListener("mouseenter", disableHide);
+        el.removeEventListener("mouseleave", resetHide);
+      };
+    },
+    [ref]
+  );
+
+  // Update positions for chat log entries
   useEffect(
     () => {
       const relayout = () => {

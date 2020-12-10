@@ -185,6 +185,7 @@ const TIP_DATA = {
     ["run", "H"],
     ["create", "/", "createMenu"],
     ["paste", "L+v"],
+    ["chat", "S"],
     ["widen", "H+S", "widen"],
     ["hide", "?"]
   ],

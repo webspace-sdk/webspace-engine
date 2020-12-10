@@ -3,8 +3,10 @@ import ChatLog from "./chat-log";
 
 let c = 0;
 const MAX_ENTRIES = 10;
+const STOP_AFTER_ENTRIES = 3;
 
 const pushMessage = (entries, setEntries) => {
+  if (c >= STOP_AFTER_ENTRIES) return;
   c++;
   let entry;
 
@@ -20,7 +22,7 @@ const pushMessage = (entries, setEntries) => {
           ? `Next Message this is very long very very on the second part. Testing wrap and overflow ${c}`
           : `Multi\nLine\nMessage Hello! ${c}`;
 
-    entry = { name: "New Member", body: newMessage, type: "message", posted_at: performance.now() };
+    entry = { name: "New Member", body: newMessage, type: "chat", posted_at: performance.now() };
   }
 
   let newEntries = [...entries, entry];

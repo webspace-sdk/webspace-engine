@@ -101,6 +101,7 @@ paths.actions.cursor.left.mediaVolumeMod = "/actions/cursor/left//mediaVolumeMod
 paths.actions.cursor.left.takeSnapshot = "/actions/cursor/left/TakeSnapshot";
 paths.actions.cursor.left.wake = "/actions/cursor/left/wake";
 paths.actions.create = "/actions/create";
+paths.actions.chat_entry = "/actions/chat_entry";
 paths.actions.pen = {};
 paths.actions.pen.remove = "/actions/pen/remove";
 paths.actions.rightHand = {};

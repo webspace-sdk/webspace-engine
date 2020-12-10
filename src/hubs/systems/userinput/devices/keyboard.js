@@ -17,7 +17,9 @@ export class KeyboardDevice {
         let pushEvent = true;
         if (!AFRAME.scenes[0]) return;
 
-        const canvas = AFRAME.scenes[0].canvas;
+        const scene = AFRAME.scenes[0];
+        const canvas = scene.canvas;
+        const store = window.APP.store;
 
         if (document.activeElement === canvas && e.key === "Tab") {
           // Tab is used for object movement
@@ -30,13 +32,24 @@ export class KeyboardDevice {
           e.preventDefault();
         }
 
-        // Non-repeated shift-space is cursor lock hotkey.
-        if (e.type === "keydown" && e.key === " " && e.shiftKey && !e.repeat && !isInEditableField()) {
-          if (canvas.requestPointerLock) {
-            if (document.pointerLockElement === canvas) {
-              document.exitPointerLock();
+        // Handle spacebar here since input system can't differentiate with and without odifier key held, and deal with repeats
+        if (e.type === "keydown" && e.key === " " && !e.repeat && !isInEditableField()) {
+          if (!e.ctrlKey && !e.altKey && !e.metaKey) {
+            if (e.shiftKey) {
+              // Shift+Space widen
+              if (canvas.requestPointerLock) {
+                if (document.pointerLockElement === canvas) {
+                  document.exitPointerLock();
+                } else {
+                  canvas.requestPointerLock();
+                }
+              }
             } else {
-              canvas.requestPointerLock();
+              // Space without widen, chat.
+              if (scene.is("entered")) {
+                scene.emit("action_chat_entry");
+                store.handleActivityFlag("chat");
+              }
             }
           }
 

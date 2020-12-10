@@ -18,6 +18,7 @@ import RenamePopup from "./rename-popup";
 import CreateEmbedPopup from "./create-embed-popup";
 import HubContextMenu from "./hub-context-menu";
 import CreateSelectPopup from "./create-select-popup";
+import ChatInputPopup from "./chat-input-popup";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
@@ -264,7 +265,7 @@ function JelUI(props) {
   const { scene, treeManager, history, spaceCan, hubCan, hub, memberships, unavailableReason } = props;
   const tree = treeManager && treeManager.sharedNav;
   const spaceTree = treeManager && treeManager.privateSpace;
-  const { spaceChannel, dynaChannel } = window.APP;
+  const { hubChannel, spaceChannel, dynaChannel } = window.APP;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = tree && tree.atomMetadata;
   const hubTrailHubIds = (tree && hub && tree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
@@ -281,6 +282,7 @@ function JelUI(props) {
   const hubCreateButtonRef = React.createRef();
   const createSelectFocusRef = React.createRef();
   const createSelectPopupRef = React.createRef();
+  const chatInputFocusRef = React.createRef();
   const centerPopupRef = React.createRef();
   const createEmbedFocusRef = React.createRef();
 
@@ -326,6 +328,14 @@ function JelUI(props) {
   } = usePopupPopper(".create-select-selection-search-input", "bottom-end", [0, 8]);
 
   const {
+    styles: chatInputPopupStyles,
+    attributes: chatInputPopupAttributes,
+    show: showChatInputPopup,
+    setPopup: setChatInputPopupElement,
+    update: updateChatInputPopup
+  } = usePopupPopper(chatInputFocusRef, "bottom", [0, 8]);
+
+  const {
     styles: createEmbedPopupStyles,
     attributes: createEmbedPopupAttributes,
     show: showCreateEmbedPopup,
@@ -342,6 +352,7 @@ function JelUI(props) {
         if (updateHubContextMenu) updateHubContextMenu();
         if (updateCreateSelectPopup) updateCreateSelectPopup();
         if (updateCreateEmbedPopup) updateCreateEmbedPopup();
+        if (updateChatInputPopup) updateChatInputPopup();
       };
 
       scene && scene.addEventListener("animated_resize_complete", handleResizeComplete);
@@ -353,7 +364,8 @@ function JelUI(props) {
       updateSpaceRenamePopup,
       updateHubContextMenu,
       updateCreateSelectPopup,
-      updateCreateEmbedPopup
+      updateCreateEmbedPopup,
+      updateChatInputPopup
     ]
   );
 
@@ -377,6 +389,17 @@ function JelUI(props) {
       return () => scene && scene.removeEventListener("action_create", handleCreateHotkey);
     },
     [scene, createSelectPopupRef, showCreateSelectPopup]
+  );
+
+  // Handle chat message hotkey (typically space)
+  // Show chat message entry and chat log.
+  useEffect(
+    () => {
+      const handleChatHotkey = () => showChatInputPopup(centerPopupRef);
+      scene && scene.addEventListener("action_chat_entry", handleChatHotkey);
+      return () => scene && scene.removeEventListener("action_chat_entry", handleChatHotkey);
+    },
+    [scene, centerPopupRef, showChatInputPopup]
   );
 
   // Handle embed popup trigger
@@ -515,6 +538,13 @@ function JelUI(props) {
           dynaChannel,
           spaceRenameSpaceId
         ])}
+      />
+      <ChatInputPopup
+        setPopperElement={setChatInputPopupElement}
+        styles={chatInputPopupStyles}
+        attributes={chatInputPopupAttributes}
+        ref={chatInputFocusRef}
+        onMessageEntered={useCallback(message => hubChannel.sendMessage(message), [hubChannel])}
       />
       <CreateEmbedPopup
         setPopperElement={setCreateEmbedPopupElement}
