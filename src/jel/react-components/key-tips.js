@@ -195,6 +195,7 @@ const TIP_DATA = {
     ["unmute", "L+m", "toggleMuteKey"],
     ["paste", "L+v"],
     ["create", "/", "createMenu"],
+    ["chat", "H"],
     ["narrow", "Z|H+S"],
     ["hide", "?"]
   ],
@@ -204,6 +205,7 @@ const TIP_DATA = {
     ["mute", "L+m", "toggleMuteKey"],
     ["paste", "L+v"],
     ["create", "/", "createMenu"],
+    ["chat", "H"],
     ["narrow", "Z|H+S"],
     ["hide", "?"]
   ],

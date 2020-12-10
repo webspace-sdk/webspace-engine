@@ -1,6 +1,7 @@
 /* global fetch THREE */
 import URL_TICK from "../../assets/jel/sfx/click.wav";
 import URL_TICK_DOWN from "../../assets/jel/sfx/click-down.wav";
+import URL_TOGGLE_TICK from "../../assets/hubs/sfx/tick.mp3";
 import URL_TELEPORT_LOOP from "../../assets/hubs/sfx/teleport-loop.mp3";
 import URL_QUICK_TURN from "../../assets/hubs/sfx/quickTurn.mp3";
 import URL_TAP_MELLOW from "../../assets/hubs/sfx/tap_mellow.mp3";
@@ -72,7 +73,7 @@ export class SoundEffectsSystem {
       [SOUND_PEN_STOP_DRAW, URL_TICK],
       [SOUND_PEN_UNDO_DRAW, URL_TICK],
       [SOUND_PEN_CHANGE_COLOR, URL_TICK],
-      [SOUND_TOGGLE_MIC, URL_TICK],
+      [SOUND_TOGGLE_MIC, URL_TOGGLE_TICK],
       [SOUND_CAMERA_TOOL_COUNTDOWN, URL_TICK],
       [SOUND_TELEPORT_START, URL_TELEPORT_LOOP],
       [SOUND_TELEPORT_END, URL_QUICK_TURN],
