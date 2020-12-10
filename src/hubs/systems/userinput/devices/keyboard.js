@@ -33,7 +33,7 @@ export class KeyboardDevice {
           e.preventDefault();
         }
 
-        // Handle spacebar here since input system can't differentiate with and without odifier key held, and deal with repeats
+        // Handle spacebar here since input system can't differentiate with and without modifier key held, and deal with repeats
         if (e.type === "keydown" && e.key === " " && !e.repeat) {
           if (!e.ctrlKey && !e.altKey && !e.metaKey) {
             if (e.shiftKey && !isInEditableField()) {
