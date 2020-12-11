@@ -64,7 +64,7 @@
     "animejs": "github:mozillareality/anime#hubs/master",
     "babel-plugin-styled-components": "^1.10.7",
     "bezier-easing": "^2.1.0",
-    "buffered-interpolation": "github:gfodor/buffered-interpolation#feature/update-dirty-bit",
+    "buffered-interpolation": "github:gfodor/buffered-interpolation#feature/lazy-frame-fill",
     "classnames": "^2.2.5",
     "color": "^3.1.2",
     "copy-to-clipboard": "^3.0.8",
