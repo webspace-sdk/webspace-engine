@@ -13,7 +13,15 @@ import { RENDER_ORDER } from "../../hubs/constants";
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
 import { renderQuillToImg } from "../utils/quill-utils";
 import { paths } from "../../hubs/systems/userinput/paths";
-import { chicletGeometry } from "../objects/chiclet-geometry.js";
+import roundedQuadGlbUrl from "../../assets/jel/models/rounded-quad.glb";
+
+const SCROLL_SENSITIVITY = 500.0;
+
+const displayQuad = new Promise(res => {
+  new THREE.GLTFLoader(THREE.LoadingManager()).load(roundedQuadGlbUrl, async gltf => {
+    res(gltf.scene.children[2]);
+  });
+});
 
 AFRAME.registerComponent("media-text", {
   schema: {
@@ -107,7 +115,10 @@ AFRAME.registerComponent("media-text", {
           stencilZPass: THREE.ReplaceStencilOp
         });
         addVertexCurvingToMaterial(mat);
-        const geo = (await chicletGeometry).clone();
+        const mesh = await displayQuad;
+        const geo = mesh.geometry;
+        console.log(mesh);
+        //const geo = new THREE.PlaneBufferGeometry(1, 1, 1, 1, this.texture.flipY);
         mat.side = THREE.DoubleSide;
 
         this.mesh = new THREE.Mesh(geo, mat);
