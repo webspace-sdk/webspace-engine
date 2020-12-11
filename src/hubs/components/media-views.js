@@ -34,6 +34,7 @@ import { refreshMediaMirror, getCurrentMirroredMedia } from "../utils/mirror-uti
 import { MEDIA_PRESENCE } from "../utils/media-utils";
 import { disposeExistingMesh, disposeTexture, disposeTextureImage } from "../utils/three-utils";
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
+import { chicletGeometry, chicletGeometryFlipped } from "../../jel/objects/chiclet-geometry.js";
 
 /**
  * Warning! This require statement is fragile!
@@ -747,7 +748,7 @@ AFRAME.registerComponent("media-video", {
           // invert the geometry on the x-axis so that all of the faces point inward
           geometry.scale(-1, 1, 1);
         } else {
-          geometry = new THREE.PlaneBufferGeometry(1, 1, 10, 10);
+          geometry = (await chicletGeometry).clone();
           material.side = THREE.DoubleSide;
         }
 
@@ -1318,7 +1319,7 @@ AFRAME.registerComponent("media-image", {
             }
           }
         } else {
-          geometry = new THREE.PlaneBufferGeometry(1, 1, 10, 10, texture.flipY);
+          geometry = (texture.flipY ? await chicletGeometry : await chicletGeometryFlipped).clone();
           material.side = THREE.DoubleSide;
         }
 
@@ -1598,7 +1599,7 @@ AFRAME.registerComponent("media-pdf", {
 
         addVertexCurvingToMaterial(material);
 
-        const geometry = new THREE.PlaneBufferGeometry(1, 1, 10, 10, texture.flipY);
+        const geometry = (texture.flipY ? await chicletGeometry : await chicletGeometryFlipped).clone();
         material.side = THREE.DoubleSide;
 
         this.mesh = new THREE.Mesh(geometry, material);
