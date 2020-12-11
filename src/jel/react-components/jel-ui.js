@@ -443,6 +443,7 @@ function JelUI(props) {
 
       const handler = ({ detail: newEntry }) => {
         let newEntries = [...chatLogEntries, newEntry];
+
         if (newEntries.length >= 10) {
           newEntries = newEntries.slice(newEntries.length - 10);
         }
