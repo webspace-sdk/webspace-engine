@@ -221,6 +221,7 @@ const UnpausedInfoLabel = styled.div`
   font-size: var(--canvas-overlay-tertiary-text-size);
   margin: 11px 0 0 8px;
   padding: 6px 10px;
+  white-space: pre;
 
   body.paused & {
     display: none;

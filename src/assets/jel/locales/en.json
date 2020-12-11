@@ -1,6 +1,6 @@
 {
   "nav.space-worlds": "Public Worlds",
-  "nav.private-worlds": "Private Worlds",
+  "nav.private-worlds": "Personal Worlds",
   "nav.create-world": "Create World",
   "nav.empty": "Use \"Create World\" to add your first world.\nOther people can meet you there!",
   "nav.trash": "Trash",
@@ -183,5 +183,5 @@
   "chat-log.display_name_changed_end": ".",
   "chat.placeholder": "Type a message to send. Press space to toggle.",
   "chat.default-name": "New Member",
-  "home-hub.info": "This is your private home world."
+  "home-hub.info": "Only you can access this world."
 }
