@@ -209,16 +209,16 @@ const PausedInfoLabel = styled.div`
   }
 `;
 
-const ChatInfoLabel = styled.div`
+const UnpausedInfoLabel = styled.div`
   position: absolute;
   bottom: 0px;
   left: 0px;
   display: block;
   color: var(--canvas-overlay-text-color);
   text-shadow: 0px 0px 4px var(--menu-shadow-color);
-  line-height: calc(var(--canvas-overlay-text-size) + 2px);
-  font-weight: var(--canvas-overlay-item-text-weight);
-  font-size: var(--canvas-overlay-text-size);
+  line-height: calc(var(--canvas-overlay-tertiary-text-size) + 2px);
+  font-weight: var(--canvas-overlay-item-tertiary-weight);
+  font-size: var(--canvas-overlay-tertiary-text-size);
   margin: 11px 0 0 8px;
   padding: 6px 10px;
 
@@ -458,6 +458,7 @@ function JelUI(props) {
   );
 
   useEffect(() => setChatLogEntries([]), [hub]);
+  const isHomeHub = hub && hub.is_home;
 
   const onCreateActionSelected = useCallback(a => scene.emit("create_action_exec", a), [scene]);
 
@@ -485,6 +486,7 @@ function JelUI(props) {
                 renamePopupElement={hubRenamePopupElement}
                 showRenamePopup={showHubRenamePopup}
                 onHubNameChanged={onTrailHubNameChanged}
+                descriptionType={hub && hub.is_home ? "home" : null}
               />
             )}
             <HubCornerButtons>
@@ -522,15 +524,21 @@ function JelUI(props) {
             <PausedInfoLabel>
               <FormattedMessage id="paused.info" />
             </PausedInfoLabel>
+            {isHomeHub && (
+              <UnpausedInfoLabel>
+                <FormattedMessage id="home-hub.info" />
+              </UnpausedInfoLabel>
+            )}
 
             {hasOtherOccupants &&
+            !isHomeHub &&
             !store.state.activity.chat &&
             chatLogEntries.filter(({ type }) => type === "chat").length === 0 ? (
-              <ChatInfoLabel>
+              <UnpausedInfoLabel>
                 <FormattedMessage id="chat.info" />
-              </ChatInfoLabel>
+              </UnpausedInfoLabel>
             ) : (
-              <ChatLog entries={chatLogEntries} scene={scene} />
+              !isHomeHub && <ChatLog entries={chatLogEntries} scene={scene} />
             )}
           </BottomLeftPanels>
         </Wrap>

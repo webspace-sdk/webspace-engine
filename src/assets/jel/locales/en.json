@@ -182,5 +182,6 @@
   "chat-log.display_name_changed": "is now known as",
   "chat-log.display_name_changed_end": ".",
   "chat.placeholder": "Type a message to send. Press space to toggle.",
-  "chat.default-name": "New Member"
+  "chat.default-name": "New Member",
+  "home-hub.info": "This is your private home world."
 }
