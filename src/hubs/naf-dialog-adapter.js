@@ -384,12 +384,12 @@ export default class DialogAdapter {
           }
 
           // Resolve initial audio resolver since this person left.
-          const initialAudioResolver = this._initialAudioConsumerResolvers.get(peerId);
+          const initialAudioResolver = this._audioConsumerResolvers.get(peerId);
 
           if (initialAudioResolver) {
             initialAudioResolver();
 
-            this._initialAudioConsumerResolvers.delete(peerId);
+            this._audioConsumerResolvers.delete(peerId);
           }
 
           delete this.occupants[peerId];
@@ -529,6 +529,10 @@ export default class DialogAdapter {
       this.occupants[peerId] = true;
       if (!peers[i].hasProducers) continue;
       audioConsumerPromises.push(new Promise(res => this._audioConsumerResolvers.set(peerId, res)));
+    }
+
+    if (this._onOccupantsChanged) {
+      this._onOccupantsChanged(this.occupants);
     }
 
     await Promise.all([audioConsumerPromises]);
