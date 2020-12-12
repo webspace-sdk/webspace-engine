@@ -111,7 +111,7 @@ export async function connectToReticulum(debug = false, params = null, socketCla
       socketSettings.params = params;
     }
 
-    socket = existingSocket || new socketClass(`${socketUrl}/socket`, socketSettings);
+    socket = new socketClass(`${socketUrl}/socket`, socketSettings);
 
     socket.onError(async () => {
       // On error, underlying reticulum node may have died, so rebalance by
