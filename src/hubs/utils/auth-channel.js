@@ -50,9 +50,15 @@ export default class AuthChannel {
     });
   }
 
-  async startAuthentication(email, spaceChannel, extraPayload = {}) {
+  async startVerification(email, spaceChannel, extraPayload = {}) {
+    return this.startAuthentication(email, spaceChannel, extraPayload, true);
+  }
+
+  async startAuthentication(email, spaceChannel, extraPayload = {}, useExistingCredentials = false) {
     // Use existing auth token if this is binding the login to an unverified account.
-    const auth_token = this.store.state.credentials && this.store.state.credentials.token;
+    const auth_token = useExistingCredentials
+      ? this.store.state.credentials && this.store.state.credentials.token
+      : null;
     const params = auth_token ? { auth_token } : {};
     const channel = this.socket.channel(`auth:${uuid()}`, params);
 

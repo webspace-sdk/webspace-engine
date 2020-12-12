@@ -154,7 +154,7 @@
   "home.have-account": "Already have an account?",
   "home.sign-in": "Sign In",
   "home.signing-in": "Email Sent!",
-  "home.signing-in-tip": "Open the magic link in your email.",
+  "home.signing-in-tip": "If you have an account, we sent a magic link to your email.",
   "home.signin-complete": "You've been signed in.",
   "home.signin-complete-close": "You can close this page and return to Jel.",
   "home.signin-failed": "This link has expired.",
