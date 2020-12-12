@@ -15,6 +15,8 @@ import { renderQuillToImg } from "../utils/quill-utils";
 import { paths } from "../../hubs/systems/userinput/paths";
 import { chicletGeometry } from "../objects/chiclet-geometry.js";
 
+const SCROLL_SENSITIVITY = 500.0;
+
 AFRAME.registerComponent("media-text", {
   schema: {
     src: { type: "string" },
