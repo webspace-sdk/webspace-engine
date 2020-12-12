@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer } from "react";
+import React, { useState, useReducer } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
@@ -82,25 +82,28 @@ export default function LoginUI({ authChannel, postAuthUrl }) {
     if (flowState.signingIn || flowState.signedIn) return;
     flowDispatch("submit");
     authChannel.setSocket(await connectToReticulum());
-    await authChannel.startAuthentication(email, null, { post_auth_url: postAuthUrl });
+    await authChannel.startAuthentication(email, null, { post_auth_url: postAuthUrl, create: false });
     flowDispatch("finish");
   };
 
   return (
     <form onSubmit={onSubmit}>
       <Wrap>
-        <InputWrap>
-          <Input
-            name="email"
-            type="email"
-            required
-            placeholder="Your email address"
-            value={email}
-            onFocus={e => handleTextFieldFocus(e.target)}
-            onBlur={() => handleTextFieldBlur()}
-            onChange={e => setEmail(e.target.value)}
-          />
-        </InputWrap>
+        {!flowState.signingIn &&
+          !flowState.signedIn && (
+            <InputWrap>
+              <Input
+                name="email"
+                type="email"
+                required
+                placeholder="Your email address"
+                value={email}
+                onFocus={e => handleTextFieldFocus(e.target)}
+                onBlur={() => handleTextFieldBlur()}
+                onChange={e => setEmail(e.target.value)}
+              />
+            </InputWrap>
+          )}
         {flowState.signingIn && <DotSpinner style={{ transform: "scale(0.4)" }} />}
         {flowState.signedIn && (
           <Status>
