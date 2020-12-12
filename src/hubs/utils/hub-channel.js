@@ -1,7 +1,6 @@
 import jwtDecode from "jwt-decode";
 import { EventTarget } from "event-target-shim";
 import { Presence } from "phoenix";
-import { migrateChannelToSocket, unbindPresence } from "./phoenix-utils";
 
 export default class HubChannel extends EventTarget {
   constructor(store) {
@@ -32,13 +31,6 @@ export default class HubChannel extends EventTarget {
     // This now exists in room settings but a default is left here to support old reticulum servers
     const DEFAULT_ROOM_SIZE = 24;
     return roomEntrySlotCount < (hub.room_size !== undefined ? hub.room_size : DEFAULT_ROOM_SIZE);*/
-  }
-
-  // Migrates this channel to a new phoenix channel and presence
-  async migrateToSocket(socket, params) {
-    const rebindPresence = unbindPresence(this.presence);
-    this.channel = await migrateChannelToSocket(this.channel, socket, params);
-    this.presence = rebindPresence(this.channel);
   }
 
   bind = (channel, hubId) => {

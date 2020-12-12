@@ -147,7 +147,7 @@ const createHubChannelParams = () => {
 };
 
 const migrateToNewDynaServer = async deployNotification => {
-  const { authChannel, linkChannel, hubChannel, dynaChannel, spaceChannel } = window.APP;
+  const { dynaChannel } = window.APP;
 
   // On Reticulum deploys, reconnect after a random delay until pool + version match deployed version/pool
   console.log(`Dyna deploy detected on ${deployNotification.dyna_pool}`);
@@ -165,19 +165,9 @@ const migrateToNewDynaServer = async deployNotification => {
         ) {
           console.log("Dyna reconnecting.");
           clearInterval(dynaDeployReconnectInterval);
-          const oldSocket = dynaChannel.channel.socket;
-          const socket = await connectToReticulum(isDebug, oldSocket.params());
-          await dynaChannel.migrateToSocket(socket, createDynaChannelParams());
-          await spaceChannel.migrateToSocket(socket, createSpaceChannelParams());
-          await hubChannel.migrateToSocket(socket, createHubChannelParams());
-          authChannel.setSocket(socket);
-          linkChannel.setSocket(socket);
-
-          // Disconnect old socket after a delay to ensure this user is always registered in presence.
-          setTimeout(() => {
-            console.log("Reconnection complete. Disconnecting old dyna socket.");
-            oldSocket.teardown();
-          }, 10000);
+          const socket = dynaChannel.channel.socket;
+          await new Promise(res => socket.disconnect(res));
+          await connectToReticulum(isDebug, socket.params(), null, socket);
 
           res();
         }

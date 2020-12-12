@@ -1,5 +1,4 @@
 import { EventTarget } from "event-target-shim";
-import { migrateChannelToSocket } from "../../hubs/utils/phoenix-utils";
 
 const VALID_PERMISSIONS = [];
 
@@ -19,11 +18,6 @@ export default class DynaChannel extends EventTarget {
   can(permission) {
     if (!VALID_PERMISSIONS.includes(permission)) throw new Error(`Invalid permission name: ${permission}`);
     return this._permissions && this._permissions[permission];
-  }
-
-  // Migrates this channel to a new phoenix channel and presence
-  async migrateToSocket(socket, params) {
-    this.channel = await migrateChannelToSocket(this.channel, socket, params);
   }
 
   bind = channel => {

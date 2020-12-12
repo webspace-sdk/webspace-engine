@@ -21,13 +21,6 @@ export default class SpaceChannel extends EventTarget {
     return window.APP.spaceMetadata.can(permission, this.spaceId);
   }
 
-  // Migrates this channel to a new phoenix channel and presence
-  async migrateToSocket(socket, params) {
-    const rebindPresence = unbindPresence(this.presence);
-    this.channel = await migrateChannelToSocket(this.channel, socket, params);
-    this.presence = rebindPresence(this.channel);
-  }
-
   bind = (channel, spaceId) => {
     this.channel = channel;
     this.presence = new Presence(channel);
