@@ -182,7 +182,7 @@
   "chat-log.leave": "left this World.",
   "chat-log.display_name_changed": "is now known as",
   "chat-log.display_name_changed_end": ".",
-  "chat.placeholder": "Type a message to send. Press enter to close.",
+  "chat.placeholder": "Type a message to send. Press Enter to toggle.",
   "chat.default-name": "New Member",
   "home-hub.info": "Only you can access this world."
 }
