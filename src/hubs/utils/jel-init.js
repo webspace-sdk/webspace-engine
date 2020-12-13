@@ -770,10 +770,6 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
 export async function joinHub(socket, history, entryManager, remountUI, remountJelUI) {
   const { hubChannel, hubMetadata } = window.APP;
 
-  if (hubChannel.channel) {
-    hubChannel.leave();
-  }
-
   const hubId = getHubIdFromHistory(history);
   console.log(`Hub ID: ${hubId}`);
 

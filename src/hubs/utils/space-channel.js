@@ -1,7 +1,6 @@
 import jwtDecode from "jwt-decode";
 import { EventTarget } from "event-target-shim";
 import { Presence } from "phoenix";
-import { migrateChannelToSocket, unbindPresence } from "./phoenix-utils";
 
 export default class SpaceChannel extends EventTarget {
   constructor(store) {
@@ -22,6 +21,7 @@ export default class SpaceChannel extends EventTarget {
   }
 
   bind = (channel, spaceId) => {
+    this.leave();
     this.channel = channel;
     this.presence = new Presence(channel);
     this.spaceId = spaceId;
@@ -225,7 +225,10 @@ export default class SpaceChannel extends EventTarget {
   }
 
   leave = () => {
-    this.channel.leave();
+    if (this.channel) {
+      this.channel.leave();
+    }
+
     this.channel = null;
   };
 

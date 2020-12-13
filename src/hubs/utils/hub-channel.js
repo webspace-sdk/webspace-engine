@@ -34,6 +34,7 @@ export default class HubChannel extends EventTarget {
   }
 
   bind = (channel, hubId) => {
+    this.leave();
     this.channel = channel;
     this.presence = new Presence(channel);
     this.hubId = hubId;
