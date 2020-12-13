@@ -336,7 +336,7 @@ export class AvatarSystem {
       const prevViseme = currentVisemes[i];
 
       const hasDirtyColor = dirtyColors[i];
-      if (hasDirtyColor && creatorId && presenceState[creatorId].metas) {
+      if (hasDirtyColor && creatorId && presenceState[creatorId] && presenceState[creatorId].metas) {
         const color = presenceState[creatorId].metas[0].profile.persona.avatar.primary_color;
 
         if (isSelf) {
