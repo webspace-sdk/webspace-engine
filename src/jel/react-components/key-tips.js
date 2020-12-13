@@ -187,7 +187,7 @@ const TIP_DATA = {
     ["run", "H"],
     ["create", "/", "createMenu"],
     ["paste", "L+v"],
-    ["chat", "S", "chat"],
+    ["chat", "E", "chat"],
     ["widen", "H+S", "widen"],
     ["hide", "?"]
   ],
@@ -197,7 +197,7 @@ const TIP_DATA = {
     ["unmute", "L+m", "toggleMuteKey"],
     ["paste", "L+v"],
     ["create", "/", "createMenu"],
-    ["chat", "S", "chat"],
+    ["chat", "E", "chat"],
     ["narrow", "Z|H+S"],
     ["hide", "?"]
   ],
@@ -207,7 +207,7 @@ const TIP_DATA = {
     ["mute", "L+m", "toggleMuteKey"],
     ["paste", "L+v"],
     ["create", "/", "createMenu"],
-    ["chat", "S", "chat"],
+    ["chat", "E", "chat"],
     ["narrow", "Z|H+S"],
     ["hide", "?"]
   ],
@@ -263,6 +263,12 @@ const itemForData = ([label, keys, flag]) => {
           <WideNamedKey key={key}>
             <FormattedMessage id="key-tips.space" />
           </WideNamedKey>
+        );
+      } else if (key === "E") {
+        els.push(
+          <NamedKey key={key}>
+            <FormattedMessage id="key-tips.enter" />
+          </NamedKey>
         );
       } else if (key === "H") {
         els.push(

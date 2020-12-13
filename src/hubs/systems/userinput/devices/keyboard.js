@@ -47,22 +47,25 @@ export class KeyboardDevice {
               }
 
               e.preventDefault();
-            } else {
-              // Space without widen, show or hide chat.
-              if (scene.is("entered")) {
-                if (!isInEditableField()) {
-                  scene.emit("action_chat_entry");
-                  store.handleActivityFlag("chat");
-                  e.preventDefault();
-                } else {
-                  // If space is entered while inside of chat message entry input, and it's empty, blur it.
-                  const el = document.activeElement;
+            }
+          }
+        }
 
-                  if (el.classList.contains("blur-on-empty-space") && el.value === "") {
-                    canvas.focus();
-                    e.preventDefault();
-                  }
-                }
+        // Handle enter here to avoid repeats
+        if (e.type === "keydown" && e.key === "Enter" && !e.repeat) {
+          // Space without widen, show or hide chat.
+          if (scene.is("entered")) {
+            if (!isInEditableField()) {
+              scene.emit("action_chat_entry");
+              store.handleActivityFlag("chat");
+              e.preventDefault();
+            } else {
+              // If space is entered while inside of chat message entry input, and it's empty, blur it.
+              const el = document.activeElement;
+
+              if (el.classList.contains("blur-on-empty-space") && el.value === "") {
+                canvas.focus();
+                e.preventDefault();
               }
             }
           }
