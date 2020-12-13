@@ -718,17 +718,15 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
   console.log(`Space ID: ${spaceId}`);
   remountJelUI({ spaceId });
 
-  dynaChannel.leave();
-
   const dynaPhxChannel = socket.channel(`dyna`, createDynaChannelParams());
   dynaPhxChannel.join().receive("error", res => console.error(res));
-  dynaChannel.bind(dynaPhxChannel);
   dynaPhxChannel.on("notice", async data => {
     // On dyna deploys, reconnect after a random delay until pool + version match deployed version/pool
     if (data.event === "dyna-deploy") {
       await migrateToNewDynaServer(data);
     }
   });
+  dynaChannel.bind(dynaPhxChannel);
 
   spaceMetadata.bind(dynaChannel);
 

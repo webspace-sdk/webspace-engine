@@ -21,6 +21,7 @@ export default class DynaChannel extends EventTarget {
   }
 
   bind = channel => {
+    this.leave();
     this.channel = channel;
   };
 
