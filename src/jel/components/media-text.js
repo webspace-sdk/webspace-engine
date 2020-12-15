@@ -1,5 +1,13 @@
 import Quill from "quill";
-import { getQuill, hasQuill, destroyQuill, EDITOR_WIDTH, EDITOR_HEIGHT } from "../utils/quill-pool";
+import {
+  getQuill,
+  hasQuill,
+  destroyQuill,
+  EDITOR_PADDING_X,
+  EDITOR_PADDING_Y,
+  EDITOR_WIDTH,
+  EDITOR_HEIGHT
+} from "../utils/quill-pool";
 import { getNetworkId } from "../utils/ownership-utils";
 import {
   hasMediaLayer,
@@ -11,7 +19,7 @@ import {
 import { disposeExistingMesh, disposeTexture } from "../../hubs/utils/three-utils";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
-import { renderQuillToImg } from "../utils/quill-utils";
+import { renderQuillToImg, computeQuillContectRect } from "../utils/quill-utils";
 import { paths } from "../../hubs/systems/userinput/paths";
 import { chicletGeometry } from "../objects/chiclet-geometry.js";
 
@@ -182,6 +190,16 @@ AFRAME.registerComponent("media-text", {
     };
 
     renderQuillToImg(this.quill, img);
+
+    const [w, h] = computeQuillContectRect(this.quill);
+    const marginPctX = EDITOR_PADDING_X / EDITOR_WIDTH / 2.0;
+    const marginPctY = EDITOR_PADDING_Y / EDITOR_HEIGHT / 2.0;
+
+    this.texture.repeat.x = Math.min(1.0, w / (EDITOR_WIDTH - EDITOR_PADDING_X));
+    this.texture.repeat.y = Math.min(1.0, h / (EDITOR_HEIGHT - EDITOR_PADDING_Y));
+    this.texture.offset.x = marginPctX;
+    this.texture.offset.y = Math.max(0.0, 1.0 - this.texture.repeat.y - marginPctY);
+    this.texture.needsUpdate = true;
   },
 
   rerenderQuill() {

@@ -52,3 +52,17 @@ export function renderQuillToImg(quill, img) {
 
 export const isInQuillEditor = () =>
   !!(document.activeElement && document.activeElement.classList.contains("ql-editor"));
+
+export function computeQuillContectRect(quill) {
+  const els = quill.container.querySelector(".ql-editor").children;
+  let w = 0,
+    h = 0;
+
+  for (let i = 0; i < els.length; i++) {
+    const el = els[i];
+    w = Math.max(w, el.offsetLeft + el.clientWidth);
+    h = Math.max(h, el.offsetTop + el.clientHeight);
+  }
+
+  return [w, h];
+}

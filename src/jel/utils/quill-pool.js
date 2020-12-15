@@ -14,6 +14,8 @@ import styles from "../../assets/jel/stylesheets/text-editor.scss";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 export const EDITOR_WIDTH = 600;
 export const EDITOR_HEIGHT = Math.floor(EDITOR_WIDTH * 0.5625);
+export const EDITOR_PADDING_X = 15.0;
+export const EDITOR_PADDING_Y = 12.0;
 
 // Create one quill for initial renders of text upon spawn
 // Create one quill for on-screen text editor
@@ -191,22 +193,6 @@ export function destroyQuill(networkId) {
   }
 
   delete quills[networkId];
-}
-
-export function computeQuillContectRect(networkId) {
-  if (!quills[networkId]) return null;
-  const quill = quills[networkId];
-  const els = quill.quill.container.querySelector(".ql-editor").children;
-  let w = 0,
-    h = 0;
-
-  for (let i = 0; i < els.length; i++) {
-    const el = els[i];
-    w = Math.max(w, el.offsetLeft + el.clientWidth);
-    h = Math.max(h, el.offsetTop + el.clientHeight);
-  }
-
-  return [w, h];
 }
 
 export function getQuill(networkId) {
