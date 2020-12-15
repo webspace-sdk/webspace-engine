@@ -158,6 +158,12 @@ export function initQuillPool() {
           width: 100% !important;
 
         }
+
+        .ql-editor p, h1, h2, ul, li {
+          width: fit-content;
+          height: fit-content;
+        }
+
         ${styleTag.innerHTML}
       `;
 
@@ -185,6 +191,22 @@ export function destroyQuill(networkId) {
   }
 
   delete quills[networkId];
+}
+
+export function computeQuillContectRect(networkId) {
+  if (!quills[networkId]) return null;
+  const quill = quills[networkId];
+  const els = quill.quill.container.querySelector(".ql-editor").children;
+  let w = 0,
+    h = 0;
+
+  for (let i = 0; i < els.length; i++) {
+    const el = els[i];
+    w = Math.max(w, el.offsetLeft + el.clientWidth);
+    h = Math.max(h, el.offsetTop + el.clientHeight);
+  }
+
+  return [w, h];
 }
 
 export function getQuill(networkId) {

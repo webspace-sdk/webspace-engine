@@ -1,6 +1,13 @@
 import React, { useEffect } from "react";
 //import Quill from "quill";
-import { EDITOR_WIDTH, EDITOR_HEIGHT, initQuillPool, getQuill, destroyQuill } from "../utils/quill-pool";
+import {
+  computeQuillContectRect,
+  EDITOR_WIDTH,
+  EDITOR_HEIGHT,
+  initQuillPool,
+  getQuill,
+  destroyQuill
+} from "../utils/quill-pool";
 import { renderQuillToImg } from "../utils/quill-utils";
 
 const networkId = "abc";
@@ -17,6 +24,9 @@ export const QuillBasic = () => {
       const quill = getQuill(networkId);
       quill.on("text-change", render);
       const interval = setInterval(() => {
+        const overlay = document.createElement("div");
+        overlay.setAttribute("class", "overlay");
+        quill.container.appendChild(overlay);
         const editor = quill.container.querySelector(`.ql-editor`);
         if (editor) {
           editor.addEventListener("scroll", render);
@@ -44,6 +54,16 @@ export const QuillBasic = () => {
     </div>
   );
 };
+
+setInterval(() => {
+  const [w, h] = computeQuillContectRect(networkId);
+  document
+    .querySelector(".overlay")
+    .setAttribute(
+      "style",
+      `position: absolute; top: 8px; left: 8px; background-color: green; width: ${w}px; height: ${h}px; opacity: 0.4; pointer-events: none;`
+    );
+}, 2500);
 
 export default {
   title: "Quill Pool"
