@@ -4,7 +4,17 @@ import { rgbToCssRgb } from "./dom-utils";
 export function renderQuillToImg(quill, img, foregroundColor, backgroundColor) {
   const el = quill.container;
   const editor = quill.container.querySelector(".ql-editor");
-  let xml = new XMLSerializer().serializeToString(el);
+  const styles = quill.container.querySelector("style");
+  const editorXml = new XMLSerializer().serializeToString(editor);
+  const stylesXml = new XMLSerializer().serializeToString(styles);
+
+  let xml = `
+    <div xmlns="http://www.w3.org/1999/xhtml" class="ql-container ql-bubble">
+    ${editorXml}
+    ${stylesXml}
+    </div>
+  `;
+
   const ratio = el.offsetHeight / el.offsetWidth;
   const textureSize = 1024; // TODO labels should be smaller
   const scale = (textureSize * Math.min(1.0, 1.0 / ratio)) / el.offsetWidth;
@@ -31,10 +41,6 @@ export function renderQuillToImg(quill, img, foregroundColor, backgroundColor) {
       color: ${fgCss} !important;
       background-color: ${bgCss} !important;
     )}, 1.0) !important;
-    }
-
-    .ql-tooltip {
-      display: none;
     }
 
     .ql-blank::before {

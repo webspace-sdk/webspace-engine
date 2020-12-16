@@ -166,7 +166,9 @@ AFRAME.registerComponent("media-text", {
             // Conversion will add trailing newline, which we don't want.
             const op = delta.ops[delta.ops.length - 1];
 
-            if (op.insert === "\n") {
+            // This doesn't fix all trailing newlines, for example a one-line label will
+            // have a newline when cloned
+            if (op.insert === "\n" && !op.attributes) {
               delta.ops.pop();
             }
           }

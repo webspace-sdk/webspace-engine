@@ -178,13 +178,18 @@ export function initQuillPool() {
         }
 
         .ql-emojiblot {
-          line-height: 100%;
-          padding: 0px 4px;
+          line-height: 100% !important;
+          margin: 0px 4px !important;
+        }
+
+        h1 .ap {
+          font-size: 32px !important;
+          margin: 0px 4px !important;
         }
 
         h2 .ap {
-          width: 32px;
-          height: 32px;
+          font-size: 24px !important;
+          margin: 0px 2px !important;
         }
 
         ${styleTag.innerHTML}
