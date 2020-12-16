@@ -38,6 +38,7 @@ AFRAME.registerComponent("media-text", {
     this.rerenderQuill = this.rerenderQuill.bind(this);
     this.localSnapCount = 0;
     this.isSnapping = false;
+    this.firedTextLoadedEvent = false;
 
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
@@ -153,9 +154,6 @@ AFRAME.registerComponent("media-text", {
           this.quill.updateContents(delta, Quill.sources.USER);
         }
       }
-
-      // TODO move after first frame loaded
-      this.el.emit("text-loaded", { src: this.data.src });
     } catch (e) {
       this.el.emit("text-error", { src: this.data.src });
       throw e;
@@ -180,6 +178,11 @@ AFRAME.registerComponent("media-text", {
     if (this.renderNextFrame && this.quill) {
       this.renderNextFrame = false;
       this.render();
+
+      if (!this.firedTextLoadedEvent) {
+        this.firedTextLoadedEvent = true;
+        this.el.emit("text-loaded", { src: this.data.src });
+      }
     }
   },
 
