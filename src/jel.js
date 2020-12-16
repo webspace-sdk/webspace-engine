@@ -531,7 +531,10 @@ function addGlobalEventListeners(scene, entryManager) {
         }
         break;
       case "page":
-        scene.emit("add_media_contents", "");
+        scene.emit("add_media_text", "page");
+        break;
+      case "label":
+        scene.emit("add_media_text", "label");
         break;
       case "video_embed":
       case "image_embed":

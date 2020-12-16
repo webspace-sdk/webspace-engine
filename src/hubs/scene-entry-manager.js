@@ -197,7 +197,7 @@ export default class SceneEntryManager {
 
   _setupMedia = () => {
     const offset = { x: 0, y: 0, z: -1.5 };
-    const spawnMediaInfrontOfPlayer = (src, contents, contentOrigin) => {
+    const spawnMediaInfrontOfPlayer = (src, contents, contentOrigin, contentSubtype = null) => {
       if (!this.hubChannel.can("spawn_and_move_media")) return;
       if (src instanceof File && !this.hubChannel.can("upload_files")) return;
 
@@ -206,7 +206,7 @@ export default class SceneEntryManager {
         contents,
         "#interactable-media",
         contentOrigin,
-        null,
+        contentSubtype,
         !!(src && !(src instanceof MediaStream)),
         true
       );
@@ -227,8 +227,8 @@ export default class SceneEntryManager {
       spawnMediaInfrontOfPlayer(e.detail, null, contentOrigin);
     });
 
-    this.scene.addEventListener("add_media_contents", e => {
-      spawnMediaInfrontOfPlayer(null, e.detail, null);
+    this.scene.addEventListener("add_media_text", e => {
+      spawnMediaInfrontOfPlayer(null, "", null, e.detail);
     });
 
     this.scene.addEventListener("object_spawned", e => {

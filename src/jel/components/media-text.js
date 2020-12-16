@@ -30,7 +30,7 @@ AFRAME.registerComponent("media-text", {
   schema: {
     src: { type: "string" },
     deltaOps: { default: null },
-    fitContent: { default: true }
+    fitContent: { default: false }
   },
 
   async init() {

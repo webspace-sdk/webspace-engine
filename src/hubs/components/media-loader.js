@@ -433,7 +433,7 @@ AFRAME.registerComponent("media-loader", {
 
         this.el.addEventListener("text-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
 
-        this.el.setAttribute("media-text", { src: accessibleUrl });
+        this.el.setAttribute("media-text", { src: accessibleUrl, fitContent: contentSubtype === "label" });
       } else if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||
