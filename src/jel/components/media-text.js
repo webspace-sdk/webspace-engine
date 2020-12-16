@@ -113,13 +113,14 @@ AFRAME.registerComponent("media-text", {
         this.texture.minFilter = THREE.LinearFilter;
 
         // Stencil out text so we don't FXAA it.
-        const mat = new THREE.MeshBasicMaterial({
+        const mat = new THREE.MeshStandardMaterial({
           stencilWrite: true,
           stencilFunc: THREE.AlwaysStencilFunc,
           stencilRef: 1,
           stencilZPass: THREE.ReplaceStencilOp
         });
         mat.color = new THREE.Color(0xffffff);
+        mat.emissive = new THREE.Color(0.5, 0.5, 0.5);
         addVertexCurvingToMaterial(mat);
         const geo = (await chicletGeometry).clone();
         mat.side = THREE.DoubleSide;
@@ -128,13 +129,10 @@ AFRAME.registerComponent("media-text", {
         this.mesh.castShadow = true;
         this.mesh.renderOrder = RENDER_ORDER.MEDIA;
         this.mesh.material.map = this.texture;
+        this.mesh.material.emissiveMap = this.texture;
         this.el.setObject3D("mesh", this.mesh);
 
-        if (this.data.fitContent) {
-          // The mesh is continually scaled to fit content, start it
-          // out with proper aspect ratio for tooltip.
-          this.mesh.scale.y = 9.0 / 16.0;
-        } else {
+        if (!this.data.fitContent) {
           scaleToAspectRatio(this.el, 9.0 / 16.0);
         }
       }
@@ -151,6 +149,16 @@ AFRAME.registerComponent("media-text", {
 
         if (initialContents) {
           const delta = this.quill.clipboard.convert(initialContents);
+
+          if (delta.ops.length > 1) {
+            // Conversion will add trailing newline, which we don't want.
+            const op = delta.ops[delta.ops.length - 1];
+
+            if (op.insert === "\n") {
+              delta.ops.pop();
+            }
+          }
+
           this.quill.updateContents(delta, Quill.sources.USER);
         }
       }

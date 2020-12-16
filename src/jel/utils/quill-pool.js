@@ -158,7 +158,7 @@ export function initQuillPool() {
           font-family: Lato, Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !important;
           font-size: 1.5em !important;
           width: 100% !important;
-
+          padding: 16px 20px !important;
         }
 
         .ql-editor p, h1, h2, ul, li {
