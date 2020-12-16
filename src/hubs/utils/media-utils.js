@@ -650,7 +650,9 @@ export function removeMediaElement(el) {
     window.APP.hubChannel.setFileInactive(fileId);
   }
 
-  el.parentNode.removeChild(el);
+  if (el.parentNode) {
+    el.parentNode.removeChild(el);
+  }
 }
 
 export function getMediaViewComponent(el) {

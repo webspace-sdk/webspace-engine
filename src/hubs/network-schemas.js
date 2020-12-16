@@ -122,6 +122,10 @@ function registerNetworkSchemas() {
         subtype: "rich-text"
       },
       {
+        component: "media-text",
+        property: "fitContent"
+      },
+      {
         component: "media-loader",
         property: "fitToBox"
       },

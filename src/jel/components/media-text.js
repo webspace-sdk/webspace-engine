@@ -24,11 +24,13 @@ import { paths } from "../../hubs/systems/userinput/paths";
 import { chicletGeometry } from "../objects/chiclet-geometry.js";
 
 const SCROLL_SENSITIVITY = 500.0;
+const FIT_CONTENT_EXTRA_SCALE = 1.5;
 
 AFRAME.registerComponent("media-text", {
   schema: {
     src: { type: "string" },
-    deltaOps: { default: null }
+    deltaOps: { default: null },
+    fitContent: { default: true }
   },
 
   async init() {
@@ -116,6 +118,7 @@ AFRAME.registerComponent("media-text", {
           stencilRef: 1,
           stencilZPass: THREE.ReplaceStencilOp
         });
+        mat.color = new THREE.Color(0xffffff);
         addVertexCurvingToMaterial(mat);
         const geo = (await chicletGeometry).clone();
         mat.side = THREE.DoubleSide;
@@ -125,7 +128,14 @@ AFRAME.registerComponent("media-text", {
         this.mesh.renderOrder = RENDER_ORDER.MEDIA;
         this.mesh.material.map = this.texture;
         this.el.setObject3D("mesh", this.mesh);
-        scaleToAspectRatio(this.el, 9.0 / 16.0); // TODO 1080p is default
+
+        if (this.data.fitContent) {
+          // The mesh is continually scaled to fit content, start it
+          // out with proper aspect ratio for tooltip.
+          this.mesh.scale.y = 9.0 / 16.0;
+        } else {
+          scaleToAspectRatio(this.el, 9.0 / 16.0);
+        }
       }
 
       this.el.emit("text-loading");
@@ -191,15 +201,31 @@ AFRAME.registerComponent("media-text", {
 
     renderQuillToImg(this.quill, img);
 
-    const [w, h] = computeQuillContectRect(this.quill);
-    const marginPctX = EDITOR_PADDING_X / EDITOR_WIDTH / 2.0;
-    const marginPctY = EDITOR_PADDING_Y / EDITOR_HEIGHT / 2.0;
+    if (this.data.fitContent) {
+      const [w, h] = computeQuillContectRect(this.quill);
 
-    this.texture.repeat.x = Math.min(1.0, w / (EDITOR_WIDTH - EDITOR_PADDING_X));
-    this.texture.repeat.y = Math.min(1.0, h / (EDITOR_HEIGHT - EDITOR_PADDING_Y));
-    this.texture.offset.x = marginPctX;
-    this.texture.offset.y = Math.max(0.0, 1.0 - this.texture.repeat.y - marginPctY);
-    this.texture.needsUpdate = true;
+      if (w <= EDITOR_PADDING_X) {
+        // No text - show placeholder
+        this.texture.repeat.x = 1.0;
+        this.texture.repeat.y = 1.0;
+        this.texture.offset.x = 0.0;
+        this.texture.offset.y = 0.0;
+        this.mesh.scale.y = 9.0 / 16.0;
+      } else {
+        const marginPctX = EDITOR_PADDING_X / EDITOR_WIDTH / 2.0;
+        const marginPctY = EDITOR_PADDING_Y / EDITOR_HEIGHT / 2.0;
+
+        this.texture.repeat.x = Math.min(1.0, w / (EDITOR_WIDTH - EDITOR_PADDING_X));
+        this.texture.repeat.y = Math.min(1.0, h / (EDITOR_HEIGHT - EDITOR_PADDING_Y));
+        this.texture.offset.x = marginPctX;
+        this.texture.offset.y = Math.max(0.0, 1.0 - this.texture.repeat.y - marginPctY);
+        this.mesh.scale.x = this.texture.repeat.x * 2.0 * FIT_CONTENT_EXTRA_SCALE;
+        this.mesh.scale.y = this.texture.repeat.y * FIT_CONTENT_EXTRA_SCALE;
+      }
+
+      this.mesh.matrixNeedsUpdate = true;
+      this.texture.needsUpdate = true;
+    }
   },
 
   rerenderQuill() {
