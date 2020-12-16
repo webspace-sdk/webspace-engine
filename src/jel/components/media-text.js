@@ -129,7 +129,8 @@ AFRAME.registerComponent("media-text", {
         mat.color = new THREE.Color(0xffffff);
 
         // TODO emissive should be set based upon background color
-        mat.emissive = new THREE.Color(1.0, 1.0, 1.0);
+        // Use basic material when background is light, but light it if darker
+        mat.emissive = new THREE.Color(0.25, 0.25, 0.25);
         addVertexCurvingToMaterial(mat);
         const geo = (await chicletGeometry).clone();
         mat.side = THREE.DoubleSide;
@@ -144,6 +145,8 @@ AFRAME.registerComponent("media-text", {
         if (!this.data.fitContent) {
           scaleToAspectRatio(this.el, 9.0 / 16.0);
         }
+
+        this.rerenderQuill();
       }
 
       this.el.emit("text-loading");

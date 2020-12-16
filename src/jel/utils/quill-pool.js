@@ -5,23 +5,14 @@ hljs.registerLanguage("javascript", javascript);
 import "highlight.js/styles/github.css";
 import "quill-emoji/dist/quill-emoji.css";
 import { getMessages } from "../../hubs/utils/i18n";
+import emojiMapData from "../../assets/jel/images/emoji-map.png";
 
 hljs.configure({
   languages: ["javascript"]
 });
 
-import QuillEmoji from "quill-emoji";
+import "quill-emoji";
 import Quill from "quill";
-
-Quill.register(
-  {
-    "formats/emoji": QuillEmoji.EmojiBlot,
-    "modules/emoji-shortname": QuillEmoji.ShortNameEmoji,
-    "modules/emoji-toolbar": QuillEmoji.ToolbarEmoji,
-    "modules/emoji-textarea": QuillEmoji.TextAreaEmoji
-  },
-  true
-);
 
 import styles from "../../assets/jel/stylesheets/text-editor.scss";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
@@ -181,6 +172,12 @@ export function initQuillPool() {
           height: fit-content;
         }
 
+        /* Emoji */
+        .ap {
+          display: inline !important;
+          background-image: none !important;
+        }
+
         ${styleTag.innerHTML}
       `;
 
@@ -230,14 +227,19 @@ export function getQuill(networkId) {
   ); // TODO JEL styling based upon colors
   el.prepend(editor);
 
-  const toolbar = [
-    [{ header: 1 }, { header: 2 }], // custom button values
-    ["bold", "italic", "underline", "strike"], // toggled buttons
-    ["code-block"],
+  const toolbar = {
+    container: [
+      [{ header: 1 }, { header: 2 }], // custom button values
+      ["bold", "italic", "underline", "strike"], // toggled buttons
+      ["emoji"],
+      ["code-block"],
 
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ align: [] }]
-  ];
+      [{ list: "ordered" }, { list: "bullet" }],
+      [{ align: [] }]
+    ],
+    handlers: { emoji: function() {} }
+  };
+
   document.querySelector("#jel-ui-wrap").appendChild(el);
   const messages = getMessages();
 
@@ -247,7 +249,10 @@ export function getQuill(networkId) {
         /*
          * TODO highlighting - need to inline CSS
          * syntax: { highlight: c => hljs.highlightAuto(c).value }, */
-        toolbar
+        toolbar,
+        "emoji-toolbar": true,
+        "emoji-textarea": true,
+        "emoji-shortname": true
       },
       theme: "bubble",
       placeholder: messages["text-editor.placeholder"]
