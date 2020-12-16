@@ -122,10 +122,6 @@ function registerNetworkSchemas() {
         subtype: "rich-text"
       },
       {
-        component: "media-text",
-        property: "fitContent"
-      },
-      {
         component: "media-loader",
         property: "fitToBox"
       },
@@ -160,6 +156,18 @@ function registerNetworkSchemas() {
       {
         component: "media-loader",
         property: "mediaLayer"
+      },
+      {
+        component: "media-text",
+        property: "fitContent"
+      },
+      {
+        component: "media-text",
+        property: "foregroundColor"
+      },
+      {
+        component: "media-text",
+        property: "backgroundColor"
       }
     ],
     nonAuthorizedComponents: [
