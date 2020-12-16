@@ -3,19 +3,34 @@ import "../../assets/jel/stylesheets/quill-pool.scss";
 import javascript from "highlight.js/lib/languages/javascript";
 hljs.registerLanguage("javascript", javascript);
 import "highlight.js/styles/github.css";
+import "quill-emoji/dist/quill-emoji.css";
 import { getMessages } from "../../hubs/utils/i18n";
 
 hljs.configure({
   languages: ["javascript"]
 });
 
+import QuillEmoji from "quill-emoji";
 import Quill from "quill";
+
+Quill.register(
+  {
+    "formats/emoji": QuillEmoji.EmojiBlot,
+    "modules/emoji-shortname": QuillEmoji.ShortNameEmoji,
+    "modules/emoji-toolbar": QuillEmoji.ToolbarEmoji,
+    "modules/emoji-textarea": QuillEmoji.TextAreaEmoji
+  },
+  true
+);
+
 import styles from "../../assets/jel/stylesheets/text-editor.scss";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
+
 export const EDITOR_WIDTH = 600;
 export const EDITOR_HEIGHT = Math.floor(EDITOR_WIDTH * 0.5625);
-export const EDITOR_PADDING_X = 15.0;
-export const EDITOR_PADDING_Y = 12.0;
+
+export const EDITOR_PADDING_X = 16.0;
+export const EDITOR_PADDING_Y = 20.0;
 
 // Create one quill for initial renders of text upon spawn
 // Create one quill for on-screen text editor

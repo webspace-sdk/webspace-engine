@@ -1,12 +1,19 @@
 import { fromByteArray } from "base64-js";
+import { rgbToCssRgb } from "./dom-utils";
 
-export function renderQuillToImg(quill, img) {
+export function renderQuillToImg(quill, img, foregroundColor, backgroundColor) {
   const el = quill.container;
   const editor = quill.container.querySelector(".ql-editor");
   let xml = new XMLSerializer().serializeToString(el);
   const ratio = el.offsetHeight / el.offsetWidth;
   const textureSize = 1024; // TODO labels should be smaller
   const scale = (textureSize * Math.min(1.0, 1.0 / ratio)) / el.offsetWidth;
+  const fgCss = `rgba(${rgbToCssRgb(foregroundColor.x)}, ${rgbToCssRgb(foregroundColor.y)}, ${rgbToCssRgb(
+    foregroundColor.z
+  )}, 1.0)`;
+  const bgCss = `rgba(${rgbToCssRgb(backgroundColor.x)}, ${rgbToCssRgb(backgroundColor.y)}, ${rgbToCssRgb(
+    backgroundColor.z
+  )}, 1.0)`;
 
   // Disable other bits only relevant to on-screen UI
   // NOTE - not sure why global h1, h2 bits needed here, but otherwise font is always bold in headers.
@@ -21,6 +28,9 @@ export function renderQuillToImg(quill, img) {
       position: absolute;
       overflow: visible !important;
       top: -${editor.scrollTop}px;
+      color: ${fgCss} !important;
+      background-color: ${bgCss} !important;
+    )}, 1.0) !important;
     }
 
     .ql-tooltip {

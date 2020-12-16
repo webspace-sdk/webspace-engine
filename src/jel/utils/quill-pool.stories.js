@@ -17,7 +17,7 @@ export const QuillBasic = () => {
     const render = () => {
       const quill = getQuill(networkId);
       const img = document.querySelector("#editor-image");
-      renderQuillToImg(quill, img);
+      renderQuillToImg(quill, img, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1 });
     };
 
     initQuillPool().then(() => {
@@ -54,16 +54,6 @@ export const QuillBasic = () => {
     </div>
   );
 };
-
-setInterval(() => {
-  const [w, h] = computeQuillContectRect(networkId);
-  document
-    .querySelector(".overlay")
-    .setAttribute(
-      "style",
-      `position: absolute; top: 8px; left: 8px; background-color: green; width: ${w}px; height: ${h}px; opacity: 0.4; pointer-events: none;`
-    );
-}, 2500);
 
 export default {
   title: "Quill Pool"

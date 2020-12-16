@@ -16,7 +16,7 @@ import {
   MEDIA_PRESENCE,
   MEDIA_INTERACTION_TYPES
 } from "../../hubs/utils/media-utils";
-import { disposeExistingMesh, disposeTexture } from "../../hubs/utils/three-utils";
+import { disposeExistingMesh, disposeTexture, almostEqualVec3 } from "../../hubs/utils/three-utils";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
 import { renderQuillToImg, computeQuillContectRect } from "../utils/quill-utils";
@@ -30,7 +30,9 @@ AFRAME.registerComponent("media-text", {
   schema: {
     src: { type: "string" },
     deltaOps: { default: null },
-    fitContent: { default: false }
+    fitContent: { default: false },
+    foregroundColor: { type: "vec3", default: { x: 0, y: 0, z: 0 } },
+    backgroundColor: { type: "vec3", default: { x: 1, y: 1, z: 1 } }
   },
 
   async init() {
@@ -46,22 +48,27 @@ AFRAME.registerComponent("media-text", {
   },
 
   async update(oldData) {
-    const { src } = this.data;
+    const { src, foregroundColor, backgroundColor } = this.data;
     if (!src) return;
 
     const refresh = src !== oldData.src;
 
-    // TODO JEL when other attriutes change here like color, etc, update.
-    /*if (mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT) {
-      this.updateColorEtc
-    }*/
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
 
     const hasLayer = hasMediaLayer(this.el);
 
     if (!hasLayer || refresh) {
-      const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
       const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
       this.setMediaPresence(newMediaPresence, refresh);
+    }
+
+    if (mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT) {
+      if (
+        !almostEqualVec3(oldData.foregroundColor, foregroundColor) ||
+        !almostEqualVec3(oldData.backgroundColor, backgroundColor)
+      ) {
+        this.rerenderQuill();
+      }
     }
   },
 
@@ -120,7 +127,9 @@ AFRAME.registerComponent("media-text", {
           stencilZPass: THREE.ReplaceStencilOp
         });
         mat.color = new THREE.Color(0xffffff);
-        mat.emissive = new THREE.Color(0.5, 0.5, 0.5);
+
+        // TODO emissive should be set based upon background color
+        mat.emissive = new THREE.Color(1.0, 1.0, 1.0);
         addVertexCurvingToMaterial(mat);
         const geo = (await chicletGeometry).clone();
         mat.side = THREE.DoubleSide;
@@ -199,7 +208,7 @@ AFRAME.registerComponent("media-text", {
     const scrollDistance = Math.floor(-amount * SCROLL_SENSITIVITY);
     this.quill.container.querySelector(".ql-editor").scrollBy(0, scrollDistance);
 
-    this.renderNextFrame = true;
+    this.rerenderQuill();
   },
 
   render() {
@@ -210,24 +219,25 @@ AFRAME.registerComponent("media-text", {
       this.texture.needsUpdate = this.mesh.material.needsUpdate = true;
     };
 
-    renderQuillToImg(this.quill, img);
+    renderQuillToImg(this.quill, img, this.data.foregroundColor, this.data.backgroundColor);
 
     if (this.data.fitContent) {
       const [w, h] = computeQuillContectRect(this.quill);
 
-      if (w <= EDITOR_PADDING_X) {
+      if (w <= EDITOR_PADDING_X + 4.0) {
         // No text - show placeholder
         this.texture.repeat.x = 1.0;
         this.texture.repeat.y = 1.0;
         this.texture.offset.x = 0.0;
         this.texture.offset.y = 0.0;
+        this.mesh.scale.x = 1.0;
         this.mesh.scale.y = 9.0 / 16.0;
       } else {
         const marginPctX = EDITOR_PADDING_X / EDITOR_WIDTH / 2.0;
-        const marginPctY = EDITOR_PADDING_Y / EDITOR_HEIGHT / 2.0;
+        const marginPctY = EDITOR_PADDING_Y / EDITOR_HEIGHT / 4.0;
 
         this.texture.repeat.x = Math.min(1.0, w / (EDITOR_WIDTH - EDITOR_PADDING_X));
-        this.texture.repeat.y = Math.min(1.0, h / (EDITOR_HEIGHT - EDITOR_PADDING_Y));
+        this.texture.repeat.y = Math.min(1.0, h / (EDITOR_HEIGHT - EDITOR_PADDING_Y / 2.0));
         this.texture.offset.x = marginPctX;
         this.texture.offset.y = Math.max(0.0, 1.0 - this.texture.repeat.y - marginPctY);
         this.mesh.scale.x = this.texture.repeat.x * 2.0 * FIT_CONTENT_EXTRA_SCALE;
@@ -329,7 +339,7 @@ AFRAME.registerComponent("media-text", {
         });
       };
 
-      renderQuillToImg(this.quill, img);
+      renderQuillToImg(this.quill, img, this.data.foregroundColor, this.data.backgroundColor);
     }
   }
 });
