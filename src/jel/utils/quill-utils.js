@@ -76,3 +76,13 @@ export function computeQuillContectRect(quill) {
 
   return [w, h];
 }
+
+export function deltaEndsWith(delta, text) {
+  let endText = "";
+  for (let i = delta.ops.length - 1; i >= 0 && endText.length < text.length; --i) {
+    const op = delta.ops[i];
+    if (typeof op.insert !== "string") break;
+    endText = op.insert + endText;
+  }
+  return endText.slice(-1 * text.length) === text;
+}

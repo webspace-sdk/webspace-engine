@@ -5,7 +5,6 @@ hljs.registerLanguage("javascript", javascript);
 import "highlight.js/styles/github.css";
 import "quill-emoji/dist/quill-emoji.css";
 import { getMessages } from "../../hubs/utils/i18n";
-import emojiMapData from "../../assets/jel/images/emoji-map.png";
 
 hljs.configure({
   languages: ["javascript"]
@@ -172,10 +171,20 @@ export function initQuillPool() {
           height: fit-content;
         }
 
-        /* Emoji */
+        /* Emoji tweaks - drop background bc of SVG security */
         .ap {
           display: inline !important;
           background-image: none !important;
+        }
+
+        .ql-emojiblot {
+          line-height: 100%;
+          padding: 0px 4px;
+        }
+
+        h2 .ap {
+          width: 32px;
+          height: 32px;
         }
 
         ${styleTag.innerHTML}
