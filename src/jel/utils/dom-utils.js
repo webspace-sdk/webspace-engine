@@ -1,7 +1,12 @@
 const editableTagNames = ["TEXTAREA", "INPUT"];
 export const isInEditableField = () =>
   editableTagNames.includes(document.activeElement && document.activeElement.nodeName) ||
-  (document.activeElement && document.activeElement.contentEditable === "true");
+  (document.activeElement &&
+    (document.activeElement.contentEditable === "true" ||
+      // Hacky, include emoji selector
+      (document.activeElement.parentElement &&
+        document.activeElement.parentElement.parentElement &&
+        document.activeElement.parentElement.parentElement.classList.contains("emoji_completions"))));
 
 export const isFocusedWithin = el => {
   let isFocusedWithin = false;
