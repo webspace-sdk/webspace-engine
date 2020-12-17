@@ -163,11 +163,13 @@ function registerNetworkSchemas() {
       },
       {
         component: "media-text",
-        property: "foregroundColor"
+        property: "foregroundColor",
+        requiresNetworkUpdate: vectorRequiresUpdate(0.01)
       },
       {
         component: "media-text",
-        property: "backgroundColor"
+        property: "backgroundColor",
+        requiresNetworkUpdate: vectorRequiresUpdate(0.01)
       }
     ],
     nonAuthorizedComponents: [
