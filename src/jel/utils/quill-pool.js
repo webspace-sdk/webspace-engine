@@ -264,7 +264,6 @@ export function getQuill(networkId) {
          * TODO highlighting - need to inline CSS
          * syntax: { highlight: c => hljs.highlightAuto(c).value }, */
         toolbar,
-        "emoji-toolbar": true,
         "emoji-textarea": true,
         "emoji-shortname": true
       },
