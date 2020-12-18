@@ -31,6 +31,10 @@ export function renderQuillToImg(quill, img, foregroundColor, backgroundColor, z
   xml = xml.replace(
     "</style>",
     `
+    :root {
+      background-color: ${bgCss} !important;
+    }
+
     .ql-container {
       border-radius: 0 !important;
     }
@@ -40,7 +44,6 @@ export function renderQuillToImg(quill, img, foregroundColor, backgroundColor, z
       overflow: visible !important;
       top: -${editor.scrollTop}px;
       color: ${fgCss} !important;
-      background-color: ${bgCss} !important;
       width: ${EDITOR_WIDTH}px !important;
       height: ${EDITOR_HEIGHT}px !important;
     }
