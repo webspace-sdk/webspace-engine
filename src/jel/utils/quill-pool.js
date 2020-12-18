@@ -169,7 +169,10 @@ export function initQuillPool() {
 
         .ql-editor p, h1, h2, ul, li {
           width: fit-content;
-          height: fit-content;
+        }
+
+        .ql-editor .ql-align-right,.ql-align-justify,.ql-align-center {
+          width: 100% !important;
         }
 
         /* Emoji tweaks - drop background bc of SVG security */
