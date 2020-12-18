@@ -749,7 +749,6 @@ AFRAME.registerComponent("media-video", {
           geometry.scale(-1, 1, 1);
         } else {
           geometry = (await chicletGeometry).clone();
-          material.side = THREE.DoubleSide;
         }
 
         this.mesh = new THREE.Mesh(geometry, material);
@@ -1320,7 +1319,6 @@ AFRAME.registerComponent("media-image", {
           }
         } else {
           geometry = (texture.flipY ? await chicletGeometry : await chicletGeometryFlipped).clone();
-          material.side = THREE.DoubleSide;
         }
 
         this.mesh = new THREE.Mesh(geometry, material);
@@ -1600,7 +1598,6 @@ AFRAME.registerComponent("media-pdf", {
         addVertexCurvingToMaterial(material);
 
         const geometry = (texture.flipY ? await chicletGeometry : await chicletGeometryFlipped).clone();
-        material.side = THREE.DoubleSide;
 
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.castShadow = true;

@@ -70,7 +70,8 @@ AFRAME.registerComponent("media-text", {
     deltaOps: { default: null },
     fitContent: { default: false },
     foregroundColor: { type: "vec3", default: { x: 0, y: 0, z: 0 } },
-    backgroundColor: { type: "vec3", default: { x: 1, y: 1, z: 1 } }
+    backgroundColor: { type: "vec3", default: { x: 1, y: 1, z: 1 } },
+    transparent: { default: false }
   },
 
   async init() {
@@ -152,7 +153,7 @@ AFRAME.registerComponent("media-text", {
 
       mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
 
-      const { src } = this.data;
+      const { src, transparent } = this.data;
       if (!src) return;
 
       if (!this.mesh) {
@@ -163,14 +164,18 @@ AFRAME.registerComponent("media-text", {
         this.texture.minFilter = THREE.LinearFilter;
 
         // Stencil out unlit text so we don't FXAA it.
-        this.unlitMat = new THREE.MeshBasicMaterial({
-          stencilWrite: true,
-          stencilFunc: THREE.AlwaysStencilFunc,
-          stencilRef: 1,
-          stencilZPass: THREE.ReplaceStencilOp
-        });
-        this.unlitMat.side = THREE.DoubleSide;
+        this.unlitMat = new THREE.MeshBasicMaterial();
+
+        if (!this.data.transparent) {
+          this.unlitMat.stencilWrite = true;
+          this.unlitMat.stencilFunc = THREE.AlwaysStencilFunc;
+          this.unlitMat.stencilRef = 1;
+          this.unlitMat.stencilZPass = THREE.ReplaceStencilOp;
+        }
+
         this.unlitMat.map = this.texture;
+        this.unlitMat.transparent = !!transparent;
+        this.unlitMat.alphaTest = transparent ? 0.1 : null;
 
         addVertexCurvingToMaterial(this.unlitMat);
 
@@ -180,13 +185,15 @@ AFRAME.registerComponent("media-text", {
         this.litMat.emissive = new THREE.Color(0.25, 0.25, 0.25);
         this.litMat.map = this.texture;
         this.litMat.emissiveMap = this.texture;
+        this.litMat.transparent = !!transparent;
+        this.litMat.alphaTest = transparent ? 0.1 : null;
 
         addVertexCurvingToMaterial(this.litMat);
 
         const geo = (await chicletGeometry).clone();
 
         this.mesh = new THREE.Mesh(geo, this.unlitMat);
-        this.mesh.castShadow = true;
+        this.mesh.castShadow = !transparent;
         this.applyProperMaterialToMesh();
         this.el.setObject3D("mesh", this.mesh);
         this.rerenderQuill();
@@ -344,7 +351,8 @@ AFRAME.registerComponent("media-text", {
       this.data.foregroundColor,
       this.data.backgroundColor,
       this.zoom,
-      this.textureWidth
+      this.textureWidth,
+      !!this.data.transparent
     );
   },
 
@@ -356,12 +364,13 @@ AFRAME.registerComponent("media-text", {
   applyProperMaterialToMesh() {
     // Use unlit material for black on white or white on black to maximize legibility or improve perf.
     if (
+      this.data.transparent ||
       almostEqualVec3(this.data.backgroundColor, MEDIA_TEXT_COLOR_PRESETS[0][0]) ||
       almostEqualVec3(this.data.backgroundColor, MEDIA_TEXT_COLOR_PRESETS[1][0]) ||
       window.APP.detailLevel >= 2
     ) {
       this.mesh.material = this.unlitMat;
-      this.mesh.renderOrder = RENDER_ORDER.MEDIA_NO_FXAA;
+      this.mesh.renderOrder = this.data.transparent ? RENDER_ORDER.MEDIA : RENDER_ORDER.MEDIA_NO_FXAA;
     } else {
       this.mesh.material = this.litMat;
       this.mesh.renderOrder = RENDER_ORDER.MEDIA;
@@ -463,7 +472,8 @@ AFRAME.registerComponent("media-text", {
         this.data.foregroundColor,
         this.data.backgroundColor,
         this.zoom,
-        this.textureWidth
+        this.textureWidth,
+        !!this.data.transparent
       );
     } else if (type === MEDIA_INTERACTION_TYPES.NEXT || type === MEDIA_INTERACTION_TYPES.BACK) {
       const [backgroundColor, foregroundColor, index] =

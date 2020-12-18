@@ -536,6 +536,9 @@ function addGlobalEventListeners(scene, entryManager) {
       case "label":
         scene.emit("add_media_text", "label");
         break;
+      case "banner":
+        scene.emit("add_media_text", "banner");
+        break;
       case "video_embed":
       case "image_embed":
       case "pdf_embed":

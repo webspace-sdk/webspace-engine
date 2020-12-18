@@ -434,7 +434,8 @@ AFRAME.registerComponent("media-loader", {
         this.el.addEventListener("text-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
 
         const fitContent = contentSubtype !== "page";
-        const properties = { src: accessibleUrl, fitContent };
+        const transparent = contentSubtype === "banner";
+        const properties = { src: accessibleUrl, fitContent, transparent };
         const mediaOptions = this.data.mediaOptions;
 
         if (mediaOptions.foregroundColor) {

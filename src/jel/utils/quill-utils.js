@@ -2,10 +2,28 @@ import { fromByteArray } from "base64-js";
 import { rgbToCssRgb } from "./dom-utils";
 import { EDITOR_WIDTH, EDITOR_HEIGHT } from "./quill-pool";
 
-export function renderQuillToImg(quill, img, foregroundColor, backgroundColor, zoom = 1.0, textureWidth = 1024) {
+export function renderQuillToImg(
+  quill,
+  img,
+  foregroundColor,
+  backgroundColor,
+  zoom = 1.0,
+  textureWidth = 1024,
+  transparent = true
+) {
   const el = quill.container;
   const editor = quill.container.querySelector(".ql-editor");
   const styles = quill.container.querySelector("style");
+
+  if (transparent) {
+    // Copy contents into attributes to perform outlining trick for transparent renders.
+    const contentEls = editor.querySelectorAll("p, h1, h2, li");
+
+    for (const contentEl of contentEls) {
+      contentEl.setAttribute("data-contents", contentEl.innerText);
+    }
+  }
+
   const editorXml = new XMLSerializer().serializeToString(editor);
   const stylesXml = new XMLSerializer().serializeToString(styles);
 
@@ -25,6 +43,57 @@ export function renderQuillToImg(quill, img, foregroundColor, backgroundColor, z
   const bgCss = `rgba(${rgbToCssRgb(backgroundColor.x)}, ${rgbToCssRgb(backgroundColor.y)}, ${rgbToCssRgb(
     backgroundColor.z
   )}, 1.0)`;
+
+  const transparentStyles = transparent
+    ? `
+    .ql-emojiblot {
+      vertical-align: inherit !important;
+      margin: inherit !important;
+    }
+
+    .ap {
+      font-size: inherit !important;
+      margin: inherit !important;
+    }
+
+    h1 .ap {
+      font-size: inherit !important;
+      margin: inherit !important;
+    }
+
+    h2 .ap {
+      font-size: inherit !important;
+      margin: inherit !important;
+    }
+
+    :root {
+      background-color: transparent !important;
+    }
+
+    .ql-editor p:before,h1:before,h2:before{
+      content: attr(data-contents);
+      position: absolute;
+      text-stroke: 4px white;
+      -webkit-text-stroke: 4px white;
+      z-index: -2;
+    }
+
+    .ql-editor p:after,h1:after,h2:after{
+      content: attr(data-contents);
+      position: absolute;
+      text-stroke: 1px black;
+      -webkit-text-stroke: 1px black;
+      z-index: -1;
+      left: 20px;
+    }
+
+    .ql-blank::before {
+      display: flex !important;
+      color: #eee !important;
+      background-color: rgba(64, 64, 64, 0.2);
+    }
+  `
+    : "";
 
   // Disable other bits only relevant to on-screen UI
   // NOTE - not sure why global h1, h2 bits needed here, but otherwise font is always bold in headers.
@@ -56,6 +125,8 @@ export function renderQuillToImg(quill, img, foregroundColor, backgroundColor, z
     h1, h2 {
       font-weight: inherit !important;
     }
+
+    ${transparentStyles}
   </style>`
   );
 

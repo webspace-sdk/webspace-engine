@@ -170,6 +170,11 @@ function registerNetworkSchemas() {
         component: "media-text",
         property: "backgroundColor",
         requiresNetworkUpdate: vectorRequiresUpdate(0.01)
+      },
+      {
+        component: "media-text",
+        property: "transparent",
+        requiresNetworkUpdate: vectorRequiresUpdate(0.01)
       }
     ],
     nonAuthorizedComponents: [
