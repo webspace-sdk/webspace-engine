@@ -19,8 +19,9 @@ import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 export const EDITOR_WIDTH = 600;
 export const EDITOR_HEIGHT = Math.floor(EDITOR_WIDTH * 0.5625);
 
-export const EDITOR_PADDING_X = 16.0;
-export const EDITOR_PADDING_Y = 20.0;
+// These aren't quite accurate but result in proper texturing
+export const EDITOR_PADDING_X = 18.0;
+export const EDITOR_PADDING_Y = 16.0;
 
 // Create one quill for initial renders of text upon spawn
 // Create one quill for on-screen text editor

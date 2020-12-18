@@ -336,7 +336,7 @@ AFRAME.registerComponent("media-text", {
       } else {
         const zoom = this.zoom;
         const marginPctX = (EDITOR_PADDING_X / EDITOR_WIDTH / 2.0) * zoom;
-        const marginPctY = (EDITOR_PADDING_Y / EDITOR_HEIGHT / 4.0) * zoom;
+        const marginPctY = (EDITOR_PADDING_Y / EDITOR_HEIGHT / 3.0) * zoom;
 
         this.texture.repeat.x = textureRepeatX;
         this.texture.repeat.y = textureRepeatY;
