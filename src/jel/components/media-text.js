@@ -26,7 +26,7 @@ import { chicletGeometry } from "../objects/chiclet-geometry.js";
 const SCROLL_SENSITIVITY = 500.0;
 const FIT_CONTENT_EXTRA_SCALE = 1.5;
 
-const COLOR_PRESETS = [
+export const MEDIA_TEXT_COLOR_PRESETS = [
   [0xffffff, 0x000000],
   [0x000000, 0xffffff],
   [0x111749, 0x98aeeb],
@@ -46,20 +46,20 @@ const COLOR_PRESETS = [
 ]);
 
 const getCycledColorPreset = ({ data: { foregroundColor, backgroundColor } }, direction) => {
-  let idx = 0;
+  let index = 0;
 
-  for (let i = 0; i < COLOR_PRESETS.length; i++) {
-    const [bg, fg] = COLOR_PRESETS[i];
+  for (let i = 0; i < MEDIA_TEXT_COLOR_PRESETS.length; i++) {
+    const [bg, fg] = MEDIA_TEXT_COLOR_PRESETS[i];
 
     if (almostEqualVec3(foregroundColor, fg) && almostEqualVec3(backgroundColor, bg)) {
-      idx = i;
+      index = i;
       break;
     }
   }
 
-  idx = (idx + direction) % COLOR_PRESETS.length;
-  idx = idx === -1 ? COLOR_PRESETS.length - 1 : idx;
-  return COLOR_PRESETS[idx];
+  index = (index + direction) % MEDIA_TEXT_COLOR_PRESETS.length;
+  index = index === -1 ? MEDIA_TEXT_COLOR_PRESETS.length - 1 : index;
+  return [...MEDIA_TEXT_COLOR_PRESETS[index], index];
 };
 
 const getNextColorPreset = component => getCycledColorPreset(component, 1);
@@ -313,8 +313,8 @@ AFRAME.registerComponent("media-text", {
   applyProperMaterialToMesh() {
     // Use unlit material for black on white or white on black to maximize legibility or improve perf.
     if (
-      almostEqualVec3(this.data.backgroundColor, COLOR_PRESETS[0][0]) ||
-      almostEqualVec3(this.data.backgroundColor, COLOR_PRESETS[1][0]) ||
+      almostEqualVec3(this.data.backgroundColor, MEDIA_TEXT_COLOR_PRESETS[0][0]) ||
+      almostEqualVec3(this.data.backgroundColor, MEDIA_TEXT_COLOR_PRESETS[1][0]) ||
       window.APP.detailLevel >= 2
     ) {
       this.mesh.material = this.unlitMat;
@@ -414,8 +414,10 @@ AFRAME.registerComponent("media-text", {
 
       renderQuillToImg(this.quill, img, this.data.foregroundColor, this.data.backgroundColor);
     } else if (type === MEDIA_INTERACTION_TYPES.NEXT || type === MEDIA_INTERACTION_TYPES.BACK) {
-      const [backgroundColor, foregroundColor] =
+      const [backgroundColor, foregroundColor, index] =
         type === MEDIA_INTERACTION_TYPES.NEXT ? getNextColorPreset(this) : getPrevColorPreset(this);
+
+      window.APP.store.update({ uiState: { mediaTextColorPresetIndex: index } });
       this.el.setAttribute("media-text", { foregroundColor, backgroundColor });
     }
   }

@@ -2,6 +2,7 @@ import qsTruthy from "./utils/qs_truthy";
 import nextTick from "./utils/next-tick";
 import { hackyMobileSafariTest } from "./utils/detect-touchscreen";
 import { takeOwnership } from "./../jel/utils/ownership-utils";
+import { MEDIA_TEXT_COLOR_PRESETS } from "../jel/components/media-text";
 import { waitForDOMContentLoaded } from "./utils/async-utils";
 
 const isBotMode = qsTruthy("bot");
@@ -197,7 +198,7 @@ export default class SceneEntryManager {
 
   _setupMedia = () => {
     const offset = { x: 0, y: 0, z: -1.5 };
-    const spawnMediaInfrontOfPlayer = (src, contents, contentOrigin, contentSubtype = null) => {
+    const spawnMediaInfrontOfPlayer = (src, contents, contentOrigin, contentSubtype = null, mediaOptions = null) => {
       if (!this.hubChannel.can("spawn_and_move_media")) return;
       if (src instanceof File && !this.hubChannel.can("upload_files")) return;
 
@@ -208,8 +209,11 @@ export default class SceneEntryManager {
         contentOrigin,
         contentSubtype,
         !!(src && !(src instanceof MediaStream)),
-        true
+        true,
+        true,
+        mediaOptions
       );
+
       orientation.then(or => {
         entity.setAttribute("offset-relative-to", {
           target: "#avatar-pov-node",
@@ -228,7 +232,11 @@ export default class SceneEntryManager {
     });
 
     this.scene.addEventListener("add_media_text", e => {
-      spawnMediaInfrontOfPlayer(null, "", null, e.detail);
+      const [backgroundColor, foregroundColor] = MEDIA_TEXT_COLOR_PRESETS[
+        window.APP.store.state.uiState.mediaTextColorPresetIndex || 0
+      ];
+
+      spawnMediaInfrontOfPlayer(null, "", null, e.detail, { backgroundColor, foregroundColor });
     });
 
     this.scene.addEventListener("object_spawned", e => {
