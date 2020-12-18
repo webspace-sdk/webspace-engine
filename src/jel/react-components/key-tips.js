@@ -218,7 +218,7 @@ const TIP_DATA = {
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   pdf: [["next", "L+S"], ["page", "q\\e"], ...objectCommonTips],
-  text: [["edit", "~", "mediaTextEdit"], ...objectCommonTips.filter(t => t[0] !== "open")],
+  text: [["edit", "~", "mediaTextEdit"], ["color", "q\\e"], ...objectCommonTips.filter(t => t[0] !== "open")],
   rotate: [["rotate", "G"], ["no_snap", "H+G"]],
   scale: [["scale", "G"]],
   focus: [["zoom", "R"]],

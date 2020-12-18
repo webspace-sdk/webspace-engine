@@ -1,5 +1,6 @@
 import { fromByteArray } from "base64-js";
 import { rgbToCssRgb } from "./dom-utils";
+import { EDITOR_WIDTH, EDITOR_HEIGHT } from "./quill-pool";
 
 export function renderQuillToImg(quill, img, foregroundColor, backgroundColor) {
   const el = quill.container;
@@ -10,8 +11,8 @@ export function renderQuillToImg(quill, img, foregroundColor, backgroundColor) {
 
   let xml = `
     <div xmlns="http://www.w3.org/1999/xhtml" class="ql-container ql-bubble">
-    ${editorXml}
     ${stylesXml}
+    ${editorXml}
     </div>
   `;
 
@@ -40,11 +41,13 @@ export function renderQuillToImg(quill, img, foregroundColor, backgroundColor) {
       top: -${editor.scrollTop}px;
       color: ${fgCss} !important;
       background-color: ${bgCss} !important;
-    )}, 1.0) !important;
+      width: ${EDITOR_WIDTH}px !important;
+      height: ${EDITOR_HEIGHT}px !important;
     }
 
     .ql-blank::before {
       display: flex !important;
+      color: ${fgCss} !important;
     }
 
     h1, h2 {

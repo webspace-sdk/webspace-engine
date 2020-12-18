@@ -26,6 +26,45 @@ import { chicletGeometry } from "../objects/chiclet-geometry.js";
 const SCROLL_SENSITIVITY = 500.0;
 const FIT_CONTENT_EXTRA_SCALE = 1.5;
 
+const COLOR_PRESETS = [
+  [0xffffff, 0x000000],
+  [0x000000, 0xffffff],
+  [0x111749, 0x98aeeb],
+  [0x4c63b6, 0xbed0f7],
+  [0x656565, 0xf0f0f0],
+  [0xfff8df, 0x666666],
+  [0xccffe7, 0x477946],
+  [0x477946, 0xb7ffdd],
+  [0xffbbbb, 0xb65050],
+  [0x732727, 0xeca3a3],
+  [0x004770, 0xffcc9d],
+  [0x530070, 0xc2d7ff],
+  [0x3a1c00, 0xffa471]
+].map(([bg, fg]) => [
+  new THREE.Vector3(((bg >> 16) & 255) / 255, ((bg >> 8) & 255) / 255, (bg & 255) / 255),
+  new THREE.Vector3(((fg >> 16) & 255) / 255, ((fg >> 8) & 255) / 255, (fg & 255) / 255)
+]);
+
+const getCycledColorPreset = ({ data: { foregroundColor, backgroundColor } }, direction) => {
+  let idx = 0;
+
+  for (let i = 0; i < COLOR_PRESETS.length; i++) {
+    const [bg, fg] = COLOR_PRESETS[i];
+
+    if (almostEqualVec3(foregroundColor, fg) && almostEqualVec3(backgroundColor, bg)) {
+      idx = i;
+      break;
+    }
+  }
+
+  idx = (idx + direction) % COLOR_PRESETS.length;
+  idx = idx === -1 ? COLOR_PRESETS.length - 1 : idx;
+  return COLOR_PRESETS[idx];
+};
+
+const getNextColorPreset = component => getCycledColorPreset(component, 1);
+const getPrevColorPreset = component => getCycledColorPreset(component, -1);
+
 AFRAME.registerComponent("media-text", {
   schema: {
     src: { type: "string" },
@@ -67,6 +106,7 @@ AFRAME.registerComponent("media-text", {
         !almostEqualVec3(oldData.foregroundColor, foregroundColor) ||
         !almostEqualVec3(oldData.backgroundColor, backgroundColor)
       ) {
+        this.applyProperMaterialToMesh();
         this.rerenderQuill();
       }
     }
@@ -119,27 +159,37 @@ AFRAME.registerComponent("media-text", {
         this.texture.encoding = THREE.sRGBEncoding;
         this.texture.minFilter = THREE.LinearFilter;
 
-        // Stencil out text so we don't FXAA it.
-        const mat = new THREE.MeshStandardMaterial({
+        this.unlitMat = new THREE.MeshBasicMaterial({
           stencilWrite: true,
           stencilFunc: THREE.AlwaysStencilFunc,
           stencilRef: 1,
           stencilZPass: THREE.ReplaceStencilOp
         });
-        mat.color = new THREE.Color(0xffffff);
+        this.unlitMat.side = THREE.DoubleSide;
+        this.unlitMat.map = this.texture;
+        addVertexCurvingToMaterial(this.unlitMat);
 
-        // TODO emissive should be set based upon background color
-        // Use basic material when background is light, but light it if darker
-        mat.emissive = new THREE.Color(0.25, 0.25, 0.25);
-        addVertexCurvingToMaterial(mat);
+        // Stencil out text so we don't FXAA it.
+        this.litMat = new THREE.MeshStandardMaterial({
+          stencilWrite: true,
+          stencilFunc: THREE.AlwaysStencilFunc,
+          stencilRef: 1,
+          stencilZPass: THREE.ReplaceStencilOp
+        });
+        this.litMat.color = new THREE.Color(0xffffff);
+
+        this.litMat.emissive = new THREE.Color(0.25, 0.25, 0.25);
+        this.litMat.map = this.texture;
+        this.litMat.emissiveMap = this.texture;
+
+        addVertexCurvingToMaterial(this.litMat);
+
         const geo = (await chicletGeometry).clone();
-        mat.side = THREE.DoubleSide;
 
-        this.mesh = new THREE.Mesh(geo, mat);
+        this.mesh = new THREE.Mesh(geo, this.unlitMat);
         this.mesh.castShadow = true;
         this.mesh.renderOrder = RENDER_ORDER.MEDIA;
-        this.mesh.material.map = this.texture;
-        this.mesh.material.emissiveMap = this.texture;
+        this.applyProperMaterialToMesh();
         this.el.setObject3D("mesh", this.mesh);
 
         if (!this.data.fitContent) {
@@ -259,6 +309,19 @@ AFRAME.registerComponent("media-text", {
     // TODO priority queue in a system
   },
 
+  applyProperMaterialToMesh() {
+    // Use unlit material for black on white or white on black to maximize
+    // legibility.
+    if (
+      almostEqualVec3(this.data.backgroundColor, COLOR_PRESETS[0][0]) ||
+      almostEqualVec3(this.data.backgroundColor, COLOR_PRESETS[1][0])
+    ) {
+      this.mesh.material = this.unlitMat;
+    } else {
+      this.mesh.material = this.litMat;
+    }
+  },
+
   bindQuill() {
     const networkId = getNetworkId(this.el);
     if (hasQuill(networkId)) return;
@@ -289,7 +352,10 @@ AFRAME.registerComponent("media-text", {
 
   remove() {
     this.unbindAndRemoveQuill();
+    const nonUsedMaterial = this.mesh.material === this.unlitMat ? this.litMat : this.unlitMat;
+
     disposeExistingMesh(this.el);
+    nonUsedMaterial.dispose();
 
     if (this.texture) {
       disposeTexture(this.texture);
@@ -302,6 +368,7 @@ AFRAME.registerComponent("media-text", {
 
   handleMediaInteraction(type) {
     if (!this.quill) return;
+
     if (type === MEDIA_INTERACTION_TYPES.EDIT) {
       window.APP.store.handleActivityFlag("mediaTextEdit");
       this.quill.focus();
@@ -345,6 +412,10 @@ AFRAME.registerComponent("media-text", {
       };
 
       renderQuillToImg(this.quill, img, this.data.foregroundColor, this.data.backgroundColor);
+    } else if (type === MEDIA_INTERACTION_TYPES.NEXT || type === MEDIA_INTERACTION_TYPES.BACK) {
+      const [backgroundColor, foregroundColor] =
+        type === MEDIA_INTERACTION_TYPES.NEXT ? getNextColorPreset(this) : getPrevColorPreset(this);
+      this.el.setAttribute("media-text", { foregroundColor, backgroundColor });
     }
   }
 });
