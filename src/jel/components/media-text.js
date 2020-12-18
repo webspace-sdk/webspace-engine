@@ -80,6 +80,7 @@ AFRAME.registerComponent("media-text", {
     this.localSnapCount = 0;
     this.isSnapping = false;
     this.firedTextLoadedEvent = false;
+    this.lastDetailLevel = window.APP.detailLevel;
 
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
@@ -242,6 +243,11 @@ AFRAME.registerComponent("media-text", {
       this.scrollBy(volumeModLeft);
     }
 
+    if (window.APP.detailLevel !== this.lastDetailLevel) {
+      this.lastDetailLevel = window.APP.detailLevel;
+      this.applyProperMaterialToMesh();
+    }
+
     if (this.renderNextFrame && this.quill) {
       this.renderNextFrame = false;
       this.render();
@@ -305,11 +311,11 @@ AFRAME.registerComponent("media-text", {
   },
 
   applyProperMaterialToMesh() {
-    // Use unlit material for black on white or white on black to maximize
-    // legibility.
+    // Use unlit material for black on white or white on black to maximize legibility or improve perf.
     if (
       almostEqualVec3(this.data.backgroundColor, COLOR_PRESETS[0][0]) ||
-      almostEqualVec3(this.data.backgroundColor, COLOR_PRESETS[1][0])
+      almostEqualVec3(this.data.backgroundColor, COLOR_PRESETS[1][0]) ||
+      window.APP.detailLevel !== 0
     ) {
       this.mesh.material = this.unlitMat;
     } else {
