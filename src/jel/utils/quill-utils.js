@@ -2,7 +2,7 @@ import { fromByteArray } from "base64-js";
 import { rgbToCssRgb } from "./dom-utils";
 import { EDITOR_WIDTH, EDITOR_HEIGHT } from "./quill-pool";
 
-export function renderQuillToImg(quill, img, foregroundColor, backgroundColor) {
+export function renderQuillToImg(quill, img, foregroundColor, backgroundColor, zoom = 1.0, textureWidth = 1024) {
   const el = quill.container;
   const editor = quill.container.querySelector(".ql-editor");
   const styles = quill.container.querySelector("style");
@@ -17,8 +17,8 @@ export function renderQuillToImg(quill, img, foregroundColor, backgroundColor) {
   `;
 
   const ratio = el.offsetHeight / el.offsetWidth;
-  const textureSize = 1024; // TODO labels should be smaller
-  const scale = (textureSize * Math.min(1.0, 1.0 / ratio)) / el.offsetWidth;
+  const scale = (textureWidth * Math.min(1.0, 1.0 / ratio)) / el.offsetWidth;
+
   const fgCss = `rgba(${rgbToCssRgb(foregroundColor.x)}, ${rgbToCssRgb(foregroundColor.y)}, ${rgbToCssRgb(
     foregroundColor.z
   )}, 1.0)`;
@@ -59,7 +59,7 @@ export function renderQuillToImg(quill, img, foregroundColor, backgroundColor) {
   // Hide the tooltip for the editor in the rendering
   const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${el.offsetWidth * scale}px" height="${el.offsetHeight * scale}px">
-        <foreignObject width="100%" height="100%" style="transform: scale(${scale});">
+        <foreignObject width="100%" height="100%" style="transform: scale(${scale * zoom});">
           ${xml}
         </foreignObject>
       </svg>

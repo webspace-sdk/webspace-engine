@@ -81,6 +81,9 @@ AFRAME.registerComponent("media-text", {
     this.isSnapping = false;
     this.firedTextLoadedEvent = false;
     this.lastDetailLevel = window.APP.detailLevel;
+    this.zoom = 1.0;
+    this.textureWidth = 1024;
+    this.renderCount = 0;
 
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
@@ -270,17 +273,44 @@ AFRAME.registerComponent("media-text", {
   render() {
     const img = document.createElement("img");
 
-    img.onload = () => {
-      this.texture.image = img;
-      this.texture.needsUpdate = this.mesh.material.needsUpdate = true;
-    };
+    this.renderCount++;
+    const expectedRenderCount = this.renderCount;
 
-    renderQuillToImg(this.quill, img, this.data.foregroundColor, this.data.backgroundColor);
+    let contentWidth, contentHeight;
 
+    // Compute a dynamic zoom + textureWidth based upon the amount of content.
     if (this.data.fitContent) {
       const [w, h] = computeQuillContectRect(this.quill);
+      contentWidth = w;
+      contentHeight = h;
 
       if (w <= EDITOR_PADDING_X + 4.0) {
+        // No text, show placeholder
+        this.zoom = 1.0;
+      } else {
+        // Optimize zoom and texture size for smaller labels
+        if (w < EDITOR_WIDTH / 4.1 && h < EDITOR_HEIGHT / 4.1) {
+          this.zoom = 4.0;
+          this.textureWidth = 768;
+        } else if (w < EDITOR_WIDTH / 3.1 && h < EDITOR_HEIGHT / 3.1) {
+          this.zoom = 3.0;
+          this.textureWidth = 768;
+        } else if (w < EDITOR_WIDTH / 2.1 && h < EDITOR_HEIGHT / 2.1) {
+          this.zoom = 2.0;
+          this.textureWidth = 1024;
+        } else {
+          this.zoom = 1.0;
+          this.textureWidth = 1024;
+        }
+      }
+    }
+
+    img.onload = () => {
+      if (this.renderCount !== expectedRenderCount) return;
+
+      this.texture.image = img;
+
+      if (contentWidth <= EDITOR_PADDING_X + 4.0) {
         // No text - show placeholder
         this.texture.repeat.x = 1.0;
         this.texture.repeat.y = 1.0;
@@ -289,20 +319,30 @@ AFRAME.registerComponent("media-text", {
         this.mesh.scale.x = 1.0;
         this.mesh.scale.y = 9.0 / 16.0;
       } else {
-        const marginPctX = EDITOR_PADDING_X / EDITOR_WIDTH / 2.0;
-        const marginPctY = EDITOR_PADDING_Y / EDITOR_HEIGHT / 4.0;
+        const zoom = this.zoom;
+        const marginPctX = (EDITOR_PADDING_X / EDITOR_WIDTH / 2.0) * zoom;
+        const marginPctY = (EDITOR_PADDING_Y / EDITOR_HEIGHT / 4.0) * zoom;
 
-        this.texture.repeat.x = Math.min(1.0, w / (EDITOR_WIDTH - EDITOR_PADDING_X));
-        this.texture.repeat.y = Math.min(1.0, h / (EDITOR_HEIGHT - EDITOR_PADDING_Y / 2.0));
+        this.texture.repeat.x = Math.min(1.0, (contentWidth / (EDITOR_WIDTH - EDITOR_PADDING_X)) * zoom);
+        this.texture.repeat.y = Math.min(1.0, (contentHeight / (EDITOR_HEIGHT - EDITOR_PADDING_Y / 2.0)) * zoom);
         this.texture.offset.x = marginPctX;
         this.texture.offset.y = Math.max(0.0, 1.0 - this.texture.repeat.y - marginPctY);
-        this.mesh.scale.x = this.texture.repeat.x * 2.0 * FIT_CONTENT_EXTRA_SCALE;
-        this.mesh.scale.y = this.texture.repeat.y * FIT_CONTENT_EXTRA_SCALE;
+        this.mesh.scale.x = this.texture.repeat.x * 2.0 * FIT_CONTENT_EXTRA_SCALE * (1.0 / zoom);
+        this.mesh.scale.y = this.texture.repeat.y * FIT_CONTENT_EXTRA_SCALE * (1.0 / zoom);
       }
 
+      this.texture.needsUpdate = this.mesh.material.needsUpdate = true;
       this.mesh.matrixNeedsUpdate = true;
-      this.texture.needsUpdate = true;
-    }
+    };
+
+    renderQuillToImg(
+      this.quill,
+      img,
+      this.data.foregroundColor,
+      this.data.backgroundColor,
+      this.zoom,
+      this.textureWidth
+    );
   },
 
   rerenderQuill() {
@@ -412,7 +452,14 @@ AFRAME.registerComponent("media-text", {
         });
       };
 
-      renderQuillToImg(this.quill, img, this.data.foregroundColor, this.data.backgroundColor);
+      renderQuillToImg(
+        this.quill,
+        img,
+        this.data.foregroundColor,
+        this.data.backgroundColor,
+        this.zoom,
+        this.textureWidth
+      );
     } else if (type === MEDIA_INTERACTION_TYPES.NEXT || type === MEDIA_INTERACTION_TYPES.BACK) {
       const [backgroundColor, foregroundColor, index] =
         type === MEDIA_INTERACTION_TYPES.NEXT ? getNextColorPreset(this) : getPrevColorPreset(this);
