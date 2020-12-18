@@ -11,7 +11,6 @@ import {
 import { getNetworkId } from "../utils/ownership-utils";
 import {
   hasMediaLayer,
-  scaleToAspectRatio,
   addAndArrangeMedia,
   MEDIA_PRESENCE,
   MEDIA_INTERACTION_TYPES
@@ -172,6 +171,7 @@ AFRAME.registerComponent("media-text", {
         });
         this.unlitMat.side = THREE.DoubleSide;
         this.unlitMat.map = this.texture;
+
         addVertexCurvingToMaterial(this.unlitMat);
 
         this.litMat = new THREE.MeshStandardMaterial({});
@@ -187,14 +187,8 @@ AFRAME.registerComponent("media-text", {
 
         this.mesh = new THREE.Mesh(geo, this.unlitMat);
         this.mesh.castShadow = true;
-        this.mesh.renderOrder = RENDER_ORDER.MEDIA;
         this.applyProperMaterialToMesh();
         this.el.setObject3D("mesh", this.mesh);
-
-        if (!this.data.fitContent) {
-          scaleToAspectRatio(this.el, 9.0 / 16.0);
-        }
-
         this.rerenderQuill();
       }
 
@@ -276,45 +270,41 @@ AFRAME.registerComponent("media-text", {
     this.renderCount++;
     const expectedRenderCount = this.renderCount;
 
-    let contentWidth,
-      contentHeight,
-      textureRepeatX = 1.0,
+    let textureRepeatX = 1.0,
       textureRepeatY = 1.0,
-      meshScaleX = 1.0,
-      meshScaleY = 9.0 / 16.0;
+      meshScaleX = 2.0,
+      meshScaleY = (2.0 * 9.0) / 16.0;
 
     // Compute a dynamic zoom + textureWidth based upon the amount of content.
-    if (this.data.fitContent) {
-      const [w, h] = computeQuillContectRect(this.quill);
-      contentWidth = w;
-      contentHeight = h;
+    const [w, h] = computeQuillContectRect(this.quill);
+    const isEmpty = w <= EDITOR_PADDING_X + 4.0;
 
-      if (w <= EDITOR_PADDING_X + 4.0) {
-        // No text, show placeholder
-        this.zoom = 1.0;
-        this.textureWidth = 1024;
-      } else {
-        // Optimize zoom and texture size for smaller labels
-        if (w < EDITOR_WIDTH / 4.1 && h < EDITOR_HEIGHT / 4.1) {
-          this.zoom = 4.0;
-          this.textureWidth = 768;
-        } else if (w < EDITOR_WIDTH / 3.1 && h < EDITOR_HEIGHT / 3.1) {
-          this.zoom = 3.0;
-          this.textureWidth = 768;
-        } else if (w < EDITOR_WIDTH / 2.1 && h < EDITOR_HEIGHT / 2.1) {
-          this.zoom = 2.0;
-          this.textureWidth = 1024;
-        } else {
-          this.zoom = 1.0;
-          this.textureWidth = 1024;
-        }
+    const contentWidth = this.data.fitContent ? (isEmpty ? EDITOR_WIDTH / 2 : w) : EDITOR_WIDTH;
+    const contentHeight = this.data.fitContent ? (isEmpty ? EDITOR_HEIGHT / 2 : h) : EDITOR_HEIGHT;
 
-        textureRepeatX = Math.min(1.0, (contentWidth / (EDITOR_WIDTH - EDITOR_PADDING_X)) * this.zoom);
-        textureRepeatY = Math.min(1.0, (contentHeight / (EDITOR_HEIGHT - EDITOR_PADDING_Y / 2.0)) * this.zoom);
-        meshScaleX = textureRepeatX * 2.0 * FIT_CONTENT_EXTRA_SCALE * (1.0 / this.zoom);
-        meshScaleY = textureRepeatY * FIT_CONTENT_EXTRA_SCALE * (1.0 / this.zoom);
-      }
+    if (isEmpty) {
+      // No text, show placeholder
+      this.zoom = 1.0;
+      this.textureWidth = 1024;
+    } else if (contentWidth < EDITOR_WIDTH / 4.1 && contentHeight < EDITOR_HEIGHT / 4.1) {
+      this.zoom = 4.0;
+      this.textureWidth = 768;
+    } else if (contentWidth < EDITOR_WIDTH / 3.1 && contentHeight < EDITOR_HEIGHT / 3.1) {
+      this.zoom = 3.0;
+      this.textureWidth = 768;
+    } else if (contentWidth < EDITOR_WIDTH / 2.1 && contentHeight < EDITOR_HEIGHT / 2.1) {
+      this.zoom = 2.0;
+      this.textureWidth = 1024;
+    } else {
+      this.zoom = 1.0;
+      this.textureWidth = 1024;
     }
+
+    // Compute texture repeat and scale based upon content
+    textureRepeatX = Math.min(1.0, (contentWidth / (EDITOR_WIDTH - EDITOR_PADDING_X)) * this.zoom);
+    textureRepeatY = Math.min(1.0, (contentHeight / (EDITOR_HEIGHT - EDITOR_PADDING_Y / 2.0)) * this.zoom);
+    meshScaleX = textureRepeatX * 2.0 * FIT_CONTENT_EXTRA_SCALE * (1.0 / this.zoom);
+    meshScaleY = textureRepeatY * FIT_CONTENT_EXTRA_SCALE * (1.0 / this.zoom);
 
     // Set scale early here since it is read by spawning animation routines.
     this.mesh.scale.x = meshScaleX;
@@ -327,7 +317,7 @@ AFRAME.registerComponent("media-text", {
       // flicker and weird visual effects.
       this.texture.image = img;
 
-      if (contentWidth <= EDITOR_PADDING_X + 4.0) {
+      if (isEmpty) {
         // No text - show placeholder
         this.texture.repeat.x = 1.0;
         this.texture.repeat.y = 1.0;
@@ -371,8 +361,10 @@ AFRAME.registerComponent("media-text", {
       window.APP.detailLevel >= 2
     ) {
       this.mesh.material = this.unlitMat;
+      this.mesh.renderOrder = RENDER_ORDER.MEDIA_NO_FXAA;
     } else {
       this.mesh.material = this.litMat;
+      this.mesh.renderOrder = RENDER_ORDER.MEDIA;
     }
   },
 
