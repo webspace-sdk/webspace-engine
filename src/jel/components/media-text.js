@@ -276,7 +276,12 @@ AFRAME.registerComponent("media-text", {
     this.renderCount++;
     const expectedRenderCount = this.renderCount;
 
-    let contentWidth, contentHeight;
+    let contentWidth,
+      contentHeight,
+      textureRepeatX = 1.0,
+      textureRepeatY = 1.0,
+      meshScaleX = 1.0,
+      meshScaleY = 9.0 / 16.0;
 
     // Compute a dynamic zoom + textureWidth based upon the amount of content.
     if (this.data.fitContent) {
@@ -287,6 +292,7 @@ AFRAME.registerComponent("media-text", {
       if (w <= EDITOR_PADDING_X + 4.0) {
         // No text, show placeholder
         this.zoom = 1.0;
+        this.textureWidth = 1024;
       } else {
         // Optimize zoom and texture size for smaller labels
         if (w < EDITOR_WIDTH / 4.1 && h < EDITOR_HEIGHT / 4.1) {
@@ -302,12 +308,23 @@ AFRAME.registerComponent("media-text", {
           this.zoom = 1.0;
           this.textureWidth = 1024;
         }
+
+        textureRepeatX = Math.min(1.0, (contentWidth / (EDITOR_WIDTH - EDITOR_PADDING_X)) * this.zoom);
+        textureRepeatY = Math.min(1.0, (contentHeight / (EDITOR_HEIGHT - EDITOR_PADDING_Y / 2.0)) * this.zoom);
+        meshScaleX = textureRepeatX * 2.0 * FIT_CONTENT_EXTRA_SCALE * (1.0 / this.zoom);
+        meshScaleY = textureRepeatY * FIT_CONTENT_EXTRA_SCALE * (1.0 / this.zoom);
       }
     }
+
+    // Set scale early here since it is read by spawning animation routines.
+    this.mesh.scale.x = meshScaleX;
+    this.mesh.scale.y = meshScaleY;
 
     img.onload = () => {
       if (this.renderCount !== expectedRenderCount) return;
 
+      // Update texture coordinates and apply scale after image to avoid
+      // flicker and weird visual effects.
       this.texture.image = img;
 
       if (contentWidth <= EDITOR_PADDING_X + 4.0) {
@@ -316,19 +333,15 @@ AFRAME.registerComponent("media-text", {
         this.texture.repeat.y = 1.0;
         this.texture.offset.x = 0.0;
         this.texture.offset.y = 0.0;
-        this.mesh.scale.x = 1.0;
-        this.mesh.scale.y = 9.0 / 16.0;
       } else {
         const zoom = this.zoom;
         const marginPctX = (EDITOR_PADDING_X / EDITOR_WIDTH / 2.0) * zoom;
         const marginPctY = (EDITOR_PADDING_Y / EDITOR_HEIGHT / 4.0) * zoom;
 
-        this.texture.repeat.x = Math.min(1.0, (contentWidth / (EDITOR_WIDTH - EDITOR_PADDING_X)) * zoom);
-        this.texture.repeat.y = Math.min(1.0, (contentHeight / (EDITOR_HEIGHT - EDITOR_PADDING_Y / 2.0)) * zoom);
+        this.texture.repeat.x = textureRepeatX;
+        this.texture.repeat.y = textureRepeatY;
         this.texture.offset.x = marginPctX;
-        this.texture.offset.y = Math.max(0.0, 1.0 - this.texture.repeat.y - marginPctY);
-        this.mesh.scale.x = this.texture.repeat.x * 2.0 * FIT_CONTENT_EXTRA_SCALE * (1.0 / zoom);
-        this.mesh.scale.y = this.texture.repeat.y * FIT_CONTENT_EXTRA_SCALE * (1.0 / zoom);
+        this.texture.offset.y = Math.max(0.0, 1.0 - textureRepeatY - marginPctY);
       }
 
       this.texture.needsUpdate = this.mesh.material.needsUpdate = true;
