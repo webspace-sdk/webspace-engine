@@ -182,6 +182,10 @@ export function initQuillPool() {
           margin: 0px 4px !important;
         }
 
+        .ap {
+          vertical-align: baseline !important;
+        }
+
         h1 .ap {
           font-size: 32px !important;
           margin: 0px 4px !important;

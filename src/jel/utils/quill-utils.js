@@ -51,7 +51,7 @@ export function renderQuillToImg(quill, img, foregroundColor, backgroundColor) {
     }
 
     h1, h2 {
-      font: inherit;
+      font-weight: inherit !important;
     }
   </style>`
   );

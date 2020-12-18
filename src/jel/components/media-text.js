@@ -159,6 +159,7 @@ AFRAME.registerComponent("media-text", {
         this.texture.encoding = THREE.sRGBEncoding;
         this.texture.minFilter = THREE.LinearFilter;
 
+        // Stencil out unlit text so we don't FXAA it.
         this.unlitMat = new THREE.MeshBasicMaterial({
           stencilWrite: true,
           stencilFunc: THREE.AlwaysStencilFunc,
@@ -169,13 +170,7 @@ AFRAME.registerComponent("media-text", {
         this.unlitMat.map = this.texture;
         addVertexCurvingToMaterial(this.unlitMat);
 
-        // Stencil out text so we don't FXAA it.
-        this.litMat = new THREE.MeshStandardMaterial({
-          stencilWrite: true,
-          stencilFunc: THREE.AlwaysStencilFunc,
-          stencilRef: 1,
-          stencilZPass: THREE.ReplaceStencilOp
-        });
+        this.litMat = new THREE.MeshStandardMaterial({});
         this.litMat.color = new THREE.Color(0xffffff);
 
         this.litMat.emissive = new THREE.Color(0.25, 0.25, 0.25);
