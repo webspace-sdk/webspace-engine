@@ -434,7 +434,18 @@ AFRAME.registerComponent("media-loader", {
         this.el.addEventListener("text-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
 
         const fitContent = contentSubtype !== "page";
-        this.el.setAttribute("media-text", { src: accessibleUrl, fitContent });
+        const properties = { src: accessibleUrl, fitContent };
+        const mediaOptions = this.data.mediaOptions;
+
+        if (mediaOptions.foregroundColor) {
+          properties.foregroundColor = mediaOptions.foregroundColor;
+        }
+
+        if (mediaOptions.backgroundColor) {
+          properties.backgroundColor = mediaOptions.backgroundColor;
+        }
+
+        this.el.setAttribute("media-text", properties);
       } else if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||
