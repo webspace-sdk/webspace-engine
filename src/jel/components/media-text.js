@@ -315,7 +315,7 @@ AFRAME.registerComponent("media-text", {
     if (
       almostEqualVec3(this.data.backgroundColor, COLOR_PRESETS[0][0]) ||
       almostEqualVec3(this.data.backgroundColor, COLOR_PRESETS[1][0]) ||
-      window.APP.detailLevel !== 0
+      window.APP.detailLevel >= 2
     ) {
       this.mesh.material = this.unlitMat;
     } else {
