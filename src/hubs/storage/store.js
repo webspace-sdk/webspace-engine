@@ -148,7 +148,8 @@ export const SCHEMA = {
       additionalProperties: false,
       properties: {
         navPanelWidth: { type: "number" },
-        presencePanelWidth: { type: "number" }
+        presencePanelWidth: { type: "number" },
+        mediaTextColorPresetIndex: { type: "number" }
       }
     },
 

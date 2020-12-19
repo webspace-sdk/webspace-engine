@@ -18,6 +18,7 @@ module.exports = {
     FIELD: 100,
     PHYSICS_DEBUG: 1000,
     MEDIA: 10000,
+    MEDIA_NO_FXAA: 10010, // Render last because of stencil ops
     TOON: 20000, // Render last because of stencil ops
     INSTANCED_AVATAR: 21000, // Render last because of stencil ops
     INSTANCED_BEAM: 22000, // Render last because of stencil ops

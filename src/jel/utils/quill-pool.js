@@ -3,17 +3,25 @@ import "../../assets/jel/stylesheets/quill-pool.scss";
 import javascript from "highlight.js/lib/languages/javascript";
 hljs.registerLanguage("javascript", javascript);
 import "highlight.js/styles/github.css";
+import "quill-emoji/dist/quill-emoji.css";
 import { getMessages } from "../../hubs/utils/i18n";
 
 hljs.configure({
   languages: ["javascript"]
 });
 
+import "quill-emoji";
 import Quill from "quill";
+
 import styles from "../../assets/jel/stylesheets/text-editor.scss";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
+
 export const EDITOR_WIDTH = 600;
 export const EDITOR_HEIGHT = Math.floor(EDITOR_WIDTH * 0.5625);
+
+// These aren't quite accurate but result in proper texturing
+export const EDITOR_PADDING_X = 18.0;
+export const EDITOR_PADDING_Y = 20.0;
 
 // Create one quill for initial renders of text upon spawn
 // Create one quill for on-screen text editor
@@ -153,11 +161,74 @@ export function initQuillPool() {
         }
 
         .ql-editor {
-          font-family: Lato, Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !important;
+          font-family: 'Lato';
           font-size: 1.5em !important;
           width: 100% !important;
-
+          padding: 16px 20px !important;
         }
+
+        .ql-editor.font-sans-serif {
+          font-family: 'Lato';
+        } 
+
+        .ql-editor.font-serif {
+          font-family: 'Merriweather';
+        } 
+
+        .ql-editor.font-mono {
+          font-family: 'Inconsolata';
+        } 
+
+        .ql-editor.font-comic {
+          font-family: 'Bangers';
+        } 
+
+        .ql-editor.font-comic2 {
+          font-family: 'Comic Neue';
+        } 
+
+        .ql-editor.font-writing {
+          font-family: 'Sriracha';
+        } 
+
+        .ql-editor.font-writing2 {
+          font-family: 'Indie Flower';
+        } 
+
+        .ql-editor p, h1, h2, ul, li {
+          width: max-content;
+          max-width: 100%;
+        }
+
+        .ql-editor .ql-align-right,.ql-align-justify,.ql-align-center {
+          width: 100% !important;
+        }
+
+        /* Emoji tweaks - drop background bc of SVG security */
+        .ap {
+          display: inline !important;
+          background-image: none !important;
+        }
+
+        .ql-emojiblot {
+          line-height: 100% !important;
+          margin: 0px 4px !important;
+        }
+
+        .ap {
+          vertical-align: baseline !important;
+        }
+
+        h1 .ap {
+          font-size: 32px !important;
+          margin: 0px 4px !important;
+        }
+
+        h2 .ap {
+          font-size: 24px !important;
+          margin: 0px 2px !important;
+        }
+
         ${styleTag.innerHTML}
       `;
 
@@ -207,14 +278,19 @@ export function getQuill(networkId) {
   ); // TODO JEL styling based upon colors
   el.prepend(editor);
 
-  const toolbar = [
-    [{ header: 1 }, { header: 2 }], // custom button values
-    ["bold", "italic", "underline", "strike"], // toggled buttons
-    ["code-block"],
+  const toolbar = {
+    container: [
+      [{ header: 1 }, { header: 2 }], // custom button values
+      ["bold", "italic", "underline", "strike"], // toggled buttons
+      ["emoji"],
+      ["code-block"],
 
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ align: [] }]
-  ];
+      [{ list: "ordered" }, { list: "bullet" }],
+      [{ align: [] }]
+    ],
+    handlers: { emoji: function() {} }
+  };
+
   document.querySelector("#jel-ui-wrap").appendChild(el);
   const messages = getMessages();
 
@@ -224,7 +300,9 @@ export function getQuill(networkId) {
         /*
          * TODO highlighting - need to inline CSS
          * syntax: { highlight: c => hljs.highlightAuto(c).value }, */
-        toolbar
+        toolbar,
+        "emoji-textarea": true,
+        "emoji-shortname": true
       },
       theme: "bubble",
       placeholder: messages["text-editor.placeholder"]

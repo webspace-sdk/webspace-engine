@@ -15,12 +15,21 @@ import pageThumbSrc from "../../assets/jel/images/icons/thumb-page.svg";
 import duckThumbSrc from "../../assets/jel/images/icons/thumb-duck.svg";
 import pdfThumbSrc from "../../assets/jel/images/icons/thumb-pdf.svg";
 import modelThumbSrc from "../../assets/jel/images/icons/thumb-model.svg";
+import labelThumbSrc from "../../assets/jel/images/icons/thumb-label.svg";
+import bannerThumbSrc from "../../assets/jel/images/icons/thumb-banner.svg";
 
 export const CREATE_SELECT_WIDTH = 325;
 export const CREATE_SELECT_LIST_HEIGHT = 350;
 
 const items = [
-  ["text", [["page", newPageIconSrc, pageThumbSrc]]],
+  [
+    "text",
+    [
+      ["label", newPageIconSrc, labelThumbSrc],
+      ["page", newPageIconSrc, pageThumbSrc],
+      ["banner", newPageIconSrc, bannerThumbSrc]
+    ]
+  ],
   ["images", [["image_embed", linkIconSrc, imageThumbSrc], ["image_upload", uploadIconSrc, imageThumbSrc]]],
   ["videos", [["video_embed", linkIconSrc, videoThumbSrc], ["video_upload", uploadIconSrc, videoThumbSrc]]],
   ["models", [["model_embed", linkIconSrc, modelThumbSrc], ["model_upload", uploadIconSrc, modelThumbSrc]]],

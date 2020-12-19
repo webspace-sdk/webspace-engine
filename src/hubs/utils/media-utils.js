@@ -288,9 +288,16 @@ export const addMedia = (
 
 export const cloneMedia = (sourceEl, template, src = null, networked = true, link = false, parentEl = null) => {
   let contents = null;
+  const extraMediaOptions = {};
 
   if (sourceEl.components["media-text"]) {
-    contents = sourceEl.components["media-text"].getContents();
+    const mediaText = sourceEl.components["media-text"];
+    const { foregroundColor, backgroundColor, font } = mediaText.data;
+
+    contents = mediaText.getContents();
+    extraMediaOptions.foregroundColor = foregroundColor;
+    extraMediaOptions.backgroundColor = backgroundColor;
+    extraMediaOptions.font = font;
   } else {
     if (!src) {
       ({ src } = sourceEl.components["media-loader"].data);
@@ -308,7 +315,7 @@ export const cloneMedia = (sourceEl, template, src = null, networked = true, lin
     true,
     fitToBox,
     false,
-    mediaOptions,
+    { ...mediaOptions, ...extraMediaOptions },
     networked,
     parentEl,
     link ? sourceEl : null
@@ -650,7 +657,9 @@ export function removeMediaElement(el) {
     window.APP.hubChannel.setFileInactive(fileId);
   }
 
-  el.parentNode.removeChild(el);
+  if (el.parentNode) {
+    el.parentNode.removeChild(el);
+  }
 }
 
 export function getMediaViewComponent(el) {

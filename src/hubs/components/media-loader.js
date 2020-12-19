@@ -433,7 +433,24 @@ AFRAME.registerComponent("media-loader", {
 
         this.el.addEventListener("text-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
 
-        this.el.setAttribute("media-text", { src: accessibleUrl });
+        const fitContent = contentSubtype !== "page";
+        const transparent = contentSubtype === "banner";
+        const properties = { src: accessibleUrl, fitContent, transparent };
+        const mediaOptions = this.data.mediaOptions;
+
+        if (mediaOptions.foregroundColor) {
+          properties.foregroundColor = mediaOptions.foregroundColor;
+        }
+
+        if (mediaOptions.backgroundColor) {
+          properties.backgroundColor = mediaOptions.backgroundColor;
+        }
+
+        if (mediaOptions.font) {
+          properties.font = mediaOptions.font;
+        }
+
+        this.el.setAttribute("media-text", properties);
       } else if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||

@@ -156,6 +156,28 @@ function registerNetworkSchemas() {
       {
         component: "media-loader",
         property: "mediaLayer"
+      },
+      {
+        component: "media-text",
+        property: "fitContent"
+      },
+      {
+        component: "media-text",
+        property: "foregroundColor",
+        requiresNetworkUpdate: vectorRequiresUpdate(0.01)
+      },
+      {
+        component: "media-text",
+        property: "backgroundColor",
+        requiresNetworkUpdate: vectorRequiresUpdate(0.01)
+      },
+      {
+        component: "media-text",
+        property: "transparent"
+      },
+      {
+        component: "media-text",
+        property: "font"
       }
     ],
     nonAuthorizedComponents: [

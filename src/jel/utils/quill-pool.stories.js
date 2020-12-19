@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 //import Quill from "quill";
 import { EDITOR_WIDTH, EDITOR_HEIGHT, initQuillPool, getQuill, destroyQuill } from "../utils/quill-pool";
+import { computeQuillContectRect } from "../utils/quill-utils";
 import { renderQuillToImg } from "../utils/quill-utils";
 
 const networkId = "abc";
@@ -10,13 +11,16 @@ export const QuillBasic = () => {
     const render = () => {
       const quill = getQuill(networkId);
       const img = document.querySelector("#editor-image");
-      renderQuillToImg(quill, img);
+      renderQuillToImg(quill, img, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1 });
     };
 
     initQuillPool().then(() => {
       const quill = getQuill(networkId);
       quill.on("text-change", render);
       const interval = setInterval(() => {
+        const overlay = document.createElement("div");
+        overlay.setAttribute("class", "overlay");
+        quill.container.appendChild(overlay);
         const editor = quill.container.querySelector(`.ql-editor`);
         if (editor) {
           editor.addEventListener("scroll", render);
@@ -44,6 +48,17 @@ export const QuillBasic = () => {
     </div>
   );
 };
+
+//setInterval(() => {
+//  const quill = getQuill(networkId);
+//  const [w, h] = computeQuillContectRect(quill);
+//  document
+//    .querySelector(".overlay")
+//    .setAttribute(
+//      "style",
+//      `position: absolute; top: 8px; left: 8px; background-color: green; width: ${w}px; height: ${h}px; opacity: 0.4; pointer-events: none;`
+//    );
+//}, 2500);
 
 export default {
   title: "Quill Pool"

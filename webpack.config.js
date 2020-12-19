@@ -422,7 +422,7 @@ module.exports = async (env, argv) => {
         maxInitialRequests: 10,
         cacheGroups: {
           quill: {
-            test: /quill\..+\.css$/,
+            test: /quill[.-].+\.css$/,
             name: "quill-styles",
             chunks: "initial",
             priority: 50

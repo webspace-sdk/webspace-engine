@@ -46,7 +46,6 @@ beamMaterial.onBeforeCompile = shader => {
       "attribute vec3 instanceColor;",
       "varying vec3 vInstanceColor;",
       "attribute float instanceWidth;",
-      "varying float vInstanceWidth;",
       "varying float vBeamAlpha;",
       "attribute float alpha;",
       "varying float vAlpha;",
@@ -62,7 +61,7 @@ beamMaterial.onBeforeCompile = shader => {
     "#include <color_vertex>",
     [
       "#include <color_vertex>",
-      "vXOffset = xOffset; vIllumination = illumination; vAlpha = alpha; vInstanceColor = instanceColor; vInstanceWidth = instanceWidth;"
+      "vXOffset = xOffset; vIllumination = illumination; vAlpha = alpha; vInstanceColor = instanceColor;"
     ].join("\n")
   );
 
@@ -76,7 +75,7 @@ beamMaterial.onBeforeCompile = shader => {
       // Alpha increases with distance
       "vBeamAlpha = clamp(gl_Position.z * gl_Position.z / 2800.0, 0.06, 0.7);",
       // Perform offset in view space to give beam width
-      "gl_Position.x = gl_Position.x + (vXOffset * vInstanceWidth);",
+      "gl_Position.x = gl_Position.x + (vXOffset * instanceWidth);",
       // Clip verts to hide them if too close, to skip drawing this beam to avoid stencil buffer write.
       "gl_Position.w = gl_Position.w * step(11.5, gl_Position.z);"
     ].join("\n")
