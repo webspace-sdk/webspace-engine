@@ -1,6 +1,18 @@
 import { fromByteArray } from "base64-js";
 import { rgbToCssRgb } from "./dom-utils";
 import { EDITOR_WIDTH, EDITOR_HEIGHT } from "./quill-pool";
+import { ComicFontCSS, SerifFontCSS, SansSerifFontCSS, MonoFontCSS } from "../fonts/quill-fonts";
+
+export const FONT_FACES = {
+  SANS_SERIF: 0,
+  SERIF: 1,
+  MONO: 2,
+  COMIC: 3
+};
+
+export const MAX_FONT_FACE = 3;
+
+const { SANS_SERIF, MONO, COMIC } = FONT_FACES;
 
 export function renderQuillToImg(
   quill,
@@ -9,7 +21,8 @@ export function renderQuillToImg(
   backgroundColor,
   zoom = 1.0,
   textureWidth = 1024,
-  transparent = true
+  transparent = false,
+  font = SANS_SERIF
 ) {
   const el = quill.container;
   const editor = quill.container.querySelector(".ql-editor");
@@ -95,11 +108,19 @@ export function renderQuillToImg(
   `
     : "";
 
+  // NOTE - We have to inject the current font as a data URL otherwise the browser can sometimes. We only inject one so this doesn't slow things down.
+  const fontCSS =
+    font === SANS_SERIF ? SansSerifFontCSS : font === MONO ? MonoFontCSS : font === COMIC ? ComicFontCSS : SerifFontCSS;
+
   // Disable other bits only relevant to on-screen UI
   // NOTE - not sure why global h1, h2 bits needed here, but otherwise font is always bold in headers.
+  // render the wrong font or mis-render it. (Perhaps a browser bug.)
   xml = xml.replace(
     "</style>",
     `
+
+    ${fontCSS}
+
     :root {
       background-color: ${bgCss} !important;
     }

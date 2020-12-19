@@ -173,8 +173,11 @@ function registerNetworkSchemas() {
       },
       {
         component: "media-text",
-        property: "transparent",
-        requiresNetworkUpdate: vectorRequiresUpdate(0.01)
+        property: "transparent"
+      },
+      {
+        component: "media-text",
+        property: "font"
       }
     ],
     nonAuthorizedComponents: [

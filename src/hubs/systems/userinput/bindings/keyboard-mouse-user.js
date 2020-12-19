@@ -562,6 +562,16 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
+      src: { value: paths.device.keyboard.key("t") },
+      dest: { value: paths.actions.mediaUpAction },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("g") },
+      dest: { value: paths.actions.mediaDownAction },
+      xform: xforms.rising
+    },
+    {
       src: { value: paths.device.keyboard.key("b") },
       dest: { value: paths.actions.mediaSnapshotAction },
       xform: xforms.rising

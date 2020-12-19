@@ -21,7 +21,7 @@ export const EDITOR_HEIGHT = Math.floor(EDITOR_WIDTH * 0.5625);
 
 // These aren't quite accurate but result in proper texturing
 export const EDITOR_PADDING_X = 18.0;
-export const EDITOR_PADDING_Y = 16.0;
+export const EDITOR_PADDING_Y = 20.0;
 
 // Create one quill for initial renders of text upon spawn
 // Create one quill for on-screen text editor
@@ -161,11 +161,27 @@ export function initQuillPool() {
         }
 
         .ql-editor {
-          font-family: Lato, Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !important;
+          font-family: 'Lato';
           font-size: 1.5em !important;
           width: 100% !important;
           padding: 16px 20px !important;
         }
+
+        .ql-editor.font-sans-serif {
+          font-family: 'Lato';
+        } 
+
+        .ql-editor.font-serif {
+          font-family: 'Merriweather';
+        } 
+
+        .ql-editor.font-mono {
+          font-family: 'Inconsolata';
+        } 
+
+        .ql-editor.font-comic {
+          font-family: 'Bangers';
+        } 
 
         .ql-editor p, h1, h2, ul, li {
           width: fit-content;

@@ -21,6 +21,7 @@ import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
 import { renderQuillToImg, computeQuillContectRect } from "../utils/quill-utils";
 import { paths } from "../../hubs/systems/userinput/paths";
 import { chicletGeometry } from "../objects/chiclet-geometry.js";
+import { FONT_FACES, MAX_FONT_FACE } from "../utils/quill-utils";
 
 const SCROLL_SENSITIVITY = 500.0;
 const FIT_CONTENT_EXTRA_SCALE = 1.5;
@@ -90,7 +91,8 @@ AFRAME.registerComponent("media-text", {
     fitContent: { default: false },
     foregroundColor: { type: "vec3", default: { x: 0, y: 0, z: 0 } },
     backgroundColor: { type: "vec3", default: { x: 1, y: 1, z: 1 } },
-    transparent: { default: false }
+    transparent: { default: false },
+    font: { default: 0 }
   },
 
   async init() {
@@ -110,7 +112,7 @@ AFRAME.registerComponent("media-text", {
   },
 
   async update(oldData) {
-    const { src, foregroundColor, backgroundColor } = this.data;
+    const { src, foregroundColor, backgroundColor, font } = this.data;
     if (!src) return;
 
     const refresh = src !== oldData.src;
@@ -130,6 +132,11 @@ AFRAME.registerComponent("media-text", {
         !almostEqualVec3(oldData.backgroundColor, backgroundColor)
       ) {
         this.applyProperMaterialToMesh();
+        this.rerenderQuill();
+      }
+
+      if (oldData.font !== font) {
+        this.applyFont();
         this.rerenderQuill();
       }
     }
@@ -244,6 +251,8 @@ AFRAME.registerComponent("media-text", {
 
           this.quill.updateContents(delta, Quill.sources.USER);
         }
+
+        this.applyFont();
       }
     } catch (e) {
       this.el.emit("text-error", { src: this.data.src });
@@ -371,7 +380,8 @@ AFRAME.registerComponent("media-text", {
       this.data.backgroundColor,
       this.zoom,
       this.textureWidth,
-      !!this.data.transparent
+      !!this.data.transparent,
+      this.data.font
     );
   },
 
@@ -443,6 +453,27 @@ AFRAME.registerComponent("media-text", {
     }
   },
 
+  applyFont() {
+    if (!this.quill) return;
+    const { font } = this.data;
+    const classList = this.quill.container.querySelector(".ql-editor").classList;
+
+    classList.remove("font-sans-serif");
+    classList.remove("font-serif");
+    classList.remove("font-mono");
+    classList.remove("font-comic");
+
+    if (font === FONT_FACES.SANS_SERIF) {
+      classList.add("font-sans-serif");
+    } else if (font === FONT_FACES.SERIF) {
+      classList.add("font-serif");
+    } else if (font === FONT_FACES.MONO) {
+      classList.add("font-mono");
+    } else if (font === FONT_FACES.COMIC) {
+      classList.add("font-comic");
+    }
+  },
+
   handleMediaInteraction(type) {
     if (!this.quill) return;
 
@@ -495,7 +526,8 @@ AFRAME.registerComponent("media-text", {
         this.data.backgroundColor,
         this.zoom,
         this.textureWidth,
-        !!this.data.transparent
+        !!this.data.transparent,
+        this.data.font
       );
     } else if (type === MEDIA_INTERACTION_TYPES.NEXT || type === MEDIA_INTERACTION_TYPES.BACK) {
       const [backgroundColor, foregroundColor, index] =
@@ -504,6 +536,12 @@ AFRAME.registerComponent("media-text", {
       window.APP.store.update({ uiState: { mediaTextColorPresetIndex: index } });
 
       this.el.setAttribute("media-text", { foregroundColor, backgroundColor });
+    } else if (type === MEDIA_INTERACTION_TYPES.UP || type === MEDIA_INTERACTION_TYPES.DOWN) {
+      let font = (this.data.font + (type === MEDIA_INTERACTION_TYPES.UP ? 1 : -1)) % (MAX_FONT_FACE + 1);
+      font = font < 0 ? MAX_FONT_FACE : font;
+      console.log(font);
+
+      this.el.setAttribute("media-text", { font });
     }
   }
 });
