@@ -446,6 +446,10 @@ AFRAME.registerComponent("media-loader", {
           properties.backgroundColor = mediaOptions.backgroundColor;
         }
 
+        if (mediaOptions.font) {
+          properties.font = mediaOptions.font;
+        }
+
         this.el.setAttribute("media-text", properties);
       } else if (
         contentType.startsWith("video/") ||

@@ -1,18 +1,29 @@
 import { fromByteArray } from "base64-js";
 import { rgbToCssRgb } from "./dom-utils";
 import { EDITOR_WIDTH, EDITOR_HEIGHT } from "./quill-pool";
-import { ComicFontCSS, SerifFontCSS, SansSerifFontCSS, MonoFontCSS } from "../fonts/quill-fonts";
+import {
+  ComicFontCSS,
+  SerifFontCSS,
+  SansSerifFontCSS,
+  MonoFontCSS,
+  ComicFont2CSS,
+  WritingFontCSS,
+  WritingFont2CSS
+} from "../fonts/quill-fonts";
 
 export const FONT_FACES = {
   SANS_SERIF: 0,
   SERIF: 1,
   MONO: 2,
-  COMIC: 3
+  COMIC: 3,
+  COMIC2: 4,
+  WRITING: 5,
+  WRITING2: 6
 };
 
-export const MAX_FONT_FACE = 3;
+export const MAX_FONT_FACE = 6;
 
-const { SANS_SERIF, MONO, COMIC } = FONT_FACES;
+const { SANS_SERIF, MONO, COMIC, COMIC2, WRITING, WRITING2 } = FONT_FACES;
 
 export function renderQuillToImg(
   quill,
@@ -109,8 +120,31 @@ export function renderQuillToImg(
     : "";
 
   // NOTE - We have to inject the current font as a data URL otherwise the browser can sometimes. We only inject one so this doesn't slow things down.
-  const fontCSS =
-    font === SANS_SERIF ? SansSerifFontCSS : font === MONO ? MonoFontCSS : font === COMIC ? ComicFontCSS : SerifFontCSS;
+  let fontCSS;
+
+  switch (font) {
+    case SANS_SERIF:
+      fontCSS = SansSerifFontCSS;
+      break;
+    case MONO:
+      fontCSS = MonoFontCSS;
+      break;
+    case COMIC:
+      fontCSS = ComicFontCSS;
+      break;
+    case COMIC2:
+      fontCSS = ComicFont2CSS;
+      break;
+    case WRITING:
+      fontCSS = WritingFontCSS;
+      break;
+    case WRITING2:
+      fontCSS = WritingFont2CSS;
+      break;
+    default:
+      fontCSS = SerifFontCSS;
+      break;
+  }
 
   // Disable other bits only relevant to on-screen UI
   // NOTE - not sure why global h1, h2 bits needed here, but otherwise font is always bold in headers.

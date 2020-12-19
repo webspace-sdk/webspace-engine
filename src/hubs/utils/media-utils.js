@@ -292,11 +292,12 @@ export const cloneMedia = (sourceEl, template, src = null, networked = true, lin
 
   if (sourceEl.components["media-text"]) {
     const mediaText = sourceEl.components["media-text"];
-    const { foregroundColor, backgroundColor } = mediaText.data;
+    const { foregroundColor, backgroundColor, font } = mediaText.data;
 
     contents = mediaText.getContents();
     extraMediaOptions.foregroundColor = foregroundColor;
     extraMediaOptions.backgroundColor = backgroundColor;
+    extraMediaOptions.font = font;
   } else {
     if (!src) {
       ({ src } = sourceEl.components["media-loader"].data);

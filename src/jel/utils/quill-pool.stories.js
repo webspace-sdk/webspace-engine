@@ -1,13 +1,7 @@
 import React, { useEffect } from "react";
 //import Quill from "quill";
-import {
-  computeQuillContectRect,
-  EDITOR_WIDTH,
-  EDITOR_HEIGHT,
-  initQuillPool,
-  getQuill,
-  destroyQuill
-} from "../utils/quill-pool";
+import { EDITOR_WIDTH, EDITOR_HEIGHT, initQuillPool, getQuill, destroyQuill } from "../utils/quill-pool";
+import { computeQuillContectRect } from "../utils/quill-utils";
 import { renderQuillToImg } from "../utils/quill-utils";
 
 const networkId = "abc";
@@ -54,6 +48,17 @@ export const QuillBasic = () => {
     </div>
   );
 };
+
+//setInterval(() => {
+//  const quill = getQuill(networkId);
+//  const [w, h] = computeQuillContectRect(quill);
+//  document
+//    .querySelector(".overlay")
+//    .setAttribute(
+//      "style",
+//      `position: absolute; top: 8px; left: 8px; background-color: green; width: ${w}px; height: ${h}px; opacity: 0.4; pointer-events: none;`
+//    );
+//}, 2500);
 
 export default {
   title: "Quill Pool"

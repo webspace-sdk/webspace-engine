@@ -29,10 +29,10 @@ const FIT_CONTENT_EXTRA_SCALE = 1.5;
 export const MEDIA_TEXT_COLOR_PRESETS = [
   [0xffffff, 0x000000],
   [0x000000, 0xffffff],
-  [0x111749, 0x98aeeb],
-  [0x4c63b6, 0xbed0f7],
   [0x656565, 0xf0f0f0],
   [0xfff8df, 0x666666],
+  [0x111749, 0x98aeeb],
+  [0x4c63b6, 0xbed0f7],
   [0xccffe7, 0x477946],
   [0x134412, 0xb7ffdd],
   [0xffbbbb, 0xb65050],
@@ -365,7 +365,7 @@ AFRAME.registerComponent("media-text", {
 
         this.texture.repeat.x = textureRepeatX;
         this.texture.repeat.y = textureRepeatY;
-        this.texture.offset.x = marginPctX;
+        this.texture.offset.x = marginPctX - 0.01; // Not sure why this extra offset is needed :P
         this.texture.offset.y = Math.max(0.0, 1.0 - textureRepeatY - marginPctY);
       }
 
@@ -462,6 +462,9 @@ AFRAME.registerComponent("media-text", {
     classList.remove("font-serif");
     classList.remove("font-mono");
     classList.remove("font-comic");
+    classList.remove("font-comic2");
+    classList.remove("font-writing");
+    classList.remove("font-writing2");
 
     if (font === FONT_FACES.SANS_SERIF) {
       classList.add("font-sans-serif");
@@ -471,6 +474,12 @@ AFRAME.registerComponent("media-text", {
       classList.add("font-mono");
     } else if (font === FONT_FACES.COMIC) {
       classList.add("font-comic");
+    } else if (font === FONT_FACES.COMIC2) {
+      classList.add("font-comic2");
+    } else if (font === FONT_FACES.WRITING) {
+      classList.add("font-writing");
+    } else if (font === FONT_FACES.WRITING2) {
+      classList.add("font-writing2");
     }
   },
 

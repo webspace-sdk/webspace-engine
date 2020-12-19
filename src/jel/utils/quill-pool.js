@@ -183,8 +183,21 @@ export function initQuillPool() {
           font-family: 'Bangers';
         } 
 
+        .ql-editor.font-comic2 {
+          font-family: 'Comic Neue';
+        } 
+
+        .ql-editor.font-writing {
+          font-family: 'Sriracha';
+        } 
+
+        .ql-editor.font-writing2 {
+          font-family: 'Indie Flower';
+        } 
+
         .ql-editor p, h1, h2, ul, li {
           width: fit-content;
+          width: fit-content(100%);
         }
 
         .ql-editor .ql-align-right,.ql-align-justify,.ql-align-center {
