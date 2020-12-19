@@ -380,7 +380,7 @@ AFRAME.registerComponent("media-text", {
       this.data.backgroundColor,
       this.zoom,
       this.textureWidth,
-      !!this.data.transparent,
+      this.data.transparent,
       this.data.font
     );
   },
@@ -391,6 +391,8 @@ AFRAME.registerComponent("media-text", {
   },
 
   applyProperMaterialToMesh() {
+    if (!this.mesh) return;
+
     const transparent = this.data.transparent;
     const presets = transparent ? MEDIA_TEXT_TRANSPARENT_COLOR_PRESETS : MEDIA_TEXT_COLOR_PRESETS;
 
@@ -535,7 +537,7 @@ AFRAME.registerComponent("media-text", {
         this.data.backgroundColor,
         this.zoom,
         this.textureWidth,
-        !!this.data.transparent,
+        this.data.transparent,
         this.data.font
       );
     } else if (type === MEDIA_INTERACTION_TYPES.NEXT || type === MEDIA_INTERACTION_TYPES.BACK) {
@@ -548,7 +550,6 @@ AFRAME.registerComponent("media-text", {
     } else if (type === MEDIA_INTERACTION_TYPES.UP || type === MEDIA_INTERACTION_TYPES.DOWN) {
       let font = (this.data.font + (type === MEDIA_INTERACTION_TYPES.UP ? 1 : -1)) % (MAX_FONT_FACE + 1);
       font = font < 0 ? MAX_FONT_FACE : font;
-      console.log(font);
 
       this.el.setAttribute("media-text", { font });
     }

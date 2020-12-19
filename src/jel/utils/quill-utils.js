@@ -119,7 +119,8 @@ export function renderQuillToImg(
   `
     : "";
 
-  // NOTE - We have to inject the current font as a data URL otherwise the browser can sometimes. We only inject one so this doesn't slow things down.
+  // NOTE - We have to inject the current font as a data URL otherwise the browser can sometimes
+  // render the wrong font or mis-render it. (Perhaps a browser bug.)
   let fontCSS;
 
   switch (font) {
@@ -148,7 +149,6 @@ export function renderQuillToImg(
 
   // Disable other bits only relevant to on-screen UI
   // NOTE - not sure why global h1, h2 bits needed here, but otherwise font is always bold in headers.
-  // render the wrong font or mis-render it. (Perhaps a browser bug.)
   xml = xml.replace(
     "</style>",
     `

@@ -960,7 +960,7 @@ async function start() {
 
   canvas.focus();
 
-  scene.renderer.debug.checkShaderErrors = true;
+  scene.renderer.debug.checkShaderErrors = false;
 
   initBatching();
 
