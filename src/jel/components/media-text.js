@@ -44,11 +44,30 @@ export const MEDIA_TEXT_COLOR_PRESETS = [
   new THREE.Vector3(((fg >> 16) & 255) / 255, ((fg >> 8) & 255) / 255, (fg & 255) / 255)
 ]);
 
-const getCycledColorPreset = ({ data: { foregroundColor, backgroundColor } }, direction) => {
-  let index = 0;
+export const MEDIA_TEXT_TRANSPARENT_COLOR_PRESETS = [
+  [0x000000, 0x000000],
+  [0x000000, 0xffffff],
+  [0x000000, 0x9446ed],
+  [0x000000, 0x3a66db],
+  [0x000000, 0x2186eb],
+  [0x000000, 0x40c3f7],
+  [0x000000, 0x3ae7e1],
+  [0x000000, 0x3ebd93],
+  [0x000000, 0x8ded2d],
+  [0x000000, 0xfadb5f],
+  [0x000000, 0xf9703e],
+  [0x000000, 0xef4e4e]
+].map(([bg, fg]) => [
+  new THREE.Vector3(((bg >> 16) & 255) / 255, ((bg >> 8) & 255) / 255, (bg & 255) / 255),
+  new THREE.Vector3(((fg >> 16) & 255) / 255, ((fg >> 8) & 255) / 255, (fg & 255) / 255)
+]);
 
-  for (let i = 0; i < MEDIA_TEXT_COLOR_PRESETS.length; i++) {
-    const [bg, fg] = MEDIA_TEXT_COLOR_PRESETS[i];
+const getCycledColorPreset = ({ data: { transparent, foregroundColor, backgroundColor } }, direction) => {
+  let index = 0;
+  const presets = transparent ? MEDIA_TEXT_TRANSPARENT_COLOR_PRESETS : MEDIA_TEXT_COLOR_PRESETS;
+
+  for (let i = 0; i < presets.length; i++) {
+    const [bg, fg] = presets[i];
 
     if (almostEqualVec3(foregroundColor, fg) && almostEqualVec3(backgroundColor, bg)) {
       index = i;
@@ -56,9 +75,9 @@ const getCycledColorPreset = ({ data: { foregroundColor, backgroundColor } }, di
     }
   }
 
-  index = (index + direction) % MEDIA_TEXT_COLOR_PRESETS.length;
-  index = index === -1 ? MEDIA_TEXT_COLOR_PRESETS.length - 1 : index;
-  return [...MEDIA_TEXT_COLOR_PRESETS[index], index];
+  index = (index + direction) % presets.length;
+  index = index === -1 ? presets.length - 1 : index;
+  return [...presets[index], index];
 };
 
 const getNextColorPreset = component => getCycledColorPreset(component, 1);
@@ -362,11 +381,14 @@ AFRAME.registerComponent("media-text", {
   },
 
   applyProperMaterialToMesh() {
+    const transparent = this.data.transparent;
+    const presets = transparent ? MEDIA_TEXT_TRANSPARENT_COLOR_PRESETS : MEDIA_TEXT_COLOR_PRESETS;
+
     // Use unlit material for black on white or white on black to maximize legibility or improve perf.
     if (
       this.data.transparent ||
-      almostEqualVec3(this.data.backgroundColor, MEDIA_TEXT_COLOR_PRESETS[0][0]) ||
-      almostEqualVec3(this.data.backgroundColor, MEDIA_TEXT_COLOR_PRESETS[1][0]) ||
+      almostEqualVec3(this.data.backgroundColor, presets[0][0]) ||
+      almostEqualVec3(this.data.backgroundColor, presets[1][0]) ||
       window.APP.detailLevel >= 2
     ) {
       this.mesh.material = this.unlitMat;
@@ -480,6 +502,7 @@ AFRAME.registerComponent("media-text", {
         type === MEDIA_INTERACTION_TYPES.NEXT ? getNextColorPreset(this) : getPrevColorPreset(this);
 
       window.APP.store.update({ uiState: { mediaTextColorPresetIndex: index } });
+
       this.el.setAttribute("media-text", { foregroundColor, backgroundColor });
     }
   }
