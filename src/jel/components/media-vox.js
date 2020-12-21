@@ -2,7 +2,7 @@ import { hasMediaLayer, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
 import { VOXLoader } from "../objects/VOXLoader";
 import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
-import { generateMeshBVH } from "../../hubs/components/gltf-model-plus";
+import { generateMeshBVH } from "../../hubs/utils/three-utils";
 import { addVertexCurvingToShader } from "../systems/terrain-system";
 
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshBasicMaterial, VertexColors } = THREE;
