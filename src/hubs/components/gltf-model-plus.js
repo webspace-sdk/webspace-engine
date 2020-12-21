@@ -5,7 +5,8 @@ import MobileStandardMaterial from "../materials/MobileStandardMaterial";
 import { getCustomGLTFParserURLResolver } from "../utils/media-url-utils";
 import { hasMediaLayer, MEDIA_INTERACTION_TYPES } from "../utils/media-utils";
 import { promisifyWorker } from "../utils/promisify-worker.js";
-import { MeshBVH, acceleratedRaycast } from "three-mesh-bvh";
+import { acceleratedRaycast } from "three-mesh-bvh";
+import { generateMeshBVH } from "../utils/three-utils";
 import { disposeNode, disposeExistingMesh, cloneObject3D } from "../utils/three-utils";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import HubsBasisTextureLoader from "../loaders/HubsBasisTextureLoader";
@@ -101,25 +102,6 @@ AFRAME.GLTFModelPlus = {
     AFRAME.GLTFModelPlus.components[componentKey] = { inflator, componentName };
   }
 };
-
-function generateMeshBVH(object3D) {
-  object3D.traverse(obj => {
-    // note that we might already have a bounds tree if this was a clone of an object with one
-    const hasBufferGeometry = obj.isMesh && obj.geometry.isBufferGeometry;
-    const hasBoundsTree = hasBufferGeometry && obj.geometry.boundsTree;
-    if (hasBufferGeometry && !hasBoundsTree && obj.geometry.attributes.position) {
-      const geo = obj.geometry;
-      const triCount = geo.index ? geo.index.count / 3 : geo.attributes.position.count / 3;
-      // only bother using memory and time making a BVH if there are a reasonable number of tris,
-      // and if there are too many it's too painful and large to tolerate doing it (at least until
-      // we put this in a web worker)
-      if (triCount > 1000 && triCount < 1000000) {
-        // note that bounds tree construction creates an index as a side effect if one doesn't already exist
-        geo.boundsTree = new MeshBVH(obj.geometry, { strategy: 0, maxDepth: 30 });
-      }
-    }
-  });
-}
 
 async function cloneGltf(gltf) {
   return {

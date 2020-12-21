@@ -175,6 +175,7 @@ AFRAME.registerComponent("media-loader", {
     this.el.removeAttribute("media-video");
     this.el.removeAttribute("media-pdf");
     this.el.removeAttribute("media-text");
+    this.el.removeAttribute("media-vox");
     this.el.setAttribute("media-image", { src: "error" });
     this.cleanupLoader(true);
   },
@@ -354,6 +355,7 @@ AFRAME.registerComponent("media-loader", {
       this.el.removeAttribute("media-pdf");
       this.el.removeAttribute("media-image");
       this.el.removeAttribute("media-text");
+      this.el.removeAttribute("media-vox");
     }
 
     try {
@@ -472,6 +474,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("gltf-model-plus");
         this.el.removeAttribute("media-image");
         this.el.removeAttribute("media-text");
+        this.el.removeAttribute("media-vox");
         this.el.removeAttribute("media-pdf");
         this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
         this.el.addEventListener(
@@ -503,6 +506,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("gltf-model-plus");
         this.el.removeAttribute("media-video");
         this.el.removeAttribute("media-text");
+        this.el.removeAttribute("media-vox");
         this.el.removeAttribute("media-pdf");
         this.el.removeAttribute("media-pager");
         this.el.addEventListener(
@@ -544,6 +548,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("gltf-model-plus");
         this.el.removeAttribute("media-video");
         this.el.removeAttribute("media-text");
+        this.el.removeAttribute("media-vox");
         this.el.removeAttribute("media-image");
         this.el.setAttribute(
           "media-pdf",
@@ -578,6 +583,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("media-image");
         this.el.removeAttribute("media-video");
         this.el.removeAttribute("media-text");
+        this.el.removeAttribute("media-vox");
         this.el.removeAttribute("media-pdf");
         this.el.removeAttribute("media-pager");
         this.el.addEventListener(
@@ -605,10 +611,33 @@ AFRAME.registerComponent("media-loader", {
             modelToWorldScale: this.data.fitToBox ? 0.0001 : 1.0
           })
         );
+      } else if (contentType.startsWith("model/vox")) {
+        this.el.removeAttribute("media-image");
+        this.el.removeAttribute("media-video");
+        this.el.removeAttribute("media-text");
+        this.el.removeAttribute("media-pdf");
+        this.el.removeAttribute("media-pager");
+        this.el.removeAttribute("gltf-model-plus");
+        this.el.addEventListener(
+          "model-loaded",
+          () => {
+            this.onMediaLoaded(SHAPE.HULL, true);
+          },
+          { once: true }
+        );
+        this.el.addEventListener("model-error", this.onError, { once: true });
+        this.el.setAttribute("floaty-object", { gravitySpeedLimit: 1.85 });
+        this.el.setAttribute(
+          "media-vox",
+          Object.assign({}, this.data.mediaOptions, {
+            src: accessibleUrl
+          })
+        );
       } else if (contentType.startsWith("text/html")) {
         this.el.removeAttribute("gltf-model-plus");
         this.el.removeAttribute("media-video");
         this.el.removeAttribute("media-text");
+        this.el.removeAttribute("media-vox");
         this.el.removeAttribute("media-pdf");
         this.el.removeAttribute("media-pager");
         this.el.addEventListener(
