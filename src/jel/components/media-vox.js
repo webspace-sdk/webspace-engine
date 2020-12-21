@@ -5,57 +5,7 @@ import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
 import { generateMeshBVH } from "../../hubs/components/gltf-model-plus";
 import { addVertexCurvingToShader } from "../systems/terrain-system";
 
-const {
-  ShaderMaterial,
-  ShaderLib,
-  UniformsUtils,
-  MeshBasicMaterial,
-  NearestFilter,
-  VertexColors,
-  DataTexture,
-  Color
-} = THREE;
-
-let toonGradientMap;
-
-(() => {
-  const colors = new Uint8Array(3);
-
-  for (let c = 0; c <= colors.length; c++) {
-    colors[c] = (c / colors.length) * 256;
-  }
-
-  toonGradientMap = new DataTexture(colors, colors.length, 1, THREE.LuminanceFormat);
-  toonGradientMap.minFilter = NearestFilter;
-  toonGradientMap.magFilter = NearestFilter;
-  toonGradientMap.generateMipmaps = false;
-})();
-
-//const getVoxelMaterial = () => {
-//  const voxelMaterial = new ShaderMaterial({
-//    name: "vox",
-//    vertexColors: VertexColors,
-//    fog: true,
-//    fragmentShader: ShaderLib.phong.fragmentShader,
-//    vertexShader: ShaderLib.phong.vertexShader,
-//    lights: true,
-//    defines: {
-//      ...new MeshToonMaterial().defines
-//    },
-//    uniforms: {
-//      ...UniformsUtils.clone(ShaderLib.phong.uniforms)
-//    }
-//  });
-//
-//  voxelMaterial.onBeforeCompile = shader => {
-//    addVertexCurvingToShader(shader);
-//    shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
-//  };
-//  voxelMaterial.uniforms.gradientMap.value = toonGradientMap;
-//  voxelMaterial.uniforms.shininess.value = 0.0001;
-//  voxelMaterial.uniforms.diffuse.value = new Color(0.5, 0.5, 0.5);
-//  return voxelMaterial;
-//};
+const { ShaderMaterial, ShaderLib, UniformsUtils, MeshBasicMaterial, VertexColors } = THREE;
 
 const getVoxelMaterial = () => {
   const voxelMaterial = new ShaderMaterial({
@@ -79,7 +29,7 @@ const getVoxelMaterial = () => {
     shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
     shader.fragmentShader = shader.fragmentShader.replace(
       "#include <fog_fragment>",
-      "gl_FragColor = vec4(vColor.xyz, 1.0);"
+      ["gl_FragColor = vec4(vColor.xyz, 1.0);", "#include <fog_fragment>"].join("\n")
     );
   };
 
