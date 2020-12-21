@@ -35,7 +35,7 @@ export const MEDIA_INTERACTION_TYPES = {
 export const LOADING_EVENTS = ["model-loading", "image-loading", "text-loading", "pdf-loading"];
 export const LOADED_EVENTS = ["model-loaded", "image-loaded", "text-loaded", "pdf-loaded"];
 export const ERROR_EVENTS = ["model-error", "image-error", "text-error", "pdf-error"];
-const MEDIA_VIEW_COMPONENTS = ["media-video", "media-image", "media-text", "media-pdf", "gltf-model-plus"];
+const MEDIA_VIEW_COMPONENTS = ["media-video", "media-image", "media-text", "media-vox", "media-pdf", "gltf-model-plus"];
 
 const linkify = Linkify();
 linkify.tlds(tlds);

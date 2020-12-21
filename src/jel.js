@@ -63,6 +63,7 @@ import "./hubs/components/visibility-on-content-types";
 import "./hubs/components/visibility-while-frozen";
 import "./hubs/components/networked-avatar";
 import "./hubs/components/media-views";
+import "./jel/components/media-vox";
 import "./jel/components/media-text";
 import { initQuillPool } from "./jel/utils/quill-pool";
 import "./hubs/components/avatar-volume-controls";
