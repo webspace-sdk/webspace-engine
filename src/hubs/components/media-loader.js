@@ -630,8 +630,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.setAttribute(
           "media-vox",
           Object.assign({}, this.data.mediaOptions, {
-            src: accessibleUrl,
-            contentType: contentType
+            src: accessibleUrl
           })
         );
       } else if (contentType.startsWith("text/html")) {
