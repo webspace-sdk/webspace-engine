@@ -33,6 +33,11 @@ const getVoxelMaterial = () => {
     );
   };
 
+  voxelMaterial.stencilWrite = true;
+  voxelMaterial.stencilFunc = THREE.AlwaysStencilFunc;
+  voxelMaterial.stencilRef = 0;
+  voxelMaterial.stencilZPass = THREE.ReplaceStencilOp;
+
   return voxelMaterial;
 };
 
