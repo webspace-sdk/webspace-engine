@@ -556,7 +556,7 @@ function addGlobalEventListeners(scene, entryManager) {
         uploadAccept = "application/pdf";
         break;
       case "model_upload":
-        uploadAccept = ".glb";
+        uploadAccept = ".glb,.vox";
         break;
     }
 
