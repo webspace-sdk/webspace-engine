@@ -1,8 +1,46 @@
 import React, { useState, forwardRef } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
+import Fuse from "fuse.js";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
-import { FloatingTextPanelElement, FloatingTextWrap, FloatingTextElement } from "./floating-text-input";
+import { FloatingTextWrap, FloatingTextElement } from "./floating-text-input";
+import "../../assets/jel/stylesheets/emoji.scss";
+
+import { EmojiList } from "../utils/emojis";
+
+const emojiSort = (a, b) => a.emoji_order - b.emoji_order;
+
+const CATEGORIES = [
+  { type: "p", name: "people", className: "i-people" },
+  { type: "n", name: "nature", className: "i-nature" },
+  { type: "d", name: "food", className: "i-food" },
+  { type: "s", name: "symbols", className: "i-symbols" },
+  { type: "a", name: "activity", className: "i-activity" },
+  { type: "t", name: "travel", className: "i-travel" },
+  { type: "o", name: "objects", className: "i-objects" },
+  { type: "f", name: "flags", className: "i-flags" }
+];
+
+const fuseName = new Fuse(EmojiList, {
+  shouldSort: true,
+  threshold: 0.1,
+  location: 0,
+  distance: 100,
+  maxPatternLength: 32,
+  minMatchCharLength: 1,
+  keys: ["shortname"]
+});
+
+const fuseCategory = new Fuse(EmojiList, {
+  shouldSort: true,
+  matchAllTokens: true,
+  threshold: 0.3,
+  location: 0,
+  distance: 100,
+  maxPatternLength: 32,
+  minMatchCharLength: 3,
+  keys: ["category"]
+});
 
 const Panel = styled.div`
   width: 290px;
@@ -146,13 +184,13 @@ const Search = styled.div`
 
 const Emojis = styled.div`
   width: 100%;
-  flex-direction: row;
   height: 220px;
-  display: flex;
-  flex-wrap: wrap;
+  max-height: 220px;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-auto-rows: 30px;
   box-shadow: inset 0 0 2px var(--menu-background-color);
   background: var(--text-input-background-color);
-  justify-content: center;
   padding: 4px;
   box-sizing: border-box;
   overflow-y: scroll;
@@ -194,11 +232,11 @@ const Emojis = styled.div`
 const Emoji = styled.button`
   width: 29px;
   height: 29px;
-  margin: 2p;
+  margin: 2px;
   box-sizing: border-box;
-  vertical-align: baseline !important;
   display: inline;
-  line-height: 26px;
+  vertical-align: baseline;
+  line-height: 28px;
   font-size: 20px;
   font-family: Helvetica, Arial, sans-serif;
   text-align: center;
@@ -221,9 +259,16 @@ const Emoji = styled.button`
   }
 `;
 
-const EmojiPicker = forwardRef((profs, ref) => {
-  const [name, setName] = useState("");
+const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("p");
+
   const placeholder = "Search for emoji...";
+
+  const q = query.trim();
+  const fuse = q.length > 0 ? fuseName : fuseCategory;
+  const emojis = fuse.search(fuse === fuseName ? q : category);
+  emojis.sort(emojiSort);
 
   return (
     <Panel>
@@ -240,7 +285,7 @@ const EmojiPicker = forwardRef((profs, ref) => {
               <FloatingTextElement
                 type="text"
                 tabIndex={-1}
-                value={name}
+                value={query}
                 placeholder={placeholder}
                 ref={ref}
                 onFocus={e => handleTextFieldFocus(e.target)}
@@ -248,95 +293,39 @@ const EmojiPicker = forwardRef((profs, ref) => {
                   handleTextFieldBlur(e.target);
                 }}
                 onChange={e => {
-                  const newName = e.target.value;
-                  setName(newName);
+                  const query = e.target.value;
+                  setQuery(query);
                 }}
               />
             </form>
           </FloatingTextWrap>
         </Search>
         <Tabs>
-          <Filter>
-            <div className="i-people" />
-          </Filter>
-          <Filter>
-            <div className="i-nature" />
-          </Filter>
-          <Filter>
-            <div className="i-food" />
-          </Filter>
-          <Filter>
-            <div className="i-symbols" />
-          </Filter>
-          <Filter>
-            <div className="i-activity" />
-          </Filter>
-          <Filter>
-            <div className="i-travel" />
-          </Filter>
-          <Filter>
-            <div className="i-objects" />
-          </Filter>
-          <Filter>
-            <div className="i-flags" />
-          </Filter>
+          {CATEGORIES.map(({ type, className }) => (
+            <Filter key={type} className={category === type ? "active" : ""} onClick={() => setCategory(type)}>
+              <div className={className} />
+            </Filter>
+          ))}
         </Tabs>
       </Toolbar>
       <Emojis>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
-        <Emoji>😀</Emoji>
+        {emojis.map(({ item: { shortname, name, code_decimal } }) => (
+          <Emoji
+            key={shortname}
+            className={`emoji-map emoji-${name}`}
+            dangerouslySetInnerHTML={{ __html: code_decimal }}
+            onClick={() => onEmojiSelected(name)}
+          />
+        ))}
       </Emojis>
     </Panel>
   );
 });
 
 EmojiPicker.displayName = "EmojiPicker";
+
+EmojiPicker.propTypes = {
+  onEmojiSelected: PropTypes.func
+};
 
 export default EmojiPicker;

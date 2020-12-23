@@ -11,7 +11,7 @@ export const Basic = () => (
       flexDirection: "column"
     }}
   >
-    <EmojiPicker />
+    <EmojiPicker onEmojiSelected={name => console.log(name)} />
   </div>
 );
 
