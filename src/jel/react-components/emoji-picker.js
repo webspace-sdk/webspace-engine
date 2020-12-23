@@ -46,7 +46,7 @@ const fuseCategory = new Fuse(EmojiList, {
 
 const Panel = styled.div`
   width: 290px;
-  height: 320px;
+  height: 328px;
   display: flex;
   flex-direction: column;
   color: var(--panel-text-color);
@@ -70,7 +70,7 @@ const Toolbar = styled.div`
 const Tabs = styled.div`
   width: 100%;
   height: 32px;
-  padding: 6px 7px 2px 8px;
+  padding: 7px 7px 2px 8px;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -227,8 +227,6 @@ const Emojis = styled.div`
     border: 2px solid transparent;
     visibility: hidden;
   }
-
-  border-radius: 0 0 6px 6px;
 `;
 
 const Emoji = styled.button`
@@ -250,6 +248,7 @@ const Emoji = styled.button`
   margin: 2px;
   border: 0;
   pointer-events: auto;
+  border-radius: 4px;
 
   &:hover {
     background-color: var(--canvas-overlay-item-hover-background-color);
@@ -322,7 +321,7 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
 
       if (emojis.length > 0) {
         const { item } = emojis[0];
-        setCurrentEmoji({ ...item, index: 0 });
+        setCurrentEmoji({ ...item, index: 0, scroll: true });
         setPlaceholder(item.shortname);
       }
     },
@@ -331,12 +330,11 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
 
   useEffect(
     () => {
-      console.log(emojisRef);
       if (emojisRef && emojisRef.current) {
         // Scroll to visible emoji
         const el = emojisRef.current.querySelector(".active");
 
-        if (el) {
+        if (el && currentEmoji && currentEmoji.scroll) {
           scrollIntoView(el, { scrollMode: "if-needed" });
         }
       }
@@ -385,7 +383,7 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
                     const index = currentEmoji.index + delta;
 
                     if (index >= 0 && index <= emojis.length - 1) {
-                      setCurrentEmoji({ ...emojis[index].item, index });
+                      setCurrentEmoji({ ...emojis[index].item, index, scroll: true });
                     }
                   }
                 }}
@@ -420,7 +418,7 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
             onClick={() => onEmojiSelected(name)}
             onMouseEnter={() => {
               setPlaceholder(shortname);
-              setCurrentEmoji({ shortname, name, code_decimal, index });
+              setCurrentEmoji({ shortname, name, code_decimal, index, scroll: false });
             }}
             onMouseLeave={() => {
               setPlaceholder(defaultPlaceholder);
