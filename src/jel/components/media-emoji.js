@@ -90,7 +90,7 @@ AFRAME.registerComponent("media-emoji", {
         this.el.setObject3D("mesh", this.mesh);
         const voxmojiSystem = this.el.sceneEl.systems["hubs-systems"].voxmojiSystem;
         const type = await voxmojiSystem.registerType(faceImage);
-        voxmojiSystem.register(type, this.el.object3D);
+        voxmojiSystem.register(type, this.mesh);
         this.el.emit("model-loaded", { format: "emoji", model: this.mesh });
       }
     } catch (e) {
