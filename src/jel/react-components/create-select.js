@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import React, { useEffect, useMemo, useRef, useState, forwardRef, useCallback } from "react";
+import React, { useCallback, useMemo, useRef, useState, forwardRef } from "react";
 import Select, { Option, OptGroup } from "rc-select";
 import "../../assets/jel/stylesheets/create-select.scss";
 import { getMessages } from "../../hubs/utils/i18n";
@@ -17,6 +17,7 @@ import pdfThumbSrc from "../../assets/jel/images/icons/thumb-pdf.svg";
 import modelThumbSrc from "../../assets/jel/images/icons/thumb-model.svg";
 import labelThumbSrc from "../../assets/jel/images/icons/thumb-label.svg";
 import bannerThumbSrc from "../../assets/jel/images/icons/thumb-banner.svg";
+import { useRefFocusResetter } from "../utils/shared-effects";
 
 export const CREATE_SELECT_WIDTH = 325;
 export const CREATE_SELECT_LIST_HEIGHT = 350;
@@ -30,6 +31,7 @@ const items = [
       ["banner", newPageIconSrc, bannerThumbSrc]
     ]
   ],
+  ["objects", [["voxmoji", linkIconSrc, imageThumbSrc]]],
   ["images", [["image_embed", linkIconSrc, imageThumbSrc], ["image_upload", uploadIconSrc, imageThumbSrc]]],
   ["videos", [["video_embed", linkIconSrc, videoThumbSrc], ["video_upload", uploadIconSrc, videoThumbSrc]]],
   ["models", [["model_embed", linkIconSrc, modelThumbSrc], ["model_upload", uploadIconSrc, modelThumbSrc]]],
@@ -148,35 +150,15 @@ const CreateSelect = forwardRef((props, ref) => {
   const messages = getMessages();
   const inputRef = useRef();
 
-  useEffect(
-    () => {
-      let blurTimeout;
-      // Hack - this will trigger the effect to reset to the default by changing the search.
-      const resetOnBlur = () => {
-        blurTimeout = setTimeout(() => {
-          setValue(" ");
-          setValue("");
-        }, 500);
-      };
-
-      const resetOnFocus = () => {
-        clearTimeout(blurTimeout);
+  useRefFocusResetter(
+    inputRef,
+    useCallback(
+      () => {
         setValue(" ");
         setValue("");
-      };
-
-      if (inputRef.current) {
-        const el = inputRef.current;
-        el.addEventListener("blur", resetOnBlur);
-        el.addEventListener("focus", resetOnFocus);
-
-        return () => {
-          el.removeEventListener("focus", resetOnFocus);
-          el.removeEventListener("blur", resetOnBlur);
-        };
-      }
-    },
-    [inputRef]
+      },
+      [setValue]
+    )
   );
 
   const onSelect = useCallback(

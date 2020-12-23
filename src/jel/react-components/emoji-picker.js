@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, forwardRef } from "react";
+import React, { useCallback, useRef, useState, useEffect, forwardRef } from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
 import PropTypes from "prop-types";
 import styled from "styled-components";
@@ -7,6 +7,7 @@ import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focu
 import { FloatingTextWrap, FloatingTextElement } from "./floating-text-input";
 import { getMessages } from "../../hubs/utils/i18n";
 import "../../assets/jel/stylesheets/emoji.scss";
+import { useRefFocusResetter } from "../utils/shared-effects";
 
 import { EmojiList } from "../utils/emojis";
 
@@ -55,6 +56,10 @@ const Panel = styled.div`
   box-shadow: 0px 12px 28px var(--menu-shadow-color);
   background-color: transparent;
   border-radius: 6px;
+
+  &:focus-within {
+    pointer-events: auto;
+  }
 `;
 
 const Toolbar = styled.div`
@@ -85,7 +90,6 @@ const Filter = styled.button`
   -webkit-appearance: none;
   online-style: none;
   border: 0;
-  pointer-events: auto;
   border-radius: 2px;
 
   &:hover {
@@ -247,7 +251,6 @@ const Emoji = styled.button`
   online-style: none;
   margin: 2px;
   border: 0;
-  pointer-events: auto;
   border-radius: 4px;
 
   &:hover {
@@ -342,6 +345,8 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
     [emojisRef, currentEmoji]
   );
 
+  useRefFocusResetter(ref, useCallback(() => setQuery(""), [setQuery]));
+
   return (
     <Panel>
       <Toolbar>
@@ -352,7 +357,7 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
                 e.preventDefault();
                 e.stopPropagation();
                 document.activeElement.blur(); // This causes this element to hide via CSS
-                onEmojiSelected(currentEmoji.name);
+                onEmojiSelected(currentEmoji);
               }}
             >
               <FloatingTextElement
@@ -410,15 +415,20 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
         </Tabs>
       </Toolbar>
       <Emojis ref={emojisRef}>
-        {emojis.map(({ item: { shortname, name, code_decimal } }, index) => (
+        {emojis.map(({ item }, index) => (
           <Emoji
-            key={shortname}
-            className={`emoji-map emoji-${name} ${currentEmoji && currentEmoji.name === name ? "active" : ""}`}
-            dangerouslySetInnerHTML={{ __html: code_decimal }}
-            onClick={() => onEmojiSelected(name)}
+            key={item.shortname}
+            className={`emoji-map emoji-${item.name} ${
+              currentEmoji && currentEmoji.name === item.name ? "active" : ""
+            }`}
+            dangerouslySetInnerHTML={{ __html: item.code }}
+            onClick={() => {
+              onEmojiSelected(item);
+              document.activeElement.blur();
+            }}
             onMouseEnter={() => {
-              setPlaceholder(shortname);
-              setCurrentEmoji({ shortname, name, code_decimal, index, scroll: false });
+              setPlaceholder(item.shortname);
+              setCurrentEmoji({ ...item, index });
             }}
             onMouseLeave={() => {
               setPlaceholder(defaultPlaceholder);
@@ -428,7 +438,7 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
         ))}
       </Emojis>
       <Footer>
-        <FooterEmoji dangerouslySetInnerHTML={{ __html: currentEmoji ? currentEmoji.code_decimal : "" }} />
+        <FooterEmoji dangerouslySetInnerHTML={{ __html: currentEmoji ? currentEmoji.code : "" }} />
         <FooterLabel className={currentEmoji && `.emoji-${currentEmoji.name}`}>
           {currentEmoji && currentEmoji.shortname}
         </FooterLabel>
