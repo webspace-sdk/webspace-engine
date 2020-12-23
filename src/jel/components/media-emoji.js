@@ -1,5 +1,6 @@
 import { hasMediaLayer, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
+import faceImage from "../../assets/jel/images/face.png";
 
 AFRAME.registerComponent("media-emoji", {
   schema: {
@@ -75,20 +76,21 @@ AFRAME.registerComponent("media-emoji", {
         this.el.setAttribute("media-emoji", { emoji });
       }
 
-      console.log(emoji);
-
       if (!this.mesh) {
         disposeExistingMesh(this.el);
 
         this.el.emit("model-loading");
 
-        const geo = new THREE.BoxBufferGeometry(1, 1, 0.1);
+        const geo = new THREE.BoxBufferGeometry(0.4, 0.4, 0.1);
         const mat = new THREE.MeshBasicMaterial();
         mat.visible = false;
         this.mesh = new THREE.Mesh(geo, mat);
         this.mesh.castShadow = true;
         this.el.object3D.matrixNeedsUpdate = true;
         this.el.setObject3D("mesh", this.mesh);
+        const voxmojiSystem = this.el.sceneEl.systems["hubs-systems"].voxmojiSystem;
+        const type = await voxmojiSystem.registerType(faceImage);
+        voxmojiSystem.register(type, this.el.object3D);
         this.el.emit("model-loaded", { format: "emoji", model: this.mesh });
       }
     } catch (e) {

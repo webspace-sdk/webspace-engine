@@ -3,6 +3,7 @@ import { RENDER_ORDER } from "../../hubs/constants";
 import { SkyBeamBufferGeometry, BEAM_HEIGHT } from "../objects/sky-beam-buffer-geometry";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { getCreator, getNetworkedEntity } from "../utils/ownership-utils";
+import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 const BEAM_Y_OFFSET = BEAM_HEIGHT / 2;
 
 const { Color, ShaderMaterial, MeshBasicMaterial, Matrix4, ShaderLib, UniformsUtils, Vector3 } = THREE;
@@ -108,7 +109,6 @@ export class SkyBeamSystem {
     this.sceneEl = sceneEl;
     this.beamSources = Array(MAX_BEAMS).fill(null);
     this.sourceToIndex = new Map();
-    this.dirtyMatrices = Array(MAX_BEAMS).fill(0);
     this.dirtyColors = Array(MAX_BEAMS).fill(false);
     this.sourceCreatorIds = Array(MAX_BEAMS).fill(null);
 
@@ -123,7 +123,6 @@ export class SkyBeamSystem {
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.sourceToIndex.set(source, index);
     this.beamSources[index] = source;
-    this.dirtyMatrices[index] = 0;
     this.dirtyColors[index] = true;
     this.instanceWidthAttribute.array[index] = isAvatar ? WIDE_BEAM_WIDTH : NARROW_BEAM_WIDTH;
     this.instanceWidthAttribute.needsUpdate = true;
@@ -150,13 +149,6 @@ export class SkyBeamSystem {
     return this.sourceToIndex.has(source);
   }
 
-  markMatrixDirty(source) {
-    if (!this.sourceToIndex.has(source)) return;
-
-    const i = this.sourceToIndex.get(source);
-    this.dirtyMatrices[i] = 1;
-  }
-
   markColorDirtyForCreator(creatorId) {
     for (let i = 0; i <= this.maxRegisteredIndex; i++) {
       if (this.sourceCreatorIds[i] === creatorId) {
@@ -181,22 +173,10 @@ export class SkyBeamSystem {
   tick() {
     if (!window.APP.spaceChannel.presence) return;
 
-    const {
-      beamSources,
-      sourceCreatorIds,
-      maxRegisteredIndex,
-      instanceColorAttribute,
-      mesh,
-      dirtyMatrices,
-      dirtyColors
-    } = this;
+    const { beamSources, sourceCreatorIds, maxRegisteredIndex, instanceColorAttribute, mesh, dirtyColors } = this;
     if (maxRegisteredIndex === -1) return;
 
     this.frame++;
-
-    // Some pathways of object motion will not flip dirty matrix bit, such as remote media object moving.
-    // As such every frame do a delta check on one source to flip its dirty bit if its moved.
-    this.checkOneSourceForDirty();
 
     let instanceMatrixNeedsUpdate = false,
       instanceColorNeedsUpdate = false;
@@ -207,7 +187,7 @@ export class SkyBeamSystem {
       const source = beamSources[i];
       if (source === null) continue;
 
-      const hasDirtyMatrix = dirtyMatrices[i] > 0;
+      const hasDirtyMatrix = source.consumeIfDirtyWorldMatrix(WORLD_MATRIX_CONSUMERS.BEAMS);
       const hasDirtyColor = dirtyColors[i];
 
       if (hasDirtyColor) {
@@ -246,34 +226,10 @@ export class SkyBeamSystem {
         array[i * 16 + 14] = z;
 
         instanceMatrixNeedsUpdate = true;
-
-        dirtyMatrices[i] -= 1;
       }
     }
 
     instanceColorAttribute.needsUpdate = instanceColorNeedsUpdate;
     mesh.instanceMatrix.needsUpdate = instanceMatrixNeedsUpdate;
-  }
-
-  checkOneSourceForDirty() {
-    const { beamSources, maxRegisteredIndex, frame, mesh } = this;
-    const i = frame % (maxRegisteredIndex + 1);
-    const source = beamSources[i];
-    if (!source) return;
-
-    const elements = source.matrixWorld.elements;
-    const array = mesh.instanceMatrix.array;
-
-    const x = elements[12];
-    const y = elements[13] + BEAM_Y_OFFSET;
-    const z = elements[14];
-
-    const cx = array[i * 16 + 12];
-    const cy = array[i * 16 + 13];
-    const cz = array[i * 16 + 14];
-
-    if (Math.abs(x - cx) > 0.01 || Math.abs(y - cy) > 0.01 || Math.abs(z - cz) > 0.01) {
-      this.markMatrixDirty(source);
-    }
   }
 }

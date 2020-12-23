@@ -363,10 +363,6 @@ AFRAME.registerComponent("ik-controller", {
 
       if (this.data.instanceHeads) {
         this.avatarSystem.markMatrixDirty(this.el);
-
-        if (this.head) {
-          this.skyBeamSystem.markMatrixDirty(this.head);
-        }
       }
 
       root.matrixNeedsUpdate = true;

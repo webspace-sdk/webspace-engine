@@ -38,6 +38,7 @@ import { MediaInteractionSystem } from "../../jel/systems/media-interaction-syst
 import { CameraRotatorSystem } from "../../hubs/systems/camera-rotator-system";
 import { KeyboardTipSystem } from "../../jel/systems/keyboard-tip-system";
 import { AutoQualitySystem } from "../../jel/systems/auto-quality-system";
+import { VoxmojiSystem } from "../../jel/systems/voxmoji-system";
 
 AFRAME.registerSystem("hubs-systems", {
   init() {
@@ -52,7 +53,13 @@ AFRAME.registerSystem("hubs-systems", {
     this.cameraSystem = new CameraSystem(this.el);
     this.atmosphereSystem = new AtmosphereSystem(this.el, this.cameraSystem);
     this.skyBeamSystem = new SkyBeamSystem(this.el);
-    this.physicsSystem = new PhysicsSystem(this.el.object3D, this.atmosphereSystem, this.skyBeamSystem);
+    this.voxmojiSystem = new VoxmojiSystem(this.el, this.atmosphereSystem);
+    this.physicsSystem = new PhysicsSystem(
+      this.el.object3D,
+      this.atmosphereSystem,
+      this.skyBeamSystem,
+      this.voxmojiSystem
+    );
     this.constraintsSystem = new ConstraintsSystem(this.physicsSystem);
     this.twoPointStretchingSystem = new TwoPointStretchingSystem();
     this.singleActionButtonSystem = new SingleActionButtonSystem();
@@ -134,6 +141,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.uiAnimationSystem.tick(t, dt);
     this.avatarSystem.tick(t, dt);
     this.skyBeamSystem.tick(t, dt);
+    this.voxmojiSystem.tick(t, dt);
     this.keyboardTipSystem.tick();
     this.autoQualitySystem.tick(t, dt);
 

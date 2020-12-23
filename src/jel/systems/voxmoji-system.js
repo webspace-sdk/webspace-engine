@@ -1,7 +1,8 @@
-import * as THREE from "../build/three.module.js";
-import { VOXBufferGeometry } from "./jsm/geometries/VOXBufferGeometry.js";
-import { DynamicInstancedMesh } from "./DynamicInstancedMesh.js";
+import { VOXBufferGeometry } from "../objects/VOXBufferGeometry.js";
+import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { disposeNode } from "../../hubs/utils/three-utils";
+import { addVertexCurvingToShader } from "./terrain-system";
+import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 
 const {
   ImageLoader,
@@ -38,7 +39,8 @@ const voxmojiMaterial = new ShaderMaterial({
 });
 
 const voxmojiMaterialOnBeforeCompile = shader => {
-  //addVertexCurvingToShader( shader );
+  addVertexCurvingToShader(shader);
+
   shader.vertexShader = shader.vertexShader.replace(
     "#include <uv2_pars_vertex>",
     ["#include <uv2_pars_vertex>", "attribute float mapIndex;"].join("\n")
@@ -83,49 +85,34 @@ voxmojiMaterial.uniforms.diffuse.value = new Color(0.5, 0.5, 0.5);
 // unregisterAll() should be called at opportune points (such as world transitions) when there are no
 // voxmoji remaining and subsequent voxmoji are expected to diverge from the ones seen so far.
 export class VoxmojiSystem {
-  constructor(sceneEl) {
+  constructor(sceneEl, atmosphereSystem) {
     this.sceneEl = sceneEl;
+    this.atmosphereSystem = atmosphereSystem;
     this.types = new Map();
     this.meshes = new Map();
     this.sourceToType = new Map();
   }
 
-  markMatrixDirty(source) {
-    const { sourceToType, types, meshes } = this;
-
-    if (!sourceToType.has(source)) return;
-    const typeKey = sourceToType.get(source);
-
-    const { meshKey } = types.get(typeKey);
-    const { dirtyMatrices, sourceToIndex } = meshes.get(meshKey);
-
-    if (!sourceToIndex.has(source)) true;
-    const instanceIndex = sourceToIndex.get(source);
-    dirtyMatrices[instanceIndex] = 1;
-  }
-
   tick() {
-    const { meshes } = this;
+    const { atmosphereSystem, meshes } = this;
 
-    for (const { mesh, sources, maxRegisteredIndex, dirtyMatrices } of meshes.values()) {
+    for (const { mesh, sources, maxRegisteredIndex } of meshes.values()) {
       let instanceMatrixNeedsUpdate = false;
 
       for (let i = 0; i <= maxRegisteredIndex; i++) {
         const source = sources[i];
         if (source === null) continue;
 
-        const hasDirtyMatrix = dirtyMatrices[i] > 0;
+        const hasDirtyMatrix = source.consumeIfDirtyWorldMatrix(WORLD_MATRIX_CONSUMERS.VOXMOJI);
 
-        if (!hasDirtyMatrix) continue;
+        if (hasDirtyMatrix) {
+          source.updateMatrices();
+          mesh.setMatrixAt(i, source.matrixWorld);
 
-        source.updateMatrixWorld(); // TODO
-        mesh.setMatrixAt(i, source.matrixWorld);
+          atmosphereSystem.updateShadows();
 
-        // TODO
-        // atmosphereSystem.updateShadows();
-
-        instanceMatrixNeedsUpdate = true;
-        dirtyMatrices[i] -= 1;
+          instanceMatrixNeedsUpdate = true;
+        }
       }
 
       mesh.instanceMatrix.needsUpdate = instanceMatrixNeedsUpdate;
@@ -137,7 +124,7 @@ export class VoxmojiSystem {
 
     const { meshKey, mapIndex } = types.get(typeKey);
     const meshEntry = meshes.get(meshKey);
-    const { mesh, mapIndexAttribute, maxRegisteredIndex, dirtyMatrices, sources, sourceToIndex } = meshEntry;
+    const { mesh, mapIndexAttribute, maxRegisteredIndex, sources, sourceToIndex } = meshEntry;
 
     const instanceIndex = mesh.addInstance(0.0, IDENTITY);
     mapIndexAttribute.array[instanceIndex] = mapIndex * 1.0;
@@ -146,7 +133,6 @@ export class VoxmojiSystem {
     sources[instanceIndex] = source;
     sourceToIndex.set(source, instanceIndex);
     sourceToType.set(source, typeKey);
-    dirtyMatrices[instanceIndex] = 0;
 
     meshEntry.maxRegisteredIndex = Math.max(instanceIndex, maxRegisteredIndex);
   }
@@ -258,7 +244,7 @@ export class VoxmojiSystem {
     const meshKey = meshKeyParts.reduce((x, y) => x + y, 0);
 
     if (!this.meshes.has(meshKey)) {
-      this.generateAndRegisterMesh(this.sceneEl.object3D, meshKey, data);
+      this.generateAndRegisterMesh(meshKey, data);
     }
 
     const mapIndex = this.registerMapToMesh(meshKey, image);
@@ -455,6 +441,14 @@ export class VoxmojiSystem {
     indices.push(quadVertIndex + 1 + 4);
     indices.push(quadVertIndex + 2 + 4);
 
+    // Scale verts by 0.015 - don't have app deal with scale, this mesh
+    // should just be the right size to keep things simpler.
+    for (let i = 0; i < vertices.length; i += 3) {
+      vertices[i] *= 0.015;
+      vertices[i + 1] *= 0.015;
+      vertices[i + 2] *= 0.045; // Thicken in Z
+    }
+
     geometry.setIndex(indices);
     geometry.setAttribute("position", new Float32BufferAttribute(vertices, 3));
     geometry.setAttribute("normal", new Float32BufferAttribute(normals, 3));
@@ -484,7 +478,6 @@ export class VoxmojiSystem {
       mapContext: context,
       maxMapIndex: -1,
       maxRegisteredIndex: -1,
-      dirtyMatrices: Array(MAX_VOXMOJI_PER_TYPE).fill(0),
       sourceToIndex: new Map(),
       sources: Array(MAX_VOXMOJI_PER_TYPE).fill(null)
     });

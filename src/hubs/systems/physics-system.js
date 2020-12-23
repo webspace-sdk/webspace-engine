@@ -1,6 +1,7 @@
 import { AmmoWorker, WorkerHelpers, CONSTANTS } from "three-ammo";
 import { AmmoDebugConstants, DefaultBufferSize } from "ammo-debug-drawer";
 import { RENDER_ORDER } from "../constants";
+import { WORLD_MATRIX_CONSUMERS } from "../utils/threejs-world-update";
 import configs from "../utils/configs";
 import * as ammoWasmUrl from "ammo.js/builds/ammo.wasm.wasm";
 
@@ -16,11 +17,12 @@ const WORLD_CONFIG = {
 const MAX_BODIES = 512;
 
 export class PhysicsSystem {
-  constructor(scene, atmosphereSystem, skyBeamSystem) {
+  constructor(scene, atmosphereSystem, skyBeamSystem, voxmojiSystem) {
     this.ammoWorker = new AmmoWorker();
     this.workerHelpers = new WorkerHelpers(this.ammoWorker);
     this.atmosphereSystem = atmosphereSystem;
     this.skyBeamSystem = skyBeamSystem;
+    this.voxmojiSystem = voxmojiSystem;
 
     this.bodyHelpers = [];
     this.shapeHelpers = [];
@@ -173,6 +175,8 @@ export class PhysicsSystem {
             const index = body.index;
             const type = body.options.type ? body.options.type : TYPE.DYNAMIC;
             const object3D = body.object3D;
+            const physicsNeedsUpdate = object3D.consumeIfDirtyWorldMatrix(WORLD_MATRIX_CONSUMERS.PHYSICS);
+
             if (type === TYPE.DYNAMIC) {
               matrix.fromArray(
                 this.objectMatricesFloatArray,
@@ -190,16 +194,15 @@ export class PhysicsSystem {
               }
 
               object3D.matrixNeedsUpdate = true;
-              object3D.physicsNeedsUpdate = true;
-              this.atmosphereSystem.updateShadows();
-              this.skyBeamSystem.markMatrixDirty(object3D);
+
+              if (physicsNeedsUpdate) {
+                this.atmosphereSystem.updateShadows();
+              }
             }
 
             object3D.updateMatrices();
 
-            if (object3D.physicsNeedsUpdate && object3D.visible) {
-              object3D.physicsNeedsUpdate = false;
-
+            if (physicsNeedsUpdate && object3D.visible) {
               this.objectMatricesFloatArray.set(
                 object3D.matrixWorld.elements,
                 index * BUFFER_CONFIG.BODY_DATA_SIZE + BUFFER_CONFIG.MATRIX_OFFSET
