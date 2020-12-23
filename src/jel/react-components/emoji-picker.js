@@ -1,4 +1,5 @@
-import React, { useState, useEffect, forwardRef } from "react";
+import React, { useRef, useState, useEffect, forwardRef } from "react";
+import scrollIntoView from "scroll-into-view-if-needed";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import Fuse from "fuse.js";
@@ -308,9 +309,11 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
   const [placeholder, setPlaceholder] = useState(defaultPlaceholder);
   const [currentEmoji, setCurrentEmoji] = useState("");
   const [emojis, setEmojis] = useState([]);
+  const emojisRef = useRef();
 
   useEffect(
     () => {
+      // Run query and update selection
       const q = query.trim();
       const fuse = q.length > 0 ? fuseName : fuseCategory;
       const emojis = fuse.search(fuse === fuseName ? q : category);
@@ -324,6 +327,21 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
       }
     },
     [query, category]
+  );
+
+  useEffect(
+    () => {
+      console.log(emojisRef);
+      if (emojisRef && emojisRef.current) {
+        // Scroll to visible emoji
+        const el = emojisRef.current.querySelector(".active");
+
+        if (el) {
+          scrollIntoView(el, { scrollMode: "if-needed" });
+        }
+      }
+    },
+    [emojisRef, currentEmoji]
   );
 
   return (
@@ -393,7 +411,7 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
           ))}
         </Tabs>
       </Toolbar>
-      <Emojis>
+      <Emojis ref={emojisRef}>
         {emojis.map(({ item: { shortname, name, code_decimal } }, index) => (
           <Emoji
             key={shortname}
