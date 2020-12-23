@@ -82,8 +82,9 @@ AFRAME.registerComponent("media-emoji", {
 
         this.el.emit("model-loading");
 
-        const geo = new THREE.BoxBufferGeometry(1, 1, 1);
+        const geo = new THREE.BoxBufferGeometry(1, 1, 0.1);
         const mat = new THREE.MeshBasicMaterial();
+        mat.visible = false;
         this.mesh = new THREE.Mesh(geo, mat);
         this.mesh.castShadow = true;
         this.el.object3D.matrixNeedsUpdate = true;

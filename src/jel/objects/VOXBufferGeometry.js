@@ -2,10 +2,12 @@ const { BufferGeometry, Float32BufferAttribute } = THREE;
 
 // Adapted from implementation by mikolalysenko:
 // https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
-function GreedyMesh(f, dims) {
+function GreedyMesh(f, dims, skipDims = []) {
   // Sweep over 3-axes
   const quads = [];
   for (let d = 0; d < 3; ++d) {
+    if (skipDims.includes(d)) continue;
+
     // eslint-disable-line no-plusplus
     let i;
     let j;
@@ -108,7 +110,7 @@ function positionKey(x, y, z) {
 }
 
 class VOXBufferGeometry extends BufferGeometry {
-  constructor(chunk) {
+  constructor(chunk, skipDims) {
     super();
     this.type = "VOXBufferGeometry";
 
@@ -168,7 +170,8 @@ class VOXBufferGeometry extends BufferGeometry {
 
         return voxels.get(key) + 256;
       },
-      [size.x, size.y, size.z]
+      [size.x, size.y, size.z],
+      skipDims
     );
 
     for (let i = 0; i < quads.length; i++) {
