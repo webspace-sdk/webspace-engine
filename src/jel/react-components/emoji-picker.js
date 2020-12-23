@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Fuse from "fuse.js";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
 import { FloatingTextWrap, FloatingTextElement } from "./floating-text-input";
+import { getMessages } from "../../hubs/utils/i18n";
 import "../../assets/jel/stylesheets/emoji.scss";
 
 import { EmojiList } from "../utils/emojis";
@@ -44,7 +45,7 @@ const fuseCategory = new Fuse(EmojiList, {
 
 const Panel = styled.div`
   width: 290px;
-  height: 280px;
+  height: 320px;
   display: flex;
   flex-direction: column;
   color: var(--panel-text-color);
@@ -259,11 +260,49 @@ const Emoji = styled.button`
   }
 `;
 
+const Footer = styled.div`
+  width: 100%;
+  height: 50px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  background-color: var(--panel-background-color);
+  padding: 0px 6px;
+  border-radius: 0 0 6px 6px;
+`;
+
+const FooterEmoji = styled.div`
+  width: 29px;
+  height: 29px;
+  margin: 2px;
+  box-sizing: border-box;
+  display: inline;
+  vertical-align: baseline;
+  line-height: 28px;
+  font-size: 20px;
+  font-family: Helvetica, Arial, sans-serif;
+  text-align: center;
+  background: transparent;
+`;
+
+const FooterLabel = styled.div`
+  color: var(--panel-text-color);
+  line-height: calc(var(--panel-header-text-size) + 4px);
+  font-size: var(--panel-header-text-size);
+  font-weight: var(--panel-header-text-weight);
+  margin-left: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
 const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
+  const defaultPlaceholder = getMessages()["emoji.placeholder"];
+
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("p");
-
-  const placeholder = "Search for emoji...";
+  const [placeholder, setPlaceholder] = useState(defaultPlaceholder);
+  const [currentEmoji, setCurrentEmoji] = useState("");
 
   const q = query.trim();
   const fuse = q.length > 0 ? fuseName : fuseCategory;
@@ -315,9 +354,23 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
             className={`emoji-map emoji-${name}`}
             dangerouslySetInnerHTML={{ __html: code_decimal }}
             onClick={() => onEmojiSelected(name)}
+            onMouseEnter={() => {
+              setPlaceholder(shortname);
+              setCurrentEmoji({ shortname, name, code_decimal });
+            }}
+            onMouseLeave={() => {
+              setPlaceholder(defaultPlaceholder);
+              setCurrentEmoji(null);
+            }}
           />
         ))}
       </Emojis>
+      <Footer>
+        <FooterEmoji dangerouslySetInnerHTML={{ __html: currentEmoji ? currentEmoji.code_decimal : "" }} />
+        <FooterLabel className={currentEmoji && `.emoji-${currentEmoji.name}`}>
+          {currentEmoji && currentEmoji.shortname}
+        </FooterLabel>
+      </Footer>
     </Panel>
   );
 });
