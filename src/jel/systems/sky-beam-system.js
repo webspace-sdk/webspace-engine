@@ -134,12 +134,16 @@ export class SkyBeamSystem {
   }
 
   unregister(source) {
-    if (!this.sourceToIndex.has(source));
+    if (!this.sourceToIndex.has(source)) return;
     const i = this.sourceToIndex.get(source);
     this.beamSources[i] = null;
     this.sourceCreatorIds[i] = null;
     this.mesh.freeInstance(i);
     this.sourceToIndex.delete(source);
+
+    if (i === this.maxRegisteredIndex) {
+      this.maxRegisteredIndex--;
+    }
   }
 
   isRegistered(source) {

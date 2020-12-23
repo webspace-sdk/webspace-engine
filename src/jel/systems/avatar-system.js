@@ -249,6 +249,10 @@ export class AvatarSystem {
     if (this.selfEl === el) {
       this.selfEl = null;
     }
+
+    if (this.maxRegisteredIndex === i) {
+      this.maxRegisteredIndex--;
+    }
   }
 
   markMatrixDirty(el) {

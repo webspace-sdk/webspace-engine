@@ -1,45 +1,10 @@
 import { hasMediaLayer, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
-import { VOXLoader } from "../objects/VOXLoader";
-import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
-import { generateMeshBVH } from "../../hubs/utils/three-utils";
-import { addVertexCurvingToShader } from "../systems/terrain-system";
 
-const { ShaderMaterial, ShaderLib, UniformsUtils, MeshBasicMaterial, VertexColors } = THREE;
-
-const voxelMaterial = new ShaderMaterial({
-  name: "beam",
-  fog: false,
-  fragmentShader: ShaderLib.basic.fragmentShader,
-  vertexShader: ShaderLib.basic.vertexShader,
-  lights: false,
-  vertexColors: VertexColors,
-  transparent: true,
-  defines: {
-    ...new MeshBasicMaterial().defines
-  },
-  uniforms: {
-    ...UniformsUtils.clone(ShaderLib.basic.uniforms)
-  }
-});
-
-voxelMaterial.onBeforeCompile = shader => {
-  addVertexCurvingToShader(shader);
-  shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
-  shader.fragmentShader = shader.fragmentShader.replace(
-    "#include <fog_fragment>",
-    ["gl_FragColor = vec4(vColor.xyz, 1.0);", "#include <fog_fragment>"].join("\n")
-  );
-};
-
-voxelMaterial.stencilWrite = true;
-voxelMaterial.stencilFunc = THREE.AlwaysStencilFunc;
-voxelMaterial.stencilRef = 0;
-voxelMaterial.stencilZPass = THREE.ReplaceStencilOp;
-
-AFRAME.registerComponent("media-vox", {
+AFRAME.registerComponent("media-emoji", {
   schema: {
-    src: { type: "string" }
+    src: { type: "string" },
+    emoji: { type: "string" }
   },
 
   async init() {
@@ -101,26 +66,29 @@ AFRAME.registerComponent("media-vox", {
       const { src } = this.data;
       if (!src) return;
 
+      const initialContents = this.el.components["media-loader"].consumeInitialContents();
+
+      let emoji = this.data.emoji;
+
+      if (initialContents) {
+        emoji = initialContents;
+        this.el.setAttribute("media-emoji", { emoji });
+      }
+
+      console.log(emoji);
+
       if (!this.mesh) {
         disposeExistingMesh(this.el);
 
         this.el.emit("model-loading");
 
-        const voxLoader = new VOXLoader();
-        const chunks = await new Promise(res => voxLoader.load(src, res));
-        const geo = new VOXBufferGeometry(chunks[0]);
-        const mat = voxelMaterial;
+        const geo = new THREE.BoxBufferGeometry(1, 1, 1);
+        const mat = new THREE.MeshBasicMaterial();
         this.mesh = new THREE.Mesh(geo, mat);
         this.mesh.castShadow = true;
-        await new Promise(res =>
-          setTimeout(() => {
-            generateMeshBVH(this.mesh);
-            res();
-          })
-        );
         this.el.object3D.matrixNeedsUpdate = true;
         this.el.setObject3D("mesh", this.mesh);
-        this.el.emit("model-loaded", { format: "vox", model: this.mesh });
+        this.el.emit("model-loaded", { format: "emoji", model: this.mesh });
       }
     } catch (e) {
       this.el.emit("model-error", { src: this.data.src });
@@ -131,11 +99,6 @@ AFRAME.registerComponent("media-vox", {
   },
 
   remove() {
-    if (this.mesh) {
-      // Avoid disposing material since it's re-used across all VOX meshes
-      this.mesh.material = null;
-    }
-
     disposeExistingMesh(this.el);
 
     if (hasMediaLayer(this.el)) {
