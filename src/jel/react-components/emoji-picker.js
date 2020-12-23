@@ -1,4 +1,4 @@
-import React, { useState, forwardRef } from "react";
+import React, { useState, useEffect, forwardRef } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import Fuse from "fuse.js";
@@ -258,6 +258,10 @@ const Emoji = styled.button`
     background-color: var(--canvas-overlay-item-active-background-color);
     opacity: 0.6;
   }
+
+  &.active {
+    background-color: var(--canvas-overlay-item-active-background-color);
+  }
 `;
 
 const Footer = styled.div`
@@ -303,11 +307,24 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
   const [category, setCategory] = useState("p");
   const [placeholder, setPlaceholder] = useState(defaultPlaceholder);
   const [currentEmoji, setCurrentEmoji] = useState("");
+  const [emojis, setEmojis] = useState([]);
 
-  const q = query.trim();
-  const fuse = q.length > 0 ? fuseName : fuseCategory;
-  const emojis = fuse.search(fuse === fuseName ? q : category);
-  emojis.sort(emojiSort);
+  useEffect(
+    () => {
+      const q = query.trim();
+      const fuse = q.length > 0 ? fuseName : fuseCategory;
+      const emojis = fuse.search(fuse === fuseName ? q : category);
+      emojis.sort(emojiSort);
+      setEmojis(emojis);
+
+      if (emojis.length > 0) {
+        const { item } = emojis[0];
+        setCurrentEmoji({ ...item, index: 0 });
+        setPlaceholder(item.shortname);
+      }
+    },
+    [query, category]
+  );
 
   return (
     <Panel>
@@ -319,12 +336,41 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
                 e.preventDefault();
                 e.stopPropagation();
                 document.activeElement.blur(); // This causes this element to hide via CSS
+                onEmojiSelected(currentEmoji.name);
               }}
             >
               <FloatingTextElement
                 type="text"
                 tabIndex={-1}
                 value={query}
+                onKeyDown={e => {
+                  let delta = 0;
+
+                  switch (e.key) {
+                    case "ArrowLeft":
+                      delta = -1;
+                      break;
+                    case "ArrowRight":
+                      delta = 1;
+                      break;
+                    case "ArrowDown":
+                      delta = 8;
+                      break;
+                    case "ArrowUp":
+                      delta = -8;
+                      break;
+                  }
+
+                  if (delta === 0) return;
+
+                  if (currentEmoji) {
+                    const index = currentEmoji.index + delta;
+
+                    if (index >= 0 && index <= emojis.length - 1) {
+                      setCurrentEmoji({ ...emojis[index].item, index });
+                    }
+                  }
+                }}
                 placeholder={placeholder}
                 ref={ref}
                 onFocus={e => handleTextFieldFocus(e.target)}
@@ -348,15 +394,15 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
         </Tabs>
       </Toolbar>
       <Emojis>
-        {emojis.map(({ item: { shortname, name, code_decimal } }) => (
+        {emojis.map(({ item: { shortname, name, code_decimal } }, index) => (
           <Emoji
             key={shortname}
-            className={`emoji-map emoji-${name}`}
+            className={`emoji-map emoji-${name} ${currentEmoji && currentEmoji.name === name ? "active" : ""}`}
             dangerouslySetInnerHTML={{ __html: code_decimal }}
             onClick={() => onEmojiSelected(name)}
             onMouseEnter={() => {
               setPlaceholder(shortname);
-              setCurrentEmoji({ shortname, name, code_decimal });
+              setCurrentEmoji({ shortname, name, code_decimal, index });
             }}
             onMouseLeave={() => {
               setPlaceholder(defaultPlaceholder);
