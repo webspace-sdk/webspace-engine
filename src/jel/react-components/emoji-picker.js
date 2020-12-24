@@ -309,7 +309,7 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("p");
   const [placeholder, setPlaceholder] = useState(defaultPlaceholder);
-  const [currentEmoji, setCurrentEmoji] = useState("");
+  const [currentEmoji, setCurrentEmoji] = useState(null);
   const [emojis, setEmojis] = useState([]);
   const emojisRef = useRef();
 
@@ -345,7 +345,18 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
     [emojisRef, currentEmoji]
   );
 
-  useRefFocusResetter(ref, useCallback(() => setQuery(""), [setQuery]));
+  useRefFocusResetter(
+    ref,
+    useCallback(
+      () => {
+        setQuery("");
+        setCurrentEmoji(null);
+        setCategory("p");
+        setPlaceholder(defaultPlaceholder);
+      },
+      [setQuery, setCurrentEmoji, setCategory, setPlaceholder, defaultPlaceholder]
+    )
+  );
 
   return (
     <Panel>

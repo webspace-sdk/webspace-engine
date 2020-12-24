@@ -239,6 +239,10 @@ export default class SceneEntryManager {
       spawnMediaInfrontOfPlayer(null, "", null, e.detail, { backgroundColor, foregroundColor });
     });
 
+    this.scene.addEventListener("add_media_emoji", ({ detail: emoji }) => {
+      spawnMediaInfrontOfPlayer(null, emoji);
+    });
+
     this.scene.addEventListener("object_spawned", e => {
       this.hubChannel.sendObjectSpawnedEvent(e.detail.objectType);
     });

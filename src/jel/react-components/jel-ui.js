@@ -615,8 +615,10 @@ function JelUI(props) {
         styles={emojiPopupStyles}
         attributes={emojiPopupAttributes}
         ref={emojiPopupFocusRef}
-        onEmojiSelected={emoji => {
-          console.log(emoji);
+        onEmojiSelected={({ unicode }) => {
+          const parsed = unicode.split("-").map(str => parseInt(str, 16));
+          const emoji = String.fromCodePoint(...parsed);
+          scene.emit("add_media_emoji", emoji);
         }}
       />
       <CreateEmbedPopup
