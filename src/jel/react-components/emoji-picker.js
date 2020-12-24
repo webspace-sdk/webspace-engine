@@ -233,11 +233,10 @@ const Emojis = styled.div`
   }
 `;
 
-const Emoji = styled.button`
-  width: 29px;
-  height: 29px;
+const EmojiContainer = styled.button`
+  width: 30px;
+  height: 30px;
   margin: 2px;
-  box-sizing: border-box;
   display: inline;
   vertical-align: baseline;
   line-height: 28px;
@@ -245,13 +244,16 @@ const Emoji = styled.button`
   font-family: Helvetica, Arial, sans-serif;
   text-align: center;
   overflow: hidden;
-  background: transparent;
   appearance: none;
   -webkit-appearance: none;
   online-style: none;
+  background-color: transparent;
   margin: 2px;
-  border: 0;
   border-radius: 4px;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
     background-color: var(--canvas-overlay-item-hover-background-color);
@@ -259,12 +261,18 @@ const Emoji = styled.button`
 
   &:active {
     background-color: var(--canvas-overlay-item-active-background-color);
-    opacity: 0.6;
   }
 
   &.active {
     background-color: var(--canvas-overlay-item-active-background-color);
   }
+`;
+
+const Emoji = styled.div`
+  width: 26px;
+  height: 26px;
+  overflow: hidden;
+  background-color: transparent;
 `;
 
 const Footer = styled.div`
@@ -280,8 +288,8 @@ const Footer = styled.div`
 `;
 
 const FooterEmoji = styled.div`
-  width: 29px;
-  height: 29px;
+  width: 26px;
+  height: 26px;
   margin: 2px;
   box-sizing: border-box;
   display: inline;
@@ -427,29 +435,30 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
       </Toolbar>
       <Emojis ref={emojisRef}>
         {emojis.map(({ item }, index) => (
-          <Emoji
+          <EmojiContainer
             key={item.shortname}
-            className={`emoji-map emoji-${item.name} ${
-              currentEmoji && currentEmoji.name === item.name ? "active" : ""
-            }`}
-            dangerouslySetInnerHTML={{ __html: item.code }}
-            onClick={() => {
-              onEmojiSelected(item);
-              document.activeElement.blur();
-            }}
-            onMouseEnter={() => {
-              setPlaceholder(item.shortname);
-              setCurrentEmoji({ ...item, index });
-            }}
-            onMouseLeave={() => {
-              setPlaceholder(defaultPlaceholder);
-              setCurrentEmoji(null);
-            }}
-          />
+            className={currentEmoji && currentEmoji.name === item.name ? "active" : ""}
+          >
+            <Emoji
+              className={`emoji-map ${item ? `emoji-${item.name}` : ""}`}
+              onClick={() => {
+                onEmojiSelected(item);
+                document.activeElement.blur();
+              }}
+              onMouseEnter={() => {
+                setPlaceholder(item.shortname);
+                setCurrentEmoji({ ...item, index });
+              }}
+              onMouseLeave={() => {
+                setPlaceholder(defaultPlaceholder);
+                setCurrentEmoji(null);
+              }}
+            />
+          </EmojiContainer>
         ))}
       </Emojis>
       <Footer>
-        <FooterEmoji dangerouslySetInnerHTML={{ __html: currentEmoji ? currentEmoji.code : "" }} />
+        <FooterEmoji className={`${currentEmoji && `emoji-map emoji-${currentEmoji.name}`}`} />
         <FooterLabel className={currentEmoji && `.emoji-${currentEmoji.name}`}>
           {currentEmoji && currentEmoji.shortname}
         </FooterLabel>

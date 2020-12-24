@@ -17,9 +17,9 @@ const {
   UniformsUtils
 } = THREE;
 
-const VOXMOJI_WIDTH = 32;
-const VOXMOJI_HEIGHT = 32;
-const VOXMOJI_MAP_ROWS_COLS = 8;
+const VOXMOJI_WIDTH = 128;
+const VOXMOJI_HEIGHT = 128;
+const VOXMOJI_MAP_ROWS_COLS = 4;
 const MAX_VOXMOJI_PER_TYPE = 256;
 const MAX_TYPES = 1024;
 const IDENTITY = new Matrix4();
@@ -62,8 +62,8 @@ voxmojiMaterial.stencilWrite = true;
 voxmojiMaterial.stencilFunc = THREE.AlwaysStencilFunc;
 voxmojiMaterial.stencilRef = 0;
 voxmojiMaterial.stencilZPass = THREE.ReplaceStencilOp;
-voxmojiMaterial.alphaTest = 0.1;
-voxmojiMaterial.uniforms.diffuse.value = new Color(0.5, 0.5, 0.5);
+voxmojiMaterial.alphaTest = 0.01;
+voxmojiMaterial.uniforms.diffuse.value = new Color(0.33, 0.33, 0.33);
 
 // This system manages instanced voxmoji, which are simple meshes that appear as blocky extruded objects.
 // registerType() is used to register a new image and then register() can bind a source Object3D to
@@ -446,7 +446,7 @@ export class VoxmojiSystem {
     for (let i = 0; i < vertices.length; i += 3) {
       vertices[i] *= 0.015;
       vertices[i + 1] *= 0.015;
-      vertices[i + 2] *= 0.045; // Thicken in Z
+      vertices[i + 2] *= 0.25; // Thicken in Z
     }
 
     geometry.setIndex(indices);
@@ -467,7 +467,7 @@ export class VoxmojiSystem {
     geometry.instanceAttributes.push([Number, instanceMapIndexAttribute]);
 
     const mesh = new DynamicInstancedMesh(geometry, material, MAX_VOXMOJI_PER_TYPE);
-    mesh.castShadow = true;
+    mesh.castShadow = false;
     mesh.receiveShadow = false;
     mesh.frustumCulled = false;
 
