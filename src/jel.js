@@ -182,8 +182,6 @@ window.APP.spaceMetadata = spaceMetadata;
 
 store.addEventListener("profilechanged", spaceChannel.sendProfileUpdate.bind(hubChannel));
 
-const mediaSearchStore = window.APP.mediaSearchStore;
-
 const qs = new URLSearchParams(location.search);
 
 const isMobile = AFRAME.utils.device.isMobile();
