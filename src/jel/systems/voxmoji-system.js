@@ -63,7 +63,7 @@ voxmojiMaterial.stencilFunc = THREE.AlwaysStencilFunc;
 voxmojiMaterial.stencilRef = 0;
 voxmojiMaterial.stencilZPass = THREE.ReplaceStencilOp;
 voxmojiMaterial.alphaTest = 0.01;
-voxmojiMaterial.uniforms.diffuse.value = new Color(0.33, 0.33, 0.33);
+voxmojiMaterial.uniforms.diffuse.value = new Color(0.5, 0.5, 0.5);
 
 // This system manages instanced voxmoji, which are simple meshes that appear as blocky extruded objects.
 // registerType() is used to register a new image and then register() can bind a source Object3D to
@@ -444,9 +444,9 @@ export class VoxmojiSystem {
     // Scale verts by 0.015 - don't have app deal with scale, this mesh
     // should just be the right size to keep things simpler.
     for (let i = 0; i < vertices.length; i += 3) {
-      vertices[i] *= 0.015;
-      vertices[i + 1] *= 0.015;
-      vertices[i + 2] *= 0.25; // Thicken in Z
+      vertices[i] *= 0.005;
+      vertices[i + 1] *= 0.005;
+      vertices[i + 2] *= 0.1; // Thicken in Z
     }
 
     geometry.setIndex(indices);

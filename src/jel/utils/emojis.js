@@ -10788,9 +10788,3 @@ export const EmojiList = [
     emoji_order: "1"
   }
 ];
-
-export const EmojiMap = {};
-
-EmojiList.forEach(emojiListObject => {
-  EmojiMap[emojiListObject.name] = emojiListObject;
-});

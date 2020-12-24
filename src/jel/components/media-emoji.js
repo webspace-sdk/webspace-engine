@@ -1,6 +1,13 @@
 import { hasMediaLayer, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
-import faceImage from "../../assets/jel/images/face.png";
+
+const EMOJI_IMAGE_URL = "https://assets.jel.app/static/emoji";
+
+function emojiUnicode(emoji) {
+  console.log("convert", emoji);
+  if (emoji.length < 4) return emoji.codePointAt(0).toString(16);
+  return emoji.codePointAt(0).toString(16) + "-" + emoji.codePointAt(2).toString(16);
+}
 
 AFRAME.registerComponent("media-emoji", {
   schema: {
@@ -81,7 +88,7 @@ AFRAME.registerComponent("media-emoji", {
 
         this.el.emit("model-loading");
 
-        const geo = new THREE.BoxBufferGeometry(0.4, 0.4, 0.1);
+        const geo = new THREE.BoxBufferGeometry(0.65, 0.65, 0.125);
         const mat = new THREE.MeshBasicMaterial();
         mat.visible = false;
         this.mesh = new THREE.Mesh(geo, mat);
@@ -89,7 +96,10 @@ AFRAME.registerComponent("media-emoji", {
         this.el.object3D.matrixNeedsUpdate = true;
         this.el.setObject3D("mesh", this.mesh);
         const voxmojiSystem = this.el.sceneEl.systems["hubs-systems"].voxmojiSystem;
-        const type = await voxmojiSystem.registerType(faceImage);
+        const unicode = emojiUnicode(this.data.emoji).toUpperCase();
+        const imageUrl = `${EMOJI_IMAGE_URL}/${unicode}-128.png`;
+        const type = await voxmojiSystem.registerType(imageUrl);
+
         voxmojiSystem.register(type, this.mesh);
         this.el.emit("model-loaded", { format: "emoji", model: this.mesh });
       }

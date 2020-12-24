@@ -53,6 +53,10 @@ body {
     height: 100%;
     cursor: col-resize;
   }
+
+  .emoji-map-prefetch {
+    display: none;
+  }
 }
 
 body.vr-mode-stretch {
