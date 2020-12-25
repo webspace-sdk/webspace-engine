@@ -344,6 +344,7 @@ export class VoxmojiSystem {
 
     const context = canvas.getContext("2d");
     const texture = new CanvasTexture(canvas);
+    texture.minFilter = texture.magFilter = THREE.NearestFilter;
 
     const material = voxmojiMaterial.clone();
     material.onBeforeCompile = voxmojiMaterialOnBeforeCompile;
