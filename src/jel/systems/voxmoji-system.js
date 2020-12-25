@@ -116,7 +116,7 @@ export class VoxmojiSystem {
     this.types = new Map();
     this.meshes = new Map();
     this.sourceToType = new Map();
-    this.sourceToLastRenderedFrame = new Map();
+    this.sourceToLastCullPassFrame = new Map();
     this.frame = 0;
   }
 
@@ -126,11 +126,21 @@ export class VoxmojiSystem {
     this.frame++;
 
     for (const { mesh, sources, maxRegisteredIndex } of meshes.values()) {
+      let isVisible = false;
+
       let instanceMatrixNeedsUpdate = false;
 
       for (let i = 0; i <= maxRegisteredIndex; i++) {
         const source = sources[i];
         if (source === null) continue;
+
+        if (this.sourceToLastCullPassFrame.has(source)) {
+          const lastFrameCullPassed = this.sourceToLastCullPassFrame.get(source);
+
+          if (lastFrameCullPassed >= this.frame - 5) {
+            isVisible = true;
+          }
+        }
 
         const hasDirtyMatrix = source.consumeIfDirtyWorldMatrix(WORLD_MATRIX_CONSUMERS.VOXMOJI);
 
@@ -145,13 +155,18 @@ export class VoxmojiSystem {
       }
 
       mesh.instanceMatrix.needsUpdate = instanceMatrixNeedsUpdate;
+      mesh.visible = isVisible;
     }
   }
 
   register(typeKey, source) {
     const { types, meshes, sourceToType } = this;
 
-    source.onPassedFrustumCheck = () => this.sourceToLastRenderedFrame.set(source, this.frame);
+    // This uses a custom patched three.js handler which is fired whenever the object
+    // passes a frustum check. This is handy for cases like this when a non-rendered
+    // source is proxying an instance. The sourceToLastCullPassFrame map is used to
+    // cull dynamic instanced meshes whose sources are entirely frustum culled.
+    source.onPassedFrustumCheck = () => this.sourceToLastCullPassFrame.set(source, this.frame);
 
     const { meshKey, mapIndex } = types.get(typeKey);
     const meshEntry = meshes.get(meshKey);
@@ -329,7 +344,6 @@ export class VoxmojiSystem {
 
     const context = canvas.getContext("2d");
     const texture = new CanvasTexture(canvas);
-    texture.minFilter = texture.magFilter = THREE.NearestFilter;
 
     const material = voxmojiMaterial.clone();
     material.onBeforeCompile = voxmojiMaterialOnBeforeCompile;
