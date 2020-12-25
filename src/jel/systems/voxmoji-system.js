@@ -26,7 +26,7 @@ const IDENTITY = new Matrix4();
 
 const voxmojiMaterial = new ShaderMaterial({
   name: "voxmoji",
-  fog: true,
+  fog: false,
   fragmentShader: ShaderLib.basic.fragmentShader,
   vertexShader: ShaderLib.basic.vertexShader,
   transparent: true,
@@ -56,6 +56,31 @@ const voxmojiMaterialOnBeforeCompile = shader => {
       `vUv.y += mapIndexY * (1.0 / ${VOXMOJI_MAP_ROWS_COLS}.0);`
     ].join("\n")
   );
+
+  // Re-write the whole fragment shader to just sample texture without
+  // any lighting calculations.
+  shader.fragmentShader = [
+    "uniform vec3 diffuse;",
+    "uniform float opacity;",
+    "",
+    "#ifndef FLAT_SHADED",
+    "",
+    "	varying vec3 vNormal;",
+    "",
+    "#endif",
+    "",
+    "#include <common>",
+    "#include <uv_pars_fragment>",
+    "#include <map_pars_fragment>",
+    "#include <clipping_planes_pars_fragment>",
+    "",
+    "void main() {",
+    "",
+    "	#include <clipping_planes_fragment>",
+    " gl_FragColor = texture2D(map, vUv);",
+    " if ( gl_FragColor.a < ALPHATEST ) discard;",
+    "}"
+  ].join("\n");
 };
 
 voxmojiMaterial.stencilWrite = true;
@@ -91,10 +116,14 @@ export class VoxmojiSystem {
     this.types = new Map();
     this.meshes = new Map();
     this.sourceToType = new Map();
+    this.sourceToLastRenderedFrame = new Map();
+    this.frame = 0;
   }
 
   tick() {
     const { atmosphereSystem, meshes } = this;
+
+    this.frame++;
 
     for (const { mesh, sources, maxRegisteredIndex } of meshes.values()) {
       let instanceMatrixNeedsUpdate = false;
@@ -121,6 +150,8 @@ export class VoxmojiSystem {
 
   register(typeKey, source) {
     const { types, meshes, sourceToType } = this;
+
+    source.onPassedFrustumCheck = () => this.sourceToLastRenderedFrame.set(source, this.frame);
 
     const { meshKey, mapIndex } = types.get(typeKey);
     const meshEntry = meshes.get(meshKey);
