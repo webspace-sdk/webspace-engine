@@ -80,7 +80,7 @@ const voxmojiMaterialOnBeforeCompile = shader => {
     "",
     "	#include <clipping_planes_fragment>",
     " gl_FragColor = texture2D(map, vUv);",
-    " gl_FragColor.a = mix(gl_FragColor.a, 1.0, vRim);",
+    " gl_FragColor.a = mix(step(0.6, gl_FragColor.a), 1.0, vRim);",
     " if ( gl_FragColor.a < ALPHATEST ) discard;",
     "}"
   ].join("\n");
@@ -398,7 +398,7 @@ export class VoxmojiSystem {
     // Top left front
     vertices.push(-VOXMOJI_WIDTH / 2);
     vertices.push(-VOXMOJI_HEIGHT / 2);
-    vertices.push(0.49);
+    vertices.push(0.5);
     normals.push(0.0);
     normals.push(0.0);
     normals.push(1.0);
@@ -409,7 +409,7 @@ export class VoxmojiSystem {
     // Top right front
     vertices.push(VOXMOJI_WIDTH / 2);
     vertices.push(-VOXMOJI_HEIGHT / 2);
-    vertices.push(0.49);
+    vertices.push(0.5);
     normals.push(0.0);
     normals.push(0.0);
     normals.push(1.0);
@@ -420,7 +420,7 @@ export class VoxmojiSystem {
     // Bottom left front
     vertices.push(-VOXMOJI_WIDTH / 2);
     vertices.push(VOXMOJI_HEIGHT / 2);
-    vertices.push(0.49);
+    vertices.push(0.5);
     normals.push(0.0);
     normals.push(0.0);
     normals.push(1.0);
@@ -431,7 +431,7 @@ export class VoxmojiSystem {
     // Bottom right front
     vertices.push(VOXMOJI_WIDTH / 2);
     vertices.push(VOXMOJI_HEIGHT / 2);
-    vertices.push(0.49);
+    vertices.push(0.5);
     normals.push(0.0);
     normals.push(0.0);
     normals.push(1.0);
@@ -442,7 +442,7 @@ export class VoxmojiSystem {
     // Top left back
     vertices.push(-VOXMOJI_WIDTH / 2);
     vertices.push(-VOXMOJI_HEIGHT / 2);
-    vertices.push(-0.49);
+    vertices.push(-0.5);
     normals.push(0.0);
     normals.push(0.0);
     normals.push(-1.0);
@@ -453,7 +453,7 @@ export class VoxmojiSystem {
     // Top right back
     vertices.push(VOXMOJI_WIDTH / 2);
     vertices.push(-VOXMOJI_HEIGHT / 2);
-    vertices.push(-0.49);
+    vertices.push(-0.5);
     normals.push(0.0);
     normals.push(0.0);
     normals.push(-1.0);
@@ -464,7 +464,7 @@ export class VoxmojiSystem {
     // Bottom left back
     vertices.push(-VOXMOJI_WIDTH / 2);
     vertices.push(VOXMOJI_HEIGHT / 2);
-    vertices.push(-0.49);
+    vertices.push(-0.5);
     normals.push(0.0);
     normals.push(0.0);
     normals.push(-1.0);
@@ -475,7 +475,7 @@ export class VoxmojiSystem {
     // Bottom right back
     vertices.push(VOXMOJI_WIDTH / 2);
     vertices.push(VOXMOJI_HEIGHT / 2);
-    vertices.push(-0.49);
+    vertices.push(-0.5);
     normals.push(0.0);
     normals.push(0.0);
     normals.push(-1.0);

@@ -96,7 +96,7 @@ AFRAME.registerComponent("media-emoji", {
         this.el.setObject3D("mesh", this.mesh);
         const voxmojiSystem = this.el.sceneEl.systems["hubs-systems"].voxmojiSystem;
         const unicode = emojiUnicode(this.data.emoji).toUpperCase();
-        const imageUrl = `${EMOJI_IMAGE_URL}/${unicode}-128-noalpha.png`;
+        const imageUrl = `${EMOJI_IMAGE_URL}/${unicode}-128.png`;
         const type = await voxmojiSystem.registerType(imageUrl);
 
         voxmojiSystem.register(type, this.mesh);
