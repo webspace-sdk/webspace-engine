@@ -3,6 +3,7 @@ import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { disposeNode } from "../../hubs/utils/three-utils";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
+import { RENDER_ORDER } from "../../hubs/constants";
 
 const {
   ImageLoader,
@@ -26,6 +27,7 @@ const IDENTITY = new Matrix4();
 
 const voxmojiMaterial = new ShaderMaterial({
   name: "voxmoji",
+  lights: false,
   fog: false,
   fragmentShader: ShaderLib.basic.fragmentShader,
   vertexShader: ShaderLib.basic.vertexShader,
@@ -529,6 +531,7 @@ export class VoxmojiSystem {
     mesh.castShadow = false;
     mesh.receiveShadow = false;
     mesh.frustumCulled = false;
+    mesh.renderOrder = RENDER_ORDER.MEDIA;
 
     this.meshes.set(meshKey, {
       mesh,

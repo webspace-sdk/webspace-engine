@@ -91,7 +91,7 @@ AFRAME.registerComponent("media-emoji", {
         const mat = new THREE.MeshBasicMaterial();
         mat.visible = false;
         this.mesh = new THREE.Mesh(geo, mat);
-        this.mesh.castShadow = true;
+        this.mesh.castShadow = false;
         this.el.object3D.matrixNeedsUpdate = true;
         this.el.setObject3D("mesh", this.mesh);
         const voxmojiSystem = this.el.sceneEl.systems["hubs-systems"].voxmojiSystem;

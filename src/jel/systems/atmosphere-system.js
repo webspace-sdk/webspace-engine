@@ -2,6 +2,7 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import Sky from "../objects/sky";
 import Water from "../objects/water";
 import { Layers } from "../../hubs/components/layers";
+import { RENDER_ORDER } from "../../hubs/constants";
 const FOG_NEAR = 20.5;
 const FOG_SPAN = 1.5;
 const FOG_SPEED = 0.01;
@@ -56,6 +57,7 @@ export class AtmosphereSystem {
     this.sunLight.shadow.camera.far = 20;
     this.sunLight.shadow.radius = 2;
     this.sunLight.layers.enable(Layers.reflection);
+    this.sunLight.renderOrder = RENDER_ORDER.LIGHTS;
 
     this.sky = new Sky();
     this.sky.position.y = 0;

@@ -11,6 +11,7 @@ module.exports = {
     DEFAULT_SPAWNER: 1 | 8
   },
   RENDER_ORDER: {
+    LIGHTS: 0, // Render lights first, otherwise compiled programs may not define USE_SHADOWMAP
     HUD_BACKGROUND: 1,
     HUD_ICONS: 2,
     CURSOR: 3,
