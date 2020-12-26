@@ -43,7 +43,7 @@ const voxmojiMaterialOnBeforeCompile = shader => {
 
   shader.vertexShader = shader.vertexShader.replace(
     "#include <uv2_pars_vertex>",
-    ["#include <uv2_pars_vertex>", "attribute float mapIndex;"].join("\n")
+    ["#include <uv2_pars_vertex>", "attribute float mapIndex; attribute float rim; flat varying float vRim;"].join("\n")
   );
 
   shader.vertexShader = shader.vertexShader.replace(
@@ -53,7 +53,8 @@ const voxmojiMaterialOnBeforeCompile = shader => {
       `vUv.xy /= ${VOXMOJI_MAP_ROWS_COLS}.0;`,
       `float mapIndexY = floor(mapIndex / ${VOXMOJI_MAP_ROWS_COLS}.0);`,
       `vUv.x += (mapIndex - (mapIndexY * ${VOXMOJI_MAP_ROWS_COLS}.0)) * (1.0 / ${VOXMOJI_MAP_ROWS_COLS}.0);`,
-      `vUv.y += mapIndexY * (1.0 / ${VOXMOJI_MAP_ROWS_COLS}.0);`
+      `vUv.y += mapIndexY * (1.0 / ${VOXMOJI_MAP_ROWS_COLS}.0);`,
+      `vRim = rim;`
     ].join("\n")
   );
 
@@ -62,6 +63,7 @@ const voxmojiMaterialOnBeforeCompile = shader => {
   shader.fragmentShader = [
     "uniform vec3 diffuse;",
     "uniform float opacity;",
+    "flat varying float vRim;",
     "",
     "#ifndef FLAT_SHADED",
     "",
@@ -78,6 +80,7 @@ const voxmojiMaterialOnBeforeCompile = shader => {
     "",
     "	#include <clipping_planes_fragment>",
     " gl_FragColor = texture2D(map, vUv);",
+    " gl_FragColor.a = mix(gl_FragColor.a, 1.0, vRim);",
     " if ( gl_FragColor.a < ALPHATEST ) discard;",
     "}"
   ].join("\n");
@@ -344,7 +347,6 @@ export class VoxmojiSystem {
 
     const context = canvas.getContext("2d");
     const texture = new CanvasTexture(canvas);
-    texture.minFilter = texture.magFilter = THREE.NearestFilter;
 
     const material = voxmojiMaterial.clone();
     material.onBeforeCompile = voxmojiMaterialOnBeforeCompile;
@@ -359,6 +361,7 @@ export class VoxmojiSystem {
     const indexArray = geometry.index._array;
 
     const uvs = [];
+    const rims = [];
 
     // Generate the proper UVs for the extruded edge
     for (let i = 0; i < positionArray.length; i += 3) {
@@ -379,6 +382,7 @@ export class VoxmojiSystem {
 
       uvs.push(u);
       uvs.push(v);
+      rims.push(1.0);
     }
 
     // Nuke the existing attributes and replace them with the uv mapped rim and the properly UV mapped caps
@@ -400,6 +404,7 @@ export class VoxmojiSystem {
     normals.push(1.0);
     uvs.push(0.0);
     uvs.push(0.0);
+    rims.push(0.0);
 
     // Top right front
     vertices.push(VOXMOJI_WIDTH / 2);
@@ -410,6 +415,7 @@ export class VoxmojiSystem {
     normals.push(1.0);
     uvs.push(1.0);
     uvs.push(0.0);
+    rims.push(0.0);
 
     // Bottom left front
     vertices.push(-VOXMOJI_WIDTH / 2);
@@ -420,6 +426,7 @@ export class VoxmojiSystem {
     normals.push(1.0);
     uvs.push(0.0);
     uvs.push(1.0);
+    rims.push(0.0);
 
     // Bottom right front
     vertices.push(VOXMOJI_WIDTH / 2);
@@ -430,6 +437,7 @@ export class VoxmojiSystem {
     normals.push(1.0);
     uvs.push(1.0);
     uvs.push(1.0);
+    rims.push(0.0);
 
     // Top left back
     vertices.push(-VOXMOJI_WIDTH / 2);
@@ -440,6 +448,7 @@ export class VoxmojiSystem {
     normals.push(-1.0);
     uvs.push(0.0);
     uvs.push(0.0);
+    rims.push(0.0);
 
     // Top right back
     vertices.push(VOXMOJI_WIDTH / 2);
@@ -450,6 +459,7 @@ export class VoxmojiSystem {
     normals.push(-1.0);
     uvs.push(1.0);
     uvs.push(0.0);
+    rims.push(0.0);
 
     // Bottom left back
     vertices.push(-VOXMOJI_WIDTH / 2);
@@ -460,6 +470,7 @@ export class VoxmojiSystem {
     normals.push(-1.0);
     uvs.push(0.0);
     uvs.push(1.0);
+    rims.push(0.0);
 
     // Bottom right back
     vertices.push(VOXMOJI_WIDTH / 2);
@@ -470,6 +481,7 @@ export class VoxmojiSystem {
     normals.push(-1.0);
     uvs.push(1.0);
     uvs.push(1.0);
+    rims.push(0.0);
 
     //// Front quad
     indices.push(quadVertIndex);
@@ -487,7 +499,7 @@ export class VoxmojiSystem {
     indices.push(quadVertIndex + 1 + 4);
     indices.push(quadVertIndex + 2 + 4);
 
-    // Scale verts by 0.015 - don't have app deal with scale, this mesh
+    // Scale verts by 0.005 - don't have app deal with scale, this mesh
     // should just be the right size to keep things simpler.
     for (let i = 0; i < vertices.length; i += 3) {
       vertices[i] *= 0.005;
@@ -499,6 +511,7 @@ export class VoxmojiSystem {
     geometry.setAttribute("position", new Float32BufferAttribute(vertices, 3));
     geometry.setAttribute("normal", new Float32BufferAttribute(normals, 3));
     geometry.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
+    geometry.setAttribute("rim", new Float32BufferAttribute(rims, 1));
 
     const mapIndices = [];
 
