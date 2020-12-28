@@ -10,7 +10,10 @@ import { getNetworkedEntity, getNetworkId, ensureOwnership } from "../../jel/uti
 import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
 import { getMessages } from "../../hubs/utils/i18n";
 import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
-import createEmojiRegex from "emoji-regex";
+
+// We use the legacy 'text' regex since it matches some items like beach_umbrella
+// and thermometer which seem to not work with the default/standard regex
+import createEmojiRegex from "emoji-regex/text.js";
 
 import Linkify from "linkify-it";
 import tlds from "tlds";
