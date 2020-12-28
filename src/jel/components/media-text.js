@@ -95,7 +95,7 @@ AFRAME.registerComponent("media-text", {
     font: { default: 0 }
   },
 
-  async init() {
+  init() {
     this.renderNextFrame = false;
     this.rerenderQuill = this.rerenderQuill.bind(this);
     this.localSnapCount = 0;
@@ -440,10 +440,17 @@ AFRAME.registerComponent("media-text", {
 
   remove() {
     this.unbindAndRemoveQuill();
-    const nonUsedMaterial = this.mesh.material === this.unlitMat ? this.litMat : this.unlitMat;
+    let nonUsedMaterial;
+
+    if (this.mesh) {
+      nonUsedMaterial = this.mesh.material === this.unlitMat ? this.litMat : this.unlitMat;
+    }
 
     disposeExistingMesh(this.el);
-    nonUsedMaterial.dispose();
+
+    if (nonUsedMaterial) {
+      nonUsedMaterial.dispose();
+    }
 
     if (this.texture) {
       disposeTexture(this.texture);

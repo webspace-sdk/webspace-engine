@@ -173,7 +173,12 @@ export class VoxmojiSystem {
     if (this.imageUrlToType.has(imageUrl)) {
       typeKey = imageUrlToType.get(imageUrl);
     } else {
-      typeKey = await this.registerType(imageUrl);
+      try {
+        typeKey = await this.registerType(imageUrl);
+      } catch (e) {
+        return; // Registration failed.
+      }
+
       imageUrlToType.set(imageUrl, typeKey);
     }
 
@@ -234,7 +239,7 @@ export class VoxmojiSystem {
 
   async registerType(imageUrl) {
     const loader = new ImageLoader();
-    const image = await new Promise(res => loader.load(imageUrl, res));
+    const image = await new Promise((res, rej) => loader.load(imageUrl, res, undefined, rej));
 
     if (this.imageUrlToType.has(imageUrl)) {
       // Just in case another caller ran while this was loading.
