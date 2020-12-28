@@ -3,9 +3,15 @@ import { disposeExistingMesh } from "../../hubs/utils/three-utils";
 
 const EMOJI_IMAGE_URL = "https://assets.jel.app/static/emoji";
 
-function emojiUnicode(emoji) {
-  if (emoji.length < 4) return emoji.codePointAt(0).toString(16);
-  return emoji.codePointAt(0).toString(16) + "-" + emoji.codePointAt(2).toString(16);
+function emojiUnicode(characters, prefix = "") {
+  return [...characters]
+    .reduce((accumulator, character) => {
+      const unicode = character.codePointAt(undefined).toString(16);
+      accumulator.push(`${prefix}${unicode}`);
+      return accumulator;
+    }, [])
+    .join("-")
+    .toUpperCase();
 }
 
 AFRAME.registerComponent("media-emoji", {
