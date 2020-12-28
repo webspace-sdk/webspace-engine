@@ -47,6 +47,8 @@ const MEDIA_VIEW_COMPONENTS = [
   "gltf-model-plus"
 ];
 
+export const BAKABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-text", "media-pdf"];
+
 const linkify = Linkify();
 linkify.tlds(tlds);
 

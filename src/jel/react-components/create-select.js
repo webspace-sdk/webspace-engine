@@ -9,6 +9,7 @@ import uploadIconSrc from "../../assets/jel/images/icons/upload.svgi";
 import linkIconSrc from "../../assets/jel/images/icons/link.svgi";
 import heartIconSrc from "../../assets/jel/images/icons/heart.svgi";
 import newPageIconSrc from "../../assets/jel/images/icons/page.svgi";
+import cubeIconSrc from "../../assets/jel/images/icons/cube.svgi";
 import videoThumbSrc from "../../assets/jel/images/icons/thumb-video.svg";
 import imageThumbSrc from "../../assets/jel/images/icons/thumb-image.svg";
 import pageThumbSrc from "../../assets/jel/images/icons/thumb-page.svg";
@@ -17,6 +18,7 @@ import pdfThumbSrc from "../../assets/jel/images/icons/thumb-pdf.svg";
 import modelThumbSrc from "../../assets/jel/images/icons/thumb-model.svg";
 import labelThumbSrc from "../../assets/jel/images/icons/thumb-label.svg";
 import bannerThumbSrc from "../../assets/jel/images/icons/thumb-banner.svg";
+import voxmojiThumbSrc from "../../assets/jel/images/icons/thumb-voxmoji.svg";
 import { useRefFocusResetter } from "../utils/shared-effects";
 
 export const CREATE_SELECT_WIDTH = 325;
@@ -31,7 +33,7 @@ const items = [
       ["banner", newPageIconSrc, bannerThumbSrc]
     ]
   ],
-  ["objects", [["voxmoji", linkIconSrc, imageThumbSrc]]],
+  ["objects", [["voxmoji", cubeIconSrc, voxmojiThumbSrc]]],
   ["images", [["image_embed", linkIconSrc, imageThumbSrc], ["image_upload", uploadIconSrc, imageThumbSrc]]],
   ["videos", [["video_embed", linkIconSrc, videoThumbSrc], ["video_upload", uploadIconSrc, videoThumbSrc]]],
   ["models", [["model_embed", linkIconSrc, modelThumbSrc], ["model_upload", uploadIconSrc, modelThumbSrc]]],
