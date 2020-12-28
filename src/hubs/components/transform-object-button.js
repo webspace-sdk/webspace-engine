@@ -21,13 +21,6 @@ const v2 = new THREE.Vector3();
 const q = new THREE.Quaternion();
 const q2 = new THREE.Quaternion();
 
-const eps = 0.001;
-//function qAlmostEquals(a, b) {
-//  return (
-//    Math.abs(a.x - b.x) < eps && Math.abs(a.y - b.y) < eps && Math.abs(a.z - b.z) < eps && Math.abs(a.w - b.w) < eps
-//  );
-//}
-
 AFRAME.registerComponent("transform-button", {
   schema: {
     mode: {

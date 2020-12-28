@@ -95,7 +95,7 @@ AFRAME.registerComponent("media-text", {
     font: { default: 0 }
   },
 
-  async init() {
+  init() {
     this.renderNextFrame = false;
     this.rerenderQuill = this.rerenderQuill.bind(this);
     this.localSnapCount = 0;
@@ -137,7 +137,6 @@ AFRAME.registerComponent("media-text", {
 
       if (oldData.font !== font) {
         this.applyFont();
-        this.rerenderQuill();
       }
     }
   },
@@ -441,10 +440,17 @@ AFRAME.registerComponent("media-text", {
 
   remove() {
     this.unbindAndRemoveQuill();
-    const nonUsedMaterial = this.mesh.material === this.unlitMat ? this.litMat : this.unlitMat;
+    let nonUsedMaterial;
+
+    if (this.mesh) {
+      nonUsedMaterial = this.mesh.material === this.unlitMat ? this.litMat : this.unlitMat;
+    }
 
     disposeExistingMesh(this.el);
-    nonUsedMaterial.dispose();
+
+    if (nonUsedMaterial) {
+      nonUsedMaterial.dispose();
+    }
 
     if (this.texture) {
       disposeTexture(this.texture);
@@ -483,6 +489,16 @@ AFRAME.registerComponent("media-text", {
     } else if (font === FONT_FACES.WRITING2) {
       classList.add("font-writing2");
     }
+
+    this.rerenderQuill();
+
+    // Hack, quill needs to be re-rendered after a slight delay to deal with
+    // cases where CSS relayout may not immediately occur (likely when concurrent
+    // work is occuring.)
+    //
+    // Otherwise text will be clipped when changing fonts since the clientWidth/Height
+    // of the inner elements is stale.
+    setTimeout(() => this.rerenderQuill(), 500);
   },
 
   handleMediaInteraction(type) {

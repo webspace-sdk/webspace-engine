@@ -176,6 +176,7 @@ AFRAME.registerComponent("media-loader", {
     this.el.removeAttribute("media-pdf");
     this.el.removeAttribute("media-text");
     this.el.removeAttribute("media-vox");
+    this.el.removeAttribute("media-emoji");
     this.el.setAttribute("media-image", { src: "error" });
     this.cleanupLoader(true);
   },
@@ -356,6 +357,7 @@ AFRAME.registerComponent("media-loader", {
       this.el.removeAttribute("media-image");
       this.el.removeAttribute("media-text");
       this.el.removeAttribute("media-vox");
+      this.el.removeAttribute("media-emoji");
     }
 
     try {
@@ -431,6 +433,8 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("media-image");
         this.el.removeAttribute("media-video");
         this.el.removeAttribute("media-pdf");
+        this.el.removeAttribute("media-vox");
+        this.el.removeAttribute("media-emoji");
         this.el.removeAttribute("media-pager");
 
         this.el.addEventListener("text-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
@@ -453,6 +457,19 @@ AFRAME.registerComponent("media-loader", {
         }
 
         this.el.setAttribute("media-text", properties);
+      } else if (src.startsWith("jel://entities/") && src.includes("/components/media-emoji")) {
+        this.el.removeAttribute("gltf-model-plus");
+        this.el.removeAttribute("media-image");
+        this.el.removeAttribute("media-video");
+        this.el.removeAttribute("media-pdf");
+        this.el.removeAttribute("media-pager");
+        this.el.removeAttribute("media-vox");
+
+        this.el.addEventListener("model-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
+
+        const properties = { src: accessibleUrl };
+
+        this.el.setAttribute("media-emoji", properties);
       } else if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||
@@ -475,6 +492,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("media-image");
         this.el.removeAttribute("media-text");
         this.el.removeAttribute("media-vox");
+        this.el.removeAttribute("media-emoji");
         this.el.removeAttribute("media-pdf");
         this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
         this.el.addEventListener(
@@ -507,6 +525,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("media-video");
         this.el.removeAttribute("media-text");
         this.el.removeAttribute("media-vox");
+        this.el.removeAttribute("media-emoji");
         this.el.removeAttribute("media-pdf");
         this.el.removeAttribute("media-pager");
         this.el.addEventListener(
@@ -549,6 +568,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("media-video");
         this.el.removeAttribute("media-text");
         this.el.removeAttribute("media-vox");
+        this.el.removeAttribute("media-emoji");
         this.el.removeAttribute("media-image");
         this.el.setAttribute(
           "media-pdf",
@@ -584,6 +604,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("media-video");
         this.el.removeAttribute("media-text");
         this.el.removeAttribute("media-vox");
+        this.el.removeAttribute("media-emoji");
         this.el.removeAttribute("media-pdf");
         this.el.removeAttribute("media-pager");
         this.el.addEventListener(
@@ -617,6 +638,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("media-text");
         this.el.removeAttribute("media-pdf");
         this.el.removeAttribute("media-pager");
+        this.el.removeAttribute("media-emoji");
         this.el.removeAttribute("gltf-model-plus");
         this.el.addEventListener(
           "model-loaded",
@@ -638,6 +660,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("media-video");
         this.el.removeAttribute("media-text");
         this.el.removeAttribute("media-vox");
+        this.el.removeAttribute("media-emoji");
         this.el.removeAttribute("media-pdf");
         this.el.removeAttribute("media-pager");
         this.el.addEventListener(

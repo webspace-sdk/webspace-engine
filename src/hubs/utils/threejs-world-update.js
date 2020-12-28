@@ -4,6 +4,14 @@ const oneScale = new THREE.Vector3(1, 1, 1);
 const identity = new THREE.Matrix4();
 identity.identity();
 
+// When world matrices are updated, we flip 8 bits to one and then they can
+// be consumed by various subsystems.
+export const WORLD_MATRIX_CONSUMERS = {
+  PHYSICS: 0,
+  BEAMS: 1,
+  VOXMOJI: 2
+};
+
 /**
 - If you modify an object's matrix
       you MUST decompose() back onto its position, quaternion and scale and
@@ -157,7 +165,7 @@ THREE.Object3D.prototype.updateMatrices = function(forceLocalUpdate, forceWorldU
     this.hasHadFirstMatrixUpdate = true;
     this.matrixWorldNeedsUpdate = true;
     this.matrixNeedsUpdate = false;
-    this.physicsNeedsUpdate = true;
+    this.worldMatrixConsumerFlags = 0x00;
     this.cachedMatrixWorld = this.matrixWorld;
   } else if (this.matrixNeedsUpdate || this.matrixAutoUpdate || forceLocalUpdate) {
     // updateMatrix() sets matrixWorldNeedsUpdate = true
@@ -191,7 +199,7 @@ THREE.Object3D.prototype.updateMatrices = function(forceLocalUpdate, forceWorldU
 
     this.childrenNeedMatrixWorldUpdate = true;
     this.matrixWorldNeedsUpdate = false;
-    this.physicsNeedsUpdate = true;
+    this.worldMatrixConsumerFlags = 0x00;
   }
 };
 
@@ -276,7 +284,7 @@ THREE.Camera.prototype.updateMatrices = function(forceLocalUpdate, forceWorldUpd
 
     this.hasHadFirstMatrixUpdate = true;
     this.matrixNeedsUpdate = false;
-    this.physicsNeedsUpdate = true;
+    this.worldMatrixConsumerFlags = 0x00;
     this.matrixWorldNeedsUpdate = true;
     this.cachedMatrixWorld = this.matrixWorld;
   } else if (this.matrixNeedsUpdate || this.matrixAutoUpdate || forceLocalUpdate) {
@@ -312,6 +320,19 @@ THREE.Camera.prototype.updateMatrices = function(forceLocalUpdate, forceWorldUpd
     this.childrenNeedMatrixWorldUpdate = true;
     this.matrixWorldNeedsUpdate = false;
     this.matrixWorldInverse.getInverse(this.matrixWorld);
-    this.physicsNeedsUpdate = true;
+    this.worldMatrixConsumerFlags = 0x00;
   }
+};
+
+// Pass a system (like WORLD_MATRIX_CONSUMERS.PHYSICS) to get true or false
+// if the world matrix has changed since last consumption.
+THREE.Object3D.prototype.consumeIfDirtyWorldMatrix = function(system) {
+  const mask = 0x1 << system;
+
+  if ((this.worldMatrixConsumerFlags & mask) === 0) {
+    this.worldMatrixConsumerFlags |= mask;
+    return true;
+  }
+
+  return false;
 };

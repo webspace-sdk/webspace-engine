@@ -19,6 +19,7 @@ import CreateEmbedPopup from "./create-embed-popup";
 import HubContextMenu from "./hub-context-menu";
 import CreateSelectPopup from "./create-select-popup";
 import ChatInputPopup from "./chat-input-popup";
+import EmojiPopup from "./emoji-popup";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
@@ -304,6 +305,7 @@ function JelUI(props) {
   const chatInputFocusRef = useRef();
   const centerPopupRef = useRef();
   const createEmbedFocusRef = useRef();
+  const emojiPopupFocusRef = useRef();
 
   const {
     styles: hubRenamePopupStyles,
@@ -355,6 +357,14 @@ function JelUI(props) {
   } = usePopupPopper(chatInputFocusRef, "top", [0, 8]);
 
   const {
+    styles: emojiPopupStyles,
+    attributes: emojiPopupAttributes,
+    show: showEmojiPopup,
+    setPopup: setEmojiPopupElement,
+    update: updateEmojiPopup
+  } = usePopupPopper(emojiPopupFocusRef, "bottom", [0, 8]);
+
+  const {
     styles: createEmbedPopupStyles,
     attributes: createEmbedPopupAttributes,
     show: showCreateEmbedPopup,
@@ -372,6 +382,7 @@ function JelUI(props) {
         if (updateCreateSelectPopup) updateCreateSelectPopup();
         if (updateCreateEmbedPopup) updateCreateEmbedPopup();
         if (updateChatInputPopup) updateChatInputPopup();
+        if (updateEmojiPopup) updateEmojiPopup();
       };
 
       scene && scene.addEventListener("animated_resize_complete", handleResizeComplete);
@@ -384,7 +395,8 @@ function JelUI(props) {
       updateHubContextMenu,
       updateCreateSelectPopup,
       updateCreateEmbedPopup,
-      updateChatInputPopup
+      updateChatInputPopup,
+      updateEmojiPopup
     ]
   );
 
@@ -433,6 +445,17 @@ function JelUI(props) {
       return () => scene && scene.removeEventListener("action_show_create_embed", handleCreateEmbed);
     },
     [scene, centerPopupRef, showCreateEmbedPopup]
+  );
+
+  // Handle emoji popup trigger
+  useEffect(
+    () => {
+      const handleCreateVoxmoji = () => showEmojiPopup(centerPopupRef);
+
+      scene && scene.addEventListener("action_show_emoji_picker", handleCreateVoxmoji);
+      return () => scene && scene.removeEventListener("action_show_emoji_picker", handleCreateVoxmoji);
+    },
+    [scene, centerPopupRef, showEmojiPopup]
   );
 
   const [pwaAvailable, installPWA] = useInstallPWA();
@@ -586,6 +609,17 @@ function JelUI(props) {
         ref={chatInputFocusRef}
         onMessageEntered={useCallback(message => hubChannel.sendMessage(message), [hubChannel])}
         onEntryComplete={useCallback(() => scene.emit("chat_entry_complete"), [scene])}
+      />
+      <EmojiPopup
+        setPopperElement={setEmojiPopupElement}
+        styles={emojiPopupStyles}
+        attributes={emojiPopupAttributes}
+        ref={emojiPopupFocusRef}
+        onEmojiSelected={({ unicode }) => {
+          const parsed = unicode.split("-").map(str => parseInt(str, 16));
+          const emoji = String.fromCodePoint(...parsed);
+          scene.emit("add_media_emoji", emoji);
+        }}
       />
       <CreateEmbedPopup
         setPopperElement={setCreateEmbedPopupElement}

@@ -53,8 +53,11 @@ export class MediaPresenceSystem {
   }
 
   getMediaPresence(component) {
-    const presence = this.mediaPresence.get(component);
-    return presence || MEDIA_PRESENCE.UNKNOWN;
+    if (!this.mediaPresence.has(component)) {
+      return MEDIA_PRESENCE.UNKNOWN;
+    }
+
+    return this.mediaPresence.get(component);
   }
 
   setMediaPresence(component, presence) {
@@ -141,19 +144,23 @@ export class MediaPresenceSystem {
   async beginTransitionOfMediaPresence(networkId, presence) {
     const mediaComponent = this.mediaComponents.get(networkId);
     this.transitioningNetworkIds.add(networkId);
-    await mediaComponent.setMediaPresence(presence);
-    this.transitioningNetworkIds.delete(networkId);
-    this.checkForNewTransitionsNextTick = true;
+    try {
+      await mediaComponent.setMediaPresence(presence);
+      this.checkForNewTransitionsNextTick = true;
+    } finally {
+      this.transitioningNetworkIds.delete(networkId);
+    }
   }
 
   registerMediaComponent(component) {
     try {
+      this.setMediaPresence(component, MEDIA_PRESENCE.INIT);
+
       getNetworkedEntity(component.el)
         .then(networkedEl => {
           const networkId = getNetworkId(networkedEl);
           this.mediaComponents.set(networkId, component);
-          this.setMediaPresence(this, MEDIA_PRESENCE.INIT);
-          this.checkForNewTransitionsNextTick = true;
+          this.updateDesiredMediaPresence(component.el);
         })
         .catch(() => {}); //ignore exception, entity might not be networked
     } catch (e) {

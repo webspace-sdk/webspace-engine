@@ -178,6 +178,10 @@ function registerNetworkSchemas() {
       {
         component: "media-text",
         property: "font"
+      },
+      {
+        component: "media-emoji",
+        property: "emoji"
       }
     ],
     nonAuthorizedComponents: [

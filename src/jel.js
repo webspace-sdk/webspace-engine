@@ -65,6 +65,7 @@ import "./hubs/components/networked-avatar";
 import "./hubs/components/media-views";
 import "./jel/components/media-vox";
 import "./jel/components/media-text";
+import "./jel/components/media-emoji";
 import { initQuillPool } from "./jel/utils/quill-pool";
 import "./hubs/components/avatar-volume-controls";
 import "./hubs/components/pinch-to-move";
@@ -180,8 +181,6 @@ window.APP.hubMetadata = hubMetadata;
 window.APP.spaceMetadata = spaceMetadata;
 
 store.addEventListener("profilechanged", spaceChannel.sendProfileUpdate.bind(hubChannel));
-
-const mediaSearchStore = window.APP.mediaSearchStore;
 
 const qs = new URLSearchParams(location.search);
 
@@ -539,6 +538,9 @@ function addGlobalEventListeners(scene, entryManager) {
         break;
       case "banner":
         scene.emit("add_media_text", "banner");
+        break;
+      case "voxmoji":
+        scene.emit("action_show_emoji_picker", "");
         break;
       case "video_embed":
       case "image_embed":

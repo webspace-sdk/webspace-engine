@@ -191,7 +191,6 @@ export class WrappedEntitySystem {
         obj.matrixNeedsUpdate = true;
         this.atmosphereSystem.updateShadows();
         this.atmosphereSystem.updateWater();
-        this.skyBeamSystem.markMatrixDirty(obj);
       }
     };
   })();

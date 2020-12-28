@@ -11,10 +11,16 @@ import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
 import { getMessages } from "../../hubs/utils/i18n";
 import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
 
+// We use the legacy 'text' regex since it matches some items like beach_umbrella
+// and thermometer which seem to not work with the default/standard regex
+import createEmojiRegex from "emoji-regex/text.js";
+
 import Linkify from "linkify-it";
 import tlds from "tlds";
 
 import anime from "animejs";
+
+const emojiRegex = createEmojiRegex();
 
 export const MEDIA_INTERACTION_TYPES = {
   PRIMARY: 0,
@@ -35,7 +41,17 @@ export const MEDIA_INTERACTION_TYPES = {
 export const LOADING_EVENTS = ["model-loading", "image-loading", "text-loading", "pdf-loading"];
 export const LOADED_EVENTS = ["model-loaded", "image-loaded", "text-loaded", "pdf-loaded"];
 export const ERROR_EVENTS = ["model-error", "image-error", "text-error", "pdf-error"];
-const MEDIA_VIEW_COMPONENTS = ["media-video", "media-image", "media-text", "media-vox", "media-pdf", "gltf-model-plus"];
+const MEDIA_VIEW_COMPONENTS = [
+  "media-video",
+  "media-image",
+  "media-text",
+  "media-vox",
+  "media-pdf",
+  "media-emoji",
+  "gltf-model-plus"
+];
+
+export const BAKABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-text", "media-pdf"];
 
 const linkify = Linkify();
 linkify.tlds(tlds);
@@ -218,6 +234,14 @@ export const addMedia = (
       ? mediaPresentingSpace.components["shared-media"].data.selectedMediaLayer
       : 0;
 
+  let isEmoji = false;
+
+  if (contents) {
+    const trimmed = contents.trim();
+    const match = trimmed.match(emojiRegex);
+    isEmoji = match && match[0] === trimmed;
+  }
+
   entity.setAttribute("media-loader", {
     fitToBox,
     resolve,
@@ -232,7 +256,7 @@ export const addMedia = (
     mediaOptions
   });
 
-  if (contents) {
+  if (contents && !isEmoji) {
     window.APP.store.handleActivityFlag("mediaTextCreate");
   }
 
@@ -270,9 +294,10 @@ export const addMedia = (
   } else if (contents !== null) {
     // If contents were set, update the src to reflect the media-text property that is bound.
     getNetworkedEntity(entity).then(el => {
-      entity.setAttribute("media-loader", {
-        src: `jel://entities/${getNetworkId(el)}/components/media-text/properties/deltaOps/contents`
-      });
+      const src = `jel://entities/${getNetworkId(el)}/components/${
+        isEmoji ? "media-emoji/properties/emoji" : "media-text/properties/deltaOps/contents"
+      }`;
+      entity.setAttribute("media-loader", { src });
     });
   }
 
@@ -298,6 +323,9 @@ export const cloneMedia = (sourceEl, template, src = null, networked = true, lin
     extraMediaOptions.foregroundColor = foregroundColor;
     extraMediaOptions.backgroundColor = backgroundColor;
     extraMediaOptions.font = font;
+  } else if (sourceEl.components["media-emoji"]) {
+    const mediaEmoji = sourceEl.components["media-emoji"];
+    contents = mediaEmoji.data.emoji;
   } else {
     if (!src) {
       ({ src } = sourceEl.components["media-loader"].data);

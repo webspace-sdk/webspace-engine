@@ -11,9 +11,9 @@ module.exports = {
     DEFAULT_SPAWNER: 1 | 8
   },
   RENDER_ORDER: {
+    LIGHTS: 0, // Render lights first, otherwise compiled programs may not define USE_SHADOWMAP
     HUD_BACKGROUND: 1,
     HUD_ICONS: 2,
-    CURSOR: 3,
     TERRAIN: 10,
     FIELD: 100,
     PHYSICS_DEBUG: 1000,
@@ -23,6 +23,7 @@ module.exports = {
     INSTANCED_AVATAR: 21000, // Render last because of stencil ops
     INSTANCED_BEAM: 22000, // Render last because of stencil ops
     SKY: 100000,
+    CURSOR: 300000,
 
     // Transparent objects:
     WATER: 1
