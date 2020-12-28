@@ -580,6 +580,10 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
 
           if (isInitialJoin) {
             THREE.Cache.clear();
+
+            // Clear voxmojis from prior world
+            scene.systems["hubs-systems"].voxmojiSystem.unregisterAll();
+
             clearResolveUrlCache();
 
             moveToInitialHubLocation(hub, hubStore);

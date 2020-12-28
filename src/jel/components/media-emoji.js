@@ -97,9 +97,8 @@ AFRAME.registerComponent("media-emoji", {
         const voxmojiSystem = this.el.sceneEl.systems["hubs-systems"].voxmojiSystem;
         const unicode = emojiUnicode(this.data.emoji).toUpperCase();
         const imageUrl = `${EMOJI_IMAGE_URL}/${unicode}-128.png`;
-        const type = await voxmojiSystem.registerType(imageUrl);
+        await voxmojiSystem.register(imageUrl, this.mesh);
 
-        voxmojiSystem.register(type, this.mesh);
         this.el.emit("model-loaded", { format: "emoji", model: this.mesh });
       }
     } catch (e) {
@@ -115,6 +114,11 @@ AFRAME.registerComponent("media-emoji", {
 
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
+    }
+
+    if (this.mesh) {
+      const voxmojiSystem = this.el.sceneEl.systems["hubs-systems"].voxmojiSystem;
+      voxmojiSystem.unregister(this.mesh);
     }
   }
 });

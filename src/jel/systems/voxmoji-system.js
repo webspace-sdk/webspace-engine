@@ -122,6 +122,7 @@ export class VoxmojiSystem {
     this.meshes = new Map();
     this.sourceToType = new Map();
     this.sourceToLastCullPassFrame = new Map();
+    this.imageUrlToType = new Map();
     this.frame = 0;
   }
 
@@ -164,8 +165,17 @@ export class VoxmojiSystem {
     }
   }
 
-  register(typeKey, source) {
-    const { types, meshes, sourceToType } = this;
+  async register(imageUrl, source) {
+    const { imageUrlToType, types, meshes, sourceToType } = this;
+
+    let typeKey;
+
+    if (this.imageUrlToType.has(imageUrl)) {
+      typeKey = imageUrlToType.get(imageUrl);
+    } else {
+      typeKey = await this.registerType(imageUrl);
+      imageUrlToType.set(imageUrl, typeKey);
+    }
 
     // This uses a custom patched three.js handler which is fired whenever the object
     // passes a frustum check. This is handy for cases like this when a non-rendered
@@ -188,6 +198,13 @@ export class VoxmojiSystem {
     meshEntry.maxRegisteredIndex = Math.max(instanceIndex, maxRegisteredIndex);
   }
 
+  // Unregisters the given source. Note that even if no sources are registered
+  // for a type, the type (and its mesh/map) remain resident in memory to ensure
+  // no hitching in cases where emoji are being spawned repeatedly of the same
+  // type before being removed. (Eg particles)
+  //
+  // To actually free memory you must call unregisterType, or preferrably
+  // unregisterAll when all voxmoji are expected to be clear.
   unregister(source) {
     const { sourceToType, meshes, types } = this;
 
@@ -215,44 +232,14 @@ export class VoxmojiSystem {
     [...this.types.keys()].forEach(typeKey => this.unregisterType(typeKey));
   }
 
-  unregisterType(typeKey) {
-    const { sourceToType, types } = this;
-    if (!types.has(typeKey)) return;
-
-    // Unregister all the sources for this type.
-    const sources = [];
-
-    for (const [source, entryType] of sourceToType.entries()) {
-      if (typeKey !== entryType) continue;
-      sources.push(source);
-    }
-
-    sources.forEach(source => this.unregister(source));
-
-    // If no more types are using this mesh/map then dispose it all.
-    let shouldFreeMesh = true;
-
-    const { meshKey } = types.get(typeKey);
-    types.delete(typeKey);
-
-    for (const { meshKey: entryMeshKey } of types.values()) {
-      // Another type is using the mesh
-      if (entryMeshKey === meshKey) {
-        shouldFreeMesh = false;
-        break;
-      }
-    }
-
-    if (!shouldFreeMesh) return;
-
-    const { mesh } = this.meshes.get(meshKey);
-    disposeNode(mesh);
-    this.meshes.delete(meshKey);
-  }
-
-  async registerType(imageSrc) {
+  async registerType(imageUrl) {
     const loader = new ImageLoader();
-    const image = await new Promise(res => loader.load(imageSrc, res));
+    const image = await new Promise(res => loader.load(imageUrl, res));
+
+    if (this.imageUrlToType.has(imageUrl)) {
+      // Just in case another caller ran while this was loading.
+      return this.imageUrlToType.get(imageUrl);
+    }
 
     if (image.width !== VOXMOJI_WIDTH || image.height !== VOXMOJI_HEIGHT) {
       throw new Error("Bad image size", image.width, image.height);
@@ -315,6 +302,51 @@ export class VoxmojiSystem {
     this.types.set(typeKey, { meshKey, mapIndex });
 
     return typeKey;
+  }
+
+  unregisterType(typeKey) {
+    const { sourceToType, imageUrlToType, types } = this;
+    if (!types.has(typeKey)) return;
+
+    // Unregister all image urls for this type.
+    const imageUrls = [];
+
+    for (const [imageUrl, imageUrlType] of imageUrlToType.entries()) {
+      if (typeKey !== imageUrlType) continue;
+      imageUrls.push(imageUrl);
+    }
+
+    imageUrls.forEach(imageUrl => imageUrlToType.delete(imageUrl));
+
+    // Unregister all the sources for this type.
+    const sources = [];
+
+    for (const [source, entryType] of sourceToType.entries()) {
+      if (typeKey !== entryType) continue;
+      sources.push(source);
+    }
+
+    sources.forEach(source => this.unregister(source));
+
+    // If no more types are using this mesh/map then dispose it all.
+    let shouldFreeMesh = true;
+
+    const { meshKey } = types.get(typeKey);
+    types.delete(typeKey);
+
+    for (const { meshKey: entryMeshKey } of types.values()) {
+      // Another type is using the mesh
+      if (entryMeshKey === meshKey) {
+        shouldFreeMesh = false;
+        break;
+      }
+    }
+
+    if (!shouldFreeMesh) return;
+
+    const { mesh } = this.meshes.get(meshKey);
+    disposeNode(mesh);
+    this.meshes.delete(meshKey);
   }
 
   registerMapToMesh(meshKey, image) {

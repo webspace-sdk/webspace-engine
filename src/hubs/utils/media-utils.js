@@ -317,6 +317,9 @@ export const cloneMedia = (sourceEl, template, src = null, networked = true, lin
     extraMediaOptions.foregroundColor = foregroundColor;
     extraMediaOptions.backgroundColor = backgroundColor;
     extraMediaOptions.font = font;
+  } else if (sourceEl.components["media-emoji"]) {
+    const mediaEmoji = sourceEl.components["media-emoji"];
+    contents = mediaEmoji.data.emoji;
   } else {
     if (!src) {
       ({ src } = sourceEl.components["media-loader"].data);
