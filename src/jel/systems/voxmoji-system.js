@@ -112,7 +112,7 @@ voxmojiMaterial.uniforms.diffuse.value = new Color(0.5, 0.5, 0.5);
 // Note that right now unregistering a type does not free its space in the mesh's atlas. However if all types
 // for a given alpha mask are unregistered then corresponding mesh and atlas are disposed.
 //
-// unregisterAll() should be called at opportune points (such as world transitions) when there are no
+// clear() should be called at opportune points (such as world transitions) when there are no
 // voxmoji remaining and subsequent voxmoji are expected to diverge from the ones seen so far.
 export class VoxmojiSystem {
   constructor(sceneEl, atmosphereSystem) {
@@ -204,7 +204,7 @@ export class VoxmojiSystem {
   // type before being removed. (Eg particles)
   //
   // To actually free memory you must call unregisterType, or preferrably
-  // unregisterAll when all voxmoji are expected to be clear.
+  // clear when all voxmoji are expected to be clear.
   unregister(source) {
     const { sourceToType, meshes, types } = this;
 
@@ -228,7 +228,7 @@ export class VoxmojiSystem {
     }
   }
 
-  unregisterAll() {
+  clear() {
     [...this.types.keys()].forEach(typeKey => this.unregisterType(typeKey));
   }
 
