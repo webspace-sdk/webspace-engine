@@ -542,6 +542,9 @@ function addGlobalEventListeners(scene, entryManager) {
       case "voxmoji":
         scene.emit("action_show_emoji_picker", "");
         break;
+      case "screen":
+        scene.emit("action_share_screen", "");
+        break;
       case "video_embed":
       case "image_embed":
       case "pdf_embed":
@@ -679,6 +682,15 @@ function setupNonVisibleHandler(scene) {
 
   if (!disablePausing) {
     window.addEventListener("blur", () => {
+      const disableBlurHandlerOnceIfVisible = window.APP.disableBlurHandlerOnceIfVisible;
+      window.APP.disableBlurHandlerOnceIfVisible = false;
+
+      if (disableBlurHandlerOnceIfVisible && document.visibilityState === "visible") {
+        // HACK needed to deal with browser stealing window focus occasionally eg screen share nag
+        clearTimeout(windowBlurredTimeout);
+        return;
+      }
+
       windowBlurredTimeout = setTimeout(() => {
         apply(true);
       }, 500);

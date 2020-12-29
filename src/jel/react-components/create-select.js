@@ -33,7 +33,7 @@ const items = [
       ["banner", newPageIconSrc, bannerThumbSrc]
     ]
   ],
-  ["objects", [["voxmoji", cubeIconSrc, voxmojiThumbSrc]]],
+  ["objects", [["screen", cubeIconSrc, voxmojiThumbSrc], ["voxmoji", cubeIconSrc, voxmojiThumbSrc]]],
   ["images", [["image_embed", linkIconSrc, imageThumbSrc], ["image_upload", uploadIconSrc, imageThumbSrc]]],
   ["videos", [["video_embed", linkIconSrc, videoThumbSrc], ["video_upload", uploadIconSrc, videoThumbSrc]]],
   ["models", [["model_embed", linkIconSrc, modelThumbSrc], ["model_upload", uploadIconSrc, modelThumbSrc]]],
@@ -143,7 +143,7 @@ const filterByTokenMatch = (value, { tokens }) => {
     }
   }
 
-  return matchCount === vs.length;
+  return matchCount >= vs.length;
 };
 
 const CreateSelect = forwardRef((props, ref) => {

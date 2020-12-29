@@ -4,6 +4,7 @@ import { hackyMobileSafariTest } from "./utils/detect-touchscreen";
 import { takeOwnership } from "./../jel/utils/ownership-utils";
 import { MEDIA_TEXT_COLOR_PRESETS } from "../jel/components/media-text";
 import { waitForDOMContentLoaded } from "./utils/async-utils";
+const { detect } = require("detect-browser");
 
 const isBotMode = qsTruthy("bot");
 const isMobile = AFRAME.utils.device.isMobile();
@@ -363,6 +364,14 @@ export default class SceneEntryManager {
         isHandlingVideoShare = false;
         this.scene.emit("share_video_failed");
         return;
+      }
+
+      const browser = detect();
+
+      if (browser.name === "chrome") {
+        // HACK Chrome will move focus to the screen share nag so disable
+        // the blur handler one time.
+        window.APP.disableBlurHandlerOnceIfVisible = true;
       }
 
       const videoTracks = newStream ? newStream.getVideoTracks() : [];
