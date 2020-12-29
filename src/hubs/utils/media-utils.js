@@ -293,7 +293,8 @@ export const addMedia = (
         entity.setAttribute("media-loader", { src: "error" });
       });
   } else if (isVideoShare) {
-    entity.setAttribute("media-loader", { src: `jel://clients/${NAF.clientId}/video` });
+    const selfVideoShareUrl = `jel://clients/${NAF.clientId}/video`;
+    entity.setAttribute("media-loader", { src: selfVideoShareUrl });
   } else if (contents !== null) {
     // If contents were set, update the src to reflect the media-text property that is bound.
     getNetworkedEntity(entity).then(el => {

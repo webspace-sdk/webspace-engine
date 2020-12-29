@@ -1,7 +1,7 @@
 import qsTruthy from "./utils/qs_truthy";
 import nextTick from "./utils/next-tick";
 import { hackyMobileSafariTest } from "./utils/detect-touchscreen";
-import { takeOwnership } from "./../jel/utils/ownership-utils";
+import { ensureOwnership } from "./../jel/utils/ownership-utils";
 import { MEDIA_TEXT_COLOR_PRESETS } from "../jel/components/media-text";
 import { waitForDOMContentLoaded } from "./utils/async-utils";
 const { detect } = require("detect-browser");
@@ -13,7 +13,7 @@ const isMobileVR = AFRAME.utils.device.isMobileVR();
 const isDebug = qsTruthy("debug");
 const qs = new URLSearchParams(location.search);
 
-import { addMedia } from "./utils/media-utils";
+import { addMedia, performAnimatedRemove } from "./utils/media-utils";
 import {
   isIn2DInterstitial,
   handleExitTo2DInterstitial,
@@ -176,7 +176,7 @@ export default class SceneEntryManager {
         if (NAF.utils.getCreator(entity) !== kickedClientId) continue;
 
         if (entity.components.networked.data.persistent) {
-          takeOwnership(entity);
+          ensureOwnership(entity);
           entity.parentNode.removeChild(entity);
         } else {
           NAF.entities.removeEntity(id);
@@ -345,7 +345,6 @@ export default class SceneEntryManager {
       }
     });
 
-    let currentVideoShareEntity;
     let isHandlingVideoShare = false;
 
     const shareVideoMediaStream = async (constraints, isDisplayMedia) => {
@@ -362,7 +361,6 @@ export default class SceneEntryManager {
         }
       } catch (e) {
         isHandlingVideoShare = false;
-        this.scene.emit("share_video_failed");
         return;
       }
 
@@ -378,20 +376,41 @@ export default class SceneEntryManager {
       const mediaStreamSystem = this.scene.systems["hubs-systems"].mediaStreamSystem;
 
       if (videoTracks.length > 0) {
-        newStream.getVideoTracks().forEach(track => mediaStreamSystem.addTrack(track));
+        // Clean up the media-stream entities (which are the entities that are
+        // bound to this client's webrtc video stream) when the video track ends.
+        const handleEndedVideoShareTrack = () => {
+          if (isHandlingVideoShare) return;
+          isHandlingVideoShare = true;
+
+          const mediaStreamEntities = document.querySelectorAll("[media-stream]");
+
+          for (const mediaStreamEntity of mediaStreamEntities) {
+            if (mediaStreamEntity && mediaStreamEntity.parentNode) {
+              ensureOwnership(mediaStreamEntity);
+              performAnimatedRemove(mediaStreamEntity);
+            }
+          }
+
+          const audioSystem = this.scene.systems["hubs-systems"].audioSystem;
+          audioSystem.removeStreamFromOutboundAudio("screenshare");
+
+          this.scene.removeState("sharing_video");
+          isHandlingVideoShare = false;
+        };
+
+        newStream.getVideoTracks().forEach(track => {
+          mediaStreamSystem.addTrack(track);
+          track.addEventListener("ended", handleEndedVideoShareTrack, { once: true });
+        });
 
         if (newStream && newStream.getAudioTracks().length > 0) {
           const audioSystem = this.scene.systems["hubs-systems"].audioSystem;
           audioSystem.addStreamToOutboundAudio("screenshare", newStream);
         }
 
-        currentVideoShareEntity = spawnMediaInfrontOfPlayer(mediaStreamSystem.mediaStream, null, undefined);
-
-        // Wire up custom removal event which will stop the stream.
-        currentVideoShareEntity.setAttribute("emit-scene-event-on-remove", "event:action_end_video_sharing");
+        spawnMediaInfrontOfPlayer(mediaStreamSystem.mediaStream);
       }
 
-      this.scene.emit("share_video_enabled", { source: isDisplayMedia ? "screen" : "camera" });
       this.scene.addState("sharing_video");
       isHandlingVideoShare = false;
     };
@@ -428,25 +447,8 @@ export default class SceneEntryManager {
     });
 
     this.scene.addEventListener("action_end_video_sharing", async () => {
-      if (isHandlingVideoShare) return;
-      isHandlingVideoShare = true;
-
-      if (currentVideoShareEntity && currentVideoShareEntity.parentNode) {
-        takeOwnership(currentVideoShareEntity);
-        currentVideoShareEntity.parentNode.removeChild(currentVideoShareEntity);
-      }
-
       const mediaStreamSystem = this.scene.systems["hubs-systems"].mediaStreamSystem;
       await mediaStreamSystem.stopVideoTracks();
-
-      const audioSystem = this.scene.systems["hubs-systems"].audioSystem;
-      audioSystem.removeStreamFromOutboundAudio("screenshare");
-
-      currentVideoShareEntity = null;
-
-      this.scene.emit("share_video_disabled");
-      this.scene.removeState("sharing_video");
-      isHandlingVideoShare = false;
     });
 
     this.scene.addEventListener("action_selected_media_result_entry", async e => {

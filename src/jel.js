@@ -66,6 +66,7 @@ import "./hubs/components/media-views";
 import "./jel/components/media-vox";
 import "./jel/components/media-text";
 import "./jel/components/media-emoji";
+import "./jel/components/media-stream";
 import { initQuillPool } from "./jel/utils/quill-pool";
 import "./hubs/components/avatar-volume-controls";
 import "./hubs/components/pinch-to-move";

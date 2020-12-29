@@ -466,6 +466,7 @@ AFRAME.registerComponent("media-loader", {
           },
           { once: true }
         );
+
         this.setToSingletonMediaComponent(
           "media-video",
           Object.assign({}, this.data.mediaOptions, {
@@ -478,6 +479,12 @@ AFRAME.registerComponent("media-loader", {
             linkedMediaElementAudioSource
           })
         );
+
+        // Add the media-stream component to any entity that is streaming this client's video stream.
+        if (contentType === "video/vnd.jel-webrtc" && src.indexOf(NAF.clientId)) {
+          this.el.setAttribute("media-stream", {});
+        }
+
         if (this.el.components["position-at-border__freeze"]) {
           this.el.setAttribute("position-at-border__freeze", { isFlat: true });
         }
