@@ -508,8 +508,8 @@ export default class DialogAdapter {
     this._reconnectionErrorListener = reconnectionErrorListener;
   }
 
-  async joinHub(hubId) {
-    this.lastJoinedHubId = hubId;
+  async leaveHub() {
+    if (!this.lastJoinedHubId) return;
 
     const peerIds = Object.keys(this.occupants);
     for (let i = 0; i < peerIds.length; i++) {
@@ -519,6 +519,15 @@ export default class DialogAdapter {
     }
 
     this.occupants = {};
+
+    // Don't remove the avatar rig which would break the whole app,
+    // but remove other ephemeral networked entities upon hub transition.
+    const entitiesToKeep = [document.getElementById("avatar-rig")];
+    NAF.connection.entities.removeRemoteEntities(true, entitiesToKeep);
+  }
+
+  async joinHub(hubId) {
+    this.lastJoinedHubId = hubId;
 
     const audioConsumerPromises = [];
 

@@ -784,5 +784,9 @@ export async function joinHub(socket, history, entryManager, remountUI, remountJ
   await hubMetadata.ensureMetadataForIds([hubId], true);
   hubChannel.bind(hubPhxChannel, hubId);
 
+  if (NAF.connection.adapter) {
+    NAF.connection.adapter.leaveHub();
+  }
+
   await joinHubChannel(hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI);
 }
