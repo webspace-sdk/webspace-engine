@@ -333,6 +333,9 @@ export default class DialogAdapter {
                 const receiverStreams = receiver.createEncodedStreams();
                 receiverStreams.readable.pipeThrough(receiverTransform).pipeTo(receiverStreams.writable);
               }
+            } else if (supportsInsertableStreams) {
+              const receiverStreams = consumer.rtpReceiver.createEncodedStreams();
+              receiverStreams.readable.pipeTo(receiverStreams.writable);
             }
           } catch (err) {
             error('"newConsumer" request failed:%o', err);
@@ -822,6 +825,11 @@ export default class DialogAdapter {
                 });
 
                 this._videoProducer.on("transportclose", () => (this._videoProducer = null));
+
+                if (supportsInsertableStreams) {
+                  const senderStreams = this._videoProducer.rtpSender.createEncodedStreams();
+                  senderStreams.readable.pipeTo(senderStreams.writable);
+                }
               }
             }
 

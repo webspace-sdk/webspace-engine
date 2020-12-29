@@ -137,7 +137,7 @@ export const guessContentType = url => {
   if (url.startsWith("jel://") && url.endsWith("/components/media-text/properties/deltaOps/contents"))
     return "text/html";
   if (url.startsWith("jel://") && url.endsWith("/components/media-emoji/properties/emoji")) return "text/html";
-  if (url.startsWith("jel://") && url.endsWith("/video")) return "video/vnd.hubs-webrtc";
+  if (url.startsWith("jel://") && url.endsWith("/video")) return "video/vnd.jel-webrtc";
   if (url.startsWith("data:")) {
     const matches = dataUrlRegex.exec(url);
     if (matches.length > 0) {
