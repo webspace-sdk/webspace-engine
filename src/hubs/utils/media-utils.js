@@ -202,9 +202,12 @@ export const addMedia = (
   const scene = AFRAME.scenes[0];
 
   const entity = document.createElement("a-entity");
+  const isVideoShare = src instanceof MediaStream;
 
   if (networked) {
-    entity.setAttribute("shared", { template: template });
+    const isPersistent = !isVideoShare;
+
+    entity.setAttribute(isPersistent ? "shared" : "networked", { template: template });
   } else {
     const templateBody = document
       .importNode(document.body.querySelector(template).content, true)
@@ -289,7 +292,7 @@ export const addMedia = (
         console.error("Media upload failed", e);
         entity.setAttribute("media-loader", { src: "error" });
       });
-  } else if (src instanceof MediaStream) {
+  } else if (isVideoShare) {
     entity.setAttribute("media-loader", { src: `jel://clients/${NAF.clientId}/video` });
   } else if (contents !== null) {
     // If contents were set, update the src to reflect the media-text property that is bound.

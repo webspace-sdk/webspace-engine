@@ -96,7 +96,7 @@ function registerNetworkSchemas() {
     ]
   });
 
-  SAF.schemas.add({
+  const interactableMediaSchema = {
     template: "#interactable-media",
     components: [
       {
@@ -198,7 +198,10 @@ function registerNetworkSchemas() {
         property: "index"
       }
     ]
-  });
+  };
+
+  NAF.schemas.add(interactableMediaSchema);
+  SAF.schemas.add(interactableMediaSchema);
 
   NAF.schemas.add({
     template: "#static-media",

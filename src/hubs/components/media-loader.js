@@ -439,9 +439,7 @@ AFRAME.registerComponent("media-loader", {
       } else if (src.startsWith("jel://entities/") && src.includes("/components/media-emoji")) {
         this.el.addEventListener("model-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
 
-        const properties = { src: accessibleUrl };
-
-        this.setToSingletonMediaComponent("media-emoji", properties);
+        this.setToSingletonMediaComponent("media-emoji", { src: accessibleUrl });
       } else if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||
