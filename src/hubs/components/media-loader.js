@@ -7,7 +7,8 @@ import {
   getDefaultResolveQuality,
   injectCustomShaderChunks,
   addMeshScaleAnimation,
-  closeExistingMediaMirror
+  closeExistingMediaMirror,
+  MEDIA_VIEW_COMPONENTS
 } from "../utils/media-utils";
 import {
   isNonCorsProxyDomain,
@@ -170,14 +171,7 @@ AFRAME.registerComponent("media-loader", {
   },
 
   onError() {
-    this.el.removeAttribute("gltf-model-plus");
-    this.el.removeAttribute("media-pager");
-    this.el.removeAttribute("media-video");
-    this.el.removeAttribute("media-pdf");
-    this.el.removeAttribute("media-text");
-    this.el.removeAttribute("media-vox");
-    this.el.removeAttribute("media-emoji");
-    this.el.setAttribute("media-image", { src: "error" });
+    this.setToSingletonMediaComponent("media-image", { src: "error" });
     this.cleanupLoader(true);
   },
 
@@ -350,14 +344,7 @@ AFRAME.registerComponent("media-loader", {
     }
 
     if (forceLocalRefresh) {
-      this.el.removeAttribute("gltf-model-plus");
-      this.el.removeAttribute("media-pager");
-      this.el.removeAttribute("media-video");
-      this.el.removeAttribute("media-pdf");
-      this.el.removeAttribute("media-image");
-      this.el.removeAttribute("media-text");
-      this.el.removeAttribute("media-vox");
-      this.el.removeAttribute("media-emoji");
+      this.clearMediaComponents();
     }
 
     try {
@@ -429,14 +416,6 @@ AFRAME.registerComponent("media-loader", {
       this.el.addEventListener("media-load-error", () => this.cleanupLoader());
 
       if (src.startsWith("jel://entities/") && src.includes("/components/media-text")) {
-        this.el.removeAttribute("gltf-model-plus");
-        this.el.removeAttribute("media-image");
-        this.el.removeAttribute("media-video");
-        this.el.removeAttribute("media-pdf");
-        this.el.removeAttribute("media-vox");
-        this.el.removeAttribute("media-emoji");
-        this.el.removeAttribute("media-pager");
-
         this.el.addEventListener("text-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
 
         const fitContent = contentSubtype !== "page";
@@ -456,20 +435,13 @@ AFRAME.registerComponent("media-loader", {
           properties.font = mediaOptions.font;
         }
 
-        this.el.setAttribute("media-text", properties);
+        this.setToSingletonMediaComponent("media-text", properties);
       } else if (src.startsWith("jel://entities/") && src.includes("/components/media-emoji")) {
-        this.el.removeAttribute("gltf-model-plus");
-        this.el.removeAttribute("media-image");
-        this.el.removeAttribute("media-video");
-        this.el.removeAttribute("media-pdf");
-        this.el.removeAttribute("media-pager");
-        this.el.removeAttribute("media-vox");
-
         this.el.addEventListener("model-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
 
         const properties = { src: accessibleUrl };
 
-        this.el.setAttribute("media-emoji", properties);
+        this.setToSingletonMediaComponent("media-emoji", properties);
       } else if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||
@@ -488,12 +460,6 @@ AFRAME.registerComponent("media-loader", {
         const qsTime = parseInt(parsedUrl.searchParams.get("t"));
         const hashTime = parseInt(new URLSearchParams(parsedUrl.hash.substring(1)).get("t"));
         const startTime = hashTime || qsTime || 0;
-        this.el.removeAttribute("gltf-model-plus");
-        this.el.removeAttribute("media-image");
-        this.el.removeAttribute("media-text");
-        this.el.removeAttribute("media-vox");
-        this.el.removeAttribute("media-emoji");
-        this.el.removeAttribute("media-pdf");
         this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
         this.el.addEventListener(
           "video-loaded",
@@ -502,7 +468,7 @@ AFRAME.registerComponent("media-loader", {
           },
           { once: true }
         );
-        this.el.setAttribute(
+        this.setToSingletonMediaComponent(
           "media-video",
           Object.assign({}, this.data.mediaOptions, {
             src: accessibleUrl,
@@ -521,13 +487,6 @@ AFRAME.registerComponent("media-loader", {
           this.el.setAttribute("position-at-border__freeze-unprivileged", { isFlat: true });
         }
       } else if (contentType.startsWith("image/")) {
-        this.el.removeAttribute("gltf-model-plus");
-        this.el.removeAttribute("media-video");
-        this.el.removeAttribute("media-text");
-        this.el.removeAttribute("media-vox");
-        this.el.removeAttribute("media-emoji");
-        this.el.removeAttribute("media-pdf");
-        this.el.removeAttribute("media-pager");
         this.el.addEventListener(
           "image-loaded",
           e => {
@@ -547,7 +506,7 @@ AFRAME.registerComponent("media-loader", {
         if (typeof this.data.mediaOptions.batch !== "undefined" && !this.data.mediaOptions.batch) {
           batch = false;
         }
-        this.el.setAttribute(
+        this.setToSingletonMediaComponent(
           "media-image",
           Object.assign({}, this.data.mediaOptions, {
             src: accessibleUrl,
@@ -564,13 +523,7 @@ AFRAME.registerComponent("media-loader", {
           this.el.setAttribute("position-at-border__freeze-unprivileged", { isFlat: true });
         }
       } else if (contentType.startsWith("application/pdf")) {
-        this.el.removeAttribute("gltf-model-plus");
-        this.el.removeAttribute("media-video");
-        this.el.removeAttribute("media-text");
-        this.el.removeAttribute("media-vox");
-        this.el.removeAttribute("media-emoji");
-        this.el.removeAttribute("media-image");
-        this.el.setAttribute(
+        this.setToSingletonMediaComponent(
           "media-pdf",
           Object.assign({}, this.data.mediaOptions, {
             src: accessibleUrl,
@@ -600,13 +553,6 @@ AFRAME.registerComponent("media-loader", {
         contentType.includes("x-zip-compressed") ||
         contentType.startsWith("model/gltf")
       ) {
-        this.el.removeAttribute("media-image");
-        this.el.removeAttribute("media-video");
-        this.el.removeAttribute("media-text");
-        this.el.removeAttribute("media-vox");
-        this.el.removeAttribute("media-emoji");
-        this.el.removeAttribute("media-pdf");
-        this.el.removeAttribute("media-pager");
         this.el.addEventListener(
           "model-loaded",
           () => {
@@ -621,7 +567,7 @@ AFRAME.registerComponent("media-loader", {
           batch = false;
         }
         this.el.setAttribute("floaty-object", { gravitySpeedLimit: 1.85 });
-        this.el.setAttribute(
+        this.setToSingletonMediaComponent(
           "gltf-model-plus",
           Object.assign({}, this.data.mediaOptions, {
             src: accessibleUrl,
@@ -633,13 +579,6 @@ AFRAME.registerComponent("media-loader", {
           })
         );
       } else if (contentType.startsWith("model/vox")) {
-        this.el.removeAttribute("media-image");
-        this.el.removeAttribute("media-video");
-        this.el.removeAttribute("media-text");
-        this.el.removeAttribute("media-pdf");
-        this.el.removeAttribute("media-pager");
-        this.el.removeAttribute("media-emoji");
-        this.el.removeAttribute("gltf-model-plus");
         this.el.addEventListener(
           "model-loaded",
           () => {
@@ -649,20 +588,13 @@ AFRAME.registerComponent("media-loader", {
         );
         this.el.addEventListener("model-error", this.onError, { once: true });
         this.el.setAttribute("floaty-object", { gravitySpeedLimit: 1.85 });
-        this.el.setAttribute(
+        this.setToSingletonMediaComponent(
           "media-vox",
           Object.assign({}, this.data.mediaOptions, {
             src: accessibleUrl
           })
         );
       } else if (contentType.startsWith("text/html")) {
-        this.el.removeAttribute("gltf-model-plus");
-        this.el.removeAttribute("media-video");
-        this.el.removeAttribute("media-text");
-        this.el.removeAttribute("media-vox");
-        this.el.removeAttribute("media-emoji");
-        this.el.removeAttribute("media-pdf");
-        this.el.removeAttribute("media-pager");
         this.el.addEventListener(
           "image-loaded",
           async () => {
@@ -690,7 +622,7 @@ AFRAME.registerComponent("media-loader", {
         if (typeof this.data.mediaOptions.batch !== "undefined" && !this.data.mediaOptions.batch) {
           batch = false;
         }
-        this.el.setAttribute(
+        this.setToSingletonMediaComponent(
           "media-image",
           Object.assign({}, this.data.mediaOptions, {
             src: thumbnail,
@@ -718,6 +650,27 @@ AFRAME.registerComponent("media-loader", {
       console.error("Error adding media", e);
       this.onError();
     }
+  },
+
+  setToSingletonMediaComponent(attr, properties) {
+    for (const component of MEDIA_VIEW_COMPONENTS) {
+      if (attr === component) continue;
+      this.el.removeAttribute(component);
+    }
+
+    if (attr !== "media-pdf") {
+      this.el.removeAttribute("media-pager");
+    }
+
+    this.el.setAttribute(attr, properties);
+  },
+
+  clearMediaComponents() {
+    for (const component of MEDIA_VIEW_COMPONENTS) {
+      this.el.removeAttribute(component);
+    }
+
+    this.el.removeAttribute("media-pager");
   },
 
   consumeInitialContents: function() {
