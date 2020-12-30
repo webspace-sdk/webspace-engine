@@ -12,7 +12,7 @@ export const TRANSFORM_MODE = {
   SCALE: "scale"
 };
 
-const STEP_LENGTH = Math.PI / 10;
+const STEP_LENGTH = Math.PI / 100;
 const CAMERA_WORLD_QUATERNION = new THREE.Quaternion();
 const CAMERA_WORLD_POSITION = new THREE.Vector3();
 const TARGET_WORLD_QUATERNION = new THREE.Quaternion();
@@ -278,26 +278,34 @@ AFRAME.registerSystem("transform-selected-object", {
       const modify = AFRAME.scenes[0].systems.userinput.get(paths.actions.transformModifier);
 
       this.dyAll = this.dyStore + finalProjectedVec.y;
-      this.dyApplied = modify ? this.dyAll : Math.round(this.dyAll / STEP_LENGTH) * STEP_LENGTH;
+      this.dyApplied = Math.round(this.dyAll / STEP_LENGTH) * STEP_LENGTH;
       this.dyStore = this.dyAll - this.dyApplied;
 
       this.dxAll = this.dxStore + finalProjectedVec.x;
-      this.dxApplied = modify ? this.dxAll : Math.round(this.dxAll / STEP_LENGTH) * STEP_LENGTH;
+      this.dxApplied = Math.round(this.dxAll / STEP_LENGTH) * STEP_LENGTH;
       this.dxStore = this.dxAll - this.dxApplied;
 
+      // Modify will roll the object in object space, non-modify will rotate it along camera x, y
       if (this.mode === TRANSFORM_MODE.CURSOR) {
-        this.target.getWorldQuaternion(TARGET_WORLD_QUATERNION);
-        v.set(1, 0, 0).applyQuaternion(modify ? CAMERA_WORLD_QUATERNION : TARGET_WORLD_QUATERNION);
-        q.setFromAxisAngle(v, modify ? -this.dyApplied : this.sign2 * this.sign * -this.dyApplied);
-
         if (modify) {
-          v.set(0, 1, 0).applyQuaternion(CAMERA_WORLD_QUATERNION);
-        } else {
-          v.set(0, 1, 0);
-        }
-        q2.setFromAxisAngle(v, this.dxApplied);
+          this.target.getWorldQuaternion(TARGET_WORLD_QUATERNION);
 
-        this.target.quaternion.premultiply(q).premultiply(q2);
+          v.set(0, 0, 1).applyQuaternion(TARGET_WORLD_QUATERNION);
+          q.setFromAxisAngle(
+            v,
+            Math.abs(this.dxApplied) > Math.abs(this.dyApplied) ? -this.dxApplied : -this.dyApplied
+          );
+
+          this.target.quaternion.premultiply(q);
+        } else {
+          v.set(1, 0, 0).applyQuaternion(CAMERA_WORLD_QUATERNION);
+          q.setFromAxisAngle(v, this.sign2 * this.sign * -this.dyApplied);
+
+          v.set(0, 1, 0);
+          q2.setFromAxisAngle(v, this.dxApplied);
+
+          this.target.quaternion.premultiply(q).premultiply(q2);
+        }
       }
 
       this.target.matrixNeedsUpdate = true;

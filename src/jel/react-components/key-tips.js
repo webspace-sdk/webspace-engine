@@ -225,7 +225,7 @@ const TIP_DATA = {
     ["font", "t\\g"],
     ...objectCommonTips.filter(t => t[0] !== "open")
   ],
-  rotate: [["rotate", "G"], ["no_snap", "H+G"]],
+  rotate: [["rotate", "G"], ["roll", "H+G"]],
   scale: [["scale", "G"]],
   focus: [["zoom", "R"]],
   text_editor: [
