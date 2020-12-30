@@ -162,7 +162,7 @@ export default class ObjectInfoDialog extends Component {
       this.props.scene.systems["hubs-systems"].characterController.enqueueWaypointTravelTo(targetMatrix, true, {
         willDisableMotion: false,
         willDisableTeleporting: false,
-        snapToNavMesh: false,
+        snapToHeightMap: false,
         willMaintainInitialOrientation: false
       });
       this.props.onClose();

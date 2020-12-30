@@ -10,22 +10,10 @@ import grassVoxSrc from "!!url-loader!../../assets/jel/models/grass1.vox";
 import { RENDER_ORDER } from "../../hubs/constants";
 import configs from "../../hubs/utils/configs";
 import { Layers } from "../../hubs/components/layers";
-import qsTruthy from "../../hubs/utils/qs_truthy";
-const debugNavMesh = qsTruthy("debug_nav");
 
-const { Pathfinding } = require("three-pathfinding");
 const { SHAPE, TYPE, FIT } = CONSTANTS;
 
-const {
-  Vector3,
-  Vector4,
-  Matrix4,
-  BufferGeometry,
-  Float32BufferAttribute,
-  Uint16BufferAttribute,
-  Object3D,
-  Group
-} = THREE;
+const { Vector3, Vector4, Matrix4, Object3D, Group } = THREE;
 
 export const VOXEL_SIZE = 1 / 8;
 export const VOXELS_PER_CHUNK = 64;
@@ -513,7 +501,6 @@ export class TerrainSystem {
     this.pool = [...Array(LOAD_GRID.length)].map(() => new Terrain());
     this.activeTerrains = [];
     this.frame = 0;
-    this.navVersion = 0;
     this.loadedChunks = new Map();
     this.loadingChunks = new Map();
     this.spawningChunks = new Map();
@@ -524,7 +511,6 @@ export class TerrainSystem {
     this.fieldFeatureInstances = new Map();
     this.entities = new Map();
     this.scene = scene;
-    this.pathfinder = new Pathfinding();
     this.featureMeshesLoaded = false;
     this.loadFeatureMeshes();
     this.worldType = null;
@@ -615,116 +601,72 @@ export class TerrainSystem {
     }
   }
 
-  spawnChunk = (() => {
-    const navTransform = new Matrix4();
+  spawnChunk = encoded => {
+    const chunks = decodeChunks(encoded);
 
-    return encoded => {
-      const chunks = decodeChunks(encoded);
+    const {
+      entities,
+      chunkFeatures,
+      chunkHeightMaps,
+      loadedChunks,
+      spawningChunks,
+      loadingChunks,
+      terrains,
+      pool
+    } = this;
 
-      const {
-        entities,
-        chunkFeatures,
-        chunkHeightMaps,
-        loadedChunks,
-        spawningChunks,
-        loadingChunks,
-        terrains,
-        pool
-      } = this;
+    chunks.forEach(({ x, height, heightmap, z, meshes, features }) => {
+      const key = keyForChunk({ x, z });
+      if (!loadedChunks.has(key) && !spawningChunks.has(key)) return;
 
-      chunks.forEach(({ x, height, heightmap, z, meshes, features }) => {
-        const key = keyForChunk({ x, z });
-        if (!loadedChunks.has(key) && !spawningChunks.has(key)) return;
+      loadedChunks.set(key, { x, z });
+      spawningChunks.delete(key);
 
-        loadedChunks.set(key, { x, z });
-        spawningChunks.delete(key);
+      meshes.forEach((geometries, subchunk) => {
+        const key = `${x}:${z}:${subchunk}`;
+        chunkFeatures.set(key, features);
+        chunkHeightMaps.set(key, heightmap);
 
-        meshes.forEach((geometries, subchunk) => {
-          const key = `${x}:${z}:${subchunk}`;
-          chunkFeatures.set(key, features);
-          chunkHeightMaps.set(key, heightmap);
+        let terrain = terrains.get(key);
 
-          let terrain = terrains.get(key);
+        if (!terrain) {
+          terrain = pool.shift();
 
           if (!terrain) {
-            terrain = pool.shift();
-
-            if (!terrain) {
-              terrain = new Terrain();
-            }
+            terrain = new Terrain();
           }
-
-          const el = entities.get(key);
-          el.setObject3D("mesh", terrain);
-          terrain.position.set(0, 0, 0);
-          terrain.matrixNeedsUpdate = true;
-          terrain.updateMatrices();
-
-          terrain.update({
-            chunk: { x, y: subchunk, z, height, heightmap },
-            geometries
-          });
-
-          terrain.performWork(this.playerCamera);
-          terrains.set(key, terrain);
-          this.activeTerrains.push(terrain);
-
-          const navGeometry = new BufferGeometry();
-          const tmpIdx = new Uint8Array(geometries.nav.index.length);
-          tmpIdx.set(geometries.nav.index);
-          const idx = new Uint16Array(tmpIdx.buffer, tmpIdx.byteOffset, tmpIdx.length / 2);
-          navGeometry.setAttribute("position", new Float32BufferAttribute(geometries.nav.position, 3));
-          navGeometry.setIndex(new Uint16BufferAttribute(idx, 1));
-          const p = new THREE.Vector3();
-          terrain.updateMatrices();
-          terrain.getWorldPosition(p);
-          navTransform.copy(terrain.matrixWorld);
-
-          // Terrain position may be out of bounds/wrapped, so normalize by
-          // converting to normalized chunk coordinates and back
-          const ctx = entityWorldCoordToChunkCoord(navTransform.elements[12]);
-          const ctz = entityWorldCoordToChunkCoord(navTransform.elements[14]);
-          const tx = chunkCoordToEntityWorldCoord(normalizeChunkCoord(ctx));
-          const tz = chunkCoordToEntityWorldCoord(normalizeChunkCoord(ctz));
-
-          navTransform.elements[12] = tx;
-          navTransform.elements[14] = tz;
-          navGeometry.applyMatrix(navTransform);
-
-          // Navmesh vis
-          if (debugNavMesh) {
-            const navMaterial = new THREE.MeshBasicMaterial({
-              color: Math.floor(Math.random() * 0xffffff),
-              transparent: true,
-              opacity: 0.6
-            });
-            const navMesh = new THREE.Mesh(navGeometry, navMaterial);
-            navMesh.position.y += 0.5;
-            navMesh.matrixNeedsUpdate = true;
-            this.scene.object3D.add(navMesh);
-          }
-
-          this.pathfinder.setZoneData(key, Pathfinding.createZone(navGeometry));
-          this.navVersion++;
-
-          navGeometry.dispose();
-        });
-
-        this.ensureFeatureMeshesSpawnedOrFree(x, z);
-        this.ensureBodiesSpawnedOrFree(x, z);
-        this.ensureLayers(x, z);
-
-        this.scene.emit("terrain_chunk_loaded");
-
-        if (spawningChunks.size === 0 && loadingChunks.size === 0) {
-          this.scene.emit("terrain_chunk_loading_complete");
         }
 
-        this.atmosphereSystem.updateShadows();
-        this.atmosphereSystem.updateWater();
+        const el = entities.get(key);
+        el.setObject3D("mesh", terrain);
+        terrain.position.set(0, 0, 0);
+        terrain.matrixNeedsUpdate = true;
+        terrain.updateMatrices();
+
+        terrain.update({
+          chunk: { x, y: subchunk, z, height, heightmap },
+          geometries
+        });
+
+        terrain.performWork(this.playerCamera);
+        terrains.set(key, terrain);
+        this.activeTerrains.push(terrain);
       });
-    };
-  })();
+
+      this.ensureFeatureMeshesSpawnedOrFree(x, z);
+      this.ensureBodiesSpawnedOrFree(x, z);
+      this.ensureLayers(x, z);
+
+      this.scene.emit("terrain_chunk_loaded");
+
+      if (spawningChunks.size === 0 && loadingChunks.size === 0) {
+        this.scene.emit("terrain_chunk_loading_complete");
+      }
+
+      this.atmosphereSystem.updateShadows();
+      this.atmosphereSystem.updateWater();
+    });
+  };
 
   updateWorld(type, seed) {
     if (this.worldType === type && this.worldSeed === seed) return;
@@ -1030,8 +972,6 @@ export class TerrainSystem {
         this.activeTerrains.splice(idx, 1);
         pool.push(terrain);
       }
-
-      delete this.pathfinder.zones[subkey];
     }
   }
 
@@ -1046,32 +986,22 @@ export class TerrainSystem {
     this.avatarZone = null;
   }
 
-  getClosestNavNode(pos, navZone, navGroup) {
-    if (this.pathfinder.zones[navZone] && this.pathfinder.zones[navZone].groups[navGroup]) {
-      return (
-        this.pathfinder.getClosestNode(pos, navZone, navGroup, true) ||
-        this.pathfinder.getClosestNode(pos, navZone, navGroup)
-      );
+  getTerrainHeightAtWorldCoord(worldX, worldZ) {
+    const x = normalizeChunkCoord(entityWorldCoordToChunkCoord(worldX));
+    const z = normalizeChunkCoord(entityWorldCoordToChunkCoord(worldZ));
+    const heightKey = `${keyForChunk({ x: x, z: z })}:0`;
+    const heightMap = this.chunkHeightMaps.get(heightKey);
+
+    if (!heightMap) {
+      return 1.0;
     }
 
-    return null;
-  }
-
-  getNavZoneAndGroup(pos) {
-    const cx = entityWorldCoordToChunkCoord(pos.x);
-    const cz = entityWorldCoordToChunkCoord(pos.z);
-    const zone = `${keyForChunk({ x: cx, z: cz })}:0`;
-    const group = this.pathfinder.getGroup(zone, pos, true, true);
-    return [zone, group];
-  }
-
-  clampStep(start, end, fromNode, navZone, navGroup, outPos) {
-    if (this.pathfinder.zones[navZone]) {
-      // Race condition here when loading new nav meshes sometimes
-      return this.pathfinder.clampStep(start, end, fromNode, navZone, navGroup, outPos);
-    } else {
-      outPos.copy(end);
-    }
+    const cx = worldX - Math.floor(worldX / CHUNK_WORLD_SIZE) * CHUNK_WORLD_SIZE;
+    const cz = worldZ - Math.floor(worldZ / CHUNK_WORLD_SIZE) * CHUNK_WORLD_SIZE;
+    const hx = Math.floor(cx / VOXEL_SIZE);
+    const hz = Math.floor(cz / VOXEL_SIZE);
+    const height = heightMap[hx * VOXELS_PER_CHUNK + hz] * VOXEL_SIZE;
+    return height;
   }
 
   tick = (function() {
