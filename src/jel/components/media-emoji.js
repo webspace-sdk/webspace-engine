@@ -1,5 +1,6 @@
 import { hasMediaLayer, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
+import { groundMedia, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
 
 const EMOJI_IMAGE_URL = "https://assets.jel.app/static/emoji";
 
@@ -115,8 +116,10 @@ AFRAME.registerComponent("media-emoji", {
     }
   },
 
-  handleMediaInteraction() {
-    // Unused
+  handleMediaInteraction(type) {
+    if (type === MEDIA_INTERACTION_TYPES.DOWN) {
+      groundMedia(this.el, Math.PI / 2.0);
+    }
   },
 
   remove() {

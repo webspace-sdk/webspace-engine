@@ -10,6 +10,7 @@ import { getNetworkedEntity, getNetworkId, ensureOwnership } from "../../jel/uti
 import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
 import { getMessages } from "../../hubs/utils/i18n";
 import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
+import anime from "animejs";
 
 // We use the legacy 'text' regex since it matches some items like beach_umbrella
 // and thermometer which seem to not work with the default/standard regex
@@ -17,8 +18,6 @@ import createEmojiRegex from "emoji-regex/text.js";
 
 import Linkify from "linkify-it";
 import tlds from "tlds";
-
-import anime from "animejs";
 
 const emojiRegex = createEmojiRegex();
 
@@ -313,6 +312,72 @@ export const addMedia = (
   }
 
   return { entity, orientation };
+};
+
+// Animates the given object to the terrain ground.
+export const groundMedia = (sourceEl, finalXRotation = 0.0, moveDirection = "y") => {
+  const { object3D } = sourceEl;
+  const bbox = new THREE.Box3();
+  const preRotateX = object3D.rotation.x;
+  const preRotateZ = object3D.rotation.z;
+
+  // Get the final world space bounding box
+  object3D.rotation.x = finalXRotation;
+  object3D.rotation.z = 0.0;
+  object3D.matrixNeedsUpdate = true;
+  object3D.updateMatrices();
+
+  bbox.setFromObject(object3D);
+
+  object3D.rotation.x = preRotateX;
+  object3D.rotation.z = preRotateZ;
+  object3D.matrixNeedsUpdate = true;
+  object3D.updateMatrices();
+
+  const x = object3D.position.x;
+  const z = object3D.position.z;
+
+  const terrainSystem = AFRAME.scenes[0].systems["hubs-systems"].terrainSystem;
+  const terrainHeight = terrainSystem.getTerrainHeightAtWorldCoord(x, z);
+
+  const step = (function() {
+    const lastValue = {};
+    return function(anim) {
+      const value = anim.animatables[0].target;
+
+      value.x = Math.max(Number.MIN_VALUE, value.x);
+      value.y = Math.max(Number.MIN_VALUE, value.y);
+      value.z = Math.max(Number.MIN_VALUE, value.z);
+
+      // For animation timeline.
+      if (value.x === lastValue.x && value.y === lastValue.y && value.z === lastValue.z) {
+        return;
+      }
+
+      lastValue.x = value.x;
+      lastValue.y = value.y;
+      lastValue.z = value.z;
+
+      object3D.rotation.x = value.x;
+      object3D.position.y = value.y;
+      object3D.rotation.z = value.z;
+      object3D.matrixNeedsUpdate = true;
+    };
+  })();
+
+  anime({
+    duration: 800,
+    easing: "easeOutElastic",
+    elasticity: 800,
+    loop: 0,
+    round: false,
+    x: finalXRotation,
+    y: (bbox.max[moveDirection] - bbox.min[moveDirection]) * 0.5 + terrainHeight + 0.1,
+    z: 0.0,
+    targets: [{ x: object3D.rotation.x, y: object3D.position.y, z: object3D.rotation.z }],
+    update: anim => step(anim),
+    complete: anim => step(anim)
+  });
 };
 
 export const cloneMedia = (sourceEl, template, src = null, networked = true, link = false, parentEl = null) => {
