@@ -318,7 +318,7 @@ export const addMedia = (
 // Animates the given object to the terrain ground.
 export const groundMedia = (sourceEl, faceUp) => {
   const { object3D } = sourceEl;
-  const finalXRotation = faceUp ? Math.PI / 2.0 : 0.0;
+  const finalXRotation = faceUp ? (3.0 * Math.PI) / 2.0 : 0.0;
   const px = object3D.rotation.x;
   const pz = object3D.rotation.z;
   object3D.rotation.x = finalXRotation;
@@ -329,7 +329,7 @@ export const groundMedia = (sourceEl, faceUp) => {
   const bbox = new THREE.Box3();
   bbox.expandByObject(object3D);
 
-  object3D.rotation.x = px + faceUp && px > Math.PI ? -2.0 * Math.PI : 0;
+  object3D.rotation.x = px;
   object3D.rotation.z = pz;
   object3D.traverse(o => (o.matrixNeedsUpdate = true));
   object3D.updateMatrixWorld();
@@ -361,7 +361,7 @@ export const groundMedia = (sourceEl, faceUp) => {
       lastValue.y = value.y;
       lastValue.z = value.z;
 
-      object3D.rotation.x = -value.x;
+      object3D.rotation.x = value.x;
       object3D.position.y = value.y;
       object3D.rotation.z = value.z;
       object3D.matrixNeedsUpdate = true;
