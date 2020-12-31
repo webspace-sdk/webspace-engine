@@ -315,30 +315,35 @@ export const addMedia = (
 };
 
 // Animates the given object to the terrain ground.
-export const groundMedia = (sourceEl, finalXRotation = 0.0, moveDirection = "y") => {
+export const groundMedia = (sourceEl, faceUp) => {
   const { object3D } = sourceEl;
-  const bbox = new THREE.Box3();
-  const preRotateX = object3D.rotation.x;
-  const preRotateZ = object3D.rotation.z;
-
-  // Get the final world space bounding box
+  const finalXRotation = faceUp ? Math.PI / 2.0 : 0.0;
+  const px = object3D.rotation.x;
+  const py = object3D.rotation.y;
+  const pz = object3D.rotation.z;
   object3D.rotation.x = finalXRotation;
+  object3D.rotation.y = 0.0;
   object3D.rotation.z = 0.0;
-  object3D.matrixNeedsUpdate = true;
-  object3D.updateMatrices();
+  object3D.traverse(o => (o.matrixNeedsUpdate = true));
+  object3D.updateMatrixWorld();
 
-  bbox.setFromObject(object3D);
+  const bbox = new THREE.Box3();
+  bbox.expandByObject(object3D);
 
-  object3D.rotation.x = preRotateX;
-  object3D.rotation.z = preRotateZ;
-  object3D.matrixNeedsUpdate = true;
-  object3D.updateMatrices();
+  object3D.rotation.x = px;
+  object3D.rotation.y = py;
+  object3D.rotation.z = pz;
+  object3D.traverse(o => (o.matrixNeedsUpdate = true));
+  object3D.updateMatrixWorld();
+
+  const objectHeight = bbox.max.y - bbox.min.y;
 
   const x = object3D.position.x;
   const z = object3D.position.z;
 
   const terrainSystem = AFRAME.scenes[0].systems["hubs-systems"].terrainSystem;
   const terrainHeight = terrainSystem.getTerrainHeightAtWorldCoord(x, z);
+  const finalYPosition = objectHeight * 0.5 + terrainHeight;
 
   const step = (function() {
     const lastValue = {};
@@ -372,7 +377,7 @@ export const groundMedia = (sourceEl, finalXRotation = 0.0, moveDirection = "y")
     loop: 0,
     round: false,
     x: finalXRotation,
-    y: (bbox.max[moveDirection] - bbox.min[moveDirection]) * 0.5 + terrainHeight + 0.1,
+    y: finalYPosition,
     z: 0.0,
     targets: [{ x: object3D.rotation.x, y: object3D.position.y, z: object3D.rotation.z }],
     update: anim => step(anim),

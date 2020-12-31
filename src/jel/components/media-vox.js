@@ -4,6 +4,7 @@ import { VOXLoader } from "../objects/VOXLoader";
 import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
 import { generateMeshBVH } from "../../hubs/utils/three-utils";
 import { addVertexCurvingToShader } from "../systems/terrain-system";
+import { groundMedia, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
 
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshBasicMaterial, VertexColors } = THREE;
 
@@ -130,8 +131,10 @@ AFRAME.registerComponent("media-vox", {
     }
   },
 
-  handleMediaInteraction() {
-    // Unused
+  handleMediaInteraction(type) {
+    if (type === MEDIA_INTERACTION_TYPES.DOWN) {
+      groundMedia(this.el);
+    }
   },
 
   remove() {

@@ -118,7 +118,7 @@ AFRAME.registerComponent("media-emoji", {
 
   handleMediaInteraction(type) {
     if (type === MEDIA_INTERACTION_TYPES.DOWN) {
-      groundMedia(this.el, Math.PI / 2.0);
+      groundMedia(this.el, true);
     }
   },
 

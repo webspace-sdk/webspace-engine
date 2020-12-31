@@ -906,7 +906,7 @@ export class TerrainSystem {
     const { heightfieldData } = terrain;
     for (let z = 0; z < VOXELS_PER_CHUNK; z += 8) {
       for (let x = 0; x < VOXELS_PER_CHUNK; x += 8) {
-        const h = heightmap[x * VOXELS_PER_CHUNK + z] * VOXEL_SIZE;
+        const h = (heightmap[x * VOXELS_PER_CHUNK + z] + 1) * VOXEL_SIZE;
         min = Math.min(h, min);
         max = Math.max(h, max);
         heightfieldData[z / 8][x / 8] = h;
@@ -1000,7 +1000,7 @@ export class TerrainSystem {
     const cz = worldZ - Math.floor(worldZ / CHUNK_WORLD_SIZE) * CHUNK_WORLD_SIZE;
     const hx = Math.floor(cx / VOXEL_SIZE);
     const hz = Math.floor(cz / VOXEL_SIZE);
-    const height = heightMap[hx * VOXELS_PER_CHUNK + hz] * VOXEL_SIZE;
+    const height = (heightMap[hx * VOXELS_PER_CHUNK + hz] + 1) * VOXEL_SIZE;
     return height;
   }
 
