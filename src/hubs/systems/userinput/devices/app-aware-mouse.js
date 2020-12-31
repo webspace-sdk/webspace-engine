@@ -126,7 +126,7 @@ export class AppAwareMouseDevice {
         userinput.get(leftKeyPath) ||
         userinput.get(rightKeyPath);
 
-      if (!this.grabGesturedAnything && (buttonRight || isMoving)) {
+      if (!this.grabGesturedAnything && (buttonLeft || buttonRight || isMoving)) {
         this.lockClickCoordDelta[0] = 0;
         this.lockClickCoordDelta[1] = 0;
       }
