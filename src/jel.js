@@ -3,6 +3,7 @@ import "./hubs/utils/theme";
 import "@babel/polyfill";
 import "./hubs/utils/debug-log";
 import { isInQuillEditor } from "./jel/utils/quill-utils";
+import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
 import mixpanel from "mixpanel-browser";
 
 console.log(`App version: ${process.env.BUILD_VERSION || "?"}`);
@@ -573,11 +574,18 @@ function addGlobalEventListeners(scene, entryManager) {
     }
   });
 
-  document.addEventListener("pointerlockchange", () => {
-    const expanded = !document.pointerLockElement;
+  scene.addEventListener("cursor-lock-state-changed", () => {
+    const uiAnimationSystem = scene.systems["hubs-systems"].uiAnimationSystem;
 
-    if (!isInQuillEditor() && !(expanded && isInEditableField())) {
-      scene.systems["hubs-systems"].uiAnimationSystem[expanded ? "expandSidePanels" : "collapseSidePanels"]();
+    const cursorLockState = getCursorLockState();
+    const panelsCollapsed = uiAnimationSystem.isCollapsingOrCollapsed();
+
+    // Do not affect panels when in ephemeral locking states
+    const locked = cursorLockState === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
+    const unlocked = cursorLockState === CURSOR_LOCK_STATES.UNLOCKED_PERSISTENT;
+
+    if (!isInQuillEditor() && !isInEditableField() && ((panelsCollapsed && unlocked) || (!panelsCollapsed && locked))) {
+      uiAnimationSystem[panelsCollapsed ? "expandSidePanels" : "collapseSidePanels"]();
     }
   });
 
@@ -696,12 +704,12 @@ function setupNonVisibleHandler(scene) {
         apply(true);
       }, 500);
     });
-
-    window.addEventListener("focus", () => {
-      clearTimeout(windowBlurredTimeout);
-      apply(false);
-    });
   }
+
+  window.addEventListener("focus", () => {
+    clearTimeout(windowBlurredTimeout);
+    apply(false);
+  });
 }
 
 function setupSidePanelLayout(scene) {

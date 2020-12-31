@@ -127,8 +127,6 @@ AFRAME.registerComponent("cursor-controller", {
         cursor.object3D.matrixNeedsUpdate = true;
       }
 
-      let showCursor = !scene.is("pointer-exited");
-
       // TODO : Check if the selected object being transformed is for this cursor!
       const transformObjectSystem = AFRAME.scenes[0].systems["transform-selected-object"];
       if (
@@ -136,20 +134,14 @@ AFRAME.registerComponent("cursor-controller", {
         ((left && transformObjectSystem.hand.el.id === "player-left-controller") ||
           (!left && transformObjectSystem.hand.el.id === "player-right-controller"))
       ) {
-        const lockedMode = !!document.pointerLockElement;
-
-        if (lockedMode) {
-          // Hide cursor when transforming in cursor locked mode
-          // The position is restored after release in app-aware-mouse
-          showCursor = false;
-        } else {
-          this.color.copy(TRANSFORM_COLOR_1).lerpHSL(TRANSFORM_COLOR_2, 0.5 + 0.5 * Math.sin(t / 1000.0));
-        }
+        this.color.copy(TRANSFORM_COLOR_1).lerpHSL(TRANSFORM_COLOR_2, 0.5 + 0.5 * Math.sin(t / 1000.0));
       } else if (this.intersectionIsValid || isGrabbing) {
         this.color.copy(HIGHLIGHT);
       } else {
         this.color.copy(NO_HIGHLIGHT);
       }
+
+      const showCursor = document.body.classList.contains("show-3d-cursor");
 
       const mesh = this.data.cursor.object3DMap.mesh;
       const material = mesh.material;

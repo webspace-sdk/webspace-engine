@@ -97,18 +97,23 @@ AFRAME.registerComponent("hoverable-visuals", {
       this.sweepParams[1] = worldY + scaledRadius;
     }
 
+    const cursorIsVisible =
+      document.body.classList.contains("show-3d-cursor") || document.body.classList.contains("show-css-cursor");
+
     for (let i = 0, l = this.uniforms.length; i < l; i++) {
       const uniform = this.uniforms[i];
       uniform.hubs_EnableSweepingEffect.value = this.data.enableSweepingEffect && showEffect;
       uniform.hubs_IsFrozen.value = isFrozen;
       uniform.hubs_SweepParams.value = this.sweepParams;
 
-      uniform.hubs_HighlightInteractorOne.value = !!interactorOne && showEffect && !this.isTouchscreen;
+      uniform.hubs_HighlightInteractorOne.value =
+        !!interactorOne && showEffect && !this.isTouchscreen && cursorIsVisible;
       uniform.hubs_InteractorOnePos.value[0] = interactorOneTransform[12];
       uniform.hubs_InteractorOnePos.value[1] = interactorOneTransform[13];
       uniform.hubs_InteractorOnePos.value[2] = interactorOneTransform[14];
 
-      uniform.hubs_HighlightInteractorTwo.value = !!interactorTwo && showEffect && !this.isTouchscreen;
+      uniform.hubs_HighlightInteractorTwo.value =
+        !!interactorTwo && showEffect && !this.isTouchscreen && cursorIsVisible;
       uniform.hubs_InteractorTwoPos.value[0] = interactorTwoTransform[12];
       uniform.hubs_InteractorTwoPos.value[1] = interactorTwoTransform[13];
       uniform.hubs_InteractorTwoPos.value[2] = interactorTwoTransform[14];

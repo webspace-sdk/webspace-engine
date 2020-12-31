@@ -53,6 +53,13 @@ export class UIAnimationSystem {
     this.store.handleActivityFlag("narrow");
   }
 
+  isCollapsingOrCollapsed() {
+    return (
+      this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSING ||
+      this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSED
+    );
+  }
+
   performPanelExpansion(newState) {
     if (
       this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDING ||
