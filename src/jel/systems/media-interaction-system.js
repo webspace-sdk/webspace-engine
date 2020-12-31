@@ -48,10 +48,12 @@ export class MediaInteractionSystem {
       return;
     }
 
+    // Do not allow engaging media interactions if cursor has been hidden.
     if (!cursorIsVisible()) return;
 
     this.interaction = this.interaction || scene.systems.interaction;
     const hoverEl = this.interaction.state.rightRemote.hovered || this.interaction.state.leftRemote.hovered;
+    if (!cursorIsVisible()) return;
 
     if (!hoverEl) return;
     let interactionType = null;

@@ -203,6 +203,7 @@ paths.device.keyboardPath = "/device/keyboard";
 paths.device.keyboard = {
   keyMap: new Map(),
   codeMap: new Map(),
+  any: "/device/keyboard/any",
   key: function(k) {
     let path = this.keyMap.get(k);
     if (path) return path;

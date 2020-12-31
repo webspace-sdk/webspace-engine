@@ -173,17 +173,28 @@ export class KeyboardDevice {
     }
 
     this.events.length = 0;
+    let hasAnyKeys = false;
 
     for (let i = 0; i < this.seenKeys.items.length; i++) {
       const key = this.seenKeys.items[i];
       const path = paths.device.keyboard.key(key);
       frame.setValueType(path, this.keys.get(key));
+
+      if (this.keys.get(key)) {
+        hasAnyKeys = true;
+      }
     }
 
     for (let i = 0; i < this.seenCodes.items.length; i++) {
       const code = this.seenCodes.items[i];
       const path = paths.device.keyboard.code(code);
       frame.setValueType(path, this.codes.get(code));
+
+      if (this.codes.get(code)) {
+        hasAnyKeys = true;
+      }
     }
+
+    frame.setValueType(paths.device.keyboard.any, hasAnyKeys);
   }
 }

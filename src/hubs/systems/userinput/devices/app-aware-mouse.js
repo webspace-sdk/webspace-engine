@@ -23,6 +23,7 @@ const upKeyPath = paths.device.keyboard.key("arrowup");
 const downKeyPath = paths.device.keyboard.key("arrowdown");
 const leftKeyPath = paths.device.keyboard.key("arrowleft");
 const rightKeyPath = paths.device.keyboard.key("arrowright");
+const anyKeyPath = paths.device.keyboard.any;
 
 const HIDE_CURSOR_AFTER_IDLE_MS = 5000.0;
 
@@ -157,11 +158,12 @@ export class AppAwareMouseDevice {
       this.lockClickCoordDelta[1] = 0;
     }
 
+    const anyKeyPressed = userinput.get(anyKeyPath);
     const movementXY = frame.get(paths.device.mouse.movementXY);
     const movementXScreen = movementXY[0] / 1000.0;
     const movementYScreen = -movementXY[1] / 1000.0;
 
-    if (Math.abs(movementXScreen) > 0.0 || Math.abs(movementYScreen) > 0.0) {
+    if (Math.abs(movementXScreen) > 0.0 || Math.abs(movementYScreen) > 0.0 || anyKeyPressed) {
       this.hideCursorAfterIdleTime = performance.now() + HIDE_CURSOR_AFTER_IDLE_MS;
     }
 
