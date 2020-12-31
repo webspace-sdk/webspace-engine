@@ -7,7 +7,9 @@ import { canMove } from "../../../utils/permissions-utils";
 import {
   CURSOR_LOCK_STATES,
   getCursorLockState,
-  getLastKnownUnlockedCursorCoords
+  getLastKnownUnlockedCursorCoords,
+  beginEphemeralCursorLock,
+  releaseEphemeralCursorLock
 } from "../../../../jel/utils/dom-utils";
 
 const wKeyPath = paths.device.keyboard.key("w");
@@ -110,15 +112,24 @@ export class AppAwareMouseDevice {
       this.grabGesturedAnything = false;
     }
 
-    const lockState = getCursorLockState();
-    const isCursorLocked = lockState !== CURSOR_LOCK_STATES.UNLOCKED;
-    const useGazeCursor = lockState === CURSOR_LOCK_STATES.PERSISTENT;
-
     this.transformSystem = this.transformSystem || AFRAME.scenes[0].systems["transform-selected-object"];
     this.scaleSystem = this.scaleSystem || AFRAME.scenes[0].systems["scale-object"];
     this.cameraSystem = this.cameraSystem || AFRAME.scenes[0].systems["hubs-systems"].cameraSystem;
     const isTransforming =
       (this.transformSystem && this.transformSystem.transforming) || (this.scaleSystem && this.scaleSystem.isScaling);
+
+    const isMouseLookingGesture = mouseLookKey || buttonLeft;
+
+    // Handle ephemeral mouse locking for look key/button
+    if (isMouseLookingGesture) {
+      beginEphemeralCursorLock();
+    } else if (!isTransforming) {
+      releaseEphemeralCursorLock();
+    }
+
+    const lockState = getCursorLockState();
+    const useGazeCursor = lockState === CURSOR_LOCK_STATES.PERSISTENT;
+    const isCursorLocked = lockState !== CURSOR_LOCK_STATES.UNLOCKED;
 
     // Reset gaze cursor to center if user moves or clicks on environment
     if (isCursorLocked) {
@@ -161,7 +172,11 @@ export class AppAwareMouseDevice {
 
     // The 3D cursor visibility is coordinated via CSS classes on the body.
     const show3DCursor =
-      !AFRAME.scenes[0].is("pointer-exited") && !isTransforming && !this.grabGesturedAnything && !showCSSCursor;
+      !AFRAME.scenes[0].is("pointer-exited") &&
+      !isTransforming &&
+      !this.grabGesturedAnything &&
+      !showCSSCursor &&
+      !isMouseLookingGesture;
 
     const bodyClassList = document.body.classList;
 

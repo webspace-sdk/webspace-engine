@@ -574,7 +574,7 @@ function addGlobalEventListeners(scene, entryManager) {
     }
   });
 
-  document.addEventListener("pointerlockchange", () => {
+  scene.addEventListener("cursor-lock-state-changed", () => {
     const uiAnimationSystem = scene.systems["hubs-systems"].uiAnimationSystem;
 
     const cursorLockState = getCursorLockState();

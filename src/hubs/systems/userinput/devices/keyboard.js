@@ -2,7 +2,8 @@ import { paths } from "../paths";
 import { ArrayBackedSet } from "../array-backed-set";
 import { isInEditableField } from "../../../../jel/utils/dom-utils";
 import { isInQuillEditor } from "../../../../jel/utils/quill-utils";
-import { toggleCursorLock } from "../../../../jel/utils/dom-utils";
+import { beginPersistentCursorLock, endCursorLock } from "../../../../jel/utils/dom-utils";
+import { CURSOR_LOCK_STATES, getCursorLockState } from "../../../../jel/utils/dom-utils";
 
 export class KeyboardDevice {
   constructor() {
@@ -38,8 +39,15 @@ export class KeyboardDevice {
         if (e.type === "keydown" && e.key === " " && !e.repeat) {
           if (!e.ctrlKey && !e.altKey && !e.metaKey) {
             if (e.shiftKey && !isInEditableField()) {
+              const cursorLockState = getCursorLockState();
+
               // Shift+Space widen
-              toggleCursorLock();
+              if (cursorLockState === CURSOR_LOCK_STATES.UNLOCKED || cursorLockState === CURSOR_LOCK_STATES.EPHEMERAL) {
+                beginPersistentCursorLock();
+              } else {
+                endCursorLock();
+              }
+
               e.preventDefault();
             }
           }

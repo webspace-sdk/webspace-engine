@@ -57,18 +57,43 @@ let lastKnownCursorCoords = null;
 // Ephemeral lock is used for cases where a user is holding a key
 // or button for duration of the clock.
 const lockCursor = (ephemeral = false) => {
-  if (document.pointerLockElement) return; // Already locked, no-op
-
   const scene = AFRAME.scenes[0];
+
+  if (document.pointerLockElement) {
+    // Already locked, but allow an escalation from ephemeral -> persistent.
+    if (lastCursorLockState === CURSOR_LOCK_STATES.EPHEMERAL && !ephemeral) {
+      lastCursorLockState = CURSOR_LOCK_STATES.PERSISTENT;
+      scene.emit("cursor-lock-state-changed");
+    }
+
+    return;
+  }
+
+  lastCursorLockState = ephemeral ? CURSOR_LOCK_STATES.EPHEMERAL : CURSOR_LOCK_STATES.PERSISTENT;
+
   const canvas = scene.canvas;
   const userinput = scene.systems.userinput;
   lastKnownCursorCoords = userinput.get(paths.device.mouse.coords);
 
   lastCursorLockState = ephemeral ? CURSOR_LOCK_STATES.EPHEMERAL : CURSOR_LOCK_STATES.PERSISTENT;
   canvas.requestPointerLock();
+  scene.emit("cursor-lock-state-changed");
 };
 
+// Fire cursor-lock-state-changed when pointer lock exited
+document.addEventListener("pointerlockchange", () => {
+  if (!document.pointerLockElement) {
+    lastCursorLockState = null;
+    AFRAME.scenes[0].emit("cursor-lock-state-changed");
+  }
+});
+
 export const beginEphemeralCursorLock = () => lockCursor(true);
+export const beginPersistentCursorLock = () => lockCursor(false);
+export const endCursorLock = () => {
+  if (!document.pointerLockElement) return;
+  document.exitPointerLock();
+};
 
 export const releaseEphemeralCursorLock = () => {
   if (!document.pointerLockElement) return;
