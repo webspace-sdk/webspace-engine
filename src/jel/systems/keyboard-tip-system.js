@@ -31,7 +31,7 @@ export class KeyboardTipSystem {
         showTips = this.scene.is("unmuted") ? "pointer_exited_unmuted" : "pointer_exited_muted";
       } else {
         if (this.cameraSystem.isInAvatarView()) {
-          const expanded = getCursorLockState() === CURSOR_LOCK_STATES.PERSISTENT;
+          const expanded = getCursorLockState() === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
           showTips = expanded ? (this.scene.is("unmuted") ? "idle_full_unmuted" : "idle_full_muted") : "idle_panels";
 
           if (this.transformSystem.transforming) {

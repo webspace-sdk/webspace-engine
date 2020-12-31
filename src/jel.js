@@ -579,14 +579,12 @@ function addGlobalEventListeners(scene, entryManager) {
 
     const cursorLockState = getCursorLockState();
     const panelsCollapsed = uiAnimationSystem.isCollapsingOrCollapsed();
-    const persistent = cursorLockState === CURSOR_LOCK_STATES.PERSISTENT;
-    const unlocked = cursorLockState === CURSOR_LOCK_STATES.UNLOCKED;
 
-    if (
-      !isInQuillEditor() &&
-      !isInEditableField() &&
-      ((panelsCollapsed && unlocked) || (!panelsCollapsed && persistent))
-    ) {
+    // Do not affect panels when in ephemeral locking states
+    const locked = cursorLockState === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
+    const unlocked = cursorLockState === CURSOR_LOCK_STATES.UNLOCKED_PERSISTENT;
+
+    if (!isInQuillEditor() && !isInEditableField() && ((panelsCollapsed && unlocked) || (!panelsCollapsed && locked))) {
       uiAnimationSystem[panelsCollapsed ? "expandSidePanels" : "collapseSidePanels"]();
     }
   });

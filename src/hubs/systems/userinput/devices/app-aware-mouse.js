@@ -9,7 +9,8 @@ import {
   getCursorLockState,
   getLastKnownUnlockedCursorCoords,
   beginEphemeralCursorLock,
-  releaseEphemeralCursorLock
+  releaseEphemeralCursorLock,
+  isCursorLocked
 } from "../../../../jel/utils/dom-utils";
 
 const wKeyPath = paths.device.keyboard.key("w");
@@ -128,11 +129,11 @@ export class AppAwareMouseDevice {
     }
 
     const lockState = getCursorLockState();
-    const useGazeCursor = lockState === CURSOR_LOCK_STATES.PERSISTENT;
-    const isCursorLocked = lockState !== CURSOR_LOCK_STATES.UNLOCKED;
+    const useGazeCursor = lockState === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
+    const cursorIsLocked = isCursorLocked();
 
     // Reset gaze cursor to center if user moves or clicks on environment
-    if (isCursorLocked) {
+    if (cursorIsLocked) {
       // HACK, can't read character acceleration yet here, so just look at keys (which are added before mouse.)
       const isMoving =
         userinput.get(wKeyPath) ||
@@ -157,7 +158,7 @@ export class AppAwareMouseDevice {
     const movementXScreen = movementXY[0] / 1000.0;
     const movementYScreen = -movementXY[1] / 1000.0;
 
-    if (isCursorLocked && (this.grabGesturedAnything || isTransforming)) {
+    if (cursorIsLocked && (this.grabGesturedAnything || isTransforming)) {
       this.lockClickCoordDelta[0] += movementXScreen;
       this.lockClickCoordDelta[1] += movementYScreen;
     }
@@ -188,13 +189,13 @@ export class AppAwareMouseDevice {
       bodyClassList.toggle("show-3d-cursor");
     }
 
-    if (isCursorLocked) {
+    if (cursorIsLocked) {
       if (isTransforming) {
         this.transformStartCoordDelta[0] += movementXScreen;
         this.transformStartCoordDelta[1] += movementYScreen;
       } else {
         // Return cursor to original position before transforming began.
-        if (isCursorLocked && (this.transformStartCoordDelta[0] !== 0 || this.transformStartCoordDelta[0] !== 0)) {
+        if (cursorIsLocked && (this.transformStartCoordDelta[0] !== 0 || this.transformStartCoordDelta[0] !== 0)) {
           this.lockClickCoordDelta[0] -= this.transformStartCoordDelta[0];
           this.lockClickCoordDelta[1] -= this.transformStartCoordDelta[1];
         }
@@ -209,8 +210,8 @@ export class AppAwareMouseDevice {
     const shouldMoveCamera =
       buttonLeft ||
       (mouseLookKey && !isTransforming) ||
-      (isCursorLocked && !this.grabGesturedAnything && !isTransforming) ||
-      (isCursorLocked &&
+      (cursorIsLocked && !this.grabGesturedAnything && !isTransforming) ||
+      (cursorIsLocked &&
         (Math.abs(this.lockClickCoordDelta[0]) > 0.2 || Math.abs(this.lockClickCoordDelta[1]) > 0.2) &&
         !isTransforming) ||
       !this.cameraSystem.isInAvatarView();
@@ -222,7 +223,7 @@ export class AppAwareMouseDevice {
       const dCoordY = coords[1] - this.prevCoords[1];
 
       if (shouldMoveCamera) {
-        if (isCursorLocked) {
+        if (cursorIsLocked) {
           frame.setVector2(
             paths.actions.cameraDelta,
             movementXScreen * -Math.PI,
@@ -241,7 +242,7 @@ export class AppAwareMouseDevice {
     this.prevCoords[1] = coords[1];
 
     if (this.camera) {
-      if (isCursorLocked) {
+      if (cursorIsLocked) {
         let lockCursorInitialX = 0,
           lockCursorInitialY = 0;
 

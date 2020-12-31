@@ -42,7 +42,7 @@ export class KeyboardDevice {
               const cursorLockState = getCursorLockState();
 
               // Shift+Space widen
-              if (cursorLockState === CURSOR_LOCK_STATES.UNLOCKED || cursorLockState === CURSOR_LOCK_STATES.EPHEMERAL) {
+              if (cursorLockState !== CURSOR_LOCK_STATES.LOCKED_PERSISTENT) {
                 beginPersistentCursorLock();
               } else {
                 endCursorLock();
