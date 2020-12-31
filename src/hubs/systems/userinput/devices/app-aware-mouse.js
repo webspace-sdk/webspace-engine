@@ -135,7 +135,7 @@ export class AppAwareMouseDevice {
     const lockState = getCursorLockState();
     const useGazeCursor =
       lockState === CURSOR_LOCK_STATES.LOCKED_PERSISTENT ||
-      (lockState === CURSOR_LOCK_STATES.LOCKED_EPHEMERAL && mouseLookKey);
+      (lockState === CURSOR_LOCK_STATES.LOCKED_EPHEMERAL && isMouseLookingGesture);
     const cursorIsLocked = isCursorLocked();
 
     // Reset gaze cursor to center if user moves or clicks on environment
@@ -151,7 +151,7 @@ export class AppAwareMouseDevice {
         userinput.get(leftKeyPath) ||
         userinput.get(rightKeyPath);
 
-      if (!this.grabGesturedAnything && (buttonLeft || buttonRight || isMoving)) {
+      if (!this.grabGesturedAnything && ((buttonLeft && !isTransforming) || buttonRight || isMoving)) {
         this.lockClickCoordDelta[0] = 0;
         this.lockClickCoordDelta[1] = 0;
       }
@@ -225,8 +225,6 @@ export class AppAwareMouseDevice {
     // Move camera out of lock mode on LMB, or, in lock mode, when not holding something or
     // when holding something after panning past a certain FOV angle.
     const shouldMoveCamera =
-      buttonLeft ||
-      (mouseLookKey && !isTransforming) ||
       (cursorIsLocked && !this.grabGesturedAnything && !isTransforming) ||
       (cursorIsLocked &&
         (Math.abs(this.lockClickCoordDelta[0]) > 0.2 || Math.abs(this.lockClickCoordDelta[1]) > 0.2) &&
@@ -272,17 +270,13 @@ export class AppAwareMouseDevice {
           lockCursorInitialY = y;
         }
 
+        const poseX = Math.max(-0.8, Math.min(0.8, lockCursorInitialX + this.lockClickCoordDelta[0]));
+        const poseY = Math.max(-0.8, Math.min(0.8, lockCursorInitialY + this.lockClickCoordDelta[1]));
+
         // Clamp final screen space pose for cursor so dragging object over edge does not go past end of screen
         frame.setPose(
           paths.device.smartMouse.cursorPose,
-          calculateCursorPose(
-            this.camera,
-            Math.max(-0.8, Math.min(0.8, lockCursorInitialX + this.lockClickCoordDelta[0])),
-            Math.max(-0.8, Math.min(0.8, lockCursorInitialY + this.lockClickCoordDelta[1])),
-            this.origin,
-            this.direction,
-            this.cursorPose
-          )
+          calculateCursorPose(this.camera, poseX, poseY, this.origin, this.direction, this.cursorPose)
         );
       } else {
         frame.setPose(
