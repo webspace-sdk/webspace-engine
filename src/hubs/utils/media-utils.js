@@ -329,7 +329,7 @@ export const groundMedia = (sourceEl, faceUp) => {
   const bbox = new THREE.Box3();
   bbox.expandByObject(object3D);
 
-  object3D.rotation.x = px;
+  object3D.rotation.x = px + faceUp && px > Math.PI ? -2.0 * Math.PI : 0;
   object3D.rotation.z = pz;
   object3D.traverse(o => (o.matrixNeedsUpdate = true));
   object3D.updateMatrixWorld();
