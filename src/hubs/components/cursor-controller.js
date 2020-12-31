@@ -148,7 +148,7 @@ AFRAME.registerComponent("cursor-controller", {
       }
 
       const showCursor = document.body.classList.contains("show-3d-cursor");
-      const cssGazeYOffset = Math.floor(this.distance * 2.0);
+      const cssGazeYOffset = Math.floor(this.distance * Math.PI);
 
       // Huge hack, due to vertex curving, the CSS-based gaze cursor needs to be offset a bit
       // vertically based upon how far the intersection is in a way similar to the 3d cursor.
