@@ -24,10 +24,6 @@ const qs = new URLSearchParams(location.search);
 const inspectZoomSpeed = parseFloat(qs.get("izs")) || -10.0;
 const controlSpace = "/var/control+space";
 const controlM = "/var/control+m";
-const shiftQ = "/var/shift+q";
-const shiftE = "/var/shift+e";
-const notShiftE = "/var/notshift+e";
-const notShiftQ = "/var/notshift+q";
 const movementX = "/var/movementX";
 const movementY = "/var/movementY";
 const middleMouseMoveY = "/var/middle-mouse-move-y";
@@ -140,42 +136,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       dest: { value: controlM },
       priority: 1001,
       xform: xforms.copyIfTrue
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("shift"),
-        value: paths.device.keyboard.key("q")
-      },
-      dest: { value: shiftQ },
-      priority: 1001,
-      xform: xforms.copyIfTrue
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("shift"),
-        value: paths.device.keyboard.key("e")
-      },
-      dest: { value: shiftE },
-      priority: 1001,
-      xform: xforms.copyIfTrue
-    },
-    {
-      src: {
-        value: shiftQ
-      },
-      dest: {
-        value: paths.actions.previousMediaLayer
-      },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        value: shiftE
-      },
-      dest: {
-        value: paths.actions.nextMediaLayer
-      },
-      xform: xforms.rising
     },
     {
       src: { value: paths.device.keyboard.key("1") },
@@ -300,34 +260,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
 
   [sets.rightCursorHoldingPen]: [
     {
-      src: {
-        bool: paths.device.keyboard.key("shift"),
-        value: paths.device.keyboard.key("q")
-      },
-      dest: { value: shiftQ },
-      xform: xforms.copyIfTrue,
-      priority: 1
-    },
-    {
-      src: { value: shiftQ },
-      dest: { value: paths.actions.cursor.right.penPrevColor },
-      xform: xforms.rising
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("shift"),
-        value: paths.device.keyboard.key("e")
-      },
-      dest: { value: shiftE },
-      xform: xforms.copyIfTrue,
-      priority: 1
-    },
-    {
-      src: { value: shiftE },
-      dest: { value: paths.actions.cursor.right.penNextColor },
-      xform: xforms.rising
-    },
-    {
       src: { value: paths.device.mouse.buttonLeft },
       dest: { value: paths.actions.cursor.right.startDrawing },
       xform: xforms.rising,
@@ -341,7 +273,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
-        value: k("wheelWithShift")
+        value: k("wheelWithControl")
       },
       dest: { value: cursorScalePenTipWheel },
       xform: xforms.copy,
@@ -400,7 +332,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
-        value: k("wheelWithShift")
+        value: k("wheelWithControl")
       },
       dest: { value: paths.actions.cursor.right.scaleGrabbedGrabbable },
       xform: xforms.noop,
@@ -411,36 +343,36 @@ export const keyboardMouseUserBindings = addSetsToBindings({
   [sets.rightCursorHoldingInteractable]: [
     {
       src: {
-        bool: paths.device.keyboard.key("shift"),
+        bool: paths.device.keyboard.key("control"),
         value: paths.device.mouse.wheel
       },
       dest: {
-        value: k("wheelWithShift")
+        value: k("wheelWithControl")
       },
       xform: xforms.copyIfTrue,
       priority: 1001
     },
     {
       src: {
-        bool: paths.device.keyboard.key("shift"),
+        bool: paths.device.keyboard.key("control"),
         value: paths.device.mouse.wheel
       },
       dest: {
-        value: k("wheelWithoutShift")
+        value: k("wheelWithoutControl")
       },
       xform: xforms.copyIfFalse,
       priority: 1001
     },
     {
       src: {
-        value: k("wheelWithoutShift")
+        value: k("wheelWithoutControl")
       },
       dest: { value: paths.actions.cursor.right.modDelta },
       xform: xforms.copy
     },
     {
       src: {
-        value: k("wheelWithShift")
+        value: k("wheelWithControl")
       },
       dest: { value: paths.actions.cursor.right.scaleGrabbedGrabbable },
       xform: xforms.copy
@@ -458,30 +390,12 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 2
     },
     {
-      src: {
-        bool: paths.device.keyboard.key("shift"),
-        value: paths.device.keyboard.key("q")
-      },
-      dest: { value: notShiftQ },
-      xform: xforms.copyIfFalse,
-      priority: 1001
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("shift"),
-        value: paths.device.keyboard.key("e")
-      },
-      dest: { value: notShiftE },
-      xform: xforms.copyIfFalse,
-      priority: 1001
-    },
-    {
-      src: { value: notShiftQ },
+      src: { value: paths.device.keyboard.key("q") },
       dest: { value: paths.actions.prevGuidePlaneMode },
       xform: xforms.rising
     },
     {
-      src: { value: notShiftE },
+      src: { value: paths.device.keyboard.key("e") },
       dest: { value: paths.actions.nextGuidePlaneMode },
       xform: xforms.rising
     },
@@ -556,30 +470,12 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
-      src: {
-        bool: paths.device.keyboard.key("shift"),
-        value: paths.device.keyboard.key("q")
-      },
-      dest: { value: notShiftQ },
-      xform: xforms.copyIfFalse,
-      priority: 1001
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("shift"),
-        value: paths.device.keyboard.key("e")
-      },
-      dest: { value: notShiftE },
-      xform: xforms.copyIfFalse,
-      priority: 1001
-    },
-    {
-      src: { value: notShiftQ },
+      src: { value: paths.device.keyboard.key("q") },
       dest: { value: paths.actions.mediaBackAction },
       xform: xforms.rising
     },
     {
-      src: { value: notShiftE },
+      src: { value: paths.device.keyboard.key("e") },
       dest: { value: paths.actions.mediaNextAction },
       xform: xforms.rising
     },
@@ -645,30 +541,12 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
-      src: {
-        bool: paths.device.keyboard.key("shift"),
-        value: paths.device.keyboard.key("q")
-      },
-      dest: { value: notShiftQ },
-      xform: xforms.copyIfFalse,
-      priority: 1001
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("shift"),
-        value: paths.device.keyboard.key("e")
-      },
-      dest: { value: notShiftE },
-      xform: xforms.copyIfFalse,
-      priority: 1001
-    },
-    {
-      src: { value: notShiftQ },
+      src: { value: paths.device.keyboard.key("q") },
       dest: { value: paths.actions.mediaBackAction },
       xform: xforms.rising
     },
     {
-      src: { value: notShiftE },
+      src: { value: paths.device.keyboard.key("e") },
       dest: { value: paths.actions.mediaNextAction },
       xform: xforms.rising
     },
@@ -777,30 +655,12 @@ export const keyboardMouseUserBindings = addSetsToBindings({
   ],
   [sets.transforming]: [
     {
-      src: {
-        bool: paths.device.keyboard.key("shift"),
-        value: paths.device.keyboard.key("q")
-      },
-      dest: { value: notShiftQ },
-      xform: xforms.copyIfFalse,
-      priority: 1001
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("shift"),
-        value: paths.device.keyboard.key("e")
-      },
-      dest: { value: notShiftE },
-      xform: xforms.copyIfFalse,
-      priority: 1001
-    },
-    {
-      src: { value: notShiftQ },
+      src: { value: paths.device.keyboard.key("q") },
       dest: { value: paths.actions.prevGuidePlaneMode },
       xform: xforms.rising
     },
     {
-      src: { value: notShiftE },
+      src: { value: paths.device.keyboard.key("e") },
       dest: { value: paths.actions.nextGuidePlaneMode },
       xform: xforms.rising
     },
