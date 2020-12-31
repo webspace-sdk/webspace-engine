@@ -51,6 +51,7 @@ export const MEDIA_VIEW_COMPONENTS = [
 ];
 
 export const BAKABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-text", "media-pdf"];
+export const GROUNDABLE_MEDIA_VIEW_COMPONENTS = ["gltf-model-plus", "media-vox", "media-image", "media-pdf"];
 
 const linkify = Linkify();
 linkify.tlds(tlds);
@@ -319,10 +320,8 @@ export const groundMedia = (sourceEl, faceUp) => {
   const { object3D } = sourceEl;
   const finalXRotation = faceUp ? Math.PI / 2.0 : 0.0;
   const px = object3D.rotation.x;
-  const py = object3D.rotation.y;
   const pz = object3D.rotation.z;
   object3D.rotation.x = finalXRotation;
-  object3D.rotation.y = 0.0;
   object3D.rotation.z = 0.0;
   object3D.traverse(o => (o.matrixNeedsUpdate = true));
   object3D.updateMatrixWorld();
@@ -331,7 +330,6 @@ export const groundMedia = (sourceEl, faceUp) => {
   bbox.expandByObject(object3D);
 
   object3D.rotation.x = px;
-  object3D.rotation.y = py;
   object3D.rotation.z = pz;
   object3D.traverse(o => (o.matrixNeedsUpdate = true));
   object3D.updateMatrixWorld();
@@ -363,7 +361,7 @@ export const groundMedia = (sourceEl, faceUp) => {
       lastValue.y = value.y;
       lastValue.z = value.z;
 
-      object3D.rotation.x = value.x;
+      object3D.rotation.x = -value.x;
       object3D.position.y = value.y;
       object3D.rotation.z = value.z;
       object3D.matrixNeedsUpdate = true;

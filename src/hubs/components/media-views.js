@@ -22,6 +22,7 @@ import {
   meetsBatchingCriteria,
   hasMediaLayer,
   scaleToAspectRatio,
+  groundMedia,
   MEDIA_INTERACTION_TYPES
 } from "../utils/media-utils";
 import { proxiedUrlFor, getCorsProxyServer } from "../utils/media-url-utils";
@@ -1406,6 +1407,10 @@ AFRAME.registerComponent("media-image", {
     if (type === MEDIA_INTERACTION_TYPES.OPEN) {
       window.open(this.el.components["media-loader"].data.src);
     }
+
+    if (type === MEDIA_INTERACTION_TYPES.DOWN) {
+      groundMedia(this.el, true);
+    }
   }
 });
 
@@ -1655,6 +1660,11 @@ AFRAME.registerComponent("media-pdf", {
 
     if (type === MEDIA_INTERACTION_TYPES.OPEN) {
       window.open(this.el.components["media-loader"].data.src);
+      return;
+    }
+
+    if (type === MEDIA_INTERACTION_TYPES.DOWN) {
+      groundMedia(this.el, true);
       return;
     }
 

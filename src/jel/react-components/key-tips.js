@@ -176,6 +176,7 @@ const objectCommonTips = [
   ["focus", "_f"],
   ["clone", "c"],
   ["bake", "b"],
+  ["ground", "g"],
   ["remove", "x x"]
 ];
 
@@ -214,8 +215,10 @@ const TIP_DATA = {
   pointer_exited_muted: [["unmute", "L+m", "toggleMuteKey"], ["hide", "?"]],
   pointer_exited_unmuted: [["mute", "L+m", "toggleMuteKey"], ["hide", "?"]],
   holding_interactable: [["pull", "R"], ["scale", "H+R"], ["guides", "q\\e"]],
-  hover_interactable: objectCommonTips.filter(x => x[0] !== "bake"),
-  hover_bakable_interactable: objectCommonTips,
+  hover_interactable: objectCommonTips.filter(x => x[0] !== "bake" && x[0] !== "ground"),
+  hover_bakable_interactable: objectCommonTips.filter(x => x[0] !== "ground"),
+  hover_groundable_interactable: objectCommonTips.filter(x => x[0] !== "bake"),
+  hover_bakable_groundable_interactable: objectCommonTips,
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   pdf: [["next", "L+S"], ["page", "q\\e"], ...objectCommonTips],

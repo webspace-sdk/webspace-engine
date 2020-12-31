@@ -1,5 +1,6 @@
 import { isInQuillEditor } from "../utils/quill-utils";
 import { BAKABLE_MEDIA_VIEW_COMPONENTS } from "../../hubs/utils/media-utils";
+import { GROUNDABLE_MEDIA_VIEW_COMPONENTS } from "../../hubs/utils/media-utils";
 
 export class KeyboardTipSystem {
   constructor(sceneEl, cameraSystem) {
@@ -64,7 +65,9 @@ export class KeyboardTipSystem {
                   showTips = "pdf";
                 } else {
                   let isBakable = false;
+                  let isGroundable = false;
 
+                  // TODO clean this up if a third attribute comes along
                   for (const component of BAKABLE_MEDIA_VIEW_COMPONENTS) {
                     if (components[component]) {
                       isBakable = true;
@@ -72,7 +75,22 @@ export class KeyboardTipSystem {
                     }
                   }
 
-                  showTips = isBakable ? "hover_bakable_interactable" : "hover_interactable";
+                  for (const component of GROUNDABLE_MEDIA_VIEW_COMPONENTS) {
+                    if (components[component]) {
+                      isGroundable = true;
+                      break;
+                    }
+                  }
+
+                  if (isGroundable && isBakable) {
+                    showTips = "hover_bakable_groundable_interactable";
+                  } else if (isGroundable) {
+                    showTips = "hover_groundable_interactable";
+                  } else if (isBakable) {
+                    showTips = "hover_bakable_interactable";
+                  } else {
+                    showTips = "hover_interactable";
+                  }
                 }
               }
             }
