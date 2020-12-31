@@ -135,7 +135,7 @@ export class AppAwareMouseDevice {
     const lockState = getCursorLockState();
     const useGazeCursor =
       lockState === CURSOR_LOCK_STATES.LOCKED_PERSISTENT ||
-      (lockState === CURSOR_LOCK_STATES.LOCKED_EPHEMERAL && isMouseLookingGesture);
+      (lockState === CURSOR_LOCK_STATES.LOCKED_EPHEMERAL && mouseLookKey);
     const cursorIsLocked = isCursorLocked();
 
     // Reset gaze cursor to center if user moves or clicks on environment

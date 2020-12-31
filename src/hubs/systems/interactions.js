@@ -3,7 +3,7 @@ import { waitForDOMContentLoaded } from "../utils/async-utils";
 import { canMove } from "../utils/permissions-utils";
 import { isTagged } from "../components/tags";
 import { isSynchronized, isMine } from "../../jel/utils/ownership-utils";
-import { releaseEphemeralCursorLock, beginEphemeralCursorLock } from "../../jel/utils/dom-utils";
+import { cursorIsVisible } from "../../jel/utils/dom-utils";
 
 function findHandCollisionTargetForHand(bodyHelper) {
   const physicsSystem = this.el.sceneEl.systems["hubs-systems"].physicsSystem;
@@ -220,7 +220,7 @@ AFRAME.registerSystem("interaction", {
       );
       if (state.hovered) {
         const entity = state.hovered;
-        if (isTagged(entity, "isHoldable") && userinput.get(options.grabPath) && canMove(entity)) {
+        if (isTagged(entity, "isHoldable") && userinput.get(options.grabPath) && canMove(entity) && cursorIsVisible()) {
           state.held = entity;
         }
       }
