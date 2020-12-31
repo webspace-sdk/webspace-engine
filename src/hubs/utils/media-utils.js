@@ -51,7 +51,13 @@ export const MEDIA_VIEW_COMPONENTS = [
 ];
 
 export const BAKABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-text", "media-pdf"];
-export const GROUNDABLE_MEDIA_VIEW_COMPONENTS = ["gltf-model-plus", "media-vox", "media-image", "media-pdf"];
+export const GROUNDABLE_MEDIA_VIEW_COMPONENTS = [
+  "gltf-model-plus",
+  "media-vox",
+  "media-image",
+  "media-pdf",
+  "media-emoji"
+];
 
 const linkify = Linkify();
 linkify.tlds(tlds);
