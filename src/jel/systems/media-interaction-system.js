@@ -8,6 +8,7 @@ import {
 import { TRANSFORM_MODE } from "../../hubs/components/transform-object-button";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { ensureOwnership, getNetworkedEntity } from "../../jel/utils/ownership-utils";
+import { cursorIsVisible } from "../utils/dom-utils";
 import { releaseEphemeralCursorLock, beginEphemeralCursorLock } from "../utils/dom-utils";
 
 const REMOVE_ACTION_MAX_DELAY_MS = 500.0;
@@ -46,6 +47,8 @@ export class MediaInteractionSystem {
       releaseEphemeralCursorLock();
       return;
     }
+
+    if (!cursorIsVisible()) return;
 
     this.interaction = this.interaction || scene.systems.interaction;
     const hoverEl = this.interaction.state.rightRemote.hovered || this.interaction.state.leftRemote.hovered;

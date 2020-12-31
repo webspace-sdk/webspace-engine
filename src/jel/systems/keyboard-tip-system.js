@@ -1,7 +1,7 @@
 import { isInQuillEditor } from "../utils/quill-utils";
 import { BAKABLE_MEDIA_VIEW_COMPONENTS } from "../../hubs/utils/media-utils";
 import { GROUNDABLE_MEDIA_VIEW_COMPONENTS } from "../../hubs/utils/media-utils";
-import { CURSOR_LOCK_STATES, getCursorLockState } from "../utils/dom-utils";
+import { cursorIsVisible, CURSOR_LOCK_STATES, getCursorLockState } from "../utils/dom-utils";
 
 export class KeyboardTipSystem {
   constructor(sceneEl, cameraSystem) {
@@ -52,7 +52,7 @@ export class KeyboardTipSystem {
                 this.interaction.state.rightRemote.hovered ||
                 this.interaction.state.leftRemote.hovered;
 
-              if (hovered) {
+              if (hovered && cursorIsVisible()) {
                 const { components } = hovered;
 
                 if (components["media-text"]) {

@@ -148,3 +148,6 @@ export const getCursorLockState = () => {
 };
 
 export const getLastKnownUnlockedCursorCoords = () => lastKnownCursorCoords;
+
+export const cursorIsVisible = () =>
+  document.body.classList.contains("show-3d-cursor") || document.body.classList.contains("show-css-cursor");

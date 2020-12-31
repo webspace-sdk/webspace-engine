@@ -1,5 +1,6 @@
 import { forEachMaterial } from "../utils/material-utils";
 import { showHoverEffect } from "../utils/permissions-utils";
+import { cursorIsVisible } from "../../jel/utils/dom-utils";
 
 const interactorOneTransform = [];
 const interactorTwoTransform = [];
@@ -97,8 +98,7 @@ AFRAME.registerComponent("hoverable-visuals", {
       this.sweepParams[1] = worldY + scaledRadius;
     }
 
-    const cursorIsVisible =
-      document.body.classList.contains("show-3d-cursor") || document.body.classList.contains("show-css-cursor");
+    const isCursorVisible = cursorIsVisible();
 
     for (let i = 0, l = this.uniforms.length; i < l; i++) {
       const uniform = this.uniforms[i];
@@ -107,13 +107,13 @@ AFRAME.registerComponent("hoverable-visuals", {
       uniform.hubs_SweepParams.value = this.sweepParams;
 
       uniform.hubs_HighlightInteractorOne.value =
-        !!interactorOne && showEffect && !this.isTouchscreen && cursorIsVisible;
+        !!interactorOne && showEffect && !this.isTouchscreen && isCursorVisible;
       uniform.hubs_InteractorOnePos.value[0] = interactorOneTransform[12];
       uniform.hubs_InteractorOnePos.value[1] = interactorOneTransform[13];
       uniform.hubs_InteractorOnePos.value[2] = interactorOneTransform[14];
 
       uniform.hubs_HighlightInteractorTwo.value =
-        !!interactorTwo && showEffect && !this.isTouchscreen && cursorIsVisible;
+        !!interactorTwo && showEffect && !this.isTouchscreen && isCursorVisible;
       uniform.hubs_InteractorTwoPos.value[0] = interactorTwoTransform[12];
       uniform.hubs_InteractorTwoPos.value[1] = interactorTwoTransform[13];
       uniform.hubs_InteractorTwoPos.value[2] = interactorTwoTransform[14];
