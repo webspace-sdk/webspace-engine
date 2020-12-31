@@ -9,7 +9,7 @@ import {
   EDITOR_HEIGHT
 } from "../utils/quill-pool";
 import { getNetworkId } from "../utils/ownership-utils";
-import { temporaryReleaseCanvasCursorLock } from "../utils/dom-utils";
+import { temporarilyReleaseCanvasCursorLock } from "../utils/dom-utils";
 import {
   hasMediaLayer,
   addAndArrangeMedia,
@@ -509,7 +509,7 @@ AFRAME.registerComponent("media-text", {
       window.APP.store.handleActivityFlag("mediaTextEdit");
       this.quill.focus();
 
-      temporaryReleaseCanvasCursorLock();
+      temporarilyReleaseCanvasCursorLock();
     } else if (type === MEDIA_INTERACTION_TYPES.SNAPSHOT) {
       if (this.isSnapping) return;
       this.isSnapping = true;

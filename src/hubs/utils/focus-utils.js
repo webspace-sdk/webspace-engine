@@ -1,7 +1,7 @@
 import screenfull from "screenfull";
 import { showFullScreenIfWasFullScreen } from "./fullscreen";
 const { detect } = require("detect-browser");
-import { temporaryReleaseCanvasCursorLock } from "../../jel/utils/dom-utils";
+import { temporarilyReleaseCanvasCursorLock } from "../../jel/utils/dom-utils";
 
 const browser = detect();
 let isExitingFullscreenDueToFocus = false;
@@ -31,7 +31,7 @@ export function handleTextFieldFocus(target, doNotSelect) {
   // Need to add a delay since this happens before the focus actually occurs.
   if (!isMobile && !doNotSelect) setTimeout(() => target.select(), 0);
 
-  temporaryReleaseCanvasCursorLock();
+  temporarilyReleaseCanvasCursorLock();
 }
 
 export function handleTextFieldBlur() {

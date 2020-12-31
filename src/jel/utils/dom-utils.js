@@ -116,7 +116,7 @@ export const releaseEphemeralCursorLock = () => {
 
 // If the canvas is cursor locked, temporarily release it and re-lock it when
 // the canvas is focused again.
-export const temporaryReleaseCanvasCursorLock = () => {
+export const temporarilyReleaseCanvasCursorLock = () => {
   const scene = AFRAME.scenes[0];
   const canvas = scene.canvas;
   if (!canvas.requestPointerLock) return;
