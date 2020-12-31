@@ -1,4 +1,6 @@
 const editableTagNames = ["TEXTAREA", "INPUT"];
+import { paths } from "../../hubs/systems/userinput/paths";
+
 export const isInEditableField = () =>
   editableTagNames.includes(document.activeElement && document.activeElement.nodeName) ||
   (document.activeElement &&
@@ -40,3 +42,80 @@ export const cancelEventIfFocusedWithin = (e, el) => {
 };
 
 export const rgbToCssRgb = v => Math.floor(v * 255.0);
+
+export const CURSOR_LOCK_STATES = {
+  UNLOCKED: 0,
+  PERSISTENT: 1,
+  EPHEMERAL: 2
+};
+
+let lastCursorLockState = CURSOR_LOCK_STATES.UNLOCKED;
+let lastKnownCursorCoords = null;
+
+// Lock the cursor.
+//
+// Ephemeral lock is used for cases where a user is holding a key
+// or button for duration of the clock.
+export const lockCursor = (ephemeral = false) => {
+  if (document.pointerLockElement) return; // Already locked, no-op
+
+  const scene = AFRAME.scenes[0];
+  const canvas = scene.canvas;
+  const userinput = scene.systems.userinput;
+  lastKnownCursorCoords = userinput.get(paths.device.mouse.coords);
+
+  lastCursorLockState = ephemeral ? CURSOR_LOCK_STATES.EPHEMERAL : CURSOR_LOCK_STATES.PERSISTENT;
+  canvas.requestPointerLock();
+};
+
+export const releaseEphemeralCursorLock = () => {
+  if (!document.pointerLockElement) return;
+
+  if (lastCursorLockState === CURSOR_LOCK_STATES.EPHEMERAL) {
+    document.exitPointerLock();
+  }
+};
+
+export const toggleCursorLock = (ephemeral = false) => {
+  const scene = AFRAME.scenes[0];
+  const canvas = scene.canvas;
+
+  if (canvas.requestPointerLock) {
+    if (document.pointerLockElement === canvas) {
+      document.exitPointerLock();
+    } else {
+      lockCursor(ephemeral);
+    }
+  }
+};
+
+// If the canvas is cursor locked, temporarily release it and re-lock it when
+// the canvas is focused again.
+export const temporaryReleaseCanvasCursorLock = () => {
+  const scene = AFRAME.scenes[0];
+  const canvas = scene.canvas;
+  if (!canvas.requestPointerLock) return;
+
+  if (document.pointerLockElement === canvas) {
+    const wasEphemeral = lastCursorLockState === CURSOR_LOCK_STATES.EPHEMERAL;
+    document.exitPointerLock();
+
+    canvas.addEventListener(
+      "focus",
+      () => {
+        toggleCursorLock(wasEphemeral);
+      },
+      { once: true }
+    );
+  }
+};
+
+export const getCursorLockState = () => {
+  if (!document.pointerLockElement) {
+    return CURSOR_LOCK_STATES.UNLOCKED;
+  } else {
+    return lastCursorLockState;
+  }
+};
+
+export const getLastKnownUnlockedCursorCoords = () => lastKnownCursorCoords;

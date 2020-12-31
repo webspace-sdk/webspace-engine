@@ -4,6 +4,11 @@ import { Pose } from "../pose";
 import { findRemoteHoverTarget } from "../../interactions";
 import { getNetworkedTemplate } from "../../../../jel/utils/ownership-utils";
 import { canMove } from "../../../utils/permissions-utils";
+import {
+  CURSOR_LOCK_STATES,
+  getCursorLockState,
+  getLastKnownUnlockedCursorCoords
+} from "../../../../jel/utils/dom-utils";
 
 const wKeyPath = paths.device.keyboard.key("w");
 const aKeyPath = paths.device.keyboard.key("a");
@@ -16,11 +21,11 @@ const downKeyPath = paths.device.keyboard.key("arrowdown");
 const leftKeyPath = paths.device.keyboard.key("arrowleft");
 const rightKeyPath = paths.device.keyboard.key("arrowright");
 
-const calculateCursorPose = function(camera, coords, origin, direction, cursorPose) {
+const calculateCursorPose = function(camera, cursorX, cursorY, origin, direction, cursorPose) {
   camera.updateMatrices();
   origin.setFromMatrixPosition(camera.matrixWorld);
   direction
-    .set(coords[0], coords[1], 0.5)
+    .set(cursorX, cursorY, 0.5)
     .unproject(camera)
     .sub(origin)
     .normalize();
@@ -105,7 +110,9 @@ export class AppAwareMouseDevice {
       this.grabGesturedAnything = false;
     }
 
-    const lockedMode = !!document.pointerLockElement;
+    const lockState = getCursorLockState();
+    const isCursorLocked = lockState !== CURSOR_LOCK_STATES.UNLOCKED;
+    const useGazeCursor = lockState === CURSOR_LOCK_STATES.PERSISTENT;
 
     this.transformSystem = this.transformSystem || AFRAME.scenes[0].systems["transform-selected-object"];
     this.scaleSystem = this.scaleSystem || AFRAME.scenes[0].systems["scale-object"];
@@ -114,7 +121,7 @@ export class AppAwareMouseDevice {
       (this.transformSystem && this.transformSystem.transforming) || (this.scaleSystem && this.scaleSystem.isScaling);
 
     // Reset gaze cursor to center if user moves or clicks on environment
-    if (lockedMode) {
+    if (isCursorLocked) {
       // HACK, can't read character acceleration yet here, so just look at keys (which are added before mouse.)
       const isMoving =
         userinput.get(wKeyPath) ||
@@ -130,31 +137,56 @@ export class AppAwareMouseDevice {
         this.lockClickCoordDelta[0] = 0;
         this.lockClickCoordDelta[1] = 0;
       }
+    } else {
+      this.lockClickCoordDelta[0] = 0;
+      this.lockClickCoordDelta[1] = 0;
     }
 
     const movementXY = frame.get(paths.device.mouse.movementXY);
     const movementXScreen = movementXY[0] / 1000.0;
     const movementYScreen = -movementXY[1] / 1000.0;
 
-    if (lockedMode && (this.grabGesturedAnything || isTransforming)) {
+    if (isCursorLocked && (this.grabGesturedAnything || isTransforming)) {
       this.lockClickCoordDelta[0] += movementXScreen;
       this.lockClickCoordDelta[1] += movementYScreen;
+    }
 
+    // Handle screen space gaze cursor that uses CSS
+    const showCSSCursor =
+      useGazeCursor &&
+      this.lockClickCoordDelta[0] === 0 &&
+      this.lockClickCoordDelta[1] === 0 &&
+      !isTransforming &&
+      !this.grabGesturedAnything;
+
+    // The 3D cursor visibility is coordinated via CSS classes on the body.
+    const show3DCursor =
+      !AFRAME.scenes[0].is("pointer-exited") && !isTransforming && !this.grabGesturedAnything && !showCSSCursor;
+
+    const bodyClassList = document.body.classList;
+
+    if (showCSSCursor !== bodyClassList.contains("show-css-cursor")) {
+      bodyClassList.toggle("show-css-cursor");
+    }
+
+    if (show3DCursor !== bodyClassList.contains("show-3d-cursor")) {
+      bodyClassList.toggle("show-3d-cursor");
+    }
+
+    if (isCursorLocked) {
       if (isTransforming) {
         this.transformStartCoordDelta[0] += movementXScreen;
         this.transformStartCoordDelta[1] += movementYScreen;
-      }
-    }
+      } else {
+        // Return cursor to original position before transforming began.
+        if (isCursorLocked && (this.transformStartCoordDelta[0] !== 0 || this.transformStartCoordDelta[0] !== 0)) {
+          this.lockClickCoordDelta[0] -= this.transformStartCoordDelta[0];
+          this.lockClickCoordDelta[1] -= this.transformStartCoordDelta[1];
+        }
 
-    if (lockedMode && !isTransforming) {
-      // Return cursor to original position before transforming began.
-      if (this.transformStartCoordDelta[0] !== 0 || this.transformStartCoordDelta[0] !== 0) {
-        this.lockClickCoordDelta[0] -= this.transformStartCoordDelta[0];
-        this.lockClickCoordDelta[1] -= this.transformStartCoordDelta[1];
+        this.transformStartCoordDelta[0] = 0;
+        this.transformStartCoordDelta[1] = 0;
       }
-
-      this.transformStartCoordDelta[0] = 0;
-      this.transformStartCoordDelta[1] = 0;
     }
 
     // Move camera out of lock mode on LMB, or, in lock mode, when not holding something or
@@ -162,8 +194,8 @@ export class AppAwareMouseDevice {
     const shouldMoveCamera =
       buttonLeft ||
       (mouseLookKey && !isTransforming) ||
-      (lockedMode && !this.grabGesturedAnything && !isTransforming) ||
-      (lockedMode &&
+      (isCursorLocked && !this.grabGesturedAnything && !isTransforming) ||
+      (isCursorLocked &&
         (Math.abs(this.lockClickCoordDelta[0]) > 0.2 || Math.abs(this.lockClickCoordDelta[1]) > 0.2) &&
         !isTransforming) ||
       !this.cameraSystem.isInAvatarView();
@@ -175,7 +207,7 @@ export class AppAwareMouseDevice {
       const dCoordY = coords[1] - this.prevCoords[1];
 
       if (shouldMoveCamera) {
-        if (lockedMode) {
+        if (isCursorLocked) {
           frame.setVector2(
             paths.actions.cameraDelta,
             movementXScreen * -Math.PI,
@@ -194,15 +226,31 @@ export class AppAwareMouseDevice {
     this.prevCoords[1] = coords[1];
 
     if (this.camera) {
-      if (lockedMode) {
+      if (isCursorLocked) {
+        let lockCursorInitialX = 0,
+          lockCursorInitialY = 0;
+
+        if (!useGazeCursor) {
+          const [x, y] = getLastKnownUnlockedCursorCoords();
+          lockCursorInitialX = x;
+          lockCursorInitialY = y;
+        }
+
         frame.setPose(
           paths.device.smartMouse.cursorPose,
-          calculateCursorPose(this.camera, this.lockClickCoordDelta, this.origin, this.direction, this.cursorPose)
+          calculateCursorPose(
+            this.camera,
+            lockCursorInitialX + this.lockClickCoordDelta[0],
+            lockCursorInitialY + this.lockClickCoordDelta[1],
+            this.origin,
+            this.direction,
+            this.cursorPose
+          )
         );
       } else {
         frame.setPose(
           paths.device.smartMouse.cursorPose,
-          calculateCursorPose(this.camera, coords, this.origin, this.direction, this.cursorPose)
+          calculateCursorPose(this.camera, coords[0], coords[1], this.origin, this.direction, this.cursorPose)
         );
       }
     }

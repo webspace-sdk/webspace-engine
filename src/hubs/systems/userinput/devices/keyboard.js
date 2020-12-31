@@ -2,6 +2,7 @@ import { paths } from "../paths";
 import { ArrayBackedSet } from "../array-backed-set";
 import { isInEditableField } from "../../../../jel/utils/dom-utils";
 import { isInQuillEditor } from "../../../../jel/utils/quill-utils";
+import { toggleCursorLock } from "../../../../jel/utils/dom-utils";
 
 export class KeyboardDevice {
   constructor() {
@@ -38,14 +39,7 @@ export class KeyboardDevice {
           if (!e.ctrlKey && !e.altKey && !e.metaKey) {
             if (e.shiftKey && !isInEditableField()) {
               // Shift+Space widen
-              if (canvas.requestPointerLock) {
-                if (document.pointerLockElement === canvas) {
-                  document.exitPointerLock();
-                } else {
-                  canvas.requestPointerLock();
-                }
-              }
-
+              toggleCursorLock();
               e.preventDefault();
             }
           }

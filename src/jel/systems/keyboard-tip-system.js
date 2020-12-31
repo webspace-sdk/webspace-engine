@@ -1,6 +1,7 @@
 import { isInQuillEditor } from "../utils/quill-utils";
 import { BAKABLE_MEDIA_VIEW_COMPONENTS } from "../../hubs/utils/media-utils";
 import { GROUNDABLE_MEDIA_VIEW_COMPONENTS } from "../../hubs/utils/media-utils";
+import { CURSOR_LOCK_STATES, getCursorLockState } from "../utils/dom-utils";
 
 export class KeyboardTipSystem {
   constructor(sceneEl, cameraSystem) {
@@ -30,11 +31,8 @@ export class KeyboardTipSystem {
         showTips = this.scene.is("unmuted") ? "pointer_exited_unmuted" : "pointer_exited_muted";
       } else {
         if (this.cameraSystem.isInAvatarView()) {
-          showTips = document.pointerLockElement
-            ? this.scene.is("unmuted")
-              ? "idle_full_unmuted"
-              : "idle_full_muted"
-            : "idle_panels";
+          const expanded = getCursorLockState() === CURSOR_LOCK_STATES.PERSISTENT;
+          showTips = expanded ? (this.scene.is("unmuted") ? "idle_full_unmuted" : "idle_full_muted") : "idle_panels";
 
           if (this.transformSystem.transforming) {
             showTips = this.scaleSystem.isScaling ? "scale" : "rotate";

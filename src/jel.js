@@ -3,6 +3,7 @@ import "./hubs/utils/theme";
 import "@babel/polyfill";
 import "./hubs/utils/debug-log";
 import { isInQuillEditor } from "./jel/utils/quill-utils";
+import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
 import mixpanel from "mixpanel-browser";
 
 console.log(`App version: ${process.env.BUILD_VERSION || "?"}`);
@@ -574,10 +575,19 @@ function addGlobalEventListeners(scene, entryManager) {
   });
 
   document.addEventListener("pointerlockchange", () => {
-    const expanded = !document.pointerLockElement;
+    const uiAnimationSystem = scene.systems["hubs-systems"].uiAnimationSystem;
 
-    if (!isInQuillEditor() && !(expanded && isInEditableField())) {
-      scene.systems["hubs-systems"].uiAnimationSystem[expanded ? "expandSidePanels" : "collapseSidePanels"]();
+    const cursorLockState = getCursorLockState();
+    const panelsCollapsed = uiAnimationSystem.isCollapsingOrCollapsed();
+    const persistent = cursorLockState === CURSOR_LOCK_STATES.PERSISTENT;
+    const unlocked = cursorLockState === CURSOR_LOCK_STATES.UNLOCKED;
+
+    if (
+      !isInQuillEditor() &&
+      !isInEditableField() &&
+      ((panelsCollapsed && unlocked) || (!panelsCollapsed && persistent))
+    ) {
+      uiAnimationSystem[panelsCollapsed ? "expandSidePanels" : "collapseSidePanels"]();
     }
   });
 
