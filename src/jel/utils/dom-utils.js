@@ -61,6 +61,8 @@ let isEphemerallyUnlocked = false;
 const lockCursor = (ephemeral = false) => {
   const scene = AFRAME.scenes[0];
 
+  if (ephemeral && lockedCursorLockState === CURSOR_LOCK_STATES.LOCKED_PERSISTENT) return;
+
   if (document.pointerLockElement) {
     // Already locked, but allow an escalation from ephemeral -> persistent.
     if (lockedCursorLockState === CURSOR_LOCK_STATES.LOCKED_EPHEMERAL && !ephemeral) {
