@@ -149,6 +149,11 @@ export class UIAnimationSystem {
   // Returns true if was applied successfully
   applyUI(left, right) {
     const width = document.body.clientWidth - left - right;
+    const gazeCursor = document.getElementById("gaze-cursor");
+    if (gazeCursor) {
+      gazeCursor.style.cssText = `left: ${left}px; width: ${width}px;`;
+    }
+
     const wrap = document.getElementById("jel-ui-wrap");
     if (wrap) {
       wrap.style.cssText = `left: ${left}px; width: ${width}px;`;

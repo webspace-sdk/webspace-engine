@@ -2,6 +2,7 @@ import { paths } from "../systems/userinput/paths";
 import { sets } from "../systems/userinput/sets";
 import { almostEqualVec3, getLastWorldPosition } from "../utils/three-utils";
 import { RENDER_ORDER } from "../constants";
+import { waitForDOMContentLoaded } from "../utils/async-utils";
 
 const HIGHLIGHT = new THREE.Color(0, 0xec / 255, 0xff / 255);
 const NO_HIGHLIGHT = new THREE.Color(0.15, 0.15, 0.15);
@@ -37,6 +38,11 @@ AFRAME.registerComponent("cursor-controller", {
     this.raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
     this.distance = this.data.far;
     this.color = new THREE.Color(0, 0, 0);
+
+    waitForDOMContentLoaded().then(() => {
+      this.cssGazeCursor = document.querySelector("#gaze-cursor .cursor");
+      this.lastCssGazeCursorOffset = Infinity;
+    });
 
     const lineGeometry = new THREE.BufferGeometry();
     lineGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(2 * 3), 3));
@@ -142,6 +148,14 @@ AFRAME.registerComponent("cursor-controller", {
       }
 
       const showCursor = document.body.classList.contains("show-3d-cursor");
+      const cssGazeYOffset = Math.floor(this.distance * 2.0);
+
+      // Huge hack, due to vertex curving, the CSS-based gaze cursor needs to be offset a bit
+      // vertically based upon how far the intersection is in a way similar to the 3d cursor.
+      if (this.cssGazeCursor && this.lastCssGazeCursorOffset !== cssGazeYOffset) {
+        this.cssGazeCursor.setAttribute("style", `transform: translateY(${cssGazeYOffset}px);`);
+        this.lastCssGazeCursorOffset = cssGazeYOffset;
+      }
 
       const mesh = this.data.cursor.object3DMap.mesh;
       const material = mesh.material;
