@@ -122,6 +122,7 @@ AFRAME.registerSystem("transform-selected-object", {
       deltaOnPlane: new THREE.Vector3(),
       finalProjectedVec: new THREE.Vector3()
     };
+
     this.el.object3D.add(this.planarInfo.plane);
   },
 
@@ -131,6 +132,7 @@ AFRAME.registerSystem("transform-selected-object", {
     //const pInv = new THREE.Quaternion();
     return function stopTransform() {
       this.transforming = false;
+      this.target = null;
 
       // Flips object, taken out for now but maybe put on another hotkey
       /*if (this.mode === TRANSFORM_MODE.CURSOR) {
@@ -250,6 +252,7 @@ AFRAME.registerSystem("transform-selected-object", {
       finalProjectedVec
     } = this.planarInfo;
     this.target.getWorldPosition(plane.position);
+
     //    this.el.camera.getWorldQuaternion(plane.quaternion);
     this.el.camera.getWorldPosition(v);
     plane.matrixNeedsUpdate = true;

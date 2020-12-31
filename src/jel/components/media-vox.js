@@ -130,6 +130,10 @@ AFRAME.registerComponent("media-vox", {
     }
   },
 
+  handleMediaInteraction() {
+    // Unused
+  },
+
   remove() {
     if (this.mesh) {
       // Avoid disposing material since it's re-used across all VOX meshes

@@ -5,7 +5,7 @@ import { isInEditableField } from "../../../jel/utils/dom-utils";
 import qsTruthy from "../../utils/qs_truthy";
 const debugUserInput = qsTruthy("dui");
 
-let leftTeleporter, rightTeleporter;
+let leftTeleporter, rightTeleporter, transformSystem, scalingSystem;
 
 export function resolveActionSets() {
   leftTeleporter =
@@ -20,6 +20,11 @@ export function resolveActionSets() {
   const userinput = AFRAME.scenes[0].systems.userinput;
   const { leftHand, rightHand, rightRemote, leftRemote } = AFRAME.scenes[0].systems.interaction.state;
 
+  transformSystem = transformSystem || AFRAME.scenes[0].systems["transform-selected-object"];
+  scalingSystem = scalingSystem || AFRAME.scenes[0].systems["scale-object"];
+
+  const transforming = (transformSystem && transformSystem.transforming) || (scalingSystem && scalingSystem.isScaling);
+
   userinput.toggleSet(sets.leftHandHoldingInteractable, leftHand.held);
   userinput.toggleSet(sets.rightHandHoldingInteractable, rightHand.held);
   userinput.toggleSet(sets.leftCursorHoldingInteractable, leftRemote.held);
@@ -27,19 +32,19 @@ export function resolveActionSets() {
 
   userinput.toggleSet(
     sets.leftHandHoveringOnNothing,
-    !leftRemote.held && !leftRemote.hovered && !leftHand.held && !leftHand.hovered
+    !leftRemote.held && !leftRemote.hovered && !leftHand.held && !leftHand.hovered && !transforming
   );
   userinput.toggleSet(
     sets.rightHandHoveringOnNothing,
-    !rightRemote.held && !rightRemote.hovered && !rightHand.held && !rightHand.hovered
+    !rightRemote.held && !rightRemote.hovered && !rightHand.held && !rightHand.hovered && !transforming
   );
   userinput.toggleSet(
     sets.leftCursorHoveringOnNothing,
-    !leftHand.held && !leftHand.hovered && !leftRemote.held && !leftRemote.hovered
+    !leftHand.held && !leftHand.hovered && !leftRemote.held && !leftRemote.hovered && !transforming
   );
   userinput.toggleSet(
     sets.rightCursorHoveringOnNothing,
-    !rightHand.held && !rightHand.hovered && !rightRemote.held && !rightRemote.hovered
+    !rightHand.held && !rightHand.hovered && !rightRemote.held && !rightRemote.hovered && !transforming
   );
 
   userinput.toggleSet(
@@ -105,14 +110,16 @@ export function resolveActionSets() {
     !leftHand.held &&
       leftHand.hovered &&
       ((leftHand.hovered.components.tags && leftHand.hovered.components.tags.data.offersHandConstraint) ||
-        leftHand.hovered.components["super-spawner"])
+        leftHand.hovered.components["super-spawner"]) &&
+      !transforming
   );
   userinput.toggleSet(
     sets.rightHandHoveringOnInteractable,
     !rightHand.held &&
       rightHand.hovered &&
       ((rightHand.hovered.components.tags && rightHand.hovered.components.tags.data.offersHandConstraint) ||
-        rightHand.hovered.components["super-spawner"])
+        rightHand.hovered.components["super-spawner"]) &&
+      !transforming
   );
   userinput.toggleSet(
     sets.leftCursorHoveringOnInteractable,
@@ -122,7 +129,8 @@ export function resolveActionSets() {
       leftRemote.hovered &&
       ((leftRemote.hovered.components.tags && leftRemote.hovered.components.tags.data.offersRemoteConstraint) ||
         (leftRemote.hovered.components.tags && leftRemote.hovered.components.tags.data.togglesHoveredActionSet) ||
-        leftRemote.hovered.components["super-spawner"])
+        leftRemote.hovered.components["super-spawner"]) &&
+      !transforming
   );
   userinput.toggleSet(
     sets.rightCursorHoveringOnInteractable,
@@ -132,16 +140,17 @@ export function resolveActionSets() {
       rightRemote.hovered &&
       ((rightRemote.hovered.components.tags && rightRemote.hovered.components.tags.data.offersRemoteConstraint) ||
         (rightRemote.hovered.components.tags && rightRemote.hovered.components.tags.data.togglesHoveredActionSet) ||
-        rightRemote.hovered.components["super-spawner"])
+        rightRemote.hovered.components["super-spawner"]) &&
+      !transforming
   );
 
   userinput.toggleSet(
     sets.leftHandHoveringOnVideo,
-    !leftHand.held && leftHand.hovered && leftHand.hovered.components["media-video"]
+    !leftHand.held && leftHand.hovered && leftHand.hovered.components["media-video"] && !transforming
   );
   userinput.toggleSet(
     sets.rightHandHoveringOnVideo,
-    !rightHand.held && rightHand.hovered && rightHand.hovered.components["media-video"]
+    !rightHand.held && rightHand.hovered && rightHand.hovered.components["media-video"] && !transforming
   );
   userinput.toggleSet(
     sets.leftCursorHoveringOnVideo,
@@ -149,7 +158,8 @@ export function resolveActionSets() {
       !leftHand.hovered &&
       !leftRemote.held &&
       leftRemote.hovered &&
-      leftRemote.hovered.components["media-video"]
+      leftRemote.hovered.components["media-video"] &&
+      !transforming
   );
   userinput.toggleSet(
     sets.rightCursorHoveringOnVideo,
@@ -157,7 +167,8 @@ export function resolveActionSets() {
       !rightHand.hovered &&
       !rightRemote.held &&
       rightRemote.hovered &&
-      rightRemote.hovered.components["media-video"]
+      rightRemote.hovered.components["media-video"] &&
+      !transforming
   );
 
   userinput.toggleSet(
@@ -204,8 +215,8 @@ export function resolveActionSets() {
     !rightHand.held && !rightHand.hovered && !rightRemote.held && isUI(rightRemote.hovered)
   );
 
-  userinput.toggleSet(sets.leftCursorHoldingNothing, !leftHand.held && !leftRemote.held);
-  userinput.toggleSet(sets.rightCursorHoldingNothing, !rightHand.held && !rightRemote.held);
+  userinput.toggleSet(sets.leftCursorHoldingNothing, !leftHand.held && !leftRemote.held && !transforming);
+  userinput.toggleSet(sets.rightCursorHoldingNothing, !rightHand.held && !rightRemote.held && !transforming);
 
   userinput.toggleSet(
     sets.leftCursorHoldingUI,
@@ -228,6 +239,7 @@ export function resolveActionSets() {
   userinput.toggleSet(sets.rightHandTeleporting, rightTeleporter.isTeleporting);
   userinput.toggleSet(sets.inputFocused, isInEditableField());
   userinput.toggleSet(sets.debugUserInput, debugUserInput);
+  userinput.toggleSet(sets.transforming, transforming);
 
   if (AFRAME.scenes[0] && AFRAME.scenes[0].systems["hubs-systems"]) {
     userinput.toggleSet(

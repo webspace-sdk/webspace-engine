@@ -156,6 +156,9 @@ paths.actions.spawnEmoji3 = "/actions/spawnEmoji3";
 paths.actions.spawnEmoji4 = "/actions/spawnEmoji4";
 paths.actions.spawnEmoji5 = "/actions/spawnEmoji5";
 paths.actions.spawnEmoji6 = "/actions/spawnEmoji6";
+paths.actions.nextGuidePlaneMode = "/actions/nextGuidePlaneMode";
+paths.actions.prevGuidePlaneMode = "/actions/prevGuidePlaneMode";
+
 paths.haptics = {};
 paths.haptics.actuators = {};
 paths.haptics.actuators.left = "/haptics/actuators/left";

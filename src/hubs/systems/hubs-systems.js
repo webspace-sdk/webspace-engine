@@ -34,6 +34,7 @@ import { AtmosphereSystem } from "../../jel/systems/atmosphere-system";
 import { UIAnimationSystem } from "../../jel/systems/ui-animation-system";
 import { AvatarSystem } from "../../jel/systems/avatar-system";
 import { SkyBeamSystem } from "../../jel/systems/sky-beam-system";
+import { HelpersSystem } from "../../jel/systems/helpers-system";
 import { MediaInteractionSystem } from "../../jel/systems/media-interaction-system";
 import { CameraRotatorSystem } from "../../hubs/systems/camera-rotator-system";
 import { KeyboardTipSystem } from "../../jel/systems/keyboard-tip-system";
@@ -92,6 +93,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.cameraRotatorSystem = new CameraRotatorSystem(this.el);
     this.keyboardTipSystem = new KeyboardTipSystem(this.el, this.cameraSystem);
     this.autoQualitySystem = new AutoQualitySystem(this.el);
+    this.helpersSystem = new HelpersSystem(this.el);
   },
 
   tick(t, dt) {
@@ -144,6 +146,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.voxmojiSystem.tick(t, dt);
     this.keyboardTipSystem.tick();
     this.autoQualitySystem.tick(t, dt);
+    this.helpersSystem.tick(t, dt);
 
     // We run this late in the frame so that its the last thing to have an opinion about the scale of an object
     this.boneVisibilitySystem.tick();

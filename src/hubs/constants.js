@@ -23,6 +23,7 @@ module.exports = {
     INSTANCED_AVATAR: 21000, // Render last because of stencil ops
     INSTANCED_BEAM: 22000, // Render last because of stencil ops
     SKY: 100000,
+    HELPERS: 200000,
     CURSOR: 300000,
 
     // Transparent objects:

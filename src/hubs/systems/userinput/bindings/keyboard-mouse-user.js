@@ -103,12 +103,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 1001
     },
     {
-      src: { value: paths.device.keyboard.key("shift") },
-      dest: { value: paths.actions.transformModifier },
-      xform: xforms.copy,
-      priority: 1001
-    },
-    {
       src: { value: paths.device.hud.penButton },
       dest: { value: togglePenWithHud },
       xform: xforms.rising
@@ -464,6 +458,34 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 2
     },
     {
+      src: {
+        bool: paths.device.keyboard.key("shift"),
+        value: paths.device.keyboard.key("q")
+      },
+      dest: { value: notShiftQ },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("shift"),
+        value: paths.device.keyboard.key("e")
+      },
+      dest: { value: notShiftE },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: { value: notShiftQ },
+      dest: { value: paths.actions.prevGuidePlaneMode },
+      xform: xforms.rising
+    },
+    {
+      src: { value: notShiftE },
+      dest: { value: paths.actions.nextGuidePlaneMode },
+      xform: xforms.rising
+    },
+    {
       src: [dropViaMouse, dropViaKeyboard],
       dest: { value: paths.actions.cursor.right.drop },
       xform: xforms.any,
@@ -751,6 +773,42 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       src: [stopInspectingViaKeyboardEscape, stopInspectingViaKeyboardFocusRelease],
       dest: { value: paths.actions.stopInspecting },
       xform: xforms.any
+    }
+  ],
+  [sets.transforming]: [
+    {
+      src: {
+        bool: paths.device.keyboard.key("shift"),
+        value: paths.device.keyboard.key("q")
+      },
+      dest: { value: notShiftQ },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("shift"),
+        value: paths.device.keyboard.key("e")
+      },
+      dest: { value: notShiftE },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: { value: notShiftQ },
+      dest: { value: paths.actions.prevGuidePlaneMode },
+      xform: xforms.rising
+    },
+    {
+      src: { value: notShiftE },
+      dest: { value: paths.actions.nextGuidePlaneMode },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.key("shift") },
+      dest: { value: paths.actions.transformModifier },
+      xform: xforms.copy,
+      priority: 1001
     }
   ],
   [sets.debugUserInput]: [

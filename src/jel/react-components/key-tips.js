@@ -213,7 +213,7 @@ const TIP_DATA = {
   ],
   pointer_exited_muted: [["unmute", "L+m", "toggleMuteKey"], ["hide", "?"]],
   pointer_exited_unmuted: [["mute", "L+m", "toggleMuteKey"], ["hide", "?"]],
-  holding_interactable: [["pull", "R"], ["scale", "H+R"]],
+  holding_interactable: [["pull", "R"], ["scale", "H+R"], ["guides", "q\\e"]],
   hover_interactable: objectCommonTips.filter(x => x[0] !== "bake"),
   hover_bakable_interactable: objectCommonTips,
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
@@ -225,7 +225,7 @@ const TIP_DATA = {
     ["font", "t\\g"],
     ...objectCommonTips.filter(t => t[0] !== "open")
   ],
-  rotate: [["rotate", "G"], ["roll", "H+G"]],
+  rotate: [["rotate", "G"], ["roll", "H+G"], ["guides", "q\\e"]],
   scale: [["scale", "G"]],
   focus: [["zoom", "R"]],
   text_editor: [

@@ -127,6 +127,7 @@ AFRAME.registerSystem("scale-object", {
         this.transformSelectedObjectSystem =
           this.transformSelectedObjectSystem || this.el.systems["transform-selected-object"];
         this.transformSelectedObjectSystem.transforming = false;
+        this.transformSelectedObjectSystem.target = null;
       }
     };
   },

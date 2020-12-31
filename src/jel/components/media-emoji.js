@@ -115,6 +115,10 @@ AFRAME.registerComponent("media-emoji", {
     }
   },
 
+  handleMediaInteraction() {
+    // Unused
+  },
+
   remove() {
     disposeExistingMesh(this.el);
 

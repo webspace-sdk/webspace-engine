@@ -108,11 +108,10 @@ export class AppAwareMouseDevice {
     const lockedMode = !!document.pointerLockElement;
 
     this.transformSystem = this.transformSystem || AFRAME.scenes[0].systems["transform-selected-object"];
-    this.scaleSystem = this.transformSystem || AFRAME.scenes[0].systems["scale-object"];
+    this.scaleSystem = this.scaleSystem || AFRAME.scenes[0].systems["scale-object"];
     this.cameraSystem = this.cameraSystem || AFRAME.scenes[0].systems["hubs-systems"].cameraSystem;
     const isTransforming =
-      (this.transformSystem && this.transformSystem.transforming) ||
-      (this.scalingSystem && this.scalingSystem.isScaling);
+      (this.transformSystem && this.transformSystem.transforming) || (this.scaleSystem && this.scaleSystem.isScaling);
 
     // Reset gaze cursor to center if user moves or clicks on environment
     if (lockedMode) {

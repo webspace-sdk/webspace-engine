@@ -1,5 +1,4 @@
 import { paths } from "./userinput/paths";
-import mixpanel from "mixpanel-browser";
 
 // Every frame, looks for input paths that trigger UI-relevant events and handles them.
 AFRAME.registerSystem("ui-hotkeys", {
