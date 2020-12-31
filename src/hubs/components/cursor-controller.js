@@ -1,7 +1,6 @@
 import { paths } from "../systems/userinput/paths";
 import { sets } from "../systems/userinput/sets";
 import { almostEqualVec3, getLastWorldPosition } from "../utils/three-utils";
-import { CURSOR_LOCK_STATES, getCursorLockState } from "../../jel/utils/dom-utils";
 import { RENDER_ORDER } from "../constants";
 
 const HIGHLIGHT = new THREE.Color(0, 0xec / 255, 0xff / 255);

@@ -56,7 +56,7 @@ let lastKnownCursorCoords = null;
 //
 // Ephemeral lock is used for cases where a user is holding a key
 // or button for duration of the clock.
-export const lockCursor = (ephemeral = false) => {
+const lockCursor = (ephemeral = false) => {
   if (document.pointerLockElement) return; // Already locked, no-op
 
   const scene = AFRAME.scenes[0];
@@ -67,6 +67,8 @@ export const lockCursor = (ephemeral = false) => {
   lastCursorLockState = ephemeral ? CURSOR_LOCK_STATES.EPHEMERAL : CURSOR_LOCK_STATES.PERSISTENT;
   canvas.requestPointerLock();
 };
+
+export const beginEphemeralCursorLock = () => lockCursor(true);
 
 export const releaseEphemeralCursorLock = () => {
   if (!document.pointerLockElement) return;

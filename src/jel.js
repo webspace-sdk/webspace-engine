@@ -706,12 +706,12 @@ function setupNonVisibleHandler(scene) {
         apply(true);
       }, 500);
     });
-
-    window.addEventListener("focus", () => {
-      clearTimeout(windowBlurredTimeout);
-      apply(false);
-    });
   }
+
+  window.addEventListener("focus", () => {
+    clearTimeout(windowBlurredTimeout);
+    apply(false);
+  });
 }
 
 function setupSidePanelLayout(scene) {

@@ -231,17 +231,21 @@ export class AppAwareMouseDevice {
           lockCursorInitialY = 0;
 
         if (!useGazeCursor) {
+          // This is the case when the user has a ephemeral cursor lock for eg a tansform: we don't want to reposition
+          // the cursor to the center of the screen since that will cause the transform to apply the delta between
+          // the screen position of the cursor before locking and the center.
           const [x, y] = getLastKnownUnlockedCursorCoords();
           lockCursorInitialX = x;
           lockCursorInitialY = y;
         }
 
+        // Clamp final screen space pose for cursor so dragging object over edge does not go past end of screen
         frame.setPose(
           paths.device.smartMouse.cursorPose,
           calculateCursorPose(
             this.camera,
-            lockCursorInitialX + this.lockClickCoordDelta[0],
-            lockCursorInitialY + this.lockClickCoordDelta[1],
+            Math.max(-0.8, Math.min(0.8, lockCursorInitialX + this.lockClickCoordDelta[0])),
+            Math.max(-0.8, Math.min(0.8, lockCursorInitialY + this.lockClickCoordDelta[1])),
             this.origin,
             this.direction,
             this.cursorPose

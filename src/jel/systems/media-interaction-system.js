@@ -8,7 +8,7 @@ import {
 import { TRANSFORM_MODE } from "../../hubs/components/transform-object-button";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { ensureOwnership, getNetworkedEntity } from "../../jel/utils/ownership-utils";
-import { releaseEphemeralCursorLock, lockCursor } from "../utils/dom-utils";
+import { releaseEphemeralCursorLock, beginEphemeralCursorLock } from "../utils/dom-utils";
 
 const REMOVE_ACTION_MAX_DELAY_MS = 500.0;
 
@@ -104,14 +104,14 @@ export class MediaInteractionSystem {
             if (!ensureOwnership(targetEl)) return;
 
             if (interactionType === MEDIA_INTERACTION_TYPES.ROTATE) {
-              lockCursor(true);
+              beginEphemeralCursorLock();
 
               this.transformSystem = this.transformSystem || this.scene.systems["transform-selected-object"];
               this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
                 mode: TRANSFORM_MODE.CURSOR
               });
             } else if (interactionType === MEDIA_INTERACTION_TYPES.SCALE) {
-              lockCursor(true);
+              beginEphemeralCursorLock();
 
               this.scaleSystem = this.scaleSystem || this.scene.systems["scale-object"];
               this.scaleSystem.startScaling(targetEl.object3D, this.rightHand.object3D);
