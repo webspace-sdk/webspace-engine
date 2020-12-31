@@ -24,6 +24,8 @@ const downKeyPath = paths.device.keyboard.key("arrowdown");
 const leftKeyPath = paths.device.keyboard.key("arrowleft");
 const rightKeyPath = paths.device.keyboard.key("arrowright");
 
+const HIDE_CURSOR_AFTER_IDLE_MS = 5000.0;
+
 const calculateCursorPose = function(camera, cursorX, cursorY, origin, direction, cursorPose) {
   camera.updateMatrices();
   origin.setFromMatrixPosition(camera.matrixWorld);
@@ -51,6 +53,7 @@ export class AppAwareMouseDevice {
     this.direction = new THREE.Vector3();
     this.prevDirection = new THREE.Vector3();
     this.transformSystem = null;
+    this.hideCursorAfterIdleTime = Infinity;
   }
 
   write(frame) {
@@ -158,10 +161,16 @@ export class AppAwareMouseDevice {
     const movementXScreen = movementXY[0] / 1000.0;
     const movementYScreen = -movementXY[1] / 1000.0;
 
+    if (Math.abs(movementXScreen) > 0.0 || Math.abs(movementYScreen) > 0.0) {
+      this.hideCursorAfterIdleTime = performance.now() + HIDE_CURSOR_AFTER_IDLE_MS;
+    }
+
     if (cursorIsLocked && (this.grabGesturedAnything || isTransforming)) {
       this.lockClickCoordDelta[0] += movementXScreen;
       this.lockClickCoordDelta[1] += movementYScreen;
     }
+
+    const now = performance.now();
 
     // Handle screen space gaze cursor that uses CSS
     const showCSSCursor =
@@ -169,7 +178,8 @@ export class AppAwareMouseDevice {
       this.lockClickCoordDelta[0] === 0 &&
       this.lockClickCoordDelta[1] === 0 &&
       !isTransforming &&
-      !this.grabGesturedAnything;
+      !this.grabGesturedAnything &&
+      now < this.hideCursorAfterIdleTime;
 
     // The 3D cursor visibility is coordinated via CSS classes on the body.
     const show3DCursor =
@@ -177,7 +187,8 @@ export class AppAwareMouseDevice {
       !isTransforming &&
       !this.grabGesturedAnything &&
       !showCSSCursor &&
-      !isMouseLookingGesture;
+      !isMouseLookingGesture &&
+      now < this.hideCursorAfterIdleTime;
 
     const bodyClassList = document.body.classList;
 
