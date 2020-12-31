@@ -24,6 +24,11 @@ export class KeyboardDevice {
         const store = window.APP.store;
         const isGameFocused = document.activeElement === canvas || document.activeElement === document.body;
 
+        // Prevent default on control key press *after* R to prevent reload during rotation/roll
+        if (e.ctrlKey && e.type === "keydown" && this.codes.get("keyr")) {
+          e.preventDefault();
+        }
+
         if (isGameFocused && e.key === "Tab") {
           // Tab is used for object movement
           e.preventDefault();
