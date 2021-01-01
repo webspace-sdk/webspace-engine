@@ -204,6 +204,16 @@ function registerNetworkSchemas() {
   SAF.schemas.add(interactableMediaSchema);
 
   NAF.schemas.add({
+    template: "#projectile-emoji",
+    components: [
+      {
+        component: "projectile-emoji",
+        property: "emoji"
+      }
+    ]
+  });
+
+  NAF.schemas.add({
     template: "#static-media",
     components: [
       // TODO: Optimize checking mediaOptions with requiresNetworkUpdate.

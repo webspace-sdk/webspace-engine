@@ -149,7 +149,7 @@ export class UIAnimationSystem {
   // Returns true if was applied successfully
   applyUI(left, right) {
     const body = document.body;
-    const canvas = AFRAME.scenes[0].canvas;
+    const canvas = this.sceneEl.canvas;
 
     const width = body.clientWidth - left - right;
     const gazeCursor = document.getElementById("gaze-cursor");

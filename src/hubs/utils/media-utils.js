@@ -798,3 +798,21 @@ export function performAnimatedRemove(el, callback) {
     }, 500);
   });
 }
+
+export function emojiUnicode(characters, prefix = "") {
+  return [...characters]
+    .reduce((accumulator, character) => {
+      const unicode = character.codePointAt(undefined).toString(16);
+      accumulator.push(`${prefix}${unicode}`);
+      return accumulator;
+    }, [])
+    .join("-")
+    .toUpperCase();
+}
+
+const EMOJI_IMAGE_URL = "https://assets.jel.app/static/emoji";
+
+export function imageUrlForEmoji(emoji, resolution) {
+  const unicode = emojiUnicode(emoji).toUpperCase();
+  return `${EMOJI_IMAGE_URL}/${unicode}-${resolution}.png`;
+}
