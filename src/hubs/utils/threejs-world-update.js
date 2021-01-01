@@ -15,7 +15,7 @@ export const WORLD_MATRIX_CONSUMERS = {
   VOXMOJI: 2
 };
 
-// Debug flag will log all matrix needs update sets
+// Debug flag will log all matrix needs update sets and explicit computes
 if (debugMatrices) {
   const seen = new Map();
 
@@ -25,17 +25,28 @@ if (debugMatrices) {
     return obj.stack;
   };
 
+  THREE.Object3D.prototype.traceCallIf = function(trace, label) {
+    const stack = getStackTrace();
+    if ((trace && !seen.has(stack)) || performance.now() > seen.get(stack)) {
+      seen.set(stack, performance.now() + 10000);
+      let info = stack;
+
+      if (this.el) {
+        info = label + "\n" + this.el.outerHTML + "\n" + info;
+      } else {
+        info = label + "\n" + "No Element" + "\n" + info;
+      }
+
+      console.log(info);
+    }
+  };
+
   Object.defineProperty(THREE.Object3D.prototype, "matrixNeedsUpdate", {
     get: function getMatrixNeedsUpdate() {
       return this._matrixNeedsUpdate;
     },
     set: function setMatrixNeedsUpdate(matrixNeedsUpdate) {
-      const stack = getStackTrace();
-      if (!seen.has(stack) || performance.now() > seen.get(stack)) {
-        seen.set(stack, performance.now() + 10000);
-        console.log(stack);
-      }
-
+      this.traceCallIf(matrixNeedsUpdate, "dirty");
       this._matrixNeedsUpdate = matrixNeedsUpdate;
     }
   });
@@ -176,61 +187,127 @@ THREE.Object3D.prototype.updateWorldMatrix = function(updateParents, updateChild
 //
 // skipParents - unless true, all parent matricies are updated before updating this object's
 // local and world matrix.
-//
-THREE.Object3D.prototype.updateMatrices = function(forceLocalUpdate, forceWorldUpdate, skipParents) {
-  if (!this.hasHadFirstMatrixUpdate) {
-    if (
-      !this.position.equals(zeroPos) ||
-      !this.quaternion.equals(zeroQuat) ||
-      !this.scale.equals(oneScale) ||
-      !this.matrix.equals(identity)
-    ) {
-      // Only update the matrix the first time if its non-identity, this way
-      // this.matrixIsModified will remain false until the default
-      // identity matrix is updated.
-      this.updateMatrix();
-    }
 
-    this.hasHadFirstMatrixUpdate = true;
-    this.matrixWorldNeedsUpdate = true;
-    this.matrixNeedsUpdate = false;
-    this.worldMatrixConsumerFlags = 0x00;
-    this.cachedMatrixWorld = this.matrixWorld;
-  } else if (this.matrixNeedsUpdate || this.matrixAutoUpdate || forceLocalUpdate) {
-    // updateMatrix() sets matrixWorldNeedsUpdate = true
-    this.updateMatrix();
-    if (this.matrixNeedsUpdate) this.matrixNeedsUpdate = false;
-  }
-
-  if (!skipParents && this.parent) {
-    this.parent.updateMatrices(false, forceWorldUpdate, false);
-    this.matrixWorldNeedsUpdate = this.matrixWorldNeedsUpdate || this.parent.childrenNeedMatrixWorldUpdate;
-  }
-
-  if (this.matrixWorldNeedsUpdate || forceWorldUpdate) {
-    if (this.parent === null) {
-      this.matrixWorld.copy(this.matrix);
-    } else {
-      // If the matrix is unmodified, it is the identity matrix,
-      // and hence we can use the parent's world matrix directly.
-      //
-      // Note this assumes all callers will either not pass skipParents=true
-      // *or* will update the parent themselves beforehand as is done in
-      // updateMatrixWorld.
-      if (!this.matrixIsModified) {
-        this.matrixWorld = this.parent.matrixWorld;
-      } else {
-        // Once matrixIsModified === true, this.matrixWorld has been updated to be a local
-        // copy, not a reference to this.parent.matrixWorld (see updateMatrix/applyMatrix)
-        this.matrixWorld.multiplyMatrices(this.parent.matrixWorld, this.matrix);
+// There are two versions, one is a debugging version
+if (!debugMatrices) {
+  THREE.Object3D.prototype.updateMatrices = function(forceLocalUpdate, forceWorldUpdate, skipParents) {
+    if (!this.hasHadFirstMatrixUpdate) {
+      if (
+        !this.position.equals(zeroPos) ||
+        !this.quaternion.equals(zeroQuat) ||
+        !this.scale.equals(oneScale) ||
+        !this.matrix.equals(identity)
+      ) {
+        // Only update the matrix the first time if its non-identity, this way
+        // this.matrixIsModified will remain false until the default
+        // identity matrix is updated.
+        this.updateMatrix();
       }
+
+      this.hasHadFirstMatrixUpdate = true;
+      this.matrixWorldNeedsUpdate = true;
+      this.matrixNeedsUpdate = false;
+      this.worldMatrixConsumerFlags = 0x00;
+      this.cachedMatrixWorld = this.matrixWorld;
+    } else if (this.matrixNeedsUpdate || this.matrixAutoUpdate || forceLocalUpdate) {
+      // updateMatrix() sets matrixWorldNeedsUpdate = true
+      this.updateMatrix();
+      if (this.matrixNeedsUpdate) this.matrixNeedsUpdate = false;
     }
 
-    this.childrenNeedMatrixWorldUpdate = true;
-    this.matrixWorldNeedsUpdate = false;
-    this.worldMatrixConsumerFlags = 0x00;
-  }
-};
+    if (!skipParents && this.parent) {
+      this.parent.updateMatrices(false, forceWorldUpdate, false);
+      this.matrixWorldNeedsUpdate = this.matrixWorldNeedsUpdate || this.parent.childrenNeedMatrixWorldUpdate;
+    }
+
+    if (this.matrixWorldNeedsUpdate || forceWorldUpdate) {
+      if (this.parent === null) {
+        this.matrixWorld.copy(this.matrix);
+      } else {
+        // If the matrix is unmodified, it is the identity matrix,
+        // and hence we can use the parent's world matrix directly.
+        //
+        // Note this assumes all callers will either not pass skipParents=true
+        // *or* will update the parent themselves beforehand as is done in
+        // updateMatrixWorld.
+        if (!this.matrixIsModified) {
+          this.matrixWorld = this.parent.matrixWorld;
+        } else {
+          // Once matrixIsModified === true, this.matrixWorld has been updated to be a local
+          // copy, not a reference to this.parent.matrixWorld (see updateMatrix/applyMatrix)
+          this.matrixWorld.multiplyMatrices(this.parent.matrixWorld, this.matrix);
+        }
+      }
+
+      this.childrenNeedMatrixWorldUpdate = true;
+      this.matrixWorldNeedsUpdate = false;
+      this.worldMatrixConsumerFlags = 0x00;
+    }
+  };
+} else {
+  // DEBUG VERSION - should copy above version and add DEBUG block to trace
+  THREE.Object3D.prototype.updateMatrices = function(forceLocalUpdate, forceWorldUpdate, skipParents) {
+    // DEBUG BLOCK, TRACE explicit updates not using dirty flag
+    this.traceCallIf(
+      !this.matrixNeedsUpdate && (this.matrixAutoUpdate || forceLocalUpdate || forceWorldUpdate),
+      this.matrixAutoUpdate ? "auto" : forceLocalUpdate ? "local" : "world"
+    );
+    //
+
+    if (!this.hasHadFirstMatrixUpdate) {
+      if (
+        !this.position.equals(zeroPos) ||
+        !this.quaternion.equals(zeroQuat) ||
+        !this.scale.equals(oneScale) ||
+        !this.matrix.equals(identity)
+      ) {
+        // Only update the matrix the first time if its non-identity, this way
+        // this.matrixIsModified will remain false until the default
+        // identity matrix is updated.
+        this.updateMatrix();
+      }
+
+      this.hasHadFirstMatrixUpdate = true;
+      this.matrixWorldNeedsUpdate = true;
+      this.matrixNeedsUpdate = false;
+      this.worldMatrixConsumerFlags = 0x00;
+      this.cachedMatrixWorld = this.matrixWorld;
+    } else if (this.matrixNeedsUpdate || this.matrixAutoUpdate || forceLocalUpdate) {
+      // updateMatrix() sets matrixWorldNeedsUpdate = true
+      this.updateMatrix();
+      if (this.matrixNeedsUpdate) this.matrixNeedsUpdate = false;
+    }
+
+    if (!skipParents && this.parent) {
+      this.parent.updateMatrices(false, forceWorldUpdate, false);
+      this.matrixWorldNeedsUpdate = this.matrixWorldNeedsUpdate || this.parent.childrenNeedMatrixWorldUpdate;
+    }
+
+    if (this.matrixWorldNeedsUpdate || forceWorldUpdate) {
+      if (this.parent === null) {
+        this.matrixWorld.copy(this.matrix);
+      } else {
+        // If the matrix is unmodified, it is the identity matrix,
+        // and hence we can use the parent's world matrix directly.
+        //
+        // Note this assumes all callers will either not pass skipParents=true
+        // *or* will update the parent themselves beforehand as is done in
+        // updateMatrixWorld.
+        if (!this.matrixIsModified) {
+          this.matrixWorld = this.parent.matrixWorld;
+        } else {
+          // Once matrixIsModified === true, this.matrixWorld has been updated to be a local
+          // copy, not a reference to this.parent.matrixWorld (see updateMatrix/applyMatrix)
+          this.matrixWorld.multiplyMatrices(this.parent.matrixWorld, this.matrix);
+        }
+      }
+
+      this.childrenNeedMatrixWorldUpdate = true;
+      this.matrixWorldNeedsUpdate = false;
+      this.worldMatrixConsumerFlags = 0x00;
+    }
+  };
+}
 
 // Computes this object's matrices and then the recursively computes the matrices of all the children.
 //
@@ -259,6 +336,7 @@ THREE.Object3D.prototype.lookAt = (function() {
   // This method does not support objects having non-uniformly-scaled parent(s)
 
   const q1 = new THREE.Quaternion();
+  const q2 = new THREE.Quaternion();
   const m1 = new THREE.Matrix4();
   const target = new THREE.Vector3();
   const position = new THREE.Vector3();
@@ -285,14 +363,18 @@ THREE.Object3D.prototype.lookAt = (function() {
       m1.lookAt(target, position, this.up);
     }
 
-    this.quaternion.setFromRotationMatrix(m1);
+    q2.setFromRotationMatrix(m1);
 
     if (parent) {
       m1.extractRotation(parent.matrixWorld);
       q1.setFromRotationMatrix(m1);
-      this.quaternion.premultiply(q1.inverse());
+      q2.premultiply(q1.inverse());
     }
-    this.matrixNeedsUpdate = true;
+
+    if (q2.dot(this.quaternion) !== 1) {
+      this.quaternion.copy(q2);
+      this.matrixNeedsUpdate = true;
+    }
   };
 })();
 
