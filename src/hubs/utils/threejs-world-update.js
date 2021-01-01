@@ -1,3 +1,6 @@
+import qsTruthy from "./qs_truthy";
+const debugMatrices = qsTruthy("debug_matrices");
+
 const zeroPos = new THREE.Vector3(0, 0, 0);
 const zeroQuat = new THREE.Quaternion();
 const oneScale = new THREE.Vector3(1, 1, 1);
@@ -11,6 +14,32 @@ export const WORLD_MATRIX_CONSUMERS = {
   BEAMS: 1,
   VOXMOJI: 2
 };
+
+// Debug flag will log all matrix needs update sets
+if (debugMatrices) {
+  const seen = new Map();
+
+  const getStackTrace = function() {
+    const obj = {};
+    Error.captureStackTrace(obj, getStackTrace);
+    return obj.stack;
+  };
+
+  Object.defineProperty(THREE.Object3D.prototype, "matrixNeedsUpdate", {
+    get: function getMatrixNeedsUpdate() {
+      return this._matrixNeedsUpdate;
+    },
+    set: function setMatrixNeedsUpdate(matrixNeedsUpdate) {
+      const stack = getStackTrace();
+      if (!seen.has(stack) || performance.now() > seen.get(stack)) {
+        seen.set(stack, performance.now() + 10000);
+        console.log(stack);
+      }
+
+      this._matrixNeedsUpdate = matrixNeedsUpdate;
+    }
+  });
+}
 
 /**
 - If you modify an object's matrix
