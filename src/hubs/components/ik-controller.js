@@ -1,4 +1,5 @@
 import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { almostEqual } from "../utils/three-utils";
 import { isMine } from "../../jel/utils/ownership-utils";
 const { Vector3, Quaternion, Matrix4, Euler } = THREE;
 import BezierEasing from "bezier-easing";
@@ -287,10 +288,20 @@ AFRAME.registerComponent("ik-controller", {
       // hips will use vertex skinning to do the root displacement, which results in
       // frustum culling errors since three.js does not take into account skinning when
       // computing frustum culling sphere bounds.
-      avatar.position.x = headTransform.elements[12] + invHipsToHeadVector.x;
-      avatar.position.y = headTransform.elements[13] + invHipsToHeadVector.y;
-      avatar.position.z = headTransform.elements[14] + invHipsToHeadVector.z;
-      avatar.matrixNeedsUpdate = true;
+      const avatarX = headTransform.elements[12] + invHipsToHeadVector.x;
+      const avatarY = headTransform.elements[13] + invHipsToHeadVector.y;
+      const avatarZ = headTransform.elements[14] + invHipsToHeadVector.z;
+
+      if (
+        !almostEqual(avatarX, avatar.position.x) ||
+        !almostEqual(avatarY, avatar.position.y) ||
+        !almostEqual(avatarZ, avatar.position.z)
+      ) {
+        avatar.position.x = avatarX;
+        avatar.position.y = avatarY;
+        avatar.position.z = avatarZ;
+        avatar.matrixNeedsUpdate = true;
+      }
 
       if (hasHands) {
         const { invHipsQuaternion, cameraYRotation, cameraYQuaternion } = this;
