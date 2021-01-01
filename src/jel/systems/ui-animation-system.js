@@ -148,10 +148,16 @@ export class UIAnimationSystem {
 
   // Returns true if was applied successfully
   applyUI(left, right) {
-    const width = document.body.clientWidth - left - right;
+    const body = document.body;
+    const canvas = AFRAME.scenes[0].canvas;
+
+    const width = body.clientWidth - left - right;
     const gazeCursor = document.getElementById("gaze-cursor");
+
     if (gazeCursor) {
-      gazeCursor.style.cssText = `left: ${left}px; width: ${width}px;`;
+      const center = Math.floor(left + width / 2.0);
+      const top = Math.floor(canvas.clientHeight / 2.0);
+      gazeCursor.style.cssText = `left: ${center - 3}px; top: ${top - 3}px;`;
     }
 
     const wrap = document.getElementById("jel-ui-wrap");
