@@ -176,8 +176,9 @@ export class PhysicsSystem {
             const type = body.options.type ? body.options.type : TYPE.DYNAMIC;
             const object3D = body.object3D;
             const physicsNeedsUpdate = object3D.consumeIfDirtyWorldMatrix(WORLD_MATRIX_CONSUMERS.PHYSICS);
+            const hadInitialSync = body.hadInitialSync;
 
-            if (type === TYPE.DYNAMIC) {
+            if (type === TYPE.DYNAMIC && hadInitialSync) {
               matrix.fromArray(
                 this.objectMatricesFloatArray,
                 index * BUFFER_CONFIG.BODY_DATA_SIZE + BUFFER_CONFIG.MATRIX_OFFSET
@@ -209,6 +210,7 @@ export class PhysicsSystem {
               );
 
               this.needsTransfer = true;
+              if (!hadInitialSync) body.hadInitialSync = true;
             }
 
             body.linearVelocity = this.objectMatricesFloatArray[
@@ -283,7 +285,8 @@ export class PhysicsSystem {
       linearVelocity: 0,
       angularVelocity: 0,
       index: -1,
-      shapes: []
+      shapes: [],
+      hadInitialSync: false
     });
 
     return this.nextBodyUuid++;
