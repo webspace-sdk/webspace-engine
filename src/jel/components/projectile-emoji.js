@@ -16,6 +16,7 @@ AFRAME.registerComponent("projectile-emoji", {
     this.el.object3D.matrixNeedsUpdate = true;
     this.el.setObject3D("mesh", this.mesh);
     this.voxmojiSystem = this.el.sceneEl.systems["hubs-systems"].voxmojiSystem;
+    this.pendingInitialImpulse = true;
 
     const imageUrl = imageUrlForEmoji(this.data.emoji, 128);
     this.voxmojiSystem.register(imageUrl, this.mesh);
@@ -23,9 +24,17 @@ AFRAME.registerComponent("projectile-emoji", {
     this.el.setAttribute("shape-helper", { type: SHAPE.BOX, minHalfExtent: 0.04 });
   },
 
+  tick() {
+    const bodyHelper = this.el.components["body-helper"];
+
+    if (this.pendingInitialImpulse && bodyHelper && bodyHelper.ready) {
+      bodyHelper.applyImpulse(0, 10, 0);
+      this.pendingInitialImpulse = false;
+    }
+  },
+
   remove() {
     const { el, mesh, voxmojiSystem } = this;
-    console.log("remove");
     disposeExistingMesh(el);
     voxmojiSystem.unregister(mesh);
   }

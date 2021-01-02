@@ -26,6 +26,7 @@ export class PhysicsSystem {
 
     this.bodyHelpers = [];
     this.shapeHelpers = [];
+    this.bodyReadyCallbacks = new Map();
     this.bodyUuids = [];
     this.indexToUuid = {};
     this.bodyUuidToData = new Map();
@@ -229,6 +230,12 @@ export class PhysicsSystem {
                 body.collisions.push(this.indexToUuid[collidingIndex]);
               }
             }
+
+            if (this.bodyReadyCallbacks.has(uuid)) {
+              const resolver = this.bodyReadyCallbacks.get(uuid);
+              this.bodyReadyCallbacks.delete(uuid);
+              resolver(uuid);
+            }
           }
 
           if (this.needsTransfer) {
@@ -274,11 +281,14 @@ export class PhysicsSystem {
     this.ownsBuffer = false;
   }
 
-  addBody(object3D, options) {
-    this.workerHelpers.addBody(this.nextBodyUuid, object3D, options);
+  addBody(object3D, options, callback = null) {
+    const uuid = this.nextBodyUuid;
+    this.nextBodyUuid++;
+
+    this.workerHelpers.addBody(uuid, object3D, options);
     this.needsTransfer = true;
 
-    this.bodyUuidToData.set(this.nextBodyUuid, {
+    this.bodyUuidToData.set(uuid, {
       object3D: object3D,
       options: options,
       collisions: [],
@@ -289,7 +299,11 @@ export class PhysicsSystem {
       hadInitialSync: false
     });
 
-    return this.nextBodyUuid++;
+    if (callback) {
+      this.bodyReadyCallbacks.set(uuid, callback);
+    }
+
+    return uuid;
   }
 
   updateBody(uuid, options) {
@@ -307,6 +321,7 @@ export class PhysicsSystem {
     if (this.bodyUuidToData.has(uuid) && idx !== -1) {
       delete this.indexToUuid[this.bodyUuidToData.get(uuid).index];
       this.bodyUuidToData.delete(uuid);
+      this.bodyReadyCallbacks.delete(uuid);
       this.bodyUuids.splice(idx, 1);
       this.workerHelpers.removeBody(uuid);
       this.needsTransfer = true;
@@ -348,6 +363,14 @@ export class PhysicsSystem {
   removeConstraint(constraintId) {
     this.workerHelpers.removeConstraint(constraintId);
     this.needsTransfer = true;
+  }
+
+  applyImpulse(uuid, x, y, z) {
+    if (this.bodyUuidToData.has(uuid)) {
+      this.workerHelpers.applyImpulse(uuid, x, y, z);
+    } else {
+      console.warn(`applyImpulse called for uuid: ${uuid} but body missing.`);
+    }
   }
 
   registerBodyHelper(bodyHelper) {
