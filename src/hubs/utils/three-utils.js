@@ -107,6 +107,9 @@ export const IDENTITY_QUATERNION = new THREE.Quaternion();
 export const ONES = new THREE.Vector3(1, 1, 1);
 
 export function setMatrixWorld(object3D, m) {
+  // Check for equality to avoid invaliding children matrices
+  if (object3D.matrixWorld.equals(m)) return;
+
   if (!object3D.matrixIsModified) {
     object3D.applyMatrix(IDENTITY); // hack around our matrix optimizations
   }
@@ -337,6 +340,9 @@ export function almostEqual(a, b, epsilon = 0.01) {
 }
 export function almostEqualVec3(a, b, epsilon = 0.01) {
   return almostEqual(a.x, b.x, epsilon) && almostEqual(a.y, b.y, epsilon) && almostEqual(a.z, b.z, epsilon);
+}
+export function almostEqualQuaternion(a, b) {
+  return Math.abs(a.dot(b) - 1.0) < 0.000001;
 }
 
 export const affixToWorldUp = (function() {

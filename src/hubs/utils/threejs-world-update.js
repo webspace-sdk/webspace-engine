@@ -1,4 +1,5 @@
 import qsTruthy from "./qs_truthy";
+import { almostEqualQuaternion } from "./three-utils";
 const debugMatrices = qsTruthy("debug_matrices");
 
 const zeroPos = new THREE.Vector3(0, 0, 0);
@@ -27,7 +28,7 @@ if (debugMatrices) {
 
   THREE.Object3D.prototype.traceCallIf = function(trace, label) {
     const stack = getStackTrace();
-    if ((trace && !seen.has(stack)) || performance.now() > seen.get(stack)) {
+    if (trace && (!seen.has(stack) || performance.now() > seen.get(stack))) {
       seen.set(stack, performance.now() + 10000);
       let info = stack;
 
@@ -250,7 +251,11 @@ if (!debugMatrices) {
     // DEBUG BLOCK, TRACE explicit updates not using dirty flag
     this.traceCallIf(
       !this.matrixNeedsUpdate && (this.matrixAutoUpdate || forceLocalUpdate || forceWorldUpdate),
-      this.matrixAutoUpdate ? "auto" : forceLocalUpdate ? "local" : "world"
+      this.matrixAutoUpdate
+        ? `auto ${this.matrixAutoUpdate}`
+        : forceLocalUpdate
+          ? `local ${forceLocalUpdate}`
+          : `world ${forceWorldUpdate}`
     );
     //
 
@@ -371,7 +376,7 @@ THREE.Object3D.prototype.lookAt = (function() {
       q2.premultiply(q1.inverse());
     }
 
-    if (q2.dot(this.quaternion) !== 1) {
+    if (!almostEqualQuaternion(this.quaternion, q2)) {
       this.quaternion.copy(q2);
       this.matrixNeedsUpdate = true;
     }

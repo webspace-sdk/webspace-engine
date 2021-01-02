@@ -1,5 +1,5 @@
 import { waitForDOMContentLoaded } from "../utils/async-utils";
-import { almostEqual } from "../utils/three-utils";
+import { almostEqual, almostEqualQuaternion } from "../utils/three-utils";
 import { isMine } from "../../jel/utils/ownership-utils";
 const { Vector3, Quaternion, Matrix4, Euler } = THREE;
 import BezierEasing from "bezier-easing";
@@ -344,11 +344,20 @@ AFRAME.registerComponent("ik-controller", {
         rootToChest.multiplyMatrices(avatar.matrix, chest.matrix);
         invRootToChest.getInverse(rootToChest);
 
+        // TODO optimize
+
         neck.matrixNeedsUpdate = true;
         chest.matrixNeedsUpdate = true;
+        root.matrixNeedsUpdate = true;
+        head.matrixNeedsUpdate = true;
       } else {
         this.hasConvergedHips = true;
-        head.quaternion.setFromRotationMatrix(headTransform);
+        this.headQuaternion.setFromRotationMatrix(headTransform);
+
+        if (!almostEqualQuaternion(this.headQuaternion, head.quaternion)) {
+          head.quaternion.copy(this.headQuaternion);
+          head.matrixNeedsUpdate = true;
+        }
       }
 
       let feedbackScale = 1.0;
@@ -372,12 +381,9 @@ AFRAME.registerComponent("ik-controller", {
         }
       }
 
-      if (this.data.instanceHeads) {
+      if (this.data.instanceHeads && head.matrixNeedsUpdate) {
         this.avatarSystem.markMatrixDirty(this.el);
       }
-
-      root.matrixNeedsUpdate = true;
-      head.matrixNeedsUpdate = true;
     }
 
     const { leftHand, rightHand } = this;

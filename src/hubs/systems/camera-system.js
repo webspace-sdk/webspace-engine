@@ -389,8 +389,6 @@ export class CameraSystem {
 
       if (this.mode === CAMERA_MODE_FIRST_PERSON) {
         this.viewingCameraRotator.on = false;
-        this.avatarRig.object3D.updateMatrices();
-        setMatrixWorld(this.viewingRig.object3D, this.avatarRig.object3D.matrixWorld);
         if (scene.is("vr-mode")) {
           this.viewingCamera.object3DMap.camera.updateMatrices();
           setMatrixWorld(this.avatarPOV.object3D, this.viewingCamera.object3DMap.camera.matrixWorld);
