@@ -27,7 +27,6 @@ export class CursorTogglingSystem {
       this.leftCursorController = document.getElementById("left-cursor-controller").components["cursor-controller"];
       this.rightHandTeleporter = document.getElementById("player-right-controller").components["teleporter"];
       this.leftHandTeleporter = document.getElementById("player-left-controller").components["teleporter"];
-      this.gazeTeleporter = document.getElementById("gaze-teleport").components["teleporter"];
     }
 
     const rightRemote = interaction.state.rightRemote;
@@ -52,25 +51,13 @@ export class CursorTogglingSystem {
     const inspectingInVR = interaction.el.systems["hubs-systems"].cameraSystem.inspected; // && this.el.sceneEl.is("vr-mode");
     const shouldEnableLeftRemote =
       !inspectingInVR &&
-      shouldEnableRemote(
-        scene,
-        leftHand,
-        leftRemote,
-        this.leftHandTeleporter.isTeleporting || this.gazeTeleporter.isTeleporting,
-        this.wakeLeft
-      );
+      shouldEnableRemote(scene, leftHand, leftRemote, this.leftHandTeleporter.isTeleporting, this.wakeLeft);
     const isMobile = AFRAME.utils.device.isMobile();
     const shouldEnableRightRemote =
       isMobile ||
       hackyMobileSafariTest() ||
       (!inspectingInVR &&
-        shouldEnableRemote(
-          scene,
-          rightHand,
-          rightRemote,
-          this.rightHandTeleporter.isTeleporting || this.gazeTeleporter.isTeleporting,
-          this.wakeRight
-        ));
+        shouldEnableRemote(scene, rightHand, rightRemote, this.rightHandTeleporter.isTeleporting, this.wakeRight));
 
     if (!shouldEnableLeftRemote) {
       leftRemote.hovered = null;
