@@ -18,8 +18,6 @@ const {
   UniformsUtils
 } = THREE;
 
-const VOXMOJI_WIDTH = 128;
-const VOXMOJI_HEIGHT = 128;
 const VOXMOJI_MAP_ROWS_COLS = 4;
 const MAX_VOXMOJI_PER_TYPE = 256;
 const MAX_TYPES = 1024;
@@ -246,9 +244,8 @@ export class VoxmojiSystem {
       return this.imageUrlToType.get(imageUrl);
     }
 
-    if (image.width !== VOXMOJI_WIDTH || image.height !== VOXMOJI_HEIGHT) {
-      throw new Error("Bad image size", image.width, image.height);
-    }
+    const width = image.width;
+    const height = image.height;
 
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -257,7 +254,7 @@ export class VoxmojiSystem {
     ctx.drawImage(image, 0, 0, image.width, image.height);
     const imgBuffer = ctx.getImageData(0, 0, image.width, image.height);
     const imgData = imgBuffer.data;
-    const get = (x, y, offset) => imgData[y * VOXMOJI_WIDTH * 4 + x * 4 + offset];
+    const get = (x, y, offset) => imgData[y * width * 4 + x * 4 + offset];
     const getAlpha = (x, y) => get(x, y, 3);
 
     const data = [];
@@ -265,20 +262,20 @@ export class VoxmojiSystem {
 
     // Build up voxel data if needed and compute a hash code of the alpha
     // mask of the image, which determines wihch mesh to use.
-    for (let x = 0; x < VOXMOJI_WIDTH; x++) {
-      for (let y = 0; y < VOXMOJI_HEIGHT; y++) {
+    for (let x = 0; x < width; x++) {
+      for (let y = 0; y < height; y++) {
         const a = getAlpha(x, y);
 
         if (a < 255) {
-          meshKeyParts.push(7 * (x + VOXMOJI_WIDTH * y));
+          meshKeyParts.push(7 * (x + width * y));
           continue;
         }
 
-        meshKeyParts.push(13 * (x + VOXMOJI_WIDTH * y));
+        meshKeyParts.push(13 * (x + width * y));
 
         data.push(x);
         data.push(0);
-        data.push(VOXMOJI_HEIGHT - y - 1);
+        data.push(height - y - 1);
         data.push(0);
       }
     }
@@ -287,7 +284,7 @@ export class VoxmojiSystem {
     const meshKey = meshKeyParts.reduce((x, y) => x + y, 0);
 
     if (!this.meshes.has(meshKey)) {
-      this.generateAndRegisterMesh(meshKey, data);
+      this.generateAndRegisterMesh(meshKey, data, width, height);
     }
 
     const mapIndex = this.registerMapToMesh(meshKey, image);
@@ -358,12 +355,13 @@ export class VoxmojiSystem {
     const meshEntry = this.meshes.get(meshKey);
     const { mesh, maxMapIndex, mapContext, texture } = meshEntry;
     const mapIndex = maxMapIndex + 1;
+    const { width, height } = image;
 
     // Blit this map in. No gutter needed because it's nearest filtering.
     const col = Math.floor(mapIndex / VOXMOJI_MAP_ROWS_COLS);
     const row = mapIndex - col * VOXMOJI_MAP_ROWS_COLS;
-    const x = row * VOXMOJI_WIDTH;
-    const y = VOXMOJI_MAP_ROWS_COLS * VOXMOJI_HEIGHT - (col + 1) * VOXMOJI_HEIGHT;
+    const x = row * width;
+    const y = VOXMOJI_MAP_ROWS_COLS * height - (col + 1) * height;
     mapContext.drawImage(image, x, y, image.width, image.height);
 
     texture.needsUpdate = true;
@@ -373,16 +371,16 @@ export class VoxmojiSystem {
     return mapIndex;
   }
 
-  generateAndRegisterMesh(meshKey, chunkData) {
+  generateAndRegisterMesh(meshKey, chunkData, width, height) {
     const chunk = {
       data: chunkData,
       palette: [0x00000000],
-      size: { x: VOXMOJI_WIDTH, y: 1, z: VOXMOJI_HEIGHT }
+      size: { x: width, y: 1, z: height }
     };
 
     const canvas = document.createElement("canvas");
-    canvas.width = VOXMOJI_MAP_ROWS_COLS * VOXMOJI_WIDTH;
-    canvas.height = VOXMOJI_MAP_ROWS_COLS * VOXMOJI_HEIGHT;
+    canvas.width = VOXMOJI_MAP_ROWS_COLS * width;
+    canvas.height = VOXMOJI_MAP_ROWS_COLS * height;
 
     const context = canvas.getContext("2d");
     const texture = new CanvasTexture(canvas);
@@ -409,15 +407,15 @@ export class VoxmojiSystem {
       const nx = normalArray[i];
       const ny = normalArray[i + 1];
 
-      const uvDiscreteX = x + VOXMOJI_WIDTH / 2;
-      const uvDiscreteY = VOXMOJI_HEIGHT - y - VOXMOJI_HEIGHT / 2 - 1;
+      const uvDiscreteX = x + width / 2;
+      const uvDiscreteY = height - y - height / 2 - 1;
 
       // Nudge it to be on the proper side of the texel edge
-      const nudgeX = (1.0 / VOXMOJI_WIDTH) * 0.01 * (nx < 0 ? 1 : -1);
-      const nudgeY = (1.0 / VOXMOJI_HEIGHT) * 0.01 * (ny < 0 ? 1 : -1);
+      const nudgeX = (1.0 / width) * 0.01 * (nx < 0 ? 1 : -1);
+      const nudgeY = (1.0 / height) * 0.01 * (ny < 0 ? 1 : -1);
 
-      const u = (uvDiscreteX * 1.0) / VOXMOJI_WIDTH + nudgeX;
-      const v = 1.0 - ((uvDiscreteY * 1.0) / VOXMOJI_HEIGHT + 1.0 / VOXMOJI_HEIGHT) + nudgeY;
+      const u = (uvDiscreteX * 1.0) / width + nudgeX;
+      const v = 1.0 - ((uvDiscreteY * 1.0) / height + 1.0 / height) + nudgeY;
 
       uvs.push(u);
       uvs.push(v);
@@ -435,8 +433,8 @@ export class VoxmojiSystem {
     const quadVertIndex = vertices.length / 3;
 
     // Top left front
-    vertices.push(-VOXMOJI_WIDTH / 2);
-    vertices.push(-VOXMOJI_HEIGHT / 2);
+    vertices.push(-width / 2);
+    vertices.push(-height / 2);
     vertices.push(0.5);
     normals.push(0.0);
     normals.push(0.0);
@@ -446,8 +444,8 @@ export class VoxmojiSystem {
     rims.push(0.0);
 
     // Top right front
-    vertices.push(VOXMOJI_WIDTH / 2);
-    vertices.push(-VOXMOJI_HEIGHT / 2);
+    vertices.push(width / 2);
+    vertices.push(-height / 2);
     vertices.push(0.5);
     normals.push(0.0);
     normals.push(0.0);
@@ -457,8 +455,8 @@ export class VoxmojiSystem {
     rims.push(0.0);
 
     // Bottom left front
-    vertices.push(-VOXMOJI_WIDTH / 2);
-    vertices.push(VOXMOJI_HEIGHT / 2);
+    vertices.push(-width / 2);
+    vertices.push(height / 2);
     vertices.push(0.5);
     normals.push(0.0);
     normals.push(0.0);
@@ -468,8 +466,8 @@ export class VoxmojiSystem {
     rims.push(0.0);
 
     // Bottom right front
-    vertices.push(VOXMOJI_WIDTH / 2);
-    vertices.push(VOXMOJI_HEIGHT / 2);
+    vertices.push(width / 2);
+    vertices.push(height / 2);
     vertices.push(0.5);
     normals.push(0.0);
     normals.push(0.0);
@@ -479,8 +477,8 @@ export class VoxmojiSystem {
     rims.push(0.0);
 
     // Top left back
-    vertices.push(-VOXMOJI_WIDTH / 2);
-    vertices.push(-VOXMOJI_HEIGHT / 2);
+    vertices.push(-width / 2);
+    vertices.push(-height / 2);
     vertices.push(-0.5);
     normals.push(0.0);
     normals.push(0.0);
@@ -490,8 +488,8 @@ export class VoxmojiSystem {
     rims.push(0.0);
 
     // Top right back
-    vertices.push(VOXMOJI_WIDTH / 2);
-    vertices.push(-VOXMOJI_HEIGHT / 2);
+    vertices.push(width / 2);
+    vertices.push(-height / 2);
     vertices.push(-0.5);
     normals.push(0.0);
     normals.push(0.0);
@@ -501,8 +499,8 @@ export class VoxmojiSystem {
     rims.push(0.0);
 
     // Bottom left back
-    vertices.push(-VOXMOJI_WIDTH / 2);
-    vertices.push(VOXMOJI_HEIGHT / 2);
+    vertices.push(-width / 2);
+    vertices.push(height / 2);
     vertices.push(-0.5);
     normals.push(0.0);
     normals.push(0.0);
@@ -512,8 +510,8 @@ export class VoxmojiSystem {
     rims.push(0.0);
 
     // Bottom right back
-    vertices.push(VOXMOJI_WIDTH / 2);
-    vertices.push(VOXMOJI_HEIGHT / 2);
+    vertices.push(width / 2);
+    vertices.push(height / 2);
     vertices.push(-0.5);
     normals.push(0.0);
     normals.push(0.0);
@@ -538,11 +536,13 @@ export class VoxmojiSystem {
     indices.push(quadVertIndex + 1 + 4);
     indices.push(quadVertIndex + 2 + 4);
 
-    // Scale verts by 0.005 - don't have app deal with scale, this mesh
+    const c = width === 32 ? 4 : width === 64 ? 2 : 1;
+
+    // Scale verts - don't have app deal with scale, this mesh
     // should just be the right size to keep things simpler.
     for (let i = 0; i < vertices.length; i += 3) {
-      vertices[i] *= 0.005;
-      vertices[i + 1] *= 0.005;
+      vertices[i] *= 0.005 * c;
+      vertices[i + 1] *= 0.005 * c;
       vertices[i + 2] *= 0.1; // Thicken in Z
     }
 

@@ -365,9 +365,9 @@ export class PhysicsSystem {
     this.needsTransfer = true;
   }
 
-  applyImpulse(uuid, x, y, z) {
+  applyImpulse(uuid, x, y, z, rx = 0, ry = 0, rz = 0) {
     if (this.bodyUuidToData.has(uuid)) {
-      this.workerHelpers.applyImpulse(uuid, x, y, z);
+      this.workerHelpers.applyImpulse(uuid, x, y, z, rx, ry, rz);
     } else {
       console.warn(`applyImpulse called for uuid: ${uuid} but body missing.`);
     }

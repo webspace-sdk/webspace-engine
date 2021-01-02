@@ -45,8 +45,8 @@ AFRAME.registerComponent("body-helper", {
     this.uuid = this.system.addBody(this.el.object3D, this.data, () => (this.ready = true));
   },
 
-  applyImpulse: function(x, y, z) {
-    this.system.applyImpulse(this.uuid, x, y, z);
+  applyImpulse: function(x, y, z, rx = 0, ry = 0, rz = 0) {
+    this.system.applyImpulse(this.uuid, x, y, z, rx, ry, rz);
   },
 
   update: function(prevData) {

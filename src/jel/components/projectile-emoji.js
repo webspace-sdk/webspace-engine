@@ -18,7 +18,7 @@ AFRAME.registerComponent("projectile-emoji", {
     this.voxmojiSystem = this.el.sceneEl.systems["hubs-systems"].voxmojiSystem;
     this.pendingInitialImpulse = true;
 
-    const imageUrl = imageUrlForEmoji(this.data.emoji, 128);
+    const imageUrl = imageUrlForEmoji(this.data.emoji, 64);
     this.voxmojiSystem.register(imageUrl, this.mesh);
 
     this.el.setAttribute("shape-helper", { type: SHAPE.BOX, minHalfExtent: 0.04 });
@@ -28,7 +28,26 @@ AFRAME.registerComponent("projectile-emoji", {
     const bodyHelper = this.el.components["body-helper"];
 
     if (this.pendingInitialImpulse && bodyHelper && bodyHelper.ready) {
-      bodyHelper.applyImpulse(0, 10, 0);
+      const pov = document.querySelector("#avatar-pov-node").object3D;
+      const driftXY = 0.15;
+      const spin = 0.1;
+      const vec = new THREE.Vector3(
+        0 + -driftXY + Math.random() * 2.0 * driftXY,
+        1 + -driftXY + Math.random() * 2.0 * driftXY,
+        -1
+      );
+      pov.updateMatrices();
+      vec.transformDirection(pov.matrixWorld);
+      console.log(vec);
+      const mag = 6.0 + Math.random() * 2.0;
+      bodyHelper.applyImpulse(
+        vec.x * mag,
+        vec.y * mag,
+        vec.z * mag,
+        -spin + Math.random() * 2 * spin,
+        -spin + Math.random() * 2 * spin,
+        0.0
+      );
       this.pendingInitialImpulse = false;
     }
   },
