@@ -274,6 +274,7 @@ export class PhysicsSystem {
 
   addBody(object3D, options) {
     this.workerHelpers.addBody(this.nextBodyUuid, object3D, options);
+    this.needsTransfer = true;
 
     this.bodyUuidToData.set(this.nextBodyUuid, {
       object3D: object3D,
@@ -292,6 +293,7 @@ export class PhysicsSystem {
     if (this.bodyUuidToData.has(uuid)) {
       this.bodyUuidToData.get(uuid).options = options;
       this.workerHelpers.updateBody(uuid, options);
+      this.needsTransfer = true;
     } else {
       console.warn(`updateBody called for uuid: ${uuid} but body missing.`);
     }
@@ -304,6 +306,7 @@ export class PhysicsSystem {
       this.bodyUuidToData.delete(uuid);
       this.bodyUuids.splice(idx, 1);
       this.workerHelpers.removeBody(uuid);
+      this.needsTransfer = true;
     } else {
       console.warn(`removeBody called for uuid: ${uuid} but body missing.`);
     }
@@ -317,6 +320,7 @@ export class PhysicsSystem {
     }
     this.workerHelpers.addShapes(bodyUuid, this.nextShapeUuid, mesh, options);
     this.bodyUuidToData.get(bodyUuid).shapes.push(this.nextShapeUuid);
+    this.needsTransfer = true;
     return this.nextShapeUuid++;
   }
 
@@ -329,15 +333,18 @@ export class PhysicsSystem {
       } else {
         console.warn(`removeShapes called for shapesUuid: ${shapesUuid} on bodyUuid: ${bodyUuid} but shapes missing.`);
       }
+      this.needsTransfer = true;
     }
   }
 
   addConstraint(constraintId, bodyUuid, targetUuid, options) {
     this.workerHelpers.addConstraint(constraintId, bodyUuid, targetUuid, options);
+    this.needsTransfer = true;
   }
 
   removeConstraint(constraintId) {
     this.workerHelpers.removeConstraint(constraintId);
+    this.needsTransfer = true;
   }
 
   registerBodyHelper(bodyHelper) {
@@ -374,9 +381,11 @@ export class PhysicsSystem {
 
   resetDynamicBody(uuid) {
     this.workerHelpers.resetDynamicBody(uuid);
+    this.needsTransfer = true;
   }
 
   activateBody(uuid) {
     this.workerHelpers.activateBody(uuid);
+    this.needsTransfer = true;
   }
 }
