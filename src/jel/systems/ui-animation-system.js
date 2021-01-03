@@ -156,8 +156,7 @@ export class UIAnimationSystem {
 
     if (gazeCursor) {
       const center = Math.floor(left + width / 2.0);
-      const top = Math.floor(canvas.clientHeight / 2.0);
-      gazeCursor.style.cssText = `left: ${center - 3}px; top: ${top - 3}px;`;
+      gazeCursor.style.cssText = `left: ${center - 3}px; top: 50vh;`;
     }
 
     const wrap = document.getElementById("jel-ui-wrap");
