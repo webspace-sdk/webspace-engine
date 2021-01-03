@@ -1,6 +1,7 @@
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
 import { imageUrlForEmoji } from "../../hubs/utils/media-utils";
 import { SHAPE } from "three-ammo/constants";
+import { isMine, getNetworkedEntity } from "../../jel/utils/ownership-utils";
 
 AFRAME.registerComponent("projectile-emoji", {
   schema: {
@@ -22,15 +23,19 @@ AFRAME.registerComponent("projectile-emoji", {
     this.voxmojiSystem.register(imageUrl, this.mesh);
 
     this.el.setAttribute("shape-helper", { type: SHAPE.BOX, minHalfExtent: 0.04 });
+
+    getNetworkedEntity(this.el).then(networkedEl => {
+      this.networkedEl = networkedEl;
+    });
   },
 
   tick() {
     const bodyHelper = this.el.components["body-helper"];
 
-    if (this.pendingInitialImpulse && bodyHelper && bodyHelper.ready) {
+    if (this.pendingInitialImpulse && bodyHelper && bodyHelper.ready && this.networkedEl && isMine(this.networkedEl)) {
       const pov = document.querySelector("#avatar-pov-node").object3D;
-      const driftXY = 0.15;
-      const spin = 0.1;
+      const driftXY = 0.05;
+      const spin = 0.05;
       const vec = new THREE.Vector3(
         0 + -driftXY + Math.random() * 2.0 * driftXY,
         1 + -driftXY + Math.random() * 2.0 * driftXY,
