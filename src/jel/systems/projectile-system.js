@@ -60,7 +60,13 @@ export class ProjectileSystem {
     });
   }
 
-  fireProjectile(emoji) {
+  // ox, oy, oz - Spawn origin (if left undefined, spawn in front of avatar)
+  // orx, ory, orz, orw - Spawn orientation
+  // ix, iy, iz - Impulse (if left undefined, generate impulse)
+  // irx, ry, irz - Impulse offset (if left undefined, generate random offset to create spin)
+  //
+  // returns [emoji, ox, oy, oz, ix, iy, iz, irx, iry, irz] which can be used to fire the same one again
+  fireProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz) {
     const { physicsSystem, freeFlags, avatarPovEl, meshes, voxmojiSystem, expirations, bodyUuids } = this;
     if (!avatarPovEl) return;
 
@@ -90,27 +96,46 @@ export class ProjectileSystem {
       mesh = this.createProjectileMesh(newIndex);
     }
 
-    offsetRelativeTo(mesh, avatarPovNode, SPAWN_OFFSET);
+    if (ox === undefined) {
+      offsetRelativeTo(mesh, avatarPovNode, SPAWN_OFFSET);
+      ox = mesh.position.x;
+      oy = mesh.position.y;
+      oz = mesh.position.z;
+      orx = mesh.quaternion.x;
+      ory = mesh.quaternion.y;
+      orz = mesh.quaternion.z;
+      orw = mesh.quaternion.w;
+    } else {
+      mesh.position.x = ox;
+      mesh.position.y = oy;
+      mesh.position.z = oz;
+      mesh.quaternion.x = orx;
+      mesh.quaternion.y = ory;
+      mesh.quaternion.z = orz;
+      mesh.quaternion.w = orw;
+      mesh.matrixNeedsUpdate = true;
+      mesh.updateMatrices();
+    }
 
-    const vec = new THREE.Vector3(
-      0 + -MAX_DRIFT_XY + Math.random() * 2.0 * MAX_DRIFT_XY,
-      1 + -MAX_DRIFT_XY + Math.random() * 2.0 * MAX_DRIFT_XY,
-      -1
-    );
-    avatarPovNode.updateMatrices();
-    vec.transformDirection(avatarPovNode.matrixWorld);
+    if (ix === undefined) {
+      const vec = new THREE.Vector3(
+        0 + -MAX_DRIFT_XY + Math.random() * 2.0 * MAX_DRIFT_XY,
+        1 + -MAX_DRIFT_XY + Math.random() * 2.0 * MAX_DRIFT_XY,
+        -1
+      );
+      avatarPovNode.updateMatrices();
+      vec.transformDirection(avatarPovNode.matrixWorld);
 
-    const mag = MIN_IMPULSE + Math.random() * (MAX_IMPULSE - MIN_IMPULSE);
+      const mag = MIN_IMPULSE + Math.random() * (MAX_IMPULSE - MIN_IMPULSE);
+      ix = vec.x * mag;
+      iy = vec.y * mag;
+      iz = vec.z * mag;
+      irx = -MAX_SPIN + Math.random() * 2 * MAX_SPIN;
+      iry = -MAX_SPIN + Math.random() * 2 * MAX_SPIN;
+      irz = 0.0;
+    }
 
-    this.setImpulse(
-      newIndex,
-      vec.x * mag,
-      vec.y * mag,
-      vec.z * mag,
-      -MAX_SPIN + Math.random() * 2 * MAX_SPIN,
-      -MAX_SPIN + Math.random() * 2 * MAX_SPIN,
-      0.0
-    );
+    this.setImpulse(newIndex, ix, iy, iz, irx, iry, irz);
 
     mesh.visible = true;
 
@@ -118,6 +143,8 @@ export class ProjectileSystem {
     expirations[newIndex] = performance.now() + PROJECTILE_EXPIRATION_MS;
 
     voxmojiSystem.register(imageUrl, mesh);
+
+    return [emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz];
   }
 
   setImpulse(index, x, y, z, rx, ry, rz) {
@@ -201,11 +228,14 @@ export class ProjectileSystem {
   freeProjectileAtIndex(idx) {
     const { meshes, voxmojiSystem, freeFlags, expirations } = this;
     const mesh = meshes[idx];
+    if (freeFlags[idx]) return; // Already freed
+
     voxmojiSystem.unregister(mesh);
     expirations[idx] = Infinity; // This will stop re-expirations
     mesh.visible = false;
     mesh.scale.setScalar(1.0);
     mesh.matrixNeedsUpdate = true;
+    mesh.updateMatrices();
     freeFlags[idx] = true;
     this.clearImpulse(idx);
   }
