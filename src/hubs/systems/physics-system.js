@@ -406,8 +406,14 @@ export class PhysicsSystem {
   }
 
   resetDynamicBody(uuid) {
-    this.workerHelpers.resetDynamicBody(uuid);
-    this.needsTransfer = true;
+    if (this.bodyUuidToData.has(uuid)) {
+      const body = this.bodyUuidToData.get(uuid);
+      this.workerHelpers.resetDynamicBody(uuid);
+      body.hadInitialSync = false;
+      this.needsTransfer = true;
+    } else {
+      console.warn(`resetDynamicBody called for uuid: ${uuid} but body missing.`);
+    }
   }
 
   activateBody(uuid) {

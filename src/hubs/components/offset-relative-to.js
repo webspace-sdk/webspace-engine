@@ -7,7 +7,7 @@ export const offsetRelativeTo = (() => {
   const offsetVector = new THREE.Vector3();
   const targetWorldPos = new THREE.Vector3();
 
-  return function(obj, target, offset, lookAt, orientation) {
+  return function(obj, target, offset, lookAt = false, orientation = 1) {
     offsetVector.copy(offset);
     target.localToWorld(offsetVector);
     if (obj.parent) {
