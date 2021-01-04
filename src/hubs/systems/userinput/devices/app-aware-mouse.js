@@ -186,13 +186,15 @@ export class AppAwareMouseDevice {
       now < this.hideCursorAfterIdleTime
     );
 
+    console.log(this.lockClickCoordDelta[0]);
+
     // The 3D cursor visibility is coordinated via CSS classes on the body.
     const show3DCursor = !!(
       !AFRAME.scenes[0].is("pointer-exited") &&
       !isTransforming &&
       !this.grabGesturedAnything &&
       !showCSSCursor &&
-      !isMouseLookingGesture &&
+      (!isMouseLookingGesture || this.lockClickCoordDelta[0] !== 0 || this.lockClickCoordDelta[1] !== 0) &&
       now < this.hideCursorAfterIdleTime
     );
 
