@@ -7,19 +7,42 @@ export const offsetRelativeTo = (() => {
   const offsetVector = new THREE.Vector3();
   const targetWorldPos = new THREE.Vector3();
 
-  return function(obj, target, offset, lookAt = false, orientation = 1) {
+  return function(
+    obj,
+    target,
+    offset,
+    lookAt = false,
+    orientation = 1,
+    parent = null,
+    outPos = null,
+    outQuaternion = null
+  ) {
+    if (parent === null) {
+      parent = obj.parent;
+    }
+
+    if (outPos === null) {
+      outPos = obj.position;
+      if (orientation !== 1 || lookAt) throw new Error("Orientation/lookAt on non-object target not supported");
+    }
+
+    if (outQuaternion === null) {
+      outQuaternion = obj.quaternion;
+      if (orientation !== 1 || lookAt) throw new Error("Orientation/lookAt on non-object target not supported");
+    }
+
     offsetVector.copy(offset);
     target.localToWorld(offsetVector);
-    if (obj.parent) {
-      obj.parent.worldToLocal(offsetVector);
+    if (parent) {
+      parent.worldToLocal(offsetVector);
     }
-    obj.position.copy(offsetVector);
+    outPos.copy(offsetVector);
     if (lookAt) {
       target.getWorldPosition(targetWorldPos);
       obj.updateMatrices(true);
       obj.lookAt(targetWorldPos);
     } else {
-      target.getWorldQuaternion(obj.quaternion);
+      target.getWorldQuaternion(outQuaternion);
     }
 
     // See doc/image_orientations.gif
@@ -53,7 +76,9 @@ export const offsetRelativeTo = (() => {
         break;
     }
 
-    obj.matrixNeedsUpdate = true;
+    if (obj) {
+      obj.matrixNeedsUpdate = true;
+    }
   };
 })();
 

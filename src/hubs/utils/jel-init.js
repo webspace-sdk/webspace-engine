@@ -649,21 +649,33 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
   });
 
   hubPhxChannel.on("message", ({ session_id, type, body }) => {
-    const getAuthor = () => {
-      const userInfo = spaceChannel.presence.state[session_id];
-      if (userInfo) {
-        return userInfo.metas[0].profile.displayName;
-      } else {
-        return messages["chat.default-name"];
+    switch (type) {
+      case "chat": {
+        const getAuthor = () => {
+          const userInfo = spaceChannel.presence.state[session_id];
+          if (userInfo) {
+            return userInfo.metas[0].profile.displayName;
+          } else {
+            return messages["chat.default-name"];
+          }
+        };
+
+        const name = getAuthor();
+        const entry = { name, type, body, posted_at: performance.now() };
+
+        scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
+
+        scene.emit("chat_log_entry", entry);
+        break;
       }
-    };
+      case "emoji_launch": {
+        if (session_id !== NAF.clientId) {
+          scene.systems["hubs-systems"].projectileSystem.replayEmojiSpawnerProjectile(body);
+        }
 
-    const name = getAuthor();
-    const entry = { name, type, body, posted_at: performance.now() };
-
-    scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
-
-    scene.emit("chat_log_entry", entry);
+        break;
+      }
+    }
   });
 
   // Avoid updating the history frequently, as users type new hub names

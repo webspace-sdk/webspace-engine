@@ -39,6 +39,9 @@ const SHAPE_OPTIONS = {
   fit: FIT.ALL
 };
 
+const tmpVec3 = new THREE.Vector3();
+const tmpQuat = new THREE.Quaternion();
+
 export class ProjectileSystem {
   constructor(sceneEl, voxmojiSystem, physicsSystem) {
     this.sceneEl = sceneEl;
@@ -60,13 +63,73 @@ export class ProjectileSystem {
     });
   }
 
+  // Fires a projectile of the given emoji, and returns a payload which can be passed to replayProjectile to fire the same one with the same initial conditions.
+  fireEmojiLauncherProjectile(emoji) {
+    if (!window.APP.hubChannel) return;
+
+    const { avatarPovEl } = this;
+
+    if (!avatarPovEl) return;
+    const avatarPovNode = avatarPovEl.object3D;
+
+    offsetRelativeTo(null, avatarPovNode, SPAWN_OFFSET, false, 1, this.sceneEl.object3D, tmpVec3, tmpQuat);
+
+    const ox = tmpVec3.x;
+    const oy = tmpVec3.y;
+    const oz = tmpVec3.z;
+    const orx = tmpQuat.x;
+    const ory = tmpQuat.y;
+    const orz = tmpQuat.z;
+    const orw = tmpQuat.w;
+
+    tmpVec3.x = 0 + -MAX_DRIFT_XY + Math.random() * 2.0 * MAX_DRIFT_XY;
+    tmpVec3.y = 1 + -MAX_DRIFT_XY + Math.random() * 2.0 * MAX_DRIFT_XY;
+    tmpVec3.z = -1;
+
+    avatarPovNode.updateMatrices();
+    tmpVec3.transformDirection(avatarPovNode.matrixWorld);
+
+    const mag = MIN_IMPULSE + Math.random() * (MAX_IMPULSE - MIN_IMPULSE);
+    const ix = tmpVec3.x * mag;
+    const iy = tmpVec3.y * mag;
+    const iz = tmpVec3.z * mag;
+    const irx = -MAX_SPIN + Math.random() * 2 * MAX_SPIN;
+    const iry = -MAX_SPIN + Math.random() * 2 * MAX_SPIN;
+    const irz = 0.0;
+
+    this.spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz);
+
+    return [emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz];
+  }
+
+  replayEmojiSpawnerProjectile([emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz]) {
+    this.spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz);
+  }
+
+  setImpulse(index, x, y, z, rx, ry, rz) {
+    const { impulses } = this;
+
+    if (impulses[index] === null) {
+      impulses[index] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+    }
+
+    impulses[index][0] = x;
+    impulses[index][1] = y;
+    impulses[index][2] = z;
+    impulses[index][3] = rx;
+    impulses[index][4] = ry;
+    impulses[index][5] = rz;
+  }
+
+  clearImpulse(index) {
+    this.setImpulse(index, 0, 0, 0, 0, 0, 0);
+  }
+
   // ox, oy, oz - Spawn origin (if left undefined, spawn in front of avatar)
   // orx, ory, orz, orw - Spawn orientation
   // ix, iy, iz - Impulse (if left undefined, generate impulse)
   // irx, ry, irz - Impulse offset (if left undefined, generate random offset to create spin)
-  //
-  // returns [emoji, ox, oy, oz, ix, iy, iz, irx, iry, irz] which can be used to fire the same one again
-  fireProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz) {
+  spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz) {
     const { physicsSystem, freeFlags, avatarPovEl, meshes, voxmojiSystem, expirations, bodyUuids } = this;
     if (!avatarPovEl) return;
 
@@ -97,7 +160,9 @@ export class ProjectileSystem {
     }
 
     if (ox === undefined) {
-      offsetRelativeTo(mesh, avatarPovNode, SPAWN_OFFSET);
+      offsetRelativeTo(mesh, avatarPovNode, SPAWN_OFFSET, 1, null, tmpVec3, tmpQuat);
+      mesh.position.copy(tmpVec3);
+      mesh.quaternion.copy(tmpQuat);
       ox = mesh.position.x;
       oy = mesh.position.y;
       oz = mesh.position.z;
@@ -105,17 +170,17 @@ export class ProjectileSystem {
       ory = mesh.quaternion.y;
       orz = mesh.quaternion.z;
       orw = mesh.quaternion.w;
-    } else {
-      mesh.position.x = ox;
-      mesh.position.y = oy;
-      mesh.position.z = oz;
-      mesh.quaternion.x = orx;
-      mesh.quaternion.y = ory;
-      mesh.quaternion.z = orz;
-      mesh.quaternion.w = orw;
-      mesh.matrixNeedsUpdate = true;
-      mesh.updateMatrices();
     }
+
+    mesh.position.x = ox;
+    mesh.position.y = oy;
+    mesh.position.z = oz;
+    mesh.quaternion.x = orx;
+    mesh.quaternion.y = ory;
+    mesh.quaternion.z = orz;
+    mesh.quaternion.w = orw;
+    mesh.matrixNeedsUpdate = true;
+    mesh.updateMatrices();
 
     if (ix === undefined) {
       const vec = new THREE.Vector3(
@@ -145,25 +210,6 @@ export class ProjectileSystem {
     voxmojiSystem.register(imageUrl, mesh);
 
     return [emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz];
-  }
-
-  setImpulse(index, x, y, z, rx, ry, rz) {
-    const { impulses } = this;
-
-    if (impulses[index] === null) {
-      impulses[index] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
-    }
-
-    impulses[index][0] = x;
-    impulses[index][1] = y;
-    impulses[index][2] = z;
-    impulses[index][3] = rx;
-    impulses[index][4] = ry;
-    impulses[index][5] = rz;
-  }
-
-  clearImpulse(index) {
-    this.setImpulse(index, 0, 0, 0, 0, 0, 0);
   }
 
   tick(t, dt) {
