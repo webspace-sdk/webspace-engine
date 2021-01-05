@@ -42,8 +42,8 @@ export class KeyboardDevice {
 
         // Handle spacebar here since input system can't differentiate with and without modifier key held, and deal with repeats
         if (e.type === "keydown" && e.key === " " && !e.repeat) {
-          if (!e.ctrlKey && !e.altKey && !e.metaKey) {
-            if (e.shiftKey && !isInEditableField()) {
+          if (!e.altKey && !e.metaKey) {
+            if (e.ctrlKey && !isInEditableField()) {
               const cursorLockState = getCursorLockState();
 
               // Shift+Space widen

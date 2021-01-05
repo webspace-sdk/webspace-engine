@@ -86,6 +86,24 @@ export const SCHEMA = {
       }
     },
 
+    equips: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        launcher: { type: "string" },
+        launcherSlot1: { type: "string" },
+        launcherSlot2: { type: "string" },
+        launcherSlot3: { type: "string" },
+        launcherSlot4: { type: "string" },
+        launcherSlot5: { type: "string" },
+        launcherSlot6: { type: "string" },
+        launcherSlot7: { type: "string" },
+        launcherSlot8: { type: "string" },
+        launcherSlot9: { type: "string" },
+        launcherSlot10: { type: "string" }
+      }
+    },
+
     preferences: {
       type: "object",
       additionalProperties: false,
@@ -173,6 +191,7 @@ export const SCHEMA = {
     credentials: { $ref: "#/definitions/credentials" },
     activity: { $ref: "#/definitions/activity" },
     settings: { $ref: "#/definitions/settings" },
+    equips: { $ref: "#/definitions/equips" },
     preferences: { $ref: "#/definitions/preferences" },
     uiState: { $ref: "#/definitions/uiState" },
     embedTokens: { $ref: "#/definitions/embedTokens" },
@@ -202,6 +221,7 @@ export default class Store extends EventTarget {
       context: {},
       activity: {},
       settings: {},
+      equips: {},
       credentials: {},
       profile: {},
       embedTokens: [],
@@ -248,6 +268,24 @@ export default class Store extends EventTarget {
     // Regenerate name to encourage users to change it.
     if (!this.state.activity.hasChangedName) {
       this.update({ profile: { displayName: generateRandomName() } });
+    }
+
+    if (!this.state.equips.launcher) {
+      this.update({
+        equips: {
+          launcher: "😀",
+          launcherSlot1: "😀",
+          launcherSlot2: "😂",
+          launcherSlot3: "🤔",
+          launcherSlot4: "😍",
+          launcherSlot5: "😘",
+          launcherSlot6: "🥺",
+          launcherSlot7: "😭",
+          launcherSlot8: "👍",
+          launcherSlot9: "👏",
+          launcherSlot10: "❤️"
+        }
+      });
     }
   };
 

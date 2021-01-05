@@ -14,6 +14,7 @@ const MAX_IMPULSE = 8.0;
 const MAX_DRIFT_XY = 0.05;
 const MAX_SPIN = 0.05;
 const DEFAULT_GRAVITY = new THREE.Vector3(0, -9.8, 0);
+const MEGAMOJI_IMPULSE = 12.0;
 
 const INCLUDE_ENVIRONMENT_FILTER_MASK =
   COLLISION_LAYERS.INTERACTABLES | COLLISION_LAYERS.AVATAR | COLLISION_LAYERS.ENVIRONMENT;
@@ -64,7 +65,7 @@ export class ProjectileSystem {
   }
 
   // Fires a projectile of the given emoji, and returns a payload which can be passed to replayProjectile to fire the same one with the same initial conditions.
-  fireEmojiLauncherProjectile(emoji) {
+  fireEmojiLauncherProjectile(emoji, isMegaMoji = false) {
     if (!window.APP.hubChannel) return;
 
     const { avatarPovEl } = this;
@@ -89,7 +90,7 @@ export class ProjectileSystem {
     avatarPovNode.updateMatrices();
     tmpVec3.transformDirection(avatarPovNode.matrixWorld);
 
-    const mag = MIN_IMPULSE + Math.random() * (MAX_IMPULSE - MIN_IMPULSE);
+    const mag = isMegaMoji ? MEGAMOJI_IMPULSE : MIN_IMPULSE + Math.random() * (MAX_IMPULSE - MIN_IMPULSE);
     const ix = tmpVec3.x * mag;
     const iy = tmpVec3.y * mag;
     const iz = tmpVec3.z * mag;
@@ -97,13 +98,15 @@ export class ProjectileSystem {
     const iry = -MAX_SPIN + Math.random() * 2 * MAX_SPIN;
     const irz = 0.0;
 
-    this.spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz);
+    const scale = isMegaMoji ? 3 : 1.0;
 
-    return [emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz];
+    this.spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale);
+
+    return [emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale];
   }
 
-  replayEmojiSpawnerProjectile([emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz]) {
-    this.spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz);
+  replayEmojiSpawnerProjectile([emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale]) {
+    this.spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale);
   }
 
   setImpulse(index, x, y, z, rx, ry, rz) {
@@ -129,11 +132,12 @@ export class ProjectileSystem {
   // orx, ory, orz, orw - Spawn orientation
   // ix, iy, iz - Impulse (if left undefined, generate impulse)
   // irx, ry, irz - Impulse offset (if left undefined, generate random offset to create spin)
-  spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz) {
+  async spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale) {
     const { physicsSystem, freeFlags, avatarPovEl, meshes, voxmojiSystem, expirations, bodyUuids } = this;
     if (!avatarPovEl) return;
 
     const imageUrl = imageUrlForEmoji(emoji, 64);
+
     const avatarPovNode = avatarPovEl.object3D;
 
     // Find the index of a free mesh or a new index for a new mesh.
@@ -155,21 +159,9 @@ export class ProjectileSystem {
 
     if (mesh) {
       physicsSystem.resetDynamicBody(bodyUuids[newIndex]);
+      await voxmojiSystem.register(imageUrl, mesh);
     } else {
-      mesh = this.createProjectileMesh(newIndex);
-    }
-
-    if (ox === undefined) {
-      offsetRelativeTo(mesh, avatarPovNode, SPAWN_OFFSET, 1, null, tmpVec3, tmpQuat);
-      mesh.position.copy(tmpVec3);
-      mesh.quaternion.copy(tmpQuat);
-      ox = mesh.position.x;
-      oy = mesh.position.y;
-      oz = mesh.position.z;
-      orx = mesh.quaternion.x;
-      ory = mesh.quaternion.y;
-      orz = mesh.quaternion.z;
-      orw = mesh.quaternion.w;
+      mesh = await this.createProjectileMesh(newIndex, imageUrl);
     }
 
     mesh.position.x = ox;
@@ -179,6 +171,8 @@ export class ProjectileSystem {
     mesh.quaternion.y = ory;
     mesh.quaternion.z = orz;
     mesh.quaternion.w = orw;
+    mesh.scale.setScalar(scale);
+
     mesh.matrixNeedsUpdate = true;
     mesh.updateMatrices();
 
@@ -206,8 +200,6 @@ export class ProjectileSystem {
 
     freeFlags[newIndex] = false;
     expirations[newIndex] = performance.now() + PROJECTILE_EXPIRATION_MS;
-
-    voxmojiSystem.register(imageUrl, mesh);
 
     return [emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz];
   }
@@ -246,14 +238,15 @@ export class ProjectileSystem {
     }
   }
 
-  createProjectileMesh(idx) {
-    const { sceneEl, physicsSystem, meshes, bodyUuids, shapesUuids, bodyReadyFlags } = this;
+  async createProjectileMesh(idx, imageUrl) {
+    const { sceneEl, voxmojiSystem, physicsSystem, meshes, bodyUuids, shapesUuids, bodyReadyFlags } = this;
 
     const geo = new THREE.BoxBufferGeometry(0.65, 0.65, 0.125);
     const mat = new THREE.MeshBasicMaterial();
     const mesh = new THREE.Mesh(geo, mat);
 
     sceneEl.object3D.add(mesh);
+    await voxmojiSystem.register(imageUrl, mesh);
 
     mat.visible = false;
     mesh.castShadow = false;

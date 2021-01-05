@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { FormattedMessage } from "react-intl";
 import React, { forwardRef, useState, useEffect } from "react";
+import { imageUrlForEmoji } from "../../hubs/utils/media-utils";
 
 const KeyTipsElement = styled.div`
   position: absolute;
@@ -137,11 +138,19 @@ const WideNamedKey = styled.div`
 
 const TipLabel = styled.div`
   width: 60px;
+  display: flex;
   font-weight: var(--canvas-overlay-item-secodary-text-weight);
   color: var(--canvas-overlay-text-color);
   font-size: var(--canvas-overlay-text-size);
   text-shadow: 0px 0px 4px var(--menu-shadow-color);
   margin-left: 16px;
+
+  & img {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+  }
 `;
 
 const KeyWideSeparator = styled.div`
@@ -186,30 +195,36 @@ const TIP_DATA = {
     ["move", "w a s d"],
     ["look", "H;G", "narrowMouseLook"],
     ["run", "H"],
+    //["jump", "S"],
+    ["shoot", "__S|D"],
     ["create", "/", "createMenu"],
     ["paste", "L+v"],
     ["chat", "E", "chat"],
-    ["widen", "H+S", "widen"],
+    ["widen", "L+S", "widen"],
     ["hide", "?"]
   ],
   idle_full_muted: [
     ["move", "w a s d"],
     ["run", "H"],
+    //["jump", "S"],
+    ["shoot", "__S|K"],
     ["unmute", "L+m", "toggleMuteKey"],
     ["paste", "L+v"],
     ["create", "/", "createMenu"],
     ["chat", "E", "chat"],
-    ["narrow", "Z|H+S"],
+    ["narrow", "Z|L+S"],
     ["hide", "?"]
   ],
   idle_full_unmuted: [
     ["move", "w a s d"],
     ["run", "H"],
+    //["jump", "S"],
+    ["shoot", "__S|K"],
     ["mute", "L+m", "toggleMuteKey"],
     ["paste", "L+v"],
     ["create", "/", "createMenu"],
     ["chat", "E", "chat"],
-    ["narrow", "Z|H+S"],
+    ["narrow", "Z|L+S"],
     ["hide", "?"]
   ],
   pointer_exited_muted: [["unmute", "L+m", "toggleMuteKey"], ["hide", "?"]],
@@ -241,31 +256,86 @@ const TIP_DATA = {
 };
 
 const KEY_TIP_TYPES = Object.keys(TIP_DATA);
+let lastEquippedEmoji = null;
+let equippedEmojiUrl;
 
 const itemForData = ([label, keys, flag]) => {
-  const tipLabel = (
-    <TipLabel key={label}>
-      <FormattedMessage id={`key-tips.${label}`} />
-    </TipLabel>
-  );
+  let tipLabel;
 
-  // Hacky, if key is _ then the next key is labelled "hold"
-  let hold = false;
+  if (label === "jump" || label === "shoot") {
+    const emoji = window.APP.store.state.equips.launcher;
+
+    if (lastEquippedEmoji !== emoji) {
+      lastEquippedEmoji = emoji;
+      equippedEmojiUrl = imageUrlForEmoji(emoji, 64);
+    }
+
+    tipLabel = (
+      <TipLabel key={label}>
+        <img src={equippedEmojiUrl} />
+        <FormattedMessage id={`key-tips.${label}`} />
+      </TipLabel>
+    );
+  } else {
+    tipLabel = (
+      <TipLabel key={label}>
+        <FormattedMessage id={`key-tips.${label}`} />
+      </TipLabel>
+    );
+  }
+
+  // Hacky, if key is _ then the next key is labelled "hold". If it's __ then it's a label before
+  // everything. Type 0 is no hold, type 1 is hold shown inside of key div, type 2 is non-button label.
+  let holdType = 0;
 
   const keyLabels = keys.split("").map(key => {
     if (key === "_") {
-      hold = true;
-      return null;
+      holdType++;
+      return;
     }
 
     const els = [];
 
-    if (hold) {
-      els.push(
-        <NamedKey key={key}>
-          <FormattedMessage id="key-tips.hold" />&nbsp;&nbsp;<span className="caps">{key}</span>
-        </NamedKey>
-      );
+    if (holdType) {
+      if (key === "S") {
+        if (holdType === 1) {
+          els.push(
+            <NamedKey key={key}>
+              <FormattedMessage id="key-tips.hold" />&nbsp;&nbsp;<FormattedMessage id="key-tips.space" />
+            </NamedKey>
+          );
+        } else {
+          els.push(
+            <KeyWideSeparator key="hold">
+              <FormattedMessage id="key-tips.hold" />
+            </KeyWideSeparator>
+          );
+          els.push(
+            <NamedKey key={key}>
+              <FormattedMessage id="key-tips.space" />
+            </NamedKey>
+          );
+        }
+      } else {
+        if (holdType === 1) {
+          els.push(
+            <NamedKey key={key}>
+              <FormattedMessage id="key-tips.hold" />&nbsp;&nbsp;<span className="caps">{key}</span>
+            </NamedKey>
+          );
+        } else {
+          els.push(
+            <KeySeparator key="hold">
+              <FormattedMessage id="key-tips.hold" />
+            </KeySeparator>
+          );
+          els.push(
+            <NamedKey key={key}>
+              <span className="caps">{key}</span>
+            </NamedKey>
+          );
+        }
+      }
     } else {
       if (key === "S") {
         els.push(
@@ -309,6 +379,18 @@ const itemForData = ([label, keys, flag]) => {
             <FormattedMessage id="key-tips.rightDrag" />
           </NamedKey>
         );
+      } else if (key === "K") {
+        els.push(
+          <NamedKey key={key}>
+            <FormattedMessage id="key-tips.left" />
+          </NamedKey>
+        );
+      } else if (key === "D") {
+        els.push(
+          <NamedKey key={key}>
+            <FormattedMessage id="key-tips.middle" />
+          </NamedKey>
+        );
       } else if (key === "Z") {
         els.push(
           <NamedKey key={key}>
@@ -349,7 +431,7 @@ const itemForData = ([label, keys, flag]) => {
       }
     }
 
-    hold = false;
+    holdType = 0;
 
     return els;
   });
