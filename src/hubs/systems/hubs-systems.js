@@ -64,7 +64,6 @@ AFRAME.registerSystem("hubs-systems", {
       this.skyBeamSystem,
       this.voxmojiSystem
     );
-    this.projectileSystem = new ProjectileSystem(this.el, this.voxmojiSystem, this.physicsSystem);
     this.constraintsSystem = new ConstraintsSystem(this.physicsSystem);
     this.twoPointStretchingSystem = new TwoPointStretchingSystem();
     this.singleActionButtonSystem = new SingleActionButtonSystem();
@@ -90,6 +89,12 @@ AFRAME.registerSystem("hubs-systems", {
     this.uvScrollSystem = new UVScrollSystem();
     this.mediaStreamSystem = new MediaStreamSystem(this.el);
     this.wrappedEntitySystem = new WrappedEntitySystem(this.el, this.atmosphereSystem, this.skyBeamSystem);
+    this.projectileSystem = new ProjectileSystem(
+      this.el,
+      this.voxmojiSystem,
+      this.physicsSystem,
+      this.wrappedEntitySystem
+    );
     this.terrainSystem = new TerrainSystem(this.el, this.atmosphereSystem);
     this.characterController = new CharacterControllerSystem(this.el, this.terrainSystem);
     this.uiAnimationSystem = new UIAnimationSystem(this.el, this.atmosphereSystem);
@@ -98,7 +103,12 @@ AFRAME.registerSystem("hubs-systems", {
     this.keyboardTipSystem = new KeyboardTipSystem(this.el, this.cameraSystem);
     this.autoQualitySystem = new AutoQualitySystem(this.el);
     this.helpersSystem = new HelpersSystem(this.el);
-    this.launcherSystem = new LauncherSystem(this.el, this.projectileSystem, this.el.systems.userinput);
+    this.launcherSystem = new LauncherSystem(
+      this.el,
+      this.projectileSystem,
+      this.el.systems.userinput,
+      this.characterController
+    );
     this.pasteSystem = new PasteSystem(this.el);
   },
 

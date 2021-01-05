@@ -44,10 +44,11 @@ const tmpVec3 = new THREE.Vector3();
 const tmpQuat = new THREE.Quaternion();
 
 export class ProjectileSystem {
-  constructor(sceneEl, voxmojiSystem, physicsSystem) {
+  constructor(sceneEl, voxmojiSystem, physicsSystem, wrappedEntitySystem) {
     this.sceneEl = sceneEl;
     this.voxmojiSystem = voxmojiSystem;
     this.physicsSystem = physicsSystem;
+    this.wrappedEntitySystem = wrappedEntitySystem;
 
     this.meshes = Array(MAX_PROJECTILES).fill(null);
     this.freeFlags = Array(MAX_PROJECTILES).fill(true);
@@ -65,7 +66,7 @@ export class ProjectileSystem {
   }
 
   // Fires a projectile of the given emoji, and returns a payload which can be passed to replayProjectile to fire the same one with the same initial conditions.
-  fireEmojiLauncherProjectile(emoji, isMegaMoji = false) {
+  fireEmojiLauncherProjectile(emoji, isMegaMoji = false, extraZImpulse = 0.0) {
     if (!window.APP.hubChannel) return;
 
     const { avatarPovEl } = this;
@@ -93,7 +94,7 @@ export class ProjectileSystem {
     const mag = isMegaMoji ? MEGAMOJI_IMPULSE : MIN_IMPULSE + Math.random() * (MAX_IMPULSE - MIN_IMPULSE);
     const ix = tmpVec3.x * mag;
     const iy = tmpVec3.y * mag;
-    const iz = tmpVec3.z * mag;
+    const iz = tmpVec3.z * mag + extraZImpulse;
     const irx = -MAX_SPIN + Math.random() * 2 * MAX_SPIN;
     const iry = -MAX_SPIN + Math.random() * 2 * MAX_SPIN;
     const irz = 0.0;
@@ -239,13 +240,23 @@ export class ProjectileSystem {
   }
 
   async createProjectileMesh(idx, imageUrl) {
-    const { sceneEl, voxmojiSystem, physicsSystem, meshes, bodyUuids, shapesUuids, bodyReadyFlags } = this;
+    const {
+      sceneEl,
+      voxmojiSystem,
+      physicsSystem,
+      meshes,
+      bodyUuids,
+      shapesUuids,
+      bodyReadyFlags,
+      wrappedEntitySystem
+    } = this;
 
     const geo = new THREE.BoxBufferGeometry(0.65, 0.65, 0.125);
     const mat = new THREE.MeshBasicMaterial();
     const mesh = new THREE.Mesh(geo, mat);
 
     sceneEl.object3D.add(mesh);
+    wrappedEntitySystem.register(mesh);
     await voxmojiSystem.register(imageUrl, mesh);
 
     mat.visible = false;

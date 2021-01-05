@@ -7,9 +7,10 @@ const REPEATED_LAUNCH_DELAY = 500;
 
 // Deals with Emoji Launcher
 export class LauncherSystem {
-  constructor(sceneEl, projectileSystem, userinput) {
+  constructor(sceneEl, projectileSystem, userinput, characterController) {
     this.sceneEl = sceneEl;
     this.projectileSystem = projectileSystem;
+    this.characterController = characterController;
     this.userinput = userinput;
     this.startedLaunchTime = null;
     this.lastLaunchTime = null;
@@ -94,7 +95,8 @@ export class LauncherSystem {
   fireEmoji(isMegaEmoji) {
     const payload = this.projectileSystem.fireEmojiLauncherProjectile(
       window.APP.store.state.equips.launcher,
-      isMegaEmoji
+      isMegaEmoji,
+      -this.characterController.relativeMotion.z
     );
     window.APP.hubChannel.sendMessage(payload, "emoji_launch");
   }

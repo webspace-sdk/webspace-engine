@@ -6,7 +6,7 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 // This code is used to wrap objects around in world space, to simulate the experience of walking
 // around a planet.
 
-const normalizeCoord = c => {
+export const normalizeCoord = c => {
   if (c < WORLD_MIN_COORD) {
     return WORLD_SIZE + c;
   } else if (c > WORLD_MAX_COORD) {
@@ -75,21 +75,35 @@ export class WrappedEntitySystem {
     this.atmosphereSystem = atmosphereSystem;
     this.skyBeamSystem = skyBeamSystem;
     this.frame = 0;
-    this.els = [];
+
+    this.objs = [];
+    this.newObjs = [];
+
     waitForDOMContentLoaded().then(() => {
       this.avatarPovEl = document.getElementById("avatar-pov-node");
       this.avatarRigEl = document.getElementById("avatar-rig");
     });
+
     this.previousAvatarX = null;
     this.previousAvatarZ = null;
   }
 
-  register(el) {
-    this.els.push(el);
+  register(elOrObj) {
+    const obj = elOrObj.object3D || elOrObj;
+
+    this.objs.push(obj);
+    this.newObjs.push(obj);
   }
 
-  unregister(el) {
-    this.els.splice(this.els.indexOf(el), 1);
+  unregister(elOrObj) {
+    const obj = elOrObj.object3D || elOrObj;
+    this.objs.splice(this.objs.indexOf(obj), 1);
+
+    const idx = this.newObjs.indexOf(obj);
+
+    if (idx >= 0) {
+      this.newObjs.splice(idx, 1);
+    }
   }
 
   tick = (function() {
@@ -97,7 +111,7 @@ export class WrappedEntitySystem {
 
     return function() {
       this.frame++;
-      if (this.els.length === 0) return;
+      if (this.objs.length === 0) return;
       if (!this.avatarPovEl) return;
 
       const avatar = this.avatarPovEl.object3D;
@@ -117,30 +131,39 @@ export class WrappedEntitySystem {
       this.previousAvatarZ = az;
 
       if (avatarJumpedThisFrame) {
-        // console.log("Avatar moved across world.");
-
         // If our avatar just jumped across the map this frame, we need to reposition everything
         // since we may now be right up against an object on an edge.
-        for (let i = 0; i < this.els.length; i++) {
-          this.moveElForWrap(this.els[i], ax, az);
+        for (let i = 0; i < this.objs.length; i++) {
+          this.moveObjForWrap(this.objs[i], ax, az);
         }
       } else {
-        // Otherwise just reposition stuff lazily, since it's beyond the horizon.
-        const el = this.els[this.frame % this.els.length];
-        this.moveElForWrap(el, ax, az);
+        // Handle immediately all new elements so there's no latency on initial
+        // wrap state.
+        for (let i = 0; i < this.newObjs.length; i++) {
+          const obj = this.newObjs[i];
+          this.moveObjForWrap(obj, ax, az);
+        }
+
+        // Otherwise just reposition things lazily, since it's beyond the horizon.
+        const obj = this.objs[this.frame % this.objs.length];
+        this.moveObjForWrap(obj, ax, az);
+      }
+
+      if (this.newObjs.length > 0) {
+        this.newObjs.length = 0;
       }
     };
   })();
 
-  moveElForWrap = (function() {
+  moveObjForWrap = (function() {
     // There are 9 possible positions for this entity in world space that could be seen by the player.
     // (Planet space is bounded, world space is not.)
     //
     // Move the entity to the one nearest the player.
     const pos = new THREE.Vector3();
 
-    return function(el, avatarX, avatarZ) {
-      const obj = el.object3D;
+    return function(obj, avatarX, avatarZ) {
+      if (!obj.visible) return;
 
       obj.getWorldPosition(pos);
 
