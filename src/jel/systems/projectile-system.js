@@ -3,6 +3,15 @@ import { offsetRelativeTo } from "../../hubs/components/offset-relative-to";
 import { SHAPE, FIT, ACTIVATION_STATE, TYPE } from "three-ammo/constants";
 import { COLLISION_LAYERS } from "../../hubs/constants";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import {
+  SOUND_LAUNCHER_1,
+  SOUND_LAUNCHER_2,
+  SOUND_LAUNCHER_3,
+  SOUND_LAUNCHER_4,
+  SOUND_LAUNCHER_5,
+  SOUND_LAUNCHER_BIG
+} from "../../hubs/systems/sound-effects-system";
+
 import BezierEasing from "bezier-easing";
 
 const springStep = BezierEasing(0.47, -0.07, 0.44, 3.65);
@@ -18,8 +27,12 @@ const MAX_DRIFT_XY = 0.05;
 const MAX_SPIN = 0.05;
 const DEFAULT_GRAVITY = new THREE.Vector3(0, -9.8, 0);
 const MEGAMOJI_IMPULSE = 12.0;
-const SPAWN_TIME_MS = 150;
+const MEGAMOJI_SCALE = 3;
+const SPAWN_TIME_MS = 250;
 const SPAWN_MIN_SCALE = 0.4;
+const LAUNCHER_SFX_URLS = [SOUND_LAUNCHER_1, SOUND_LAUNCHER_2, SOUND_LAUNCHER_3, SOUND_LAUNCHER_4, SOUND_LAUNCHER_5];
+
+const randomLauncherSfx = () => LAUNCHER_SFX_URLS[Math.floor(Math.random() * LAUNCHER_SFX_URLS.length)];
 
 const INCLUDE_ENVIRONMENT_FILTER_MASK =
   COLLISION_LAYERS.INTERACTABLES | COLLISION_LAYERS.AVATAR | COLLISION_LAYERS.ENVIRONMENT;
@@ -49,11 +62,12 @@ const tmpVec3 = new THREE.Vector3();
 const tmpQuat = new THREE.Quaternion();
 
 export class ProjectileSystem {
-  constructor(sceneEl, voxmojiSystem, physicsSystem, wrappedEntitySystem) {
+  constructor(sceneEl, voxmojiSystem, physicsSystem, wrappedEntitySystem, soundEffectsSystem) {
     this.sceneEl = sceneEl;
     this.voxmojiSystem = voxmojiSystem;
     this.physicsSystem = physicsSystem;
     this.wrappedEntitySystem = wrappedEntitySystem;
+    this.soundEffectsSystem = soundEffectsSystem;
 
     this.meshes = Array(MAX_PROJECTILES).fill(null);
     this.freeFlags = Array(MAX_PROJECTILES).fill(true);
@@ -63,6 +77,7 @@ export class ProjectileSystem {
     this.impulses = Array(MAX_PROJECTILES).fill(null);
     this.startTimes = Array(MAX_PROJECTILES).fill(Infinity);
     this.targetScales = Array(MAX_PROJECTILES).fill(1.0);
+    this.playPositionalSoundAfterTicks = Array(MAX_PROJECTILES).fill(false);
     this.maxIndex = -1;
     this.avatarPovEl = null;
 
@@ -105,15 +120,16 @@ export class ProjectileSystem {
     const iry = -MAX_SPIN + Math.random() * 2 * MAX_SPIN;
     const irz = 0.0;
 
-    const scale = isMegaMoji ? 3 : 1.0;
+    const scale = isMegaMoji ? MEGAMOJI_SCALE : 1.0;
 
     this.spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale);
+    this.soundEffectsSystem.playSoundOneShot(isMegaMoji ? SOUND_LAUNCHER_BIG : randomLauncherSfx());
 
     return [emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale];
   }
 
   replayEmojiSpawnerProjectile([emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale]) {
-    this.spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale);
+    this.spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale, true, true);
   }
 
   setImpulse(index, x, y, z, rx, ry, rz) {
@@ -139,7 +155,25 @@ export class ProjectileSystem {
   // orx, ory, orz, orw - Spawn orientation
   // ix, iy, iz - Impulse (if left undefined, generate impulse)
   // irx, ry, irz - Impulse offset (if left undefined, generate random offset to create spin)
-  async spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale) {
+  async spawnProjectile(
+    emoji,
+    ox,
+    oy,
+    oz,
+    orx,
+    ory,
+    orz,
+    orw,
+    ix,
+    iy,
+    iz,
+    irx,
+    iry,
+    irz,
+    scale,
+    animateScale = false,
+    playPositionalSound = false
+  ) {
     const {
       physicsSystem,
       freeFlags,
@@ -148,6 +182,7 @@ export class ProjectileSystem {
       voxmojiSystem,
       startTimes,
       bodyUuids,
+      playPositionalSoundAfterTicks,
       wrappedEntitySystem,
       targetScales
     } = this;
@@ -190,7 +225,12 @@ export class ProjectileSystem {
     mesh.quaternion.y = ory;
     mesh.quaternion.z = orz;
     mesh.quaternion.w = orw;
-    mesh.scale.setScalar(SPAWN_MIN_SCALE);
+
+    if (animateScale) {
+      mesh.scale.setScalar(SPAWN_MIN_SCALE);
+    } else {
+      mesh.scale.setScalar(scale);
+    }
 
     mesh.matrixNeedsUpdate = true;
     mesh.updateMatrices();
@@ -219,13 +259,24 @@ export class ProjectileSystem {
 
     freeFlags[newIndex] = false;
     startTimes[newIndex] = performance.now();
-    targetScales[newIndex] = scale;
+    targetScales[newIndex] = animateScale ? scale : null;
+    playPositionalSoundAfterTicks[newIndex] = playPositionalSound ? 2 : 0;
 
     return [emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz];
   }
 
   tick(t, dt) {
-    const { meshes, physicsSystem, bodyUuids, maxIndex, startTimes, targetScales, freeFlags, bodyReadyFlags } = this;
+    const {
+      meshes,
+      physicsSystem,
+      bodyUuids,
+      maxIndex,
+      startTimes,
+      targetScales,
+      freeFlags,
+      bodyReadyFlags,
+      playPositionalSoundAfterTicks
+    } = this;
     const now = performance.now();
 
     for (let i = 0; i <= maxIndex; i++) {
@@ -237,7 +288,22 @@ export class ProjectileSystem {
         continue;
       }
 
-      if (startTimes[i] + SPAWN_TIME_MS > now) {
+      // Hacky, need to play position sound after 2 ticks since wrapped entity system will have set
+      // proper position
+      if (playPositionalSoundAfterTicks[i] > 0) {
+        playPositionalSoundAfterTicks[i]--;
+
+        if (playPositionalSoundAfterTicks[i] === 0) {
+          const isMega = targetScales[i] === MEGAMOJI_SCALE;
+          this.soundEffectsSystem.playPositionalSoundAt(
+            isMega ? SOUND_LAUNCHER_BIG : randomLauncherSfx(),
+            meshes[i].position,
+            false
+          );
+        }
+      }
+
+      if (targetScales[i] !== null && startTimes[i] + SPAWN_TIME_MS > now) {
         const mesh = meshes[i];
         const t = (now - startTimes[i]) / SPAWN_TIME_MS;
         const scale = SPAWN_MIN_SCALE + springStep(t) * (targetScales[i] - SPAWN_MIN_SCALE);

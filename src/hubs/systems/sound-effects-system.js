@@ -18,6 +18,12 @@ import URL_MEDIA_LOADED from "../../assets/jel/sfx/loaded.mp3";
 import URL_MEDIA_LOADING from "../../assets/jel/sfx/loading.mp3";
 import URL_MEDIA_REMOVED from "../../assets/jel/sfx/remove.mp3";
 import URL_SPAWN_EMOJI from "../../assets/hubs/sfx/emoji.mp3";
+import URL_LAUNCHER_1 from "../../assets/jel/sfx/launcher1.mp3";
+import URL_LAUNCHER_2 from "../../assets/jel/sfx/launcher2.mp3";
+import URL_LAUNCHER_3 from "../../assets/jel/sfx/launcher3.mp3";
+import URL_LAUNCHER_4 from "../../assets/jel/sfx/launcher4.mp3";
+import URL_LAUNCHER_5 from "../../assets/jel/sfx/launcher5.mp3";
+import URL_LAUNCHER_BIG from "../../assets/jel/sfx/launcher_big.mp3";
 import { setMatrixWorld } from "../utils/three-utils";
 
 let soundEnum = 0;
@@ -48,6 +54,12 @@ export const SOUND_MEDIA_REMOVED = soundEnum++;
 export const SOUND_CAMERA_TOOL_COUNTDOWN = soundEnum++;
 export const SOUND_PREFERENCE_MENU_HOVER = soundEnum++;
 export const SOUND_SPAWN_EMOJI = soundEnum++;
+export const SOUND_LAUNCHER_1 = soundEnum++;
+export const SOUND_LAUNCHER_2 = soundEnum++;
+export const SOUND_LAUNCHER_3 = soundEnum++;
+export const SOUND_LAUNCHER_4 = soundEnum++;
+export const SOUND_LAUNCHER_5 = soundEnum++;
+export const SOUND_LAUNCHER_BIG = soundEnum++;
 
 // Safari doesn't support the promise form of decodeAudioData, so we polyfill it.
 function decodeAudioData(audioContext, arrayBuffer) {
@@ -93,7 +105,13 @@ export class SoundEffectsSystem {
       [SOUND_MEDIA_LOADED, URL_MEDIA_LOADED],
       [SOUND_MEDIA_REMOVED, URL_MEDIA_REMOVED],
       [SOUND_PREFERENCE_MENU_HOVER, URL_FREEZE],
-      [SOUND_SPAWN_EMOJI, URL_SPAWN_EMOJI]
+      [SOUND_SPAWN_EMOJI, URL_SPAWN_EMOJI],
+      [SOUND_LAUNCHER_1, URL_LAUNCHER_1],
+      [SOUND_LAUNCHER_2, URL_LAUNCHER_2],
+      [SOUND_LAUNCHER_3, URL_LAUNCHER_3],
+      [SOUND_LAUNCHER_4, URL_LAUNCHER_4],
+      [SOUND_LAUNCHER_5, URL_LAUNCHER_5],
+      [SOUND_LAUNCHER_BIG, URL_LAUNCHER_BIG]
     ];
     const loading = new Map();
     const load = url => {
@@ -170,6 +188,7 @@ export class SoundEffectsSystem {
   }
 
   playSoundOneShot(sound) {
+    console.log("enqueue", sound);
     return this.enqueueSound(sound, false);
   }
 

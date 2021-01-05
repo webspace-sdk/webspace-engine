@@ -93,7 +93,8 @@ AFRAME.registerSystem("hubs-systems", {
       this.el,
       this.voxmojiSystem,
       this.physicsSystem,
-      this.wrappedEntitySystem
+      this.wrappedEntitySystem,
+      this.soundEffectsSystem
     );
     this.terrainSystem = new TerrainSystem(this.el, this.atmosphereSystem);
     this.characterController = new CharacterControllerSystem(this.el, this.terrainSystem);
