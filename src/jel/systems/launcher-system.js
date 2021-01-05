@@ -5,6 +5,7 @@ const FIRE_DURATION_MS = 350;
 const MAX_FIRE_DURATION = 5000;
 const REPEATED_LAUNCH_DELAY = 500;
 
+// Deals with Emoji Launcher
 export class LauncherSystem {
   constructor(sceneEl, projectileSystem, userinput) {
     this.sceneEl = sceneEl;
@@ -16,6 +17,7 @@ export class LauncherSystem {
     this.doneRepeatedLaunches = false;
     this.firedMegamoji = false;
     this.heldLeftPreviousFrame = false;
+    this.heldSpacePreviousFrame = false;
   }
 
   tick() {
@@ -27,9 +29,10 @@ export class LauncherSystem {
     const shiftPath = paths.device.keyboard.key("shift");
 
     const holdingLeft = userinput.get(leftPath);
+    const holdingSpace = userinput.get(spacePath);
 
     // Repeated fire if user is holding space and not control (due to widen)
-    const launchRepeatedly = userinput.get(spacePath) && !userinput.get(controlPath);
+    const launchRepeatedly = holdingSpace && !userinput.get(controlPath);
 
     // Launch a single emoji if:
     // - The middle button is clicked at any time

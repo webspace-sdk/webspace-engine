@@ -16,6 +16,7 @@ const grabViaKeyboard = "/vars/mouse-and-keyboard/grabViaKeyboard";
 const grabViaMouse = "/vars/mouse-and-keyboard/grabViaMouse";
 const dropViaKeyboard = "/vars/mouse-and-keyboard/dropViaKeyboard";
 const dropViaMouse = "/vars/mouse-and-keyboard/dropViaMouse";
+const notControlSpace = "/vars/mouse-and-keyboard/notControlSpace";
 const startInspectingViaKeyboard = "/vars/mouse-and-keyboard/startInspectingViaKeyboard";
 const stopInspectingViaKeyboardEscape = "/vars/mouse-and-keyboard/stopInspectingViaKeyboardEscape";
 const stopInspectingViaKeyboardFocusRelease = "/vars/mouse-and-keyboard/stopInspectingViaKeyboardFocusRelease";
@@ -118,6 +119,23 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       src: { value: paths.device.smartMouse.cursorPose },
       dest: { value: paths.actions.cursor.right.pose },
       xform: xforms.copy
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("control"),
+        value: paths.device.keyboard.key(" ")
+      },
+      dest: { value: notControlSpace },
+      priority: 1001,
+      xform: xforms.copyIfFalse
+    },
+    {
+      src: {
+        value: notControlSpace
+      },
+      dest: { value: paths.actions.jump },
+      priority: 1001,
+      xform: xforms.rising
     },
     {
       src: {
