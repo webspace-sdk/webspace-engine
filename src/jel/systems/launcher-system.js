@@ -30,7 +30,7 @@ export class LauncherSystem {
   }
 
   tick() {
-    const { avatarPovEl, userinput } = this;
+    const { userinput } = this;
 
     const spacePath = paths.device.keyboard.key(" ");
     const middlePath = paths.device.mouse.buttonMiddle;

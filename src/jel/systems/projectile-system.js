@@ -3,6 +3,9 @@ import { offsetRelativeTo } from "../../hubs/components/offset-relative-to";
 import { SHAPE, FIT, ACTIVATION_STATE, TYPE } from "three-ammo/constants";
 import { COLLISION_LAYERS } from "../../hubs/constants";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import BezierEasing from "bezier-easing";
+
+const springStep = BezierEasing(0.47, -0.07, 0.44, 3.65);
 
 const MAX_PROJECTILES = 128;
 const PROJECTILE_EXPIRATION_MS = 5000;
@@ -15,6 +18,8 @@ const MAX_DRIFT_XY = 0.05;
 const MAX_SPIN = 0.05;
 const DEFAULT_GRAVITY = new THREE.Vector3(0, -9.8, 0);
 const MEGAMOJI_IMPULSE = 12.0;
+const SPAWN_TIME_MS = 150;
+const SPAWN_MIN_SCALE = 0.4;
 
 const INCLUDE_ENVIRONMENT_FILTER_MASK =
   COLLISION_LAYERS.INTERACTABLES | COLLISION_LAYERS.AVATAR | COLLISION_LAYERS.ENVIRONMENT;
@@ -55,8 +60,9 @@ export class ProjectileSystem {
     this.bodyUuids = Array(MAX_PROJECTILES).fill(null);
     this.bodyReadyFlags = Array(MAX_PROJECTILES).fill(false);
     this.shapesUuids = Array(MAX_PROJECTILES).fill(null);
-    this.expirations = Array(MAX_PROJECTILES).fill(performance.now());
     this.impulses = Array(MAX_PROJECTILES).fill(null);
+    this.startTimes = Array(MAX_PROJECTILES).fill(Infinity);
+    this.targetScales = Array(MAX_PROJECTILES).fill(1.0);
     this.maxIndex = -1;
     this.avatarPovEl = null;
 
@@ -140,9 +146,10 @@ export class ProjectileSystem {
       avatarPovEl,
       meshes,
       voxmojiSystem,
-      expirations,
+      startTimes,
       bodyUuids,
-      wrappedEntitySystem
+      wrappedEntitySystem,
+      targetScales
     } = this;
     if (!avatarPovEl) return;
 
@@ -183,7 +190,7 @@ export class ProjectileSystem {
     mesh.quaternion.y = ory;
     mesh.quaternion.z = orz;
     mesh.quaternion.w = orw;
-    mesh.scale.setScalar(scale);
+    mesh.scale.setScalar(SPAWN_MIN_SCALE);
 
     mesh.matrixNeedsUpdate = true;
     mesh.updateMatrices();
@@ -211,25 +218,37 @@ export class ProjectileSystem {
     mesh.visible = true;
 
     freeFlags[newIndex] = false;
-    expirations[newIndex] = performance.now() + PROJECTILE_EXPIRATION_MS;
+    startTimes[newIndex] = performance.now();
+    targetScales[newIndex] = scale;
 
     return [emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz];
   }
 
   tick(t, dt) {
-    const { meshes, physicsSystem, bodyUuids, maxIndex, expirations, freeFlags, bodyReadyFlags } = this;
+    const { meshes, physicsSystem, bodyUuids, maxIndex, startTimes, targetScales, freeFlags, bodyReadyFlags } = this;
     const now = performance.now();
 
     for (let i = 0; i <= maxIndex; i++) {
       if (!bodyReadyFlags[i] || freeFlags[i]) continue;
       const bodyUuid = bodyUuids[i];
 
-      if (expirations[i] < now) {
+      if (startTimes[i] + PROJECTILE_EXPIRATION_MS < now) {
         this.freeProjectileAtIndex(i);
         continue;
       }
 
-      if (expirations[i] - SHRINK_TIME_MS < now) {
+      if (startTimes[i] + SPAWN_TIME_MS > now) {
+        const mesh = meshes[i];
+        const t = (now - startTimes[i]) / SPAWN_TIME_MS;
+        const scale = SPAWN_MIN_SCALE + springStep(t) * (targetScales[i] - SPAWN_MIN_SCALE);
+        mesh.scale.x = scale;
+        mesh.scale.y = scale;
+        mesh.scale.z = 1.0;
+
+        mesh.matrixNeedsUpdate = true;
+      }
+
+      if (startTimes[i] + PROJECTILE_EXPIRATION_MS - SHRINK_TIME_MS < now) {
         const mesh = meshes[i];
         mesh.scale.x = Math.max(0.01, mesh.scale.x - SHRINK_SPEED * dt);
         mesh.scale.y = Math.max(0.01, mesh.scale.y - SHRINK_SPEED * dt);
@@ -277,13 +296,13 @@ export class ProjectileSystem {
   }
 
   freeProjectileAtIndex(idx) {
-    const { meshes, voxmojiSystem, freeFlags, expirations, wrappedEntitySystem } = this;
+    const { meshes, voxmojiSystem, freeFlags, startTimes, wrappedEntitySystem } = this;
     const mesh = meshes[idx];
     if (freeFlags[idx]) return; // Already freed
 
     voxmojiSystem.unregister(mesh);
     wrappedEntitySystem.unregister(mesh);
-    expirations[idx] = Infinity; // This will stop re-expirations
+    startTimes[idx] = Infinity; // This will stop re-expirations
     mesh.visible = false;
     mesh.scale.setScalar(1.0);
     mesh.matrixNeedsUpdate = true;
