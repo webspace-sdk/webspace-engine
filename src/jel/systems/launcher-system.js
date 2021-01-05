@@ -1,9 +1,12 @@
 import { paths } from "../../hubs/systems/userinput/paths";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "../../jel/utils/dom-utils";
+import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 const FIRE_DURATION_MS = 350;
 const MAX_FIRE_DURATION = 5000;
 const REPEATED_LAUNCH_DELAY = 500;
+
+const tmpVec3 = new THREE.Vector3();
 
 // Deals with Emoji Launcher
 export class LauncherSystem {
@@ -19,10 +22,16 @@ export class LauncherSystem {
     this.firedMegamoji = false;
     this.heldLeftPreviousFrame = false;
     this.heldSpacePreviousFrame = false;
+    this.avatarPovEl = null;
+
+    waitForDOMContentLoaded().then(() => {
+      this.avatarPovEl = document.querySelector("#avatar-pov-node");
+    });
   }
 
   tick() {
-    const { userinput } = this;
+    const { avatarPovEl, userinput } = this;
+
     const spacePath = paths.device.keyboard.key(" ");
     const middlePath = paths.device.mouse.buttonMiddle;
     const leftPath = paths.device.mouse.buttonLeft;
@@ -93,11 +102,23 @@ export class LauncherSystem {
   }
 
   fireEmoji(isMegaEmoji) {
-    //-this.characterController.relativeMotion.z
+    const { avatarPovEl } = this;
+    if (!avatarPovEl) return;
+
+    const avatarPovNode = avatarPovEl.object3D;
+    avatarPovNode.updateMatrices();
+    tmpVec3.copy(this.characterController.relativeMotion);
+    tmpVec3.normalize();
+    tmpVec3.transformDirection(avatarPovNode.matrixWorld);
+    const magnitude = this.characterController.relativeMotion.length();
+
     const payload = this.projectileSystem.fireEmojiLauncherProjectile(
       window.APP.store.state.equips.launcher,
-      isMegaEmoji
+      isMegaEmoji,
+      tmpVec3.x * magnitude,
+      tmpVec3.z * magnitude
     );
+
     window.APP.hubChannel.sendMessage(payload, "emoji_launch");
   }
 }

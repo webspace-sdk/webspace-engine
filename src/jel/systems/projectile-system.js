@@ -58,7 +58,7 @@ export class ProjectileSystem {
     this.expirations = Array(MAX_PROJECTILES).fill(performance.now());
     this.impulses = Array(MAX_PROJECTILES).fill(null);
     this.maxIndex = -1;
-    this.avatarPovNode = null;
+    this.avatarPovEl = null;
 
     waitForDOMContentLoaded().then(() => {
       this.avatarPovEl = document.querySelector("#avatar-pov-node");
@@ -66,7 +66,7 @@ export class ProjectileSystem {
   }
 
   // Fires a projectile of the given emoji, and returns a payload which can be passed to replayProjectile to fire the same one with the same initial conditions.
-  fireEmojiLauncherProjectile(emoji, isMegaMoji = false, extraZImpulse = 0.0) {
+  fireEmojiLauncherProjectile(emoji, isMegaMoji = false, extraXImpulse = 0.0, extraZImpulse = 0.0) {
     if (!window.APP.hubChannel) return;
 
     const { avatarPovEl } = this;
@@ -92,7 +92,7 @@ export class ProjectileSystem {
     tmpVec3.transformDirection(avatarPovNode.matrixWorld);
 
     const mag = isMegaMoji ? MEGAMOJI_IMPULSE : MIN_IMPULSE + Math.random() * (MAX_IMPULSE - MIN_IMPULSE);
-    const ix = tmpVec3.x * mag;
+    const ix = tmpVec3.x * mag + extraXImpulse;
     const iy = tmpVec3.y * mag;
     const iz = tmpVec3.z * mag + extraZImpulse;
     const irx = -MAX_SPIN + Math.random() * 2 * MAX_SPIN;
