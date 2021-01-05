@@ -134,7 +134,16 @@ export class ProjectileSystem {
   // ix, iy, iz - Impulse (if left undefined, generate impulse)
   // irx, ry, irz - Impulse offset (if left undefined, generate random offset to create spin)
   async spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale) {
-    const { physicsSystem, freeFlags, avatarPovEl, meshes, voxmojiSystem, expirations, bodyUuids } = this;
+    const {
+      physicsSystem,
+      freeFlags,
+      avatarPovEl,
+      meshes,
+      voxmojiSystem,
+      expirations,
+      bodyUuids,
+      wrappedEntitySystem
+    } = this;
     if (!avatarPovEl) return;
 
     const imageUrl = imageUrlForEmoji(emoji, 64);
@@ -164,6 +173,8 @@ export class ProjectileSystem {
     } else {
       mesh = await this.createProjectileMesh(newIndex, imageUrl);
     }
+
+    wrappedEntitySystem.register(mesh);
 
     mesh.position.x = ox;
     mesh.position.y = oy;
@@ -240,23 +251,13 @@ export class ProjectileSystem {
   }
 
   async createProjectileMesh(idx, imageUrl) {
-    const {
-      sceneEl,
-      voxmojiSystem,
-      physicsSystem,
-      meshes,
-      bodyUuids,
-      shapesUuids,
-      bodyReadyFlags,
-      wrappedEntitySystem
-    } = this;
+    const { sceneEl, voxmojiSystem, physicsSystem, meshes, bodyUuids, shapesUuids, bodyReadyFlags } = this;
 
     const geo = new THREE.BoxBufferGeometry(0.65, 0.65, 0.125);
     const mat = new THREE.MeshBasicMaterial();
     const mesh = new THREE.Mesh(geo, mat);
 
     sceneEl.object3D.add(mesh);
-    wrappedEntitySystem.register(mesh);
     await voxmojiSystem.register(imageUrl, mesh);
 
     mat.visible = false;
@@ -276,11 +277,12 @@ export class ProjectileSystem {
   }
 
   freeProjectileAtIndex(idx) {
-    const { meshes, voxmojiSystem, freeFlags, expirations } = this;
+    const { meshes, voxmojiSystem, freeFlags, expirations, wrappedEntitySystem } = this;
     const mesh = meshes[idx];
     if (freeFlags[idx]) return; // Already freed
 
     voxmojiSystem.unregister(mesh);
+    wrappedEntitySystem.unregister(mesh);
     expirations[idx] = Infinity; // This will stop re-expirations
     mesh.visible = false;
     mesh.scale.setScalar(1.0);

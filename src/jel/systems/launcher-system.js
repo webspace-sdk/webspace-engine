@@ -93,10 +93,10 @@ export class LauncherSystem {
   }
 
   fireEmoji(isMegaEmoji) {
+    //-this.characterController.relativeMotion.z
     const payload = this.projectileSystem.fireEmojiLauncherProjectile(
       window.APP.store.state.equips.launcher,
-      isMegaEmoji,
-      -this.characterController.relativeMotion.z
+      isMegaEmoji
     );
     window.APP.hubChannel.sendMessage(payload, "emoji_launch");
   }

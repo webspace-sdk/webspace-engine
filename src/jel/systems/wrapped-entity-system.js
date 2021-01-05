@@ -90,6 +90,7 @@ export class WrappedEntitySystem {
 
   register(elOrObj) {
     const obj = elOrObj.object3D || elOrObj;
+    if (this.objs.includes(obj)) return;
 
     this.objs.push(obj);
     this.newObjs.push(obj);
@@ -97,12 +98,17 @@ export class WrappedEntitySystem {
 
   unregister(elOrObj) {
     const obj = elOrObj.object3D || elOrObj;
-    this.objs.splice(this.objs.indexOf(obj), 1);
 
-    const idx = this.newObjs.indexOf(obj);
+    let i = this.objs.indexOf(obj);
 
-    if (idx >= 0) {
-      this.newObjs.splice(idx, 1);
+    if (i >= 0) {
+      this.objs.splice(i, 1);
+    }
+
+    i = this.newObjs.indexOf(obj);
+
+    if (i >= 0) {
+      this.newObjs.splice(i, 1);
     }
   }
 
@@ -131,6 +137,7 @@ export class WrappedEntitySystem {
       this.previousAvatarZ = az;
 
       if (avatarJumpedThisFrame) {
+        // console.log(`Avatar moved across world, repositioning ${this.objs.length} objects.`);
         // If our avatar just jumped across the map this frame, we need to reposition everything
         // since we may now be right up against an object on an edge.
         for (let i = 0; i < this.objs.length; i++) {
@@ -163,8 +170,6 @@ export class WrappedEntitySystem {
     const pos = new THREE.Vector3();
 
     return function(obj, avatarX, avatarZ) {
-      if (!obj.visible) return;
-
       obj.getWorldPosition(pos);
 
       // Normalized object x, z
