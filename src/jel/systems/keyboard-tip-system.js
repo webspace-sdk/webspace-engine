@@ -2,6 +2,9 @@ import { isInQuillEditor } from "../utils/quill-utils";
 import { BAKABLE_MEDIA_VIEW_COMPONENTS } from "../../hubs/utils/media-utils";
 import { GROUNDABLE_MEDIA_VIEW_COMPONENTS } from "../../hubs/utils/media-utils";
 import { cursorIsVisible, CURSOR_LOCK_STATES, getCursorLockState } from "../utils/dom-utils";
+import { paths } from "../../hubs/systems/userinput/paths";
+
+const shiftPath = paths.device.keyboard.key("shift");
 
 export class KeyboardTipSystem {
   constructor(sceneEl, cameraSystem) {
@@ -23,6 +26,7 @@ export class KeyboardTipSystem {
     }
 
     const hidden = this.store.state.settings.hideKeyTips;
+    const shiftMouseLook = this.scene.systems.userinput.get(shiftPath);
 
     if (!hidden) {
       if (isInQuillEditor()) {
@@ -32,7 +36,13 @@ export class KeyboardTipSystem {
       } else {
         if (this.cameraSystem.isInAvatarView()) {
           const expanded = getCursorLockState() === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
-          showTips = expanded ? (this.scene.is("unmuted") ? "idle_full_unmuted" : "idle_full_muted") : "idle_panels";
+          showTips = expanded
+            ? this.scene.is("unmuted")
+              ? "idle_full_unmuted"
+              : "idle_full_muted"
+            : shiftMouseLook
+              ? "idle_key_mouselook_panels"
+              : "idle_panels";
 
           if (this.transformSystem.transforming) {
             showTips = this.scaleSystem.isScaling ? "scale" : "rotate";
