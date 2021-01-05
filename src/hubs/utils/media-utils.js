@@ -816,3 +816,32 @@ export function imageUrlForEmoji(emoji, resolution) {
   const unicode = emojiUnicode(emoji).toUpperCase();
   return `${EMOJI_IMAGE_URL}/${unicode}-${resolution}.png`;
 }
+
+const spawnMediaInFrontOffset = { x: 0, y: 0, z: -1.5 };
+
+export const spawnMediaInfrontOfPlayer = (src, contents, contentOrigin, contentSubtype = null, mediaOptions = null) => {
+  if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
+  if (src instanceof File && !window.APP.hubChannel.can("upload_files")) return;
+
+  const { entity, orientation } = addMedia(
+    src,
+    contents,
+    "#interactable-media",
+    contentOrigin,
+    contentSubtype,
+    !!(src && !(src instanceof MediaStream)),
+    true,
+    true,
+    mediaOptions
+  );
+
+  orientation.then(or => {
+    entity.setAttribute("offset-relative-to", {
+      target: "#avatar-pov-node",
+      offset: spawnMediaInFrontOffset,
+      orientation: or
+    });
+  });
+
+  return entity;
+};

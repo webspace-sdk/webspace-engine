@@ -17,18 +17,20 @@ export const offsetRelativeTo = (() => {
     outPos = null,
     outQuaternion = null
   ) {
-    if (parent === null) {
+    if (!obj && (orientation !== 1 || lookAt)) {
+      throw new Error("Orientation/lookAt on non-object target not supported");
+    }
+
+    if (parent === null && obj) {
       parent = obj.parent;
     }
 
-    if (outPos === null) {
+    if (obj !== null && outPos === null) {
       outPos = obj.position;
-      if (orientation !== 1 || lookAt) throw new Error("Orientation/lookAt on non-object target not supported");
     }
 
-    if (outQuaternion === null) {
+    if (obj !== null && outQuaternion === null) {
       outQuaternion = obj.quaternion;
-      if (orientation !== 1 || lookAt) throw new Error("Orientation/lookAt on non-object target not supported");
     }
 
     offsetVector.copy(offset);

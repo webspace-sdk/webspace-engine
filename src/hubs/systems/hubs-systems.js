@@ -42,6 +42,7 @@ import { AutoQualitySystem } from "../../jel/systems/auto-quality-system";
 import { VoxmojiSystem } from "../../jel/systems/voxmoji-system";
 import { ProjectileSystem } from "../../jel/systems/projectile-system";
 import { LauncherSystem } from "../../jel/systems/launcher-system";
+import { PasteSystem } from "../../hubs/systems/paste-system";
 
 AFRAME.registerSystem("hubs-systems", {
   init() {
@@ -98,6 +99,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.autoQualitySystem = new AutoQualitySystem(this.el);
     this.helpersSystem = new HelpersSystem(this.el);
     this.launcherSystem = new LauncherSystem(this.el, this.projectileSystem, this.el.systems.userinput);
+    this.pasteSystem = new PasteSystem(this.el);
   },
 
   tick(t, dt) {
@@ -109,6 +111,7 @@ AFRAME.registerSystem("hubs-systems", {
     // We run this earlier in the frame so things have a chance to override properties run by animations
     this.animationMixerSystem.tick(dt);
 
+    this.pasteSystem.tick();
     this.cameraRotatorSystem.tick();
     this.characterController.tick(t, dt);
     this.wrappedEntitySystem.tick();

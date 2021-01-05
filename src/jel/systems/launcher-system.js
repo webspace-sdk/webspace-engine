@@ -17,8 +17,9 @@ export class LauncherSystem {
   tick() {
     const { userinput, projectileSystem } = this;
     const spacePath = paths.device.keyboard.key(" ");
+    const middlePath = paths.device.mouse.buttonMiddle;
 
-    const hasLauncherGesture = userinput.get(spacePath);
+    const hasLauncherGesture = userinput.get(spacePath) || userinput.get(middlePath);
 
     if (hasLauncherGesture) {
       const now = performance.now();

@@ -13,7 +13,7 @@ const isMobileVR = AFRAME.utils.device.isMobileVR();
 const isDebug = qsTruthy("debug");
 const qs = new URLSearchParams(location.search);
 
-import { addMedia, performAnimatedRemove } from "./utils/media-utils";
+import { spawnMediaInfrontOfPlayer, performAnimatedRemove } from "./utils/media-utils";
 import {
   isIn2DInterstitial,
   handleExitTo2DInterstitial,
@@ -198,34 +198,6 @@ export default class SceneEntryManager {
   };
 
   _setupMedia = () => {
-    const offset = { x: 0, y: 0, z: -1.5 };
-    const spawnMediaInfrontOfPlayer = (src, contents, contentOrigin, contentSubtype = null, mediaOptions = null) => {
-      if (!this.hubChannel.can("spawn_and_move_media")) return;
-      if (src instanceof File && !this.hubChannel.can("upload_files")) return;
-
-      const { entity, orientation } = addMedia(
-        src,
-        contents,
-        "#interactable-media",
-        contentOrigin,
-        contentSubtype,
-        !!(src && !(src instanceof MediaStream)),
-        true,
-        true,
-        mediaOptions
-      );
-
-      orientation.then(or => {
-        entity.setAttribute("offset-relative-to", {
-          target: "#avatar-pov-node",
-          offset,
-          orientation: or
-        });
-      });
-
-      return entity;
-    };
-
     this.scene.addEventListener("add_media", e => {
       const contentOrigin = e.detail instanceof File ? ObjectContentOrigins.FILE : ObjectContentOrigins.URL;
 
@@ -276,47 +248,7 @@ export default class SceneEntryManager {
 
     this.scene.addEventListener("action_vr_notice_closed", () => forceExitFrom2DInterstitial());
 
-    document.addEventListener("paste", e => {
-      if (
-        (e.target.matches("input, textarea") || e.target.contentEditable === "true") &&
-        document.activeElement === e.target
-      )
-        return;
-
-      // Quill editor
-      if (document.activeElement && document.activeElement.classList.contains("ql-clipboard")) return;
-
-      // Never paste into scene if dialog is open
-      const uiRoot = document.querySelector(".ui-root");
-      if (uiRoot && uiRoot.classList.contains("in-modal-or-overlay")) return;
-
-      const html = e.clipboardData.getData("text/html");
-      const text = e.clipboardData.getData("text/plain");
-      // Check if data or http url
-      const url =
-        text &&
-        (text
-          .substring(0, 4)
-          .toLowerCase()
-          .startsWith("http") ||
-          text
-            .substring(0, 5)
-            .toLowerCase()
-            .startsWith("data:"))
-          ? text
-          : null;
-      const contents = (!url && (html || text)) || null;
-      const files = e.clipboardData.files && e.clipboardData.files;
-      if (url) {
-        spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL);
-      } else if (contents) {
-        spawnMediaInfrontOfPlayer(null, contents, ObjectContentOrigins.CLIPBOARD);
-      } else {
-        for (const file of files) {
-          spawnMediaInfrontOfPlayer(file, null, ObjectContentOrigins.CLIPBOARD);
-        }
-      }
-    });
+    document.addEventListener("paste", e => AFRAME.scenes[0].systems["hubs-systems"].pasteSystem.enqueuePaste(e));
 
     document.addEventListener("dragover", e => e.preventDefault());
 
