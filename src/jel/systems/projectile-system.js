@@ -9,7 +9,13 @@ import {
   SOUND_LAUNCHER_3,
   SOUND_LAUNCHER_4,
   SOUND_LAUNCHER_5,
-  SOUND_LAUNCHER_BIG
+  SOUND_LAUNCHER_BIG,
+  SOUND_FART_1,
+  SOUND_FART_2,
+  SOUND_FART_3,
+  SOUND_FART_4,
+  SOUND_FART_5,
+  SOUND_FART_BIG
 } from "../../hubs/systems/sound-effects-system";
 
 import BezierEasing from "bezier-easing";
@@ -31,8 +37,15 @@ const MEGAMOJI_SCALE = 3;
 const SPAWN_TIME_MS = 250;
 const SPAWN_MIN_SCALE = 0.4;
 const LAUNCHER_SFX_URLS = [SOUND_LAUNCHER_1, SOUND_LAUNCHER_2, SOUND_LAUNCHER_3, SOUND_LAUNCHER_4, SOUND_LAUNCHER_5];
+const FART_SFX_URLS = [SOUND_FART_1, SOUND_FART_2, SOUND_FART_3, SOUND_FART_4, SOUND_FART_5];
 
-const randomLauncherSfx = () => LAUNCHER_SFX_URLS[Math.floor(Math.random() * LAUNCHER_SFX_URLS.length)];
+const getLauncherSound = (emoji, isMegaMoji) => {
+  if (emoji === "💩") {
+    return isMegaMoji ? SOUND_FART_BIG : FART_SFX_URLS[Math.floor(Math.random() * FART_SFX_URLS.length)];
+  } else {
+    return isMegaMoji ? SOUND_LAUNCHER_BIG : LAUNCHER_SFX_URLS[Math.floor(Math.random() * LAUNCHER_SFX_URLS.length)];
+  }
+};
 
 const INCLUDE_ENVIRONMENT_FILTER_MASK =
   COLLISION_LAYERS.INTERACTABLES | COLLISION_LAYERS.AVATAR | COLLISION_LAYERS.ENVIRONMENT;
@@ -78,6 +91,7 @@ export class ProjectileSystem {
     this.startTimes = Array(MAX_PROJECTILES).fill(Infinity);
     this.targetScales = Array(MAX_PROJECTILES).fill(1.0);
     this.playPositionalSoundAfterTicks = Array(MAX_PROJECTILES).fill(false);
+    this.emojis = Array(MAX_PROJECTILES).fill("");
     this.maxIndex = -1;
     this.avatarPovEl = null;
 
@@ -123,7 +137,7 @@ export class ProjectileSystem {
     const scale = isMegaMoji ? MEGAMOJI_SCALE : 1.0;
 
     this.spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale);
-    this.soundEffectsSystem.playSoundOneShot(isMegaMoji ? SOUND_LAUNCHER_BIG : randomLauncherSfx());
+    this.soundEffectsSystem.playSoundOneShot(getLauncherSound(emoji, isMegaMoji));
 
     return [emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale];
   }
@@ -184,7 +198,8 @@ export class ProjectileSystem {
       bodyUuids,
       playPositionalSoundAfterTicks,
       wrappedEntitySystem,
-      targetScales
+      targetScales,
+      emojis
     } = this;
     if (!avatarPovEl) return;
 
@@ -261,8 +276,7 @@ export class ProjectileSystem {
     startTimes[newIndex] = performance.now();
     targetScales[newIndex] = animateScale ? scale : null;
     playPositionalSoundAfterTicks[newIndex] = playPositionalSound ? 2 : 0;
-
-    return [emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz];
+    emojis[newIndex] = emoji;
   }
 
   tick(t, dt) {
@@ -274,6 +288,7 @@ export class ProjectileSystem {
       startTimes,
       targetScales,
       freeFlags,
+      emojis,
       bodyReadyFlags,
       playPositionalSoundAfterTicks
     } = this;
@@ -294,9 +309,9 @@ export class ProjectileSystem {
         playPositionalSoundAfterTicks[i]--;
 
         if (playPositionalSoundAfterTicks[i] === 0) {
-          const isMega = targetScales[i] === MEGAMOJI_SCALE;
+          const isMegaMoji = targetScales[i] === MEGAMOJI_SCALE;
           this.soundEffectsSystem.playPositionalSoundAt(
-            isMega ? SOUND_LAUNCHER_BIG : randomLauncherSfx(),
+            getLauncherSound(emojis[i], isMegaMoji),
             meshes[i].position,
             false
           );

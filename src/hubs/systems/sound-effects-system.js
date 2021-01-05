@@ -24,6 +24,12 @@ import URL_LAUNCHER_3 from "../../assets/jel/sfx/launcher3.mp3";
 import URL_LAUNCHER_4 from "../../assets/jel/sfx/launcher4.mp3";
 import URL_LAUNCHER_5 from "../../assets/jel/sfx/launcher5.mp3";
 import URL_LAUNCHER_BIG from "../../assets/jel/sfx/launcher_big.mp3";
+import URL_FART_1 from "../../assets/jel/sfx/fart1.mp3";
+import URL_FART_2 from "../../assets/jel/sfx/fart2.mp3";
+import URL_FART_3 from "../../assets/jel/sfx/fart3.mp3";
+import URL_FART_4 from "../../assets/jel/sfx/fart4.mp3";
+import URL_FART_5 from "../../assets/jel/sfx/fart5.mp3";
+import URL_FART_BIG from "../../assets/jel/sfx/fart_big.mp3";
 import { setMatrixWorld } from "../utils/three-utils";
 
 let soundEnum = 0;
@@ -60,6 +66,12 @@ export const SOUND_LAUNCHER_3 = soundEnum++;
 export const SOUND_LAUNCHER_4 = soundEnum++;
 export const SOUND_LAUNCHER_5 = soundEnum++;
 export const SOUND_LAUNCHER_BIG = soundEnum++;
+export const SOUND_FART_1 = soundEnum++;
+export const SOUND_FART_2 = soundEnum++;
+export const SOUND_FART_3 = soundEnum++;
+export const SOUND_FART_4 = soundEnum++;
+export const SOUND_FART_5 = soundEnum++;
+export const SOUND_FART_BIG = soundEnum++;
 
 // Safari doesn't support the promise form of decodeAudioData, so we polyfill it.
 function decodeAudioData(audioContext, arrayBuffer) {
@@ -111,7 +123,13 @@ export class SoundEffectsSystem {
       [SOUND_LAUNCHER_3, URL_LAUNCHER_3],
       [SOUND_LAUNCHER_4, URL_LAUNCHER_4],
       [SOUND_LAUNCHER_5, URL_LAUNCHER_5],
-      [SOUND_LAUNCHER_BIG, URL_LAUNCHER_BIG]
+      [SOUND_LAUNCHER_BIG, URL_LAUNCHER_BIG],
+      [SOUND_FART_1, URL_FART_1],
+      [SOUND_FART_2, URL_FART_2],
+      [SOUND_FART_3, URL_FART_3],
+      [SOUND_FART_4, URL_FART_4],
+      [SOUND_FART_5, URL_FART_5],
+      [SOUND_FART_BIG, URL_FART_BIG]
     ];
     const loading = new Map();
     const load = url => {
