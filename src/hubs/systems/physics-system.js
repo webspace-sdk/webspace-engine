@@ -224,10 +224,12 @@ export class PhysicsSystem {
 
             body.collisions.length = 0;
 
-            for (let j = BUFFER_CONFIG.COLLISIONS_OFFSET; j < BUFFER_CONFIG.BODY_DATA_SIZE; j++) {
-              const collidingIndex = this.objectMatricesIntArray[index * BUFFER_CONFIG.BODY_DATA_SIZE + j];
-              if (collidingIndex !== -1) {
-                body.collisions.push(this.indexToUuid[collidingIndex]);
+            if (type !== TYPE.DYNAMIC || hadInitialSync) {
+              for (let j = BUFFER_CONFIG.COLLISIONS_OFFSET; j < BUFFER_CONFIG.BODY_DATA_SIZE; j++) {
+                const collidingIndex = this.objectMatricesIntArray[index * BUFFER_CONFIG.BODY_DATA_SIZE + j];
+                if (collidingIndex !== -1) {
+                  body.collisions.push(this.indexToUuid[collidingIndex]);
+                }
               }
             }
 
@@ -304,6 +306,10 @@ export class PhysicsSystem {
     }
 
     return uuid;
+  }
+
+  getBody(uuid) {
+    return this.bodyUuidToData.get(uuid);
   }
 
   updateBody(uuid, options) {

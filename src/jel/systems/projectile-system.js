@@ -94,6 +94,16 @@ const BODY_OPTIONS = {
   }
 };
 
+const FREED_BODY_OPTIONS = {
+  activationState: ACTIVATION_STATE.DISABLE_SIMULATION,
+  collisionFilterMask: 0
+};
+
+const RESET_BODY_OPTIONS = {
+  activationState: ACTIVATION_STATE.ACTIVE_TAG,
+  collisionFilterMask: INCLUDE_ENVIRONMENT_FILTER_MASK
+};
+
 const SHAPE_OPTIONS = {
   type: SHAPE.BOX,
   fit: FIT.ALL
@@ -276,14 +286,12 @@ export class ProjectileSystem {
     playPositionalSound = false
   ) {
     const {
-      physicsSystem,
       freeFlags,
       avatarPovEl,
       meshes,
       meshTypes,
       voxmojiSystem,
       startTimes,
-      bodyUuids,
       playPositionalSoundAfterTicks,
       wrappedEntitySystem,
       targetScales,
@@ -294,24 +302,24 @@ export class ProjectileSystem {
     const imageUrl = imageUrlForEmoji(emoji, 64);
 
     // Find the index of a free mesh or a new index for a new mesh.
-    let newIndex = -1;
+    let idx = -1;
 
     for (let i = 0; i < MAX_PROJECTILES; i++) {
       if (freeFlags[i] && (meshes[i] === null || meshTypes[i] === meshType)) {
-        newIndex = i;
+        idx = i;
         break;
       }
     }
 
-    if (newIndex === -1) {
+    if (idx === -1) {
       console.warn("No slots for new projectile.");
       return;
     }
 
     // Reserve index so concurrent spawns don't do the same
-    freeFlags[newIndex] = false;
+    freeFlags[idx] = false;
 
-    let mesh = meshes[newIndex];
+    let mesh = meshes[idx];
     let initialScale = scale;
 
     if (animateScale) {
@@ -330,22 +338,21 @@ export class ProjectileSystem {
       mesh.matrixNeedsUpdate = true;
       mesh.updateMatrices();
 
-      physicsSystem.resetDynamicBody(bodyUuids[newIndex]);
+      this.physicsSystem.updateBody(this.bodyUuids[idx], RESET_BODY_OPTIONS);
+      this.physicsSystem.resetDynamicBody(this.bodyUuids[idx]);
     } else {
-      mesh = this.createProjectileMesh(meshType, newIndex, ox, oy, oz, orx, ory, orz, orw, initialScale);
+      mesh = this.createProjectileMesh(meshType, idx, ox, oy, oz, orx, ory, orz, orw, initialScale);
     }
 
     wrappedEntitySystem.register(mesh);
 
-    this.setImpulse(newIndex, ix, iy, iz, irx, iry, irz);
+    this.setImpulse(idx, ix, iy, iz, irx, iry, irz);
 
-    mesh.visible = true;
-
-    freeFlags[newIndex] = false;
-    startTimes[newIndex] = performance.now();
-    targetScales[newIndex] = animateScale ? scale : null;
-    playPositionalSoundAfterTicks[newIndex] = playPositionalSound ? 2 : 0;
-    emojis[newIndex] = emoji;
+    freeFlags[idx] = false;
+    startTimes[idx] = performance.now();
+    targetScales[idx] = animateScale ? scale : null;
+    playPositionalSoundAfterTicks[idx] = playPositionalSound ? 2 : 0;
+    emojis[idx] = emoji;
 
     await voxmojiSystem.register(imageUrl, mesh);
   }
@@ -365,6 +372,34 @@ export class ProjectileSystem {
       playPositionalSoundAfterTicks
     } = this;
     const now = performance.now();
+
+    for (let i = 0; i <= maxIndex; i++) {
+      if (!bodyReadyFlags[i] || freeFlags[i]) continue;
+      const bodyUuid = bodyUuids[i];
+      const collisions = physicsSystem.getCollisions(bodyUuid);
+
+      let hitMedia = false;
+
+      if (collisions.length > 0) {
+        for (let j = 0; j < collisions; j++) {
+          const hitBody = collisions[j];
+          if (hitBody < 0) continue;
+
+          const body = physicsSystem.getBody(hitBody);
+          if (!body) continue;
+
+          if (body.object3D.el && body.object3D.el.components["media-loader"]) {
+            hitMedia = true;
+            break;
+          }
+        }
+      }
+
+      if (hitMedia) {
+        this.freeProjectileAtIndex(i);
+        continue;
+      }
+    }
 
     for (let i = 0; i <= maxIndex; i++) {
       if (!bodyReadyFlags[i] || freeFlags[i]) continue;
@@ -408,24 +443,24 @@ export class ProjectileSystem {
           mesh.scale.y = Math.max(0.01, mesh.scale.y - SHRINK_SPEED * dt);
 
           if (mesh.scale.x <= 0.01) {
-            mesh.scale.z = 0.01;
+            this.freeProjectileAtIndex(i);
+          } else {
+            mesh.matrixNeedsUpdate = true;
           }
-
-          mesh.matrixNeedsUpdate = true;
         }
       } else {
         // burst emojis just shrink
         const mesh = meshes[i];
-        const s = Math.min(1, dt * 32.0) * 0.925;
+        const s = Math.min(1, dt * 32.0) * 0.975;
         mesh.scale.x *= s;
         mesh.scale.y *= s;
         mesh.scale.z *= s;
 
         if (mesh.scale.x < 0.01) {
-          mesh.visible = false;
+          this.freeProjectileAtIndex(i);
+        } else {
+          mesh.matrixNeedsUpdate = true;
         }
-
-        mesh.matrixNeedsUpdate = true;
       }
 
       const [ix, iy, iz, rx, ry, rz] = this.impulses[i];
@@ -438,7 +473,7 @@ export class ProjectileSystem {
   }
 
   createProjectileMesh(meshType, idx, ox, oy, oz, orx, ory, orz, orw, scale) {
-    const { sceneEl, physicsSystem, meshes, meshTypes, bodyUuids, shapesUuids, bodyReadyFlags } = this;
+    const { sceneEl, meshes, meshTypes } = this;
 
     const geo = new THREE.BoxBufferGeometry(0.65, 0.65, 0.125);
     const mat = new THREE.MeshBasicMaterial();
@@ -459,32 +494,52 @@ export class ProjectileSystem {
     mesh.matrixNeedsUpdate = true;
     mesh.updateMatrices();
 
-    const bodyUuid = physicsSystem.addBody(mesh, BODY_OPTIONS[meshType], () => (bodyReadyFlags[idx] = true));
-
-    const shapesUuid = physicsSystem.addShapes(bodyUuid, mesh, SHAPE_OPTIONS);
-
     meshes[idx] = mesh;
     meshTypes[idx] = meshType;
-    bodyUuids[idx] = bodyUuid;
-    shapesUuids[idx] = shapesUuid;
 
     this.maxIndex = Math.max(this.maxIndex, idx);
+
+    this.addMeshToPhysics(idx);
 
     return mesh;
   }
 
+  addMeshToPhysics(idx) {
+    const { physicsSystem, meshes, meshTypes, bodyUuids, shapesUuids, bodyReadyFlags } = this;
+
+    const mesh = meshes[idx];
+    const meshType = meshTypes[idx];
+    const bodyUuid = physicsSystem.addBody(mesh, BODY_OPTIONS[meshType], () => {
+      bodyReadyFlags[idx] = true;
+    });
+
+    const shapesUuid = physicsSystem.addShapes(bodyUuid, mesh, SHAPE_OPTIONS);
+    bodyUuids[idx] = bodyUuid;
+    shapesUuids[idx] = shapesUuid;
+  }
+
   freeProjectileAtIndex(idx) {
-    const { meshes, voxmojiSystem, freeFlags, startTimes, wrappedEntitySystem } = this;
+    const {
+      meshes,
+      bodyUuids,
+      bodyReadyFlags,
+      voxmojiSystem,
+      freeFlags,
+      startTimes,
+      wrappedEntitySystem,
+      physicsSystem
+    } = this;
     const mesh = meshes[idx];
     if (freeFlags[idx]) return; // Already freed
 
     voxmojiSystem.unregister(mesh);
     wrappedEntitySystem.unregister(mesh);
     startTimes[idx] = Infinity; // This will stop re-expirations
-    mesh.visible = false;
-    mesh.scale.setScalar(1.0);
-    mesh.matrixNeedsUpdate = true;
-    mesh.updateMatrices();
+
+    if (bodyReadyFlags[idx]) {
+      physicsSystem.updateBody(bodyUuids[idx], FREED_BODY_OPTIONS);
+    }
+
     freeFlags[idx] = true;
     this.clearImpulse(idx);
   }
