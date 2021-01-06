@@ -206,7 +206,6 @@ export class SoundEffectsSystem {
   }
 
   playSoundOneShot(sound) {
-    console.log("enqueue", sound);
     return this.enqueueSound(sound, false);
   }
 

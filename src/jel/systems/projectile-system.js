@@ -22,7 +22,7 @@ import BezierEasing from "bezier-easing";
 
 const springStep = BezierEasing(0.47, -0.07, 0.44, 3.65);
 
-const MAX_PROJECTILES = 128;
+const MAX_PROJECTILES = 1024;
 const PROJECTILE_EXPIRATION_MS = 5000;
 const SPAWN_OFFSET = new THREE.Vector3(0, -0.85, -0.5);
 const SHRINK_TIME_MS = 1000;
@@ -31,13 +31,19 @@ const MIN_IMPULSE = 6.0;
 const MAX_IMPULSE = 8.0;
 const MAX_DRIFT_XY = 0.05;
 const MAX_SPIN = 0.05;
-const DEFAULT_GRAVITY = new THREE.Vector3(0, -9.8, 0);
+const MIN_BURST_IMPULSE = 0.01;
+const MAX_BURST_IMPULSE = 0.02;
+const MAX_BURST_SPIN = 0.05;
+const LAUNCHER_GRAVITY = new THREE.Vector3(0, -9.8, 0);
+const BURST_GRAVITY = new THREE.Vector3(0, 0.5, 0);
 const MEGAMOJI_IMPULSE = 12.0;
 const MEGAMOJI_SCALE = 3;
 const SPAWN_TIME_MS = 250;
 const SPAWN_MIN_SCALE = 0.4;
 const LAUNCHER_SFX_URLS = [SOUND_LAUNCHER_1, SOUND_LAUNCHER_2, SOUND_LAUNCHER_3, SOUND_LAUNCHER_4, SOUND_LAUNCHER_5];
 const FART_SFX_URLS = [SOUND_FART_1, SOUND_FART_2, SOUND_FART_3, SOUND_FART_4, SOUND_FART_5];
+const BURST_PARTICLES = 8;
+const BURST_PARTICLE_SCALE = 0.1;
 
 const getLauncherSound = (emoji, isMegaMoji) => {
   if (emoji === "💩") {
@@ -50,20 +56,42 @@ const getLauncherSound = (emoji, isMegaMoji) => {
 const INCLUDE_ENVIRONMENT_FILTER_MASK =
   COLLISION_LAYERS.INTERACTABLES | COLLISION_LAYERS.AVATAR | COLLISION_LAYERS.ENVIRONMENT;
 
+const MESH_TYPES = {
+  LAUNCHER: 0,
+  BURST: 1
+};
+
 const BODY_OPTIONS = {
-  type: TYPE.DYNAMIC,
-  mass: 1,
-  linearDamping: 0.01,
-  angularDamping: 0.01,
-  linearSleepingThreshold: 1.6,
-  angularSleepingThreshold: 2.5,
-  activationState: ACTIVATION_STATE.ACTIVE_TAG,
-  emitCollisionEvents: false,
-  disableCollision: false,
-  collisionFilterGroup: 1,
-  collisionFilterMask: INCLUDE_ENVIRONMENT_FILTER_MASK,
-  scaleAutoUpdate: true,
-  gravity: DEFAULT_GRAVITY
+  [MESH_TYPES.LAUNCHER]: {
+    type: TYPE.DYNAMIC,
+    mass: 1,
+    linearDamping: 0.01,
+    angularDamping: 0.01,
+    linearSleepingThreshold: 1.6,
+    angularSleepingThreshold: 2.5,
+    activationState: ACTIVATION_STATE.ACTIVE_TAG,
+    emitCollisionEvents: false,
+    disableCollision: false,
+    collisionFilterGroup: 1,
+    collisionFilterMask: INCLUDE_ENVIRONMENT_FILTER_MASK,
+    scaleAutoUpdate: true,
+    gravity: LAUNCHER_GRAVITY
+  },
+  [MESH_TYPES.BURST]: {
+    type: TYPE.DYNAMIC,
+    mass: 1,
+    linearDamping: 0.01,
+    angularDamping: 0.01,
+    linearSleepingThreshold: 1.6,
+    angularSleepingThreshold: 2.5,
+    activationState: ACTIVATION_STATE.ACTIVE_TAG,
+    emitCollisionEvents: false,
+    disableCollision: false,
+    collisionFilterGroup: 1,
+    collisionFilterMask: INCLUDE_ENVIRONMENT_FILTER_MASK,
+    scaleAutoUpdate: true,
+    gravity: BURST_GRAVITY
+  }
 };
 
 const SHAPE_OPTIONS = {
@@ -73,6 +101,7 @@ const SHAPE_OPTIONS = {
 
 const tmpVec3 = new THREE.Vector3();
 const tmpQuat = new THREE.Quaternion();
+const tmpEuler = new THREE.Euler();
 
 export class ProjectileSystem {
   constructor(sceneEl, voxmojiSystem, physicsSystem, wrappedEntitySystem, soundEffectsSystem) {
@@ -83,6 +112,7 @@ export class ProjectileSystem {
     this.soundEffectsSystem = soundEffectsSystem;
 
     this.meshes = Array(MAX_PROJECTILES).fill(null);
+    this.meshTypes = Array(MAX_PROJECTILES).fill(MESH_TYPES.LAUNCHER);
     this.freeFlags = Array(MAX_PROJECTILES).fill(true);
     this.bodyUuids = Array(MAX_PROJECTILES).fill(null);
     this.bodyReadyFlags = Array(MAX_PROJECTILES).fill(false);
@@ -136,33 +166,89 @@ export class ProjectileSystem {
 
     const scale = isMegaMoji ? MEGAMOJI_SCALE : 1.0;
 
-    this.spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale);
+    this.spawnProjectile(MESH_TYPES.LAUNCHER, emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale);
     this.soundEffectsSystem.playSoundOneShot(getLauncherSound(emoji, isMegaMoji));
 
     return [emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale];
   }
 
+  replayBurst([emoji, ox, oy, oz, radius]) {
+    this.spawnBurst(emoji, ox, oy, oz, radius);
+  }
+
   replayEmojiSpawnerProjectile([emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale]) {
-    this.spawnProjectile(emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale, true, true);
+    this.spawnProjectile(
+      MESH_TYPES.LAUNCHER,
+      emoji,
+      ox,
+      oy,
+      oz,
+      orx,
+      ory,
+      orz,
+      orw,
+      ix,
+      iy,
+      iz,
+      irx,
+      iry,
+      irz,
+      scale,
+      true,
+      true
+    );
   }
 
-  setImpulse(index, x, y, z, rx, ry, rz) {
-    const { impulses } = this;
+  fireEmojiBurst(emoji, ox, oy, oz, radius) {
+    this.spawnBurst(emoji, ox, oy, oz, radius);
+    return [ox, oy, oz, radius];
+  }
 
-    if (impulses[index] === null) {
-      impulses[index] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+  async spawnBurst(emoji, ox, oy, oz, radius) {
+    for (let i = 0; i < BURST_PARTICLES; i++) {
+      const dx = Math.sin(Math.PI * 2.0 * (i / BURST_PARTICLES));
+      const dz = Math.cos(Math.PI * 2.0 * (i / BURST_PARTICLES));
+
+      ox = ox + dx * radius;
+      oz = oz + dz * radius;
+
+      tmpEuler.set(Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI);
+      tmpQuat.setFromEuler(tmpEuler);
+
+      const orx = tmpQuat.x;
+      const ory = tmpQuat.y;
+      const orz = tmpQuat.z;
+      const orw = tmpQuat.w;
+
+      const mag = MIN_BURST_IMPULSE + Math.random() * (MAX_BURST_IMPULSE - MIN_BURST_IMPULSE);
+      const ix = mag * dx;
+      const iy = 0.0;
+      const iz = mag * dz;
+      const irx = -MAX_BURST_SPIN + Math.random() * 2 * MAX_BURST_SPIN;
+      const iry = -MAX_BURST_SPIN + Math.random() * 2 * MAX_BURST_SPIN;
+      const irz = -MAX_BURST_SPIN + Math.random() * 2 * MAX_BURST_SPIN;
+
+      const scale = 0.8 * BURST_PARTICLE_SCALE + Math.random() * 0.2 * BURST_PARTICLE_SCALE;
+
+      await this.spawnProjectile(
+        MESH_TYPES.BURST,
+        emoji,
+        ox,
+        oy,
+        oz,
+        orx,
+        ory,
+        orz,
+        orw,
+        ix,
+        iy,
+        iz,
+        irx,
+        iry,
+        irz,
+        scale
+      );
     }
-
-    impulses[index][0] = x;
-    impulses[index][1] = y;
-    impulses[index][2] = z;
-    impulses[index][3] = rx;
-    impulses[index][4] = ry;
-    impulses[index][5] = rz;
-  }
-
-  clearImpulse(index) {
-    this.setImpulse(index, 0, 0, 0, 0, 0, 0);
   }
 
   // ox, oy, oz - Spawn origin (if left undefined, spawn in front of avatar)
@@ -170,6 +256,7 @@ export class ProjectileSystem {
   // ix, iy, iz - Impulse (if left undefined, generate impulse)
   // irx, ry, irz - Impulse offset (if left undefined, generate random offset to create spin)
   async spawnProjectile(
+    meshType,
     emoji,
     ox,
     oy,
@@ -193,6 +280,7 @@ export class ProjectileSystem {
       freeFlags,
       avatarPovEl,
       meshes,
+      meshTypes,
       voxmojiSystem,
       startTimes,
       bodyUuids,
@@ -205,13 +293,11 @@ export class ProjectileSystem {
 
     const imageUrl = imageUrlForEmoji(emoji, 64);
 
-    const avatarPovNode = avatarPovEl.object3D;
-
     // Find the index of a free mesh or a new index for a new mesh.
     let newIndex = -1;
 
     for (let i = 0; i < MAX_PROJECTILES; i++) {
-      if (meshes[i] === null || freeFlags[i]) {
+      if (freeFlags[i] && (meshes[i] === null || meshTypes[i] === meshType)) {
         newIndex = i;
         break;
       }
@@ -222,51 +308,34 @@ export class ProjectileSystem {
       return;
     }
 
+    // Reserve index so concurrent spawns don't do the same
+    freeFlags[newIndex] = false;
+
     let mesh = meshes[newIndex];
+    let initialScale = scale;
+
+    if (animateScale) {
+      initialScale = mesh.scale.setScalar(SPAWN_MIN_SCALE);
+    }
 
     if (mesh) {
+      mesh.position.x = ox;
+      mesh.position.y = oy;
+      mesh.position.z = oz;
+      mesh.quaternion.x = orx;
+      mesh.quaternion.y = ory;
+      mesh.quaternion.z = orz;
+      mesh.quaternion.w = orw;
+      mesh.scale.setScalar(initialScale);
+      mesh.matrixNeedsUpdate = true;
+      mesh.updateMatrices();
+
       physicsSystem.resetDynamicBody(bodyUuids[newIndex]);
-      await voxmojiSystem.register(imageUrl, mesh);
     } else {
-      mesh = await this.createProjectileMesh(newIndex, imageUrl);
+      mesh = this.createProjectileMesh(meshType, newIndex, ox, oy, oz, orx, ory, orz, orw, initialScale);
     }
 
     wrappedEntitySystem.register(mesh);
-
-    mesh.position.x = ox;
-    mesh.position.y = oy;
-    mesh.position.z = oz;
-    mesh.quaternion.x = orx;
-    mesh.quaternion.y = ory;
-    mesh.quaternion.z = orz;
-    mesh.quaternion.w = orw;
-
-    if (animateScale) {
-      mesh.scale.setScalar(SPAWN_MIN_SCALE);
-    } else {
-      mesh.scale.setScalar(scale);
-    }
-
-    mesh.matrixNeedsUpdate = true;
-    mesh.updateMatrices();
-
-    if (ix === undefined) {
-      const vec = new THREE.Vector3(
-        0 + -MAX_DRIFT_XY + Math.random() * 2.0 * MAX_DRIFT_XY,
-        1 + -MAX_DRIFT_XY + Math.random() * 2.0 * MAX_DRIFT_XY,
-        -1
-      );
-      avatarPovNode.updateMatrices();
-      vec.transformDirection(avatarPovNode.matrixWorld);
-
-      const mag = MIN_IMPULSE + Math.random() * (MAX_IMPULSE - MIN_IMPULSE);
-      ix = vec.x * mag;
-      iy = vec.y * mag;
-      iz = vec.z * mag;
-      irx = -MAX_SPIN + Math.random() * 2 * MAX_SPIN;
-      iry = -MAX_SPIN + Math.random() * 2 * MAX_SPIN;
-      irz = 0.0;
-    }
 
     this.setImpulse(newIndex, ix, iy, iz, irx, iry, irz);
 
@@ -277,6 +346,8 @@ export class ProjectileSystem {
     targetScales[newIndex] = animateScale ? scale : null;
     playPositionalSoundAfterTicks[newIndex] = playPositionalSound ? 2 : 0;
     emojis[newIndex] = emoji;
+
+    await voxmojiSystem.register(imageUrl, mesh);
   }
 
   tick(t, dt) {
@@ -287,6 +358,7 @@ export class ProjectileSystem {
       maxIndex,
       startTimes,
       targetScales,
+      meshTypes,
       freeFlags,
       emojis,
       bodyReadyFlags,
@@ -318,24 +390,39 @@ export class ProjectileSystem {
         }
       }
 
-      if (targetScales[i] !== null && startTimes[i] + SPAWN_TIME_MS > now) {
+      if (meshTypes[i] === MESH_TYPES.LAUNCHER) {
+        if (targetScales[i] !== null && startTimes[i] + SPAWN_TIME_MS > now) {
+          const mesh = meshes[i];
+          const t = (now - startTimes[i]) / SPAWN_TIME_MS;
+          const scale = SPAWN_MIN_SCALE + springStep(t) * (targetScales[i] - SPAWN_MIN_SCALE);
+          mesh.scale.x = scale;
+          mesh.scale.y = scale;
+          mesh.scale.z = 1.0;
+
+          mesh.matrixNeedsUpdate = true;
+        }
+
+        if (startTimes[i] + PROJECTILE_EXPIRATION_MS - SHRINK_TIME_MS < now) {
+          const mesh = meshes[i];
+          mesh.scale.x = Math.max(0.01, mesh.scale.x - SHRINK_SPEED * dt);
+          mesh.scale.y = Math.max(0.01, mesh.scale.y - SHRINK_SPEED * dt);
+
+          if (mesh.scale.x <= 0.01) {
+            mesh.scale.z = 0.01;
+          }
+
+          mesh.matrixNeedsUpdate = true;
+        }
+      } else {
+        // burst emojis just shrink
         const mesh = meshes[i];
-        const t = (now - startTimes[i]) / SPAWN_TIME_MS;
-        const scale = SPAWN_MIN_SCALE + springStep(t) * (targetScales[i] - SPAWN_MIN_SCALE);
-        mesh.scale.x = scale;
-        mesh.scale.y = scale;
-        mesh.scale.z = 1.0;
+        const s = Math.min(1, dt * 32.0) * 0.925;
+        mesh.scale.x *= s;
+        mesh.scale.y *= s;
+        mesh.scale.z *= s;
 
-        mesh.matrixNeedsUpdate = true;
-      }
-
-      if (startTimes[i] + PROJECTILE_EXPIRATION_MS - SHRINK_TIME_MS < now) {
-        const mesh = meshes[i];
-        mesh.scale.x = Math.max(0.01, mesh.scale.x - SHRINK_SPEED * dt);
-        mesh.scale.y = Math.max(0.01, mesh.scale.y - SHRINK_SPEED * dt);
-
-        if (mesh.scale.x <= 0.01) {
-          mesh.scale.z = 0.01;
+        if (mesh.scale.x < 0.01) {
+          mesh.visible = false;
         }
 
         mesh.matrixNeedsUpdate = true;
@@ -350,24 +437,34 @@ export class ProjectileSystem {
     }
   }
 
-  async createProjectileMesh(idx, imageUrl) {
-    const { sceneEl, voxmojiSystem, physicsSystem, meshes, bodyUuids, shapesUuids, bodyReadyFlags } = this;
+  createProjectileMesh(meshType, idx, ox, oy, oz, orx, ory, orz, orw, scale) {
+    const { sceneEl, physicsSystem, meshes, meshTypes, bodyUuids, shapesUuids, bodyReadyFlags } = this;
 
     const geo = new THREE.BoxBufferGeometry(0.65, 0.65, 0.125);
     const mat = new THREE.MeshBasicMaterial();
     const mesh = new THREE.Mesh(geo, mat);
 
     sceneEl.object3D.add(mesh);
-    await voxmojiSystem.register(imageUrl, mesh);
 
     mat.visible = false;
     mesh.castShadow = false;
+    mesh.position.x = ox;
+    mesh.position.y = oy;
+    mesh.position.z = oz;
+    mesh.quaternion.x = orx;
+    mesh.quaternion.y = ory;
+    mesh.quaternion.z = orz;
+    mesh.quaternion.w = orw;
+    mesh.scale.setScalar(scale);
+    mesh.matrixNeedsUpdate = true;
+    mesh.updateMatrices();
 
-    const bodyUuid = physicsSystem.addBody(mesh, BODY_OPTIONS, () => (bodyReadyFlags[idx] = true));
+    const bodyUuid = physicsSystem.addBody(mesh, BODY_OPTIONS[meshType], () => (bodyReadyFlags[idx] = true));
 
     const shapesUuid = physicsSystem.addShapes(bodyUuid, mesh, SHAPE_OPTIONS);
 
     meshes[idx] = mesh;
+    meshTypes[idx] = meshType;
     bodyUuids[idx] = bodyUuid;
     shapesUuids[idx] = shapesUuid;
 
@@ -390,5 +487,24 @@ export class ProjectileSystem {
     mesh.updateMatrices();
     freeFlags[idx] = true;
     this.clearImpulse(idx);
+  }
+
+  setImpulse(index, x, y, z, rx, ry, rz) {
+    const { impulses } = this;
+
+    if (impulses[index] === null) {
+      impulses[index] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+    }
+
+    impulses[index][0] = x;
+    impulses[index][1] = y;
+    impulses[index][2] = z;
+    impulses[index][3] = rx;
+    impulses[index][4] = ry;
+    impulses[index][5] = rz;
+  }
+
+  clearImpulse(index) {
+    this.setImpulse(index, 0, 0, 0, 0, 0, 0);
   }
 }
