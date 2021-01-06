@@ -373,6 +373,7 @@ export class ProjectileSystem {
     } = this;
     const now = performance.now();
 
+    // Collision detection pass
     for (let i = 0; i <= maxIndex; i++) {
       if (!bodyReadyFlags[i] || freeFlags[i]) continue;
       const bodyUuid = bodyUuids[i];
@@ -396,21 +397,24 @@ export class ProjectileSystem {
       }
 
       if (hitMedia) {
+        console.log("hit");
         this.freeProjectileAtIndex(i);
         continue;
       }
     }
 
+    // Lifecycle pass
     for (let i = 0; i <= maxIndex; i++) {
       if (!bodyReadyFlags[i] || freeFlags[i]) continue;
       const bodyUuid = bodyUuids[i];
 
+      // Expire
       if (startTimes[i] + PROJECTILE_EXPIRATION_MS < now) {
         this.freeProjectileAtIndex(i);
         continue;
       }
 
-      // Hacky, need to play position sound after 2 ticks since wrapped entity system will have set
+      // Play sound. Hacky, need to play position sound after 2 ticks since wrapped entity system will have set
       // proper position
       if (playPositionalSoundAfterTicks[i] > 0) {
         playPositionalSoundAfterTicks[i]--;
@@ -425,6 +429,7 @@ export class ProjectileSystem {
         }
       }
 
+      // Perform scaling lifecycle
       if (meshTypes[i] === MESH_TYPES.LAUNCHER) {
         if (targetScales[i] !== null && startTimes[i] + SPAWN_TIME_MS > now) {
           const mesh = meshes[i];
@@ -463,6 +468,7 @@ export class ProjectileSystem {
         }
       }
 
+      // Apply pending impulse
       const [ix, iy, iz, rx, ry, rz] = this.impulses[i];
 
       if (ix !== 0 || iy !== 0 || iz !== 0) {
