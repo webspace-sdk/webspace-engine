@@ -204,10 +204,6 @@ export class ProjectileSystem {
     return [emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale];
   }
 
-  replayBurst([emoji, ox, oy, oz, radius]) {
-    this.spawnBurst(emoji, ox, oy, oz, radius);
-  }
-
   replayEmojiSpawnerProjectile([emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale]) {
     this.spawnProjectile(
       MESH_TYPES.LAUNCHER,
@@ -404,6 +400,7 @@ export class ProjectileSystem {
       const collisions = physicsSystem.getCollisions(bodyUuid);
 
       let hitMedia = false;
+      let hitAvatar = false;
 
       if (collisions.length > 0) {
         for (let j = 0; j < collisions; j++) {
@@ -413,14 +410,17 @@ export class ProjectileSystem {
           const body = physicsSystem.getBody(hitBody);
           if (!body) continue;
 
-          if (body.object3D.el && body.object3D.el.components["media-loader"]) {
-            hitMedia = true;
-            break;
-          }
+          const el = body.object3D.el;
+          hitMedia = el && el.components["media-loader"];
+
+          // This is a bit fragile, but a regression will be obvious.
+          hitAvatar = el && el.components["avatar-audio-source"];
+
+          if (hitMedia || hitAvatar) break;
         }
       }
 
-      if (hitMedia) {
+      if (hitMedia || hitAvatar) {
         const mesh = meshes[i];
 
         this.spawnBurst(emojis[i], mesh.position.x, mesh.position.y, mesh.position.z, 0.1);
