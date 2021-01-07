@@ -669,6 +669,9 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
         break;
       }
       case "emoji_launch": {
+        // Don't replicate emojis when paused, so we don't see a huge burst of them after the fact.
+        if (!scene.isPlaying) return;
+
         if (session_id !== NAF.clientId) {
           scene.systems["hubs-systems"].projectileSystem.replayEmojiSpawnerProjectile(body);
         }
