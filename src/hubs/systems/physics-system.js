@@ -43,6 +43,7 @@ export class PhysicsSystem {
     this.ready = false;
     this.nextBodyUuid = 0;
     this.nextShapeUuid = 0;
+    this.tickHandlers = [];
 
     const arrayBuffer = new ArrayBuffer(4 * BUFFER_CONFIG.BODY_DATA_SIZE * MAX_BODIES);
     this.objectMatricesFloatArray = new Float32Array(arrayBuffer);
@@ -103,6 +104,10 @@ export class PhysicsSystem {
     };
   }
 
+  duringNextTick(callback) {
+    this.tickHandlers.push(callback);
+  }
+
   setDebug(debug) {
     this.debugRequested = debug;
   }
@@ -161,6 +166,12 @@ export class PhysicsSystem {
             this.disableDebug();
           }
         }
+
+        for (const handler of this.tickHandlers) {
+          handler();
+        }
+
+        this.tickHandlers.length = 0;
 
         /** Buffer Schema
          * Every physics body has 26 * 4 bytes (64bit float/int) assigned in the buffer
@@ -294,23 +305,25 @@ export class PhysicsSystem {
     const uuid = this.nextBodyUuid;
     this.nextBodyUuid++;
 
-    this.workerHelpers.addBody(uuid, object3D, options);
-    this.needsTransfer = true;
+    this.duringNextTick(() => {
+      this.workerHelpers.addBody(uuid, object3D, options);
+      this.needsTransfer = true;
 
-    this.bodyUuidToData.set(uuid, {
-      object3D: object3D,
-      options: options,
-      collisions: [],
-      linearVelocity: 0,
-      angularVelocity: 0,
-      index: -1,
-      shapes: [],
-      hadInitialSync: false
+      this.bodyUuidToData.set(uuid, {
+        object3D: object3D,
+        options: options,
+        collisions: [],
+        linearVelocity: 0,
+        angularVelocity: 0,
+        index: -1,
+        shapes: [],
+        hadInitialSync: false
+      });
+
+      if (callback) {
+        this.bodyReadyCallbacks.set(uuid, callback);
+      }
     });
-
-    if (callback) {
-      this.bodyReadyCallbacks.set(uuid, callback);
-    }
 
     return uuid;
   }
@@ -320,77 +333,99 @@ export class PhysicsSystem {
   }
 
   updateBody(uuid, options) {
-    if (this.bodyUuidToData.has(uuid)) {
-      this.bodyUuidToData.get(uuid).options = options;
-      this.workerHelpers.updateBody(uuid, options);
-      this.needsTransfer = true;
-    } else {
-      console.warn(`updateBody called for uuid: ${uuid} but body missing.`);
-    }
+    this.duringNextTick(() => {
+      if (this.bodyUuidToData.has(uuid)) {
+        this.bodyUuidToData.get(uuid).options = options;
+        this.workerHelpers.updateBody(uuid, options);
+        this.needsTransfer = true;
+      } else {
+        console.warn(`updateBody called for uuid: ${uuid} but body missing.`);
+      }
+    });
   }
 
   removeBody(uuid) {
-    const idx = this.bodyUuids.indexOf(uuid);
-    if (this.bodyUuidToData.has(uuid) && idx !== -1) {
-      delete this.indexToUuid[this.bodyUuidToData.get(uuid).index];
-      this.bodyUuidToData.delete(uuid);
-      this.bodyReadyCallbacks.delete(uuid);
-      this.bodyUuids.splice(idx, 1);
-      this.workerHelpers.removeBody(uuid);
-      this.needsTransfer = true;
-    } else {
-      console.warn(`removeBody called for uuid: ${uuid} but body missing.`);
-    }
+    this.duringNextTick(() => {
+      const idx = this.bodyUuids.indexOf(uuid);
+      if (this.bodyUuidToData.has(uuid) && idx !== -1) {
+        delete this.indexToUuid[this.bodyUuidToData.get(uuid).index];
+        this.bodyUuidToData.delete(uuid);
+        this.bodyReadyCallbacks.delete(uuid);
+        this.bodyUuids.splice(idx, 1);
+        this.workerHelpers.removeBody(uuid);
+        this.needsTransfer = true;
+      } else {
+        console.warn(`removeBody called for uuid: ${uuid} but body missing.`);
+      }
+    });
   }
 
   addShapes(bodyUuid, mesh, options) {
-    if (mesh) {
-      mesh.updateMatrices();
-    }
+    const uuid = this.nextShapeUuid;
+    this.nextShapeUuid++;
 
-    this.workerHelpers.addShapes(bodyUuid, this.nextShapeUuid, mesh, options);
-    this.bodyUuidToData.get(bodyUuid).shapes.push(this.nextShapeUuid);
-    this.needsTransfer = true;
-    return this.nextShapeUuid++;
+    this.duringNextTick(() => {
+      if (mesh) {
+        mesh.updateMatrices();
+      }
+
+      this.workerHelpers.addShapes(bodyUuid, uuid, mesh, options);
+      this.bodyUuidToData.get(bodyUuid).shapes.push(uuid);
+      this.needsTransfer = true;
+    });
+
+    return uuid;
   }
 
   updateShapesScale(shapesUuid, mesh, options) {
-    if (mesh) {
-      mesh.updateMatrices();
-    }
+    this.duringNextTick(() => {
+      if (mesh) {
+        mesh.updateMatrices();
+      }
 
-    this.workerHelpers.updateShapesScale(shapesUuid, mesh.matrixWorld.elements, options);
+      this.workerHelpers.updateShapesScale(shapesUuid, mesh.matrixWorld.elements, options);
+    });
   }
 
   removeShapes(bodyUuid, shapesUuid) {
-    if (this.bodyUuidToData.has(bodyUuid)) {
-      this.workerHelpers.removeShapes(bodyUuid, shapesUuid);
-      const idx = this.bodyUuidToData.get(bodyUuid).shapes.indexOf(shapesUuid);
-      if (idx !== -1) {
-        this.bodyUuidToData.get(bodyUuid).shapes.splice(idx, 1);
-      } else {
-        console.warn(`removeShapes called for shapesUuid: ${shapesUuid} on bodyUuid: ${bodyUuid} but shapes missing.`);
+    this.duringNextTick(() => {
+      if (this.bodyUuidToData.has(bodyUuid)) {
+        this.workerHelpers.removeShapes(bodyUuid, shapesUuid);
+        const idx = this.bodyUuidToData.get(bodyUuid).shapes.indexOf(shapesUuid);
+        if (idx !== -1) {
+          this.bodyUuidToData.get(bodyUuid).shapes.splice(idx, 1);
+        } else {
+          console.warn(
+            `removeShapes called for shapesUuid: ${shapesUuid} on bodyUuid: ${bodyUuid} but shapes missing.`
+          );
+        }
+        this.needsTransfer = true;
       }
-      this.needsTransfer = true;
-    }
+    });
   }
 
   addConstraint(constraintId, bodyUuid, targetUuid, options) {
-    this.workerHelpers.addConstraint(constraintId, bodyUuid, targetUuid, options);
-    this.needsTransfer = true;
+    this.duringNextTick(() => {
+      this.workerHelpers.addConstraint(constraintId, bodyUuid, targetUuid, options);
+      this.needsTransfer = true;
+    });
   }
 
   removeConstraint(constraintId) {
-    this.workerHelpers.removeConstraint(constraintId);
-    this.needsTransfer = true;
+    this.duringNextTick(() => {
+      this.workerHelpers.removeConstraint(constraintId);
+      this.needsTransfer = true;
+    });
   }
 
   applyImpulse(uuid, x, y, z, rx = 0, ry = 0, rz = 0) {
-    if (this.bodyUuidToData.has(uuid)) {
-      this.workerHelpers.applyImpulse(uuid, x, y, z, rx, ry, rz);
-    } else {
-      console.warn(`applyImpulse called for uuid: ${uuid} but body missing.`);
-    }
+    this.duringNextTick(() => {
+      if (this.bodyUuidToData.has(uuid)) {
+        this.workerHelpers.applyImpulse(uuid, x, y, z, rx, ry, rz);
+      } else {
+        console.warn(`applyImpulse called for uuid: ${uuid} but body missing.`);
+      }
+    });
   }
 
   registerBodyHelper(bodyHelper) {
@@ -426,23 +461,27 @@ export class PhysicsSystem {
   }
 
   resetDynamicBody(uuid, callback) {
-    if (this.bodyUuidToData.has(uuid)) {
-      const body = this.bodyUuidToData.get(uuid);
-      this.workerHelpers.resetDynamicBody(uuid);
+    this.duringNextTick(() => {
+      if (this.bodyUuidToData.has(uuid)) {
+        const body = this.bodyUuidToData.get(uuid);
+        this.workerHelpers.resetDynamicBody(uuid);
 
-      if (callback) {
-        this.bodyReadyCallbacks.set(uuid, callback);
+        if (callback) {
+          this.bodyReadyCallbacks.set(uuid, callback);
+        }
+
+        body.hadInitialSync = false;
+        this.needsTransfer = true;
+      } else {
+        console.warn(`resetDynamicBody called for uuid: ${uuid} but body missing.`);
       }
-
-      body.hadInitialSync = false;
-      this.needsTransfer = true;
-    } else {
-      console.warn(`resetDynamicBody called for uuid: ${uuid} but body missing.`);
-    }
+    });
   }
 
   activateBody(uuid) {
-    this.workerHelpers.activateBody(uuid);
-    this.needsTransfer = true;
+    this.duringNextTick(() => {
+      this.workerHelpers.activateBody(uuid);
+      this.needsTransfer = true;
+    });
   }
 }
