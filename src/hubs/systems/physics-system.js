@@ -167,12 +167,6 @@ export class PhysicsSystem {
           }
         }
 
-        for (const handler of this.tickHandlers) {
-          handler();
-        }
-
-        this.tickHandlers.length = 0;
-
         /** Buffer Schema
          * Every physics body has 26 * 4 bytes (64bit float/int) assigned in the buffer
          * 0-15   Matrix4 elements (floats)
@@ -263,6 +257,12 @@ export class PhysicsSystem {
             this.needsTransfer = false;
           }
         }
+
+        for (const handler of this.tickHandlers) {
+          handler();
+        }
+
+        this.tickHandlers.length = 0;
 
         /* DEBUG RENDERING */
         if (this.debugEnabled) {
