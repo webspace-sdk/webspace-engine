@@ -42,7 +42,7 @@ AFRAME.registerComponent("shape-helper", {
   },
 
   init2: function() {
-    this.lastScale = new THREE.Vector3();
+    this.lastScale = new THREE.Vector3(1, 1, 1);
     this.mesh = null;
 
     let bodyEl = this.el;
@@ -66,14 +66,14 @@ AFRAME.registerComponent("shape-helper", {
       this.mesh.updateMatrices();
     }
 
-    if (this.mesh) {
-      this.lastScale.set(this.mesh.scale);
-    }
-
     this.uuid = this.system.addShapes(this.bodyHelper.uuid, this.mesh, this.data);
+
+    this.shapeReady = false;
+    this.system.onNextPhysicsTick(() => (this.shapeReady = true));
   },
 
   tick: function() {
+    if (!this.shapeReady) return;
     if (!this.mesh || !this.uuid) return;
     if (almostEqualVec3(this.mesh.scale, this.lastScale)) return;
     this.system.updateShapesScale(this.uuid, this.mesh, this.data);
