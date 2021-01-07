@@ -27,6 +27,7 @@ export class PhysicsSystem {
     this.bodyHelpers = [];
     this.shapeHelpers = [];
     this.bodyReadyCallbacks = new Map();
+    this.bodyResetCallbacks = new Map();
     this.bodyUuids = [];
     this.indexToUuid = {};
     this.bodyUuidToData = new Map();
@@ -238,6 +239,12 @@ export class PhysicsSystem {
               this.bodyReadyCallbacks.delete(uuid);
               resolver(uuid);
             }
+
+            if (this.bodyResetCallbacks.has(uuid)) {
+              const resolver = this.bodyResetCallbacks.get(uuid);
+              this.bodyResetCallbacks.delete(uuid);
+              resolver(uuid);
+            }
           }
 
           if (this.needsTransfer) {
@@ -418,10 +425,15 @@ export class PhysicsSystem {
     return this.bodyUuidToData.get(uuid).collisions;
   }
 
-  resetDynamicBody(uuid) {
+  resetDynamicBody(uuid, callback) {
     if (this.bodyUuidToData.has(uuid)) {
       const body = this.bodyUuidToData.get(uuid);
       this.workerHelpers.resetDynamicBody(uuid);
+
+      if (callback) {
+        this.bodyReadyCallbacks.set(uuid, callback);
+      }
+
       body.hadInitialSync = false;
       this.needsTransfer = true;
     } else {

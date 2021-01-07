@@ -317,6 +317,7 @@ export class ProjectileSystem {
       playPositionalSoundAfterTicks,
       wrappedEntitySystem,
       targetScales,
+      bodyReadyFlags,
       emojis
     } = this;
     if (!avatarPovEl) return;
@@ -361,7 +362,7 @@ export class ProjectileSystem {
       mesh.updateMatrices();
 
       this.physicsSystem.updateBody(this.bodyUuids[idx], RESET_BODY_OPTIONS);
-      this.physicsSystem.resetDynamicBody(this.bodyUuids[idx]);
+      this.physicsSystem.resetDynamicBody(this.bodyUuids[idx], () => (bodyReadyFlags[idx] = true));
     } else {
       mesh = this.createProjectileMesh(meshType, idx, ox, oy, oz, orx, ory, orz, orw, initialScale);
     }
@@ -574,6 +575,7 @@ export class ProjectileSystem {
 
     if (bodyReadyFlags[idx]) {
       physicsSystem.updateBody(bodyUuids[idx], FREED_BODY_OPTIONS);
+      bodyReadyFlags[idx] = false;
     }
 
     freeFlags[idx] = true;
