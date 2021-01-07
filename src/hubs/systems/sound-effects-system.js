@@ -14,9 +14,9 @@ import URL_SPECIAL_QUACK from "../../assets/hubs/sfx/specialquack.mp3";
 import URL_POP from "../../assets/hubs/sfx/pop.mp3";
 import URL_FREEZE from "../../assets/hubs/sfx/Eb_blip.mp3";
 import URL_TACK from "../../assets/hubs/sfx/tack.mp3";
-import URL_MEDIA_LOADED from "../../assets/jel/sfx/loaded.mp3";
-import URL_MEDIA_LOADING from "../../assets/jel/sfx/loading.mp3";
-import URL_MEDIA_REMOVED from "../../assets/jel/sfx/remove.mp3";
+import URL_QUIET_POP from "../../assets/jel/sfx/quiet-pop.mp3";
+import URL_PARTICLES from "../../assets/jel/sfx/particles.mp3";
+import URL_VACUUM from "../../assets/jel/sfx/vacuum.mp3";
 import URL_SPAWN_EMOJI from "../../assets/hubs/sfx/emoji.mp3";
 import URL_LAUNCHER_1 from "../../assets/jel/sfx/launcher1.mp3";
 import URL_LAUNCHER_2 from "../../assets/jel/sfx/launcher2.mp3";
@@ -72,6 +72,7 @@ export const SOUND_FART_3 = soundEnum++;
 export const SOUND_FART_4 = soundEnum++;
 export const SOUND_FART_5 = soundEnum++;
 export const SOUND_FART_BIG = soundEnum++;
+export const SOUND_EMOJI_BURST = soundEnum++;
 
 // Safari doesn't support the promise form of decodeAudioData, so we polyfill it.
 function decodeAudioData(audioContext, arrayBuffer) {
@@ -113,9 +114,9 @@ export class SoundEffectsSystem {
       [SOUND_CHAT_MESSAGE, URL_POP],
       [SOUND_FREEZE, URL_FREEZE],
       [SOUND_PIN, URL_TACK],
-      [SOUND_MEDIA_LOADING, URL_MEDIA_LOADING],
-      [SOUND_MEDIA_LOADED, URL_MEDIA_LOADED],
-      [SOUND_MEDIA_REMOVED, URL_MEDIA_REMOVED],
+      [SOUND_MEDIA_LOADING, URL_PARTICLES],
+      [SOUND_MEDIA_LOADED, URL_QUIET_POP],
+      [SOUND_MEDIA_REMOVED, URL_VACUUM],
       [SOUND_PREFERENCE_MENU_HOVER, URL_FREEZE],
       [SOUND_SPAWN_EMOJI, URL_SPAWN_EMOJI],
       [SOUND_LAUNCHER_1, URL_LAUNCHER_1],
@@ -129,7 +130,8 @@ export class SoundEffectsSystem {
       [SOUND_FART_3, URL_FART_3],
       [SOUND_FART_4, URL_FART_4],
       [SOUND_FART_5, URL_FART_5],
-      [SOUND_FART_BIG, URL_FART_BIG]
+      [SOUND_FART_BIG, URL_FART_BIG],
+      [SOUND_EMOJI_BURST, URL_QUIET_POP]
     ];
     const loading = new Map();
     const load = url => {

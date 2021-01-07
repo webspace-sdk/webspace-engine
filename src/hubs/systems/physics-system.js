@@ -347,6 +347,14 @@ export class PhysicsSystem {
     return this.nextShapeUuid++;
   }
 
+  updateShapesScale(shapesUuid, mesh, options) {
+    if (mesh) {
+      mesh.updateMatrices();
+    }
+
+    this.workerHelpers.updateShapesScale(shapesUuid, mesh.matrixWorld.elements, options);
+  }
+
   removeShapes(bodyUuid, shapesUuid) {
     if (this.bodyUuidToData.has(bodyUuid)) {
       this.workerHelpers.removeShapes(bodyUuid, shapesUuid);

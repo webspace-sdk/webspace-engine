@@ -15,22 +15,23 @@ import {
   SOUND_FART_3,
   SOUND_FART_4,
   SOUND_FART_5,
-  SOUND_FART_BIG
+  SOUND_FART_BIG,
+  SOUND_EMOJI_BURST
 } from "../../hubs/systems/sound-effects-system";
 
 import BezierEasing from "bezier-easing";
 
-const springStep = BezierEasing(0.47, -0.07, 0.44, 3.65);
+const springStep = BezierEasing(0.47, -0.07, 0.44, 1.65);
 
 const MAX_PROJECTILES = 1024;
 const PROJECTILE_EXPIRATION_MS = 5000;
 const SPAWN_OFFSET = new THREE.Vector3(0, -0.85, -0.5);
 const SHRINK_TIME_MS = 1000;
 const SHRINK_SPEED = 0.005;
-const MIN_IMPULSE = 6.0;
-const MAX_IMPULSE = 8.0;
+const MIN_LAUNCH_IMPULSE = 6.0;
+const MAX_LAUNCH_IMPULSE = 8.0;
 const MAX_DRIFT_XY = 0.05;
-const MAX_SPIN = 0.05;
+const MAX_LAUNCH_SPIN = 0.00125;
 const MIN_BURST_IMPULSE = 0.02;
 const MAX_BURST_IMPULSE = 0.03;
 const MAX_BURST_SPIN = 0.05;
@@ -38,8 +39,9 @@ const LAUNCHER_GRAVITY = new THREE.Vector3(0, -9.8, 0);
 const BURST_GRAVITY = new THREE.Vector3(0, 0.5, 0);
 const MEGAMOJI_IMPULSE = 12.0;
 const MEGAMOJI_SCALE = 3;
-const SPAWN_TIME_MS = 250;
-const SPAWN_MIN_SCALE = 0.4;
+const SPAWN_GROW_DELAY_MS = 50; // Need to delay grow so initial impulse is applied properly
+const SPAWN_GROW_TIME_MS = 150;
+const SPAWN_GROW_MIN_SCALE = 0.2;
 const LAUNCHER_SFX_URLS = [SOUND_LAUNCHER_1, SOUND_LAUNCHER_2, SOUND_LAUNCHER_3, SOUND_LAUNCHER_4, SOUND_LAUNCHER_5];
 const FART_SFX_URLS = [SOUND_FART_1, SOUND_FART_2, SOUND_FART_3, SOUND_FART_4, SOUND_FART_5];
 const BURST_PARTICLES = 8;
@@ -166,17 +168,37 @@ export class ProjectileSystem {
     avatarPovNode.updateMatrices();
     tmpVec3.transformDirection(avatarPovNode.matrixWorld);
 
-    const mag = isMegaMoji ? MEGAMOJI_IMPULSE : MIN_IMPULSE + Math.random() * (MAX_IMPULSE - MIN_IMPULSE);
+    const mag = isMegaMoji
+      ? MEGAMOJI_IMPULSE
+      : MIN_LAUNCH_IMPULSE + Math.random() * (MAX_LAUNCH_IMPULSE - MIN_LAUNCH_IMPULSE);
     const ix = tmpVec3.x * mag + extraXImpulse;
     const iy = tmpVec3.y * mag;
     const iz = tmpVec3.z * mag + extraZImpulse;
-    const irx = -MAX_SPIN + Math.random() * 2 * MAX_SPIN;
-    const iry = -MAX_SPIN + Math.random() * 2 * MAX_SPIN;
+    const irx = -MAX_LAUNCH_SPIN + Math.random() * 2 * MAX_LAUNCH_SPIN;
+    const iry = -MAX_LAUNCH_SPIN + Math.random() * 2 * MAX_LAUNCH_SPIN;
     const irz = 0.0;
 
     const scale = isMegaMoji ? MEGAMOJI_SCALE : 1.0;
 
-    this.spawnProjectile(MESH_TYPES.LAUNCHER, emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale);
+    this.spawnProjectile(
+      MESH_TYPES.LAUNCHER,
+      emoji,
+      ox,
+      oy,
+      oz,
+      orx,
+      ory,
+      orz,
+      orw,
+      ix,
+      iy,
+      iz,
+      irx,
+      iry,
+      irz,
+      scale,
+      true
+    );
     this.soundEffectsSystem.playSoundOneShot(getLauncherSound(emoji, isMegaMoji));
 
     return [emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale];
@@ -323,7 +345,7 @@ export class ProjectileSystem {
     let initialScale = scale;
 
     if (animateScale) {
-      initialScale = mesh.scale.setScalar(SPAWN_MIN_SCALE);
+      initialScale = SPAWN_GROW_MIN_SCALE;
     }
 
     if (mesh) {
@@ -401,6 +423,7 @@ export class ProjectileSystem {
         const mesh = meshes[i];
 
         this.spawnBurst(emojis[i], mesh.position.x, mesh.position.y, mesh.position.z, 0.1);
+        this.soundEffectsSystem.playPositionalSoundAt(SOUND_EMOJI_BURST, mesh.position, false);
         this.freeProjectileAtIndex(i);
         continue;
       }
@@ -434,10 +457,14 @@ export class ProjectileSystem {
 
       // Perform scaling lifecycle
       if (meshTypes[i] === MESH_TYPES.LAUNCHER) {
-        if (targetScales[i] !== null && startTimes[i] + SPAWN_TIME_MS > now) {
+        if (
+          targetScales[i] !== null &&
+          startTimes[i] + SPAWN_GROW_DELAY_MS < now &&
+          startTimes[i] + SPAWN_GROW_DELAY_MS + SPAWN_GROW_TIME_MS > now
+        ) {
           const mesh = meshes[i];
-          const t = (now - startTimes[i]) / SPAWN_TIME_MS;
-          const scale = SPAWN_MIN_SCALE + springStep(t) * (targetScales[i] - SPAWN_MIN_SCALE);
+          const t = (now - startTimes[i] - SPAWN_GROW_DELAY_MS) / SPAWN_GROW_TIME_MS;
+          const scale = SPAWN_GROW_MIN_SCALE + springStep(t) * (targetScales[i] - SPAWN_GROW_MIN_SCALE);
           mesh.scale.x = scale;
           mesh.scale.y = scale;
           mesh.scale.z = 1.0;

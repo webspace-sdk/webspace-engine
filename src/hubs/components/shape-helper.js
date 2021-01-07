@@ -1,4 +1,5 @@
 import { SHAPE, FIT } from "three-ammo/constants";
+import { almostEqualVec3 } from "../utils/three-utils";
 
 AFRAME.registerComponent("shape-helper", {
   schema: {
@@ -41,6 +42,7 @@ AFRAME.registerComponent("shape-helper", {
   },
 
   init2: function() {
+    this.lastScale = new THREE.Vector3();
     this.mesh = null;
 
     let bodyEl = this.el;
@@ -64,7 +66,18 @@ AFRAME.registerComponent("shape-helper", {
       this.mesh.updateMatrices();
     }
 
+    if (this.mesh) {
+      this.lastScale.set(this.mesh.scale);
+    }
+
     this.uuid = this.system.addShapes(this.bodyHelper.uuid, this.mesh, this.data);
+  },
+
+  tick: function() {
+    if (!this.mesh || !this.uuid) return;
+    if (almostEqualVec3(this.mesh.scale, this.lastScale)) return;
+    this.system.updateShapesScale(this.uuid, this.mesh, this.data);
+    this.lastScale.copy(this.mesh.scale);
   },
 
   remove: function() {
