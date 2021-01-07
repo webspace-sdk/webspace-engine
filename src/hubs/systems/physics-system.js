@@ -338,10 +338,9 @@ export class PhysicsSystem {
 
   addShapes(bodyUuid, mesh, options) {
     if (mesh) {
-      const scale = new THREE.Vector3();
       mesh.updateMatrices();
-      scale.setFromMatrixScale(mesh.matrixWorld);
     }
+
     this.workerHelpers.addShapes(bodyUuid, this.nextShapeUuid, mesh, options);
     this.bodyUuidToData.get(bodyUuid).shapes.push(this.nextShapeUuid);
     this.needsTransfer = true;

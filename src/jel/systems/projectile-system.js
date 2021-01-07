@@ -31,8 +31,8 @@ const MIN_IMPULSE = 6.0;
 const MAX_IMPULSE = 8.0;
 const MAX_DRIFT_XY = 0.05;
 const MAX_SPIN = 0.05;
-const MIN_BURST_IMPULSE = 0.01;
-const MAX_BURST_IMPULSE = 0.02;
+const MIN_BURST_IMPULSE = 0.02;
+const MAX_BURST_IMPULSE = 0.03;
 const MAX_BURST_SPIN = 0.05;
 const LAUNCHER_GRAVITY = new THREE.Vector3(0, -9.8, 0);
 const BURST_GRAVITY = new THREE.Vector3(0, 0.5, 0);
@@ -43,7 +43,7 @@ const SPAWN_MIN_SCALE = 0.4;
 const LAUNCHER_SFX_URLS = [SOUND_LAUNCHER_1, SOUND_LAUNCHER_2, SOUND_LAUNCHER_3, SOUND_LAUNCHER_4, SOUND_LAUNCHER_5];
 const FART_SFX_URLS = [SOUND_FART_1, SOUND_FART_2, SOUND_FART_3, SOUND_FART_4, SOUND_FART_5];
 const BURST_PARTICLES = 8;
-const BURST_PARTICLE_SCALE = 0.1;
+const BURST_PARTICLE_SCALE = 0.5;
 
 const getLauncherSound = (emoji, isMegaMoji) => {
   if (emoji === "💩") {
@@ -88,7 +88,7 @@ const BODY_OPTIONS = {
     emitCollisionEvents: false,
     disableCollision: false,
     collisionFilterGroup: 1,
-    collisionFilterMask: INCLUDE_ENVIRONMENT_FILTER_MASK,
+    collisionFilterMask: 0,
     scaleAutoUpdate: true,
     gravity: BURST_GRAVITY
   }
@@ -373,9 +373,10 @@ export class ProjectileSystem {
     } = this;
     const now = performance.now();
 
-    // Collision detection pass
+    // Collision detection pass on launched emoji
     for (let i = 0; i <= maxIndex; i++) {
       if (!bodyReadyFlags[i] || freeFlags[i]) continue;
+      if (meshTypes[i] !== MESH_TYPES.LAUNCHER) continue;
       const bodyUuid = bodyUuids[i];
       const collisions = physicsSystem.getCollisions(bodyUuid);
 
@@ -397,7 +398,9 @@ export class ProjectileSystem {
       }
 
       if (hitMedia) {
-        console.log("hit");
+        const mesh = meshes[i];
+
+        this.spawnBurst(emojis[i], mesh.position.x, mesh.position.y, mesh.position.z, 0.1);
         this.freeProjectileAtIndex(i);
         continue;
       }

@@ -27,6 +27,7 @@ AFRAME.registerComponent("floaty-object", {
   init() {
     this.onGrab = this.onGrab.bind(this);
     this.onRelease = this.onRelease.bind(this);
+    this.preGrabCollsionFilterMask = null;
   },
 
   tick() {
@@ -99,7 +100,7 @@ AFRAME.registerComponent("floaty-object", {
           linearDamping: 0.95,
           linearSleepingThreshold: 0.1,
           angularSleepingThreshold: 0.1,
-          collisionFilterMask: COLLISION_LAYERS.HANDS
+          collisionFilterMask: this.preGrabCollsionFilterMask
         });
 
         this._makeStaticWhenAtRest = true;
@@ -110,12 +111,12 @@ AFRAME.registerComponent("floaty-object", {
           linearDamping: 0.01,
           linearSleepingThreshold: 1.6,
           angularSleepingThreshold: 2.5,
-          collisionFilterMask: COLLISION_LAYERS.DEFAULT_INTERACTABLE
+          collisionFilterMask: this.preGrabCollsionFilterMask
         });
       }
     } else {
       this.el.setAttribute("body-helper", {
-        collisionFilterMask: COLLISION_LAYERS.DEFAULT_INTERACTABLE,
+        collisionFilterMask: this.preGrabCollsionFilterMask,
         gravity: { x: 0, y: -9.8, z: 0 }
       });
     }
@@ -129,6 +130,8 @@ AFRAME.registerComponent("floaty-object", {
   },
 
   onGrab() {
+    this.preGrabCollsionFilterMask = this.el.components["body-helper"].data.collisionFilterMask;
+
     this.el.setAttribute("body-helper", {
       gravity: { x: 0, y: 0, z: 0 },
       collisionFilterMask: COLLISION_LAYERS.HANDS
