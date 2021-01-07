@@ -69,7 +69,11 @@ AFRAME.registerComponent("shape-helper", {
     this.uuid = this.system.addShapes(this.bodyHelper.uuid, this.mesh, this.data);
 
     this.shapeReady = false;
-    this.system.onNextPhysicsTick(() => (this.shapeReady = true));
+
+    // Huge HACK, need to do this properly later to deal with any race conditions
+    // on scale being set somewhere else and shape not being ready to be fixed
+    // up yet.
+    setTimeout(() => (this.shapeReady = true), 500);
   },
 
   tick: function() {

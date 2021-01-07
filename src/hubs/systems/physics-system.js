@@ -38,7 +38,6 @@ export class PhysicsSystem {
     this.needsTransfer = true;
     this.ownsBuffer = false;
     this.immediatelyTransferNextBuffer = false;
-    this.nextTickCallbacks = [];
 
     this.ready = false;
     this.nextBodyUuid = 0;
@@ -99,16 +98,8 @@ export class PhysicsSystem {
           this.transferDataToWorker();
           this.immediatelyTransferNextBuffer = false;
         }
-
-        while (this.nextTickCallbacks.length > 0) {
-          this.nextTickCallbacks.pop()();
-        }
       }
     };
-  }
-
-  onNextPhysicsTick(callback) {
-    this.nextTickCallbacks.push(callback);
   }
 
   setDebug(debug) {
