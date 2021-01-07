@@ -167,6 +167,12 @@ export class PhysicsSystem {
           }
         }
 
+        for (const handler of this.tickHandlers) {
+          handler();
+        }
+
+        this.tickHandlers.length = 0;
+
         /** Buffer Schema
          * Every physics body has 26 * 4 bytes (64bit float/int) assigned in the buffer
          * 0-15   Matrix4 elements (floats)
@@ -258,12 +264,6 @@ export class PhysicsSystem {
           }
         }
 
-        for (const handler of this.tickHandlers) {
-          handler();
-        }
-
-        this.tickHandlers.length = 0;
-
         /* DEBUG RENDERING */
         if (this.debugEnabled) {
           const index = window.Atomics.load(this.debugIndex, 0);
@@ -306,6 +306,9 @@ export class PhysicsSystem {
     this.nextBodyUuid++;
 
     this.duringNextTick(() => {
+      object3D.updateMatrices();
+      object3D.parent.updateMatrices();
+
       this.workerHelpers.addBody(uuid, object3D, options);
       this.needsTransfer = true;
 
@@ -367,6 +370,7 @@ export class PhysicsSystem {
     this.duringNextTick(() => {
       if (mesh) {
         mesh.updateMatrices();
+        mesh.parent.updateMatrices();
       }
 
       this.workerHelpers.addShapes(bodyUuid, uuid, mesh, options);

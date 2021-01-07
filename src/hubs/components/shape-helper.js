@@ -63,22 +63,34 @@ AFRAME.registerComponent("shape-helper", {
         return;
       }
       this.mesh = this.el.object3DMap.mesh;
-      this.mesh.updateMatrices();
     }
-
-    this.uuid = this.system.addShapes(this.bodyHelper.uuid, this.mesh, this.data);
-
-    this.shapeReady = false;
-
-    // Huge HACK, need to do this properly later to deal with any race conditions
-    // on scale being set somewhere else and shape not being ready to be fixed
-    // up yet.
-    setTimeout(() => (this.shapeReady = true), 500);
   },
 
   tick: function() {
+    if (!this.bodyHelper) return;
+    if (this.uuid === -1) {
+      if (this.mesh) {
+        this.mesh.updateMatrices();
+      }
+
+      this.uuid = this.system.addShapes(this.bodyHelper.uuid, this.mesh, this.data);
+
+      // HUGE HACK - sometimes when shapes are created on load their setLocalScale collision is for some
+      // reason not being applied unless we wait some time. The proper scale is being passed in during
+      // addShapes but yet somehow the shape can end up being massively over scaled. (Perhaps some other
+      // internal state about the collision shape is dependent.)
+      //
+      // This causes a delayed call to updateShapesScale to resolve this. (The tick method is still necessary
+      // to deal with scaling of the inner mesh.)
+      //
+      // To confirm this, create a text label of short length: sometimes when loading the scene it will have
+      // a huge shape.
+      this.shapeReady = false;
+      setTimeout(() => (this.shapeReady = true), 1000);
+    }
+
     if (!this.shapeReady) return;
-    if (!this.mesh || !this.uuid) return;
+    if (!this.mesh) return;
     if (almostEqualVec3(this.mesh.scale, this.lastScale)) return;
     this.system.updateShapesScale(this.uuid, this.mesh, this.data);
     this.lastScale.copy(this.mesh.scale);
