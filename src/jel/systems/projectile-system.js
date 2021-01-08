@@ -143,6 +143,7 @@ export class ProjectileSystem {
     this.playPositionalSoundAfterTicks = Array(MAX_PROJECTILES).fill(false);
     this.emojis = Array(MAX_PROJECTILES).fill("");
     this.origins = Array(MAX_PROJECTILES).fill(0);
+    this.pendingImageUrls = Array(MAX_PROJECTILES).fill(null);
     this.maxIndex = -1;
     this.avatarPovEl = null;
 
@@ -322,7 +323,7 @@ export class ProjectileSystem {
       origins,
       meshes,
       meshTypes,
-      voxmojiSystem,
+      pendingImageUrls,
       startTimes,
       playPositionalSoundAfterTicks,
       wrappedEntitySystem,
@@ -354,12 +355,10 @@ export class ProjectileSystem {
     origins[idx] = origin;
 
     let mesh = meshes[idx];
-    let initialScale = scale;
 
-    if (animateScale) {
-      initialScale = SPAWN_GROW_MIN_SCALE;
-    }
-
+    // Note that body needs to begin its life at scale 1.0 or collisions
+    // do not work properly. Once the actual scaling process begins it is
+    // made visible.
     if (mesh) {
       mesh.position.x = ox;
       mesh.position.y = oy;
@@ -368,14 +367,14 @@ export class ProjectileSystem {
       mesh.quaternion.y = ory;
       mesh.quaternion.z = orz;
       mesh.quaternion.w = orw;
-      mesh.scale.setScalar(initialScale);
+      mesh.scale.setScalar(1.0);
       mesh.matrixNeedsUpdate = true;
       mesh.updateMatrices();
 
       this.physicsSystem.updateBody(this.bodyUuids[idx], RESET_BODY_OPTIONS);
       this.physicsSystem.resetDynamicBody(this.bodyUuids[idx], () => (bodyReadyFlags[idx] = true));
     } else {
-      mesh = this.createProjectileMesh(meshType, idx, ox, oy, oz, orx, ory, orz, orw, initialScale);
+      mesh = this.createProjectileMesh(meshType, idx, ox, oy, oz, orx, ory, orz, orw, 1.0);
     }
 
     wrappedEntitySystem.register(mesh);
@@ -387,8 +386,7 @@ export class ProjectileSystem {
     targetScales[idx] = animateScale ? scale : null;
     playPositionalSoundAfterTicks[idx] = playPositionalSound ? 2 : 0;
     emojis[idx] = emoji;
-
-    await voxmojiSystem.register(imageUrl, mesh);
+    pendingImageUrls[idx] = imageUrl;
   }
 
   tick(t, dt) {
@@ -404,7 +402,9 @@ export class ProjectileSystem {
       freeFlags,
       emojis,
       bodyReadyFlags,
-      playPositionalSoundAfterTicks
+      playPositionalSoundAfterTicks,
+      pendingImageUrls,
+      voxmojiSystem
     } = this;
     const now = performance.now();
 
@@ -506,6 +506,13 @@ export class ProjectileSystem {
           mesh.scale.y = scale;
           mesh.scale.z = 1.0;
 
+          // Images are set *after* the initial scale, since the body needs to start
+          // out scaled at 1.0 to not break collisions.
+          if (pendingImageUrls[i] !== null) {
+            voxmojiSystem.register(pendingImageUrls[i], meshes[i]);
+            pendingImageUrls[i] = null;
+          }
+
           mesh.matrixNeedsUpdate = true;
         }
 
@@ -528,6 +535,13 @@ export class ProjectileSystem {
         mesh.scale.y *= s;
         mesh.scale.z *= s;
 
+        // Images are set *after* the initial scale, since the body needs to start
+        // out scaled at 1.0 to not break collisions.
+        if (pendingImageUrls[i] !== null) {
+          voxmojiSystem.register(pendingImageUrls[i], meshes[i]);
+          pendingImageUrls[i] = null;
+        }
+
         if (mesh.scale.x < 0.01) {
           this.freeProjectileAtIndex(i);
         } else {
@@ -545,7 +559,7 @@ export class ProjectileSystem {
     }
   }
 
-  createProjectileMesh(meshType, idx, ox, oy, oz, orx, ory, orz, orw, scale) {
+  createProjectileMesh(meshType, idx, ox, oy, oz, orx, ory, orz, orw) {
     const { sceneEl, meshes, meshTypes } = this;
 
     const geo = new THREE.BoxBufferGeometry(0.65, 0.65, 0.125);
@@ -563,7 +577,7 @@ export class ProjectileSystem {
     mesh.quaternion.y = ory;
     mesh.quaternion.z = orz;
     mesh.quaternion.w = orw;
-    mesh.scale.setScalar(scale);
+    mesh.scale.setScalar(1.0);
     mesh.matrixNeedsUpdate = true;
     mesh.updateMatrices();
 
