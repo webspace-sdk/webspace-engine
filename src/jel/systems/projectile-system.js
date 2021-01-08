@@ -3,6 +3,7 @@ import { offsetRelativeTo } from "../../hubs/components/offset-relative-to";
 import { SHAPE, FIT, ACTIVATION_STATE, TYPE } from "three-ammo/constants";
 import { COLLISION_LAYERS } from "../../hubs/constants";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { getNetworkedEntitySync, getNetworkOwner } from "../utils/ownership-utils";
 import {
   SOUND_LAUNCHER_1,
   SOUND_LAUNCHER_2,
@@ -20,6 +21,8 @@ import {
 } from "../../hubs/systems/sound-effects-system";
 
 import BezierEasing from "bezier-easing";
+const REACTJI_SEND_RATE_LIMIT = 5000;
+let lastReactjiSendTime = 0;
 
 const springStep = BezierEasing(0.47, -0.07, 0.44, 1.65);
 
@@ -61,6 +64,11 @@ const INCLUDE_ENVIRONMENT_FILTER_MASK =
 const MESH_TYPES = {
   LAUNCHER: 0,
   BURST: 1
+};
+
+const ORIGINS = {
+  LOCAL: 0,
+  REMOTE: 1
 };
 
 const BODY_OPTIONS = {
@@ -134,6 +142,7 @@ export class ProjectileSystem {
     this.targetScales = Array(MAX_PROJECTILES).fill(1.0);
     this.playPositionalSoundAfterTicks = Array(MAX_PROJECTILES).fill(false);
     this.emojis = Array(MAX_PROJECTILES).fill("");
+    this.origins = Array(MAX_PROJECTILES).fill(0);
     this.maxIndex = -1;
     this.avatarPovEl = null;
 
@@ -182,6 +191,7 @@ export class ProjectileSystem {
 
     this.spawnProjectile(
       MESH_TYPES.LAUNCHER,
+      ORIGINS.LOCAL,
       emoji,
       ox,
       oy,
@@ -207,6 +217,7 @@ export class ProjectileSystem {
   replayEmojiSpawnerProjectile([emoji, ox, oy, oz, orx, ory, orz, orw, ix, iy, iz, irx, iry, irz, scale]) {
     this.spawnProjectile(
       MESH_TYPES.LAUNCHER,
+      ORIGINS.REMOTE,
       emoji,
       ox,
       oy,
@@ -260,6 +271,7 @@ export class ProjectileSystem {
 
       await this.spawnProjectile(
         MESH_TYPES.BURST,
+        ORIGINS.LOCAL,
         emoji,
         ox,
         oy,
@@ -285,6 +297,7 @@ export class ProjectileSystem {
   // irx, ry, irz - Impulse offset (if left undefined, generate random offset to create spin)
   async spawnProjectile(
     meshType,
+    origin,
     emoji,
     ox,
     oy,
@@ -306,6 +319,7 @@ export class ProjectileSystem {
     const {
       freeFlags,
       avatarPovEl,
+      origins,
       meshes,
       meshTypes,
       voxmojiSystem,
@@ -337,6 +351,7 @@ export class ProjectileSystem {
 
     // Reserve index so concurrent spawns don't do the same
     freeFlags[idx] = false;
+    origins[idx] = origin;
 
     let mesh = meshes[idx];
     let initialScale = scale;
@@ -378,6 +393,7 @@ export class ProjectileSystem {
 
   tick(t, dt) {
     const {
+      origins,
       meshes,
       physicsSystem,
       bodyUuids,
@@ -400,7 +416,7 @@ export class ProjectileSystem {
       const collisions = physicsSystem.getCollisions(bodyUuid);
 
       let hitMedia = false;
-      let hitAvatar = false;
+      let hitAvatarSessionId = null;
 
       if (collisions.length > 0) {
         for (let j = 0; j < collisions; j++) {
@@ -414,18 +430,38 @@ export class ProjectileSystem {
           hitMedia = el && el.components["media-loader"];
 
           // This is a bit fragile, but a regression will be obvious.
-          hitAvatar = el && el.components["avatar-audio-source"];
+          if (el && el.components["avatar-audio-source"]) {
+            const networkedEl = getNetworkedEntitySync(el);
 
-          if (hitMedia || hitAvatar) break;
+            if (networkedEl) {
+              hitAvatarSessionId = getNetworkOwner(networkedEl);
+            }
+          }
+
+          if (hitMedia || hitAvatarSessionId) break;
         }
       }
 
-      if (hitMedia || hitAvatar) {
+      if (hitMedia || hitAvatarSessionId) {
         const mesh = meshes[i];
+        const meshType = meshTypes[i];
+        const origin = origins[i];
 
         this.spawnBurst(emojis[i], mesh.position.x, mesh.position.y, mesh.position.z, 0.1);
         this.soundEffectsSystem.playPositionalSoundAt(SOUND_EMOJI_BURST, mesh.position, false);
         this.freeProjectileAtIndex(i);
+
+        if (origin === ORIGINS.LOCAL && meshType === MESH_TYPES.LAUNCHER) {
+          if (hitAvatarSessionId) {
+            const now = performance.now();
+
+            if (now > lastReactjiSendTime + REACTJI_SEND_RATE_LIMIT) {
+              window.APP.hubChannel.sendMessage(emojis[i], "reactji", hitAvatarSessionId);
+              lastReactjiSendTime = now;
+            }
+          }
+        }
+
         continue;
       }
     }

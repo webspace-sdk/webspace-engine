@@ -648,23 +648,32 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
     handleIncomingNAF(data);
   });
 
-  hubPhxChannel.on("message", ({ session_id, type, body }) => {
+  hubPhxChannel.on("message", ({ session_id, to_session_id, type, body }) => {
+    const getName = session_id => {
+      const userInfo = spaceChannel.presence.state[session_id];
+      if (userInfo) {
+        return userInfo.metas[0].profile.displayName;
+      } else {
+        return messages["chat.default-name"];
+      }
+    };
+
     switch (type) {
       case "chat": {
-        const getAuthor = () => {
-          const userInfo = spaceChannel.presence.state[session_id];
-          if (userInfo) {
-            return userInfo.metas[0].profile.displayName;
-          } else {
-            return messages["chat.default-name"];
-          }
-        };
-
-        const name = getAuthor();
+        const name = getName(session_id);
         const entry = { name, type, body, posted_at: performance.now() };
 
         scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
 
+        scene.emit("chat_log_entry", entry);
+        break;
+      }
+      case "reactji": {
+        const name = getName(session_id);
+        const toName = getName(to_session_id);
+        const entry = { name, toName, type, body, posted_at: performance.now() };
+
+        scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
         scene.emit("chat_log_entry", entry);
         break;
       }
