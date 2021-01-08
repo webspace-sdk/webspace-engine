@@ -531,6 +531,14 @@ export class ProjectileSystem {
         // burst emojis just shrink
         const mesh = meshes[i];
         const s = Math.min(1, dt * 32.0) * 0.975;
+
+        if (mesh.scale.x === 1.0) {
+          // Initial scale
+          mesh.scale.x = BURST_PARTICLE_SCALE;
+          mesh.scale.y = BURST_PARTICLE_SCALE;
+          mesh.scale.z = BURST_PARTICLE_SCALE;
+        }
+
         mesh.scale.x *= s;
         mesh.scale.y *= s;
         mesh.scale.z *= s;
