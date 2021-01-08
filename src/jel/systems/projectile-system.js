@@ -29,6 +29,8 @@ const springStep = BezierEasing(0.47, -0.07, 0.44, 1.65);
 const MAX_PROJECTILES = 1024;
 const PROJECTILE_EXPIRATION_MS = 5000;
 const SPAWN_OFFSET = new THREE.Vector3(0, -0.85, -0.5);
+const SELF_BURST_OFFSET = new THREE.Vector3(0, 0, 0);
+const SELF_BURST_RADIUS = 1.5;
 const SHRINK_TIME_MS = 1000;
 const SHRINK_SPEED = 0.005;
 const MIN_LAUNCH_IMPULSE = 6.0;
@@ -82,7 +84,7 @@ const BODY_OPTIONS = {
     activationState: ACTIVATION_STATE.ACTIVE_TAG,
     emitCollisionEvents: false,
     disableCollision: false,
-    collisionFilterGroup: 1,
+    collisionFilterGroup: COLLISION_LAYERS.INTERACTABLES,
     collisionFilterMask: INCLUDE_ENVIRONMENT_FILTER_MASK,
     scaleAutoUpdate: true,
     gravity: LAUNCHER_GRAVITY
@@ -97,7 +99,7 @@ const BODY_OPTIONS = {
     activationState: ACTIVATION_STATE.ACTIVE_TAG,
     emitCollisionEvents: false,
     disableCollision: false,
-    collisionFilterGroup: 1,
+    collisionFilterGroup: COLLISION_LAYERS.BURSTS,
     collisionFilterMask: 0,
     scaleAutoUpdate: true,
     gravity: BURST_GRAVITY
@@ -238,9 +240,15 @@ export class ProjectileSystem {
     );
   }
 
-  fireEmojiBurst(emoji, ox, oy, oz, radius) {
-    this.spawnBurst(emoji, ox, oy, oz, radius);
-    return [ox, oy, oz, radius];
+  fireEmojiBurst(emoji) {
+    const { avatarPovEl } = this;
+    if (!avatarPovEl) return;
+
+    const avatarPovNode = avatarPovEl.object3D;
+
+    offsetRelativeTo(null, avatarPovNode, SELF_BURST_OFFSET, false, 1, this.sceneEl.object3D, tmpVec3, tmpQuat);
+
+    this.spawnBurst(emoji, tmpVec3.x, tmpVec3.y, tmpVec3.z, SELF_BURST_RADIUS);
   }
 
   async spawnBurst(emoji, ox, oy, oz, radius) {

@@ -30,7 +30,7 @@ export class LauncherSystem {
   }
 
   tick() {
-    const { userinput } = this;
+    const { projectileSystem, userinput } = this;
 
     const spacePath = paths.device.keyboard.key(" ");
     const middlePath = paths.device.mouse.buttonMiddle;
@@ -40,6 +40,11 @@ export class LauncherSystem {
 
     const holdingLeft = userinput.get(leftPath);
     const holdingSpace = userinput.get(spacePath);
+    const didJump = userinput.get(paths.actions.jump);
+
+    if (didJump) {
+      projectileSystem.fireEmojiBurst(window.APP.store.state.equips.launcher);
+    }
 
     // Repeated fire if user is holding space and not control (due to widen)
     const launchRepeatedly = holdingSpace && !userinput.get(controlPath);
