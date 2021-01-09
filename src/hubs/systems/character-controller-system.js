@@ -46,7 +46,7 @@ const calculateDisplacementToDesiredPOV = (function() {
 const SNAP_ROTATION_RADIAN = THREE.Math.DEG2RAD * 45;
 const BASE_SPEED = 3.2; //TODO: in what units?
 const JUMP_GRAVITY = -16.0;
-const INITIAL_JUMP_VELOCITY = 4.0;
+const INITIAL_JUMP_VELOCITY = 5.0;
 
 export class CharacterControllerSystem {
   constructor(scene, terrainSystem) {
