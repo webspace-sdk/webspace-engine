@@ -167,7 +167,7 @@
                             <a-entity
                                 avatar-audio-source="rolloffFactor: 2.0;"
                                 personal-space-invader="radius: 0.15; useMaterial: true;"
-                                body-helper="type: kinematic; collisionFilterGroup: 4; collisionFilterMask: 1;"
+                                body-helper="type: kinematic; collisionFilterGroup: 4; collisionFilterMask: 17;"
                                 shape-helper="type: sphere; fit: manual; sphereRadius: 0.5;"
                             ></a-entity>
                         </template>
@@ -185,7 +185,7 @@
 
             <template id="static-media">
                 <a-entity
-                    body-helper="type: static; mass: 1; collisionFilterGroup: 1; collisionFilterMask: 1;"
+                    body-helper="type: static; mass: 1; collisionFilterGroup: 1; collisionFilterMask: 17;"
                 >
                 </a-entity>
             </template>
@@ -193,7 +193,7 @@
             <template id="static-controlled-media">
                 <a-entity
                     class="interactable"
-                    body-helper="type: static; mass: 1; collisionFilterGroup: 1; collisionFilterMask: 1;"
+                    body-helper="type: static; mass: 1; collisionFilterGroup: 1; collisionFilterMask: 17;"
                     is-remote-hover-target
                     position-at-box-shape-border__freeze="target:.freeze-menu;"
                     tags="isStatic: true; togglesHoveredActionSet: true; inspectable: true;"
@@ -205,7 +205,7 @@
             <template id="interactable-media">
                 <a-entity
                     class="interactable"
-                    body-helper="type: dynamic; mass: 1; collisionFilterGroup: 1; collisionFilterMask: 15;"
+                    body-helper="type: dynamic; mass: 1; collisionFilterGroup: 1; collisionFilterMask: 31;"
                     set-unowned-body-kinematic
                     is-remote-hover-target
                     tags="isHandCollisionTarget: true; isHoldable: true; offersHandConstraint: true; offersRemoteConstraint: true; inspectable: true;"
@@ -224,7 +224,7 @@
             <template id="linked-media">
                 <a-entity
                     class="interactable"
-                    body-helper="type: dynamic; mass: 1; collisionFilterGroup: 1; collisionFilterMask: 15;"
+                    body-helper="type: dynamic; mass: 1; collisionFilterGroup: 1; collisionFilterMask: 31;"
                     is-remote-hover-target
                     tags="togglesHoveredActionSet: true; inspectable: true;"
                     set-unowned-body-kinematic
@@ -238,7 +238,7 @@
             <template id="interactable-pen">
                 <a-entity
                     class="pen interactable"
-                    body-helper="type: dynamic; mass: 0.001; collisionFilterGroup: 1; collisionFilterMask: 15; gravity: 0 0 0;"
+                    body-helper="type: dynamic; mass: 0.001; collisionFilterGroup: 1; collisionFilterMask: 31; gravity: 0 0 0;"
                     gltf-model-plus="src: #drawing-pen; inflate: true;"
                     owned-object-limiter="counter: #pen-counter"
                     set-unowned-body-kinematic

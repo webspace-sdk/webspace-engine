@@ -677,12 +677,21 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
         scene.emit("chat_log_entry", entry);
         break;
       }
-      case "emoji_launch": {
+      case "emoji_launch":
+      case "emoji_burst": {
         // Don't replicate emojis when paused, so we don't see a huge burst of them after the fact.
         if (!scene.isPlaying) return;
 
         if (session_id !== NAF.clientId) {
-          scene.systems["hubs-systems"].projectileSystem.replayEmojiSpawnerProjectile(body);
+          const projectileSystem = scene.systems["hubs-systems"].projectileSystem;
+
+          if (type === "emoji_launch") {
+            projectileSystem.replayEmojiSpawnerProjectile(body);
+          }
+
+          if (type === "emoji_burst") {
+            projectileSystem.replayEmojiBurst(body);
+          }
         }
 
         break;

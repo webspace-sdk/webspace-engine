@@ -920,7 +920,7 @@ export class TerrainSystem {
       type: TYPE.STATIC,
       mass: 1,
       collisionFilterGroup: 1,
-      collisionFilterMask: 1
+      collisionFilterMask: 17
     });
 
     el.setAttribute("shape-helper", {

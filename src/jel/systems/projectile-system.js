@@ -40,7 +40,7 @@ const MIN_BURST_IMPULSE = 0.02;
 const MAX_BURST_IMPULSE = 0.03;
 const MAX_BURST_SPIN = 0.05;
 const LAUNCHER_GRAVITY = new THREE.Vector3(0, -9.8, 0);
-const BURST_GRAVITY = new THREE.Vector3(0, 0.5, 0);
+const BURST_GRAVITY = new THREE.Vector3(0, 1.5, 0);
 const MEGAMOJI_IMPULSE = 12.0;
 const MEGAMOJI_SCALE = 3;
 const SPAWN_GROW_DELAY_MS = 50; // Need to delay grow so initial impulse is applied properly
@@ -59,7 +59,10 @@ const getLauncherSound = (emoji, isMegaMoji) => {
 };
 
 const INCLUDE_ENVIRONMENT_FILTER_MASK =
-  COLLISION_LAYERS.INTERACTABLES | COLLISION_LAYERS.AVATAR | COLLISION_LAYERS.ENVIRONMENT;
+  COLLISION_LAYERS.INTERACTABLES |
+  COLLISION_LAYERS.AVATAR |
+  COLLISION_LAYERS.ENVIRONMENT |
+  COLLISION_LAYERS.PROJECTILES;
 
 const MESH_TYPES = {
   LAUNCHER: 0,
@@ -82,7 +85,7 @@ const BODY_OPTIONS = {
     activationState: ACTIVATION_STATE.ACTIVE_TAG,
     emitCollisionEvents: false,
     disableCollision: false,
-    collisionFilterGroup: COLLISION_LAYERS.INTERACTABLES,
+    collisionFilterGroup: COLLISION_LAYERS.PROJECTILES,
     collisionFilterMask: INCLUDE_ENVIRONMENT_FILTER_MASK,
     scaleAutoUpdate: true,
     gravity: LAUNCHER_GRAVITY
@@ -110,8 +113,14 @@ const FREED_BODY_OPTIONS = {
 };
 
 const RESET_BODY_OPTIONS = {
-  activationState: ACTIVATION_STATE.ACTIVE_TAG,
-  collisionFilterMask: INCLUDE_ENVIRONMENT_FILTER_MASK
+  [MESH_TYPES.LAUNCHER]: {
+    activationState: ACTIVATION_STATE.ACTIVE_TAG,
+    collisionFilterMask: INCLUDE_ENVIRONMENT_FILTER_MASK
+  },
+  [MESH_TYPES.BURST]: {
+    activationState: ACTIVATION_STATE.ACTIVE_TAG,
+    collisionFilterMask: 0
+  }
 };
 
 const SHAPE_OPTIONS = {
@@ -250,8 +259,20 @@ export class ProjectileSystem {
     tmpVec3.x -= 0.65;
     tmpVec3.y -= 0.25;
     tmpVec3.z -= 0.25;
+    const radius = SELF_BURST_RADIUS;
+    const numParticles = 8 + Math.floor(Math.random() * 8.0);
 
-    this.spawnBurst(emoji, tmpVec3.x, tmpVec3.y, tmpVec3.z, SELF_BURST_RADIUS, 8 + Math.floor(Math.random() * 8.0));
+    this.spawnBurst(emoji, tmpVec3.x, tmpVec3.y, tmpVec3.z, radius, numParticles);
+    this.soundEffectsSystem.playSoundOneShot(SOUND_EMOJI_BURST, tmpVec3, false);
+
+    return [emoji, tmpVec3.x, tmpVec3.y, tmpVec3.z, radius, numParticles];
+  }
+
+  replayEmojiBurst([emoji, ox, oy, oz, radius, numParticles]) {
+    tmpVec3.set(ox, oy, oz);
+    this.soundEffectsSystem.playPositionalSoundAt(SOUND_EMOJI_BURST, tmpVec3, false);
+
+    return this.spawnBurst(emoji, ox, oy, oz, radius, numParticles);
   }
 
   async spawnBurst(emoji, ox, oy, oz, radius, numParticles = 8) {
@@ -300,6 +321,8 @@ export class ProjectileSystem {
         scale
       );
     }
+
+    return [emoji, ox, oy, oz, radius, numParticles];
   }
 
   // ox, oy, oz - Spawn origin (if left undefined, spawn in front of avatar)
@@ -381,7 +404,7 @@ export class ProjectileSystem {
       mesh.matrixNeedsUpdate = true;
       mesh.updateMatrices();
 
-      this.physicsSystem.updateBody(this.bodyUuids[idx], RESET_BODY_OPTIONS);
+      this.physicsSystem.updateBody(this.bodyUuids[idx], RESET_BODY_OPTIONS[meshType]);
       this.physicsSystem.resetDynamicBody(this.bodyUuids[idx], () => (bodyReadyFlags[idx] = true));
     } else {
       mesh = this.createProjectileMesh(meshType, idx, ox, oy, oz, orx, ory, orz, orw, 1.0);

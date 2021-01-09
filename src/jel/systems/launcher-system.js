@@ -43,7 +43,8 @@ export class LauncherSystem {
     const didJump = userinput.get(paths.actions.jump);
 
     if (didJump) {
-      projectileSystem.fireEmojiBurst(window.APP.store.state.equips.launcher);
+      const payload = projectileSystem.fireEmojiBurst(window.APP.store.state.equips.launcher);
+      window.APP.hubChannel.sendMessage(payload, "emoji_burst");
     }
 
     // Repeated fire if user is holding space and not control (due to widen)
