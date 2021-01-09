@@ -29,8 +29,7 @@ const springStep = BezierEasing(0.47, -0.07, 0.44, 1.65);
 const MAX_PROJECTILES = 1024;
 const PROJECTILE_EXPIRATION_MS = 5000;
 const SPAWN_OFFSET = new THREE.Vector3(0, -0.85, -0.5);
-const SELF_BURST_OFFSET = new THREE.Vector3(0, 0, 0);
-const SELF_BURST_RADIUS = 1.5;
+const SELF_BURST_RADIUS = 0.5;
 const SHRINK_TIME_MS = 1000;
 const SHRINK_SPEED = 0.005;
 const MIN_LAUNCH_IMPULSE = 6.0;
@@ -49,7 +48,6 @@ const SPAWN_GROW_TIME_MS = 150;
 const SPAWN_GROW_MIN_SCALE = 0.2;
 const LAUNCHER_SFX_URLS = [SOUND_LAUNCHER_1, SOUND_LAUNCHER_2, SOUND_LAUNCHER_3, SOUND_LAUNCHER_4, SOUND_LAUNCHER_5];
 const FART_SFX_URLS = [SOUND_FART_1, SOUND_FART_2, SOUND_FART_3, SOUND_FART_4, SOUND_FART_5];
-const BURST_PARTICLES = 8;
 const BURST_PARTICLE_SCALE = 0.5;
 
 const getLauncherSound = (emoji, isMegaMoji) => {
@@ -246,16 +244,20 @@ export class ProjectileSystem {
     if (!avatarPovEl) return;
 
     const avatarPovNode = avatarPovEl.object3D;
+    avatarPovNode.updateMatrices();
 
-    offsetRelativeTo(null, avatarPovNode, SELF_BURST_OFFSET, false, 1, this.sceneEl.object3D, tmpVec3, tmpQuat);
+    tmpVec3.setFromMatrixPosition(avatarPovNode.matrixWorld);
+    tmpVec3.x -= 0.65;
+    tmpVec3.y -= 0.25;
+    tmpVec3.z -= 0.25;
 
-    this.spawnBurst(emoji, tmpVec3.x, tmpVec3.y, tmpVec3.z, SELF_BURST_RADIUS);
+    this.spawnBurst(emoji, tmpVec3.x, tmpVec3.y, tmpVec3.z, SELF_BURST_RADIUS, 8 + Math.floor(Math.random() * 8.0));
   }
 
-  async spawnBurst(emoji, ox, oy, oz, radius) {
-    for (let i = 0; i < BURST_PARTICLES; i++) {
-      const dx = Math.sin(Math.PI * 2.0 * (i / BURST_PARTICLES));
-      const dz = Math.cos(Math.PI * 2.0 * (i / BURST_PARTICLES));
+  async spawnBurst(emoji, ox, oy, oz, radius, numParticles = 8) {
+    for (let i = 0; i < numParticles; i++) {
+      const dx = Math.sin(Math.PI * 2.0 * (i / numParticles));
+      const dz = Math.cos(Math.PI * 2.0 * (i / numParticles));
 
       ox = ox + dx * radius;
       oz = oz + dz * radius;
