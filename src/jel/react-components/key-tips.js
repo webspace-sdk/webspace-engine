@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { FormattedMessage } from "react-intl";
 import React, { forwardRef, useState, useEffect } from "react";
-import { imageUrlForEmoji } from "../../hubs/utils/media-utils";
+import { imageUrlForEmoji } from "../../hubs/utils/media-url-utils";
 
 const KeyTipsElement = styled.div`
   position: absolute;

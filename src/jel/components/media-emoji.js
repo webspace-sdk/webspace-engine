@@ -1,6 +1,7 @@
 import { hasMediaLayer, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
-import { imageUrlForEmoji, groundMedia, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
+import { groundMedia, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
+import { imageUrlForEmoji } from "../../hubs/utils/media-url-utils";
 
 AFRAME.registerComponent("media-emoji", {
   schema: {

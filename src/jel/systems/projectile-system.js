@@ -1,4 +1,4 @@
-import { imageUrlForEmoji } from "../../hubs/utils/media-utils";
+import { imageUrlForEmoji } from "../../hubs/utils/media-url-utils";
 import { offsetRelativeTo } from "../../hubs/components/offset-relative-to";
 import { SHAPE, FIT, ACTIVATION_STATE, TYPE } from "three-ammo/constants";
 import { COLLISION_LAYERS } from "../../hubs/constants";
