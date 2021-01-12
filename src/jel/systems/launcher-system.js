@@ -7,6 +7,7 @@ const MAX_FIRE_DURATION = 5000;
 const REPEATED_LAUNCH_DELAY = 500;
 
 const tmpVec3 = new THREE.Vector3();
+const WHEEL_THRESHOLD = 0.1;
 
 // Deals with Emoji Launcher
 export class LauncherSystem {
@@ -23,6 +24,7 @@ export class LauncherSystem {
     this.heldLeftPreviousFrame = false;
     this.heldSpacePreviousFrame = false;
     this.avatarPovEl = null;
+    this.deltaWheel = 0.0;
 
     waitForDOMContentLoaded().then(() => {
       this.avatarPovEl = document.querySelector("#avatar-pov-node");
@@ -44,8 +46,13 @@ export class LauncherSystem {
     const wheel = userinput.get(paths.actions.equipScroll);
 
     if (wheel && wheel !== 0.0) {
+      this.deltaWheel += wheel;
+    }
+
+    if (Math.abs(this.deltaWheel) > WHEEL_THRESHOLD) {
       const store = window.APP.store;
-      const equipDirection = wheel < 0.0 ? -1 : 1;
+      const equipDirection = this.deltaWheel < 0.0 ? -1 : 1;
+      this.deltaWheel = 0.0;
       let currentSlot = -1;
 
       for (let i = 0; i < 10; i++) {
