@@ -362,7 +362,8 @@ function JelUI(props) {
     attributes: emojiPopupAttributes,
     show: showEmojiPopup,
     setPopup: setEmojiPopupElement,
-    update: updateEmojiPopup
+    update: updateEmojiPopup,
+    popupOpenOptions: emojiPopupOpenOptions
   } = usePopupPopper(emojiPopupFocusRef, "bottom", [0, 8]);
 
   const {
@@ -451,7 +452,7 @@ function JelUI(props) {
   // Handle emoji popup trigger
   useEffect(
     () => {
-      const handleCreateVoxmoji = () => showEmojiPopup(centerPopupRef);
+      const handleCreateVoxmoji = () => showEmojiPopup(centerPopupRef, "bottom", [0, 8], { equip: false });
 
       scene && scene.addEventListener("action_show_emoji_picker", handleCreateVoxmoji);
       return () => scene && scene.removeEventListener("action_show_emoji_picker", handleCreateVoxmoji);
@@ -578,6 +579,7 @@ function JelUI(props) {
             showHubContextMenuPopup={showHubContextMenuPopup}
             showSpaceRenamePopup={showSpaceRenamePopup}
             spaceRenamePopupElement={spaceRenamePopupElement}
+            showEmojiPopup={showEmojiPopup}
           />
         )}
       </div>
@@ -621,7 +623,25 @@ function JelUI(props) {
         onEmojiSelected={({ unicode }) => {
           const parsed = unicode.split("-").map(str => parseInt(str, 16));
           const emoji = String.fromCodePoint(...parsed);
-          scene.emit("add_media_emoji", emoji);
+
+          if (emojiPopupOpenOptions.equip) {
+            let currentSlot = -1;
+
+            for (let i = 0; i < 10; i++) {
+              if (store.state.equips.launcher === store.state.equips[`launcherSlot${i + 1}`]) {
+                currentSlot = i;
+                break;
+              }
+            }
+
+            if (currentSlot !== -1) {
+              store.update({ equips: { [`launcherSlot${currentSlot + 1}`]: emoji } });
+            }
+
+            store.update({ equips: { launcher: emoji } });
+          } else {
+            scene.emit("add_media_emoji", emoji);
+          }
         }}
       />
       <CreateEmbedPopup

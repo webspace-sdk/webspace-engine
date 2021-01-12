@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, forwardRef } from "react";
 import PropTypes from "prop-types";
 import Tooltip from "./tooltip";
 import { useSingleton } from "@tippyjs/react";
@@ -224,7 +224,7 @@ const buildEmojisFromStore = store => {
   });
 };
 
-export default function EmojiEquip({ onSelectedEmojiClicked }) {
+const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
   const store = window.APP.store;
   const messages = getMessages();
 
@@ -236,22 +236,21 @@ export default function EmojiEquip({ onSelectedEmojiClicked }) {
   );
   const [tipSource, tipTarget] = useSingleton();
 
-  const selectedButtonRef = useRef();
   const selectedEmoji = store.state.equips.launcher;
   const selectedEmojiImageUrl = imageUrlForEmoji(selectedEmoji, 128);
 
   // Animate center emoji when slot changes.
   useEffect(
     () => {
-      if (!selectedButtonRef.current) return;
-      const el = selectedButtonRef.current;
+      if (!ref.current) return;
+      const el = ref.current;
       if (el.getAttribute("data-selected-slot") !== `${selectedSlot}`) {
         el.removeAttribute("data-selected-slot");
         el.offsetWidth; // Restart animation hack.
         el.setAttribute("data-selected-slot", `${selectedSlot}`);
       }
     },
-    [selectedButtonRef, selectedSlot]
+    [ref, selectedSlot]
   );
 
   // When state store changes, update ring.
@@ -296,7 +295,7 @@ export default function EmojiEquip({ onSelectedEmojiClicked }) {
                 </SlotButton>
               </Tooltip>
             ))}
-          <SelectedButton ref={selectedButtonRef} onClick={() => onSelectedEmojiClicked()}>
+          <SelectedButton ref={ref} onClick={() => onSelectedEmojiClicked()}>
             <img crossOrigin="anonymous" src={selectedEmojiImageUrl} />
           </SelectedButton>
 
@@ -326,8 +325,12 @@ export default function EmojiEquip({ onSelectedEmojiClicked }) {
       </EmojiEquipOuter>
     </EmojiEquipElement>
   );
-}
+});
+
+EmojiEquip.displayName = "EmojiEquip";
 
 EmojiEquip.propTypes = {
   onSelectedEmojiClicked: PropTypes.func
 };
+
+export { EmojiEquip as default };

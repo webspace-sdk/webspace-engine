@@ -344,7 +344,8 @@ function JelSidePanels({
   spaceId,
   spacePresences,
   sessionId,
-  scene
+  scene,
+  showEmojiPopup
 }) {
   const store = window.APP.store;
   const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
@@ -356,6 +357,7 @@ function JelSidePanels({
   const [spaceName, setSpaceName] = useState((metadata && metadata.name) || "");
   const invitePanelFieldElement = useRef();
   const spaceBannerRef = useRef();
+  const emojiEquipRef = useRef();
 
   const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: updateTrashPopper } = usePopper(
     trashMenuReferenceElement,
@@ -551,7 +553,15 @@ function JelSidePanels({
           <PanelSectionHeader style={{ height: "16px" }}>
             <FormattedMessage id="blaster.header" />
           </PanelSectionHeader>
-          <EmojiEquip />
+          <EmojiEquip
+            ref={emojiEquipRef}
+            onSelectedEmojiClicked={useCallback(
+              () => {
+                showEmojiPopup(emojiEquipRef, "top-end", [0, 12], { equip: true });
+              },
+              [showEmojiPopup]
+            )}
+          />
         </BlasterContent>
       </Right>
       <Invite setPopperElement={setInviteElement} styles={inviteStyles} attributes={inviteAttributes}>
@@ -626,7 +636,8 @@ JelSidePanels.propTypes = {
   showHubContextMenuPopup: PropTypes.func,
   setHubRenameReferenceElement: PropTypes.func,
   showSpaceRenamePopup: PropTypes.func,
-  spaceRenamePopupElement: PropTypes.object
+  spaceRenamePopupElement: PropTypes.object,
+  showEmojiPopup: PropTypes.func
 };
 
 export default JelSidePanels;
