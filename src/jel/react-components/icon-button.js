@@ -18,6 +18,9 @@ const IconButtonElement = styled.button`
   align-items: center;
   justify-content: center;
   margin: 0px 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
   &:hover {
     background-color: var(--action-button-hover-background-color);
@@ -48,6 +51,9 @@ const BigIconButtonElement = styled.button`
   align-items: center;
   justify-content: center;
   margin: 0px 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
   &:hover {
     background-color: var(--action-button-hover-background-color);
@@ -69,7 +75,11 @@ const IconButton = forwardRef((props, ref) => {
   delete filteredProps.children;
   return (
     <IconButtonElement {...filteredProps} ref={ref}>
-      <IconButtonIcon dangerouslySetInnerHTML={{ __html: props.iconSrc }} />
+      {props.iconSrc ? (
+        <IconButtonIcon dangerouslySetInnerHTML={{ __html: props.iconSrc }} />
+      ) : (
+        <IconButtonIcon>{props.children}</IconButtonIcon>
+      )}
     </IconButtonElement>
   );
 });
@@ -78,7 +88,8 @@ IconButton.displayName = "IconButton";
 
 IconButton.propTypes = {
   iconSrc: PropTypes.string,
-  includeBorder: PropTypes.bool
+  includeBorder: PropTypes.bool,
+  children: PropTypes.object
 };
 
 const BigIconButton = forwardRef((props, ref) => {
@@ -87,7 +98,11 @@ const BigIconButton = forwardRef((props, ref) => {
   delete filteredProps.children;
   return (
     <BigIconButtonElement {...filteredProps} ref={ref}>
-      <BigIconButtonIcon dangerouslySetInnerHTML={{ __html: props.iconSrc }} />
+      {props.iconSrc ? (
+        <BigIconButtonIcon dangerouslySetInnerHTML={{ __html: props.iconSrc }} />
+      ) : (
+        <BigIconButtonIcon>{props.children}</BigIconButtonIcon>
+      )}
     </BigIconButtonElement>
   );
 });
@@ -96,7 +111,8 @@ BigIconButton.displayName = "BigIconButton";
 
 BigIconButton.propTypes = {
   iconSrc: PropTypes.string,
-  includeBorder: PropTypes.bool
+  includeBorder: PropTypes.bool,
+  children: PropTypes.object
 };
 
 export { IconButton as default, BigIconButton };

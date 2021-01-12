@@ -35,13 +35,18 @@ AFRAME.registerComponent("body-helper", {
   init: function() {
     this.system = this.el.sceneEl.systems["hubs-systems"].physicsSystem;
     this.alive = true;
+    this.ready = false;
     this.uuid = -1;
     this.system.registerBodyHelper(this);
   },
 
   init2: function() {
     this.el.object3D.updateMatrices();
-    this.uuid = this.system.addBody(this.el.object3D, this.data);
+    this.uuid = this.system.addBody(this.el.object3D, this.data, () => (this.ready = true));
+  },
+
+  applyImpulse: function(x, y, z, rx = 0, ry = 0, rz = 0) {
+    this.system.applyImpulse(this.uuid, x, y, z, rx, ry, rz);
   },
 
   update: function(prevData) {

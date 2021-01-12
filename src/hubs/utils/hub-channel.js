@@ -96,10 +96,14 @@ export default class HubChannel extends EventTarget {
     return new Promise(resolve => this.channel.push("unsubscribe", { subscription }).receive("ok", resolve));
   };
 
-  sendMessage = (body, type = "chat") => {
+  sendMessage = (body, type = "chat", toSessionId) => {
     if (!this.channel) return;
     if (!body) return;
-    this.channel.push("message", { body, type });
+    const payload = { body, type };
+    if (toSessionId) {
+      payload.to_session_id = toSessionId;
+    }
+    this.channel.push("message", payload);
   };
 
   fetchPermissions = () => {

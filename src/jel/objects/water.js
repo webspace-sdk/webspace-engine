@@ -1,4 +1,5 @@
 import waterImageSrc from "!!url-loader!../../assets/jel/images/water.png";
+import { almostEqualVec3 } from "../../hubs/utils/three-utils";
 import { Layers } from "../../hubs/components/layers";
 import { WORLD_SIZE, WORLD_RADIUS } from "../systems/terrain-system";
 import { RENDER_ORDER } from "../../hubs/constants";
@@ -265,9 +266,12 @@ class Water extends Mesh {
     target.add(reflectorWorldPosition);
 
     view.y -= 0.1; // HACK to avoid artifacts at grazing angles
-    virtualCamera.position.copy(view);
-    virtualCamera.matrixNeedsUpdate = true;
-    virtualCamera.updateMatrices();
+
+    if (!almostEqualVec3(virtualCamera.position, view)) {
+      virtualCamera.position.copy(view);
+      virtualCamera.matrixNeedsUpdate = true;
+      virtualCamera.updateMatrices();
+    }
 
     virtualCamera.up.set(0, 1, 0);
     virtualCamera.up.applyMatrix4(rotationMatrix);

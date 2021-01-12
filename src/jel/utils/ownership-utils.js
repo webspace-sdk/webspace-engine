@@ -108,6 +108,26 @@ export function getNetworkedEntity(entity) {
     }
   });
 }
+
+export function getNetworkedEntitySync(entity) {
+  let curEntity = entity;
+
+  while (curEntity && curEntity.components && !curEntity.components.networked && !curEntity.components.shared) {
+    curEntity = curEntity.parentNode;
+  }
+
+  if (!curEntity || !curEntity.components || (!curEntity.components.networked && !curEntity.components.shared)) {
+    return null;
+  }
+
+  if (!curEntity.hasLoaded) {
+    console.warn("Called getNetworkedEntitySync on a non-loaded networked entity.");
+    return null;
+  }
+
+  return curEntity;
+}
+
 export const getNetworkedAvatar = component => {
   if (!component.el) {
     window.setTimeout(() => {

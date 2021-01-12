@@ -1,19 +1,7 @@
 import { hasMediaLayer, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
 import { groundMedia, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
-
-const EMOJI_IMAGE_URL = "https://assets.jel.app/static/emoji";
-
-function emojiUnicode(characters, prefix = "") {
-  return [...characters]
-    .reduce((accumulator, character) => {
-      const unicode = character.codePointAt(undefined).toString(16);
-      accumulator.push(`${prefix}${unicode}`);
-      return accumulator;
-    }, [])
-    .join("-")
-    .toUpperCase();
-}
+import { imageUrlForEmoji } from "../../hubs/utils/media-url-utils";
 
 AFRAME.registerComponent("media-emoji", {
   schema: {
@@ -102,8 +90,7 @@ AFRAME.registerComponent("media-emoji", {
         this.el.object3D.matrixNeedsUpdate = true;
         this.el.setObject3D("mesh", this.mesh);
         const voxmojiSystem = this.el.sceneEl.systems["hubs-systems"].voxmojiSystem;
-        const unicode = emojiUnicode(this.data.emoji).toUpperCase();
-        const imageUrl = `${EMOJI_IMAGE_URL}/${unicode}-128.png`;
+        const imageUrl = imageUrlForEmoji(this.data.emoji, 128);
         await voxmojiSystem.register(imageUrl, this.mesh);
 
         this.el.emit("model-loaded", { format: "emoji", model: this.mesh });

@@ -648,8 +648,8 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
     handleIncomingNAF(data);
   });
 
-  hubPhxChannel.on("message", ({ session_id, type, body }) => {
-    const getAuthor = () => {
+  hubPhxChannel.on("message", ({ session_id, to_session_id, type, body }) => {
+    const getName = session_id => {
       const userInfo = spaceChannel.presence.state[session_id];
       if (userInfo) {
         return userInfo.metas[0].profile.displayName;
@@ -658,12 +658,45 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
       }
     };
 
-    const name = getAuthor();
-    const entry = { name, type, body, posted_at: performance.now() };
+    switch (type) {
+      case "chat": {
+        const name = getName(session_id);
+        const entry = { name, type, body, posted_at: performance.now() };
 
-    scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
+        scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
 
-    scene.emit("chat_log_entry", entry);
+        scene.emit("chat_log_entry", entry);
+        break;
+      }
+      case "reactji": {
+        const name = getName(session_id);
+        const toName = getName(to_session_id);
+        const entry = { name, toName, type, body, posted_at: performance.now() };
+
+        scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
+        scene.emit("chat_log_entry", entry);
+        break;
+      }
+      case "emoji_launch":
+      case "emoji_burst": {
+        // Don't replicate emojis when paused, so we don't see a huge burst of them after the fact.
+        if (!scene.isPlaying) return;
+
+        if (session_id !== NAF.clientId) {
+          const projectileSystem = scene.systems["hubs-systems"].projectileSystem;
+
+          if (type === "emoji_launch") {
+            projectileSystem.replayEmojiSpawnerProjectile(body);
+          }
+
+          if (type === "emoji_burst") {
+            projectileSystem.replayEmojiBurst(body);
+          }
+        }
+
+        break;
+      }
+    }
   });
 
   // Avoid updating the history frequently, as users type new hub names

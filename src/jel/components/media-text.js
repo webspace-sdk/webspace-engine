@@ -344,6 +344,7 @@ AFRAME.registerComponent("media-text", {
     // Set scale early here since it is read by spawning animation routines.
     this.mesh.scale.x = meshScaleX;
     this.mesh.scale.y = meshScaleY;
+    this.mesh.matrixNeedsUpdate = true;
 
     img.onload = () => {
       if (this.renderCount !== expectedRenderCount) return;

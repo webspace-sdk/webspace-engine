@@ -6,8 +6,10 @@ module.exports = {
     ENVIRONMENT: 2,
     AVATAR: 4,
     HANDS: 8,
-    DEFAULT_INTERACTABLE: 1 | 2 | 4 | 8,
-    UNOWNED_INTERACTABLE: 1 | 8,
+    PROJECTILES: 16,
+    BURSTS: 32,
+    DEFAULT_INTERACTABLE: 1 | 2 | 4 | 8 | 16,
+    UNOWNED_INTERACTABLE: 1 | 8 | 16,
     DEFAULT_SPAWNER: 1 | 8
   },
   RENDER_ORDER: {

@@ -45,6 +45,9 @@ const calculateDisplacementToDesiredPOV = (function() {
  */
 const SNAP_ROTATION_RADIAN = THREE.Math.DEG2RAD * 45;
 const BASE_SPEED = 3.2; //TODO: in what units?
+const JUMP_GRAVITY = -16.0;
+const INITIAL_JUMP_VELOCITY = 5.0;
+
 export class CharacterControllerSystem {
   constructor(scene, terrainSystem) {
     this.scene = scene;
@@ -59,6 +62,8 @@ export class CharacterControllerSystem {
     this.nextRelativeMotion = new THREE.Vector3(0, 0, 0);
     this.dXZ = 0;
     this.movedThisFrame = false;
+    this.jumpStartTime = null;
+    this.jumpYVelocity = null;
 
     this.scene.addEventListener("terrain_chunk_loaded", () => {
       if (!this.fly) {
@@ -245,6 +250,10 @@ export class CharacterControllerSystem {
       const wasFlying = this.fly;
       const shouldSnapDueToLanding = this.shouldLandWhenPossible;
 
+      if (userinput.get(paths.actions.jump) && this.jumpYVelocity === null) {
+        this.jumpYVelocity = INITIAL_JUMP_VELOCITY;
+      }
+
       if (userinput.get(paths.actions.toggleFly)) {
         this.shouldLandWhenPossible = false;
       }
@@ -332,7 +341,8 @@ export class CharacterControllerSystem {
             .multiply(snapRotatedPOV);
         }
 
-        const shouldResnapToHeightMap = didStopFlying || shouldSnapDueToLanding || triedToMove;
+        const shouldResnapToHeightMap =
+          (didStopFlying || shouldSnapDueToLanding || triedToMove) && this.jumpYVelocity === null;
 
         let squareDistHeightMapCorrection = 0;
 
@@ -389,6 +399,25 @@ export class CharacterControllerSystem {
           newPOV.elements[14] = -WORLD_SIZE + newZ;
         } else if (newZ < WORLD_MIN_COORD) {
           newPOV.elements[14] = WORLD_SIZE + newZ;
+        }
+      }
+
+      if (this.jumpYVelocity !== null) {
+        const dy = (dt / 1000.0) * this.jumpYVelocity;
+        this.jumpYVelocity += JUMP_GRAVITY * (dt / 1000.0);
+        const newY = newPOV.elements[13] + dy;
+
+        this.findPOVPositionAboveHeightMap(
+          desiredPOVPosition.setFromMatrixPosition(newPOV),
+          heightMapSnappedPOVPosition,
+          true
+        );
+
+        if (newY >= heightMapSnappedPOVPosition.y) {
+          newPOV.elements[13] = newY;
+        } else {
+          newPOV.elements[13] = heightMapSnappedPOVPosition.y;
+          this.jumpYVelocity = null;
         }
       }
 

@@ -73,7 +73,7 @@ const ChatLogLine = styled.div`
 
 const MESSAGE_MARGIN = 6;
 
-const entryToEl = ({ body, type, posted_at, name, oldName }) => {
+const entryToEl = ({ body, type, posted_at, name, oldName, toName }) => {
   if (type === "chat") {
     return (
       <CSSTransition key={posted_at} classNames="appear" timeout={{ enter: 0, exit: 0 }}>
@@ -100,6 +100,15 @@ const entryToEl = ({ body, type, posted_at, name, oldName }) => {
         <ChatLogLine className="chat-log-entry" key={posted_at}>
           <b>{oldName}</b>&nbsp;<FormattedMessage id={`chat-log.${type}`} />&nbsp;<b>{name}</b>
           <FormattedMessage id={`chat-log.${type}_end`} />
+        </ChatLogLine>
+      </CSSTransition>
+    );
+  } else if (type === "reactji") {
+    return (
+      <CSSTransition key={posted_at} classNames="appear" timeout={{ enter: 0, exit: 0 }}>
+        <ChatLogLine className="chat-log-entry" key={posted_at}>
+          <b>{name}</b>&nbsp;{body}
+          <FormattedMessage id={`chat-log.reacted`} />&nbsp;<b>{toName}</b>
         </ChatLogLine>
       </CSSTransition>
     );
