@@ -241,7 +241,7 @@ const TIP_DATA = {
   ],
   pointer_exited_muted: [["unmute", "L+m", "toggleMuteKey"], ["hide", "?"]],
   pointer_exited_unmuted: [["mute", "L+m", "toggleMuteKey"], ["hide", "?"]],
-  holding_interactable: [["pull", "R"], ["scale", "L+R"], ["guides", "q\\e"]],
+  holding_interactable: [["pull", "R"], ["guides", "q\\e"]],
   hover_interactable: objectCommonTips.filter(x => x[0] !== "bake" && x[0] !== "ground"),
   hover_bakable_interactable: objectCommonTips.filter(x => x[0] !== "ground"),
   hover_groundable_interactable: objectCommonTips.filter(x => x[0] !== "bake"),
@@ -255,8 +255,8 @@ const TIP_DATA = {
     ["font", "t\\g"],
     ...objectCommonTips.filter(t => t[0] !== "open")
   ],
-  rotate: [["rotate", "G"], ["roll", "L+G"], ["guides", "q\\e"]],
-  scale: [["scale", "G"]],
+  rotate: [["rotate", "G"], ["roll", "L+G,R"], ["guides", "q\\e"]],
+  scale: [["scale", "G,R"]],
   focus: [["zoom", "R"]],
   text_editor: [
     ["close", "~", "mediaTextEditClose"],
@@ -268,7 +268,6 @@ const TIP_DATA = {
 };
 
 const KEY_TIP_TYPES = Object.keys(TIP_DATA);
-let lastEquippedEmoji = null;
 let equippedEmojiUrl;
 
 const itemForData = ([label, keys, flag]) => {
@@ -276,15 +275,11 @@ const itemForData = ([label, keys, flag]) => {
 
   if (label === "jump" || label === "shoot") {
     const emoji = window.APP.store.state.equips.launcher;
-
-    if (lastEquippedEmoji !== emoji) {
-      lastEquippedEmoji = emoji;
-      equippedEmojiUrl = imageUrlForEmoji(emoji, 64);
-    }
+    equippedEmojiUrl = imageUrlForEmoji(emoji, 64);
 
     tipLabel = (
       <TipLabel key={label}>
-        <img src={equippedEmojiUrl} crossOrigin="anonymous" />
+        <img className="equipped-emoji" src={equippedEmojiUrl} crossOrigin="anonymous" />
         <FormattedMessage id={`key-tips.${label}`} />
       </TipLabel>
     );
@@ -504,6 +499,24 @@ const KeyTips = forwardRef((props, ref) => {
       return () => store.removeEventListener("activityflagged", handler);
     },
     [store, flagVersion]
+  );
+
+  // When state store changes, update emoji.
+  useEffect(
+    () => {
+      const handler = () => {
+        const els = document.querySelectorAll("#key-tips .equipped-emoji");
+        const emoji = window.APP.store.state.equips.launcher;
+        equippedEmojiUrl = imageUrlForEmoji(emoji, 64);
+
+        for (let i = 0; i < els.length; i++) {
+          els[i].setAttribute("src", equippedEmojiUrl);
+        }
+      };
+      store.addEventListener("statechanged-equips", handler);
+      return () => store.removeEventListener("statechanged-equips", handler);
+    },
+    [store]
   );
 
   return (

@@ -1,5 +1,6 @@
 import { setMatrixWorld } from "../utils/three-utils";
 import { TRANSFORM_MODE } from "../components/transform-object-button";
+import { paths } from "./userinput/paths";
 
 //const calculatePlaneMatrix = (function() {
 //  const planeMatrix = new THREE.Matrix4();
@@ -63,6 +64,9 @@ AFRAME.registerSystem("scale-object", {
     this.objectMatrix = new THREE.Matrix4();
     this.dragVector = new THREE.Vector3();
     this.currentObjectScale = new THREE.Vector3();
+    this.wheelDelta = 0.0;
+    this.userinput = null;
+
     const camPosition = new THREE.Vector3();
     const objectPosition = new THREE.Vector3();
     const objectToCam = new THREE.Vector3();
@@ -71,6 +75,7 @@ AFRAME.registerSystem("scale-object", {
       if (this.isScaling) return;
 
       this.objectToScale = object;
+      this.wheelDelta = 0.0;
 
       if (!this.didGetObjectReferences) {
         this.didGetObjectReferences = true;
@@ -143,6 +148,14 @@ AFRAME.registerSystem("scale-object", {
     if (!this.isScaling) return;
     const intersection = this.raycastOnPlane();
     if (!intersection) return;
+
+    this.userinput = this.userinput || this.el.systems.userinput;
+
+    if (this.userinput && this.userinput.get(paths.actions.transformScroll)) {
+      const dWheel = this.userinput.get(paths.actions.transformScroll);
+      this.wheelDelta += dWheel;
+    }
+
     this.intersectionPoint.copy(intersection.point);
     this.dragVector.subVectors(this.intersectionPoint, this.initialIntersectionPoint);
     const SENSITIVITY = 3;
@@ -154,6 +167,7 @@ AFRAME.registerSystem("scale-object", {
     } else if (dotFactor < 0) {
       scaleFactor = 1 / (1 + Math.abs(dotFactor));
     }
+    scaleFactor += this.wheelDelta;
     this.desiredObjectScale.copy(this.initialObjectScale).multiplyScalar(scaleFactor);
     this.objectToScale.updateMatrices();
     this.currentObjectScale.setFromMatrixScale(this.objectToScale.matrixWorld);

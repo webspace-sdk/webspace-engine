@@ -230,8 +230,10 @@ export default function EmojiEquip({ onSelectedEmojiClicked }) {
 
   const [hoverSlot, setHoverSlot] = useState(null);
   const [isClicking, setIsClicking] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState(0);
   const [emojis, setEmojis] = useState(buildEmojisFromStore(store));
+  const [selectedSlot, setSelectedSlot] = useState(
+    emojis.indexOf(emojis.find(({ emoji }) => emoji === store.state.equips.launcher))
+  );
   const [tipSource, tipTarget] = useSingleton();
 
   const selectedButtonRef = useRef();

@@ -20,6 +20,7 @@ const v = new THREE.Vector3();
 const v2 = new THREE.Vector3();
 const q = new THREE.Quaternion();
 const q2 = new THREE.Quaternion();
+const WHEEL_SENSITIVITY = 2.0;
 
 AFRAME.registerComponent("transform-button", {
   schema: {
@@ -277,8 +278,18 @@ AFRAME.registerSystem("transform-selected-object", {
       .projectOnPlane(normal)
       .applyQuaternion(q.copy(plane.quaternion).inverse())
       .multiplyScalar(SENSITIVITY / cameraToPlaneDistance);
+
+    const userinput = AFRAME.scenes[0].systems.userinput;
+
+    let wheelDelta = 0.0;
+
+    if (userinput.get(paths.actions.transformScroll)) {
+      const dWheel = userinput.get(paths.actions.transformScroll);
+      wheelDelta += dWheel * WHEEL_SENSITIVITY;
+    }
+
     if (this.mode === TRANSFORM_MODE.CURSOR) {
-      const modify = AFRAME.scenes[0].systems.userinput.get(paths.actions.transformModifier);
+      const modify = userinput.get(paths.actions.transformModifier);
 
       this.dyAll = this.dyStore + finalProjectedVec.y;
       this.dyApplied = Math.round(this.dyAll / STEP_LENGTH) * STEP_LENGTH;
@@ -296,11 +307,22 @@ AFRAME.registerSystem("transform-selected-object", {
           v.set(0, 0, 1).applyQuaternion(TARGET_WORLD_QUATERNION);
           q.setFromAxisAngle(
             v,
-            Math.abs(this.dxApplied) > Math.abs(this.dyApplied) ? -this.dxApplied : -this.dyApplied
+            Math.abs(this.dxApplied) > Math.abs(this.dyApplied)
+              ? -this.dxApplied + wheelDelta
+              : -this.dyApplied + wheelDelta
           );
 
           this.target.quaternion.premultiply(q);
         } else {
+          if (wheelDelta !== 0.0) {
+            this.target.getWorldQuaternion(TARGET_WORLD_QUATERNION);
+
+            v.set(0, 0, 1).applyQuaternion(TARGET_WORLD_QUATERNION);
+            q.setFromAxisAngle(v, wheelDelta);
+
+            this.target.quaternion.premultiply(q);
+          }
+
           v.set(1, 0, 0).applyQuaternion(CAMERA_WORLD_QUATERNION);
           q.setFromAxisAngle(v, this.sign2 * this.sign * -this.dyApplied);
 
