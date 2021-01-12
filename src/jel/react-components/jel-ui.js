@@ -150,6 +150,7 @@ const HubCornerButtons = styled.div`
   flex-direction: row;
   justify-content: flex-end;
   align-items: center;
+  width: 50%;
 `;
 
 const HubCornerButton = styled.button`

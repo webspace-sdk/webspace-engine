@@ -317,7 +317,7 @@ export default function EmojiEquip({ onSelectedEmojiClicked }) {
                   fill="transparent"
                   stroke={selectedSlot === idx ? "var(--panel-item-active-background-color)" : "currentColor"}
                   strokeWidth="4"
-                  strokeDasharray="calc(10 * 31.42 / 100) 31.42"
+                  strokeDasharray="3.14 31.42"
                   transform={transform}
                 />
               </svg>

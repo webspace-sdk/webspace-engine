@@ -8,7 +8,7 @@ const MAX_FIRE_DURATION = 5000;
 const REPEATED_LAUNCH_DELAY = 500;
 
 const tmpVec3 = new THREE.Vector3();
-const WHEEL_THRESHOLD = 0.1;
+const WHEEL_THRESHOLD = 0.15;
 
 // Deals with Emoji Launcher
 export class LauncherSystem {
