@@ -218,7 +218,7 @@ const TIP_DATA = {
   idle_full_muted: [
     ["move", "w a s d"],
     ["run", "H"],
-    //["jump", "S"],
+    ["jump", "S"],
     ["shoot", "_S|K"],
     ["unmute", "L+m", "toggleMuteKey"],
     ["paste", "L+v"],
@@ -230,7 +230,7 @@ const TIP_DATA = {
   idle_full_unmuted: [
     ["move", "w a s d"],
     ["run", "H"],
-    //["jump", "S"],
+    ["jump", "S"],
     ["shoot", "_S|K"],
     ["mute", "L+m", "toggleMuteKey"],
     ["paste", "L+v"],
