@@ -20,7 +20,7 @@ const EmojiEquipOuter = styled.div`
   margin: 0;
   position: absolute;
   top: -80px;
-  left: 0px;
+  left: calc((100% - 220px) / 2);
   width: 100%;
   height: 100%;
   display: flex;
@@ -31,6 +31,7 @@ const EmojiEquipInner = styled.div`
   padding: 0;
   margin: 0;
   width: 100%;
+  width: 220px;
   height: 300px;
   display: flex;
   z-index: 10;
