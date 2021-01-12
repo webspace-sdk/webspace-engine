@@ -30,6 +30,7 @@ import LoadingPanel from "./loading-panel";
 import { CREATE_SELECT_WIDTH, CREATE_SELECT_LIST_HEIGHT } from "./create-select";
 import qsTruthy from "../../hubs/utils/qs_truthy";
 import { useInstallPWA } from "../../hubs/react-components/input/useInstallPWA";
+import { imageUrlForEmoji } from "../../hubs/utils/media-url-utils";
 
 const skipSidePanels = qsTruthy("skip_panels");
 
@@ -271,14 +272,21 @@ const BottomLeftPanels = styled.div`
 `;
 
 const DeviceStatuses = styled.div`
-  display: flex;
   flex-direction: row;
   margin: 11px 12px 0 0;
   display: none;
 
   .panels-expanded & {
-    display: block;
+    display: flex;
   }
+`;
+
+const EquippedEmoji = styled.img`
+  width: 100%;
+  height: 100%;
+  opacity: 50%;
+  width: 26px;
+  height: 26px;
 `;
 
 function JelUI(props) {
@@ -295,6 +303,8 @@ function JelUI(props) {
   const [isLoading, setIsLoading] = useState(true);
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [chatLogEntries, setChatLogEntries] = useState([]);
+  const [equippedEmoji, setEquippedEmoji] = useState(store.state.equips.launcher);
+  const equippedEmojiImageUrl = imageUrlForEmoji(equippedEmoji, 64);
 
   const hubRenameFocusRef = useRef();
   const spaceRenameFocusRef = useRef();
@@ -482,6 +492,17 @@ function JelUI(props) {
   );
 
   useEffect(() => setChatLogEntries([]), [hub]);
+
+  // Equipped emoji
+  useEffect(
+    () => {
+      const handler = () => setEquippedEmoji(store.state.equips.launcher);
+      store.addEventListener("statechanged-equips", handler);
+      return () => store.removeEventListener("statechanged-equips", handler);
+    },
+    [store, setEquippedEmoji]
+  );
+
   const isHomeHub = hub && hub.is_home;
 
   const onCreateActionSelected = useCallback(a => scene.emit("create_action_exec", a), [scene]);
@@ -537,6 +558,9 @@ function JelUI(props) {
                 }}
               />
               <DeviceStatuses>
+                <BigIconButton tabIndex={-1}>
+                  <EquippedEmoji src={equippedEmojiImageUrl} crossOrigin="anonymous" />
+                </BigIconButton>
                 <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
               </DeviceStatuses>
             </HubCornerButtons>
