@@ -141,8 +141,8 @@ const SlotButton = styled.button`
     height: 24px;
   }
 
-  &:active {
-    transform: translateY(1px);
+  &:hover {
+    transform: translateY(-1px);
   }
 `;
 
@@ -151,14 +151,14 @@ const SelectedButton = styled.button`
   -moz-appearance: none;
   -webkit-appearance: none;
   outline-style: none;
-  border: none;
   background-color: transparent;
   position: absolute;
   width: 40px;
   height: 40px;
+  box-sizing: content-box;
   z-index: 100;
-  top: 161px;
-  left: calc(50% - 20px);
+  top: 153px;
+  left: calc(50% - 27px);
 
   @keyframes select-animation {
     0%,
@@ -169,9 +169,19 @@ const SelectedButton = styled.button`
       transform: scale(1.15, 1.15);
     }
   }
+  transition: transform 0.15s linear;
+  border: 8px solid transparent;
+  border-radius: 32px;
+
+  &:hover {
+    transform: translateY(-2px);
+    background-color: var(--panel-item-hover-background-color);
+    border-color: var(--panel-item-hover-background-color);
+  }
 
   &:active {
-    transform: translateY(1px);
+    transition-duration: 0s;
+    transform: translateY(-1px);
   }
 
   &[data-selected-slot] {
@@ -242,7 +252,7 @@ const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
   // Animate center emoji when slot changes.
   useEffect(
     () => {
-      if (!ref.current) return;
+      if (!ref || !ref.current) return;
       const el = ref.current;
       if (el.getAttribute("data-selected-slot") !== `${selectedSlot}`) {
         el.removeAttribute("data-selected-slot");
@@ -295,9 +305,16 @@ const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
                 </SlotButton>
               </Tooltip>
             ))}
-          <SelectedButton ref={ref} onClick={() => onSelectedEmojiClicked()}>
-            <img crossOrigin="anonymous" src={selectedEmojiImageUrl} />
-          </SelectedButton>
+          <Tooltip
+            content={messages[`emoji-equip.select-slot`]}
+            placement="left"
+            key={`slot-choose-tip`}
+            singleton={tipTarget}
+          >
+            <SelectedButton ref={ref} onClick={() => onSelectedEmojiClicked()}>
+              <img crossOrigin="anonymous" src={selectedEmojiImageUrl} />
+            </SelectedButton>
+          </Tooltip>
 
           {emojis.length > 0 &&
             SLOT_SLICE_TRANSFORMS.map((transform, idx) => (
