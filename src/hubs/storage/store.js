@@ -364,6 +364,7 @@ export default class Store extends EventTarget {
     if (newState.context !== undefined) {
       this.dispatchEvent(new CustomEvent("contextchanged"));
     }
+
     this.dispatchEvent(new CustomEvent("statechanged"));
 
     for (const key of Object.keys(newState)) {

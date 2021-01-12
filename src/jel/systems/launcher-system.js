@@ -1,6 +1,7 @@
 import { paths } from "../../hubs/systems/userinput/paths";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "../../jel/utils/dom-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { SOUND_EMOJI_EQUIP } from "../../hubs/systems/sound-effects-system";
 
 const FIRE_DURATION_MS = 350;
 const MAX_FIRE_DURATION = 5000;
@@ -11,7 +12,7 @@ const WHEEL_THRESHOLD = 0.1;
 
 // Deals with Emoji Launcher
 export class LauncherSystem {
-  constructor(sceneEl, projectileSystem, userinput, characterController) {
+  constructor(sceneEl, projectileSystem, userinput, characterController, soundEffectsSystem) {
     this.sceneEl = sceneEl;
     this.projectileSystem = projectileSystem;
     this.characterController = characterController;
@@ -28,6 +29,17 @@ export class LauncherSystem {
 
     waitForDOMContentLoaded().then(() => {
       this.avatarPovEl = document.querySelector("#avatar-pov-node");
+    });
+
+    const store = window.APP.store;
+
+    this.lastEquippedEmoji = store.state.equips.launcher;
+
+    window.APP.store.addEventListener("statechanged-equips", () => {
+      if (this.lastEquippedEmoji !== store.state.equips.launcher) {
+        this.lastEquippedEmoji = store.state.equips.launcher;
+        soundEffectsSystem.playSoundOneShot(SOUND_EMOJI_EQUIP);
+      }
     });
   }
 

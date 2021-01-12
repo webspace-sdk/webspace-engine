@@ -108,7 +108,8 @@ AFRAME.registerSystem("hubs-systems", {
       this.el,
       this.projectileSystem,
       this.el.systems.userinput,
-      this.characterController
+      this.characterController,
+      this.soundEffectsSystem
     );
     this.pasteSystem = new PasteSystem(this.el);
   },

@@ -20,6 +20,7 @@ import HubContextMenu from "./hub-context-menu";
 import CreateSelectPopup from "./create-select-popup";
 import ChatInputPopup from "./chat-input-popup";
 import EmojiPopup from "./emoji-popup";
+import EquippedEmojiIcon from "./equipped-emoji-icon";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
@@ -30,7 +31,6 @@ import LoadingPanel from "./loading-panel";
 import { CREATE_SELECT_WIDTH, CREATE_SELECT_LIST_HEIGHT } from "./create-select";
 import qsTruthy from "../../hubs/utils/qs_truthy";
 import { useInstallPWA } from "../../hubs/react-components/input/useInstallPWA";
-import { imageUrlForEmoji } from "../../hubs/utils/media-url-utils";
 
 const skipSidePanels = qsTruthy("skip_panels");
 
@@ -281,14 +281,6 @@ const DeviceStatuses = styled.div`
   }
 `;
 
-const EquippedEmoji = styled.img`
-  width: 100%;
-  height: 100%;
-  opacity: 50%;
-  width: 26px;
-  height: 26px;
-`;
-
 function JelUI(props) {
   const { scene, treeManager, history, spaceCan, hubCan, hub, memberships, unavailableReason } = props;
   const tree = treeManager && treeManager.sharedNav;
@@ -303,8 +295,6 @@ function JelUI(props) {
   const [isLoading, setIsLoading] = useState(true);
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [chatLogEntries, setChatLogEntries] = useState([]);
-  const [equippedEmoji, setEquippedEmoji] = useState(store.state.equips.launcher);
-  const equippedEmojiImageUrl = imageUrlForEmoji(equippedEmoji, 64);
 
   const hubRenameFocusRef = useRef();
   const spaceRenameFocusRef = useRef();
@@ -493,16 +483,6 @@ function JelUI(props) {
 
   useEffect(() => setChatLogEntries([]), [hub]);
 
-  // Equipped emoji
-  useEffect(
-    () => {
-      const handler = () => setEquippedEmoji(store.state.equips.launcher);
-      store.addEventListener("statechanged-equips", handler);
-      return () => store.removeEventListener("statechanged-equips", handler);
-    },
-    [store, setEquippedEmoji]
-  );
-
   const isHomeHub = hub && hub.is_home;
 
   const onCreateActionSelected = useCallback(a => scene.emit("create_action_exec", a), [scene]);
@@ -558,10 +538,8 @@ function JelUI(props) {
                 }}
               />
               <DeviceStatuses>
-                <BigIconButton tabIndex={-1}>
-                  <EquippedEmoji src={equippedEmojiImageUrl} crossOrigin="anonymous" />
-                </BigIconButton>
                 <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
+                <EquippedEmojiIcon />
               </DeviceStatuses>
             </HubCornerButtons>
           </Top>

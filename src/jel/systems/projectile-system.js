@@ -263,7 +263,7 @@ export class ProjectileSystem {
     const numParticles = 8 + Math.floor(Math.random() * 8.0);
 
     this.spawnBurst(emoji, tmpVec3.x, tmpVec3.y, tmpVec3.z, radius, numParticles);
-    this.soundEffectsSystem.playSoundOneShot(SOUND_EMOJI_BURST, tmpVec3, false);
+    this.soundEffectsSystem.playSoundOneShot(SOUND_EMOJI_BURST);
 
     return [emoji, tmpVec3.x, tmpVec3.y, tmpVec3.z, radius, numParticles];
   }

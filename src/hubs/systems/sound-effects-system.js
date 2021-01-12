@@ -1,6 +1,7 @@
 /* global fetch THREE */
 import URL_TICK from "../../assets/jel/sfx/click.wav";
 import URL_TICK_DOWN from "../../assets/jel/sfx/click-down.wav";
+import URL_TICK_ALT from "../../assets/jel/sfx/click-alt.wav";
 import URL_TOGGLE_TICK from "../../assets/hubs/sfx/tick.mp3";
 import URL_TELEPORT_LOOP from "../../assets/hubs/sfx/teleport-loop.mp3";
 import URL_QUICK_TURN from "../../assets/hubs/sfx/quickTurn.mp3";
@@ -73,6 +74,7 @@ export const SOUND_FART_4 = soundEnum++;
 export const SOUND_FART_5 = soundEnum++;
 export const SOUND_FART_BIG = soundEnum++;
 export const SOUND_EMOJI_BURST = soundEnum++;
+export const SOUND_EMOJI_EQUIP = soundEnum++;
 
 // Safari doesn't support the promise form of decodeAudioData, so we polyfill it.
 function decodeAudioData(audioContext, arrayBuffer) {
@@ -131,7 +133,8 @@ export class SoundEffectsSystem {
       [SOUND_FART_4, URL_FART_4],
       [SOUND_FART_5, URL_FART_5],
       [SOUND_FART_BIG, URL_FART_BIG],
-      [SOUND_EMOJI_BURST, URL_QUIET_POP]
+      [SOUND_EMOJI_BURST, URL_QUIET_POP],
+      [SOUND_EMOJI_EQUIP, URL_TICK_ALT]
     ];
     const loading = new Map();
     const load = url => {
