@@ -237,6 +237,7 @@ export class VoxmojiSystem {
 
   async registerType(imageUrl) {
     const loader = new ImageLoader();
+    loader.setCrossOrigin("anonymous");
     const image = await new Promise((res, rej) => loader.load(imageUrl, res, undefined, rej));
 
     if (this.imageUrlToType.has(imageUrl)) {

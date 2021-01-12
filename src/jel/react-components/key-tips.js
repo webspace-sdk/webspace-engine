@@ -284,7 +284,7 @@ const itemForData = ([label, keys, flag]) => {
 
     tipLabel = (
       <TipLabel key={label}>
-        <img src={equippedEmojiUrl} />
+        <img src={equippedEmojiUrl} crossOrigin="anonymous" />
         <FormattedMessage id={`key-tips.${label}`} />
       </TipLabel>
     );

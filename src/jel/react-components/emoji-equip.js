@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
+import Tooltip from "./tooltip";
+import { useSingleton } from "@tippyjs/react";
 import styled from "styled-components";
 import { imageUrlForEmoji } from "../../hubs/utils/media-url-utils";
+import { getMessages } from "../../hubs/utils/i18n";
 
 const EmojiEquipElement = styled.div`
   padding: 0;
@@ -154,7 +157,7 @@ const SelectedButton = styled.button`
   width: 40px;
   height: 40px;
   z-index: 100;
-  top: 162px;
+  top: 161px;
   left: calc(50% - 20px);
 
   @keyframes select-animation {
@@ -223,11 +226,13 @@ const buildEmojisFromStore = store => {
 
 export default function EmojiEquip({ onSelectedEmojiClicked }) {
   const store = window.APP.store;
+  const messages = getMessages();
 
   const [hoverSlot, setHoverSlot] = useState(null);
   const [isClicking, setIsClicking] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(0);
   const [emojis, setEmojis] = useState(buildEmojisFromStore(store));
+  const [tipSource, tipTarget] = useSingleton();
 
   const selectedButtonRef = useRef();
   const selectedEmoji = store.state.equips.launcher;
@@ -264,24 +269,33 @@ export default function EmojiEquip({ onSelectedEmojiClicked }) {
 
   return (
     <EmojiEquipElement>
+      <Tooltip delay={750} singleton={tipSource} />
+
       <EmojiEquipOuter>
         <EmojiEquipInner className={hoverSlot !== null ? `slot-${hoverSlot}-${isClicking ? "active" : "hover"}` : ""}>
           {emojis.length > 0 &&
             SLOT_BUTTON_OFFSETS.map(([left, top], idx) => (
-              <SlotButton
-                style={{ left, top }}
-                key={`slot-${idx}`}
-                onMouseOver={() => setHoverSlot(idx)}
-                onMouseOut={() => setHoverSlot(null)}
-                onMouseDown={() => setIsClicking(true)}
-                onMouseUp={() => setIsClicking(false)}
-                onClick={() => store.update({ equips: { launcher: emojis[idx].emoji } })}
+              <Tooltip
+                content={messages[`emoji-equip.slot-${idx}-tip`].replaceAll("EMOJI", emojis[idx].emoji)}
+                placement="left"
+                key={`slot-${idx}-tip`}
+                singleton={tipTarget}
               >
-                <img src={emojis[idx].imageUrl} />
-              </SlotButton>
+                <SlotButton
+                  style={{ left, top }}
+                  key={`slot-${idx}`}
+                  onMouseOver={() => setHoverSlot(idx)}
+                  onMouseOut={() => setHoverSlot(null)}
+                  onMouseDown={() => setIsClicking(true)}
+                  onMouseUp={() => setIsClicking(false)}
+                  onClick={() => store.update({ equips: { launcher: emojis[idx].emoji } })}
+                >
+                  <img crossOrigin="anonymous" src={emojis[idx].imageUrl} />
+                </SlotButton>
+              </Tooltip>
             ))}
           <SelectedButton ref={selectedButtonRef} onClick={() => onSelectedEmojiClicked()}>
-            <img src={selectedEmojiImageUrl} />
+            <img crossOrigin="anonymous" src={selectedEmojiImageUrl} />
           </SelectedButton>
 
           {emojis.length > 0 &&
