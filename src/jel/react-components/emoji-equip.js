@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import { imageUrlForEmoji } from "../../hubs/utils/media-url-utils";
@@ -137,15 +137,44 @@ const SlotButton = styled.button`
     width: 24px;
     height: 24px;
   }
+
+  &:active {
+    transform: translateY(1px);
+  }
 `;
 
-const SelectedButton = styled.div`
+const SelectedButton = styled.button`
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  border: none;
+  background-color: transparent;
   position: absolute;
   width: 40px;
   height: 40px;
   z-index: 100;
   top: 162px;
   left: calc(50% - 20px);
+
+  @keyframes select-animation {
+    0%,
+    100% {
+      transform: scale(1, 1);
+    }
+    50% {
+      transform: scale(1.15, 1.15);
+    }
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &[data-selected-slot] {
+    -webkit-animation: select-animation 0.3s 1 ease-in-out;
+    animation: select-animation 0.3s 1 ease-in-out;
+  }
 `;
 
 const SLOT_BUTTON_OFFSETS = [
@@ -174,14 +203,9 @@ const SLOT_SLICE_TRANSFORMS = [
   "rotate(234) translate(-23.96, -7.79)"
 ];
 
-export default function EmojiEquip({ emoji }) {
-  const [selectedSlot, setSelectedSlot] = useState(0);
-  const [hoverSlot, setHoverSlot] = useState(null);
-  const [isClicking, setIsClicking] = useState(false);
-  const storeState = window.APP.store.state.equips;
-
-  const emojiMap = [
-    storeState.launcher,
+const buildEmojisFromStore = store => {
+  const storeState = store.state.equips;
+  return [
     storeState.launcherSlot1,
     storeState.launcherSlot2,
     storeState.launcherSlot3,
@@ -195,52 +219,99 @@ export default function EmojiEquip({ emoji }) {
   ].map(emoji => {
     return { emoji, imageUrl: imageUrlForEmoji(emoji, 64) };
   });
+};
+
+export default function EmojiEquip({ onSelectedEmojiClicked }) {
+  const store = window.APP.store;
+
+  const [hoverSlot, setHoverSlot] = useState(null);
+  const [isClicking, setIsClicking] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(0);
+  const [emojis, setEmojis] = useState(buildEmojisFromStore(store));
+
+  const selectedButtonRef = useRef();
+  const selectedEmoji = store.state.equips.launcher;
+  const selectedEmojiImageUrl = imageUrlForEmoji(selectedEmoji, 128);
+
+  // Animate center emoji when slot changes.
+  useEffect(
+    () => {
+      if (!selectedButtonRef.current) return;
+      const el = selectedButtonRef.current;
+      if (el.getAttribute("data-selected-slot") !== `${selectedSlot}`) {
+        el.removeAttribute("data-selected-slot");
+        el.offsetWidth; // Restart animation hack.
+        el.setAttribute("data-selected-slot", `${selectedSlot}`);
+      }
+    },
+    [selectedButtonRef, selectedSlot]
+  );
+
+  // When state store changes, update ring.
+  useEffect(
+    () => {
+      const handler = () => {
+        const emojis = buildEmojisFromStore(store);
+        setEmojis(emojis);
+        const selectedSlot = emojis.indexOf(emojis.find(({ emoji }) => emoji === store.state.equips.launcher));
+        setSelectedSlot(selectedSlot);
+      };
+      store.addEventListener("statechanged-equips", handler);
+      return () => store.removeEventListener("statechanged-equips", handler);
+    },
+    [store, setEmojis, setSelectedSlot]
+  );
 
   return (
     <EmojiEquipElement>
       <EmojiEquipOuter>
         <EmojiEquipInner className={hoverSlot !== null ? `slot-${hoverSlot}-${isClicking ? "active" : "hover"}` : ""}>
-          {SLOT_BUTTON_OFFSETS.map(([left, top], idx) => (
-            <SlotButton
-              style={{ left, top }}
-              key={`slot-${idx}`}
-              onMouseOver={() => setHoverSlot(idx)}
-              onMouseOut={() => setHoverSlot(null)}
-              onMouseDown={() => setIsClicking(true)}
-              onMouseUp={() => setIsClicking(false)}
-            >
-              <img src={emojiMap[idx + 1].imageUrl} />
-            </SlotButton>
-          ))}
-          <SelectedButton>
-            <img src={emojiMap[0].imageUrl} />
+          {emojis.length > 0 &&
+            SLOT_BUTTON_OFFSETS.map(([left, top], idx) => (
+              <SlotButton
+                style={{ left, top }}
+                key={`slot-${idx}`}
+                onMouseOver={() => setHoverSlot(idx)}
+                onMouseOut={() => setHoverSlot(null)}
+                onMouseDown={() => setIsClicking(true)}
+                onMouseUp={() => setIsClicking(false)}
+                onClick={() => store.update({ equips: { launcher: emojis[idx].emoji } })}
+              >
+                <img src={emojis[idx].imageUrl} />
+              </SlotButton>
+            ))}
+          <SelectedButton ref={selectedButtonRef} onClick={() => onSelectedEmojiClicked()}>
+            <img src={selectedEmojiImageUrl} />
           </SelectedButton>
 
-          {SLOT_SLICE_TRANSFORMS.map((transform, idx) => (
-            <svg
-              key={idx}
-              className={`slot-${idx}`}
-              style={{ position: "absolute", left: "calc(-10%)" }}
-              height="120%"
-              width="120%"
-              viewBox="0 0 20 20"
-            >
-              <circle
-                r="5"
-                cx="10"
-                cy="10"
-                fill="transparent"
-                stroke={selectedSlot === idx ? "var(--panel-item-active-background-color)" : "currentColor"}
-                strokeWidth="4"
-                strokeDasharray="calc(10 * 31.42 / 100) 31.42"
-                transform={transform}
-              />
-            </svg>
-          ))}
+          {emojis.length > 0 &&
+            SLOT_SLICE_TRANSFORMS.map((transform, idx) => (
+              <svg
+                key={idx}
+                className={`slot-${idx}`}
+                style={{ position: "absolute", left: "calc(-10%)" }}
+                height="120%"
+                width="120%"
+                viewBox="0 0 20 20"
+              >
+                <circle
+                  r="5"
+                  cx="10"
+                  cy="10"
+                  fill="transparent"
+                  stroke={selectedSlot === idx ? "var(--panel-item-active-background-color)" : "currentColor"}
+                  strokeWidth="4"
+                  strokeDasharray="calc(10 * 31.42 / 100) 31.42"
+                  transform={transform}
+                />
+              </svg>
+            ))}
         </EmojiEquipInner>
       </EmojiEquipOuter>
     </EmojiEquipElement>
   );
 }
 
-EmojiEquip.propTypes = {};
+EmojiEquip.propTypes = {
+  onSelectedEmojiClicked: PropTypes.func
+};

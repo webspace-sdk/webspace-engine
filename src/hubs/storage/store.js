@@ -283,7 +283,7 @@ export default class Store extends EventTarget {
           launcherSlot7: "😭",
           launcherSlot8: "👍",
           launcherSlot9: "👏",
-          launcherSlot10: "❤️"
+          launcherSlot10: "❤"
         }
       });
     }
@@ -365,6 +365,10 @@ export default class Store extends EventTarget {
       this.dispatchEvent(new CustomEvent("contextchanged"));
     }
     this.dispatchEvent(new CustomEvent("statechanged"));
+
+    for (const key of Object.keys(newState)) {
+      this.dispatchEvent(new CustomEvent(`statechanged-${key}`));
+    }
 
     return finalState;
   }
