@@ -41,12 +41,25 @@ export class LauncherSystem {
     const holdingLeft = userinput.get(leftPath);
     const holdingSpace = userinput.get(spacePath);
     const didJump = userinput.get(paths.actions.jump);
-    const wheel = userinput.get(paths.actions.dCharSpeed);
+    const wheel = userinput.get(paths.actions.equipScroll);
 
-    // Hacky, ignore wheel if being used during hover. No way to bind this properly.
     if (wheel && wheel !== 0.0) {
+      const store = window.APP.store;
       const equipDirection = wheel < 0.0 ? -1 : 1;
-      console.log(equipDirection);
+      let currentSlot = -1;
+
+      for (let i = 0; i < 10; i++) {
+        if (store.state.equips.launcher === store.state.equips[`launcherSlot${i + 1}`]) {
+          currentSlot = i;
+          break;
+        }
+      }
+
+      if (currentSlot !== -1) {
+        let newSlot = (currentSlot + equipDirection) % 10;
+        newSlot = newSlot < 0 ? 9 : newSlot;
+        store.update({ equips: { launcher: store.state.equips[`launcherSlot${newSlot + 1}`] } });
+      }
     }
 
     if (didJump) {
