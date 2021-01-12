@@ -6,6 +6,7 @@ export class PasteSystem {
   constructor(sceneEl) {
     this.sceneEl = sceneEl;
     this.pendingPastes = [];
+    this.lastMiddleClick = 0;
   }
 
   enqueuePaste({ target, clipboardData }) {
@@ -25,14 +26,18 @@ export class PasteSystem {
     this.pendingPastes.push({ html, text, files });
   }
 
-  tick() {
+  tick(t) {
+    const isMiddleClick = AFRAME.scenes[0].systems.userinput.get(paths.device.mouse.buttonMiddle);
+    if (isMiddleClick) {
+      console.log(t);
+      this.lastMiddleClick = t;
+    }
+
     if (this.pendingPastes.length === 0) return;
     const { html, text, files } = this.pendingPastes.pop();
 
-    const isMiddleClick = AFRAME.scenes[0].systems.userinput.get(paths.device.mouse.buttonMiddle);
-
-    // Ignore middle click because of emoji launcher
-    if (isMiddleClick) return;
+    // Ignore middle click because of emoji launcher binding
+    if (this.lastMiddleClick && t - this.lastMiddleClick < 1000) return;
 
     // Never paste into scene if dialog is open
     const uiRoot = document.querySelector(".ui-root");

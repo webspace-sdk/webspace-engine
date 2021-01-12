@@ -123,7 +123,7 @@ AFRAME.registerSystem("hubs-systems", {
     // We run this earlier in the frame so things have a chance to override properties run by animations
     this.animationMixerSystem.tick(dt);
 
-    this.pasteSystem.tick();
+    this.pasteSystem.tick(t);
     this.cameraRotatorSystem.tick();
     this.characterController.tick(t, dt);
     this.wrappedEntitySystem.tick();
