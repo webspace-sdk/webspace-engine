@@ -29,7 +29,6 @@ export class PasteSystem {
   tick(t) {
     const isMiddleClick = AFRAME.scenes[0].systems.userinput.get(paths.device.mouse.buttonMiddle);
     if (isMiddleClick) {
-      console.log(t);
       this.lastMiddleClick = t;
     }
 

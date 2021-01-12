@@ -86,9 +86,6 @@ export class LauncherSystem {
       window.APP.hubChannel.sendMessage(payload, "emoji_burst");
     }
 
-    // Repeated fire if user is holding space and not control (due to widen)
-    const launchRepeatedly = holdingSpace && !userinput.get(controlPath);
-
     // Launch a single emoji if:
     // - The middle button is clicked at any time
     // - Left button is clicked if:
@@ -99,7 +96,15 @@ export class LauncherSystem {
       getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT ||
       (!this.heldLeftPreviousFrame && userinput.get(shiftPath));
 
+    const isFreeToLeftHold = getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT || userinput.get(shiftPath);
+
     const launchOnce = userinput.get(middlePath) || (isFreeToLeftClick && userinput.get(leftPath));
+
+    // Repeated fire if user is holding space and not control (due to widen)
+    const launchRepeatedly =
+      (holdingSpace && !userinput.get(controlPath)) ||
+      userinput.get(middlePath) ||
+      (isFreeToLeftHold && userinput.get(leftPath));
 
     this.heldLeftPreviousFrame = holdingLeft;
     if (launchOnce) {
@@ -107,8 +112,6 @@ export class LauncherSystem {
         this.doneOnceLaunch = true;
         this.fireEmoji(false);
       }
-
-      return;
     } else {
       this.doneOnceLaunch = false;
     }
