@@ -1,6 +1,7 @@
 import * as mediasoupClient from "mediasoup-client";
 import protooClient from "protoo-client";
 import { debug as newDebug } from "debug";
+import { setupPeerConnectionConfig } from "../jel/utils/jel-url-utils";
 
 // If the browser supports insertable streams, we insert a 5 byte payload at the end of the voice
 // frame encoding 4 magic bytes and 1 viseme byte. This is a hack because on older browsers
@@ -8,6 +9,8 @@ import { debug as newDebug } from "debug";
 // minimal effect. (Eventually all browsers will support insertable streams.)
 const supportsInsertableStreams = !!(window.RTCRtpSender && !!RTCRtpSender.prototype.createEncodedStreams);
 const visemeMagicBytes = [0x00, 0x00, 0x00, 0x01]; // Bytes to add to end of frame to indicate a viseme will follow
+
+const isFirefox = navigator.userAgent.toLowerCase().indexOf("firefox") > -1;
 
 // NOTE this adapter does not properly fire the onOccupantsReceived events since those are only needed for
 // data channels, which are not yet supported. To fire that event, this class would need to keep a list of
@@ -59,6 +62,7 @@ export default class DialogAdapter {
     this._blockedClients = new Map();
     this._outgoingVisemeBuffer = null;
     this._visemeMap = new Map();
+    this._visemeTimestamps = new Map();
     this._reconnecting = false;
     this._transportCleanupTimeout = null;
     this._closed = true;
@@ -67,8 +71,15 @@ export default class DialogAdapter {
     this._createMissingProducersPromise = null;
     this._sendTransport = null;
     this._recvTransport = null;
+    this._lastSendConnectionState = null;
+    this._lastRecvConnectionState = null;
     this.type = "dialog";
     this.occupants = {}; // This is a public field
+
+    setInterval(() => {
+      this.restartTransportICEIfNecessary(this._sendTransport);
+      this.restartTransportICEIfNecessary(this._recvTransport);
+    }, 2000);
   }
 
   setOutgoingVisemeBuffer(buffer) {
@@ -77,6 +88,10 @@ export default class DialogAdapter {
 
   getCurrentViseme(peerId) {
     if (!this._visemeMap.has(peerId)) return 0;
+
+    // If last viseme was longer than 1s ago, the producer was paused.
+    if (this._visemeTimestamps.has(peerId) && performance.now() - 1000 >= this._visemeTimestamps.get(peerId)) return 0;
+
     return this._visemeMap.get(peerId);
   }
 
@@ -204,13 +219,21 @@ export default class DialogAdapter {
       }
 
       if (this._sendTransport) {
-        this._sendTransport.close();
+        if (!this._sendTransport._closed) {
+          this._sendTransport.close();
+        }
+
         this._sendTransport = null;
+        this._lastSendConnectionState = null;
       }
 
       if (this._recvTransport) {
-        this._recvTransport.close();
+        if (!this._recvTransport._closed) {
+          this._recvTransport.close();
+        }
+
         this._recvTransport = null;
+        this._lastRecvConnectionState = null;
       }
     });
 
@@ -317,6 +340,7 @@ export default class DialogAdapter {
                       if (hasViseme) {
                         const viseme = view.getInt8(encodedFrame.data.byteLength - 1);
                         self._visemeMap.set(peerId, viseme);
+                        self._visemeTimestamps.set(peerId, performance.now());
 
                         encodedFrame.data = encodedFrame.data.slice(
                           0,
@@ -630,6 +654,9 @@ export default class DialogAdapter {
               if (state === "connected" && this._localMediaStream) {
                 this.createMissingProducers(this._localMediaStream);
               }
+
+              this.restartTransportICEIfNecessary(this._sendTransport, state);
+              this._lastSendConnectionState = state;
             });
 
             this._sendTransport.on("produce", async ({ kind, rtpParameters, appData }, callback, errback) => {
@@ -696,6 +723,11 @@ export default class DialogAdapter {
                 .catch(errback);
             });
 
+            this._recvTransport.on("connectionstatechange", state => {
+              this.restartTransportICEIfNecessary(this._recvTransport, state);
+              this._lastRecvConnectionState = state;
+            });
+
             this._creatingRecvTransportPromise = null;
 
             res();
@@ -733,6 +765,44 @@ export default class DialogAdapter {
     this._transportCleanupTimeout = setTimeout(() => this.closeUnneededTransports(), delay);
   }
 
+  async restartTransportICEIfNecessary(transport, connectionState = transport && transport.connectionState) {
+    if (!transport || !this._protoo || !this._protoo.connected) return;
+
+    const lastConnectionState =
+      transport === this._sendTransport ? this._lastSendConnectionState : this._lastRecvConnectionState;
+
+    if (
+      connectionState === "failed" ||
+      (!isFirefox && connectionState === "disconnected") ||
+      (connectionState === "new" && lastConnectionState === "failed")
+    ) {
+      console.warn("Restarting ICE for ", transport === this._sendTransport ? "send" : "recv", "transport");
+
+      /*
+       * Firefox doesn't support hot updating ICE servers through mediasoup's updateIceServers (which
+       * internally uses setConfiguration):
+       * https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/setConfiguration
+       * So we recreate the transports/consumer/producers through reconnect to force setting
+       * new ICE servers for both send and receive transports.
+       */
+
+      if (isFirefox) {
+        if (this._protoo.connected) {
+          this.disconnect();
+          await this.connect();
+        }
+      } else if (!transport._closed) {
+        const { xana_host, turn } = await window.APP.spaceChannel.getHosts();
+        setupPeerConnectionConfig(this, xana_host, turn);
+
+        await transport.updateIceServers({ iceServers: this._iceServers });
+
+        const iceParameters = await this._protoo.request("restartIce", { transportId: transport.id });
+        await transport.restartIce({ iceParameters });
+      }
+    }
+  }
+
   async createMissingProducers(stream) {
     if (this._closed) return;
 
@@ -760,6 +830,7 @@ export default class DialogAdapter {
                 this._micProducer = await this._sendTransport.produce({
                   track,
                   stopTracks: false,
+                  zeroRtpOnPause: true,
                   codecOptions: { opusStereo: false, opusDtx: true },
                   encodings: [{ maxBitrate: 64000 }]
                 });
@@ -792,6 +863,7 @@ export default class DialogAdapter {
                         const viseme = self._micEnabled ? self._outgoingVisemeBuffer[0] : 0;
                         arr[encodedFrame.data.byteLength + visemeMagicBytes.length] = viseme;
                         self._visemeMap.set(self._clientId, viseme);
+                        self._visemeTimestamps.set(self._clientId, performance.now());
                       }
 
                       encodedFrame.data = newData;
@@ -811,8 +883,10 @@ export default class DialogAdapter {
 
                 if (!this._micEnabled && !this._micProducer.paused) {
                   this._micProducer.pause();
+                  this._protoo.request("pauseProducer", { producerId: this._micProducer.id });
                 } else if (this._micEnabled && this._micProducer.paused) {
                   this._micProducer.resume();
+                  this._protoo.request("resumeProducer", { producerId: this._micProducer.id });
                 }
               }
             } else {
@@ -875,8 +949,10 @@ export default class DialogAdapter {
     if (this._micProducer) {
       if (enabled) {
         this._micProducer.resume();
+        this._protoo.request("resumeProducer", { producerId: this._micProducer.id });
       } else {
         this._micProducer.pause();
+        this._protoo.request("pauseProducer", { producerId: this._micProducer.id });
         this.closeUnneededTransportsAfterDelay();
       }
     }
@@ -934,13 +1010,21 @@ export default class DialogAdapter {
 
     // Close mediasoup Transports.
     if (this._sendTransport) {
-      this._sendTransport.close();
+      if (!this._sendTransport._closed) {
+        this._sendTransport.close();
+      }
+
       this._sendTransport = null;
+      this._lastSendConnectionState = null;
     }
 
     if (this._recvTransport) {
-      this._recvTransport.close();
+      if (!this._recvTransport._closed) {
+        this._recvTransport.close();
+      }
+
       this._recvTransport = null;
+      this._lastRecvConnectionState = null;
     }
   }
 
