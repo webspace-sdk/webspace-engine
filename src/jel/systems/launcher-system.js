@@ -26,6 +26,7 @@ export class LauncherSystem {
     this.heldSpacePreviousFrame = false;
     this.avatarPovEl = null;
     this.deltaWheel = 0.0;
+    this.sawLeftButtonUpWithShift = false;
 
     waitForDOMContentLoaded().then(() => {
       this.avatarPovEl = document.querySelector("#avatar-pov-node");
@@ -54,8 +55,15 @@ export class LauncherSystem {
 
     const holdingLeft = userinput.get(leftPath);
     const holdingSpace = userinput.get(spacePath);
+    const holdingShift = userinput.get(shiftPath);
     const didJump = userinput.get(paths.actions.jump);
     const wheel = userinput.get(paths.actions.equipScroll);
+
+    if (holdingShift && !holdingLeft) {
+      this.sawLeftButtonUpWithShift = true;
+    } else if (!holdingShift) {
+      this.sawLeftButtonUpWithShift = false;
+    }
 
     if (wheel && wheel !== 0.0) {
       this.deltaWheel += wheel;
@@ -93,10 +101,10 @@ export class LauncherSystem {
     //   - The previous frame was not holding left and the user is holding shift to mouse look.
 
     const isFreeToLeftClick =
-      getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT ||
-      (!this.heldLeftPreviousFrame && userinput.get(shiftPath));
+      getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT || (!this.heldLeftPreviousFrame && holdingShift);
 
-    const isFreeToLeftHold = getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT || userinput.get(shiftPath);
+    const isFreeToLeftHold =
+      getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT || (holdingShift && this.sawLeftButtonUpWithShift);
 
     const launchOnce = userinput.get(middlePath) || (isFreeToLeftClick && userinput.get(leftPath));
 
