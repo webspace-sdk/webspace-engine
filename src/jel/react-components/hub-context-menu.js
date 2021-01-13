@@ -17,7 +17,10 @@ function HubContextMenu({
   spaceCan,
   hubCan,
   hideRename,
+  showExport,
   onRenameClick,
+  onImportClick,
+  onExportClick,
   onTrashClick
 }) {
   if (!popupRoot || !spaceCan || !hubCan) return null;
@@ -35,6 +38,34 @@ function HubContextMenu({
         }}
       >
         <FormattedMessage id="hub-context.rename" />
+      </PopupMenuItem>
+    );
+  }
+
+  if (hubId && showExport) {
+    items.push(
+      <PopupMenuItem
+        key={`import-${hubId}`}
+        onClick={e => {
+          onImportClick(hubId);
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+      >
+        <FormattedMessage id="hub-context.import" />
+      </PopupMenuItem>
+    );
+
+    items.push(
+      <PopupMenuItem
+        key={`export-${hubId}`}
+        onClick={e => {
+          onExportClick(hubId);
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+      >
+        <FormattedMessage id="hub-context.export" />
       </PopupMenuItem>
     );
   }

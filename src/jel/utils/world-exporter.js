@@ -12,7 +12,7 @@ export default class WorldExporter {
       const pathParts = document.location.pathname.split("/");
       const slugParts = pathParts[1].split("-");
       slugParts.pop();
-      const filename = `${slugParts.join("-")}.html`;
+      const filename = `${slugParts.join("-") || "world"}.html`;
       downloadText(filename, "text/html", html);
     });
   }
