@@ -21,6 +21,7 @@ import CreateSelectPopup from "./create-select-popup";
 import ChatInputPopup from "./chat-input-popup";
 import EmojiPopup from "./emoji-popup";
 import EquippedEmojiIcon from "./equipped-emoji-icon";
+import /*WorldExporter from */ "../utils/world-exporter";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
