@@ -650,7 +650,7 @@ export default class DialogAdapter {
                 .catch(errback);
             });
 
-            this._sendTransport.on("connectionstatechange", async state => {
+            this._sendTransport.on("connectionstatechange", state => {
               if (state === "connected" && this._localMediaStream) {
                 this.createMissingProducers(this._localMediaStream);
               }
@@ -723,7 +723,7 @@ export default class DialogAdapter {
                 .catch(errback);
             });
 
-            this._recvTransport.on("connectionstatechange", async state => {
+            this._recvTransport.on("connectionstatechange", state => {
               this.restartTransportICEIfNecessary(this._recvTransport, state);
               this._lastRecvConnectionState = state;
             });
