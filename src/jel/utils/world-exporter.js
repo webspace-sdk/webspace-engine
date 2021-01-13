@@ -1,21 +1,22 @@
-import { vecRgbToCssRgb } from "./dom-utils";
+import { downloadText, vecRgbToCssRgb } from "./dom-utils";
 import cleaner from "clean-html";
 import { FONT_FACES } from "./quill-utils";
-
-// media-loader:
-// src
-// fitToBox
-// fileId
-// contentType
-// contentSubtype
-// version
-// mediaLayer
 
 const tmpPos = new THREE.Vector3();
 const tmpQuat = new THREE.Quaternion();
 const tmpScale = new THREE.Vector3();
 
 export default class WorldExporter {
+  downloadCurrentWorldHtml() {
+    this.currentWorldToHtml().then(html => {
+      const pathParts = document.location.pathname.split("/");
+      const slugParts = pathParts[1].split("-");
+      slugParts.pop();
+      const filename = `${slugParts.join("-")}.html`;
+      downloadText(filename, "text/html", html);
+    });
+  }
+
   async currentWorldToHtml() {
     const { hubMetadata, hubChannel } = window.APP;
     const metadata = hubMetadata.getMetadata(hubChannel.hubId);
@@ -122,7 +123,6 @@ export default class WorldExporter {
       const { emoji } = el.components["media-emoji"].data;
 
       exportEl = doc.createElement("div");
-      exportEl.setAttribute("crossorigin", "anonymous");
       style += `font-family: emoji; `;
       exportEl.innerHTML = emoji;
     }

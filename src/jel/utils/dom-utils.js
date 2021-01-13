@@ -154,3 +154,16 @@ export const getLastKnownUnlockedCursorCoords = () => lastKnownCursorCoords;
 
 export const cursorIsVisible = () =>
   document.body.classList.contains("show-3d-cursor") || document.body.classList.contains("show-css-cursor");
+
+export function downloadText(filename, contentType, text) {
+  const element = document.createElement("a");
+  element.setAttribute("href", `data:${contentType};charset=utf-8,${encodeURIComponent(text)}`);
+  element.setAttribute("download", filename);
+
+  element.style.display = "none";
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
+}
