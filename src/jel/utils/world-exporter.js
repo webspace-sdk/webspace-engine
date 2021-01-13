@@ -1,3 +1,7 @@
+import { vecRgbToCssRgb } from "./dom-utils";
+import cleaner from "clean-html";
+import { FONT_FACES } from "./quill-utils";
+
 // media-loader:
 // src
 // fitToBox
@@ -12,7 +16,7 @@ const tmpQuat = new THREE.Quaternion();
 const tmpScale = new THREE.Vector3();
 
 export default class WorldExporter {
-  currentWorldToHtml() {
+  async currentWorldToHtml() {
     const { hubMetadata, hubChannel } = window.APP;
     const metadata = hubMetadata.getMetadata(hubChannel.hubId);
     const doc = document.implementation.createHTMLDocument(metadata.displayName);
@@ -27,7 +31,9 @@ export default class WorldExporter {
       doc.body.appendChild(exportEl);
     }
 
-    return new XMLSerializer().serializeToString(doc);
+    return new Promise(res => {
+      cleaner.clean(new XMLSerializer().serializeToString(doc), res);
+    });
   }
 
   elToExportEl(doc, el) {
@@ -35,10 +41,90 @@ export default class WorldExporter {
     const { src, fileId, contentSubtype } = el.components["media-loader"].data;
 
     let exportEl;
+    let style = "";
 
     if (el.components["media-image"]) {
       exportEl = doc.createElement("img");
       exportEl.setAttribute("crossorigin", "anonymous");
+    }
+
+    if (el.components["media-pdf"]) {
+      const { index } = el.components["media-pdf"].data;
+
+      exportEl = doc.createElement("embed");
+      exportEl.setAttribute("type", "application/pdf");
+      exportEl.setAttribute("data-index", index);
+    }
+
+    if (el.components["media-vox"]) {
+      exportEl = doc.createElement("embed");
+      exportEl.setAttribute("type", "model/vox-binary");
+    }
+
+    if (el.components["gltf-model-plus"]) {
+      exportEl = doc.createElement("embed");
+      exportEl.setAttribute("type", "model/gltf-binary");
+    }
+
+    if (el.components["media-text"]) {
+      const mediaText = el.components["media-text"];
+      const { fitContent, foregroundColor, backgroundColor, transparent, font } = mediaText.data;
+
+      exportEl = doc.createElement("div");
+
+      let fontFamily;
+
+      style += `color: ${vecRgbToCssRgb(foregroundColor)}; `;
+
+      if (fitContent) {
+        style += `width: fit-content; height: fit-content; `;
+      }
+
+      if (transparent) {
+        style += `background-color: transparent; text-stoke: 4px ${vecRgbToCssRgb(backgroundColor)}; `;
+      } else {
+        style += `background-color: ${vecRgbToCssRgb(backgroundColor)}; `;
+      }
+
+      switch (font) {
+        case FONT_FACES.SANS_SERIF:
+          fontFamily = "sans-serif";
+          break;
+        case FONT_FACES.SERIF:
+          fontFamily = "serif";
+          break;
+        case FONT_FACES.MONO:
+          fontFamily = "monospaced";
+          break;
+        case FONT_FACES.COMIC:
+          fontFamily = "fantasy";
+          break;
+        case FONT_FACES.COMIC2:
+          fontFamily = "fantasy-2";
+          break;
+        case FONT_FACES.WRITING:
+          fontFamily = "cursive";
+          break;
+        case FONT_FACES.WRITING2:
+          fontFamily = "cursive-2";
+          break;
+      }
+
+      style += `font-family: ${fontFamily}; `;
+
+      if (mediaText.quill) {
+        const html = mediaText.quill.container.querySelector(".ql-editor").innerHTML;
+        exportEl.innerHTML = html;
+      }
+    }
+
+    if (el.components["media-emoji"]) {
+      const { emoji } = el.components["media-emoji"].data;
+
+      exportEl = doc.createElement("div");
+      exportEl.setAttribute("crossorigin", "anonymous");
+      style += `font-family: emoji; `;
+      exportEl.innerHTML = emoji;
     }
 
     if (el.components["media-video"]) {
@@ -97,7 +183,7 @@ export default class WorldExporter {
       const rz = tmpQuat.z / t;
       const rr = 2 * Math.acos(tmpQuat.w);
 
-      const style = `translate3d(${x}, ${y}, ${z}); rotate3d(${rx}, ${ry}, ${rz}, ${rr}rad); scale3D(${tmpScale.x}, ${
+      style += `translate3d(${x}, ${y}, ${z}); rotate3d(${rx}, ${ry}, ${rz}, ${rr}rad); scale3D(${tmpScale.x}, ${
         tmpScale.y
       }, ${tmpScale.z});`;
 

@@ -42,6 +42,7 @@ export const cancelEventIfFocusedWithin = (e, el) => {
 };
 
 export const rgbToCssRgb = v => Math.floor(v * 255.0);
+export const vecRgbToCssRgb = ({ x, y, z }) => `rgba(${rgbToCssRgb(x)}, ${rgbToCssRgb(y)}, ${rgbToCssRgb(z)}, 1.0)`;
 
 export const CURSOR_LOCK_STATES = {
   UNLOCKED_PERSISTENT: 0, // Normal state with cursor
