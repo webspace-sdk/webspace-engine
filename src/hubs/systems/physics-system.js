@@ -305,23 +305,28 @@ export class PhysicsSystem {
     const uuid = this.nextBodyUuid;
     this.nextBodyUuid++;
 
+    this.bodyUuidToData.set(uuid, {
+      object3D: object3D,
+      options: options,
+      collisions: [],
+      linearVelocity: 0,
+      angularVelocity: 0,
+      index: -1,
+      shapes: [],
+      hadInitialSync: false,
+      added: false
+    });
+
     this.duringNextTick(() => {
+      if (!this.bodyUuidToData.has(uuid)) return;
+
       object3D.updateMatrices();
       object3D.parent.updateMatrices();
 
       this.workerHelpers.addBody(uuid, object3D, options);
-      this.needsTransfer = true;
+      this.bodyUuidToData.get(uuid).added = true;
 
-      this.bodyUuidToData.set(uuid, {
-        object3D: object3D,
-        options: options,
-        collisions: [],
-        linearVelocity: 0,
-        angularVelocity: 0,
-        index: -1,
-        shapes: [],
-        hadInitialSync: false
-      });
+      this.needsTransfer = true;
 
       if (callback) {
         this.bodyReadyCallbacks.set(uuid, callback);
@@ -351,11 +356,16 @@ export class PhysicsSystem {
     this.duringNextTick(() => {
       const idx = this.bodyUuids.indexOf(uuid);
       if (this.bodyUuidToData.has(uuid) && idx !== -1) {
+        const { added } = this.bodyUuidToData.get(uuid);
         delete this.indexToUuid[this.bodyUuidToData.get(uuid).index];
         this.bodyUuidToData.delete(uuid);
         this.bodyReadyCallbacks.delete(uuid);
         this.bodyUuids.splice(idx, 1);
-        this.workerHelpers.removeBody(uuid);
+
+        if (added) {
+          this.workerHelpers.removeBody(uuid);
+        }
+
         this.needsTransfer = true;
       } else {
         console.warn(`removeBody called for uuid: ${uuid} but body missing.`);
