@@ -80,7 +80,7 @@ const Right = styled.div`
 const PresenceContent = styled.div`
   flex: 1 1 auto;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 240px);
   padding: 16px 0;
 `;
 
