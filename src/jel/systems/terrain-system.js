@@ -998,8 +998,11 @@ export class TerrainSystem {
 
     const cx = worldX - Math.floor(worldX / CHUNK_WORLD_SIZE) * CHUNK_WORLD_SIZE;
     const cz = worldZ - Math.floor(worldZ / CHUNK_WORLD_SIZE) * CHUNK_WORLD_SIZE;
-    const hx = Math.floor(cx / VOXEL_SIZE);
-    const hz = Math.floor(cz / VOXEL_SIZE);
+
+    // NOTE this logic is wrong at the boundary condition, (resulting in hx/hz === 8)
+    // gave up and capped the range to work around it for now.
+    const hx = Math.min(VOXELS_PER_CHUNK - 1, Math.max(0, Math.floor(cx / VOXEL_SIZE)));
+    const hz = Math.min(VOXELS_PER_CHUNK - 1, Math.max(0, Math.floor(cz / VOXEL_SIZE)));
     const height = (heightMap[hx * VOXELS_PER_CHUNK + hz] + 1) * VOXEL_SIZE;
     return height;
   }

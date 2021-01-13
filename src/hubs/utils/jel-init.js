@@ -353,7 +353,7 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
               if (newXanaHostPollInterval) return;
 
               newXanaHostPollInterval = setInterval(async () => {
-                const { xana_host, xana_port } = await spaceChannel.getHosts();
+                const { xana_host, xana_port, turn } = await spaceChannel.getHosts();
 
                 const currentXanaURL = adapter.getServerUrl();
                 const newXanaURL = `wss://${xana_host}:${xana_port}`;
