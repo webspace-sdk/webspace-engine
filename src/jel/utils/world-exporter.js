@@ -52,10 +52,19 @@ export default class WorldExporter {
 
     let exportEl;
     let style = "";
+    let srcTargetAttribute = "src";
 
     if (el.components["media-image"]) {
-      exportEl = doc.createElement("img");
-      exportEl.setAttribute("crossorigin", "anonymous");
+      const imageSrc = el.components["media-image"].data.src;
+
+      // If image and content are different URLs, this is a link.
+      if (imageSrc !== src) {
+        exportEl = doc.createElement("a");
+        srcTargetAttribute = "href";
+      } else {
+        exportEl = doc.createElement("img");
+        exportEl.setAttribute("crossorigin", "anonymous");
+      }
     }
 
     if (el.components["media-pdf"]) {
@@ -165,7 +174,7 @@ export default class WorldExporter {
     if (exportEl) {
       const { object3D, id } = el;
 
-      exportEl.src = src;
+      exportEl.setAttribute(srcTargetAttribute, src);
       exportEl.id = id.replaceAll("naf-", "");
 
       if (fileId) {

@@ -102,6 +102,7 @@ export default class WorldImporter {
 
       let src = null;
       let contents = null;
+      let resolve = false;
 
       if (tagName === "DIV" && fontFamily === "emoji") {
         // Voxmoji
@@ -109,6 +110,10 @@ export default class WorldImporter {
       } else if (tagName === "IMG") {
         // Image
         src = el.getAttribute("src");
+      } else if (tagName === "A") {
+        // Link
+        src = el.getAttribute("href");
+        resolve = true;
       } else if (tagName === "EMBED" && el.getAttribute("data-index") !== null) {
         // PDF
         src = el.getAttribute("src");
@@ -116,8 +121,10 @@ export default class WorldImporter {
       } else if (tagName === "EMBED") {
         // VOX or glTF
         src = el.getAttribute("src");
+        resolve = true;
       } else if (tagName === "VIDEO") {
         src = el.getAttribute("src");
+        resolve = true;
 
         if (el.getAttribute("currenttime") !== null) {
           mediaOptions.time = el.getAttribute("currenttime");
@@ -141,7 +148,7 @@ export default class WorldImporter {
         "#interactable-media",
         ObjectContentOrigins.URL,
         contentSubtype,
-        false,
+        resolve,
         false,
         false,
         mediaOptions,
