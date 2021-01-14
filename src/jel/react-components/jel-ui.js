@@ -2,6 +2,8 @@ import React, { useRef, useState, useCallback, forwardRef, useEffect } from "rea
 import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
 import HubTrail from "./hub-trail";
+import WorldImporter from "../utils/world-importer";
+import WorldExporter from "../utils/world-exporter";
 import styled from "styled-components";
 import mutedIcon from "../../assets/jel/images/icons/mic-muted.svgi";
 import unmutedIcon from "../../assets/jel/images/icons/mic-unmuted.svgi";
@@ -60,13 +62,7 @@ const FadeEdges = styled.div`
   width: 100%;
   height: 100%;
 
-  background: linear-gradient(
-    180deg,
-    rgba(64, 64, 64, 0.4) 0%,
-    rgba(32, 32, 32, 0) 128px,
-    rgba(32, 32, 32, 0) calc(100% - 500px),
-    rgba(64, 64, 64, 0.4) 100%
-  );
+  background: linear-gradient(180deg, rgba(64, 64, 64, 0.4) 0%, rgba(32, 32, 32, 0) 128px, rgba(32, 32, 32, 0) 100%);
 
   body.low-detail & {
     background: none;
@@ -535,7 +531,8 @@ function JelUI(props) {
                 onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
                 onClick={() => {
                   showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
-                    hideRename: true
+                    hideRename: true,
+                    showExport: true
                   });
                 }}
               />
@@ -655,12 +652,21 @@ function JelUI(props) {
       <HubContextMenu
         setPopperElement={setHubContextMenuElement}
         hideRename={!!hubContextMenuOpenOptions.hideRename}
+        showExport={!!hubContextMenuOpenOptions.showExport}
         styles={hubContextMenuStyles}
         attributes={hubContextMenuAttributes}
         hubId={hubContextMenuHubId}
         spaceCan={spaceCan}
         hubCan={hubCan}
         onRenameClick={useCallback(hubId => showHubRenamePopup(hubId, null), [showHubRenamePopup])}
+        onImportClick={useCallback(
+          () => {
+            document.querySelector("#import-upload-input").click();
+            scene.canvas.focus();
+          },
+          [scene]
+        )}
+        onExportClick={useCallback(() => new WorldExporter().downloadCurrentWorldHtml(), [])}
         onTrashClick={useCallback(
           hubId => {
             if (!tree.getNodeIdForAtomId(hubId)) return;
@@ -688,6 +694,20 @@ function JelUI(props) {
         attributes={createSelectPopupAttributes}
         ref={createSelectFocusRef}
         onActionSelected={onCreateActionSelected}
+      />
+      <input
+        id="import-upload-input"
+        type="file"
+        accept="text/html"
+        style={{ display: "none" }}
+        onChange={async e => {
+          const files = [...e.target.files];
+          e.target.value = null;
+
+          for (const file of files) {
+            new WorldImporter().importHtmlToCurrentWorld(await file.text());
+          }
+        }}
       />
       <input
         id="file-upload-input"

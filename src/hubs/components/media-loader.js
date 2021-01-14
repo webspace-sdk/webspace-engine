@@ -52,6 +52,7 @@ AFRAME.registerComponent("media-loader", {
     contentSubtype: { default: null },
     mediaLayer: { default: null },
     addedLocally: { default: false },
+    animate: { default: true },
     linkedEl: { default: null }, // This is the element of which this is a linked derivative. See linked-media.js
     mediaOptions: {
       default: {},
@@ -277,7 +278,7 @@ AFRAME.registerComponent("media-loader", {
     const el = this.el;
     this.cleanupLoader();
 
-    if (this.el.sceneEl.is("entered") && this.data.addedLocally) {
+    if (this.el.sceneEl.is("entered") && this.data.addedLocally && this.data.animate) {
       this.loadedSoundEffect = this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playPositionalSoundFollowing(
         SOUND_MEDIA_LOADED,
         this.el.object3D,
@@ -305,7 +306,7 @@ AFRAME.registerComponent("media-loader", {
       el.emit("media-loaded");
     };
 
-    if (this.data.addedLocally) {
+    if (this.data.addedLocally && this.data.animate) {
       if (!this.animating) {
         this.animating = true;
         if (shouldUpdateScale) this.updateScale(this.data.fitToBox, this.data.moveTheParentNotTheMesh);
@@ -455,9 +456,15 @@ AFRAME.registerComponent("media-loader", {
           linkedMediaElementAudioSource = linkedMediaVideo.mediaElementAudioSource;
         }
 
-        const qsTime = parseInt(parsedUrl.searchParams.get("t"));
-        const hashTime = parseInt(new URLSearchParams(parsedUrl.hash.substring(1)).get("t"));
-        const startTime = hashTime || qsTime || 0;
+        let startTime = null;
+
+        // When adding a new video, parse the initial time
+        if (this.data.addedLocally && this.data.mediaOptions.time === undefined) {
+          const qsTime = parseInt(parsedUrl.searchParams.get("t"));
+          const hashTime = parseInt(new URLSearchParams(parsedUrl.hash.substring(1)).get("t"));
+          startTime = hashTime || qsTime || 0;
+        }
+
         this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
         this.el.addEventListener(
           "video-loaded",
@@ -467,18 +474,20 @@ AFRAME.registerComponent("media-loader", {
           { once: true }
         );
 
-        this.setToSingletonMediaComponent(
-          "media-video",
-          Object.assign({}, this.data.mediaOptions, {
-            src: accessibleUrl,
-            audioSrc: canonicalAudioUrl ? proxiedUrlFor(canonicalAudioUrl) : null,
-            time: startTime,
-            contentType,
-            linkedVideoTexture,
-            linkedAudioSource,
-            linkedMediaElementAudioSource
-          })
-        );
+        const videoAttributes = Object.assign({}, this.data.mediaOptions, {
+          src: accessibleUrl,
+          audioSrc: canonicalAudioUrl ? proxiedUrlFor(canonicalAudioUrl) : null,
+          contentType,
+          linkedVideoTexture,
+          linkedAudioSource,
+          linkedMediaElementAudioSource
+        });
+
+        if (startTime !== null) {
+          videoAttributes.time = startTime;
+        }
+
+        this.setToSingletonMediaComponent("media-video", videoAttributes);
 
         // Add the media-stream component to any entity that is streaming this client's video stream.
         if (contentType === "video/vnd.jel-webrtc" && src.indexOf(NAF.clientId)) {
