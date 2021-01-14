@@ -113,6 +113,10 @@ export default class WorldExporter {
 
       if (fitContent) {
         style += `width: fit-content; height: fit-content; `;
+      } else {
+        style += `width: ${(mediaText.mesh.scale.x * 100.0).toFixed(4)}cm; height: ${(
+          mediaText.mesh.scale.y * 100.0
+        ).toFixed(4)}cm; overflow-y: scroll; `;
       }
 
       if (transparent) {
@@ -218,9 +222,11 @@ export default class WorldExporter {
       // Axis angle
       tmpVec4.setAxisAngleFromQuaternion(tmpQuat);
 
-      style += `transform: translate3d(${x * 100}cm, ${y * 100}cm, ${z * 100}cm) rotate3d(${tmpVec4.x}, ${tmpVec4.y}, ${
-        tmpVec4.z
-      }, ${tmpVec4.w}rad) scale3D(${tmpScale.x}, ${tmpScale.y}, ${tmpScale.z});`;
+      style += `transform: translate3d(${(x * 100).toFixed(4)}cm, ${(y * 100).toFixed(4)}cm, ${(z * 100).toFixed(
+        4
+      )}cm) rotate3d(${tmpVec4.x.toFixed(4)}, ${tmpVec4.y.toFixed(4)}, ${tmpVec4.z.toFixed(4)}, ${tmpVec4.w.toFixed(
+        4
+      )}rad) scale3D(${tmpScale.x.toFixed(4)}, ${tmpScale.y.toFixed(4)}, ${tmpScale.z.toFixed(4)});`;
 
       exportEl.setAttribute("style", style);
     }
