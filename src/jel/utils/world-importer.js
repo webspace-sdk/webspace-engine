@@ -105,7 +105,7 @@ export default class WorldImporter {
       } else if (tagName === "IMG") {
         // Image
         src = el.getAttribute("src");
-      } else if (tagName === "EMBED" && el.getAttribute("data-index") !== undefined) {
+      } else if (tagName === "EMBED" && el.getAttribute("data-index") !== null) {
         // PDF
         src = el.getAttribute("src");
         mediaOptions.index = el.getAttribute("data-index");
@@ -115,18 +115,18 @@ export default class WorldImporter {
       } else if (tagName === "VIDEO") {
         src = el.getAttribute("src");
 
-        if (el.getAttribute("currenttime") !== undefined) {
+        if (el.getAttribute("currenttime") !== null) {
           mediaOptions.time = el.getAttribute("currenttime");
         }
 
-        mediaOptions.videoPaused = el.getAttribute("autoplay") === undefined;
-        mediaOptions.loop = el.getAttribute("loop") !== undefined;
+        mediaOptions.videoPaused = el.getAttribute("autoplay") === null;
+        mediaOptions.loop = el.getAttribute("loop") !== null;
 
-        if (el.getAttribute("muted") !== undefined) {
+        if (el.getAttribute("muted") !== null) {
           mediaOptions.volume = 0;
         }
 
-        if (el.getAttribute("data-audio-src") !== undefined) {
+        if (el.getAttribute("data-audio-src") !== null) {
           mediaOptions.audioSrc = el.getAttribute("data-audio-src");
         }
       }
