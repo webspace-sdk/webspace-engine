@@ -52,6 +52,7 @@ AFRAME.registerComponent("media-loader", {
     contentSubtype: { default: null },
     mediaLayer: { default: null },
     addedLocally: { default: false },
+    animate: { default: true },
     linkedEl: { default: null }, // This is the element of which this is a linked derivative. See linked-media.js
     mediaOptions: {
       default: {},
@@ -277,7 +278,7 @@ AFRAME.registerComponent("media-loader", {
     const el = this.el;
     this.cleanupLoader();
 
-    if (this.el.sceneEl.is("entered") && this.data.addedLocally) {
+    if (this.el.sceneEl.is("entered") && this.data.addedLocally && this.data.animate) {
       this.loadedSoundEffect = this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playPositionalSoundFollowing(
         SOUND_MEDIA_LOADED,
         this.el.object3D,
@@ -305,7 +306,7 @@ AFRAME.registerComponent("media-loader", {
       el.emit("media-loaded");
     };
 
-    if (this.data.addedLocally) {
+    if (this.data.addedLocally && this.data.animate) {
       if (!this.animating) {
         this.animating = true;
         if (shouldUpdateScale) this.updateScale(this.data.fitToBox, this.data.moveTheParentNotTheMesh);

@@ -5,6 +5,7 @@ import { FONT_FACES } from "./quill-utils";
 const tmpPos = new THREE.Vector3();
 const tmpQuat = new THREE.Quaternion();
 const tmpScale = new THREE.Vector3();
+const tmpVec4 = new THREE.Vector4();
 
 export default class WorldExporter {
   downloadCurrentWorldHtml() {
@@ -21,6 +22,9 @@ export default class WorldExporter {
     const { hubMetadata, hubChannel } = window.APP;
     const metadata = hubMetadata.getMetadata(hubChannel.hubId);
     const doc = document.implementation.createHTMLDocument(metadata.displayName);
+    doc.body.setAttribute("data-jel-format", "world");
+    doc.body.setAttribute("data-jel-version", "1");
+
     const mediaEls = [...document.querySelectorAll("[shared]")].filter(el => el.components["media-loader"]);
 
     mediaEls.sort((x, y) => (x.id > y.id ? -1 : x.id < y.id ? 1 : 0));
@@ -168,7 +172,7 @@ export default class WorldExporter {
       }
 
       object3D.updateMatrices();
-      object3D.matrixWorld.decompose(tmpPos, tmpQuat, tmpScale);
+      object3D.matrix.decompose(tmpPos, tmpQuat, tmpScale);
 
       // Normalize Y to be terrain-agnostic
       const height = terrainSystem.getTerrainHeightAtWorldCoord(tmpPos.x, tmpPos.z);
@@ -177,15 +181,11 @@ export default class WorldExporter {
       const z = tmpPos.z;
 
       // Axis angle
-      const t = Math.sqrt(1 - tmpQuat.w * tmpQuat.w);
-      const rx = tmpQuat.x / t;
-      const ry = tmpQuat.y / t;
-      const rz = tmpQuat.z / t;
-      const rr = 2 * Math.acos(tmpQuat.w);
+      tmpVec4.setAxisAngleFromQuaternion(tmpQuat);
 
-      style += `translate3d(${x}, ${y}, ${z}); rotate3d(${rx}, ${ry}, ${rz}, ${rr}rad); scale3D(${tmpScale.x}, ${
-        tmpScale.y
-      }, ${tmpScale.z});`;
+      style += `transform: translate3d(${x * 100}cm, ${y * 100}cm, ${z * 100}cm) rotate3d(${tmpVec4.x}, ${tmpVec4.y}, ${
+        tmpVec4.z
+      }, ${tmpVec4.w}rad) scale3D(${tmpScale.x}, ${tmpScale.y}, ${tmpScale.z});`;
 
       exportEl.setAttribute("style", style);
     }
@@ -193,5 +193,3 @@ export default class WorldExporter {
     return exportEl;
   }
 }
-
-window.WorldExporter = WorldExporter;

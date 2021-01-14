@@ -126,6 +126,7 @@
     "three-mesh-bvh": "^0.2.0",
     "three-pathfinding": "github:MozillaReality/three-pathfinding#hubs/master2",
     "three-to-ammo": "github:infinitelee/three-to-ammo",
+    "transform-parser": "^1.0.1",
     "uuid": "^3.2.1",
     "webrtc-adapter": "^6.0.2",
     "worklet-loader": "^1.0.0",

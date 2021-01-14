@@ -420,7 +420,7 @@ export const cloneMedia = (sourceEl, template, src = null, networked = true, lin
     contentSubtype,
     true,
     fitToBox,
-    false,
+    true,
     { ...mediaOptions, ...extraMediaOptions },
     networked,
     parentEl,

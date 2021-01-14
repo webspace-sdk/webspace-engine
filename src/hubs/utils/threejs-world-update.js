@@ -154,12 +154,14 @@ const handleMatrixModification = o => {
 const updateMatrix = THREE.Object3D.prototype.updateMatrix;
 THREE.Object3D.prototype.updateMatrix = function() {
   updateMatrix.apply(this, arguments);
+  this.matrixWorldNeedsUpdate = true;
   handleMatrixModification(this);
 };
 
 const applyMatrix = THREE.Object3D.prototype.applyMatrix;
 THREE.Object3D.prototype.applyMatrix = function() {
   applyMatrix.apply(this, arguments);
+  this.matrixWorldNeedsUpdate = true;
   handleMatrixModification(this);
 };
 
