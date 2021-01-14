@@ -659,7 +659,13 @@ function JelUI(props) {
         spaceCan={spaceCan}
         hubCan={hubCan}
         onRenameClick={useCallback(hubId => showHubRenamePopup(hubId, null), [showHubRenamePopup])}
-        onImportClick={useCallback(() => document.querySelector("#import-upload-input").click(), [])}
+        onImportClick={useCallback(
+          () => {
+            document.querySelector("#import-upload-input").click();
+            scene.canvas.focus();
+          },
+          [scene]
+        )}
         onExportClick={useCallback(() => new WorldExporter().downloadCurrentWorldHtml(), [])}
         onTrashClick={useCallback(
           hubId => {
