@@ -565,7 +565,7 @@ export class TerrainSystem {
 
   // Loads + caches all the heightmaps, so heightmap queries via getTerrainHeightAtWorldCoord
   // for regions away from the current player avatar will work properly.
-  async loadAllHeightMaps() {
+  loadAllHeightMaps() {
     const promises = [];
 
     for (let x = MIN_CHUNK_COORD; x <= MAX_CHUNK_COORD; x++) {
