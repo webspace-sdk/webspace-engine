@@ -40,7 +40,23 @@ export default class WorldExporter {
     return new Promise(res => {
       cleaner.clean(
         new XMLSerializer().serializeToString(doc).replaceAll("<", "\n<"),
-        { "add-break-around-tags": ["embed", "img", "video", "audio"] },
+        {
+          "add-break-around-tags": [
+            "embed",
+            "img",
+            "video",
+            "audio",
+            "h1",
+            "h2",
+            "strong",
+            "span",
+            "div",
+            "p",
+            "ul",
+            "ol",
+            "li"
+          ]
+        },
         res
       );
     });
@@ -48,7 +64,7 @@ export default class WorldExporter {
 
   elToExportEl(doc, el) {
     const { terrainSystem } = AFRAME.scenes[0].systems["hubs-systems"];
-    const { src, fileId, contentSubtype } = el.components["media-loader"].data;
+    let { src, contentSubtype } = el.components["media-loader"].data;
 
     let exportEl;
     let style = "";
@@ -116,10 +132,10 @@ export default class WorldExporter {
           fontFamily = "monospaced";
           break;
         case FONT_FACES.COMIC:
-          fontFamily = "fantasy";
+          fontFamily = "comic";
           break;
         case FONT_FACES.COMIC2:
-          fontFamily = "fantasy-2";
+          fontFamily = "comic-2";
           break;
         case FONT_FACES.WRITING:
           fontFamily = "cursive";
@@ -134,7 +150,13 @@ export default class WorldExporter {
       if (mediaText.quill) {
         const html = mediaText.quill.container.querySelector(".ql-editor").innerHTML;
         exportEl.innerHTML = html;
+
+        // Clean contents cache used for outlining
+        exportEl.querySelectorAll("[data-contents]").forEach(el => el.removeAttribute("data-contents"));
       }
+
+      src = null;
+      contentSubtype = null;
     }
 
     if (el.components["media-emoji"]) {
@@ -174,12 +196,11 @@ export default class WorldExporter {
     if (exportEl) {
       const { object3D, id } = el;
 
-      exportEl.setAttribute(srcTargetAttribute, src);
-      exportEl.id = id.replaceAll("naf-", "");
-
-      if (fileId) {
-        exportEl.setAttribute("data-file-id", fileId);
+      if (src) {
+        exportEl.setAttribute(srcTargetAttribute, src);
       }
+
+      exportEl.id = id.replaceAll("naf-", "");
 
       if (contentSubtype) {
         exportEl.setAttribute("data-content-subtype", contentSubtype);
