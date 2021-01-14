@@ -54,23 +54,22 @@ export default class WorldImporter {
           // Proceed once the shared component is removed so the id has been freed.
           removePromises.push(
             new Promise(res => {
-              console.log("wait");
-              if (ensureOwnership(existingEl)) {
-                let c = 0;
+              if (!ensureOwnership(existingEl)) res();
 
-                const handler = () => {
-                  c++;
+              let c = 0;
 
-                  if (c === Object.keys(existingEl.components).length) {
-                    existingEl.removeEventListener("componentremoved", handler);
-                    res();
-                  }
-                };
+              const handler = () => {
+                c++;
 
-                existingEl.addEventListener("componentremoved", handler);
+                if (c === Object.keys(existingEl.components).length) {
+                  existingEl.removeEventListener("componentremoved", handler);
+                  res();
+                }
+              };
 
-                existingEl.parentNode.removeChild(existingEl);
-              }
+              existingEl.addEventListener("componentremoved", handler);
+
+              existingEl.parentNode.removeChild(existingEl);
             })
           );
         }
@@ -94,14 +93,43 @@ export default class WorldImporter {
       const { fontFamily, transform /*, color, width, height, backgroundColor, textStroke*/ } = rule.style;
 
       const contentSubtype = null;
-      const src = null;
+      const tagName = el.tagName;
+      const mediaOptions = {};
+
+      let src = null;
       let contents = null;
 
-      if (fontFamily === "emoji") {
+      if (tagName === "DIV" && fontFamily === "emoji") {
+        // Voxmoji
         contents = el.innerHTML.trim();
-      }
+      } else if (tagName === "IMG") {
+        // Image
+        src = el.getAttribute("src");
+      } else if (tagName === "EMBED" && el.getAttribute("data-index") !== undefined) {
+        // PDF
+        src = el.getAttribute("src");
+        mediaOptions.index = el.getAttribute("data-index");
+      } else if (tagName === "EMBED") {
+        // VOX or glTF
+        src = el.getAttribute("src");
+      } else if (tagName === "VIDEO") {
+        src = el.getAttribute("src");
 
-      const mediaOptions = {};
+        if (el.getAttribute("currenttime") !== undefined) {
+          mediaOptions.time = el.getAttribute("currenttime");
+        }
+
+        mediaOptions.videoPaused = el.getAttribute("autoplay") === undefined;
+        mediaOptions.loop = el.getAttribute("loop") !== undefined;
+
+        if (el.getAttribute("muted") !== undefined) {
+          mediaOptions.volume = 0;
+        }
+
+        if (el.getAttribute("data-audio-src") !== undefined) {
+          mediaOptions.audioSrc = el.getAttribute("data-audio-src");
+        }
+      }
 
       const entity = addMedia(
         src,

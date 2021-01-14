@@ -37,7 +37,11 @@ export default class WorldExporter {
     }
 
     return new Promise(res => {
-      cleaner.clean(new XMLSerializer().serializeToString(doc), res);
+      cleaner.clean(
+        new XMLSerializer().serializeToString(doc).replaceAll("<", "\n<"),
+        { "add-break-around-tags": ["embed", "img", "video", "audio"] },
+        res
+      );
     });
   }
 
@@ -139,7 +143,7 @@ export default class WorldExporter {
       exportEl.setAttribute("controls", "");
 
       if (videoPaused) {
-        exportEl.setAttribute("currentTime", time);
+        exportEl.setAttribute("currenttime", time);
       } else {
         exportEl.setAttribute("autoplay", "");
       }
