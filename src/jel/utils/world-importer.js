@@ -42,7 +42,7 @@ export default class WorldImporter {
 
   async importJelDocument(doc, replaceExisting = true) {
     const { terrainSystem } = AFRAME.scenes[0].systems["hubs-systems"];
-    const removePromises = [];
+    const prepareImportPromises = [];
 
     if (replaceExisting) {
       for (const el of doc.body.childNodes) {
@@ -52,7 +52,7 @@ export default class WorldImporter {
 
         if (existingEl) {
           // Proceed once the shared component is removed so the id has been freed.
-          removePromises.push(
+          prepareImportPromises.push(
             new Promise(res => {
               if (!ensureOwnership(existingEl)) res();
 
@@ -76,7 +76,11 @@ export default class WorldImporter {
       }
     }
 
-    await Promise.all(removePromises);
+    // Terrain system needs to pre-cache all the heightmaps, since this routine
+    // will need to globally reference the terrain heights to place the new media properly in Y.
+    prepareImportPromises.push(terrainSystem.loadAllHeightMaps());
+
+    await Promise.all(prepareImportPromises);
 
     for (const el of doc.body.childNodes) {
       const id = el.id;

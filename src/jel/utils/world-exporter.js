@@ -1,6 +1,7 @@
 import { downloadText, vecRgbToCssRgb } from "./dom-utils";
 import cleaner from "clean-html";
 import { FONT_FACES } from "./quill-utils";
+import { normalizeCoord } from "../systems/wrapped-entity-system";
 
 const tmpPos = new THREE.Vector3();
 const tmpQuat = new THREE.Quaternion();
@@ -180,9 +181,9 @@ export default class WorldExporter {
 
       // Normalize Y to be terrain-agnostic
       const height = terrainSystem.getTerrainHeightAtWorldCoord(tmpPos.x, tmpPos.z);
-      const x = tmpPos.x;
-      const y = tmpPos.y - height;
-      const z = tmpPos.z;
+      const x = normalizeCoord(tmpPos.x);
+      const y = normalizeCoord(tmpPos.y - height);
+      const z = normalizeCoord(tmpPos.z);
 
       // Axis angle
       tmpVec4.setAxisAngleFromQuaternion(tmpQuat);

@@ -505,7 +505,12 @@ export class TerrainSystem {
     this.loadingChunks = new Map();
     this.spawningChunks = new Map();
     this.chunkFeatures = new Map();
+
+    // Note: chunk height maps are retained even when chunks are de-spawned,
+    // since loadAllHeightMaps() can be used to ensure getTerrainHeightAtWorldCoord
+    // always works properly. Eg when importing we need the full heightmap data.
     this.chunkHeightMaps = new Map();
+
     this.terrains = new Map();
     this.performFullTerrainWorkOnNextTick = false;
     this.fieldFeatureInstances = new Map();
@@ -558,9 +563,24 @@ export class TerrainSystem {
     }
   }
 
-  async loadChunk(chunk) {
+  // Loads + caches all the heightmaps, so heightmap queries via getTerrainHeightAtWorldCoord
+  // for regions away from the current player avatar will work properly.
+  async loadAllHeightMaps() {
+    const promises = [];
+
+    for (let x = MIN_CHUNK_COORD; x <= MAX_CHUNK_COORD; x++) {
+      for (let z = MIN_CHUNK_COORD; z <= MAX_CHUNK_COORD; z++) {
+        // Only load height map.
+        promises.push(this.loadChunk({ x, z }, true));
+      }
+    }
+
+    return Promise.all(promises);
+  }
+
+  async loadChunk(chunk, heightMapOnly = false) {
     if (this.worldType === null) return;
-    const { loadedChunks, loadingChunks, spawningChunks, worldType, worldSeed } = this;
+    const { loadedChunks, loadingChunks, chunkHeightMaps, spawningChunks, worldType, worldSeed } = this;
     const key = keyForChunk(chunk);
     if (loadedChunks.has(key) || loadingChunks.has(key) || spawningChunks.has(key)) return;
 
@@ -584,7 +604,20 @@ export class TerrainSystem {
 
                 if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
                 const arr = await res.arrayBuffer();
-                spawningChunks.set(key, new Uint8Array(arr));
+                const encoded = new Uint8Array(arr);
+
+                if (heightMapOnly) {
+                  const chunks = decodeChunks(encoded);
+
+                  chunks.forEach(({ x, meshes, heightmap, z }) => {
+                    meshes.forEach((geometries, subchunk) => {
+                      const key = `${x}:${z}:${subchunk}`;
+                      chunkHeightMaps.set(key, heightmap);
+                    });
+                  });
+                } else {
+                  spawningChunks.set(key, encoded);
+                }
                 resolve();
               })
               .catch(() => {
@@ -963,7 +996,6 @@ export class TerrainSystem {
       this.ensureBodiesFreed(chunk.x, chunk.z, subchunk);
 
       this.chunkFeatures.delete(subkey);
-      this.chunkHeightMaps.delete(subkey);
 
       if (terrain) {
         terrain.dispose();
@@ -976,11 +1008,12 @@ export class TerrainSystem {
   }
 
   unloadWorld() {
-    const { avatarChunk, loadedChunks, loadingChunks, spawningChunks } = this;
+    const { avatarChunk, chunkHeightMaps, loadedChunks, loadingChunks, spawningChunks } = this;
     loadedChunks.forEach(chunk => this.unloadChunk(chunk));
     loadedChunks.clear();
     loadingChunks.clear();
     spawningChunks.clear();
+    chunkHeightMaps.clear();
     avatarChunk.x = Infinity;
     avatarChunk.z = Infinity;
     this.avatarZone = null;
