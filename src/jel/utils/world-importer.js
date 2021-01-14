@@ -2,6 +2,7 @@ import { addMedia } from "../../hubs/utils/media-utils";
 import { parse as transformParse } from "transform-parser";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { ensureOwnership } from "./ownership-utils";
+import { FONT_FACES } from "./quill-utils";
 
 const transformUnitToMeters = s => {
   if (!s) return 0.0;
@@ -94,9 +95,9 @@ export default class WorldImporter {
 
       if (styleEl.sheet.cssRules.length === 0) continue;
       const rule = styleEl.sheet.cssRules[0];
-      const { fontFamily, transform /*, color, width, height, backgroundColor, textStroke*/ } = rule.style;
+      const { fontFamily, transform, color, width, height, backgroundColor, textStroke } = rule.style;
 
-      const contentSubtype = null;
+      let contentSubtype = null;
       const tagName = el.tagName;
       const mediaOptions = {};
 
@@ -123,6 +124,7 @@ export default class WorldImporter {
         src = el.getAttribute("src");
         resolve = true;
       } else if (tagName === "VIDEO") {
+        // Video
         src = el.getAttribute("src");
         resolve = true;
 
@@ -140,6 +142,76 @@ export default class WorldImporter {
         if (el.getAttribute("data-audio-src") !== null) {
           mediaOptions.audioSrc = el.getAttribute("data-audio-src");
         }
+      } else if (tagName === "DIV") {
+        // Text
+        contents = el.innerHTML;
+        let font = FONT_FACES.SANS_SERIF;
+        let fitContent = false;
+        let mediaForegroundColor = null;
+        let mediaBackgroundColor = null;
+
+        contentSubtype = "page";
+
+        if (width === "fit-content" && height === "fit-content") {
+          contentSubtype = backgroundColor === "transparent" ? "banner" : "label";
+          fitContent = true;
+        }
+
+        if (contentSubtype == "banner") {
+          if (textStroke) {
+            const textStrokeParsed = transformParse(textStroke);
+
+            mediaBackgroundColor = {
+              x: textStrokeParsed.rgb[0] / 255.0,
+              y: textStrokeParsed.rgb[1] / 255.0,
+              z: textStrokeParsed.rgb[2 / 255.0]
+            };
+          }
+        } else {
+          if (backgroundColor) {
+            const backgroundParsed = transformParse(backgroundColor);
+            mediaBackgroundColor = {
+              x: backgroundParsed.rgb[0] / 255.0,
+              y: backgroundParsed.rgb[1] / 255.0,
+              z: backgroundParsed.rgb[2] / 255.0
+            };
+          }
+        }
+
+        if (color) {
+          const colorParsed = transformParse(color);
+          mediaForegroundColor = {
+            x: colorParsed.rgb[0] / 255.0,
+            y: colorParsed.rgb[1] / 255.0,
+            z: colorParsed.rgb[2] / 255.0
+          };
+        }
+
+        switch (fontFamily) {
+          case "serif":
+            font = FONT_FACES.SERIF;
+            break;
+          case "monospaced":
+            font = FONT_FACES.MONO;
+            break;
+          case "comic":
+            font = FONT_FACES.COMIC;
+            break;
+          case "comic-2":
+            font = FONT_FACES.COMIC2;
+            break;
+          case "cursive":
+            font = FONT_FACES.WRITING;
+            break;
+          case "cursive-2":
+            font = FONT_FACES.WRITING2;
+            break;
+        }
+
+        mediaOptions.font = font;
+        mediaOptions.fitContent = fitContent;
+        mediaOptions.foregroundColor = mediaForegroundColor;
+        mediaOptions.backgroundColor = mediaBackgroundColor;
       }
 
       const entity = addMedia(
