@@ -203,7 +203,8 @@ export const addMedia = (
   mediaOptions = {},
   networked = true,
   parentEl = null,
-  linkedEl = null
+  linkedEl = null,
+  networkId = null
 ) => {
   const scene = AFRAME.scenes[0];
 
@@ -213,7 +214,7 @@ export const addMedia = (
   if (networked) {
     const isPersistent = !isVideoShare;
 
-    entity.setAttribute(isPersistent ? "shared" : "networked", { template: template });
+    entity.setAttribute(isPersistent ? "shared" : "networked", { template, networkId });
   } else {
     const templateBody = document
       .importNode(document.body.querySelector(template).content, true)

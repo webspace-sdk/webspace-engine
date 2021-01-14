@@ -1,6 +1,7 @@
 import { addMedia } from "../../hubs/utils/media-utils";
 import { parse as transformParse } from "transform-parser";
 import { ObjectContentOrigins } from "../../hubs/object-types";
+import { ensureOwnership } from "./ownership-utils";
 
 const transformUnitToMeters = s => {
   if (!s) return 0.0;
@@ -39,13 +40,50 @@ export default class WorldImporter {
     }
   }
 
-  importJelDocument(doc) {
+  async importJelDocument(doc, replaceExisting = true) {
     const { terrainSystem } = AFRAME.scenes[0].systems["hubs-systems"];
+    const removePromises = [];
+
+    if (replaceExisting) {
+      for (const el of doc.body.childNodes) {
+        const id = el.id;
+        if (!id || id.length !== 7) continue; // Sanity check
+        const existingEl = document.getElementById(`naf-${id}`);
+
+        if (existingEl) {
+          // Proceed once the shared component is removed so the id has been freed.
+          removePromises.push(
+            new Promise(res => {
+              console.log("wait");
+              if (ensureOwnership(existingEl)) {
+                let c = 0;
+
+                const handler = () => {
+                  c++;
+
+                  if (c === Object.keys(existingEl.components).length) {
+                    existingEl.removeEventListener("componentremoved", handler);
+                    res();
+                  }
+                };
+
+                existingEl.addEventListener("componentremoved", handler);
+
+                existingEl.parentNode.removeChild(existingEl);
+              }
+            })
+          );
+        }
+      }
+    }
+
+    await Promise.all(removePromises);
 
     for (const el of doc.body.childNodes) {
       const id = el.id;
       if (!id || id.length !== 7) continue; // Sanity check
-      if (document.getElementById(`naf-${id}`)) continue; // Don't re-import same object
+      if (document.getElementById(`naf-${id}`)) continue;
+
       const style = `:root { ${el.getAttribute("style") || ""}`;
       const styleEl = doc.createElement("style");
       styleEl.textContent = style;
@@ -63,6 +101,8 @@ export default class WorldImporter {
         contents = el.innerHTML.trim();
       }
 
+      const mediaOptions = {};
+
       const entity = addMedia(
         src,
         contents,
@@ -71,7 +111,12 @@ export default class WorldImporter {
         contentSubtype,
         false,
         false,
-        false
+        false,
+        mediaOptions,
+        true,
+        null,
+        null,
+        id
       ).entity;
 
       const object3D = entity.object3D;
