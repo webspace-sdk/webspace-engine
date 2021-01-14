@@ -43,18 +43,20 @@ function HubContextMenu({
   }
 
   if (hubId && showExport) {
-    items.push(
-      <PopupMenuItem
-        key={`import-${hubId}`}
-        onClick={e => {
-          onImportClick(hubId);
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-      >
-        <FormattedMessage id="hub-context.import" />
-      </PopupMenuItem>
-    );
+    if (hubCan("spawn_and_move_media", hubId)) {
+      items.push(
+        <PopupMenuItem
+          key={`import-${hubId}`}
+          onClick={e => {
+            onImportClick(hubId);
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          <FormattedMessage id="hub-context.import" />
+        </PopupMenuItem>
+      );
+    }
 
     items.push(
       <PopupMenuItem
