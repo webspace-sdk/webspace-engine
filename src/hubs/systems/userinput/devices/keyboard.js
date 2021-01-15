@@ -65,7 +65,7 @@ export class KeyboardDevice {
                 }
               }
 
-              if (hovered && !hoveredOverPagableMedia) {
+              if (!hoveredOverPagableMedia) {
                 const cursorLockState = getCursorLockState();
 
                 // Shift+Space widen
