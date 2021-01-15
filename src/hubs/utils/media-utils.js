@@ -50,7 +50,7 @@ export const MEDIA_VIEW_COMPONENTS = [
   "gltf-model-plus"
 ];
 
-export const PAGABLE_MEDIA_VIEW_COMPONENTS = ["media-view", "media-pdf"];
+export const PAGABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-pdf"];
 
 export const BAKABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-text", "media-pdf"];
 export const GROUNDABLE_MEDIA_VIEW_COMPONENTS = [
