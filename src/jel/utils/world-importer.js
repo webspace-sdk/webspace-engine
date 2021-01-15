@@ -152,7 +152,7 @@ export default class WorldImporter {
 
         contentSubtype = "page";
 
-        if (width === "fit-content" && height === "fit-content") {
+        if (width === "min-content" && height === "min-content") {
           contentSubtype = backgroundColor === "transparent" ? "banner" : "label";
           fitContent = true;
         }

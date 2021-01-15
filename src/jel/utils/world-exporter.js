@@ -114,7 +114,7 @@ export default class WorldExporter {
       style += `color: ${vecRgbToCssRgb(foregroundColor)}; `;
 
       if (fitContent) {
-        style += `width: fit-content; height: fit-content; `;
+        style += `width: min-content; height: min-content; `;
       } else {
         style += `width: ${(mediaText.mesh.scale.x * 100.0).toFixed(4)}cm; height: ${(
           mediaText.mesh.scale.y * 100.0
