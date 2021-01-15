@@ -23,8 +23,10 @@ export default class WorldExporter {
     const { hubMetadata, hubChannel } = window.APP;
     const metadata = hubMetadata.getMetadata(hubChannel.hubId);
     const doc = document.implementation.createHTMLDocument(metadata.displayName);
-    doc.body.setAttribute("data-jel-format", "world");
-    doc.body.setAttribute("data-jel-version", "1");
+    const jelSchema = doc.createElement("meta");
+    jelSchema.setAttribute("name", "jel-schema");
+    jelSchema.setAttribute("content", "world-1.0");
+    doc.head.appendChild(jelSchema);
 
     const mediaEls = [...document.querySelectorAll("[shared]")].filter(el => el.components["media-loader"]);
 
