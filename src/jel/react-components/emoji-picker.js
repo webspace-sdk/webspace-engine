@@ -376,7 +376,10 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
                 e.preventDefault();
                 e.stopPropagation();
                 document.activeElement.blur(); // This causes this element to hide via CSS
-                onEmojiSelected(currentEmoji);
+
+                if (currentEmoji) {
+                  onEmojiSelected(currentEmoji);
+                }
               }}
             >
               <FloatingTextElement
