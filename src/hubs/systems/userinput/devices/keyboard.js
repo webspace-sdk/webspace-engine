@@ -44,16 +44,26 @@ export class KeyboardDevice {
         if (e.type === "keydown" && e.key === " " && !e.repeat) {
           if (!e.altKey && !e.metaKey) {
             if (e.ctrlKey && !isInEditableField()) {
-              const cursorLockState = getCursorLockState();
+              const interaction = AFRAME.scenes[0].systems.interaction;
 
-              // Shift+Space widen
-              if (cursorLockState !== CURSOR_LOCK_STATES.LOCKED_PERSISTENT) {
-                beginPersistentCursorLock();
-              } else {
-                endCursorLock();
+              const hovered =
+                interaction.state.leftHand.hovered ||
+                interaction.state.rightHand.hovered ||
+                interaction.state.rightRemote.hovered ||
+                interaction.state.leftRemote.hovered;
+
+              if (!hovered) {
+                const cursorLockState = getCursorLockState();
+
+                // Shift+Space widen
+                if (cursorLockState !== CURSOR_LOCK_STATES.LOCKED_PERSISTENT) {
+                  beginPersistentCursorLock();
+                } else {
+                  endCursorLock();
+                }
+
+                e.preventDefault();
               }
-
-              e.preventDefault();
             }
           }
         }
