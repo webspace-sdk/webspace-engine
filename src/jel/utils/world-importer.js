@@ -36,7 +36,7 @@ export default class WorldImporter {
   importHtmlToCurrentWorld(html) {
     const doc = new DOMParser().parseFromString(html, "text/html");
 
-    if (doc.body && doc.body.getAttribute("data-jel-format") === "world") {
+    if (doc.body && doc.querySelector(`meta[name='jel-schema']`)) {
       this.importJelDocument(doc);
     }
   }
