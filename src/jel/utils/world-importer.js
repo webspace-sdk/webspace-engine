@@ -161,30 +161,38 @@ export default class WorldImporter {
           if (textStroke) {
             const textStrokeParsed = transformParse(textStroke);
 
-            mediaBackgroundColor = {
-              x: textStrokeParsed.rgb[0] / 255.0,
-              y: textStrokeParsed.rgb[1] / 255.0,
-              z: textStrokeParsed.rgb[2] / 255.0
-            };
+            if (textStrokeParsed.rgb) {
+              mediaBackgroundColor = {
+                x: textStrokeParsed.rgb[0] / 255.0,
+                y: textStrokeParsed.rgb[1] / 255.0,
+                z: textStrokeParsed.rgb[2] / 255.0
+              };
+            }
           }
         } else {
           if (backgroundColor) {
             const backgroundParsed = transformParse(backgroundColor);
-            mediaBackgroundColor = {
-              x: backgroundParsed.rgb[0] / 255.0,
-              y: backgroundParsed.rgb[1] / 255.0,
-              z: backgroundParsed.rgb[2] / 255.0
-            };
+
+            if (backgroundParsed.rgb) {
+              mediaBackgroundColor = {
+                x: backgroundParsed.rgb[0] / 255.0,
+                y: backgroundParsed.rgb[1] / 255.0,
+                z: backgroundParsed.rgb[2] / 255.0
+              };
+            }
           }
         }
 
         if (color) {
           const colorParsed = transformParse(color);
-          mediaForegroundColor = {
-            x: colorParsed.rgb[0] / 255.0,
-            y: colorParsed.rgb[1] / 255.0,
-            z: colorParsed.rgb[2] / 255.0
-          };
+
+          if (colorParsed.rgb) {
+            mediaForegroundColor = {
+              x: colorParsed.rgb[0] / 255.0,
+              y: colorParsed.rgb[1] / 255.0,
+              z: colorParsed.rgb[2] / 255.0
+            };
+          }
         }
 
         switch (fontFamily) {
