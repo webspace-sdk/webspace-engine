@@ -4,6 +4,7 @@ import { isInEditableField } from "../../../../jel/utils/dom-utils";
 import { isInQuillEditor } from "../../../../jel/utils/quill-utils";
 import { beginPersistentCursorLock, endCursorLock } from "../../../../jel/utils/dom-utils";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "../../../../jel/utils/dom-utils";
+import { PAGABLE_MEDIA_VIEW_COMPONENTS } from "../../../utils/media-utils";
 
 export class KeyboardDevice {
   constructor() {
@@ -52,7 +53,19 @@ export class KeyboardDevice {
                 interaction.state.rightRemote.hovered ||
                 interaction.state.leftRemote.hovered;
 
-              if (!hovered) {
+              // Paging using ctrl-space, so skip
+              let hoveredOverPagableMedia = false;
+
+              if (hovered) {
+                for (const name of PAGABLE_MEDIA_VIEW_COMPONENTS) {
+                  if (hovered.components[name]) {
+                    hoveredOverPagableMedia = true;
+                    break;
+                  }
+                }
+              }
+
+              if (hovered && !hoveredOverPagableMedia) {
                 const cursorLockState = getCursorLockState();
 
                 // Shift+Space widen
