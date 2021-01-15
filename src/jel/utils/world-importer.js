@@ -164,7 +164,7 @@ export default class WorldImporter {
             mediaBackgroundColor = {
               x: textStrokeParsed.rgb[0] / 255.0,
               y: textStrokeParsed.rgb[1] / 255.0,
-              z: textStrokeParsed.rgb[2 / 255.0]
+              z: textStrokeParsed.rgb[2] / 255.0
             };
           }
         } else {
