@@ -174,8 +174,6 @@ AFRAME.registerComponent("scale-audio-feedback", {
 
     const { minDistance, minScale, maxScale } = this.data;
 
-    const { object3D } = this.el;
-
     // Set here, but updated in ik-controller since we also scale head there.
     this.audioFeedbackScale = getAudioFeedbackScale(
       this.el.object3D,
@@ -185,8 +183,6 @@ AFRAME.registerComponent("scale-audio-feedback", {
       maxScale,
       this.analyser ? this.analyser.volume : 0
     );
-
-    object3D.matrixNeedsUpdate = true;
   }
 });
 

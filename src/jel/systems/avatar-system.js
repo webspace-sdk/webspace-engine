@@ -8,6 +8,7 @@ import { RENDER_ORDER } from "../../hubs/constants";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { AvatarSphereBufferGeometry } from "../objects/avatar-sphere-buffer-geometry";
 import { rgbToCssRgb } from "../utils/dom-utils";
+import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 
 const {
   ShaderMaterial,
@@ -170,10 +171,6 @@ highlightMaterial.onBeforeCompile = shader => addVertexCurvingToShader(shader);
 
 const MAX_AVATARS = 128;
 
-// The is the number of ticks we continue to update the instance matrices of dirty
-// avatars, since lerping may need to occur.
-const MAX_LERP_TICKS = 30;
-
 // Draws instanced avatar heads. IK controller now sets instanced heads to non-visible to avoid draw calls.
 export class AvatarSystem {
   constructor(sceneEl, atmosphereSystem) {
@@ -183,7 +180,6 @@ export class AvatarSystem {
     this.avatarToIndex = new Map();
     this.avatarCreatorIds = Array(MAX_AVATARS).fill(null);
     this.currentVisemes = Array(MAX_AVATARS).fill(-1);
-    this.dirtyMatrices = Array(MAX_AVATARS).fill(0);
     this.dirtyColors = Array(MAX_AVATARS).fill(false);
     this.avatarIkControllers = Array(MAX_AVATARS).fill(null);
     this.selfEl = null;
@@ -226,7 +222,6 @@ export class AvatarSystem {
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.avatarEls[index] = el;
     this.avatarToIndex.set(el, index);
-    this.dirtyMatrices[index] = 0;
     this.dirtyColors[index] = true;
     this.avatarIkControllers[index] = el.components["ik-controller"];
 
@@ -253,12 +248,6 @@ export class AvatarSystem {
     if (this.maxRegisteredIndex === i) {
       this.maxRegisteredIndex--;
     }
-  }
-
-  markMatrixDirty(el) {
-    if (!this.avatarToIndex.has(el)) return;
-    const i = this.avatarToIndex.get(el);
-    this.dirtyMatrices[i] = MAX_LERP_TICKS;
   }
 
   markPersonaAvatarDirty(creatorId) {
@@ -305,7 +294,6 @@ export class AvatarSystem {
       instanceColorAttribute,
       mesh,
       atmosphereSystem,
-      dirtyMatrices,
       dirtyColors,
       avatarIkControllers
     } = this;
@@ -335,7 +323,6 @@ export class AvatarSystem {
       }
 
       const creatorId = avatarCreatorIds[i];
-      const hasDirtyMatrix = dirtyMatrices[i] > 0;
       const hasEyeDecalChange = hasScheduledDecal && scheduledEyeDecal.t < t;
       const prevViseme = currentVisemes[i];
 
@@ -363,6 +350,9 @@ export class AvatarSystem {
       }
 
       const hasNewViseme = currentViseme !== prevViseme;
+      const head = avatarIkControllers[i].head;
+
+      const hasDirtyMatrix = head.consumeIfDirtyWorldMatrix(WORLD_MATRIX_CONSUMERS.AVATARS);
 
       if (!hasDirtyMatrix && !hasEyeDecalChange && !hasNewViseme && !hasDirtyColor) continue;
 
@@ -410,8 +400,6 @@ export class AvatarSystem {
           // Don't need to update shadows when rotating self
           atmosphereSystem.updateShadows();
         }
-
-        dirtyMatrices[i] -= 1;
       }
     }
 

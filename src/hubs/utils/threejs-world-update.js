@@ -13,7 +13,8 @@ identity.identity();
 export const WORLD_MATRIX_CONSUMERS = {
   PHYSICS: 0,
   BEAMS: 1,
-  VOXMOJI: 2
+  VOXMOJI: 2,
+  AVATARS: 3
 };
 
 // Debug flag will log all matrix needs update sets and explicit computes
