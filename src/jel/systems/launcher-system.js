@@ -103,7 +103,7 @@ export class LauncherSystem {
 
     const isHoveringUI = userinput.activeSets.includes(sets.rightCursorHoveringOnUI);
     const isFreeToLeftClick =
-      getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT ||
+      (getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT && !isHoveringUI) ||
       (!this.heldLeftPreviousFrame && holdingShift && !isHoveringUI);
 
     const isFreeToLeftHold =
