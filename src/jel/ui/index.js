@@ -168,6 +168,19 @@ async function redirectedToLoggedInRoot() {
   }
 
   let spaceId = store.state && store.state.context && store.state.context.spaceId;
+  const lastHubId = spaceId && store.state && store.state.context && store.state.context.lastHubId;
+
+  if (lastHubId) {
+    const lastHubRes = await fetchReticulumAuthenticated(`/api/v1/hubs/${lastHubId}`);
+
+    if (lastHubRes && !lastHubRes.error) {
+      if (lastHubRes.hubs && lastHubRes.hubs.length > 0) {
+        const lastHub = lastHubRes.hubs[0];
+        document.location = lastHub.url;
+        return true;
+      }
+    }
+  }
 
   const res = await fetchReticulumAuthenticated(`/api/v1/accounts/${accountId}`);
 
@@ -176,12 +189,12 @@ async function redirectedToLoggedInRoot() {
   if (!membership && res.memberships.length > 0) {
     spaceId = [...res.memberships].sort(m => m.joined_at).pop().space.space_id;
     membership = res.memberships.filter(m => m.space.space_id === spaceId)[0];
-    store.update({ context: { spaceId } });
+    store.update({ context: { spaceId, lastHubId: "" } });
   }
 
   if (membership) {
-    const homeHub = membership.home_hub;
-    document.location = homeHub.url;
+    const defaultHub = membership.default_hub;
+    document.location = defaultHub.url;
     return true;
   }
 
@@ -257,7 +270,9 @@ function JelIndexUI({ authResult }) {
               }
 
               const { space_id } = await createSpace();
-              store.update({ context: { spaceId: space_id, isSpaceCreator: true, isFirstVisitToSpace: true } });
+              store.update({
+                context: { spaceId: space_id, lastHubId: "", isSpaceCreator: true, isFirstVisitToSpace: true }
+              });
               redirectedToLoggedInRoot();
             }}
           >
