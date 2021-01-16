@@ -3,7 +3,7 @@ import React, { useState, useCallback, useMemo } from "react";
 import Tree from "rc-tree";
 import SpaceNodeIcon, { AddSpaceIcon, JoinDiscordIcon } from "./space-node-icon";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
-import { homeHubForSpaceId } from "../utils/membership-utils";
+import { getDefaultHubForSpaceId, homeHubForSpaceId } from "../utils/membership-utils";
 import { useTreeDropHandler, useTreeData, useScrollToSelectedTreeNode } from "../utils/tree-utils";
 import "../../assets/jel/stylesheets/space-tree.scss";
 
@@ -35,7 +35,10 @@ function SpaceTree({ treeManager, history, space, memberships }) {
     [spaceMetadata]
   );
   const onSelect = useCallback(
-    (selectedKeys, { node: { atomId } }) => navigateToHubUrl(history, homeHubForSpaceId(atomId, memberships).url),
+    async (selectedKeys, { node: { atomId } }) => {
+      const targetHub = (await getDefaultHubForSpaceId(atomId)) || homeHubForSpaceId(atomId, memberships);
+      navigateToHubUrl(history, targetHub.url);
+    },
     [history, memberships]
   );
 

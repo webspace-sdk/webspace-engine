@@ -1,3 +1,5 @@
+import { fetchReticulumAuthenticated } from "../../hubs/utils/phoenix-utils";
+
 export function membershipForSpaceId(spaceId, memberships) {
   if (!memberships) return null;
 
@@ -25,4 +27,12 @@ export function spaceForSpaceId(spaceId, memberships) {
 export function isAdminOfSpaceId(spaceId, memberships) {
   const m = membershipForSpaceId(spaceId, memberships);
   return !!(m && m.role === "admin");
+}
+
+export async function getDefaultHubForSpaceId(spaceId) {
+  const { store } = window.APP;
+  const accountId = store.credentialsAccountId;
+  const res = await fetchReticulumAuthenticated(`/api/v1/accounts/${accountId}`);
+  const membership = res.memberships.filter(m => m.space.space_id === spaceId)[0];
+  return (membership && membership.default_hub) || null;
 }
