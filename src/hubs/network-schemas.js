@@ -182,6 +182,10 @@ function registerNetworkSchemas() {
       {
         component: "media-emoji",
         property: "emoji"
+      },
+      {
+        component: "media-video",
+        property: "loop"
       }
     ],
     nonAuthorizedComponents: [

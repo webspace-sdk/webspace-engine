@@ -2,6 +2,7 @@ import { paths } from "../../hubs/systems/userinput/paths";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "../../jel/utils/dom-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { SOUND_EMOJI_EQUIP } from "../../hubs/systems/sound-effects-system";
+import { sets } from "../../hubs/systems/userinput/sets";
 
 const FIRE_DURATION_MS = 350;
 const MAX_FIRE_DURATION = 5000;
@@ -100,8 +101,10 @@ export class LauncherSystem {
     //   - The cursor is locked (meaning we are in wide mode)
     //   - The previous frame was not holding left and the user is holding shift to mouse look.
 
+    const isHoveringUI = userinput.activeSets.includes(sets.rightCursorHoveringOnUI);
     const isFreeToLeftClick =
-      getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT || (!this.heldLeftPreviousFrame && holdingShift);
+      getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT ||
+      (!this.heldLeftPreviousFrame && holdingShift && !isHoveringUI);
 
     const isFreeToLeftHold =
       getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT || (holdingShift && this.sawLeftButtonUpWithShift);

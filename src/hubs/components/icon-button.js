@@ -71,7 +71,9 @@ AFRAME.registerComponent("icon-button", {
         console.warn(`No ${image} image on me.`, this);
       }
     } else {
-      console.error("No sprite.");
+      const image = active ? (hovering ? "activeHoverImage" : "activeImage") : hovering ? "hoverImage" : "image";
+
+      this.el.setAttribute("src", this.data[image]);
     }
 
     if (this.data.tooltip && hovering) {

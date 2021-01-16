@@ -301,7 +301,9 @@ AFRAME.registerComponent("media-video", {
 
       this.timeLabel = this.el.querySelector(".video-time-label");
       this.volumeLabel = this.el.querySelector(".video-volume-label");
+      this.playPauseButton = this.el.querySelector(".video-playpause-button");
 
+      this.playPauseButton.object3D.addEventListener("interact", this.togglePlaying);
       this.updateVolumeLabel();
       this.updateHoverMenu();
       this.updatePlaybackState();
@@ -449,6 +451,8 @@ AFRAME.registerComponent("media-video", {
     if (this.networkedEl && isMine(this.networkedEl)) {
       this.el.emit("owned-video-state-changed");
     }
+
+    this.updateHoverMenu();
   },
 
   updatePlaybackState(force) {
@@ -483,6 +487,10 @@ AFRAME.registerComponent("media-video", {
     // update the video to currentTime = 0
     if (this.videoIsLive === false && currentTime !== undefined) {
       this.video.currentTime = currentTime;
+    }
+
+    if (this.hoverMenu) {
+      this.playPauseButton.setAttribute("icon-button", "active", pause);
     }
 
     if (pause) {
@@ -629,6 +637,7 @@ AFRAME.registerComponent("media-video", {
         if (this.video) {
           this.video.addEventListener("pause", this.onPauseStateChange);
           this.video.addEventListener("play", this.onPauseStateChange);
+          this.video.addEventListener("ended", this.onPauseStateChange);
           this.updatePlaybackState(true);
         }
 
@@ -678,6 +687,7 @@ AFRAME.registerComponent("media-video", {
         this.video.loop = this.data.loop;
         this.video.addEventListener("pause", this.onPauseStateChange);
         this.video.addEventListener("play", this.onPauseStateChange);
+        this.video.addEventListener("ended", this.onPauseStateChange);
 
         // Deal with setting LIVE on video or not
         if (texture.hls) {
@@ -964,6 +974,12 @@ AFRAME.registerComponent("media-video", {
     if (this.videoIsLive) {
       this.timeLabel.setAttribute("text", "value", "LIVE");
     }
+
+    this.playPauseButton.object3D.visible = this.mayModifyPlayHead();
+
+    if (this.video) {
+      this.playPauseButton.setAttribute("icon-button", "active", this.video.paused);
+    }
   },
 
   updateVolumeLabel() {
@@ -1070,6 +1086,11 @@ AFRAME.registerComponent("media-video", {
     if (this.video) {
       this.video.removeEventListener("pause", this.onPauseStateChange);
       this.video.removeEventListener("play", this.onPauseStateChange);
+      this.video.removeEventListener("ended", this.onPauseStateChange);
+    }
+
+    if (this.hoverMenu) {
+      this.playPauseButton.object3D.removeEventListener("interact", this.togglePlaying);
     }
 
     window.APP.store.removeEventListener("statechanged", this.onPreferenceChanged);
@@ -1079,8 +1100,12 @@ AFRAME.registerComponent("media-video", {
     }
   },
 
+  mayModifyPlayHead() {
+    return !!this.video && !this.videoIsLive && window.APP.hubChannel.can("spawn_and_move_media");
+  },
+
   handleMediaInteraction(type) {
-    const mayModifyPlayHead = !!this.video && !this.videoIsLive && window.APP.hubChannel.can("spawn_and_move_media");
+    const mayModifyPlayHead = this.mayModifyPlayHead();
 
     if (type === MEDIA_INTERACTION_TYPES.PRIMARY && mayModifyPlayHead) {
       this.togglePlaying();
