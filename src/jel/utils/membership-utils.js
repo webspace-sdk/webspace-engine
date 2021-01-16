@@ -29,8 +29,23 @@ export function isAdminOfSpaceId(spaceId, memberships) {
   return !!(m && m.role === "admin");
 }
 
-export async function getDefaultHubForSpaceId(spaceId) {
+export async function getInitialHubForSpaceId(spaceId) {
   const { store } = window.APP;
+
+  const lastJoinedHubId =
+    store.state &&
+    store.state.context &&
+    store.state.context.lastJoinedHubIds &&
+    store.state.context.lastJoinedHubIds[spaceId];
+
+  const lastHubRes = await fetchReticulumAuthenticated(`/api/v1/hubs/${lastJoinedHubId}`);
+
+  if (lastHubRes && !lastHubRes.error) {
+    if (lastHubRes.hubs && lastHubRes.hubs.length > 0) {
+      return lastHubRes.hubs[0];
+    }
+  }
+
   const accountId = store.credentialsAccountId;
   const res = await fetchReticulumAuthenticated(`/api/v1/accounts/${accountId}`);
   const membership = res.memberships.filter(m => m.space.space_id === spaceId)[0];

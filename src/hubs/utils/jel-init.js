@@ -797,7 +797,7 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
   hubMetadata.bind(spaceChannel);
   spaceMetadata.ensureMetadataForIds([spaceId]);
 
-  store.update({ context: { spaceId, lastJoinedHubId: "" } });
+  store.update({ context: { spaceId } });
 
   return joinSpaceChannel(spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI);
 }
@@ -805,6 +805,7 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
 export async function joinHub(socket, history, entryManager, remountUI, remountJelUI) {
   const { store, hubChannel, hubMetadata } = window.APP;
 
+  const spaceId = getSpaceIdFromHistory(history);
   const hubId = getHubIdFromHistory(history);
   console.log(`Hub ID: ${hubId}`);
 
@@ -823,5 +824,5 @@ export async function joinHub(socket, history, entryManager, remountUI, remountJ
 
   await joinHubChannel(hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI);
 
-  store.update({ context: { lastJoinedHubId: hubId } });
+  store.setLastJoinedHubId(spaceId, hubId);
 }

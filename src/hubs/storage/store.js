@@ -24,7 +24,8 @@ export const SCHEMA = {
       additionalProperties: false,
       properties: {
         spaceId: { type: "string" },
-        lastJoinedHubId: { type: "string" },
+        lastJoinedHubId: { type: "string" }, // Deprecated
+        lastJoinedHubIds: { type: "object" },
         isFirstVisitToSpace: { type: "boolean" }, // true the very first time a space is visited, for initial setup
         isSpaceCreator: { type: "boolean" } // true if this user ever created a space on this device
       }
@@ -332,6 +333,12 @@ export default class Store extends EventTarget {
     }
 
     this.clearOnLoadActions();
+  }
+
+  setLastJoinedHubId(spaceId, hubId) {
+    const lastJoinedHubIds = this.state.context.lastJoinedHubIds || {};
+    lastJoinedHubIds[spaceId] = hubId;
+    this.update({ context: { lastJoinedHubIds } });
   }
 
   clearOnLoadActions() {

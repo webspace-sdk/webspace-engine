@@ -79,7 +79,7 @@ export default function InviteUI({ store, inviteId, onInviteAccepted, showSignIn
     await fetchReticulumAuthenticated(`/api/v1/accounts/${store.credentialsAccountId}/memberships`, "POST", {
       invite_id: inviteId
     });
-    store.update({ context: { spaceId, lastJoinedHubId: "" } });
+    store.update({ context: { spaceId } });
     onInviteAccepted();
   };
 

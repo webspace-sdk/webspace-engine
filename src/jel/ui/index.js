@@ -168,7 +168,12 @@ async function redirectedToLoggedInRoot() {
   }
 
   let spaceId = store.state && store.state.context && store.state.context.spaceId;
-  const lastJoinedHubId = spaceId && store.state && store.state.context && store.state.context.lastJoinedHubId;
+  const lastJoinedHubId =
+    spaceId &&
+    store.state &&
+    store.state.context &&
+    store.state.context.lastJoinedHubIds &&
+    store.state.context.lastJoinedHubIds[spaceId];
 
   if (lastJoinedHubId) {
     const lastHubRes = await fetchReticulumAuthenticated(`/api/v1/hubs/${lastJoinedHubId}`);
@@ -189,7 +194,7 @@ async function redirectedToLoggedInRoot() {
   if (!membership && res.memberships.length > 0) {
     spaceId = [...res.memberships].sort(m => m.joined_at).pop().space.space_id;
     membership = res.memberships.filter(m => m.space.space_id === spaceId)[0];
-    store.update({ context: { spaceId, lastJoinedHubId: "" } });
+    store.update({ context: { spaceId } });
   }
 
   if (membership) {
@@ -271,7 +276,7 @@ function JelIndexUI({ authResult }) {
 
               const { space_id } = await createSpace();
               store.update({
-                context: { spaceId: space_id, lastJoinedHubId: "", isSpaceCreator: true, isFirstVisitToSpace: true }
+                context: { spaceId: space_id, isSpaceCreator: true, isFirstVisitToSpace: true }
               });
               redirectedToLoggedInRoot();
             }}
