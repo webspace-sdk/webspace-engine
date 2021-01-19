@@ -72,9 +72,14 @@ export class MediaPresenceSystem {
   tick() {
     this.frame++;
 
-    if (this.distanceDelayedNetworkIds.size > 0) {
+    // Handle setting things to present if they are delayed based on distance.
+    // Convert at most one every 10 frames to reduce hitching.
+    if (this.distanceDelayedNetworkIds.size > 0 && this.frame % 10 === 0) {
       for (const networkId of this.distanceDelayedNetworkIds) {
-        this.updateDesiredMediaPresence(this.mediaComponents.get(networkId).el);
+        const newPresence = this.updateDesiredMediaPresence(this.mediaComponents.get(networkId).el);
+
+        // Do at most one per every 10 frames.
+        if (newPresence === MEDIA_PRESENCE.PRESENT) break;
       }
     }
 
@@ -177,7 +182,10 @@ export class MediaPresenceSystem {
     if (this.desiredMediaPresence.get(networkId) !== presence) {
       this.desiredMediaPresence.set(networkId, presence);
       this.checkForNewTransitionsNextTick = true;
+      return presence;
     }
+
+    return null;
   }
 
   async beginTransitionOfMediaPresence(networkId, presence) {

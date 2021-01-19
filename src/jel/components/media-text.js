@@ -98,7 +98,6 @@ AFRAME.registerComponent("media-text", {
 
   init() {
     this.renderNextFrame = false;
-    this.textureIsStale = true;
     this.rerenderQuill = this.rerenderQuill.bind(this);
     this.localSnapCount = 0;
     this.isSnapping = false;
@@ -134,10 +133,7 @@ AFRAME.registerComponent("media-text", {
         !almostEqualVec3(oldData.backgroundColor, backgroundColor)
       ) {
         this.applyProperMaterialToMesh();
-
-        if (this.textureIsStale) {
-          this.rerenderQuill();
-        }
+        this.rerenderQuill();
       }
 
       if (oldData.font !== font) {
@@ -388,19 +384,11 @@ AFRAME.registerComponent("media-text", {
       this.data.transparent,
       this.data.font
     );
-
-    this.textureIsStale = false;
   },
 
   rerenderQuill() {
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-    const mediaPresence = mediaPresenceSystem.getMediaPresence(this);
-
-    if (mediaPresence === MEDIA_PRESENCE.PRESENT) {
-      this.renderNextFrame = true;
-    } else {
-      this.textureIsStale = true;
-    }
+    this.renderNextFrame = true;
+    // TODO priority queue in a system
   },
 
   applyProperMaterialToMesh() {
