@@ -430,6 +430,7 @@ AFRAME.registerComponent("media-text", {
 
     const quill = getQuill(networkId);
     quill.off("text-change", this.rerenderQuill);
+    quill.container.querySelector(".ql-editor").removeEventListener("scroll", this.rerenderQuill);
     this.el.components.shared.unbindRichTextEditor(this.name, "deltaOps");
     destroyQuill(networkId);
     this.quill = null;
