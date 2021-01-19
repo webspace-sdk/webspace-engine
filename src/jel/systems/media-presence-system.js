@@ -1,11 +1,12 @@
 import { ensureOwnership, getNetworkId, getNetworkedEntity } from "../utils/ownership-utils";
-import { HIDE_AT_DISTANCE_MEDIA_VIEW_COMPONENTS, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
+import { DISTANCE_DELAYED_MEDIA_VIEW_COMPONENTS, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { normalizeCoord, denormalizeCoord } from "./wrapped-entity-system";
 
 export const MAX_MEDIA_LAYER = 7;
 const MAX_CONCURRENT_TRANSITIONS = 4;
 const tmpVec3 = new THREE.Vector3();
+const SQ_DISTANCE_TO_DELAY_PRESENCE = 300.0;
 
 AFRAME.registerComponent("shared-media", {
   schema: {
@@ -42,10 +43,13 @@ export class MediaPresenceSystem {
     this.mediaPresence = new Map();
     this.desiredMediaPresence = new Map();
     this.mediaComponents = new Map();
-    this.hidableMediaNetworkIds = new Array();
     this.transitioningNetworkIds = new Set();
     this.avatarPovEl = null;
     this.frame = 0;
+
+    // For certain media, we delay setting it from hidden to present for the first time if it is
+    // far away, to minimize initial hitching when joining a world.
+    this.distanceDelayedNetworkIds = new Set();
 
     waitForDOMContentLoaded().then(() => {
       this.avatarPovEl = document.querySelector("#avatar-pov-node");
@@ -68,11 +72,10 @@ export class MediaPresenceSystem {
   tick() {
     this.frame++;
 
-    for (let i = 0; i < this.hidableMediaNetworkIds.length; i++) {
-      const networkId = this.hidableMediaNetworkIds[i];
-      const { el } = this.mediaComponents.get(networkId);
-
-      this.updateDesiredMediaPresence(el);
+    if (this.distanceDelayedNetworkIds.size > 0) {
+      for (const networkId of this.distanceDelayedNetworkIds) {
+        this.updateDesiredMediaPresence(this.mediaComponents.get(networkId).el);
+      }
     }
 
     if (!this.checkForNewTransitionsNextTick) return;
@@ -145,30 +148,31 @@ export class MediaPresenceSystem {
   updateDesiredMediaPresence(el) {
     const networkId = getNetworkId(el);
     const mediaLayer = el.components["media-loader"].data.mediaLayer;
-    let isWithinRange = true;
 
-    if (this.avatarPovEl) {
-      const isHidableWithDistance = !!HIDE_AT_DISTANCE_MEDIA_VIEW_COMPONENTS.find(name => !!el.components[name]);
+    let shouldDelay = false;
 
-      if (isHidableWithDistance) {
-        isWithinRange = false;
+    if (this.avatarPovEl && this.distanceDelayedNetworkIds.has(networkId)) {
+      shouldDelay = true;
 
-        const avatarPovNode = this.avatarPovEl.object3D;
-        avatarPovNode.getWorldPosition(tmpVec3);
-        const ax = tmpVec3.x;
-        const az = tmpVec3.z;
+      const avatarPovNode = this.avatarPovEl.object3D;
+      avatarPovNode.getWorldPosition(tmpVec3);
+      const ax = tmpVec3.x;
+      const az = tmpVec3.z;
 
-        el.object3D.getWorldPosition(tmpVec3);
-        const ox = denormalizeCoord(normalizeCoord(tmpVec3.x), ax);
-        const oz = denormalizeCoord(normalizeCoord(tmpVec3.z), az);
+      el.object3D.getWorldPosition(tmpVec3);
+      const ox = denormalizeCoord(normalizeCoord(tmpVec3.x), ax);
+      const oz = denormalizeCoord(normalizeCoord(tmpVec3.z), az);
 
-        const distSq = (ax - ox) * (ax - ox) + (az - oz) * (az - oz);
-        isWithinRange = distSq <= 250.0;
+      const distSq = (ax - ox) * (ax - ox) + (az - oz) * (az - oz);
+      shouldDelay = distSq > SQ_DISTANCE_TO_DELAY_PRESENCE;
+
+      if (!shouldDelay) {
+        this.distanceDelayedNetworkIds.delete(networkId);
       }
     }
 
     const presence =
-      isWithinRange && this.isMediaLayerActive(mediaLayer) ? MEDIA_PRESENCE.PRESENT : MEDIA_PRESENCE.HIDDEN;
+      !shouldDelay && this.isMediaLayerActive(mediaLayer) ? MEDIA_PRESENCE.PRESENT : MEDIA_PRESENCE.HIDDEN;
 
     if (this.desiredMediaPresence.get(networkId) !== presence) {
       this.desiredMediaPresence.set(networkId, presence);
@@ -196,10 +200,10 @@ export class MediaPresenceSystem {
           const networkId = getNetworkId(networkedEl);
           this.mediaComponents.set(networkId, component);
 
-          const isHidable = !!HIDE_AT_DISTANCE_MEDIA_VIEW_COMPONENTS.find(n => component.name === n);
+          const isDelayed = !!DISTANCE_DELAYED_MEDIA_VIEW_COMPONENTS.find(n => component.name === n);
 
-          if (isHidable && !this.hidableMediaNetworkIds.includes(networkId)) {
-            this.hidableMediaNetworkIds.push(networkId);
+          if (isDelayed) {
+            this.distanceDelayedNetworkIds.add(networkId);
           }
 
           this.updateDesiredMediaPresence(component.el);
@@ -214,14 +218,10 @@ export class MediaPresenceSystem {
     for (const [networkId, c] of this.mediaComponents) {
       if (c !== component) continue;
       this.mediaComponents.delete(networkId);
+      this.distanceDelayedNetworkIds.delete(networkId);
       this.desiredMediaPresence.delete(networkId);
       this.mediaPresence.delete(component);
       this.checkForNewTransitionsNextTick = true;
-
-      const idx = this.hidableMediaNetworkIds.indexOf(networkId);
-      if (idx !== -1) {
-        this.hidableMediaNetworkIds.splice(idx, 1);
-      }
 
       break;
     }

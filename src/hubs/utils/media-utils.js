@@ -52,7 +52,7 @@ export const MEDIA_VIEW_COMPONENTS = [
 
 export const PAGABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-pdf"];
 export const BAKABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-text", "media-pdf"];
-export const HIDE_AT_DISTANCE_MEDIA_VIEW_COMPONENTS = [
+export const DISTANCE_DELAYED_MEDIA_VIEW_COMPONENTS = [
   "media-text",
   "media-pdf",
   "media-emoji",

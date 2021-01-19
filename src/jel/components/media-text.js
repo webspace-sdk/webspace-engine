@@ -162,6 +162,9 @@ AFRAME.registerComponent("media-text", {
       this.mesh.visible = false;
     }
 
+    this.unbindAndRemoveQuill();
+    this.quill = null;
+
     mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
   },
 
@@ -375,7 +378,6 @@ AFRAME.registerComponent("media-text", {
       this.mesh.matrixNeedsUpdate = true;
     };
 
-    console.log("render");
     renderQuillToImg(
       this.quill,
       img,
