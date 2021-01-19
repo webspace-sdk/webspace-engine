@@ -1,8 +1,11 @@
 import { ensureOwnership, getNetworkId, getNetworkedEntity } from "../utils/ownership-utils";
-import { MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
+import { HIDE_AT_DISTANCE_MEDIA_VIEW_COMPONENTS, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
+import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { normalizeCoord, denormalizeCoord } from "./wrapped-entity-system";
 
 export const MAX_MEDIA_LAYER = 7;
 const MAX_CONCURRENT_TRANSITIONS = 4;
+const tmpVec3 = new THREE.Vector3();
 
 AFRAME.registerComponent("shared-media", {
   schema: {
@@ -19,16 +22,6 @@ AFRAME.registerComponent("shared-media", {
   },
 
   update(oldData) {
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-
-    if (oldData.activeMediaLayers !== this.data.activeMediaLayers) {
-      for (const entity of Object.values(SAF.entities.entities)) {
-        if (entity.components["media-loader"]) {
-          mediaPresenceSystem.updateDesiredMediaPresence(entity);
-        }
-      }
-    }
-
     if (oldData.selectedMediaLayer !== this.data.selectedMediaLayer) {
       this.el.sceneEl.emit("scene_selected_media_layer_changed", {
         selectedMediaLayer: this.data.selectedMediaLayer
@@ -49,7 +42,14 @@ export class MediaPresenceSystem {
     this.mediaPresence = new Map();
     this.desiredMediaPresence = new Map();
     this.mediaComponents = new Map();
+    this.hidableMediaNetworkIds = new Array();
     this.transitioningNetworkIds = new Set();
+    this.avatarPovEl = null;
+    this.frame = 0;
+
+    waitForDOMContentLoaded().then(() => {
+      this.avatarPovEl = document.querySelector("#avatar-pov-node");
+    });
   }
 
   getMediaPresence(component) {
@@ -66,7 +66,17 @@ export class MediaPresenceSystem {
   }
 
   tick() {
+    this.frame++;
+
+    for (let i = 0; i < this.hidableMediaNetworkIds.length; i++) {
+      const networkId = this.hidableMediaNetworkIds[i];
+      const { el } = this.mediaComponents.get(networkId);
+
+      this.updateDesiredMediaPresence(el);
+    }
+
     if (!this.checkForNewTransitionsNextTick) return;
+
     this.checkForNewTransitionsNextTick = false;
 
     // Look for new transitions
@@ -135,10 +145,35 @@ export class MediaPresenceSystem {
   updateDesiredMediaPresence(el) {
     const networkId = getNetworkId(el);
     const mediaLayer = el.components["media-loader"].data.mediaLayer;
-    const presence = this.isMediaLayerActive(mediaLayer) ? MEDIA_PRESENCE.PRESENT : MEDIA_PRESENCE.HIDDEN;
+    let isWithinRange = true;
 
-    this.desiredMediaPresence.set(networkId, presence);
-    this.checkForNewTransitionsNextTick = true;
+    if (this.avatarPovEl) {
+      const isHidableWithDistance = !!HIDE_AT_DISTANCE_MEDIA_VIEW_COMPONENTS.find(name => !!el.components[name]);
+
+      if (isHidableWithDistance) {
+        isWithinRange = false;
+
+        const avatarPovNode = this.avatarPovEl.object3D;
+        avatarPovNode.getWorldPosition(tmpVec3);
+        const ax = tmpVec3.x;
+        const az = tmpVec3.z;
+
+        el.object3D.getWorldPosition(tmpVec3);
+        const ox = denormalizeCoord(normalizeCoord(tmpVec3.x), ax);
+        const oz = denormalizeCoord(normalizeCoord(tmpVec3.z), az);
+
+        const distSq = (ax - ox) * (ax - ox) + (az - oz) * (az - oz);
+        isWithinRange = distSq <= 250.0;
+      }
+    }
+
+    const presence =
+      isWithinRange && this.isMediaLayerActive(mediaLayer) ? MEDIA_PRESENCE.PRESENT : MEDIA_PRESENCE.HIDDEN;
+
+    if (this.desiredMediaPresence.get(networkId) !== presence) {
+      this.desiredMediaPresence.set(networkId, presence);
+      this.checkForNewTransitionsNextTick = true;
+    }
   }
 
   async beginTransitionOfMediaPresence(networkId, presence) {
@@ -160,6 +195,13 @@ export class MediaPresenceSystem {
         .then(networkedEl => {
           const networkId = getNetworkId(networkedEl);
           this.mediaComponents.set(networkId, component);
+
+          const isHidable = !!HIDE_AT_DISTANCE_MEDIA_VIEW_COMPONENTS.find(n => component.name === n);
+
+          if (isHidable && !this.hidableMediaNetworkIds.includes(networkId)) {
+            this.hidableMediaNetworkIds.push(networkId);
+          }
+
           this.updateDesiredMediaPresence(component.el);
         })
         .catch(() => {}); //ignore exception, entity might not be networked
@@ -175,6 +217,12 @@ export class MediaPresenceSystem {
       this.desiredMediaPresence.delete(networkId);
       this.mediaPresence.delete(component);
       this.checkForNewTransitionsNextTick = true;
+
+      const idx = this.hidableMediaNetworkIds.indexOf(networkId);
+      if (idx !== -1) {
+        this.hidableMediaNetworkIds.splice(idx, 1);
+      }
+
       break;
     }
   }

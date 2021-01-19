@@ -98,6 +98,7 @@ AFRAME.registerComponent("media-text", {
 
   init() {
     this.renderNextFrame = false;
+    this.textureIsStale = true;
     this.rerenderQuill = this.rerenderQuill.bind(this);
     this.localSnapCount = 0;
     this.isSnapping = false;
@@ -133,7 +134,10 @@ AFRAME.registerComponent("media-text", {
         !almostEqualVec3(oldData.backgroundColor, backgroundColor)
       ) {
         this.applyProperMaterialToMesh();
-        this.rerenderQuill();
+
+        if (this.textureIsStale) {
+          this.rerenderQuill();
+        }
       }
 
       if (oldData.font !== font) {
@@ -157,9 +161,6 @@ AFRAME.registerComponent("media-text", {
     if (this.mesh) {
       this.mesh.visible = false;
     }
-
-    this.unbindAndRemoveQuill();
-    this.quill = null;
 
     mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
   },
@@ -374,6 +375,7 @@ AFRAME.registerComponent("media-text", {
       this.mesh.matrixNeedsUpdate = true;
     };
 
+    console.log("render");
     renderQuillToImg(
       this.quill,
       img,
@@ -384,11 +386,19 @@ AFRAME.registerComponent("media-text", {
       this.data.transparent,
       this.data.font
     );
+
+    this.textureIsStale = false;
   },
 
   rerenderQuill() {
-    this.renderNextFrame = true;
-    // TODO priority queue in a system
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+    const mediaPresence = mediaPresenceSystem.getMediaPresence(this);
+
+    if (mediaPresence === MEDIA_PRESENCE.PRESENT) {
+      this.renderNextFrame = true;
+    } else {
+      this.textureIsStale = true;
+    }
   },
 
   applyProperMaterialToMesh() {
@@ -430,6 +440,7 @@ AFRAME.registerComponent("media-text", {
 
     const quill = getQuill(networkId);
     quill.off("text-change", this.rerenderQuill);
+    quill.container.querySelector(".ql-editor").removeEventListener("scroll", this.rerenderQuill);
     this.el.components.shared.unbindRichTextEditor(this.name, "deltaOps");
     destroyQuill(networkId);
     this.quill = null;
