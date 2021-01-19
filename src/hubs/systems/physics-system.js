@@ -355,12 +355,15 @@ export class PhysicsSystem {
   removeBody(uuid) {
     this.duringNextTick(() => {
       const idx = this.bodyUuids.indexOf(uuid);
-      if (this.bodyUuidToData.has(uuid) && idx !== -1) {
+      if (idx !== -1) {
+        this.bodyUuids.splice(idx, 1);
+      }
+
+      if (this.bodyUuidToData.has(uuid)) {
         const { added } = this.bodyUuidToData.get(uuid);
         delete this.indexToUuid[this.bodyUuidToData.get(uuid).index];
         this.bodyUuidToData.delete(uuid);
         this.bodyReadyCallbacks.delete(uuid);
-        this.bodyUuids.splice(idx, 1);
 
         if (added) {
           this.workerHelpers.removeBody(uuid);

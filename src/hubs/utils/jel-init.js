@@ -8,13 +8,17 @@ import { clearResolveUrlCache } from "./media-utils";
 import { addNewHubToTree } from "../../jel/utils/tree-utils";
 import { getMessages } from "./i18n";
 import { SOUND_CHAT_MESSAGE } from "../systems/sound-effects-system";
+import { navigateToHubUrl } from "../../jel/utils/jel-url-utils";
 import qsTruthy from "./qs_truthy";
 import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
 import HubStore from "../storage/hub-store";
+import WorldImporter from "../../jel/utils/world-importer";
 import mixpanel from "mixpanel-browser";
+import welcomeTemplateSrc from "!!url-loader!../../jel/templates/welcome.html";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
+const MAX_TEMPLATE_SYNC_FREQUENCY_MS = 1000 * 60 * 60 * 24;
 
 const isDebug = qsTruthy("debug");
 const isMobile = AFRAME.utils.device.isMobile();
@@ -60,6 +64,40 @@ async function updateEnvironmentForHub(hub) {
   sceneEl.addState("visible");
 
   terrainSystem.updateWorld(hub.world.type, hub.world.seed);
+}
+
+function getHtmlForTemplate(name) {
+  let data = null;
+
+  switch (name) {
+    case "welcome":
+      data = welcomeTemplateSrc;
+      break;
+  }
+
+  if (!data) return null;
+
+  return atob(data.replace("data:text/html;base64,", ""));
+}
+
+async function applyTemplateToHub(hub) {
+  const { hubChannel } = window.APP;
+
+  if (!hubChannel.can("spawn_and_move_media")) return;
+  const { synced_at, name, hash } = hub.template;
+  const html = getHtmlForTemplate(name);
+  if (!html) return;
+
+  const hashData = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(html));
+  const hashArray = Array.from(new Uint8Array(hashData));
+  const newHash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+
+  const shouldSync =
+    name && hash !== newHash && (!synced_at || new Date() - new Date(synced_at) > MAX_TEMPLATE_SYNC_FREQUENCY_MS);
+  if (!shouldSync) return;
+
+  await new WorldImporter().importHtmlToCurrentWorld(html);
+  window.APP.hubChannel.templateSynced(newHash);
 }
 
 async function moveToInitialHubLocation(hub, hubStore) {
@@ -577,6 +615,7 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
           hubMetadata.ensureMetadataForIds([hub.hub_id]);
           updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
           updateEnvironmentForHub(hub);
+          applyTemplateToHub(hub);
 
           if (isInitialJoin) {
             THREE.Cache.clear();
@@ -782,10 +821,20 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
       hubMetadata.ensureMetadataForIds([homeHub.hub_id]);
 
       if (store.state.context.isFirstVisitToSpace) {
-        // First time space setup, create initial public world. TODO do this server-side.
-        const firstWorldName = getMessages()["space.initial-world-name"];
-        await addNewHubToTree(history, treeManager, spaceId, null, firstWorldName);
+        const hubs = {};
 
+        // First time space setup, create initial public worlds. TODO do this server-side.
+        for (const world of ["welcome", "whats-new"]) {
+          const name = getMessages()[`space.${world}-world-name`];
+          const templateName = world;
+          const html = getHtmlForTemplate(templateName);
+          const [worldType, worldSeed] = new WorldImporter().getWorldTypeAndSeedFromHtml(html);
+
+          hubs[world] = await addNewHubToTree(treeManager, spaceId, null, name, world, worldType, worldSeed);
+        }
+
+        console.log(hubs);
+        navigateToHubUrl(history, hubs.welcome.url);
         store.update({ context: { isFirstVisitToSpace: false } });
       }
 

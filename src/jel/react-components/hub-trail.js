@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useCallback, useState, useRef } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
@@ -51,6 +51,10 @@ const HubTrailHubItem = styled.button`
     font-weight: var(--canvas-overlay-item-secondary-text-weight);
     font-size: var(--canvas-overlay-secondary-text-size);
     line-height: calc(var(--canvas-overlay-secondary-text-size) + 2px);
+  }
+
+  &.denied {
+    pointer-events: none;
   }
 
   &:hover {
@@ -109,12 +113,22 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata, history, renameP
   }
 
   const primaryHubId = hubIdsToShow[hubIdsToShow.length - 1];
+  const canRename = hubCan("update_hub_meta", primaryHubId);
+
   items.push(
     <HubTrailHubItem
       key="primary-item"
+      className={canRename ? "" : "denied"}
       ref={primaryItemRef}
       onMouseDown={e => cancelEventIfFocusedWithin(e, renamePopupElement)}
-      onClick={() => showRenamePopup(primaryHubId, primaryItemRef, null, null)}
+      onClick={useCallback(
+        () => {
+          if (canRename) {
+            showRenamePopup(primaryHubId, primaryItemRef, null, null);
+          }
+        },
+        [canRename, primaryHubId, primaryItemRef, showRenamePopup]
+      )}
     >
       {names[hubIdsToShow.length - 1]}
     </HubTrailHubItem>

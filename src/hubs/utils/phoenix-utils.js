@@ -187,13 +187,21 @@ export async function createSpace(name) {
   return res;
 }
 
-export async function createHub(spaceId, name, sceneId) {
+export async function createHub(spaceId, name, template, worldType = null, worldSeed = null) {
   const store = window.APP.store;
   const createUrl = getReticulumFetchUrl("/api/v1/hubs");
   const payload = { hub: { name, space_id: spaceId } };
 
-  if (sceneId) {
-    payload.hub.scene_id = sceneId;
+  if (template) {
+    payload.hub.template = template;
+  }
+
+  if (worldType !== null) {
+    payload.hub.world_type = worldType;
+  }
+
+  if (worldSeed !== null) {
+    payload.hub.world_seed = worldSeed;
   }
 
   const headers = { "content-type": "application/json" };

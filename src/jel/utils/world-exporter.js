@@ -26,7 +26,18 @@ export default class WorldExporter {
     const jelSchema = doc.createElement("meta");
     jelSchema.setAttribute("name", "jel-schema");
     jelSchema.setAttribute("content", "world-1.0");
+
+    const jelWorldType = doc.createElement("meta");
+    jelWorldType.setAttribute("name", "jel-world-type");
+    jelWorldType.setAttribute("content", `${metadata.world.type}`);
+
+    const jelWorldSeed = doc.createElement("meta");
+    jelWorldSeed.setAttribute("name", "jel-world-seed");
+    jelWorldSeed.setAttribute("content", `${metadata.world.seed}`);
+
     doc.head.appendChild(jelSchema);
+    doc.head.appendChild(jelWorldType);
+    doc.head.appendChild(jelWorldSeed);
 
     const mediaEls = [...document.querySelectorAll("[shared]")].filter(el => el.components["media-loader"]);
 

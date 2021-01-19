@@ -33,12 +33,25 @@ const transformUnitToRadians = s => {
 };
 
 export default class WorldImporter {
-  importHtmlToCurrentWorld(html) {
+  importHtmlToCurrentWorld(html, replaceExisting = true) {
     const doc = new DOMParser().parseFromString(html, "text/html");
 
     if (doc.body && doc.querySelector(`meta[name='jel-schema']`)) {
-      this.importJelDocument(doc);
+      return this.importJelDocument(doc, replaceExisting);
     }
+  }
+
+  getWorldTypeAndSeedFromHtml(html) {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+
+    if (doc.body && doc.querySelector(`meta[name='jel-schema']`)) {
+      const worldType = doc.querySelector("meta[name='jel-world-type']").getAttribute("content");
+      const worldSeed = doc.querySelector("meta[name='jel-world-seed']").getAttribute("content");
+
+      return [worldType, worldSeed];
+    }
+
+    return [null, null];
   }
 
   async importJelDocument(doc, replaceExisting = true) {

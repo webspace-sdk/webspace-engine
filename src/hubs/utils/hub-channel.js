@@ -106,6 +106,10 @@ export default class HubChannel extends EventTarget {
     this.channel.push("message", payload);
   };
 
+  templateSynced = template_hash => {
+    this.channel.push("hub_template_synced", { template_hash });
+  };
+
   fetchPermissions = () => {
     if (!this.channel) return;
 
