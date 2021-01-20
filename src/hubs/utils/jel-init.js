@@ -14,10 +14,10 @@ import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from ".
 import HubStore from "../storage/hub-store";
 import WorldImporter from "../../jel/utils/world-importer";
 import mixpanel from "mixpanel-browser";
-import firstTemplateSrc from "!!url-loader!../../jel/templates/first.html";
-import welcomeTemplateSrc from "!!url-loader!../../jel/templates/welcome.html";
-import whatsNewTemplateSrc from "!!url-loader!../../jel/templates/whats-new.html";
-import faqTemplateSrc from "!!url-loader!../../jel/templates/faq.html";
+import firstTemplateSrc from "../../jel/templates/first.html";
+import welcomeTemplateSrc from "../../jel/templates/welcome.html";
+import whatsNewTemplateSrc from "../../jel/templates/whats-new.html";
+import faqTemplateSrc from "../../jel/templates/faq.html";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
@@ -87,9 +87,7 @@ function getHtmlForTemplate(name) {
       break;
   }
 
-  if (!data) return null;
-
-  return atob(data.replace("data:text/html;base64,", ""));
+  return data;
 }
 
 async function applyTemplateToHub(hub) {
