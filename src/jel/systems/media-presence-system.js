@@ -76,7 +76,8 @@ export class MediaPresenceSystem {
     // Convert at most one every 10 frames to reduce hitching.
     if (this.distanceDelayedNetworkIds.size > 0 && this.frame % 10 === 0) {
       for (const networkId of this.distanceDelayedNetworkIds) {
-        const newPresence = this.updateDesiredMediaPresence(this.mediaComponents.get(networkId).el);
+        const el = this.mediaComponents.get(networkId).el;
+        const newPresence = this.updateDesiredMediaPresence(el);
 
         // Do at most one per every 10 frames.
         if (newPresence === MEDIA_PRESENCE.PRESENT) break;
@@ -156,7 +157,9 @@ export class MediaPresenceSystem {
 
     let shouldDelay = false;
 
-    if (this.avatarPovEl && this.distanceDelayedNetworkIds.has(networkId)) {
+    if (this.distanceDelayedNetworkIds.has(networkId)) {
+      if (!this.avatarPovEl) return;
+
       shouldDelay = true;
 
       const avatarPovNode = this.avatarPovEl.object3D;
@@ -170,16 +173,16 @@ export class MediaPresenceSystem {
 
       const distSq = (ax - ox) * (ax - ox) + (az - oz) * (az - oz);
       shouldDelay = distSq > SQ_DISTANCE_TO_DELAY_PRESENCE;
-
-      if (!shouldDelay) {
-        this.distanceDelayedNetworkIds.delete(networkId);
-      }
     }
 
     const presence =
       !shouldDelay && this.isMediaLayerActive(mediaLayer) ? MEDIA_PRESENCE.PRESENT : MEDIA_PRESENCE.HIDDEN;
 
     if (this.desiredMediaPresence.get(networkId) !== presence) {
+      if (presence === MEDIA_PRESENCE.PRESENT && this.distanceDelayedNetworkIds.has(networkId)) {
+        this.distanceDelayedNetworkIds.delete(networkId);
+      }
+
       this.desiredMediaPresence.set(networkId, presence);
       this.checkForNewTransitionsNextTick = true;
       return presence;

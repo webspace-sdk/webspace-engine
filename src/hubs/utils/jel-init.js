@@ -104,12 +104,18 @@ async function applyTemplateToHub(hub) {
   const hashArray = Array.from(new Uint8Array(hashData));
   const newHash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
   const isRepeatSyncTemplate = name !== "first"; // Don't clobber the first world, just the others.
+  const isByMyself =
+    hubChannel.presence && hubChannel.presence.state && Object.keys(hubChannel.presence.state).length == 1; // Don't sync templates when others are here.
 
   const shouldSync =
+    isByMyself &&
     name &&
     hash !== newHash &&
     (!synced_at || (isRepeatSyncTemplate && new Date() - new Date(synced_at) > MAX_TEMPLATE_SYNC_FREQUENCY_MS));
   if (!shouldSync) return;
+
+  // Hacky add delay so existing entities can load.
+  await new Promise(res => setTimeout(res, 5000));
 
   await new WorldImporter().importHtmlToCurrentWorld(html, true, true);
   window.APP.hubChannel.templateSynced(newHash);

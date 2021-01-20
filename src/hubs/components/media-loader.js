@@ -174,6 +174,7 @@ AFRAME.registerComponent("media-loader", {
   onError() {
     this.setToSingletonMediaComponent("media-image", { src: "error" });
     this.cleanupLoader(true);
+    this.el.emit("media-loader-failed");
   },
 
   async showLoader() {
@@ -654,6 +655,8 @@ AFRAME.registerComponent("media-loader", {
       } else {
         throw new Error(`Unsupported content type: ${contentType}`);
       }
+
+      this.el.emit("media-view-added");
     } catch (e) {
       if (this.el.components["position-at-border__freeze"]) {
         this.el.setAttribute("position-at-border__freeze", { isFlat: true });

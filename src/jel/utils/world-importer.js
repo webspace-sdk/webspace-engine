@@ -55,7 +55,9 @@ export default class WorldImporter {
   }
 
   async importJelDocument(doc, replaceExisting = true, removeEntitiesNotInTemplate = false) {
-    const { terrainSystem } = AFRAME.scenes[0].systems["hubs-systems"];
+    const { terrainSystem, autoQualitySystem } = AFRAME.scenes[0].systems["hubs-systems"];
+    autoQualitySystem.stopTracking();
+
     const prepareImportPromises = [];
     const docEntityIds = new Set();
 
@@ -93,21 +95,24 @@ export default class WorldImporter {
       }
     }
 
-    //if (removeEntitiesNotInTemplate) {
-    //  const toRemove = [...(document.querySelectorAll("[shared]") || [])].filter(
-    //    el => !docEntityIds.has(el.getAttribute("id"))
-    //  );
+    if (removeEntitiesNotInTemplate) {
+      const toRemove = [...(document.querySelectorAll("[shared]") || [])].filter(
+        el => !docEntityIds.has(el.getAttribute("id"))
+      );
 
-    //  for (const el of toRemove) {
-    //    el.parentNode.removeChild(el);
-    //  }
-    //}
+      for (const el of toRemove) {
+        if (el.components["media-loader"]) {
+          el.parentNode.removeChild(el);
+        }
+      }
+    }
 
     // Terrain system needs to pre-cache all the heightmaps, since this routine
     // will need to globally reference the terrain heights to place the new media properly in Y.
     prepareImportPromises.push(terrainSystem.loadAllHeightMaps());
 
     await Promise.all(prepareImportPromises);
+    let pendingCount = 0;
 
     for (const el of doc.body.childNodes) {
       const id = el.id;
@@ -302,10 +307,21 @@ export default class WorldImporter {
           scale
         );
 
+        pendingCount++;
+
         entity.addEventListener(
-          "media-loaded",
+          "media-view-added",
           () => {
             object3D.applyMatrix(matrix);
+            pendingCount--;
+          },
+          { once: true }
+        );
+
+        entity.addEventListener(
+          "media-loader-failed",
+          () => {
+            pendingCount--;
           },
           { once: true }
         );
@@ -313,6 +329,20 @@ export default class WorldImporter {
 
       doc.body.removeChild(styleEl);
     }
+
+    // Wait until all new media is loaded before we begin tracking
+    // framerate again.
+    const interval = setInterval(() => {
+      if (pendingCount === 0) {
+        clearInterval(interval);
+
+        // Hacky, other place where tracking is stopped is in jel.js
+        // when doucment is blurred.
+        if (!document.body.classList.contains("paused")) {
+          autoQualitySystem.startTracking();
+        }
+      }
+    }, 1000);
   }
 }
 
