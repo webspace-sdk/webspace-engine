@@ -13,15 +13,11 @@ import qsTruthy from "./qs_truthy";
 import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
 import HubStore from "../storage/hub-store";
 import WorldImporter from "../../jel/utils/world-importer";
+import { getHtmlForTemplate, applyTemplate } from "../../jel/utils/template-utils";
 import mixpanel from "mixpanel-browser";
-import firstTemplateSrc from "../../jel/templates/first.html";
-import welcomeTemplateSrc from "../../jel/templates/welcome.html";
-import whatsNewTemplateSrc from "../../jel/templates/whats-new.html";
-import faqTemplateSrc from "../../jel/templates/faq.html";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
-const MAX_TEMPLATE_SYNC_FREQUENCY_MS = 1000 * 60 * 60 * 24;
 
 const isDebug = qsTruthy("debug");
 const isMobile = AFRAME.utils.device.isMobile();
@@ -67,54 +63,6 @@ async function updateEnvironmentForHub(hub) {
   sceneEl.addState("visible");
 
   terrainSystem.updateWorld(hub.world.type, hub.world.seed);
-}
-
-function getHtmlForTemplate(name) {
-  let data = null;
-
-  switch (name) {
-    case "first":
-      data = firstTemplateSrc;
-      break;
-    case "welcome":
-      data = welcomeTemplateSrc;
-      break;
-    case "faq":
-      data = faqTemplateSrc;
-      break;
-    case "whats-new":
-      data = whatsNewTemplateSrc;
-      break;
-  }
-
-  return data;
-}
-
-async function applyTemplateToHub(hub) {
-  const { hubChannel } = window.APP;
-
-  if (!hubChannel.can("spawn_and_move_media")) return;
-  const { synced_at, name, hash } = hub.template;
-  const html = getHtmlForTemplate(name);
-  if (!html) return;
-
-  const hashData = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(html));
-  const hashArray = Array.from(new Uint8Array(hashData));
-  const newHash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
-  const isRepeatSyncTemplate = name !== "first"; // Don't clobber the first world, just the others.
-  const replaceExisting = hash !== newHash;
-  // Don't sync templates when others are here.
-  const isByMyself =
-    hubChannel.presence && hubChannel.presence.state && Object.keys(hubChannel.presence.state).length == 1;
-
-  const shouldSync =
-    isByMyself &&
-    name &&
-    (!synced_at || (isRepeatSyncTemplate && new Date() - new Date(synced_at) > MAX_TEMPLATE_SYNC_FREQUENCY_MS));
-  if (!shouldSync) return;
-
-  await new WorldImporter().importHtmlToCurrentWorld(html, replaceExisting, true);
-  window.APP.hubChannel.templateSynced(newHash);
 }
 
 async function moveToInitialHubLocation(hub, hubStore) {
@@ -650,7 +598,12 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
               .then(() => scene.components["shared-scene"].subscribe(hub.hub_id))
               .then(() => {
                 if (isInitialJoin) {
-                  return applyTemplateToHub(hub);
+                  const { name, hash } = hub.template;
+                  if (name) {
+                    return applyTemplate(name, hash);
+                  } else {
+                    return Promise.resolve();
+                  }
                 } else {
                   return Promise.resolve();
                 }
@@ -858,7 +811,7 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
           hubs[world] = await addNewHubToTree(treeManager, spaceId, null, name, world, worldType, worldSeed);
         }
 
-        navigateToHubUrl(history, hubs.welcome.url);
+        navigateToHubUrl(history, hubs.first.url);
         store.update({ context: { isFirstVisitToSpace: false } });
       }
 

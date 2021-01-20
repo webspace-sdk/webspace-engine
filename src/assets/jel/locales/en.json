@@ -19,6 +19,7 @@
   "hub-context.move-to-trash": "Move to Trash",
   "hub-context.export": "Export to HTML",
   "hub-context.import": "Import...",
+  "hub-context.reset-objects": "Reset Objects",
   "trash.restore": "Restore",
   "trash.destroy": "Delete Permanently",
   "trash.empty": "Trash is empty.",

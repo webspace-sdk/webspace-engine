@@ -4,6 +4,7 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import PopupMenu, { PopupMenuItem } from "./popup-menu";
 import trashIcon from "../../assets/jel/images/icons/trash.svgi";
+import restoreIcon from "../../assets/jel/images/icons/restore.svgi";
 import { FormattedMessage } from "react-intl";
 
 let popupRoot = null;
@@ -17,10 +18,12 @@ function HubContextMenu({
   spaceCan,
   hubCan,
   hideRename,
+  showReset,
   showExport,
   onRenameClick,
   onImportClick,
   onExportClick,
+  onResetClick,
   onTrashClick
 }) {
   if (!popupRoot || !spaceCan || !hubCan) return null;
@@ -72,6 +75,21 @@ function HubContextMenu({
     );
   }
 
+  if (hubId && showReset && hubCan("spawn_and_move_media", hubId)) {
+    items.push(
+      <PopupMenuItem
+        key={`reset-${hubId}`}
+        onClick={e => {
+          onResetClick(hubId);
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        iconSrc={restoreIcon}
+      >
+        <FormattedMessage id="hub-context.reset-objects" />
+      </PopupMenuItem>
+    );
+  }
   if (spaceCan("edit_nav") && hubId && hubCan("trash_hub", hubId)) {
     items.push(
       <PopupMenuItem

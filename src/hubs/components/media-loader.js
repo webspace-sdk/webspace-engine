@@ -52,6 +52,7 @@ AFRAME.registerComponent("media-loader", {
     contentSubtype: { default: null },
     mediaLayer: { default: null },
     addedLocally: { default: false },
+    showLoader: { default: false },
     animate: { default: true },
     linkedEl: { default: null }, // This is the element of which this is a linked derivative. See linked-media.js
     mediaOptions: {
@@ -211,7 +212,7 @@ AFRAME.registerComponent("media-loader", {
 
     this.updateScale(true, false);
 
-    if (this.el.sceneEl.is("entered") && this.data.addedLocally) {
+    if (this.el.sceneEl.is("entered") && this.data.showLoader) {
       this.loadingSoundEffect = this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playPositionalSoundFollowing(
         SOUND_MEDIA_LOADING,
         this.el.object3D,
@@ -279,7 +280,7 @@ AFRAME.registerComponent("media-loader", {
     const el = this.el;
     this.cleanupLoader();
 
-    if (this.el.sceneEl.is("entered") && this.data.addedLocally && this.data.animate) {
+    if (this.el.sceneEl.is("entered") && this.data.showLoader && this.data.animate) {
       this.loadedSoundEffect = this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playPositionalSoundFollowing(
         SOUND_MEDIA_LOADED,
         this.el.object3D,
@@ -307,7 +308,7 @@ AFRAME.registerComponent("media-loader", {
       el.emit("media-loaded");
     };
 
-    if (this.data.addedLocally && this.data.animate) {
+    if (this.data.showLoader && this.data.animate) {
       if (!this.animating) {
         this.animating = true;
         if (shouldUpdateScale) this.updateScale(this.data.fitToBox, this.data.moveTheParentNotTheMesh);
@@ -350,7 +351,7 @@ AFRAME.registerComponent("media-loader", {
     }
 
     try {
-      if ((forceLocalRefresh || mediaChanged) && !this.showLoaderTimeout && this.data.addedLocally) {
+      if ((forceLocalRefresh || mediaChanged) && !this.showLoaderTimeout && this.data.showLoader) {
         // Delay loader so we don't do it if media is locally cached, etc.
         this.showLoaderTimeout = setTimeout(this.showLoader, 100);
       }

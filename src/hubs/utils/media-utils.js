@@ -213,7 +213,8 @@ export const addMedia = (
   networked = true,
   parentEl = null,
   linkedEl = null,
-  networkId = null
+  networkId = null,
+  showLoader = true
 ) => {
   const scene = AFRAME.scenes[0];
 
@@ -268,6 +269,7 @@ export const addMedia = (
     src: typeof src === "string" && contents === null ? coerceToUrl(src) || src : "",
     initialContents: contents != null ? contents : null,
     addedLocally: true,
+    showLoader,
     version,
     contentSubtype,
     linkedEl,

@@ -154,6 +154,7 @@ import "./jel/systems/media-presence-system";
 import "./jel/systems/wrapped-entity-system";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
 import { isInEditableField } from "./jel/utils/dom-utils";
+import { applyTemplate } from "./jel/utils/template-utils";
 
 import "./hubs/gltf-component-mappings";
 
@@ -654,6 +655,14 @@ function addGlobalEventListeners(scene, entryManager) {
     }
 
     scene.systems["hubs-systems"].autoQualitySystem.startTracking();
+  });
+
+  scene.addEventListener("action_reset_objects", () => {
+    const hubId = hubChannel.hubId;
+    const metadata = hubMetadata.getMetadata(hubId);
+    if (!metadata || !metadata.template || !metadata.template.name) return;
+
+    applyTemplate(metadata.template.name, null, true);
   });
 }
 
