@@ -33,11 +33,11 @@ const transformUnitToRadians = s => {
 };
 
 export default class WorldImporter {
-  importHtmlToCurrentWorld(html, replaceExisting = true) {
+  importHtmlToCurrentWorld(html, replaceExisting = true, removeEntitiesNotInTemplate = false) {
     const doc = new DOMParser().parseFromString(html, "text/html");
 
     if (doc.body && doc.querySelector(`meta[name='jel-schema']`)) {
-      return this.importJelDocument(doc, replaceExisting);
+      return this.importJelDocument(doc, replaceExisting, removeEntitiesNotInTemplate);
     }
   }
 
@@ -54,14 +54,17 @@ export default class WorldImporter {
     return [null, null];
   }
 
-  async importJelDocument(doc, replaceExisting = true) {
+  async importJelDocument(doc, replaceExisting = true, removeEntitiesNotInTemplate = false) {
     const { terrainSystem } = AFRAME.scenes[0].systems["hubs-systems"];
     const prepareImportPromises = [];
+    const docEntityIds = new Set();
 
     if (replaceExisting) {
       for (const el of doc.body.childNodes) {
         const id = el.id;
         if (!id || id.length !== 7) continue; // Sanity check
+        docEntityIds.add(`naf-${id}`);
+
         const existingEl = document.getElementById(`naf-${id}`);
 
         if (existingEl) {
@@ -89,6 +92,16 @@ export default class WorldImporter {
         }
       }
     }
+
+    //if (removeEntitiesNotInTemplate) {
+    //  const toRemove = [...(document.querySelectorAll("[shared]") || [])].filter(
+    //    el => !docEntityIds.has(el.getAttribute("id"))
+    //  );
+
+    //  for (const el of toRemove) {
+    //    el.parentNode.removeChild(el);
+    //  }
+    //}
 
     // Terrain system needs to pre-cache all the heightmaps, since this routine
     // will need to globally reference the terrain heights to place the new media properly in Y.

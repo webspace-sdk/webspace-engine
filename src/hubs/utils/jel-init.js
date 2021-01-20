@@ -14,7 +14,10 @@ import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from ".
 import HubStore from "../storage/hub-store";
 import WorldImporter from "../../jel/utils/world-importer";
 import mixpanel from "mixpanel-browser";
+import firstTemplateSrc from "!!url-loader!../../jel/templates/first.html";
 import welcomeTemplateSrc from "!!url-loader!../../jel/templates/welcome.html";
+import whatsNewTemplateSrc from "!!url-loader!../../jel/templates/whats-new.html";
+import faqTemplateSrc from "!!url-loader!../../jel/templates/faq.html";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
@@ -70,8 +73,17 @@ function getHtmlForTemplate(name) {
   let data = null;
 
   switch (name) {
+    case "first":
+      data = firstTemplateSrc;
+      break;
     case "welcome":
       data = welcomeTemplateSrc;
+      break;
+    case "faq":
+      data = faqTemplateSrc;
+      break;
+    case "whats-new":
+      data = whatsNewTemplateSrc;
       break;
   }
 
@@ -91,12 +103,15 @@ async function applyTemplateToHub(hub) {
   const hashData = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(html));
   const hashArray = Array.from(new Uint8Array(hashData));
   const newHash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+  const isRepeatSyncTemplate = name !== "first"; // Don't clobber the first world, just the others.
 
   const shouldSync =
-    name && hash !== newHash && (!synced_at || new Date() - new Date(synced_at) > MAX_TEMPLATE_SYNC_FREQUENCY_MS);
+    name &&
+    hash !== newHash &&
+    (!synced_at || (isRepeatSyncTemplate && new Date() - new Date(synced_at) > MAX_TEMPLATE_SYNC_FREQUENCY_MS));
   if (!shouldSync) return;
 
-  await new WorldImporter().importHtmlToCurrentWorld(html);
+  await new WorldImporter().importHtmlToCurrentWorld(html, true, true);
   window.APP.hubChannel.templateSynced(newHash);
 }
 
@@ -824,7 +839,7 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
         const hubs = {};
 
         // First time space setup, create initial public worlds. TODO do this server-side.
-        for (const world of ["welcome", "whats-new"]) {
+        for (const world of ["first", "welcome", "whats-new", "faq"]) {
           const name = getMessages()[`space.${world}-world-name`];
           const templateName = world;
           const html = getHtmlForTemplate(templateName);
