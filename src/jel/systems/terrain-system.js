@@ -937,11 +937,12 @@ export class TerrainSystem {
     if (el.components["body-helper"]) return;
     const heightmap = this.chunkHeightMaps.get(key);
     if (!heightmap) return;
+    const terrain = this.terrains.get(key);
+    if (!terrain) return;
 
     let min = Infinity;
     let max = 0;
 
-    const terrain = this.terrains.get(key);
     const { heightfieldData } = terrain;
     for (let z = 0; z < VOXELS_PER_CHUNK; z += 8) {
       for (let x = 0; x < VOXELS_PER_CHUNK; x += 8) {

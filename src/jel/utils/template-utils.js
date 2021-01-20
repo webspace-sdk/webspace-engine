@@ -43,6 +43,6 @@ export async function applyTemplate(name, hash = null, force = false) {
   const shouldSync = isByMyself && name && hash !== newHash;
   if (!force && !shouldSync) return;
 
-  await new WorldImporter().importHtmlToCurrentWorld(html, force, force);
+  await new WorldImporter().importHtmlToCurrentWorld(html, true, force);
   window.APP.hubChannel.templateSynced(newHash);
 }
