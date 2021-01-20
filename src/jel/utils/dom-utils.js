@@ -55,6 +55,8 @@ let lockedCursorLockState = null;
 let lastKnownCursorCoords = null;
 let isEphemerallyUnlocked = false;
 
+let retryLockTimeout = null;
+
 // Lock the cursor.
 //
 // Ephemeral lock is used for cases where a user is holding a key
@@ -84,12 +86,26 @@ const lockCursor = (ephemeral = false) => {
   document.addEventListener(
     "pointerlockchange",
     () => {
+      if (retryLockTimeout) {
+        clearTimeout(retryLockTimeout);
+        retryLockTimeout = null;
+      }
+
       if (document.pointerLockElement) {
         AFRAME.scenes[0].emit("cursor-lock-state-changed");
       }
     },
     { once: true }
   );
+
+  // Retry pointer lock on error, this can happen during screen sharing dialog for example.
+  document.addEventListener("pointerlockerror", () => {
+    if (retryLockTimeout) {
+      clearTimeout(retryLockTimeout);
+    }
+
+    retryLockTimeout = setTimeout(() => canvas.requestPointerLock(), 500);
+  });
 
   canvas.requestPointerLock();
 };
