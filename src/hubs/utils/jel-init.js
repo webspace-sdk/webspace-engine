@@ -858,7 +858,6 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
           hubs[world] = await addNewHubToTree(treeManager, spaceId, null, name, world, worldType, worldSeed);
         }
 
-        console.log(hubs);
         navigateToHubUrl(history, hubs.welcome.url);
         store.update({ context: { isFirstVisitToSpace: false } });
       }
