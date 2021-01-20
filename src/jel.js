@@ -154,7 +154,7 @@ import "./jel/systems/media-presence-system";
 import "./jel/systems/wrapped-entity-system";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
 import { isInEditableField } from "./jel/utils/dom-utils";
-import { applyTemplate } from "./jel/utils/template-utils";
+import { resetTemplate } from "./jel/utils/template-utils";
 
 import "./hubs/gltf-component-mappings";
 
@@ -662,7 +662,7 @@ function addGlobalEventListeners(scene, entryManager) {
     const metadata = hubMetadata.getMetadata(hubId);
     if (!metadata || !metadata.template || !metadata.template.name) return;
 
-    applyTemplate(metadata.template.name, null, true);
+    resetTemplate(metadata.template.name, null, null, true);
   });
 }
 

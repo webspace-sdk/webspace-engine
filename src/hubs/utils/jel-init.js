@@ -598,9 +598,9 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
               .then(() => scene.components["shared-scene"].subscribe(hub.hub_id))
               .then(() => {
                 if (isInitialJoin) {
-                  const { name, hash } = hub.template;
+                  const { name, synced_at, hash } = hub.template;
                   if (name) {
-                    return applyTemplate(name, hash);
+                    return applyTemplate(name, synced_at, hash);
                   } else {
                     return Promise.resolve();
                   }

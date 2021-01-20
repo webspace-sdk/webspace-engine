@@ -25,12 +25,16 @@ export function getHtmlForTemplate(name) {
   return data;
 }
 
-export async function applyTemplate(name, hash = null, force = false) {
+export async function applyTemplate(name, synced_at = null, hash = null, force = false) {
   const { hubChannel } = window.APP;
 
   if (!hubChannel.can("spawn_and_move_media")) return;
   const html = getHtmlForTemplate(name);
   if (!html) return;
+
+  // Special case of allowing one time sync only for "first" template.
+  // We don't want to re-add the template objects for their first world if we change the template.
+  if (synced_at !== null && name === "first" && !force) return;
 
   const hashData = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(html));
   const hashArray = Array.from(new Uint8Array(hashData));
@@ -45,4 +49,8 @@ export async function applyTemplate(name, hash = null, force = false) {
 
   await new WorldImporter().importHtmlToCurrentWorld(html, true, force);
   window.APP.hubChannel.templateSynced(newHash);
+}
+
+export async function resetTemplate(name) {
+  applyTemplate(name, null, null, true);
 }
