@@ -582,9 +582,13 @@ export class TerrainSystem {
     if (this.worldType === null) return;
     const { loadedChunks, loadingChunks, chunkHeightMaps, spawningChunks, worldType, worldSeed } = this;
     const key = keyForChunk(chunk);
-    if (loadedChunks.has(key) || loadingChunks.has(key) || spawningChunks.has(key)) return;
 
-    loadingChunks.set(key, chunk);
+    if (heightMapOnly) {
+      if (chunkHeightMaps.has(key)) return;
+    } else {
+      if (loadedChunks.has(key) || loadingChunks.has(key) || spawningChunks.has(key)) return;
+      loadingChunks.set(key, chunk);
+    }
 
     // 3 Retries, sometimes lambda times out.
     for (let i = 0; i < 3; i++) {
@@ -599,8 +603,10 @@ export class TerrainSystem {
               }`
             )
               .then(async res => {
-                if (!loadingChunks.has(key)) return;
-                loadingChunks.delete(key);
+                if (!heightMapOnly) {
+                  if (!loadingChunks.has(key)) return;
+                  loadingChunks.delete(key);
+                }
 
                 if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
                 const arr = await res.arrayBuffer();

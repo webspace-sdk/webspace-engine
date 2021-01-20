@@ -319,6 +319,7 @@ export class PhysicsSystem {
 
     this.duringNextTick(() => {
       if (!this.bodyUuidToData.has(uuid)) return;
+      if (!object3D.parent) return;
 
       object3D.updateMatrices();
       object3D.parent.updateMatrices();
@@ -381,6 +382,8 @@ export class PhysicsSystem {
     this.nextShapeUuid++;
 
     this.duringNextTick(() => {
+      if (mesh && !mesh.parent) return;
+
       if (mesh) {
         mesh.updateMatrices();
         mesh.parent.updateMatrices();

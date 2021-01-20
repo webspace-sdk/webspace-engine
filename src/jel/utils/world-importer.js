@@ -75,20 +75,22 @@ export default class WorldImporter {
             new Promise(res => {
               if (!ensureOwnership(existingEl)) res();
 
-              let c = 0;
+              existingEl.components.shared.whenInstantiated(() => {
+                let c = 0;
 
-              const handler = () => {
-                c++;
+                const handler = () => {
+                  c++;
 
-                if (c === Object.keys(existingEl.components).length) {
-                  existingEl.removeEventListener("componentremoved", handler);
-                  res();
-                }
-              };
+                  if (c === Object.keys(existingEl.components).length) {
+                    existingEl.removeEventListener("componentremoved", handler);
+                    res();
+                  }
+                };
 
-              existingEl.addEventListener("componentremoved", handler);
+                existingEl.addEventListener("componentremoved", handler);
 
-              existingEl.parentNode.removeChild(existingEl);
+                existingEl.parentNode.removeChild(existingEl);
+              });
             })
           );
         }
@@ -101,9 +103,11 @@ export default class WorldImporter {
       );
 
       for (const el of toRemove) {
-        if (el.components["media-loader"]) {
-          el.parentNode.removeChild(el);
-        }
+        el.components.shared.whenInstantiated(() => {
+          if (el.components["media-loader"]) {
+            el.parentNode.removeChild(el);
+          }
+        });
       }
     }
 

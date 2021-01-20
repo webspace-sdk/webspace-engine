@@ -102,20 +102,18 @@ async function applyTemplateToHub(hub) {
   const hashArray = Array.from(new Uint8Array(hashData));
   const newHash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
   const isRepeatSyncTemplate = name !== "first"; // Don't clobber the first world, just the others.
+  const replaceExisting = hash !== newHash;
+  // Don't sync templates when others are here.
   const isByMyself =
-    hubChannel.presence && hubChannel.presence.state && Object.keys(hubChannel.presence.state).length == 1; // Don't sync templates when others are here.
+    hubChannel.presence && hubChannel.presence.state && Object.keys(hubChannel.presence.state).length == 1;
 
   const shouldSync =
     isByMyself &&
     name &&
-    hash !== newHash &&
     (!synced_at || (isRepeatSyncTemplate && new Date() - new Date(synced_at) > MAX_TEMPLATE_SYNC_FREQUENCY_MS));
   if (!shouldSync) return;
 
-  // Hacky add delay so existing entities can load.
-  await new Promise(res => setTimeout(res, 5000));
-
-  await new WorldImporter().importHtmlToCurrentWorld(html, true, true);
+  await new WorldImporter().importHtmlToCurrentWorld(html, replaceExisting, true);
   window.APP.hubChannel.templateSynced(newHash);
 }
 
@@ -636,7 +634,6 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
           hubMetadata.ensureMetadataForIds([hub.hub_id]);
           updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
           updateEnvironmentForHub(hub);
-          applyTemplateToHub(hub);
 
           if (isInitialJoin) {
             THREE.Cache.clear();
@@ -651,6 +648,13 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
             NAF.connection.adapter
               .joinHub(hub.hub_id)
               .then(() => scene.components["shared-scene"].subscribe(hub.hub_id))
+              .then(() => {
+                if (isInitialJoin) {
+                  return applyTemplateToHub(hub);
+                } else {
+                  return Promise.resolve();
+                }
+              })
               .then(res);
           }
         });

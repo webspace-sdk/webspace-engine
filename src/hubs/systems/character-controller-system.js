@@ -1,19 +1,9 @@
 import { paths } from "./userinput/paths";
 import { SOUND_SNAP_ROTATE } from "./sound-effects-system";
-import { easeOutQuadratic } from "../utils/easing";
-import { getPooledMatrix4, freePooledMatrix4 } from "../utils/mat4-pool";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
-import {
-  childMatch,
-  rotateInPlaceAroundWorldUp,
-  interpolateAffine,
-  affixToWorldUp,
-  IDENTITY_QUATERNION
-} from "../utils/three-utils";
+import { childMatch, rotateInPlaceAroundWorldUp, affixToWorldUp, IDENTITY_QUATERNION } from "../utils/three-utils";
 import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
-import qsTruthy from "../utils/qs_truthy";
 //import { m4String } from "../utils/pretty-print";
-const isMobile = AFRAME.utils.device.isMobile();
 import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../jel/systems/terrain-system";
 
 const calculateDisplacementToDesiredPOV = (function() {
@@ -125,8 +115,6 @@ export class CharacterControllerSystem {
 
     const desiredPOVPosition = new THREE.Vector3();
     const heightMapSnappedPOVPosition = new THREE.Vector3();
-    const startTransform = new THREE.Matrix4();
-    const startTranslation = new THREE.Matrix4();
     const v = new THREE.Vector3();
 
     let uiRoot;

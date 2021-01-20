@@ -1,6 +1,5 @@
 import PropTypes from "prop-types";
 import React, { Component } from "react";
-import { rotateInPlaceAroundWorldUp, affixToWorldUp } from "../utils/three-utils";
 import classNames from "classnames";
 import DialogContainer from "./dialog-container.js";
 import cStyles from "../../assets/hubs/stylesheets/client-info-dialog.scss";
@@ -12,7 +11,6 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft";
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons/faChevronRight";
 import { faTrashAlt } from "@fortawesome/free-solid-svg-icons/faTrashAlt";
-import { faStreetView } from "@fortawesome/free-solid-svg-icons/faStreetView";
 import { faLightbulb } from "@fortawesome/free-solid-svg-icons/faLightbulb";
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

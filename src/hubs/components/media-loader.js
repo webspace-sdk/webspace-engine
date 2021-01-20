@@ -695,6 +695,10 @@ AFRAME.registerComponent("media-loader", {
 
     const contents = this.data.initialContents;
     this.el.setAttribute("media-loader", { initialContents: null });
+
+    // To avoid race conditions, blank it out immediately
+    this.data.initialContents = null;
+
     return contents;
   }
 });
