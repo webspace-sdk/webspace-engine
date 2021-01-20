@@ -1,7 +1,7 @@
-import Quill from "quill";
 import {
   getQuill,
   hasQuill,
+  htmlToDelta,
   destroyQuill,
   EDITOR_PADDING_X,
   EDITOR_PADDING_Y,
@@ -122,6 +122,29 @@ AFRAME.registerComponent("media-text", {
 
     const hasLayer = hasMediaLayer(this.el);
 
+    const initialContents = this.el.components["media-loader"].consumeInitialContents();
+
+    if (initialContents) {
+      const delta = htmlToDelta(initialContents);
+
+      if (delta.ops.length > 1) {
+        // Conversion will add trailing newline, which we don't want.
+        const op = delta.ops[delta.ops.length - 1];
+
+        // This doesn't fix all trailing newlines, for example a one-line label will
+        // have a newline when cloned
+        if (op.insert === "\n" && !op.attributes) {
+          delta.ops.pop();
+        }
+      }
+
+      const shared = this.el.components.shared;
+
+      shared.whenReadyForBinding().then(() => {
+        shared.initializeRichTextContents(delta, this.name, "deltaOps");
+      });
+    }
+
     if (!hasLayer || refresh) {
       const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
       this.setMediaPresence(newMediaPresence, refresh);
@@ -232,25 +255,6 @@ AFRAME.registerComponent("media-text", {
         const shared = this.el.components.shared;
         await shared.whenReadyForBinding();
         this.quill = this.bindQuill();
-
-        const initialContents = this.el.components["media-loader"].consumeInitialContents();
-
-        if (initialContents) {
-          const delta = this.quill.clipboard.convert(initialContents);
-
-          if (delta.ops.length > 1) {
-            // Conversion will add trailing newline, which we don't want.
-            const op = delta.ops[delta.ops.length - 1];
-
-            // This doesn't fix all trailing newlines, for example a one-line label will
-            // have a newline when cloned
-            if (op.insert === "\n" && !op.attributes) {
-              delta.ops.pop();
-            }
-          }
-
-          this.quill.updateContents(delta, Quill.sources.USER);
-        }
 
         this.applyFont();
       }

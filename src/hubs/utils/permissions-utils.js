@@ -85,9 +85,7 @@ function authorizeEntityManipulation(entityMetadata, sender, senderPermissions) 
   const { template, creator } = entityMetadata;
   const isCreator = sender === creator;
 
-  if (template.endsWith("-waypoint-avatar")) {
-    return true;
-  } else if (template.endsWith("-avatar")) {
+  if (template.endsWith("-avatar")) {
     return isCreator;
   } else if (template.endsWith("-media")) {
     return isCreator || senderPermissions.spawn_and_move_media;

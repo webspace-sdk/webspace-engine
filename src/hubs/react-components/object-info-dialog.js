@@ -148,27 +148,6 @@ export default class ObjectInfoDialog extends Component {
     }
   }
 
-  enqueueWaypointTravel = (function() {
-    const targetMatrix = new THREE.Matrix4();
-    const translation = new THREE.Matrix4();
-    return function enqueueWaypointTravel() {
-      this.viewingCamera.object3DMap.camera.updateMatrices();
-      targetMatrix.copy(this.viewingCamera.object3DMap.camera.matrixWorld);
-      affixToWorldUp(targetMatrix, targetMatrix);
-      translation.makeTranslation(0, -1.6, 0.15);
-      targetMatrix.multiply(translation);
-      rotateInPlaceAroundWorldUp(targetMatrix, Math.PI, targetMatrix);
-
-      this.props.scene.systems["hubs-systems"].characterController.enqueueWaypointTravelTo(targetMatrix, true, {
-        willDisableMotion: false,
-        willDisableTeleporting: false,
-        snapToHeightMap: false,
-        willMaintainInitialOrientation: false
-      });
-      this.props.onClose();
-    };
-  })().bind(this);
-
   navigateNext() {
     this.navigate(1);
   }
@@ -288,15 +267,6 @@ export default class ObjectInfoDialog extends Component {
                   <ActionRowIcon icon={faTrashAlt} onClick={this.remove.bind(this)} ariaLabel={"Remove Object"} />
                 </div>
               )}
-              {showGoToButton && (
-                <div className={oStyles.floatRight}>
-                  <ActionRowIcon
-                    icon={faStreetView}
-                    onClick={this.enqueueWaypointTravel}
-                    ariaLabel={"Teleport to Object"}
-                  />
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -367,11 +337,6 @@ export default class ObjectInfoDialog extends Component {
               <button onClick={this.toggleLights.bind(this)}>
                 <FormattedMessage id={`object-info.${this.state.enableLights ? "lower" : "raise"}-lights`} />
               </button>
-              {this.props.scene.is("entered") && (
-                <button onClick={this.enqueueWaypointTravel}>
-                  <FormattedMessage id="object-info.waypoint" />
-                </button>
-              )}
               {showRemoveButton ? (
                 <button onClick={this.remove.bind(this)}>
                   <FormattedMessage id="object-info.remove-button" />

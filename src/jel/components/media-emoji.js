@@ -25,6 +25,12 @@ AFRAME.registerComponent("media-emoji", {
 
     const hasLayer = hasMediaLayer(this.el);
 
+    const initialContents = this.el.components["media-loader"].consumeInitialContents();
+
+    if (initialContents) {
+      this.el.setAttribute("media-emoji", { emoji: initialContents });
+    }
+
     if (!hasLayer || refresh) {
       const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
       this.setMediaPresence(newMediaPresence, refresh);
@@ -67,15 +73,6 @@ AFRAME.registerComponent("media-emoji", {
 
       const { src } = this.data;
       if (!src) return;
-
-      const initialContents = this.el.components["media-loader"].consumeInitialContents();
-
-      let emoji = this.data.emoji;
-
-      if (initialContents) {
-        emoji = initialContents;
-        this.el.setAttribute("media-emoji", { emoji });
-      }
 
       if (!this.mesh) {
         disposeExistingMesh(this.el);

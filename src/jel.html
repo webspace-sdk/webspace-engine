@@ -78,33 +78,6 @@
                 <a-entity shared-media></a-entity>
             </template>
 
-            <template id="template-waypoint-avatar">
-                <a-entity waypoint></a-entity>
-            </template>
-
-            <template id="occupiable-waypoint-icon">
-                <a-entity
-                    is-remote-hover-target
-                    class="occupiable-waypoint-icon"
-                    tags="singleActionButton: true"
-                    sprite="name: spawn-point.png">
-                </a-entity>
-            </template>
-            <template id="teleport-waypoint-icon">
-                <a-entity
-                    is-remote-hover-target
-                    class="teleport-waypoint-icon"
-                    tags="singleActionButton: true"
-                    sprite="name: spawn-point.png">
-                </a-entity>
-            </template>
-            <template id="waypoint-preview-avatar-template">
-                <a-entity
-                    overwrite-raycast-as-noop
-                    class="waypoint-preview-avatar"
-                    gltf-model-plus="inflate: true; src: #spawn-point;">
-                </a-entity>
-            </template>
             <template id="remote-avatar">
                 <a-entity networked-avatar ik-root player-info wrapped-entity visible="false">
                     <a-entity class="camera"></a-entity>

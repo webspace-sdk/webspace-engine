@@ -316,3 +316,17 @@ export function getQuill(networkId) {
 
   return getQuill(networkId);
 }
+
+let scratchQuill = null;
+
+function getScratchQuill() {
+  if (!scratchQuill) {
+    scratchQuill = getQuill("scratch");
+  }
+
+  return scratchQuill;
+}
+
+export function htmlToDelta(html) {
+  return getScratchQuill().clipboard.convert(html);
+}

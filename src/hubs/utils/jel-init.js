@@ -122,8 +122,6 @@ async function applyTemplateToHub(hub) {
 async function moveToInitialHubLocation(hub, hubStore) {
   const sceneEl = document.querySelector("a-scene");
 
-  const waypointSystem = sceneEl.systems["hubs-systems"].waypointSystem;
-  waypointSystem.releaseAnyOccupiedWaypoints();
   const characterController = sceneEl.systems["hubs-systems"].characterController;
 
   document.querySelector(".a-canvas").classList.remove("a-hidden");
@@ -145,7 +143,11 @@ async function moveToInitialHubLocation(hub, hubStore) {
 
     characterController.teleportTo(startPosition, startRotation);
   } else {
-    waypointSystem.moveToSpawnPoint();
+    const startPosition = new THREE.Vector3(0, 0, 0);
+
+    const startRotation = new THREE.Quaternion(0, 0, 0, 1);
+
+    characterController.teleportTo(startPosition, startRotation);
   }
 
   startTrackingPosition(hubStore);

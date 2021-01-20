@@ -368,18 +368,6 @@ export const affixToWorldUp = (function() {
   };
 })();
 
-export const calculateCameraTransformForWaypoint = (function() {
-  const upAffixedCameraTransform = new THREE.Matrix4();
-  const upAffixedWaypointTransform = new THREE.Matrix4();
-  const detachFromWorldUp = new THREE.Matrix4();
-  return function calculateCameraTransformForWaypoint(cameraTransform, waypointTransform, outMat4) {
-    affixToWorldUp(cameraTransform, upAffixedCameraTransform);
-    detachFromWorldUp.getInverse(upAffixedCameraTransform).multiply(cameraTransform);
-    affixToWorldUp(waypointTransform, upAffixedWaypointTransform);
-    outMat4.copy(upAffixedWaypointTransform).multiply(detachFromWorldUp);
-  };
-})();
-
 export const calculateViewingDistance = (function() {
   return function calculateViewingDistance(fov, aspect, object, box, center, vrMode) {
     const halfYExtents = Math.max(Math.abs(box.max.y - center.y), Math.abs(center.y - box.min.y));

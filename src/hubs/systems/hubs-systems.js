@@ -18,7 +18,6 @@ import { ScenePreviewCameraSystem } from "./scene-preview-camera-system";
 import { InteractionSfxSystem } from "./interaction-sfx-system";
 import { SpriteSystem } from "./sprites";
 import { CameraSystem } from "./camera-system";
-import { WaypointSystem } from "./waypoint-system";
 import { CharacterControllerSystem } from "./character-controller-system";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
 import { CursorPoseTrackingSystem } from "./cursor-pose-tracking";
@@ -77,7 +76,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.spriteSystem = new SpriteSystem(this.el);
     this.batchManagerSystem = new BatchManagerSystem(this.el.object3D, this.el.renderer);
     this.drawingMenuSystem = new DrawingMenuSystem(this.el);
-    this.waypointSystem = new WaypointSystem(this.el, this.characterController);
     this.cursorPoseTrackingSystem = new CursorPoseTrackingSystem();
     this.scaleInScreenSpaceSystem = new ScaleInScreenSpaceSystem();
     this.audioSettingsSystem = new AudioSettingsSystem(this.el);
@@ -151,7 +149,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.physicsSystem.tick(dt);
     this.batchManagerSystem.tick(t);
     this.cameraSystem.tick(this.el, dt);
-    this.waypointSystem.tick(t, dt);
     this.spriteSystem.tick(t, dt);
     this.enterVRButtonSystem.tick();
     this.uvScrollSystem.tick(dt);
