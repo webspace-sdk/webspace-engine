@@ -668,7 +668,13 @@ function JelUI(props) {
           },
           [scene]
         )}
-        onExportClick={useCallback(() => new WorldExporter().downloadCurrentWorldHtml(), [])}
+        onExportClick={useCallback(
+          () => {
+            new WorldExporter().downloadCurrentWorldHtml();
+            scene.canvas.focus();
+          },
+          [scene]
+        )}
         onResetClick={useCallback(() => scene.emit("action_reset_objects"), [scene])}
         onTrashClick={useCallback(
           hubId => {

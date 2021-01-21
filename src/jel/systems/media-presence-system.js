@@ -151,6 +151,34 @@ export class MediaPresenceSystem {
     return !!((0x1 << mediaLayer) & activeMediaLayers);
   }
 
+  // This will return a promise that will resolve once all the media that is HIDDEN due to being out
+  // of range has been instantiated (or failed) once made PRESENT regardless of range.
+  instantiateAllDelayedMedia() {
+    const promises = [];
+
+    for (const networkId of this.distanceDelayedNetworkIds) {
+      const component = this.mediaComponents.get(networkId);
+
+      if (component) {
+        const { el } = component;
+        this.distanceDelayedNetworkIds.delete(networkId);
+
+        const newPresence = this.updateDesiredMediaPresence(component.el);
+
+        if (newPresence === MEDIA_PRESENCE.PRESENT) {
+          promises.push(
+            new Promise(res => {
+              el.addEventListener("media-loaded", res, { once: true });
+              el.addEventListener("media-loader-failed", res, { once: true });
+            })
+          );
+        }
+      }
+    }
+
+    return Promise.all(promises);
+  }
+
   updateDesiredMediaPresence(el) {
     const networkId = getNetworkId(el);
     const mediaLayer = el.components["media-loader"].data.mediaLayer;

@@ -21,23 +21,38 @@ export default class WorldExporter {
 
   async currentWorldToHtml() {
     const { hubMetadata, hubChannel } = window.APP;
+    const avatarPovNode = document.querySelector("#avatar-pov-node").object3D;
+    const spawnPosition = new THREE.Vector3();
+    const spawnRotation = new THREE.Quaternion();
+    const spawnRadius = 10.0;
+    avatarPovNode.getWorldPosition(spawnPosition);
+    avatarPovNode.getWorldQuaternion(spawnRotation);
+
     const metadata = hubMetadata.getMetadata(hubChannel.hubId);
     const doc = document.implementation.createHTMLDocument(metadata.displayName);
-    const jelSchema = doc.createElement("meta");
-    jelSchema.setAttribute("name", "jel-schema");
-    jelSchema.setAttribute("content", "world-1.0");
 
-    const jelWorldType = doc.createElement("meta");
-    jelWorldType.setAttribute("name", "jel-world-type");
-    jelWorldType.setAttribute("content", `${metadata.world.type}`);
+    const addMeta = (name, content) => {
+      const el = doc.createElement("meta");
+      el.setAttribute("name", name);
+      el.setAttribute("content", content);
+      doc.head.appendChild(el);
+    };
 
-    const jelWorldSeed = doc.createElement("meta");
-    jelWorldSeed.setAttribute("name", "jel-world-seed");
-    jelWorldSeed.setAttribute("content", `${metadata.world.seed}`);
+    addMeta("jel-schema", "world-1.0");
+    addMeta("jel-world-type", `${metadata.world.type}`);
+    addMeta("jel-world-seed", `${metadata.world.seed}`);
+    addMeta("jel-spawn-position-x", `${spawnPosition.x}`);
+    addMeta("jel-spawn-position-y", `${spawnPosition.y}`);
+    addMeta("jel-spawn-position-z", `${spawnPosition.z}`);
+    addMeta("jel-spawn-rotation-x", `${spawnRotation.x}`);
+    addMeta("jel-spawn-rotation-y", `${spawnRotation.y}`);
+    addMeta("jel-spawn-rotation-z", `${spawnRotation.z}`);
+    addMeta("jel-spawn-rotation-w", `${spawnRotation.w}`);
+    addMeta("jel-spawn-radius", `${spawnRadius}`);
 
-    doc.head.appendChild(jelSchema);
-    doc.head.appendChild(jelWorldType);
-    doc.head.appendChild(jelWorldSeed);
+    const { mediaPresenceSystem, terrainSystem } = AFRAME.scenes[0].systems["hubs-systems"];
+
+    await Promise.all([terrainSystem.loadAllHeightMaps(), mediaPresenceSystem.instantiateAllDelayedMedia()]);
 
     const mediaEls = [...document.querySelectorAll("[shared]")].filter(el => el.components["media-loader"]);
 

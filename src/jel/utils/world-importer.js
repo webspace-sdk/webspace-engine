@@ -41,14 +41,51 @@ export default class WorldImporter {
     }
   }
 
-  getWorldTypeAndSeedFromHtml(html) {
+  getWorldMetadatFromHtml(html) {
     const doc = new DOMParser().parseFromString(html, "text/html");
 
     if (doc.body && doc.querySelector(`meta[name='jel-schema']`)) {
-      const worldType = doc.querySelector("meta[name='jel-world-type']").getAttribute("content");
-      const worldSeed = doc.querySelector("meta[name='jel-world-seed']").getAttribute("content");
+      const getMeta = key => {
+        const el = doc.querySelector(`meta[name='${key}']`);
 
-      return [worldType, worldSeed];
+        if (el) {
+          return el.getAttribute("content");
+        } else {
+          return null;
+        }
+      };
+
+      let spawnPosition = null,
+        spawnRotation = null,
+        spawnRadius = null;
+
+      const worldType = getMeta("jel-world-type");
+      const worldSeed = getMeta("jel-world-seed");
+
+      const px = getMeta("jel-spawn-position-x");
+      const py = getMeta("jel-spawn-position-y");
+      const pz = getMeta("jel-spawn-position-z");
+
+      const rx = getMeta("jel-spawn-rotation-x");
+      const ry = getMeta("jel-spawn-rotation-y");
+      const rz = getMeta("jel-spawn-rotation-z");
+      const rw = getMeta("jel-spawn-rotation-w");
+
+      const rad = getMeta("jel-spawn-radius");
+
+      if (px !== null && py !== null && pz !== null) {
+        spawnPosition = new THREE.Vector3(parseFloat(px), parseFloat(py), parseFloat(pz));
+      }
+
+      if (rx !== null && ry !== null && rz !== null && rw !== null) {
+        spawnRotation = new THREE.Quaternion(parseFloat(rx), parseFloat(ry), parseFloat(rz), parseFloat(rw));
+      }
+
+      if (rad !== null) {
+        spawnRadius = parseFloat(rad);
+      }
+
+      return [worldType, worldSeed, spawnPosition, spawnRotation, spawnRadius];
     }
 
     return [null, null];

@@ -73,28 +73,42 @@ async function moveToInitialHubLocation(hub, hubStore) {
   document.querySelector(".a-canvas").classList.remove("a-hidden");
   sceneEl.addState("visible");
 
-  if (hubStore.state.lastPosition.x) {
-    const startPosition = new THREE.Vector3(
+  let startPosition, startRotation;
+
+  if (hubStore.state.lastPosition.x === undefined) {
+    // Random scatter in x z radially
+    const randomDirection = new THREE.Vector3(-1 + Math.random() * 2.0, 0, -1 + Math.random() * 2.0);
+    randomDirection.normalize();
+
+    // Spawn point is centered based upon hub setting, and random pick from radius
+    startPosition = new THREE.Vector3(
+      hub.spawn_point.position.x + randomDirection.x * hub.spawn_point.radius,
+      hub.spawn_point.position.y,
+      hub.spawn_point.position.z + randomDirection.z * hub.spawn_point.radius
+    );
+
+    startRotation = new THREE.Quaternion(
+      hub.spawn_point.rotation.x,
+      hub.spawn_point.rotation.y,
+      hub.spawn_point.rotation.z,
+      hub.spawn_point.rotation.w
+    );
+  } else {
+    startPosition = new THREE.Vector3(
       hubStore.state.lastPosition.x,
       hubStore.state.lastPosition.y,
       hubStore.state.lastPosition.z
     );
 
-    const startRotation = new THREE.Quaternion(
+    startRotation = new THREE.Quaternion(
       hubStore.state.lastRotation.x,
       hubStore.state.lastRotation.y,
       hubStore.state.lastRotation.z,
       hubStore.state.lastRotation.w
     );
-
-    characterController.teleportTo(startPosition, startRotation);
-  } else {
-    const startPosition = new THREE.Vector3(0, 0, 0);
-
-    const startRotation = new THREE.Quaternion(0, 0, 0, 1);
-
-    characterController.teleportTo(startPosition, startRotation);
   }
+
+  characterController.teleportTo(startPosition, startRotation);
 
   startTrackingPosition(hubStore);
 }
@@ -806,9 +820,26 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
           const name = getMessages()[`space.${world}-world-name`];
           const templateName = world;
           const html = getHtmlForTemplate(templateName);
-          const [worldType, worldSeed] = new WorldImporter().getWorldTypeAndSeedFromHtml(html);
+          const [
+            worldType,
+            worldSeed,
+            spawnPosition,
+            spawnRotation,
+            spawnRadius
+          ] = new WorldImporter().getWorldMetadatFromHtml(html);
 
-          hubs[world] = await addNewHubToTree(treeManager, spaceId, null, name, world, worldType, worldSeed);
+          hubs[world] = await addNewHubToTree(
+            treeManager,
+            spaceId,
+            null,
+            name,
+            world,
+            worldType,
+            worldSeed,
+            spawnPosition,
+            spawnRotation,
+            spawnRadius
+          );
         }
 
         navigateToHubUrl(history, hubs.first.url);
