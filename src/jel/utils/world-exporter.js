@@ -21,14 +21,15 @@ export default class WorldExporter {
 
   async currentWorldToHtml() {
     const { hubMetadata, hubChannel } = window.APP;
+    const metadata = hubMetadata.getMetadata(hubChannel.hubId);
+
     const avatarPovNode = document.querySelector("#avatar-pov-node").object3D;
     const spawnPosition = new THREE.Vector3();
     const spawnRotation = new THREE.Quaternion();
-    const spawnRadius = 10.0;
+    const spawnRadius = metadata.spawn_point.radius;
     avatarPovNode.getWorldPosition(spawnPosition);
     avatarPovNode.getWorldQuaternion(spawnRotation);
 
-    const metadata = hubMetadata.getMetadata(hubChannel.hubId);
     const doc = document.implementation.createHTMLDocument(metadata.displayName);
 
     const addMeta = (name, content) => {
