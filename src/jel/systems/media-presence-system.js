@@ -38,8 +38,9 @@ AFRAME.registerComponent("shared-media", {
 // are transactions and not cancellable, so before we transition to HIDDEN for example if a transition
 // to PRESENT was underway, it will be allowed to complete.
 export class MediaPresenceSystem {
-  constructor(scene) {
+  constructor(scene, characterController) {
     this.scene = scene;
+    this.characterController = characterController;
     this.mediaPresence = new Map();
     this.desiredMediaPresence = new Map();
     this.mediaComponents = new Map();
@@ -73,14 +74,18 @@ export class MediaPresenceSystem {
     this.frame++;
 
     // Handle setting things to present if they are delayed based on distance.
-    // Convert at most one every 10 frames to reduce hitching.
-    if (this.distanceDelayedNetworkIds.size > 0 && this.frame % 10 === 0) {
-      for (const networkId of this.distanceDelayedNetworkIds) {
-        const el = this.mediaComponents.get(networkId).el;
-        const newPresence = this.updateDesiredMediaPresence(el);
+    // Convert at most one every N frames (depending if moving) to reduce hitching.
+    if (this.distanceDelayedNetworkIds.size > 0) {
+      const frameDelay = this.characterController.isMoving() ? 30 : 5;
 
-        // Do at most one per every 10 frames.
-        if (newPresence === MEDIA_PRESENCE.PRESENT) break;
+      if (this.frame % frameDelay === 0) {
+        for (const networkId of this.distanceDelayedNetworkIds) {
+          const el = this.mediaComponents.get(networkId).el;
+          const newPresence = this.updateDesiredMediaPresence(el);
+
+          // Do at most one per frame delay
+          if (newPresence === MEDIA_PRESENCE.PRESENT) break;
+        }
       }
     }
 
