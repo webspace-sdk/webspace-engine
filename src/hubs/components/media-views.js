@@ -261,6 +261,7 @@ AFRAME.registerComponent("media-video", {
     coneOuterAngle: { type: "number", default: 0 },
     coneOuterGain: { type: "number", default: 0 },
     videoPaused: { type: "boolean" },
+    playOnHover: { type: "boolean", default: false },
     projection: { type: "string", default: "flat" },
     time: { type: "number" },
     tickRate: { default: 1000 }, // ms interval to send time interval updates
@@ -1002,20 +1003,35 @@ AFRAME.registerComponent("media-video", {
       const userinput = this.el.sceneEl.systems.userinput;
       const interaction = this.el.sceneEl.systems.interaction;
       const volumeModRight = userinput.get(paths.actions.cursor.right.mediaVolumeMod);
-      if (interaction.state.rightRemote.hovered === this.el && volumeModRight) {
+      const isHoveredLeft = interaction.state.leftRemote.hovered == this.el;
+      const isHoveredRight = interaction.state.rightRemote.hovered == this.el;
+
+      if (isHoveredRight === this.el && volumeModRight) {
         this.changeVolumeBy(volumeModRight);
       }
       const volumeModLeft = userinput.get(paths.actions.cursor.left.mediaVolumeMod);
-      if (interaction.state.leftRemote.hovered === this.el && volumeModLeft) {
+      if (isHoveredLeft === this.el && volumeModLeft) {
         this.changeVolumeBy(volumeModLeft);
       }
 
       const isHeld = interaction.isHeld(this.el);
+      const isHovering = isHoveredLeft || isHoveredRight;
+
+      if (
+        this.data.videoPaused &&
+        this.data.playOnHover &&
+        isHovering &&
+        !this.wasHovering &&
+        this.mayModifyPlayHead()
+      ) {
+        this.togglePlaying();
+      }
 
       if (this.wasHeld && !isHeld) {
         this.localSnapCount = 0;
       }
 
+      this.wasHovering = isHovering;
       this.wasHeld = isHeld;
 
       if (this.hoverMenu && this.hoverMenu.object3D.visible && !this.videoIsLive) {

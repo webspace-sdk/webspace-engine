@@ -204,7 +204,11 @@ export default class WorldImporter {
           mediaOptions.time = el.getAttribute("currenttime");
         }
 
-        mediaOptions.videoPaused = el.getAttribute("autoplay") === null;
+        const autoplayAttr = el.getAttribute("autoplay");
+
+        // autoplay="hover" will enable play-on-hover
+        mediaOptions.videoPaused = autoplayAttr === null || autoplayAttr === "hover";
+        mediaOptions.playOnHover = autoplayAttr === "hover";
         mediaOptions.loop = el.getAttribute("loop") !== null;
 
         if (el.getAttribute("muted") !== null) {

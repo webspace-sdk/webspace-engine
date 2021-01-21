@@ -186,6 +186,10 @@ function registerNetworkSchemas() {
       {
         component: "media-video",
         property: "loop"
+      },
+      {
+        component: "media-video",
+        property: "playOnHover"
       }
     ],
     nonAuthorizedComponents: [
