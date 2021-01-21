@@ -158,27 +158,30 @@ export class MediaPresenceSystem {
 
     for (const networkId of this.distanceDelayedNetworkIds) {
       const component = this.mediaComponents.get(networkId);
+      if (!component) continue;
 
-      if (component) {
-        const { el } = component;
-        this.distanceDelayedNetworkIds.delete(networkId);
+      const { el } = component;
+      this.distanceDelayedNetworkIds.delete(networkId);
 
-        const newPresence = this.updateDesiredMediaPresence(component.el);
+      const newPresence = this.updateDesiredMediaPresence(component.el);
 
-        if (newPresence === MEDIA_PRESENCE.PRESENT) {
-          promises.push(
-            new Promise(res => {
-              el.addEventListener("media-loaded", res, { once: true });
-              el.addEventListener("media-loader-failed", res, { once: true });
-            })
-          );
-        }
+      if (newPresence === MEDIA_PRESENCE.PRESENT) {
+        promises.push(
+          new Promise(res => {
+            el.addEventListener("media-loaded", res, { once: true });
+            el.addEventListener("media-loader-failed", res, { once: true });
+          })
+        );
       }
     }
 
     return Promise.all(promises);
   }
 
+  // Updates the current presence to PRESENT if it is in the current layer, and is
+  // within the right range unless it's component is not limited by distance.
+  //
+  // If the presence is updated, returns the new value.
   updateDesiredMediaPresence(el) {
     const networkId = getNetworkId(el);
     const mediaLayer = el.components["media-loader"].data.mediaLayer;
@@ -206,11 +209,11 @@ export class MediaPresenceSystem {
     const presence =
       !shouldDelay && this.isMediaLayerActive(mediaLayer) ? MEDIA_PRESENCE.PRESENT : MEDIA_PRESENCE.HIDDEN;
 
-    if (this.desiredMediaPresence.get(networkId) !== presence) {
-      if (presence === MEDIA_PRESENCE.PRESENT && this.distanceDelayedNetworkIds.has(networkId)) {
-        this.distanceDelayedNetworkIds.delete(networkId);
-      }
+    if (presence === MEDIA_PRESENCE.PRESENT && this.distanceDelayedNetworkIds.has(networkId)) {
+      this.distanceDelayedNetworkIds.delete(networkId);
+    }
 
+    if (this.desiredMediaPresence.get(networkId) !== presence) {
       this.desiredMediaPresence.set(networkId, presence);
       this.checkForNewTransitionsNextTick = true;
       return presence;

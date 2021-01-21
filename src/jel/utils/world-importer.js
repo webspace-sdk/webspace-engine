@@ -41,7 +41,7 @@ export default class WorldImporter {
     }
   }
 
-  getWorldMetadatFromHtml(html) {
+  getWorldMetadataFromHtml(html) {
     const doc = new DOMParser().parseFromString(html, "text/html");
 
     if (doc.body && doc.querySelector(`meta[name='jel-schema']`)) {
@@ -88,7 +88,7 @@ export default class WorldImporter {
       return [worldType, worldSeed, spawnPosition, spawnRotation, spawnRadius];
     }
 
-    return [null, null];
+    return [null, null, null, null, null];
   }
 
   async importJelDocument(doc, replaceExisting = true, removeEntitiesNotInTemplate = false) {

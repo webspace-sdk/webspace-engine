@@ -583,9 +583,7 @@ export class TerrainSystem {
     const { loadedChunks, loadingChunks, chunkHeightMaps, spawningChunks, worldType, worldSeed } = this;
     const key = keyForChunk(chunk);
 
-    if (heightMapOnly) {
-      if (chunkHeightMaps.has(key)) return;
-    } else {
+    if (!heightMapOnly) {
       if (loadedChunks.has(key) || loadingChunks.has(key) || spawningChunks.has(key)) return;
       loadingChunks.set(key, chunk);
     }

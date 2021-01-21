@@ -612,8 +612,8 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
               .then(() => scene.components["shared-scene"].subscribe(hub.hub_id))
               .then(() => {
                 if (isInitialJoin) {
-                  const { name, synced_at, hash } = hub.template;
-                  if (name) {
+                  if (hub.template && hub.template.name) {
+                    const { name, synced_at, hash } = hub.template;
                     return applyTemplate(name, synced_at, hash);
                   } else {
                     return Promise.resolve();
@@ -826,7 +826,7 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
             spawnPosition,
             spawnRotation,
             spawnRadius
-          ] = new WorldImporter().getWorldMetadatFromHtml(html);
+          ] = new WorldImporter().getWorldMetadataFromHtml(html);
 
           hubs[world] = await addNewHubToTree(
             treeManager,

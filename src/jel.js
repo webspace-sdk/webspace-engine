@@ -662,7 +662,7 @@ function addGlobalEventListeners(scene, entryManager) {
     const metadata = hubMetadata.getMetadata(hubId);
     if (!metadata || !metadata.template || !metadata.template.name) return;
 
-    resetTemplate(metadata.template.name, null, null, true);
+    resetTemplate(metadata.template.name);
   });
 }
 
