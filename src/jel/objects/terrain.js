@@ -57,10 +57,11 @@ class Terrain extends Object3D {
     this.meshes = [];
 
     const createMesh = () => {
-      const mesh = new THREE.Mesh(new BufferGeometry(), terrainMaterial, 1);
+      const mesh = new THREE.Mesh(new BufferGeometry(), terrainMaterial);
       mesh.receiveShadow = true;
-      MESH_OFFSET.makeTranslation(-VOXELS_PER_CHUNK / 2, 0, -VOXELS_PER_CHUNK / 2);
-      setMatrixWorld(mesh, MESH_OFFSET);
+      mesh.position.x = -VOXELS_PER_CHUNK / 2;
+      mesh.position.z = -VOXELS_PER_CHUNK / 2;
+      mesh.matrixNeedsUpdate = true;
       mesh.castShadow = true;
       mesh.frustumCulled = false;
       mesh.layers.enable(Layers.reflection);

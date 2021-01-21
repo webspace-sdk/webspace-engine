@@ -219,7 +219,7 @@ const cullChunksAndFeatureGroups = (() => {
       let show = true;
 
       // Compute terrain AABB
-      t.getWorldPosition(tmp);
+      t.meshes[0].getWorldPosition(tmp);
       const bminx = tmp.x;
       const bmaxx = tmp.x + 8;
       const bminz = tmp.z;
