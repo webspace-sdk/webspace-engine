@@ -55,11 +55,7 @@ function shouldMoveCursor(touch, raycaster) {
     rawIntersections
   );
   const intersection = rawIntersections.find(x => x.object.el);
-  const isInteractable =
-    intersection &&
-    intersection.object.el.matches(
-      ".interactable, .interactable *, .occupiable-waypoint-icon, .teleport-waypoint-icon"
-    );
+  const isInteractable = intersection && intersection.object.el.matches(".interactable, .interactable *");
   const remoteHoverTarget = intersection && findRemoteHoverTarget(intersection.object);
 
   const template = remoteHoverTarget && getNetworkedTemplate(remoteHoverTarget);

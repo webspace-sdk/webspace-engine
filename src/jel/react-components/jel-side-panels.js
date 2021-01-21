@@ -506,9 +506,10 @@ function JelSidePanels({
             {spaceCan("create_hub") && (
               <ActionButton
                 iconSrc={addIcon}
-                onClick={() => {
+                onClick={async () => {
                   store.handleActivityFlag("createWorld");
-                  addNewHubToTree(history, treeManager, spaceId);
+                  const hub = await addNewHubToTree(treeManager, spaceId);
+                  navigateToHubUrl(history, hub.url);
                 }}
                 style={{ width: "60%" }}
               >

@@ -25,7 +25,6 @@ paths.actions.jump = "/actions/jump";
 paths.actions.muteMic = "/actions/muteMic";
 paths.actions.toggleFly = "/actions/toggleFly";
 paths.actions.toggleUI = "/actions/toggleUI";
-paths.actions.waypointDeltaDistance = "/actions/waypointDeltaDistance";
 paths.actions.focusChat = "/actions/focusChat";
 paths.actions.focusChatCommand = "/actions/focusChatCommand";
 paths.actions.toggleKeyTips = "/actions/toggleKeyTips";

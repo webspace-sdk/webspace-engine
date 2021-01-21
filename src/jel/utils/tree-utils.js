@@ -1,7 +1,6 @@
 import scrollIntoView from "scroll-into-view-if-needed";
 import { useEffect, useCallback } from "react";
 import { createHub } from "../../hubs/utils/phoenix-utils";
-import { navigateToHubUrl } from "./jel-url-utils";
 
 export function useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersion) {
   useEffect(
@@ -125,9 +124,20 @@ export function isAtomInSubtree(tree, subtreeAtomId, targetAtomId) {
   return false;
 }
 
-export async function addNewHubToTree(history, treeManager, spaceId, insertUnderAtomId, name = null) {
+export async function addNewHubToTree(
+  treeManager,
+  spaceId,
+  insertUnderAtomId,
+  name = null,
+  template = null,
+  worldType = null,
+  worldSeed = null,
+  spawnPosition = null,
+  spawnRotation = null,
+  spawnRadius = null
+) {
   const tree = treeManager.sharedNav;
-  const hub = await createHub(spaceId, name);
+  const hub = await createHub(spaceId, name, template, worldType, worldSeed, spawnPosition, spawnRotation, spawnRadius);
   const insertUnderNodeId = insertUnderAtomId ? tree.getNodeIdForAtomId(insertUnderAtomId) : null;
 
   if (insertUnderNodeId) {
@@ -137,5 +147,5 @@ export async function addNewHubToTree(history, treeManager, spaceId, insertUnder
     treeManager.sharedNav.addToRoot(hub.hub_id);
   }
 
-  navigateToHubUrl(history, hub.url);
+  return hub;
 }

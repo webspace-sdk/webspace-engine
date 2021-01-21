@@ -8,9 +8,12 @@ import { clearResolveUrlCache } from "./media-utils";
 import { addNewHubToTree } from "../../jel/utils/tree-utils";
 import { getMessages } from "./i18n";
 import { SOUND_CHAT_MESSAGE } from "../systems/sound-effects-system";
+import { navigateToHubUrl } from "../../jel/utils/jel-url-utils";
 import qsTruthy from "./qs_truthy";
 import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
 import HubStore from "../storage/hub-store";
+import WorldImporter from "../../jel/utils/world-importer";
+import { getHtmlForTemplate, applyTemplate } from "../../jel/utils/template-utils";
 import mixpanel from "mixpanel-browser";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
@@ -65,31 +68,47 @@ async function updateEnvironmentForHub(hub) {
 async function moveToInitialHubLocation(hub, hubStore) {
   const sceneEl = document.querySelector("a-scene");
 
-  const waypointSystem = sceneEl.systems["hubs-systems"].waypointSystem;
-  waypointSystem.releaseAnyOccupiedWaypoints();
   const characterController = sceneEl.systems["hubs-systems"].characterController;
 
   document.querySelector(".a-canvas").classList.remove("a-hidden");
   sceneEl.addState("visible");
 
-  if (hubStore.state.lastPosition.x) {
-    const startPosition = new THREE.Vector3(
+  let startPosition, startRotation;
+
+  if (hubStore.state.lastPosition.x === undefined) {
+    // Random scatter in x z radially
+    const randomDirection = new THREE.Vector3(-1 + Math.random() * 2.0, 0, -1 + Math.random() * 2.0);
+    randomDirection.normalize();
+
+    // Spawn point is centered based upon hub setting, and random pick from radius
+    startPosition = new THREE.Vector3(
+      hub.spawn_point.position.x + randomDirection.x * hub.spawn_point.radius,
+      hub.spawn_point.position.y,
+      hub.spawn_point.position.z + randomDirection.z * hub.spawn_point.radius
+    );
+
+    startRotation = new THREE.Quaternion(
+      hub.spawn_point.rotation.x,
+      hub.spawn_point.rotation.y,
+      hub.spawn_point.rotation.z,
+      hub.spawn_point.rotation.w
+    );
+  } else {
+    startPosition = new THREE.Vector3(
       hubStore.state.lastPosition.x,
       hubStore.state.lastPosition.y,
       hubStore.state.lastPosition.z
     );
 
-    const startRotation = new THREE.Quaternion(
+    startRotation = new THREE.Quaternion(
       hubStore.state.lastRotation.x,
       hubStore.state.lastRotation.y,
       hubStore.state.lastRotation.z,
       hubStore.state.lastRotation.w
     );
-
-    characterController.teleportTo(startPosition, startRotation);
-  } else {
-    waypointSystem.moveToSpawnPoint();
   }
+
+  characterController.teleportTo(startPosition, startRotation);
 
   startTrackingPosition(hubStore);
 }
@@ -591,6 +610,18 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
             NAF.connection.adapter
               .joinHub(hub.hub_id)
               .then(() => scene.components["shared-scene"].subscribe(hub.hub_id))
+              .then(() => {
+                if (isInitialJoin) {
+                  if (hub.template && hub.template.name) {
+                    const { name, synced_at, hash } = hub.template;
+                    return applyTemplate(name, synced_at, hash);
+                  } else {
+                    return Promise.resolve();
+                  }
+                } else {
+                  return Promise.resolve();
+                }
+              })
               .then(res);
           }
         });
@@ -782,10 +813,36 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
       hubMetadata.ensureMetadataForIds([homeHub.hub_id]);
 
       if (store.state.context.isFirstVisitToSpace) {
-        // First time space setup, create initial public world. TODO do this server-side.
-        const firstWorldName = getMessages()["space.initial-world-name"];
-        await addNewHubToTree(history, treeManager, spaceId, null, firstWorldName);
+        const hubs = {};
 
+        // First time space setup, create initial public worlds. TODO do this server-side.
+        for (const world of ["first", "welcome", "whats-new", "faq"]) {
+          const name = getMessages()[`space.${world}-world-name`];
+          const templateName = world;
+          const html = getHtmlForTemplate(templateName);
+          const [
+            worldType,
+            worldSeed,
+            spawnPosition,
+            spawnRotation,
+            spawnRadius
+          ] = new WorldImporter().getWorldMetadataFromHtml(html);
+
+          hubs[world] = await addNewHubToTree(
+            treeManager,
+            spaceId,
+            null,
+            name,
+            world,
+            worldType,
+            worldSeed,
+            spawnPosition,
+            spawnRotation,
+            spawnRadius
+          );
+        }
+
+        navigateToHubUrl(history, hubs.first.url);
         store.update({ context: { isFirstVisitToSpace: false } });
       }
 

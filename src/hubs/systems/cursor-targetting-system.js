@@ -59,9 +59,7 @@ export class CursorTargettingSystem {
   populateEntities(targets) {
     targets.length = 0;
     // TODO: Do not querySelectorAll on the entire scene every time anything changes!
-    const els = AFRAME.scenes[0].querySelectorAll(
-      ".collidable, .interactable, .ui, .drawing, .occupiable-waypoint-icon, .teleport-waypoint-icon"
-    );
+    const els = AFRAME.scenes[0].querySelectorAll(".collidable, .interactable, .ui, .drawing");
     for (let i = 0; i < els.length; i++) {
       if (els[i].object3D) {
         targets.push(els[i].object3D);

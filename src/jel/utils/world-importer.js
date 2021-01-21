@@ -33,22 +33,77 @@ const transformUnitToRadians = s => {
 };
 
 export default class WorldImporter {
-  importHtmlToCurrentWorld(html) {
+  importHtmlToCurrentWorld(html, replaceExisting = true, removeEntitiesNotInTemplate = false) {
     const doc = new DOMParser().parseFromString(html, "text/html");
 
     if (doc.body && doc.querySelector(`meta[name='jel-schema']`)) {
-      this.importJelDocument(doc);
+      return this.importJelDocument(doc, replaceExisting, removeEntitiesNotInTemplate);
     }
   }
 
-  async importJelDocument(doc, replaceExisting = true) {
-    const { terrainSystem } = AFRAME.scenes[0].systems["hubs-systems"];
+  getWorldMetadataFromHtml(html) {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+
+    if (doc.body && doc.querySelector(`meta[name='jel-schema']`)) {
+      const getMeta = key => {
+        const el = doc.querySelector(`meta[name='${key}']`);
+
+        if (el) {
+          return el.getAttribute("content");
+        } else {
+          return null;
+        }
+      };
+
+      let spawnPosition = null,
+        spawnRotation = null,
+        spawnRadius = null;
+
+      const worldType = getMeta("jel-world-type");
+      const worldSeed = getMeta("jel-world-seed");
+
+      const px = getMeta("jel-spawn-position-x");
+      const py = getMeta("jel-spawn-position-y");
+      const pz = getMeta("jel-spawn-position-z");
+
+      const rx = getMeta("jel-spawn-rotation-x");
+      const ry = getMeta("jel-spawn-rotation-y");
+      const rz = getMeta("jel-spawn-rotation-z");
+      const rw = getMeta("jel-spawn-rotation-w");
+
+      const rad = getMeta("jel-spawn-radius");
+
+      if (px !== null && py !== null && pz !== null) {
+        spawnPosition = new THREE.Vector3(parseFloat(px), parseFloat(py), parseFloat(pz));
+      }
+
+      if (rx !== null && ry !== null && rz !== null && rw !== null) {
+        spawnRotation = new THREE.Quaternion(parseFloat(rx), parseFloat(ry), parseFloat(rz), parseFloat(rw));
+      }
+
+      if (rad !== null) {
+        spawnRadius = parseFloat(rad);
+      }
+
+      return [worldType, worldSeed, spawnPosition, spawnRotation, spawnRadius];
+    }
+
+    return [null, null, null, null, null];
+  }
+
+  async importJelDocument(doc, replaceExisting = true, removeEntitiesNotInTemplate = false) {
+    const { terrainSystem, autoQualitySystem } = AFRAME.scenes[0].systems["hubs-systems"];
+    autoQualitySystem.stopTracking();
+
     const prepareImportPromises = [];
+    const docEntityIds = new Set();
 
     if (replaceExisting) {
       for (const el of doc.body.childNodes) {
         const id = el.id;
         if (!id || id.length !== 7) continue; // Sanity check
+        docEntityIds.add(`naf-${id}`);
+
         const existingEl = document.getElementById(`naf-${id}`);
 
         if (existingEl) {
@@ -57,23 +112,39 @@ export default class WorldImporter {
             new Promise(res => {
               if (!ensureOwnership(existingEl)) res();
 
-              let c = 0;
+              existingEl.components.shared.whenInstantiated(() => {
+                let c = 0;
 
-              const handler = () => {
-                c++;
+                const handler = () => {
+                  c++;
 
-                if (c === Object.keys(existingEl.components).length) {
-                  existingEl.removeEventListener("componentremoved", handler);
-                  res();
-                }
-              };
+                  if (c === Object.keys(existingEl.components).length) {
+                    existingEl.removeEventListener("componentremoved", handler);
+                    res();
+                  }
+                };
 
-              existingEl.addEventListener("componentremoved", handler);
+                existingEl.addEventListener("componentremoved", handler);
 
-              existingEl.parentNode.removeChild(existingEl);
+                existingEl.parentNode.removeChild(existingEl);
+              });
             })
           );
         }
+      }
+    }
+
+    if (removeEntitiesNotInTemplate) {
+      const toRemove = [...(document.querySelectorAll("[shared]") || [])].filter(
+        el => !docEntityIds.has(el.getAttribute("id"))
+      );
+
+      for (const el of toRemove) {
+        el.components.shared.whenInstantiated(() => {
+          if (el.components["media-loader"]) {
+            el.parentNode.removeChild(el);
+          }
+        });
       }
     }
 
@@ -82,6 +153,7 @@ export default class WorldImporter {
     prepareImportPromises.push(terrainSystem.loadAllHeightMaps());
 
     await Promise.all(prepareImportPromises);
+    let pendingCount = 0;
 
     for (const el of doc.body.childNodes) {
       const id = el.id;
@@ -235,7 +307,8 @@ export default class WorldImporter {
         true,
         null,
         null,
-        id
+        id,
+        false
       ).entity;
 
       const object3D = entity.object3D;
@@ -276,10 +349,21 @@ export default class WorldImporter {
           scale
         );
 
+        pendingCount++;
+
         entity.addEventListener(
-          "media-loaded",
+          "media-view-added",
           () => {
             object3D.applyMatrix(matrix);
+            pendingCount--;
+          },
+          { once: true }
+        );
+
+        entity.addEventListener(
+          "media-loader-failed",
+          () => {
+            pendingCount--;
           },
           { once: true }
         );
@@ -287,7 +371,19 @@ export default class WorldImporter {
 
       doc.body.removeChild(styleEl);
     }
+
+    // Wait until all new media is loaded before we begin tracking
+    // framerate again.
+    const interval = setInterval(() => {
+      if (pendingCount === 0) {
+        clearInterval(interval);
+
+        // Hacky, other place where tracking is stopped is in jel.js
+        // when doucment is blurred.
+        if (!document.body.classList.contains("paused")) {
+          autoQualitySystem.startTracking();
+        }
+      }
+    }, 1000);
   }
 }
-
-window.WorldImporter = WorldImporter;

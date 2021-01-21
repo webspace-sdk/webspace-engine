@@ -187,13 +187,47 @@ export async function createSpace(name) {
   return res;
 }
 
-export async function createHub(spaceId, name, sceneId) {
+export async function createHub(
+  spaceId,
+  name,
+  template,
+  worldType = null,
+  worldSeed = null,
+  spawnPosition = null,
+  spawnRotation = null,
+  spawnRadius = null
+) {
   const store = window.APP.store;
   const createUrl = getReticulumFetchUrl("/api/v1/hubs");
   const payload = { hub: { name, space_id: spaceId } };
 
-  if (sceneId) {
-    payload.hub.scene_id = sceneId;
+  if (template) {
+    payload.hub.template = template;
+  }
+
+  if (worldType !== null) {
+    payload.hub.world_type = worldType;
+  }
+
+  if (worldSeed !== null) {
+    payload.hub.world_seed = worldSeed;
+  }
+
+  if (spawnPosition != null) {
+    payload.hub.spawn_position_x = spawnPosition.x;
+    payload.hub.spawn_position_y = spawnPosition.y;
+    payload.hub.spawn_position_z = spawnPosition.z;
+  }
+
+  if (spawnRotation != null) {
+    payload.hub.spawn_rotation_x = spawnRotation.x;
+    payload.hub.spawn_rotation_y = spawnRotation.y;
+    payload.hub.spawn_rotation_z = spawnRotation.z;
+    payload.hub.spawn_rotation_w = spawnRotation.w;
+  }
+
+  if (spawnRadius != null) {
+    payload.hub.spawn_radius = spawnRadius;
   }
 
   const headers = { "content-type": "application/json" };

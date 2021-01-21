@@ -582,9 +582,11 @@ export class TerrainSystem {
     if (this.worldType === null) return;
     const { loadedChunks, loadingChunks, chunkHeightMaps, spawningChunks, worldType, worldSeed } = this;
     const key = keyForChunk(chunk);
-    if (loadedChunks.has(key) || loadingChunks.has(key) || spawningChunks.has(key)) return;
 
-    loadingChunks.set(key, chunk);
+    if (!heightMapOnly) {
+      if (loadedChunks.has(key) || loadingChunks.has(key) || spawningChunks.has(key)) return;
+      loadingChunks.set(key, chunk);
+    }
 
     // 3 Retries, sometimes lambda times out.
     for (let i = 0; i < 3; i++) {
@@ -599,8 +601,10 @@ export class TerrainSystem {
               }`
             )
               .then(async res => {
-                if (!loadingChunks.has(key)) return;
-                loadingChunks.delete(key);
+                if (!heightMapOnly) {
+                  if (!loadingChunks.has(key)) return;
+                  loadingChunks.delete(key);
+                }
 
                 if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
                 const arr = await res.arrayBuffer();
@@ -931,11 +935,12 @@ export class TerrainSystem {
     if (el.components["body-helper"]) return;
     const heightmap = this.chunkHeightMaps.get(key);
     if (!heightmap) return;
+    const terrain = this.terrains.get(key);
+    if (!terrain) return;
 
     let min = Infinity;
     let max = 0;
 
-    const terrain = this.terrains.get(key);
     const { heightfieldData } = terrain;
     for (let z = 0; z < VOXELS_PER_CHUNK; z += 8) {
       for (let x = 0; x < VOXELS_PER_CHUNK; x += 8) {

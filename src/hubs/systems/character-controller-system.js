@@ -1,21 +1,9 @@
 import { paths } from "./userinput/paths";
-import { SOUND_SNAP_ROTATE, SOUND_WAYPOINT_START, SOUND_WAYPOINT_END } from "./sound-effects-system";
-import { easeOutQuadratic } from "../utils/easing";
-import { getPooledMatrix4, freePooledMatrix4 } from "../utils/mat4-pool";
+import { SOUND_SNAP_ROTATE } from "./sound-effects-system";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
-import {
-  childMatch,
-  rotateInPlaceAroundWorldUp,
-  calculateCameraTransformForWaypoint,
-  interpolateAffine,
-  affixToWorldUp,
-  IDENTITY_QUATERNION
-} from "../utils/three-utils";
+import { childMatch, rotateInPlaceAroundWorldUp, affixToWorldUp, IDENTITY_QUATERNION } from "../utils/three-utils";
 import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
-import qsTruthy from "../utils/qs_truthy";
 //import { m4String } from "../utils/pretty-print";
-const qsAllowWaypointLerp = qsTruthy("waypointLerp");
-const isMobile = AFRAME.utils.device.isMobile();
 import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../jel/systems/terrain-system";
 
 const calculateDisplacementToDesiredPOV = (function() {
@@ -54,9 +42,6 @@ export class CharacterControllerSystem {
     this.terrainSystem = terrainSystem;
     this.fly = false;
     this.shouldLandWhenPossible = false;
-    this.waypoints = [];
-    this.waypointTravelStartTime = 0;
-    this.waypointTravelTime = 0;
     this.lastSeenNavVersion = -1;
     this.relativeMotion = new THREE.Vector3(0, 0, 0);
     this.nextRelativeMotion = new THREE.Vector3(0, 0, 0);
@@ -87,10 +72,6 @@ export class CharacterControllerSystem {
         );
       }
     });
-  }
-  // Use this API for waypoint travel so that your matrix doesn't end up in the pool
-  enqueueWaypointTravelTo(inTransform, isInstant, waypointComponentData) {
-    this.waypoints.push({ transform: getPooledMatrix4().copy(inTransform), isInstant, waypointComponentData }); //TODO: don't create new object
   }
   enqueueRelativeMotion(motion) {
     motion.z *= -1;
@@ -127,45 +108,6 @@ export class CharacterControllerSystem {
     };
   })();
 
-  travelByWaypoint = (function() {
-    const inMat4Copy = new THREE.Matrix4();
-    const inPosition = new THREE.Vector3();
-    const outPosition = new THREE.Vector3();
-    const translation = new THREE.Matrix4();
-    const initialOrientation = new THREE.Matrix4();
-    const finalScale = new THREE.Vector3();
-    const finalPosition = new THREE.Vector3();
-    const finalPOV = new THREE.Matrix4();
-    return function travelByWaypoint(inMat4, snapToHeightMap, willMaintainInitialOrientation) {
-      this.avatarPOV.object3D.updateMatrices();
-      if (!this.fly && !snapToHeightMap) {
-        this.fly = true;
-        this.shouldLandWhenPossible = true;
-        this.shouldUnoccupyWaypointsOnceMoving = true;
-      }
-      inMat4Copy.copy(inMat4);
-      rotateInPlaceAroundWorldUp(inMat4Copy, Math.PI, finalPOV);
-      if (snapToHeightMap) {
-        inPosition.setFromMatrixPosition(inMat4Copy);
-        this.findPositionOnHeightMap(inPosition, outPosition);
-        finalPOV.setPosition(outPosition);
-      }
-      translation.makeTranslation(0, getCurrentPlayerHeight(), -0.15);
-      finalPOV.multiply(translation);
-      if (willMaintainInitialOrientation) {
-        initialOrientation.extractRotation(this.avatarPOV.object3D.matrixWorld);
-        finalScale.setFromMatrixScale(finalPOV);
-        finalPosition.setFromMatrixPosition(finalPOV);
-        finalPOV
-          .copy(initialOrientation)
-          .scale(finalScale)
-          .setPosition(finalPosition);
-      }
-      calculateCameraTransformForWaypoint(this.avatarPOV.object3D.matrixWorld, finalPOV, finalPOV);
-      childMatch(this.avatarRig.object3D, this.avatarPOV.object3D, finalPOV);
-    };
-  })();
-
   tick = (function() {
     const snapRotatedPOV = new THREE.Matrix4();
     const newPOV = new THREE.Matrix4();
@@ -173,11 +115,6 @@ export class CharacterControllerSystem {
 
     const desiredPOVPosition = new THREE.Vector3();
     const heightMapSnappedPOVPosition = new THREE.Vector3();
-    const AVERAGE_WAYPOINT_TRAVEL_SPEED_METERS_PER_SECOND = 50;
-    const startTransform = new THREE.Matrix4();
-    const interpolatedWaypoint = new THREE.Matrix4();
-    const startTranslation = new THREE.Matrix4();
-    const waypointPosition = new THREE.Vector3();
     const v = new THREE.Vector3();
 
     let uiRoot;
@@ -189,62 +126,6 @@ export class CharacterControllerSystem {
       const vrMode = this.scene.is("vr-mode");
       this.sfx = this.sfx || this.scene.systems["hubs-systems"].soundEffectsSystem;
       this.interaction = this.interaction || AFRAME.scenes[0].systems.interaction;
-      this.waypointSystem = this.waypointSystem || this.scene.systems["hubs-systems"].waypointSystem;
-
-      if (!this.activeWaypoint && this.waypoints.length) {
-        this.activeWaypoint = this.waypoints.splice(0, 1)[0];
-        // Normally, do not disable motion on touchscreens because there is no way to teleport out of it.
-        // But if motion AND teleporting is disabled, then disable motion because the waypoint author
-        // intended for the user to be stuck here.
-        this.isMotionDisabled =
-          this.activeWaypoint.waypointComponentData.willDisableMotion &&
-          (!isMobile || this.activeWaypoint.waypointComponentData.willDisableTeleporting);
-        this.isTeleportingDisabled = this.activeWaypoint.waypointComponentData.willDisableTeleporting;
-        this.avatarPOV.object3D.updateMatrices();
-        this.waypointTravelTime =
-          (vrMode && !qsAllowWaypointLerp) || this.activeWaypoint.isInstant
-            ? 0
-            : 1000 *
-              (new THREE.Vector3()
-                .setFromMatrixPosition(this.avatarPOV.object3D.matrixWorld)
-                .distanceTo(waypointPosition.setFromMatrixPosition(this.activeWaypoint.transform)) /
-                AVERAGE_WAYPOINT_TRAVEL_SPEED_METERS_PER_SECOND);
-        rotateInPlaceAroundWorldUp(this.avatarPOV.object3D.matrixWorld, Math.PI, startTransform);
-        startTransform.multiply(startTranslation.makeTranslation(0, -1 * getCurrentPlayerHeight(), -0.15));
-        this.waypointTravelStartTime = t;
-        if (!vrMode && this.waypointTravelTime > 100) {
-          this.sfx.playSoundOneShot(SOUND_WAYPOINT_START);
-        }
-      }
-
-      const animationIsOver =
-        this.waypointTravelTime === 0 || t >= this.waypointTravelStartTime + this.waypointTravelTime;
-      if (this.activeWaypoint && !animationIsOver) {
-        const progress = THREE.Math.clamp((t - this.waypointTravelStartTime) / this.waypointTravelTime, 0, 1);
-        interpolateAffine(
-          startTransform,
-          this.activeWaypoint.transform,
-          easeOutQuadratic(progress),
-          interpolatedWaypoint
-        );
-        this.travelByWaypoint(
-          interpolatedWaypoint,
-          false,
-          this.activeWaypoint.waypointComponentData.willMaintainInitialOrientation
-        );
-      }
-      if (this.activeWaypoint && (this.waypoints.length || animationIsOver)) {
-        this.travelByWaypoint(
-          this.activeWaypoint.transform,
-          this.activeWaypoint.waypointComponentData.snapToHeightMap,
-          this.activeWaypoint.waypointComponentData.willMaintainInitialOrientation
-        );
-        freePooledMatrix4(this.activeWaypoint.transform);
-        this.activeWaypoint = null;
-        if (vrMode || this.waypointTravelTime > 0) {
-          this.sfx.playSoundOneShot(SOUND_WAYPOINT_END);
-        }
-      }
 
       const userinput = AFRAME.scenes[0].systems.userinput;
       const wasFlying = this.fly;
@@ -353,7 +234,7 @@ export class CharacterControllerSystem {
           );
           squareDistHeightMapCorrection = desiredPOVPosition.distanceToSquared(heightMapSnappedPOVPosition);
 
-          if (this.fly && this.shouldLandWhenPossible && squareDistHeightMapCorrection < 0.5 && !this.activeWaypoint) {
+          if (this.fly && this.shouldLandWhenPossible && squareDistHeightMapCorrection < 0.5) {
             this.shouldLandWhenPossible = false;
             this.fly = false;
             newPOV.setPosition(heightMapSnappedPOVPosition);
@@ -362,9 +243,7 @@ export class CharacterControllerSystem {
           }
         }
 
-        if (!this.activeWaypoint && this.shouldUnoccupyWaypointsOnceMoving && triedToMove) {
-          this.shouldUnoccupyWaypointsOnceMoving = false;
-          this.waypointSystem.releaseAnyOccupiedWaypoints();
+        if (triedToMove) {
           if (
             this.fly &&
             this.shouldLandWhenPossible &&

@@ -532,7 +532,8 @@ function JelUI(props) {
                 onClick={() => {
                   showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
                     hideRename: true,
-                    showExport: true
+                    showExport: true,
+                    showReset: !!hub.template.name
                   });
                 }}
               />
@@ -653,6 +654,7 @@ function JelUI(props) {
         setPopperElement={setHubContextMenuElement}
         hideRename={!!hubContextMenuOpenOptions.hideRename}
         showExport={!!hubContextMenuOpenOptions.showExport}
+        showReset={!!hubContextMenuOpenOptions.showReset}
         styles={hubContextMenuStyles}
         attributes={hubContextMenuAttributes}
         hubId={hubContextMenuHubId}
@@ -666,7 +668,14 @@ function JelUI(props) {
           },
           [scene]
         )}
-        onExportClick={useCallback(() => new WorldExporter().downloadCurrentWorldHtml(), [])}
+        onExportClick={useCallback(
+          () => {
+            new WorldExporter().downloadCurrentWorldHtml();
+            scene.canvas.focus();
+          },
+          [scene]
+        )}
+        onResetClick={useCallback(() => scene.emit("action_reset_objects"), [scene])}
         onTrashClick={useCallback(
           hubId => {
             if (!tree.getNodeIdForAtomId(hubId)) return;

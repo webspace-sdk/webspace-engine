@@ -92,21 +92,13 @@ const hasButtonComponent = (function() {
 
 function getHoverableButton(hovered) {
   if (!hovered) return null;
-  if (
-    hasButtonComponent(hovered.components) ||
-    hovered.classList.contains("teleport-waypoint-icon") ||
-    hovered.classList.contains("occupiable-waypoint-icon")
-  ) {
+  if (hasButtonComponent(hovered.components)) {
     return hovered;
   }
   if (hovered.children) {
     // TODO: not sure if looping thru children here is desireable, but we did this to accomodate the rounded-button mixins
     for (let i = 0; i < hovered.children.length; i++) {
-      if (
-        hasButtonComponent(hovered.children[i].components) ||
-        hovered.children[i].classList.contains("teleport-waypoint-icon") ||
-        hovered.children[i].classList.contains("occupiable-waypoint-icon")
-      ) {
+      if (hasButtonComponent(hovered.children[i].components)) {
         return hovered.children[i];
       }
     }
@@ -118,11 +110,7 @@ function dispatch(el, event) {
   el.object3D.dispatchEvent(event);
   if (el.children) {
     for (let i = 0; i < el.children.length; i++) {
-      if (
-        hasButtonComponent(el.children[i].components) ||
-        el.children[i].classList.contains("teleport-waypoint-icon") ||
-        el.children[i].classList.contains("occupiable-waypoint-icon")
-      ) {
+      if (hasButtonComponent(el.children[i].components)) {
         el.children[i].object3D.dispatchEvent(event);
       }
     }

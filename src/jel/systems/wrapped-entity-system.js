@@ -16,7 +16,7 @@ export const normalizeCoord = c => {
   }
 };
 
-const denormalizeCoord = (c, p) => {
+export const denormalizeCoord = (c, p) => {
   // Bring new point to same area as previous point.
   if (c < p) {
     while (Math.abs(p - c) > WORLD_SIZE / 2) {

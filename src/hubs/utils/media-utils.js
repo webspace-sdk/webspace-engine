@@ -51,8 +51,15 @@ export const MEDIA_VIEW_COMPONENTS = [
 ];
 
 export const PAGABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-pdf"];
-
 export const BAKABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-text", "media-pdf"];
+export const DISTANCE_DELAYED_MEDIA_VIEW_COMPONENTS = [
+  "media-text",
+  "media-pdf",
+  "media-emoji",
+  "media-vox",
+  "gltf-model-plus"
+];
+
 export const GROUNDABLE_MEDIA_VIEW_COMPONENTS = [
   "gltf-model-plus",
   "media-vox",
@@ -206,7 +213,8 @@ export const addMedia = (
   networked = true,
   parentEl = null,
   linkedEl = null,
-  networkId = null
+  networkId = null,
+  showLoader = true
 ) => {
   const scene = AFRAME.scenes[0];
 
@@ -261,6 +269,7 @@ export const addMedia = (
     src: typeof src === "string" && contents === null ? coerceToUrl(src) || src : "",
     initialContents: contents != null ? contents : null,
     addedLocally: true,
+    showLoader,
     version,
     contentSubtype,
     linkedEl,
