@@ -741,6 +741,7 @@ AFRAME.registerComponent("gltf-model-plus", {
 
       rewires.forEach(f => f());
 
+      object3DToSet.matrixNeedsUpdate = true;
       object3DToSet.visible = true;
       object3DToSet.traverse(o => (o.castShadow = true));
       this.el.emit("model-loaded", { format: "gltf", model: this.model });

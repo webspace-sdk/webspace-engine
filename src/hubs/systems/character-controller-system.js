@@ -346,4 +346,8 @@ export class CharacterControllerSystem {
     }
     return this.fly;
   }
+
+  isMoving() {
+    return this.relativeMotion && this.relativeMotion.lengthSq() > 0.0001;
+  }
 }
