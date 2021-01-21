@@ -76,15 +76,15 @@ export class MediaPresenceSystem {
     // Handle setting things to present if they are delayed based on distance.
     // Convert at most one every N frames (depending if moving) to reduce hitching.
     if (this.distanceDelayedNetworkIds.size > 0) {
-      const frameDelay = this.characterController.isMoving() ? 20 : 5;
+      const isMoving = this.characterController.isMoving();
 
-      if (this.frame % frameDelay === 0) {
+      if (!isMoving || this.frame % 20 === 0) {
         for (const networkId of this.distanceDelayedNetworkIds) {
           const el = this.mediaComponents.get(networkId).el;
           const newPresence = this.updateDesiredMediaPresence(el);
 
-          // Do at most one per frame delay
-          if (newPresence === MEDIA_PRESENCE.PRESENT) break;
+          // Do at most one per frame delay when moving
+          if (newPresence === MEDIA_PRESENCE.PRESENT && isMoving) break;
         }
       }
     }

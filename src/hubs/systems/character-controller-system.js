@@ -348,6 +348,6 @@ export class CharacterControllerSystem {
   }
 
   isMoving() {
-    return this.relativeMotion && this.relativeMotion.lengthSq() > 0.0001;
+    return this.relativeMotion && this.relativeMotion.lengthSq() > 0.1;
   }
 }
