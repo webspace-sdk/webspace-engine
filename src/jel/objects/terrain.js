@@ -1,6 +1,5 @@
 import { Layers } from "../../hubs/components/layers";
 import { addVertexCurvingToShader, VOXELS_PER_CHUNK } from "../systems/terrain-system";
-import { setMatrixWorld } from "../../hubs/utils/three-utils";
 
 const {
   ShaderMaterial,
@@ -9,7 +8,6 @@ const {
   BufferGeometry,
   BufferAttribute,
   Object3D,
-  Matrix4,
   ShaderLib,
   Float32BufferAttribute,
   UniformsUtils,
@@ -18,10 +16,9 @@ const {
   LOD
 } = THREE;
 
-const MESH_OFFSET = new Matrix4();
 const LOD_DISTANCES = [0, 20, 24];
 
-const createVoxelMaterial = () => {
+const createVoxelMaterial = (vertexShaderInjector = () => {}) => {
   const voxelMaterial = new ShaderMaterial({
     name: "voxels",
     vertexColors: VertexColors,
@@ -41,14 +38,27 @@ const createVoxelMaterial = () => {
   voxelMaterial.uniforms.roughness.value = 1;
 
   voxelMaterial.onBeforeCompile = shader => {
+    vertexShaderInjector(shader);
     addVertexCurvingToShader(shader);
-    shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
+    shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0; ");
   };
 
   return voxelMaterial;
 };
 
-const terrainMaterial = createVoxelMaterial();
+// Terrain voxel material needs to offset verts in shader, but scene graph coords
+// are unaltered. (I don't remember why, this refactor is after 55b1333126aaa2617e30c9d35441d2 which
+// previously used the instance matrix to do this.)
+const terrainMaterial = createVoxelMaterial(shader => {
+  shader.vertexShader = shader.vertexShader.replace(
+    "#include <project_vertex>",
+    [
+      `transformed.x -= ${(VOXELS_PER_CHUNK / 2.0).toFixed(1)};`,
+      `transformed.z -= ${(VOXELS_PER_CHUNK / 2.0).toFixed(1)};`,
+      "#include <project_vertex>"
+    ].join("\n")
+  );
+});
 
 class Terrain extends Object3D {
   constructor(lodEnabled = true) {
@@ -59,8 +69,6 @@ class Terrain extends Object3D {
     const createMesh = () => {
       const mesh = new THREE.Mesh(new BufferGeometry(), terrainMaterial);
       mesh.receiveShadow = true;
-      mesh.position.x = -VOXELS_PER_CHUNK / 2;
-      mesh.position.z = -VOXELS_PER_CHUNK / 2;
       mesh.matrixNeedsUpdate = true;
       mesh.castShadow = true;
       mesh.frustumCulled = false;
