@@ -1,5 +1,5 @@
 import { ensureOwnership, getNetworkId, getNetworkedEntity } from "../utils/ownership-utils";
-import { DISTANCE_DELAYED_MEDIA_VIEW_COMPONENTS, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
+import { MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { normalizeCoord, denormalizeCoord } from "./wrapped-entity-system";
 
@@ -247,12 +247,7 @@ export class MediaPresenceSystem {
           const networkId = getNetworkId(networkedEl);
           this.mediaComponents.set(networkId, component);
 
-          const isDelayed = !!DISTANCE_DELAYED_MEDIA_VIEW_COMPONENTS.find(n => component.name === n);
-
-          if (isDelayed) {
-            this.distanceDelayedNetworkIds.add(networkId);
-          }
-
+          this.distanceDelayedNetworkIds.add(networkId);
           this.updateDesiredMediaPresence(component.el);
         })
         .catch(() => {}); //ignore exception, entity might not be networked
