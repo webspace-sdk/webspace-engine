@@ -1,7 +1,7 @@
 import Pako from "pako";
 import { CONSTANTS } from "three-ammo";
 import { protocol } from "../protocol/protocol";
-import { createVoxelMaterial, Terrain } from "../objects/terrain";
+import { voxelMaterial, Terrain } from "../objects/terrain";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { VOXLoader } from "../objects/VOXLoader";
 import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
@@ -724,10 +724,6 @@ export class TerrainSystem {
     this.grasses = [];
 
     const promises = [];
-    const voxelMaterial = createVoxelMaterial();
-    voxelMaterial.uniforms.opacity.value = 0.2;
-    voxelMaterial.transparent = true;
-    voxelMaterial.uniformsNeedUpdate = true;
 
     promises.push(
       new Promise(res => {
@@ -742,6 +738,25 @@ export class TerrainSystem {
 
               const mesh = new DynamicInstancedMesh(geometry, voxelMaterial, 1024 * 8);
               mesh.renderOrder = RENDER_ORDER.FIELD;
+
+              let op;
+              let t;
+
+              // Re-use shader for normal voxels to reduce
+              // program switching, but tweak uniform.
+              mesh.onBeforeRender = () => {
+                op = voxelMaterial.uniforms.opacity.value;
+                t = voxelMaterial.transparent;
+                voxelMaterial.uniforms.opacity.value = 0.2;
+                voxelMaterial.uniformsNeedUpdate = true;
+                voxelMaterial.transparent = true;
+              };
+
+              mesh.onAfterRender = () => {
+                voxelMaterial.uniforms.opacity.value = op;
+                voxelMaterial.uniformsNeedUpdate = true;
+                voxelMaterial.transparent = t;
+              };
 
               mesh.receiveShadow = true;
               meshes.push(mesh);

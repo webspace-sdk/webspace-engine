@@ -2,12 +2,14 @@ import { Layers } from "../../hubs/components/layers";
 import { addVertexCurvingToShader, VOXELS_PER_CHUNK } from "../systems/terrain-system";
 
 const {
+  InstancedMesh,
   ShaderMaterial,
   MeshStandardMaterial,
   VertexColors,
   BufferGeometry,
   BufferAttribute,
   Object3D,
+  Matrix4,
   ShaderLib,
   Float32BufferAttribute,
   UniformsUtils,
@@ -16,49 +18,31 @@ const {
   LOD
 } = THREE;
 
+const MESH_OFFSET = new Matrix4();
 const LOD_DISTANCES = [0, 20, 24];
 
-const createVoxelMaterial = (vertexShaderInjector = () => {}) => {
-  const voxelMaterial = new ShaderMaterial({
-    name: "voxels",
-    vertexColors: VertexColors,
-    fog: true,
-    fragmentShader: ShaderLib.standard.fragmentShader,
-    vertexShader: ShaderLib.standard.vertexShader,
-    lights: true,
-    defines: {
-      ...MeshStandardMaterial.defines
-    },
-    uniforms: {
-      ...UniformsUtils.clone(ShaderLib.standard.uniforms)
-    }
-  });
-
-  voxelMaterial.uniforms.metalness.value = 0;
-  voxelMaterial.uniforms.roughness.value = 1;
-
-  voxelMaterial.onBeforeCompile = shader => {
-    vertexShaderInjector(shader);
-    addVertexCurvingToShader(shader);
-    shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0; ");
-  };
-
-  return voxelMaterial;
-};
-
-// Terrain voxel material needs to offset verts in shader, but scene graph coords
-// are unaltered. (I don't remember why, this refactor is after 55b1333126aaa2617e30c9d35441d2 which
-// previously used the instance matrix to do this.)
-const terrainMaterial = createVoxelMaterial(shader => {
-  shader.vertexShader = shader.vertexShader.replace(
-    "#include <project_vertex>",
-    [
-      `transformed.x -= ${(VOXELS_PER_CHUNK / 2.0).toFixed(1)};`,
-      `transformed.z -= ${(VOXELS_PER_CHUNK / 2.0).toFixed(1)};`,
-      "#include <project_vertex>"
-    ].join("\n")
-  );
+const voxelMaterial = new ShaderMaterial({
+  name: "voxels",
+  vertexColors: VertexColors,
+  fog: true,
+  fragmentShader: ShaderLib.standard.fragmentShader,
+  vertexShader: ShaderLib.standard.vertexShader,
+  lights: true,
+  defines: {
+    ...MeshStandardMaterial.defines
+  },
+  uniforms: {
+    ...UniformsUtils.clone(ShaderLib.standard.uniforms)
+  }
 });
+
+voxelMaterial.uniforms.metalness.value = 0;
+voxelMaterial.uniforms.roughness.value = 1;
+
+voxelMaterial.onBeforeCompile = shader => {
+  addVertexCurvingToShader(shader);
+  shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
+};
 
 class Terrain extends Object3D {
   constructor(lodEnabled = true) {
@@ -67,9 +51,10 @@ class Terrain extends Object3D {
     this.meshes = [];
 
     const createMesh = () => {
-      const mesh = new THREE.Mesh(new BufferGeometry(), terrainMaterial);
+      const mesh = new InstancedMesh(new BufferGeometry(), voxelMaterial, 1);
       mesh.receiveShadow = true;
-      mesh.matrixNeedsUpdate = true;
+      MESH_OFFSET.makeTranslation(-VOXELS_PER_CHUNK / 2, 0, -VOXELS_PER_CHUNK / 2);
+      mesh.setMatrixAt(0, MESH_OFFSET);
       mesh.castShadow = true;
       mesh.frustumCulled = false;
       mesh.layers.enable(Layers.reflection);
@@ -164,4 +149,4 @@ class Terrain extends Object3D {
   }
 }
 
-export { createVoxelMaterial, Terrain };
+export { voxelMaterial, Terrain };
