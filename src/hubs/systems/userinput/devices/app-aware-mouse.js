@@ -25,7 +25,7 @@ const leftKeyPath = paths.device.keyboard.key("arrowleft");
 const rightKeyPath = paths.device.keyboard.key("arrowright");
 const anyKeyPath = paths.device.keyboard.any;
 
-const HIDE_CURSOR_AFTER_IDLE_MS = 5000.0;
+const HIDE_CURSOR_AFTER_IDLE_MS = 2000.0;
 
 const calculateCursorPose = function(camera, cursorX, cursorY, origin, direction, cursorPose) {
   camera.updateMatrices();
@@ -162,7 +162,7 @@ export class AppAwareMouseDevice {
     const movementXScreen = movementXY[0] / 1000.0;
     const movementYScreen = -movementXY[1] / 1000.0;
 
-    if (Math.abs(movementXScreen) > 0.0 || Math.abs(movementYScreen) > 0.0 || anyKeyPressed) {
+    if (Math.abs(movementXScreen) > 0.0 || Math.abs(movementYScreen) > 0.0 || (anyKeyPressed && !mouseLookKey)) {
       this.hideCursorAfterIdleTime = performance.now() + HIDE_CURSOR_AFTER_IDLE_MS;
     }
 
