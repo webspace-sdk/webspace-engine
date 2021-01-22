@@ -324,7 +324,7 @@ if (!debugMatrices) {
 //
 // includeInvisible - If true, does not ignore non-visible objects.
 THREE.Object3D.prototype.updateMatrixWorld = function(forceWorldUpdate, includeInvisible) {
-  if (!this.visible && !includeInvisible) return;
+  if (!this.visible && !includeInvisible && !forceWorldUpdate) return;
 
   // Do not recurse upwards, since this is recursing downwards
   this.updateMatrices(false, forceWorldUpdate, true);

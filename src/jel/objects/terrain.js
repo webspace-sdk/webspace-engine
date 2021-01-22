@@ -2,14 +2,12 @@ import { Layers } from "../../hubs/components/layers";
 import { addVertexCurvingToShader, VOXELS_PER_CHUNK } from "../systems/terrain-system";
 
 const {
-  InstancedMesh,
   ShaderMaterial,
   MeshStandardMaterial,
   VertexColors,
   BufferGeometry,
   BufferAttribute,
   Object3D,
-  Matrix4,
   ShaderLib,
   Float32BufferAttribute,
   UniformsUtils,
@@ -18,31 +16,36 @@ const {
   LOD
 } = THREE;
 
-const MESH_OFFSET = new Matrix4();
 const LOD_DISTANCES = [0, 20, 24];
 
-const voxelMaterial = new ShaderMaterial({
-  name: "voxels",
-  vertexColors: VertexColors,
-  fog: true,
-  fragmentShader: ShaderLib.standard.fragmentShader,
-  vertexShader: ShaderLib.standard.vertexShader,
-  lights: true,
-  defines: {
-    ...MeshStandardMaterial.defines
-  },
-  uniforms: {
-    ...UniformsUtils.clone(ShaderLib.standard.uniforms)
-  }
-});
+const createVoxelMaterial = () => {
+  const voxelMaterial = new ShaderMaterial({
+    name: "voxels",
+    vertexColors: VertexColors,
+    fog: true,
+    fragmentShader: ShaderLib.standard.fragmentShader,
+    vertexShader: ShaderLib.standard.vertexShader,
+    lights: true,
+    defines: {
+      ...MeshStandardMaterial.defines
+    },
+    uniforms: {
+      ...UniformsUtils.clone(ShaderLib.standard.uniforms)
+    }
+  });
 
-voxelMaterial.uniforms.metalness.value = 0;
-voxelMaterial.uniforms.roughness.value = 1;
+  voxelMaterial.uniforms.metalness.value = 0;
+  voxelMaterial.uniforms.roughness.value = 1;
 
-voxelMaterial.onBeforeCompile = shader => {
-  addVertexCurvingToShader(shader);
-  shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
+  voxelMaterial.onBeforeCompile = shader => {
+    addVertexCurvingToShader(shader);
+    shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
+  };
+
+  return voxelMaterial;
 };
+
+const terrainMaterial = createVoxelMaterial();
 
 class Terrain extends Object3D {
   constructor(lodEnabled = true) {
@@ -51,10 +54,11 @@ class Terrain extends Object3D {
     this.meshes = [];
 
     const createMesh = () => {
-      const mesh = new InstancedMesh(new BufferGeometry(), voxelMaterial, 1);
+      const mesh = new THREE.Mesh(new BufferGeometry(), terrainMaterial, 1);
+      mesh.position.x = -VOXELS_PER_CHUNK / 2;
+      mesh.position.z = -VOXELS_PER_CHUNK / 2;
+      mesh.matrixNeedsUpdate = true;
       mesh.receiveShadow = true;
-      MESH_OFFSET.makeTranslation(-VOXELS_PER_CHUNK / 2, 0, -VOXELS_PER_CHUNK / 2);
-      mesh.setMatrixAt(0, MESH_OFFSET);
       mesh.castShadow = true;
       mesh.frustumCulled = false;
       mesh.layers.enable(Layers.reflection);
@@ -71,6 +75,7 @@ class Terrain extends Object3D {
     this.lod.position.z = VOXELS_PER_CHUNK / 2;
     this.lod.autoUpdate = false;
     this.lod.frustumCulled = false;
+    this.lod.matrixNeedsUpdate = true;
     this.add(this.lod);
 
     // Use an instanced mesh so shader can be shared with instanced voxel objects.
@@ -149,4 +154,4 @@ class Terrain extends Object3D {
   }
 }
 
-export { voxelMaterial, Terrain };
+export { createVoxelMaterial, Terrain };

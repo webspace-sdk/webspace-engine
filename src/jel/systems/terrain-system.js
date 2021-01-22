@@ -1,7 +1,7 @@
 import Pako from "pako";
 import { CONSTANTS } from "three-ammo";
 import { protocol } from "../protocol/protocol";
-import { voxelMaterial, Terrain } from "../objects/terrain";
+import { createVoxelMaterial, Terrain } from "../objects/terrain";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { VOXLoader } from "../objects/VOXLoader";
 import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
@@ -119,6 +119,11 @@ for (const [grid, radius] of [
   }
   grid.sort((a, b) => a.distanceTo(center) - b.distanceTo(center));
 }
+
+const featureMeshMaterial = createVoxelMaterial();
+featureMeshMaterial.uniforms.opacity.value = 0.2;
+featureMeshMaterial.uniformsNeedUpdate = true;
+featureMeshMaterial.transparent = true;
 
 const keyForChunk = ({ x, z }) => `${x}:${z}`;
 
@@ -736,27 +741,8 @@ export class TerrainSystem {
               const geometry = new VOXBufferGeometry(chunks[j]);
               geometry.translate(0, 6, 0);
 
-              const mesh = new DynamicInstancedMesh(geometry, voxelMaterial, 1024 * 8);
+              const mesh = new DynamicInstancedMesh(geometry, featureMeshMaterial, 1024 * 8);
               mesh.renderOrder = RENDER_ORDER.FIELD;
-
-              let op;
-              let t;
-
-              // Re-use shader for normal voxels to reduce
-              // program switching, but tweak uniform.
-              mesh.onBeforeRender = () => {
-                op = voxelMaterial.uniforms.opacity.value;
-                t = voxelMaterial.transparent;
-                voxelMaterial.uniforms.opacity.value = 0.2;
-                voxelMaterial.uniformsNeedUpdate = true;
-                voxelMaterial.transparent = true;
-              };
-
-              mesh.onAfterRender = () => {
-                voxelMaterial.uniforms.opacity.value = op;
-                voxelMaterial.uniformsNeedUpdate = true;
-                voxelMaterial.transparent = t;
-              };
 
               mesh.receiveShadow = true;
               meshes.push(mesh);
