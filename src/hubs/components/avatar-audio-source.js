@@ -36,11 +36,26 @@ async function getMediaStream(el) {
   return stream;
 }
 
+function getPreferredPanningModel() {
+  // At lowest detail level, assume we are CPU bound and abandon trying to do HRTF.
+  return window.APP.detailLevel > 1 ? "equalpower" : "HRTF";
+}
+
 function setPositionalAudioProperties(audio, settings) {
   audio.setDistanceModel(settings.distanceModel);
   audio.setMaxDistance(settings.maxDistance);
   audio.setRefDistance(settings.refDistance);
   audio.setRolloffFactor(settings.rolloffFactor);
+}
+
+function setPositionalAudioPanningModel(audio) {
+  const panningModel = getPreferredPanningModel();
+
+  if (audio.panner && audio.panner.panningModel !== panningModel) {
+    if (audio.panner.panningModel !== panningModel) {
+      audio.panner.panningModel = panningModel;
+    }
+  }
 }
 
 AFRAME.registerComponent("avatar-audio-source", {
@@ -66,6 +81,7 @@ AFRAME.registerComponent("avatar-audio-source", {
     const audio = this.data.positional ? new THREE.PositionalAudio(audioListener) : new THREE.Audio(audioListener);
     if (this.data.positional) {
       setPositionalAudioProperties(audio, this.data);
+      setPositionalAudioPanningModel(audio);
     }
 
     if (SHOULD_CREATE_SILENT_AUDIO_ELS) {
@@ -89,6 +105,7 @@ AFRAME.registerComponent("avatar-audio-source", {
   init() {
     this.el.sceneEl.systems["hubs-systems"].audioSettingsSystem.registerAvatarAudioSource(this);
     this.createAudio();
+    this.lastDetailLevel = null;
 
     NAF.utils.getNetworkedEntity(this.el).then(() => {
       NAF.connection.adapter.setAudioStreamChangedListener(() => {
@@ -102,6 +119,19 @@ AFRAME.registerComponent("avatar-audio-source", {
     this.createAudio();
   },
 
+  tick() {
+    const detailLevel = window.APP.detailLevel;
+
+    if (detailLevel !== this.lastDetailLevel) {
+      const audio = this.el.getObject3D(this.attrName);
+      if (!audio) return;
+
+      setPositionalAudioPanningModel(audio);
+
+      this.lastDetailLevel = detailLevel;
+    }
+  },
+
   update(oldData) {
     if (this.isCreatingAudio) return;
 
@@ -113,6 +143,7 @@ AFRAME.registerComponent("avatar-audio-source", {
       this.recreateAudio();
     } else if (this.data.positional) {
       setPositionalAudioProperties(audio, this.data);
+      setPositionalAudioPanningModel(audio);
     }
   },
 
