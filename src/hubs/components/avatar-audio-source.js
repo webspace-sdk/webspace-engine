@@ -37,8 +37,8 @@ async function getMediaStream(el) {
 }
 
 function getPreferredPanningModel() {
-  // At lowest detail level, assume we are CPU bound and abandon trying to do HRTF.
-  return window.APP.detailLevel > 1 ? "equalpower" : "HRTF";
+  // At lower detail levels, assume we are CPU bound and abandon trying to do HRTF.
+  return window.APP.detailLevel > 0 ? "equalpower" : "HRTF";
 }
 
 function setPositionalAudioProperties(audio, settings) {
