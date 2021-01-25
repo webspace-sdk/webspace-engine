@@ -342,7 +342,6 @@ function JelSidePanels({
   showSpaceRenamePopup,
   spaceRenamePopupElement,
   spaceId,
-  spacePresences,
   sessionId,
   scene,
   showEmojiPopup
@@ -518,7 +517,6 @@ function JelSidePanels({
             )}
             <SelfPanel
               spaceId={spaceId}
-              spacePresences={spacePresences}
               spaceChannel={spaceChannel}
               memberships={memberships}
               scene={scene}
@@ -537,9 +535,9 @@ function JelSidePanels({
       <Right>
         <PresenceContent>
           <PresenceList
-            spacePresences={spacePresences || {}}
             hubMetadata={hubMetadata}
             hubCan={hubCan}
+            scene={scene}
             sessionId={sessionId}
             onGoToClicked={hubId => {
               const metadata = hubMetadata.getMetadata(hubId);
@@ -629,7 +627,6 @@ JelSidePanels.propTypes = {
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,
   scene: PropTypes.object,
-  spacePresences: PropTypes.object,
   spaceMetadata: PropTypes.object,
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,

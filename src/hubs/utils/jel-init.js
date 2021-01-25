@@ -213,7 +213,7 @@ function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
   remountJelUI({ hub, selectedMediaLayer });
 }
 
-const initSpacePresence = (presence, socket, remountUI, remountJelUI) => {
+const initSpacePresence = (presence, socket) => {
   const { hubChannel, spaceChannel } = window.APP;
 
   const scene = document.querySelector("a-scene");
@@ -222,9 +222,9 @@ const initSpacePresence = (presence, socket, remountUI, remountJelUI) => {
   return new Promise(res => {
     presence.onSync(() => {
       const presence = spaceChannel.presence;
-      remountUI({ spacePresences: presence.state });
-      remountJelUI({ spacePresences: presence.state });
       presence.__hadInitialSync = true;
+
+      scene.emit("space-presence-synced");
       res();
     });
 
@@ -329,7 +329,7 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
         const sessionId = (socket.params().session_id = data.session_id);
 
         if (!presenceInitPromise) {
-          presenceInitPromise = initSpacePresence(presence, socket, remountUI, remountJelUI);
+          presenceInitPromise = initSpacePresence(presence, socket);
         }
 
         socket.params().session_token = data.session_token;
@@ -522,16 +522,13 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
   });
 };
 
-const initHubPresence = async (presence, remountUI, remountJelUI) => {
+const initHubPresence = async presence => {
   const scene = document.querySelector("a-scene");
   const { hubChannel } = window.APP;
 
   await new Promise(res => {
     presence.onSync(() => {
       const presence = hubChannel.presence;
-
-      remountUI({ hubPresences: presence.state });
-      remountJelUI({ hubPresences: presence.state });
 
       const sessionIds = Object.getOwnPropertyNames(presence.state);
       const occupantCount = sessionIds.length;
@@ -541,6 +538,8 @@ const initHubPresence = async (presence, remountUI, remountJelUI) => {
       } else {
         scene.removeState("copresent");
       }
+
+      scene.emit("hub-presence-synced");
 
       res();
     });
@@ -566,7 +565,7 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
         adapter.unreliableTransport = hubChannel.sendUnreliableNAF.bind(hubChannel);
 
         if (isInitialJoin) {
-          await initHubPresence(presence, remountUI, remountJelUI);
+          await initHubPresence(presence);
         } else {
           // Send complete sync on phoenix re-join.
           NAF.connection.entities.completeSync(null, true);

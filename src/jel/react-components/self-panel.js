@@ -118,7 +118,6 @@ const SelfPanel = ({
   scene,
   spaceId,
   spaceChannel,
-  spacePresences,
   memberships,
   sessionId,
   onAvatarColorChange,
@@ -138,6 +137,23 @@ const SelfPanel = ({
   const [micDevices, setMicDevices] = useState([]);
   const [unmuted, setUnmuted] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [spacePresences, setSpacePresences] = useState(
+    (window.APP.spaceChannel && window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state) || {}
+  );
+
+  useEffect(
+    () => {
+      const handler = () => {
+        setSpacePresences(
+          window.APP.spaceChannel && window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state
+        );
+      };
+
+      scene.addEventListener("space-presence-synced", handler);
+      return () => scene.removeEventListener("space-presence-synced", handler);
+    },
+    [scene, setSpacePresences]
+  );
 
   const {
     styles: deviceSelectorStyles,

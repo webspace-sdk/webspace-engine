@@ -211,9 +211,27 @@ const ListWrap = styled.div`
   height: 100%;
 `;
 
-function PresenceList({ spacePresences, sessionId, hubMetadata, onGoToClicked, hubCan }) {
+function PresenceList({ scene, sessionId, hubMetadata, onGoToClicked, hubCan }) {
   const [height, setHeight] = useState(100);
   const outerRef = useRef();
+  const [spacePresences, setSpacePresences] = useState(
+    (window.APP.spaceChannel && window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state) || {}
+  );
+
+  useEffect(
+    () => {
+      const handler = () => {
+        setSpacePresences(
+          window.APP.spaceChannel && window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state
+        );
+      };
+
+      scene.addEventListener("space-presence-synced", handler);
+      return () => scene.removeEventListener("space-presence-synced", handler);
+    },
+    [scene, setSpacePresences]
+  );
+
   const data = [];
   const otherHubIdsToSessionMetas = new Map();
 
@@ -293,7 +311,7 @@ function PresenceList({ spacePresences, sessionId, hubMetadata, onGoToClicked, h
 }
 
 PresenceList.propTypes = {
-  spacePresences: PropTypes.object,
+  scene: PropTypes.object,
   sessionId: PropTypes.string,
   hubMetadata: PropTypes.object,
   onGoToClicked: PropTypes.func,

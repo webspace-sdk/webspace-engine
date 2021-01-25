@@ -291,7 +291,6 @@ function JelUI(props) {
   const [treeDataVersion, setTreeDataVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [createEmbedType, setCreateEmbedType] = useState("image");
-  const [chatLogEntries, setChatLogEntries] = useState([]);
 
   const hubRenameFocusRef = useRef();
   const spaceRenameFocusRef = useRef();
@@ -458,37 +457,11 @@ function JelUI(props) {
 
   const [pwaAvailable, installPWA] = useInstallPWA();
 
-  // Chat log entries
-  useEffect(
-    () => {
-      if (!scene) return;
-
-      const handler = ({ detail: newEntry }) => {
-        let newEntries = [...chatLogEntries, newEntry];
-
-        if (newEntries.length >= 10) {
-          newEntries = newEntries.slice(newEntries.length - 10);
-        }
-
-        setChatLogEntries(newEntries);
-      };
-
-      scene.addEventListener("chat_log_entry", handler);
-      return () => scene.removeEventListener("chat_log_entry", handler);
-    },
-    [scene, chatLogEntries, setChatLogEntries]
-  );
-
-  useEffect(() => setChatLogEntries([]), [hub]);
-
   const isHomeHub = hub && hub.is_home;
 
   const onCreateActionSelected = useCallback(a => scene.emit("create_action_exec", a), [scene]);
 
   const onTrailHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
-
-  const hasOtherOccupants =
-    hubChannel.presence && hubChannel.presence.state && Object.entries(hubChannel.presence.state).length > 1;
 
   return (
     <WrappedIntlProvider>
@@ -556,16 +529,7 @@ function JelUI(props) {
               </UnpausedInfoLabel>
             )}
 
-            {hasOtherOccupants &&
-            !isHomeHub &&
-            !store.state.activity.chat &&
-            chatLogEntries.filter(({ type }) => type === "chat").length === 0 ? (
-              <UnpausedInfoLabel>
-                <FormattedMessage id="chat.info" />
-              </UnpausedInfoLabel>
-            ) : (
-              !isHomeHub && <ChatLog entries={chatLogEntries} scene={scene} />
-            )}
+            {!isHomeHub && <ChatLog hub={hub} scene={scene} store={store} />}
           </BottomLeftPanels>
         </Wrap>
         {!skipSidePanels && (
@@ -742,9 +706,7 @@ JelUI.propTypes = {
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,
   scene: PropTypes.object,
-  spacePresences: PropTypes.object,
   selectedMediaLayer: PropTypes.number,
-  //sessionId: PropTypes.string,
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
   unavailableReason: PropTypes.string

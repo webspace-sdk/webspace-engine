@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
 import { FormattedMessage } from "react-intl";
 import styled from "styled-components";
@@ -71,6 +71,26 @@ const ChatLogLine = styled.div`
   }
 `;
 
+// Hacky copy+paste from jel-ui
+const UnpausedInfoLabel = styled.div`
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  display: block;
+  color: var(--canvas-overlay-text-color);
+  text-shadow: 0px 0px 4px var(--menu-shadow-color);
+  line-height: calc(var(--canvas-overlay-tertiary-text-size) + 2px);
+  font-weight: var(--canvas-overlay-item-tertiary-weight);
+  font-size: var(--canvas-overlay-tertiary-text-size);
+  margin: 11px 0 0 8px;
+  padding: 6px 10px;
+  white-space: pre;
+
+  body.paused & {
+    display: none;
+  }
+`;
+
 const MESSAGE_MARGIN = 6;
 
 const entryToEl = ({ body, type, posted_at, name, oldName, toName }) => {
@@ -117,8 +137,69 @@ const entryToEl = ({ body, type, posted_at, name, oldName, toName }) => {
 
 let chatLogHideTimeout;
 
-export default function ChatLog({ scene, entries }) {
+export default function ChatLog({ scene, hub, store }) {
   const ref = useRef();
+
+  const { hubChannel } = window.APP;
+  const [entries, setEntries] = useState([]);
+  const [hasChatted, setHasChatted] = useState(store.state.activity.chat);
+  const [hasOtherOccupants, setHasOtherOccupants] = useState(
+    hubChannel &&
+      hubChannel.presence &&
+      hubChannel.presence.state &&
+      Object.entries(hubChannel.presence.state).length > 1
+  );
+
+  useEffect(
+    () => {
+      const handler = () => {
+        setHasOtherOccupants(
+          hubChannel &&
+            hubChannel.presence &&
+            hubChannel.presence.state &&
+            Object.entries(hubChannel.presence.state).length > 1
+        );
+      };
+
+      scene.addEventListener("hub-presence-synced", handler);
+      return () => scene.removeEventListener("hub-presence-synced", handler);
+    },
+    [scene, hubChannel]
+  );
+
+  useEffect(
+    () => {
+      const handler = () => {
+        setHasChatted(store.state.activity.chat);
+      };
+      store.addEventListener("statechanged-activity", handler);
+      return () => store.removeEventListener("statechanged-activity", handler);
+    },
+    [store]
+  );
+
+  // Chat log entries
+  useEffect(
+    () => {
+      if (!scene) return;
+
+      const handler = ({ detail: newEntry }) => {
+        let newEntries = [...entries, newEntry];
+
+        if (newEntries.length >= 10) {
+          newEntries = newEntries.slice(newEntries.length - 10);
+        }
+
+        setEntries(newEntries);
+      };
+
+      scene.addEventListener("chat_log_entry", handler);
+      return () => scene.removeEventListener("chat_log_entry", handler);
+    },
+    [scene, entries, setEntries]
+  );
+
+  useEffect(() => setEntries([]), [hub]);
 
   const entryComponents = [];
 
@@ -215,6 +296,14 @@ export default function ChatLog({ scene, entries }) {
     [ref, entryHash]
   );
 
+  if (hasOtherOccupants && !hasChatted && entries.filter(({ type }) => type === "chat").length === 0) {
+    return (
+      <UnpausedInfoLabel>
+        <FormattedMessage id="chat.info" />
+      </UnpausedInfoLabel>
+    );
+  }
+
   return (
     <ChatLogElement ref={ref}>
       <TransitionGroup>{entryComponents}</TransitionGroup>
@@ -225,6 +314,7 @@ export default function ChatLog({ scene, entries }) {
 }
 
 ChatLog.propTypes = {
-  entries: PropTypes.array,
-  scene: PropTypes.object
+  scene: PropTypes.object,
+  hub: PropTypes.object,
+  store: PropTypes.object
 };
