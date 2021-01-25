@@ -20,6 +20,7 @@ const PHOENIX_RELIABLE_NAF = "phx-reliable";
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
 
 const isDebug = qsTruthy("debug");
+const isBotMode = qsTruthy("bot");
 const isMobile = AFRAME.utils.device.isMobile();
 const isMobileVR = AFRAME.utils.device.isMobileVR();
 
@@ -106,6 +107,12 @@ async function moveToInitialHubLocation(hub, hubStore) {
       hubStore.state.lastRotation.z,
       hubStore.state.lastRotation.w
     );
+  }
+
+  if (isBotMode) {
+    // Bot spawns at semi-random position
+    startPosition.x = -31 + Math.random() * 63;
+    startPosition.z = -31 + Math.random() * 63;
   }
 
   characterController.teleportTo(startPosition, startRotation);

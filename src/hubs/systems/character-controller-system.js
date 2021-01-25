@@ -37,7 +37,7 @@ const BASE_SPEED = 3.2; //TODO: in what units?
 const JUMP_GRAVITY = -16.0;
 const INITIAL_JUMP_VELOCITY = 5.0;
 
-const isBotMode = qsTruthy("bot");
+const isBotMode = qsTruthy("bot_move");
 
 export class CharacterControllerSystem {
   constructor(scene, terrainSystem) {

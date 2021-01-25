@@ -247,6 +247,15 @@ const isTelemetryDisabled = qsTruthy("disable_telemetry");
 const isDebug = qsTruthy("debug");
 const disablePausing = qsTruthy("no_pause") || isBotMode;
 
+if (isBotMode) {
+  const token = qs.get("credentials_token");
+  const email = qs.get("credentials_email") || "nobody@nowhere.com";
+
+  if (token) {
+    store.update({ credentials: { token, email } });
+  }
+}
+
 if (!isBotMode && !isTelemetryDisabled) {
   registerTelemetry("/hub", "Room Landing Page");
 
