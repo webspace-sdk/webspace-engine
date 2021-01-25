@@ -12,10 +12,12 @@ function getSidsFromHistory(history) {
 }
 
 export function getHubIdFromHistory(history) {
+  if (qs.get("hub_id")) return qs.get("hub_id");
   return getSidsFromHistory(history).substring(5);
 }
 
 export function getSpaceIdFromHistory(history) {
+  if (qs.get("space_id")) return qs.get("space_id");
   return getSidsFromHistory(history).substring(0, 5);
 }
 

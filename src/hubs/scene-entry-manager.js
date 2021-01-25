@@ -84,13 +84,6 @@ export default class SceneEntryManager {
 
     this._spawnAvatar();
 
-    if (isBotMode) {
-      this._runBot(); // TODO JEL bots
-      this.scene.addState("entered");
-      this.spaceChannel.sendEnteredHubEvent();
-      return;
-    }
-
     this.scene.classList.remove("hand-cursor");
     this.scene.classList.add("no-cursor");
 
@@ -99,7 +92,7 @@ export default class SceneEntryManager {
 
     // Delay sending entry event telemetry until VR display is presenting.
     (async () => {
-      while (enterInVR && !this.scene.renderer.vr.isPresenting()) {
+      while (enterInVR && this.scene.renderer.vr && !this.scene.renderer.vr.isPresenting()) {
         await nextTick();
       }
 
@@ -112,6 +105,10 @@ export default class SceneEntryManager {
     setTimeout(() => this.store.bumpEntryCount(), 30000);
 
     this.scene.addState("entered");
+
+    if (isBotMode) {
+      //this._runBot(); // TODO JEL bots
+    }
   };
 
   whenSceneLoaded = callback => {

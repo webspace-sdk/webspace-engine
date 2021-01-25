@@ -10,6 +10,6 @@ AFRAME.registerComponent("set-max-resolution", {
       this.el.sceneEl.resize();
     };
     this.onStoreChanged();
-    store.addEventListener("statechanged", this.onStoreChanged);
+    store.addEventListener("statechanged-preferences", this.onStoreChanged);
   }
 });

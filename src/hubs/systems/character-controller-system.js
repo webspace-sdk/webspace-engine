@@ -5,6 +5,7 @@ import { childMatch, rotateInPlaceAroundWorldUp, affixToWorldUp, IDENTITY_QUATER
 import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
 //import { m4String } from "../utils/pretty-print";
 import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../jel/systems/terrain-system";
+import qsTruthy from "../utils/qs_truthy";
 
 const calculateDisplacementToDesiredPOV = (function() {
   const translationCoordinateSpace = new THREE.Matrix4();
@@ -35,6 +36,8 @@ const SNAP_ROTATION_RADIAN = THREE.Math.DEG2RAD * 45;
 const BASE_SPEED = 3.2; //TODO: in what units?
 const JUMP_GRAVITY = -16.0;
 const INITIAL_JUMP_VELOCITY = 5.0;
+
+const isBotMode = qsTruthy("bot");
 
 export class CharacterControllerSystem {
   constructor(scene, terrainSystem) {
@@ -143,8 +146,18 @@ export class CharacterControllerSystem {
         this.shouldLandWhenPossible = false;
       }
       const preferences = window.APP.store.state.preferences;
-      const snapRotateLeft = userinput.get(paths.actions.snapRotateLeft);
-      const snapRotateRight = userinput.get(paths.actions.snapRotateRight);
+      let snapRotateLeft = userinput.get(paths.actions.snapRotateLeft);
+      let snapRotateRight = userinput.get(paths.actions.snapRotateRight);
+
+      if (isBotMode) {
+        // Bot mode randomly rotates
+        if (Math.random() < 0.01) {
+          snapRotateLeft = true;
+        } else if (Math.random() < 0.01) {
+          snapRotateRight = true;
+        }
+      }
+
       if (snapRotateLeft) {
         this.dXZ +=
           preferences.snapRotationDegrees === undefined
@@ -161,6 +174,11 @@ export class CharacterControllerSystem {
         this.scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_SNAP_ROTATE);
       }
       const characterAcceleration = userinput.get(paths.actions.characterAcceleration);
+
+      if (isBotMode) {
+        // Bot mode keeps moving around
+        characterAcceleration[1] += 0.75;
+      }
 
       const boost = userinput.get(paths.actions.boost) ? 2 : 1;
 

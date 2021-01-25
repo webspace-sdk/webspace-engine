@@ -69,6 +69,7 @@ import "./jel/components/media-text";
 import "./jel/components/media-emoji";
 import "./jel/components/media-stream";
 import { initQuillPool } from "./jel/utils/quill-pool";
+import nextTick from "./hubs/utils/next-tick";
 import "./hubs/components/avatar-volume-controls";
 import "./hubs/components/pinch-to-move";
 import "./hubs/components/position-at-border";
@@ -244,7 +245,7 @@ NAF.options.syncSource = PHOENIX_RELIABLE_NAF;
 const isBotMode = qsTruthy("bot");
 const isTelemetryDisabled = qsTruthy("disable_telemetry");
 const isDebug = qsTruthy("debug");
-const disablePausing = qsTruthy("no_pause");
+const disablePausing = qsTruthy("no_pause") || isBotMode;
 
 if (!isBotMode && !isTelemetryDisabled) {
   registerTelemetry("/hub", "Room Landing Page");
@@ -269,6 +270,8 @@ if (!isBotMode && !isTelemetryDisabled) {
       mixpanel.identify(`${hash}`);
     }
   }
+} else {
+  mixpanel.track = function() {};
 }
 
 registerWrappedEntityPositionNormalizers();
@@ -416,14 +419,14 @@ function setupPerformConditionalSignin(entryManager) {
   remountUI({ performConditionalSignIn });
 }
 
-// TODO JEL
-//async function runBotMode(scene, entryManager) {
-//  const noop = () => {};
-//  scene.renderer = { setAnimationLoop: noop, render: noop };
-//
-//  while (!NAF.connection.isConnected()) await nextTick();
-//  entryManager.enterSceneWhenLoaded(false);
-//}
+async function runBotMode(scene, entryManager) {
+  const noop = () => {};
+  scene.renderer = { setAnimationLoop: noop, render: noop };
+
+  while (!NAF.connection.isConnected()) await nextTick();
+  while (!SAF.connection.isConnected()) await nextTick();
+  entryManager.enterSceneWhenLoaded(false);
+}
 
 function initPhysicsThreeAndCursor(scene) {
   const physicsSystem = scene.systems["hubs-systems"].physicsSystem;
@@ -696,9 +699,9 @@ function setupNonVisibleHandler(scene) {
   // Need a timeout since tabbing in browser causes blur then focus rapidly
   let windowBlurredTimeout = null;
 
-  document.addEventListener("visibilitychange", () => apply());
-
   if (!disablePausing) {
+    document.addEventListener("visibilitychange", () => apply());
+
     window.addEventListener("blur", () => {
       const disableBlurHandlerOnceIfVisible = window.APP.disableBlurHandlerOnceIfVisible;
       window.APP.disableBlurHandlerOnceIfVisible = false;
@@ -713,12 +716,12 @@ function setupNonVisibleHandler(scene) {
         apply(true);
       }, 500);
     });
-  }
 
-  window.addEventListener("focus", () => {
-    clearTimeout(windowBlurredTimeout);
-    apply(false);
-  });
+    window.addEventListener("focus", () => {
+      clearTimeout(windowBlurredTimeout);
+      apply(false);
+    });
+  }
 }
 
 function setupSidePanelLayout(scene) {
@@ -883,21 +886,18 @@ async function setupUIBasedUponVRTypes(availableVREntryTypesPromise) {
   }
 }
 
-// function startBotModeIfNecessary(scene, entryManager) {
-//   // TODO JEL bots
-//   const environmentScene = document.querySelector("#environment-scene");
-//
-//   const onFirstEnvironmentLoad = () => {
-//     // Replace renderer with a noop renderer to reduce bot resource usage.
-//     if (isBotMode) {
-//       runBotMode(scene, entryManager);
-//     }
-//
-//     environmentScene.removeEventListener("model-loaded", onFirstEnvironmentLoad);
-//   };
-//
-//   environmentScene.addEventListener("model-loaded", onFirstEnvironmentLoad);
-// }
+function startBotModeIfNecessary(scene, entryManager) {
+  if (isBotMode) {
+    const onTerrainLoaded = () => {
+      // Replace renderer with a noop renderer to reduce bot resource usage.
+      runBotMode(scene, entryManager);
+
+      scene.addEventListener("terrain_chunk_loading_complete", onTerrainLoaded);
+    };
+
+    scene.addEventListener("terrain_chunk_loading_complete", onTerrainLoaded);
+  }
+}
 
 async function createSocket(entryManager) {
   let isReloading = false;
@@ -1034,7 +1034,7 @@ async function start() {
 
   setupVREventHandlers(scene, availableVREntryTypesPromise);
   setupUIBasedUponVRTypes(availableVREntryTypesPromise); // Note no await here, to avoid blocking
-  // startBotModeIfNecessary(scene, entryManager); TODO JEL
+  startBotModeIfNecessary(scene, entryManager);
   clearHistoryState(history);
 
   const socket = await createSocket(entryManager);

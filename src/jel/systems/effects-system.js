@@ -16,6 +16,8 @@ AFRAME.registerSystem("effects", {
   },
 
   tick: function(t, dt) {
+    if (!this.sceneEl.renderer) return;
+
     if (!this.playerCamera) {
       if (!this.viewingCameraEl) return;
       this.playerCamera = this.viewingCameraEl.getObject3D("camera");
