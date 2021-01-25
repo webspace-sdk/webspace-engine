@@ -659,7 +659,7 @@ function addGlobalEventListeners(scene, entryManager) {
   let performedInitialQualityBoost = false;
 
   scene.addEventListener("terrain_chunk_loading_complete", () => {
-    if (!performedInitialQualityBoost) {
+    if (!performedInitialQualityBoost && !isBotMode) {
       performedInitialQualityBoost = true;
       window.APP.detailLevel = 0;
       scene.renderer.setPixelRatio(window.devicePixelRatio);
