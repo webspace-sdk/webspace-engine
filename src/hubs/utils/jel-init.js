@@ -113,11 +113,11 @@ async function moveToInitialHubLocation(hub, hubStore) {
     // Bot spawns at semi-random position
     startPosition.x = -31 + Math.random() * 63;
     startPosition.z = -31 + Math.random() * 63;
+  } else {
+    startTrackingPosition(hubStore);
   }
 
   characterController.teleportTo(startPosition, startRotation);
-
-  startTrackingPosition(hubStore);
 }
 
 const createDynaChannelParams = () => {

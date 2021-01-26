@@ -141,6 +141,8 @@ const SelfPanel = ({
 
   useEffect(
     () => {
+      if (!scene) return () => {};
+
       const handler = () => {
         const spacePresences =
           window.APP.spaceChannel && window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state;

@@ -152,6 +152,8 @@ export default function ChatLog({ scene, hub, store }) {
 
   useEffect(
     () => {
+      if (!scene) return () => {};
+
       const handler = () => {
         const newHasOtherOccupants =
           hubChannel &&

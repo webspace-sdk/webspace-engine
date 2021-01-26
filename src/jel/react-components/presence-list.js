@@ -268,6 +268,8 @@ function PresenceList({ scene, sessionId, hubMetadata, onGoToClicked, hubCan }) 
 
   useEffect(
     () => {
+      if (!scene) return () => {};
+
       let timeout;
 
       const handler = () => {
