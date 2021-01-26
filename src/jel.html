@@ -82,16 +82,14 @@
                 <a-entity networked-avatar ik-root player-info wrapped-entity visible="false">
                     <a-entity class="camera"></a-entity>
 
-                    <a-entity class="left-controller"></a-entity>
+                    <a-entity visible="false" class="left-controller"></a-entity>
 
-                    <a-entity class="right-controller"></a-entity>
+                    <a-entity visible="false" class="right-controller"></a-entity>
 
                     <a-entity class="model" gltf-model-plus="inflate: true">
                         <template data-name="AvatarRoot">
                             <a-entity
                                 ik-controller="instanceHeads: true"
-                                hand-pose__left
-                                hand-pose__right
                                 networked-audio-analyser
                             ></a-entity>
                         </template>
@@ -101,60 +99,39 @@
                                 <a-entity
                                     billboard
                                     class="nametag"
-                                    text="side: double; align: center; color: #ddd"
+                                    text="align: center; color: #ddd"
                                     position="0 1 0"
                                     scale="6 6 6"
                                 ></a-entity>
                                 <a-entity
-                                    billboard
+                                    visible="false"
                                     class="identityName"
-                                    text="side: double; align: center; color: #ddd"
-                                    visibility-while-frozen="withinDistance: 100; requireHoverOnNonMobile: false;"
+                                    text="align: center; color: #ddd"
                                     position="0 0.8 0"
                                     scale="3 3 3"
-                                ></a-entity>
-                                <a-entity
-                                    billboard
-                                    is-not-remote-hover-target
-                                    class="recordingBadge"
-                                    sprite="name: recording-badge.png"
-                                    scale="0.10 0.10 0.10"
-                                    position="0 1.2 -0.02"
-                                ></a-entity>
-                                <a-entity
-                                    billboard
-                                    is-not-remote-hover-target
-                                    class="modBadge"
-                                    sprite="name: mod-badge.png"
-                                    scale="0.10 0.10 0.10"
-                                    position="0 1.2 -0.02"
                                 ></a-entity>
                             </a-entity>
                         </template>
 
                         <template data-name="Spine">
-                            <a-entity is-remote-hover-target personal-space-invader="radius: 0.2; useMaterial: true;" bone-visibility>
-                                <a-entity class="chest-image" scale="0.18 0.18 0.18" position="0 -0.025 0.13"></a-entity>
-                                <a-entity class="interactable ui interactable-ui">
-                                </a-entity>
+                            <a-entity personal-space-invader="radius: 0.2; useMaterial: true;" bone-visibility>
                             </a-entity>
                         </template>
 
                         <template data-name="Head">
                             <a-entity
                                 avatar-audio-source="rolloffFactor: 2.0;"
-                                personal-space-invader="radius: 0.15; useMaterial: true;"
                                 body-helper="type: kinematic; collisionFilterGroup: 4; collisionFilterMask: 17;"
                                 shape-helper="type: sphere; fit: manual; sphereRadius: 0.5;"
                             ></a-entity>
                         </template>
 
                         <template data-name="LeftHand">
-                            <a-entity personal-space-invader="radius: 0.1" bone-visibility="updateWhileInvisible: true;"></a-entity>
+                            <a-entity visible="false"></a-entity>
                         </template>
 
                         <template data-name="RightHand">
-                            <a-entity personal-space-invader="radius: 0.1" bone-visibility="updateWhileInvisible: true;"></a-entity>
+                            <a-entity visible="false"></a-entity>
                         </template>
                     </a-entity>
                 </a-entity>
