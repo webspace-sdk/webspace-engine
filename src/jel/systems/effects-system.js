@@ -24,12 +24,13 @@ AFRAME.registerSystem("effects", {
       if (!this.playerCamera) return;
     }
 
-    if (this.updateComposer) {
+    const renderer = this.sceneEl.renderer;
+
+    if (this.updateComposer && renderer) {
       this.updateComposer = false;
 
       const camera = this.playerCamera;
       const scene = this.sceneEl.object3D;
-      const renderer = this.sceneEl.renderer;
       const { width, height } = this.sceneEl.getBoundingClientRect();
       const pixelRatio = renderer.getPixelRatio();
       const w = width * pixelRatio;
