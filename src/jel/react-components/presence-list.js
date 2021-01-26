@@ -277,10 +277,7 @@ function PresenceList({ scene, sessionId, hubMetadata, onGoToClicked, hubCan }) 
       };
 
       scene.addEventListener("space-presence-synced", handler);
-      return () => {
-        if (timeout) clearTimeout(timeout);
-        scene.removeEventListener("space-presence-synced", handler);
-      };
+      return () => scene.removeEventListener("space-presence-synced", handler);
     },
 
     [scene, setData, hubCan, sessionId]
