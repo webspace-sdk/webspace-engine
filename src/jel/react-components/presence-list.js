@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import { FormattedMessage } from "react-intl";
-import React, { useRef, useState, useEffect, forwardRef } from "react";
+import React, { useCallback, useRef, useState, useEffect, forwardRef } from "react";
 import List from "rc-virtual-list";
 import PanelSectionHeader from "./panel-section-header";
 import { outerHeight } from "../utils/layout-utils";
@@ -211,45 +211,10 @@ const ListWrap = styled.div`
   height: 100%;
 `;
 
-function PresenceList({ scene, sessionId, hubMetadata, onGoToClicked, hubCan }) {
-  const [height, setHeight] = useState(100);
-  const outerRef = useRef();
-  const [spacePresences, setSpacePresences] = useState(
-    (window.APP.spaceChannel && window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state) || {}
-  );
-
-  useEffect(
-    () => {
-      const handler = () => {
-        setSpacePresences(
-          window.APP.spaceChannel && window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state
-        );
-      };
-
-      scene.addEventListener("space-presence-synced", handler);
-      return () => scene.removeEventListener("space-presence-synced", handler);
-    },
-    [scene, setSpacePresences]
-  );
-
-  const data = [];
+function buildData(setData, sessionId, hubCan) {
   const otherHubIdsToSessionMetas = new Map();
-
-  useEffect(
-    () => {
-      const setOuterHeight = () => {
-        if (outerRef.current) {
-          const height = outerHeight(outerRef.current);
-          setHeight(height);
-        }
-      };
-
-      setOuterHeight();
-      window.addEventListener("resize", setOuterHeight);
-      return () => window.removeEventListener("resize", setOuterHeight);
-    },
-    [outerRef]
-  );
+  const data = [];
+  const spacePresences = (window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state) || {};
 
   let hubId = null;
 
@@ -293,18 +258,67 @@ function PresenceList({ scene, sessionId, hubMetadata, onGoToClicked, hubCan }) 
     }
   }
 
+  setData(data);
+}
+
+function PresenceList({ scene, sessionId, hubMetadata, onGoToClicked, hubCan }) {
+  const [height, setHeight] = useState(100);
+  const outerRef = useRef();
+  const [data, setData] = useState([]);
+
+  useEffect(
+    () => {
+      let timeout;
+
+      const handler = () => {
+        // Schedule as a subtask and debounce
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(() => buildData(setData, sessionId, hubCan), 500);
+      };
+
+      scene.addEventListener("space-presence-synced", handler);
+      return () => {
+        if (timeout) clearTimeout(timeout);
+        scene.removeEventListener("space-presence-synced", handler);
+      };
+    },
+
+    [scene, setData, hubCan, sessionId]
+  );
+
+  useEffect(
+    () => {
+      const setOuterHeight = () => {
+        if (outerRef.current) {
+          const height = outerHeight(outerRef.current);
+          setHeight(height);
+        }
+      };
+
+      setOuterHeight();
+      window.addEventListener("resize", setOuterHeight);
+      return () => window.removeEventListener("resize", setOuterHeight);
+    },
+    [outerRef]
+  );
+
   return (
     <ListWrap ref={outerRef} className={styles.presenceList}>
       <List height={height} itemHeight={64} itemKey="key" data={data}>
-        {(item, _, props) => {
-          if (item.type === "member") {
-            return <PresenceListMemberItem {...item} {...props} />;
-          } else if (item.type === "hub") {
-            return <PresenceListHubItem {...item} {...props} hubMetadata={hubMetadata} onGoToClicked={onGoToClicked} />;
-          } else if (item.type === "header") {
-            return <PresenceListHeader {...item} {...props} />;
-          }
-        }}
+        {useCallback(
+          (item, _, props) => {
+            if (item.type === "member") {
+              return <PresenceListMemberItem {...item} {...props} />;
+            } else if (item.type === "hub") {
+              return (
+                <PresenceListHubItem {...item} {...props} hubMetadata={hubMetadata} onGoToClicked={onGoToClicked} />
+              );
+            } else if (item.type === "header") {
+              return <PresenceListHeader {...item} {...props} />;
+            }
+          },
+          [hubMetadata, onGoToClicked]
+        )}
       </List>
     </ListWrap>
   );

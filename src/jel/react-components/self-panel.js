@@ -137,22 +137,25 @@ const SelfPanel = ({
   const [micDevices, setMicDevices] = useState([]);
   const [unmuted, setUnmuted] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [spacePresences, setSpacePresences] = useState(
-    (window.APP.spaceChannel && window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state) || {}
-  );
+  const [meta, setMeta] = useState({});
 
   useEffect(
     () => {
       const handler = () => {
-        setSpacePresences(
-          window.APP.spaceChannel && window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state
-        );
+        const spacePresences =
+          window.APP.spaceChannel && window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state;
+        const spacePresence = spacePresences && spacePresences[sessionId];
+        const newMeta = spacePresence && spacePresence.metas[spacePresence.metas.length - 1];
+
+        if (meta !== newMeta) {
+          setMeta(newMeta);
+        }
       };
 
       scene.addEventListener("space-presence-synced", handler);
       return () => scene.removeEventListener("space-presence-synced", handler);
     },
-    [scene, setSpacePresences]
+    [scene, sessionId, setMeta, meta]
   );
 
   const {
@@ -227,8 +230,6 @@ const SelfPanel = ({
     ]
   });
 
-  const spacePresence = spacePresences && spacePresences[sessionId];
-  const meta = spacePresence && spacePresence.metas[spacePresence.metas.length - 1];
   const { profile } = meta || {};
 
   const profileEditorMode =
