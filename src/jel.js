@@ -359,6 +359,8 @@ function remountUI(props) {
 }
 
 function mountJelUI(props = {}) {
+  if (isBotMode) return;
+
   const scene = document.querySelector("a-scene");
 
   ReactDOM.render(
