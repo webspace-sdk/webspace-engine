@@ -16,6 +16,8 @@ const grabViaKeyboard = "/vars/mouse-and-keyboard/grabViaKeyboard";
 const grabViaMouse = "/vars/mouse-and-keyboard/grabViaMouse";
 const dropViaKeyboard = "/vars/mouse-and-keyboard/dropViaKeyboard";
 const dropViaMouse = "/vars/mouse-and-keyboard/dropViaMouse";
+const editViaKeyboard1 = "/vars/mouse-and-keyboard/editViaKeyboard1";
+const editViaKeyboard2 = "/vars/mouse-and-keyboard/editViaKeyboard2";
 const notControlSpace = "/vars/mouse-and-keyboard/notControlSpace";
 const startInspectingViaKeyboard = "/vars/mouse-and-keyboard/startInspectingViaKeyboard";
 const stopInspectingViaKeyboardEscape = "/vars/mouse-and-keyboard/stopInspectingViaKeyboardEscape";
@@ -578,15 +580,21 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: paths.device.keyboard.code("backquote") },
-      dest: { value: paths.actions.mediaEditAction },
+      dest: { value: editViaKeyboard1 },
       xform: xforms.rising,
       priority: 201
     },
     {
       src: { value: paths.device.keyboard.key("@") },
-      dest: { value: paths.actions.mediaEditAction },
+      dest: { value: editViaKeyboard2 },
       xform: xforms.rising,
       priority: 201
+    },
+    {
+      src: [editViaKeyboard1, editViaKeyboard2],
+      dest: { value: paths.actions.mediaEditAction },
+      xform: xforms.any,
+      priority: 400
     },
     {
       src: { value: paths.device.keyboard.key("q") },
