@@ -583,6 +583,12 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
+      src: { value: paths.device.keyboard.key("@") },
+      dest: { value: paths.actions.mediaEditAction },
+      xform: xforms.rising,
+      priority: 201
+    },
+    {
       src: { value: paths.device.keyboard.key("q") },
       dest: { value: paths.actions.mediaBackAction },
       xform: xforms.rising

@@ -101,8 +101,12 @@ export class KeyboardDevice {
           }
         }
 
-        // ` in text editor blurs it
-        if (e.type === "keydown" && e.code === "Backquote" && isInQuillEditor()) {
+        // ` in text editor blurs it, also non-modifier key @ for japanese keyboards since ` is missing
+        if (
+          e.type === "keydown" &&
+          (e.code === "Backquote" || (e.key === "@" && e.code === "BracketLeft")) &&
+          isInQuillEditor()
+        ) {
           window.APP.store.handleActivityFlag("mediaTextEditClose");
           // Without this, quill grabs focus when others types
           document.activeElement.parentElement.__quill.blur();
