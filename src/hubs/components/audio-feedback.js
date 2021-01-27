@@ -1,6 +1,4 @@
 import { findAncestorWithComponent } from "../utils/scene-graph";
-import { waitForDOMContentLoaded } from "../utils/async-utils";
-import { easeOutQuadratic } from "../utils/easing";
 import { registerComponentInstance, deregisterComponentInstance } from "../utils/component-utils";
 
 // This computation is expensive, so we run on at most one avatar per frame, including quiet avatars.
@@ -114,18 +112,6 @@ AFRAME.registerComponent("networked-audio-analyser", {
   }
 });
 
-function getAnalyser(el) {
-  // Is this the local player
-  const ikRootEl = findAncestorWithComponent(el, "ik-root");
-  if (ikRootEl && ikRootEl.id === "avatar-rig") {
-    return el.sceneEl.systems["local-audio-analyser"];
-  } else {
-    const analyserEl = findAncestorWithComponent(el, "networked-audio-analyser");
-    if (!analyserEl) return null;
-    return analyserEl.components["networked-audio-analyser"];
-  }
-}
-
 /**
  * Calculates volume of the local audio stream.
  */
@@ -144,91 +130,6 @@ AFRAME.registerSystem("local-audio-analyser", {
   tick: function() {
     if (!this.analyser) return;
     updateVolume(this);
-  }
-});
-
-/**
- * Sets an entity's scale base on the volume of an audio-analyser in a parent entity.
- * @namespace avatar
- * @component scale-audio-feedback
- */
-AFRAME.registerComponent("scale-audio-feedback", {
-  schema: {
-    minScale: { default: 1 },
-    maxScale: { default: 1.25 },
-    minDistance: { default: 0.3 }
-  },
-
-  async init() {
-    await waitForDOMContentLoaded();
-    this.cameraEl = document.getElementById("viewing-camera");
-    this.audioFeedbackScale = 1.0;
-  },
-
-  tick() {
-    // TODO: come up with a cleaner way to handle this.
-    // bone's are "hidden" by scaling them with bone-visibility, without this we would overwrite that.
-    if (!this.el.object3D.visible) return;
-    if (!this.cameraEl) return;
-    if (!this.analyser) this.analyser = getAnalyser(this.el);
-
-    const { minDistance, minScale, maxScale } = this.data;
-
-    // Set here, but updated in ik-controller since we also scale head there.
-    this.audioFeedbackScale = getAudioFeedbackScale(
-      this.el.object3D,
-      this.cameraEl.object3DMap.camera,
-      minDistance,
-      minScale,
-      maxScale,
-      this.analyser ? this.analyser.volume : 0
-    );
-  }
-});
-
-/**
- * Animates a morph target based on an audio-analyser in a parent entity
- * @namespace avatar
- * @component morph-audio-feedback
- */
-AFRAME.registerComponent("morph-audio-feedback", {
-  schema: {
-    name: { default: "" },
-    minValue: { default: 0 },
-    maxValue: { default: 2 }
-  },
-
-  init() {
-    const meshes = [];
-    if (this.el.object3DMap.skinnedmesh) {
-      meshes.push(this.el.object3DMap.skinnedmesh);
-    } else if (this.el.object3DMap.group) {
-      // skinned mesh with multiple materials
-      this.el.object3DMap.group.traverse(o => o.isSkinnedMesh && meshes.push(o));
-    }
-    if (meshes.length) {
-      this.morphs = meshes
-        .map(mesh => ({ mesh, morphNumber: mesh.morphTargetDictionary[this.data.name] }))
-        .filter(m => m.morphNumber !== undefined);
-    }
-  },
-
-  tick() {
-    if (!this.morphs.length) return;
-
-    if (!this.analyser) this.analyser = getAnalyser(this.el);
-
-    const { minValue, maxValue } = this.data;
-    const morphValue = THREE.Math.mapLinear(
-      easeOutQuadratic(this.analyser ? this.analyser.volume : 0),
-      0,
-      1,
-      minValue,
-      maxValue
-    );
-    for (let i = 0; i < this.morphs.length; i++) {
-      this.morphs[i].mesh.morphTargetInfluences[this.morphs[i].morphNumber] = morphValue;
-    }
   }
 });
 

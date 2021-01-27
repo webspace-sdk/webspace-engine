@@ -16,8 +16,7 @@ function ensureAvatarNodes(json) {
     nodes.push({ name: "RightEye", extensions: { MOZ_hubs_components: {} } });
     nodes.push({
       name: "Head",
-      children: [originalRoot, nodes.length - 1, nodes.length - 2],
-      extensions: { MOZ_hubs_components: { "scale-audio-feedback": "" } }
+      children: [originalRoot, nodes.length - 1, nodes.length - 2]
     });
     nodes.push({ name: "Neck", children: [nodes.length - 1] });
     nodes.push({ name: "Spine", children: [nodes.length - 1] });

@@ -1,5 +1,6 @@
 import { waitForDOMContentLoaded } from "../utils/async-utils";
 import { almostEqual, almostEqualQuaternion } from "../utils/three-utils";
+import { findAncestorWithComponent } from "../utils/scene-graph";
 import { isMine } from "../../jel/utils/ownership-utils";
 const { Vector3, Quaternion, Matrix4, Euler } = THREE;
 import BezierEasing from "bezier-easing";
@@ -19,6 +20,22 @@ function quaternionAlmostEquals(epsilon, u, v) {
       Math.abs(-u.w - v.w) < epsilon)
   );
 }
+
+const getAudioFeedbackScale = (() => {
+  const tempScaleFromPosition = new THREE.Vector3();
+  const tempScaleToPosition = new THREE.Vector3();
+
+  return function(fromObject, toObject, minDistance, minScale, maxScale, volume) {
+    tempScaleToPosition.setFromMatrixPosition(toObject.matrixWorld);
+    tempScaleFromPosition.setFromMatrixPosition(fromObject.matrixWorld);
+    const distance = tempScaleFromPosition.distanceTo(tempScaleToPosition);
+    if (distance < minDistance) {
+      return minScale;
+    } else {
+      return Math.min(maxScale, minScale + (maxScale - minScale) * volume * 8 * (distance / 25));
+    }
+  };
+})();
 
 /**
  * Provides access to the end effectors for IK.
@@ -135,6 +152,7 @@ AFRAME.registerComponent("ik-controller", {
     this.lastCameraTransform = new THREE.Matrix4();
     waitForDOMContentLoaded().then(() => {
       this.playerCamera = document.getElementById("viewing-camera").getObject3D("camera");
+      this.audioFeedbackScale = 1.0;
     });
 
     this.el.sceneEl.systems["frame-scheduler"].schedule(this._runScheduledWork, "ik");
@@ -175,8 +193,6 @@ AFRAME.registerComponent("ik-controller", {
       if (!this.data.isSelf) {
         this.skyBeamSystem.register(this.head, true);
       }
-
-      this.scaleAudioFeedback = this.head.el.components["scale-audio-feedback"];
     }
 
     if (this.data.neck !== oldData.neck) {
@@ -211,6 +227,7 @@ AFRAME.registerComponent("ik-controller", {
     if (!this.ikRoot) {
       return;
     }
+
     const { camera, leftController, rightController } = this.ikRoot;
 
     const root = this.ikRoot.el.object3D;
@@ -360,14 +377,33 @@ AFRAME.registerComponent("ik-controller", {
         }
       }
 
-      let feedbackScale = 1.0;
-
-      if (this.scaleAudioFeedback) {
-        feedbackScale = this.scaleAudioFeedback.audioFeedbackScale;
-      }
-
-      // Perform head velocity squish + rotate on other avatars
+      // Perform audio scale, head velocity squish + rotate on other avatars
       if (!this.data.isSelf) {
+        let feedbackScale = 1.0;
+
+        if (!this.analyser && this.head) {
+          const analyserEl = findAncestorWithComponent(this.head.el, "networked-audio-analyser");
+          if (analyserEl) {
+            this.analyser = analyserEl.components["networked-audio-analyser"];
+          }
+        }
+
+        if (this.analyser && this.playerCamera) {
+          const minScale = 1;
+          const maxScale = 1.25;
+          const minDistance = 0.3;
+
+          // Set here, but updated in ik-controller since we also scale head there.
+          feedbackScale = getAudioFeedbackScale(
+            head,
+            this.playerCamera,
+            minDistance,
+            minScale,
+            maxScale,
+            this.analyser.volume
+          );
+        }
+
         let sx, sy, sz;
         if (relativeMotionSpring !== 0) {
           const scaleDXZ = 1.0 + relativeMotionSpring * 0.1 * this.relativeMotionMaxMagnitude;
