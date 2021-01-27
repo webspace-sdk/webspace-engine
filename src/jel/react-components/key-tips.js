@@ -250,7 +250,7 @@ const TIP_DATA = {
   video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   pdf: [["next", "L+S"], ["page", "q\\e"], ...objectCommonTips],
   text: [
-    ["edit", "~", "mediaTextEdit"],
+    ["edit", "~|@", "mediaTextEdit"],
     ["color", "q\\e"],
     ["font", "t\\g"],
     ...objectCommonTips.filter(t => t[0] !== "open")
@@ -259,7 +259,7 @@ const TIP_DATA = {
   scale: [["scale", "G,R"]],
   focus: [["zoom", "R"]],
   text_editor: [
-    ["close", "~", "mediaTextEditClose"],
+    ["close", "~|@", "mediaTextEditClose"],
     ["bold", "L+b"],
     ["italic", "L+i"],
     ["underline", "L+u"],
