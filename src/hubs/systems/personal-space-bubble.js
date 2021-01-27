@@ -1,10 +1,7 @@
 import { forEachMaterial } from "../utils/material-utils";
 import qsTruthy from "../utils/qs_truthy";
 
-const invaderPos = new AFRAME.THREE.Vector3();
-const bubblePos = new AFRAME.THREE.Vector3();
 const isDebug = qsTruthy("debug");
-const isMobileVR = AFRAME.utils.device.isMobileVR();
 
 /**
  * Updates invaders every tick, doing one per frame on mobile VR.
@@ -21,7 +18,6 @@ AFRAME.registerSystem("personal-space-bubble", {
   init() {
     this.invaders = [];
     this.bubbles = [];
-    this.tickCount = 0;
     this._updateInvaders = this._updateInvaders.bind(this);
   },
 
@@ -76,67 +72,74 @@ AFRAME.registerSystem("personal-space-bubble", {
 
   tick() {
     this._updateInvaders();
-    this.tickCount++;
   },
 
   _updateInvaders: (function() {
     const tempInvasionFlags = [];
 
-    const setInvaderFlag = (i, invaders, bubble) => {
+    const setInvaderFlag = (i, invaders, bx, by, bz, radius) => {
       // Hide the invader if inside the bubble
       const invader = invaders[i];
-      invaderPos.setFromMatrixPosition(invader.el.object3D.matrixWorld);
+      const { elements } = invader.el.object3D.matrixWorld;
+      const ix = elements[12];
+      const iy = elements[13];
+      const iz = elements[14];
 
-      const distanceSquared = bubblePos.distanceToSquared(invaderPos);
-      const radiusSum = bubble.data.radius + invader.data.radius;
+      const dx = bx - ix;
+      const dy = by - iy;
+      const dz = bz - iz;
+      const distanceSqInvaderToBubble = dx * dx + dy * dy + dz * dz;
+      const radiusSum = radius + invader.data.radius;
 
-      if (distanceSquared < radiusSum * radiusSum) {
+      if (distanceSqInvaderToBubble < radiusSum * radiusSum) {
         tempInvasionFlags[i] = true;
       }
     };
 
     const flushInvadingFlagsForIndex = (i, invaders) => {
-      if (invaders[i].invading !== tempInvasionFlags[i]) {
-        invaders[i].setInvading(tempInvasionFlags[i]);
+      const invader = invaders[i];
+      const flag = tempInvasionFlags[i];
+
+      if (invader.invading !== flag) {
+        invader.setInvading(flag);
       }
     };
 
     return function() {
       if (!this.data.enabled) return;
-      if (this.invaders.length === 0) return;
+      const { invaders, bubbles } = this;
+
+      if (invaders.length === 0) return;
 
       tempInvasionFlags.length = 0;
 
       // precondition for this stuff -- the bubbles and invaders need updated world matrices.
       // right now this is satisfied because we update the world matrices in the character controller
-      for (let i = 0; i < this.invaders.length; i++) {
-        this.invaders[i].el.object3D.updateMatrices(); // We read matrixWorld below, update matrices here
+      for (let i = 0; i < invaders.length; i++) {
+        invaders[i].el.object3D.updateMatrices(); // We read matrixWorld below, update matrices here
         tempInvasionFlags[i] = false;
       }
 
       // Loop through all of the space bubbles (usually one)
-      for (let i = 0; i < this.bubbles.length; i++) {
-        const bubble = this.bubbles[i];
+      for (let i = 0; i < bubbles.length; i++) {
+        const bubble = bubbles[i];
+        const bubbleObj = bubble.el.object3D;
 
-        bubble.el.object3D.updateMatrices();
-        bubblePos.setFromMatrixPosition(bubble.el.object3D.matrixWorld);
+        bubbleObj.updateMatrices();
 
-        if (!isMobileVR) {
-          for (let j = 0; j < this.invaders.length; j++) {
-            setInvaderFlag(j, this.invaders, bubble);
-          }
-        } else {
-          // Optimization: update one invader per frame on mobile VR
-          setInvaderFlag(this.tickCount % this.invaders.length, this.invaders, bubble);
+        const { elements } = bubbleObj.matrixWorld;
+        const bx = elements[12];
+        const by = elements[13];
+        const bz = elements[14];
+        const radius = bubble.data.radius;
+
+        for (let j = 0; j < invaders.length; j++) {
+          setInvaderFlag(j, invaders, bx, by, bz, radius);
         }
       }
 
-      if (!isMobileVR) {
-        for (let i = 0; i < this.invaders.length; i++) {
-          flushInvadingFlagsForIndex(i, this.invaders);
-        }
-      } else {
-        flushInvadingFlagsForIndex(this.tickCount % this.invaders.length, this.invaders);
+      for (let i = 0; i < invaders.length; i++) {
+        flushInvadingFlagsForIndex(i, invaders);
       }
     };
   })()
