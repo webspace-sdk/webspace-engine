@@ -1,20 +1,8 @@
-const isMobileVR = AFRAME.utils.device.isMobileVR();
-
 // Billboard component that only updates visible objects and only those in the camera view on mobile VR.
 AFRAME.registerComponent("billboard", {
   init: function() {
     this.target = new THREE.Vector3();
     this._updateBillboard = this._updateBillboard.bind(this);
-    this._updateIsInView = this._updateIsInView.bind(this);
-
-    if (isMobileVR) {
-      this.el.sceneEl.systems["frame-scheduler"].schedule(this._updateIsInView, "billboards");
-    }
-  },
-  remove() {
-    if (isMobileVR) {
-      this.el.sceneEl.systems["frame-scheduler"].unschedule(this._updateIsInView, "billboards");
-    }
   },
 
   tick() {
