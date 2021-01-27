@@ -7,6 +7,14 @@ export class App {
     this.quality = "low";
     this.store = new Store();
     this.mediaSearchStore = new MediaSearchStore();
+
+    // Detail levels
+    // 0 - Full
+    // 1 - Reduce shadow map, no reflections, simple sky, no SSAO, no terrain detail meshes
+    // 2 - Also disable shadows and FXAA
+    //
+    // Start at lowest detail level, so app boots quickly.
+    this._detailLevel = 2;
   }
 
   setQuality(quality) {
@@ -21,5 +29,21 @@ export class App {
     }
 
     return true;
+  }
+
+  get detailLevel() {
+    return this._detailLevel;
+  }
+
+  set detailLevel(detailLevel) {
+    this._detailLevel = detailLevel;
+
+    if (typeof AFRAME !== "undefined") {
+      const scene = AFRAME.scenes[0];
+
+      if (scene) {
+        scene.emit("detail-level-changed", {});
+      }
+    }
   }
 }

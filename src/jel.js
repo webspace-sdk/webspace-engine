@@ -201,14 +201,6 @@ window.APP.materialQuality =
         ? "low"
         : "high";
 
-// Detail levels
-// 0 - Full
-// 1 - Reduce shadow map, no reflections, simple sky, no SSAO, no terrain detail meshes
-// 2 - Also disable shadows and FXAA
-//
-// Start at lowest detail level, so app boots quickly.
-window.APP.detailLevel = 2;
-
 import "./hubs/components/owned-object-limiter";
 import "./hubs/components/owned-object-cleanup-timeout";
 import "./hubs/components/set-unowned-body-kinematic";

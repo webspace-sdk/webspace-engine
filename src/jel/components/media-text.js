@@ -102,14 +102,16 @@ AFRAME.registerComponent("media-text", {
     this.localSnapCount = 0;
     this.isSnapping = false;
     this.firedTextLoadedEvent = false;
-    this.lastDetailLevel = window.APP.detailLevel;
     this.zoom = 1.0;
     this.textureWidth = 1024;
     this.renderCount = 0;
+    this.handleDetailLevelChanged = this.handleDetailLevelChanged.bind(this);
 
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
     }
+
+    this.el.sceneEl.addEventListener("detail-level-changed", this.handleDetailLevelChanged);
   },
 
   async update(oldData) {
@@ -279,11 +281,6 @@ AFRAME.registerComponent("media-text", {
       this.scrollBy(volumeModLeft);
     }
 
-    if (window.APP.detailLevel !== this.lastDetailLevel) {
-      this.lastDetailLevel = window.APP.detailLevel;
-      this.applyProperMaterialToMesh();
-    }
-
     if (this.renderNextFrame && this.quill) {
       this.renderNextFrame = false;
       this.render();
@@ -293,6 +290,10 @@ AFRAME.registerComponent("media-text", {
         this.el.emit("text-loaded", { src: this.data.src });
       }
     }
+  },
+
+  handleDetailLevelChanged() {
+    this.applyProperMaterialToMesh();
   },
 
   scrollBy(amount) {
@@ -466,6 +467,8 @@ AFRAME.registerComponent("media-text", {
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
     }
+
+    this.el.sceneEl.removeEventListener("detail-level-changed", this.handleDetailLevelChanged);
   },
 
   applyFont() {

@@ -103,9 +103,13 @@ AFRAME.registerComponent("avatar-audio-source", {
   },
 
   init() {
+    this.handleDetailLevelChanged = this.handleDetailLevelChanged.bind(this);
+
     this.el.sceneEl.systems["hubs-systems"].audioSettingsSystem.registerAvatarAudioSource(this);
+
+    this.el.sceneEl.addEventListener("detail-level-changed", this.handleDetailLevelChanged);
+
     this.createAudio();
-    this.lastDetailLevel = null;
 
     NAF.utils.getNetworkedEntity(this.el).then(() => {
       NAF.connection.adapter.setAudioStreamChangedListener(() => {
@@ -114,22 +118,16 @@ AFRAME.registerComponent("avatar-audio-source", {
     });
   },
 
+  handleDetailLevelChanged() {
+    const audio = this.el.getObject3D(this.attrName);
+    if (!audio) return;
+
+    setPositionalAudioPanningModel(audio);
+  },
+
   recreateAudio() {
     this.destroyAudio();
     this.createAudio();
-  },
-
-  tick() {
-    const detailLevel = window.APP.detailLevel;
-
-    if (detailLevel !== this.lastDetailLevel) {
-      const audio = this.el.getObject3D(this.attrName);
-      if (!audio) return;
-
-      setPositionalAudioPanningModel(audio);
-
-      this.lastDetailLevel = detailLevel;
-    }
   },
 
   update(oldData) {
@@ -149,6 +147,7 @@ AFRAME.registerComponent("avatar-audio-source", {
 
   remove: function() {
     this.el.sceneEl.systems["hubs-systems"].audioSettingsSystem.unregisterAvatarAudioSource(this);
+    this.el.sceneEl.removeEventListener("detail-level-changed", this.handleDetailLevelChanged);
     this.destroyAudio();
   }
 });
