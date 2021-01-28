@@ -786,14 +786,26 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
   });
 };
 
-export function joinSpace(socket, history, entryManager, remountUI, remountJelUI, membershipsPromise) {
+export function joinSpace(
+  socket,
+  history,
+  subscriptions,
+  entryManager,
+  remountUI,
+  remountJelUI,
+  membershipsAndSubscriptionsPromise
+) {
   const spaceId = getSpaceIdFromHistory(history);
   const { dynaChannel, spaceChannel, spaceMetadata, hubMetadata, store } = window.APP;
   console.log(`Space ID: ${spaceId}`);
   remountJelUI({ spaceId });
 
   const dynaPhxChannel = socket.channel(`dyna`, createDynaChannelParams());
-  dynaPhxChannel.join().receive("error", res => console.error(res));
+  dynaPhxChannel
+    .join()
+    .receive("ok", async data => subscriptions.setVapidPublicKey(data.vapid_public_key))
+    .receive("error", res => console.error(res));
+
   dynaPhxChannel.on("notice", async data => {
     // On dyna deploys, reconnect after a random delay until pool + version match deployed version/pool
     if (data.event === "dyna-deploy") {
@@ -813,7 +825,7 @@ export function joinSpace(socket, history, entryManager, remountUI, remountJelUI
   document.body.addEventListener(
     "share-connected",
     async ({ detail: { connection } }) => {
-      const memberships = await membershipsPromise;
+      const { memberships } = await membershipsAndSubscriptionsPromise;
       await treeManager.init(connection, memberships);
       const homeHub = homeHubForSpaceId(spaceId, memberships);
       hubMetadata.ensureMetadataForIds([homeHub.hub_id]);

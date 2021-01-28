@@ -108,6 +108,8 @@ import "./hubs/components/periodic-full-syncs";
 import "./hubs/components/inspect-button";
 import "./hubs/components/set-max-resolution";
 import "./hubs/components/avatar-audio-source";
+import Subscriptions from "./hubs/subscriptions";
+
 import { SOUND_QUACK, SOUND_SPECIAL_QUACK } from "./hubs/systems/sound-effects-system";
 import ducky from "./assets/hubs/models/DuckyMesh.glb";
 import { getAbsoluteHref } from "./hubs/utils/media-url-utils";
@@ -164,6 +166,9 @@ import { platformUnsupported } from "./hubs/support";
 
 window.APP = new App();
 const store = window.APP.store;
+const subscriptions = new Subscriptions();
+window.APP.subscriptions = subscriptions;
+
 store.update({ preferences: { shouldPromptForRefresh: undefined } });
 
 const history = createBrowserHistory();
@@ -923,7 +928,7 @@ async function createSocket(entryManager) {
   return socket;
 }
 
-async function loadMemberships() {
+async function loadMembershipsAndSubscriptions() {
   const accountId = store.credentialsAccountId;
   if (!accountId) return [];
 
@@ -931,7 +936,9 @@ async function loadMemberships() {
   if (res.memberships.length === 0) return [];
 
   remountJelUI({ memberships: res.memberships });
-  return res.memberships;
+
+  const { memberships, subscriptions } = res;
+  return { memberships, subscriptions };
 }
 
 async function start() {
@@ -949,16 +956,16 @@ async function start() {
       navigator.serviceWorker
         .register("/jel.service.js")
         .then(() => {
-          //navigator.serviceWorker.ready;
-          //  .then(registration => subscriptions.setRegistration(registration))
-          //  .catch(() => subscriptions.setRegistrationFailed());
+          navigator.serviceWorker.ready
+            .then(registration => subscriptions.setRegistration(registration))
+            .catch(e => console.error(e));
         })
-        .catch(() => /*subscriptions.setRegistrationFailed()*/ {});
+        .catch(e => console.error(e));
     } catch (e) {
-      //subscriptions.setRegistrationFailed();
+      subscriptions.setRegistrationFailed();
     }
   } else {
-    //subscriptions.setRegistrationFailed();
+    subscriptions.setRegistrationFailed();
   }
 
   const entryManager = new SceneEntryManager(spaceChannel, hubChannel, authChannel, history);
@@ -1099,7 +1106,11 @@ async function start() {
   let joinSpacePromise;
   let joinHubPromise;
 
-  const membershipsPromise = loadMemberships();
+  const membershipsAndSubscriptionsPromise = loadMembershipsAndSubscriptions();
+
+  membershipsAndSubscriptionsPromise.then(({ subscriptions: existingSubscriptions }) => {
+    subscriptions.handleExistingSubscriptions(existingSubscriptions);
+  });
 
   const performJoin = async () => {
     // Handle rapid history changes, only join last one.
@@ -1116,7 +1127,15 @@ async function start() {
     joinHubPromise = null;
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
-      joinSpacePromise = joinSpace(socket, history, entryManager, remountUI, remountJelUI, membershipsPromise);
+      joinSpacePromise = joinSpace(
+        socket,
+        history,
+        subscriptions,
+        entryManager,
+        remountUI,
+        remountJelUI,
+        membershipsAndSubscriptionsPromise
+      );
       await joinSpacePromise;
     }
 
