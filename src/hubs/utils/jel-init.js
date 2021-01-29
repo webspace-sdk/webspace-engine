@@ -151,7 +151,6 @@ const createSpaceChannelParams = () => {
 
   const { token } = store.state.credentials;
   if (token) {
-    console.log(`Logged into account ${store.credentialsAccountId}`);
     params.auth_token = token;
   }
 
@@ -791,15 +790,7 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
 // notifications.
 let hasJoinedPublicHubForCurrentSpace;
 
-export function joinSpace(
-  socket,
-  history,
-  subscriptions,
-  entryManager,
-  remountUI,
-  remountJelUI,
-  membershipsAndSubscriptionsPromise
-) {
+export function joinSpace(socket, history, subscriptions, entryManager, remountUI, remountJelUI, membershipsPromise) {
   const spaceId = getSpaceIdFromHistory(history);
   const { dynaChannel, spaceChannel, spaceMetadata, hubMetadata, store } = window.APP;
   console.log(`Space ID: ${spaceId}`);
@@ -832,7 +823,7 @@ export function joinSpace(
   document.body.addEventListener(
     "share-connected",
     async ({ detail: { connection } }) => {
-      const { memberships } = await membershipsAndSubscriptionsPromise;
+      const memberships = await membershipsPromise;
       await treeManager.init(connection, memberships);
       const homeHub = homeHubForSpaceId(spaceId, memberships);
       hubMetadata.ensureMetadataForIds([homeHub.hub_id]);

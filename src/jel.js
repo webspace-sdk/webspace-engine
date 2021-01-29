@@ -29,7 +29,7 @@ import "./hubs/utils/threejs-world-update";
 import patchThreeAllocations from "./hubs/utils/threejs-allocation-patches";
 import patchThreeNoProgramDispose from "./jel/utils/threejs-avoid-disposing-programs";
 import { detectOS, detect } from "detect-browser";
-import { getReticulumMeta, fetchReticulumAuthenticated } from "./hubs/utils/phoenix-utils";
+import { getReticulumMeta } from "./hubs/utils/phoenix-utils";
 
 import "./hubs/naf-dialog-adapter";
 
@@ -120,6 +120,7 @@ import { Router, Route } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import { clearHistoryState } from "./hubs/utils/history";
 import JelUI from "./jel/react-components/jel-ui";
+import AccountChannel from "./jel/utils/account-channel";
 import AuthChannel from "./hubs/utils/auth-channel";
 import DynaChannel from "./jel/utils/dyna-channel";
 import SpaceChannel from "./hubs/utils/space-channel";
@@ -172,6 +173,7 @@ window.APP.subscriptions = subscriptions;
 store.update({ preferences: { shouldPromptForRefresh: undefined } });
 
 const history = createBrowserHistory();
+const accountChannel = new AccountChannel(store);
 const authChannel = new AuthChannel(store);
 const dynaChannel = new DynaChannel(store);
 const spaceChannel = new SpaceChannel(store);
@@ -692,6 +694,7 @@ function setupNonVisibleHandler(scene) {
       document.body.classList.add("paused");
       autoQuality.stopTracking();
       physics.updateSimulationRate(1000.0 / 15.0);
+      accountChannel.setInactive();
     } else {
       if (document.visibilityState === "visible") {
         scene.play();
@@ -701,6 +704,7 @@ function setupNonVisibleHandler(scene) {
 
       document.body.classList.remove("paused");
       physics.updateSimulationRate(1000.0 / 90.0);
+      accountChannel.setActive();
     }
   };
 
@@ -928,19 +932,6 @@ async function createSocket(entryManager) {
   return socket;
 }
 
-async function loadMembershipsAndSubscriptions() {
-  const accountId = store.credentialsAccountId;
-  if (!accountId) return [];
-
-  const res = await fetchReticulumAuthenticated(`/api/v1/accounts/${accountId}`);
-  if (res.memberships.length === 0) return [];
-
-  remountJelUI({ memberships: res.memberships });
-
-  const { memberships, subscriptions } = res;
-  return { memberships, subscriptions };
-}
-
 async function start() {
   if (!(await checkPrerequisites())) return;
   mixpanel.track("Startup Start", {});
@@ -1106,11 +1097,29 @@ async function start() {
   let joinSpacePromise;
   let joinHubPromise;
 
-  const membershipsAndSubscriptionsPromise = loadMembershipsAndSubscriptions();
+  const { token } = store.state.credentials;
+  let membershipsPromise;
 
-  membershipsAndSubscriptionsPromise.then(({ subscriptions: existingSubscriptions }) => {
-    subscriptions.handleExistingSubscriptions(existingSubscriptions);
-  });
+  if (token) {
+    console.log(`Logged into account ${store.credentialsAccountId}`);
+    const accountPhxChannel = socket.channel(`account:${store.credentialsAccountId}`, { auth_token: token });
+    membershipsPromise = new Promise((res, rej) => {
+      accountPhxChannel
+        .join()
+        .receive("ok", async ({ memberships, subscriptions: existingSubscriptions }) => {
+          remountJelUI({ memberships });
+          subscriptions.handleExistingSubscriptions(existingSubscriptions);
+          res(memberships);
+        })
+        .receive("error", res => {
+          console.error(res);
+          rej();
+        });
+    });
+    accountChannel.bind(accountPhxChannel);
+  } else {
+    membershipsPromise = Promise.resolve([]);
+  }
 
   const performJoin = async () => {
     // Handle rapid history changes, only join last one.
@@ -1134,7 +1143,7 @@ async function start() {
         entryManager,
         remountUI,
         remountJelUI,
-        membershipsAndSubscriptionsPromise
+        membershipsPromise
       );
       await joinSpacePromise;
     }
