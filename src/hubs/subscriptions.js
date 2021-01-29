@@ -53,8 +53,9 @@ export default class Subscriptions extends EventTarget {
     const currentEndpoint = await this.getCurrentEndpoint();
 
     this.ready = true;
-    this.subscribed =
-      currentEndpoint && this.existingSubscriptions.find(({ endpoint }) => currentEndpoint === endpoint);
+    this.subscribed = !!(
+      currentEndpoint && this.existingSubscriptions.find(({ endpoint }) => currentEndpoint === endpoint)
+    );
 
     this.dispatchEvent(new CustomEvent("subscriptions-updated"));
   };

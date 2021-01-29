@@ -161,7 +161,8 @@ const createSpaceChannelParams = () => {
 const createHubChannelParams = () => {
   const params = {
     auth_token: null,
-    perms_token: null
+    perms_token: null,
+    is_first_shared: false
   };
 
   const { token } = window.APP.store.state.credentials;
@@ -786,6 +787,10 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
   });
 };
 
+// Dirty flag used to pass is_first_shared=true to hub join, which is used to trigger
+// notifications.
+let hasJoinedPublicHubForCurrentSpace;
+
 export function joinSpace(
   socket,
   history,
@@ -819,6 +824,8 @@ export function joinSpace(
   const spacePhxChannel = socket.channel(`space:${spaceId}`, createSpaceChannelParams());
   setupSpaceChannelMessageHandlers(spacePhxChannel, entryManager);
   spaceChannel.bind(spacePhxChannel, spaceId);
+
+  hasJoinedPublicHubForCurrentSpace = false;
 
   const treeManager = new TreeManager(spaceMetadata, hubMetadata);
 
@@ -885,12 +892,23 @@ export async function joinHub(socket, history, entryManager, remountUI, remountJ
   console.log(`Hub ID: ${hubId}`);
 
   const hubStore = new HubStore(hubId);
-  const hubPhxChannel = socket.channel(`hub:${hubId}`, createHubChannelParams());
+  const params = createHubChannelParams();
+
+  await hubMetadata.ensureMetadataForIds([hubId], true);
+
+  const metadata = hubMetadata.getMetadata(hubId);
+  const isHomeHub = metadata && metadata.is_home;
+
+  if (!isHomeHub && !hasJoinedPublicHubForCurrentSpace) {
+    params.is_first_shared = !hasJoinedPublicHubForCurrentSpace;
+    hasJoinedPublicHubForCurrentSpace = true;
+  }
+
+  const hubPhxChannel = socket.channel(`hub:${hubId}`, params);
 
   stopTrackingPosition();
   setupHubChannelMessageHandlers(hubPhxChannel, hubStore, entryManager, history, remountUI, remountJelUI);
 
-  await hubMetadata.ensureMetadataForIds([hubId], true);
   hubChannel.bind(hubPhxChannel, hubId);
 
   if (NAF.connection.adapter) {

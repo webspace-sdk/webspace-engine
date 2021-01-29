@@ -31,6 +31,10 @@ export default class DynaChannel extends EventTarget {
     });
   }
 
+  subscribe = subscription => {
+    this.channel.push("subscribe", { subscription });
+  };
+
   updateSpace = (spaceId, newSpaceFields) => {
     if (!this.channel) return;
     const spaceMetadata = window.APP.spaceMetadata;
