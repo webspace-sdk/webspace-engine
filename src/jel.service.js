@@ -19,7 +19,7 @@ self.addEventListener("push", function(e) {
       }
 
       return self.registration.showNotification("Jel", {
-        body: "Someone has joined " + payload.hub_name,
+        body: payload.type === "join" ? "Someone has joined " + payload.hub_name : payload.body,
         image: payload.image,
         icon: "/favicon.ico",
         badge: "/favicon.ico",
