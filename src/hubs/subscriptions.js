@@ -57,7 +57,7 @@ export default class Subscriptions extends EventTarget {
       currentEndpoint && this.existingSubscriptions.find(({ endpoint }) => currentEndpoint === endpoint)
     );
 
-    this.dispatchEvent(new CustomEvent("subscriptions-updated"));
+    this.dispatchEvent(new CustomEvent("subscriptions_updated"));
   };
 
   getCurrentEndpoint = async () => {
@@ -109,6 +109,6 @@ export default class Subscriptions extends EventTarget {
 
     window.APP.dynaChannel.subscribe(pushSubscription);
     this.subscribed = true;
-    this.dispatchEvent(new CustomEvent("subscriptions-updated"));
+    this.dispatchEvent(new CustomEvent("subscriptions_updated"));
   };
 }

@@ -14,6 +14,17 @@ export function membershipForSpaceId(spaceId, memberships) {
   return null;
 }
 
+export function membershipSettingsForSpaceId(spaceId, memberships) {
+  const membership = membershipForSpaceId(spaceId, memberships);
+  if (!membership) return null;
+
+  return {
+    notifySpaceCopresence: membership.notify_space_copresence,
+    notifyHubCopresence: membership.notify_hub_copresence,
+    notifyChatMode: membership.notify_chat_mode
+  };
+}
+
 export function homeHubForSpaceId(spaceId, memberships) {
   const m = membershipForSpaceId(spaceId, memberships);
   return m ? m.home_hub : null;

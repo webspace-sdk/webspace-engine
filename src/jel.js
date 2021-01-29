@@ -183,6 +183,7 @@ const spaceMetadata = new AtomMetadata(ATOM_TYPES.SPACE);
 const hubMetadata = new AtomMetadata(ATOM_TYPES.HUB);
 
 window.APP.history = history;
+window.APP.accountChannel = accountChannel;
 window.APP.dynaChannel = dynaChannel;
 window.APP.spaceChannel = spaceChannel;
 window.APP.hubChannel = hubChannel;
@@ -370,6 +371,7 @@ function mountJelUI(props = {}) {
             {...{
               scene,
               store,
+              subscriptions,
               history: routeProps.history,
               ...props
             }}
@@ -1102,14 +1104,16 @@ async function start() {
 
   if (token) {
     console.log(`Logged into account ${store.credentialsAccountId}`);
+
     const accountPhxChannel = socket.channel(`account:${store.credentialsAccountId}`, { auth_token: token });
     membershipsPromise = new Promise((res, rej) => {
       accountPhxChannel
         .join()
         .receive("ok", async ({ memberships, subscriptions: existingSubscriptions }) => {
-          remountJelUI({ memberships });
+          accountChannel.syncMemberships(memberships);
+          remountJelUI({ memberships: accountChannel.memberships });
           subscriptions.handleExistingSubscriptions(existingSubscriptions);
-          res(memberships);
+          res(accountChannel.memberships);
         })
         .receive("error", res => {
           console.error(res);

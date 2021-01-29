@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from "react";
+import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { FormattedMessage } from "react-intl";
 import { usePopper } from "react-popper";
 import PropTypes from "prop-types";
@@ -9,7 +9,7 @@ import ActionButton from "./action-button";
 import SelfPanel from "./self-panel";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
-import { homeHubForSpaceId, spaceForSpaceId } from "../utils/membership-utils";
+import { homeHubForSpaceId, spaceForSpaceId, membershipSettingsForSpaceId } from "../utils/membership-utils";
 import { addNewHubToTree } from "../utils/tree-utils";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
 import SpaceTree from "./space-tree";
@@ -344,6 +344,7 @@ function JelSidePanels({
   spaceId,
   sessionId,
   scene,
+  subscriptions,
   showEmojiPopup
 }) {
   const store = window.APP.store;
@@ -354,9 +355,12 @@ function JelSidePanels({
   const [inviteElement, setInviteElement] = useState(null);
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const [spaceName, setSpaceName] = useState((metadata && metadata.name) || "");
+  const [membershipSettings, setMembershipSettings] = useState(membershipSettingsForSpaceId(spaceId, memberships));
+  const [isPushSubscribed, setIsPushSubscribed] = useState(subscriptions.subscribed);
   const invitePanelFieldElement = useRef();
   const spaceBannerRef = useRef();
   const emojiEquipRef = useRef();
+  const { accountChannel, spaceChannel } = window.APP;
 
   const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: updateTrashPopper } = usePopper(
     trashMenuReferenceElement,
@@ -375,6 +379,35 @@ function JelSidePanels({
   );
 
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setSpaceName);
+
+  useEffect(
+    () => {
+      setMembershipSettings(membershipSettingsForSpaceId(spaceId, memberships));
+    },
+    [spaceId, memberships]
+  );
+
+  useEffect(
+    () => {
+      const handler = () => {
+        setMembershipSettings(membershipSettingsForSpaceId(spaceId, memberships));
+      };
+      accountChannel.addEventListener("account_refresh", handler);
+      return () => accountChannel.removeEventListener("account_refresh", handler);
+    },
+    [accountChannel, memberships, spaceId]
+  );
+
+  useEffect(
+    () => {
+      const handler = () => {
+        setIsPushSubscribed(subscriptions.subscribed);
+      };
+      subscriptions.addEventListener("subscriptions_updated", handler);
+      return () => subscriptions.removeEventListener("subscriptions_updated", handler);
+    },
+    [subscriptions, setIsPushSubscribed]
+  );
 
   const homeHub = homeHubForSpaceId(spaceId, memberships);
   const hubMetadata = treeManager && treeManager.sharedNav && treeManager.sharedNav.atomMetadata;
@@ -400,7 +433,6 @@ function JelSidePanels({
   ]);
 
   const space = spaceForSpaceId(spaceId, memberships);
-  const spaceChannel = window.APP.spaceChannel;
   const onHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
   const hubId = hub && hub.hub_id;
   const messages = getMessages();
@@ -631,6 +663,7 @@ JelSidePanels.propTypes = {
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
+  subscriptions: PropTypes.object,
   showHubContextMenuPopup: PropTypes.func,
   setHubRenameReferenceElement: PropTypes.func,
   showSpaceRenamePopup: PropTypes.func,

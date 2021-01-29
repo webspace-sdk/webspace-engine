@@ -127,6 +127,12 @@ export default class SpaceChannel extends EventTarget {
     }
   };
 
+  sendMembershipUpdate = membership => {
+    if (this.channel) {
+      this.channel.push("update_membership", { ...membership, space_id: this.spaceId });
+    }
+  };
+
   getCurrentHubFromPresence = () => {
     const sessionId = this.channel.socket.params().session_id;
     const metas = this.presence.state[sessionId].metas;

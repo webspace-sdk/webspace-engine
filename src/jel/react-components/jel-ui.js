@@ -706,6 +706,7 @@ JelUI.propTypes = {
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,
   scene: PropTypes.object,
+  subscriptions: PropTypes.object,
   selectedMediaLayer: PropTypes.number,
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
