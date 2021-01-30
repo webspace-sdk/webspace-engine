@@ -5,6 +5,7 @@ import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupPanelMenu from "./popup-panel-menu";
 import PanelSectionHeader from "./panel-section-header";
+import NotificationRequestPanel from "./notification-request-panel";
 import { FormattedMessage } from "react-intl";
 import { checkboxControlFor, PanelWrap } from "./form-components";
 import { membershipSettingsForSpaceId } from "../utils/membership-utils";
@@ -25,12 +26,12 @@ const SpaceNotificationsPopup = ({
   const [notifySpaceCopresence, setNotifySpaceCopresence] = useState("");
   const [notifyHubCopresence, setNotifyHubCopresence] = useState("");
   const [notifyChat, setNotifyChat] = useState("");
-  const [isPushSubscribed, setIsPushSubscribed] = useState(subscriptions.subscribed);
+  const [isPushSubscribed, setIsPushSubscribed] = useState(subscriptions && subscriptions.subscribed);
+
   useEffect(
     () => {
       const handler = () => {
         const membershipSettings = membershipSettingsForSpaceId(spaceId, memberships);
-        console.log(membershipSettings);
         if (membershipSettings) {
           setNotifySpaceCopresence(membershipSettings.notifySpaceCopresence);
           setNotifyHubCopresence(membershipSettings.notifyHubCopresence);
@@ -46,14 +47,76 @@ const SpaceNotificationsPopup = ({
 
   useEffect(
     () => {
-      const handler = () => {
-        setIsPushSubscribed(subscriptions.subscribed);
-      };
+      const handler = () => setIsPushSubscribed(subscriptions.subscribed);
       subscriptions.addEventListener("subscriptions_updated", handler);
       return () => subscriptions.removeEventListener("subscriptions_updated", handler);
     },
     [subscriptions, setIsPushSubscribed]
   );
+
+  const spaceNotifyOnChange = useCallback(
+    value => {
+      accountChannel.updateMembership(spaceId, value, notifyHubCopresence, notifyChat ? "all" : "none");
+    },
+    [spaceId, notifyHubCopresence, notifyChat, accountChannel]
+  );
+
+  const hubNotifyOnChange = useCallback(
+    value => {
+      accountChannel.updateMembership(spaceId, notifySpaceCopresence, value, notifyChat ? "all" : "none");
+    },
+    [spaceId, notifySpaceCopresence, notifyChat, accountChannel]
+  );
+
+  const notifyChatOnChange = useCallback(
+    value => {
+      accountChannel.updateMembership(spaceId, notifySpaceCopresence, notifyHubCopresence, value ? "all" : "none");
+    },
+    [spaceId, notifySpaceCopresence, notifyHubCopresence, accountChannel]
+  );
+
+  const onEnableNotificationsClicked = useCallback(
+    e => {
+      e.preventDefault();
+      subscriptions.subscribe();
+    },
+    [subscriptions]
+  );
+
+  let contents;
+
+  if (isPushSubscribed) {
+    contents = (
+      <PanelWrap>
+        <PanelSectionHeader style={{ marginLeft: 0 }}>
+          <FormattedMessage id="space-notifications-popup.space-settings" />
+        </PanelSectionHeader>
+        {checkboxControlFor(
+          "notify_space_copresence",
+          "space-notifications-popup.notify_space_copresence",
+          notifySpaceCopresence,
+          setNotifySpaceCopresence,
+          spaceNotifyOnChange
+        )}
+        {checkboxControlFor(
+          "notify_hub_copresence",
+          "space-notifications-popup.notify_hub_copresence",
+          notifyHubCopresence,
+          setNotifyHubCopresence,
+          hubNotifyOnChange
+        )}
+        {checkboxControlFor(
+          "notify_chat",
+          "space-notifications-popup.notify_chat",
+          notifyChat,
+          setNotifyChat,
+          notifyChatOnChange
+        )}
+      </PanelWrap>
+    );
+  } else {
+    contents = <NotificationRequestPanel onEnableClicked={onEnableNotificationsClicked} />;
+  }
 
   const popupInput = (
     <div
@@ -64,52 +127,7 @@ const SpaceNotificationsPopup = ({
       {...attributes.popper}
     >
       <PopupPanelMenu style={{ padding: "36px 0px", borderRadius: "12px" }} className={sharedStyles.slideUpWhenPopped}>
-        <PanelWrap>
-          <PanelSectionHeader style={{ marginLeft: 0 }}>
-            <FormattedMessage id="space-notifications-popup.space-settings" />
-          </PanelSectionHeader>
-          {checkboxControlFor(
-            "notify_space_copresence",
-            "space-notifications-popup.notify_space_copresence",
-            notifySpaceCopresence,
-            setNotifySpaceCopresence,
-            useCallback(
-              value => {
-                accountChannel.updateMembership(spaceId, value, notifyHubCopresence, notifyChat ? "all" : "none");
-              },
-              [spaceId, notifyHubCopresence, notifyChat, accountChannel]
-            )
-          )}
-          {checkboxControlFor(
-            "notify_hub_copresence",
-            "space-notifications-popup.notify_hub_copresence",
-            notifyHubCopresence,
-            setNotifyHubCopresence,
-            useCallback(
-              value => {
-                accountChannel.updateMembership(spaceId, notifySpaceCopresence, value, notifyChat ? "all" : "none");
-              },
-              [spaceId, notifySpaceCopresence, notifyChat, accountChannel]
-            )
-          )}
-          {checkboxControlFor(
-            "notify_chat",
-            "space-notifications-popup.notify_chat",
-            notifyChat,
-            setNotifyChat,
-            useCallback(
-              value => {
-                accountChannel.updateMembership(
-                  spaceId,
-                  notifySpaceCopresence,
-                  notifyHubCopresence,
-                  value ? "all" : "none"
-                );
-              },
-              [spaceId, notifySpaceCopresence, notifyHubCopresence, accountChannel]
-            )
-          )}
-        </PanelWrap>
+        {contents}
       </PopupPanelMenu>
       {children}
     </div>
