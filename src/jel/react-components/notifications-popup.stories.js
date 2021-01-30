@@ -1,13 +1,24 @@
 import React, { useEffect } from "react";
-import NotificationsPopup from "./notifications-popup";
+import SpaceNotificationsPopup from "./space-notifications-popup";
+import HubNotificationsPopup from "./hub-notifications-popup";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 
-export const Normal = () => {
+export const Space = () => {
   useEffect(() => document.querySelector(`.${sharedStyles.showWhenPopped}`).focus());
 
   return (
     <div>
-      <NotificationsPopup styles={{}} attributes={{}} />
+      <SpaceNotificationsPopup styles={{}} attributes={{}} />
+    </div>
+  );
+};
+
+export const Hub = () => {
+  useEffect(() => document.querySelector(`.${sharedStyles.showWhenPopped}`).focus());
+
+  return (
+    <div>
+      <HubNotificationsPopup styles={{}} attributes={{}} hub={{ name: "My Hub" }} />
     </div>
   );
 };

@@ -1,4 +1,7 @@
+import React from "react";
 import styled from "styled-components";
+import { FormattedMessage } from "react-intl";
+import { getMessages } from "../../hubs/utils/i18n";
 
 export const PanelWrap = styled.div`
   width: fit-content;
@@ -126,3 +129,30 @@ export const Checkbox = styled.input`
     visibility: visible;
   }
 `;
+
+export const checkboxControlFor = (name, labelMessageId, value, setter, labelMapper = null) => {
+  const messages = getMessages();
+  let label = messages[labelMessageId];
+
+  if (labelMapper) {
+    label = labelMapper(label);
+  }
+
+  return (
+    <InputWrap>
+      <Checkbox
+        type="checkbox"
+        id={name}
+        name={name}
+        checked={value}
+        onChange={e => {
+          const value = e.target.checked;
+          setter(value);
+        }}
+      />
+      <Label htmlFor={name} style={{ cursor: "pointer" }}>
+        {label}
+      </Label>
+    </InputWrap>
+  );
+};

@@ -226,10 +226,10 @@
   "emoji-equip.slot-8-tip": "Equip EMOJI (Ctrl-9)",
   "emoji-equip.slot-9-tip": "Equip EMOJI (Ctrl-0)",
   "emoji-equip.select-slot": "Change Emoji",
-  "notifications-popup.space-settings": "Space Notifications",
-  "notifications-popup.world-settings": "World Notifications",
-  "notifications-popup.notify_space_copresence": "When anyone is in this space, notify me.",
-  "notifications-popup.notify_hub_copresence": "When others join my current world, notify me.",
-  "notifications-popup.notify_chat": "When others chat in my current world, notify me.",
-  "notifications-popup.notify_joins": "When anyone joins HUB_NAME, notify me."
+  "space-notifications-popup.space-settings": "Space Notifications",
+  "hub-notifications-popup.world-settings": "World Notifications",
+  "space-notifications-popup.notify_space_copresence": "When anyone is in this space, notify me.",
+  "space-notifications-popup.notify_hub_copresence": "When others join the world I'm in, notify me.",
+  "space-notifications-popup.notify_chat": "When others chat in the world I'm in, notify me.",
+  "hub-notifications-popup.notify_joins": "When anyone joins HUB_NAME, notify me."
 }
