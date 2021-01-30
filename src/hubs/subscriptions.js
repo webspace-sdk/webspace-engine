@@ -107,7 +107,7 @@ export default class Subscriptions extends EventTarget {
       });
     }
 
-    window.APP.dynaChannel.subscribe(pushSubscription);
+    window.APP.accountChannel.subscribe(pushSubscription);
     this.subscribed = true;
     this.dispatchEvent(new CustomEvent("subscriptions_updated"));
   };

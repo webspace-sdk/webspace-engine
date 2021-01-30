@@ -9,7 +9,12 @@ import ActionButton from "./action-button";
 import SelfPanel from "./self-panel";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
-import { homeHubForSpaceId, spaceForSpaceId, membershipSettingsForSpaceId } from "../utils/membership-utils";
+import {
+  homeHubForSpaceId,
+  spaceForSpaceId,
+  membershipSettingsForSpaceId,
+  hubSettingsForHubId
+} from "../utils/membership-utils";
 import { addNewHubToTree } from "../utils/tree-utils";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
 import SpaceTree from "./space-tree";
@@ -337,6 +342,7 @@ function JelSidePanels({
   spaceCan = () => false,
   spaceMetadata,
   memberships,
+  hubSettings,
   showHubContextMenuPopup,
   setHubRenameReferenceElement,
   showSpaceRenamePopup,
@@ -355,7 +361,8 @@ function JelSidePanels({
   const [inviteElement, setInviteElement] = useState(null);
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const [spaceName, setSpaceName] = useState((metadata && metadata.name) || "");
-  const [membershipSettings, setMembershipSettings] = useState(membershipSettingsForSpaceId(spaceId, memberships));
+  const [membershipSettings, setMembershipSettings] = useState(null);
+  const [currentHubSettings, setCurrentHubSettings] = useState(null);
   const [isPushSubscribed, setIsPushSubscribed] = useState(subscriptions.subscribed);
   const invitePanelFieldElement = useRef();
   const spaceBannerRef = useRef();
@@ -382,20 +389,18 @@ function JelSidePanels({
 
   useEffect(
     () => {
-      setMembershipSettings(membershipSettingsForSpaceId(spaceId, memberships));
-    },
-    [spaceId, memberships]
-  );
-
-  useEffect(
-    () => {
       const handler = () => {
         setMembershipSettings(membershipSettingsForSpaceId(spaceId, memberships));
+
+        if (hub) {
+          setCurrentHubSettings(hubSettingsForHubId(hub.hub_id, hubSettings));
+        }
       };
+      handler();
       accountChannel.addEventListener("account_refresh", handler);
       return () => accountChannel.removeEventListener("account_refresh", handler);
     },
-    [accountChannel, memberships, spaceId]
+    [accountChannel, memberships, hubSettings, spaceId, hub]
   );
 
   useEffect(
@@ -663,6 +668,7 @@ JelSidePanels.propTypes = {
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
+  hubSettings: PropTypes.array,
   subscriptions: PropTypes.object,
   showHubContextMenuPopup: PropTypes.func,
   setHubRenameReferenceElement: PropTypes.func,

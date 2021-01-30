@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
-import styled from "styled-components";
 import PropTypes from "prop-types";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
@@ -11,6 +10,7 @@ import { FormattedMessage } from "react-intl";
 import { getMessages } from "../../hubs/utils/i18n";
 import { fetchReticulumAuthenticated } from "../../hubs/utils/phoenix-utils";
 import { SCHEMA } from "../../hubs/storage/store";
+import { PanelWrap, Info, Tip, Label, TextInputWrap, InputWrap, Input, Checkbox } from "./form-components";
 
 export const PROFILE_EDITOR_MODES = {
   UNVERIFIED: 0,
@@ -20,133 +20,6 @@ export const PROFILE_EDITOR_MODES = {
 
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
-
-const PanelWrap = styled.div`
-  width: fit-content;
-  height: fit-content;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 0 32px;
-`;
-
-const Info = styled.div`
-  color: var(--dialog-info-text-color);
-  font-size: var(--dialog-info-text-size);
-  font-weight: var(--dialog-info-text-weight);
-  margin-top: 12px;
-  margin-left: 12px;
-`;
-
-const Tip = styled.div`
-  color: var(--dialog-tip-text-color);
-  font-size: var(--dialog-tip-text-size);
-  font-weight: var(--dialog-tip-text-weight);
-  margin-top: 6px;
-  margin-bottom: 8px;
-  margin-left: 12px;
-  white-space: pre;
-  line-height: 16px;
-
-  & a {
-    text-decoration: underline;
-  }
-`;
-
-const Label = styled.label`
-  color: var(--dialog-label-text-color);
-  font-size: var(--dialog-label-text-size);
-  font-weight: var(--dialog-label-text-weight);
-  margin-top: 6px;
-  margin-bottom: 8px;
-  margin-left: 12px;
-  white-space: pre;
-  line-height: 16px;
-
-  & a {
-    text-decoration: underline;
-  }
-`;
-
-const VerifyTextInputWrap = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  flex: 1;
-  padding: 2px 4px;
-  margin: 0 8px;
-  border-radius: 4px;
-  border: 0;
-  background: var(--text-input-background-color);
-  box-shadow: inset 0px 0px 2px var(--menu-background-color);
-  margin: 12px;
-`;
-
-const VerifyInputWrap = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  flex: 1;
-  padding: 2px 4px;
-  margin: 0 8px;
-  border: 0;
-`;
-
-const VerifyInput = styled.input`
-  width: 100%;
-  border: 0;
-  color: var(--text-input-text-color);
-  font-size: var(--text-input-text-size);
-  font-weight: var(--text-input-text-weight);
-  padding: 4px;
-
-  &::placeholder {
-    color: var(--text-input-placeholder-color);
-  }
-
-  width: 300px;
-`;
-
-const VerifyCheckbox = styled.input`
-  color: var(--dialog-tip-text-color);
-  -webkit-appearance: none;
-  appearance: none;
-  background-color: transparent;
-  height: 16px;
-  width: 16px;
-  border: 1px solid var(--panel-item-active-background-color);
-  border-radius: 2px;
-  vertical-align: -2px;
-  color: var(--panel-item-active-text-color);
-  cursor: pointer;
-  position: relative;
-  background-color: transparent;
-  margin-bottom: 2px;
-
-  &:checked {
-    background-color: var(--panel-item-active-background-color);
-  }
-
-  & ::before {
-    content: "✔";
-    padding: 2px;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    visibility: hidden;
-  }
-
-  &:checked ::before {
-    visibility: visible;
-  }
-`;
 
 const ProfileEditorPopup = ({
   setPopperElement,
@@ -209,8 +82,8 @@ const ProfileEditorPopup = ({
                 onSignUp(email, name, allowEmails);
               }}
             >
-              <VerifyTextInputWrap>
-                <VerifyInput
+              <TextInputWrap>
+                <Input
                   value={email}
                   name="email"
                   type="email"
@@ -223,9 +96,9 @@ const ProfileEditorPopup = ({
                     setEmail(email);
                   }}
                 />
-              </VerifyTextInputWrap>
-              <VerifyTextInputWrap>
-                <VerifyInput
+              </TextInputWrap>
+              <TextInputWrap>
+                <Input
                   type="text"
                   name="name"
                   value={name}
@@ -241,9 +114,9 @@ const ProfileEditorPopup = ({
                     setName(name);
                   }}
                 />
-              </VerifyTextInputWrap>
-              <VerifyInputWrap>
-                <VerifyCheckbox
+              </TextInputWrap>
+              <InputWrap>
+                <Checkbox
                   type="checkbox"
                   id="allow_emails"
                   name="allow_emails"
@@ -256,7 +129,7 @@ const ProfileEditorPopup = ({
                 <Label htmlFor="allow_emails" style={{ cursor: "pointer" }}>
                   <FormattedMessage id="profile-editor.allow-emails" />
                 </Label>
-              </VerifyInputWrap>
+              </InputWrap>
               {exists && (
                 <Tip>
                   <FormattedMessage id={isSpaceAdmin ? "profile-editor.exists-admin" : "profile-editor.exists"} />&nbsp;
@@ -300,7 +173,11 @@ const ProfileEditorPopup = ({
     </div>
   );
 
-  return ReactDOM.createPortal(popupInput, popupRoot);
+  if (popupRoot) {
+    return ReactDOM.createPortal(popupInput, popupRoot);
+  } else {
+    return popupInput;
+  }
 };
 
 ProfileEditorPopup.propTypes = {

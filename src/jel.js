@@ -1109,9 +1109,10 @@ async function start() {
     membershipsPromise = new Promise((res, rej) => {
       accountPhxChannel
         .join()
-        .receive("ok", async ({ memberships, subscriptions: existingSubscriptions }) => {
-          accountChannel.syncMemberships(memberships);
-          remountJelUI({ memberships: accountChannel.memberships });
+        .receive("ok", async accountInfo => {
+          const { subscriptions: existingSubscriptions } = accountInfo;
+          accountChannel.syncAccountInfo(accountInfo);
+          remountJelUI({ memberships: accountChannel.memberships, hubSettings: accountChannel.hubSettings });
           subscriptions.handleExistingSubscriptions(existingSubscriptions);
           res(accountChannel.memberships);
         })

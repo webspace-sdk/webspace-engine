@@ -25,6 +25,20 @@ export function membershipSettingsForSpaceId(spaceId, memberships) {
   };
 }
 
+export function hubSettingsForHubId(hubId, hubSettings) {
+  for (let i = 0; i < hubSettings.length; i++) {
+    const s = hubSettings[i];
+
+    if (s.hub.hub_id === hubId) {
+      return {
+        notifyJoins: s.notify_joins
+      };
+    }
+  }
+
+  return null;
+}
+
 export function homeHubForSpaceId(spaceId, memberships) {
   const m = membershipForSpaceId(spaceId, memberships);
   return m ? m.home_hub : null;

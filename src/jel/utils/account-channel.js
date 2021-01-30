@@ -4,6 +4,7 @@ export default class AccountChannel extends EventTarget {
   constructor() {
     super();
     this.memberships = [];
+    this.hubSettings = [];
   }
 
   bind = channel => {
@@ -20,9 +21,12 @@ export default class AccountChannel extends EventTarget {
     }
   };
 
-  syncMemberships = newMemberships => {
+  syncAccountInfo = ({ memberships, hub_settings }) => {
     this.memberships.length = 0;
-    this.memberships.push(...newMemberships);
+    this.memberships.push(...memberships);
+
+    this.hubSettings.length = 0;
+    this.hubSettings.push(...hub_settings);
   };
 
   setActive = () => {
@@ -33,9 +37,14 @@ export default class AccountChannel extends EventTarget {
     this.channel.push("set_inactive", {});
   };
 
-  onAccountRefreshed = ({ memberships }) => {
-    this.syncMemberships(memberships);
-    this.dispatchEvent(new CustomEvent("account_refresh", { detail: { memberships: this.memberships } }));
+  subscribe = subscription => {
+    this.channel.push("subscribe", { subscription });
+  };
+
+  onAccountRefreshed = accountInfo => {
+    console.log(accountInfo);
+    this.syncAccountInfo(accountInfo);
+    this.dispatchEvent(new CustomEvent("account_refresh", { detail: accountInfo }));
   };
 
   updateMembership(spaceId, notifySpaceCopresence, notifyHubCopresence, notifyChatMode) {
@@ -46,6 +55,17 @@ export default class AccountChannel extends EventTarget {
           notify_space_copresence: notifySpaceCopresence,
           notify_hub_copresence: notifyHubCopresence,
           notify_chat_mode: notifyChatMode
+        }
+      });
+    }
+  }
+
+  updateHubSettings(hubId, notifyJoins) {
+    if (this.channel) {
+      this.channel.push("update_hub_settings", {
+        hub_settings: {
+          hub_id: hubId,
+          notify_joins: notifyJoins
         }
       });
     }

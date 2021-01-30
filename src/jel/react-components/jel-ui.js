@@ -710,6 +710,7 @@ JelUI.propTypes = {
   selectedMediaLayer: PropTypes.number,
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
+  hubSettings: PropTypes.array,
   unavailableReason: PropTypes.string
 };
 
