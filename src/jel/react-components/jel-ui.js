@@ -13,6 +13,7 @@ import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 import JelSidePanels from "./jel-side-panels";
+import { PopupPanelMenuArrow } from "./popup-panel-menu";
 import ChatLog from "./chat-log";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shadow.svgi";
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
@@ -23,10 +24,12 @@ import CreateSelectPopup from "./create-select-popup";
 import ChatInputPopup from "./chat-input-popup";
 import EmojiPopup from "./emoji-popup";
 import EquippedEmojiIcon from "./equipped-emoji-icon";
+import SpaceNotificationsPopup from "./space-notifications-popup";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
 import { getMessages } from "../../hubs/utils/i18n";
+import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import Tooltip from "./tooltip";
 import KeyTips from "./key-tips";
 import LoadingPanel from "./loading-panel";
@@ -279,7 +282,18 @@ const DeviceStatuses = styled.div`
 `;
 
 function JelUI(props) {
-  const { scene, treeManager, history, spaceCan, hubCan, hub, memberships, unavailableReason } = props;
+  const {
+    scene,
+    treeManager,
+    history,
+    spaceCan,
+    hubCan,
+    hub,
+    memberships,
+    unavailableReason,
+    subscriptions,
+    spaceId
+  } = props;
   const tree = treeManager && treeManager.sharedNav;
   const spaceTree = treeManager && treeManager.privateSpace;
   const { store, hubChannel, spaceChannel, dynaChannel } = window.APP;
@@ -291,6 +305,7 @@ function JelUI(props) {
   const [treeDataVersion, setTreeDataVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [createEmbedType, setCreateEmbedType] = useState("image");
+  const [spaceNotificationsPopupArrowElement, setSpaceNotificationsPopupArrowElement] = useState(null);
 
   const hubRenameFocusRef = useRef();
   const spaceRenameFocusRef = useRef();
@@ -369,6 +384,19 @@ function JelUI(props) {
     update: updateCreateEmbedPopup
   } = usePopupPopper(createEmbedFocusRef, "bottom", [0, 8]);
 
+  const {
+    styles: spaceNotificationPopupStyles,
+    attributes: spaceNotificationPopupAttributes,
+    show: showSpaceNotificationPopup,
+    setPopup: setSpaceNotificationPopupElement,
+    update: updateSpaceNotificationPopup
+  } = usePopupPopper(
+    null,
+    "bottom",
+    [0, 8],
+    [{ name: "arrow", options: { element: spaceNotificationsPopupArrowElement } }]
+  );
+
   // When panels are re-sized we need to re-layout popups
   useEffect(
     () => {
@@ -380,6 +408,7 @@ function JelUI(props) {
         if (updateCreateEmbedPopup) updateCreateEmbedPopup();
         if (updateChatInputPopup) updateChatInputPopup();
         if (updateEmojiPopup) updateEmojiPopup();
+        if (updateSpaceNotificationPopup) updateSpaceNotificationPopup();
       };
 
       scene && scene.addEventListener("animated_resize_complete", handleResizeComplete);
@@ -393,7 +422,8 @@ function JelUI(props) {
       updateCreateSelectPopup,
       updateCreateEmbedPopup,
       updateChatInputPopup,
-      updateEmojiPopup
+      updateEmojiPopup,
+      updateSpaceNotificationPopup
     ]
   );
 
@@ -542,6 +572,7 @@ function JelUI(props) {
             showSpaceRenamePopup={showSpaceRenamePopup}
             spaceRenamePopupElement={spaceRenamePopupElement}
             showEmojiPopup={showEmojiPopup}
+            showSpaceNotificationPopup={showSpaceNotificationPopup}
           />
         )}
       </div>
@@ -606,6 +637,20 @@ function JelUI(props) {
           }
         }}
       />
+      <SpaceNotificationsPopup
+        setPopperElement={setSpaceNotificationPopupElement}
+        styles={spaceNotificationPopupStyles}
+        attributes={spaceNotificationPopupAttributes}
+        subscriptions={subscriptions}
+        spaceId={spaceId}
+        memberships={memberships}
+      >
+        <PopupPanelMenuArrow
+          ref={setSpaceNotificationsPopupArrowElement}
+          style={spaceNotificationPopupStyles.arrow}
+          className={sharedStyles.popperArrow}
+        />
+      </SpaceNotificationsPopup>
       <CreateEmbedPopup
         setPopperElement={setCreateEmbedPopupElement}
         styles={createEmbedPopupStyles}

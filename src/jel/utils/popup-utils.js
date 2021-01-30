@@ -63,7 +63,12 @@ export function useAtomBoundPopupPopper(focusRef, initialPlacement = "bottom", i
   };
 }
 
-export function usePopupPopper(focusRefOrSelector, initialPlacement = "bottom", initialOffset = [0, 0]) {
+export function usePopupPopper(
+  focusRefOrSelector,
+  initialPlacement = "bottom",
+  initialOffset = [0, 0],
+  extraModifiers = []
+) {
   const [referenceElement, setReferenceElement] = useState(null);
   const [popupElement, setPopupElement] = useState(null);
   const [placement, setPlacement] = useState(initialPlacement);
@@ -73,6 +78,7 @@ export function usePopupPopper(focusRefOrSelector, initialPlacement = "bottom", 
   const { styles, attributes, update } = usePopper(referenceElement, popupElement, {
     placement: placement,
     modifiers: [
+      ...extraModifiers,
       {
         name: "offset",
         options: {

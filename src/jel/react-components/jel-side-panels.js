@@ -9,12 +9,7 @@ import ActionButton from "./action-button";
 import SelfPanel from "./self-panel";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
-import {
-  homeHubForSpaceId,
-  spaceForSpaceId,
-  membershipSettingsForSpaceId,
-  hubSettingsForHubId
-} from "../utils/membership-utils";
+import { homeHubForSpaceId, spaceForSpaceId } from "../utils/membership-utils";
 import { addNewHubToTree } from "../utils/tree-utils";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
 import SpaceTree from "./space-tree";
@@ -102,7 +97,15 @@ const NavHead = styled.div`
   margin-bottom: 16px;
 `;
 
+const NavTop = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+`;
+
 const SpaceBanner = styled.div`
+  flex-grow: 1;
   font-size: var(--panel-banner-text-size);
   font-weight: var(--panel-banner-text-weight);
   color: var(--panel-banner-text-color);
@@ -110,6 +113,7 @@ const SpaceBanner = styled.div`
 `;
 
 const SpaceNameButton = styled.button`
+  flex-grow: 1;
   font-size: var(--panel-banner-text-size);
   font-weight: var(--panel-banner-text-weight);
   color: var(--panel-banner-text-color);
@@ -139,6 +143,10 @@ const SpaceNameButton = styled.button`
   &:active {
     background-color: var(--panel-item-active-background-color);
   }
+`;
+
+const NavTopButton = styled.button`
+  flex: 0 0 32px;
 `;
 
 const NavFoot = styled.div`
@@ -342,7 +350,6 @@ function JelSidePanels({
   spaceCan = () => false,
   spaceMetadata,
   memberships,
-  hubSettings,
   showHubContextMenuPopup,
   setHubRenameReferenceElement,
   showSpaceRenamePopup,
@@ -350,8 +357,8 @@ function JelSidePanels({
   spaceId,
   sessionId,
   scene,
-  subscriptions,
-  showEmojiPopup
+  showEmojiPopup,
+  showSpaceNotificationPopup
 }) {
   const store = window.APP.store;
   const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
@@ -361,13 +368,13 @@ function JelSidePanels({
   const [inviteElement, setInviteElement] = useState(null);
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const [spaceName, setSpaceName] = useState((metadata && metadata.name) || "");
-  const [membershipSettings, setMembershipSettings] = useState(null);
-  const [currentHubSettings, setCurrentHubSettings] = useState(null);
-  const [isPushSubscribed, setIsPushSubscribed] = useState(subscriptions.subscribed);
+  //const [currentHubSettings, setCurrentHubSettings] = useState(null);
   const invitePanelFieldElement = useRef();
   const spaceBannerRef = useRef();
   const emojiEquipRef = useRef();
-  const { accountChannel, spaceChannel } = window.APP;
+  const showSpaceNotificationsButtonRef = useRef();
+
+  const { spaceChannel } = window.APP;
 
   const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: updateTrashPopper } = usePopper(
     trashMenuReferenceElement,
@@ -387,32 +394,19 @@ function JelSidePanels({
 
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setSpaceName);
 
-  useEffect(
-    () => {
-      const handler = () => {
-        setMembershipSettings(membershipSettingsForSpaceId(spaceId, memberships));
-
-        if (hub) {
-          setCurrentHubSettings(hubSettingsForHubId(hub.hub_id, hubSettings));
-        }
-      };
-      handler();
-      accountChannel.addEventListener("account_refresh", handler);
-      return () => accountChannel.removeEventListener("account_refresh", handler);
-    },
-    [accountChannel, memberships, hubSettings, spaceId, hub]
-  );
-
-  useEffect(
-    () => {
-      const handler = () => {
-        setIsPushSubscribed(subscriptions.subscribed);
-      };
-      subscriptions.addEventListener("subscriptions_updated", handler);
-      return () => subscriptions.removeEventListener("subscriptions_updated", handler);
-    },
-    [subscriptions, setIsPushSubscribed]
-  );
+  //useEffect(
+  //  () => {
+  //    const handler = () => {
+  //      if (hub) {
+  //        setCurrentHubSettings(hubSettingsForHubId(hub.hub_id, hubSettings));
+  //      }
+  //    };
+  //    handler();
+  //    accountChannel.addEventListener("account_refresh", handler);
+  //    return () => accountChannel.removeEventListener("account_refresh", handler);
+  //  },
+  //  [accountChannel, memberships, hubSettings, spaceId, hub]
+  //);
 
   const homeHub = homeHubForSpaceId(spaceId, memberships);
   const hubMetadata = treeManager && treeManager.sharedNav && treeManager.sharedNav.atomMetadata;
@@ -451,16 +445,24 @@ function JelSidePanels({
         </SpaceTreeSpill>
         <Nav>
           <NavHead>
-            {spaceCan("update_space_meta") && (
-              <SpaceNameButton
-                ref={spaceBannerRef}
-                onMouseDown={e => cancelEventIfFocusedWithin(e, spaceRenamePopupElement)}
-                onClick={() => showSpaceRenamePopup(spaceId, spaceBannerRef)}
+            <NavTop>
+              {spaceCan("update_space_meta") && (
+                <SpaceNameButton
+                  ref={spaceBannerRef}
+                  onMouseDown={e => cancelEventIfFocusedWithin(e, spaceRenamePopupElement)}
+                  onClick={() => showSpaceRenamePopup(spaceId, spaceBannerRef)}
+                >
+                  {spaceName}
+                </SpaceNameButton>
+              )}
+              {!spaceCan("update_space_meta") && <SpaceBanner>{spaceName}</SpaceBanner>}
+              <NavTopButton
+                ref={showSpaceNotificationsButtonRef}
+                onClick={() => showSpaceNotificationPopup(showSpaceNotificationsButtonRef)}
               >
-                {spaceName}
-              </SpaceNameButton>
-            )}
-            {!spaceCan("update_space_meta") && <SpaceBanner>{spaceName}</SpaceBanner>}
+                Hi
+              </NavTopButton>
+            </NavTop>
             {spaceCan("create_invite") && (
               <PanelItemButtonSection>
                 <Tooltip
@@ -669,12 +671,12 @@ JelSidePanels.propTypes = {
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
   hubSettings: PropTypes.array,
-  subscriptions: PropTypes.object,
   showHubContextMenuPopup: PropTypes.func,
   setHubRenameReferenceElement: PropTypes.func,
   showSpaceRenamePopup: PropTypes.func,
   spaceRenamePopupElement: PropTypes.object,
-  showEmojiPopup: PropTypes.func
+  showEmojiPopup: PropTypes.func,
+  showSpaceNotificationPopup: PropTypes.func
 };
 
 export default JelSidePanels;

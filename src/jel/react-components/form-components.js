@@ -1,6 +1,5 @@
 import React from "react";
 import styled from "styled-components";
-import { FormattedMessage } from "react-intl";
 import { getMessages } from "../../hubs/utils/i18n";
 
 export const PanelWrap = styled.div`
@@ -113,7 +112,8 @@ export const Checkbox = styled.input`
   }
 
   & ::before {
-    content: "✔";
+    content: "✓";
+    color: var(--panel-item-active-text-color);
     padding: 2px;
     position: absolute;
     width: 100%;
@@ -130,7 +130,7 @@ export const Checkbox = styled.input`
   }
 `;
 
-export const checkboxControlFor = (name, labelMessageId, value, setter, labelMapper = null) => {
+export const checkboxControlFor = (name, labelMessageId, value, setter, onChange, labelMapper = null) => {
   const messages = getMessages();
   let label = messages[labelMessageId];
 
@@ -148,6 +148,7 @@ export const checkboxControlFor = (name, labelMessageId, value, setter, labelMap
         onChange={e => {
           const value = e.target.checked;
           setter(value);
+          if (onChange) onChange(value);
         }}
       />
       <Label htmlFor={name} style={{ cursor: "pointer" }}>

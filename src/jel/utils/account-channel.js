@@ -42,7 +42,6 @@ export default class AccountChannel extends EventTarget {
   };
 
   onAccountRefreshed = accountInfo => {
-    console.log(accountInfo);
     this.syncAccountInfo(accountInfo);
     this.dispatchEvent(new CustomEvent("account_refresh", { detail: accountInfo }));
   };
