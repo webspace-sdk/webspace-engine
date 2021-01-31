@@ -16,7 +16,7 @@ import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shadow.svgi";
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
-import notificationIcon from "../../assets/jel/images/icons/notifications-shadow.svgi";
+import notificationsIcon from "../../assets/jel/images/icons/notifications-shadow.svgi";
 import RenamePopup from "./rename-popup";
 import CreateEmbedPopup from "./create-embed-popup";
 import HubContextMenu from "./hub-context-menu";
@@ -260,7 +260,7 @@ const HubNotificationButton = forwardRef((props, ref) => {
   return (
     <Tooltip content={messages["hub-notifications.tip"]} placement="top" key="hub-notifications" delay={500}>
       <HubCornerButtonElement {...props} ref={ref}>
-        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: notificationIcon }} />
+        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: notificationsIcon }} />
       </HubCornerButtonElement>
     </Tooltip>
   );

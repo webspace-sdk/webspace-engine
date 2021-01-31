@@ -8,6 +8,7 @@ import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
 import SelfPanel from "./self-panel";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
+import notificationsIcon from "../../assets/jel/images/icons/notifications.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { homeHubForSpaceId, spaceForSpaceId } from "../utils/membership-utils";
 import { addNewHubToTree } from "../utils/tree-utils";
@@ -146,7 +147,33 @@ const SpaceNameButton = styled.button`
 `;
 
 const NavTopButton = styled.button`
-  flex: 0 0 32px;
+  flex: 0 0 42px;
+  color: var(--panel-banner-text-color);
+  margin: 12px 16px;
+  overflow: hidden;
+  border-radius: 4px;
+  padding: 6px 10px;
+  border: 0;
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  background-color: transparent;
+  max-width: fit-content;
+  pointer-events: auto;
+
+  &:hover {
+    background-color: var(--panel-item-hover-background-color);
+  }
+
+  &:active {
+    background-color: var(--panel-item-active-background-color);
+  }
+`;
+
+const NavTopButtonIcon = styled.div`
+  width: 22px;
+  height: 22px;
 `;
 
 const NavFoot = styled.div`
@@ -460,7 +487,7 @@ function JelSidePanels({
                 ref={showSpaceNotificationsButtonRef}
                 onClick={() => showSpaceNotificationPopup(showSpaceNotificationsButtonRef)}
               >
-                Hi
+                <NavTopButtonIcon dangerouslySetInnerHTML={{ __html: notificationsIcon }} />
               </NavTopButton>
             </NavTop>
             {spaceCan("create_invite") && (

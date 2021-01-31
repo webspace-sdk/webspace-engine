@@ -46,7 +46,7 @@ const HubNotificationsPopup = ({ setPopperElement, styles, attributes, subscript
     [subscriptions, setIsPushSubscribed]
   );
 
-  const notifyJoinsOnchange = useCallback(
+  const notifyJoinsOnChange = useCallback(
     value => {
       accountChannel.updateHubSettings(hub.hub_id, value);
     },
@@ -75,7 +75,7 @@ const HubNotificationsPopup = ({ setPopperElement, styles, attributes, subscript
           "hub-notifications-popup.notify_joins",
           notifyJoins,
           setNotifyJoins,
-          notifyJoinsOnchange,
+          notifyJoinsOnChange,
           labelMapper
         )}
       </PanelWrap>
