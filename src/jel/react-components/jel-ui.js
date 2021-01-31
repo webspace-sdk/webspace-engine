@@ -13,10 +13,10 @@ import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 import JelSidePanels from "./jel-side-panels";
-import { PopupPanelMenuArrow } from "./popup-panel-menu";
 import ChatLog from "./chat-log";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shadow.svgi";
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
+import notificationIcon from "../../assets/jel/images/icons/notifications-shadow.svgi";
 import RenamePopup from "./rename-popup";
 import CreateEmbedPopup from "./create-embed-popup";
 import HubContextMenu from "./hub-context-menu";
@@ -30,7 +30,6 @@ import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
 import { getMessages } from "../../hubs/utils/i18n";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import Tooltip from "./tooltip";
 import KeyTips from "./key-tips";
 import LoadingPanel from "./loading-panel";
@@ -245,7 +244,7 @@ const HubCreateButton = forwardRef((props, ref) => {
   const messages = getMessages();
 
   return (
-    <Tooltip content={messages["create.tip"]} placement="top" key="mute" delay={500}>
+    <Tooltip content={messages["create.tip"]} placement="top" key="create" delay={500}>
       <HubCornerButtonElement {...props} ref={ref}>
         <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: addIcon }} />
       </HubCornerButtonElement>
@@ -254,6 +253,20 @@ const HubCreateButton = forwardRef((props, ref) => {
 });
 
 HubCreateButton.displayName = "HubCreateButton";
+
+const HubNotificationButton = forwardRef((props, ref) => {
+  const messages = getMessages();
+
+  return (
+    <Tooltip content={messages["hub-notifications.tip"]} placement="top" key="hub-notifications" delay={500}>
+      <HubCornerButtonElement {...props} ref={ref}>
+        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: notificationIcon }} />
+      </HubCornerButtonElement>
+    </Tooltip>
+  );
+});
+
+HubNotificationButton.displayName = "HubNotificationButton";
 
 const KeyTipsWrap = styled.div`
   position: absolute;
@@ -307,8 +320,6 @@ function JelUI(props) {
   const [treeDataVersion, setTreeDataVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [createEmbedType, setCreateEmbedType] = useState("image");
-  const [spaceNotificationsPopupArrowElement, setSpaceNotificationsPopupArrowElement] = useState(null);
-  const [hubNotificationsPopupArrowElement, setHubNotificationsPopupArrowElement] = useState(null);
 
   const hubRenameFocusRef = useRef();
   const spaceRenameFocusRef = useRef();
@@ -394,12 +405,7 @@ function JelUI(props) {
     show: showSpaceNotificationPopup,
     setPopup: setSpaceNotificationPopupElement,
     update: updateSpaceNotificationPopup
-  } = usePopupPopper(
-    null,
-    "bottom",
-    [0, 8],
-    [{ name: "arrow", options: { element: spaceNotificationsPopupArrowElement } }]
-  );
+  } = usePopupPopper(null, "bottom", [0, 8]);
 
   const {
     styles: hubNotificationPopupStyles,
@@ -408,12 +414,7 @@ function JelUI(props) {
     setPopup: setHubNotificationPopupElement,
     popupElement: hubNotificationPopupElement,
     update: updateHubNotificationPopup
-  } = usePopupPopper(
-    null,
-    "bottom",
-    [0, 8],
-    [{ name: "arrow", options: { element: hubNotificationsPopupArrowElement } }]
-  );
+  } = usePopupPopper(null, "bottom-end", [0, 8]);
 
   // When panels are re-sized we need to re-layout popups
   useEffect(
@@ -541,7 +542,7 @@ function JelUI(props) {
                   <FormattedMessage id="install.desktop" />
                 </HubCornerButton>
               )}
-              <HubCreateButton
+              <HubNotificationButton
                 ref={hubNotificationButtonRef}
                 onMouseDown={e => cancelEventIfFocusedWithin(e, hubNotificationPopupElement)}
                 onClick={() => showHubNotificationPopup(hubNotificationButtonRef)}
@@ -669,13 +670,7 @@ function JelUI(props) {
         subscriptions={subscriptions}
         spaceId={spaceId}
         memberships={memberships}
-      >
-        <PopupPanelMenuArrow
-          ref={setSpaceNotificationsPopupArrowElement}
-          style={spaceNotificationPopupStyles.arrow}
-          className={sharedStyles.popperArrow}
-        />
-      </SpaceNotificationsPopup>
+      />
       <HubNotificationsPopup
         setPopperElement={setHubNotificationPopupElement}
         styles={hubNotificationPopupStyles}
@@ -683,13 +678,7 @@ function JelUI(props) {
         subscriptions={subscriptions}
         hub={hub}
         hubSettings={hubSettings}
-      >
-        <PopupPanelMenuArrow
-          ref={setHubNotificationsPopupArrowElement}
-          style={hubNotificationPopupStyles.arrow}
-          className={sharedStyles.popperArrow}
-        />
-      </HubNotificationsPopup>
+      />
       <CreateEmbedPopup
         setPopperElement={setCreateEmbedPopupElement}
         styles={createEmbedPopupStyles}

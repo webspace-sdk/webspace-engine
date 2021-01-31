@@ -146,6 +146,7 @@
   "create-select.placeholder": "Press '/' to toggle...",
   "text-editor.placeholder": "Hover and press tidle (~) to edit...",
   "create.tip": "Create",
+  "hub-notifications.tip": "World Notifications",
   "create-embed.tip": "Tip: You can paste links directly into Jel with Ctrl-V",
   "create-embed.image-title": "Embed Image",
   "create-embed.video-title": "Embed Video",
@@ -231,7 +232,7 @@
   "space-notifications-popup.notify_space_copresence": "When anyone is in this space, notify me.",
   "space-notifications-popup.notify_hub_copresence": "When others join the world I'm in, notify me.",
   "space-notifications-popup.notify_chat": "When others chat in the world I'm in, notify me.",
-  "hub-notifications-popup.notify_joins": "When anyone joins HUB_NAME, notify me.",
+  "hub-notifications-popup.notify_joins": "When anyone is in HUB_NAME, notify me.",
   "notification-request.notice": "Turn on notifications to know when others arrive.",
   "notification-request.tip": "You can also be notified of chat messages and other updates.",
   "notification-request.turn-on": "Enable notifications"
