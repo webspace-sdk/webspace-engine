@@ -18,6 +18,7 @@ export const Info = styled.div`
   font-weight: var(--dialog-info-text-weight);
   margin-top: 12px;
   margin-left: 12px;
+  margin-right: 12px;
 `;
 
 export const Tip = styled.div`
@@ -27,6 +28,7 @@ export const Tip = styled.div`
   margin-top: 6px;
   margin-bottom: 8px;
   margin-left: 12px;
+  margin-right: 12px;
   white-space: pre;
   line-height: 16px;
 
@@ -42,6 +44,7 @@ export const Label = styled.label`
   margin-top: 6px;
   margin-bottom: 8px;
   margin-left: 12px;
+  margin-right: 12px;
   white-space: pre;
   line-height: 16px;
 

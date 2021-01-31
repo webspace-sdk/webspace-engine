@@ -78,6 +78,7 @@ const SpaceNotificationsPopup = ({
   const onEnableNotificationsClicked = useCallback(
     e => {
       e.preventDefault();
+
       subscriptions.subscribe();
     },
     [subscriptions]
@@ -126,7 +127,7 @@ const SpaceNotificationsPopup = ({
       style={styles.popper}
       {...attributes.popper}
     >
-      <PopupPanelMenu style={{ padding: "36px 0px", borderRadius: "12px" }} className={sharedStyles.slideUpWhenPopped}>
+      <PopupPanelMenu style={{ padding: "32px 0px", borderRadius: "12px" }} className={sharedStyles.slideUpWhenPopped}>
         {contents}
       </PopupPanelMenu>
       {children}

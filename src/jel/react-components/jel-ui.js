@@ -25,6 +25,7 @@ import ChatInputPopup from "./chat-input-popup";
 import EmojiPopup from "./emoji-popup";
 import EquippedEmojiIcon from "./equipped-emoji-icon";
 import SpaceNotificationsPopup from "./space-notifications-popup";
+import HubNotificationsPopup from "./hub-notifications-popup";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
@@ -290,6 +291,7 @@ function JelUI(props) {
     hubCan,
     hub,
     memberships,
+    hubSettings,
     unavailableReason,
     subscriptions,
     spaceId
@@ -306,6 +308,7 @@ function JelUI(props) {
   const [isLoading, setIsLoading] = useState(true);
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [spaceNotificationsPopupArrowElement, setSpaceNotificationsPopupArrowElement] = useState(null);
+  const [hubNotificationsPopupArrowElement, setHubNotificationsPopupArrowElement] = useState(null);
 
   const hubRenameFocusRef = useRef();
   const spaceRenameFocusRef = useRef();
@@ -317,6 +320,7 @@ function JelUI(props) {
   const centerPopupRef = useRef();
   const createEmbedFocusRef = useRef();
   const emojiPopupFocusRef = useRef();
+  const hubNotificationButtonRef = useRef();
 
   const {
     styles: hubRenamePopupStyles,
@@ -397,6 +401,20 @@ function JelUI(props) {
     [{ name: "arrow", options: { element: spaceNotificationsPopupArrowElement } }]
   );
 
+  const {
+    styles: hubNotificationPopupStyles,
+    attributes: hubNotificationPopupAttributes,
+    show: showHubNotificationPopup,
+    setPopup: setHubNotificationPopupElement,
+    popupElement: hubNotificationPopupElement,
+    update: updateHubNotificationPopup
+  } = usePopupPopper(
+    null,
+    "bottom",
+    [0, 8],
+    [{ name: "arrow", options: { element: hubNotificationsPopupArrowElement } }]
+  );
+
   // When panels are re-sized we need to re-layout popups
   useEffect(
     () => {
@@ -409,6 +427,7 @@ function JelUI(props) {
         if (updateChatInputPopup) updateChatInputPopup();
         if (updateEmojiPopup) updateEmojiPopup();
         if (updateSpaceNotificationPopup) updateSpaceNotificationPopup();
+        if (updateHubNotificationPopup) updateHubNotificationPopup();
       };
 
       scene && scene.addEventListener("animated_resize_complete", handleResizeComplete);
@@ -423,7 +442,8 @@ function JelUI(props) {
       updateCreateEmbedPopup,
       updateChatInputPopup,
       updateEmojiPopup,
-      updateSpaceNotificationPopup
+      updateSpaceNotificationPopup,
+      updateHubNotificationPopup
     ]
   );
 
@@ -521,6 +541,11 @@ function JelUI(props) {
                   <FormattedMessage id="install.desktop" />
                 </HubCornerButton>
               )}
+              <HubCreateButton
+                ref={hubNotificationButtonRef}
+                onMouseDown={e => cancelEventIfFocusedWithin(e, hubNotificationPopupElement)}
+                onClick={() => showHubNotificationPopup(hubNotificationButtonRef)}
+              />
               <HubCreateButton
                 ref={hubCreateButtonRef}
                 onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
@@ -651,6 +676,20 @@ function JelUI(props) {
           className={sharedStyles.popperArrow}
         />
       </SpaceNotificationsPopup>
+      <HubNotificationsPopup
+        setPopperElement={setHubNotificationPopupElement}
+        styles={hubNotificationPopupStyles}
+        attributes={hubNotificationPopupAttributes}
+        subscriptions={subscriptions}
+        hub={hub}
+        hubSettings={hubSettings}
+      >
+        <PopupPanelMenuArrow
+          ref={setHubNotificationsPopupArrowElement}
+          style={hubNotificationPopupStyles.arrow}
+          className={sharedStyles.popperArrow}
+        />
+      </HubNotificationsPopup>
       <CreateEmbedPopup
         setPopperElement={setCreateEmbedPopupElement}
         styles={createEmbedPopupStyles}

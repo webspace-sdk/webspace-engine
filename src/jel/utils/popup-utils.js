@@ -78,7 +78,6 @@ export function usePopupPopper(
   const { styles, attributes, update } = usePopper(referenceElement, popupElement, {
     placement: placement,
     modifiers: [
-      ...extraModifiers,
       {
         name: "offset",
         options: {
@@ -91,7 +90,8 @@ export function usePopupPopper(
           scroll: false,
           resize: true
         }
-      }
+      },
+      ...extraModifiers
     ]
   });
 

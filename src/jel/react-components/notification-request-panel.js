@@ -13,7 +13,7 @@ const NotificationRequestPanel = ({ onEnableClicked }) => {
       <Tip>
         <FormattedMessage id="notification-request.tip" />
       </Tip>
-      <ActionButton style={{ minWidth: "100%" }} onClick={onEnableClicked}>
+      <ActionButton style={{ minWidth: "calc(100% - 24px)" }} onClick={onEnableClicked}>
         <FormattedMessage id="notification-request.turn-on" />
       </ActionButton>
     </PanelWrap>
