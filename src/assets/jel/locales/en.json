@@ -235,5 +235,8 @@
   "hub-notifications-popup.notify_joins": "When anyone is in HUB_NAME, notify me.",
   "notification-request.notice": "Turn on notifications to know when others arrive.",
   "notification-request.tip": "You can also be notified of chat messages and other updates.",
-  "notification-request.turn-on": "Enable notifications"
+  "notification-request.turn-on": "Turn on notifications",
+  "notification-banner.info": "Want to know when others join you?",
+  "notification-banner.notify-on": "Turn on Notifications",
+  "notification-banner.close": "Maybe later"
 }

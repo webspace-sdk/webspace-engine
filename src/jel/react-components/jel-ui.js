@@ -58,6 +58,71 @@ const Wrap = styled.div`
   }
 `;
 
+const NotifyBanner = styled.div`
+  width: 100%;
+  height: 42px;
+  background-color: var(--notify-banner-background-color);
+  color: var(--notify-banner-text-color);
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  z-index: 6;
+  pointer-events: auto;
+  user-select: none;
+`;
+
+const NotifyBannerButton = styled.button`
+  position: relative;
+  color: var(--canvas-overlay-text-color);
+  width: content-width;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  background-color: transparent;
+  font-weight: var(--canvas-overlay-item-text-weight);
+  text-align: left;
+  max-width: fit-content;
+  text-shadow: 0px 0px 4px var(--menu-shadow-color);
+
+  &:hover {
+    background-color: var(--canvas-overlay-item-hover-background-color);
+  }
+
+  &:active {
+    background-color: var(--canvas-overlay-item-active-background-color);
+  }
+
+  .panels-expanded & {
+    display: none;
+  }
+`;
+
+const NotifyBannerClose = styled.button`
+  display: flex;
+  color: var(--notify-banner-close-color);
+  border: 0;
+  justify-content: center;
+  align-items: center;
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  background-color: transparent;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
 const FadeEdges = styled.div`
   position: absolute;
   top: 0;
@@ -72,6 +137,7 @@ const FadeEdges = styled.div`
   }
 
   pointer-events: none;
+  z-index: 0;
 `;
 
 const Top = styled.div`
@@ -320,6 +386,9 @@ function JelUI(props) {
   const [treeDataVersion, setTreeDataVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [createEmbedType, setCreateEmbedType] = useState("image");
+  const [showNotificationBanner, setShowNotificationBanner] = useState(
+    subscriptions && !subscriptions.subscribed && store && !store.state.uiState.closedNotificationBanner
+  );
 
   const hubRenameFocusRef = useRef();
   const spaceRenameFocusRef = useRef();
@@ -514,11 +583,50 @@ function JelUI(props) {
 
   const onTrailHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
 
+  const onTurnOnNotificationClicked = useCallback(() => subscriptions.subscribe(), [subscriptions]);
+
+  // Handle subscriptions changed
+
+  useEffect(
+    () => {
+      const handler = () => {
+        if (subscriptions.subscribed) {
+          setShowNotificationBanner(false);
+        }
+      };
+
+      subscriptions.addEventListener("subscriptions_updated", handler);
+      return () => subscriptions.removeEventListener("subscriptions_updated", handler);
+    },
+    [subscriptions, setShowNotificationBanner]
+  );
+
+  const onNotifyBannerClosed = useCallback(
+    () => {
+      store.update({ uiState: { closedNotificationBanner: true } });
+      setShowNotificationBanner(false);
+    },
+    [store]
+  );
+
   return (
     <WrappedIntlProvider>
       <div>
         <LoadingPanel isLoading={isLoading} unavailableReason={unavailableReason} />
         <Wrap id="jel-ui-wrap">
+          {showNotificationBanner && (
+            <NotifyBanner>
+              <div>
+                <FormattedMessage id="notification-banner.info" />
+              </div>
+              <NotifyBannerButton onClick={onTurnOnNotificationClicked}>
+                <FormattedMessage id="notification-banner.notify-on" />
+              </NotifyBannerButton>
+              <NotifyBannerClose onClick={onNotifyBannerClosed}>
+                <FormattedMessage id="notification-banner.close" />
+              </NotifyBannerClose>
+            </NotifyBanner>
+          )}
           <FadeEdges />
           <CreateSelectPopupRef ref={createSelectPopupRef} />
           <CenterPopupRef ref={centerPopupRef} />
