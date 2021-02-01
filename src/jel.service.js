@@ -20,9 +20,8 @@ self.addEventListener("push", function(e) {
 
       return self.registration.showNotification("Jel", {
         body: payload.type === "join" ? "Someone has joined " + payload.hub_name : payload.body,
-        image: payload.image,
-        icon: payload.icon || payload.image,
-        badge: payload.badge || payload.image,
+        icon: "/app-icon.png",
+        badge: "/app-icon.png",
         tag: payload.type === "join" ? payload.hub_id : payload.body,
         data: { hub_url: payload.hub_url }
       });
