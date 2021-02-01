@@ -16,7 +16,7 @@ waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-p
 const HubNotificationsPopup = ({ setPopperElement, styles, attributes, subscriptions, hubSettings, hub, children }) => {
   const { accountChannel } = window.APP;
 
-  const [notifyJoins, setNotifyJoins] = useState("");
+  const [notifyJoins, setNotifyJoins] = useState(false);
   const [isPushSubscribed, setIsPushSubscribed] = useState(subscriptions && subscriptions.subscribed);
 
   const labelMapper = useCallback(x => x.replaceAll("HUB_NAME", hub && hub.name), [hub]);
@@ -28,6 +28,8 @@ const HubNotificationsPopup = ({ setPopperElement, styles, attributes, subscript
         const settings = hubSettingsForHubId(hub.hub_id, hubSettings);
         if (settings) {
           setNotifyJoins(settings.notifyJoins);
+        } else {
+          setNotifyJoins(false);
         }
       };
       handler();
