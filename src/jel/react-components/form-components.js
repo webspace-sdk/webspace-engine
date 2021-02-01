@@ -133,13 +133,9 @@ export const Checkbox = styled.input`
   }
 `;
 
-export const checkboxControlFor = (name, labelMessageId, value, setter, onChange, labelMapper = null) => {
+export const checkboxControlFor = (name, labelMessageId, value, setter, onChange) => {
   const messages = getMessages();
-  let label = messages[labelMessageId];
-
-  if (labelMapper) {
-    label = labelMapper(label);
-  }
+  const label = messages[labelMessageId];
 
   return (
     <InputWrap>
