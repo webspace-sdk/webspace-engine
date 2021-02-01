@@ -21,9 +21,9 @@ self.addEventListener("push", function(e) {
       return self.registration.showNotification("Jel", {
         body: payload.type === "join" ? "Someone has joined " + payload.hub_name : payload.body,
         image: payload.image,
-        icon: "/favicon.ico",
-        badge: "/favicon.ico",
-        tag: payload.hub_id,
+        icon: "/app-logo.png",
+        badge: "/app-logo.png",
+        tag: payload.type === "join" ? payload.hub_id : payload.body,
         data: { hub_url: payload.hub_url }
       });
     })
