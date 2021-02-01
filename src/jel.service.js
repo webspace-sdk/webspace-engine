@@ -1,3 +1,5 @@
+const UNNAMED_WORLD = "Unnamed World";
+
 self.addEventListener("install", function(e) {
   return e.waitUntil(self.skipWaiting());
 });
@@ -19,7 +21,7 @@ self.addEventListener("push", function(e) {
       }
 
       return self.registration.showNotification("Jel", {
-        body: payload.type === "join" ? "Someone has joined " + payload.hub_name : payload.body,
+        body: payload.type === "join" ? "Someone has joined " + (payload.hub_name || UNNAMED_WORLD) : payload.body,
         icon: "/app-icon.png",
         badge: "/app-icon.png",
         tag: payload.type === "join" ? payload.hub_id : payload.body,

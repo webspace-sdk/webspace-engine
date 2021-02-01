@@ -9,6 +9,7 @@ import NotificationRequestPanel from "./notification-request-panel";
 import { FormattedMessage } from "react-intl";
 import { PanelWrap, checkboxControlFor } from "./form-components";
 import { hubSettingsForHubId } from "../utils/membership-utils";
+import { getMessages } from "../../hubs/utils/i18n";
 
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
@@ -19,7 +20,12 @@ const HubNotificationsPopup = ({ setPopperElement, styles, attributes, subscript
   const [notifyJoins, setNotifyJoins] = useState(false);
   const [isPushSubscribed, setIsPushSubscribed] = useState(subscriptions && subscriptions.subscribed);
 
-  const labelMapper = useCallback(x => x.replaceAll("HUB_NAME", hub && hub.name), [hub]);
+  const labelMapper = useCallback(
+    x => {
+      x.replaceAll("HUB_NAME", (hub && hub.name) || getMessages["hub.unnamed-title"]);
+    },
+    [hub]
+  );
 
   useEffect(
     () => {
