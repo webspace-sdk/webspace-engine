@@ -395,7 +395,6 @@ function JelSidePanels({
   const [inviteElement, setInviteElement] = useState(null);
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const [spaceName, setSpaceName] = useState((metadata && metadata.name) || "");
-  //const [currentHubSettings, setCurrentHubSettings] = useState(null);
   const invitePanelFieldElement = useRef();
   const spaceBannerRef = useRef();
   const emojiEquipRef = useRef();
@@ -420,20 +419,6 @@ function JelSidePanels({
   );
 
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setSpaceName);
-
-  //useEffect(
-  //  () => {
-  //    const handler = () => {
-  //      if (hub) {
-  //        setCurrentHubSettings(hubSettingsForHubId(hub.hub_id, hubSettings));
-  //      }
-  //    };
-  //    handler();
-  //    accountChannel.addEventListener("account_refresh", handler);
-  //    return () => accountChannel.removeEventListener("account_refresh", handler);
-  //  },
-  //  [accountChannel, memberships, hubSettings, spaceId, hub]
-  //);
 
   const homeHub = homeHubForSpaceId(spaceId, memberships);
   const hubMetadata = treeManager && treeManager.sharedNav && treeManager.sharedNav.atomMetadata;
