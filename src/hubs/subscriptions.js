@@ -1,4 +1,5 @@
 import nextTick from "./utils/next-tick.js";
+import { EventTarget } from "event-target-shim";
 const INIT_TIMEOUT_MS = 5000;
 
 // Manages web push subscriptions
@@ -16,33 +17,47 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-export default class Subscriptions {
-  constructor(hubId) {
-    this.hubId = hubId;
-  }
+export default class Subscriptions extends EventTarget {
+  constructor() {
+    super();
 
-  setHubChannel = hubChannel => {
-    this.hubChannel = hubChannel;
-  };
+    this.ready = false;
+    this.subscribed = false;
+  }
 
   setRegistration = registration => {
     this.registration = registration;
+    this.checkIfReady();
   };
 
   setRegistrationFailed = () => {
     this.registration = null;
+    this.checkIfReady();
   };
 
   setVapidPublicKey = vapidPublicKey => {
     this.vapidPublicKey = vapidPublicKey;
+    this.checkIfReady();
   };
 
-  setSubscribed = isSubscribed => {
-    this._isSubscribed = isSubscribed;
+  handleExistingSubscriptions = existingSubscriptions => {
+    this.existingSubscriptions = existingSubscriptions;
+    this.checkIfReady();
   };
 
-  isSubscribed = () => {
-    return this._isSubscribed;
+  checkIfReady = async () => {
+    if (this.registration === undefined) return;
+    if (this.vapidPublicKey === undefined) return;
+    if (this.existingSubscriptions === undefined) return;
+
+    const currentEndpoint = await this.getCurrentEndpoint();
+
+    this.ready = true;
+    this.subscribed = !!(
+      currentEndpoint && this.existingSubscriptions.find(({ endpoint }) => currentEndpoint === endpoint)
+    );
+
+    this.dispatchEvent(new CustomEvent("subscriptions_updated"));
   };
 
   getCurrentEndpoint = async () => {
@@ -76,31 +91,24 @@ export default class Subscriptions {
     return sub.endpoint;
   };
 
-  toggle = async () => {
+  subscribe = async () => {
+    if (!this.ready) return;
     if (!this.registration) return;
+    if (this.subscribed) return;
 
-    if (this._isSubscribed) {
-      const pushSubscription = await this.registration.pushManager.getSubscription();
-      const res = await this.hubChannel.unsubscribe(pushSubscription);
+    let pushSubscription = await this.registration.pushManager.getSubscription();
 
-      if (res && res.has_remaining_subscriptions === false) {
-        pushSubscription.unsubscribe();
-      }
-    } else {
-      let pushSubscription = await this.registration.pushManager.getSubscription();
+    if (!pushSubscription) {
+      const convertedVapidKey = urlBase64ToUint8Array(this.vapidPublicKey);
 
-      if (!pushSubscription) {
-        const convertedVapidKey = urlBase64ToUint8Array(this.vapidPublicKey);
-
-        pushSubscription = await this.registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: convertedVapidKey
-        });
-      }
-
-      this.hubChannel.subscribe(pushSubscription);
+      pushSubscription = await this.registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedVapidKey
+      });
     }
 
-    this._isSubscribed = !this._isSubscribed;
+    window.APP.accountChannel.subscribe(pushSubscription);
+    this.subscribed = true;
+    this.dispatchEvent(new CustomEvent("subscriptions_updated"));
   };
 }

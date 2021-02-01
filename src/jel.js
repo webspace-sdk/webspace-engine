@@ -29,7 +29,7 @@ import "./hubs/utils/threejs-world-update";
 import patchThreeAllocations from "./hubs/utils/threejs-allocation-patches";
 import patchThreeNoProgramDispose from "./jel/utils/threejs-avoid-disposing-programs";
 import { detectOS, detect } from "detect-browser";
-import { getReticulumMeta, fetchReticulumAuthenticated } from "./hubs/utils/phoenix-utils";
+import { getReticulumMeta } from "./hubs/utils/phoenix-utils";
 
 import "./hubs/naf-dialog-adapter";
 
@@ -108,6 +108,8 @@ import "./hubs/components/periodic-full-syncs";
 import "./hubs/components/inspect-button";
 import "./hubs/components/set-max-resolution";
 import "./hubs/components/avatar-audio-source";
+import Subscriptions from "./hubs/subscriptions";
+
 import { SOUND_QUACK, SOUND_SPECIAL_QUACK } from "./hubs/systems/sound-effects-system";
 import ducky from "./assets/hubs/models/DuckyMesh.glb";
 import { getAbsoluteHref } from "./hubs/utils/media-url-utils";
@@ -118,6 +120,7 @@ import { Router, Route } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import { clearHistoryState } from "./hubs/utils/history";
 import JelUI from "./jel/react-components/jel-ui";
+import AccountChannel from "./jel/utils/account-channel";
 import AuthChannel from "./hubs/utils/auth-channel";
 import DynaChannel from "./jel/utils/dyna-channel";
 import SpaceChannel from "./hubs/utils/space-channel";
@@ -164,9 +167,13 @@ import { platformUnsupported } from "./hubs/support";
 
 window.APP = new App();
 const store = window.APP.store;
+const subscriptions = new Subscriptions();
+window.APP.subscriptions = subscriptions;
+
 store.update({ preferences: { shouldPromptForRefresh: undefined } });
 
 const history = createBrowserHistory();
+const accountChannel = new AccountChannel(store);
 const authChannel = new AuthChannel(store);
 const dynaChannel = new DynaChannel(store);
 const spaceChannel = new SpaceChannel(store);
@@ -176,6 +183,7 @@ const spaceMetadata = new AtomMetadata(ATOM_TYPES.SPACE);
 const hubMetadata = new AtomMetadata(ATOM_TYPES.HUB);
 
 window.APP.history = history;
+window.APP.accountChannel = accountChannel;
 window.APP.dynaChannel = dynaChannel;
 window.APP.spaceChannel = spaceChannel;
 window.APP.hubChannel = hubChannel;
@@ -363,6 +371,7 @@ function mountJelUI(props = {}) {
             {...{
               scene,
               store,
+              subscriptions,
               history: routeProps.history,
               ...props
             }}
@@ -687,6 +696,7 @@ function setupNonVisibleHandler(scene) {
       document.body.classList.add("paused");
       autoQuality.stopTracking();
       physics.updateSimulationRate(1000.0 / 15.0);
+      accountChannel.setInactive();
     } else {
       if (document.visibilityState === "visible") {
         scene.play();
@@ -696,6 +706,7 @@ function setupNonVisibleHandler(scene) {
 
       document.body.classList.remove("paused");
       physics.updateSimulationRate(1000.0 / 90.0);
+      accountChannel.setActive();
     }
   };
 
@@ -923,17 +934,6 @@ async function createSocket(entryManager) {
   return socket;
 }
 
-async function loadMemberships() {
-  const accountId = store.credentialsAccountId;
-  if (!accountId) return [];
-
-  const res = await fetchReticulumAuthenticated(`/api/v1/accounts/${accountId}`);
-  if (res.memberships.length === 0) return [];
-
-  remountJelUI({ memberships: res.memberships });
-  return res.memberships;
-}
-
 async function start() {
   if (!(await checkPrerequisites())) return;
   mixpanel.track("Startup Start", {});
@@ -949,16 +949,16 @@ async function start() {
       navigator.serviceWorker
         .register("/jel.service.js")
         .then(() => {
-          //navigator.serviceWorker.ready;
-          //  .then(registration => subscriptions.setRegistration(registration))
-          //  .catch(() => subscriptions.setRegistrationFailed());
+          navigator.serviceWorker.ready
+            .then(registration => subscriptions.setRegistration(registration))
+            .catch(e => console.error(e));
         })
-        .catch(() => /*subscriptions.setRegistrationFailed()*/ {});
+        .catch(e => console.error(e));
     } catch (e) {
-      //subscriptions.setRegistrationFailed();
+      subscriptions.setRegistrationFailed();
     }
   } else {
-    //subscriptions.setRegistrationFailed();
+    subscriptions.setRegistrationFailed();
   }
 
   const entryManager = new SceneEntryManager(spaceChannel, hubChannel, authChannel, history);
@@ -1099,7 +1099,32 @@ async function start() {
   let joinSpacePromise;
   let joinHubPromise;
 
-  const membershipsPromise = loadMemberships();
+  const { token } = store.state.credentials;
+  let membershipsPromise;
+
+  if (token) {
+    console.log(`Logged into account ${store.credentialsAccountId}`);
+
+    const accountPhxChannel = socket.channel(`account:${store.credentialsAccountId}`, { auth_token: token });
+    membershipsPromise = new Promise((res, rej) => {
+      accountPhxChannel
+        .join()
+        .receive("ok", async accountInfo => {
+          const { subscriptions: existingSubscriptions } = accountInfo;
+          accountChannel.syncAccountInfo(accountInfo);
+          remountJelUI({ memberships: accountChannel.memberships, hubSettings: accountChannel.hubSettings });
+          subscriptions.handleExistingSubscriptions(existingSubscriptions);
+          res(accountChannel.memberships);
+        })
+        .receive("error", res => {
+          console.error(res);
+          rej();
+        });
+    });
+    accountChannel.bind(accountPhxChannel);
+  } else {
+    membershipsPromise = Promise.resolve([]);
+  }
 
   const performJoin = async () => {
     // Handle rapid history changes, only join last one.
@@ -1116,7 +1141,15 @@ async function start() {
     joinHubPromise = null;
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
-      joinSpacePromise = joinSpace(socket, history, entryManager, remountUI, remountJelUI, membershipsPromise);
+      joinSpacePromise = joinSpace(
+        socket,
+        history,
+        subscriptions,
+        entryManager,
+        remountUI,
+        remountJelUI,
+        membershipsPromise
+      );
       await joinSpacePromise;
     }
 

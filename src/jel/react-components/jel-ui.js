@@ -16,6 +16,7 @@ import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shadow.svgi";
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
+import notificationsIcon from "../../assets/jel/images/icons/notifications-shadow.svgi";
 import RenamePopup from "./rename-popup";
 import CreateEmbedPopup from "./create-embed-popup";
 import HubContextMenu from "./hub-context-menu";
@@ -23,6 +24,8 @@ import CreateSelectPopup from "./create-select-popup";
 import ChatInputPopup from "./chat-input-popup";
 import EmojiPopup from "./emoji-popup";
 import EquippedEmojiIcon from "./equipped-emoji-icon";
+import SpaceNotificationsPopup from "./space-notifications-popup";
+import HubNotificationsPopup from "./hub-notifications-popup";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
@@ -55,6 +58,71 @@ const Wrap = styled.div`
   }
 `;
 
+const NotifyBanner = styled.div`
+  width: 100%;
+  height: 42px;
+  background-color: var(--notify-banner-background-color);
+  color: var(--notify-banner-text-color);
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  z-index: 6;
+  pointer-events: auto;
+  user-select: none;
+`;
+
+const NotifyBannerButton = styled.button`
+  position: relative;
+  color: var(--canvas-overlay-text-color);
+  width: content-width;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  background-color: transparent;
+  font-weight: var(--canvas-overlay-item-text-weight);
+  text-align: left;
+  max-width: fit-content;
+  text-shadow: 0px 0px 4px var(--menu-shadow-color);
+
+  &:hover {
+    background-color: var(--canvas-overlay-item-hover-background-color);
+  }
+
+  &:active {
+    background-color: var(--canvas-overlay-item-active-background-color);
+  }
+
+  .panels-expanded & {
+    display: none;
+  }
+`;
+
+const NotifyBannerClose = styled.button`
+  display: flex;
+  color: var(--notify-banner-close-color);
+  border: 0;
+  justify-content: center;
+  align-items: center;
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  background-color: transparent;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
 const FadeEdges = styled.div`
   position: absolute;
   top: 0;
@@ -69,6 +137,7 @@ const FadeEdges = styled.div`
   }
 
   pointer-events: none;
+  z-index: 0;
 `;
 
 const Top = styled.div`
@@ -241,7 +310,7 @@ const HubCreateButton = forwardRef((props, ref) => {
   const messages = getMessages();
 
   return (
-    <Tooltip content={messages["create.tip"]} placement="top" key="mute" delay={500}>
+    <Tooltip content={messages["create.tip"]} placement="top" key="create" delay={500}>
       <HubCornerButtonElement {...props} ref={ref}>
         <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: addIcon }} />
       </HubCornerButtonElement>
@@ -250,6 +319,20 @@ const HubCreateButton = forwardRef((props, ref) => {
 });
 
 HubCreateButton.displayName = "HubCreateButton";
+
+const HubNotificationButton = forwardRef((props, ref) => {
+  const messages = getMessages();
+
+  return (
+    <Tooltip content={messages["hub-notifications.tip"]} placement="top" key="hub-notifications" delay={500}>
+      <HubCornerButtonElement {...props} ref={ref}>
+        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: notificationsIcon }} />
+      </HubCornerButtonElement>
+    </Tooltip>
+  );
+});
+
+HubNotificationButton.displayName = "HubNotificationButton";
 
 const KeyTipsWrap = styled.div`
   position: absolute;
@@ -279,7 +362,19 @@ const DeviceStatuses = styled.div`
 `;
 
 function JelUI(props) {
-  const { scene, treeManager, history, spaceCan, hubCan, hub, memberships, unavailableReason } = props;
+  const {
+    scene,
+    treeManager,
+    history,
+    spaceCan,
+    hubCan,
+    hub,
+    memberships,
+    hubSettings,
+    unavailableReason,
+    subscriptions,
+    spaceId
+  } = props;
   const tree = treeManager && treeManager.sharedNav;
   const spaceTree = treeManager && treeManager.privateSpace;
   const { store, hubChannel, spaceChannel, dynaChannel } = window.APP;
@@ -291,6 +386,9 @@ function JelUI(props) {
   const [treeDataVersion, setTreeDataVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [createEmbedType, setCreateEmbedType] = useState("image");
+  const [showNotificationBanner, setShowNotificationBanner] = useState(
+    subscriptions && !subscriptions.subscribed && store && !store.state.uiState.closedNotificationBanner
+  );
 
   const hubRenameFocusRef = useRef();
   const spaceRenameFocusRef = useRef();
@@ -302,6 +400,7 @@ function JelUI(props) {
   const centerPopupRef = useRef();
   const createEmbedFocusRef = useRef();
   const emojiPopupFocusRef = useRef();
+  const hubNotificationButtonRef = useRef();
 
   const {
     styles: hubRenamePopupStyles,
@@ -369,6 +468,23 @@ function JelUI(props) {
     update: updateCreateEmbedPopup
   } = usePopupPopper(createEmbedFocusRef, "bottom", [0, 8]);
 
+  const {
+    styles: spaceNotificationPopupStyles,
+    attributes: spaceNotificationPopupAttributes,
+    show: showSpaceNotificationPopup,
+    setPopup: setSpaceNotificationPopupElement,
+    update: updateSpaceNotificationPopup
+  } = usePopupPopper(null, "bottom", [0, 8]);
+
+  const {
+    styles: hubNotificationPopupStyles,
+    attributes: hubNotificationPopupAttributes,
+    show: showHubNotificationPopup,
+    setPopup: setHubNotificationPopupElement,
+    popupElement: hubNotificationPopupElement,
+    update: updateHubNotificationPopup
+  } = usePopupPopper(null, "bottom-end", [0, 8]);
+
   // When panels are re-sized we need to re-layout popups
   useEffect(
     () => {
@@ -380,6 +496,8 @@ function JelUI(props) {
         if (updateCreateEmbedPopup) updateCreateEmbedPopup();
         if (updateChatInputPopup) updateChatInputPopup();
         if (updateEmojiPopup) updateEmojiPopup();
+        if (updateSpaceNotificationPopup) updateSpaceNotificationPopup();
+        if (updateHubNotificationPopup) updateHubNotificationPopup();
       };
 
       scene && scene.addEventListener("animated_resize_complete", handleResizeComplete);
@@ -393,7 +511,9 @@ function JelUI(props) {
       updateCreateSelectPopup,
       updateCreateEmbedPopup,
       updateChatInputPopup,
-      updateEmojiPopup
+      updateEmojiPopup,
+      updateSpaceNotificationPopup,
+      updateHubNotificationPopup
     ]
   );
 
@@ -463,11 +583,50 @@ function JelUI(props) {
 
   const onTrailHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
 
+  const onTurnOnNotificationClicked = useCallback(() => subscriptions.subscribe(), [subscriptions]);
+
+  // Handle subscriptions changed
+
+  useEffect(
+    () => {
+      const handler = () => {
+        if (subscriptions.subscribed) {
+          setShowNotificationBanner(false);
+        }
+      };
+
+      subscriptions.addEventListener("subscriptions_updated", handler);
+      return () => subscriptions.removeEventListener("subscriptions_updated", handler);
+    },
+    [subscriptions, setShowNotificationBanner]
+  );
+
+  const onNotifyBannerClosed = useCallback(
+    () => {
+      store.update({ uiState: { closedNotificationBanner: true } });
+      setShowNotificationBanner(false);
+    },
+    [store]
+  );
+
   return (
     <WrappedIntlProvider>
       <div>
         <LoadingPanel isLoading={isLoading} unavailableReason={unavailableReason} />
         <Wrap id="jel-ui-wrap">
+          {showNotificationBanner && (
+            <NotifyBanner>
+              <div>
+                <FormattedMessage id="notification-banner.info" />
+              </div>
+              <NotifyBannerButton onClick={onTurnOnNotificationClicked}>
+                <FormattedMessage id="notification-banner.notify-on" />
+              </NotifyBannerButton>
+              <NotifyBannerClose onClick={onNotifyBannerClosed}>
+                <FormattedMessage id="notification-banner.close" />
+              </NotifyBannerClose>
+            </NotifyBanner>
+          )}
           <FadeEdges />
           <CreateSelectPopupRef ref={createSelectPopupRef} />
           <CenterPopupRef ref={centerPopupRef} />
@@ -491,6 +650,11 @@ function JelUI(props) {
                   <FormattedMessage id="install.desktop" />
                 </HubCornerButton>
               )}
+              <HubNotificationButton
+                ref={hubNotificationButtonRef}
+                onMouseDown={e => cancelEventIfFocusedWithin(e, hubNotificationPopupElement)}
+                onClick={() => showHubNotificationPopup(hubNotificationButtonRef)}
+              />
               <HubCreateButton
                 ref={hubCreateButtonRef}
                 onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
@@ -542,6 +706,7 @@ function JelUI(props) {
             showSpaceRenamePopup={showSpaceRenamePopup}
             spaceRenamePopupElement={spaceRenamePopupElement}
             showEmojiPopup={showEmojiPopup}
+            showSpaceNotificationPopup={showSpaceNotificationPopup}
           />
         )}
       </div>
@@ -605,6 +770,22 @@ function JelUI(props) {
             scene.emit("add_media_emoji", emoji);
           }
         }}
+      />
+      <SpaceNotificationsPopup
+        setPopperElement={setSpaceNotificationPopupElement}
+        styles={spaceNotificationPopupStyles}
+        attributes={spaceNotificationPopupAttributes}
+        subscriptions={subscriptions}
+        spaceId={spaceId}
+        memberships={memberships}
+      />
+      <HubNotificationsPopup
+        setPopperElement={setHubNotificationPopupElement}
+        styles={hubNotificationPopupStyles}
+        attributes={hubNotificationPopupAttributes}
+        subscriptions={subscriptions}
+        hub={hub}
+        hubSettings={hubSettings}
       />
       <CreateEmbedPopup
         setPopperElement={setCreateEmbedPopupElement}
@@ -706,9 +887,11 @@ JelUI.propTypes = {
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,
   scene: PropTypes.object,
+  subscriptions: PropTypes.object,
   selectedMediaLayer: PropTypes.number,
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
+  hubSettings: PropTypes.array,
   unavailableReason: PropTypes.string
 };
 

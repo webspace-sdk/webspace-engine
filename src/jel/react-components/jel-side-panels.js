@@ -8,6 +8,7 @@ import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
 import SelfPanel from "./self-panel";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
+import notificationsIcon from "../../assets/jel/images/icons/notifications.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { homeHubForSpaceId, spaceForSpaceId } from "../utils/membership-utils";
 import { addNewHubToTree } from "../utils/tree-utils";
@@ -97,7 +98,15 @@ const NavHead = styled.div`
   margin-bottom: 16px;
 `;
 
+const NavTop = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+`;
+
 const SpaceBanner = styled.div`
+  flex-grow: 1;
   font-size: var(--panel-banner-text-size);
   font-weight: var(--panel-banner-text-weight);
   color: var(--panel-banner-text-color);
@@ -105,6 +114,7 @@ const SpaceBanner = styled.div`
 `;
 
 const SpaceNameButton = styled.button`
+  flex-grow: 1;
   font-size: var(--panel-banner-text-size);
   font-weight: var(--panel-banner-text-weight);
   color: var(--panel-banner-text-color);
@@ -134,6 +144,36 @@ const SpaceNameButton = styled.button`
   &:active {
     background-color: var(--panel-item-active-background-color);
   }
+`;
+
+const NavTopButton = styled.button`
+  flex: 0 0 42px;
+  color: var(--panel-banner-text-color);
+  margin: 12px 16px;
+  overflow: hidden;
+  border-radius: 4px;
+  padding: 6px 10px;
+  border: 0;
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  background-color: transparent;
+  max-width: fit-content;
+  pointer-events: auto;
+
+  &:hover {
+    background-color: var(--panel-item-hover-background-color);
+  }
+
+  &:active {
+    background-color: var(--panel-item-active-background-color);
+  }
+`;
+
+const NavTopButtonIcon = styled.div`
+  width: 22px;
+  height: 22px;
 `;
 
 const NavFoot = styled.div`
@@ -344,7 +384,8 @@ function JelSidePanels({
   spaceId,
   sessionId,
   scene,
-  showEmojiPopup
+  showEmojiPopup,
+  showSpaceNotificationPopup
 }) {
   const store = window.APP.store;
   const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
@@ -357,6 +398,9 @@ function JelSidePanels({
   const invitePanelFieldElement = useRef();
   const spaceBannerRef = useRef();
   const emojiEquipRef = useRef();
+  const showSpaceNotificationsButtonRef = useRef();
+
+  const { spaceChannel } = window.APP;
 
   const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: updateTrashPopper } = usePopper(
     trashMenuReferenceElement,
@@ -400,7 +444,6 @@ function JelSidePanels({
   ]);
 
   const space = spaceForSpaceId(spaceId, memberships);
-  const spaceChannel = window.APP.spaceChannel;
   const onHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
   const hubId = hub && hub.hub_id;
   const messages = getMessages();
@@ -414,16 +457,24 @@ function JelSidePanels({
         </SpaceTreeSpill>
         <Nav>
           <NavHead>
-            {spaceCan("update_space_meta") && (
-              <SpaceNameButton
-                ref={spaceBannerRef}
-                onMouseDown={e => cancelEventIfFocusedWithin(e, spaceRenamePopupElement)}
-                onClick={() => showSpaceRenamePopup(spaceId, spaceBannerRef)}
+            <NavTop>
+              {spaceCan("update_space_meta") && (
+                <SpaceNameButton
+                  ref={spaceBannerRef}
+                  onMouseDown={e => cancelEventIfFocusedWithin(e, spaceRenamePopupElement)}
+                  onClick={() => showSpaceRenamePopup(spaceId, spaceBannerRef)}
+                >
+                  {spaceName}
+                </SpaceNameButton>
+              )}
+              {!spaceCan("update_space_meta") && <SpaceBanner>{spaceName}</SpaceBanner>}
+              <NavTopButton
+                ref={showSpaceNotificationsButtonRef}
+                onClick={() => showSpaceNotificationPopup(showSpaceNotificationsButtonRef)}
               >
-                {spaceName}
-              </SpaceNameButton>
-            )}
-            {!spaceCan("update_space_meta") && <SpaceBanner>{spaceName}</SpaceBanner>}
+                <NavTopButtonIcon dangerouslySetInnerHTML={{ __html: notificationsIcon }} />
+              </NavTopButton>
+            </NavTop>
             {spaceCan("create_invite") && (
               <PanelItemButtonSection>
                 <Tooltip
@@ -631,11 +682,13 @@ JelSidePanels.propTypes = {
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
+  hubSettings: PropTypes.array,
   showHubContextMenuPopup: PropTypes.func,
   setHubRenameReferenceElement: PropTypes.func,
   showSpaceRenamePopup: PropTypes.func,
   spaceRenamePopupElement: PropTypes.object,
-  showEmojiPopup: PropTypes.func
+  showEmojiPopup: PropTypes.func,
+  showSpaceNotificationPopup: PropTypes.func
 };
 
 export default JelSidePanels;
