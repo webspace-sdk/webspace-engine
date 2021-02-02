@@ -202,20 +202,23 @@ export class AtmosphereSystem {
   moveSunlight = (() => {
     const pos = new THREE.Vector3();
 
-    return () => {
-      if (!this.avatarPovEl) return;
-      this.avatarPovEl.object3D.getWorldPosition(pos);
+    return target => {
+      if (!target) {
+        if (!this.avatarPovEl) return;
+        target = this.avatarPovEl.object3D;
+      }
 
+      target.getWorldPosition(pos);
       const sunPos = this.sunLight.position;
 
       pos.x -= 4;
       pos.y += 5;
       pos.z -= 4;
 
-      const playerMoved =
+      const lightMoved =
         Math.abs(sunPos.x - pos.x) > 0.001 || Math.abs(sunPos.y - pos.y) > 0.001 || Math.abs(sunPos.z - pos.z) > 0.001;
 
-      if (playerMoved) {
+      if (lightMoved) {
         this.sunLight.position.x = pos.x;
         this.sunLight.position.y = pos.y;
         this.sunLight.position.z = pos.z;
