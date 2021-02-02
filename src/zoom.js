@@ -30,7 +30,7 @@ let isJoined = false;
 window.join = function({ apiKey, meetingNumber, password, name, signature }) {
   return new Promise((res, rej) => {
     ZoomMtg.init({
-      leaveUrl: "/",
+      leaveUrl: "https://jel.app",
 
       success: () => {
         ZoomMtg.i18n.load("en-US");
@@ -45,6 +45,8 @@ window.join = function({ apiKey, meetingNumber, password, name, signature }) {
           success: () => {
             isJoined = true;
 
+            res();
+
             const interval = setInterval(() => {
               const joinButton = document.querySelector(".join-audio-by-voip button");
               const videoButton = document.querySelector(".send-video-container button");
@@ -53,7 +55,6 @@ window.join = function({ apiKey, meetingNumber, password, name, signature }) {
                 clearInterval(interval);
                 joinButton.click();
                 videoButton.click();
-                res();
               }
             }, 500);
           },
@@ -96,5 +97,5 @@ waitForDOMContentLoaded().then(() => {
   ZoomMtg.setZoomJSLib("https://assets.jel.app/static/zoomsdk");
   ZoomMtg.preLoadWasm();
   ZoomMtg.prepareJssdk();
-  window.bridgeReady = false;
+  window.bridgeReady = true;
 });
