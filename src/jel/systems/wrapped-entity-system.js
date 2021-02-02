@@ -169,7 +169,7 @@ export class WrappedEntitySystem {
     // Move the entity to the one nearest the player.
     const pos = new THREE.Vector3();
 
-    return function(obj, avatarX, avatarZ) {
+    return function(obj, avatarX = this.previousAvatarX, avatarZ = this.previousAvatarZ) {
       obj.getWorldPosition(pos);
 
       // Normalized object x, z

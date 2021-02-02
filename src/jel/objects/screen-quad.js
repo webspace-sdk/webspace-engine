@@ -55,7 +55,6 @@ function ScreenQuad(params) {
 
       fragmentShader: params.fragmentShader ? params.fragmentShader : defaultFragmentShader,
 
-      depthWrite: false,
       depthTest: false,
       transparent: true,
 

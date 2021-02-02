@@ -284,6 +284,10 @@ export class AvatarSystem {
 
     avatarMaterial.uniforms.time.value = t;
 
+    this.processAvatars(t);
+  }
+
+  processAvatars(t, selfOnly = false) {
     const {
       scheduledEyeDecals,
       currentVisemes,
@@ -315,6 +319,8 @@ export class AvatarSystem {
       if (el === null) continue;
 
       const isSelf = el === this.selfEl;
+      if (selfOnly && !isSelf) continue;
+
       const scheduledEyeDecal = scheduledEyeDecals[i];
       const hasScheduledDecal = scheduledEyeDecal.t > 0.0;
 

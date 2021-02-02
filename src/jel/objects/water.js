@@ -205,6 +205,16 @@ class Water extends Mesh {
     this.material = material;
   }
 
+  disableReflections() {
+    this.material.uniforms.reflections.value = false;
+    this.material.uniformsNeedUpdate = true;
+  }
+
+  enableReflections() {
+    this.material.uniforms.reflections.value = true;
+    this.material.uniformsNeedUpdate = true;
+  }
+
   onAnimationTick({ delta }) {
     const {
       renderer,
