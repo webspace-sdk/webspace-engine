@@ -454,6 +454,12 @@ module.exports = async (env, argv) => {
             chunks: "initial",
             priority: 20
           },
+          zoomsdk: {
+            test: deepModuleDependencyTest(["@zoomus/websdk", "react-redux", "redux", "redux-thunk"]),
+            name: "zoomsdk",
+            chunks: "initial",
+            priority: 10
+          },
           hubVendors: {
             test: /[\\/]node_modules[\\/]/,
             name: "hub-vendors",
@@ -492,7 +498,7 @@ module.exports = async (env, argv) => {
         template: path.join(__dirname, "src", "zoom.html"),
         chunks: ["zoom"],
         chunksSortMode: "manual",
-        inject: "head",
+        inject: "body",
         minify: {
           removeComments: false
         }
