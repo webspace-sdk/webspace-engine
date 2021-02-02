@@ -1,4 +1,5 @@
 import ScreenQuad from "../../jel/objects/screen-quad";
+import { disposeNode } from "../utils/three-utils";
 
 const MAX_CAMERAS = 16;
 
@@ -31,6 +32,7 @@ export class ExternalCameraSystem {
 
   addExternalCamera() {
     const idx = this.getFreeIndex();
+    this.maxRegisteredIndex = Math.max(idx, this.maxRegisteredIndex);
 
     const renderTarget = new THREE.WebGLRenderTarget(RENDER_WIDTH, RENDER_HEIGHT, {
       format: THREE.RGBAFormat,
@@ -56,6 +58,36 @@ export class ExternalCameraSystem {
     this.screenQuads[idx] = screenQuad;
 
     this.updateScreenQuads();
+    return idx;
+  }
+
+  removeExternalCamera(idx) {
+    const renderTarget = this.renderTargets[idx];
+    if (!renderTarget) return;
+
+    const camera = this.cameras[idx];
+    const screenQuad = this.screenQuads[idx];
+
+    this.wrappedEntitySystem.unregister(camera);
+    this.scene.remove(camera);
+    this.scene.remove(screenQuad);
+
+    disposeNode(screenQuad);
+    renderTarget.dispose();
+
+    this.renderTargets[idx] = null;
+    this.cameras[idx] = null;
+    this.screenQuads[idx] = null;
+
+    let maxIndex = -1;
+
+    for (let i = 0; i < this.cameras.length; i++) {
+      if (this.cameras[i]) {
+        maxIndex = i;
+      }
+    }
+
+    this.maxRegisteredIndex = maxIndex;
   }
 
   getFreeIndex() {
@@ -153,11 +185,15 @@ export class ExternalCameraSystem {
     }
   }
 
+  isActive() {}
+
   updateScreenQuads() {
     const { sceneEl, screenQuads } = this;
 
     for (let i = 0; i < screenQuads.length; i++) {
       const screenQuad = screenQuads[i];
+      if (screenQuad === null) continue;
+
       const canvas = sceneEl.canvas;
       const w = canvas.width;
       const h = canvas.height;

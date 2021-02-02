@@ -117,8 +117,6 @@ ScreenQuad.prototype = Object.create(THREE.Mesh.prototype);
 ScreenQuad.constructor = ScreenQuad;
 
 ScreenQuad.prototype._initPair = function(params, pair) {
-  console.log(params);
-
   if (undefined !== params[pair[0]] || undefined !== params[pair[1]]) {
     this[pair[0]] = undefined === params[pair[0]] ? null : params[pair[0]]; //top was provided, write top, | not provided but bottom was write null
 
