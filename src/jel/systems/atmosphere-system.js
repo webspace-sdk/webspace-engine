@@ -215,10 +215,10 @@ export class AtmosphereSystem {
       pos.y += 5;
       pos.z -= 4;
 
-      const lightMoved =
+      const moveLight =
         Math.abs(sunPos.x - pos.x) > 0.001 || Math.abs(sunPos.y - pos.y) > 0.001 || Math.abs(sunPos.z - pos.z) > 0.001;
 
-      if (lightMoved) {
+      if (moveLight) {
         this.sunLight.position.x = pos.x;
         this.sunLight.position.y = pos.y;
         this.sunLight.position.z = pos.z;

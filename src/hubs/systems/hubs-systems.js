@@ -116,7 +116,8 @@ AFRAME.registerSystem("hubs-systems", {
       this.atmosphereSystem,
       this.terrainSystem,
       this.cameraSystem,
-      this.avatarSystem
+      this.avatarSystem,
+      this.wrappedEntitySystem
     );
   },
 
