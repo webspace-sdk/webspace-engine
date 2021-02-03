@@ -1,7 +1,7 @@
 import { ParticleEmitter } from "lib-hubs/packages/three-particle-emitter/lib/esm/index";
-import { textureLoader } from "../utils/media-utils";
 import { resolveUrl } from "../utils/media-utils";
 import { proxiedUrlFor } from "../utils/media-url-utils";
+import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import defaultSrcImage from "../../assets/hubs/images/warning_icon.png";
 
 const defaultSrcUrl = new URL(defaultSrcImage, window.location.href).href;
@@ -59,7 +59,9 @@ AFRAME.registerComponent("particle-emitter", {
 
     const texture = new THREE.Texture();
 
-    await textureLoader.loadTextureAsync(texture, accessibleUrl);
+    const retainImages = AFRAME.scenes[0] && AFRAME.scenes[0].systems["hubs-systems"].externalCameraSystem.isAllowed();
+
+    await new HubsTextureLoader(THREE.DefaultLoadingManager, retainImages).loadTextureAsync(texture, accessibleUrl);
 
     // Guard against src changing while request was in flight
     if (this.data.src !== src) {

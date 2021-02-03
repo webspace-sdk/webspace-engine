@@ -1,5 +1,4 @@
-export default function patchThreeAllocations() {
-  const renderer = AFRAME.scenes[0].renderer;
+export default function patchThreeAllocations(renderer) {
   const gl = renderer.getContext();
 
   // These functions in three.js uses the arguments object, which allocates.

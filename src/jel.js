@@ -443,8 +443,9 @@ async function runBotMode(scene, entryManager) {
 function initPhysicsThreeAndCursor(scene) {
   const physicsSystem = scene.systems["hubs-systems"].physicsSystem;
   physicsSystem.setDebug(isDebug || physicsSystem.debug);
-  patchThreeAllocations();
-  patchThreeNoProgramDispose();
+  const renderer = AFRAME.scenes[0].renderer;
+  patchThreeAllocations(renderer);
+  patchThreeNoProgramDispose(renderer);
 }
 
 async function initAvatar() {

@@ -587,8 +587,6 @@ export function addAndArrangeMedia(el, media, contentSubtype, snapCount, mirrorO
   return { entity, orientation };
 }
 
-export const textureLoader = new HubsTextureLoader().setCrossOrigin("anonymous");
-
 export async function createImageTexture(url, filter, preload = true) {
   let texture;
   let info;
@@ -612,7 +610,12 @@ export async function createImageTexture(url, filter, preload = true) {
     texture = new THREE.Texture();
 
     try {
-      info = await textureLoader.loadTextureAsync(texture, url, preload);
+      const retainImages = SYSTEMS.externalCameraSystem.isAllowed();
+      info = await new HubsTextureLoader(THREE.DefaultLoadingManager, retainImages).loadTextureAsync(
+        texture,
+        url,
+        preload
+      );
     } catch (e) {
       throw new Error(`'${url}' could not be fetched (Error code: ${e.status}; Response: ${e.statusText})`);
     }
@@ -625,18 +628,13 @@ export async function createImageTexture(url, filter, preload = true) {
 }
 
 import HubsBasisTextureLoader from "../loaders/HubsBasisTextureLoader";
-export const basisTextureLoader = new HubsBasisTextureLoader();
 
-export function createBasisTexture(url) {
+export function createBasisTexture(url, retainImages = false) {
   return new Promise((resolve, reject) => {
-    basisTextureLoader.load(
+    new HubsBasisTextureLoader(THREE.DefaultLoadingManager, retainImages).load(
       url,
       function(texture, textureInfo) {
         texture.encoding = THREE.sRGBEncoding;
-        texture.onUpdate = function() {
-          // Delete texture data once it has been uploaded to the GPU
-          texture.mipmaps.length = 0;
-        };
         // texture.anisotropy = 4;
         resolve([texture, textureInfo]);
       },

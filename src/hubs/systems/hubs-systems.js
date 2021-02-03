@@ -121,6 +121,8 @@ AFRAME.registerSystem("hubs-systems", {
       this.wrappedEntitySystem
     );
     this.videoBridgeSystem = new VideoBridgeSystem();
+
+    window.SYSTEMS = this;
   },
 
   tick(t, dt) {

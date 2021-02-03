@@ -11,7 +11,8 @@ module.exports = {
     AFRAME: true,
     NAF: true,
     SAF: true,
-    TransformStream: true
+    TransformStream: true,
+    SYSTEMS: true
   },
   plugins: ["prettier", "react"],
   rules: {

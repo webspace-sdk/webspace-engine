@@ -1,6 +1,5 @@
 // For Jel, we do not want to dispose any programs, to avoid complilation mid-session.
-export default function patchThreeNoProgramDispose() {
-  const renderer = AFRAME.scenes[0].renderer;
+export default function patchThreeNoProgramDispose(renderer) {
   const programs = renderer.info.programs;
 
   const push = programs.push.bind(programs);

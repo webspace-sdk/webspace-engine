@@ -92,10 +92,6 @@ export default class SceneEntryManager {
 
     // Delay sending entry event telemetry until VR display is presenting.
     (async () => {
-      while (enterInVR && this.scene.renderer.vr && !this.scene.renderer.vr.isPresenting()) {
-        await nextTick();
-      }
-
       this.spaceChannel.sendEnteredHubEvent().then(() => {
         this.store.update({ activity: { lastEnteredAt: new Date().toISOString() } });
       });

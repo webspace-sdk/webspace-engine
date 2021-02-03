@@ -1,13 +1,13 @@
-import ScreenQuad from "../../jel/objects/screen-quad";
-import { disposeNode } from "../utils/three-utils";
+import patchThreeAllocations from "../..//hubs/utils/threejs-allocation-patches";
+import patchThreeNoProgramDispose from "../../jel/utils/threejs-avoid-disposing-programs";
 
 const MAX_CAMERAS = 16;
 
 const RENDER_WIDTH = 1280;
 const RENDER_HEIGHT = 720;
 
-const ON_SCREEN_WIDTH = 300;
-const ON_SCREEN_HEIGHT = (RENDER_HEIGHT / RENDER_WIDTH) * ON_SCREEN_WIDTH;
+//const ON_SCREEN_WIDTH = 300;
+//const ON_SCREEN_HEIGHT = (RENDER_HEIGHT / RENDER_WIDTH) * ON_SCREEN_WIDTH;
 
 const tmpVec3 = new THREE.Vector3();
 
@@ -15,69 +15,84 @@ export class ExternalCameraSystem {
   constructor(sceneEl, atmosphereSystem, terrainSystem, cameraSystem, avatarSystem, wrappedEntitySystem) {
     this.sceneEl = sceneEl;
     this.scene = sceneEl.object3D;
-    this.renderer = sceneEl.renderer;
-    this.renderTargets = Array(MAX_CAMERAS).fill(null);
+    this.renderers = Array(MAX_CAMERAS).fill(null);
     this.cameras = Array(MAX_CAMERAS).fill(null);
-    this.screenQuads = Array(MAX_CAMERAS).fill(null);
     this.maxRegisteredIndex = -1;
     this.atmosphereSystem = atmosphereSystem;
     this.terrainSystem = terrainSystem;
     this.cameraSystem = cameraSystem;
     this.avatarSystem = avatarSystem;
     this.wrappedEntitySystem = wrappedEntitySystem;
+  }
 
-    window.addEventListener("resize", () => this.updateScreenQuads());
-    this.sceneEl.addEventListener("animated_resize_complete", () => this.updateScreenQuads());
+  // Hacky - this returns true if an external camera can be enabled.
+  // This is used to determine if image data is retained in the various texture loaders
+  // so that multiple renderers can be used.
+  isAllowed() {
+    // TODO JEL set this based upon hub permitting the external camera
+    return true;
   }
 
   addExternalCamera() {
     const idx = this.getFreeIndex();
     this.maxRegisteredIndex = Math.max(idx, this.maxRegisteredIndex);
 
-    const renderTarget = new THREE.WebGLRenderTarget(RENDER_WIDTH, RENDER_HEIGHT, {
-      format: THREE.RGBAFormat,
-      encoding: THREE.sRGBEncoding,
-      minFilter: THREE.LinearFilter,
-      magFilter: THREE.NearestFilter
-    });
-
     const camera = new THREE.PerspectiveCamera(50, RENDER_WIDTH / RENDER_HEIGHT, 0.1, 26);
     camera.rotation.set(0, 0, 0);
     camera.position.set(0, 4, 0.05);
     camera.matrixNeedsUpdate = true;
 
-    const screenQuad = new ScreenQuad({ texture: renderTarget.texture });
-
     this.scene.add(camera);
-    this.scene.add(screenQuad);
-
     this.wrappedEntitySystem.register(camera);
 
-    this.renderTargets[idx] = renderTarget;
-    this.cameras[idx] = camera;
-    this.screenQuads[idx] = screenQuad;
+    const canvas = document.createElement("canvas");
+    canvas.width = RENDER_WIDTH;
+    canvas.height = RENDER_HEIGHT;
+    canvas.setAttribute("style", "position: absolute; top:0; left:0; width: 400px; height: 200px; z-index: 100000;");
+    document.body.appendChild(canvas);
 
-    this.updateScreenQuads();
+    const context = canvas.getContext("webgl2", {
+      alpha: false,
+      depth: true,
+      stencil: true,
+      antialias: false,
+      premultipliedAlpha: true,
+      preserveDrawingBuffer: false,
+      powerPreference: "default",
+      xrCompatible: true
+    });
+
+    const rendererConfig = {
+      alpha: false,
+      antialias: false,
+      canvas,
+      context,
+      logarithmicDepthBuffer: false,
+      forceWebVR: false,
+      colorManagement: true,
+      sortObjects: false,
+      physicallyCorrectLights: true,
+      webgl2: true,
+      multiview: false
+    };
+
+    const renderer = new THREE.WebGLRenderer(rendererConfig);
+    patchThreeAllocations(renderer);
+    patchThreeNoProgramDispose(renderer);
+
+    this.cameras[idx] = camera;
+    this.renderers[idx] = renderer;
+
     return idx;
   }
 
   removeExternalCamera(idx) {
-    const renderTarget = this.renderTargets[idx];
-    if (!renderTarget) return;
-
     const camera = this.cameras[idx];
-    const screenQuad = this.screenQuads[idx];
 
     this.wrappedEntitySystem.unregister(camera);
     this.scene.remove(camera);
-    this.scene.remove(screenQuad);
 
-    disposeNode(screenQuad);
-    renderTarget.dispose();
-
-    this.renderTargets[idx] = null;
     this.cameras[idx] = null;
-    this.screenQuads[idx] = null;
 
     let maxIndex = -1;
 
@@ -91,43 +106,29 @@ export class ExternalCameraSystem {
   }
 
   getFreeIndex() {
-    for (let i = 0; i < this.renderTargets.length; i++) {
-      if (this.renderTargets[i] === null) return i;
+    for (let i = 0; i < this.renderers.length; i++) {
+      if (this.renderers[i] === null) return i;
     }
 
     return null;
   }
 
   tock(t) {
-    const {
-      scene,
-      cameras,
-      renderer,
-      screenQuads,
-      atmosphereSystem,
-      terrainSystem,
-      cameraSystem,
-      avatarSystem,
-      wrappedEntitySystem
-    } = this;
+    const { scene, cameras, atmosphereSystem, terrainSystem, cameraSystem, avatarSystem, wrappedEntitySystem } = this;
 
     for (let i = 0; i < MAX_CAMERAS; i++) {
-      const renderTarget = this.renderTargets[i];
-      if (!renderTarget) continue;
+      const renderer = this.renderers[i];
+      if (!renderer) continue;
 
       const { playerHead } = cameraSystem;
       const head = playerHead && playerHead.object3D;
       const camera = cameras[i];
-      const screenQuad = screenQuads[i];
 
-      const vrWasEnabled = renderer.vr.enabled;
       const oldOnAfterRender = scene.onAfterRender;
       const waterNeededUpdate = atmosphereSystem.water.needsUpdate;
       atmosphereSystem.water.disableReflections();
       let headWasVisible;
 
-      delete scene.onAfterRender;
-      renderer.vr.enabled = false;
       terrainSystem.cullChunksAndFeatureGroups(camera);
 
       if (head) {
@@ -148,7 +149,6 @@ export class ExternalCameraSystem {
       }
 
       // Remove quad to prevent recursion
-      screenQuad.visible = false;
 
       // Update lights + force shadow redraw
       atmosphereSystem.moveSunlight(camera);
@@ -157,14 +157,14 @@ export class ExternalCameraSystem {
       // Ensure camera is in proper world space
       wrappedEntitySystem.moveObjForWrap(camera);
 
+      delete scene.onAfterRender;
+
       // Render
-      renderer.setRenderTarget(renderTarget);
       renderer.render(scene, camera);
-      renderer.setRenderTarget(null);
+
       scene.onAfterRender = oldOnAfterRender;
 
       // Restore state + lights
-      screenQuad.visible = true;
       atmosphereSystem.water.needsUpdate = waterNeededUpdate;
       atmosphereSystem.water.enableReflections();
       atmosphereSystem.moveSunlight();
@@ -181,28 +181,6 @@ export class ExternalCameraSystem {
       }
 
       wrappedEntitySystem.moveObjForWrap(camera);
-      renderer.vr.enabled = vrWasEnabled;
-    }
-  }
-
-  isActive() {}
-
-  updateScreenQuads() {
-    const { sceneEl, screenQuads } = this;
-
-    for (let i = 0; i < screenQuads.length; i++) {
-      const screenQuad = screenQuads[i];
-      if (screenQuad === null) continue;
-
-      const canvas = sceneEl.canvas;
-      const w = canvas.width;
-      const h = canvas.height;
-      screenQuad.setTop(1.0 - ON_SCREEN_HEIGHT / h);
-      screenQuad.setWidth(ON_SCREEN_WIDTH / w);
-      screenQuad.setHeight(ON_SCREEN_HEIGHT / h);
-
-      // TODO multiple?
-      break;
     }
   }
 }
