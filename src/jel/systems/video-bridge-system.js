@@ -71,7 +71,7 @@ export class VideoBridgeSystem {
             {},
             false,
             -2.25,
-            1.5
+            1.0
           );
           screen.object3D.scale.setScalar(2.25);
           screen.object3D.matrixNeedsUpdate = true;

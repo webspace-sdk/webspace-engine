@@ -179,7 +179,7 @@ export class ExternalCameraSystem {
     // Render
     renderer.render(scene, camera);
 
-    if (track) {
+    if (track && track.requestFrame) {
       track.requestFrame();
     }
 

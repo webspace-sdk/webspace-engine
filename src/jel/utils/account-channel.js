@@ -30,11 +30,15 @@ export default class AccountChannel extends EventTarget {
   };
 
   setActive = () => {
-    this.channel.push("set_active", {});
+    if (this.channel) {
+      this.channel.push("set_active", {});
+    }
   };
 
   setInactive = () => {
-    this.channel.push("set_inactive", {});
+    if (this.channel) {
+      this.channel.push("set_inactive", {});
+    }
   };
 
   subscribe = subscription => {
