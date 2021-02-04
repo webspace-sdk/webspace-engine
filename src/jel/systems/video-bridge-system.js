@@ -8,7 +8,9 @@ export class VideoBridgeSystem {
     this.externalCameraSystem = externalCameraSystem;
     this.audioSystem = audioSystem;
     this.bridgeVideoCanvas = null;
+    this.bridgeShareCanvas = null;
     this.isSettingUpBridge = false;
+    this.canvasWatcherInterval = null;
   }
 
   async startBridge(type, id, password) {
@@ -46,11 +48,16 @@ export class VideoBridgeSystem {
         });
 
         const canvasInterval = setInterval(() => {
-          const canvas = el.contentDocument.getElementById("speak-view-video");
-          if (!canvas) return;
+          const videoCanvas = el.contentDocument.getElementById("speak-view-video");
+          const shareCanvas = el.contentDocument.querySelector(".sharee-container__canvas");
+          const shareLayout = el.contentDocument.querySelector(".sharing-layout");
+
+          if (!videoCanvas || !shareCanvas || !shareLayout) return;
+
           clearInterval(canvasInterval);
           this.externalCameraSystem.addExternalCamera();
-          this.bridgeVideoCanvas = canvas;
+          this.bridgeVideoCanvas = videoCanvas;
+          this.bridgeShareCanvas = shareCanvas;
 
           el.contentWindow.bridgeAudioMediaStream = this.audioSystem.outboundStream;
           el.contentWindow.bridgeVideoMediaStream = this.externalCameraSystem.getExternalCameraStream();
@@ -63,15 +70,29 @@ export class VideoBridgeSystem {
             null,
             {},
             false,
-            -3.25,
+            -2.25,
             1.5
           );
-          screen.object3D.scale.setScalar(3.0);
+          screen.object3D.scale.setScalar(2.25);
           screen.object3D.matrixNeedsUpdate = true;
 
           // Add a slight delay because the bridge needs to finalize the streams.
           // This flag is used to disable the blur handler which causes problems when setting up the bridge.
           setTimeout(() => (this.isSettingUpBridge = false), 5000);
+
+          this.canvasWatcherInterval = setInterval(() => {
+            const isScreenShareActive =
+              shareLayout
+                .getAttribute("style")
+                .replaceAll(" ", "")
+                .toLowerCase()
+                .indexOf("display:block") >= 0;
+            const src = isScreenShareActive ? "jel://bridge/share" : "jel://bridge/video";
+
+            if (screen.components["media-canvas"].data.src !== src) {
+              screen.setAttribute("media-canvas", { src });
+            }
+          }, 2000);
 
           res();
         }, 500);
@@ -87,6 +108,11 @@ export class VideoBridgeSystem {
 
   async exitBridge() {
     if (!this.hasBridge()) return;
+
+    if (this.canvasWatcherInterval) {
+      clearInterval(this.canvasWatcherInterval);
+      this.canvasWatcherInterval = null;
+    }
 
     this.bridgeVideoCanvas = null;
 

@@ -1795,6 +1795,8 @@ AFRAME.registerComponent("media-canvas", {
 
       if (src === "jel://bridge/video") {
         canvas = SYSTEMS.videoBridgeSystem.bridgeVideoCanvas;
+      } else if (src === "jel://bridge/share") {
+        canvas = SYSTEMS.videoBridgeSystem.bridgeShareCanvas;
       }
 
       if (!canvas) {

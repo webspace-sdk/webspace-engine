@@ -5,6 +5,7 @@ const RENDER_WIDTH = 640;
 const RENDER_HEIGHT = 360;
 
 const tmpVec3 = new THREE.Vector3();
+const lookAtMatrix = new THREE.Matrix4();
 
 export class ExternalCameraSystem {
   constructor(sceneEl, atmosphereSystem, terrainSystem, cameraSystem, avatarSystem, wrappedEntitySystem) {
@@ -148,12 +149,13 @@ export class ExternalCameraSystem {
 
       // Update self avatar to ensure head is renderer
       avatarSystem.processAvatars(t, true);
-
       head.getWorldPosition(tmpVec3);
 
       if (trackedEntity) {
-        camera.position.copy(trackedEntity.object3D.position);
-        camera.quaternion.copy(trackedEntity.object3D.quaternion);
+        const obj = trackedEntity.object3D;
+        lookAtMatrix.lookAt(obj.position, tmpVec3, obj.up);
+        camera.quaternion.setFromRotationMatrix(lookAtMatrix);
+        camera.position.copy(obj.position);
       } else {
         camera.position.set(tmpVec3.x + 2, tmpVec3.y + 0.5, tmpVec3.z + 2);
         camera.lookAt(tmpVec3.x, tmpVec3.y, tmpVec3.z);
