@@ -42,7 +42,7 @@ AFRAME.registerComponent("look-at-self", {
       target.getWorldPosition(targetPos);
       target.getWorldQuaternion(fromQuaternion);
 
-      lookAtMatrix.lookAt(avatarPos, targetPos, target.up);
+      lookAtMatrix.lookAt(targetPos, avatarPos, target.up);
       toQuaternion.setFromRotationMatrix(lookAtMatrix);
 
       Quaternion.slerp(fromQuaternion, toQuaternion, newQuaternion, (dt * 8) / 1000);

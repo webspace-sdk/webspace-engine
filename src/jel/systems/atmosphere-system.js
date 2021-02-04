@@ -20,13 +20,15 @@ export class AtmosphereSystem {
       this.viewingCameraEl = document.getElementById("viewing-camera");
     });
 
-    sceneEl.addEventListener("animated_resize_started", () => {
-      this.disableExtraPasses = true;
-    });
+    // Disable extra rendering while UI resizing
+    sceneEl.addEventListener("animated_resize_started", () => (this.disableExtraPasses = true));
 
-    sceneEl.addEventListener("animated_resize_complete", () => {
-      this.disableExtraPasses = false;
-    });
+    sceneEl.addEventListener("animated_resize_complete", () => (this.disableExtraPasses = false));
+
+    // Disable reflection pass when external camera is up to keep # of scene draws to 2.
+    sceneEl.addEventListener("external_camera_added", () => this.water.forceReflectionsOff());
+
+    sceneEl.addEventListener("external_camera_removed", () => this.water.unforceReflectionsOff());
 
     this.renderer = sceneEl.renderer;
     this.renderer.outputEncoding = THREE.sRGBEncoding;
@@ -39,6 +41,7 @@ export class AtmosphereSystem {
     this.renderer.stencil = true;
     this.renderer.powerPreference = "high-performance";
     this.disableExtraPasses = false;
+    this.disableWaterPass = false;
 
     this.ambientLight = new THREE.AmbientLight(0x808080);
     this.ambientLight.layers.enable(Layers.reflection);

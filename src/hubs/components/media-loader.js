@@ -465,8 +465,12 @@ AFRAME.registerComponent("media-loader", {
         });
 
         this.setToSingletonMediaComponent("media-canvas", canvasAttributes);
+
+        // These behaviors cause the video bridge to follow the avatar.
         this.el.setAttribute("pinned-to-self", {});
         this.el.setAttribute("look-at-self", {});
+
+        SYSTEMS.externalCameraSystem.setExternalCameraTrackedEntity(this.el);
       } else if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||

@@ -56,7 +56,18 @@ export class VideoBridgeSystem {
           el.contentWindow.bridgeVideoMediaStream = this.externalCameraSystem.getExternalCameraStream();
 
           this.sceneEl.canvas.focus();
-          spawnMediaInfrontOfPlayer("jel://bridge/video", null, ObjectContentOrigins.URL, null, {}, false);
+          const screen = spawnMediaInfrontOfPlayer(
+            "jel://bridge/video",
+            null,
+            ObjectContentOrigins.URL,
+            null,
+            {},
+            false,
+            -3.25,
+            1.5
+          );
+          screen.object3D.scale.setScalar(3.0);
+          screen.object3D.matrixNeedsUpdate = true;
 
           // Add a slight delay because the bridge needs to finalize the streams.
           // This flag is used to disable the blur handler which causes problems when setting up the bridge.

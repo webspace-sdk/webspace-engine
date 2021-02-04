@@ -807,15 +807,15 @@ export function performAnimatedRemove(el, callback) {
   });
 }
 
-const spawnMediaInFrontOffset = { x: 0, y: 0, z: -1.5 };
-
 export const spawnMediaInfrontOfPlayer = (
   src,
   contents,
   contentOrigin,
   contentSubtype = null,
   mediaOptions = null,
-  networked = true
+  networked = true,
+  zOffset = -1.5,
+  yOffset = 0
 ) => {
   if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
   if (src instanceof File && !window.APP.hubChannel.can("upload_files")) return;
@@ -836,7 +836,7 @@ export const spawnMediaInfrontOfPlayer = (
   orientation.then(or => {
     entity.setAttribute("offset-relative-to", {
       target: "#avatar-pov-node",
-      offset: spawnMediaInFrontOffset,
+      offset: { x: 0, y: yOffset, z: zOffset },
       orientation: or
     });
   });

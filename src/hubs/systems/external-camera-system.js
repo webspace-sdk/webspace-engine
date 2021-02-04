@@ -19,6 +19,7 @@ export class ExternalCameraSystem {
     this.cameraSystem = cameraSystem;
     this.avatarSystem = avatarSystem;
     this.wrappedEntitySystem = wrappedEntitySystem;
+    this.trackedEntity = null;
   }
 
   // Hacky - this returns true if an external camera can be enabled.
@@ -79,6 +80,10 @@ export class ExternalCameraSystem {
     this.canvas = canvas;
   }
 
+  setExternalCameraTrackedEntity(entity) {
+    this.trackedEntity = entity;
+  }
+
   getExternalCameraStream() {
     if (!this.canvas) return;
 
@@ -105,6 +110,7 @@ export class ExternalCameraSystem {
     this.canvas = null;
     this.stream = null;
     this.track = null;
+    this.trackedEntity = null;
 
     sceneEl.emit("external_camera_removed");
   }
@@ -119,7 +125,8 @@ export class ExternalCameraSystem {
       wrappedEntitySystem,
       renderer,
       camera,
-      track
+      track,
+      trackedEntity
     } = this;
     if (!renderer) return;
 
@@ -128,7 +135,6 @@ export class ExternalCameraSystem {
 
     const oldOnAfterRender = scene.onAfterRender;
     const waterNeededUpdate = atmosphereSystem.water.needsUpdate;
-    atmosphereSystem.water.disableReflections();
     let headWasVisible;
 
     terrainSystem.cullChunksAndFeatureGroups(camera);
@@ -144,8 +150,15 @@ export class ExternalCameraSystem {
       avatarSystem.processAvatars(t, true);
 
       head.getWorldPosition(tmpVec3);
-      camera.position.set(tmpVec3.x + 2, tmpVec3.y + 0.5, tmpVec3.z + 2);
-      camera.lookAt(tmpVec3.x, tmpVec3.y, tmpVec3.z);
+
+      if (trackedEntity) {
+        camera.position.copy(trackedEntity.object3D.position);
+        camera.quaternion.copy(trackedEntity.object3D.quaternion);
+      } else {
+        camera.position.set(tmpVec3.x + 2, tmpVec3.y + 0.5, tmpVec3.z + 2);
+        camera.lookAt(tmpVec3.x, tmpVec3.y, tmpVec3.z);
+      }
+
       camera.updateMatrices(true, true);
       camera.updateMatrixWorld(true, true);
     }
@@ -172,7 +185,6 @@ export class ExternalCameraSystem {
 
     // Restore state + lights
     atmosphereSystem.water.needsUpdate = waterNeededUpdate;
-    atmosphereSystem.water.enableReflections();
     atmosphereSystem.moveSunlight();
     renderer.shadowMap.needsUpdate = true;
 
