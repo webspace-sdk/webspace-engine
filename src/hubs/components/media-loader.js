@@ -446,7 +446,11 @@ AFRAME.registerComponent("media-loader", {
 
         this.setToSingletonMediaComponent("media-emoji", { src: accessibleUrl });
       } else if (contentType === "video/vnd.jel-bridge") {
-        this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
+        this.el.setAttribute("floaty-object", {
+          autoLockOnRelease: true, // Needed so object becomes kinematic on release for repositioning
+          reduceAngularFloat: true,
+          releaseGravity: -1
+        });
         this.el.addEventListener(
           "canvas-loaded",
           e => {
@@ -461,6 +465,8 @@ AFRAME.registerComponent("media-loader", {
         });
 
         this.setToSingletonMediaComponent("media-canvas", canvasAttributes);
+        this.el.setAttribute("pinned-to-self", {});
+        this.el.setAttribute("look-at-self", {});
       } else if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||
