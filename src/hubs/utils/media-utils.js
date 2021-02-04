@@ -47,11 +47,12 @@ export const MEDIA_VIEW_COMPONENTS = [
   "media-vox",
   "media-pdf",
   "media-emoji",
+  "media-canvas",
   "gltf-model-plus"
 ];
 
 export const PAGABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-pdf"];
-export const BAKABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-text", "media-pdf"];
+export const BAKABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-text", "media-pdf", "media-canvas"];
 
 export const GROUNDABLE_MEDIA_VIEW_COMPONENTS = [
   "gltf-model-plus",
@@ -744,6 +745,10 @@ export function meetsBatchingCriteria(textureInfo) {
 export function hasMediaLayer(el) {
   const mediaLoader = el.components["media-loader"];
   if (!mediaLoader) return false;
+
+  const isShared = !!el.components["shared"];
+  if (!isShared) return false;
+
   return !!(mediaLoader.data && typeof mediaLoader.data.mediaLayer === "number");
 }
 
@@ -804,7 +809,14 @@ export function performAnimatedRemove(el, callback) {
 
 const spawnMediaInFrontOffset = { x: 0, y: 0, z: -1.5 };
 
-export const spawnMediaInfrontOfPlayer = (src, contents, contentOrigin, contentSubtype = null, mediaOptions = null) => {
+export const spawnMediaInfrontOfPlayer = (
+  src,
+  contents,
+  contentOrigin,
+  contentSubtype = null,
+  mediaOptions = null,
+  networked = true
+) => {
   if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
   if (src instanceof File && !window.APP.hubChannel.can("upload_files")) return;
 
@@ -817,7 +829,8 @@ export const spawnMediaInfrontOfPlayer = (src, contents, contentOrigin, contentS
     !!(src && !(src instanceof MediaStream)),
     true,
     true,
-    mediaOptions
+    mediaOptions,
+    networked
   );
 
   orientation.then(or => {

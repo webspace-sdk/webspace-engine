@@ -91,11 +91,9 @@ export default class SceneEntryManager {
     this._entered = true;
 
     // Delay sending entry event telemetry until VR display is presenting.
-    (async () => {
-      this.spaceChannel.sendEnteredHubEvent().then(() => {
-        this.store.update({ activity: { lastEnteredAt: new Date().toISOString() } });
-      });
-    })();
+    this.spaceChannel.sendEnteredHubEvent().then(() => {
+      this.store.update({ activity: { lastEnteredAt: new Date().toISOString() } });
+    });
 
     // Bump stored entry count after 30s
     setTimeout(() => this.store.bumpEntryCount(), 30000);

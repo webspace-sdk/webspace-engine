@@ -296,6 +296,18 @@ const UnpausedInfoLabel = styled.div`
   }
 `;
 
+const ExternalCameraCanvas = styled.canvas`
+  width: 300px;
+  height: 168px;
+  margin-left: 14px;
+
+  display: none;
+
+  .external-camera-on & {
+    display: block;
+  }
+`;
+
 const HubContextButton = forwardRef((props, ref) => {
   return (
     <HubCornerButtonElement {...props} ref={ref}>
@@ -386,6 +398,7 @@ function JelUI(props) {
   const [treeDataVersion, setTreeDataVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [createEmbedType, setCreateEmbedType] = useState("image");
+  const [showingExternalCamera, setShowingExternalCamera] = useState("image");
   const [showNotificationBanner, setShowNotificationBanner] = useState(
     subscriptions && !subscriptions.subscribed && store && !store.state.uiState.closedNotificationBanner
   );
@@ -575,6 +588,23 @@ function JelUI(props) {
     [scene, centerPopupRef, showEmojiPopup]
   );
 
+  // Handle external camera toggle
+  useEffect(
+    () => {
+      const handleOn = () => setShowingExternalCamera(true);
+      const handleOff = () => setShowingExternalCamera(false);
+
+      scene && scene.addEventListener("external_camera_added", handleOn);
+      scene && scene.addEventListener("external_camera_removed", handleOff);
+
+      return () => {
+        scene && scene.removeEventListener("external_camera_added", handleOn);
+        scene && scene.removeEventListener("external_camera_removed", handleOff);
+      };
+    },
+    [scene]
+  );
+
   const [pwaAvailable, installPWA] = useInstallPWA();
 
   const isHomeHub = hub && hub.is_home;
@@ -683,17 +713,23 @@ function JelUI(props) {
           <KeyTipsWrap onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}>
             <KeyTips id="key-tips" />
           </KeyTipsWrap>
-          <BottomLeftPanels>
-            <PausedInfoLabel>
-              <FormattedMessage id="paused.info" />
-            </PausedInfoLabel>
-            {isHomeHub && (
-              <UnpausedInfoLabel>
-                <FormattedMessage id="home-hub.info" />
-              </UnpausedInfoLabel>
+          <BottomLeftPanels className={`${showingExternalCamera ? "external-camera-on" : ""}`}>
+            <ExternalCameraCanvas width={640} height={360} id="external-camera-canvas" />
+            {showingExternalCamera && (
+              <PausedInfoLabel>
+                <FormattedMessage id="paused.info" />
+              </PausedInfoLabel>
             )}
+            {isHomeHub &&
+              !showingExternalCamera && (
+                <UnpausedInfoLabel>
+                  <FormattedMessage id="home-hub.info" />
+                </UnpausedInfoLabel>
+              )}
 
-            {!isHomeHub && <ChatLog hub={hub} scene={scene} store={store} />}
+            {!isHomeHub && (
+              <ChatLog leftOffset={showingExternalCamera ? 300 : 0} hub={hub} scene={scene} store={store} />
+            )}
           </BottomLeftPanels>
         </Wrap>
         {!skipSidePanels && (

@@ -48,13 +48,31 @@ window.join = function({ apiKey, meetingNumber, password, name, signature }) {
             res();
 
             const interval = setInterval(() => {
+              const waitingRoom = document.querySelector(".wr-content");
+
+              if (waitingRoom) {
+                // In the waiting room, this will get called again.
+                clearInterval(interval);
+                return;
+              }
+
               const joinButton = document.querySelector(".join-audio-by-voip button");
               const videoButton = document.querySelector(".send-video-container button");
 
+              if (videoButton && !joinButton) {
+                // "Join Audio" button needs to be clicked
+                const auxJoinButton = document.querySelector(".join-audio-container button");
+
+                if (auxJoinButton) {
+                  auxJoinButton.click();
+                }
+              }
+
               if (joinButton && videoButton && window.bridgeVideoMediaStream && window.bridgeAudioMediaStream) {
                 clearInterval(interval);
-                joinButton.click();
-                videoButton.click();
+
+                setTimeout(() => joinButton.click(), 2000);
+                setTimeout(() => videoButton.click(), 5000);
               }
             }, 500);
           },

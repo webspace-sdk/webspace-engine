@@ -444,6 +444,7 @@ function initPhysicsThreeAndCursor(scene) {
   const physicsSystem = scene.systems["hubs-systems"].physicsSystem;
   physicsSystem.setDebug(isDebug || physicsSystem.debug);
   const renderer = AFRAME.scenes[0].renderer;
+
   patchThreeAllocations(renderer);
   patchThreeNoProgramDispose(renderer);
 }
@@ -718,6 +719,9 @@ function setupNonVisibleHandler(scene) {
     document.addEventListener("visibilitychange", () => apply());
 
     window.addEventListener("blur", () => {
+      // When setting up bridge, bridge iframe can steal focus
+      if (SYSTEMS.videoBridgeSystem.isSettingUpBridge) return;
+
       const disableBlurHandlerOnceIfVisible = window.APP.disableBlurHandlerOnceIfVisible;
       window.APP.disableBlurHandlerOnceIfVisible = false;
 

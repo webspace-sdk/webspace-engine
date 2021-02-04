@@ -607,7 +607,10 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
             THREE.Cache.clear();
 
             // Clear voxmojis from prior world
-            scene.systems["hubs-systems"].voxmojiSystem.clear();
+            SYSTEMS.voxmojiSystem.clear();
+
+            // Exit any video bridges
+            SYSTEMS.videoBridgeSystem.exitBridge();
 
             clearResolveUrlCache();
 

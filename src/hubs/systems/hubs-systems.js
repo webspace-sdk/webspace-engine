@@ -120,7 +120,7 @@ AFRAME.registerSystem("hubs-systems", {
       this.avatarSystem,
       this.wrappedEntitySystem
     );
-    this.videoBridgeSystem = new VideoBridgeSystem();
+    this.videoBridgeSystem = new VideoBridgeSystem(this.el, this.audioSystem, this.externalCameraSystem);
 
     window.SYSTEMS = this;
   },

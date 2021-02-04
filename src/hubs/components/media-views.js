@@ -821,14 +821,15 @@ AFRAME.registerComponent("media-video", {
         isReady = () => true;
       } else {
         texture = new THREE.VideoTexture(videoEl);
-        texture.minFilter = THREE.LinearFilter;
-        texture.encoding = THREE.sRGBEncoding;
         isReady = () =>
           (texture.image.videoHeight || texture.image.height) && (texture.image.videoWidth || texture.image.width);
+
+        texture.minFilter = THREE.LinearFilter;
+        texture.encoding = THREE.sRGBEncoding;
       }
 
       // Set src on video to begin loading.
-      if (url.startsWith("jel://")) {
+      if (url.startsWith("jel://clients")) {
         const streamClientId = url.substring(7).split("/")[1]; // /clients/<client id>/video is only URL for now
         const stream = await NAF.connection.adapter.getMediaStream(streamClientId, "video");
         videoEl.srcObject = new MediaStream(stream.getVideoTracks());
@@ -1719,5 +1720,185 @@ AFRAME.registerComponent("media-pdf", {
     }
 
     this.el.setAttribute("media-pdf", "index", newIndex);
+  }
+});
+
+AFRAME.registerComponent("media-canvas", {
+  schema: {
+    src: { type: "string" },
+    alphaMode: { type: "string", default: undefined },
+    alphaCutoff: { type: "number" }
+  },
+
+  init() {
+    this.setMediaPresence = this.setMediaPresence.bind(this);
+    this.isBatched = false;
+    this.localSnapCount = 0;
+    this.onSnapImageLoaded = () => (this.isSnapping = false);
+
+    if (hasMediaLayer(this.el)) {
+      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
+    }
+  },
+
+  remove() {
+    disposeExistingMesh(this.el);
+
+    if (this.texture) {
+      disposeTexture(this.texture);
+    }
+
+    if (hasMediaLayer(this.el)) {
+      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
+    }
+  },
+
+  setMediaPresence(presence, refresh = false) {
+    switch (presence) {
+      case MEDIA_PRESENCE.PRESENT:
+        return this.setMediaToPresent(refresh);
+      case MEDIA_PRESENCE.HIDDEN:
+        return this.setMediaToHidden(refresh);
+    }
+  },
+
+  async setMediaToHidden() {
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+
+    if (this.mesh) {
+      this.mesh.visible = false;
+    }
+
+    mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
+  },
+
+  async setMediaToPresent(refresh = false) {
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+
+    try {
+      if (
+        mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
+        this.mesh &&
+        !this.mesh.visible &&
+        !refresh
+      ) {
+        this.mesh.visible = true;
+        return;
+      }
+
+      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
+
+      const { src } = this.data;
+      let canvas;
+
+      this.el.emit("canvas-loading");
+
+      if (src === "jel://bridge/video") {
+        canvas = SYSTEMS.videoBridgeSystem.bridgeVideoCanvas;
+      }
+
+      if (!canvas) {
+        disposeExistingMesh(this.el);
+        throw new Error(`No canvas for src ${src}`);
+      }
+
+      if (!this.mesh || refresh) {
+        disposeExistingMesh(this.el);
+
+        this.texture = new THREE.CanvasTexture(canvas);
+        this.texture.encoding = THREE.sRGBEncoding;
+        this.texture.minFilter = THREE.LinearFilter;
+
+        // Stencil out text so we don't FXAA it.
+        const material = new THREE.MeshBasicMaterial({});
+
+        addVertexCurvingToMaterial(material);
+        const geo = (await chicletGeometry).clone();
+
+        this.mesh = new THREE.Mesh(geo, material);
+        this.mesh.castShadow = true;
+        this.mesh.renderOrder = RENDER_ORDER.MEDIA;
+        this.el.setObject3D("mesh", this.mesh);
+      }
+
+      // if transparency setting isnt explicitly defined, default to on for all non batched things, gifs, and basis textures with alpha
+      switch (this.data.alphaMode) {
+        case "opaque":
+          this.mesh.material.transparent = false;
+          break;
+        case "blend":
+          this.mesh.material.transparent = true;
+          this.mesh.material.alphaTest = 0;
+          break;
+        case "mask":
+          this.mesh.material.transparent = false;
+          this.mesh.material.alphaTest = this.data.alphaCutoff;
+          break;
+        default:
+          this.mesh.material.transparent =
+            !this.data.batch ||
+            this.data.contentType.includes("image/gif") ||
+            !!(this.texture.image && this.texture.image.hasAlpha);
+          this.mesh.material.alphaTest = 0;
+      }
+
+      this.mesh.material.map = this.texture;
+      this.mesh.material.needsUpdate = true;
+      this.mesh.visible = true;
+
+      scaleToAspectRatio(this.el, this.texture.image.height / this.texture.image.width);
+
+      this.el.emit("canvas-loaded", { src: this.data.src });
+    } catch (e) {
+      this.el.emit("canvas-error", { src: this.data.src });
+      throw e;
+    } finally {
+      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
+    }
+  },
+
+  tick() {
+    if (!this.mesh) return;
+    this.mesh.material.map.needsUpdate = true;
+  },
+
+  handleMediaInteraction(type) {
+    if (type === MEDIA_INTERACTION_TYPES.SNAPSHOT) {
+      this.snap();
+    }
+  },
+
+  async snap() {
+    if (this.isSnapping) return;
+    this.isSnapping = true;
+    this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CAMERA_TOOL_TOOK_SNAPSHOT);
+
+    const canvas = this.texture.image;
+    const blob = await new Promise(resolve => canvas.toBlob(resolve));
+    const file = new File([blob], "snap.png", TYPE_IMG_PNG);
+
+    this.localSnapCount++;
+    const { entity } = addAndArrangeMedia(this.el, file, "photo-snapshot", this.localSnapCount);
+    entity.addEventListener("image-loaded", this.onSnapImageLoaded, ONCE_TRUE);
+  },
+
+  async update(oldData) {
+    const { src } = this.data;
+    if (!src) return;
+
+    const refresh = oldData.src !== src;
+    const hasLayer = hasMediaLayer(this.el);
+
+    if (!hasLayer || refresh) {
+      // Release any existing texture on a refresh
+      if (this.currentSrcIsRetained) {
+        textureCache.release(oldData.src, oldData.version);
+        this.currentSrcIsRetained = false;
+      }
+
+      const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+      const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
+      this.setMediaPresence(newMediaPresence, refresh);
+    }
   }
 });
