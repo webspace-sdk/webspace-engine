@@ -25,6 +25,7 @@ export class VideoBridgeSystem {
     this.videoPreviewTexture = null;
     this.sharePreviewTexture = null;
     this.isScreenShareActive = false;
+    this.bridgeId = null;
 
     window.addEventListener("resize", () => {
       // Need to wait for canvas to be resized.
@@ -34,6 +35,11 @@ export class VideoBridgeSystem {
     });
 
     this.sceneEl.addEventListener("animated_resize_complete", () => this.updatePreviews());
+    this.sceneEl.addEventListener("space-presence-synced", () => {
+      if (this.bridgeId) {
+        this.muteAvatarsInSameBridge();
+      }
+    });
   }
 
   updatePreviews() {
@@ -55,6 +61,7 @@ export class VideoBridgeSystem {
   async startBridge(type, id, password, width = 640, height = 360) {
     if (this.hasBridge()) return Promise.resolve();
     this.isSettingUpBridge = true;
+    this.bridgeId = await toHexDigest(`${type}${id}`);
     this.autoQualitySystem.stopTracking();
 
     const bridgeInfo = await fetchReticulumAuthenticated("/api/v1/video_bridge_keys", "POST", { type, id });
@@ -88,8 +95,7 @@ export class VideoBridgeSystem {
         });
 
         // Register bridge hash in presence so others can id when in same bridge.
-        const bridgeId = await toHexDigest(`${type}${id}`);
-        window.APP.spaceChannel.startBridge(bridgeId);
+        window.APP.spaceChannel.startBridge(this.bridgeId);
 
         const canvasInterval = setInterval(() => {
           const videoCanvas = el.contentDocument.getElementById("speak-view-video");
@@ -128,6 +134,8 @@ export class VideoBridgeSystem {
           );
           screen.object3D.scale.setScalar(2.25);
           screen.object3D.matrixNeedsUpdate = true;
+
+          this.muteAvatarsInSameBridge();
 
           // Add a slight delay because the bridge needs to finalize the streams.
           // This flag is used to disable the blur handler which causes problems when setting up the bridge.
@@ -188,7 +196,9 @@ export class VideoBridgeSystem {
       this.updatePreviews();
     }
 
-    this.videoPreview.visible = !this.isScreenShareActive;
+    if (this.videoPreview) {
+      this.videoPreview.visible = !this.isScreenShareActive;
+    }
 
     if (this.sharePreview) {
       this.sharePreview.visible = this.isScreenShareActive;
@@ -203,6 +213,55 @@ export class VideoBridgeSystem {
     if (this.sharePreview && this.sharePreview.visible) {
       this.sharePreviewTexture.needsUpdate = true;
     }
+  }
+
+  // Other avatars in this bridge need to be muted since otherwise we will hear them both from the client
+  // and the bridge.
+  muteAvatarsInSameBridge() {
+    const muteSessionIds = [];
+    const unmuteSessionIds = [];
+
+    // Assumes for now muting is not yet exposed to users
+    const presence =
+      window.APP.spaceChannel && window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state;
+
+    if (!presence) return;
+
+    for (const [sessionId, { metas }] of Object.entries(presence)) {
+      if (sessionId === NAF.clientId) continue;
+      const meta = metas[0];
+
+      if (!meta) continue;
+      if (this.bridgeId && meta.context && meta.context.bridge === this.bridgeId) {
+        muteSessionIds.push(sessionId);
+      } else {
+        unmuteSessionIds.push(sessionId);
+      }
+    }
+
+    const sessionIdToAvatarEl = new Map();
+
+    for (const avatarEl of document.querySelectorAll("[networked-avatar]")) {
+      const sessionId = avatarEl.components.networked && avatarEl.components.networked.data.creator;
+      if (!sessionId) continue;
+
+      sessionIdToAvatarEl.set(sessionId, avatarEl);
+    }
+
+    const setAvatarMuteState = (sessionId, muted) => {
+      if (!sessionIdToAvatarEl.has(sessionId)) return;
+      const audioEl = sessionIdToAvatarEl.get(sessionId).querySelector("[avatar-volume-controls]");
+
+      if (audioEl) {
+        if (audioEl.components["avatar-volume-controls"].data.muted !== muted) {
+          console.log(audioEl, muted);
+          audioEl.setAttribute("avatar-volume-controls", { muted });
+        }
+      }
+    };
+
+    muteSessionIds.forEach(sessionId => setAvatarMuteState(sessionId, true));
+    unmuteSessionIds.forEach(sessionId => setAvatarMuteState(sessionId, false));
   }
 
   async exitBridge() {
@@ -241,9 +300,11 @@ export class VideoBridgeSystem {
 
     if (this.videoPreviewTexture) {
       this.videoPreviewTexture.dispose();
-      this.sharePreviewTexture.dispose();
-
       this.videoPreviewTexture = null;
+    }
+
+    if (this.sharePreviewTexture) {
+      this.sharePreviewTexture.dispose();
       this.sharePreviewTexture = null;
     }
 
@@ -251,6 +312,9 @@ export class VideoBridgeSystem {
     await bridge.contentWindow.leave();
     bridge.parentElement.removeChild(bridge);
     this.externalCameraSystem.removeExternalCamera();
+    this.bridgeId = null;
+    this.muteAvatarsInSameBridge();
+
     window.APP.spaceChannel.exitBridge();
   }
 }
