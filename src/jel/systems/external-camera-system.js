@@ -138,6 +138,7 @@ export class ExternalCameraSystem {
     } = this;
     if (!renderer) return;
 
+    const { videoBridgeSystem } = SYSTEMS;
     const { playerHead } = cameraSystem;
     const head = playerHead && playerHead.object3D;
 
@@ -146,6 +147,7 @@ export class ExternalCameraSystem {
     let headWasVisible;
 
     terrainSystem.cullChunksAndFeatureGroups(camera);
+    videoBridgeSystem.hidePreview();
 
     if (head) {
       headWasVisible = head.visible;
@@ -195,6 +197,7 @@ export class ExternalCameraSystem {
     // Restore state + lights
     atmosphereSystem.water.needsUpdate = waterNeededUpdate;
     atmosphereSystem.moveSunlight();
+    videoBridgeSystem.showPreview();
     renderer.shadowMap.needsUpdate = true;
 
     if (head && !headWasVisible) {

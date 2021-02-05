@@ -183,6 +183,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.autoQualitySystem.tick(t, dt);
     this.helpersSystem.tick(t, dt);
     this.launcherSystem.tick(t, dt);
+    this.videoBridgeSystem.tick();
 
     // We run this late in the frame so that its the last thing to have an opinion about the scale of an object
     this.boneVisibilitySystem.tick();
