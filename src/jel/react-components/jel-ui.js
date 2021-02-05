@@ -398,7 +398,7 @@ function JelUI(props) {
   const [treeDataVersion, setTreeDataVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [createEmbedType, setCreateEmbedType] = useState("image");
-  const [showingExternalCamera, setShowingExternalCamera] = useState("image");
+  const [showingExternalCamera, setShowingExternalCamera] = useState(false);
   const [showNotificationBanner, setShowNotificationBanner] = useState(
     subscriptions && !subscriptions.subscribed && store && !store.state.uiState.closedNotificationBanner
   );
@@ -714,7 +714,7 @@ function JelUI(props) {
             <KeyTips id="key-tips" />
           </KeyTipsWrap>
           <BottomLeftPanels className={`${showingExternalCamera ? "external-camera-on" : ""}`}>
-            <ExternalCameraCanvas width={640} height={360} id="external-camera-canvas" />
+            <ExternalCameraCanvas id="external-camera-canvas" />
             {showingExternalCamera && (
               <PausedInfoLabel>
                 <FormattedMessage id="paused.info" />

@@ -93,12 +93,12 @@ window.join = function({ apiKey, meetingNumber, password, name, signature }) {
             }, 500);
           },
           error: () => {
-            rej();
+            rej("join-failed");
           }
         });
       },
       error: () => {
-        rej();
+        rej("init-failed");
       }
     });
   });

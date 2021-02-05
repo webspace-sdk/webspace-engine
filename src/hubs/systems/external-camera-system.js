@@ -1,9 +1,6 @@
 import patchThreeAllocations from "../..//hubs/utils/threejs-allocation-patches";
 import patchThreeNoProgramDispose from "../../jel/utils/threejs-avoid-disposing-programs";
 
-const RENDER_WIDTH = 640;
-const RENDER_HEIGHT = 360;
-
 const tmpVec3 = new THREE.Vector3();
 const lookAtMatrix = new THREE.Matrix4();
 
@@ -31,11 +28,11 @@ export class ExternalCameraSystem {
     return true;
   }
 
-  addExternalCamera() {
+  addExternalCamera(width, height) {
     if (this.camera) return;
 
     const { scene, sceneEl, wrappedEntitySystem } = this;
-    const camera = new THREE.PerspectiveCamera(50, RENDER_WIDTH / RENDER_HEIGHT, 0.1, 26);
+    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 26);
 
     camera.rotation.set(0, 0, 0);
     camera.position.set(0, 4, 0.05);
@@ -43,9 +40,12 @@ export class ExternalCameraSystem {
 
     scene.add(camera);
     wrappedEntitySystem.register(camera);
-    sceneEl.emit("external_camera_added");
 
     const canvas = document.getElementById("external-camera-canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    sceneEl.emit("external_camera_added");
 
     const context = canvas.getContext("webgl2", {
       alpha: false,

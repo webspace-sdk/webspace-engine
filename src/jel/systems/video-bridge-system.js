@@ -14,7 +14,7 @@ export class VideoBridgeSystem {
     this.watcherInterval = null;
   }
 
-  async startBridge(type, id, password) {
+  async startBridge(type, id, password, width = 640, height = 360) {
     if (this.hasBridge()) return Promise.resolve();
     this.isSettingUpBridge = true;
     this.autoQualitySystem.stopTracking();
@@ -57,7 +57,7 @@ export class VideoBridgeSystem {
           if (!videoCanvas || !shareCanvas || !shareLayout) return;
 
           clearInterval(canvasInterval);
-          this.externalCameraSystem.addExternalCamera();
+          this.externalCameraSystem.addExternalCamera(width, height);
           this.bridgeVideoCanvas = videoCanvas;
           this.bridgeShareCanvas = shareCanvas;
 
