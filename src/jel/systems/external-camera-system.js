@@ -73,6 +73,13 @@ export class ExternalCameraSystem {
     };
 
     const renderer = new THREE.WebGLRenderer(rendererConfig);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.autoUpdate = false;
+    renderer.shadowMap.soft = true;
+
     patchThreeAllocations(renderer);
     patchThreeNoProgramDispose(renderer);
 
