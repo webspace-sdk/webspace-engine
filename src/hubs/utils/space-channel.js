@@ -216,6 +216,16 @@ export default class SpaceChannel extends EventTarget {
     });
   }
 
+  startBridge(bridge) {
+    if (!this.channel) return;
+    this.channel.push("start_bridge", { bridge });
+  }
+
+  exitBridge() {
+    if (!this.channel) return;
+    this.channel.push("exit_bridge", {});
+  }
+
   createInvite() {
     if (!this.channel) return Promise.resolve(null);
 

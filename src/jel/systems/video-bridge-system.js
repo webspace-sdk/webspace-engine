@@ -2,6 +2,7 @@ import { fetchReticulumAuthenticated } from "../../hubs/utils/phoenix-utils";
 import { spawnMediaInfrontOfPlayer } from "../../hubs/utils/media-utils";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import ScreenQuad from "../objects/screen-quad";
+import { toHexDigest } from "../utils/crypto-utils";
 
 const PREVIEW_HEIGHT = 160;
 const PREVIEW_WIDTH = 300;
@@ -86,6 +87,10 @@ export class VideoBridgeSystem {
           signature: bridgeInfo.secret
         });
 
+        // Register bridge hash in presence so others can id when in same bridge.
+        const bridgeId = await toHexDigest(`${type}${id}`);
+        window.APP.spaceChannel.startBridge(bridgeId);
+
         const canvasInterval = setInterval(() => {
           const videoCanvas = el.contentDocument.getElementById("speak-view-video");
           const shareCanvas = el.contentDocument.querySelector(".sharee-container__canvas");
@@ -165,7 +170,9 @@ export class VideoBridgeSystem {
   }
 
   hidePreview() {
-    this.videoPreview.visible = false;
+    if (this.videoPreview) {
+      this.videoPreview.visible = false;
+    }
 
     if (this.sharePreview) {
       this.sharePreview.visible = false;
@@ -244,5 +251,6 @@ export class VideoBridgeSystem {
     await bridge.contentWindow.leave();
     bridge.parentElement.removeChild(bridge);
     this.externalCameraSystem.removeExternalCamera();
+    window.APP.spaceChannel.exitBridge();
   }
 }
