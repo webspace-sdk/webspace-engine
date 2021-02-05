@@ -122,6 +122,9 @@ export class MediaInteractionSystem {
             this.scaleSystem = this.scaleSystem || this.scene.systems["scale-object"];
             this.scaleSystem.startScaling(targetEl.object3D, this.rightHand.object3D);
           } else if (interactionType === MEDIA_INTERACTION_TYPES.REMOVE) {
+            // Do not allow bridge to be removed.
+            if (component.data.src && component.data.src.startsWith("jel://bridge")) return;
+
             performAnimatedRemove(targetEl);
           } else {
             component.handleMediaInteraction(interactionType);

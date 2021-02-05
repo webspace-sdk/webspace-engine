@@ -26,6 +26,21 @@ navigator.mediaDevices.enumerateDevices = () => {
 };
 
 let isJoined = false;
+window.bridgeStatus = "init";
+
+ZoomMtg.inMeetingServiceListener("onMeetingStatus", function(data) {
+  switch (data.meetingStatus) {
+    case 1:
+      window.bridgeStatus = "init";
+      break;
+    case 2:
+      window.bridgeStatus = "joined";
+      break;
+    case 3:
+      window.bridgeStatus = "ended";
+      break;
+  }
+});
 
 window.join = function({ apiKey, meetingNumber, password, name, signature }) {
   return new Promise((res, rej) => {
@@ -46,6 +61,7 @@ window.join = function({ apiKey, meetingNumber, password, name, signature }) {
             isJoined = true;
 
             res();
+            window.bridgeStatus = "joined";
 
             const interval = setInterval(() => {
               const waitingRoom = document.querySelector(".wr-content");

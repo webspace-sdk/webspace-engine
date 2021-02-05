@@ -3,19 +3,21 @@ import { spawnMediaInfrontOfPlayer } from "../../hubs/utils/media-utils";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 
 export class VideoBridgeSystem {
-  constructor(sceneEl, audioSystem, externalCameraSystem) {
+  constructor(sceneEl, audioSystem, externalCameraSystem, autoQualitySystem) {
     this.sceneEl = sceneEl;
     this.externalCameraSystem = externalCameraSystem;
+    this.autoQualitySystem = autoQualitySystem;
     this.audioSystem = audioSystem;
     this.bridgeVideoCanvas = null;
     this.bridgeShareCanvas = null;
     this.isSettingUpBridge = false;
-    this.canvasWatcherInterval = null;
+    this.watcherInterval = null;
   }
 
   async startBridge(type, id, password) {
     if (this.hasBridge()) return Promise.resolve();
     this.isSettingUpBridge = true;
+    this.autoQualitySystem.stopTracking();
 
     const bridgeInfo = await fetchReticulumAuthenticated("/api/v1/video_bridge_keys", "POST", { type, id });
 
@@ -78,9 +80,18 @@ export class VideoBridgeSystem {
 
           // Add a slight delay because the bridge needs to finalize the streams.
           // This flag is used to disable the blur handler which causes problems when setting up the bridge.
-          setTimeout(() => (this.isSettingUpBridge = false), 5000);
+          setTimeout(() => {
+            this.autoQualitySystem.startTracking();
+            this.isSettingUpBridge = false;
+          }, 5000);
 
-          this.canvasWatcherInterval = setInterval(() => {
+          this.watcherInterval = setInterval(() => {
+            const hasEnded = el.contentWindow.bridgeStatus === "ended";
+            if (hasEnded) {
+              this.exitBridge();
+              return;
+            }
+
             const isScreenShareActive =
               shareLayout
                 .getAttribute("style")
@@ -109,9 +120,22 @@ export class VideoBridgeSystem {
   async exitBridge() {
     if (!this.hasBridge()) return;
 
-    if (this.canvasWatcherInterval) {
-      clearInterval(this.canvasWatcherInterval);
-      this.canvasWatcherInterval = null;
+    if (this.watcherInterval) {
+      clearInterval(this.watcherInterval);
+      this.watcherInterval = null;
+    }
+
+    // Remove media elements
+    const els = document.querySelectorAll("[media-canvas]");
+    const toRemove = [];
+    for (const el of els) {
+      if (el.components["media-canvas"].data.src.startsWith("jel://bridge")) {
+        toRemove.push(el);
+      }
+    }
+
+    for (const el of toRemove) {
+      el.parentElement.removeChild(el);
     }
 
     this.bridgeVideoCanvas = null;
