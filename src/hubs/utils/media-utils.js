@@ -6,7 +6,7 @@ import { mapMaterials } from "./material-utils";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import { validMaterials } from "../components/hoverable-visuals";
 import { proxiedUrlFor, guessContentType } from "../utils/media-url-utils";
-import { getNetworkedEntity, getNetworkId, ensureOwnership } from "../../jel/utils/ownership-utils";
+import { getNetworkedEntity, getNetworkId, ensureOwnership, isSynchronized } from "../../jel/utils/ownership-utils";
 import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
 import { getMessages } from "../../hubs/utils/i18n";
 import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
@@ -760,7 +760,7 @@ export function scaleToAspectRatio(el, ratio) {
 }
 
 export function removeMediaElement(el) {
-  if (!ensureOwnership(el)) {
+  if (isSynchronized(el) && !ensureOwnership(el)) {
     console.warn("Cannot remove element because unable to become owner.");
     return;
   }

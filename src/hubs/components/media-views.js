@@ -1751,6 +1751,10 @@ AFRAME.registerComponent("media-canvas", {
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
     }
+
+    if (this.data.src.startsWith("jel://bridge")) {
+      SYSTEMS.videoBridgeSystem.exitBridge();
+    }
   },
 
   setMediaPresence(presence, refresh = false) {

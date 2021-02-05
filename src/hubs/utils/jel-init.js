@@ -609,9 +609,6 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
             // Clear voxmojis from prior world
             SYSTEMS.voxmojiSystem.clear();
 
-            // Exit any video bridges
-            SYSTEMS.videoBridgeSystem.exitBridge();
-
             clearResolveUrlCache();
 
             moveToInitialHubLocation(hub, hubStore);
