@@ -42,7 +42,7 @@ import { VoxmojiSystem } from "../../jel/systems/voxmoji-system";
 import { ProjectileSystem } from "../../jel/systems/projectile-system";
 import { LauncherSystem } from "../../jel/systems/launcher-system";
 import { PasteSystem } from "../../hubs/systems/paste-system";
-import { ExternalCameraSystem } from "../../hubs/systems/external-camera-system";
+import { ExternalCameraSystem } from "../../jel/systems/external-camera-system";
 import { VideoBridgeSystem } from "../../jel/systems/video-bridge-system";
 
 AFRAME.registerSystem("hubs-systems", {
