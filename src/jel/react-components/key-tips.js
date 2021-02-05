@@ -16,6 +16,7 @@ const KeyTipsElement = styled.div`
   padding: 12px 24px;
   margin: 6px 0;
   user-select: none;
+  pointer-events: none;
 `;
 
 const KeyTipItem = styled.div`
