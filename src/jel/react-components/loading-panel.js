@@ -68,6 +68,18 @@ const Tip = styled.div`
   color: var(--tooltip-text-color);
 `;
 
+const BackLink = styled.a`
+  position: absolute;
+  top: 208px;
+  left: -110px;
+  white-space: pre;
+  width: 352px;
+  line-height: 24px;
+  text-align: center;
+  color: var(--tooltip-text-color);
+  text-decoration: underline;
+`;
+
 const LoadingPanel = ({ isLoading, unsupportedMessage, unavailableReason }) => {
   let tipMessage = null;
   const messages = getMessages();
@@ -77,12 +89,19 @@ const LoadingPanel = ({ isLoading, unsupportedMessage, unavailableReason }) => {
     tipMessage = messages[`unavailable.${unavailableReason}`];
   }
 
+  let backLink = null;
+
+  if (unavailableReason) {
+    backLink = <BackLink href="/">{messages["unavailable.go_home"]}</BackLink>;
+  }
+
   return (
     <LoadingPanelElement className={isLoading || unsupportedMessage || unavailableReason ? "loading" : ""}>
       <SplashWrap>
         <LogoShadowElement src={jelLoadingShadowSrc} />
         <LogoElement src={jelLoadingSrc} />
         {tipMessage && <Tip>{tipMessage}</Tip>}
+        {backLink}
       </SplashWrap>
     </LoadingPanelElement>
   );

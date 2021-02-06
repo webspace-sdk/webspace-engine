@@ -342,6 +342,15 @@ export default class Store extends EventTarget {
     this.update({ context: { lastJoinedHubIds } });
   }
 
+  clearLastJoinedHubId(spaceId) {
+    const lastJoinedHubIds = this.state.context.lastJoinedHubIds || {};
+
+    if (lastJoinedHubIds[spaceId]) {
+      delete lastJoinedHubIds[spaceId];
+      this.update({ context: { lastJoinedHubIds } });
+    }
+  }
+
   clearOnLoadActions() {
     this.clearStoredArray("onLoadActions");
   }

@@ -3,7 +3,7 @@ import { getHubIdFromHistory, getSpaceIdFromHistory, setupPeerConnectionConfig }
 import nextTick from "./next-tick";
 import { authorizeOrSanitizeMessage } from "./permissions-utils";
 import { isSetEqual } from "../../jel/utils/set-utils";
-import { homeHubForSpaceId } from "../../jel/utils/membership-utils";
+import { homeHubForSpaceId, getInitialHubForSpaceId } from "../../jel/utils/membership-utils";
 import { clearResolveUrlCache } from "./media-utils";
 import { addNewHubToTree } from "../../jel/utils/tree-utils";
 import { getMessages } from "./i18n";
@@ -633,7 +633,7 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
         });
 
         isInitialJoin = false;
-        joinFinished();
+        joinFinished(true);
       })
       .receive("error", res => {
         if (res.reason === "closed") {
@@ -644,7 +644,7 @@ const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, 
           remountJelUI({ unavailableReason: "denied" });
         }
 
-        joinFinished();
+        joinFinished(false);
       });
   });
 };
@@ -906,7 +906,16 @@ export async function joinHub(socket, history, entryManager, remountUI, remountJ
     NAF.connection.adapter.leaveHub();
   }
 
-  await joinHubChannel(hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI);
+  const joinSuccessful = await joinHubChannel(hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI);
 
-  store.setLastJoinedHubId(spaceId, hubId);
+  if (joinSuccessful) {
+    store.setLastJoinedHubId(spaceId, hubId);
+  } else {
+    const initialHubForSpaceId = getInitialHubForSpaceId(spaceId);
+
+    // Failed to join initial hub, remove this entry so we don't end up trying to go here again.
+    if (hubId === initialHubForSpaceId) {
+      store.clearLastJoinedHubId(spaceId);
+    }
+  }
 }
