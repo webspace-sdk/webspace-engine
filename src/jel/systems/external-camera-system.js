@@ -23,14 +23,6 @@ export class ExternalCameraSystem {
     this.viewingCamera = null;
   }
 
-  // Hacky - this returns true if an external camera can be enabled.
-  // This is used to determine if image data is retained in the various texture loaders
-  // so that multiple renderers can be used.
-  isAllowed() {
-    // TODO JEL set this based upon hub permitting the external camera
-    return true;
-  }
-
   // Toggle between the tracked entity and the viewing camera for position
   toggleCamera() {
     this.viewingCameraSelected = !this.viewingCameraSelected;

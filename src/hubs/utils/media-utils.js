@@ -611,12 +611,7 @@ export async function createImageTexture(url, filter, preload = true) {
     texture = new THREE.Texture();
 
     try {
-      const retainImages = SYSTEMS.externalCameraSystem.isAllowed();
-      info = await new HubsTextureLoader(THREE.DefaultLoadingManager, retainImages).loadTextureAsync(
-        texture,
-        url,
-        preload
-      );
+      info = await new HubsTextureLoader(THREE.DefaultLoadingManager).loadTextureAsync(texture, url, preload);
     } catch (e) {
       throw new Error(`'${url}' could not be fetched (Error code: ${e.status}; Response: ${e.statusText})`);
     }

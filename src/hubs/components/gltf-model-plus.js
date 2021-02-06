@@ -336,15 +336,14 @@ export async function loadGLTF(src, contentType, preferredTechnique, onProgress,
     gltfUrl = fileMap["scene.gtlf"];
   }
 
-  const retainImages = SYSTEMS.externalCameraSystem.isAllowed();
   const loadingManager = new THREE.LoadingManager();
   loadingManager.setURLModifier(getCustomGLTFParserURLResolver(gltfUrl));
   const gltfLoader = new THREE.GLTFLoader(loadingManager);
-  gltfLoader.setBasisTextureLoader(new HubsBasisTextureLoader(loadingManager, retainImages));
+  gltfLoader.setBasisTextureLoader(new HubsBasisTextureLoader(loadingManager));
 
   const parser = await new Promise((resolve, reject) => gltfLoader.createParser(gltfUrl, resolve, onProgress, reject));
 
-  parser.textureLoader = new HubsTextureLoader(loadingManager, retainImages);
+  parser.textureLoader = new HubsTextureLoader(loadingManager);
 
   if (jsonPreprocessor) {
     parser.json = jsonPreprocessor(parser.json);

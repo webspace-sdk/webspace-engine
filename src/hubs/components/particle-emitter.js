@@ -59,9 +59,7 @@ AFRAME.registerComponent("particle-emitter", {
 
     const texture = new THREE.Texture();
 
-    const retainImages = AFRAME.scenes[0] && AFRAME.scenes[0].systems["hubs-systems"].externalCameraSystem.isAllowed();
-
-    await new HubsTextureLoader(THREE.DefaultLoadingManager, retainImages).loadTextureAsync(texture, accessibleUrl);
+    await new HubsTextureLoader(THREE.DefaultLoadingManager).loadTextureAsync(texture, accessibleUrl);
 
     // Guard against src changing while request was in flight
     if (this.data.src !== src) {
