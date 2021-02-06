@@ -259,6 +259,8 @@ export class CameraSystem {
       this.audioListenerTargetTransform.makeTranslation(0, 0, 1).premultiply(scene.audioListener.matrixWorld);
       setMatrixWorld(this.snapshot.audio, this.audioListenerTargetTransform);
     }
+
+    SYSTEMS.externalCameraSystem.enableForcedViewingCamera();
   }
 
   uninspect() {
@@ -282,6 +284,7 @@ export class CameraSystem {
     }
     this.snapshot.mode = null;
     this.tick(AFRAME.scenes[0]);
+    SYSTEMS.externalCameraSystem.releaseForcedViewingCamera();
   }
 
   hideEverythingButThisObject(o) {

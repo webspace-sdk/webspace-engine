@@ -7,6 +7,7 @@ import WorldExporter from "../utils/world-exporter";
 import styled from "styled-components";
 import mutedIcon from "../../assets/jel/images/icons/mic-muted.svgi";
 import unmutedIcon from "../../assets/jel/images/icons/mic-unmuted.svgi";
+import rotateIcon from "../../assets/jel/images/icons/rotate.svgi";
 import { BigIconButton } from "./icon-button";
 import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../utils/tree-utils";
 import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
@@ -300,12 +301,56 @@ const ExternalCameraCanvas = styled.canvas`
   width: 300px;
   height: 168px;
   margin-left: 14px;
+  pointer-events: auto;
 
   display: none;
 
   .external-camera-on & {
     display: block;
   }
+
+  body.paused .external-camera-on & {
+    display: none;
+  }
+`;
+
+const ExternalCameraRotateButton = styled.button`
+  pointer-events: auto;
+  position: absolute;
+  bottom: 8px;
+  left: 16px;
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  background-color: transparent;
+  border: 0;
+  color: var(--action-button-text-color);
+  width: 40px;
+  height: 36px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0px 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: var(--canvas-overlay-item-hover-background-color);
+
+  &:active {
+    background-color: var(--canvas-overlay-item-active-background-color);
+  }
+
+  body.paused & {
+    display: none;
+  }
+`;
+
+const ExternalCameraRotateButtonIcon = styled.div`
+  width: 30px;
+  height: 30px;
 `;
 
 const HubContextButton = forwardRef((props, ref) => {
@@ -639,6 +684,8 @@ function JelUI(props) {
     [store]
   );
 
+  const onClickExternalCameraRotate = useCallback(() => SYSTEMS.externalCameraSystem.toggleCamera(), []);
+
   return (
     <WrappedIntlProvider>
       <div>
@@ -716,10 +763,17 @@ function JelUI(props) {
           <BottomLeftPanels className={`${showingExternalCamera ? "external-camera-on" : ""}`}>
             <ExternalCameraCanvas id="external-camera-canvas" />
             {showingExternalCamera && (
-              <PausedInfoLabel>
-                <FormattedMessage id="paused.info" />
-              </PausedInfoLabel>
+              <ExternalCameraRotateButton
+                tabIndex={-1}
+                iconSrc={unmuted ? unmutedIcon : mutedIcon}
+                onClick={onClickExternalCameraRotate}
+              >
+                <ExternalCameraRotateButtonIcon dangerouslySetInnerHTML={{ __html: rotateIcon }} />
+              </ExternalCameraRotateButton>
             )}
+            <PausedInfoLabel>
+              <FormattedMessage id="paused.info" />
+            </PausedInfoLabel>
             {isHomeHub &&
               !showingExternalCamera && (
                 <UnpausedInfoLabel>

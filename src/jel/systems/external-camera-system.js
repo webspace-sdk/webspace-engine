@@ -18,6 +18,9 @@ export class ExternalCameraSystem {
     this.avatarSystem = avatarSystem;
     this.wrappedEntitySystem = wrappedEntitySystem;
     this.trackedEntity = null;
+    this.viewingCameraSelected = false;
+    this.forceViewingCamera = false;
+    this.viewingCamera = null;
   }
 
   // Hacky - this returns true if an external camera can be enabled.
@@ -28,8 +31,30 @@ export class ExternalCameraSystem {
     return true;
   }
 
+  // Toggle between the tracked entity and the viewing camera for position
+  toggleCamera() {
+    this.viewingCameraSelected = !this.viewingCameraSelected;
+  }
+
+  // Force showing the viewing camera until releaseForcedViewingCamera is called
+  enableForcedViewingCamera() {
+    this.forceViewingCamera = true;
+  }
+
+  // Restore showing the previous camera before forceViewingCamera was called
+  releaseForcedViewingCamera() {
+    this.forceViewingCamera = false;
+  }
+
   addExternalCamera(width, height) {
     if (this.camera) return;
+    if (!this.viewingCamera) {
+      const viewingCameraEl = document.getElementById("viewing-camera");
+
+      if (viewingCameraEl && viewingCameraEl.components.camera.camera) {
+        this.viewingCamera = viewingCameraEl.components.camera.camera;
+      }
+    }
 
     const { scene, sceneEl, wrappedEntitySystem } = this;
     const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 26);
@@ -134,7 +159,10 @@ export class ExternalCameraSystem {
       renderer,
       camera,
       track,
-      trackedEntity
+      trackedEntity,
+      viewingCameraSelected,
+      forceViewingCamera,
+      viewingCamera
     } = this;
     if (!renderer) return;
 
@@ -144,21 +172,28 @@ export class ExternalCameraSystem {
 
     const oldOnAfterRender = scene.onAfterRender;
     const waterNeededUpdate = atmosphereSystem.water.needsUpdate;
-    let headWasVisible;
+    let didRevealHead = false;
 
     terrainSystem.cullChunksAndFeatureGroups(camera);
     videoBridgeSystem.hidePreview();
 
-    if (head) {
-      headWasVisible = head.visible;
-      head.visible = true;
-      head.scale.set(1, 1, 1);
-      head.updateMatrices(true, true);
-      head.updateMatrixWorld(true, true);
+    if ((viewingCameraSelected || forceViewingCamera) && viewingCamera) {
+      viewingCamera.getWorldPosition(camera.position);
+      viewingCamera.getWorldQuaternion(camera.quaternion);
+    } else {
+      if (head && !head.visible) {
+        didRevealHead = true;
 
-      // Update self avatar to ensure head is renderer
-      avatarSystem.processAvatars(t, true);
-      head.getWorldPosition(tmpVec3);
+        head.visible = true;
+        head.scale.set(1, 1, 1);
+        head.updateMatrices(true, true);
+        head.updateMatrixWorld(true, true);
+
+        // Update self avatar to ensure head is renderer
+        avatarSystem.processAvatars(t, true);
+
+        head.getWorldPosition(tmpVec3);
+      }
 
       if (trackedEntity) {
         const obj = trackedEntity.object3D;
@@ -169,12 +204,10 @@ export class ExternalCameraSystem {
         camera.position.set(tmpVec3.x + 2, tmpVec3.y + 0.5, tmpVec3.z + 2);
         camera.lookAt(tmpVec3.x, tmpVec3.y, tmpVec3.z);
       }
-
-      camera.updateMatrices(true, true);
-      camera.updateMatrixWorld(true, true);
     }
 
-    // Remove quad to prevent recursion
+    camera.updateMatrices(true, true);
+    camera.updateMatrixWorld(true, true);
 
     // Update lights + force shadow redraw
     atmosphereSystem.moveSunlight(camera);
@@ -200,7 +233,7 @@ export class ExternalCameraSystem {
     videoBridgeSystem.showPreview();
     renderer.shadowMap.needsUpdate = true;
 
-    if (head && !headWasVisible) {
+    if (didRevealHead) {
       head.visible = false;
       head.scale.set(0.0001, 0.0001, 0.0001);
       head.updateMatrices(true, true);
