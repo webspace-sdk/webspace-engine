@@ -91,7 +91,8 @@ export class VideoBridgeSystem {
           meetingNumber: id,
           password,
           name,
-          signature: bridgeInfo.secret
+          signature: bridgeInfo.secret,
+          initialMessage: "Hello World"
         });
 
         // Register bridge hash in presence so others can id when in same bridge.

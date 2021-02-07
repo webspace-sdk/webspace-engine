@@ -25,6 +25,18 @@ navigator.mediaDevices.enumerateDevices = () => {
   });
 };
 
+function setNativeValue(element, value) {
+  const valueSetter = Object.getOwnPropertyDescriptor(element, "value").set;
+  const prototype = Object.getPrototypeOf(element);
+  const prototypeValueSetter = Object.getOwnPropertyDescriptor(prototype, "value").set;
+
+  if (valueSetter && valueSetter !== prototypeValueSetter) {
+    prototypeValueSetter.call(element, value);
+  } else {
+    valueSetter.call(element, value);
+  }
+}
+
 let isJoined = false;
 window.bridgeStatus = "init";
 
@@ -42,7 +54,7 @@ ZoomMtg.inMeetingServiceListener("onMeetingStatus", function(data) {
   }
 });
 
-window.join = function({ apiKey, meetingNumber, password, name, signature }) {
+window.join = function({ apiKey, meetingNumber, password, name, signature, initialMessage }) {
   return new Promise((res, rej) => {
     ZoomMtg.init({
       leaveUrl: "https://jel.app",
@@ -74,6 +86,7 @@ window.join = function({ apiKey, meetingNumber, password, name, signature }) {
 
               const joinButton = document.querySelector(".join-audio-by-voip button");
               const videoButton = document.querySelector(".send-video-container button");
+              const chatOpenIcon = document.querySelector(".footer-button__chat-icon");
 
               if (videoButton && !joinButton) {
                 // "Join Audio" button needs to be clicked
@@ -84,11 +97,49 @@ window.join = function({ apiKey, meetingNumber, password, name, signature }) {
                 }
               }
 
-              if (joinButton && videoButton && window.bridgeVideoMediaStream && window.bridgeAudioMediaStream) {
+              if (
+                joinButton &&
+                videoButton &&
+                chatOpenIcon &&
+                window.bridgeVideoMediaStream &&
+                window.bridgeAudioMediaStream
+              ) {
                 clearInterval(interval);
 
-                setTimeout(() => joinButton.click(), 2000);
-                setTimeout(() => videoButton.click(), 5000);
+                // Submit initial chat message
+                if (initialMessage) {
+                  chatOpenIcon.click();
+
+                  const chatReadyInterval = setInterval(() => {
+                    const chat = document.querySelector("textarea");
+
+                    if (chat) {
+                      clearInterval(chatReadyInterval);
+
+                      setNativeValue(chat, initialMessage);
+                      chat.dispatchEvent(new Event("input", { bubbles: true }));
+
+                      setTimeout(() => {
+                        chat.dispatchEvent(
+                          new KeyboardEvent("keydown", {
+                            bubbles: true,
+                            cancelable: true,
+                            keyCode: 13
+                          })
+                        );
+
+                        setTimeout(() => {
+                          chatOpenIcon.click();
+                          setTimeout(() => joinButton.click(), 2000);
+                          setTimeout(() => videoButton.click(), 5000);
+                        }, 100);
+                      }, 100);
+                    }
+                  }, 500);
+                } else {
+                  setTimeout(() => joinButton.click(), 2000);
+                  setTimeout(() => videoButton.click(), 5000);
+                }
               }
             }, 500);
           },
