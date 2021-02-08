@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer } from "react";
+import React, { useReducer } from "react";
 import PropTypes from "prop-types";
 import { fetchReticulumAuthenticated } from "../../hubs/utils/phoenix-utils";
 import styled from "styled-components";
@@ -25,11 +25,7 @@ const Wrap = styled.div`
   height: 100%;
 `;
 
-export default function InviteUI({ store, inviteId, onInviteAccepted, showSignIn }) {
-  const [spaceName, setSpaceName] = useState("");
-  const [spaceId, setSpaceId] = useState(null);
-  const [isExpired, setIsExpired] = useState(false);
-
+export default function InviteUI({ store, inviteId, isExpired, spaceName, spaceId, onInviteAccepted, showSignIn }) {
   const [flowState, flowDispatch] = useReducer((state, action) => {
     switch (action) {
       case "init":
@@ -40,25 +36,6 @@ export default function InviteUI({ store, inviteId, onInviteAccepted, showSignIn
         return { loadingInvite: false, submittingInvite: true };
     }
   }, "init");
-
-  const fetchInvite = async inviteId => {
-    try {
-      const res = await fetchReticulumAuthenticated(`/api/v1/invites/${inviteId}`);
-      setSpaceName(res.space.name);
-      setSpaceId(res.space.space_id);
-    } catch (e) {
-      setIsExpired(true);
-    }
-
-    flowDispatch("ready");
-  };
-
-  useEffect(
-    () => {
-      fetchInvite(inviteId);
-    },
-    [inviteId]
-  );
 
   const onSubmit = async e => {
     if (flowState.submittingInvite) return;
@@ -110,5 +87,8 @@ InviteUI.propTypes = {
   authChannel: PropTypes.object,
   inviteId: PropTypes.string,
   onInviteAccepted: PropTypes.func,
-  showSignIn: PropTypes.bool
+  showSignIn: PropTypes.bool,
+  spaceName: PropTypes.string,
+  spaceId: PropTypes.string,
+  isExpired: PropTypes.bool
 };
