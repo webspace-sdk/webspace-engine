@@ -58,7 +58,7 @@ export class VideoBridgeSystem {
     }
   }
 
-  async startBridge(type, id, password, width = 640, height = 360) {
+  async startBridge(type, id, password, width = 640, height = 360, sendInvite = true) {
     if (this.hasBridge()) return Promise.resolve();
     this.isSettingUpBridge = true;
     this.bridgeId = await toHexDigest(`${type}${id}`);
@@ -71,8 +71,11 @@ export class VideoBridgeSystem {
     el.setAttribute("height", 720);
     el.setAttribute("id", "video-bridge-iframe");
 
-    const spacePresences =
-      window.APP.spaceChannel && window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state;
+    const { hubChannel, spaceChannel, hubMetadata } = window.APP;
+    const hubId = hubChannel.hubId;
+    const metadata = hubMetadata.getMetadata(hubId);
+    const isHomeHub = metadata && metadata.is_home;
+    const spacePresences = spaceChannel && spaceChannel.presence && spaceChannel.presence.state;
     const spacePresence = spacePresences && spacePresences[NAF.clientId];
     const meta = spacePresence && spacePresence.metas[spacePresence.metas.length - 1];
 
@@ -86,13 +89,22 @@ export class VideoBridgeSystem {
 
         clearInterval(interval);
 
+        let initialMessage = null;
+
+        if (sendInvite) {
+          const inviteHubId = !isHomeHub ? hubId : null;
+          const inviteUrl = await spaceChannel.createInvite(inviteHubId);
+
+          initialMessage = `I'm joining from Jel: ${inviteUrl}`;
+        }
+
         await el.contentWindow.join({
           apiKey: bridgeInfo.key,
           meetingNumber: id,
           password,
           name,
           signature: bridgeInfo.secret,
-          initialMessage: "Hello World"
+          initialMessage
         });
 
         // Register bridge hash in presence so others can id when in same bridge.

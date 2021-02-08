@@ -211,7 +211,7 @@ async function redirectedToLoggedInRoot(spaceId = null, hubId = null) {
   return false;
 }
 
-function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, inviteSpaceName }) {
+function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, inviteInitialHubId, inviteSpaceName }) {
   const [path, setPath] = useState(history.location.pathname);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -227,7 +227,7 @@ function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, invi
     <InviteUI
       store={store}
       showSignIn={!store.credentialsAccountId}
-      onInviteAccepted={() => redirectedToLoggedInRoot()}
+      onInviteAccepted={() => redirectedToLoggedInRoot(inviteSpaceId, inviteInitialHubId)}
       inviteId={inviteId}
       spaceName={inviteSpaceName}
       spaceId={inviteSpaceId}
@@ -352,6 +352,7 @@ function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, invi
   let inviteSpaceId = "";
   let inviteIsExpired = false;
   let inviteId = null;
+  let inviteInitialHubId = null;
 
   if (path.startsWith("/i/")) {
     inviteId = path.split("/")[2];
@@ -366,6 +367,7 @@ function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, invi
 
       inviteSpaceName = res.space.name;
       inviteSpaceId = res.space.space_id;
+      inviteInitialHubId = res.initial_hub ? res.initial_hub.hub_id : null;
     } catch (e) {
       inviteIsExpired = true;
     }
@@ -381,6 +383,7 @@ function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, invi
             authResult={authResult}
             inviteId={inviteId}
             inviteSpaceId={inviteSpaceId}
+            inviteInitialHubId={inviteInitialHubId}
             inviteSpaceName={inviteSpaceName}
             inviteIsExpired={inviteIsExpired}
           />
