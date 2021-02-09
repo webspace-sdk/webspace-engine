@@ -4,7 +4,7 @@ import { FormattedMessage } from "react-intl";
 import styled from "styled-components";
 import verticalDotsIcon from "../../assets/jel/images/icons/dots-vertical.svgi";
 import { PopupPanelMenuArrow } from "./popup-panel-menu";
-import addIcon from "../../assets/jel/images/icons/add.svgi";
+import callOutIcon from "../../assets/jel/images/icons/call-out.svgi";
 import DeviceSelectorPopup from "./device-selector-popup";
 import { BigIconButton } from "./icon-button";
 import Tooltip from "./tooltip";
@@ -16,7 +16,9 @@ import { getMessages } from "../../hubs/utils/i18n";
 import SmallActionButton from "./small-action-button";
 
 const SelfPanelElement = styled.div`
+  flex: 1 1 auto;
   width: 100%;
+  min-height: 60px;
   height: 60px;
   display: flex;
   justify-content: space-between;
@@ -25,7 +27,6 @@ const SelfPanelElement = styled.div`
   background-color: var(--secondary-panel-background-color);
   color: var(--secondary-panel-text-color);
   align-self: flex-end;
-  margin-top: 18px;
   z-index: 10;
 `;
 
@@ -107,7 +108,7 @@ const BridgePanel = ({ scene }) => {
       {!connected && (
         <Connect>
           <SmallActionButton
-            iconSrc={addIcon}
+            iconSrc={callOutIcon}
             onClick={() => {
               console.log("hi");
             }}

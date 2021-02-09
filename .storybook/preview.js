@@ -3,8 +3,9 @@ import { useAccessibleOutlineStyle } from "../src/hubs/react-components/input/us
 import { WrappedIntlProvider } from "../src/hubs/react-components/wrapped-intl-provider";
 import "../src/hubs/react-components/styles/global.scss";
 import Store from "../src/hubs/storage/store";
+import AccountChannel from "../src/jel/utils/account-channel";
 
-window.APP = { store: new Store() }
+window.APP = { store: new Store(), accountChannel: new AccountChannel() }
 
 const Layout = ({ children }) => {
   useAccessibleOutlineStyle();

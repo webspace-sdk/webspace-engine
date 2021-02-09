@@ -48,7 +48,7 @@ const SmallActionButtonIcon = styled.div`
 const TextContainer = styled.div`
   box-sizing: border-box;
   height: calc(var(--small-action-button-text-size) - 9px);
-  line-height: calc(var(--small-action-button-text-size) - 9px);
+  line-height: calc(var(--small-action-button-text-size) - 10px);
 `;
 
 export default function SmallActionButton(props) {

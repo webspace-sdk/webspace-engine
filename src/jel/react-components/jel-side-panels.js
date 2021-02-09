@@ -82,14 +82,14 @@ const Right = styled.div`
 const PresenceContent = styled.div`
   flex: 1 1 auto;
   width: 100%;
-  height: calc(100% - 240px);
+  height: calc(100% - 300px);
   padding: 16px 0;
 `;
 
 const BlasterContent = styled.div`
   flex: 1 1 auto;
   width: 100%;
-  height: 200px;
+  height: 240px;
   min-height: 240px;
   padding: 8px 0;
 `;
