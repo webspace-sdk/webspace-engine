@@ -155,11 +155,6 @@ const BridgeStartPopup = forwardRef(
                   </Tip>
                 )}
               </Footer>
-              {connecting && (
-                <Tip>
-                  <FormattedMessage id={"bridge-start.status-connecting-tip"} />&nbsp;
-                </Tip>
-              )}
             </form>
           </PanelWrap>
         </PopupPanelMenu>

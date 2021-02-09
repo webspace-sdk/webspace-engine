@@ -56,6 +56,13 @@ ZoomMtg.inMeetingServiceListener("onMeetingStatus", function(data) {
 
 window.join = function({ apiKey, meetingNumber, password, name, signature, initialMessage }) {
   return new Promise((res, rej) => {
+    const passwordCheckInterval = setInterval(() => {
+      if (document.querySelector("#inputpasscode")) {
+        // Bad password
+        rej("bad-password");
+      }
+    }, 500);
+
     ZoomMtg.init({
       leaveUrl: "https://jel.app",
 
@@ -71,6 +78,7 @@ window.join = function({ apiKey, meetingNumber, password, name, signature, initi
           userEmail: "jel@jel.app",
           success: () => {
             isJoined = true;
+            clearInterval(passwordCheckInterval);
 
             res();
             window.bridgeStatus = "joined";
