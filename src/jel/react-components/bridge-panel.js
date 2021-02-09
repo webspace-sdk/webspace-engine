@@ -6,7 +6,7 @@ import { PopupPanelMenuArrow } from "./popup-panel-menu";
 import callOutIcon from "../../assets/jel/images/icons/call-out.svgi";
 import callEndIcon from "../../assets/jel/images/icons/call-end.svgi";
 import DeviceSelectorPopup from "./device-selector-popup";
-import IconButton from "./icon-button";
+import { BigIconButton } from "./icon-button";
 import Tooltip from "./tooltip";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
@@ -139,8 +139,9 @@ const BridgePanel = ({ scene }) => {
       {connected && (
         <DeviceControls>
           <Tooltip content={messages["bridge.end-call"]} placement="top" key="mute" singleton={tipTarget}>
-            <IconButton
+            <BigIconButton
               style={{ margin: 0 }}
+              smallIcon={true}
               iconSrc={callEndIcon}
               onClick={() => {
                 console.log("end call");
