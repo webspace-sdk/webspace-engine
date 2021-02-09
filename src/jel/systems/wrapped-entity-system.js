@@ -137,7 +137,7 @@ export class WrappedEntitySystem {
       this.previousAvatarZ = az;
 
       if (avatarJumpedThisFrame) {
-        // console.log(`Avatar moved across world, repositioning ${this.objs.length} objects.`);
+        //console.log(`Avatar moved across world, repositioning ${this.objs.length} objects.`);
         // If our avatar just jumped across the map this frame, we need to reposition everything
         // since we may now be right up against an object on an edge.
         for (let i = 0; i < this.objs.length; i++) {
@@ -169,7 +169,7 @@ export class WrappedEntitySystem {
     // Move the entity to the one nearest the player.
     const pos = new THREE.Vector3();
 
-    return function(obj, avatarX, avatarZ) {
+    return function(obj, avatarX = this.previousAvatarX, avatarZ = this.previousAvatarZ) {
       obj.getWorldPosition(pos);
 
       // Normalized object x, z

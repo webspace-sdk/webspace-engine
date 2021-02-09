@@ -22,9 +22,10 @@ import BasisWorker from "./basis_transcoder.worker.js";
  * to the main thread.
  */
 
-THREE.BasisTextureLoader = function(manager) {
+THREE.BasisTextureLoader = function(manager, retainImages = true) {
   THREE.Loader.call(this, manager);
 
+  this.retainImages = retainImages;
   this.transcoderPath = "";
   this.transcoderBinary = null;
   this.transcoderPending = null;
@@ -96,7 +97,18 @@ THREE.BasisTextureLoader.prototype = Object.assign(Object.create(THREE.Loader.pr
       url,
       buffer => {
         this._createTexture(buffer)
-          .then(onLoad)
+          .then((texture, textureInfo) => {
+            if (!this.retainImages) {
+              texture.onUpdate = function() {
+                if (!this.retainImages) {
+                  // Delete texture data once it has been uploaded to the GPU
+                  texture.mipmaps.length = 0;
+                }
+              };
+            }
+
+            onLoad(texture, textureInfo);
+          })
           .catch(onError);
       },
       onProgress,

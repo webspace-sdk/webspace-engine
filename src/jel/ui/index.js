@@ -161,27 +161,32 @@ async function authenticate() {
   return AUTH_RESULT.OK;
 }
 
-async function redirectedToLoggedInRoot() {
+async function redirectedToLoggedInRoot(spaceId = null, hubId = null) {
   const accountId = store.credentialsAccountId;
   if (!accountId) {
     return false;
   }
 
-  let spaceId = store.state && store.state.context && store.state.context.spaceId;
-  const lastJoinedHubId =
-    spaceId &&
-    store.state &&
-    store.state.context &&
-    store.state.context.lastJoinedHubIds &&
-    store.state.context.lastJoinedHubIds[spaceId];
+  if (!spaceId) {
+    spaceId = store.state && store.state.context && store.state.context.spaceId;
+  }
 
-  if (lastJoinedHubId) {
-    const lastHubRes = await fetchReticulumAuthenticated(`/api/v1/hubs/${lastJoinedHubId}`);
+  if (!hubId) {
+    hubId =
+      spaceId &&
+      store.state &&
+      store.state.context &&
+      store.state.context.lastJoinedHubIds &&
+      store.state.context.lastJoinedHubIds[spaceId];
+  }
 
-    if (lastHubRes && !lastHubRes.error) {
-      if (lastHubRes.hubs && lastHubRes.hubs.length > 0) {
-        const lastHub = lastHubRes.hubs[0];
-        document.location = lastHub.url;
+  if (hubId) {
+    const hubRes = await fetchReticulumAuthenticated(`/api/v1/hubs/${hubId}`);
+
+    if (hubRes && !hubRes.error) {
+      if (hubRes.hubs && hubRes.hubs.length > 0) {
+        const hub = hubRes.hubs[0];
+        document.location = hub.url;
         return true;
       }
     }
@@ -206,7 +211,7 @@ async function redirectedToLoggedInRoot() {
   return false;
 }
 
-function JelIndexUI({ authResult }) {
+function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, inviteInitialHubId, inviteSpaceName }) {
   const [path, setPath] = useState(history.location.pathname);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -217,12 +222,16 @@ function JelIndexUI({ authResult }) {
   });
 
   const signInUI = <LoginUI authChannel={authChannel} postAuthUrl={"/"} />;
+
   const inviteUI = (
     <InviteUI
       store={store}
       showSignIn={!store.credentialsAccountId}
-      onInviteAccepted={() => redirectedToLoggedInRoot()}
-      inviteId={path.split("/")[2]}
+      onInviteAccepted={() => redirectedToLoggedInRoot(inviteSpaceId, inviteInitialHubId)}
+      inviteId={inviteId}
+      spaceName={inviteSpaceName}
+      spaceId={inviteSpaceId}
+      isExpired={inviteIsExpired}
     />
   );
 
@@ -328,13 +337,39 @@ function JelIndexUI({ authResult }) {
 (async () => {
   const hasAuthToken = !!qs.get("auth_token");
   let authResult;
+  const path = history.location.pathname;
 
   if (hasAuthToken) {
     authResult = await authenticate();
     if (authResult == AUTH_RESULT.REDIRECTED) return;
   } else {
-    if (history.location.pathname === "/" || history.location.pathname === "") {
+    if (path === "/" || path === "") {
       if (await redirectedToLoggedInRoot()) return;
+    }
+  }
+
+  let inviteSpaceName = "";
+  let inviteSpaceId = "";
+  let inviteIsExpired = false;
+  let inviteId = null;
+  let inviteInitialHubId = null;
+
+  if (path.startsWith("/i/")) {
+    inviteId = path.split("/")[2];
+
+    try {
+      const res = await fetchReticulumAuthenticated(`/api/v1/invites/${inviteId}`);
+
+      if (res.is_member) {
+        // Already a member of this invite, redirect.
+        if (await redirectedToLoggedInRoot(res.space.space_id, res.initial_hub && res.initial_hub.hub_id)) return;
+      }
+
+      inviteSpaceName = res.space.name;
+      inviteSpaceId = res.space.space_id;
+      inviteInitialHubId = res.initial_hub ? res.initial_hub.hub_id : null;
+    } catch (e) {
+      inviteIsExpired = true;
     }
   }
 
@@ -344,7 +379,14 @@ function JelIndexUI({ authResult }) {
         <Grass />
         <IndexWrap>
           <Logo src={logoSrc} />
-          <JelIndexUI authResult={authResult} />
+          <JelIndexUI
+            authResult={authResult}
+            inviteId={inviteId}
+            inviteSpaceId={inviteSpaceId}
+            inviteInitialHubId={inviteInitialHubId}
+            inviteSpaceName={inviteSpaceName}
+            inviteIsExpired={inviteIsExpired}
+          />
         </IndexWrap>
       </Wrap>
     </WrappedIntlProvider>

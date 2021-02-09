@@ -1,5 +1,5 @@
 import { computeObjectAABB, getBox, getScaleCoefficient } from "../utils/auto-box-collider";
-import { ensureOwnership, getNetworkedEntity } from "../../jel/utils/ownership-utils";
+import { ensureOwnership, getNetworkedEntity, isSynchronized } from "../../jel/utils/ownership-utils";
 import { ParticleEmitter } from "lib-hubs/packages/three-particle-emitter/lib/esm/index";
 import loadingParticleSrc from "!!url-loader!../../assets/jel/images/loading-particle.png";
 import {
@@ -74,13 +74,15 @@ AFRAME.registerComponent("media-loader", {
     const hubsSystems = this.el.sceneEl.systems["hubs-systems"];
     hubsSystems.skyBeamSystem.register(this.el.object3D);
 
-    getNetworkedEntity(this.el).then(networkedEl => {
-      this.networkedEl = networkedEl;
+    if (isSynchronized(this.el)) {
+      getNetworkedEntity(this.el).then(networkedEl => {
+        this.networkedEl = networkedEl;
 
-      if (typeof this.data.mediaLayer === "number") {
-        hubsSystems.mediaPresenceSystem.updateDesiredMediaPresence(this.el);
-      }
-    });
+        if (typeof this.data.mediaLayer === "number") {
+          hubsSystems.mediaPresenceSystem.updateDesiredMediaPresence(this.el);
+        }
+      });
+    }
   },
 
   updateScale: (function() {
@@ -443,6 +445,32 @@ AFRAME.registerComponent("media-loader", {
         this.el.addEventListener("model-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
 
         this.setToSingletonMediaComponent("media-emoji", { src: accessibleUrl });
+      } else if (contentType === "video/vnd.jel-bridge") {
+        this.el.setAttribute("floaty-object", {
+          autoLockOnRelease: true, // Needed so object becomes kinematic on release for repositioning
+          reduceAngularFloat: true,
+          releaseGravity: -1
+        });
+        this.el.addEventListener(
+          "canvas-loaded",
+          e => {
+            this.onMediaLoaded(e.detail.projection === "flat" ? SHAPE.BOX : null);
+          },
+          { once: true }
+        );
+
+        const canvasAttributes = Object.assign({}, this.data.mediaOptions, {
+          src: accessibleUrl,
+          contentType
+        });
+
+        this.setToSingletonMediaComponent("media-canvas", canvasAttributes);
+
+        // These behaviors cause the video bridge to follow the avatar.
+        this.el.setAttribute("pinned-to-self", {});
+        this.el.setAttribute("look-at-self", {});
+
+        SYSTEMS.externalCameraSystem.setExternalCameraTrackedEntity(this.el);
       } else if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||
@@ -495,13 +523,6 @@ AFRAME.registerComponent("media-loader", {
         if (contentType === "video/vnd.jel-webrtc" && src.indexOf(NAF.clientId)) {
           this.el.setAttribute("media-stream", {});
         }
-
-        if (this.el.components["position-at-border__freeze"]) {
-          this.el.setAttribute("position-at-border__freeze", { isFlat: true });
-        }
-        if (this.el.components["position-at-border__freeze-unprivileged"]) {
-          this.el.setAttribute("position-at-border__freeze-unprivileged", { isFlat: true });
-        }
       } else if (contentType.startsWith("image/")) {
         this.el.addEventListener(
           "image-loaded",
@@ -531,13 +552,6 @@ AFRAME.registerComponent("media-loader", {
             batch
           })
         );
-
-        if (this.el.components["position-at-border__freeze"]) {
-          this.el.setAttribute("position-at-border__freeze", { isFlat: true });
-        }
-        if (this.el.components["position-at-border__freeze-unprivileged"]) {
-          this.el.setAttribute("position-at-border__freeze-unprivileged", { isFlat: true });
-        }
       } else if (contentType.startsWith("application/pdf")) {
         this.setToSingletonMediaComponent(
           "media-pdf",
@@ -557,13 +571,6 @@ AFRAME.registerComponent("media-loader", {
           },
           { once: true }
         );
-
-        if (this.el.components["position-at-border__freeze"]) {
-          this.el.setAttribute("position-at-border__freeze", { isFlat: true });
-        }
-        if (this.el.components["position-at-border__freeze-unprivileged"]) {
-          this.el.setAttribute("position-at-border__freeze-unprivileged", { isFlat: true });
-        }
       } else if (
         contentType.includes("application/octet-stream") ||
         contentType.includes("x-zip-compressed") ||
@@ -647,24 +654,12 @@ AFRAME.registerComponent("media-loader", {
             batch
           })
         );
-        if (this.el.components["position-at-border__freeze"]) {
-          this.el.setAttribute("position-at-border__freeze", { isFlat: true });
-        }
-        if (this.el.components["position-at-border__freeze-unprivileged"]) {
-          this.el.setAttribute("position-at-border__freeze-unprivileged", { isFlat: true });
-        }
       } else {
         throw new Error(`Unsupported content type: ${contentType}`);
       }
 
       this.el.emit("media-view-added");
     } catch (e) {
-      if (this.el.components["position-at-border__freeze"]) {
-        this.el.setAttribute("position-at-border__freeze", { isFlat: true });
-      }
-      if (this.el.components["position-at-border__freeze-unprivileged"]) {
-        this.el.setAttribute("position-at-border__freeze-unprivileged", { isFlat: true });
-      }
       console.error("Error adding media", e);
       this.onError();
     }

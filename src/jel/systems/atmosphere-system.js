@@ -20,13 +20,15 @@ export class AtmosphereSystem {
       this.viewingCameraEl = document.getElementById("viewing-camera");
     });
 
-    sceneEl.addEventListener("animated_resize_started", () => {
-      this.disableExtraPasses = true;
-    });
+    // Disable extra rendering while UI resizing
+    sceneEl.addEventListener("animated_resize_started", () => (this.disableExtraPasses = true));
 
-    sceneEl.addEventListener("animated_resize_complete", () => {
-      this.disableExtraPasses = false;
-    });
+    sceneEl.addEventListener("animated_resize_complete", () => (this.disableExtraPasses = false));
+
+    // Disable reflection pass when external camera is up to keep # of scene draws to 2.
+    sceneEl.addEventListener("external_camera_added", () => this.water.forceReflectionsOff());
+
+    sceneEl.addEventListener("external_camera_removed", () => this.water.unforceReflectionsOff());
 
     this.renderer = sceneEl.renderer;
     this.renderer.outputEncoding = THREE.sRGBEncoding;
@@ -39,6 +41,7 @@ export class AtmosphereSystem {
     this.renderer.stencil = true;
     this.renderer.powerPreference = "high-performance";
     this.disableExtraPasses = false;
+    this.disableWaterPass = false;
 
     this.ambientLight = new THREE.AmbientLight(0x808080);
     this.ambientLight.layers.enable(Layers.reflection);
@@ -202,20 +205,23 @@ export class AtmosphereSystem {
   moveSunlight = (() => {
     const pos = new THREE.Vector3();
 
-    return () => {
-      if (!this.avatarPovEl) return;
-      this.avatarPovEl.object3D.getWorldPosition(pos);
+    return target => {
+      if (!target) {
+        if (!this.avatarPovEl) return;
+        target = this.avatarPovEl.object3D;
+      }
 
+      target.getWorldPosition(pos);
       const sunPos = this.sunLight.position;
 
       pos.x -= 4;
       pos.y += 5;
       pos.z -= 4;
 
-      const playerMoved =
+      const moveLight =
         Math.abs(sunPos.x - pos.x) > 0.001 || Math.abs(sunPos.y - pos.y) > 0.001 || Math.abs(sunPos.z - pos.z) > 0.001;
 
-      if (playerMoved) {
+      if (moveLight) {
         this.sunLight.position.x = pos.x;
         this.sunLight.position.y = pos.y;
         this.sunLight.position.z = pos.z;

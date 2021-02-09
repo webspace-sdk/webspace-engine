@@ -27,6 +27,7 @@ module.exports = {
     SKY: 100000,
     HELPERS: 200000,
     CURSOR: 300000,
+    PICTURE_IN_PICTURE: 350000,
 
     // Transparent objects:
     WATER: 1

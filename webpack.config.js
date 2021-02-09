@@ -251,9 +251,7 @@ module.exports = async (env, argv) => {
       support: path.join(__dirname, "src", "hubs", "support.js"),
       index: path.join(__dirname, "src", "jel", "ui", "index.js"),
       jel: path.join(__dirname, "src", "jel.js"),
-      scene: path.join(__dirname, "src", "scene.js"),
-      avatar: path.join(__dirname, "src", "avatar.js"),
-      link: path.join(__dirname, "src", "link.js")
+      zoom: path.join(__dirname, "src", "zoom.js")
     },
     output: {
       filename: "assets/js/[name]-[chunkhash].js",
@@ -456,6 +454,12 @@ module.exports = async (env, argv) => {
             chunks: "initial",
             priority: 20
           },
+          zoomsdk: {
+            test: deepModuleDependencyTest(["@zoomus/websdk", "react-redux", "redux", "redux-thunk"]),
+            name: "zoomsdk",
+            chunks: "initial",
+            priority: 10
+          },
           hubVendors: {
             test: /[\\/]node_modules[\\/]/,
             name: "hub-vendors",
@@ -490,30 +494,11 @@ module.exports = async (env, argv) => {
         }
       }),
       new HTMLWebpackPlugin({
-        filename: "scene.html",
-        template: path.join(__dirname, "src", "scene.html"),
-        chunks: ["support", "scene"],
+        filename: "zoom.html",
+        template: path.join(__dirname, "src", "zoom.html"),
+        chunks: ["zoom"],
         chunksSortMode: "manual",
-        inject: "head",
-        minify: {
-          removeComments: false
-        }
-      }),
-      new HTMLWebpackPlugin({
-        filename: "avatar.html",
-        template: path.join(__dirname, "src", "avatar.html"),
-        chunks: ["support", "avatar"],
-        chunksSortMode: "manual",
-        inject: "head",
-        minify: {
-          removeComments: false
-        }
-      }),
-      new HTMLWebpackPlugin({
-        filename: "link.html",
-        template: path.join(__dirname, "src", "link.html"),
-        chunks: ["support", "link"],
-        chunksSortMode: "manual",
+        inject: "body",
         minify: {
           removeComments: false
         }

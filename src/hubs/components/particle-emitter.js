@@ -1,6 +1,5 @@
 import { ParticleEmitter } from "lib-hubs/packages/three-particle-emitter/lib/esm/index";
-import { textureLoader } from "../utils/media-utils";
-import { resolveUrl } from "../utils/media-utils";
+import { textureLoader, resolveUrl } from "../utils/media-utils";
 import { proxiedUrlFor } from "../utils/media-url-utils";
 import defaultSrcImage from "../../assets/hubs/images/warning_icon.png";
 

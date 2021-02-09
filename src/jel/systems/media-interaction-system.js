@@ -7,7 +7,7 @@ import {
 } from "../../hubs/utils/media-utils";
 import { TRANSFORM_MODE } from "../../hubs/components/transform-object-button";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
-import { ensureOwnership, getNetworkedEntity } from "../../jel/utils/ownership-utils";
+import { ensureOwnership, getNetworkedEntitySync, isSynchronized } from "../../jel/utils/ownership-utils";
 import { cursorIsVisible } from "../utils/dom-utils";
 import { releaseEphemeralCursorLock, beginEphemeralCursorLock } from "../utils/dom-utils";
 
@@ -105,27 +105,27 @@ export class MediaInteractionSystem {
             offset: { x: 0, y: 0, z: -1.15 * component.el.object3D.scale.z }
           });
         } else {
-          getNetworkedEntity(hoverEl).then(targetEl => {
-            if (!ensureOwnership(targetEl)) return;
+          const isSynced = isSynchronized(hoverEl);
+          const targetEl = isSynced ? getNetworkedEntitySync(hoverEl) : hoverEl;
+          if (isSynced && !ensureOwnership(targetEl)) return;
 
-            if (interactionType === MEDIA_INTERACTION_TYPES.ROTATE) {
-              beginEphemeralCursorLock();
+          if (interactionType === MEDIA_INTERACTION_TYPES.ROTATE) {
+            beginEphemeralCursorLock();
 
-              this.transformSystem = this.transformSystem || this.scene.systems["transform-selected-object"];
-              this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
-                mode: TRANSFORM_MODE.CURSOR
-              });
-            } else if (interactionType === MEDIA_INTERACTION_TYPES.SCALE) {
-              beginEphemeralCursorLock();
+            this.transformSystem = this.transformSystem || this.scene.systems["transform-selected-object"];
+            this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
+              mode: TRANSFORM_MODE.CURSOR
+            });
+          } else if (interactionType === MEDIA_INTERACTION_TYPES.SCALE) {
+            beginEphemeralCursorLock();
 
-              this.scaleSystem = this.scaleSystem || this.scene.systems["scale-object"];
-              this.scaleSystem.startScaling(targetEl.object3D, this.rightHand.object3D);
-            } else if (interactionType === MEDIA_INTERACTION_TYPES.REMOVE) {
-              performAnimatedRemove(targetEl);
-            } else {
-              component.handleMediaInteraction(interactionType);
-            }
-          });
+            this.scaleSystem = this.scaleSystem || this.scene.systems["scale-object"];
+            this.scaleSystem.startScaling(targetEl.object3D, this.rightHand.object3D);
+          } else if (interactionType === MEDIA_INTERACTION_TYPES.REMOVE) {
+            performAnimatedRemove(targetEl);
+          } else {
+            component.handleMediaInteraction(interactionType);
+          }
         }
       }
     }

@@ -10,7 +10,8 @@ import {
   getLastKnownUnlockedCursorCoords,
   beginEphemeralCursorLock,
   releaseEphemeralCursorLock,
-  isCursorLocked
+  isCursorLocked,
+  isInEditableField
 } from "../../../../jel/utils/dom-utils";
 
 const wKeyPath = paths.device.keyboard.key("w");
@@ -80,7 +81,7 @@ export class AppAwareMouseDevice {
 
     const buttonLeft = frame.get(paths.device.mouse.buttonLeft);
     const buttonRight = frame.get(paths.device.mouse.buttonRight);
-    const mouseLookKey = frame.get(shiftKeyPath);
+    const mouseLookKey = frame.get(shiftKeyPath) && !isInEditableField();
     const grabKey = frame.get(tabKeyPath);
     const userinput = AFRAME.scenes[0].systems.userinput;
 

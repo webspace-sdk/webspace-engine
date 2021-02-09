@@ -7,6 +7,7 @@ import Tree from "rc-tree";
 import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
 import SelfPanel from "./self-panel";
+import BridgePanel from "./bridge-panel";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
 import notificationsIcon from "../../assets/jel/images/icons/notifications.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
@@ -81,14 +82,14 @@ const Right = styled.div`
 const PresenceContent = styled.div`
   flex: 1 1 auto;
   width: 100%;
-  height: calc(100% - 240px);
+  height: calc(100% - 300px);
   padding: 16px 0;
 `;
 
 const BlasterContent = styled.div`
   flex: 1 1 auto;
   width: 100%;
-  height: 200px;
+  height: 240px;
   min-height: 240px;
   padding: 8px 0;
 `;
@@ -613,6 +614,7 @@ function JelSidePanels({
             )}
           />
         </BlasterContent>
+        <BridgePanel scene={scene} />
       </Right>
       <Invite setPopperElement={setInviteElement} styles={inviteStyles} attributes={inviteAttributes}>
         <InvitePanel

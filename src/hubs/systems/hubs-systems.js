@@ -42,6 +42,8 @@ import { VoxmojiSystem } from "../../jel/systems/voxmoji-system";
 import { ProjectileSystem } from "../../jel/systems/projectile-system";
 import { LauncherSystem } from "../../jel/systems/launcher-system";
 import { PasteSystem } from "../../hubs/systems/paste-system";
+import { ExternalCameraSystem } from "../../jel/systems/external-camera-system";
+import { VideoBridgeSystem } from "../../jel/systems/video-bridge-system";
 
 AFRAME.registerSystem("hubs-systems", {
   init() {
@@ -110,6 +112,22 @@ AFRAME.registerSystem("hubs-systems", {
       this.soundEffectsSystem
     );
     this.pasteSystem = new PasteSystem(this.el);
+    this.externalCameraSystem = new ExternalCameraSystem(
+      this.el,
+      this.atmosphereSystem,
+      this.terrainSystem,
+      this.cameraSystem,
+      this.avatarSystem,
+      this.wrappedEntitySystem
+    );
+    this.videoBridgeSystem = new VideoBridgeSystem(
+      this.el,
+      this.audioSystem,
+      this.externalCameraSystem,
+      this.autoQualitySystem
+    );
+
+    window.SYSTEMS = this;
   },
 
   tick(t, dt) {
@@ -165,9 +183,14 @@ AFRAME.registerSystem("hubs-systems", {
     this.autoQualitySystem.tick(t, dt);
     this.helpersSystem.tick(t, dt);
     this.launcherSystem.tick(t, dt);
+    this.videoBridgeSystem.tick();
 
     // We run this late in the frame so that its the last thing to have an opinion about the scale of an object
     this.boneVisibilitySystem.tick();
+  },
+
+  tock(t) {
+    this.externalCameraSystem.tock(t);
   },
 
   remove() {

@@ -239,5 +239,20 @@
   "notification-request.turn-on": "Turn on notifications",
   "notification-banner.info": "Want to know when others join you?",
   "notification-banner.notify-on": "Turn on Notifications",
-  "notification-banner.close": "Maybe later"
+  "notification-banner.close": "Maybe later",
+  "bridge.end-call": "Hang up",
+  "bridge-start.title": "Connect to a Zoom Meeting",
+  "bridge-start.subtitle": "Join a video call as your Jel avatar. No webcam needed.",
+  "bridge-start.meeting_id-placeholder": "Meeting ID (eg 123 4567 8900)",
+  "bridge-start.meeting_id-validation-warning": "Meeting ID is not valid.",
+  "bridge-start.password-placeholder": "Meeting Password",
+  "bridge-start.share-invite": "Share a invite link to let others join this space.",
+  "bridge-start.use-hd": "Use HD video. (Works best on fast networks.)",
+  "bridge-start.status-connecting": "Waiting for host to accept you.",
+  "bridge-start.status-failed": "Couldn't join. Check your meeting info.",
+  "bridge-start.connect": "Connect",
+  "bridge-start.cancel": "Cancel",
+  "bridge.connected-to-zoom": "Connected to Zoom",
+  "bridge.firefox-unsupported": "Not supported in Firefox. Try Chrome or Edge.",
+  "bridge.connect-zoom": "Connect to Zoom"
 }

@@ -137,7 +137,7 @@ const entryToEl = ({ body, type, posted_at, name, oldName, toName }) => {
 
 let chatLogHideTimeout;
 
-export default function ChatLog({ scene, hub, store }) {
+export default function ChatLog({ scene, hub, store, leftOffset }) {
   const ref = useRef();
 
   const { hubChannel } = window.APP;
@@ -310,7 +310,7 @@ export default function ChatLog({ scene, hub, store }) {
   }
 
   return (
-    <ChatLogElement ref={ref}>
+    <ChatLogElement ref={ref} style={leftOffset !== undefined ? { left: `${leftOffset}px` } : null}>
       <TransitionGroup>{entryComponents}</TransitionGroup>
 
       <ChatLogLine id="chat-message-measure" style={{ visibility: "hidden" }} />
@@ -321,5 +321,6 @@ export default function ChatLog({ scene, hub, store }) {
 ChatLog.propTypes = {
   scene: PropTypes.object,
   hub: PropTypes.object,
-  store: PropTypes.object
+  store: PropTypes.object,
+  leftOffset: PropTypes.number
 };

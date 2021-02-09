@@ -323,7 +323,7 @@ const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
               <svg
                 key={idx}
                 className={`slot-${idx}`}
-                style={{ position: "absolute", left: "calc(-10%)" }}
+                style={{ position: "absolute", left: "calc(-10%)", zIndex: "6" }}
                 height="120%"
                 width="120%"
                 viewBox="0 0 20 20"

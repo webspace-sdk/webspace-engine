@@ -67,6 +67,11 @@ const BigIconButtonElement = styled.button`
 const BigIconButtonIcon = styled.div`
   width: 30px;
   height: 30px;
+
+  &.small-icon {
+    width: 22px;
+    height: 22px;
+  }
 `;
 
 const IconButton = forwardRef((props, ref) => {
@@ -99,9 +104,12 @@ const BigIconButton = forwardRef((props, ref) => {
   return (
     <BigIconButtonElement {...filteredProps} ref={ref}>
       {props.iconSrc ? (
-        <BigIconButtonIcon dangerouslySetInnerHTML={{ __html: props.iconSrc }} />
+        <BigIconButtonIcon
+          className={props.smallIcon ? "small-icon" : ""}
+          dangerouslySetInnerHTML={{ __html: props.iconSrc }}
+        />
       ) : (
-        <BigIconButtonIcon>{props.children}</BigIconButtonIcon>
+        <BigIconButtonIcon className={props.smallIcon ? "small-icon" : ""}>{props.children}</BigIconButtonIcon>
       )}
     </BigIconButtonElement>
   );
@@ -112,7 +120,8 @@ BigIconButton.displayName = "BigIconButton";
 BigIconButton.propTypes = {
   iconSrc: PropTypes.string,
   includeBorder: PropTypes.bool,
-  children: PropTypes.object
+  children: PropTypes.object,
+  smallIcon: PropTypes.bool
 };
 
 export { IconButton as default, BigIconButton };

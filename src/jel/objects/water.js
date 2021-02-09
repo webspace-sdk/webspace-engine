@@ -156,6 +156,7 @@ class Water extends Mesh {
     this.virtualCamera.layers.set(Layers.reflection);
     this.rotateX = new Matrix4();
     this.rotateX.makeRotationAxis(new Vector3(1, 0, 0), -Math.PI / 2);
+    this.reflectionsForceOff = false;
 
     const shader = WaterShader;
 
@@ -205,6 +206,14 @@ class Water extends Mesh {
     this.material = material;
   }
 
+  forceReflectionsOff() {
+    this.reflectionsForceOff = true;
+  }
+
+  unforceReflectionsOff() {
+    this.reflectionsForceOff = false;
+  }
+
   onAnimationTick({ delta }) {
     const {
       renderer,
@@ -227,11 +236,13 @@ class Water extends Mesh {
     const time = this.material.uniforms.time.value + delta;
     this.material.uniforms.time.value = time;
 
-    if (this.material.uniforms.reflections.value !== (window.APP.detailLevel === 0)) {
-      this.material.uniforms.reflections.value = window.APP.detailLevel === 0;
+    const enableReflections = window.APP.detailLevel === 0 && !this.reflectionsForceOff;
+    if (this.material.uniforms.reflections.value !== enableReflections) {
+      this.material.uniforms.reflections.value = enableReflections;
+      this.material.uniformsNeedUpdate = true;
     }
 
-    if (!this.needsUpdate || !this.camera || window.APP.detailLevel !== 0) return;
+    if (!this.needsUpdate || !this.camera || !enableReflections) return;
     this.needsUpdate = false;
 
     this.updateMatrices();

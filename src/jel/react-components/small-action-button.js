@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React from "react";
+import React, { forwardRef } from "react";
 
 import styled from "styled-components";
 
@@ -15,7 +15,6 @@ const SmallActionButtonElement = styled.button`
   font-size: var(--small-action-button-text-size);
   padding: 12px 33px;
   min-width: 64px;
-  max-width: 128;
   border-radius: 6px;
   margin: 8px;
   position: relative;
@@ -26,6 +25,10 @@ const SmallActionButtonElement = styled.button`
 
   &:active {
     background-color: var(--action-button-active-background-color);
+  }
+
+  &:disabled {
+    opacity: 0.5;
   }
 `;
 
@@ -49,16 +52,16 @@ const SmallActionButtonIcon = styled.div`
 const TextContainer = styled.div`
   box-sizing: border-box;
   height: calc(var(--small-action-button-text-size) - 9px);
-  line-height: calc(var(--small-action-button-text-size) - 9px);
+  line-height: calc(var(--small-action-button-text-size) - 10px);
 `;
 
-export default function SmallActionButton(props) {
+const SmallActionButton = forwardRef((props, ref) => {
   if (props.iconSrc) {
     const filteredProps = { ...props };
     delete filteredProps.iconSrc;
     delete filteredProps.children;
     return (
-      <SmallActionButtonElement {...filteredProps}>
+      <SmallActionButtonElement {...filteredProps} ref={ref}>
         <SmallActionButtonIconHolder>
           <SmallActionButtonIcon dangerouslySetInnerHTML={{ __html: props.iconSrc }} />
         </SmallActionButtonIconHolder>
@@ -69,13 +72,18 @@ export default function SmallActionButton(props) {
     const filteredProps = { ...props };
     delete filteredProps.children;
     return (
-      <SmallActionButtonElement {...props}>
+      <SmallActionButtonElement {...props} ref={ref}>
         <TextContainer>{props.children}</TextContainer>
       </SmallActionButtonElement>
     );
   }
-}
+});
+
+SmallActionButton.displayName = "SmallActionButton";
 
 SmallActionButton.propTypes = {
-  iconSrc: PropTypes.string
+  iconSrc: PropTypes.string,
+  children: PropTypes.object
 };
+
+export { SmallActionButton as default };

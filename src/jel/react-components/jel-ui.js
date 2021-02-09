@@ -7,6 +7,7 @@ import WorldExporter from "../utils/world-exporter";
 import styled from "styled-components";
 import mutedIcon from "../../assets/jel/images/icons/mic-muted.svgi";
 import unmutedIcon from "../../assets/jel/images/icons/mic-unmuted.svgi";
+import rotateIcon from "../../assets/jel/images/icons/rotate.svgi";
 import { BigIconButton } from "./icon-button";
 import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../utils/tree-utils";
 import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
@@ -296,6 +297,62 @@ const UnpausedInfoLabel = styled.div`
   }
 `;
 
+const ExternalCameraCanvas = styled.canvas`
+  width: 300px;
+  height: 168px;
+  margin-left: 14px;
+  pointer-events: auto;
+
+  display: none;
+
+  .external-camera-on & {
+    display: block;
+  }
+
+  body.paused .external-camera-on & {
+    display: none;
+  }
+`;
+
+const ExternalCameraRotateButton = styled.button`
+  pointer-events: auto;
+  position: absolute;
+  bottom: 8px;
+  left: 16px;
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  background-color: transparent;
+  border: 0;
+  color: var(--action-button-text-color);
+  width: 40px;
+  height: 36px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0px 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: var(--canvas-overlay-item-hover-background-color);
+
+  &:active {
+    background-color: var(--canvas-overlay-item-active-background-color);
+  }
+
+  body.paused & {
+    display: none;
+  }
+`;
+
+const ExternalCameraRotateButtonIcon = styled.div`
+  width: 30px;
+  height: 30px;
+`;
+
 const HubContextButton = forwardRef((props, ref) => {
   return (
     <HubCornerButtonElement {...props} ref={ref}>
@@ -386,6 +443,7 @@ function JelUI(props) {
   const [treeDataVersion, setTreeDataVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [createEmbedType, setCreateEmbedType] = useState("image");
+  const [showingExternalCamera, setShowingExternalCamera] = useState(false);
   const [showNotificationBanner, setShowNotificationBanner] = useState(
     subscriptions && !subscriptions.subscribed && store && !store.state.uiState.closedNotificationBanner
   );
@@ -575,6 +633,23 @@ function JelUI(props) {
     [scene, centerPopupRef, showEmojiPopup]
   );
 
+  // Handle external camera toggle
+  useEffect(
+    () => {
+      const handleOn = () => setShowingExternalCamera(true);
+      const handleOff = () => setShowingExternalCamera(false);
+
+      scene && scene.addEventListener("external_camera_added", handleOn);
+      scene && scene.addEventListener("external_camera_removed", handleOff);
+
+      return () => {
+        scene && scene.removeEventListener("external_camera_added", handleOn);
+        scene && scene.removeEventListener("external_camera_removed", handleOff);
+      };
+    },
+    [scene]
+  );
+
   const [pwaAvailable, installPWA] = useInstallPWA();
 
   const isHomeHub = hub && hub.is_home;
@@ -608,6 +683,8 @@ function JelUI(props) {
     },
     [store]
   );
+
+  const onClickExternalCameraRotate = useCallback(() => SYSTEMS.externalCameraSystem.toggleCamera(), []);
 
   return (
     <WrappedIntlProvider>
@@ -683,17 +760,30 @@ function JelUI(props) {
           <KeyTipsWrap onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}>
             <KeyTips id="key-tips" />
           </KeyTipsWrap>
-          <BottomLeftPanels>
+          <BottomLeftPanels className={`${showingExternalCamera ? "external-camera-on" : ""}`}>
+            <ExternalCameraCanvas id="external-camera-canvas" />
+            {showingExternalCamera && (
+              <ExternalCameraRotateButton
+                tabIndex={-1}
+                iconSrc={unmuted ? unmutedIcon : mutedIcon}
+                onClick={onClickExternalCameraRotate}
+              >
+                <ExternalCameraRotateButtonIcon dangerouslySetInnerHTML={{ __html: rotateIcon }} />
+              </ExternalCameraRotateButton>
+            )}
             <PausedInfoLabel>
               <FormattedMessage id="paused.info" />
             </PausedInfoLabel>
-            {isHomeHub && (
-              <UnpausedInfoLabel>
-                <FormattedMessage id="home-hub.info" />
-              </UnpausedInfoLabel>
-            )}
+            {isHomeHub &&
+              !showingExternalCamera && (
+                <UnpausedInfoLabel>
+                  <FormattedMessage id="home-hub.info" />
+                </UnpausedInfoLabel>
+              )}
 
-            {!isHomeHub && <ChatLog hub={hub} scene={scene} store={store} />}
+            {!isHomeHub && (
+              <ChatLog leftOffset={showingExternalCamera ? 300 : 0} hub={hub} scene={scene} store={store} />
+            )}
           </BottomLeftPanels>
         </Wrap>
         {!skipSidePanels && (

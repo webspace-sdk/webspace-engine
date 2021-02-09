@@ -3,6 +3,7 @@ import welcomeTemplateSrc from "../templates/welcome.html";
 import whatsNewTemplateSrc from "../templates/whats-new.html";
 import faqTemplateSrc from "../templates/faq.html";
 import WorldImporter from "./world-importer";
+import { toHexDigest } from "./crypto-utils";
 
 export function getHtmlForTemplate(name) {
   let data = null;
@@ -36,9 +37,7 @@ export async function applyTemplate(name, synced_at = null, hash = null, force =
   // We don't want to re-add the template objects for their first world if we change the template.
   if (synced_at !== null && name === "first" && !force) return;
 
-  const hashData = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(html));
-  const hashArray = Array.from(new Uint8Array(hashData));
-  const newHash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+  const newHash = await toHexDigest(html);
 
   // Don't sync templates when others are here.
   const isByMyself =

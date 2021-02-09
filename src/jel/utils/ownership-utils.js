@@ -59,8 +59,12 @@ export function isMine(el) {
   }
 }
 
+export function isSynchronized(el) {
+  return el.components.shared || el.components.networked;
+}
+
 export function isNonNetworkedOrEnsureOwnership(el) {
-  return isMine(el) || takeOwnership(el);
+  return !isSynchronized(el) || isMine(el) || takeOwnership(el);
 }
 
 export function getNetworkOwner(el) {
@@ -77,10 +81,6 @@ export function getCreator(el) {
 
   const utils = (isShared ? SAF : NAF).utils;
   return utils.getCreator(el);
-}
-
-export function isSynchronized(el) {
-  return el.components.shared || el.components.networked;
 }
 
 export function getNetworkedEntity(entity) {

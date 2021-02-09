@@ -10,9 +10,10 @@ let nextUploadFrame = 0;
 let totalPixelsUploaded = 0;
 
 export default class HubsTextureLoader {
-  constructor(manager = THREE.DefaultLoadingManager) {
+  constructor(manager = THREE.DefaultLoadingManager, retainImages = true) {
     this.manager = manager;
     this.crossOrigin = "anonymous";
+    this.retainImages = retainImages;
   }
 
   load(url, onLoad, onProgress, onError) {
@@ -56,6 +57,8 @@ export default class HubsTextureLoader {
       }
     }
 
+    const loader = this;
+
     texture.image = image;
 
     // Image was just added to cache before this function gets called, disable caching by immediatly removing it
@@ -66,10 +69,9 @@ export default class HubsTextureLoader {
 
     return await new Promise(res => {
       texture.onUpdate = function() {
-        if (texture.image) {
+        if (texture.image && !loader.retainImages) {
           // Delete texture data once it has been uploaded to the GPU
           image.close && image.close();
-
           delete texture.image;
         }
 

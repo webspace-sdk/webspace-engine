@@ -21,13 +21,47 @@ export function getLastWorldScale(src, target) {
   return target;
 }
 
+export function disposeTextureImage(texture) {
+  if (!texture.image) return;
+
+  // Unload the video element to prevent it from continuing to play in the background
+  if (texture.image instanceof HTMLVideoElement) {
+    const video = texture.image;
+    video.pause();
+    video.src = "";
+    video.load();
+  }
+
+  texture.image.close && texture.image.close();
+  delete texture.image;
+}
+
+export function disposeTexture(texture) {
+  if (!texture) return;
+
+  disposeTextureImage(texture);
+
+  if (texture.hls) {
+    texture.hls.stopLoad();
+    texture.hls.detachMedia();
+    texture.hls.destroy();
+    texture.hls = null;
+  }
+
+  if (texture.dash) {
+    texture.dash.reset();
+  }
+
+  texture.dispose();
+}
+
 export function disposeMaterial(mtrl) {
-  if (mtrl.map) mtrl.map.dispose();
-  if (mtrl.lightMap) mtrl.lightMap.dispose();
-  if (mtrl.bumpMap) mtrl.bumpMap.dispose();
-  if (mtrl.normalMap) mtrl.normalMap.dispose();
-  if (mtrl.specularMap) mtrl.specularMap.dispose();
-  if (mtrl.envMap) mtrl.envMap.dispose();
+  if (mtrl.map) disposeTexture(mtrl.map);
+  if (mtrl.lightMap) disposeTexture(mtrl.lightMap);
+  if (mtrl.bumpMap) disposeTexture(mtrl.bumpMap);
+  if (mtrl.normalMap) disposeTexture(mtrl.normalMap);
+  if (mtrl.specularMap) disposeTexture(mtrl.specularMap);
+  if (mtrl.envMap) disposeTexture(mtrl.envMap);
   mtrl.dispose();
 }
 
@@ -61,45 +95,11 @@ export function disposeNodeContents(node) {
   disposeNode(node, false);
 }
 
-export function disposeTextureImage(texture) {
-  if (!texture.image) return;
-
-  // Unload the video element to prevent it from continuing to play in the background
-  if (texture.image instanceof HTMLVideoElement) {
-    const video = texture.image;
-    video.pause();
-    video.src = "";
-    video.load();
-  }
-
-  texture.image.close && texture.image.close();
-  delete texture.image;
-}
-
 export function disposeExistingMesh(el) {
   const mesh = el.getObject3D("mesh");
   if (!mesh) return;
   disposeNode(mesh);
   el.removeObject3D("mesh");
-}
-
-export function disposeTexture(texture) {
-  if (!texture) return;
-
-  disposeTextureImage(texture);
-
-  if (texture.hls) {
-    texture.hls.stopLoad();
-    texture.hls.detachMedia();
-    texture.hls.destroy();
-    texture.hls = null;
-  }
-
-  if (texture.dash) {
-    texture.dash.reset();
-  }
-
-  texture.dispose();
 }
 
 export const IDENTITY = new THREE.Matrix4().identity();

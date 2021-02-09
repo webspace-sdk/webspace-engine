@@ -108,6 +108,8 @@ import "./hubs/components/periodic-full-syncs";
 import "./hubs/components/inspect-button";
 import "./hubs/components/set-max-resolution";
 import "./hubs/components/avatar-audio-source";
+import "./jel/components/pinned-to-self";
+import "./jel/components/look-at-self";
 import Subscriptions from "./hubs/subscriptions";
 
 import { SOUND_QUACK, SOUND_SPECIAL_QUACK } from "./hubs/systems/sound-effects-system";
@@ -443,8 +445,10 @@ async function runBotMode(scene, entryManager) {
 function initPhysicsThreeAndCursor(scene) {
   const physicsSystem = scene.systems["hubs-systems"].physicsSystem;
   physicsSystem.setDebug(isDebug || physicsSystem.debug);
-  patchThreeAllocations();
-  patchThreeNoProgramDispose();
+  const renderer = AFRAME.scenes[0].renderer;
+
+  patchThreeAllocations(renderer);
+  patchThreeNoProgramDispose(renderer);
 }
 
 async function initAvatar() {
@@ -717,6 +721,9 @@ function setupNonVisibleHandler(scene) {
     document.addEventListener("visibilitychange", () => apply());
 
     window.addEventListener("blur", () => {
+      // When setting up bridge, bridge iframe can steal focus
+      if (SYSTEMS.videoBridgeSystem.isSettingUpBridge) return;
+
       const disableBlurHandlerOnceIfVisible = window.APP.disableBlurHandlerOnceIfVisible;
       window.APP.disableBlurHandlerOnceIfVisible = false;
 

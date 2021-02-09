@@ -6,7 +6,7 @@ import { mapMaterials } from "./material-utils";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import { validMaterials } from "../components/hoverable-visuals";
 import { proxiedUrlFor, guessContentType } from "../utils/media-url-utils";
-import { getNetworkedEntity, getNetworkId, ensureOwnership } from "../../jel/utils/ownership-utils";
+import { getNetworkedEntity, getNetworkId, ensureOwnership, isSynchronized } from "../../jel/utils/ownership-utils";
 import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
 import { getMessages } from "../../hubs/utils/i18n";
 import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
@@ -47,11 +47,12 @@ export const MEDIA_VIEW_COMPONENTS = [
   "media-vox",
   "media-pdf",
   "media-emoji",
+  "media-canvas",
   "gltf-model-plus"
 ];
 
 export const PAGABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-pdf"];
-export const BAKABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-text", "media-pdf"];
+export const BAKABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-text", "media-pdf", "media-canvas"];
 
 export const GROUNDABLE_MEDIA_VIEW_COMPONENTS = [
   "gltf-model-plus",
@@ -633,10 +634,6 @@ export function createBasisTexture(url) {
       url,
       function(texture, textureInfo) {
         texture.encoding = THREE.sRGBEncoding;
-        texture.onUpdate = function() {
-          // Delete texture data once it has been uploaded to the GPU
-          texture.mipmaps.length = 0;
-        };
         // texture.anisotropy = 4;
         resolve([texture, textureInfo]);
       },
@@ -746,6 +743,10 @@ export function meetsBatchingCriteria(textureInfo) {
 export function hasMediaLayer(el) {
   const mediaLoader = el.components["media-loader"];
   if (!mediaLoader) return false;
+
+  const isShared = !!el.components["shared"];
+  if (!isShared) return false;
+
   return !!(mediaLoader.data && typeof mediaLoader.data.mediaLayer === "number");
 }
 
@@ -757,7 +758,7 @@ export function scaleToAspectRatio(el, ratio) {
 }
 
 export function removeMediaElement(el) {
-  if (!ensureOwnership(el)) {
+  if (isSynchronized(el) && !ensureOwnership(el)) {
     console.warn("Cannot remove element because unable to become owner.");
     return;
   }
@@ -804,9 +805,16 @@ export function performAnimatedRemove(el, callback) {
   });
 }
 
-const spawnMediaInFrontOffset = { x: 0, y: 0, z: -1.5 };
-
-export const spawnMediaInfrontOfPlayer = (src, contents, contentOrigin, contentSubtype = null, mediaOptions = null) => {
+export const spawnMediaInfrontOfPlayer = (
+  src,
+  contents,
+  contentOrigin,
+  contentSubtype = null,
+  mediaOptions = null,
+  networked = true,
+  zOffset = -1.5,
+  yOffset = 0
+) => {
   if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
   if (src instanceof File && !window.APP.hubChannel.can("upload_files")) return;
 
@@ -819,13 +827,14 @@ export const spawnMediaInfrontOfPlayer = (src, contents, contentOrigin, contentS
     !!(src && !(src instanceof MediaStream)),
     true,
     true,
-    mediaOptions
+    mediaOptions,
+    networked
   );
 
   orientation.then(or => {
     entity.setAttribute("offset-relative-to", {
       target: "#avatar-pov-node",
-      offset: spawnMediaInFrontOffset,
+      offset: { x: 0, y: yOffset, z: zOffset },
       orientation: or
     });
   });

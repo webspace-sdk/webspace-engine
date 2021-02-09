@@ -135,364 +135,6 @@ const decodeChunks = buffer => {
   return chunks.chunks;
 };
 
-const cullChunksAndFeatureGroups = (() => {
-  // Chunk + feature culling based upon AABB
-  // https://iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm
-  const frustumMatrix = new Matrix4();
-  const tmp = new Vector3();
-  const n1 = new Vector4();
-  const n2 = new Vector4();
-  const n3 = new Vector4();
-  const n4 = new Vector4();
-  const n5 = new Vector4();
-  const n6 = new Vector4();
-  const norms = [n1, n2, n3, n4, n5, n6];
-
-  // Get camera frustum points
-  const p1 = new Vector3();
-  const p2 = new Vector3();
-  const p3 = new Vector3();
-  const p4 = new Vector3();
-  const p5 = new Vector3();
-  const p6 = new Vector3();
-  const p7 = new Vector3();
-  const p8 = new Vector3();
-  const points = [p1, p2, p3, p4, p5, p6, p7, p8];
-  const bv = new Vector4(0, 0, 0, 1);
-
-  return (camera, terrains, featureGroups) => {
-    frustumMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-
-    // HACK extract near and far from matrix due to cube SSAO hack for z-buffer
-    const c = camera.projectionMatrix.elements[10];
-    const d = camera.projectionMatrix.elements[14];
-
-    const near = d / (c - 1.0);
-    let far = d / (c + 1.0);
-
-    // Ger camera plane normals
-    const me0 = frustumMatrix.elements[0];
-    const me1 = frustumMatrix.elements[1];
-    const me2 = frustumMatrix.elements[2];
-    const me3 = frustumMatrix.elements[3];
-    const me4 = frustumMatrix.elements[4];
-    const me5 = frustumMatrix.elements[5];
-    const me6 = frustumMatrix.elements[6];
-    const me7 = frustumMatrix.elements[7];
-    const me8 = frustumMatrix.elements[8];
-    const me9 = frustumMatrix.elements[9];
-    const me10 = frustumMatrix.elements[10];
-    const me11 = frustumMatrix.elements[11];
-    const me12 = frustumMatrix.elements[12];
-    const me13 = frustumMatrix.elements[13];
-    const me14 = frustumMatrix.elements[14];
-    const me15 = frustumMatrix.elements[15];
-
-    n1.set(me3 - me0, me7 - me4, me11 - me8, me15 - me12).normalize();
-    n2.set(me3 + me0, me7 + me4, me11 + me8, me15 + me12).normalize();
-    n3.set(me3 + me1, me7 + me5, me11 + me9, me15 + me13).normalize();
-    n4.set(me3 - me1, me7 - me5, me11 - me9, me15 - me13).normalize();
-    n5.set(me3 - me2, me7 - me6, me11 - me10, me15 - me14).normalize();
-    n6.set(me3 + me2, me7 + me6, me11 + me10, me15 + me14).normalize();
-
-    const hNear = 2 * Math.tan((camera.fov * Math.PI) / 180 / 2) * near;
-    const wNear = hNear * camera.aspect;
-
-    let hFar = 2 * Math.tan((camera.fov * Math.PI) / 180 / 2) * far;
-    let wFar = hFar * camera.aspect;
-
-    p1.set(wNear / 2, hNear / 2, -near);
-    p2.set(-wNear / 2, hNear / 2, -near);
-    p3.set(wNear / 2, -hNear / 2, -near);
-    p4.set(-wNear / 2, -hNear / 2, -near);
-    p5.set(wFar / 2, hFar / 2, -far);
-    p6.set(-wFar / 2, hFar / 2, -far);
-    p7.set(wFar / 2, -hFar / 2, -far);
-    p8.set(-wFar / 2, -hFar / 2, -far);
-    p1.applyMatrix4(camera.matrixWorld);
-    p2.applyMatrix4(camera.matrixWorld);
-    p3.applyMatrix4(camera.matrixWorld);
-    p4.applyMatrix4(camera.matrixWorld);
-    p5.applyMatrix4(camera.matrixWorld);
-    p6.applyMatrix4(camera.matrixWorld);
-    p7.applyMatrix4(camera.matrixWorld);
-    p8.applyMatrix4(camera.matrixWorld);
-
-    // Cull terrain
-    for (const t of terrains) {
-      // eslint-disable-line no-restricted-syntax
-      let show = true;
-
-      // Compute terrain AABB
-      t.getWorldPosition(tmp);
-      const bminx = tmp.x;
-      const bmaxx = tmp.x + 8;
-      const bminz = tmp.z;
-      const bmaxz = tmp.z + 8;
-      const bminy = 0;
-      const bmaxy = t.height / 8 + 1 / 8;
-
-      // Visualize box
-      //if (!t.showedBox) {
-      //  t.showedBox = true;
-
-      //  const box = new Box3(new Vector3(bminx, bminy, bminz), new Vector3(bmaxx, bmaxy, bmaxz));
-      //  t.parent.parent.add(new Box3Helper(box));
-      //}
-
-      for (const n of norms) {
-        // eslint-disable-line no-restricted-syntax
-        let c = 0;
-
-        bv.x = bminx;
-        bv.y = bminy;
-        bv.z = bminz;
-        if (bv.dot(n) < 0) c += 1;
-        bv.x = bminx;
-        bv.y = bminy;
-        bv.z = bmaxz;
-        if (bv.dot(n) < 0) c += 1;
-        bv.x = bminx;
-        bv.y = bmaxy;
-        bv.z = bminz;
-        if (bv.dot(n) < 0) c += 1;
-        bv.x = bminx;
-        bv.y = bmaxy;
-        bv.z = bmaxz;
-        if (bv.dot(n) < 0) c += 1;
-        bv.x = bmaxx;
-        bv.y = bminy;
-        bv.z = bminz;
-        if (bv.dot(n) < 0) c += 1;
-        bv.x = bmaxx;
-        bv.y = bminy;
-        bv.z = bmaxz;
-        if (bv.dot(n) < 0) c += 1;
-        bv.x = bmaxx;
-        bv.y = bmaxy;
-        bv.z = bminz;
-        if (bv.dot(n) < 0) c += 1;
-        bv.x = bmaxx;
-        bv.y = bmaxy;
-        bv.z = bmaxz;
-        if (bv.dot(n) < 0) c += 1;
-
-        if (c === 8) {
-          show = false;
-          break;
-        }
-      }
-
-      if (show) {
-        let c = 0;
-
-        for (const p of points) {
-          // eslint-disable-line no-restricted-syntax
-          if (p.x > bmaxx) c += 1;
-        }
-
-        if (c === 8) show = false;
-      }
-
-      if (show) {
-        let c = 0;
-
-        for (const p of points) {
-          // eslint-disable-line no-restricted-syntax
-          if (p.x < bminx) c += 1;
-        }
-
-        if (c === 8) show = false;
-      }
-
-      if (show) {
-        let c = 0;
-
-        for (const p of points) {
-          // eslint-disable-line no-restricted-syntax
-          if (p.y > bmaxy) c += 1;
-        }
-
-        if (c === 8) show = false;
-      }
-
-      if (show) {
-        let c = 0;
-
-        for (const p of points) {
-          // eslint-disable-line no-restricted-syntax
-          if (p.y < bminy) c += 1;
-        }
-
-        if (c === 8) show = false;
-      }
-
-      if (show) {
-        let c = 0;
-
-        for (const p of points) {
-          // eslint-disable-line no-restricted-syntax
-          if (p.z > bmaxz) c += 1;
-        }
-
-        if (c === 8) show = false;
-      }
-
-      if (show) {
-        let c = 0;
-
-        for (const p of points) {
-          // eslint-disable-line no-restricted-syntax
-          if (p.z < bminz) c += 1;
-        }
-
-        if (c === 8) show = false;
-      }
-
-      t.visible = show;
-    }
-
-    // Cull features based upon half of feature culling radius
-    far = FIELD_FEATURE_RADIUS * (CHUNK_WORLD_SIZE / 2);
-    hFar = 2 * Math.tan((camera.fov * Math.PI) / 180 / 2) * far;
-    wFar = hFar * camera.aspect;
-
-    p5.set(wFar / 2, hFar / 2, -far);
-    p6.set(-wFar / 2, hFar / 2, -far);
-    p7.set(wFar / 2, -hFar / 2, -far);
-    p8.set(-wFar / 2, -hFar / 2, -far);
-    p5.applyMatrix4(camera.matrixWorld);
-    p6.applyMatrix4(camera.matrixWorld);
-    p7.applyMatrix4(camera.matrixWorld);
-    p8.applyMatrix4(camera.matrixWorld);
-
-    for (const t of featureGroups) {
-      // eslint-disable-line no-restricted-syntax
-      let show = true;
-
-      // Compute featureGroup AABB
-      t.getWorldPosition(tmp);
-      const bminx = tmp.x - WORLD_SIZE / 2;
-      const bmaxx = tmp.x + WORLD_SIZE / 2;
-      const bminz = tmp.z - WORLD_SIZE / 2;
-      const bmaxz = tmp.z + WORLD_SIZE / 2;
-      const bminy = 0;
-      const bmaxy = WORLD_SIZE;
-
-      for (const n of norms) {
-        // eslint-disable-line no-restricted-syntax
-        let c = 0;
-
-        bv.x = bminx;
-        bv.y = bminy;
-        bv.z = bminz;
-        if (bv.dot(n) < 0) c += 1;
-        bv.x = bminx;
-        bv.y = bminy;
-        bv.z = bmaxz;
-        if (bv.dot(n) < 0) c += 1;
-        bv.x = bminx;
-        bv.y = bmaxy;
-        bv.z = bminz;
-        if (bv.dot(n) < 0) c += 1;
-        bv.x = bminx;
-        bv.y = bmaxy;
-        bv.z = bmaxz;
-        if (bv.dot(n) < 0) c += 1;
-        bv.x = bmaxx;
-        bv.y = bminy;
-        bv.z = bminz;
-        if (bv.dot(n) < 0) c += 1;
-        bv.x = bmaxx;
-        bv.y = bminy;
-        bv.z = bmaxz;
-        if (bv.dot(n) < 0) c += 1;
-        bv.x = bmaxx;
-        bv.y = bmaxy;
-        bv.z = bminz;
-        if (bv.dot(n) < 0) c += 1;
-        bv.x = bmaxx;
-        bv.y = bmaxy;
-        bv.z = bmaxz;
-        if (bv.dot(n) < 0) c += 1;
-
-        if (c === 8) {
-          show = false;
-          break;
-        }
-      }
-
-      if (show) {
-        let c = 0;
-
-        for (const p of points) {
-          // eslint-disable-line no-restricted-syntax
-          if (p.x > bmaxx) c += 1;
-        }
-
-        if (c === 8) show = false;
-      }
-
-      if (show) {
-        let c = 0;
-
-        for (const p of points) {
-          // eslint-disable-line no-restricted-syntax
-          if (p.x < bminx) c += 1;
-        }
-
-        if (c === 8) show = false;
-      }
-
-      if (show) {
-        let c = 0;
-
-        for (const p of points) {
-          // eslint-disable-line no-restricted-syntax
-          if (p.y > bmaxy) c += 1;
-        }
-
-        if (c === 8) show = false;
-      }
-
-      if (show) {
-        let c = 0;
-
-        for (const p of points) {
-          // eslint-disable-line no-restricted-syntax
-          if (p.y < bminy) c += 1;
-        }
-
-        if (c === 8) show = false;
-      }
-
-      if (show) {
-        let c = 0;
-
-        for (const p of points) {
-          // eslint-disable-line no-restricted-syntax
-          if (p.z > bmaxz) c += 1;
-        }
-
-        if (c === 8) show = false;
-      }
-
-      if (show) {
-        let c = 0;
-
-        for (const p of points) {
-          // eslint-disable-line no-restricted-syntax
-          if (p.z < bminz) c += 1;
-        }
-
-        if (c === 8) show = false;
-      }
-
-      t.visible = show;
-    }
-  };
-})();
-
 export class TerrainSystem {
   constructor(scene, atmosphereSystem) {
     waitForDOMContentLoaded().then(() => {
@@ -1132,7 +774,368 @@ export class TerrainSystem {
 
       if (this.playerCamera) {
         // Cull chunks
-        cullChunksAndFeatureGroups(this.playerCamera, this.terrains.values(), this.featureGroups);
+        this.cullChunksAndFeatureGroups(this.playerCamera);
+      }
+    };
+  })();
+
+  cullChunksAndFeatureGroups = (() => {
+    // Chunk + feature culling based upon AABB
+    // https://iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm
+    const frustumMatrix = new Matrix4();
+    const tmp = new Vector3();
+    const n1 = new Vector4();
+    const n2 = new Vector4();
+    const n3 = new Vector4();
+    const n4 = new Vector4();
+    const n5 = new Vector4();
+    const n6 = new Vector4();
+    const norms = [n1, n2, n3, n4, n5, n6];
+
+    // Get camera frustum points
+    const p1 = new Vector3();
+    const p2 = new Vector3();
+    const p3 = new Vector3();
+    const p4 = new Vector3();
+    const p5 = new Vector3();
+    const p6 = new Vector3();
+    const p7 = new Vector3();
+    const p8 = new Vector3();
+    const points = [p1, p2, p3, p4, p5, p6, p7, p8];
+    const bv = new Vector4(0, 0, 0, 1);
+
+    return camera => {
+      const terrains = this.terrains.values();
+      const featureGroups = this.featureGroups;
+
+      frustumMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+
+      // HACK extract near and far from matrix due to cube SSAO hack for z-buffer
+      const c = camera.projectionMatrix.elements[10];
+      const d = camera.projectionMatrix.elements[14];
+
+      const near = d / (c - 1.0);
+      let far = d / (c + 1.0);
+
+      // Ger camera plane normals
+      const me0 = frustumMatrix.elements[0];
+      const me1 = frustumMatrix.elements[1];
+      const me2 = frustumMatrix.elements[2];
+      const me3 = frustumMatrix.elements[3];
+      const me4 = frustumMatrix.elements[4];
+      const me5 = frustumMatrix.elements[5];
+      const me6 = frustumMatrix.elements[6];
+      const me7 = frustumMatrix.elements[7];
+      const me8 = frustumMatrix.elements[8];
+      const me9 = frustumMatrix.elements[9];
+      const me10 = frustumMatrix.elements[10];
+      const me11 = frustumMatrix.elements[11];
+      const me12 = frustumMatrix.elements[12];
+      const me13 = frustumMatrix.elements[13];
+      const me14 = frustumMatrix.elements[14];
+      const me15 = frustumMatrix.elements[15];
+
+      n1.set(me3 - me0, me7 - me4, me11 - me8, me15 - me12).normalize();
+      n2.set(me3 + me0, me7 + me4, me11 + me8, me15 + me12).normalize();
+      n3.set(me3 + me1, me7 + me5, me11 + me9, me15 + me13).normalize();
+      n4.set(me3 - me1, me7 - me5, me11 - me9, me15 - me13).normalize();
+      n5.set(me3 - me2, me7 - me6, me11 - me10, me15 - me14).normalize();
+      n6.set(me3 + me2, me7 + me6, me11 + me10, me15 + me14).normalize();
+
+      const hNear = 2 * Math.tan((camera.fov * Math.PI) / 180 / 2) * near;
+      const wNear = hNear * camera.aspect;
+
+      let hFar = 2 * Math.tan((camera.fov * Math.PI) / 180 / 2) * far;
+      let wFar = hFar * camera.aspect;
+
+      p1.set(wNear / 2, hNear / 2, -near);
+      p2.set(-wNear / 2, hNear / 2, -near);
+      p3.set(wNear / 2, -hNear / 2, -near);
+      p4.set(-wNear / 2, -hNear / 2, -near);
+      p5.set(wFar / 2, hFar / 2, -far);
+      p6.set(-wFar / 2, hFar / 2, -far);
+      p7.set(wFar / 2, -hFar / 2, -far);
+      p8.set(-wFar / 2, -hFar / 2, -far);
+      p1.applyMatrix4(camera.matrixWorld);
+      p2.applyMatrix4(camera.matrixWorld);
+      p3.applyMatrix4(camera.matrixWorld);
+      p4.applyMatrix4(camera.matrixWorld);
+      p5.applyMatrix4(camera.matrixWorld);
+      p6.applyMatrix4(camera.matrixWorld);
+      p7.applyMatrix4(camera.matrixWorld);
+      p8.applyMatrix4(camera.matrixWorld);
+
+      // Cull terrain
+      for (const t of terrains) {
+        // eslint-disable-line no-restricted-syntax
+        let show = true;
+
+        // Compute terrain AABB
+        t.getWorldPosition(tmp);
+        const bminx = tmp.x;
+        const bmaxx = tmp.x + 8;
+        const bminz = tmp.z;
+        const bmaxz = tmp.z + 8;
+        const bminy = 0;
+        const bmaxy = t.height / 8 + 1 / 8;
+
+        // Visualize box
+        //if (!t.showedBox) {
+        //  t.showedBox = true;
+
+        //  const box = new Box3(new Vector3(bminx, bminy, bminz), new Vector3(bmaxx, bmaxy, bmaxz));
+        //  t.parent.parent.add(new Box3Helper(box));
+        //}
+
+        for (const n of norms) {
+          // eslint-disable-line no-restricted-syntax
+          let c = 0;
+
+          bv.x = bminx;
+          bv.y = bminy;
+          bv.z = bminz;
+          if (bv.dot(n) < 0) c += 1;
+          bv.x = bminx;
+          bv.y = bminy;
+          bv.z = bmaxz;
+          if (bv.dot(n) < 0) c += 1;
+          bv.x = bminx;
+          bv.y = bmaxy;
+          bv.z = bminz;
+          if (bv.dot(n) < 0) c += 1;
+          bv.x = bminx;
+          bv.y = bmaxy;
+          bv.z = bmaxz;
+          if (bv.dot(n) < 0) c += 1;
+          bv.x = bmaxx;
+          bv.y = bminy;
+          bv.z = bminz;
+          if (bv.dot(n) < 0) c += 1;
+          bv.x = bmaxx;
+          bv.y = bminy;
+          bv.z = bmaxz;
+          if (bv.dot(n) < 0) c += 1;
+          bv.x = bmaxx;
+          bv.y = bmaxy;
+          bv.z = bminz;
+          if (bv.dot(n) < 0) c += 1;
+          bv.x = bmaxx;
+          bv.y = bmaxy;
+          bv.z = bmaxz;
+          if (bv.dot(n) < 0) c += 1;
+
+          if (c === 8) {
+            show = false;
+            break;
+          }
+        }
+
+        if (show) {
+          let c = 0;
+
+          for (const p of points) {
+            // eslint-disable-line no-restricted-syntax
+            if (p.x > bmaxx) c += 1;
+          }
+
+          if (c === 8) show = false;
+        }
+
+        if (show) {
+          let c = 0;
+
+          for (const p of points) {
+            // eslint-disable-line no-restricted-syntax
+            if (p.x < bminx) c += 1;
+          }
+
+          if (c === 8) show = false;
+        }
+
+        if (show) {
+          let c = 0;
+
+          for (const p of points) {
+            // eslint-disable-line no-restricted-syntax
+            if (p.y > bmaxy) c += 1;
+          }
+
+          if (c === 8) show = false;
+        }
+
+        if (show) {
+          let c = 0;
+
+          for (const p of points) {
+            // eslint-disable-line no-restricted-syntax
+            if (p.y < bminy) c += 1;
+          }
+
+          if (c === 8) show = false;
+        }
+
+        if (show) {
+          let c = 0;
+
+          for (const p of points) {
+            // eslint-disable-line no-restricted-syntax
+            if (p.z > bmaxz) c += 1;
+          }
+
+          if (c === 8) show = false;
+        }
+
+        if (show) {
+          let c = 0;
+
+          for (const p of points) {
+            // eslint-disable-line no-restricted-syntax
+            if (p.z < bminz) c += 1;
+          }
+
+          if (c === 8) show = false;
+        }
+
+        t.visible = show;
+      }
+
+      // Cull features based upon half of feature culling radius
+      far = FIELD_FEATURE_RADIUS * (CHUNK_WORLD_SIZE / 2);
+      hFar = 2 * Math.tan((camera.fov * Math.PI) / 180 / 2) * far;
+      wFar = hFar * camera.aspect;
+
+      p5.set(wFar / 2, hFar / 2, -far);
+      p6.set(-wFar / 2, hFar / 2, -far);
+      p7.set(wFar / 2, -hFar / 2, -far);
+      p8.set(-wFar / 2, -hFar / 2, -far);
+      p5.applyMatrix4(camera.matrixWorld);
+      p6.applyMatrix4(camera.matrixWorld);
+      p7.applyMatrix4(camera.matrixWorld);
+      p8.applyMatrix4(camera.matrixWorld);
+
+      for (const t of featureGroups) {
+        // eslint-disable-line no-restricted-syntax
+        let show = true;
+
+        // Compute featureGroup AABB
+        t.getWorldPosition(tmp);
+        const bminx = tmp.x - WORLD_SIZE / 2;
+        const bmaxx = tmp.x + WORLD_SIZE / 2;
+        const bminz = tmp.z - WORLD_SIZE / 2;
+        const bmaxz = tmp.z + WORLD_SIZE / 2;
+        const bminy = 0;
+        const bmaxy = WORLD_SIZE;
+
+        for (const n of norms) {
+          // eslint-disable-line no-restricted-syntax
+          let c = 0;
+
+          bv.x = bminx;
+          bv.y = bminy;
+          bv.z = bminz;
+          if (bv.dot(n) < 0) c += 1;
+          bv.x = bminx;
+          bv.y = bminy;
+          bv.z = bmaxz;
+          if (bv.dot(n) < 0) c += 1;
+          bv.x = bminx;
+          bv.y = bmaxy;
+          bv.z = bminz;
+          if (bv.dot(n) < 0) c += 1;
+          bv.x = bminx;
+          bv.y = bmaxy;
+          bv.z = bmaxz;
+          if (bv.dot(n) < 0) c += 1;
+          bv.x = bmaxx;
+          bv.y = bminy;
+          bv.z = bminz;
+          if (bv.dot(n) < 0) c += 1;
+          bv.x = bmaxx;
+          bv.y = bminy;
+          bv.z = bmaxz;
+          if (bv.dot(n) < 0) c += 1;
+          bv.x = bmaxx;
+          bv.y = bmaxy;
+          bv.z = bminz;
+          if (bv.dot(n) < 0) c += 1;
+          bv.x = bmaxx;
+          bv.y = bmaxy;
+          bv.z = bmaxz;
+          if (bv.dot(n) < 0) c += 1;
+
+          if (c === 8) {
+            show = false;
+            break;
+          }
+        }
+
+        if (show) {
+          let c = 0;
+
+          for (const p of points) {
+            // eslint-disable-line no-restricted-syntax
+            if (p.x > bmaxx) c += 1;
+          }
+
+          if (c === 8) show = false;
+        }
+
+        if (show) {
+          let c = 0;
+
+          for (const p of points) {
+            // eslint-disable-line no-restricted-syntax
+            if (p.x < bminx) c += 1;
+          }
+
+          if (c === 8) show = false;
+        }
+
+        if (show) {
+          let c = 0;
+
+          for (const p of points) {
+            // eslint-disable-line no-restricted-syntax
+            if (p.y > bmaxy) c += 1;
+          }
+
+          if (c === 8) show = false;
+        }
+
+        if (show) {
+          let c = 0;
+
+          for (const p of points) {
+            // eslint-disable-line no-restricted-syntax
+            if (p.y < bminy) c += 1;
+          }
+
+          if (c === 8) show = false;
+        }
+
+        if (show) {
+          let c = 0;
+
+          for (const p of points) {
+            // eslint-disable-line no-restricted-syntax
+            if (p.z > bmaxz) c += 1;
+          }
+
+          if (c === 8) show = false;
+        }
+
+        if (show) {
+          let c = 0;
+
+          for (const p of points) {
+            // eslint-disable-line no-restricted-syntax
+            if (p.z < bminz) c += 1;
+          }
+
+          if (c === 8) show = false;
+        }
+
+        t.visible = show;
       }
     };
   })();

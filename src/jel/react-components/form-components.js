@@ -66,6 +66,10 @@ export const TextInputWrap = styled.div`
   background: var(--text-input-background-color);
   box-shadow: inset 0px 0px 2px var(--menu-background-color);
   margin: 12px;
+
+  & input:disabled {
+    opacity: 0.5;
+  }
 `;
 
 export const InputWrap = styled.div`
@@ -77,6 +81,10 @@ export const InputWrap = styled.div`
   padding: 2px 4px;
   margin: 0 8px;
   border: 0;
+
+  & input:disabled {
+    opacity: 0.5;
+  }
 `;
 
 export const Input = styled.input`
@@ -112,6 +120,10 @@ export const Checkbox = styled.input`
 
   &:checked {
     background-color: var(--panel-item-active-background-color);
+  }
+
+  &:disabled {
+    cursor: auto;
   }
 
   & ::before {

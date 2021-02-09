@@ -48,7 +48,7 @@ const ActionButtonIcon = styled.div`
 
 const TextContainer = styled.div`
   height: calc(var(--action-button-text-size) + 2px);
-  line-height: calc(var(--action-button-text-size) + 4px);
+  line-height: calc(var(--action-button-text-size) + 2px);
 `;
 
 export default function ActionButton(props) {
