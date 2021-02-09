@@ -25,7 +25,7 @@ const Footer = styled.div`
 `;
 
 const BridgeStartPopup = forwardRef(
-  ({ setPopperElement, styles, attributes, onConnect, children, connecting, failed }, ref) => {
+  ({ setPopperElement, styles, attributes, onConnect, onCancel, children, connecting, failed }, ref) => {
     const messages = getMessages();
     const [meetingId, setMeetingId] = useState("");
     const [password, setPassword] = useState("");
@@ -130,9 +130,16 @@ const BridgeStartPopup = forwardRef(
                 </Label>
               </InputWrap>
               <Footer>
-                <SmallActionButton type="submit" disabled={connecting}>
-                  <FormattedMessage id="bridge-start.connect" />
-                </SmallActionButton>
+                {!connecting && (
+                  <SmallActionButton type="submit">
+                    <FormattedMessage id="bridge-start.connect" />
+                  </SmallActionButton>
+                )}
+                {connecting && (
+                  <SmallActionButton onClick={() => onCancel()}>
+                    <FormattedMessage id="bridge-start.cancel" />
+                  </SmallActionButton>
+                )}
 
                 {connecting && <Spinner style={{ marginLeft: "8px" }} />}
 
@@ -148,6 +155,11 @@ const BridgeStartPopup = forwardRef(
                   </Tip>
                 )}
               </Footer>
+              {connecting && (
+                <Tip>
+                  <FormattedMessage id={"bridge-start.status-connecting-tip"} />&nbsp;
+                </Tip>
+              )}
             </form>
           </PanelWrap>
         </PopupPanelMenu>
@@ -167,6 +179,7 @@ BridgeStartPopup.displayName = "BridgeStartPopup";
 
 BridgeStartPopup.propTypes = {
   onConnect: PropTypes.func,
+  onCancel: PropTypes.func,
   connecting: PropTypes.bool,
   failed: PropTypes.bool,
   setPopperElement: PropTypes.func,

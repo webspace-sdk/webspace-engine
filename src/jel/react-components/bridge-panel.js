@@ -140,6 +140,18 @@ const BridgePanel = ({ scene }) => {
     [bridgeStartElement, setConnected, setFailed, setConnecting, setMeetingId]
   );
 
+  const onCancel = useCallback(
+    async () => {
+      bridgeStartElement.focus(); // Keep panel open
+      setConnecting(false);
+      setConnected(false);
+      setFailed(false);
+
+      SYSTEMS.videoBridgeSystem.exitBridge();
+    },
+    [bridgeStartElement, setConnected, setFailed, setConnecting]
+  );
+
   return (
     <BridgePanelElement>
       <Tooltip singleton={tipSource} />
@@ -190,6 +202,7 @@ const BridgePanel = ({ scene }) => {
         styles={bridgeStartStyles}
         attributes={bridgeStartAttributes}
         onConnect={onConnect}
+        onCancel={onCancel}
         connecting={connecting}
         failed={failed}
       >

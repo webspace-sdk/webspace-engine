@@ -249,7 +249,9 @@
   "bridge-start.share-invite": "Share a invite link to let others join this space.",
   "bridge-start.use-hd": "Use HD video. (Works best on fast networks.)",
   "bridge-start.status-connecting": "Waiting for host to accept you.",
+  "bridge-start.status-connecting-tip": "Not connecting? Cancel and check your meeting password.",
   "bridge-start.status-failed": "Couldn't join. Check your meeting info.",
   "bridge-start.connect": "Connect",
+  "bridge-start.cancel": "Cancel",
   "bridge.connected-to-zoom": "Connected to Zoom"
 }
