@@ -588,6 +588,8 @@ export function addAndArrangeMedia(el, media, contentSubtype, snapCount, mirrorO
   return { entity, orientation };
 }
 
+export const textureLoader = new HubsTextureLoader().setCrossOrigin("anonymous");
+
 export async function createImageTexture(url, filter, preload = true) {
   let texture;
   let info;
@@ -611,7 +613,7 @@ export async function createImageTexture(url, filter, preload = true) {
     texture = new THREE.Texture();
 
     try {
-      info = await new HubsTextureLoader(THREE.DefaultLoadingManager).loadTextureAsync(texture, url, preload);
+      info = await textureLoader.loadTextureAsync(texture, url, preload);
     } catch (e) {
       throw new Error(`'${url}' could not be fetched (Error code: ${e.status}; Response: ${e.statusText})`);
     }
@@ -624,10 +626,11 @@ export async function createImageTexture(url, filter, preload = true) {
 }
 
 import HubsBasisTextureLoader from "../loaders/HubsBasisTextureLoader";
+export const basisTextureLoader = new HubsBasisTextureLoader();
 
-export function createBasisTexture(url, retainImages = false) {
+export function createBasisTexture(url) {
   return new Promise((resolve, reject) => {
-    new HubsBasisTextureLoader(THREE.DefaultLoadingManager, retainImages).load(
+    basisTextureLoader.load(
       url,
       function(texture, textureInfo) {
         texture.encoding = THREE.sRGBEncoding;

@@ -205,9 +205,9 @@ export class AvatarSystem {
     let decalMap;
 
     if (USE_BASIS) {
-      decalMap = (await createBasisTexture(avatarSheetBasisSrc, true))[0];
+      decalMap = (await createBasisTexture(avatarSheetBasisSrc))[0];
     } else {
-      decalMap = await new HubsTextureLoader(THREE.DefaultLoadingManager, true).load(avatarSheetImgSrc);
+      decalMap = await new HubsTextureLoader().load(avatarSheetImgSrc);
     }
 
     decalMap.magFilter = LinearFilter;

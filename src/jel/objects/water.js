@@ -238,7 +238,8 @@ class Water extends Mesh {
 
     const enableReflections = window.APP.detailLevel === 0 && !this.reflectionsForceOff;
     if (this.material.uniforms.reflections.value !== enableReflections) {
-      this.material.uniforms.reflections.value = window.APP.detailLevel === 0 && !this.reflectionsForceOff;
+      this.material.uniforms.reflections.value = enableReflections;
+      this.material.uniformsNeedUpdate = true;
     }
 
     if (!this.needsUpdate || !this.camera || !enableReflections) return;

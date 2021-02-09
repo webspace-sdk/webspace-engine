@@ -774,7 +774,7 @@ export class TerrainSystem {
 
       if (this.playerCamera) {
         // Cull chunks
-        this.cullChunksAndFeatureGroups(this.playerCamera, this.terrains.values(), this.featureGroups);
+        this.cullChunksAndFeatureGroups(this.playerCamera);
       }
     };
   })();
