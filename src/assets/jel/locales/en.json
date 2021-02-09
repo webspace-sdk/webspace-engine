@@ -162,7 +162,7 @@
   "create-embed.model-placeholder": "Paste the link to the model or GLB...",
   "create-embed.embed": "Embed",
   "invite-panel.info": "This link lets others join your space.",
-  "invite-panel.expires-info": "It will expire in 7 days.",
+  "invite-panel.expires-info": "It will expire in 30 days.",
   "invite-panel.copy": "Copy",
   "invite-panel.copied": "Copied!",
   "profile-editor.sign-out": "Sign Out",
