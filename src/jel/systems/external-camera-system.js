@@ -23,6 +23,10 @@ export class ExternalCameraSystem {
     this.viewingCamera = null;
   }
 
+  isEnabled() {
+    return !!this.renderer;
+  }
+
   // Toggle between the tracked entity and the viewing camera for position
   toggleCamera() {
     this.viewingCameraSelected = !this.viewingCameraSelected;
@@ -161,6 +165,7 @@ export class ExternalCameraSystem {
     const { videoBridgeSystem } = SYSTEMS;
     const { playerHead } = cameraSystem;
     const head = playerHead && playerHead.object3D;
+    const ikController = playerHead && playerHead.parentEl.parentEl.parentEl.parentEl.components["ik-controller"];
 
     const oldOnAfterRender = scene.onAfterRender;
     const waterNeededUpdate = atmosphereSystem.water.needsUpdate;
@@ -173,11 +178,11 @@ export class ExternalCameraSystem {
       viewingCamera.getWorldPosition(camera.position);
       viewingCamera.getWorldQuaternion(camera.quaternion);
     } else {
-      if (head && !head.visible) {
+      if (head && !head.visible && ikController) {
         didRevealHead = true;
 
         head.visible = true;
-        head.scale.set(1, 1, 1);
+        head.scale.copy(ikController.headScale);
         head.updateMatrices(true, true);
         head.updateMatrixWorld(true, true);
 

@@ -1,5 +1,5 @@
 import { waitForDOMContentLoaded } from "../utils/async-utils";
-import { almostEqual, almostEqualQuaternion } from "../utils/three-utils";
+import { almostEqual, almostEqualVec3, almostEqualQuaternion } from "../utils/three-utils";
 import { findAncestorWithComponent } from "../utils/scene-graph";
 import { isMine } from "../../jel/utils/ownership-utils";
 const { Vector3, Quaternion, Matrix4, Euler } = THREE;
@@ -112,6 +112,7 @@ AFRAME.registerComponent("ik-controller", {
     this._updateIsInView = this._updateIsInView.bind(this);
     this.avatarSystem = this.el.sceneEl.systems["hubs-systems"].avatarSystem;
     this.skyBeamSystem = this.el.sceneEl.systems["hubs-systems"].skyBeamSystem;
+    this.headScale = new THREE.Vector3();
 
     if (this.data.instanceHeads) {
       this.avatarSystem.register(this.el, this.data.isSelf);
@@ -143,9 +144,10 @@ AFRAME.registerComponent("ik-controller", {
     if (!isMine(this.ikRoot.el)) {
       this.remoteNetworkedAvatar = this.ikRoot.el.components["networked-avatar"];
       this.scaleAudioFeedback = null;
-      this.relativeMotionProgress = 0.0;
-      this.relativeMotionMaxMagnitude = 1;
     }
+
+    this.relativeMotionProgress = 0.0;
+    this.relativeMotionMaxMagnitude = 1;
 
     this.isInView = true;
     this.hasConvergedHips = false;
@@ -240,20 +242,22 @@ AFRAME.registerComponent("ik-controller", {
 
     if (this.remoteNetworkedAvatar) {
       relativeMotionValue = this.remoteNetworkedAvatar.data.relative_motion;
+    } else {
+      relativeMotionValue = SYSTEMS.characterController.relativeMotionValue;
+    }
 
-      if (relativeMotionValue !== 0) {
-        const t = this.relativeMotionProgress;
-        relativeMotionSpring = springStep(t);
-        this.relativeMotionProgress = Math.min(1, this.relativeMotionProgress + dt * 0.003);
-        this.relativeMotionMaxMagnitude = Math.max(this.relativeMotionMaxMagnitude, Math.abs(relativeMotionValue));
-      } else {
-        const t = 1.0 - this.relativeMotionProgress;
-        relativeMotionSpring = 1.0 - springStep(t);
-        this.relativeMotionProgress = Math.max(0, this.relativeMotionProgress - dt * 0.003);
+    if (relativeMotionValue !== 0) {
+      const t = this.relativeMotionProgress;
+      relativeMotionSpring = springStep(t);
+      this.relativeMotionProgress = Math.min(1, this.relativeMotionProgress + dt * 0.003);
+      this.relativeMotionMaxMagnitude = Math.max(this.relativeMotionMaxMagnitude, Math.abs(relativeMotionValue));
+    } else {
+      const t = 1.0 - this.relativeMotionProgress;
+      relativeMotionSpring = 1.0 - springStep(t);
+      this.relativeMotionProgress = Math.max(0, this.relativeMotionProgress - dt * 0.003);
 
-        if (this.relativeMotionProgress === 0) {
-          this.relativeMotionMaxMagnitude = 0;
-        }
+      if (this.relativeMotionProgress === 0) {
+        this.relativeMotionMaxMagnitude = 0;
       }
     }
 
@@ -408,18 +412,22 @@ AFRAME.registerComponent("ik-controller", {
         if (relativeMotionSpring !== 0) {
           const scaleDXZ = 1.0 + relativeMotionSpring * 0.1 * this.relativeMotionMaxMagnitude;
           const scaleDY = 1.0 - relativeMotionSpring * 0.1 * this.relativeMotionMaxMagnitude;
-          sx = scaleDXZ * feedbackScale;
-          sy = scaleDY * feedbackScale;
-          sz = scaleDXZ * feedbackScale;
+          this.headScale.set(scaleDXZ * feedbackScale, scaleDY * feedbackScale, scaleDXZ * feedbackScale);
         } else {
-          sx = feedbackScale;
-          sy = feedbackScale;
-          sz = feedbackScale;
+          this.headScale.set(feedbackScale, feedbackScale, feedbackScale);
         }
 
-        if (!almostEqual(head.scale.x, sx) || !almostEqual(head.scale.y, sy) || !almostEqual(head.scale.z, sz)) {
-          head.scale.set(sx, sy, sz);
+        if (!almostEqualVec3(head.scale, this.headScale)) {
+          head.scale.copy(this.headScale);
           head.matrixNeedsUpdate = true;
+        }
+      } else {
+        if (relativeMotionSpring !== 0) {
+          const scaleDXZ = 1.0 + relativeMotionSpring * 0.1 * this.relativeMotionMaxMagnitude;
+          const scaleDY = 1.0 - relativeMotionSpring * 0.1 * this.relativeMotionMaxMagnitude;
+          this.headScale.set(scaleDXZ, scaleDY, scaleDXZ);
+        } else {
+          this.headScale.set(1.0, 1.0, 1.0);
         }
       }
     }

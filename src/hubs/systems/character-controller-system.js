@@ -47,6 +47,7 @@ export class CharacterControllerSystem {
     this.shouldLandWhenPossible = false;
     this.lastSeenNavVersion = -1;
     this.relativeMotion = new THREE.Vector3(0, 0, 0);
+    this.relativeMotionValue = 0;
     this.nextRelativeMotion = new THREE.Vector3(0, 0, 0);
     this.dXZ = 0;
     this.movedThisFrame = false;
@@ -200,14 +201,14 @@ export class CharacterControllerSystem {
                 : zCharacterAcceleration)
         );
 
-        if (this.networkedAvatar) {
-          this.networkedAvatar.data.relative_motion =
-            Math.max(Math.abs(characterAcceleration[0]), Math.abs(characterAcceleration[1])) * boost;
-        }
+        this.relativeMotionValue =
+          Math.max(Math.abs(characterAcceleration[0]), Math.abs(characterAcceleration[1])) * boost;
       } else {
-        if (this.networkedAvatar) {
-          this.networkedAvatar.data.relative_motion = 0;
-        }
+        this.relativeMotionValue = 0;
+      }
+
+      if (this.networkedAvatar) {
+        this.networkedAvatar.data.relative_motion = this.relativeMotionValue;
       }
 
       const lerpC = vrMode ? 0 : 0.85; // TODO: To support drifting ("ice skating"), motion needs to keep initial direction

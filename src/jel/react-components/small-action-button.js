@@ -26,6 +26,10 @@ const SmallActionButtonElement = styled.button`
   &:active {
     background-color: var(--action-button-active-background-color);
   }
+
+  &:disabled {
+    opacity: 0.5;
+  }
 `;
 
 const SmallActionButtonIconHolder = styled.div`

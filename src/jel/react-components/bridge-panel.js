@@ -15,6 +15,8 @@ import { useSingleton } from "@tippyjs/react";
 import { getMessages } from "../../hubs/utils/i18n";
 import SmallActionButton from "./small-action-button";
 
+const isFirefox = navigator.userAgent.toLowerCase().indexOf("firefox") > -1;
+
 const BridgePanelElement = styled.div`
   flex: 1 1 auto;
   width: 100%;
@@ -157,22 +159,31 @@ const BridgePanel = ({ scene }) => {
       <Tooltip singleton={tipSource} />
       {!connected && (
         <Connect>
-          <SmallActionButton
-            iconSrc={callOutIcon}
-            onMouseDown={e => cancelEventIfFocusedWithin(e, bridgeStartElement)}
-            ref={setBridgeStartReferenceElement}
-            onClick={() => {
-              updateBridgeStartPopper();
+          {!isFirefox && (
+            <SmallActionButton
+              iconSrc={callOutIcon}
+              onMouseDown={e => cancelEventIfFocusedWithin(e, bridgeStartElement)}
+              ref={setBridgeStartReferenceElement}
+              onClick={() => {
+                updateBridgeStartPopper();
 
-              if (connecting) {
-                toggleFocus(bridgeStartElement);
-              } else {
-                toggleFocus(bridgePopupRef.current);
-              }
-            }}
-          >
-            <FormattedMessage id="nav.connect-zoom" />
-          </SmallActionButton>
+                if (connecting) {
+                  toggleFocus(bridgeStartElement);
+                } else {
+                  toggleFocus(bridgePopupRef.current);
+                }
+              }}
+            >
+              <FormattedMessage id="bridge.connect-zoom" />
+            </SmallActionButton>
+          )}
+          {isFirefox && (
+            <Tooltip content={messages["bridge.firefox-unsupported"]} delay={0} placement="top" key="ff-zoom">
+              <SmallActionButton iconSrc={callOutIcon} style={{ opacity: 0.5 }}>
+                <FormattedMessage id="bridge.connect-zoom" />
+              </SmallActionButton>
+            </Tooltip>
+          )}
         </Connect>
       )}
       {connected && (

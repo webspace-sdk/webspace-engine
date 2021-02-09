@@ -2,7 +2,6 @@
   "nav.space-worlds": "Shared Worlds",
   "nav.private-worlds": "Personal Worlds",
   "nav.create-world": "Create World",
-  "nav.connect-zoom": "Connect to Zoom",
   "nav.empty": "Use \"Create World\" to add your first world.\nOther people can meet you there!",
   "nav.trash": "Trash",
   "nav.invite": "Invite People",
@@ -253,5 +252,7 @@
   "bridge-start.status-failed": "Couldn't join. Check your meeting info.",
   "bridge-start.connect": "Connect",
   "bridge-start.cancel": "Cancel",
-  "bridge.connected-to-zoom": "Connected to Zoom"
+  "bridge.connected-to-zoom": "Connected to Zoom",
+  "bridge.firefox-unsupported": "Not supported in Firefox. Try Chrome or Edge.",
+  "bridge.connect-zoom": "Connect to Zoom"
 }
