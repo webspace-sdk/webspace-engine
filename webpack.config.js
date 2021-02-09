@@ -251,7 +251,7 @@ module.exports = async (env, argv) => {
       support: path.join(__dirname, "src", "hubs", "support.js"),
       index: path.join(__dirname, "src", "jel", "ui", "index.js"),
       jel: path.join(__dirname, "src", "jel.js")
-      // don't build zoom every time
+      // don't build zoom every time to reduce build times
       // zoom: path.join(__dirname, "src", "zoom.js")
     },
     output: {
@@ -494,7 +494,7 @@ module.exports = async (env, argv) => {
           removeComments: false
         }
       }),
-      // don't build zoom every time
+      // don't build zoom every time to reduce build times
       //new HTMLWebpackPlugin({
       //  filename: "zoom.html",
       //  template: path.join(__dirname, "src", "zoom.html"),
