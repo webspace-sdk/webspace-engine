@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { FormattedMessage } from "react-intl";
 import styled from "styled-components";
-import verticalDotsIcon from "../../assets/jel/images/icons/dots-vertical.svgi";
 import { PopupPanelMenuArrow } from "./popup-panel-menu";
 import callOutIcon from "../../assets/jel/images/icons/call-out.svgi";
+import callEndIcon from "../../assets/jel/images/icons/call-end.svgi";
 import DeviceSelectorPopup from "./device-selector-popup";
-import { BigIconButton } from "./icon-button";
+import IconButton from "./icon-button";
 import Tooltip from "./tooltip";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
@@ -15,7 +15,7 @@ import { useSingleton } from "@tippyjs/react";
 import { getMessages } from "../../hubs/utils/i18n";
 import SmallActionButton from "./small-action-button";
 
-const SelfPanelElement = styled.div`
+const BridgePanelElement = styled.div`
   flex: 1 1 auto;
   width: 100%;
   min-height: 60px;
@@ -36,7 +36,7 @@ const SelfName = styled.div`
   justify-content: space-around;
   flex-direction: column;
   align-items: flex-start;
-  margin: 12px 8px;
+  margin: 12px 8px 12px 16px;
   min-width: 0;
 `;
 
@@ -51,6 +51,17 @@ const Connect = styled.div`
   cursor: pointer;
 `;
 
+const IdentityName = styled.div`
+  width: 100%;
+  color: var(--panel-small-banner-text-secondary-color);
+  font-weight: var(--panel-small-banner-text-secondary-weight);
+  font-size: var(--panel-small-banner-text-secondary-size);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+`;
+
 const DisplayName = styled.div`
   width: 100%;
   flex: 0 0 100%;
@@ -60,7 +71,6 @@ const DisplayName = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 4px;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
@@ -100,16 +110,19 @@ const BridgePanel = ({ scene }) => {
   });
 
   const messages = getMessages();
-  const connected = false;
+  const connected = true;
 
   return (
-    <SelfPanelElement>
+    <BridgePanelElement>
       <Tooltip singleton={tipSource} />
       {!connected && (
         <Connect>
           <SmallActionButton
             iconSrc={callOutIcon}
+            ref={setDeviceSelectorReferenceElement}
             onClick={() => {
+              //updateDeviceSelectorPopper();
+              //toggleFocus(deviceSelectorElement);
               console.log("hi");
             }}
           >
@@ -119,21 +132,19 @@ const BridgePanel = ({ scene }) => {
       )}
       {connected && (
         <SelfName>
-          <DisplayName>Connected to meeting</DisplayName>
+          <IdentityName>Connected to Zoom</IdentityName>
+          <DisplayName>3823-2039-2930</DisplayName>
         </SelfName>
       )}
       {connected && (
         <DeviceControls>
-          <Tooltip content={messages["self.select-tip"]} placement="top" key="mute" singleton={tipTarget}>
-            <BigIconButton
+          <Tooltip content={messages["bridge.end-call"]} placement="top" key="mute" singleton={tipTarget}>
+            <IconButton
               style={{ margin: 0 }}
-              iconSrc={verticalDotsIcon}
-              onMouseDown={e => cancelEventIfFocusedWithin(e, deviceSelectorElement)}
+              iconSrc={callEndIcon}
               onClick={() => {
-                updateDeviceSelectorPopper();
-                toggleFocus(deviceSelectorElement);
+                console.log("end call");
               }}
-              ref={setDeviceSelectorReferenceElement}
             />
           </Tooltip>
         </DeviceControls>
@@ -150,7 +161,7 @@ const BridgePanel = ({ scene }) => {
           className={sharedStyles.popperArrow}
         />
       </DeviceSelectorPopup>
-    </SelfPanelElement>
+    </BridgePanelElement>
   );
 };
 

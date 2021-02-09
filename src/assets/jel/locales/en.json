@@ -239,5 +239,6 @@
   "notification-request.turn-on": "Turn on notifications",
   "notification-banner.info": "Want to know when others join you?",
   "notification-banner.notify-on": "Turn on Notifications",
-  "notification-banner.close": "Maybe later"
+  "notification-banner.close": "Maybe later",
+  "bridge.end-call": "Hang up"
 }
