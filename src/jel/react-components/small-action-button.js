@@ -15,7 +15,6 @@ const SmallActionButtonElement = styled.button`
   font-size: var(--small-action-button-text-size);
   padding: 12px 33px;
   min-width: 64px;
-  max-width: 128;
   border-radius: 6px;
   margin: 8px;
   position: relative;

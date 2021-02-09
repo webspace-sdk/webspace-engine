@@ -7,6 +7,7 @@ import Tree from "rc-tree";
 import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
 import SelfPanel from "./self-panel";
+import BridgePanel from "./bridge-panel";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
 import notificationsIcon from "../../assets/jel/images/icons/notifications.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
@@ -613,6 +614,7 @@ function JelSidePanels({
             )}
           />
         </BlasterContent>
+        <BridgePanel scene={scene} />
       </Right>
       <Invite setPopperElement={setInviteElement} styles={inviteStyles} attributes={inviteAttributes}>
         <InvitePanel

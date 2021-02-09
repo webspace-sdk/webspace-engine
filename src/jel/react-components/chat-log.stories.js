@@ -53,7 +53,7 @@ export const ChatLogAdd = () => {
         flexDirection: "column"
       }}
     >
-      <ChatLog entries={entries} />
+      <ChatLog entries={entries} store={window.APP.store} />
       <button
         style={{ position: "fixed", left: "48px", top: "400px", width: "150px" }}
         onClick={() => pushMessage(entries, setEntries)}
