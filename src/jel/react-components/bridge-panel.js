@@ -163,7 +163,12 @@ const BridgePanel = ({ scene }) => {
             ref={setBridgeStartReferenceElement}
             onClick={() => {
               updateBridgeStartPopper();
-              toggleFocus(bridgePopupRef.current);
+
+              if (connecting) {
+                toggleFocus(bridgeStartElement);
+              } else {
+                toggleFocus(bridgePopupRef.current);
+              }
             }}
           >
             <FormattedMessage id="nav.connect-zoom" />
