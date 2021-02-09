@@ -110,7 +110,7 @@ const BridgePanel = ({ scene }) => {
   });
 
   const messages = getMessages();
-  const connected = true;
+  const connected = false;
 
   return (
     <BridgePanelElement>
