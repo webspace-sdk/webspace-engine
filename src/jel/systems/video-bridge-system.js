@@ -58,7 +58,9 @@ export class VideoBridgeSystem {
     }
   }
 
-  async startBridge(type, id, password, width = 640, height = 360, sendInvite = true) {
+  async startBridge(type, id, password, useHD = false, shareInvite = true) {
+    const width = useHD ? 1280 : 640;
+    const height = useHD ? 720 : 360;
     if (this.hasBridge()) return Promise.resolve();
     this.isSettingUpBridge = true;
     this.bridgeId = await toHexDigest(`${type}${id}`);
@@ -81,7 +83,7 @@ export class VideoBridgeSystem {
 
     const name = meta && meta.profile ? meta.profile.displayName : "New Member";
 
-    await new Promise(res => {
+    await new Promise((res, rej) => {
       el.setAttribute("src", `/${type}.html`);
 
       const interval = setInterval(async () => {
@@ -91,21 +93,27 @@ export class VideoBridgeSystem {
 
         let initialMessage = null;
 
-        if (sendInvite) {
+        if (shareInvite) {
           const inviteHubId = !isHomeHub ? hubId : null;
           const inviteUrl = await spaceChannel.createInvite(inviteHubId);
 
           initialMessage = `I'm joining from Jel: ${inviteUrl}`;
         }
 
-        await el.contentWindow.join({
-          apiKey: bridgeInfo.key,
-          meetingNumber: id,
-          password,
-          name,
-          signature: bridgeInfo.secret,
-          initialMessage
-        });
+        try {
+          await el.contentWindow.join({
+            apiKey: bridgeInfo.key,
+            meetingNumber: id,
+            password,
+            name,
+            signature: bridgeInfo.secret,
+            initialMessage
+          });
+        } catch (e) {
+          await this.exitBridge();
+          rej(e);
+          return;
+        }
 
         // Register bridge hash in presence so others can id when in same bridge.
         window.APP.spaceChannel.startBridge(this.bridgeId);

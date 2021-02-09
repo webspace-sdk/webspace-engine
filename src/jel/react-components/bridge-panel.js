@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
 import { FormattedMessage } from "react-intl";
 import styled from "styled-components";
 import { PopupPanelMenuArrow } from "./popup-panel-menu";
 import callOutIcon from "../../assets/jel/images/icons/call-out.svgi";
 import callEndIcon from "../../assets/jel/images/icons/call-end.svgi";
-import DeviceSelectorPopup from "./device-selector-popup";
+import BridgeStartPopup from "./bridge-start-popup";
 import { BigIconButton } from "./icon-button";
 import Tooltip from "./tooltip";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
@@ -30,7 +30,7 @@ const BridgePanelElement = styled.div`
   z-index: 10;
 `;
 
-const SelfName = styled.div`
+const ConnectedPanel = styled.div`
   display: flex;
   flex: 1 1;
   justify-content: space-around;
@@ -51,7 +51,7 @@ const Connect = styled.div`
   cursor: pointer;
 `;
 
-const IdentityName = styled.div`
+const ConnectedTitle = styled.div`
   width: 100%;
   color: var(--panel-small-banner-text-secondary-color);
   font-weight: var(--panel-small-banner-text-secondary-weight);
@@ -62,7 +62,7 @@ const IdentityName = styled.div`
   margin-bottom: 4px;
 `;
 
-const DisplayName = styled.div`
+const ConnectedInfo = styled.div`
   width: 100%;
   flex: 0 0 100%;
   color: var(--panel-small-banner-text-color);
@@ -77,7 +77,7 @@ const DisplayName = styled.div`
   align-items: center;
 `;
 
-const DeviceControls = styled.div`
+const BridgeControls = styled.div`
   display: flex;
   margin-right: 18px;
   flex: 0 0 fit-content;
@@ -85,32 +85,60 @@ const DeviceControls = styled.div`
 
 const BridgePanel = ({ scene }) => {
   const [tipSource, tipTarget] = useSingleton();
-  const [deviceSelectorReferenceElement, setDeviceSelectorReferenceElement] = useState(null);
-  const [deviceSelectorElement, setDeviceSelectorElement] = useState(null);
-  const [deviceSelectorArrowElement, setDeviceSelectorArrowElement] = useState(null);
+  const [bridgeStartReferenceElement, setBridgeStartReferenceElement] = useState(null);
+  const [bridgeStartElement, setBridgeStartElement] = useState(null);
+  const [bridgeStartArrowElement, setBridgeStartArrowElement] = useState(null);
+  const [meetingId, setMeetingId] = useState("");
+  const [connecting, setConnecting] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const bridgePopupRef = useRef();
 
-  const {
-    styles: deviceSelectorStyles,
-    attributes: deviceSelectorAttributes,
-    update: updateDeviceSelectorPopper
-  } = usePopper(deviceSelectorReferenceElement, deviceSelectorElement, {
-    placement: "top",
-    modifiers: [
-      {
-        name: "offset",
-        options: {
-          offset: [0, 28]
+  const { styles: bridgeStartStyles, attributes: bridgeStartAttributes, update: updateBridgeStartPopper } = usePopper(
+    bridgeStartReferenceElement,
+    bridgeStartElement,
+    {
+      placement: "top-end",
+      modifiers: [
+        {
+          name: "offset",
+          options: {
+            offset: [0, 28]
+          }
+        },
+        {
+          name: "arrow",
+          options: { element: bridgeStartArrowElement }
         }
-      },
-      {
-        name: "arrow",
-        options: { element: deviceSelectorArrowElement }
-      }
-    ]
-  });
+      ]
+    }
+  );
 
   const messages = getMessages();
-  const connected = false;
+
+  const onConnect = useCallback(
+    async (meetingId, meetingPassword, useHD, shareInvite) => {
+      bridgeStartElement.focus(); // Keep panel open
+      setConnecting(true);
+      setConnected(false);
+      setFailed(false);
+
+      const formattedMeetingId = `${meetingId.substring(0, 3)} ${meetingId.substring(4, 8)} ${meetingId.substring(7)}`;
+
+      try {
+        await SYSTEMS.videoBridgeSystem.startBridge("zoom", meetingId, meetingPassword, useHD, shareInvite);
+        setConnected(true);
+        setConnecting(false);
+        setMeetingId(formattedMeetingId);
+      } catch (e) {
+        bridgeStartElement.focus(); // Keep panel open
+        setConnected(false);
+        setConnecting(false);
+        setFailed(true);
+      }
+    },
+    [bridgeStartElement, setConnected, setFailed, setConnecting, setMeetingId]
+  );
 
   return (
     <BridgePanelElement>
@@ -119,11 +147,11 @@ const BridgePanel = ({ scene }) => {
         <Connect>
           <SmallActionButton
             iconSrc={callOutIcon}
-            ref={setDeviceSelectorReferenceElement}
+            onMouseDown={e => cancelEventIfFocusedWithin(e, bridgeStartElement)}
+            ref={setBridgeStartReferenceElement}
             onClick={() => {
-              //updateDeviceSelectorPopper();
-              //toggleFocus(deviceSelectorElement);
-              console.log("hi");
+              updateBridgeStartPopper();
+              toggleFocus(bridgePopupRef.current);
             }}
           >
             <FormattedMessage id="nav.connect-zoom" />
@@ -131,37 +159,46 @@ const BridgePanel = ({ scene }) => {
         </Connect>
       )}
       {connected && (
-        <SelfName>
-          <IdentityName>Connected to Zoom</IdentityName>
-          <DisplayName>3823-2039-2930</DisplayName>
-        </SelfName>
+        <ConnectedPanel>
+          <ConnectedTitle>
+            <FormattedMessage id="bridge.connected-to-zoom" />
+          </ConnectedTitle>
+          <ConnectedInfo>{meetingId}</ConnectedInfo>
+        </ConnectedPanel>
       )}
       {connected && (
-        <DeviceControls>
+        <BridgeControls>
           <Tooltip content={messages["bridge.end-call"]} placement="top" key="mute" singleton={tipTarget}>
             <BigIconButton
               style={{ margin: 0 }}
               smallIcon={true}
               iconSrc={callEndIcon}
               onClick={() => {
-                console.log("end call");
+                SYSTEMS.videoBridgeSystem.exitBridge();
+                setConnected(false);
+                setFailed(false);
+                setConnecting(false);
               }}
             />
           </Tooltip>
-        </DeviceControls>
+        </BridgeControls>
       )}
-      <DeviceSelectorPopup
+      <BridgeStartPopup
         scene={scene}
-        setPopperElement={setDeviceSelectorElement}
-        styles={deviceSelectorStyles}
-        attributes={deviceSelectorAttributes}
+        ref={bridgePopupRef}
+        setPopperElement={setBridgeStartElement}
+        styles={bridgeStartStyles}
+        attributes={bridgeStartAttributes}
+        onConnect={onConnect}
+        connecting={connecting}
+        failed={failed}
       >
         <PopupPanelMenuArrow
-          ref={setDeviceSelectorArrowElement}
-          style={deviceSelectorStyles.arrow}
+          ref={setBridgeStartArrowElement}
+          style={bridgeStartStyles.arrow}
           className={sharedStyles.popperArrow}
         />
-      </DeviceSelectorPopup>
+      </BridgeStartPopup>
     </BridgePanelElement>
   );
 };
