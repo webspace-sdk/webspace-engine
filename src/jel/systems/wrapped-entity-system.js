@@ -77,7 +77,8 @@ export class WrappedEntitySystem {
     this.frame = 0;
 
     this.objs = [];
-    this.newObjs = [];
+    this.forceWrapNextFrameObjs = [];
+    this.handleOwnershipChanged = this.handleOwnershipChanged.bind(this);
 
     waitForDOMContentLoaded().then(() => {
       this.avatarPovEl = document.getElementById("avatar-pov-node");
@@ -93,7 +94,11 @@ export class WrappedEntitySystem {
     if (this.objs.includes(obj)) return;
 
     this.objs.push(obj);
-    this.newObjs.push(obj);
+    this.forceWrapNextFrameObjs.push(obj);
+
+    if (elOrObj.addEventListener) {
+      elOrObj.addEventListener("ownership-changed", this.handleOwnershipChanged);
+    }
   }
 
   unregister(elOrObj) {
@@ -105,10 +110,24 @@ export class WrappedEntitySystem {
       this.objs.splice(i, 1);
     }
 
-    i = this.newObjs.indexOf(obj);
+    i = this.forceWrapNextFrameObjs.indexOf(obj);
 
     if (i >= 0) {
-      this.newObjs.splice(i, 1);
+      this.forceWrapNextFrameObjs.splice(i, 1);
+    }
+
+    if (elOrObj.removeEventListener) {
+      elOrObj.removeEventListener("ownership-changed", this.handleOwnershipChanged);
+    }
+  }
+
+  handleOwnershipChanged({ detail: { el } }) {
+    const obj = el.object3D;
+
+    // When ownership changes, the other user may have pulled it to another part of the world,
+    // so we need to re-wrap it.
+    if (!this.forceWrapNextFrameObjs.includes(obj)) {
+      this.forceWrapNextFrameObjs.push(obj);
     }
   }
 
@@ -146,8 +165,8 @@ export class WrappedEntitySystem {
       } else {
         // Handle immediately all new elements so there's no latency on initial
         // wrap state.
-        for (let i = 0; i < this.newObjs.length; i++) {
-          const obj = this.newObjs[i];
+        for (let i = 0; i < this.forceWrapNextFrameObjs.length; i++) {
+          const obj = this.forceWrapNextFrameObjs[i];
           this.moveObjForWrap(obj, ax, az);
         }
 
@@ -156,8 +175,8 @@ export class WrappedEntitySystem {
         this.moveObjForWrap(obj, ax, az);
       }
 
-      if (this.newObjs.length > 0) {
-        this.newObjs.length = 0;
+      if (this.forceWrapNextFrameObjs.length > 0) {
+        this.forceWrapNextFrameObjs.length = 0;
       }
     };
   })();
