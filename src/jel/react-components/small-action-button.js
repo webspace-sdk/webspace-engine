@@ -18,6 +18,7 @@ const SmallActionButtonElement = styled.button`
   border-radius: 6px;
   margin: 8px;
   position: relative;
+  white-space: nowrap;
 
   &:hover {
     background-color: var(--action-button-hover-background-color);

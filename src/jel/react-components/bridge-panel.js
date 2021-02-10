@@ -85,7 +85,7 @@ const BridgeControls = styled.div`
   flex: 0 0 fit-content;
 `;
 
-const BridgePanel = ({ scene }) => {
+const BridgePanel = ({ scene, spaceCan }) => {
   const [tipSource, tipTarget] = useSingleton();
   const [bridgeStartReferenceElement, setBridgeStartReferenceElement] = useState(null);
   const [bridgeStartElement, setBridgeStartElement] = useState(null);
@@ -221,6 +221,7 @@ const BridgePanel = ({ scene }) => {
         onCancel={onCancel}
         connecting={connecting}
         failed={failed}
+        allowInvite={spaceCan("create_invite")}
       >
         <PopupPanelMenuArrow
           ref={setBridgeStartArrowElement}
@@ -233,7 +234,8 @@ const BridgePanel = ({ scene }) => {
 };
 
 BridgePanel.propTypes = {
-  scene: PropTypes.object
+  scene: PropTypes.object,
+  spaceCan: PropTypes.func
 };
 
 export { BridgePanel as default };

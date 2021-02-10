@@ -614,7 +614,7 @@ function JelSidePanels({
             )}
           />
         </BlasterContent>
-        <BridgePanel scene={scene} />
+        <BridgePanel scene={scene} spaceCan={spaceCan} />
       </Right>
       <Invite setPopperElement={setInviteElement} styles={inviteStyles} attributes={inviteAttributes}>
         <InvitePanel

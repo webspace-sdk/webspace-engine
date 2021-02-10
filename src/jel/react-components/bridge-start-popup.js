@@ -25,7 +25,7 @@ const Footer = styled.div`
 `;
 
 const BridgeStartPopup = forwardRef(
-  ({ setPopperElement, styles, attributes, onConnect, onCancel, children, connecting, failed }, ref) => {
+  ({ setPopperElement, styles, attributes, onConnect, onCancel, children, connecting, failed, allowInvite }, ref) => {
     const messages = getMessages();
     const [meetingId, setMeetingId] = useState("");
     const [password, setPassword] = useState("");
@@ -56,7 +56,7 @@ const BridgeStartPopup = forwardRef(
                 e.preventDefault();
                 e.stopPropagation();
 
-                onConnect(meetingId.replaceAll(" ", ""), password, useHD, shareInvite);
+                onConnect(meetingId.replaceAll(" ", ""), password, useHD, allowInvite && shareInvite);
               }}
             >
               <TextInputWrap>
@@ -97,22 +97,24 @@ const BridgeStartPopup = forwardRef(
                   }}
                 />
               </TextInputWrap>
-              <InputWrap>
-                <Checkbox
-                  type="checkbox"
-                  id="share_invite"
-                  name="share_invite"
-                  disabled={connecting}
-                  checked={shareInvite}
-                  onChange={e => {
-                    const shareInvite = e.target.checked;
-                    setShareInvite(shareInvite);
-                  }}
-                />
-                <Label htmlFor="share_invite" style={{ cursor: "pointer" }}>
-                  <FormattedMessage id="bridge-start.share-invite" />
-                </Label>
-              </InputWrap>
+              {allowInvite && (
+                <InputWrap>
+                  <Checkbox
+                    type="checkbox"
+                    id="share_invite"
+                    name="share_invite"
+                    disabled={connecting}
+                    checked={shareInvite}
+                    onChange={e => {
+                      const shareInvite = e.target.checked;
+                      setShareInvite(shareInvite);
+                    }}
+                  />
+                  <Label htmlFor="share_invite" style={{ cursor: "pointer" }}>
+                    <FormattedMessage id="bridge-start.share-invite" />
+                  </Label>
+                </InputWrap>
+              )}
               <InputWrap>
                 <Checkbox
                   type="checkbox"
@@ -179,6 +181,7 @@ BridgeStartPopup.propTypes = {
   failed: PropTypes.bool,
   setPopperElement: PropTypes.func,
   styles: PropTypes.object,
+  allowInvite: PropTypes.bool,
   attributes: PropTypes.object,
   children: PropTypes.object
 };
