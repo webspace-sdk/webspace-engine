@@ -695,6 +695,7 @@ function setupNonVisibleHandler(scene) {
       if (document.visibilityState === "visible") {
         scene.pause();
         scene.renderer.animation.stop();
+        SYSTEMS.externalCameraSystem.stopRendering();
       }
 
       document.body.classList.add("paused");
@@ -703,8 +704,15 @@ function setupNonVisibleHandler(scene) {
       accountChannel.setInactive();
     } else {
       if (document.visibilityState === "visible") {
+        // Hacky. On some platforms GL context needs to be explicitly restored. So do it.
+        // This really shouldn't be necessary :P
+        if (scene.renderer.getContext().isContextLost()) {
+          scene.renderer.forceContextRestore();
+        }
+
         scene.play();
         scene.renderer.animation.start();
+        SYSTEMS.externalCameraSystem.startRendering();
         autoQuality.startTracking();
       }
 

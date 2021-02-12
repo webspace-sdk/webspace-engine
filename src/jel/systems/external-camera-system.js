@@ -242,4 +242,21 @@ export class ExternalCameraSystem {
 
     wrappedEntitySystem.moveObjForWrap(camera);
   }
+
+  stopRendering() {
+    if (!this.renderer) return;
+    this.renderer.animation.stop();
+  }
+
+  startRendering() {
+    if (!this.renderer) return;
+
+    // Hacky. On some platforms GL context needs to be explicitly restored. So do it.
+    // This really shouldn't be necessary :P
+    if (this.renderer.getContext().isContextLost()) {
+      this.renderer.forceContextRestore();
+    }
+
+    this.renderer.animation.start();
+  }
 }
