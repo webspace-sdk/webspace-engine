@@ -521,7 +521,12 @@ AFRAME.registerComponent("media-video", {
     if (!hasLayer || shouldUpdateSrc) {
       const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
       const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
-      this.setMediaPresence(newMediaPresence, shouldUpdateSrc);
+      const currentPresence = mediaPresenceSystem.getMediaPresence(this);
+
+      if (currentPresence !== newMediaPresence || shouldUpdateSrc) {
+        this.setMediaPresence(newMediaPresence, shouldUpdateSrc);
+      }
+
       return;
     }
 

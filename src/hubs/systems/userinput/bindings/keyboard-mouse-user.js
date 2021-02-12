@@ -69,10 +69,10 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
-        w: paths.device.keyboard.key("w"),
-        a: paths.device.keyboard.key("a"),
-        s: paths.device.keyboard.key("s"),
-        d: paths.device.keyboard.key("d")
+        w: paths.device.keyboard.code("keyw"),
+        a: paths.device.keyboard.code("keya"),
+        s: paths.device.keyboard.code("keys"),
+        d: paths.device.keyboard.code("keyd")
       },
       dest: { vec2: wasd_vec2 },
       xform: xforms.wasd_to_vec2
@@ -151,7 +151,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: {
         bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("m")
+        value: paths.device.keyboard.code("keym")
       },
       dest: { value: controlM },
       priority: 1001,
@@ -168,7 +168,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
-        value: paths.device.keyboard.key("l")
+        value: paths.device.keyboard.code("keyl")
       },
       dest: {
         value: paths.actions.logDebugFrame
@@ -177,7 +177,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
-        value: paths.device.keyboard.key("k")
+        value: paths.device.keyboard.code("keyk")
       },
       dest: {
         value: paths.actions.logInteractionState
@@ -194,24 +194,24 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("r") },
+      src: { value: paths.device.keyboard.code("keyr") },
       dest: { value: paths.actions.mediaTransformReleaseAction },
       xform: xforms.falling
     },
     {
-      src: { value: paths.device.keyboard.key("v") },
+      src: { value: paths.device.keyboard.code("keyv") },
       dest: { value: paths.actions.mediaScaleReleaseAction },
       xform: xforms.falling
     },
     {
-      src: { value: paths.device.keyboard.key("/") },
+      src: { value: paths.device.keyboard.code("slash") },
       dest: { value: paths.actions.create },
       xform: xforms.rising
     },
     {
       src: {
         bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("1")
+        value: paths.device.keyboard.code("digit1")
       },
       dest: { value: "/var/control+1" },
       xform: xforms.copyIfTrue,
@@ -225,7 +225,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: {
         bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("2")
+        value: paths.device.keyboard.code("digit2")
       },
       dest: { value: "/var/control+2" },
       xform: xforms.copyIfTrue,
@@ -239,7 +239,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: {
         bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("3")
+        value: paths.device.keyboard.code("digit3")
       },
       dest: { value: "/var/control+3" },
       xform: xforms.copyIfTrue,
@@ -253,7 +253,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: {
         bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("4")
+        value: paths.device.keyboard.code("digit4")
       },
       dest: { value: "/var/control+4" },
       xform: xforms.copyIfTrue,
@@ -267,7 +267,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: {
         bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("5")
+        value: paths.device.keyboard.code("digit5")
       },
       dest: { value: "/var/control+5" },
       xform: xforms.copyIfTrue,
@@ -281,7 +281,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: {
         bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("6")
+        value: paths.device.keyboard.code("digit6")
       },
       dest: { value: "/var/control+6" },
       xform: xforms.copyIfTrue,
@@ -295,7 +295,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: {
         bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("7")
+        value: paths.device.keyboard.code("digit7")
       },
       dest: { value: "/var/control+7" },
       xform: xforms.copyIfTrue,
@@ -309,7 +309,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: {
         bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("8")
+        value: paths.device.keyboard.code("digit8")
       },
       dest: { value: "/var/control+8" },
       xform: xforms.copyIfTrue,
@@ -323,7 +323,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: {
         bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("9")
+        value: paths.device.keyboard.code("digit9")
       },
       dest: { value: "/var/control+9" },
       xform: xforms.copyIfTrue,
@@ -337,7 +337,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: {
         bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("0")
+        value: paths.device.keyboard.code("digit0")
       },
       dest: { value: "/var/control+0" },
       xform: xforms.copyIfTrue,
@@ -418,7 +418,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: {
         bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key("z")
+        value: paths.device.keyboard.code("keyz")
       },
       dest: { value: paths.actions.cursor.right.undoDrawing },
       priority: 1001,
@@ -505,12 +505,12 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 2
     },
     {
-      src: { value: paths.device.keyboard.key("q") },
+      src: { value: paths.device.keyboard.code("keyq") },
       dest: { value: paths.actions.prevGuidePlaneMode },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("e") },
+      src: { value: paths.device.keyboard.code("keye") },
       dest: { value: paths.actions.nextGuidePlaneMode },
       xform: xforms.rising
     },
@@ -555,7 +555,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
-      src: { value: paths.device.keyboard.key("f") },
+      src: { value: paths.device.keyboard.code("keyf") },
       dest: { value: startInspectingViaKeyboard },
       xform: xforms.rising,
       priority: 200
@@ -573,7 +573,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
-      src: { value: paths.device.keyboard.key("o") },
+      src: { value: paths.device.keyboard.code("keyo") },
       dest: { value: paths.actions.mediaOpenAction },
       xform: xforms.rising,
       priority: 201
@@ -597,47 +597,47 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 400
     },
     {
-      src: { value: paths.device.keyboard.key("q") },
+      src: { value: paths.device.keyboard.code("keyq") },
       dest: { value: paths.actions.mediaBackAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("e") },
+      src: { value: paths.device.keyboard.code("keye") },
       dest: { value: paths.actions.mediaNextAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("t") },
+      src: { value: paths.device.keyboard.code("keyt") },
       dest: { value: paths.actions.mediaUpAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("g") },
+      src: { value: paths.device.keyboard.code("keyg") },
       dest: { value: paths.actions.mediaDownAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("b") },
+      src: { value: paths.device.keyboard.code("keyb") },
       dest: { value: paths.actions.mediaSnapshotAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("r") },
+      src: { value: paths.device.keyboard.code("keyr") },
       dest: { value: paths.actions.mediaRotateAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("v") },
+      src: { value: paths.device.keyboard.code("keyv") },
       dest: { value: paths.actions.mediaScaleAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("x") },
+      src: { value: paths.device.keyboard.code("keyx") },
       dest: { value: paths.actions.mediaRemoveAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("c") },
+      src: { value: paths.device.keyboard.code("keyc") },
       dest: { value: paths.actions.mediaCloneAction },
       xform: xforms.rising
     },
@@ -662,53 +662,53 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
-      src: { value: paths.device.keyboard.key("o") },
+      src: { value: paths.device.keyboard.code("keyo") },
       dest: { value: paths.actions.mediaOpenAction },
       xform: xforms.rising,
       priority: 201
     },
     {
-      src: { value: paths.device.keyboard.key("q") },
+      src: { value: paths.device.keyboard.code("keyq") },
       dest: { value: paths.actions.mediaBackAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("e") },
+      src: { value: paths.device.keyboard.code("keye") },
       dest: { value: paths.actions.mediaNextAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("b") },
+      src: { value: paths.device.keyboard.code("keyb") },
       dest: { value: paths.actions.mediaSnapshotAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("t") },
+      src: { value: paths.device.keyboard.code("keyt") },
       dest: { value: paths.actions.mediaUpAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("g") },
+      src: { value: paths.device.keyboard.code("keyg") },
       dest: { value: paths.actions.mediaDownAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("r") },
+      src: { value: paths.device.keyboard.code("keyr") },
       dest: { value: paths.actions.mediaRotateAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("v") },
+      src: { value: paths.device.keyboard.code("keyv") },
       dest: { value: paths.actions.mediaScaleAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("x") },
+      src: { value: paths.device.keyboard.code("keyx") },
       dest: { value: paths.actions.mediaRemoveAction },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("c") },
+      src: { value: paths.device.keyboard.code("keyc") },
       dest: { value: paths.actions.mediaCloneAction },
       xform: xforms.rising
     }
@@ -737,12 +737,12 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: [
-        paths.device.keyboard.key("w"),
-        paths.device.keyboard.key("a"),
-        paths.device.keyboard.key("s"),
-        paths.device.keyboard.key("d"),
-        paths.device.keyboard.key("q"),
-        paths.device.keyboard.key("e"),
+        paths.device.keyboard.code("keyw"),
+        paths.device.keyboard.code("keya"),
+        paths.device.keyboard.code("keys"),
+        paths.device.keyboard.code("keyd"),
+        paths.device.keyboard.code("keyq"),
+        paths.device.keyboard.code("keye"),
         k("space-rising")
       ],
       dest: { value: stopInspectingViaKeyboardEscape },
@@ -770,7 +770,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.scale(0.001)
     },
     {
-      src: { value: paths.device.keyboard.key("f") },
+      src: { value: paths.device.keyboard.code("keyf") },
       dest: { value: stopInspectingViaKeyboardFocusRelease },
       xform: xforms.falling
     },
@@ -782,12 +782,12 @@ export const keyboardMouseUserBindings = addSetsToBindings({
   ],
   [sets.transforming]: [
     {
-      src: { value: paths.device.keyboard.key("q") },
+      src: { value: paths.device.keyboard.code("keyq") },
       dest: { value: paths.actions.prevGuidePlaneMode },
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.key("e") },
+      src: { value: paths.device.keyboard.code("keye") },
       dest: { value: paths.actions.nextGuidePlaneMode },
       xform: xforms.rising
     },
@@ -806,7 +806,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
   ],
   [sets.debugUserInput]: [
     {
-      src: { value: paths.device.keyboard.key("m") },
+      src: { value: paths.device.keyboard.code("keym") },
       dest: { value: paths.actions.debugUserInput.describeCurrentMasks },
       xform: xforms.rising,
       priority: 10
