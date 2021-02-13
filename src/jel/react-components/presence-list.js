@@ -29,8 +29,6 @@ const PresenceListMemberItemElement = styled.div`
   display: flex;
   justify-content: flex-start;
   margin-left: 24px;
-  pointer-events: auto;
-  cursor: pointer;
 
   &:hover .show-on-hover {
     display: flex;
@@ -151,7 +149,7 @@ const PresenceListMemberItem = forwardRef((props, ref) => {
   const {
     onGoToUserClicked: onGoToUserClicked,
     sessionId,
-    isSelf,
+    allowJumpTo,
     meta: {
       profile: {
         displayName,
@@ -174,7 +172,7 @@ const PresenceListMemberItem = forwardRef((props, ref) => {
       <MemberName>
         <MemberNameText>{displayName}</MemberNameText>
       </MemberName>
-      {!isSelf && (
+      {allowJumpTo && (
         <MemberActionButtonWrap className="show-on-hover">
           <TinyActionButton onClick={() => onGoToUserClicked(sessionId)}>
             <FormattedMessage id="presence-list.go-to-avatar" />
@@ -189,7 +187,7 @@ PresenceListMemberItem.displayName = "PresenceListMemberItem";
 PresenceListMemberItem.propTypes = {
   meta: PropTypes.object,
   sessionId: PropTypes.string,
-  isSelf: PropTypes.bool,
+  allowJumpTo: PropTypes.bool,
   onGoToUserClicked: PropTypes.func
 };
 
@@ -237,28 +235,28 @@ const ListWrap = styled.div`
   height: 100%;
 `;
 
-function buildData(setData, sessionId, hubCan) {
+function buildData(setData, currentSessionId, hubCan) {
   const otherHubIdsToSessionMetas = new Map();
   const data = [];
   const spacePresences = (window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state) || {};
 
-  let hubId = null;
+  let currentHubId = null;
 
-  if (spacePresences[sessionId]) {
-    const metas = spacePresences[sessionId].metas;
-    hubId = metas[metas.length - 1].hub_id;
+  if (spacePresences[currentSessionId]) {
+    const metas = spacePresences[currentSessionId].metas;
+    currentHubId = metas[metas.length - 1].hub_id;
   }
 
   for (const [sessionId, presence] of Object.entries(spacePresences)) {
     const meta = presence.metas[presence.metas.length - 1];
     const metaHubId = meta.hub_id;
 
-    if (metaHubId === hubId) {
+    if (metaHubId === currentHubId) {
       if (data.length === 0) {
         data.push({ key: "this-header", messageId: "presence-list.this-header", type: "header" });
       }
 
-      data.push({ key: sessionId, meta, type: "member" });
+      data.push({ key: sessionId, meta, type: "member", allowJumpTo: sessionId !== currentSessionId });
     } else {
       if (hubCan("join_hub", metaHubId)) {
         if (!otherHubIdsToSessionMetas.has(metaHubId)) {
@@ -279,7 +277,7 @@ function buildData(setData, sessionId, hubCan) {
 
       const sessionIdAndMetas = otherHubIdsToSessionMetas.get(hubId);
       for (let i = 0; i < sessionIdAndMetas.length; i += 2) {
-        data.push({ key: sessionIdAndMetas[i], meta: sessionIdAndMetas[i + 1], type: "member" });
+        data.push({ key: sessionIdAndMetas[i], meta: sessionIdAndMetas[i + 1], type: "member", allowJumpTo: false });
       }
     }
   }
@@ -336,7 +334,6 @@ function PresenceList({ scene, sessionId, hubMetadata, onGoToUserClicked, onGoTo
               return (
                 <PresenceListMemberItem
                   sessionId={item.key}
-                  isSelf={item.key === sessionId}
                   onGoToUserClicked={onGoToUserClicked}
                   {...item}
                   {...props}
