@@ -85,6 +85,25 @@ const spacePresences = {
         }
       }
     ]
+  },
+  "a929d0df-eb53-4bed-aa22-b87c67f1ab28": {
+    metas: [
+      {
+        context: { mobile: false },
+        hub_id: "jdF66eU",
+        phx_ref: "zwpayVlnoss=",
+        phx_ref_prev: "gPBE+aGTTbM=",
+        presence: "room",
+        profile: {
+          avatarId: "https://hubs.local:8080/hubs/assets/models/DefaultAvatar-dc6216902968b75a81ab6df90fb07bb3.glb",
+          displayName: "Another Person",
+          identityName: "GregFodor#002",
+          persona: {
+            avatar: { primary_color: { b: 0.09019607843137255, g: 0.09019607843137255, r: 0.7333333333333333 } }
+          }
+        }
+      }
+    ]
   }
 };
 
@@ -106,7 +125,8 @@ export const Normal = () => {
         hubMetadata={metadata}
         hubCan={() => true}
         sessionId={"d929d0df-eb53-4bed-aa22-b87c67f1ab28"}
-        onGoToClicked={hubId => console.log(hubId)}
+        onGoToHubClicked={hubId => console.log(hubId)}
+        onGoToUserClicked={sessionId => console.log(sessionId)}
       />
     </div>
   );

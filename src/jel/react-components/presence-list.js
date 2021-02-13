@@ -12,6 +12,7 @@ import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 import goToIcon from "../../assets/jel/images/icons/go-to.svgi";
 import Tooltip from "./tooltip";
 import { getMessages } from "../../hubs/utils/i18n";
+import TinyActionButton from "./tiny-action-button";
 
 const AvatarElement = styled.div`
   width: 58px;
@@ -28,6 +29,12 @@ const PresenceListMemberItemElement = styled.div`
   display: flex;
   justify-content: flex-start;
   margin-left: 24px;
+  pointer-events: auto;
+  cursor: pointer;
+
+  &:hover .show-on-hover {
+    display: flex;
+  }
 `;
 
 const PresenceListHubItemElement = styled.div`
@@ -109,6 +116,15 @@ const MemberNameText = styled.div`
   line-height: 22px;
 `;
 
+const MemberActionButtonWrap = styled.div`
+  display: flex;
+  min-width: 64px;
+  align-items: center;
+  justify-content: center;
+  display: none;
+  margin-right: 8px;
+`;
+
 const PresenceListHubVisitButtonIcon = styled.div`
   width: 18px;
   height: 18px;
@@ -131,43 +147,53 @@ const AvatarSwatchMouth = styled.img`
   height: 42px;
 `;
 
-const PresenceListMemberItem = forwardRef(
-  (
-    {
-      meta: {
-        profile: {
-          displayName,
-          persona: {
-            avatar: {
-              primary_color: { r, g, b }
-            }
+const PresenceListMemberItem = forwardRef((props, ref) => {
+  const {
+    onGoToUserClicked: onGoToUserClicked,
+    sessionId,
+    isSelf,
+    meta: {
+      profile: {
+        displayName,
+        persona: {
+          avatar: {
+            primary_color: { r, g, b }
           }
         }
       }
-    },
-    ref
-  ) => {
-    return (
-      <PresenceListMemberItemElement style={{ height: "58px" }} ref={ref}>
-        <AvatarElement style={{ color: `rgb(${rgbToCssRgb(r)}, ${rgbToCssRgb(g)}, ${rgbToCssRgb(b)})` }}>
-          <AvatarSwatchBody />
-          <AvatarSwatchEyes style={{ visibility: "visible" }} src={AvatarSwatchEyeSrcs[0]} />
-          <AvatarSwatchMouth style={{ visibility: "visible" }} src={AvatarSwatchVisemeSrcs[0]} />
-        </AvatarElement>
-        <MemberName>
-          <MemberNameText>{displayName}</MemberNameText>
-        </MemberName>
-      </PresenceListMemberItemElement>
-    );
-  }
-);
+    }
+  } = props;
+
+  return (
+    <PresenceListMemberItemElement style={{ height: "58px" }} ref={ref}>
+      <AvatarElement style={{ color: `rgb(${rgbToCssRgb(r)}, ${rgbToCssRgb(g)}, ${rgbToCssRgb(b)})` }}>
+        <AvatarSwatchBody />
+        <AvatarSwatchEyes style={{ visibility: "visible" }} src={AvatarSwatchEyeSrcs[0]} />
+        <AvatarSwatchMouth style={{ visibility: "visible" }} src={AvatarSwatchVisemeSrcs[0]} />
+      </AvatarElement>
+      <MemberName>
+        <MemberNameText>{displayName}</MemberNameText>
+      </MemberName>
+      {!isSelf && (
+        <MemberActionButtonWrap className="show-on-hover">
+          <TinyActionButton onClick={() => onGoToUserClicked(sessionId)}>
+            <FormattedMessage id="presence-list.go-to-avatar" />
+          </TinyActionButton>
+        </MemberActionButtonWrap>
+      )}
+    </PresenceListMemberItemElement>
+  );
+});
 
 PresenceListMemberItem.displayName = "PresenceListMemberItem";
 PresenceListMemberItem.propTypes = {
-  meta: PropTypes.object
+  meta: PropTypes.object,
+  sessionId: PropTypes.string,
+  isSelf: PropTypes.bool,
+  onGoToUserClicked: PropTypes.func
 };
 
-const PresenceListHubItem = forwardRef(({ hubId, hubMetadata, onGoToClicked }, ref) => {
+const PresenceListHubItem = forwardRef(({ hubId, hubMetadata, onGoToHubClicked }, ref) => {
   const [name, setName] = useState("");
 
   useNameUpdateFromMetadata(hubId, hubMetadata, setName);
@@ -179,7 +205,7 @@ const PresenceListHubItem = forwardRef(({ hubId, hubMetadata, onGoToClicked }, r
         <PresenceListHubNameText>{name}</PresenceListHubNameText>
       </PresenceListHubName>
       <Tooltip content={messages["presence-list.go-to-world"]} placement="top-end" delay={500}>
-        <PresenceListHubVisitButton onClick={() => onGoToClicked(hubId)}>
+        <PresenceListHubVisitButton onClick={() => onGoToHubClicked(hubId)}>
           <PresenceListHubVisitButtonIcon dangerouslySetInnerHTML={{ __html: goToIcon }} />
         </PresenceListHubVisitButton>
       </Tooltip>
@@ -191,7 +217,7 @@ PresenceListHubItem.displayName = "PresenceListHubItem";
 PresenceListHubItem.propTypes = {
   hubId: PropTypes.string,
   hubMetadata: PropTypes.object,
-  onGoToClicked: PropTypes.func
+  onGoToHubClicked: PropTypes.func
 };
 
 const PresenceListHeader = forwardRef(({ messageId }, ref) => {
@@ -261,7 +287,7 @@ function buildData(setData, sessionId, hubCan) {
   setData(data);
 }
 
-function PresenceList({ scene, sessionId, hubMetadata, onGoToClicked, hubCan }) {
+function PresenceList({ scene, sessionId, hubMetadata, onGoToUserClicked, onGoToHubClicked, hubCan }) {
   const [height, setHeight] = useState(100);
   const outerRef = useRef();
   const [data, setData] = useState([]);
@@ -307,16 +333,29 @@ function PresenceList({ scene, sessionId, hubMetadata, onGoToClicked, hubCan }) 
         {useCallback(
           (item, _, props) => {
             if (item.type === "member") {
-              return <PresenceListMemberItem {...item} {...props} />;
+              return (
+                <PresenceListMemberItem
+                  sessionId={item.key}
+                  isSelf={item.key === sessionId}
+                  onGoToUserClicked={onGoToUserClicked}
+                  {...item}
+                  {...props}
+                />
+              );
             } else if (item.type === "hub") {
               return (
-                <PresenceListHubItem {...item} {...props} hubMetadata={hubMetadata} onGoToClicked={onGoToClicked} />
+                <PresenceListHubItem
+                  {...item}
+                  {...props}
+                  hubMetadata={hubMetadata}
+                  onGoToHubClicked={onGoToHubClicked}
+                />
               );
             } else if (item.type === "header") {
               return <PresenceListHeader {...item} {...props} />;
             }
           },
-          [hubMetadata, onGoToClicked]
+          [hubMetadata, onGoToUserClicked, onGoToHubClicked]
         )}
       </List>
     </ListWrap>
@@ -327,7 +366,8 @@ PresenceList.propTypes = {
   scene: PropTypes.object,
   sessionId: PropTypes.string,
   hubMetadata: PropTypes.object,
-  onGoToClicked: PropTypes.func,
+  onGoToHubClicked: PropTypes.func,
+  onGoToUserClicked: PropTypes.func,
   hubCan: PropTypes.func
 };
 
