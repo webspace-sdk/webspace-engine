@@ -204,7 +204,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.falling
     },
     {
-      src: { value: paths.device.keyboard.code("slash") },
+      src: { value: paths.device.keyboard.key("/") },
       dest: { value: paths.actions.create },
       xform: xforms.rising
     },

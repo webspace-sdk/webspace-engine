@@ -119,7 +119,7 @@ export class KeyboardDevice {
         // / in create popup blurs it
         if (
           e.type === "keydown" &&
-          e.code === "Slash" &&
+          e.key === "/" &&
           document.activeElement &&
           document.activeElement.classList.contains("create-select-selection-search-input")
         ) {
@@ -130,7 +130,7 @@ export class KeyboardDevice {
 
         // Block browser hotkeys for chat command, media browser and freeze
         if (
-          (e.type === "keydown" && e.code === "Slash" && !isInEditableField()) || // Cancel slash in create select input since it hides it
+          (e.type === "keydown" && e.key === "/" && !isInEditableField()) || // Cancel slash in create select input since it hides it
           (e.ctrlKey &&
             (e.code === "Digit1" ||
               e.code === "Digit2" ||
