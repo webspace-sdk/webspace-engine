@@ -690,6 +690,8 @@ function setupNonVisibleHandler(scene) {
   const physics = scene.systems["hubs-systems"].physicsSystem;
   const autoQuality = scene.systems["hubs-systems"].autoQualitySystem;
 
+  const webglLoseContextExtension = scene.renderer.getContext().getExtension("WEBGL_lose_context");
+
   const apply = hidden => {
     if (document.visibilityState === "hidden" || hidden) {
       if (document.visibilityState === "visible") {
@@ -706,8 +708,8 @@ function setupNonVisibleHandler(scene) {
       if (document.visibilityState === "visible") {
         // Hacky. On some platforms GL context needs to be explicitly restored. So do it.
         // This really shouldn't be necessary :P
-        if (scene.renderer.getContext().isContextLost()) {
-          scene.renderer.forceContextRestore();
+        if (scene.renderer.getContext().isContextLost() && webglLoseContextExtension) {
+          webglLoseContextExtension.restoreContext();
         }
 
         scene.play();

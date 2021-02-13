@@ -21,6 +21,7 @@ export class ExternalCameraSystem {
     this.viewingCameraSelected = false;
     this.forceViewingCamera = false;
     this.viewingCamera = null;
+    this.webglLoseContextExtension = null;
   }
 
   isEnabled() {
@@ -107,6 +108,7 @@ export class ExternalCameraSystem {
     this.camera = camera;
     this.renderer = renderer;
     this.canvas = canvas;
+    this.webglLoseContextExtension = renderer.getContext().getExtension("WEBGL_lose_context");
   }
 
   setExternalCameraTrackedEntity(entity) {
@@ -253,8 +255,8 @@ export class ExternalCameraSystem {
 
     // Hacky. On some platforms GL context needs to be explicitly restored. So do it.
     // This really shouldn't be necessary :P
-    if (this.renderer.getContext().isContextLost()) {
-      this.renderer.forceContextRestore();
+    if (this.renderer.getContext().isContextLost() && this.webglLoseContextExtension) {
+      this.webglLoseContextExtension.restoreContext();
     }
 
     this.renderer.animation.start();
