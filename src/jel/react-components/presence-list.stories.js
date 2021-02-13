@@ -4,6 +4,7 @@ import classNames from "classnames";
 import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
 import PresenceList from "./presence-list";
 
+const scene = window.APP.scene;
 const metadata = new AtomMetadata(ATOM_TYPES.HUB);
 metadata._metadata.set("ZJenEkZ", { displayName: "World Name" });
 metadata._metadata.set("J8eetqM", { displayName: "Test Very Long World Name That Keeps Going and Going" });
@@ -87,7 +88,11 @@ const spacePresences = {
   }
 };
 
+window.APP.spaceChannel.presence = { state: spacePresences };
+
 export const Normal = () => {
+  setTimeout(() => scene.dispatchEvent(new CustomEvent("space-presence-synced")));
+
   return (
     <div
       className={classNames(sharedStyles.basePanel)}
@@ -97,7 +102,7 @@ export const Normal = () => {
       }}
     >
       <PresenceList
-        spacePresences={spacePresences}
+        scene={scene}
         hubMetadata={metadata}
         hubCan={() => true}
         sessionId={"d929d0df-eb53-4bed-aa22-b87c67f1ab28"}

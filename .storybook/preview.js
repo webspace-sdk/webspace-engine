@@ -4,8 +4,17 @@ import { WrappedIntlProvider } from "../src/hubs/react-components/wrapped-intl-p
 import "../src/hubs/react-components/styles/global.scss";
 import Store from "../src/hubs/storage/store";
 import AccountChannel from "../src/jel/utils/account-channel";
+import SpaceChannel from "../src/hubs/utils/space-channel";
+import { EventTarget } from "event-target-shim";
 
-window.APP = { store: new Store(), accountChannel: new AccountChannel() }
+class Scene extends EventTarget {
+
+}
+
+const store = new Store();
+
+window.APP = { store, accountChannel: new AccountChannel(),
+  spaceChannel: new SpaceChannel(store), scene: new Scene() }
 
 const Layout = ({ children }) => {
   useAccessibleOutlineStyle();
