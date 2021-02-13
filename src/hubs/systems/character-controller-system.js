@@ -112,6 +112,26 @@ export class CharacterControllerSystem {
     };
   })();
 
+  teleportToEntity = (function() {
+    const worldAvatarPos = new THREE.Vector3();
+    const worldElPos = new THREE.Vector3();
+    const delta = new THREE.Vector3();
+    const tmpQuat = new THREE.Quaternion();
+    const lookAtMatrix = new THREE.Matrix4();
+    return function teleportTo(el, distance = 0.0) {
+      const obj = el.object3D;
+      obj.getWorldPosition(worldElPos);
+      this.avatarPOV.object3D.getWorldPosition(worldAvatarPos);
+      lookAtMatrix.lookAt(worldAvatarPos, worldElPos, obj.up);
+      tmpQuat.setFromRotationMatrix(lookAtMatrix);
+      delta.subVectors(worldElPos, worldAvatarPos);
+      delta.setLength(delta.length() - distance);
+      worldAvatarPos.add(delta);
+
+      this.teleportTo(worldAvatarPos, tmpQuat);
+    };
+  })();
+
   tick = (function() {
     const snapRotatedPOV = new THREE.Matrix4();
     const newPOV = new THREE.Matrix4();
