@@ -132,6 +132,14 @@ export class CharacterControllerSystem {
     };
   })();
 
+  teleportToUser(sessionId) {
+    const avatarEl = SYSTEMS.avatarSystem.getAvatarElForSessionId(sessionId);
+
+    if (avatarEl) {
+      this.teleportToEntity(avatarEl, 5.0);
+    }
+  }
+
   tick = (function() {
     const snapRotatedPOV = new THREE.Matrix4();
     const newPOV = new THREE.Matrix4();

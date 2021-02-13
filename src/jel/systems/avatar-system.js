@@ -287,6 +287,16 @@ export class AvatarSystem {
     this.processAvatars(t);
   }
 
+  getAvatarElForSessionId(sessionId) {
+    for (const avatarEl of document.querySelectorAll("[networked-avatar]")) {
+      if (avatarEl.components.networked && avatarEl.components.networked.data.creator === sessionId) {
+        return avatarEl;
+      }
+    }
+
+    return null;
+  }
+
   processAvatars(t, selfOnly = false) {
     const {
       scheduledEyeDecals,
