@@ -31,6 +31,7 @@ import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import PopupPanel from "./popup-panel";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 import HubNodeTitle from "./hub-node-title";
+import { SOUND_TELEPORT_END } from "../../hubs/systems/sound-effects-system";
 
 const Wrap = styled.div`
   color: var(--panel-text-color);
@@ -591,7 +592,11 @@ function JelSidePanels({
             hubCan={hubCan}
             scene={scene}
             sessionId={sessionId}
-            onGoToClicked={hubId => {
+            onGoToUserClicked={sessionId => {
+              SYSTEMS.characterController.teleportToUser(sessionId);
+              SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_TELEPORT_END);
+            }}
+            onGoToHubClicked={hubId => {
               const metadata = hubMetadata.getMetadata(hubId);
 
               if (metadata) {

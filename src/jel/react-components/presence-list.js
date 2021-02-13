@@ -12,6 +12,7 @@ import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 import goToIcon from "../../assets/jel/images/icons/go-to.svgi";
 import Tooltip from "./tooltip";
 import { getMessages } from "../../hubs/utils/i18n";
+import TinyActionButton from "./tiny-action-button";
 
 const AvatarElement = styled.div`
   width: 58px;
@@ -28,6 +29,10 @@ const PresenceListMemberItemElement = styled.div`
   display: flex;
   justify-content: flex-start;
   margin-left: 24px;
+
+  &:hover .show-on-hover {
+    display: flex;
+  }
 `;
 
 const PresenceListHubItemElement = styled.div`
@@ -109,6 +114,15 @@ const MemberNameText = styled.div`
   line-height: 22px;
 `;
 
+const MemberActionButtonWrap = styled.div`
+  display: flex;
+  min-width: 64px;
+  align-items: center;
+  justify-content: center;
+  display: none;
+  margin-right: 8px;
+`;
+
 const PresenceListHubVisitButtonIcon = styled.div`
   width: 18px;
   height: 18px;
@@ -131,43 +145,53 @@ const AvatarSwatchMouth = styled.img`
   height: 42px;
 `;
 
-const PresenceListMemberItem = forwardRef(
-  (
-    {
-      meta: {
-        profile: {
-          displayName,
-          persona: {
-            avatar: {
-              primary_color: { r, g, b }
-            }
+const PresenceListMemberItem = forwardRef((props, ref) => {
+  const {
+    onGoToUserClicked: onGoToUserClicked,
+    sessionId,
+    allowJumpTo,
+    meta: {
+      profile: {
+        displayName,
+        persona: {
+          avatar: {
+            primary_color: { r, g, b }
           }
         }
       }
-    },
-    ref
-  ) => {
-    return (
-      <PresenceListMemberItemElement style={{ height: "58px" }} ref={ref}>
-        <AvatarElement style={{ color: `rgb(${rgbToCssRgb(r)}, ${rgbToCssRgb(g)}, ${rgbToCssRgb(b)})` }}>
-          <AvatarSwatchBody />
-          <AvatarSwatchEyes style={{ visibility: "visible" }} src={AvatarSwatchEyeSrcs[0]} />
-          <AvatarSwatchMouth style={{ visibility: "visible" }} src={AvatarSwatchVisemeSrcs[0]} />
-        </AvatarElement>
-        <MemberName>
-          <MemberNameText>{displayName}</MemberNameText>
-        </MemberName>
-      </PresenceListMemberItemElement>
-    );
-  }
-);
+    }
+  } = props;
+
+  return (
+    <PresenceListMemberItemElement style={{ height: "58px" }} ref={ref}>
+      <AvatarElement style={{ color: `rgb(${rgbToCssRgb(r)}, ${rgbToCssRgb(g)}, ${rgbToCssRgb(b)})` }}>
+        <AvatarSwatchBody />
+        <AvatarSwatchEyes style={{ visibility: "visible" }} src={AvatarSwatchEyeSrcs[0]} />
+        <AvatarSwatchMouth style={{ visibility: "visible" }} src={AvatarSwatchVisemeSrcs[0]} />
+      </AvatarElement>
+      <MemberName>
+        <MemberNameText>{displayName}</MemberNameText>
+      </MemberName>
+      {allowJumpTo && (
+        <MemberActionButtonWrap className="show-on-hover">
+          <TinyActionButton onClick={() => onGoToUserClicked(sessionId)}>
+            <FormattedMessage id="presence-list.go-to-avatar" />
+          </TinyActionButton>
+        </MemberActionButtonWrap>
+      )}
+    </PresenceListMemberItemElement>
+  );
+});
 
 PresenceListMemberItem.displayName = "PresenceListMemberItem";
 PresenceListMemberItem.propTypes = {
-  meta: PropTypes.object
+  meta: PropTypes.object,
+  sessionId: PropTypes.string,
+  allowJumpTo: PropTypes.bool,
+  onGoToUserClicked: PropTypes.func
 };
 
-const PresenceListHubItem = forwardRef(({ hubId, hubMetadata, onGoToClicked }, ref) => {
+const PresenceListHubItem = forwardRef(({ hubId, hubMetadata, onGoToHubClicked }, ref) => {
   const [name, setName] = useState("");
 
   useNameUpdateFromMetadata(hubId, hubMetadata, setName);
@@ -179,7 +203,7 @@ const PresenceListHubItem = forwardRef(({ hubId, hubMetadata, onGoToClicked }, r
         <PresenceListHubNameText>{name}</PresenceListHubNameText>
       </PresenceListHubName>
       <Tooltip content={messages["presence-list.go-to-world"]} placement="top-end" delay={500}>
-        <PresenceListHubVisitButton onClick={() => onGoToClicked(hubId)}>
+        <PresenceListHubVisitButton onClick={() => onGoToHubClicked(hubId)}>
           <PresenceListHubVisitButtonIcon dangerouslySetInnerHTML={{ __html: goToIcon }} />
         </PresenceListHubVisitButton>
       </Tooltip>
@@ -191,7 +215,7 @@ PresenceListHubItem.displayName = "PresenceListHubItem";
 PresenceListHubItem.propTypes = {
   hubId: PropTypes.string,
   hubMetadata: PropTypes.object,
-  onGoToClicked: PropTypes.func
+  onGoToHubClicked: PropTypes.func
 };
 
 const PresenceListHeader = forwardRef(({ messageId }, ref) => {
@@ -211,28 +235,28 @@ const ListWrap = styled.div`
   height: 100%;
 `;
 
-function buildData(setData, sessionId, hubCan) {
+function buildData(setData, currentSessionId, hubCan) {
   const otherHubIdsToSessionMetas = new Map();
   const data = [];
   const spacePresences = (window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state) || {};
 
-  let hubId = null;
+  let currentHubId = null;
 
-  if (spacePresences[sessionId]) {
-    const metas = spacePresences[sessionId].metas;
-    hubId = metas[metas.length - 1].hub_id;
+  if (spacePresences[currentSessionId]) {
+    const metas = spacePresences[currentSessionId].metas;
+    currentHubId = metas[metas.length - 1].hub_id;
   }
 
   for (const [sessionId, presence] of Object.entries(spacePresences)) {
     const meta = presence.metas[presence.metas.length - 1];
     const metaHubId = meta.hub_id;
 
-    if (metaHubId === hubId) {
+    if (metaHubId === currentHubId) {
       if (data.length === 0) {
         data.push({ key: "this-header", messageId: "presence-list.this-header", type: "header" });
       }
 
-      data.push({ key: sessionId, meta, type: "member" });
+      data.push({ key: sessionId, meta, type: "member", allowJumpTo: sessionId !== currentSessionId });
     } else {
       if (hubCan("join_hub", metaHubId)) {
         if (!otherHubIdsToSessionMetas.has(metaHubId)) {
@@ -253,7 +277,7 @@ function buildData(setData, sessionId, hubCan) {
 
       const sessionIdAndMetas = otherHubIdsToSessionMetas.get(hubId);
       for (let i = 0; i < sessionIdAndMetas.length; i += 2) {
-        data.push({ key: sessionIdAndMetas[i], meta: sessionIdAndMetas[i + 1], type: "member" });
+        data.push({ key: sessionIdAndMetas[i], meta: sessionIdAndMetas[i + 1], type: "member", allowJumpTo: false });
       }
     }
   }
@@ -261,7 +285,7 @@ function buildData(setData, sessionId, hubCan) {
   setData(data);
 }
 
-function PresenceList({ scene, sessionId, hubMetadata, onGoToClicked, hubCan }) {
+function PresenceList({ scene, sessionId, hubMetadata, onGoToUserClicked, onGoToHubClicked, hubCan }) {
   const [height, setHeight] = useState(100);
   const outerRef = useRef();
   const [data, setData] = useState([]);
@@ -307,16 +331,28 @@ function PresenceList({ scene, sessionId, hubMetadata, onGoToClicked, hubCan }) 
         {useCallback(
           (item, _, props) => {
             if (item.type === "member") {
-              return <PresenceListMemberItem {...item} {...props} />;
+              return (
+                <PresenceListMemberItem
+                  sessionId={item.key}
+                  onGoToUserClicked={onGoToUserClicked}
+                  {...item}
+                  {...props}
+                />
+              );
             } else if (item.type === "hub") {
               return (
-                <PresenceListHubItem {...item} {...props} hubMetadata={hubMetadata} onGoToClicked={onGoToClicked} />
+                <PresenceListHubItem
+                  {...item}
+                  {...props}
+                  hubMetadata={hubMetadata}
+                  onGoToHubClicked={onGoToHubClicked}
+                />
               );
             } else if (item.type === "header") {
               return <PresenceListHeader {...item} {...props} />;
             }
           },
-          [hubMetadata, onGoToClicked]
+          [hubMetadata, onGoToUserClicked, onGoToHubClicked]
         )}
       </List>
     </ListWrap>
@@ -327,7 +363,8 @@ PresenceList.propTypes = {
   scene: PropTypes.object,
   sessionId: PropTypes.string,
   hubMetadata: PropTypes.object,
-  onGoToClicked: PropTypes.func,
+  onGoToHubClicked: PropTypes.func,
+  onGoToUserClicked: PropTypes.func,
   hubCan: PropTypes.func
 };
 
