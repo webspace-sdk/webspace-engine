@@ -29,7 +29,8 @@ const springStep = BezierEasing(0.47, -0.07, 0.44, 1.65);
 const MAX_PROJECTILES = 1024;
 const PROJECTILE_EXPIRATION_MS = 5000;
 const SPAWN_OFFSET = new THREE.Vector3(0, -0.85, -0.5);
-const SELF_BURST_RADIUS = 0.5;
+const SELF_BURST_MIN_RADIUS = 0.75;
+const SELF_BURST_MAX_RADIUS = 1.25;
 const SHRINK_TIME_MS = 1000;
 const SHRINK_SPEED = 0.005;
 const MIN_LAUNCH_IMPULSE = 6.0;
@@ -256,10 +257,8 @@ export class ProjectileSystem {
     avatarPovNode.updateMatrices();
 
     tmpVec3.setFromMatrixPosition(avatarPovNode.matrixWorld);
-    tmpVec3.x -= 0.65;
     tmpVec3.y -= 0.25;
-    tmpVec3.z -= 0.25;
-    const radius = SELF_BURST_RADIUS;
+    const radius = Math.random() * (SELF_BURST_MAX_RADIUS - SELF_BURST_MIN_RADIUS) + SELF_BURST_MIN_RADIUS;
     const numParticles = 8 + Math.floor(Math.random() * 8.0);
 
     this.spawnBurst(emoji, tmpVec3.x, tmpVec3.y, tmpVec3.z, radius, numParticles, true);
@@ -280,8 +279,8 @@ export class ProjectileSystem {
       const dx = Math.sin(Math.PI * 2.0 * (i / numParticles));
       const dz = Math.cos(Math.PI * 2.0 * (i / numParticles));
 
-      ox = ox + dx * radius;
-      oz = oz + dz * radius;
+      const rox = ox + dx * radius;
+      const roz = oz + dz * radius;
 
       tmpEuler.set(Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI);
       tmpQuat.setFromEuler(tmpEuler);
@@ -305,9 +304,9 @@ export class ProjectileSystem {
         MESH_TYPES.BURST,
         ORIGINS.LOCAL,
         emoji,
-        ox,
+        rox,
         oy,
-        oz,
+        roz,
         orx,
         ory,
         orz,
