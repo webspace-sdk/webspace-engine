@@ -567,14 +567,22 @@ export class ProjectileSystem {
 
         if (mesh.scale.x === 1.0) {
           // Initial scale
-          mesh.scale.x = BURST_PARTICLE_SCALE;
-          mesh.scale.y = BURST_PARTICLE_SCALE;
-          mesh.scale.z = BURST_PARTICLE_SCALE;
+          mesh.scale.x = 0.01;
+          mesh.scale.y = 0.01;
+          mesh.scale.z = 0.01;
         }
 
-        mesh.scale.x *= s;
-        mesh.scale.y *= s;
-        mesh.scale.z *= s;
+        const t = now - startTimes[i];
+
+        if (mesh.scale.x < BURST_PARTICLE_SCALE && t < 200.0) {
+          mesh.scale.x = Math.min(mesh.scale.x * 1.65, BURST_PARTICLE_SCALE);
+          mesh.scale.y = Math.min(mesh.scale.y * 1.65, BURST_PARTICLE_SCALE);
+          mesh.scale.z = Math.min(mesh.scale.z * 1.65, BURST_PARTICLE_SCALE);
+        } else {
+          mesh.scale.x *= s;
+          mesh.scale.y *= s;
+          mesh.scale.z *= s;
+        }
 
         // Images are set *after* the initial scale, since the body needs to start
         // out scaled at 1.0 to not break collisions.
