@@ -7,6 +7,8 @@ AFRAME.registerComponent("networked-avatar", {
   schema: {
     left_hand_pose: { default: 0 },
     right_hand_pose: { default: 0 },
-    relative_motion: { default: 0 }
+    relative_motion: { default: 0 },
+    // True when dY is positive due to a jump
+    is_jumping: { default: false }
   }
 });

@@ -5,7 +5,8 @@ import { isMine } from "../../jel/utils/ownership-utils";
 const { Vector3, Quaternion, Matrix4, Euler } = THREE;
 import BezierEasing from "bezier-easing";
 
-const springStep = BezierEasing(0.47, -0.07, 0.44, 1.65);
+const squeezeSpringStep = BezierEasing(0.47, -0.07, 0.44, 1.65);
+const jumpSpringStep = BezierEasing(0.47, -0.07, 0.44, 2.35);
 
 function quaternionAlmostEquals(epsilon, u, v) {
   // Note: q and -q represent same rotation
@@ -148,6 +149,7 @@ AFRAME.registerComponent("ik-controller", {
 
     this.relativeMotionProgress = 0.0;
     this.relativeMotionMaxMagnitude = 1;
+    this.jumpMotionProgress = 0.0;
 
     this.isInView = true;
     this.hasConvergedHips = false;
@@ -239,26 +241,40 @@ AFRAME.registerComponent("ik-controller", {
     // When a remote avatar is moving forward, we lean it forward and 'squish' it
     let relativeMotionSpring = 0;
     let relativeMotionValue = 0;
+    let isJumping = false;
+    let jumpMotionSpring = false;
 
     if (this.remoteNetworkedAvatar) {
       relativeMotionValue = this.remoteNetworkedAvatar.data.relative_motion;
+      isJumping = this.remoteNetworkedAvatar.data.is_jumping;
     } else {
       relativeMotionValue = SYSTEMS.characterController.relativeMotionValue;
+      isJumping = SYSTEMS.characterController.jumpYVelocity !== null && SYSTEMS.characterController.jumpYVelocity > 0;
     }
 
     if (relativeMotionValue !== 0) {
       const t = this.relativeMotionProgress;
-      relativeMotionSpring = springStep(t);
+      relativeMotionSpring = squeezeSpringStep(t);
       this.relativeMotionProgress = Math.min(1, this.relativeMotionProgress + dt * 0.003);
       this.relativeMotionMaxMagnitude = Math.max(this.relativeMotionMaxMagnitude, Math.abs(relativeMotionValue));
     } else {
       const t = 1.0 - this.relativeMotionProgress;
-      relativeMotionSpring = 1.0 - springStep(t);
+      relativeMotionSpring = 1.0 - squeezeSpringStep(t);
       this.relativeMotionProgress = Math.max(0, this.relativeMotionProgress - dt * 0.003);
 
       if (this.relativeMotionProgress === 0) {
         this.relativeMotionMaxMagnitude = 0;
       }
+    }
+
+    if (isJumping) {
+      const t = this.jumpMotionProgress;
+      jumpMotionSpring = jumpSpringStep(t);
+      this.jumpMotionProgress = Math.min(1, this.jumpMotionProgress + dt * 0.007);
+    } else {
+      const t = 1.0 - this.jumpMotionProgress;
+      jumpMotionSpring = 1.0 - jumpSpringStep(t);
+      this.jumpMotionProgress = Math.max(0, this.jumpMotionProgress - dt * 0.004);
     }
 
     camera.object3D.updateMatrix();
@@ -408,10 +424,13 @@ AFRAME.registerComponent("ik-controller", {
           );
         }
 
-        let sx, sy, sz;
         if (relativeMotionSpring !== 0) {
           const scaleDXZ = 1.0 + relativeMotionSpring * 0.1 * this.relativeMotionMaxMagnitude;
           const scaleDY = 1.0 - relativeMotionSpring * 0.1 * this.relativeMotionMaxMagnitude;
+          this.headScale.set(scaleDXZ * feedbackScale, scaleDY * feedbackScale, scaleDXZ * feedbackScale);
+        } else if (jumpMotionSpring !== 0) {
+          const scaleDXZ = 1.0 - jumpMotionSpring * 0.15;
+          const scaleDY = 1.0 + jumpMotionSpring * 0.15;
           this.headScale.set(scaleDXZ * feedbackScale, scaleDY * feedbackScale, scaleDXZ * feedbackScale);
         } else {
           this.headScale.set(feedbackScale, feedbackScale, feedbackScale);
@@ -425,6 +444,10 @@ AFRAME.registerComponent("ik-controller", {
         if (relativeMotionSpring !== 0) {
           const scaleDXZ = 1.0 + relativeMotionSpring * 0.1 * this.relativeMotionMaxMagnitude;
           const scaleDY = 1.0 - relativeMotionSpring * 0.1 * this.relativeMotionMaxMagnitude;
+          this.headScale.set(scaleDXZ, scaleDY, scaleDXZ);
+        } else if (jumpMotionSpring !== 0) {
+          const scaleDXZ = 1.0 - jumpMotionSpring * 0.15;
+          const scaleDY = 1.0 + jumpMotionSpring * 0.15;
           this.headScale.set(scaleDXZ, scaleDY, scaleDXZ);
         } else {
           this.headScale.set(1.0, 1.0, 1.0);
