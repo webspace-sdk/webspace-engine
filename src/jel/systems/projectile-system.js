@@ -262,7 +262,7 @@ export class ProjectileSystem {
     const radius = SELF_BURST_RADIUS;
     const numParticles = 8 + Math.floor(Math.random() * 8.0);
 
-    this.spawnBurst(emoji, tmpVec3.x, tmpVec3.y, tmpVec3.z, radius, numParticles);
+    this.spawnBurst(emoji, tmpVec3.x, tmpVec3.y, tmpVec3.z, radius, numParticles, true);
     this.soundEffectsSystem.playSoundOneShot(SOUND_EMOJI_BURST);
 
     return [emoji, tmpVec3.x, tmpVec3.y, tmpVec3.z, radius, numParticles];
@@ -275,7 +275,7 @@ export class ProjectileSystem {
     return this.spawnBurst(emoji, ox, oy, oz, radius, numParticles);
   }
 
-  async spawnBurst(emoji, ox, oy, oz, radius, numParticles = 8) {
+  async spawnBurst(emoji, ox, oy, oz, radius, numParticles = 8, scaleAtSpawn = false) {
     for (let i = 0; i < numParticles; i++) {
       const dx = Math.sin(Math.PI * 2.0 * (i / numParticles));
       const dz = Math.cos(Math.PI * 2.0 * (i / numParticles));
@@ -299,7 +299,7 @@ export class ProjectileSystem {
       const iry = -MAX_BURST_SPIN + Math.random() * 2 * MAX_BURST_SPIN;
       const irz = -MAX_BURST_SPIN + Math.random() * 2 * MAX_BURST_SPIN;
 
-      const scale = 0.8 * BURST_PARTICLE_SCALE + Math.random() * 0.2 * BURST_PARTICLE_SCALE;
+      const scale = scaleAtSpawn ? 0.01 : BURST_PARTICLE_SCALE;
 
       await this.spawnProjectile(
         MESH_TYPES.BURST,
@@ -318,7 +318,8 @@ export class ProjectileSystem {
         irx,
         iry,
         irz,
-        scale
+        scale,
+        true
       );
     }
 
@@ -567,9 +568,9 @@ export class ProjectileSystem {
 
         if (mesh.scale.x === 1.0) {
           // Initial scale
-          mesh.scale.x = 0.01;
-          mesh.scale.y = 0.01;
-          mesh.scale.z = 0.01;
+          mesh.scale.x = targetScales[i];
+          mesh.scale.y = targetScales[i];
+          mesh.scale.z = targetScales[i];
         }
 
         const t = now - startTimes[i];

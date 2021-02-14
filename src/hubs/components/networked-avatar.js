@@ -8,7 +8,7 @@ AFRAME.registerComponent("networked-avatar", {
     left_hand_pose: { default: 0 },
     right_hand_pose: { default: 0 },
     relative_motion: { default: 0 },
-    // True when dY is positive due to a jump
+    // True when avatar should be expressing body language of executing a jump
     is_jumping: { default: false }
   }
 });

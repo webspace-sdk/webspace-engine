@@ -249,7 +249,7 @@ AFRAME.registerComponent("ik-controller", {
       isJumping = this.remoteNetworkedAvatar.data.is_jumping;
     } else {
       relativeMotionValue = SYSTEMS.characterController.relativeMotionValue;
-      isJumping = SYSTEMS.characterController.jumpYVelocity !== null && SYSTEMS.characterController.jumpYVelocity > 0;
+      isJumping = SYSTEMS.characterController.jumpYVelocity !== null && SYSTEMS.characterController.jumpYVelocity > 2.5;
     }
 
     if (relativeMotionValue !== 0) {
