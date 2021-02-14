@@ -6,7 +6,7 @@ const { Vector3, Quaternion, Matrix4, Euler } = THREE;
 import BezierEasing from "bezier-easing";
 
 const squeezeSpringStep = BezierEasing(0.47, -0.07, 0.44, 1.65);
-const jumpSpringStep = BezierEasing(0.47, -0.07, 0.44, 2.35);
+const jumpSpringStep = BezierEasing(0.47, 0.0, 0.44, 2.35);
 
 function quaternionAlmostEquals(epsilon, u, v) {
   // Note: q and -q represent same rotation

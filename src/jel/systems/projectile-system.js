@@ -272,7 +272,7 @@ export class ProjectileSystem {
     tmpVec3.set(ox, oy, oz);
     this.soundEffectsSystem.playPositionalSoundAt(SOUND_EMOJI_BURST, tmpVec3, false);
 
-    return this.spawnBurst(emoji, ox, oy, oz, radius, numParticles);
+    return this.spawnBurst(emoji, ox, oy, oz, radius, numParticles, true);
   }
 
   async spawnBurst(emoji, ox, oy, oz, radius, numParticles = 8, scaleAtSpawn = false) {
