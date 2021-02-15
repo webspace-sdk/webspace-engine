@@ -1,5 +1,4 @@
 import configs from "../utils/configs";
-import { getMicrophonePresences } from "../utils/microphone-presence";
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { FormattedMessage } from "react-intl";
@@ -74,7 +73,7 @@ export default class PresenceList extends Component {
 
   updateMicrophoneState = () => {
     if (this.props.expanded) {
-      const microphonePresences = getMicrophonePresences(AFRAME.scenes[0]);
+      const microphonePresences = new Map();
       this.setState({ microphonePresences });
     }
     this.timeout = setTimeout(this.updateMicrophoneState, MIC_PRESENCE_UPDATE_FREQUENCY);

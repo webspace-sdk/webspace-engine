@@ -1,7 +1,6 @@
 import { getCreator, getNetworkedEntity } from "../../jel/utils/ownership-utils";
 import { injectCustomShaderChunks } from "../utils/media-utils";
 import { AVATAR_TYPES } from "../utils/avatar-utils";
-import { registerComponentInstance, deregisterComponentInstance } from "../utils/component-utils";
 
 function ensureAvatarNodes(json) {
   const { nodes } = json;
@@ -35,8 +34,7 @@ function ensureAvatarNodes(json) {
 AFRAME.registerComponent("player-info", {
   schema: {
     avatarSrc: { type: "string" },
-    avatarType: { type: "string", default: AVATAR_TYPES.SKINNABLE },
-    muted: { default: false }
+    avatarType: { type: "string", default: AVATAR_TYPES.SKINNABLE }
   },
   init() {
     this.displayName = null;
@@ -48,8 +46,6 @@ AFRAME.registerComponent("player-info", {
     this.applyDisplayName = this.applyDisplayName.bind(this);
     this.handleModelError = this.handleModelError.bind(this);
     this.update = this.update.bind(this);
-    this.localStateAdded = this.localStateAdded.bind(this);
-    this.localStateRemoved = this.localStateRemoved.bind(this);
 
     this.isLocalPlayerInfo = this.el.id === "avatar-rig";
     this.playerSessionId = null;
@@ -63,10 +59,6 @@ AFRAME.registerComponent("player-info", {
         }
       });
     }
-    registerComponentInstance(this, "player-info");
-  },
-  remove() {
-    deregisterComponentInstance(this, "player-info");
   },
   play() {
     this.el.addEventListener("model-loaded", this.applyProperties);
@@ -78,11 +70,6 @@ AFRAME.registerComponent("player-info", {
 
     this.el.sceneEl.addEventListener("stateadded", this.update);
     this.el.sceneEl.addEventListener("stateremoved", this.update);
-
-    if (this.isLocalPlayerInfo) {
-      this.el.sceneEl.addEventListener("stateadded", this.localStateAdded);
-      this.el.sceneEl.addEventListener("stateremoved", this.localStateRemoved);
-    }
   },
   pause() {
     this.el.removeEventListener("model-loaded", this.applyProperties);
@@ -93,11 +80,6 @@ AFRAME.registerComponent("player-info", {
     this.el.sceneEl.removeEventListener("stateadded", this.update);
     this.el.sceneEl.removeEventListener("stateremoved", this.update);
     window.APP.store.removeEventListener("statechanged", this.update);
-
-    if (this.isLocalPlayerInfo) {
-      this.el.sceneEl.removeEventListener("stateadded", this.localStateAdded);
-      this.el.sceneEl.removeEventListener("stateremoved", this.localStateRemoved);
-    }
   },
 
   update() {
@@ -165,15 +147,5 @@ AFRAME.registerComponent("player-info", {
   },
   handleModelError() {
     window.APP.store.resetToRandomDefaultAvatar();
-  },
-  localStateAdded(e) {
-    if (e.detail === "unmuted") {
-      this.el.setAttribute("player-info", { muted: false });
-    }
-  },
-  localStateRemoved(e) {
-    if (e.detail === "unmuted") {
-      this.el.setAttribute("player-info", { muted: true });
-    }
   }
 });

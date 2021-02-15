@@ -18,7 +18,6 @@ import { pushHistoryState, popToBeginningOfHubHistory, navigateToPriorPage, slug
 import StateRoute from "./state-route.js";
 import { getPresenceProfileForSession } from "../utils/phoenix-utils";
 import { getClientInfoClientId } from "./client-info-dialog";
-import { getCurrentStreamer } from "../utils/component-utils";
 
 import Loader from "./loader";
 import AutoExitWarning from "./auto-exit-warning";
@@ -1543,7 +1542,7 @@ class UIRoot extends Component {
         </div>
       );
 
-    const streamer = getCurrentStreamer();
+    const streamer = null;
     const streamerName = streamer && streamer.displayName;
 
     return (

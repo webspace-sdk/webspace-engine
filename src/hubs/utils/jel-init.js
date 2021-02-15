@@ -135,6 +135,7 @@ const createDynaChannelParams = () => {
 
 const createSpaceChannelParams = () => {
   const store = window.APP.store;
+  const scene = AFRAME.scenes[0];
 
   const params = {
     profile: store.state.profile,
@@ -142,7 +143,8 @@ const createSpaceChannelParams = () => {
     perms_token: null,
     context: {
       mobile: isMobile || isMobileVR
-    }
+    },
+    unmuted: scene.is("unmuted")
   };
 
   if (isMobileVR) {
@@ -658,11 +660,9 @@ const setupSpaceChannelMessageHandlers = spacePhxChannel => {
   });
 
   spacePhxChannel.on("persona_refresh", ({ session_id }) => {
-    const scene = document.querySelector("a-scene");
-
     // If persona changed, update avatar color + sky beam color
-    scene.systems["hubs-systems"].avatarSystem.markPersonaAvatarDirty(session_id);
-    scene.systems["hubs-systems"].skyBeamSystem.markColorDirtyForCreator(session_id);
+    SYSTEMS.avatarSystem.markPersonaAvatarDirty(session_id);
+    SYSTEMS.skyBeamSystem.markColorDirtyForCreator(session_id);
   });
 };
 

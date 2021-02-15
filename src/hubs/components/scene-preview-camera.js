@@ -1,9 +1,8 @@
 import { setMatrixWorld } from "../utils/three-utils";
-import { getCurrentStreamer } from "../utils/component-utils";
 import { CAMERA_MODE_SCENE_PREVIEW } from "../systems/camera-system";
 
 function getStreamerCamera() {
-  const streamer = getCurrentStreamer();
+  const streamer = null;
   if (streamer) {
     return streamer.el.querySelector(".camera").object3D;
   }

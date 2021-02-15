@@ -21,6 +21,7 @@ import viseme9 from "../../assets/jel/images/avatar/viseme-8.svg";
 import viseme10 from "../../assets/jel/images/avatar/viseme-9.svg";
 import viseme11 from "../../assets/jel/images/avatar/viseme-10.svg";
 import viseme12 from "../../assets/jel/images/avatar/viseme-11.svg";
+import viseme13 from "../../assets/jel/images/avatar/viseme-12.svg";
 
 const AvatarSwatchEyeSrcs = [eyes1, eyes2, eyes3, eyes4, eyes5, eyes6, eyes7, eyes8];
 const AvatarSwatchVisemeSrcs = [
@@ -35,7 +36,8 @@ const AvatarSwatchVisemeSrcs = [
   viseme9,
   viseme10,
   viseme11,
-  viseme12
+  viseme12,
+  viseme13
 ];
 
 const AvatarSwatchElement = styled.button`
@@ -70,7 +72,7 @@ const AvatarSwatchElement = styled.button`
   transition-property: filter, transform;
   transition-duration: 75ms, 75ms;
 
-  &:not([data-mouth="0"]) {
+  &:not([data-mouth="0"]):not([data-mouth="12"]) {
     filter: brightness(110%);
     transform: scale(1.05, 1.05);
     transition-delay: 0ms;
@@ -145,6 +147,9 @@ const AvatarSwatchElement = styled.button`
     visibility: visible;
   }
   &[data-mouth="11"] .mouth-11 {
+    visibility: visible;
+  }
+  &[data-mouth="12"] .mouth-12 {
     visibility: visible;
   }
 `;

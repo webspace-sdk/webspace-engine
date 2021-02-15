@@ -89,20 +89,11 @@ export default class SpaceChannel extends EventTarget {
     hubMetadata.optimisticUpdate(hubId, newHubFields);
   };
 
-  beginStreaming() {
-    this.channel.push("events:begin_streaming", {});
-  }
-
-  endStreaming() {
-    this.channel.push("events:end_streaming", {});
-  }
-
-  beginRecording() {
-    this.channel.push("events:begin_recording", {});
-  }
-
-  endRecording() {
-    this.channel.push("events:end_recording", {});
+  updateUnmuted(unmuted) {
+    if (this.channel) {
+      console.log(unmuted);
+      this.channel.push("update_unmuted", { unmuted });
+    }
   }
 
   sendProfileUpdate = () => {

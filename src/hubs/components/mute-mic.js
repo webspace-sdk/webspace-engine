@@ -65,6 +65,7 @@ AFRAME.registerComponent("mute-mic", {
       this.el.sceneEl.systems["hubs-systems"].audioSystem.enableOutboundAudioStream("microphone");
       this.el.addState("unmuted");
       window.APP.store.handleActivityFlag("unmute");
+      window.APP.spaceChannel.updateUnmuted(true);
     } else {
       if (this._beganAudioStream) {
         this._beganAudioStream = false;
@@ -73,6 +74,7 @@ AFRAME.registerComponent("mute-mic", {
       await NAF.connection.adapter.enableMicrophone(false);
       this.el.sceneEl.systems["hubs-systems"].audioSystem.disableOutboundAudioStream("microphone");
       this.el.removeState("unmuted");
+      window.APP.spaceChannel.updateUnmuted(false);
     }
   },
 
@@ -81,6 +83,7 @@ AFRAME.registerComponent("mute-mic", {
     if (this.el.is("unmuted")) {
       await NAF.connection.adapter.enableMicrophone(false);
       this.el.removeState("unmuted");
+      window.APP.spaceChannel.updateUnmuted(false);
     }
   },
 
@@ -88,6 +91,7 @@ AFRAME.registerComponent("mute-mic", {
     if (!this.el.is("unmuted")) {
       await NAF.connection.adapter.enableMicrophone(true);
       this.el.addState("unmuted");
+      window.APP.spaceChannel.updateUnmuted(true);
     }
   }
 });

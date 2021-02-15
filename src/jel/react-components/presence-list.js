@@ -158,7 +158,8 @@ const PresenceListMemberItem = forwardRef((props, ref) => {
             primary_color: { r, g, b }
           }
         }
-      }
+      },
+      unmuted
     }
   } = props;
 
@@ -167,7 +168,7 @@ const PresenceListMemberItem = forwardRef((props, ref) => {
       <AvatarElement style={{ color: `rgb(${rgbToCssRgb(r)}, ${rgbToCssRgb(g)}, ${rgbToCssRgb(b)})` }}>
         <AvatarSwatchBody />
         <AvatarSwatchEyes style={{ visibility: "visible" }} src={AvatarSwatchEyeSrcs[0]} />
-        <AvatarSwatchMouth style={{ visibility: "visible" }} src={AvatarSwatchVisemeSrcs[0]} />
+        {unmuted && <AvatarSwatchMouth style={{ visibility: "visible" }} src={AvatarSwatchVisemeSrcs[0]} />}
       </AvatarElement>
       <MemberName>
         <MemberNameText>{displayName}</MemberNameText>

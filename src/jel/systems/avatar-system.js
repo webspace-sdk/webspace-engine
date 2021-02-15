@@ -343,8 +343,12 @@ export class AvatarSystem {
       const prevViseme = currentVisemes[i];
 
       const hasDirtyColor = dirtyColors[i];
-      if (hasDirtyColor && creatorId && presenceState[creatorId] && presenceState[creatorId].metas) {
-        const color = presenceState[creatorId].metas[0].profile.persona.avatar.primary_color;
+      const creatorPresenceState = creatorId && presenceState[creatorId];
+      const presenceMetas = creatorPresenceState && presenceState[creatorId].metas;
+      const presenceMeta = presenceMetas && presenceMetas[0];
+
+      if (hasDirtyColor && presenceMeta) {
+        const color = presenceMeta.profile.persona.avatar.primary_color;
 
         if (isSelf) {
           newSelfColor = color;
@@ -361,8 +365,13 @@ export class AvatarSystem {
 
       let currentViseme = 0;
 
-      if (nafAdapter && creatorId !== null) {
-        currentViseme = nafAdapter.getCurrentViseme(creatorId);
+      if (presenceMeta && !presenceMeta.unmuted) {
+        // Do not show the mouth - viseme 12 is "mouth missing"
+        currentViseme = 12;
+      } else {
+        if (nafAdapter && creatorId !== null) {
+          currentViseme = nafAdapter.getCurrentViseme(creatorId);
+        }
       }
 
       const hasNewViseme = currentViseme !== prevViseme;
