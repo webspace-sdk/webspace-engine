@@ -144,7 +144,7 @@ const createSpaceChannelParams = () => {
     context: {
       mobile: isMobile || isMobileVR
     },
-    unmuted: scene && scene.is("unmuted")
+    unmuted: !!(scene && scene.is("unmuted"))
   };
 
   if (isMobileVR) {
