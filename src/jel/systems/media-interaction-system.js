@@ -80,7 +80,12 @@ export class MediaInteractionSystem {
         SYSTEMS.directorSystem.setTrackedObject(hoverEl);
       }
     } else if (this.userinput.get(paths.actions.mediaUpAction)) {
-      interactionType = MEDIA_INTERACTION_TYPES.UP;
+      if (!isDirectorMode) {
+        interactionType = MEDIA_INTERACTION_TYPES.UP;
+      } else {
+        // Director mode
+        SYSTEMS.directorSystem.beginTrackingCamera();
+      }
     } else if (this.userinput.get(paths.actions.mediaDownAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.DOWN;
     } else if (this.userinput.get(paths.actions.mediaSnapshotAction)) {
