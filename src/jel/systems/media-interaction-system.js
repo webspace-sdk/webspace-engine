@@ -10,8 +10,10 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { ensureOwnership, getNetworkedEntitySync, isSynchronized } from "../../jel/utils/ownership-utils";
 import { cursorIsVisible } from "../utils/dom-utils";
 import { releaseEphemeralCursorLock, beginEphemeralCursorLock } from "../utils/dom-utils";
+import qsTruthy from "../../hubs/utils/qs_truthy";
 
 const REMOVE_ACTION_MAX_DELAY_MS = 500.0;
+const isDirectorMode = qsTruthy("director");
 
 // System which manages keyboard-based media interactions
 export class MediaInteractionSystem {
@@ -61,9 +63,22 @@ export class MediaInteractionSystem {
     if (this.userinput.get(paths.actions.mediaPrimaryAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.PRIMARY;
     } else if (this.userinput.get(paths.actions.mediaNextAction)) {
-      interactionType = MEDIA_INTERACTION_TYPES.NEXT;
+      if (!isDirectorMode) {
+        interactionType = MEDIA_INTERACTION_TYPES.NEXT;
+      } else {
+        // Director mode
+        const qs = new URLSearchParams(document.location.search);
+        const duration = parseInt(qs.get("director_lerp_duration") || "3000");
+        const me = qs.get("director_track_me") !== "false";
+        SYSTEMS.directorSystem.beginLerpingTrackedObject(duration, me);
+      }
     } else if (this.userinput.get(paths.actions.mediaBackAction)) {
-      interactionType = MEDIA_INTERACTION_TYPES.BACK;
+      if (!isDirectorMode) {
+        interactionType = MEDIA_INTERACTION_TYPES.BACK;
+      } else {
+        // Director mode
+        SYSTEMS.directorSystem.setTrackedObject(hoverEl);
+      }
     } else if (this.userinput.get(paths.actions.mediaUpAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.UP;
     } else if (this.userinput.get(paths.actions.mediaDownAction)) {
