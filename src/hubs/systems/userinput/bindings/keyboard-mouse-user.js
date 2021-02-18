@@ -19,9 +19,6 @@ const dropViaMouse = "/vars/mouse-and-keyboard/dropViaMouse";
 const editViaKeyboard1 = "/vars/mouse-and-keyboard/editViaKeyboard1";
 const editViaKeyboard2 = "/vars/mouse-and-keyboard/editViaKeyboard2";
 const notControlSpace = "/vars/mouse-and-keyboard/notControlSpace";
-const startInspectingViaKeyboard = "/vars/mouse-and-keyboard/startInspectingViaKeyboard";
-const stopInspectingViaKeyboardEscape = "/vars/mouse-and-keyboard/stopInspectingViaKeyboardEscape";
-const stopInspectingViaKeyboardFocusRelease = "/vars/mouse-and-keyboard/stopInspectingViaKeyboardFocusRelease";
 
 const qs = new URLSearchParams(location.search);
 const inspectZoomSpeed = parseFloat(qs.get("izs")) || -10.0;
@@ -556,15 +553,9 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: paths.device.keyboard.code("keyf") },
-      dest: { value: startInspectingViaKeyboard },
+      dest: { value: paths.actions.toggleInspecting },
       xform: xforms.rising,
       priority: 200
-    },
-    {
-      src: [startInspectingViaKeyboard],
-      dest: { value: paths.actions.startInspecting },
-      xform: xforms.any,
-      priority: 201
     },
     {
       src: { value: controlSpace },
@@ -736,17 +727,15 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
-      src: [
-        paths.device.keyboard.code("keyw"),
-        paths.device.keyboard.code("keya"),
-        paths.device.keyboard.code("keys"),
-        paths.device.keyboard.code("keyd"),
-        paths.device.keyboard.code("keyq"),
-        paths.device.keyboard.code("keye"),
-        k("space-rising")
-      ],
-      dest: { value: stopInspectingViaKeyboardEscape },
-      xform: xforms.any
+      src: { value: paths.device.keyboard.key("Escape") },
+      dest: { value: paths.actions.stopInspecting },
+      xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.code("keyf") },
+      dest: { value: paths.actions.toggleInspecting },
+      xform: xforms.rising,
+      priority: 200
     },
     {
       src: { value: paths.device.mouse.wheel },
@@ -768,16 +757,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       src: { value: middleMouseMoveY },
       dest: { value: paths.actions.inspectPanY },
       xform: xforms.scale(0.001)
-    },
-    {
-      src: { value: paths.device.keyboard.code("keyf") },
-      dest: { value: stopInspectingViaKeyboardFocusRelease },
-      xform: xforms.falling
-    },
-    {
-      src: [stopInspectingViaKeyboardEscape, stopInspectingViaKeyboardFocusRelease],
-      dest: { value: paths.actions.stopInspecting },
-      xform: xforms.any
     }
   ],
   [sets.transforming]: [

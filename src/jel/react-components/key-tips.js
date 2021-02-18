@@ -183,7 +183,7 @@ const objectCommonTips = [
   ["open", "o"],
   ["rotate", "_r"],
   ["scale", "_v"],
-  ["focus", "_f"],
+  ["focus", "f"],
   ["clone", "c"],
   ["bake", "b"],
   ["ground", "g"],
@@ -258,7 +258,7 @@ const TIP_DATA = {
   ],
   rotate: [["rotate", "G"], ["roll", "L+G,R"], ["guides", "q\\e"]],
   scale: [["scale", "G,R"]],
-  focus: [["zoom", "R"]],
+  focus: [["exit", "f|Z"]],
   text_editor: [
     ["close", "~|@", "mediaTextEditClose"],
     ["bold", "L+b"],

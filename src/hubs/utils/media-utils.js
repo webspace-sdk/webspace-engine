@@ -62,6 +62,16 @@ export const GROUNDABLE_MEDIA_VIEW_COMPONENTS = [
   "media-emoji"
 ];
 
+export const ORBIT_ON_INSPECT_MEDIA_VIEW_COMPONENTS = ["gltf-model-plus", "media-vox", "media-emoji"];
+
+export const shouldOrbitOnInspect = function(obj) {
+  for (const component of ORBIT_ON_INSPECT_MEDIA_VIEW_COMPONENTS) {
+    if (obj.el.components[component]) return true;
+  }
+
+  return false;
+};
+
 const linkify = Linkify();
 linkify.tlds(tlds);
 

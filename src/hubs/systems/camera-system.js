@@ -1,5 +1,6 @@
 import { waitForDOMContentLoaded } from "../utils/async-utils";
 import { childMatch, setMatrixWorld, calculateViewingDistance } from "../utils/three-utils";
+import { shouldOrbitOnInspect } from "../utils/media-utils";
 import { paths } from "./userinput/paths";
 import { getBox } from "../utils/auto-box-collider";
 import qsTruthy from "../utils/qs_truthy";
@@ -366,7 +367,7 @@ export class CameraSystem {
       this.userinput = this.userinput || scene.systems.userinput;
       this.interaction = this.interaction || scene.systems.interaction;
 
-      if (this.userinput.get(paths.actions.startInspecting) && this.mode !== CAMERA_MODE_INSPECT) {
+      if (this.userinput.get(paths.actions.toggleInspecting) && this.mode !== CAMERA_MODE_INSPECT) {
         const hoverEl = this.interaction.state.rightRemote.hovered || this.interaction.state.leftRemote.hovered;
 
         if (hoverEl) {
@@ -379,7 +380,7 @@ export class CameraSystem {
       } else if (
         !this.temporarilyDisableRegularExit &&
         this.mode === CAMERA_MODE_INSPECT &&
-        this.userinput.get(paths.actions.stopInspecting)
+        (this.userinput.get(paths.actions.toggleInspecting) || this.userinput.get(paths.actions.stopInspecting))
       ) {
         scene.emit("uninspect");
         this.uninspect();
@@ -458,16 +459,18 @@ export class CameraSystem {
           Math.abs(this.inspectZoom) > 0.001 ||
           Math.abs(panY) > 0.0001
         ) {
-          orbit(
-            this.inspected,
-            this.viewingRig.object3D,
-            this.viewingCamera.object3DMap.camera,
-            this.horizontalDelta,
-            this.verticalDelta,
-            this.inspectZoom,
-            dt,
-            panY
-          );
+          if (shouldOrbitOnInspect(this.inspected)) {
+            orbit(
+              this.inspected,
+              this.viewingRig.object3D,
+              this.viewingCamera.object3DMap.camera,
+              this.horizontalDelta,
+              this.verticalDelta,
+              this.inspectZoom,
+              dt,
+              panY
+            );
+          }
         }
       }
 
