@@ -56,7 +56,12 @@ const BridgeStartPopup = forwardRef(
                 e.preventDefault();
                 e.stopPropagation();
 
-                onConnect(meetingId.replaceAll(" ", ""), password, useHD, allowInvite && shareInvite);
+                onConnect(
+                  meetingId.replaceAll(" ", "").replaceAll("-", ""),
+                  password,
+                  useHD,
+                  allowInvite && shareInvite
+                );
               }}
             >
               <TextInputWrap>
@@ -68,7 +73,7 @@ const BridgeStartPopup = forwardRef(
                   disabled={connecting}
                   required
                   ref={ref}
-                  pattern={"[0-9 ]+"}
+                  pattern={"[0-9 -]+"}
                   title={messages["bridge-start.meeting_id-validation-warning"]}
                   placeholder={messages["bridge-start.meeting_id-placeholder"]}
                   onFocus={e => handleTextFieldFocus(e.target)}
