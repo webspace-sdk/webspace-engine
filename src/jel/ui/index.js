@@ -74,11 +74,12 @@ const Tagline = styled.div`
   align-items: center;
   color: var(--panel-banner-text-color);
   font-size: var(--panel-banner-text-size);
-  margin-top: 10px;
+  margin-top: 24px;
 `;
 
 const Logo = styled.img`
   width: 200px;
+  margin-bottom: 8px;
 `;
 
 const Wrap = styled.div`
@@ -265,6 +266,15 @@ function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, invi
     return (
       <div>
         <InfoPanel>
+          <iframe
+            width="560"
+            height="315"
+            style={{ borderRadius: "12px", boxShadow: "0px 0px 8px rgba(0.2, 0.2, 0.2, 0.4)" }}
+            src="https://www.youtube.com/embed/_YXjGj3oYz8"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
           <Tagline>
             <FormattedMessage id="home.tagline" />
           </Tagline>
