@@ -75,7 +75,8 @@ export const SCHEMA = {
         mediaTextEditClose: { type: "boolean" },
         mediaTextCreate: { type: "boolean" },
         mediaRemove: { type: "boolean" },
-        chat: { type: "boolean" }
+        chat: { type: "boolean" },
+        hasShownJumpedToMember: { type: "boolean" }
       }
     },
 
