@@ -66,11 +66,7 @@ export class MediaInteractionSystem {
       if (!isDirectorMode) {
         interactionType = MEDIA_INTERACTION_TYPES.NEXT;
       } else {
-        // Director mode
-        const qs = new URLSearchParams(document.location.search);
-        const duration = parseInt(qs.get("director_lerp_duration") || "3000");
-        const me = qs.get("director_track_me") !== "false";
-        SYSTEMS.directorSystem.beginLerpingTrackedObject(duration, me);
+        SYSTEMS.directorSystem.beginLerpingTrackedObject();
       }
     } else if (this.userinput.get(paths.actions.mediaBackAction)) {
       if (!isDirectorMode) {
@@ -87,7 +83,11 @@ export class MediaInteractionSystem {
         SYSTEMS.directorSystem.beginTrackingCamera();
       }
     } else if (this.userinput.get(paths.actions.mediaDownAction)) {
-      interactionType = MEDIA_INTERACTION_TYPES.DOWN;
+      if (!isDirectorMode) {
+        interactionType = MEDIA_INTERACTION_TYPES.DOWN;
+      } else {
+        SYSTEMS.directorSystem.restart();
+      }
     } else if (this.userinput.get(paths.actions.mediaSnapshotAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.SNAPSHOT;
     } else if (this.userinput.get(paths.actions.mediaRotateAction)) {

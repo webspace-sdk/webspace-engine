@@ -4,6 +4,7 @@ import BezierEasing from "bezier-easing";
 const easeInOut = BezierEasing(0.42, 0, 0.58, 1);
 const tmpVec3 = new THREE.Vector3();
 const lookAtMatrix = new THREE.Matrix4();
+const qs = new URLSearchParams(document.location.search);
 
 // Used for doing in-game video direction
 //
@@ -21,6 +22,7 @@ export class DirectorSystem {
     this.trackedMatrixWorldStart = new THREE.Matrix4();
     this.trackedElLookAtMe = false;
     this.trackingCamera = false;
+    this.loop = qs.get("director_loop") === "true";
   }
 
   setTrackedObject(el) {
@@ -35,7 +37,11 @@ export class DirectorSystem {
     this.viewingCamera = document.querySelector("#viewing-camera");
   }
 
-  beginLerpingTrackedObject(duration = 3000.0, lookAtMe = true) {
+  beginLerpingTrackedObject() {
+    // Director mode
+    const duration = parseInt(qs.get("director_lerp_duration") || "3000");
+    const lookAtMe = qs.get("director_track_me") !== "false";
+
     this.endPos = new THREE.Vector3();
     this.endRot = new THREE.Quaternion();
     const obj = this.trackedEl.object3D;
@@ -58,6 +64,10 @@ export class DirectorSystem {
     this.updateLerp();
 
     if (!this.trackingCamera) return;
+
+    const hideSelf = qs.get("director_hide_self") === "true";
+    if (hideSelf) return;
+
     const { cameraSystem } = SYSTEMS;
     const { playerHead } = cameraSystem;
     const ikController = playerHead && playerHead.parentEl.parentEl.parentEl.parentEl.components["ik-controller"];
@@ -68,14 +78,26 @@ export class DirectorSystem {
     head.updateMatrixWorld(true, true);
   }
 
+  restart() {
+    setTimeout(() => (this.lerpT = 0.0), 5000);
+  }
+
   updateLerp() {
     let t;
 
     if (this.lerpT >= this.lerpDuration * 2.0) {
-      t = (this.lerpT - this.lerpDuration * 2.0) / this.lerpDuration;
-      this.lerpT = 0.0;
+      if (!this.loop) {
+        t = 1.0;
+      } else {
+        t = (this.lerpT - this.lerpDuration * 2.0) / this.lerpDuration;
+        this.lerpT = 0.0;
+      }
     } else if (this.lerpT >= this.lerpDuration) {
-      t = 1.0 - (this.lerpT - this.lerpDuration) / this.lerpDuration;
+      if (!this.loop) {
+        t = 1.0;
+      } else {
+        t = 1.0 - (this.lerpT - this.lerpDuration) / this.lerpDuration;
+      }
     } else {
       t = this.lerpT / this.lerpDuration;
     }

@@ -10,6 +10,7 @@ import grassVoxSrc from "!!url-loader!../../assets/jel/models/grass1.vox";
 import { RENDER_ORDER } from "../../hubs/constants";
 import configs from "../../hubs/utils/configs";
 import { Layers } from "../../hubs/components/layers";
+import qsTruthy from "../../hubs/utils/qs_truthy";
 
 const { SHAPE, TYPE, FIT } = CONSTANTS;
 
@@ -77,7 +78,7 @@ export const addVertexCurvingToMaterial = material => {
   }
 };
 
-const LOAD_RADIUS = 3;
+const LOAD_RADIUS = qsTruthy("director") ? 6 : 3;
 const FIELD_FEATURE_RADIUS = 1;
 const BODY_RADIUS = 2;
 const REFLECT_RADIUS = 2;
