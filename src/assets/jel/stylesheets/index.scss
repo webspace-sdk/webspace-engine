@@ -8,7 +8,6 @@ body {
   margin: 0;
   padding: 0;
   color: white;
-  overflow-y: hidden;
   font-family: 'Lato', sans-serif;
   display: flex;
   flex-direction: column;
@@ -20,7 +19,6 @@ body {
   -ms-text-size-adjust: none;
   position: relative;
   mix-blend-mode: normal;
-  height: 100vh;
 }
 
 .home-root {

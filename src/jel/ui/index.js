@@ -49,15 +49,20 @@ const Grass = styled.div`
   bottom: 0px;
   width: 100%;
   height: 120px;
+
+  @media (max-height: 820px) {
+    display: none;
+  }
 `;
 
-const IndexWrap = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  align-items: center;
-  height: fit-content;
+const BgColor = styled.div`
+  background: linear-gradient(180deg, #001409 0%, #00182f 16.67%, #002b53 56.25%, #0068c9 98.44%);
+  height: 100%;
   width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -2;
 `;
 
 const InfoPanel = styled.div`
@@ -86,8 +91,8 @@ const Wrap = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
-  background: linear-gradient(180deg, #001409 0%, #00182f 16.67%, #002b53 56.25%, #0068c9 98.44%);
+  flex-direction: column;
+  min-height: 100vh;
 `;
 
 const Tip = styled.div`
@@ -110,14 +115,14 @@ const SignedIn = styled.div`
 `;
 
 const Footer = styled.div`
-  position: fixed;
   width: 100%;
-  bottom: 125px;
   left: 0;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  margin-top: 20px;
+  margin-bottom: 24px;
 
   a {
     color: var(--footer-link-text-color);
@@ -386,18 +391,17 @@ function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, invi
   const root = (
     <WrappedIntlProvider>
       <Wrap>
+        <BgColor />
         <Grass />
-        <IndexWrap>
-          <Logo src={logoSrc} />
-          <JelIndexUI
-            authResult={authResult}
-            inviteId={inviteId}
-            inviteSpaceId={inviteSpaceId}
-            inviteInitialHubId={inviteInitialHubId}
-            inviteSpaceName={inviteSpaceName}
-            inviteIsExpired={inviteIsExpired}
-          />
-        </IndexWrap>
+        <Logo src={logoSrc} />
+        <JelIndexUI
+          authResult={authResult}
+          inviteId={inviteId}
+          inviteSpaceId={inviteSpaceId}
+          inviteInitialHubId={inviteInitialHubId}
+          inviteSpaceName={inviteSpaceName}
+          inviteIsExpired={inviteIsExpired}
+        />
       </Wrap>
     </WrappedIntlProvider>
   );
