@@ -447,6 +447,9 @@ function JelUI(props) {
   const [showNotificationBanner, setShowNotificationBanner] = useState(
     subscriptions && !subscriptions.subscribed && store && !store.state.uiState.closedNotificationBanner
   );
+  const [canSpawnAndMoveMedia, setCanSpawnAndMoveMedia] = useState(
+    hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id)
+  );
 
   const hubRenameFocusRef = useRef();
   const spaceRenameFocusRef = useRef();
@@ -586,6 +589,17 @@ function JelUI(props) {
     scene && scene.addEventListener("terrain_chunk_loading_complete", handler);
     () => scene && scene.removeEventListener("terrain_chunk_loading_complete", handler);
   });
+
+  // Handle permissions changed
+  useEffect(
+    () => {
+      const handler = () => setCanSpawnAndMoveMedia(hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id));
+      setCanSpawnAndMoveMedia(hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id));
+      hubChannel && hubChannel.addEventListener("permissions_updated", handler);
+      return () => hubChannel && hubChannel.removeEventListener("permissions_updated", handler);
+    },
+    [hub, hubCan, hubChannel]
+  );
 
   // Handle create hotkey (typically /)
   useEffect(
@@ -732,14 +746,16 @@ function JelUI(props) {
                 onMouseDown={e => cancelEventIfFocusedWithin(e, hubNotificationPopupElement)}
                 onClick={() => showHubNotificationPopup(hubNotificationButtonRef)}
               />
-              <HubCreateButton
-                ref={hubCreateButtonRef}
-                onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
-                onClick={() => {
-                  store.handleActivityFlag("createMenu");
-                  showCreateSelectPopup(hubCreateButtonRef, "bottom-end");
-                }}
-              />
+              {canSpawnAndMoveMedia && (
+                <HubCreateButton
+                  ref={hubCreateButtonRef}
+                  onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
+                  onClick={() => {
+                    store.handleActivityFlag("createMenu");
+                    showCreateSelectPopup(hubCreateButtonRef, "bottom-end");
+                  }}
+                />
+              )}
               <HubContextButton
                 ref={hubContextButtonRef}
                 onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}

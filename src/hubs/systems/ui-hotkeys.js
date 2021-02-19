@@ -18,7 +18,7 @@ AFRAME.registerSystem("ui-hotkeys", {
       this.store.update({ settings: { hideKeyTips: !this.store.state.settings.hideKeyTips } });
     }
 
-    if (this.userinput.get(paths.actions.create)) {
+    if (this.userinput.get(paths.actions.create) && canSpawnMedia) {
       if (this.el.sceneEl.is("entered")) {
         this.el.emit("action_create");
         this.store.handleActivityFlag("createMenu");

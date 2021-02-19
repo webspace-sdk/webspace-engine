@@ -42,7 +42,7 @@ const PresenceListMemberItemElement = styled.div`
 
 const MemberActionsPlaceholder = styled.div`
   display: flex;
-  min-width: 64px;
+  min-width: 24px;
   align-items: center;
   justify-content: center;
   margin-right: 8px;
