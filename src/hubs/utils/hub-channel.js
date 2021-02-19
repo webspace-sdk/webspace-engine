@@ -181,6 +181,11 @@ export default class HubChannel extends EventTarget {
     this._blockedSessionIds.delete(sessionId);
   };
 
+  updateSpaceMemberRole = role => {
+    if (!this.channel) return;
+    this.channel.push("update_space_member_role", { role });
+  };
+
   isHidden = sessionId => this._blockedSessionIds.has(sessionId);
 
   kick = async sessionId => {

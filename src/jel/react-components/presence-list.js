@@ -186,7 +186,6 @@ const PresenceListMemberItem = forwardRef((props, ref) => {
   const messages = getMessages();
   const handleHover = useCallback(
     () => {
-      console.log("hover");
       if (showJumpTip && allowJumpTo) {
         store.handleActivityFlag("hasShownJumpedToMember");
       }
