@@ -51,7 +51,8 @@ export default class AuthChannel {
   }
 
   async startVerification(email, spaceChannel, extraPayload = {}) {
-    return this.startAuthentication(email, spaceChannel, extraPayload, true);
+    const { authComplete } = await this.startAuthentication(email, spaceChannel, extraPayload, true);
+    await authComplete;
   }
 
   async startAuthentication(email, spaceChannel, extraPayload = {}, useExistingCredentials = false) {
@@ -78,8 +79,7 @@ export default class AuthChannel {
 
     channel.push("auth_request", { ...extraPayload, ...{ email, origin: "jel" } });
 
-    // Returning an object with the authComplete promise since we want the caller to wait for the above await but not
-    // for authComplete.
+    // Returning an object with the authComplete promise since we want the caller to wait for the above await but not for authComplete.
     return { authComplete };
   }
 
