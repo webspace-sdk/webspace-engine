@@ -63,11 +63,13 @@ export async function getInitialHubForSpaceId(spaceId) {
     store.state.context.lastJoinedHubIds &&
     store.state.context.lastJoinedHubIds[spaceId];
 
-  const lastHubRes = await fetchReticulumAuthenticated(`/api/v1/hubs/${lastJoinedHubId}`);
+  if (lastJoinedHubId) {
+    const lastHubRes = await fetchReticulumAuthenticated(`/api/v1/hubs/${lastJoinedHubId}`);
 
-  if (lastHubRes && !lastHubRes.error) {
-    if (lastHubRes.hubs && lastHubRes.hubs.length > 0) {
-      return lastHubRes.hubs[0];
+    if (lastHubRes && !lastHubRes.error) {
+      if (lastHubRes.hubs && lastHubRes.hubs.length > 0) {
+        return lastHubRes.hubs[0];
+      }
     }
   }
 
