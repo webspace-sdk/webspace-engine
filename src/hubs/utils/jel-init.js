@@ -550,11 +550,11 @@ const initHubPresence = async presence => {
 
 let updateTitleForHubHandler;
 
-const joinHubChannel = async (hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI) => {
+const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI) => {
   let isInitialJoin = true;
   const { spaceChannel, hubChannel, hubMetadata } = window.APP;
 
-  await new Promise(joinFinished => {
+  return new Promise(joinFinished => {
     hubPhxChannel
       .join()
       .receive("ok", async data => {
