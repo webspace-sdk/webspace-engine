@@ -312,7 +312,7 @@ export default class WorldImporter {
         null,
         null,
         id,
-        false
+        true
       ).entity;
 
       const object3D = entity.object3D;

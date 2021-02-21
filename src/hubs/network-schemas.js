@@ -190,6 +190,10 @@ function registerNetworkSchemas() {
       {
         component: "media-video",
         property: "playOnHover"
+      },
+      {
+        component: "media-loader",
+        property: "createdAt"
       }
     ],
     nonAuthorizedComponents: [

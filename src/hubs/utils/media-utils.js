@@ -218,7 +218,7 @@ export const addMedia = (
   parentEl = null,
   linkedEl = null,
   networkId = null,
-  showLoader = true
+  skipLoader = false
 ) => {
   const scene = AFRAME.scenes[0];
 
@@ -266,6 +266,8 @@ export const addMedia = (
     isEmoji = match && match[0] === trimmed;
   }
 
+  const createdAt = Math.floor(NAF.connection.getServerTime());
+
   entity.setAttribute("media-loader", {
     fitToBox,
     resolve,
@@ -273,7 +275,8 @@ export const addMedia = (
     src: typeof src === "string" && contents === null ? coerceToUrl(src) || src : "",
     initialContents: contents != null ? contents : null,
     addedLocally: true,
-    showLoader,
+    createdAt,
+    skipLoader,
     version,
     contentSubtype,
     linkedEl,

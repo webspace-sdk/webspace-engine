@@ -43,6 +43,7 @@ AFRAME.registerComponent("media-loader", {
   schema: {
     fileId: { type: "string" },
     src: { type: "string" },
+    createdAt: { default: 0 },
     initialContents: { type: "string" },
     version: { type: "number", default: 1 }, // Used to force a re-resolution
     fitToBox: { default: false },
@@ -52,7 +53,7 @@ AFRAME.registerComponent("media-loader", {
     contentSubtype: { default: null },
     mediaLayer: { default: null },
     addedLocally: { default: false },
-    showLoader: { default: false },
+    skipLoader: { default: false },
     animate: { default: true },
     linkedEl: { default: null }, // This is the element of which this is a linked derivative. See linked-media.js
     mediaOptions: {
@@ -70,6 +71,7 @@ AFRAME.registerComponent("media-loader", {
     this.handleLinkedElRemoved = this.handleLinkedElRemoved.bind(this);
     this.refresh = this.refresh.bind(this);
     this.animating = false;
+    this.cachedShouldShowLoader = null;
 
     const hubsSystems = this.el.sceneEl.systems["hubs-systems"];
     hubsSystems.skyBeamSystem.register(this.el.object3D);
@@ -180,6 +182,20 @@ AFRAME.registerComponent("media-loader", {
     this.el.emit("media-loader-failed");
   },
 
+  shouldShowLoader() {
+    if (this.data.skipLoader) return false;
+
+    if (this.cachedShouldShowLoader === null) {
+      // Show the loader if the object was spawned in the last 15 seconds.
+      // Otherwise assume the object is being loaded as part of a world
+      // transition. Cache the result so this returns the same value for
+      // subsequent lifecycle events (even after 15s.)
+      this.cachedShouldShowLoader = Math.floor(NAF.connection.getServerTime()) - this.data.createdAt <= 15000;
+    }
+
+    return this.cachedShouldShowLoader;
+  },
+
   async showLoader() {
     if (this.el.object3DMap.mesh) {
       this.cleanupLoader();
@@ -214,7 +230,7 @@ AFRAME.registerComponent("media-loader", {
 
     this.updateScale(true, false);
 
-    if (this.el.sceneEl.is("entered") && this.data.showLoader) {
+    if (this.el.sceneEl.is("entered") && this.shouldShowLoader()) {
       this.loadingSoundEffect = this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playPositionalSoundFollowing(
         SOUND_MEDIA_LOADING,
         this.el.object3D,
@@ -282,7 +298,7 @@ AFRAME.registerComponent("media-loader", {
     const el = this.el;
     this.cleanupLoader();
 
-    if (this.el.sceneEl.is("entered") && this.data.showLoader && this.data.animate) {
+    if (this.el.sceneEl.is("entered") && this.shouldShowLoader() && this.data.animate) {
       this.loadedSoundEffect = this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playPositionalSoundFollowing(
         SOUND_MEDIA_LOADED,
         this.el.object3D,
@@ -310,7 +326,7 @@ AFRAME.registerComponent("media-loader", {
       el.emit("media-loaded");
     };
 
-    if (this.data.showLoader && this.data.animate) {
+    if (this.shouldShowLoader() && this.data.animate) {
       if (!this.animating) {
         this.animating = true;
         if (shouldUpdateScale) this.updateScale(this.data.fitToBox, this.data.moveTheParentNotTheMesh);
@@ -353,7 +369,7 @@ AFRAME.registerComponent("media-loader", {
     }
 
     try {
-      if ((forceLocalRefresh || mediaChanged) && !this.showLoaderTimeout && this.data.showLoader) {
+      if ((forceLocalRefresh || mediaChanged) && !this.showLoaderTimeout && this.shouldShowLoader()) {
         // Delay loader so we don't do it if media is locally cached, etc.
         this.showLoaderTimeout = setTimeout(this.showLoader, 100);
       }
