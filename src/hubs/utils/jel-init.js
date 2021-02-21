@@ -316,7 +316,7 @@ const initSpacePresence = (presence, socket) => {
 
 const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI) => {
   const scene = document.querySelector("a-scene");
-  const { store, spaceChannel } = window.APP;
+  const { store, spaceChannel, hubMetadata } = window.APP;
 
   let presenceInitPromise;
   let isInitialJoin = true;
@@ -340,6 +340,10 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
         remountJelUI({ sessionId });
 
         if (isInitialJoin) {
+          // Bind hub metadata which will cause metadata queries to start
+          // going to new channel (and re-run in-flight ones.)
+          hubMetadata.bind(spaceChannel);
+
           // Disconnect + reconnect NAF + SAF unless this is a re-join
 
           // Disconnect AFrame if already connected
@@ -867,7 +871,6 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
     { once: true }
   );
 
-  hubMetadata.bind(spaceChannel);
   spaceMetadata.ensureMetadataForIds([spaceId]);
 
   store.update({ context: { spaceId } });

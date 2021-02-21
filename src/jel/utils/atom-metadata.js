@@ -62,12 +62,37 @@ class AtomMetadata {
   }
 
   bind(channel) {
+    const inFlightMetadataIds = [];
+
     if (this._channel) {
       this._channel.channel.off(this._refreshMessage, this._handleChannelRefreshMessage);
+
+      // On a channel change, we need to do two things to ensure metadata will
+      // now fetch properly:
+      //
+      // - Remove any entries that had 'null' as value, since those may now
+      //   be accessible
+      //
+      // - Re-fetch any in-flight metadata (the fetch routing will abort if the
+      //   channel changes)
+      const previouslyInaccessibleMetadataIds = new Set();
+      for (const [id, value] of this._metadata.entries()) {
+        if (value === null) {
+          previouslyInaccessibleMetadataIds.add(id);
+        } else if (value === pendingMetadataValue) {
+          inFlightMetadataIds.push(id);
+        }
+      }
+
+      for (const id of previouslyInaccessibleMetadataIds) {
+        this._metadata.delete(id);
+      }
     }
 
     this._channel = channel;
     this._channel.channel.on(this._refreshMessage, this._handleChannelRefreshMessage);
+
+    this.ensureMetadataForIds(inFlightMetadataIds, true);
   }
 
   get defaultName() {
@@ -133,7 +158,13 @@ class AtomMetadata {
     }
 
     if (idsToFetch.size !== 0) {
+      const phxChannel = this._channel.channel;
       const atoms = await this._channel[this._channelGetMethod](idsToFetch);
+
+      // Edge case: if phoenix channel is re-bound, discard, the rebind will
+      // re-fetch the pending items.
+      if (phxChannel !== this._channel.channel) return;
+
       for (const metadata of atoms) {
         this._setDisplayNameOnMetadata(metadata);
         this._metadata.set(metadata[this._idColumn], metadata);
