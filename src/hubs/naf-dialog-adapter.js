@@ -766,7 +766,7 @@ export default class DialogAdapter {
   }
 
   async restartTransportICEIfNecessary(transport, connectionState = transport && transport.connectionState) {
-    if (!transport || !this._protoo || !this._protoo.connected) return;
+    if (!transport || transport._closed || !this._protoo || !this._protoo.connected) return;
 
     const lastConnectionState =
       transport === this._sendTransport ? this._lastSendConnectionState : this._lastRecvConnectionState;
