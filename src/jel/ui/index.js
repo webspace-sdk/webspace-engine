@@ -15,11 +15,14 @@ import grassSrc from "../../assets/jel/images/landing-grass.svg";
 import logoSrc from "../../assets/jel/images/landing-logo.png";
 import SmallActionButton from "../react-components/small-action-button";
 import DotSpinner from "../react-components/dot-spinner";
+import registerTelemetry from "../../hubs/telemetry";
 
 const store = new Store();
 const qs = new URLSearchParams(location.search);
 const history = createBrowserHistory();
 const authChannel = new AuthChannel(store);
+
+registerTelemetry();
 
 window.APP = { store };
 
