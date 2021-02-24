@@ -1,6 +1,10 @@
 import Raven from "raven-js";
 import configs from "./utils/configs";
 
+function gtag() {
+  window.dataLayer.push(arguments);
+}
+
 export default function registerTelemetry() {
   const sentryDsn = configs.SENTRY_DSN;
   const gaTrackingId = configs.GA_TRACKING_ID;
@@ -12,9 +16,6 @@ export default function registerTelemetry() {
 
   if (gaTrackingId) {
     window.dataLayer = window.dataLayer || [];
-    const gtag = () => {
-      window.dataLayer.push(arguments);
-    };
 
     gtag("js", new Date());
     gtag("config", gaTrackingId);
