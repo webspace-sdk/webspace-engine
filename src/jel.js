@@ -259,7 +259,7 @@ if (isBotMode) {
 }
 
 if (!isBotMode && !isTelemetryDisabled) {
-  registerTelemetry("/hub", "Room Landing Page");
+  registerTelemetry();
 
   // Can't do this in the other file otherwise get a mixpanel error
   if (configs.MIXPANEL_TOKEN) {
