@@ -18,6 +18,7 @@ import ChatLog from "./chat-log";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shadow.svgi";
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
 import notificationsIcon from "../../assets/jel/images/icons/notifications-shadow.svgi";
+import securityIcon from "../../assets/jel/images/icons/security-shadow.svgi";
 import RenamePopup from "./rename-popup";
 import CreateEmbedPopup from "./create-embed-popup";
 import HubContextMenu from "./hub-context-menu";
@@ -26,6 +27,7 @@ import ChatInputPopup from "./chat-input-popup";
 import EmojiPopup from "./emoji-popup";
 import EquippedEmojiIcon from "./equipped-emoji-icon";
 import SpaceNotificationsPopup from "./space-notifications-popup";
+import HubPermissionsPopup from "./hub-permissions-popup";
 import HubNotificationsPopup from "./hub-notifications-popup";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
@@ -377,6 +379,20 @@ const HubCreateButton = forwardRef((props, ref) => {
 
 HubCreateButton.displayName = "HubCreateButton";
 
+const HubPermissionsButton = forwardRef((props, ref) => {
+  const messages = getMessages();
+
+  return (
+    <Tooltip content={messages["hub-permissions.tip"]} placement="top" key="hub-permissions" delay={500}>
+      <HubCornerButtonElement {...props} ref={ref}>
+        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: securityIcon }} />
+      </HubCornerButtonElement>
+    </Tooltip>
+  );
+});
+
+HubPermissionsButton.displayName = "HubPermissionsButton";
+
 const HubNotificationButton = forwardRef((props, ref) => {
   const messages = getMessages();
 
@@ -461,6 +477,7 @@ function JelUI(props) {
   const centerPopupRef = useRef();
   const createEmbedFocusRef = useRef();
   const emojiPopupFocusRef = useRef();
+  const hubPermissionsButtonRef = useRef();
   const hubNotificationButtonRef = useRef();
 
   const {
@@ -546,6 +563,15 @@ function JelUI(props) {
     update: updateHubNotificationPopup
   } = usePopupPopper(null, "bottom-end", [0, 8]);
 
+  const {
+    styles: hubPermissionsPopupStyles,
+    attributes: hubPermissionsPopupAttributes,
+    show: showHubPermissionsPopup,
+    setPopup: setHubPermissionsPopupElement,
+    popupElement: hubPermissionsPopupElement,
+    update: updateHubPermissionsPopup
+  } = usePopupPopper(null, "bottom-end", [0, 8]);
+
   // When panels are re-sized we need to re-layout popups
   useEffect(
     () => {
@@ -559,6 +585,7 @@ function JelUI(props) {
         if (updateEmojiPopup) updateEmojiPopup();
         if (updateSpaceNotificationPopup) updateSpaceNotificationPopup();
         if (updateHubNotificationPopup) updateHubNotificationPopup();
+        if (updateHubPermissionsPopup) updateHubPermissionsPopup();
       };
 
       scene && scene.addEventListener("animated_resize_complete", handleResizeComplete);
@@ -574,7 +601,8 @@ function JelUI(props) {
       updateChatInputPopup,
       updateEmojiPopup,
       updateSpaceNotificationPopup,
-      updateHubNotificationPopup
+      updateHubNotificationPopup,
+      updateHubPermissionsPopup
     ]
   );
 
@@ -741,6 +769,14 @@ function JelUI(props) {
                   <FormattedMessage id="install.desktop" />
                 </HubCornerButton>
               )}
+              {hubCan &&
+                hubCan("update_hub_roles", hub && hub.hub_id) && (
+                  <HubPermissionsButton
+                    ref={hubPermissionsButtonRef}
+                    onMouseDown={e => cancelEventIfFocusedWithin(e, hubPermissionsPopupElement)}
+                    onClick={() => showHubPermissionsPopup(hubPermissionsButtonRef)}
+                  />
+                )}
               <HubNotificationButton
                 ref={hubNotificationButtonRef}
                 onMouseDown={e => cancelEventIfFocusedWithin(e, hubNotificationPopupElement)}
@@ -884,6 +920,13 @@ function JelUI(props) {
         subscriptions={subscriptions}
         spaceId={spaceId}
         memberships={memberships}
+      />
+      <HubPermissionsPopup
+        setPopperElement={setHubPermissionsPopupElement}
+        styles={hubPermissionsPopupStyles}
+        attributes={hubPermissionsPopupAttributes}
+        hubMetadata={hubMetadata}
+        hub={hub}
       />
       <HubNotificationsPopup
         setPopperElement={setHubNotificationPopupElement}
