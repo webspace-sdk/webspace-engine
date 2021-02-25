@@ -13,7 +13,7 @@ import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-pr
 import { createSpace } from "../../hubs/utils/phoenix-utils";
 import grassSrc from "../../assets/jel/images/landing-grass.svg";
 import logoSrc from "../../assets/jel/images/landing-logo.png";
-import SmallActionButton from "../react-components/small-action-button";
+import ActionButton from "../react-components/action-button";
 import DotSpinner from "../react-components/dot-spinner";
 import registerTelemetry from "../../hubs/telemetry";
 
@@ -42,7 +42,7 @@ const Panel = styled.div`
   border-radius: 6px;
   border: 1px solid var(--dialog-border-color);
   padding: 8px;
-  margin: 8px;
+  margin-bottom: 32px;
   user-select: none;
 `;
 
@@ -73,16 +73,6 @@ const InfoPanel = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-`;
-
-const Tagline = styled.div`
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: var(--panel-banner-text-color);
-  font-size: var(--panel-banner-text-size);
-  margin-top: 24px;
 `;
 
 const Logo = styled.img`
@@ -124,7 +114,7 @@ const Footer = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 32px;
   margin-bottom: 24px;
 
   a {
@@ -274,18 +264,6 @@ function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, invi
     return (
       <div>
         <InfoPanel>
-          <iframe
-            width="560"
-            height="315"
-            style={{ borderRadius: "12px", boxShadow: "0px 0px 8px rgba(0.2, 0.2, 0.2, 0.4)" }}
-            src="https://www.youtube.com/embed/_YXjGj3oYz8"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-          <Tagline>
-            <FormattedMessage id="home.tagline" />
-          </Tagline>
           <form
             onSubmit={async e => {
               setIsLoading(true);
@@ -312,9 +290,9 @@ function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, invi
               {isLoading ? (
                 <DotSpinner style={{ transform: "scale(0.4)" }} />
               ) : (
-                <SmallActionButton type="submit" style={{ width: "250px" }}>
+                <ActionButton type="submit" style={{ width: "250px" }}>
                   <FormattedMessage id="new-space.create" />
-                </SmallActionButton>
+                </ActionButton>
               )}
               {!store.credentialsAccountId && (
                 <Tip style={{ marginTop: "24px" }}>
@@ -325,6 +303,14 @@ function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, invi
               )}
             </Panel>
           </form>
+          <iframe
+            width="560"
+            height="315"
+            src="https://www.youtube.com/embed/_YXjGj3oYz8"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
         </InfoPanel>
         <Footer>
           <a href="https://discord.gg/wSCy58w54j">
