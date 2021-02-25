@@ -101,6 +101,7 @@ export class ExternalCameraSystem {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.shadowMap.autoUpdate = false;
     renderer.shadowMap.soft = true;
+    renderer.setPixelRatio(sceneEl.renderer.getPixelRatio());
 
     patchThreeAllocations(renderer);
     patchThreeNoProgramDispose(renderer);

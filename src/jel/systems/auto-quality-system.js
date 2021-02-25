@@ -27,6 +27,16 @@ export class AutoQualitySystem {
     this.slowStartupFrames = Array(STARTUP_SLOW_FRAME_THRESHOLDS.length).fill(0);
     this.lastTick = 0;
     this.debugStartTime = performance.now();
+
+    window.addEventListener("resize", () => {
+      // On a resize, temporarily reset the pixel ratio to 1.0 in the case
+      // where we no longer need lower res.
+      if (window.APP.detailLevel === 2) {
+        if (this.scene.renderer.getPixelRatio() !== 1.0) {
+          this.scene.renderer.setPixelRatio(1.0);
+        }
+      }
+    });
   }
 
   debugLog() {
@@ -73,7 +83,7 @@ export class AutoQualitySystem {
 
   tick(t) {
     if (!this.enableTracking) return;
-    if (window.APP.detailLevel === 2) return; // Already lowest detail level, can't do anything else
+    if (window.APP.detailLevel === 2 && this.scene.renderer.pixelRatio <= 0.33) return; // Already lowest detail level, can't do anything else
 
     if (this.lastTick === 0) {
       this.lastTick = performance.now();
@@ -149,7 +159,17 @@ export class AutoQualitySystem {
       this.sampledFrames = 0;
 
       if (!this.metFastFrameTest) {
-        this.dropDetailLevel();
+        if (window.APP.detailLevel < 2) {
+          this.dropDetailLevel();
+        } else {
+          if (this.scene.renderer.getPixelRatio() === 1.0) {
+            console.warn("Dropping resolution to 0.5.");
+            this.scene.renderer.setPixelRatio(0.5);
+          } else if (this.scene.renderer.getPixelRatio() > 0.33) {
+            console.warn("Dropping resolution to 0.33.");
+            this.scene.renderer.setPixelRatio(0.33);
+          }
+        }
       }
 
       this.consecutiveFastFrames = 0;

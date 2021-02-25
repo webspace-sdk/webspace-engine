@@ -91,7 +91,6 @@ export default class SpaceChannel extends EventTarget {
 
   updateUnmuted(unmuted) {
     if (this.channel) {
-      console.log(unmuted);
       this.channel.push("update_unmuted", { unmuted });
     }
   }
