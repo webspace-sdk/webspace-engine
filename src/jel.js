@@ -668,8 +668,28 @@ function addGlobalEventListeners(scene, entryManager) {
   scene.addEventListener("terrain_chunk_loading_complete", () => {
     if (!performedInitialQualityBoost && !isBotMode) {
       performedInitialQualityBoost = true;
-      window.APP.detailLevel = 0;
-      scene.renderer.setPixelRatio(window.devicePixelRatio);
+
+      let setToHighDetail = true;
+
+      if (window.APP.store.state.settings.defaultDetailLevel) {
+        const now = Math.floor(new Date() / 1000.0);
+
+        // The default detail level has an expiration date, for cases where the user has
+        // re-configured their machine properly to use the GPU, etc.
+        const shouldApplyDefaultDetailLevel = now < window.APP.store.state.settings.defaultDetailLevelUntilSeconds;
+
+        if (shouldApplyDefaultDetailLevel) {
+          window.APP.detailLevel = window.APP.store.state.settings.defaultDetailLevel;
+          setToHighDetail = false;
+        }
+      }
+
+      // If not overridden, set the detail level to high and assume auto quality system will handle it.
+      if (setToHighDetail) {
+        window.APP.detailLevel = 0;
+        scene.renderer.setPixelRatio(window.devicePixelRatio);
+      }
+
       mixpanel.track("Event First World Load Complete", {});
     }
 
