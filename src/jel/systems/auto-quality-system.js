@@ -86,17 +86,6 @@ export class AutoQualitySystem {
 
     this.sampledFrames++;
 
-    if (dt > RESET_ON_TIME_JUMP_MS) {
-      // Process was likely suspended
-      this.timeSinceLastCheck = 0;
-      this.metFastFrameTest = false;
-      this.numConsecutiveFastFrames = 0;
-
-      this.debugLog("Adjust for suspend at ", t);
-
-      return;
-    }
-
     // For ridiculously underpowered machines, have a special code path that just looks at the
     // first N frames and if they're all slower than a conservative threshold
     // we immediately drop quality. This heuristic also burns in this as the max detail level
@@ -123,6 +112,17 @@ export class AutoQualitySystem {
 
         return;
       }
+    }
+
+    if (dt > RESET_ON_TIME_JUMP_MS) {
+      // Process was likely suspended
+      this.timeSinceLastCheck = 0;
+      this.metFastFrameTest = false;
+      this.numConsecutiveFastFrames = 0;
+
+      this.debugLog("Adjust for suspend at ", t);
+
+      return;
     }
 
     // Otherwise conservatively detect slowdowns mid-session (eg object spawning, etc)
