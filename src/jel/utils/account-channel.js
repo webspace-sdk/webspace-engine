@@ -12,6 +12,9 @@ export default class AccountChannel extends EventTarget {
     this.channel = channel;
 
     channel.on("account_refresh", this.onAccountRefreshed);
+    channel.on("support_available", this.onSupportAvailable);
+    channel.on("support_unavailable", this.onSupportUnavailable);
+    channel.on("support_response", this.onSupportResponse);
 
     const isCurrentlyActive = document.visibilityState !== "hidden" && document.hasFocus();
 
@@ -50,6 +53,18 @@ export default class AccountChannel extends EventTarget {
     this.dispatchEvent(new CustomEvent("account_refresh", { detail: accountInfo }));
   };
 
+  onSupportAvailable = () => {
+    this.dispatchEvent(new CustomEvent("support_available", {}));
+  };
+
+  onSupportUnavailable = () => {
+    this.dispatchEvent(new CustomEvent("support_unavailable", {}));
+  };
+
+  onSupportResponse = response => {
+    this.dispatchEvent(new CustomEvent("support_response", { detail: response }));
+  };
+
   updateMembership(spaceId, notifySpaceCopresence, notifyHubCopresence, notifyChatMode) {
     if (this.channel) {
       this.channel.push("update_membership", {
@@ -81,6 +96,20 @@ export default class AccountChannel extends EventTarget {
     }
 
     this.channel = null;
+  };
+
+  requestSupport = () => {
+    if (!this.channel) return;
+
+    const spaceId = window.APP.spaceChannel.spaceId;
+    this.channel.push("support_response", { space_id: spaceId, response: "ok" });
+  };
+
+  denySupport = () => {
+    if (!this.channel) return;
+
+    const spaceId = window.APP.spaceChannel.spaceId;
+    this.channel.push("support_response", { space_id: spaceId, response: "deny" });
   };
 
   disconnect = () => {
