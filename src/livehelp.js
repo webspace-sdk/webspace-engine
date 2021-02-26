@@ -14,7 +14,17 @@ const accountChannel = new AccountChannel();
     account_id_needing_support: qs.get("account_id")
   });
 
-  accountPhxChannel.join().receive("ok", () => {});
+  accountPhxChannel
+    .join()
+    .receive("ok", () => {})
+    .receive("error", error => {
+      document.body.innerHTML = `
+        <div style="width: 500px; height: 500px; color: white; background-color: #333; position: absolute;">
+          ${error.reason}
+        </div>
+      `;
+    });
+
   accountChannel.bind(accountPhxChannel);
   document.body.innerHTML = "Waiting for reply";
 
