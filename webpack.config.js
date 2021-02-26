@@ -251,9 +251,9 @@ module.exports = async (env, argv) => {
       support: path.join(__dirname, "src", "hubs", "support.js"),
       index: path.join(__dirname, "src", "jel", "ui", "index.js"),
       jel: path.join(__dirname, "src", "jel.js"),
-      livehelp: path.join(__dirname, "src", "livehelp.js"),
+      livehelp: path.join(__dirname, "src", "livehelp.js")
       // don't build zoom every time to reduce build times
-      zoom: path.join(__dirname, "src", "zoom.js")
+      // zoom: path.join(__dirname, "src", "zoom.js")
     },
     output: {
       filename: "assets/js/[name]-[chunkhash].js",
@@ -505,16 +505,16 @@ module.exports = async (env, argv) => {
         }
       }),
       // don't build zoom every time to reduce build times
-      new HTMLWebpackPlugin({
-        filename: "zoom.html",
-        template: path.join(__dirname, "src", "zoom.html"),
-        chunks: ["zoom"],
-        chunksSortMode: "manual",
-        inject: "body",
-        minify: {
-          removeComments: false
-        }
-      }),
+      //new HTMLWebpackPlugin({
+      //  filename: "zoom.html",
+      //  template: path.join(__dirname, "src", "zoom.html"),
+      //  chunks: ["zoom"],
+      //  chunksSortMode: "manual",
+      //  inject: "body",
+      //  minify: {
+      //    removeComments: false
+      //  }
+      //}),
       new CopyWebpackPlugin([
         {
           from: "src/jel.service.js",
