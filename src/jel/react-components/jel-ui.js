@@ -74,6 +74,10 @@ const NotifyBanner = styled.div`
   z-index: 6;
   pointer-events: auto;
   user-select: none;
+
+  .panels-expanded & {
+    display: none;
+  }
 `;
 
 const NotifyBannerButton = styled.button`

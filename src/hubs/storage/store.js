@@ -85,7 +85,9 @@ export const SCHEMA = {
       additionalProperties: false,
       properties: {
         preferredMicDeviceId: { type: "string" },
-        hideKeyTips: { type: "boolean" }
+        hideKeyTips: { type: "boolean" },
+        defaultDetailLevel: { type: "number" },
+        defaultDetailLevelUntilSeconds: { type: "number" }
       }
     },
 
