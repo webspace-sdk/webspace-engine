@@ -15,6 +15,7 @@ import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
+import Snackbar from "./snackbar";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shadow.svgi";
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
 import notificationsIcon from "../../assets/jel/images/icons/notifications-shadow.svgi";
@@ -732,6 +733,7 @@ function JelUI(props) {
     <WrappedIntlProvider>
       <div>
         <LoadingPanel isLoading={isLoading} unavailableReason={unavailableReason} />
+        <Snackbar />
         <Wrap id="jel-ui-wrap">
           {showNotificationBanner && (
             <NotifyBanner>
