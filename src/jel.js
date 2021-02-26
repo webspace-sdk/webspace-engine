@@ -1143,6 +1143,7 @@ async function start() {
     console.log(`Logged into account ${store.credentialsAccountId}`);
 
     const accountPhxChannel = socket.channel(`account:${store.credentialsAccountId}`, { auth_token: token });
+
     membershipsPromise = new Promise((res, rej) => {
       accountPhxChannel
         .join()

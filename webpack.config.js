@@ -250,7 +250,8 @@ module.exports = async (env, argv) => {
     entry: {
       support: path.join(__dirname, "src", "hubs", "support.js"),
       index: path.join(__dirname, "src", "jel", "ui", "index.js"),
-      jel: path.join(__dirname, "src", "jel.js")
+      jel: path.join(__dirname, "src", "jel.js"),
+      livehelp: path.join(__dirname, "src", "livehelp.js")
       // don't build zoom every time to reduce build times
       // zoom: path.join(__dirname, "src", "zoom.js")
     },
@@ -490,6 +491,15 @@ module.exports = async (env, argv) => {
         chunks: ["support", "jel"],
         chunksSortMode: "manual",
         inject: "head",
+        minify: {
+          removeComments: false
+        }
+      }),
+      new HTMLWebpackPlugin({
+        filename: "livehelp.html",
+        template: path.join(__dirname, "src", "livehelp.html"),
+        chunks: ["livehelp"],
+        chunksSortMode: "manual",
         minify: {
           removeComments: false
         }
