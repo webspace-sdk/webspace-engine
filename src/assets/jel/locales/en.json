@@ -261,7 +261,8 @@
   "bridge.connected-to-zoom": "Connected to Zoom",
   "bridge.firefox-unsupported": "Not supported in Firefox. Try Chrome or Edge.",
   "bridge.connect-zoom": "Connect to Zoom",
-  "support.available": "A Jel team member can come show you around.",
+  "support.title": "New to Jel?",
+  "support.subtitle": "A Jel team member can show you around.",
   "support.support-confirm": "Great! Invite them in.",
   "support.support-deny": "No thanks",
   "support.support-delay": "Maybe later"

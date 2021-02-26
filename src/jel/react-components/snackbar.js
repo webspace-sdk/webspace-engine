@@ -1,6 +1,6 @@
-import PropTypes from "prop-types";
+//import PropTypes from "prop-types";
 import { FormattedMessage } from "react-intl";
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import styled from "styled-components";
 
@@ -19,21 +19,47 @@ const SnackbarElement = styled.div`
   color: var(--snackbar-text-color);
   font-weight: var(--snackbar-text-weight);
   font-size: var(--snackbar-text-size);
-  padding: 0px 42px;
-  border-radius: 32px;
+  padding: 8px 40px;
+  border-radius: 24px;
   margin: 12px;
-  position: relative;
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   width: fit-content;
+
+  transition: transform 0.15s linear, opacity 0.15s linear;
+  transform: translate(-50%, 0);
+
+  &.hidden {
+    opacity: 0;
+    transform: translate(-50%, -6px);
+  }
+
+  .panels-expanded & {
+    display: none;
+  }
+
+  body paused & {
+    display: none;
+  }
+
+  z-index: 100;
 `;
 
 const Message = styled.div`
   margin-right: 24px;
   text-shadow: 0px 0px 2px var(--menu-shadow-color);
   user-select: none;
+  padding: 12px 0;
+  line-height: 24px;
+
+  & div {
+    font-size: var(--snackbar-small-text-size);
+  }
 `;
 
 const ActionButton = styled.button`
@@ -97,50 +123,61 @@ const SecondaryButton = styled.button`
   }
 `;
 
-const TertiaryButton = styled.button`
-  appearance: none;
-  -moz-appearance: none;
-  -webkit-appearance: none;
-  outline-style: none;
-  background-color: var(--snackbar-tertiary-action-button-background-color);
-  border: none;
-  color: var(--snackbar-tertiary-action-button-text-color);
-  font-weight: var(--snackbar-tertiary-action-button-text-weight);
-  font-size: var(--snackbar-tertiary-action-button-text-size);
-  padding-left: 32px;
-  min-width: 64px;
-  border-radius: 6px;
-  margin: 8px;
-  position: relative;
-  white-space: nowrap;
-
-  &:hover {
-    text-decoration: underline;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-  }
-`;
 export default function Snackbar() {
+  const [hidden, setIsHidden] = useState(true);
+  const accountChannel = window.APP.accountChannel;
+
+  useEffect(
+    () => {
+      const handler = () => setIsHidden(false);
+      accountChannel.addEventListener("support_available", handler);
+      return () => accountChannel.removeEventListener("support_available", handler);
+    },
+    [accountChannel]
+  );
+
+  useEffect(
+    () => {
+      const handler = () => setIsHidden(true);
+
+      accountChannel.addEventListener("support_unavailable", handler);
+      return () => accountChannel.removeEventListener("support_unavailable", handler);
+    },
+    [accountChannel]
+  );
+
+  const onSupportConfirm = useCallback(
+    () => {
+      accountChannel.requestSupport();
+      setIsHidden(true);
+    },
+    [accountChannel, setIsHidden]
+  );
+
+  const onSupportDeny = useCallback(
+    () => {
+      accountChannel.requestSupport();
+      setIsHidden(true);
+    },
+    [accountChannel, setIsHidden]
+  );
+
   return (
-    <SnackbarElement>
+    <SnackbarElement className={hidden ? "hidden" : ""}>
       <Message>
-        <FormattedMessage id="support.available" />
+        <FormattedMessage id="support.title" />
+        <div>
+          <FormattedMessage id="support.subtitle" />
+        </div>
       </Message>
-      <ActionButton>
+      <ActionButton onClick={onSupportConfirm}>
         <FormattedMessage id="support.support-confirm" />
       </ActionButton>
-      <SecondaryButton>
+      <SecondaryButton onClick={onSupportDeny}>
         <FormattedMessage id="support.support-delay" />
       </SecondaryButton>
-      <TertiaryButton>
-        <FormattedMessage id="support.support-deny" />
-      </TertiaryButton>
     </SnackbarElement>
   );
 }
 
-Snackbar.propTypes = {
-  mode: PropTypes.number
-};
+Snackbar.propTypes = {};
