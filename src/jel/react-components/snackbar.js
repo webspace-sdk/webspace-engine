@@ -156,7 +156,7 @@ export default function Snackbar() {
 
   const onSupportDeny = useCallback(
     () => {
-      accountChannel.requestSupport();
+      accountChannel.denySupport();
       setIsHidden(true);
     },
     [accountChannel, setIsHidden]
