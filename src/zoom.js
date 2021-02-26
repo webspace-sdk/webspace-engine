@@ -105,6 +105,13 @@ window.join = function({ apiKey, meetingNumber, password, name, signature, initi
                 }
               }
 
+              const performInitialUnmute = () => {
+                const unmuteButton = document.querySelector("button.join-audio-container__btn");
+                if (unmuteButton && unmuteButton.getAttribute("title").toLowerCase() === "unmute") {
+                  unmuteButton.click();
+                }
+              };
+
               if (
                 joinButton &&
                 videoButton &&
@@ -118,12 +125,10 @@ window.join = function({ apiKey, meetingNumber, password, name, signature, initi
                 if (initialMessage) {
                   chatOpenIcon.click();
 
-                  const chatReadyInterval = setInterval(() => {
+                  setTimeout(() => {
                     const chat = document.querySelector("textarea");
 
                     if (chat) {
-                      clearInterval(chatReadyInterval);
-
                       setNativeValue(chat, initialMessage);
                       chat.dispatchEvent(new Event("input", { bubbles: true }));
 
@@ -140,13 +145,22 @@ window.join = function({ apiKey, meetingNumber, password, name, signature, initi
                           chatOpenIcon.click();
                           setTimeout(() => joinButton.click(), 2000);
                           setTimeout(() => videoButton.click(), 5000);
+                          setTimeout(performInitialUnmute, 7000);
                         }, 100);
                       }, 100);
+                    } else {
+                      // Chat is disabled
+                      document.querySelector(".chat-header__dropdown-menu a").click();
+
+                      setTimeout(() => joinButton.click(), 2000);
+                      setTimeout(() => videoButton.click(), 5000);
+                      setTimeout(performInitialUnmute, 7000);
                     }
-                  }, 500);
+                  }, 1000);
                 } else {
                   setTimeout(() => joinButton.click(), 2000);
                   setTimeout(() => videoButton.click(), 5000);
+                  setTimeout(performInitialUnmute, 7000);
                 }
               }
             }, 500);
