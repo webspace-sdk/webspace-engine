@@ -10,7 +10,6 @@ import Spinner from "./spinner";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
 import { FormattedMessage } from "react-intl";
 import { getMessages } from "../../hubs/utils/i18n";
-import { SCHEMA } from "../../hubs/storage/store";
 import { PanelWrap, Info, Tip, Label, TextInputWrap, InputWrap, Input, Checkbox } from "./form-components";
 
 let popupRoot = null;
