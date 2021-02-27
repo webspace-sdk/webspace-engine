@@ -91,8 +91,6 @@ const BridgeStartPopup = forwardRef(
                   autocomplete="off"
                   value={password}
                   disabled={connecting}
-                  pattern={SCHEMA.definitions.profile.properties.displayName.pattern}
-                  required
                   placeholder={messages["bridge-start.password-placeholder"]}
                   onFocus={e => handleTextFieldFocus(e.target)}
                   onBlur={e => handleTextFieldBlur(e.target)}
