@@ -674,9 +674,15 @@ function addGlobalEventListeners(scene, entryManager) {
       if (window.APP.store.state.settings.defaultDetailLevel) {
         const now = Math.floor(new Date() / 1000.0);
 
+        if (window.APP.store.state.settings.defaultDetailLevelUntilSeconds > 1700000000) {
+          // TODO Bug workaround, remove after 4/1/21
+          window.APP.store.update({ settings: { defaultDetailLevelUntilSeconds: Math.floor(new Date() / 1000) } });
+        }
+
         // The default detail level has an expiration date, for cases where the user has
         // re-configured their machine properly to use the GPU, etc.
-        const shouldApplyDefaultDetailLevel = now < window.APP.store.state.settings.defaultDetailLevelUntilSeconds;
+        const applyUntil = window.APP.store.state.settings.defaultDetailLevelUntilSeconds;
+        const shouldApplyDefaultDetailLevel = now < applyUntil;
 
         if (shouldApplyDefaultDetailLevel) {
           window.APP.detailLevel = window.APP.store.state.settings.defaultDetailLevel;

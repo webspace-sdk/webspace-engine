@@ -6,7 +6,7 @@ const DEBUG_DURATION_MS = 30000.0;
 const MIN_NUM_CONSECUTIVE_FAST_FRAMES = 2;
 
 // How long to maintain lower detail level on startup if machine seems to be underpowered.
-const CROSS_SESSION_DETAIL_LOWER_DURATION_MS = 1000 * 60 * 60 * 24;
+const CROSS_SESSION_DETAIL_LOWER_DURATION_S = 60 * 60 * 24;
 
 // Thresholds we use to determine inherently slow machines during first N frames.
 // Note these need to be descending due to how algorithm runs.
@@ -75,7 +75,7 @@ export class AutoQualitySystem {
       window.APP.store.update({
         settings: {
           defaultDetailLevel: window.APP.detailLevel,
-          defaultDetailLevelUntilSeconds: Math.floor(new Date() / 1000) + CROSS_SESSION_DETAIL_LOWER_DURATION_MS
+          defaultDetailLevelUntilSeconds: Math.floor(new Date() / 1000) + CROSS_SESSION_DETAIL_LOWER_DURATION_S
         }
       });
     }
