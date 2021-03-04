@@ -1,6 +1,7 @@
-import React from "react";
+import React, { forwardRef } from "react";
 import styled from "styled-components";
 import { getMessages } from "../../hubs/utils/i18n";
+import PropTypes from "prop-types";
 
 export const PanelWrap = styled.div`
   width: fit-content;
@@ -53,6 +54,27 @@ export const Label = styled.label`
   }
 `;
 
+export const EditableTextInputWrap = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-right: 12px;
+`;
+
+export const EditableTextInputValue = styled.div`
+  color: var(--dialog-info-text-color);
+  font-size: var(--dialog-info-text-size);
+  font-weight: var(--dialog-info-text-weight);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex: 1;
+  padding: 2px 4px;
+  border: 0;
+  margin: 0px 8px;
+`;
+
 export const TextInputWrap = styled.div`
   display: flex;
   flex-direction: row;
@@ -60,7 +82,6 @@ export const TextInputWrap = styled.div`
   justify-content: flex-start;
   flex: 1;
   padding: 2px 4px;
-  margin: 0 8px;
   border-radius: 4px;
   border: 0;
   background: var(--text-input-background-color);
@@ -143,6 +164,77 @@ export const Checkbox = styled.input`
   &:checked ::before {
     visibility: visible;
   }
+`;
+
+const FieldEditButtonElement = styled.button`
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  background-color: transparent;
+  border: 1px transparent;
+  color: var(--dialog-field-action-button-color);
+  font-weight: var(--tiny-action-button-text-weight);
+  font-size: var(--tiny-action-button-text-size);
+  padding: 4px 6px;
+  min-width: 34px;
+  border-radius: 6px;
+  margin: 0px;
+  position: relative;
+  white-space: nowrap;
+  height: 32px;
+
+  &:hover {
+    color: var(--dialog-field-action-button-hover-color);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+`;
+
+const FieldEditButtonIconHolder = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-left: 8px;
+`;
+
+const FieldEditButtonIcon = styled.div`
+  width: 18px;
+  height: 18px;
+`;
+
+export const FieldEditButton = forwardRef((props, ref) => {
+  const filteredProps = { ...props };
+  delete filteredProps.iconSrc;
+  delete filteredProps.children;
+  return (
+    <FieldEditButtonElement {...filteredProps} ref={ref}>
+      <FieldEditButtonIconHolder>
+        <FieldEditButtonIcon dangerouslySetInnerHTML={{ __html: props.iconSrc }} />
+      </FieldEditButtonIconHolder>
+      <TextContainer>{props.children}</TextContainer>
+    </FieldEditButtonElement>
+  );
+});
+
+FieldEditButton.displayName = "FieldEditButton";
+
+FieldEditButton.propTypes = {
+  iconSrc: PropTypes.string,
+  children: PropTypes.object
+};
+
+const TextContainer = styled.div`
+  box-sizing: border-box;
+  height: calc(var(--tiny-action-button-text-size) - 9px);
+  line-height: calc(var(--tiny-action-button-text-size) - 10px);
 `;
 
 export const checkboxControlFor = (name, labelMessageId, value, setter, onChange) => {
