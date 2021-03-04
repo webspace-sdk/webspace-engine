@@ -337,7 +337,7 @@ const SelfPanel = ({
         initialName={displayName}
         scene={scene}
         sessionId={sessionId}
-        onNameEditSaved={name => window.APP.spaceChannel.updateIdentity(name)}
+        onNameEditSaved={name => window.APP.spaceChannel.updateIdentity({ name })}
         onSignOutClicked={onSignOutClicked}
         onSignUp={async (email, name, allowEmails) => {
           setIsVerifying(true);

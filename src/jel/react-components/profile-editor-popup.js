@@ -45,7 +45,7 @@ const SignOutButton = styled.button`
   text-decoration: underline;
   font-weight: var(--dialog-tip-text-weight);
   line-height: 16px;
-  margin-top: 16px;
+  margin-top: 4px;
 `;
 
 let popupRoot = null;
@@ -67,9 +67,10 @@ const ProfileEditorPopup = ({
 }) => {
   const messages = getMessages();
   const [email, setEmail] = useState("");
-  const [name, setName] = useState(initialName);
+  const [name, setName] = useState(initialName || "");
   const [editingName, setEditingName] = useState(false);
   const [exists, setExists] = useState(false);
+  const [previousName, setPreviousName] = useState(initialName || "");
   const [allowEmails, setAllowEmails] = useState(true);
   const [meta, setMeta] = useState({});
   const nameEditFieldRef = useRef();
@@ -99,43 +100,59 @@ const ProfileEditorPopup = ({
       <PopupPanelMenu style={{ padding: "12px", borderRadius: "12px" }} className={sharedStyles.slideUpWhenPopped}>
         {mode === PROFILE_EDITOR_MODES.VERIFIED && (
           <PanelWrap>
-            <Tip style={{ marginBottom: "2px" }}>
+            <Tip>
               <FormattedMessage id="profile-editor.signed-in-as" />
             </Tip>
             <EditableTextInputWrap>
               {!editingName && <EditableTextInputValue>{name}</EditableTextInputValue>}
               {editingName && (
-                <TextInputWrap>
-                  <Input
-                    type="text"
-                    name="name"
-                    autoFocus={true}
-                    value={name}
-                    pattern={SCHEMA.definitions.profile.properties.displayName.pattern}
-                    ref={nameEditFieldRef}
-                    required
-                    spellCheck="false"
-                    placeholder={messages["profile-editor.name-placeholder"]}
-                    title={messages["profile-editor.name-validation-warning"]}
-                    onFocus={e => handleTextFieldFocus(e.target)}
-                    onBlur={e => handleTextFieldBlur(e.target)}
-                    onChange={e => {
-                      const name = e.target.value;
-                      setName(name);
-                    }}
-                  />
-                </TextInputWrap>
+                <form
+                  onSubmit={async e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setEditingName(!editingName);
+
+                    if (editingName) {
+                      onNameEditSaved(name);
+                    }
+                  }}
+                >
+                  <TextInputWrap>
+                    <Input
+                      type="text"
+                      name="name"
+                      autoFocus={true}
+                      value={name}
+                      pattern={SCHEMA.definitions.profile.properties.displayName.pattern}
+                      ref={nameEditFieldRef}
+                      required
+                      spellCheck="false"
+                      placeholder={messages["profile-editor.name-placeholder"]}
+                      title={messages["profile-editor.name-validation-warning"]}
+                      onFocus={e => handleTextFieldFocus(e.target)}
+                      onBlur={e => handleTextFieldBlur(e.target)}
+                      onChange={e => {
+                        const name = e.target.value;
+                        setName(name);
+                      }}
+                    />
+                  </TextInputWrap>
+                </form>
               )}
               <FieldEditButton
                 iconSrc={editingName ? checkIcon : editIcon}
                 ref={nameEditButtonRef}
                 onClick={e => {
-                  e.preventDefault();
-                  e.stopPropagation();
+                  if (!editingName) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setPreviousName(name);
+                  }
+
                   setEditingName(!editingName);
                   nameEditButtonRef.current.focus();
                   if (editingName) {
-                    onNameEditSaved(e.target.value);
+                    onNameEditSaved(name);
                   }
                 }}
               />
@@ -146,6 +163,7 @@ const ProfileEditorPopup = ({
                     e.preventDefault();
                     e.stopPropagation();
                     setEditingName(false);
+                    setName(previousName);
                     nameEditButtonRef.current.focus();
                   }}
                 />
