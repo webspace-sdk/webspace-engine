@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
@@ -8,6 +8,7 @@ import SmallActionButton from "./small-action-button";
 import editIcon from "../../assets/jel/images/icons/edit.svgi";
 import checkIcon from "../../assets/jel/images/icons/check-big.svgi";
 import cancelIcon from "../../assets/jel/images/icons/cancel.svgi";
+import { useSpacePresenceMeta } from "../utils/shared-effects";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
 import { FormattedMessage } from "react-intl";
 import { getMessages } from "../../hubs/utils/i18n";
@@ -57,17 +58,35 @@ const ProfileEditorPopup = ({
   onSignOutClicked,
   onSignUp,
   mode,
+  initialName,
   children,
-  isSpaceAdmin
+  isSpaceAdmin,
+  onNameEditSaved,
+  scene,
+  sessionId
 }) => {
   const messages = getMessages();
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("Greg Fodor");
+  const [name, setName] = useState(initialName);
   const [editingName, setEditingName] = useState(false);
   const [exists, setExists] = useState(false);
   const [allowEmails, setAllowEmails] = useState(true);
+  const [meta, setMeta] = useState({});
   const nameEditFieldRef = useRef();
   const nameEditButtonRef = useRef();
+
+  const handleMetaChange = useCallback(
+    meta => {
+      const displayName = meta && meta.displayName;
+      if (displayName) {
+        setName(displayName);
+      }
+      setMeta(meta);
+    },
+    [setMeta, setName]
+  );
+
+  useSpacePresenceMeta(sessionId, scene, meta, handleMetaChange);
 
   const popupInput = (
     <div
@@ -115,6 +134,9 @@ const ProfileEditorPopup = ({
                   e.stopPropagation();
                   setEditingName(!editingName);
                   nameEditButtonRef.current.focus();
+                  if (editingName) {
+                    onNameEditSaved(e.target.value);
+                  }
                 }}
               />
               {editingName && (
@@ -266,7 +288,11 @@ const ProfileEditorPopup = ({
 ProfileEditorPopup.propTypes = {
   onSignOutClicked: PropTypes.func,
   onSignUp: PropTypes.func,
+  onNameEditSaved: PropTypes.func,
+  scene: PropTypes.object,
+  sessionId: PropTypes.string,
   mode: PropTypes.number,
+  initialName: PropTypes.string,
   isSpaceAdmin: PropTypes.bool
 };
 
