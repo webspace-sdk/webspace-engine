@@ -78,12 +78,13 @@ const ProfileEditorPopup = ({
   const handleMetaChange = useCallback(
     meta => {
       const displayName = meta && meta.profile && meta.profile.displayName;
+      console.log(mode);
       if (displayName && mode === PROFILE_EDITOR_MODES.VERIFIED) {
         setName(displayName);
       }
       setMeta(meta);
     },
-    [setMeta, setName]
+    [setMeta, setName, mode]
   );
 
   useSpacePresenceMeta(sessionId, scene, meta, handleMetaChange);
