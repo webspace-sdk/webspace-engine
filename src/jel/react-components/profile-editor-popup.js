@@ -77,7 +77,7 @@ const ProfileEditorPopup = ({
 
   const handleMetaChange = useCallback(
     meta => {
-      const displayName = meta && meta.displayName;
+      const displayName = meta && meta.profile && meta.profile.displayName;
       if (displayName) {
         setName(displayName);
       }
