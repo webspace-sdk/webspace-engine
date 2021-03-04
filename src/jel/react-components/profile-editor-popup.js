@@ -309,7 +309,6 @@ ProfileEditorPopup.propTypes = {
   scene: PropTypes.object,
   sessionId: PropTypes.string,
   mode: PropTypes.number,
-  initialName: PropTypes.string,
   isSpaceAdmin: PropTypes.bool
 };
 
