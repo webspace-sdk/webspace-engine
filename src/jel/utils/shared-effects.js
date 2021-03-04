@@ -57,3 +57,26 @@ export const useRefFocusResetter = (ref, handler) => {
     [ref, handler]
   );
 };
+
+export const useSpacePresenceMeta = (sessionId, scene, meta, onMetaChange) => {
+  useEffect(
+    () => {
+      if (!scene) return () => {};
+
+      const handler = () => {
+        const spacePresences =
+          window.APP.spaceChannel && window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state;
+        const spacePresence = spacePresences && spacePresences[sessionId];
+        const newMeta = spacePresence && spacePresence.metas[spacePresence.metas.length - 1];
+
+        if (meta !== newMeta) {
+          onMetaChange(newMeta);
+        }
+      };
+
+      scene.addEventListener("space-presence-synced", handler);
+      return () => scene.removeEventListener("space-presence-synced", handler);
+    },
+    [scene, sessionId, onMetaChange, meta]
+  );
+};

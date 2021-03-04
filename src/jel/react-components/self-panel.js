@@ -15,6 +15,7 @@ import { BigIconButton } from "./icon-button";
 import Tooltip from "./tooltip";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
+import { useSpacePresenceMeta } from "../utils/shared-effects";
 import { usePopper } from "react-popper";
 import { connectToReticulum } from "../../hubs/utils/phoenix-utils";
 import { useSingleton } from "@tippyjs/react";
@@ -139,26 +140,7 @@ const SelfPanel = ({
   const [isVerifying, setIsVerifying] = useState(false);
   const [meta, setMeta] = useState({});
 
-  useEffect(
-    () => {
-      if (!scene) return () => {};
-
-      const handler = () => {
-        const spacePresences =
-          window.APP.spaceChannel && window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state;
-        const spacePresence = spacePresences && spacePresences[sessionId];
-        const newMeta = spacePresence && spacePresence.metas[spacePresence.metas.length - 1];
-
-        if (meta !== newMeta) {
-          setMeta(newMeta);
-        }
-      };
-
-      scene.addEventListener("space-presence-synced", handler);
-      return () => scene.removeEventListener("space-presence-synced", handler);
-    },
-    [scene, sessionId, setMeta, meta]
-  );
+  useSpacePresenceMeta(sessionId, scene, meta, setMeta);
 
   const {
     styles: deviceSelectorStyles,
@@ -352,6 +334,9 @@ const SelfPanel = ({
         styles={profileEditorStyles}
         attributes={profileEditorAttributes}
         isSpaceAdmin={isSpaceAdmin}
+        scene={scene}
+        sessionId={sessionId}
+        onNameEditSaved={name => window.APP.spaceChannel.updateIdentity({ name })}
         onSignOutClicked={onSignOutClicked}
         onSignUp={async (email, name, allowEmails) => {
           setIsVerifying(true);
