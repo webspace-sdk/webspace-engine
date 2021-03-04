@@ -87,7 +87,8 @@ export const SCHEMA = {
         preferredMicDeviceId: { type: "string" },
         hideKeyTips: { type: "boolean" },
         defaultDetailLevel: { type: "number" },
-        defaultDetailLevelUntilSeconds: { type: "number" }
+        defaultDetailLevelUntilSeconds: { type: "number" },
+        hideNotificationBannerUntilSeconds: { type: "number" }
       }
     },
 
@@ -173,7 +174,7 @@ export const SCHEMA = {
         navPanelWidth: { type: "number" },
         presencePanelWidth: { type: "number" },
         mediaTextColorPresetIndex: { type: "number" },
-        closedNotificationBanner: { type: "boolean" }
+        closedNotificationBanner: { type: "boolean" } // Deprecated
       }
     },
 

@@ -1,5 +1,7 @@
 import React, { useRef, useState, useCallback, forwardRef, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
+import cancelIcon from "../../assets/jel/images/icons/cancel.svgi";
+import { FieldEditButton } from "./form-components";
 import PropTypes from "prop-types";
 import HubTrail from "./hub-trail";
 import WorldImporter from "../utils/world-importer";
@@ -125,6 +127,7 @@ const NotifyBannerClose = styled.button`
   -webkit-appearance: none;
   outline-style: none;
   background-color: transparent;
+  margin-right: 12px;
 
   &:hover {
     text-decoration: underline;
@@ -466,8 +469,14 @@ function JelUI(props) {
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [showingExternalCamera, setShowingExternalCamera] = useState(false);
   const [showNotificationBanner, setShowNotificationBanner] = useState(
-    subscriptions && !subscriptions.subscribed && store && !store.state.uiState.closedNotificationBanner
+    subscriptions &&
+      !subscriptions.subscribed &&
+      store &&
+      (!store.state.settings.hideNotificationBannerUntilSeconds ||
+        Math.floor(new Date() / 1000.0) > store.state.settings.hideNotificationBannerUntilSeconds)
   );
+  const [showNotificationBannerWarning, setShowNotificationBannerWarning] = useState(false);
+
   const [canSpawnAndMoveMedia, setCanSpawnAndMoveMedia] = useState(
     hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id)
   );
@@ -723,13 +732,28 @@ function JelUI(props) {
     [subscriptions, setShowNotificationBanner]
   );
 
-  const onNotifyBannerClosed = useCallback(
+  const onNotifyBannerLater = useCallback(
+    // Delay notifications banner by a day
     () => {
-      store.update({ uiState: { closedNotificationBanner: true } });
+      store.update({
+        settings: { hideNotificationBannerUntilSeconds: Math.floor(new Date() / 1000.0 + 24 * 60 * 60) }
+      });
       setShowNotificationBanner(false);
     },
     [store]
   );
+
+  const onNotifyBannerNever = useCallback(
+    () => {
+      store.update({
+        settings: { hideNotificationBannerUntilSeconds: Math.floor(new Date() / 1000.0 + 10000 * 60 * 60) }
+      });
+      setShowNotificationBanner(false);
+    },
+    [store]
+  );
+
+  const onNotifyBannerClose = useCallback(() => setShowNotificationBannerWarning(true), []);
 
   const onClickExternalCameraRotate = useCallback(() => SYSTEMS.externalCameraSystem.toggleCamera(), []);
 
@@ -739,19 +763,39 @@ function JelUI(props) {
         <LoadingPanel isLoading={isLoading} unavailableReason={unavailableReason} />
         <Snackbar />
         <Wrap id="jel-ui-wrap">
-          {showNotificationBanner && (
-            <NotifyBanner>
-              <div>
-                <FormattedMessage id="notification-banner.info" />
-              </div>
-              <NotifyBannerButton onClick={onTurnOnNotificationClicked}>
-                <FormattedMessage id="notification-banner.notify-on" />
-              </NotifyBannerButton>
-              <NotifyBannerClose onClick={onNotifyBannerClosed}>
-                <FormattedMessage id="notification-banner.close" />
-              </NotifyBannerClose>
-            </NotifyBanner>
-          )}
+          {showNotificationBanner &&
+            !showNotificationBannerWarning && (
+              <NotifyBanner>
+                <FieldEditButton
+                  style={{ position: "absolute", left: "2px", top: "6px" }}
+                  onClick={onNotifyBannerClose}
+                  iconSrc={cancelIcon}
+                />
+                <div>
+                  <FormattedMessage id="notification-banner.info" />
+                </div>
+                <NotifyBannerButton onClick={onTurnOnNotificationClicked}>
+                  <FormattedMessage id="notification-banner.notify-on" />
+                </NotifyBannerButton>
+              </NotifyBanner>
+            )}
+          {showNotificationBanner &&
+            showNotificationBannerWarning && (
+              <NotifyBanner>
+                <div>
+                  <FormattedMessage id="notification-banner.info-warning" />
+                </div>
+                <NotifyBannerButton onClick={onTurnOnNotificationClicked}>
+                  <FormattedMessage id="notification-banner.notify-on" />
+                </NotifyBannerButton>
+                <NotifyBannerClose onClick={onNotifyBannerLater}>
+                  <FormattedMessage id="notification-banner.close-later" />
+                </NotifyBannerClose>
+                <NotifyBannerClose onClick={onNotifyBannerNever}>
+                  <FormattedMessage id="notification-banner.close-never" />
+                </NotifyBannerClose>
+              </NotifyBanner>
+            )}
           <FadeEdges />
           <CreateSelectPopupRef ref={createSelectPopupRef} />
           <CenterPopupRef ref={centerPopupRef} />
