@@ -334,7 +334,6 @@ const SelfPanel = ({
         styles={profileEditorStyles}
         attributes={profileEditorAttributes}
         isSpaceAdmin={isSpaceAdmin}
-        initialName={displayName}
         scene={scene}
         sessionId={sessionId}
         onNameEditSaved={name => window.APP.spaceChannel.updateIdentity({ name })}

@@ -58,7 +58,6 @@ const ProfileEditorPopup = ({
   onSignOutClicked,
   onSignUp,
   mode,
-  initialName,
   children,
   isSpaceAdmin,
   onNameEditSaved,
@@ -67,10 +66,10 @@ const ProfileEditorPopup = ({
 }) => {
   const messages = getMessages();
   const [email, setEmail] = useState("");
-  const [name, setName] = useState(initialName || "");
+  const [name, setName] = useState("");
   const [editingName, setEditingName] = useState(false);
   const [exists, setExists] = useState(false);
-  const [previousName, setPreviousName] = useState(initialName || "");
+  const [previousName, setPreviousName] = useState("");
   const [allowEmails, setAllowEmails] = useState(true);
   const [meta, setMeta] = useState({});
   const nameEditFieldRef = useRef();
