@@ -359,9 +359,8 @@ const SelfPanel = ({
           mixpanel.track("Event Submit Verify Panel", {});
           const authChannel = new AuthChannel(window.APP.store);
           authChannel.setSocket(await connectToReticulum());
-          await authChannel.startVerification(email, spaceChannel, { allow_emails: allowEmails });
+          await authChannel.startVerification(email, spaceChannel, { allow_emails: allowEmails, name });
           mixpanel.track("Event Confirm Verify Panel", {});
-          spaceChannel.updateIdentity({ name });
         }}
         mode={profileEditorMode}
       >
