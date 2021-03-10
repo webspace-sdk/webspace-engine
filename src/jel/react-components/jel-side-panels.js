@@ -14,6 +14,7 @@ import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { homeHubForSpaceId, spaceForSpaceId } from "../utils/membership-utils";
 import { addNewHubToTree } from "../utils/tree-utils";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
+import { createChannel } from "../../hubs/utils/phoenix-utils";
 import SpaceTree from "./space-tree";
 import HubTree from "./hub-tree";
 import InvitePanel from "./invite-panel";
@@ -566,6 +567,18 @@ function JelSidePanels({
                 style={{ width: "60%" }}
               >
                 <FormattedMessage id="nav.create-world" />
+              </ActionButton>
+            )}
+            {spaceCan("create_channel") && (
+              <ActionButton
+                iconSrc={addIcon}
+                onClick={async () => {
+                  const channel = await createChannel(spaceId);
+                  console.log(channel);
+                }}
+                style={{ width: "60%" }}
+              >
+                Create Channel
               </ActionButton>
             )}
             <SelfPanel
