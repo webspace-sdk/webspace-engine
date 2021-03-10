@@ -128,6 +128,7 @@ import DynaChannel from "./jel/utils/dyna-channel";
 import SpaceChannel from "./hubs/utils/space-channel";
 import HubChannel from "./hubs/utils/hub-channel";
 import LinkChannel from "./hubs/utils/link-channel";
+import Matrix from "./jel/utils/matrix";
 import AtomMetadata, { ATOM_TYPES } from "./jel/utils/atom-metadata";
 import { joinSpace, joinHub } from "./hubs/utils/jel-init";
 import { connectToReticulum } from "./hubs/utils/phoenix-utils";
@@ -181,6 +182,7 @@ const dynaChannel = new DynaChannel(store);
 const spaceChannel = new SpaceChannel(store);
 const hubChannel = new HubChannel(store);
 const linkChannel = new LinkChannel(store);
+const matrix = new Matrix(store);
 const spaceMetadata = new AtomMetadata(ATOM_TYPES.SPACE);
 const hubMetadata = new AtomMetadata(ATOM_TYPES.HUB);
 
@@ -1158,6 +1160,8 @@ async function start() {
           accountChannel.syncAccountInfo(accountInfo);
           remountJelUI({ memberships: accountChannel.memberships, hubSettings: accountChannel.hubSettings });
           subscriptions.handleExistingSubscriptions(existingSubscriptions);
+          await matrix.init(accountInfo.matrix_homeserver, accountInfo.matrix_token, accountInfo.matrix_user_id);
+
           res(accountChannel.memberships);
         })
         .receive("error", res => {
