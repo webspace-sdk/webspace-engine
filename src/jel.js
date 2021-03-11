@@ -1160,7 +1160,12 @@ async function start() {
           accountChannel.syncAccountInfo(accountInfo);
           remountJelUI({ memberships: accountChannel.memberships, hubSettings: accountChannel.hubSettings });
           subscriptions.handleExistingSubscriptions(existingSubscriptions);
-          await matrix.init(accountInfo.matrix_homeserver, accountInfo.matrix_token, accountInfo.matrix_user_id);
+          await matrix.init(
+            accountInfo.matrix_homeserver,
+            accountInfo.matrix_token,
+            accountInfo.matrix_user_id,
+            accountChannel.memberships
+          );
 
           res(accountChannel.memberships);
         })

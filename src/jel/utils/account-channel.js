@@ -48,6 +48,12 @@ export default class AccountChannel extends EventTarget {
     this.channel.push("subscribe", { subscription });
   };
 
+  requestMatrixRoomInvite = roomId => {
+    return new Promise(res => {
+      this.channel.push("request_matrix_room_invite", { matrix_room_id: roomId }).receive("ok", () => res());
+    });
+  };
+
   onAccountRefreshed = accountInfo => {
     this.syncAccountInfo(accountInfo);
     this.dispatchEvent(new CustomEvent("account_refresh", { detail: accountInfo }));
