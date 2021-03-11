@@ -5,10 +5,13 @@ export default class Matrix extends EventTarget {
   constructor(store) {
     super();
     this.store = store;
+    this.pendingRoomJoinPromises = new Map();
+    this.pendingRoomJoinResolvers = new Map();
   }
 
-  async init(homeserver, loginToken, expectedUserId, memberships) {
+  async init(homeserver, loginToken, expectedUserId) {
     const { store } = this;
+    const { accountChannel } = window.APP;
 
     this.homeserver = homeserver;
     let accessToken = store.state.credentials.matrix_access_token;
@@ -66,7 +69,14 @@ export default class Matrix extends EventTarget {
       this.client.startClient({ lazyLoadMembers: true }).then(() => {
         this.client.once("sync", async state => {
           if (state === "PREPARED") {
-            await this.joinMissingRooms(memberships);
+            this._attachMatrixEventHandlers();
+            this._joinMissingRooms();
+
+            accountChannel.addEventListener("account_refresh", () => {
+              // Memberships may have changed, so join missing space rooms.
+              this._joinMissingRooms();
+            });
+
             res();
           } else {
             rej();
@@ -76,26 +86,19 @@ export default class Matrix extends EventTarget {
     });
   }
 
-  async ensureRoomJoined(roomId) {
-    const { client } = this;
-    const room = client.getRoom(roomId);
-
-    if (room && room.hasMembershipState(client.credentials.userId, "join")) {
-      return room;
-    }
-
-    console.log(`Matrix: joining ${roomId}`);
-    await window.APP.accountChannel.requestMatrixRoomInvite(roomId);
-    return await client.joinRoom(roomId);
+  getChannelRoomsForCurrentSpace() {
+    return this.client.getRooms().filter(room => this._isChannelRoomForCurrentSpace(room));
   }
 
-  async joinMissingRooms(memberships) {
+  async _joinMissingRooms() {
+    const { memberships } = window.APP.accountChannel;
+
     // Join each Jel space's matrix room, then walk all the children
     // matrix rooms and join the ones marked auto_join=true
     for (const {
       space: { matrix_spaceroom_id }
     } of memberships) {
-      const spaceRoom = await this.ensureRoomJoined(matrix_spaceroom_id);
+      const spaceRoom = await this._ensureRoomJoined(matrix_spaceroom_id);
 
       // Walk each child room (channels) and join them if auto_join = true
       const childRooms = spaceRoom.currentState.events.get("m.space_child");
@@ -108,10 +111,83 @@ export default class Matrix extends EventTarget {
           }
         ] of childRooms.entries()) {
           if (content.auto_join) {
-            await this.ensureRoomJoined(roomId);
+            this._ensureRoomJoined(roomId);
           }
         }
       }
     }
+  }
+
+  _ensureRoomJoined(roomId) {
+    const { client } = this;
+    const room = client.getRoom(roomId);
+    if (room && room.hasMembershipState(client.credentials.userId, "join")) return Promise.resolve(room);
+
+    // Stash a promise that will be resolved once the join is complete.
+    let promise = this.pendingRoomJoinPromises.get(roomId);
+
+    if (!promise) {
+      promise = new Promise(res => {
+        this.pendingRoomJoinResolvers.set(roomId, res);
+      });
+
+      this.pendingRoomJoinPromises.set(roomId, promise);
+
+      window.APP.accountChannel.joinMatrixRoom(roomId);
+    }
+
+    return promise;
+  }
+
+  _spaceIdForRoom(room) {
+    return room.currentState.events.get("jel.space").get("").event.content.space_id;
+  }
+
+  _jelTypeForRoom(room) {
+    return room.currentState.events.get("jel.type").get("").event.content.type;
+  }
+
+  _isChannelRoomForCurrentSpace(room) {
+    const { spaceId } = window.APP.spaceChannel;
+
+    return this._spaceIdForRoom(room) === spaceId && this._jelTypeForRoom(room) === "jel.channel";
+  }
+
+  _attachMatrixEventHandlers() {
+    const { client } = this;
+
+    client.on("Room.myMembership", async room => {
+      if (!client.isInitialSyncComplete()) return;
+
+      if (room.hasMembershipState(client.credentials.userId, "join")) {
+        const { roomId } = room;
+        const pendingInvitePromiseResolver = this.pendingRoomJoinResolvers.get(roomId);
+
+        if (pendingInvitePromiseResolver) {
+          this.pendingRoomJoinPromises.delete(roomId);
+          this.pendingRoomJoinResolvers.delete(roomId);
+          pendingInvitePromiseResolver(room);
+        }
+
+        console.log(`Matrix: joined room ${roomId}`);
+
+        if (this._isChannelRoomForCurrentSpace(room) && this.pendingRoomJoinPromises.size === 0) {
+          // Other membership changes are join, leave, ban, all should fire channel change.
+          // Fire this only after all promises are done.
+          console.log("FIRE");
+          this.dispatchEvent(new CustomEvent("current_space_channels_changed", {}));
+        }
+      }
+    });
+
+    client.on("RoomState.events", ({ event }) => {
+      if (!client.isInitialSyncComplete()) return;
+
+      // If a new room is added to a spaceroom we're in after initial sync,
+      // we need to join it if it's auto_join.
+      if (event.type === "m.space_child" && event.content.auto_join) {
+        this._ensureRoomJoined(event.state_key);
+      }
+    });
   }
 }

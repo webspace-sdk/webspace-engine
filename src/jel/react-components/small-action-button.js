@@ -84,7 +84,7 @@ SmallActionButton.displayName = "SmallActionButton";
 
 SmallActionButton.propTypes = {
   iconSrc: PropTypes.string,
-  children: PropTypes.object
+  children: PropTypes.node
 };
 
 export { SmallActionButton as default };

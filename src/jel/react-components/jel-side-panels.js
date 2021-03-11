@@ -509,6 +509,9 @@ function JelSidePanels({
           </NavHead>
           <NavSpill>
             <PanelSectionHeader>
+              <FormattedMessage id="nav.channels" />
+            </PanelSectionHeader>
+            <PanelSectionHeader>
               <FormattedMessage id="nav.space-worlds" />
             </PanelSectionHeader>
             <HubTree

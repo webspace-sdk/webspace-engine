@@ -1,10 +1,12 @@
 {
+  "nav.channels": "Channels",
   "nav.space-worlds": "Shared Worlds",
   "nav.private-worlds": "Personal Worlds",
   "nav.create-world": "Create World",
   "nav.empty": "Use \"Create World\" to add your first world.\nOther people can meet you there!",
   "nav.trash": "Trash",
   "nav.invite": "Invite People",
+  "channel.unnamed-title": "unnamed",
   "hub.unnamed-home-title": "My Home World",
   "hub.unnamed-title": "Unnamed World",
   "space.unnamed-title": "Unnamed Space",

@@ -195,6 +195,7 @@ window.APP.authChannel = authChannel;
 window.APP.linkChannel = linkChannel;
 window.APP.hubMetadata = hubMetadata;
 window.APP.spaceMetadata = spaceMetadata;
+window.APP.matrix = matrix;
 
 store.addEventListener("profilechanged", spaceChannel.sendProfileUpdate.bind(hubChannel));
 
@@ -1160,12 +1161,7 @@ async function start() {
           accountChannel.syncAccountInfo(accountInfo);
           remountJelUI({ memberships: accountChannel.memberships, hubSettings: accountChannel.hubSettings });
           subscriptions.handleExistingSubscriptions(existingSubscriptions);
-          await matrix.init(
-            accountInfo.matrix_homeserver,
-            accountInfo.matrix_token,
-            accountInfo.matrix_user_id,
-            accountChannel.memberships
-          );
+          await matrix.init(accountInfo.matrix_homeserver, accountInfo.matrix_token, accountInfo.matrix_user_id);
 
           res(accountChannel.memberships);
         })

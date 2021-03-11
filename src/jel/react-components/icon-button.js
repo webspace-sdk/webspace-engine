@@ -94,7 +94,7 @@ IconButton.displayName = "IconButton";
 IconButton.propTypes = {
   iconSrc: PropTypes.string,
   includeBorder: PropTypes.bool,
-  children: PropTypes.object
+  children: PropTypes.node
 };
 
 const BigIconButton = forwardRef((props, ref) => {
@@ -120,7 +120,7 @@ BigIconButton.displayName = "BigIconButton";
 BigIconButton.propTypes = {
   iconSrc: PropTypes.string,
   includeBorder: PropTypes.bool,
-  children: PropTypes.object,
+  children: PropTypes.node,
   smallIcon: PropTypes.bool
 };
 

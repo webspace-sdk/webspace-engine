@@ -656,7 +656,7 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
 };
 
 const setupSpaceChannelMessageHandlers = spacePhxChannel => {
-  const { spaceChannel, hubChannel } = window.APP;
+  const { spaceChannel, hubChannel, matrix } = window.APP;
 
   spacePhxChannel.on("permissions_updated", () => {
     spaceChannel.fetchPermissions();

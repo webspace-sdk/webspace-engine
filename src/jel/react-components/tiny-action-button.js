@@ -85,7 +85,7 @@ TinyActionButton.displayName = "TinyActionButton";
 
 TinyActionButton.propTypes = {
   iconSrc: PropTypes.string,
-  children: PropTypes.object
+  children: PropTypes.node
 };
 
 export { TinyActionButton as default };
