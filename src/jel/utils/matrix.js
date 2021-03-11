@@ -1,5 +1,8 @@
 import MatrixSdk from "matrix-js-sdk";
+import { useEffect } from "react";
 import { EventTarget } from "event-target-shim";
+
+class MatrixRoomMetadata {}
 
 export default class Matrix extends EventTarget {
   constructor(store) {
@@ -7,6 +10,7 @@ export default class Matrix extends EventTarget {
     this.store = store;
     this.pendingRoomJoinPromises = new Map();
     this.pendingRoomJoinResolvers = new Map();
+    this.fireChannelsChangedEventAfterJoinsComplete = false;
   }
 
   async init(homeserver, loginToken, expectedUserId) {
@@ -161,20 +165,26 @@ export default class Matrix extends EventTarget {
 
       if (room.hasMembershipState(client.credentials.userId, "join")) {
         const { roomId } = room;
-        const pendingInvitePromiseResolver = this.pendingRoomJoinResolvers.get(roomId);
+        const pendingJoinPromiseResolver = this.pendingRoomJoinResolvers.get(roomId);
 
-        if (pendingInvitePromiseResolver) {
+        if (pendingJoinPromiseResolver) {
           this.pendingRoomJoinPromises.delete(roomId);
           this.pendingRoomJoinResolvers.delete(roomId);
-          pendingInvitePromiseResolver(room);
+          pendingJoinPromiseResolver(room);
         }
 
         console.log(`Matrix: joined room ${roomId}`);
 
-        if (this._isChannelRoomForCurrentSpace(room) && this.pendingRoomJoinPromises.size === 0) {
+        if (this._isChannelRoomForCurrentSpace(room)) {
+          // After all the in-flight joins complete, fire an event which will cause the UI to update with
+          // new channel information.
+          this.fireChannelsChangedEventAfterJoinsComplete = true;
+        }
+
+        if (this.fireChannelsChangedEventAfterJoinsComplete && this.pendingRoomJoinPromises.size === 0) {
           // Other membership changes are join, leave, ban, all should fire channel change.
           // Fire this only after all promises are done.
-          console.log("FIRE");
+          this.fireChannelsChangedEventAfterJoinsComplete = false;
           this.dispatchEvent(new CustomEvent("current_space_channels_changed", {}));
         }
       }

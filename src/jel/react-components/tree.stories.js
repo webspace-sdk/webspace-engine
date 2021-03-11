@@ -4,6 +4,7 @@ import "../../assets/jel/stylesheets/hub-tree.scss";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import trashTreeStyles from "../../assets/jel/stylesheets/hub-trash-tree.scss";
 import HubNodeTitle from "./hub-node-title";
+import ChannelNodeTitle from "./channel-node-title";
 import HubTrashNodeTitle from "./hub-trash-node-title";
 import classNames from "classnames";
 import PanelSectionHeader from "./panel-section-header";
@@ -11,7 +12,8 @@ import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
 import trashIcon from "../../assets/jel/images/icons/trash.svgi";
 import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
 
-const metadata = new AtomMetadata(ATOM_TYPES.HUB);
+const hubMetadata = new AtomMetadata(ATOM_TYPES.HUB);
+const channelMetadata = new AtomMetadata(ATOM_TYPES.CHANNEL);
 
 // TODO this needs to use the metadata API
 const createHubTitleNode = props => {
@@ -20,7 +22,7 @@ const createHubTitleNode = props => {
       {...props}
       showAdd={true}
       showDots={true}
-      hubMetadata={metadata}
+      hubMetadata={hubMetadata}
       onAddClick={e => {
         e.preventDefault();
         console.log("add clicked");
@@ -37,7 +39,7 @@ const createHubTrashTitleNode = props => {
   return (
     <HubTrashNodeTitle
       {...props}
-      hubMetadata={metadata}
+      hubMetadata={hubMetadata}
       showAdd={true}
       onRestoreClick={e => {
         e.preventDefault();
@@ -46,6 +48,20 @@ const createHubTrashTitleNode = props => {
       onDestroyClick={e => {
         e.preventDefault();
         console.log("destroy clicked");
+      }}
+    />
+  );
+};
+
+const createChannelTitleNode = props => {
+  return (
+    <ChannelNodeTitle
+      {...props}
+      showDots={true}
+      channelMetadata={channelMetadata}
+      onDotsClick={e => {
+        e.preventDefault();
+        console.log("dots clicked");
       }}
     />
   );
@@ -107,19 +123,45 @@ const trashTreeData = [
   { key: "3ofrzv8", title: createHubTrashTitleNode, url: null, hubId: "UyvPPEf", isLeaf: true }
 ];
 
-const fill = children => {
-  for (let i = 0; i < children.length; i++) {
-    metadata._metadata.set(children[i].hubId, { displayName: "Unnamed World" });
+const channelTreeData = [
+  {
+    key: "!fJDfmdfKSAdjksdmww",
+    title: createChannelTitleNode,
+    url: null,
+    roomId: "!fJDfmdfKSAdjksdmww:jel.app",
+    isLeaf: true
+  },
+  {
+    key: "!gJDfmdfKSAdjksdmww",
+    title: createChannelTitleNode,
+    url: null,
+    roomId: "!gJDfmdfKSAdjksdmww:jel.app",
+    isLeaf: true
+  },
+  {
+    key: "!hJDfmdfKSAdjksdmww",
+    title: createChannelTitleNode,
+    url: null,
+    roomId: "!hJDfmdfKSAdjksdmww:jel.app",
+    isLeaf: true
+  }
+];
 
-    fill(children[i].children || []);
+const fill = (metadata, children) => {
+  for (let i = 0; i < children.length; i++) {
+    metadata._metadata.set(children[i].hubId || children[i].roomId, { displayName: "Unnamed Atom" });
+
+    fill(metadata, children[i].children || []);
   }
 };
 
-fill(hubTreeData);
-fill(trashTreeData);
+fill(hubMetadata, hubTreeData);
+fill(hubMetadata, trashTreeData);
+fill(channelMetadata, channelTreeData);
 
-metadata._metadata.set("QxRKdNF", { displayName: "Test Name" });
-metadata._metadata.set("JRrZerh", { displayName: "Test Very Long Name That Keeps Going and Going" });
+hubMetadata._metadata.set("QxRKdNF", { displayName: "Test Name" });
+hubMetadata._metadata.set("JRrZerh", { displayName: "Test Very Long Name That Keeps Going and Going" });
+channelMetadata._metadata.set("!gJDfmdfKSAdjksdmww:jel.app", { displayName: "Custom Channel Name" });
 
 export const HubTree = () => (
   <div
@@ -154,6 +196,19 @@ export const TrashTree = () => (
       selectable={false}
       selectedKeys={["nq106el"]}
     />
+  </div>
+);
+
+export const ChannelTree = () => (
+  <div
+    className={classNames(sharedStyles.basePanel)}
+    style={{ display: "flex", width: "400px", height: "600px", marginTop: "32px", flexDirection: "column" }}
+  >
+    <PanelSectionHeader>Channels</PanelSectionHeader>
+    <Tree prefixCls="hub-tree" treeData={channelTreeData} selectable={true} selectedKeys={["!gJDfmdfKSAdjksdmww"]} />
+    <PanelItemButtonSection>
+      <PanelItemButton iconSrc={trashIcon}>Trash</PanelItemButton>
+    </PanelItemButtonSection>
   </div>
 );
 

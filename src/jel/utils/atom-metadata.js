@@ -5,7 +5,8 @@ import { useEffect } from "react";
 
 const ATOM_TYPES = {
   HUB: 0,
-  SPACE: 1
+  SPACE: 1,
+  CHANNEL: 2
 };
 
 const VALID_PERMISSIONS = {
@@ -34,7 +35,8 @@ const VALID_PERMISSIONS = {
     "update_space_meta",
     "create_invite",
     "go_home"
-  ]
+  ],
+  [ATOM_TYPES.CHANNEL]: []
 };
 
 // This value is placed in the metadata lookup table while a fetch is
@@ -55,27 +57,34 @@ class AtomMetadata {
       case ATOM_TYPES.HUB:
         this._refreshMessage = "hub_meta_refresh";
         this._idColumn = "hub_id";
-        this._channelGetMethod = "getHubMetas";
+        this._sourceGetMethod = "getHubMetas";
         this._defaultName = messages["hub.unnamed-title"];
         this._defaultHomeName = messages["hub.unnamed-home-title"];
         break;
       case ATOM_TYPES.SPACE:
         this._refreshMessage = "space_meta_refresh";
         this._idColumn = "space_id";
-        this._channelGetMethod = "getSpaceMetas";
+        this._sourceGetMethod = "getSpaceMetas";
         this._defaultName = messages["space.unnamed-title"];
         this._defaultHomeName = messages["space.unnamed-home-title"];
+        break;
+      case ATOM_TYPES.CHANNEL:
+        this._refreshMessage = "room_meta_refresh";
+        this._idColumn = "roomId";
+        this._sourceGetMethod = "getRoomMetas";
+        this._defaultName = messages["channel.unnamed-title"];
+        this._defaultHomeName = messages["channel.unnamed-home-title"];
         break;
     }
   }
 
-  bind(channel) {
+  bind(source) {
     const inFlightMetadataIds = [];
 
-    if (this._channel) {
-      this._channel.channel.off(this._refreshMessage, this._handleChannelRefreshMessage);
+    if (this._unsubcribeFromSource) {
+      this._unsubcribeFromSource(this._refreshMessage, this._handleSourceRefreshMessage);
 
-      // On a channel change, we need to do two things to ensure metadata will
+      // On a source change, we need to do two things to ensure metadata will
       // now fetch properly:
       //
       // - Remove any entries that had 'null' as value, since those may now
@@ -97,8 +106,13 @@ class AtomMetadata {
       }
     }
 
-    this._channel = channel;
-    this._channel.channel.on(this._refreshMessage, this._handleChannelRefreshMessage);
+    if (source.channel) {
+      this._bindPhoenixChannelSource(source);
+    } else {
+      this._bindMatrixSource(source);
+    }
+
+    this._subcribeToSource(this._refreshMessage, this._handleSourceRefreshMessage);
 
     this.ensureMetadataForIds(inFlightMetadataIds, true);
   }
@@ -166,12 +180,8 @@ class AtomMetadata {
     }
 
     if (idsToFetch.size !== 0) {
-      const phxChannel = this._channel.channel;
-      const atoms = await this._channel[this._channelGetMethod](idsToFetch);
-
-      // Edge case: if phoenix channel is re-bound, discard, the rebind will
-      // re-fetch the pending items.
-      if (phxChannel !== this._channel.channel) return;
+      const atoms = await this._fetchAtoms(idsToFetch);
+      if (atoms === null) return;
 
       for (const metadata of atoms) {
         this._setDisplayNameOnMetadata(metadata);
@@ -208,6 +218,26 @@ class AtomMetadata {
     }
   }
 
+  _bindPhoenixChannelSource = source => {
+    this._unsubcribeFromSource = (event, handler) => source.channel.off(event, handler);
+    this._subcribeToSource = (event, handler) => source.channel.on(event, handler);
+    this._fetchAtoms = async ids => {
+      const phxChannel = source.channel;
+      const atoms = await source[this._sourceGetMethod](ids);
+
+      // Edge case: if phoenix channel is re-bound, discard, the rebind will
+      // re-fetch the pending items.
+      if (phxChannel !== source.channel) return null;
+      return atoms;
+    };
+  };
+
+  _bindMatrixSource = source => {
+    this._unsubcribeFromSource = (event, handler) => {};
+    this._subcribeToSource = (event, handler) => {};
+    this._fetchAtoms = async ids => {};
+  };
+
   _fireHandlerForSubscribersForUpdatedIds = updatedIds => {
     for (const [handler, ids] of this._metadataSubscribers) {
       if (hasIntersection(updatedIds, ids)) {
@@ -216,7 +246,7 @@ class AtomMetadata {
     }
   };
 
-  _handleChannelRefreshMessage = ({ metas }) => {
+  _handleSourceRefreshMessage = ({ metas }) => {
     const ids = [];
 
     for (let i = 0; i < metas.length; i++) {
