@@ -13,7 +13,7 @@ function ChannelContextMenu({
   styles,
   attributes,
   setPopperElement,
-  roomId,
+  channelId,
   spaceCan,
   channelCan,
   hideRename,
@@ -24,12 +24,12 @@ function ChannelContextMenu({
 
   const items = [];
 
-  if (roomId && channelCan("state:m.room.name", roomId) && !hideRename) {
+  if (channelId && channelCan("state:m.room.name", channelId) && !hideRename) {
     items.push(
       <PopupMenuItem
-        key={`rename-${roomId}`}
+        key={`rename-${channelId}`}
         onClick={e => {
-          onRenameClick(roomId);
+          onRenameClick(channelId);
           e.preventDefault();
           e.stopPropagation();
         }}
@@ -41,9 +41,9 @@ function ChannelContextMenu({
   if (spaceCan("delete_channel")) {
     items.push(
       <PopupMenuItem
-        key={`trash-${roomId}`}
+        key={`trash-${channelId}`}
         onClick={e => {
-          onDeleteClick(roomId);
+          onDeleteClick(channelId);
           // Blur button so menu hides
           document.activeElement.blur();
           e.preventDefault();
@@ -68,7 +68,7 @@ function ChannelContextMenu({
         {items.length > 0 ? (
           items
         ) : (
-          <PopupMenuItem key={`no-actions-${roomId}`}>
+          <PopupMenuItem key={`no-actions-${channelId}`}>
             <div>
               <FormattedMessage id="channel-context.empty" />
             </div>

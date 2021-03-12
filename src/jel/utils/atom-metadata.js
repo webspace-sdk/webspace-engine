@@ -72,8 +72,8 @@ class AtomMetadata {
         break;
       case ATOM_TYPES.CHANNEL:
         this._refreshMessage = "room_meta_refresh";
-        this._idColumn = "room_id";
-        this._sourceGetMethod = "getAtomMetadataForRoomIds";
+        this._idColumn = "channel_id";
+        this._sourceGetMethod = "getAtomMetadataForChannelIds";
         this._defaultName = messages["channel.unnamed-title"];
         this._defaultHomeName = messages["channel.unnamed-home-title"];
         break;

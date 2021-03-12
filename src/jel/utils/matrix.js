@@ -12,6 +12,8 @@ export default class Matrix extends EventTarget {
     this.pendingRoomJoinPromises = new Map();
     this.pendingRoomJoinResolvers = new Map();
     this.roomNameChangeTimeouts = new Map();
+    this.channelIdToRoomId = new Map();
+    this.roomIdToChannelId = new Map();
 
     this.fireChannelsChangedEventAfterJoinsComplete = false;
 
@@ -77,11 +79,11 @@ export default class Matrix extends EventTarget {
     this.client = MatrixSdk.createClient({ baseUrl: `https://${homeserver}`, accessToken, userId });
 
     return new Promise((res, rej) => {
+      this._attachMatrixEventHandlers();
+
       this.client.startClient({ lazyLoadMembers: true }).then(() => {
         this.client.once("sync", async state => {
           if (state === "PREPARED") {
-            this._attachMatrixEventHandlers();
-
             this.dispatchEvent(new CustomEvent("current_space_channels_changed", {}));
 
             this._joinMissingRooms();
@@ -105,7 +107,7 @@ export default class Matrix extends EventTarget {
   getChannelTreeDataForSpaceId(spaceId, titleControl) {
     const treeData = [];
 
-    const { client } = this;
+    const { client, roomIdToChannelId, channelIdToRoomId } = this;
     if (!client) return treeData;
 
     let spaceRoom;
@@ -121,11 +123,13 @@ export default class Matrix extends EventTarget {
 
       if (this._jelTypeForRoom(room) !== "jel.channel") continue;
 
+      const channelId = roomIdToChannelId.get(room.roomId);
+
       treeData.push({
-        key: room.roomId,
+        key: channelId,
         title: titleControl,
         url: null,
-        atomId: room.roomId,
+        atomId: channelId,
         isLeaf: true
       });
     }
@@ -148,7 +152,10 @@ export default class Matrix extends EventTarget {
         }
       }
 
-      treeData.sort(({ atomId: roomIdX }, { atomId: roomIdY }) => {
+      treeData.sort(({ atomId: channelIdX }, { atomId: channelIdY }) => {
+        const roomIdX = channelIdToRoomId.get(channelIdX);
+        const roomIdY = channelIdToRoomId.get(channelIdY);
+
         const orderX = roomOrders.get(roomIdX) || 0;
         const orderY = roomOrders.get(roomIdY) || 0;
         if (orderX < orderY) return -1;
@@ -160,8 +167,10 @@ export default class Matrix extends EventTarget {
     return treeData;
   }
 
-  setRoomName(roomId, name) {
-    const { client, roomNameChangeTimeouts } = this;
+  setChannelName(channelId, name) {
+    const { client, roomNameChangeTimeouts, channelIdToRoomId } = this;
+
+    const roomId = channelIdToRoomId.get(channelId);
     const timeout = roomNameChangeTimeouts.get(roomId);
 
     if (timeout) {
@@ -173,7 +182,7 @@ export default class Matrix extends EventTarget {
       setTimeout(() => {
         const room = client.getRoom(roomId);
 
-        if (room && this.roomCan("state:m.room.name", roomId)) {
+        if (room && this._roomCan("state:m.room.name", roomId)) {
           client.setRoomName(roomId, name);
         }
       }, ROOM_RENAME_DELAY)
@@ -182,17 +191,19 @@ export default class Matrix extends EventTarget {
 
   // For the given room ids, return objects that conform to the atom
   // metadata structure expected by the UI.
-  async getAtomMetadataForRoomIds(roomIds) {
-    const { client, initialSyncPromise } = this;
+  async getAtomMetadataForChannelIds(channelIds) {
+    const { client, initialSyncPromise, pendingRoomJoinPromises, channelIdToRoomId } = this;
 
     // Don't return any atoms until initial sync finished.
     await initialSyncPromise;
 
     const atoms = [];
 
-    for (const roomId of roomIds) {
+    for (const channelId of channelIds) {
+      const roomId = channelIdToRoomId.get(channelId);
+
       // Wait until room is joined.
-      const promise = this.pendingRoomJoinPromises.get(roomId);
+      const promise = pendingRoomJoinPromises.get(roomId);
       if (promise) await promise;
 
       const room = client.getRoom(roomId);
@@ -206,7 +217,7 @@ export default class Matrix extends EventTarget {
       }
 
       atoms.push({
-        room_id: room.roomId,
+        channel_id: channelId,
         name
       });
     }
@@ -214,8 +225,22 @@ export default class Matrix extends EventTarget {
     return atoms;
   }
 
-  roomCan(permission, roomId) {
+  channelCan(permission, channelId) {
+    const { channelIdToRoomId } = this;
+
+    const roomId = channelIdToRoomId.get(channelId);
+    if (!roomId) return false;
+
+    return this._roomCan(permission, roomId);
+  }
+
+  roomIdForChannelId(channelId) {
+    return this.channelIdToRoomId.get(channelId);
+  }
+
+  _roomCan(permission, roomId) {
     const { client } = this;
+
     const room = client.getRoom(roomId);
     if (!room) return false;
 
@@ -278,7 +303,13 @@ export default class Matrix extends EventTarget {
   }
 
   _spaceIdForRoom(room) {
-    return room.currentState.events.get("jel.space").get("").event.content.space_id;
+    if (this._jelTypeForRoom(room) === "jel.space") {
+      return room.currentState.events.get("jel.space").get("").event.content.space_id;
+    } else if (this._jelTypeForRoom(room) === "jel.channel") {
+      for (const spaceId of room.currentState.events.get("jel.space.parent").keys()) {
+        return spaceId;
+      }
+    }
   }
 
   _jelTypeForRoom(room) {
@@ -325,6 +356,11 @@ export default class Matrix extends EventTarget {
     });
 
     client.on("RoomState.events", ({ event }) => {
+      if (event.type === "jel.channel") {
+        this.channelIdToRoomId.set(event.content.channel_id, event.room_id);
+        this.roomIdToChannelId.set(event.room_id, event.content.channel_id);
+      }
+
       if (!client.isInitialSyncComplete()) return;
 
       // If a new room is added to a spaceroom we're in after initial sync,

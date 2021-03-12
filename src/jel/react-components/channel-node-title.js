@@ -60,12 +60,12 @@ const PopupRef = styled.div`
   top: 12px;
 `;
 
-const ChannelNodeTitle = ({ roomId, onDotsClick, showDots, channelMetadata }) => {
+const ChannelNodeTitle = ({ channelId, onDotsClick, showDots, channelMetadata }) => {
   const [name, setName] = useState("");
 
   const popupRef = useRef();
 
-  useNameUpdateFromMetadata(roomId, channelMetadata, setName);
+  useNameUpdateFromMetadata(channelId, channelMetadata, setName);
 
   return (
     <ChannelNodeElement>
@@ -81,7 +81,7 @@ const ChannelNodeTitle = ({ roomId, onDotsClick, showDots, channelMetadata }) =>
 };
 
 ChannelNodeTitle.propTypes = {
-  roomId: PropTypes.string,
+  channelId: PropTypes.string,
   onDotsClick: PropTypes.func,
   popupRef: PropTypes.object,
   showDots: PropTypes.bool,

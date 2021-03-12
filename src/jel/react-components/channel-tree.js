@@ -22,7 +22,7 @@ function ChannelTree({
   const channelTitleControl = useCallback(
     data => (
       <ChannelNodeTitle
-        roomId={data.atomId}
+        channelId={data.atomId}
         channelMetadata={channelMetadata}
         showDots={true}
         onDotsClick={(e, ref) => {

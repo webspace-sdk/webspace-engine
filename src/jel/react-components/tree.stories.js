@@ -125,31 +125,31 @@ const trashTreeData = [
 
 const channelTreeData = [
   {
-    key: "!fJDfmdfKSAdjksdmww",
+    key: "fJDfmdfKSAdjksdmww",
     title: createChannelTitleNode,
     url: null,
-    roomId: "!fJDfmdfKSAdjksdmww:jel.app",
+    channelId: "fJDfmdfKSAdjksdmww",
     isLeaf: true
   },
   {
-    key: "!gJDfmdfKSAdjksdmww",
+    key: "gJDfmdfKSAdjksdmww",
     title: createChannelTitleNode,
     url: null,
-    roomId: "!gJDfmdfKSAdjksdmww:jel.app",
+    channelId: "gJDfmdfKSAdjksdmww",
     isLeaf: true
   },
   {
-    key: "!hJDfmdfKSAdjksdmww",
+    key: "hJDfmdfKSAdjksdmww",
     title: createChannelTitleNode,
     url: null,
-    roomId: "!hJDfmdfKSAdjksdmww:jel.app",
+    channelId: "hJDfmdfKSAdjksdmww",
     isLeaf: true
   }
 ];
 
 const fill = (metadata, children) => {
   for (let i = 0; i < children.length; i++) {
-    metadata._metadata.set(children[i].hubId || children[i].roomId, { displayName: "Unnamed Atom" });
+    metadata._metadata.set(children[i].hubId || children[i].channelId, { displayName: "Unnamed Atom" });
 
     fill(metadata, children[i].children || []);
   }
@@ -161,8 +161,8 @@ fill(channelMetadata, channelTreeData);
 
 hubMetadata._metadata.set("QxRKdNF", { displayName: "Test Name" });
 hubMetadata._metadata.set("JRrZerh", { displayName: "Test Very Long Name That Keeps Going and Going" });
-channelMetadata._metadata.set("!gJDfmdfKSAdjksdmww:jel.app", { displayName: "Custom Channel Name" });
-channelMetadata._metadata.set("!hJDfmdfKSAdjksdmww:jel.app", {
+channelMetadata._metadata.set("gJDfmdfKSAdjksdmww", { displayName: "Custom Channel Name" });
+channelMetadata._metadata.set("hJDfmdfKSAdjksdmww", {
   displayName: "Custom Channel Name Really Really Long Name What Hey"
 });
 

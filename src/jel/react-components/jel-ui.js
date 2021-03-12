@@ -513,7 +513,7 @@ function JelUI(props) {
     attributes: channelRenamePopupAttributes,
     setPopup: setChannelRenamePopupElement,
     setRef: setChannelRenameReferenceElement,
-    atomId: channelRenameRoomId,
+    atomId: channelRenameChannelId,
     show: showChannelRenamePopup,
     //popupElement: channelRenamePopupElement,
     update: updateChannelRenamePopup
@@ -543,7 +543,7 @@ function JelUI(props) {
   const {
     styles: channelContextMenuStyles,
     attributes: channelContextMenuAttributes,
-    atomId: channelContextMenuRoomId,
+    atomId: channelContextMenuChannelId,
     show: showChannelContextMenuPopup,
     setPopup: setChannelContextMenuElement,
     popupOpenOptions: channelContextMenuOpenOptions,
@@ -962,15 +962,15 @@ function JelUI(props) {
         setPopperElement={setChannelRenamePopupElement}
         styles={channelRenamePopupStyles}
         attributes={channelRenamePopupAttributes}
-        atomId={channelRenameRoomId}
+        atomId={channelRenameChannelId}
         atomMetadata={channelMetadata}
         ref={channelRenameFocusRef}
         onNameChanged={useCallback(
           name => {
-            matrix.setRoomName(channelRenameRoomId, name);
-            channelMetadata.optimisticUpdate(channelRenameRoomId, { name });
+            matrix.setChannelName(channelRenameChannelId, name);
+            channelMetadata.optimisticUpdate(channelRenameChannelId, { name });
           },
-          [matrix, channelMetadata, channelRenameRoomId]
+          [matrix, channelMetadata, channelRenameChannelId]
         )}
       />
       <ChatInputPopup
@@ -1046,12 +1046,12 @@ function JelUI(props) {
         hideRename={!!channelContextMenuOpenOptions.hideRename}
         styles={channelContextMenuStyles}
         attributes={channelContextMenuAttributes}
-        roomId={channelContextMenuRoomId}
+        channelId={channelContextMenuChannelId}
         spaceCan={spaceCan}
         channelCan={channelCan}
-        onRenameClick={useCallback(roomId => showChannelRenamePopup(roomId, null), [showChannelRenamePopup])}
-        onDeleteClick={useCallback(roomId => {
-          console.log("delete", roomId);
+        onRenameClick={useCallback(channelId => showChannelRenamePopup(channelId, null), [showChannelRenamePopup])}
+        onDeleteClick={useCallback(channelId => {
+          console.log("delete", channelId);
         }, [])}
       />
       <HubContextMenu
