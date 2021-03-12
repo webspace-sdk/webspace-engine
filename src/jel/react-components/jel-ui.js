@@ -449,7 +449,7 @@ function JelUI(props) {
     treeManager,
     history,
     spaceCan,
-    roomCan,
+    channelCan,
     hubCan,
     hub,
     memberships,
@@ -1044,7 +1044,7 @@ function JelUI(props) {
         attributes={channelContextMenuAttributes}
         roomId={channelContextMenuRoomId}
         spaceCan={spaceCan}
-        roomCan={roomCan}
+        channelCan={channelCan}
         onRenameClick={useCallback(roomId => showChannelRenamePopup(roomId, null), [showChannelRenamePopup])}
         onDeleteClick={useCallback(roomId => {
           console.log("delete", roomId);
@@ -1141,7 +1141,7 @@ JelUI.propTypes = {
   hub: PropTypes.object,
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,
-  roomCan: PropTypes.func,
+  channelCan: PropTypes.func,
   scene: PropTypes.object,
   subscriptions: PropTypes.object,
   selectedMediaLayer: PropTypes.number,

@@ -15,16 +15,16 @@ function ChannelContextMenu({
   setPopperElement,
   roomId,
   spaceCan,
-  roomCan,
+  channelCan,
   hideRename,
   onRenameClick,
   onDeleteClick
 }) {
-  if (!popupRoot || !spaceCan || !roomCan) return null;
+  if (!popupRoot || !spaceCan || !channelCan) return null;
 
   const items = [];
 
-  if (roomId && roomCan("state:m.room.name", roomId) && !hideRename) {
+  if (roomId && channelCan("state:m.room.name", roomId) && !hideRename) {
     items.push(
       <PopupMenuItem
         key={`rename-${roomId}`}

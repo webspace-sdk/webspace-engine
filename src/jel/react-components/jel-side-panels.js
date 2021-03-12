@@ -379,7 +379,7 @@ function JelSidePanels({
   hub,
   hubCan = () => false,
   spaceCan = () => false,
-  roomCan = () => false,
+  channelCan = () => false,
   spaceMetadata,
   channelMetadata,
   memberships,
@@ -520,7 +520,7 @@ function JelSidePanels({
               spaceId={spaceId}
               history={history}
               spaceCan={spaceCan}
-              roomCan={roomCan}
+              channelCan={channelCan}
               showChannelContextMenuPopup={showChannelContextMenuPopup}
               setChannelRenameReferenceElement={setChannelRenameReferenceElement}
             />
@@ -712,7 +712,7 @@ JelSidePanels.propTypes = {
   hub: PropTypes.object,
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,
-  roomCan: PropTypes.func,
+  channelCan: PropTypes.func,
   scene: PropTypes.object,
   channelMetadata: PropTypes.object,
   spaceMetadata: PropTypes.object,

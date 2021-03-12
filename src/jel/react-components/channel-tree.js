@@ -13,7 +13,7 @@ function ChannelTree({
   history,
   spaceId,
   spaceCan,
-  roomCan,
+  channelCan,
   setChannelRenameReferenceElement,
   showChannelContextMenuPopup
 }) {
@@ -35,7 +35,7 @@ function ChannelTree({
         }}
       />
     ),
-    [channelMetadata, showChannelContextMenuPopup, setChannelRenameReferenceElement, roomCan]
+    [channelMetadata, showChannelContextMenuPopup, setChannelRenameReferenceElement, channelCan]
   );
 
   // Ensure current selected node is always visible
@@ -93,7 +93,7 @@ function ChannelTree({
 ChannelTree.propTypes = {
   channelMetadata: PropTypes.object,
   history: PropTypes.object,
-  roomCan: PropTypes.func,
+  channelCan: PropTypes.func,
   spaceCan: PropTypes.func,
   spaceId: PropTypes.string,
   setChannelRenameReferenceElement: PropTypes.func,
