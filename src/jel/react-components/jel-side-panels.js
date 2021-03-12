@@ -540,7 +540,7 @@ function JelSidePanels({
               <FormattedMessage id="nav.private-worlds" />
             </PanelSectionHeader>
             <Tree
-              prefixCls="hub-tree"
+              prefixCls="atom-tree"
               treeData={privateTreeData}
               selectable={true}
               selectedKeys={privateSelectedKeys}

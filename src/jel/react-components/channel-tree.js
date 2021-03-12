@@ -6,7 +6,7 @@ import styled from "styled-components";
 import { useScrollToSelectedTreeNode } from "../utils/tree-utils";
 import ChannelNodeTitle from "./channel-node-title";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
-import "../../assets/jel/stylesheets/hub-tree.scss";
+import "../../assets/jel/stylesheets/atom-tree.scss";
 
 function ChannelTree({
   channelMetadata,
@@ -74,16 +74,31 @@ function ChannelTree({
   );
 
   const navSelectedKeys = useMemo(() => []);
+  const onDrop = useCallback(({ dragNode, node, dropPosition }) => {
+    const dropPos = node.pos.split("-");
+    const dropOffset = dropPosition - Number(dropPos[dropPos.length - 1]);
+    const { matrix } = window.APP;
+
+    switch (dropOffset) {
+      case -1:
+        matrix.moveChannelAbove(dragNode.key, node.key);
+        break;
+      case 1:
+        matrix.moveChannelBelow(dragNode.key, node.key);
+        break;
+    }
+  }, []);
 
   return (
     <div>
       <Tree
-        prefixCls="hub-tree"
+        prefixCls="atom-tree"
         treeData={treeData}
         selectable={true}
         selectedKeys={navSelectedKeys}
-        draggable
-        //onDrop={onDrop}
+        draggable={spaceCan("create_channel")}
+        allowDrop={false}
+        onDrop={onDrop}
         onSelect={onSelect}
       />
     </div>

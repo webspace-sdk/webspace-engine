@@ -12,7 +12,7 @@ import {
 } from "../utils/tree-utils";
 import HubNodeTitle from "./hub-node-title";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
-import "../../assets/jel/stylesheets/hub-tree.scss";
+import "../../assets/jel/stylesheets/atom-tree.scss";
 
 const EmptyMessage = styled.div`
   margin-left: 16px;
@@ -84,7 +84,7 @@ function HubTree({ treeManager, history, hub, spaceCan, setHubRenameReferenceEle
   return (
     <div>
       <Tree
-        prefixCls="hub-tree"
+        prefixCls="atom-tree"
         treeData={navTreeData}
         selectable={true}
         selectedKeys={navSelectedKeys}

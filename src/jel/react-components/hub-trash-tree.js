@@ -8,7 +8,7 @@ import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { useTreeData, findChildrenAtomsInTreeData } from "../utils/tree-utils";
 import HubTrashNodeTitle from "./hub-trash-node-title";
 import { FormattedMessage } from "react-intl";
-import "../../assets/jel/stylesheets/hub-tree.scss";
+import "../../assets/jel/stylesheets/atom-tree.scss";
 
 const TrashWrap = styled.div``;
 
@@ -103,7 +103,7 @@ function HubTrashTree({ treeManager, hubMetadata, tree, history, hub, hubCan, on
   return (
     <TrashWrap>
       <Tree
-        prefixCls="hub-tree"
+        prefixCls="atom-tree"
         onSelect={onSelect}
         className={classNames(styles.trashTree)}
         treeData={trashTreeData}

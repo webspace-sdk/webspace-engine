@@ -12,8 +12,13 @@ export default class Matrix extends EventTarget {
     this.pendingRoomJoinPromises = new Map();
     this.pendingRoomJoinResolvers = new Map();
     this.roomNameChangeTimeouts = new Map();
+
+    // Channel <-> room bimap
     this.channelIdToRoomId = new Map();
     this.roomIdToChannelId = new Map();
+
+    // Map of space ID -> spaceroom roomId
+    this.spaceIdToRoomId = new Map();
 
     this.fireChannelsChangedEventAfterJoinsComplete = false;
 
@@ -224,6 +229,107 @@ export default class Matrix extends EventTarget {
     return this._roomCan(permission, roomId);
   }
 
+  moveChannelAbove(channelId, aboveChannelId) {
+    console.log("above", channelId, aboveChannelId);
+    this.updateRoomOrderForPlacement(channelId, aboveChannelId, -1);
+  }
+
+  moveChannelBelow(channelId, belowChannelId) {
+    console.log("below", channelId, belowChannelId);
+    this.updateRoomOrderForPlacement(channelId, belowChannelId, 1);
+  }
+
+  updateRoomOrderForPlacement(channelId, targetChannelId, direction /* -1 above, 1 below */) {
+    const { client, channelIdToRoomId } = this;
+
+    const roomId = channelIdToRoomId.get(channelId);
+    const targetRoomId = channelIdToRoomId.get(targetChannelId);
+
+    if (!roomId || !targetRoomId) return;
+
+    const room = client.getRoom(roomId);
+    const targetRoom = client.getRoom(targetRoomId);
+
+    if (!room || !targetRoom) return;
+
+    const spaceId = this._spaceIdForRoom(room);
+    const targetSpaceId = this._spaceIdForRoom(targetRoom);
+
+    if (!spaceId || spaceId !== targetSpaceId) return;
+
+    const spaceRoomId = this.spaceIdToRoomId.get(spaceId);
+    if (!spaceRoomId) return;
+
+    const spaceRoom = client.getRoom(spaceRoomId);
+    if (!spaceRoom) return;
+
+    // Sort the rooms for the tree based upon the space child state
+    const childRooms = spaceRoom.currentState.events.get("m.space_child");
+    if (!childRooms) return;
+
+    const orderedRoomList = [];
+
+    for (const [
+      roomId,
+      {
+        event: {
+          content: { order }
+        }
+      }
+    ] of childRooms.entries()) {
+      orderedRoomList.push({ roomId, order: parseInt(order) });
+    }
+
+    orderedRoomList.sort(({ order: orderX }, { order: orderY }) => {
+      if (orderX < orderY) return -1;
+      if (orderX > orderY) return 1;
+      return 0;
+    });
+
+    let newOrder = null;
+
+    for (let i = 0; i < orderedRoomList.length; i++) {
+      const { roomId, order } = orderedRoomList[i];
+      if (roomId !== targetRoomId) continue;
+
+      // Grab the adjacent orders, and then the new order is the average of them, so
+      // the channel will be placed between them.
+      let orderFrom, orderTo;
+
+      if (direction === -1) {
+        // Move above
+        if (i === 0) {
+          // If this is being moved to the end, give it the max order + 2^18 to create a sizable
+          // order gap between the last two entries. (Same as on dyna)
+          orderFrom = orderTo = order - Math.pow(2, 18);
+        } else {
+          // New order will be average of the adjacent entries.
+          orderFrom = order;
+          orderTo = orderedRoomList[i - 1].order;
+        }
+      } else {
+        // Move below
+        if (i === orderedRoomList.length - 1) {
+          // If this is being moved to the end, give it the max order + 2^18 to create a sizable
+          // order gap between the last two entries. (Same as on dyna)
+          orderFrom = orderTo = order + Math.pow(2, 18);
+        } else {
+          // New order will be average of the adjacent entries.
+          orderFrom = order;
+          orderTo = orderedRoomList[i + 1].order;
+        }
+      }
+
+      newOrder = Math.floor((orderFrom + orderTo) / 2.0);
+
+      break;
+    }
+
+    if (newOrder === null) return;
+
+    window.APP.accountChannel.setChannelMatrixRoomOrder(roomId, newOrder);
+  }
+
   _roomCan(permission, roomId) {
     const { client } = this;
 
@@ -308,6 +414,12 @@ export default class Matrix extends EventTarget {
     return this._spaceIdForRoom(room) === spaceId && this._jelTypeForRoom(room) === "jel.channel";
   }
 
+  _isSpaceRoomForCurrentSpace(room) {
+    const { spaceId } = window.APP.spaceChannel;
+
+    return this._spaceIdForRoom(room) === spaceId && this._jelTypeForRoom(room) === "jel.space";
+  }
+
   _attachMatrixEventHandlers() {
     const { client } = this;
 
@@ -347,12 +459,25 @@ export default class Matrix extends EventTarget {
         this.roomIdToChannelId.set(event.room_id, event.content.channel_id);
       }
 
+      if (event.type === "jel.space") {
+        this.spaceIdToRoomId.set(event.content.space_id, event.room_id);
+      }
+
       if (!client.isInitialSyncComplete()) return;
 
       // If a new room is added to a spaceroom we're in after initial sync,
       // we need to join it if it's auto_join.
-      if (event.type === "m.space_child" && event.content.auto_join) {
-        this._ensureRoomJoined(event.state_key);
+      if (event.type === "m.space_child") {
+        if (event.content.auto_join) {
+          this._ensureRoomJoined(event.state_key);
+        }
+
+        const room = client.getRoom(event.room_id);
+
+        if (room && this._isSpaceRoomForCurrentSpace(room)) {
+          // May have been a re-order in the current space, re-render
+          this.dispatchEvent(new CustomEvent("current_space_channels_changed", {}));
+        }
       }
 
       // If name is updated, fire the channel_meta_refresh event in the form expected

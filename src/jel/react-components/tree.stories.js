@@ -1,6 +1,6 @@
 import React from "react";
 import Tree from "rc-tree";
-import "../../assets/jel/stylesheets/hub-tree.scss";
+import "../../assets/jel/stylesheets/atom-tree.scss";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import trashTreeStyles from "../../assets/jel/stylesheets/hub-trash-tree.scss";
 import HubNodeTitle from "./hub-node-title";
@@ -172,7 +172,7 @@ export const HubTree = () => (
     style={{ display: "flex", width: "400px", height: "600px", marginTop: "32px", flexDirection: "column" }}
   >
     <PanelSectionHeader>Section Name</PanelSectionHeader>
-    <Tree prefixCls="hub-tree" treeData={hubTreeData} selectable={true} selectedKeys={["nq106el"]} />
+    <Tree prefixCls="atom-tree" treeData={hubTreeData} selectable={true} selectedKeys={["nq106el"]} />
     <PanelItemButtonSection>
       <PanelItemButton iconSrc={trashIcon}>Trash</PanelItemButton>
     </PanelItemButtonSection>
@@ -192,7 +192,7 @@ export const TrashTree = () => (
     }}
   >
     <Tree
-      prefixCls="hub-tree"
+      prefixCls="atom-tree"
       className={classNames(trashTreeStyles.trashTree)}
       treeData={trashTreeData}
       expandable={false}
@@ -208,7 +208,7 @@ export const ChannelTree = () => (
     style={{ display: "flex", width: "400px", height: "600px", marginTop: "32px", flexDirection: "column" }}
   >
     <PanelSectionHeader>Channels</PanelSectionHeader>
-    <Tree prefixCls="hub-tree" treeData={channelTreeData} selectable={true} selectedKeys={["!gJDfmdfKSAdjksdmww"]} />
+    <Tree prefixCls="atom-tree" treeData={channelTreeData} selectable={true} selectedKeys={["!gJDfmdfKSAdjksdmww"]} />
     <PanelItemButtonSection>
       <PanelItemButton iconSrc={trashIcon}>Trash</PanelItemButton>
     </PanelItemButtonSection>

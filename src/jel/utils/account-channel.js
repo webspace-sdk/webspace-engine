@@ -52,6 +52,10 @@ export default class AccountChannel extends EventTarget {
     this.channel.push("join_matrix_room", { matrix_room_id: roomId });
   };
 
+  setChannelMatrixRoomOrder = (roomId, order) => {
+    this.channel.push("set_channel_matrix_room_order", { matrix_room_id: roomId, order });
+  };
+
   onAccountRefreshed = accountInfo => {
     this.syncAccountInfo(accountInfo);
     this.dispatchEvent(new CustomEvent("account_refresh", { detail: accountInfo }));

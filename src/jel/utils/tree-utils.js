@@ -43,7 +43,7 @@ export function useExpandableTree(treeManager) {
 export function useScrollToSelectedTreeNode(treeData, atom) {
   useEffect(
     () => {
-      const node = document.querySelector(".hub-tree-treenode-selected");
+      const node = document.querySelector(".atom-tree-treenode-selected");
 
       if (node) {
         scrollIntoView(node, { scrollMode: "if-needed", inline: "start" });
