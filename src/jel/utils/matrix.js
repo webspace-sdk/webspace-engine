@@ -148,7 +148,7 @@ export default class Matrix extends EventTarget {
         }
       }
 
-      treeData.sort((roomIdX, roomIdY) => {
+      treeData.sort(({ atomId: roomIdX }, { atomId: roomIdY }) => {
         const orderX = roomOrders.get(roomIdX) || 0;
         const orderY = roomOrders.get(roomIdY) || 0;
         if (orderX < orderY) return -1;
@@ -198,9 +198,16 @@ export default class Matrix extends EventTarget {
       const room = client.getRoom(roomId);
       if (!room) continue;
 
+      let name = null;
+
+      const mRoomName = room.currentState.getStateEvents("m.room.name", "");
+      if (mRoomName && mRoomName.getContent() && mRoomName.getContent().name) {
+        name = mRoomName.getContent().name.trim();
+      }
+
       atoms.push({
         room_id: room.roomId,
-        name: room.name
+        name
       });
     }
 

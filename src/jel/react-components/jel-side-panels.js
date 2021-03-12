@@ -587,10 +587,7 @@ function JelSidePanels({
             {spaceCan("create_channel") && (
               <ActionButton
                 iconSrc={addIcon}
-                onClick={async () => {
-                  const channel = await createChannel(spaceId);
-                  console.log(channel);
-                }}
+                onClick={async () => await createChannel(spaceId)}
                 style={{ width: "60%" }}
               >
                 Create Channel
