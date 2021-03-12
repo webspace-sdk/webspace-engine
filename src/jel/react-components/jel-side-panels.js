@@ -16,6 +16,7 @@ import { addNewHubToTree } from "../utils/tree-utils";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
 import { createChannel } from "../../hubs/utils/phoenix-utils";
 import SpaceTree from "./space-tree";
+import ChannelTree from "./channel-tree";
 import HubTree from "./hub-tree";
 import InvitePanel from "./invite-panel";
 import HubTrashTree from "./hub-trash-tree";
@@ -379,6 +380,7 @@ function JelSidePanels({
   hubCan = () => false,
   spaceCan = () => false,
   spaceMetadata,
+  channelMetadata,
   memberships,
   showHubContextMenuPopup,
   setHubRenameReferenceElement,
@@ -447,7 +449,6 @@ function JelSidePanels({
   ]);
 
   const space = spaceForSpaceId(spaceId, memberships);
-  const onHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
   const hubId = hub && hub.hub_id;
   const messages = getMessages();
   const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
@@ -511,6 +512,14 @@ function JelSidePanels({
             <PanelSectionHeader>
               <FormattedMessage id="nav.channels" />
             </PanelSectionHeader>
+            <ChannelTree
+              channelMetadata={channelMetadata}
+              spaceId={spaceId}
+              history={history}
+              spaceCan={spaceCan}
+              showHubContextMenuPopup={showHubContextMenuPopup}
+              setHubRenameReferenceElement={setHubRenameReferenceElement}
+            />
             <PanelSectionHeader>
               <FormattedMessage id="nav.space-worlds" />
             </PanelSectionHeader>
@@ -522,7 +531,6 @@ function JelSidePanels({
               hubCan={hubCan}
               showHubContextMenuPopup={showHubContextMenuPopup}
               setHubRenameReferenceElement={setHubRenameReferenceElement}
-              onHubNameChanged={onHubNameChanged}
             />
             <PanelSectionHeader>
               <FormattedMessage id="nav.private-worlds" />
@@ -701,6 +709,7 @@ JelSidePanels.propTypes = {
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,
   scene: PropTypes.object,
+  channelMetadata: PropTypes.object,
   spaceMetadata: PropTypes.object,
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,

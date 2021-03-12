@@ -16,13 +16,13 @@ const ChannelNodeElement = styled.div`
     }
 
     .title {
-      flex-basis: calc(100% - 58px);
+      flex-basis: calc(100% - 38px);
     }
   }
 `;
 
 const ChannelControls = styled.div`
-  width: 48px;
+  width: 24px;
   height: 26px;
   display: flex;
   justify-content: flex-end;
@@ -34,14 +34,22 @@ const ChannelControls = styled.div`
 
 const ChannelHash = styled.div`
   font-size: var(--panel-text-size);
-  width: 24px;
+  min-width: 24px;
   font-weight: bold;
+`;
+
+const ChannelName = styled.div`
+  text-overflow: ellipsis;
+  flex-basis: 100%;
+  overflow: hidden;
 `;
 
 const ChannelTitle = styled.div`
   overflow: hidden;
-  text-overflow: ellipsis;
   flex-basis: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 `;
 
 const PopupRef = styled.div`
@@ -61,8 +69,10 @@ const ChannelNodeTitle = ({ roomId, onDotsClick, showDots, channelMetadata }) =>
 
   return (
     <ChannelNodeElement>
-      <ChannelHash>#</ChannelHash>
-      <ChannelTitle className="title">{name}</ChannelTitle>
+      <ChannelTitle className="title">
+        <ChannelHash>#</ChannelHash>
+        <ChannelName>{name}</ChannelName>
+      </ChannelTitle>
       <ChannelControls className="controls">
         {showDots && <IconButton iconSrc={dotsIcon} onClick={e => onDotsClick(e, popupRef)} />}
         <PopupRef ref={popupRef} />

@@ -458,7 +458,7 @@ function JelUI(props) {
   } = props;
   const tree = treeManager && treeManager.sharedNav;
   const spaceTree = treeManager && treeManager.privateSpace;
-  const { store, hubChannel, spaceChannel, dynaChannel } = window.APP;
+  const { store, hubChannel, spaceChannel, dynaChannel, channelMetadata } = window.APP;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = tree && tree.atomMetadata;
   const hubTrailHubIds = (tree && hub && tree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
@@ -892,6 +892,7 @@ function JelUI(props) {
           <JelSidePanels
             {...props}
             spaceMetadata={spaceMetadata}
+            channelMetadata={channelMetadata}
             showHubRenamePopup={showHubRenamePopup}
             setHubRenameReferenceElement={setHubRenameReferenceElement}
             showHubContextMenuPopup={showHubContextMenuPopup}

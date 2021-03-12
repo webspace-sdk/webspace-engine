@@ -162,6 +162,9 @@ fill(channelMetadata, channelTreeData);
 hubMetadata._metadata.set("QxRKdNF", { displayName: "Test Name" });
 hubMetadata._metadata.set("JRrZerh", { displayName: "Test Very Long Name That Keeps Going and Going" });
 channelMetadata._metadata.set("!gJDfmdfKSAdjksdmww:jel.app", { displayName: "Custom Channel Name" });
+channelMetadata._metadata.set("!hJDfmdfKSAdjksdmww:jel.app", {
+  displayName: "Custom Channel Name Really Really Long Name What Hey"
+});
 
 export const HubTree = () => (
   <div

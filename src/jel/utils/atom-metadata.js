@@ -50,6 +50,7 @@ class AtomMetadata {
     this._metadata = new Map();
     this._metadataSubscribers = new Map();
     this._atomType = atomType;
+    this._source = null;
 
     const messages = getMessages();
 
@@ -70,8 +71,8 @@ class AtomMetadata {
         break;
       case ATOM_TYPES.CHANNEL:
         this._refreshMessage = "room_meta_refresh";
-        this._idColumn = "roomId";
-        this._sourceGetMethod = "getRoomMetas";
+        this._idColumn = "room_id";
+        this._sourceGetMethod = "getAtomMetadataForRoomIds";
         this._defaultName = messages["channel.unnamed-title"];
         this._defaultHomeName = messages["channel.unnamed-home-title"];
         break;
@@ -81,8 +82,8 @@ class AtomMetadata {
   bind(source) {
     const inFlightMetadataIds = [];
 
-    if (this._unsubcribeFromSource) {
-      this._unsubcribeFromSource(this._refreshMessage, this._handleSourceRefreshMessage);
+    if (this._source) {
+      this._unsubscribeFromSource(this._refreshMessage, this._handleSourceRefreshMessage);
 
       // On a source change, we need to do two things to ensure metadata will
       // now fetch properly:
@@ -106,13 +107,8 @@ class AtomMetadata {
       }
     }
 
-    if (source.channel) {
-      this._bindPhoenixChannelSource(source);
-    } else {
-      this._bindMatrixSource(source);
-    }
-
-    this._subcribeToSource(this._refreshMessage, this._handleSourceRefreshMessage);
+    this._source = source;
+    this._subscribeToSource(this._refreshMessage, this._handleSourceRefreshMessage);
 
     this.ensureMetadataForIds(inFlightMetadataIds, true);
   }
@@ -170,6 +166,7 @@ class AtomMetadata {
 
   async ensureMetadataForIds(ids, force = false) {
     const idsToFetch = new Set();
+    const source = this._source;
 
     for (const id of ids) {
       // Only fetch things not in the map, which will skip attempts to re-fetch pending ids.
@@ -180,8 +177,12 @@ class AtomMetadata {
     }
 
     if (idsToFetch.size !== 0) {
-      const atoms = await this._fetchAtoms(idsToFetch);
-      if (atoms === null) return;
+      const phxChannel = source.channel;
+      const atoms = await source[this._sourceGetMethod](ids);
+
+      // Edge case: if phoenix channel is re-bound, discard, the rebind will
+      // re-fetch the pending items.
+      if (phxChannel && phxChannel !== source.channel) return;
 
       for (const metadata of atoms) {
         this._setDisplayNameOnMetadata(metadata);
@@ -218,26 +219,6 @@ class AtomMetadata {
     }
   }
 
-  _bindPhoenixChannelSource = source => {
-    this._unsubcribeFromSource = (event, handler) => source.channel.off(event, handler);
-    this._subcribeToSource = (event, handler) => source.channel.on(event, handler);
-    this._fetchAtoms = async ids => {
-      const phxChannel = source.channel;
-      const atoms = await source[this._sourceGetMethod](ids);
-
-      // Edge case: if phoenix channel is re-bound, discard, the rebind will
-      // re-fetch the pending items.
-      if (phxChannel !== source.channel) return null;
-      return atoms;
-    };
-  };
-
-  _bindMatrixSource = source => {
-    this._unsubcribeFromSource = (event, handler) => {};
-    this._subcribeToSource = (event, handler) => {};
-    this._fetchAtoms = async ids => {};
-  };
-
   _fireHandlerForSubscribersForUpdatedIds = updatedIds => {
     for (const [handler, ids] of this._metadataSubscribers) {
       if (hasIntersection(updatedIds, ids)) {
@@ -270,6 +251,28 @@ class AtomMetadata {
   _setDisplayNameOnMetadata = metadata => {
     metadata.displayName = metadata.name || (metadata.is_home ? this._defaultHomeName : this._defaultName);
   };
+
+  _subscribeToSource(message, handler) {
+    const source = this._source;
+
+    if (source.channel) {
+      // Phoenix channel source
+      source.channel.on(event, handler);
+    } else {
+      // Matrix source
+    }
+  }
+
+  _unsubscribeFromSource(message, handler) {
+    const source = this._source;
+
+    if (source.channel) {
+      // Phoenix channel source
+      source.channel.off(event, handler);
+    } else {
+      // Matrix source
+    }
+  }
 }
 
 function useNameUpdateFromMetadata(atomId, metadata, setDisplayName, setRawName) {

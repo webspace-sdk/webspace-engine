@@ -1,8 +1,5 @@
 import MatrixSdk from "matrix-js-sdk";
-import { useEffect } from "react";
 import { EventTarget } from "event-target-shim";
-
-class MatrixRoomMetadata {}
 
 export default class Matrix extends EventTarget {
   constructor(store) {
@@ -11,6 +8,10 @@ export default class Matrix extends EventTarget {
     this.pendingRoomJoinPromises = new Map();
     this.pendingRoomJoinResolvers = new Map();
     this.fireChannelsChangedEventAfterJoinsComplete = false;
+
+    this.initialSyncPromise = new Promise(res => {
+      this.initialSyncFinished = res;
+    });
   }
 
   async init(homeserver, loginToken, expectedUserId) {
@@ -74,12 +75,17 @@ export default class Matrix extends EventTarget {
         this.client.once("sync", async state => {
           if (state === "PREPARED") {
             this._attachMatrixEventHandlers();
+
+            this.dispatchEvent(new CustomEvent("current_space_channels_changed", {}));
+
             this._joinMissingRooms();
 
             accountChannel.addEventListener("account_refresh", () => {
               // Memberships may have changed, so join missing space rooms.
               this._joinMissingRooms();
             });
+
+            this.initialSyncFinished();
 
             res();
           } else {
@@ -90,8 +96,51 @@ export default class Matrix extends EventTarget {
     });
   }
 
-  getChannelRoomsForCurrentSpace() {
-    return this.client.getRooms().filter(room => this._isChannelRoomForCurrentSpace(room));
+  getChannelTreeDataForSpaceId(spaceId, titleControl) {
+    const treeData = [];
+
+    const { client } = this;
+    if (!client) return treeData;
+
+    for (const room of client.getVisibleRooms()) {
+      if (!room.hasMembershipState(client.credentials.userId, "join")) continue;
+      if (this._spaceIdForRoom(room) !== spaceId) continue;
+      treeData.push({
+        key: room.roomId,
+        title: titleControl,
+        url: null,
+        atomId: room.roomId,
+        isLeaf: true
+      });
+    }
+
+    return treeData;
+  }
+
+  // For the given room ids, return objects that conform to the atom
+  // metadata structure expected by the UI.
+  async getAtomMetadataForRoomIds(roomIds) {
+    const { client, initialSyncPromise } = this;
+
+    // Don't return any atoms until initial sync finished.
+    await initialSyncPromise;
+
+    const atoms = [];
+
+    for (const roomId of roomIds) {
+      // Wait until room is joined.
+      const promise = this.pendingRoomJoinPromises.get(roomId);
+      if (promise) await promise;
+
+      const room = client.getRoom(roomId);
+      if (!room) continue;
+
+      atoms.push({
+        room_id: room.roomId
+      });
+    }
+
+    return atoms;
   }
 
   async _joinMissingRooms() {
