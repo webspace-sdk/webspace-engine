@@ -1172,7 +1172,7 @@ async function start() {
             // Initialize connection to matrix homeserver.
             await matrix.init(accountInfo.matrix_homeserver, accountInfo.matrix_token, accountInfo.matrix_user_id);
             channelMetadata.bind(matrix);
-            remountJelUI({ roomCan: matrix.roomCan.bind(matrix) });
+            remountJelUI({ channelCan: matrix.roomCan.bind(matrix) });
 
             isInitialAccountChannelJoin = false;
           }
