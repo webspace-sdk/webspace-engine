@@ -71,7 +71,7 @@ class AtomMetadata {
         this._defaultHomeName = messages["space.unnamed-home-title"];
         break;
       case ATOM_TYPES.CHANNEL:
-        this._refreshMessage = "room_meta_refresh";
+        this._refreshMessage = "channel_meta_refresh";
         this._idColumn = "channel_id";
         this._sourceGetMethod = "getAtomMetadataForChannelIds";
         this._defaultName = messages["channel.unnamed-title"];
@@ -84,7 +84,7 @@ class AtomMetadata {
     const inFlightMetadataIds = [];
 
     if (this._source) {
-      this._unsubscribeFromSource(this._refreshMessage, this._handleSourceRefreshMessage);
+      this._unsubscribeFromSource(this._refreshMessage, this._handleSourceRefreshEvent);
 
       // On a source change, we need to do two things to ensure metadata will
       // now fetch properly:
@@ -109,7 +109,7 @@ class AtomMetadata {
     }
 
     this._source = source;
-    this._subscribeToSource(this._refreshMessage, this._handleSourceRefreshMessage);
+    this._subscribeToSource(this._refreshMessage, this._handleSourceRefreshEvent);
 
     this.ensureMetadataForIds(inFlightMetadataIds, true);
   }
@@ -228,7 +228,10 @@ class AtomMetadata {
     }
   };
 
-  _handleSourceRefreshMessage = ({ metas }) => {
+  _handleSourceRefreshEvent = payload => {
+    // Depending on if this was EventTarget event or channel message, metas are packed differently.
+    const metas = payload.detail ? payload.detail.metas : payload.metas;
+
     const ids = [];
 
     for (let i = 0; i < metas.length; i++) {
@@ -253,25 +256,27 @@ class AtomMetadata {
     metadata.displayName = metadata.name || (metadata.is_home ? this._defaultHomeName : this._defaultName);
   };
 
-  _subscribeToSource(message, handler) {
+  _subscribeToSource(event, handler) {
     const source = this._source;
 
     if (source.channel) {
       // Phoenix channel source
       source.channel.on(event, handler);
     } else {
-      // Matrix source
+      // Matrix (or other EventTarget) source
+      source.addEventListener(event, handler);
     }
   }
 
-  _unsubscribeFromSource(message, handler) {
+  _unsubscribeFromSource(event, handler) {
     const source = this._source;
 
     if (source.channel) {
       // Phoenix channel source
       source.channel.off(event, handler);
     } else {
-      // Matrix source
+      // Matrix (or other EventTarget) source
+      source.removeEventListener(event, handler);
     }
   }
 }

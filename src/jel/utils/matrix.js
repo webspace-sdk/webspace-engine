@@ -209,17 +209,7 @@ export default class Matrix extends EventTarget {
       const room = client.getRoom(roomId);
       if (!room) continue;
 
-      let name = null;
-
-      const mRoomName = room.currentState.getStateEvents("m.room.name", "");
-      if (mRoomName && mRoomName.getContent() && mRoomName.getContent().name) {
-        name = mRoomName.getContent().name.trim();
-      }
-
-      atoms.push({
-        channel_id: channelId,
-        name
-      });
+      atoms.push(this._roomToAtomMetadata(room));
     }
 
     return atoms;
@@ -232,10 +222,6 @@ export default class Matrix extends EventTarget {
     if (!roomId) return false;
 
     return this._roomCan(permission, roomId);
-  }
-
-  roomIdForChannelId(channelId) {
-    return this.channelIdToRoomId.get(channelId);
   }
 
   _roomCan(permission, roomId) {
@@ -368,6 +354,33 @@ export default class Matrix extends EventTarget {
       if (event.type === "m.space_child" && event.content.auto_join) {
         this._ensureRoomJoined(event.state_key);
       }
+
+      // If name is updated, fire the channel_meta_refresh event in the form expected
+      // by the atom metadata hander.
+      if (event.type === "m.room.name") {
+        const room = client.getRoom(event.room_id);
+
+        if (this._jelTypeForRoom(room) === "jel.channel") {
+          const metas = [this._roomToAtomMetadata(room)];
+          this.dispatchEvent(new CustomEvent("channel_meta_refresh", { detail: { metas } }));
+        }
+      }
     });
+  }
+
+  _roomToAtomMetadata(room) {
+    const { roomIdToChannelId } = this;
+
+    let name = null;
+
+    const mRoomName = room.currentState.getStateEvents("m.room.name", "");
+    if (mRoomName && mRoomName.getContent() && mRoomName.getContent().name) {
+      name = mRoomName.getContent().name.trim();
+    }
+
+    return {
+      channel_id: roomIdToChannelId.get(room.roomId),
+      name
+    };
   }
 }
