@@ -52,6 +52,10 @@ export default class AccountChannel extends EventTarget {
     this.channel.push("join_matrix_room", { matrix_room_id: roomId });
   };
 
+  deleteChannelMatrixRoom = roomId => {
+    this.channel.push("delete_channel_matrix_room", { matrix_room_id: roomId });
+  };
+
   setChannelMatrixRoomOrder = (roomId, order) => {
     this.channel.push("set_channel_matrix_room_order", { matrix_room_id: roomId, order });
   };

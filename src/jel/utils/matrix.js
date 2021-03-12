@@ -149,10 +149,12 @@ export default class Matrix extends EventTarget {
           roomId,
           {
             event: {
-              content: { order }
+              content: { order, via }
             }
           }
         ] of childRooms.entries()) {
+          if (!via) continue; // Rooms without via have been removed from the space
+
           roomOrders.set(roomId, order);
         }
       }
@@ -273,10 +275,12 @@ export default class Matrix extends EventTarget {
       roomId,
       {
         event: {
-          content: { order }
+          content: { order, via }
         }
       }
     ] of childRooms.entries()) {
+      if (!via) continue;
+
       orderedRoomList.push({ roomId, order: parseInt(order) });
     }
 
@@ -362,12 +366,14 @@ export default class Matrix extends EventTarget {
         for (const [
           roomId,
           {
-            event: { content }
+            event: {
+              content: { via, auto_join }
+            }
           }
         ] of childRooms.entries()) {
-          if (content.auto_join) {
-            this._ensureRoomJoined(roomId);
-          }
+          if (!via || !auto_join) continue;
+
+          this._ensureRoomJoined(roomId);
         }
       }
     }
@@ -450,6 +456,9 @@ export default class Matrix extends EventTarget {
           this.fireChannelsChangedEventAfterJoinsComplete = false;
           this.dispatchEvent(new CustomEvent("current_space_channels_changed", {}));
         }
+      } else if (room.hasMembershipState(client.credentials.userId, "leave")) {
+        // Left room
+        this.dispatchEvent(new CustomEvent("current_space_channels_changed", {}));
       }
     });
 
@@ -468,7 +477,7 @@ export default class Matrix extends EventTarget {
       // If a new room is added to a spaceroom we're in after initial sync,
       // we need to join it if it's auto_join.
       if (event.type === "m.space_child") {
-        if (event.content.auto_join) {
+        if (event.content.auto_join && event.content.via) {
           this._ensureRoomJoined(event.state_key);
         }
 
