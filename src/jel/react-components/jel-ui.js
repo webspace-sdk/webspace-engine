@@ -460,7 +460,7 @@ function JelUI(props) {
   } = props;
   const tree = treeManager && treeManager.sharedNav;
   const spaceTree = treeManager && treeManager.privateSpace;
-  const { store, hubChannel, spaceChannel, dynaChannel, channelMetadata } = window.APP;
+  const { store, hubChannel, spaceChannel, dynaChannel, channelMetadata, matrix } = window.APP;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = tree && tree.atomMetadata;
   const hubTrailHubIds = (tree && hub && tree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
@@ -965,9 +965,13 @@ function JelUI(props) {
         atomId={channelRenameRoomId}
         atomMetadata={channelMetadata}
         ref={channelRenameFocusRef}
-        onNameChanged={useCallback(name => window.APP.matrix.renameRoom(channelRenameRoomId, { name }), [
-          channelRenameRoomId
-        ])}
+        onNameChanged={useCallback(
+          name => {
+            matrix.setRoomName(channelRenameRoomId, name);
+            channelMetadata.optimisticUpdate(channelRenameRoomId, { name });
+          },
+          [matrix, channelMetadata, channelRenameRoomId]
+        )}
       />
       <ChatInputPopup
         setPopperElement={setChatInputPopupElement}

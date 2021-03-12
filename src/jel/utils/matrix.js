@@ -1,12 +1,18 @@
 import MatrixSdk from "matrix-js-sdk";
 import { EventTarget } from "event-target-shim";
 
+// Delay we wait before flushing a room rename since the user
+// can keep typing in the UI.
+const ROOM_RENAME_DELAY = 1000;
+
 export default class Matrix extends EventTarget {
   constructor(store) {
     super();
     this.store = store;
     this.pendingRoomJoinPromises = new Map();
     this.pendingRoomJoinResolvers = new Map();
+    this.roomNameChangeTimeouts = new Map();
+
     this.fireChannelsChangedEventAfterJoinsComplete = false;
 
     this.initialSyncPromise = new Promise(res => {
@@ -102,9 +108,19 @@ export default class Matrix extends EventTarget {
     const { client } = this;
     if (!client) return treeData;
 
+    let spaceRoom;
+
     for (const room of client.getVisibleRooms()) {
       if (!room.hasMembershipState(client.credentials.userId, "join")) continue;
       if (this._spaceIdForRoom(room) !== spaceId) continue;
+
+      if (this._jelTypeForRoom(room) === "jel.space") {
+        spaceRoom = room;
+        continue;
+      }
+
+      if (this._jelTypeForRoom(room) !== "jel.channel") continue;
+
       treeData.push({
         key: room.roomId,
         title: titleControl,
@@ -114,7 +130,54 @@ export default class Matrix extends EventTarget {
       });
     }
 
+    if (spaceRoom) {
+      // Sort the rooms for the tree based upon the space child state
+      const childRooms = spaceRoom.currentState.events.get("m.space_child");
+      const roomOrders = new Map();
+
+      if (childRooms) {
+        for (const [
+          roomId,
+          {
+            event: {
+              content: { order }
+            }
+          }
+        ] of childRooms.entries()) {
+          roomOrders.set(roomId, order);
+        }
+      }
+
+      treeData.sort((roomIdX, roomIdY) => {
+        const orderX = roomOrders.get(roomIdX) || 0;
+        const orderY = roomOrders.get(roomIdY) || 0;
+        if (orderX < orderY) return -1;
+        if (orderX > orderY) return 1;
+        return 0;
+      });
+    }
+
     return treeData;
+  }
+
+  setRoomName(roomId, name) {
+    const { client, roomNameChangeTimeouts } = this;
+    const timeout = roomNameChangeTimeouts.get(roomId);
+
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+
+    roomNameChangeTimeouts.set(
+      roomId,
+      setTimeout(() => {
+        const room = client.getRoom(roomId);
+
+        if (room && this.roomCan("state:m.room.name", roomId)) {
+          client.setRoomName(roomId, name);
+        }
+      }, ROOM_RENAME_DELAY)
+    );
   }
 
   // For the given room ids, return objects that conform to the atom
@@ -136,7 +199,8 @@ export default class Matrix extends EventTarget {
       if (!room) continue;
 
       atoms.push({
-        room_id: room.roomId
+        room_id: room.roomId,
+        name: room.name
       });
     }
 
