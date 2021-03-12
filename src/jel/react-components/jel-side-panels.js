@@ -379,9 +379,12 @@ function JelSidePanels({
   hub,
   hubCan = () => false,
   spaceCan = () => false,
+  roomCan = () => false,
   spaceMetadata,
   channelMetadata,
   memberships,
+  showChannelContextMenuPopup,
+  setChannelRenameReferenceElement,
   showHubContextMenuPopup,
   setHubRenameReferenceElement,
   showSpaceRenamePopup,
@@ -517,8 +520,9 @@ function JelSidePanels({
               spaceId={spaceId}
               history={history}
               spaceCan={spaceCan}
-              showHubContextMenuPopup={showHubContextMenuPopup}
-              setHubRenameReferenceElement={setHubRenameReferenceElement}
+              roomCan={roomCan}
+              showChannelContextMenuPopup={showChannelContextMenuPopup}
+              setChannelRenameReferenceElement={setChannelRenameReferenceElement}
             />
             <PanelSectionHeader>
               <FormattedMessage id="nav.space-worlds" />
@@ -708,6 +712,7 @@ JelSidePanels.propTypes = {
   hub: PropTypes.object,
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,
+  roomCan: PropTypes.func,
   scene: PropTypes.object,
   channelMetadata: PropTypes.object,
   spaceMetadata: PropTypes.object,
@@ -715,6 +720,8 @@ JelSidePanels.propTypes = {
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
   hubSettings: PropTypes.array,
+  showChannelContextMenuPopup: PropTypes.func,
+  setChannelRenameReferenceElement: PropTypes.func,
   showHubContextMenuPopup: PropTypes.func,
   setHubRenameReferenceElement: PropTypes.func,
   showSpaceRenamePopup: PropTypes.func,

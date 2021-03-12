@@ -143,6 +143,20 @@ export default class Matrix extends EventTarget {
     return atoms;
   }
 
+  roomCan(permission, roomId) {
+    const { client } = this;
+    const room = client.getRoom(roomId);
+    if (!room) return false;
+
+    if (permission.startsWith("state:")) {
+      const stateEvent = permission.substring(6);
+      return room.currentState.maySendStateEvent(stateEvent, client.credentials.userId);
+    } else {
+      console.warn("Checking non-implemented permission", permission);
+      return false;
+    }
+  }
+
   async _joinMissingRooms() {
     const { memberships } = window.APP.accountChannel;
 

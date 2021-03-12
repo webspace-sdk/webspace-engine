@@ -1149,6 +1149,7 @@ async function start() {
 
   const { token } = store.state.credentials;
   let membershipsPromise;
+  let isInitialAccountChannelJoin = true;
 
   if (token) {
     console.log(`Logged into account ${store.credentialsAccountId}`);
@@ -1161,10 +1162,22 @@ async function start() {
         .receive("ok", async accountInfo => {
           const { subscriptions: existingSubscriptions } = accountInfo;
           accountChannel.syncAccountInfo(accountInfo);
-          remountJelUI({ memberships: accountChannel.memberships, hubSettings: accountChannel.hubSettings });
+
+          remountJelUI({
+            memberships: accountChannel.memberships,
+            hubSettings: accountChannel.hubSettings
+          });
+
+          if (isInitialAccountChannelJoin) {
+            // Initialize connection to matrix homeserver.
+            await matrix.init(accountInfo.matrix_homeserver, accountInfo.matrix_token, accountInfo.matrix_user_id);
+            channelMetadata.bind(matrix);
+            remountJelUI({ roomCan: matrix.roomCan.bind(matrix) });
+
+            isInitialAccountChannelJoin = false;
+          }
+
           subscriptions.handleExistingSubscriptions(existingSubscriptions);
-          await matrix.init(accountInfo.matrix_homeserver, accountInfo.matrix_token, accountInfo.matrix_user_id);
-          channelMetadata.bind(matrix);
 
           res(accountChannel.memberships);
         })

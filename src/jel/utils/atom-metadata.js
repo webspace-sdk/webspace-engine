@@ -30,6 +30,7 @@ const VALID_PERMISSIONS = {
   [ATOM_TYPES.SPACE]: [
     "create_hub",
     "create_channel",
+    "delete_channel",
     "view_nav",
     "edit_nav",
     "update_space_meta",

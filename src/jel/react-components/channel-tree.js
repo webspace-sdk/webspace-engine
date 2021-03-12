@@ -13,8 +13,9 @@ function ChannelTree({
   history,
   spaceId,
   spaceCan,
-  setHubRenameReferenceElement,
-  showHubContextMenuPopup
+  roomCan,
+  setChannelRenameReferenceElement,
+  showChannelContextMenuPopup
 }) {
   const [treeData, setTreeData] = useState([]);
 
@@ -23,16 +24,18 @@ function ChannelTree({
       <ChannelNodeTitle
         roomId={data.atomId}
         channelMetadata={channelMetadata}
+        showDots={true}
         onDotsClick={(e, ref) => {
           e.stopPropagation(); // Otherwise this will perform a tree node click event
-          showHubContextMenuPopup(data.atomId, ref, "bottom-start", [0, 0], {
+          showChannelContextMenuPopup(data.atomId, ref, "bottom-start", [0, 0], {
             hideRename: false
           });
-          setHubRenameReferenceElement(ref);
+
+          setChannelRenameReferenceElement(ref);
         }}
       />
     ),
-    [channelMetadata, showHubContextMenuPopup, setHubRenameReferenceElement]
+    [channelMetadata, showChannelContextMenuPopup, setChannelRenameReferenceElement, roomCan]
   );
 
   // Ensure current selected node is always visible
@@ -90,10 +93,11 @@ function ChannelTree({
 ChannelTree.propTypes = {
   channelMetadata: PropTypes.object,
   history: PropTypes.object,
+  roomCan: PropTypes.func,
   spaceCan: PropTypes.func,
   spaceId: PropTypes.string,
-  setHubRenameReferenceElement: PropTypes.func,
-  showHubContextMenuPopup: PropTypes.func
+  setChannelRenameReferenceElement: PropTypes.func,
+  showChannelContextMenuPopup: PropTypes.func
 };
 
 export default ChannelTree;

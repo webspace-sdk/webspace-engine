@@ -32,11 +32,11 @@ const ChannelControls = styled.div`
   position: relative;
 `;
 
-const ChannelHash = styled.div`
-  font-size: var(--panel-text-size);
-  min-width: 24px;
-  font-weight: bold;
-`;
+//const ChannelHash = styled.div`
+//  font-size: 20px;
+//  min-width: 24px;
+//  font-weight: bold;
+//`;
 
 const ChannelName = styled.div`
   text-overflow: ellipsis;
@@ -70,7 +70,6 @@ const ChannelNodeTitle = ({ roomId, onDotsClick, showDots, channelMetadata }) =>
   return (
     <ChannelNodeElement>
       <ChannelTitle className="title">
-        <ChannelHash>#</ChannelHash>
         <ChannelName>{name}</ChannelName>
       </ChannelTitle>
       <ChannelControls className="controls">
