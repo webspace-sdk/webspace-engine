@@ -31,6 +31,22 @@ const SmallActionButtonElement = styled.button`
   &:disabled {
     opacity: 0.5;
   }
+
+  &.destructive {
+    background-color: var(--action-button-destructive-background-color);
+    border: 1px solid var(--action-button-destructive-border-color);
+    color: var(--action-button-destructive-text-color);
+
+    &:hover {
+      background-color: var(--action-button-destructive-hover-background-color);
+      border: 1px solid var(--action-button-destructive-hover-border-color);
+    }
+
+    &:active {
+      background-color: var(--action-button-destructive-active-background-color);
+      border: 1px solid var(--action-button-destructive-active-border-color);
+    }
+  }
 `;
 
 const SmallActionButtonIconHolder = styled.div`

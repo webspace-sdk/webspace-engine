@@ -275,5 +275,8 @@
   "support.subtitle": "A Jel team member can show you around.",
   "support.support-confirm": "Great! Invite them in.",
   "support.support-deny": "No thanks",
-  "support.support-delay": "Maybe later"
+  "support.support-delay": "Maybe later",
+  "confirm-modal.delete-channel-title": "Delete Channel",
+  "confirm-modal.delete-channel-body-top": "Are you sure you want to delete <b>NAME</b>?",
+  "confirm-modal.delete-channel-confirm": "Yes, Delete"
 }
