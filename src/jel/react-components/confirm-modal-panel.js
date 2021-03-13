@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import PropTypes from "prop-types";
-import React, { forwardRef } from "react";
+import React, { useCallback, forwardRef } from "react";
 import { FormattedMessage } from "react-intl";
 import SmallActionButton from "./small-action-button";
 import importantIconSrc from "../../assets/jel/images/icons/important.svgi";
@@ -105,10 +105,11 @@ const CancelLink = styled.button`
   padding: 0 12px;
 `;
 
-const ConfirmModalPanel = forwardRef(({ onCancel, onConfirm, name }) => {
+const ConfirmModalPanel = forwardRef(({ atomId, atomMetadata }, ref) => {
   // This confirmation dialog is only used for deleting channels currently
-  // but could be made generic
+  // but could be made generic so is named generically.
   const messages = getMessages();
+  const metadata = atomMetadata && atomMetadata.getMetadata(atomId);
 
   return (
     <ConfirmModalPanelElement>
@@ -122,14 +123,29 @@ const ConfirmModalPanel = forwardRef(({ onCancel, onConfirm, name }) => {
       <ConfirmModalBody>
         <span
           dangerouslySetInnerHTML={{
-            __html: messages["confirm-modal.delete-channel-body-top"].replaceAll("NAME", name)
+            __html: messages["confirm-modal.delete-channel-body-top"].replaceAll(
+              "ATOM_DISPLAY_NAME",
+              metadata && metadata.displayName
+            )
           }}
         />
         <ConfirmModalInfo>This action cannot be undone.</ConfirmModalInfo>
       </ConfirmModalBody>
       <ConfirmModalFooter>
-        <CancelLink onClick={() => onCancel()}>Cancel</CancelLink>
-        <SmallActionButton onClick={() => onConfirm()} className="destructive">
+        <CancelLink onClick={useCallback(() => document.activeElement.blur(), [])} ref={ref}>
+          <FormattedMessage id="confirm-modal.cancel" />
+        </CancelLink>
+        <SmallActionButton
+          onClick={useCallback(
+            () => {
+              const roomId = window.APP.matrix.getChannelRoomId(atomId);
+              window.APP.accountChannel.deleteChannelMatrixRoom(roomId);
+              document.activeElement.blur();
+            },
+            [atomId]
+          )}
+          className="destructive"
+        >
           <FormattedMessage id="confirm-modal.delete-channel-confirm" />
         </SmallActionButton>
       </ConfirmModalFooter>
@@ -140,9 +156,8 @@ const ConfirmModalPanel = forwardRef(({ onCancel, onConfirm, name }) => {
 ConfirmModalPanel.displayName = "ConfirmModalPanel";
 
 ConfirmModalPanel.propTypes = {
-  onCancel: PropTypes.func,
-  onConfirm: PropTypes.func,
-  name: PropTypes.string
+  atomMetadata: PropTypes.object,
+  atomId: PropTypes.string
 };
 
 export default ConfirmModalPanel;

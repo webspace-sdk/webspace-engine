@@ -17,14 +17,14 @@
   "space.faq-world-name": "Jel Help & Support",
   "space.rename-tip": "Rename Space",
   "hub-context.empty": "No Actions",
-  "hub-context.rename": "Rename...",
+  "hub-context.rename": "Rename",
   "hub-context.move-to-trash": "Move to Trash",
   "hub-context.export": "Export to HTML",
-  "hub-context.import": "Import...",
+  "hub-context.import": "Import",
   "hub-context.reset-objects": "Reset Objects",
   "channel-context.empty": "No Actions",
-  "channel-context.rename": "Rename...",
-  "channel-context.delete": "Delete...",
+  "channel-context.rename": "Rename",
+  "channel-context.delete": "Delete Channel",
   "trash.restore": "Restore",
   "trash.destroy": "Delete Permanently",
   "trash.empty": "Trash is empty.",
@@ -277,6 +277,7 @@
   "support.support-deny": "No thanks",
   "support.support-delay": "Maybe later",
   "confirm-modal.delete-channel-title": "Delete Channel",
-  "confirm-modal.delete-channel-body-top": "Are you sure you want to delete <b>NAME</b>?",
-  "confirm-modal.delete-channel-confirm": "Yes, Delete"
+  "confirm-modal.delete-channel-body-top": "Are you sure you want to delete <b>ATOM_DISPLAY_NAME</b>?",
+  "confirm-modal.delete-channel-confirm": "Yes, Delete",
+  "confirm-modal.cancel": "Cancel"
 }

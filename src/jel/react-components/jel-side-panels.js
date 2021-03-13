@@ -724,7 +724,8 @@ JelSidePanels.propTypes = {
   showSpaceRenamePopup: PropTypes.func,
   spaceRenamePopupElement: PropTypes.object,
   showEmojiPopup: PropTypes.func,
-  showSpaceNotificationPopup: PropTypes.func
+  showSpaceNotificationPopup: PropTypes.func,
+  showConfirmModalPopup: PropTypes.func
 };
 
 export default JelSidePanels;

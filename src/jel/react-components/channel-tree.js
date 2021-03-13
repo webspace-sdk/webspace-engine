@@ -13,7 +13,6 @@ function ChannelTree({
   history,
   spaceId,
   spaceCan,
-  channelCan,
   setChannelRenameReferenceElement,
   showChannelContextMenuPopup
 }) {
@@ -35,7 +34,7 @@ function ChannelTree({
         }}
       />
     ),
-    [channelMetadata, showChannelContextMenuPopup, setChannelRenameReferenceElement, channelCan]
+    [channelMetadata, showChannelContextMenuPopup, setChannelRenameReferenceElement]
   );
 
   // Ensure current selected node is always visible
@@ -74,6 +73,7 @@ function ChannelTree({
   );
 
   const navSelectedKeys = useMemo(() => []);
+
   const onDrop = useCallback(({ dragNode, node, dropPosition }) => {
     const dropPos = node.pos.split("-");
     const dropOffset = dropPosition - Number(dropPos[dropPos.length - 1]);

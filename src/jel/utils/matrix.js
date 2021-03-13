@@ -334,6 +334,10 @@ export default class Matrix extends EventTarget {
     window.APP.accountChannel.setChannelMatrixRoomOrder(roomId, newOrder);
   }
 
+  getChannelRoomId(channelId) {
+    return this.channelIdToRoomId.get(channelId);
+  }
+
   _roomCan(permission, roomId) {
     const { client } = this;
 

@@ -44,8 +44,6 @@ function ChannelContextMenu({
         key={`trash-${channelId}`}
         onClick={e => {
           onDeleteClick(channelId);
-          // Blur button so menu hides
-          document.activeElement.blur();
           e.preventDefault();
           e.stopPropagation();
         }}

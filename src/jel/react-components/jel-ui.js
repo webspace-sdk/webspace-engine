@@ -23,6 +23,7 @@ import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
 import notificationsIcon from "../../assets/jel/images/icons/notifications-shadow.svgi";
 import securityIcon from "../../assets/jel/images/icons/security-shadow.svgi";
 import RenamePopup from "./rename-popup";
+import ConfirmModalPopup from "./confirm-modal-popup";
 import CreateEmbedPopup from "./create-embed-popup";
 import HubContextMenu from "./hub-context-menu";
 import ChannelContextMenu from "./channel-context-menu";
@@ -173,6 +174,15 @@ const CreateSelectPopupRef = styled.div`
   position: absolute;
   top: calc(100% - ${Math.floor(CREATE_SELECT_LIST_HEIGHT) + 100}px);
   left: calc(50% + ${Math.floor(CREATE_SELECT_WIDTH / 2)}px);
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+`;
+
+const ModalPopupRef = styled.div`
+  position: absolute;
+  top: 30%;
+  left: 50%;
   width: 1px;
   height: 1px;
   pointer-events: none;
@@ -492,7 +502,9 @@ function JelUI(props) {
   const createSelectPopupRef = useRef();
   const chatInputFocusRef = useRef();
   const centerPopupRef = useRef();
+  const modalPopupRef = useRef();
   const createEmbedFocusRef = useRef();
+  const confirmModalFocusRef = useRef();
   const emojiPopupFocusRef = useRef();
   const hubPermissionsButtonRef = useRef();
   const hubNotificationButtonRef = useRef();
@@ -586,6 +598,15 @@ function JelUI(props) {
   } = usePopupPopper(createEmbedFocusRef, "bottom", [0, 8]);
 
   const {
+    styles: confirmModalPopupStyles,
+    attributes: confirmModalPopupAttributes,
+    atomId: confirmModalAtomId,
+    show: showConfirmModalPopup,
+    setPopup: setConfirmModalPopupElement,
+    update: updateConfirmModalPopup
+  } = useAtomBoundPopupPopper(confirmModalFocusRef, "bottom", [0, 8]);
+
+  const {
     styles: spaceNotificationPopupStyles,
     attributes: spaceNotificationPopupAttributes,
     show: showSpaceNotificationPopup,
@@ -622,6 +643,7 @@ function JelUI(props) {
         if (updateHubContextMenu) updateHubContextMenu();
         if (updateCreateSelectPopup) updateCreateSelectPopup();
         if (updateCreateEmbedPopup) updateCreateEmbedPopup();
+        if (updateConfirmModalPopup) updateConfirmModalPopup();
         if (updateChatInputPopup) updateChatInputPopup();
         if (updateEmojiPopup) updateEmojiPopup();
         if (updateSpaceNotificationPopup) updateSpaceNotificationPopup();
@@ -641,6 +663,7 @@ function JelUI(props) {
       updateHubContextMenu,
       updateCreateSelectPopup,
       updateCreateEmbedPopup,
+      updateConfirmModalPopup,
       updateChatInputPopup,
       updateEmojiPopup,
       updateSpaceNotificationPopup,
@@ -827,6 +850,7 @@ function JelUI(props) {
             )}
           <FadeEdges />
           <CreateSelectPopupRef ref={createSelectPopupRef} />
+          <ModalPopupRef ref={modalPopupRef} />
           <CenterPopupRef ref={centerPopupRef} />
           <Top>
             {hubMetadata && (
@@ -1033,6 +1057,14 @@ function JelUI(props) {
         hub={hub}
         hubSettings={hubSettings}
       />
+      <ConfirmModalPopup
+        setPopperElement={setConfirmModalPopupElement}
+        styles={confirmModalPopupStyles}
+        atomId={confirmModalAtomId}
+        atomMetadata={channelMetadata}
+        attributes={confirmModalPopupAttributes}
+        ref={confirmModalFocusRef}
+      />
       <CreateEmbedPopup
         setPopperElement={setCreateEmbedPopupElement}
         styles={createEmbedPopupStyles}
@@ -1050,9 +1082,9 @@ function JelUI(props) {
         spaceCan={spaceCan}
         channelCan={channelCan}
         onRenameClick={useCallback(channelId => showChannelRenamePopup(channelId, null), [showChannelRenamePopup])}
-        onDeleteClick={useCallback(channelId => {
-          console.log("delete", channelId);
-        }, [])}
+        onDeleteClick={useCallback(channelId => showConfirmModalPopup(channelId, modalPopupRef), [
+          showConfirmModalPopup
+        ])}
       />
       <HubContextMenu
         setPopperElement={setHubContextMenuElement}
