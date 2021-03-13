@@ -75,6 +75,7 @@ export const SOUND_FART_5 = soundEnum++;
 export const SOUND_FART_BIG = soundEnum++;
 export const SOUND_EMOJI_BURST = soundEnum++;
 export const SOUND_EMOJI_EQUIP = soundEnum++;
+export const SOUND_NOTIFICATION = soundEnum++;
 
 // Safari doesn't support the promise form of decodeAudioData, so we polyfill it.
 function decodeAudioData(audioContext, arrayBuffer) {
@@ -134,7 +135,8 @@ export class SoundEffectsSystem {
       [SOUND_FART_5, URL_FART_5],
       [SOUND_FART_BIG, URL_FART_BIG],
       [SOUND_EMOJI_BURST, URL_QUIET_POP],
-      [SOUND_EMOJI_EQUIP, URL_TICK_ALT]
+      [SOUND_EMOJI_EQUIP, URL_TICK_ALT],
+      [SOUND_NOTIFICATION, URL_QUIET_POP]
     ];
     const loading = new Map();
     const load = url => {
@@ -164,6 +166,16 @@ export class SoundEffectsSystem {
       }
       this.isDisabled = shouldBeDisabled;
     });
+
+    this.lastPlayTime = performance.now();
+
+    setInterval(() => {
+      // If the app is backgrounded, the tick() method will stop being called
+      // and so we should run it manually so sounds continue to play.
+      if (performance.now() - this.lastPlayTime > 200.0) {
+        this.playPendingSounds();
+      }
+    }, 250);
   }
 
   enqueueSound(sound, loop) {
@@ -276,6 +288,12 @@ export class SoundEffectsSystem {
   }
 
   tick() {
+    this.playPendingSounds();
+  }
+
+  playPendingSounds() {
+    this.lastPlayTime = performance.now();
+
     if (this.isDisabled) {
       return;
     }

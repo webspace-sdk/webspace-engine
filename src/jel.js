@@ -112,7 +112,7 @@ import "./jel/components/pinned-to-self";
 import "./jel/components/look-at-self";
 import Subscriptions from "./hubs/subscriptions";
 
-import { SOUND_QUACK, SOUND_SPECIAL_QUACK } from "./hubs/systems/sound-effects-system";
+import { SOUND_QUACK, SOUND_SPECIAL_QUACK, SOUND_NOTIFICATION } from "./hubs/systems/sound-effects-system";
 import ducky from "./assets/hubs/models/DuckyMesh.glb";
 import { getAbsoluteHref } from "./hubs/utils/media-url-utils";
 
@@ -993,7 +993,14 @@ async function start() {
         .register("/jel.service.js")
         .then(() => {
           navigator.serviceWorker.ready
-            .then(registration => subscriptions.setRegistration(registration))
+            .then(registration => {
+              subscriptions.setRegistration(registration);
+              navigator.serviceWorker.addEventListener("message", event => {
+                if (event.data.action === "play_notification_sound") {
+                  SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_NOTIFICATION);
+                }
+              });
+            })
             .catch(e => console.error(e));
         })
         .catch(e => console.error(e));
