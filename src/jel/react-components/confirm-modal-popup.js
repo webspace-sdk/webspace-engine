@@ -31,7 +31,7 @@ const ConfirmModalPopup = forwardRef(({ styles, attributes, setPopperElement, at
       style={styles.popper}
       {...attributes.popper}
     >
-      <Background />
+      <Background className="modal-background" />
       <ConfirmModalPanel
         className={sharedStyles.slideDownWhenPopped}
         atomId={atomId}
