@@ -37,10 +37,8 @@ colorMapTexture.magFilter = THREE.NearestFilter;
 
 export const updateWorldColors = terrainColor => {
   const set = (index, { h, s, l }) => {
-    const satWeight = s > 0.0 ? 1.0 - 1.0 / (1.001 - s) : 0.0;
-
     colorMap[index * 4] = h;
-    colorMap[index * 4 + 1] = satWeight;
+    colorMap[index * 4 + 1] = s;
     colorMap[index * 4 + 2] = l;
   };
 
@@ -81,7 +79,14 @@ const createVoxelMaterial = () => {
         "precision highp sampler2D;",
         "uniform sampler2D colorMap;",
         "attribute float palette;",
-        "vec3 hueShift( vec3 color, float hueAdjust ){",
+        "vec3 sat(vec3 rgb, float adjustment)",
+        "{",
+        "    // Algorithm from Chapter 16 of OpenGL Shading Language",
+        "    const vec3 W = vec3(0.2125, 0.7154, 0.0721);",
+        "    vec3 intensity = vec3(dot(rgb, W));",
+        "    return mix(intensity, rgb, adjustment);",
+        "}",
+        "vec3 hue( vec3 color, float hueAdjust ){",
         "    const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);",
         "    const vec3  kRGBToI      = vec3 (0.596, -0.275, -0.321);",
         "    const vec3  kRGBToQ      = vec3 (0.212, -0.523, 0.311);",
@@ -105,10 +110,7 @@ const createVoxelMaterial = () => {
       "#include <color_vertex>",
       [
         "vec4 shift = texture(colorMap, vec2(float(palette) / 6.0, 0.1));",
-        "vColor.xyz = hueShift(color.xyz / 255.0, shift.r);",
-        "float average = (vColor.r + vColor.g + vColor.b) / 3.0;",
-        "vColor.rgb += (average - vColor.rgb) * shift.g;",
-        "vColor.rgb += shift.b;",
+        "vColor.xyz = sat(hue(color.xyz / 255.0, shift.r), shift.g) + shift.b;",
         "vColor.rgb = clamp(vColor, 0.0, 1.0);"
       ].join("\n")
     );
