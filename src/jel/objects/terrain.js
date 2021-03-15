@@ -16,9 +16,59 @@ const {
   LOD
 } = THREE;
 
+//const VOXEL_PALETTE_NONE = 0;
+const VOXEL_PALETTE_TERRAIN = 1;
+//const VOXEL_PALETTE_EDGE = 2;
+const VOXEL_PALETTE_LEAVES = 3;
+const VOXEL_PALETTE_TRUNK = 4;
+//const VOXEL_PALETTE_ROCK = 5;
+//const VOXEL_PALETTE_GRASS = 6;
+
 const LOD_DISTANCES = [0, 20, 24];
+const HUES = Array(7).fill(0.0);
+const SATS = Array(7).fill(0.0);
+const BRIGHTS = Array(7).fill(0.0);
+
+HUES[VOXEL_PALETTE_TERRAIN] = 0.0;
+HUES[VOXEL_PALETTE_LEAVES] = 0.0;
+HUES[VOXEL_PALETTE_TRUNK] = 0.0;
+HUES[VOXEL_PALETTE_TRUNK] = 1.2;
+SATS[VOXEL_PALETTE_TRUNK] = 1.0;
+BRIGHTS[VOXEL_PALETTE_TRUNK] = 0.2;
+
+const colorData = new Float32Array(7 * 4);
+const sqrt3 = Math.sqrt(3.0);
+
+for (let i = 0; i < HUES.length; i++) {
+  const hue = HUES[i];
+  const sat = SATS[i];
+  const bright = BRIGHTS[i];
+
+  const s = Math.sin(hue * Math.PI);
+  const c = Math.cos(hue * Math.PI);
+
+  // Color data has:
+  // - x, y hue weights for color shift
+  // - saturation multiplier
+  // - brightness
+
+  const xWeight = (2.0 * c + 1.0) / 3.0;
+  const yWeight = (-sqrt3 * s - c + 1.0) / 3.0;
+  const satWeight = sat > 0.0 ? 1.0 - 1.0 / (1.001 - sat) : 0.0;
+
+  colorData[i * 4] = xWeight;
+  colorData[i * 4 + 1] = yWeight;
+  colorData[i * 4 + 2] = satWeight;
+  colorData[i * 4 + 3] = bright;
+}
 
 const createVoxelMaterial = () => {
+  const colorDataTexture = new THREE.DataTexture(colorData, 7, 1);
+  colorDataTexture.format = THREE.RGBAFormat;
+  colorDataTexture.type = THREE.FloatType;
+  colorDataTexture.minFilter = THREE.NearestFilter;
+  colorDataTexture.magFilter = THREE.NearestFilter;
+
   const voxelMaterial = new ShaderMaterial({
     name: "voxels",
     vertexColors: VertexColors,
@@ -30,7 +80,8 @@ const createVoxelMaterial = () => {
       ...MeshStandardMaterial.defines
     },
     uniforms: {
-      ...UniformsUtils.clone(ShaderLib.standard.uniforms)
+      ...UniformsUtils.clone(ShaderLib.standard.uniforms),
+      colorData: { value: colorDataTexture }
     }
   });
 
@@ -39,7 +90,34 @@ const createVoxelMaterial = () => {
 
   voxelMaterial.onBeforeCompile = shader => {
     addVertexCurvingToShader(shader);
-    shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <uv2_pars_vertex>",
+      [
+        "#include <uv2_pars_vertex>",
+        "precision highp sampler2D;",
+        "uniform sampler2D colorData;",
+        "attribute float palette;"
+      ].join("\n")
+    );
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <color_vertex>",
+      [
+        "vColor.xyz = color.xyz / 255.0;",
+
+        "vec4 shift = texture(colorData, vec2(float(palette) / 6.0, 0.1));",
+        "vec3 weights = vec3(shift.r, shift.g, -shift.g);",
+        "float len = length(vColor.rgb);",
+        "vColor.rgb = vec3(",
+        "  dot(vColor.rgb, weights.xyz),",
+        "  dot(vColor.rgb, weights.zxy),",
+        "  dot(vColor.rgb, weights.yzx)",
+        ");",
+        "float average = (vColor.r + vColor.g + vColor.b) / 3.0;",
+        "vColor.rgb += (average - vColor.rgb) * shift.b;",
+        "vColor.rgb += shift.a;",
+        "vColor.rgb = clamp(vColor, 0.0, 1.0);"
+      ].join("\n")
+    );
   };
 
   return voxelMaterial;
@@ -118,7 +196,7 @@ class Terrain extends Object3D {
       const mesh = this.meshes[i];
       if (!mesh) continue;
 
-      const { color, position, uv, normal } = geometries.opaque[i];
+      const { color, position, uv, normal, palette } = geometries.opaque[i];
 
       if (!position.length) continue;
 
@@ -129,6 +207,7 @@ class Terrain extends Object3D {
       geometry.setAttribute("position", new Float32BufferAttribute(position, 3));
       geometry.setAttribute("uv", new BufferAttribute(uv, 2));
       geometry.setAttribute("normal", new BufferAttribute(normal, 3));
+      geometry.setAttribute("palette", new BufferAttribute(palette, 1));
 
       const len = (position.length / 3 / 4) * 6;
       const index = new (len >= 1024 * 64 ? Uint32Array : Uint16Array)(len);
