@@ -16,25 +16,26 @@ const {
   LOD
 } = THREE;
 
-//const VOXEL_PALETTE_NONE = 0;
-const VOXEL_PALETTE_TERRAIN = 1;
-//const VOXEL_PALETTE_EDGE = 2;
-const VOXEL_PALETTE_LEAVES = 3;
-const VOXEL_PALETTE_TRUNK = 4;
-//const VOXEL_PALETTE_ROCK = 5;
-//const VOXEL_PALETTE_GRASS = 6;
+export const VOXEL_PALETTE_NONE = 0;
+export const VOXEL_PALETTE_TERRAIN = 1;
+export const VOXEL_PALETTE_EDGE = 2;
+export const VOXEL_PALETTE_LEAVES = 3;
+export const VOXEL_PALETTE_TRUNK = 4;
+export const VOXEL_PALETTE_ROCK = 5;
+export const VOXEL_PALETTE_GRASS = 6;
 
 const LOD_DISTANCES = [0, 20, 24];
 const HUES = Array(7).fill(0.0);
 const SATS = Array(7).fill(0.0);
 const BRIGHTS = Array(7).fill(0.0);
 
-HUES[VOXEL_PALETTE_TERRAIN] = 0.0;
+HUES[VOXEL_PALETTE_TERRAIN] = 1.2;
 HUES[VOXEL_PALETTE_LEAVES] = 0.0;
 HUES[VOXEL_PALETTE_TRUNK] = 0.0;
 HUES[VOXEL_PALETTE_TRUNK] = 1.2;
 SATS[VOXEL_PALETTE_TRUNK] = 1.0;
 BRIGHTS[VOXEL_PALETTE_TRUNK] = 0.2;
+HUES[VOXEL_PALETTE_GRASS] = 1.2;
 
 const colorData = new Float32Array(7 * 4);
 const sqrt3 = Math.sqrt(3.0);

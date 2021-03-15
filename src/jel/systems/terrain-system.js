@@ -1,7 +1,7 @@
 import Pako from "pako";
 import { CONSTANTS } from "three-ammo";
 import { protocol } from "../protocol/protocol";
-import { createVoxelMaterial, Terrain } from "../objects/terrain";
+import { createVoxelMaterial, Terrain, VOXEL_PALETTE_GRASS } from "../objects/terrain";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { VOXLoader } from "../objects/VOXLoader";
 import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
@@ -381,7 +381,7 @@ export class TerrainSystem {
             this.grasses.push(meshes);
 
             for (let i = 0; i < 9; i++) {
-              const geometry = new VOXBufferGeometry(chunks[j]);
+              const geometry = new VOXBufferGeometry(chunks[j], [], VOXEL_PALETTE_GRASS);
               geometry.translate(0, 6, 0);
 
               const mesh = new DynamicInstancedMesh(geometry, featureMeshMaterial, 1024 * 8);
