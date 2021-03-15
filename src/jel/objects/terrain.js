@@ -37,9 +37,9 @@ colorMapTexture.magFilter = THREE.NearestFilter;
 
 export const updateWorldColors = terrainColor => {
   const set = (index, { h, s, l }) => {
-    colorMap[index * 4] = h;
-    colorMap[index * 4 + 1] = s;
-    colorMap[index * 4 + 2] = l;
+    colorMap[index * 4] = (1.0 - h / 360.0) * (2.0 * Math.PI);
+    colorMap[index * 4 + 2] = s / 100.0;
+    colorMap[index * 4 + 2] = (l / 100.0 - 0.5) * 3.0;
   };
 
   set(VOXEL_PALETTE_TERRAIN, terrainColor);
