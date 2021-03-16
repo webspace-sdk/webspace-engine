@@ -4,14 +4,21 @@ import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
 
 const metadata = new AtomMetadata(ATOM_TYPES.HUB);
-metadata._metadata.set("abc123", { roles: { space: "viewer" } });
+metadata._metadata.set("abc123", { roles: { space: "viewer" }, world: {} });
 
 export const Settings = () => {
   useEffect(() => document.querySelector(`.${sharedStyles.showWhenPopped}`).focus());
 
   return (
     <div>
-      <EnvironmentSettingsPopup styles={{}} attributes={{}} />
+      <EnvironmentSettingsPopup
+        styles={{}}
+        attributes={{}}
+        hub={{ hub_id: "abc123" }}
+        hubMetadata={metadata}
+        onColorsChanged={() => {}}
+        onColorChangeComplete={() => {}}
+      />
     </div>
   );
 };
