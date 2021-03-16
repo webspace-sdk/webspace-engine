@@ -40,6 +40,18 @@ export const updateWorldColors = groundColor => {
     colorMap[index * 4] = r;
     colorMap[index * 4 + 1] = g;
     colorMap[index * 4 + 2] = b;
+    const tmp = new THREE.Color(r, g, b);
+    const tmp2 = {};
+    tmp.getHSL(tmp2);
+
+    // Last component is a multiplier for the brightness gradient to
+    // apply. Brighter colors should have a stronger gradient.
+    //
+    // Otherwise, dark colors will wash to black at peaks in terrain,
+    // and bright colors will have less visible gradient.
+
+    const grad = Math.min(3.0, tmp2.l / 0.25);
+    colorMap[index * 4 + 3] = grad;
   };
 
   set(VOXEL_PALETTE_GROUND, groundColor);
@@ -87,7 +99,7 @@ const createVoxelMaterial = () => {
       [
         "vec4 shift = texture(colorMap, vec2(float(palette) / 6.0, 0.1));",
         // Voxel colors have a red channel that provides brightness offsets
-        "float brightDelta = (color.x - 128.0) / 255.0;",
+        "float brightDelta = (color.x - 128.0) / 255.0 * shift.a;",
         "vColor.xyz = clamp(vec3(shift.x, shift.y, shift.z) + brightDelta, 0.0, 1.0);"
       ].join("\n")
     );
