@@ -62,6 +62,7 @@ async function updateEnvironmentForHub(hub) {
   sceneEl.addState("visible");
 
   SYSTEMS.terrainSystem.updateWorldForHub(hub);
+  SYSTEMS.atmosphereSystem.updateAtmosphereForHub(hub);
 }
 
 async function moveToInitialHubLocation(hub, hubStore) {

@@ -194,6 +194,14 @@ export class AtmosphereSystem {
     }
   }
 
+  updateAtmosphereForHub({ world: { water_color_r: r, water_color_g: g, water_color_b: b } }) {
+    this.updateWaterColor({ r, g, b });
+  }
+
+  updateWaterColor({ r, g, b }) {
+    this.water.setColor(new THREE.Color(r, g, b));
+  }
+
   updateWater(force) {
     this.waterNeedsUpdate = true;
 
