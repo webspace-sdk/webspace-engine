@@ -35,7 +35,7 @@ colorMapTexture.type = THREE.FloatType;
 colorMapTexture.minFilter = THREE.NearestFilter;
 colorMapTexture.magFilter = THREE.NearestFilter;
 
-export const updateWorldColors = groundColor => {
+export const updateWorldColors = (groundColor, edgeColor, leavesColor, barkColor, rockColor, grassColor) => {
   const set = (index, { r, g, b }) => {
     colorMap[index * 4] = r;
     colorMap[index * 4 + 1] = g;
@@ -55,6 +55,11 @@ export const updateWorldColors = groundColor => {
   };
 
   set(VOXEL_PALETTE_GROUND, groundColor);
+  set(VOXEL_PALETTE_EDGE, edgeColor);
+  set(VOXEL_PALETTE_LEAVES, leavesColor);
+  set(VOXEL_PALETTE_BARK, barkColor);
+  set(VOXEL_PALETTE_ROCK, rockColor);
+  set(VOXEL_PALETTE_GRASS, grassColor);
 
   colorMapTexture.needsUpdate = true;
   voxelMaterials.forEach(m => (m.uniformsNeedUpdate = true));
