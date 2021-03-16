@@ -43,6 +43,7 @@ export const updateWorldColors = groundColor => {
   };
 
   set(VOXEL_PALETTE_GROUND, groundColor);
+  set(VOXEL_PALETTE_LEAVES, groundColor);
 
   colorMapTexture.needsUpdate = true;
   voxelMaterials.forEach(m => (m.uniformsNeedUpdate = true));
@@ -97,7 +98,7 @@ const createVoxelMaterial = () => {
       "#include <color_vertex>",
       [
         "vec4 shift = texture(colorMap, vec2(float(palette) / 6.0, 0.1));",
-        "vColor.xyz = sat(hue(clamp(vec3(shift.b + (color.x / 255.0) - 0.33, 0.0, 0.0), 0.0, 1.0), shift.r), shift.g);"
+        "vColor.xyz = sat(hue(vec3(clamp(color.x / 255.0 * shift.b * 3.0, 0.0, 1.0), 0.0, 0.0), shift.r), shift.g);"
       ].join("\n")
     );
   };
