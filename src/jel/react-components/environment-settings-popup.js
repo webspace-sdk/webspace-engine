@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
@@ -13,6 +13,7 @@ import { Label, InputWrap, PanelWrap } from "./form-components";
 import styled from "styled-components";
 import ColorPicker from "./color-picker";
 import { objRgbToCssRgb } from "../utils/dom-utils";
+import { almostEqual } from "../../hubs/utils/three-utils";
 
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
@@ -78,13 +79,51 @@ const PickerWrap = styled.div`
   }
 `;
 
-const EnvironmentSettingsPopup = ({ setPopperElement, styles, attributes, children, onColorsChanged }) => {
+const EnvironmentSettingsPopup = ({
+  setPopperElement,
+  styles,
+  attributes,
+  children,
+  onColorsChanged,
+  onColorChangeComplete,
+  hub,
+  hubMetadata
+}) => {
   const [tipSource, tipTarget] = useSingleton();
   const [selectedColor, setSelectedColor] = useState(null);
-  const [groundColor, setGroundColor] = useState({ r: 0, g: 0, b: 0 });
+  const [groundColor, setGroundColor] = useState(null);
   const groundSwatchRef = useRef();
   const colorPickerWrapRef = useRef();
   const panelRef = useRef();
+
+  useEffect(
+    () => {
+      if (!hubMetadata || !hub) return () => {};
+
+      const updateColorState = () => {
+        const world = hubMetadata.getMetadata(hub.hub_id).world;
+
+        [["ground", groundColor, setGroundColor]].forEach(([name, value, setter]) => {
+          const r = world[`${name}_color_r`];
+          const g = world[`${name}_color_g`];
+          const b = world[`${name}_color_b`];
+
+          if (!value || (!almostEqual(r, value.r) || !almostEqual(g, value.g) || !almostEqual(b, value.b))) {
+            setter({ r, g, b });
+          }
+        });
+      };
+
+      if (groundColor === null) {
+        // Initializer
+        updateColorState();
+      }
+
+      hubMetadata.subscribeToMetadata(hub.hub_id, updateColorState);
+      return () => hubMetadata.unsubscribeFromMetadata(updateColorState);
+    },
+    [hub, hubMetadata, groundColor, setGroundColor]
+  );
 
   const showPickerAtRef = useCallback(
     ref => {
@@ -105,15 +144,17 @@ const EnvironmentSettingsPopup = ({ setPopperElement, styles, attributes, childr
   const onColorChange = useCallback(
     ({ rgb: { r, g, b } }) => {
       const newColor = { r: r / 255.0, g: g / 255.0, b: b / 255.0 };
+      let currentGroundColor = groundColor;
 
       switch (selectedColor) {
         case "ground":
           setGroundColor(newColor);
+          currentGroundColor = newColor;
           break;
       }
 
       if (onColorsChanged) {
-        onColorsChanged(groundColor);
+        onColorsChanged(currentGroundColor);
       }
     },
     [selectedColor, groundColor, setGroundColor, onColorsChanged]
@@ -130,7 +171,7 @@ const EnvironmentSettingsPopup = ({ setPopperElement, styles, attributes, childr
     >
       <Tooltip singleton={tipSource} />
       <PickerWrap ref={colorPickerWrapRef} tabIndex={-1}>
-        <ColorPicker onChange={onColorChange} />
+        <ColorPicker onChange={onColorChange} onChangeComplete={onColorChangeComplete} />
       </PickerWrap>
       <PopupPanelMenu
         ref={panelRef}
@@ -155,7 +196,7 @@ const EnvironmentSettingsPopup = ({ setPopperElement, styles, attributes, childr
               >
                 <Swatch
                   ref={groundSwatchRef}
-                  style={{ backgroundColor: objRgbToCssRgb(groundColor) }}
+                  style={{ backgroundColor: groundColor && objRgbToCssRgb(groundColor) }}
                   onClick={useCallback(
                     () => {
                       showPickerAtRef(groundSwatchRef);
@@ -186,7 +227,10 @@ const EnvironmentSettingsPopup = ({ setPopperElement, styles, attributes, childr
 };
 
 EnvironmentSettingsPopup.propTypes = {
-  onColorsChanged: PropTypes.func
+  onColorsChanged: PropTypes.func,
+  onColorChangeComplete: PropTypes.func,
+  hub: PropTypes.object,
+  hubMetadata: PropTypes.object
 };
 
 export { EnvironmentSettingsPopup as default };

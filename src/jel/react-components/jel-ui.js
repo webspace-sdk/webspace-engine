@@ -15,6 +15,7 @@ import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../ut
 import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
+import { WORLD_COLOR_TYPES } from "../systems/terrain-system";
 import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
 import Snackbar from "./snackbar";
@@ -747,6 +748,22 @@ function JelUI(props) {
     SYSTEMS.terrainSystem.updateWorldColors(...colors);
   }, []);
 
+  const onEnvironmentColorChangeComplete = useCallback(
+    () => {
+      const colors = SYSTEMS.terrainSystem.worldColors;
+      const hubWorldColors = {};
+
+      WORLD_COLOR_TYPES.forEach((type, idx) => {
+        hubWorldColors[`world_${type}_color_r`] = (colors[idx] && colors[idx].r) || 0;
+        hubWorldColors[`world_${type}_color_g`] = (colors[idx] && colors[idx].g) || 0;
+        hubWorldColors[`world_${type}_color_b`] = (colors[idx] && colors[idx].b) || 0;
+      });
+
+      spaceChannel.updateHub(hub.hub_id, hubWorldColors);
+    },
+    [hub, spaceChannel]
+  );
+
   // Handle subscriptions changed
 
   useEffect(
@@ -1029,7 +1046,10 @@ function JelUI(props) {
         setPopperElement={setEnvironmentSettingsPopupElement}
         styles={environmentSettingsPopupStyles}
         attributes={environmentSettingsPopupAttributes}
+        hub={hub}
+        hubMetadata={hubMetadata}
         onColorsChanged={onEnviromentColorsChanged}
+        onColorChangeComplete={onEnvironmentColorChangeComplete}
       />
       <CreateEmbedPopup
         setPopperElement={setCreateEmbedPopupElement}

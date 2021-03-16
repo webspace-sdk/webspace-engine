@@ -26,6 +26,8 @@ export const WORLD_MAX_COORD = (WORLD_CHUNK_SIZE * CHUNK_WORLD_SIZE) / 2;
 export const WORLD_MIN_COORD = -WORLD_MAX_COORD;
 export const WORLD_SIZE = WORLD_MAX_COORD - WORLD_MIN_COORD;
 
+export const WORLD_COLOR_TYPES = ["ground", "edge", "leaves", "bark", "rock", "grass", "sky", "water"];
+
 // Radius is artificial, want to have a specific curve effect not accurancy
 export const WORLD_RADIUS = 128.0;
 
@@ -153,6 +155,7 @@ export class TerrainSystem {
     this.loadingChunks = new Map();
     this.spawningChunks = new Map();
     this.chunkFeatures = new Map();
+    this.worldColors = null;
 
     // Note: chunk height maps are retained even when chunks are de-spawned,
     // since loadAllHeightMaps() can be used to ensure getTerrainHeightAtWorldCoord
@@ -212,6 +215,8 @@ export class TerrainSystem {
   }
 
   updateWorldColors(...colors) {
+    this.worldColors = colors;
+
     updateWorldColors(...colors);
   }
 
@@ -357,10 +362,24 @@ export class TerrainSystem {
     });
   };
 
-  updateWorld(type, seed) {
+  updateWorldForHub({ world }) {
+    // Update colors
+    const colors = [];
+    WORLD_COLOR_TYPES.forEach(type => {
+      const r = world[`${type}_color_r`];
+      const g = world[`${type}_color_g`];
+      const b = world[`${type}_color_b`];
+      colors.push({ r, g, b });
+    });
+
+    this.updateWorldColors(...colors);
+
+    // Check if type or seed has changed.
+    const { type, seed } = world;
+
     if (this.worldType === type && this.worldSeed === seed) return;
 
-    // Perform fog effect since terr
+    // Perform fog effect
     this.atmosphereSystem.maximizeFog();
 
     this.worldType = type;

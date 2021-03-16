@@ -20,7 +20,7 @@ export const VOXEL_PALETTE_NONE = 0;
 export const VOXEL_PALETTE_GROUND = 1;
 export const VOXEL_PALETTE_EDGE = 2;
 export const VOXEL_PALETTE_LEAVES = 3;
-export const VOXEL_PALETTE_TRUNK = 4;
+export const VOXEL_PALETTE_BARK = 4;
 export const VOXEL_PALETTE_ROCK = 5;
 export const VOXEL_PALETTE_GRASS = 6;
 
@@ -55,7 +55,6 @@ export const updateWorldColors = groundColor => {
   };
 
   set(VOXEL_PALETTE_GROUND, groundColor);
-  set(VOXEL_PALETTE_LEAVES, groundColor);
 
   colorMapTexture.needsUpdate = true;
   voxelMaterials.forEach(m => (m.uniformsNeedUpdate = true));
