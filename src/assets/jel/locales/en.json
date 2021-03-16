@@ -270,5 +270,16 @@
   "support.subtitle": "A Jel team member can show you around.",
   "support.support-confirm": "Great! Invite them in.",
   "support.support-deny": "No thanks",
-  "support.support-delay": "Maybe later"
+  "support.support-delay": "Maybe later",
+  "environment-settings-popup.environment": "Environment",
+  "environment-settings-popup.colors": "Colors",
+  "environment-settings-popup.terrain": "Terrain",
+  "environment-settings-popup.swatch-ground": "Ground Color",
+  "environment-settings-popup.swatch-cliff": "Cliff Color",
+  "environment-settings-popup.swatch-sky": "Sky Color",
+  "environment-settings-popup.swatch-water": "Water Color",
+  "environment-settings-popup.swatch-leaves": "Tree Leaves Color",
+  "environment-settings-popup.swatch-bark": "Tree Bark Color",
+  "environment-settings-popup.swatch-grass": "Grass Color",
+  "environment-settings-popup.swatch-rock": "Rock Color"
 }
