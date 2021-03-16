@@ -36,10 +36,10 @@ colorMapTexture.minFilter = THREE.NearestFilter;
 colorMapTexture.magFilter = THREE.NearestFilter;
 
 export const updateWorldColors = groundColor => {
-  const set = (index, { h, s, l }) => {
-    colorMap[index * 4] = (h / 360.0) * (2.0 * Math.PI);
-    colorMap[index * 4 + 1] = s;
-    colorMap[index * 4 + 2] = l;
+  const set = (index, { r, g, b }) => {
+    colorMap[index * 4] = r;
+    colorMap[index * 4 + 1] = g;
+    colorMap[index * 4 + 2] = b;
   };
 
   set(VOXEL_PALETTE_GROUND, groundColor);
@@ -79,26 +79,16 @@ const createVoxelMaterial = () => {
         "#include <uv2_pars_vertex>",
         "precision highp sampler2D;",
         "uniform sampler2D colorMap;",
-        "attribute float palette;",
-        "vec3 sat(vec3 rgb, float adjustment)",
-        "{",
-        "    // Algorithm from Chapter 16 of OpenGL Shading Language",
-        "    const vec3 W = vec3(0.2125, 0.7154, 0.0721);",
-        "    vec3 intensity = vec3(dot(rgb, W));",
-        "    return mix(intensity, rgb, adjustment);",
-        "}",
-        "vec3 hue( vec3 col, float hue ){",
-        "    const vec3 k = vec3(0.57735, 0.57735, 0.57735);",
-        "    float cosAngle = cos(hue);",
-        "    return vec3(col * cosAngle + cross(k, col) * sin(hue) + k * dot(k, col) * (1.0 - cosAngle));",
-        "}"
+        "attribute float palette;"
       ].join("\n")
     );
     shader.vertexShader = shader.vertexShader.replace(
       "#include <color_vertex>",
       [
         "vec4 shift = texture(colorMap, vec2(float(palette) / 6.0, 0.1));",
-        "vColor.xyz = sat(hue(vec3(clamp(color.x / 255.0 * shift.b * 3.0, 0.0, 1.0), 0.0, 0.0), shift.r), shift.g);"
+        // Voxel colors have a red channel that provides brightness offsets
+        "float brightDelta = (color.x - 128.0) / 255.0;",
+        "vColor.xyz = clamp(vec3(shift.x, shift.y, shift.z) + brightDelta, 0.0, 1.0);"
       ].join("\n")
     );
   };

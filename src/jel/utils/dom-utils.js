@@ -42,6 +42,7 @@ export const cancelEventIfFocusedWithin = (e, el) => {
 };
 
 export const rgbToCssRgb = v => Math.floor(v * 255.0);
+export const objRgbToCssRgb = ({ r, g, b }) => `rgba(${rgbToCssRgb(r)}, ${rgbToCssRgb(g)}, ${rgbToCssRgb(b)}, 1.0)`;
 export const vecRgbToCssRgb = ({ x, y, z }) => `rgba(${rgbToCssRgb(x)}, ${rgbToCssRgb(y)}, ${rgbToCssRgb(z)}, 1.0)`;
 
 export const CURSOR_LOCK_STATES = {

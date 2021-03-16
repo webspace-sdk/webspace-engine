@@ -12,7 +12,7 @@ import { FormattedMessage } from "react-intl";
 import { Label, InputWrap, PanelWrap } from "./form-components";
 import styled from "styled-components";
 import ColorPicker from "./color-picker";
-import { vecRgbToCssRgb } from "../utils/dom-utils";
+import { objRgbToCssRgb } from "../utils/dom-utils";
 
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
@@ -81,7 +81,7 @@ const PickerWrap = styled.div`
 const EnvironmentSettingsPopup = ({ setPopperElement, styles, attributes, children, onColorsChanged }) => {
   const [tipSource, tipTarget] = useSingleton();
   const [selectedColor, setSelectedColor] = useState(null);
-  const [groundColor, setGroundColor] = useState({ x: 128, y: 0, z: 0 });
+  const [groundColor, setGroundColor] = useState({ r: 0, g: 0, b: 0 });
   const groundSwatchRef = useRef();
   const colorPickerWrapRef = useRef();
   const panelRef = useRef();
@@ -90,7 +90,6 @@ const EnvironmentSettingsPopup = ({ setPopperElement, styles, attributes, childr
     ref => {
       const swatch = ref.current;
       const panel = panelRef.current;
-      console.log(ref, panelRef);
       const pickerWrap = colorPickerWrapRef.current;
 
       const swatchRect = swatch.getBoundingClientRect();
@@ -104,8 +103,8 @@ const EnvironmentSettingsPopup = ({ setPopperElement, styles, attributes, childr
   );
 
   const onColorChange = useCallback(
-    ({ rgb: { r, g, b }, hsl }) => {
-      const newColor = { x: r / 255.0, y: g / 255.0, z: b / 255.0 };
+    ({ rgb: { r, g, b } }) => {
+      const newColor = { r: r / 255.0, g: g / 255.0, b: b / 255.0 };
 
       switch (selectedColor) {
         case "ground":
@@ -114,10 +113,10 @@ const EnvironmentSettingsPopup = ({ setPopperElement, styles, attributes, childr
       }
 
       if (onColorsChanged) {
-        onColorsChanged(hsl);
+        onColorsChanged(groundColor);
       }
     },
-    [selectedColor, setGroundColor, onColorsChanged]
+    [selectedColor, groundColor, setGroundColor, onColorsChanged]
   );
 
   const messages = getMessages();
@@ -156,7 +155,7 @@ const EnvironmentSettingsPopup = ({ setPopperElement, styles, attributes, childr
               >
                 <Swatch
                   ref={groundSwatchRef}
-                  style={{ backgroundColor: vecRgbToCssRgb(groundColor) }}
+                  style={{ backgroundColor: objRgbToCssRgb(groundColor) }}
                   onClick={useCallback(
                     () => {
                       showPickerAtRef(groundSwatchRef);
