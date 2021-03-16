@@ -747,6 +747,7 @@ function JelUI(props) {
   const onEnviromentColorsChanged = useCallback((...colors) => {
     SYSTEMS.terrainSystem.updateWorldColors(...colors);
     SYSTEMS.atmosphereSystem.updateWaterColor(colors[7]);
+    SYSTEMS.atmosphereSystem.updateSkyColor(colors[6]);
   }, []);
 
   const onEnvironmentColorChangeComplete = useCallback(

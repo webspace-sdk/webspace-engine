@@ -28,6 +28,8 @@ const CloudySkyShader = {
     mieDirectionalG: { value: 0.8 },
     sunPosition: { value: new Vector3() },
     up: { value: new Vector3(0, 1, 0) },
+    hue: { value: 0.5 },
+    sat: { value: 0.0 },
     time: { value: 0.0 }
   },
 
@@ -114,6 +116,8 @@ const CloudySkyShader = {
     "uniform float mieDirectionalG;",
     "uniform vec3 up;",
     "uniform float time;",
+    "uniform float hue;",
+    "uniform float sat;",
 
     "const vec3 cameraPos = vec3( 0.0, 0.0, 0.0 );",
     "const vec2 iResolution = vec2(2048, 2048);",
@@ -315,9 +319,7 @@ const CloudySkyShader = {
     "  vec3 cloudResult = mix(0.5 * horizontint + 0.5 * retColor, clamp(skytint * skycolour + cloudcolour, 0.0, 1.0), clamp((f + c) * clamp((normalize(vWorldPosition)).y, 0.0, 1.0), 0.0, 1.0));",
 
     "  gl_FragColor = vec4(cloudResult, 1.0);",
-    "  float hue = 0.0;",
     "  float contrast = 0.1;",
-    "  float sat = 0.1;",
     // Saturate sky and hue shift
     "gl_FragColor.rgb = (gl_FragColor.rgb - 0.5) / (1.0 - contrast) + 0.5;",
     "float angle = hue * 3.14159265;\nfloat sh = sin(angle), ch = cos(angle);\nvec3 weights = (vec3(2.0 * ch, -sqrt(3.0) * sh - ch, sqrt(3.0) * sh - ch) + 1.0) / 3.0;\nfloat len = length(gl_FragColor.rgb);\ngl_FragColor.rgb = vec3(\ndot(gl_FragColor.rgb, weights.xyz),\ndot(gl_FragColor.rgb, weights.zxy),\ndot(gl_FragColor.rgb, weights.yzx)\n);\n",
@@ -543,6 +545,18 @@ class Sky extends Mesh {
 
     this.renderOrder = RENDER_ORDER.SKY;
     this.frustumCulled = false;
+  }
+
+  setColor(color) {
+    const tmp2 = {};
+    color.getHSL(tmp2);
+
+    // Hacky, eyeballed this one.
+    const hue = tmp2.h + 1.4;
+
+    this.highMaterial.uniforms.hue.value = hue * 2.0;
+    this.highMaterial.uniforms.sat.value = tmp2.s;
+    this.highMaterial.uniformsNeedUpdate = true;
   }
 
   onAnimationTick({ delta }) {

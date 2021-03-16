@@ -194,12 +194,26 @@ export class AtmosphereSystem {
     }
   }
 
-  updateAtmosphereForHub({ world: { water_color_r: r, water_color_g: g, water_color_b: b } }) {
-    this.updateWaterColor({ r, g, b });
+  updateAtmosphereForHub({
+    world: {
+      water_color_r: wr,
+      water_color_g: wg,
+      water_color_b: wb,
+      sky_color_r: sr,
+      sky_color_g: sg,
+      sky_color_b: sb
+    }
+  }) {
+    this.updateWaterColor({ r: wr, g: wg, b: wb });
+    this.updateSkyColor({ r: sr, g: sg, b: sb });
   }
 
   updateWaterColor({ r, g, b }) {
     this.water.setColor(new THREE.Color(r, g, b));
+  }
+
+  updateSkyColor({ r, g, b }) {
+    this.sky.setColor(new THREE.Color(r, g, b));
   }
 
   updateWater(force) {
