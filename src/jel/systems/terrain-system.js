@@ -1,7 +1,7 @@
 import Pako from "pako";
 import { CONSTANTS } from "three-ammo";
 import { protocol } from "../protocol/protocol";
-import { createVoxelMaterial, Terrain, VOXEL_PALETTE_GRASS } from "../objects/terrain";
+import { createVoxelMaterial, Terrain, updateWorldColors, VOXEL_PALETTE_GRASS } from "../objects/terrain";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { VOXLoader } from "../objects/VOXLoader";
 import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
@@ -209,6 +209,10 @@ export class TerrainSystem {
         }
       }
     }
+  }
+
+  updateWorldColors(...colors) {
+    updateWorldColors(...colors);
   }
 
   // Loads + caches all the heightmaps, so heightmap queries via getTerrainHeightAtWorldCoord

@@ -32,6 +32,7 @@ import EquippedEmojiIcon from "./equipped-emoji-icon";
 import SpaceNotificationsPopup from "./space-notifications-popup";
 import HubPermissionsPopup from "./hub-permissions-popup";
 import HubNotificationsPopup from "./hub-notifications-popup";
+import EnvironmentSettingsPopup from "./environment-settings-popup";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
@@ -387,6 +388,20 @@ const HubCreateButton = forwardRef((props, ref) => {
 
 HubCreateButton.displayName = "HubCreateButton";
 
+const EnvironmentSettingsButton = forwardRef((props, ref) => {
+  const messages = getMessages();
+
+  return (
+    <Tooltip content={messages["environment-settings.tip"]} placement="top" key="environment-settings" delay={500}>
+      <HubCornerButtonElement {...props} ref={ref}>
+        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: securityIcon }} />
+      </HubCornerButtonElement>
+    </Tooltip>
+  );
+});
+
+EnvironmentSettingsButton.displayName = "EnvironmentSettingsButton";
+
 const HubPermissionsButton = forwardRef((props, ref) => {
   const messages = getMessages();
 
@@ -492,6 +507,7 @@ function JelUI(props) {
   const createEmbedFocusRef = useRef();
   const emojiPopupFocusRef = useRef();
   const hubPermissionsButtonRef = useRef();
+  const environmentSettingsButtonRef = useRef();
   const hubNotificationButtonRef = useRef();
 
   const {
@@ -578,6 +594,15 @@ function JelUI(props) {
   } = usePopupPopper(null, "bottom-end", [0, 8]);
 
   const {
+    styles: environmentSettingsPopupStyles,
+    attributes: environmentSettingsPopupAttributes,
+    show: showEnvironmentSettingsPopup,
+    setPopup: setEnvironmentSettingsPopupElement,
+    popupElement: environmentSettingsPopupElement,
+    update: updateEnvironmentSettingsPopup
+  } = usePopupPopper(null, "bottom-end", [0, 8]);
+
+  const {
     styles: hubPermissionsPopupStyles,
     attributes: hubPermissionsPopupAttributes,
     show: showHubPermissionsPopup,
@@ -599,6 +624,7 @@ function JelUI(props) {
         if (updateEmojiPopup) updateEmojiPopup();
         if (updateSpaceNotificationPopup) updateSpaceNotificationPopup();
         if (updateHubNotificationPopup) updateHubNotificationPopup();
+        if (updateEnvironmentSettingsPopup) updateEnvironmentSettingsPopup();
         if (updateHubPermissionsPopup) updateHubPermissionsPopup();
       };
 
@@ -616,7 +642,8 @@ function JelUI(props) {
       updateEmojiPopup,
       updateSpaceNotificationPopup,
       updateHubNotificationPopup,
-      updateHubPermissionsPopup
+      updateHubPermissionsPopup,
+      updateEnvironmentSettingsPopup
     ]
   );
 
@@ -715,6 +742,10 @@ function JelUI(props) {
   const onTrailHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
 
   const onTurnOnNotificationClicked = useCallback(() => subscriptions.subscribe(), [subscriptions]);
+
+  const onEnviromentColorsChanged = useCallback((...colors) => {
+    SYSTEMS.terrainSystem.updateWorldColors(...colors);
+  }, []);
 
   // Handle subscriptions changed
 
@@ -819,6 +850,14 @@ function JelUI(props) {
                   <FormattedMessage id="install.desktop" />
                 </HubCornerButton>
               )}
+              {hubCan &&
+                hubCan("update_hub_meta", hub && hub.hub_id) && (
+                  <EnvironmentSettingsButton
+                    ref={environmentSettingsButtonRef}
+                    onMouseDown={e => cancelEventIfFocusedWithin(e, environmentSettingsPopupElement)}
+                    onClick={() => showEnvironmentSettingsPopup(environmentSettingsButtonRef)}
+                  />
+                )}
               {hubCan &&
                 hubCan("update_hub_roles", hub && hub.hub_id) && (
                   <HubPermissionsButton
@@ -985,6 +1024,12 @@ function JelUI(props) {
         subscriptions={subscriptions}
         hub={hub}
         hubSettings={hubSettings}
+      />
+      <EnvironmentSettingsPopup
+        setPopperElement={setEnvironmentSettingsPopupElement}
+        styles={environmentSettingsPopupStyles}
+        attributes={environmentSettingsPopupAttributes}
+        onColorsChanged={onEnviromentColorsChanged}
       />
       <CreateEmbedPopup
         setPopperElement={setCreateEmbedPopupElement}

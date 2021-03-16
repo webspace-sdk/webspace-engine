@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useEffect } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
@@ -78,7 +78,7 @@ const PickerWrap = styled.div`
   }
 `;
 
-const EnvironmentSettingsPopup = ({ setPopperElement, styles, attributes, children }) => {
+const EnvironmentSettingsPopup = ({ setPopperElement, styles, attributes, children, onColorsChanged }) => {
   const [tipSource, tipTarget] = useSingleton();
   const [selectedColor, setSelectedColor] = useState(null);
   const [groundColor, setGroundColor] = useState({ x: 128, y: 0, z: 0 });
@@ -104,7 +104,7 @@ const EnvironmentSettingsPopup = ({ setPopperElement, styles, attributes, childr
   );
 
   const onColorChange = useCallback(
-    ({ rgb: { r, g, b } }) => {
+    ({ rgb: { r, g, b }, hsl }) => {
       const newColor = { x: r / 255.0, y: g / 255.0, z: b / 255.0 };
 
       switch (selectedColor) {
@@ -112,8 +112,12 @@ const EnvironmentSettingsPopup = ({ setPopperElement, styles, attributes, childr
           setGroundColor(newColor);
           break;
       }
+
+      if (onColorsChanged) {
+        onColorsChanged(hsl);
+      }
     },
-    [selectedColor, setGroundColor]
+    [selectedColor, setGroundColor, onColorsChanged]
   );
 
   const messages = getMessages();
@@ -182,6 +186,8 @@ const EnvironmentSettingsPopup = ({ setPopperElement, styles, attributes, childr
   }
 };
 
-EnvironmentSettingsPopup.propTypes = {};
+EnvironmentSettingsPopup.propTypes = {
+  onColorsChanged: PropTypes.func
+};
 
 export { EnvironmentSettingsPopup as default };

@@ -6,7 +6,7 @@ import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
 const metadata = new AtomMetadata(ATOM_TYPES.HUB);
 metadata._metadata.set("abc123", { roles: { space: "viewer" } });
 
-export const Hub = () => {
+export const Settings = () => {
   useEffect(() => document.querySelector(`.${sharedStyles.showWhenPopped}`).focus());
 
   return (

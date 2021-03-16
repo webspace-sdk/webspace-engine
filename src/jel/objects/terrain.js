@@ -17,7 +17,7 @@ const {
 } = THREE;
 
 export const VOXEL_PALETTE_NONE = 0;
-export const VOXEL_PALETTE_TERRAIN = 1;
+export const VOXEL_PALETTE_GROUND = 1;
 export const VOXEL_PALETTE_EDGE = 2;
 export const VOXEL_PALETTE_LEAVES = 3;
 export const VOXEL_PALETTE_TRUNK = 4;
@@ -35,14 +35,14 @@ colorMapTexture.type = THREE.FloatType;
 colorMapTexture.minFilter = THREE.NearestFilter;
 colorMapTexture.magFilter = THREE.NearestFilter;
 
-export const updateWorldColors = terrainColor => {
+export const updateWorldColors = groundColor => {
   const set = (index, { h, s, l }) => {
-    colorMap[index * 4] = (1.0 - h / 360.0) * (2.0 * Math.PI);
-    colorMap[index * 4 + 2] = s / 100.0;
-    colorMap[index * 4 + 2] = (l / 100.0 - 0.5) * 3.0;
+    colorMap[index * 4] = (h / 360.0) * (2.0 * Math.PI);
+    colorMap[index * 4 + 1] = s;
+    colorMap[index * 4 + 2] = l;
   };
 
-  set(VOXEL_PALETTE_TERRAIN, terrainColor);
+  set(VOXEL_PALETTE_GROUND, groundColor);
 
   colorMapTexture.needsUpdate = true;
   voxelMaterials.forEach(m => (m.uniformsNeedUpdate = true));
@@ -86,23 +86,10 @@ const createVoxelMaterial = () => {
         "    vec3 intensity = vec3(dot(rgb, W));",
         "    return mix(intensity, rgb, adjustment);",
         "}",
-        "vec3 hue( vec3 color, float hueAdjust ){",
-        "    const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);",
-        "    const vec3  kRGBToI      = vec3 (0.596, -0.275, -0.321);",
-        "    const vec3  kRGBToQ      = vec3 (0.212, -0.523, 0.311);",
-        "    const vec3  kYIQToR     = vec3 (1.0, 0.956, 0.621);",
-        "    const vec3  kYIQToG     = vec3 (1.0, -0.272, -0.647);",
-        "    const vec3  kYIQToB     = vec3 (1.0, -1.107, 1.704);",
-        "    float   YPrime  = dot (color, kRGBToYPrime);",
-        "    float   I       = dot (color, kRGBToI);",
-        "    float   Q       = dot (color, kRGBToQ);",
-        "    float   hue     = atan (Q, I);",
-        "    float   chroma  = sqrt (I * I + Q * Q);",
-        "    hue += hueAdjust;",
-        "    Q = chroma * sin (hue);",
-        "    I = chroma * cos (hue);",
-        "    vec3    yIQ   = vec3 (YPrime, I, Q);",
-        "    return vec3( dot (yIQ, kYIQToR), dot (yIQ, kYIQToG), dot (yIQ, kYIQToB) );",
+        "vec3 hue( vec3 col, float hue ){",
+        "    const vec3 k = vec3(0.57735, 0.57735, 0.57735);",
+        "    float cosAngle = cos(hue);",
+        "    return vec3(col * cosAngle + cross(k, col) * sin(hue) + k * dot(k, col) * (1.0 - cosAngle));",
         "}"
       ].join("\n")
     );
@@ -110,8 +97,7 @@ const createVoxelMaterial = () => {
       "#include <color_vertex>",
       [
         "vec4 shift = texture(colorMap, vec2(float(palette) / 6.0, 0.1));",
-        "vColor.xyz = sat(hue(color.xyz / 255.0, shift.r), shift.g) + shift.b;",
-        "vColor.rgb = clamp(vColor, 0.0, 1.0);"
+        "vColor.xyz = sat(hue(clamp(vec3(shift.b + (color.x / 255.0) - 0.33, 0.0, 0.0), 0.0, 1.0), shift.r), shift.g);"
       ].join("\n")
     );
   };
