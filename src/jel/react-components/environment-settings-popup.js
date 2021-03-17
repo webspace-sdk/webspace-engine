@@ -47,7 +47,7 @@ const Swatch = styled.button`
   &.preset {
     opacity: 0.8;
     transform: scale(1, 1);
-    border: 2px solid var(--secondary-panel-background-color);
+    border: 2px solid var(--menu-cell-border-color);
     border-radius: 4px;
 
     transition: opacity 0.075s linear, transform 0.075s linear;
@@ -78,7 +78,7 @@ const Presets = styled.div`
   grid-template-columns: 32px 32px 32px 32px;
   grid-template-rows: 32px 32px 32px 32px;
   grid-gap: 6px;
-  background-color: var(--tertiary-panel-item-active-background-color);
+  background-color: var(--menu-cell-background-color);
   padding-bottom: 12px;
   padding-top: 2px;
 `;
@@ -135,12 +135,12 @@ const PresetsWrap = styled.div`
 
 const toPickerValue = ({ r, g, b }) => ({ r: Math.floor(r * 255), g: Math.floor(g * 255), b: Math.floor(b * 255) });
 
-const showTargetBelowElement = (el, outerEl, targetEl) => {
+const showTargetBelowElement = (el, outerEl, targetEl, topOffset, leftOffset) => {
   const elRect = el.getBoundingClientRect();
   const outerRect = outerEl.getBoundingClientRect();
   const newTop = elRect.top - outerRect.top;
   const newLeft = elRect.left - outerRect.left;
-  targetEl.setAttribute("style", `top: ${newTop + 42}px; left: ${newLeft - 48}px;`);
+  targetEl.setAttribute("style", `top: ${newTop + topOffset}px; left: ${newLeft - leftOffset}px;`);
   targetEl.focus();
 };
 
@@ -151,6 +151,9 @@ const EnvironmentSettingsPopup = ({
   children,
   onColorsChanged,
   onColorChangeComplete,
+  onPresetColorsHovered,
+  onPresetColorsLeft,
+  onPresetColorsClicked,
   hub,
   hubMetadata
 }) => {
@@ -246,7 +249,7 @@ const EnvironmentSettingsPopup = ({
       const presetButton = presetButtonRef.current;
       const panel = panelRef.current;
       const presetPickerWrap = presetPickerWrapRef.current;
-      showTargetBelowElement(presetButton, panel, presetPickerWrap);
+      showTargetBelowElement(presetButton, panel, presetPickerWrap, 42, 66);
     },
     [presetPickerWrapRef, presetButtonRef, panelRef]
   );
@@ -256,7 +259,7 @@ const EnvironmentSettingsPopup = ({
       const swatch = ref.current;
       const panel = panelRef.current;
       const pickerWrap = colorPickerWrapRef.current;
-      showTargetBelowElement(swatch, panel, pickerWrap);
+      showTargetBelowElement(swatch, panel, pickerWrap, 42, 48);
     },
     [colorPickerWrapRef, panelRef]
   );
@@ -364,6 +367,9 @@ const EnvironmentSettingsPopup = ({
               };
               return (
                 <Swatch
+                  onMouseOver={() => onPresetColorsHovered(i)}
+                  onMouseOut={() => onPresetColorsLeft(i)}
+                  onClick={() => onPresetColorsClicked(i)}
                   className="preset"
                   key={`preset_${i}`}
                   style={{
@@ -594,6 +600,9 @@ const EnvironmentSettingsPopup = ({
 EnvironmentSettingsPopup.propTypes = {
   onColorsChanged: PropTypes.func,
   onColorChangeComplete: PropTypes.func,
+  onPresetColorsHovered: PropTypes.func,
+  onPresetColorsLeft: PropTypes.func,
+  onPresetColorsClicked: PropTypes.func,
   hub: PropTypes.object,
   hubMetadata: PropTypes.object
 };

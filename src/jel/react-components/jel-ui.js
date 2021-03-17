@@ -16,6 +16,7 @@ import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 import { WORLD_COLOR_TYPES } from "../systems/terrain-system";
+import { getPresetAsColorTuples } from "../utils/world-color-presets";
 import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
 import Snackbar from "./snackbar";
@@ -745,13 +746,13 @@ function JelUI(props) {
 
   const onTurnOnNotificationClicked = useCallback(() => subscriptions.subscribe(), [subscriptions]);
 
-  const onEnviromentColorsChanged = useCallback((...colors) => {
+  const temporarilyUpdateEnvironmentColors = useCallback((...colors) => {
     SYSTEMS.terrainSystem.updateWorldColors(...colors);
     SYSTEMS.atmosphereSystem.updateWaterColor(colors[7]);
     SYSTEMS.atmosphereSystem.updateSkyColor(colors[6]);
   }, []);
 
-  const onEnvironmentColorChangeComplete = useCallback(
+  const saveCurrentEnvironmentColors = useCallback(
     () => {
       const colors = SYSTEMS.terrainSystem.worldColors;
       const hubWorldColors = {};
@@ -765,6 +766,31 @@ function JelUI(props) {
       spaceChannel.updateHub(hub.hub_id, hubWorldColors);
     },
     [hub, spaceChannel]
+  );
+
+  const onEnvironmentPresetColorsHovered = useCallback(
+    i => {
+      const colors = getPresetAsColorTuples(i);
+      temporarilyUpdateEnvironmentColors(...colors);
+    },
+    [temporarilyUpdateEnvironmentColors]
+  );
+
+  const onEnvironmentPresetColorsLeft = useCallback(
+    () => {
+      SYSTEMS.terrainSystem.updateWorldForHub(hub);
+      SYSTEMS.atmosphereSystem.updateAtmosphereForHub(hub);
+    },
+    [hub]
+  );
+
+  const onEnvironmentPresetColorsClicked = useCallback(
+    i => {
+      const colors = getPresetAsColorTuples(i);
+      temporarilyUpdateEnvironmentColors(...colors);
+      saveCurrentEnvironmentColors();
+    },
+    [saveCurrentEnvironmentColors, temporarilyUpdateEnvironmentColors]
   );
 
   // Handle subscriptions changed
@@ -1051,8 +1077,11 @@ function JelUI(props) {
         attributes={environmentSettingsPopupAttributes}
         hub={hub}
         hubMetadata={hubMetadata}
-        onColorsChanged={onEnviromentColorsChanged}
-        onColorChangeComplete={onEnvironmentColorChangeComplete}
+        onColorsChanged={temporarilyUpdateEnvironmentColors}
+        onColorChangeComplete={saveCurrentEnvironmentColors}
+        onPresetColorsHovered={onEnvironmentPresetColorsHovered}
+        onPresetColorsLeft={onEnvironmentPresetColorsLeft}
+        onPresetColorsClicked={onEnvironmentPresetColorsClicked}
       />
       <CreateEmbedPopup
         setPopperElement={setCreateEmbedPopupElement}
