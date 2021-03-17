@@ -13,8 +13,11 @@ import { Label, InputWrap, PanelWrap } from "./form-components";
 import styled from "styled-components";
 import { DrivenColorPicker } from "./color-picker";
 import { objRgbToCssRgb } from "../utils/dom-utils";
-import { almostEqual } from "../../hubs/utils/three-utils";
 import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
+
+function almostEqual(a, b, epsilon = 0.01) {
+  return Math.abs(a - b) < epsilon;
+}
 
 const metadata = new AtomMetadata(ATOM_TYPES.HUB);
 metadata._metadata.set("abc123", { roles: { space: "viewer" } });
@@ -127,23 +130,34 @@ const EnvironmentSettingsPopup = ({
     ["water", waterColor, setWaterColor]
   ];
 
+  const updateColorState = useCallback(
+    () => {
+      const world = hubMetadata.getMetadata(hub.hub_id).world;
+
+      fieldList.forEach(([name, value, setter]) => {
+        const r = world[`${name}_color_r`];
+        const g = world[`${name}_color_g`];
+        const b = world[`${name}_color_b`];
+
+        if (!value || (!almostEqual(r, value.r) || !almostEqual(g, value.g) || !almostEqual(b, value.b))) {
+          setter({ r, g, b });
+        }
+      });
+    },
+    [hub, hubMetadata, fieldList]
+  );
+
   useEffect(
     () => {
       if (!hubMetadata || !hub) return () => {};
+      updateColorState();
+    },
+    [hub, hubMetadata, updateColorState]
+  );
 
-      const updateColorState = () => {
-        const world = hubMetadata.getMetadata(hub.hub_id).world;
-
-        fieldList.forEach(([name, value, setter]) => {
-          const r = world[`${name}_color_r`];
-          const g = world[`${name}_color_g`];
-          const b = world[`${name}_color_b`];
-
-          if (!value || (!almostEqual(r, value.r) || !almostEqual(g, value.g) || !almostEqual(b, value.b))) {
-            setter({ r, g, b });
-          }
-        });
-      };
+  useEffect(
+    () => {
+      if (!hubMetadata || !hub) return () => {};
 
       if (groundColor === null) {
         // Initializer
@@ -164,7 +178,8 @@ const EnvironmentSettingsPopup = ({
       rockColor,
       grassColor,
       skyColor,
-      waterColor
+      waterColor,
+      updateColorState
     ]
   );
 
