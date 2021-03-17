@@ -1,4 +1,7 @@
-export const TERRAIN_COLOR_PRESETS = [
+// Don't use presets that are a little wierd/bland when creating new worlds.
+const DEFAULT_WORLD_COLOR_PRESETS = [0, 1, 2, 3, 4, 6, 7, 8, 11];
+
+export const WORLD_COLOR_PRESETS = [
   {
     bark_color_b: 0.20784313725490197,
     bark_color_g: 0.23921568627450981,
@@ -376,15 +379,17 @@ export const TERRAIN_COLOR_PRESETS = [
     ground_color_b: 0.8274509803921568,
     ground_color_g: 1,
     ground_color_r: 0.49019607843137253,
-    leaves_color_b: 0.5450980392156862,
-    leaves_color_g: 0.8196078431372549,
-    leaves_color_r: 0.9882352941176471,
-    rock_color_b: 0,
-    rock_color_g: 0,
-    rock_color_r: 0,
+    leaves_color_b: 0.32941176470588235,
+    leaves_color_g: 0.9607843137254902,
+    leaves_color_r: 0.5176470588235295,
+    rock_color_b: 0.8705882352941177,
+    rock_color_g: 0.8705882352941177,
+    rock_color_r: 0.8705882352941177,
+    seed: 5,
     sky_color_b: 0.5882352941176471,
     sky_color_g: 0.4196078431372549,
     sky_color_r: 0.21176470588235294,
+    type: 0,
     water_color_b: 0.7019607843137254,
     water_color_g: 1,
     water_color_r: 0
@@ -402,17 +407,23 @@ export const TERRAIN_COLOR_PRESETS = [
     ground_color_b: 0.45098039215686275,
     ground_color_g: 1,
     ground_color_r: 0.12156862745098039,
-    leaves_color_b: 0.5333333333333333,
-    leaves_color_g: 0.9254901960784314,
-    leaves_color_r: 1,
+    leaves_color_b: 0.28627450980392155,
+    leaves_color_g: 0.5058823529411764,
+    leaves_color_r: 0.9411764705882353,
     rock_color_b: 1,
     rock_color_g: 1,
     rock_color_r: 1,
-    sky_color_b: 0.6352941176470588,
-    sky_color_g: 0.45098039215686275,
-    sky_color_r: 0.4,
+    sky_color_b: 0.6745098039215687,
+    sky_color_g: 0.4627450980392157,
+    sky_color_r: 0.403921568627451,
     water_color_b: 0.4,
     water_color_g: 0.12941176470588237,
     water_color_r: 0.09411764705882353
   }
 ];
+
+// Old Jel world colors are at index 2
+export const getDefaultWorldColorPreset = () => {
+  const idx = DEFAULT_WORLD_COLOR_PRESETS[Math.floor(Math.random() * DEFAULT_WORLD_COLOR_PRESETS.length)];
+  return WORLD_COLOR_PRESETS[idx];
+};

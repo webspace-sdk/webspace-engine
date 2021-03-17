@@ -1,6 +1,7 @@
 import { Socket } from "phoenix";
 import { Presence } from "phoenix";
 import configs from "../utils/configs";
+import { getDefaultWorldColorPreset } from "../../jel/utils/world-color-presets";
 
 export function hasReticulumServer() {
   return !!configs.RETICULUM_SERVER;
@@ -228,6 +229,12 @@ export async function createHub(
 
   if (spawnRadius != null) {
     payload.hub.spawn_radius = spawnRadius;
+  }
+
+  const worldColors = getDefaultWorldColorPreset();
+
+  for (const [k, v] of Object.entries(worldColors)) {
+    payload.hub[`world_${k}`] = v;
   }
 
   const headers = { "content-type": "application/json" };
