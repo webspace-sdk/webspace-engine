@@ -1,3 +1,5 @@
+import { WORLD_COLOR_TYPES } from "../../hubs/constants";
+
 export const WORLD_COLOR_PRESETS = [
   {
     bark_color_b: 0.20784313725490197,
@@ -421,17 +423,11 @@ export const WORLD_COLOR_PRESETS = [
 
 export const getPresetAsColorTuples = i => {
   const preset = WORLD_COLOR_PRESETS[i];
-
-  return [
-    { r: preset.ground_color_r, g: preset.ground_color_g, b: preset.ground_color_b },
-    { r: preset.edge_color_r, g: preset.edge_color_g, b: preset.edge_color_b },
-    { r: preset.leaves_color_r, g: preset.leaves_color_g, b: preset.leaves_color_b },
-    { r: preset.bark_color_r, g: preset.bark_color_g, b: preset.bark_color_b },
-    { r: preset.rock_color_r, g: preset.rock_color_g, b: preset.rock_color_b },
-    { r: preset.grass_color_r, g: preset.grass_color_g, b: preset.grass_color_b },
-    { r: preset.sky_color_r, g: preset.sky_color_g, b: preset.sky_color_b },
-    { r: preset.water_color_r, g: preset.water_color_g, b: preset.water_color_b }
-  ];
+  return WORLD_COLOR_TYPES.map(type => ({
+    r: preset[`${type}_color_r`],
+    g: preset[`${type}_color_g`],
+    b: preset[`${type}_color_b`]
+  }));
 };
 
 // Old Jel world colors are at index 2

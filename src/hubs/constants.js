@@ -31,5 +31,6 @@ module.exports = {
 
     // Transparent objects:
     WATER: 1
-  }
+  },
+  WORLD_COLOR_TYPES: ["ground", "edge", "leaves", "bark", "rock", "grass", "sky", "water"]
 };

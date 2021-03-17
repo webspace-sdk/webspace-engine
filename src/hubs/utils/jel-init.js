@@ -844,6 +844,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
           const [
             worldType,
             worldSeed,
+            worldColors,
             spawnPosition,
             spawnRotation,
             spawnRadius
@@ -857,6 +858,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
             world,
             worldType,
             worldSeed,
+            worldColors,
             spawnPosition,
             spawnRotation,
             spawnRadius

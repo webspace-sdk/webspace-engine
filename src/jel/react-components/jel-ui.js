@@ -15,7 +15,7 @@ import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../ut
 import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
-import { WORLD_COLOR_TYPES } from "../systems/terrain-system";
+import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { getPresetAsColorTuples } from "../utils/world-color-presets";
 import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";

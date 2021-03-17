@@ -7,7 +7,7 @@ import { VOXLoader } from "../objects/VOXLoader";
 import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import grassVoxSrc from "!!url-loader!../../assets/jel/models/grass1.vox";
-import { RENDER_ORDER } from "../../hubs/constants";
+import { RENDER_ORDER, WORLD_COLOR_TYPES } from "../../hubs/constants";
 import configs from "../../hubs/utils/configs";
 import { Layers } from "../../hubs/components/layers";
 import qsTruthy from "../../hubs/utils/qs_truthy";
@@ -25,8 +25,6 @@ export const MAX_CHUNK_COORD = -MIN_CHUNK_COORD - 1;
 export const WORLD_MAX_COORD = (WORLD_CHUNK_SIZE * CHUNK_WORLD_SIZE) / 2;
 export const WORLD_MIN_COORD = -WORLD_MAX_COORD;
 export const WORLD_SIZE = WORLD_MAX_COORD - WORLD_MIN_COORD;
-
-export const WORLD_COLOR_TYPES = ["ground", "edge", "leaves", "bark", "rock", "grass", "sky", "water"];
 
 // Radius is artificial, want to have a specific curve effect not accurancy
 export const WORLD_RADIUS = 128.0;

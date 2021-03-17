@@ -194,6 +194,7 @@ export async function createHub(
   template,
   worldType = null,
   worldSeed = null,
+  worldColors = null,
   spawnPosition = null,
   spawnRotation = null,
   spawnRadius = null
@@ -214,6 +215,14 @@ export async function createHub(
     payload.hub.world_seed = worldSeed;
   }
 
+  if (worldColors === null) {
+    worldColors = getDefaultWorldColorPreset();
+  }
+
+  for (const [k, v] of Object.entries(worldColors)) {
+    payload.hub[`world_${k}`] = v;
+  }
+
   if (spawnPosition != null) {
     payload.hub.spawn_position_x = spawnPosition.x;
     payload.hub.spawn_position_y = spawnPosition.y;
@@ -229,12 +238,6 @@ export async function createHub(
 
   if (spawnRadius != null) {
     payload.hub.spawn_radius = spawnRadius;
-  }
-
-  const worldColors = getDefaultWorldColorPreset();
-
-  for (const [k, v] of Object.entries(worldColors)) {
-    payload.hub[`world_${k}`] = v;
   }
 
   const headers = { "content-type": "application/json" };
