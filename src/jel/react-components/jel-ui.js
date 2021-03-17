@@ -23,6 +23,7 @@ import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shad
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
 import notificationsIcon from "../../assets/jel/images/icons/notifications-shadow.svgi";
 import securityIcon from "../../assets/jel/images/icons/security-shadow.svgi";
+import sunIcon from "../../assets/jel/images/icons/sun-shadow.svgi";
 import RenamePopup from "./rename-popup";
 import CreateEmbedPopup from "./create-embed-popup";
 import HubContextMenu from "./hub-context-menu";
@@ -395,7 +396,7 @@ const EnvironmentSettingsButton = forwardRef((props, ref) => {
   return (
     <Tooltip content={messages["environment-settings.tip"]} placement="top" key="environment-settings" delay={500}>
       <HubCornerButtonElement {...props} ref={ref}>
-        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: securityIcon }} />
+        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: sunIcon }} />
       </HubCornerButtonElement>
     </Tooltip>
   );
