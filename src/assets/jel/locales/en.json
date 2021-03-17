@@ -282,5 +282,6 @@
   "environment-settings-popup.swatch-leaves": "Tree Leaves Color",
   "environment-settings-popup.swatch-bark": "Tree Bark Color",
   "environment-settings-popup.swatch-grass": "Grass Color",
-  "environment-settings-popup.swatch-rock": "Rock Color"
+  "environment-settings-popup.swatch-rock": "Rock Color",
+  "environment-settings-popup.presets": "Choose a Preset"
 }

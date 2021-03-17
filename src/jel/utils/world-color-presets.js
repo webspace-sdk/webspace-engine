@@ -1,6 +1,3 @@
-// Don't use presets that are a little wierd/bland when creating new worlds.
-const DEFAULT_WORLD_COLOR_PRESETS = [0, 1, 2, 3, 4, 6, 7, 8, 11];
-
 export const WORLD_COLOR_PRESETS = [
   {
     bark_color_b: 0.20784313725490197,
@@ -401,9 +398,9 @@ export const WORLD_COLOR_PRESETS = [
     edge_color_b: 0.10588235294117647,
     edge_color_g: 0.1568627450980392,
     edge_color_r: 0.1568627450980392,
-    grass_color_b: 0,
-    grass_color_g: 0.5176470588235295,
-    grass_color_r: 0.1803921568627451,
+    grass_color_b: 0.45098039215686275,
+    grass_color_g: 1,
+    grass_color_r: 0.12156862745098039,
     ground_color_b: 0.45098039215686275,
     ground_color_g: 1,
     ground_color_r: 0.12156862745098039,
@@ -424,6 +421,5 @@ export const WORLD_COLOR_PRESETS = [
 
 // Old Jel world colors are at index 2
 export const getDefaultWorldColorPreset = () => {
-  const idx = DEFAULT_WORLD_COLOR_PRESETS[Math.floor(Math.random() * DEFAULT_WORLD_COLOR_PRESETS.length)];
-  return WORLD_COLOR_PRESETS[idx];
+  return WORLD_COLOR_PRESETS[Math.floor(Math.random() * WORLD_COLOR_PRESETS.length)];
 };

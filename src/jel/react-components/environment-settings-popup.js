@@ -13,7 +13,10 @@ import { Label, InputWrap, PanelWrap } from "./form-components";
 import styled from "styled-components";
 import { DrivenColorPicker } from "./color-picker";
 import { objRgbToCssRgb } from "../utils/dom-utils";
+import { WORLD_COLOR_PRESETS } from "../utils/world-color-presets";
 import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
+import BigIconButton from "./icon-button";
+import presetsIcon from "../../assets/jel/images/icons/presets.svgi";
 
 function almostEqual(a, b, epsilon = 0.01) {
   return Math.abs(a - b) < epsilon;
@@ -37,6 +40,30 @@ const Swatch = styled.button`
   -webkit-appearance: none;
   outline-style: none;
   border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  &.preset {
+    opacity: 0.8;
+    transform: scale(1, 1);
+    border: 2px solid var(--secondary-panel-background-color);
+    border-radius: 4px;
+
+    transition: opacity 0.075s linear, transform 0.075s linear;
+  }
+
+  &.preset:hover {
+    opacity: 1;
+    transform: scale(1.1, 1.1);
+  }
+`;
+
+const SwatchInner = styled.div`
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 2px solid black;
 `;
 
 const Swatches = styled.div`
@@ -46,9 +73,17 @@ const Swatches = styled.div`
   justify-content: flex-start;
 `;
 
-const PickerWrap = styled.div`
-  width: 128px;
-  height: 128px;
+const Presets = styled.div`
+  display: grid;
+  grid-template-columns: 32px 32px 32px 32px;
+  grid-template-rows: 32px 32px 32px 32px;
+  grid-gap: 6px;
+  background-color: var(--tertiary-panel-item-active-background-color);
+  padding-bottom: 12px;
+  padding-top: 2px;
+`;
+
+const popupCss = `
   position: absolute;
   top: 0;
   left: 0;
@@ -85,7 +120,29 @@ const PickerWrap = styled.div`
     }
   }
 `;
+
+const PickerWrap = styled.div`
+  width: 128px;
+  height: 128px;
+  ${popupCss};
+`;
+
+const PresetsWrap = styled.div`
+  width: 164px;
+  height: 164px;
+  ${popupCss};
+`;
+
 const toPickerValue = ({ r, g, b }) => ({ r: Math.floor(r * 255), g: Math.floor(g * 255), b: Math.floor(b * 255) });
+
+const showTargetBelowElement = (el, outerEl, targetEl) => {
+  const elRect = el.getBoundingClientRect();
+  const outerRect = outerEl.getBoundingClientRect();
+  const newTop = elRect.top - outerRect.top;
+  const newLeft = elRect.left - outerRect.left;
+  targetEl.setAttribute("style", `top: ${newTop + 42}px; left: ${newLeft - 48}px;`);
+  targetEl.focus();
+};
 
 const EnvironmentSettingsPopup = ({
   setPopperElement,
@@ -118,33 +175,35 @@ const EnvironmentSettingsPopup = ({
   const waterSwatchRef = useRef();
   const colorPickerWrapRef = useRef();
   const panelRef = useRef();
-
-  const fieldList = [
-    ["ground", groundColor, setGroundColor],
-    ["edge", edgeColor, setEdgeColor],
-    ["leaves", leavesColor, setLeavesColor],
-    ["bark", barkColor, setBarkColor],
-    ["rock", rockColor, setRockColor],
-    ["grass", grassColor, setGrassColor],
-    ["sky", skyColor, setSkyColor],
-    ["water", waterColor, setWaterColor]
-  ];
+  const presetButtonRef = useRef();
+  const presetPickerWrapRef = useRef();
 
   const updateColorState = useCallback(
     () => {
       const world = hubMetadata.getMetadata(hub.hub_id).world;
 
+      const fieldList = [
+        ["ground", groundColor, setGroundColor],
+        ["edge", edgeColor, setEdgeColor],
+        ["leaves", leavesColor, setLeavesColor],
+        ["bark", barkColor, setBarkColor],
+        ["rock", rockColor, setRockColor],
+        ["grass", grassColor, setGrassColor],
+        ["sky", skyColor, setSkyColor],
+        ["water", waterColor, setWaterColor]
+      ];
+
       fieldList.forEach(([name, value, setter]) => {
-        const r = world[`${name}_color_r`];
-        const g = world[`${name}_color_g`];
-        const b = world[`${name}_color_b`];
+        const r = world[`${name}_color_r`] || 0;
+        const g = world[`${name}_color_g`] || 0;
+        const b = world[`${name}_color_b`] || 0;
 
         if (!value || (!almostEqual(r, value.r) || !almostEqual(g, value.g) || !almostEqual(b, value.b))) {
           setter({ r, g, b });
         }
       });
     },
-    [hub, hubMetadata, fieldList]
+    [hub, hubMetadata, groundColor, edgeColor, leavesColor, barkColor, rockColor, grassColor, skyColor, waterColor]
   );
 
   useEffect(
@@ -170,7 +229,6 @@ const EnvironmentSettingsPopup = ({
     [
       hub,
       hubMetadata,
-      fieldList,
       groundColor,
       edgeColor,
       leavesColor,
@@ -183,18 +241,22 @@ const EnvironmentSettingsPopup = ({
     ]
   );
 
+  const showPresetPicker = useCallback(
+    () => {
+      const presetButton = presetButtonRef.current;
+      const panel = panelRef.current;
+      const presetPickerWrap = presetPickerWrapRef.current;
+      showTargetBelowElement(presetButton, panel, presetPickerWrap);
+    },
+    [presetPickerWrapRef, presetButtonRef, panelRef]
+  );
+
   const showPickerAtRef = useCallback(
     ref => {
       const swatch = ref.current;
       const panel = panelRef.current;
       const pickerWrap = colorPickerWrapRef.current;
-
-      const swatchRect = swatch.getBoundingClientRect();
-      const panelRect = panel.getBoundingClientRect();
-      const newTop = swatchRect.top - panelRect.top;
-      const newLeft = swatchRect.left - panelRect.left;
-      pickerWrap.setAttribute("style", `top: ${newTop + 42}px; left: ${newLeft - 48}px;`);
-      pickerWrap.focus();
+      showTargetBelowElement(swatch, panel, pickerWrap);
     },
     [colorPickerWrapRef, panelRef]
   );
@@ -289,9 +351,40 @@ const EnvironmentSettingsPopup = ({
       <PickerWrap ref={colorPickerWrapRef} tabIndex={-1}>
         <DrivenColorPicker color={pickerColorValue} onChange={onColorChange} onChangeComplete={onColorChangeComplete} />
       </PickerWrap>
+      <PresetsWrap ref={presetPickerWrapRef} tabIndex={-1}>
+        <Presets>
+          {WORLD_COLOR_PRESETS.map(
+            ({ ground_color_r, ground_color_g, ground_color_b, leaves_color_r, leaves_color_g, leaves_color_b }, i) => {
+              const color = { r: ground_color_r, g: ground_color_g, b: ground_color_b };
+              const innerColor = { r: leaves_color_r, g: leaves_color_g, b: leaves_color_b };
+              const innerBorderColor = {
+                r: Math.max(0.0, innerColor.r - 0.4),
+                g: Math.max(0.0, innerColor.g - 0.4),
+                b: Math.max(0.0, innerColor.b - 0.4)
+              };
+              return (
+                <Swatch
+                  className="preset"
+                  key={`preset_${i}`}
+                  style={{
+                    backgroundColor: objRgbToCssRgb(color)
+                  }}
+                >
+                  <SwatchInner
+                    style={{
+                      borderColor: objRgbToCssRgb(innerBorderColor),
+                      backgroundColor: objRgbToCssRgb(innerColor)
+                    }}
+                  />
+                </Swatch>
+              );
+            }
+          )}
+        </Presets>
+      </PresetsWrap>
       <PopupPanelMenu
         ref={panelRef}
-        style={{ padding: "32px 0px", borderRadius: "12px" }}
+        style={{ padding: "32px 0px", borderRadius: "12px", maxWidth: "530px" }}
         className={sharedStyles.slideUpWhenPopped}
       >
         <PanelWrap>
@@ -461,6 +554,21 @@ const EnvironmentSettingsPopup = ({
                     },
                     [showPickerAtRef, rockColor]
                   )}
+                />
+              </Tooltip>
+              <Tooltip
+                content={messages[`environment-settings-popup.presets`]}
+                delay={0}
+                placement="top"
+                key="sw-presets"
+                singleton={tipTarget}
+              >
+                <BigIconButton
+                  style={{ width: "32px", height: "32px", marginLeft: "6px" }}
+                  includeBorder={true}
+                  iconSrc={presetsIcon}
+                  ref={presetButtonRef}
+                  onClick={useCallback(() => showPresetPicker(), [showPresetPicker])}
                 />
               </Tooltip>
             </Swatches>
