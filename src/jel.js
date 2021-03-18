@@ -699,7 +699,8 @@ function addGlobalEventListeners(scene, entryManager) {
       mixpanel.track("Event First World Load Complete", {});
     }
 
-    scene.systems["hubs-systems"].autoQualitySystem.startTracking();
+    SYSTEMS.atmosphereSystem.enableAmbience();
+    SYSTEMS.autoQualitySystem.startTracking();
   });
 
   scene.addEventListener("action_reset_objects", () => {
@@ -734,7 +735,7 @@ function setupNonVisibleHandler(scene) {
       clearTimeout(disableSoundTimeout);
 
       disableSoundTimeout = setTimeout(() => {
-        SYSTEMS.atmosphereSystem.disableOutdoorsSound();
+        SYSTEMS.atmosphereSystem.disableAmbience();
       }, 15000);
     } else {
       if (document.visibilityState === "visible") {
@@ -754,7 +755,7 @@ function setupNonVisibleHandler(scene) {
       document.body.classList.remove("paused");
       physics.updateSimulationRate(1000.0 / 90.0);
       accountChannel.setActive();
-      SYSTEMS.atmosphereSystem.enableOutdoorsSound();
+      SYSTEMS.atmosphereSystem.enableAmbience();
     }
   };
 

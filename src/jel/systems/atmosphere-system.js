@@ -3,13 +3,15 @@ import Sky from "../objects/sky";
 import Water from "../objects/water";
 import { Layers } from "../../hubs/components/layers";
 import { RENDER_ORDER } from "../../hubs/constants";
-import { SOUND_OUTDOORS } from "../../hubs/systems/sound-effects-system";
+import { SOUND_OUTDOORS, SOUND_WATER } from "../../hubs/systems/sound-effects-system";
 
 const FOG_NEAR = 20.5;
 const FOG_SPAN = 1.5;
 const FOG_SPEED = 0.01;
 const INITIAL_FOG_NEAR = 1.5;
 const PAUSE_AMBIANCE_AFTER_MS = 5000.0;
+
+const WORLD_TYPES_WITH_WATER = [0, 1];
 
 // Responsible for managing shadows, environmental lighting, sky, and environment map.
 export class AtmosphereSystem {
@@ -69,11 +71,12 @@ export class AtmosphereSystem {
     this.outdoorsSoundSourceNode = null;
     this.outdoorsSoundGainNode = null;
     this.outdoorsSoundSource = null;
-    this.outdoorsSoundTargetGain = 1.25;
+    this.outdoorsSoundTargetGain = 0.0;
     this.outdoorsSoundSilencedAt = 0;
 
-    this.waterSoundGainNode = null;
-    this.waterTargetGain = 0.0;
+    this.waterSoundSource = new THREE.Object3D();
+    this.waterSoundTargetGain = 0.0;
+    this.waterSoundPositionalNode = null;
 
     this.sky = new Sky();
     this.sky.position.y = 0;
@@ -105,6 +108,7 @@ export class AtmosphereSystem {
     scene.add(this.sunLight);
     scene.add(this.sky);
     scene.add(this.water); // TODO water needs to become a wrapped entity
+    scene.add(this.waterSoundSource);
     scene.fog = this.fog;
 
     this.lastSoundProcessTime = 0.0;
@@ -124,12 +128,18 @@ export class AtmosphereSystem {
     this.fog.needsUpdate = true;
   }
 
-  enableOutdoorsSound() {
-    this.outdoorsSoundTargetGain = 1.25;
+  enableAmbience() {
+    this.outdoorsSoundTargetGain = 2.0;
+    this.waterSoundTargetGain = 1.0;
   }
 
-  disableOutdoorsSound() {
+  restartAmbience() {
+    this.stopOutdoorsSoundNode(); // Restart happens automatically
+  }
+
+  disableAmbience() {
     this.outdoorsSoundTargetGain = 0.0;
+    this.waterSoundTargetGain = 0.0;
   }
 
   tick(dt) {
@@ -152,7 +162,7 @@ export class AtmosphereSystem {
       this.water.camera = this.playerCamera;
     }
 
-    this.moveSunlight();
+    this.moveSunlightAndWaterSound();
 
     // Disable effects for subrenders to water and/or sky
     this.effectsSystem.disableEffects = true;
@@ -228,6 +238,17 @@ export class AtmosphereSystem {
   }
 
   processSounds() {
+    const { hubChannel, hubMetadata } = window.APP;
+    if (!hubChannel || !hubMetadata) return;
+
+    const hubId = hubChannel.hubId;
+    if (!hubId) return;
+
+    const metadata = hubMetadata.getMetadata(hubId);
+    if (!metadata) return;
+
+    const worldType = metadata.world.type;
+
     if (this.lastSoundProcessTime === 0) {
       this.lastSoundProcessTime = performance.now();
       return;
@@ -237,7 +258,30 @@ export class AtmosphereSystem {
     const dt = now - this.lastSoundProcessTime;
     this.lastSoundProcessTime = now;
 
-    if (!this.outdoorsSoundGainNode && this.outdoorsSoundTargetGain > 0.0) {
+    const hasWater = WORLD_TYPES_WITH_WATER.includes(worldType);
+    const desiredWaterGain = hasWater ? this.waterSoundTargetGain : 0.0;
+
+    const desiredOutdoorsGain = this.outdoorsSoundTargetGain;
+
+    if (!this.waterSoundPositionalNode) {
+      if (this.soundEffectsSystem.hasLoadedSound(SOUND_WATER)) {
+        this.waterSoundPositionalNode = this.soundEffectsSystem.playPositionalSoundFollowing(
+          SOUND_WATER,
+          this.waterSoundSource,
+          true
+        );
+
+        this.waterSoundPositionalNode.panner.panningModel = "equalpower";
+      }
+    } else {
+      const currentGain = this.waterSoundPositionalNode.getVolume();
+
+      if (Math.abs(currentGain - desiredWaterGain) > 0.001) {
+        this.waterSoundPositionalNode.setVolume(desiredWaterGain);
+      }
+    }
+
+    if (!this.outdoorsSoundGainNode && desiredOutdoorsGain > 0.0) {
       if (this.soundEffectsSystem.hasLoadedSound(SOUND_OUTDOORS)) {
         const soundDuration = this.soundEffectsSystem.getSoundDuration(SOUND_OUTDOORS);
         const { source, gain } = this.soundEffectsSystem.playSoundLoopedWithGain(
@@ -251,8 +295,8 @@ export class AtmosphereSystem {
     } else if (this.outdoorsSoundGainNode) {
       const currentGain = this.outdoorsSoundGainNode.gain.value;
 
-      if (Math.abs(currentGain - this.outdoorsSoundTargetGain) > 0.001) {
-        const direction = currentGain > this.outdoorsSoundTargetGain ? -1 : 1;
+      if (Math.abs(currentGain - desiredOutdoorsGain) > 0.001) {
+        const direction = currentGain > desiredOutdoorsGain ? -1 : 1;
         const newGain = Math.min(1.0, Math.max(0.0, currentGain + direction * 0.001 * dt));
         this.outdoorsSoundGainNode.gain.setValueAtTime(newGain, SYSTEMS.audioSystem.audioContext.currentTime);
 
@@ -264,16 +308,22 @@ export class AtmosphereSystem {
         this.outdoorsSoundSilencedAt !== null &&
         now - this.outdoorsSoundSilencedAt > PAUSE_AMBIANCE_AFTER_MS
       ) {
-        SYSTEMS.soundEffectsSystem.stopSoundNode(this.outdoorsSoundSourceNode);
-
-        // This is not currently handled by the sound effects system:
-        this.outdoorsSoundGainNode.disconnect();
-
-        this.outdoorsSoundSilencedAt = null;
-        this.outdoorsSoundSourceNode = null;
-        this.outdoorsSoundGainNode = null;
+        this.stopOutdoorsSoundNode();
       }
     }
+  }
+
+  stopOutdoorsSoundNode() {
+    if (!this.outdoorsSoundSourceNode) return;
+
+    SYSTEMS.soundEffectsSystem.stopSoundNode(this.outdoorsSoundSourceNode);
+
+    // This is not currently handled by the sound effects system:
+    this.outdoorsSoundGainNode.disconnect();
+
+    this.outdoorsSoundSilencedAt = null;
+    this.outdoorsSoundSourceNode = null;
+    this.outdoorsSoundGainNode = null;
   }
 
   updateAtmosphereForHub({
@@ -306,7 +356,7 @@ export class AtmosphereSystem {
     }
   }
 
-  moveSunlight = (() => {
+  moveSunlightAndWaterSound = (() => {
     const pos = new THREE.Vector3();
 
     return target => {
@@ -346,6 +396,25 @@ export class AtmosphereSystem {
 
         this.renderer.shadowMap.needsUpdate = true;
         this.water.needsUpdate = true;
+      }
+
+      // Reset pos X, Z, and Y is fixed
+      pos.x += 4;
+      pos.y = -1.5;
+      pos.z += 4;
+
+      const waterPos = this.waterSoundSource.position;
+
+      const moveWater =
+        Math.abs(waterPos.x - pos.x) > 0.001 ||
+        Math.abs(waterPos.y - pos.y) > 0.001 ||
+        Math.abs(waterPos.z - pos.z) > 0.001;
+
+      if (moveWater) {
+        this.waterSoundSource.position.x = pos.x;
+        this.waterSoundSource.position.y = pos.y;
+        this.waterSoundSource.position.z = pos.z;
+        this.waterSoundSource.matrixNeedsUpdate = true;
       }
     };
   })();

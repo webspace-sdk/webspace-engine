@@ -616,6 +616,8 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
             // Clear voxmojis from prior world
             SYSTEMS.voxmojiSystem.clear();
 
+            SYSTEMS.atmosphereSystem.restartAmbience();
+
             clearResolveUrlCache();
 
             moveToInitialHubLocation(hub, hubStore);
