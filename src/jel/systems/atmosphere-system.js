@@ -3,17 +3,21 @@ import Sky from "../objects/sky";
 import Water from "../objects/water";
 import { Layers } from "../../hubs/components/layers";
 import { RENDER_ORDER } from "../../hubs/constants";
+import { SOUND_OUTDOORS } from "../../hubs/systems/sound-effects-system";
+
 const FOG_NEAR = 20.5;
 const FOG_SPAN = 1.5;
 const FOG_SPEED = 0.01;
 const INITIAL_FOG_NEAR = 1.5;
+const PAUSE_AMBIANCE_AFTER_MS = 5000.0;
 
 // Responsible for managing shadows, environmental lighting, sky, and environment map.
 export class AtmosphereSystem {
-  constructor(sceneEl) {
+  constructor(sceneEl, soundEffectsSystem) {
     const scene = sceneEl.object3D;
     this.sceneEl = sceneEl;
     this.effectsSystem = sceneEl.systems["effects"];
+    this.soundEffectsSystem = soundEffectsSystem;
 
     waitForDOMContentLoaded().then(() => {
       this.avatarPovEl = document.getElementById("avatar-pov-node");
@@ -62,6 +66,15 @@ export class AtmosphereSystem {
     this.sunLight.layers.enable(Layers.reflection);
     this.sunLight.renderOrder = RENDER_ORDER.LIGHTS;
 
+    this.outdoorsSoundSourceNode = null;
+    this.outdoorsSoundGainNode = null;
+    this.outdoorsSoundSource = null;
+    this.outdoorsSoundTargetGain = 1.0;
+    this.outdoorsSoundSilencedAt = 0;
+
+    this.waterSoundGainNode = null;
+    this.waterTargetGain = 0.0;
+
     this.sky = new Sky();
     this.sky.position.y = 0;
     this.sky.scale.setScalar(100000);
@@ -93,6 +106,16 @@ export class AtmosphereSystem {
     scene.add(this.sky);
     scene.add(this.water); // TODO water needs to become a wrapped entity
     scene.fog = this.fog;
+
+    this.lastSoundProcessTime = 0.0;
+
+    setInterval(() => {
+      // If the app is backgrounded, the tick() method will stop being called
+      // and so we should run it manually so sounds continue to play.
+      if (performance.now() - this.lastSoundProcessTime > 250.0) {
+        this.processSounds();
+      }
+    }, 250);
   }
 
   maximizeFog() {
@@ -101,8 +124,18 @@ export class AtmosphereSystem {
     this.fog.needsUpdate = true;
   }
 
+  enableOutdoorsSound() {
+    this.outdoorsSoundTargetGain = 1.0;
+  }
+
+  disableOutdoorsSound() {
+    this.outdoorsSoundTargetGain = 0.0;
+  }
+
   tick(dt) {
     this.frame++;
+
+    this.processSounds();
 
     if (this.fog.near < FOG_NEAR || this.fog.far < FOG_NEAR + FOG_SPAN) {
       const dv = FOG_SPEED * dt;
@@ -191,6 +224,55 @@ export class AtmosphereSystem {
 
     if (force) {
       this.rateLimitUpdates = false;
+    }
+  }
+
+  processSounds() {
+    if (this.lastSoundProcessTime === 0) {
+      this.lastSoundProcessTime = performance.now();
+      return;
+    }
+
+    const now = performance.now();
+    const dt = now - this.lastSoundProcessTime;
+    this.lastSoundProcessTime = now;
+
+    if (!this.outdoorsSoundGainNode && this.outdoorsSoundTargetGain > 0.0) {
+      if (this.soundEffectsSystem.hasLoadedSound(SOUND_OUTDOORS)) {
+        const soundDuration = this.soundEffectsSystem.getSoundDuration(SOUND_OUTDOORS);
+        const { source, gain } = this.soundEffectsSystem.playSoundLoopedWithGain(
+          SOUND_OUTDOORS,
+          Math.floor(Math.random() * soundDuration * 0.8)
+        );
+
+        this.outdoorsSoundSourceNode = source;
+        this.outdoorsSoundGainNode = gain;
+      }
+    } else if (this.outdoorsSoundGainNode) {
+      const currentGain = this.outdoorsSoundGainNode.gain.value;
+
+      if (Math.abs(currentGain - this.outdoorsSoundTargetGain) > 0.001) {
+        const direction = currentGain > this.outdoorsSoundTargetGain ? -1 : 1;
+        const newGain = Math.min(1.0, Math.max(0.0, currentGain + direction * 0.001 * dt));
+        this.outdoorsSoundGainNode.gain.setValueAtTime(newGain, SYSTEMS.audioSystem.audioContext.currentTime);
+
+        if (newGain === 0.0) {
+          this.outdoorsSoundSilencedAt = now;
+        }
+      } else if (
+        currentGain === 0.0 &&
+        this.outdoorsSoundSilencedAt !== null &&
+        now - this.outdoorsSoundSilencedAt > PAUSE_AMBIANCE_AFTER_MS
+      ) {
+        SYSTEMS.soundEffectsSystem.stopSoundNode(this.outdoorsSoundSourceNode);
+
+        // This is not currently handled by the sound effects system:
+        this.outdoorsSoundGainNode.disconnect();
+
+        this.outdoorsSoundSilencedAt = null;
+        this.outdoorsSoundSourceNode = null;
+        this.outdoorsSoundGainNode = null;
+      }
     }
   }
 

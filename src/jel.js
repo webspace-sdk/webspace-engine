@@ -730,6 +730,7 @@ function setupNonVisibleHandler(scene) {
       autoQuality.stopTracking();
       physics.updateSimulationRate(1000.0 / 15.0);
       accountChannel.setInactive();
+      SYSTEMS.atmosphereSystem.disableOutdoorsSound();
     } else {
       if (document.visibilityState === "visible") {
         // Hacky. On some platforms GL context needs to be explicitly restored. So do it.
@@ -747,6 +748,7 @@ function setupNonVisibleHandler(scene) {
       document.body.classList.remove("paused");
       physics.updateSimulationRate(1000.0 / 90.0);
       accountChannel.setActive();
+      SYSTEMS.atmosphereSystem.enableOutdoorsSound();
     }
   };
 
