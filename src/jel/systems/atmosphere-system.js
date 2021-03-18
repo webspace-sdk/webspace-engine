@@ -9,7 +9,7 @@ const FOG_NEAR = 20.5;
 const FOG_SPAN = 1.5;
 const FOG_SPEED = 0.01;
 const INITIAL_FOG_NEAR = 1.5;
-const PAUSE_AMBIANCE_AFTER_MS = 5000.0;
+const STOP_AMBIENCE_AFTER_SILENCE_MS = 5000.0;
 
 const WORLD_TYPES_WITH_WATER = [0, 1];
 
@@ -312,7 +312,7 @@ export class AtmosphereSystem {
       } else if (
         currentGain === 0.0 &&
         this.outdoorsSoundSilencedAt !== null &&
-        now - this.outdoorsSoundSilencedAt > PAUSE_AMBIANCE_AFTER_MS
+        now - this.outdoorsSoundSilencedAt > STOP_AMBIENCE_AFTER_SILENCE_MS
       ) {
         this.stopOutdoorsSoundNode();
       }
