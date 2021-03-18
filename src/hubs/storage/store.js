@@ -45,7 +45,6 @@ export const SCHEMA = {
       additionalProperties: false,
       properties: {
         token: { type: ["null", "string"] },
-        matrix_access_token: { type: ["null", "string"] },
         email: { type: ["null", "string"] }
       }
     },
@@ -262,7 +261,7 @@ export default class Store extends EventTarget {
   };
 
   clearCredentials() {
-    this.update({ credentials: { token: null, matrix_access_token: null, email: null } });
+    this.update({ credentials: { token: null, email: null } });
   }
 
   initProfile = async () => {
