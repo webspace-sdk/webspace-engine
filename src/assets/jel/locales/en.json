@@ -284,7 +284,7 @@
   "environment-settings-popup.environment": "Environment",
   "environment-settings-popup.colors": "Colors",
   "environment-settings-popup.terrain": "World Type",
-  "environment-settings-popup.sound": "Play Environmental Sounds",
+  "environment-settings-popup.sound": "Environmental Sounds",
   "environment-settings-popup.swatch-ground": "Ground Color",
   "environment-settings-popup.swatch-edge": "Cliff Color",
   "environment-settings-popup.swatch-sky": "Sky Color",
