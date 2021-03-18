@@ -310,8 +310,6 @@ export class SoundEffectsSystem {
         inPositionalAudio.stop();
       }
 
-      inPositionalAudio.disconnect();
-
       if (inPositionalAudio.parent) {
         inPositionalAudio.parent.remove(inPositionalAudio);
       }
