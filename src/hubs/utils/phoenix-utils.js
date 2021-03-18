@@ -3,6 +3,9 @@ import { Presence } from "phoenix";
 import configs from "../utils/configs";
 import { getDefaultWorldColorPreset } from "../../jel/utils/world-color-presets";
 
+const MIN_DEFAULT_WORLD_TYPE = 1;
+const MAX_DEFAULT_WORLD_TYPE = 3;
+
 export function hasReticulumServer() {
   return !!configs.RETICULUM_SERVER;
 }
@@ -209,6 +212,9 @@ export async function createHub(
 
   if (worldType !== null) {
     payload.hub.world_type = worldType;
+  } else {
+    payload.hub.world_type =
+      MIN_DEFAULT_WORLD_TYPE + Math.floor(Math.random() * (MAX_DEFAULT_WORLD_TYPE - MIN_DEFAULT_WORLD_TYPE + 1));
   }
 
   if (worldSeed !== null) {
