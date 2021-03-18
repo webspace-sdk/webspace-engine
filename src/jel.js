@@ -716,7 +716,7 @@ function addGlobalEventListeners(scene, entryManager) {
 function setupNonVisibleHandler(scene) {
   const physics = scene.systems["hubs-systems"].physicsSystem;
   const autoQuality = scene.systems["hubs-systems"].autoQualitySystem;
-  let disableSoundTimeout = null;
+  let disableAmbienceTimeout = null;
 
   const webglLoseContextExtension = scene.renderer.getContext().getExtension("WEBGL_lose_context");
 
@@ -732,9 +732,9 @@ function setupNonVisibleHandler(scene) {
       autoQuality.stopTracking();
       physics.updateSimulationRate(1000.0 / 15.0);
       accountChannel.setInactive();
-      clearTimeout(disableSoundTimeout);
+      clearTimeout(disableAmbienceTimeout);
 
-      disableSoundTimeout = setTimeout(() => {
+      disableAmbienceTimeout = setTimeout(() => {
         SYSTEMS.atmosphereSystem.disableAmbience();
       }, 15000);
     } else {
@@ -751,7 +751,7 @@ function setupNonVisibleHandler(scene) {
         autoQuality.startTracking();
       }
 
-      clearTimeout(disableSoundTimeout);
+      clearTimeout(disableAmbienceTimeout);
       document.body.classList.remove("paused");
       physics.updateSimulationRate(1000.0 / 90.0);
       accountChannel.setActive();
