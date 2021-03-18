@@ -699,7 +699,8 @@ function addGlobalEventListeners(scene, entryManager) {
       mixpanel.track("Event First World Load Complete", {});
     }
 
-    scene.systems["hubs-systems"].autoQualitySystem.startTracking();
+    SYSTEMS.atmosphereSystem.enableAmbience();
+    SYSTEMS.autoQualitySystem.startTracking();
   });
 
   scene.addEventListener("action_reset_objects", () => {
@@ -715,6 +716,7 @@ function addGlobalEventListeners(scene, entryManager) {
 function setupNonVisibleHandler(scene) {
   const physics = scene.systems["hubs-systems"].physicsSystem;
   const autoQuality = scene.systems["hubs-systems"].autoQualitySystem;
+  let disableAmbienceTimeout = null;
 
   const webglLoseContextExtension = scene.renderer.getContext().getExtension("WEBGL_lose_context");
 
@@ -730,6 +732,11 @@ function setupNonVisibleHandler(scene) {
       autoQuality.stopTracking();
       physics.updateSimulationRate(1000.0 / 15.0);
       accountChannel.setInactive();
+      clearTimeout(disableAmbienceTimeout);
+
+      disableAmbienceTimeout = setTimeout(() => {
+        SYSTEMS.atmosphereSystem.disableAmbience();
+      }, 15000);
     } else {
       if (document.visibilityState === "visible") {
         // Hacky. On some platforms GL context needs to be explicitly restored. So do it.
@@ -744,9 +751,11 @@ function setupNonVisibleHandler(scene) {
         autoQuality.startTracking();
       }
 
+      clearTimeout(disableAmbienceTimeout);
       document.body.classList.remove("paused");
       physics.updateSimulationRate(1000.0 / 90.0);
       accountChannel.setActive();
+      SYSTEMS.atmosphereSystem.enableAmbience();
     }
   };
 

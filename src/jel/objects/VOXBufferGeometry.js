@@ -110,7 +110,7 @@ function positionKey(x, y, z) {
 }
 
 class VOXBufferGeometry extends BufferGeometry {
-  constructor(chunk, skipDims) {
+  constructor(chunk, skipDims = [], vertPallette = null) {
     super();
     this.type = "VOXBufferGeometry";
 
@@ -132,6 +132,7 @@ class VOXBufferGeometry extends BufferGeometry {
     const vertices = [];
     const normals = [];
     const colors = [];
+    const palettes = [];
 
     const pushFace = (p1, p2, p3, p4, u1, v1, u2, v2, nx, ny, nz, r, g, b) => {
       const sx = size.x / 2;
@@ -146,6 +147,7 @@ class VOXBufferGeometry extends BufferGeometry {
       for (let i = 0; i < 4; i++) {
         normals.push(...[nx, nz, -ny]);
         colors.push(...[Math.floor(r * 255.0), Math.floor(g * 255.0), Math.floor(b * 255.0)]);
+        palettes.push(vertPallette);
       }
     };
 
@@ -322,6 +324,11 @@ class VOXBufferGeometry extends BufferGeometry {
     this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
     this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
     this.setAttribute("color", new Float32BufferAttribute(colors, 3));
+
+    if (vertPallette !== null) {
+      this.setAttribute("palette", new Float32BufferAttribute(palettes, 1));
+    }
+
     this.computeBoundingSphere();
   }
 }

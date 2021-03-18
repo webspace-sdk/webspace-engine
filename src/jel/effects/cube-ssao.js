@@ -450,7 +450,7 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
       this.material.uniforms.fxaaEdgeThresholdMin.value = 1.0;
       this.material.uniforms.offset.value = 0.35;
       this.material.uniforms.darkness.value = 5.0;
-      this.material.uniforms.saturation.value = 0.35;
+      this.material.uniforms.saturation.value = 0.1;
       this.material.uniforms.brightness.value = 0.1;
 
       this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
@@ -499,7 +499,7 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
       this.material.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
       this.material.uniforms.offset.value = 0.35;
       this.material.uniforms.darkness.value = 5.0;
-      this.material.uniforms.saturation.value = 0.15;
+      this.material.uniforms.saturation.value = 0.1;
       this.material.uniforms.brightness.value = 0.05;
       this.renderPass(renderer, this.material, this.renderToScreen ? null : writeBuffer);
     } else {

@@ -58,12 +58,11 @@ async function updateEnvironmentForHub(hub) {
   const sceneEl = document.querySelector("a-scene");
 
   // Clear the three.js image cache and load the loading environment before switching to the new one.
-  const terrainSystem = sceneEl.systems["hubs-systems"].terrainSystem;
-
   document.querySelector(".a-canvas").classList.remove("a-hidden");
   sceneEl.addState("visible");
 
-  terrainSystem.updateWorld(hub.world.type, hub.world.seed);
+  SYSTEMS.terrainSystem.updateWorldForHub(hub);
+  SYSTEMS.atmosphereSystem.updateAtmosphereForHub(hub);
 }
 
 async function moveToInitialHubLocation(hub, hubStore) {
@@ -552,7 +551,7 @@ const initHubPresence = async presence => {
   });
 };
 
-let updateTitleForHubHandler;
+let updateTitleAndWorldForHubHandler;
 
 const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI) => {
   let isInitialJoin = true;
@@ -591,10 +590,10 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
 
         // Wait for scene objects to load before connecting, so there is no race condition on network state.
         await new Promise(res => {
-          if (updateTitleForHubHandler) {
-            hubMetadata.unsubscribeFromMetadata(updateTitleForHubHandler);
+          if (updateTitleAndWorldForHubHandler) {
+            hubMetadata.unsubscribeFromMetadata(updateTitleAndWorldForHubHandler);
           }
-          updateTitleForHubHandler = (updatedIds, hubMetadata) => {
+          updateTitleAndWorldForHubHandler = (updatedIds, hubMetadata) => {
             const metadata = hubMetadata && hubMetadata.getMetadata(hub.hub_id);
 
             if (metadata) {
@@ -602,9 +601,11 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
             } else {
               document.title = `Jel`;
             }
+
+            updateEnvironmentForHub(metadata);
           };
-          hubMetadata.subscribeToMetadata(hub.hub_id, updateTitleForHubHandler);
-          updateTitleForHubHandler([hub.hub_id], hubMetadata);
+          hubMetadata.subscribeToMetadata(hub.hub_id, updateTitleAndWorldForHubHandler);
+          updateTitleAndWorldForHubHandler([hub.hub_id], hubMetadata);
           hubMetadata.ensureMetadataForIds([hub.hub_id]);
           updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
           updateEnvironmentForHub(hub);
@@ -614,6 +615,8 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
 
             // Clear voxmojis from prior world
             SYSTEMS.voxmojiSystem.clear();
+
+            SYSTEMS.atmosphereSystem.restartAmbience();
 
             clearResolveUrlCache();
 
@@ -843,6 +846,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
           const [
             worldType,
             worldSeed,
+            worldColors,
             spawnPosition,
             spawnRotation,
             spawnRadius
@@ -856,6 +860,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
             world,
             worldType,
             worldSeed,
+            worldColors,
             spawnPosition,
             spawnRotation,
             spawnRadius

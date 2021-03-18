@@ -31,6 +31,8 @@ import URL_FART_3 from "../../assets/jel/sfx/fart3.mp3";
 import URL_FART_4 from "../../assets/jel/sfx/fart4.mp3";
 import URL_FART_5 from "../../assets/jel/sfx/fart5.mp3";
 import URL_FART_BIG from "../../assets/jel/sfx/fart_big.mp3";
+import URL_OUTDOORS from "../../assets/jel/sfx/outdoors1.mp3";
+import URL_WATER from "../../assets/jel/sfx/water.mp3";
 import { setMatrixWorld } from "../utils/three-utils";
 
 let soundEnum = 0;
@@ -76,6 +78,8 @@ export const SOUND_FART_BIG = soundEnum++;
 export const SOUND_EMOJI_BURST = soundEnum++;
 export const SOUND_EMOJI_EQUIP = soundEnum++;
 export const SOUND_NOTIFICATION = soundEnum++;
+export const SOUND_OUTDOORS = soundEnum++;
+export const SOUND_WATER = soundEnum++;
 
 // Safari doesn't support the promise form of decodeAudioData, so we polyfill it.
 function decodeAudioData(audioContext, arrayBuffer) {
@@ -87,7 +91,12 @@ function decodeAudioData(audioContext, arrayBuffer) {
 export class SoundEffectsSystem {
   constructor(scene) {
     this.pendingAudioSourceNodes = [];
+    this.pendingAudioStartTimes = [];
     this.pendingPositionalAudios = [];
+
+    this.monoSourceFinalizers = [];
+    this.positionalSourceFinalizers = [];
+
     this.positionalAudiosStationary = [];
     this.positionalAudiosFollowingObject3Ds = [];
 
@@ -136,7 +145,9 @@ export class SoundEffectsSystem {
       [SOUND_FART_BIG, URL_FART_BIG],
       [SOUND_EMOJI_BURST, URL_QUIET_POP],
       [SOUND_EMOJI_EQUIP, URL_TICK_ALT],
-      [SOUND_NOTIFICATION, URL_QUIET_POP]
+      [SOUND_NOTIFICATION, URL_QUIET_POP],
+      [SOUND_OUTDOORS, URL_OUTDOORS],
+      [SOUND_WATER, URL_WATER]
     ];
     const loading = new Map();
     const load = url => {
@@ -178,7 +189,15 @@ export class SoundEffectsSystem {
     }, 250);
   }
 
-  enqueueSound(sound, loop) {
+  hasLoadedSound(sound) {
+    return this.sounds.has(sound);
+  }
+
+  getSoundDuration(sound) {
+    return this.sounds.get(sound).duration;
+  }
+
+  enqueueSound(sound, loop, startAt = 0) {
     if (this.isDisabled) return null;
     const audioBuffer = this.sounds.get(sound);
     if (!audioBuffer) return null;
@@ -189,6 +208,14 @@ export class SoundEffectsSystem {
     source.connect(this.audioContext.destination);
     source.loop = loop;
     this.pendingAudioSourceNodes.push(source);
+    this.pendingAudioStartTimes.push(startAt);
+
+    this.monoSourceFinalizers.push(() => {
+      if (!loop) {
+        source.disconnect();
+      }
+    });
+
     return source;
   }
 
@@ -204,6 +231,13 @@ export class SoundEffectsSystem {
     positionalAudio.setBuffer(audioBuffer);
     positionalAudio.loop = loop;
     this.pendingPositionalAudios.push(positionalAudio);
+
+    this.positionalSourceFinalizers.push(() => {
+      if (!loop) {
+        positionalAudio.disconnect();
+      }
+    });
+
     return positionalAudio;
   }
 
@@ -230,7 +264,7 @@ export class SoundEffectsSystem {
     return this.enqueueSound(sound, true);
   }
 
-  playSoundLoopedWithGain(sound) {
+  playSoundLoopedWithGain(sound, startAt = 0) {
     if (this.isDisabled) return null;
     const audioBuffer = this.sounds.get(sound);
     if (!audioBuffer) return null;
@@ -242,26 +276,42 @@ export class SoundEffectsSystem {
     gain.connect(this.audioContext.destination);
     source.loop = true;
     this.pendingAudioSourceNodes.push(source);
+    this.pendingAudioStartTimes.push(startAt);
+    this.monoSourceFinalizers.push(() => gain.disconnect());
+
+    // NOTE if you use this, disconnect() will not be called automaticlaly
+    // for you because the source node is not connected to the destination
+
     return { gain, source };
   }
 
   stopSoundNode(node) {
     const index = this.pendingAudioSourceNodes.indexOf(node);
     if (index !== -1) {
+      this.monoSourceFinalizers[index]();
+
       this.pendingAudioSourceNodes.splice(index, 1);
+      this.pendingAudioStartTimes.splice(index, 1);
+      this.monoSourceFinalizers.splice(index, 1);
     } else {
       node.stop();
+      node.disconnect();
     }
   }
 
   stopPositionalAudio(inPositionalAudio) {
     const pendingIndex = this.pendingPositionalAudios.indexOf(inPositionalAudio);
     if (pendingIndex !== -1) {
+      this.positionalSourceFinalizers[pendingIndex]();
       this.pendingPositionalAudios.splice(pendingIndex, 1);
+      this.positionalSourceFinalizers.splice(pendingIndex, 1);
     } else {
       if (inPositionalAudio.isPlaying) {
         inPositionalAudio.stop();
       }
+
+      inPositionalAudio.disconnect();
+
       if (inPositionalAudio.parent) {
         inPositionalAudio.parent.remove(inPositionalAudio);
       }
@@ -299,16 +349,30 @@ export class SoundEffectsSystem {
     }
 
     for (let i = 0; i < this.pendingAudioSourceNodes.length; i++) {
-      this.pendingAudioSourceNodes[i].start();
+      const sourceNode = this.pendingAudioSourceNodes[i];
+      sourceNode.start(0, this.pendingAudioStartTimes[i]);
+
+      // Finalizers run after the first playthrough, will remove wiring to destination for non-looped audio.
+      const finalizer = this.monoSourceFinalizers[i];
+      setTimeout(finalizer, sourceNode.buffer.duration * 1000.0 + 1000.0);
     }
+
     this.pendingAudioSourceNodes.length = 0;
+    this.pendingAudioStartTimes.length = 0;
+    this.monoSourceFinalizers.length = 0;
 
     for (let i = 0; i < this.pendingPositionalAudios.length; i++) {
       const pendingPositionalAudio = this.pendingPositionalAudios[i];
       this.scene.object3D.add(pendingPositionalAudio);
       pendingPositionalAudio.play();
+
+      // Finalizers run after the first playthrough, will remove wiring to destination for non-looped audio.
+      const finalizer = this.positionalSourceFinalizers[i];
+      setTimeout(finalizer, pendingPositionalAudio.buffer.duration * 1000.0 + 1000.0);
     }
+
     this.pendingPositionalAudios.length = 0;
+    this.positionalSourceFinalizers.length = 0;
 
     for (let i = this.positionalAudiosStationary.length - 1; i >= 0; i--) {
       const positionalAudio = this.positionalAudiosStationary[i];

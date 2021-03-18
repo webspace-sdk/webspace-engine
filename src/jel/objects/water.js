@@ -214,6 +214,11 @@ class Water extends Mesh {
     this.reflectionsForceOff = false;
   }
 
+  setColor(color) {
+    this.material.uniforms.color.value = color;
+    this.material.uniformsNeedUpdate = true;
+  }
+
   onAnimationTick({ delta }) {
     const {
       renderer,

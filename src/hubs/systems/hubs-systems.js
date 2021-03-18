@@ -57,7 +57,9 @@ AFRAME.registerSystem("hubs-systems", {
     this.cursorTargettingSystem = new CursorTargettingSystem();
     this.positionAtBorderSystem = new PositionAtBorderSystem();
     this.cameraSystem = new CameraSystem(this.el);
-    this.atmosphereSystem = new AtmosphereSystem(this.el, this.cameraSystem);
+    this.audioSystem = new AudioSystem(this.el);
+    this.soundEffectsSystem = new SoundEffectsSystem(this.el);
+    this.atmosphereSystem = new AtmosphereSystem(this.el, this.soundEffectsSystem);
     this.skyBeamSystem = new SkyBeamSystem(this.el);
     this.voxmojiSystem = new VoxmojiSystem(this.el, this.atmosphereSystem);
     this.physicsSystem = new PhysicsSystem(
@@ -73,8 +75,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.hoverButtonSystem = new HoverButtonSystem();
     this.hoverMenuSystem = new HoverMenuSystem();
     this.hapticFeedbackSystem = new HapticFeedbackSystem();
-    this.audioSystem = new AudioSystem(this.el);
-    this.soundEffectsSystem = new SoundEffectsSystem(this.el);
     this.scenePreviewCameraSystem = new ScenePreviewCameraSystem();
     this.spriteSystem = new SpriteSystem(this.el);
     this.batchManagerSystem = new BatchManagerSystem(this.el.object3D, this.el.renderer);

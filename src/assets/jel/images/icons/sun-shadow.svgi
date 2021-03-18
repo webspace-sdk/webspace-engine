@@ -1,0 +1,12 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="svg-overlay-shadow">
+<circle cx="16" cy="16" r="7" fill="currentColor"/>
+<line x1="16" y1="3" x2="16" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+<line x1="24.6568" y1="7.3432" x2="23.071" y2="8.92899" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+<line x1="16" y1="26" x2="16" y2="29" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+<line x1="8.92889" y1="23.0711" x2="7.34311" y2="24.6569" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+<line x1="28.9917" y1="16.0325" x2="25.9918" y2="16.0081" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+<line x1="24.6568" y1="24.6569" x2="23.071" y2="23.0711" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+<line x1="5.99174" y1="16.0325" x2="2.99184" y2="16.0081" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+<line x1="8.90003" y1="8.95767" x2="7.31424" y2="7.37188" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+</g>
+</svg>

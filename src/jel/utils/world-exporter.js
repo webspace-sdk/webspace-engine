@@ -1,6 +1,7 @@
 import { downloadText, vecRgbToCssRgb } from "./dom-utils";
 import cleaner from "clean-html";
 import { FONT_FACES } from "./quill-utils";
+import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { normalizeCoord } from "../systems/wrapped-entity-system";
 
 const tmpPos = new THREE.Vector3();
@@ -42,6 +43,13 @@ export default class WorldExporter {
     addMeta("jel-schema", "world-1.0");
     addMeta("jel-world-type", `${metadata.world.type}`);
     addMeta("jel-world-seed", `${metadata.world.seed}`);
+
+    WORLD_COLOR_TYPES.forEach(type => {
+      addMeta(`jel-world-${type}-color-r`, `${metadata.world[`${type}_color_r`]}`);
+      addMeta(`jel-world-${type}-color-g`, `${metadata.world[`${type}_color_g`]}`);
+      addMeta(`jel-world-${type}-color-b`, `${metadata.world[`${type}_color_b`]}`);
+    });
+
     addMeta("jel-spawn-position-x", `${spawnPosition.x}`);
     addMeta("jel-spawn-position-y", `${spawnPosition.y}`);
     addMeta("jel-spawn-position-z", `${spawnPosition.z}`);
