@@ -65,8 +65,6 @@ export const updateWorldColors = (groundColor, edgeColor, leavesColor, barkColor
   voxelMaterials.forEach(m => (m.uniformsNeedUpdate = true));
 };
 
-window.uc = updateWorldColors;
-
 const createVoxelMaterial = () => {
   const voxelMaterial = new ShaderMaterial({
     name: "voxels",
