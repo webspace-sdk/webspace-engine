@@ -9,7 +9,7 @@ import Tooltip from "./tooltip";
 import { getMessages } from "../../hubs/utils/i18n";
 import { useSingleton } from "@tippyjs/react";
 import { FormattedMessage } from "react-intl";
-import { Label, InputWrap, PanelWrap } from "./form-components";
+import { Label, InputWrap, PanelWrap, Checkbox } from "./form-components";
 import styled from "styled-components";
 import { DrivenColorPicker } from "./color-picker";
 import { objRgbToCssRgb } from "../utils/dom-utils";
@@ -71,6 +71,7 @@ const Swatches = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
+  margin-left: 6px;
 `;
 
 const Presets = styled.div`
@@ -157,6 +158,7 @@ const EnvironmentSettingsPopup = ({
   hub,
   hubMetadata
 }) => {
+  const { store } = window.APP;
   const [tipSource, tipTarget] = useSingleton();
   const [selectedColor, setSelectedColor] = useState(null);
   const [pickerColorValue, setPickerColorValue] = useState({ r: 0, g: 0, b: 0 });
@@ -175,6 +177,7 @@ const EnvironmentSettingsPopup = ({
   const [skyColor, setSkyColor] = useState(null);
   const skySwatchRef = useRef();
   const [waterColor, setWaterColor] = useState(null);
+  const [enableAmbience, setEnableAmbience] = useState(!store.state.preferences.disableAudioAmbience);
   const waterSwatchRef = useRef();
   const colorPickerWrapRef = useRef();
   const panelRef = useRef();
@@ -215,6 +218,17 @@ const EnvironmentSettingsPopup = ({
       updateColorState();
     },
     [hub, hubMetadata, updateColorState]
+  );
+
+  useEffect(
+    () => {
+      const handler = () => {
+        setEnableAmbience(!store.state.preferences.disableAudioAmbience);
+      };
+      store.addEventListener("statechanged-preferences", handler);
+      return () => store.removeEventListener("statechanged-preferences", handler);
+    },
+    [store, setEnableAmbience]
   );
 
   useEffect(
@@ -390,7 +404,7 @@ const EnvironmentSettingsPopup = ({
       </PresetsWrap>
       <PopupPanelMenu
         ref={panelRef}
-        style={{ padding: "32px 0px", borderRadius: "12px", maxWidth: "530px" }}
+        style={{ padding: "32px 0px", borderRadius: "12px" }}
         className={sharedStyles.slideUpWhenPopped}
       >
         <PanelWrap>
@@ -401,6 +415,8 @@ const EnvironmentSettingsPopup = ({
             <Label htmlFor="colors">
               <FormattedMessage id="environment-settings-popup.colors" />
             </Label>
+          </InputWrap>
+          <InputWrap style={{ minHeight: "48px" }}>
             <Swatches>
               <Tooltip
                 content={messages[`environment-settings-popup.swatch-ground`]}
@@ -579,9 +595,24 @@ const EnvironmentSettingsPopup = ({
               </Tooltip>
             </Swatches>
           </InputWrap>
-          <InputWrap>
+          <InputWrap style={{ minHeight: "48px" }}>
             <Label htmlFor="terrain">
               <FormattedMessage id="environment-settings-popup.terrain" />
+            </Label>
+          </InputWrap>
+          <InputWrap style={{ marginLeft: "22px", minHeight: "48px" }}>
+            <Checkbox
+              checked={enableAmbience}
+              type="checkbox"
+              id="enable_ambience"
+              name="enable_ambience"
+              onChange={e => {
+                const enabled = e.target.checked;
+                store.update({ preferences: { disableAudioAmbience: !enabled } });
+              }}
+            />
+            <Label htmlFor="enable_ambience" style={{ cursor: "pointer" }}>
+              <FormattedMessage id="environment-settings-popup.sound" />
             </Label>
           </InputWrap>
         </PanelWrap>
