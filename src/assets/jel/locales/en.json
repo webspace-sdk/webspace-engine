@@ -133,7 +133,7 @@
   "create-select.video_embed.tokens": "video url link embed youtube vimeo",
   "create-select.model_upload.title": "Upload 3D Model",
   "create-select.model_upload.description": "Upload a 3D glTF or VOX model.",
-  "create-select.model_upload.tokens": "model 3d glb gltf vox fbx",
+  "create-select.model_upload.tokens": "upload model 3d glb gltf vox fbx",
   "create-select.model_embed.title": "Embed 3D Model",
   "create-select.model_embed.description": "Link to a 3D model on the web.",
   "create-select.model_embed.tokens": "model 3d link url embed sketchfab poly",
