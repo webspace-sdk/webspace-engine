@@ -352,7 +352,7 @@ export class SoundEffectsSystem {
       const sourceNode = this.pendingAudioSourceNodes[i];
       sourceNode.start(0, this.pendingAudioStartTimes[i]);
 
-      // Finalizer will remove wiring to destination.
+      // Finalizers run after the first playthrough, will remove wiring to destination for non-looped audio.
       const finalizer = this.monoSourceFinalizers[i];
       setTimeout(finalizer, sourceNode.buffer.duration * 1000.0 + 1000.0);
     }
@@ -366,7 +366,7 @@ export class SoundEffectsSystem {
       this.scene.object3D.add(pendingPositionalAudio);
       pendingPositionalAudio.play();
 
-      // Finalizer will remove wiring to destination.
+      // Finalizers run after the first playthrough, will remove wiring to destination for non-looped audio.
       const finalizer = this.positionalSourceFinalizers[i];
       setTimeout(finalizer, pendingPositionalAudio.buffer.duration * 1000.0 + 1000.0);
     }
