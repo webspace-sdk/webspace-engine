@@ -302,7 +302,7 @@ export class SoundEffectsSystem {
   stopPositionalAudio(inPositionalAudio) {
     const pendingIndex = this.pendingPositionalAudios.indexOf(inPositionalAudio);
     if (pendingIndex !== -1) {
-      this.positoinalSourceFinalizers[pendingIndex]();
+      this.positionalSourceFinalizers[pendingIndex]();
       this.pendingPositionalAudios.splice(pendingIndex, 1);
       this.positionalSourceFinalizers.splice(pendingIndex, 1);
     } else {
