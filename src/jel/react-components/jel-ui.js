@@ -752,6 +752,13 @@ function JelUI(props) {
     SYSTEMS.atmosphereSystem.updateSkyColor(colors[6]);
   }, []);
 
+  const updateWorldType = useCallback(
+    worldType => {
+      spaceChannel.updateHub(hub.hub_id, { world_type: worldType });
+    },
+    [hub, spaceChannel]
+  );
+
   const saveCurrentEnvironmentColors = useCallback(
     () => {
       const colors = SYSTEMS.terrainSystem.worldColors;
@@ -1079,6 +1086,7 @@ function JelUI(props) {
         hubMetadata={hubMetadata}
         onColorsChanged={temporarilyUpdateEnvironmentColors}
         onColorChangeComplete={saveCurrentEnvironmentColors}
+        onTypeChanged={updateWorldType}
         onPresetColorsHovered={onEnvironmentPresetColorsHovered}
         onPresetColorsLeft={onEnvironmentPresetColorsLeft}
         onPresetColorsClicked={onEnvironmentPresetColorsClicked}

@@ -9,7 +9,7 @@ import Tooltip from "./tooltip";
 import { getMessages } from "../../hubs/utils/i18n";
 import { useSingleton } from "@tippyjs/react";
 import { FormattedMessage } from "react-intl";
-import { Label, InputWrap, PanelWrap, Checkbox } from "./form-components";
+import { Label, InputWrap, PanelWrap, Checkbox, Radio } from "./form-components";
 import styled from "styled-components";
 import { DrivenColorPicker } from "./color-picker";
 import { objRgbToCssRgb } from "../utils/dom-utils";
@@ -134,6 +134,23 @@ const PresetsWrap = styled.div`
   ${popupCss};
 `;
 
+const RadioWrap = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: row;
+  flex: 1;
+  min-width: 100px;
+`;
+
+const RadiosWrap = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  flex-direction: row;
+  margin-left: 12px;
+`;
+
 const toPickerValue = ({ r, g, b }) => ({ r: Math.floor(r * 255), g: Math.floor(g * 255), b: Math.floor(b * 255) });
 
 const showTargetBelowElement = (el, outerEl, targetEl, topOffset, leftOffset) => {
@@ -152,6 +169,7 @@ const EnvironmentSettingsPopup = ({
   children,
   onColorsChanged,
   onColorChangeComplete,
+  onTypeChanged,
   onPresetColorsHovered,
   onPresetColorsLeft,
   onPresetColorsClicked,
@@ -178,14 +196,17 @@ const EnvironmentSettingsPopup = ({
   const skySwatchRef = useRef();
   const [waterColor, setWaterColor] = useState(null);
   const [enableAmbience, setEnableAmbience] = useState(!store.state.preferences.disableAudioAmbience);
+  const [worldType, setWorldType] = useState(null);
   const waterSwatchRef = useRef();
   const colorPickerWrapRef = useRef();
   const panelRef = useRef();
   const presetButtonRef = useRef();
   const presetPickerWrapRef = useRef();
 
-  const updateColorState = useCallback(
+  const updateFromWorldMetadata = useCallback(
     () => {
+      if (!hub || !hubMetadata) return;
+
       const world = hubMetadata.getMetadata(hub.hub_id).world;
 
       const fieldList = [
@@ -208,16 +229,10 @@ const EnvironmentSettingsPopup = ({
           setter({ r, g, b });
         }
       });
+
+      setWorldType(world.type);
     },
     [hub, hubMetadata, groundColor, edgeColor, leavesColor, barkColor, rockColor, grassColor, skyColor, waterColor]
-  );
-
-  useEffect(
-    () => {
-      if (!hubMetadata || !hub) return () => {};
-      updateColorState();
-    },
-    [hub, hubMetadata, updateColorState]
   );
 
   useEffect(
@@ -231,31 +246,17 @@ const EnvironmentSettingsPopup = ({
     [store, setEnableAmbience]
   );
 
+  // Update from the world metadata every time the hub changes.
   useEffect(
     () => {
-      if (!hubMetadata || !hub) return () => {};
+      if (!hub || !hubMetadata) return;
 
-      if (groundColor === null) {
-        // Initializer
-        updateColorState();
-      }
+      updateFromWorldMetadata();
 
-      hubMetadata.subscribeToMetadata(hub.hub_id, updateColorState);
-      return () => hubMetadata.unsubscribeFromMetadata(updateColorState);
+      hubMetadata.subscribeToMetadata(hub.hub_id, updateFromWorldMetadata);
+      return () => hubMetadata.unsubscribeFromMetadata(updateFromWorldMetadata);
     },
-    [
-      hub,
-      hubMetadata,
-      groundColor,
-      edgeColor,
-      leavesColor,
-      barkColor,
-      rockColor,
-      grassColor,
-      skyColor,
-      waterColor,
-      updateColorState
-    ]
+    [hub, hubMetadata, updateFromWorldMetadata]
   );
 
   const showPresetPicker = useCallback(
@@ -383,7 +384,10 @@ const EnvironmentSettingsPopup = ({
                 <Swatch
                   onMouseOver={() => onPresetColorsHovered(i)}
                   onMouseOut={() => onPresetColorsLeft(i)}
-                  onClick={() => onPresetColorsClicked(i)}
+                  onClick={() => {
+                    onPresetColorsClicked(i);
+                    presetPickerWrapRef.current.parentElement.focus();
+                  }}
                   className="preset"
                   key={`preset_${i}`}
                   style={{
@@ -411,12 +415,7 @@ const EnvironmentSettingsPopup = ({
           <PanelSectionHeader style={{ marginLeft: 0 }}>
             <FormattedMessage id="environment-settings-popup.environment" />
           </PanelSectionHeader>
-          <InputWrap>
-            <Label htmlFor="colors">
-              <FormattedMessage id="environment-settings-popup.colors" />
-            </Label>
-          </InputWrap>
-          <InputWrap style={{ minHeight: "48px" }}>
+          <InputWrap style={{ minHeight: "48px", marginBottom: "2px" }}>
             <Swatches>
               <Tooltip
                 content={messages[`environment-settings-popup.swatch-ground`]}
@@ -595,12 +594,69 @@ const EnvironmentSettingsPopup = ({
               </Tooltip>
             </Swatches>
           </InputWrap>
-          <InputWrap style={{ minHeight: "48px" }}>
-            <Label htmlFor="terrain">
-              <FormattedMessage id="environment-settings-popup.terrain" />
-            </Label>
+          <InputWrap style={{ minHeight: "48px", marginLeft: "24px" }}>
+            <RadioWrap>
+              <Radio
+                type="radio"
+                id={"world_type_flat"}
+                name={"world_type"}
+                checked={worldType === 3}
+                value={3}
+                onChange={useCallback(
+                  e => {
+                    if (e.target.checked) {
+                      onTypeChanged(3);
+                    }
+                  },
+                  [onTypeChanged]
+                )}
+              />
+              <Label htmlFor="world_type_flat" style={{ cursor: "pointer" }}>
+                <FormattedMessage id="environment-settings-popup.world-type-flat" />
+              </Label>
+            </RadioWrap>
+            <RadioWrap>
+              <Radio
+                type="radio"
+                id={"world_type_hills"}
+                name={"world_type"}
+                checked={worldType === 2}
+                value={2}
+                onChange={useCallback(
+                  e => {
+                    if (e.target.checked) {
+                      onTypeChanged(2);
+                    }
+                  },
+                  [onTypeChanged]
+                )}
+              />
+              <Label htmlFor="world_type_hills" style={{ cursor: "pointer" }}>
+                <FormattedMessage id="environment-settings-popup.world-type-hills" />
+              </Label>
+            </RadioWrap>
+            <RadioWrap>
+              <Radio
+                type="radio"
+                id={"world_type_islands"}
+                name={"world_type"}
+                checked={worldType === 1}
+                value={1}
+                onChange={useCallback(
+                  e => {
+                    if (e.target.checked) {
+                      onTypeChanged(1);
+                    }
+                  },
+                  [onTypeChanged]
+                )}
+              />
+              <Label htmlFor="world_type_islands" style={{ cursor: "pointer" }}>
+                <FormattedMessage id="environment-settings-popup.world-type-islands" />
+              </Label>
+            </RadioWrap>
           </InputWrap>
-          <InputWrap style={{ marginLeft: "22px", minHeight: "48px" }}>
+          <InputWrap style={{ minHeight: "48px", marginLeft: "24px" }}>
             <Checkbox
               checked={enableAmbience}
               type="checkbox"
@@ -631,6 +687,7 @@ const EnvironmentSettingsPopup = ({
 EnvironmentSettingsPopup.propTypes = {
   onColorsChanged: PropTypes.func,
   onColorChangeComplete: PropTypes.func,
+  onTypeChanged: PropTypes.func,
   onPresetColorsHovered: PropTypes.func,
   onPresetColorsLeft: PropTypes.func,
   onPresetColorsClicked: PropTypes.func,
