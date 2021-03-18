@@ -16,7 +16,54 @@ const {
   LOD
 } = THREE;
 
+export const VOXEL_PALETTE_NONE = 0;
+export const VOXEL_PALETTE_GROUND = 1;
+export const VOXEL_PALETTE_EDGE = 2;
+export const VOXEL_PALETTE_LEAVES = 3;
+export const VOXEL_PALETTE_BARK = 4;
+export const VOXEL_PALETTE_ROCK = 5;
+export const VOXEL_PALETTE_GRASS = 6;
+
 const LOD_DISTANCES = [0, 20, 24];
+
+const colorMap = new Float32Array(7 * 4);
+const voxelMaterials = [];
+
+const colorMapTexture = new THREE.DataTexture(colorMap, 7, 1);
+colorMapTexture.format = THREE.RGBAFormat;
+colorMapTexture.type = THREE.FloatType;
+colorMapTexture.minFilter = THREE.NearestFilter;
+colorMapTexture.magFilter = THREE.NearestFilter;
+
+export const updateWorldColors = (groundColor, edgeColor, leavesColor, barkColor, rockColor, grassColor) => {
+  const set = (index, { r, g, b }) => {
+    colorMap[index * 4] = r;
+    colorMap[index * 4 + 1] = g;
+    colorMap[index * 4 + 2] = b;
+    const tmp = new THREE.Color(r, g, b);
+    const tmp2 = {};
+    tmp.getHSL(tmp2);
+
+    // Last component is a multiplier for the brightness gradient to
+    // apply. Brighter colors should have a stronger gradient.
+    //
+    // Otherwise, dark colors will wash to black at peaks in terrain,
+    // and bright colors will have less visible gradient.
+
+    const grad = Math.min(3.0, tmp2.l / 0.25);
+    colorMap[index * 4 + 3] = grad;
+  };
+
+  set(VOXEL_PALETTE_GROUND, groundColor);
+  set(VOXEL_PALETTE_EDGE, edgeColor);
+  set(VOXEL_PALETTE_LEAVES, leavesColor);
+  set(VOXEL_PALETTE_BARK, barkColor);
+  set(VOXEL_PALETTE_ROCK, rockColor);
+  set(VOXEL_PALETTE_GRASS, grassColor);
+
+  colorMapTexture.needsUpdate = true;
+  voxelMaterials.forEach(m => (m.uniformsNeedUpdate = true));
+};
 
 const createVoxelMaterial = () => {
   const voxelMaterial = new ShaderMaterial({
@@ -30,7 +77,8 @@ const createVoxelMaterial = () => {
       ...MeshStandardMaterial.defines
     },
     uniforms: {
-      ...UniformsUtils.clone(ShaderLib.standard.uniforms)
+      ...UniformsUtils.clone(ShaderLib.standard.uniforms),
+      colorMap: { value: colorMapTexture }
     }
   });
 
@@ -39,9 +87,27 @@ const createVoxelMaterial = () => {
 
   voxelMaterial.onBeforeCompile = shader => {
     addVertexCurvingToShader(shader);
-    shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <uv2_pars_vertex>",
+      [
+        "#include <uv2_pars_vertex>",
+        "precision highp sampler2D;",
+        "uniform sampler2D colorMap;",
+        "attribute float palette;"
+      ].join("\n")
+    );
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <color_vertex>",
+      [
+        "vec4 shift = texture(colorMap, vec2(float(palette) / 6.0, 0.1));",
+        // Voxel colors have a red channel that provides brightness offsets
+        "float brightDelta = (color.x - 128.0) / 255.0 * shift.a;",
+        "vColor.xyz = clamp(vec3(shift.x, shift.y, shift.z) + brightDelta, 0.0, 1.0);"
+      ].join("\n")
+    );
   };
 
+  voxelMaterials.push(voxelMaterial);
   return voxelMaterial;
 };
 
@@ -118,7 +184,7 @@ class Terrain extends Object3D {
       const mesh = this.meshes[i];
       if (!mesh) continue;
 
-      const { color, position, uv, normal } = geometries.opaque[i];
+      const { color, position, uv, normal, palette } = geometries.opaque[i];
 
       if (!position.length) continue;
 
@@ -129,6 +195,7 @@ class Terrain extends Object3D {
       geometry.setAttribute("position", new Float32BufferAttribute(position, 3));
       geometry.setAttribute("uv", new BufferAttribute(uv, 2));
       geometry.setAttribute("normal", new BufferAttribute(normal, 3));
+      geometry.setAttribute("palette", new BufferAttribute(palette, 1));
 
       const len = (position.length / 3 / 4) * 6;
       const index = new (len >= 1024 * 64 ? Uint32Array : Uint16Array)(len);

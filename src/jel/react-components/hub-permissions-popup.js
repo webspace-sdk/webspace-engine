@@ -55,7 +55,7 @@ const HubPermissionsPopup = ({ setPopperElement, styles, attributes, hubMetadata
             <FormattedMessage id="hub-permissions-popup.permissions" />
           </PanelSectionHeader>
           {checkboxControlFor(
-            "notify_joins",
+            "allow_editing",
             "hub-permissions-popup.allow_editing",
             allowEditing,
             setAllowEditing,

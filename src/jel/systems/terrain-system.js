@@ -1,13 +1,13 @@
 import Pako from "pako";
 import { CONSTANTS } from "three-ammo";
 import { protocol } from "../protocol/protocol";
-import { createVoxelMaterial, Terrain } from "../objects/terrain";
+import { createVoxelMaterial, Terrain, updateWorldColors, VOXEL_PALETTE_GRASS } from "../objects/terrain";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { VOXLoader } from "../objects/VOXLoader";
 import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import grassVoxSrc from "!!url-loader!../../assets/jel/models/grass1.vox";
-import { RENDER_ORDER } from "../../hubs/constants";
+import { RENDER_ORDER, WORLD_COLOR_TYPES } from "../../hubs/constants";
 import configs from "../../hubs/utils/configs";
 import { Layers } from "../../hubs/components/layers";
 import qsTruthy from "../../hubs/utils/qs_truthy";
@@ -153,6 +153,7 @@ export class TerrainSystem {
     this.loadingChunks = new Map();
     this.spawningChunks = new Map();
     this.chunkFeatures = new Map();
+    this.worldColors = null;
 
     // Note: chunk height maps are retained even when chunks are de-spawned,
     // since loadAllHeightMaps() can be used to ensure getTerrainHeightAtWorldCoord
@@ -209,6 +210,12 @@ export class TerrainSystem {
         }
       }
     }
+  }
+
+  updateWorldColors(...colors) {
+    this.worldColors = colors;
+
+    updateWorldColors(...colors);
   }
 
   // Loads + caches all the heightmaps, so heightmap queries via getTerrainHeightAtWorldCoord
@@ -353,10 +360,24 @@ export class TerrainSystem {
     });
   };
 
-  updateWorld(type, seed) {
+  updateWorldForHub({ world }) {
+    // Update colors
+    const colors = [];
+    WORLD_COLOR_TYPES.forEach(type => {
+      const r = world[`${type}_color_r`];
+      const g = world[`${type}_color_g`];
+      const b = world[`${type}_color_b`];
+      colors.push({ r, g, b });
+    });
+
+    this.updateWorldColors(...colors);
+
+    // Check if type or seed has changed.
+    const { type, seed } = world;
+
     if (this.worldType === type && this.worldSeed === seed) return;
 
-    // Perform fog effect since terr
+    // Perform fog effect
     this.atmosphereSystem.maximizeFog();
 
     this.worldType = type;
@@ -381,7 +402,7 @@ export class TerrainSystem {
             this.grasses.push(meshes);
 
             for (let i = 0; i < 9; i++) {
-              const geometry = new VOXBufferGeometry(chunks[j]);
+              const geometry = new VOXBufferGeometry(chunks[j], [], VOXEL_PALETTE_GRASS);
               geometry.translate(0, 6, 0);
 
               const mesh = new DynamicInstancedMesh(geometry, featureMeshMaterial, 1024 * 8);

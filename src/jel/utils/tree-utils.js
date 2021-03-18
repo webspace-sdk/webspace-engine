@@ -132,12 +132,23 @@ export async function addNewHubToTree(
   template = null,
   worldType = null,
   worldSeed = null,
+  worldColors = null,
   spawnPosition = null,
   spawnRotation = null,
   spawnRadius = null
 ) {
   const tree = treeManager.sharedNav;
-  const hub = await createHub(spaceId, name, template, worldType, worldSeed, spawnPosition, spawnRotation, spawnRadius);
+  const hub = await createHub(
+    spaceId,
+    name,
+    template,
+    worldType,
+    worldSeed,
+    worldColors,
+    spawnPosition,
+    spawnRotation,
+    spawnRadius
+  );
   const insertUnderNodeId = insertUnderAtomId ? tree.getNodeIdForAtomId(insertUnderAtomId) : null;
 
   if (insertUnderNodeId) {

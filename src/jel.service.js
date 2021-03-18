@@ -1,5 +1,10 @@
 const UNNAMED_WORLD = "Unnamed World";
 
+// Play the sound effect for a notification at most every 5 minutes since desktop
+// notification sound isn't customizable and can be annoying.
+const DESKTOP_SOUND_DELAY_MS = 5 * 60.0 * 1000.0;
+let lastDesktopSoundPlayedAt = 0;
+
 self.addEventListener("install", function(e) {
   return e.waitUntil(self.skipWaiting());
 });
@@ -15,9 +20,31 @@ self.addEventListener("push", function(e) {
 
   return e.waitUntil(
     self.clients.matchAll({ type: "window" }).then(function(clientList) {
+      const now = performance.now();
+      let openClient = null;
+
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
-        if (client.url.indexOf(payload.hub_id) >= 0 && client.focused) return;
+
+        if (client.url.indexOf("https://jel.app/") >= 0) {
+          // Don't show a notification if client app is already focused on this computer.
+          if (client.focused) return;
+
+          openClient = client;
+        }
+      }
+
+      // Silence (annoying) desktop notification sound if we can send it to a client
+      // or if we've been playing it too excessively.
+      const silent = !!(openClient || now - lastDesktopSoundPlayedAt < DESKTOP_SOUND_DELAY_MS);
+
+      if (!silent) {
+        lastDesktopSoundPlayedAt = now;
+      }
+
+      if (openClient) {
+        // Client can play custom notificaiton
+        openClient.postMessage({ action: "play_notification_sound" });
       }
 
       return self.registration.showNotification("Jel", {
@@ -25,7 +52,8 @@ self.addEventListener("push", function(e) {
         icon: "/app-icon.png",
         badge: "/app-icon.png",
         tag: payload.type === "join" ? payload.hub_id : payload.body,
-        data: { hub_url: payload.hub_url }
+        data: { hub_url: payload.hub_url },
+        silent
       });
     })
   );

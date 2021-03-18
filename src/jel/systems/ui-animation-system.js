@@ -33,6 +33,13 @@ export class UIAnimationSystem {
       clearInterval(initialUIApplyInterval);
     }, 250);
 
+    document.addEventListener("visibilitychange", () => {
+      // Attempt to fix issues with layout not being set when focusing window
+      if (document.visibilityState === "visible") {
+        this.applyUI(this.targetSceneLeft, this.targetSceneRight);
+      }
+    });
+
     // Initialize nav and presence width CSS vars to stored state.
     document.documentElement.style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
     document.documentElement.style.setProperty("--presence-width", `${this.targetSceneRight}px`);
@@ -149,7 +156,6 @@ export class UIAnimationSystem {
   // Returns true if was applied successfully
   applyUI(left, right) {
     const body = document.body;
-    const canvas = this.sceneEl.canvas;
 
     const width = body.clientWidth - left - right;
     const gazeCursor = document.getElementById("gaze-cursor");

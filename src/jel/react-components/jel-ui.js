@@ -15,6 +15,8 @@ import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../ut
 import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
+import { WORLD_COLOR_TYPES } from "../../hubs/constants";
+import { getPresetAsColorTuples } from "../utils/world-color-presets";
 import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
 import Snackbar from "./snackbar";
@@ -22,6 +24,7 @@ import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shad
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
 import notificationsIcon from "../../assets/jel/images/icons/notifications-shadow.svgi";
 import securityIcon from "../../assets/jel/images/icons/security-shadow.svgi";
+import sunIcon from "../../assets/jel/images/icons/sun-shadow.svgi";
 import RenamePopup from "./rename-popup";
 import ConfirmModalPopup from "./confirm-modal-popup";
 import CreateEmbedPopup from "./create-embed-popup";
@@ -34,6 +37,7 @@ import EquippedEmojiIcon from "./equipped-emoji-icon";
 import SpaceNotificationsPopup from "./space-notifications-popup";
 import HubPermissionsPopup from "./hub-permissions-popup";
 import HubNotificationsPopup from "./hub-notifications-popup";
+import EnvironmentSettingsPopup from "./environment-settings-popup";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
@@ -398,6 +402,20 @@ const HubCreateButton = forwardRef((props, ref) => {
 
 HubCreateButton.displayName = "HubCreateButton";
 
+const EnvironmentSettingsButton = forwardRef((props, ref) => {
+  const messages = getMessages();
+
+  return (
+    <Tooltip content={messages["environment-settings.tip"]} placement="top" key="environment-settings" delay={500}>
+      <HubCornerButtonElement {...props} ref={ref}>
+        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: sunIcon }} />
+      </HubCornerButtonElement>
+    </Tooltip>
+  );
+});
+
+EnvironmentSettingsButton.displayName = "EnvironmentSettingsButton";
+
 const HubPermissionsButton = forwardRef((props, ref) => {
   const messages = getMessages();
 
@@ -507,6 +525,7 @@ function JelUI(props) {
   const confirmModalFocusRef = useRef();
   const emojiPopupFocusRef = useRef();
   const hubPermissionsButtonRef = useRef();
+  const environmentSettingsButtonRef = useRef();
   const hubNotificationButtonRef = useRef();
 
   const {
@@ -624,6 +643,15 @@ function JelUI(props) {
   } = usePopupPopper(null, "bottom-end", [0, 8]);
 
   const {
+    styles: environmentSettingsPopupStyles,
+    attributes: environmentSettingsPopupAttributes,
+    show: showEnvironmentSettingsPopup,
+    setPopup: setEnvironmentSettingsPopupElement,
+    popupElement: environmentSettingsPopupElement,
+    update: updateEnvironmentSettingsPopup
+  } = usePopupPopper(null, "bottom-end", [0, 8]);
+
+  const {
     styles: hubPermissionsPopupStyles,
     attributes: hubPermissionsPopupAttributes,
     show: showHubPermissionsPopup,
@@ -648,6 +676,7 @@ function JelUI(props) {
         if (updateEmojiPopup) updateEmojiPopup();
         if (updateSpaceNotificationPopup) updateSpaceNotificationPopup();
         if (updateHubNotificationPopup) updateHubNotificationPopup();
+        if (updateEnvironmentSettingsPopup) updateEnvironmentSettingsPopup();
         if (updateHubPermissionsPopup) updateHubPermissionsPopup();
       };
 
@@ -668,7 +697,8 @@ function JelUI(props) {
       updateEmojiPopup,
       updateSpaceNotificationPopup,
       updateHubNotificationPopup,
-      updateHubPermissionsPopup
+      updateHubPermissionsPopup,
+      updateEnvironmentSettingsPopup
     ]
   );
 
@@ -767,6 +797,60 @@ function JelUI(props) {
   const onTrailHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
 
   const onTurnOnNotificationClicked = useCallback(() => subscriptions.subscribe(), [subscriptions]);
+
+  const temporarilyUpdateEnvironmentColors = useCallback((...colors) => {
+    SYSTEMS.terrainSystem.updateWorldColors(...colors);
+    SYSTEMS.atmosphereSystem.updateWaterColor(colors[7]);
+    SYSTEMS.atmosphereSystem.updateSkyColor(colors[6]);
+  }, []);
+
+  const updateWorldType = useCallback(
+    worldType => {
+      spaceChannel.updateHub(hub.hub_id, { world_type: worldType });
+    },
+    [hub, spaceChannel]
+  );
+
+  const saveCurrentEnvironmentColors = useCallback(
+    () => {
+      const colors = SYSTEMS.terrainSystem.worldColors;
+      const hubWorldColors = {};
+
+      WORLD_COLOR_TYPES.forEach((type, idx) => {
+        hubWorldColors[`world_${type}_color_r`] = (colors[idx] && colors[idx].r) || 0;
+        hubWorldColors[`world_${type}_color_g`] = (colors[idx] && colors[idx].g) || 0;
+        hubWorldColors[`world_${type}_color_b`] = (colors[idx] && colors[idx].b) || 0;
+      });
+
+      spaceChannel.updateHub(hub.hub_id, hubWorldColors);
+    },
+    [hub, spaceChannel]
+  );
+
+  const onEnvironmentPresetColorsHovered = useCallback(
+    i => {
+      const colors = getPresetAsColorTuples(i);
+      temporarilyUpdateEnvironmentColors(...colors);
+    },
+    [temporarilyUpdateEnvironmentColors]
+  );
+
+  const onEnvironmentPresetColorsLeft = useCallback(
+    () => {
+      SYSTEMS.terrainSystem.updateWorldForHub(hub);
+      SYSTEMS.atmosphereSystem.updateAtmosphereForHub(hub);
+    },
+    [hub]
+  );
+
+  const onEnvironmentPresetColorsClicked = useCallback(
+    i => {
+      const colors = getPresetAsColorTuples(i);
+      temporarilyUpdateEnvironmentColors(...colors);
+      saveCurrentEnvironmentColors();
+    },
+    [saveCurrentEnvironmentColors, temporarilyUpdateEnvironmentColors]
+  );
 
   // Handle subscriptions changed
 
@@ -872,6 +956,14 @@ function JelUI(props) {
                   <FormattedMessage id="install.desktop" />
                 </HubCornerButton>
               )}
+              {hubCan &&
+                hubCan("update_hub_meta", hub && hub.hub_id) && (
+                  <EnvironmentSettingsButton
+                    ref={environmentSettingsButtonRef}
+                    onMouseDown={e => cancelEventIfFocusedWithin(e, environmentSettingsPopupElement)}
+                    onClick={() => showEnvironmentSettingsPopup(environmentSettingsButtonRef)}
+                  />
+                )}
               {hubCan &&
                 hubCan("update_hub_roles", hub && hub.hub_id) && (
                   <HubPermissionsButton
@@ -1064,6 +1156,19 @@ function JelUI(props) {
         atomMetadata={channelMetadata}
         attributes={confirmModalPopupAttributes}
         ref={confirmModalFocusRef}
+      />
+      <EnvironmentSettingsPopup
+        setPopperElement={setEnvironmentSettingsPopupElement}
+        styles={environmentSettingsPopupStyles}
+        attributes={environmentSettingsPopupAttributes}
+        hub={hub}
+        hubMetadata={hubMetadata}
+        onColorsChanged={temporarilyUpdateEnvironmentColors}
+        onColorChangeComplete={saveCurrentEnvironmentColors}
+        onTypeChanged={updateWorldType}
+        onPresetColorsHovered={onEnvironmentPresetColorsHovered}
+        onPresetColorsLeft={onEnvironmentPresetColorsLeft}
+        onPresetColorsClicked={onEnvironmentPresetColorsClicked}
       />
       <CreateEmbedPopup
         setPopperElement={setCreateEmbedPopupElement}

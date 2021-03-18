@@ -112,7 +112,7 @@ import "./jel/components/pinned-to-self";
 import "./jel/components/look-at-self";
 import Subscriptions from "./hubs/subscriptions";
 
-import { SOUND_QUACK, SOUND_SPECIAL_QUACK } from "./hubs/systems/sound-effects-system";
+import { SOUND_QUACK, SOUND_SPECIAL_QUACK, SOUND_NOTIFICATION } from "./hubs/systems/sound-effects-system";
 import ducky from "./assets/hubs/models/DuckyMesh.glb";
 import { getAbsoluteHref } from "./hubs/utils/media-url-utils";
 
@@ -704,7 +704,8 @@ function addGlobalEventListeners(scene, entryManager) {
       mixpanel.track("Event First World Load Complete", {});
     }
 
-    scene.systems["hubs-systems"].autoQualitySystem.startTracking();
+    SYSTEMS.atmosphereSystem.enableAmbience();
+    SYSTEMS.autoQualitySystem.startTracking();
   });
 
   scene.addEventListener("action_reset_objects", () => {
@@ -720,6 +721,7 @@ function addGlobalEventListeners(scene, entryManager) {
 function setupNonVisibleHandler(scene) {
   const physics = scene.systems["hubs-systems"].physicsSystem;
   const autoQuality = scene.systems["hubs-systems"].autoQualitySystem;
+  let disableAmbienceTimeout = null;
 
   const webglLoseContextExtension = scene.renderer.getContext().getExtension("WEBGL_lose_context");
 
@@ -735,6 +737,11 @@ function setupNonVisibleHandler(scene) {
       autoQuality.stopTracking();
       physics.updateSimulationRate(1000.0 / 15.0);
       accountChannel.setInactive();
+      clearTimeout(disableAmbienceTimeout);
+
+      disableAmbienceTimeout = setTimeout(() => {
+        SYSTEMS.atmosphereSystem.disableAmbience();
+      }, 15000);
     } else {
       if (document.visibilityState === "visible") {
         // Hacky. On some platforms GL context needs to be explicitly restored. So do it.
@@ -749,9 +756,11 @@ function setupNonVisibleHandler(scene) {
         autoQuality.startTracking();
       }
 
+      clearTimeout(disableAmbienceTimeout);
       document.body.classList.remove("paused");
       physics.updateSimulationRate(1000.0 / 90.0);
       accountChannel.setActive();
+      SYSTEMS.atmosphereSystem.enableAmbience();
     }
   };
 
@@ -998,7 +1007,14 @@ async function start() {
         .register("/jel.service.js")
         .then(() => {
           navigator.serviceWorker.ready
-            .then(registration => subscriptions.setRegistration(registration))
+            .then(registration => {
+              subscriptions.setRegistration(registration);
+              navigator.serviceWorker.addEventListener("message", event => {
+                if (event.data.action === "play_notification_sound") {
+                  SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_NOTIFICATION);
+                }
+              });
+            })
             .catch(e => console.error(e));
         })
         .catch(e => console.error(e));

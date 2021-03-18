@@ -88,9 +88,19 @@ const Picker = ({ onChange, onChangeComplete }) => {
   return <InnerPicker color={color} onChange={handleColorChange} onChangeComplete={onChangeComplete} />;
 };
 
+export const DrivenColorPicker = ({ onChange, onChangeComplete, color }) => {
+  return <InnerPicker color={color} onChange={onChange} onChangeComplete={onChangeComplete} />;
+};
+
 Picker.propTypes = {
   onChange: PropTypes.func,
   onChangeComplete: PropTypes.func
+};
+
+DrivenColorPicker.propTypes = {
+  onChange: PropTypes.func,
+  onChangeComplete: PropTypes.func,
+  color: PropTypes.object
 };
 
 export default Picker;

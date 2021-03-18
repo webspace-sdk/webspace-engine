@@ -1,5 +1,5 @@
-/* eslint-disable */
-import $protobuf from "protobufjs";
+/*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
+import * as $protobuf from "protobufjs/minimal";
 
 const $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
 
@@ -23,6 +23,7 @@ export const protocol = $root.protocol = (() => {
         Geometry.prototype.color = $util.newBuffer([]);
         Geometry.prototype.uv = $util.newBuffer([]);
         Geometry.prototype.normal = $util.newBuffer([]);
+        Geometry.prototype.palette = $util.newBuffer([]);
 
         Geometry.create = function create(properties) {
             return new Geometry(properties);
@@ -43,6 +44,8 @@ export const protocol = $root.protocol = (() => {
                 writer.uint32(26).bytes(message.uv);
             if (message.normal != null && Object.hasOwnProperty.call(message, "normal"))
                 writer.uint32(34).bytes(message.normal);
+            if (message.palette != null && Object.hasOwnProperty.call(message, "palette"))
+                writer.uint32(42).bytes(message.palette);
             return writer;
         };
 
@@ -75,6 +78,9 @@ export const protocol = $root.protocol = (() => {
                     break;
                 case 4:
                     message.normal = reader.bytes();
+                    break;
+                case 5:
+                    message.palette = reader.bytes();
                     break;
                 default:
                     reader.skipType(tag & 7);
@@ -109,6 +115,9 @@ export const protocol = $root.protocol = (() => {
             if (message.normal != null && message.hasOwnProperty("normal"))
                 if (!(message.normal && typeof message.normal.length === "number" || $util.isString(message.normal)))
                     return "normal: buffer expected";
+            if (message.palette != null && message.hasOwnProperty("palette"))
+                if (!(message.palette && typeof message.palette.length === "number" || $util.isString(message.palette)))
+                    return "palette: buffer expected";
             return null;
         };
 
@@ -138,6 +147,11 @@ export const protocol = $root.protocol = (() => {
                     $util.base64.decode(object.normal, message.normal = $util.newBuffer($util.base64.length(object.normal)), 0);
                 else if (object.normal.length)
                     message.normal = object.normal;
+            if (object.palette != null)
+                if (typeof object.palette === "string")
+                    $util.base64.decode(object.palette, message.palette = $util.newBuffer($util.base64.length(object.palette)), 0);
+                else if (object.palette.length)
+                    message.palette = object.palette;
             return message;
         };
 
@@ -169,6 +183,13 @@ export const protocol = $root.protocol = (() => {
                     if (options.bytes !== Array)
                         object.normal = $util.newBuffer(object.normal);
                 }
+                if (options.bytes === String)
+                    object.palette = "";
+                else {
+                    object.palette = [];
+                    if (options.bytes !== Array)
+                        object.palette = $util.newBuffer(object.palette);
+                }
             }
             if (message.position && message.position.length) {
                 object.position = [];
@@ -181,6 +202,8 @@ export const protocol = $root.protocol = (() => {
                 object.uv = options.bytes === String ? $util.base64.encode(message.uv, 0, message.uv.length) : options.bytes === Array ? Array.prototype.slice.call(message.uv) : message.uv;
             if (message.normal != null && message.hasOwnProperty("normal"))
                 object.normal = options.bytes === String ? $util.base64.encode(message.normal, 0, message.normal.length) : options.bytes === Array ? Array.prototype.slice.call(message.normal) : message.normal;
+            if (message.palette != null && message.hasOwnProperty("palette"))
+                object.palette = options.bytes === String ? $util.base64.encode(message.palette, 0, message.palette.length) : options.bytes === Array ? Array.prototype.slice.call(message.palette) : message.palette;
             return object;
         };
 

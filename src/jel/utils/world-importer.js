@@ -2,6 +2,7 @@ import { addMedia } from "../../hubs/utils/media-utils";
 import { parse as transformParse } from "transform-parser";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { ensureOwnership } from "./ownership-utils";
+import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { FONT_FACES } from "./quill-utils";
 
 const transformUnitToMeters = s => {
@@ -61,6 +62,24 @@ export default class WorldImporter {
 
       const worldType = getMeta("jel-world-type");
       const worldSeed = getMeta("jel-world-seed");
+      let worldColors = {};
+
+      WORLD_COLOR_TYPES.forEach(type => {
+        const r = getMeta(`jel-world-${type}-color-r`);
+        const g = getMeta(`jel-world-${type}-color-g`);
+        const b = getMeta(`jel-world-${type}-color-b`);
+
+        if (r !== null && g !== null && b !== null) {
+          worldColors[`${type}_color_r`] = r;
+          worldColors[`${type}_color_g`] = g;
+          worldColors[`${type}_color_b`] = b;
+        }
+      });
+
+      if ([...Object.keys(worldColors)].length === 0) {
+        // No colors in meta tags, so don't return any which will cause a preset to be used.
+        worldColors = null;
+      }
 
       const px = getMeta("jel-spawn-position-x");
       const py = getMeta("jel-spawn-position-y");
@@ -85,7 +104,7 @@ export default class WorldImporter {
         spawnRadius = parseFloat(rad);
       }
 
-      return [worldType, worldSeed, spawnPosition, spawnRotation, spawnRadius];
+      return [worldType, worldSeed, worldColors, spawnPosition, spawnRotation, spawnRadius];
     }
 
     return [null, null, null, null, null];

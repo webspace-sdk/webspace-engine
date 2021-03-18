@@ -17,6 +17,7 @@ const {
 import { Pass } from "three/examples/jsm/postprocessing/Pass.js";
 import { FXAAFunc } from "./fxaa-shader";
 
+const isFirefox = navigator.userAgent.toLowerCase().indexOf("firefox") > -1;
 const FAR_PLANE_FOR_SSAO = 2;
 
 const CubeSSAOShader = {
@@ -449,7 +450,7 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
       this.material.uniforms.fxaaEdgeThresholdMin.value = 1.0;
       this.material.uniforms.offset.value = 0.35;
       this.material.uniforms.darkness.value = 5.0;
-      this.material.uniforms.saturation.value = 0.35;
+      this.material.uniforms.saturation.value = 0.1;
       this.material.uniforms.brightness.value = 0.1;
 
       this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
@@ -476,7 +477,7 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
       this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
       // Copy composed buffer to screen
       this.renderPass(renderer, this.material, this.renderToScreen ? null : writeBuffer);
-    } else if (window.APP.detailLevel === 1) {
+    } else if (window.APP.detailLevel === 1 && !isFirefox /* Doesn't work on FF for some reason, punting for now */) {
       renderer.setRenderTarget(this.sceneRenderTarget);
       renderer.clear();
       renderer.render(this.scene, this.camera);
@@ -484,6 +485,7 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
       this.material.stencilFunc = EqualStencilFunc;
       this.material.stencilRef = 0;
       this.material.uniforms.runAO.value = false;
+      this.material.uniforms.runCopy.value = false;
       this.material.uniforms.runFXAA.value = true;
       this.material.uniforms.fxaaQualitySubpix.value = 0.5;
       this.material.uniforms.fxaaEdgeThreshold.value = 0.166;
@@ -497,10 +499,10 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
       this.material.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
       this.material.uniforms.offset.value = 0.35;
       this.material.uniforms.darkness.value = 5.0;
-      this.material.uniforms.saturation.value = 0.15;
+      this.material.uniforms.saturation.value = 0.1;
       this.material.uniforms.brightness.value = 0.05;
       this.renderPass(renderer, this.material, this.renderToScreen ? null : writeBuffer);
-    } else if (window.APP.detailLevel === 2) {
+    } else {
       renderer.setRenderTarget(this.renderToScreen ? null : writeBuffer);
       renderer.clear();
       renderer.render(this.scene, this.camera);

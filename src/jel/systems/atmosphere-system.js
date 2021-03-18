@@ -3,17 +3,23 @@ import Sky from "../objects/sky";
 import Water from "../objects/water";
 import { Layers } from "../../hubs/components/layers";
 import { RENDER_ORDER } from "../../hubs/constants";
+import { SOUND_OUTDOORS, SOUND_WATER } from "../../hubs/systems/sound-effects-system";
+
 const FOG_NEAR = 20.5;
 const FOG_SPAN = 1.5;
 const FOG_SPEED = 0.01;
 const INITIAL_FOG_NEAR = 1.5;
+const STOP_AMBIENCE_AFTER_SILENCE_MS = 5000.0;
+
+const WORLD_TYPES_WITH_WATER = [0, 1];
 
 // Responsible for managing shadows, environmental lighting, sky, and environment map.
 export class AtmosphereSystem {
-  constructor(sceneEl) {
+  constructor(sceneEl, soundEffectsSystem) {
     const scene = sceneEl.object3D;
     this.sceneEl = sceneEl;
     this.effectsSystem = sceneEl.systems["effects"];
+    this.soundEffectsSystem = soundEffectsSystem;
 
     waitForDOMContentLoaded().then(() => {
       this.avatarPovEl = document.getElementById("avatar-pov-node");
@@ -62,6 +68,16 @@ export class AtmosphereSystem {
     this.sunLight.layers.enable(Layers.reflection);
     this.sunLight.renderOrder = RENDER_ORDER.LIGHTS;
 
+    this.outdoorsSoundSourceNode = null;
+    this.outdoorsSoundGainNode = null;
+    this.outdoorsSoundSource = null;
+    this.outdoorsSoundTargetGain = 0.0;
+    this.outdoorsSoundSilencedAt = 0;
+
+    this.waterSoundSource = new THREE.Object3D();
+    this.waterSoundTargetGain = 0.0;
+    this.waterSoundPositionalNode = null;
+
     this.sky = new Sky();
     this.sky.position.y = 0;
     this.sky.scale.setScalar(100000);
@@ -92,7 +108,18 @@ export class AtmosphereSystem {
     scene.add(this.sunLight);
     scene.add(this.sky);
     scene.add(this.water); // TODO water needs to become a wrapped entity
+    scene.add(this.waterSoundSource);
     scene.fog = this.fog;
+
+    this.lastSoundProcessTime = 0.0;
+
+    setInterval(() => {
+      // If the app is backgrounded, the tick() method will stop being called
+      // and so we should run it manually so sounds continue to play.
+      if (performance.now() - this.lastSoundProcessTime > 250.0) {
+        this.updateAmbienceSounds();
+      }
+    }, 250);
   }
 
   maximizeFog() {
@@ -101,8 +128,24 @@ export class AtmosphereSystem {
     this.fog.needsUpdate = true;
   }
 
+  enableAmbience() {
+    this.outdoorsSoundTargetGain = 2.0;
+    this.waterSoundTargetGain = 1.0;
+  }
+
+  restartAmbience() {
+    this.stopOutdoorsSoundNode(); // Restart happens automatically
+  }
+
+  disableAmbience() {
+    this.outdoorsSoundTargetGain = 0.0;
+    this.waterSoundTargetGain = 0.0;
+  }
+
   tick(dt) {
     this.frame++;
+
+    this.updateAmbienceSounds();
 
     if (this.fog.near < FOG_NEAR || this.fog.far < FOG_NEAR + FOG_SPAN) {
       const dv = FOG_SPEED * dt;
@@ -119,7 +162,7 @@ export class AtmosphereSystem {
       this.water.camera = this.playerCamera;
     }
 
-    this.moveSunlight();
+    this.moveSunlightAndWaterSound();
 
     // Disable effects for subrenders to water and/or sky
     this.effectsSystem.disableEffects = true;
@@ -194,6 +237,123 @@ export class AtmosphereSystem {
     }
   }
 
+  updateAmbienceSounds() {
+    const { store, hubChannel, hubMetadata } = window.APP;
+    if (!hubChannel || !hubMetadata) return;
+
+    const hubId = hubChannel.hubId;
+    if (!hubId) return;
+
+    const metadata = hubMetadata.getMetadata(hubId);
+    if (!metadata) return;
+
+    const worldType = metadata.world.type;
+
+    if (this.lastSoundProcessTime === 0) {
+      this.lastSoundProcessTime = performance.now();
+      return;
+    }
+
+    const now = performance.now();
+    const dt = now - this.lastSoundProcessTime;
+    this.lastSoundProcessTime = now;
+
+    const hasWater = WORLD_TYPES_WITH_WATER.includes(worldType);
+    const ambienceEnabled = !store.state.preferences.disableAudioAmbience;
+
+    const desiredWaterGain = hasWater && ambienceEnabled ? this.waterSoundTargetGain : 0.0;
+    const desiredOutdoorsGain = ambienceEnabled ? this.outdoorsSoundTargetGain : 0.0;
+
+    if (!this.waterSoundPositionalNode) {
+      if (this.soundEffectsSystem.hasLoadedSound(SOUND_WATER)) {
+        this.waterSoundPositionalNode = this.soundEffectsSystem.playPositionalSoundFollowing(
+          SOUND_WATER,
+          this.waterSoundSource,
+          true
+        );
+
+        this.waterSoundPositionalNode.panner.panningModel = "equalpower";
+        this.waterSoundPositionalNode.setVolume(desiredWaterGain);
+      }
+    } else {
+      const currentGain = this.waterSoundPositionalNode.getVolume();
+
+      if (Math.abs(currentGain - desiredWaterGain) > 0.001) {
+        this.waterSoundPositionalNode.setVolume(desiredWaterGain);
+      }
+    }
+
+    if (!this.outdoorsSoundGainNode && desiredOutdoorsGain > 0.0) {
+      if (this.soundEffectsSystem.hasLoadedSound(SOUND_OUTDOORS)) {
+        const soundDuration = this.soundEffectsSystem.getSoundDuration(SOUND_OUTDOORS);
+        const { source, gain } = this.soundEffectsSystem.playSoundLoopedWithGain(
+          SOUND_OUTDOORS,
+          Math.floor(Math.random() * soundDuration * 0.8)
+        );
+
+        this.outdoorsSoundSourceNode = source;
+        this.outdoorsSoundGainNode = gain;
+        this.outdoorsSoundGainNode.gain.setValueAtTime(
+          desiredOutdoorsGain,
+          SYSTEMS.audioSystem.audioContext.currentTime
+        );
+      }
+    } else if (this.outdoorsSoundGainNode) {
+      const currentGain = this.outdoorsSoundGainNode.gain.value;
+
+      if (Math.abs(currentGain - desiredOutdoorsGain) > 0.001) {
+        const direction = currentGain > desiredOutdoorsGain ? -1 : 1;
+        const newGain = Math.min(1.0, Math.max(0.0, currentGain + direction * 0.001 * dt));
+        this.outdoorsSoundGainNode.gain.setValueAtTime(newGain, SYSTEMS.audioSystem.audioContext.currentTime);
+
+        if (newGain === 0.0) {
+          this.outdoorsSoundSilencedAt = now;
+        }
+      } else if (
+        currentGain === 0.0 &&
+        this.outdoorsSoundSilencedAt !== null &&
+        now - this.outdoorsSoundSilencedAt > STOP_AMBIENCE_AFTER_SILENCE_MS
+      ) {
+        this.stopOutdoorsSoundNode();
+      }
+    }
+  }
+
+  stopOutdoorsSoundNode() {
+    if (!this.outdoorsSoundSourceNode) return;
+
+    SYSTEMS.soundEffectsSystem.stopSoundNode(this.outdoorsSoundSourceNode);
+
+    // This is not currently handled by the sound effects system:
+    this.outdoorsSoundGainNode.disconnect();
+
+    this.outdoorsSoundSilencedAt = null;
+    this.outdoorsSoundSourceNode = null;
+    this.outdoorsSoundGainNode = null;
+  }
+
+  updateAtmosphereForHub({
+    world: {
+      water_color_r: wr,
+      water_color_g: wg,
+      water_color_b: wb,
+      sky_color_r: sr,
+      sky_color_g: sg,
+      sky_color_b: sb
+    }
+  }) {
+    this.updateWaterColor({ r: wr, g: wg, b: wb });
+    this.updateSkyColor({ r: sr, g: sg, b: sb });
+  }
+
+  updateWaterColor({ r, g, b }) {
+    this.water.setColor(new THREE.Color(r, g, b));
+  }
+
+  updateSkyColor({ r, g, b }) {
+    this.sky.setColor(new THREE.Color(r, g, b));
+  }
+
   updateWater(force) {
     this.waterNeedsUpdate = true;
 
@@ -202,7 +362,7 @@ export class AtmosphereSystem {
     }
   }
 
-  moveSunlight = (() => {
+  moveSunlightAndWaterSound = (() => {
     const pos = new THREE.Vector3();
 
     return target => {
@@ -242,6 +402,25 @@ export class AtmosphereSystem {
 
         this.renderer.shadowMap.needsUpdate = true;
         this.water.needsUpdate = true;
+      }
+
+      // Reset pos X, Z, and Y is fixed
+      pos.x += 4;
+      pos.y = -1.5;
+      pos.z += 4;
+
+      const waterPos = this.waterSoundSource.position;
+
+      const moveWater =
+        Math.abs(waterPos.x - pos.x) > 0.001 ||
+        Math.abs(waterPos.y - pos.y) > 0.001 ||
+        Math.abs(waterPos.z - pos.z) > 0.001;
+
+      if (moveWater) {
+        this.waterSoundSource.position.x = pos.x;
+        this.waterSoundSource.position.y = pos.y;
+        this.waterSoundSource.position.z = pos.z;
+        this.waterSoundSource.matrixNeedsUpdate = true;
       }
     };
   })();

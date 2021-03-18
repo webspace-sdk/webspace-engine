@@ -166,6 +166,49 @@ export const Checkbox = styled.input`
   }
 `;
 
+export const Radio = styled.input`
+  color: var(--dialog-tip-text-color);
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: transparent;
+  height: 16px;
+  width: 16px;
+  border: 1px solid var(--panel-item-active-background-color);
+  border-radius: 8px;
+  vertical-align: -2px;
+  color: var(--panel-item-active-text-color);
+  cursor: pointer;
+  position: relative;
+  background-color: transparent;
+  margin-bottom: 2px;
+
+  &:checked {
+    background-color: var(--panel-item-active-background-color);
+  }
+
+  &:disabled {
+    cursor: auto;
+  }
+
+  & ::before {
+    content: "•";
+    color: var(--panel-item-active-text-color);
+    padding: 2px;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    visibility: hidden;
+  }
+
+  &:checked ::before {
+    visibility: visible;
+  }
+`;
+
 const FieldEditButtonElement = styled.button`
   appearance: none;
   -moz-appearance: none;
