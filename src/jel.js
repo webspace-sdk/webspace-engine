@@ -715,6 +715,7 @@ function addGlobalEventListeners(scene, entryManager) {
 function setupNonVisibleHandler(scene) {
   const physics = scene.systems["hubs-systems"].physicsSystem;
   const autoQuality = scene.systems["hubs-systems"].autoQualitySystem;
+  let disableSoundTimeout = null;
 
   const webglLoseContextExtension = scene.renderer.getContext().getExtension("WEBGL_lose_context");
 
@@ -730,7 +731,11 @@ function setupNonVisibleHandler(scene) {
       autoQuality.stopTracking();
       physics.updateSimulationRate(1000.0 / 15.0);
       accountChannel.setInactive();
-      SYSTEMS.atmosphereSystem.disableOutdoorsSound();
+      clearTimeout(disableSoundTimeout);
+
+      disableSoundTimeout = setTimeout(() => {
+        SYSTEMS.atmosphereSystem.disableOutdoorsSound();
+      }, 15000);
     } else {
       if (document.visibilityState === "visible") {
         // Hacky. On some platforms GL context needs to be explicitly restored. So do it.
@@ -745,6 +750,7 @@ function setupNonVisibleHandler(scene) {
         autoQuality.startTracking();
       }
 
+      clearTimeout(disableSoundTimeout);
       document.body.classList.remove("paused");
       physics.updateSimulationRate(1000.0 / 90.0);
       accountChannel.setActive();

@@ -69,7 +69,7 @@ export class AtmosphereSystem {
     this.outdoorsSoundSourceNode = null;
     this.outdoorsSoundGainNode = null;
     this.outdoorsSoundSource = null;
-    this.outdoorsSoundTargetGain = 1.0;
+    this.outdoorsSoundTargetGain = 1.25;
     this.outdoorsSoundSilencedAt = 0;
 
     this.waterSoundGainNode = null;
@@ -125,7 +125,7 @@ export class AtmosphereSystem {
   }
 
   enableOutdoorsSound() {
-    this.outdoorsSoundTargetGain = 1.0;
+    this.outdoorsSoundTargetGain = 1.25;
   }
 
   disableOutdoorsSound() {
