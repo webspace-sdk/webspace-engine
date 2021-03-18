@@ -117,7 +117,7 @@ export class AtmosphereSystem {
       // If the app is backgrounded, the tick() method will stop being called
       // and so we should run it manually so sounds continue to play.
       if (performance.now() - this.lastSoundProcessTime > 250.0) {
-        this.processSounds();
+        this.updateAmbienceSounds();
       }
     }, 250);
   }
@@ -145,7 +145,7 @@ export class AtmosphereSystem {
   tick(dt) {
     this.frame++;
 
-    this.processSounds();
+    this.updateAmbienceSounds();
 
     if (this.fog.near < FOG_NEAR || this.fog.far < FOG_NEAR + FOG_SPAN) {
       const dv = FOG_SPEED * dt;
@@ -237,8 +237,8 @@ export class AtmosphereSystem {
     }
   }
 
-  processSounds() {
-    const { hubChannel, hubMetadata } = window.APP;
+  updateAmbienceSounds() {
+    const { store, hubChannel, hubMetadata } = window.APP;
     if (!hubChannel || !hubMetadata) return;
 
     const hubId = hubChannel.hubId;
@@ -259,9 +259,10 @@ export class AtmosphereSystem {
     this.lastSoundProcessTime = now;
 
     const hasWater = WORLD_TYPES_WITH_WATER.includes(worldType);
-    const desiredWaterGain = hasWater ? this.waterSoundTargetGain : 0.0;
+    const ambienceEnabled = !store.state.preferences.disableAudioAmbience;
 
-    const desiredOutdoorsGain = this.outdoorsSoundTargetGain;
+    const desiredWaterGain = hasWater && ambienceEnabled ? this.waterSoundTargetGain : 0.0;
+    const desiredOutdoorsGain = ambienceEnabled ? this.outdoorsSoundTargetGain : 0.0;
 
     if (!this.waterSoundPositionalNode) {
       if (this.soundEffectsSystem.hasLoadedSound(SOUND_WATER)) {
@@ -272,6 +273,7 @@ export class AtmosphereSystem {
         );
 
         this.waterSoundPositionalNode.panner.panningModel = "equalpower";
+        this.waterSoundPositionalNode.setVolume(desiredWaterGain);
       }
     } else {
       const currentGain = this.waterSoundPositionalNode.getVolume();
@@ -291,6 +293,10 @@ export class AtmosphereSystem {
 
         this.outdoorsSoundSourceNode = source;
         this.outdoorsSoundGainNode = gain;
+        this.outdoorsSoundGainNode.gain.setValueAtTime(
+          desiredOutdoorsGain,
+          SYSTEMS.audioSystem.audioContext.currentTime
+        );
       }
     } else if (this.outdoorsSoundGainNode) {
       const currentGain = this.outdoorsSoundGainNode.gain.value;

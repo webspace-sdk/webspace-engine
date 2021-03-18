@@ -140,7 +140,8 @@ export const SCHEMA = {
         movementSpeedModifier: { type: "number" },
         disableEchoCancellation: { type: "bool" },
         disableNoiseSuppression: { type: "bool" },
-        disableAutoGainControl: { type: "bool" }
+        disableAutoGainControl: { type: "bool" },
+        disableAudioAmbience: { type: "bool" }
       }
     },
 
