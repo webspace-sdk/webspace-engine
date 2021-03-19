@@ -424,26 +424,6 @@ function JelSidePanels({
 
   const homeHub = homeHubForSpaceId(spaceId, memberships);
   const hubMetadata = treeManager && treeManager.sharedNav && treeManager.sharedNav.atomMetadata;
-  const privateTreeData = useMemo(
-    () =>
-      homeHub
-        ? [
-            {
-              key: homeHub.hub_id,
-              title: <HubNodeTitle hubId={homeHub.hub_id} showDots={false} showAdd={false} hubMetadata={hubMetadata} />,
-              atomId: homeHub.hub_id,
-              isLeaf: true
-            }
-          ]
-        : [],
-    [homeHub, hubMetadata]
-  );
-
-  // For now private tree is just home hub
-  const privateSelectedKeys = useMemo(() => (hub && homeHub && hub.hub_id === homeHub.hub_id ? [hub.hub_id] : []), [
-    hub,
-    homeHub
-  ]);
 
   const space = spaceForSpaceId(spaceId, memberships);
   const hubId = hub && hub.hub_id;
@@ -520,19 +500,6 @@ function JelSidePanels({
               hubCan={hubCan}
               showHubContextMenuPopup={showHubContextMenuPopup}
               setHubRenameReferenceElement={setHubRenameReferenceElement}
-            />
-            <PanelSectionHeader>
-              <FormattedMessage id="nav.private-worlds" />
-            </PanelSectionHeader>
-            <Tree
-              prefixCls="atom-tree"
-              treeData={privateTreeData}
-              selectable={true}
-              selectedKeys={privateSelectedKeys}
-              onSelect={useCallback(
-                (selectedKeys, { node: { atomId } }) => navigateToHubUrl(history, hubMetadata.getMetadata(atomId).url),
-                [history, hubMetadata]
-              )}
             />
           </NavSpill>
           <NavFoot>
