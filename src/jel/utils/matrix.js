@@ -13,14 +13,12 @@ export default class Matrix extends EventTarget {
     this.pendingRoomJoinResolvers = new Map();
     this.roomNameChangeTimeouts = new Map();
 
-    // Channel <-> room bimap
-    this.channelIdToRoomId = new Map();
-    this.roomIdToChannelId = new Map();
+    // Hub <-> room bimap
+    this.hubIdToRoomId = new Map();
+    this.roomIdToHubId = new Map();
 
     // Map of space ID -> spaceroom roomId
     this.spaceIdToRoomId = new Map();
-
-    this.fireChannelsChangedEventAfterJoinsComplete = false;
 
     this.initialSyncPromise = new Promise(res => {
       this.initialSyncFinished = res;
@@ -89,8 +87,6 @@ export default class Matrix extends EventTarget {
       this.client.startClient({ lazyLoadMembers: true }).then(() => {
         this.client.once("sync", async state => {
           if (state === "PREPARED") {
-            this.dispatchEvent(new CustomEvent("current_space_channels_changed", {}));
-
             this._joinMissingRooms();
 
             accountChannel.addEventListener("account_refresh", () => {
@@ -109,75 +105,12 @@ export default class Matrix extends EventTarget {
     });
   }
 
-  getChannelTreeDataForSpaceId(spaceId, titleControl) {
-    const treeData = [];
+  updateRoomNameForHub(hubId, name) {
+    const { client, roomNameChangeTimeouts, hubIdToRoomId } = this;
 
-    const { client, roomIdToChannelId, channelIdToRoomId } = this;
-    if (!client) return treeData;
+    const roomId = hubIdToRoomId.get(hubId);
+    if (!roomId) return;
 
-    let spaceRoom;
-
-    for (const room of client.getVisibleRooms()) {
-      if (!room.hasMembershipState(client.credentials.userId, "join")) continue;
-      if (this._spaceIdForRoom(room) !== spaceId) continue;
-
-      if (this._jelTypeForRoom(room) === "jel.space") {
-        spaceRoom = room;
-        continue;
-      }
-
-      if (this._jelTypeForRoom(room) !== "jel.channel") continue;
-
-      const channelId = roomIdToChannelId.get(room.roomId);
-
-      treeData.push({
-        key: channelId,
-        title: titleControl,
-        url: `/${spaceId}${channelId}`,
-        atomId: channelId,
-        isLeaf: true
-      });
-    }
-
-    if (spaceRoom) {
-      // Sort the rooms for the tree based upon the space child state
-      const childRooms = spaceRoom.currentState.events.get("m.space_child");
-      const roomOrders = new Map();
-
-      if (childRooms) {
-        for (const [
-          roomId,
-          {
-            event: {
-              content: { order, via }
-            }
-          }
-        ] of childRooms.entries()) {
-          if (!via) continue; // Rooms without via have been removed from the space
-
-          roomOrders.set(roomId, order);
-        }
-      }
-
-      treeData.sort(({ atomId: channelIdX }, { atomId: channelIdY }) => {
-        const roomIdX = channelIdToRoomId.get(channelIdX);
-        const roomIdY = channelIdToRoomId.get(channelIdY);
-
-        const orderX = roomOrders.get(roomIdX) || 0;
-        const orderY = roomOrders.get(roomIdY) || 0;
-        if (orderX < orderY) return -1;
-        if (orderX > orderY) return 1;
-        return 0;
-      });
-    }
-
-    return treeData;
-  }
-
-  setChannelName(channelId, name) {
-    const { client, roomNameChangeTimeouts, channelIdToRoomId } = this;
-
-    const roomId = channelIdToRoomId.get(channelId);
     const timeout = roomNameChangeTimeouts.get(roomId);
 
     if (timeout) {
@@ -196,56 +129,62 @@ export default class Matrix extends EventTarget {
     );
   }
 
-  // For the given room ids, return objects that conform to the atom
-  // metadata structure expected by the UI.
-  async getAtomMetadataForChannelIds(channelIds) {
-    const { client, initialSyncPromise, pendingRoomJoinPromises, channelIdToRoomId } = this;
-
-    // Don't return any atoms until initial sync finished.
-    await initialSyncPromise;
-
-    const atoms = [];
-
-    for (const channelId of channelIds) {
-      const roomId = channelIdToRoomId.get(channelId);
-
-      // Wait until room is joined.
-      const promise = pendingRoomJoinPromises.get(roomId);
-      if (promise) await promise;
-
-      const room = client.getRoom(roomId);
-      if (!room) continue;
-
-      atoms.push(this._roomToAtomMetadata(room));
-    }
-
-    return atoms;
-  }
-
   channelCan(permission, channelId) {
-    const { channelIdToRoomId } = this;
+    const { hubIdToRoomId } = this;
 
-    const roomId = channelIdToRoomId.get(channelId);
+    const roomId = hubIdToRoomId.get(channelId);
     if (!roomId) return false;
 
     return this._roomCan(permission, roomId);
   }
 
-  moveChannelAbove(channelId, aboveChannelId) {
-    console.log("above", channelId, aboveChannelId);
-    this.updateRoomOrderForPlacement(channelId, aboveChannelId, -1);
+  updateRoomOrderForHubId(hubId, order) {
+    const { client, hubIdToRoomId } = this;
+    const roomId = hubIdToRoomId.get(hubId);
+
+    if (!roomId) return;
+
+    const room = client.getRoom(roomId);
+    if (!room) return;
+
+    const spaceId = this._spaceIdForRoom(room);
+    if (!spaceId) return;
+
+    const spaceRoomId = this.spaceIdToRoomId.get(spaceId);
+    if (!spaceRoomId) return;
+
+    const spaceRoom = client.getRoom(spaceRoomId);
+    if (!spaceRoom) return;
+
+    const childRooms = spaceRoom.currentState.events.get("m.space_child");
+    if (!childRooms) return;
+
+    let currentOrder = null;
+
+    for (const [
+      childRoomId,
+      {
+        event: {
+          content: { order }
+        }
+      }
+    ] of childRooms.entries()) {
+      if (childRoomId === roomId) {
+        currentOrder = order;
+      }
+    }
+
+    if (currentOrder !== `${order}`) {
+      console.log("Update", hubId, roomId, order);
+      window.APP.accountChannel.setMatrixRoomOrder(roomId, order);
+    }
   }
 
-  moveChannelBelow(channelId, belowChannelId) {
-    console.log("below", channelId, belowChannelId);
-    this.updateRoomOrderForPlacement(channelId, belowChannelId, 1);
-  }
+  updateRoomOrderForPlacement(hubId, targetHubId, direction /* -1 above, 1 below */) {
+    const { client, hubIdToRoomId } = this;
 
-  updateRoomOrderForPlacement(channelId, targetChannelId, direction /* -1 above, 1 below */) {
-    const { client, channelIdToRoomId } = this;
-
-    const roomId = channelIdToRoomId.get(channelId);
-    const targetRoomId = channelIdToRoomId.get(targetChannelId);
+    const roomId = hubIdToRoomId.get(hubId);
+    const targetRoomId = hubIdToRoomId.get(targetHubId);
 
     if (!roomId || !targetRoomId) return;
 
@@ -331,11 +270,7 @@ export default class Matrix extends EventTarget {
 
     if (newOrder === null) return;
 
-    window.APP.accountChannel.setChannelMatrixRoomOrder(roomId, newOrder);
-  }
-
-  getChannelRoomId(channelId) {
-    return this.channelIdToRoomId.get(channelId);
+    window.APP.accountChannel.setMatrixRoomOrder(roomId, newOrder);
   }
 
   _roomCan(permission, roomId) {
@@ -409,7 +344,7 @@ export default class Matrix extends EventTarget {
   _spaceIdForRoom(room) {
     if (this._jelTypeForRoom(room) === "jel.space") {
       return room.currentState.events.get("jel.space").get("").event.content.space_id;
-    } else if (this._jelTypeForRoom(room) === "jel.channel") {
+    } else if (this._jelTypeForRoom(room) === "jel.hub") {
       for (const spaceId of room.currentState.events.get("jel.space.parent").keys()) {
         return spaceId;
       }
@@ -420,10 +355,10 @@ export default class Matrix extends EventTarget {
     return room.currentState.events.get("jel.type").get("").event.content.type;
   }
 
-  _isChannelRoomForCurrentSpace(room) {
+  _isHubRoomForCurrentSpace(room) {
     const { spaceId } = window.APP.spaceChannel;
 
-    return this._spaceIdForRoom(room) === spaceId && this._jelTypeForRoom(room) === "jel.channel";
+    return this._spaceIdForRoom(room) === spaceId && this._jelTypeForRoom(room) === "jel.hub";
   }
 
   _isSpaceRoomForCurrentSpace(room) {
@@ -449,29 +384,13 @@ export default class Matrix extends EventTarget {
         }
 
         console.log(`Matrix: joined room ${roomId}`);
-
-        if (this._isChannelRoomForCurrentSpace(room)) {
-          // After all the in-flight joins complete, fire an event which will cause the UI to update with
-          // new channel information.
-          this.fireChannelsChangedEventAfterJoinsComplete = true;
-        }
-
-        if (this.fireChannelsChangedEventAfterJoinsComplete && this.pendingRoomJoinPromises.size === 0) {
-          // Other membership changes are join, leave, ban, all should fire channel change.
-          // Fire this only after all promises are done.
-          this.fireChannelsChangedEventAfterJoinsComplete = false;
-          this.dispatchEvent(new CustomEvent("current_space_channels_changed", {}));
-        }
-      } else if (room.hasMembershipState(client.credentials.userId, "leave")) {
-        // Left room
-        this.dispatchEvent(new CustomEvent("current_space_channels_changed", {}));
       }
     });
 
     client.on("RoomState.events", ({ event }) => {
-      if (event.type === "jel.channel") {
-        this.channelIdToRoomId.set(event.content.channel_id, event.room_id);
-        this.roomIdToChannelId.set(event.room_id, event.content.channel_id);
+      if (event.type === "jel.hub") {
+        this.hubIdToRoomId.set(event.content.hub_id, event.room_id);
+        this.roomIdToHubId.set(event.room_id, event.content.hub_id);
       }
 
       if (event.type === "jel.space") {
@@ -494,36 +413,6 @@ export default class Matrix extends EventTarget {
           this.dispatchEvent(new CustomEvent("current_space_channels_changed", {}));
         }
       }
-
-      // If name is updated, fire the channel_meta_refresh event in the form expected
-      // by the atom metadata hander.
-      if (event.type === "m.room.name") {
-        const room = client.getRoom(event.room_id);
-
-        if (this._jelTypeForRoom(room) === "jel.channel") {
-          const metas = [this._roomToAtomMetadata(room)];
-          this.dispatchEvent(new CustomEvent("channel_meta_refresh", { detail: { metas } }));
-        }
-      }
     });
-  }
-
-  _roomToAtomMetadata(room) {
-    const { roomIdToChannelId } = this;
-    const spaceId = this._spaceIdForRoom(room);
-    const channelId = roomIdToChannelId.get(room.roomId);
-
-    let name = null;
-
-    const mRoomName = room.currentState.getStateEvents("m.room.name", "");
-    if (mRoomName && mRoomName.getContent() && mRoomName.getContent().name) {
-      name = mRoomName.getContent().name.trim();
-    }
-
-    return {
-      channel_id: channelId,
-      name,
-      url: `/${spaceId}${channelId}`
-    };
   }
 }

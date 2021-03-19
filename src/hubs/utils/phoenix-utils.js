@@ -273,32 +273,6 @@ export async function createHub(
   return res;
 }
 
-export async function createChannel(
-  spaceId
-  /*name,
-  template,
-  worldType = null,
-  worldSeed = null,
-  spawnPosition = null,
-  spawnRotation = null,
-  spawnRadius = null*/
-) {
-  const store = window.APP.store;
-  const createUrl = getReticulumFetchUrl("/api/v1/channels");
-  const payload = { channel: { space_id: spaceId } };
-
-  const headers = { "content-type": "application/json" };
-  if (store.state && store.state.credentials.token) {
-    headers.authorization = `bearer ${store.state.credentials.token}`;
-  }
-
-  return await fetch(createUrl, {
-    body: JSON.stringify(payload),
-    headers,
-    method: "POST"
-  }).then(r => r.json());
-}
-
 export async function createAndRedirectToNewHub(spaceId, name, sceneId, replace) {
   const hub = await createHub(name, sceneId);
   let url = hub.url;

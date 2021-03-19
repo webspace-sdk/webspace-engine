@@ -91,6 +91,8 @@ class TreeManager extends EventTarget {
     );
     this.trashNav = new TreeSync("nav", null, hubMetadata, isTrashed, TREE_PROJECTION_TYPE.FLAT, false);
     this.trashNested = new TreeSync("nav", null, hubMetadata, isTrashed, TREE_PROJECTION_TYPE.NESTED, false);
+
+    this.sharedNav.addEventListener("filtered_treedata_updated", this.syncMatrixRoomOrdersFromSharedNav.bind(this));
   }
 
   async init(connection, memberships) {
@@ -193,6 +195,26 @@ class TreeManager extends EventTarget {
         tree.remove(nodeId);
       }
     }
+  }
+
+  async syncMatrixRoomOrdersFromSharedNav() {
+    const { matrix } = window.APP;
+    let order = 0;
+
+    const walk = nodes => {
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+
+        matrix.updateRoomOrderForHubId(node.atomId, order);
+        order++;
+
+        if (node.children && node.children.length > 0) {
+          walk(node.children);
+        }
+      }
+    };
+
+    walk(this.sharedNav.filteredTreeData);
   }
 }
 

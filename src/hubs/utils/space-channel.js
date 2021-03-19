@@ -80,13 +80,17 @@ export default class SpaceChannel extends EventTarget {
 
   updateHub = (hubId, newHubFields) => {
     if (!this.channel) return;
-    const hubMetadata = window.APP.hubMetadata;
+    const { hubMetadata, matrix } = window.APP;
     const canUpdateHubMeta = hubMetadata.can("update_hub_meta", hubId);
     const canUpdateHubRoles = hubMetadata.can("update_hub_roles", hubId);
     if (!canUpdateHubMeta) return "unauthorized";
     if (newHubFields.roles && !canUpdateHubRoles) return "unauthorized";
     this.channel.push("update_hub", { ...newHubFields, hub_id: hubId });
     hubMetadata.optimisticUpdate(hubId, newHubFields);
+
+    if (newHubFields.name !== undefined) {
+      matrix.updateRoomNameForHub(hubId, newHubFields.name || "");
+    }
   };
 
   updateUnmuted(unmuted) {

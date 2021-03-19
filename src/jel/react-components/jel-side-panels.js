@@ -14,9 +14,7 @@ import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { homeHubForSpaceId, spaceForSpaceId } from "../utils/membership-utils";
 import { addNewHubToTree } from "../utils/tree-utils";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
-import { createChannel } from "../../hubs/utils/phoenix-utils";
 import SpaceTree from "./space-tree";
-import ChannelTree from "./channel-tree";
 import HubTree from "./hub-tree";
 import InvitePanel from "./invite-panel";
 import HubTrashTree from "./hub-trash-tree";
@@ -379,12 +377,8 @@ function JelSidePanels({
   hub,
   hubCan = () => false,
   spaceCan = () => false,
-  channelCan = () => false,
   spaceMetadata,
-  channelMetadata,
   memberships,
-  showChannelContextMenuPopup,
-  setChannelRenameReferenceElement,
   showHubContextMenuPopup,
   setHubRenameReferenceElement,
   showSpaceRenamePopup,
@@ -515,15 +509,6 @@ function JelSidePanels({
             <PanelSectionHeader>
               <FormattedMessage id="nav.channels" />
             </PanelSectionHeader>
-            <ChannelTree
-              channelMetadata={channelMetadata}
-              spaceId={spaceId}
-              history={history}
-              spaceCan={spaceCan}
-              channelCan={channelCan}
-              showChannelContextMenuPopup={showChannelContextMenuPopup}
-              setChannelRenameReferenceElement={setChannelRenameReferenceElement}
-            />
             <PanelSectionHeader>
               <FormattedMessage id="nav.space-worlds" />
             </PanelSectionHeader>
@@ -584,12 +569,8 @@ function JelSidePanels({
                 <FormattedMessage id="nav.create-world" />
               </ActionButton>
             )}
-            {spaceCan("create_channel") && (
-              <ActionButton
-                iconSrc={addIcon}
-                onClick={async () => await createChannel(spaceId)}
-                style={{ width: "60%" }}
-              >
+            {spaceCan("create_hub") && (
+              <ActionButton iconSrc={addIcon} onClick={async () => {}} style={{ width: "60%" }}>
                 Create Channel
               </ActionButton>
             )}
