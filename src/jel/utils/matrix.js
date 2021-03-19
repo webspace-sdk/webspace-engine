@@ -361,6 +361,8 @@ export default class Matrix extends EventTarget {
     for (const {
       space: { matrix_spaceroom_id }
     } of memberships) {
+      if (!matrix_spaceroom_id) continue;
+
       const spaceRoom = await this._ensureRoomJoined(matrix_spaceroom_id);
 
       // Walk each child room (channels) and join them if auto_join = true
