@@ -5,8 +5,7 @@ import { useEffect } from "react";
 
 const ATOM_TYPES = {
   HUB: 0,
-  SPACE: 1,
-  CHANNEL: 2
+  SPACE: 1
 };
 
 const VALID_PERMISSIONS = {
@@ -27,17 +26,7 @@ const VALID_PERMISSIONS = {
     "fly",
     "upload_files"
   ],
-  [ATOM_TYPES.SPACE]: [
-    "create_hub",
-    "create_channel",
-    "delete_channel",
-    "view_nav",
-    "edit_nav",
-    "update_space_meta",
-    "create_invite",
-    "go_home"
-  ],
-  [ATOM_TYPES.CHANNEL]: []
+  [ATOM_TYPES.SPACE]: ["create_hub", "view_nav", "edit_nav", "update_space_meta", "create_invite", "go_home"]
 };
 
 // This value is placed in the metadata lookup table while a fetch is
@@ -69,13 +58,6 @@ class AtomMetadata {
         this._sourceGetMethod = "getSpaceMetas";
         this._defaultName = messages["space.unnamed-title"];
         this._defaultHomeName = messages["space.unnamed-home-title"];
-        break;
-      case ATOM_TYPES.CHANNEL:
-        this._refreshMessage = "channel_meta_refresh";
-        this._idColumn = "channel_id";
-        this._sourceGetMethod = "getAtomMetadataForChannelIds";
-        this._defaultName = messages["channel.unnamed-title"];
-        this._defaultHomeName = messages["channel.unnamed-home-title"];
         break;
     }
   }

@@ -122,20 +122,20 @@ export default class Matrix extends EventTarget {
       setTimeout(() => {
         const room = client.getRoom(roomId);
 
-        if (room && this._roomCan("state:m.room.name", roomId)) {
+        if (room && this._roomForHubCan("state:m.room.name", roomId)) {
           client.setRoomName(roomId, name);
         }
       }, ROOM_RENAME_DELAY)
     );
   }
 
-  channelCan(permission, channelId) {
+  roomForHubCan(permission, channelId) {
     const { hubIdToRoomId } = this;
 
     const roomId = hubIdToRoomId.get(channelId);
     if (!roomId) return false;
 
-    return this._roomCan(permission, roomId);
+    return this._roomForHubCan(permission, roomId);
   }
 
   updateRoomOrderForHubId(hubId, order) {
@@ -175,7 +175,6 @@ export default class Matrix extends EventTarget {
     }
 
     if (currentOrder !== `${order}`) {
-      console.log("Update", hubId, roomId, order);
       window.APP.accountChannel.setMatrixRoomOrder(roomId, order);
     }
   }
@@ -273,8 +272,10 @@ export default class Matrix extends EventTarget {
     window.APP.accountChannel.setMatrixRoomOrder(roomId, newOrder);
   }
 
-  _roomCan(permission, roomId) {
-    const { client } = this;
+  _roomForHubCan(permission, hubId) {
+    const { client, roomIdToHubId } = this;
+    const roomId = roomIdToHubId.get(hubId);
+    if (!roomId) return false;
 
     const room = client.getRoom(roomId);
     if (!room) return false;
@@ -404,13 +405,6 @@ export default class Matrix extends EventTarget {
       if (event.type === "m.space_child") {
         if (event.content.auto_join && event.content.via) {
           this._ensureRoomJoined(event.state_key);
-        }
-
-        const room = client.getRoom(event.room_id);
-
-        if (room && this._isSpaceRoomForCurrentSpace(room)) {
-          // May have been a re-order in the current space, re-render
-          this.dispatchEvent(new CustomEvent("current_space_channels_changed", {}));
         }
       }
     });

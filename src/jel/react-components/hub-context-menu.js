@@ -17,6 +17,7 @@ function HubContextMenu({
   hubId,
   spaceCan,
   hubCan,
+  roomForHubCan,
   hideRename,
   showReset,
   showExport,
@@ -30,7 +31,7 @@ function HubContextMenu({
 
   const items = [];
 
-  if (hubId && hubCan("update_hub_meta", hubId) && !hideRename) {
+  if (hubId && hubCan("update_hub_meta", hubId) && roomForHubCan("state:m.room.name", hubId) && !hideRename) {
     items.push(
       <PopupMenuItem
         key={`rename-${hubId}`}

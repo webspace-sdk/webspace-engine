@@ -185,7 +185,6 @@ const linkChannel = new LinkChannel(store);
 const matrix = new Matrix(store);
 const spaceMetadata = new AtomMetadata(ATOM_TYPES.SPACE);
 const hubMetadata = new AtomMetadata(ATOM_TYPES.HUB);
-const channelMetadata = new AtomMetadata(ATOM_TYPES.CHANNEL);
 
 window.APP.history = history;
 window.APP.accountChannel = accountChannel;
@@ -196,7 +195,6 @@ window.APP.authChannel = authChannel;
 window.APP.linkChannel = linkChannel;
 window.APP.hubMetadata = hubMetadata;
 window.APP.spaceMetadata = spaceMetadata;
-window.APP.channelMetadata = channelMetadata;
 window.APP.matrix = matrix;
 
 store.addEventListener("profilechanged", spaceChannel.sendProfileUpdate.bind(hubChannel));
@@ -1187,8 +1185,7 @@ async function start() {
           if (isInitialAccountChannelJoin) {
             // Initialize connection to matrix homeserver.
             await matrix.init(accountInfo.matrix_homeserver, accountInfo.matrix_token, accountInfo.matrix_user_id);
-            channelMetadata.bind(matrix);
-            remountJelUI({ channelCan: matrix.channelCan.bind(matrix) });
+            remountJelUI({ roomForHubCan: matrix.roomForHubCan.bind(matrix) });
 
             isInitialAccountChannelJoin = false;
           }
