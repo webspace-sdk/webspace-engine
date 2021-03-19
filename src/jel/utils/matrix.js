@@ -133,7 +133,7 @@ export default class Matrix extends EventTarget {
       treeData.push({
         key: channelId,
         title: titleControl,
-        url: null,
+        url: `/${spaceId}${channelId}`,
         atomId: channelId,
         isLeaf: true
       });
@@ -510,6 +510,8 @@ export default class Matrix extends EventTarget {
 
   _roomToAtomMetadata(room) {
     const { roomIdToChannelId } = this;
+    const spaceId = this._spaceIdForRoom(room);
+    const channelId = roomIdToChannelId.get(room.roomId);
 
     let name = null;
 
@@ -519,8 +521,9 @@ export default class Matrix extends EventTarget {
     }
 
     return {
-      channel_id: roomIdToChannelId.get(room.roomId),
-      name
+      channel_id: channelId,
+      name,
+      url: `/${spaceId}${channelId}`
     };
   }
 }
