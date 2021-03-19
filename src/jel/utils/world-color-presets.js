@@ -384,11 +384,9 @@ export const WORLD_COLOR_PRESETS = [
     rock_color_b: 0.8705882352941177,
     rock_color_g: 0.8705882352941177,
     rock_color_r: 0.8705882352941177,
-    seed: 5,
     sky_color_b: 0.5882352941176471,
     sky_color_g: 0.4196078431372549,
     sky_color_r: 0.21176470588235294,
-    type: 0,
     water_color_b: 0.7019607843137254,
     water_color_g: 1,
     water_color_r: 0
