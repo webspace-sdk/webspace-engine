@@ -350,6 +350,7 @@ export class VoxmojiSystem {
     const { mesh } = this.meshes.get(meshKey);
     disposeNode(mesh);
     this.meshes.delete(meshKey);
+    this.sceneEl.object3D.remove(mesh);
   }
 
   registerMapToMesh(meshKey, image) {
