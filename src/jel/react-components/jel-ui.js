@@ -859,6 +859,8 @@ function JelUI(props) {
 
   const onClickExternalCameraRotate = useCallback(() => SYSTEMS.externalCameraSystem.toggleCamera(), []);
 
+  const isWorld = hub && hub.type === "world";
+
   return (
     <WrappedIntlProvider>
       <div>
@@ -913,7 +915,6 @@ function JelUI(props) {
                 renamePopupElement={hubRenamePopupElement}
                 showRenamePopup={showHubRenamePopup}
                 onHubNameChanged={onTrailHubNameChanged}
-                descriptionType={hub && hub.is_home ? "home" : null}
               />
             )}
             <HubCornerButtons>
@@ -922,7 +923,8 @@ function JelUI(props) {
                   <FormattedMessage id="install.desktop" />
                 </HubCornerButton>
               )}
-              {hubCan &&
+              {isWorld &&
+                hubCan &&
                 hubCan("update_hub_meta", hub && hub.hub_id) && (
                   <EnvironmentSettingsButton
                     ref={environmentSettingsButtonRef}
@@ -943,61 +945,68 @@ function JelUI(props) {
                 onMouseDown={e => cancelEventIfFocusedWithin(e, hubNotificationPopupElement)}
                 onClick={() => showHubNotificationPopup(hubNotificationButtonRef)}
               />
-              {canSpawnAndMoveMedia && (
-                <HubCreateButton
-                  ref={hubCreateButtonRef}
-                  onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
-                  onClick={() => {
-                    store.handleActivityFlag("createMenu");
-                    showCreateSelectPopup(hubCreateButtonRef, "bottom-end");
-                  }}
-                />
-              )}
+              {isWorld &&
+                canSpawnAndMoveMedia && (
+                  <HubCreateButton
+                    ref={hubCreateButtonRef}
+                    onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
+                    onClick={() => {
+                      store.handleActivityFlag("createMenu");
+                      showCreateSelectPopup(hubCreateButtonRef, "bottom-end");
+                    }}
+                  />
+                )}
               <HubContextButton
                 ref={hubContextButtonRef}
                 onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
                 onClick={() => {
                   showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
                     hideRename: true,
-                    showExport: true,
+                    showExport: isWorld,
                     showReset: !!hub.template.name
                   });
                 }}
               />
-              <DeviceStatuses>
-                <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
-                <EquippedEmojiIcon />
-              </DeviceStatuses>
+              {isWorld && (
+                <DeviceStatuses>
+                  <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
+                  <EquippedEmojiIcon />
+                </DeviceStatuses>
+              )}
             </HubCornerButtons>
           </Top>
-          <KeyTipsWrap onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}>
-            <KeyTips id="key-tips" />
-          </KeyTipsWrap>
-          <BottomLeftPanels className={`${showingExternalCamera ? "external-camera-on" : ""}`}>
-            <ExternalCameraCanvas id="external-camera-canvas" />
-            {showingExternalCamera && (
-              <ExternalCameraRotateButton
-                tabIndex={-1}
-                iconSrc={unmuted ? unmutedIcon : mutedIcon}
-                onClick={onClickExternalCameraRotate}
-              >
-                <ExternalCameraRotateButtonIcon dangerouslySetInnerHTML={{ __html: rotateIcon }} />
-              </ExternalCameraRotateButton>
-            )}
-            <PausedInfoLabel>
-              <FormattedMessage id="paused.info" />
-            </PausedInfoLabel>
-            {isHomeHub &&
-              !showingExternalCamera && (
-                <UnpausedInfoLabel>
-                  <FormattedMessage id="home-hub.info" />
-                </UnpausedInfoLabel>
+          {isWorld && (
+            <KeyTipsWrap onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}>
+              <KeyTips id="key-tips" />
+            </KeyTipsWrap>
+          )}
+          {isWorld && (
+            <BottomLeftPanels className={`${showingExternalCamera ? "external-camera-on" : ""}`}>
+              <ExternalCameraCanvas id="external-camera-canvas" />
+              {showingExternalCamera && (
+                <ExternalCameraRotateButton
+                  tabIndex={-1}
+                  iconSrc={unmuted ? unmutedIcon : mutedIcon}
+                  onClick={onClickExternalCameraRotate}
+                >
+                  <ExternalCameraRotateButtonIcon dangerouslySetInnerHTML={{ __html: rotateIcon }} />
+                </ExternalCameraRotateButton>
               )}
+              <PausedInfoLabel>
+                <FormattedMessage id="paused.info" />
+              </PausedInfoLabel>
+              {isHomeHub &&
+                !showingExternalCamera && (
+                  <UnpausedInfoLabel>
+                    <FormattedMessage id="home-hub.info" />
+                  </UnpausedInfoLabel>
+                )}
 
-            {!isHomeHub && (
-              <ChatLog leftOffset={showingExternalCamera ? 300 : 0} hub={hub} scene={scene} store={store} />
-            )}
-          </BottomLeftPanels>
+              {!isHomeHub && (
+                <ChatLog leftOffset={showingExternalCamera ? 300 : 0} hub={hub} scene={scene} store={store} />
+              )}
+            </BottomLeftPanels>
+          )}
         </Wrap>
         {!skipSidePanels && (
           <JelSidePanels
@@ -1051,29 +1060,32 @@ function JelUI(props) {
         styles={emojiPopupStyles}
         attributes={emojiPopupAttributes}
         ref={emojiPopupFocusRef}
-        onEmojiSelected={({ unicode }) => {
-          const parsed = unicode.split("-").map(str => parseInt(str, 16));
-          const emoji = String.fromCodePoint(...parsed);
+        onEmojiSelected={useCallback(
+          ({ unicode }) => {
+            const parsed = unicode.split("-").map(str => parseInt(str, 16));
+            const emoji = String.fromCodePoint(...parsed);
 
-          if (emojiPopupOpenOptions.equip) {
-            let currentSlot = -1;
+            if (emojiPopupOpenOptions.equip) {
+              let currentSlot = -1;
 
-            for (let i = 0; i < 10; i++) {
-              if (store.state.equips.launcher === store.state.equips[`launcherSlot${i + 1}`]) {
-                currentSlot = i;
-                break;
+              for (let i = 0; i < 10; i++) {
+                if (store.state.equips.launcher === store.state.equips[`launcherSlot${i + 1}`]) {
+                  currentSlot = i;
+                  break;
+                }
               }
-            }
 
-            if (currentSlot !== -1) {
-              store.update({ equips: { [`launcherSlot${currentSlot + 1}`]: emoji } });
-            }
+              if (currentSlot !== -1) {
+                store.update({ equips: { [`launcherSlot${currentSlot + 1}`]: emoji } });
+              }
 
-            store.update({ equips: { launcher: emoji } });
-          } else {
-            scene.emit("add_media_emoji", emoji);
-          }
-        }}
+              store.update({ equips: { launcher: emoji } });
+            } else {
+              scene.emit("add_media_emoji", emoji);
+            }
+          },
+          [scene, store, emojiPopupOpenOptions.equip]
+        )}
       />
       <SpaceNotificationsPopup
         setPopperElement={setSpaceNotificationPopupElement}

@@ -420,11 +420,18 @@ function JelSidePanels({
   );
 
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setSpaceName);
+  const onSelectedEmojiClicked = useCallback(
+    () => {
+      showEmojiPopup(emojiEquipRef, "top-end", [0, 12], { equip: true });
+    },
+    [showEmojiPopup]
+  );
 
   const space = spaceForSpaceId(spaceId, memberships);
   const hubId = hub && hub.hub_id;
   const messages = getMessages();
   const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
+  const isWorld = hub && hub.type === "world";
 
   return (
     <Wrap>
@@ -593,21 +600,15 @@ function JelSidePanels({
             }}
           />
         </PresenceContent>
-        <BlasterContent>
-          <PanelSectionHeader style={{ height: "16px" }}>
-            <FormattedMessage id="blaster.header" />
-          </PanelSectionHeader>
-          <EmojiEquip
-            ref={emojiEquipRef}
-            onSelectedEmojiClicked={useCallback(
-              () => {
-                showEmojiPopup(emojiEquipRef, "top-end", [0, 12], { equip: true });
-              },
-              [showEmojiPopup]
-            )}
-          />
-        </BlasterContent>
-        <BridgePanel scene={scene} spaceCan={spaceCan} />
+        {isWorld && (
+          <BlasterContent>
+            <PanelSectionHeader style={{ height: "16px" }}>
+              <FormattedMessage id="blaster.header" />
+            </PanelSectionHeader>
+            <EmojiEquip ref={emojiEquipRef} onSelectedEmojiClicked={onSelectedEmojiClicked} />
+          </BlasterContent>
+        )}
+        {isWorld && <BridgePanel scene={scene} spaceCan={spaceCan} />}
       </Right>
       <Invite setPopperElement={setInviteElement} styles={inviteStyles} attributes={inviteAttributes}>
         <InvitePanel

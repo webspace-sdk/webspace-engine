@@ -122,20 +122,20 @@ export default class Matrix extends EventTarget {
       setTimeout(() => {
         const room = client.getRoom(roomId);
 
-        if (room && this._roomForHubCan("state:m.room.name", roomId)) {
+        if (room && this._roomCan("state:m.room.name", roomId)) {
           client.setRoomName(roomId, name);
         }
       }, ROOM_RENAME_DELAY)
     );
   }
 
-  roomForHubCan(permission, channelId) {
+  roomForHubCan(permission, hubId) {
     const { hubIdToRoomId } = this;
 
-    const roomId = hubIdToRoomId.get(channelId);
+    const roomId = hubIdToRoomId.get(hubId);
     if (!roomId) return false;
 
-    return this._roomForHubCan(permission, roomId);
+    return this._roomCan(permission, roomId);
   }
 
   updateRoomOrderForHubId(hubId, order) {
@@ -272,10 +272,8 @@ export default class Matrix extends EventTarget {
     window.APP.accountChannel.setMatrixRoomOrder(roomId, newOrder);
   }
 
-  _roomForHubCan(permission, hubId) {
-    const { client, roomIdToHubId } = this;
-    const roomId = roomIdToHubId.get(hubId);
-    if (!roomId) return false;
+  _roomCan(permission, roomId) {
+    const { client } = this;
 
     const room = client.getRoom(roomId);
     if (!room) return false;
