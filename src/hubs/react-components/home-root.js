@@ -12,7 +12,7 @@ import homeVideoWebM from "../../assets/hubs/video/home.webm";
 import homeVideoMp4 from "../../assets/hubs/video/home.mp4";
 import discordLogoSmall from "../../assets/hubs/images/discord-logo-small.png";
 import classNames from "classnames";
-import { isLocalClient, createAndRedirectToNewHub, connectToReticulum } from "../utils/phoenix-utils";
+import { isLocalClient, connectToReticulum } from "../utils/phoenix-utils";
 import maskEmail from "../utils/mask-email";
 import checkIsMobile from "../utils/is-mobile";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
@@ -373,20 +373,6 @@ class HomeRoot extends Component {
           <FontAwesomeIcon icon={faPlus} />
         </i>
         <FormattedMessage id={`home.${isMobile ? "mobile" : "desktop"}.add_pwa`} />
-      </button>
-    );
-  }
-
-  renderCreateButton() {
-    return (
-      <button
-        className={classNames(styles.primaryButton, styles.ctaButton)}
-        onClick={e => {
-          e.preventDefault();
-          createAndRedirectToNewHub(null, null, false);
-        }}
-      >
-        <FormattedMessage id="home.create_a_room" />
       </button>
     );
   }

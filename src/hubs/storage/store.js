@@ -66,6 +66,7 @@ export const SCHEMA = {
         wasd: { type: "boolean" },
         createMenu: { type: "boolean" },
         createWorld: { type: "boolean" },
+        createChannel: { type: "boolean" },
         avatarEdit: { type: "boolean" },
         showInvite: { type: "boolean" },
         rightDrag: { type: "boolean" },

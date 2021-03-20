@@ -1,9 +1,8 @@
-import React, { useState, useCallback, useMemo, useRef } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { FormattedMessage } from "react-intl";
 import { usePopper } from "react-popper";
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import Tree from "rc-tree";
 import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
 import SelfPanel from "./self-panel";
@@ -30,7 +29,6 @@ import ReactDOM from "react-dom";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import PopupPanel from "./popup-panel";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
-import HubNodeTitle from "./hub-node-title";
 import { SOUND_TELEPORT_END } from "../../hubs/systems/sound-effects-system";
 
 const Wrap = styled.div`
@@ -378,6 +376,7 @@ function JelSidePanels({
   hubCan = () => false,
   spaceCan = () => false,
   spaceMetadata,
+  hubMetadata,
   memberships,
   showHubContextMenuPopup,
   setHubRenameReferenceElement,
@@ -421,9 +420,6 @@ function JelSidePanels({
   );
 
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setSpaceName);
-
-  const homeHub = homeHubForSpaceId(spaceId, memberships);
-  const hubMetadata = treeManager && treeManager.sharedNav && treeManager.sharedNav.atomMetadata;
 
   const space = spaceForSpaceId(spaceId, memberships);
   const hubId = hub && hub.hub_id;
@@ -489,11 +485,22 @@ function JelSidePanels({
             <PanelSectionHeader>
               <FormattedMessage id="nav.channels" />
             </PanelSectionHeader>
+            <HubTree
+              treeManager={treeManager}
+              type="channel"
+              hub={hub}
+              history={history}
+              spaceCan={spaceCan}
+              hubCan={hubCan}
+              showHubContextMenuPopup={showHubContextMenuPopup}
+              setHubRenameReferenceElement={setHubRenameReferenceElement}
+            />
             <PanelSectionHeader>
               <FormattedMessage id="nav.space-worlds" />
             </PanelSectionHeader>
             <HubTree
               treeManager={treeManager}
+              type="world"
               hub={hub}
               history={history}
               spaceCan={spaceCan}
@@ -528,7 +535,7 @@ function JelSidePanels({
                 iconSrc={addIcon}
                 onClick={async () => {
                   store.handleActivityFlag("createWorld");
-                  const hub = await addNewHubToTree(treeManager, spaceId);
+                  const hub = await addNewHubToTree(treeManager, spaceId, "world");
                   navigateToHubUrl(history, hub.url);
                 }}
                 style={{ width: "60%" }}
@@ -537,8 +544,16 @@ function JelSidePanels({
               </ActionButton>
             )}
             {spaceCan("create_hub") && (
-              <ActionButton iconSrc={addIcon} onClick={async () => {}} style={{ width: "60%" }}>
-                Create Channel
+              <ActionButton
+                iconSrc={addIcon}
+                onClick={async () => {
+                  store.handleActivityFlag("createChannel");
+                  const hub = await addNewHubToTree(treeManager, spaceId, "channel");
+                  navigateToHubUrl(history, hub.url);
+                }}
+                style={{ width: "60%" }}
+              >
+                <FormattedMessage id="nav.create-channel" />
               </ActionButton>
             )}
             <SelfPanel
@@ -660,6 +675,7 @@ JelSidePanels.propTypes = {
   roomForHubCan: PropTypes.func,
   scene: PropTypes.object,
   spaceMetadata: PropTypes.object,
+  hubMetadata: PropTypes.object,
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,
   memberships: PropTypes.array,

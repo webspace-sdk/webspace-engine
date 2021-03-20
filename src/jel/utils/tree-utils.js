@@ -23,20 +23,18 @@ export function useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersi
   );
 }
 
-export function useExpandableTree(treeManager) {
+export function useExpandableTree(treeManager, tree) {
   useEffect(
     () => {
       if (!treeManager) return () => {};
 
-      const handleExpandedNodeIdsChanged = () => {
-        treeManager.sharedNav.rebuildFilteredTreeData();
-      };
+      const handleExpandedNodeIdsChanged = () => tree.rebuildFilteredTreeData();
 
       treeManager.addEventListener("expanded_nodes_updated", handleExpandedNodeIdsChanged);
 
       () => treeManager.removeEventListener("expanded_nodes_updated", handleExpandedNodeIdsChanged);
     },
-    [treeManager]
+    [treeManager, tree]
   );
 }
 
@@ -77,7 +75,7 @@ export const useTreeDropHandler = (treeManager, tree, allowNesting = true) =>
         case 0:
           if (allowNesting) {
             tree.moveInto(dragNode.key, node.key);
-            treeManager.setNodeIsExpanded(node.key, true);
+            treeManager.setNodeIsExpanded(node.key, true, tree);
           }
           break;
       }
@@ -127,6 +125,7 @@ export function isAtomInSubtree(tree, subtreeAtomId, targetAtomId) {
 export async function addNewHubToTree(
   treeManager,
   spaceId,
+  type,
   insertUnderAtomId,
   name = null,
   template = null,
@@ -137,9 +136,10 @@ export async function addNewHubToTree(
   spawnRotation = null,
   spawnRadius = null
 ) {
-  const tree = treeManager.sharedNav;
+  const tree = type === "world" ? treeManager.worldNav : treeManager.channelNav;
   const hub = await createHub(
     spaceId,
+    type,
     name,
     template,
     worldType,
@@ -152,10 +152,10 @@ export async function addNewHubToTree(
   const insertUnderNodeId = insertUnderAtomId ? tree.getNodeIdForAtomId(insertUnderAtomId) : null;
 
   if (insertUnderNodeId) {
-    treeManager.sharedNav.insertUnder(hub.hub_id, insertUnderNodeId);
-    treeManager.setNodeIsExpanded(insertUnderNodeId, true);
+    tree.insertUnder(hub.hub_id, insertUnderNodeId);
+    treeManager.setNodeIsExpanded(insertUnderNodeId, true, tree);
   } else {
-    treeManager.sharedNav.addToRoot(hub.hub_id);
+    tree.addToRoot(hub.hub_id);
   }
 
   return hub;

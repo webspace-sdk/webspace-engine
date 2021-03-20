@@ -41,6 +41,7 @@ class AtomMetadata {
     this._metadataSubscribers = new Map();
     this._atomType = atomType;
     this._source = null;
+    this._defaultNames = new Map();
 
     const messages = getMessages();
 
@@ -49,15 +50,14 @@ class AtomMetadata {
         this._refreshMessage = "hub_meta_refresh";
         this._idColumn = "hub_id";
         this._sourceGetMethod = "getHubMetas";
-        this._defaultName = messages["hub.unnamed-title"];
-        this._defaultHomeName = messages["hub.unnamed-home-title"];
+        this._defaultNames.set("world", messages["hub.unnamed-world-title"]);
+        this._defaultNames.set("channel", messages["hub.unnamed-channel-title"]);
         break;
       case ATOM_TYPES.SPACE:
         this._refreshMessage = "space_meta_refresh";
         this._idColumn = "space_id";
         this._sourceGetMethod = "getSpaceMetas";
-        this._defaultName = messages["space.unnamed-title"];
-        this._defaultHomeName = messages["space.unnamed-home-title"];
+        this._defaultNames.set("space", messages["space.unnamed-title"]);
         break;
     }
   }
@@ -96,12 +96,12 @@ class AtomMetadata {
     this.ensureMetadataForIds(inFlightMetadataIds, true);
   }
 
-  get defaultName() {
-    return this._defaultName;
-  }
-
-  get defaultHomeName() {
-    return this._defaultHomeName;
+  defaultNameForType(type = null) {
+    if (this._atomType === ATOM_TYPES.SPACE) {
+      return this._defaultNames.get("space");
+    } else {
+      return this._defaultNames.get(type);
+    }
   }
 
   // Subscribes to metadata changes for the given atom id.
@@ -235,7 +235,7 @@ class AtomMetadata {
   };
 
   _setDisplayNameOnMetadata = metadata => {
-    metadata.displayName = metadata.name || (metadata.is_home ? this._defaultHomeName : this._defaultName);
+    metadata.displayName = metadata.name || this.defaultNameForType(metadata.type);
   };
 
   _subscribeToSource(event, handler) {

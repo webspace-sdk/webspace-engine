@@ -113,7 +113,7 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata, history, renameP
   }
 
   const primaryHubId = hubIdsToShow[hubIdsToShow.length - 1];
-  const canRename = hubCan("update_hub_meta", primaryHubId);
+  const canRename = hubCan && hubCan("update_hub_meta", primaryHubId);
 
   items.push(
     <HubTrailHubItem

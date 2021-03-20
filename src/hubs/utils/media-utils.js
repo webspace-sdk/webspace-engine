@@ -740,7 +740,6 @@ export const MEDIA_PRESENCE = {
 const MIN_ASPECT_RATIO_TO_BATCH = 1.0 / 8.0;
 const MAX_ASPECT_RATIO_TO_BATCH = 1.0 / MIN_ASPECT_RATIO_TO_BATCH;
 const MAX_PIXELS_TO_BATCH = 1024 * 1024 * 4;
-export const DEFAULT_HUB_NAME = getMessages()["hub.unnamed-title"];
 
 export function meetsBatchingCriteria(textureInfo) {
   if (!textureInfo.width || !textureInfo.height) return false;

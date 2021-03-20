@@ -484,15 +484,21 @@ function JelUI(props) {
     subscriptions,
     spaceId
   } = props;
-  const tree = treeManager && treeManager.sharedNav;
+  const worldTree = treeManager && treeManager.worldNav;
+  const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
+  const treeForCurrentHub = hub && hub.type === "world" ? worldTree : channelTree;
   const { store, hubChannel, spaceChannel, dynaChannel } = window.APP;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
-  const hubMetadata = tree && tree.atomMetadata;
-  const hubTrailHubIds = (tree && hub && tree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
+  const hubMetadata = worldTree && worldTree.atomMetadata;
+
+  const hubTrailHubIds =
+    (treeForCurrentHub && treeForCurrentHub.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
   const [unmuted, setUnmuted] = useState(false);
-  const [treeData, setTreeData] = useState([]);
-  const [treeDataVersion, setTreeDataVersion] = useState(0);
+  const [worldTreeData, setWorldTreeData] = useState([]);
+  const [worldTreeDataVersion, setWorldTreeDataVersion] = useState(0);
+  const [channelTreeData, setChannelTreeData] = useState([]);
+  const [channelTreeDataVersion, setChannelTreeDataVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [showingExternalCamera, setShowingExternalCamera] = useState(false);
@@ -664,7 +670,8 @@ function JelUI(props) {
   useSceneMuteState(scene, setUnmuted);
 
   // Consume tree updates so redraws if user manipulates tree
-  useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersion);
+  useTreeData(worldTree, worldTreeDataVersion, setWorldTreeData, setWorldTreeDataVersion);
+  useTreeData(channelTree, channelTreeDataVersion, setChannelTreeData, setChannelTreeDataVersion);
 
   useEffect(() => {
     const handler = () => setIsLoading(false);
@@ -898,7 +905,7 @@ function JelUI(props) {
           <Top>
             {hubMetadata && (
               <HubTrail
-                tree={tree}
+                tree={treeForCurrentHub}
                 history={history}
                 hubMetadata={hubMetadata}
                 hubCan={hubCan}
@@ -996,6 +1003,7 @@ function JelUI(props) {
           <JelSidePanels
             {...props}
             spaceMetadata={spaceMetadata}
+            hubMetadata={hubMetadata}
             showHubRenamePopup={showHubRenamePopup}
             setHubRenameReferenceElement={setHubRenameReferenceElement}
             showHubContextMenuPopup={showHubContextMenuPopup}
@@ -1140,22 +1148,23 @@ function JelUI(props) {
         onResetClick={useCallback(() => scene.emit("action_reset_objects"), [scene])}
         onTrashClick={useCallback(
           hubId => {
-            if (!tree.getNodeIdForAtomId(hubId)) return;
+            if (!worldTree.getNodeIdForAtomId(hubId) && !channelTree.getNodeIdForAtomId(hubId)) return;
 
             // If this hub or any of its parents were deleted, go home.
-            if (isAtomInSubtree(tree, hubId, hub.hub_id)) {
+            if (isAtomInSubtree(worldTree, hubId, hub.hub_id) || isAtomInSubtree(channelTree, hubId, hub.hub_id)) {
               const homeHub = homeHubForSpaceId(hub.space_id, memberships);
               navigateToHubUrl(history, homeHub.url);
             }
 
             // All trashable children are trashed too.
-            const trashableChildrenHubIds = findChildrenAtomsInTreeData(treeData, hubId).filter(hubId =>
-              hubCan("trash_hub", hubId)
-            );
+            const trashableChildrenHubIds = [
+              ...findChildrenAtomsInTreeData(worldTreeData, hubId),
+              ...findChildrenAtomsInTreeData(channelTreeData, hubId)
+            ].filter(hubId => hubCan("trash_hub", hubId));
 
             spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
           },
-          [tree, hub, history, hubCan, memberships, spaceChannel, treeData]
+          [worldTree, hub, history, hubCan, memberships, spaceChannel, worldTreeData, channelTree, channelTreeData]
         )}
       />
       <CreateSelectPopup
