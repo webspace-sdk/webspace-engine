@@ -116,7 +116,7 @@ export class AtmosphereSystem {
     setInterval(() => {
       // If the app is backgrounded, the tick() method will stop being called
       // and so we should run it manually so sounds continue to play.
-      if (performance.now() - this.lastSoundProcessTime > 250.0) {
+      if (!sceneEl.is("paused") && performance.now() - this.lastSoundProcessTime > 250.0) {
         this.updateAmbienceSounds();
       }
     }, 250);
