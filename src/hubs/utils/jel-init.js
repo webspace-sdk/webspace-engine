@@ -55,11 +55,7 @@ const startTrackingPosition = (() => {
 })();
 
 async function updateEnvironmentForHub(hub) {
-  const sceneEl = document.querySelector("a-scene");
-
-  // Clear the three.js image cache and load the loading environment before switching to the new one.
   document.querySelector(".a-canvas").classList.remove("a-hidden");
-  sceneEl.addState("visible");
 
   SYSTEMS.terrainSystem.updateWorldForHub(hub);
   SYSTEMS.atmosphereSystem.updateAtmosphereForHub(hub);
@@ -69,9 +65,6 @@ async function moveToInitialHubLocation(hub, hubStore) {
   const sceneEl = document.querySelector("a-scene");
 
   const characterController = sceneEl.systems["hubs-systems"].characterController;
-
-  document.querySelector(".a-canvas").classList.remove("a-hidden");
-  sceneEl.addState("visible");
 
   let startPosition, startRotation;
 
@@ -212,6 +205,16 @@ function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
   const selectedMediaLayer = mediaPresenceSystem.getSelectedMediaLayer();
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
   remountJelUI({ hub, selectedMediaLayer });
+}
+
+function updateSceneStateForHub(hub) {
+  const scene = document.querySelector("a-scene");
+
+  if (hub.type === "world") {
+    scene.removeState("paused");
+  } else {
+    scene.addState("paused");
+  }
 }
 
 const initSpacePresence = (presence, socket) => {
@@ -561,6 +564,9 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
     hubPhxChannel
       .join()
       .receive("ok", async data => {
+        const hub = data.hubs[0];
+        const isWorld = hub.type === "world";
+
         const presence = hubChannel.presence;
         const permsToken = data.perms_token;
         hubChannel.setPermissionsFromToken(permsToken);
@@ -572,13 +578,14 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
         if (isInitialJoin) {
           await initHubPresence(presence);
         } else {
-          // Send complete sync on phoenix re-join.
-          NAF.connection.entities.completeSync(null, true);
+          if (isWorld) {
+            // Send complete sync on phoenix re-join.
+            NAF.connection.entities.completeSync(null, true);
+          }
         }
 
         const scene = document.querySelector("a-scene");
 
-        const hub = data.hubs[0];
         spaceChannel.sendJoinedHubEvent(hub.hub_id);
 
         if (!isInitialJoin) {
@@ -608,6 +615,8 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
           updateTitleAndWorldForHubHandler([hub.hub_id], hubMetadata);
           hubMetadata.ensureMetadataForIds([hub.hub_id]);
           updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
+          updateSceneStateForHub(hub);
+
           updateEnvironmentForHub(hub);
 
           if (isInitialJoin) {
@@ -616,9 +625,16 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
             // Clear voxmojis from prior world
             SYSTEMS.voxmojiSystem.clear();
 
+            // TODO channels
             SYSTEMS.atmosphereSystem.restartAmbience();
 
             clearResolveUrlCache();
+
+            // If this is not a world, skip connecting to NAF
+            if (!isWorld) {
+              res();
+              return;
+            }
 
             moveToInitialHubLocation(hub, hubStore);
 

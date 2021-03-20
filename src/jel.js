@@ -716,7 +716,7 @@ function addGlobalEventListeners(scene, entryManager) {
 }
 
 // Attempts to pause a-frame scene and rendering if tabbed away or maximized and window is blurred
-function setupNonVisibleHandler(scene) {
+function setupGameEnginePausing(scene) {
   const physics = scene.systems["hubs-systems"].physicsSystem;
   const autoQuality = scene.systems["hubs-systems"].autoQualitySystem;
   let disableAmbienceTimeout = null;
@@ -741,24 +741,26 @@ function setupNonVisibleHandler(scene) {
         SYSTEMS.atmosphereSystem.disableAmbience();
       }, 15000);
     } else {
-      if (document.visibilityState === "visible") {
-        // Hacky. On some platforms GL context needs to be explicitly restored. So do it.
-        // This really shouldn't be necessary :P
-        if (scene.renderer.getContext().isContextLost() && webglLoseContextExtension) {
-          webglLoseContextExtension.restoreContext();
+      if (!scene.is("paused")) {
+        if (document.visibilityState === "visible") {
+          // Hacky. On some platforms GL context needs to be explicitly restored. So do it.
+          // This really shouldn't be necessary :P
+          if (scene.renderer.getContext().isContextLost() && webglLoseContextExtension) {
+            webglLoseContextExtension.restoreContext();
+          }
+
+          scene.play();
+          scene.renderer.animation.start();
+          SYSTEMS.externalCameraSystem.startRendering();
+          autoQuality.startTracking();
         }
 
-        scene.play();
-        scene.renderer.animation.start();
-        SYSTEMS.externalCameraSystem.startRendering();
-        autoQuality.startTracking();
+        clearTimeout(disableAmbienceTimeout);
+        document.body.classList.remove("paused");
+        physics.updateSimulationRate(1000.0 / 90.0);
+        accountChannel.setActive();
+        SYSTEMS.atmosphereSystem.enableAmbience();
       }
-
-      clearTimeout(disableAmbienceTimeout);
-      document.body.classList.remove("paused");
-      physics.updateSimulationRate(1000.0 / 90.0);
-      accountChannel.setActive();
-      SYSTEMS.atmosphereSystem.enableAmbience();
     }
   };
 
@@ -791,6 +793,18 @@ function setupNonVisibleHandler(scene) {
       apply(false);
     });
   }
+
+  scene.addEventListener("stateadded", ({ detail }) => {
+    if (detail === "paused") {
+      apply(true);
+    }
+  });
+
+  scene.addEventListener("stateremoved", ({ detail }) => {
+    if (detail === "paused") {
+      apply(false);
+    }
+  });
 }
 
 function setupSidePanelLayout(scene) {
@@ -1072,7 +1086,7 @@ async function start() {
 
   addGlobalEventListeners(scene, entryManager);
   setupSidePanelLayout(scene);
-  setupNonVisibleHandler(scene);
+  setupGameEnginePausing(scene);
 
   window.dispatchEvent(new CustomEvent("hub_channel_ready"));
 

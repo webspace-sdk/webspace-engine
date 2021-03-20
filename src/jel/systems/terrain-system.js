@@ -360,7 +360,13 @@ export class TerrainSystem {
     });
   };
 
-  updateWorldForHub({ world }) {
+  updateWorldForHub({ type: hubType, world }) {
+    if (hubType === "channel") {
+      this.unloadWorld();
+      this.scene.emit("terrain_chunk_loading_complete");
+      return;
+    }
+
     // Update colors
     const colors = [];
     WORLD_COLOR_TYPES.forEach(type => {

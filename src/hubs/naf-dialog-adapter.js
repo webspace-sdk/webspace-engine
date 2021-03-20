@@ -548,6 +548,8 @@ export default class DialogAdapter {
     // but remove other ephemeral networked entities upon hub transition.
     const entitiesToKeep = [document.getElementById("avatar-rig")];
     NAF.connection.entities.removeRemoteEntities(true, entitiesToKeep);
+
+    this.lastJoinedHubId = null;
   }
 
   async joinHub(hubId) {
