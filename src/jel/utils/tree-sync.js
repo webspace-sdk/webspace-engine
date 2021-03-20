@@ -71,7 +71,7 @@ class TreeSync extends EventTarget {
 
     return new Promise(res => {
       doc.subscribe(async () => {
-        doc.on("op", this.rebuildFilteredTreeDataIfAutoRefresh);
+        doc.on("op", () => this.rebuildFilteredTreeDataIfAutoRefresh());
         this.rebuildFilteredTreeDataIfAutoRefresh();
         res();
       });
