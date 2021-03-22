@@ -23,6 +23,24 @@ body {
     top: 0;
     position: fixed;
     z-index: 3;
+    visibility: hidden;
+
+    &.visible {
+      visibility: visible;
+    }
+  }
+
+  #jel-matrix-client {
+    height: 100%;
+    border: 0px;
+    top: 0;
+    position: fixed;
+    z-index: 3;
+    visibility: hidden;
+
+    &.visible {
+      visibility: visible;
+    }
   }
 
   #jel-popup-root {

@@ -62,9 +62,14 @@ const Wrap = styled.div`
     pointer-events: auto;
   }
 
-  body.paused & {
+  body.paused #jel-interface.hub-type-world & {
     pointer-events: auto;
     background-color: rgba(0, 0, 0, 0.6);
+  }
+
+  body.paused #jel-interface.hub-type-channel & {
+    pointer-events: auto;
+    background-color: transparent;
   }
 `;
 
@@ -162,7 +167,7 @@ const Top = styled.div`
   width: 100%;
   align-items: flex-start;
 
-  body.paused & {
+  body.paused #jel-interface.hub-type-world & {
     opacity: 0.4;
   }
 `;
