@@ -493,7 +493,7 @@ function JelUI(props) {
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
   const treeForCurrentHub = hub && hub.type === "world" ? worldTree : channelTree;
-  const { store, hubChannel, spaceChannel, dynaChannel } = window.APP;
+  const { store, hubChannel, spaceChannel, dynaChannel, matrix } = window.APP;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
@@ -504,7 +504,8 @@ function JelUI(props) {
   const [worldTreeDataVersion, setWorldTreeDataVersion] = useState(0);
   const [channelTreeData, setChannelTreeData] = useState([]);
   const [channelTreeDataVersion, setChannelTreeDataVersion] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isTerrainLoading, setIsTerrainLoading] = useState(true);
+  const [isMatrixLoading, setIsMatrixLoading] = useState(!matrix || !matrix.isInitialSyncFinished);
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [showingExternalCamera, setShowingExternalCamera] = useState(false);
   const [showNotificationBanner, setShowNotificationBanner] = useState(
@@ -679,11 +680,21 @@ function JelUI(props) {
   useTreeData(channelTree, channelTreeDataVersion, setChannelTreeData, setChannelTreeDataVersion);
 
   useEffect(() => {
-    const handler = () => setIsLoading(false);
+    const handler = () => setIsTerrainLoading(false);
 
     scene && scene.addEventListener("terrain_chunk_loading_complete", handler);
     () => scene && scene.removeEventListener("terrain_chunk_loading_complete", handler);
   });
+
+  useEffect(
+    () => {
+      const handler = () => setIsMatrixLoading(false);
+
+      matrix && matrix.addEventListener("initial_sync_finished", handler);
+      () => matrix && matrix.removeEventListener("initial_sync_finished", handler);
+    },
+    [matrix]
+  );
 
   // Handle permissions changed
   useEffect(
@@ -869,7 +880,7 @@ function JelUI(props) {
   return (
     <WrappedIntlProvider>
       <div>
-        <LoadingPanel isLoading={isLoading} unavailableReason={unavailableReason} />
+        <LoadingPanel isLoading={isMatrixLoading || isTerrainLoading} unavailableReason={unavailableReason} />
         <Snackbar />
         <Wrap id="jel-ui-wrap">
           {showNotificationBanner &&

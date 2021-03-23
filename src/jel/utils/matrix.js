@@ -1,6 +1,14 @@
 import { EventTarget } from "event-target-shim";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
+// TODO this may go into phoenix presence.
+const DEVICE_ID_STORE_KEY = "__JelDeviceId";
+
+function randomString(len) {
+  const p = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  return [...Array(len)].reduce(a => a + p[~~(Math.random() * p.length)], "");
+}
+
 // Delay we wait before flushing a room rename since the user
 // can keep typing in the UI.
 const ROOM_RENAME_DELAY = 1000;
@@ -8,7 +16,14 @@ const ROOM_RENAME_DELAY = 1000;
 export default class Matrix extends EventTarget {
   constructor(store) {
     super();
+
+    if (!localStorage.getItem(DEVICE_ID_STORE_KEY)) {
+      localStorage.setItem(DEVICE_ID_STORE_KEY, randomString(32));
+    }
+
     this.store = store;
+    this.deviceId = localStorage.getItem(DEVICE_ID_STORE_KEY);
+
     this.pendingRoomJoinPromises = new Map();
     this.pendingRoomJoinResolvers = new Map();
     this.roomNameChangeTimeouts = new Map();
@@ -20,13 +35,15 @@ export default class Matrix extends EventTarget {
     // Map of space ID -> spaceroom roomId
     this.spaceIdToRoomId = new Map();
 
+    this.isInitialSyncFinished = false;
+
     this.initialSyncPromise = new Promise(res => {
       this.initialSyncFinished = res;
     });
   }
 
   async init(homeserver, loginToken, expectedUserId) {
-    const { store } = this;
+    const { store, deviceId } = this;
     const { accountChannel } = window.APP;
 
     this.homeserver = homeserver;
@@ -108,6 +125,7 @@ export default class Matrix extends EventTarget {
             });
 
             this.initialSyncFinished();
+            this.dispatchEvent(new CustomEvent("initial_sync_finished"));
 
             res();
           } else {
@@ -127,7 +145,8 @@ export default class Matrix extends EventTarget {
         homeserverUrl: `https://${homeserver}`,
         identityServerUrl: `https://${homeserver}`,
         userId,
-        accessToken
+        accessToken,
+        deviceId
       });
     }
 

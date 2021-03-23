@@ -36,25 +36,30 @@ function HubTree({ treeManager, type, history, hub, spaceCan, setHubRenameRefere
   useScrollToSelectedTreeNode(navTreeData, hub);
 
   const navTitleControl = useCallback(
-    data => (
-      <HubNodeTitle
-        hubId={data.atomId}
-        showAdd={spaceCan("create_hub")}
-        showDots={true}
-        hubMetadata={atomMetadata}
-        onAddClick={e => {
-          e.stopPropagation(); // Otherwise this will perform a tree node click event
-          addNewHubToTree(history, treeManager, hub.space_id, "world", data.atomId);
-        }}
-        onDotsClick={(e, ref) => {
-          e.stopPropagation(); // Otherwise this will perform a tree node click event
-          showHubContextMenuPopup(data.atomId, ref, "bottom-start", [0, 0], {
-            hideRename: false
-          });
-          setHubRenameReferenceElement(ref);
-        }}
-      />
-    ),
+    data => {
+      const metadata = atomMetadata.getMetadata(data.atomId);
+      const showAdd = !!(spaceCan("create_hub") && metadata && metadata.type === "world");
+
+      return (
+        <HubNodeTitle
+          hubId={data.atomId}
+          showAdd={showAdd}
+          showDots={true}
+          hubMetadata={atomMetadata}
+          onAddClick={e => {
+            e.stopPropagation(); // Otherwise this will perform a tree node click event
+            addNewHubToTree(history, treeManager, hub.space_id, "world", data.atomId);
+          }}
+          onDotsClick={(e, ref) => {
+            e.stopPropagation(); // Otherwise this will perform a tree node click event
+            showHubContextMenuPopup(data.atomId, ref, "bottom-start", [0, 0], {
+              hideRename: false
+            });
+            setHubRenameReferenceElement(ref);
+          }}
+        />
+      );
+    },
     [history, hub, treeManager, atomMetadata, showHubContextMenuPopup, setHubRenameReferenceElement, spaceCan]
   );
 
