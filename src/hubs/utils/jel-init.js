@@ -155,7 +155,7 @@ const createHubChannelParams = () => {
   const params = {
     auth_token: null,
     perms_token: null,
-    is_first_shared: false
+    is_first_shared_world: false
   };
 
   const { token } = window.APP.store.state.credentials;
@@ -215,6 +215,7 @@ function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
     jelInterface.classList.add("hub-type-channel");
     jelInterface.classList.remove("hub-type-world");
     window.APP.matrix.switchClientToRoomForHub(hub);
+    neon.focus();
   }
 
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
@@ -826,7 +827,7 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
 
 // Dirty flag used to pass is_first_shared=true to hub join, which is used to trigger
 // notifications.
-let hasJoinedPublicHubForCurrentSpace;
+let hasJoinedPublicWorldForCurrentSpace;
 
 export function joinSpace(socket, history, subscriptions, entryManager, remountUI, remountJelUI, membershipsPromise) {
   const spaceId = getSpaceIdFromHistory(history);
@@ -854,7 +855,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
   setupSpaceChannelMessageHandlers(spacePhxChannel, entryManager);
   spaceChannel.bind(spacePhxChannel, spaceId);
 
-  hasJoinedPublicHubForCurrentSpace = false;
+  hasJoinedPublicWorldForCurrentSpace = false;
 
   const treeManager = new TreeManager(spaceMetadata, hubMetadata);
 
@@ -930,9 +931,9 @@ export async function joinHub(socket, history, entryManager, remountUI, remountJ
   const metadata = hubMetadata.getMetadata(hubId);
   const isHomeHub = metadata && metadata.is_home;
 
-  if (!isHomeHub && !hasJoinedPublicHubForCurrentSpace) {
-    params.is_first_shared = !hasJoinedPublicHubForCurrentSpace;
-    hasJoinedPublicHubForCurrentSpace = true;
+  if (!isHomeHub && metadata.type === "world" && !hasJoinedPublicWorldForCurrentSpace) {
+    params.is_first_shared = !hasJoinedPublicWorldForCurrentSpace;
+    hasJoinedPublicWorldForCurrentSpace = true;
   }
 
   const hubPhxChannel = socket.channel(`hub:${hubId}`, params);
