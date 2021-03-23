@@ -203,20 +203,19 @@ function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
   const scene = document.querySelector("a-scene");
   const mediaPresenceSystem = scene.systems["hubs-systems"].mediaPresenceSystem;
   const selectedMediaLayer = mediaPresenceSystem.getSelectedMediaLayer();
-  const matrixClient = document.querySelector("#jel-matrix-client");
+  const neon = document.querySelector("#neon");
   const jelInterface = document.querySelector("#jel-interface");
 
   if (hub.type === "world") {
-    matrixClient.classList.remove("visible");
+    neon.classList.remove("visible");
     jelInterface.classList.add("hub-type-world");
     jelInterface.classList.remove("hub-type-channel");
   } else {
-    matrixClient.classList.add("visible");
+    neon.classList.add("visible");
     jelInterface.classList.add("hub-type-channel");
     jelInterface.classList.remove("hub-type-world");
+    window.APP.matrix.switchClientToRoomForHub(hub);
   }
-
-  window.APP.matrix.switchClientToRoomForHub(hub);
 
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
   remountJelUI({ hub, selectedMediaLayer });
@@ -887,6 +886,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
           hubs[world] = await addNewHubToTree(
             treeManager,
             spaceId,
+            "world",
             null,
             name,
             world,

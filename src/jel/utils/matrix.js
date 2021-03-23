@@ -79,21 +79,21 @@ export default class Matrix extends EventTarget {
 
     console.log("Logged into matrix as", userId);
 
-    // Set up client in ifrmae
+    // Set up neon in iframe
     await waitForDOMContentLoaded();
 
-    const uiClient = document.getElementById("jel-matrix-client");
+    const neon = document.getElementById("neon");
 
     await new Promise(res => {
-      uiClient.addEventListener("load", res, { once: true });
-      uiClient.setAttribute("src", "/matrix/");
+      neon.addEventListener("load", res, { once: true });
+      neon.setAttribute("src", "/neon/");
     });
 
-    await waitForDOMContentLoaded(uiClient.contentDocument, uiClient.contentWindow);
+    await waitForDOMContentLoaded(neon.contentDocument, neon.contentWindow);
 
     const res = new Promise((res, rej) => {
       // Inner client calls this and passes matrix client.
-      uiClient.contentWindow.onPreClientStart = client => {
+      neon.contentWindow.onPreClientStart = client => {
         this.client = client;
 
         this._attachMatrixEventHandlers();
@@ -117,13 +117,13 @@ export default class Matrix extends EventTarget {
       };
     });
 
-    const { getLoadedSession, getLifecycle, getDispatcher } = uiClient.contentWindow;
+    const { getLoadedSession, getLifecycle, getDispatcher } = neon.contentWindow;
     const innerSession = await getLoadedSession;
-    const lifecycle = await getLifecycle;
-    this._uiDispatcher = await getDispatcher;
+    this._neonLifecycle = await getLifecycle;
+    this._neonDispatcher = await getDispatcher;
 
     if (!innerSession) {
-      await lifecycle.setLoggedIn({
+      await this._neonLifecycle.setLoggedIn({
         homeserverUrl: `https://${homeserver}`,
         identityServerUrl: `https://${homeserver}`,
         userId,
@@ -179,7 +179,7 @@ export default class Matrix extends EventTarget {
 
     await this.initialSyncPromise;
 
-    this._uiDispatcher.dispatch({
+    this._neonDispatcher.dispatch({
       action: "view_room",
       room_id: roomId
     });
@@ -224,6 +224,10 @@ export default class Matrix extends EventTarget {
     if (currentOrder !== `${order}`) {
       window.APP.accountChannel.setMatrixRoomOrder(roomId, order);
     }
+  }
+
+  logout() {
+    return this._neonLifecycle.logout();
   }
 
   _roomCan(permission, roomId) {

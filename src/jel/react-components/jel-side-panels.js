@@ -572,8 +572,9 @@ function JelSidePanels({
               onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {
                 spaceChannel.sendAvatarColorUpdate(r / 255.0, g / 255.0, b / 255.0);
               }}
-              onSignOutClicked={() => {
+              onSignOutClicked={async () => {
                 store.clearCredentials();
+                await window.APP.matrix.logout();
                 document.location = "/";
               }}
             />

@@ -19,7 +19,7 @@ const panelExpandStep = BezierEasing(0.12, 0.98, 0.18, 0.98);
 export class UIAnimationSystem {
   constructor(sceneEl) {
     this.sceneEl = sceneEl;
-    waitForDOMContentLoaded().then(() => (this.matrixClient = document.querySelector("#jel-matrix-client")));
+    waitForDOMContentLoaded().then(() => (this.neon = document.querySelector("#neon")));
 
     this.lastTickT = 0;
     this.panelExpansionState = PANEL_EXPANSION_STATES.EXPANDING;
@@ -150,7 +150,7 @@ export class UIAnimationSystem {
 
     const width = document.body.clientWidth - this.sceneLeft - this.sceneRight;
     this.sceneEl.style.cssText = `left: ${this.sceneLeft}px; width: ${width}px;`;
-    this.matrixClient.style.cssText = `left: ${this.sceneLeft}px; width: ${width}px;`;
+    this.neon.style.cssText = `left: ${this.sceneLeft}px; width: ${width}px;`;
 
     if (includeUI) {
       this.applyUI(this.sceneLeft, this.sceneRight);

@@ -87,7 +87,6 @@
     "jsonschema": "^1.2.2",
     "jwt-decode": "^2.2.0",
     "lib-hubs": "github:jel-app/lib-hubs#master",
-    "matrix-js-sdk": "^9.8.0",
     "meyda": "github:jel-app/meyda#master",
     "mixpanel-browser": "^2.39.0",
     "moving-average": "^1.0.0",
