@@ -944,7 +944,7 @@ export async function joinHub(socket, history, entryManager, remountUI, remountJ
   hubChannel.bind(hubPhxChannel, hubId);
 
   if (NAF.connection.adapter) {
-    NAF.connection.adapter.leaveHub();
+    NAF.connection.adapter.leaveHub(true);
   }
 
   const joinSuccessful = await joinHubChannel(hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI);

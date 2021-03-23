@@ -532,7 +532,7 @@ export default class DialogAdapter {
     this._reconnectionErrorListener = reconnectionErrorListener;
   }
 
-  async leaveHub() {
+  async leaveHub(sendExitMessage = false) {
     if (!this.lastJoinedHubId) return;
 
     const peerIds = Object.keys(this.occupants);
@@ -548,6 +548,12 @@ export default class DialogAdapter {
     // but remove other ephemeral networked entities upon hub transition.
     const entitiesToKeep = [document.getElementById("avatar-rig")];
     NAF.connection.entities.removeRemoteEntities(true, entitiesToKeep);
+
+    // If the user isn't switching to a new hub immediately then send an exit
+    // message to cause their avatar to leave.
+    if (sendExitMessage) {
+      await this._protoo.request("exit", {});
+    }
 
     this.lastJoinedHubId = null;
   }
