@@ -126,6 +126,8 @@ export default class Matrix extends EventTarget {
               this._joinMissingRooms();
             });
 
+            this._setDefaultPushRules();
+
             this.initialSyncFinished();
             this.dispatchEvent(new CustomEvent("initial_sync_finished"));
 
@@ -265,6 +267,8 @@ export default class Matrix extends EventTarget {
       return false;
     }
   }
+
+  async _setDefaultPushRules() {}
 
   async _joinMissingRooms() {
     const { memberships } = window.APP.accountChannel;

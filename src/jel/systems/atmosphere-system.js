@@ -116,7 +116,7 @@ export class AtmosphereSystem {
     setInterval(() => {
       // If the app is backgrounded, the tick() method will stop being called
       // and so we should run it manually so sounds continue to play.
-      if (!sceneEl.is("paused") && performance.now() - this.lastSoundProcessTime > 250.0) {
+      if (performance.now() - this.lastSoundProcessTime > 250.0) {
         this.updateAmbienceSounds();
       }
     }, 250);
@@ -248,20 +248,22 @@ export class AtmosphereSystem {
     if (!metadata) return;
 
     const worldType = metadata.world.type;
+    const hubType = metadata.type;
+
+    const now = performance.now();
 
     if (this.lastSoundProcessTime === 0) {
-      this.lastSoundProcessTime = performance.now();
+      this.lastSoundProcessTime = now;
       return;
     }
 
-    const now = performance.now();
     const dt = now - this.lastSoundProcessTime;
     this.lastSoundProcessTime = now;
 
-    const hasWater = WORLD_TYPES_WITH_WATER.includes(worldType);
-    const ambienceEnabled = !store.state.preferences.disableAudioAmbience;
+    const ambienceEnabled = !store.state.preferences.disableAudioAmbience && hubType === "world";
 
-    const desiredWaterGain = hasWater && ambienceEnabled ? this.waterSoundTargetGain : 0.0;
+    const desiredWaterGain =
+      ambienceEnabled && WORLD_TYPES_WITH_WATER.includes(worldType) ? this.waterSoundTargetGain : 0.0;
     const desiredOutdoorsGain = ambienceEnabled ? this.outdoorsSoundTargetGain : 0.0;
 
     if (!this.waterSoundPositionalNode) {
