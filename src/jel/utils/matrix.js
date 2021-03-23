@@ -1,5 +1,5 @@
-import MatrixSdk from "matrix-js-sdk";
 import { EventTarget } from "event-target-shim";
+import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 // Delay we wait before flushing a room rename since the user
 // can keep typing in the UI.
@@ -79,12 +79,25 @@ export default class Matrix extends EventTarget {
 
     console.log("Logged into matrix as", userId);
 
-    this.client = MatrixSdk.createClient({ baseUrl: `https://${homeserver}`, accessToken, userId });
+    // Set up client in ifrmae
+    await waitForDOMContentLoaded();
 
-    return new Promise((res, rej) => {
-      this._attachMatrixEventHandlers();
+    const uiClient = document.getElementById("jel-matrix-client");
 
-      this.client.startClient({ lazyLoadMembers: true }).then(() => {
+    await new Promise(res => {
+      uiClient.addEventListener("load", res, { once: true });
+      uiClient.setAttribute("src", "/matrix/");
+    });
+
+    await waitForDOMContentLoaded(uiClient.contentDocument, uiClient.contentWindow);
+
+    const res = new Promise((res, rej) => {
+      // Inner client calls this and passes matrix client.
+      uiClient.contentWindow.onPreClientStart = client => {
+        this.client = client;
+
+        this._attachMatrixEventHandlers();
+
         this.client.once("sync", async state => {
           if (state === "PREPARED") {
             this._joinMissingRooms();
@@ -101,8 +114,24 @@ export default class Matrix extends EventTarget {
             rej();
           }
         });
-      });
+      };
     });
+
+    const { getLoadedSession, getLifecycle, getDispatcher } = uiClient.contentWindow;
+    const innerSession = await getLoadedSession;
+    const lifecycle = await getLifecycle;
+    this._dispatcher = await getDispatcher;
+
+    if (!innerSession) {
+      await lifecycle.setLoggedIn({
+        homeserverUrl: `https://${homeserver}`,
+        identityServerUrl: `https://${homeserver}`,
+        userId,
+        accessToken
+      });
+    }
+
+    return res;
   }
 
   updateRoomNameForHub(hubId, name) {
@@ -136,6 +165,20 @@ export default class Matrix extends EventTarget {
     if (!roomId) return false;
 
     return this._roomCan(permission, roomId);
+  }
+
+  async switchClientToRoomForHub({ hub_id: hubId }) {
+    const { hubIdToRoomId } = this;
+
+    const roomId = hubIdToRoomId.get(hubId);
+    if (!roomId) return;
+
+    await this.initialSyncPromise;
+
+    this._dispatcher.dispatch({
+      action: "view_room",
+      room_id: roomId
+    });
   }
 
   updateRoomOrderForHubId(hubId, order) {
@@ -177,99 +220,6 @@ export default class Matrix extends EventTarget {
     if (currentOrder !== `${order}`) {
       window.APP.accountChannel.setMatrixRoomOrder(roomId, order);
     }
-  }
-
-  updateRoomOrderForPlacement(hubId, targetHubId, direction /* -1 above, 1 below */) {
-    const { client, hubIdToRoomId } = this;
-
-    const roomId = hubIdToRoomId.get(hubId);
-    const targetRoomId = hubIdToRoomId.get(targetHubId);
-
-    if (!roomId || !targetRoomId) return;
-
-    const room = client.getRoom(roomId);
-    const targetRoom = client.getRoom(targetRoomId);
-
-    if (!room || !targetRoom) return;
-
-    const spaceId = this._spaceIdForRoom(room);
-    const targetSpaceId = this._spaceIdForRoom(targetRoom);
-
-    if (!spaceId || spaceId !== targetSpaceId) return;
-
-    const spaceRoomId = this.spaceIdToRoomId.get(spaceId);
-    if (!spaceRoomId) return;
-
-    const spaceRoom = client.getRoom(spaceRoomId);
-    if (!spaceRoom) return;
-
-    // Sort the rooms for the tree based upon the space child state
-    const childRooms = spaceRoom.currentState.events.get("m.space_child");
-    if (!childRooms) return;
-
-    const orderedRoomList = [];
-
-    for (const [
-      roomId,
-      {
-        event: {
-          content: { order, via }
-        }
-      }
-    ] of childRooms.entries()) {
-      if (!via) continue;
-
-      orderedRoomList.push({ roomId, order: parseInt(order) });
-    }
-
-    orderedRoomList.sort(({ order: orderX }, { order: orderY }) => {
-      if (orderX < orderY) return -1;
-      if (orderX > orderY) return 1;
-      return 0;
-    });
-
-    let newOrder = null;
-
-    for (let i = 0; i < orderedRoomList.length; i++) {
-      const { roomId, order } = orderedRoomList[i];
-      if (roomId !== targetRoomId) continue;
-
-      // Grab the adjacent orders, and then the new order is the average of them, so
-      // the channel will be placed between them.
-      let orderFrom, orderTo;
-
-      if (direction === -1) {
-        // Move above
-        if (i === 0) {
-          // If this is being moved to the end, give it the max order + 2^18 to create a sizable
-          // order gap between the last two entries. (Same as on dyna)
-          orderFrom = orderTo = order - Math.pow(2, 18);
-        } else {
-          // New order will be average of the adjacent entries.
-          orderFrom = order;
-          orderTo = orderedRoomList[i - 1].order;
-        }
-      } else {
-        // Move below
-        if (i === orderedRoomList.length - 1) {
-          // If this is being moved to the end, give it the max order + 2^18 to create a sizable
-          // order gap between the last two entries. (Same as on dyna)
-          orderFrom = orderTo = order + Math.pow(2, 18);
-        } else {
-          // New order will be average of the adjacent entries.
-          orderFrom = order;
-          orderTo = orderedRoomList[i + 1].order;
-        }
-      }
-
-      newOrder = Math.floor((orderFrom + orderTo) / 2.0);
-
-      break;
-    }
-
-    if (newOrder === null) return;
-
-    window.APP.accountChannel.setMatrixRoomOrder(roomId, newOrder);
   }
 
   _roomCan(permission, roomId) {

@@ -203,27 +203,34 @@ function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
   const scene = document.querySelector("a-scene");
   const mediaPresenceSystem = scene.systems["hubs-systems"].mediaPresenceSystem;
   const selectedMediaLayer = mediaPresenceSystem.getSelectedMediaLayer();
+  const matrixClient = document.querySelector("#jel-matrix-client");
+  const jelInterface = document.querySelector("#jel-interface");
+
+  if (hub.type === "world") {
+    matrixClient.classList.remove("visible");
+    jelInterface.classList.add("hub-type-world");
+    jelInterface.classList.remove("hub-type-channel");
+  } else {
+    matrixClient.classList.add("visible");
+    jelInterface.classList.add("hub-type-channel");
+    jelInterface.classList.remove("hub-type-world");
+  }
+
+  window.APP.matrix.switchClientToRoomForHub(hub);
+
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
   remountJelUI({ hub, selectedMediaLayer });
 }
 
 function updateSceneStateForHub(hub) {
   const scene = document.querySelector("a-scene");
-  const matrixClient = document.querySelector("#jel-matrix-client");
-  const jelInterface = document.querySelector("#jel-interface");
 
   if (hub.type === "world") {
     scene.removeState("paused");
     scene.classList.add("visible");
-    matrixClient.classList.remove("visible");
-    jelInterface.classList.add("hub-type-world");
-    jelInterface.classList.remove("hub-type-channel");
   } else {
     scene.addState("paused");
     scene.classList.remove("visible");
-    matrixClient.classList.add("visible");
-    jelInterface.classList.add("hub-type-channel");
-    jelInterface.classList.remove("hub-type-world");
   }
 }
 
@@ -626,7 +633,6 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
           hubMetadata.ensureMetadataForIds([hub.hub_id]);
           updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
           updateSceneStateForHub(hub);
-
           updateEnvironmentForHub(hub);
 
           if (isInitialJoin) {

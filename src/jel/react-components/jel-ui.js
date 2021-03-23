@@ -68,7 +68,7 @@ const Wrap = styled.div`
   }
 
   body.paused #jel-interface.hub-type-channel & {
-    pointer-events: auto;
+    pointer-events: none;
     background-color: transparent;
   }
 `;
