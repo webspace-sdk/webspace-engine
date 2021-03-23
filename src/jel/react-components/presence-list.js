@@ -299,7 +299,7 @@ function buildData(setData, currentSessionId, hubCan, store) {
     const meta = presence.metas[presence.metas.length - 1];
     const metaHubId = meta.hub_id;
 
-    if (metaHubId === currentHubId) {
+    if (currentHubId && metaHubId && metaHubId === currentHubId) {
       if (data.length === 0) {
         data.push({ key: "this-header", messageId: "presence-list.this-header", type: "header" });
       }
@@ -313,7 +313,7 @@ function buildData(setData, currentSessionId, hubCan, store) {
       }
 
       data.push({ key: sessionId, meta, type: "member", allowJumpTo, showJumpTip });
-    } else {
+    } else if (metaHubId) {
       if (hubCan("join_hub", metaHubId)) {
         if (!otherHubIdsToSessionMetas.has(metaHubId)) {
           otherHubIdsToSessionMetas.set(metaHubId, []);
