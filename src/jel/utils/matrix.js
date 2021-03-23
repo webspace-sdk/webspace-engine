@@ -120,7 +120,7 @@ export default class Matrix extends EventTarget {
     const { getLoadedSession, getLifecycle, getDispatcher } = uiClient.contentWindow;
     const innerSession = await getLoadedSession;
     const lifecycle = await getLifecycle;
-    this._dispatcher = await getDispatcher;
+    this._uiDispatcher = await getDispatcher;
 
     if (!innerSession) {
       await lifecycle.setLoggedIn({
@@ -168,6 +168,10 @@ export default class Matrix extends EventTarget {
   }
 
   async switchClientToRoomForHub({ hub_id: hubId }) {
+    await this.switchClientToRoomForHubId(hubId);
+  }
+
+  async switchClientToRoomForHubId(hubId) {
     const { hubIdToRoomId } = this;
 
     const roomId = hubIdToRoomId.get(hubId);
@@ -175,7 +179,7 @@ export default class Matrix extends EventTarget {
 
     await this.initialSyncPromise;
 
-    this._dispatcher.dispatch({
+    this._uiDispatcher.dispatch({
       action: "view_room",
       room_id: roomId
     });
@@ -330,6 +334,14 @@ export default class Matrix extends EventTarget {
           this.pendingRoomJoinPromises.delete(roomId);
           this.pendingRoomJoinResolvers.delete(roomId);
           pendingJoinPromiseResolver(room);
+        }
+
+        // If we just joined a room, the user may be waiting on the UI to update.
+        const hubId = window.APP.hubChannel.hubId;
+        const desiredRoomId = this.hubIdToRoomId.get(hubId);
+
+        if (hubId && desiredRoomId === roomId) {
+          this.switchClientToRoomForHubId(hubId);
         }
 
         console.log(`Matrix: joined room ${roomId}`);
