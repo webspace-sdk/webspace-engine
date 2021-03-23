@@ -1188,7 +1188,7 @@ async function start() {
       accountPhxChannel
         .join()
         .receive("ok", async accountInfo => {
-          const { subscriptions: existingSubscriptions } = accountInfo;
+          const { session_id: sessionId, subscriptions: existingSubscriptions } = accountInfo;
           accountChannel.syncAccountInfo(accountInfo);
 
           remountJelUI({
@@ -1198,7 +1198,13 @@ async function start() {
 
           if (isInitialAccountChannelJoin) {
             // Initialize connection to matrix homeserver.
-            await matrix.init(accountInfo.matrix_homeserver, accountInfo.matrix_token, accountInfo.matrix_user_id);
+            await matrix.init(
+              scene,
+              sessionId,
+              accountInfo.matrix_homeserver,
+              accountInfo.matrix_token,
+              accountInfo.matrix_user_id
+            );
             remountJelUI({ roomForHubCan: matrix.roomForHubCan.bind(matrix) });
 
             isInitialAccountChannelJoin = false;

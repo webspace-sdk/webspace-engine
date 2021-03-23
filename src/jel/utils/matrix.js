@@ -42,11 +42,13 @@ export default class Matrix extends EventTarget {
     });
   }
 
-  async init(homeserver, loginToken, expectedUserId) {
+  async init(scene, sessionId, homeserver, loginToken, expectedUserId) {
     const { store, deviceId } = this;
     const { accountChannel } = window.APP;
 
+    this.sessionId = sessionId;
     this.homeserver = homeserver;
+
     let accessToken = store.state.credentials.matrix_access_token;
     let userId = null;
 
@@ -127,6 +129,9 @@ export default class Matrix extends EventTarget {
             });
 
             this._setDefaultPushRules();
+            this._syncProfile();
+
+            scene.addEventListener("space-presence-synced", () => this._syncProfile());
 
             this.initialSyncFinished();
             this.dispatchEvent(new CustomEvent("initial_sync_finished"));
@@ -268,7 +273,39 @@ export default class Matrix extends EventTarget {
     }
   }
 
-  async _setDefaultPushRules() {}
+  async _syncProfile() {
+    const { client, sessionId } = this;
+    const matrixProfile = await client.getProfileInfo(client.credentials.userId);
+
+    const spacePresences = window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state;
+    const spacePresence = spacePresences && spacePresences[sessionId];
+    const meta = spacePresence && spacePresence.metas[spacePresence.metas.length - 1];
+
+    if (meta && meta.profile) {
+      const { displayName } = meta.profile;
+
+      if (displayName !== matrixProfile.displayname) {
+        await client.setDisplayName(displayName);
+      }
+    }
+  }
+
+  async _setDefaultPushRules() {
+    const { client } = this;
+
+    const pushRules = await client.getPushRules();
+
+    // Disable invite notifications, since server does this for you.
+    for (const [scope, scopeRules] of Object.entries(pushRules)) {
+      for (const [kind, kindRules] of Object.entries(scopeRules)) {
+        for (const { rule_id, enabled } of kindRules) {
+          if (rule_id === ".m.rule.invite_for_me" && enabled) {
+            client.setPushRuleEnabled(scope, kind, rule_id, false);
+          }
+        }
+      }
+    }
+  }
 
   async _joinMissingRooms() {
     const { memberships } = window.APP.accountChannel;
