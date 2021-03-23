@@ -23,6 +23,7 @@ export class AutoQualitySystem {
     this.enableTracking = false;
     this.numConsecutiveFastFrames = 0;
     this.metFastFrameTest = false;
+    this.totalFrames = 0;
     this.sampledFrames = 0;
     this.slowStartupFrames = Array(STARTUP_SLOW_FRAME_THRESHOLDS.length).fill(0);
     this.lastTick = 0;
@@ -94,6 +95,7 @@ export class AutoQualitySystem {
     const dt = now - this.lastTick;
     this.lastTick = now;
 
+    this.totalFrames++;
     this.sampledFrames++;
 
     // For ridiculously underpowered machines, have a special code path that just looks at the
@@ -103,7 +105,7 @@ export class AutoQualitySystem {
     for (let i = 0; i < STARTUP_SLOW_FRAME_THRESHOLDS.length; i++) {
       const [frameDuration, frameCount] = STARTUP_SLOW_FRAME_THRESHOLDS[i];
 
-      if (dt > frameDuration && this.sampledFrames <= frameCount) {
+      if (dt > frameDuration && this.totalFrames <= frameCount) {
         this.slowStartupFrames[i] = this.slowStartupFrames[i] + 1;
 
         if (this.slowStartupFrames[i] >= frameCount && window.APP.detailLevel < 2) {
