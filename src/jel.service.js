@@ -47,14 +47,36 @@ self.addEventListener("push", function(e) {
         openClient.postMessage({ action: "play_notification_sound" });
       }
 
-      return self.registration.showNotification("Jel", {
-        body: payload.type === "join" ? "Someone has joined " + (payload.hub_name || UNNAMED_WORLD) : payload.body,
-        icon: "/app-icon.png",
-        badge: "/app-icon.png",
-        tag: payload.type === "join" ? payload.hub_id : payload.body,
-        data: { hub_url: payload.hub_url },
-        silent
-      });
+      if (payload.type === "matrix") {
+        const matrixWantsSound = payload && payload.tweaks && payload.tweaks.sound;
+        let body;
+
+        switch (payload.content.msgtype) {
+          case "m.text":
+            body = `${payload.sender_display_name}: ${payload.content.body}`;
+            break;
+        }
+
+        if (body) {
+          return self.registration.showNotification("Jel", {
+            body,
+            icon: "/app-icon.png",
+            badge: "/app-icon.png",
+            tag: payload.hub_id,
+            data: { hub_url: payload.hub_url },
+            silent: silent || !matrixWantsSound
+          });
+        }
+      } else {
+        return self.registration.showNotification("Jel", {
+          body: payload.type === "join" ? "Someone has joined " + (payload.hub_name || UNNAMED_WORLD) : payload.body,
+          icon: "/app-icon.png",
+          badge: "/app-icon.png",
+          tag: payload.type === "join" ? payload.hub_id : payload.body,
+          data: { hub_url: payload.hub_url },
+          silent
+        });
+      }
     })
   );
 });

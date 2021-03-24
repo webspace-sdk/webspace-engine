@@ -316,7 +316,13 @@ export default class Matrix extends EventTarget {
           ...pusherParams,
           kind: "http",
           pushkey: p256dh,
-          data: { url, auth, endpoint, device_id: store.state.context.deviceId },
+          data: {
+            url,
+            auth,
+            endpoint,
+            device_id: store.state.context.deviceId,
+            account_id: store.credentialsAccountId
+          },
           append: true
         });
       }
