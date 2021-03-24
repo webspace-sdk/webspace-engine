@@ -76,7 +76,7 @@ export default class Subscriptions extends EventTarget {
     this.dispatchEvent(new CustomEvent("subscriptions_updated"));
   };
 
-  getCurrentEndpoint = async () => {
+  getCurrentSub = async () => {
     if (!navigator.serviceWorker) return null;
     const startedAt = performance.now();
 
@@ -104,7 +104,12 @@ export default class Subscriptions extends EventTarget {
     const sub = await this.registration.pushManager.getSubscription();
     if (!sub) return null;
 
-    return sub.endpoint;
+    return sub;
+  };
+
+  getCurrentEndpoint = async () => {
+    const sub = await this.getCurrentSub();
+    return sub && sub.endpoint;
   };
 
   subscribe = async () => {

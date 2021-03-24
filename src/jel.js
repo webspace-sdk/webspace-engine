@@ -1200,6 +1200,7 @@ async function start() {
             // Initialize connection to matrix homeserver.
             await matrix.init(
               scene,
+              subscriptions,
               sessionId,
               accountInfo.matrix_homeserver,
               accountInfo.matrix_token,

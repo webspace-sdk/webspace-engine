@@ -1,5 +1,6 @@
 import { EventTarget } from "event-target-shim";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { getReticulumFetchUrl } from "../../hubs/utils/phoenix-utils";
 
 // Delay we wait before flushing a room rename since the user
 // can keep typing in the UI.
@@ -29,13 +30,14 @@ export default class Matrix extends EventTarget {
     });
   }
 
-  async init(scene, sessionId, homeserver, loginToken, expectedUserId) {
+  async init(scene, subscriptions, sessionId, homeserver, loginToken, expectedUserId) {
     const { store } = this;
     const { accountChannel } = window.APP;
 
     const deviceId = store.state.context.deviceId;
     this.sessionId = sessionId;
     this.homeserver = homeserver;
+    this.subscriptions = subscriptions;
 
     let accessToken = store.state.credentials.matrix_access_token;
     let userId = null;
@@ -118,8 +120,10 @@ export default class Matrix extends EventTarget {
 
             this._setDefaultPushRules();
             this._syncProfile();
+            this._syncPusher();
 
             scene.addEventListener("space-presence-synced", () => this._syncProfile());
+            subscriptions.addEventListener("subscriptions_updated", () => this._syncPusher());
 
             this.initialSyncFinished();
             this.dispatchEvent(new CustomEvent("initial_sync_finished"));
@@ -258,6 +262,74 @@ export default class Matrix extends EventTarget {
     } else {
       console.warn("Checking non-implemented permission", permission);
       return false;
+    }
+  }
+
+  async _syncPusher() {
+    const { client, subscriptions, store } = this;
+    if (!client || !subscriptions || !store || !subscriptions.ready) return;
+
+    const sub = subscriptions.subscribed ? await subscriptions.getCurrentSub() : null;
+
+    const pusherParams = {
+      app_id: "app.jel",
+      app_display_name: "Jel",
+      device_display_name: "Jel Web Client",
+      lang: navigator.language
+    };
+
+    const { pushers } = await client.getPushers();
+    let existingPusherForDevice = null;
+
+    for (const pusher of pushers) {
+      const {
+        data: { device_id }
+      } = pusher;
+
+      if (device_id === store.state.context.deviceId) {
+        existingPusherForDevice = pusher;
+        break;
+      }
+    }
+
+    if (sub) {
+      const { endpoint } = sub;
+      const {
+        keys: { p256dh, auth }
+      } = sub.toJSON();
+
+      if (!existingPusherForDevice || existingPusherForDevice.pushkey !== p256dh) {
+        if (existingPusherForDevice) {
+          // Remove existing push key for this user if pushkey changed
+          await client.setPusher({
+            ...pusherParams,
+            kind: null,
+            pushkey: existingPusherForDevice.pushkey,
+            data: {}
+          });
+        }
+
+        // This may need to be updated to a new domain, for now assume reticulum is the push handler.
+        const url = getReticulumFetchUrl("/_matrix/push/v1/notify", true);
+
+        await client.setPusher({
+          ...pusherParams,
+          kind: "http",
+          pushkey: p256dh,
+          data: { url, auth, endpoint, device_id: store.state.context.deviceId },
+          append: true
+        });
+      }
+    } else {
+      if (existingPusherForDevice) {
+        // Remove existing pusher for this user if sub is removed
+        await client.setPusher({
+          ...pusherParams,
+          kind: null,
+          pushkey: existingPusherForDevice.pushkey,
+          data: {}
+        });
+      }
     }
   }
 
