@@ -170,7 +170,7 @@ import { platformUnsupported } from "./hubs/support";
 
 window.APP = new App();
 const store = window.APP.store;
-const subscriptions = new Subscriptions();
+const subscriptions = new Subscriptions(store);
 window.APP.subscriptions = subscriptions;
 
 store.update({ preferences: { shouldPromptForRefresh: undefined } });
@@ -1042,7 +1042,7 @@ async function start() {
   hideCanvas();
 
   setupPerformConditionalSignin(entryManager);
-  await store.initProfile();
+  await store.initDefaults();
 
   warmSerializeElement();
   const quillPoolPromise = initQuillPool();

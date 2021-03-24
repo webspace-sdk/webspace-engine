@@ -13,6 +13,11 @@ import { fetchRandomDefaultAvatarId, generateRandomName } from "../utils/identit
 
 const capitalize = str => str[0].toUpperCase() + str.slice(1);
 
+function randomString(len) {
+  const p = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  return [...Array(len)].reduce(a => a + p[~~(Math.random() * p.length)], "");
+}
+
 // Durable (via local-storage) schema-enforced state that is meant to be consumed via forward data flow.
 // (Think flux but with way less incidental complexity, at least for now :))
 export const SCHEMA = {
@@ -23,6 +28,7 @@ export const SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
+        deviceId: { type: "string" },
         spaceId: { type: "string" },
         lastJoinedHubId: { type: "string" }, // Deprecated
         lastJoinedHubIds: { type: "object" },
@@ -266,7 +272,7 @@ export default class Store extends EventTarget {
     this.update({ credentials: { token: null, matrix_access_token: null, email: null } });
   }
 
-  initProfile = async () => {
+  initDefaults = async () => {
     if (this._shouldResetAvatarOnInit) {
       await this.resetToRandomDefaultAvatar();
     } else {
@@ -296,6 +302,10 @@ export default class Store extends EventTarget {
           launcherSlot10: "❤"
         }
       });
+    }
+
+    if (!this.state.context.deviceId) {
+      this.update({ context: { deviceId: randomString(32) } });
     }
   };
 

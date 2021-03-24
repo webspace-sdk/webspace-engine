@@ -1,14 +1,6 @@
 import { EventTarget } from "event-target-shim";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
-// TODO this may go into phoenix presence.
-const DEVICE_ID_STORE_KEY = "__JelDeviceId";
-
-function randomString(len) {
-  const p = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  return [...Array(len)].reduce(a => a + p[~~(Math.random() * p.length)], "");
-}
-
 // Delay we wait before flushing a room rename since the user
 // can keep typing in the UI.
 const ROOM_RENAME_DELAY = 1000;
@@ -17,12 +9,7 @@ export default class Matrix extends EventTarget {
   constructor(store) {
     super();
 
-    if (!localStorage.getItem(DEVICE_ID_STORE_KEY)) {
-      localStorage.setItem(DEVICE_ID_STORE_KEY, randomString(32));
-    }
-
     this.store = store;
-    this.deviceId = localStorage.getItem(DEVICE_ID_STORE_KEY);
 
     this.pendingRoomJoinPromises = new Map();
     this.pendingRoomJoinResolvers = new Map();
@@ -43,9 +30,10 @@ export default class Matrix extends EventTarget {
   }
 
   async init(scene, sessionId, homeserver, loginToken, expectedUserId) {
-    const { store, deviceId } = this;
+    const { store } = this;
     const { accountChannel } = window.APP;
 
+    const deviceId = store.state.context.deviceId;
     this.sessionId = sessionId;
     this.homeserver = homeserver;
 

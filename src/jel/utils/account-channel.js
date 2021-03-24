@@ -1,10 +1,11 @@
 import { EventTarget } from "event-target-shim";
 
 export default class AccountChannel extends EventTarget {
-  constructor() {
+  constructor(store) {
     super();
     this.memberships = [];
     this.hubSettings = [];
+    this.store = store;
   }
 
   bind = channel => {
@@ -45,7 +46,7 @@ export default class AccountChannel extends EventTarget {
   };
 
   subscribe = subscription => {
-    this.channel.push("subscribe", { subscription });
+    this.channel.push("subscribe", { device_id: this.store.state.context.deviceId, subscription });
   };
 
   joinMatrixRoom = roomId => {
