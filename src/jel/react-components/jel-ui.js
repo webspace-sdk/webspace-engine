@@ -948,7 +948,8 @@ function JelUI(props) {
                     onClick={() => showEnvironmentSettingsPopup(environmentSettingsButtonRef)}
                   />
                 )}
-              {hubCan &&
+              {isWorld &&
+                hubCan &&
                 hubCan("update_hub_roles", hub && hub.hub_id) && (
                   <HubPermissionsButton
                     ref={hubPermissionsButtonRef}
