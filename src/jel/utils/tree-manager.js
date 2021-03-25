@@ -47,7 +47,7 @@ class ExpandedTreeNodes {
 
   ensureCache() {
     if (!this.cache) {
-      this.cache = new Set([...Object.keys(JSON.parse(localStorage[EXPANDED_TREE_NODE_STORE_KEY]))]);
+      this.cache = new Set([...Object.keys(JSON.parse(localStorage.getItem(EXPANDED_TREE_NODE_STORE_KEY)))]);
     }
 
     if (!this.cacheKeys) {
