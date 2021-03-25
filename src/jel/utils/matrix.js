@@ -31,10 +31,11 @@ const JEL_SPACE_CHANNEL_NOTIFICATION_SETTING_TO_RULE_SUFFIXES = [
 const GLOBAL_PUSH_RULES_TO_DISABLE = [".m.rule.invite_for_me"];
 
 export default class Matrix extends EventTarget {
-  constructor(store, hubMetadata) {
+  constructor(store, spaceMetadata, hubMetadata) {
     super();
 
     this.store = store;
+    this.spaceMetadata = spaceMetadata;
     this.hubMetadata = hubMetadata;
 
     this.pendingRoomJoinPromises = new Map();
@@ -157,9 +158,23 @@ export default class Matrix extends EventTarget {
             this._syncProfile();
             this._syncPusher();
 
+            const { spaceStore } = this.neonStores;
+
+            spaceStore.on(this.neonConstants.UPDATE_TOP_LEVEL_SPACES, () => {
+              for (const room of client.getRooms()) {
+                if (room.isSpaceRoom()) {
+                  this._unsubscribeFromNotificationState(room);
+
+                  if (room.hasMembershipState(client.credentials.userId, "join")) {
+                    this._subscribeToNotificationState(room);
+                  }
+                }
+              }
+            });
+
             for (const room of client.getRooms()) {
               if (room.hasMembershipState(client.credentials.userId, "join")) {
-                this._subscribeToRoomStores(room);
+                this._subscribeToNotificationState(room);
               }
             }
 
@@ -263,7 +278,7 @@ export default class Matrix extends EventTarget {
     const spaceRoom = client.getRoom(spaceRoomId);
     if (!spaceRoom) return;
 
-    const childRooms = spaceRoom.currentState.events.get("m.space_child");
+    const childRooms = spaceRoom.currentState.events.get("m.space.child");
     if (!childRooms) return;
 
     let currentOrder = null;
@@ -555,7 +570,7 @@ export default class Matrix extends EventTarget {
       const spaceRoom = await this._ensureRoomJoined(matrix_spaceroom_id);
 
       // Walk each child room (channels) and join them if auto_join = true
-      const childRooms = spaceRoom.currentState.events.get("m.space_child");
+      const childRooms = spaceRoom.currentState.events.get("m.space.child");
 
       if (childRooms) {
         for (const [
@@ -621,14 +636,14 @@ export default class Matrix extends EventTarget {
     return this._spaceIdForRoom(room) === spaceId && this._jelTypeForRoom(room) === "jel.space";
   }
 
-  _subscribeToRoomStores(room) {
-    this._unsubscribeFromRoomStores(room);
+  _subscribeToNotificationState(room) {
+    this._unsubscribeFromNotificationState(room);
 
-    const { hubMetadata } = this;
+    const { spaceMetadata, hubMetadata, roomIdToHubId, roomIdToSpaceId } = this;
     const { NOTIFICATION_STATE_UPDATE, NotificationColor } = this.neonConstants;
     const { roomId } = room;
 
-    const state = this._neonRoomNotificationStateForRoom(room);
+    const state = this._neonNotificationStateForRoom(room);
 
     const handler = () => {
       const { count, color } = state;
@@ -647,7 +662,16 @@ export default class Matrix extends EventTarget {
           break;
       }
 
-      const hubId = this.roomIdToHubId.get(roomId);
+      const spaceId = roomIdToSpaceId.get(roomId);
+
+      if (spaceId) {
+        spaceMetadata.localUpdate(spaceId, {
+          notification_type: atomNotificationType,
+          notification_count: count
+        });
+      }
+
+      const hubId = roomIdToHubId.get(roomId);
 
       if (hubId) {
         hubMetadata.localUpdate(hubId, {
@@ -661,21 +685,27 @@ export default class Matrix extends EventTarget {
     state.on(NOTIFICATION_STATE_UPDATE, handler);
   }
 
-  _unsubscribeFromRoomStores(room) {
+  _unsubscribeFromNotificationState(room) {
     const { NOTIFICATION_STATE_UPDATE } = this.neonConstants;
     const { roomId } = room;
 
     const handler = this.roomIdToNeonRoomNotificationStateHandler.get(roomId);
     if (!handler) return;
 
-    const state = this._neonRoomNotificationStateForRoom(room);
+    const state = this._neonNotificationStateForRoom(room);
     state.off(NOTIFICATION_STATE_UPDATE, handler);
   }
 
-  _neonRoomNotificationStateForRoom(room) {
-    const { roomNotificationStateStore } = this.neonStores;
+  _neonNotificationStateForRoom(room) {
+    const { roomIdToSpaceId } = this;
+    const { spaceStore, roomNotificationStateStore } = this.neonStores;
+    const { roomId } = room;
 
-    return roomNotificationStateStore.getRoomState(room);
+    if (roomIdToSpaceId.has(roomId)) {
+      return spaceStore.getNotificationState(roomId);
+    } else {
+      return roomNotificationStateStore.getRoomState(room);
+    }
   }
 
   _attachMatrixEventHandlers() {
@@ -700,7 +730,7 @@ export default class Matrix extends EventTarget {
           pendingJoinPromiseResolver(room);
         }
 
-        this._subscribeToRoomStores(room);
+        this._subscribeToNotificationState(room);
 
         // If we just joined a room, the user may be waiting on the UI to update.
         const hubId = window.APP.hubChannel.hubId;
@@ -715,7 +745,7 @@ export default class Matrix extends EventTarget {
         room.hasMembershipState(client.credentials.userId, "leave") ||
         room.hasMembershipState(client.credentials.userId, "ban")
       ) {
-        this._unsubscribeFromRoomStores(room);
+        this._unsubscribeFromNotificationState(room);
       }
     });
 
@@ -737,7 +767,7 @@ export default class Matrix extends EventTarget {
 
       // If a new room is added to a spaceroom we're in after initial sync,
       // we need to join it if it's auto_join.
-      if (event.type === "m.space_child") {
+      if (event.type === "m.space.child") {
         if (event.content.auto_join && event.content.via) {
           this._ensureRoomJoined(event.state_key);
         }

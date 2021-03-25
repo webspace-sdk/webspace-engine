@@ -1,7 +1,11 @@
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import styled from "styled-components";
-import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
+import {
+  ATOM_NOTIFICATION_TYPES,
+  useNameUpdateFromMetadata,
+  useNotificationCountUpdatesFromMetadata
+} from "../utils/atom-metadata";
 import BigTooltip from "./big-tooltip";
 import { getMessages } from "../../hubs/utils/i18n";
 import discordSpaceIcon from "../../assets/jel/images/icons/discord-space-icon.svgi";
@@ -56,9 +60,12 @@ const SpaceNodeIconImage = styled.div`
 
 export default function SpaceNodeIcon({ spaceId, spaceMetadata }) {
   const [name, setName] = useState("");
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [notificationType, setNotificationType] = useState(ATOM_NOTIFICATION_TYPES.NONE);
   const icon = null; // TODO
 
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setName);
+  useNotificationCountUpdatesFromMetadata(spaceId, spaceMetadata, setNotificationCount, setNotificationType);
 
   let el;
   if (icon) {
@@ -67,6 +74,7 @@ export default function SpaceNodeIcon({ spaceId, spaceMetadata }) {
     el = (
       <SpaceNodeIconElement className="spaceNodeIcon">
         <SpaceNodeIconNonImage>{name.substring(0, 1)}</SpaceNodeIconNonImage>
+        {notificationCount} - {notificationType}
       </SpaceNodeIconElement>
     );
   }
