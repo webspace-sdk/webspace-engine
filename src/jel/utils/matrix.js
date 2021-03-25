@@ -51,8 +51,9 @@ export default class Matrix extends EventTarget {
     this.neonConstants = null;
     this.roomIdToNeonRoomNotificationStateHandler = new Map();
 
-    // Map of space ID -> spaceroom roomId
+    // Space <-> spaceroom bimap
     this.spaceIdToRoomId = new Map();
+    this.roomIdToSpaceId = new Map();
 
     this.isInitialSyncFinished = false;
 
@@ -513,18 +514,27 @@ export default class Matrix extends EventTarget {
               { kind: "event_match", key: "content.spaceroom_id", pattern: spaceRoomId }
             ];
 
-            // Space case - @room -> @everyone
+            const actions = [...rule.actions];
+
+            // Special case - @room -> @everyone
             for (const cond of conditions) {
               if (cond.pattern === "@room") {
                 cond.pattern = "@everyone";
               }
             }
 
+            // Add sound: default to all push rules, since we want to have sounds be regulated by service worker.
+            const hasSound = actions.find(a => a.set_tweak === "sound");
+
+            if (!hasSound) {
+              actions.push({ set_tweak: "sound", value: "default" });
+            }
+
             await client.addPushRule(scope, kind, spaceRuleId, {
               enabled: true,
               pattern: rule.pattern,
               conditions,
-              actions: rule.actions
+              actions
             });
           }
         }
@@ -719,6 +729,7 @@ export default class Matrix extends EventTarget {
       if (event.type === "jel.space") {
         // This is where we can perform steps that happen at most once per session per space.
         this.spaceIdToRoomId.set(event.content.space_id, event.room_id);
+        this.roomIdToSpaceId.set(event.room_id, event.content.space_id);
         this._initSpacePushRules(event.content.space_id, event.room_id);
       }
 

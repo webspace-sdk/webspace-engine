@@ -27,8 +27,11 @@ self.addEventListener("push", function(e) {
         const client = clientList[i];
 
         if (client.url.indexOf("https://jel.app/") >= 0) {
-          // Don't show a notification if client app is already focused on this computer.
+          // Don't show a notification if client app is already focused on this computer
           if (client.focused) return;
+
+          // TODO need to push matrix notification to client if we want to filter by the currently
+          // selected room and show others.
 
           openClient = client;
         }
@@ -45,6 +48,8 @@ self.addEventListener("push", function(e) {
       if (openClient) {
         // Client can play custom notificaiton
         openClient.postMessage({ action: "play_notification_sound" });
+
+        // TODO need to push notifications into the client if we want to show the proper avatar URL
       }
 
       if (payload.type === "matrix") {
