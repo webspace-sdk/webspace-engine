@@ -149,8 +149,32 @@ const SpaceNotificationsPopup = ({
     contents = (
       <PanelWrap>
         <PanelSectionHeader style={{ marginLeft: 0 }}>
-          <FormattedMessage id="space-notifications-popup.channel-settings" />
+          <FormattedMessage id="space-notifications-popup.join-settings" />
         </PanelSectionHeader>
+        {checkboxControlFor(
+          "notify_space_copresence",
+          "space-notifications-popup.notify_space_copresence",
+          notifySpaceCopresence,
+          setNotifySpaceCopresence,
+          spaceNotifyOnChange
+        )}
+        {checkboxControlFor(
+          "notify_hub_copresence",
+          "space-notifications-popup.notify_hub_copresence",
+          notifyHubCopresence,
+          setNotifyHubCopresence,
+          hubNotifyOnChange
+        )}
+        <PanelSectionHeader style={{ marginLeft: 0 }}>
+          <FormattedMessage id="space-notifications-popup.chat-settings" />
+        </PanelSectionHeader>
+        {checkboxControlFor(
+          "notify_current_world_chat",
+          "space-notifications-popup.notify_current_world_chat",
+          notifyCurrentWorldChat,
+          setNotifyCurrentWorldChat,
+          notifyCurrentWorldChatOnChange
+        )}
         <Label>
           <FormattedMessage id="space-notifications-popup.notify_channel_chat" />
         </Label>
@@ -195,30 +219,6 @@ const SpaceNotificationsPopup = ({
             </Label>
           </RadioWrap>
         </InputWrap>
-        <PanelSectionHeader style={{ marginLeft: 0 }}>
-          <FormattedMessage id="space-notifications-popup.world-settings" />
-        </PanelSectionHeader>
-        {checkboxControlFor(
-          "notify_space_copresence",
-          "space-notifications-popup.notify_space_copresence",
-          notifySpaceCopresence,
-          setNotifySpaceCopresence,
-          spaceNotifyOnChange
-        )}
-        {checkboxControlFor(
-          "notify_hub_copresence",
-          "space-notifications-popup.notify_hub_copresence",
-          notifyHubCopresence,
-          setNotifyHubCopresence,
-          hubNotifyOnChange
-        )}
-        {checkboxControlFor(
-          "notify_current_world_chat",
-          "space-notifications-popup.notify_current_world_chat",
-          notifyCurrentWorldChat,
-          setNotifyCurrentWorldChat,
-          notifyCurrentWorldChatOnChange
-        )}
       </PanelWrap>
     );
   } else {
