@@ -22,7 +22,8 @@ const DEFAULT_GLOBAL_PUSH_RULES_TO_SPACE_OVERRIDE = [
 // on the space. Note that these must be in order from most constrained match to least.
 const JEL_SPACE_CHANNEL_NOTIFICATION_SETTING_TO_RULE_SUFFIXES = [
   ["all", ["contains_display_name", "contains_user_name", "message", "encrypted"]],
-  ["self", ["contains_display_name", "contains_user_name"]]
+  ["mentions", ["contains_display_name", "contains_user_name"]],
+  ["none", []]
 ];
 
 const GLOBAL_PUSH_RULES_TO_DISABLE = [".m.rule.invite_for_me"];
@@ -271,13 +272,39 @@ export default class Matrix extends EventTarget {
     return this._neonLifecycle.logout();
   }
 
+  async setNotifyChannelChatModeForSpace(spaceId, mode) {
+    const { client } = this;
+    if (!client) return null;
+
+    const pushRules = await client.getPushRules();
+
+    const managedRuleSuffixes = JEL_SPACE_CHANNEL_NOTIFICATION_SETTING_TO_RULE_SUFFIXES[0][1];
+
+    const ruleSuffixesToEnable = JEL_SPACE_CHANNEL_NOTIFICATION_SETTING_TO_RULE_SUFFIXES.find(([m]) => m === mode)[1];
+
+    for (const [scope, scopeRules] of Object.entries(pushRules)) {
+      for (const [kind, kindRules] of Object.entries(scopeRules)) {
+        for (const { rule_id, enabled } of kindRules) {
+          const isManaged = managedRuleSuffixes.map(suffix => `jel.space_${spaceId}.rule.${suffix}`).includes(rule_id);
+          if (!isManaged) continue;
+
+          const shouldEnable = ruleSuffixesToEnable
+            .map(suffix => `jel.space_${spaceId}.rule.${suffix}`)
+            .includes(rule_id);
+
+          if (enabled !== shouldEnable) {
+            client.setPushRuleEnabled(scope, kind, rule_id, shouldEnable);
+          }
+        }
+      }
+    }
+  }
+
   async getNotifyChannelChatModeForSpace(spaceId) {
     const { client } = this;
     if (!client) return null;
 
     let setting = "none";
-
-    const pushRules = await client.getPushRules();
 
     // The current setting for the space is the one which has all the rules enabled in JEL_SPACE_CHANNEL_NOTIFICATION_SETTING_TO_RULE_SUFFIXES
     for (const [candidateSetting, suffixes] of JEL_SPACE_CHANNEL_NOTIFICATION_SETTING_TO_RULE_SUFFIXES) {
@@ -288,7 +315,7 @@ export default class Matrix extends EventTarget {
 
         let hasEnabledRuleForSuffix = false;
 
-        for (const [, scopeRules] of Object.entries(pushRules)) {
+        for (const [, scopeRules] of Object.entries(client.pushRules)) {
           for (const [, kindRules] of Object.entries(scopeRules)) {
             for (const { rule_id, enabled } of kindRules) {
               if (rule_id === spaceRuleId && enabled) {
@@ -409,7 +436,7 @@ export default class Matrix extends EventTarget {
 
   async _syncProfile() {
     const { client, sessionId } = this;
-    const matrixProfile = await client.getProfileInfo(client.credentials.userId);
+    const matrixUser = await client.getUser(client.credentials.userId);
 
     const spacePresences = window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state;
     const spacePresence = spacePresences && spacePresences[sessionId];
@@ -418,7 +445,7 @@ export default class Matrix extends EventTarget {
     if (meta && meta.profile) {
       const { displayName } = meta.profile;
 
-      if (displayName !== matrixProfile.displayname) {
+      if (displayName !== matrixUser.displayName) {
         await client.setDisplayName(displayName);
       }
     }

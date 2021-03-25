@@ -20,7 +20,8 @@ const RadioWrap = styled.div`
   justify-content: flex-start;
   flex-direction: row;
   flex: 1;
-  min-width: 100px;
+  min-width: 200px;
+  width: 200px;
 `;
 
 const SpaceNotificationsPopup = ({
@@ -69,6 +70,7 @@ const SpaceNotificationsPopup = ({
         }
       };
 
+      handler();
       matrix.addEventListener("push_rules_changed", handler);
       return () => matrix.removeEventListener("push_rules_changed", handler);
     },
@@ -114,13 +116,87 @@ const SpaceNotificationsPopup = ({
     [subscriptions]
   );
 
+  const onNotifyChannelChangeAll = useCallback(
+    e => {
+      if (e.target.checked) {
+        matrix.setNotifyChannelChatModeForSpace(spaceId, "all");
+      }
+    },
+    [matrix, spaceId]
+  );
+
+  const onNotifyChannelChangeMentions = useCallback(
+    e => {
+      if (e.target.checked) {
+        matrix.setNotifyChannelChatModeForSpace(spaceId, "mentions");
+      }
+    },
+    [matrix, spaceId]
+  );
+
+  const onNotifyChannelChangeNone = useCallback(
+    e => {
+      if (e.target.checked) {
+        matrix.setNotifyChannelChatModeForSpace(spaceId, "none");
+      }
+    },
+    [matrix, spaceId]
+  );
+
   let contents;
 
   if (isPushSubscribed) {
     contents = (
       <PanelWrap>
         <PanelSectionHeader style={{ marginLeft: 0 }}>
-          <FormattedMessage id="space-notifications-popup.space-settings" />
+          <FormattedMessage id="space-notifications-popup.channel-settings" />
+        </PanelSectionHeader>
+        <Label>
+          <FormattedMessage id="space-notifications-popup.notify_channel_chat" />
+        </Label>
+        <InputWrap style={{ minHeight: "48px", marginLeft: "24px", flexDirection: "column" }}>
+          <RadioWrap>
+            <Radio
+              type="radio"
+              id={"channel_chat_mode_all"}
+              name={"channel_chat_mode"}
+              checked={notifyChannelChat === "all"}
+              onChange={onNotifyChannelChangeAll}
+              value={"all"}
+            />
+            <Label htmlFor="channel_chat_mode_all" style={{ cursor: "pointer" }}>
+              <FormattedMessage id="space-notifications-popup.notify_channel_chat_all" />
+            </Label>
+          </RadioWrap>
+          <RadioWrap>
+            <Radio
+              type="radio"
+              id={"channel_chat_mode_mentions"}
+              name={"channel_chat_mode"}
+              checked={notifyChannelChat === "mentions"}
+              onChange={onNotifyChannelChangeMentions}
+              value={"mentions"}
+            />
+            <Label htmlFor="channel_chat_mode_mentions" style={{ cursor: "pointer" }}>
+              <FormattedMessage id="space-notifications-popup.notify_channel_chat_mentions" />
+            </Label>
+          </RadioWrap>
+          <RadioWrap>
+            <Radio
+              type="radio"
+              id={"channel_chat_mode_none"}
+              name={"channel_chat_mode"}
+              checked={notifyChannelChat === "none"}
+              onChange={onNotifyChannelChangeNone}
+              value={"none"}
+            />
+            <Label htmlFor="channel_chat_mode_none" style={{ cursor: "pointer" }}>
+              <FormattedMessage id="space-notifications-popup.notify_channel_chat_none" />
+            </Label>
+          </RadioWrap>
+        </InputWrap>
+        <PanelSectionHeader style={{ marginLeft: 0 }}>
+          <FormattedMessage id="space-notifications-popup.world-settings" />
         </PanelSectionHeader>
         {checkboxControlFor(
           "notify_space_copresence",
@@ -143,32 +219,6 @@ const SpaceNotificationsPopup = ({
           setNotifyCurrentWorldChat,
           notifyCurrentWorldChatOnChange
         )}
-        <InputWrap style={{ minHeight: "48px", marginLeft: "24px" }}>
-          <RadioWrap>
-            <Radio
-              type="radio"
-              id={"channel_chat_mode_all"}
-              name={"channel_chat_mode"}
-              checked={notifyChannelChat === "all"}
-              value={"all"}
-            />
-            <Label htmlFor="world_type_flat" style={{ cursor: "pointer" }}>
-              <FormattedMessage id="environment-settings-popup.world-type-flat" />
-            </Label>
-          </RadioWrap>
-          <RadioWrap>
-            <Radio
-              type="radio"
-              id={"channel_chat_mode_all"}
-              name={"channel_chat_mode"}
-              checked={notifyChannelChat === "all"}
-              value={"all"}
-            />
-            <Label htmlFor="world_type_flat" style={{ cursor: "pointer" }}>
-              <FormattedMessage id="environment-settings-popup.world-type-flat" />
-            </Label>
-          </RadioWrap>
-        </InputWrap>
       </PanelWrap>
     );
   } else {

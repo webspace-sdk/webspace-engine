@@ -956,11 +956,13 @@ function JelUI(props) {
                     onClick={() => showHubPermissionsPopup(hubPermissionsButtonRef)}
                   />
                 )}
-              <HubNotificationButton
-                ref={hubNotificationButtonRef}
-                onMouseDown={e => cancelEventIfFocusedWithin(e, hubNotificationPopupElement)}
-                onClick={() => showHubNotificationPopup(hubNotificationButtonRef)}
-              />
+              {isWorld && (
+                <HubNotificationButton
+                  ref={hubNotificationButtonRef}
+                  onMouseDown={e => cancelEventIfFocusedWithin(e, hubNotificationPopupElement)}
+                  onClick={() => showHubNotificationPopup(hubNotificationButtonRef)}
+                />
+              )}
               {isWorld &&
                 canSpawnAndMoveMedia && (
                   <HubCreateButton
