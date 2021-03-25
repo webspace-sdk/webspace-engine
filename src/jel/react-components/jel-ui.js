@@ -1104,6 +1104,7 @@ function JelUI(props) {
         )}
       />
       <SpaceNotificationsPopup
+        matrix={matrix}
         setPopperElement={setSpaceNotificationPopupElement}
         styles={spaceNotificationPopupStyles}
         attributes={spaceNotificationPopupAttributes}

@@ -6,6 +6,27 @@ import { getReticulumFetchUrl } from "../../hubs/utils/phoenix-utils";
 // can keep typing in the UI.
 const ROOM_RENAME_DELAY = 1000;
 
+// These are the matrix default push rules that are automatically
+// disabled globally and then copied on a per-space basis, which will
+// let the user toggle them on and off. This relies up on the spaceroom_id
+// key in the message content being set properly, which is done via the Jel
+// fork of element.
+const DEFAULT_GLOBAL_PUSH_RULES_TO_SPACE_OVERRIDE = [
+  ".m.rule.contains_display_name",
+  ".m.rule.contains_user_name",
+  ".m.rule.message",
+  ".m.rule.encrypted"
+];
+
+// Maps the space channel notification setting to the suffixes of push rules that must be enabled
+// on the space. Note that these must be in order from most constrained match to least.
+const JEL_SPACE_CHANNEL_NOTIFICATION_SETTING_TO_RULE_SUFFIXES = [
+  ["all", ["contains_display_name", "contains_user_name", "message", "encrypted"]],
+  ["self", ["contains_display_name", "contains_user_name"]]
+];
+
+const GLOBAL_PUSH_RULES_TO_DISABLE = [".m.rule.invite_for_me"];
+
 export default class Matrix extends EventTarget {
   constructor(store) {
     super();
@@ -118,12 +139,12 @@ export default class Matrix extends EventTarget {
               this._joinMissingRooms();
             });
 
-            this._setDefaultPushRules();
-            this._syncProfile();
-            this._syncPusher();
-
             scene.addEventListener("space-presence-synced", () => this._syncProfile());
             subscriptions.addEventListener("subscriptions_updated", () => this._syncPusher());
+
+            this._disableGlobalPushRules();
+            this._syncProfile();
+            this._syncPusher();
 
             this.initialSyncFinished();
             this.dispatchEvent(new CustomEvent("initial_sync_finished"));
@@ -250,6 +271,53 @@ export default class Matrix extends EventTarget {
     return this._neonLifecycle.logout();
   }
 
+  async getNotifyChannelChatModeForSpace(spaceId) {
+    const { client } = this;
+    if (!client) return null;
+
+    let setting = "none";
+
+    const pushRules = await client.getPushRules();
+
+    // The current setting for the space is the one which has all the rules enabled in JEL_SPACE_CHANNEL_NOTIFICATION_SETTING_TO_RULE_SUFFIXES
+    for (const [candidateSetting, suffixes] of JEL_SPACE_CHANNEL_NOTIFICATION_SETTING_TO_RULE_SUFFIXES) {
+      let allRulesEnabledForSetting = true;
+
+      for (const suffix of suffixes) {
+        const spaceRuleId = `jel.space_${spaceId}.rule.${suffix}`;
+
+        let hasEnabledRuleForSuffix = false;
+
+        for (const [, scopeRules] of Object.entries(pushRules)) {
+          for (const [, kindRules] of Object.entries(scopeRules)) {
+            for (const { rule_id, enabled } of kindRules) {
+              if (rule_id === spaceRuleId && enabled) {
+                hasEnabledRuleForSuffix = true;
+                break;
+              }
+            }
+
+            if (hasEnabledRuleForSuffix) break;
+          }
+
+          if (hasEnabledRuleForSuffix) break;
+        }
+
+        if (!hasEnabledRuleForSuffix) {
+          allRulesEnabledForSetting = false;
+          break;
+        }
+      }
+
+      if (allRulesEnabledForSetting) {
+        setting = candidateSetting;
+        break;
+      }
+    }
+
+    return setting;
+  }
+
   _roomCan(permission, roomId) {
     const { client } = this;
 
@@ -356,7 +424,7 @@ export default class Matrix extends EventTarget {
     }
   }
 
-  async _setDefaultPushRules() {
+  async _disableGlobalPushRules() {
     const { client } = this;
 
     const pushRules = await client.getPushRules();
@@ -365,8 +433,46 @@ export default class Matrix extends EventTarget {
     for (const [scope, scopeRules] of Object.entries(pushRules)) {
       for (const [kind, kindRules] of Object.entries(scopeRules)) {
         for (const { rule_id, enabled } of kindRules) {
-          if (rule_id === ".m.rule.invite_for_me" && enabled) {
+          if (GLOBAL_PUSH_RULES_TO_DISABLE.includes(rule_id) && enabled) {
             client.setPushRuleEnabled(scope, kind, rule_id, false);
+          }
+
+          if (DEFAULT_GLOBAL_PUSH_RULES_TO_SPACE_OVERRIDE.includes(rule_id) && enabled) {
+            client.setPushRuleEnabled(scope, kind, rule_id, false);
+          }
+        }
+      }
+    }
+  }
+
+  async _initSpacePushRules(spaceId, spaceRoomId) {
+    const { client } = this;
+
+    const pushRules = await client.getPushRules();
+
+    // Disable invite notifications, since server does this for you.
+    for (const [scope, scopeRules] of Object.entries(pushRules)) {
+      for (const [kind, kindRules] of Object.entries(scopeRules)) {
+        for (const rule of kindRules) {
+          const { rule_id } = rule;
+          if (!DEFAULT_GLOBAL_PUSH_RULES_TO_SPACE_OVERRIDE.includes(rule_id)) continue;
+
+          const spaceRuleId = rule_id.replace(/^\.m\./, `jel.space_${spaceId}.`);
+
+          const existingRule = pushRules[scope][kind].find(({ rule_id }) => rule_id === spaceRuleId);
+
+          if (!existingRule) {
+            await client.addPushRule(scope, kind, spaceRuleId, {
+              enabled: true,
+              pattern: rule.pattern,
+              conditions: [
+                ...(rule.conditions || []),
+
+                // For now, we rely upon the Jel-specific content key spaceroom_id
+                { kind: "event_match", key: "content.spaceroom_id", pattern: spaceRoomId }
+              ],
+              actions: rule.actions
+            });
           }
         }
       }
@@ -455,6 +561,12 @@ export default class Matrix extends EventTarget {
   _attachMatrixEventHandlers() {
     const { client } = this;
 
+    client.on("accountData", ({ event: { type } }) => {
+      if (type === "m.push_rules") {
+        this.dispatchEvent(new CustomEvent("push_rules_changed"));
+      }
+    });
+
     client.on("Room.myMembership", async room => {
       if (!client.isInitialSyncComplete()) return;
 
@@ -487,7 +599,9 @@ export default class Matrix extends EventTarget {
       }
 
       if (event.type === "jel.space") {
+        // This is where we can perform steps that happen at most once per session per space.
         this.spaceIdToRoomId.set(event.content.space_id, event.room_id);
+        this._initSpacePushRules(event.content.space_id, event.room_id);
       }
 
       if (!client.isInitialSyncComplete()) return;

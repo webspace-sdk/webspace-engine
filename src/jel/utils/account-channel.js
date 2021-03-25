@@ -74,14 +74,14 @@ export default class AccountChannel extends EventTarget {
     this.dispatchEvent(new CustomEvent("support_response", { detail: response }));
   };
 
-  updateMembership(spaceId, notifySpaceCopresence, notifyHubCopresence, notifyChatMode) {
+  updateMembership(spaceId, notifySpaceCopresence, notifyHubCopresence, notifyCurrentWorldChatMode) {
     if (this.channel) {
       this.channel.push("update_membership", {
         membership: {
           space_id: spaceId,
           notify_space_copresence: notifySpaceCopresence,
           notify_hub_copresence: notifyHubCopresence,
-          notify_chat_mode: notifyChatMode
+          notify_current_world_chat_mode: notifyCurrentWorldChatMode
         }
       });
     }

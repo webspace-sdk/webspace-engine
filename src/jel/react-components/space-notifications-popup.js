@@ -7,11 +7,21 @@ import PopupPanelMenu from "./popup-panel-menu";
 import PanelSectionHeader from "./panel-section-header";
 import NotificationRequestPanel from "./notification-request-panel";
 import { FormattedMessage } from "react-intl";
-import { checkboxControlFor, PanelWrap } from "./form-components";
+import { checkboxControlFor, Label, PanelWrap, Radio, InputWrap } from "./form-components";
 import { membershipSettingsForSpaceId } from "../utils/membership-utils";
+import styled from "styled-components";
 
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
+
+const RadioWrap = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: row;
+  flex: 1;
+  min-width: 100px;
+`;
 
 const SpaceNotificationsPopup = ({
   setPopperElement,
@@ -20,12 +30,14 @@ const SpaceNotificationsPopup = ({
   children,
   subscriptions,
   memberships,
+  matrix,
   spaceId
 }) => {
   const { accountChannel } = window.APP;
   const [notifySpaceCopresence, setNotifySpaceCopresence] = useState("");
   const [notifyHubCopresence, setNotifyHubCopresence] = useState("");
-  const [notifyChat, setNotifyChat] = useState("");
+  const [notifyCurrentWorldChat, setNotifyCurrentWorldChat] = useState("");
+  const [notifyChannelChat, setNotifyChannelChat] = useState("none");
   const [isPushSubscribed, setIsPushSubscribed] = useState(subscriptions && subscriptions.subscribed);
 
   useEffect(
@@ -35,7 +47,7 @@ const SpaceNotificationsPopup = ({
         if (membershipSettings) {
           setNotifySpaceCopresence(membershipSettings.notifySpaceCopresence);
           setNotifyHubCopresence(membershipSettings.notifyHubCopresence);
-          setNotifyChat(membershipSettings.notifyChatMode === "all");
+          setNotifyCurrentWorldChat(membershipSettings.notifyCurrentWorldChatMode === "all");
         }
       };
       handler();
@@ -43,6 +55,24 @@ const SpaceNotificationsPopup = ({
       return () => accountChannel.removeEventListener("account_refresh", handler);
     },
     [accountChannel, memberships, spaceId]
+  );
+
+  useEffect(
+    () => {
+      if (!matrix || !spaceId) return;
+
+      const handler = async () => {
+        const mode = await matrix.getNotifyChannelChatModeForSpace(spaceId);
+
+        if (mode) {
+          setNotifyChannelChat(mode);
+        }
+      };
+
+      matrix.addEventListener("push_rules_changed", handler);
+      return () => matrix.removeEventListener("push_rules_changed", handler);
+    },
+    [spaceId, matrix]
   );
 
   useEffect(
@@ -56,19 +86,19 @@ const SpaceNotificationsPopup = ({
 
   const spaceNotifyOnChange = useCallback(
     value => {
-      accountChannel.updateMembership(spaceId, value, notifyHubCopresence, notifyChat ? "all" : "none");
+      accountChannel.updateMembership(spaceId, value, notifyHubCopresence, notifyCurrentWorldChat ? "all" : "none");
     },
-    [spaceId, notifyHubCopresence, notifyChat, accountChannel]
+    [spaceId, notifyHubCopresence, notifyCurrentWorldChat, accountChannel]
   );
 
   const hubNotifyOnChange = useCallback(
     value => {
-      accountChannel.updateMembership(spaceId, notifySpaceCopresence, value, notifyChat ? "all" : "none");
+      accountChannel.updateMembership(spaceId, notifySpaceCopresence, value, notifyCurrentWorldChat ? "all" : "none");
     },
-    [spaceId, notifySpaceCopresence, notifyChat, accountChannel]
+    [spaceId, notifySpaceCopresence, notifyCurrentWorldChat, accountChannel]
   );
 
-  const notifyChatOnChange = useCallback(
+  const notifyCurrentWorldChatOnChange = useCallback(
     value => {
       accountChannel.updateMembership(spaceId, notifySpaceCopresence, notifyHubCopresence, value ? "all" : "none");
     },
@@ -107,12 +137,38 @@ const SpaceNotificationsPopup = ({
           hubNotifyOnChange
         )}
         {checkboxControlFor(
-          "notify_chat",
-          "space-notifications-popup.notify_chat",
-          notifyChat,
-          setNotifyChat,
-          notifyChatOnChange
+          "notify_current_world_chat",
+          "space-notifications-popup.notify_current_world_chat",
+          notifyCurrentWorldChat,
+          setNotifyCurrentWorldChat,
+          notifyCurrentWorldChatOnChange
         )}
+        <InputWrap style={{ minHeight: "48px", marginLeft: "24px" }}>
+          <RadioWrap>
+            <Radio
+              type="radio"
+              id={"channel_chat_mode_all"}
+              name={"channel_chat_mode"}
+              checked={notifyChannelChat === "all"}
+              value={"all"}
+            />
+            <Label htmlFor="world_type_flat" style={{ cursor: "pointer" }}>
+              <FormattedMessage id="environment-settings-popup.world-type-flat" />
+            </Label>
+          </RadioWrap>
+          <RadioWrap>
+            <Radio
+              type="radio"
+              id={"channel_chat_mode_all"}
+              name={"channel_chat_mode"}
+              checked={notifyChannelChat === "all"}
+              value={"all"}
+            />
+            <Label htmlFor="world_type_flat" style={{ cursor: "pointer" }}>
+              <FormattedMessage id="environment-settings-popup.world-type-flat" />
+            </Label>
+          </RadioWrap>
+        </InputWrap>
       </PanelWrap>
     );
   } else {
@@ -143,7 +199,8 @@ const SpaceNotificationsPopup = ({
 
 SpaceNotificationsPopup.propTypes = {
   subscriptions: PropTypes.object,
-  spaceId: PropTypes.string
+  spaceId: PropTypes.string,
+  matrix: PropTypes.object
 };
 
 export { SpaceNotificationsPopup as default };

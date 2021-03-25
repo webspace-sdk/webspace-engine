@@ -21,7 +21,7 @@ export function membershipSettingsForSpaceId(spaceId, memberships) {
   return {
     notifySpaceCopresence: membership.notify_space_copresence,
     notifyHubCopresence: membership.notify_hub_copresence,
-    notifyChatMode: membership.notify_chat_mode
+    notifyCurrentWorldChatMode: membership.notify_current_world_chat_mode
   };
 }
 

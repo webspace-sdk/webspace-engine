@@ -143,14 +143,6 @@ const RadioWrap = styled.div`
   min-width: 100px;
 `;
 
-const RadiosWrap = styled.div`
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  flex-direction: row;
-  margin-left: 12px;
-`;
-
 const toPickerValue = ({ r, g, b }) => ({ r: Math.floor(r * 255), g: Math.floor(g * 255), b: Math.floor(b * 255) });
 
 const showTargetBelowElement = (el, outerEl, targetEl, topOffset, leftOffset) => {

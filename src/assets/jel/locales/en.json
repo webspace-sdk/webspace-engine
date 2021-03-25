@@ -244,7 +244,7 @@
   "hub-notifications-popup.world-settings": "World Notifications",
   "space-notifications-popup.notify_space_copresence": "When anyone is in a world in this space, notify me.",
   "space-notifications-popup.notify_hub_copresence": "When others join the world I'm in, notify me.",
-  "space-notifications-popup.notify_chat": "When others chat in the world I'm in, notify me.",
+  "space-notifications-popup.notify_current_world_chat": "When others chat in the world I'm in, notify me.",
   "hub-notifications-popup.notify_joins": "When anyone is in this world, notify me.",
   "hub-permissions-popup.permissions": "Permissions",
   "hub-permissions-popup.allow_editing": "Allow others to create and edit objects in this world.",
