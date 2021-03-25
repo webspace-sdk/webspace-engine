@@ -15,15 +15,16 @@ const DEFAULT_GLOBAL_PUSH_RULES_TO_SPACE_OVERRIDE = [
   ".m.rule.contains_display_name",
   ".m.rule.contains_user_name",
   ".m.rule.message",
-  ".m.rule.encrypted"
+  ".m.rule.encrypted",
+  ".m.rule.roomnotif"
 ];
 
 // Maps the space channel notification setting to the suffixes of push rules that must be enabled
 // on the space. Note that these must be in order from most constrained match to least.
 const JEL_SPACE_CHANNEL_NOTIFICATION_SETTING_TO_RULE_SUFFIXES = [
-  ["all", ["contains_display_name", "contains_user_name", "message", "encrypted"]],
-  ["mentions", ["contains_display_name", "contains_user_name"]],
-  ["none", []]
+  ["all", ["contains_display_name", "contains_user_name", "message", "encrypted", "roomnotif"]],
+  ["mentions", ["contains_display_name", "contains_user_name", "roomnotif"]],
+  ["none", ["roomnotif"]]
 ];
 
 const GLOBAL_PUSH_RULES_TO_DISABLE = [".m.rule.invite_for_me"];
@@ -489,15 +490,24 @@ export default class Matrix extends EventTarget {
           const existingRule = pushRules[scope][kind].find(({ rule_id }) => rule_id === spaceRuleId);
 
           if (!existingRule) {
+            const conditions = [
+              ...(rule.conditions || []),
+
+              // For now, we rely upon the Jel-specific content key spaceroom_id
+              { kind: "event_match", key: "content.spaceroom_id", pattern: spaceRoomId }
+            ];
+
+            // Space case - @room -> @everyone
+            for (const cond of conditions) {
+              if (cond.pattern === "@room") {
+                cond.pattern = "@everyone";
+              }
+            }
+
             await client.addPushRule(scope, kind, spaceRuleId, {
               enabled: true,
               pattern: rule.pattern,
-              conditions: [
-                ...(rule.conditions || []),
-
-                // For now, we rely upon the Jel-specific content key spaceroom_id
-                { kind: "event_match", key: "content.spaceroom_id", pattern: spaceRoomId }
-              ],
+              conditions,
               actions: rule.actions
             });
           }
