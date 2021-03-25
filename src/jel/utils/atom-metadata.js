@@ -8,6 +8,13 @@ const ATOM_TYPES = {
   SPACE: 1
 };
 
+export const ATOM_NOTIFICATION_TYPES = {
+  NONE: 0,
+  UNREAD: 1,
+  NOTIFICATIONS: 2,
+  PING_NOTIFICATIONS: 3
+};
+
 const VALID_PERMISSIONS = {
   [ATOM_TYPES.HUB]: [
     "update_hub_meta",
@@ -123,17 +130,23 @@ class AtomMetadata {
   };
 
   // Performs a local optimistic update + fires events
-  optimisticUpdate = (id, metadata) => {
+  localUpdate = (id, metadata) => {
     if (!this.hasMetadata(id)) return;
     const existing = this.getMetadata(id);
 
-    // For now can only optimistically update name
-    if (metadata.name) {
-      const newMetadata = { ...existing, name: metadata.name };
-      this._setDisplayNameOnMetadata(newMetadata);
-      this._metadata.set(id, newMetadata);
-      this._fireHandlerForSubscribersForUpdatedIds([id]);
+    let newMetadata = null;
+
+    // For now can only locally update name and notification*
+    for (const field of ["name", "notification_count", "notification_type"]) {
+      if (metadata[field] === undefined) continue;
+      newMetadata = { ...(newMetadata || existing), [field]: metadata[field] };
     }
+
+    if (newMetadata === null) return;
+
+    this._setDisplayNameOnMetadata(newMetadata);
+    this._metadata.set(id, newMetadata);
+    this._fireHandlerForSubscribersForUpdatedIds([id]);
   };
 
   can(permission, atomId) {
@@ -300,4 +313,41 @@ function useNameUpdateFromMetadata(atomId, metadata, setDisplayName, setRawName)
   );
 }
 
-export { AtomMetadata as default, useNameUpdateFromMetadata, ATOM_TYPES };
+function useNotificationCountUpdatesFromMetadata(atomId, metadata, setNotificationCount, setNotificationType) {
+  useEffect(
+    () => {
+      if (!metadata) return () => {};
+
+      const updateCounts = () => {
+        let count = null;
+        let type = null;
+
+        if (atomId && metadata.hasMetadata(atomId)) {
+          const { notification_count: c, notification_type: t } = metadata.getMetadata(atomId);
+          count = c;
+          type = t;
+        }
+
+        if (count !== undefined && count !== null && setNotificationCount) {
+          setNotificationCount(count);
+        }
+
+        if (type !== undefined && type !== null && setNotificationType) {
+          setNotificationType(type);
+        }
+      };
+
+      updateCounts();
+
+      if (atomId) {
+        metadata.ensureMetadataForIds([atomId]);
+        metadata.subscribeToMetadata(atomId, updateCounts);
+      }
+
+      return () => metadata.unsubscribeFromMetadata(updateCounts);
+    },
+    [atomId, metadata, setNotificationCount, setNotificationType]
+  );
+}
+
+export { AtomMetadata as default, useNameUpdateFromMetadata, useNotificationCountUpdatesFromMetadata, ATOM_TYPES };

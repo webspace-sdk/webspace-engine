@@ -182,9 +182,9 @@ const dynaChannel = new DynaChannel(store);
 const spaceChannel = new SpaceChannel(store);
 const hubChannel = new HubChannel(store);
 const linkChannel = new LinkChannel(store);
-const matrix = new Matrix(store);
 const spaceMetadata = new AtomMetadata(ATOM_TYPES.SPACE);
 const hubMetadata = new AtomMetadata(ATOM_TYPES.HUB);
+const matrix = new Matrix(store, hubMetadata);
 
 window.APP.history = history;
 window.APP.accountChannel = accountChannel;

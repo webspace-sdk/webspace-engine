@@ -1,6 +1,7 @@
 import { EventTarget } from "event-target-shim";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { getReticulumFetchUrl } from "../../hubs/utils/phoenix-utils";
+import { ATOM_NOTIFICATION_TYPES } from "./atom-metadata";
 
 // Delay we wait before flushing a room rename since the user
 // can keep typing in the UI.
@@ -30,10 +31,11 @@ const JEL_SPACE_CHANNEL_NOTIFICATION_SETTING_TO_RULE_SUFFIXES = [
 const GLOBAL_PUSH_RULES_TO_DISABLE = [".m.rule.invite_for_me"];
 
 export default class Matrix extends EventTarget {
-  constructor(store) {
+  constructor(store, hubMetadata) {
     super();
 
     this.store = store;
+    this.hubMetadata = hubMetadata;
 
     this.pendingRoomJoinPromises = new Map();
     this.pendingRoomJoinResolvers = new Map();
@@ -42,6 +44,12 @@ export default class Matrix extends EventTarget {
     // Hub <-> room bimap
     this.hubIdToRoomId = new Map();
     this.roomIdToHubId = new Map();
+
+    this.neonDispatcher = null;
+    this.neonLifecycle = null;
+    this.neonStores = null;
+    this.neonConstants = null;
+    this.roomIdToNeonRoomNotificationStateHandler = new Map();
 
     // Map of space ID -> spaceroom roomId
     this.spaceIdToRoomId = new Map();
@@ -114,9 +122,9 @@ export default class Matrix extends EventTarget {
     // Set up neon in iframe
     await waitForDOMContentLoaded();
 
-    this._neon = document.getElementById("neon");
+    this.neon = document.getElementById("neon");
 
-    const neon = this._neon;
+    const neon = this.neon;
 
     await new Promise(res => {
       neon.addEventListener("load", res, { once: true });
@@ -148,6 +156,12 @@ export default class Matrix extends EventTarget {
             this._syncProfile();
             this._syncPusher();
 
+            for (const room of client.getRooms()) {
+              if (room.hasMembershipState(client.credentials.userId, "join")) {
+                this._subscribeToRoomStores(room);
+              }
+            }
+
             this.initialSyncFinished();
             this.dispatchEvent(new CustomEvent("initial_sync_finished"));
 
@@ -159,13 +173,15 @@ export default class Matrix extends EventTarget {
       };
     });
 
-    const { getLoadedSession, getLifecycle, getDispatcher } = neon.contentWindow;
+    const { getLoadedSession, getLifecycle, getDispatcher, getStores, getConstants } = neon.contentWindow;
     const innerSession = await getLoadedSession;
-    this._neonLifecycle = await getLifecycle;
-    this._neonDispatcher = await getDispatcher;
+    this.neonLifecycle = await getLifecycle;
+    this.neonDispatcher = await getDispatcher;
+    this.neonStores = await getStores;
+    this.neonConstants = await getConstants;
 
     if (!innerSession) {
-      await this._neonLifecycle.setLoggedIn({
+      await this.neonLifecycle.setLoggedIn({
         homeserverUrl: `https://${homeserver}`,
         identityServerUrl: `https://${homeserver}`,
         userId,
@@ -222,7 +238,7 @@ export default class Matrix extends EventTarget {
 
     await this.initialSyncPromise;
 
-    this._neonDispatcher.dispatch({
+    this.neonDispatcher.dispatch({
       action: "view_room",
       room_id: roomId
     });
@@ -270,7 +286,7 @@ export default class Matrix extends EventTarget {
   }
 
   logout() {
-    return this._neonLifecycle.logout();
+    return this.neonLifecycle.logout();
   }
 
   async setNotifyChannelChatModeForSpace(spaceId, mode) {
@@ -595,6 +611,63 @@ export default class Matrix extends EventTarget {
     return this._spaceIdForRoom(room) === spaceId && this._jelTypeForRoom(room) === "jel.space";
   }
 
+  _subscribeToRoomStores(room) {
+    this._unsubscribeFromRoomStores(room);
+
+    const { hubMetadata } = this;
+    const { NOTIFICATION_STATE_UPDATE, NotificationColor } = this.neonConstants;
+    const { roomId } = room;
+
+    const state = this._neonRoomNotificationStateForRoom(room);
+
+    const handler = () => {
+      const { count, color } = state;
+
+      let atomNotificationType = ATOM_NOTIFICATION_TYPES.NONE;
+
+      switch (color) {
+        case NotificationColor.Bold:
+          atomNotificationType = ATOM_NOTIFICATION_TYPES.UNREAD;
+          break;
+        case NotificationColor.Grey:
+          atomNotificationType = ATOM_NOTIFICATION_TYPES.NOTIFICATIONS;
+          break;
+        case NotificationColor.Red:
+          atomNotificationType = ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS;
+          break;
+      }
+
+      const hubId = this.roomIdToHubId.get(roomId);
+
+      if (hubId) {
+        hubMetadata.localUpdate(hubId, {
+          notification_type: atomNotificationType,
+          notification_count: count
+        });
+      }
+    };
+
+    this.roomIdToNeonRoomNotificationStateHandler.set(roomId, handler);
+    state.on(NOTIFICATION_STATE_UPDATE, handler);
+  }
+
+  _unsubscribeFromRoomStores(room) {
+    const { NOTIFICATION_STATE_UPDATE } = this.neonConstants;
+    const { roomId } = room;
+
+    const handler = this.roomIdToNeonRoomNotificationStateHandler.get(roomId);
+    if (!handler) return;
+
+    const state = this._neonRoomNotificationStateForRoom(room);
+    state.off(NOTIFICATION_STATE_UPDATE, handler);
+  }
+
+  _neonRoomNotificationStateForRoom(room) {
+    const { roomNotificationStateStore } = this.neonStores;
+
+    return roomNotificationStateStore.getRoomState(room);
+  }
+
   _attachMatrixEventHandlers() {
     const { client } = this;
 
@@ -617,6 +690,8 @@ export default class Matrix extends EventTarget {
           pendingJoinPromiseResolver(room);
         }
 
+        this._subscribeToRoomStores(room);
+
         // If we just joined a room, the user may be waiting on the UI to update.
         const hubId = window.APP.hubChannel.hubId;
         const desiredRoomId = this.hubIdToRoomId.get(hubId);
@@ -626,11 +701,17 @@ export default class Matrix extends EventTarget {
         }
 
         console.log(`Matrix: joined room ${roomId}`);
+      } else if (
+        room.hasMembershipState(client.credentials.userId, "leave") ||
+        room.hasMembershipState(client.credentials.userId, "ban")
+      ) {
+        this._unsubscribeFromRoomStores(room);
       }
     });
 
     client.on("RoomState.events", ({ event }) => {
       if (event.type === "jel.hub") {
+        // This is where we can perform steps that happen at most once per session per hub.
         this.hubIdToRoomId.set(event.content.hub_id, event.room_id);
         this.roomIdToHubId.set(event.room_id, event.content.hub_id);
       }

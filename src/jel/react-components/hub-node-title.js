@@ -4,12 +4,21 @@ import styled from "styled-components";
 import IconButton from "./icon-button";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal.svgi";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
-import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
+import {
+  ATOM_NOTIFICATION_TYPES,
+  useNameUpdateFromMetadata,
+  useNotificationCountUpdatesFromMetadata
+} from "../utils/atom-metadata";
 
 const HubNodeElement = styled.div`
   display: flex;
   align-items: center;
   position: relative;
+
+  .unread {
+    font-weight: var(--panel-selected-text-weight);
+    color: var(--panel-unread-text-color);
+  }
 
   &:hover {
     .controls {
@@ -18,6 +27,10 @@ const HubNodeElement = styled.div`
 
     .title {
       flex-basis: calc(100% - 58px);
+    }
+
+    .notifications {
+      display: none;
     }
   }
 `;
@@ -39,6 +52,18 @@ const HubTitle = styled.div`
   flex-basis: 100%;
 `;
 
+const NotificationCount = styled.div`
+  background-color: var(--notification-ping-color);
+  color: var(--notification-text-color);
+  font: var(--notification-count-font);
+  line-height: 18px;
+  padding-left: 5px;
+  width: 19px;
+  height: 19px;
+  border-radius: 12px;
+  margin-right: 5px;
+`;
+
 const PopupRef = styled.div`
   position: absolute;
   width: 0;
@@ -49,19 +74,28 @@ const PopupRef = styled.div`
 
 const HubNodeTitle = ({ hubId, onDotsClick, showAdd, showDots, onAddClick, hubMetadata }) => {
   const [name, setName] = useState("");
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [notificationType, setNotificationType] = useState(ATOM_NOTIFICATION_TYPES.NONE);
 
   const popupRef = useRef();
 
   useNameUpdateFromMetadata(hubId, hubMetadata, setName);
+  useNotificationCountUpdatesFromMetadata(hubId, hubMetadata, setNotificationCount, setNotificationType);
 
   return (
     <HubNodeElement>
-      <HubTitle className="title">{name}</HubTitle>
+      <HubTitle className={notificationType === ATOM_NOTIFICATION_TYPES.NONE ? "title" : "title unread"}>
+        {name}
+      </HubTitle>
       <HubControls className="controls">
         {showDots && <IconButton iconSrc={dotsIcon} onClick={e => onDotsClick(e, popupRef)} />}
         <PopupRef ref={popupRef} />
         {showAdd && <IconButton iconSrc={addIcon} onClick={onAddClick} />}
       </HubControls>
+      {notificationCount > 0 &&
+        notificationType === ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS && (
+          <NotificationCount className="notifications">{notificationCount}</NotificationCount>
+        )}
     </HubNodeElement>
   );
 };

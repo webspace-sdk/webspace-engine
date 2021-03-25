@@ -65,7 +65,6 @@ $treeNodePrefixCls: atom-tree-treenode;
     &-selected {
       background-color: var(--panel-item-selected-background-color);
       color: var(--panel-selected-text-color);
-      font-weight: var(--panel-selected-text-weight);
     }
     .#{$treePrefixCls}-node-content-wrapper {
       display: flex;
