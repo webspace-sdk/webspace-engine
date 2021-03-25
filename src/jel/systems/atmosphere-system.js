@@ -412,11 +412,10 @@ export class AtmosphereSystem {
       const waterPos = this.waterSoundSource.position;
 
       const moveWater =
-        Math.abs(waterPos.x - pos.x) > 0.001 ||
-        Math.abs(waterPos.y - pos.y) > 0.001 ||
-        Math.abs(waterPos.z - pos.z) > 0.001;
+        Math.abs(waterPos.x - pos.x) > 0.5 || Math.abs(waterPos.y - pos.y) > 0.5 || Math.abs(waterPos.z - pos.z) > 0.5;
 
       if (moveWater) {
+        console.log("move water");
         this.waterSoundSource.position.x = pos.x;
         this.waterSoundSource.position.y = pos.y;
         this.waterSoundSource.position.z = pos.z;
