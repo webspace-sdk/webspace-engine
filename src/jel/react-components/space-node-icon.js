@@ -104,8 +104,6 @@ export default function SpaceNodeIcon({ spaceId, spaceMetadata }) {
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setName);
   useNotificationCountUpdatesFromMetadata(spaceId, spaceMetadata, setNotificationCount, setNotificationType);
 
-  console.log(spaceId, notificationCount, notificationType);
-
   let el;
   if (icon) {
     el = (

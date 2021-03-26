@@ -30,6 +30,7 @@ $treeNodePrefixCls: atom-tree-treenode;
       -khtml-user-drag: element;
       -webkit-user-drag: element;
     }
+    font-size: var(--panel-item-text-size);
     &:hover {
       background-color: var(--panel-item-hover-background-color);
       color: var(--panel-item-hover-text-color);
