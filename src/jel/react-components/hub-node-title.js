@@ -57,11 +57,11 @@ const NotificationCount = styled.div`
   color: var(--notification-text-color);
   font: var(--notification-count-font);
   line-height: 20px;
-  padding-top: 1px;
+  padding-top: 0px;
   padding-right: 1px;
-  width: 20px;
-  height: 18px;
-  border-radius: 12px;
+  width: 22px;
+  height: 20px;
+  border-radius: 9px;
   margin-right: 5px;
   display: flex;
   justify-content: center;
@@ -96,12 +96,11 @@ const HubNodeTitle = ({ hubId, onDotsClick, showAdd, showDots, onAddClick, hubMe
         <PopupRef ref={popupRef} />
         {showAdd && <IconButton iconSrc={addIcon} onClick={onAddClick} />}
       </HubControls>
-      {notificationCount > 0 &&
-        notificationType === ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS && (
-          <NotificationCount className="notifications">
-            {notificationCount > 9 ? " " : notificationCount}
-          </NotificationCount>
-        )}
+      {notificationType === ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS && (
+        <NotificationCount className="notifications">
+          {notificationCount > 9 ? " " : notificationCount}
+        </NotificationCount>
+      )}
     </HubNodeElement>
   );
 };

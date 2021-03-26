@@ -77,6 +77,24 @@ const SpaceNodeNotification = styled.div`
   align-items: center;
 `;
 
+const SpaceNodeUnread = styled.div`
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  background-color: var(--notification-unread-color);
+  color: var(--notification-text-color);
+  font: var(--notification-count-font);
+  line-height: 18px;
+  padding-top: 1px;
+  padding-right: 1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
 export default function SpaceNodeIcon({ spaceId, spaceMetadata }) {
   const [name, setName] = useState("");
   const [notificationCount, setNotificationCount] = useState(0);
@@ -86,24 +104,28 @@ export default function SpaceNodeIcon({ spaceId, spaceMetadata }) {
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setName);
   useNotificationCountUpdatesFromMetadata(spaceId, spaceMetadata, setNotificationCount, setNotificationType);
 
+  console.log(spaceId, notificationCount, notificationType);
+
   let el;
   if (icon) {
     el = (
       <SpaceNodeIconElement className="spaceNodeIcon" style={{ backgroundImage: `url(${icon})` }}>
-        {notificationCount > 0 &&
-          notificationType === ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS && (
-            <SpaceNodeNotification>{notificationCount > 9 ? " " : notificationCount}</SpaceNodeNotification>
-          )}
+        {notificationType === ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS && (
+          <SpaceNodeNotification>{notificationCount > 9 ? " " : notificationCount}</SpaceNodeNotification>
+        )}
+        {notificationType !== ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS &&
+          notificationType !== ATOM_NOTIFICATION_TYPES.NONE && <SpaceNodeUnread />}
       </SpaceNodeIconElement>
     );
   } else {
     el = (
       <SpaceNodeIconElement className="spaceNodeIcon">
         <SpaceNodeIconNonImage>{name.substring(0, 1)}</SpaceNodeIconNonImage>
-        {notificationCount > 0 &&
-          notificationType === ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS && (
-            <SpaceNodeNotification>{notificationCount > 9 ? " " : notificationCount}</SpaceNodeNotification>
-          )}
+        {notificationType === ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS && (
+          <SpaceNodeNotification>{notificationCount > 9 ? " " : notificationCount}</SpaceNodeNotification>
+        )}
+        {notificationType !== ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS &&
+          notificationType !== ATOM_NOTIFICATION_TYPES.NONE && <SpaceNodeUnread />}
       </SpaceNodeIconElement>
     );
   }
