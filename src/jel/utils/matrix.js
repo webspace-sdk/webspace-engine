@@ -2,6 +2,7 @@ import { EventTarget } from "event-target-shim";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { getReticulumFetchUrl } from "../../hubs/utils/phoenix-utils";
 import { ATOM_NOTIFICATION_TYPES } from "./atom-metadata";
+import { getMessages } from "../../hubs/utils/i18n";
 
 // Delay we wait before flushing a room rename since the user
 // can keep typing in the UI.
@@ -229,7 +230,7 @@ export default class Matrix extends EventTarget {
         const room = client.getRoom(roomId);
 
         if (room && this._roomCan("state:m.room.name", roomId)) {
-          client.setRoomName(roomId, name);
+          client.setRoomName(roomId, name || getMessages()["hub.unnamed-channel-title"]);
         }
       }, ROOM_RENAME_DELAY)
     );

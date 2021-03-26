@@ -107,7 +107,7 @@ function HubTree({ treeManager, type, history, hub, spaceCan, setHubRenameRefere
       />
       {navTreeData.length === 0 && (
         <EmptyMessage>
-          <FormattedMessage id="nav.empty" />
+          <FormattedMessage id={type === "world" ? "nav.worlds-empty" : "nav.channels-empty"} />
         </EmptyMessage>
       )}
     </div>
