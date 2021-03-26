@@ -774,6 +774,11 @@ function setupGameEnginePausing(scene) {
       // When setting up bridge, bridge iframe can steal focus
       if (SYSTEMS.videoBridgeSystem.isSettingUpBridge) return;
 
+      // May be an iframe, don't pause in that case
+      if (document.activeElement.contentWindow && document.activeElement.contentWindow.document.hasFocus()) {
+        return;
+      }
+
       const disableBlurHandlerOnceIfVisible = window.APP.disableBlurHandlerOnceIfVisible;
       window.APP.disableBlurHandlerOnceIfVisible = false;
 
