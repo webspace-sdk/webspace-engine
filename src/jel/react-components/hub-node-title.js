@@ -56,12 +56,16 @@ const NotificationCount = styled.div`
   background-color: var(--notification-ping-color);
   color: var(--notification-text-color);
   font: var(--notification-count-font);
-  line-height: 18px;
-  padding-left: 5px;
-  width: 19px;
-  height: 19px;
+  line-height: 20px;
+  padding-top: 1px;
+  padding-right: 1px;
+  width: 20px;
+  height: 18px;
   border-radius: 12px;
   margin-right: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;
 
 const PopupRef = styled.div`
@@ -94,7 +98,9 @@ const HubNodeTitle = ({ hubId, onDotsClick, showAdd, showDots, onAddClick, hubMe
       </HubControls>
       {notificationCount > 0 &&
         notificationType === ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS && (
-          <NotificationCount className="notifications">{notificationCount}</NotificationCount>
+          <NotificationCount className="notifications">
+            {notificationCount > 9 ? " " : notificationCount}
+          </NotificationCount>
         )}
     </HubNodeElement>
   );

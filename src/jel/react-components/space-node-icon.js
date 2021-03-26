@@ -13,6 +13,7 @@ import discordSpaceIcon from "../../assets/jel/images/icons/discord-space-icon.s
 const SpaceNodeIconElement = styled.div`
   width: 64px;
   height: 64px;
+  position: relative;
 
   border-radius: 32px;
   transition: border-radius 0.1s;
@@ -58,6 +59,24 @@ const SpaceNodeIconImage = styled.div`
   height: 42px;
 `;
 
+const SpaceNodeNotification = styled.div`
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: var(--notification-ping-color);
+  color: var(--notification-text-color);
+  font: var(--notification-count-font);
+  line-height: 18px;
+  padding-top: 1px;
+  padding-right: 1px;
+  width: 19px;
+  height: 19px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
 export default function SpaceNodeIcon({ spaceId, spaceMetadata }) {
   const [name, setName] = useState("");
   const [notificationCount, setNotificationCount] = useState(0);
@@ -69,12 +88,22 @@ export default function SpaceNodeIcon({ spaceId, spaceMetadata }) {
 
   let el;
   if (icon) {
-    el = <SpaceNodeIconElement className="spaceNodeIcon" style={{ backgroundImage: `url(${icon})` }} />;
+    el = (
+      <SpaceNodeIconElement className="spaceNodeIcon" style={{ backgroundImage: `url(${icon})` }}>
+        {notificationCount > 0 &&
+          notificationType === ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS && (
+            <SpaceNodeNotification>{notificationCount > 9 ? " " : notificationCount}</SpaceNodeNotification>
+          )}
+      </SpaceNodeIconElement>
+    );
   } else {
     el = (
       <SpaceNodeIconElement className="spaceNodeIcon">
         <SpaceNodeIconNonImage>{name.substring(0, 1)}</SpaceNodeIconNonImage>
-        {notificationCount} - {notificationType}
+        {notificationCount > 0 &&
+          notificationType === ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS && (
+            <SpaceNodeNotification>{notificationCount > 9 ? " " : notificationCount}</SpaceNodeNotification>
+          )}
       </SpaceNodeIconElement>
     );
   }
