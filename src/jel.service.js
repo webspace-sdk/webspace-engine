@@ -21,6 +21,19 @@ self.addEventListener("push", function(e) {
   return e.waitUntil(
     self.clients.matchAll({ type: "window" }).then(function(clientList) {
       const now = performance.now();
+
+      if (payload.type === "matrix") {
+        if (payload.counts && navigator.setAppBadge) {
+          const { unread } = payload.counts;
+
+          if (unread >= 0 && unread <= 9) {
+            navigator.setAppBadge(unread);
+          } else if (unread > 9) {
+            navigator.setAppBadge();
+          }
+        }
+      }
+
       let openClient = null;
 
       for (let i = 0; i < clientList.length; i++) {

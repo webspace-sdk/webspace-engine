@@ -870,7 +870,9 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
       if (store.state.context.isFirstVisitToSpace) {
         const hubs = {};
 
-        // First time space setup, create initial public worlds. TODO do this server-side.
+        // First time space setup, create initial public channels + worlds. TODO do this server-side.
+        const generalChannel = (hubs.general = await addNewHubToTree(treeManager, spaceId, "channel", null, "General"));
+
         for (const world of ["first", "welcome", "whats-new", "faq"]) {
           const name = getMessages()[`space.${world}-world-name`];
           const templateName = world;
@@ -900,7 +902,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
           );
         }
 
-        navigateToHubUrl(history, hubs.first.url);
+        navigateToHubUrl(history, generalChannel.url);
         store.update({ context: { isFirstVisitToSpace: false } });
       }
 

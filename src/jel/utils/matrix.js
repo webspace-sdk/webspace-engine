@@ -61,6 +61,8 @@ export default class Matrix extends EventTarget {
     this.initialSyncPromise = new Promise(res => {
       this.initialSyncFinished = res;
     });
+
+    this.lastSetAppBadgeUnread = -1;
   }
 
   async init(scene, subscriptions, sessionId, homeserver, loginToken, expectedUserId) {
@@ -678,6 +680,21 @@ export default class Matrix extends EventTarget {
           notification_type: atomNotificationType,
           notification_count: count
         });
+
+        // Update app badge when counts change for notifications
+        if (navigator.setAppBadge) {
+          const unread = this._getJoinedRoomCountWithUnreadNotifications();
+
+          if (this.lastSetAppBadgeUnread !== unread) {
+            if (unread >= 0 && unread <= 9) {
+              navigator.setAppBadge(unread);
+            } else if (unread > 9) {
+              navigator.setAppBadge();
+            }
+
+            this.lastSetAppBadgeUnread = unread;
+          }
+        }
       }
     };
 
@@ -706,6 +723,21 @@ export default class Matrix extends EventTarget {
     } else {
       return roomNotificationStateStore.getRoomState(room);
     }
+  }
+
+  _getJoinedRoomCountWithUnreadNotifications() {
+    const { client } = this;
+
+    let unreadRoomCount = 0;
+
+    // Is this too expensive to run on every notification?
+    for (const room of client.getRooms()) {
+      if (room.getUnreadNotificationCount("total") > 0 && room.hasMembershipState(client.credentials.userId, "join")) {
+        unreadRoomCount++;
+      }
+    }
+
+    return unreadRoomCount;
   }
 
   _attachMatrixEventHandlers() {

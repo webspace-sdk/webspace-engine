@@ -537,7 +537,7 @@ function JelSidePanels({
                 <FormattedMessage id="nav.trash" />
               </PanelItemButton>
             </PanelItemButtonSection>
-            {spaceCan("create_hub") && (
+            {spaceCan("create_world_hub") && (
               <ActionButton
                 iconSrc={addIcon}
                 onClick={async () => {
@@ -550,7 +550,7 @@ function JelSidePanels({
                 <FormattedMessage id="nav.create-world" />
               </ActionButton>
             )}
-            {spaceCan("create_hub") && (
+            {spaceCan("create_channel_hub") && (
               <ActionButton
                 iconSrc={addIcon}
                 onClick={async () => {

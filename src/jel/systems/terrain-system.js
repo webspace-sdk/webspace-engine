@@ -363,7 +363,6 @@ export class TerrainSystem {
   updateWorldForHub({ type: hubType, world }) {
     if (hubType === "channel") {
       this.unloadWorld();
-      this.scene.emit("terrain_chunk_loading_complete");
       return;
     }
 

@@ -38,7 +38,7 @@ function HubTree({ treeManager, type, history, hub, spaceCan, setHubRenameRefere
   const navTitleControl = useCallback(
     data => {
       const metadata = atomMetadata.getMetadata(data.atomId);
-      const showAdd = !!(spaceCan("create_hub") && metadata && metadata.type === "world");
+      const showAdd = !!(spaceCan("create_world_hub") && metadata && metadata.type === "world");
 
       return (
         <HubNodeTitle

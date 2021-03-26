@@ -504,8 +504,8 @@ function JelUI(props) {
   const [worldTreeDataVersion, setWorldTreeDataVersion] = useState(0);
   const [channelTreeData, setChannelTreeData] = useState([]);
   const [channelTreeDataVersion, setChannelTreeDataVersion] = useState(0);
-  const [isTerrainLoading, setIsTerrainLoading] = useState(true);
   const [isMatrixLoading, setIsMatrixLoading] = useState(!matrix || !matrix.isInitialSyncFinished);
+  const [isInitializingSpace, setIsInitializingSpace] = useState(store.state.context.isFirstVisitToSpace);
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [showingExternalCamera, setShowingExternalCamera] = useState(false);
   const [showNotificationBanner, setShowNotificationBanner] = useState(
@@ -679,21 +679,22 @@ function JelUI(props) {
   useTreeData(worldTree, worldTreeDataVersion, setWorldTreeData, setWorldTreeDataVersion);
   useTreeData(channelTree, channelTreeDataVersion, setChannelTreeData, setChannelTreeDataVersion);
 
-  useEffect(() => {
-    const handler = () => setIsTerrainLoading(false);
-
-    scene && scene.addEventListener("terrain_chunk_loading_complete", handler);
-    () => scene && scene.removeEventListener("terrain_chunk_loading_complete", handler);
-  });
-
   useEffect(
     () => {
       const handler = () => setIsMatrixLoading(false);
-
       matrix && matrix.addEventListener("initial_sync_finished", handler);
       () => matrix && matrix.removeEventListener("initial_sync_finished", handler);
     },
     [matrix]
+  );
+
+  useEffect(
+    () => {
+      const handler = () => setIsInitializingSpace(store.state.context.isFirstVisitToSpace);
+      store.addEventListener("statechanged-context", handler);
+      return () => store.removeEventListener("statechanged-context", handler);
+    },
+    [store, setIsInitializingSpace]
   );
 
   // Handle permissions changed
@@ -880,7 +881,7 @@ function JelUI(props) {
   return (
     <WrappedIntlProvider>
       <div>
-        <LoadingPanel isLoading={isMatrixLoading || isTerrainLoading} unavailableReason={unavailableReason} />
+        <LoadingPanel isLoading={isMatrixLoading || isInitializingSpace} unavailableReason={unavailableReason} />
         <Snackbar />
         <Wrap id="jel-ui-wrap">
           {showNotificationBanner &&

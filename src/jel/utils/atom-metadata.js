@@ -33,7 +33,15 @@ const VALID_PERMISSIONS = {
     "fly",
     "upload_files"
   ],
-  [ATOM_TYPES.SPACE]: ["create_hub", "view_nav", "edit_nav", "update_space_meta", "create_invite", "go_home"]
+  [ATOM_TYPES.SPACE]: [
+    "create_world_hub",
+    "create_channel_hub",
+    "view_nav",
+    "edit_nav",
+    "update_space_meta",
+    "create_invite",
+    "go_home"
+  ]
 };
 
 // This value is placed in the metadata lookup table while a fetch is
