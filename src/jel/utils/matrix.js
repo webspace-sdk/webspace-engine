@@ -43,6 +43,7 @@ export default class Matrix extends EventTarget {
     this.pendingRoomJoinPromises = new Map();
     this.pendingRoomJoinResolvers = new Map();
     this.roomNameChangeTimeouts = new Map();
+    this.avatarUpdateTimeout = null;
 
     // Hub <-> room bimap
     this.hubIdToRoomId = new Map();
@@ -338,11 +339,20 @@ export default class Matrix extends EventTarget {
   }
 
   async updateAvatarColor(r, g, b) {
+    if (this.avatarUpdateTimeout) {
+      clearTimeout(this.avatarUpdateTimeout);
+    }
+
     const { client } = this;
     const [blob] = await renderAvatarToPng(r, g, b);
     const file = new File([blob], "avatar.png", { type: "image/png" });
     const fileUrl = await client.uploadContent(file, { onlyContentUri: true });
-    client.setAvatarUrl(fileUrl);
+
+    this.avatarUpdateTimeout = setTimeout(async () => {
+      // Debounce this for 5 seconds given the way the UI works currently.
+      client.setAvatarUrl(fileUrl);
+      this.avatarUpdateTimeout = null;
+    }, 5000);
   }
 
   async getNotifyChannelChatModeForSpace(spaceId) {
