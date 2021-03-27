@@ -210,7 +210,7 @@ export class ExternalCameraSystem {
     camera.updateMatrixWorld(true, true);
 
     // Update lights + force shadow redraw
-    atmosphereSystem.moveSunlight(camera);
+    atmosphereSystem.moveSunlightAndWaterSound(camera, false);
     renderer.shadowMap.needsUpdate = true;
 
     // Ensure camera is in proper world space
@@ -229,7 +229,7 @@ export class ExternalCameraSystem {
 
     // Restore state + lights
     atmosphereSystem.water.needsUpdate = waterNeededUpdate;
-    atmosphereSystem.moveSunlight();
+    atmosphereSystem.moveSunlightAndWaterSound();
     videoBridgeSystem.showPreview();
     renderer.shadowMap.needsUpdate = true;
 
