@@ -70,12 +70,12 @@ export default class Matrix extends EventTarget {
     const { store } = this;
     const { accountChannel } = window.APP;
 
-    const deviceId = store.state.context.deviceId;
+    const deviceId = store.state.credentials.deviceId;
     this.sessionId = sessionId;
     this.homeserver = homeserver;
     this.subscriptions = subscriptions;
 
-    let accessToken = store.state.credentials.matrix_access_token;
+    let accessToken = store.state.credentials.matrixAccessToken;
     let userId = null;
 
     // Check validity of current access token
@@ -115,10 +115,10 @@ export default class Matrix extends EventTarget {
         body: JSON.stringify({ type: "org.matrix.login.jwt", token: loginToken })
       });
 
-      const { user_id, access_token: matrix_access_token } = await loginRes.json();
-      store.update({ credentials: { matrix_access_token } });
+      const { user_id, access_token: matrixAccessToken } = await loginRes.json();
+      store.update({ credentials: { matrixAccessToken } });
 
-      accessToken = matrix_access_token;
+      accessToken = matrixAccessToken;
       userId = user_id;
     }
 
@@ -417,7 +417,7 @@ export default class Matrix extends EventTarget {
         data: { device_id }
       } = pusher;
 
-      if (device_id === store.state.context.deviceId) {
+      if (device_id === store.state.credentials.deviceId) {
         existingPusherForDevice = pusher;
         break;
       }
@@ -451,7 +451,7 @@ export default class Matrix extends EventTarget {
             url,
             auth,
             endpoint,
-            device_id: store.state.context.deviceId,
+            device_id: store.state.credentials.deviceId,
             account_id: store.credentialsAccountId
           },
           append: true

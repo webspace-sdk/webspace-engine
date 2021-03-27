@@ -28,7 +28,6 @@ export const SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
-        deviceId: { type: "string" },
         spaceId: { type: "string" },
         lastJoinedHubId: { type: "string" }, // Deprecated
         lastJoinedHubIds: { type: "object" },
@@ -51,7 +50,8 @@ export const SCHEMA = {
       additionalProperties: false,
       properties: {
         token: { type: ["null", "string"] },
-        matrix_access_token: { type: ["null", "string"] },
+        matrixAccessToken: { type: ["null", "string"] },
+        deviceId: { type: ["null", "string"] },
         email: { type: ["null", "string"] }
       }
     },
@@ -269,7 +269,7 @@ export default class Store extends EventTarget {
   };
 
   clearCredentials() {
-    this.update({ credentials: { token: null, matrix_access_token: null, email: null } });
+    this.update({ credentials: { token: null, matrixAccessToken: null, deviceId: null, email: null } });
   }
 
   initDefaults = async () => {
@@ -304,8 +304,8 @@ export default class Store extends EventTarget {
       });
     }
 
-    if (!this.state.context.deviceId) {
-      this.update({ context: { deviceId: randomString(32) } });
+    if (!this.state.credentials.deviceId) {
+      this.update({ credentials: { deviceId: randomString(32) } });
     }
   };
 

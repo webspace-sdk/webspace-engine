@@ -61,7 +61,7 @@ export default class Subscriptions extends EventTarget {
     const hasRegisteredDeviceWithEndpoint =
       currentEndpoint &&
       this.existingSubscriptions.find(
-        ({ device_id, endpoint }) => currentEndpoint === endpoint && device_id === this.store.state.context.deviceId
+        ({ device_id, endpoint }) => currentEndpoint === endpoint && device_id === this.store.state.credentials.deviceId
       );
 
     // If this endpoint is already registered with the server but this device isn't,

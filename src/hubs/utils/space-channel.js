@@ -168,13 +168,12 @@ export default class SpaceChannel extends EventTarget {
   signOut = () => {
     return new Promise((resolve, reject) => {
       this.channel
-        .push("sign_out")
+        .push("sign_out", { device_id: this.store.state.credentials.deviceId })
         .receive("ok", async () => {
           this._signedIn = false;
           const params = this.channel.params();
           delete params.auth_token;
           delete params.perms_token;
-          await this.fetchPermissions();
           resolve();
         })
         .receive("error", reject);
