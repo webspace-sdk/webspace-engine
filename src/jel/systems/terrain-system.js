@@ -361,10 +361,8 @@ export class TerrainSystem {
   };
 
   updateWorldForHub({ type: hubType, world }) {
-    if (hubType === "channel") {
-      this.unloadWorld();
-      return;
-    }
+    // Keep the previous hub world loaded to more nicely handle tabbing to and from
+    if (hubType === "channel") return;
 
     // Update colors
     const colors = [];
