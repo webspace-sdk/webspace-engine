@@ -159,6 +159,7 @@ import "./hubs/systems/linked-media";
 import "./hubs/systems/camera-rotator-system";
 import "./jel/systems/media-presence-system";
 import "./jel/systems/wrapped-entity-system";
+import "./jel/utils/avatar-utils";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
 import { isInEditableField } from "./jel/utils/dom-utils";
 import { resetTemplate } from "./jel/utils/template-utils";

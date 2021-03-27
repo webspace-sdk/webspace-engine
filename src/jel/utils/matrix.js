@@ -3,6 +3,7 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { getReticulumFetchUrl } from "../../hubs/utils/phoenix-utils";
 import { ATOM_NOTIFICATION_TYPES } from "./atom-metadata";
 import { getMessages } from "../../hubs/utils/i18n";
+import { renderAvatarToPng } from "./avatar-utils";
 
 // Delay we wait before flushing a room rename since the user
 // can keep typing in the UI.
@@ -336,6 +337,14 @@ export default class Matrix extends EventTarget {
     }
   }
 
+  async updateAvatarColor(r, g, b) {
+    const { client } = this;
+    const [blob] = await renderAvatarToPng(r, g, b);
+    const file = new File([blob], "avatar.png", { type: "image/png" });
+    const fileUrl = await client.uploadContent(file, { onlyContentUri: true });
+    client.setAvatarUrl(fileUrl);
+  }
+
   async getNotifyChannelChatModeForSpace(spaceId) {
     const { client } = this;
     if (!client) return null;
@@ -483,6 +492,20 @@ export default class Matrix extends EventTarget {
 
       if (displayName !== matrixUser.displayName) {
         await client.setDisplayName(displayName);
+      }
+    }
+
+    if (meta && meta.profile && meta.profile.persona && meta.profile.persona.avatar) {
+      const user = client.getUser(client.getUserId());
+
+      // Initial avatar url set here, for updates we call this function directly
+      // from UI.
+      if (!user.avatarUrl) {
+        await this.updateAvatarColor(
+          meta.profile.persona.avatar.primary_color.r,
+          meta.profile.persona.avatar.primary_color.g,
+          meta.profile.persona.avatar.primary_color.b
+        );
       }
     }
   }

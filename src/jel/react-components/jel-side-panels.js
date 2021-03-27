@@ -571,6 +571,7 @@ function JelSidePanels({
               sessionId={sessionId}
               onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {
                 spaceChannel.sendAvatarColorUpdate(r / 255.0, g / 255.0, b / 255.0);
+                window.APP.matrix.updateAvatarColor(r / 255.0, g / 255.0, b / 255.0);
               }}
               onSignOutClicked={async () => {
                 await window.APP.spaceChannel.signOut(store.state.credentials.deviceId);
