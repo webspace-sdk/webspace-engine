@@ -367,7 +367,7 @@ export class AtmosphereSystem {
   moveSunlightAndWaterSound = (() => {
     const pos = new THREE.Vector3();
 
-    return target => {
+    return (target, includeWater = true) => {
       if (!target) {
         if (!this.avatarPovEl) return;
         target = this.avatarPovEl.object3D;
@@ -414,7 +414,10 @@ export class AtmosphereSystem {
       const waterPos = this.waterSoundSource.position;
 
       const moveWater =
-        Math.abs(waterPos.x - pos.x) > 0.5 || Math.abs(waterPos.y - pos.y) > 0.5 || Math.abs(waterPos.z - pos.z) > 0.5;
+        includeWater &&
+        (Math.abs(waterPos.x - pos.x) > 0.5 ||
+          Math.abs(waterPos.y - pos.y) > 0.5 ||
+          Math.abs(waterPos.z - pos.z) > 0.5);
 
       if (moveWater) {
         this.waterSoundSource.position.x = pos.x;
