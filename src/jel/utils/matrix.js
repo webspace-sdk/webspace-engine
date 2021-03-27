@@ -343,12 +343,12 @@ export default class Matrix extends EventTarget {
       clearTimeout(this.avatarUpdateTimeout);
     }
 
-    const { client } = this;
-    const [blob] = await renderAvatarToPng(r, g, b);
-    const file = new File([blob], "avatar.png", { type: "image/png" });
-    const fileUrl = await client.uploadContent(file, { onlyContentUri: true });
-
     this.avatarUpdateTimeout = setTimeout(async () => {
+      const { client } = this;
+      const [blob] = await renderAvatarToPng(r, g, b);
+      const file = new File([blob], "avatar.png", { type: "image/png" });
+      const fileUrl = await client.uploadContent(file, { onlyContentUri: true });
+
       // Debounce this for 5 seconds given the way the UI works currently.
       client.setAvatarUrl(fileUrl);
       this.avatarUpdateTimeout = null;
