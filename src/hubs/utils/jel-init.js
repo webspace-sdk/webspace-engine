@@ -872,6 +872,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
 
         // First time space setup, create initial public channels + worlds. TODO do this server-side.
         const generalChannel = (hubs.general = await addNewHubToTree(treeManager, spaceId, "channel", null, "General"));
+        await addNewHubToTree(treeManager, spaceId, "channel", null, "Random");
 
         for (const world of ["first", "welcome", "whats-new", "faq"]) {
           const name = getMessages()[`space.${world}-world-name`];
