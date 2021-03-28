@@ -214,9 +214,10 @@ function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
     neon.classList.add("visible");
     jelInterface.classList.add("hub-type-channel");
     jelInterface.classList.remove("hub-type-world");
-    window.APP.matrix.switchClientToRoomForHub(hub);
     neon.focus();
   }
+
+  window.APP.matrix.switchToHub(hub);
 
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
   remountJelUI({ hub, selectedMediaLayer });

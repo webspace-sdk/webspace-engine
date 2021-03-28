@@ -9,6 +9,8 @@ import { renderAvatarToPng } from "./avatar-utils";
 // can keep typing in the UI.
 const ROOM_RENAME_DELAY = 1000;
 
+const MEMBER_SORT_REGEX = /[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]+/g;
+
 // These are the matrix default push rules that are automatically
 // disabled globally and then copied on a per-space basis, which will
 // let the user toggle them on and off. This relies up on the spaceroom_id
@@ -66,6 +68,10 @@ export default class Matrix extends EventTarget {
     });
 
     this.lastSetAppBadgeUnread = -1;
+
+    this.currentSpaceId = null;
+    this.currentSpaceMembersVersion = 0;
+    this.currentSpaceMembers = [];
   }
 
   async init(scene, subscriptions, sessionId, homeserver, loginToken, expectedUserId) {
@@ -247,11 +253,75 @@ export default class Matrix extends EventTarget {
     return this._roomCan(permission, roomId);
   }
 
-  async switchClientToRoomForHub({ hub_id: hubId }) {
-    await this.switchClientToRoomForHubId(hubId);
+  // Switches the neon UI to the specified hub, and updates
+  // the currentSpaceMembers to include the members of the space,
+  // firing currnet_space_members_updated once it is ready.
+  async switchToHub({ hub_id: hubId, space_id: spaceId }) {
+    this._updateCurrentSpaceMembersForSpaceId(spaceId);
+    await this._switchClientToRoomForHubId(hubId);
   }
 
-  async switchClientToRoomForHubId(hubId) {
+  async _refreshCurrentSpaceMembers() {
+    const { currentSpaceId } = this;
+    if (!currentSpaceId) return;
+
+    this._updateCurrentSpaceMembersForSpaceId(currentSpaceId);
+  }
+
+  async _refreshCurrentSpaceMembersOnRoomChange(roomId) {
+    // Check for current space member refresh
+    if (this.currentSpaceId === null) return;
+
+    const currentSpaceRoomId = this.spaceIdToRoomId.get(this.currentSpaceId);
+    if (currentSpaceRoomId !== roomId) return;
+    this._refreshCurrentSpaceMembers();
+  }
+
+  async _updateCurrentSpaceMembersForSpaceId(spaceId) {
+    const { client, spaceIdToRoomId, currentSpaceId } = this;
+
+    const roomId = spaceIdToRoomId.get(spaceId);
+    if (!roomId) return;
+
+    if (currentSpaceId === spaceId) return;
+
+    this.currentSpaceMembersVersion += 1;
+    const expectedVersion = this.currentSpaceMembersVersion;
+
+    this.currentSpaceId = spaceId;
+    this.currentSpaceMembers = [];
+    this.dispatchEvent(new CustomEvent("current_space_members_updated"));
+
+    const room = client.getRoom(roomId);
+    const membership = room && room.getMyMembership();
+    if (membership !== "join") return;
+
+    await room.loadMembersIfNeeded();
+
+    if (this.currentSpaceId !== spaceId) return;
+    if (this.currentSpaceMembersVersion !== expectedVersion);
+
+    for (const m of Object.values(room.currentState.members)) {
+      if (m.membership !== "join" && m.membership !== "invite") continue;
+
+      // Filter out non-account matrix users
+      if (!m.userId.startsWith("@jel_")) continue;
+
+      // work around a race where you might have a room member object
+      // before the user object exists.  This may or may not cause
+      // https://github.com/vector-im/vector-web/issues/186
+      if (m.user === null) {
+        m.user = client.getUser(m.userId);
+      }
+
+      this.currentSpaceMembers.push(m);
+    }
+
+    this.currentSpaceMembers.sort(this._memberSort);
+    this.dispatchEvent(new CustomEvent("current_space_members_updated"));
+  }
+
+  async _switchClientToRoomForHubId(hubId) {
     const { hubIdToRoomId } = this;
 
     const roomId = hubIdToRoomId.get(hubId);
@@ -775,13 +845,30 @@ export default class Matrix extends EventTarget {
   }
 
   _attachMatrixEventHandlers() {
-    const { client } = this;
+    const { client, spaceIdToRoomId, roomIdToSpaceId, hubIdToRoomId, roomIdToHubId } = this;
 
     client.on("accountData", ({ event: { type } }) => {
       if (type === "m.push_rules") {
         this.dispatchEvent(new CustomEvent("push_rules_changed"));
       }
     });
+
+    client.on("RoomState.members", (ev, state, { roomId }) => {
+      this._refreshCurrentSpaceMembersOnRoomChange(roomId);
+    });
+
+    client.on("RoomMember.name", (ev, { roomId }) => {
+      this._refreshCurrentSpaceMembersOnRoomChange(roomId);
+    });
+
+    for (const ev of ["User.presence", "User.currentlyActive"]) {
+      client.on(ev, (event, { userId }) => {
+        // If the current space member presence was changed, refresh
+        if (this.currentSpaceMembers.find(m => m.userId === userId)) {
+          this._refreshCurrentSpaceMembers();
+        }
+      });
+    }
 
     client.on("Room.myMembership", async room => {
       if (!client.isInitialSyncComplete()) return;
@@ -799,11 +886,12 @@ export default class Matrix extends EventTarget {
         this._subscribeToNotificationState(room);
 
         // If we just joined a room, the user may be waiting on the UI to update.
+        const spaceId = window.APP.spaceChannel.spaceId;
         const hubId = window.APP.hubChannel.hubId;
         const desiredRoomId = this.hubIdToRoomId.get(hubId);
 
         if (hubId && desiredRoomId === roomId) {
-          this.switchClientToRoomForHubId(hubId);
+          this.switchToHub({ hub_id: hubId, space_id: spaceId });
         }
 
         console.log(`Matrix: joined room ${roomId}`);
@@ -818,15 +906,20 @@ export default class Matrix extends EventTarget {
     client.on("RoomState.events", ({ event }) => {
       if (event.type === "jel.hub") {
         // This is where we can perform steps that happen at most once per session per hub.
-        this.hubIdToRoomId.set(event.content.hub_id, event.room_id);
-        this.roomIdToHubId.set(event.room_id, event.content.hub_id);
+        hubIdToRoomId.set(event.content.hub_id, event.room_id);
+        roomIdToHubId.set(event.room_id, event.content.hub_id);
       }
 
       if (event.type === "jel.space") {
         // This is where we can perform steps that happen at most once per session per space.
-        this.spaceIdToRoomId.set(event.content.space_id, event.room_id);
-        this.roomIdToSpaceId.set(event.room_id, event.content.space_id);
+        spaceIdToRoomId.set(event.content.space_id, event.room_id);
+        roomIdToSpaceId.set(event.room_id, event.content.space_id);
         this._initSpacePushRules(event.content.space_id, event.room_id);
+
+        // TODO this logic is wrong
+        if (this.currentSpaceId === event.content.space_id) {
+          this._refreshCurrentSpaceMembers();
+        }
       }
 
       if (!client.isInitialSyncComplete()) return;
@@ -840,4 +933,48 @@ export default class Matrix extends EventTarget {
       }
     });
   }
+
+  _memberSort = (() => {
+    const convertPresence = p => (p === "unavailable" ? "online" : p);
+    const presenceIndex = p => {
+      const order = ["active", "online", "offline"];
+      const idx = order.indexOf(convertPresence(p));
+      return idx === -1 ? order.length : idx; // unknown states at the end
+    };
+
+    return (memberA, memberB) => {
+      // taken from matrix-react-sdk
+      // order by presence, with "active now" first.
+      // ...and then by power level
+      // ...and then alphabetically.
+
+      const userA = memberA.user;
+      const userB = memberB.user;
+
+      if (!userA && !userB) return 0;
+      if (userA && !userB) return -1;
+      if (!userA && userB) return 1;
+
+      // First by presence
+      const idxA = presenceIndex(userA.currentlyActive ? "active" : userA.presence);
+      const idxB = presenceIndex(userB.currentlyActive ? "active" : userB.presence);
+      if (idxA !== idxB) {
+        return idxA - idxB;
+      }
+
+      // Second by power level
+      if (memberA.powerLevel !== memberB.powerLevel) {
+        return memberB.powerLevel - memberA.powerLevel;
+      }
+
+      // Fourth by name (alphabetical)
+      const nameA = (memberA.name[0] === "@" ? memberA.name.substr(1) : memberA.name).replace(MEMBER_SORT_REGEX, "");
+      const nameB = (memberB.name[0] === "@" ? memberB.name.substr(1) : memberB.name).replace(MEMBER_SORT_REGEX, "");
+
+      return nameA.localeCompare(nameB, {
+        ignorePunctuation: true,
+        sensitivity: "base"
+      });
+    };
+  })();
 }

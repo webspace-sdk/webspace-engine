@@ -25,7 +25,7 @@ const AvatarElement = styled.div`
   flex: 0 0 58px;
 `;
 
-const PresenceListMemberItemElement = styled.div`
+const PresenceListWorldMemberItemElement = styled.div`
   height: 58px;
   display: flex;
   justify-content: flex-start;
@@ -163,7 +163,7 @@ const AvatarSwatchMouth = styled.img`
   height: 42px;
 `;
 
-const PresenceListMemberItem = forwardRef((props, ref) => {
+const PresenceListWorldMemberItem = forwardRef((props, ref) => {
   const {
     onGoToUserClicked: onGoToUserClicked,
     sessionId,
@@ -194,7 +194,7 @@ const PresenceListMemberItem = forwardRef((props, ref) => {
   );
 
   return (
-    <PresenceListMemberItemElement style={{ height: "58px" }} onMouseOver={handleHover} ref={ref}>
+    <PresenceListWorldMemberItemElement style={{ height: "58px" }} onMouseOver={handleHover} ref={ref}>
       <Tooltip
         visible={!!showJumpTip}
         disabled={!showJumpTip}
@@ -224,12 +224,12 @@ const PresenceListMemberItem = forwardRef((props, ref) => {
           <MemberActionsPlaceholderIcon dangerouslySetInnerHTML={{ __html: verticalDotsIcon }} />
         </MemberActionsPlaceholder>
       )}
-    </PresenceListMemberItemElement>
+    </PresenceListWorldMemberItemElement>
   );
 });
 
-PresenceListMemberItem.displayName = "PresenceListMemberItem";
-PresenceListMemberItem.propTypes = {
+PresenceListWorldMemberItem.displayName = "PresenceListWorldMemberItem";
+PresenceListWorldMemberItem.propTypes = {
   meta: PropTypes.object,
   sessionId: PropTypes.string,
   allowJumpTo: PropTypes.bool,
@@ -312,7 +312,7 @@ function buildData(setData, currentSessionId, hubCan, store) {
         addedJumpTip = true;
       }
 
-      data.push({ key: sessionId, meta, type: "member", allowJumpTo, showJumpTip });
+      data.push({ key: sessionId, meta, type: "world_member", allowJumpTo, showJumpTip });
     } else if (metaHubId) {
       if (hubCan("join_hub", metaHubId)) {
         if (!otherHubIdsToSessionMetas.has(metaHubId)) {
@@ -336,7 +336,7 @@ function buildData(setData, currentSessionId, hubCan, store) {
         data.push({
           key: sessionIdAndMetas[i],
           meta: sessionIdAndMetas[i + 1],
-          type: "member",
+          type: "world_member",
           allowJumpTo: false,
           showJumpTip: false
         });
@@ -398,9 +398,9 @@ function PresenceList({ scene, sessionId, hubMetadata, onGoToUserClicked, onGoTo
       <List height={height} itemHeight={64} itemKey="key" data={data}>
         {useCallback(
           (item, _, props) => {
-            if (item.type === "member") {
+            if (item.type === "world_member") {
               return (
-                <PresenceListMemberItem
+                <PresenceListWorldMemberItem
                   sessionId={item.key}
                   onGoToUserClicked={onGoToUserClicked}
                   {...item}
