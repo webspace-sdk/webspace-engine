@@ -3,6 +3,7 @@ import "./hubs/utils/theme";
 import "@babel/polyfill";
 import "./hubs/utils/debug-log";
 import { isInQuillEditor } from "./jel/utils/quill-utils";
+import { homeHubForSpaceId } from "./jel/utils/membership-utils";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
 import mixpanel from "mixpanel-browser";
 
@@ -133,7 +134,7 @@ import AtomMetadata, { ATOM_TYPES } from "./jel/utils/atom-metadata";
 import { joinSpace, joinHub } from "./hubs/utils/jel-init";
 import { connectToReticulum } from "./hubs/utils/phoenix-utils";
 import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
-import { getHubIdFromHistory, getSpaceIdFromHistory } from "./jel/utils/jel-url-utils";
+import { getHubIdFromHistory, getSpaceIdFromHistory, navigateToHubUrl } from "./jel/utils/jel-url-utils";
 import { handleExitTo2DInterstitial, exit2DInterstitialAndEnterVR } from "./hubs/utils/vr-interstitial";
 import { getAvatarSrc } from "./hubs/utils/avatar-utils.js";
 import SceneEntryManager from "./hubs/scene-entry-manager";
@@ -521,7 +522,7 @@ function initBatching() {
     .setAttribute("media-image", { batch: true, src: initialBatchImage, contentType: "image/png" });
 }
 
-function addGlobalEventListeners(scene, entryManager) {
+function addGlobalEventListeners(scene, entryManager, matrix) {
   scene.addEventListener("scene_selected_media_layer_changed", ({ detail: { selectedMediaLayer } }) => {
     remountJelUI({ selectedMediaLayer });
   });
@@ -713,6 +714,16 @@ function addGlobalEventListeners(scene, entryManager) {
     if (!metadata || !metadata.template || !metadata.template.name) return;
 
     resetTemplate(metadata.template.name);
+  });
+
+  matrix.addEventListener("left_room_for_hub", ({ detail: { hubId } }) => {
+    // If the matrix server kicked us from a room for the current hub, navigate
+    // to the home hub for now.
+    if (hubChannel.hubId === hubId) {
+      const spaceId = spaceChannel.spaceId;
+      const homeHub = homeHubForSpaceId(spaceId, accountChannel.memberships);
+      navigateToHubUrl(history, homeHub.url);
+    }
   });
 }
 
@@ -1090,7 +1101,7 @@ async function start() {
 
   await initAvatar();
 
-  addGlobalEventListeners(scene, entryManager);
+  addGlobalEventListeners(scene, entryManager, matrix);
   setupSidePanelLayout(scene);
   setupGameEnginePausing(scene);
 

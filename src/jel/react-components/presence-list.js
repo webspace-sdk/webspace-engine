@@ -26,8 +26,8 @@ const AvatarElement = styled.div`
 `;
 
 const AvatarImage = styled.img`
-  width: 48px;
-  height: 48px;
+  width: 46px;
+  height: 46px;
 `;
 
 const PresenceListMemberItemElement = styled.div`

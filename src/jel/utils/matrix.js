@@ -892,12 +892,17 @@ export default class Matrix extends EventTarget {
       const { roomId } = room;
 
       const spaceId = this.roomIdToSpaceId.get(roomId);
+      const hubId = this.roomIdToHubId.get(roomId);
 
       if (spaceId && membership === "join" && this.currentSpaceId === spaceId) {
         this._refreshCurrentSpaceMembers();
       }
 
       if (!client.isInitialSyncComplete()) return;
+
+      if (membership !== "invite" && membership !== "join" && hubId) {
+        this.dispatchEvent(new CustomEvent("left_room_for_hub", { detail: { hubId } }));
+      }
 
       if (room.hasMembershipState(client.credentials.userId, "join")) {
         const pendingJoinPromiseResolver = this.pendingRoomJoinResolvers.get(roomId);

@@ -247,7 +247,7 @@ export class AtmosphereSystem {
     const metadata = hubMetadata.getMetadata(hubId);
     if (!metadata) return;
 
-    const worldType = metadata.world.type;
+    const worldType = metadata.world && metadata.world.type;
     const hubType = metadata.type;
 
     const now = performance.now();
@@ -334,16 +334,18 @@ export class AtmosphereSystem {
     this.outdoorsSoundGainNode = null;
   }
 
-  updateAtmosphereForHub({
-    world: {
+  updateAtmosphereForHub({ world }) {
+    if (!world) return;
+
+    const {
       water_color_r: wr,
       water_color_g: wg,
       water_color_b: wb,
       sky_color_r: sr,
       sky_color_g: sg,
       sky_color_b: sb
-    }
-  }) {
+    } = world;
+
     this.updateWaterColor({ r: wr, g: wg, b: wb });
     this.updateSkyColor({ r: sr, g: sg, b: sb });
   }

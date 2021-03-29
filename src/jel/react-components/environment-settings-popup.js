@@ -200,6 +200,7 @@ const EnvironmentSettingsPopup = ({
       if (!hub || !hubMetadata) return;
 
       const world = hubMetadata.getMetadata(hub.hub_id).world;
+      if (!world) return;
 
       const fieldList = [
         ["ground", groundColor, setGroundColor],
