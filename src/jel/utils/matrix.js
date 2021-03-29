@@ -278,19 +278,19 @@ export default class Matrix extends EventTarget {
   }
 
   async _updateCurrentSpaceMembersForSpaceId(spaceId) {
-    const { client, spaceIdToRoomId, currentSpaceId } = this;
-
-    const roomId = spaceIdToRoomId.get(spaceId);
-    if (!roomId) return;
-
-    if (currentSpaceId === spaceId) return;
-
-    this.currentSpaceMembersVersion += 1;
-    const expectedVersion = this.currentSpaceMembersVersion;
+    const { client, spaceIdToRoomId } = this;
 
     this.currentSpaceId = spaceId;
     this.currentSpaceMembers = [];
+    this.currentSpaceMembersVersion += 1;
+
     this.dispatchEvent(new CustomEvent("current_space_members_updated"));
+
+    // Assume this will be called again if room is not ready yet.
+    const roomId = spaceIdToRoomId.get(spaceId);
+    if (!roomId) return;
+
+    const expectedVersion = this.currentSpaceMembersVersion;
 
     const room = client.getRoom(roomId);
     const membership = room && room.getMyMembership();
@@ -870,11 +870,18 @@ export default class Matrix extends EventTarget {
       });
     }
 
-    client.on("Room.myMembership", async room => {
+    client.on("Room.myMembership", async (room, membership) => {
+      const { roomId } = room;
+
+      const spaceId = this.roomIdToSpaceId.get(roomId);
+
+      if (spaceId && membership === "join" && this.currentSpaceId === spaceId) {
+        this._refreshCurrentSpaceMembers();
+      }
+
       if (!client.isInitialSyncComplete()) return;
 
       if (room.hasMembershipState(client.credentials.userId, "join")) {
-        const { roomId } = room;
         const pendingJoinPromiseResolver = this.pendingRoomJoinResolvers.get(roomId);
 
         if (pendingJoinPromiseResolver) {
@@ -916,7 +923,6 @@ export default class Matrix extends EventTarget {
         roomIdToSpaceId.set(event.room_id, event.content.space_id);
         this._initSpacePushRules(event.content.space_id, event.room_id);
 
-        // TODO this logic is wrong
         if (this.currentSpaceId === event.content.space_id) {
           this._refreshCurrentSpaceMembers();
         }
