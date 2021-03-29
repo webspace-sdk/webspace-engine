@@ -55,6 +55,7 @@ export default class Matrix extends EventTarget {
     this.neonLifecycle = null;
     this.neonStores = null;
     this.neonConstants = null;
+    this.neonUtils;
     this.roomIdToNeonRoomNotificationStateHandler = new Map();
 
     // Space <-> spaceroom bimap
@@ -200,12 +201,13 @@ export default class Matrix extends EventTarget {
       };
     });
 
-    const { getLoadedSession, getLifecycle, getDispatcher, getStores, getConstants } = neon.contentWindow;
+    const { getLoadedSession, getLifecycle, getDispatcher, getStores, getConstants, getUtils } = neon.contentWindow;
     const innerSession = await getLoadedSession;
     this.neonLifecycle = await getLifecycle;
     this.neonDispatcher = await getDispatcher;
     this.neonStores = await getStores;
     this.neonConstants = await getConstants;
+    this.neonUtils = await getUtils;
 
     if (!innerSession) {
       await this.neonLifecycle.setLoggedIn({
@@ -281,7 +283,7 @@ export default class Matrix extends EventTarget {
     const { client, spaceIdToRoomId } = this;
 
     this.currentSpaceId = spaceId;
-    this.currentSpaceMembers = [];
+    this.currentSpaceMembers.length = 0;
     this.currentSpaceMembersVersion += 1;
 
     this.dispatchEvent(new CustomEvent("current_space_members_updated"));
@@ -300,6 +302,8 @@ export default class Matrix extends EventTarget {
 
     if (this.currentSpaceId !== spaceId) return;
     if (this.currentSpaceMembersVersion !== expectedVersion);
+
+    this.currentSpaceMembers.length = 0;
 
     for (const m of Object.values(room.currentState.members)) {
       if (m.membership !== "join" && m.membership !== "invite") continue;
@@ -468,6 +472,15 @@ export default class Matrix extends EventTarget {
     }
 
     return setting;
+  }
+
+  getAvatarUrlForMember(member, width, height, resizeMethod = "scale") {
+    return member.getAvatarUrl(
+      this.client.getHomeserverUrl(),
+      Math.floor(width * window.devicePixelRatio),
+      Math.floor(height * window.devicePixelRatio),
+      resizeMethod
+    );
   }
 
   _roomCan(permission, roomId) {
@@ -863,10 +876,15 @@ export default class Matrix extends EventTarget {
 
     for (const ev of ["User.presence", "User.currentlyActive"]) {
       client.on(ev, (event, { userId }) => {
-        // If the current space member presence was changed, refresh
-        if (this.currentSpaceMembers.find(m => m.userId === userId)) {
-          this._refreshCurrentSpaceMembers();
-        }
+        if (!this.currentSpaceId) return;
+
+        const roomId = this.spaceIdToRoomId.get(this.currentSpaceId);
+        if (!roomId) return;
+
+        const room = client.getRoom(roomId);
+        if (!room.hasMembershipState(userId, "join")) return;
+
+        this._refreshCurrentSpaceMembers();
       });
     }
 

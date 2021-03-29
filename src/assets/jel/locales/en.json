@@ -40,6 +40,8 @@
   "jump-to.tip": "Looking for someone? Hover here to jump to others in this world.",
   "presence-list.this-header": "This World",
   "presence-list.active-header": "Active Worlds",
+  "presence-list.online-header": "Online - ",
+  "presence-list.offline-header": "Offline - ",
   "presence-list.go-to-world": "Go To World",
   "presence-list.go-to-avatar": "Jump To",
   "key-tips.space": "Space",

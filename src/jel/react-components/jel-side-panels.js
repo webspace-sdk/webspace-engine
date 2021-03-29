@@ -589,6 +589,7 @@ function JelSidePanels({
             hubMetadata={hubMetadata}
             hubCan={hubCan}
             scene={scene}
+            isWorld={isWorld}
             sessionId={sessionId}
             onGoToUserClicked={sessionId => {
               SYSTEMS.characterController.teleportToUser(sessionId);
