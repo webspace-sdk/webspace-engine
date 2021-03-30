@@ -1,4 +1,5 @@
 import { paths } from "./userinput/paths";
+import { SOUND_TOGGLE_MIC } from "./sound-effects-system";
 
 // Every frame, looks for input paths that trigger UI-relevant events and handles them.
 AFRAME.registerSystem("ui-hotkeys", {
@@ -27,6 +28,7 @@ AFRAME.registerSystem("ui-hotkeys", {
 
     if (this.userinput.get(paths.actions.muteMic)) {
       window.APP.store.handleActivityFlag("toggleMuteKey");
+      SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_TOGGLE_MIC);
       this.el.emit("action_mute");
     }
 

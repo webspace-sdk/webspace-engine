@@ -568,6 +568,7 @@ function JelSidePanels({
               spaceChannel={spaceChannel}
               memberships={memberships}
               scene={scene}
+              showDeviceControls={isWorld}
               sessionId={sessionId}
               onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {
                 spaceChannel.sendAvatarColorUpdate(r / 255.0, g / 255.0, b / 255.0);

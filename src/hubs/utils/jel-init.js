@@ -225,17 +225,34 @@ function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
   remountJelUI({ hub, selectedMediaLayer });
 }
 
-function updateSceneStateForHub(hub) {
-  const scene = document.querySelector("a-scene");
+const updateSceneStateForHub = (() => {
+  // When we switch to a channel from a world, we mute the mic,
+  // and for convenience restore it to being unmuted the next
+  // time we go into a world.
+  let wasMutedOnLastChannelEntry = true;
 
-  if (hub.type === "world") {
-    scene.removeState("off");
-    scene.classList.add("visible");
-  } else {
-    scene.addState("off");
-    scene.classList.remove("visible");
-  }
-}
+  return hub => {
+    const scene = document.querySelector("a-scene");
+
+    if (hub.type === "world") {
+      scene.removeState("off");
+      scene.classList.add("visible");
+
+      if (wasMutedOnLastChannelEntry) {
+        wasMutedOnLastChannelEntry = false;
+        scene.emit("action_mute");
+      }
+    } else {
+      if (scene.is("unmuted")) {
+        wasMutedOnLastChannelEntry = true;
+        scene.emit("action_mute");
+      }
+
+      scene.classList.remove("visible");
+      scene.addState("off");
+    }
+  };
+})();
 
 const initSpacePresence = (presence, socket) => {
   const { hubChannel, spaceChannel } = window.APP;
