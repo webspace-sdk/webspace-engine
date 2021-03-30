@@ -156,6 +156,9 @@ export default class Matrix extends EventTarget {
 
         this.client.once("sync", async state => {
           if (state === "PREPARED") {
+            await this._syncProfile();
+            await this._syncPusher();
+
             this._joinMissingRooms();
 
             accountChannel.addEventListener("account_refresh", () => {
@@ -167,8 +170,6 @@ export default class Matrix extends EventTarget {
             subscriptions.addEventListener("subscriptions_updated", () => this._syncPusher());
 
             this._disableGlobalPushRules();
-            this._syncProfile();
-            this._syncPusher();
 
             const { spaceStore } = this.neonStores;
 
@@ -416,12 +417,12 @@ export default class Matrix extends EventTarget {
     }
   }
 
-  async updateAvatarColor(r, g, b) {
+  async updateAvatarColor(r, g, b, debounce = true) {
     if (this.avatarUpdateTimeout) {
       clearTimeout(this.avatarUpdateTimeout);
     }
 
-    this.avatarUpdateTimeout = setTimeout(async () => {
+    const update = async () => {
       const { client } = this;
       const [blob] = await renderAvatarToPng(r, g, b);
       const file = new File([blob], "avatar.png", { type: "image/png" });
@@ -430,7 +431,13 @@ export default class Matrix extends EventTarget {
       // Debounce this for 5 seconds given the way the UI works currently.
       client.setAvatarUrl(fileUrl);
       this.avatarUpdateTimeout = null;
-    }, 5000);
+    };
+
+    if (debounce) {
+      this.avatarUpdateTimeout = setTimeout(update, 5000);
+    } else {
+      await update();
+    }
   }
 
   async getNotifyChannelChatModeForSpace(spaceId) {
@@ -621,7 +628,8 @@ export default class Matrix extends EventTarget {
         await this.updateAvatarColor(
           meta.profile.persona.avatar.primary_color.r,
           meta.profile.persona.avatar.primary_color.g,
-          meta.profile.persona.avatar.primary_color.b
+          meta.profile.persona.avatar.primary_color.b,
+          false
         );
       }
     }
