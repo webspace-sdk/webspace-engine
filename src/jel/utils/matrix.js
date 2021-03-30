@@ -191,6 +191,8 @@ export default class Matrix extends EventTarget {
             }
 
             this.initialSyncFinished();
+            this.isInitialSyncFinished = true;
+
             this.dispatchEvent(new CustomEvent("initial_sync_finished"));
 
             res();
@@ -483,6 +485,26 @@ export default class Matrix extends EventTarget {
       Math.floor(height * window.devicePixelRatio),
       resizeMethod
     );
+  }
+
+  markRoomForHubIdAsFullyRead(hubId) {
+    const { client, hubIdToRoomId } = this;
+
+    const roomId = hubIdToRoomId.get(hubId);
+    if (!roomId) return;
+
+    const room = client.getRoom(roomId);
+    if (!room) return;
+
+    const lastEvent = room.timeline[room.timeline.length - 1];
+    if (!lastEvent) return;
+
+    const readUpToId = room.getEventReadUpTo(client.credentials.userId);
+    const lastEventId = lastEvent.event.event_id;
+
+    if (readUpToId !== lastEventId) {
+      client.sendReadReceipt(lastEvent);
+    }
   }
 
   _roomCan(permission, roomId) {

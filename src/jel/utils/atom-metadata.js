@@ -172,6 +172,10 @@ class AtomMetadata {
     return this._counts.get(id) || NO_COUNTS;
   }
 
+  hasCounts(id) {
+    return this._counts.has(id);
+  }
+
   can(permission, atomId) {
     if (!VALID_PERMISSIONS[this._atomType].includes(permission))
       throw new Error(`Invalid permission name: ${permission}`);

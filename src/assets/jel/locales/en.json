@@ -188,7 +188,7 @@
   "profile-editor.unverified-info": "Set up a Jel account to set your name.",
   "profile-editor.unverified-tip": "Enter your email and name to sign up.",
   "profile-editor.email-placeholder": "your@email.com",
-  "profile-editor.name-placeholder": "Your Display Name (will be seen by others)",
+  "profile-editor.name-placeholder": "Your Display Name",
   "profile-editor.signed-in-as": "Signed in as:",
   "profile-editor.sign-up": "Sign Up",
   "profile-editor.name-validation-warning": "Must be between 3 and 32 alphanumeric characters",

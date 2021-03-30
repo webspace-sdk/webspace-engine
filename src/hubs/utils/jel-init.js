@@ -578,7 +578,7 @@ let updateTitleAndWorldForHubHandler;
 
 const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI) => {
   let isInitialJoin = true;
-  const { spaceChannel, hubChannel, hubMetadata } = window.APP;
+  const { spaceChannel, hubChannel, hubMetadata, matrix } = window.APP;
 
   return new Promise(joinFinished => {
     hubPhxChannel
@@ -637,6 +637,11 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
           updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
           updateSceneStateForHub(hub);
           updateEnvironmentForHub(hub);
+
+          if (hub.type === "world") {
+            // Worlds don't show neon so we should mark all events as read as needed.
+            matrix.markRoomForHubIdAsFullyRead(hub.hub_id);
+          }
 
           if (isInitialJoin) {
             THREE.Cache.clear();

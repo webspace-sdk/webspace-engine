@@ -76,7 +76,7 @@ const PopupRef = styled.div`
   top: 12px;
 `;
 
-const HubNodeTitle = ({ hubId, onDotsClick, showAdd, showDots, onAddClick, hubMetadata, allowUnreadState }) => {
+const HubNodeTitle = ({ hubId, onDotsClick, showAdd, showDots, onAddClick, hubMetadata }) => {
   const [name, setName] = useState("");
   const [notificationCount, setNotificationCount] = useState(0);
   const [notificationType, setNotificationType] = useState(ATOM_NOTIFICATION_TYPES.NONE);
@@ -88,9 +88,7 @@ const HubNodeTitle = ({ hubId, onDotsClick, showAdd, showDots, onAddClick, hubMe
 
   return (
     <HubNodeElement>
-      <HubTitle
-        className={notificationType === ATOM_NOTIFICATION_TYPES.NONE || !allowUnreadState ? "title" : "title unread"}
-      >
+      <HubTitle className={notificationType === ATOM_NOTIFICATION_TYPES.NONE ? "title" : "title unread"}>
         {name}
       </HubTitle>
       <HubControls className="controls">
@@ -114,8 +112,7 @@ HubNodeTitle.propTypes = {
   popupRef: PropTypes.object,
   showAdd: PropTypes.bool,
   showDots: PropTypes.bool,
-  hubMetadata: PropTypes.object,
-  allowUnreadState: PropTypes.bool
+  hubMetadata: PropTypes.object
 };
 
 export default HubNodeTitle;
