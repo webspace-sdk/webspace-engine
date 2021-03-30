@@ -204,12 +204,14 @@ function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
   const mediaPresenceSystem = scene.systems["hubs-systems"].mediaPresenceSystem;
   const selectedMediaLayer = mediaPresenceSystem.getSelectedMediaLayer();
   const neon = document.querySelector("#neon");
+  const canvas = document.querySelector(".a-canvas");
   const jelInterface = document.querySelector("#jel-interface");
 
   if (hub.type === "world") {
     neon.classList.remove("visible");
     jelInterface.classList.add("hub-type-world");
     jelInterface.classList.remove("hub-type-channel");
+    canvas.focus();
   } else {
     neon.classList.add("visible");
     jelInterface.classList.add("hub-type-channel");

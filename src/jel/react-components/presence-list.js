@@ -381,9 +381,12 @@ function buildSpacePresenceData(matrix, setSpacePresenceData, spaceMembers) {
         spacePresenceData.push(offlineItem);
       }
 
-      spacePresenceData.push(item);
-      item.online = false;
-      offlineItem.total++;
+      // Omit New Members from offline list
+      if (rawDisplayName && item.name !== defaultName) {
+        spacePresenceData.push(item);
+        item.online = false;
+        offlineItem.total++;
+      }
     }
   }
 

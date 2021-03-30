@@ -36,10 +36,10 @@ body {
     top: 0;
     position: fixed;
     z-index: 3;
-    visibility: hidden;
+    display: none;
 
     &.visible {
-      visibility: visible;
+      display: block;
     }
   }
 
