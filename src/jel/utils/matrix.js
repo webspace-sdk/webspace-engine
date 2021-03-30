@@ -209,6 +209,8 @@ export default class Matrix extends EventTarget {
     this.neonConstants = await getConstants;
     this.neonUtils = await getUtils;
 
+    this._setDefaultNeonSettings();
+
     if (!innerSession) {
       await this.neonLifecycle.setLoggedIn({
         homeserverUrl: `https://${homeserver}`,
@@ -840,6 +842,35 @@ export default class Matrix extends EventTarget {
       return spaceStore.getNotificationState(roomId);
     } else {
       return roomNotificationStateStore.getRoomState(room);
+    }
+  }
+
+  _setDefaultNeonSettings() {
+    const { settingsStore } = this.neonStores;
+    const { SettingLevel } = this.neonConstants;
+
+    for (const [setting, value] of Object.entries({
+      showTypingNotifications: true,
+      autoplayGifsAndVideos: false,
+      urlPreviewsEnabled: true,
+      "TextualBody.enableBigEmoji": true,
+      showReadReceipts: false,
+      showTwelveHourTimestamps: true,
+      alwaysShowTimestamps: false,
+      showRedactions: false,
+      enableSyntaxHighlightLanguageDetection: true,
+      expandCodeByDefault: true,
+      scrollToBottomOnMessageSent: true,
+      showCodeLineNumbers: false,
+      showJoinLeaves: false,
+      showAvatarChanges: false,
+      showDisplaynameChanges: false,
+      showImages: true,
+      showChatEffects: true,
+      "Pill.shouldShowPillAvatar": true,
+      ctrlFForSearch: false
+    })) {
+      settingsStore.setValue(setting, null, SettingLevel.DEVICE, value);
     }
   }
 

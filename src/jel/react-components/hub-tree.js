@@ -40,15 +40,23 @@ function HubTree({ treeManager, type, history, hub, spaceCan, setHubRenameRefere
       const metadata = atomMetadata.getMetadata(data.atomId);
       const showAdd = !!(spaceCan("create_world_hub") && metadata && metadata.type === "world");
 
+      // Do not show unread state for worlds, since we don't focus the
+      // neon chat interface so the read receipts are never sent.
+      //
+      // Not to mention, we don't currently utilize the matrix rooms
+      // for worlds yet.
+      const allowUnreadState = metadata && metadata.type === "channel";
+
       return (
         <HubNodeTitle
           hubId={data.atomId}
           showAdd={showAdd}
           showDots={true}
           hubMetadata={atomMetadata}
+          allowUnreadState={allowUnreadState}
           onAddClick={e => {
             e.stopPropagation(); // Otherwise this will perform a tree node click event
-            addNewHubToTree(history, treeManager, hub.space_id, "world", data.atomId);
+            addNewHubToTree(history, treeManager, hub.space_id, hub.type, data.atomId);
           }}
           onDotsClick={(e, ref) => {
             e.stopPropagation(); // Otherwise this will perform a tree node click event
