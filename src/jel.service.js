@@ -39,7 +39,7 @@ self.addEventListener("push", function(e) {
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
 
-        if (client.url.indexOf("https://jel.app/") >= 0) {
+        if (client.url.startsWith(payload.origin)) {
           // Don't show a notification if client app is already focused on this computer
           if (client.focused) return;
 
