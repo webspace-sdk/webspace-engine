@@ -651,8 +651,12 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
           hubMetadata.subscribeToMetadata(hub.hub_id, updateTitleAndWorldForHubHandler);
           updateTitleAndWorldForHubHandler([hub.hub_id], hubMetadata);
           hubMetadata.ensureMetadataForIds([hub.hub_id]);
-          updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
+
+          // Note that scene state needs to be updated before UI because focus handler will often fire
+          // which assumes scene state is set already to "off" for channels.
           updateSceneStateForHub(hub);
+
+          updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
           updateEnvironmentForHub(hub);
 
           if (hub.type === "world") {
