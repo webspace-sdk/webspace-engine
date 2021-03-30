@@ -753,7 +753,7 @@ function setupGameEnginePausing(scene) {
         SYSTEMS.atmosphereSystem.disableAmbience();
       }, 15000);
     } else {
-      if (!scene.is("paused")) {
+      if (!scene.is("off")) {
         if (document.visibilityState === "visible") {
           // Hacky. On some platforms GL context needs to be explicitly restored. So do it.
           // This really shouldn't be necessary :P
@@ -812,13 +812,13 @@ function setupGameEnginePausing(scene) {
   }
 
   scene.addEventListener("stateadded", ({ detail }) => {
-    if (detail === "paused") {
+    if (detail === "off") {
       apply(true);
     }
   });
 
   scene.addEventListener("stateremoved", ({ detail }) => {
-    if (detail === "paused") {
+    if (detail === "off") {
       apply(false);
     }
   });

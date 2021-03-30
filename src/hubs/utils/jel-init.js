@@ -229,10 +229,10 @@ function updateSceneStateForHub(hub) {
   const scene = document.querySelector("a-scene");
 
   if (hub.type === "world") {
-    scene.removeState("paused");
+    scene.removeState("off");
     scene.classList.add("visible");
   } else {
-    scene.addState("paused");
+    scene.addState("off");
     scene.classList.remove("visible");
   }
 }
