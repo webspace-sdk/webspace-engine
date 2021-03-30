@@ -69,13 +69,13 @@ self.addEventListener("push", function(e) {
         const matrixWantsSound = payload && payload.tweaks && payload.tweaks.sound;
         let body;
 
-        switch (payload.content.msgtype) {
+        switch (payload.content && payload.content.msgtype) {
           case "m.text":
             body = `${payload.sender_display_name}: ${payload.content.body}`;
             break;
         }
 
-        if (body) {
+        if (body && payload.matrix_type) {
           return self.registration.showNotification("Jel", {
             body,
             icon: "/app-icon.png",
