@@ -784,7 +784,7 @@ export default class Matrix extends EventTarget {
       const spaceId = roomIdToSpaceId.get(roomId);
 
       if (spaceId) {
-        spaceMetadata.localUpdate(spaceId, {
+        spaceMetadata.setCounts(spaceId, {
           notification_type: atomNotificationType,
           notification_count: count
         });
@@ -793,7 +793,7 @@ export default class Matrix extends EventTarget {
       const hubId = roomIdToHubId.get(roomId);
 
       if (hubId) {
-        hubMetadata.localUpdate(hubId, {
+        hubMetadata.setCounts(hubId, {
           notification_type: atomNotificationType,
           notification_count: count
         });
@@ -815,6 +815,7 @@ export default class Matrix extends EventTarget {
       }
     };
 
+    handler();
     this.roomIdToNeonRoomNotificationStateHandler.set(roomId, handler);
     state.on(NOTIFICATION_STATE_UPDATE, handler);
   }

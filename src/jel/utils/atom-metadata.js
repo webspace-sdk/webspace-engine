@@ -15,6 +15,11 @@ export const ATOM_NOTIFICATION_TYPES = {
   PING_NOTIFICATIONS: 3
 };
 
+const NO_COUNTS = {
+  notification_count: 0,
+  notification_type: 0
+};
+
 const VALID_PERMISSIONS = {
   [ATOM_TYPES.HUB]: [
     "update_hub_meta",
@@ -54,6 +59,7 @@ class AtomMetadata {
   constructor(atomType) {
     this._metadata = new Map();
     this._metadataSubscribers = new Map();
+    this._counts = new Map();
     this._atomType = atomType;
     this._source = null;
     this._defaultNames = new Map();
@@ -144,8 +150,8 @@ class AtomMetadata {
 
     let newMetadata = null;
 
-    // For now can only locally update name and notification*
-    for (const field of ["name", "notification_count", "notification_type"]) {
+    // For now can only locally update name
+    for (const field of ["name"]) {
       if (metadata[field] === undefined) continue;
       newMetadata = { ...(newMetadata || existing), [field]: metadata[field] };
     }
@@ -156,6 +162,15 @@ class AtomMetadata {
     this._metadata.set(id, newMetadata);
     this._fireHandlerForSubscribersForUpdatedIds([id]);
   };
+
+  setCounts(id, counts) {
+    this._counts.set(id, counts);
+    this._fireHandlerForSubscribersForUpdatedIds([id]);
+  }
+
+  getCounts(id) {
+    return this._counts.get(id) || NO_COUNTS;
+  }
 
   can(permission, atomId) {
     if (!VALID_PERMISSIONS[this._atomType].includes(permission))
@@ -256,6 +271,7 @@ class AtomMetadata {
   };
 
   _setDisplayNameOnMetadata = metadata => {
+    if (metadata.name === undefined && metadata.type === undefined) return;
     metadata.displayName = metadata.name || this.defaultNameForType(metadata.type);
   };
 
@@ -330,8 +346,8 @@ function useNotificationCountUpdatesFromMetadata(atomId, metadata, setNotificati
         let count = null;
         let type = null;
 
-        if (atomId && metadata.hasMetadata(atomId)) {
-          const { notification_count: c, notification_type: t } = metadata.getMetadata(atomId);
+        if (atomId) {
+          const { notification_count: c, notification_type: t } = metadata.getCounts(atomId);
           count = c;
           type = t;
         }
