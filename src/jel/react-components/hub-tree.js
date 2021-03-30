@@ -90,6 +90,11 @@ function HubTree({ treeManager, type, history, hub, spaceCan, setHubRenameRefere
 
   treeManager.setNavTitleControl(navTitleControl);
 
+  // HACK - this is security through obscurity for the channel case, since
+  // the edit_nav permission theoretically allows anyone to modify the entire
+  // nav tree, not just the world nav.
+  const draggable = type === "world" ? spaceCan("create_world_hub") : spaceCan("create_channel_hub");
+
   return (
     <div>
       <Tree
@@ -97,7 +102,7 @@ function HubTree({ treeManager, type, history, hub, spaceCan, setHubRenameRefere
         treeData={navTreeData}
         selectable={true}
         selectedKeys={navSelectedKeys}
-        draggable
+        draggable={draggable}
         onDragEnter={onDragEnter}
         onDrop={onDrop}
         allowDrop={allowDrop}

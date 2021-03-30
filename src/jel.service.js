@@ -71,7 +71,7 @@ self.addEventListener("push", function(e) {
 
         switch (payload.content && payload.content.msgtype) {
           case "m.text":
-            body = `${payload.sender_display_name}: ${payload.content.body}`;
+            body = `${payload.sender_display_name} in ${payload.room_name}: ${payload.content.body}`;
             break;
         }
 
