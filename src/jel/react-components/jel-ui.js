@@ -995,11 +995,12 @@ function JelUI(props) {
               )}
             </HubCornerButtons>
           </Top>
-          {isWorld && (
-            <KeyTipsWrap onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}>
-              <KeyTips id="key-tips" />
-            </KeyTipsWrap>
-          )}
+          <KeyTipsWrap
+            style={{ visibility: isWorld ? "visible" : "hidden" }}
+            onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}
+          >
+            <KeyTips id="key-tips" />
+          </KeyTipsWrap>
           {isWorld && (
             <BottomLeftPanels className={`${showingExternalCamera ? "external-camera-on" : ""}`}>
               <ExternalCameraCanvas id="external-camera-canvas" />
