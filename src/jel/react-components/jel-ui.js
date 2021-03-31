@@ -207,7 +207,7 @@ const CenterPopupRef = styled.div`
 const HubCornerButtonElement = styled.button`
   color: var(--canvas-overlay-text-color);
   width: content-width;
-  margin: 14px 12px 0 0;
+  margin: 0px 12px 0 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -245,6 +245,11 @@ const HubCornerButtons = styled.div`
   justify-content: flex-end;
   align-items: center;
   width: 50%;
+  padding: 12px 0;
+
+  &.opaque {
+    background-color: var(--channel-header-background-color);
+  }
 `;
 
 const HubCornerButton = styled.button`
@@ -917,7 +922,7 @@ function JelUI(props) {
                 </NotifyBannerClose>
               </NotifyBanner>
             )}
-          <FadeEdges />
+          {isWorld && <FadeEdges />}
           <CreateSelectPopupRef ref={createSelectPopupRef} />
           <ModalPopupRef ref={modalPopupRef} />
           <CenterPopupRef ref={centerPopupRef} />
@@ -926,6 +931,7 @@ function JelUI(props) {
               <HubTrail
                 tree={treeForCurrentHub}
                 history={history}
+                hub={hub}
                 hubMetadata={hubMetadata}
                 hubCan={hubCan}
                 hubIds={hubTrailHubIds}
@@ -934,7 +940,7 @@ function JelUI(props) {
                 onHubNameChanged={onTrailHubNameChanged}
               />
             )}
-            <HubCornerButtons>
+            <HubCornerButtons className={hub && hub.type === "world" ? "" : "opaque"}>
               {pwaAvailable && (
                 <HubCornerButton onClick={installPWA}>
                   <FormattedMessage id="install.desktop" />

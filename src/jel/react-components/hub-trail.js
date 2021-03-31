@@ -19,9 +19,14 @@ const HubTrailElement = styled.div`
   display: flex;
   align-items: center;
   position: relative;
-  margin: 14px 0 0 8px;
+  margin: 0;
+  padding: 14px 0 14px 8px;
   user-select: none;
   width: 50%;
+
+  &.opaque {
+    background-color: var(--channel-header-background-color);
+  }
 `;
 
 const HubTrailHubItem = styled.button`
@@ -70,7 +75,7 @@ const HubTrailSeparatorItem = styled.div`
   width: 8px;
 `;
 
-export default function HubTrail({ hubIds, hubCan, hubMetadata, history, renamePopupElement, showRenamePopup }) {
+export default function HubTrail({ hubIds, hubCan, hubMetadata, hub, history, renamePopupElement, showRenamePopup }) {
   const primaryItemRef = useRef();
 
   const hubIdsToShow = hubIds || [];
@@ -134,11 +139,12 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata, history, renameP
     </HubTrailHubItem>
   );
 
-  return <HubTrailElement>{items}</HubTrailElement>;
+  return <HubTrailElement className={hub && hub.type === "world" ? "" : "opaque"}>{items}</HubTrailElement>;
 }
 
 HubTrail.propTypes = {
   history: PropTypes.object,
+  hub: PropTypes.object,
   hubIds: PropTypes.array,
   hubMetadata: PropTypes.object,
   hubCan: PropTypes.func,
