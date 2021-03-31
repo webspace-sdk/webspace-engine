@@ -31,9 +31,9 @@ body {
   }
 
   #neon {
-    height: 100%;
+    height: calc(100% - 30px);
     border: 0px;
-    top: 0;
+    top: 30px;
     position: fixed;
     z-index: 3;
     display: none;

@@ -250,6 +250,8 @@ const updateSceneStateForHub = (() => {
 
       scene.classList.remove("visible");
       scene.addState("off");
+
+      SYSTEMS.videoBridgeSystem.exitBridge();
     }
   };
 })();
