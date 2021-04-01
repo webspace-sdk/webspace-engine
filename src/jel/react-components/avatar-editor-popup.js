@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ReactDOM from "react-dom";
 import styled from "styled-components";
 import PropTypes from "prop-types";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
-import ColorPicker from "./color-picker";
+import ColorPicker, { rgbToPickerValue } from "./color-picker";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupPanelMenu from "./popup-panel-menu";
 
@@ -18,11 +18,37 @@ const PickerWrap = styled.div`
 const AvatarEditorPopup = ({
   setPopperElement,
   styles,
+  scene,
+  spaceChannel,
   attributes,
-  onColorChange,
   onColorChangeComplete,
   children
 }) => {
+  const [pickerColorValue, setPickerColorValue] = useState({ r: 0, g: 0, b: 0 });
+  useEffect(
+    () => {
+      if (!scene || !spaceChannel) return;
+
+      const handler = () => {
+        const sessionId = NAF.clientId;
+        const presenceState = spaceChannel.presence && spaceChannel.presence.state;
+        const creatorPresenceState = presenceState && presenceState[sessionId];
+        const presenceMetas = creatorPresenceState && presenceState[sessionId].metas;
+        const presenceMeta = presenceMetas && presenceMetas[0];
+
+        if (presenceMeta) {
+          const color = presenceMeta.profile.persona.avatar.primary_color;
+          setPickerColorValue(rgbToPickerValue(color));
+        }
+      };
+
+      scene.addEventListener("space-presence-synced", handler);
+      return () => scene.removeEventListener("space-presence-synced", handler);
+    },
+
+    [scene, spaceChannel, pickerColorValue, setPickerColorValue]
+  );
+
   const popupInput = (
     <div
       tabIndex={-1} // Ensures can be focused
@@ -33,7 +59,11 @@ const AvatarEditorPopup = ({
     >
       <PopupPanelMenu style={{ padding: "12px", borderRadius: "12px" }} className={sharedStyles.slideUpWhenPopped}>
         <PickerWrap>
-          <ColorPicker onChangeComplete={onColorChangeComplete} onChange={onColorChange} />
+          <ColorPicker
+            color={pickerColorValue}
+            onChangeComplete={onColorChangeComplete}
+            onChange={useCallback(({ rgb }) => setPickerColorValue(rgb), [])}
+          />
         </PickerWrap>
       </PopupPanelMenu>
       {children}
@@ -44,7 +74,8 @@ const AvatarEditorPopup = ({
 };
 
 AvatarEditorPopup.propTypes = {
-  onColorChange: PropTypes.func,
+  scene: PropTypes.object,
+  spaceChannel: PropTypes.object,
   onColorChangeComplete: PropTypes.func
 };
 

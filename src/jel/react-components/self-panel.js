@@ -123,7 +123,6 @@ const SelfPanel = ({
   memberships,
   showDeviceControls,
   sessionId,
-  onAvatarColorChange,
   onAvatarColorChangeComplete,
   onSignOutClicked
 }) => {
@@ -324,10 +323,11 @@ const SelfPanel = ({
         />
       </DeviceSelectorPopup>
       <AvatarEditorPopup
+        scene={scene}
+        spaceChannel={spaceChannel}
         setPopperElement={setAvatarEditorElement}
         styles={avatarEditorStyles}
         attributes={avatarEditorAttributes}
-        onColorChange={onAvatarColorChange}
         onColorChangeComplete={onAvatarColorChangeComplete}
       >
         <PopupPanelMenuArrow
@@ -374,7 +374,6 @@ SelfPanel.propTypes = {
   sessionId: PropTypes.string,
   showDeviceControls: PropTypes.bool,
   memberships: PropTypes.array,
-  onAvatarColorChange: PropTypes.func,
   onAvatarColorChangeComplete: PropTypes.func,
   onSignOutClicked: PropTypes.func
 };

@@ -11,7 +11,7 @@ import { useSingleton } from "@tippyjs/react";
 import { FormattedMessage } from "react-intl";
 import { Label, InputWrap, PanelWrap, Checkbox, Radio } from "./form-components";
 import styled from "styled-components";
-import { DrivenColorPicker } from "./color-picker";
+import ColorPicker, { rgbToPickerValue } from "./color-picker";
 import { objRgbToCssRgb } from "../utils/dom-utils";
 import { WORLD_COLOR_PRESETS } from "../utils/world-color-presets";
 import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
@@ -142,8 +142,6 @@ const RadioWrap = styled.div`
   flex: 1;
   min-width: 100px;
 `;
-
-const toPickerValue = ({ r, g, b }) => ({ r: Math.floor(r * 255), g: Math.floor(g * 255), b: Math.floor(b * 255) });
 
 const showTargetBelowElement = (el, outerEl, targetEl, topOffset, leftOffset) => {
   const elRect = el.getBoundingClientRect();
@@ -360,7 +358,7 @@ const EnvironmentSettingsPopup = ({
     >
       <Tooltip singleton={tipSource} />
       <PickerWrap ref={colorPickerWrapRef} tabIndex={-1}>
-        <DrivenColorPicker color={pickerColorValue} onChange={onColorChange} onChangeComplete={onColorChangeComplete} />
+        <ColorPicker color={pickerColorValue} onChange={onColorChange} onChangeComplete={onColorChangeComplete} />
       </PickerWrap>
       <PresetsWrap ref={presetPickerWrapRef} tabIndex={-1}>
         <Presets>
@@ -422,7 +420,7 @@ const EnvironmentSettingsPopup = ({
                   style={{ backgroundColor: groundColor && objRgbToCssRgb(groundColor) }}
                   onClick={useCallback(
                     () => {
-                      setPickerColorValue(toPickerValue(groundColor));
+                      setPickerColorValue(rgbToPickerValue(groundColor));
                       setSelectedColor("ground");
                       showPickerAtRef(groundSwatchRef);
                     },
@@ -442,7 +440,7 @@ const EnvironmentSettingsPopup = ({
                   style={{ backgroundColor: grassColor && objRgbToCssRgb(grassColor) }}
                   onClick={useCallback(
                     () => {
-                      setPickerColorValue(toPickerValue(grassColor));
+                      setPickerColorValue(rgbToPickerValue(grassColor));
                       setSelectedColor("grass");
                       showPickerAtRef(grassSwatchRef);
                     },
@@ -462,7 +460,7 @@ const EnvironmentSettingsPopup = ({
                   style={{ backgroundColor: skyColor && objRgbToCssRgb(skyColor) }}
                   onClick={useCallback(
                     () => {
-                      setPickerColorValue(toPickerValue(skyColor));
+                      setPickerColorValue(rgbToPickerValue(skyColor));
                       setSelectedColor("sky");
                       showPickerAtRef(skySwatchRef);
                     },
@@ -482,7 +480,7 @@ const EnvironmentSettingsPopup = ({
                   style={{ backgroundColor: waterColor && objRgbToCssRgb(waterColor) }}
                   onClick={useCallback(
                     () => {
-                      setPickerColorValue(toPickerValue(waterColor));
+                      setPickerColorValue(rgbToPickerValue(waterColor));
                       setSelectedColor("water");
                       showPickerAtRef(waterSwatchRef);
                     },
@@ -502,7 +500,7 @@ const EnvironmentSettingsPopup = ({
                   style={{ backgroundColor: edgeColor && objRgbToCssRgb(edgeColor) }}
                   onClick={useCallback(
                     () => {
-                      setPickerColorValue(toPickerValue(edgeColor));
+                      setPickerColorValue(rgbToPickerValue(edgeColor));
                       setSelectedColor("edge");
                       showPickerAtRef(edgeSwatchRef);
                     },
@@ -522,7 +520,7 @@ const EnvironmentSettingsPopup = ({
                   style={{ backgroundColor: leavesColor && objRgbToCssRgb(leavesColor) }}
                   onClick={useCallback(
                     () => {
-                      setPickerColorValue(toPickerValue(leavesColor));
+                      setPickerColorValue(rgbToPickerValue(leavesColor));
                       setSelectedColor("leaves");
                       showPickerAtRef(leavesSwatchRef);
                     },
@@ -542,7 +540,7 @@ const EnvironmentSettingsPopup = ({
                   style={{ backgroundColor: barkColor && objRgbToCssRgb(barkColor) }}
                   onClick={useCallback(
                     () => {
-                      setPickerColorValue(toPickerValue(barkColor));
+                      setPickerColorValue(rgbToPickerValue(barkColor));
                       setSelectedColor("bark");
                       showPickerAtRef(barkSwatchRef);
                     },
@@ -562,7 +560,7 @@ const EnvironmentSettingsPopup = ({
                   style={{ backgroundColor: rockColor && objRgbToCssRgb(rockColor) }}
                   onClick={useCallback(
                     () => {
-                      setPickerColorValue(toPickerValue(rockColor));
+                      setPickerColorValue(rgbToPickerValue(rockColor));
                       setSelectedColor("rock");
                       showPickerAtRef(rockSwatchRef);
                     },

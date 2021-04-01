@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import React from "react";
 import { CustomPicker } from "react-color";
 import { Hue, Saturation } from "react-color/lib/components/common";
 import styled from "styled-components";
@@ -78,29 +78,20 @@ const InnerPicker = CustomPicker(({ hsl, hsv, onChange }) => {
   );
 });
 
-const Picker = ({ onChange, onChangeComplete }) => {
-  const [color, setColor] = useState("orange");
-  const handleColorChange = data => {
-    setColor(data.hex);
-    if (onChange) onChange(data);
-  };
-
-  return <InnerPicker color={color} onChange={handleColorChange} onChangeComplete={onChangeComplete} />;
-};
-
-export const DrivenColorPicker = ({ onChange, onChangeComplete, color }) => {
+const Picker = ({ onChange, onChangeComplete, color }) => {
   return <InnerPicker color={color} onChange={onChange} onChangeComplete={onChangeComplete} />;
 };
 
 Picker.propTypes = {
   onChange: PropTypes.func,
-  onChangeComplete: PropTypes.func
-};
-
-DrivenColorPicker.propTypes = {
-  onChange: PropTypes.func,
   onChangeComplete: PropTypes.func,
   color: PropTypes.object
 };
+
+export const rgbToPickerValue = ({ r, g, b }) => ({
+  r: Math.floor(r * 255),
+  g: Math.floor(g * 255),
+  b: Math.floor(b * 255)
+});
 
 export default Picker;
