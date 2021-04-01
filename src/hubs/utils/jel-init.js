@@ -902,7 +902,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
         const hubs = {};
 
         // First time space setup, create initial public channels + worlds. TODO do this server-side.
-        const generalChannel = (hubs.general = await addNewHubToTree(treeManager, spaceId, "channel", null, "General"));
+        await addNewHubToTree(treeManager, spaceId, "channel", null, "General Discussion");
         await addNewHubToTree(treeManager, spaceId, "channel", null, "Random");
 
         for (const world of ["first", "welcome", "whats-new", "faq"]) {
@@ -934,7 +934,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
           );
         }
 
-        navigateToHubUrl(history, generalChannel.url);
+        navigateToHubUrl(history, hubs.first.url);
         store.update({ context: { isFirstVisitToSpace: false } });
       }
 

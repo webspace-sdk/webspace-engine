@@ -256,7 +256,7 @@ const HubCornerButton = styled.button`
   position: relative;
   color: var(--canvas-overlay-text-color);
   width: content-width;
-  margin: 11px 12px 0 0;
+  margin: 0 12px 0 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -718,11 +718,18 @@ function JelUI(props) {
 
   useEffect(
     () => {
-      const handler = () => setIsInitializingSpace(store.state.context.isFirstVisitToSpace);
+      if (!isInitializingSpace) return;
+
+      const handler = () => {
+        // Slight delay so room will switch before loader
+        setTimeout(() => {
+          setIsInitializingSpace(store.state.context.isFirstVisitToSpace);
+        }, 2000);
+      };
       store.addEventListener("statechanged-context", handler);
       return () => store.removeEventListener("statechanged-context", handler);
     },
-    [store, setIsInitializingSpace]
+    [store, setIsInitializingSpace, isInitializingSpace]
   );
 
   // Handle permissions changed
