@@ -36,12 +36,15 @@ export class UIAnimationSystem {
       clearInterval(initialUIApplyInterval);
     }, 250);
 
-    document.addEventListener("visibilitychange", () => {
+    const layoutOnFocus = () => {
       // Attempt to fix issues with layout not being set when focusing window
       if (document.visibilityState === "visible") {
         this.applyUI(this.targetSceneLeft, this.targetSceneRight);
       }
-    });
+    };
+
+    window.addEventListener("focus", layoutOnFocus);
+    document.addEventListener("visibilitychange", layoutOnFocus);
 
     // Initialize nav and presence width CSS vars to stored state.
     document.documentElement.style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
