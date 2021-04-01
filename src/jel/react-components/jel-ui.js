@@ -510,6 +510,7 @@ function JelUI(props) {
   const [channelTreeData, setChannelTreeData] = useState([]);
   const [channelTreeDataVersion, setChannelTreeDataVersion] = useState(0);
   const [isMatrixLoading, setIsMatrixLoading] = useState(!matrix || !matrix.isInitialSyncFinished);
+  const [hasFetchedInitialHubMetadata, setHasFetchedInitialHubMetadata] = useState(false);
   const [isInitializingSpace, setIsInitializingSpace] = useState(store.state.context.isFirstVisitToSpace);
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [showingExternalCamera, setShowingExternalCamera] = useState(false);
@@ -525,6 +526,9 @@ function JelUI(props) {
   const [canSpawnAndMoveMedia, setCanSpawnAndMoveMedia] = useState(
     hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id)
   );
+
+  const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
+  const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
 
   const hubRenameFocusRef = useRef();
   const spaceRenameFocusRef = useRef();
@@ -676,6 +680,25 @@ function JelUI(props) {
       updateHubPermissionsPopup,
       updateEnvironmentSettingsPopup
     ]
+  );
+
+  useEffect(
+    () => {
+      if (hasFetchedInitialHubMetadata) return;
+      if (!hub || !hubMetadata) return;
+
+      const hubId = hub.hub_id;
+
+      if (hubMetadata.hasMetadata(hubId)) {
+        setHasFetchedInitialHubMetadata(true);
+      } else {
+        const handler = () => setHasFetchedInitialHubMetadata(true);
+
+        hubMetadata.subscribeToMetadata(hub.hub_id, handler);
+        return () => hubMetadata.unsubscribeFromMetadata(hub.hub_id);
+      }
+    },
+    [hubMetadata, hub, hasFetchedInitialHubMetadata, setHasFetchedInitialHubMetadata]
   );
 
   useSceneMuteState(scene, setUnmuted);
@@ -886,10 +909,14 @@ function JelUI(props) {
   return (
     <WrappedIntlProvider>
       <div>
-        <LoadingPanel isLoading={isMatrixLoading || isInitializingSpace} unavailableReason={unavailableReason} />
+        <LoadingPanel
+          isLoading={isMatrixLoading || isInitializingSpace || !hasFetchedInitialHubMetadata}
+          unavailableReason={unavailableReason}
+        />
         <Snackbar />
         <Wrap id="jel-ui-wrap">
           {showNotificationBanner &&
+            !showInviteTip &&
             !showNotificationBannerWarning && (
               <NotifyBanner>
                 <FieldEditButton
@@ -1045,6 +1072,8 @@ function JelUI(props) {
             spaceRenamePopupElement={spaceRenamePopupElement}
             showEmojiPopup={showEmojiPopup}
             showSpaceNotificationPopup={showSpaceNotificationPopup}
+            showInviteTip={showInviteTip}
+            setHasShownInvite={setHasShownInvite}
           />
         )}
       </div>

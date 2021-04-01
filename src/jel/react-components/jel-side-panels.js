@@ -387,7 +387,9 @@ function JelSidePanels({
   sessionId,
   scene,
   showEmojiPopup,
-  showSpaceNotificationPopup
+  showSpaceNotificationPopup,
+  showInviteTip,
+  setHasShownInvite
 }) {
   const store = window.APP.store;
   const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
@@ -395,7 +397,6 @@ function JelSidePanels({
   const [trashMenuElement, setTrashMenuElement] = useState(null);
   const [inviteReferenceElement, setInviteReferenceElement] = useState(null);
   const [inviteElement, setInviteElement] = useState(null);
-  const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const [spaceName, setSpaceName] = useState((metadata && metadata.name) || "");
   const [isCreating, setIsCreating] = useState(false);
   const invitePanelFieldElement = useRef();
@@ -432,7 +433,6 @@ function JelSidePanels({
   const space = spaceForSpaceId(spaceId, memberships);
   const hubId = hub && hub.hub_id;
   const messages = getMessages();
-  const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
   const isWorld = hub && hub.type === "world";
 
   return (
@@ -704,6 +704,8 @@ JelSidePanels.propTypes = {
   scene: PropTypes.object,
   spaceMetadata: PropTypes.object,
   hubMetadata: PropTypes.object,
+  showInviteTip: PropTypes.bool,
+  setHasShownInvite: PropTypes.func,
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
