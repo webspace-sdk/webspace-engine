@@ -927,19 +927,17 @@ function JelUI(props) {
           <ModalPopupRef ref={modalPopupRef} />
           <CenterPopupRef ref={centerPopupRef} />
           <Top>
-            {hubMetadata && (
-              <HubTrail
-                tree={treeForCurrentHub}
-                history={history}
-                hub={hub}
-                hubMetadata={hubMetadata}
-                hubCan={hubCan}
-                hubIds={hubTrailHubIds}
-                renamePopupElement={hubRenamePopupElement}
-                showRenamePopup={showHubRenamePopup}
-                onHubNameChanged={onTrailHubNameChanged}
-              />
-            )}
+            <HubTrail
+              tree={treeForCurrentHub}
+              history={history}
+              hub={hub}
+              hubMetadata={hubMetadata}
+              hubCan={hubCan}
+              hubIds={hubTrailHubIds}
+              renamePopupElement={hubRenamePopupElement}
+              showRenamePopup={showHubRenamePopup}
+              onHubNameChanged={onTrailHubNameChanged}
+            />
             <HubCornerButtons className={hub && hub.type === "world" ? "" : "opaque"}>
               {pwaAvailable && (
                 <HubCornerButton onClick={installPWA}>

@@ -27,6 +27,10 @@ const ActionButtonElement = styled.button`
   &:active {
     background-color: var(--action-button-active-background-color);
   }
+
+  &:disabled {
+    opacity: 0.5;
+  }
 `;
 
 const ActionButtonIconHolder = styled.div`

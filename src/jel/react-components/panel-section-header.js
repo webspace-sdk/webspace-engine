@@ -12,4 +12,12 @@ export default styled.div`
   &:first-child {
     margin-top: 0;
   }
+
+  & .show-on-hover {
+    visibility: hidden;
+  }
+
+  &:hover .show-on-hover {
+    visibility: visible;
+  }
 `;
