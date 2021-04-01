@@ -142,7 +142,7 @@ export default class Matrix extends EventTarget {
 
     await new Promise(res => {
       neon.addEventListener("load", res, { once: true });
-      neon.setAttribute("src", "/neon/");
+      neon.setAttribute("src", "/neon/index.html");
     });
 
     await waitForDOMContentLoaded(neon.contentDocument, neon.contentWindow);
@@ -659,7 +659,7 @@ export default class Matrix extends EventTarget {
   async _initSpacePushRules(spaceId, spaceRoomId) {
     const { client } = this;
 
-    const pushRules = await client.getPushRules();
+    const pushRules = client.pushRules;
 
     // Disable invite notifications, since server does this for you.
     for (const [scope, scopeRules] of Object.entries(pushRules)) {
