@@ -21,7 +21,7 @@ export function renderAvatarToPng(primaryR, primaryG, primaryB) {
       avatarStill
         // Work around firefox bug with svgs
         // https://stackoverflow.com/questions/28690643/firefox-error-rendering-an-svg-image-to-html5-canvas-with-drawimage
-        .replace("<svg", '<svg width="512px" height="512px"')
+        .replace("<svg", `<svg width="${width}px" height="${height}px"`)
         .replaceAll("currentColor", fillColor)
     );
 
