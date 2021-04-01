@@ -1,8 +1,6 @@
 {
   "nav.channels": "Channels",
   "nav.space-worlds": "Worlds",
-  "nav.create-channel": "Create Channel",
-  "nav.create-world": "Create World",
   "nav.channels-empty": "This space has no chat channels.",
   "nav.worlds-empty": "This space has no worlds.",
   "nav.trash": "Trash",

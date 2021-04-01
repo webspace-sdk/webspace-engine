@@ -4,7 +4,7 @@ import { usePopper } from "react-popper";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import PanelSectionHeader from "./panel-section-header";
-import ActionButton from "./action-button";
+import TinyOutlineIconButton from "./tiny-outline-icon-button";
 import SelfPanel from "./self-panel";
 import BridgePanel from "./bridge-panel";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
@@ -396,6 +396,7 @@ function JelSidePanels({
   const [inviteElement, setInviteElement] = useState(null);
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const [spaceName, setSpaceName] = useState((metadata && metadata.name) || "");
+  const [isCreating, setIsCreating] = useState(false);
   const invitePanelFieldElement = useRef();
   const spaceBannerRef = useRef();
   const emojiEquipRef = useRef();
@@ -491,6 +492,20 @@ function JelSidePanels({
           <NavSpill>
             <PanelSectionHeader>
               <FormattedMessage id="nav.channels" />
+              {spaceCan("create_channel_hub") && (
+                <TinyOutlineIconButton
+                  disabled={isCreating}
+                  style={{ marginLeft: "10px" }}
+                  iconSrc={addIcon}
+                  onClick={async () => {
+                    store.handleActivityFlag("createChannel");
+                    setIsCreating(true);
+                    const hub = await addNewHubToTree(treeManager, spaceId, "channel");
+                    setIsCreating(false);
+                    navigateToHubUrl(history, hub.url);
+                  }}
+                />
+              )}
             </PanelSectionHeader>
             <HubTree
               treeManager={treeManager}
@@ -504,6 +519,20 @@ function JelSidePanels({
             />
             <PanelSectionHeader>
               <FormattedMessage id="nav.space-worlds" />
+              {spaceCan("create_world_hub") && (
+                <TinyOutlineIconButton
+                  disabled={isCreating}
+                  style={{ marginLeft: "10px" }}
+                  iconSrc={addIcon}
+                  onClick={async () => {
+                    store.handleActivityFlag("createWorld");
+                    setIsCreating(true);
+                    const hub = await addNewHubToTree(treeManager, spaceId, "world");
+                    setIsCreating(false);
+                    navigateToHubUrl(history, hub.url);
+                  }}
+                />
+              )}
             </PanelSectionHeader>
             <HubTree
               treeManager={treeManager}
@@ -537,32 +566,6 @@ function JelSidePanels({
                 <FormattedMessage id="nav.trash" />
               </PanelItemButton>
             </PanelItemButtonSection>
-            {spaceCan("create_world_hub") && (
-              <ActionButton
-                iconSrc={addIcon}
-                onClick={async () => {
-                  store.handleActivityFlag("createWorld");
-                  const hub = await addNewHubToTree(treeManager, spaceId, "world");
-                  navigateToHubUrl(history, hub.url);
-                }}
-                style={{ width: "60%" }}
-              >
-                <FormattedMessage id="nav.create-world" />
-              </ActionButton>
-            )}
-            {spaceCan("create_channel_hub") && (
-              <ActionButton
-                iconSrc={addIcon}
-                onClick={async () => {
-                  store.handleActivityFlag("createChannel");
-                  const hub = await addNewHubToTree(treeManager, spaceId, "channel");
-                  navigateToHubUrl(history, hub.url);
-                }}
-                style={{ width: "60%" }}
-              >
-                <FormattedMessage id="nav.create-channel" />
-              </ActionButton>
-            )}
             <SelfPanel
               spaceId={spaceId}
               spaceChannel={spaceChannel}
