@@ -55,11 +55,7 @@ const startTrackingPosition = (() => {
 })();
 
 async function updateEnvironmentForHub(hub) {
-  const sceneEl = document.querySelector("a-scene");
-
-  // Clear the three.js image cache and load the loading environment before switching to the new one.
   document.querySelector(".a-canvas").classList.remove("a-hidden");
-  sceneEl.addState("visible");
 
   SYSTEMS.terrainSystem.updateWorldForHub(hub);
   SYSTEMS.atmosphereSystem.updateAtmosphereForHub(hub);
@@ -69,9 +65,6 @@ async function moveToInitialHubLocation(hub, hubStore) {
   const sceneEl = document.querySelector("a-scene");
 
   const characterController = sceneEl.systems["hubs-systems"].characterController;
-
-  document.querySelector(".a-canvas").classList.remove("a-hidden");
-  sceneEl.addState("visible");
 
   let startPosition, startRotation;
 
@@ -162,7 +155,7 @@ const createHubChannelParams = () => {
   const params = {
     auth_token: null,
     perms_token: null,
-    is_first_shared: false
+    is_first_shared_world: false
   };
 
   const { token } = window.APP.store.state.credentials;
@@ -210,9 +203,58 @@ function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
   const scene = document.querySelector("a-scene");
   const mediaPresenceSystem = scene.systems["hubs-systems"].mediaPresenceSystem;
   const selectedMediaLayer = mediaPresenceSystem.getSelectedMediaLayer();
+  const neon = document.querySelector("#neon");
+  const canvas = document.querySelector(".a-canvas");
+  const jelInterface = document.querySelector("#jel-interface");
+
+  if (hub.type === "world") {
+    neon.classList.remove("visible");
+    jelInterface.classList.add("hub-type-world");
+    jelInterface.classList.remove("hub-type-channel");
+    canvas.focus();
+  } else {
+    neon.classList.add("visible");
+    jelInterface.classList.add("hub-type-channel");
+    jelInterface.classList.remove("hub-type-world");
+    neon.focus();
+  }
+
+  window.APP.matrix.switchToHub(hub);
+
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
   remountJelUI({ hub, selectedMediaLayer });
 }
+
+const updateSceneStateForHub = (() => {
+  // When we switch to a channel from a world, we mute the mic,
+  // and for convenience restore it to being unmuted the next
+  // time we go into a world.
+  let wasMutedOnLastChannelEntry = true;
+
+  return hub => {
+    const scene = document.querySelector("a-scene");
+
+    if (hub.type === "world") {
+      scene.removeState("off");
+      scene.classList.add("visible");
+
+      if (wasMutedOnLastChannelEntry) {
+        wasMutedOnLastChannelEntry = false;
+        scene.emit("action_mute");
+      }
+    } else {
+      if (scene.is("unmuted")) {
+        wasMutedOnLastChannelEntry = true;
+        scene.emit("action_mute");
+      }
+
+      scene.classList.remove("visible");
+      scene.addState("off");
+
+      SYSTEMS.videoBridgeSystem.exitBridge();
+    }
+  };
+})();
 
 const initSpacePresence = (presence, socket) => {
   const { hubChannel, spaceChannel } = window.APP;
@@ -555,12 +597,15 @@ let updateTitleAndWorldForHubHandler;
 
 const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI) => {
   let isInitialJoin = true;
-  const { spaceChannel, hubChannel, hubMetadata } = window.APP;
+  const { spaceChannel, hubChannel, hubMetadata, matrix } = window.APP;
 
   return new Promise(joinFinished => {
     hubPhxChannel
       .join()
       .receive("ok", async data => {
+        const hub = data.hubs[0];
+        const isWorld = hub.type === "world";
+
         const presence = hubChannel.presence;
         const permsToken = data.perms_token;
         hubChannel.setPermissionsFromToken(permsToken);
@@ -572,13 +617,14 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
         if (isInitialJoin) {
           await initHubPresence(presence);
         } else {
-          // Send complete sync on phoenix re-join.
-          NAF.connection.entities.completeSync(null, true);
+          if (isWorld) {
+            // Send complete sync on phoenix re-join.
+            NAF.connection.entities.completeSync(null, true);
+          }
         }
 
         const scene = document.querySelector("a-scene");
 
-        const hub = data.hubs[0];
         spaceChannel.sendJoinedHubEvent(hub.hub_id);
 
         if (!isInitialJoin) {
@@ -607,8 +653,18 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
           hubMetadata.subscribeToMetadata(hub.hub_id, updateTitleAndWorldForHubHandler);
           updateTitleAndWorldForHubHandler([hub.hub_id], hubMetadata);
           hubMetadata.ensureMetadataForIds([hub.hub_id]);
+
+          // Note that scene state needs to be updated before UI because focus handler will often fire
+          // which assumes scene state is set already to "off" for channels.
+          updateSceneStateForHub(hub);
+
           updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
           updateEnvironmentForHub(hub);
+
+          if (hub.type === "world") {
+            // Worlds don't show neon so we should mark all events as read as needed.
+            matrix.markRoomForHubIdAsFullyRead(hub.hub_id);
+          }
 
           if (isInitialJoin) {
             THREE.Cache.clear();
@@ -619,6 +675,12 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
             SYSTEMS.atmosphereSystem.restartAmbience();
 
             clearResolveUrlCache();
+
+            // If this is not a world, skip connecting to NAF
+            if (!isWorld) {
+              res();
+              return;
+            }
 
             moveToInitialHubLocation(hub, hubStore);
 
@@ -795,7 +857,7 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
 
 // Dirty flag used to pass is_first_shared=true to hub join, which is used to trigger
 // notifications.
-let hasJoinedPublicHubForCurrentSpace;
+let hasJoinedPublicWorldForCurrentSpace;
 
 export function joinSpace(socket, history, subscriptions, entryManager, remountUI, remountJelUI, membershipsPromise) {
   const spaceId = getSpaceIdFromHistory(history);
@@ -823,7 +885,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
   setupSpaceChannelMessageHandlers(spacePhxChannel, entryManager);
   spaceChannel.bind(spacePhxChannel, spaceId);
 
-  hasJoinedPublicHubForCurrentSpace = false;
+  hasJoinedPublicWorldForCurrentSpace = false;
 
   const treeManager = new TreeManager(spaceMetadata, hubMetadata);
 
@@ -838,7 +900,10 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
       if (store.state.context.isFirstVisitToSpace) {
         const hubs = {};
 
-        // First time space setup, create initial public worlds. TODO do this server-side.
+        // First time space setup, create initial public channels + worlds. TODO do this server-side.
+        await addNewHubToTree(treeManager, spaceId, "channel", null, "General Discussion");
+        await addNewHubToTree(treeManager, spaceId, "channel", null, "Random");
+
         for (const world of ["first", "welcome", "whats-new", "faq"]) {
           const name = getMessages()[`space.${world}-world-name`];
           const templateName = world;
@@ -855,6 +920,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
           hubs[world] = await addNewHubToTree(
             treeManager,
             spaceId,
+            "world",
             null,
             name,
             world,
@@ -898,9 +964,9 @@ export async function joinHub(socket, history, entryManager, remountUI, remountJ
   const metadata = hubMetadata.getMetadata(hubId);
   const isHomeHub = metadata && metadata.is_home;
 
-  if (!isHomeHub && !hasJoinedPublicHubForCurrentSpace) {
-    params.is_first_shared = !hasJoinedPublicHubForCurrentSpace;
-    hasJoinedPublicHubForCurrentSpace = true;
+  if (!isHomeHub && metadata.type === "world" && !hasJoinedPublicWorldForCurrentSpace) {
+    params.is_first_shared = !hasJoinedPublicWorldForCurrentSpace;
+    hasJoinedPublicWorldForCurrentSpace = true;
   }
 
   const hubPhxChannel = socket.channel(`hub:${hubId}`, params);
@@ -911,7 +977,7 @@ export async function joinHub(socket, history, entryManager, remountUI, remountJ
   hubChannel.bind(hubPhxChannel, hubId);
 
   if (NAF.connection.adapter) {
-    NAF.connection.adapter.leaveHub();
+    NAF.connection.adapter.leaveHub(true);
   }
 
   const joinSuccessful = await joinHubChannel(hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI);

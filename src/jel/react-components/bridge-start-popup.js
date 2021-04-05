@@ -185,7 +185,7 @@ BridgeStartPopup.propTypes = {
   styles: PropTypes.object,
   allowInvite: PropTypes.bool,
   attributes: PropTypes.object,
-  children: PropTypes.object
+  children: PropTypes.node
 };
 
 export { BridgeStartPopup as default };

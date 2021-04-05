@@ -271,7 +271,7 @@ FieldEditButton.displayName = "FieldEditButton";
 
 FieldEditButton.propTypes = {
   iconSrc: PropTypes.string,
-  children: PropTypes.object
+  children: PropTypes.node
 };
 
 const TextContainer = styled.div`

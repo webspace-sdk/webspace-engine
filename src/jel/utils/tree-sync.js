@@ -24,7 +24,7 @@ class TreeSync extends EventTarget {
     atomMetadata,
     nodeFilter = () => true,
     projectionType = TREE_PROJECTION_TYPE.NESTED,
-    autoRefresh = false
+    autoRefreshFilter = null
   ) {
     super();
     this.docId = docId;
@@ -33,7 +33,7 @@ class TreeSync extends EventTarget {
     this.titleControl = null;
     this.nodeFilter = nodeFilter;
     this.projectionType = projectionType;
-    this.autoRefresh = autoRefresh;
+    this.autoRefreshFilter = autoRefreshFilter;
     this.filteredTreeData = [];
     this.filteredTreeDataVersion = 0;
     this.subscribedAtomIds = new Set();
@@ -71,7 +71,7 @@ class TreeSync extends EventTarget {
 
     return new Promise(res => {
       doc.subscribe(async () => {
-        doc.on("op", this.rebuildFilteredTreeDataIfAutoRefresh);
+        doc.on("op", () => this.rebuildFilteredTreeDataIfAutoRefresh());
         this.rebuildFilteredTreeDataIfAutoRefresh();
         res();
       });
@@ -79,7 +79,16 @@ class TreeSync extends EventTarget {
   }
 
   rebuildFilteredTreeDataIfAutoRefresh = updatedIds => {
-    if (this.autoRefresh) {
+    if (!this.autoRefreshFilter) return;
+
+    if (updatedIds) {
+      for (const atomId of updatedIds) {
+        if (this.autoRefreshFilter(atomId)) {
+          this.rebuildFilteredTreeData(updatedIds);
+          break;
+        }
+      }
+    } else {
       this.rebuildFilteredTreeData(updatedIds);
     }
   };
@@ -599,8 +608,8 @@ class TreeSync extends EventTarget {
 
       subscribedAtomIds.clear();
 
-      for (const { h } of Object.values(this.doc.data)) {
-        subscribedAtomIds.add(h);
+      for (const node of Object.values(this.doc.data)) {
+        subscribedAtomIds.add(node.h);
       }
 
       this.atomIdToFilteredTreeDataItem.clear();

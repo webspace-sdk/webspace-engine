@@ -3,6 +3,7 @@ import "./hubs/utils/theme";
 import "@babel/polyfill";
 import "./hubs/utils/debug-log";
 import { isInQuillEditor } from "./jel/utils/quill-utils";
+import { homeHubForSpaceId } from "./jel/utils/membership-utils";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
 import mixpanel from "mixpanel-browser";
 
@@ -128,11 +129,12 @@ import DynaChannel from "./jel/utils/dyna-channel";
 import SpaceChannel from "./hubs/utils/space-channel";
 import HubChannel from "./hubs/utils/hub-channel";
 import LinkChannel from "./hubs/utils/link-channel";
+import Matrix from "./jel/utils/matrix";
 import AtomMetadata, { ATOM_TYPES } from "./jel/utils/atom-metadata";
 import { joinSpace, joinHub } from "./hubs/utils/jel-init";
 import { connectToReticulum } from "./hubs/utils/phoenix-utils";
 import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
-import { getHubIdFromHistory, getSpaceIdFromHistory } from "./jel/utils/jel-url-utils";
+import { getHubIdFromHistory, getSpaceIdFromHistory, navigateToHubUrl } from "./jel/utils/jel-url-utils";
 import { handleExitTo2DInterstitial, exit2DInterstitialAndEnterVR } from "./hubs/utils/vr-interstitial";
 import { getAvatarSrc } from "./hubs/utils/avatar-utils.js";
 import SceneEntryManager from "./hubs/scene-entry-manager";
@@ -169,7 +171,7 @@ import { platformUnsupported } from "./hubs/support";
 
 window.APP = new App();
 const store = window.APP.store;
-const subscriptions = new Subscriptions();
+const subscriptions = new Subscriptions(store);
 window.APP.subscriptions = subscriptions;
 
 store.update({ preferences: { shouldPromptForRefresh: undefined } });
@@ -183,6 +185,7 @@ const hubChannel = new HubChannel(store);
 const linkChannel = new LinkChannel(store);
 const spaceMetadata = new AtomMetadata(ATOM_TYPES.SPACE);
 const hubMetadata = new AtomMetadata(ATOM_TYPES.HUB);
+const matrix = new Matrix(store, spaceMetadata, hubMetadata);
 
 window.APP.history = history;
 window.APP.accountChannel = accountChannel;
@@ -193,6 +196,7 @@ window.APP.authChannel = authChannel;
 window.APP.linkChannel = linkChannel;
 window.APP.hubMetadata = hubMetadata;
 window.APP.spaceMetadata = spaceMetadata;
+window.APP.matrix = matrix;
 
 store.addEventListener("profilechanged", spaceChannel.sendProfileUpdate.bind(hubChannel));
 
@@ -517,7 +521,7 @@ function initBatching() {
     .setAttribute("media-image", { batch: true, src: initialBatchImage, contentType: "image/png" });
 }
 
-function addGlobalEventListeners(scene, entryManager) {
+function addGlobalEventListeners(scene, entryManager, matrix) {
   scene.addEventListener("scene_selected_media_layer_changed", ({ detail: { selectedMediaLayer } }) => {
     remountJelUI({ selectedMediaLayer });
   });
@@ -710,10 +714,20 @@ function addGlobalEventListeners(scene, entryManager) {
 
     resetTemplate(metadata.template.name);
   });
+
+  matrix.addEventListener("left_room_for_hub", ({ detail: { hubId } }) => {
+    // If the matrix server kicked us from a room for the current hub, navigate
+    // to the home hub for now.
+    if (hubChannel.hubId === hubId) {
+      const spaceId = spaceChannel.spaceId;
+      const homeHub = homeHubForSpaceId(spaceId, accountChannel.memberships);
+      navigateToHubUrl(history, homeHub.url);
+    }
+  });
 }
 
 // Attempts to pause a-frame scene and rendering if tabbed away or maximized and window is blurred
-function setupNonVisibleHandler(scene) {
+function setupGameEnginePausing(scene) {
   const physics = scene.systems["hubs-systems"].physicsSystem;
   const autoQuality = scene.systems["hubs-systems"].autoQualitySystem;
   let disableAmbienceTimeout = null;
@@ -738,24 +752,26 @@ function setupNonVisibleHandler(scene) {
         SYSTEMS.atmosphereSystem.disableAmbience();
       }, 15000);
     } else {
-      if (document.visibilityState === "visible") {
-        // Hacky. On some platforms GL context needs to be explicitly restored. So do it.
-        // This really shouldn't be necessary :P
-        if (scene.renderer.getContext().isContextLost() && webglLoseContextExtension) {
-          webglLoseContextExtension.restoreContext();
+      if (!scene.is("off")) {
+        if (document.visibilityState === "visible") {
+          // Hacky. On some platforms GL context needs to be explicitly restored. So do it.
+          // This really shouldn't be necessary :P
+          if (scene.renderer.getContext().isContextLost() && webglLoseContextExtension) {
+            webglLoseContextExtension.restoreContext();
+          }
+
+          scene.play();
+          scene.renderer.animation.start();
+          SYSTEMS.externalCameraSystem.startRendering();
+          autoQuality.startTracking();
         }
 
-        scene.play();
-        scene.renderer.animation.start();
-        SYSTEMS.externalCameraSystem.startRendering();
-        autoQuality.startTracking();
+        clearTimeout(disableAmbienceTimeout);
+        document.body.classList.remove("paused");
+        physics.updateSimulationRate(1000.0 / 90.0);
+        accountChannel.setActive();
+        SYSTEMS.atmosphereSystem.enableAmbience();
       }
-
-      clearTimeout(disableAmbienceTimeout);
-      document.body.classList.remove("paused");
-      physics.updateSimulationRate(1000.0 / 90.0);
-      accountChannel.setActive();
-      SYSTEMS.atmosphereSystem.enableAmbience();
     }
   };
 
@@ -768,6 +784,11 @@ function setupNonVisibleHandler(scene) {
     window.addEventListener("blur", () => {
       // When setting up bridge, bridge iframe can steal focus
       if (SYSTEMS.videoBridgeSystem.isSettingUpBridge) return;
+
+      // May be an iframe, don't pause in that case
+      if (document.activeElement.contentWindow && document.activeElement.contentWindow.document.hasFocus()) {
+        return;
+      }
 
       const disableBlurHandlerOnceIfVisible = window.APP.disableBlurHandlerOnceIfVisible;
       window.APP.disableBlurHandlerOnceIfVisible = false;
@@ -788,6 +809,18 @@ function setupNonVisibleHandler(scene) {
       apply(false);
     });
   }
+
+  scene.addEventListener("stateadded", ({ detail }) => {
+    if (detail === "off") {
+      apply(true);
+    }
+  });
+
+  scene.addEventListener("stateremoved", ({ detail }) => {
+    if (detail === "off") {
+      apply(false);
+    }
+  });
 }
 
 function setupSidePanelLayout(scene) {
@@ -1025,7 +1058,7 @@ async function start() {
   hideCanvas();
 
   setupPerformConditionalSignin(entryManager);
-  await store.initProfile();
+  await store.initDefaults();
 
   warmSerializeElement();
   const quillPoolPromise = initQuillPool();
@@ -1067,9 +1100,9 @@ async function start() {
 
   await initAvatar();
 
-  addGlobalEventListeners(scene, entryManager);
+  addGlobalEventListeners(scene, entryManager, matrix);
   setupSidePanelLayout(scene);
-  setupNonVisibleHandler(scene);
+  setupGameEnginePausing(scene);
 
   window.dispatchEvent(new CustomEvent("hub_channel_ready"));
 
@@ -1160,6 +1193,7 @@ async function start() {
 
   const { token } = store.state.credentials;
   let membershipsPromise;
+  let isInitialAccountChannelJoin = true;
 
   if (token) {
     console.log(`Logged into account ${store.credentialsAccountId}`);
@@ -1170,10 +1204,31 @@ async function start() {
       accountPhxChannel
         .join()
         .receive("ok", async accountInfo => {
-          const { subscriptions: existingSubscriptions } = accountInfo;
+          const { session_id: sessionId, subscriptions: existingSubscriptions } = accountInfo;
           accountChannel.syncAccountInfo(accountInfo);
-          remountJelUI({ memberships: accountChannel.memberships, hubSettings: accountChannel.hubSettings });
+
+          remountJelUI({
+            memberships: accountChannel.memberships,
+            hubSettings: accountChannel.hubSettings
+          });
+
+          if (isInitialAccountChannelJoin) {
+            // Initialize connection to matrix homeserver.
+            await matrix.init(
+              scene,
+              subscriptions,
+              sessionId,
+              accountInfo.matrix_homeserver,
+              accountInfo.matrix_token,
+              accountInfo.matrix_user_id
+            );
+            remountJelUI({ roomForHubCan: matrix.roomForHubCan.bind(matrix) });
+
+            isInitialAccountChannelJoin = false;
+          }
+
           subscriptions.handleExistingSubscriptions(existingSubscriptions);
+
           res(accountChannel.memberships);
         })
         .receive("error", res => {

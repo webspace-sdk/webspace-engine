@@ -80,13 +80,17 @@ export default class SpaceChannel extends EventTarget {
 
   updateHub = (hubId, newHubFields) => {
     if (!this.channel) return;
-    const hubMetadata = window.APP.hubMetadata;
+    const { hubMetadata, matrix } = window.APP;
     const canUpdateHubMeta = hubMetadata.can("update_hub_meta", hubId);
     const canUpdateHubRoles = hubMetadata.can("update_hub_roles", hubId);
     if (!canUpdateHubMeta) return "unauthorized";
     if (newHubFields.roles && !canUpdateHubRoles) return "unauthorized";
     this.channel.push("update_hub", { ...newHubFields, hub_id: hubId });
-    hubMetadata.optimisticUpdate(hubId, newHubFields);
+    hubMetadata.localUpdate(hubId, newHubFields);
+
+    if (newHubFields.name !== undefined) {
+      matrix.updateRoomNameForHub(hubId, newHubFields.name || "");
+    }
   };
 
   updateUnmuted(unmuted) {
@@ -164,13 +168,12 @@ export default class SpaceChannel extends EventTarget {
   signOut = () => {
     return new Promise((resolve, reject) => {
       this.channel
-        .push("sign_out")
+        .push("sign_out", { device_id: this.store.state.credentials.deviceId })
         .receive("ok", async () => {
           this._signedIn = false;
           const params = this.channel.params();
           delete params.auth_token;
           delete params.perms_token;
-          await this.fetchPermissions();
           resolve();
         })
         .receive("error", reject);

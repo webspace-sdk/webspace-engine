@@ -199,6 +199,13 @@ export class AvatarSystem {
     this.loadedDecals = false;
 
     this.createMesh();
+
+    setInterval(() => {
+      // When scene is off (since we're in a channel) we need to keep updating the self avatar in the UI.
+      if (sceneEl.is("off")) {
+        this.processAvatars(performance.now(), true);
+      }
+    }, 1000);
   }
 
   async loadDecalMap() {

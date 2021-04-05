@@ -1,10 +1,11 @@
 import { EventTarget } from "event-target-shim";
 
 export default class AccountChannel extends EventTarget {
-  constructor() {
+  constructor(store) {
     super();
     this.memberships = [];
     this.hubSettings = [];
+    this.store = store;
   }
 
   bind = channel => {
@@ -45,7 +46,15 @@ export default class AccountChannel extends EventTarget {
   };
 
   subscribe = subscription => {
-    this.channel.push("subscribe", { subscription });
+    this.channel.push("subscribe", { device_id: this.store.state.credentials.deviceId, subscription });
+  };
+
+  joinMatrixRoom = roomId => {
+    this.channel.push("join_matrix_room", { matrix_room_id: roomId });
+  };
+
+  setMatrixRoomOrder = (roomId, order) => {
+    this.channel.push("set_matrix_room_order", { matrix_room_id: roomId, order });
   };
 
   onAccountRefreshed = accountInfo => {
@@ -65,14 +74,14 @@ export default class AccountChannel extends EventTarget {
     this.dispatchEvent(new CustomEvent("support_response", { detail: response }));
   };
 
-  updateMembership(spaceId, notifySpaceCopresence, notifyHubCopresence, notifyChatMode) {
+  updateMembership(spaceId, notifySpaceCopresence, notifyHubCopresence, notifyCurrentWorldChatMode) {
     if (this.channel) {
       this.channel.push("update_membership", {
         membership: {
           space_id: spaceId,
           notify_space_copresence: notifySpaceCopresence,
           notify_hub_copresence: notifyHubCopresence,
-          notify_chat_mode: notifyChatMode
+          notify_current_world_chat_mode: notifyCurrentWorldChatMode
         }
       });
     }

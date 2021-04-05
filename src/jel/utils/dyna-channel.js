@@ -38,7 +38,7 @@ export default class DynaChannel extends EventTarget {
     if (!canUpdateSpaceMeta) return "unauthorized";
     if (newSpaceFields.roles && !canUpdateSpaceMeta) return "unauthorized";
     this.channel.push("update_space", { ...newSpaceFields, space_id: spaceId });
-    spaceMetadata.optimisticUpdate(spaceId, newSpaceFields);
+    spaceMetadata.localUpdate(spaceId, newSpaceFields);
   };
 
   leave = () => {

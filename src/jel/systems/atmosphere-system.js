@@ -247,21 +247,23 @@ export class AtmosphereSystem {
     const metadata = hubMetadata.getMetadata(hubId);
     if (!metadata) return;
 
-    const worldType = metadata.world.type;
+    const worldType = metadata.world && metadata.world.type;
+    const hubType = metadata.type;
+
+    const now = performance.now();
 
     if (this.lastSoundProcessTime === 0) {
-      this.lastSoundProcessTime = performance.now();
+      this.lastSoundProcessTime = now;
       return;
     }
 
-    const now = performance.now();
     const dt = now - this.lastSoundProcessTime;
     this.lastSoundProcessTime = now;
 
-    const hasWater = WORLD_TYPES_WITH_WATER.includes(worldType);
-    const ambienceEnabled = !store.state.preferences.disableAudioAmbience;
+    const ambienceEnabled = !store.state.preferences.disableAudioAmbience && hubType === "world";
 
-    const desiredWaterGain = hasWater && ambienceEnabled ? this.waterSoundTargetGain : 0.0;
+    const desiredWaterGain =
+      ambienceEnabled && WORLD_TYPES_WITH_WATER.includes(worldType) ? this.waterSoundTargetGain : 0.0;
     const desiredOutdoorsGain = ambienceEnabled ? this.outdoorsSoundTargetGain : 0.0;
 
     if (!this.waterSoundPositionalNode) {
@@ -332,16 +334,18 @@ export class AtmosphereSystem {
     this.outdoorsSoundGainNode = null;
   }
 
-  updateAtmosphereForHub({
-    world: {
+  updateAtmosphereForHub({ world }) {
+    if (!world) return;
+
+    const {
       water_color_r: wr,
       water_color_g: wg,
       water_color_b: wb,
       sky_color_r: sr,
       sky_color_g: sg,
       sky_color_b: sb
-    }
-  }) {
+    } = world;
+
     this.updateWaterColor({ r: wr, g: wg, b: wb });
     this.updateSkyColor({ r: sr, g: sg, b: sb });
   }

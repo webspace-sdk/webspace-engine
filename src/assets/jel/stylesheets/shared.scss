@@ -33,6 +33,10 @@
       transform: translateY(0px) scale(1, 1);
       transition: transform 0.15s cubic-bezier(0.760, -0.005, 0.515, 2.25);
     }
+
+    .modal-background {
+      pointer-events: auto;
+    }
   }
 }
 
@@ -47,6 +51,10 @@
     pointer-events: auto;
 
     transition: opacity 0.05s linear;
+
+    .modal-background {
+      pointer-events: auto;
+    }
   }
 }
 

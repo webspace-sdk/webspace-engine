@@ -28,8 +28,7 @@ const NameInputPanel = forwardRef((props, ref) => {
     }
   });
 
-  const isHome = metadata && !!metadata.is_home;
-  const placeholder = isHome ? atomMetadata && atomMetadata.defaultHomeName : atomMetadata && atomMetadata.defaultName;
+  const placeholder = atomMetadata && metadata && atomMetadata.defaultNameForType(metadata.type);
 
   return (
     <FloatingTextPanelElement className={props.className}>

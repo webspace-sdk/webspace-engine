@@ -8,6 +8,18 @@ const ATOM_TYPES = {
   SPACE: 1
 };
 
+export const ATOM_NOTIFICATION_TYPES = {
+  NONE: 0,
+  UNREAD: 1,
+  NOTIFICATIONS: 2,
+  PING_NOTIFICATIONS: 3
+};
+
+const NO_COUNTS = {
+  notification_count: 0,
+  notification_type: 0
+};
+
 const VALID_PERMISSIONS = {
   [ATOM_TYPES.HUB]: [
     "update_hub_meta",
@@ -26,7 +38,15 @@ const VALID_PERMISSIONS = {
     "fly",
     "upload_files"
   ],
-  [ATOM_TYPES.SPACE]: ["create_hub", "view_nav", "edit_nav", "update_space_meta", "create_invite", "go_home"]
+  [ATOM_TYPES.SPACE]: [
+    "create_world_hub",
+    "create_channel_hub",
+    "view_nav",
+    "edit_nav",
+    "update_space_meta",
+    "create_invite",
+    "go_home"
+  ]
 };
 
 // This value is placed in the metadata lookup table while a fetch is
@@ -39,7 +59,10 @@ class AtomMetadata {
   constructor(atomType) {
     this._metadata = new Map();
     this._metadataSubscribers = new Map();
+    this._counts = new Map();
     this._atomType = atomType;
+    this._source = null;
+    this._defaultNames = new Map();
 
     const messages = getMessages();
 
@@ -47,27 +70,26 @@ class AtomMetadata {
       case ATOM_TYPES.HUB:
         this._refreshMessage = "hub_meta_refresh";
         this._idColumn = "hub_id";
-        this._channelGetMethod = "getHubMetas";
-        this._defaultName = messages["hub.unnamed-title"];
-        this._defaultHomeName = messages["hub.unnamed-home-title"];
+        this._sourceGetMethod = "getHubMetas";
+        this._defaultNames.set("world", messages["hub.unnamed-world-title"]);
+        this._defaultNames.set("channel", messages["hub.unnamed-channel-title"]);
         break;
       case ATOM_TYPES.SPACE:
         this._refreshMessage = "space_meta_refresh";
         this._idColumn = "space_id";
-        this._channelGetMethod = "getSpaceMetas";
-        this._defaultName = messages["space.unnamed-title"];
-        this._defaultHomeName = messages["space.unnamed-home-title"];
+        this._sourceGetMethod = "getSpaceMetas";
+        this._defaultNames.set("space", messages["space.unnamed-title"]);
         break;
     }
   }
 
-  bind(channel) {
+  bind(source) {
     const inFlightMetadataIds = [];
 
-    if (this._channel) {
-      this._channel.channel.off(this._refreshMessage, this._handleChannelRefreshMessage);
+    if (this._source) {
+      this._unsubscribeFromSource(this._refreshMessage, this._handleSourceRefreshEvent);
 
-      // On a channel change, we need to do two things to ensure metadata will
+      // On a source change, we need to do two things to ensure metadata will
       // now fetch properly:
       //
       // - Remove any entries that had 'null' as value, since those may now
@@ -89,18 +111,18 @@ class AtomMetadata {
       }
     }
 
-    this._channel = channel;
-    this._channel.channel.on(this._refreshMessage, this._handleChannelRefreshMessage);
+    this._source = source;
+    this._subscribeToSource(this._refreshMessage, this._handleSourceRefreshEvent);
 
     this.ensureMetadataForIds(inFlightMetadataIds, true);
   }
 
-  get defaultName() {
-    return this._defaultName;
-  }
-
-  get defaultHomeName() {
-    return this._defaultHomeName;
+  defaultNameForType(type = null) {
+    if (this._atomType === ATOM_TYPES.SPACE) {
+      return this._defaultNames.get("space");
+    } else {
+      return this._defaultNames.get(type);
+    }
   }
 
   // Subscribes to metadata changes for the given atom id.
@@ -122,18 +144,37 @@ class AtomMetadata {
   };
 
   // Performs a local optimistic update + fires events
-  optimisticUpdate = (id, metadata) => {
+  localUpdate = (id, metadata) => {
     if (!this.hasMetadata(id)) return;
     const existing = this.getMetadata(id);
 
-    // For now can only optimistically update name
-    if (metadata.name) {
-      const newMetadata = { ...existing, name: metadata.name };
-      this._setDisplayNameOnMetadata(newMetadata);
-      this._metadata.set(id, newMetadata);
-      this._fireHandlerForSubscribersForUpdatedIds([id]);
+    let newMetadata = null;
+
+    // For now can only locally update name
+    for (const field of ["name"]) {
+      if (metadata[field] === undefined) continue;
+      newMetadata = { ...(newMetadata || existing), [field]: metadata[field] };
     }
+
+    if (newMetadata === null) return;
+
+    this._setDisplayNameOnMetadata(newMetadata);
+    this._metadata.set(id, newMetadata);
+    this._fireHandlerForSubscribersForUpdatedIds([id]);
   };
+
+  setCounts(id, counts) {
+    this._counts.set(id, counts);
+    this._fireHandlerForSubscribersForUpdatedIds([id]);
+  }
+
+  getCounts(id) {
+    return this._counts.get(id) || NO_COUNTS;
+  }
+
+  hasCounts(id) {
+    return this._counts.has(id);
+  }
 
   can(permission, atomId) {
     if (!VALID_PERMISSIONS[this._atomType].includes(permission))
@@ -148,6 +189,7 @@ class AtomMetadata {
 
   async ensureMetadataForIds(ids, force = false) {
     const idsToFetch = new Set();
+    const source = this._source;
 
     for (const id of ids) {
       // Only fetch things not in the map, which will skip attempts to re-fetch pending ids.
@@ -158,12 +200,12 @@ class AtomMetadata {
     }
 
     if (idsToFetch.size !== 0) {
-      const phxChannel = this._channel.channel;
-      const atoms = await this._channel[this._channelGetMethod](idsToFetch);
+      const phxChannel = source.channel;
+      const atoms = await source[this._sourceGetMethod](ids);
 
       // Edge case: if phoenix channel is re-bound, discard, the rebind will
       // re-fetch the pending items.
-      if (phxChannel !== this._channel.channel) return;
+      if (phxChannel && phxChannel !== source.channel) return;
 
       for (const metadata of atoms) {
         this._setDisplayNameOnMetadata(metadata);
@@ -208,7 +250,10 @@ class AtomMetadata {
     }
   };
 
-  _handleChannelRefreshMessage = ({ metas }) => {
+  _handleSourceRefreshEvent = payload => {
+    // Depending on if this was EventTarget event or channel message, metas are packed differently.
+    const metas = payload.detail ? payload.detail.metas : payload.metas;
+
     const ids = [];
 
     for (let i = 0; i < metas.length; i++) {
@@ -230,8 +275,33 @@ class AtomMetadata {
   };
 
   _setDisplayNameOnMetadata = metadata => {
-    metadata.displayName = metadata.name || (metadata.is_home ? this._defaultHomeName : this._defaultName);
+    if (metadata.name === undefined && metadata.type === undefined) return;
+    metadata.displayName = metadata.name || this.defaultNameForType(metadata.type);
   };
+
+  _subscribeToSource(event, handler) {
+    const source = this._source;
+
+    if (source.channel) {
+      // Phoenix channel source
+      source.channel.on(event, handler);
+    } else {
+      // Matrix (or other EventTarget) source
+      source.addEventListener(event, handler);
+    }
+  }
+
+  _unsubscribeFromSource(event, handler) {
+    const source = this._source;
+
+    if (source.channel) {
+      // Phoenix channel source
+      source.channel.off(event, handler);
+    } else {
+      // Matrix (or other EventTarget) source
+      source.removeEventListener(event, handler);
+    }
+  }
 }
 
 function useNameUpdateFromMetadata(atomId, metadata, setDisplayName, setRawName) {
@@ -271,4 +341,41 @@ function useNameUpdateFromMetadata(atomId, metadata, setDisplayName, setRawName)
   );
 }
 
-export { AtomMetadata as default, useNameUpdateFromMetadata, ATOM_TYPES };
+function useNotificationCountUpdatesFromMetadata(atomId, metadata, setNotificationCount, setNotificationType) {
+  useEffect(
+    () => {
+      if (!metadata) return () => {};
+
+      const updateCounts = () => {
+        let count = null;
+        let type = null;
+
+        if (atomId) {
+          const { notification_count: c, notification_type: t } = metadata.getCounts(atomId);
+          count = c;
+          type = t;
+        }
+
+        if (count !== undefined && count !== null && setNotificationCount) {
+          setNotificationCount(count);
+        }
+
+        if (type !== undefined && type !== null && setNotificationType) {
+          setNotificationType(type);
+        }
+      };
+
+      updateCounts();
+
+      if (atomId) {
+        metadata.ensureMetadataForIds([atomId]);
+        metadata.subscribeToMetadata(atomId, updateCounts);
+      }
+
+      return () => metadata.unsubscribeFromMetadata(updateCounts);
+    },
+    [atomId, metadata, setNotificationCount, setNotificationType]
+  );
+}
+
+export { AtomMetadata as default, useNameUpdateFromMetadata, useNotificationCountUpdatesFromMetadata, ATOM_TYPES };

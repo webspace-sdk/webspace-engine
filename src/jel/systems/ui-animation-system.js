@@ -1,4 +1,5 @@
 import BezierEasing from "bezier-easing";
+import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 // Used for managing the animation of the major UI panels
 
@@ -18,6 +19,8 @@ const panelExpandStep = BezierEasing(0.12, 0.98, 0.18, 0.98);
 export class UIAnimationSystem {
   constructor(sceneEl) {
     this.sceneEl = sceneEl;
+    waitForDOMContentLoaded().then(() => (this.neon = document.querySelector("#neon")));
+
     this.lastTickT = 0;
     this.panelExpansionState = PANEL_EXPANSION_STATES.EXPANDING;
 
@@ -33,12 +36,15 @@ export class UIAnimationSystem {
       clearInterval(initialUIApplyInterval);
     }, 250);
 
-    document.addEventListener("visibilitychange", () => {
+    const layoutOnFocus = () => {
       // Attempt to fix issues with layout not being set when focusing window
       if (document.visibilityState === "visible") {
         this.applyUI(this.targetSceneLeft, this.targetSceneRight);
       }
-    });
+    };
+
+    window.addEventListener("focus", layoutOnFocus);
+    document.addEventListener("visibilitychange", layoutOnFocus);
 
     // Initialize nav and presence width CSS vars to stored state.
     document.documentElement.style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
@@ -147,6 +153,7 @@ export class UIAnimationSystem {
 
     const width = document.body.clientWidth - this.sceneLeft - this.sceneRight;
     this.sceneEl.style.cssText = `left: ${this.sceneLeft}px; width: ${width}px;`;
+    this.neon.style.cssText = `left: ${this.sceneLeft}px; width: ${width}px;`;
 
     if (includeUI) {
       this.applyUI(this.sceneLeft, this.sceneRight);

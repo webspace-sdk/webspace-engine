@@ -18,11 +18,12 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 export default class Subscriptions extends EventTarget {
-  constructor() {
+  constructor(store) {
     super();
 
     this.ready = false;
     this.subscribed = false;
+    this.store = store;
   }
 
   setRegistration = registration => {
@@ -53,14 +54,29 @@ export default class Subscriptions extends EventTarget {
     const currentEndpoint = await this.getCurrentEndpoint();
 
     this.ready = true;
-    this.subscribed = !!(
-      currentEndpoint && this.existingSubscriptions.find(({ endpoint }) => currentEndpoint === endpoint)
-    );
+
+    const hasRegisteredEndpoint =
+      currentEndpoint && this.existingSubscriptions.find(({ endpoint }) => currentEndpoint === endpoint);
+
+    const hasRegisteredDeviceWithEndpoint =
+      currentEndpoint &&
+      this.existingSubscriptions.find(
+        ({ device_id, endpoint }) => currentEndpoint === endpoint && device_id === this.store.state.credentials.deviceId
+      );
+
+    // If this endpoint is already registered with the server but this device isn't,
+    // we can just subscribe immediately since permission was already granted.
+    if (hasRegisteredEndpoint && !hasRegisteredDeviceWithEndpoint) {
+      this.subscribed = false;
+      this.subscribe();
+    } else {
+      this.subscribed = !!hasRegisteredDeviceWithEndpoint;
+    }
 
     this.dispatchEvent(new CustomEvent("subscriptions_updated"));
   };
 
-  getCurrentEndpoint = async () => {
+  getCurrentSub = async () => {
     if (!navigator.serviceWorker) return null;
     const startedAt = performance.now();
 
@@ -88,7 +104,12 @@ export default class Subscriptions extends EventTarget {
     const sub = await this.registration.pushManager.getSubscription();
     if (!sub) return null;
 
-    return sub.endpoint;
+    return sub;
+  };
+
+  getCurrentEndpoint = async () => {
+    const sub = await this.getCurrentSub();
+    return sub && sub.endpoint;
   };
 
   subscribe = async () => {
@@ -108,6 +129,7 @@ export default class Subscriptions extends EventTarget {
     }
 
     window.APP.accountChannel.subscribe(pushSubscription);
+
     this.subscribed = true;
     this.dispatchEvent(new CustomEvent("subscriptions_updated"));
   };

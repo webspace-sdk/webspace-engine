@@ -1,7 +1,7 @@
 @use "./jel-theme.scss";
 
-$treePrefixCls: hub-tree;
-$treeNodePrefixCls: hub-tree-treenode;
+$treePrefixCls: atom-tree;
+$treeNodePrefixCls: atom-tree-treenode;
 
 @keyframes expand-tree-node { from { transform: rotate(0deg); } to { transform: rotate(90deg); } }
 @keyframes collapse-tree-node { from { transform: rotate(90deg); } to { transform: rotate(0deg); } }
@@ -30,6 +30,7 @@ $treeNodePrefixCls: hub-tree-treenode;
       -khtml-user-drag: element;
       -webkit-user-drag: element;
     }
+    font-size: var(--panel-item-text-size);
     &:hover {
       background-color: var(--panel-item-hover-background-color);
       color: var(--panel-item-hover-text-color);
@@ -65,7 +66,6 @@ $treeNodePrefixCls: hub-tree-treenode;
     &-selected {
       background-color: var(--panel-item-selected-background-color);
       color: var(--panel-selected-text-color);
-      font-weight: var(--panel-selected-text-weight);
     }
     .#{$treePrefixCls}-node-content-wrapper {
       display: flex;

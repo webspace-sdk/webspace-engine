@@ -4,10 +4,10 @@ export const waitForEvent = function(eventName, eventObj) {
   });
 };
 
-export const waitForDOMContentLoaded = function() {
-  if (document.readyState === "complete" || document.readyState === "loaded" || document.readyState === "interactive") {
+export const waitForDOMContentLoaded = function(doc = document, win = window) {
+  if (doc.readyState === "complete" || doc.readyState === "loaded" || doc.readyState === "interactive") {
     return Promise.resolve(null);
   } else {
-    return waitForEvent("DOMContentLoaded", window);
+    return waitForEvent("DOMContentLoaded", win);
   }
 };

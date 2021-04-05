@@ -23,6 +23,24 @@ body {
     top: 0;
     position: fixed;
     z-index: 3;
+    visibility: hidden;
+
+    &.visible {
+      visibility: visible;
+    }
+  }
+
+  #neon {
+    height: calc(100% - 30px);
+    border: 0px;
+    top: 30px;
+    position: fixed;
+    z-index: 3;
+    display: none;
+
+    &.visible {
+      display: block;
+    }
   }
 
   #jel-popup-root {

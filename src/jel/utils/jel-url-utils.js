@@ -23,7 +23,7 @@ export function getSpaceIdFromHistory(history) {
 
 export function navigateToHubUrl(history, url, replace = false) {
   const search = history.location.search;
-  const path = new URL(url).pathname;
+  const path = new URL(url, document.location.origin).pathname;
   (replace ? replaceHistoryPath : pushHistoryPath)(history, path, search);
 }
 

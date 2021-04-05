@@ -1,6 +1,6 @@
 import React from "react";
 import Tree from "rc-tree";
-import "../../assets/jel/stylesheets/hub-tree.scss";
+import "../../assets/jel/stylesheets/atom-tree.scss";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import trashTreeStyles from "../../assets/jel/stylesheets/hub-trash-tree.scss";
 import HubNodeTitle from "./hub-node-title";
@@ -11,7 +11,7 @@ import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
 import trashIcon from "../../assets/jel/images/icons/trash.svgi";
 import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
 
-const metadata = new AtomMetadata(ATOM_TYPES.HUB);
+const hubMetadata = new AtomMetadata(ATOM_TYPES.HUB);
 
 // TODO this needs to use the metadata API
 const createHubTitleNode = props => {
@@ -20,7 +20,7 @@ const createHubTitleNode = props => {
       {...props}
       showAdd={true}
       showDots={true}
-      hubMetadata={metadata}
+      hubMetadata={hubMetadata}
       onAddClick={e => {
         e.preventDefault();
         console.log("add clicked");
@@ -37,7 +37,7 @@ const createHubTrashTitleNode = props => {
   return (
     <HubTrashNodeTitle
       {...props}
-      hubMetadata={metadata}
+      hubMetadata={hubMetadata}
       showAdd={true}
       onRestoreClick={e => {
         e.preventDefault();
@@ -107,19 +107,23 @@ const trashTreeData = [
   { key: "3ofrzv8", title: createHubTrashTitleNode, url: null, hubId: "UyvPPEf", isLeaf: true }
 ];
 
-const fill = children => {
+const fill = (metadata, children) => {
   for (let i = 0; i < children.length; i++) {
-    metadata._metadata.set(children[i].hubId, { displayName: "Unnamed World" });
+    metadata._metadata.set(children[i].hubId || children[i].channelId, {
+      displayName: "Unnamed Atom",
+      notification_count: i,
+      notification_type: i === 0 ? 1 : i === 1 ? 2 : i === 2 ? 3 : 0
+    });
 
-    fill(children[i].children || []);
+    fill(metadata, children[i].children || []);
   }
 };
 
-fill(hubTreeData);
-fill(trashTreeData);
+fill(hubMetadata, hubTreeData);
+fill(hubMetadata, trashTreeData);
 
-metadata._metadata.set("QxRKdNF", { displayName: "Test Name" });
-metadata._metadata.set("JRrZerh", { displayName: "Test Very Long Name That Keeps Going and Going" });
+hubMetadata._metadata.set("QxRKdNF", { displayName: "Test Name" });
+hubMetadata._metadata.set("JRrZerh", { displayName: "Test Very Long Name That Keeps Going and Going" });
 
 export const HubTree = () => (
   <div
@@ -127,7 +131,7 @@ export const HubTree = () => (
     style={{ display: "flex", width: "400px", height: "600px", marginTop: "32px", flexDirection: "column" }}
   >
     <PanelSectionHeader>Section Name</PanelSectionHeader>
-    <Tree prefixCls="hub-tree" treeData={hubTreeData} selectable={true} selectedKeys={["nq106el"]} />
+    <Tree prefixCls="atom-tree" treeData={hubTreeData} selectable={true} selectedKeys={["nq106el"]} />
     <PanelItemButtonSection>
       <PanelItemButton iconSrc={trashIcon}>Trash</PanelItemButton>
     </PanelItemButtonSection>
@@ -147,7 +151,7 @@ export const TrashTree = () => (
     }}
   >
     <Tree
-      prefixCls="hub-tree"
+      prefixCls="atom-tree"
       className={classNames(trashTreeStyles.trashTree)}
       treeData={trashTreeData}
       expandable={false}

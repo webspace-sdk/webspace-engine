@@ -25,6 +25,11 @@ const AvatarElement = styled.div`
   flex: 0 0 58px;
 `;
 
+const AvatarImage = styled.img`
+  width: 46px;
+  height: 46px;
+`;
+
 const PresenceListMemberItemElement = styled.div`
   height: 58px;
   display: flex;
@@ -37,6 +42,10 @@ const PresenceListMemberItemElement = styled.div`
 
   &:hover .hide-on-hover {
     display: none;
+  }
+
+  &.offline {
+    opacity: 0.6;
   }
 `;
 
@@ -132,6 +141,16 @@ const MemberNameText = styled.div`
   line-height: 22px;
 `;
 
+const IdentifierText = styled.div`
+  font-size: var(--panel-small-banner-subtext-size);
+  font-weight: var(--panel-small-banner-subtext-weight);
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 18px;
+`;
+
 const MemberActionButtonWrap = styled.div`
   display: flex;
   min-width: 64px;
@@ -163,7 +182,7 @@ const AvatarSwatchMouth = styled.img`
   height: 42px;
 `;
 
-const PresenceListMemberItem = forwardRef((props, ref) => {
+const PresenceListWorldMemberItem = forwardRef((props, ref) => {
   const {
     onGoToUserClicked: onGoToUserClicked,
     sessionId,
@@ -228,8 +247,8 @@ const PresenceListMemberItem = forwardRef((props, ref) => {
   );
 });
 
-PresenceListMemberItem.displayName = "PresenceListMemberItem";
-PresenceListMemberItem.propTypes = {
+PresenceListWorldMemberItem.displayName = "PresenceListWorldMemberItem";
+PresenceListWorldMemberItem.propTypes = {
   meta: PropTypes.object,
   sessionId: PropTypes.string,
   allowJumpTo: PropTypes.bool,
@@ -264,26 +283,119 @@ PresenceListHubItem.propTypes = {
   onGoToHubClicked: PropTypes.func
 };
 
-const PresenceListHeader = forwardRef(({ messageId }, ref) => {
+const PresenceListSpaceMemberItem = forwardRef((props, ref) => {
+  const { userId, name, avatarUrl, showUserId, online } = props;
+
+  return (
+    <PresenceListMemberItemElement className={online ? "" : "offline"} style={{ height: "58px" }} ref={ref}>
+      <AvatarElement>{avatarUrl && <AvatarImage src={avatarUrl} />}</AvatarElement>
+      <MemberName>
+        <MemberNameText>{name}</MemberNameText>
+        {showUserId && <IdentifierText>{userId.split(":")[0]}</IdentifierText>}
+      </MemberName>
+    </PresenceListMemberItemElement>
+  );
+});
+
+PresenceListSpaceMemberItem.displayName = "PresenceListSpaceMemberItem";
+PresenceListSpaceMemberItem.propTypes = {
+  userId: PropTypes.string,
+  showUserId: PropTypes.bool,
+  name: PropTypes.string,
+  online: PropTypes.bool,
+  avatarUrl: PropTypes.string
+};
+
+const PresenceListHeader = forwardRef(({ messageId, total }, ref) => {
+  let message = getMessages()[messageId];
+
+  if (total !== undefined) {
+    message += `${total}`;
+  }
+
   return (
     <PanelSectionHeader ref={ref} style={{ height: "16px" }}>
-      <FormattedMessage id={messageId} />
+      {message}
     </PanelSectionHeader>
   );
 });
 
 PresenceListHeader.displayName = "PresenceListHeader";
 PresenceListHeader.propTypes = {
-  messageId: PropTypes.string
+  messageId: PropTypes.string,
+  total: PropTypes.number
 };
 
 const ListWrap = styled.div`
   height: 100%;
 `;
 
-function buildData(setData, currentSessionId, hubCan, store) {
+function buildSpacePresenceData(matrix, setSpacePresenceData, spaceMembers) {
+  const spacePresenceData = [];
+  const defaultName = getMessages()["chat.default-name"];
+
+  let onlineItem = null,
+    offlineItem = null;
+
+  for (const member of spaceMembers) {
+    const {
+      name,
+      rawDisplayName,
+      user: { userId, presence }
+    } = member;
+    const avatarHttpUrl = matrix.getAvatarUrlForMember(member, 64, 64);
+    const item = {
+      key: userId,
+      name: rawDisplayName,
+      showUserId: name !== rawDisplayName || rawDisplayName === defaultName,
+      avatarUrl: avatarHttpUrl,
+      type: "space_member",
+      online: true
+    };
+
+    if (presence === "active" || presence === "online") {
+      if (onlineItem === null) {
+        // push online header
+        onlineItem = {
+          key: "online-header",
+          messageId: "presence-list.online-header",
+          type: "header",
+          total: 0
+        };
+
+        spacePresenceData.push(onlineItem);
+      }
+
+      onlineItem.total++;
+
+      spacePresenceData.push(item);
+    } else {
+      if (offlineItem === null) {
+        offlineItem = {
+          key: "offline-header",
+          messageId: "presence-list.offline-header",
+          type: "header",
+          total: 0
+        };
+
+        spacePresenceData.push(offlineItem);
+      }
+
+      // Omit New Members from offline list
+      if (rawDisplayName && item.name !== defaultName) {
+        spacePresenceData.push(item);
+        item.online = false;
+        offlineItem.total++;
+      }
+    }
+  }
+
+  setSpacePresenceData(spacePresenceData);
+}
+
+function buildWorldPresenceData(setWorldPresenceData, currentSessionId, hubCan, store) {
   const otherHubIdsToSessionMetas = new Map();
-  const data = [];
+  const worldPresenceData = [];
   const spacePresences = (window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state) || {};
 
   let currentHubId = null;
@@ -299,9 +411,9 @@ function buildData(setData, currentSessionId, hubCan, store) {
     const meta = presence.metas[presence.metas.length - 1];
     const metaHubId = meta.hub_id;
 
-    if (metaHubId === currentHubId) {
-      if (data.length === 0) {
-        data.push({ key: "this-header", messageId: "presence-list.this-header", type: "header" });
+    if (currentHubId && metaHubId && metaHubId === currentHubId) {
+      if (worldPresenceData.length === 0) {
+        worldPresenceData.push({ key: "this-header", messageId: "presence-list.this-header", type: "header" });
       }
 
       const allowJumpTo = sessionId !== currentSessionId;
@@ -312,8 +424,8 @@ function buildData(setData, currentSessionId, hubCan, store) {
         addedJumpTip = true;
       }
 
-      data.push({ key: sessionId, meta, type: "member", allowJumpTo, showJumpTip });
-    } else {
+      worldPresenceData.push({ key: sessionId, meta, type: "world_member", allowJumpTo, showJumpTip });
+    } else if (metaHubId) {
       if (hubCan("join_hub", metaHubId)) {
         if (!otherHubIdsToSessionMetas.has(metaHubId)) {
           otherHubIdsToSessionMetas.set(metaHubId, []);
@@ -327,16 +439,16 @@ function buildData(setData, currentSessionId, hubCan, store) {
   }
 
   if (otherHubIdsToSessionMetas.size > 0) {
-    data.push({ key: "active-header", messageId: "presence-list.active-header", type: "header" });
+    worldPresenceData.push({ key: "active-header", messageId: "presence-list.active-header", type: "header" });
     for (const hubId of [...otherHubIdsToSessionMetas.keys()].sort()) {
-      data.push({ key: hubId, hubId, type: "hub" });
+      worldPresenceData.push({ key: hubId, hubId, type: "hub" });
 
       const sessionIdAndMetas = otherHubIdsToSessionMetas.get(hubId);
       for (let i = 0; i < sessionIdAndMetas.length; i += 2) {
-        data.push({
+        worldPresenceData.push({
           key: sessionIdAndMetas[i],
           meta: sessionIdAndMetas[i + 1],
-          type: "member",
+          type: "world_member",
           allowJumpTo: false,
           showJumpTip: false
         });
@@ -344,14 +456,15 @@ function buildData(setData, currentSessionId, hubCan, store) {
     }
   }
 
-  setData(data);
+  setWorldPresenceData(worldPresenceData);
 }
 
-function PresenceList({ scene, sessionId, hubMetadata, onGoToUserClicked, onGoToHubClicked, hubCan }) {
+function PresenceList({ scene, sessionId, hubMetadata, onGoToUserClicked, onGoToHubClicked, hubCan, isWorld }) {
   const [height, setHeight] = useState(100);
   const outerRef = useRef();
-  const [data, setData] = useState([]);
-  const store = window.APP.store;
+  const [worldPresenceData, setWorldPresenceData] = useState([]);
+  const [spacePresenceData, setSpacePresenceData] = useState([]);
+  const { matrix, store } = window.APP;
 
   useEffect(
     () => {
@@ -362,7 +475,7 @@ function PresenceList({ scene, sessionId, hubMetadata, onGoToUserClicked, onGoTo
       const handler = () => {
         // Schedule as a subtask and debounce
         if (timeout) clearTimeout(timeout);
-        timeout = setTimeout(() => buildData(setData, sessionId, hubCan, store), 500);
+        timeout = setTimeout(() => buildWorldPresenceData(setWorldPresenceData, sessionId, hubCan, store), 500);
       };
 
       scene.addEventListener("space-presence-synced", handler);
@@ -374,7 +487,30 @@ function PresenceList({ scene, sessionId, hubMetadata, onGoToUserClicked, onGoTo
       };
     },
 
-    [scene, setData, hubCan, sessionId, store]
+    [scene, setWorldPresenceData, hubCan, sessionId, store]
+  );
+
+  useEffect(
+    () => {
+      if (!matrix) return () => {};
+
+      let timeout;
+
+      const handler = () => {
+        // Schedule as a subtask and debounce
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(
+          () => buildSpacePresenceData(matrix, setSpacePresenceData, matrix.currentSpaceMembers),
+          500
+        );
+      };
+
+      handler();
+      matrix.addEventListener("current_space_members_updated", handler);
+
+      return () => matrix.removeEventListener("current_space_members_updated", handler);
+    },
+    [matrix, setSpacePresenceData]
   );
 
   useEffect(
@@ -390,23 +526,25 @@ function PresenceList({ scene, sessionId, hubMetadata, onGoToUserClicked, onGoTo
       window.addEventListener("resize", setOuterHeight);
       return () => window.removeEventListener("resize", setOuterHeight);
     },
-    [outerRef]
+    [outerRef, isWorld]
   );
 
   return (
     <ListWrap ref={outerRef} className={styles.presenceList}>
-      <List height={height} itemHeight={64} itemKey="key" data={data}>
+      <List height={height} itemHeight={64} itemKey="key" data={[...worldPresenceData, ...spacePresenceData]}>
         {useCallback(
           (item, _, props) => {
-            if (item.type === "member") {
+            if (item.type === "world_member") {
               return (
-                <PresenceListMemberItem
+                <PresenceListWorldMemberItem
                   sessionId={item.key}
                   onGoToUserClicked={onGoToUserClicked}
                   {...item}
                   {...props}
                 />
               );
+            } else if (item.type === "space_member") {
+              return <PresenceListSpaceMemberItem userId={item.key} {...item} {...props} />;
             } else if (item.type === "hub") {
               return (
                 <PresenceListHubItem
@@ -433,7 +571,8 @@ PresenceList.propTypes = {
   hubMetadata: PropTypes.object,
   onGoToHubClicked: PropTypes.func,
   onGoToUserClicked: PropTypes.func,
-  hubCan: PropTypes.func
+  hubCan: PropTypes.func,
+  isWorld: PropTypes.bool
 };
 
 export { PresenceList as default };

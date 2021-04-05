@@ -60,7 +60,7 @@ class TreeManager extends EventTarget {
   constructor(spaceMetadata, hubMetadata) {
     super();
     this.privateExpandedTreeNodes = new ExpandedTreeNodes();
-    this.sharedExpandedTreeNodes = new ExpandedTreeNodes();
+    this.navExpandedTreeNodes = new ExpandedTreeNodes();
 
     // Private space tree
     this.privateSpace = new TreeSync(
@@ -69,34 +69,60 @@ class TreeManager extends EventTarget {
       spaceMetadata,
       () => true,
       TREE_PROJECTION_TYPE.NESTED,
-      true
+      () => true
     );
     this.hasPrivateSpaceTree = false;
 
-    const filterByMetadata = filter => node => {
+    const filterAtomIdByMetadata = filter => atomId => {
+      if (!hubMetadata.hasMetadata(atomId)) return false;
+      return filter(hubMetadata.getMetadata(atomId));
+    };
+
+    const filterNodeByMetadata = filter => node => {
       if (!hubMetadata.hasMetadata(node.h)) return false;
       return filter(hubMetadata.getMetadata(node.h));
     };
 
-    const isActive = filterByMetadata(m => m.state === "active" && m.permissions.join_hub);
-    const isTrashed = filterByMetadata(m => m.state === "trashed" && m.permissions.join_hub);
-
-    this.sharedNav = new TreeSync(
-      "nav",
-      this.sharedExpandedTreeNodes,
-      hubMetadata,
-      isActive,
-      TREE_PROJECTION_TYPE.NESTED,
-      true
+    const isWorld = filterAtomIdByMetadata(m => m.type === "world");
+    const isChannel = filterAtomIdByMetadata(m => m.type === "channel");
+    const isActiveWorld = filterNodeByMetadata(
+      m => m.state === "active" && m.type === "world" && m.permissions.join_hub
     );
-    this.trashNav = new TreeSync("nav", null, hubMetadata, isTrashed, TREE_PROJECTION_TYPE.FLAT, false);
-    this.trashNested = new TreeSync("nav", null, hubMetadata, isTrashed, TREE_PROJECTION_TYPE.NESTED, false);
+    const isActiveChannel = filterNodeByMetadata(
+      m => m.state === "active" && m.type === "channel" && m.permissions.join_hub
+    );
+    const isTrashed = filterNodeByMetadata(m => m.state === "trashed" && m.permissions.join_hub);
+
+    this.worldNav = new TreeSync(
+      "nav",
+      this.navExpandedTreeNodes,
+      hubMetadata,
+      isActiveWorld,
+      TREE_PROJECTION_TYPE.NESTED,
+      isWorld
+    );
+    this.channelNav = new TreeSync(
+      "nav",
+      this.navExpandedTreeNodes,
+      hubMetadata,
+      isActiveChannel,
+      TREE_PROJECTION_TYPE.NESTED,
+      isChannel
+    );
+    this.trashNav = new TreeSync("nav", null, hubMetadata, isTrashed, TREE_PROJECTION_TYPE.FLAT);
+    this.trashNested = new TreeSync("nav", null, hubMetadata, isTrashed, TREE_PROJECTION_TYPE.NESTED);
+
+    this.worldNav.addEventListener("filtered_treedata_updated", () => this.syncMatrixRoomOrdersFromTree(this.worldNav));
+    this.channelNav.addEventListener("filtered_treedata_updated", () =>
+      this.syncMatrixRoomOrdersFromTree(this.channelNav)
+    );
   }
 
   async init(connection, memberships) {
     await Promise.all([
       await this.privateSpace.init(connection),
-      await this.sharedNav.init(connection),
+      await this.worldNav.init(connection),
+      await this.channelNav.init(connection),
       await this.trashNav.init(connection),
       await this.trashNested.init(connection)
     ]);
@@ -105,7 +131,8 @@ class TreeManager extends EventTarget {
   }
 
   setNavTitleControl(titleControl) {
-    this.sharedNav.setTitleControl(titleControl);
+    this.worldNav.setTitleControl(titleControl);
+    this.channelNav.setTitleControl(titleControl);
   }
 
   setTrashNavTitleControl(titleControl) {
@@ -118,7 +145,8 @@ class TreeManager extends EventTarget {
   }
 
   setSpaceCollectionId(collectionId) {
-    this.sharedNav.setCollectionId(collectionId);
+    this.worldNav.setCollectionId(collectionId);
+    this.channelNav.setCollectionId(collectionId);
     this.trashNav.setCollectionId(collectionId);
     this.trashNested.setCollectionId(collectionId);
   }
@@ -133,25 +161,25 @@ class TreeManager extends EventTarget {
     return this.trashNested.filteredTreeData;
   }
 
-  setNodeIsExpanded(nodeId, expanded) {
+  setNodeIsExpanded(nodeId, expanded, tree) {
     // TODO private hubs
     if (expanded) {
       // Expand node + all parents
       let nid = nodeId;
 
       do {
-        this.sharedExpandedTreeNodes.set(nid);
-        nid = this.sharedNav.getParentNodeId(nid);
+        this.navExpandedTreeNodes.set(nid);
+        nid = tree.getParentNodeId(nid);
       } while (nid);
     } else {
-      this.sharedExpandedTreeNodes.unset(nodeId);
+      this.navExpandedTreeNodes.unset(nodeId);
     }
 
     this.dispatchEvent(new CustomEvent("expanded_nodes_updated"));
   }
 
-  sharedExpandedNodeIds() {
-    return this.sharedExpandedTreeNodes.expandedNodeIds();
+  navExpandedNodeIds() {
+    return this.navExpandedTreeNodes.expandedNodeIds();
   }
 
   async syncMembershipsToPrivateSpaceTree(memberships) {
@@ -193,6 +221,26 @@ class TreeManager extends EventTarget {
         tree.remove(nodeId);
       }
     }
+  }
+
+  async syncMatrixRoomOrdersFromTree({ filteredTreeData }) {
+    const { matrix } = window.APP;
+    let order = 0;
+
+    const walk = nodes => {
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+
+        matrix.updateRoomOrderForHubId(node.atomId, order);
+        order++;
+
+        if (node.children && node.children.length > 0) {
+          walk(node.children);
+        }
+      }
+    };
+
+    walk(filteredTreeData);
   }
 }
 

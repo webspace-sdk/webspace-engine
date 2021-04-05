@@ -13,6 +13,11 @@ import { fetchRandomDefaultAvatarId, generateRandomName } from "../utils/identit
 
 const capitalize = str => str[0].toUpperCase() + str.slice(1);
 
+function randomString(len) {
+  const p = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  return [...Array(len)].reduce(a => a + p[~~(Math.random() * p.length)], "");
+}
+
 // Durable (via local-storage) schema-enforced state that is meant to be consumed via forward data flow.
 // (Think flux but with way less incidental complexity, at least for now :))
 export const SCHEMA = {
@@ -45,6 +50,8 @@ export const SCHEMA = {
       additionalProperties: false,
       properties: {
         token: { type: ["null", "string"] },
+        matrixAccessToken: { type: ["null", "string"] },
+        deviceId: { type: ["null", "string"] },
         email: { type: ["null", "string"] }
       }
     },
@@ -65,6 +72,7 @@ export const SCHEMA = {
         wasd: { type: "boolean" },
         createMenu: { type: "boolean" },
         createWorld: { type: "boolean" },
+        createChannel: { type: "boolean" },
         avatarEdit: { type: "boolean" },
         showInvite: { type: "boolean" },
         rightDrag: { type: "boolean" },
@@ -261,10 +269,10 @@ export default class Store extends EventTarget {
   };
 
   clearCredentials() {
-    this.update({ credentials: { token: null, email: null } });
+    this.update({ credentials: { token: null, matrixAccessToken: null, deviceId: null, email: null } });
   }
 
-  initProfile = async () => {
+  initDefaults = async () => {
     if (this._shouldResetAvatarOnInit) {
       await this.resetToRandomDefaultAvatar();
     } else {
@@ -294,6 +302,10 @@ export default class Store extends EventTarget {
           launcherSlot10: "❤"
         }
       });
+    }
+
+    if (!this.state.credentials.deviceId) {
+      this.update({ credentials: { deviceId: randomString(32) } });
     }
   };
 

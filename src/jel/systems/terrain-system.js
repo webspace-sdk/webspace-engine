@@ -360,7 +360,10 @@ export class TerrainSystem {
     });
   };
 
-  updateWorldForHub({ world }) {
+  updateWorldForHub({ type: hubType, world }) {
+    // Keep the previous hub world loaded to more nicely handle tabbing to and from
+    if (hubType === "channel") return;
+
     // Update colors
     const colors = [];
     WORLD_COLOR_TYPES.forEach(type => {

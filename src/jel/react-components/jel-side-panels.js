@@ -1,11 +1,11 @@
-import React, { useState, useCallback, useMemo, useRef } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { FormattedMessage } from "react-intl";
 import { usePopper } from "react-popper";
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import Tree from "rc-tree";
 import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
+import TinyOutlineIconButton from "./tiny-outline-icon-button";
 import SelfPanel from "./self-panel";
 import BridgePanel from "./bridge-panel";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
@@ -30,7 +30,6 @@ import ReactDOM from "react-dom";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import PopupPanel from "./popup-panel";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
-import HubNodeTitle from "./hub-node-title";
 import { SOUND_TELEPORT_END } from "../../hubs/systems/sound-effects-system";
 
 const Wrap = styled.div`
@@ -378,6 +377,7 @@ function JelSidePanels({
   hubCan = () => false,
   spaceCan = () => false,
   spaceMetadata,
+  hubMetadata,
   memberships,
   showHubContextMenuPopup,
   setHubRenameReferenceElement,
@@ -387,7 +387,9 @@ function JelSidePanels({
   sessionId,
   scene,
   showEmojiPopup,
-  showSpaceNotificationPopup
+  showSpaceNotificationPopup,
+  showInviteTip,
+  setHasShownInvite
 }) {
   const store = window.APP.store;
   const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
@@ -395,8 +397,8 @@ function JelSidePanels({
   const [trashMenuElement, setTrashMenuElement] = useState(null);
   const [inviteReferenceElement, setInviteReferenceElement] = useState(null);
   const [inviteElement, setInviteElement] = useState(null);
-  const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const [spaceName, setSpaceName] = useState((metadata && metadata.name) || "");
+  const [isCreating, setIsCreating] = useState(false);
   const invitePanelFieldElement = useRef();
   const spaceBannerRef = useRef();
   const emojiEquipRef = useRef();
@@ -421,15 +423,17 @@ function JelSidePanels({
   );
 
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setSpaceName);
-
-  const homeHub = homeHubForSpaceId(spaceId, memberships);
-  const hubMetadata = treeManager && treeManager.sharedNav && treeManager.sharedNav.atomMetadata;
+  const onSelectedEmojiClicked = useCallback(
+    () => {
+      showEmojiPopup(emojiEquipRef, "top-end", [0, 12], { equip: true });
+    },
+    [showEmojiPopup]
+  );
 
   const space = spaceForSpaceId(spaceId, memberships);
-  const onHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
   const hubId = hub && hub.hub_id;
   const messages = getMessages();
-  const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
+  const isWorld = hub && hub.type === "world";
 
   return (
     <Wrap>
@@ -488,17 +492,60 @@ function JelSidePanels({
           </NavHead>
           <NavSpill>
             <PanelSectionHeader>
-              <FormattedMessage id="nav.space-worlds" />
+              <FormattedMessage id="nav.channels" />
+              {spaceCan("create_channel_hub") && (
+                <TinyOutlineIconButton
+                  disabled={isCreating}
+                  style={{ marginLeft: "10px" }}
+                  className="show-on-hover"
+                  iconSrc={addIcon}
+                  onClick={async () => {
+                    store.handleActivityFlag("createChannel");
+                    setIsCreating(true);
+                    const hub = await addNewHubToTree(treeManager, spaceId, "channel");
+                    setIsCreating(false);
+                    navigateToHubUrl(history, hub.url);
+                  }}
+                />
+              )}
             </PanelSectionHeader>
             <HubTree
               treeManager={treeManager}
+              type="channel"
               hub={hub}
               history={history}
               spaceCan={spaceCan}
               hubCan={hubCan}
               showHubContextMenuPopup={showHubContextMenuPopup}
               setHubRenameReferenceElement={setHubRenameReferenceElement}
-              onHubNameChanged={onHubNameChanged}
+            />
+            <PanelSectionHeader>
+              <FormattedMessage id="nav.space-worlds" />
+              {spaceCan("create_world_hub") && (
+                <TinyOutlineIconButton
+                  disabled={isCreating}
+                  style={{ marginLeft: "10px" }}
+                  className="show-on-hover"
+                  iconSrc={addIcon}
+                  onClick={async () => {
+                    store.handleActivityFlag("createWorld");
+                    setIsCreating(true);
+                    const hub = await addNewHubToTree(treeManager, spaceId, "world");
+                    setIsCreating(false);
+                    navigateToHubUrl(history, hub.url);
+                  }}
+                />
+              )}
+            </PanelSectionHeader>
+            <HubTree
+              treeManager={treeManager}
+              type="world"
+              hub={hub}
+              history={history}
+              spaceCan={spaceCan}
+              hubCan={hubCan}
+              showHubContextMenuPopup={showHubContextMenuPopup}
+              setHubRenameReferenceElement={setHubRenameReferenceElement}
             />
           </NavSpill>
           <NavFoot>
@@ -522,12 +569,15 @@ function JelSidePanels({
                 <FormattedMessage id="nav.trash" />
               </PanelItemButton>
             </PanelItemButtonSection>
-            {spaceCan("create_hub") && (
+            {spaceCan("create_world_hub") && (
               <ActionButton
+                disabled={isCreating}
                 iconSrc={addIcon}
                 onClick={async () => {
                   store.handleActivityFlag("createWorld");
-                  const hub = await addNewHubToTree(treeManager, spaceId);
+                  setIsCreating(true);
+                  const hub = await addNewHubToTree(treeManager, spaceId, "world");
+                  setIsCreating(false);
                   navigateToHubUrl(history, hub.url);
                 }}
                 style={{ width: "60%" }}
@@ -540,11 +590,15 @@ function JelSidePanels({
               spaceChannel={spaceChannel}
               memberships={memberships}
               scene={scene}
+              showDeviceControls={isWorld}
               sessionId={sessionId}
               onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {
                 spaceChannel.sendAvatarColorUpdate(r / 255.0, g / 255.0, b / 255.0);
+                window.APP.matrix.updateAvatarColor(r / 255.0, g / 255.0, b / 255.0);
               }}
-              onSignOutClicked={() => {
+              onSignOutClicked={async () => {
+                await window.APP.spaceChannel.signOut(store.state.credentials.deviceId);
+                await window.APP.matrix.logout();
                 store.clearCredentials();
                 document.location = "/";
               }}
@@ -558,6 +612,7 @@ function JelSidePanels({
             hubMetadata={hubMetadata}
             hubCan={hubCan}
             scene={scene}
+            isWorld={isWorld}
             sessionId={sessionId}
             onGoToUserClicked={sessionId => {
               SYSTEMS.characterController.teleportToUser(sessionId);
@@ -572,21 +627,15 @@ function JelSidePanels({
             }}
           />
         </PresenceContent>
-        <BlasterContent>
-          <PanelSectionHeader style={{ height: "16px" }}>
-            <FormattedMessage id="blaster.header" />
-          </PanelSectionHeader>
-          <EmojiEquip
-            ref={emojiEquipRef}
-            onSelectedEmojiClicked={useCallback(
-              () => {
-                showEmojiPopup(emojiEquipRef, "top-end", [0, 12], { equip: true });
-              },
-              [showEmojiPopup]
-            )}
-          />
-        </BlasterContent>
-        <BridgePanel scene={scene} spaceCan={spaceCan} />
+        {isWorld && (
+          <BlasterContent>
+            <PanelSectionHeader style={{ height: "16px" }}>
+              <FormattedMessage id="blaster.header" />
+            </PanelSectionHeader>
+            <EmojiEquip ref={emojiEquipRef} onSelectedEmojiClicked={onSelectedEmojiClicked} />
+          </BlasterContent>
+        )}
+        {isWorld && <BridgePanel scene={scene} spaceCan={spaceCan} />}
       </Right>
       <Invite setPopperElement={setInviteElement} styles={inviteStyles} attributes={inviteAttributes}>
         <InvitePanel
@@ -651,8 +700,12 @@ JelSidePanels.propTypes = {
   hub: PropTypes.object,
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,
+  roomForHubCan: PropTypes.func,
   scene: PropTypes.object,
   spaceMetadata: PropTypes.object,
+  hubMetadata: PropTypes.object,
+  showInviteTip: PropTypes.bool,
+  setHasShownInvite: PropTypes.func,
   sessionId: PropTypes.string,
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
@@ -662,7 +715,8 @@ JelSidePanels.propTypes = {
   showSpaceRenamePopup: PropTypes.func,
   spaceRenamePopupElement: PropTypes.object,
   showEmojiPopup: PropTypes.func,
-  showSpaceNotificationPopup: PropTypes.func
+  showSpaceNotificationPopup: PropTypes.func,
+  showConfirmModalPopup: PropTypes.func
 };
 
 export default JelSidePanels;

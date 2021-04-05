@@ -12,7 +12,7 @@ import {
 } from "../utils/tree-utils";
 import HubNodeTitle from "./hub-node-title";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
-import "../../assets/jel/stylesheets/hub-tree.scss";
+import "../../assets/jel/stylesheets/atom-tree.scss";
 
 const EmptyMessage = styled.div`
   margin-left: 16px;
@@ -22,44 +22,52 @@ const EmptyMessage = styled.div`
   white-space: pre;
 `;
 
-function HubTree({ treeManager, history, hub, spaceCan, setHubRenameReferenceElement, showHubContextMenuPopup }) {
+function HubTree({ treeManager, type, history, hub, spaceCan, setHubRenameReferenceElement, showHubContextMenuPopup }) {
   const [navTreeData, setNavTreeData] = useState([]);
   const [navTreeDataVersion, setNavTreeDataVersion] = useState(0);
 
-  const tree = treeManager && treeManager.sharedNav;
+  const tree = treeManager && (type === "world" ? treeManager.worldNav : treeManager.channelNav);
   const atomMetadata = tree && tree.atomMetadata;
 
   useTreeData(tree, navTreeDataVersion, setNavTreeData, setNavTreeDataVersion);
-  useExpandableTree(treeManager);
+  useExpandableTree(treeManager, tree);
 
   // Ensure current selected node is always visible
   useScrollToSelectedTreeNode(navTreeData, hub);
 
   const navTitleControl = useCallback(
-    data => (
-      <HubNodeTitle
-        hubId={data.atomId}
-        showAdd={spaceCan("create_hub")}
-        showDots={true}
-        hubMetadata={atomMetadata}
-        onAddClick={e => {
-          e.stopPropagation(); // Otherwise this will perform a tree node click event
-          addNewHubToTree(history, treeManager, hub.space_id, data.atomId);
-        }}
-        onDotsClick={(e, ref) => {
-          e.stopPropagation(); // Otherwise this will perform a tree node click event
-          showHubContextMenuPopup(data.atomId, ref, "bottom-start", [0, 0], {
-            hideRename: false
-          });
-          setHubRenameReferenceElement(ref);
-        }}
-      />
-    ),
+    data => {
+      const metadata = atomMetadata.getMetadata(data.atomId);
+      const showAdd = !!(spaceCan("create_world_hub") && metadata && metadata.type === "world");
+
+      return (
+        <HubNodeTitle
+          hubId={data.atomId}
+          showAdd={showAdd}
+          showDots={true}
+          hubMetadata={atomMetadata}
+          onAddClick={e => {
+            e.stopPropagation(); // Otherwise this will perform a tree node click event
+            addNewHubToTree(history, treeManager, hub.space_id, hub.type, data.atomId);
+          }}
+          onDotsClick={(e, ref) => {
+            e.stopPropagation(); // Otherwise this will perform a tree node click event
+            showHubContextMenuPopup(data.atomId, ref, "bottom-start", [0, 0], {
+              hideRename: false
+            });
+            setHubRenameReferenceElement(ref);
+          }}
+        />
+      );
+    },
     [history, hub, treeManager, atomMetadata, showHubContextMenuPopup, setHubRenameReferenceElement, spaceCan]
   );
 
-  const onDragEnter = useCallback(({ node }) => treeManager.setNodeIsExpanded(node.key, true), [treeManager]);
-  const onDrop = useTreeDropHandler(treeManager, tree);
+  const onDragEnter = useCallback(({ node }) => treeManager.setNodeIsExpanded(node.key, true, tree), [
+    treeManager,
+    tree
+  ]);
+  const onDrop = useTreeDropHandler(treeManager, tree, type === "world");
   const onSelect = useCallback(
     (selectedKeys, { node: { atomId } }) => {
       const metadata = tree.atomMetadata.getMetadata(atomId);
@@ -71,33 +79,40 @@ function HubTree({ treeManager, history, hub, spaceCan, setHubRenameReferenceEle
     [tree, history]
   );
   const onExpand = useCallback(
-    (expandedKeys, { expanded, node: { key } }) => treeManager.setNodeIsExpanded(key, expanded),
-    [treeManager]
+    (expandedKeys, { expanded, node: { key } }) => treeManager.setNodeIsExpanded(key, expanded, tree),
+    [treeManager, tree]
   );
 
+  const allowDrop = useCallback(() => type === "world", [type]);
   const navSelectedKeys = useMemo(() => (hub && tree ? [tree.getNodeIdForAtomId(hub.hub_id)] : []), [hub, tree]);
 
   if (!treeManager || !hub) return null;
 
   treeManager.setNavTitleControl(navTitleControl);
 
+  // HACK - this is security through obscurity for the channel case, since
+  // the edit_nav permission theoretically allows anyone to modify the entire
+  // nav tree, not just the world nav.
+  const draggable = type === "world" ? spaceCan("create_world_hub") : spaceCan("create_channel_hub");
+
   return (
     <div>
       <Tree
-        prefixCls="hub-tree"
+        prefixCls="atom-tree"
         treeData={navTreeData}
         selectable={true}
         selectedKeys={navSelectedKeys}
-        draggable
+        draggable={draggable}
         onDragEnter={onDragEnter}
         onDrop={onDrop}
+        allowDrop={allowDrop}
         onSelect={onSelect}
-        expandedKeys={treeManager.sharedExpandedNodeIds()}
+        expandedKeys={treeManager.navExpandedNodeIds()}
         onExpand={onExpand}
       />
       {navTreeData.length === 0 && (
         <EmptyMessage>
-          <FormattedMessage id="nav.empty" />
+          <FormattedMessage id={type === "world" ? "nav.worlds-empty" : "nav.channels-empty"} />
         </EmptyMessage>
       )}
     </div>
@@ -106,6 +121,7 @@ function HubTree({ treeManager, history, hub, spaceCan, setHubRenameReferenceEle
 
 HubTree.propTypes = {
   treeManager: PropTypes.object,
+  type: PropTypes.string,
   history: PropTypes.object,
   hub: PropTypes.object,
   spaceCan: PropTypes.func,
