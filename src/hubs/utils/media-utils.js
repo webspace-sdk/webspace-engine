@@ -8,7 +8,6 @@ import { validMaterials } from "../components/hoverable-visuals";
 import { proxiedUrlFor, guessContentType } from "../utils/media-url-utils";
 import { getNetworkedEntity, getNetworkId, ensureOwnership, isSynchronized } from "../../jel/utils/ownership-utils";
 import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
-import { getMessages } from "../../hubs/utils/i18n";
 import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
 import anime from "animejs";
 
