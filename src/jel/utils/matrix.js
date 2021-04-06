@@ -710,6 +710,7 @@ export default class Matrix extends EventTarget {
 
   async _joinMissingRooms() {
     const { memberships } = window.APP.accountChannel;
+    const { client } = this;
 
     // Join each Jel space's matrix room, then walk all the children
     // matrix rooms and join the ones marked auto_join=true
@@ -720,7 +721,12 @@ export default class Matrix extends EventTarget {
 
       const spaceRoom = await this._ensureRoomJoined(matrix_spaceroom_id);
 
-      // Walk each child room (channels) and join them if auto_join = true
+      // Collect all the published child rooms that we are not members of,
+      // and then query the backend to determine which ones we can join.
+      //
+      // Walk each child room (channels) and join them if allowed and auto_join = true
+
+      const roomsToCheck = [];
       const childRooms = spaceRoom.currentState.events.get("m.space.child");
 
       if (childRooms) {
@@ -733,8 +739,18 @@ export default class Matrix extends EventTarget {
           }
         ] of childRooms.entries()) {
           if (!via || !auto_join) continue;
+          const room = client.getRoom(roomId);
 
-          this._ensureRoomJoined(roomId);
+          if (room && room.hasMembershipState(client.credentials.userId, "join")) continue;
+          roomsToCheck.push(roomId);
+        }
+
+        if (roomsToCheck.length > 0) {
+          const roomsToJoin = await window.APP.accountChannel.getJoinableMatrixRooms(roomsToCheck);
+
+          for (const roomId of roomsToJoin) {
+            this._ensureRoomJoined(roomId);
+          }
         }
       }
     }

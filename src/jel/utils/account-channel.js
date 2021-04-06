@@ -53,6 +53,14 @@ export default class AccountChannel extends EventTarget {
     this.channel.push("join_matrix_room", { matrix_room_id: roomId });
   };
 
+  getJoinableMatrixRooms = roomIds => {
+    return new Promise(res => {
+      this.channel
+        .push("get_joinable_matrix_room_ids", { matrix_room_ids: roomIds })
+        .receive("ok", ({ matrix_room_ids }) => res(matrix_room_ids));
+    });
+  };
+
   setMatrixRoomOrder = (roomId, order) => {
     this.channel.push("set_matrix_room_order", { matrix_room_id: roomId, order });
   };
