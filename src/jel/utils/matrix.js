@@ -142,7 +142,7 @@ export default class Matrix extends EventTarget {
 
     await new Promise(res => {
       neon.addEventListener("load", res, { once: true });
-      neon.setAttribute("src", "/neon/index.html");
+      neon.setAttribute("src", "/neon");
     });
 
     await waitForDOMContentLoaded(neon.contentDocument, neon.contentWindow);
