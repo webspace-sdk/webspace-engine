@@ -187,40 +187,71 @@ class AtomMetadata {
     return !!this.getMetadata(atomId).permissions[permission];
   }
 
-  async ensureMetadataForIds(ids, force = false) {
+  ensureMetadataForIds(ids, force = false) {
     const idsToFetch = new Set();
     const source = this._source;
+    const alreadyPendingIds = new Set();
 
     for (const id of ids) {
       // Only fetch things not in the map, which will skip attempts to re-fetch pending ids.
       if (!this._metadata.has(id) || force) {
         idsToFetch.add(id);
         this._metadata.set(id, pendingMetadataValue);
+      } else if (this._metadata.get(id) === pendingMetadataValue) {
+        alreadyPendingIds.add(id);
       }
     }
 
-    if (idsToFetch.size !== 0) {
+    const promises = [];
+
+    // Some are in-flight already, wait for them.
+    for (const id of alreadyPendingIds) {
+      promises.push(
+        new Promise(res => {
+          const handler = () => {
+            res();
+            this.unsubscribeFromMetadata(handler);
+          };
+
+          this.subscribeToMetadata(id, handler);
+        })
+      );
+    }
+
+    // Others are pending, create a promise to fetch them.
+    if (idsToFetch.size > 0) {
       const phxChannel = source.channel;
-      const atoms = await source[this._sourceGetMethod](ids);
 
-      // Edge case: if phoenix channel is re-bound, discard, the rebind will
-      // re-fetch the pending items.
-      if (phxChannel && phxChannel !== source.channel) return;
+      // Push a promise that waits on fetching the pending ids
+      promises.push(
+        new Promise(res => {
+          source[this._sourceGetMethod](ids).then(atoms => {
+            // Edge case: if phoenix channel is re-bound, discard, the rebind will
+            // re-fetch the pending items.
+            if (phxChannel && phxChannel !== source.channel) {
+              res();
+            }
 
-      for (const metadata of atoms) {
-        this._setDisplayNameOnMetadata(metadata);
-        this._metadata.set(metadata[this._idColumn], metadata);
-      }
+            for (const metadata of atoms) {
+              this._setDisplayNameOnMetadata(metadata);
+              this._metadata.set(metadata[this._idColumn], metadata);
+            }
 
-      for (const id of ids) {
-        // Mark nulls for invalid/inaccessible hub ids. TODO Need to deal with permission changes.
-        if (!this.hasMetadata(id)) {
-          this._metadata.set(id, null);
-        }
-      }
+            for (const id of ids) {
+              // Mark nulls for invalid/inaccessible hub ids. TODO Need to deal with permission changes.
+              if (!this.hasMetadata(id)) {
+                this._metadata.set(id, null);
+              }
+            }
 
-      this._fireHandlerForSubscribersForUpdatedIds(ids);
+            this._fireHandlerForSubscribersForUpdatedIds(ids);
+            res();
+          });
+        })
+      );
     }
+
+    return Promise.all(promises);
   }
 
   hasMetadata(id) {

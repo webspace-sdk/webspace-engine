@@ -362,6 +362,7 @@ function buildSpacePresenceData(matrix, setSpacePresenceData, spaceMembers, acti
           messageId: "presence-list.online-header",
           type: "header",
           total: 0,
+          // Check if this is at the top of the presence list or not to determine height.
           height: !activeWorldHubIds || activeWorldHubIds.length === 0 ? 32 : 64
         };
 

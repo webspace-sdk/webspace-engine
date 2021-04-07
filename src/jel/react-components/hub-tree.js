@@ -46,9 +46,12 @@ function HubTree({ treeManager, type, history, hub, spaceCan, setHubRenameRefere
           showAdd={showAdd}
           showDots={true}
           hubMetadata={atomMetadata}
-          onAddClick={e => {
+          onAddClick={async e => {
             e.stopPropagation(); // Otherwise this will perform a tree node click event
-            addNewHubToTree(history, treeManager, hub.space_id, hub.type, data.atomId);
+            const newHub = await addNewHubToTree(treeManager, hub.space_id, hub.type, data.atomId);
+            await atomMetadata.ensureMetadataForIds([newHub.hub_id]);
+            const metadata = atomMetadata.getMetadata(newHub.hub_id);
+            navigateToHubUrl(history, metadata.url);
           }}
           onDotsClick={(e, ref) => {
             e.stopPropagation(); // Otherwise this will perform a tree node click event
@@ -60,7 +63,7 @@ function HubTree({ treeManager, type, history, hub, spaceCan, setHubRenameRefere
         />
       );
     },
-    [history, hub, treeManager, atomMetadata, showHubContextMenuPopup, setHubRenameReferenceElement, spaceCan]
+    [hub, treeManager, atomMetadata, showHubContextMenuPopup, setHubRenameReferenceElement, spaceCan]
   );
 
   const onDragEnter = useCallback(({ node }) => treeManager.setNodeIsExpanded(node.key, true, tree), [
