@@ -330,7 +330,7 @@ const ListWrap = styled.div`
   height: 100%;
 `;
 
-function buildSpacePresenceData(matrix, setSpacePresenceData, spaceMembers) {
+function buildSpacePresenceData(matrix, setSpacePresenceData, spaceMembers, activeWorldHubIds) {
   const spacePresenceData = [];
   const defaultName = getMessages()["chat.default-name"];
 
@@ -350,6 +350,7 @@ function buildSpacePresenceData(matrix, setSpacePresenceData, spaceMembers) {
       showUserId: name !== rawDisplayName || rawDisplayName === defaultName,
       avatarUrl: avatarHttpUrl,
       type: "space_member",
+      height: 58,
       online: true
     };
 
@@ -360,7 +361,8 @@ function buildSpacePresenceData(matrix, setSpacePresenceData, spaceMembers) {
           key: "online-header",
           messageId: "presence-list.online-header",
           type: "header",
-          total: 0
+          total: 0,
+          height: activeWorldHubIds.length === 0 ? 32 : 64
         };
 
         spacePresenceData.push(onlineItem);
@@ -375,7 +377,8 @@ function buildSpacePresenceData(matrix, setSpacePresenceData, spaceMembers) {
           key: "offline-header",
           messageId: "presence-list.offline-header",
           type: "header",
-          total: 0
+          total: 0,
+          height: 32
         };
 
         spacePresenceData.push(offlineItem);
@@ -393,12 +396,21 @@ function buildSpacePresenceData(matrix, setSpacePresenceData, spaceMembers) {
   setSpacePresenceData(spacePresenceData);
 }
 
-function buildWorldPresenceData(setWorldPresenceData, currentSessionId, hubCan, store) {
+function buildWorldPresenceData(
+  activeWorldHubIds,
+  setActiveWorldHubIds,
+  setWorldPresenceData,
+  currentSessionId,
+  hubCan,
+  store
+) {
   const otherHubIdsToSessionMetas = new Map();
   const worldPresenceData = [];
   const spacePresences = (window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state) || {};
 
   let currentHubId = null;
+  const newActiveWorldHubIds = new Set();
+  let sawNewActiveWorld = false;
 
   if (spacePresences[currentSessionId]) {
     const metas = spacePresences[currentSessionId].metas;
@@ -411,9 +423,22 @@ function buildWorldPresenceData(setWorldPresenceData, currentSessionId, hubCan, 
     const meta = presence.metas[presence.metas.length - 1];
     const metaHubId = meta.hub_id;
 
+    if (metaHubId) {
+      newActiveWorldHubIds.add(metaHubId);
+
+      if (!activeWorldHubIds || !activeWorldHubIds.includes(metaHubId)) {
+        sawNewActiveWorld = true;
+      }
+    }
+
     if (currentHubId && metaHubId && metaHubId === currentHubId) {
       if (worldPresenceData.length === 0) {
-        worldPresenceData.push({ key: "this-header", messageId: "presence-list.this-header", type: "header" });
+        worldPresenceData.push({
+          key: "this-header",
+          messageId: "presence-list.this-header",
+          type: "header",
+          height: 32
+        });
       }
 
       const allowJumpTo = sessionId !== currentSessionId;
@@ -424,7 +449,7 @@ function buildWorldPresenceData(setWorldPresenceData, currentSessionId, hubCan, 
         addedJumpTip = true;
       }
 
-      worldPresenceData.push({ key: sessionId, meta, type: "world_member", allowJumpTo, showJumpTip });
+      worldPresenceData.push({ key: sessionId, meta, type: "world_member", allowJumpTo, showJumpTip, height: 58 });
     } else if (metaHubId) {
       if (hubCan("join_hub", metaHubId)) {
         if (!otherHubIdsToSessionMetas.has(metaHubId)) {
@@ -438,10 +463,19 @@ function buildWorldPresenceData(setWorldPresenceData, currentSessionId, hubCan, 
     }
   }
 
+  if (sawNewActiveWorld || !activeWorldHubIds || newActiveWorldHubIds.size !== activeWorldHubIds.length) {
+    setActiveWorldHubIds([...newActiveWorldHubIds]);
+  }
+
   if (otherHubIdsToSessionMetas.size > 0) {
-    worldPresenceData.push({ key: "active-header", messageId: "presence-list.active-header", type: "header" });
+    worldPresenceData.push({
+      key: "active-header",
+      messageId: "presence-list.active-header",
+      type: "header",
+      height: 32
+    });
     for (const hubId of [...otherHubIdsToSessionMetas.keys()].sort()) {
-      worldPresenceData.push({ key: hubId, hubId, type: "hub" });
+      worldPresenceData.push({ key: hubId, hubId, type: "hub", height: 48 });
 
       const sessionIdAndMetas = otherHubIdsToSessionMetas.get(hubId);
       for (let i = 0; i < sessionIdAndMetas.length; i += 2) {
@@ -464,30 +498,54 @@ function PresenceList({ scene, sessionId, hubMetadata, onGoToUserClicked, onGoTo
   const outerRef = useRef();
   const [worldPresenceData, setWorldPresenceData] = useState([]);
   const [spacePresenceData, setSpacePresenceData] = useState([]);
+  const [activeWorldHubIds, setActiveWorldHubIds] = useState(null);
   const { matrix, store } = window.APP;
 
   useEffect(
     () => {
-      if (!scene) return () => {};
+      if (!scene || !hubMetadata) return () => {};
 
       let timeout;
 
       const handler = () => {
         // Schedule as a subtask and debounce
         if (timeout) clearTimeout(timeout);
-        timeout = setTimeout(() => buildWorldPresenceData(setWorldPresenceData, sessionId, hubCan, store), 500);
+        timeout = setTimeout(
+          () =>
+            buildWorldPresenceData(
+              activeWorldHubIds,
+              setActiveWorldHubIds,
+              setWorldPresenceData,
+              sessionId,
+              hubCan,
+              store
+            ),
+          500
+        );
       };
+
+      if (activeWorldHubIds === null) {
+        // Initialize state if active worlds haven't been set yet.
+        handler();
+      } else {
+        // Active worlds need to be subscribed to since hubCan may filter
+        // them in the list as permissions change.
+        for (const hubId of activeWorldHubIds) {
+          hubMetadata.subscribeToMetadata(hubId, handler);
+        }
+      }
 
       scene.addEventListener("space-presence-synced", handler);
       store.addEventListener("statechanged-activity", handler);
 
       return () => {
+        hubMetadata.unsubscribeFromMetadata(handler);
         scene.removeEventListener("space-presence-synced", handler);
         store.removeEventListener("statechanged-activity", handler);
       };
     },
 
-    [scene, setWorldPresenceData, hubCan, sessionId, store]
+    [scene, hubMetadata, activeWorldHubIds, setActiveWorldHubIds, setWorldPresenceData, hubCan, sessionId, store]
   );
 
   useEffect(
@@ -500,7 +558,7 @@ function PresenceList({ scene, sessionId, hubMetadata, onGoToUserClicked, onGoTo
         // Schedule as a subtask and debounce
         if (timeout) clearTimeout(timeout);
         timeout = setTimeout(
-          () => buildSpacePresenceData(matrix, setSpacePresenceData, matrix.currentSpaceMembers),
+          () => buildSpacePresenceData(matrix, setSpacePresenceData, matrix.currentSpaceMembers, activeWorldHubIds),
           500
         );
       };
@@ -510,7 +568,7 @@ function PresenceList({ scene, sessionId, hubMetadata, onGoToUserClicked, onGoTo
 
       return () => matrix.removeEventListener("current_space_members_updated", handler);
     },
-    [matrix, setSpacePresenceData]
+    [matrix, setSpacePresenceData, activeWorldHubIds]
   );
 
   useEffect(
@@ -531,7 +589,7 @@ function PresenceList({ scene, sessionId, hubMetadata, onGoToUserClicked, onGoTo
 
   return (
     <ListWrap ref={outerRef} className={styles.presenceList}>
-      <List height={height} itemHeight={64} itemKey="key" data={[...worldPresenceData, ...spacePresenceData]}>
+      <List height={height} itemHeight={16} itemKey="key" data={[...worldPresenceData, ...spacePresenceData]}>
         {useCallback(
           (item, _, props) => {
             if (item.type === "world_member") {
