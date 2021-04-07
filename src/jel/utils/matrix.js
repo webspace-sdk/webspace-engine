@@ -157,6 +157,9 @@ export default class Matrix extends EventTarget {
         this.client.once("sync", async state => {
           if (state === "PREPARED") {
             await this._syncProfile();
+
+            subscriptions.addEventListener("subscriptions_updated", () => this._syncPusher());
+
             await this._syncPusher();
 
             this._joinMissingRooms();
@@ -167,8 +170,6 @@ export default class Matrix extends EventTarget {
             });
 
             scene.addEventListener("space-presence-synced", () => this._syncProfile());
-            subscriptions.addEventListener("subscriptions_updated", () => this._syncPusher());
-
             this._disableGlobalPushRules();
 
             const { spaceStore } = this.neonStores;
