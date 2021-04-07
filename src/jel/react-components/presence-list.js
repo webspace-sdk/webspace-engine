@@ -362,7 +362,7 @@ function buildSpacePresenceData(matrix, setSpacePresenceData, spaceMembers, acti
           messageId: "presence-list.online-header",
           type: "header",
           total: 0,
-          height: activeWorldHubIds.length === 0 ? 32 : 64
+          height: !activeWorldHubIds || activeWorldHubIds.length === 0 ? 32 : 64
         };
 
         spacePresenceData.push(onlineItem);
