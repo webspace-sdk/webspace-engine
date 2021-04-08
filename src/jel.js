@@ -756,7 +756,10 @@ function setupGameEnginePausing(scene) {
         if (document.visibilityState === "visible") {
           // Hacky. On some platforms GL context needs to be explicitly restored. So do it.
           // This really shouldn't be necessary :P
-          if (scene.renderer.getContext().isContextLost() && webglLoseContextExtension) {
+          if (
+            (!scene.renderer.getContext() || scene.renderer.getContext().isContextLost()) &&
+            webglLoseContextExtension
+          ) {
             webglLoseContextExtension.restoreContext();
           }
 
