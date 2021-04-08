@@ -738,6 +738,11 @@ function setupGameEnginePausing(scene) {
     if (document.visibilityState === "hidden" || hidden) {
       if (document.visibilityState === "visible") {
         scene.pause();
+
+        // THREE bug - if this clock is not stopped we end up lerping audio listener positions over a long duration
+        // because getDelta() returns a large value on resume.
+        AFRAME.scenes[0].audioListener._clock.stop();
+
         scene.renderer.animation.stop();
         SYSTEMS.externalCameraSystem.stopRendering();
       }
@@ -763,6 +768,7 @@ function setupGameEnginePausing(scene) {
             webglLoseContextExtension.restoreContext();
           }
 
+          AFRAME.scenes[0].audioListener._clock.start();
           scene.play();
           scene.renderer.animation.start();
           SYSTEMS.externalCameraSystem.startRendering();
