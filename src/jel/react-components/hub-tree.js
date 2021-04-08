@@ -63,7 +63,7 @@ function HubTree({ treeManager, type, history, hub, spaceCan, setHubRenameRefere
         />
       );
     },
-    [hub, treeManager, atomMetadata, showHubContextMenuPopup, setHubRenameReferenceElement, spaceCan]
+    [history, hub, treeManager, atomMetadata, showHubContextMenuPopup, setHubRenameReferenceElement, spaceCan]
   );
 
   const onDragEnter = useCallback(({ node }) => treeManager.setNodeIsExpanded(node.key, true, tree), [

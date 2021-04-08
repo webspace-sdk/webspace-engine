@@ -676,7 +676,7 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
 
             clearResolveUrlCache();
 
-            // If this is not a world, skip connecting to NAF
+            // If this is not a world, skip connecting to NAF + SAF
             if (!isWorld) {
               res();
               return;
@@ -949,7 +949,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
   return joinSpaceChannel(spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI);
 }
 
-export async function joinHub(socket, history, entryManager, remountUI, remountJelUI) {
+export async function joinHub(scene, socket, history, entryManager, remountUI, remountJelUI) {
   const { store, hubChannel, hubMetadata } = window.APP;
 
   const spaceId = getSpaceIdFromHistory(history);
@@ -963,8 +963,9 @@ export async function joinHub(socket, history, entryManager, remountUI, remountJ
 
   const metadata = hubMetadata.getMetadata(hubId);
   const isHomeHub = metadata && metadata.is_home;
+  const isWorld = metadata.type === "world";
 
-  if (!isHomeHub && metadata.type === "world" && !hasJoinedPublicWorldForCurrentSpace) {
+  if (!isHomeHub && isWorld && !hasJoinedPublicWorldForCurrentSpace) {
     params.is_first_shared = !hasJoinedPublicWorldForCurrentSpace;
     hasJoinedPublicWorldForCurrentSpace = true;
   }
@@ -977,7 +978,15 @@ export async function joinHub(socket, history, entryManager, remountUI, remountJ
   hubChannel.bind(hubPhxChannel, hubId);
 
   if (NAF.connection.adapter) {
-    NAF.connection.adapter.leaveHub(true);
+    // Sending an exit message is only needed if we're not about to immediately
+    // join another hub over NAF.
+    const sendExitMessage = !isWorld;
+
+    NAF.connection.adapter.leaveHub(sendExitMessage);
+  }
+
+  if (SAF.connection.adapter && scene.components["shared-scene"]) {
+    scene.components["shared-scene"].unsubscribe();
   }
 
   const joinSuccessful = await joinHubChannel(hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI);

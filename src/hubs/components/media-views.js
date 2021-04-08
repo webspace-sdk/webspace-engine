@@ -154,6 +154,7 @@ function createVideoOrAudioEl(type) {
   el.muted = isIOS;
   el.preload = "auto";
   el.crossOrigin = "anonymous";
+  el.volume = 0; // Start video at volume zero so we don't hear it playing load + non-positionally
 
   return el;
 }
@@ -582,6 +583,8 @@ AFRAME.registerComponent("media-video", {
     }
 
     this.audio.setNodeSource(this.mediaElementAudioSource);
+    // Volume can now be maxxed out, was initialized to zero until plugged into sound system.
+    this.mediaElementAudioSource.mediaElement.volume = 1;
     this.el.setObject3D("sound", this.audio);
   },
 

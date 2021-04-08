@@ -1272,7 +1272,7 @@ async function start() {
     joinHubPromise = null;
 
     if (hubChannel.hubId !== hubId && nextHubToJoin === hubId) {
-      joinHubPromise = joinHub(socket, history, entryManager, remountUI, remountJelUI);
+      joinHubPromise = joinHub(scene, socket, history, entryManager, remountUI, remountJelUI);
       await joinHubPromise;
     }
   };
