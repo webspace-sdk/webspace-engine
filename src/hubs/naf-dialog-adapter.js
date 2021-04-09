@@ -310,8 +310,6 @@ export default class DialogAdapter extends EventTarget {
                 this._audioConsumerResolvers.delete(peerId);
               }
 
-              this.dispatchEvent(new CustomEvent("audio_stream_changed", { detail: { peerId } }));
-
               if (supportsInsertableStreams) {
                 // Add viseme decoder
                 const self = this;
@@ -356,6 +354,8 @@ export default class DialogAdapter extends EventTarget {
                 const receiverStreams = receiver.createEncodedStreams();
                 receiverStreams.readable.pipeThrough(receiverTransform).pipeTo(receiverStreams.writable);
               }
+
+              this.dispatchEvent(new CustomEvent("audio_stream_changed", { detail: { peerId } }));
             } else {
               // Video
               if (supportsInsertableStreams) {
