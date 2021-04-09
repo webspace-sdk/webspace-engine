@@ -97,7 +97,7 @@ AFRAME.registerComponent("avatar-audio-source", {
     this.mediaStreamSource = audio.context.createMediaStreamSource(stream);
     const destinationSource = audio.context.createMediaStreamSource(this.destination.stream);
     this.mediaStreamSource.connect(this.destination);
-    audio.setNodeSource(this.mediaStreamSource);
+    audio.setNodeSource(destinationSource);
     this.el.setObject3D(this.attrName, audio);
 
     this.el.emit("sound-source-set", { soundSource: destinationSource });
