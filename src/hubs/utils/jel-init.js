@@ -199,27 +199,28 @@ const migrateToNewDynaServer = async deployNotification => {
   });
 };
 
-function updateUIForHub(hub, hubChannel, remountUI, remountJelUI) {
-  const scene = document.querySelector("a-scene");
-  const mediaPresenceSystem = scene.systems["hubs-systems"].mediaPresenceSystem;
-  const selectedMediaLayer = mediaPresenceSystem.getSelectedMediaLayer();
-  const neon = document.querySelector("#neon");
-  const canvas = document.querySelector(".a-canvas");
-  const jelInterface = document.querySelector("#jel-interface");
+function updateUIForHub(isTransition, hub, hubChannel, remountUI, remountJelUI) {
+  const selectedMediaLayer = SYSTEMS.mediaPresenceSystem.getSelectedMediaLayer();
 
-  if (hub.type === "world") {
-    neon.classList.remove("visible");
-    jelInterface.classList.add("hub-type-world");
-    jelInterface.classList.remove("hub-type-channel");
-    canvas.focus();
-  } else {
-    neon.classList.add("visible");
-    jelInterface.classList.add("hub-type-channel");
-    jelInterface.classList.remove("hub-type-world");
-    neon.focus();
+  if (isTransition) {
+    const neon = document.querySelector("#neon");
+    const canvas = document.querySelector(".a-canvas");
+    const jelInterface = document.querySelector("#jel-interface");
+
+    if (hub.type === "world") {
+      neon.classList.remove("visible");
+      jelInterface.classList.add("hub-type-world");
+      jelInterface.classList.remove("hub-type-channel");
+      canvas.focus();
+    } else {
+      neon.classList.add("visible");
+      jelInterface.classList.add("hub-type-channel");
+      jelInterface.classList.remove("hub-type-world");
+      neon.focus();
+    }
+
+    window.APP.matrix.switchToHub(hub);
   }
-
-  window.APP.matrix.switchToHub(hub);
 
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
   remountJelUI({ hub, selectedMediaLayer });
@@ -658,7 +659,7 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
           // which assumes scene state is set already to "off" for channels.
           updateSceneStateForHub(hub);
 
-          updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
+          updateUIForHub(true, hub, hubChannel, remountUI, remountJelUI);
           updateEnvironmentForHub(hub);
 
           if (hub.type === "world") {
@@ -816,7 +817,7 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
     const isJustLabel = isSetEqual(new Set(["name"]), new Set(stale_fields));
 
     if (!isJustLabel) {
-      updateUIForHub(hub, hubChannel, remountUI, remountJelUI);
+      updateUIForHub(false, hub, hubChannel, remountUI, remountJelUI);
 
       if (stale_fields.includes("roles")) {
         hubChannel.fetchPermissions();
