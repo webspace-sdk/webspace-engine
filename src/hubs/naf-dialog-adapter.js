@@ -11,8 +11,6 @@ import { EventTarget } from "event-target-shim";
 const supportsInsertableStreams = !!(window.RTCRtpSender && !!RTCRtpSender.prototype.createEncodedStreams);
 const visemeMagicBytes = [0x00, 0x00, 0x00, 0x01]; // Bytes to add to end of frame to indicate a viseme will follow
 
-const isFirefox = navigator.userAgent.toLowerCase().indexOf("firefox") > -1;
-
 // NOTE this adapter does not properly fire the onOccupantsReceived events since those are only needed for
 // data channels, which are not yet supported. To fire that event, this class would need to keep a list of
 // occupants around and manage it.
@@ -73,15 +71,8 @@ export default class DialogAdapter extends EventTarget {
     this._createMissingProducersPromise = null;
     this._sendTransport = null;
     this._recvTransport = null;
-    this._lastSendConnectionState = null;
-    this._lastRecvConnectionState = null;
     this.type = "dialog";
     this.occupants = {}; // This is a public field
-
-    setInterval(() => {
-      this.restartTransportICEIfNecessary(this._sendTransport);
-      this.restartTransportICEIfNecessary(this._recvTransport);
-    }, 2000);
   }
 
   setOutgoingVisemeBuffer(buffer) {
@@ -222,7 +213,6 @@ export default class DialogAdapter extends EventTarget {
         }
 
         this._sendTransport = null;
-        this._lastSendConnectionState = null;
       }
 
       if (this._recvTransport) {
@@ -231,7 +221,6 @@ export default class DialogAdapter extends EventTarget {
         }
 
         this._recvTransport = null;
-        this._lastRecvConnectionState = null;
       }
     });
 
@@ -253,13 +242,27 @@ export default class DialogAdapter extends EventTarget {
 
           this._sendTransport.close();
           this._sendTransport = null;
+
           accept();
+
+          if (this._onSendTransportClosed) {
+            this._onSendTransportClosed();
+            this._onSendTransportClosed = null;
+          }
+
           break;
         }
         case "recvTransportClosed": {
           this._recvTransport.close();
           this._recvTransport = null;
+
           accept();
+
+          if (this._onRecvTransportClosed) {
+            this._onRecvTransportClosed();
+            this._onRecvTransportClosed = null;
+          }
+
           break;
         }
         case "recvTransportNeeded": {
@@ -662,10 +665,9 @@ export default class DialogAdapter extends EventTarget {
             this._sendTransport.on("connectionstatechange", state => {
               if (state === "connected" && this._localMediaStream) {
                 this.createMissingProducers(this._localMediaStream);
+              } else if (state === "failed") {
+                this.handleTransportConnectionFailure("send", this._sendTransport);
               }
-
-              this.restartTransportICEIfNecessary(this._sendTransport, state);
-              this._lastSendConnectionState = state;
             });
 
             this._sendTransport.on("produce", async ({ kind, rtpParameters, appData }, callback, errback) => {
@@ -733,8 +735,9 @@ export default class DialogAdapter extends EventTarget {
             });
 
             this._recvTransport.on("connectionstatechange", state => {
-              this.restartTransportICEIfNecessary(this._recvTransport, state);
-              this._lastRecvConnectionState = state;
+              if (state === "failed") {
+                this.handleTransportConnectionFailure("recv", this._recvTransport);
+              }
             });
 
             this._creatingRecvTransportPromise = null;
@@ -747,21 +750,55 @@ export default class DialogAdapter extends EventTarget {
     return this._creatingRecvTransportPromise;
   }
 
-  async closeUnneededTransports() {
+  closeUnneededTransports() {
+    const promises = [];
+
     if (this._sendTransport) {
       const micIsAlive = !!(this._micProducer && this._micEnabled);
       const videoIsAlive = !!this._videoProducer;
 
       if (!micIsAlive && !videoIsAlive) {
-        this._protoo.request("closeSendTransport", {});
+        promises.push(this.ensureSendTransportClosed());
       }
     }
 
     if (this._recvTransport) {
       if (this._consumers.size === 0) {
-        this._protoo.request("closeRecvTransport", {});
+        promises.push(this.ensureRecvTransportClosed());
       }
     }
+
+    return Promise.all(promises);
+  }
+
+  ensureSendTransportClosed() {
+    if (!this._sendTransport) return Promise.resolve();
+
+    if (this._sendTransport._closed) {
+      // Already closed, no need for round-trip.
+      this._sendTransport = null;
+      return Promise.resolve();
+    }
+
+    return new Promise(res => {
+      this._onSendTransportClosed = res;
+      this._protoo.request("closeSendTransport", {});
+    });
+  }
+
+  ensureRecvTransportClosed() {
+    if (!this._recvTransport) return Promise.resolve();
+
+    if (this._recvTransport._closed) {
+      // Already closed, no need for round-trip.
+      this._recvTransport = null;
+      return Promise.resolve();
+    }
+
+    return new Promise(res => {
+      this._onRecvTransportClosed = res;
+      this._protoo.request("closeRecvTransport", {});
+    });
   }
 
   closeUnneededTransportsAfterDelay() {
@@ -774,40 +811,29 @@ export default class DialogAdapter extends EventTarget {
     this._transportCleanupTimeout = setTimeout(() => this.closeUnneededTransports(), delay);
   }
 
-  async restartTransportICEIfNecessary(transport, connectionState = transport && transport.connectionState) {
-    if (!transport || transport._closed || !this._protoo || !this._protoo.connected) return;
+  async handleTransportConnectionFailure(type, transport) {
+    if (this._closed) return; // Protoo reconnect will handle this case.
 
-    const lastConnectionState =
-      transport === this._sendTransport ? this._lastSendConnectionState : this._lastRecvConnectionState;
+    if (transport && !transport._closed) {
+      console.warn("Transport open, but connection failed. Restarting ICE.");
 
-    if (
-      connectionState === "failed" ||
-      (!isFirefox && connectionState === "disconnected") ||
-      (connectionState === "new" && lastConnectionState === "failed")
-    ) {
-      console.warn("Restarting ICE for ", transport === this._sendTransport ? "send" : "recv", "transport");
+      const iceParameters = await this._protoo.request("restartIce", { transportId: transport.id });
+      await transport.restartIce({ iceParameters });
+    } else {
+      console.warn("Transport closed, checking for new server + re-creating.");
 
-      /*
-       * Firefox doesn't support hot updating ICE servers through mediasoup's updateIceServers (which
-       * internally uses setConfiguration):
-       * https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/setConfiguration
-       * So we recreate the transports/consumer/producers through reconnect to force setting
-       * new ICE servers for both send and receive transports.
-       */
+      const { xana_host, turn } = await window.APP.spaceChannel.getHosts();
+      setupPeerConnectionConfig(this, xana_host, turn);
 
-      if (isFirefox) {
-        if (this._protoo.connected) {
-          this.disconnect();
-          await this.connect();
+      if (type === "send") {
+        await this.ensureSendTransportClosed();
+
+        if (this._localMediaStream) {
+          await this.createMissingProducers(this._localMediaStream);
         }
-      } else if (!transport._closed) {
-        const { xana_host, turn } = await window.APP.spaceChannel.getHosts();
-        setupPeerConnectionConfig(this, xana_host, turn);
-
-        await transport.updateIceServers({ iceServers: this._iceServers });
-
-        const iceParameters = await this._protoo.request("restartIce", { transportId: transport.id });
-        await transport.restartIce({ iceParameters });
+      } else {
+        await this.ensureRecvTransportClosed();
+        await this.ensureRecvTransport();
       }
     }
   }
@@ -1024,7 +1050,6 @@ export default class DialogAdapter extends EventTarget {
       }
 
       this._sendTransport = null;
-      this._lastSendConnectionState = null;
     }
 
     if (this._recvTransport) {
@@ -1033,7 +1058,6 @@ export default class DialogAdapter extends EventTarget {
       }
 
       this._recvTransport = null;
-      this._lastRecvConnectionState = null;
     }
   }
 
