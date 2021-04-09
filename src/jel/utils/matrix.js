@@ -1044,8 +1044,9 @@ export default class Matrix extends EventTarget {
 
   _memberSort = (() => {
     const convertPresence = p => (p === "unavailable" ? "online" : p);
+    const order = ["active", "online", "offline"];
+
     const presenceIndex = p => {
-      const order = ["active", "online", "offline"];
       const idx = order.indexOf(convertPresence(p));
       return idx === -1 ? order.length : idx; // unknown states at the end
     };

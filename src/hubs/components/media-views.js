@@ -672,8 +672,8 @@ AFRAME.registerComponent("media-video", {
           }
         }
 
-        // No way to cancel promises, so if src has changed while we were creating the texture just throw it away.
-        if (this.data.src !== src) {
+        // No way to cancel promises, so if src has changed while we were creating the texture just throw it away. Or, if the element was removed.
+        if (this.data.src !== src || !this.el.parentElement) {
           disposeTextureUnlessError(texture);
           return;
         }
