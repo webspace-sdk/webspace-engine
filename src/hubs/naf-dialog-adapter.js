@@ -2,6 +2,7 @@ import * as mediasoupClient from "mediasoup-client";
 import protooClient from "protoo-client";
 import { debug as newDebug } from "debug";
 import { setupPeerConnectionConfig } from "../jel/utils/jel-url-utils";
+import { EventTarget } from "event-target-shim";
 
 // If the browser supports insertable streams, we insert a 5 byte payload at the end of the voice
 // frame encoding 4 magic bytes and 1 viseme byte. This is a hack because on older browsers
@@ -43,8 +44,9 @@ const PC_PROPRIETARY_CONSTRAINTS = {
 const CLOSE_MIC_PRODUCER_WITH_NO_PEERS_DURATION_MS = 5000;
 const CLOSE_MIC_PRODUCER_WITH_PEERS_DURATION_MS = 60000;
 
-export default class DialogAdapter {
+export default class DialogAdapter extends EventTarget {
   constructor() {
+    super();
     this._forceTcp = false;
     this._timeOffsets = [];
     this._occupants = {};
@@ -145,10 +147,6 @@ export default class DialogAdapter {
   setServerConnectListeners(successListener, failureListener) {
     this._connectSuccess = successListener;
     this._connectFailure = failureListener;
-  }
-
-  setAudioStreamChangedListener(audioStreamChangedListener) {
-    this._audioStreamChangedListener = audioStreamChangedListener;
   }
 
   setRoomOccupantListener(occupantListener) {
@@ -309,9 +307,7 @@ export default class DialogAdapter {
                 this._audioConsumerResolvers.delete(peerId);
               }
 
-              if (this._audioStreamChangedListener) {
-                this._audioStreamChangedListener();
-              }
+              this.dispatchEvent(new CustomEvent("audio_stream_changed", { detail: { peerId } }));
 
               if (supportsInsertableStreams) {
                 // Add viseme decoder

@@ -15,20 +15,24 @@ function createSilentAudioEl(stream) {
   return audioEl;
 }
 
-async function getMediaStream(el) {
+async function getOwnerId(el) {
   const networkedEl = await NAF.utils.getNetworkedEntity(el).catch(e => {
     console.error(INFO_INIT_FAILED, INFO_NO_NETWORKED_EL, e);
   });
   if (!networkedEl) {
     return null;
   }
-  const ownerId = networkedEl.components.networked.data.owner;
-  if (!ownerId) {
+  return networkedEl.components.networked.data.owner;
+}
+
+async function getMediaStream(el) {
+  const peerId = await getOwnerId(el);
+  if (!peerId) {
     console.error(INFO_INIT_FAILED, INFO_NO_OWNER);
     return null;
   }
-  const stream = await NAF.connection.adapter.getMediaStream(ownerId).catch(e => {
-    console.error(INFO_INIT_FAILED, `Error getting media stream for ${ownerId}`, e);
+  const stream = await NAF.connection.adapter.getMediaStream(peerId).catch(e => {
+    console.error(INFO_INIT_FAILED, `Error getting media stream for ${peerId}`, e);
   });
   if (!stream) {
     return null;
@@ -79,6 +83,7 @@ AFRAME.registerComponent("avatar-audio-source", {
 
     const audioListener = this.el.sceneEl.audioListener;
     const audio = this.data.positional ? new THREE.PositionalAudio(audioListener) : new THREE.Audio(audioListener);
+
     if (this.data.positional) {
       setPositionalAudioProperties(audio, this.data);
       setPositionalAudioPanningModel(audio);
@@ -88,10 +93,14 @@ AFRAME.registerComponent("avatar-audio-source", {
       createSilentAudioEl(stream); // TODO: Do the audio els need to get cleaned up?
     }
 
-    const mediaStreamSource = audio.context.createMediaStreamSource(stream);
-    audio.setNodeSource(mediaStreamSource);
+    this.destination = audio.context.createMediaStreamDestination();
+    this.mediaStreamSource = audio.context.createMediaStreamSource(stream);
+    const destinationSource = audio.context.createMediaStreamSource(this.destination.stream);
+    this.mediaStreamSource.connect(this.destination);
+    audio.setNodeSource(this.mediaStreamSource);
     this.el.setObject3D(this.attrName, audio);
-    this.el.emit("sound-source-set", { soundSource: mediaStreamSource });
+
+    this.el.emit("sound-source-set", { soundSource: destinationSource });
   },
 
   destroyAudio() {
@@ -104,17 +113,16 @@ AFRAME.registerComponent("avatar-audio-source", {
 
   init() {
     this.handleDetailLevelChanged = this.handleDetailLevelChanged.bind(this);
+    this.onAudioStreamChanged = this.onAudioStreamChanged.bind(this);
 
-    this.el.sceneEl.systems["hubs-systems"].audioSettingsSystem.registerAvatarAudioSource(this);
+    SYSTEMS.audioSettingsSystem.registerAvatarAudioSource(this);
 
     this.el.sceneEl.addEventListener("detail-level-changed", this.handleDetailLevelChanged);
 
     this.createAudio();
 
     NAF.utils.getNetworkedEntity(this.el).then(() => {
-      NAF.connection.adapter.setAudioStreamChangedListener(() => {
-        this.recreateAudio();
-      });
+      NAF.connection.adapter.addEventListener("audio_stream_changed", this.onAudioStreamChanged);
     });
   },
 
@@ -137,6 +145,7 @@ AFRAME.registerComponent("avatar-audio-source", {
     if (!audio) return;
 
     const shouldRecreateAudio = oldData.positional !== this.data.positional;
+
     if (shouldRecreateAudio) {
       this.recreateAudio();
     } else if (this.data.positional) {
@@ -145,9 +154,33 @@ AFRAME.registerComponent("avatar-audio-source", {
     }
   },
 
+  onAudioStreamChanged: async function({ detail: { peerId } }) {
+    const { el } = this;
+    const ownerId = await getOwnerId(el);
+    const audio = el.getObject3D(this.attrName);
+    if (!audio || ownerId !== peerId) return;
+
+    const newStream = await NAF.connection.adapter.getMediaStream(peerId, "audio").catch(e => {
+      console.error(INFO_INIT_FAILED, `Error getting media stream for ${peerId}`, e);
+    });
+
+    if (!newStream) return;
+
+    if (this.mediaStreamSource) {
+      this.mediaStreamSource.disconnect();
+    }
+
+    this.mediaStreamSource = audio.context.createMediaStreamSource(newStream);
+    this.mediaStreamSource.connect(this.destination);
+  },
+
   remove: function() {
-    this.el.sceneEl.systems["hubs-systems"].audioSettingsSystem.unregisterAvatarAudioSource(this);
+    SYSTEMS.audioSettingsSystem.unregisterAvatarAudioSource(this);
     this.el.sceneEl.removeEventListener("detail-level-changed", this.handleDetailLevelChanged);
     this.destroyAudio();
+
+    if (NAF.connection.adapter) {
+      NAF.connection.adapter.removeEventListener("audio_stream_changed", this.onAudioStreamChanged);
+    }
   }
 });
