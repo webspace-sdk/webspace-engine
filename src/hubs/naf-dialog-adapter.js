@@ -353,9 +353,14 @@ export default class DialogAdapter extends EventTarget {
                 const receiverStreams = receiver.createEncodedStreams();
                 receiverStreams.readable.pipeThrough(receiverTransform).pipeTo(receiverStreams.writable);
               }
-            } else if (supportsInsertableStreams) {
-              const receiverStreams = consumer.rtpReceiver.createEncodedStreams();
-              receiverStreams.readable.pipeTo(receiverStreams.writable);
+            } else {
+              // Video
+              if (supportsInsertableStreams) {
+                const receiverStreams = consumer.rtpReceiver.createEncodedStreams();
+                receiverStreams.readable.pipeTo(receiverStreams.writable);
+              }
+
+              this.dispatchEvent(new CustomEvent("video_stream_changed", { detail: { peerId } }));
             }
           } catch (err) {
             error('"newConsumer" request failed:%o', err);

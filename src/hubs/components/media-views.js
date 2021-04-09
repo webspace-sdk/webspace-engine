@@ -840,6 +840,23 @@ AFRAME.registerComponent("media-video", {
       if (url.startsWith("jel://clients")) {
         const streamClientId = url.substring(7).split("/")[1]; // /clients/<client id>/video is only URL for now
         const stream = await NAF.connection.adapter.getMediaStream(streamClientId, "video");
+        if (this._onVideoStreamChanged) {
+          NAF.connection.adapter.removeEventListener("video_stream_changed", this._onVideoStreamChanged);
+        }
+
+        this._onVideoStreamChanged = async ({ detail: { peerId } }) => {
+          if (peerId !== streamClientId) return;
+          const stream = await NAF.connection.adapter.getMediaStream(peerId, "video").catch(e => {
+            console.error("Error getting video stream for ", peerId, e);
+          });
+
+          if (stream) {
+            videoEl.srcObject = new MediaStream(stream.getVideoTracks());
+            videoEl.play(); // Video is stopped if stream dies.
+          }
+        };
+
+        NAF.connection.adapter.addEventListener("video_stream_changed", this._onVideoStreamChanged);
         videoEl.srcObject = new MediaStream(stream.getVideoTracks());
         // If hls.js is supported we always use it as it gives us better events
       } else if (contentType.startsWith("application/dash")) {
@@ -1112,6 +1129,10 @@ AFRAME.registerComponent("media-video", {
       this.video.removeEventListener("pause", this.onPauseStateChange);
       this.video.removeEventListener("play", this.onPauseStateChange);
       this.video.removeEventListener("ended", this.onPauseStateChange);
+
+      if (this._onVideoStreamChanged) {
+        NAF.connection.adapter.removeEventListener("video_stream_changed", this._onVideoStreamChanged);
+      }
     }
 
     if (this.hoverMenu) {
