@@ -93,14 +93,11 @@ AFRAME.registerComponent("avatar-audio-source", {
       createSilentAudioEl(stream); // TODO: Do the audio els need to get cleaned up?
     }
 
-    this.destination = audio.context.createMediaStreamDestination();
-    this.mediaStreamSource = audio.context.createMediaStreamSource(stream);
-    const destinationSource = audio.context.createMediaStreamSource(this.destination.stream);
-    this.mediaStreamSource.connect(this.destination);
-    audio.setNodeSource(destinationSource);
+    const mediaStreamSource = audio.context.createMediaStreamSource(stream);
+    audio.setNodeSource(mediaStreamSource);
     this.el.setObject3D(this.attrName, audio);
 
-    this.el.emit("sound-source-set", { soundSource: destinationSource });
+    this.el.emit("sound-source-set", { soundSource: mediaStreamSource });
   },
 
   destroyAudio() {
@@ -166,12 +163,7 @@ AFRAME.registerComponent("avatar-audio-source", {
 
     if (!newStream) return;
 
-    if (this.mediaStreamSource) {
-      this.mediaStreamSource.disconnect();
-    }
-
-    this.mediaStreamSource = audio.context.createMediaStreamSource(newStream);
-    this.mediaStreamSource.connect(this.destination);
+    this.recreateAudio();
   },
 
   remove: function() {
