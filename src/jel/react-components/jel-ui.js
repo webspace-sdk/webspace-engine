@@ -978,15 +978,13 @@ function JelUI(props) {
                   <FormattedMessage id="install.desktop" />
                 </HubCornerButton>
               )}
-              {isWorld &&
-                hubCan &&
-                hubCan("update_hub_meta", hub && hub.hub_id) && (
-                  <EnvironmentSettingsButton
-                    ref={environmentSettingsButtonRef}
-                    onMouseDown={e => cancelEventIfFocusedWithin(e, environmentSettingsPopupElement)}
-                    onClick={() => showEnvironmentSettingsPopup(environmentSettingsButtonRef)}
-                  />
-                )}
+              {isWorld && (
+                <EnvironmentSettingsButton
+                  ref={environmentSettingsButtonRef}
+                  onMouseDown={e => cancelEventIfFocusedWithin(e, environmentSettingsPopupElement)}
+                  onClick={() => showEnvironmentSettingsPopup(environmentSettingsButtonRef)}
+                />
+              )}
               {isWorld &&
                 hubCan &&
                 hubCan("update_hub_roles", hub && hub.hub_id) && (
@@ -1178,6 +1176,7 @@ function JelUI(props) {
         attributes={environmentSettingsPopupAttributes}
         hub={hub}
         hubMetadata={hubMetadata}
+        hubCan={hubCan}
         onColorsChanged={temporarilyUpdateEnvironmentColors}
         onColorChangeComplete={saveCurrentEnvironmentColors}
         onTypeChanged={updateWorldType}

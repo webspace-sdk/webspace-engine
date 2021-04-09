@@ -164,7 +164,8 @@ const EnvironmentSettingsPopup = ({
   onPresetColorsLeft,
   onPresetColorsClicked,
   hub,
-  hubMetadata
+  hubMetadata,
+  hubCan
 }) => {
   const { store } = window.APP;
   const [tipSource, tipTarget] = useSingleton();
@@ -348,6 +349,106 @@ const EnvironmentSettingsPopup = ({
   );
 
   const messages = getMessages();
+
+  const showAllSettings = hubCan && hubCan("update_hub_meta", hub && hub.hub_id);
+  const groundSwatchClick = useCallback(
+    () => {
+      setPickerColorValue(rgbToPickerValue(groundColor));
+      setSelectedColor("ground");
+      showPickerAtRef(groundSwatchRef);
+    },
+    [showPickerAtRef, groundColor]
+  );
+  const grassSwatchClick = useCallback(
+    () => {
+      setPickerColorValue(rgbToPickerValue(grassColor));
+      setSelectedColor("grass");
+      showPickerAtRef(grassSwatchRef);
+    },
+    [showPickerAtRef, grassColor]
+  );
+  const skySwatchClick = useCallback(
+    () => {
+      setPickerColorValue(rgbToPickerValue(skyColor));
+      setSelectedColor("sky");
+      showPickerAtRef(skySwatchRef);
+    },
+    [showPickerAtRef, skyColor]
+  );
+
+  const waterSwatchClick = useCallback(
+    () => {
+      setPickerColorValue(rgbToPickerValue(waterColor));
+      setSelectedColor("water");
+      showPickerAtRef(waterSwatchRef);
+    },
+    [showPickerAtRef, waterColor]
+  );
+
+  const edgeSwatchClick = useCallback(
+    () => {
+      setPickerColorValue(rgbToPickerValue(edgeColor));
+      setSelectedColor("edge");
+      showPickerAtRef(edgeSwatchRef);
+    },
+    [showPickerAtRef, edgeColor]
+  );
+
+  const leavesSwatchClick = useCallback(
+    () => {
+      setPickerColorValue(rgbToPickerValue(leavesColor));
+      setSelectedColor("leaves");
+      showPickerAtRef(leavesSwatchRef);
+    },
+    [showPickerAtRef, leavesColor]
+  );
+
+  const barkSwatchClick = useCallback(
+    () => {
+      setPickerColorValue(rgbToPickerValue(barkColor));
+      setSelectedColor("bark");
+      showPickerAtRef(barkSwatchRef);
+    },
+    [showPickerAtRef, barkColor]
+  );
+
+  const rockSwatchClick = useCallback(
+    () => {
+      setPickerColorValue(rgbToPickerValue(rockColor));
+      setSelectedColor("rock");
+      showPickerAtRef(rockSwatchRef);
+    },
+    [showPickerAtRef, rockColor]
+  );
+
+  const flatRadioChange = useCallback(
+    e => {
+      if (e.target.checked) {
+        onTypeChanged(3);
+      }
+    },
+    [onTypeChanged]
+  );
+
+  const hillsRadioChange = useCallback(
+    e => {
+      if (e.target.checked) {
+        onTypeChanged(2);
+      }
+    },
+    [onTypeChanged]
+  );
+
+  const islandsRadioChange = useCallback(
+    e => {
+      if (e.target.checked) {
+        onTypeChanged(1);
+      }
+    },
+    [onTypeChanged]
+  );
+
+  const presetsClick = useCallback(() => showPresetPicker(), [showPresetPicker]);
   const popupInput = (
     <div
       tabIndex={-1} // Ensures can be focused
@@ -406,247 +507,174 @@ const EnvironmentSettingsPopup = ({
           <PanelSectionHeader style={{ marginLeft: 0 }}>
             <FormattedMessage id="environment-settings-popup.environment" />
           </PanelSectionHeader>
-          <InputWrap style={{ minHeight: "48px", marginBottom: "2px" }}>
-            <Swatches>
-              <Tooltip
-                content={messages[`environment-settings-popup.swatch-ground`]}
-                delay={0}
-                placement="top"
-                key="sw-ground"
-                singleton={tipTarget}
-              >
-                <Swatch
-                  ref={groundSwatchRef}
-                  style={{ backgroundColor: groundColor && objRgbToCssRgb(groundColor) }}
-                  onClick={useCallback(
-                    () => {
-                      setPickerColorValue(rgbToPickerValue(groundColor));
-                      setSelectedColor("ground");
-                      showPickerAtRef(groundSwatchRef);
-                    },
-                    [showPickerAtRef, groundColor]
-                  )}
+          {showAllSettings && (
+            <InputWrap style={{ minHeight: "48px", marginBottom: "2px" }}>
+              <Swatches>
+                <Tooltip
+                  content={messages[`environment-settings-popup.swatch-ground`]}
+                  delay={0}
+                  placement="top"
+                  key="sw-ground"
+                  singleton={tipTarget}
+                >
+                  <Swatch
+                    ref={groundSwatchRef}
+                    style={{ backgroundColor: groundColor && objRgbToCssRgb(groundColor) }}
+                    onClick={groundSwatchClick}
+                  />
+                </Tooltip>
+                <Tooltip
+                  content={messages[`environment-settings-popup.swatch-grass`]}
+                  delay={0}
+                  placement="top"
+                  key="sw-grass"
+                  singleton={tipTarget}
+                >
+                  <Swatch
+                    ref={grassSwatchRef}
+                    style={{ backgroundColor: grassColor && objRgbToCssRgb(grassColor) }}
+                    onClick={grassSwatchClick}
+                  />
+                </Tooltip>
+                <Tooltip
+                  content={messages[`environment-settings-popup.swatch-sky`]}
+                  delay={0}
+                  placement="top"
+                  key="sw-sky"
+                  singleton={tipTarget}
+                >
+                  <Swatch
+                    ref={skySwatchRef}
+                    style={{ backgroundColor: skyColor && objRgbToCssRgb(skyColor) }}
+                    onClick={skySwatchClick}
+                  />
+                </Tooltip>
+                <Tooltip
+                  content={messages[`environment-settings-popup.swatch-water`]}
+                  delay={0}
+                  placement="top"
+                  key="sw-water"
+                  singleton={tipTarget}
+                >
+                  <Swatch
+                    ref={waterSwatchRef}
+                    style={{ backgroundColor: waterColor && objRgbToCssRgb(waterColor) }}
+                    onClick={waterSwatchClick}
+                  />
+                </Tooltip>
+                <Tooltip
+                  content={messages[`environment-settings-popup.swatch-edge`]}
+                  delay={0}
+                  placement="top"
+                  key="sw-edge"
+                  singleton={tipTarget}
+                >
+                  <Swatch
+                    ref={edgeSwatchRef}
+                    style={{ backgroundColor: edgeColor && objRgbToCssRgb(edgeColor) }}
+                    onClick={edgeSwatchClick}
+                  />
+                </Tooltip>
+                <Tooltip
+                  content={messages[`environment-settings-popup.swatch-leaves`]}
+                  delay={0}
+                  placement="top"
+                  key="sw-leaves"
+                  singleton={tipTarget}
+                >
+                  <Swatch
+                    ref={leavesSwatchRef}
+                    style={{ backgroundColor: leavesColor && objRgbToCssRgb(leavesColor) }}
+                    onClick={leavesSwatchClick}
+                  />
+                </Tooltip>
+                <Tooltip
+                  content={messages[`environment-settings-popup.swatch-bark`]}
+                  delay={0}
+                  placement="top"
+                  key="sw-bark"
+                  singleton={tipTarget}
+                >
+                  <Swatch
+                    ref={barkSwatchRef}
+                    style={{ backgroundColor: barkColor && objRgbToCssRgb(barkColor) }}
+                    onClick={barkSwatchClick}
+                  />
+                </Tooltip>
+                <Tooltip
+                  content={messages[`environment-settings-popup.swatch-rock`]}
+                  delay={0}
+                  placement="top"
+                  key="sw-rock"
+                  singleton={tipTarget}
+                >
+                  <Swatch
+                    ref={rockSwatchRef}
+                    style={{ backgroundColor: rockColor && objRgbToCssRgb(rockColor) }}
+                    onClick={rockSwatchClick}
+                  />
+                </Tooltip>
+                <Tooltip
+                  content={messages[`environment-settings-popup.presets`]}
+                  delay={0}
+                  placement="top"
+                  key="sw-presets"
+                  singleton={tipTarget}
+                >
+                  <BigIconButton
+                    style={{ width: "32px", height: "32px", marginLeft: "6px" }}
+                    includeBorder={true}
+                    iconSrc={presetsIcon}
+                    ref={presetButtonRef}
+                    onClick={presetsClick}
+                  />
+                </Tooltip>
+              </Swatches>
+            </InputWrap>
+          )}
+          {showAllSettings && (
+            <InputWrap style={{ minHeight: "48px", marginLeft: "24px" }}>
+              <RadioWrap>
+                <Radio
+                  type="radio"
+                  id={"world_type_flat"}
+                  name={"world_type"}
+                  checked={worldType === 3}
+                  value={3}
+                  onChange={flatRadioChange}
                 />
-              </Tooltip>
-              <Tooltip
-                content={messages[`environment-settings-popup.swatch-grass`]}
-                delay={0}
-                placement="top"
-                key="sw-grass"
-                singleton={tipTarget}
-              >
-                <Swatch
-                  ref={grassSwatchRef}
-                  style={{ backgroundColor: grassColor && objRgbToCssRgb(grassColor) }}
-                  onClick={useCallback(
-                    () => {
-                      setPickerColorValue(rgbToPickerValue(grassColor));
-                      setSelectedColor("grass");
-                      showPickerAtRef(grassSwatchRef);
-                    },
-                    [showPickerAtRef, grassColor]
-                  )}
+                <Label htmlFor="world_type_flat" style={{ cursor: "pointer" }}>
+                  <FormattedMessage id="environment-settings-popup.world-type-flat" />
+                </Label>
+              </RadioWrap>
+              <RadioWrap>
+                <Radio
+                  type="radio"
+                  id={"world_type_hills"}
+                  name={"world_type"}
+                  checked={worldType === 2}
+                  value={2}
+                  onChange={hillsRadioChange}
                 />
-              </Tooltip>
-              <Tooltip
-                content={messages[`environment-settings-popup.swatch-sky`]}
-                delay={0}
-                placement="top"
-                key="sw-sky"
-                singleton={tipTarget}
-              >
-                <Swatch
-                  ref={skySwatchRef}
-                  style={{ backgroundColor: skyColor && objRgbToCssRgb(skyColor) }}
-                  onClick={useCallback(
-                    () => {
-                      setPickerColorValue(rgbToPickerValue(skyColor));
-                      setSelectedColor("sky");
-                      showPickerAtRef(skySwatchRef);
-                    },
-                    [showPickerAtRef, skyColor]
-                  )}
+                <Label htmlFor="world_type_hills" style={{ cursor: "pointer" }}>
+                  <FormattedMessage id="environment-settings-popup.world-type-hills" />
+                </Label>
+              </RadioWrap>
+              <RadioWrap>
+                <Radio
+                  type="radio"
+                  id={"world_type_islands"}
+                  name={"world_type"}
+                  checked={worldType === 1}
+                  value={1}
+                  onChange={islandsRadioChange}
                 />
-              </Tooltip>
-              <Tooltip
-                content={messages[`environment-settings-popup.swatch-water`]}
-                delay={0}
-                placement="top"
-                key="sw-water"
-                singleton={tipTarget}
-              >
-                <Swatch
-                  ref={waterSwatchRef}
-                  style={{ backgroundColor: waterColor && objRgbToCssRgb(waterColor) }}
-                  onClick={useCallback(
-                    () => {
-                      setPickerColorValue(rgbToPickerValue(waterColor));
-                      setSelectedColor("water");
-                      showPickerAtRef(waterSwatchRef);
-                    },
-                    [showPickerAtRef, waterColor]
-                  )}
-                />
-              </Tooltip>
-              <Tooltip
-                content={messages[`environment-settings-popup.swatch-edge`]}
-                delay={0}
-                placement="top"
-                key="sw-edge"
-                singleton={tipTarget}
-              >
-                <Swatch
-                  ref={edgeSwatchRef}
-                  style={{ backgroundColor: edgeColor && objRgbToCssRgb(edgeColor) }}
-                  onClick={useCallback(
-                    () => {
-                      setPickerColorValue(rgbToPickerValue(edgeColor));
-                      setSelectedColor("edge");
-                      showPickerAtRef(edgeSwatchRef);
-                    },
-                    [showPickerAtRef, edgeColor]
-                  )}
-                />
-              </Tooltip>
-              <Tooltip
-                content={messages[`environment-settings-popup.swatch-leaves`]}
-                delay={0}
-                placement="top"
-                key="sw-leaves"
-                singleton={tipTarget}
-              >
-                <Swatch
-                  ref={leavesSwatchRef}
-                  style={{ backgroundColor: leavesColor && objRgbToCssRgb(leavesColor) }}
-                  onClick={useCallback(
-                    () => {
-                      setPickerColorValue(rgbToPickerValue(leavesColor));
-                      setSelectedColor("leaves");
-                      showPickerAtRef(leavesSwatchRef);
-                    },
-                    [showPickerAtRef, leavesColor]
-                  )}
-                />
-              </Tooltip>
-              <Tooltip
-                content={messages[`environment-settings-popup.swatch-bark`]}
-                delay={0}
-                placement="top"
-                key="sw-bark"
-                singleton={tipTarget}
-              >
-                <Swatch
-                  ref={barkSwatchRef}
-                  style={{ backgroundColor: barkColor && objRgbToCssRgb(barkColor) }}
-                  onClick={useCallback(
-                    () => {
-                      setPickerColorValue(rgbToPickerValue(barkColor));
-                      setSelectedColor("bark");
-                      showPickerAtRef(barkSwatchRef);
-                    },
-                    [showPickerAtRef, barkColor]
-                  )}
-                />
-              </Tooltip>
-              <Tooltip
-                content={messages[`environment-settings-popup.swatch-rock`]}
-                delay={0}
-                placement="top"
-                key="sw-rock"
-                singleton={tipTarget}
-              >
-                <Swatch
-                  ref={rockSwatchRef}
-                  style={{ backgroundColor: rockColor && objRgbToCssRgb(rockColor) }}
-                  onClick={useCallback(
-                    () => {
-                      setPickerColorValue(rgbToPickerValue(rockColor));
-                      setSelectedColor("rock");
-                      showPickerAtRef(rockSwatchRef);
-                    },
-                    [showPickerAtRef, rockColor]
-                  )}
-                />
-              </Tooltip>
-              <Tooltip
-                content={messages[`environment-settings-popup.presets`]}
-                delay={0}
-                placement="top"
-                key="sw-presets"
-                singleton={tipTarget}
-              >
-                <BigIconButton
-                  style={{ width: "32px", height: "32px", marginLeft: "6px" }}
-                  includeBorder={true}
-                  iconSrc={presetsIcon}
-                  ref={presetButtonRef}
-                  onClick={useCallback(() => showPresetPicker(), [showPresetPicker])}
-                />
-              </Tooltip>
-            </Swatches>
-          </InputWrap>
-          <InputWrap style={{ minHeight: "48px", marginLeft: "24px" }}>
-            <RadioWrap>
-              <Radio
-                type="radio"
-                id={"world_type_flat"}
-                name={"world_type"}
-                checked={worldType === 3}
-                value={3}
-                onChange={useCallback(
-                  e => {
-                    if (e.target.checked) {
-                      onTypeChanged(3);
-                    }
-                  },
-                  [onTypeChanged]
-                )}
-              />
-              <Label htmlFor="world_type_flat" style={{ cursor: "pointer" }}>
-                <FormattedMessage id="environment-settings-popup.world-type-flat" />
-              </Label>
-            </RadioWrap>
-            <RadioWrap>
-              <Radio
-                type="radio"
-                id={"world_type_hills"}
-                name={"world_type"}
-                checked={worldType === 2}
-                value={2}
-                onChange={useCallback(
-                  e => {
-                    if (e.target.checked) {
-                      onTypeChanged(2);
-                    }
-                  },
-                  [onTypeChanged]
-                )}
-              />
-              <Label htmlFor="world_type_hills" style={{ cursor: "pointer" }}>
-                <FormattedMessage id="environment-settings-popup.world-type-hills" />
-              </Label>
-            </RadioWrap>
-            <RadioWrap>
-              <Radio
-                type="radio"
-                id={"world_type_islands"}
-                name={"world_type"}
-                checked={worldType === 1}
-                value={1}
-                onChange={useCallback(
-                  e => {
-                    if (e.target.checked) {
-                      onTypeChanged(1);
-                    }
-                  },
-                  [onTypeChanged]
-                )}
-              />
-              <Label htmlFor="world_type_islands" style={{ cursor: "pointer" }}>
-                <FormattedMessage id="environment-settings-popup.world-type-islands" />
-              </Label>
-            </RadioWrap>
-          </InputWrap>
+                <Label htmlFor="world_type_islands" style={{ cursor: "pointer" }}>
+                  <FormattedMessage id="environment-settings-popup.world-type-islands" />
+                </Label>
+              </RadioWrap>
+            </InputWrap>
+          )}
           <InputWrap style={{ minHeight: "48px", marginLeft: "24px" }}>
             <Checkbox
               checked={enableAmbience}
@@ -667,7 +695,6 @@ const EnvironmentSettingsPopup = ({
       {children}
     </div>
   );
-
   if (popupRoot) {
     return ReactDOM.createPortal(popupInput, popupRoot);
   } else {
@@ -683,7 +710,8 @@ EnvironmentSettingsPopup.propTypes = {
   onPresetColorsLeft: PropTypes.func,
   onPresetColorsClicked: PropTypes.func,
   hub: PropTypes.object,
-  hubMetadata: PropTypes.object
+  hubMetadata: PropTypes.object,
+  hubCan: PropTypes.func
 };
 
 export { EnvironmentSettingsPopup as default };
