@@ -48,6 +48,7 @@ import qsTruthy from "../../hubs/utils/qs_truthy";
 import { useInstallPWA } from "../../hubs/react-components/input/useInstallPWA";
 
 const skipSidePanels = qsTruthy("skip_panels");
+const skipNeon = qsTruthy("skip_neon");
 
 const Wrap = styled.div`
   pointer-events: none;
@@ -912,12 +913,13 @@ function JelUI(props) {
   const onClickExternalCameraRotate = useCallback(() => SYSTEMS.externalCameraSystem.toggleCamera(), []);
 
   const isWorld = hub && hub.type === "world";
+  const waitingForMatrix = isMatrixLoading && !skipNeon;
 
   return (
     <WrappedIntlProvider>
       <div>
         <LoadingPanel
-          isLoading={isMatrixLoading || isInitializingSpace || !hasFetchedInitialHubMetadata}
+          isLoading={waitingForMatrix || isInitializingSpace || !hasFetchedInitialHubMetadata}
           unavailableReason={unavailableReason}
         />
         <Snackbar />

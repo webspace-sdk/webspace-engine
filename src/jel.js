@@ -252,6 +252,7 @@ const isBotMode = qsTruthy("bot");
 const isTelemetryDisabled = qsTruthy("disable_telemetry");
 const isDebug = qsTruthy("debug");
 const disablePausing = qsTruthy("no_pause") || isBotMode;
+const skipNeon = qsTruthy("skip_neon");
 
 if (isBotMode) {
   const token = qs.get("credentials_token");
@@ -1221,16 +1222,18 @@ async function start() {
           });
 
           if (isInitialAccountChannelJoin) {
-            // Initialize connection to matrix homeserver.
-            await matrix.init(
-              scene,
-              subscriptions,
-              sessionId,
-              accountInfo.matrix_homeserver,
-              accountInfo.matrix_token,
-              accountInfo.matrix_user_id
-            );
-            remountJelUI({ roomForHubCan: matrix.roomForHubCan.bind(matrix) });
+            if (!skipNeon) {
+              // Initialize connection to matrix homeserver.
+              await matrix.init(
+                scene,
+                subscriptions,
+                sessionId,
+                accountInfo.matrix_homeserver,
+                accountInfo.matrix_token,
+                accountInfo.matrix_user_id
+              );
+              remountJelUI({ roomForHubCan: matrix.roomForHubCan.bind(matrix) });
+            }
 
             isInitialAccountChannelJoin = false;
           }
