@@ -506,6 +506,10 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
 
         console.log(`Xana host: ${space.xana_host}:${space.xana_port}`);
         console.log(`Arpa host: ${space.arpa_host}:${space.arpa_port}`);
+
+        const xanaUrl = `wss://${space.xana_host}:${space.xana_port}`;
+        const arpaUrl = `wss://${space.arpa_host}:${space.arpa_port}`;
+
         // Wait for scene objects to load before connecting, so there is no race condition on network state.
         scene.setAttribute("networked-scene", {
           audio: true,
@@ -513,14 +517,14 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
           adapter: "dialog",
           app: "jel",
           room: spaceId,
-          serverURL: `wss://${space.xana_host}:${space.xana_port}`,
+          serverURL: xanaUrl,
           debug: !!isDebug
         });
 
         scene.setAttribute("shared-scene", {
           connectOnLoad: false,
           collection: spaceId,
-          serverURL: `wss://${space.arpa_host}:${space.arpa_port}`,
+          serverURL: arpaUrl,
           debug: !!isDebug
         });
 

@@ -252,26 +252,29 @@ export async function createHub(
     headers.authorization = `bearer ${store.state.credentials.token}`;
   }
 
-  let res = await fetch(createUrl, {
+  return await fetch(createUrl, {
     body: JSON.stringify(payload),
     headers,
     method: "POST"
   }).then(r => r.json());
+}
 
-  if (res.error === "invalid_token") {
-    // Clear the invalid token from store.
-    store.clearCredentials();
+export async function createVox() {
+  const store = window.APP.store;
+  const createUrl = getReticulumFetchUrl("/api/v1/voxes");
+  const payload = { vox: {} };
 
-    // Create hub anonymously
-    delete headers.authorization;
-    res = await fetch(createUrl, {
-      body: JSON.stringify(payload),
-      headers,
-      method: "POST"
-    }).then(r => r.json());
+  const headers = { "content-type": "application/json" };
+
+  if (store.state && store.state.credentials.token) {
+    headers.authorization = `bearer ${store.state.credentials.token}`;
   }
 
-  return res;
+  return await fetch(createUrl, {
+    body: JSON.stringify(payload),
+    headers,
+    method: "POST"
+  }).then(r => r.json());
 }
 
 export function getPresenceEntryForSession(presences, sessionId) {

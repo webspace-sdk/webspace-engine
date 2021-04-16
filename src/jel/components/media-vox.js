@@ -5,6 +5,8 @@ import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
 import { generateMeshBVH } from "../../hubs/utils/three-utils";
 import { addVertexCurvingToShader } from "../systems/terrain-system";
 import { groundMedia, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
+import { createVox } from "../../hubs/utils/phoenix-utils";
+import VoxSync from "../utils/vox-sync";
 
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshBasicMaterial, VertexColors } = THREE;
 
@@ -40,7 +42,8 @@ voxelMaterial.stencilZPass = THREE.ReplaceStencilOp;
 
 AFRAME.registerComponent("media-vox", {
   schema: {
-    src: { type: "string" }
+    src: { type: "string" },
+    vox_id: { type: "string" }
   },
 
   async init() {
@@ -72,6 +75,31 @@ AFRAME.registerComponent("media-vox", {
       case MEDIA_PRESENCE.HIDDEN:
         return this.setMediaToHidden(refresh);
     }
+  },
+
+  async beginEditing() {
+    const { connection } = SAF.connection.adapter;
+
+    if (this.voxSync) return;
+
+    let voxId = this.data.vox_id;
+
+    if (!this.data.vox_id) {
+      voxId = await this.createVox();
+    }
+
+    this.voxSync = new VoxSync(voxId);
+    await this.voxSync.init(connection);
+  },
+
+  async createVox() {
+    // Create the vox object on dyna and arpa
+    const {
+      voxes: [{ vox_id }]
+    } = await createVox();
+
+    console.log("created", vox_id);
+    return vox_id;
   },
 
   async setMediaToHidden() {
