@@ -5,6 +5,7 @@ import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
 import { generateMeshBVH } from "../../hubs/utils/three-utils";
 import { addVertexCurvingToShader } from "../systems/terrain-system";
 import { groundMedia, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
+import { getNetworkedEntity, ensureOwnership } from "../../jel/utils/ownership-utils";
 import { createVox } from "../../hubs/utils/phoenix-utils";
 import VoxSync from "../utils/vox-sync";
 
@@ -43,13 +44,17 @@ voxelMaterial.stencilZPass = THREE.ReplaceStencilOp;
 AFRAME.registerComponent("media-vox", {
   schema: {
     src: { type: "string" },
-    vox_id: { type: "string" }
+    voxId: { type: "string" }
   },
 
   async init() {
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
     }
+
+    getNetworkedEntity(this.el).then(networkedEl => {
+      this.networkedEl = networkedEl;
+    });
   },
 
   async update(oldData) {
@@ -78,14 +83,17 @@ AFRAME.registerComponent("media-vox", {
   },
 
   async beginEditing() {
+    ensureOwnership(this.networkedEl);
+
     const { connection } = SAF.connection.adapter;
 
     if (this.voxSync) return;
 
-    let voxId = this.data.vox_id;
+    let voxId = this.data.voxId;
 
-    if (!this.data.vox_id) {
+    if (!voxId) {
       voxId = await this.createVox();
+      this.el.setAttribute("media-vox", { voxId });
     }
 
     this.voxSync = new VoxSync(voxId);
@@ -98,7 +106,6 @@ AFRAME.registerComponent("media-vox", {
       voxes: [{ vox_id }]
     } = await createVox();
 
-    console.log("created", vox_id);
     return vox_id;
   },
 

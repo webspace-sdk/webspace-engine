@@ -197,7 +197,7 @@ function registerNetworkSchemas() {
       },
       {
         component: "media-vox",
-        property: "vox_id"
+        property: "voxId"
       }
     ],
     nonAuthorizedComponents: [

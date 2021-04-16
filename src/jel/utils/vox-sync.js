@@ -1,5 +1,6 @@
 import jwtDecode from "jwt-decode";
 import { EventTarget } from "event-target-shim";
+import { VoxChunk } from "ot-vox";
 
 export default class VoxSync extends EventTarget {
   constructor(voxId) {
@@ -22,7 +23,13 @@ export default class VoxSync extends EventTarget {
     await new Promise(res => {
       doc.subscribe(() => {
         doc.on("op", this.handleDocOp);
-        console.log(doc.data);
+
+        // Frames
+        if (!doc.data.f) {
+          doc.submitOp([{ p: ["f"], oi: [] }]);
+          doc.submitOp([{ p: ["f", 0], li: null }]);
+          doc.submitOp([{ p: ["f", 0], t: "vox0", o: { d: new VoxChunk(32).serialize() } }]);
+        }
 
         res();
       });
