@@ -28,6 +28,14 @@ export const CREATE_SELECT_LIST_HEIGHT = 350;
 
 const items = [
   [
+    "objects",
+    [
+      ["vox_new", cubeIconSrc, modelThumbSrc],
+      ["screen", screenIconSrc, screenThumbSrc],
+      ["voxmoji", cubeIconSrc, voxmojiThumbSrc]
+    ]
+  ],
+  [
     "text",
     [
       ["label", newPageIconSrc, labelThumbSrc],
@@ -35,7 +43,6 @@ const items = [
       ["banner", newPageIconSrc, bannerThumbSrc]
     ]
   ],
-  ["objects", [["screen", screenIconSrc, screenThumbSrc], ["voxmoji", cubeIconSrc, voxmojiThumbSrc]]],
   ["images", [["image_embed", linkIconSrc, imageThumbSrc], ["image_upload", uploadIconSrc, imageThumbSrc]]],
   ["videos", [["video_embed", linkIconSrc, videoThumbSrc], ["video_upload", uploadIconSrc, videoThumbSrc]]],
   ["models", [["model_embed", linkIconSrc, modelThumbSrc], ["model_upload", uploadIconSrc, modelThumbSrc]]],

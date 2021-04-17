@@ -566,6 +566,9 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
       case "banner":
         scene.emit("add_media_text", "banner");
         break;
+      case "vox_new":
+        scene.emit("add_media_vox", "");
+        break;
       case "voxmoji":
         scene.emit("action_show_emoji_picker", "");
         break;

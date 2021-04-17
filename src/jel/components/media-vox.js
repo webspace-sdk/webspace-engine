@@ -43,8 +43,7 @@ voxelMaterial.stencilZPass = THREE.ReplaceStencilOp;
 
 AFRAME.registerComponent("media-vox", {
   schema: {
-    src: { type: "string" },
-    voxId: { type: "string" }
+    src: { type: "string" }
   },
 
   async init() {
@@ -89,24 +88,9 @@ AFRAME.registerComponent("media-vox", {
 
     if (this.voxSync) return;
 
-    let voxId = this.data.voxId;
-
-    if (!voxId) {
-      voxId = await this.createVox();
-      this.el.setAttribute("media-vox", { voxId });
-    }
-
-    this.voxSync = new VoxSync(voxId);
-    await this.voxSync.init(connection);
-  },
-
-  async createVox() {
-    // Create the vox object on dyna and arpa
-    const {
-      voxes: [{ vox_id }]
-    } = await createVox();
-
-    return vox_id;
+    // TODO
+    //this.voxSync = new VoxSync(voxId);
+    //await this.voxSync.init(connection);
   },
 
   async setMediaToHidden() {
@@ -137,31 +121,32 @@ AFRAME.registerComponent("media-vox", {
       const { src } = this.data;
       if (!src) return;
 
-      if (!this.mesh) {
-        disposeExistingMesh(this.el);
+      //if (!this.mesh) {
+      //  disposeExistingMesh(this.el);
 
-        this.el.emit("model-loading");
+      //  this.el.emit("model-loading");
 
-        const voxLoader = new VOXLoader();
-        const chunks = await new Promise(res => voxLoader.load(src, res));
-        const geo = new VOXBufferGeometry(chunks[0]);
-        const mat = voxelMaterial;
-        this.mesh = new THREE.Mesh(geo, mat);
-        this.mesh.castShadow = true;
-        await new Promise(res =>
-          setTimeout(() => {
-            generateMeshBVH(this.mesh);
-            res();
-          })
-        );
-        this.el.object3D.matrixNeedsUpdate = true;
-        this.el.setObject3D("mesh", this.mesh);
-        this.el.emit("model-loaded", { format: "vox", model: this.mesh });
-      }
+      //  const voxLoader = new VOXLoader();
+      //  const chunks = await new Promise(res => voxLoader.load(src, res));
+      //  const geo = new VOXBufferGeometry(chunks[0]);
+      //  const mat = voxelMaterial;
+      //  this.mesh = new THREE.Mesh(geo, mat);
+      //  this.mesh.castShadow = true;
+      //  await new Promise(res =>
+      //    setTimeout(() => {
+      //      generateMeshBVH(this.mesh);
+      //      res();
+      //    })
+      //  );
+      //  this.el.object3D.matrixNeedsUpdate = true;
+      //  this.el.setObject3D("mesh", this.mesh);
+      //  this.el.emit("model-loaded", { format: "vox", model: this.mesh });
+      //}
     } catch (e) {
       this.el.emit("model-error", { src: this.data.src });
       throw e;
     } finally {
+      console.log("present", this.data.src);
       mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
     }
   },

@@ -54,7 +54,7 @@ export default class VoxSync extends EventTarget {
 
     const color = voxColorForRGBT(r, g, b, VOXEL_TYPE_DIFFUSE);
     const delta = VoxChunk.fromJSON({ size: 1, palette: [color], indices: [1] });
-    const op = { f: frame, d: delta.serialize() };
+    const op = { f: frame, d: delta.serialize(), o: [x, y, z] };
 
     this._doc.submitOp(op);
   }

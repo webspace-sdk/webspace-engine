@@ -4,6 +4,8 @@ import { hackyMobileSafariTest } from "./utils/detect-touchscreen";
 import { ensureOwnership } from "./../jel/utils/ownership-utils";
 import { MEDIA_TEXT_COLOR_PRESETS } from "../jel/components/media-text";
 import { waitForDOMContentLoaded } from "./utils/async-utils";
+import { createVox } from "./utils/phoenix-utils";
+
 const { detect } = require("detect-browser");
 
 const isBotMode = qsTruthy("bot");
@@ -205,6 +207,15 @@ export default class SceneEntryManager {
 
     this.scene.addEventListener("add_media_emoji", ({ detail: emoji }) => {
       spawnMediaInfrontOfPlayer(null, emoji);
+    });
+
+    this.scene.addEventListener("add_media_vox", async () => {
+      const {
+        vox: [{ url }]
+      } = await createVox();
+
+      // Skip resolving these URLs since they're from dyna.
+      spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL, null, {}, true, true);
     });
 
     this.scene.addEventListener("object_spawned", e => {

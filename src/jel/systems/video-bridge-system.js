@@ -150,6 +150,7 @@ export class VideoBridgeSystem {
             null,
             {},
             false,
+            true,
             -2.25,
             1.0
           );

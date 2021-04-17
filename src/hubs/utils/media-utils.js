@@ -823,6 +823,7 @@ export const spawnMediaInfrontOfPlayer = (
   contentSubtype = null,
   mediaOptions = null,
   networked = true,
+  skipResolve = false,
   zOffset = -1.5,
   yOffset = 0
 ) => {
@@ -835,7 +836,7 @@ export const spawnMediaInfrontOfPlayer = (
     "#interactable-media",
     contentOrigin,
     contentSubtype,
-    !!(src && !(src instanceof MediaStream)),
+    !skipResolve && !!(src && !(src instanceof MediaStream) && !src.startsWith("jel://")),
     true,
     true,
     mediaOptions,

@@ -261,7 +261,7 @@ export async function createHub(
 
 export async function createVox() {
   const store = window.APP.store;
-  const createUrl = getReticulumFetchUrl("/api/v1/voxes");
+  const createUrl = getReticulumFetchUrl("/api/v1/vox");
   const payload = { vox: {} };
 
   const headers = { "content-type": "application/json" };

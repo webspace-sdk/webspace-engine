@@ -194,10 +194,6 @@ function registerNetworkSchemas() {
       {
         component: "media-loader",
         property: "createdAt"
-      },
-      {
-        component: "media-vox",
-        property: "voxId"
       }
     ],
     nonAuthorizedComponents: [

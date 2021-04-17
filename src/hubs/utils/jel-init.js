@@ -996,6 +996,12 @@ export async function joinHub(scene, socket, history, entryManager, remountUI, r
 
   const joinSuccessful = await joinHubChannel(hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI);
 
+  // TODO remove
+  setTimeout(async () => {
+    //await document.querySelector("[media-vox]").components["media-vox"].beginEditing();
+    //window.vox = document.querySelector("[media-vox]").components["media-vox"].voxSync;
+  }, 2000);
+
   if (joinSuccessful) {
     store.setLastJoinedHubId(spaceId, hubId);
   } else {

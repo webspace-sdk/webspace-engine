@@ -623,14 +623,8 @@ AFRAME.registerComponent("media-loader", {
             modelToWorldScale: this.data.fitToBox ? 0.0001 : 1.0
           })
         );
-      } else if (contentType.startsWith("model/vox")) {
-        this.el.addEventListener(
-          "model-loaded",
-          () => {
-            this.onMediaLoaded(SHAPE.HULL, true);
-          },
-          { once: true }
-        );
+      } else if (contentType.startsWith("model/vnd.jel-vox")) {
+        this.el.addEventListener("model-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
         this.el.addEventListener("model-error", this.onError, { once: true });
         this.el.setAttribute("floaty-object", { gravitySpeedLimit: 1.85 });
         this.setToSingletonMediaComponent(
