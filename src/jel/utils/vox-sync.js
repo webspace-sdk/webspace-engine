@@ -1,24 +1,44 @@
 import jwtDecode from "jwt-decode";
 import { EventTarget } from "event-target-shim";
-import { VoxSnapshot, VoxChunk, voxColorForRGBT, VOXEL_TYPE_DIFFUSE, REMOVE_VOXEL_COLOR } from "ot-vox";
+import { VoxChunk, voxColorForRGBT, VOXEL_TYPE_DIFFUSE, REMOVE_VOXEL_COLOR } from "ot-vox";
 
 const MAX_FRAMES = 32;
 const INITIAL_FRAME_SIZE = 32;
 
 export default class VoxSync extends EventTarget {
-  constructor(voxId) {
-    super();
-    this._voxId = voxId;
+  static instances = new Map();
 
-    // Map of <F << 24 | X << 16 | Y << 8 | Z> -> offset in data subarray to determine
-    // if insert or update when changing voxels.
-    this._offsetIndex = new Map();
+  static get(voxId) {
+    let sync = VoxSync.instances.get(voxId);
+    if (sync) return sync;
+
+    sync = new VoxSync(voxId);
+    VoxSync.instances.set(voxId, sync);
+    return sync;
   }
 
-  async init(connection) {
+  constructor(voxId) {
+    super();
+
+    this._voxId = voxId;
+  }
+
+  static async beginSyncing(voxId, forEdit = false) {
+    if (VoxSync.instances.has(voxId)) return VoxSync.get(voxId);
+    const sync = VoxSync.get(voxId);
+    const { connection } = SAF.connection.adapter;
+    await sync.init(connection, forEdit);
+    return sync;
+  }
+
+  async init(connection, forEdit) {
     this._connection = connection;
 
-    await this.refreshPermissions();
+    // If we're editing this object, we need to keep polling for permissions
+    // (vox objects can be read by everyone.)
+    if (forEdit) {
+      await this.refreshPermissions();
+    }
 
     const doc = connection.get("vox", this._voxId);
     this._doc = doc;
@@ -31,6 +51,21 @@ export default class VoxSync extends EventTarget {
     });
   }
 
+  async dispose() {
+    if (this._doc) {
+      const doc = this._doc;
+      doc.off("op", this.handleDocOp);
+      doc.unsubscribe();
+
+      this._doc = null;
+      this._connection = null;
+    }
+
+    VoxSync.delete(this._voxId);
+    if (this._refreshPermsTimeout) clearTimeout(this._refreshPermsTimeout);
+  }
+
+  // Ensures the vox document has the given frame, creating it if not.
   ensureFrame(idxFrame) {
     if (idxFrame > MAX_FRAMES - 1) return;
     const snapshot = this._doc.data;
@@ -70,10 +105,6 @@ export default class VoxSync extends EventTarget {
     console.log("Op", o, source);
   }
 
-  dispose() {
-    if (this._refreshPermsTimeout) clearTimeout(this._refreshPermsTimeout);
-  }
-
   async refreshPermissions() {
     const { accountChannel } = window.APP;
     const { permsToken: token } = await accountChannel.fetchVoxPermsToken(this._voxId);
@@ -89,4 +120,6 @@ export default class VoxSync extends EventTarget {
   }
 }
 
+window.VoxSync = VoxSync;
+window.VoxChunk = VoxChunk;
 VoxSync.instance = new VoxSync();
