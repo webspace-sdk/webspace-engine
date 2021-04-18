@@ -148,6 +148,7 @@ AFRAME.registerComponent("media-vox", {
         } else {
           this.vox = new Vox(frames);
           await this.rebuildVoxMeshes();
+          await SYSTEMS.voxSystem.register(this.voxId, this.el.object3D);
         }
 
         this.el.object3D.matrixNeedsUpdate = true;
@@ -221,6 +222,10 @@ AFRAME.registerComponent("media-vox", {
 
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
+    }
+
+    if (this.voxId) {
+      SYSTEMS.voxSystem.unregister(this.object3D);
     }
   }
 });

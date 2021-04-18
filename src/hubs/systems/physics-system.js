@@ -17,12 +17,10 @@ const WORLD_CONFIG = {
 const MAX_BODIES = 512;
 
 export class PhysicsSystem {
-  constructor(scene, atmosphereSystem, skyBeamSystem, voxmojiSystem) {
+  constructor(scene, atmosphereSystem) {
     this.ammoWorker = new AmmoWorker();
     this.workerHelpers = new WorkerHelpers(this.ammoWorker);
     this.atmosphereSystem = atmosphereSystem;
-    this.skyBeamSystem = skyBeamSystem;
-    this.voxmojiSystem = voxmojiSystem;
 
     this.bodyHelpers = [];
     this.shapeHelpers = [];

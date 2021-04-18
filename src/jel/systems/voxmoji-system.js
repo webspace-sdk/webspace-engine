@@ -209,7 +209,7 @@ export class VoxmojiSystem {
   // To actually free memory you must call unregisterType, or preferrably
   // clear when all voxmoji are expected to be clear.
   unregister(source) {
-    const { sourceToType, meshes, types } = this;
+    const { sourceToType, sourceToLastCullPassFrame, meshes, types } = this;
 
     if (!sourceToType.has(source)) return;
 
@@ -224,6 +224,8 @@ export class VoxmojiSystem {
     const instanceIndex = sourceToIndex.get(source);
     sources[instanceIndex] = null;
     sourceToIndex.delete(source);
+    sourceToLastCullPassFrame.delete(source);
+    source.onPassedFrustumCheck = null;
     mesh.freeInstance(instanceIndex);
 
     if (instanceIndex === maxRegisteredIndex) {
