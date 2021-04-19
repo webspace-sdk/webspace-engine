@@ -147,7 +147,7 @@ export class VoxmojiSystem {
           }
         }
 
-        const hasDirtyMatrix = source.consumeIfDirtyWorldMatrix(WORLD_MATRIX_CONSUMERS.VOXMOJI);
+        const hasDirtyMatrix = source.consumeIfDirtyWorldMatrix(WORLD_MATRIX_CONSUMERS.VOX);
 
         if (hasDirtyMatrix) {
           source.updateMatrices();

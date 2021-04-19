@@ -13,7 +13,7 @@ identity.identity();
 export const WORLD_MATRIX_CONSUMERS = {
   PHYSICS: 0,
   BEAMS: 1,
-  VOXMOJI: 2,
+  VOX: 2,
   AVATARS: 3
 };
 
