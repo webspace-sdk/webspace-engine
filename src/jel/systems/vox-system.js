@@ -8,6 +8,7 @@ import { Vox } from "ot-vox";
 
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshBasicMaterial, VertexColors, Matrix4 } = THREE;
 
+const DEFAULT_VOX_SIZE = 32;
 const MAX_FRAMES_PER_VOX = 32;
 const MAX_INSTANCES_PER_VOX_ID = 255;
 const IDENTITY = new Matrix4();
@@ -85,8 +86,12 @@ export class VoxSystem {
 
     this.frame++;
 
-    for (const entry of voxMap.entries()) {
+    for (const entry of voxMap.values()) {
       const { meshes, maxRegisteredIndex, hasDirtyMatrices, sources, vox } = entry;
+
+      // Registration in-progress
+      if (maxRegisteredIndex < 0) continue;
+      if (!vox) continue;
 
       let hasAnyInstancesInCamera = false;
       let instanceMatrixNeedsUpdate = false;
@@ -108,7 +113,7 @@ export class VoxSystem {
         if (shouldUpdateMatrix) {
           source.updateMatrices();
 
-          for (let frame = 0; frame < vox.frames.length; i++) {
+          for (let frame = 0; frame < vox.frames.length; frame++) {
             const mesh = meshes[frame];
 
             if (mesh) {
@@ -126,7 +131,7 @@ export class VoxSystem {
         if (mesh) {
           // TODO time based frame rate
           const isCurrentAnimationFrame = this.frame % vox.frames.length === frame;
-          mesh.visible = frame === isCurrentAnimationFrame && hasAnyInstancesInCamera;
+          mesh.visible = isCurrentAnimationFrame && hasAnyInstancesInCamera;
           mesh.instanceMatrix.needsUpdate = instanceMatrixNeedsUpdate;
         }
       }
@@ -166,14 +171,13 @@ export class VoxSystem {
 
     // Parse vox id from URL
     const voxId = voxIdForVoxUrl(voxUrl);
-    console.log("vox id", voxId);
 
     if (!voxMap.has(voxId)) {
       await this.registerVox(voxUrl);
     }
 
     const voxEntry = voxMap.get(voxId);
-    const { meshes, maxRegisteredIndex, sources, sourceToIndex, voxRegistered } = voxEntry;
+    const { meshes, sources, sourceToIndex, voxRegistered } = voxEntry;
 
     await voxRegistered; // Wait until meshes are generated if many sources registered concurrently.
 
@@ -204,7 +208,9 @@ export class VoxSystem {
     sources[instanceIndex] = source;
     sourceToIndex.set(source, instanceIndex);
     sourceToVoxId.set(source, voxId);
-    voxEntry.maxRegisteredIndex = Math.max(instanceIndex, maxRegisteredIndex);
+    voxEntry.maxRegisteredIndex = Math.max(instanceIndex, voxEntry.maxRegisteredIndex);
+
+    return voxId;
   }
 
   unregister(source) {
@@ -221,19 +227,23 @@ export class VoxSystem {
     const instanceIndex = sourceToIndex.get(source);
     sources[instanceIndex] = null;
     sourceToIndex.delete(source);
-    source.onPassedFrustumCheck = null;
+    source.onPassedFrustumCheck = () => {};
     sourceToLastCullPassFrame.delete(source);
 
     for (let i = 0; i < meshes.length; i++) {
-      meshes[i].freeInstance(instanceIndex);
-    }
+      const mesh = meshes[i];
 
-    if (sourceToIndex.size() === 0) {
-      this.unregisterVox(voxId);
+      if (mesh) {
+        mesh.freeInstance(instanceIndex);
+      }
     }
 
     if (instanceIndex === maxRegisteredIndex) {
       voxEntry.maxRegisteredIndex--;
+    }
+
+    if (sourceToIndex.size === 0) {
+      this.unregisterVox(voxId);
     }
   }
 
@@ -258,7 +268,6 @@ export class VoxSystem {
     };
 
     voxMap.set(voxId, entry);
-    console.log("fetch", voxUrl);
 
     // Fetch frame data when first registering.
     const res = await fetch(voxUrl, { mode: "cors" });
@@ -267,10 +276,9 @@ export class VoxSystem {
       vox: [{ frames }]
     } = await res.json();
 
-    console.log("got frames, set vox", frames);
     entry.vox = new Vox(frames);
 
-    this.regenerateDirtyMeshesForVoxId(voxId);
+    await this.regenerateDirtyMeshesForVoxId(voxId);
 
     finish();
   }
@@ -282,16 +290,30 @@ export class VoxSystem {
     const { meshes } = voxEntry;
 
     for (let i = 0; i < meshes.length; i++) {
-      // Retain material since it's shared among all vox.
-      meshes[i].material = null;
-      disposeNode(meshes[i]);
-      scene.remove(meshes[i]);
+      const mesh = meshes[i];
+
+      if (mesh) {
+        // Retain material since it's shared among all vox.
+        mesh.material = null;
+        disposeNode(mesh);
+        scene.remove(mesh);
+      }
     }
 
     voxMap.delete(voxId);
   }
 
-  regenerateDirtyMeshesForVoxId(voxId) {
+  getVoxSize(voxId) {
+    const vox = this.voxMap.get(voxId).vox;
+
+    if (vox.frames.length > 0) {
+      return vox.frames[0].getSize();
+    } else {
+      return DEFAULT_VOX_SIZE;
+    }
+  }
+
+  async regenerateDirtyMeshesForVoxId(voxId) {
     const { sceneEl, voxMap } = this;
     const scene = sceneEl.object3D;
     const entry = voxMap.get(voxId);
@@ -302,7 +324,7 @@ export class VoxSystem {
         if (meshes[i]) {
           // TODO replace geometry
         } else {
-          const mesh = buildMeshForVoxChunk(vox.frames[i]);
+          const mesh = await buildMeshForVoxChunk(vox.frames[i]);
           meshes[i] = mesh;
           scene.add(meshes[i]);
 

@@ -226,7 +226,7 @@ export class VoxmojiSystem {
     sources[instanceIndex] = null;
     sourceToIndex.delete(source);
     sourceToLastCullPassFrame.delete(source);
-    source.onPassedFrustumCheck = null;
+    source.onPassedFrustumCheck = () => {};
     mesh.freeInstance(instanceIndex);
 
     if (instanceIndex === maxRegisteredIndex) {

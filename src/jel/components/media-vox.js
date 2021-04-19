@@ -81,7 +81,7 @@ AFRAME.registerComponent("media-vox", {
 
         this.el.emit("model-loading");
 
-        const geo = new THREE.BoxBufferGeometry(0.65, 0.65, 0.125);
+        const geo = new THREE.BoxBufferGeometry(1.0, 1.0, 1.0);
         const mat = new THREE.MeshBasicMaterial();
         mat.visible = false;
         this.mesh = new THREE.Mesh(geo, mat);
@@ -90,7 +90,7 @@ AFRAME.registerComponent("media-vox", {
         // Register returns vox id
         this.voxId = await SYSTEMS.voxSystem.register(src, this.mesh);
 
-        const size = SYSTEMS.voxSystem.getVoxSize();
+        const size = SYSTEMS.voxSystem.getVoxSize(this.voxId);
         const voxBoxGeo = new THREE.BoxBufferGeometry(size, size, size);
         this.el.object3D.matrixNeedsUpdate = true;
         this.el.setObject3D("mesh", this.mesh);
