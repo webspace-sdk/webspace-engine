@@ -4,6 +4,7 @@ import { disposeNode } from "../../hubs/utils/three-utils";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER } from "../../hubs/constants";
+import { generateMeshBVH } from "../../hubs/utils/three-utils";
 
 const {
   ImageLoader,
@@ -287,7 +288,7 @@ export class VoxmojiSystem {
     const meshKey = meshKeyParts.reduce((x, y) => x + y, 0);
 
     if (!this.meshes.has(meshKey)) {
-      this.generateAndRegisterMesh(meshKey, data, width, height);
+      await this.generateAndRegisterMesh(meshKey, data, width, height);
     }
 
     const mapIndex = this.registerMapToMesh(meshKey, image);
@@ -375,7 +376,7 @@ export class VoxmojiSystem {
     return mapIndex;
   }
 
-  generateAndRegisterMesh(meshKey, chunkData, width, height) {
+  async generateAndRegisterMesh(meshKey, chunkData, width, height) {
     const chunk = {
       data: chunkData,
       palette: [0x00000000],
@@ -574,6 +575,13 @@ export class VoxmojiSystem {
     mesh.frustumCulled = false;
     mesh.renderOrder = RENDER_ORDER.MEDIA;
 
+    await new Promise(res =>
+      setTimeout(() => {
+        generateMeshBVH(mesh);
+        res();
+      })
+    );
+
     this.meshes.set(meshKey, {
       mesh,
       texture,
@@ -586,5 +594,19 @@ export class VoxmojiSystem {
     });
 
     this.sceneEl.object3D.add(mesh);
+  }
+
+  getMeshes() {
+    return [...this.meshes.values()].map(({ mesh }) => mesh);
+  }
+
+  getSourceForMeshAndInstance(instancedMesh, instanceId) {
+    for (const { mesh, sources } of this.meshes.values()) {
+      if (mesh === instancedMesh) {
+        return sources[instanceId];
+      }
+    }
+
+    return null;
   }
 }

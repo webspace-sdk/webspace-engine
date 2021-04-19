@@ -13,6 +13,11 @@ AFRAME.registerComponent("media-emoji", {
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
     }
+
+    // Add class indicating the mesh is an instanced mesh, which will
+    // cause cursor raycasting to be deferred to the instanced mesh.
+    this.el.classList.add("instanced");
+    SYSTEMS.cursorTargettingSystem.setDirty();
   },
 
   async update(oldData) {

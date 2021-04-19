@@ -93,7 +93,7 @@ export class AppAwareMouseDevice {
         rawIntersections
       );
       const intersection = rawIntersections.find(x => x.object.el);
-      const remoteHoverTarget = intersection && findRemoteHoverTarget(intersection.object);
+      const remoteHoverTarget = intersection && findRemoteHoverTarget(intersection.object, intersection.instanceId);
       const isInteractable = intersection && intersection.object.el.matches(".interactable, .interactable *");
       const template = remoteHoverTarget && getNetworkedTemplate(remoteHoverTarget);
       const isStaticControlledMedia = template && template === "#static-controlled-media";

@@ -56,7 +56,7 @@ function shouldMoveCursor(touch, raycaster) {
   );
   const intersection = rawIntersections.find(x => x.object.el);
   const isInteractable = intersection && intersection.object.el.matches(".interactable, .interactable *");
-  const remoteHoverTarget = intersection && findRemoteHoverTarget(intersection.object);
+  const remoteHoverTarget = intersection && findRemoteHoverTarget(intersection.object, intersection.instanceId);
 
   const template = remoteHoverTarget && getNetworkedTemplate(remoteHoverTarget);
   const isStaticControlledMedia = template && template === "#static-controlled-media";

@@ -23,9 +23,18 @@ function findHandCollisionTargetForHand(bodyHelper) {
 
 const notRemoteHoverTargets = new Map();
 const remoteHoverTargets = new Map();
-export function findRemoteHoverTarget(object3D) {
+export function findRemoteHoverTarget(object3D, instanceId = null) {
+  if (instanceId !== null) {
+    // If this was an instanced mesh, look up the source object3D
+    // in the relevant systems.
+    object3D =
+      SYSTEMS.voxmojiSystem.getSourceForMeshAndInstance(object3D, instanceId) ||
+      SYSTEMS.voxSystem.getSourceForMeshAndInstance(object3D, instanceId);
+  }
+
   if (!object3D) return null;
   if (notRemoteHoverTargets.get(object3D)) return null;
+
   const target = remoteHoverTargets.get(object3D);
   return target || findRemoteHoverTarget(object3D.parent);
 }
@@ -53,11 +62,11 @@ export function isUI(el) {
 AFRAME.registerSystem("interaction", {
   updateCursorIntersection: function(intersection, left) {
     if (!left) {
-      this.rightRemoteHoverTarget = intersection && findRemoteHoverTarget(intersection.object);
+      this.rightRemoteHoverTarget = intersection && findRemoteHoverTarget(intersection.object, intersection.instanceId);
       return this.rightRemoteHoverTarget;
     }
 
-    this.leftRemoteHoverTarget = intersection && findRemoteHoverTarget(intersection.object);
+    this.leftRemoteHoverTarget = intersection && findRemoteHoverTarget(intersection.object, intersection.instanceId);
     return this.leftRemoteHoverTarget;
   },
 
