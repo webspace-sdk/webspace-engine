@@ -4,10 +4,11 @@ import { generateMeshBVH, disposeNode } from "../../hubs/utils/three-utils";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER } from "../../hubs/constants";
-import { Vox } from "ot-vox";
+import { Vox, VoxChunk } from "ot-vox";
 import VoxSync from "../utils/vox-sync";
 
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshBasicMaterial, VertexColors, Matrix4 } = THREE;
+import { EventTarget } from "event-target-shim";
 
 const MAX_FRAMES_PER_VOX = 32;
 const MAX_INSTANCES_PER_VOX_ID = 255;
@@ -64,8 +65,9 @@ function createMesh() {
 }
 
 // Manages user-editable voxel objects
-export class VoxSystem {
+export class VoxSystem extends EventTarget {
   constructor(sceneEl, cursorTargettingSystem) {
+    super();
     this.sceneEl = sceneEl;
     this.syncs = new Map();
     this.voxMap = new Map();
@@ -191,6 +193,7 @@ export class VoxSystem {
       dirtyFrameMeshes[frame] = true;
     }
 
+    console.log(vox);
     this.regenerateDirtyMeshesForVoxId(voxId, vox);
   }
 
@@ -220,6 +223,11 @@ export class VoxSystem {
       const mesh = meshes[i];
       if (mesh === null) continue;
       instanceIndex = mesh.addInstance(IDENTITY);
+    }
+
+    // When no meshes are generated yet, start with instance zero.
+    if (instanceIndex === null) {
+      instanceIndex = 0;
     }
 
     sources[instanceIndex] = source;
@@ -295,7 +303,7 @@ export class VoxSystem {
       vox: [{ frames }]
     } = await res.json();
 
-    this.regenerateDirtyMeshesForVoxId(voxId, new Vox(frames));
+    this.regenerateDirtyMeshesForVoxId(voxId, new Vox(frames.map(f => VoxChunk.deserialize(f))));
 
     finish();
   }
@@ -304,9 +312,9 @@ export class VoxSystem {
     const { voxMap, sceneEl } = this;
     const scene = sceneEl.object3D;
     const voxEntry = voxMap.get(voxId);
-    const { meshes } = voxEntry;
+    const { meshes, maxMeshIndex } = voxEntry;
 
-    for (let i = 0; i < meshes.length; i++) {
+    for (let i = 0; i < maxMeshIndex; i++) {
       const mesh = meshes[i];
 
       if (mesh) {
@@ -314,6 +322,8 @@ export class VoxSystem {
         mesh.material = null;
         disposeNode(mesh);
         scene.remove(mesh);
+        meshes[i] = null;
+        this.dispatchEvent(new CustomEvent("mesh_removed"));
       }
     }
 
@@ -350,13 +360,15 @@ export class VoxSystem {
           }
         }
 
+        this.dispatchEvent(new CustomEvent("mesh_added"));
+
         entry.hasDirtyMatrices = true;
         remesh = true;
       }
 
       if (remesh) {
         mesh.geometry.update(vox.frames[i]);
-        generateMeshBVH(mesh);
+        generateMeshBVH(mesh, true);
         dirtyFrameMeshes[i] = false;
       }
     }
@@ -369,9 +381,26 @@ export class VoxSystem {
       mesh.material = null;
       disposeNode(mesh);
       scene.remove(mesh);
+      meshes[i] = null;
+      this.dispatchEvent(new CustomEvent("mesh_removed"));
     }
 
     entry.maxMeshIndex = vox.frames.length - 1;
+  }
+
+  getMeshes() {
+    const { voxMap } = this;
+    const out = [];
+
+    for (const { meshes, maxMeshIndex } of voxMap.values()) {
+      for (let i = 0; i <= maxMeshIndex; i++) {
+        const mesh = meshes[i];
+        if (mesh === null) continue;
+        out.push(mesh);
+      }
+    }
+
+    return out;
   }
 
   getSourceForMeshAndInstance(targetMesh, instanceId) {

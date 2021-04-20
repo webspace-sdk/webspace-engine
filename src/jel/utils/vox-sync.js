@@ -78,7 +78,7 @@ export default class VoxSync extends EventTarget {
 
   async setVoxel(x, y, z, r, g, b, frame = 0) {
     await this.ensureEditing();
-    this.ensureFrame(0);
+    this.ensureFrame(frame);
 
     const color = voxColorForRGBT(r, g, b, VOXEL_TYPE_DIFFUSE);
     const delta = VoxChunk.fromJSON({ size: 1, palette: [color], indices: [1] });
@@ -92,7 +92,8 @@ export default class VoxSync extends EventTarget {
     this.ensureFrame(0);
 
     const delta = VoxChunk.fromJSON({ size: 1, palette: [REMOVE_VOXEL_COLOR], indices: [1] });
-    this._doc.submitOp({ f: frame, d: delta.serialize() });
+    const op = { f: frame, d: delta.serialize(), o: [x, y, z] };
+    this._doc.submitOp(op);
   }
 
   getLatestVox() {

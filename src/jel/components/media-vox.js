@@ -2,6 +2,7 @@ import { hasMediaLayer, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
 import { groundMedia, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
 import { getNetworkedEntity } from "../../jel/utils/ownership-utils";
+import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import "../utils/vox-sync";
 
 AFRAME.registerComponent("media-vox", {
@@ -19,8 +20,8 @@ AFRAME.registerComponent("media-vox", {
     });
 
     this.voxId = null;
-
-    this.visibleMeshIndex = 0;
+    this.el.classList.add("instanced");
+    SYSTEMS.cursorTargettingSystem.setDirty();
   },
 
   async update(oldData) {
@@ -81,8 +82,10 @@ AFRAME.registerComponent("media-vox", {
 
         this.el.emit("model-loading");
 
-        // TODO should be 1,1,1
-        const geo = new THREE.BoxBufferGeometry(32.0, 32.0, 32.0);
+        // TODO dynamic vox sizes?
+        const voxSize = 32.0;
+        const boxSize = voxSize * VOXEL_SIZE;
+        const geo = new THREE.BoxBufferGeometry(boxSize, boxSize, boxSize);
         const mat = new THREE.MeshBasicMaterial();
         mat.visible = false;
         this.mesh = new THREE.Mesh(geo, mat);
@@ -90,6 +93,7 @@ AFRAME.registerComponent("media-vox", {
 
         // Register returns vox id
         this.voxId = await SYSTEMS.voxSystem.register(src, this.mesh);
+
         this.el.object3D.matrixNeedsUpdate = true;
         this.el.setObject3D("mesh", this.mesh);
 

@@ -34,6 +34,10 @@ export class CursorTargettingSystem {
       this.observer.observe(scene, { childList: true, attributes: true, subtree: true });
       scene.addEventListener("object3dset", this.setDirty);
       scene.addEventListener("object3dremove", this.setDirty);
+      SYSTEMS.voxSystem.addEventListener("mesh_added", this.setDirty);
+      SYSTEMS.voxSystem.addEventListener("mesh_removed", this.setDirty);
+      SYSTEMS.voxmojiSystem.addEventListener("mesh_added", this.setDirty);
+      SYSTEMS.voxmojiSystem.addEventListener("mesh_removed", this.setDirty);
     });
   }
 
@@ -69,6 +73,10 @@ export class CursorTargettingSystem {
     // Add instanced meshes
     for (const voxmojiMesh of SYSTEMS.voxmojiSystem.getMeshes()) {
       targets.push(voxmojiMesh);
+    }
+
+    for (const voxMesh of SYSTEMS.voxSystem.getMeshes()) {
+      targets.push(voxMesh);
     }
   }
 

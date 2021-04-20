@@ -3,6 +3,13 @@ const { InstancedMesh, InstancedBufferAttribute, Matrix4, Vector3, Vector4 } = T
 const zeroMatrix = new Matrix4();
 zeroMatrix.makeScale(0, 0, 0);
 
+const _instanceLocalMatrix = new Matrix4();
+const _instanceWorldMatrix = new Matrix4();
+
+const _instanceIntersects = [];
+
+const _mesh = new THREE.Mesh();
+
 function DynamicInstancedMesh(geometry, material, maxCount) {
   InstancedMesh.call(this, geometry, material, maxCount);
 
@@ -119,6 +126,46 @@ DynamicInstancedMesh.prototype = Object.assign(Object.create(InstancedMesh.proto
 
   setColorAt() {
     throw new Error("dynamic color instancing not supported");
+  },
+
+  // Raycast adapted from InstancedMesh to skip free instances
+  raycast(raycaster, intersects) {
+    const { freeIndices } = this;
+
+    const matrixWorld = this.matrixWorld;
+    const raycastTimes = this.count;
+
+    _mesh.geometry = this.geometry;
+    _mesh.material = this.material;
+
+    if (_mesh.material === undefined) return;
+
+    for (let instanceId = 0; instanceId < raycastTimes; instanceId++) {
+      if (freeIndices.has(instanceId)) continue;
+
+      // calculate the world matrix for each instance
+
+      this.getMatrixAt(instanceId, _instanceLocalMatrix);
+
+      _instanceWorldMatrix.multiplyMatrices(matrixWorld, _instanceLocalMatrix);
+
+      // the mesh represents this single instance
+
+      _mesh.matrixWorld = _instanceWorldMatrix;
+
+      _mesh.raycast(raycaster, _instanceIntersects);
+
+      // process the result of raycast
+
+      if (_instanceIntersects.length > 0) {
+        _instanceIntersects[0].instanceId = instanceId;
+        _instanceIntersects[0].object = this;
+
+        intersects.push(_instanceIntersects[0]);
+
+        _instanceIntersects.length = 0;
+      }
+    }
   }
 });
 

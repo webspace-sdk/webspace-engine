@@ -624,7 +624,7 @@ AFRAME.registerComponent("media-loader", {
           })
         );
       } else if (contentType.startsWith("model/vnd.jel-vox")) {
-        this.el.addEventListener("model-loaded", () => this.onMediaLoaded(SHAPE.BOX, true), { once: true });
+        this.el.addEventListener("model-loaded", () => this.onMediaLoaded(SHAPE.BOX, false), { once: true });
         this.el.addEventListener("model-error", this.onError, { once: true });
         this.el.setAttribute("floaty-object", { gravitySpeedLimit: 1.85 });
         this.setToSingletonMediaComponent(
