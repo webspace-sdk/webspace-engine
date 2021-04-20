@@ -191,7 +191,6 @@ export class VoxSystem {
       dirtyFrameMeshes[frame] = true;
     }
 
-    console.log(vox);
     this.regenerateDirtyMeshesForVoxId(voxId, vox);
   }
 

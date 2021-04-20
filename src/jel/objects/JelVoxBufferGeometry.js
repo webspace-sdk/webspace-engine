@@ -315,6 +315,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
     this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
     this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
     this.setAttribute("color", new Float32BufferAttribute(colors, 3));
+    this.setDrawRange(0, indices.length);
 
     this.computeBoundingSphere();
   }
