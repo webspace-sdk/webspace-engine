@@ -2,12 +2,10 @@ const { BufferGeometry, Float32BufferAttribute } = THREE;
 
 // Adapted from implementation by mikolalysenko:
 // https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
-function GreedyMesh(f, dims, skipDims = []) {
+function GreedyMesh(f, dims) {
   // Sweep over 3-axes
   const quads = [];
   for (let d = 0; d < 3; ++d) {
-    if (skipDims.includes(d)) continue;
-
     // eslint-disable-line no-plusplus
     let i;
     let j;
@@ -106,10 +104,16 @@ function GreedyMesh(f, dims, skipDims = []) {
 }
 
 class JelVoxBufferGeometry extends BufferGeometry {
-  constructor(chunk, skipDims = [], vertPallette = null) {
+  constructor(chunk) {
     super();
     this.type = "JelVoxBufferGeometry";
 
+    if (chunk) {
+      this.update(chunk);
+    }
+  }
+
+  update(chunk) {
     const palette = [];
     const size = chunk.getSize();
 
@@ -130,7 +134,6 @@ class JelVoxBufferGeometry extends BufferGeometry {
     const vertices = [];
     const normals = [];
     const colors = [];
-    const palettes = [];
 
     const pushFace = (p1, p2, p3, p4, u1, v1, u2, v2, nx, ny, nz, r, g, b) => {
       const sx = size / 2;
@@ -145,7 +148,6 @@ class JelVoxBufferGeometry extends BufferGeometry {
       for (let i = 0; i < 4; i++) {
         normals.push(...[nx, nz, -ny]);
         colors.push(...[Math.floor(r * 255.0), Math.floor(g * 255.0), Math.floor(b * 255.0)]);
-        palettes.push(vertPallette);
       }
     };
 
@@ -160,8 +162,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
         if (!chunk.hasVoxelAt(sx, y, sz)) return false;
         return chunk.getPaletteIndexAt(sx, y, sz) + 256;
       },
-      [size, size, size],
-      skipDims
+      [size, size, size]
     );
 
     for (let i = 0; i < quads.length; i++) {
@@ -314,10 +315,6 @@ class JelVoxBufferGeometry extends BufferGeometry {
     this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
     this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
     this.setAttribute("color", new Float32BufferAttribute(colors, 3));
-
-    if (vertPallette !== null) {
-      this.setAttribute("palette", new Float32BufferAttribute(palettes, 1));
-    }
 
     this.computeBoundingSphere();
   }

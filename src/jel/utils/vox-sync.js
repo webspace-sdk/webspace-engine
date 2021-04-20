@@ -6,41 +6,21 @@ const MAX_FRAMES = 32;
 const INITIAL_FRAME_SIZE = 32;
 
 export default class VoxSync extends EventTarget {
-  static instances = new Map();
-
-  static get(voxId) {
-    let sync = VoxSync.instances.get(voxId);
-    if (sync) return sync;
-
-    sync = new VoxSync(voxId);
-    VoxSync.instances.set(voxId, sync);
-    return sync;
-  }
-
   constructor(voxId) {
     super();
 
     this._voxId = voxId;
+    this._whenReady = null;
+    this.handleDocOp = this.handleDocOp.bind(this);
   }
 
-  static async beginSyncing(voxId, forEdit = false) {
-    if (VoxSync.instances.has(voxId)) return VoxSync.get(voxId);
-    const sync = VoxSync.get(voxId);
-    const { connection } = SAF.connection.adapter;
-    await sync.init(connection, forEdit);
-    return sync;
-  }
+  async init() {
+    this._connection = SAF.connection.adapter.connection;
 
-  async init(connection, forEdit) {
-    this._connection = connection;
+    let finish;
+    this._whenReady = new Promise(res => (finish = res));
 
-    // If we're editing this object, we need to keep polling for permissions
-    // (vox objects can be read by everyone.)
-    if (forEdit) {
-      await this.refreshPermissions();
-    }
-
-    const doc = connection.get("vox", this._voxId);
+    const doc = this._connection.get("vox", this._voxId);
     this._doc = doc;
 
     await new Promise(res => {
@@ -49,9 +29,13 @@ export default class VoxSync extends EventTarget {
         res();
       });
     });
+
+    finish();
   }
 
   async dispose() {
+    if (this._whenReady) await this._whenReady;
+
     if (this._doc) {
       const doc = this._doc;
       doc.off("op", this.handleDocOp);
@@ -84,7 +68,16 @@ export default class VoxSync extends EventTarget {
     this._doc.submitOp({ f: idxFrame, d: delta.serialize() });
   }
 
-  setVoxel(x, y, z, r, g, b, frame = 0) {
+  async ensureEditing() {
+    if (this._permissions) return;
+
+    // If we're editing this object, we need to keep polling for permissions
+    // (vox objects can be read by everyone.)
+    await this.refreshPermissions();
+  }
+
+  async setVoxel(x, y, z, r, g, b, frame = 0) {
+    await this.ensureEditing();
     this.ensureFrame(0);
 
     const color = voxColorForRGBT(r, g, b, VOXEL_TYPE_DIFFUSE);
@@ -94,15 +87,22 @@ export default class VoxSync extends EventTarget {
     this._doc.submitOp(op);
   }
 
-  removeVoxel(x, y, z, frame = 0) {
+  async removeVoxel(x, y, z, frame = 0) {
+    await this.ensureEditing();
     this.ensureFrame(0);
 
     const delta = VoxChunk.fromJSON({ size: 1, palette: [REMOVE_VOXEL_COLOR], indices: [1] });
     this._doc.submitOp({ f: frame, d: delta.serialize() });
   }
 
-  handleDocOp(o, source) {
-    console.log("Op", o, source);
+  getLatestVox() {
+    return this._doc.data;
+  }
+
+  handleDocOp(op, source) {
+    this.dispatchEvent(
+      new CustomEvent("vox_updated", { detail: { voxId: this._voxId, vox: this._doc.data, op, source } })
+    );
   }
 
   async refreshPermissions() {

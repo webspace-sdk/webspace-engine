@@ -5,10 +5,10 @@ import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { Vox } from "ot-vox";
+import VoxSync from "../utils/vox-sync";
 
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshBasicMaterial, VertexColors, Matrix4 } = THREE;
 
-const DEFAULT_VOX_SIZE = 32;
 const MAX_FRAMES_PER_VOX = 32;
 const MAX_INSTANCES_PER_VOX_ID = 255;
 const IDENTITY = new Matrix4();
@@ -44,12 +44,13 @@ voxelMaterial.stencilRef = 0;
 voxelMaterial.stencilZPass = THREE.ReplaceStencilOp;
 
 function voxIdForVoxUrl(url) {
+  // Parse vox id from URL
   const pathParts = new URL(url).pathname.split("/");
   return pathParts[pathParts.length - 1];
 }
 
-async function buildMeshForVoxChunk(voxChunk) {
-  const geometry = new JelVoxBufferGeometry(voxChunk);
+function createMesh() {
+  const geometry = new JelVoxBufferGeometry();
   geometry.instanceAttributes = []; // For DynamicInstancedMesh
 
   const material = voxelMaterial;
@@ -58,13 +59,6 @@ async function buildMeshForVoxChunk(voxChunk) {
   mesh.receiveShadow = false;
   mesh.frustumCulled = false;
   mesh.renderOrder = RENDER_ORDER.MEDIA;
-
-  await new Promise(res =>
-    setTimeout(() => {
-      generateMeshBVH(mesh);
-      res();
-    })
-  );
 
   return mesh;
 }
@@ -78,6 +72,7 @@ export class VoxSystem {
     this.sourceToVoxId = new Map();
     this.sourceToLastCullPassFrame = new Map();
     this.cursorSystem = cursorTargettingSystem;
+    this.onSyncedVoxUpdated = this.onSyncedVoxUpdated.bind(this);
     this.frame = 0;
   }
 
@@ -87,11 +82,10 @@ export class VoxSystem {
     this.frame++;
 
     for (const entry of voxMap.values()) {
-      const { meshes, maxRegisteredIndex, hasDirtyMatrices, sources, vox } = entry;
+      const { meshes, maxMeshIndex, maxRegisteredIndex, hasDirtyMatrices, sources } = entry;
 
       // Registration in-progress
       if (maxRegisteredIndex < 0) continue;
-      if (!vox) continue;
 
       let hasAnyInstancesInCamera = false;
       let instanceMatrixNeedsUpdate = false;
@@ -113,27 +107,25 @@ export class VoxSystem {
         if (shouldUpdateMatrix) {
           source.updateMatrices();
 
-          for (let frame = 0; frame < vox.frames.length; frame++) {
-            const mesh = meshes[frame];
+          for (let j = 0; j <= maxMeshIndex; j++) {
+            const mesh = meshes[j];
+            if (mesh === null) continue;
 
-            if (mesh) {
-              mesh.setMatrixAt(i, source.matrixWorld);
-            }
+            mesh.setMatrixAt(i, source.matrixWorld);
           }
 
           instanceMatrixNeedsUpdate = true;
         }
       }
 
-      for (let frame = 0; frame < vox.frames.length; frame++) {
-        const mesh = meshes[frame];
+      for (let i = 0; i <= maxMeshIndex; i++) {
+        const mesh = meshes[i];
+        if (mesh === null) continue;
 
-        if (mesh) {
-          // TODO time based frame rate
-          const isCurrentAnimationFrame = this.frame % vox.frames.length === frame;
-          mesh.visible = isCurrentAnimationFrame && hasAnyInstancesInCamera;
-          mesh.instanceMatrix.needsUpdate = instanceMatrixNeedsUpdate;
-        }
+        // TODO time based frame rate
+        const isCurrentAnimationFrame = this.frame % (maxMeshIndex + 1) === i;
+        mesh.visible = isCurrentAnimationFrame && hasAnyInstancesInCamera;
+        mesh.instanceMatrix.needsUpdate = instanceMatrixNeedsUpdate;
       }
 
       if (entry.hasDirtyMatrices) {
@@ -166,20 +158,56 @@ export class VoxSystem {
     //console.log(hitTarget);
   }
 
+  async beginSyncing(voxId) {
+    const { syncs } = this;
+    if (syncs.has(voxId)) return syncs.get(voxId);
+
+    const sync = new VoxSync(voxId);
+    syncs.set(voxId, sync);
+    await sync.init();
+
+    sync.addEventListener("vox_updated", this.onSyncedVoxUpdated);
+
+    return sync;
+  }
+
+  endSyncing(voxId) {
+    const { syncs } = this;
+    const sync = syncs.get(voxId);
+    if (!sync) return;
+
+    sync.dispose();
+    syncs.delete(voxId);
+  }
+
+  onSyncedVoxUpdated({ detail: { voxId, vox, op } }) {
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return;
+
+    const { dirtyFrameMeshes } = entry;
+
+    for (const { f: frame } of op) {
+      dirtyFrameMeshes[frame] = true;
+    }
+
+    console.log(vox);
+    this.regenerateDirtyMeshesForVoxId(voxId, vox);
+  }
+
   async register(voxUrl, source) {
     const { voxMap, sourceToVoxId } = this;
 
-    // Parse vox id from URL
     const voxId = voxIdForVoxUrl(voxUrl);
 
     if (!voxMap.has(voxId)) {
       await this.registerVox(voxUrl);
     }
 
+    // Wait until meshes are generated if many sources registered concurrently.
+    await voxMap.get(voxId).voxRegistered;
     const voxEntry = voxMap.get(voxId);
-    const { meshes, sources, sourceToIndex, voxRegistered } = voxEntry;
-
-    await voxRegistered; // Wait until meshes are generated if many sources registered concurrently.
+    const { meshes, maxMeshIndex, sources, sourceToIndex } = voxEntry;
 
     // This uses a custom patched three.js handler which is fired whenever the object
     // passes a frustum check. This is handy for cases like this when a non-rendered
@@ -189,20 +217,10 @@ export class VoxSystem {
 
     let instanceIndex = null;
 
-    for (let i = 0; i < meshes.length; i++) {
+    for (let i = 0; i <= maxMeshIndex; i++) {
       const mesh = meshes[i];
       if (mesh === null) continue;
-
-      if (instanceIndex === null) {
-        instanceIndex = mesh.addInstance(IDENTITY);
-      } else {
-        const idx = mesh.addInstance(IDENTITY);
-
-        // Instance indices should be the same across all frames for a given source.
-        if (idx !== instanceIndex) {
-          console.error("Vox system error, index mismatch at", i, idx, instanceIndex);
-        }
-      }
+      instanceIndex = mesh.addInstance(IDENTITY);
     }
 
     sources[instanceIndex] = source;
@@ -221,6 +239,8 @@ export class VoxSystem {
     sourceToVoxId.delete(source);
 
     const voxEntry = voxMap.get(voxId);
+    if (!voxEntry) return;
+
     const { maxRegisteredIndex, sourceToIndex, sources, meshes } = voxEntry;
 
     if (!sourceToIndex.has(source)) return;
@@ -259,11 +279,11 @@ export class VoxSystem {
       maxRegisteredIndex: -1,
       sourceToIndex: new Map(),
       meshes: Array(MAX_FRAMES_PER_VOX).fill(null),
+      maxMeshIndex: -1,
       sources: Array(MAX_INSTANCES_PER_VOX_ID).fill(null),
       dirtyFrameMeshes: Array(MAX_FRAMES_PER_VOX).fill(true),
       hasDirtyMatrices: false,
       currentFrame: 0,
-      vox: null,
       voxRegistered
     };
 
@@ -276,9 +296,7 @@ export class VoxSystem {
       vox: [{ frames }]
     } = await res.json();
 
-    entry.vox = new Vox(frames);
-
-    await this.regenerateDirtyMeshesForVoxId(voxId);
+    this.regenerateDirtyMeshesForVoxId(voxId, new Vox(frames));
 
     finish();
   }
@@ -303,53 +321,70 @@ export class VoxSystem {
     voxMap.delete(voxId);
   }
 
-  getVoxSize(voxId) {
-    const vox = this.voxMap.get(voxId).vox;
-
-    if (vox.frames.length > 0) {
-      return vox.frames[0].getSize();
-    } else {
-      return DEFAULT_VOX_SIZE;
-    }
-  }
-
-  async regenerateDirtyMeshesForVoxId(voxId) {
+  regenerateDirtyMeshesForVoxId(voxId, vox) {
     const { sceneEl, voxMap } = this;
     const scene = sceneEl.object3D;
     const entry = voxMap.get(voxId);
-    const { dirtyFrameMeshes, meshes, vox, maxRegisteredIndex } = entry;
+    const { sources, dirtyFrameMeshes, meshes, maxRegisteredIndex } = entry;
 
     for (let i = 0; i < vox.frames.length; i++) {
-      if (dirtyFrameMeshes[i]) {
-        if (meshes[i]) {
-          // TODO replace geometry
-        } else {
-          const mesh = await buildMeshForVoxChunk(vox.frames[i]);
-          meshes[i] = mesh;
-          scene.add(meshes[i]);
+      let mesh = meshes[i];
+      let remesh = dirtyFrameMeshes[i];
 
-          // If this is a new frame and things are already running, need to add all the instances needed
-          // and force a matrix flush to them.
-          for (let j = 0; j <= maxRegisteredIndex; j++) {
-            mesh.addInstance(IDENTITY);
-            entry.hasDirtyMatrices = true;
+      if (!mesh) {
+        mesh = createMesh();
+        meshes[i] = mesh;
+        scene.add(meshes[i]);
+
+        // If this is a new mesh for a new frame need to add all the instances needed
+        // and force a matrix flush to them.
+        //
+        // Do to this, add N instances up to registered index, then free
+        // the ones that are not actually registered.
+        for (let j = 0; j <= maxRegisteredIndex; j++) {
+          mesh.addInstance(IDENTITY);
+        }
+
+        for (let j = 0; j <= maxRegisteredIndex; j++) {
+          if (sources[j] === null) {
+            mesh.freeInstance(j);
           }
         }
 
+        entry.hasDirtyMatrices = true;
+        remesh = true;
+      }
+
+      if (remesh) {
+        mesh.geometry.update(vox.frames[i]);
+        generateMeshBVH(mesh);
         dirtyFrameMeshes[i] = false;
       }
     }
+
+    // Frame(s) were removed, free the meshes
+    for (let i = vox.frames.length; i <= entry.maxMeshIndex; i++) {
+      const mesh = meshes[i];
+      if (mesh === null) continue;
+
+      mesh.material = null;
+      disposeNode(mesh);
+      scene.remove(mesh);
+    }
+
+    entry.maxMeshIndex = vox.frames.length - 1;
   }
 
   getSourceForMeshAndInstance(targetMesh, instanceId) {
     const { voxMap } = this;
-    for (const { meshes, sources } of voxMap.values()) {
-      for (let i = 0; i < meshes.length; i++) {
+
+    for (const { meshes, maxMeshIndex, sources } of voxMap.values()) {
+      for (let i = 0; i <= maxMeshIndex; i++) {
         const mesh = meshes[i];
-        if (mesh === targetMesh) {
-          const source = sources[instanceId];
-          if (source) return source;
-        }
+        if (mesh !== targetMesh) continue;
+
+        const source = sources[instanceId];
+        if (source) return source;
       }
     }
 

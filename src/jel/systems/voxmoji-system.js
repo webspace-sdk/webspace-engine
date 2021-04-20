@@ -575,12 +575,7 @@ export class VoxmojiSystem {
     mesh.frustumCulled = false;
     mesh.renderOrder = RENDER_ORDER.MEDIA;
 
-    await new Promise(res =>
-      setTimeout(() => {
-        generateMeshBVH(mesh);
-        res();
-      })
-    );
+    generateMeshBVH(mesh);
 
     this.meshes.set(meshKey, {
       mesh,

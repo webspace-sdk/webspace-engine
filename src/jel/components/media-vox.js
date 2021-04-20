@@ -81,7 +81,8 @@ AFRAME.registerComponent("media-vox", {
 
         this.el.emit("model-loading");
 
-        const geo = new THREE.BoxBufferGeometry(1.0, 1.0, 1.0);
+        // TODO should be 1,1,1
+        const geo = new THREE.BoxBufferGeometry(32.0, 32.0, 32.0);
         const mat = new THREE.MeshBasicMaterial();
         mat.visible = false;
         this.mesh = new THREE.Mesh(geo, mat);
@@ -89,12 +90,8 @@ AFRAME.registerComponent("media-vox", {
 
         // Register returns vox id
         this.voxId = await SYSTEMS.voxSystem.register(src, this.mesh);
-
-        const size = SYSTEMS.voxSystem.getVoxSize(this.voxId);
-        const voxBoxGeo = new THREE.BoxBufferGeometry(size, size, size);
         this.el.object3D.matrixNeedsUpdate = true;
         this.el.setObject3D("mesh", this.mesh);
-        this.mesh.geometry = voxBoxGeo;
 
         this.el.emit("model-loaded", { format: "emoji", model: this.mesh });
       }
