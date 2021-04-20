@@ -193,7 +193,6 @@ export class VoxSystem extends EventTarget {
       dirtyFrameMeshes[frame] = true;
     }
 
-    console.log(vox);
     this.regenerateDirtyMeshesForVoxId(voxId, vox);
   }
 
@@ -401,6 +400,30 @@ export class VoxSystem extends EventTarget {
     }
 
     return out;
+  }
+
+  getBoundingBoxForSource(source) {
+    const { sourceToVoxId, voxMap } = this;
+    if (!sourceToVoxId.has(source)) return null;
+
+    const voxId = sourceToVoxId.get(source);
+    const { sources, meshes } = voxMap.get(voxId);
+    if (meshes.length === 0) return null;
+
+    const instanceId = sources.indexOf(source);
+
+    const mesh = meshes[0];
+    const bbox = new THREE.Box3();
+    const matrix = new THREE.Matrix4();
+    mesh.getMatrixAt(instanceId, matrix);
+
+    bbox.expandByObject(mesh);
+    const vec = new THREE.Vector3();
+    const a = new THREE.Vector3();
+    const q = new THREE.Quaternion();
+    matrix.decompose(a, q, vec);
+    bbox.applyMatrix4(matrix);
+    return bbox;
   }
 
   getSourceForMeshAndInstance(targetMesh, instanceId) {

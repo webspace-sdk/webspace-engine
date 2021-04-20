@@ -340,7 +340,7 @@ export const addMedia = (
 };
 
 // Animates the given object to the terrain ground.
-export const groundMedia = (sourceEl, faceUp) => {
+export const groundMedia = (sourceEl, faceUp, bbox = null, meshOffset = 0.0) => {
   const { object3D } = sourceEl;
   const finalXRotation = faceUp ? (3.0 * Math.PI) / 2.0 : 0.0;
   const px = object3D.rotation.x;
@@ -350,8 +350,10 @@ export const groundMedia = (sourceEl, faceUp) => {
   object3D.traverse(o => (o.matrixNeedsUpdate = true));
   object3D.updateMatrixWorld();
 
-  const bbox = new THREE.Box3();
-  bbox.expandByObject(object3D);
+  if (bbox === null) {
+    bbox = new THREE.Box3();
+    bbox.expandByObject(object3D);
+  }
 
   object3D.rotation.x = px;
   object3D.rotation.z = pz;
@@ -365,7 +367,7 @@ export const groundMedia = (sourceEl, faceUp) => {
 
   const terrainSystem = AFRAME.scenes[0].systems["hubs-systems"].terrainSystem;
   const terrainHeight = terrainSystem.getTerrainHeightAtWorldCoord(x, z);
-  const finalYPosition = objectHeight * 0.5 + terrainHeight;
+  const finalYPosition = objectHeight * 0.5 + meshOffset + terrainHeight;
 
   const step = (function() {
     const lastValue = {};

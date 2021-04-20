@@ -97,7 +97,7 @@ AFRAME.registerComponent("media-vox", {
         this.el.object3D.matrixNeedsUpdate = true;
         this.el.setObject3D("mesh", this.mesh);
 
-        this.el.emit("model-loaded", { format: "emoji", model: this.mesh });
+        this.el.emit("model-loaded", { format: "vox", model: this.mesh });
       }
     } catch (e) {
       this.el.emit("model-error", { src: this.data.src });
@@ -109,7 +109,12 @@ AFRAME.registerComponent("media-vox", {
 
   handleMediaInteraction(type) {
     if (type === MEDIA_INTERACTION_TYPES.DOWN) {
-      groundMedia(this.el);
+      const bbox = SYSTEMS.voxSystem.getBoundingBoxForSource(this.mesh);
+      const center = bbox.getCenter();
+
+      // Need to compute the offset of the generated mesh and the position of this source
+      const meshYOffset = this.el.object3D.position.y - center.y;
+      groundMedia(this.el, false, bbox, meshYOffset);
     }
   },
 

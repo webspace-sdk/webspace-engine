@@ -317,6 +317,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
     this.setDrawRange(0, indices.length);
 
     this.computeBoundingSphere();
+    this.computeBoundingBox();
   }
 }
 

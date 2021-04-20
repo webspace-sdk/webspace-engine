@@ -426,11 +426,15 @@ export function generateMeshBVH(object3D, force = true) {
     if (hasBufferGeometry && (!hasBoundsTree || force) && obj.geometry.attributes.position) {
       const geo = obj.geometry;
       const triCount = geo.index ? geo.index.count / 3 : geo.attributes.position.count / 3;
-      // only bother using memory and time making a BVH if there are a reasonable number of tris,
-      // and if there are too many it's too painful and large to tolerate doing it (at least until we put this in a web worker)
-      if (force || (triCount > 1000 && triCount < 1000000)) {
-        // note that bounds tree construction creates an index as a side effect if one doesn't already exist
-        geo.boundsTree = new MeshBVH(obj.geometry, { strategy: 0, maxDepth: 30 });
+      if (triCount === 0) {
+        geo.boundsTree = null;
+      } else {
+        // only bother using memory and time making a BVH if there are a reasonable number of tris,
+        // and if there are too many it's too painful and large to tolerate doing it (at least until we put this in a web worker)
+        if (force || (triCount > 1000 && triCount < 1000000)) {
+          // note that bounds tree construction creates an index as a side effect if one doesn't already exist
+          geo.boundsTree = new MeshBVH(obj.geometry, { strategy: 0, maxDepth: 30 });
+        }
       }
     }
   });
