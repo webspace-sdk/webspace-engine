@@ -53,12 +53,6 @@ export class UIAnimationSystem {
     document.documentElement.style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
     document.documentElement.style.setProperty("--presence-width", `${this.targetSceneRight}px`);
     window.addEventListener("resize", () => this.applySceneSize(null, null, true));
-
-    if (skipPanels) {
-      setTimeout(() => {
-        this.collapseSidePanels();
-      }, 3000);
-    }
   }
 
   expandSidePanels() {
@@ -152,6 +146,11 @@ export class UIAnimationSystem {
   }
 
   applySceneSize(sceneLeft, sceneRight, includeUI = false) {
+    if (skipPanels) {
+      sceneLeft = 0;
+      sceneRight = 0;
+    }
+
     if (sceneLeft !== null) {
       this.sceneLeft = sceneLeft;
     }
@@ -171,6 +170,11 @@ export class UIAnimationSystem {
 
   // Returns true if was applied successfully
   applyUI(left, right) {
+    if (skipPanels) {
+      left = 0;
+      right = 0;
+    }
+
     const body = document.body;
 
     const width = body.clientWidth - left - right;
