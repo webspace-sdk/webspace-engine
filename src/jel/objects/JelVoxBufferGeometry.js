@@ -2,11 +2,16 @@ const { BufferGeometry, Float32BufferAttribute } = THREE;
 export const VOXEL_SIZE = 1 / 8;
 const MAX_QUAD_SIZE = 8;
 
+const MAX_VOX_SIZE = 128;
+
+const mask = new Int32Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
+const vals = new Int32Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
+const norms = new Int32Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
+
 // Adapted from implementation by mikolalysenko:
 // https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
-function GreedyMesh(f, dims, max_quad_size = Infinity) {
+function GreedyMesh(f, onQuad, dims, max_quad_size = Infinity) {
   // Sweep over 3-axes
-  const quads = [];
   for (let d = 0; d < 3; ++d) {
     // eslint-disable-line no-plusplus
     let i;
@@ -19,17 +24,16 @@ function GreedyMesh(f, dims, max_quad_size = Infinity) {
     const v = (d + 2) % 3;
     const x = [0, 0, 0];
     const q = [0, 0, 0];
-    const mask = new Int32Array(dims[u] * dims[v]);
-    const vals = new Int32Array(dims[u] * dims[v]);
-    const norms = new Int32Array(dims[u] * dims[v]);
+    mask.fill(0);
+    vals.fill(0);
+    norms.fill(0);
+
     q[d] = 1;
     for (x[d] = -1; x[d] < dims[d]; ) {
       // Compute mask
       let n = 0;
       for (x[v] = 0; x[v] < dims[v]; ++x[v]) {
-        // eslint-disable-line no-plusplus
         for (x[u] = 0; x[u] < dims[u]; ++x[u]) {
-          // eslint-disable-line no-plusplus
           const vFrom = x[d] >= 0 ? f(x[0], x[1], x[2]) : 0;
           const vTo = x[d] < dims[d] - 1 ? f(x[0] + q[0], x[1] + q[1], x[2] + q[2]) : 0;
           mask[n] = !!vFrom !== !!vTo;
@@ -43,23 +47,20 @@ function GreedyMesh(f, dims, max_quad_size = Infinity) {
       // Generate mesh for mask using lexicographic ordering
       n = 0;
       for (j = 0; j < dims[v]; ++j) {
-        // eslint-disable-line no-plusplus
         for (i = 0; i < dims[u]; ) {
-          if (mask[n]) {
+          if (mask[n] !== 0) {
             const cv = vals[n];
 
             // Compute width
-            for (w = 1; mask[n + w] && cv === vals[n + w] && i + w < dims[u] && w < max_quad_size; ++w) {
+            for (w = 1; mask[n + w] !== 0 && cv === vals[n + w] && i + w < dims[u] && w < max_quad_size; ++w) {
               // eslint-disable-line no-plusplus
             }
             // Compute height (this is slightly awkward
             let done = false;
 
             for (h = 1; j + h < dims[v] && h < max_quad_size; ++h) {
-              // eslint-disable-line no-plusplus
               for (k = 0; k < w; ++k) {
-                // eslint-disable-line no-plusplus
-                if (!mask[n + k + h * dims[u]] || vals[n + k + h * dims[u]] !== cv) {
+                if (mask[n + k + h * dims[u]] === 0 || vals[n + k + h * dims[u]] !== cv) {
                   done = true;
                   break;
                 }
@@ -76,7 +77,7 @@ function GreedyMesh(f, dims, max_quad_size = Infinity) {
             du[u] = w;
             const dv = [0, 0, 0];
             dv[v] = h;
-            quads.push([
+            onQuad([
               d,
               norms[n],
               [x[0], x[1], x[2]],
@@ -89,7 +90,7 @@ function GreedyMesh(f, dims, max_quad_size = Infinity) {
               // eslint-disable-line no-plusplus
               for (k = 0; k < w; ++k) {
                 // eslint-disable-line no-plusplus
-                mask[n + k + l * dims[u]] = false;
+                mask[n + k + l * dims[u]] = 0;
               }
             }
             // Increment counters and continue
@@ -103,7 +104,6 @@ function GreedyMesh(f, dims, max_quad_size = Infinity) {
       }
     }
   }
-  return quads;
 }
 
 class JelVoxBufferGeometry extends BufferGeometry {
@@ -155,153 +155,145 @@ class JelVoxBufferGeometry extends BufferGeometry {
     };
 
     // Generate quads via greedy mesher.
-    const quads = GreedyMesh(
-      (x, y, z) => {
-        const sx = x - xzShift;
-        const sz = z - xzShift;
+    GreedyMesh(
+      (x, y, z) => chunk.getPaletteIndexAt(x - xzShift, y, z - xzShift),
+      quad => {
+        const d = quad[0];
+        const up = quad[1];
 
-        if (!chunk.hasVoxelAt(sx, y, sz)) return false;
-        return chunk.getPaletteIndexAt(sx, y, sz) + 256;
+        const [x1, y1, z1] = quad[2];
+        const [x2, y2, z2] = quad[3];
+        const [x3, y3, z3] = quad[4];
+        const [x4, y4, z4] = quad[5];
+
+        // Look up vertex color.
+        const x = x1 - (d === 0 && up ? 1 : 0);
+        const y = y1 - (d === 1 && up ? 1 : 0);
+        const z = z1 - (d === 2 && up ? 1 : 0);
+
+        const c = chunk.getPaletteIndexAt(x - xzShift, y, z - xzShift) - 1;
+        const [r, g, b] = palette[c];
+        const hv = VOXEL_SIZE / 2;
+
+        // Generate visible faces.
+        switch (d) {
+          case 0:
+            if (up) {
+              pushFace(
+                [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
+                [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
+                [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
+                [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
+                0,
+                0,
+                Math.abs(z1 - z3),
+                Math.abs(y1 - y3),
+                1,
+                0,
+                0,
+                r,
+                g,
+                b
+              );
+            } else {
+              pushFace(
+                [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
+                [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
+                [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
+                [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
+                0,
+                0,
+                Math.abs(z1 - z3),
+                Math.abs(y1 - y3),
+                -1,
+                0,
+                0,
+                r,
+                g,
+                b
+              );
+            }
+            break;
+          case 1:
+            if (up) {
+              pushFace(
+                [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
+                [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
+                [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
+                [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
+                0,
+                0,
+                Math.abs(z1 - z3),
+                Math.abs(x1 - x3),
+                0,
+                1,
+                0,
+                r,
+                g,
+                b
+              );
+            } else {
+              pushFace(
+                [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
+                [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
+                [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
+                [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
+                0,
+                0,
+                Math.abs(z1 - z3),
+                Math.abs(x1 - x3),
+                0,
+                -1,
+                0,
+                r,
+                g,
+                b
+              );
+            }
+            break;
+          case 2:
+            if (up) {
+              pushFace(
+                [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
+                [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
+                [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
+                [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
+                0,
+                0,
+                Math.abs(x1 - x3),
+                Math.abs(y1 - y3),
+                0,
+                0,
+                1,
+                r,
+                g,
+                b
+              );
+            } else {
+              pushFace(
+                [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
+                [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
+                [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
+                [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
+                0,
+                0,
+                Math.abs(x1 - x3),
+                Math.abs(y1 - y3),
+                0,
+                0,
+                -1,
+                r,
+                g,
+                b
+              );
+            }
+
+            break;
+        }
       },
       [size, size, size],
       MAX_QUAD_SIZE
     );
-
-    for (let i = 0; i < quads.length; i++) {
-      const quad = quads[i];
-      const d = quad[0];
-      const up = quad[1];
-
-      const [x1, y1, z1] = quad[2];
-      const [x2, y2, z2] = quad[3];
-      const [x3, y3, z3] = quad[4];
-      const [x4, y4, z4] = quad[5];
-
-      // Look up vertex color.
-      const x = x1 - (d === 0 && up ? 1 : 0);
-      const y = y1 - (d === 1 && up ? 1 : 0);
-      const z = z1 - (d === 2 && up ? 1 : 0);
-
-      const c = chunk.getPaletteIndexAt(x - xzShift, y, z - xzShift) - 1;
-      const [r, g, b] = palette[c];
-      const hv = VOXEL_SIZE / 2;
-
-      // Generate visible faces.
-      switch (d) {
-        case 0:
-          if (up) {
-            pushFace(
-              [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
-              [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
-              [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
-              [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
-              0,
-              0,
-              Math.abs(z1 - z3),
-              Math.abs(y1 - y3),
-              1,
-              0,
-              0,
-              r,
-              g,
-              b
-            );
-          } else {
-            pushFace(
-              [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
-              [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
-              [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
-              [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
-              0,
-              0,
-              Math.abs(z1 - z3),
-              Math.abs(y1 - y3),
-              -1,
-              0,
-              0,
-              r,
-              g,
-              b
-            );
-          }
-          break;
-        case 1:
-          if (up) {
-            pushFace(
-              [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
-              [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
-              [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
-              [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
-              0,
-              0,
-              Math.abs(z1 - z3),
-              Math.abs(x1 - x3),
-              0,
-              1,
-              0,
-              r,
-              g,
-              b
-            );
-          } else {
-            pushFace(
-              [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
-              [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
-              [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
-              [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
-              0,
-              0,
-              Math.abs(z1 - z3),
-              Math.abs(x1 - x3),
-              0,
-              -1,
-              0,
-              r,
-              g,
-              b
-            );
-          }
-          break;
-        case 2:
-          if (up) {
-            pushFace(
-              [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
-              [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
-              [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
-              [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
-              0,
-              0,
-              Math.abs(x1 - x3),
-              Math.abs(y1 - y3),
-              0,
-              0,
-              1,
-              r,
-              g,
-              b
-            );
-          } else {
-            pushFace(
-              [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
-              [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
-              [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
-              [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
-              0,
-              0,
-              Math.abs(x1 - x3),
-              Math.abs(y1 - y3),
-              0,
-              0,
-              -1,
-              r,
-              g,
-              b
-            );
-          }
-
-          break;
-      }
-    }
 
     // Generate vertex indices for quads.
     const len = (vertices.length / 3 / 4) * 6;
