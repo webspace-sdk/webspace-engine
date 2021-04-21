@@ -15,6 +15,8 @@ import { EventTarget } from "event-target-shim";
 const MAX_FRAMES_PER_VOX = 32;
 const MAX_INSTANCES_PER_VOX_ID = 255;
 const IDENTITY = new Matrix4();
+const tmpMatrix = new Matrix4();
+const tmpVec = new THREE.Vector3();
 
 const voxelMaterial = new ShaderMaterial({
   name: "vox",
@@ -87,7 +89,14 @@ export class VoxSystem extends EventTarget {
     this.frame++;
 
     for (const entry of voxMap.values()) {
-      const { meshes, maxMeshIndex, maxRegisteredIndex, hasDirtyMatrices, sources } = entry;
+      const {
+        meshes,
+        maxMeshIndex,
+        maxRegisteredIndex,
+        hasDirtyMatrices,
+        hasDirtyWorldToObjectMatrices,
+        sources
+      } = entry;
 
       // Registration in-progress
       if (maxRegisteredIndex < 0) continue;
@@ -95,8 +104,8 @@ export class VoxSystem extends EventTarget {
       let hasAnyInstancesInCamera = false;
       let instanceMatrixNeedsUpdate = false;
 
-      for (let i = 0; i <= maxRegisteredIndex; i++) {
-        const source = sources[i];
+      for (let instanceId = 0; instanceId <= maxRegisteredIndex; instanceId++) {
+        const source = sources[instanceId];
         if (source === null) continue;
 
         if (this.sourceToLastCullPassFrame.has(source)) {
@@ -112,11 +121,12 @@ export class VoxSystem extends EventTarget {
         if (shouldUpdateMatrix) {
           source.updateMatrices();
 
-          for (let j = 0; j <= maxMeshIndex; j++) {
-            const mesh = meshes[j];
+          for (let frame = 0; frame <= maxMeshIndex; frame++) {
+            const mesh = meshes[frame];
             if (mesh === null) continue;
 
-            mesh.setMatrixAt(i, source.matrixWorld);
+            mesh.setMatrixAt(instanceId, source.matrixWorld);
+            hasDirtyWorldToObjectMatrices[frame * MAX_INSTANCES_PER_VOX_ID + instanceId] = true;
           }
 
           instanceMatrixNeedsUpdate = true;
@@ -264,6 +274,8 @@ export class VoxSystem extends EventTarget {
       maxRegisteredIndex: -1,
       sourceToIndex: new Map(),
       meshes: Array(MAX_FRAMES_PER_VOX).fill(null),
+      worldToObjectMatrices: Array(MAX_FRAMES_PER_VOX * MAX_INSTANCES_PER_VOX_ID).fill(null),
+      hasDirtyWorldToObjectMatrices: Array(MAX_FRAMES_PER_VOX * MAX_INSTANCES_PER_VOX_ID).fill(false),
       maxMeshIndex: -1,
       sources: Array(MAX_INSTANCES_PER_VOX_ID).fill(null),
       dirtyFrameMeshes: Array(MAX_FRAMES_PER_VOX).fill(true),
@@ -371,20 +383,17 @@ export class VoxSystem extends EventTarget {
   }
 
   getVoxHitFromIntersection(intersection, hitCell, adjacentCell) {
-    const { meshToVoxId } = this;
+    const { meshToVoxId, voxMap } = this;
 
     const hitObject = intersection && intersection.object;
-    if (!meshToVoxId.has(hitObject)) return;
+    const voxId = meshToVoxId.get(hitObject);
+    if (!voxId) return;
 
-    // TODO optimize
-    const inv = new THREE.Matrix4();
-    const matrix = new THREE.Matrix4();
-    hitObject.getMatrixAt(intersection.instanceId, matrix);
-    inv.getInverse(matrix);
-    const p = new THREE.Vector3();
-    p.copy(intersection.point);
-    p.applyMatrix4(inv);
-    p.multiplyScalar(1 / VOXEL_SIZE);
+    const frame = voxMap.get(voxId).meshes.indexOf(hitObject);
+    const inv = this.getWorldToObjectMatrix(voxId, frame, intersection.instanceId);
+    tmpVec.copy(intersection.point);
+    tmpVec.applyMatrix4(inv);
+    tmpVec.multiplyScalar(1 / VOXEL_SIZE);
 
     const nx = intersection.face.normal.x;
     const ny = intersection.face.normal.y;
@@ -394,9 +403,9 @@ export class VoxSystem extends EventTarget {
     //
     // The Y coordinate is offset by the frame size / 2 because the object origin
     // is in the vertical center. (See JelVoxBufferGeometry)
-    const hx = Math.round(p.x - nx * 0.5);
-    const hy = Math.round(p.y - ny * 0.5 + DEFAULT_VOX_FRAME_SIZE / 2);
-    const hz = Math.round(p.z - nz * 0.5);
+    const hx = Math.round(tmpVec.x - nx * 0.5);
+    const hy = Math.round(tmpVec.y - ny * 0.5 + DEFAULT_VOX_FRAME_SIZE / 2);
+    const hz = Math.round(tmpVec.z - nz * 0.5);
 
     hitCell.x = hx;
     hitCell.y = hy;
@@ -453,5 +462,29 @@ export class VoxSystem extends EventTarget {
     }
 
     return null;
+  }
+
+  getWorldToObjectMatrix(voxId, frame, instanceId) {
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return;
+
+    const { meshes, worldToObjectMatrices, hasDirtyWorldToObjectMatrices } = entry;
+    const idx = frame * MAX_INSTANCES_PER_VOX_ID + instanceId;
+
+    let inverse = worldToObjectMatrices[idx];
+
+    if (worldToObjectMatrices[idx] === null) {
+      inverse = new THREE.Matrix4();
+      worldToObjectMatrices[idx] = inverse;
+    }
+
+    if (hasDirtyWorldToObjectMatrices[idx] && meshes[frame] !== null) {
+      meshes[frame].getMatrixAt(instanceId, tmpMatrix);
+      inverse.getInverse(tmpMatrix);
+      hasDirtyWorldToObjectMatrices[idx] = false;
+    }
+
+    return inverse;
   }
 }
