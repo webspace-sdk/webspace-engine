@@ -1,5 +1,8 @@
 import BezierEasing from "bezier-easing";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import qsTruthy from "../../hubs/utils/qs_truthy";
+
+const skipPanels = qsTruthy("skip_panels");
 
 // Used for managing the animation of the major UI panels
 
@@ -50,6 +53,12 @@ export class UIAnimationSystem {
     document.documentElement.style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
     document.documentElement.style.setProperty("--presence-width", `${this.targetSceneRight}px`);
     window.addEventListener("resize", () => this.applySceneSize(null, null, true));
+
+    if (skipPanels) {
+      setTimeout(() => {
+        this.collapseSidePanels();
+      }, 3000);
+    }
   }
 
   expandSidePanels() {
