@@ -3,6 +3,7 @@ import { disposeExistingMesh } from "../../hubs/utils/three-utils";
 import { groundMedia, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
 import { getNetworkedEntity } from "../../jel/utils/ownership-utils";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
+import { DEFAULT_VOX_FRAME_SIZE } from "../utils/vox-sync";
 import "../utils/vox-sync";
 
 AFRAME.registerComponent("media-vox", {
@@ -83,7 +84,7 @@ AFRAME.registerComponent("media-vox", {
         this.el.emit("model-loading");
 
         // TODO dynamic vox sizes?
-        const voxSize = 32.0;
+        const voxSize = DEFAULT_VOX_FRAME_SIZE;
         const boxSize = voxSize * VOXEL_SIZE;
         const geo = new THREE.BoxBufferGeometry(boxSize, boxSize, boxSize);
         const mat = new THREE.MeshBasicMaterial();
@@ -110,7 +111,8 @@ AFRAME.registerComponent("media-vox", {
   handleMediaInteraction(type) {
     if (type === MEDIA_INTERACTION_TYPES.DOWN) {
       const bbox = SYSTEMS.voxSystem.getBoundingBoxForSource(this.mesh);
-      const center = bbox.getCenter();
+      const center = new THREE.Vector3();
+      bbox.getCenter(center);
 
       // Need to compute the offset of the generated mesh and the position of this source
       const meshYOffset = this.el.object3D.position.y - center.y;

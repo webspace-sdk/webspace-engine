@@ -4,6 +4,8 @@ import { generateMeshBVH, disposeNode } from "../../hubs/utils/three-utils";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER } from "../../hubs/constants";
+import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
+import { DEFAULT_VOX_FRAME_SIZE } from "../utils/vox-sync";
 import { Vox, VoxChunk } from "ot-vox";
 import VoxSync from "../utils/vox-sync";
 
@@ -72,6 +74,7 @@ export class VoxSystem extends EventTarget {
     this.syncs = new Map();
     this.voxMap = new Map();
     this.sourceToVoxId = new Map();
+    this.meshToVoxId = new Map();
     this.sourceToLastCullPassFrame = new Map();
     this.cursorSystem = cursorTargettingSystem;
     this.onSyncedVoxUpdated = this.onSyncedVoxUpdated.bind(this);
@@ -134,33 +137,9 @@ export class VoxSystem extends EventTarget {
         entry.hasDirtyMatrices = false;
       }
     }
-
-    //const cursor = this.cursorSystem.rightRemote && this.cursorSystem.rightRemote.components["cursor-controller"];
-    //const intersection = cursor && cursor.intersection;
-    //const hitObject = intersection && intersection.object;
-    /*for (const { sources, maxRegisteredIndex } of voxMap.values()) {
-      for (let i = 0; i <= maxRegisteredIndex; i++) {
-        const source = sources[i];
-        if (source === null) continue;
-
-        if (hitObject && hitObject.parent === source) {
-          // TODO optimize
-          const inv = new THREE.Matrix4();
-          hitObject.updateMatrices(true, true);
-          inv.getInverse(hitObject.matrixWorld);
-          const p = new THREE.Vector3();
-          p.copy(intersection.point);
-          p.applyMatrix4(inv);
-
-          console.log(p);
-        }
-      }
-    }*/
-    //const hitTarget = intersection && intersection.target;
-    //console.log(hitTarget);
   }
 
-  async beginSyncing(voxId) {
+  async getSync(voxId) {
     const { syncs } = this;
     if (syncs.has(voxId)) return syncs.get(voxId);
 
@@ -308,7 +287,7 @@ export class VoxSystem extends EventTarget {
   }
 
   unregisterVox(voxId) {
-    const { voxMap, sceneEl } = this;
+    const { voxMap, meshToVoxId, sceneEl } = this;
     const scene = sceneEl.object3D;
     const voxEntry = voxMap.get(voxId);
     const { meshes, maxMeshIndex } = voxEntry;
@@ -321,6 +300,7 @@ export class VoxSystem extends EventTarget {
         mesh.material = null;
         disposeNode(mesh);
         scene.remove(mesh);
+        meshToVoxId.delete(mesh);
         meshes[i] = null;
         this.dispatchEvent(new CustomEvent("mesh_removed"));
       }
@@ -330,7 +310,7 @@ export class VoxSystem extends EventTarget {
   }
 
   regenerateDirtyMeshesForVoxId(voxId, vox) {
-    const { sceneEl, voxMap } = this;
+    const { sceneEl, meshToVoxId, voxMap } = this;
     const scene = sceneEl.object3D;
     const entry = voxMap.get(voxId);
     const { sources, dirtyFrameMeshes, meshes, maxRegisteredIndex } = entry;
@@ -342,6 +322,8 @@ export class VoxSystem extends EventTarget {
       if (!mesh) {
         mesh = createMesh();
         meshes[i] = mesh;
+        meshToVoxId.set(mesh, voxId);
+
         scene.add(meshes[i]);
 
         // If this is a new mesh for a new frame need to add all the instances needed
@@ -380,6 +362,7 @@ export class VoxSystem extends EventTarget {
       mesh.material = null;
       disposeNode(mesh);
       scene.remove(mesh);
+      meshToVoxId.delete(mesh);
       meshes[i] = null;
       this.dispatchEvent(new CustomEvent("mesh_removed"));
     }
@@ -387,19 +370,49 @@ export class VoxSystem extends EventTarget {
     entry.maxMeshIndex = vox.frames.length - 1;
   }
 
+  getVoxHitFromIntersection(intersection, hitCell, adjacentCell) {
+    const { meshToVoxId } = this;
+
+    const hitObject = intersection && intersection.object;
+    if (!meshToVoxId.has(hitObject)) return;
+
+    // TODO optimize
+    const inv = new THREE.Matrix4();
+    const matrix = new THREE.Matrix4();
+    hitObject.getMatrixAt(intersection.instanceId, matrix);
+    inv.getInverse(matrix);
+    const p = new THREE.Vector3();
+    p.copy(intersection.point);
+    p.applyMatrix4(inv);
+    p.multiplyScalar(1 / VOXEL_SIZE);
+
+    const nx = intersection.face.normal.x;
+    const ny = intersection.face.normal.y;
+    const nz = intersection.face.normal.z;
+
+    // Hit cell is found by nudging along normal and rounding.
+    //
+    // The Y coordinate is offset by the frame size / 2 because the object origin
+    // is in the vertical center. (See JelVoxBufferGeometry)
+    const hx = Math.round(p.x - nx * 0.5);
+    const hy = Math.round(p.y - ny * 0.5 + DEFAULT_VOX_FRAME_SIZE / 2);
+    const hz = Math.round(p.z - nz * 0.5);
+
+    hitCell.x = hx;
+    hitCell.y = hy;
+    hitCell.z = hz;
+
+    // Adjacent cell is found by moving along normal (which is normalized).
+    adjacentCell.x = hx + nx;
+    adjacentCell.y = hy + ny;
+    adjacentCell.z = hz + nz;
+
+    // Returns vox id
+    return meshToVoxId.get(hitObject);
+  }
+
   getMeshes() {
-    const { voxMap } = this;
-    const out = [];
-
-    for (const { meshes, maxMeshIndex } of voxMap.values()) {
-      for (let i = 0; i <= maxMeshIndex; i++) {
-        const mesh = meshes[i];
-        if (mesh === null) continue;
-        out.push(mesh);
-      }
-    }
-
-    return out;
+    return this.meshToVoxId.keys();
   }
 
   getBoundingBoxForSource(source) {

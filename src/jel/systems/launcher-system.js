@@ -15,6 +15,7 @@ const WHEEL_THRESHOLD = 0.15;
 export class LauncherSystem {
   constructor(sceneEl, projectileSystem, userinput, characterController, soundEffectsSystem) {
     this.sceneEl = sceneEl;
+    this.enabled = false;
     this.projectileSystem = projectileSystem;
     this.characterController = characterController;
     this.userinput = userinput;
@@ -46,6 +47,8 @@ export class LauncherSystem {
   }
 
   tick() {
+    if (!this.enabled) return;
+
     const { projectileSystem, userinput } = this;
 
     const spacePath = paths.device.keyboard.key(" ");

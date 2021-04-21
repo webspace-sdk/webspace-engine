@@ -3,7 +3,7 @@ import { EventTarget } from "event-target-shim";
 import { VoxChunk, voxColorForRGBT, VOXEL_TYPE_DIFFUSE, REMOVE_VOXEL_COLOR } from "ot-vox";
 
 const MAX_FRAMES = 32;
-const INITIAL_FRAME_SIZE = 32;
+export const DEFAULT_VOX_FRAME_SIZE = 32;
 
 export default class VoxSync extends EventTarget {
   constructor(voxId) {
@@ -56,11 +56,11 @@ export default class VoxSync extends EventTarget {
 
     if (snapshot.frames[idxFrame]) return;
 
-    const indices = new Array(INITIAL_FRAME_SIZE ** 3);
+    const indices = new Array(DEFAULT_VOX_FRAME_SIZE ** 3);
     indices.fill(0);
 
     const delta = VoxChunk.fromJSON({
-      size: INITIAL_FRAME_SIZE,
+      size: DEFAULT_VOX_FRAME_SIZE,
       palette: [],
       indices
     });

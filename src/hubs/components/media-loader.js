@@ -337,11 +337,14 @@ AFRAME.registerComponent("media-loader", {
         this.animating = true;
         if (shouldUpdateScale) this.updateScale(this.data.fitToBox, this.data.moveTheParentNotTheMesh);
         const mesh = this.el.getObject3D("mesh");
-        const scale = { x: 0.001, y: 0.001, z: 0.001 };
-        scale.x = mesh.scale.x < scale.x ? mesh.scale.x * 0.001 : scale.x;
-        scale.y = mesh.scale.y < scale.y ? mesh.scale.x * 0.001 : scale.y;
-        scale.z = mesh.scale.z < scale.z ? mesh.scale.x * 0.001 : scale.z;
-        addMeshScaleAnimation(mesh, scale, finish);
+
+        if (mesh) {
+          const scale = { x: 0.001, y: 0.001, z: 0.001 };
+          scale.x = mesh.scale.x < scale.x ? mesh.scale.x * 0.001 : scale.x;
+          scale.y = mesh.scale.y < scale.y ? mesh.scale.x * 0.001 : scale.y;
+          scale.z = mesh.scale.z < scale.z ? mesh.scale.x * 0.001 : scale.z;
+          addMeshScaleAnimation(mesh, scale, finish);
+        }
       }
     } else {
       if (shouldUpdateScale) this.updateScale(this.data.fitToBox, this.data.moveTheParentNotTheMesh);
@@ -624,7 +627,7 @@ AFRAME.registerComponent("media-loader", {
           })
         );
       } else if (contentType.startsWith("model/vnd.jel-vox")) {
-        this.el.addEventListener("model-loaded", () => this.onMediaLoaded(SHAPE.BOX, false), { once: true });
+        this.el.addEventListener("model-loaded", () => this.onMediaLoaded(null, false), { once: true });
         this.el.addEventListener("model-error", this.onError, { once: true });
         this.el.setAttribute("floaty-object", { gravitySpeedLimit: 1.85 });
         this.setToSingletonMediaComponent(
