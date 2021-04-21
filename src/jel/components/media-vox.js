@@ -83,10 +83,7 @@ AFRAME.registerComponent("media-vox", {
 
         this.el.emit("model-loading");
 
-        // TODO dynamic vox sizes?
-        const voxSize = DEFAULT_VOX_FRAME_SIZE;
-        const boxSize = voxSize * VOXEL_SIZE;
-        const geo = new THREE.BoxBufferGeometry(boxSize, boxSize, boxSize);
+        const geo = new THREE.BoxBufferGeometry(1.0, 1.0, 1.0);
         const mat = new THREE.MeshBasicMaterial();
         mat.visible = false;
         this.mesh = new THREE.Mesh(geo, mat);

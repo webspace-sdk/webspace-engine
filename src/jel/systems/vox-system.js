@@ -5,7 +5,6 @@ import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
-import { DEFAULT_VOX_FRAME_SIZE } from "../utils/vox-sync";
 import { Vox, VoxChunk } from "ot-vox";
 import VoxSync from "../utils/vox-sync";
 
@@ -138,8 +137,9 @@ export class VoxSystem extends EventTarget {
         if (mesh === null) continue;
 
         // TODO time based frame rate
+        // TODO cull check doens't work for large objects
         const isCurrentAnimationFrame = this.frame % (maxMeshIndex + 1) === i;
-        mesh.visible = isCurrentAnimationFrame && hasAnyInstancesInCamera;
+        mesh.visible = true; //isCurrentAnimationFrame && hasAnyInstancesInCamera;
         mesh.instanceMatrix.needsUpdate = instanceMatrixNeedsUpdate;
       }
 
@@ -180,6 +180,7 @@ export class VoxSystem extends EventTarget {
 
     for (const { f: frame } of op) {
       dirtyFrameMeshes[frame] = true;
+      entry.sizes[frame] = vox.frames[frame].getSize();
     }
 
     this.regenerateDirtyMeshesForVoxId(voxId, vox);
@@ -281,6 +282,7 @@ export class VoxSystem extends EventTarget {
       dirtyFrameMeshes: Array(MAX_FRAMES_PER_VOX).fill(true),
       hasDirtyMatrices: false,
       currentFrame: 0,
+      sizes: Array(MAX_FRAMES_PER_VOX).fill(0),
       voxRegistered
     };
 
@@ -293,7 +295,13 @@ export class VoxSystem extends EventTarget {
       vox: [{ frames }]
     } = await res.json();
 
-    this.regenerateDirtyMeshesForVoxId(voxId, new Vox(frames.map(f => VoxChunk.deserialize(f))));
+    const vox = new Vox(frames.map(f => VoxChunk.deserialize(f)));
+
+    for (let i = 0; i < vox.frames.length; i++) {
+      entry.sizes[i] = vox.frames[i].getSize();
+    }
+
+    this.regenerateDirtyMeshesForVoxId(voxId, vox);
 
     finish();
   }
@@ -389,7 +397,9 @@ export class VoxSystem extends EventTarget {
     const voxId = meshToVoxId.get(hitObject);
     if (!voxId) return;
 
-    const frame = voxMap.get(voxId).meshes.indexOf(hitObject);
+    const { meshes, sizes } = voxMap.get(voxId);
+    const frame = meshes.indexOf(hitObject);
+    const size = sizes[frame];
     const inv = this.getWorldToObjectMatrix(voxId, frame, intersection.instanceId);
     tmpVec.copy(intersection.point);
     tmpVec.applyMatrix4(inv);
@@ -400,11 +410,8 @@ export class VoxSystem extends EventTarget {
     const nz = intersection.face.normal.z;
 
     // Hit cell is found by nudging along normal and rounding.
-    //
-    // The Y coordinate is offset by the frame size / 2 because the object origin
-    // is in the vertical center. (See JelVoxBufferGeometry)
     const hx = Math.round(tmpVec.x - nx * 0.5);
-    const hy = Math.round(tmpVec.y - ny * 0.5 + DEFAULT_VOX_FRAME_SIZE / 2);
+    const hy = Math.round(tmpVec.y - ny * 0.5);
     const hz = Math.round(tmpVec.z - nz * 0.5);
 
     hitCell.x = hx;

@@ -1,9 +1,10 @@
 const { BufferGeometry, Float32BufferAttribute } = THREE;
 export const VOXEL_SIZE = 1 / 8;
+const MAX_QUAD_SIZE = 8;
 
 // Adapted from implementation by mikolalysenko:
 // https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
-function GreedyMesh(f, dims) {
+function GreedyMesh(f, dims, max_quad_size = Infinity) {
   // Sweep over 3-axes
   const quads = [];
   for (let d = 0; d < 3; ++d) {
@@ -48,12 +49,13 @@ function GreedyMesh(f, dims) {
             const cv = vals[n];
 
             // Compute width
-            for (w = 1; mask[n + w] && cv === vals[n + w] && i + w < dims[u]; ++w) {
+            for (w = 1; mask[n + w] && cv === vals[n + w] && i + w < dims[u] && w < max_quad_size; ++w) {
               // eslint-disable-line no-plusplus
             }
             // Compute height (this is slightly awkward
             let done = false;
-            for (h = 1; j + h < dims[v]; ++h) {
+
+            for (h = 1; j + h < dims[v] && h < max_quad_size; ++h) {
               // eslint-disable-line no-plusplus
               for (k = 0; k < w; ++k) {
                 // eslint-disable-line no-plusplus
@@ -141,10 +143,10 @@ class JelVoxBufferGeometry extends BufferGeometry {
     const pushFace = (p1, p2, p3, p4, u1, v1, u2, v2, nx, ny, nz, r, g, b) => {
       // Shift the x, z because of the coordinate system, and shift the y because
       // we want the object origin to be at mid-Y
-      vertices.push(...[p1[0] - xzShift * VOXEL_SIZE, p1[1] - (size / 2) * VOXEL_SIZE, p1[2] - xzShift * VOXEL_SIZE]);
-      vertices.push(...[p2[0] - xzShift * VOXEL_SIZE, p2[1] - (size / 2) * VOXEL_SIZE, p2[2] - xzShift * VOXEL_SIZE]);
-      vertices.push(...[p3[0] - xzShift * VOXEL_SIZE, p3[1] - (size / 2) * VOXEL_SIZE, p3[2] - xzShift * VOXEL_SIZE]);
-      vertices.push(...[p4[0] - xzShift * VOXEL_SIZE, p4[1] - (size / 2) * VOXEL_SIZE, p4[2] - xzShift * VOXEL_SIZE]);
+      vertices.push(...[p1[0] - xzShift * VOXEL_SIZE, p1[1], p1[2] - xzShift * VOXEL_SIZE]);
+      vertices.push(...[p2[0] - xzShift * VOXEL_SIZE, p2[1], p2[2] - xzShift * VOXEL_SIZE]);
+      vertices.push(...[p3[0] - xzShift * VOXEL_SIZE, p3[1], p3[2] - xzShift * VOXEL_SIZE]);
+      vertices.push(...[p4[0] - xzShift * VOXEL_SIZE, p4[1], p4[2] - xzShift * VOXEL_SIZE]);
 
       for (let i = 0; i < 4; i++) {
         normals.push(...[nx, ny, nz]);
@@ -161,7 +163,8 @@ class JelVoxBufferGeometry extends BufferGeometry {
         if (!chunk.hasVoxelAt(sx, y, sz)) return false;
         return chunk.getPaletteIndexAt(sx, y, sz) + 256;
       },
-      [size, size, size]
+      [size, size, size],
+      MAX_QUAD_SIZE
     );
 
     for (let i = 0; i < quads.length; i++) {

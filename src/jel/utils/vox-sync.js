@@ -3,7 +3,7 @@ import { EventTarget } from "event-target-shim";
 import { VoxChunk, voxColorForRGBT, VOXEL_TYPE_DIFFUSE, REMOVE_VOXEL_COLOR } from "ot-vox";
 
 const MAX_FRAMES = 32;
-export const DEFAULT_VOX_FRAME_SIZE = 32;
+export const DEFAULT_VOX_FRAME_SIZE = 2;
 
 export default class VoxSync extends EventTarget {
   constructor(voxId) {
