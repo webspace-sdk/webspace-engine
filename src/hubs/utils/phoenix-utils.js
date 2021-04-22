@@ -259,10 +259,10 @@ export async function createHub(
   }).then(r => r.json());
 }
 
-export async function createVox() {
+export async function createVox(spaceId) {
   const store = window.APP.store;
   const createUrl = getReticulumFetchUrl("/api/v1/vox");
-  const payload = { vox: {} };
+  const payload = { vox: { space_id: spaceId } };
 
   const headers = { "content-type": "application/json" };
 

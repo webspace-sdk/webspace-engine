@@ -336,8 +336,12 @@ export class VoxSystem extends EventTarget {
 
     voxMap.set(voxId, entry);
 
+    const store = window.APP.store;
+
     // Fetch frame data when first registering.
-    const res = await fetch(voxUrl, { mode: "cors" });
+    const res = await fetch(voxUrl, {
+      headers: { authorization: `bearer ${store.state.credentials.token}` }
+    });
 
     const {
       vox: [{ frames }]

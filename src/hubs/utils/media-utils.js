@@ -203,6 +203,7 @@ export function coerceToUrl(urlOrText) {
   return urlOrText.indexOf("://") >= 0 ? urlOrText : `https://${urlOrText}`;
 }
 
+// Adds media. this function signature is out of control and should be refactored to take an object.
 export const addMedia = (
   src,
   contents,
@@ -217,7 +218,8 @@ export const addMedia = (
   parentEl = null,
   linkedEl = null,
   networkId = null,
-  skipLoader = false
+  skipLoader = false,
+  contentType = null
 ) => {
   const scene = AFRAME.scenes[0];
 
@@ -280,7 +282,8 @@ export const addMedia = (
     contentSubtype,
     linkedEl,
     mediaLayer,
-    mediaOptions
+    mediaOptions,
+    contentType
   });
 
   if (contents && !isEmoji) {
@@ -430,7 +433,7 @@ export const cloneMedia = (sourceEl, template, src = null, networked = true, lin
     }
   }
 
-  const { contentSubtype, fitToBox, mediaOptions } = sourceEl.components["media-loader"].data;
+  const { contentType, contentSubtype, fitToBox, mediaOptions } = sourceEl.components["media-loader"].data;
 
   return addMedia(
     src,
@@ -444,7 +447,10 @@ export const cloneMedia = (sourceEl, template, src = null, networked = true, lin
     { ...mediaOptions, ...extraMediaOptions },
     networked,
     parentEl,
-    link ? sourceEl : null
+    link ? sourceEl : null,
+    null,
+    false,
+    contentType
   );
 };
 

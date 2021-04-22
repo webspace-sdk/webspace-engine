@@ -120,12 +120,30 @@ export class BuilderSystem {
   })();
 
   async createVoxAt(point) {
+    const spaceId = window.APP.spaceChannel.spaceId;
+
     const {
       vox: [{ vox_id: voxId, url }]
-    } = await createVox();
+    } = await createVox(spaceId);
 
     // Skip resolving these URLs since they're from dyna.
-    const { entity } = addMedia(url, null, "#interactable-media", ObjectContentOrigins.URL);
+    const { entity } = addMedia(
+      url,
+      null,
+      "#interactable-media",
+      ObjectContentOrigins.URL,
+      null,
+      false,
+      false,
+      true,
+      {},
+      true,
+      null,
+      null,
+      null,
+      false,
+      "model/vnd.jel-vox"
+    );
 
     entity.addEventListener(
       "model-loaded",

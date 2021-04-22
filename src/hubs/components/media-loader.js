@@ -396,7 +396,13 @@ AFRAME.registerComponent("media-loader", {
       const isLocalModelAsset =
         isNonCorsProxyDomain(parsedUrl.hostname) && (guessContentType(src) || "").startsWith("model/gltf");
 
-      if (this.data.resolve && !src.startsWith("data:") && !src.startsWith("jel:") && !isLocalModelAsset) {
+      if (
+        this.data.resolve &&
+        !src.startsWith("data:") &&
+        !src.startsWith("jel:") &&
+        contentType !== "model/vnd.jel-vox" &&
+        !isLocalModelAsset
+      ) {
         const is360 = !!(this.data.mediaOptions.projection && this.data.mediaOptions.projection.startsWith("360"));
         const quality = getDefaultResolveQuality(is360);
         const result = await resolveUrl(src, quality, version, forceLocalRefresh);
