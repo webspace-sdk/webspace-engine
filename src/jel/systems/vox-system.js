@@ -500,7 +500,7 @@ export class VoxSystem extends EventTarget {
     // Hit cell is found by nudging along normal and rounding.
     // Also need to offset the geometry shift which aligns cells with bounding box.
     const hx = Math.round(tmpVec.x + 0.5 - nx * 0.5);
-    const hy = Math.round(tmpVec.y - 0.25 - ny * 0.5);
+    const hy = Math.round(tmpVec.y - 0.5 - ny * 0.5);
     const hz = Math.round(tmpVec.z + 0.5 - nz * 0.5);
 
     hitCell.x = hx;

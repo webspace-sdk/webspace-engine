@@ -665,6 +665,20 @@ export class TerrainSystem {
     }
   }
 
+  getTargettableTerrainMeshes() {
+    const meshes = [];
+
+    for (let i = 0; i < this.activeTerrains.length; i++) {
+      const terrain = this.activeTerrains[i];
+
+      if (terrain.meshes.length > 0) {
+        meshes.push(terrain.meshes[0]);
+      }
+    }
+
+    return meshes;
+  }
+
   unloadWorld() {
     const { avatarChunk, chunkHeightMaps, loadedChunks, loadingChunks, spawningChunks } = this;
     loadedChunks.forEach(chunk => this.unloadChunk(chunk));

@@ -78,6 +78,10 @@ export class CursorTargettingSystem {
     for (const voxMesh of SYSTEMS.voxSystem.getMeshes()) {
       targets.push(voxMesh);
     }
+
+    for (const terrainMesh of SYSTEMS.terrainSystem.getTargettableTerrainMeshes()) {
+      targets.push(terrainMesh);
+    }
   }
 
   remove() {

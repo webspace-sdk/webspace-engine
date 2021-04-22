@@ -1,5 +1,6 @@
 import { Layers } from "../../hubs/components/layers";
 import { addVertexCurvingToShader, VOXELS_PER_CHUNK } from "../systems/terrain-system";
+import { generateMeshBVH } from "../../hubs/utils/three-utils";
 
 const {
   ShaderMaterial,
@@ -210,6 +211,11 @@ class Terrain extends Object3D {
       }
 
       geometry.setIndex(new (len >= 1024 * 64 ? Uint32BufferAttribute : Uint16BufferAttribute)(index, 1));
+    }
+
+    // Only generate BVH for highest detail mesh since that is used for raycasting.
+    if (this.meshes[0]) {
+      generateMeshBVH(this.meshes[0], true);
     }
 
     this.height = chunk.height;
