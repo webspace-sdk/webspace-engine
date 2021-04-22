@@ -8,7 +8,7 @@ import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { Vox, VoxChunk } from "ot-vox";
 import VoxSync from "../utils/vox-sync";
 
-const { ShaderMaterial, ShaderLib, UniformsUtils, MeshBasicMaterial, VertexColors, Matrix4 } = THREE;
+const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, VertexColors, Matrix4 } = THREE;
 import { EventTarget } from "event-target-shim";
 
 const MAX_FRAMES_PER_VOX = 32;
@@ -17,35 +17,29 @@ const IDENTITY = new Matrix4();
 const tmpMatrix = new Matrix4();
 const tmpVec = new THREE.Vector3();
 
-const voxelMaterial = new ShaderMaterial({
+const voxMaterial = new ShaderMaterial({
   name: "vox",
-  fog: false,
-  fragmentShader: ShaderLib.basic.fragmentShader,
-  vertexShader: ShaderLib.basic.vertexShader,
-  lights: false,
   vertexColors: VertexColors,
-  transparent: true,
+  fog: true,
+  fragmentShader: ShaderLib.standard.fragmentShader,
+  vertexShader: ShaderLib.standard.vertexShader,
+  wireframe: false,
+  lights: true,
   defines: {
-    ...new MeshBasicMaterial().defines
+    ...MeshStandardMaterial.defines
   },
   uniforms: {
-    ...UniformsUtils.clone(ShaderLib.basic.uniforms)
+    ...UniformsUtils.clone(ShaderLib.standard.uniforms)
   }
 });
 
-voxelMaterial.onBeforeCompile = shader => {
+voxMaterial.uniforms.metalness.value = 0;
+voxMaterial.uniforms.roughness.value = 1;
+
+voxMaterial.onBeforeCompile = shader => {
   addVertexCurvingToShader(shader);
   shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
-  shader.fragmentShader = shader.fragmentShader.replace(
-    "#include <fog_fragment>",
-    ["gl_FragColor = vec4(vColor.xyz, 1.0);", "#include <fog_fragment>"].join("\n")
-  );
 };
-
-voxelMaterial.stencilWrite = true;
-voxelMaterial.stencilFunc = THREE.AlwaysStencilFunc;
-voxelMaterial.stencilRef = 0;
-voxelMaterial.stencilZPass = THREE.ReplaceStencilOp;
 
 function voxIdForVoxUrl(url) {
   // Parse vox id from URL
@@ -57,12 +51,12 @@ function createMesh() {
   const geometry = new JelVoxBufferGeometry();
   geometry.instanceAttributes = []; // For DynamicInstancedMesh
 
-  const material = voxelMaterial;
+  const material = voxMaterial;
   const mesh = new DynamicInstancedMesh(geometry, material, MAX_INSTANCES_PER_VOX_ID);
   mesh.castShadow = true;
-  mesh.receiveShadow = false;
+  mesh.receiveShadow = true;
   mesh.frustumCulled = false;
-  mesh.renderOrder = RENDER_ORDER.MEDIA;
+  mesh.renderOrder = RENDER_ORDER.VOX;
 
   return mesh;
 }
@@ -100,7 +94,7 @@ export class VoxSystem extends EventTarget {
       // Registration in-progress
       if (maxRegisteredIndex < 0) continue;
 
-      let hasAnyInstancesInCamera = false;
+      //let hasAnyInstancesInCamera = false;
       let instanceMatrixNeedsUpdate = false;
 
       for (let instanceId = 0; instanceId <= maxRegisteredIndex; instanceId++) {
@@ -111,7 +105,7 @@ export class VoxSystem extends EventTarget {
           const lastFrameCullPassed = this.sourceToLastCullPassFrame.get(source);
 
           if (lastFrameCullPassed >= this.frame - 5) {
-            hasAnyInstancesInCamera = true;
+            //hasAnyInstancesInCamera = true;
           }
         }
 
@@ -138,7 +132,7 @@ export class VoxSystem extends EventTarget {
 
         // TODO time based frame rate
         // TODO cull check doens't work for large objects
-        const isCurrentAnimationFrame = this.frame % (maxMeshIndex + 1) === i;
+        //const isCurrentAnimationFrame = this.frame % (maxMeshIndex + 1) === i;
         mesh.visible = true; //isCurrentAnimationFrame && hasAnyInstancesInCamera;
         mesh.instanceMatrix.needsUpdate = instanceMatrixNeedsUpdate;
       }
@@ -180,7 +174,6 @@ export class VoxSystem extends EventTarget {
 
     for (const { f: frame } of op) {
       dirtyFrameMeshes[frame] = true;
-      entry.sizes[frame] = vox.frames[frame].getSize();
     }
 
     this.regenerateDirtyMeshesForVoxId(voxId, vox);
@@ -282,7 +275,6 @@ export class VoxSystem extends EventTarget {
       dirtyFrameMeshes: Array(MAX_FRAMES_PER_VOX).fill(true),
       hasDirtyMatrices: false,
       currentFrame: 0,
-      sizes: Array(MAX_FRAMES_PER_VOX).fill(0),
       voxRegistered
     };
 
@@ -296,11 +288,6 @@ export class VoxSystem extends EventTarget {
     } = await res.json();
 
     const vox = new Vox(frames.map(f => VoxChunk.deserialize(f)));
-
-    for (let i = 0; i < vox.frames.length; i++) {
-      entry.sizes[i] = vox.frames[i].getSize();
-    }
-
     this.regenerateDirtyMeshesForVoxId(voxId, vox);
 
     finish();
@@ -397,9 +384,8 @@ export class VoxSystem extends EventTarget {
     const voxId = meshToVoxId.get(hitObject);
     if (!voxId) return;
 
-    const { meshes, sizes } = voxMap.get(voxId);
+    const { meshes } = voxMap.get(voxId);
     const frame = meshes.indexOf(hitObject);
-    const size = sizes[frame];
     const inv = this.getWorldToObjectMatrix(voxId, frame, intersection.instanceId);
     tmpVec.copy(intersection.point);
     tmpVec.applyMatrix4(inv);

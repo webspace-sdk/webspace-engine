@@ -60,7 +60,7 @@ export default class VoxSync extends EventTarget {
     indices.fill(0);
 
     const delta = VoxChunk.fromJSON({
-      size: DEFAULT_VOX_FRAME_SIZE,
+      size: [DEFAULT_VOX_FRAME_SIZE, DEFAULT_VOX_FRAME_SIZE, DEFAULT_VOX_FRAME_SIZE],
       palette: [],
       indices
     });
@@ -81,7 +81,7 @@ export default class VoxSync extends EventTarget {
     this.ensureFrame(frame);
 
     const color = voxColorForRGBT(r, g, b, VOXEL_TYPE_DIFFUSE);
-    const delta = VoxChunk.fromJSON({ size: 1, palette: [color], indices: [1] });
+    const delta = VoxChunk.fromJSON({ size: [1, 1, 1], palette: [color], indices: [1] });
     const op = { f: frame, d: delta.serialize(), o: [x, y, z] };
 
     this._doc.submitOp(op);
@@ -91,7 +91,7 @@ export default class VoxSync extends EventTarget {
     await this.ensureEditing();
     this.ensureFrame(0);
 
-    const delta = VoxChunk.fromJSON({ size: 1, palette: [REMOVE_VOXEL_COLOR], indices: [1] });
+    const delta = VoxChunk.fromJSON({ size: [1, 1, 1], palette: [REMOVE_VOXEL_COLOR], indices: [1] });
     const op = { f: frame, d: delta.serialize(), o: [x, y, z] };
     this._doc.submitOp(op);
   }

@@ -1,6 +1,6 @@
 const { BufferGeometry, Float32BufferAttribute } = THREE;
 export const VOXEL_SIZE = 1 / 8;
-const MAX_QUAD_SIZE = 8;
+const MAX_QUAD_SIZE = 12;
 
 const MAX_VOX_SIZE = 128;
 
@@ -118,7 +118,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
 
   update(chunk) {
     const palette = [];
-    const size = chunk.getSize();
+    const size = chunk.size;
 
     for (let i = 0; i < chunk.palette.length; i++) {
       const rgbt = chunk.palette[i];
@@ -137,16 +137,23 @@ class JelVoxBufferGeometry extends BufferGeometry {
     const vertices = [];
     const normals = [];
     const colors = [];
+    const uvs = [];
 
-    const xzShift = Math.floor(size % 2 === 0 ? size / 2 - 1 : size / 2);
+    const xShift = Math.floor(size[0] % 2 === 0 ? size[0] / 2 - 1 : size[0] / 2);
+    const zShift = Math.floor(size[2] % 2 === 0 ? size[2] / 2 - 1 : size[2] / 2);
 
     const pushFace = (p1, p2, p3, p4, u1, v1, u2, v2, nx, ny, nz, r, g, b) => {
+      uvs.push(...[u1, v1]);
+      uvs.push(...[u2, v1]);
+      uvs.push(...[u2, v2]);
+      uvs.push(...[u1, v2]);
+
       // Shift the x, z because of the coordinate system, and shift the y because
       // we want the object origin to be at mid-Y
-      vertices.push(...[p1[0] - xzShift * VOXEL_SIZE, p1[1], p1[2] - xzShift * VOXEL_SIZE]);
-      vertices.push(...[p2[0] - xzShift * VOXEL_SIZE, p2[1], p2[2] - xzShift * VOXEL_SIZE]);
-      vertices.push(...[p3[0] - xzShift * VOXEL_SIZE, p3[1], p3[2] - xzShift * VOXEL_SIZE]);
-      vertices.push(...[p4[0] - xzShift * VOXEL_SIZE, p4[1], p4[2] - xzShift * VOXEL_SIZE]);
+      vertices.push(...[p1[0] - xShift * VOXEL_SIZE, p1[1], p1[2] - zShift * VOXEL_SIZE]);
+      vertices.push(...[p2[0] - xShift * VOXEL_SIZE, p2[1], p2[2] - zShift * VOXEL_SIZE]);
+      vertices.push(...[p3[0] - xShift * VOXEL_SIZE, p3[1], p3[2] - zShift * VOXEL_SIZE]);
+      vertices.push(...[p4[0] - xShift * VOXEL_SIZE, p4[1], p4[2] - zShift * VOXEL_SIZE]);
 
       for (let i = 0; i < 4; i++) {
         normals.push(...[nx, ny, nz]);
@@ -156,7 +163,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
 
     // Generate quads via greedy mesher.
     GreedyMesh(
-      (x, y, z) => chunk.getPaletteIndexAt(x - xzShift, y, z - xzShift),
+      (x, y, z) => chunk.getPaletteIndexAt(x - xShift, y, z - zShift),
       quad => {
         const d = quad[0];
         const up = quad[1];
@@ -171,7 +178,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
         const y = y1 - (d === 1 && up ? 1 : 0);
         const z = z1 - (d === 2 && up ? 1 : 0);
 
-        const c = chunk.getPaletteIndexAt(x - xzShift, y, z - xzShift) - 1;
+        const c = chunk.getPaletteIndexAt(x - xShift, y, z - zShift) - 1;
         const [r, g, b] = palette[c];
         const hv = VOXEL_SIZE / 2;
 
@@ -186,8 +193,8 @@ class JelVoxBufferGeometry extends BufferGeometry {
                 [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
                 0,
                 0,
-                Math.abs(z1 - z3),
-                Math.abs(y1 - y3),
+                Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
+                Math.abs(y1 * VOXEL_SIZE - y3 * VOXEL_SIZE),
                 1,
                 0,
                 0,
@@ -203,8 +210,8 @@ class JelVoxBufferGeometry extends BufferGeometry {
                 [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
                 0,
                 0,
-                Math.abs(z1 - z3),
-                Math.abs(y1 - y3),
+                Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
+                Math.abs(y1 * VOXEL_SIZE - y3 * VOXEL_SIZE),
                 -1,
                 0,
                 0,
@@ -223,8 +230,8 @@ class JelVoxBufferGeometry extends BufferGeometry {
                 [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
                 0,
                 0,
-                Math.abs(z1 - z3),
-                Math.abs(x1 - x3),
+                Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
+                Math.abs(x1 * VOXEL_SIZE - x3 * VOXEL_SIZE),
                 0,
                 1,
                 0,
@@ -240,8 +247,8 @@ class JelVoxBufferGeometry extends BufferGeometry {
                 [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
                 0,
                 0,
-                Math.abs(z1 - z3),
-                Math.abs(x1 - x3),
+                Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
+                Math.abs(x1 * VOXEL_SIZE - x3 * VOXEL_SIZE),
                 0,
                 -1,
                 0,
@@ -260,8 +267,8 @@ class JelVoxBufferGeometry extends BufferGeometry {
                 [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
                 0,
                 0,
-                Math.abs(x1 - x3),
-                Math.abs(y1 - y3),
+                Math.abs(x1 * VOXEL_SIZE - x3 * VOXEL_SIZE),
+                Math.abs(y1 * VOXEL_SIZE - y3 * VOXEL_SIZE),
                 0,
                 0,
                 1,
@@ -277,8 +284,8 @@ class JelVoxBufferGeometry extends BufferGeometry {
                 [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
                 0,
                 0,
-                Math.abs(x1 - x3),
-                Math.abs(y1 - y3),
+                Math.abs(x1 * VOXEL_SIZE - x3 * VOXEL_SIZE),
+                Math.abs(y1 * VOXEL_SIZE - y3 * VOXEL_SIZE),
                 0,
                 0,
                 -1,
@@ -291,7 +298,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
             break;
         }
       },
-      [size, size, size],
+      size,
       MAX_QUAD_SIZE
     );
 
@@ -310,6 +317,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
     this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
     this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
     this.setAttribute("color", new Float32BufferAttribute(colors, 3));
+    this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
     this.setDrawRange(0, indices.length);
 
     this.computeBoundingSphere();

@@ -2,8 +2,6 @@ import { hasMediaLayer, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
 import { groundMedia, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
 import { getNetworkedEntity } from "../../jel/utils/ownership-utils";
-import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
-import { DEFAULT_VOX_FRAME_SIZE } from "../utils/vox-sync";
 import "../utils/vox-sync";
 
 AFRAME.registerComponent("media-vox", {
