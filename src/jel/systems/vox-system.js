@@ -457,10 +457,6 @@ export class VoxSystem extends EventTarget {
       }
 
       const geo = new THREE.BoxBufferGeometry(size[0], size[1], size[2]);
-      const translation = new THREE.Matrix4();
-      translation.makeTranslation(0, size[1] / 2, 0);
-
-      geo.applyMatrix(translation);
 
       // Set size box geometry on sources.
       for (let j = 0; j <= maxRegisteredIndex; j++) {
@@ -500,7 +496,7 @@ export class VoxSystem extends EventTarget {
     // Hit cell is found by nudging along normal and rounding.
     // Also need to offset the geometry shift which aligns cells with bounding box.
     const hx = Math.round(tmpVec.x + 0.5 - nx * 0.5);
-    const hy = Math.round(tmpVec.y - 0.5 - ny * 0.5);
+    const hy = Math.round(tmpVec.y + 0.5 - ny * 0.5);
     const hz = Math.round(tmpVec.z + 0.5 - nz * 0.5);
 
     hitCell.x = hx;
