@@ -84,6 +84,7 @@ export class VoxSystem extends EventTarget {
         maxMeshIndex,
         maxRegisteredIndex,
         mesherQuadSize,
+        delayedRemeshTimeout,
         hasDirtyMatrices,
         hasDirtyWorldToObjectMatrices,
         sources
@@ -165,7 +166,12 @@ export class VoxSystem extends EventTarget {
           entry.dirtyFrameMeshes[i] = true;
         }
 
-        this.regenerateDirtyMeshesForVoxId(voxId);
+        // Delay this regeneration by a bit, because:
+        //
+        // - User may be interactively scaling so don't want to keep regenerating while scaling
+        // - Object may be getting removed and animating, so don't want to remesh
+        clearTimeout(delayedRemeshTimeout);
+        entry.delayedRemeshTimeout = setTimeout(() => this.regenerateDirtyMeshesForVoxId(voxId), 1000);
       }
 
       for (let i = 0; i <= maxMeshIndex; i++) {
@@ -255,7 +261,10 @@ export class VoxSystem extends EventTarget {
       instanceIndex = 0;
     }
 
-    source.geometry = sizeBoxGeometry;
+    if (sizeBoxGeometry) {
+      source.geometry = sizeBoxGeometry;
+    }
+
     sources[instanceIndex] = source;
     sourceToIndex.set(source, instanceIndex);
     sourceToVoxId.set(source, voxId);
@@ -316,6 +325,7 @@ export class VoxSystem extends EventTarget {
       mesherQuadSize: 1,
       worldToObjectMatrices: Array(MAX_FRAMES_PER_VOX * MAX_INSTANCES_PER_VOX_ID).fill(null),
       hasDirtyWorldToObjectMatrices: Array(MAX_FRAMES_PER_VOX * MAX_INSTANCES_PER_VOX_ID).fill(false),
+      delayedRemeshTimeout: null,
       maxMeshIndex: -1,
       sources: Array(MAX_INSTANCES_PER_VOX_ID).fill(null),
       dirtyFrameMeshes: Array(MAX_FRAMES_PER_VOX).fill(true),
@@ -372,7 +382,10 @@ export class VoxSystem extends EventTarget {
   regenerateDirtyMeshesForVoxId(voxId) {
     const { sceneEl, meshToVoxId, voxMap } = this;
     const scene = sceneEl.object3D;
+
     const entry = voxMap.get(voxId);
+    if (!entry) return;
+
     const { vox, sources, dirtyFrameMeshes, meshes, mesherQuadSize, maxRegisteredIndex } = entry;
     if (!vox) return;
 
