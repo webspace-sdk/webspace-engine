@@ -1,6 +1,5 @@
 const { BufferGeometry, Float32BufferAttribute } = THREE;
 export const VOXEL_SIZE = 1 / 8;
-const MAX_QUAD_SIZE = 12;
 
 const MAX_VOX_SIZE = 128;
 
@@ -116,7 +115,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
     }
   }
 
-  update(chunk) {
+  update(chunk, max_quad_size = 1) {
     const palette = [];
     const size = chunk.size;
 
@@ -141,23 +140,62 @@ class JelVoxBufferGeometry extends BufferGeometry {
 
     const xShift = Math.floor(size[0] % 2 === 0 ? size[0] / 2 - 1 : size[0] / 2);
     const zShift = Math.floor(size[2] % 2 === 0 ? size[2] / 2 - 1 : size[2] / 2);
+    const xShiftVox = xShift * VOXEL_SIZE;
+    const zShiftVox = zShift * VOXEL_SIZE;
 
-    const pushFace = (p1, p2, p3, p4, u1, v1, u2, v2, nx, ny, nz, r, g, b) => {
-      uvs.push(...[u1, v1]);
-      uvs.push(...[u2, v1]);
-      uvs.push(...[u2, v2]);
-      uvs.push(...[u1, v2]);
+    const pushFace = (
+      p1x,
+      p1y,
+      p1z,
+      p2x,
+      p2y,
+      p2z,
+      p3x,
+      p3y,
+      p3z,
+      p4x,
+      p4y,
+      p4z,
+      u1,
+      v1,
+      u2,
+      v2,
+      nx,
+      ny,
+      nz,
+      r,
+      g,
+      b
+    ) => {
+      uvs.push(u1);
+      uvs.push(v1);
+      uvs.push(u2);
+      uvs.push(v1);
+      uvs.push(u2);
+      uvs.push(v2);
+      uvs.push(u1);
+      uvs.push(v2);
 
-      // Shift the x, z because of the coordinate system, and shift the y because
-      // we want the object origin to be at mid-Y
-      vertices.push(...[p1[0] - xShift * VOXEL_SIZE, p1[1], p1[2] - zShift * VOXEL_SIZE]);
-      vertices.push(...[p2[0] - xShift * VOXEL_SIZE, p2[1], p2[2] - zShift * VOXEL_SIZE]);
-      vertices.push(...[p3[0] - xShift * VOXEL_SIZE, p3[1], p3[2] - zShift * VOXEL_SIZE]);
-      vertices.push(...[p4[0] - xShift * VOXEL_SIZE, p4[1], p4[2] - zShift * VOXEL_SIZE]);
+      vertices.push(p1x - xShiftVox);
+      vertices.push(p1y);
+      vertices.push(p1z - zShiftVox);
+      vertices.push(p2x - xShiftVox);
+      vertices.push(p2y);
+      vertices.push(p2z - zShiftVox);
+      vertices.push(p3x - xShiftVox);
+      vertices.push(p3y);
+      vertices.push(p3z - zShiftVox);
+      vertices.push(p4x - xShiftVox);
+      vertices.push(p4y);
+      vertices.push(p4z - zShiftVox);
 
       for (let i = 0; i < 4; i++) {
-        normals.push(...[nx, ny, nz]);
-        colors.push(...[Math.floor(r * 255.0), Math.floor(g * 255.0), Math.floor(b * 255.0)]);
+        normals.push(nx);
+        normals.push(ny);
+        normals.push(nz);
+        colors.push(r);
+        colors.push(g);
+        colors.push(b);
       }
     };
 
@@ -187,10 +225,18 @@ class JelVoxBufferGeometry extends BufferGeometry {
           case 0:
             if (up) {
               pushFace(
-                [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
-                [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
-                [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
-                [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
+                x4 * VOXEL_SIZE - hv,
+                y4 * VOXEL_SIZE - hv,
+                z4 * VOXEL_SIZE - hv,
+                x1 * VOXEL_SIZE - hv,
+                y1 * VOXEL_SIZE - hv,
+                z1 * VOXEL_SIZE - hv,
+                x2 * VOXEL_SIZE - hv,
+                y2 * VOXEL_SIZE - hv,
+                z2 * VOXEL_SIZE - hv,
+                x3 * VOXEL_SIZE - hv,
+                y3 * VOXEL_SIZE - hv,
+                z3 * VOXEL_SIZE - hv,
                 0,
                 0,
                 Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
@@ -204,10 +250,18 @@ class JelVoxBufferGeometry extends BufferGeometry {
               );
             } else {
               pushFace(
-                [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
-                [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
-                [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
-                [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
+                x1 * VOXEL_SIZE - hv,
+                y1 * VOXEL_SIZE - hv,
+                z1 * VOXEL_SIZE - hv,
+                x4 * VOXEL_SIZE - hv,
+                y4 * VOXEL_SIZE - hv,
+                z4 * VOXEL_SIZE - hv,
+                x3 * VOXEL_SIZE - hv,
+                y3 * VOXEL_SIZE - hv,
+                z3 * VOXEL_SIZE - hv,
+                x2 * VOXEL_SIZE - hv,
+                y2 * VOXEL_SIZE - hv,
+                z2 * VOXEL_SIZE - hv,
                 0,
                 0,
                 Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
@@ -224,10 +278,18 @@ class JelVoxBufferGeometry extends BufferGeometry {
           case 1:
             if (up) {
               pushFace(
-                [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
-                [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
-                [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
-                [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
+                x3 * VOXEL_SIZE - hv,
+                y3 * VOXEL_SIZE - hv,
+                z3 * VOXEL_SIZE - hv,
+                x4 * VOXEL_SIZE - hv,
+                y4 * VOXEL_SIZE - hv,
+                z4 * VOXEL_SIZE - hv,
+                x1 * VOXEL_SIZE - hv,
+                y1 * VOXEL_SIZE - hv,
+                z1 * VOXEL_SIZE - hv,
+                x2 * VOXEL_SIZE - hv,
+                y2 * VOXEL_SIZE - hv,
+                z2 * VOXEL_SIZE - hv,
                 0,
                 0,
                 Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
@@ -241,10 +303,18 @@ class JelVoxBufferGeometry extends BufferGeometry {
               );
             } else {
               pushFace(
-                [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
-                [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
-                [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
-                [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
+                x2 * VOXEL_SIZE - hv,
+                y2 * VOXEL_SIZE - hv,
+                z2 * VOXEL_SIZE - hv,
+                x1 * VOXEL_SIZE - hv,
+                y1 * VOXEL_SIZE - hv,
+                z1 * VOXEL_SIZE - hv,
+                x4 * VOXEL_SIZE - hv,
+                y4 * VOXEL_SIZE - hv,
+                z4 * VOXEL_SIZE - hv,
+                x3 * VOXEL_SIZE - hv,
+                y3 * VOXEL_SIZE - hv,
+                z3 * VOXEL_SIZE - hv,
                 0,
                 0,
                 Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
@@ -261,10 +331,18 @@ class JelVoxBufferGeometry extends BufferGeometry {
           case 2:
             if (up) {
               pushFace(
-                [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
-                [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
-                [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
-                [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
+                x1 * VOXEL_SIZE - hv,
+                y1 * VOXEL_SIZE - hv,
+                z1 * VOXEL_SIZE - hv,
+                x2 * VOXEL_SIZE - hv,
+                y2 * VOXEL_SIZE - hv,
+                z2 * VOXEL_SIZE - hv,
+                x3 * VOXEL_SIZE - hv,
+                y3 * VOXEL_SIZE - hv,
+                z3 * VOXEL_SIZE - hv,
+                x4 * VOXEL_SIZE - hv,
+                y4 * VOXEL_SIZE - hv,
+                z4 * VOXEL_SIZE - hv,
                 0,
                 0,
                 Math.abs(x1 * VOXEL_SIZE - x3 * VOXEL_SIZE),
@@ -278,10 +356,18 @@ class JelVoxBufferGeometry extends BufferGeometry {
               );
             } else {
               pushFace(
-                [x2 * VOXEL_SIZE - hv, y2 * VOXEL_SIZE - hv, z2 * VOXEL_SIZE - hv],
-                [x1 * VOXEL_SIZE - hv, y1 * VOXEL_SIZE - hv, z1 * VOXEL_SIZE - hv],
-                [x4 * VOXEL_SIZE - hv, y4 * VOXEL_SIZE - hv, z4 * VOXEL_SIZE - hv],
-                [x3 * VOXEL_SIZE - hv, y3 * VOXEL_SIZE - hv, z3 * VOXEL_SIZE - hv],
+                x2 * VOXEL_SIZE - hv,
+                y2 * VOXEL_SIZE - hv,
+                z2 * VOXEL_SIZE - hv,
+                x1 * VOXEL_SIZE - hv,
+                y1 * VOXEL_SIZE - hv,
+                z1 * VOXEL_SIZE - hv,
+                x4 * VOXEL_SIZE - hv,
+                y4 * VOXEL_SIZE - hv,
+                z4 * VOXEL_SIZE - hv,
+                x3 * VOXEL_SIZE - hv,
+                y3 * VOXEL_SIZE - hv,
+                z3 * VOXEL_SIZE - hv,
                 0,
                 0,
                 Math.abs(x1 * VOXEL_SIZE - x3 * VOXEL_SIZE),
@@ -299,7 +385,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
         }
       },
       size,
-      MAX_QUAD_SIZE
+      max_quad_size
     );
 
     // Generate vertex indices for quads.

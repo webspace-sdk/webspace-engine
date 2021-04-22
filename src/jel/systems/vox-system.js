@@ -36,10 +36,7 @@ const voxMaterial = new ShaderMaterial({
 voxMaterial.uniforms.metalness.value = 0;
 voxMaterial.uniforms.roughness.value = 1;
 
-voxMaterial.onBeforeCompile = shader => {
-  addVertexCurvingToShader(shader);
-  shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
-};
+voxMaterial.onBeforeCompile = shader => addVertexCurvingToShader(shader);
 
 function voxIdForVoxUrl(url) {
   // Parse vox id from URL
