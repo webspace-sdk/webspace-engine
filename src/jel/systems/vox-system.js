@@ -78,11 +78,12 @@ export class VoxSystem extends EventTarget {
 
     this.frame++;
 
-    for (const entry of voxMap.values()) {
+    for (const [voxId, entry] of voxMap.entries()) {
       const {
         meshes,
         maxMeshIndex,
         maxRegisteredIndex,
+        mesherQuadSize,
         hasDirtyMatrices,
         hasDirtyWorldToObjectMatrices,
         sources
@@ -93,6 +94,7 @@ export class VoxSystem extends EventTarget {
 
       //let hasAnyInstancesInCamera = false;
       let instanceMatrixNeedsUpdate = false;
+      let desiredQuadSize = null;
 
       for (let instanceId = 0; instanceId <= maxRegisteredIndex; instanceId++) {
         const source = sources[instanceId];
@@ -119,8 +121,52 @@ export class VoxSystem extends EventTarget {
             hasDirtyWorldToObjectMatrices[frame * MAX_INSTANCES_PER_VOX_ID + instanceId] = true;
           }
 
+          let maxScale = 0.0;
+
+          // Determine the max scale to determine the quad size needed.
+          // Assume uniform scale.
+          for (let iSource = 0; iSource < sources.length; iSource++) {
+            const source = sources[iSource];
+
+            if (source !== null) {
+              source.getWorldScale(tmpVec);
+              maxScale = Math.max(tmpVec.x, maxScale);
+            }
+          }
+
+          // Need to determine these based upon artifacts from vertex curving
+          if (maxScale > 3.0) {
+            desiredQuadSize = 1;
+          } else if (maxScale > 2.5) {
+            desiredQuadSize = 2;
+          } else if (maxScale > 1.5) {
+            desiredQuadSize = 4;
+          } else if (maxScale > 1.33) {
+            desiredQuadSize = 6;
+          } else if (maxScale > 1.0) {
+            desiredQuadSize = 8;
+          } else if (maxScale > 0.75) {
+            desiredQuadSize = 12;
+          } else {
+            desiredQuadSize = 16;
+          }
+
           instanceMatrixNeedsUpdate = true;
         }
+      }
+
+      // New quad size due to scale change, remesh.
+      if (desiredQuadSize !== null && desiredQuadSize !== mesherQuadSize) {
+        entry.mesherQuadSize = desiredQuadSize;
+
+        for (let i = 0; i <= maxMeshIndex; i++) {
+          const mesh = meshes[i];
+          if (mesh === null) continue;
+
+          entry.dirtyFrameMeshes[i] = true;
+        }
+
+        this.regenerateDirtyMeshesForVoxId(voxId);
       }
 
       for (let i = 0; i <= maxMeshIndex; i++) {
@@ -173,7 +219,9 @@ export class VoxSystem extends EventTarget {
       dirtyFrameMeshes[frame] = true;
     }
 
-    this.regenerateDirtyMeshesForVoxId(voxId, vox);
+    entry.vox = vox;
+
+    this.regenerateDirtyMeshesForVoxId(voxId);
   }
 
   async register(voxUrl, source) {
@@ -265,6 +313,7 @@ export class VoxSystem extends EventTarget {
       maxRegisteredIndex: -1,
       sourceToIndex: new Map(),
       meshes: Array(MAX_FRAMES_PER_VOX).fill(null),
+      mesherQuadSize: 1,
       worldToObjectMatrices: Array(MAX_FRAMES_PER_VOX * MAX_INSTANCES_PER_VOX_ID).fill(null),
       hasDirtyWorldToObjectMatrices: Array(MAX_FRAMES_PER_VOX * MAX_INSTANCES_PER_VOX_ID).fill(false),
       maxMeshIndex: -1,
@@ -285,7 +334,9 @@ export class VoxSystem extends EventTarget {
     } = await res.json();
 
     const vox = new Vox(frames.map(f => VoxChunk.deserialize(f)));
-    this.regenerateDirtyMeshesForVoxId(voxId, vox);
+    entry.vox = vox;
+
+    this.regenerateDirtyMeshesForVoxId(voxId);
 
     finish();
   }
@@ -313,11 +364,12 @@ export class VoxSystem extends EventTarget {
     voxMap.delete(voxId);
   }
 
-  regenerateDirtyMeshesForVoxId(voxId, vox) {
+  regenerateDirtyMeshesForVoxId(voxId) {
     const { sceneEl, meshToVoxId, voxMap } = this;
     const scene = sceneEl.object3D;
     const entry = voxMap.get(voxId);
-    const { sources, dirtyFrameMeshes, meshes, maxRegisteredIndex } = entry;
+    const { vox, sources, dirtyFrameMeshes, meshes, mesherQuadSize, maxRegisteredIndex } = entry;
+    if (!vox) return;
 
     for (let i = 0; i < vox.frames.length; i++) {
       let mesh = meshes[i];
@@ -352,7 +404,7 @@ export class VoxSystem extends EventTarget {
       }
 
       if (remesh) {
-        mesh.geometry.update(vox.frames[i]);
+        mesh.geometry.update(vox.frames[i], mesherQuadSize);
         generateMeshBVH(mesh, true);
         dirtyFrameMeshes[i] = false;
       }
