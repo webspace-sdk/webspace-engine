@@ -1,6 +1,7 @@
 import { hasMediaLayer, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
 import { groundMedia, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
+import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { getNetworkedEntity } from "../../jel/utils/ownership-utils";
 import "../utils/vox-sync";
 
@@ -81,7 +82,7 @@ AFRAME.registerComponent("media-vox", {
 
         this.el.emit("model-loading");
 
-        const geo = new THREE.BoxBufferGeometry(1.0, 1.0, 1.0);
+        const geo = new THREE.BoxBufferGeometry(VOXEL_SIZE, VOXEL_SIZE, VOXEL_SIZE);
         const mat = new THREE.MeshBasicMaterial();
         mat.visible = false;
         this.mesh = new THREE.Mesh(geo, mat);

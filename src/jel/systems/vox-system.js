@@ -92,7 +92,7 @@ export class VoxSystem extends EventTarget {
       // Registration in-progress
       if (maxRegisteredIndex < 0) continue;
 
-      //let hasAnyInstancesInCamera = false;
+      let hasAnyInstancesInCamera = false;
       let instanceMatrixNeedsUpdate = false;
       let desiredQuadSize = null;
 
@@ -104,7 +104,7 @@ export class VoxSystem extends EventTarget {
           const lastFrameCullPassed = this.sourceToLastCullPassFrame.get(source);
 
           if (lastFrameCullPassed >= this.frame - 5) {
-            //hasAnyInstancesInCamera = true;
+            hasAnyInstancesInCamera = true;
           }
         }
 
@@ -125,13 +125,12 @@ export class VoxSystem extends EventTarget {
 
           // Determine the max scale to determine the quad size needed.
           // Assume uniform scale.
-          for (let iSource = 0; iSource < sources.length; iSource++) {
-            const source = sources[iSource];
+          for (let i = 0; i <= maxRegisteredIndex; i++) {
+            const source = sources[i];
+            if (source === null) continue;
 
-            if (source !== null) {
-              source.getWorldScale(tmpVec);
-              maxScale = Math.max(tmpVec.x, maxScale);
-            }
+            source.getWorldScale(tmpVec);
+            maxScale = Math.max(tmpVec.x, maxScale);
           }
 
           // Need to determine these based upon artifacts from vertex curving
@@ -174,9 +173,8 @@ export class VoxSystem extends EventTarget {
         if (mesh === null) continue;
 
         // TODO time based frame rate
-        // TODO cull check doens't work for large objects
-        //const isCurrentAnimationFrame = this.frame % (maxMeshIndex + 1) === i;
-        mesh.visible = true; //isCurrentAnimationFrame && hasAnyInstancesInCamera;
+        const isCurrentAnimationFrame = this.frame % (maxMeshIndex + 1) === i;
+        mesh.visible = isCurrentAnimationFrame && hasAnyInstancesInCamera;
         mesh.instanceMatrix.needsUpdate = instanceMatrixNeedsUpdate;
       }
 
@@ -236,7 +234,7 @@ export class VoxSystem extends EventTarget {
     // Wait until meshes are generated if many sources registered concurrently.
     await voxMap.get(voxId).voxRegistered;
     const voxEntry = voxMap.get(voxId);
-    const { meshes, maxMeshIndex, sources, sourceToIndex } = voxEntry;
+    const { meshes, sizeBoxGeometry, maxMeshIndex, sources, sourceToIndex } = voxEntry;
 
     // This uses a custom patched three.js handler which is fired whenever the object
     // passes a frustum check. This is handy for cases like this when a non-rendered
@@ -257,6 +255,7 @@ export class VoxSystem extends EventTarget {
       instanceIndex = 0;
     }
 
+    source.geometry = sizeBoxGeometry;
     sources[instanceIndex] = source;
     sourceToIndex.set(source, instanceIndex);
     sourceToVoxId.set(source, voxId);
@@ -313,6 +312,7 @@ export class VoxSystem extends EventTarget {
       maxRegisteredIndex: -1,
       sourceToIndex: new Map(),
       meshes: Array(MAX_FRAMES_PER_VOX).fill(null),
+      sizeBoxGeometry: null,
       mesherQuadSize: 1,
       worldToObjectMatrices: Array(MAX_FRAMES_PER_VOX * MAX_INSTANCES_PER_VOX_ID).fill(null),
       hasDirtyWorldToObjectMatrices: Array(MAX_FRAMES_PER_VOX * MAX_INSTANCES_PER_VOX_ID).fill(false),
@@ -345,9 +345,9 @@ export class VoxSystem extends EventTarget {
     const { voxMap, meshToVoxId, sceneEl } = this;
     const scene = sceneEl.object3D;
     const voxEntry = voxMap.get(voxId);
-    const { meshes, maxMeshIndex } = voxEntry;
+    const { meshes, sizeBoxGeometry, maxMeshIndex } = voxEntry;
 
-    for (let i = 0; i < maxMeshIndex; i++) {
+    for (let i = 0; i <= maxMeshIndex; i++) {
       const mesh = meshes[i];
 
       if (mesh) {
@@ -361,6 +361,11 @@ export class VoxSystem extends EventTarget {
       }
     }
 
+    if (sizeBoxGeometry) {
+      voxEntry.sizeBoxGeometry = null;
+      sizeBoxGeometry.dispose();
+    }
+
     voxMap.delete(voxId);
   }
 
@@ -370,6 +375,8 @@ export class VoxSystem extends EventTarget {
     const entry = voxMap.get(voxId);
     const { vox, sources, dirtyFrameMeshes, meshes, mesherQuadSize, maxRegisteredIndex } = entry;
     if (!vox) return;
+
+    let regenerateSizeBox = false;
 
     for (let i = 0; i < vox.frames.length; i++) {
       let mesh = meshes[i];
@@ -404,8 +411,11 @@ export class VoxSystem extends EventTarget {
       }
 
       if (remesh) {
-        mesh.geometry.update(vox.frames[i], mesherQuadSize);
+        const chunk = vox.frames[i];
+        mesh.geometry.update(chunk, mesherQuadSize);
         generateMeshBVH(mesh, true);
+        regenerateSizeBox = true;
+
         dirtyFrameMeshes[i] = false;
       }
     }
@@ -421,6 +431,36 @@ export class VoxSystem extends EventTarget {
       meshToVoxId.delete(mesh);
       meshes[i] = null;
       this.dispatchEvent(new CustomEvent("mesh_removed"));
+    }
+
+    if (regenerateSizeBox) {
+      // Size box is a mesh that contains the full animated voxel, used for culling.
+      const size = [VOXEL_SIZE, VOXEL_SIZE, VOXEL_SIZE];
+
+      for (let i = 0; i < vox.frames.length; i++) {
+        size[0] = Math.max(size[0], vox.frames[i].size[0] * VOXEL_SIZE);
+        size[1] = Math.max(size[1], vox.frames[i].size[1] * VOXEL_SIZE);
+        size[2] = Math.max(size[2], vox.frames[i].size[2] * VOXEL_SIZE);
+      }
+
+      const geo = new THREE.BoxBufferGeometry(size[0], size[1], size[2]);
+      const translation = new THREE.Matrix4();
+      translation.makeTranslation(0, size[1] / 2, 0);
+
+      geo.applyMatrix(translation);
+
+      // Set size box geometry on sources.
+      for (let j = 0; j <= maxRegisteredIndex; j++) {
+        const source = sources[j];
+        if (source === null) continue;
+        source.geometry = geo;
+      }
+
+      if (entry.sizeBoxGeometry) {
+        entry.sizeBoxGeometry.dispose();
+      }
+
+      entry.sizeBoxGeometry = geo;
     }
 
     entry.maxMeshIndex = vox.frames.length - 1;
@@ -445,9 +485,10 @@ export class VoxSystem extends EventTarget {
     const nz = intersection.face.normal.z;
 
     // Hit cell is found by nudging along normal and rounding.
-    const hx = Math.round(tmpVec.x - nx * 0.5);
-    const hy = Math.round(tmpVec.y - ny * 0.5);
-    const hz = Math.round(tmpVec.z - nz * 0.5);
+    // Also need to offset the geometry shift which aligns cells with bounding box.
+    const hx = Math.round(tmpVec.x + 0.5 - nx * 0.5);
+    const hy = Math.round(tmpVec.y - 0.25 - ny * 0.5);
+    const hz = Math.round(tmpVec.z + 0.5 - nz * 0.5);
 
     hitCell.x = hx;
     hitCell.y = hy;
