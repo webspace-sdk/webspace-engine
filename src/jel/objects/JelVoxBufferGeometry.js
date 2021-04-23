@@ -1,7 +1,7 @@
-const { BufferGeometry, Float32BufferAttribute } = THREE;
+const { BufferGeometry, BufferAttribute, Uint16BufferAttribute, Uint32BufferAttribute } = THREE;
 export const VOXEL_SIZE = 1 / 8;
 
-const MAX_VOX_SIZE = 128;
+const MAX_VOX_SIZE = 64;
 
 const mask = new Int32Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
 const vals = new Int32Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
@@ -150,12 +150,6 @@ class JelVoxBufferGeometry extends BufferGeometry {
       palette.push([r, g, b]);
     }
 
-    const indices = [];
-    const vertices = [];
-    const normals = [];
-    const colors = [];
-    const uvs = [];
-
     const xShift = Math.floor(size[0] % 2 === 0 ? size[0] / 2 - 1 : size[0] / 2);
     const yShift = Math.floor(size[1] % 2 === 0 ? size[1] / 2 - 1 : size[1] / 2);
     const zShift = Math.floor(size[2] % 2 === 0 ? size[2] / 2 - 1 : size[2] / 2);
@@ -163,7 +157,20 @@ class JelVoxBufferGeometry extends BufferGeometry {
     const yShiftVox = yShift * VOXEL_SIZE;
     const zShiftVox = zShift * VOXEL_SIZE;
 
+    // Generate quads via greedy mesher.
+    const quads = GreedyMesh(
+      (x, y, z) => chunk.getPaletteIndexAt(x - xShift, y - yShift, z - zShift),
+      size,
+      max_quad_size
+    );
+
+    const vertices = new Float32Array(12 * quads.length);
+    const normals = new Float32Array(12 * quads.length);
+    const colors = new Float32Array(12 * quads.length);
+    const uvs = new Float32Array(8 * quads.length);
+
     const pushFace = (
+      iQuad,
       p1x,
       p1y,
       p1z,
@@ -187,44 +194,54 @@ class JelVoxBufferGeometry extends BufferGeometry {
       g,
       b
     ) => {
-      uvs.push(u1);
-      uvs.push(v1);
-      uvs.push(u2);
-      uvs.push(v1);
-      uvs.push(u2);
-      uvs.push(v2);
-      uvs.push(u1);
-      uvs.push(v2);
+      uvs[iQuad * 8 + 0] = u1;
+      uvs[iQuad * 8 + 1] = v1;
+      uvs[iQuad * 8 + 2] = u2;
+      uvs[iQuad * 8 + 3] = v1;
+      uvs[iQuad * 8 + 4] = u2;
+      uvs[iQuad * 8 + 5] = v2;
+      uvs[iQuad * 8 + 6] = u1;
+      uvs[iQuad * 8 + 7] = v2;
 
-      vertices.push(p1x - xShiftVox);
-      vertices.push(p1y - yShiftVox);
-      vertices.push(p1z - zShiftVox);
-      vertices.push(p2x - xShiftVox);
-      vertices.push(p2y - yShiftVox);
-      vertices.push(p2z - zShiftVox);
-      vertices.push(p3x - xShiftVox);
-      vertices.push(p3y - yShiftVox);
-      vertices.push(p3z - zShiftVox);
-      vertices.push(p4x - xShiftVox);
-      vertices.push(p4y - yShiftVox);
-      vertices.push(p4z - zShiftVox);
+      vertices[iQuad * 12 + 0] = p1x - xShiftVox;
+      vertices[iQuad * 12 + 1] = p1y - yShiftVox;
+      vertices[iQuad * 12 + 2] = p1z - zShiftVox;
+      vertices[iQuad * 12 + 3] = p2x - xShiftVox;
+      vertices[iQuad * 12 + 4] = p2y - yShiftVox;
+      vertices[iQuad * 12 + 5] = p2z - zShiftVox;
+      vertices[iQuad * 12 + 6] = p3x - xShiftVox;
+      vertices[iQuad * 12 + 7] = p3y - yShiftVox;
+      vertices[iQuad * 12 + 8] = p3z - zShiftVox;
+      vertices[iQuad * 12 + 9] = p4x - xShiftVox;
+      vertices[iQuad * 12 + 10] = p4y - yShiftVox;
+      vertices[iQuad * 12 + 11] = p4z - zShiftVox;
 
-      for (let i = 0; i < 4; i++) {
-        normals.push(nx);
-        normals.push(ny);
-        normals.push(nz);
-        colors.push(r);
-        colors.push(g);
-        colors.push(b);
-      }
+      normals[iQuad * 12 + 0] = nx;
+      normals[iQuad * 12 + 1] = ny;
+      normals[iQuad * 12 + 2] = nz;
+      normals[iQuad * 12 + 3] = nx;
+      normals[iQuad * 12 + 4] = ny;
+      normals[iQuad * 12 + 5] = nz;
+      normals[iQuad * 12 + 6] = nx;
+      normals[iQuad * 12 + 7] = ny;
+      normals[iQuad * 12 + 8] = nz;
+      normals[iQuad * 12 + 9] = nx;
+      normals[iQuad * 12 + 10] = ny;
+      normals[iQuad * 12 + 11] = nz;
+
+      colors[iQuad * 12 + 0] = r;
+      colors[iQuad * 12 + 1] = g;
+      colors[iQuad * 12 + 2] = b;
+      colors[iQuad * 12 + 3] = r;
+      colors[iQuad * 12 + 4] = g;
+      colors[iQuad * 12 + 5] = b;
+      colors[iQuad * 12 + 6] = r;
+      colors[iQuad * 12 + 7] = g;
+      colors[iQuad * 12 + 8] = b;
+      colors[iQuad * 12 + 9] = r;
+      colors[iQuad * 12 + 10] = g;
+      colors[iQuad * 12 + 11] = b;
     };
-
-    // Generate quads via greedy mesher.
-    const quads = GreedyMesh(
-      (x, y, z) => chunk.getPaletteIndexAt(x - xShift, y - yShift, z - zShift),
-      size,
-      max_quad_size
-    );
 
     for (let i = 0; i < quads.length; i += 14) {
       const d = quads[i];
@@ -241,6 +258,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
       const x4 = quads[i + 11];
       const y4 = quads[i + 12];
       const z4 = quads[i + 13];
+      const iQuad = i / 14;
 
       // Look up vertex color.
       const x = x1 - (d === 0 && up ? 1 : 0);
@@ -256,6 +274,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
         case 0:
           if (up) {
             pushFace(
+              iQuad,
               x4 * VOXEL_SIZE - v,
               y4 * VOXEL_SIZE - v,
               z4 * VOXEL_SIZE - v,
@@ -281,6 +300,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
             );
           } else {
             pushFace(
+              iQuad,
               x1 * VOXEL_SIZE - v,
               y1 * VOXEL_SIZE - v,
               z1 * VOXEL_SIZE - v,
@@ -309,6 +329,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
         case 1:
           if (up) {
             pushFace(
+              iQuad,
               x3 * VOXEL_SIZE - v,
               y3 * VOXEL_SIZE - v,
               z3 * VOXEL_SIZE - v,
@@ -334,6 +355,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
             );
           } else {
             pushFace(
+              iQuad,
               x2 * VOXEL_SIZE - v,
               y2 * VOXEL_SIZE - v,
               z2 * VOXEL_SIZE - v,
@@ -362,6 +384,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
         case 2:
           if (up) {
             pushFace(
+              iQuad,
               x1 * VOXEL_SIZE - v,
               y1 * VOXEL_SIZE - v,
               z1 * VOXEL_SIZE - v,
@@ -387,6 +410,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
             );
           } else {
             pushFace(
+              iQuad,
               x2 * VOXEL_SIZE - v,
               y2 * VOXEL_SIZE - v,
               z2 * VOXEL_SIZE - v,
@@ -417,21 +441,23 @@ class JelVoxBufferGeometry extends BufferGeometry {
     }
 
     // Generate vertex indices for quads.
-    const len = (vertices.length / 3 / 4) * 6;
-    for (let i = 0, v = 0; i < len; i += 6, v += 4) {
-      indices.push(v);
-      indices.push(v + 1);
-      indices.push(v + 2);
-      indices.push(v + 2);
-      indices.push(v + 3);
-      indices.push(v);
+    const numIndices = ((12 * quads.length) / 3 / 4) * 6;
+    const indices = numIndices > 65535 ? new Uint32Array(numIndices) : new Uint16Array(numIndices);
+
+    for (let i = 0, v = 0; i < numIndices; i += 6, v += 4) {
+      indices[i + 0] = v;
+      indices[i + 1] = v + 1;
+      indices[i + 2] = v + 2;
+      indices[i + 3] = v + 2;
+      indices[i + 4] = v + 3;
+      indices[i + 5] = v;
     }
 
-    this.setIndex(indices);
-    this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
-    this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
-    this.setAttribute("color", new Float32BufferAttribute(colors, 3));
-    this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
+    this.setIndex(numIndices > 65535 ? new Uint32BufferAttribute(indices, 1) : new Uint16BufferAttribute(indices, 2));
+    this.setAttribute("position", new BufferAttribute(vertices, 3));
+    this.setAttribute("normal", new BufferAttribute(normals, 3));
+    this.setAttribute("color", new BufferAttribute(colors, 3));
+    this.setAttribute("uv", new BufferAttribute(uvs, 2));
     this.setDrawRange(0, indices.length);
 
     this.computeBoundingSphere();
