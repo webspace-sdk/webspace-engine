@@ -6,10 +6,13 @@ const MAX_VOX_SIZE = 128;
 const mask = new Int32Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
 const vals = new Int32Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
 const norms = new Int32Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
+const quads = [];
 
 // Adapted from implementation by mikolalysenko:
 // https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
-function GreedyMesh(f, onQuad, dims, max_quad_size = Infinity) {
+function GreedyMesh(f, dims, max_quad_size = Infinity) {
+  quads.length = 0;
+
   // Sweep over 3-axes
   for (let d = 0; d < 3; ++d) {
     // eslint-disable-line no-plusplus
@@ -23,6 +26,9 @@ function GreedyMesh(f, onQuad, dims, max_quad_size = Infinity) {
     const v = (d + 2) % 3;
     const x = [0, 0, 0];
     const q = [0, 0, 0];
+    const du = [0, 0, 0];
+    const dv = [0, 0, 0];
+
     mask.fill(0);
     vals.fill(0);
     norms.fill(0);
@@ -72,18 +78,28 @@ function GreedyMesh(f, onQuad, dims, max_quad_size = Infinity) {
             // Add quad
             x[u] = i;
             x[v] = j;
-            const du = [0, 0, 0];
+            du[0] = 0;
+            du[1] = 0;
+            du[2] = 0;
+            dv[0] = 0;
+            dv[1] = 0;
+            dv[2] = 0;
             du[u] = w;
-            const dv = [0, 0, 0];
             dv[v] = h;
-            onQuad([
-              d,
-              norms[n],
-              [x[0], x[1], x[2]],
-              [x[0] + du[0], x[1] + du[1], x[2] + du[2]],
-              [x[0] + du[0] + dv[0], x[1] + du[1] + dv[1], x[2] + du[2] + dv[2]],
-              [x[0] + dv[0], x[1] + dv[1], x[2] + dv[2]]
-            ]);
+            quads.push(d);
+            quads.push(norms[n]);
+            quads.push(x[0]);
+            quads.push(x[1]);
+            quads.push(x[2]);
+            quads.push(x[0] + du[0]);
+            quads.push(x[1] + du[1]);
+            quads.push(x[2] + du[2]);
+            quads.push(x[0] + du[0] + dv[0]);
+            quads.push(x[1] + du[1] + dv[1]);
+            quads.push(x[2] + du[2] + dv[2]);
+            quads.push(x[0] + dv[0]);
+            quads.push(x[1] + dv[1]);
+            quads.push(x[2] + dv[2]);
             // Zero-out mask
             for (l = 0; l < h; ++l) {
               // eslint-disable-line no-plusplus
@@ -103,6 +119,8 @@ function GreedyMesh(f, onQuad, dims, max_quad_size = Infinity) {
       }
     }
   }
+
+  return quads;
 }
 
 class JelVoxBufferGeometry extends BufferGeometry {
@@ -202,193 +220,201 @@ class JelVoxBufferGeometry extends BufferGeometry {
     };
 
     // Generate quads via greedy mesher.
-    GreedyMesh(
+    const quads = GreedyMesh(
       (x, y, z) => chunk.getPaletteIndexAt(x - xShift, y - yShift, z - zShift),
-      quad => {
-        const d = quad[0];
-        const up = quad[1];
-
-        const [x1, y1, z1] = quad[2];
-        const [x2, y2, z2] = quad[3];
-        const [x3, y3, z3] = quad[4];
-        const [x4, y4, z4] = quad[5];
-
-        // Look up vertex color.
-        const x = x1 - (d === 0 && up ? 1 : 0);
-        const y = y1 - (d === 1 && up ? 1 : 0);
-        const z = z1 - (d === 2 && up ? 1 : 0);
-
-        const c = chunk.getPaletteIndexAt(x - xShift, y - yShift, z - zShift) - 1;
-        const [r, g, b] = palette[c];
-        const v = VOXEL_SIZE;
-
-        // Generate visible faces.
-        switch (d) {
-          case 0:
-            if (up) {
-              pushFace(
-                x4 * VOXEL_SIZE - v,
-                y4 * VOXEL_SIZE - v,
-                z4 * VOXEL_SIZE - v,
-                x1 * VOXEL_SIZE - v,
-                y1 * VOXEL_SIZE - v,
-                z1 * VOXEL_SIZE - v,
-                x2 * VOXEL_SIZE - v,
-                y2 * VOXEL_SIZE - v,
-                z2 * VOXEL_SIZE - v,
-                x3 * VOXEL_SIZE - v,
-                y3 * VOXEL_SIZE - v,
-                z3 * VOXEL_SIZE - v,
-                0,
-                0,
-                Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
-                Math.abs(y1 * VOXEL_SIZE - y3 * VOXEL_SIZE),
-                1,
-                0,
-                0,
-                r,
-                g,
-                b
-              );
-            } else {
-              pushFace(
-                x1 * VOXEL_SIZE - v,
-                y1 * VOXEL_SIZE - v,
-                z1 * VOXEL_SIZE - v,
-                x4 * VOXEL_SIZE - v,
-                y4 * VOXEL_SIZE - v,
-                z4 * VOXEL_SIZE - v,
-                x3 * VOXEL_SIZE - v,
-                y3 * VOXEL_SIZE - v,
-                z3 * VOXEL_SIZE - v,
-                x2 * VOXEL_SIZE - v,
-                y2 * VOXEL_SIZE - v,
-                z2 * VOXEL_SIZE - v,
-                0,
-                0,
-                Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
-                Math.abs(y1 * VOXEL_SIZE - y3 * VOXEL_SIZE),
-                -1,
-                0,
-                0,
-                r,
-                g,
-                b
-              );
-            }
-            break;
-          case 1:
-            if (up) {
-              pushFace(
-                x3 * VOXEL_SIZE - v,
-                y3 * VOXEL_SIZE - v,
-                z3 * VOXEL_SIZE - v,
-                x4 * VOXEL_SIZE - v,
-                y4 * VOXEL_SIZE - v,
-                z4 * VOXEL_SIZE - v,
-                x1 * VOXEL_SIZE - v,
-                y1 * VOXEL_SIZE - v,
-                z1 * VOXEL_SIZE - v,
-                x2 * VOXEL_SIZE - v,
-                y2 * VOXEL_SIZE - v,
-                z2 * VOXEL_SIZE - v,
-                0,
-                0,
-                Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
-                Math.abs(x1 * VOXEL_SIZE - x3 * VOXEL_SIZE),
-                0,
-                1,
-                0,
-                r,
-                g,
-                b
-              );
-            } else {
-              pushFace(
-                x2 * VOXEL_SIZE - v,
-                y2 * VOXEL_SIZE - v,
-                z2 * VOXEL_SIZE - v,
-                x1 * VOXEL_SIZE - v,
-                y1 * VOXEL_SIZE - v,
-                z1 * VOXEL_SIZE - v,
-                x4 * VOXEL_SIZE - v,
-                y4 * VOXEL_SIZE - v,
-                z4 * VOXEL_SIZE - v,
-                x3 * VOXEL_SIZE - v,
-                y3 * VOXEL_SIZE - v,
-                z3 * VOXEL_SIZE - v,
-                0,
-                0,
-                Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
-                Math.abs(x1 * VOXEL_SIZE - x3 * VOXEL_SIZE),
-                0,
-                -1,
-                0,
-                r,
-                g,
-                b
-              );
-            }
-            break;
-          case 2:
-            if (up) {
-              pushFace(
-                x1 * VOXEL_SIZE - v,
-                y1 * VOXEL_SIZE - v,
-                z1 * VOXEL_SIZE - v,
-                x2 * VOXEL_SIZE - v,
-                y2 * VOXEL_SIZE - v,
-                z2 * VOXEL_SIZE - v,
-                x3 * VOXEL_SIZE - v,
-                y3 * VOXEL_SIZE - v,
-                z3 * VOXEL_SIZE - v,
-                x4 * VOXEL_SIZE - v,
-                y4 * VOXEL_SIZE - v,
-                z4 * VOXEL_SIZE - v,
-                0,
-                0,
-                Math.abs(x1 * VOXEL_SIZE - x3 * VOXEL_SIZE),
-                Math.abs(y1 * VOXEL_SIZE - y3 * VOXEL_SIZE),
-                0,
-                0,
-                1,
-                r,
-                g,
-                b
-              );
-            } else {
-              pushFace(
-                x2 * VOXEL_SIZE - v,
-                y2 * VOXEL_SIZE - v,
-                z2 * VOXEL_SIZE - v,
-                x1 * VOXEL_SIZE - v,
-                y1 * VOXEL_SIZE - v,
-                z1 * VOXEL_SIZE - v,
-                x4 * VOXEL_SIZE - v,
-                y4 * VOXEL_SIZE - v,
-                z4 * VOXEL_SIZE - v,
-                x3 * VOXEL_SIZE - v,
-                y3 * VOXEL_SIZE - v,
-                z3 * VOXEL_SIZE - v,
-                0,
-                0,
-                Math.abs(x1 * VOXEL_SIZE - x3 * VOXEL_SIZE),
-                Math.abs(y1 * VOXEL_SIZE - y3 * VOXEL_SIZE),
-                0,
-                0,
-                -1,
-                r,
-                g,
-                b
-              );
-            }
-
-            break;
-        }
-      },
       size,
       max_quad_size
     );
+
+    for (let i = 0; i < quads.length; i += 14) {
+      const d = quads[i];
+      const up = quads[i + 1];
+      const x1 = quads[i + 2];
+      const y1 = quads[i + 3];
+      const z1 = quads[i + 4];
+      const x2 = quads[i + 5];
+      const y2 = quads[i + 6];
+      const z2 = quads[i + 7];
+      const x3 = quads[i + 8];
+      const y3 = quads[i + 9];
+      const z3 = quads[i + 10];
+      const x4 = quads[i + 11];
+      const y4 = quads[i + 12];
+      const z4 = quads[i + 13];
+
+      // Look up vertex color.
+      const x = x1 - (d === 0 && up ? 1 : 0);
+      const y = y1 - (d === 1 && up ? 1 : 0);
+      const z = z1 - (d === 2 && up ? 1 : 0);
+
+      const c = chunk.getPaletteIndexAt(x - xShift, y - yShift, z - zShift) - 1;
+      const [r, g, b] = palette[c];
+      const v = VOXEL_SIZE;
+
+      // Generate visible faces.
+      switch (d) {
+        case 0:
+          if (up) {
+            pushFace(
+              x4 * VOXEL_SIZE - v,
+              y4 * VOXEL_SIZE - v,
+              z4 * VOXEL_SIZE - v,
+              x1 * VOXEL_SIZE - v,
+              y1 * VOXEL_SIZE - v,
+              z1 * VOXEL_SIZE - v,
+              x2 * VOXEL_SIZE - v,
+              y2 * VOXEL_SIZE - v,
+              z2 * VOXEL_SIZE - v,
+              x3 * VOXEL_SIZE - v,
+              y3 * VOXEL_SIZE - v,
+              z3 * VOXEL_SIZE - v,
+              0,
+              0,
+              Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
+              Math.abs(y1 * VOXEL_SIZE - y3 * VOXEL_SIZE),
+              1,
+              0,
+              0,
+              r,
+              g,
+              b
+            );
+          } else {
+            pushFace(
+              x1 * VOXEL_SIZE - v,
+              y1 * VOXEL_SIZE - v,
+              z1 * VOXEL_SIZE - v,
+              x4 * VOXEL_SIZE - v,
+              y4 * VOXEL_SIZE - v,
+              z4 * VOXEL_SIZE - v,
+              x3 * VOXEL_SIZE - v,
+              y3 * VOXEL_SIZE - v,
+              z3 * VOXEL_SIZE - v,
+              x2 * VOXEL_SIZE - v,
+              y2 * VOXEL_SIZE - v,
+              z2 * VOXEL_SIZE - v,
+              0,
+              0,
+              Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
+              Math.abs(y1 * VOXEL_SIZE - y3 * VOXEL_SIZE),
+              -1,
+              0,
+              0,
+              r,
+              g,
+              b
+            );
+          }
+          break;
+        case 1:
+          if (up) {
+            pushFace(
+              x3 * VOXEL_SIZE - v,
+              y3 * VOXEL_SIZE - v,
+              z3 * VOXEL_SIZE - v,
+              x4 * VOXEL_SIZE - v,
+              y4 * VOXEL_SIZE - v,
+              z4 * VOXEL_SIZE - v,
+              x1 * VOXEL_SIZE - v,
+              y1 * VOXEL_SIZE - v,
+              z1 * VOXEL_SIZE - v,
+              x2 * VOXEL_SIZE - v,
+              y2 * VOXEL_SIZE - v,
+              z2 * VOXEL_SIZE - v,
+              0,
+              0,
+              Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
+              Math.abs(x1 * VOXEL_SIZE - x3 * VOXEL_SIZE),
+              0,
+              1,
+              0,
+              r,
+              g,
+              b
+            );
+          } else {
+            pushFace(
+              x2 * VOXEL_SIZE - v,
+              y2 * VOXEL_SIZE - v,
+              z2 * VOXEL_SIZE - v,
+              x1 * VOXEL_SIZE - v,
+              y1 * VOXEL_SIZE - v,
+              z1 * VOXEL_SIZE - v,
+              x4 * VOXEL_SIZE - v,
+              y4 * VOXEL_SIZE - v,
+              z4 * VOXEL_SIZE - v,
+              x3 * VOXEL_SIZE - v,
+              y3 * VOXEL_SIZE - v,
+              z3 * VOXEL_SIZE - v,
+              0,
+              0,
+              Math.abs(z1 * VOXEL_SIZE - z3 * VOXEL_SIZE),
+              Math.abs(x1 * VOXEL_SIZE - x3 * VOXEL_SIZE),
+              0,
+              -1,
+              0,
+              r,
+              g,
+              b
+            );
+          }
+          break;
+        case 2:
+          if (up) {
+            pushFace(
+              x1 * VOXEL_SIZE - v,
+              y1 * VOXEL_SIZE - v,
+              z1 * VOXEL_SIZE - v,
+              x2 * VOXEL_SIZE - v,
+              y2 * VOXEL_SIZE - v,
+              z2 * VOXEL_SIZE - v,
+              x3 * VOXEL_SIZE - v,
+              y3 * VOXEL_SIZE - v,
+              z3 * VOXEL_SIZE - v,
+              x4 * VOXEL_SIZE - v,
+              y4 * VOXEL_SIZE - v,
+              z4 * VOXEL_SIZE - v,
+              0,
+              0,
+              Math.abs(x1 * VOXEL_SIZE - x3 * VOXEL_SIZE),
+              Math.abs(y1 * VOXEL_SIZE - y3 * VOXEL_SIZE),
+              0,
+              0,
+              1,
+              r,
+              g,
+              b
+            );
+          } else {
+            pushFace(
+              x2 * VOXEL_SIZE - v,
+              y2 * VOXEL_SIZE - v,
+              z2 * VOXEL_SIZE - v,
+              x1 * VOXEL_SIZE - v,
+              y1 * VOXEL_SIZE - v,
+              z1 * VOXEL_SIZE - v,
+              x4 * VOXEL_SIZE - v,
+              y4 * VOXEL_SIZE - v,
+              z4 * VOXEL_SIZE - v,
+              x3 * VOXEL_SIZE - v,
+              y3 * VOXEL_SIZE - v,
+              z3 * VOXEL_SIZE - v,
+              0,
+              0,
+              Math.abs(x1 * VOXEL_SIZE - x3 * VOXEL_SIZE),
+              Math.abs(y1 * VOXEL_SIZE - y3 * VOXEL_SIZE),
+              0,
+              0,
+              -1,
+              r,
+              g,
+              b
+            );
+          }
+
+          break;
+      }
+    }
 
     // Generate vertex indices for quads.
     const len = (vertices.length / 3 / 4) * 6;

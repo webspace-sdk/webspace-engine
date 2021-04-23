@@ -60,6 +60,7 @@ export default class VoxSync extends EventTarget {
 
   async dispose() {
     if (this._whenReady) await this._whenReady;
+    this._whenReady = null;
 
     if (this._doc) {
       const doc = this._doc;
@@ -104,8 +105,11 @@ export default class VoxSync extends EventTarget {
     // Refresh the token 1 minute before it expires. Refresh at most every 60s.
     if (this._refreshPermsTimeout) clearTimeout(this._refreshPermsTimeout);
     const nextRefresh = new Date(this._permissions.exp * 1000 - 60 * 1000) - new Date();
-    this._refreshTimeout = setTimeout(async () => await this.refreshPermissions(), Math.max(nextRefresh, 60000));
-    this._connection.send({ a: "refresh_authorization", token });
+    this._refreshTimeout = setTimeout(async () => await this._refreshPermissions(), Math.max(nextRefresh, 60000));
+
+    if (this._connection) {
+      this._connection.send({ a: "refresh_authorization", token });
+    }
   }
 
   // Attempts to expire this sync, returns true if the sync was transitioned to being expired.
