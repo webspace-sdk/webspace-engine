@@ -6,12 +6,12 @@ const MAX_VOX_SIZE = 64;
 const mask = new Int32Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
 const vals = new Int32Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
 const norms = new Int32Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
-const quads = [];
+const quadData = [];
 
 // Adapted from implementation by mikolalysenko:
 // https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
 function GreedyMesh(f, dims, max_quad_size = Infinity) {
-  quads.length = 0;
+  quadData.length = 0;
 
   // Sweep over 3-axes
   for (let d = 0; d < 3; ++d) {
@@ -80,20 +80,20 @@ function GreedyMesh(f, dims, max_quad_size = Infinity) {
             dv[2] = 0;
             du[u] = w;
             dv[v] = h;
-            quads.push(d);
-            quads.push(norms[n]);
-            quads.push(x[0]);
-            quads.push(x[1]);
-            quads.push(x[2]);
-            quads.push(x[0] + du[0]);
-            quads.push(x[1] + du[1]);
-            quads.push(x[2] + du[2]);
-            quads.push(x[0] + du[0] + dv[0]);
-            quads.push(x[1] + du[1] + dv[1]);
-            quads.push(x[2] + du[2] + dv[2]);
-            quads.push(x[0] + dv[0]);
-            quads.push(x[1] + dv[1]);
-            quads.push(x[2] + dv[2]);
+            quadData.push(d);
+            quadData.push(norms[n]);
+            quadData.push(x[0]);
+            quadData.push(x[1]);
+            quadData.push(x[2]);
+            quadData.push(x[0] + du[0]);
+            quadData.push(x[1] + du[1]);
+            quadData.push(x[2] + du[2]);
+            quadData.push(x[0] + du[0] + dv[0]);
+            quadData.push(x[1] + du[1] + dv[1]);
+            quadData.push(x[2] + du[2] + dv[2]);
+            quadData.push(x[0] + dv[0]);
+            quadData.push(x[1] + dv[1]);
+            quadData.push(x[2] + dv[2]);
             // Zero-out mask
             for (l = 0; l < h; ++l) {
               // eslint-disable-line no-plusplus
@@ -114,7 +114,7 @@ function GreedyMesh(f, dims, max_quad_size = Infinity) {
     }
   }
 
-  return quads;
+  return quadData;
 }
 
 class JelVoxBufferGeometry extends BufferGeometry {
@@ -151,17 +151,18 @@ class JelVoxBufferGeometry extends BufferGeometry {
     const yShiftVox = yShift * VOXEL_SIZE;
     const zShiftVox = zShift * VOXEL_SIZE;
 
-    // Generate quads via greedy mesher.
-    const quads = GreedyMesh(
+    // Generate quadData via greedy mesher.
+    const quadData = GreedyMesh(
       (x, y, z) => chunk.getPaletteIndexAt(x - xShift, y - yShift, z - zShift),
       size,
       max_quad_size
     );
 
-    const vertices = new Float32Array(12 * quads.length);
-    const normals = new Float32Array(12 * quads.length);
-    const colors = new Float32Array(12 * quads.length);
-    const uvs = new Float32Array(8 * quads.length);
+    const numQuads = quadData.length / 14 + 1;
+    const vertices = new Float32Array(12 * numQuads);
+    const normals = new Float32Array(12 * numQuads);
+    const colors = new Float32Array(12 * numQuads);
+    const uvs = new Float32Array(8 * numQuads);
 
     const pushFace = (
       iQuad,
@@ -237,21 +238,21 @@ class JelVoxBufferGeometry extends BufferGeometry {
       colors[iQuad * 12 + 11] = b;
     };
 
-    for (let i = 0; i < quads.length; i += 14) {
-      const d = quads[i];
-      const up = quads[i + 1];
-      const x1 = quads[i + 2];
-      const y1 = quads[i + 3];
-      const z1 = quads[i + 4];
-      const x2 = quads[i + 5];
-      const y2 = quads[i + 6];
-      const z2 = quads[i + 7];
-      const x3 = quads[i + 8];
-      const y3 = quads[i + 9];
-      const z3 = quads[i + 10];
-      const x4 = quads[i + 11];
-      const y4 = quads[i + 12];
-      const z4 = quads[i + 13];
+    for (let i = 0; i < quadData.length; i += 14) {
+      const d = quadData[i];
+      const up = quadData[i + 1];
+      const x1 = quadData[i + 2];
+      const y1 = quadData[i + 3];
+      const z1 = quadData[i + 4];
+      const x2 = quadData[i + 5];
+      const y2 = quadData[i + 6];
+      const z2 = quadData[i + 7];
+      const x3 = quadData[i + 8];
+      const y3 = quadData[i + 9];
+      const z3 = quadData[i + 10];
+      const x4 = quadData[i + 11];
+      const y4 = quadData[i + 12];
+      const z4 = quadData[i + 13];
       const iQuad = i / 14;
 
       // Look up vertex color.
@@ -435,7 +436,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
     }
 
     // Generate vertex indices for quads.
-    const numIndices = ((12 * quads.length) / 3 / 4) * 6;
+    const numIndices = numQuads * 6;
     const indices = numIndices > 65535 ? new Uint32Array(numIndices) : new Uint16Array(numIndices);
 
     for (let i = 0, v = 0; i < numIndices; i += 6, v += 4) {
@@ -447,7 +448,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
       indices[i + 5] = v;
     }
 
-    this.setIndex(numIndices > 65535 ? new Uint32BufferAttribute(indices, 1) : new Uint16BufferAttribute(indices, 2));
+    this.setIndex(numIndices > 65535 ? new Uint32BufferAttribute(indices, 1) : new Uint16BufferAttribute(indices, 1));
     this.setAttribute("position", new BufferAttribute(vertices, 3));
     this.setAttribute("normal", new BufferAttribute(normals, 3));
     this.setAttribute("color", new BufferAttribute(colors, 3));
