@@ -70,11 +70,13 @@ export class VoxSystem extends EventTarget {
     this.sourceToLastCullPassFrame = new Map();
     this.cursorSystem = cursorTargettingSystem;
     this.onSyncedVoxUpdated = this.onSyncedVoxUpdated.bind(this);
+    this.onSpacePresenceSynced = this.onSpacePresenceSynced.bind(this);
     this.frame = 0;
+    this.sceneEl.addEventListener("space-presence-synced", this.onSpacePresenceSynced);
   }
 
   tick() {
-    const { voxMap } = this;
+    const { voxMap, syncs } = this;
 
     this.frame++;
 
@@ -188,15 +190,31 @@ export class VoxSystem extends EventTarget {
         entry.hasDirtyMatrices = false;
       }
     }
+
+    let expiredSync = false;
+
+    // Check for expiring syncs
+    for (const sync of syncs.values()) {
+      expiredSync = expiredSync || sync.tryExpire();
+    }
+
+    if (expiredSync) {
+      this.updateOpenVoxIdsInPresence();
+    }
+  }
+
+  async ensureSync(voxId) {
+    this.getSync(voxId); // Side effect :P
   }
 
   async getSync(voxId) {
-    const { syncs } = this;
+    const { sceneEl, syncs } = this;
     if (syncs.has(voxId)) return syncs.get(voxId);
 
+    console.log("Start syncing vox", voxId);
     const sync = new VoxSync(voxId);
     syncs.set(voxId, sync);
-    await sync.init();
+    await sync.init(sceneEl);
 
     sync.addEventListener("vox_updated", this.onSyncedVoxUpdated);
 
@@ -207,6 +225,7 @@ export class VoxSystem extends EventTarget {
     const { syncs } = this;
     const sync = syncs.get(voxId);
     if (!sync) return;
+    console.log("Stop syncing vox", voxId);
 
     sync.dispose();
     syncs.delete(voxId);
@@ -226,6 +245,37 @@ export class VoxSystem extends EventTarget {
     entry.vox = vox;
 
     this.regenerateDirtyMeshesForVoxId(voxId);
+  }
+
+  async onSpacePresenceSynced() {
+    const { syncs } = this;
+
+    // On a presence update, look at the vox ids being edited and ensure
+    // we have an open sync for all of them, and dispose the ones we don't need.
+    const spacePresences = (window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state) || {};
+
+    const openVoxIds = new Set();
+
+    for (const presence of Object.values(spacePresences)) {
+      const meta = presence.metas[presence.metas.length - 1];
+
+      for (const voxId of meta.open_vox_ids || []) {
+        openVoxIds.add(voxId);
+      }
+    }
+
+    // Open missing syncs
+    for (const voxId of openVoxIds) {
+      if (syncs.has(voxId)) continue;
+      await this.ensureSync(voxId);
+    }
+
+    for (const [voxId, sync] of syncs.entries()) {
+      if (!syncs.has(voxId)) continue; // Due to await
+      if (openVoxIds.has(voxId)) continue;
+      if (!sync.isExpired()) continue; // If the sync is actively being used, skip
+      await this.endSyncing(voxId);
+    }
   }
 
   async register(voxUrl, source) {
@@ -381,6 +431,7 @@ export class VoxSystem extends EventTarget {
     }
 
     voxMap.delete(voxId);
+    this.endSyncing(voxId);
   }
 
   regenerateDirtyMeshesForVoxId(voxId) {
@@ -477,6 +528,19 @@ export class VoxSystem extends EventTarget {
     }
 
     entry.maxMeshIndex = vox.frames.length - 1;
+  }
+
+  updateOpenVoxIdsInPresence() {
+    const { syncs } = this;
+    const openVoxIds = [];
+
+    // Registers the vox ids into presence of VoxSyncs that have recent edits.
+    for (const [voxId, sync] of syncs.entries()) {
+      if (!sync.hasRecentWrites()) continue;
+      openVoxIds.push(voxId);
+    }
+
+    window.APP.spaceChannel.updateOpenVoxIds(openVoxIds);
   }
 
   getVoxHitFromIntersection(intersection, hitCell, adjacentCell) {

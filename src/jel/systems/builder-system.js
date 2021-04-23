@@ -106,7 +106,6 @@ export class BuilderSystem {
           } else {
             if (lastBuildCell.x === Infinity) {
               // Not mid-build, create a new vox.
-              console.log(intersection);
               lastBuildCell.set(0, 0, 0);
               this.createVoxAt(intersection.point);
             }

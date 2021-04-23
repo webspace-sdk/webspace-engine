@@ -111,6 +111,12 @@ export default class SpaceChannel extends EventTarget {
     }
   };
 
+  updateOpenVoxIds = voxIds => {
+    if (this.channel) {
+      this.channel.push("update_open_vox_ids", { vox_ids: voxIds });
+    }
+  };
+
   sendAvatarColorUpdate = (r, g, b) => {
     this.sendPersonaUpdate({ avatar: { primary_color: { r, g, b } } });
   };
