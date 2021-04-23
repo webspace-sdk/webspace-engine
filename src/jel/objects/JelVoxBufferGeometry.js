@@ -44,7 +44,7 @@ function GreedyMesh(f, dims, max_quad_size = Infinity) {
           mask[n] = vFrom - vTo; // If non-zero, mask has value
           norms[n] = vFrom; // Non-zero means up
           // Need to split on side so negate key to break face up.
-          vals[n++] = vFrom !== 0 || -vTo !== 0; // eslint-disable-line no-plusplus
+          vals[n++] = vFrom || -vTo; // eslint-disable-line no-plusplus
         }
       }
       // Increment x[d]
