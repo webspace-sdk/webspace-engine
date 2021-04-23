@@ -41,10 +41,10 @@ function GreedyMesh(f, dims, max_quad_size = Infinity) {
         for (x[u] = 0; x[u] < dims[u]; ++x[u]) {
           const vFrom = x[d] >= 0 ? f(x[0], x[1], x[2]) : 0;
           const vTo = x[d] < dims[d] - 1 ? f(x[0] + q[0], x[1] + q[1], x[2] + q[2]) : 0;
-          mask[n] = !!vFrom !== !!vTo;
-          norms[n] = !!vFrom;
+          mask[n] = vFrom - vTo; // If non-zero, mask has value
+          norms[n] = vFrom; // Non-zero means up
           // Need to split on side so negate key to break face up.
-          vals[n++] = vFrom || -vTo; // eslint-disable-line no-plusplus
+          vals[n++] = vFrom !== 0 || -vTo !== 0; // eslint-disable-line no-plusplus
         }
       }
       // Increment x[d]
@@ -61,17 +61,11 @@ function GreedyMesh(f, dims, max_quad_size = Infinity) {
               // eslint-disable-line no-plusplus
             }
             // Compute height (this is slightly awkward
-            let done = false;
-
-            for (h = 1; j + h < dims[v] && h < max_quad_size; ++h) {
+            loop: for (h = 1; j + h < dims[v] && h < max_quad_size; ++h) {
               for (k = 0; k < w; ++k) {
                 if (mask[n + k + h * dims[u]] === 0 || vals[n + k + h * dims[u]] !== cv) {
-                  done = true;
-                  break;
+                  break loop;
                 }
-              }
-              if (done) {
-                break;
               }
             }
 
@@ -261,9 +255,9 @@ class JelVoxBufferGeometry extends BufferGeometry {
       const iQuad = i / 14;
 
       // Look up vertex color.
-      const x = x1 - (d === 0 && up ? 1 : 0);
-      const y = y1 - (d === 1 && up ? 1 : 0);
-      const z = z1 - (d === 2 && up ? 1 : 0);
+      const x = x1 - (d === 0 && up !== 0 ? 1 : 0);
+      const y = y1 - (d === 1 && up !== 0 ? 1 : 0);
+      const z = z1 - (d === 2 && up !== 0 ? 1 : 0);
 
       const c = chunk.getPaletteIndexAt(x - xShift, y - yShift, z - zShift) - 1;
       const [r, g, b] = palette[c];
@@ -272,7 +266,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
       // Generate visible faces.
       switch (d) {
         case 0:
-          if (up) {
+          if (up !== 0) {
             pushFace(
               iQuad,
               x4 * VOXEL_SIZE - v,
@@ -327,7 +321,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
           }
           break;
         case 1:
-          if (up) {
+          if (up !== 0) {
             pushFace(
               iQuad,
               x3 * VOXEL_SIZE - v,
@@ -382,7 +376,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
           }
           break;
         case 2:
-          if (up) {
+          if (up !== 0) {
             pushFace(
               iQuad,
               x1 * VOXEL_SIZE - v,
