@@ -42,7 +42,12 @@ AFRAME.registerComponent("body-helper", {
 
   init2: function() {
     this.el.object3D.updateMatrices();
-    this.uuid = this.system.addBody(this.el.object3D, this.data, () => (this.ready = true));
+    this.uuid = this.system.addBody(this.el.object3D, this.data, () => {
+      if (this.alive) {
+        this.ready = true;
+        this.el.emit("body_ready", {});
+      }
+    });
   },
 
   applyImpulse: function(x, y, z, rx = 0, ry = 0, rz = 0) {

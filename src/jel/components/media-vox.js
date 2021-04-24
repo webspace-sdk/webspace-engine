@@ -88,11 +88,11 @@ AFRAME.registerComponent("media-vox", {
         this.mesh = new THREE.Mesh(geo, mat);
         this.mesh.castShadow = false;
 
-        // Register returns vox id
-        this.voxId = await SYSTEMS.voxSystem.register(src, this.mesh);
-
         this.el.object3D.matrixNeedsUpdate = true;
         this.el.setObject3D("mesh", this.mesh);
+
+        // Register returns vox id
+        this.voxId = await SYSTEMS.voxSystem.register(src, this.mesh);
 
         this.el.emit("model-loaded", { format: "vox", model: this.mesh });
       }
@@ -117,14 +117,14 @@ AFRAME.registerComponent("media-vox", {
   },
 
   remove() {
+    if (this.mesh) {
+      SYSTEMS.voxSystem.unregister(this.mesh);
+    }
+
     disposeExistingMesh(this.el);
 
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
-    }
-
-    if (this.mesh) {
-      SYSTEMS.voxSystem.unregister(this.mesh);
     }
   }
 });

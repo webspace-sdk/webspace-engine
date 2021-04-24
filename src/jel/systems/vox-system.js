@@ -1,5 +1,6 @@
 import { JelVoxBufferGeometry } from "../objects/JelVoxBufferGeometry";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
+import { SHAPE, FIT } from "three-ammo/constants";
 import { generateMeshBVH, disposeNode } from "../../hubs/utils/three-utils";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
@@ -60,7 +61,7 @@ function createMesh() {
 
 // Manages user-editable voxel objects
 export class VoxSystem extends EventTarget {
-  constructor(sceneEl, cursorTargettingSystem) {
+  constructor(sceneEl, cursorTargettingSystem, physicsSystem) {
     super();
     this.sceneEl = sceneEl;
     this.syncs = new Map();
@@ -69,6 +70,7 @@ export class VoxSystem extends EventTarget {
     this.meshToVoxId = new Map();
     this.sourceToLastCullPassFrame = new Map();
     this.cursorSystem = cursorTargettingSystem;
+    this.physicsSystem = physicsSystem;
     this.onSyncedVoxUpdated = this.onSyncedVoxUpdated.bind(this);
     this.onSpacePresenceSynced = this.onSpacePresenceSynced.bind(this);
     this.frame = 0;
@@ -157,7 +159,7 @@ export class VoxSystem extends EventTarget {
         }
       }
 
-      // New quad size due to scale change, remesh.
+      // New quad size due to scale change, remesh all frames.
       if (desiredQuadSize !== null && desiredQuadSize !== mesherQuadSize) {
         entry.mesherQuadSize = desiredQuadSize;
 
@@ -279,7 +281,7 @@ export class VoxSystem extends EventTarget {
   }
 
   async register(voxUrl, source) {
-    const { voxMap, sourceToVoxId } = this;
+    const { physicsSystem, voxMap, sourceToVoxId } = this;
 
     const voxId = voxIdForVoxUrl(voxUrl);
 
@@ -290,7 +292,7 @@ export class VoxSystem extends EventTarget {
     // Wait until meshes are generated if many sources registered concurrently.
     await voxMap.get(voxId).voxRegistered;
     const voxEntry = voxMap.get(voxId);
-    const { meshes, sizeBoxGeometry, maxMeshIndex, sources, sourceToIndex } = voxEntry;
+    const { meshes, sizeBoxGeometry, maxMeshIndex, sources, sourceToIndex, shapesUuid } = voxEntry;
 
     // This uses a custom patched three.js handler which is fired whenever the object
     // passes a frustum check. This is handy for cases like this when a non-rendered
@@ -320,11 +322,23 @@ export class VoxSystem extends EventTarget {
     sourceToVoxId.set(source, voxId);
     voxEntry.maxRegisteredIndex = Math.max(instanceIndex, voxEntry.maxRegisteredIndex);
 
+    if (shapesUuid !== null) {
+      this.getBodyUuidForSource(source).then(bodyUuid => {
+        if (bodyUuid !== null) return;
+        if (!voxMap.has(voxId)) return;
+        const entry = voxMap.get(voxId);
+
+        // Shape may have been updated already, skip it if so.
+        if (shapesUuid !== entry.shapesUuid) return;
+        physicsSystem.setShapes([bodyUuid], shapesUuid);
+      });
+    }
+
     return voxId;
   }
 
   unregister(source) {
-    const { voxMap, sourceToLastCullPassFrame, sourceToVoxId } = this;
+    const { voxMap, physicsSystem, sourceToLastCullPassFrame, sourceToVoxId } = this;
     if (!sourceToVoxId.has(source)) return;
 
     const voxId = sourceToVoxId.get(source);
@@ -333,7 +347,7 @@ export class VoxSystem extends EventTarget {
     const voxEntry = voxMap.get(voxId);
     if (!voxEntry) return;
 
-    const { maxRegisteredIndex, sourceToIndex, sources, meshes } = voxEntry;
+    const { maxRegisteredIndex, sourceToIndex, sources, meshes, shapesUuid } = voxEntry;
 
     if (!sourceToIndex.has(source)) return;
     const instanceIndex = sourceToIndex.get(source);
@@ -341,6 +355,15 @@ export class VoxSystem extends EventTarget {
     sourceToIndex.delete(source);
     source.onPassedFrustumCheck = () => {};
     sourceToLastCullPassFrame.delete(source);
+
+    if (shapesUuid !== null) {
+      this.getBodyUuidForSource(source).then(bodyUuid => {
+        if (bodyUuid === null) return;
+
+        // Shape may have been updated already, skip it if so.
+        physicsSystem.removeShapes(bodyUuid, shapesUuid);
+      });
+    }
 
     for (let i = 0; i < meshes.length; i++) {
       const mesh = meshes[i];
@@ -367,20 +390,57 @@ export class VoxSystem extends EventTarget {
     let finish;
     const voxRegistered = new Promise(res => (finish = res));
 
+    // Create a new entry for managing this vox
     const entry = {
+      // Maximum registered index for a source (also the maximum instance id in the instanced mesh)
       maxRegisteredIndex: -1,
+
+      // Map of the source to the instance id for the source (sources here are the mesh belonging
+      // to the media-vox entity used to track this vox's instanced mesh)
       sourceToIndex: new Map(),
+
+      // List of DynamicInstanceMeshes, one per vox frame
       meshes: Array(MAX_FRAMES_PER_VOX).fill(null),
+
+      // UUID of the physics shape for this vox (derived from the first vox frame)
+      shapesUuid: null,
+
+      // Geometry that is used for frustum culling, and is assigned as the geometry of every
+      // source for this vox.
       sizeBoxGeometry: null,
+
+      // Current quad size for the mesher for this vox, based upon the scale.
       mesherQuadSize: 1,
+
+      // For every instance and every vox frame, compute the inverse world to object matrix
+      // for converting raycasts to cell coordinates.
       worldToObjectMatrices: Array(MAX_FRAMES_PER_VOX * MAX_INSTANCES_PER_VOX_ID).fill(null),
+
+      // For evrey instance and every vox frame, keep a dirty bit to determine when we need to
+      // compute the inverse for converting raycasts to cell coordinates.
       hasDirtyWorldToObjectMatrices: Array(MAX_FRAMES_PER_VOX * MAX_INSTANCES_PER_VOX_ID).fill(false),
+      // Timeout for remeshing due to quad size changes to prevent repaid remeshing
       delayedRemeshTimeout: null,
+
+      // Maximum mesh index (at most the number of frames - 1)
       maxMeshIndex: -1,
+
+      // Sources for this vox, which are the Object3Ds that are used to track where an instance of
+      // this vox is in the scene. This is presumed to be a Mesh, since its geometry is set for
+      // culling checks.
       sources: Array(MAX_INSTANCES_PER_VOX_ID).fill(null),
+
+      // Flags to determine when remeshing is needed for a vox frame.
       dirtyFrameMeshes: Array(MAX_FRAMES_PER_VOX).fill(true),
+
+      // Flag used to force a write of the source world matrices to the instanced mesh.
       hasDirtyMatrices: false,
+
+      // Current animation frame
       currentFrame: 0,
+
+      // Promise that is resolved when the vox is registered, which must be waiting on
+      // before registering sources
       voxRegistered
     };
 
@@ -406,23 +466,12 @@ export class VoxSystem extends EventTarget {
   }
 
   unregisterVox(voxId) {
-    const { voxMap, meshToVoxId, sceneEl } = this;
-    const scene = sceneEl.object3D;
+    const { voxMap } = this;
     const voxEntry = voxMap.get(voxId);
-    const { meshes, sizeBoxGeometry, maxMeshIndex } = voxEntry;
+    const { sizeBoxGeometry, maxMeshIndex } = voxEntry;
 
     for (let i = 0; i <= maxMeshIndex; i++) {
-      const mesh = meshes[i];
-
-      if (mesh) {
-        // Retain material since it's shared among all vox.
-        mesh.material = null;
-        disposeNode(mesh);
-        scene.remove(mesh);
-        meshToVoxId.delete(mesh);
-        meshes[i] = null;
-        this.dispatchEvent(new CustomEvent("mesh_removed"));
-      }
+      this.removeMeshForIndex(voxId, i);
     }
 
     if (sizeBoxGeometry) {
@@ -435,7 +484,7 @@ export class VoxSystem extends EventTarget {
   }
 
   regenerateDirtyMeshesForVoxId(voxId) {
-    const { sceneEl, meshToVoxId, voxMap } = this;
+    const { sceneEl, physicsSystem, meshToVoxId, voxMap } = this;
     const scene = sceneEl.object3D;
 
     const entry = voxMap.get(voxId);
@@ -480,25 +529,82 @@ export class VoxSystem extends EventTarget {
 
       if (remesh) {
         const chunk = vox.frames[i];
-        mesh.geometry.update(chunk, mesherQuadSize);
+        const [xMin, yMin, zMin, xMax, yMax, zMax] = mesh.geometry.update(chunk, mesherQuadSize);
+        const [xSize, ySize, zSize] = chunk.size;
+
+        // Find the midpoint of the mesh on each axis, and then
+        // see which side has more voxels to determine which way collision origin needs to be shifted.
+        const midX = (xMax + xMin) / 2.0;
+        const midY = (yMax + yMin) / 2.0;
+        const midZ = (zMax + zMin) / 2.0;
+        const xSide = midX > xSize / 2.0 ? 1 : -1;
+        const ySide = midY > ySize / 2.0 ? 1 : -1;
+        const zSide = midZ > zSize / 2.0 ? 1 : -1;
+        const xExtent = xMax - xMin;
+        const yExtent = yMax - yMin;
+        const zExtent = zMax - zMin;
+
         generateMeshBVH(mesh, true);
         regenerateSizeBox = true;
 
         dirtyFrameMeshes[i] = false;
+
+        if (i === 0) {
+          // Physics shape is based upon the first mesh.
+          const shapesUuid = physicsSystem.createShapes(mesh, {
+            type: SHAPE.BOX,
+            fit: FIT.ALL,
+            includeInvisible: true,
+            offset: new THREE.Vector3(
+              xSide * ((xSize - xExtent) / 2) * VOXEL_SIZE,
+              ySide * ((ySize - yExtent) / 2) * VOXEL_SIZE,
+              zSide * ((zSize - zExtent) / 2) * VOXEL_SIZE
+            )
+          });
+
+          const previousShapesUuid = entry.shapesUuid;
+          entry.shapesUuid = shapesUuid;
+
+          const bodyReadyPromises = [];
+          const bodyUuids = [];
+
+          // Collect body UUIDs, and then set shape + destroy existing.
+          for (let j = 0; j <= maxRegisteredIndex; j++) {
+            const source = sources[j];
+            if (source === null) continue;
+
+            bodyReadyPromises.push(
+              new Promise(res => {
+                this.getBodyUuidForSource(source).then(bodyUuid => {
+                  if (bodyUuid !== null) {
+                    bodyUuids.push(bodyUuid);
+                  }
+                  res();
+                });
+              })
+            );
+          }
+
+          Promise.all(bodyReadyPromises).then(() => {
+            // Destroy existing shapes after new shapes are set.
+            // Check that the entry wasn't updated while gathering body uuids.
+            if (entry.shapesUuid === shapesUuid) {
+              if (bodyUuids.length > 0) {
+                physicsSystem.setShapes(bodyUuids, shapesUuid);
+              }
+
+              if (previousShapesUuid !== null) {
+                physicsSystem.destroyShapes(previousShapesUuid);
+              }
+            }
+          });
+        }
       }
     }
 
     // Frame(s) were removed, free the meshes
     for (let i = vox.frames.length; i <= entry.maxMeshIndex; i++) {
-      const mesh = meshes[i];
-      if (mesh === null) continue;
-
-      mesh.material = null;
-      disposeNode(mesh);
-      scene.remove(mesh);
-      meshToVoxId.delete(mesh);
-      meshes[i] = null;
-      this.dispatchEvent(new CustomEvent("mesh_removed"));
+      this.removeMeshForIndex(voxId, i);
     }
 
     if (regenerateSizeBox) {
@@ -527,7 +633,11 @@ export class VoxSystem extends EventTarget {
       entry.sizeBoxGeometry = geo;
     }
 
-    entry.maxMeshIndex = vox.frames.length - 1;
+    for (let i = 0; i < meshes.length; i++) {
+      if (meshes[i]) {
+        entry.maxMeshIndex = i;
+      }
+    }
   }
 
   updateOpenVoxIdsInPresence() {
@@ -646,5 +756,50 @@ export class VoxSystem extends EventTarget {
     }
 
     return inverse;
+  }
+
+  removeMeshForIndex(voxId, i) {
+    const { voxMap, meshToVoxId, sceneEl, physicsSystem } = this;
+    const scene = sceneEl.object3D;
+    const entry = voxMap.get(voxId);
+    const { meshes, shapesUuid, dirtyFrameMeshes } = entry;
+
+    const mesh = meshes[i];
+    if (!mesh) return;
+
+    // Retain material since it's shared among all vox.
+    mesh.material = null;
+    disposeNode(mesh);
+    scene.remove(mesh);
+    meshToVoxId.delete(mesh);
+    meshes[i] = null;
+    dirtyFrameMeshes[i] = true;
+
+    // Shape is the first mesh's shape
+    if (i === 0 && shapesUuid) {
+      physicsSystem.destroyShapes(shapesUuid);
+      entry.shapesUuid = null;
+    }
+
+    entry.maxMeshIndex = -1;
+
+    for (let i = 0; i < meshes.length; i++) {
+      if (meshes[i]) {
+        entry.maxMeshIndex = i;
+      }
+    }
+
+    this.dispatchEvent(new CustomEvent("mesh_removed"));
+  }
+
+  async getBodyUuidForSource(source) {
+    const { el } = source;
+    const bodyHelper = el.components["body-helper"];
+
+    if (!bodyHelper || !bodyHelper.ready) {
+      await new Promise(res => el.addEventListener("body_ready", res, { once: true }));
+    }
+
+    return el.parentNode ? el.components["body-helper"].uuid : null;
   }
 }

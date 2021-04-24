@@ -122,7 +122,7 @@
     "shared-aframe": "github:jel-app/shared-aframe#master",
     "storybook-addon-designs": "^5.4.2",
     "three": "github:jel-app/three.js#hubs/master",
-    "three-ammo": "github:gfodor/three-ammo#feature/apply-impulse",
+    "three-ammo": "github:gfodor/three-ammo#feature/assign-shapes",
     "three-bmfont-text": "github:mozillareality/three-bmfont-text#hubs/master",
     "three-mesh-bvh": "^0.2.0",
     "three-pathfinding": "github:MozillaReality/three-pathfinding#hubs/master2",

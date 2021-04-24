@@ -127,6 +127,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
     }
   }
 
+  // Updates the geometry with the specified vox chunk, returning the extents of the mesh.
   update(chunk, max_quad_size = 1) {
     const palette = [];
     const size = chunk.size;
@@ -143,6 +144,13 @@ class JelVoxBufferGeometry extends BufferGeometry {
 
       palette.push([r, g, b]);
     }
+
+    let xMax = -Infinity;
+    let yMax = -Infinity;
+    let zMax = -Infinity;
+    let xMin = +Infinity;
+    let yMin = +Infinity;
+    let zMin = +Infinity;
 
     const xShift = Math.floor(size[0] % 2 === 0 ? size[0] / 2 - 1 : size[0] / 2);
     const yShift = Math.floor(size[1] % 2 === 0 ? size[1] / 2 - 1 : size[1] / 2);
@@ -254,6 +262,14 @@ class JelVoxBufferGeometry extends BufferGeometry {
       const y4 = quadData[i + 12];
       const z4 = quadData[i + 13];
       const iQuad = i / 14;
+
+      xMax = Math.max(x1, Math.max(x2, Math.max(x3, Math.max(x4, xMax))));
+      yMax = Math.max(y1, Math.max(y2, Math.max(y3, Math.max(y4, yMax))));
+      zMax = Math.max(z1, Math.max(z2, Math.max(z3, Math.max(z4, zMax))));
+
+      xMin = Math.min(x1, Math.min(x2, Math.min(x3, Math.min(x4, xMin))));
+      yMin = Math.min(y1, Math.min(y2, Math.min(y3, Math.min(y4, yMin))));
+      zMin = Math.min(z1, Math.min(z2, Math.min(z3, Math.min(z4, zMin))));
 
       // Look up vertex color.
       const x = x1 - (d === 0 && up !== 0 ? 1 : 0);
@@ -457,6 +473,8 @@ class JelVoxBufferGeometry extends BufferGeometry {
 
     this.computeBoundingSphere();
     this.computeBoundingBox();
+
+    return numIndices === 0 ? [0, 0, 0, 0, 0, 0] : [xMin, yMin, zMin, xMax, yMax, zMax];
   }
 }
 

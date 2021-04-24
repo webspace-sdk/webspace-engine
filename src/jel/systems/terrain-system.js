@@ -621,7 +621,7 @@ export class TerrainSystem {
       heightfieldDistance: (VOXEL_SIZE + VOXEL_SIZE / 8) * 8 + VOXEL_SIZE / 8,
       offset: {
         x: CHUNK_WORLD_SIZE / 2 - VOXEL_SIZE * 4,
-        y: (min + max) / 2 + VOXEL_SIZE,
+        y: (min + max) / 2,
         z: CHUNK_WORLD_SIZE / 2 - VOXEL_SIZE * 4
       },
       heightfieldData
