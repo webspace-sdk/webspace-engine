@@ -324,7 +324,7 @@ export class VoxSystem extends EventTarget {
 
     if (shapesUuid !== null) {
       this.getBodyUuidForSource(source).then(bodyUuid => {
-        if (bodyUuid !== null) return;
+        if (bodyUuid === null) return;
         if (!voxMap.has(voxId)) return;
         const entry = voxMap.get(voxId);
 
@@ -543,6 +543,9 @@ export class VoxSystem extends EventTarget {
         const xExtent = xMax - xMin;
         const yExtent = yMax - yMin;
         const zExtent = zMax - zMin;
+        const xShift = xSize % 2 === 1 ? -VOXEL_SIZE / 2 : 0;
+        const yShift = ySize % 2 === 1 ? -VOXEL_SIZE / 2 : 0;
+        const zShift = zSize % 2 === 1 ? -VOXEL_SIZE / 2 : 0;
 
         generateMeshBVH(mesh, true);
         regenerateSizeBox = true;
@@ -556,9 +559,9 @@ export class VoxSystem extends EventTarget {
             fit: FIT.ALL,
             includeInvisible: true,
             offset: new THREE.Vector3(
-              xSide * ((xSize - xExtent) / 2) * VOXEL_SIZE,
-              ySide * ((ySize - yExtent) / 2) * VOXEL_SIZE,
-              zSide * ((zSize - zExtent) / 2) * VOXEL_SIZE
+              xSide * ((xSize - xExtent) / 2) * VOXEL_SIZE + xShift,
+              ySide * ((ySize - yExtent) / 2) * VOXEL_SIZE + yShift,
+              zSide * ((zSize - zExtent) / 2) * VOXEL_SIZE + zShift
             )
           });
 
