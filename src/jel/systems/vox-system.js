@@ -553,9 +553,19 @@ export class VoxSystem extends EventTarget {
         dirtyFrameMeshes[i] = false;
 
         if (i === 0) {
+          let type = mesherQuadSize <= 2 ? SHAPE.HACD : SHAPE.HULL;
+
+          if (mesherQuadSize <= 2) {
+            // Object is scaled up, use HACD
+            type = SHAPE.HACD;
+          } else if (Math.max(xExtent, yExtent, zExtent) < 16 && mesherQuadSize >= 16) {
+            // Object is very tiny, use box
+            type = SHAPE.BOX;
+          }
+
           // Physics shape is based upon the first mesh.
           const shapesUuid = physicsSystem.createShapes(mesh, {
-            type: SHAPE.BOX,
+            type,
             fit: FIT.ALL,
             includeInvisible: true,
             offset: new THREE.Vector3(

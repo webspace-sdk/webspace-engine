@@ -263,13 +263,13 @@ class JelVoxBufferGeometry extends BufferGeometry {
       const z4 = quadData[i + 13];
       const iQuad = i / 14;
 
-      xMax = Math.max(x1, Math.max(x2, Math.max(x3, Math.max(x4, xMax))));
-      yMax = Math.max(y1, Math.max(y2, Math.max(y3, Math.max(y4, yMax))));
-      zMax = Math.max(z1, Math.max(z2, Math.max(z3, Math.max(z4, zMax))));
+      xMax = Math.max(x1, x2, x3, x4, xMax);
+      yMax = Math.max(y1, y2, y3, y4, yMax);
+      zMax = Math.max(z1, z2, z3, z4, zMax);
 
-      xMin = Math.min(x1, Math.min(x2, Math.min(x3, Math.min(x4, xMin))));
-      yMin = Math.min(y1, Math.min(y2, Math.min(y3, Math.min(y4, yMin))));
-      zMin = Math.min(z1, Math.min(z2, Math.min(z3, Math.min(z4, zMin))));
+      xMin = Math.min(x1, x2, x3, x4, xMin);
+      yMin = Math.min(y1, y2, y3, y4, yMin);
+      zMin = Math.min(z1, z2, z3, z4, zMin);
 
       // Look up vertex color.
       const x = x1 - (d === 0 && up !== 0 ? 1 : 0);
