@@ -10,8 +10,13 @@ const quadData = [];
 
 // Adapted from implementation by mikolalysenko:
 // https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
-function GreedyMesh(f, dims, max_quad_size = Infinity) {
+function GreedyMesh(chunk, max_quad_size = Infinity) {
   quadData.length = 0;
+  const { size } = chunk;
+
+  const xShift = Math.floor(size[0] % 2 === 0 ? size[0] / 2 - 1 : size[0] / 2);
+  const yShift = Math.floor(size[1] % 2 === 0 ? size[1] / 2 - 1 : size[1] / 2);
+  const zShift = Math.floor(size[2] % 2 === 0 ? size[2] / 2 - 1 : size[2] / 2);
 
   // Sweep over 3-axes
   for (let d = 0; d < 3; ++d) {
@@ -34,13 +39,19 @@ function GreedyMesh(f, dims, max_quad_size = Infinity) {
     norms.fill(0);
 
     q[d] = 1;
-    for (x[d] = -1; x[d] < dims[d]; ) {
+    for (x[d] = -1; x[d] < size[d]; ) {
       // Compute mask
       let n = 0;
-      for (x[v] = 0; x[v] < dims[v]; ++x[v]) {
-        for (x[u] = 0; x[u] < dims[u]; ++x[u]) {
-          const vFrom = x[d] >= 0 ? f(x[0], x[1], x[2]) : 0;
-          const vTo = x[d] < dims[d] - 1 ? f(x[0] + q[0], x[1] + q[1], x[2] + q[2]) : 0;
+      const mulFrom = x[d] >= 0 ? 1 : 0;
+      const mulTo = x[d] < size[d] ? 1 : 0;
+
+      for (x[v] = 0; x[v] < size[v]; ++x[v]) {
+        for (x[u] = 0; x[u] < size[u]; ++x[u]) {
+          const cx = x[0] - xShift;
+          const cy = x[1] - yShift;
+          const cz = x[2] - zShift;
+          const vFrom = mulFrom * chunk.getPaletteIndexAt(cx, cy, cz);
+          const vTo = mulTo * chunk.getPaletteIndexAt(cx + q[0], cy + q[1], cz + q[2]);
           mask[n] = vFrom - vTo; // If non-zero, mask has value
           norms[n] = vFrom; // Non-zero means up
           // Need to split on side so negate key to break face up.
@@ -51,19 +62,19 @@ function GreedyMesh(f, dims, max_quad_size = Infinity) {
       ++x[d]; // eslint-disable-line no-plusplus
       // Generate mesh for mask using lexicographic ordering
       n = 0;
-      for (j = 0; j < dims[v]; ++j) {
-        for (i = 0; i < dims[u]; ) {
+      for (j = 0; j < size[v]; ++j) {
+        for (i = 0; i < size[u]; ) {
           if (mask[n] !== 0) {
             const cv = vals[n];
 
             // Compute width
-            for (w = 1; mask[n + w] !== 0 && cv === vals[n + w] && i + w < dims[u] && w < max_quad_size; ++w) {
+            for (w = 1; mask[n + w] !== 0 && cv === vals[n + w] && i + w < size[u] && w < max_quad_size; ++w) {
               // eslint-disable-line no-plusplus
             }
             // Compute height (this is slightly awkward
-            loop: for (h = 1; j + h < dims[v] && h < max_quad_size; ++h) {
+            loop: for (h = 1; j + h < size[v] && h < max_quad_size; ++h) {
               for (k = 0; k < w; ++k) {
-                if (mask[n + k + h * dims[u]] === 0 || vals[n + k + h * dims[u]] !== cv) {
+                if (mask[n + k + h * size[u]] === 0 || vals[n + k + h * size[u]] !== cv) {
                   break loop;
                 }
               }
@@ -99,7 +110,7 @@ function GreedyMesh(f, dims, max_quad_size = Infinity) {
               // eslint-disable-line no-plusplus
               for (k = 0; k < w; ++k) {
                 // eslint-disable-line no-plusplus
-                mask[n + k + l * dims[u]] = 0;
+                mask[n + k + l * size[u]] = 0;
               }
             }
             // Increment counters and continue
@@ -160,11 +171,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
     const zShiftVox = zShift * VOXEL_SIZE;
 
     // Generate quadData via greedy mesher.
-    const quadData = GreedyMesh(
-      (x, y, z) => chunk.getPaletteIndexAt(x - xShift, y - yShift, z - zShift),
-      size,
-      max_quad_size
-    );
+    const quadData = GreedyMesh(chunk, max_quad_size);
 
     const numQuads = quadData.length / 14 + 1;
     const vertices = new Float32Array(12 * numQuads);
