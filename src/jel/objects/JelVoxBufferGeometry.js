@@ -27,31 +27,90 @@ function GreedyMesh(chunk, max_quad_size = Infinity) {
     let l;
     let w;
     let h;
-    const u = (d + 1) % 3;
-    const v = (d + 2) % 3;
-    const x = [0, 0, 0];
-    const q = [0, 0, 0];
-    const du = [0, 0, 0];
-    const dv = [0, 0, 0];
 
     mask.fill(0);
     vals.fill(0);
     norms.fill(0);
 
-    q[d] = 1;
-    for (x[d] = -1; x[d] < size[d]; ) {
+    // X
+    // q[d] = 1
+    // q[0] = 1
+    // q[1] = 0
+    // q[2] = 0
+    // u = 1
+    // v = 2
+    // x[d] = -1 -> sx
+    // du[0] = 0;
+    // du[1] = w;
+    // du[2] = 0;
+    // dv[0] = 0;
+    // dv[1] = 0;
+    // dv[2] = h;
+    //
+    // Y
+    // q[d] = 1
+    // q[0] = 0
+    // q[1] = 1
+    // q[2] = 0
+    // u = 2
+    // v = 0
+    // x[d] = -1 -> sy
+    // du[0] = 0;
+    // du[1] = 0;
+    // du[2] = w;
+    // dv[0] = h;
+    // dv[1] = 0;
+    // dv[2] = 0;
+    //
+    // Z
+    // q[d] = 1
+    // q[0] = 0
+    // q[1] = 0
+    // q[2] = 1
+    // u = 0
+    // v = 1
+    // x[d] = -1 -> sz
+    // du[0] = w;
+    // du[1] = 0;
+    // du[2] = 0;
+    // dv[0] = 0;
+    // dv[1] = h;
+    // dv[2] = 0;
+
+    const u = (d + 1) % 3;
+    const v = (d + 2) % 3;
+    const x = [0, 0, 0];
+    let q0 = 0;
+    let q1 = 0;
+    let q2 = 0;
+    const du = [0, 0, 0];
+    const dv = [0, 0, 0];
+
+    if (d === 0) {
+      q0 = 1;
+    } else if (d === 1) {
+      q1 = 1;
+    } else {
+      q2 = 1;
+    }
+
+    const sd = size[d];
+    const sv = size[v];
+    const su = size[u];
+
+    for (x[d] = -1; x[d] < sd; ) {
       // Compute mask
       let n = 0;
       const mulFrom = x[d] >= 0 ? 1 : 0;
-      const mulTo = x[d] < size[d] ? 1 : 0;
+      const mulTo = x[d] < sd ? 1 : 0;
 
-      for (x[v] = 0; x[v] < size[v]; ++x[v]) {
-        for (x[u] = 0; x[u] < size[u]; ++x[u]) {
+      for (x[v] = 0; x[v] < sv; ++x[v]) {
+        for (x[u] = 0; x[u] < su; ++x[u]) {
           const cx = x[0] - xShift;
           const cy = x[1] - yShift;
           const cz = x[2] - zShift;
           const vFrom = mulFrom * chunk.getPaletteIndexAt(cx, cy, cz);
-          const vTo = mulTo * chunk.getPaletteIndexAt(cx + q[0], cy + q[1], cz + q[2]);
+          const vTo = mulTo * chunk.getPaletteIndexAt(cx + q0, cy + q1, cz + q2);
           mask[n] = vFrom - vTo; // If non-zero, mask has value
           norms[n] = vFrom; // Non-zero means up
           // Need to split on side so negate key to break face up.
@@ -62,21 +121,20 @@ function GreedyMesh(chunk, max_quad_size = Infinity) {
       ++x[d]; // eslint-disable-line no-plusplus
       // Generate mesh for mask using lexicographic ordering
       n = 0;
-      for (j = 0; j < size[v]; ++j) {
-        for (i = 0; i < size[u]; ) {
+      for (j = 0; j < sv; ++j) {
+        for (i = 0; i < su; ) {
           if (mask[n] !== 0) {
             const cv = vals[n];
 
             // Compute width
-            for (w = 1; mask[n + w] !== 0 && cv === vals[n + w] && i + w < size[u] && w < max_quad_size; ++w) {
+            for (w = 1; mask[n + w] !== 0 && cv === vals[n + w] && i + w < su && w < max_quad_size; ++w) {
               // eslint-disable-line no-plusplus
             }
             // Compute height (this is slightly awkward
-            loop: for (h = 1; j + h < size[v] && h < max_quad_size; ++h) {
+            loop: for (h = 1; j + h < sv && h < max_quad_size; ++h) {
               for (k = 0; k < w; ++k) {
-                if (mask[n + k + h * size[u]] === 0 || vals[n + k + h * size[u]] !== cv) {
-                  break loop;
-                }
+                const mv = mask[n + k + h * su];
+                if (mv === 0 || mv !== cv) break loop;
               }
             }
 
@@ -110,7 +168,7 @@ function GreedyMesh(chunk, max_quad_size = Infinity) {
               // eslint-disable-line no-plusplus
               for (k = 0; k < w; ++k) {
                 // eslint-disable-line no-plusplus
-                mask[n + k + l * size[u]] = 0;
+                mask[n + k + l * su] = 0;
               }
             }
             // Increment counters and continue
