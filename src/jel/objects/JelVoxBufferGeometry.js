@@ -3,9 +3,9 @@ export const VOXEL_SIZE = 1 / 8;
 
 const MAX_VOX_SIZE = 64;
 
-const mask = new Int32Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
-const vals = new Int32Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
-const norms = new Int32Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
+const mask = new Int16Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
+const vals = new Int16Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
+const norms = new Int16Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
 const quadData = [];
 
 // Adapted from implementation by mikolalysenko:
@@ -32,51 +32,6 @@ function GreedyMesh(chunk, max_quad_size = Infinity) {
     vals.fill(0);
     norms.fill(0);
 
-    // X
-    // q[d] = 1
-    // q[0] = 1
-    // q[1] = 0
-    // q[2] = 0
-    // u = 1
-    // v = 2
-    // x[d] = -1 -> sx
-    // du[0] = 0;
-    // du[1] = w;
-    // du[2] = 0;
-    // dv[0] = 0;
-    // dv[1] = 0;
-    // dv[2] = h;
-    //
-    // Y
-    // q[d] = 1
-    // q[0] = 0
-    // q[1] = 1
-    // q[2] = 0
-    // u = 2
-    // v = 0
-    // x[d] = -1 -> sy
-    // du[0] = 0;
-    // du[1] = 0;
-    // du[2] = w;
-    // dv[0] = h;
-    // dv[1] = 0;
-    // dv[2] = 0;
-    //
-    // Z
-    // q[d] = 1
-    // q[0] = 0
-    // q[1] = 0
-    // q[2] = 1
-    // u = 0
-    // v = 1
-    // x[d] = -1 -> sz
-    // du[0] = w;
-    // du[1] = 0;
-    // du[2] = 0;
-    // dv[0] = 0;
-    // dv[1] = h;
-    // dv[2] = 0;
-
     const u = (d + 1) % 3;
     const v = (d + 2) % 3;
     const x = [0, 0, 0];
@@ -102,7 +57,7 @@ function GreedyMesh(chunk, max_quad_size = Infinity) {
       // Compute mask
       let n = 0;
       const mulFrom = x[d] >= 0 ? 1 : 0;
-      const mulTo = x[d] < sd ? 1 : 0;
+      const mulTo = x[d] < sd - 1 ? 1 : 0;
 
       for (x[v] = 0; x[v] < sv; ++x[v]) {
         for (x[u] = 0; x[u] < su; ++x[u]) {
