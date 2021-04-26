@@ -560,7 +560,9 @@ export class VoxSystem extends EventTarget {
             type,
             fit: FIT.ALL,
             includeInvisible: true,
-            concavity: 0.2,
+            // NOTE: if the physics shapes for large voxes are not accurate
+            // then this can be reduced at the cost of perf.
+            concavity: 0.4,
             offset: new THREE.Vector3(
               xSide * ((xSize - xExtent) / 2) * VOXEL_SIZE + xShift,
               ySide * ((ySize - yExtent) / 2) * VOXEL_SIZE + yShift,
