@@ -409,8 +409,8 @@ export class VoxSystem extends EventTarget {
       // source for this vox.
       sizeBoxGeometry: null,
 
-      // Current quad size for the mesher for this vox, based upon the scale.
-      mesherQuadSize: 1,
+      // Current quad size for the mesher for this vox, based upon the scale. Start out big.
+      mesherQuadSize: 16,
 
       // For every instance and every vox frame, compute the inverse world to object matrix
       // for converting raycasts to cell coordinates.
@@ -553,21 +553,14 @@ export class VoxSystem extends EventTarget {
         dirtyFrameMeshes[i] = false;
 
         if (i === 0) {
-          let type = mesherQuadSize <= 2 ? SHAPE.HACD : SHAPE.HULL;
-
-          if (mesherQuadSize <= 2) {
-            // Object is scaled up, use HACD
-            type = SHAPE.HACD;
-          } else if (Math.max(xExtent, yExtent, zExtent) < 16 && mesherQuadSize >= 16) {
-            // Object is very tiny, use box
-            type = SHAPE.BOX;
-          }
+          const type = mesherQuadSize <= 2 ? SHAPE.HACD : SHAPE.HULL;
 
           // Physics shape is based upon the first mesh.
           const shapesUuid = physicsSystem.createShapes(mesh, {
             type,
             fit: FIT.ALL,
             includeInvisible: true,
+            concavity: 0.2,
             offset: new THREE.Vector3(
               xSide * ((xSize - xExtent) / 2) * VOXEL_SIZE + xShift,
               ySide * ((ySize - yExtent) / 2) * VOXEL_SIZE + yShift,
