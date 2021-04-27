@@ -21,7 +21,10 @@ export class BuilderSystem {
     this.enabled = true;
     this.deltaWheel = 0.0;
     this.sawLeftButtonUpWithShift = false;
-    this.lastBuildCell = new Vector3(Infinity, Infinity, Infinity);
+    this.brushVoxId = null;
+    this.brushStartCell = new Vector3(Infinity, Infinity, Infinity);
+    this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
+    this.pendingPatch = null;
 
     //const store = window.APP.store;
 
@@ -41,7 +44,7 @@ export class BuilderSystem {
     return () => {
       if (!this.enabled) return;
 
-      const { userinput, lastBuildCell } = this;
+      const { userinput, brushVoxId, brushStartCell, brushEndCell } = this;
 
       const spacePath = paths.device.keyboard.key(" ");
       const middlePath = paths.device.mouse.buttonMiddle;
@@ -101,19 +104,60 @@ export class BuilderSystem {
           const hitVoxId = SYSTEMS.voxSystem.getVoxHitFromIntersection(intersection, hitCell, adjacentCell);
 
           if (hitVoxId) {
-            lastBuildCell.copy(hitCell);
-            this.buildAtCell(hitVoxId, adjacentCell);
+            let rebuildPatch = false;
+
+            if (!isFinite(brushEndCell.x) || !brushEndCell.equals(adjacentCell)) {
+              rebuildPatch = true;
+              brushEndCell.copy(adjacentCell);
+            }
+
+            if (!isFinite(brushStartCell.x)) {
+              rebuildPatch = true;
+              brushStartCell.copy(adjacentCell);
+              this.brushVoxId = hitVoxId;
+
+              // Freeze the current mesh for targetting the vox.
+              SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
+            }
+
+            if (rebuildPatch) {
+              console.log("build patch", brushStartCell, brushEndCell);
+              // Voxel mode:
+              // add the adjacent cell to the existing patch
+              //
+              // Box mode:
+              // Loop over all of start to end patch, and for any cells not in the current snapshot,
+              // fill them. (Leave existing ones alone)
+              //
+              // Face mode:
+              // Create an intersection plane based upon normal of side, with the origin at the cell face
+              // Of the two planes to create, take the one with the normal closes to the eye ray
+              //
+              // +h or -h at start patch
+              //   - when adding h is strictly positive, when removing it's strictly negative
+              //   - never zero, always at least +/- one
+              //   - at click time, capture the face mask to move
+              this.pendingPatch = `${JSON.stringify(brushStartCell)} ${JSON.stringify(brushEndCell)}`;
+            }
           } else {
-            if (lastBuildCell.x === Infinity) {
+            if (!isFinite(brushStartCell.x)) {
               // Not mid-build, create a new vox.
-              lastBuildCell.set(0, 0, 0);
+              brushStartCell.set(0, 0, 0);
+              brushEndCell.set(0, 0, 0);
               this.createVoxAt(intersection.point);
             }
           }
         }
       } else {
+        if (this.pendingPatch) {
+          console.log("apply patch ", this.pendingPatch);
+          this.pendingPatch = null;
+          SYSTEMS.voxSystem.unfreezeMeshForTargetting(brushVoxId);
+        }
+
         // Clear last build cell when building is off.
-        lastBuildCell.set(Infinity, Infinity, Infinity);
+        brushStartCell.set(Infinity, Infinity, Infinity);
+        brushEndCell.set(Infinity, Infinity, Infinity);
       }
     };
   })();

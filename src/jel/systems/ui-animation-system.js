@@ -117,8 +117,13 @@ export class UIAnimationSystem {
     animT = panelExpandStep(animT);
     animT = this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDING ? animT : 1 - animT;
 
-    const sceneLeft = Math.floor(animT * this.targetSceneLeft);
-    const sceneRight = Math.floor(animT * this.targetSceneRight);
+    let sceneLeft = Math.floor(animT * this.targetSceneLeft);
+    let sceneRight = Math.floor(animT * this.targetSceneRight);
+
+    if (skipPanels) {
+      sceneLeft = 0;
+      sceneRight = 0;
+    }
 
     if (sceneLeft !== this.sceneLeft || sceneRight !== this.sceneRight) {
       this.applySceneSize(sceneLeft, sceneRight);
@@ -146,11 +151,6 @@ export class UIAnimationSystem {
   }
 
   applySceneSize(sceneLeft, sceneRight, includeUI = false) {
-    if (skipPanels) {
-      sceneLeft = 0;
-      sceneRight = 0;
-    }
-
     if (sceneLeft !== null) {
       this.sceneLeft = sceneLeft;
     }
