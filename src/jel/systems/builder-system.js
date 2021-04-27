@@ -223,7 +223,7 @@ export class BuilderSystem {
       "model-loaded",
       async () => {
         const sync = await SYSTEMS.voxSystem.getSync(voxId);
-        await sync.setVoxel(0, 0, 0, this.brushVoxColor);
+        await sync.setVoxel(0, 1, 0, this.brushVoxColor);
       },
       { once: true }
     );
@@ -231,7 +231,6 @@ export class BuilderSystem {
     const { object3D } = entity;
     object3D.position.copy(point);
     object3D.position.x += VOXEL_SIZE / 2;
-    object3D.position.y += VOXEL_SIZE;
     object3D.position.z += VOXEL_SIZE / 2;
     object3D.rotation.x = object3D.rotation.y = object3D.rotation.z = 0.0;
     object3D.scale.x = object3D.scale.y = object3D.scale.z = 1.0;
