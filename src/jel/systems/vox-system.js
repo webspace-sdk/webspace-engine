@@ -6,7 +6,7 @@ import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
-import { Vox, VoxChunk } from "ot-vox";
+import { type as vox0, Vox, VoxChunk } from "ot-vox";
 import VoxSync from "../utils/vox-sync";
 
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, VertexColors, Matrix4, Mesh } = THREE;
@@ -19,7 +19,7 @@ const tmpMatrix = new Matrix4();
 const tmpVec = new THREE.Vector3();
 
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
-targettingMaterial.visible = true;
+targettingMaterial.visible = false;
 
 const voxMaterial = new ShaderMaterial({
   name: "vox",
@@ -70,7 +70,10 @@ export class VoxSystem extends EventTarget {
     this.syncs = new Map();
     this.voxMap = new Map();
     this.sourceToVoxId = new Map();
+
+    // Maps meshes to vox ids, this will include an entry for an active targeting mesh.
     this.meshToVoxId = new Map();
+
     this.sourceToLastCullPassFrame = new Map();
     this.cursorSystem = cursorTargettingSystem;
     this.physicsSystem = physicsSystem;
@@ -94,6 +97,7 @@ export class VoxSystem extends EventTarget {
         delayedRemeshTimeout,
         hasDirtyMatrices,
         hasDirtyWorldToObjectMatrices,
+        regenerateDirtyMeshesOnNextFrame,
         sources
       } = entry;
 
@@ -178,7 +182,7 @@ export class VoxSystem extends EventTarget {
         // - User may be interactively scaling so don't want to keep regenerating while scaling
         // - Object may be getting removed and animating, so don't want to remesh
         clearTimeout(delayedRemeshTimeout);
-        entry.delayedRemeshTimeout = setTimeout(() => this.regenerateDirtyMeshesForVoxId(voxId), 1000);
+        entry.delayedRemeshTimeout = setTimeout(() => (entry.regenerateDirtyMeshesOnNextFrame = true), 1000);
       }
 
       const currentAnimationFrame = this.getCurrentAnimationFrame(voxId);
@@ -195,6 +199,11 @@ export class VoxSystem extends EventTarget {
 
       if (entry.hasDirtyMatrices) {
         entry.hasDirtyMatrices = false;
+      }
+
+      if (regenerateDirtyMeshesOnNextFrame) {
+        this.regenerateDirtyMeshesForVoxId(voxId);
+        entry.regenerateDirtyMeshesOnNextFrame = false;
       }
     }
 
@@ -250,8 +259,7 @@ export class VoxSystem extends EventTarget {
     }
 
     entry.vox = vox;
-
-    this.regenerateDirtyMeshesForVoxId(voxId);
+    entry.regenerateDirtyMeshesOnNextFrame = true;
   }
 
   async onSpacePresenceSynced() {
@@ -412,11 +420,14 @@ export class VoxSystem extends EventTarget {
       // This is used in building mode to target the previous mesh while
       // painting with a voxel brush.
       targettingMesh: null,
+      targettingMeshFrame: -1,
+      targettingMeshInstanceId: -1,
 
       // If non-null, this chunk will be ephemerally applied to the current snapshot during remeshing.
       //
       // This is used in building model to display the in-process voxel brush.
       overlayVoxChunk: null,
+      overlayVoxChunkOffset: [0, 0, 0],
 
       // UUID of the physics shape for this vox (derived from the first vox frame)
       shapesUuid: null,
@@ -448,6 +459,7 @@ export class VoxSystem extends EventTarget {
 
       // Flags to determine when remeshing is needed for a vox frame.
       dirtyFrameMeshes: Array(MAX_FRAMES_PER_VOX).fill(true),
+      regenerateDirtyMeshesOnNextFrame: true,
 
       // Flag used to force a write of the source world matrices to the instanced mesh.
       hasDirtyMatrices: false,
@@ -476,13 +488,13 @@ export class VoxSystem extends EventTarget {
     const vox = new Vox(frames.map(f => VoxChunk.deserialize(f)));
     entry.vox = vox;
 
-    this.regenerateDirtyMeshesForVoxId(voxId);
+    entry.regenerateDirtyMeshesOnNextFrame = true;
 
     finish();
   }
 
   unregisterVox(voxId) {
-    const { sceneEl, voxMap } = this;
+    const { sceneEl, voxMap, meshToVoxId } = this;
     const scene = sceneEl.object3D;
     const voxEntry = voxMap.get(voxId);
     const { targettingMesh, sizeBoxGeometry, maxMeshIndex } = voxEntry;
@@ -500,6 +512,7 @@ export class VoxSystem extends EventTarget {
       scene.remove(targettingMesh);
       targettingMesh.material = null;
       disposeNode(targettingMesh);
+      meshToVoxId.delete(targettingMesh);
     }
 
     voxMap.delete(voxId);
@@ -513,7 +526,16 @@ export class VoxSystem extends EventTarget {
     const entry = voxMap.get(voxId);
     if (!entry) return;
 
-    const { vox, sources, dirtyFrameMeshes, meshes, mesherQuadSize, maxRegisteredIndex } = entry;
+    const {
+      vox,
+      sources,
+      dirtyFrameMeshes,
+      meshes,
+      mesherQuadSize,
+      maxRegisteredIndex,
+      overlayVoxChunk,
+      overlayVoxChunkOffset
+    } = entry;
     if (!vox) return;
 
     let regenerateSizeBox = false;
@@ -551,7 +573,20 @@ export class VoxSystem extends EventTarget {
       }
 
       if (remesh) {
-        const chunk = vox.frames[i];
+        let chunk = vox.frames[i];
+
+        // Apply any ephemeral overlay (eg from voxel brushes.)
+        if (overlayVoxChunk) {
+          chunk = chunk.clone();
+          vox0.applyToChunk(
+            overlayVoxChunk,
+            chunk,
+            overlayVoxChunkOffset[0],
+            overlayVoxChunkOffset[1],
+            overlayVoxChunkOffset[2]
+          );
+        }
+
         const [xMin, yMin, zMin, xMax, yMax, zMax] = mesh.geometry.update(chunk, mesherQuadSize);
         const [xSize, ySize, zSize] = chunk.size;
 
@@ -575,7 +610,8 @@ export class VoxSystem extends EventTarget {
 
         dirtyFrameMeshes[i] = false;
 
-        if (i === 0) {
+        // Don't update physics when running overlay for brush
+        if (i === 0 && !overlayVoxChunk) {
           const type = mesherQuadSize <= 2 ? SHAPE.HACD : SHAPE.HULL;
 
           // Physics shape is based upon the first mesh.
@@ -623,10 +659,10 @@ export class VoxSystem extends EventTarget {
               if (bodyUuids.length > 0) {
                 physicsSystem.setShapes(bodyUuids, shapesUuid);
               }
+            }
 
-              if (previousShapesUuid !== null) {
-                physicsSystem.destroyShapes(previousShapesUuid);
-              }
+            if (previousShapesUuid !== null) {
+              physicsSystem.destroyShapes(previousShapesUuid);
             }
           });
         }
@@ -689,11 +725,12 @@ export class VoxSystem extends EventTarget {
 
     const hitObject = intersection && intersection.object;
     const voxId = meshToVoxId.get(hitObject);
-    if (!voxId) return;
+    if (!voxId || !hitObject) return null;
 
-    const { meshes } = voxMap.get(voxId);
-    const frame = meshes.indexOf(hitObject);
-    const inv = this.getWorldToObjectMatrix(voxId, frame, intersection.instanceId);
+    const { targettingMesh, targettingMeshFrame, targettingMeshInstanceId, meshes } = voxMap.get(voxId);
+    const frame = hitObject === targettingMesh ? targettingMeshFrame : meshes.indexOf(hitObject);
+    const instanceId = hitObject === targettingMesh ? targettingMeshInstanceId : intersection.instanceId;
+    const inv = this.getWorldToObjectMatrix(voxId, frame, instanceId);
     tmpVec.copy(intersection.point);
     tmpVec.applyMatrix4(inv);
     tmpVec.multiplyScalar(1 / VOXEL_SIZE);
@@ -718,11 +755,11 @@ export class VoxSystem extends EventTarget {
     adjacentCell.z = hz + nz;
 
     // Returns vox id
-    return meshToVoxId.get(hitObject);
+    return voxId;
   }
 
   freezeMeshForTargetting(voxId, instanceId) {
-    const { sceneEl, voxMap } = this;
+    const { sceneEl, voxMap, meshToVoxId } = this;
     const scene = sceneEl.object3D;
     const entry = voxMap.get(voxId);
     if (!entry) return;
@@ -750,14 +787,16 @@ export class VoxSystem extends EventTarget {
     source.updateMatrices();
     setMatrixWorld(targettingMesh, source.matrixWorld);
     entry.targettingMesh = targettingMesh;
+    entry.targettingMeshFrame = currentAnimationFrame;
+    entry.targettingMeshInstanceId = instanceId;
     scene.add(targettingMesh);
+    meshToVoxId.set(targettingMesh, voxId);
 
-    console.log("Freeze");
     this.dispatchEvent(new CustomEvent("mesh_added"));
   }
 
   unfreezeMeshForTargetting(voxId) {
-    const { sceneEl, voxMap } = this;
+    const { sceneEl, voxMap, meshToVoxId } = this;
     const scene = sceneEl.object3D;
     const entry = voxMap.get(voxId);
     if (!entry) return;
@@ -765,9 +804,11 @@ export class VoxSystem extends EventTarget {
     if (!targettingMesh) return;
 
     scene.remove(targettingMesh);
+    targettingMesh.geometry.boundsTree = null;
     targettingMesh.material = null;
     disposeNode(targettingMesh);
     entry.targettingMesh = null;
+    meshToVoxId.delete(targettingMesh);
 
     this.dispatchEvent(new CustomEvent("mesh_removed"));
   }
@@ -778,7 +819,7 @@ export class VoxSystem extends EventTarget {
     const targetableMeshes = [];
 
     for (const { meshes, targettingMesh } of voxMap.values()) {
-      const mesh = meshes[0] || targettingMesh;
+      const mesh = targettingMesh || meshes[0];
 
       if (mesh) {
         targetableMeshes.push(mesh);
@@ -895,6 +936,37 @@ export class VoxSystem extends EventTarget {
     }
 
     return el.parentNode ? el.components["body-helper"].uuid : null;
+  }
+
+  setOverlayVoxChunk(voxId, chunk, offsetX, offsetY, offsetZ) {
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return;
+    const { dirtyFrameMeshes } = entry;
+    dirtyFrameMeshes.fill(true);
+    entry.regenerateDirtyMeshesOnNextFrame = true;
+    entry.overlayVoxChunk = chunk;
+    entry.overlayVoxChunkOffset[0] = offsetX;
+    entry.overlayVoxChunkOffset[1] = offsetY;
+    entry.overlayVoxChunkOffset[2] = offsetZ;
+  }
+
+  applyOverlayAndUnfreezeMesh(voxId) {
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return;
+    const { overlayVoxChunk, targettingMesh, targettingMeshFrame, overlayVoxChunkOffset } = entry;
+    if (!overlayVoxChunk) return;
+
+    if (targettingMesh) {
+      this.unfreezeMeshForTargetting(voxId);
+    }
+
+    const offset = [...overlayVoxChunkOffset];
+
+    this.getSync(voxId).then(sync => sync.applyChunk(overlayVoxChunk, targettingMeshFrame, offset));
+
+    entry.overlayVoxChunk = null;
   }
 
   getCurrentAnimationFrame(/* voxId */) {

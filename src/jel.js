@@ -253,6 +253,7 @@ const isTelemetryDisabled = qsTruthy("disable_telemetry");
 const isDebug = qsTruthy("debug");
 const disablePausing = qsTruthy("no_pause") || isBotMode;
 const skipNeon = qsTruthy("skip_neon");
+const skipPanels = qsTruthy("skip_panels");
 
 if (isBotMode) {
   const token = qs.get("credentials_token");
@@ -865,25 +866,32 @@ function setupSidePanelLayout(scene) {
     });
   };
 
-  handleSidebarResizerDrag(
-    "#nav-drag-target",
-    ["nav-width"],
-    true,
-    400,
-    600,
-    x => x,
-    w => store.update({ uiState: { navPanelWidth: w } })
-  );
+  if (skipPanels) {
+    for (const id of ["#nav-drag-target", "#presence-drag-target"]) {
+      const el = document.querySelector(id);
+      el.parentNode.removeChild(el);
+    }
+  } else {
+    handleSidebarResizerDrag(
+      "#nav-drag-target",
+      ["nav-width"],
+      true,
+      400,
+      600,
+      x => x,
+      w => store.update({ uiState: { navPanelWidth: w } })
+    );
 
-  handleSidebarResizerDrag(
-    "#presence-drag-target",
-    ["presence-width"],
-    false,
-    220,
-    300,
-    x => window.innerWidth - x,
-    w => store.update({ uiState: { presencePanelWidth: w } })
-  );
+    handleSidebarResizerDrag(
+      "#presence-drag-target",
+      ["presence-width"],
+      false,
+      220,
+      300,
+      x => window.innerWidth - x,
+      w => store.update({ uiState: { presencePanelWidth: w } })
+    );
+  }
 }
 
 function setupVREventHandlers(scene, availableVREntryTypesPromise) {

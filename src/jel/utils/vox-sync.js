@@ -74,19 +74,23 @@ export default class VoxSync extends EventTarget {
     if (this._refreshPermsTimeout) clearTimeout(this._refreshPermsTimeout);
   }
 
+  async applyChunk(chunk, frame, offset) {
+    this._submitOp({ f: frame, d: chunk.serialize(), o: offset });
+  }
+
   async setVoxel(x, y, z, r, g, b, frame = 0) {
     this._ensureFrame(frame);
 
     const color = voxColorForRGBT(r, g, b, VOXEL_TYPE_DIFFUSE);
     const delta = VoxChunk.fromJSON({ size: [1, 1, 1], palette: [color], indices: [1] });
-    this._submitOp({ f: frame, d: delta.serialize(), o: [x, y, z] });
+    await this.applyChunk(delta, frame, [x, y, z]);
   }
 
   async removeVoxel(x, y, z, frame = 0) {
     this._ensureFrame(frame);
 
     const delta = VoxChunk.fromJSON({ size: [1, 1, 1], palette: [REMOVE_VOXEL_COLOR], indices: [1] });
-    this._submitOp({ f: frame, d: delta.serialize(), o: [x, y, z] });
+    await this.applyChunk(delta, frame, [x, y, z]);
   }
 
   _fireVoxUpdated(op, source) {

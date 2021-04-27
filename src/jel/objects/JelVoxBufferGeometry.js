@@ -1,7 +1,7 @@
 const { BufferGeometry, BufferAttribute, Uint16BufferAttribute, Uint32BufferAttribute } = THREE;
 export const VOXEL_SIZE = 1 / 8;
 
-const MAX_VOX_SIZE = 64;
+export const MAX_VOX_SIZE = 64;
 
 const mask = new Int16Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
 const vals = new Int16Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
