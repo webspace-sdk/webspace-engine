@@ -3,7 +3,7 @@ import { CURSOR_LOCK_STATES, getCursorLockState } from "../../jel/utils/dom-util
 import { addMedia } from "../../hubs/utils/media-utils";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { MAX_VOX_SIZE, VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
-import { VoxChunk, voxColorForRGBT } from "ot-vox";
+import { VoxChunk, voxColorForRGBT, REMOVE_VOXEL_COLOR } from "ot-vox";
 
 //import { SOUND_EMOJI_EQUIP } from "../../hubs/systems/sound-effects-system";
 
@@ -35,6 +35,12 @@ const BRUSH_TYPES = {
   FACE: 2
 };
 
+const BRUSH_MODES = {
+  ADD: 0,
+  REMOVE: 1,
+  PAINT: 2
+};
+
 // Deals with block building
 export class BuilderSystem {
   constructor(sceneEl, userinput, soundEffectsSystem, cursorSystem) {
@@ -50,8 +56,10 @@ export class BuilderSystem {
     this.brushStartCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushType = BRUSH_TYPES.VOXEL;
+    this.brushMode = BRUSH_MODES.ADD;
     this.brushVoxColor = voxColorForRGBT(0, 0, 128);
     this.pendingPatchChunk = null;
+    this.spawningVoxThisBuild = false;
 
     //const store = window.APP.store;
 
@@ -71,7 +79,7 @@ export class BuilderSystem {
     return () => {
       if (!this.enabled) return;
 
-      const { userinput, brushVoxId, brushStartCell, brushEndCell } = this;
+      const { userinput, brushVoxId, brushStartCell, brushEndCell, brushMode, spawningVoxThisBuild } = this;
 
       const spacePath = paths.device.keyboard.key(" ");
       const middlePath = paths.device.mouse.buttonMiddle;
@@ -129,18 +137,21 @@ export class BuilderSystem {
 
         if (intersection) {
           const hitVoxId = SYSTEMS.voxSystem.getVoxHitFromIntersection(intersection, hitCell, adjacentCell);
+          const cellToBrush = brushMode === BRUSH_MODES.ADD ? adjacentCell : hitCell;
 
           if (hitVoxId) {
+            if (spawningVoxThisBuild) return; // Do not perform brush stuff while spawning a vox.
+
             let updatePatch = false;
 
-            if (!isFinite(brushEndCell.x) || !brushEndCell.equals(adjacentCell)) {
+            if (!isFinite(brushEndCell.x) || !brushEndCell.equals(cellToBrush)) {
               updatePatch = true;
-              brushEndCell.copy(adjacentCell);
+              brushEndCell.copy(cellToBrush);
             }
 
             if (!isFinite(brushStartCell.x)) {
               updatePatch = true;
-              brushStartCell.copy(adjacentCell);
+              brushStartCell.copy(cellToBrush);
               this.brushVoxId = hitVoxId;
 
               // Freeze the current mesh for targetting the vox.
@@ -157,10 +168,11 @@ export class BuilderSystem {
             }
           } else {
             if (!isFinite(brushStartCell.x)) {
-              // Not mid-build, create a new vox.
-              brushStartCell.set(0, 0, 0);
-              brushEndCell.set(0, 0, 0);
-              this.createVoxAt(intersection.point);
+              if (brushMode === BRUSH_MODES.ADD && !spawningVoxThisBuild) {
+                // Not mid-build, create a new vox.
+                this.spawningVoxThisBuild = true;
+                this.createVoxAt(intersection.point);
+              }
             }
           }
         }
@@ -176,6 +188,7 @@ export class BuilderSystem {
         brushStartCell.set(Infinity, Infinity, Infinity);
         brushEndCell.set(Infinity, Infinity, Infinity);
         this.brushVoxId = null;
+        this.spawningVoxThisBuild = false;
       }
     };
   })();
@@ -210,7 +223,7 @@ export class BuilderSystem {
       "model-loaded",
       async () => {
         const sync = await SYSTEMS.voxSystem.getSync(voxId);
-        await sync.setVoxel(0, 0, 0, 128); // TODO use color
+        await sync.setVoxel(0, 0, 0, this.brushVoxColor);
       },
       { once: true }
     );
@@ -225,17 +238,21 @@ export class BuilderSystem {
     object3D.matrixNeedsUpdate = true;
   }
 
-  async buildAtCell(hitVoxId, { x, y, z }) {
-    const sync = await SYSTEMS.voxSystem.getSync(hitVoxId);
-    sync.setVoxel(x, y, z, 128, 0, 0, 0); // TODO use color
-  }
-
   applyCurrentBrushToPatchChunk(voxId) {
+    const { pendingPatchChunk, brushType, brushMode, brushStartCell, brushEndCell, brushVoxColor } = this;
+
     let px, py, pz, sx, sy, sz;
 
-    const { pendingPatchChunk, brushType, brushStartCell, brushEndCell, brushVoxColor } = this;
     switch (brushType) {
       case BRUSH_TYPES.VOXEL:
+        // Disallow removing last voxel
+        if (brushMode === BRUSH_MODES.REMOVE) {
+          const voxNumVoxels = SYSTEMS.voxSystem.getTotalNonEmptyVoxelsOfTargettedFrame(voxId);
+          const patchNumVoxels = pendingPatchChunk.getTotalNonEmptyVoxels();
+          console.log(voxNumVoxels, patchNumVoxels);
+          if (patchNumVoxels >= voxNumVoxels - 1) return;
+        }
+
         // Add the end cell to the patch, assuming the patch ends up having its offset set to the start cell.
 
         // Cell to update
@@ -244,12 +261,12 @@ export class BuilderSystem {
         pz = brushEndCell.z - brushStartCell.z;
 
         // Resize patch if necessary
-        sx = Math.min(Math.max(2, pendingPatchChunk.size[0], Math.abs(px) * 2 + 1), MAX_VOX_SIZE);
-        sy = Math.min(Math.max(2, pendingPatchChunk.size[1], Math.abs(py) * 2 + 1), MAX_VOX_SIZE);
-        sz = Math.min(Math.max(2, pendingPatchChunk.size[2], Math.abs(pz) * 2 + 1), MAX_VOX_SIZE);
+        sx = Math.min(Math.max(2, pendingPatchChunk.size[0], Math.abs(px) * 2 + 2), MAX_VOX_SIZE);
+        sy = Math.min(Math.max(2, pendingPatchChunk.size[1], Math.abs(py) * 2 + 2), MAX_VOX_SIZE);
+        sz = Math.min(Math.max(2, pendingPatchChunk.size[2], Math.abs(pz) * 2 + 2), MAX_VOX_SIZE);
 
         pendingPatchChunk.resizeTo([sx, sy, sz]);
-        pendingPatchChunk.setColorAt(px, py, pz, brushVoxColor);
+        pendingPatchChunk.setColorAt(px, py, pz, brushMode === BRUSH_MODES.REMOVE ? REMOVE_VOXEL_COLOR : brushVoxColor);
 
         break;
     }

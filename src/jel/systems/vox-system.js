@@ -969,6 +969,16 @@ export class VoxSystem extends EventTarget {
     entry.overlayVoxChunk = null;
   }
 
+  getTotalNonEmptyVoxelsOfTargettedFrame(voxId) {
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return null;
+    const { vox, targettingMeshFrame, targettingMesh } = entry;
+    if (!targettingMesh) return null;
+
+    return vox.frames[targettingMeshFrame].getTotalNonEmptyVoxels();
+  }
+
   getCurrentAnimationFrame(/* voxId */) {
     // TODO
     return 0;

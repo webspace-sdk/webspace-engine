@@ -78,10 +78,9 @@ export default class VoxSync extends EventTarget {
     this._submitOp({ f: frame, d: chunk.serialize(), o: offset });
   }
 
-  async setVoxel(x, y, z, r, g, b, frame = 0) {
+  async setVoxel(x, y, z, color, frame = 0) {
     this._ensureFrame(frame);
 
-    const color = voxColorForRGBT(r, g, b, VOXEL_TYPE_DIFFUSE);
     const delta = VoxChunk.fromJSON({ size: [1, 1, 1], palette: [color], indices: [1] });
     await this.applyChunk(delta, frame, [x, y, z]);
   }
