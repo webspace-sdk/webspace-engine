@@ -153,6 +153,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.interactionSfxSystem.tick(systems.interaction, systems.userinput, this.soundEffectsSystem);
     this.superSpawnerSystem.tick();
     this.cursorPoseTrackingSystem.tick();
+    this.voxSystem.tick(t, dt); // Vox system may generate targetting meshes
     this.cursorTargettingSystem.tick(t);
     this.positionAtBorderSystem.tick();
     this.scaleInScreenSpaceSystem.tick();
@@ -183,7 +184,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.uiAnimationSystem.tick(t, dt);
     this.avatarSystem.tick(t, dt);
     this.skyBeamSystem.tick(t, dt);
-    this.voxSystem.tick(t, dt);
     this.voxmojiSystem.tick(t, dt);
     this.projectileSystem.tick(t, dt);
     this.keyboardTipSystem.tick();

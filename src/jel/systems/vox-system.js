@@ -978,6 +978,23 @@ export class VoxSystem extends EventTarget {
     chunk.filterByChunk(targetChunk, offsetX, offsetY, offsetZ, filter);
   }
 
+  clearOverlayAndUnfreezeMesh(voxId) {
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return;
+    const { targettingMesh, dirtyFrameMeshes, targettingMeshFrame } = entry;
+
+    if (targettingMesh) {
+      this.unfreezeMeshForTargetting(voxId);
+      dirtyFrameMeshes[targettingMeshFrame] = true;
+    } else {
+      dirtyFrameMeshes.fill(true);
+    }
+
+    entry.regenerateDirtyMeshesOnNextFrame = true;
+    entry.overlayVoxChunk = null;
+  }
+
   applyOverlayAndUnfreezeMesh(voxId) {
     const { voxMap } = this;
     const entry = voxMap.get(voxId);
@@ -991,8 +1008,8 @@ export class VoxSystem extends EventTarget {
 
     const offset = [...overlayVoxChunkOffset];
 
+    // Don't mark dirty flag since doc will update.
     this.getSync(voxId).then(sync => sync.applyChunk(overlayVoxChunk, targettingMeshFrame, offset));
-
     entry.overlayVoxChunk = null;
   }
 
