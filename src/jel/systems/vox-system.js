@@ -426,8 +426,8 @@ export class VoxSystem extends EventTarget {
       // If non-null, this chunk will be ephemerally applied to the current snapshot during remeshing.
       //
       // This is used in building model to display the in-process voxel brush.
-      overlayVoxChunk: null,
-      overlayVoxChunkOffset: [0, 0, 0],
+      pendingVoxChunk: null,
+      pendingVoxChunkOffset: [0, 0, 0],
 
       // UUID of the physics shape for this vox (derived from the first vox frame)
       shapesUuid: null,
@@ -533,8 +533,8 @@ export class VoxSystem extends EventTarget {
       meshes,
       mesherQuadSize,
       maxRegisteredIndex,
-      overlayVoxChunk,
-      overlayVoxChunkOffset
+      pendingVoxChunk,
+      pendingVoxChunkOffset
     } = entry;
     if (!vox) return;
 
@@ -575,15 +575,15 @@ export class VoxSystem extends EventTarget {
       if (remesh) {
         let chunk = vox.frames[i];
 
-        // Apply any ephemeral overlay (eg from voxel brushes.)
-        if (overlayVoxChunk) {
+        // Apply any ephemeral pending (eg from voxel brushes.)
+        if (pendingVoxChunk) {
           chunk = chunk.clone();
           vox0.applyToChunk(
-            overlayVoxChunk,
+            pendingVoxChunk,
             chunk,
-            overlayVoxChunkOffset[0],
-            overlayVoxChunkOffset[1],
-            overlayVoxChunkOffset[2]
+            pendingVoxChunkOffset[0],
+            pendingVoxChunkOffset[1],
+            pendingVoxChunkOffset[2]
           );
         }
 
@@ -610,8 +610,8 @@ export class VoxSystem extends EventTarget {
 
         dirtyFrameMeshes[i] = false;
 
-        // Don't update physics when running overlay for brush
-        if (i === 0 && !overlayVoxChunk) {
+        // Don't update physics when running pending for brush
+        if (i === 0 && !pendingVoxChunk) {
           const type = mesherQuadSize <= 2 ? SHAPE.HACD : SHAPE.HULL;
 
           // Physics shape is based upon the first mesh.
@@ -758,7 +758,7 @@ export class VoxSystem extends EventTarget {
     return voxId;
   }
 
-  createPatchInverse(voxId, frame, patch, offset) {
+  createPendingInverse(voxId, frame, patch, offset) {
     const { voxMap } = this;
     const entry = voxMap.get(voxId);
     if (!entry) return null;
@@ -953,17 +953,17 @@ export class VoxSystem extends EventTarget {
     return el.parentNode ? el.components["body-helper"].uuid : null;
   }
 
-  setOverlayVoxChunk(voxId, chunk, offsetX, offsetY, offsetZ) {
+  setPendingVoxChunk(voxId, chunk, offsetX, offsetY, offsetZ) {
     const { voxMap } = this;
     const entry = voxMap.get(voxId);
     if (!entry) return;
     const { dirtyFrameMeshes } = entry;
     dirtyFrameMeshes.fill(true);
     entry.regenerateDirtyMeshesOnNextFrame = true;
-    entry.overlayVoxChunk = chunk;
-    entry.overlayVoxChunkOffset[0] = offsetX;
-    entry.overlayVoxChunkOffset[1] = offsetY;
-    entry.overlayVoxChunkOffset[2] = offsetZ;
+    entry.pendingVoxChunk = chunk;
+    entry.pendingVoxChunkOffset[0] = offsetX;
+    entry.pendingVoxChunkOffset[1] = offsetY;
+    entry.pendingVoxChunkOffset[2] = offsetZ;
   }
 
   filterChunkByVoxFrame(chunk, offsetX, offsetY, offsetZ, voxId, frame, filter) {
@@ -978,7 +978,7 @@ export class VoxSystem extends EventTarget {
     chunk.filterByChunk(targetChunk, offsetX, offsetY, offsetZ, filter);
   }
 
-  clearOverlayAndUnfreezeMesh(voxId) {
+  clearPendingAndUnfreezeMesh(voxId) {
     const { voxMap } = this;
     const entry = voxMap.get(voxId);
     if (!entry) return;
@@ -992,25 +992,25 @@ export class VoxSystem extends EventTarget {
     }
 
     entry.regenerateDirtyMeshesOnNextFrame = true;
-    entry.overlayVoxChunk = null;
+    entry.pendingVoxChunk = null;
   }
 
-  applyOverlayAndUnfreezeMesh(voxId) {
+  applyPendingAndUnfreezeMesh(voxId) {
     const { voxMap } = this;
     const entry = voxMap.get(voxId);
     if (!entry) return;
-    const { overlayVoxChunk, targettingMesh, targettingMeshFrame, overlayVoxChunkOffset } = entry;
-    if (!overlayVoxChunk) return;
+    const { pendingVoxChunk, targettingMesh, targettingMeshFrame, pendingVoxChunkOffset } = entry;
+    if (!pendingVoxChunk) return;
 
     if (targettingMesh) {
       this.unfreezeMeshForTargetting(voxId);
     }
 
-    const offset = [...overlayVoxChunkOffset];
+    const offset = [...pendingVoxChunkOffset];
 
     // Don't mark dirty flag since doc will update.
-    this.getSync(voxId).then(sync => sync.applyChunk(overlayVoxChunk, targettingMeshFrame, offset));
-    entry.overlayVoxChunk = null;
+    this.getSync(voxId).then(sync => sync.applyChunk(pendingVoxChunk, targettingMeshFrame, offset));
+    entry.pendingVoxChunk = null;
   }
 
   getTotalNonEmptyVoxelsOfTargettedFrame(voxId) {

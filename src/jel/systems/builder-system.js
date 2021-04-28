@@ -16,17 +16,17 @@ import { createVox } from "../../hubs/utils/phoenix-utils";
 // Brush types:
 //
 // Voxel:
-// add the adjacent cell to the existing patch
+// add the adjacent cell to the existing pending
 //
 // Box:
-// Loop over all of start to end patch, and for any cells not in the current snapshot,
+// Loop over all of start to end pending, and for any cells not in the current snapshot,
 // fill them. (Leave existing ones alone)
 //
 // Face:
 // Create an intersection plane based upon normal of side, with the origin at the cell face
 // Of the two planes to create, take the one with the normal closes to the eye ray
 //
-// +h or -h at start patch
+// +h or -h at start pending
 //   - when adding h is strictly positive, when removing it's strictly negative
 //   - never zero, always at least +/- one
 //   - at click time, capture the face mask to move
@@ -73,7 +73,7 @@ export class BuilderSystem {
     this.mirrorY = false;
     this.mirrorZ = false;
     this.brushVoxColor = voxColorForRGBT(128, 0, 0);
-    this.pendingPatchChunk = null;
+    this.pendingChunk = null;
     this.hasInFlightOperation = false;
     this.ignoreRemainingBrush = false;
     this.performingUndoOperation = false;
@@ -180,7 +180,7 @@ export class BuilderSystem {
         if (this.isBrushing && this.targetVoxId !== null && hitVoxId !== this.targetVoxId) return;
         if (this.ignoreRemainingBrush) return;
 
-        let updatePatch = false;
+        let updatePending = false;
         const active = brushDown || this.showHoverBrushPreview;
 
         // Freeze the mesh when we start hovering.
@@ -190,7 +190,7 @@ export class BuilderSystem {
 
           brushStartCell.copy(cellToBrush);
           brushEndCell.copy(cellToBrush);
-          updatePatch = true;
+          updatePending = true;
         }
 
         if (brushDown && !this.isBrushing) {
@@ -198,22 +198,22 @@ export class BuilderSystem {
         }
 
         if (active && !brushEndCell.equals(cellToBrush)) {
-          updatePatch = true;
+          updatePending = true;
           brushEndCell.copy(cellToBrush);
 
           if (!brushDown) {
-            // Just a hover, maintain a single cell size overlay
+            // Just a hover, maintain a single cell size pending
             brushStartCell.copy(cellToBrush);
           }
         }
 
-        if (updatePatch) {
-          if (!this.pendingPatchChunk) {
-            // Create a new patch, patch will grow as needed.
-            this.pendingPatchChunk = new VoxChunk([2, 2, 2]);
+        if (updatePending) {
+          if (!this.pendingChunk) {
+            // Create a new pending, pending will grow as needed.
+            this.pendingChunk = new VoxChunk([2, 2, 2]);
           }
 
-          this.applyCurrentBrushToPatchChunk(hitVoxId);
+          this.applyCurrentBrushToPendingChunk(hitVoxId);
         }
       } else {
         // No vox was hit this tick. Check if we need to create one.
@@ -234,33 +234,33 @@ export class BuilderSystem {
         }
 
         // If we're not brushing, and we had a target vox, we just cursor
-        // exited it so hide the overlay.
+        // exited it so hide the pending.
         if (this.targetVoxId !== null && !this.isBrushing) {
-          SYSTEMS.voxSystem.clearOverlayAndUnfreezeMesh(this.targetVoxId);
+          SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
 
-          this.pendingPatchChunk = null;
+          this.pendingChunk = null;
           this.targetVoxId = null;
           this.brushEndCell.set(Infinity, Infinity, Infinity);
         }
       }
 
-      // When brush is lifted, apply the overlay
+      // When brush is lifted, apply the pending
       if (!brushDown) {
         if (this.hasInFlightOperation) return;
         this.ignoreRemainingBrush = false;
 
-        if (this.pendingPatchChunk) {
-          this.pushToUndoStack(this.targetVoxId, this.brushVoxFrame, this.pendingPatchChunk, [
+        if (this.pendingChunk) {
+          this.pushToUndoStack(this.targetVoxId, this.brushVoxFrame, this.pendingChunk, [
             brushStartCell.x,
             brushStartCell.y,
             brushStartCell.z
           ]);
 
-          SYSTEMS.voxSystem.applyOverlayAndUnfreezeMesh(this.targetVoxId);
+          SYSTEMS.voxSystem.applyPendingAndUnfreezeMesh(this.targetVoxId);
           // Uncomment to stop applying changes to help with reproducing bugs.
-          //SYSTEMS.voxSystem.clearOverlayAndUnfreezeMesh(this.targetVoxId);
+          //SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
 
-          this.pendingPatchChunk = null;
+          this.pendingChunk = null;
         }
 
         // Clear last build cell when building is off.
@@ -317,19 +317,19 @@ export class BuilderSystem {
     object3D.matrixNeedsUpdate = true;
   }
 
-  resizePendingPatchChunkToFit(x, y, z) {
-    const { pendingPatchChunk } = this;
-    const sx = Math.min(Math.max(2, pendingPatchChunk.size[0], Math.abs(x) * 2 + 2), MAX_VOX_SIZE);
-    const sy = Math.min(Math.max(2, pendingPatchChunk.size[1], Math.abs(y) * 2 + 2), MAX_VOX_SIZE);
-    const sz = Math.min(Math.max(2, pendingPatchChunk.size[2], Math.abs(z) * 2 + 2), MAX_VOX_SIZE);
+  resizePendingPendingChunkToFit(x, y, z) {
+    const { pendingChunk } = this;
+    const sx = Math.min(Math.max(2, pendingChunk.size[0], Math.abs(x) * 2 + 2), MAX_VOX_SIZE);
+    const sy = Math.min(Math.max(2, pendingChunk.size[1], Math.abs(y) * 2 + 2), MAX_VOX_SIZE);
+    const sz = Math.min(Math.max(2, pendingChunk.size[2], Math.abs(z) * 2 + 2), MAX_VOX_SIZE);
 
-    // Resize patch if necessary to be able to fit brush end and start cells.
-    pendingPatchChunk.resizeTo([sx, sy, sz]);
+    // Resize pending if necessary to be able to fit brush end and start cells.
+    pendingChunk.resizeTo([sx, sy, sz]);
   }
 
-  applyCurrentBrushToPatchChunk(voxId) {
+  applyCurrentBrushToPendingChunk(voxId) {
     const {
-      pendingPatchChunk,
+      pendingChunk,
       brushType,
       brushMode,
       brushSize,
@@ -369,7 +369,7 @@ export class BuilderSystem {
 
     if (brushType === BRUSH_TYPES.BOX || brushType == BRUSH_TYPES.FACE) {
       // Box and face slides are materialized in full here, whereas VOXEL is built-up
-      pendingPatchChunk.clear();
+      pendingChunk.clear();
     }
 
     // Only preview voxel brush
@@ -379,7 +379,7 @@ export class BuilderSystem {
 
     let filter = VOX_CHUNK_FILTERS.NONE;
 
-    // Perform up to 8 updates to the pending patch chunk based upon mirroring
+    // Perform up to 8 updates to the pending pending chunk based upon mirroring
     for (const mx of mirrors) {
       if (mx === -1 && !mirrorX) continue;
 
@@ -404,24 +404,24 @@ export class BuilderSystem {
               boxMaxY = py + Math.ceil((brushSize - 1) / 2);
               boxMaxZ = pz + Math.ceil((brushSize - 1) / 2);
 
-              this.resizePendingPatchChunkToFit(boxMinX, boxMinY, boxMinZ);
-              this.resizePendingPatchChunkToFit(boxMaxX, boxMaxY, boxMaxZ);
+              this.resizePendingPendingChunkToFit(boxMinX, boxMinY, boxMinZ);
+              this.resizePendingPendingChunkToFit(boxMaxX, boxMaxY, boxMaxZ);
 
-              [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(pendingPatchChunk.size);
+              [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(pendingChunk.size);
 
               // Disallow removing last voxel
               //if (brushMode === BRUSH_MODES.REMOVE) {
               //  const voxNumVoxels = SYSTEMS.voxSystem.getTotalNonEmptyVoxelsOfTargettedFrame(voxId);
-              //  const patchNumVoxels = pendingPatchChunk.getTotalNonEmptyVoxels();
-              //  if (patchNumVoxels >= voxNumVoxels - 1) return;
+              //  const pendingNumVoxels = pendingChunk.getTotalNonEmptyVoxels();
+              //  if (pendingNumVoxels >= voxNumVoxels - 1) return;
               //}
 
-              // Update patch to have a cell iff its in the box
+              // Update pending to have a cell iff its in the box
               for (let x = minX; x <= maxX; x += 1) {
                 for (let y = minY; y <= maxY; y += 1) {
                   for (let z = minZ; z <= maxZ; z += 1) {
                     if (x >= boxMinX && x <= boxMaxX && y >= boxMinY && y <= boxMaxY && z >= boxMinZ && z <= boxMaxZ) {
-                      pendingPatchChunk.setColorAt(
+                      pendingChunk.setColorAt(
                         x,
                         y,
                         z,
@@ -446,14 +446,14 @@ export class BuilderSystem {
               py = brushEndCell.y * my - offsetY;
               pz = brushEndCell.z * mz - offsetZ;
 
-              this.resizePendingPatchChunkToFit(px, py, pz);
+              this.resizePendingPendingChunkToFit(px, py, pz);
 
               // Box corner 2 (origin is at start cell)
               qx = brushStartCell.x * mx - offsetX;
               qy = brushStartCell.y * my - offsetY;
               qz = brushStartCell.z * mz - offsetZ;
 
-              this.resizePendingPatchChunkToFit(qx, qy, qz);
+              this.resizePendingPendingChunkToFit(qx, qy, qz);
 
               // Compute box
               boxMinX = Math.min(px, qx);
@@ -464,14 +464,14 @@ export class BuilderSystem {
               boxMaxY = Math.max(py, qy);
               boxMaxZ = Math.max(pz, qz);
 
-              [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(pendingPatchChunk.size);
+              [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(pendingChunk.size);
 
-              // Update patch to have a cell iff its in the box
+              // Update pending to have a cell iff its in the box
               for (let x = minX; x <= maxX; x += 1) {
                 for (let y = minY; y <= maxY; y += 1) {
                   for (let z = minZ; z <= maxZ; z += 1) {
                     if (x >= boxMinX && x <= boxMaxX && y >= boxMinY && y <= boxMaxY && z >= boxMinZ && z <= boxMaxZ) {
-                      pendingPatchChunk.setColorAt(
+                      pendingChunk.setColorAt(
                         x,
                         y,
                         z,
@@ -494,28 +494,20 @@ export class BuilderSystem {
       }
     }
 
-    // Patch filter:
+    // Pending filter:
     //
     // In ADD mode, maintain existing voxel colors in BOX mode.
     // In PAINT mode, don't add new voxels.
 
     if (filter !== VOX_CHUNK_FILTERS.NONE) {
-      SYSTEMS.voxSystem.filterChunkByVoxFrame(
-        pendingPatchChunk,
-        offsetX,
-        offsetY,
-        offsetZ,
-        voxId,
-        brushVoxFrame,
-        filter
-      );
+      SYSTEMS.voxSystem.filterChunkByVoxFrame(pendingChunk, offsetX, offsetY, offsetZ, voxId, brushVoxFrame, filter);
     }
 
-    // Update the overlay
-    SYSTEMS.voxSystem.setOverlayVoxChunk(voxId, pendingPatchChunk, offsetX, offsetY, offsetZ);
+    // Update the pending chunk
+    SYSTEMS.voxSystem.setPendingVoxChunk(voxId, pendingChunk, offsetX, offsetY, offsetZ);
   }
 
-  pushToUndoStack(voxId, frame, patch, offset) {
+  pushToUndoStack(voxId, frame, pending, offset) {
     const { undoStacks } = this;
     const stackKey = `${voxId}_${frame}`;
 
@@ -543,14 +535,14 @@ export class BuilderSystem {
     }
 
     const { backward, forward, position } = stack;
-    const undoPatch = SYSTEMS.voxSystem.createPatchInverse(voxId, frame, patch, offset);
-    if (!undoPatch) return;
+    const undoPending = SYSTEMS.voxSystem.createPendingInverse(voxId, frame, pending, offset);
+    if (!undoPending) return;
 
-    // Stack slot at position has patches to apply to move forward/backwards.
+    // Stack slot at position has pendinges to apply to move forward/backwards.
     const newPosition = position + 1; // We're going to move forwards in the stack.
-    backward[newPosition] = [undoPatch, offset]; // Add the undo patch
+    backward[newPosition] = [undoPending, offset]; // Add the undo pending
     forward.fill(null, newPosition); // Free residual redos ahead of us
-    forward[position] = [patch.clone(), offset]; // The previous stack frame can now move forward to this one
+    forward[position] = [pending.clone(), offset]; // The previous stack frame can now move forward to this one
     stack.position = newPosition;
   }
 
@@ -566,11 +558,11 @@ export class BuilderSystem {
     if (!backward[position]) return;
 
     this.hasInFlightOperation = true;
-    const [patch, offset] = backward[position];
+    const [pending, offset] = backward[position];
 
     const sync = await SYSTEMS.voxSystem.getSync(voxId);
     stack.position--;
-    sync.applyChunk(patch, frame, offset);
+    sync.applyChunk(pending, frame, offset);
     this.hasInFlightOperation = false;
   }
 
@@ -586,11 +578,11 @@ export class BuilderSystem {
     if (!forward[position]) return;
 
     this.hasInFlightOperation = true;
-    const [patch, offset] = forward[position];
+    const [pending, offset] = forward[position];
 
     const sync = await SYSTEMS.voxSystem.getSync(voxId);
     stack.position++;
-    sync.applyChunk(patch, frame, offset);
+    sync.applyChunk(pending, frame, offset);
     this.hasInFlightOperation = false;
   }
 
