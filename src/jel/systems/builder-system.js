@@ -78,8 +78,6 @@ export class BuilderSystem {
     this.ignoreRemainingBrush = false;
     this.performingUndoOperation = false;
     this.undoStacks = new Map();
-
-    // Show brush when hovering. Only useful for edit mode.
     this.showHoverBrushPreview = true;
 
     //const store = window.APP.store;
@@ -184,7 +182,13 @@ export class BuilderSystem {
         const active = brushDown || this.showHoverBrushPreview;
 
         // Freeze the mesh when we start hovering.
-        if (active && this.targetVoxId === null) {
+        if (active && this.targetVoxId !== hitVoxId) {
+          if (this.targetVoxId) {
+            // Direct hover from one vox to another, clear old pending.
+            SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
+            this.pendingChunk = null;
+          }
+
           this.targetVoxId = hitVoxId;
           this.brushVoxFrame = SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
 
@@ -225,6 +229,7 @@ export class BuilderSystem {
           !this.ignoreRemainingBrush &&
           this.targetVoxId === null &&
           brushMode === BRUSH_MODES.ADD &&
+          intersection &&
           intersection.point
         ) {
           // Not mid-build, create a new vox.
