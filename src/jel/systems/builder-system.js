@@ -67,6 +67,7 @@ export class BuilderSystem {
     this.brushMode = BRUSH_MODES.ADD;
     this.brushShape = BRUSH_SHAPES.SQUARE;
     this.brushSize = 2;
+
     this.isBrushing = false;
     this.mirrorX = false;
     this.mirrorY = false;
@@ -77,6 +78,9 @@ export class BuilderSystem {
     this.ignoreRemainingBrush = false;
     this.performingUndoOperation = false;
     this.undoStacks = new Map();
+
+    // Show brush when hovering. Only useful for edit mode.
+    this.showHoverBrushPreview = false;
 
     //const store = window.APP.store;
 
@@ -94,39 +98,36 @@ export class BuilderSystem {
     this.brushVoxColor = voxColorForRGBT(r, g, b);
   }
 
-  tick = (() => {
-    const hitCell = new Vector3();
-    const adjacentCell = new Vector3();
-    return () => {
-      if (!this.enabled) return;
+  tick() {
+    if (!this.enabled) return;
 
-      const { userinput, brushStartCell, brushEndCell, brushMode } = this;
+    const { userinput } = this;
 
-      const cursor = this.cursorSystem.rightRemote && this.cursorSystem.rightRemote.components["cursor-controller"];
+    const cursor = this.cursorSystem.rightRemote && this.cursorSystem.rightRemote.components["cursor-controller"];
 
-      const spacePath = paths.device.keyboard.key(" ");
-      const middlePath = paths.device.mouse.buttonMiddle;
-      const leftPath = paths.device.mouse.buttonLeft;
-      const controlPath = paths.device.keyboard.key("control");
-      const shiftPath = paths.device.keyboard.key("shift");
+    const spacePath = paths.device.keyboard.key(" ");
+    const middlePath = paths.device.mouse.buttonMiddle;
+    const leftPath = paths.device.mouse.buttonLeft;
+    const controlPath = paths.device.keyboard.key("control");
+    const shiftPath = paths.device.keyboard.key("shift");
 
-      const holdingLeft = userinput.get(leftPath);
-      const holdingSpace = userinput.get(spacePath);
-      const holdingShift = userinput.get(shiftPath);
-      const wheel = userinput.get(paths.actions.equipScroll);
+    const holdingLeft = userinput.get(leftPath);
+    const holdingSpace = userinput.get(spacePath);
+    const holdingShift = userinput.get(shiftPath);
+    const wheel = userinput.get(paths.actions.equipScroll);
 
-      if (holdingShift && !holdingLeft) {
-        this.sawLeftButtonUpWithShift = true;
-      } else if (!holdingShift) {
-        this.sawLeftButtonUpWithShift = false;
-      }
+    if (holdingShift && !holdingLeft) {
+      this.sawLeftButtonUpWithShift = true;
+    } else if (!holdingShift) {
+      this.sawLeftButtonUpWithShift = false;
+    }
 
-      if (wheel && wheel !== 0.0) {
-        this.deltaWheel += wheel;
-      }
+    if (wheel && wheel !== 0.0) {
+      this.deltaWheel += wheel;
+    }
 
-      if (Math.abs(this.deltaWheel) > WHEEL_THRESHOLD) {
-        /*const store = window.APP.store;
+    if (Math.abs(this.deltaWheel) > WHEEL_THRESHOLD) {
+      /*const store = window.APP.store;
       const equipDirection = this.deltaWheel < 0.0 ? -1 : 1;
       this.deltaWheel = 0.0;
       let currentSlot = -1;
@@ -143,18 +144,30 @@ export class BuilderSystem {
         newSlot = newSlot < 0 ? 9 : newSlot;
         store.update({ equips: { launcher: store.state.equips[`launcherSlot${newSlot + 1}`] } });
       }*/
-      }
+    }
 
-      const isFreeToLeftHold =
-        getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT || (holdingShift && this.sawLeftButtonUpWithShift);
+    const isFreeToLeftHold =
+      getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT || (holdingShift && this.sawLeftButtonUpWithShift);
+
+    // Repeated build if user is holding space and not control (due to widen)
+    const brushDown =
+      (holdingSpace && !userinput.get(controlPath)) ||
+      userinput.get(middlePath) ||
+      (isFreeToLeftHold && userinput.get(leftPath));
+
+    const intersection = cursor && cursor.intersection;
+    this.performBrushStep(brushDown, intersection);
+  }
+
+  performBrushStep = (() => {
+    const hitCell = new Vector3();
+    const adjacentCell = new Vector3();
+    return (brushDown, intersection) => {
+      if (!this.enabled) return;
+
+      const { brushStartCell, brushEndCell, brushMode } = this;
 
       // Repeated build if user is holding space and not control (due to widen)
-      const brushDown =
-        (holdingSpace && !userinput.get(controlPath)) ||
-        userinput.get(middlePath) ||
-        (isFreeToLeftHold && userinput.get(leftPath));
-
-      const intersection = cursor && cursor.intersection;
       let hitVoxId = null;
 
       if (intersection) {
@@ -165,11 +178,13 @@ export class BuilderSystem {
         const cellToBrush = brushMode === BRUSH_MODES.ADD ? adjacentCell : hitCell;
         // If we hovered over another vox while brushing, ignore it until we let go.
         if (this.isBrushing && this.targetVoxId !== null && hitVoxId !== this.targetVoxId) return;
+        if (this.ignoreRemainingBrush) return;
 
         let updatePatch = false;
+        const active = brushDown || this.showHoverBrushPreview;
 
         // Freeze the mesh when we start hovering.
-        if (this.targetVoxId === null) {
+        if (active && this.targetVoxId === null) {
           this.targetVoxId = hitVoxId;
           this.brushVoxFrame = SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
 
@@ -182,7 +197,7 @@ export class BuilderSystem {
           this.isBrushing = true;
         }
 
-        if (!brushEndCell.equals(cellToBrush)) {
+        if (active && !brushEndCell.equals(cellToBrush)) {
           updatePatch = true;
           brushEndCell.copy(cellToBrush);
 
@@ -205,7 +220,13 @@ export class BuilderSystem {
         //
         // If brush is down, we're not currently brushing, and we have a target,
         // create a vox.
-        if (brushDown && this.targetVoxId === null && brushMode === BRUSH_MODES.ADD && intersection.point) {
+        if (
+          brushDown &&
+          !this.ignoreRemainingBrush &&
+          this.targetVoxId === null &&
+          brushMode === BRUSH_MODES.ADD &&
+          intersection.point
+        ) {
           // Not mid-build, create a new vox.
           this.hasInFlightOperation = true;
           this.ignoreRemainingBrush = true;
@@ -224,8 +245,9 @@ export class BuilderSystem {
       }
 
       // When brush is lifted, apply the overlay
-      if (!brushDown && this.isBrushing) {
-        if (this.hasInFlightOperation || this.ignoreRemainingBrush) return;
+      if (!brushDown) {
+        if (this.hasInFlightOperation) return;
+        this.ignoreRemainingBrush = false;
 
         if (this.pendingPatchChunk) {
           this.pushToUndoStack(this.targetVoxId, this.brushVoxFrame, this.pendingPatchChunk, [
