@@ -144,6 +144,9 @@ export class BuilderSystem {
         if (hitVoxId) {
           if (hasInFlightOperation) return; // Do not perform brush stuff while spawning a vox.
 
+          // If we hovered over another vox, ignore it until we stop building.
+          if (this.brushVoxId !== null && hitVoxId !== this.brushVoxId) return;
+
           let updatePatch = false;
 
           if (!isFinite(brushEndCell.x) || !brushEndCell.equals(cellToBrush)) {
