@@ -64,7 +64,7 @@ export class BuilderSystem {
     this.brushStartCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushType = BRUSH_TYPES.VOXEL;
-    this.brushMode = BRUSH_MODES.ADD;
+    this.brushMode = BRUSH_MODES.REMOVE;
     this.brushShape = BRUSH_SHAPES.SQUARE;
     this.brushSize = 2;
 
@@ -343,6 +343,11 @@ export class BuilderSystem {
       isBrushing
     } = this;
 
+    // Only preview voxel brush
+    if (brushType !== BRUSH_TYPES.VOXEL && !isBrushing) {
+      return;
+    }
+
     const mirrors = [-1, 1];
     const offsetX = brushStartCell.x;
     const offsetY = brushStartCell.y;
@@ -365,19 +370,15 @@ export class BuilderSystem {
       minZ,
       maxX,
       maxY,
-      maxZ;
+      maxZ,
+      filter = VOX_CHUNK_FILTERS.NONE;
 
     if (brushType === BRUSH_TYPES.BOX || brushType == BRUSH_TYPES.FACE) {
       // Box and face slides are materialized in full here, whereas VOXEL is built-up
       pendingChunk.clear();
     }
 
-    // Only preview voxel brush
-    if (brushType !== BRUSH_TYPES.VOXEL && !isBrushing) {
-      return;
-    }
-
-    let filter = VOX_CHUNK_FILTERS.NONE;
+    const voxNumVoxels = SYSTEMS.voxSystem.getTotalNonEmptyVoxelsOfTargettedFrame(voxId);
 
     // Perform up to 8 updates to the pending pending chunk based upon mirroring
     for (const mx of mirrors) {
@@ -417,10 +418,14 @@ export class BuilderSystem {
               //}
 
               // Update pending to have a cell iff its in the box
-              for (let x = minX; x <= maxX; x += 1) {
+              loop: for (let x = minX; x <= maxX; x += 1) {
                 for (let y = minY; y <= maxY; y += 1) {
                   for (let z = minZ; z <= maxZ; z += 1) {
                     if (x >= boxMinX && x <= boxMaxX && y >= boxMinY && y <= boxMaxY && z >= boxMinZ && z <= boxMaxZ) {
+                      // Avoid removing last voxel
+                      if (brushMode === BRUSH_MODES.REMOVE && pendingChunk.getTotalNonEmptyVoxels() >= voxNumVoxels - 1)
+                        break loop;
+
                       pendingChunk.setColorAt(
                         x,
                         y,
@@ -467,10 +472,14 @@ export class BuilderSystem {
               [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(pendingChunk.size);
 
               // Update pending to have a cell iff its in the box
-              for (let x = minX; x <= maxX; x += 1) {
+              loop: for (let x = minX; x <= maxX; x += 1) {
                 for (let y = minY; y <= maxY; y += 1) {
                   for (let z = minZ; z <= maxZ; z += 1) {
                     if (x >= boxMinX && x <= boxMaxX && y >= boxMinY && y <= boxMaxY && z >= boxMinZ && z <= boxMaxZ) {
+                      // Avoid removing last voxel
+                      if (brushMode === BRUSH_MODES.REMOVE && pendingChunk.getTotalNonEmptyVoxels() >= voxNumVoxels - 1)
+                        break loop;
+
                       pendingChunk.setColorAt(
                         x,
                         y,
