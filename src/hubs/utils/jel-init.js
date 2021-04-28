@@ -679,6 +679,9 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
 
             SYSTEMS.atmosphereSystem.restartAmbience();
 
+            // Free memory from voxel editing undo stacks.
+            SYSTEMS.builderSystem.clearUndoStacks();
+
             clearResolveUrlCache();
 
             // If this is not a world, skip connecting to NAF + SAF

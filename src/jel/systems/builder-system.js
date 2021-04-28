@@ -8,6 +8,8 @@ import { VoxChunk, voxColorForRGBT, REMOVE_VOXEL_COLOR } from "ot-vox";
 //import { SOUND_EMOJI_EQUIP } from "../../hubs/systems/sound-effects-system";
 
 const WHEEL_THRESHOLD = 0.15;
+const MAX_UNDO_STEPS = 32;
+
 const { Vector3 } = THREE;
 import { createVox } from "../../hubs/utils/phoenix-utils";
 
@@ -53,13 +55,16 @@ export class BuilderSystem {
     this.deltaWheel = 0.0;
     this.sawLeftButtonUpWithShift = false;
     this.brushVoxId = null;
+    this.brushVoxFrame = null;
     this.brushStartCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushType = BRUSH_TYPES.VOXEL;
     this.brushMode = BRUSH_MODES.ADD;
     this.brushVoxColor = voxColorForRGBT(0, 0, 128);
     this.pendingPatchChunk = null;
-    this.spawningVoxThisBuild = false;
+    this.hasInFlightOperation = false;
+    this.performingUndoOperation = false;
+    this.undoStacks = new Map();
 
     //const store = window.APP.store;
 
@@ -79,7 +84,7 @@ export class BuilderSystem {
     return () => {
       if (!this.enabled) return;
 
-      const { userinput, brushVoxId, brushStartCell, brushEndCell, brushMode, spawningVoxThisBuild } = this;
+      const { userinput, brushVoxId, brushStartCell, brushEndCell, brushMode, hasInFlightOperation } = this;
 
       const spacePath = paths.device.keyboard.key(" ");
       const middlePath = paths.device.mouse.buttonMiddle;
@@ -131,53 +136,54 @@ export class BuilderSystem {
         userinput.get(middlePath) ||
         (isFreeToLeftHold && userinput.get(leftPath));
 
-      if (buildingActive) {
-        const cursor = this.cursorSystem.rightRemote && this.cursorSystem.rightRemote.components["cursor-controller"];
-        const intersection = cursor && cursor.intersection;
+      if (buildingActive && !hasInFlightOperation) {
+        const [hitVoxId, intersection] = this.getCurrentVoxHitAndIntersection(hitCell, adjacentCell);
 
-        if (intersection) {
-          const hitVoxId = SYSTEMS.voxSystem.getVoxHitFromIntersection(intersection, hitCell, adjacentCell);
-          const cellToBrush = brushMode === BRUSH_MODES.ADD ? adjacentCell : hitCell;
+        const cellToBrush = brushMode === BRUSH_MODES.ADD ? adjacentCell : hitCell;
 
-          if (hitVoxId) {
-            if (spawningVoxThisBuild) return; // Do not perform brush stuff while spawning a vox.
+        if (hitVoxId) {
+          if (hasInFlightOperation) return; // Do not perform brush stuff while spawning a vox.
 
-            let updatePatch = false;
+          let updatePatch = false;
 
-            if (!isFinite(brushEndCell.x) || !brushEndCell.equals(cellToBrush)) {
-              updatePatch = true;
-              brushEndCell.copy(cellToBrush);
+          if (!isFinite(brushEndCell.x) || !brushEndCell.equals(cellToBrush)) {
+            updatePatch = true;
+            brushEndCell.copy(cellToBrush);
+          }
+
+          if (!isFinite(brushStartCell.x)) {
+            updatePatch = true;
+            brushStartCell.copy(cellToBrush);
+            this.brushVoxId = hitVoxId;
+
+            // Freeze the current mesh for targetting the vox.
+            this.brushVoxFrame = SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
+          }
+
+          if (updatePatch) {
+            if (!this.pendingPatchChunk) {
+              // Create a new patch, patch will grow as needed.
+              this.pendingPatchChunk = new VoxChunk([2, 2, 2]);
             }
 
-            if (!isFinite(brushStartCell.x)) {
-              updatePatch = true;
-              brushStartCell.copy(cellToBrush);
-              this.brushVoxId = hitVoxId;
-
-              // Freeze the current mesh for targetting the vox.
-              SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
-            }
-
-            if (updatePatch) {
-              if (!this.pendingPatchChunk) {
-                // Create a new patch, patch will grow as needed.
-                this.pendingPatchChunk = new VoxChunk([2, 2, 2]);
-              }
-
-              this.applyCurrentBrushToPatchChunk(hitVoxId);
-            }
-          } else {
-            if (!isFinite(brushStartCell.x)) {
-              if (brushMode === BRUSH_MODES.ADD && !spawningVoxThisBuild) {
-                // Not mid-build, create a new vox.
-                this.spawningVoxThisBuild = true;
-                this.createVoxAt(intersection.point);
-              }
+            this.applyCurrentBrushToPatchChunk(hitVoxId);
+          }
+        } else {
+          if (!isFinite(brushStartCell.x)) {
+            if (brushMode === BRUSH_MODES.ADD && !hasInFlightOperation) {
+              // Not mid-build, create a new vox.
+              this.hasInFlightOperation = true;
+              this.createVoxAt(intersection.point);
             }
           }
         }
       } else {
         if (this.pendingPatchChunk) {
+          this.pushToUndoStack(this.brushVoxId, this.brushVoxFrame, this.pendingPatchChunk, [
+            brushStartCell.x,
+            brushStartCell.y,
+            brushStartCell.z
+          ]);
           this.pendingPatchChunk = null;
           SYSTEMS.voxSystem.applyOverlayAndUnfreezeMesh(brushVoxId);
           // Uncomment to stop applying changes to help with reproducing bugs.
@@ -188,7 +194,8 @@ export class BuilderSystem {
         brushStartCell.set(Infinity, Infinity, Infinity);
         brushEndCell.set(Infinity, Infinity, Infinity);
         this.brushVoxId = null;
-        this.spawningVoxThisBuild = false;
+        this.brushVoxFrame = null;
+        this.hasInFlightOperation = false;
       }
     };
   })();
@@ -248,7 +255,6 @@ export class BuilderSystem {
         if (brushMode === BRUSH_MODES.REMOVE) {
           const voxNumVoxels = SYSTEMS.voxSystem.getTotalNonEmptyVoxelsOfTargettedFrame(voxId);
           const patchNumVoxels = pendingPatchChunk.getTotalNonEmptyVoxels();
-          console.log(voxNumVoxels, patchNumVoxels);
           if (patchNumVoxels >= voxNumVoxels - 1) return;
         }
 
@@ -277,5 +283,99 @@ export class BuilderSystem {
       brushStartCell.y,
       brushStartCell.z
     );
+  }
+
+  getCurrentVoxHitAndIntersection(hitCell, adjacentCell) {
+    const cursor = this.cursorSystem.rightRemote && this.cursorSystem.rightRemote.components["cursor-controller"];
+    const intersection = cursor && cursor.intersection;
+
+    if (intersection) {
+      return [SYSTEMS.voxSystem.getVoxHitFromIntersection(intersection, hitCell, adjacentCell), intersection];
+    }
+
+    return [null, null];
+  }
+
+  pushToUndoStack(voxId, frame, patch, offset) {
+    const { undoStacks } = this;
+    const stackKey = `${voxId}_${frame}`;
+
+    let stack = undoStacks.get(stackKey);
+
+    if (!stack) {
+      stack = {
+        backward: new Array(MAX_UNDO_STEPS).fill(null),
+        forward: new Array(MAX_UNDO_STEPS).fill(null),
+        position: 0
+      };
+
+      undoStacks.set(stackKey, stack);
+    }
+
+    if (stack.position === MAX_UNDO_STEPS - 1) {
+      // Stack is full, shift everything over.
+      // We could use a circular buffer but then would need to maintain two pointers, this is easier.
+      stack.position -= 1;
+
+      for (let i = 0; i < MAX_UNDO_STEPS - 1; i++) {
+        stack.forward[i] = stack.forward[i + 1];
+        stack.backward[i] = stack.backward[i + 1];
+      }
+    }
+
+    const { backward, forward, position } = stack;
+    const undoPatch = SYSTEMS.voxSystem.createPatchInverse(voxId, frame, patch, offset);
+    if (!undoPatch) return;
+
+    // Stack slot at position has patches to apply to move forward/backwards.
+    const newPosition = position + 1; // We're going to move forwards in the stack.
+    backward[newPosition] = [undoPatch, offset]; // Add the undo patch
+    forward.fill(null, newPosition); // Free residual redos ahead of us
+    forward[position] = [patch.clone(), offset]; // The previous stack frame can now move forward to this one
+    stack.position = newPosition;
+  }
+
+  async applyUndo(voxId, frame) {
+    const { undoStacks, hasInFlightOperation } = this;
+    if (hasInFlightOperation) return;
+
+    const stackKey = `${voxId}_${frame}`;
+    const stack = undoStacks.get(stackKey);
+    if (!stack) return;
+
+    const { backward, position } = stack;
+    if (!backward[position]) return;
+
+    this.hasInFlightOperation = true;
+    const [patch, offset] = backward[position];
+
+    const sync = await SYSTEMS.voxSystem.getSync(voxId);
+    stack.position--;
+    sync.applyChunk(patch, frame, offset);
+    this.hasInFlightOperation = false;
+  }
+
+  async applyRedo(voxId, frame) {
+    const { undoStacks, hasInFlightOperation } = this;
+    if (hasInFlightOperation) return;
+
+    const stackKey = `${voxId}_${frame}`;
+    const stack = undoStacks.get(stackKey);
+    if (!stack) return;
+
+    const { forward, position } = stack;
+    if (!forward[position]) return;
+
+    this.hasInFlightOperation = true;
+    const [patch, offset] = forward[position];
+
+    const sync = await SYSTEMS.voxSystem.getSync(voxId);
+    stack.position++;
+    sync.applyChunk(patch, frame, offset);
+    this.hasInFlightOperation = false;
+  }
+
+  clearUndoStacks() {
+    this.undoStacks.clear();
   }
 }

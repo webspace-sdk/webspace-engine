@@ -758,6 +758,20 @@ export class VoxSystem extends EventTarget {
     return voxId;
   }
 
+  createPatchInverse(voxId, frame, patch, offset) {
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return null;
+    const { vox } = entry;
+    if (!vox) return null;
+
+    const chunk = vox.frames[frame];
+    if (!chunk) return null;
+
+    return vox0.createInverse(patch, chunk, offset);
+  }
+
+  // Returns the frame that was frozen
   freezeMeshForTargetting(voxId, instanceId) {
     const { sceneEl, voxMap, meshToVoxId } = this;
     const scene = sceneEl.object3D;
@@ -793,6 +807,7 @@ export class VoxSystem extends EventTarget {
     meshToVoxId.set(targettingMesh, voxId);
 
     this.dispatchEvent(new CustomEvent("mesh_added"));
+    return currentAnimationFrame;
   }
 
   unfreezeMeshForTargetting(voxId) {
