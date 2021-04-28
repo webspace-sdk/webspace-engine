@@ -45,7 +45,7 @@ const BRUSH_MODES = {
 
 const BRUSH_SHAPES = {
   SQUARE: 0,
-  ROUND: 1
+  SPHERE: 1
 };
 
 // Deals with block building
@@ -64,9 +64,9 @@ export class BuilderSystem {
     this.brushStartCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushType = BRUSH_TYPES.VOXEL;
-    this.brushMode = BRUSH_MODES.REMOVE;
-    this.brushShape = BRUSH_SHAPES.SQUARE;
-    this.brushSize = 2;
+    this.brushMode = BRUSH_MODES.ADD;
+    this.brushShape = BRUSH_SHAPES.SPHERE;
+    this.brushSize = 3;
 
     this.isBrushing = false;
     this.mirrorX = false;
@@ -80,7 +80,7 @@ export class BuilderSystem {
     this.undoStacks = new Map();
 
     // Show brush when hovering. Only useful for edit mode.
-    this.showHoverBrushPreview = false;
+    this.showHoverBrushPreview = true;
 
     //const store = window.APP.store;
 
@@ -240,16 +240,17 @@ export class BuilderSystem {
 
           this.pendingChunk = null;
           this.targetVoxId = null;
+          this.brushVoxFrame = null;
           this.brushEndCell.set(Infinity, Infinity, Infinity);
         }
       }
 
-      // When brush is lifted, apply the pending
       if (!brushDown) {
         if (this.hasInFlightOperation) return;
         this.ignoreRemainingBrush = false;
 
-        if (this.pendingChunk) {
+        // When brush is lifted, apply the pending
+        if (this.isBrushing && this.pendingChunk) {
           this.pushToUndoStack(this.targetVoxId, this.brushVoxFrame, this.pendingChunk, [
             brushStartCell.x,
             brushStartCell.y,
@@ -261,12 +262,11 @@ export class BuilderSystem {
           //SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
 
           this.pendingChunk = null;
+          this.isBrushing = false;
+          this.targetVoxId = null;
+          this.brushVoxFrame = null;
+          this.brushEndCell.set(Infinity, Infinity, Infinity);
         }
-
-        // Clear last build cell when building is off.
-        this.isBrushing = false;
-        this.targetVoxId = null;
-        this.brushVoxFrame = null;
 
         this.ignoreRemainingBrush = false;
       }
@@ -409,13 +409,6 @@ export class BuilderSystem {
               this.resizePendingPendingChunkToFit(boxMaxX, boxMaxY, boxMaxZ);
 
               [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(pendingChunk.size);
-
-              // Disallow removing last voxel
-              //if (brushMode === BRUSH_MODES.REMOVE) {
-              //  const voxNumVoxels = SYSTEMS.voxSystem.getTotalNonEmptyVoxelsOfTargettedFrame(voxId);
-              //  const pendingNumVoxels = pendingChunk.getTotalNonEmptyVoxels();
-              //  if (pendingNumVoxels >= voxNumVoxels - 1) return;
-              //}
 
               // Update pending to have a cell iff its in the box
               loop: for (let x = minX; x <= maxX; x += 1) {
