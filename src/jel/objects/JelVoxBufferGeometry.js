@@ -1,4 +1,6 @@
+import { shiftForSize } from "ot-vox";
 const { BufferGeometry, BufferAttribute, Uint16BufferAttribute, Uint32BufferAttribute } = THREE;
+
 export const VOXEL_SIZE = 1 / 8;
 
 export const MAX_VOX_SIZE = 64;
@@ -14,9 +16,9 @@ function GreedyMesh(chunk, max_quad_size = Infinity) {
   quadData.length = 0;
   const { size } = chunk;
 
-  const xShift = Math.floor(size[0] % 2 === 0 ? size[0] / 2 - 1 : size[0] / 2);
-  const yShift = Math.floor(size[1] % 2 === 0 ? size[1] / 2 - 1 : size[1] / 2);
-  const zShift = Math.floor(size[2] % 2 === 0 ? size[2] / 2 - 1 : size[2] / 2);
+  const xShift = shiftForSize(size[0]);
+  const yShift = shiftForSize(size[1]);
+  const zShift = shiftForSize(size[2]);
 
   // Sweep over 3-axes
   for (let d = 0; d < 3; ++d) {
@@ -66,7 +68,7 @@ function GreedyMesh(chunk, max_quad_size = Infinity) {
           const cz = x[2] - zShift;
           const vFrom = mulFrom * chunk.getPaletteIndexAt(cx, cy, cz);
           const vTo = mulTo * chunk.getPaletteIndexAt(cx + q0, cy + q1, cz + q2);
-          mask[n] = vFrom - vTo; // If non-zero, mask has value
+          mask[n] = (vFrom !== 0) !== (vTo !== 0);
           norms[n] = vFrom; // Non-zero means up
           // Need to split on side so negate key to break face up.
           vals[n++] = vFrom !== 0 ? vFrom : -vTo; // eslint-disable-line no-plusplus
@@ -89,7 +91,7 @@ function GreedyMesh(chunk, max_quad_size = Infinity) {
             loop: for (h = 1; j + h < sv && h < max_quad_size; ++h) {
               for (k = 0; k < w; ++k) {
                 const mv = mask[n + k + h * su];
-                if (mv === 0 || mv !== cv) break loop;
+                if (mv === 0 || vals[n + k + h * su] !== cv) break loop;
               }
             }
 
@@ -176,9 +178,9 @@ class JelVoxBufferGeometry extends BufferGeometry {
     let yMin = +Infinity;
     let zMin = +Infinity;
 
-    const xShift = Math.floor(size[0] % 2 === 0 ? size[0] / 2 - 1 : size[0] / 2);
-    const yShift = Math.floor(size[1] % 2 === 0 ? size[1] / 2 - 1 : size[1] / 2);
-    const zShift = Math.floor(size[2] % 2 === 0 ? size[2] / 2 - 1 : size[2] / 2);
+    const xShift = shiftForSize(size[0]);
+    const yShift = shiftForSize(size[1]);
+    const zShift = shiftForSize(size[2]);
     const xShiftVox = xShift * VOXEL_SIZE;
     const yShiftVox = yShift * VOXEL_SIZE;
     const zShiftVox = zShift * VOXEL_SIZE;
