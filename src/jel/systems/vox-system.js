@@ -601,9 +601,9 @@ export class VoxSystem extends EventTarget {
         const xExtent = xMax - xMin;
         const yExtent = yMax - yMin;
         const zExtent = zMax - zMin;
-        const xShift = xSize % 2 === 1 ? -VOXEL_SIZE / 2 : 0;
-        const yShift = ySize % 2 === 1 ? -VOXEL_SIZE / 2 : 0;
-        const zShift = zSize % 2 === 1 ? -VOXEL_SIZE / 2 : 0;
+        const xShift = xSize % 2 === 1 ? +VOXEL_SIZE / 2 : VOXEL_SIZE;
+        const yShift = ySize % 2 === 1 ? +VOXEL_SIZE / 2 : VOXEL_SIZE;
+        const zShift = zSize % 2 === 1 ? +VOXEL_SIZE / 2 : VOXEL_SIZE;
 
         generateMeshBVH(mesh, true);
         regenerateSizeBox = true;
@@ -741,9 +741,9 @@ export class VoxSystem extends EventTarget {
 
     // Hit cell is found by nudging along normal and rounding.
     // Also need to offset the geometry shift which aligns cells with bounding box.
-    const hx = Math.round(tmpVec.x + 0.5 - nx * 0.5);
-    const hy = Math.round(tmpVec.y + 0.5 - ny * 0.5);
-    const hz = Math.round(tmpVec.z + 0.5 - nz * 0.5);
+    const hx = Math.round(tmpVec.x - 0.5 - nx * 0.5);
+    const hy = Math.round(tmpVec.y - 0.5 - ny * 0.5);
+    const hz = Math.round(tmpVec.z - 0.5 - nz * 0.5);
 
     hitCell.x = hx;
     hitCell.y = hy;
