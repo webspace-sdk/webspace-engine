@@ -966,6 +966,18 @@ export class VoxSystem extends EventTarget {
     entry.overlayVoxChunkOffset[2] = offsetZ;
   }
 
+  filterChunkByVoxFrame(chunk, offsetX, offsetY, offsetZ, voxId, frame, filter) {
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return;
+    const { vox } = entry;
+    if (!vox) return;
+    const targetChunk = vox.frames[frame];
+    if (!targetChunk) return;
+
+    chunk.filterByChunk(targetChunk, offsetX, offsetY, offsetZ, filter);
+  }
+
   applyOverlayAndUnfreezeMesh(voxId) {
     const { voxMap } = this;
     const entry = voxMap.get(voxId);
