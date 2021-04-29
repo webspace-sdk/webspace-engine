@@ -24,13 +24,15 @@ function findHandCollisionTargetForHand(bodyHelper) {
 const notRemoteHoverTargets = new Map();
 const remoteHoverTargets = new Map();
 export function findRemoteHoverTarget(object3D, instanceId = null) {
-  if (instanceId !== null) {
+  let voxSource = SYSTEMS.voxSystem.getSourceForMeshAndInstance(object3D, instanceId);
+
+  if (voxSource === null && instanceId !== null) {
     // If this was an instanced mesh, look up the source object3D
     // in the relevant systems.
-    object3D =
-      SYSTEMS.voxmojiSystem.getSourceForMeshAndInstance(object3D, instanceId) ||
-      SYSTEMS.voxSystem.getSourceForMeshAndInstance(object3D, instanceId);
+    voxSource = SYSTEMS.voxmojiSystem.getSourceForMeshAndInstance(object3D, instanceId);
   }
+
+  object3D = voxSource || object3D;
 
   if (!object3D) return null;
   if (notRemoteHoverTargets.get(object3D)) return null;

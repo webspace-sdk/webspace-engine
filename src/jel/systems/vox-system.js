@@ -94,6 +94,8 @@ export class VoxSystem extends EventTarget {
         maxMeshIndex,
         maxRegisteredIndex,
         mesherQuadSize,
+        targettingMesh,
+        targettingMeshInstanceId,
         delayedRemeshTimeout,
         hasDirtyMatrices,
         hasDirtyWorldToObjectMatrices,
@@ -131,6 +133,10 @@ export class VoxSystem extends EventTarget {
 
             mesh.setMatrixAt(instanceId, source.matrixWorld);
             hasDirtyWorldToObjectMatrices[frame * MAX_INSTANCES_PER_VOX_ID + instanceId] = true;
+
+            if (targettingMesh !== null && targettingMeshInstanceId === instanceId) {
+              setMatrixWorld(targettingMesh, source.matrixWorld);
+            }
           }
 
           let maxScale = 0.0;
@@ -869,16 +875,19 @@ export class VoxSystem extends EventTarget {
   }
 
   getSourceForMeshAndInstance(targetMesh, instanceId) {
-    const { voxMap } = this;
+    const { voxMap, meshToVoxId } = this;
 
-    for (const { meshes, maxMeshIndex, sources } of voxMap.values()) {
-      for (let i = 0; i <= maxMeshIndex; i++) {
-        const mesh = meshes[i];
-        if (mesh !== targetMesh) continue;
+    const voxId = meshToVoxId.get(targetMesh);
+    if (!voxId) return null;
 
-        const source = sources[instanceId];
-        if (source) return source;
-      }
+    const entry = voxMap.get(voxId);
+
+    if (entry.targettingMesh === targetMesh) {
+      const source = entry.sources[entry.targettingMeshInstanceId];
+      if (source) return source;
+    } else {
+      const source = entry.sources[instanceId];
+      if (source) return source;
     }
 
     return null;

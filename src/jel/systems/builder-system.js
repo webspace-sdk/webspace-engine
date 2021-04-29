@@ -78,7 +78,6 @@ export class BuilderSystem {
     this.ignoreRemainingBrush = false;
     this.performingUndoOperation = false;
     this.undoStacks = new Map();
-    this.showHoverBrushPreview = true;
 
     //const store = window.APP.store;
 
@@ -179,10 +178,9 @@ export class BuilderSystem {
         if (this.ignoreRemainingBrush) return;
 
         let updatePending = false;
-        const active = brushDown || this.showHoverBrushPreview;
 
         // Freeze the mesh when we start hovering.
-        if (active && this.targetVoxId !== hitVoxId) {
+        if (this.targetVoxId !== hitVoxId) {
           if (this.targetVoxId) {
             // Direct hover from one vox to another, clear old pending.
             SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
@@ -201,7 +199,7 @@ export class BuilderSystem {
           this.isBrushing = true;
         }
 
-        if (active && !brushEndCell.equals(cellToBrush)) {
+        if (!brushEndCell.equals(cellToBrush)) {
           updatePending = true;
           brushEndCell.copy(cellToBrush);
 
