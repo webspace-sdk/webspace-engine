@@ -2,8 +2,15 @@ import { paths } from "../../hubs/systems/userinput/paths";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "../../jel/utils/dom-utils";
 import { addMedia } from "../../hubs/utils/media-utils";
 import { ObjectContentOrigins } from "../../hubs/object-types";
-import { MAX_VOX_SIZE, VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
-import { VoxChunk, xyzRangeForSize, voxColorForRGBT, REMOVE_VOXEL_COLOR, VOX_CHUNK_FILTERS } from "ot-vox";
+import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
+import {
+  VoxChunk,
+  xyzRangeForSize,
+  voxColorForRGBT,
+  REMOVE_VOXEL_COLOR,
+  VOX_CHUNK_FILTERS,
+  MAX_SIZE as MAX_VOX_SIZE
+} from "ot-vox";
 
 //import { SOUND_EMOJI_EQUIP } from "../../hubs/systems/sound-effects-system";
 
@@ -12,6 +19,19 @@ const MAX_UNDO_STEPS = 32;
 
 const { Vector3 } = THREE;
 import { createVox } from "../../hubs/utils/phoenix-utils";
+
+const HALF_MAX_VOX_SIZE = Math.floor(MAX_VOX_SIZE / 2);
+
+// Temp variables for crawling:
+// Set of already crawled cells.
+const crawled = new Set();
+
+// Cells enqueued to crawl.
+const queue = [];
+
+// Converts x, y, z of a vox to a unique int key
+const xyzToInt = (x, y, z) =>
+  ((x + HALF_MAX_VOX_SIZE + 1) << 16) | ((y + HALF_MAX_VOX_SIZE + 1) << 8) | (z + HALF_MAX_VOX_SIZE + 1);
 
 // Brush types:
 //
@@ -44,8 +64,18 @@ const BRUSH_MODES = {
 };
 
 const BRUSH_SHAPES = {
-  SQUARE: 0,
+  BOX: 0,
   SPHERE: 1
+};
+
+const BRUSH_CRAWL_TYPES = {
+  GEO: 0,
+  COLOR: 1
+};
+
+const BRUSH_CRAWL_EXTENTS = {
+  NSEW: 0,
+  ALL: 1
 };
 
 // Deals with block building
@@ -60,12 +90,15 @@ export class BuilderSystem {
     this.deltaWheel = 0.0;
     this.sawLeftButtonUpWithShift = false;
     this.targetVoxId = null;
-    this.brushVoxFrame = null;
+    this.targetVoxFrame = null;
     this.brushStartCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushType = BRUSH_TYPES.VOXEL;
     this.brushMode = BRUSH_MODES.ADD;
-    this.brushShape = BRUSH_SHAPES.SPHERE;
+    this.brushShape = BRUSH_SHAPES.BOX;
+    this.brushCrawlType = BRUSH_CRAWL_TYPES.GEO;
+    this.brushCrawlExtents = BRUSH_CRAWL_EXTENTS.NSEW;
+    this.brushCrawlChunk = null;
     this.brushSize = 6;
 
     this.isBrushing = false;
@@ -162,7 +195,7 @@ export class BuilderSystem {
     return (brushDown, intersection) => {
       if (!this.enabled) return;
 
-      const { brushStartCell, brushEndCell, brushMode } = this;
+      const { brushStartCell, brushEndCell, brushType, brushMode } = this;
 
       // Repeated build if user is holding space and not control (due to widen)
       let hitVoxId = null;
@@ -175,7 +208,7 @@ export class BuilderSystem {
       const canApplyThisTick = this.isBrushing && !brushDown;
 
       if (hitVoxId && !canApplyThisTick) {
-        const cellToBrush = brushMode === BRUSH_MODES.ADD ? adjacentCell : hitCell;
+        const cellToBrush = brushMode === BRUSH_MODES.ADD && brushType !== BRUSH_TYPES.FACE ? adjacentCell : hitCell;
         // If we hovered over another vox while brushing, ignore it until we let go.
         if (this.isBrushing && this.targetVoxId !== null && hitVoxId !== this.targetVoxId) return;
         if (this.ignoreRestOfStroke) return;
@@ -191,7 +224,7 @@ export class BuilderSystem {
           }
 
           this.targetVoxId = hitVoxId;
-          this.brushVoxFrame = SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
+          this.targetVoxFrame = SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
 
           brushStartCell.copy(cellToBrush);
           brushEndCell.copy(cellToBrush);
@@ -200,6 +233,11 @@ export class BuilderSystem {
 
         if (brushDown && !this.isBrushing) {
           this.isBrushing = true;
+
+          if (this.brushType === BRUSH_TYPES.FACE) {
+            this.brushCrawlChunk = this.buildCrawlChunkAt(cellToBrush);
+            console.log(this.brushCrawlChunk.toJSON("", true));
+          }
         }
 
         if (!brushEndCell.equals(cellToBrush)) {
@@ -236,7 +274,13 @@ export class BuilderSystem {
           // Not mid-build, create a new vox.
           this.hasInFlightOperation = true;
           this.ignoreRestOfStroke = true;
-          this.createVoxAt(intersection.point).then(() => (this.hasInFlightOperation = false));
+          this.createVoxAt(intersection.point)
+            .then(() => (this.hasInFlightOperation = false))
+            .catch(() => {
+              // Rate limiting or backend error
+              this.hasInFlightOperation = false;
+              this.ignoreRestOfStroke = false;
+            });
         }
 
         // If we're not brushing, and we had a target vox, we just cursor
@@ -246,7 +290,7 @@ export class BuilderSystem {
 
           this.pendingChunk = null;
           this.targetVoxId = null;
-          this.brushVoxFrame = null;
+          this.targetVoxFrame = null;
           this.brushEndCell.set(Infinity, Infinity, Infinity);
         }
       }
@@ -256,21 +300,25 @@ export class BuilderSystem {
         this.ignoreRestOfStroke = false;
 
         // When brush is lifted, apply the pending
-        if (this.isBrushing && this.pendingChunk) {
-          this.pushToUndoStack(this.targetVoxId, this.brushVoxFrame, this.pendingChunk, [
-            brushStartCell.x,
-            brushStartCell.y,
-            brushStartCell.z
-          ]);
+        if (this.isBrushing) {
+          if (this.pendingChunk) {
+            this.pushToUndoStack(this.targetVoxId, this.targetVoxFrame, this.pendingChunk, [
+              brushStartCell.x,
+              brushStartCell.y,
+              brushStartCell.z
+            ]);
 
-          SYSTEMS.voxSystem.applyPendingAndUnfreezeMesh(this.targetVoxId);
-          // Uncomment to stop applying changes to help with reproducing bugs.
-          //SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
+            SYSTEMS.voxSystem.applyPendingAndUnfreezeMesh(this.targetVoxId);
+            // Uncomment to stop applying changes to help with reproducing bugs.
+            //SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
 
-          this.pendingChunk = null;
+            this.pendingChunk = null;
+          }
+
           this.isBrushing = false;
           this.targetVoxId = null;
-          this.brushVoxFrame = null;
+          this.targetVoxFrame = null;
+          this.brushCrawlChunk = null;
           this.brushEndCell.set(Infinity, Infinity, Infinity);
         }
 
@@ -323,16 +371,6 @@ export class BuilderSystem {
     object3D.matrixNeedsUpdate = true;
   }
 
-  resizePendingPendingChunkToFit(x, y, z) {
-    const { pendingChunk } = this;
-    const sx = Math.min(Math.max(2, pendingChunk.size[0], Math.abs(x) * 2 + 2), MAX_VOX_SIZE);
-    const sy = Math.min(Math.max(2, pendingChunk.size[1], Math.abs(y) * 2 + 2), MAX_VOX_SIZE);
-    const sz = Math.min(Math.max(2, pendingChunk.size[2], Math.abs(z) * 2 + 2), MAX_VOX_SIZE);
-
-    // Resize pending if necessary to be able to fit brush end and start cells.
-    pendingChunk.resizeTo([sx, sy, sz]);
-  }
-
   applyCurrentBrushToPendingChunk(voxId) {
     const {
       pendingChunk,
@@ -340,7 +378,7 @@ export class BuilderSystem {
       brushMode,
       brushSize,
       brushShape,
-      brushVoxFrame,
+      targetVoxFrame,
       brushStartCell,
       brushEndCell,
       brushVoxColor,
@@ -350,7 +388,7 @@ export class BuilderSystem {
       isBrushing
     } = this;
 
-    // Only preview voxel brush
+    // Only preview voxel brush, box + face brushes don't apply
     if (brushType !== BRUSH_TYPES.VOXEL && !isBrushing) {
       return;
     }
@@ -415,8 +453,8 @@ export class BuilderSystem {
 
               rSq = ((boxMaxX - boxMinX) * (boxMaxX - boxMinX)) / 4;
 
-              this.resizePendingPendingChunkToFit(boxMinX, boxMinY, boxMinZ);
-              this.resizePendingPendingChunkToFit(boxMaxX, boxMaxY, boxMaxZ);
+              pendingChunk.resizeToFit(boxMinX, boxMinY, boxMinZ);
+              pendingChunk.resizeToFit(boxMaxX, boxMaxY, boxMaxZ);
 
               [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(pendingChunk.size);
 
@@ -462,14 +500,14 @@ export class BuilderSystem {
               py = brushEndCell.y * my - offsetY;
               pz = brushEndCell.z * mz - offsetZ;
 
-              this.resizePendingPendingChunkToFit(px, py, pz);
+              pendingChunk.resizeToFix(px, py, pz);
 
               // Box corner 2 (origin is at start cell)
               qx = brushStartCell.x * mx - offsetX;
               qy = brushStartCell.y * my - offsetY;
               qz = brushStartCell.z * mz - offsetZ;
 
-              this.resizePendingPendingChunkToFit(qx, qy, qz);
+              pendingChunk.resizetoFit(qx, qy, qz);
 
               // Compute box
               boxMinX = Math.min(px, qx);
@@ -520,7 +558,7 @@ export class BuilderSystem {
     // In PAINT mode, don't add new voxels.
 
     if (filter !== VOX_CHUNK_FILTERS.NONE) {
-      SYSTEMS.voxSystem.filterChunkByVoxFrame(pendingChunk, offsetX, offsetY, offsetZ, voxId, brushVoxFrame, filter);
+      SYSTEMS.voxSystem.filterChunkByVoxFrame(pendingChunk, offsetX, offsetY, offsetZ, voxId, targetVoxFrame, filter);
     }
 
     // Update the pending chunk
@@ -604,6 +642,77 @@ export class BuilderSystem {
     stack.position++;
     sync.applyChunk(pending, frame, offset);
     this.hasInFlightOperation = false;
+  }
+
+  // omitAxis: 0 - x, 1 - y, 2 - z
+  //   axis to not crawl along.
+  buildCrawlChunkAt(origin, omitAxis = 0) {
+    const { targetVoxId, targetVoxFrame, brushCrawlType, brushCrawlExtents } = this;
+    const color = SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, origin.x, origin.y, origin.z);
+
+    const chunk = new VoxChunk([2, 2, 2]);
+    const colorMatch = brushCrawlType === BRUSH_CRAWL_TYPES.COLOR;
+
+    // No voxel at crawl origin cell, shouldn't happen.
+    if (color === null) return chunk;
+
+    const maxSize = SYSTEMS.voxSystem.getVoxSize(targetVoxId, targetVoxFrame);
+    const [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(maxSize);
+
+    crawled.clear();
+    queue.length = 0;
+
+    queue.push(origin.x, origin.y, origin.z);
+
+    while (queue.length > 0) {
+      const z = queue.pop();
+      const y = queue.pop();
+      const x = queue.pop();
+
+      crawled.add(xyzToInt(x, y, z));
+
+      const c = SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, x, y, z);
+
+      // If cell at x, y, z has a color match or geo match, recurse.
+      const match = (colorMatch && c === color) || (!colorMatch && c !== null);
+      if (!match) continue;
+
+      chunk.setColorAt(x, y, z, c);
+
+      for (let nx = -1; nx <= 1; nx++) {
+        for (let ny = -1; ny <= 1; ny++) {
+          for (let nz = -1; nz <= 1; nz++) {
+            const ax = Math.abs(nx);
+            const ay = Math.abs(ny);
+            const az = Math.abs(nz);
+
+            // Calculate manhattan distance for next cell to consider
+            const dist = ax + ay + az;
+            if (dist === 0) continue; // Skip (0, 0, 0) loop iteration
+
+            // Do not crawl along omitted axis
+            if ((ax > 0 && omitAxis === 0) || (ay > 0 && omitAxis === 1) || (az > 0 && omitAxis === 2)) continue;
+
+            // If NSEW mode, skip diagonal walks.
+            if (dist >= 2 && brushCrawlExtents === BRUSH_CRAWL_EXTENTS.NSEW) continue;
+            const cx = x + nx;
+            const cy = y + ny;
+            const cz = z + nz;
+
+            const inRange = cx >= minX && cx <= maxX && cy >= minY && cy <= maxY && cz >= minZ && cz <= maxZ;
+
+            if (!inRange) continue;
+
+            // Don't re-visit cells.
+            if (crawled.has(xyzToInt(cx, cy, cz))) continue;
+
+            queue.push(cx, cy, cz);
+          }
+        }
+      }
+    }
+
+    return chunk;
   }
 
   clearUndoStacks() {

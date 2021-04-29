@@ -765,13 +765,7 @@ export class VoxSystem extends EventTarget {
   }
 
   createPendingInverse(voxId, frame, patch, offset) {
-    const { voxMap } = this;
-    const entry = voxMap.get(voxId);
-    if (!entry) return null;
-    const { vox } = entry;
-    if (!vox) return null;
-
-    const chunk = vox.frames[frame];
+    const chunk = this.getChunkFrameOfVox(voxId, frame);
     if (!chunk) return null;
 
     return vox0.createInverse(patch, chunk, offset);
@@ -976,13 +970,8 @@ export class VoxSystem extends EventTarget {
   }
 
   filterChunkByVoxFrame(chunk, offsetX, offsetY, offsetZ, voxId, frame, filter) {
-    const { voxMap } = this;
-    const entry = voxMap.get(voxId);
-    if (!entry) return;
-    const { vox } = entry;
-    if (!vox) return;
-    const targetChunk = vox.frames[frame];
-    if (!targetChunk) return;
+    const targetChunk = this.getChunkFrameOfVox(voxId, frame);
+    if (!targetChunk) return null;
 
     chunk.filterByChunk(targetChunk, offsetX, offsetY, offsetZ, filter);
   }
@@ -1028,6 +1017,19 @@ export class VoxSystem extends EventTarget {
     });
   }
 
+  getVoxSize(voxId, frame) {
+    const chunk = this.getChunkFrameOfVox(voxId, frame);
+    if (!chunk) return null;
+    return chunk.size;
+  }
+
+  getVoxColorAt(voxId, frame, x, y, z) {
+    const chunk = this.getChunkFrameOfVox(voxId, frame);
+    if (!chunk) return null;
+    if (!chunk.hasVoxelAt(x, y, z)) return null;
+    return chunk.getColorAt(x, y, z);
+  }
+
   getTotalNonEmptyVoxelsOfTargettedFrame(voxId) {
     const { voxMap } = this;
     const entry = voxMap.get(voxId);
@@ -1036,6 +1038,18 @@ export class VoxSystem extends EventTarget {
     if (!targettingMesh) return null;
 
     return vox.frames[targettingMeshFrame].getTotalNonEmptyVoxels();
+  }
+
+  getChunkFrameOfVox(voxId, frame) {
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return null;
+    const { vox } = entry;
+    if (!vox) return null;
+
+    const chunk = vox.frames[frame];
+    if (!chunk) return null;
+    return chunk;
   }
 
   getCurrentAnimationFrame(/* voxId */) {

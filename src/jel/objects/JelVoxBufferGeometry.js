@@ -1,9 +1,7 @@
-import { shiftForSize } from "ot-vox";
+import { shiftForSize, MAX_SIZE as MAX_VOX_SIZE } from "ot-vox";
 const { BufferGeometry, BufferAttribute, Uint16BufferAttribute, Uint32BufferAttribute } = THREE;
 
 export const VOXEL_SIZE = 1 / 8;
-
-export const MAX_VOX_SIZE = 64;
 
 const mask = new Int16Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
 const vals = new Int16Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
