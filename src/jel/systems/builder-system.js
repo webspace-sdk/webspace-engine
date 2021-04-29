@@ -66,7 +66,7 @@ export class BuilderSystem {
     this.brushType = BRUSH_TYPES.VOXEL;
     this.brushMode = BRUSH_MODES.ADD;
     this.brushShape = BRUSH_SHAPES.SPHERE;
-    this.brushSize = 3;
+    this.brushSize = 6;
 
     this.isBrushing = false;
     this.mirrorX = false;
@@ -378,6 +378,7 @@ export class BuilderSystem {
       maxX,
       maxY,
       maxZ,
+      rSq,
       filter = VOX_CHUNK_FILTERS.NONE;
 
     if (brushType === BRUSH_TYPES.BOX || brushType == BRUSH_TYPES.FACE) {
@@ -386,7 +387,6 @@ export class BuilderSystem {
     }
 
     const voxNumVoxels = SYSTEMS.voxSystem.getTotalNonEmptyVoxelsOfTargettedFrame(voxId);
-    const rSq = (brushSize * brushSize) / 4;
 
     // Perform up to 8 updates to the pending pending chunk based upon mirroring
     for (const mx of mirrors) {
@@ -413,6 +413,8 @@ export class BuilderSystem {
               boxMaxY = py + Math.ceil((brushSize - 1) / 2);
               boxMaxZ = pz + Math.ceil((brushSize - 1) / 2);
 
+              rSq = ((boxMaxX - boxMinX) * (boxMaxX - boxMinX)) / 4;
+
               this.resizePendingPendingChunkToFit(boxMinX, boxMinY, boxMinZ);
               this.resizePendingPendingChunkToFit(boxMaxX, boxMaxY, boxMaxZ);
 
@@ -430,8 +432,7 @@ export class BuilderSystem {
                       if (brushShape === BRUSH_SHAPES.SPHERE) {
                         // With offset, brush is centered at zero.
                         // If x, y, z is beyond radius for round brush, don't add it.
-                        const distSq =
-                          Math.pow(px - x + 0.01, 2.0) + Math.pow(py - y + 0.01, 2.0) + Math.pow(pz - z + 0.01, 2.0);
+                        const distSq = Math.pow(x - px, 2.0) + Math.pow(y - py, 2.0) + Math.pow(z - pz, 2.0);
 
                         if (distSq > rSq) continue;
                       }
