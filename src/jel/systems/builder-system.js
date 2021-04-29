@@ -92,13 +92,15 @@ export class BuilderSystem {
     this.targetVoxId = null;
     this.targetVoxFrame = null;
     this.brushStartCell = new Vector3(Infinity, Infinity, Infinity);
+    this.brushFaceNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushType = BRUSH_TYPES.FACE;
     this.brushMode = BRUSH_MODES.ADD;
     this.brushShape = BRUSH_SHAPES.BOX;
     this.brushCrawlType = BRUSH_CRAWL_TYPES.GEO;
     this.brushCrawlExtents = BRUSH_CRAWL_EXTENTS.NSEW;
-    this.brushCrawlChunk = null;
+    this.brushSweep = 2;
+    this.brushFace = null;
     this.brushSize = 6;
 
     this.isBrushing = false;
@@ -196,7 +198,7 @@ export class BuilderSystem {
     return (brushDown, intersection) => {
       if (!this.enabled) return;
 
-      const { brushStartCell, brushEndCell, brushType, brushMode } = this;
+      const { brushStartCell, brushFaceNormal, brushEndCell, brushType, brushMode } = this;
 
       // Repeated build if user is holding space and not control (due to widen)
       let hitVoxId = null;
@@ -253,8 +255,11 @@ export class BuilderSystem {
                 : Math.abs(hitNormal.y) !== 0
                   ? hitNormal.y * 2
                   : hitNormal.z * 3;
-            this.brushCrawlChunk = this.buildCrawlChunkAt(hitCell, omitAxis);
+            this.brushFace = this.crawlFaceAt(hitCell, omitAxis);
+            brushFaceNormal.copy(hitNormal);
           }
+
+          updatePending = true;
         }
 
         if (!brushEndCell.equals(cellToBrush)) {
@@ -264,6 +269,7 @@ export class BuilderSystem {
           if (!brushDown) {
             // Just a hover, maintain a single cell size pending
             brushStartCell.copy(cellToBrush);
+            brushFaceNormal.copy(hitNormal);
           }
         }
 
@@ -327,7 +333,7 @@ export class BuilderSystem {
 
             SYSTEMS.voxSystem.applyPendingAndUnfreezeMesh(this.targetVoxId);
             // Uncomment to stop applying changes to help with reproducing bugs.
-            //SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
+            // SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
 
             this.pendingChunk = null;
           } else {
@@ -337,7 +343,7 @@ export class BuilderSystem {
           this.isBrushing = false;
           this.targetVoxId = null;
           this.targetVoxFrame = null;
-          this.brushCrawlChunk = null;
+          this.brushFace = null;
           this.brushEndCell.set(Infinity, Infinity, Infinity);
         }
 
@@ -399,7 +405,10 @@ export class BuilderSystem {
       brushShape,
       targetVoxFrame,
       brushStartCell,
+      brushFaceNormal,
+      brushSweep,
       brushEndCell,
+      brushFace,
       brushVoxColor,
       mirrorX,
       mirrorY,
@@ -435,6 +444,12 @@ export class BuilderSystem {
       maxX,
       maxY,
       maxZ,
+      faceMinX,
+      faceMinY,
+      faceMinZ,
+      faceMaxX,
+      faceMaxY,
+      faceMaxZ,
       rSq,
       filter = VOX_CHUNK_FILTERS.NONE;
 
@@ -444,6 +459,9 @@ export class BuilderSystem {
     }
 
     const voxNumVoxels = SYSTEMS.voxSystem.getTotalNonEmptyVoxelsOfTargettedFrame(voxId);
+
+    // Axis of the normal for start of the brush
+    const axis = brushFaceNormal.x !== 0 ? 1 : brushFaceNormal.y !== 0 ? 2 : 3;
 
     // Perform up to 8 updates to the pending pending chunk based upon mirroring
     for (const mx of mirrors) {
@@ -508,6 +526,58 @@ export class BuilderSystem {
               filter =
                 brushMode === BRUSH_MODES.ADD
                   ? VOX_CHUNK_FILTERS.NONE
+                  : brushMode === BRUSH_MODES.PAINT
+                    ? VOX_CHUNK_FILTERS.PAINT
+                    : VOX_CHUNK_FILTERS.NONE;
+
+              break;
+            case BRUSH_TYPES.FACE:
+              [faceMinX, faceMaxX, faceMinY, faceMaxY, faceMinZ, faceMaxZ] = xyzRangeForSize(brushFace.size);
+
+              // Outer loop is how many face copies to stack into brush
+              for (let x = faceMinX; x <= faceMaxX; x++) {
+                for (let y = faceMinY; y <= faceMaxY; y++) {
+                  for (let z = faceMinZ; z <= faceMaxZ; z++) {
+                    for (
+                      let h = brushMode === BRUSH_MODES.PAINT ? 0 : 1;
+                      h < (brushMode === BRUSH_MODES.PAINT ? 1 : brushSweep + 1);
+                      h++
+                    ) {
+                      if (!brushFace.hasVoxelAt(x, y, z)) continue;
+
+                      px =
+                        axis === 1
+                          ? (h * brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.x
+                          : x * mx - offsetX;
+                      py =
+                        axis === 2
+                          ? (h * brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.y
+                          : y * my - offsetY;
+                      pz =
+                        axis === 3
+                          ? (h * brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.z
+                          : z * mz - offsetZ;
+
+                      // Do not allow removing last voxel
+                      if (brushMode === BRUSH_MODES.REMOVE && pendingChunk.getTotalNonEmptyVoxels() >= voxNumVoxels - 1)
+                        continue;
+
+                      pendingChunk.resizeToFit(px, py, pz);
+
+                      pendingChunk.setColorAt(
+                        px,
+                        py,
+                        pz,
+                        brushMode === BRUSH_MODES.REMOVE ? REMOVE_VOXEL_COLOR : brushVoxColor
+                      );
+                    }
+                  }
+                }
+              }
+
+              filter =
+                brushMode === BRUSH_MODES.ADD
+                  ? VOX_CHUNK_FILTERS.KEEP
                   : brushMode === BRUSH_MODES.PAINT
                     ? VOX_CHUNK_FILTERS.PAINT
                     : VOX_CHUNK_FILTERS.NONE;
@@ -663,9 +733,12 @@ export class BuilderSystem {
     this.hasInFlightOperation = false;
   }
 
+  // Given an origin cell, crawls to find the full face starting at the
+  // origin that meets the current brush criteria.
+  //
   // omitAxis: 1 - x, 2 - y, 3 - z
   //   axis to not crawl along, positive or negative direction
-  buildCrawlChunkAt(origin, omitAxis = 0) {
+  crawlFaceAt(origin, omitAxis = 0) {
     const { targetVoxId, targetVoxFrame, brushCrawlType, brushCrawlExtents } = this;
     const color = SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, origin.x, origin.y, origin.z);
 
