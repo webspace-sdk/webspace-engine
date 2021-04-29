@@ -336,6 +336,7 @@ export class BuilderSystem {
       brushType,
       brushMode,
       brushSize,
+      brushShape,
       brushVoxFrame,
       brushStartCell,
       brushEndCell,
@@ -382,6 +383,7 @@ export class BuilderSystem {
     }
 
     const voxNumVoxels = SYSTEMS.voxSystem.getTotalNonEmptyVoxelsOfTargettedFrame(voxId);
+    const rSq = (brushSize * brushSize) / 4;
 
     // Perform up to 8 updates to the pending pending chunk based upon mirroring
     for (const mx of mirrors) {
@@ -421,6 +423,14 @@ export class BuilderSystem {
                       // Avoid removing last voxel
                       if (brushMode === BRUSH_MODES.REMOVE && pendingChunk.getTotalNonEmptyVoxels() >= voxNumVoxels - 1)
                         break loop;
+
+                      if (brushShape === BRUSH_SHAPES.SPHERE) {
+                        // With offset, brush is centered at zero.
+                        // If x, y, z is beyond radius for round brush, don't add it.
+                        const distSq = Math.pow(x + 0.01, 2.0) + Math.pow(y + 0.01, 2.0) + Math.pow(z + 0.01, 2.0);
+
+                        if (distSq > rSq) continue;
+                      }
 
                       pendingChunk.setColorAt(
                         x,
