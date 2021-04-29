@@ -726,7 +726,7 @@ export class VoxSystem extends EventTarget {
     window.APP.spaceChannel.updateOpenVoxIds(openVoxIds);
   }
 
-  getVoxHitFromIntersection(intersection, hitCell, adjacentCell) {
+  getVoxHitFromIntersection(intersection, hitCell, hitNormal, adjacentCell) {
     const { meshToVoxId, voxMap } = this;
 
     const hitObject = intersection && intersection.object;
@@ -744,6 +744,10 @@ export class VoxSystem extends EventTarget {
     const nx = intersection.face.normal.x;
     const ny = intersection.face.normal.y;
     const nz = intersection.face.normal.z;
+
+    hitNormal.x = nx;
+    hitNormal.y = ny;
+    hitNormal.z = nz;
 
     // Hit cell is found by nudging along normal and rounding.
     // Also need to offset the geometry shift which aligns cells with bounding box.
@@ -982,6 +986,7 @@ export class VoxSystem extends EventTarget {
     if (!entry) return;
     const { targettingMesh, dirtyFrameMeshes, targettingMeshFrame } = entry;
 
+    // Mark dirty flags to regenerate meshes without pending applied
     if (targettingMesh) {
       this.unfreezeMeshForTargetting(voxId);
       dirtyFrameMeshes[targettingMeshFrame] = true;
@@ -997,16 +1002,14 @@ export class VoxSystem extends EventTarget {
     const { voxMap } = this;
     const entry = voxMap.get(voxId);
     if (!entry) return;
-    const { pendingVoxChunk, targettingMesh, targettingMeshFrame, pendingVoxChunkOffset } = entry;
+    const { pendingVoxChunk, targettingMeshFrame, pendingVoxChunkOffset } = entry;
+
+    this.unfreezeMeshForTargetting(voxId);
+
     if (!pendingVoxChunk) return;
-
-    if (targettingMesh) {
-      this.unfreezeMeshForTargetting(voxId);
-    }
-
     const offset = [...pendingVoxChunkOffset];
 
-    // Don't mark dirty flag since doc will update.
+    // Don't mark dirty flag on meshes since doc will update.
     this.getSync(voxId).then(sync => {
       sync.applyChunk(pendingVoxChunk, targettingMeshFrame, offset);
 

@@ -191,6 +191,7 @@ export class BuilderSystem {
 
   performBrushStep = (() => {
     const hitCell = new Vector3();
+    const hitNormal = new Vector3();
     const adjacentCell = new Vector3();
     return (brushDown, intersection) => {
       if (!this.enabled) return;
@@ -201,7 +202,7 @@ export class BuilderSystem {
       let hitVoxId = null;
 
       if (intersection) {
-        hitVoxId = SYSTEMS.voxSystem.getVoxHitFromIntersection(intersection, hitCell, adjacentCell);
+        hitVoxId = SYSTEMS.voxSystem.getVoxHitFromIntersection(intersection, hitCell, hitNormal, adjacentCell);
       }
 
       // Skip updating pending if we're ready to apply it.
@@ -215,28 +216,40 @@ export class BuilderSystem {
 
         let updatePending = false;
 
-        // Freeze the mesh when we start hovering.
+        // Hacky, presumes non-frozen meshes are instanced meshes.
+        const isHittingFrozenMesh = typeof intersection.instanceId !== "number";
+
+        // Freeze the mesh when we start hovering over a vox.
         if (this.targetVoxId !== hitVoxId) {
           if (this.targetVoxId) {
             // Direct hover from one vox to another, clear old pending.
             SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
             this.pendingChunk = null;
+            this.targetVoxId = null;
+            this.targetVoxFrame = null;
           }
 
-          this.targetVoxId = hitVoxId;
-          this.targetVoxFrame = SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
+          // If the cursor is on a real, unfrozen vox, freeze it.
+          // (Sometimes cursor can be hovering on frozen mesh for a single frame)
+          if (!isHittingFrozenMesh) {
+            this.targetVoxId = hitVoxId;
+            this.targetVoxFrame = SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
 
-          brushStartCell.copy(cellToBrush);
-          brushEndCell.copy(cellToBrush);
-          updatePending = true;
+            brushStartCell.copy(cellToBrush);
+            brushEndCell.copy(cellToBrush);
+            updatePending = true;
+          }
         }
 
         if (brushDown && !this.isBrushing) {
           this.isBrushing = true;
 
           if (this.brushType === BRUSH_TYPES.FACE) {
-            this.brushCrawlChunk = this.buildCrawlChunkAt(cellToBrush);
-            console.log(this.brushCrawlChunk.toJSON("", true));
+            const omitAxis = Math.abs(hitNormal.x) !== 0 ? 0 : Math.abs(hitNormal.y) !== 0 ? 1 : 2;
+            console.log(hitCell.x, hitCell.y, hitCell.z, omitAxis);
+
+            this.brushCrawlChunk = this.buildCrawlChunkAt(hitCell, omitAxis);
+            console.log(this.brushCrawlChunk.toJSON("", true).size);
           }
         }
 
@@ -284,7 +297,7 @@ export class BuilderSystem {
         }
 
         // If we're not brushing, and we had a target vox, we just cursor
-        // exited it so hide the pending.
+        // exited from hover so clear the pending.
         if (this.targetVoxId !== null && !this.isBrushing) {
           SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
 
@@ -313,6 +326,8 @@ export class BuilderSystem {
             //SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
 
             this.pendingChunk = null;
+          } else {
+            SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
           }
 
           this.isBrushing = false;
@@ -677,6 +692,7 @@ export class BuilderSystem {
       const match = (colorMatch && c === color) || (!colorMatch && c !== null);
       if (!match) continue;
 
+      chunk.resizeToFit(x, y, z);
       chunk.setColorAt(x, y, z, c);
 
       for (let nx = -1; nx <= 1; nx++) {
