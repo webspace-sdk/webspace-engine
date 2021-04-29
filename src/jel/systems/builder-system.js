@@ -93,7 +93,7 @@ export class BuilderSystem {
     this.targetVoxFrame = null;
     this.brushStartCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
-    this.brushType = BRUSH_TYPES.VOXEL;
+    this.brushType = BRUSH_TYPES.FACE;
     this.brushMode = BRUSH_MODES.ADD;
     this.brushShape = BRUSH_SHAPES.BOX;
     this.brushCrawlType = BRUSH_CRAWL_TYPES.GEO;
@@ -245,11 +245,15 @@ export class BuilderSystem {
           this.isBrushing = true;
 
           if (this.brushType === BRUSH_TYPES.FACE) {
-            const omitAxis = Math.abs(hitNormal.x) !== 0 ? 0 : Math.abs(hitNormal.y) !== 0 ? 1 : 2;
-            console.log(hitCell.x, hitCell.y, hitCell.z, omitAxis);
-
+            // Omit axis is 1 = x, 2 = y, 3 = z and the sign indicates which
+            // direction to walk to check for culling of face
+            const omitAxis =
+              Math.abs(hitNormal.x) !== 0
+                ? hitNormal.x * 1
+                : Math.abs(hitNormal.y) !== 0
+                  ? hitNormal.y * 2
+                  : hitNormal.z * 3;
             this.brushCrawlChunk = this.buildCrawlChunkAt(hitCell, omitAxis);
-            console.log(this.brushCrawlChunk.toJSON("", true).size);
           }
         }
 
@@ -266,7 +270,7 @@ export class BuilderSystem {
         if (updatePending) {
           if (!this.pendingChunk) {
             // Create a new pending, pending will grow as needed.
-            this.pendingChunk = new VoxChunk([2, 2, 2]);
+            this.pendingChunk = new VoxChunk([1, 1, 1]);
           }
 
           this.applyCurrentBrushToPendingChunk(hitVoxId);
@@ -659,13 +663,13 @@ export class BuilderSystem {
     this.hasInFlightOperation = false;
   }
 
-  // omitAxis: 0 - x, 1 - y, 2 - z
-  //   axis to not crawl along.
+  // omitAxis: 1 - x, 2 - y, 3 - z
+  //   axis to not crawl along, positive or negative direction
   buildCrawlChunkAt(origin, omitAxis = 0) {
     const { targetVoxId, targetVoxFrame, brushCrawlType, brushCrawlExtents } = this;
     const color = SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, origin.x, origin.y, origin.z);
 
-    const chunk = new VoxChunk([2, 2, 2]);
+    const chunk = new VoxChunk([1, 1, 1]);
     const colorMatch = brushCrawlType === BRUSH_CRAWL_TYPES.COLOR;
 
     // No voxel at crawl origin cell, shouldn't happen.
@@ -678,13 +682,17 @@ export class BuilderSystem {
     queue.length = 0;
 
     queue.push(origin.x, origin.y, origin.z);
+    crawled.add(xyzToInt(origin.x, origin.y, origin.z));
+
+    const omitX = Math.abs(omitAxis) === 1;
+    const omitY = Math.abs(omitAxis) === 2;
+    const omitZ = Math.abs(omitAxis) === 3;
+    const omitSign = omitAxis < 0 ? -1 : 1;
 
     while (queue.length > 0) {
       const z = queue.pop();
       const y = queue.pop();
       const x = queue.pop();
-
-      crawled.add(xyzToInt(x, y, z));
 
       const c = SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, x, y, z);
 
@@ -692,36 +700,54 @@ export class BuilderSystem {
       const match = (colorMatch && c === color) || (!colorMatch && c !== null);
       if (!match) continue;
 
-      chunk.resizeToFit(x, y, z);
-      chunk.setColorAt(x, y, z, c);
+      // Mask out omit axis coord in chunk, since we don't need that dimension
+      const wx = omitX ? 0 : x;
+      const wy = omitY ? 0 : y;
+      const wz = omitZ ? 0 : z;
 
-      for (let nx = -1; nx <= 1; nx++) {
-        for (let ny = -1; ny <= 1; ny++) {
-          for (let nz = -1; nz <= 1; nz++) {
-            const ax = Math.abs(nx);
-            const ay = Math.abs(ny);
-            const az = Math.abs(nz);
+      chunk.resizeToFit(wx, wy, wz);
+      chunk.setColorAt(wx, wy, wz, c);
+
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dz = -1; dz <= 1; dz++) {
+            const ax = Math.abs(dx);
+            const ay = Math.abs(dy);
+            const az = Math.abs(dz);
 
             // Calculate manhattan distance for next cell to consider
             const dist = ax + ay + az;
             if (dist === 0) continue; // Skip (0, 0, 0) loop iteration
 
             // Do not crawl along omitted axis
-            if ((ax > 0 && omitAxis === 0) || (ay > 0 && omitAxis === 1) || (az > 0 && omitAxis === 2)) continue;
+            if ((ax > 0 && omitX) || (ay > 0 && omitY) || (az > 0 && omitZ)) continue;
 
             // If NSEW mode, skip diagonal walks.
             if (dist >= 2 && brushCrawlExtents === BRUSH_CRAWL_EXTENTS.NSEW) continue;
-            const cx = x + nx;
-            const cy = y + ny;
-            const cz = z + nz;
+            const cx = x + dx;
+            const cy = y + dy;
+            const cz = z + dz;
 
             const inRange = cx >= minX && cx <= maxX && cy >= minY && cy <= maxY && cz >= minZ && cz <= maxZ;
 
             if (!inRange) continue;
 
+            // Stop crawling if there's a filled cell along the omitted axis
+            // (Meaning the face is cut off here in the ommitted axis direction)
+            const lx = cx + (omitX ? 1 : 0) * omitSign;
+            const ly = cy + (omitY ? 1 : 0) * omitSign;
+            const lz = cz + (omitZ ? 1 : 0) * omitSign;
+
+            const axisCheckInRange = lx >= minX && lx <= maxX && ly >= minY && ly <= maxY && lz >= minZ && lz <= maxZ;
+
+            // The cell we're about to add is blocked along the omission axis, meaning it should not be considered part of the crawled face.
+            if (axisCheckInRange && SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, lx, ly, lz) !== null)
+              continue;
+
             // Don't re-visit cells.
             if (crawled.has(xyzToInt(cx, cy, cz))) continue;
 
+            crawled.add(xyzToInt(cx, cy, cz));
             queue.push(cx, cy, cz);
           }
         }
