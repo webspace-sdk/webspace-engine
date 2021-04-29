@@ -1018,8 +1018,14 @@ export class VoxSystem extends EventTarget {
     const offset = [...pendingVoxChunkOffset];
 
     // Don't mark dirty flag since doc will update.
-    this.getSync(voxId).then(sync => sync.applyChunk(pendingVoxChunk, targettingMeshFrame, offset));
-    entry.pendingVoxChunk = null;
+    this.getSync(voxId).then(sync => {
+      sync.applyChunk(pendingVoxChunk, targettingMeshFrame, offset);
+
+      // Clear pending chunk after apply is done
+      if (entry.pendingVoxChunk === pendingVoxChunk) {
+        entry.pendingVoxChunk = null;
+      }
+    });
   }
 
   getTotalNonEmptyVoxelsOfTargettedFrame(voxId) {

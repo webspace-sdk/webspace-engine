@@ -75,7 +75,7 @@ export class BuilderSystem {
     this.brushVoxColor = voxColorForRGBT(128, 0, 0);
     this.pendingChunk = null;
     this.hasInFlightOperation = false;
-    this.ignoreRemainingBrush = false;
+    this.ignoreRestOfStroke = false;
     this.performingUndoOperation = false;
     this.undoStacks = new Map();
 
@@ -171,11 +171,14 @@ export class BuilderSystem {
         hitVoxId = SYSTEMS.voxSystem.getVoxHitFromIntersection(intersection, hitCell, adjacentCell);
       }
 
-      if (hitVoxId) {
+      // Skip updating pending if we're ready to apply it.
+      const canApplyThisTick = this.isBrushing && !brushDown;
+
+      if (hitVoxId && !canApplyThisTick) {
         const cellToBrush = brushMode === BRUSH_MODES.ADD ? adjacentCell : hitCell;
         // If we hovered over another vox while brushing, ignore it until we let go.
         if (this.isBrushing && this.targetVoxId !== null && hitVoxId !== this.targetVoxId) return;
-        if (this.ignoreRemainingBrush) return;
+        if (this.ignoreRestOfStroke) return;
 
         let updatePending = false;
 
@@ -224,7 +227,7 @@ export class BuilderSystem {
         // create a vox.
         if (
           brushDown &&
-          !this.ignoreRemainingBrush &&
+          !this.ignoreRestOfStroke &&
           this.targetVoxId === null &&
           brushMode === BRUSH_MODES.ADD &&
           intersection &&
@@ -232,7 +235,7 @@ export class BuilderSystem {
         ) {
           // Not mid-build, create a new vox.
           this.hasInFlightOperation = true;
-          this.ignoreRemainingBrush = true;
+          this.ignoreRestOfStroke = true;
           this.createVoxAt(intersection.point).then(() => (this.hasInFlightOperation = false));
         }
 
@@ -250,7 +253,7 @@ export class BuilderSystem {
 
       if (!brushDown) {
         if (this.hasInFlightOperation) return;
-        this.ignoreRemainingBrush = false;
+        this.ignoreRestOfStroke = false;
 
         // When brush is lifted, apply the pending
         if (this.isBrushing && this.pendingChunk) {
@@ -271,7 +274,7 @@ export class BuilderSystem {
           this.brushEndCell.set(Infinity, Infinity, Infinity);
         }
 
-        this.ignoreRemainingBrush = false;
+        this.ignoreRestOfStroke = false;
       }
     };
   })();
@@ -427,7 +430,8 @@ export class BuilderSystem {
                       if (brushShape === BRUSH_SHAPES.SPHERE) {
                         // With offset, brush is centered at zero.
                         // If x, y, z is beyond radius for round brush, don't add it.
-                        const distSq = Math.pow(x + 0.01, 2.0) + Math.pow(y + 0.01, 2.0) + Math.pow(z + 0.01, 2.0);
+                        const distSq =
+                          Math.pow(px - x + 0.01, 2.0) + Math.pow(py - y + 0.01, 2.0) + Math.pow(pz - z + 0.01, 2.0);
 
                         if (distSq > rSq) continue;
                       }
