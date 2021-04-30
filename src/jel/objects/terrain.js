@@ -66,6 +66,14 @@ export const updateWorldColors = (groundColor, edgeColor, leavesColor, barkColor
   voxelMaterials.forEach(m => (m.uniformsNeedUpdate = true));
 };
 
+export const getWorldColor = index => {
+  const r = colorMap[index * 4];
+  const g = colorMap[index * 4 + 1];
+  const b = colorMap[index * 4 + 2];
+  const grad = colorMap[index * 4 + 3];
+  return [r, g, b, grad];
+};
+
 const createVoxelMaterial = () => {
   const voxelMaterial = new ShaderMaterial({
     name: "voxels",

@@ -2,6 +2,7 @@ import { paths } from "../../hubs/systems/userinput/paths";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "../../jel/utils/dom-utils";
 import { addMedia } from "../../hubs/utils/media-utils";
 import { ObjectContentOrigins } from "../../hubs/object-types";
+import { getWorldColor } from "../objects/terrain";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import {
   VoxChunk,
@@ -31,7 +32,8 @@ const BRUSH_TYPES = {
   BOX: 1,
   FACE: 2,
   CENTER: 3,
-  FILL: 4
+  FILL: 4,
+  PICK: 5
 };
 
 const BRUSH_MODES = {
@@ -84,7 +86,7 @@ export class BuilderSystem {
     this.brushFaceNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushFaceWorldNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
-    this.brushType = BRUSH_TYPES.FILL;
+    this.brushType = BRUSH_TYPES.PICK;
     this.brushMode = BRUSH_MODES.ADD;
     this.brushColorFillMode = BRUSH_COLOR_FILL_MODE.SELECTED;
     this.brushShape = BRUSH_SHAPES.BOX;
@@ -277,6 +279,12 @@ export class BuilderSystem {
         }
       }
 
+      // Pick tool over non-vox, look up vertex color if possible
+      if (brushDown && !this.isBrushing && !hitVoxId) {
+        this.pickColorAtIntersection(intersection);
+        this.ignoreRestOfStroke = true;
+      }
+
       if (hitVoxId && !canApplyPendingThisTick) {
         const cellToBrush = brushMode === BRUSH_MODES.ADD && brushType !== BRUSH_TYPES.FACE ? adjacentCell : hitCell;
         // If we hovered over another vox while brushing, ignore it until we end the stroke.
@@ -339,6 +347,19 @@ export class BuilderSystem {
               SYSTEMS.voxSystem.applyPendingAndUnfreezeMesh(this.targetVoxId);
 
               // Fill is one-and-done, and ignores mode
+              updatePending = false;
+              this.ignoreRestOfStroke = true;
+            } else if (this.brushType === BRUSH_TYPES.PICK) {
+              // Pick tool over non-vox
+              const color = SYSTEMS.voxSystem.getVoxColorAt(
+                this.targetVoxId,
+                this.targetVoxFrame,
+                hitCell.x,
+                hitCell.y,
+                hitCell.z
+              );
+              console.log("picked vox", color);
+
               updatePending = false;
               this.ignoreRestOfStroke = true;
             }
@@ -1104,6 +1125,31 @@ export class BuilderSystem {
       return [color, chunk];
     };
   })();
+
+  pickColorAtIntersection(intersection) {
+    if (intersection && intersection.face) {
+      const vert = intersection.face.a;
+
+      if (intersection.object.geometry) {
+        const colorAttrib = intersection.object.geometry.attributes && intersection.object.geometry.attributes.color;
+
+        const paletteAttrib =
+          intersection.object.geometry.attributes && intersection.object.geometry.attributes.palette;
+
+        if (paletteAttrib) {
+          // Presume for now this terrain
+          const index = paletteAttrib.array[vert * paletteAttrib.itemSize];
+          const [r, g, b] = getWorldColor(index);
+          console.log("palette", index, r, g, b);
+        } else if (colorAttrib) {
+          const r = colorAttrib.array[vert * colorAttrib.itemSize];
+          const g = colorAttrib.array[vert * colorAttrib.itemSize + 1];
+          const b = colorAttrib.array[vert * colorAttrib.itemSize + 2];
+          console.log("non palette", r, g, b);
+        }
+      }
+    }
+  }
 
   clearUndoStacks() {
     this.undoStacks.clear();
