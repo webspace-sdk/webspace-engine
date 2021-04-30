@@ -17,7 +17,7 @@ import {
 const WHEEL_THRESHOLD = 0.15;
 const MAX_UNDO_STEPS = 32;
 
-const { Vector3 } = THREE;
+const { Vector3, Matrix4, Raycaster, MeshBasicMaterial, Mesh, PlaneBufferGeometry } = THREE;
 import { createVox } from "../../hubs/utils/phoenix-utils";
 
 const HALF_MAX_VOX_SIZE = Math.floor(MAX_VOX_SIZE / 2);
@@ -87,6 +87,7 @@ export class BuilderSystem {
     this.brushStartCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushStartWorldPoint = new Vector3(Infinity, Infinity, Infinity);
     this.brushFaceNormal = new Vector3(Infinity, Infinity, Infinity);
+    this.brushFaceWorldNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushType = BRUSH_TYPES.FACE;
     this.brushMode = BRUSH_MODES.ADD;
@@ -95,12 +96,6 @@ export class BuilderSystem {
     this.brushCrawlExtents = BRUSH_CRAWL_EXTENTS.NSEW;
     this.brushFace = null;
     this.brushSize = 1;
-
-    // Sweep plane used for dragging faces.
-    const sweepPlaneMat = new THREE.MeshBasicMaterial();
-    sweepPlaneMat.visible = false;
-    this.sweepPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(100, 100), sweepPlaneMat);
-
     this.brushSweep = 1;
 
     this.isBrushing = false;
@@ -113,6 +108,11 @@ export class BuilderSystem {
     this.ignoreRestOfStroke = false;
     this.performingUndoOperation = false;
     this.undoStacks = new Map();
+
+    // Invisible plane used for dragging out/in faces.
+    const sweepPlaneMat = new MeshBasicMaterial();
+    sweepPlaneMat.visible = false;
+    this.sweepPlane = new Mesh(new PlaneBufferGeometry(100, 100), sweepPlaneMat);
 
     //const store = window.APP.store;
 
@@ -200,7 +200,9 @@ export class BuilderSystem {
     const hitCell = new Vector3();
     const hitNormal = new Vector3();
     const adjacentCell = new Vector3();
-    const raycaster = new THREE.Raycaster();
+    const startToSweep = new Vector3();
+    const tmpMatrix = new Matrix4();
+    const raycaster = new Raycaster();
     const intersectTargets = [null];
     const rawIntersections = [];
 
@@ -215,6 +217,7 @@ export class BuilderSystem {
         brushStartCell,
         brushStartWorldPoint,
         brushFaceNormal,
+        brushFaceWorldNormal,
         brushEndCell,
         brushType,
         brushMode,
@@ -251,13 +254,23 @@ export class BuilderSystem {
         raycaster.intersectObjects(intersectTargets, true, rawIntersections);
 
         if (rawIntersections.length > 0) {
-          const dist = rawIntersections[0].point.distanceTo(brushStartWorldPoint);
-          // TODO take dot between brush normal and direction from brush start world to raw interaction and if brush is remove or add ignore based on dot sign
-          const newBrushSweep = Math.floor(Math.max(1.0, dist / VOXEL_SIZE));
+          const sweepHitPoint = rawIntersections[0].point;
 
-          if (newBrushSweep !== this.brushSweep) {
-            this.brushSweep = newBrushSweep;
-            updatePending = true;
+          // Allow pulling out if ADD, pushing in if REMOVE
+          startToSweep.copy(sweepHitPoint);
+          startToSweep.sub(brushStartWorldPoint);
+          startToSweep.normalize();
+
+          const dot = brushFaceWorldNormal.dot(startToSweep);
+
+          if ((dot >= 0.01 && brushMode === BRUSH_MODES.ADD) || (dot <= -0.01 && brushMode === BRUSH_MODES.REMOVE)) {
+            const dist = sweepHitPoint.distanceTo(brushStartWorldPoint);
+            const newBrushSweep = Math.floor(Math.max(1.0, dist / VOXEL_SIZE));
+
+            if (newBrushSweep !== this.brushSweep) {
+              this.brushSweep = newBrushSweep;
+              updatePending = true;
+            }
           }
         }
       }
@@ -297,8 +310,18 @@ export class BuilderSystem {
             this.isBrushing = true;
             brushStartWorldPoint.copy(intersection.point);
 
+            if (typeof hitInstanceId === "number") {
+              hitObject.getMatrixAt(hitInstanceId, tmpMatrix);
+            } else {
+              hitObject.updateMatrices();
+              tmpMatrix.copy(hitObject.matrixWorld);
+            }
+
+            brushFaceNormal.copy(hitNormal);
+            brushFaceWorldNormal.copy(hitNormal);
+            brushFaceWorldNormal.transformDirection(tmpMatrix);
+
             if (this.brushType === BRUSH_TYPES.FACE) {
-              brushFaceNormal.copy(hitNormal);
               this.startFaceBrushStroke(hitCell, hitNormal, hitWorldPoint, hitObject, hitInstanceId);
             }
 
@@ -787,10 +810,10 @@ export class BuilderSystem {
   }
 
   startFaceBrushStroke = (() => {
-    const cellToEye = new THREE.Vector3();
-    const tmpNormal = new THREE.Vector3();
-    const planeNormal = new THREE.Vector3();
-    const worldMatrix = new THREE.Matrix4();
+    const cellToEye = new Vector3();
+    const tmpNormal = new Vector3();
+    const planeNormal = new Vector3();
+    const worldMatrix = new Matrix4();
 
     return function(hitCell, hitNormal, hitWorldPoint, hitObject, hitInstanceId) {
       const { sceneEl, playerCamera, sweepPlane } = this;
@@ -841,7 +864,7 @@ export class BuilderSystem {
       }
 
       sweepPlane.position.copy(hitWorldPoint);
-      sweepPlane.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), planeNormal);
+      sweepPlane.quaternion.setFromUnitVectors(new Vector3(0, 0, 1), planeNormal);
       sweepPlane.matrixNeedsUpdate = true;
       scene.add(sweepPlane);
     };
