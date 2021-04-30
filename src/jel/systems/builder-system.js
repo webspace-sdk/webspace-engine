@@ -22,13 +22,6 @@ import { createVox } from "../../hubs/utils/phoenix-utils";
 
 const HALF_MAX_VOX_SIZE = Math.floor(MAX_VOX_SIZE / 2);
 
-// Temp variables for crawling:
-// Set of already crawled cells.
-const crawled = new Set();
-
-// Cells enqueued to crawl.
-const queue = [];
-
 // Converts x, y, z of a vox to a unique int key
 const xyzToInt = (x, y, z) =>
   ((x + HALF_MAX_VOX_SIZE + 1) << 16) | ((y + HALF_MAX_VOX_SIZE + 1) << 8) | (z + HALF_MAX_VOX_SIZE + 1);
@@ -92,16 +85,23 @@ export class BuilderSystem {
     this.targetVoxId = null;
     this.targetVoxFrame = null;
     this.brushStartCell = new Vector3(Infinity, Infinity, Infinity);
+    this.brushStartWorldPoint = new Vector3(Infinity, Infinity, Infinity);
     this.brushFaceNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushType = BRUSH_TYPES.FACE;
-    this.brushMode = BRUSH_MODES.REMOVE;
+    this.brushMode = BRUSH_MODES.ADD;
     this.brushShape = BRUSH_SHAPES.BOX;
     this.brushCrawlType = BRUSH_CRAWL_TYPES.GEO;
     this.brushCrawlExtents = BRUSH_CRAWL_EXTENTS.NSEW;
-    this.brushSweep = 1;
     this.brushFace = null;
-    this.brushSize = 6;
+    this.brushSize = 1;
+
+    // Sweep plane used for dragging faces.
+    const sweepPlaneMat = new THREE.MeshBasicMaterial();
+    sweepPlaneMat.visible = false;
+    this.sweepPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(100, 100), sweepPlaneMat);
+
+    this.brushSweep = 1;
 
     this.isBrushing = false;
     this.mirrorX = false;
@@ -134,6 +134,11 @@ export class BuilderSystem {
     if (!this.enabled) return;
 
     const { userinput } = this;
+
+    if (!this.playerCamera) {
+      this.playerCamera = document.getElementById("viewing-camera").getObject3D("camera");
+      if (!this.playerCamera) return;
+    }
 
     const cursor = this.cursorSystem.rightRemote && this.cursorSystem.rightRemote.components["cursor-controller"];
 
@@ -195,91 +200,120 @@ export class BuilderSystem {
     const hitCell = new Vector3();
     const hitNormal = new Vector3();
     const adjacentCell = new Vector3();
+    const raycaster = new THREE.Raycaster();
+    const intersectTargets = [null];
+    const rawIntersections = [];
+
+    raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
+    raycaster.near = 0.0001;
+    raycaster.far = 100.0;
+
     return (brushDown, intersection) => {
       if (!this.enabled) return;
 
-      const { brushStartCell, brushFaceNormal, brushEndCell, brushType, brushMode } = this;
+      const {
+        brushStartCell,
+        brushStartWorldPoint,
+        brushFaceNormal,
+        brushEndCell,
+        brushType,
+        brushMode,
+        sceneEl
+      } = this;
+      const scene = sceneEl.object3D;
 
-      // Repeated build if user is holding space and not control (due to widen)
       let hitVoxId = null;
+      let hitWorldPoint = null;
+      let hitObject;
+      let hitInstanceId;
 
       if (intersection) {
         hitVoxId = SYSTEMS.voxSystem.getVoxHitFromIntersection(intersection, hitCell, hitNormal, adjacentCell);
+        hitWorldPoint = intersection.point;
+        hitObject = intersection.object;
+        hitInstanceId = intersection.instanceId;
       }
 
-      // Skip updating pending if we're ready to apply it.
-      const canApplyThisTick = this.isBrushing && !brushDown;
+      // Skip updating pending this tick if we're ready to apply it.
+      const canApplyPendingThisTick = this.isBrushing && !brushDown;
 
-      if (hitVoxId && !canApplyThisTick) {
-        const cellToBrush = brushMode === BRUSH_MODES.ADD && brushType !== BRUSH_TYPES.FACE ? adjacentCell : hitCell;
-        // If we hovered over another vox while brushing, ignore it until we let go.
-        if (this.isBrushing && this.targetVoxId !== null && hitVoxId !== this.targetVoxId) return;
-        if (this.ignoreRestOfStroke) return;
+      let updatePending = false;
 
-        let updatePending = false;
+      // Do raycast to sweep plane if relevent
+      if (this.isBrushing && this.sweepPlane.parent !== null) {
+        const userinput = sceneEl.systems.userinput;
+        const cursorPose = userinput.get(paths.actions.cursor.right.pose);
+        raycaster.ray.origin = cursorPose.position;
+        raycaster.ray.direction = cursorPose.direction;
+        intersectTargets[0] = this.sweepPlane;
+        rawIntersections.length = 0;
+        raycaster.intersectObjects(intersectTargets, true, rawIntersections);
 
-        // Hacky, presumes non-frozen meshes are instanced meshes.
-        const isHittingFrozenMesh = typeof intersection.instanceId !== "number";
+        if (rawIntersections.length > 0) {
+          const dist = rawIntersections[0].point.distanceTo(brushStartWorldPoint);
+          // TODO take dot between brush normal and direction from brush start world to raw interaction and if brush is remove or add ignore based on dot sign
+          const newBrushSweep = Math.floor(Math.max(1.0, dist / VOXEL_SIZE));
 
-        // Freeze the mesh when we start hovering over a vox.
-        if (this.targetVoxId !== hitVoxId) {
-          if (this.targetVoxId) {
-            // Direct hover from one vox to another, clear old pending.
-            SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
-            this.pendingChunk = null;
-            this.targetVoxId = null;
-            this.targetVoxFrame = null;
-          }
-
-          // If the cursor is on a real, unfrozen vox, freeze it.
-          // (Sometimes cursor can be hovering on frozen mesh for a single frame)
-          if (!isHittingFrozenMesh) {
-            this.targetVoxId = hitVoxId;
-            this.targetVoxFrame = SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
-
-            brushStartCell.copy(cellToBrush);
-            brushEndCell.copy(cellToBrush);
+          if (newBrushSweep !== this.brushSweep) {
+            this.brushSweep = newBrushSweep;
             updatePending = true;
           }
         }
+      }
 
-        if (brushDown && !this.isBrushing) {
-          this.isBrushing = true;
+      if (hitVoxId && !canApplyPendingThisTick) {
+        const cellToBrush = brushMode === BRUSH_MODES.ADD && brushType !== BRUSH_TYPES.FACE ? adjacentCell : hitCell;
+        // If we hovered over another vox while brushing, ignore it until we end the stroke.
+        const skipDueToAnotherHover = this.isBrushing && this.targetVoxId !== null && hitVoxId !== this.targetVoxId;
 
-          if (this.brushType === BRUSH_TYPES.FACE) {
-            // Omit axis is 1 = x, 2 = y, 3 = z and the sign indicates which
-            // direction to walk to check for culling of face
-            const omitAxis =
-              Math.abs(hitNormal.x) !== 0
-                ? hitNormal.x * 1
-                : Math.abs(hitNormal.y) !== 0
-                  ? hitNormal.y * 2
-                  : hitNormal.z * 3;
-            this.brushFace = this.crawlFaceAt(hitCell, omitAxis);
-            brushFaceNormal.copy(hitNormal);
+        if (!skipDueToAnotherHover && !this.ignoreRestOfStroke) {
+          // Hacky, presumes non-frozen meshes are instanced meshes.
+          const isHittingFrozenMesh = typeof intersection.instanceId !== "number";
+
+          // Freeze the mesh when we start hovering over a vox.
+          if (this.targetVoxId !== hitVoxId) {
+            if (this.targetVoxId) {
+              // Direct hover from one vox to another, clear old pending.
+              SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
+              this.pendingChunk = null;
+              this.targetVoxId = null;
+              this.targetVoxFrame = null;
+            }
+
+            // If the cursor is on a real, unfrozen vox, freeze it.
+            // (Sometimes cursor can be hovering on frozen mesh for a single frame)
+            if (!isHittingFrozenMesh) {
+              this.targetVoxId = hitVoxId;
+              this.targetVoxFrame = SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
+
+              brushStartCell.copy(cellToBrush);
+              brushEndCell.copy(cellToBrush);
+              updatePending = true;
+            }
           }
 
-          updatePending = true;
-        }
+          if (brushDown && !this.isBrushing) {
+            this.isBrushing = true;
+            brushStartWorldPoint.copy(intersection.point);
 
-        if (!brushEndCell.equals(cellToBrush)) {
-          updatePending = true;
-          brushEndCell.copy(cellToBrush);
+            if (this.brushType === BRUSH_TYPES.FACE) {
+              brushFaceNormal.copy(hitNormal);
+              this.startFaceBrushStroke(hitCell, hitNormal, hitWorldPoint, hitObject, hitInstanceId);
+            }
 
-          if (!brushDown) {
-            // Just a hover, maintain a single cell size pending
-            brushStartCell.copy(cellToBrush);
-            brushFaceNormal.copy(hitNormal);
-          }
-        }
-
-        if (updatePending) {
-          if (!this.pendingChunk) {
-            // Create a new pending, pending will grow as needed.
-            this.pendingChunk = new VoxChunk([1, 1, 1]);
+            updatePending = true;
           }
 
-          this.applyCurrentBrushToPendingChunk(hitVoxId);
+          if (!brushEndCell.equals(cellToBrush)) {
+            updatePending = true;
+            brushEndCell.copy(cellToBrush);
+
+            if (!brushDown) {
+              // Just a hover, maintain a single cell size pending
+              brushStartCell.copy(cellToBrush);
+              brushFaceNormal.copy(hitNormal);
+            }
+          }
         }
       } else {
         // No vox was hit this tick. Check if we need to create one.
@@ -318,6 +352,15 @@ export class BuilderSystem {
         }
       }
 
+      if (this.targetVoxId && updatePending) {
+        if (!this.pendingChunk) {
+          // Create a new pending, pending will grow as needed.
+          this.pendingChunk = new VoxChunk([1, 1, 1]);
+        }
+
+        this.applyCurrentBrushToPendingChunk(this.targetVoxId);
+      }
+
       if (!brushDown) {
         if (this.hasInFlightOperation) return;
         this.ignoreRestOfStroke = false;
@@ -333,11 +376,15 @@ export class BuilderSystem {
 
             SYSTEMS.voxSystem.applyPendingAndUnfreezeMesh(this.targetVoxId);
             // Uncomment to stop applying changes to help with reproducing bugs.
-            // SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
+            //SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
 
             this.pendingChunk = null;
           } else {
             SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
+          }
+
+          if (this.sweepPlane) {
+            scene.remove(this.sweepPlane);
           }
 
           this.isBrushing = false;
@@ -738,102 +785,170 @@ export class BuilderSystem {
     this.hasInFlightOperation = false;
   }
 
+  startFaceBrushStroke = (() => {
+    const cellToEye = new THREE.Vector3();
+    const tmpNormal = new THREE.Vector3();
+    const planeNormal = new THREE.Vector3();
+    const worldMatrix = new THREE.Matrix4();
+
+    return function(hitCell, hitNormal, hitWorldPoint, hitObject, hitInstanceId) {
+      const { sceneEl, playerCamera, sweepPlane } = this;
+      const scene = sceneEl.object3D;
+
+      // Omit axis is 1 = x, 2 = y, 3 = z and the sign indicates which
+      // direction to walk to check for culling of face
+      const omitAxis =
+        Math.abs(hitNormal.x) !== 0 ? hitNormal.x * 1 : Math.abs(hitNormal.y) !== 0 ? hitNormal.y * 2 : hitNormal.z * 3;
+
+      // Crawl the face to find the mask to use for this stroke
+      this.brushFace = this.crawlFaceAt(hitCell, omitAxis);
+
+      // The plane to use for dragging is the one which is most
+      // aligned with the ray from the cell to the eye. (excluding planes flush
+      // with the clicked face on the voxel.)
+
+      if (typeof hitInstanceId === "number") {
+        hitObject.getMatrixAt(hitInstanceId, worldMatrix);
+      } else {
+        hitObject.updateMatrices();
+        worldMatrix.copy(hitObject.matrixWorld);
+      }
+
+      playerCamera.getWorldPosition(cellToEye);
+      cellToEye.sub(hitWorldPoint);
+      cellToEye.normalize();
+
+      hitObject.updateMatrices();
+
+      let maxDot = -Infinity;
+
+      // Check all 6 planes, skipping the two aligned with the cell hit face
+      for (let nAxis = -3; nAxis <= 3; nAxis++) {
+        if (nAxis === 0) continue;
+        const axis = Math.abs(nAxis);
+        const sign = nAxis < 0 ? -1 : 1;
+
+        tmpNormal.set((axis == 1 ? 1 : 0) * sign, (axis == 2 ? 1 : 0) * sign, (axis == 3 ? 1 : 0) * sign);
+        tmpNormal.transformDirection(worldMatrix);
+
+        const dot = tmpNormal.dot(cellToEye);
+
+        if (maxDot > dot) continue;
+        maxDot = dot;
+        planeNormal.copy(tmpNormal);
+      }
+
+      sweepPlane.position.copy(hitWorldPoint);
+      sweepPlane.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), planeNormal);
+      sweepPlane.matrixNeedsUpdate = true;
+      scene.add(sweepPlane);
+    };
+  })();
+
   // Given an origin cell, crawls to find the full face starting at the
   // origin that meets the current brush criteria.
   //
   // omitAxis: 1 - x, 2 - y, 3 - z
   //   axis to not crawl along, positive or negative direction
-  crawlFaceAt(origin, omitAxis = 0) {
-    const { targetVoxId, targetVoxFrame, brushCrawlType, brushCrawlExtents } = this;
-    const color = SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, origin.x, origin.y, origin.z);
+  crawlFaceAt = (() => {
+    // Set of already crawled cells.
+    const crawled = new Set();
 
-    const chunk = new VoxChunk([1, 1, 1]);
-    const colorMatch = brushCrawlType === BRUSH_CRAWL_TYPES.COLOR;
+    // Cells enqueued to crawl.
+    const queue = [];
 
-    // No voxel at crawl origin cell, shouldn't happen.
-    if (color === null) return chunk;
+    return (origin, omitAxis = 0) => {
+      const { targetVoxId, targetVoxFrame, brushCrawlType, brushCrawlExtents } = this;
+      const color = SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, origin.x, origin.y, origin.z);
 
-    const maxSize = SYSTEMS.voxSystem.getVoxSize(targetVoxId, targetVoxFrame);
-    const [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(maxSize);
+      const chunk = new VoxChunk([1, 1, 1]);
+      const colorMatch = brushCrawlType === BRUSH_CRAWL_TYPES.COLOR;
 
-    crawled.clear();
-    queue.length = 0;
+      // No voxel at crawl origin cell, shouldn't happen.
+      if (color === null) return chunk;
 
-    queue.push(origin.x, origin.y, origin.z);
-    crawled.add(xyzToInt(origin.x, origin.y, origin.z));
+      const maxSize = SYSTEMS.voxSystem.getVoxSize(targetVoxId, targetVoxFrame);
+      const [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(maxSize);
 
-    const omitX = Math.abs(omitAxis) === 1;
-    const omitY = Math.abs(omitAxis) === 2;
-    const omitZ = Math.abs(omitAxis) === 3;
-    const omitSign = omitAxis < 0 ? -1 : 1;
+      crawled.clear();
+      queue.length = 0;
 
-    while (queue.length > 0) {
-      const z = queue.pop();
-      const y = queue.pop();
-      const x = queue.pop();
+      queue.push(origin.x, origin.y, origin.z);
+      crawled.add(xyzToInt(origin.x, origin.y, origin.z));
 
-      const c = SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, x, y, z);
+      const omitX = Math.abs(omitAxis) === 1;
+      const omitY = Math.abs(omitAxis) === 2;
+      const omitZ = Math.abs(omitAxis) === 3;
+      const omitSign = omitAxis < 0 ? -1 : 1;
 
-      // If cell at x, y, z has a color match or geo match, recurse.
-      const match = (colorMatch && c === color) || (!colorMatch && c !== null);
-      if (!match) continue;
+      while (queue.length > 0) {
+        const z = queue.pop();
+        const y = queue.pop();
+        const x = queue.pop();
 
-      // Mask out omit axis coord in chunk, since we don't need that dimension
-      const wx = omitX ? 0 : x;
-      const wy = omitY ? 0 : y;
-      const wz = omitZ ? 0 : z;
+        const c = SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, x, y, z);
 
-      chunk.resizeToFit(wx, wy, wz);
-      chunk.setColorAt(wx, wy, wz, c);
+        // If cell at x, y, z has a color match or geo match, recurse.
+        const match = (colorMatch && c === color) || (!colorMatch && c !== null);
+        if (!match) continue;
 
-      for (let dx = -1; dx <= 1; dx++) {
-        for (let dy = -1; dy <= 1; dy++) {
-          for (let dz = -1; dz <= 1; dz++) {
-            const ax = Math.abs(dx);
-            const ay = Math.abs(dy);
-            const az = Math.abs(dz);
+        // Mask out omit axis coord in chunk, since we don't need that dimension
+        const wx = omitX ? 0 : x;
+        const wy = omitY ? 0 : y;
+        const wz = omitZ ? 0 : z;
 
-            // Calculate manhattan distance for next cell to consider
-            const dist = ax + ay + az;
-            if (dist === 0) continue; // Skip (0, 0, 0) loop iteration
+        chunk.resizeToFit(wx, wy, wz);
+        chunk.setColorAt(wx, wy, wz, c);
 
-            // Do not crawl along omitted axis
-            if ((ax > 0 && omitX) || (ay > 0 && omitY) || (az > 0 && omitZ)) continue;
+        for (let dx = -1; dx <= 1; dx++) {
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dz = -1; dz <= 1; dz++) {
+              const ax = Math.abs(dx);
+              const ay = Math.abs(dy);
+              const az = Math.abs(dz);
 
-            // If NSEW mode, skip diagonal walks.
-            if (dist >= 2 && brushCrawlExtents === BRUSH_CRAWL_EXTENTS.NSEW) continue;
-            const cx = x + dx;
-            const cy = y + dy;
-            const cz = z + dz;
+              // Calculate manhattan distance for next cell to consider
+              const dist = ax + ay + az;
+              if (dist === 0) continue; // Skip (0, 0, 0) loop iteration
 
-            const inRange = cx >= minX && cx <= maxX && cy >= minY && cy <= maxY && cz >= minZ && cz <= maxZ;
+              // Do not crawl along omitted axis
+              if ((ax > 0 && omitX) || (ay > 0 && omitY) || (az > 0 && omitZ)) continue;
 
-            if (!inRange) continue;
+              // If NSEW mode, skip diagonal walks.
+              if (dist >= 2 && brushCrawlExtents === BRUSH_CRAWL_EXTENTS.NSEW) continue;
+              const cx = x + dx;
+              const cy = y + dy;
+              const cz = z + dz;
 
-            // Stop crawling if there's a filled cell along the omitted axis
-            // (Meaning the face is cut off here in the ommitted axis direction)
-            const lx = cx + (omitX ? 1 : 0) * omitSign;
-            const ly = cy + (omitY ? 1 : 0) * omitSign;
-            const lz = cz + (omitZ ? 1 : 0) * omitSign;
+              const inRange = cx >= minX && cx <= maxX && cy >= minY && cy <= maxY && cz >= minZ && cz <= maxZ;
 
-            const axisCheckInRange = lx >= minX && lx <= maxX && ly >= minY && ly <= maxY && lz >= minZ && lz <= maxZ;
+              if (!inRange) continue;
 
-            // The cell we're about to add is blocked along the omission axis, meaning it should not be considered part of the crawled face.
-            if (axisCheckInRange && SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, lx, ly, lz) !== null)
-              continue;
+              // Stop crawling if there's a filled cell along the omitted axis
+              // (Meaning the face is cut off here in the ommitted axis direction)
+              const lx = cx + (omitX ? 1 : 0) * omitSign;
+              const ly = cy + (omitY ? 1 : 0) * omitSign;
+              const lz = cz + (omitZ ? 1 : 0) * omitSign;
 
-            // Don't re-visit cells.
-            if (crawled.has(xyzToInt(cx, cy, cz))) continue;
+              const axisCheckInRange = lx >= minX && lx <= maxX && ly >= minY && ly <= maxY && lz >= minZ && lz <= maxZ;
 
-            crawled.add(xyzToInt(cx, cy, cz));
-            queue.push(cx, cy, cz);
+              // The cell we're about to add is blocked along the omission axis, meaning it should not be considered part of the crawled face.
+              if (axisCheckInRange && SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, lx, ly, lz) !== null)
+                continue;
+
+              // Don't re-visit cells.
+              if (crawled.has(xyzToInt(cx, cy, cz))) continue;
+
+              crawled.add(xyzToInt(cx, cy, cz));
+              queue.push(cx, cy, cz);
+            }
           }
         }
       }
-    }
 
-    return chunk;
-  }
+      return chunk;
+    };
+  })();
 
   clearUndoStacks() {
     this.undoStacks.clear();
