@@ -95,11 +95,11 @@ export class BuilderSystem {
     this.brushFaceNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushType = BRUSH_TYPES.FACE;
-    this.brushMode = BRUSH_MODES.ADD;
+    this.brushMode = BRUSH_MODES.REMOVE;
     this.brushShape = BRUSH_SHAPES.BOX;
     this.brushCrawlType = BRUSH_CRAWL_TYPES.GEO;
     this.brushCrawlExtents = BRUSH_CRAWL_EXTENTS.NSEW;
-    this.brushSweep = 2;
+    this.brushSweep = 1;
     this.brushFace = null;
     this.brushSize = 6;
 
@@ -107,7 +107,7 @@ export class BuilderSystem {
     this.mirrorX = false;
     this.mirrorY = false;
     this.mirrorZ = false;
-    this.brushVoxColor = voxColorForRGBT(128, 0, 0);
+    this.brushVoxColor = voxColorForRGBT(128, 128, 0);
     this.pendingChunk = null;
     this.hasInFlightOperation = false;
     this.ignoreRestOfStroke = false;
@@ -539,23 +539,28 @@ export class BuilderSystem {
                 for (let y = faceMinY; y <= faceMaxY; y++) {
                   for (let z = faceMinZ; z <= faceMaxZ; z++) {
                     for (
-                      let h = brushMode === BRUSH_MODES.PAINT ? 0 : 1;
-                      h < (brushMode === BRUSH_MODES.PAINT ? 1 : brushSweep + 1);
+                      let h = brushMode === BRUSH_MODES.ADD ? 1 : 0;
+                      h <
+                      (brushMode === BRUSH_MODES.PAINT
+                        ? 1
+                        : brushMode === BRUSH_MODES.ADD
+                          ? brushSweep + 1
+                          : brushSweep);
                       h++
                     ) {
                       if (!brushFace.hasVoxelAt(x, y, z)) continue;
 
                       px =
                         axis === 1
-                          ? (h * brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.x
+                          ? h * (brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.x
                           : x * mx - offsetX;
                       py =
                         axis === 2
-                          ? (h * brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.y
+                          ? h * (brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.y
                           : y * my - offsetY;
                       pz =
                         axis === 3
-                          ? (h * brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.z
+                          ? h * (brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.z
                           : z * mz - offsetZ;
 
                       // Do not allow removing last voxel
