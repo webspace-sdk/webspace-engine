@@ -71,6 +71,11 @@ const BRUSH_CRAWL_EXTENTS = {
   ALL: 1
 };
 
+const BRUSH_COLOR_FILL_MODE = {
+  SELECTED: 0,
+  EXISTING: 1
+};
+
 // Deals with block building
 export class BuilderSystem {
   constructor(sceneEl, userinput, soundEffectsSystem, cursorSystem) {
@@ -91,6 +96,7 @@ export class BuilderSystem {
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushType = BRUSH_TYPES.FACE;
     this.brushMode = BRUSH_MODES.ADD;
+    this.brushColorFillMode = BRUSH_COLOR_FILL_MODE.SELECTED;
     this.brushShape = BRUSH_SHAPES.BOX;
     this.brushCrawlType = BRUSH_CRAWL_TYPES.GEO;
     this.brushCrawlExtents = BRUSH_CRAWL_EXTENTS.NSEW;
@@ -474,8 +480,10 @@ export class BuilderSystem {
       brushMode,
       brushSize,
       brushShape,
+      brushColorFillMode,
       targetVoxFrame,
       brushStartCell,
+      brushFaceColor,
       brushFaceNormal,
       brushSweep,
       brushEndCell,
@@ -644,7 +652,11 @@ export class BuilderSystem {
                         px,
                         py,
                         pz,
-                        brushMode === BRUSH_MODES.REMOVE ? REMOVE_VOXEL_COLOR : brushVoxColor
+                        brushMode === BRUSH_MODES.REMOVE
+                          ? REMOVE_VOXEL_COLOR
+                          : brushColorFillMode === BRUSH_COLOR_FILL_MODE.SELECTED
+                            ? brushVoxColor
+                            : brushFaceColor
                       );
                     }
                   }
@@ -665,14 +677,14 @@ export class BuilderSystem {
               py = brushEndCell.y * my - offsetY;
               pz = brushEndCell.z * mz - offsetZ;
 
-              pendingChunk.resizeToFix(px, py, pz);
+              pendingChunk.resizeToFit(px, py, pz);
 
               // Box corner 2 (origin is at start cell)
               qx = brushStartCell.x * mx - offsetX;
               qy = brushStartCell.y * my - offsetY;
               qz = brushStartCell.z * mz - offsetZ;
 
-              pendingChunk.resizetoFit(qx, qy, qz);
+              pendingChunk.resizeToFit(qx, qy, qz);
 
               // Compute box
               boxMinX = Math.min(px, qx);
@@ -825,7 +837,7 @@ export class BuilderSystem {
         Math.abs(hitNormal.x) !== 0 ? hitNormal.x * 1 : Math.abs(hitNormal.y) !== 0 ? hitNormal.y * 2 : hitNormal.z * 3;
 
       // Crawl the face to find the mask to use for this stroke
-      this.brushFace = this.crawlFaceAt(hitCell, omitAxis);
+      [this.brushFaceColor, this.brushFace] = this.crawlFaceAt(hitCell, omitAxis);
       this.brushSweep = 1;
 
       // The plane to use for dragging is the one which is most
@@ -890,7 +902,7 @@ export class BuilderSystem {
       const colorMatch = brushCrawlType === BRUSH_CRAWL_TYPES.COLOR;
 
       // No voxel at crawl origin cell, shouldn't happen.
-      if (color === null) return chunk;
+      if (color === null) return [null, chunk];
 
       const maxSize = SYSTEMS.voxSystem.getVoxSize(targetVoxId, targetVoxFrame);
       const [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(maxSize);
@@ -971,7 +983,7 @@ export class BuilderSystem {
         }
       }
 
-      return chunk;
+      return [color, chunk];
     };
   })();
 
