@@ -26,24 +26,6 @@ const HALF_MAX_VOX_SIZE = Math.floor(MAX_VOX_SIZE / 2);
 const xyzToInt = (x, y, z) =>
   ((x + HALF_MAX_VOX_SIZE + 1) << 16) | ((y + HALF_MAX_VOX_SIZE + 1) << 8) | (z + HALF_MAX_VOX_SIZE + 1);
 
-// Brush types:
-//
-// Voxel:
-// add the adjacent cell to the existing pending
-//
-// Box:
-// Loop over all of start to end pending, and for any cells not in the current snapshot,
-// fill them. (Leave existing ones alone)
-//
-// Face:
-// Create an intersection plane based upon normal of side, with the origin at the cell face
-// Of the two planes to create, take the one with the normal closes to the eye ray
-//
-// +h or -h at start pending
-//   - when adding h is strictly positive, when removing it's strictly negative
-//   - never zero, always at least +/- one
-//   - at click time, capture the face mask to move
-
 const BRUSH_TYPES = {
   VOXEL: 0,
   BOX: 1,
@@ -88,10 +70,14 @@ export class BuilderSystem {
     this.enabled = true;
     this.deltaWheel = 0.0;
     this.sawLeftButtonUpWithShift = false;
+
+    // Current vox + instance info
     this.targetVoxId = null;
     this.targetVoxFrame = null;
     this.targetVoxInstanceMatrixWorld = new Matrix4();
     this.targetVoxInstanceScale = 1.0;
+
+    // Brush settings + active face info for FACE brush
     this.brushStartCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushStartWorldPoint = new Vector3(Infinity, Infinity, Infinity);
     this.brushFaceNormal = new Vector3(Infinity, Infinity, Infinity);
@@ -105,7 +91,7 @@ export class BuilderSystem {
     this.brushCrawlExtents = BRUSH_CRAWL_EXTENTS.NSEW;
     this.brushFace = null;
     this.brushSize = 1;
-    this.brushSweep = 1;
+    this.brushFaceSweep = 1;
 
     this.isBrushing = false;
     this.mirrorX = false;
@@ -211,13 +197,13 @@ export class BuilderSystem {
     const adjacentCell = new Vector3();
     const startToSweep = new Vector3();
     const tmpScale = new Vector3();
-    const raycaster = new Raycaster();
+    const sweepRaycaster = new Raycaster();
     const intersectTargets = [null];
-    const rawIntersections = [];
+    const intersections = [];
 
-    raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
-    raycaster.near = 0.0001;
-    raycaster.far = 100.0;
+    sweepRaycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
+    sweepRaycaster.near = 0.0001;
+    sweepRaycaster.far = 100.0;
 
     return (brushDown, intersection) => {
       if (!this.enabled) return;
@@ -249,23 +235,27 @@ export class BuilderSystem {
       // Skip updating pending this tick if we're ready to apply it.
       const canApplyPendingThisTick = this.isBrushing && !brushDown;
 
+      // True when the pending chunk need to be updated/rebuilt.
       let updatePending = false;
 
-      // Do raycast to sweep plane if relevent
+      // Do raycast to sweep plane if it's active.
       if (this.isBrushing && this.sweepPlane.parent !== null) {
         const userinput = sceneEl.systems.userinput;
         const cursorPose = userinput.get(paths.actions.cursor.right.pose);
-        raycaster.ray.origin = cursorPose.position;
-        raycaster.ray.direction = cursorPose.direction;
+        sweepRaycaster.ray.origin = cursorPose.position;
+        sweepRaycaster.ray.direction = cursorPose.direction;
         intersectTargets[0] = this.sweepPlane;
         this.sweepPlane.updateMatrices();
-        rawIntersections.length = 0;
-        raycaster.intersectObjects(intersectTargets, true, rawIntersections);
+        intersections.length = 0;
+        sweepRaycaster.intersectObjects(intersectTargets, true, intersections);
 
-        if (rawIntersections.length > 0) {
-          const sweepHitPoint = rawIntersections[0].point;
+        if (intersections.length > 0) {
+          const sweepHitPoint = intersections[0].point;
 
           // Allow pulling out if ADD, pushing in if REMOVE
+          //
+          // Check the dot product to determine if the user has pulled out
+          // of the object or pushed into it.
           startToSweep.copy(sweepHitPoint);
           startToSweep.sub(brushStartWorldPoint);
           startToSweep.normalize();
@@ -274,10 +264,12 @@ export class BuilderSystem {
 
           if ((dot >= 0.01 && brushMode === BRUSH_MODES.ADD) || (dot <= -0.01 && brushMode === BRUSH_MODES.REMOVE)) {
             const dist = sweepHitPoint.distanceTo(brushStartWorldPoint);
-            const newBrushSweep = Math.floor(Math.max(1.0, (dist / VOXEL_SIZE) * (1.0 / this.targetVoxInstanceScale)));
+            const newBrushFaceSweep = Math.floor(
+              Math.max(1.0, (dist / VOXEL_SIZE) * (1.0 / this.targetVoxInstanceScale))
+            );
 
-            if (newBrushSweep !== this.brushSweep) {
-              this.brushSweep = newBrushSweep;
+            if (newBrushFaceSweep !== this.brushFaceSweep) {
+              this.brushFaceSweep = newBrushFaceSweep;
               updatePending = true;
             }
           }
@@ -411,8 +403,9 @@ export class BuilderSystem {
             ]);
 
             SYSTEMS.voxSystem.applyPendingAndUnfreezeMesh(this.targetVoxId);
-            // Uncomment to stop applying changes to help with reproducing bugs.
-            //SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
+            //
+            // Uncomment below to stop applying changes to help with reproducing bugs with brushes.
+            // SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
 
             this.pendingChunk = null;
           } else {
@@ -491,7 +484,7 @@ export class BuilderSystem {
       brushStartCell,
       brushFaceColor,
       brushFaceNormal,
-      brushSweep,
+      brushFaceSweep,
       brushEndCell,
       brushFace,
       brushVoxColor,
@@ -536,9 +529,14 @@ export class BuilderSystem {
       faceMaxY,
       faceMaxZ,
       rSq,
+      dx,
+      dy,
+      dz,
+      boxU,
+      boxV,
       filter = VOX_CHUNK_FILTERS.NONE;
 
-    if (brushType === BRUSH_TYPES.BOX || brushType == BRUSH_TYPES.FACE) {
+    if (brushType === BRUSH_TYPES.BOX || brushType === BRUSH_TYPES.FACE || brushType === BRUSH_TYPES.CENTER) {
       // Box and face slides are materialized in full here, whereas VOXEL is built-up
       pendingChunk.clear();
     }
@@ -573,7 +571,8 @@ export class BuilderSystem {
               boxMaxY = py + Math.ceil((brushSize - 1) / 2);
               boxMaxZ = pz + Math.ceil((brushSize - 1) / 2);
 
-              rSq = ((boxMaxX - boxMinX) * (boxMaxX - boxMinX)) / 4;
+              // Add a bit to the radius based upon visual tuning
+              rSq = ((boxMaxX - boxMinX) * (boxMaxX - boxMinX)) / 4 + (brushSize > 4 ? 1.0 : 0);
 
               pendingChunk.resizeToFit(boxMinX, boxMinY, boxMinZ);
               pendingChunk.resizeToFit(boxMaxX, boxMaxY, boxMaxZ);
@@ -629,8 +628,8 @@ export class BuilderSystem {
                       (brushMode === BRUSH_MODES.PAINT
                         ? 1
                         : brushMode === BRUSH_MODES.ADD
-                          ? brushSweep + 1
-                          : brushSweep);
+                          ? brushFaceSweep + 1
+                          : brushFaceSweep);
                       h++
                     ) {
                       if (!brushFace.hasVoxelAt(x, y, z)) continue;
@@ -678,6 +677,96 @@ export class BuilderSystem {
 
               break;
             case BRUSH_TYPES.CENTER:
+              // Edge point
+              px = brushEndCell.x * mx - offsetX;
+              py = brushEndCell.y * my - offsetY;
+              pz = brushEndCell.z * mz - offsetZ;
+
+              // Center point
+              qx = brushStartCell.x * mx - offsetX;
+              qy = brushStartCell.y * my - offsetY;
+              qz = brushStartCell.z * mz - offsetZ;
+
+              rSq = Math.max(Math.pow(px - qx, 2), Math.pow(py - qy, 2), Math.pow(pz - qz, 2)) + 1.5;
+
+              dx = Math.abs(px - qx);
+              dy = Math.abs(py - qy);
+              dz = Math.abs(pz - qz);
+
+              // Determine the shortest side, and use the two longest sides to build box.
+              if (Math.min(dx, dy, dz) === dz) {
+                boxU = Math.max(dx, dy);
+                boxV = dz;
+
+                boxMinX = qx - boxU;
+                boxMinY = qy - boxU;
+                boxMinZ = qz - boxV;
+
+                boxMaxX = qx + boxU;
+                boxMaxY = qy + boxU;
+                boxMaxZ = qz + boxV;
+              } else if (Math.min(dx, dy, dz) === dy) {
+                boxU = Math.max(dx, dz);
+                boxV = dy;
+
+                boxMinX = qx - boxU;
+                boxMinY = qy - boxV;
+                boxMinZ = qz - boxU;
+
+                boxMaxX = qx + boxU;
+                boxMaxY = qy + boxV;
+                boxMaxZ = qz + boxU;
+              } else {
+                boxU = Math.max(dy, dz);
+                boxV = dx;
+
+                boxMinX = qx - boxV;
+                boxMinY = qy - boxU;
+                boxMinZ = qz - boxU;
+
+                boxMaxX = qx + boxV;
+                boxMaxY = qy + boxU;
+                boxMaxZ = qz + boxU;
+              }
+
+              pendingChunk.resizeToFit(boxMinX, boxMinY, boxMinZ);
+              pendingChunk.resizeToFit(boxMaxX, boxMaxY, boxMaxZ);
+
+              [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(pendingChunk.size);
+
+              // Update pending to have a cell iff its in the box
+              loop: for (let x = minX; x <= maxX; x += 1) {
+                for (let y = minY; y <= maxY; y += 1) {
+                  for (let z = minZ; z <= maxZ; z += 1) {
+                    if (x >= boxMinX && x <= boxMaxX && y >= boxMinY && y <= boxMaxY && z >= boxMinZ && z <= boxMaxZ) {
+                      // Avoid removing last voxel
+                      if (brushMode === BRUSH_MODES.REMOVE && pendingChunk.getTotalNonEmptyVoxels() >= voxNumVoxels - 1)
+                        break loop;
+
+                      // With offset, brush is centered at zero.
+                      // If x, y, z is beyond radius for round brush, don't add it.
+                      const distSq = Math.pow(x - qx, 2.0) + Math.pow(y - qy, 2.0) + Math.pow(z - qz, 2.0);
+
+                      if (distSq > rSq) continue;
+
+                      pendingChunk.setColorAt(
+                        x,
+                        y,
+                        z,
+                        brushMode === BRUSH_MODES.REMOVE ? REMOVE_VOXEL_COLOR : brushVoxColor
+                      );
+                    }
+                  }
+                }
+              }
+
+              filter =
+                brushMode === BRUSH_MODES.ADD
+                  ? VOX_CHUNK_FILTERS.NONE
+                  : brushMode === BRUSH_MODES.PAINT
+                    ? VOX_CHUNK_FILTERS.PAINT
+                    : VOX_CHUNK_FILTERS.NONE;
+
               break;
             case BRUSH_TYPES.BOX:
               // Box corner 1 (origin is at start cell)
@@ -846,7 +935,7 @@ export class BuilderSystem {
 
       // Crawl the face to find the mask to use for this stroke
       [this.brushFaceColor, this.brushFace] = this.crawlFaceAt(hitCell, omitAxis);
-      this.brushSweep = 1;
+      this.brushFaceSweep = 1;
 
       // The plane to use for dragging is the one which is most
       // aligned with the ray from the cell to the eye. (excluding planes flush
