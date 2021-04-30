@@ -114,7 +114,18 @@ export const SCHEMA = {
         launcherSlot7: { type: "string" },
         launcherSlot8: { type: "string" },
         launcherSlot9: { type: "string" },
-        launcherSlot10: { type: "string" }
+        launcherSlot10: { type: "string" },
+        color: { type: "string" },
+        colorSlot1: { type: "string" },
+        colorSlot2: { type: "string" },
+        colorSlot3: { type: "string" },
+        colorSlot4: { type: "string" },
+        colorSlot5: { type: "string" },
+        colorSlot6: { type: "string" },
+        colorSlot7: { type: "string" },
+        colorSlot8: { type: "string" },
+        colorSlot9: { type: "string" },
+        colorSlot10: { type: "string" }
       }
     },
 
