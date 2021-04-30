@@ -246,6 +246,7 @@ export class BuilderSystem {
         raycaster.ray.origin = cursorPose.position;
         raycaster.ray.direction = cursorPose.direction;
         intersectTargets[0] = this.sweepPlane;
+        this.sweepPlane.updateMatrices();
         rawIntersections.length = 0;
         raycaster.intersectObjects(intersectTargets, true, rawIntersections);
 
@@ -802,6 +803,7 @@ export class BuilderSystem {
 
       // Crawl the face to find the mask to use for this stroke
       this.brushFace = this.crawlFaceAt(hitCell, omitAxis);
+      this.brushSweep = 1;
 
       // The plane to use for dragging is the one which is most
       // aligned with the ray from the cell to the eye. (excluding planes flush
