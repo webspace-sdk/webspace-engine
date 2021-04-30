@@ -3,10 +3,9 @@ import PropTypes from "prop-types";
 import Tooltip from "./tooltip";
 import { useSingleton } from "@tippyjs/react";
 import styled from "styled-components";
-import { imageUrlForEmoji } from "../../hubs/utils/media-url-utils";
 import { getMessages } from "../../hubs/utils/i18n";
 
-const EmojiEquipElement = styled.div`
+const ColorEquipElement = styled.div`
   padding: 0;
   margin: 0;
   position: relative;
@@ -16,7 +15,7 @@ const EmojiEquipElement = styled.div`
   margin-bottom: 12px;
 `;
 
-const EmojiEquipOuter = styled.div`
+const ColorEquipOuter = styled.div`
   padding: 0;
   margin: 0;
   position: absolute;
@@ -27,7 +26,7 @@ const EmojiEquipOuter = styled.div`
   display: flex;
 `;
 
-const EmojiEquipInner = styled.div`
+const ColorEquipInner = styled.div`
   position: relative;
   padding: 0;
   margin: 0;
@@ -39,86 +38,87 @@ const EmojiEquipInner = styled.div`
 
   & svg {
     color: var(--secondary-panel-item-background-color);
+    opacity: 0.8;
   }
 
   &.slot-0-hover svg.slot-0 {
-    color: var(--panel-item-hover-background-color);
+    opacity: 1;
   }
 
   &.slot-1-hover svg.slot-1 {
-    color: var(--panel-item-hover-background-color);
+    opacity: 1;
   }
 
   &.slot-2-hover svg.slot-2 {
-    color: var(--panel-item-hover-background-color);
+    opacity: 1;
   }
 
   &.slot-3-hover svg.slot-3 {
-    color: var(--panel-item-hover-background-color);
+    opacity: 1;
   }
 
   &.slot-4-hover svg.slot-4 {
-    color: var(--panel-item-hover-background-color);
+    opacity: 1;
   }
 
   &.slot-5-hover svg.slot-5 {
-    color: var(--panel-item-hover-background-color);
+    opacity: 1;
   }
 
   &.slot-6-hover svg.slot-6 {
-    color: var(--panel-item-hover-background-color);
+    opacity: 1;
   }
 
   &.slot-7-hover svg.slot-7 {
-    color: var(--panel-item-hover-background-color);
+    opacity: 1;
   }
 
   &.slot-8-hover svg.slot-8 {
-    color: var(--panel-item-hover-background-color);
+    opacity: 1;
   }
 
   &.slot-9-hover svg.slot-9 {
-    color: var(--panel-item-hover-background-color);
+    opacity: 1;
   }
 
   &.slot-0-active svg.slot-0 {
-    color: var(--panel-item-active-background-color);
+    opacity: 0.9;
   }
 
   &.slot-1-active svg.slot-1 {
-    color: var(--panel-item-active-background-color);
+    opacity: 0.9;
   }
 
   &.slot-2-active svg.slot-2 {
-    color: var(--panel-item-active-background-color);
+    opacity: 0.9;
   }
 
   &.slot-3-active svg.slot-3 {
-    color: var(--panel-item-active-background-color);
+    opacity: 0.9;
   }
 
   &.slot-4-active svg.slot-4 {
-    color: var(--panel-item-active-background-color);
+    opacity: 0.9;
   }
 
   &.slot-5-active svg.slot-5 {
-    color: var(--panel-item-active-background-color);
+    opacity: 0.9;
   }
 
   &.slot-6-active svg.slot-6 {
-    color: var(--panel-item-active-background-color);
+    opacity: 0.9;
   }
 
   &.slot-7-active svg.slot-7 {
-    color: var(--panel-item-active-background-color);
+    opacity: 0.9;
   }
 
   &.slot-8-active svg.slot-8 {
-    color: var(--panel-item-active-background-color);
+    opacity: 0.9;
   }
 
   &.slot-9-active svg.slot-9 {
-    color: var(--panel-item-active-background-color);
+    opacity: 0.9;
   }
 `;
 
@@ -175,15 +175,9 @@ const SelectedButton = styled.button`
   border: 8px solid transparent;
   border-radius: 32px;
 
-  &:hover {
-    transform: translateY(-2px);
-    background-color: var(--panel-item-hover-background-color);
-    border-color: var(--panel-item-hover-background-color);
-  }
-
   &:active {
     transition-duration: 0s;
-    transform: translateY(-1px);
+    transform: translateY(1px);
   }
 
   &[data-selected-slot] {
@@ -218,40 +212,37 @@ const SLOT_SLICE_TRANSFORMS = [
   "rotate(234) translate(-23.96, -7.79)"
 ];
 
-const buildEmojisFromStore = store => {
+const buildColorsFromStore = store => {
   const storeState = store.state.equips;
   return [
-    storeState.launcherSlot1,
-    storeState.launcherSlot2,
-    storeState.launcherSlot3,
-    storeState.launcherSlot4,
-    storeState.launcherSlot5,
-    storeState.launcherSlot6,
-    storeState.launcherSlot7,
-    storeState.launcherSlot8,
-    storeState.launcherSlot9,
-    storeState.launcherSlot10
-  ].map(emoji => {
-    return { emoji, imageUrl: imageUrlForEmoji(emoji, 64) };
-  });
+    storeState.colorSlot1,
+    storeState.colorSlot2,
+    storeState.colorSlot3,
+    storeState.colorSlot4,
+    storeState.colorSlot5,
+    storeState.colorSlot6,
+    storeState.colorSlot7,
+    storeState.colorSlot8,
+    storeState.colorSlot9,
+    storeState.colorSlot10
+  ];
 };
 
-const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
+const ColorEquip = forwardRef(({ onSelectedColorClicked }, ref) => {
   const store = window.APP.store;
   const messages = getMessages();
 
   const [hoverSlot, setHoverSlot] = useState(null);
   const [isClicking, setIsClicking] = useState(false);
-  const [emojis, setEmojis] = useState(buildEmojisFromStore(store));
+  const [colors, setColors] = useState(buildColorsFromStore(store));
   const [selectedSlot, setSelectedSlot] = useState(
-    emojis.indexOf(emojis.find(({ emoji }) => emoji === store.state.equips.launcher))
+    colors.indexOf(colors.find(({ color }) => color === store.state.equips.color))
   );
   const [tipSource, tipTarget] = useSingleton();
 
-  const selectedEmoji = store.state.equips.launcher;
-  const selectedEmojiImageUrl = imageUrlForEmoji(selectedEmoji, 128);
+  const selectedColor = store.state.equips.color;
 
-  // Animate center emoji when slot changes.
+  // Animate center color when slot changes.
   useEffect(
     () => {
       if (!ref || !ref.current) return;
@@ -269,27 +260,27 @@ const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
   useEffect(
     () => {
       const handler = () => {
-        const emojis = buildEmojisFromStore(store);
-        setEmojis(emojis);
-        const selectedSlot = emojis.indexOf(emojis.find(({ emoji }) => emoji === store.state.equips.launcher));
+        const colors = buildColorsFromStore(store);
+        setColors(colors);
+        const selectedSlot = colors.indexOf(colors.find(({ color }) => color === store.state.equips.color));
         setSelectedSlot(selectedSlot);
       };
       store.addEventListener("statechanged-equips", handler);
       return () => store.removeEventListener("statechanged-equips", handler);
     },
-    [store, setEmojis, setSelectedSlot]
+    [store, setColors, setSelectedSlot]
   );
 
   return (
-    <EmojiEquipElement>
+    <ColorEquipElement>
       <Tooltip delay={750} singleton={tipSource} />
 
-      <EmojiEquipOuter>
-        <EmojiEquipInner className={hoverSlot !== null ? `slot-${hoverSlot}-${isClicking ? "active" : "hover"}` : ""}>
-          {emojis.length > 0 &&
+      <ColorEquipOuter>
+        <ColorEquipInner className={hoverSlot !== null ? `slot-${hoverSlot}-${isClicking ? "active" : "hover"}` : ""}>
+          {colors.length > 0 &&
             SLOT_BUTTON_OFFSETS.map(([left, top], idx) => (
               <Tooltip
-                content={messages[`emoji-equip.slot-${idx}-tip`].replaceAll("EMOJI", emojis[idx].emoji)}
+                content={messages[`color-equip.slot-${idx}-tip`].replaceAll("COLOR", colors[idx])}
                 placement="left"
                 key={`slot-${idx}-tip`}
                 singleton={tipTarget}
@@ -301,29 +292,29 @@ const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
                   onMouseOut={() => setHoverSlot(null)}
                   onMouseDown={() => setIsClicking(true)}
                   onMouseUp={() => setIsClicking(false)}
-                  onClick={() => store.update({ equips: { launcher: emojis[idx].emoji } })}
-                >
-                  <img crossOrigin="anonymous" src={emojis[idx].imageUrl} />
-                </SlotButton>
+                  onClick={() => store.update({ equips: { color: colors[idx] } })}
+                />
               </Tooltip>
             ))}
           <Tooltip
-            content={messages[`emoji-equip.select-slot`]}
+            content={messages[`color-equip.select-slot`]}
             placement="left"
             key={`slot-choose-tip`}
             singleton={tipTarget}
           >
-            <SelectedButton ref={ref} onClick={() => onSelectedEmojiClicked()}>
-              <img crossOrigin="anonymous" src={selectedEmojiImageUrl} />
-            </SelectedButton>
+            <SelectedButton
+              ref={ref}
+              style={{ backgroundColor: selectedColor }}
+              onClick={() => onSelectedColorClicked()}
+            />
           </Tooltip>
 
-          {emojis.length > 0 &&
+          {colors.length > 0 &&
             SLOT_SLICE_TRANSFORMS.map((transform, idx) => (
               <svg
                 key={idx}
                 className={`slot-${idx}`}
-                style={{ position: "absolute", left: "calc(-10%)", zIndex: "6" }}
+                style={{ position: "absolute", left: "calc(-10%)", zIndex: "6", color: colors[idx] }}
                 height="120%"
                 width="120%"
                 viewBox="0 0 20 20"
@@ -333,23 +324,23 @@ const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
                   cx="10"
                   cy="10"
                   fill="transparent"
-                  stroke={selectedSlot === idx ? "var(--panel-item-active-background-color)" : "currentColor"}
-                  strokeWidth="4"
+                  stroke="currentColor"
+                  strokeWidth="3"
                   strokeDasharray="3.14 31.42"
                   transform={transform}
                 />
               </svg>
             ))}
-        </EmojiEquipInner>
-      </EmojiEquipOuter>
-    </EmojiEquipElement>
+        </ColorEquipInner>
+      </ColorEquipOuter>
+    </ColorEquipElement>
   );
 });
 
-EmojiEquip.displayName = "EmojiEquip";
+ColorEquip.displayName = "ColorEquip";
 
-EmojiEquip.propTypes = {
-  onSelectedEmojiClicked: PropTypes.func
+ColorEquip.propTypes = {
+  onSelectedColorClicked: PropTypes.func
 };
 
-export { EmojiEquip as default };
+export { ColorEquip as default };
