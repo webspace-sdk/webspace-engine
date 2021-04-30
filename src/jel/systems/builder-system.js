@@ -47,7 +47,8 @@ const xyzToInt = (x, y, z) =>
 const BRUSH_TYPES = {
   VOXEL: 0,
   BOX: 1,
-  FACE: 2
+  FACE: 2,
+  CENTER: 3
 };
 
 const BRUSH_MODES = {
@@ -89,12 +90,14 @@ export class BuilderSystem {
     this.sawLeftButtonUpWithShift = false;
     this.targetVoxId = null;
     this.targetVoxFrame = null;
+    this.targetVoxInstanceMatrixWorld = new Matrix4();
+    this.targetVoxInstanceScale = 1.0;
     this.brushStartCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushStartWorldPoint = new Vector3(Infinity, Infinity, Infinity);
     this.brushFaceNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushFaceWorldNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
-    this.brushType = BRUSH_TYPES.FACE;
+    this.brushType = BRUSH_TYPES.CENTER;
     this.brushMode = BRUSH_MODES.ADD;
     this.brushColorFillMode = BRUSH_COLOR_FILL_MODE.SELECTED;
     this.brushShape = BRUSH_SHAPES.BOX;
@@ -108,7 +111,7 @@ export class BuilderSystem {
     this.mirrorX = false;
     this.mirrorY = false;
     this.mirrorZ = false;
-    this.brushVoxColor = voxColorForRGBT(128, 128, 0);
+    this.brushVoxColor = voxColorForRGBT(24, 0, 192);
     this.pendingChunk = null;
     this.hasInFlightOperation = false;
     this.ignoreRestOfStroke = false;
@@ -207,7 +210,7 @@ export class BuilderSystem {
     const hitNormal = new Vector3();
     const adjacentCell = new Vector3();
     const startToSweep = new Vector3();
-    const tmpMatrix = new Matrix4();
+    const tmpScale = new Vector3();
     const raycaster = new Raycaster();
     const intersectTargets = [null];
     const rawIntersections = [];
@@ -271,7 +274,7 @@ export class BuilderSystem {
 
           if ((dot >= 0.01 && brushMode === BRUSH_MODES.ADD) || (dot <= -0.01 && brushMode === BRUSH_MODES.REMOVE)) {
             const dist = sweepHitPoint.distanceTo(brushStartWorldPoint);
-            const newBrushSweep = Math.floor(Math.max(1.0, dist / VOXEL_SIZE));
+            const newBrushSweep = Math.floor(Math.max(1.0, (dist / VOXEL_SIZE) * (1.0 / this.targetVoxInstanceScale)));
 
             if (newBrushSweep !== this.brushSweep) {
               this.brushSweep = newBrushSweep;
@@ -306,6 +309,16 @@ export class BuilderSystem {
               this.targetVoxId = hitVoxId;
               this.targetVoxFrame = SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
 
+              if (typeof hitInstanceId === "number") {
+                hitObject.getMatrixAt(hitInstanceId, this.targetVoxInstanceMatrixWorld);
+              } else {
+                hitObject.updateMatrices();
+                this.targetVoxInstanceMatrixWorld.copy(hitObject.matrixWorld);
+              }
+
+              const elements = this.targetVoxInstanceMatrixWorld.elements;
+              this.targetVoxInstanceScale = tmpScale.set(elements[0], elements[1], elements[2]).length();
+
               brushStartCell.copy(cellToBrush);
               brushEndCell.copy(cellToBrush);
               updatePending = true;
@@ -316,16 +329,9 @@ export class BuilderSystem {
             this.isBrushing = true;
             brushStartWorldPoint.copy(intersection.point);
 
-            if (typeof hitInstanceId === "number") {
-              hitObject.getMatrixAt(hitInstanceId, tmpMatrix);
-            } else {
-              hitObject.updateMatrices();
-              tmpMatrix.copy(hitObject.matrixWorld);
-            }
-
             brushFaceNormal.copy(hitNormal);
             brushFaceWorldNormal.copy(hitNormal);
-            brushFaceWorldNormal.transformDirection(tmpMatrix);
+            brushFaceWorldNormal.transformDirection(this.targetVoxInstanceMatrixWorld);
 
             if (this.brushType === BRUSH_TYPES.FACE) {
               this.startFaceBrushStroke(hitCell, hitNormal, hitWorldPoint, hitObject, hitInstanceId);
@@ -671,6 +677,8 @@ export class BuilderSystem {
                     : VOX_CHUNK_FILTERS.NONE;
 
               break;
+            case BRUSH_TYPES.CENTER:
+              break;
             case BRUSH_TYPES.BOX:
               // Box corner 1 (origin is at start cell)
               px = brushEndCell.x * mx - offsetX;
@@ -859,11 +867,14 @@ export class BuilderSystem {
 
       let maxDot = -Infinity;
 
-      // Check all 6 planes, skipping the two aligned with the cell hit face
+      // Check all 6 planes, skipping ones aligned with face clicked.
       for (let nAxis = -3; nAxis <= 3; nAxis++) {
         if (nAxis === 0) continue;
         const axis = Math.abs(nAxis);
         const sign = nAxis < 0 ? -1 : 1;
+        if (axis === 1 && Math.abs(hitNormal.x) !== 0) continue;
+        if (axis === 2 && Math.abs(hitNormal.y) !== 0) continue;
+        if (axis === 3 && Math.abs(hitNormal.z) !== 0) continue;
 
         tmpNormal.set((axis == 1 ? 1 : 0) * sign, (axis == 2 ? 1 : 0) * sign, (axis == 3 ? 1 : 0) * sign);
         tmpNormal.transformDirection(worldMatrix);
