@@ -86,7 +86,7 @@ export class BuilderSystem {
     this.brushFaceNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushFaceWorldNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
-    this.brushType = BRUSH_TYPES.PICK;
+    this.brushType = BRUSH_TYPES.FILL;
     this.brushMode = BRUSH_MODES.ADD;
     this.brushColorFillMode = BRUSH_COLOR_FILL_MODE.SELECTED;
     this.brushShape = BRUSH_SHAPES.BOX;
@@ -344,7 +344,9 @@ export class BuilderSystem {
 
               // Update the pending chunk + apply it immediately
               SYSTEMS.voxSystem.setPendingVoxChunk(this.targetVoxId, this.pendingChunk, 0, 0, 0);
+              this.pushToUndoStack(this.targetVoxId, this.targetVoxFrame, this.pendingChunk, [0, 0, 0]);
               SYSTEMS.voxSystem.applyPendingAndUnfreezeMesh(this.targetVoxId);
+              this.pendingChunk = null;
 
               // Fill is one-and-done, and ignores mode
               updatePending = false;
