@@ -584,6 +584,7 @@ export class VoxSystem extends EventTarget {
         // Apply any ephemeral pending (eg from voxel brushes.)
         if (pendingVoxChunk) {
           chunk = chunk.clone();
+
           vox0.applyToChunk(
             pendingVoxChunk,
             chunk,

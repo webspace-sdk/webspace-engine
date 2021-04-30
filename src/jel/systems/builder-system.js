@@ -30,7 +30,8 @@ const BRUSH_TYPES = {
   VOXEL: 0,
   BOX: 1,
   FACE: 2,
-  CENTER: 3
+  CENTER: 3,
+  FILL: 4
 };
 
 const BRUSH_MODES = {
@@ -83,7 +84,7 @@ export class BuilderSystem {
     this.brushFaceNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushFaceWorldNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
-    this.brushType = BRUSH_TYPES.CENTER;
+    this.brushType = BRUSH_TYPES.FILL;
     this.brushMode = BRUSH_MODES.ADD;
     this.brushColorFillMode = BRUSH_COLOR_FILL_MODE.SELECTED;
     this.brushShape = BRUSH_SHAPES.BOX;
@@ -97,7 +98,7 @@ export class BuilderSystem {
     this.mirrorX = false;
     this.mirrorY = false;
     this.mirrorZ = false;
-    this.brushVoxColor = voxColorForRGBT(24, 0, 192);
+    this.brushVoxColor = voxColorForRGBT(100, 0, 192);
     this.pendingChunk = null;
     this.hasInFlightOperation = false;
     this.ignoreRestOfStroke = false;
@@ -325,11 +326,22 @@ export class BuilderSystem {
             brushFaceWorldNormal.copy(hitNormal);
             brushFaceWorldNormal.transformDirection(this.targetVoxInstanceMatrixWorld);
 
+            updatePending = true;
+
             if (this.brushType === BRUSH_TYPES.FACE) {
               this.startFaceBrushStroke(hitCell, hitNormal, hitWorldPoint, hitObject, hitInstanceId);
-            }
+            } else if (this.brushType === BRUSH_TYPES.FILL) {
+              // For fill crawl the whole thing.
+              [, this.pendingChunk] = this.crawlIntoChunkAt(hitCell, 0, this.brushVoxColor);
 
-            updatePending = true;
+              // Update the pending chunk + apply it immediately
+              SYSTEMS.voxSystem.setPendingVoxChunk(this.targetVoxId, this.pendingChunk, 0, 0, 0);
+              SYSTEMS.voxSystem.applyPendingAndUnfreezeMesh(this.targetVoxId);
+
+              // Fill is one-and-done, and ignores mode
+              updatePending = false;
+              this.ignoreRestOfStroke = true;
+            }
           }
 
           if (!brushEndCell.equals(cellToBrush)) {
@@ -934,7 +946,7 @@ export class BuilderSystem {
         Math.abs(hitNormal.x) !== 0 ? hitNormal.x * 1 : Math.abs(hitNormal.y) !== 0 ? hitNormal.y * 2 : hitNormal.z * 3;
 
       // Crawl the face to find the mask to use for this stroke
-      [this.brushFaceColor, this.brushFace] = this.crawlFaceAt(hitCell, omitAxis);
+      [this.brushFaceColor, this.brushFace] = this.crawlIntoChunkAt(hitCell, omitAxis);
       this.brushFaceSweep = 1;
 
       // The plane to use for dragging is the one which is most
@@ -987,14 +999,14 @@ export class BuilderSystem {
   //
   // omitAxis: 1 - x, 2 - y, 3 - z
   //   axis to not crawl along, positive or negative direction
-  crawlFaceAt = (() => {
+  crawlIntoChunkAt = (() => {
     // Set of already crawled cells.
     const crawled = new Set();
 
     // Cells enqueued to crawl.
     const queue = [];
 
-    return (origin, omitAxis = 0) => {
+    return (origin, omitAxis = 0, fillColor = null) => {
       const { targetVoxId, targetVoxFrame, brushCrawlType, brushCrawlExtents } = this;
       const color = SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, origin.x, origin.y, origin.z);
 
@@ -1035,7 +1047,7 @@ export class BuilderSystem {
         const wz = omitZ ? 0 : z;
 
         chunk.resizeToFit(wx, wy, wz);
-        chunk.setColorAt(wx, wy, wz, c);
+        chunk.setColorAt(wx, wy, wz, fillColor !== null ? fillColor : c);
 
         for (let dx = -1; dx <= 1; dx++) {
           for (let dy = -1; dy <= 1; dy++) {
@@ -1061,17 +1073,23 @@ export class BuilderSystem {
 
               if (!inRange) continue;
 
-              // Stop crawling if there's a filled cell along the omitted axis
-              // (Meaning the face is cut off here in the ommitted axis direction)
-              const lx = cx + (omitX ? 1 : 0) * omitSign;
-              const ly = cy + (omitY ? 1 : 0) * omitSign;
-              const lz = cz + (omitZ ? 1 : 0) * omitSign;
+              if (omitAxis !== 0) {
+                // Stop crawling if there's a filled cell along the omitted axis
+                // (Meaning the face is cut off here in the ommitted axis direction)
+                const lx = cx + (omitX ? 1 : 0) * omitSign;
+                const ly = cy + (omitY ? 1 : 0) * omitSign;
+                const lz = cz + (omitZ ? 1 : 0) * omitSign;
 
-              const axisCheckInRange = lx >= minX && lx <= maxX && ly >= minY && ly <= maxY && lz >= minZ && lz <= maxZ;
+                const axisCheckInRange =
+                  lx >= minX && lx <= maxX && ly >= minY && ly <= maxY && lz >= minZ && lz <= maxZ;
 
-              // The cell we're about to add is blocked along the omission axis, meaning it should not be considered part of the crawled face.
-              if (axisCheckInRange && SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, lx, ly, lz) !== null)
-                continue;
+                // The cell we're about to add is blocked along the omission axis, meaning it should not be considered part of the crawled face.
+                if (
+                  axisCheckInRange &&
+                  SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, lx, ly, lz) !== null
+                )
+                  continue;
+              }
 
               // Don't re-visit cells.
               if (crawled.has(xyzToInt(cx, cy, cz))) continue;

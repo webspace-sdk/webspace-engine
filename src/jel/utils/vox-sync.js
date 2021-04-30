@@ -75,6 +75,7 @@ export default class VoxSync extends EventTarget {
   }
 
   async applyChunk(chunk, frame, offset) {
+    await this._whenReady;
     this._submitOp({ f: frame, d: chunk.serialize(), o: offset });
   }
 
