@@ -5,17 +5,17 @@ import classNames from "classnames";
 import ColorEquip from "./color-equip";
 window.APP.store.update({
   equips: {
-    color: "#FF0000",
-    colorSlot1: "#FA8C1B",
-    colorSlot2: "#AC83C1",
-    colorSlot3: "#FA0AB1",
-    colorSlot4: "#9A8322",
-    colorSlot5: "#8D1D2B",
-    colorSlot6: "#0438CA",
-    colorSlot7: "#FFFFFF",
-    colorSlot8: "#F8A2B9",
-    colorSlot9: "#93D303",
-    colorSlot10: "#A2B300"
+    color: [200, 0, 0],
+    colorSlot1: [120, 239, 21],
+    colorSlot2: [231, 200, 12],
+    colorSlot3: [22, 230, 44],
+    colorSlot4: [22, 230, 44],
+    colorSlot5: [22, 230, 44],
+    colorSlot6: [22, 230, 44],
+    colorSlot7: [242, 230, 44],
+    colorSlot8: [22, 230, 44],
+    colorSlot9: [22, 230, 44],
+    colorSlot10: [22, 230, 44]
   }
 });
 

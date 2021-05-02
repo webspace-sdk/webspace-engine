@@ -115,17 +115,17 @@ export const SCHEMA = {
         launcherSlot8: { type: "string" },
         launcherSlot9: { type: "string" },
         launcherSlot10: { type: "string" },
-        color: { type: "string" },
-        colorSlot1: { type: "string" },
-        colorSlot2: { type: "string" },
-        colorSlot3: { type: "string" },
-        colorSlot4: { type: "string" },
-        colorSlot5: { type: "string" },
-        colorSlot6: { type: "string" },
-        colorSlot7: { type: "string" },
-        colorSlot8: { type: "string" },
-        colorSlot9: { type: "string" },
-        colorSlot10: { type: "string" }
+        color: { type: "array" },
+        colorSlot1: { type: "array" },
+        colorSlot2: { type: "array" },
+        colorSlot3: { type: "array" },
+        colorSlot4: { type: "array" },
+        colorSlot5: { type: "array" },
+        colorSlot6: { type: "array" },
+        colorSlot7: { type: "array" },
+        colorSlot8: { type: "array" },
+        colorSlot9: { type: "array" },
+        colorSlot10: { type: "array" }
       }
     },
 
@@ -311,6 +311,24 @@ export default class Store extends EventTarget {
           launcherSlot8: "👍",
           launcherSlot9: "👏",
           launcherSlot10: "❤"
+        }
+      });
+    }
+
+    if (!this.state.equips.color) {
+      this.update({
+        equips: {
+          color: [200, 0, 0],
+          colorSlot1: [120, 239, 21],
+          colorSlot2: [231, 200, 12],
+          colorSlot3: [22, 230, 44],
+          colorSlot4: [22, 230, 44],
+          colorSlot5: [22, 230, 44],
+          colorSlot6: [22, 230, 44],
+          colorSlot7: [242, 230, 44],
+          colorSlot8: [22, 230, 44],
+          colorSlot9: [22, 230, 44],
+          colorSlot10: [22, 230, 44]
         }
       });
     }

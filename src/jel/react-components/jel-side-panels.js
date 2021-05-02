@@ -8,6 +8,7 @@ import ActionButton from "./action-button";
 import TinyOutlineIconButton from "./tiny-outline-icon-button";
 import SelfPanel from "./self-panel";
 import BridgePanel from "./bridge-panel";
+import BuilderControls from "./builder-controls";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
 import notificationsIcon from "../../assets/jel/images/icons/notifications.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
@@ -22,6 +23,7 @@ import PresenceList from "./presence-list";
 import Tooltip from "./tooltip";
 import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
 import EmojiEquip from "./emoji-equip";
+import ColorEquip from "./color-equip";
 import inviteIcon from "../../assets/jel/images/icons/invite.svgi";
 import trashIcon from "../../assets/jel/images/icons/trash.svgi";
 import { getMessages } from "../../hubs/utils/i18n";
@@ -82,8 +84,16 @@ const Right = styled.div`
 const PresenceContent = styled.div`
   flex: 1 1 auto;
   width: 100%;
-  height: calc(100% - 330px);
+  height: calc(100% - 730px);
   padding: 16px 0;
+
+  &.build {
+    height: calc(100% - 630px);
+  }
+
+  &.blast {
+    height: calc(100% - 330px);
+  }
 `;
 
 const BlasterContent = styled.div`
@@ -91,6 +101,14 @@ const BlasterContent = styled.div`
   width: 100%;
   height: 240px;
   min-height: 240px;
+  padding: 8px 0;
+`;
+
+const BuilderContent = styled.div`
+  flex: 1 1 auto;
+  width: 100%;
+  height: 540px;
+  min-height: 440px;
   padding: 8px 0;
 `;
 
@@ -607,7 +625,7 @@ function JelSidePanels({
         </Nav>
       </Left>
       <Right>
-        <PresenceContent>
+        <PresenceContent className="build">
           <PresenceList
             hubMetadata={hubMetadata}
             hubCan={hubCan}
@@ -627,13 +645,19 @@ function JelSidePanels({
             }}
           />
         </PresenceContent>
+        {isWorld &&
+          false && (
+            <BlasterContent>
+              <PanelSectionHeader style={{ height: "16px" }}>
+                <FormattedMessage id="blaster.header" />
+              </PanelSectionHeader>
+              <EmojiEquip ref={emojiEquipRef} onSelectedEmojiClicked={onSelectedEmojiClicked} />
+            </BlasterContent>
+          )}
         {isWorld && (
-          <BlasterContent>
-            <PanelSectionHeader style={{ height: "16px" }}>
-              <FormattedMessage id="blaster.header" />
-            </PanelSectionHeader>
-            <EmojiEquip ref={emojiEquipRef} onSelectedEmojiClicked={onSelectedEmojiClicked} />
-          </BlasterContent>
+          <BuilderContent>
+            <BuilderControls />
+          </BuilderContent>
         )}
         {isWorld && <BridgePanel scene={scene} spaceCan={spaceCan} />}
       </Right>

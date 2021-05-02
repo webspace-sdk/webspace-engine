@@ -304,7 +304,7 @@ const ColorEquip = forwardRef(({ onSelectedColorClicked }, ref) => {
           >
             <SelectedButton
               ref={ref}
-              style={{ backgroundColor: selectedColor }}
+              style={{ backgroundColor: `rgba(${selectedColor[0]}, ${selectedColor[1]}, ${selectedColor[2]})` }}
               onClick={() => onSelectedColorClicked()}
             />
           </Tooltip>
@@ -314,7 +314,12 @@ const ColorEquip = forwardRef(({ onSelectedColorClicked }, ref) => {
               <svg
                 key={idx}
                 className={`slot-${idx}`}
-                style={{ position: "absolute", left: "calc(-10%)", zIndex: "6", color: colors[idx] }}
+                style={{
+                  position: "absolute",
+                  left: "calc(-10%)",
+                  zIndex: "6",
+                  color: `rgba(${colors[idx][0]}, ${colors[idx][1]}, ${colors[idx][2]}`
+                }}
                 height="120%"
                 width="120%"
                 viewBox="0 0 20 20"
