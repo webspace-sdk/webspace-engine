@@ -5,6 +5,14 @@ import { ObjectContentOrigins } from "../../hubs/object-types";
 import { getWorldColor } from "../objects/terrain";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import {
+  BRUSH_TYPES,
+  BRUSH_MODES,
+  BRUSH_SHAPES,
+  BRUSH_CRAWL_TYPES,
+  BRUSH_CRAWL_EXTENTS,
+  BRUSH_COLOR_FILL_MODE
+} from "../constants";
+import {
   VoxChunk,
   xyzRangeForSize,
   voxColorForRGBT,
@@ -26,41 +34,6 @@ const HALF_MAX_VOX_SIZE = Math.floor(MAX_VOX_SIZE / 2);
 // Converts x, y, z of a vox to a unique int key
 const xyzToInt = (x, y, z) =>
   ((x + HALF_MAX_VOX_SIZE + 1) << 16) | ((y + HALF_MAX_VOX_SIZE + 1) << 8) | (z + HALF_MAX_VOX_SIZE + 1);
-
-const BRUSH_TYPES = {
-  VOXEL: 0,
-  BOX: 1,
-  FACE: 2,
-  CENTER: 3,
-  FILL: 4,
-  PICK: 5
-};
-
-const BRUSH_MODES = {
-  ADD: 0,
-  REMOVE: 1,
-  PAINT: 2
-};
-
-const BRUSH_SHAPES = {
-  BOX: 0,
-  SPHERE: 1
-};
-
-const BRUSH_CRAWL_TYPES = {
-  GEO: 0,
-  COLOR: 1
-};
-
-const BRUSH_CRAWL_EXTENTS = {
-  NSEW: 0,
-  ALL: 1
-};
-
-const BRUSH_COLOR_FILL_MODE = {
-  SELECTED: 0,
-  EXISTING: 1
-};
 
 // Deals with block building
 export class BuilderSystem {

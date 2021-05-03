@@ -91,7 +91,7 @@ const SegmentButtonIcon = styled.div`
 `;
 
 const SegmentControl = forwardRef((props, ref) => {
-  const { items, rows, cols, selectedId, onChange } = props;
+  const { items, rows, cols, selectedIndices, onChange } = props;
 
   const cssRows = new Array(rows).fill("32px").join(" ");
   const cssCols = new Array(cols).fill("40px").join(" ");
@@ -132,10 +132,10 @@ const SegmentControl = forwardRef((props, ref) => {
         return (
           <SegmentButton
             key={id}
-            className={selectedId === id ? `selected ${cssClass}` : cssClass}
+            className={selectedIndices.includes(idx) ? `selected ${cssClass}` : cssClass}
             onClick={() => {
               if (onChange) {
-                onChange(id);
+                onChange(id, idx);
               }
             }}
           >
@@ -154,7 +154,7 @@ SegmentControl.propTypes = {
   items: PropTypes.array,
   rows: PropTypes.number,
   cols: PropTypes.number,
-  selectedId: PropTypes.string,
+  selectedIndices: PropTypes.array,
   onChange: PropTypes.func
 };
 
