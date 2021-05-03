@@ -1,7 +1,7 @@
 export const BRUSH_TYPES = {
   VOXEL: 0,
-  BOX: 1,
-  FACE: 2,
+  FACE: 1,
+  BOX: 2,
   CENTER: 3,
   FILL: 4,
   PICK: 5

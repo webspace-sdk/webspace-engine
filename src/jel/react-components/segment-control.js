@@ -1,10 +1,14 @@
 import PropTypes from "prop-types";
 import React, { forwardRef } from "react";
+import Tooltip from "./tooltip";
+import { useSingleton } from "@tippyjs/react";
+import { getMessages } from "../../hubs/utils/i18n";
 
 import styled from "styled-components";
 
 const SegmentControlElement = styled.div`
   display: grid;
+  margin: 0 12px 0 12px;
 `;
 
 const SegmentButton = styled.button`
@@ -12,9 +16,8 @@ const SegmentButton = styled.button`
   -moz-appearance: none;
   -webkit-appearance: none;
   outline-style: none;
-  background-color: var(--action-button-background-color);
   border: 1px solid var(--action-button-border-color);
-  color: var(--action-button-text-color);
+  background-color: var(--tiny-icon-button-background-color);
   font-weight: var(--tiny-action-button-text-weight);
   font-size: var(--tiny-action-button-text-size);
   padding: 4px 18px;
@@ -22,6 +25,14 @@ const SegmentButton = styled.button`
   position: relative;
   white-space: nowrap;
   height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  &.selected {
+    background-color: var(--action-button-background-color);
+    color: var(--action-button-text-color);
+  }
 
   &:hover {
     background-color: var(--action-button-hover-background-color);
@@ -66,11 +77,6 @@ const SegmentButton = styled.button`
   &.bottom-left-right {
     border-radius: 0 0 6px 6px;
   }
-
-  &.selected {
-    background-color: var(--action-button-text-color);
-    color: var(--action-button-background-color);
-  }
 `;
 
 const SegmentButtonIconHolder = styled.div`
@@ -92,11 +98,14 @@ const SegmentButtonIcon = styled.div`
 
 const SegmentControl = forwardRef((props, ref) => {
   const { items, rows, cols, selectedIndices, onChange } = props;
+  const [tipSource, tipTarget] = useSingleton();
 
   const cssRows = new Array(rows).fill("32px").join(" ");
-  const cssCols = new Array(cols).fill("40px").join(" ");
+  const cssCols = new Array(cols).fill(items.find(i => i.iconSrc) ? "40px" : "1fr").join(" ");
 
   const cssClasses = Array(rows * cols).fill(null);
+
+  const messages = getMessages();
 
   for (let i = 0; i < cssClasses.length; i++) {
     if (i === 0) {
@@ -126,23 +135,30 @@ const SegmentControl = forwardRef((props, ref) => {
 
   return (
     <SegmentControlElement ref={ref} style={{ gridTemplateRows: cssRows, gridTemplateColumns: cssCols }}>
-      {items.map(({ id, iconSrc }, idx) => {
+      <Tooltip singleton={tipSource} delay={750} />
+
+      {items.map(({ id, text, iconSrc }, idx) => {
         const cssClass = cssClasses[idx];
 
         return (
-          <SegmentButton
-            key={id}
-            className={selectedIndices.includes(idx) ? `selected ${cssClass}` : cssClass}
-            onClick={() => {
-              if (onChange) {
-                onChange(id, idx);
-              }
-            }}
-          >
-            <SegmentButtonIconHolder>
-              <SegmentButtonIcon dangerouslySetInnerHTML={{ __html: iconSrc }} />
-            </SegmentButtonIconHolder>
-          </SegmentButton>
+          <Tooltip content={messages[`${id}-tip`]} placement="bottom" key={id} singleton={tipTarget}>
+            <SegmentButton
+              key={id}
+              className={selectedIndices.includes(idx) ? `selected ${cssClass}` : cssClass}
+              onClick={() => {
+                if (onChange) {
+                  onChange(id, idx);
+                }
+              }}
+            >
+              {iconSrc && (
+                <SegmentButtonIconHolder>
+                  <SegmentButtonIcon dangerouslySetInnerHTML={{ __html: iconSrc }} />
+                </SegmentButtonIconHolder>
+              )}
+              {text}
+            </SegmentButton>
+          </Tooltip>
         );
       })}
     </SegmentControlElement>

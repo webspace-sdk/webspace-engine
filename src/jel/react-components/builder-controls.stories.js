@@ -15,12 +15,18 @@ class MockBuilderSystem extends EventTarget {
   brushType = BRUSH_TYPES.VOXEL;
   brushMode = BRUSH_MODES.ADD;
   brushShape = BRUSH_SHAPES.BOX;
+  brushSize = 3;
   mirrorX = true;
   mirrorY = false;
   mirrorZ = true;
   brushCrawlType = BRUSH_CRAWL_TYPES.GEO;
   brushCrawlExtents = BRUSH_CRAWL_EXTENTS.NSEW;
   brushColorFillMode = BRUSH_COLOR_FILL_MODE.EXISTING;
+
+  setBrushSize(brushSize) {
+    this.brushSize = brushSize;
+    this.dispatchEvent(new CustomEvent("settingschanged"));
+  }
 
   setBrushType(brushType) {
     this.brushType = brushType;
@@ -76,7 +82,7 @@ const BuilderContent = styled.div`
   flex: 1 1 auto;
   font-size: var(--panel-text-size);
   font-weight: var(--panel-text-weight);
-  width: 270px;
+  width: 220px;
   height: 640px;
   min-height: 640px;
   padding: 8px 0;
@@ -85,7 +91,7 @@ const BuilderContent = styled.div`
 export const Normal = () => {
   return (
     <BuilderContent>
-      <BuilderControls />;
+      <BuilderControls />
     </BuilderContent>
   );
 };
