@@ -83,11 +83,10 @@ const Right = styled.div`
 const PresenceContent = styled.div`
   flex: 1 1 auto;
   width: 100%;
-  height: calc(100% - 730px);
   padding: 16px 0;
 
   &.build {
-    height: calc(100% - 630px);
+    height: calc(100% - 690px);
   }
 
   &.blast {
@@ -106,8 +105,8 @@ const BlasterContent = styled.div`
 const BuilderContent = styled.div`
   flex: 1 1 auto;
   width: 100%;
-  height: 540px;
-  min-height: 440px;
+  height: 600px;
+  min-height: 600px;
   padding: 8px 0;
 `;
 

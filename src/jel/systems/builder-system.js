@@ -103,6 +103,11 @@ export class BuilderSystem extends EventTarget {
     this.brushVoxColor = voxColorForRGBT(r, g, b);
   }
 
+  setBrushSize(brushSize) {
+    this.brushSize = brushSize || 1;
+    this.dispatchEvent(new CustomEvent("settingschanged"));
+  }
+
   setBrushType(brushType) {
     this.brushType = brushType;
     this.dispatchEvent(new CustomEvent("settingschanged"));
@@ -300,7 +305,13 @@ export class BuilderSystem extends EventTarget {
       }
 
       // Pick tool over non-vox, look up vertex color if possible
-      if (brushDown && !this.isBrushing && !hitVoxId) {
+      if (
+        brushDown &&
+        !this.isBrushing &&
+        !hitVoxId &&
+        !this.ignoreRestOfStroke &&
+        this.brushType === BRUSH_TYPES.PICK
+      ) {
         this.pickColorAtIntersection(intersection);
         this.ignoreRestOfStroke = true;
       }

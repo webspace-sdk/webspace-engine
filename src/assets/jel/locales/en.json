@@ -321,7 +321,7 @@
   "builder.tool.paint-tip": "Voxel Brush. Paint voxels by dragging. (Alt-V)",
   "builder.tool.box-tip": "Box Brush. Drag a box to update voxels. (Alt-B)",
   "builder.tool.face-tip": "Face Brush. Pull, press, or paint voxel faces. (Alt-F)",
-  "builder.tool.circle-tip": "Circle Brush. Drag out from a center to update voxels in a circle. (Alt-C)",
+  "builder.tool.circle-tip": "Circle Brush. Drag to update voxels within a radius. (Alt-C)",
   "builder.tool.fill-tip": "Flood Fill. Fills connected regions with the selected color.",
   "builder.tool.pick-tip": "Color Picker. Picks the color of an existing voxel. (Alt-Click)",
   "builder.mode.add-tip": "Attach Voxels (Alt-T)",
