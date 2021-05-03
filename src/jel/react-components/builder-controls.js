@@ -47,9 +47,27 @@ const BuilderControls = forwardRef((props, ref) => {
     [builderSystem, setTool, setMode, setMirrorX, setMirrorY, setMirrorZ, setCrawlType, setCrawlExtents]
   );
 
-  const onToolChanged = useCallback((id, idx) => builderSystem.setBrushType(idx), [builderSystem]);
-  const onModeChanged = useCallback((id, idx) => builderSystem.setBrushMode(idx), [builderSystem]);
-  const onShapeChanged = useCallback((id, idx) => builderSystem.setBrushShape(idx), [builderSystem]);
+  const onToolChanged = useCallback(
+    (id, idx) => {
+      builderSystem.setBrushType(idx);
+      document.activeElement.blur(); // focuses canvas
+    },
+    [builderSystem]
+  );
+  const onModeChanged = useCallback(
+    (id, idx) => {
+      builderSystem.setBrushMode(idx);
+      document.activeElement.blur(); // focuses canvas
+    },
+    [builderSystem]
+  );
+  const onShapeChanged = useCallback(
+    (id, idx) => {
+      builderSystem.setBrushShape(idx);
+      document.activeElement.blur(); // focuses canvas
+    },
+    [builderSystem]
+  );
   const onMirrorChanged = useCallback(
     (id, idx) => {
       if (idx === 0) {
@@ -59,12 +77,31 @@ const BuilderControls = forwardRef((props, ref) => {
       } else if (idx === 2) {
         builderSystem.toggleMirrorZ();
       }
+      document.activeElement.blur();
     },
     [builderSystem]
   );
-  const onCrawlTypeChanged = useCallback((id, idx) => builderSystem.setBrushCrawlType(idx), [builderSystem]);
-  const onCrawlExtentsChanged = useCallback((id, idx) => builderSystem.setBrushCrawlExtents(idx), [builderSystem]);
-  const onColorFillModeChanged = useCallback((id, idx) => builderSystem.setBrushColorFillMode(idx), [builderSystem]);
+  const onCrawlTypeChanged = useCallback(
+    (id, idx) => {
+      builderSystem.setBrushCrawlType(idx);
+      document.activeElement.blur(); // focuses canvas
+    },
+    [builderSystem]
+  );
+  const onCrawlExtentsChanged = useCallback(
+    (id, idx) => {
+      builderSystem.setBrushCrawlExtents(idx);
+      document.activeElement.blur(); // focuses canvas
+    },
+    [builderSystem]
+  );
+  const onColorFillModeChanged = useCallback(
+    (id, idx) => {
+      builderSystem.setBrushColorFillMode(idx);
+      document.activeElement.blur(); // focuses canvas
+    },
+    [builderSystem]
+  );
 
   const onSelectedColorClicked = useCallback(() => {
     // TODO show color picker

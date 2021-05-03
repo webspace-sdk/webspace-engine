@@ -23,7 +23,6 @@ import PresenceList from "./presence-list";
 import Tooltip from "./tooltip";
 import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
 import EmojiEquip from "./emoji-equip";
-import ColorEquip from "./color-equip";
 import inviteIcon from "../../assets/jel/images/icons/invite.svgi";
 import trashIcon from "../../assets/jel/images/icons/trash.svgi";
 import { getMessages } from "../../hubs/utils/i18n";

@@ -3,6 +3,7 @@ import { CURSOR_LOCK_STATES, getCursorLockState } from "../../jel/utils/dom-util
 import { addMedia } from "../../hubs/utils/media-utils";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { getWorldColor } from "../objects/terrain";
+import { EventTarget } from "event-target-shim";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import {
   BRUSH_TYPES,
@@ -36,8 +37,9 @@ const xyzToInt = (x, y, z) =>
   ((x + HALF_MAX_VOX_SIZE + 1) << 16) | ((y + HALF_MAX_VOX_SIZE + 1) << 8) | (z + HALF_MAX_VOX_SIZE + 1);
 
 // Deals with block building
-export class BuilderSystem {
+export class BuilderSystem extends EventTarget {
   constructor(sceneEl, userinput, soundEffectsSystem, cursorSystem) {
+    super();
     this.sceneEl = sceneEl;
     this.userinput = userinput;
     this.soundEffectsSystem = soundEffectsSystem;
@@ -59,7 +61,7 @@ export class BuilderSystem {
     this.brushFaceNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushFaceWorldNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
-    this.brushType = BRUSH_TYPES.FILL;
+    this.brushType = BRUSH_TYPES.VOXEL;
     this.brushMode = BRUSH_MODES.ADD;
     this.brushColorFillMode = BRUSH_COLOR_FILL_MODE.SELECTED;
     this.brushShape = BRUSH_SHAPES.BOX;
@@ -70,7 +72,7 @@ export class BuilderSystem {
     this.brushFaceSweep = 1;
 
     this.isBrushing = false;
-    this.mirrorX = false;
+    this.mirrorX = true;
     this.mirrorY = false;
     this.mirrorZ = false;
     this.brushVoxColor = voxColorForRGBT(100, 0, 192);
@@ -99,6 +101,51 @@ export class BuilderSystem {
 
   setColor(r, g, b) {
     this.brushVoxColor = voxColorForRGBT(r, g, b);
+  }
+
+  setBrushType(brushType) {
+    this.brushType = brushType;
+    this.dispatchEvent(new CustomEvent("settingschanged"));
+  }
+
+  setBrushMode(brushMode) {
+    this.brushMode = brushMode;
+    this.dispatchEvent(new CustomEvent("settingschanged"));
+  }
+
+  setBrushShape(brushShape) {
+    this.brushShape = brushShape;
+    this.dispatchEvent(new CustomEvent("settingschanged"));
+  }
+
+  toggleMirrorX() {
+    this.mirrorX = !this.mirrorX;
+    this.dispatchEvent(new CustomEvent("settingschanged"));
+  }
+
+  toggleMirrorY() {
+    this.mirrorY = !this.mirrorY;
+    this.dispatchEvent(new CustomEvent("settingschanged"));
+  }
+
+  toggleMirrorZ() {
+    this.mirrorZ = !this.mirrorZ;
+    this.dispatchEvent(new CustomEvent("settingschanged"));
+  }
+
+  setBrushCrawlType(crawlType) {
+    this.brushCrawlType = crawlType;
+    this.dispatchEvent(new CustomEvent("settingschanged"));
+  }
+
+  setBrushCrawlExtents(crawlExtents) {
+    this.brushCrawlExtents = crawlExtents;
+    this.dispatchEvent(new CustomEvent("settingschanged"));
+  }
+
+  setBrushColorFillMode(colorFillMode) {
+    this.brushColorFillMode = colorFillMode;
+    this.dispatchEvent(new CustomEvent("settingschanged"));
   }
 
   tick() {
@@ -544,7 +591,12 @@ export class BuilderSystem {
       boxV,
       filter = VOX_CHUNK_FILTERS.NONE;
 
-    if (brushType === BRUSH_TYPES.BOX || brushType === BRUSH_TYPES.FACE || brushType === BRUSH_TYPES.CENTER) {
+    if (
+      !this.isBrushing ||
+      brushType === BRUSH_TYPES.BOX ||
+      brushType === BRUSH_TYPES.FACE ||
+      brushType === BRUSH_TYPES.CENTER
+    ) {
       // Box and face slides are materialized in full here, whereas VOXEL is built-up
       pendingChunk.clear();
     }
