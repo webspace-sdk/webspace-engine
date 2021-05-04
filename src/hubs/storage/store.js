@@ -20,16 +20,17 @@ export const storedColorToRgb = color => {
 };
 
 export const DEFAULT_COLORS = [
-  rgbToStoredColor({ r: 237, g: 70, b: 148 }),
-  rgbToStoredColor({ r: 239, g: 78, b: 78 }),
-  rgbToStoredColor({ r: 249, g: 112, b: 62 }),
-  rgbToStoredColor({ r: 250, g: 219, b: 95 }),
-  rgbToStoredColor({ r: 141, g: 237, b: 45 }),
-  rgbToStoredColor({ r: 58, g: 231, b: 225 }),
-  rgbToStoredColor({ r: 58, g: 102, b: 219 }),
-  rgbToStoredColor({ r: 148, g: 70, b: 237 }),
-  rgbToStoredColor({ r: 255, g: 255, b: 255 }),
   rgbToStoredColor({ r: 0, g: 0, b: 0 }),
+  rgbToStoredColor({ r: 59, g: 59, b: 59 }),
+  rgbToStoredColor({ r: 81, g: 81, b: 81 }),
+  rgbToStoredColor({ r: 98, g: 98, b: 98 }),
+  rgbToStoredColor({ r: 126, g: 126, b: 126 }),
+  rgbToStoredColor({ r: 158, g: 158, b: 158 }),
+  rgbToStoredColor({ r: 177, g: 177, b: 177 }),
+  rgbToStoredColor({ r: 207, g: 207, b: 207 }),
+  rgbToStoredColor({ r: 225, g: 225, b: 225 }),
+  rgbToStoredColor({ r: 255, g: 255, b: 255 }),
+
   rgbToStoredColor({ r: 98, g: 0, b: 66 }),
   rgbToStoredColor({ r: 135, g: 5, b: 87 }),
   rgbToStoredColor({ r: 163, g: 6, b: 100 }),
@@ -110,16 +111,16 @@ export const DEFAULT_COLORS = [
   rgbToStoredColor({ r: 185, g: 144, b: 255 }),
   rgbToStoredColor({ r: 218, g: 196, b: 255 }),
   rgbToStoredColor({ r: 242, g: 235, b: 254 }),
-  rgbToStoredColor({ r: 0, g: 0, b: 0 }),
-  rgbToStoredColor({ r: 59, g: 59, b: 59 }),
-  rgbToStoredColor({ r: 81, g: 81, b: 81 }),
-  rgbToStoredColor({ r: 98, g: 98, b: 98 }),
-  rgbToStoredColor({ r: 126, g: 126, b: 126 }),
-  rgbToStoredColor({ r: 158, g: 158, b: 158 }),
-  rgbToStoredColor({ r: 177, g: 177, b: 177 }),
-  rgbToStoredColor({ r: 207, g: 207, b: 207 }),
-  rgbToStoredColor({ r: 225, g: 225, b: 225 }),
-  rgbToStoredColor({ r: 255, g: 255, b: 255 })
+  rgbToStoredColor({ r: 62, g: 39, b: 35 }),
+  rgbToStoredColor({ r: 78, g: 52, b: 46 }),
+  rgbToStoredColor({ r: 93, g: 64, b: 55 }),
+  rgbToStoredColor({ r: 109, g: 76, b: 65 }),
+  rgbToStoredColor({ r: 121, g: 85, b: 72 }),
+  rgbToStoredColor({ r: 141, g: 110, b: 99 }),
+  rgbToStoredColor({ r: 161, g: 136, b: 127 }),
+  rgbToStoredColor({ r: 188, g: 170, b: 164 }),
+  rgbToStoredColor({ r: 215, g: 204, b: 200 }),
+  rgbToStoredColor({ r: 239, g: 235, b: 233 })
 ];
 
 const capitalize = str => str[0].toUpperCase() + str.slice(1);
