@@ -83,127 +83,117 @@ const ColorEquipInner = styled.div`
 
   & svg {
     color: var(--secondary-panel-item-background-color);
-    opacity: 0.8;
+    opacity: 0.9;
   }
 
   &.slot-0-hover svg.slot-0 {
-    opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-1-hover svg.slot-1 {
-    opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-2-hover svg.slot-2 {
-    opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-3-hover svg.slot-3 {
-    opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-4-hover svg.slot-4 {
-    opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-5-hover svg.slot-5 {
-    opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-6-hover svg.slot-6 {
-    opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-7-hover svg.slot-7 {
-    opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-8-hover svg.slot-8 {
-    opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-9-hover svg.slot-9 {
-    opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-0-selected svg.slot-0 {
     opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-1-selected svg.slot-1 {
     opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-2-selected svg.slot-2 {
     opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-3-selected svg.slot-3 {
     opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-4-selected svg.slot-4 {
     opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-5-selected svg.slot-5 {
     opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-6-selected svg.slot-6 {
     opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-7-selected svg.slot-7 {
     opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-8-selected svg.slot-8 {
     opacity: 1;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 
   &.slot-9-selected svg.slot-9 {
     opacity: 1;
-  }
-
-  &.slot-0-active svg.slot-0 {
-    opacity: 0.9;
-  }
-
-  &.slot-1-active svg.slot-1 {
-    opacity: 0.9;
-  }
-
-  &.slot-2-active svg.slot-2 {
-    opacity: 0.9;
-  }
-
-  &.slot-3-active svg.slot-3 {
-    opacity: 0.9;
-  }
-
-  &.slot-4-active svg.slot-4 {
-    opacity: 0.9;
-  }
-
-  &.slot-5-active svg.slot-5 {
-    opacity: 0.9;
-  }
-
-  &.slot-6-active svg.slot-6 {
-    opacity: 0.9;
-  }
-
-  &.slot-7-active svg.slot-7 {
-    opacity: 0.9;
-  }
-
-  &.slot-8-active svg.slot-8 {
-    opacity: 0.9;
-  }
-
-  &.slot-9-active svg.slot-9 {
-    opacity: 0.9;
+    transform: scale(1.03, 1.03);
+    box-shadow: 4px;
   }
 `;
 
