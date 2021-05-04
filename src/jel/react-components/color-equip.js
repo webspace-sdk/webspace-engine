@@ -5,10 +5,23 @@ import { useSingleton } from "@tippyjs/react";
 import styled from "styled-components";
 import { getMessages } from "../../hubs/utils/i18n";
 import ColorPicker from "./color-picker";
+import SegmentControl from "./segment-control";
 import { showTargetAboveElement } from "../utils/popup-utils";
 import { rgbToStoredColor, storedColorToRgb } from "../../hubs/storage/store";
 
 const NUM_SLOTS = 10;
+const PAGE_ITEMS = [
+  { id: "color-equip.page-0", text: "" },
+  { id: "color-equip.page-1", text: "" },
+  { id: "color-equip.page-2", text: "" },
+  { id: "color-equip.page-3", text: "" },
+  { id: "color-equip.page-4", text: "" },
+  { id: "color-equip.page-5", text: "" },
+  { id: "color-equip.page-6", text: "" },
+  { id: "color-equip.page-7", text: "" },
+  { id: "color-equip.page-8", text: "" },
+  { id: "color-equip.page-9", text: "" }
+];
 
 const PickerWrap = styled.div`
   width: 128px;
@@ -56,8 +69,20 @@ const ColorEquipElement = styled.div`
   position: relative;
   display: flex;
   width: 100%;
-  height: 200px;
+  height: 280px;
   margin-bottom: 12px;
+`;
+
+const PagerWrap = styled.div`
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  top: 200px;
+  left: calc((100% - 220px) / 2);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  z-index: 11;
 `;
 
 const ColorEquipOuter = styled.div`
@@ -87,52 +112,52 @@ const ColorEquipInner = styled.div`
   }
 
   &.slot-0-hover svg.slot-0 {
-    transform: scale(1.05, 1.05);
+    transform: scale(1.03, 1.03);
     box-shadow: 4px;
   }
 
   &.slot-1-hover svg.slot-1 {
-    transform: scale(1.05, 1.05);
+    transform: scale(1.03, 1.03);
     box-shadow: 4px;
   }
 
   &.slot-2-hover svg.slot-2 {
-    transform: scale(1.05, 1.05);
+    transform: scale(1.03, 1.03);
     box-shadow: 4px;
   }
 
   &.slot-3-hover svg.slot-3 {
-    transform: scale(1.05, 1.05);
+    transform: scale(1.03, 1.03);
     box-shadow: 4px;
   }
 
   &.slot-4-hover svg.slot-4 {
-    transform: scale(1.05, 1.05);
+    transform: scale(1.03, 1.03);
     box-shadow: 4px;
   }
 
   &.slot-5-hover svg.slot-5 {
-    transform: scale(1.05, 1.05);
+    transform: scale(1.03, 1.03);
     box-shadow: 4px;
   }
 
   &.slot-6-hover svg.slot-6 {
-    transform: scale(1.05, 1.05);
+    transform: scale(1.03, 1.03);
     box-shadow: 4px;
   }
 
   &.slot-7-hover svg.slot-7 {
-    transform: scale(1.05, 1.05);
+    transform: scale(1.03, 1.03);
     box-shadow: 4px;
   }
 
   &.slot-8-hover svg.slot-8 {
-    transform: scale(1.05, 1.05);
+    transform: scale(1.03, 1.03);
     box-shadow: 4px;
   }
 
   &.slot-9-hover svg.slot-9 {
-    transform: scale(1.05, 1.05);
+    transform: scale(1.03, 1.03);
     box-shadow: 4px;
   }
 
@@ -291,29 +316,27 @@ const SLOT_SLICE_TRANSFORMS = [
   "rotate(234) translate(-23.96, -7.79)"
 ];
 
-const buildColorsFromStore = store => {
-  const storeState = store.state.equips;
-  return [
-    storedColorToRgb(storeState.colorSlot1),
-    storedColorToRgb(storeState.colorSlot2),
-    storedColorToRgb(storeState.colorSlot3),
-    storedColorToRgb(storeState.colorSlot4),
-    storedColorToRgb(storeState.colorSlot5),
-    storedColorToRgb(storeState.colorSlot6),
-    storedColorToRgb(storeState.colorSlot7),
-    storedColorToRgb(storeState.colorSlot8),
-    storedColorToRgb(storeState.colorSlot9),
-    storedColorToRgb(storeState.colorSlot10)
-  ];
+const buildColorsFromStore = page => {
+  const storeState = window.APP.store.state.equips;
+  const colors = [];
+
+  for (let i = 0; i < 10; i++) {
+    colors.push(storedColorToRgb(storeState[`colorSlot${page * 10 + i + 1}`]));
+  }
+
+  return colors;
 };
 
 const ColorEquip = () => {
   const store = window.APP.store;
   const messages = getMessages();
+  const [selectedPage, setSelectedPage] = useState(0);
+
+  const baseIndex = selectedPage * 10;
 
   const [hoverSlot, setHoverSlot] = useState(null);
   const [isClicking, setIsClicking] = useState(false);
-  const [colors, setColors] = useState(buildColorsFromStore(store));
+  const colors = buildColorsFromStore(selectedPage);
   const [selectedSlot, setSelectedSlot] = useState(
     colors.indexOf(colors.find(color => rgbToStoredColor(color) === store.state.equips.color))
   );
@@ -335,7 +358,7 @@ const ColorEquip = () => {
 
         // When picker runs, check to see if color is already in here, if so, just switch to it.
         for (let i = 0; i < NUM_SLOTS; i++) {
-          if (store.state.equips[`colorSlot${i + 1}`] === newColor) {
+          if (store.state.equips[`colorSlot${baseIndex + i + 1}`] === newColor) {
             store.update({ equips: { color: rgbToStoredColor(rgb) } });
 
             return;
@@ -343,14 +366,14 @@ const ColorEquip = () => {
         }
 
         store.update({
-          equips: { color: rgbToStoredColor(rgb), [`colorSlot${selectedSlot + 1}`]: rgbToStoredColor(rgb) }
+          equips: { color: rgbToStoredColor(rgb), [`colorSlot${baseIndex + selectedSlot + 1}`]: rgbToStoredColor(rgb) }
         });
       };
 
       builderSystem.addEventListener("picked_color", handler);
       return () => builderSystem.removeEventListener("picked_color", handler);
     },
-    [builderSystem, store, selectedSlot]
+    [builderSystem, store, selectedSlot, baseIndex]
   );
 
   // Animate center color when slot changes.
@@ -367,21 +390,28 @@ const ColorEquip = () => {
     [selectedButtonRef, selectedSlot]
   );
 
-  // When state store changes, update ring.
+  // When state store changes or page changes, update ring.
   useEffect(
     () => {
       const handler = () => {
         if (!store || !store.state) return;
-        const colors = buildColorsFromStore(store);
-        setColors(colors);
-        const selectedSlot = colors.indexOf(colors.find(color => rgbToStoredColor(color) === store.state.equips.color));
-        setSelectedSlot(selectedSlot);
+        const colors = buildColorsFromStore(selectedPage);
+        const hasMatchingSlotSelected = rgbToStoredColor(colors) === store.state.equips.color;
+
+        if (!hasMatchingSlotSelected) {
+          // Update selected slot to reflect current color.
+          const selectedSlot = colors.indexOf(
+            colors.find(color => rgbToStoredColor(color) === store.state.equips.color)
+          );
+          setSelectedSlot(selectedSlot);
+        }
+
         setPickerColorValue(storedColorToRgb(store.state.equips.color));
       };
       store.addEventListener("statechanged-equips", handler);
       return () => store.removeEventListener("statechanged-equips", handler);
     },
-    [store, setColors, setSelectedSlot]
+    [store, selectedPage, selectedSlot, setSelectedSlot]
   );
 
   const onColorChange = useCallback(({ rgb }) => setPickerColorValue(rgb), [setPickerColorValue]);
@@ -389,10 +419,10 @@ const ColorEquip = () => {
   const onColorChangeComplete = useCallback(
     ({ rgb }) => {
       store.update({
-        equips: { color: rgbToStoredColor(rgb), [`colorSlot${selectedSlot + 1}`]: rgbToStoredColor(rgb) }
+        equips: { color: rgbToStoredColor(rgb), [`colorSlot${baseIndex + selectedSlot + 1}`]: rgbToStoredColor(rgb) }
       });
     },
-    [store, selectedSlot]
+    [store, selectedSlot, baseIndex]
   );
 
   const onSelectedColorClicked = useCallback(
@@ -405,10 +435,20 @@ const ColorEquip = () => {
     [colorPickerWrapRef, innerRef, selectedButtonRef]
   );
 
+  const onPageChanged = useCallback(
+    (_, idx) => {
+      setSelectedPage(idx);
+      setSelectedSlot(0);
+
+      const colors = buildColorsFromStore(idx);
+      store.update({ equips: { color: rgbToStoredColor(colors[0]) } });
+    },
+    [setSelectedPage, store]
+  );
+
   return (
     <ColorEquipElement ref={innerRef}>
       <Tooltip delay={750} singleton={tipSource} />
-
       <ColorEquipOuter>
         <ColorEquipInner
           className={`${
@@ -430,7 +470,10 @@ const ColorEquip = () => {
                   onMouseOut={() => setHoverSlot(null)}
                   onMouseDown={() => setIsClicking(true)}
                   onMouseUp={() => setIsClicking(false)}
-                  onClick={() => store.update({ equips: { color: rgbToStoredColor(colors[idx]) } })}
+                  onClick={() => {
+                    store.update({ equips: { color: rgbToStoredColor(colors[idx]) } });
+                    setSelectedSlot(idx);
+                  }}
                 />
               </Tooltip>
             ))}
@@ -477,6 +520,15 @@ const ColorEquip = () => {
             ))}
         </ColorEquipInner>
       </ColorEquipOuter>
+      <PagerWrap>
+        <SegmentControl
+          rows={2}
+          cols={5}
+          selectedIndices={[selectedPage]}
+          items={PAGE_ITEMS}
+          onChange={onPageChanged}
+        />
+      </PagerWrap>
       <PickerWrap ref={colorPickerWrapRef} tabIndex={-1}>
         <ColorPicker color={pickerColorValue} onChange={onColorChange} onChangeComplete={onColorChangeComplete} />
       </PickerWrap>

@@ -141,7 +141,7 @@ const SegmentControl = forwardRef((props, ref) => {
         const cssClass = cssClasses[idx];
 
         return (
-          <Tooltip content={messages[`${id}-tip`]} placement="bottom" key={id} singleton={tipTarget}>
+          <Tooltip content={messages[`${id}-tip`]} placement={"bottom"} key={id} singleton={tipTarget}>
             <SegmentButton
               key={id}
               className={selectedIndices.includes(idx) ? `selected ${cssClass}` : cssClass}
