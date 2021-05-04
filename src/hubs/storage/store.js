@@ -326,17 +326,17 @@ export default class Store extends EventTarget {
     if (!this.state.equips.color) {
       this.update({
         equips: {
-          color: rgbToStoredColor({ r: 200, g: 0, b: 0 }),
-          colorSlot1: rgbToStoredColor({ r: 120, g: 239, b: 21 }),
-          colorSlot2: rgbToStoredColor({ r: 231, g: 200, b: 12 }),
-          colorSlot3: rgbToStoredColor({ r: 22, g: 230, b: 44 }),
-          colorSlot4: rgbToStoredColor({ r: 22, g: 230, b: 44 }),
-          colorSlot5: rgbToStoredColor({ r: 22, g: 230, b: 44 }),
-          colorSlot6: rgbToStoredColor({ r: 22, g: 230, b: 44 }),
-          colorSlot7: rgbToStoredColor({ r: 242, g: 230, b: 44 }),
-          colorSlot8: rgbToStoredColor({ r: 22, g: 230, b: 44 }),
-          colorSlot9: rgbToStoredColor({ r: 22, g: 230, b: 44 }),
-          colorSlot10: rgbToStoredColor({ r: 22, g: 230, b: 44 })
+          color: rgbToStoredColor({ r: 237, g: 70, b: 148 }),
+          colorSlot1: rgbToStoredColor({ r: 237, g: 70, b: 148 }),
+          colorSlot2: rgbToStoredColor({ r: 239, g: 78, b: 78 }),
+          colorSlot3: rgbToStoredColor({ r: 249, g: 112, b: 62 }),
+          colorSlot4: rgbToStoredColor({ r: 250, g: 219, b: 95 }),
+          colorSlot5: rgbToStoredColor({ r: 141, g: 237, b: 45 }),
+          colorSlot6: rgbToStoredColor({ r: 58, g: 231, b: 225 }),
+          colorSlot7: rgbToStoredColor({ r: 58, g: 102, b: 219 }),
+          colorSlot8: rgbToStoredColor({ r: 148, g: 70, b: 237 }),
+          colorSlot9: rgbToStoredColor({ r: 255, g: 255, b: 255 }),
+          colorSlot10: rgbToStoredColor({ r: 0, g: 0, b: 0 })
         }
       });
     }
