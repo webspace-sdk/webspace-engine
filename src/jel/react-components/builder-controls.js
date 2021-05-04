@@ -302,7 +302,7 @@ const BuilderControls = forwardRef((props, ref) => {
         )}
       </OptionsWrap>
       <PanelSectionHeader style={{ height: "16px" }}>
-        <FormattedMessage id="build.palette.header" />
+        <FormattedMessage id="build.material.header" />
       </PanelSectionHeader>
       <ColorEquip onSelectedColorClicked={onSelectedColorClicked} />
     </BuilderControlsElement>

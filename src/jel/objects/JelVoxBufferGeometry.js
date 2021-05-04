@@ -8,7 +8,7 @@ const vals = new Int16Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
 const norms = new Int16Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
 const quadData = [];
 
-// These memory pools for attributes reduce GC as meshes are rapidly remeshes
+// These memory pools for attributes reduce GC as voxes are rapidly remeshed
 // as brush previews are applied to them.
 const createPool = klass => {
   const pool = new Map();
@@ -574,7 +574,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
     }
 
     if (indexArray) {
-      if (index.length > 66535) {
+      if (index.count > 66535) {
         uint32Pool.free(indexArray);
       } else {
         uint16Pool.free(indexArray);

@@ -64,6 +64,7 @@ export class BuilderSystem extends EventTarget {
     this.brushFaceWorldNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
     this.brushType = BRUSH_TYPES.VOXEL;
+    this.prePickBrushType = null;
     this.brushMode = BRUSH_MODES.ADD;
     this.brushColorFillMode = BRUSH_COLOR_FILL_MODE.SELECTED;
     this.brushShape = BRUSH_SHAPES.BOX;
@@ -122,6 +123,12 @@ export class BuilderSystem extends EventTarget {
   }
 
   setBrushType(brushType) {
+    if (brushType === BRUSH_TYPES.PICK) {
+      this.prePickBrushType = this.brushType;
+    } else {
+      this.prePickBrushType = null;
+    }
+
     this.brushType = brushType;
     this.dispatchEvent(new CustomEvent("settingschanged"));
   }
@@ -406,7 +413,8 @@ export class BuilderSystem extends EventTarget {
               );
 
               const rgbt = rgbtForVoxColor(color);
-              this.dispatchEvent(new CustomEvent("picked_color", { detail: rgbt }));
+
+              this.handlePick(rgbt);
 
               updatePending = false;
               this.ignoreRestOfStroke = true;
@@ -508,6 +516,15 @@ export class BuilderSystem extends EventTarget {
       }
     };
   })();
+
+  handlePick(rgbt) {
+    this.dispatchEvent(new CustomEvent("picked_color", { detail: rgbt }));
+
+    if (this.prePickBrushType !== null) {
+      this.setBrushType(this.prePickBrushType);
+      this.prePickBrushType = null;
+    }
+  }
 
   async createVoxAt(point) {
     const spaceId = window.APP.spaceChannel.spaceId;
@@ -1203,13 +1220,13 @@ export class BuilderSystem extends EventTarget {
             b: Math.floor(Math.max(0.0, Math.min(1.0, b + brightDelta)) * 255)
           };
 
-          this.dispatchEvent(new CustomEvent("picked_color", { detail: rgb }));
+          this.handlePick(rgb);
         } else if (colorAttrib) {
           const r = colorAttrib.array[vert * colorAttrib.itemSize];
           const g = colorAttrib.array[vert * colorAttrib.itemSize + 1];
           const b = colorAttrib.array[vert * colorAttrib.itemSize + 2];
           const rgb = { r: Math.floor(r * 255), g: Math.floor(g * 255), b: Math.floor(b * 255) };
-          this.dispatchEvent(new CustomEvent("picked_color", { detail: rgb }));
+          this.handlePick(rgb);
         }
       }
     }
