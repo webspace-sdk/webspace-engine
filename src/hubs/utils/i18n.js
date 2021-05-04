@@ -21,7 +21,7 @@ function findLocale() {
     }
   })();
 
-  const preferences = window.APP.store.state.preferences;
+  const preferences = (window.APP.store.state && window.APP.store.state.preferences) || {};
 
   if (preferences.locale && preferences.locale !== "browser") {
     locales.unshift(preferences.locale);

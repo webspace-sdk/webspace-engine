@@ -307,12 +307,7 @@ const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
                 </SlotButton>
               </Tooltip>
             ))}
-          <Tooltip
-            content={messages[`emoji-equip.select-slot`]}
-            placement="left"
-            key={`slot-choose-tip`}
-            singleton={tipTarget}
-          >
+          <Tooltip content={messages[`emoji-equip.select-slot`]} placement="left" key={`slot-choose-tip`} delay={0}>
             <SelectedButton ref={ref} onClick={() => onSelectedEmojiClicked()}>
               <img crossOrigin="anonymous" src={selectedEmojiImageUrl} />
             </SelectedButton>

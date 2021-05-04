@@ -1,9 +1,52 @@
-import React, { useState, useEffect, forwardRef } from "react";
-import PropTypes from "prop-types";
+import React, { useRef, useState, useEffect, useCallback } from "react";
+//import PropTypes from "prop-types";
 import Tooltip from "./tooltip";
 import { useSingleton } from "@tippyjs/react";
 import styled from "styled-components";
 import { getMessages } from "../../hubs/utils/i18n";
+import ColorPicker from "./color-picker";
+import { showTargetAboveElement } from "../utils/popup-utils";
+import { rgbToStoredColor, storedColorToRgb } from "../../hubs/storage/store";
+
+const PickerWrap = styled.div`
+  width: 128px;
+  height: 128px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 11;
+  border: 3px solid var(--secondary-panel-background-color);
+  box-shadow: 0px 12px 28px var(--menu-shadow-color);
+  border-radius: 9px;
+
+  opacity: 0;
+  pointer-events: none;
+
+  transition: opacity 0.15s linear;
+
+  & :local(.slide-down-when-popped) {
+    transform: translateY(-4px) scale(0.95, 0.95);
+    transition: transform 0.15s linear;
+  }
+
+  & :local(.slide-up-when-popped) {
+    transform: translateY(4px) scale(0.95, 0.95);
+    transition: transform 0.15s linear;
+  }
+
+  &:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+
+    transition: opacity 0.15s linear;
+
+    & :local(.slide-down-when-popped),
+    :local(.slide-up-when-popped) {
+      transform: translateY(0px) scale(1, 1);
+      transition: transform 0.15s cubic-bezier(0.76, -0.005, 0.515, 2.25);
+    }
+  }
+`;
 
 const ColorEquipElement = styled.div`
   padding: 0;
@@ -81,6 +124,46 @@ const ColorEquipInner = styled.div`
     opacity: 1;
   }
 
+  &.slot-0-selected svg.slot-0 {
+    opacity: 1;
+  }
+
+  &.slot-1-selected svg.slot-1 {
+    opacity: 1;
+  }
+
+  &.slot-2-selected svg.slot-2 {
+    opacity: 1;
+  }
+
+  &.slot-3-selected svg.slot-3 {
+    opacity: 1;
+  }
+
+  &.slot-4-selected svg.slot-4 {
+    opacity: 1;
+  }
+
+  &.slot-5-selected svg.slot-5 {
+    opacity: 1;
+  }
+
+  &.slot-6-selected svg.slot-6 {
+    opacity: 1;
+  }
+
+  &.slot-7-selected svg.slot-7 {
+    opacity: 1;
+  }
+
+  &.slot-8-selected svg.slot-8 {
+    opacity: 1;
+  }
+
+  &.slot-9-selected svg.slot-9 {
+    opacity: 1;
+  }
+
   &.slot-0-active svg.slot-0 {
     opacity: 0.9;
   }
@@ -155,12 +238,12 @@ const SelectedButton = styled.button`
   outline-style: none;
   background-color: transparent;
   position: absolute;
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
   box-sizing: content-box;
   z-index: 100;
-  top: 152px;
-  left: calc(50% - 28px);
+  top: 148px;
+  left: calc(50% - 32px);
 
   @keyframes select-animation {
     0%,
@@ -172,7 +255,7 @@ const SelectedButton = styled.button`
     }
   }
   transition: transform 0.15s linear;
-  border: 8px solid transparent;
+  border: 4px solid transparent;
   border-radius: 32px;
 
   &:active {
@@ -183,6 +266,10 @@ const SelectedButton = styled.button`
   &[data-selected-slot] {
     -webkit-animation: select-animation 0.3s 1 ease-in-out;
     animation: select-animation 0.3s 1 ease-in-out;
+  }
+
+  &:hover {
+    opacity: 0.9;
   }
 `;
 
@@ -215,20 +302,20 @@ const SLOT_SLICE_TRANSFORMS = [
 const buildColorsFromStore = store => {
   const storeState = store.state.equips;
   return [
-    storeState.colorSlot1,
-    storeState.colorSlot2,
-    storeState.colorSlot3,
-    storeState.colorSlot4,
-    storeState.colorSlot5,
-    storeState.colorSlot6,
-    storeState.colorSlot7,
-    storeState.colorSlot8,
-    storeState.colorSlot9,
-    storeState.colorSlot10
+    storedColorToRgb(storeState.colorSlot1),
+    storedColorToRgb(storeState.colorSlot2),
+    storedColorToRgb(storeState.colorSlot3),
+    storedColorToRgb(storeState.colorSlot4),
+    storedColorToRgb(storeState.colorSlot5),
+    storedColorToRgb(storeState.colorSlot6),
+    storedColorToRgb(storeState.colorSlot7),
+    storedColorToRgb(storeState.colorSlot8),
+    storedColorToRgb(storeState.colorSlot9),
+    storedColorToRgb(storeState.colorSlot10)
   ];
 };
 
-const ColorEquip = forwardRef(({ onSelectedColorClicked }, ref) => {
+const ColorEquip = () => {
   const store = window.APP.store;
   const messages = getMessages();
 
@@ -236,34 +323,40 @@ const ColorEquip = forwardRef(({ onSelectedColorClicked }, ref) => {
   const [isClicking, setIsClicking] = useState(false);
   const [colors, setColors] = useState(buildColorsFromStore(store));
   const [selectedSlot, setSelectedSlot] = useState(
-    colors.indexOf(colors.find(({ color }) => color === store.state.equips.color))
+    colors.indexOf(colors.find(color => rgbToStoredColor(color) === store.state.equips.color))
   );
   const [tipSource, tipTarget] = useSingleton();
+  const colorPickerWrapRef = useRef();
+  const innerRef = useRef();
+  const selectedButtonRef = useRef();
 
-  const selectedColor = store.state.equips.color;
+  const selectedColor = storedColorToRgb(store.state.equips.color || 0);
+  const [pickerColorValue, setPickerColorValue] = useState(selectedColor);
 
   // Animate center color when slot changes.
   useEffect(
     () => {
-      if (!ref || !ref.current) return;
-      const el = ref.current;
+      if (!selectedButtonRef || !selectedButtonRef.current) return;
+      const el = selectedButtonRef.current;
       if (el.getAttribute("data-selected-slot") !== `${selectedSlot}`) {
         el.removeAttribute("data-selected-slot");
         el.offsetWidth; // Restart animation hack.
         el.setAttribute("data-selected-slot", `${selectedSlot}`);
       }
     },
-    [ref, selectedSlot]
+    [selectedButtonRef, selectedSlot]
   );
 
   // When state store changes, update ring.
   useEffect(
     () => {
       const handler = () => {
+        if (!store || !store.state) return;
         const colors = buildColorsFromStore(store);
         setColors(colors);
-        const selectedSlot = colors.indexOf(colors.find(({ color }) => color === store.state.equips.color));
+        const selectedSlot = colors.indexOf(colors.find(color => rgbToStoredColor(color) === store.state.equips.color));
         setSelectedSlot(selectedSlot);
+        setPickerColorValue(storedColorToRgb(store.state.equips.color));
       };
       store.addEventListener("statechanged-equips", handler);
       return () => store.removeEventListener("statechanged-equips", handler);
@@ -271,12 +364,37 @@ const ColorEquip = forwardRef(({ onSelectedColorClicked }, ref) => {
     [store, setColors, setSelectedSlot]
   );
 
+  const onColorChange = useCallback(({ rgb }) => setPickerColorValue(rgb), [setPickerColorValue]);
+
+  const onColorChangeComplete = useCallback(
+    ({ rgb }) => {
+      store.update({
+        equips: { color: rgbToStoredColor(rgb), [`colorSlot${selectedSlot + 1}`]: rgbToStoredColor(rgb) }
+      });
+    },
+    [store, selectedSlot]
+  );
+
+  const onSelectedColorClicked = useCallback(
+    () => {
+      if (!selectedButtonRef) return;
+      const inner = innerRef.current;
+      const pickerWrap = colorPickerWrapRef.current;
+      showTargetAboveElement(selectedButtonRef.current, inner, pickerWrap, 120, 34);
+    },
+    [colorPickerWrapRef, innerRef, selectedButtonRef]
+  );
+
   return (
-    <ColorEquipElement>
+    <ColorEquipElement ref={innerRef}>
       <Tooltip delay={750} singleton={tipSource} />
 
       <ColorEquipOuter>
-        <ColorEquipInner className={hoverSlot !== null ? `slot-${hoverSlot}-${isClicking ? "active" : "hover"}` : ""}>
+        <ColorEquipInner
+          className={`${
+            hoverSlot !== null ? `slot-${hoverSlot}-${isClicking ? "active" : "hover"}` : ""
+          } slot-${selectedSlot}-selected`}
+        >
           {colors.length > 0 &&
             SLOT_BUTTON_OFFSETS.map(([left, top], idx) => (
               <Tooltip
@@ -292,20 +410,21 @@ const ColorEquip = forwardRef(({ onSelectedColorClicked }, ref) => {
                   onMouseOut={() => setHoverSlot(null)}
                   onMouseDown={() => setIsClicking(true)}
                   onMouseUp={() => setIsClicking(false)}
-                  onClick={() => store.update({ equips: { color: colors[idx] } })}
+                  onClick={() => store.update({ equips: { color: rgbToStoredColor(colors[idx]) } })}
                 />
               </Tooltip>
             ))}
-          <Tooltip
-            content={messages[`color-equip.select-slot`]}
-            placement="left"
-            key={`slot-choose-tip`}
-            singleton={tipTarget}
-          >
+          <Tooltip content={messages[`color-equip.select-slot`]} placement="left" key={`slot-choose-tip`} delay={0}>
             <SelectedButton
-              ref={ref}
-              style={{ backgroundColor: `rgba(${selectedColor[0]}, ${selectedColor[1]}, ${selectedColor[2]})` }}
-              onClick={() => onSelectedColorClicked()}
+              ref={selectedButtonRef}
+              style={{
+                backgroundColor: `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b})`,
+                borderColor: `rgba(${Math.max(0, selectedColor.r - 64)}, ${Math.max(
+                  0,
+                  selectedColor.g - 64
+                )}, ${Math.max(0, selectedColor.b - 64)})`
+              }}
+              onClick={onSelectedColorClicked}
             />
           </Tooltip>
 
@@ -318,7 +437,7 @@ const ColorEquip = forwardRef(({ onSelectedColorClicked }, ref) => {
                   position: "absolute",
                   left: "calc(-10%)",
                   zIndex: "6",
-                  color: `rgba(${colors[idx][0]}, ${colors[idx][1]}, ${colors[idx][2]}`
+                  color: `rgba(${colors[idx].r}, ${colors[idx].g}, ${colors[idx].b}`
                 }}
                 height="120%"
                 width="120%"
@@ -338,14 +457,15 @@ const ColorEquip = forwardRef(({ onSelectedColorClicked }, ref) => {
             ))}
         </ColorEquipInner>
       </ColorEquipOuter>
+      <PickerWrap ref={colorPickerWrapRef} tabIndex={-1}>
+        <ColorPicker color={pickerColorValue} onChange={onColorChange} onChangeComplete={onColorChangeComplete} />
+      </PickerWrap>
     </ColorEquipElement>
   );
-});
+};
 
 ColorEquip.displayName = "ColorEquip";
 
-ColorEquip.propTypes = {
-  onSelectedColorClicked: PropTypes.func
-};
+ColorEquip.propTypes = {};
 
 export { ColorEquip as default };

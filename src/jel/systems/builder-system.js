@@ -4,6 +4,7 @@ import { addMedia } from "../../hubs/utils/media-utils";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { getWorldColor } from "../objects/terrain";
 import { EventTarget } from "event-target-shim";
+import { storedColorToRgb } from "../../hubs/storage/store";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import {
   BRUSH_TYPES,
@@ -75,7 +76,7 @@ export class BuilderSystem extends EventTarget {
     this.mirrorX = true;
     this.mirrorY = false;
     this.mirrorZ = false;
-    this.brushVoxColor = voxColorForRGBT(100, 0, 192);
+    this.brushVoxColor = null;
     this.pendingChunk = null;
     this.hasInFlightOperation = false;
     this.ignoreRestOfStroke = false;
@@ -87,6 +88,12 @@ export class BuilderSystem extends EventTarget {
     sweepPlaneMat.visible = false;
     this.sweepPlane = new Mesh(new PlaneBufferGeometry(100, 100), sweepPlaneMat);
 
+    window.APP.store.addEventListener("statechanged-equips", () => {
+      this.updateBrushVoxColorFromStore();
+    });
+
+    this.updateBrushVoxColorFromStore();
+
     //const store = window.APP.store;
 
     /*this.lastEquippedEmoji = store.state.equips.launcher;
@@ -97,6 +104,11 @@ export class BuilderSystem extends EventTarget {
         soundEffectsSystem.playSoundOneShot(SOUND_EMOJI_EQUIP);
       }
     });*/
+  }
+
+  updateBrushVoxColorFromStore() {
+    const { r, g, b } = storedColorToRgb(window.APP.store.state.equips.color);
+    this.brushVoxColor = voxColorForRGBT(r, g, b);
   }
 
   setColor(r, g, b) {

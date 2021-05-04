@@ -11,6 +11,14 @@ const validator = new Validator();
 import { EventTarget } from "event-target-shim";
 import { fetchRandomDefaultAvatarId, generateRandomName } from "../utils/identity.js";
 
+export const rgbToStoredColor = ({ r, g, b }) => {
+  return (r | (g << 8) | (b << 16)) >>> 0;
+};
+
+export const storedColorToRgb = color => {
+  return { r: color & 0x0000ff, g: (color & 0x00ff00) >> 8, b: (color & 0xff0000) >> 16 };
+};
+
 const capitalize = str => str[0].toUpperCase() + str.slice(1);
 
 function randomString(len) {
@@ -115,17 +123,17 @@ export const SCHEMA = {
         launcherSlot8: { type: "string" },
         launcherSlot9: { type: "string" },
         launcherSlot10: { type: "string" },
-        color: { type: "array" },
-        colorSlot1: { type: "array" },
-        colorSlot2: { type: "array" },
-        colorSlot3: { type: "array" },
-        colorSlot4: { type: "array" },
-        colorSlot5: { type: "array" },
-        colorSlot6: { type: "array" },
-        colorSlot7: { type: "array" },
-        colorSlot8: { type: "array" },
-        colorSlot9: { type: "array" },
-        colorSlot10: { type: "array" }
+        color: { type: "number" },
+        colorSlot1: { type: "number" },
+        colorSlot2: { type: "number" },
+        colorSlot3: { type: "number" },
+        colorSlot4: { type: "number" },
+        colorSlot5: { type: "number" },
+        colorSlot6: { type: "number" },
+        colorSlot7: { type: "number" },
+        colorSlot8: { type: "number" },
+        colorSlot9: { type: "number" },
+        colorSlot10: { type: "number" }
       }
     },
 
@@ -318,17 +326,17 @@ export default class Store extends EventTarget {
     if (!this.state.equips.color) {
       this.update({
         equips: {
-          color: [200, 0, 0],
-          colorSlot1: [120, 239, 21],
-          colorSlot2: [231, 200, 12],
-          colorSlot3: [22, 230, 44],
-          colorSlot4: [22, 230, 44],
-          colorSlot5: [22, 230, 44],
-          colorSlot6: [22, 230, 44],
-          colorSlot7: [242, 230, 44],
-          colorSlot8: [22, 230, 44],
-          colorSlot9: [22, 230, 44],
-          colorSlot10: [22, 230, 44]
+          color: rgbToStoredColor({ r: 200, g: 0, b: 0 }),
+          colorSlot1: rgbToStoredColor({ r: 120, g: 239, b: 21 }),
+          colorSlot2: rgbToStoredColor({ r: 231, g: 200, b: 12 }),
+          colorSlot3: rgbToStoredColor({ r: 22, g: 230, b: 44 }),
+          colorSlot4: rgbToStoredColor({ r: 22, g: 230, b: 44 }),
+          colorSlot5: rgbToStoredColor({ r: 22, g: 230, b: 44 }),
+          colorSlot6: rgbToStoredColor({ r: 22, g: 230, b: 44 }),
+          colorSlot7: rgbToStoredColor({ r: 242, g: 230, b: 44 }),
+          colorSlot8: rgbToStoredColor({ r: 22, g: 230, b: 44 }),
+          colorSlot9: rgbToStoredColor({ r: 22, g: 230, b: 44 }),
+          colorSlot10: rgbToStoredColor({ r: 22, g: 230, b: 44 })
         }
       });
     }

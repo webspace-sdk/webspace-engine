@@ -8,7 +8,6 @@ import { FormattedMessage } from "react-intl";
 import React, { useState, useRef, useCallback, forwardRef, useEffect } from "react";
 import { BRUSH_TYPES } from "../constants";
 import { getMessages } from "../../hubs/utils/i18n";
-
 import styled from "styled-components";
 
 const BuilderControlsElement = styled.div`
@@ -63,6 +62,7 @@ const OptionsWrap = styled.div`
   align-items: center;
   justify-content: flex-start;
   height: 120px;
+  z-index: 11;
 `;
 
 const SuboptionsWrap = styled.div`
@@ -86,7 +86,6 @@ const BuilderControls = forwardRef((props, ref) => {
   const [crawlType, setCrawlType] = useState(builderSystem.brushCrawlType);
   const [crawlExtents, setCrawlExtents] = useState(builderSystem.brushCrawlExtents);
   const [colorFillMode, setColorFillMode] = useState(builderSystem.brushColorFillMode);
-  const colorEquipRef = useRef();
 
   const showShape = tool === BRUSH_TYPES.VOXEL;
   const showSize = tool === BRUSH_TYPES.VOXEL;
@@ -180,9 +179,7 @@ const BuilderControls = forwardRef((props, ref) => {
     [builderSystem]
   );
 
-  const onSelectedColorClicked = useCallback(() => {
-    // TODO show color picker
-  }, []);
+  const onSelectedColorClicked = useCallback(() => {}, []);
 
   return (
     <BuilderControlsElement ref={ref}>
@@ -307,7 +304,7 @@ const BuilderControls = forwardRef((props, ref) => {
       <PanelSectionHeader style={{ height: "16px" }}>
         <FormattedMessage id="build.palette.header" />
       </PanelSectionHeader>
-      <ColorEquip ref={colorEquipRef} onSelectedColorClicked={onSelectedColorClicked} />
+      <ColorEquip onSelectedColorClicked={onSelectedColorClicked} />
     </BuilderControlsElement>
   );
 });
