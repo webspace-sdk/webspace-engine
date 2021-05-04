@@ -14,6 +14,7 @@ import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from ".
 import HubStore from "../storage/hub-store";
 import WorldImporter from "../../jel/utils/world-importer";
 import { getHtmlForTemplate, applyTemplate } from "../../jel/utils/template-utils";
+import { clearVoxAttributePools } from "../../jel/objects/JelVoxBufferGeometry";
 import mixpanel from "mixpanel-browser";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
@@ -681,6 +682,8 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
 
             // Free memory from voxel editing undo stacks.
             SYSTEMS.builderSystem.clearUndoStacks();
+
+            clearVoxAttributePools();
 
             clearResolveUrlCache();
 

@@ -8,6 +8,48 @@ const vals = new Int16Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
 const norms = new Int16Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
 const quadData = [];
 
+// These memory pools for attributes reduce GC as meshes are rapidly remeshes
+// as brush previews are applied to them.
+const createPool = klass => {
+  const pool = new Map();
+
+  return {
+    get: function(length) {
+      const freeList = pool.get(length);
+
+      if (freeList && freeList.length > 0) {
+        return freeList.pop();
+      }
+
+      return new klass(length);
+    },
+    free: function(item) {
+      const length = item.length;
+      let freeList = pool.get(length);
+
+      if (!freeList) {
+        freeList = [];
+        pool.set(length, freeList);
+      }
+
+      freeList.push(item);
+    },
+    clear: function() {
+      pool.clear();
+    }
+  };
+};
+
+const float32Pool = createPool(Float32Array);
+const uint16Pool = createPool(Uint16Array);
+const uint32Pool = createPool(Uint32Array);
+
+export function clearVoxAttributePools() {
+  float32Pool.clear();
+  uint16Pool.clear();
+  uint32Pool.clear();
+}
+
 // Adapted from implementation by mikolalysenko:
 // https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
 function GreedyMesh(chunk, max_quad_size = Infinity) {
@@ -151,8 +193,15 @@ class JelVoxBufferGeometry extends BufferGeometry {
     }
   }
 
+  dispose() {
+    this.freeAttributeMemory();
+    super.dispose();
+  }
+
   // Updates the geometry with the specified vox chunk, returning the extents of the mesh.
   update(chunk, max_quad_size = 1) {
+    this.freeAttributeMemory();
+
     const palette = [];
     const size = chunk.size;
 
@@ -187,10 +236,10 @@ class JelVoxBufferGeometry extends BufferGeometry {
     const quadData = GreedyMesh(chunk, max_quad_size);
 
     const numQuads = quadData.length / 14 + 1;
-    const vertices = new Float32Array(12 * numQuads);
-    const normals = new Float32Array(12 * numQuads);
-    const colors = new Float32Array(12 * numQuads);
-    const uvs = new Float32Array(8 * numQuads);
+    const vertices = float32Pool.get(12 * numQuads);
+    const normals = float32Pool.get(12 * numQuads);
+    const colors = float32Pool.get(12 * numQuads);
+    const uvs = float32Pool.get(8 * numQuads);
 
     const pushFace = (
       iQuad,
@@ -472,7 +521,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
 
     // Generate vertex indices for quads.
     const numIndices = numQuads * 6;
-    const indices = numIndices > 65535 ? new Uint32Array(numIndices) : new Uint16Array(numIndices);
+    const indices = numIndices > 65535 ? uint32Pool.get(numIndices) : uint16Pool.get(numIndices);
 
     for (let i = 0, v = 0; i < numIndices; i += 6, v += 4) {
       indices[i + 0] = v;
@@ -494,6 +543,43 @@ class JelVoxBufferGeometry extends BufferGeometry {
     this.computeBoundingBox();
 
     return numIndices === 0 ? [0, 0, 0, 0, 0, 0] : [xMin, yMin, zMin, xMax, yMax, zMax];
+  }
+
+  freeAttributeMemory() {
+    const position = this.getAttribute("position");
+    const normal = this.getAttribute("normal");
+    const color = this.getAttribute("color");
+    const uv = this.getAttribute("uv");
+    const index = this.index;
+    const positionArray = position && position.array;
+    const normalArray = normal && normal.array;
+    const colorArray = color && color.array;
+    const uvArray = uv && uv.array;
+    const indexArray = index && index.array;
+
+    if (positionArray) {
+      float32Pool.free(positionArray);
+    }
+
+    if (normalArray) {
+      float32Pool.free(normalArray);
+    }
+
+    if (colorArray) {
+      float32Pool.free(colorArray);
+    }
+
+    if (uvArray) {
+      float32Pool.free(uvArray);
+    }
+
+    if (indexArray) {
+      if (index.length > 66535) {
+        uint32Pool.free(indexArray);
+      } else {
+        uint16Pool.free(indexArray);
+      }
+    }
   }
 }
 
