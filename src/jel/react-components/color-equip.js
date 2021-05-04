@@ -8,6 +8,8 @@ import ColorPicker from "./color-picker";
 import SegmentControl from "./segment-control";
 import { showTargetAboveElement } from "../utils/popup-utils";
 import { rgbToStoredColor, storedColorToRgb } from "../../hubs/storage/store";
+import restoreIcon from "../../assets/jel/images/icons/restore.svgi";
+import { DEFAULT_COLORS } from "../../hubs/storage/store";
 
 const NUM_SLOTS = 10;
 const PAGE_ITEMS = [
@@ -290,6 +292,21 @@ const SelectedButton = styled.button`
   }
 `;
 
+const RestoreButton = styled.button`
+  position: absolute;
+  bottom: 14px;
+  right: 18px;
+  width: 24px;
+  height: 24px;
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  outline-style: none;
+  background-color: transparent;
+  border: 0;
+  z-index: 12;
+`;
+
 const SLOT_BUTTON_OFFSETS = [
   ["calc(50% + 9px - 12px)", "calc(50% - 46px - 12px)"],
   ["calc(50% + 42px - 12px)", "calc(50% - 20px - 12px)"],
@@ -348,6 +365,23 @@ const ColorEquip = () => {
   const selectedColor = storedColorToRgb(store.state.equips.color || 0);
   const [pickerColorValue, setPickerColorValue] = useState(selectedColor);
   const { builderSystem } = SYSTEMS;
+
+  const onRestoreClick = useCallback(
+    () => {
+      const newValues = {
+        color: DEFAULT_COLORS[selectedPage * 10]
+      };
+
+      for (let i = 0; i < 10; i++) {
+        const idx = selectedPage * 10 + i;
+        const color = DEFAULT_COLORS[idx];
+        newValues[`colorSlot${idx + 1}`] = color;
+      }
+
+      store.update({ equips: newValues });
+    },
+    [selectedPage, store]
+  );
 
   useEffect(
     () => {
@@ -450,6 +484,9 @@ const ColorEquip = () => {
     <ColorEquipElement ref={innerRef}>
       <Tooltip delay={750} singleton={tipSource} />
       <ColorEquipOuter>
+        <Tooltip content={messages[`color-equip.restore-tip`]} delay={750} placement="left" key={"restore"}>
+          <RestoreButton dangerouslySetInnerHTML={{ __html: restoreIcon }} onClick={onRestoreClick} />
+        </Tooltip>
         <ColorEquipInner
           className={`${
             hoverSlot !== null ? `slot-${hoverSlot}-${isClicking ? "active" : "hover"}` : ""
