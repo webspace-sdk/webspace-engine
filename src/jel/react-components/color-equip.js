@@ -8,6 +8,8 @@ import ColorPicker from "./color-picker";
 import { showTargetAboveElement } from "../utils/popup-utils";
 import { rgbToStoredColor, storedColorToRgb } from "../../hubs/storage/store";
 
+const NUM_SLOTS = 10;
+
 const PickerWrap = styled.div`
   width: 128px;
   height: 128px;
@@ -332,6 +334,34 @@ const ColorEquip = () => {
 
   const selectedColor = storedColorToRgb(store.state.equips.color || 0);
   const [pickerColorValue, setPickerColorValue] = useState(selectedColor);
+  const { builderSystem } = SYSTEMS;
+
+  useEffect(
+    () => {
+      if (!builderSystem) return;
+
+      const handler = ({ detail: rgb }) => {
+        const newColor = rgbToStoredColor(rgb);
+
+        // When picker runs, check to see if color is already in here, if so, just switch to it.
+        for (let i = 0; i < NUM_SLOTS; i++) {
+          if (store.state.equips[`colorSlot${i + 1}`] === newColor) {
+            store.update({ equips: { color: rgbToStoredColor(rgb) } });
+
+            return;
+          }
+        }
+
+        store.update({
+          equips: { color: rgbToStoredColor(rgb), [`colorSlot${selectedSlot + 1}`]: rgbToStoredColor(rgb) }
+        });
+      };
+
+      builderSystem.addEventListener("picked_color", handler);
+      return () => builderSystem.removeEventListener("picked_color", handler);
+    },
+    [builderSystem, store, selectedSlot]
+  );
 
   // Animate center color when slot changes.
   useEffect(

@@ -6,6 +6,7 @@ import { getWorldColor } from "../objects/terrain";
 import { EventTarget } from "event-target-shim";
 import { storedColorToRgb } from "../../hubs/storage/store";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
+import { rgbtForVoxColor } from "ot-vox";
 import {
   BRUSH_TYPES,
   BRUSH_MODES,
@@ -73,7 +74,7 @@ export class BuilderSystem extends EventTarget {
     this.brushFaceSweep = 1;
 
     this.isBrushing = false;
-    this.mirrorX = true;
+    this.mirrorX = false;
     this.mirrorY = false;
     this.mirrorZ = false;
     this.brushVoxColor = null;
@@ -403,7 +404,9 @@ export class BuilderSystem extends EventTarget {
                 hitCell.y,
                 hitCell.z
               );
-              console.log("picked vox", color);
+
+              const rgbt = rgbtForVoxColor(color);
+              this.dispatchEvent(new CustomEvent("picked_color", { detail: rgbt }));
 
               updatePending = false;
               this.ignoreRestOfStroke = true;
@@ -1190,12 +1193,14 @@ export class BuilderSystem extends EventTarget {
           // Presume for now this terrain
           const index = paletteAttrib.array[vert * paletteAttrib.itemSize];
           const [r, g, b] = getWorldColor(index);
-          console.log("palette", index, r, g, b);
+          const rgb = { r: Math.floor(r * 255), g: Math.floor(g * 255), b: Math.floor(b * 255) };
+          this.dispatchEvent(new CustomEvent("picked_color", { detail: rgb }));
         } else if (colorAttrib) {
           const r = colorAttrib.array[vert * colorAttrib.itemSize];
           const g = colorAttrib.array[vert * colorAttrib.itemSize + 1];
           const b = colorAttrib.array[vert * colorAttrib.itemSize + 2];
-          console.log("non palette", r, g, b);
+          const rgb = { r: Math.floor(r * 255), g: Math.floor(g * 255), b: Math.floor(b * 255) };
+          this.dispatchEvent(new CustomEvent("picked_color", { detail: rgb }));
         }
       }
     }
