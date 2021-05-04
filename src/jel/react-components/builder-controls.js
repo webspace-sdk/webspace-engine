@@ -184,7 +184,7 @@ const BuilderControls = forwardRef((props, ref) => {
   return (
     <BuilderControlsElement ref={ref}>
       <PanelSectionHeader style={{ height: "16px" }}>
-        <FormattedMessage id="build.tool.header" />
+        <FormattedMessage id="build.brush.header" />
         <HelpIconWrap>
           <Tooltip content={messages[`builder.help-tip`]} placement="bottom" key={"help"} delay={250}>
             <HelpIcon href="https://www.youtube.com/watch?v=853S5HIOF4o" target="_blank">

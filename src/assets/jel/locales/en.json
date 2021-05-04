@@ -242,7 +242,7 @@
   "emoji-equip.slot-8-tip": "Equip EMOJI (Ctrl-9)",
   "emoji-equip.slot-9-tip": "Equip EMOJI (Ctrl-0)",
   "emoji-equip.select-slot": "Change Emoji",
-  "build.tool.header": "Tool",
+  "build.brush.header": "Brush",
   "build.mode.header": "Mode",
   "build.options.header": "Options",
   "build.material.header": "Material",
