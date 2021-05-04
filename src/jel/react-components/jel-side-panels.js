@@ -100,14 +100,18 @@ const BlasterContent = styled.div`
   height: 240px;
   min-height: 240px;
   padding: 8px 0;
+  z-index: 0;
+  background-color: var(--panel-background-color);
 `;
 
 const BuilderContent = styled.div`
   flex: 1 1 auto;
   width: 100%;
-  height: 600px;
-  min-height: 600px;
+  height: 610px;
+  min-height: 610px;
   padding: 8px 0;
+  z-index: 0;
+  background-color: var(--panel-background-color);
 `;
 
 const NavHead = styled.div`

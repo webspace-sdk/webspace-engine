@@ -109,9 +109,22 @@ const createVoxelMaterial = () => {
       "#include <color_vertex>",
       [
         "vec4 shift = texture(colorMap, vec2(float(palette) / 6.0, 0.1));",
+        "float grad = shift.a;",
         // Voxel colors have a red channel that provides brightness offsets
-        "float brightDelta = (color.x - 128.0) / 255.0 * shift.a;",
+        "float brightDelta = (color.x - 128.0) / 255.0 * grad;",
         "vColor.xyz = clamp(vec3(shift.x, shift.y, shift.z) + brightDelta, 0.0, 1.0);"
+      ].join("\n")
+    );
+
+    // See notes in vox system about shader bits here.
+    shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", "");
+
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <fog_fragment>",
+      [
+        "vec3 shadows = clamp(vec3(pow(outgoingLight.r * 2.5, 3.0), pow(outgoingLight.g * 2.5, 3.0), pow(outgoingLight.b * 2.5, 3.0)), 0.0, 1.0);",
+        "gl_FragColor = vec4(mix(shadows, vColor.rgb, 0.8), diffuseColor.a);",
+        "#include <fog_fragment>"
       ].join("\n")
     );
   };

@@ -1192,8 +1192,17 @@ export class BuilderSystem extends EventTarget {
         if (paletteAttrib) {
           // Presume for now this terrain
           const index = paletteAttrib.array[vert * paletteAttrib.itemSize];
-          const [r, g, b] = getWorldColor(index);
-          const rgb = { r: Math.floor(r * 255), g: Math.floor(g * 255), b: Math.floor(b * 255) };
+          const [r, g, b, grad] = getWorldColor(index);
+          // Terrain voxel colors have a red channel that provides brightness offsets
+          const brightOffset = colorAttrib.array[vert * colorAttrib.itemSize];
+          const brightDelta = ((brightOffset - 128.0) / 255.0) * grad;
+
+          const rgb = {
+            r: Math.floor(Math.max(0.0, Math.min(1.0, r + brightDelta)) * 255),
+            g: Math.floor(Math.max(0.0, Math.min(1.0, g + brightDelta)) * 255),
+            b: Math.floor(Math.max(0.0, Math.min(1.0, b + brightDelta)) * 255)
+          };
+
           this.dispatchEvent(new CustomEvent("picked_color", { detail: rgb }));
         } else if (colorAttrib) {
           const r = colorAttrib.array[vert * colorAttrib.itemSize];

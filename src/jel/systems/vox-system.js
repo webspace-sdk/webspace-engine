@@ -9,7 +9,16 @@ import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { type as vox0, Vox, VoxChunk } from "ot-vox";
 import VoxSync from "../utils/vox-sync";
 
-const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, VertexColors, Matrix4, Mesh } = THREE;
+const {
+  ShaderMaterial,
+  ShaderLib,
+  UniformsUtils,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  VertexColors,
+  Matrix4,
+  Mesh
+} = THREE;
 import { EventTarget } from "event-target-shim";
 
 const MAX_FRAMES_PER_VOX = 32;
@@ -39,8 +48,35 @@ const voxMaterial = new ShaderMaterial({
 
 voxMaterial.uniforms.metalness.value = 0;
 voxMaterial.uniforms.roughness.value = 1;
+voxMaterial.uniforms.diffuse.value = new THREE.Color(0xffffff); // See explanation below.
 
-voxMaterial.onBeforeCompile = shader => addVertexCurvingToShader(shader);
+voxMaterial.onBeforeCompile = shader => {
+  addVertexCurvingToShader(shader);
+
+  // This shader is fairly weird. Since the user is placing these voxels with explicit
+  // colors, we want the on-screen rendering color to match the palette fairly closely.
+  //
+  // Typical lighting will not really work: it ends up looking darker and less saturated.
+  //
+  // However, we have to compensate for shadows. So the material is a white diffuse which
+  // ends up generating the shadows into outgoingLight. We then scale + pow the shadows
+  // so they are high contrast (with regions in-light being white), and then mix the vertex
+  // color. The vertex color decoding earlier in the shader is discarded to avoid it getting
+  // applied in the lighting calculations.
+  //
+  // Note that if the shadow part is tuned too aggressively to show shadows then the shadow
+  // acne can get quite bad on smaller voxels.
+  shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", "");
+
+  shader.fragmentShader = shader.fragmentShader.replace(
+    "#include <fog_fragment>",
+    [
+      "vec3 shadows = clamp(vec3(pow(outgoingLight.r * 2.5, 3.0), pow(outgoingLight.g * 2.5, 3.0), pow(outgoingLight.b * 2.5, 3.0)), 0.0, 1.0);",
+      "gl_FragColor = vec4(mix(shadows, vColor.rgb, 0.8), diffuseColor.a);",
+      "#include <fog_fragment>"
+    ].join("\n")
+  );
+};
 
 function voxIdForVoxUrl(url) {
   // Parse vox id from URL
