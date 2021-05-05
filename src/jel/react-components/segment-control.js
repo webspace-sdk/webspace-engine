@@ -9,6 +9,13 @@ import styled from "styled-components";
 const SegmentControlElement = styled.div`
   display: grid;
   margin: 0 12px 0 12px;
+
+  &.small button {
+    min-width: 20px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+  }
 `;
 
 const SegmentButton = styled.button`
@@ -97,11 +104,13 @@ const SegmentButtonIcon = styled.div`
 `;
 
 const SegmentControl = forwardRef((props, ref) => {
-  const { items, rows, cols, selectedIndices, onChange } = props;
+  const { small, items, rows, cols, selectedIndices, onChange } = props;
   const [tipSource, tipTarget] = useSingleton();
 
-  const cssRows = new Array(rows).fill("32px").join(" ");
-  const cssCols = new Array(cols).fill(items.find(i => i.iconSrc) ? "40px" : "1fr").join(" ");
+  const cssRows = new Array(rows).fill(small ? "20px" : "32px").join(" ");
+  const cssCols = new Array(cols)
+    .fill(items.find(i => i.iconSrc) ? (small ? "20px" : "40px") : small ? "20px" : "1fr")
+    .join(" ");
 
   const cssClasses = Array(rows * cols).fill(null);
 
@@ -134,7 +143,11 @@ const SegmentControl = forwardRef((props, ref) => {
   }
 
   return (
-    <SegmentControlElement ref={ref} style={{ gridTemplateRows: cssRows, gridTemplateColumns: cssCols }}>
+    <SegmentControlElement
+      ref={ref}
+      style={{ gridTemplateRows: cssRows, gridTemplateColumns: cssCols }}
+      className={small ? "small" : ""}
+    >
       <Tooltip singleton={tipSource} delay={750} />
 
       {items.map(({ id, text, iconSrc }, idx) => {
@@ -171,7 +184,8 @@ SegmentControl.propTypes = {
   rows: PropTypes.number,
   cols: PropTypes.number,
   selectedIndices: PropTypes.array,
-  onChange: PropTypes.func
+  onChange: PropTypes.func,
+  small: PropTypes.bool
 };
 
 export { SegmentControl as default };

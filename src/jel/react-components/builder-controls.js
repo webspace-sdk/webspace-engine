@@ -5,7 +5,7 @@ import addIcon from "../../assets/jel/images/icons/add.svgi";
 import Tooltip from "./tooltip";
 import ColorEquip from "./color-equip";
 import { FormattedMessage } from "react-intl";
-import React, { useState, useRef, useCallback, forwardRef, useEffect } from "react";
+import React, { useState, useCallback, forwardRef, useEffect } from "react";
 import { BRUSH_TYPES } from "../constants";
 import { getMessages } from "../../hubs/utils/i18n";
 import styled from "styled-components";

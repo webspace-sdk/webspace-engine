@@ -85,6 +85,9 @@ const PagerWrap = styled.div`
   height: 100%;
   display: flex;
   z-index: 11;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
 `;
 
 const ColorEquipOuter = styled.div`
@@ -292,6 +295,32 @@ const SelectedButton = styled.button`
   }
 `;
 
+const HelpIconWrap = styled.div`
+  position: absolute;
+  top: 90px;
+  right: 26px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  z-index: 11;
+`;
+
+const HelpIcon = styled.div`
+  padding: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 12px;
+  margin-left: 10px;
+  border: 1px solid var(--action-button-border-color);
+  color: var(--action-button-text-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--tiny-icon-button-background-color);
+  font-weight: var(--tiny-action-button-text-weight);
+  font-size: var(--tiny-action-button-text-size);
+`;
+
 const RestoreButton = styled.button`
   position: absolute;
   bottom: 14px;
@@ -344,6 +373,43 @@ const buildColorsFromStore = page => {
   return colors;
 };
 
+const duplicateColorAcross = (page, indices) => {
+  const { store } = window.APP;
+  const equips = {};
+  const color = store.state.equips[`colorSlot${indices[0] + 1}`];
+
+  for (const idx of indices) {
+    equips[`colorSlot${idx + 1}`] = color;
+  }
+
+  store.update({ equips });
+};
+
+const gradientAcross = (page, indices) => {
+  if (indices.length <= 2) return;
+
+  const { store } = window.APP;
+  const equips = {};
+  const from = store.state.equips[`colorSlot${indices[0] + 1}`];
+  const to = store.state.equips[`colorSlot${indices[indices.length - 1] + 1}`];
+  const fromColor = storedColorToRgb(from);
+  const toColor = storedColorToRgb(to);
+
+  const dr = (toColor.r - fromColor.r) / (indices.length - 1);
+  const dg = (toColor.g - fromColor.g) / (indices.length - 1);
+  const db = (toColor.b - fromColor.b) / (indices.length - 1);
+
+  for (let i = 1; i < indices.length - 1; i++) {
+    const r = fromColor.r + dr * i;
+    const g = fromColor.g + dg * i;
+    const b = fromColor.b + db * i;
+
+    equips[`colorSlot${indices[i] + 1}`] = rgbToStoredColor({ r, g, b });
+  }
+
+  store.update({ equips });
+};
+
 const ColorEquip = () => {
   const store = window.APP.store;
   const messages = getMessages();
@@ -351,8 +417,9 @@ const ColorEquip = () => {
 
   const baseIndex = selectedPage * 10;
 
-  const [hoverSlot, setHoverSlot] = useState(null);
-  const [isClicking, setIsClicking] = useState(false);
+  const [hoverSlots, setHoverSlots] = useState([]);
+  const [clickStartSlot, setClickStartSlot] = useState(null);
+  const [dragDirection, setDragDirection] = useState(0);
   const colors = buildColorsFromStore(selectedPage);
   const [selectedSlot, setSelectedSlot] = useState(
     colors.indexOf(colors.find(color => rgbToStoredColor(color) === store.state.equips.color))
@@ -368,17 +435,17 @@ const ColorEquip = () => {
 
   const onRestoreClick = useCallback(
     () => {
-      const newValues = {
+      const equips = {
         color: DEFAULT_COLORS[selectedPage * 10]
       };
 
       for (let i = 0; i < 10; i++) {
         const idx = selectedPage * 10 + i;
         const color = DEFAULT_COLORS[idx];
-        newValues[`colorSlot${idx + 1}`] = color;
+        equips[`colorSlot${idx + 1}`] = color;
       }
 
-      store.update({ equips: newValues });
+      store.update({ equips });
     },
     [selectedPage, store]
   );
@@ -482,15 +549,20 @@ const ColorEquip = () => {
 
   return (
     <ColorEquipElement ref={innerRef}>
-      <Tooltip delay={750} singleton={tipSource} />
+      <Tooltip delay={1250} singleton={tipSource} />
       <ColorEquipOuter>
+        <HelpIconWrap>
+          <Tooltip content={messages[`color-equip.help-tip`]} placement="bottom" key={"help"} delay={250}>
+            <HelpIcon>?</HelpIcon>
+          </Tooltip>
+        </HelpIconWrap>
         <Tooltip content={messages[`color-equip.restore-tip`]} delay={750} placement="left" key={"restore"}>
           <RestoreButton dangerouslySetInnerHTML={{ __html: restoreIcon }} onClick={onRestoreClick} />
         </Tooltip>
         <ColorEquipInner
-          className={`${
-            hoverSlot !== null ? `slot-${hoverSlot}-${isClicking ? "active" : "hover"}` : ""
-          } slot-${selectedSlot}-selected`}
+          className={`${hoverSlots
+            .map(h => `slot-${h}-${clickStartSlot !== null ? "hover" : "active"}`)
+            .join(" ")} slot-${selectedSlot}-selected`}
         >
           {colors.length > 0 &&
             SLOT_BUTTON_OFFSETS.map(([left, top], idx) => (
@@ -503,13 +575,58 @@ const ColorEquip = () => {
                 <SlotButton
                   style={{ left, top }}
                   key={`slot-${idx}`}
-                  onMouseOver={() => setHoverSlot(idx)}
-                  onMouseOut={() => setHoverSlot(null)}
-                  onMouseDown={() => setIsClicking(true)}
-                  onMouseUp={() => setIsClicking(false)}
-                  onClick={() => {
+                  onMouseOver={() => {
+                    let currentDragDirection = dragDirection;
+
+                    if (dragDirection === 0 && clickStartSlot !== null) {
+                      if (clickStartSlot === 9 && idx === 0) {
+                        currentDragDirection = 1;
+                      } else if (clickStartSlot === 0 && idx === 9) {
+                        currentDragDirection = -1;
+                        console.log("rev");
+                      } else {
+                        currentDragDirection = clickStartSlot < idx ? 1 : -1;
+                      }
+
+                      setDragDirection(currentDragDirection);
+                    }
+
+                    const hoverSlots = [];
+
+                    if (clickStartSlot !== null) {
+                      for (let i = 0; i < 10; i++) {
+                        let ii = (clickStartSlot + i * currentDragDirection) % 10;
+                        if (ii < 0) {
+                          ii += 10;
+                        }
+
+                        hoverSlots.push(ii);
+
+                        if (ii === idx) break;
+                      }
+                    } else {
+                      hoverSlots.push(idx);
+                    }
+
+                    setHoverSlots(hoverSlots);
+                  }}
+                  onMouseOut={() => {}}
+                  onMouseDown={() => {
+                    setClickStartSlot(idx);
+                    setDragDirection(0);
                     store.update({ equips: { color: rgbToStoredColor(colors[idx]) } });
                     setSelectedSlot(idx);
+                  }}
+                  onMouseUp={e => {
+                    if (e.ctrlKey && e.shiftKey) {
+                      duplicateColorAcross(selectedPage, [...hoverSlots]);
+                    } else if (e.altKey && e.shiftKey) {
+                      gradientAcross(selectedPage, [...hoverSlots]);
+                    }
+
+                    setHoverSlots([]);
+                    setClickStartSlot(null);
+                    document.activeElement.blur(); // focuses canvas
                   }}
                 />
               </Tooltip>
@@ -559,6 +676,7 @@ const ColorEquip = () => {
       </ColorEquipOuter>
       <PagerWrap>
         <SegmentControl
+          small={true}
           rows={2}
           cols={5}
           selectedIndices={[selectedPage]}

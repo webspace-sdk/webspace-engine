@@ -86,7 +86,7 @@ const PresenceContent = styled.div`
   padding: 16px 0;
 
   &.build {
-    height: calc(100% - 690px);
+    height: calc(100% - 710px);
   }
 
   &.blast {
@@ -107,8 +107,8 @@ const BlasterContent = styled.div`
 const BuilderContent = styled.div`
   flex: 1 1 auto;
   width: 100%;
-  height: 610px;
-  min-height: 610px;
+  height: 650px;
+  min-height: 650px;
   padding: 8px 0;
   z-index: 0;
   background-color: var(--panel-background-color);
