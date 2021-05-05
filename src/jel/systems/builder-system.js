@@ -742,17 +742,21 @@ export class BuilderSystem extends EventTarget {
                     ) {
                       if (!brushFace.hasVoxelAt(x, y, z)) continue;
 
+                      console.log(h);
                       px =
                         axis === 1
-                          ? h * (brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.x
+                          ? h * mx * (brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.x +
+                            (mx < 0 ? -2 * offsetX : 0)
                           : x * mx - offsetX;
                       py =
                         axis === 2
-                          ? h * (brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.y
+                          ? h * my * (brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.y +
+                            (my < 0 ? -2 * offsetY : 0)
                           : y * my - offsetY;
                       pz =
                         axis === 3
-                          ? h * (brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.z
+                          ? h * mz * (brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.z +
+                            (mz < 0 ? -2 * offsetZ : 0)
                           : z * mz - offsetZ;
 
                       // Do not allow removing last voxel
