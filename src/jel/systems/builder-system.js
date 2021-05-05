@@ -84,6 +84,7 @@ export class BuilderSystem extends EventTarget {
     this.brushSize = 1;
     this.brushFaceSweep = 1;
     this.undoOpOnNextTick = UNDO_OPS.NONE;
+    this.setPickForAlt = false;
 
     this.isBrushing = false;
     this.lastHoverTime = 0;
@@ -207,11 +208,25 @@ export class BuilderSystem extends EventTarget {
     const leftPath = paths.device.mouse.buttonLeft;
     const controlPath = paths.device.keyboard.key("control");
     const shiftPath = paths.device.keyboard.key("shift");
+    const altPath = paths.device.keyboard.key("alt");
 
     const holdingLeft = userinput.get(leftPath);
     const holdingSpace = userinput.get(spacePath);
+    const holdingAlt = userinput.get(altPath);
     const holdingShift = userinput.get(shiftPath);
     const wheel = userinput.get(paths.actions.equipScroll);
+
+    if (holdingAlt) {
+      if (!this.setPickForAlt) {
+        this.setPickForAlt = true;
+        this.setBrushType(BRUSH_TYPES.PICK);
+      }
+    } else {
+      if (this.setPickForAlt && this.prePickBrushType !== null) {
+        this.setBrushType(this.prePickBrushType);
+      }
+      this.setPickForAlt = false;
+    }
 
     if (holdingShift && !holdingLeft) {
       this.sawLeftButtonUpWithShift = true;
@@ -552,11 +567,6 @@ export class BuilderSystem extends EventTarget {
 
   handlePick(rgbt) {
     this.dispatchEvent(new CustomEvent("picked_color", { detail: rgbt }));
-
-    if (this.prePickBrushType !== null) {
-      this.setBrushType(this.prePickBrushType);
-      this.prePickBrushType = null;
-    }
   }
 
   async createVoxAt(point) {
