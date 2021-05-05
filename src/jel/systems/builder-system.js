@@ -437,7 +437,7 @@ export class BuilderSystem extends EventTarget {
             }
           }
         }
-      } else {
+      } else if (!hitVoxId) {
         // No vox was hit this tick. Check if we need to create one.
         //
         // If brush is down, we're not currently brushing, and we have a target,

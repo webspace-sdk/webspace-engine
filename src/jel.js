@@ -846,7 +846,8 @@ function setupSidePanelLayout(scene) {
           document.documentElement.style.setProperty(`--${cssVars[i]}`, `${w}px`);
         }
 
-        scene.systems["hubs-systems"].uiAnimationSystem.applySceneSize(isLeft ? w : null, !isLeft ? w : null, true);
+        SYSTEMS.uiAnimationSystem.applySceneSize(isLeft ? w : null, !isLeft ? w : null, true);
+        SYSTEMS.uiAnimationSystem.setTargetSceneSizes();
         scene.resize();
 
         storeCallback(w);
