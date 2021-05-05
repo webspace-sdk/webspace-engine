@@ -322,7 +322,7 @@ const RestoreButton = styled.button`
   right: 18px;
   width: 24px;
   height: 24px;
-  color: var(--action-button-text-color);
+  color: var(--action-button-background-color);
   appearance: none;
   -moz-appearance: none;
   -webkit-appearance: none;

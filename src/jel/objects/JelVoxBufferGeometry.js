@@ -195,6 +195,12 @@ class JelVoxBufferGeometry extends BufferGeometry {
 
   dispose() {
     this.freeAttributeMemory();
+    this.deleteAttribute("position");
+    this.deleteAttribute("normal");
+    this.deleteAttribute("color");
+    this.deleteAttribute("uv");
+    this.setIndex([]);
+
     super.dispose();
   }
 

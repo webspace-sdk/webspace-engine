@@ -1,7 +1,6 @@
 //import PropTypes from "prop-types";
 import PanelSectionHeader from "./panel-section-header";
 import SegmentControl from "./segment-control";
-import addIcon from "../../assets/jel/images/icons/add.svgi";
 import pickIcon from "../../assets/jel/images/icons/pick.svgi";
 import fillIcon from "../../assets/jel/images/icons/fill.svgi";
 import boxIcon from "../../assets/jel/images/icons/box.svgi";
