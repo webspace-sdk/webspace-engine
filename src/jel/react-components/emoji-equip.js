@@ -301,7 +301,10 @@ const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
                   onMouseOut={() => setHoverSlot(null)}
                   onMouseDown={() => setIsClicking(true)}
                   onMouseUp={() => setIsClicking(false)}
-                  onClick={() => store.update({ equips: { launcher: emojis[idx].emoji } })}
+                  onClick={() => {
+                    store.update({ equips: { launcher: emojis[idx].emoji } });
+                    document.activeElement.blur(); // Focuses canvas
+                  }}
                 >
                   <img crossOrigin="anonymous" src={emojis[idx].imageUrl} />
                 </SlotButton>

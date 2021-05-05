@@ -47,7 +47,7 @@ export class BuilderSystem extends EventTarget {
     this.soundEffectsSystem = soundEffectsSystem;
     this.cursorSystem = cursorSystem;
 
-    this.enabled = true;
+    this.enabled = false;
     this.deltaWheel = 0.0;
     this.sawLeftButtonUpWithShift = false;
 
@@ -106,6 +106,11 @@ export class BuilderSystem extends EventTarget {
         soundEffectsSystem.playSoundOneShot(SOUND_EMOJI_EQUIP);
       }
     });*/
+  }
+
+  toggle() {
+    this.enabled = !this.enabled;
+    this.dispatchEvent(new CustomEvent("activechanged"));
   }
 
   updateBrushVoxColorFromStore() {

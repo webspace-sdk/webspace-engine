@@ -104,7 +104,7 @@ const SegmentButtonIcon = styled.div`
 `;
 
 const SegmentControl = forwardRef((props, ref) => {
-  const { small, items, rows, cols, selectedIndices, onChange } = props;
+  const { small, items, rows, cols, selectedIndices, onChange, hideTips } = props;
   const [tipSource, tipTarget] = useSingleton();
 
   const cssRows = new Array(rows).fill(small ? "20px" : "32px").join(" ");
@@ -152,25 +152,30 @@ const SegmentControl = forwardRef((props, ref) => {
 
       {items.map(({ id, text, iconSrc }, idx) => {
         const cssClass = cssClasses[idx];
+        const button = (
+          <SegmentButton
+            key={id}
+            className={selectedIndices.includes(idx) ? `selected ${cssClass}` : cssClass}
+            onClick={() => {
+              if (onChange) {
+                onChange(id, idx);
+              }
+            }}
+          >
+            {iconSrc && (
+              <SegmentButtonIconHolder>
+                <SegmentButtonIcon dangerouslySetInnerHTML={{ __html: iconSrc }} />
+              </SegmentButtonIconHolder>
+            )}
+            {text}
+          </SegmentButton>
+        );
 
-        return (
+        return hideTips ? (
+          button
+        ) : (
           <Tooltip content={messages[`${id}-tip`]} placement={"bottom"} key={id} singleton={tipTarget}>
-            <SegmentButton
-              key={id}
-              className={selectedIndices.includes(idx) ? `selected ${cssClass}` : cssClass}
-              onClick={() => {
-                if (onChange) {
-                  onChange(id, idx);
-                }
-              }}
-            >
-              {iconSrc && (
-                <SegmentButtonIconHolder>
-                  <SegmentButtonIcon dangerouslySetInnerHTML={{ __html: iconSrc }} />
-                </SegmentButtonIconHolder>
-              )}
-              {text}
-            </SegmentButton>
+            {button}
           </Tooltip>
         );
       })}
@@ -185,7 +190,8 @@ SegmentControl.propTypes = {
   cols: PropTypes.number,
   selectedIndices: PropTypes.array,
   onChange: PropTypes.func,
-  small: PropTypes.bool
+  small: PropTypes.bool,
+  hideTips: PropTypes.bool
 };
 
 export { SegmentControl as default };

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
 import { usePopper } from "react-popper";
 import PropTypes from "prop-types";
@@ -86,10 +86,10 @@ const PresenceContent = styled.div`
   padding: 16px 0;
 
   &.build {
-    height: calc(100% - 710px);
+    height: calc(100% - 740px);
   }
 
-  &.blast {
+  &.launch {
     height: calc(100% - 330px);
   }
 `;
@@ -428,16 +428,46 @@ function JelSidePanels({
 }) {
   const store = window.APP.store;
   const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
+  const { builderSystem, launcherSystem } = SYSTEMS;
   const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
   const [trashMenuElement, setTrashMenuElement] = useState(null);
   const [inviteReferenceElement, setInviteReferenceElement] = useState(null);
   const [inviteElement, setInviteElement] = useState(null);
   const [spaceName, setSpaceName] = useState((metadata && metadata.name) || "");
   const [isCreating, setIsCreating] = useState(false);
+  const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const invitePanelFieldElement = useRef();
   const spaceBannerRef = useRef();
   const emojiEquipRef = useRef();
   const showSpaceNotificationsButtonRef = useRef();
+
+  useEffect(
+    () => {
+      const handler = () => {
+        setTriggerMode(builderSystem.enabled ? "builder" : "launcher");
+      };
+
+      builderSystem.addEventListener("activechanged", handler);
+      launcherSystem.addEventListener("activechanged", handler);
+      () => {
+        builderSystem.removeEventListener("activechanged", handler);
+        launcherSystem.removeEventListener("activechanged", handler);
+      };
+    },
+    [builderSystem, launcherSystem]
+  );
+
+  const onTriggerModeChange = useCallback(
+    (id, idx) => {
+      if ((idx === 0 && !launcherSystem.enabled) || (idx === 1 && !builderSystem.enabled)) {
+        launcherSystem.toggle();
+        builderSystem.toggle();
+      }
+
+      document.activeElement.blur(); // Focuses canvas
+    },
+    [builderSystem, launcherSystem]
+  );
 
   const { spaceChannel } = window.APP;
 
@@ -642,7 +672,7 @@ function JelSidePanels({
         </Nav>
       </Left>
       <Right>
-        <PresenceContent className="build">
+        <PresenceContent className={triggerMode === "launcher" ? "launch" : "build"}>
           <PresenceList
             hubMetadata={hubMetadata}
             hubCan={hubCan}
@@ -663,7 +693,7 @@ function JelSidePanels({
           />
         </PresenceContent>
         {isWorld &&
-          false && (
+          triggerMode === "launcher" && (
             <BlasterContent>
               <PanelSectionHeader style={{ height: "16px" }}>
                 <FormattedMessage id="blaster.header" />
@@ -671,18 +701,21 @@ function JelSidePanels({
               <EmojiEquip ref={emojiEquipRef} onSelectedEmojiClicked={onSelectedEmojiClicked} />
             </BlasterContent>
           )}
-        {isWorld && (
-          <BuilderContent>
-            <BuilderControls />
-          </BuilderContent>
-        )}
+        {isWorld &&
+          triggerMode === "builder" && (
+            <BuilderContent>
+              <BuilderControls />
+            </BuilderContent>
+          )}
         {isWorld && (
           <TriggerModePanel>
             <SegmentControl
               rows={1}
               cols={2}
               items={[{ id: "trigger-mode.blast", text: "Blast" }, { id: "trigger-mode.build", text: "Build" }]}
-              selectedIndices={[1]}
+              hideTips={true}
+              selectedIndices={triggerMode === "launcher" ? [0] : [1]}
+              onChange={onTriggerModeChange}
             />
           </TriggerModePanel>
         )}
