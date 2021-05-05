@@ -2,6 +2,10 @@
 import PanelSectionHeader from "./panel-section-header";
 import SegmentControl from "./segment-control";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
+import pickIcon from "../../assets/jel/images/icons/pick.svgi";
+import fillIcon from "../../assets/jel/images/icons/fill.svgi";
+import boxIcon from "../../assets/jel/images/icons/box.svgi";
+import sphereIcon from "../../assets/jel/images/icons/sphere.svgi";
 import Tooltip from "./tooltip";
 import ColorEquip from "./color-equip";
 import { FormattedMessage } from "react-intl";
@@ -205,8 +209,8 @@ const BuilderControls = forwardRef((props, ref) => {
               { id: "builder.tool.face", text: "F" },
               { id: "builder.tool.box", text: "B" },
               { id: "builder.tool.circle", text: "C" },
-              { id: "builder.tool.fill", iconSrc: addIcon },
-              { id: "builder.tool.pick", iconSrc: addIcon }
+              { id: "builder.tool.fill", iconSrc: fillIcon },
+              { id: "builder.tool.pick", iconSrc: pickIcon }
             ]}
           />
         </SuboptionsWrap>
@@ -252,8 +256,8 @@ const BuilderControls = forwardRef((props, ref) => {
                 onChange={onShapeChanged}
                 selectedIndices={[shape]}
                 items={[
-                  { id: "builder.shape.box", iconSrc: addIcon },
-                  { id: "builder.shape.sphere", iconSrc: addIcon }
+                  { id: "builder.shape.box", iconSrc: boxIcon },
+                  { id: "builder.shape.sphere", iconSrc: sphereIcon }
                 ]}
               />
             )}
