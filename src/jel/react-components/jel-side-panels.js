@@ -7,7 +7,7 @@ import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
 import TinyOutlineIconButton from "./tiny-outline-icon-button";
 import SelfPanel from "./self-panel";
-import BridgePanel from "./bridge-panel";
+import SegmentControl from "./segment-control";
 import BuilderControls from "./builder-controls";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
 import notificationsIcon from "../../assets/jel/images/icons/notifications.svgi";
@@ -112,6 +112,21 @@ const BuilderContent = styled.div`
   padding: 8px 0;
   z-index: 0;
   background-color: var(--panel-background-color);
+`;
+
+const TriggerModePanel = styled.div`
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  background-color: var(--secondary-panel-background-color);
+  color: var(--secondary-panel-text-color);
+  align-self: flex-end;
+  z-index: 10;
 `;
 
 const NavHead = styled.div`
@@ -456,7 +471,7 @@ function JelSidePanels({
   const isWorld = hub && hub.type === "world";
 
   return (
-    <Wrap>
+    <Wrap id="jel-side-panels-wrap">
       <Left>
         <SpaceTreeSpill>
           <SpaceTree treeManager={treeManager} space={space} history={history} memberships={memberships} />
@@ -661,7 +676,16 @@ function JelSidePanels({
             <BuilderControls />
           </BuilderContent>
         )}
-        {isWorld && <BridgePanel scene={scene} spaceCan={spaceCan} />}
+        {isWorld && (
+          <TriggerModePanel>
+            <SegmentControl
+              rows={1}
+              cols={2}
+              items={[{ id: "trigger-mode.blast", text: "Blast" }, { id: "trigger-mode.build", text: "Build" }]}
+              selectedIndices={[1]}
+            />
+          </TriggerModePanel>
+        )}
       </Right>
       <Invite setPopperElement={setInviteElement} styles={inviteStyles} attributes={inviteAttributes}>
         <InvitePanel

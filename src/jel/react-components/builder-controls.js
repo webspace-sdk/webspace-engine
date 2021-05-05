@@ -217,9 +217,9 @@ const BuilderControls = forwardRef((props, ref) => {
             onChange={onModeChanged}
             selectedIndices={[mode]}
             items={[
-              { id: "builder.mode.add", text: "Attach" },
-              { id: "builder.mode.remove", text: "Erase" },
-              { id: "builder.mode.paint", text: "Paint" }
+              { id: "builder.mode.add", text: messages["builder.mode.attach"] },
+              { id: "builder.mode.remove", text: messages["builder.mode.erase"] },
+              { id: "builder.mode.paint", text: messages["builder.mode.paint"] }
             ]}
           />
         </SuboptionsWrap>
@@ -272,7 +272,10 @@ const BuilderControls = forwardRef((props, ref) => {
                 cols={2}
                 onChange={onCrawlTypeChanged}
                 selectedIndices={[crawlType]}
-                items={[{ id: "builder.crawl.geo", text: "Geo" }, { id: "builder.crawl.color", text: "Col" }]}
+                items={[
+                  { id: "builder.crawl.geo", text: messages["builder.crawl.geo"] },
+                  { id: "builder.crawl.color", text: messages["builder.crawl.color"] }
+                ]}
               />
             )}
             {showCrawlExtents && (
@@ -294,8 +297,8 @@ const BuilderControls = forwardRef((props, ref) => {
               onChange={onColorFillModeChanged}
               selectedIndices={[colorFillMode]}
               items={[
-                { id: "builder.color-fill-mode.selected", text: "Selected" },
-                { id: "builder.color-fill-mode.existing", text: "Existing" }
+                { id: "builder.color-fill-mode.selected", text: messages["builder.color-fill-mode.selected"] },
+                { id: "builder.color-fill-mode.existing", text: messages["builder.color-fill-mode.existing"] }
               ]}
             />
           </SuboptionsWrap>
