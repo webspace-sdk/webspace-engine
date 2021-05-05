@@ -86,7 +86,7 @@ const SegmentButton = styled.button`
   }
 `;
 
-const SegmentButtonIconHolder = styled.div`
+const SegmentButtonSoloIconHolder = styled.div`
   position: absolute;
   top: 0;
   left: 0;
@@ -96,6 +96,15 @@ const SegmentButtonIconHolder = styled.div`
   flex-direction: column;
   justify-content: center;
   margin-left: 10px;
+`;
+
+const SegmentButtonIconHolder = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-right: 16px;
 `;
 
 const SegmentButtonIcon = styled.div`
@@ -109,7 +118,7 @@ const SegmentControl = forwardRef((props, ref) => {
 
   const cssRows = new Array(rows).fill(small ? "20px" : "32px").join(" ");
   const cssCols = new Array(cols)
-    .fill(items.find(i => i.iconSrc) ? (small ? "20px" : "40px") : small ? "20px" : "1fr")
+    .fill(items.find(i => i.iconSrc && !i.text) ? (small ? "20px" : "40px") : small ? "20px" : "1fr")
     .join(" ");
 
   const cssClasses = Array(rows * cols).fill(null);
@@ -150,23 +159,32 @@ const SegmentControl = forwardRef((props, ref) => {
     >
       <Tooltip singleton={tipSource} delay={750} />
 
-      {items.map(({ id, text, iconSrc }, idx) => {
+      {items.map(({ id, text, iconSrc, offIconSrc }, idx) => {
         const cssClass = cssClasses[idx];
+        const selected = selectedIndices.includes(idx);
+        const icon = !offIconSrc ? iconSrc : selected ? iconSrc : offIconSrc;
         const button = (
           <SegmentButton
             key={id}
-            className={selectedIndices.includes(idx) ? `selected ${cssClass}` : cssClass}
+            className={selected ? `selected ${cssClass}` : cssClass}
             onClick={() => {
               if (onChange) {
                 onChange(id, idx);
               }
             }}
           >
-            {iconSrc && (
-              <SegmentButtonIconHolder>
-                <SegmentButtonIcon dangerouslySetInnerHTML={{ __html: iconSrc }} />
-              </SegmentButtonIconHolder>
-            )}
+            {icon &&
+              !text && (
+                <SegmentButtonSoloIconHolder>
+                  <SegmentButtonIcon dangerouslySetInnerHTML={{ __html: icon }} />
+                </SegmentButtonSoloIconHolder>
+              )}
+            {icon &&
+              text && (
+                <SegmentButtonIconHolder>
+                  <SegmentButtonIcon dangerouslySetInnerHTML={{ __html: icon }} />
+                </SegmentButtonIconHolder>
+              )}
             {text}
           </SegmentButton>
         );

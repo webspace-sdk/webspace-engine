@@ -358,5 +358,7 @@
   "builder.crawl.all-tip": "Connect across diagonal and non-diagonal voxels",
   "builder.color-fill-mode.selected-tip": "Fill new voxels with selected color.",
   "builder.color-fill-mode.existing-tip": "Fill new voxels with existing color.",
-  "builder.help-tip": "Voxel brushes work just like those in MagicaVoxel. Click to watch a tutorial on MagicaVoxel brushes."
+  "builder.help-tip": "Voxel brushes work just like those in MagicaVoxel. Click to watch a tutorial on MagicaVoxel brushes.",
+  "toggle.launcher": "Blast",
+  "toggle.builder": "Build"
 }

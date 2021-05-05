@@ -10,6 +10,10 @@ import SelfPanel from "./self-panel";
 import SegmentControl from "./segment-control";
 import BuilderControls from "./builder-controls";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
+import launcherOnIcon from "../../assets/jel/images/icons/launcher-on.svgi";
+import launcherOffIcon from "../../assets/jel/images/icons/launcher-off.svgi";
+import builderOnIcon from "../../assets/jel/images/icons/builder-on.svgi";
+import builderOffIcon from "../../assets/jel/images/icons/builder-off.svgi";
 import notificationsIcon from "../../assets/jel/images/icons/notifications.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { homeHubForSpaceId, spaceForSpaceId } from "../utils/membership-utils";
@@ -712,7 +716,20 @@ function JelSidePanels({
             <SegmentControl
               rows={1}
               cols={2}
-              items={[{ id: "trigger-mode.blast", text: "Blast" }, { id: "trigger-mode.build", text: "Build" }]}
+              items={[
+                {
+                  id: "trigger-mode.blast",
+                  text: messages["toggle.launcher"],
+                  iconSrc: launcherOnIcon,
+                  offIconSrc: launcherOffIcon
+                },
+                {
+                  id: "trigger-mode.build",
+                  text: messages["toggle.builder"],
+                  iconSrc: builderOnIcon,
+                  offIconSrc: builderOffIcon
+                }
+              ]}
               hideTips={true}
               selectedIndices={triggerMode === "launcher" ? [0] : [1]}
               onChange={onTriggerModeChange}

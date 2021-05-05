@@ -80,7 +80,7 @@ const PagerWrap = styled.div`
   margin: 0;
   position: absolute;
   top: 200px;
-  left: calc((100% - 220px) / 2);
+  left: 0;
   width: 100%;
   height: 100%;
   display: flex;
@@ -110,11 +110,6 @@ const ColorEquipInner = styled.div`
   height: 300px;
   display: flex;
   z-index: 10;
-
-  & svg {
-    color: var(--secondary-panel-item-background-color);
-    opacity: 0.9;
-  }
 
   &.slot-0-hover svg.slot-0 {
     transform: scale(1.03, 1.03);
@@ -323,17 +318,18 @@ const HelpIcon = styled.div`
 
 const RestoreButton = styled.button`
   position: absolute;
-  bottom: 14px;
+  bottom: 34px;
   right: 18px;
   width: 24px;
   height: 24px;
+  color: var(--action-button-text-color);
   appearance: none;
   -moz-appearance: none;
   -webkit-appearance: none;
   outline-style: none;
   background-color: transparent;
   border: 0;
-  z-index: 12;
+  z-index: 11;
 `;
 
 const SLOT_BUTTON_OFFSETS = [
@@ -551,17 +547,17 @@ const ColorEquip = () => {
     <ColorEquipElement ref={innerRef}>
       <Tooltip delay={1250} singleton={tipSource} />
       <ColorEquipOuter>
-        <HelpIconWrap>
-          <Tooltip content={messages[`color-equip.help-tip`]} placement="bottom" key={"help"} delay={250}>
-            <HelpIcon>?</HelpIcon>
-          </Tooltip>
-        </HelpIconWrap>
-        <Tooltip content={messages[`color-equip.restore-tip`]} delay={750} placement="left" key={"restore"}>
-          <RestoreButton dangerouslySetInnerHTML={{ __html: restoreIcon }} onClick={onRestoreClick} />
-        </Tooltip>
         <ColorEquipInner
           className={`${hoverSlots.map(h => `slot-${h}-hover`).join(" ")} slot-${selectedSlot}-selected`}
         >
+          <Tooltip content={messages[`color-equip.restore-tip`]} delay={750} placement="left" key={"restore"}>
+            <RestoreButton dangerouslySetInnerHTML={{ __html: restoreIcon }} onClick={onRestoreClick} />
+          </Tooltip>
+          <HelpIconWrap>
+            <Tooltip content={messages[`color-equip.help-tip`]} placement="bottom" key={"help"} delay={250}>
+              <HelpIcon>?</HelpIcon>
+            </Tooltip>
+          </HelpIconWrap>
           {colors.length > 0 &&
             SLOT_BUTTON_OFFSETS.map(([left, top], idx) => (
               <Tooltip
