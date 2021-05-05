@@ -169,6 +169,12 @@ paths.actions.spawnEmoji5 = "/actions/spawnEmoji5";
 paths.actions.spawnEmoji6 = "/actions/spawnEmoji6";
 paths.actions.nextGuidePlaneMode = "/actions/nextGuidePlaneMode";
 paths.actions.prevGuidePlaneMode = "/actions/prevGuidePlaneMode";
+paths.actions.buildBrushTypeVoxel = "/actions/buildBrushTypeVoxel";
+paths.actions.buildBrushTypeBox = "/actions/buildBrushTypeBox";
+paths.actions.buildBrushTypeFace = "/actions/buildBrushTypeFace";
+paths.actions.buildBrushTypeFill = "/actions/buildBrushTypeFill";
+paths.actions.buildBrushTypePick = "/actions/buildBrushTypePick";
+paths.actions.buildBrushTypeCircle = "/actions/buildBrushTypeCircle";
 
 paths.haptics = {};
 paths.haptics.actuators = {};

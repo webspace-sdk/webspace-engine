@@ -844,7 +844,7 @@ export const spawnMediaInfrontOfPlayer = (
     "#interactable-media",
     contentOrigin,
     contentSubtype,
-    !skipResolve && !!(src && !(src instanceof MediaStream) && !src.startsWith("jel://")),
+    !skipResolve && !!(src && !(src instanceof MediaStream) && (typeof src !== "string" || !src.startsWith("jel://"))),
     true,
     true,
     mediaOptions,

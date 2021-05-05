@@ -53,6 +53,10 @@ AFRAME.registerSystem("ui-hotkeys", {
     } else if (this.userinput.get(paths.actions.emojiEquip0)) {
       window.APP.store.update({ equips: { launcher: window.APP.store.state.equips.launcherSlot10 } });
     }
+
+    if (this.userinput.get(paths.actions.buildBrushTypeFace)) {
+      SYSTEMS.builderSystem.setBrushType(BRUSH_TYPES.FACE);
+    }
   },
 
   focusChat: function(prefix) {
