@@ -31,6 +31,7 @@ import HubContextMenu from "./hub-context-menu";
 import CreateSelectPopup from "./create-select-popup";
 import ChatInputPopup from "./chat-input-popup";
 import EmojiPopup from "./emoji-popup";
+import EqippedColorIcon from "./equipped-color-icon";
 import EquippedEmojiIcon from "./equipped-emoji-icon";
 import SpaceNotificationsPopup from "./space-notifications-popup";
 import HubPermissionsPopup from "./hub-permissions-popup";
@@ -495,6 +496,7 @@ function JelUI(props) {
     subscriptions,
     spaceId
   } = props;
+  const { builderSystem, launcherSystem } = SYSTEMS;
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
@@ -515,6 +517,7 @@ function JelUI(props) {
   const [isInitializingSpace, setIsInitializingSpace] = useState(store.state.context.isFirstVisitToSpace);
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [showingExternalCamera, setShowingExternalCamera] = useState(false);
+  const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const [showNotificationBanner, setShowNotificationBanner] = useState(
     subscriptions &&
       !subscriptions.subscribed &&
@@ -715,6 +718,22 @@ function JelUI(props) {
       () => matrix && matrix.removeEventListener("initial_sync_finished", handler);
     },
     [matrix]
+  );
+
+  useEffect(
+    () => {
+      const handler = () => {
+        setTriggerMode(builderSystem.enabled ? "builder" : "launcher");
+      };
+
+      builderSystem.addEventListener("activechanged", handler);
+      launcherSystem.addEventListener("activechanged", handler);
+      () => {
+        builderSystem.removeEventListener("activechanged", handler);
+        launcherSystem.removeEventListener("activechanged", handler);
+      };
+    },
+    [builderSystem, launcherSystem]
   );
 
   useEffect(
@@ -1028,7 +1047,7 @@ function JelUI(props) {
               {isWorld && (
                 <DeviceStatuses>
                   <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
-                  <EquippedEmojiIcon />
+                  {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
                 </DeviceStatuses>
               )}
             </HubCornerButtons>
