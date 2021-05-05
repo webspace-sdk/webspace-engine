@@ -22,7 +22,7 @@ import BasisWorker from "./basis_transcoder.worker.js";
  * to the main thread.
  */
 
-THREE.BasisTextureLoader = function(manager, retainImages = true) {
+THREE.BasisTextureLoader = function(manager, retainImages = false) {
   THREE.Loader.call(this, manager);
 
   this.retainImages = retainImages;
