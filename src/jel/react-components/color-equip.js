@@ -560,9 +560,7 @@ const ColorEquip = () => {
           <RestoreButton dangerouslySetInnerHTML={{ __html: restoreIcon }} onClick={onRestoreClick} />
         </Tooltip>
         <ColorEquipInner
-          className={`${hoverSlots
-            .map(h => `slot-${h}-${clickStartSlot !== null ? "hover" : "active"}`)
-            .join(" ")} slot-${selectedSlot}-selected`}
+          className={`${hoverSlots.map(h => `slot-${h}-hover`).join(" ")} slot-${selectedSlot}-selected`}
         >
           {colors.length > 0 &&
             SLOT_BUTTON_OFFSETS.map(([left, top], idx) => (
@@ -583,7 +581,6 @@ const ColorEquip = () => {
                         currentDragDirection = 1;
                       } else if (clickStartSlot === 0 && idx === 9) {
                         currentDragDirection = -1;
-                        console.log("rev");
                       } else {
                         currentDragDirection = clickStartSlot < idx ? 1 : -1;
                       }
@@ -610,7 +607,11 @@ const ColorEquip = () => {
 
                     setHoverSlots(hoverSlots);
                   }}
-                  onMouseOut={() => {}}
+                  onMouseOut={() => {
+                    if (clickStartSlot === null) {
+                      setHoverSlots([]);
+                    }
+                  }}
                   onMouseDown={() => {
                     setClickStartSlot(idx);
                     setDragDirection(0);
