@@ -42,6 +42,12 @@ const HALF_MAX_VOX_SIZE = Math.floor(MAX_VOX_SIZE / 2);
 const xyzToInt = (x, y, z) =>
   ((x + HALF_MAX_VOX_SIZE + 1) << 16) | ((y + HALF_MAX_VOX_SIZE + 1) << 8) | (z + HALF_MAX_VOX_SIZE + 1);
 
+const UNDO_OPS = {
+  NONE: 0,
+  UNDO: 1,
+  REDO: 2
+};
+
 // Deals with block building
 export class BuilderSystem extends EventTarget {
   constructor(sceneEl, userinput, soundEffectsSystem, cursorSystem) {
@@ -77,6 +83,7 @@ export class BuilderSystem extends EventTarget {
     this.brushFace = null;
     this.brushSize = 1;
     this.brushFaceSweep = 1;
+    this.undoOpOnNextTick = UNDO_OPS.NONE;
 
     this.isBrushing = false;
     this.lastHoverTime = 0;
@@ -247,6 +254,7 @@ export class BuilderSystem extends EventTarget {
 
     const intersection = cursor && cursor.intersection;
     this.performBrushStep(brushDown, intersection);
+    this.undoOpOnNextTick = UNDO_OPS.NONE;
   }
 
   performBrushStep = (() => {
@@ -353,98 +361,106 @@ export class BuilderSystem extends EventTarget {
       }
 
       if (hitVoxId && !canApplyPendingThisTick) {
-        const cellToBrush = brushMode === BRUSH_MODES.ADD && brushType !== BRUSH_TYPES.FACE ? adjacentCell : hitCell;
-        // If we hovered over another vox while brushing, ignore it until we end the stroke.
-        const skipDueToAnotherHover = this.isBrushing && this.targetVoxId !== null && hitVoxId !== this.targetVoxId;
+        if (this.undoOpOnNextTick !== UNDO_OPS.NONE && this.targetVoxId !== null && this.targetVoxFrame !== null) {
+          if (this.undoOpOnNextTick === UNDO_OPS.UNDO) {
+            this.applyUndo(this.targetVoxId, this.targetVoxFrame);
+          } else {
+            this.applyRedo(this.targetVoxId, this.targetVoxFrame);
+          }
+        } else {
+          const cellToBrush = brushMode === BRUSH_MODES.ADD && brushType !== BRUSH_TYPES.FACE ? adjacentCell : hitCell;
+          // If we hovered over another vox while brushing, ignore it until we end the stroke.
+          const skipDueToAnotherHover = this.isBrushing && this.targetVoxId !== null && hitVoxId !== this.targetVoxId;
 
-        if (!skipDueToAnotherHover && !this.ignoreRestOfStroke) {
-          // Hacky, presumes non-frozen meshes are instanced meshes.
-          const isHittingFrozenMesh = typeof intersection.instanceId !== "number";
+          if (!skipDueToAnotherHover && !this.ignoreRestOfStroke) {
+            // Hacky, presumes non-frozen meshes are instanced meshes.
+            const isHittingFrozenMesh = typeof intersection.instanceId !== "number";
 
-          // Freeze the mesh when we start hovering over a vox.
-          if (this.targetVoxId !== hitVoxId) {
-            if (this.targetVoxId) {
-              // Direct hover from one vox to another, clear old pending.
-              SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
-              this.pendingChunk = null;
-              this.targetVoxId = null;
-              this.targetVoxFrame = null;
-            }
-
-            // If the cursor is on a real, unfrozen vox, freeze it.
-            // (Sometimes cursor can be hovering on frozen mesh for a single frame)
-            if (!isHittingFrozenMesh) {
-              this.targetVoxId = hitVoxId;
-              this.targetVoxFrame = SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
-
-              if (typeof hitInstanceId === "number") {
-                hitObject.getMatrixAt(hitInstanceId, this.targetVoxInstanceMatrixWorld);
-              } else {
-                hitObject.updateMatrices();
-                this.targetVoxInstanceMatrixWorld.copy(hitObject.matrixWorld);
+            // Freeze the mesh when we start hovering over a vox.
+            if (this.targetVoxId !== hitVoxId) {
+              if (this.targetVoxId) {
+                // Direct hover from one vox to another, clear old pending.
+                SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
+                this.pendingChunk = null;
+                this.targetVoxId = null;
+                this.targetVoxFrame = null;
               }
 
-              const elements = this.targetVoxInstanceMatrixWorld.elements;
-              this.targetVoxInstanceScale = tmpScale.set(elements[0], elements[1], elements[2]).length();
+              // If the cursor is on a real, unfrozen vox, freeze it.
+              // (Sometimes cursor can be hovering on frozen mesh for a single frame)
+              if (!isHittingFrozenMesh) {
+                this.targetVoxId = hitVoxId;
+                this.targetVoxFrame = SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
 
-              brushStartCell.copy(cellToBrush);
-              brushEndCell.copy(cellToBrush);
-              updatePending = true;
+                if (typeof hitInstanceId === "number") {
+                  hitObject.getMatrixAt(hitInstanceId, this.targetVoxInstanceMatrixWorld);
+                } else {
+                  hitObject.updateMatrices();
+                  this.targetVoxInstanceMatrixWorld.copy(hitObject.matrixWorld);
+                }
+
+                const elements = this.targetVoxInstanceMatrixWorld.elements;
+                this.targetVoxInstanceScale = tmpScale.set(elements[0], elements[1], elements[2]).length();
+
+                brushStartCell.copy(cellToBrush);
+                brushEndCell.copy(cellToBrush);
+                updatePending = true;
+              }
             }
-          }
 
-          if (brushDown && !this.isBrushing) {
-            this.isBrushing = true;
-            brushStartWorldPoint.copy(intersection.point);
+            if (brushDown && !this.isBrushing) {
+              this.isBrushing = true;
+              brushStartWorldPoint.copy(intersection.point);
 
-            brushFaceNormal.copy(hitNormal);
-            brushFaceWorldNormal.copy(hitNormal);
-            brushFaceWorldNormal.transformDirection(this.targetVoxInstanceMatrixWorld);
-
-            updatePending = true;
-
-            if (this.brushType === BRUSH_TYPES.FACE) {
-              this.startFaceBrushStroke(hitCell, hitNormal, hitWorldPoint, hitObject, hitInstanceId);
-            } else if (this.brushType === BRUSH_TYPES.FILL) {
-              // For fill crawl the whole thing.
-              [, this.pendingChunk] = this.crawlIntoChunkAt(hitCell, 0, this.brushVoxColor);
-
-              // Update the pending chunk + apply it immediately
-              SYSTEMS.voxSystem.setPendingVoxChunk(this.targetVoxId, this.pendingChunk, 0, 0, 0);
-              this.pushToUndoStack(this.targetVoxId, this.targetVoxFrame, this.pendingChunk, [0, 0, 0]);
-              SYSTEMS.voxSystem.applyPendingAndUnfreezeMesh(this.targetVoxId);
-              this.pendingChunk = null;
-
-              // Fill is one-and-done, and ignores mode
-              updatePending = false;
-              this.ignoreRestOfStroke = true;
-            } else if (this.brushType === BRUSH_TYPES.PICK) {
-              // Pick tool over non-vox
-              const color = SYSTEMS.voxSystem.getVoxColorAt(
-                this.targetVoxId,
-                this.targetVoxFrame,
-                hitCell.x,
-                hitCell.y,
-                hitCell.z
-              );
-
-              const rgbt = rgbtForVoxColor(color);
-
-              this.handlePick(rgbt);
-
-              updatePending = false;
-              this.ignoreRestOfStroke = true;
-            }
-          }
-
-          if (!brushEndCell.equals(cellToBrush)) {
-            updatePending = true;
-            brushEndCell.copy(cellToBrush);
-
-            if (!brushDown) {
-              // Just a hover, maintain a single cell size pending
-              brushStartCell.copy(cellToBrush);
               brushFaceNormal.copy(hitNormal);
+              brushFaceWorldNormal.copy(hitNormal);
+              brushFaceWorldNormal.transformDirection(this.targetVoxInstanceMatrixWorld);
+
+              updatePending = true;
+
+              if (this.brushType === BRUSH_TYPES.FACE) {
+                this.startFaceBrushStroke(hitCell, hitNormal, hitWorldPoint, hitObject, hitInstanceId);
+              } else if (this.brushType === BRUSH_TYPES.FILL) {
+                // For fill crawl the whole thing.
+                [, this.pendingChunk] = this.crawlIntoChunkAt(hitCell, 0, this.brushVoxColor);
+
+                // Update the pending chunk + apply it immediately
+                SYSTEMS.voxSystem.setPendingVoxChunk(this.targetVoxId, this.pendingChunk, 0, 0, 0);
+                this.pushToUndoStack(this.targetVoxId, this.targetVoxFrame, this.pendingChunk, [0, 0, 0]);
+                SYSTEMS.voxSystem.applyPendingAndUnfreezeMesh(this.targetVoxId);
+                this.pendingChunk = null;
+
+                // Fill is one-and-done, and ignores mode
+                updatePending = false;
+                this.ignoreRestOfStroke = true;
+              } else if (this.brushType === BRUSH_TYPES.PICK) {
+                // Pick tool over non-vox
+                const color = SYSTEMS.voxSystem.getVoxColorAt(
+                  this.targetVoxId,
+                  this.targetVoxFrame,
+                  hitCell.x,
+                  hitCell.y,
+                  hitCell.z
+                );
+
+                const rgbt = rgbtForVoxColor(color);
+
+                this.handlePick(rgbt);
+
+                updatePending = false;
+                this.ignoreRestOfStroke = true;
+              }
+            }
+
+            if (!brushEndCell.equals(cellToBrush)) {
+              updatePending = true;
+              brushEndCell.copy(cellToBrush);
+
+              if (!brushDown) {
+                // Just a hover, maintain a single cell size pending
+                brushStartCell.copy(cellToBrush);
+                brushFaceNormal.copy(hitNormal);
+              }
             }
           }
         }
@@ -754,7 +770,6 @@ export class BuilderSystem extends EventTarget {
                     ) {
                       if (!brushFace.hasVoxelAt(x, y, z)) continue;
 
-                      console.log(h);
                       px =
                         axis === 1
                           ? h * mx * (brushMode === BRUSH_MODES.REMOVE ? -1 : 1) * brushFaceNormal.x +
@@ -1000,6 +1015,14 @@ export class BuilderSystem extends EventTarget {
     forward.fill(null, newPosition); // Free residual redos ahead of us
     forward[position] = [pending.clone(), offset]; // The previous stack frame can now move forward to this one
     stack.position = newPosition;
+  }
+
+  doUndo() {
+    this.undoOpOnNextTick = UNDO_OPS.UNDO;
+  }
+
+  doRedo() {
+    this.undoOpOnNextTick = UNDO_OPS.REDO;
   }
 
   async applyUndo(voxId, frame) {

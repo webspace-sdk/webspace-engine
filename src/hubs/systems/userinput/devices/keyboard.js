@@ -31,29 +31,48 @@ export class KeyboardDevice {
           e.preventDefault();
         }
 
-        // Ctrl + shift Keybindings are needed here, because user input system for hotkeys doesn't work for modifier conflicts. :P
-        if (SYSTEMS.builderSystem.enabled && e.altKey && e.type === "keydown") {
-          if (e.code === "KeyF") {
-            SYSTEMS.builderSystem.setBrushType(BRUSH_TYPES.FACE);
-            e.preventDefault();
-          } else if (e.code === "KeyV") {
-            SYSTEMS.builderSystem.setBrushType(BRUSH_TYPES.VOXEL);
-            e.preventDefault();
-          } else if (e.code === "KeyB") {
-            SYSTEMS.builderSystem.setBrushType(BRUSH_TYPES.BOX);
-            e.preventDefault();
-          } else if (e.code === "KeyC") {
-            SYSTEMS.builderSystem.setBrushType(BRUSH_TYPES.CENTER);
-            e.preventDefault();
-          } else if (e.code === "KeyT") {
-            SYSTEMS.builderSystem.setBrushMode(BRUSH_MODES.ADD);
-            e.preventDefault();
-          } else if (e.code === "KeyR") {
-            SYSTEMS.builderSystem.setBrushMode(BRUSH_MODES.REMOVE);
-            e.preventDefault();
-          } else if (e.code === "KeyG") {
-            SYSTEMS.builderSystem.setBrushMode(BRUSH_MODES.PAINT);
-            e.preventDefault();
+        // Alt Keybindings are needed here, because user input system for hotkeys doesn't work for modifier conflicts. :P
+        if (SYSTEMS.builderSystem.enabled && e.type === "keydown") {
+          if (e.altKey) {
+            if (e.code === "KeyF") {
+              SYSTEMS.builderSystem.setBrushType(BRUSH_TYPES.FACE);
+              e.preventDefault();
+            } else if (e.code === "KeyV") {
+              SYSTEMS.builderSystem.setBrushType(BRUSH_TYPES.VOXEL);
+              e.preventDefault();
+            } else if (e.code === "KeyB") {
+              SYSTEMS.builderSystem.setBrushType(BRUSH_TYPES.BOX);
+              e.preventDefault();
+            } else if (e.code === "KeyC") {
+              SYSTEMS.builderSystem.setBrushType(BRUSH_TYPES.CENTER);
+              e.preventDefault();
+            } else if (e.code === "KeyT") {
+              SYSTEMS.builderSystem.setBrushMode(BRUSH_MODES.ADD);
+              e.preventDefault();
+            } else if (e.code === "KeyR") {
+              SYSTEMS.builderSystem.setBrushMode(BRUSH_MODES.REMOVE);
+              e.preventDefault();
+            } else if (e.code === "KeyG") {
+              SYSTEMS.builderSystem.setBrushMode(BRUSH_MODES.PAINT);
+              e.preventDefault();
+            } else if (e.code === "Digit1") {
+              SYSTEMS.builderSystem.toggleMirrorX();
+              e.preventDefault();
+            } else if (e.code === "Digit2") {
+              SYSTEMS.builderSystem.toggleMirrorY();
+              e.preventDefault();
+            } else if (e.code === "Digit3") {
+              SYSTEMS.builderSystem.toggleMirrorZ();
+              e.preventDefault();
+            }
+          }
+
+          if (e.ctrlKey) {
+            if (e.code === "KeyZ") {
+              SYSTEMS.builderSystem.doUndo();
+            } else if (e.code === "KeyY") {
+              SYSTEMS.builderSystem.doRedo();
+            }
           }
         }
 
