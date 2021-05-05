@@ -615,7 +615,6 @@ const ColorEquip = () => {
                     setSelectedSlot(idx);
                   }}
                   onMouseUp={e => {
-                    console.log(e, e.ctrlKey, e.altKey, selectedPage, hoverSlots);
                     if (e.ctrlKey) {
                       duplicateColorAcross(selectedPage, [...hoverSlots]);
                     } else if (e.altKey) {

@@ -2,6 +2,8 @@ import styled from "styled-components";
 import { FormattedMessage } from "react-intl";
 import React, { forwardRef, useState, useEffect } from "react";
 import { imageUrlForEmoji } from "../../hubs/utils/media-url-utils";
+import { objRgbToCssRgb } from "../utils/dom-utils";
+import { storedColorToRgb } from "../../hubs/storage/store";
 
 const KeyTipsElement = styled.div`
   position: absolute;
@@ -146,10 +148,15 @@ const TipLabel = styled.div`
   text-shadow: 0px 0px 4px var(--menu-shadow-color);
   margin-left: 16px;
 
-  & img {
+  & .equipped-emoji,
+  & .equipped-color {
     display: inline-block;
+    min-width: 16px;
+    min-height: 16px;
     width: 16px;
     height: 16px;
+    margin-right: 6px;
+    border-radius: 4px;
     margin-right: 6px;
   }
 `;
@@ -177,6 +184,8 @@ const KeySmallSeparator = styled.div`
   font-size: var(--canvas-overlay-tertiary-text-size);
   text-shadow: 0px 0px 4px var(--menu-shadow-color);
 `;
+
+const ColorSwatch = styled.div``;
 
 const objectCommonTips = [
   ["move", "T;I"],
@@ -249,6 +258,12 @@ const TIP_DATA = {
   hover_bakable_groundable_interactable: objectCommonTips,
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
+  vox_attach: [["attach", "_S|D"], ...objectCommonTips],
+  vox_erase: [["erase", "_S|D"], ...objectCommonTips],
+  vox_paint: [["paint", "_S|D"], ...objectCommonTips],
+  vox_attach_full: [["attach", "_S|K"], ...objectCommonTips],
+  vox_erase_full: [["erase", "_S|K"], ...objectCommonTips],
+  vox_paint_full: [["paint", "_S|K"], ...objectCommonTips],
   pdf: [["next", "L+S"], ["page", "q\\e"], ...objectCommonTips],
   text: [
     ["edit", "~|@", "mediaTextEdit"],
@@ -281,6 +296,17 @@ const itemForData = ([label, keys, flag]) => {
     tipLabel = (
       <TipLabel key={label}>
         <img className="equipped-emoji" src={equippedEmojiUrl} crossOrigin="anonymous" />
+        <FormattedMessage id={`key-tips.${label}`} />
+      </TipLabel>
+    );
+  } else if (label === "attach" || label === "paint") {
+    const { store } = window.APP;
+    const { r, g, b } = storedColorToRgb(store.state.equips.color);
+    const cssRgb = objRgbToCssRgb({ r: r / 255.0, g: g / 255.0, b: b / 255.0 });
+
+    tipLabel = (
+      <TipLabel key={label}>
+        <ColorSwatch className="equipped-color" style={{ backgroundColor: cssRgb }} />
         <FormattedMessage id={`key-tips.${label}`} />
       </TipLabel>
     );
@@ -502,16 +528,24 @@ const KeyTips = forwardRef((props, ref) => {
     [store, flagVersion]
   );
 
-  // When state store changes, update emoji.
+  // When state store changes, update emoji + color swatches.
   useEffect(
     () => {
       const handler = () => {
-        const els = document.querySelectorAll("#key-tips .equipped-emoji");
-        const emoji = window.APP.store.state.equips.launcher;
+        const { store } = window.APP;
+        const { r, g, b } = storedColorToRgb(store.state.equips.color);
+        const cssRgb = objRgbToCssRgb({ r: r / 255.0, g: g / 255.0, b: b / 255.0 });
+        const emojiEls = document.querySelectorAll("#key-tips .equipped-emoji");
+        const colorEls = document.querySelectorAll("#key-tips .equipped-color");
+        const emoji = store.state.equips.launcher;
         equippedEmojiUrl = imageUrlForEmoji(emoji, 64);
 
-        for (let i = 0; i < els.length; i++) {
-          els[i].setAttribute("src", equippedEmojiUrl);
+        for (let i = 0; i < emojiEls.length; i++) {
+          emojiEls[i].setAttribute("src", equippedEmojiUrl);
+        }
+
+        for (let i = 0; i < colorEls.length; i++) {
+          colorEls[i].setAttribute("style", `background-color: ${cssRgb}`);
         }
       };
       store.addEventListener("statechanged-equips", handler);
