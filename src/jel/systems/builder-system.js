@@ -29,6 +29,10 @@ import {
 const WHEEL_THRESHOLD = 0.15;
 const MAX_UNDO_STEPS = 32;
 
+// Number of ms that need to pass from last hover before a click will create a voxel, to reduce
+// chance of mis-creation.
+const HOVER_TO_CREATE_DELAY_MS = 1000;
+
 const { Vector3, Matrix4, Raycaster, MeshBasicMaterial, Mesh, PlaneBufferGeometry } = THREE;
 import { createVox } from "../../hubs/utils/phoenix-utils";
 
@@ -75,6 +79,7 @@ export class BuilderSystem extends EventTarget {
     this.brushFaceSweep = 1;
 
     this.isBrushing = false;
+    this.lastHoverTime = 0;
     this.mirrorX = false;
     this.mirrorY = false;
     this.mirrorZ = false;
@@ -261,6 +266,8 @@ export class BuilderSystem extends EventTarget {
     return (brushDown, intersection) => {
       if (!this.enabled) return;
 
+      const now = performance.now();
+
       const {
         brushStartCell,
         brushStartWorldPoint,
@@ -339,6 +346,10 @@ export class BuilderSystem extends EventTarget {
       ) {
         this.pickColorAtIntersection(intersection);
         this.ignoreRestOfStroke = true;
+      }
+
+      if (hitVoxId) {
+        this.lastHoverTime = now;
       }
 
       if (hitVoxId && !canApplyPendingThisTick) {
@@ -448,7 +459,8 @@ export class BuilderSystem extends EventTarget {
           this.targetVoxId === null &&
           brushMode === BRUSH_MODES.ADD &&
           intersection &&
-          intersection.point
+          intersection.point &&
+          now - this.lastHoverTime >= HOVER_TO_CREATE_DELAY_MS
         ) {
           // Not mid-build, create a new vox.
           this.hasInFlightOperation = true;
