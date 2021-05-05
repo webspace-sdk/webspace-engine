@@ -9,16 +9,7 @@ import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { type as vox0, Vox, VoxChunk } from "ot-vox";
 import VoxSync from "../utils/vox-sync";
 
-const {
-  ShaderMaterial,
-  ShaderLib,
-  UniformsUtils,
-  MeshBasicMaterial,
-  MeshStandardMaterial,
-  VertexColors,
-  Matrix4,
-  Mesh
-} = THREE;
+const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, VertexColors, Matrix4, Mesh } = THREE;
 import { EventTarget } from "event-target-shim";
 
 const MAX_FRAMES_PER_VOX = 32;
@@ -551,6 +542,7 @@ export class VoxSystem extends EventTarget {
     }
 
     if (targettingMesh) {
+      voxEntry.targettingMesh = null; // Do this first since removal will re-compute cursor targets
       scene.remove(targettingMesh);
       targettingMesh.material = null;
       disposeNode(targettingMesh);
@@ -829,6 +821,7 @@ export class VoxSystem extends EventTarget {
 
     if (entry.targettingMesh) {
       const existingMesh = entry.targettingMesh;
+      entry.targettingMesh = null; // Do this first since removal will re-compute cursor targets
       scene.remove(existingMesh);
       existingMesh.material = null;
       disposeNode(existingMesh);
@@ -859,11 +852,11 @@ export class VoxSystem extends EventTarget {
     const { targettingMesh } = entry;
     if (!targettingMesh) return;
 
+    entry.targettingMesh = null; // Do this first since removal will re-compute cursor targets
     scene.remove(targettingMesh);
     targettingMesh.geometry.boundsTree = null;
     targettingMesh.material = null;
     disposeNode(targettingMesh);
-    entry.targettingMesh = null;
     meshToVoxId.delete(targettingMesh);
 
     this.dispatchEvent(new CustomEvent("mesh_removed"));
@@ -962,11 +955,11 @@ export class VoxSystem extends EventTarget {
     if (!mesh) return;
 
     // Retain material since it's shared among all vox.
+    meshes[i] = null; // Do this first since removal will re-compute cursor targets
+    scene.remove(mesh);
     mesh.material = null;
     disposeNode(mesh);
-    scene.remove(mesh);
     meshToVoxId.delete(mesh);
-    meshes[i] = null;
     dirtyFrameMeshes[i] = true;
 
     // Shape is the first mesh's shape
