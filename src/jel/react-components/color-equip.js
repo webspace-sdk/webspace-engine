@@ -372,10 +372,10 @@ const buildColorsFromStore = page => {
 const duplicateColorAcross = (page, indices) => {
   const { store } = window.APP;
   const equips = {};
-  const color = store.state.equips[`colorSlot${indices[0] + 1}`];
+  const color = store.state.equips[`colorSlot${page * 10 + indices[0] + 1}`];
 
   for (const idx of indices) {
-    equips[`colorSlot${idx + 1}`] = color;
+    equips[`colorSlot${page * 10 + idx + 1}`] = color;
   }
 
   store.update({ equips });
@@ -386,8 +386,8 @@ const gradientAcross = (page, indices) => {
 
   const { store } = window.APP;
   const equips = {};
-  const from = store.state.equips[`colorSlot${indices[0] + 1}`];
-  const to = store.state.equips[`colorSlot${indices[indices.length - 1] + 1}`];
+  const from = store.state.equips[`colorSlot${page * 10 + indices[0] + 1}`];
+  const to = store.state.equips[`colorSlot${page * 10 + indices[indices.length - 1] + 1}`];
   const fromColor = storedColorToRgb(from);
   const toColor = storedColorToRgb(to);
 
@@ -400,7 +400,7 @@ const gradientAcross = (page, indices) => {
     const g = fromColor.g + dg * i;
     const b = fromColor.b + db * i;
 
-    equips[`colorSlot${indices[i] + 1}`] = rgbToStoredColor({ r, g, b });
+    equips[`colorSlot${page * 10 + indices[i] + 1}`] = rgbToStoredColor({ r, g, b });
   }
 
   store.update({ equips });
@@ -409,8 +409,9 @@ const gradientAcross = (page, indices) => {
 const ColorEquip = () => {
   const store = window.APP.store;
   const messages = getMessages();
-  const [selectedPage, setSelectedPage] = useState(0);
 
+  const selectedColor = storedColorToRgb(store.state.equips.color || 0);
+  const selectedPage = store.state.equips.colorPage || 0;
   const baseIndex = selectedPage * 10;
 
   const [hoverSlots, setHoverSlots] = useState([]);
@@ -425,7 +426,6 @@ const ColorEquip = () => {
   const innerRef = useRef();
   const selectedButtonRef = useRef();
 
-  const selectedColor = storedColorToRgb(store.state.equips.color || 0);
   const [pickerColorValue, setPickerColorValue] = useState(selectedColor);
   const { builderSystem } = SYSTEMS;
 
@@ -492,6 +492,7 @@ const ColorEquip = () => {
     () => {
       const handler = () => {
         if (!store || !store.state) return;
+        const selectedPage = store.state.equips.colorPage;
         const colors = buildColorsFromStore(selectedPage);
         const hasMatchingSlotSelected = rgbToStoredColor(colors) === store.state.equips.color;
 
@@ -534,13 +535,12 @@ const ColorEquip = () => {
 
   const onPageChanged = useCallback(
     (_, idx) => {
-      setSelectedPage(idx);
       setSelectedSlot(0);
 
       const colors = buildColorsFromStore(idx);
-      store.update({ equips: { color: rgbToStoredColor(colors[0]) } });
+      store.update({ equips: { color: rgbToStoredColor(colors[0]), colorPage: idx } });
     },
-    [setSelectedPage, store]
+    [store]
   );
 
   return (
@@ -615,9 +615,10 @@ const ColorEquip = () => {
                     setSelectedSlot(idx);
                   }}
                   onMouseUp={e => {
-                    if (e.ctrlKey && e.shiftKey) {
+                    console.log(e, e.ctrlKey, e.altKey, selectedPage, hoverSlots);
+                    if (e.ctrlKey) {
                       duplicateColorAcross(selectedPage, [...hoverSlots]);
-                    } else if (e.altKey && e.shiftKey) {
+                    } else if (e.altKey) {
                       gradientAcross(selectedPage, [...hoverSlots]);
                     }
 

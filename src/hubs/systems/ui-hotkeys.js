@@ -32,30 +32,38 @@ AFRAME.registerSystem("ui-hotkeys", {
       this.el.emit("action_mute");
     }
 
-    if (this.userinput.get(paths.actions.emojiEquip1)) {
-      window.APP.store.update({ equips: { launcher: window.APP.store.state.equips.launcherSlot1 } });
-    } else if (this.userinput.get(paths.actions.emojiEquip2)) {
-      window.APP.store.update({ equips: { launcher: window.APP.store.state.equips.launcherSlot2 } });
-    } else if (this.userinput.get(paths.actions.emojiEquip3)) {
-      window.APP.store.update({ equips: { launcher: window.APP.store.state.equips.launcherSlot3 } });
-    } else if (this.userinput.get(paths.actions.emojiEquip4)) {
-      window.APP.store.update({ equips: { launcher: window.APP.store.state.equips.launcherSlot4 } });
-    } else if (this.userinput.get(paths.actions.emojiEquip5)) {
-      window.APP.store.update({ equips: { launcher: window.APP.store.state.equips.launcherSlot5 } });
-    } else if (this.userinput.get(paths.actions.emojiEquip6)) {
-      window.APP.store.update({ equips: { launcher: window.APP.store.state.equips.launcherSlot6 } });
-    } else if (this.userinput.get(paths.actions.emojiEquip7)) {
-      window.APP.store.update({ equips: { launcher: window.APP.store.state.equips.launcherSlot7 } });
-    } else if (this.userinput.get(paths.actions.emojiEquip8)) {
-      window.APP.store.update({ equips: { launcher: window.APP.store.state.equips.launcherSlot8 } });
-    } else if (this.userinput.get(paths.actions.emojiEquip9)) {
-      window.APP.store.update({ equips: { launcher: window.APP.store.state.equips.launcherSlot9 } });
-    } else if (this.userinput.get(paths.actions.emojiEquip0)) {
-      window.APP.store.update({ equips: { launcher: window.APP.store.state.equips.launcherSlot10 } });
-    }
+    let slotToEquip = 0;
 
-    if (this.userinput.get(paths.actions.buildBrushTypeFace)) {
-      SYSTEMS.builderSystem.setBrushType(BRUSH_TYPES.FACE);
+    if (this.userinput.get(paths.actions.equip1)) {
+      slotToEquip = 1;
+    } else if (this.userinput.get(paths.actions.equip2)) {
+      slotToEquip = 2;
+    } else if (this.userinput.get(paths.actions.equip3)) {
+      slotToEquip = 3;
+    } else if (this.userinput.get(paths.actions.equip4)) {
+      slotToEquip = 4;
+    } else if (this.userinput.get(paths.actions.equip5)) {
+      slotToEquip = 5;
+    } else if (this.userinput.get(paths.actions.equip6)) {
+      slotToEquip = 6;
+    } else if (this.userinput.get(paths.actions.equip7)) {
+      slotToEquip = 7;
+    } else if (this.userinput.get(paths.actions.equip8)) {
+      slotToEquip = 8;
+    } else if (this.userinput.get(paths.actions.equip9)) {
+      slotToEquip = 9;
+    } else if (this.userinput.get(paths.actions.equip0)) {
+      slotToEquip = 10;
+    }
+    const { store } = window.APP;
+
+    if (slotToEquip > 0) {
+      if (SYSTEMS.launcherSystem.enabled) {
+        store.update({ equips: { launcher: store.state.equips[`launcherSlot${slotToEquip}`] } });
+      } else {
+        slotToEquip += store.state.equips.colorPage * 10;
+        store.update({ equips: { color: store.state.equips[`colorSlot${slotToEquip}`] } });
+      }
     }
   },
 

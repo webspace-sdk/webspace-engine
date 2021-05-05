@@ -246,7 +246,7 @@
   "build.mode.header": "Mode",
   "build.options.header": "Options",
   "build.material.header": "Material",
-  "color-equip.help-tip": "Drag with Ctrl-Shift to duplicate color. Drag with Alt-Shift to create gradient between colors.",
+  "color-equip.help-tip": "Drag with Ctrl to duplicate color. Drag with Alt to create gradient between colors.",
   "color-equip.slot-0-tip": "Equip Color 1 (Ctrl-1)",
   "color-equip.slot-1-tip": "Equip Color 2 (Ctrl-2)",
   "color-equip.slot-2-tip": "Equip Color 3 (Ctrl-3)",

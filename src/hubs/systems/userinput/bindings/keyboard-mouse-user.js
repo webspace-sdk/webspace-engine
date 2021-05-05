@@ -271,7 +271,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+1" },
-      dest: { value: paths.actions.emojiEquip1 },
+      dest: { value: paths.actions.equip1 },
       xform: xforms.rising
     },
     {
@@ -285,7 +285,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+2" },
-      dest: { value: paths.actions.emojiEquip2 },
+      dest: { value: paths.actions.equip2 },
       xform: xforms.rising
     },
     {
@@ -299,7 +299,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+3" },
-      dest: { value: paths.actions.emojiEquip3 },
+      dest: { value: paths.actions.equip3 },
       xform: xforms.rising
     },
     {
@@ -313,7 +313,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+4" },
-      dest: { value: paths.actions.emojiEquip4 },
+      dest: { value: paths.actions.equip4 },
       xform: xforms.rising
     },
     {
@@ -327,7 +327,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+5" },
-      dest: { value: paths.actions.emojiEquip5 },
+      dest: { value: paths.actions.equip5 },
       xform: xforms.rising
     },
     {
@@ -341,7 +341,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+6" },
-      dest: { value: paths.actions.emojiEquip6 },
+      dest: { value: paths.actions.equip6 },
       xform: xforms.rising
     },
     {
@@ -355,7 +355,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+7" },
-      dest: { value: paths.actions.emojiEquip7 },
+      dest: { value: paths.actions.equip7 },
       xform: xforms.rising
     },
     {
@@ -369,7 +369,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+8" },
-      dest: { value: paths.actions.emojiEquip8 },
+      dest: { value: paths.actions.equip8 },
       xform: xforms.rising
     },
     {
@@ -383,7 +383,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+9" },
-      dest: { value: paths.actions.emojiEquip9 },
+      dest: { value: paths.actions.equip9 },
       xform: xforms.rising
     },
     {
@@ -397,7 +397,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+0" },
-      dest: { value: paths.actions.emojiEquip0 },
+      dest: { value: paths.actions.equip0 },
       xform: xforms.rising
     }
     // Helpful bindings for debugging hands in 2D

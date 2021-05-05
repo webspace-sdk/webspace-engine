@@ -227,6 +227,7 @@ export const SCHEMA = {
         launcherSlot9: { type: "string" },
         launcherSlot10: { type: "string" },
         color: { type: "number" },
+        colorPage: { type: "number" },
         colorSlot1: { type: "number" },
         colorSlot2: { type: "number" },
         colorSlot3: { type: "number" },
@@ -520,6 +521,7 @@ export default class Store extends EventTarget {
       this.update({
         equips: {
           color: DEFAULT_COLORS[0],
+          colorPage: 0,
           colorSlot1: DEFAULT_COLORS[0],
           colorSlot2: DEFAULT_COLORS[1],
           colorSlot3: DEFAULT_COLORS[2],
