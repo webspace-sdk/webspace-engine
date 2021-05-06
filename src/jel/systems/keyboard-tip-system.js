@@ -74,20 +74,20 @@ export class KeyboardTipSystem {
                   if (SYSTEMS.builderSystem.enabled) {
                     const expanded = getCursorLockState() === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
                     if (SYSTEMS.builderSystem.brushType === BRUSH_TYPES.PICK) {
-                      showTips = expanded ? "vox_pick_full" : "vox_pick";
+                      showTips = expanded || shiftMouseLook ? "vox_pick_full" : "vox_pick";
                     } else if (SYSTEMS.builderSystem.brushType === BRUSH_TYPES.FILL) {
-                      showTips = expanded ? "vox_fill_full" : "vox_fill";
+                      showTips = expanded || shiftMouseLook ? "vox_fill_full" : "vox_fill";
                     } else {
                       const mode = SYSTEMS.builderSystem.brushMode;
                       switch (mode) {
                         case BRUSH_MODES.ADD:
-                          showTips = expanded ? "vox_attach_full" : "vox_attach";
+                          showTips = expanded || shiftMouseLook ? "vox_attach_full" : "vox_attach";
                           break;
                         case BRUSH_MODES.REMOVE:
-                          showTips = expanded ? "vox_erase_full" : "vox_erase";
+                          showTips = expanded || shiftMouseLook ? "vox_erase_full" : "vox_erase";
                           break;
                         case BRUSH_MODES.PAINT:
-                          showTips = expanded ? "vox_paint_full" : "vox_paint";
+                          showTips = expanded || shiftMouseLook ? "vox_paint_full" : "vox_paint";
                           break;
                       }
                     }
