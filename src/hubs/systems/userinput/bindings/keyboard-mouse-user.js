@@ -206,27 +206,45 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 1001
     },
     {
+      src: { value: paths.device.keyboard.code("keyb") },
+      dest: { value: "/var/rising+b" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
       src: {
         bool: paths.device.keyboard.key("alt"),
-        value: paths.device.keyboard.code("keyb")
+        value: "/var/rising+b"
       },
       dest: { value: "/var/naked+b" },
       xform: xforms.copyIfFalse,
       priority: 1001
     },
     {
+      src: { value: paths.device.keyboard.code("keyc") },
+      dest: { value: "/var/rising+c" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
       src: {
         bool: paths.device.keyboard.key("alt"),
-        value: paths.device.keyboard.code("keyc")
+        value: "/var/rising+c"
       },
       dest: { value: "/var/naked+c" },
       xform: xforms.copyIfFalse,
       priority: 1001
     },
     {
+      src: { value: paths.device.keyboard.code("keyt") },
+      dest: { value: "/var/rising+t" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
       src: {
         bool: paths.device.keyboard.key("alt"),
-        value: paths.device.keyboard.code("keyt")
+        value: "/var/rising+t"
       },
       dest: { value: "/var/naked+t" },
       xform: xforms.copyIfFalse,
@@ -242,9 +260,15 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 1001
     },
     {
+      src: { value: paths.device.keyboard.code("keyg") },
+      dest: { value: "/var/rising+g" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
       src: {
         bool: paths.device.keyboard.key("alt"),
-        value: paths.device.keyboard.code("keyg")
+        value: "/var/rising+g"
       },
       dest: { value: "/var/naked+g" },
       xform: xforms.copyIfFalse,
@@ -607,9 +631,15 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
+      src: { value: paths.device.keyboard.code("keyf") },
+      dest: { value: "/var/rising+f" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
       src: {
         bool: paths.device.keyboard.key("alt"),
-        value: paths.device.keyboard.code("keyf")
+        value: "/var/rising+f"
       },
       dest: { value: "/var/naked+f" },
       xform: xforms.copyIfFalse,
