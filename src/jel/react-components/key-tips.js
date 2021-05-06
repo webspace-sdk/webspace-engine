@@ -258,12 +258,16 @@ const TIP_DATA = {
   hover_bakable_groundable_interactable: objectCommonTips,
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
-  vox_attach: [["attach", "_S|D"], ...objectCommonTips],
-  vox_erase: [["erase", "_S|D"], ...objectCommonTips],
-  vox_paint: [["paint", "_S|D"], ...objectCommonTips],
-  vox_attach_full: [["attach", "_S|K"], ...objectCommonTips],
-  vox_erase_full: [["erase", "_S|K"], ...objectCommonTips],
-  vox_paint_full: [["paint", "_S|K"], ...objectCommonTips],
+  vox_pick: [["pick", "_S|D"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_fill: [["fill", "_S|D"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_attach: [["attach", "_S|D"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_erase: [["erase", "_S|D"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_paint: [["paint", "_S|D"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_pick_full: [["pick", "_S|K"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_fill_full: [["fill", "_S|K"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_attach_full: [["attach", "_S|K"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_erase_full: [["erase", "_S|K"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_paint_full: [["paint", "_S|K"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
   pdf: [["next", "L+S"], ["page", "q\\e"], ...objectCommonTips],
   text: [
     ["edit", "~|@", "mediaTextEdit"],
@@ -290,15 +294,32 @@ const itemForData = ([label, keys, flag]) => {
   let tipLabel;
 
   if (label === "jump" || label === "shoot") {
-    const emoji = window.APP.store.state.equips.launcher;
-    equippedEmojiUrl = imageUrlForEmoji(emoji, 64);
+    if (SYSTEMS.builderSystem.enabled) {
+      if (label === "jump") {
+        // No analog in builder mode
+        return null;
+      }
 
-    tipLabel = (
-      <TipLabel key={label}>
-        <img className="equipped-emoji" src={equippedEmojiUrl} crossOrigin="anonymous" />
-        <FormattedMessage id={`key-tips.${label}`} />
-      </TipLabel>
-    );
+      const { store } = window.APP;
+      const { r, g, b } = storedColorToRgb(store.state.equips.color);
+      const cssRgb = objRgbToCssRgb({ r: r / 255.0, g: g / 255.0, b: b / 255.0 });
+      tipLabel = (
+        <TipLabel key={label}>
+          <ColorSwatch className="equipped-color" style={{ backgroundColor: cssRgb }} />
+          <FormattedMessage id={`key-tips.build`} />
+        </TipLabel>
+      );
+    } else {
+      const emoji = window.APP.store.state.equips.launcher;
+      equippedEmojiUrl = imageUrlForEmoji(emoji, 64);
+
+      tipLabel = (
+        <TipLabel key={label}>
+          <img className="equipped-emoji" src={equippedEmojiUrl} crossOrigin="anonymous" />
+          <FormattedMessage id={`key-tips.${label}`} />
+        </TipLabel>
+      );
+    }
   } else if (label === "attach" || label === "paint") {
     const { store } = window.APP;
     const { r, g, b } = storedColorToRgb(store.state.equips.color);

@@ -231,21 +231,19 @@ const BuilderControls = forwardRef((props, ref) => {
         <FormattedMessage id="build.options.header" />
       </PanelSectionHeader>
       <OptionsWrap>
-        {showMirror && (
-          <SuboptionsWrap>
-            <SegmentControl
-              rows={1}
-              cols={3}
-              onChange={onMirrorChanged}
-              selectedIndices={[mirrorX ? 0 : null, mirrorY ? 1 : null, mirrorZ ? 2 : null].filter(x => x !== null)}
-              items={[
-                { id: "builder.mirror.x", text: "X" },
-                { id: "builder.mirror.y", text: "Y" },
-                { id: "builder.mirror.z", text: "Z" }
-              ]}
-            />
-          </SuboptionsWrap>
-        )}
+        <SuboptionsWrap>
+          <SegmentControl
+            rows={1}
+            cols={3}
+            onChange={onMirrorChanged}
+            selectedIndices={[mirrorX ? 0 : null, mirrorY ? 1 : null, mirrorZ ? 2 : null].filter(x => x !== null)}
+            items={[
+              { id: "builder.mirror.x", text: "X" },
+              { id: "builder.mirror.y", text: "Y" },
+              { id: "builder.mirror.z", text: "Z" }
+            ]}
+          />
+        </SuboptionsWrap>
         {(showShape || showSize) && (
           <SuboptionsWrap>
             {showShape && (

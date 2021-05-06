@@ -3,7 +3,7 @@ import { BAKABLE_MEDIA_VIEW_COMPONENTS } from "../../hubs/utils/media-utils";
 import { GROUNDABLE_MEDIA_VIEW_COMPONENTS } from "../../hubs/utils/media-utils";
 import { cursorIsVisible, CURSOR_LOCK_STATES, getCursorLockState } from "../utils/dom-utils";
 import { paths } from "../../hubs/systems/userinput/paths";
-import { BRUSH_MODES } from "../constants";
+import { BRUSH_TYPES, BRUSH_MODES } from "../constants";
 
 const shiftPath = paths.device.keyboard.key("shift");
 
@@ -71,18 +71,24 @@ export class KeyboardTipSystem {
                 } else if (components["media-video"]) {
                   showTips = components["media-video"].data.videoPaused ? "video_paused" : "video_playing";
                 } else if (components["media-vox"] && SYSTEMS.builderSystem.enabled) {
-                  const mode = SYSTEMS.builderSystem.brushMode;
                   const expanded = getCursorLockState() === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
-                  switch (mode) {
-                    case BRUSH_MODES.ADD:
-                      showTips = expanded ? "vox_attach_full" : "vox_attach";
-                      break;
-                    case BRUSH_MODES.REMOVE:
-                      showTips = expanded ? "vox_erase_full" : "vox_erase";
-                      break;
-                    case BRUSH_MODES.PAINT:
-                      showTips = expanded ? "vox_paint_full" : "vox_paint";
-                      break;
+                  if (SYSTEMS.builderSystem.brushType === BRUSH_TYPES.PICK) {
+                    showTips = expanded ? "vox_pick_full" : "vox_pick";
+                  } else if (SYSTEMS.builderSystem.brushType === BRUSH_TYPES.FILL) {
+                    showTips = expanded ? "vox_fill_full" : "vox_fill";
+                  } else {
+                    const mode = SYSTEMS.builderSystem.brushMode;
+                    switch (mode) {
+                      case BRUSH_MODES.ADD:
+                        showTips = expanded ? "vox_attach_full" : "vox_attach";
+                        break;
+                      case BRUSH_MODES.REMOVE:
+                        showTips = expanded ? "vox_erase_full" : "vox_erase";
+                        break;
+                      case BRUSH_MODES.PAINT:
+                        showTips = expanded ? "vox_paint_full" : "vox_paint";
+                        break;
+                    }
                   }
                 } else if (components["media-pdf"]) {
                   showTips = "pdf";
