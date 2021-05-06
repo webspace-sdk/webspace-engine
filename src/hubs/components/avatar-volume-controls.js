@@ -2,6 +2,7 @@ import { VOLUME_LABELS } from "./media-views";
 const MAX_VOLUME = 8;
 const SMALL_STEP = 1 / (VOLUME_LABELS.length / 2);
 const BIG_STEP = (MAX_VOLUME - 1) / (VOLUME_LABELS.length / 2);
+const DEFAULT_VOLUME = 75;
 
 AFRAME.registerComponent("avatar-volume-controls", {
   schema: {
@@ -52,7 +53,7 @@ AFRAME.registerComponent("avatar-volume-controls", {
       }
 
       const { audioOutputMode, globalVoiceVolume } = window.APP.store.state.preferences;
-      const volumeModifier = (globalVoiceVolume !== undefined ? globalVoiceVolume : 100) / 100;
+      const volumeModifier = (globalVoiceVolume !== undefined ? globalVoiceVolume : DEFAULT_VOLUME) / 100;
       let gain = this.data.muted ? 0 : volumeModifier * this.data.volume;
       if (audioOutputMode === "audio") {
         this.avatarAudioSource.el.object3D.getWorldPosition(positionA);
