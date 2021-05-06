@@ -127,8 +127,19 @@ export class VoxSystem extends EventTarget {
         hasDirtyMatrices,
         hasDirtyWorldToObjectMatrices,
         regenerateDirtyMeshesOnNextFrame,
-        sources
+        sources,
+        vox
       } = entry;
+
+      if (regenerateDirtyMeshesOnNextFrame && vox) {
+        this.regenerateDirtyMeshesForVoxId(voxId);
+        entry.regenerateDirtyMeshesOnNextFrame = false;
+
+        if (entry.voxRegisteredResolve) {
+          entry.voxRegisteredResolve();
+          entry.voxRegisteredResolve = null;
+        }
+      }
 
       // Registration in-progress
       if (maxRegisteredIndex < 0) continue;
@@ -232,11 +243,6 @@ export class VoxSystem extends EventTarget {
 
       if (entry.hasDirtyMatrices) {
         entry.hasDirtyMatrices = false;
-      }
-
-      if (regenerateDirtyMeshesOnNextFrame) {
-        this.regenerateDirtyMeshesForVoxId(voxId);
-        entry.regenerateDirtyMeshesOnNextFrame = false;
       }
     }
 
@@ -433,8 +439,8 @@ export class VoxSystem extends EventTarget {
 
     const voxId = voxIdForVoxUrl(voxUrl);
 
-    let finish;
-    const voxRegistered = new Promise(res => (finish = res));
+    let voxRegisteredResolve;
+    const voxRegistered = new Promise(res => (voxRegisteredResolve = res));
 
     // Create a new entry for managing this vox
     const entry = {
@@ -500,9 +506,12 @@ export class VoxSystem extends EventTarget {
       // Current animation frame
       currentFrame: 0,
 
-      // Promise that is resolved when the vox is registered, which must be waiting on
+      // Promise that is resolved when the vox is registered + meshed, which must be waiting on
       // before registering sources
-      voxRegistered
+      voxRegistered,
+
+      // Resolver for promise of registration + meshing
+      voxRegisteredResolve
     };
 
     voxMap.set(voxId, entry);
@@ -522,8 +531,6 @@ export class VoxSystem extends EventTarget {
     entry.vox = vox;
 
     entry.regenerateDirtyMeshesOnNextFrame = true;
-
-    finish();
   }
 
   unregisterVox(voxId) {
