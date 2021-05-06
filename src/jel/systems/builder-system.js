@@ -24,7 +24,7 @@ import {
   MAX_SIZE as MAX_VOX_SIZE
 } from "ot-vox";
 
-//import { SOUND_EMOJI_EQUIP } from "../../hubs/systems/sound-effects-system";
+import { SOUND_EMOJI_EQUIP } from "../../hubs/systems/sound-effects-system";
 
 const WHEEL_THRESHOLD = 0.15;
 const MAX_UNDO_STEPS = 32;
@@ -103,27 +103,25 @@ export class BuilderSystem extends EventTarget {
     sweepPlaneMat.visible = false;
     this.sweepPlane = new Mesh(new PlaneBufferGeometry(100, 100), sweepPlaneMat);
 
-    window.APP.store.addEventListener("statechanged-equips", () => {
+    const { store } = window.APP;
+
+    this.lastEquippedColor = store.state.equips.color;
+
+    store.addEventListener("statechanged-equips", () => {
       this.updateBrushVoxColorFromStore();
+
+      if (this.lastEquippedColor !== store.state.equips.color) {
+        this.lastEquippedColor = store.state.equips.color;
+        soundEffectsSystem.playSoundOneShot(SOUND_EMOJI_EQUIP);
+      }
     });
 
     this.updateBrushVoxColorFromStore();
-
-    //const store = window.APP.store;
-
-    /*this.lastEquippedEmoji = store.state.equips.launcher;
-
-    window.APP.store.addEventListener("statechanged-equips", () => {
-      if (this.lastEquippedEmoji !== store.state.equips.launcher) {
-        this.lastEquippedEmoji = store.state.equips.launcher;
-        soundEffectsSystem.playSoundOneShot(SOUND_EMOJI_EQUIP);
-      }
-    });*/
   }
 
   toggle() {
     this.enabled = !this.enabled;
-    this.dispatchEvent(new CustomEvent("activechanged"));
+    this.dispatchEvent(new CustomEvent("enabledchanged"));
 
     if (!this.enabled) {
       this.cancelPending();
@@ -245,13 +243,14 @@ export class BuilderSystem extends EventTarget {
     }
 
     if (Math.abs(this.deltaWheel) > WHEEL_THRESHOLD) {
-      /*const store = window.APP.store;
+      const { store } = window.APP;
+      const colorPage = store.state.equips.colorPage;
       const equipDirection = this.deltaWheel < 0.0 ? -1 : 1;
       this.deltaWheel = 0.0;
       let currentSlot = -1;
 
       for (let i = 0; i < 10; i++) {
-        if (store.state.equips.colors === store.state.equips[`colorSlot${i + 1}`]) {
+        if (store.state.equips.color === store.state.equips[`colorSlot${colorPage * 10 + i + 1}`]) {
           currentSlot = i;
           break;
         }
@@ -260,8 +259,8 @@ export class BuilderSystem extends EventTarget {
       if (currentSlot !== -1) {
         let newSlot = (currentSlot + equipDirection) % 10;
         newSlot = newSlot < 0 ? 9 : newSlot;
-        store.update({ equips: { launcher: store.state.equips[`launcherSlot${newSlot + 1}`] } });
-      }*/
+        store.update({ equips: { color: store.state.equips[`colorSlot${colorPage * 10 + newSlot + 1}`] } });
+      }
     }
 
     const isFreeToLeftHold =

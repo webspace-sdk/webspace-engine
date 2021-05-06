@@ -50,7 +50,7 @@ export class LauncherSystem extends EventTarget {
 
   toggle() {
     this.enabled = !this.enabled;
-    this.dispatchEvent(new CustomEvent("activechanged"));
+    this.dispatchEvent(new CustomEvent("enabledchanged"));
   }
 
   tick() {

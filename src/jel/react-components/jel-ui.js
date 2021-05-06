@@ -727,9 +727,9 @@ function JelUI(props) {
         setTriggerMode(builderSystem.enabled ? "builder" : "launcher");
       };
 
-      builderSystem.addEventListener("activechanged", handler);
+      builderSystem.addEventListener("enabledchanged", handler);
       () => {
-        builderSystem.removeEventListener("activechanged", handler);
+        builderSystem.removeEventListener("enabledchanged", handler);
       };
     },
     [builderSystem, launcherSystem]

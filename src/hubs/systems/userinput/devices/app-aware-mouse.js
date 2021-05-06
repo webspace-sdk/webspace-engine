@@ -121,8 +121,7 @@ export class AppAwareMouseDevice {
       (this.transformSystem && this.transformSystem.transforming) || (this.scaleSystem && this.scaleSystem.isScaling);
 
     const isHoveringUI = userinput.activeSets.includes(sets.rightCursorHoveringOnUI);
-    const isMouseLookingGesture =
-      (!isHoveringUI && mouseLookKey) || (buttonLeft && (!isHoveringUI || isCursorLocked()));
+    const isMouseLookingGesture = mouseLookKey || (buttonLeft && (!isHoveringUI || isCursorLocked()));
 
     // Handle ephemeral mouse locking for look key/button
     if (isMouseLookingGesture) {

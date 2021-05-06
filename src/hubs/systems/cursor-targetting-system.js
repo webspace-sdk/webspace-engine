@@ -75,7 +75,7 @@ export class CursorTargettingSystem {
       targets.push(voxmojiMesh);
     }
 
-    for (const voxMesh of SYSTEMS.voxSystem.getTargetableMeshes()) {
+    for (const voxMesh of SYSTEMS.voxSystem.getTargettableMeshes()) {
       targets.push(voxMesh);
     }
 

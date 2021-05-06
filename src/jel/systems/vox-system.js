@@ -862,7 +862,7 @@ export class VoxSystem extends EventTarget {
     this.dispatchEvent(new CustomEvent("mesh_removed"));
   }
 
-  getTargetableMeshes() {
+  getTargettableMeshes() {
     const { voxMap } = this;
 
     const targetableMeshes = [];

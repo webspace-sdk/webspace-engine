@@ -6,16 +6,6 @@ import { rgbToStoredColor } from "../../hubs/storage/store";
 
 import ColorEquip from "./color-equip";
 
-// Pink 9446ed
-// R EF4E4E
-// O f9703e
-// Y fadb5f
-// G 8ded2d
-// C 3Ae7e1
-// B/I 3A66DB
-// V 9446ED
-// Grey #ffffff
-// Black #000000
 window.APP.store.update({
   equips: {
     colorSlot1: rgbToStoredColor({ r: 237, g: 70, b: 148 }),
