@@ -31,6 +31,7 @@ import HubContextMenu from "./hub-context-menu";
 import CreateSelectPopup from "./create-select-popup";
 import ChatInputPopup from "./chat-input-popup";
 import EmojiPopup from "./emoji-popup";
+import EqippedBrushIcon from "./equipped-brush-icon";
 import EqippedColorIcon from "./equipped-color-icon";
 import EquippedEmojiIcon from "./equipped-emoji-icon";
 import SpaceNotificationsPopup from "./space-notifications-popup";
@@ -1047,6 +1048,7 @@ function JelUI(props) {
               {isWorld && (
                 <DeviceStatuses>
                   <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
+                  {triggerMode === "builder" && <EqippedBrushIcon />}
                   {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
                 </DeviceStatuses>
               )}

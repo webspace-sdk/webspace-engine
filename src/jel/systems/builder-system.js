@@ -219,6 +219,14 @@ export class BuilderSystem extends EventTarget {
     if (holdingAlt) {
       if (!this.setPickForAlt) {
         this.setPickForAlt = true;
+
+        if (this.targetVoxId) {
+          SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
+          this.pendingChunk = null;
+          this.targetVoxId = null;
+          this.targetVoxFrame = null;
+        }
+
         this.setBrushType(BRUSH_TYPES.PICK);
       }
     } else {
