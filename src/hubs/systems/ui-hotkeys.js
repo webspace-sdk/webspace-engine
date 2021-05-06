@@ -26,6 +26,11 @@ AFRAME.registerSystem("ui-hotkeys", {
       }
     }
 
+    if (this.userinput.get(paths.actions.toggleTriggerMode) && canSpawnMedia) {
+      SYSTEMS.builderSystem.toggle();
+      SYSTEMS.launcherSystem.toggle();
+    }
+
     if (this.userinput.get(paths.actions.muteMic)) {
       window.APP.store.handleActivityFlag("toggleMuteKey");
       SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_TOGGLE_MIC);

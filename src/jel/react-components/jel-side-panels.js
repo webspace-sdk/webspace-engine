@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { FormattedMessage } from "react-intl";
 import { usePopper } from "react-popper";
 import PropTypes from "prop-types";
@@ -428,7 +428,8 @@ function JelSidePanels({
   showEmojiPopup,
   showSpaceNotificationPopup,
   showInviteTip,
-  setHasShownInvite
+  setHasShownInvite,
+  triggerMode
 }) {
   const store = window.APP.store;
   const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
@@ -439,27 +440,10 @@ function JelSidePanels({
   const [inviteElement, setInviteElement] = useState(null);
   const [spaceName, setSpaceName] = useState((metadata && metadata.name) || "");
   const [isCreating, setIsCreating] = useState(false);
-  const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const invitePanelFieldElement = useRef();
   const spaceBannerRef = useRef();
   const emojiEquipRef = useRef();
   const showSpaceNotificationsButtonRef = useRef();
-
-  useEffect(
-    () => {
-      const handler = () => {
-        setTriggerMode(builderSystem.enabled ? "builder" : "launcher");
-      };
-
-      builderSystem.addEventListener("activechanged", handler);
-      launcherSystem.addEventListener("activechanged", handler);
-      () => {
-        builderSystem.removeEventListener("activechanged", handler);
-        launcherSystem.removeEventListener("activechanged", handler);
-      };
-    },
-    [builderSystem, launcherSystem]
-  );
 
   const onTriggerModeChange = useCallback(
     (id, idx) => {
@@ -711,31 +695,32 @@ function JelSidePanels({
               <BuilderControls />
             </BuilderContent>
           )}
-        {isWorld && (
-          <TriggerModePanel>
-            <SegmentControl
-              rows={1}
-              cols={2}
-              items={[
-                {
-                  id: "trigger-mode.blast",
-                  text: messages["toggle.launcher"],
-                  iconSrc: launcherOnIcon,
-                  offIconSrc: launcherOffIcon
-                },
-                {
-                  id: "trigger-mode.build",
-                  text: messages["toggle.builder"],
-                  iconSrc: builderOnIcon,
-                  offIconSrc: builderOffIcon
-                }
-              ]}
-              hideTips={true}
-              selectedIndices={triggerMode === "launcher" ? [0] : [1]}
-              onChange={onTriggerModeChange}
-            />
-          </TriggerModePanel>
-        )}
+        {isWorld &&
+          hubCan("spawn_and_move_media", hub.hub_id) && (
+            <TriggerModePanel>
+              <SegmentControl
+                rows={1}
+                cols={2}
+                items={[
+                  {
+                    id: "trigger-mode.blast",
+                    text: messages["toggle.launcher"],
+                    iconSrc: launcherOnIcon,
+                    offIconSrc: launcherOffIcon
+                  },
+                  {
+                    id: "trigger-mode.build",
+                    text: messages["toggle.builder"],
+                    iconSrc: builderOnIcon,
+                    offIconSrc: builderOffIcon
+                  }
+                ]}
+                hideTips={true}
+                selectedIndices={triggerMode === "launcher" ? [0] : [1]}
+                onChange={onTriggerModeChange}
+              />
+            </TriggerModePanel>
+          )}
       </Right>
       <Invite setPopperElement={setInviteElement} styles={inviteStyles} attributes={inviteAttributes}>
         <InvitePanel
@@ -816,7 +801,8 @@ JelSidePanels.propTypes = {
   spaceRenamePopupElement: PropTypes.object,
   showEmojiPopup: PropTypes.func,
   showSpaceNotificationPopup: PropTypes.func,
-  showConfirmModalPopup: PropTypes.func
+  showConfirmModalPopup: PropTypes.func,
+  triggerMode: PropTypes.string
 };
 
 export default JelSidePanels;

@@ -1192,7 +1192,16 @@ async function start() {
       scene.addEventListener("shared-adapter-ready", assignDocToken, { once: true });
     }
 
-    remountJelUI({ hubCan: hubMetadata.can.bind(hubMetadata) });
+    const hubCan = hubMetadata.can.bind(hubMetadata);
+    remountJelUI({ hubCan });
+
+    // Switch off building mode if we cannot spawn media
+    if (!hubCan("spawn_and_move_media", hubChannel.hubId)) {
+      if (SYSTEMS.builderSystem.enabled) {
+        SYSTEMS.builderSystem.toggle();
+        SYSTEMS.launcherSystem.toggle();
+      }
+    }
   });
 
   scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(socket.params().session_id));

@@ -216,8 +216,32 @@ export const keyboardMouseUserBindings = addSetsToBindings({
         bool: paths.device.keyboard.key("alt"),
         value: "/var/rising+b"
       },
+      dest: { value: "/var/rising+b+noalt" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("control"),
+        value: "/var/rising+b+noalt"
+      },
       dest: { value: "/var/naked+b" },
       xform: xforms.copyIfFalse,
+      priority: 1001
+    }, // ctrl+B and alt+B both bound, so need extra element
+    {
+      src: {
+        bool: paths.device.keyboard.key("control"),
+        value: paths.device.keyboard.code("keyb")
+      },
+      dest: { value: "/var/control+b" },
+      xform: xforms.copyIfTrue,
+      priority: 1001
+    }, // ctrl+B and alt+B both bound, so need extra element
+    {
+      src: { value: "/var/control+b" },
+      dest: { value: paths.actions.toggleTriggerMode },
+      xform: xforms.rising,
       priority: 1001
     },
     {

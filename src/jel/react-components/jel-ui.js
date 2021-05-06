@@ -728,10 +728,8 @@ function JelUI(props) {
       };
 
       builderSystem.addEventListener("activechanged", handler);
-      launcherSystem.addEventListener("activechanged", handler);
       () => {
         builderSystem.removeEventListener("activechanged", handler);
-        launcherSystem.removeEventListener("activechanged", handler);
       };
     },
     [builderSystem, launcherSystem]
@@ -1102,6 +1100,7 @@ function JelUI(props) {
             showSpaceNotificationPopup={showSpaceNotificationPopup}
             showInviteTip={showInviteTip}
             setHasShownInvite={setHasShownInvite}
+            triggerMode={triggerMode}
           />
         )}
       </div>

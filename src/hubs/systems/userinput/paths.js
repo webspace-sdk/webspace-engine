@@ -175,6 +175,7 @@ paths.actions.buildBrushTypeFace = "/actions/buildBrushTypeFace";
 paths.actions.buildBrushTypeFill = "/actions/buildBrushTypeFill";
 paths.actions.buildBrushTypePick = "/actions/buildBrushTypePick";
 paths.actions.buildBrushTypeCircle = "/actions/buildBrushTypeCircle";
+paths.actions.toggleTriggerMode = "/actions/toggleTriggerMode";
 
 paths.haptics = {};
 paths.haptics.actuators = {};

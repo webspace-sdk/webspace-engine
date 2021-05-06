@@ -252,8 +252,8 @@ const TIP_DATA = {
     ["narrow", "Z|L+S"],
     ["hide", "?"]
   ],
-  pointer_exited_muted: [["unmute", "L+m", "toggleMuteKey"], ["hide", "?"]],
-  pointer_exited_unmuted: [["mute", "L+m", "toggleMuteKey"], ["hide", "?"]],
+  pointer_exited_muted: [["unmute", "L+m", "toggleMuteKey"], ["mode", "L+b"], ["hide", "?"]],
+  pointer_exited_unmuted: [["mute", "L+m", "toggleMuteKey"], ["mode", "L+b"], ["hide", "?"]],
   holding_interactable: [["pull", "R"], ["guides", "q\\e"]],
   hover_interactable: objectCommonTips.filter(x => x[0] !== "bake" && x[0] !== "ground"),
   hover_bakable_interactable: objectCommonTips.filter(x => x[0] !== "ground"),
