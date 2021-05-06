@@ -199,6 +199,9 @@ const objectCommonTips = [
   ["remove", "x x"]
 ];
 
+// Vox label for clone is 'instance', to clarify it vs bake (which makes a fork.)
+const voxCommonTips = objectCommonTips.map(t => (t[0] === "clone" ? ["instance", t[1]] : t));
+
 const TIP_DATA = {
   closed: [["help", "?"]],
   idle_panels: [
@@ -258,16 +261,17 @@ const TIP_DATA = {
   hover_bakable_groundable_interactable: objectCommonTips,
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
-  vox_pick: [["pick", "_S|D"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_fill: [["fill", "_S|D"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_attach: [["attach", "_S|D"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_erase: [["erase", "_S|D"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_paint: [["paint", "_S|D"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_pick_full: [["pick", "_S|K"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_fill_full: [["fill", "_S|K"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_attach_full: [["attach", "_S|K"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_erase_full: [["erase", "_S|K"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_paint_full: [["paint", "_S|K"], ...objectCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox: voxCommonTips,
+  vox_pick: [["pick", "_S|D"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_fill: [["fill", "_S|D"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_attach: [["attach", "_S|D"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_erase: [["erase", "_S|D"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_paint: [["paint", "_S|D"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_pick_full: [["pick", "_S|K"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_fill_full: [["fill", "_S|K"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_attach_full: [["attach", "_S|K"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_erase_full: [["erase", "_S|K"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_paint_full: [["paint", "_S|K"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
   pdf: [["next", "L+S"], ["page", "q\\e"], ...objectCommonTips],
   text: [
     ["edit", "~|@", "mediaTextEdit"],
