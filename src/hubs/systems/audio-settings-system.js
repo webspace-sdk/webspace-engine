@@ -25,8 +25,8 @@ export class AudioSettingsSystem {
     this.sceneEl = sceneEl;
     this.defaultSettings = {
       avatarDistanceModel: "inverse",
-      avatarRolloffFactor: 2,
-      avatarRefDistance: 1,
+      avatarRolloffFactor: 10,
+      avatarRefDistance: 10,
       avatarMaxDistance: 10000,
       mediaVolume: 0.5,
       mediaDistanceModel: "inverse",
