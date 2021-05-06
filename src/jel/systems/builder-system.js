@@ -124,6 +124,10 @@ export class BuilderSystem extends EventTarget {
   toggle() {
     this.enabled = !this.enabled;
     this.dispatchEvent(new CustomEvent("activechanged"));
+
+    if (!this.enabled) {
+      this.cancelPending();
+    }
   }
 
   updateBrushVoxColorFromStore() {
@@ -219,13 +223,7 @@ export class BuilderSystem extends EventTarget {
     if (holdingAlt) {
       if (!this.setPickForAlt) {
         this.setPickForAlt = true;
-
-        if (this.targetVoxId) {
-          SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
-          this.pendingChunk = null;
-          this.targetVoxId = null;
-          this.targetVoxFrame = null;
-        }
+        this.cancelPending();
 
         this.setBrushType(BRUSH_TYPES.PICK);
       }
@@ -516,11 +514,7 @@ export class BuilderSystem extends EventTarget {
         // If we're not brushing, and we had a target vox, we just cursor
         // exited from hover so clear the pending.
         if (this.targetVoxId !== null && !this.isBrushing) {
-          SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
-
-          this.pendingChunk = null;
-          this.targetVoxId = null;
-          this.targetVoxFrame = null;
+          this.cancelPending();
           this.brushEndCell.set(Infinity, Infinity, Infinity);
         }
       }
@@ -1296,5 +1290,13 @@ export class BuilderSystem extends EventTarget {
 
   clearUndoStacks() {
     this.undoStacks.clear();
+  }
+
+  cancelPending() {
+    if (!this.targetVoxId) return;
+    SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
+    this.pendingChunk = null;
+    this.targetVoxId = null;
+    this.targetVoxFrame = null;
   }
 }
