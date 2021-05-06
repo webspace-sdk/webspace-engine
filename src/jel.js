@@ -252,6 +252,8 @@ const isBotMode = qsTruthy("bot");
 const isTelemetryDisabled = qsTruthy("disable_telemetry");
 const isDebug = qsTruthy("debug");
 const disablePausing = qsTruthy("no_pause") || isBotMode;
+const skipNeon = qsTruthy("skip_neon");
+const skipPanels = qsTruthy("skip_panels");
 
 if (isBotMode) {
   const token = qs.get("credentials_token");
@@ -565,6 +567,9 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
       case "banner":
         scene.emit("add_media_text", "banner");
         break;
+      case "vox_new":
+        scene.emit("add_media_vox", "");
+        break;
       case "voxmoji":
         scene.emit("action_show_emoji_picker", "");
         break;
@@ -841,7 +846,8 @@ function setupSidePanelLayout(scene) {
           document.documentElement.style.setProperty(`--${cssVars[i]}`, `${w}px`);
         }
 
-        scene.systems["hubs-systems"].uiAnimationSystem.applySceneSize(isLeft ? w : null, !isLeft ? w : null, true);
+        SYSTEMS.uiAnimationSystem.applySceneSize(isLeft ? w : null, !isLeft ? w : null, true);
+        SYSTEMS.uiAnimationSystem.setTargetSceneSizes();
         scene.resize();
 
         storeCallback(w);
@@ -861,25 +867,32 @@ function setupSidePanelLayout(scene) {
     });
   };
 
-  handleSidebarResizerDrag(
-    "#nav-drag-target",
-    ["nav-width"],
-    true,
-    400,
-    600,
-    x => x,
-    w => store.update({ uiState: { navPanelWidth: w } })
-  );
+  if (skipPanels) {
+    for (const id of ["#nav-drag-target", "#presence-drag-target"]) {
+      const el = document.querySelector(id);
+      el.parentNode.removeChild(el);
+    }
+  } else {
+    handleSidebarResizerDrag(
+      "#nav-drag-target",
+      ["nav-width"],
+      true,
+      400,
+      600,
+      x => x,
+      w => store.update({ uiState: { navPanelWidth: w } })
+    );
 
-  handleSidebarResizerDrag(
-    "#presence-drag-target",
-    ["presence-width"],
-    false,
-    220,
-    300,
-    x => window.innerWidth - x,
-    w => store.update({ uiState: { presencePanelWidth: w } })
-  );
+    handleSidebarResizerDrag(
+      "#presence-drag-target",
+      ["presence-width"],
+      false,
+      220,
+      300,
+      x => window.innerWidth - x,
+      w => store.update({ uiState: { presencePanelWidth: w } })
+    );
+  }
 }
 
 function setupVREventHandlers(scene, availableVREntryTypesPromise) {
@@ -1179,7 +1192,16 @@ async function start() {
       scene.addEventListener("shared-adapter-ready", assignDocToken, { once: true });
     }
 
-    remountJelUI({ hubCan: hubMetadata.can.bind(hubMetadata) });
+    const hubCan = hubMetadata.can.bind(hubMetadata);
+    remountJelUI({ hubCan });
+
+    // Switch off building mode if we cannot spawn media
+    if (!hubCan("spawn_and_move_media", hubChannel.hubId)) {
+      if (SYSTEMS.builderSystem.enabled) {
+        SYSTEMS.builderSystem.toggle();
+        SYSTEMS.launcherSystem.toggle();
+      }
+    }
   });
 
   scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(socket.params().session_id));
@@ -1221,16 +1243,18 @@ async function start() {
           });
 
           if (isInitialAccountChannelJoin) {
-            // Initialize connection to matrix homeserver.
-            await matrix.init(
-              scene,
-              subscriptions,
-              sessionId,
-              accountInfo.matrix_homeserver,
-              accountInfo.matrix_token,
-              accountInfo.matrix_user_id
-            );
-            remountJelUI({ roomForHubCan: matrix.roomForHubCan.bind(matrix) });
+            if (!skipNeon) {
+              // Initialize connection to matrix homeserver.
+              await matrix.init(
+                scene,
+                subscriptions,
+                sessionId,
+                accountInfo.matrix_homeserver,
+                accountInfo.matrix_token,
+                accountInfo.matrix_user_id
+              );
+              remountJelUI({ roomForHubCan: matrix.roomForHubCan.bind(matrix) });
+            }
 
             isInitialAccountChannelJoin = false;
           }

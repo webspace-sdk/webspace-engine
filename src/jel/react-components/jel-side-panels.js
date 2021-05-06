@@ -7,8 +7,13 @@ import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
 import TinyOutlineIconButton from "./tiny-outline-icon-button";
 import SelfPanel from "./self-panel";
-import BridgePanel from "./bridge-panel";
+import SegmentControl from "./segment-control";
+import BuilderControls from "./builder-controls";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
+import launcherOnIcon from "../../assets/jel/images/icons/launcher-on.svgi";
+import launcherOffIcon from "../../assets/jel/images/icons/launcher-off.svgi";
+import builderOnIcon from "../../assets/jel/images/icons/builder-on.svgi";
+import builderOffIcon from "../../assets/jel/images/icons/builder-off.svgi";
 import notificationsIcon from "../../assets/jel/images/icons/notifications.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { homeHubForSpaceId, spaceForSpaceId } from "../utils/membership-utils";
@@ -82,8 +87,15 @@ const Right = styled.div`
 const PresenceContent = styled.div`
   flex: 1 1 auto;
   width: 100%;
-  height: calc(100% - 330px);
   padding: 16px 0;
+
+  &.build {
+    height: calc(100% - 740px);
+  }
+
+  &.launch {
+    height: calc(100% - 330px);
+  }
 `;
 
 const BlasterContent = styled.div`
@@ -92,6 +104,33 @@ const BlasterContent = styled.div`
   height: 240px;
   min-height: 240px;
   padding: 8px 0;
+  z-index: 0;
+  background-color: var(--panel-background-color);
+`;
+
+const BuilderContent = styled.div`
+  flex: 1 1 auto;
+  width: 100%;
+  height: 650px;
+  min-height: 650px;
+  padding: 8px 0;
+  z-index: 0;
+  background-color: var(--panel-background-color);
+`;
+
+const TriggerModePanel = styled.div`
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  background-color: var(--secondary-panel-background-color);
+  color: var(--secondary-panel-text-color);
+  align-self: flex-end;
+  z-index: 10;
 `;
 
 const NavHead = styled.div`
@@ -389,10 +428,12 @@ function JelSidePanels({
   showEmojiPopup,
   showSpaceNotificationPopup,
   showInviteTip,
-  setHasShownInvite
+  setHasShownInvite,
+  triggerMode
 }) {
   const store = window.APP.store;
   const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
+  const { builderSystem, launcherSystem } = SYSTEMS;
   const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
   const [trashMenuElement, setTrashMenuElement] = useState(null);
   const [inviteReferenceElement, setInviteReferenceElement] = useState(null);
@@ -403,6 +444,18 @@ function JelSidePanels({
   const spaceBannerRef = useRef();
   const emojiEquipRef = useRef();
   const showSpaceNotificationsButtonRef = useRef();
+
+  const onTriggerModeChange = useCallback(
+    (id, idx) => {
+      if ((idx === 0 && !launcherSystem.enabled) || (idx === 1 && !builderSystem.enabled)) {
+        launcherSystem.toggle();
+        builderSystem.toggle();
+      }
+
+      document.activeElement.blur(); // Focuses canvas
+    },
+    [builderSystem, launcherSystem]
+  );
 
   const { spaceChannel } = window.APP;
 
@@ -436,7 +489,7 @@ function JelSidePanels({
   const isWorld = hub && hub.type === "world";
 
   return (
-    <Wrap>
+    <Wrap id="jel-side-panels-wrap">
       <Left>
         <SpaceTreeSpill>
           <SpaceTree treeManager={treeManager} space={space} history={history} memberships={memberships} />
@@ -607,7 +660,7 @@ function JelSidePanels({
         </Nav>
       </Left>
       <Right>
-        <PresenceContent>
+        <PresenceContent className={triggerMode === "launcher" ? "launch" : "build"}>
           <PresenceList
             hubMetadata={hubMetadata}
             hubCan={hubCan}
@@ -627,15 +680,47 @@ function JelSidePanels({
             }}
           />
         </PresenceContent>
-        {isWorld && (
-          <BlasterContent>
-            <PanelSectionHeader style={{ height: "16px" }}>
-              <FormattedMessage id="blaster.header" />
-            </PanelSectionHeader>
-            <EmojiEquip ref={emojiEquipRef} onSelectedEmojiClicked={onSelectedEmojiClicked} />
-          </BlasterContent>
-        )}
-        {isWorld && <BridgePanel scene={scene} spaceCan={spaceCan} />}
+        {isWorld &&
+          triggerMode === "launcher" && (
+            <BlasterContent>
+              <PanelSectionHeader style={{ height: "16px" }}>
+                <FormattedMessage id="blaster.header" />
+              </PanelSectionHeader>
+              <EmojiEquip ref={emojiEquipRef} onSelectedEmojiClicked={onSelectedEmojiClicked} />
+            </BlasterContent>
+          )}
+        {isWorld &&
+          triggerMode === "builder" && (
+            <BuilderContent>
+              <BuilderControls />
+            </BuilderContent>
+          )}
+        {isWorld &&
+          hubCan("spawn_and_move_media", hub.hub_id) && (
+            <TriggerModePanel>
+              <SegmentControl
+                rows={1}
+                cols={2}
+                items={[
+                  {
+                    id: "trigger-mode.blast",
+                    text: messages["toggle.launcher"],
+                    iconSrc: launcherOnIcon,
+                    offIconSrc: launcherOffIcon
+                  },
+                  {
+                    id: "trigger-mode.build",
+                    text: messages["toggle.builder"],
+                    iconSrc: builderOnIcon,
+                    offIconSrc: builderOffIcon
+                  }
+                ]}
+                hideTips={true}
+                selectedIndices={triggerMode === "launcher" ? [0] : [1]}
+                onChange={onTriggerModeChange}
+              />
+            </TriggerModePanel>
+          )}
       </Right>
       <Invite setPopperElement={setInviteElement} styles={inviteStyles} attributes={inviteAttributes}>
         <InvitePanel
@@ -716,7 +801,8 @@ JelSidePanels.propTypes = {
   spaceRenamePopupElement: PropTypes.object,
   showEmojiPopup: PropTypes.func,
   showSpaceNotificationPopup: PropTypes.func,
-  showConfirmModalPopup: PropTypes.func
+  showConfirmModalPopup: PropTypes.func,
+  triggerMode: PropTypes.string
 };
 
 export default JelSidePanels;

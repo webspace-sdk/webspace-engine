@@ -4,6 +4,25 @@ import { toggleFocus } from "./dom-utils";
 
 const EMPTY = {};
 
+export const showTargetBelowElement = (el, outerEl, targetEl, topOffset, leftOffset) => {
+  const elRect = el.getBoundingClientRect();
+  const outerRect = outerEl.getBoundingClientRect();
+  const newTop = elRect.top - outerRect.top;
+  const newLeft = elRect.left - outerRect.left;
+  targetEl.setAttribute("style", `top: ${newTop + topOffset}px; left: ${newLeft - leftOffset}px;`);
+  targetEl.focus();
+};
+
+export const showTargetAboveElement = (el, outerEl, targetEl, bottomOffset, leftOffset) => {
+  const elRect = el.getBoundingClientRect();
+  const outerRect = outerEl.getBoundingClientRect();
+  const newBottom = elRect.bottom - outerRect.bottom;
+  const newLeft = elRect.left - outerRect.left;
+  const height = elRect.bottom - elRect.top;
+  targetEl.setAttribute("style", `bottom: ${newBottom + bottomOffset + height}px; left: ${newLeft - leftOffset}px;`);
+  targetEl.focus();
+};
+
 export function useAtomBoundPopupPopper(focusRef, initialPlacement = "bottom", initialOffset = [0, 0]) {
   const [referenceElement, setReferenceElement] = useState(null);
   const [popupElement, setPopupElement] = useState(null);

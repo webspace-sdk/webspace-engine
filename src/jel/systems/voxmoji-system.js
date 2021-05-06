@@ -4,6 +4,8 @@ import { disposeNode } from "../../hubs/utils/three-utils";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER } from "../../hubs/constants";
+import { generateMeshBVH } from "../../hubs/utils/three-utils";
+import { EventTarget } from "event-target-shim";
 
 const {
   ImageLoader,
@@ -112,8 +114,9 @@ voxmojiMaterial.uniforms.diffuse.value = new Color(0.5, 0.5, 0.5);
 //
 // clear() should be called at opportune points (such as world transitions) when there are no
 // voxmoji remaining and subsequent voxmoji are expected to diverge from the ones seen so far.
-export class VoxmojiSystem {
+export class VoxmojiSystem extends EventTarget {
   constructor(sceneEl, atmosphereSystem) {
+    super();
     this.sceneEl = sceneEl;
     this.atmosphereSystem = atmosphereSystem;
     this.types = new Map();
@@ -146,7 +149,7 @@ export class VoxmojiSystem {
           }
         }
 
-        const hasDirtyMatrix = source.consumeIfDirtyWorldMatrix(WORLD_MATRIX_CONSUMERS.VOXMOJI);
+        const hasDirtyMatrix = source.consumeIfDirtyWorldMatrix(WORLD_MATRIX_CONSUMERS.VOX);
 
         if (hasDirtyMatrix) {
           source.updateMatrices();
@@ -209,7 +212,7 @@ export class VoxmojiSystem {
   // To actually free memory you must call unregisterType, or preferrably
   // clear when all voxmoji are expected to be clear.
   unregister(source) {
-    const { sourceToType, meshes, types } = this;
+    const { sourceToType, sourceToLastCullPassFrame, meshes, types } = this;
 
     if (!sourceToType.has(source)) return;
 
@@ -224,6 +227,8 @@ export class VoxmojiSystem {
     const instanceIndex = sourceToIndex.get(source);
     sources[instanceIndex] = null;
     sourceToIndex.delete(source);
+    sourceToLastCullPassFrame.delete(source);
+    source.onPassedFrustumCheck = () => {};
     mesh.freeInstance(instanceIndex);
 
     if (instanceIndex === maxRegisteredIndex) {
@@ -285,7 +290,7 @@ export class VoxmojiSystem {
     const meshKey = meshKeyParts.reduce((x, y) => x + y, 0);
 
     if (!this.meshes.has(meshKey)) {
-      this.generateAndRegisterMesh(meshKey, data, width, height);
+      await this.generateAndRegisterMesh(meshKey, data, width, height);
     }
 
     const mapIndex = this.registerMapToMesh(meshKey, image);
@@ -351,6 +356,7 @@ export class VoxmojiSystem {
     disposeNode(mesh);
     this.meshes.delete(meshKey);
     this.sceneEl.object3D.remove(mesh);
+    this.dispatchEvent(new CustomEvent("mesh_removed"));
   }
 
   registerMapToMesh(meshKey, image) {
@@ -373,7 +379,7 @@ export class VoxmojiSystem {
     return mapIndex;
   }
 
-  generateAndRegisterMesh(meshKey, chunkData, width, height) {
+  async generateAndRegisterMesh(meshKey, chunkData, width, height) {
     const chunk = {
       data: chunkData,
       palette: [0x00000000],
@@ -572,6 +578,8 @@ export class VoxmojiSystem {
     mesh.frustumCulled = false;
     mesh.renderOrder = RENDER_ORDER.MEDIA;
 
+    generateMeshBVH(mesh);
+
     this.meshes.set(meshKey, {
       mesh,
       texture,
@@ -584,5 +592,20 @@ export class VoxmojiSystem {
     });
 
     this.sceneEl.object3D.add(mesh);
+    this.dispatchEvent(new CustomEvent("mesh_added"));
+  }
+
+  getMeshes() {
+    return [...this.meshes.values()].map(({ mesh }) => mesh);
+  }
+
+  getSourceForMeshAndInstance(instancedMesh, instanceId) {
+    for (const { mesh, sources } of this.meshes.values()) {
+      if (mesh === instancedMesh) {
+        return sources[instanceId];
+      }
+    }
+
+    return null;
   }
 }

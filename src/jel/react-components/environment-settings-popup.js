@@ -17,6 +17,7 @@ import { WORLD_COLOR_PRESETS } from "../utils/world-color-presets";
 import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
 import BigIconButton from "./icon-button";
 import presetsIcon from "../../assets/jel/images/icons/presets.svgi";
+import { showTargetBelowElement } from "../utils/popup-utils";
 
 function almostEqual(a, b, epsilon = 0.01) {
   return Math.abs(a - b) < epsilon;
@@ -142,15 +143,6 @@ const RadioWrap = styled.div`
   flex: 1;
   min-width: 100px;
 `;
-
-const showTargetBelowElement = (el, outerEl, targetEl, topOffset, leftOffset) => {
-  const elRect = el.getBoundingClientRect();
-  const outerRect = outerEl.getBoundingClientRect();
-  const newTop = elRect.top - outerRect.top;
-  const newLeft = elRect.left - outerRect.left;
-  targetEl.setAttribute("style", `top: ${newTop + topOffset}px; left: ${newLeft - leftOffset}px;`);
-  targetEl.focus();
-};
 
 const EnvironmentSettingsPopup = ({
   setPopperElement,

@@ -1,42 +1,9 @@
 import { hasMediaLayer, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
-import { VOXLoader } from "../objects/VOXLoader";
-import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
-import { generateMeshBVH } from "../../hubs/utils/three-utils";
-import { addVertexCurvingToShader } from "../systems/terrain-system";
 import { groundMedia, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
-
-const { ShaderMaterial, ShaderLib, UniformsUtils, MeshBasicMaterial, VertexColors } = THREE;
-
-const voxelMaterial = new ShaderMaterial({
-  name: "beam",
-  fog: false,
-  fragmentShader: ShaderLib.basic.fragmentShader,
-  vertexShader: ShaderLib.basic.vertexShader,
-  lights: false,
-  vertexColors: VertexColors,
-  transparent: true,
-  defines: {
-    ...new MeshBasicMaterial().defines
-  },
-  uniforms: {
-    ...UniformsUtils.clone(ShaderLib.basic.uniforms)
-  }
-});
-
-voxelMaterial.onBeforeCompile = shader => {
-  addVertexCurvingToShader(shader);
-  shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", "vColor.xyz = color.xyz / 255.0;");
-  shader.fragmentShader = shader.fragmentShader.replace(
-    "#include <fog_fragment>",
-    ["gl_FragColor = vec4(vColor.xyz, 1.0);", "#include <fog_fragment>"].join("\n")
-  );
-};
-
-voxelMaterial.stencilWrite = true;
-voxelMaterial.stencilFunc = THREE.AlwaysStencilFunc;
-voxelMaterial.stencilRef = 0;
-voxelMaterial.stencilZPass = THREE.ReplaceStencilOp;
+import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
+import { getNetworkedEntity } from "../../jel/utils/ownership-utils";
+import "../utils/vox-sync";
 
 AFRAME.registerComponent("media-vox", {
   schema: {
@@ -47,6 +14,14 @@ AFRAME.registerComponent("media-vox", {
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
     }
+
+    getNetworkedEntity(this.el).then(networkedEl => {
+      this.networkedEl = networkedEl;
+    });
+
+    this.voxId = null;
+    this.el.classList.add("instanced");
+    SYSTEMS.cursorTargettingSystem.setDirty();
   },
 
   async update(oldData) {
@@ -107,20 +82,18 @@ AFRAME.registerComponent("media-vox", {
 
         this.el.emit("model-loading");
 
-        const voxLoader = new VOXLoader();
-        const chunks = await new Promise(res => voxLoader.load(src, res));
-        const geo = new VOXBufferGeometry(chunks[0]);
-        const mat = voxelMaterial;
+        const geo = new THREE.BoxBufferGeometry(VOXEL_SIZE, VOXEL_SIZE, VOXEL_SIZE);
+        const mat = new THREE.MeshBasicMaterial();
+        mat.visible = false;
         this.mesh = new THREE.Mesh(geo, mat);
-        this.mesh.castShadow = true;
-        await new Promise(res =>
-          setTimeout(() => {
-            generateMeshBVH(this.mesh);
-            res();
-          })
-        );
+        this.mesh.castShadow = false;
+
         this.el.object3D.matrixNeedsUpdate = true;
         this.el.setObject3D("mesh", this.mesh);
+
+        // Register returns vox id
+        this.voxId = await SYSTEMS.voxSystem.register(src, this.mesh);
+
         this.el.emit("model-loaded", { format: "vox", model: this.mesh });
       }
     } catch (e) {
@@ -133,14 +106,19 @@ AFRAME.registerComponent("media-vox", {
 
   handleMediaInteraction(type) {
     if (type === MEDIA_INTERACTION_TYPES.DOWN) {
-      groundMedia(this.el);
+      const bbox = SYSTEMS.voxSystem.getBoundingBoxForSource(this.mesh);
+      const center = new THREE.Vector3();
+      bbox.getCenter(center);
+
+      // Need to compute the offset of the generated mesh and the position of this source
+      const meshYOffset = this.el.object3D.position.y - center.y;
+      groundMedia(this.el, false, bbox, meshYOffset);
     }
   },
 
   remove() {
     if (this.mesh) {
-      // Avoid disposing material since it's re-used across all VOX meshes
-      this.mesh.material = null;
+      SYSTEMS.voxSystem.unregister(this.mesh);
     }
 
     disposeExistingMesh(this.el);

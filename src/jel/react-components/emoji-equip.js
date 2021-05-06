@@ -159,8 +159,8 @@ const SelectedButton = styled.button`
   height: 40px;
   box-sizing: content-box;
   z-index: 100;
-  top: 153px;
-  left: calc(50% - 27px);
+  top: 152px;
+  left: calc(50% - 28px);
 
   @keyframes select-animation {
     0%,
@@ -301,18 +301,16 @@ const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
                   onMouseOut={() => setHoverSlot(null)}
                   onMouseDown={() => setIsClicking(true)}
                   onMouseUp={() => setIsClicking(false)}
-                  onClick={() => store.update({ equips: { launcher: emojis[idx].emoji } })}
+                  onClick={() => {
+                    store.update({ equips: { launcher: emojis[idx].emoji } });
+                    document.activeElement.blur(); // Focuses canvas
+                  }}
                 >
                   <img crossOrigin="anonymous" src={emojis[idx].imageUrl} />
                 </SlotButton>
               </Tooltip>
             ))}
-          <Tooltip
-            content={messages[`emoji-equip.select-slot`]}
-            placement="left"
-            key={`slot-choose-tip`}
-            singleton={tipTarget}
-          >
+          <Tooltip content={messages[`emoji-equip.select-slot`]} placement="left" key={`slot-choose-tip`} delay={0}>
             <SelectedButton ref={ref} onClick={() => onSelectedEmojiClicked()}>
               <img crossOrigin="anonymous" src={selectedEmojiImageUrl} />
             </SelectedButton>

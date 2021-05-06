@@ -11,8 +11,13 @@ AFRAME.registerComponent("media-emoji", {
 
   async init() {
     if (hasMediaLayer(this.el)) {
-      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
+      SYSTEMS.mediaPresenceSystem.registerMediaComponent(this);
     }
+
+    // Add class indicating the mesh is an instanced mesh, which will
+    // cause cursor raycasting to be deferred to the instanced mesh.
+    this.el.classList.add("instanced");
+    SYSTEMS.cursorTargettingSystem.setDirty();
   },
 
   async update(oldData) {
@@ -20,8 +25,6 @@ AFRAME.registerComponent("media-emoji", {
     if (!src) return;
 
     const refresh = src !== oldData.src;
-
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
 
     const hasLayer = hasMediaLayer(this.el);
 
@@ -32,7 +35,7 @@ AFRAME.registerComponent("media-emoji", {
     }
 
     if (!hasLayer || refresh) {
-      const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
+      const newMediaPresence = hasLayer ? SYSTEMS.mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
       this.setMediaPresence(newMediaPresence, refresh);
     }
   },
@@ -47,21 +50,17 @@ AFRAME.registerComponent("media-emoji", {
   },
 
   async setMediaToHidden() {
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-
     if (this.mesh) {
       this.mesh.visible = false;
     }
 
-    mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
+    SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
   },
 
   async setMediaToPresent(refresh) {
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-
     try {
       if (
-        mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
+        SYSTEMS.mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
         this.mesh &&
         !this.mesh.visible &&
         !refresh
@@ -69,7 +68,7 @@ AFRAME.registerComponent("media-emoji", {
         this.mesh.visible = true;
       }
 
-      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
+      SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
 
       const { src } = this.data;
       if (!src) return;
@@ -86,9 +85,8 @@ AFRAME.registerComponent("media-emoji", {
         this.mesh.castShadow = false;
         this.el.object3D.matrixNeedsUpdate = true;
         this.el.setObject3D("mesh", this.mesh);
-        const voxmojiSystem = this.el.sceneEl.systems["hubs-systems"].voxmojiSystem;
         const imageUrl = imageUrlForEmoji(this.data.emoji, 128);
-        await voxmojiSystem.register(imageUrl, this.mesh);
+        await SYSTEMS.voxmojiSystem.register(imageUrl, this.mesh);
 
         this.el.emit("model-loaded", { format: "emoji", model: this.mesh });
       }
@@ -96,7 +94,7 @@ AFRAME.registerComponent("media-emoji", {
       this.el.emit("model-error", { src: this.data.src });
       throw e;
     } finally {
-      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
+      SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
     }
   },
 
@@ -110,12 +108,11 @@ AFRAME.registerComponent("media-emoji", {
     disposeExistingMesh(this.el);
 
     if (hasMediaLayer(this.el)) {
-      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
+      SYSTEMS.mediaPresenceSystem.unregisterMediaComponent(this);
     }
 
     if (this.mesh) {
-      const voxmojiSystem = this.el.sceneEl.systems["hubs-systems"].voxmojiSystem;
-      voxmojiSystem.unregister(this.mesh);
+      SYSTEMS.voxmojiSystem.unregister(this.mesh);
     }
   }
 });

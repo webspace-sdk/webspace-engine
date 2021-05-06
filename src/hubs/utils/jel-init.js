@@ -14,6 +14,7 @@ import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from ".
 import HubStore from "../storage/hub-store";
 import WorldImporter from "../../jel/utils/world-importer";
 import { getHtmlForTemplate, applyTemplate } from "../../jel/utils/template-utils";
+import { clearVoxAttributePools } from "../../jel/objects/JelVoxBufferGeometry";
 import mixpanel from "mixpanel-browser";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
@@ -506,6 +507,10 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
 
         console.log(`Xana host: ${space.xana_host}:${space.xana_port}`);
         console.log(`Arpa host: ${space.arpa_host}:${space.arpa_port}`);
+
+        const xanaUrl = `wss://${space.xana_host}:${space.xana_port}`;
+        const arpaUrl = `wss://${space.arpa_host}:${space.arpa_port}`;
+
         // Wait for scene objects to load before connecting, so there is no race condition on network state.
         scene.setAttribute("networked-scene", {
           audio: true,
@@ -513,14 +518,14 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
           adapter: "dialog",
           app: "jel",
           room: spaceId,
-          serverURL: `wss://${space.xana_host}:${space.xana_port}`,
+          serverURL: xanaUrl,
           debug: !!isDebug
         });
 
         scene.setAttribute("shared-scene", {
           connectOnLoad: false,
           collection: spaceId,
-          serverURL: `wss://${space.arpa_host}:${space.arpa_port}`,
+          serverURL: arpaUrl,
           debug: !!isDebug
         });
 
@@ -674,6 +679,11 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
             SYSTEMS.voxmojiSystem.clear();
 
             SYSTEMS.atmosphereSystem.restartAmbience();
+
+            // Free memory from voxel editing undo stacks.
+            SYSTEMS.builderSystem.clearUndoStacks();
+
+            clearVoxAttributePools();
 
             clearResolveUrlCache();
 

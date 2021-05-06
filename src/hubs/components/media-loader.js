@@ -337,11 +337,14 @@ AFRAME.registerComponent("media-loader", {
         this.animating = true;
         if (shouldUpdateScale) this.updateScale(this.data.fitToBox, this.data.moveTheParentNotTheMesh);
         const mesh = this.el.getObject3D("mesh");
-        const scale = { x: 0.001, y: 0.001, z: 0.001 };
-        scale.x = mesh.scale.x < scale.x ? mesh.scale.x * 0.001 : scale.x;
-        scale.y = mesh.scale.y < scale.y ? mesh.scale.x * 0.001 : scale.y;
-        scale.z = mesh.scale.z < scale.z ? mesh.scale.x * 0.001 : scale.z;
-        addMeshScaleAnimation(mesh, scale, finish);
+
+        if (mesh) {
+          const scale = { x: 0.001, y: 0.001, z: 0.001 };
+          scale.x = mesh.scale.x < scale.x ? mesh.scale.x * 0.001 : scale.x;
+          scale.y = mesh.scale.y < scale.y ? mesh.scale.x * 0.001 : scale.y;
+          scale.z = mesh.scale.z < scale.z ? mesh.scale.x * 0.001 : scale.z;
+          addMeshScaleAnimation(mesh, scale, finish);
+        }
       }
     } else {
       if (shouldUpdateScale) this.updateScale(this.data.fitToBox, this.data.moveTheParentNotTheMesh);
@@ -393,7 +396,13 @@ AFRAME.registerComponent("media-loader", {
       const isLocalModelAsset =
         isNonCorsProxyDomain(parsedUrl.hostname) && (guessContentType(src) || "").startsWith("model/gltf");
 
-      if (this.data.resolve && !src.startsWith("data:") && !src.startsWith("jel:") && !isLocalModelAsset) {
+      if (
+        this.data.resolve &&
+        !src.startsWith("data:") &&
+        !src.startsWith("jel:") &&
+        contentType !== "model/vnd.jel-vox" &&
+        !isLocalModelAsset
+      ) {
         const is360 = !!(this.data.mediaOptions.projection && this.data.mediaOptions.projection.startsWith("360"));
         const quality = getDefaultResolveQuality(is360);
         const result = await resolveUrl(src, quality, version, forceLocalRefresh);
@@ -623,14 +632,8 @@ AFRAME.registerComponent("media-loader", {
             modelToWorldScale: this.data.fitToBox ? 0.0001 : 1.0
           })
         );
-      } else if (contentType.startsWith("model/vox")) {
-        this.el.addEventListener(
-          "model-loaded",
-          () => {
-            this.onMediaLoaded(SHAPE.HULL, true);
-          },
-          { once: true }
-        );
+      } else if (contentType.startsWith("model/vnd.jel-vox")) {
+        this.el.addEventListener("model-loaded", () => this.onMediaLoaded(null, false), { once: true });
         this.el.addEventListener("model-error", this.onError, { once: true });
         this.el.setAttribute("floaty-object", { gravitySpeedLimit: 1.85 });
         this.setToSingletonMediaComponent(

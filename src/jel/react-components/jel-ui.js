@@ -31,6 +31,8 @@ import HubContextMenu from "./hub-context-menu";
 import CreateSelectPopup from "./create-select-popup";
 import ChatInputPopup from "./chat-input-popup";
 import EmojiPopup from "./emoji-popup";
+import EqippedBrushIcon from "./equipped-brush-icon";
+import EqippedColorIcon from "./equipped-color-icon";
 import EquippedEmojiIcon from "./equipped-emoji-icon";
 import SpaceNotificationsPopup from "./space-notifications-popup";
 import HubPermissionsPopup from "./hub-permissions-popup";
@@ -48,6 +50,7 @@ import qsTruthy from "../../hubs/utils/qs_truthy";
 import { useInstallPWA } from "../../hubs/react-components/input/useInstallPWA";
 
 const skipSidePanels = qsTruthy("skip_panels");
+const skipNeon = qsTruthy("skip_neon");
 
 const Wrap = styled.div`
   pointer-events: none;
@@ -494,6 +497,7 @@ function JelUI(props) {
     subscriptions,
     spaceId
   } = props;
+  const { builderSystem, launcherSystem } = SYSTEMS;
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
@@ -514,6 +518,7 @@ function JelUI(props) {
   const [isInitializingSpace, setIsInitializingSpace] = useState(store.state.context.isFirstVisitToSpace);
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [showingExternalCamera, setShowingExternalCamera] = useState(false);
+  const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const [showNotificationBanner, setShowNotificationBanner] = useState(
     subscriptions &&
       !subscriptions.subscribed &&
@@ -718,6 +723,20 @@ function JelUI(props) {
 
   useEffect(
     () => {
+      const handler = () => {
+        setTriggerMode(builderSystem.enabled ? "builder" : "launcher");
+      };
+
+      builderSystem.addEventListener("enabledchanged", handler);
+      () => {
+        builderSystem.removeEventListener("enabledchanged", handler);
+      };
+    },
+    [builderSystem, launcherSystem]
+  );
+
+  useEffect(
+    () => {
       if (!isInitializingSpace) return;
 
       const handler = () => {
@@ -912,12 +931,13 @@ function JelUI(props) {
   const onClickExternalCameraRotate = useCallback(() => SYSTEMS.externalCameraSystem.toggleCamera(), []);
 
   const isWorld = hub && hub.type === "world";
+  const waitingForMatrix = isMatrixLoading && !skipNeon;
 
   return (
     <WrappedIntlProvider>
       <div>
         <LoadingPanel
-          isLoading={isMatrixLoading || isInitializingSpace || !hasFetchedInitialHubMetadata}
+          isLoading={waitingForMatrix || isInitializingSpace || !hasFetchedInitialHubMetadata}
           unavailableReason={unavailableReason}
         />
         <Snackbar />
@@ -1026,7 +1046,8 @@ function JelUI(props) {
               {isWorld && (
                 <DeviceStatuses>
                   <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
-                  <EquippedEmojiIcon />
+                  {triggerMode === "builder" && <EqippedBrushIcon />}
+                  {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
                 </DeviceStatuses>
               )}
             </HubCornerButtons>
@@ -1079,6 +1100,7 @@ function JelUI(props) {
             showSpaceNotificationPopup={showSpaceNotificationPopup}
             showInviteTip={showInviteTip}
             setHasShownInvite={setHasShownInvite}
+            triggerMode={triggerMode}
           />
         )}
       </div>

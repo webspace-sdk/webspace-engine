@@ -191,12 +191,115 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.code("keyr") },
+      src: { value: "/var/naked+r" },
       dest: { value: paths.actions.mediaTransformReleaseAction },
-      xform: xforms.falling
+      xform: xforms.falling,
+      priority: 1001
     },
     {
-      src: { value: paths.device.keyboard.code("keyv") },
+      src: {
+        bool: paths.device.keyboard.key("alt"),
+        value: paths.device.keyboard.code("keyv")
+      },
+      dest: { value: "/var/naked+v" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: { value: paths.device.keyboard.code("keyb") },
+      dest: { value: "/var/rising+b" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("alt"),
+        value: "/var/rising+b"
+      },
+      dest: { value: "/var/rising+b+noalt" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("control"),
+        value: "/var/rising+b+noalt"
+      },
+      dest: { value: "/var/naked+b" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    }, // ctrl+B and alt+B both bound, so need extra element
+    {
+      src: {
+        bool: paths.device.keyboard.key("control"),
+        value: paths.device.keyboard.code("keyb")
+      },
+      dest: { value: "/var/control+b" },
+      xform: xforms.copyIfTrue,
+      priority: 1001
+    }, // ctrl+B and alt+B both bound, so need extra element
+    {
+      src: { value: "/var/control+b" },
+      dest: { value: paths.actions.toggleTriggerMode },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: { value: paths.device.keyboard.code("keyc") },
+      dest: { value: "/var/rising+c" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("alt"),
+        value: "/var/rising+c"
+      },
+      dest: { value: "/var/naked+c" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: { value: paths.device.keyboard.code("keyt") },
+      dest: { value: "/var/rising+t" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("alt"),
+        value: "/var/rising+t"
+      },
+      dest: { value: "/var/naked+t" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("alt"),
+        value: paths.device.keyboard.code("keyr")
+      },
+      dest: { value: "/var/naked+r" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: { value: paths.device.keyboard.code("keyg") },
+      dest: { value: "/var/rising+g" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("alt"),
+        value: "/var/rising+g"
+      },
+      dest: { value: "/var/naked+g" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: { value: "/var/naked+v" },
       dest: { value: paths.actions.mediaScaleReleaseAction },
       xform: xforms.falling
     },
@@ -216,7 +319,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+1" },
-      dest: { value: paths.actions.emojiEquip1 },
+      dest: { value: paths.actions.equip1 },
       xform: xforms.rising
     },
     {
@@ -230,7 +333,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+2" },
-      dest: { value: paths.actions.emojiEquip2 },
+      dest: { value: paths.actions.equip2 },
       xform: xforms.rising
     },
     {
@@ -244,7 +347,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+3" },
-      dest: { value: paths.actions.emojiEquip3 },
+      dest: { value: paths.actions.equip3 },
       xform: xforms.rising
     },
     {
@@ -258,7 +361,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+4" },
-      dest: { value: paths.actions.emojiEquip4 },
+      dest: { value: paths.actions.equip4 },
       xform: xforms.rising
     },
     {
@@ -272,7 +375,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+5" },
-      dest: { value: paths.actions.emojiEquip5 },
+      dest: { value: paths.actions.equip5 },
       xform: xforms.rising
     },
     {
@@ -286,7 +389,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+6" },
-      dest: { value: paths.actions.emojiEquip6 },
+      dest: { value: paths.actions.equip6 },
       xform: xforms.rising
     },
     {
@@ -300,7 +403,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+7" },
-      dest: { value: paths.actions.emojiEquip7 },
+      dest: { value: paths.actions.equip7 },
       xform: xforms.rising
     },
     {
@@ -314,7 +417,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+8" },
-      dest: { value: paths.actions.emojiEquip8 },
+      dest: { value: paths.actions.equip8 },
       xform: xforms.rising
     },
     {
@@ -328,7 +431,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+9" },
-      dest: { value: paths.actions.emojiEquip9 },
+      dest: { value: paths.actions.equip9 },
       xform: xforms.rising
     },
     {
@@ -342,7 +445,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/control+0" },
-      dest: { value: paths.actions.emojiEquip0 },
+      dest: { value: paths.actions.equip0 },
       xform: xforms.rising
     }
     // Helpful bindings for debugging hands in 2D
@@ -553,9 +656,24 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: paths.device.keyboard.code("keyf") },
+      dest: { value: "/var/rising+f" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("alt"),
+        value: "/var/rising+f"
+      },
+      dest: { value: "/var/naked+f" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: { value: "/var/naked+f" },
       dest: { value: paths.actions.toggleInspecting },
       xform: xforms.rising,
-      priority: 200
+      priority: 1001
     },
     {
       src: { value: controlSpace },
@@ -598,29 +716,34 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.code("keyt") },
+      src: { value: "/var/naked+t" },
       dest: { value: paths.actions.mediaUpAction },
-      xform: xforms.rising
+      xform: xforms.rising,
+      priority: 1001
     },
     {
-      src: { value: paths.device.keyboard.code("keyg") },
+      src: { value: "/var/naked+g" },
       dest: { value: paths.actions.mediaDownAction },
-      xform: xforms.rising
+      xform: xforms.rising,
+      priority: 1001
     },
     {
-      src: { value: paths.device.keyboard.code("keyb") },
+      src: { value: "/var/naked+b" },
       dest: { value: paths.actions.mediaSnapshotAction },
-      xform: xforms.rising
+      xform: xforms.rising,
+      priority: 1001
     },
     {
-      src: { value: paths.device.keyboard.code("keyr") },
+      src: { value: "/var/naked+r" },
       dest: { value: paths.actions.mediaRotateAction },
-      xform: xforms.rising
+      xform: xforms.rising,
+      priority: 1001
     },
     {
-      src: { value: paths.device.keyboard.code("keyv") },
+      src: { value: "/var/naked+v" },
       dest: { value: paths.actions.mediaScaleAction },
-      xform: xforms.rising
+      xform: xforms.rising,
+      priority: 1001
     },
     {
       src: { value: paths.device.keyboard.code("keyx") },
@@ -628,9 +751,10 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.code("keyc") },
+      src: { value: "/var/naked+c" },
       dest: { value: paths.actions.mediaCloneAction },
-      xform: xforms.rising
+      xform: xforms.rising,
+      priority: 1001
     },
     {
       src: { value: paths.device.mouse.wheel },
@@ -669,29 +793,34 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.code("keyb") },
+      src: { value: "/var/naked+b" },
       dest: { value: paths.actions.mediaSnapshotAction },
-      xform: xforms.rising
+      xform: xforms.rising,
+      priority: 1001
     },
     {
-      src: { value: paths.device.keyboard.code("keyt") },
+      src: { value: "/var/naked+t" },
       dest: { value: paths.actions.mediaUpAction },
-      xform: xforms.rising
+      xform: xforms.rising,
+      priority: 1001
     },
     {
-      src: { value: paths.device.keyboard.code("keyg") },
+      src: { value: "/var/naked+g" },
       dest: { value: paths.actions.mediaDownAction },
-      xform: xforms.rising
+      xform: xforms.rising,
+      priority: 1001
     },
     {
-      src: { value: paths.device.keyboard.code("keyr") },
+      src: { value: "/var/naked+r" },
       dest: { value: paths.actions.mediaRotateAction },
-      xform: xforms.rising
+      xform: xforms.rising,
+      priority: 1001
     },
     {
-      src: { value: paths.device.keyboard.code("keyv") },
+      src: { value: "/var/naked+v" },
       dest: { value: paths.actions.mediaScaleAction },
-      xform: xforms.rising
+      xform: xforms.rising,
+      priority: 1001
     },
     {
       src: { value: paths.device.keyboard.code("keyx") },

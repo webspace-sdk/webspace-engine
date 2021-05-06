@@ -2,6 +2,8 @@ import styled from "styled-components";
 import { FormattedMessage } from "react-intl";
 import React, { forwardRef, useState, useEffect } from "react";
 import { imageUrlForEmoji } from "../../hubs/utils/media-url-utils";
+import { objRgbToCssRgb } from "../utils/dom-utils";
+import { storedColorToRgb } from "../../hubs/storage/store";
 
 const KeyTipsElement = styled.div`
   position: absolute;
@@ -146,10 +148,15 @@ const TipLabel = styled.div`
   text-shadow: 0px 0px 4px var(--menu-shadow-color);
   margin-left: 16px;
 
-  & img {
+  & .equipped-emoji,
+  & .equipped-color {
     display: inline-block;
+    min-width: 16px;
+    min-height: 16px;
     width: 16px;
     height: 16px;
+    margin-right: 6px;
+    border-radius: 4px;
     margin-right: 6px;
   }
 `;
@@ -178,6 +185,8 @@ const KeySmallSeparator = styled.div`
   text-shadow: 0px 0px 4px var(--menu-shadow-color);
 `;
 
+const ColorSwatch = styled.div``;
+
 const objectCommonTips = [
   ["move", "T;I"],
   ["open", "o"],
@@ -189,6 +198,9 @@ const objectCommonTips = [
   ["ground", "g"],
   ["remove", "x x"]
 ];
+
+// Vox label for clone is 'instance', to clarify it vs bake (which makes a fork.)
+const voxCommonTips = objectCommonTips.map(t => (t[0] === "clone" ? ["instance", t[1]] : t));
 
 const TIP_DATA = {
   closed: [["help", "?"]],
@@ -240,8 +252,8 @@ const TIP_DATA = {
     ["narrow", "Z|L+S"],
     ["hide", "?"]
   ],
-  pointer_exited_muted: [["unmute", "L+m", "toggleMuteKey"], ["hide", "?"]],
-  pointer_exited_unmuted: [["mute", "L+m", "toggleMuteKey"], ["hide", "?"]],
+  pointer_exited_muted: [["unmute", "L+m", "toggleMuteKey"], ["mode", "L+b"], ["hide", "?"]],
+  pointer_exited_unmuted: [["mute", "L+m", "toggleMuteKey"], ["mode", "L+b"], ["hide", "?"]],
   holding_interactable: [["pull", "R"], ["guides", "q\\e"]],
   hover_interactable: objectCommonTips.filter(x => x[0] !== "bake" && x[0] !== "ground"),
   hover_bakable_interactable: objectCommonTips.filter(x => x[0] !== "ground"),
@@ -249,6 +261,17 @@ const TIP_DATA = {
   hover_bakable_groundable_interactable: objectCommonTips,
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
+  vox: voxCommonTips,
+  vox_pick: [["pick", "_S|D"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_fill: [["fill", "_S|D"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_attach: [["attach", "_S|D"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_erase: [["erase", "_S|D"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_paint: [["paint", "_S|D"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_pick_full: [["pick", "_S|K"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_fill_full: [["fill", "_S|K"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_attach_full: [["attach", "_S|K"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_erase_full: [["erase", "_S|K"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_paint_full: [["paint", "_S|K"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
   pdf: [["next", "L+S"], ["page", "q\\e"], ...objectCommonTips],
   text: [
     ["edit", "~|@", "mediaTextEdit"],
@@ -275,12 +298,40 @@ const itemForData = ([label, keys, flag]) => {
   let tipLabel;
 
   if (label === "jump" || label === "shoot") {
-    const emoji = window.APP.store.state.equips.launcher;
-    equippedEmojiUrl = imageUrlForEmoji(emoji, 64);
+    if (SYSTEMS.builderSystem.enabled) {
+      if (label === "jump") {
+        // No analog in builder mode
+        return null;
+      }
+
+      const { store } = window.APP;
+      const { r, g, b } = storedColorToRgb(store.state.equips.color);
+      const cssRgb = objRgbToCssRgb({ r: r / 255.0, g: g / 255.0, b: b / 255.0 });
+      tipLabel = (
+        <TipLabel key={label}>
+          <ColorSwatch className="equipped-color" style={{ backgroundColor: cssRgb }} />
+          <FormattedMessage id={`key-tips.build`} />
+        </TipLabel>
+      );
+    } else {
+      const emoji = window.APP.store.state.equips.launcher;
+      equippedEmojiUrl = imageUrlForEmoji(emoji, 64);
+
+      tipLabel = (
+        <TipLabel key={label}>
+          <img className="equipped-emoji" src={equippedEmojiUrl} crossOrigin="anonymous" />
+          <FormattedMessage id={`key-tips.${label}`} />
+        </TipLabel>
+      );
+    }
+  } else if (label === "attach" || label === "paint") {
+    const { store } = window.APP;
+    const { r, g, b } = storedColorToRgb(store.state.equips.color);
+    const cssRgb = objRgbToCssRgb({ r: r / 255.0, g: g / 255.0, b: b / 255.0 });
 
     tipLabel = (
       <TipLabel key={label}>
-        <img className="equipped-emoji" src={equippedEmojiUrl} crossOrigin="anonymous" />
+        <ColorSwatch className="equipped-color" style={{ backgroundColor: cssRgb }} />
         <FormattedMessage id={`key-tips.${label}`} />
       </TipLabel>
     );
@@ -502,16 +553,24 @@ const KeyTips = forwardRef((props, ref) => {
     [store, flagVersion]
   );
 
-  // When state store changes, update emoji.
+  // When state store changes, update emoji + color swatches.
   useEffect(
     () => {
       const handler = () => {
-        const els = document.querySelectorAll("#key-tips .equipped-emoji");
-        const emoji = window.APP.store.state.equips.launcher;
+        const { store } = window.APP;
+        const { r, g, b } = storedColorToRgb(store.state.equips.color);
+        const cssRgb = objRgbToCssRgb({ r: r / 255.0, g: g / 255.0, b: b / 255.0 });
+        const emojiEls = document.querySelectorAll("#key-tips .equipped-emoji");
+        const colorEls = document.querySelectorAll("#key-tips .equipped-color");
+        const emoji = store.state.equips.launcher;
         equippedEmojiUrl = imageUrlForEmoji(emoji, 64);
 
-        for (let i = 0; i < els.length; i++) {
-          els[i].setAttribute("src", equippedEmojiUrl);
+        for (let i = 0; i < emojiEls.length; i++) {
+          emojiEls[i].setAttribute("src", equippedEmojiUrl);
+        }
+
+        for (let i = 0; i < colorEls.length; i++) {
+          colorEls[i].setAttribute("style", `background-color: ${cssRgb}`);
         }
       };
       store.addEventListener("statechanged-equips", handler);

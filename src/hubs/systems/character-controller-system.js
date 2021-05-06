@@ -163,7 +163,9 @@ export class CharacterControllerSystem {
       const wasFlying = this.fly;
       const shouldSnapDueToLanding = this.shouldLandWhenPossible;
 
-      if (userinput.get(paths.actions.jump) && this.jumpYVelocity === null) {
+      const mayJump = SYSTEMS.launcherSystem.enabled;
+
+      if (mayJump && userinput.get(paths.actions.jump) && this.jumpYVelocity === null) {
         this.jumpYVelocity = INITIAL_JUMP_VELOCITY;
       }
 

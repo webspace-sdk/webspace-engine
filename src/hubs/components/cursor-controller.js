@@ -85,13 +85,8 @@ AFRAME.registerComponent("cursor-controller", {
         return;
       }
 
-      this.el.sceneEl.systems["hubs-systems"].characterController.avatarPOV.object3D.updateMatrices();
-      const playerScale = v
-        .setFromMatrixColumn(
-          this.el.sceneEl.systems["hubs-systems"].characterController.avatarPOV.object3D.matrixWorld,
-          1
-        )
-        .length();
+      SYSTEMS.characterController.avatarPOV.object3D.updateMatrices();
+      const playerScale = v.setFromMatrixColumn(SYSTEMS.characterController.avatarPOV.object3D.matrixWorld, 1).length();
       this.raycaster.far = this.data.far * playerScale;
       this.raycaster.near = this.data.near * playerScale;
 
@@ -101,11 +96,7 @@ AFRAME.registerComponent("cursor-controller", {
         rawIntersections.length = 0;
         this.raycaster.ray.origin = cursorPose.position;
         this.raycaster.ray.direction = cursorPose.direction;
-        this.raycaster.intersectObjects(
-          AFRAME.scenes[0].systems["hubs-systems"].cursorTargettingSystem.targets,
-          true,
-          rawIntersections
-        );
+        this.raycaster.intersectObjects(SYSTEMS.cursorTargettingSystem.targets, true, rawIntersections);
         this.intersection = rawIntersections[0];
         this.intersectionIsValid = !!interaction.updateCursorIntersection(this.intersection, left);
         this.distance = this.intersectionIsValid ? this.intersection.distance : this.data.defaultDistance * playerScale;

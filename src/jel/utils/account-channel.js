@@ -106,6 +106,17 @@ export default class AccountChannel extends EventTarget {
     }
   }
 
+  fetchVoxPermsToken = voxId => {
+    return new Promise((resolve, reject) => {
+      this.channel
+        .push("refresh_vox_perms_token", { vox_id: voxId })
+        .receive("ok", res => {
+          resolve({ permsToken: res.perms_token });
+        })
+        .receive("error", reject);
+    });
+  };
+
   leave = () => {
     if (this.channel) {
       this.channel.leave();

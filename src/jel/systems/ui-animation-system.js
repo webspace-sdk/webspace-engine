@@ -1,5 +1,8 @@
 import BezierEasing from "bezier-easing";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import qsTruthy from "../../hubs/utils/qs_truthy";
+
+const skipPanels = qsTruthy("skip_panels");
 
 // Used for managing the animation of the major UI panels
 
@@ -114,8 +117,13 @@ export class UIAnimationSystem {
     animT = panelExpandStep(animT);
     animT = this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDING ? animT : 1 - animT;
 
-    const sceneLeft = Math.floor(animT * this.targetSceneLeft);
-    const sceneRight = Math.floor(animT * this.targetSceneRight);
+    let sceneLeft = Math.floor(animT * this.targetSceneLeft);
+    let sceneRight = Math.floor(animT * this.targetSceneRight);
+
+    if (skipPanels) {
+      sceneLeft = 0;
+      sceneRight = 0;
+    }
 
     if (sceneLeft !== this.sceneLeft || sceneRight !== this.sceneRight) {
       this.applySceneSize(sceneLeft, sceneRight);
@@ -162,6 +170,11 @@ export class UIAnimationSystem {
 
   // Returns true if was applied successfully
   applyUI(left, right) {
+    if (skipPanels) {
+      left = 0;
+      right = 0;
+    }
+
     const body = document.body;
 
     const width = body.clientWidth - left - right;

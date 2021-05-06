@@ -1,5 +1,6 @@
 import { Layers } from "../../hubs/components/layers";
 import { addVertexCurvingToShader, VOXELS_PER_CHUNK } from "../systems/terrain-system";
+import { generateMeshBVH } from "../../hubs/utils/three-utils";
 
 const {
   ShaderMaterial,
@@ -65,6 +66,14 @@ export const updateWorldColors = (groundColor, edgeColor, leavesColor, barkColor
   voxelMaterials.forEach(m => (m.uniformsNeedUpdate = true));
 };
 
+export const getWorldColor = index => {
+  const r = colorMap[index * 4];
+  const g = colorMap[index * 4 + 1];
+  const b = colorMap[index * 4 + 2];
+  const grad = colorMap[index * 4 + 3];
+  return [r, g, b, grad];
+};
+
 const createVoxelMaterial = () => {
   const voxelMaterial = new ShaderMaterial({
     name: "voxels",
@@ -100,9 +109,22 @@ const createVoxelMaterial = () => {
       "#include <color_vertex>",
       [
         "vec4 shift = texture(colorMap, vec2(float(palette) / 6.0, 0.1));",
+        "float grad = shift.a;",
         // Voxel colors have a red channel that provides brightness offsets
-        "float brightDelta = (color.x - 128.0) / 255.0 * shift.a;",
+        "float brightDelta = (color.x - 128.0) / 255.0 * grad;",
         "vColor.xyz = clamp(vec3(shift.x, shift.y, shift.z) + brightDelta, 0.0, 1.0);"
+      ].join("\n")
+    );
+
+    // See notes in vox system about shader bits here.
+    shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", "");
+
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <fog_fragment>",
+      [
+        "vec3 shadows = clamp(vec3(pow(outgoingLight.r * 2.5, 3.0), pow(outgoingLight.g * 2.5, 3.0), pow(outgoingLight.b * 2.5, 3.0)), 0.0, 1.0);",
+        "gl_FragColor = vec4(mix(shadows, vColor.rgb, 0.8), diffuseColor.a);",
+        "#include <fog_fragment>"
       ].join("\n")
     );
   };
@@ -210,6 +232,11 @@ class Terrain extends Object3D {
       }
 
       geometry.setIndex(new (len >= 1024 * 64 ? Uint32BufferAttribute : Uint16BufferAttribute)(index, 1));
+    }
+
+    // Only generate BVH for highest detail mesh since that is used for raycasting.
+    if (this.meshes[0]) {
+      generateMeshBVH(this.meshes[0], true);
     }
 
     this.height = chunk.height;

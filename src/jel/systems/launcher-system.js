@@ -3,6 +3,7 @@ import { CURSOR_LOCK_STATES, getCursorLockState } from "../../jel/utils/dom-util
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { SOUND_EMOJI_EQUIP } from "../../hubs/systems/sound-effects-system";
 import { sets } from "../../hubs/systems/userinput/sets";
+import { EventTarget } from "event-target-shim";
 
 const FIRE_DURATION_MS = 350;
 const MAX_FIRE_DURATION = 5000;
@@ -12,9 +13,11 @@ const tmpVec3 = new THREE.Vector3();
 const WHEEL_THRESHOLD = 0.15;
 
 // Deals with Emoji Launcher
-export class LauncherSystem {
+export class LauncherSystem extends EventTarget {
   constructor(sceneEl, projectileSystem, userinput, characterController, soundEffectsSystem) {
+    super();
     this.sceneEl = sceneEl;
+    this.enabled = true;
     this.projectileSystem = projectileSystem;
     this.characterController = characterController;
     this.userinput = userinput;
@@ -45,7 +48,14 @@ export class LauncherSystem {
     });
   }
 
+  toggle() {
+    this.enabled = !this.enabled;
+    this.dispatchEvent(new CustomEvent("enabledchanged"));
+  }
+
   tick() {
+    if (!this.enabled) return;
+
     const { projectileSystem, userinput } = this;
 
     const spacePath = paths.device.keyboard.key(" ");

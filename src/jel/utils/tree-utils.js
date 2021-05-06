@@ -45,14 +45,15 @@ export function useScrollToSelectedTreeNode(treeData, atom) {
 
       if (node) {
         scrollIntoView(node, { scrollMode: "if-needed", inline: "start" });
-
         // Undo any horizontal scrolling, we don't want nav to horizontal scroll
         let e = node;
-
         while (e) {
           e.scrollLeft = 0;
           e = e.parentElement;
         }
+
+        // Undo the scroll this algorithm can induce on the outer wrap, which is undesired.
+        document.querySelector("#jel-side-panels-wrap").scrollTop = 0;
       }
       return () => {};
     },

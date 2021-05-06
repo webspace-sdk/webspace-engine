@@ -4,6 +4,7 @@ import { hackyMobileSafariTest } from "./utils/detect-touchscreen";
 import { ensureOwnership } from "./../jel/utils/ownership-utils";
 import { MEDIA_TEXT_COLOR_PRESETS } from "../jel/components/media-text";
 import { waitForDOMContentLoaded } from "./utils/async-utils";
+
 const { detect } = require("detect-browser");
 
 const isBotMode = qsTruthy("bot");

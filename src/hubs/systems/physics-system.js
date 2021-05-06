@@ -17,12 +17,10 @@ const WORLD_CONFIG = {
 const MAX_BODIES = 512;
 
 export class PhysicsSystem {
-  constructor(scene, atmosphereSystem, skyBeamSystem, voxmojiSystem) {
+  constructor(scene, atmosphereSystem) {
     this.ammoWorker = new AmmoWorker();
     this.workerHelpers = new WorkerHelpers(this.ammoWorker);
     this.atmosphereSystem = atmosphereSystem;
-    this.skyBeamSystem = skyBeamSystem;
-    this.voxmojiSystem = voxmojiSystem;
 
     this.bodyHelpers = [];
     this.shapeHelpers = [];
@@ -127,8 +125,8 @@ export class PhysicsSystem {
       const debugVertices = new Float32Array(this.debugSharedArrayBuffer, 4, DefaultBufferSize);
       const debugColors = new Float32Array(this.debugSharedArrayBuffer, 4 + DefaultBufferSize, DefaultBufferSize);
       this.debugGeometry = new THREE.BufferGeometry();
-      this.debugGeometry.addAttribute("position", new THREE.BufferAttribute(debugVertices, 3));
-      this.debugGeometry.addAttribute("color", new THREE.BufferAttribute(debugColors, 3));
+      this.debugGeometry.setAttribute("position", new THREE.BufferAttribute(debugVertices, 3));
+      this.debugGeometry.setAttribute("color", new THREE.BufferAttribute(debugColors, 3));
       const debugMaterial = new THREE.LineBasicMaterial({
         vertexColors: THREE.VertexColors,
         depthTest: true
@@ -395,6 +393,46 @@ export class PhysicsSystem {
     });
 
     return uuid;
+  }
+
+  createShapes(mesh, options) {
+    const uuid = this.nextShapeUuid;
+    this.nextShapeUuid++;
+
+    this.duringNextTick(() => {
+      if (mesh && !mesh.parent) return;
+
+      if (mesh) {
+        mesh.updateMatrices();
+        mesh.parent.updateMatrices();
+      }
+
+      this.workerHelpers.createShapes(uuid, mesh, options);
+      this.needsTransfer = true;
+    });
+
+    return uuid;
+  }
+
+  destroyShapes(uuid) {
+    this.duringNextTick(() => {
+      this.workerHelpers.destroyShapes(uuid);
+      this.needsTransfer = true;
+    });
+  }
+
+  setShapes(bodyUuids, shapesUuid) {
+    this.duringNextTick(() => {
+      this.workerHelpers.setShapes(bodyUuids, shapesUuid);
+
+      // Worker changes entire set of shapes as part of this operation.
+      for (const bodyUuid of bodyUuids) {
+        this.bodyUuidToData.get(bodyUuid).shapes.length = 0;
+        this.bodyUuidToData.get(bodyUuid).shapes.push(shapesUuid);
+      }
+
+      this.needsTransfer = true;
+    });
   }
 
   updateShapesScale(shapesUuid, mesh, options) {

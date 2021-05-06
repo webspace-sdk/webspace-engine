@@ -621,7 +621,7 @@ export class TerrainSystem {
       heightfieldDistance: (VOXEL_SIZE + VOXEL_SIZE / 8) * 8 + VOXEL_SIZE / 8,
       offset: {
         x: CHUNK_WORLD_SIZE / 2 - VOXEL_SIZE * 4,
-        y: (min + max) / 2 + VOXEL_SIZE,
+        y: (min + max) / 2,
         z: CHUNK_WORLD_SIZE / 2 - VOXEL_SIZE * 4
       },
       heightfieldData
@@ -663,6 +663,20 @@ export class TerrainSystem {
         pool.push(terrain);
       }
     }
+  }
+
+  getTargettableTerrainMeshes() {
+    const meshes = [];
+
+    for (let i = 0; i < this.activeTerrains.length; i++) {
+      const terrain = this.activeTerrains[i];
+
+      if (terrain.meshes.length > 0) {
+        meshes.push(terrain.meshes[0]);
+      }
+    }
+
+    return meshes;
   }
 
   unloadWorld() {
