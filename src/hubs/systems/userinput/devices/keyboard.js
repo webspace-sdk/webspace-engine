@@ -64,14 +64,12 @@ export class KeyboardDevice {
             } else if (e.code === "Digit3") {
               SYSTEMS.builderSystem.toggleMirrorZ();
               e.preventDefault();
-            }
-          }
-
-          if (e.ctrlKey) {
-            if (e.code === "KeyZ") {
+            } else if (e.code === "KeyZ") {
               SYSTEMS.builderSystem.doUndo();
+              e.preventDefault();
             } else if (e.code === "KeyY") {
               SYSTEMS.builderSystem.doRedo();
+              e.preventDefault();
             }
           }
         }

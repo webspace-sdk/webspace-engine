@@ -262,16 +262,16 @@ const TIP_DATA = {
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   vox: voxCommonTips,
-  vox_pick: [["pick", "_S|D"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_fill: [["fill", "_S|D"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_attach: [["attach", "_S|D"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_erase: [["erase", "_S|D"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_paint: [["paint", "_S|D"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_pick_full: [["pick", "_S|K"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_fill_full: [["fill", "_S|K"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_attach_full: [["attach", "_S|K"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_erase_full: [["erase", "_S|K"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
-  vox_paint_full: [["paint", "_S|K"], ...voxCommonTips, ["undo", "L+z"], ["redo", "L+y"]],
+  vox_pick: [["pick", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_fill: [["fill", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_attach: [["attach", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_erase: [["erase", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_paint: [["paint", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_pick_full: [["pick", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_fill_full: [["fill", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_attach_full: [["attach", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_erase_full: [["erase", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_paint_full: [["paint", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
   pdf: [["next", "L+S"], ["page", "q\\e"], ...objectCommonTips],
   text: [
     ["edit", "~|@", "mediaTextEdit"],
@@ -460,6 +460,12 @@ const itemForData = ([label, keys, flag]) => {
         els.push(
           <NamedKey key={key}>
             <FormattedMessage id="key-tips.control" />
+          </NamedKey>
+        );
+      } else if (key === "P") {
+        els.push(
+          <NamedKey key={key}>
+            <FormattedMessage id="key-tips.alt" />
           </NamedKey>
         );
       } else if (key === " ") {
