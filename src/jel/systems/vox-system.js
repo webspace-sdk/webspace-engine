@@ -901,10 +901,6 @@ export class VoxSystem extends EventTarget {
     mesh.getMatrixAt(instanceId, matrix);
 
     bbox.expandByObject(mesh);
-    const vec = new THREE.Vector3();
-    const a = new THREE.Vector3();
-    const q = new THREE.Quaternion();
-    matrix.decompose(a, q, vec);
     bbox.applyMatrix4(matrix);
     return bbox;
   }

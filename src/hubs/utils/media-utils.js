@@ -371,15 +371,12 @@ export const groundMedia = (sourceEl, faceUp, bbox = null, meshOffset = 0.0) => 
   const terrainSystem = AFRAME.scenes[0].systems["hubs-systems"].terrainSystem;
   const terrainHeight = terrainSystem.getTerrainHeightAtWorldCoord(x, z);
   const finalYPosition = objectHeight * 0.5 + meshOffset + terrainHeight;
+  console.log("from", object3D.position.y, "to", finalYPosition);
 
   const step = (function() {
     const lastValue = {};
     return function(anim) {
       const value = anim.animatables[0].target;
-
-      value.x = Math.max(Number.MIN_VALUE, value.x);
-      value.y = Math.max(Number.MIN_VALUE, value.y);
-      value.z = Math.max(Number.MIN_VALUE, value.z);
 
       // For animation timeline.
       if (value.x === lastValue.x && value.y === lastValue.y && value.z === lastValue.z) {
