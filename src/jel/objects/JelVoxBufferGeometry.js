@@ -241,7 +241,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
     // Generate quadData via greedy mesher.
     const quadData = GreedyMesh(chunk, max_quad_size);
 
-    const numQuads = quadData.length / 14 + 1;
+    const numQuads = quadData.length / 14;
     const vertices = float32Pool.get(12 * numQuads);
     const normals = float32Pool.get(12 * numQuads);
     const colors = float32Pool.get(12 * numQuads);
@@ -338,13 +338,13 @@ class JelVoxBufferGeometry extends BufferGeometry {
       const z4 = quadData[i + 13];
       const iQuad = i / 14;
 
-      xMax = Math.max(x1, x2, x3, x4, xMax);
-      yMax = Math.max(y1, y2, y3, y4, yMax);
-      zMax = Math.max(z1, z2, z3, z4, zMax);
+      xMax = Math.max(x1 - xShift, x2 - xShift, x3 - xShift, x4 - xShift, xMax);
+      yMax = Math.max(y1 - yShift, y2 - yShift, y3 - yShift, y4 - yShift, yMax);
+      zMax = Math.max(z1 - zShift, z2 - zShift, z3 - zShift, z4 - zShift, zMax);
 
-      xMin = Math.min(x1, x2, x3, x4, xMin);
-      yMin = Math.min(y1, y2, y3, y4, yMin);
-      zMin = Math.min(z1, z2, z3, z4, zMin);
+      xMin = Math.min(x1 - xShift, x2 - xShift, x3 - xShift, x4 - xShift, xMin);
+      yMin = Math.min(y1 - yShift, y2 - yShift, y3 - yShift, y4 - yShift, yMin);
+      zMin = Math.min(z1 - zShift, z2 - zShift, z3 - zShift, z4 - zShift, zMin);
 
       // Look up vertex color.
       const x = x1 - (d === 0 && up !== 0 ? 1 : 0);

@@ -630,22 +630,15 @@ export class VoxSystem extends EventTarget {
         }
 
         const [xMin, yMin, zMin, xMax, yMax, zMax] = mesh.geometry.update(chunk, mesherQuadSize);
-        const [xSize, ySize, zSize] = chunk.size;
 
-        // Find the midpoint of the mesh on each axis, and then
-        // see which side has more voxels to determine which way collision origin needs to be shifted.
-        const midX = (xMax + xMin) / 2.0;
-        const midY = (yMax + yMin) / 2.0;
-        const midZ = (zMax + zMin) / 2.0;
-        const xSide = midX > xSize / 2.0 ? 1 : -1;
-        const ySide = midY > ySize / 2.0 ? 1 : -1;
-        const zSide = midZ > zSize / 2.0 ? 1 : -1;
         const xExtent = xMax - xMin;
         const yExtent = yMax - yMin;
         const zExtent = zMax - zMin;
-        const xShift = xSize % 2 === 1 ? +VOXEL_SIZE / 2 : VOXEL_SIZE;
-        const yShift = ySize % 2 === 1 ? +VOXEL_SIZE / 2 : VOXEL_SIZE;
-        const zShift = zSize % 2 === 1 ? +VOXEL_SIZE / 2 : VOXEL_SIZE;
+
+        // Offset the hull by the min and half the size
+        const dx = xMin + xExtent / 2;
+        const dy = yMin + yExtent / 2;
+        const dz = zMin + zExtent / 2;
 
         generateMeshBVH(mesh, true);
         regenerateSizeBox = true;
@@ -664,16 +657,11 @@ export class VoxSystem extends EventTarget {
             // NOTE: if the physics shapes for large voxes are not accurate
             // then this can be reduced at the cost of perf.
             concavity: 0.4,
-            offset: new THREE.Vector3(
-              xSide * ((xSize - xExtent) / 2) * VOXEL_SIZE + xShift,
-              ySide * ((ySize - yExtent) / 2) * VOXEL_SIZE + yShift,
-              zSide * ((zSize - zExtent) / 2) * VOXEL_SIZE + zShift
-            )
+            offset: new THREE.Vector3(dx * VOXEL_SIZE, dy * VOXEL_SIZE, dz * VOXEL_SIZE)
           });
 
           const previousShapesUuid = entry.shapesUuid;
           entry.shapesUuid = shapesUuid;
-
           const bodyReadyPromises = [];
           const bodyUuids = [];
 
