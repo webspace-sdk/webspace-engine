@@ -371,7 +371,13 @@ export const groundMedia = (sourceEl, faceUp, bbox = null, meshOffset = 0.0) => 
   const terrainSystem = AFRAME.scenes[0].systems["hubs-systems"].terrainSystem;
   const terrainHeight = terrainSystem.getTerrainHeightAtWorldCoord(x, z);
   const finalYPosition = objectHeight * 0.5 + meshOffset + terrainHeight;
-  console.log("from", object3D.position.y, "to", finalYPosition);
+
+  const floatyObject = sourceEl.components["floaty-object"];
+
+  if (floatyObject) {
+    // If physics body was dynamic, lock it so physics system won't be updating it anymore.
+    floatyObject.setLocked(true);
+  }
 
   const step = (function() {
     const lastValue = {};
