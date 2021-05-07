@@ -134,6 +134,8 @@ export class AtmosphereSystem {
   }
 
   restartAmbience() {
+    this.outdoorsSoundTargetGain = 2.0;
+    this.waterSoundTargetGain = 1.0;
     this.stopOutdoorsSoundNode(); // Restart happens automatically
   }
 
