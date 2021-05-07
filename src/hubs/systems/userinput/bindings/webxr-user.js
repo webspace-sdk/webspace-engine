@@ -259,11 +259,6 @@ export const webXRUserBindings = addSetsToBindings({
       xform: xforms.copy
     },
     {
-      src: { value: leftButton.thumbStick.pressed },
-      dest: { value: paths.actions.nextCameraMode },
-      xform: xforms.rising
-    },
-    {
       src: { value: rightButton.thumbStick.pressed },
       dest: { value: paths.actions.toggleFly },
       xform: xforms.rising

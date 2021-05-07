@@ -466,15 +466,6 @@ export const oculusTouchUserBindings = addSetsToBindings({
     },
     {
       src: {
-        value: leftButton("thumbStick").pressed
-      },
-      dest: {
-        value: paths.actions.nextCameraMode
-      },
-      xform: xforms.rising
-    },
-    {
-      src: {
         value: rightButton("thumbStick").pressed
       },
       dest: {

@@ -26,7 +26,10 @@ const controlSpace = "/var/control+space";
 const controlM = "/var/control+m";
 const movementX = "/var/movementX";
 const movementY = "/var/movementY";
+const middleMouseMoveX = "/var/middle-mouse-move-x";
 const middleMouseMoveY = "/var/middle-mouse-move-y";
+const rightMouseMoveX = "/var/right-mouse-move-x";
+const rightMouseMoveY = "/var/right-mouse-move-y";
 const cursorScalePenTipWheel = "/var/cursorScalePenTipWheel";
 
 const kMap = new Map();
@@ -878,14 +881,44 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.split_vec2
     },
     {
+      src: { bool: paths.device.mouse.buttonMiddle, value: movementX },
+      dest: { value: middleMouseMoveX },
+      xform: xforms.copyIfTrue
+    },
+    {
       src: { bool: paths.device.mouse.buttonMiddle, value: movementY },
       dest: { value: middleMouseMoveY },
       xform: xforms.copyIfTrue
     },
     {
+      src: { bool: paths.device.mouse.buttonRight, value: movementX },
+      dest: { value: rightMouseMoveX },
+      xform: xforms.copyIfTrue
+    },
+    {
+      src: { bool: paths.device.mouse.buttonRight, value: movementY },
+      dest: { value: rightMouseMoveY },
+      xform: xforms.copyIfTrue
+    },
+    {
+      src: { value: middleMouseMoveX },
+      dest: { value: paths.actions.inspectPanX },
+      xform: xforms.scale(0.005)
+    },
+    {
       src: { value: middleMouseMoveY },
       dest: { value: paths.actions.inspectPanY },
-      xform: xforms.scale(0.001)
+      xform: xforms.scale(0.005)
+    },
+    {
+      src: { value: rightMouseMoveX },
+      dest: { value: paths.actions.inspectRotateX },
+      xform: xforms.scale(0.005)
+    },
+    {
+      src: { value: rightMouseMoveY },
+      dest: { value: paths.actions.inspectRotateY },
+      xform: xforms.scale(0.005)
     }
   ],
   [sets.transforming]: [

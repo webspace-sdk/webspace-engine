@@ -3,11 +3,9 @@ import { childMatch, setMatrixWorld, calculateViewingDistance } from "../utils/t
 import { shouldOrbitOnInspect } from "../utils/media-utils";
 import { paths } from "./userinput/paths";
 import { getBox } from "../utils/auto-box-collider";
-import qsTruthy from "../utils/qs_truthy";
 import { qsGet } from "../utils/qs_truthy";
 import SkyboxBufferGeometry from "../../jel/objects/skybox-buffer-geometry";
 const customFOV = qsGet("fov");
-const enableThirdPersonMode = qsTruthy("thirdPerson");
 
 export function getInspectable(child) {
   let el = child;
@@ -37,7 +35,7 @@ const orbit = (function() {
   const target = new THREE.Object3D();
   const dhQ = new THREE.Quaternion();
   const dvQ = new THREE.Quaternion();
-  return function orbit(object, rig, camera, dh, dv, dz, dt, panY) {
+  return function orbit(object, rig, camera, dh, dv, dz, dt, panX, panY) {
     if (!target.parent) {
       // add dummy object to the scene, if this is the first time we call this function
       AFRAME.scenes[0].object3D.add(target);
@@ -60,11 +58,18 @@ const orbit = (function() {
 
     dvQ.setFromAxisAngle(RIGHT.set(1, 0, 0).applyQuaternion(target.quaternion), 0.1 * dv * dt);
     target.quaternion.premultiply(dvQ);
-    target.position.addVectors(owp, dPos.applyQuaternion(dhQ).applyQuaternion(dvQ)).add(
-      UP.set(0, 1, 0)
-        .multiplyScalar(panY * newLength)
-        .applyQuaternion(target.quaternion)
-    );
+    target.position
+      .addVectors(owp, dPos.applyQuaternion(dhQ).applyQuaternion(dvQ))
+      .add(
+        RIGHT.set(1, 0, 0)
+          .applyQuaternion(cwq)
+          .multiplyScalar(-panX * newLength * zoom)
+      )
+      .add(
+        UP.set(0, 1, 0)
+          .applyQuaternion(cwq)
+          .multiplyScalar(panY * newLength * zoom)
+      );
     target.matrixNeedsUpdate = true;
     target.updateMatrices();
     childMatch(rig, camera, target.matrixWorld);
@@ -123,12 +128,6 @@ export const CAMERA_MODE_THIRD_PERSON_FAR = 2;
 export const CAMERA_MODE_INSPECT = 3;
 export const CAMERA_MODE_SCENE_PREVIEW = 4;
 
-const NEXT_MODES = {
-  [CAMERA_MODE_FIRST_PERSON]: CAMERA_MODE_THIRD_PERSON_NEAR,
-  [CAMERA_MODE_THIRD_PERSON_NEAR]: CAMERA_MODE_THIRD_PERSON_FAR,
-  [CAMERA_MODE_THIRD_PERSON_FAR]: CAMERA_MODE_FIRST_PERSON
-};
-
 const CAMERA_LAYER_INSPECT = 4;
 // This layer is never actually rendered by a camera but lets the batching system know it should be rendered if inspecting
 export const CAMERA_LAYER_BATCH_INSPECT = 5;
@@ -139,7 +138,7 @@ const ensureLightsAreSeenByCamera = function(o) {
   }
 };
 const enableInspectLayer = function(o) {
-  const batchManagerSystem = AFRAME.scenes[0].systems["hubs-systems"].batchManagerSystem;
+  const { batchManagerSystem } = SYSTEMS;
   const batch = batchManagerSystem.batchingEnabled && batchManagerSystem.batchManager.batchForMesh.get(o);
   if (batch) {
     batch.layers.enable(CAMERA_LAYER_INSPECT);
@@ -149,7 +148,7 @@ const enableInspectLayer = function(o) {
   }
 };
 const disableInspectLayer = function(o) {
-  const batchManagerSystem = AFRAME.scenes[0].systems["hubs-systems"].batchManagerSystem;
+  const { batchManagerSystem } = SYSTEMS;
   const batch = batchManagerSystem.batchingEnabled && batchManagerSystem.batchManager.batchForMesh.get(o);
   if (batch) {
     batch.layers.disable(CAMERA_LAYER_INSPECT);
@@ -201,18 +200,6 @@ export class CameraSystem {
         }
       }
     });
-  }
-
-  nextMode() {
-    if (this.mode === CAMERA_MODE_INSPECT) {
-      this.uninspect();
-      return;
-    }
-
-    if (!enableThirdPersonMode) return;
-    if (this.mode === CAMERA_MODE_SCENE_PREVIEW) return;
-
-    this.mode = NEXT_MODES[this.mode] || 0;
   }
 
   inspect(o, distanceMod, temporarilyDisableRegularExit) {
@@ -329,32 +316,8 @@ export class CameraSystem {
 
   tick = (function() {
     const translation = new THREE.Matrix4();
-    let uiRoot;
     return function tick(scene, dt) {
       const entered = scene.is("entered");
-      uiRoot = uiRoot || document.getElementById("ui-root");
-      const isGhost = !entered && uiRoot && uiRoot.firstChild && uiRoot.firstChild.classList.contains("isGhost");
-      if (isGhost && this.mode !== CAMERA_MODE_FIRST_PERSON && this.mode !== CAMERA_MODE_INSPECT) {
-        this.mode = CAMERA_MODE_FIRST_PERSON;
-        const position = new THREE.Vector3();
-        const quat = new THREE.Quaternion();
-        const scale = new THREE.Vector3();
-        this.viewingRig.object3D.updateMatrices();
-        this.viewingRig.object3D.matrixWorld.decompose(position, quat, scale);
-        position.setFromMatrixPosition(this.viewingCamera.object3DMap.camera.matrixWorld);
-        position.y = position.y - 1.6;
-        setMatrixWorld(
-          this.avatarRig.object3D,
-          new THREE.Matrix4().compose(
-            position,
-            quat,
-            scale
-          )
-        );
-        scene.systems["hubs-systems"].characterController.fly = true;
-        this.avatarPOV.object3D.updateMatrices();
-        setMatrixWorld(this.avatarPOV.object3D, this.viewingCamera.object3DMap.camera.matrixWorld);
-      }
       if (!this.enteredScene && entered) {
         this.enteredScene = true;
         this.mode = CAMERA_MODE_FIRST_PERSON;
@@ -384,10 +347,6 @@ export class CameraSystem {
       ) {
         scene.emit("uninspect");
         this.uninspect();
-      }
-
-      if (this.userinput.get(paths.actions.nextCameraMode)) {
-        this.nextMode();
       }
 
       const headShouldBeVisible = this.mode !== CAMERA_MODE_FIRST_PERSON;
@@ -422,20 +381,8 @@ export class CameraSystem {
       } else if (this.mode === CAMERA_MODE_INSPECT) {
         this.avatarPOVRotator.on = false;
         this.viewingCameraRotator.on = false;
-        const cameraDelta = this.userinput.get(
-          scene.is("entered") ? paths.actions.cameraDelta : paths.actions.lobbyCameraDelta
-        );
-
-        if (cameraDelta) {
-          // TODO: Move device specific tinkering to action sets
-          const horizontalDelta = (AFRAME.utils.device.isMobile() ? -0.6 : 1) * cameraDelta[0] || 0;
-          const verticalDelta = (AFRAME.utils.device.isMobile() ? -1.2 : 1) * cameraDelta[1] || 0;
-          this.horizontalDelta = (this.horizontalDelta + horizontalDelta) / 2;
-          this.verticalDelta = (this.verticalDelta + verticalDelta) / 2;
-        } else if (Math.abs(this.verticalDelta) > 0.0001 || Math.abs(this.horizontalDelta) > 0.0001) {
-          this.verticalDelta = FALLOFF * this.verticalDelta;
-          this.horizontalDelta = FALLOFF * this.horizontalDelta;
-        }
+        this.horizontalDelta = -this.userinput.get(paths.actions.inspectRotateX) || 0;
+        this.verticalDelta = -this.userinput.get(paths.actions.inspectRotateY) || 0;
 
         const inspectZoom = this.userinput.get(paths.actions.inspectZoom) * 0.001;
         if (inspectZoom) {
@@ -443,6 +390,7 @@ export class CameraSystem {
         } else if (Math.abs(this.inspectZoom) > 0.0001) {
           this.inspectZoom = FALLOFF * this.inspectZoom;
         }
+        const panX = this.userinput.get(paths.actions.inspectPanX) || 0;
         const panY = this.userinput.get(paths.actions.inspectPanY) || 0;
         if (this.userinput.get(paths.actions.resetInspectView)) {
           moveRigSoCameraLooksAtObject(
@@ -457,6 +405,7 @@ export class CameraSystem {
           Math.abs(this.verticalDelta) > 0.001 ||
           Math.abs(this.horizontalDelta) > 0.001 ||
           Math.abs(this.inspectZoom) > 0.001 ||
+          Math.abs(panX) > 0.0001 ||
           Math.abs(panY) > 0.0001
         ) {
           if (shouldOrbitOnInspect(this.inspected)) {
@@ -468,6 +417,7 @@ export class CameraSystem {
               this.verticalDelta,
               this.inspectZoom,
               dt,
+              panX,
               panY
             );
           }

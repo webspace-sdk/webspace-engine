@@ -55,6 +55,7 @@ export class LauncherSystem extends EventTarget {
 
   tick() {
     if (!this.enabled) return;
+    if (!SYSTEMS.cameraSystem.isInAvatarView()) return;
 
     const { projectileSystem, userinput } = this;
 

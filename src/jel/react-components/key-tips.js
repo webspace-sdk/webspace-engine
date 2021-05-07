@@ -281,7 +281,7 @@ const TIP_DATA = {
   ],
   rotate: [["rotate", "G"], ["roll", "L+G,R"], ["guides", "q\\e"]],
   scale: [["scale", "G,R"]],
-  focus: [["exit", "f|Z"]],
+  focus: [["orbit", "I"], ["pan", "O"], ["exit", "f|Z"]],
   text_editor: [
     ["close", "~|@", "mediaTextEditClose"],
     ["bold", "L+b"],
@@ -436,6 +436,12 @@ const itemForData = ([label, keys, flag]) => {
         els.push(
           <NamedKey key={key}>
             <FormattedMessage id="key-tips.rightDrag" />
+          </NamedKey>
+        );
+      } else if (key === "O") {
+        els.push(
+          <NamedKey key={key}>
+            <FormattedMessage id="key-tips.middleDrag" />
           </NamedKey>
         );
       } else if (key === "K") {

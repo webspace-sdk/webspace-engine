@@ -149,12 +149,9 @@ export class CharacterControllerSystem {
     const heightMapSnappedPOVPosition = new THREE.Vector3();
     const v = new THREE.Vector3();
 
-    let uiRoot;
     return function tick(t, dt) {
       const entered = this.scene.is("entered");
-      uiRoot = uiRoot || document.getElementById("ui-root");
-      const isGhost = !entered && uiRoot && uiRoot.firstChild && uiRoot.firstChild.classList.contains("isGhost");
-      if (!isGhost && !entered) return;
+      if (!entered) return;
       const vrMode = this.scene.is("vr-mode");
       this.sfx = this.sfx || this.scene.systems["hubs-systems"].soundEffectsSystem;
       this.interaction = this.interaction || AFRAME.scenes[0].systems.interaction;
@@ -163,7 +160,7 @@ export class CharacterControllerSystem {
       const wasFlying = this.fly;
       const shouldSnapDueToLanding = this.shouldLandWhenPossible;
 
-      const mayJump = SYSTEMS.launcherSystem.enabled;
+      const mayJump = SYSTEMS.launcherSystem.enabled && !this.isMotionDisabled && SYSTEMS.cameraSystem.isInAvatarView();
 
       if (mayJump && userinput.get(paths.actions.jump) && this.jumpYVelocity === null) {
         this.jumpYVelocity = INITIAL_JUMP_VELOCITY;
@@ -248,11 +245,11 @@ export class CharacterControllerSystem {
 
       this.avatarPOV.object3D.updateMatrices();
 
-      rotateInPlaceAroundWorldUp(this.avatarPOV.object3D.matrixWorld, this.dXZ, snapRotatedPOV);
+      if (!this.isMotionDisabled && SYSTEMS.cameraSystem.isInAvatarView()) {
+        rotateInPlaceAroundWorldUp(this.avatarPOV.object3D.matrixWorld, this.dXZ, snapRotatedPOV);
 
-      newPOV.copy(snapRotatedPOV);
+        newPOV.copy(snapRotatedPOV);
 
-      if (!this.isMotionDisabled) {
         const playerScale = v.setFromMatrixColumn(this.avatarPOV.object3D.matrixWorld, 1).length();
         const triedToMove = this.relativeMotion.lengthSq() > 0.000001;
 
