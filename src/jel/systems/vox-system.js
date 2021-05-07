@@ -663,7 +663,7 @@ export class VoxSystem extends EventTarget {
 
         // Don't update physics when running pending for brush
         if (i === 0 && !pendingVoxChunk) {
-          const type = mesherQuadSize <= 2 ? SHAPE.HACD : SHAPE.HULL;
+          const type = mesherQuadSize <= 4 ? SHAPE.HACD : SHAPE.HULL;
 
           // Generate a simpler mesh to improve generation time
           physicsMesh.geometry.update(chunk, Infinity, true);
