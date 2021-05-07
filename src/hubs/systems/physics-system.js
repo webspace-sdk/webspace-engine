@@ -205,6 +205,21 @@ export class PhysicsSystem {
                 matrix.decompose(object3D.position, object3D.quaternion, scale);
               }
 
+              // Workaround for world wrapping + physics issues.
+              //
+              // If a body is dynamic we try wrapping it. If it is wrapped, we need to reposition it
+              // in the simulation. One way to do this is to set it kinematic, but it appears that
+              // bullet will also let us reposition it cleanly if we set the velocity to zero.
+              //
+              // I don't totally grok why this works, but it removes most issues where an object is
+              // ballistic and a player wraps. The negative effect is the object's motion will zero
+              // out mid-air however, which isn't great. But at least it doesn't disappear!
+              const didWrap = SYSTEMS.wrappedEntitySystem.moveObjForWrapIfRegistered(object3D);
+
+              if (didWrap) {
+                this.resetDynamicBody(uuid);
+              }
+
               object3D.matrixNeedsUpdate = true;
 
               if (physicsNeedsUpdate) {

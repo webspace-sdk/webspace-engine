@@ -181,6 +181,16 @@ export class WrappedEntitySystem {
     };
   })();
 
+  moveObjForWrapIfRegistered(elOrObj) {
+    const obj = elOrObj.object3D || elOrObj;
+
+    if (this.objs.indexOf(obj) >= 0) {
+      return this.moveObjForWrap(obj);
+    }
+
+    return false;
+  }
+
   moveObjForWrap = (function() {
     // There are 9 possible positions for this entity in world space that could be seen by the player.
     // (Planet space is bounded, world space is not.)
@@ -238,7 +248,10 @@ export class WrappedEntitySystem {
         obj.matrixNeedsUpdate = true;
         this.atmosphereSystem.updateShadows();
         this.atmosphereSystem.updateWater();
+        return true;
       }
+
+      return false;
     };
   })();
 }
