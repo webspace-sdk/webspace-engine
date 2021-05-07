@@ -89,6 +89,13 @@ function createMesh() {
   return mesh;
 }
 
+function createPhysicsMesh() {
+  const geometry = new JelVoxBufferGeometry();
+  const material = voxMaterial;
+  const mesh = new Mesh(geometry, material);
+  return mesh;
+}
+
 // Manages user-editable voxel objects
 export class VoxSystem extends EventTarget {
   constructor(sceneEl, cursorTargettingSystem, physicsSystem) {
@@ -454,6 +461,9 @@ export class VoxSystem extends EventTarget {
       // List of DynamicInstanceMeshes, one per vox frame
       meshes: Array(MAX_FRAMES_PER_VOX).fill(null),
 
+      // Lightweight meshes used for physics hull generation
+      physicsMeshes: Array(MAX_FRAMES_PER_VOX).fill(null),
+
       // If non-null, have cursor targetting target this mesh.
       //
       // This is used in building mode to target the previous mesh while
@@ -572,6 +582,7 @@ export class VoxSystem extends EventTarget {
       sources,
       dirtyFrameMeshes,
       meshes,
+      physicsMeshes,
       mesherQuadSize,
       maxRegisteredIndex,
       pendingVoxChunk,
@@ -583,11 +594,16 @@ export class VoxSystem extends EventTarget {
 
     for (let i = 0; i < vox.frames.length; i++) {
       let mesh = meshes[i];
+      let physicsMesh = physicsMeshes[i];
       let remesh = dirtyFrameMeshes[i];
 
       if (!mesh) {
         mesh = createMesh();
         meshes[i] = mesh;
+
+        physicsMesh = createPhysicsMesh();
+        physicsMeshes[i] = physicsMesh;
+
         meshToVoxId.set(mesh, voxId);
 
         scene.add(meshes[i]);
@@ -649,14 +665,14 @@ export class VoxSystem extends EventTarget {
         if (i === 0 && !pendingVoxChunk) {
           const type = mesherQuadSize <= 2 ? SHAPE.HACD : SHAPE.HULL;
 
+          // Generate a simpler mesh to improve generation time
+          physicsMesh.geometry.update(chunk, Infinity, true);
+
           // Physics shape is based upon the first mesh.
-          const shapesUuid = physicsSystem.createShapes(mesh, {
+          const shapesUuid = physicsSystem.createShapes(physicsMesh, {
             type,
             fit: FIT.ALL,
             includeInvisible: true,
-            // NOTE: if the physics shapes for large voxes are not accurate
-            // then this can be reduced at the cost of perf.
-            concavity: 0.4,
             offset: new THREE.Vector3(dx * VOXEL_SIZE, dy * VOXEL_SIZE, dz * VOXEL_SIZE)
           });
 
@@ -940,10 +956,12 @@ export class VoxSystem extends EventTarget {
     const { voxMap, meshToVoxId, sceneEl, physicsSystem } = this;
     const scene = sceneEl.object3D;
     const entry = voxMap.get(voxId);
-    const { meshes, shapesUuid, dirtyFrameMeshes } = entry;
+    const { meshes, physicsMeshes, shapesUuid, dirtyFrameMeshes } = entry;
 
     const mesh = meshes[i];
     if (!mesh) return;
+
+    const physicsMesh = physicsMeshes[i];
 
     // Retain material since it's shared among all vox.
     meshes[i] = null; // Do this first since removal will re-compute cursor targets
@@ -951,6 +969,10 @@ export class VoxSystem extends EventTarget {
     mesh.material = null;
     disposeNode(mesh);
     meshToVoxId.delete(mesh);
+
+    physicsMeshes[i] = null;
+    disposeNode(physicsMesh);
+
     dirtyFrameMeshes[i] = true;
 
     // Shape is the first mesh's shape

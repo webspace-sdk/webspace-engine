@@ -380,11 +380,12 @@ export class PhysicsSystem {
     this.nextShapeUuid++;
 
     this.duringNextTick(() => {
-      if (mesh && !mesh.parent) return;
-
       if (mesh) {
         mesh.updateMatrices();
-        mesh.parent.updateMatrices();
+
+        if (mesh.parent) {
+          mesh.parent.updateMatrices();
+        }
       }
 
       this.workerHelpers.addShapes(bodyUuid, uuid, mesh, options);
@@ -400,11 +401,12 @@ export class PhysicsSystem {
     this.nextShapeUuid++;
 
     this.duringNextTick(() => {
-      if (mesh && !mesh.parent) return;
-
       if (mesh) {
         mesh.updateMatrices();
-        mesh.parent.updateMatrices();
+
+        if (mesh.parent) {
+          mesh.parent.updateMatrices();
+        }
       }
 
       this.workerHelpers.createShapes(uuid, mesh, options);
