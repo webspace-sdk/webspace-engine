@@ -1,4 +1,3 @@
-/* global fetch THREE */
 import URL_TICK from "../../assets/jel/sfx/click.wav";
 import URL_TICK_DOWN from "../../assets/jel/sfx/click-down.wav";
 import URL_TICK_ALT from "../../assets/jel/sfx/click-alt.wav";
