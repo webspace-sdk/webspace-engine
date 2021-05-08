@@ -1006,6 +1006,8 @@ export class VoxSystem extends EventTarget {
 
   async getBodyUuidForSource(source) {
     const { el } = source;
+    if (!el) return;
+
     const bodyHelper = el.components["body-helper"];
 
     if (!bodyHelper || !bodyHelper.ready) {
