@@ -175,7 +175,7 @@ export class CameraSystem {
     this.verticalDelta = 0;
     this.horizontalDelta = 0;
     this.inspectZoom = 0;
-    this.mode = CAMERA_MODE_SCENE_PREVIEW;
+    this.mode = CAMERA_MODE_FIRST_PERSON;
     this.snapshot = { audioTransform: new THREE.Matrix4(), matrixWorld: new THREE.Matrix4() };
     this.audioListenerTargetTransform = new THREE.Matrix4();
     waitForDOMContentLoaded().then(() => {
@@ -320,7 +320,6 @@ export class CameraSystem {
       const entered = scene.is("entered");
       if (!this.enteredScene && entered) {
         this.enteredScene = true;
-        this.mode = CAMERA_MODE_FIRST_PERSON;
       }
       this.avatarPOVRotator = this.avatarPOVRotator || this.avatarPOV.components["camera-rotator"];
       this.viewingCameraRotator = this.viewingCameraRotator || this.viewingRig.components["camera-rotator"];

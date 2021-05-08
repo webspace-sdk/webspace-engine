@@ -444,8 +444,10 @@ export class PhysicsSystem {
 
       // Worker changes entire set of shapes as part of this operation.
       for (const bodyUuid of bodyUuids) {
-        this.bodyUuidToData.get(bodyUuid).shapes.length = 0;
-        this.bodyUuidToData.get(bodyUuid).shapes.push(shapesUuid);
+        if (this.bodyUuidToData.has(bodyUuid)) {
+          this.bodyUuidToData.get(bodyUuid).shapes.length = 0;
+          this.bodyUuidToData.get(bodyUuid).shapes.push(shapesUuid);
+        }
       }
 
       this.needsTransfer = true;
