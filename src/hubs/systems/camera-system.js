@@ -135,7 +135,6 @@ export const CAMERA_MODE_THIRD_PERSON_NEAR = 1;
 export const CAMERA_MODE_THIRD_PERSON_FAR = 2;
 export const CAMERA_MODE_INSPECT = 3;
 export const CAMERA_MODE_SCENE_PREVIEW = 4;
-export const CAMERA_MODE_EDIT = 5;
 
 const CAMERA_LAYER_INSPECT = 4;
 // This layer is never actually rendered by a camera but lets the batching system know it should be rendered if inspecting
@@ -277,6 +276,8 @@ export class CameraSystem extends EventTarget {
   }
 
   uninspect() {
+    if (this.inspected === null) return;
+
     this.temporarilyDisableRegularExit = false;
     if (this.mode !== CAMERA_MODE_INSPECT) return;
     this.showEverythingAsNormal();
@@ -372,7 +373,9 @@ export class CameraSystem extends EventTarget {
       } else if (
         !this.temporarilyDisableRegularExit &&
         this.mode === CAMERA_MODE_INSPECT &&
-        (this.userinput.get(paths.actions.toggleInspecting) || this.userinput.get(paths.actions.stopInspecting))
+        // Editing uses different hotkey, so ignore toggle
+        ((this.userinput.get(paths.actions.toggleInspecting) && !this.allowEditing) ||
+          this.userinput.get(paths.actions.stopInspecting))
       ) {
         scene.emit("uninspect");
         this.uninspect();

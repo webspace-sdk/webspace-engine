@@ -76,7 +76,7 @@ export class CursorTargettingSystem {
         }
       }
 
-      const inspectedMesh = inspected.el.getObject3D("mesh");
+      const inspectedMesh = inspected.el && inspected.el.getObject3D("mesh");
 
       if (inspectedMesh) {
         const voxMesh = SYSTEMS.voxSystem.getTargettableMeshForSource(inspectedMesh);
