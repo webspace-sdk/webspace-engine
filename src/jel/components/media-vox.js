@@ -113,6 +113,14 @@ AFRAME.registerComponent("media-vox", {
       // Need to compute the offset of the generated mesh and the position of this source
       const meshYOffset = this.el.object3D.position.y - center.y;
       groundMedia(this.el, false, bbox, meshYOffset);
+    } else if (type === MEDIA_INTERACTION_TYPES.EDIT) {
+      // Start inspecting with editing enabled
+      SYSTEMS.cameraSystem.inspect(this.el.object3D, 1.5, false, true);
+
+      if (!SYSTEMS.builderSystem.enabled) {
+        SYSTEMS.builderSystem.toggle();
+        SYSTEMS.launcherSystem.toggle();
+      }
     }
   },
 

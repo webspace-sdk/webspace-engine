@@ -59,12 +59,13 @@ const orbit = (function() {
 
     dvQ.setFromAxisAngle(RIGHT.set(1, 0, 0).applyQuaternion(target.quaternion), 0.1 * dv * dt);
     target.quaternion.premultiply(dvQ);
+
     target.position
       .addVectors(owp, dPos.applyQuaternion(dhQ).applyQuaternion(dvQ))
       .add(
         RIGHT.set(1, 0, 0)
           .applyQuaternion(cwq)
-          .multiplyScalar(-panX * newLength)
+          .multiplyScalar(panX * newLength)
       )
       .add(
         UP.set(0, 1, 0)
@@ -317,8 +318,7 @@ export class CameraSystem extends EventTarget {
   }
 
   cameraViewAllowsEditing() {
-    return true;
-    //return this.isInAvatarView() || (this.mode === CAMERA_LAYER_INSPECT && this.allowEditing);
+    return this.isInAvatarView() || (this.mode === CAMERA_MODE_INSPECT && this.allowEditing);
   }
 
   cameraViewAllowsManipulation() {
@@ -419,8 +419,9 @@ export class CameraSystem extends EventTarget {
           this.inspectZoom = 0;
         }
 
-        const panX = this.userinput.get(paths.actions.inspectPanX) || 0;
-        const panY = this.userinput.get(paths.actions.inspectPanY) || 0;
+        // Disable panning in normal focus mode
+        const panX = this.allowEditing ? -this.userinput.get(paths.actions.inspectPanX) || 0 : 0;
+        const panY = this.allowEditing ? this.userinput.get(paths.actions.inspectPanY) || 0 : 0;
         if (this.userinput.get(paths.actions.resetInspectView)) {
           moveRigSoCameraLooksAtObject(
             this.viewingRig.object3D,
