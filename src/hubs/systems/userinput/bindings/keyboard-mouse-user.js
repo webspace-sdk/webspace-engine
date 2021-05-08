@@ -883,42 +883,50 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     {
       src: { bool: paths.device.mouse.buttonMiddle, value: movementX },
       dest: { value: middleMouseMoveX },
-      xform: xforms.copyIfTrue
+      xform: xforms.copyIfTrue,
+      priority: 2001
     },
     {
       src: { bool: paths.device.mouse.buttonMiddle, value: movementY },
       dest: { value: middleMouseMoveY },
-      xform: xforms.copyIfTrue
+      xform: xforms.copyIfTrue,
+      priority: 2001
     },
     {
       src: { bool: paths.device.mouse.buttonRight, value: movementX },
       dest: { value: rightMouseMoveX },
-      xform: xforms.copyIfTrue
+      xform: xforms.copyIfTrue,
+      priority: 2001
     },
     {
       src: { bool: paths.device.mouse.buttonRight, value: movementY },
       dest: { value: rightMouseMoveY },
-      xform: xforms.copyIfTrue
+      xform: xforms.copyIfTrue,
+      priority: 2001
     },
     {
       src: { value: middleMouseMoveX },
       dest: { value: paths.actions.inspectPanX },
-      xform: xforms.scale(0.005)
+      xform: xforms.scale(0.001),
+      priority: 2001
     },
     {
       src: { value: middleMouseMoveY },
       dest: { value: paths.actions.inspectPanY },
-      xform: xforms.scale(0.005)
+      xform: xforms.scale(0.001),
+      priority: 2001
     },
     {
       src: { value: rightMouseMoveX },
       dest: { value: paths.actions.inspectRotateX },
-      xform: xforms.scale(0.005)
+      xform: xforms.scale(0.002),
+      priority: 2001
     },
     {
       src: { value: rightMouseMoveY },
       dest: { value: paths.actions.inspectRotateY },
-      xform: xforms.scale(0.005)
+      xform: xforms.scale(0.002),
+      priority: 2001
     }
   ],
   [sets.transforming]: [

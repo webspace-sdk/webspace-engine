@@ -38,6 +38,7 @@ export class CursorTargettingSystem {
       SYSTEMS.voxSystem.addEventListener("mesh_removed", this.setDirty);
       SYSTEMS.voxmojiSystem.addEventListener("mesh_added", this.setDirty);
       SYSTEMS.voxmojiSystem.addEventListener("mesh_removed", this.setDirty);
+      SYSTEMS.cameraSystem.addEventListener("mode_changed", this.setDirty);
     });
   }
 
@@ -62,8 +63,33 @@ export class CursorTargettingSystem {
 
   populateEntities(targets) {
     targets.length = 0;
-    // TODO: Do not querySelectorAll on the entire scene every time anything changes!
+
     const els = AFRAME.scenes[0].querySelectorAll(".collidable, .interactable, .ui, .drawing");
+    const { inspected } = SYSTEMS.cameraSystem;
+
+    // If cursor is on in inspect mode, we only can target the inspected object (or instances)
+    if (inspected) {
+      for (let i = 0; i < els.length; i++) {
+        if (els[i] === inspected && els[i].object3D && !els[i].classList.contains("instanced")) {
+          targets.push(inspected.el.object3D);
+          break;
+        }
+      }
+
+      const inspectedMesh = inspected.el.getObject3D("mesh");
+
+      if (inspectedMesh) {
+        const voxMesh = SYSTEMS.voxSystem.getTargettableMeshForSource(inspectedMesh);
+
+        if (voxMesh) {
+          targets.push(voxMesh);
+        }
+      }
+
+      return;
+    }
+
+    // TODO: Do not querySelectorAll on the entire scene every time anything changes!
     for (let i = 0; i < els.length; i++) {
       if (els[i].object3D && !els[i].classList.contains("instanced")) {
         targets.push(els[i].object3D);

@@ -79,7 +79,9 @@ export class AppAwareMouseDevice {
       }
     }
 
+    const { cameraSystem, cursorTargettingSystem } = SYSTEMS;
     const buttonLeft = frame.get(paths.device.mouse.buttonLeft);
+    const buttonMiddle = frame.get(paths.device.mouse.buttonMiddle);
     const buttonRight = frame.get(paths.device.mouse.buttonRight);
     const mouseLookKey = frame.get(shiftKeyPath) && !isInEditableField();
     const grabKey = frame.get(tabKeyPath);
@@ -87,11 +89,7 @@ export class AppAwareMouseDevice {
 
     if (((buttonRight && !this.prevButtonRight) || (grabKey && !this.prevGrabKey)) && this.cursorController) {
       const rawIntersections = [];
-      this.cursorController.raycaster.intersectObjects(
-        AFRAME.scenes[0].systems["hubs-systems"].cursorTargettingSystem.targets,
-        true,
-        rawIntersections
-      );
+      this.cursorController.raycaster.intersectObjects(cursorTargettingSystem.targets, true, rawIntersections);
       const intersection = rawIntersections.find(x => x.object.el);
       const remoteHoverTarget = intersection && findRemoteHoverTarget(intersection.object, intersection.instanceId);
       const isInteractable = intersection && intersection.object.el.matches(".interactable, .interactable *");
@@ -116,12 +114,21 @@ export class AppAwareMouseDevice {
 
     this.transformSystem = this.transformSystem || AFRAME.scenes[0].systems["transform-selected-object"];
     this.scaleSystem = this.scaleSystem || AFRAME.scenes[0].systems["scale-object"];
-    this.cameraSystem = this.cameraSystem || AFRAME.scenes[0].systems["hubs-systems"].cameraSystem;
     const isTransforming =
       (this.transformSystem && this.transformSystem.transforming) || (this.scaleSystem && this.scaleSystem.isScaling);
 
     const isHoveringUI = userinput.activeSets.includes(sets.rightCursorHoveringOnUI);
-    const isMouseLookingGesture = mouseLookKey || (buttonLeft && (!isHoveringUI || isCursorLocked()));
+    const isInspecting = cameraSystem.isInspecting();
+
+    let isMouseLookingGesture;
+
+    if (isInspecting) {
+      isMouseLookingGesture = buttonMiddle || buttonRight; // Rotate or pan
+    } else {
+      isMouseLookingGesture =
+        mouseLookKey || // Holding shift
+        (buttonLeft && (!isHoveringUI || isCursorLocked())); // Mouse look
+    }
 
     // Handle ephemeral mouse locking for look key/button
     if (isMouseLookingGesture) {
@@ -180,6 +187,7 @@ export class AppAwareMouseDevice {
       this.lockClickCoordDelta[0] === 0 &&
       this.lockClickCoordDelta[1] === 0 &&
       !isTransforming &&
+      !isInspecting &&
       !this.grabGesturedAnything &&
       now < this.hideCursorAfterIdleTime &&
       !SYSTEMS.directorSystem.trackingCamera
@@ -189,6 +197,7 @@ export class AppAwareMouseDevice {
     const show3DCursor = !!(
       !AFRAME.scenes[0].is("pointer-exited") &&
       !isTransforming &&
+      !(isInspecting && isMouseLookingGesture) &&
       !this.grabGesturedAnything &&
       !showCSSCursor &&
       (!isMouseLookingGesture || this.lockClickCoordDelta[0] !== 0 || this.lockClickCoordDelta[1] !== 0) &&
@@ -229,7 +238,7 @@ export class AppAwareMouseDevice {
       (cursorIsLocked &&
         (Math.abs(this.lockClickCoordDelta[0]) > 0.2 || Math.abs(this.lockClickCoordDelta[1]) > 0.2) &&
         !isTransforming) ||
-      !this.cameraSystem.isInAvatarView();
+      !cameraSystem.isInAvatarView();
 
     const coords = frame.get(paths.device.mouse.coords);
 

@@ -6,6 +6,7 @@ import { getBox } from "../utils/auto-box-collider";
 import { qsGet } from "../utils/qs_truthy";
 import SkyboxBufferGeometry from "../../jel/objects/skybox-buffer-geometry";
 const customFOV = qsGet("fov");
+import { EventTarget } from "event-target-shim";
 
 export function getInspectable(child) {
   let el = child;
@@ -52,7 +53,7 @@ const orbit = (function() {
     const zoom = 1 - dz * dt;
     const newLength = dPos.length() * zoom;
     // TODO: These limits should be calculated based on the calculated view distance.
-    if (newLength > 0.1 && newLength < 100) {
+    if (newLength > 0.1 && newLength < 15) {
       dPos.multiplyScalar(zoom);
     }
 
@@ -63,12 +64,12 @@ const orbit = (function() {
       .add(
         RIGHT.set(1, 0, 0)
           .applyQuaternion(cwq)
-          .multiplyScalar(-panX * newLength * zoom)
+          .multiplyScalar(-panX * newLength)
       )
       .add(
         UP.set(0, 1, 0)
           .applyQuaternion(cwq)
-          .multiplyScalar(panY * newLength * zoom)
+          .multiplyScalar(panY * newLength)
       );
     target.matrixNeedsUpdate = true;
     target.updateMatrices();
@@ -127,6 +128,7 @@ export const CAMERA_MODE_THIRD_PERSON_NEAR = 1;
 export const CAMERA_MODE_THIRD_PERSON_FAR = 2;
 export const CAMERA_MODE_INSPECT = 3;
 export const CAMERA_MODE_SCENE_PREVIEW = 4;
+export const CAMERA_MODE_EDIT = 5;
 
 const CAMERA_LAYER_INSPECT = 4;
 // This layer is never actually rendered by a camera but lets the batching system know it should be rendered if inspecting
@@ -169,12 +171,15 @@ function getAudio(o) {
 }
 
 const FALLOFF = 0.9;
-export class CameraSystem {
+export class CameraSystem extends EventTarget {
   constructor(scene) {
+    super();
+
     this.enableLights = localStorage.getItem("show-background-while-inspecting") !== "false";
     this.verticalDelta = 0;
     this.horizontalDelta = 0;
     this.inspectZoom = 0;
+    this.allowEditing = false;
     this.mode = CAMERA_MODE_SCENE_PREVIEW;
     this.snapshot = { audioTransform: new THREE.Matrix4(), matrixWorld: new THREE.Matrix4() };
     this.audioListenerTargetTransform = new THREE.Matrix4();
@@ -202,18 +207,17 @@ export class CameraSystem {
     });
   }
 
-  inspect(o, distanceMod, temporarilyDisableRegularExit) {
+  inspect(o, distanceMod, temporarilyDisableRegularExit, allowEditing = false) {
     this.verticalDelta = 0;
     this.horizontalDelta = 0;
     this.inspectZoom = 0;
+    this.allowEditing = allowEditing;
     this.temporarilyDisableRegularExit = temporarilyDisableRegularExit; // TODO: Do this at the action set layer
     if (this.mode === CAMERA_MODE_INSPECT) {
       return;
     }
     const scene = AFRAME.scenes[0];
     scene.object3D.traverse(ensureLightsAreSeenByCamera);
-    scene.classList.add("hand-cursor");
-    scene.classList.remove("no-cursor");
     this.snapshot.mode = this.mode;
     this.mode = CAMERA_MODE_INSPECT;
     this.inspected = o;
@@ -257,16 +261,13 @@ export class CameraSystem {
     if (!isBridgeCanvas) {
       SYSTEMS.externalCameraSystem.enableForcedViewingCamera();
     }
+
+    this.dispatchEvent(new CustomEvent("mode_changed"));
   }
 
   uninspect() {
     this.temporarilyDisableRegularExit = false;
     if (this.mode !== CAMERA_MODE_INSPECT) return;
-    const scene = AFRAME.scenes[0];
-    if (scene.is("entered")) {
-      scene.classList.remove("hand-cursor");
-      scene.classList.add("no-cursor");
-    }
     this.showEverythingAsNormal();
     this.inspected = null;
     if (this.snapshot.audio) {
@@ -281,6 +282,11 @@ export class CameraSystem {
     this.snapshot.mode = null;
     this.tick(AFRAME.scenes[0]);
     SYSTEMS.externalCameraSystem.releaseForcedViewingCamera();
+    this.dispatchEvent(new CustomEvent("mode_changed"));
+  }
+
+  isInspecting() {
+    return !!this.inspected;
   }
 
   hideEverythingButThisObject(o) {
@@ -298,6 +304,19 @@ export class CameraSystem {
 
   isInAvatarView() {
     return this.mode !== CAMERA_MODE_INSPECT && this.mode !== CAMERA_MODE_SCENE_PREVIEW;
+  }
+
+  currentViewShowsCursor() {
+    return this.cameraViewAllowsEditing() || this.cameraViewAllowsManipulation();
+  }
+
+  cameraViewAllowsEditing() {
+    return true;
+    //return this.isInAvatarView() || (this.mode === CAMERA_LAYER_INSPECT && this.allowEditing);
+  }
+
+  cameraViewAllowsManipulation() {
+    return this.isInAvatarView();
   }
 
   showEverythingAsNormal() {
@@ -389,7 +408,10 @@ export class CameraSystem {
           this.inspectZoom = inspectZoom + (5 * this.inspectZoom) / 6;
         } else if (Math.abs(this.inspectZoom) > 0.0001) {
           this.inspectZoom = FALLOFF * this.inspectZoom;
+        } else {
+          this.inspectZoom = 0;
         }
+
         const panX = this.userinput.get(paths.actions.inspectPanX) || 0;
         const panY = this.userinput.get(paths.actions.inspectPanY) || 0;
         if (this.userinput.get(paths.actions.resetInspectView)) {

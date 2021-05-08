@@ -213,6 +213,7 @@ export class BuilderSystem extends EventTarget {
     const altPath = paths.device.keyboard.key("alt");
 
     const holdingLeft = userinput.get(leftPath);
+    const holdingMiddle = userinput.get(middlePath);
     const holdingSpace = userinput.get(spacePath);
     const holdingAlt = userinput.get(altPath);
     const holdingShift = userinput.get(shiftPath);
@@ -266,11 +267,15 @@ export class BuilderSystem extends EventTarget {
     const isFreeToLeftHold =
       getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT || (holdingShift && this.sawLeftButtonUpWithShift);
 
-    // Repeated build if user is holding space and not control (due to widen)
-    const brushDown =
-      (holdingSpace && !userinput.get(controlPath)) ||
-      userinput.get(middlePath) ||
-      (isFreeToLeftHold && userinput.get(leftPath));
+    let brushDown;
+
+    // If inspecting, assume in edit mode since otherwise cursor wouldn't be working.
+    if (SYSTEMS.cameraSystem.isInspecting()) {
+      brushDown = holdingLeft;
+    } else {
+      // Repeated build if user is holding space and not control (due to widen)
+      brushDown = (holdingSpace && !userinput.get(controlPath)) || holdingMiddle || (isFreeToLeftHold && holdingLeft);
+    }
 
     const intersection = cursor && cursor.intersection;
     this.performBrushStep(brushDown, intersection);
@@ -321,7 +326,7 @@ export class BuilderSystem extends EventTarget {
       }
 
       // Skip updating pending this tick if we're ready to apply it.
-      const canApplyPendingThisTick = this.isBrushing && !brushDown;
+      const readyToApplyPendingThisTick = this.isBrushing && !brushDown;
 
       // True when the pending chunk need to be updated/rebuilt.
       let updatePending = false;
@@ -380,7 +385,7 @@ export class BuilderSystem extends EventTarget {
         this.lastHoverTime = now;
       }
 
-      if (hitVoxId && !canApplyPendingThisTick) {
+      if (hitVoxId && !readyToApplyPendingThisTick) {
         if (this.undoOpOnNextTick !== UNDO_OPS.NONE && this.targetVoxId !== null && this.targetVoxFrame !== null) {
           if (this.undoOpOnNextTick === UNDO_OPS.UNDO) {
             this.applyUndo(this.targetVoxId, this.targetVoxFrame);

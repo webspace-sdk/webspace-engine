@@ -20,6 +20,8 @@ export class CursorTogglingSystem {
   }
 
   tick(interaction, userinput, scene) {
+    const { cameraSystem } = SYSTEMS;
+
     if (!this.domContentLoadedButComponentsMayNotHave) return;
     if (!this.gotComponentReferences) {
       this.gotComponentReferences = true;
@@ -48,15 +50,14 @@ export class CursorTogglingSystem {
       }
     }
 
-    const inspectingInVR = interaction.el.systems["hubs-systems"].cameraSystem.inspected; // && this.el.sceneEl.is("vr-mode");
     const shouldEnableLeftRemote =
-      !inspectingInVR &&
+      cameraSystem.currentViewShowsCursor() &&
       shouldEnableRemote(scene, leftHand, leftRemote, this.leftHandTeleporter.isTeleporting, this.wakeLeft);
     const isMobile = AFRAME.utils.device.isMobile();
     const shouldEnableRightRemote =
       isMobile ||
       hackyMobileSafariTest() ||
-      (!inspectingInVR &&
+      (cameraSystem.currentViewShowsCursor() &&
         shouldEnableRemote(scene, rightHand, rightRemote, this.rightHandTeleporter.isTeleporting, this.wakeRight));
 
     if (!shouldEnableLeftRemote) {
