@@ -85,6 +85,7 @@ const moveRigSoCameraLooksAtObject = (function() {
   const oForw = new THREE.Vector3();
   const center = new THREE.Vector3();
   const target = new THREE.Object3D();
+  const rm = new THREE.Matrix4();
   return function moveRigSoCameraLooksAtObject(rig, camera, object, distanceMod) {
     if (!target.parent) {
       // add dummy object to the scene, if this is the first time we call this function
@@ -112,11 +113,16 @@ const moveRigSoCameraLooksAtObject = (function() {
     target.position.addVectors(
       owp,
       oForw
-        .set(0, 0, 1)
+        .set(1, 1, 1)
+        .normalize()
         .multiplyScalar(dist)
         .applyQuaternion(owq)
     );
-    target.quaternion.copy(owq);
+
+    oForw.set(0, 1, 0).applyQuaternion(owq); // Up vector
+
+    rm.lookAt(target.position, object.position, oForw);
+    target.quaternion.setFromRotationMatrix(rm);
     target.matrixNeedsUpdate = true;
     target.updateMatrices();
     childMatch(rig, camera, target.matrixWorld);
@@ -356,7 +362,8 @@ export class CameraSystem extends EventTarget {
           const inspectable = getInspectable(hoverEl);
 
           if (inspectable) {
-            this.inspect(inspectable.object3D);
+            // TODO mod distance based upon vox editor
+            this.inspect(inspectable.object3D, 1.5);
           }
         }
       } else if (
