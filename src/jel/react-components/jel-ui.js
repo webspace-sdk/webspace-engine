@@ -497,7 +497,7 @@ function JelUI(props) {
     subscriptions,
     spaceId
   } = props;
-  const { builderSystem, launcherSystem } = SYSTEMS;
+  const { builderSystem, launcherSystem, cameraSystem } = SYSTEMS;
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
@@ -519,6 +519,7 @@ function JelUI(props) {
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [showingExternalCamera, setShowingExternalCamera] = useState(false);
   const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
+  const [isInspecting, setIsInspecting] = useState(cameraSystem.isInspecting());
   const [showNotificationBanner, setShowNotificationBanner] = useState(
     subscriptions &&
       !subscriptions.subscribed &&
@@ -719,6 +720,15 @@ function JelUI(props) {
       () => matrix && matrix.removeEventListener("initial_sync_finished", handler);
     },
     [matrix]
+  );
+
+  useEffect(
+    () => {
+      const handler = () => setIsInspecting(SYSTEMS.cameraSystem.isInspecting());
+      cameraSystem.addEventListener("mode_changed", handler);
+      () => cameraSystem.removeEventListener("mode_changed", handler);
+    },
+    [cameraSystem]
   );
 
   useEffect(
@@ -981,76 +991,80 @@ function JelUI(props) {
           <ModalPopupRef ref={modalPopupRef} />
           <CenterPopupRef ref={centerPopupRef} />
           <Top>
-            <HubTrail
-              tree={treeForCurrentHub}
-              history={history}
-              hub={hub}
-              hubMetadata={hubMetadata}
-              hubCan={hubCan}
-              hubIds={hubTrailHubIds}
-              renamePopupElement={hubRenamePopupElement}
-              showRenamePopup={showHubRenamePopup}
-              onHubNameChanged={onTrailHubNameChanged}
-            />
-            <HubCornerButtons className={hub && hub.type === "world" ? "" : "opaque"}>
-              {pwaAvailable && (
-                <HubCornerButton onClick={installPWA}>
-                  <FormattedMessage id="install.desktop" />
-                </HubCornerButton>
-              )}
-              {isWorld && (
-                <EnvironmentSettingsButton
-                  ref={environmentSettingsButtonRef}
-                  onMouseDown={e => cancelEventIfFocusedWithin(e, environmentSettingsPopupElement)}
-                  onClick={() => showEnvironmentSettingsPopup(environmentSettingsButtonRef)}
-                />
-              )}
-              {isWorld &&
-                hubCan &&
-                hubCan("update_hub_roles", hub && hub.hub_id) && (
-                  <HubPermissionsButton
-                    ref={hubPermissionsButtonRef}
-                    onMouseDown={e => cancelEventIfFocusedWithin(e, hubPermissionsPopupElement)}
-                    onClick={() => showHubPermissionsPopup(hubPermissionsButtonRef)}
-                  />
-                )}
-              {isWorld && (
-                <HubNotificationButton
-                  ref={hubNotificationButtonRef}
-                  onMouseDown={e => cancelEventIfFocusedWithin(e, hubNotificationPopupElement)}
-                  onClick={() => showHubNotificationPopup(hubNotificationButtonRef)}
-                />
-              )}
-              {isWorld &&
-                canSpawnAndMoveMedia && (
-                  <HubCreateButton
-                    ref={hubCreateButtonRef}
-                    onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
-                    onClick={() => {
-                      store.handleActivityFlag("createMenu");
-                      showCreateSelectPopup(hubCreateButtonRef, "bottom-end");
-                    }}
-                  />
-                )}
-              <HubContextButton
-                ref={hubContextButtonRef}
-                onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
-                onClick={() => {
-                  showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
-                    hideRename: true,
-                    showExport: isWorld,
-                    showReset: !!hub.template.name
-                  });
-                }}
+            {!isInspecting && (
+              <HubTrail
+                tree={treeForCurrentHub}
+                history={history}
+                hub={hub}
+                hubMetadata={hubMetadata}
+                hubCan={hubCan}
+                hubIds={hubTrailHubIds}
+                renamePopupElement={hubRenamePopupElement}
+                showRenamePopup={showHubRenamePopup}
+                onHubNameChanged={onTrailHubNameChanged}
               />
-              {isWorld && (
-                <DeviceStatuses>
-                  <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
-                  {triggerMode === "builder" && <EqippedBrushIcon />}
-                  {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
-                </DeviceStatuses>
-              )}
-            </HubCornerButtons>
+            )}
+            {!isInspecting && (
+              <HubCornerButtons className={hub && hub.type === "world" ? "" : "opaque"}>
+                {pwaAvailable && (
+                  <HubCornerButton onClick={installPWA}>
+                    <FormattedMessage id="install.desktop" />
+                  </HubCornerButton>
+                )}
+                {isWorld && (
+                  <EnvironmentSettingsButton
+                    ref={environmentSettingsButtonRef}
+                    onMouseDown={e => cancelEventIfFocusedWithin(e, environmentSettingsPopupElement)}
+                    onClick={() => showEnvironmentSettingsPopup(environmentSettingsButtonRef)}
+                  />
+                )}
+                {isWorld &&
+                  hubCan &&
+                  hubCan("update_hub_roles", hub && hub.hub_id) && (
+                    <HubPermissionsButton
+                      ref={hubPermissionsButtonRef}
+                      onMouseDown={e => cancelEventIfFocusedWithin(e, hubPermissionsPopupElement)}
+                      onClick={() => showHubPermissionsPopup(hubPermissionsButtonRef)}
+                    />
+                  )}
+                {isWorld && (
+                  <HubNotificationButton
+                    ref={hubNotificationButtonRef}
+                    onMouseDown={e => cancelEventIfFocusedWithin(e, hubNotificationPopupElement)}
+                    onClick={() => showHubNotificationPopup(hubNotificationButtonRef)}
+                  />
+                )}
+                {isWorld &&
+                  canSpawnAndMoveMedia && (
+                    <HubCreateButton
+                      ref={hubCreateButtonRef}
+                      onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
+                      onClick={() => {
+                        store.handleActivityFlag("createMenu");
+                        showCreateSelectPopup(hubCreateButtonRef, "bottom-end");
+                      }}
+                    />
+                  )}
+                <HubContextButton
+                  ref={hubContextButtonRef}
+                  onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
+                  onClick={() => {
+                    showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
+                      hideRename: true,
+                      showExport: isWorld,
+                      showReset: !!hub.template.name
+                    });
+                  }}
+                />
+                {isWorld && (
+                  <DeviceStatuses>
+                    <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
+                    {triggerMode === "builder" && <EqippedBrushIcon />}
+                    {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
+                  </DeviceStatuses>
+                )}
+              </HubCornerButtons>
+            )}
           </Top>
           <KeyTipsWrap
             style={{ visibility: isWorld ? "visible" : "hidden" }}

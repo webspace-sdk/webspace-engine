@@ -3,6 +3,7 @@ import { disposeExistingMesh } from "../../hubs/utils/three-utils";
 import { groundMedia, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { getNetworkedEntity } from "../../jel/utils/ownership-utils";
+import { endCursorLock } from "../utils/dom-utils";
 import "../utils/vox-sync";
 
 AFRAME.registerComponent("media-vox", {
@@ -114,8 +115,13 @@ AFRAME.registerComponent("media-vox", {
       const meshYOffset = this.el.object3D.position.y - center.y;
       groundMedia(this.el, false, bbox, meshYOffset);
     } else if (type === MEDIA_INTERACTION_TYPES.EDIT) {
+      if (SYSTEMS.cameraSystem.isInspecting()) return;
+
       // Start inspecting with editing enabled
       SYSTEMS.cameraSystem.inspect(this.el.object3D, 1.5, false, true);
+
+      // Show panels
+      endCursorLock();
 
       if (!SYSTEMS.builderSystem.enabled) {
         SYSTEMS.builderSystem.toggle();

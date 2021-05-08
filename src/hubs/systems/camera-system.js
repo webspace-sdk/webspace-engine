@@ -87,7 +87,7 @@ const moveRigSoCameraLooksAtObject = (function() {
   const center = new THREE.Vector3();
   const target = new THREE.Object3D();
   const rm = new THREE.Matrix4();
-  return function moveRigSoCameraLooksAtObject(rig, camera, object, distanceMod) {
+  return function moveRigSoCameraLooksAtObject(rig, camera, object, distanceMod, viewAtCorner = false) {
     if (!target.parent) {
       // add dummy object to the scene, if this is the first time we call this function
       AFRAME.scenes[0].object3D.add(target);
@@ -114,7 +114,7 @@ const moveRigSoCameraLooksAtObject = (function() {
     target.position.addVectors(
       owp,
       oForw
-        .set(1, 1, 1)
+        .set(viewAtCorner ? 1 : 0, viewAtCorner ? 1 : 0, 1)
         .normalize()
         .multiplyScalar(dist)
         .applyQuaternion(owq)
@@ -243,11 +243,15 @@ export class CameraSystem extends EventTarget {
     this.viewingCamera.object3DMap.camera.updateMatrices();
     this.snapshot.matrixWorld.copy(this.viewingRig.object3D.matrixWorld);
 
+    // View the object at the upper corner upon inspection if it can be orbited.
+    const viewAtCorner = shouldOrbitOnInspect(this.inspected);
+
     moveRigSoCameraLooksAtObject(
       this.viewingRig.object3D,
       this.viewingCamera.object3DMap.camera,
       this.inspected,
-      distanceMod || 1
+      distanceMod || 1,
+      viewAtCorner
     );
 
     this.snapshot.audio = getAudio(o);
@@ -362,7 +366,7 @@ export class CameraSystem extends EventTarget {
 
           if (inspectable) {
             // TODO mod distance based upon vox editor
-            this.inspect(inspectable.object3D, 1.5);
+            this.inspect(inspectable.object3D);
           }
         }
       } else if (
