@@ -52,8 +52,9 @@ const orbit = (function() {
     const dPos = new THREE.Vector3().subVectors(cwp, owp);
     const zoom = 1 - dz * dt;
     const newLength = dPos.length() * zoom;
+
     // TODO: These limits should be calculated based on the calculated view distance.
-    if (newLength > 0.1 && newLength < 15) {
+    if ((newLength > 0.1 || dz < 0.0) && (newLength < 30 || dz > 0.0)) {
       dPos.multiplyScalar(zoom);
     }
 
