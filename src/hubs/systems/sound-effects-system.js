@@ -277,7 +277,6 @@ export class SoundEffectsSystem {
     source.loop = true;
     this.pendingAudioSourceNodes.push(source);
     this.pendingAudioStartTimes.push(startAt);
-    this.monoSourceFinalizers.push(() => gain.disconnect());
 
     // NOTE if you use this, disconnect() will not be called automaticlaly
     // for you because the source node is not connected to the destination
