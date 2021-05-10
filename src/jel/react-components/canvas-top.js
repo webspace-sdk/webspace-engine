@@ -32,7 +32,15 @@ const Top = styled.div`
   }
 `;
 
-const HubCornerButtonElement = styled.button`
+const TopLeftPlaceholder = styled.div`
+  flex: 1;
+  position: relative;
+  margin: 0;
+  padding: 14px 0 14px 8px;
+  width: 50%;
+`;
+
+const CornerButtonElement = styled.button`
   color: var(--canvas-overlay-text-color);
   width: content-width;
   margin: 0px 12px 0 0;
@@ -67,7 +75,7 @@ const HubCornerButtonElement = styled.button`
   }
 `;
 
-const HubCornerButtons = styled.div`
+const CornerButtons = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
@@ -80,7 +88,7 @@ const HubCornerButtons = styled.div`
   }
 `;
 
-const HubCornerButton = styled.button`
+const CornerButton = styled.button`
   position: relative;
   color: var(--canvas-overlay-text-color);
   width: content-width;
@@ -116,16 +124,16 @@ const HubCornerButton = styled.button`
   }
 `;
 
-const HubCornerButtonIcon = styled.div`
+const CornerButtonIcon = styled.div`
   width: 22px;
   height: 22px;
 `;
 
 const HubContextButton = forwardRef((props, ref) => {
   return (
-    <HubCornerButtonElement {...props} ref={ref}>
-      <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: dotsIcon }} />
-    </HubCornerButtonElement>
+    <CornerButtonElement {...props} ref={ref}>
+      <CornerButtonIcon dangerouslySetInnerHTML={{ __html: dotsIcon }} />
+    </CornerButtonElement>
   );
 });
 
@@ -136,9 +144,9 @@ const HubCreateButton = forwardRef((props, ref) => {
 
   return (
     <Tooltip content={messages["create.tip"]} placement="top" key="create" delay={500}>
-      <HubCornerButtonElement {...props} ref={ref}>
-        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: addIcon }} />
-      </HubCornerButtonElement>
+      <CornerButtonElement {...props} ref={ref}>
+        <CornerButtonIcon dangerouslySetInnerHTML={{ __html: addIcon }} />
+      </CornerButtonElement>
     </Tooltip>
   );
 });
@@ -150,9 +158,9 @@ const EnvironmentSettingsButton = forwardRef((props, ref) => {
 
   return (
     <Tooltip content={messages["environment-settings.tip"]} placement="top" key="environment-settings" delay={500}>
-      <HubCornerButtonElement {...props} ref={ref}>
-        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: sunIcon }} />
-      </HubCornerButtonElement>
+      <CornerButtonElement {...props} ref={ref}>
+        <CornerButtonIcon dangerouslySetInnerHTML={{ __html: sunIcon }} />
+      </CornerButtonElement>
     </Tooltip>
   );
 });
@@ -164,9 +172,9 @@ const HubPermissionsButton = forwardRef((props, ref) => {
 
   return (
     <Tooltip content={messages["hub-permissions.tip"]} placement="top" key="hub-permissions" delay={500}>
-      <HubCornerButtonElement {...props} ref={ref}>
-        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: securityIcon }} />
-      </HubCornerButtonElement>
+      <CornerButtonElement {...props} ref={ref}>
+        <CornerButtonIcon dangerouslySetInnerHTML={{ __html: securityIcon }} />
+      </CornerButtonElement>
     </Tooltip>
   );
 });
@@ -178,14 +186,64 @@ const HubNotificationButton = forwardRef((props, ref) => {
 
   return (
     <Tooltip content={messages["hub-notifications.tip"]} placement="top" key="hub-notifications" delay={500}>
-      <HubCornerButtonElement {...props} ref={ref}>
-        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: notificationsIcon }} />
-      </HubCornerButtonElement>
+      <CornerButtonElement {...props} ref={ref}>
+        <CornerButtonIcon dangerouslySetInnerHTML={{ __html: notificationsIcon }} />
+      </CornerButtonElement>
     </Tooltip>
   );
 });
 
 HubNotificationButton.displayName = "HubNotificationButton";
+
+const CameraProjectionButton = forwardRef(() => {
+  const { cameraSystem } = SYSTEMS;
+  const messages = getMessages();
+  const [isOrtho, setIsOrtho] = useState(cameraSystem.isRenderingOrthographic());
+
+  useEffect(() => {
+    const handler = () => {
+      setIsOrtho(SYSTEMS.cameraSystem.isRenderingOrthographic());
+    };
+
+    cameraSystem.addEventListener("settings_changed", handler);
+    () => cameraSystem.removeEventListener("settings_changed", handler);
+  });
+
+  return (
+    <Tooltip content={messages["camera-projection.tip"]} placement="top" key="projection" delay={500}>
+      <CornerButton onClick={useCallback(() => cameraSystem.toggleOrthoCamera(), [cameraSystem])}>
+        <FormattedMessage id={isOrtho ? "camera-projection.ortho" : "camera-projection.pers"} />
+      </CornerButton>
+    </Tooltip>
+  );
+});
+
+CameraProjectionButton.displayName = "CameraProjectionButton";
+
+const DisplayObjectsButton = forwardRef(() => {
+  const { cameraSystem } = SYSTEMS;
+  const messages = getMessages();
+  const [showWorld, setShowWorld] = useState(cameraSystem.showWorld);
+
+  useEffect(() => {
+    const handler = () => {
+      setShowWorld(SYSTEMS.cameraSystem.showWorld);
+    };
+
+    cameraSystem.addEventListener("settings_changed", handler);
+    () => cameraSystem.removeEventListener("settings_changed", handler);
+  });
+
+  return (
+    <Tooltip content={messages["display-objects.tip"]} placement="top" key="projection" delay={500}>
+      <CornerButton onClick={useCallback(() => cameraSystem.toggleShowWorld(), [cameraSystem])}>
+        <FormattedMessage id={showWorld ? "display-objects.hide-world" : "display-objects.show-world"} />
+      </CornerButton>
+    </Tooltip>
+  );
+});
+
+DisplayObjectsButton.displayName = "DisplayObjectsButton";
 
 const DeviceStatuses = styled.div`
   flex-direction: row;
@@ -276,9 +334,82 @@ function CanvasTop(props) {
     [hub, hubCan, hubChannel]
   );
 
+  let cornerButtons;
+
+  if (!isInspecting) {
+    cornerButtons = (
+      <CornerButtons className={hub && hub.type === "world" ? "" : "opaque"}>
+        {pwaAvailable && (
+          <CornerButton onClick={installPWA}>
+            <FormattedMessage id="install.desktop" />
+          </CornerButton>
+        )}
+        {isWorld && (
+          <EnvironmentSettingsButton
+            ref={environmentSettingsButtonRef}
+            onMouseDown={e => cancelEventIfFocusedWithin(e, environmentSettingsPopupElement)}
+            onClick={() => showEnvironmentSettingsPopup(environmentSettingsButtonRef)}
+          />
+        )}
+        {isWorld &&
+          hubCan &&
+          hubCan("update_hub_roles", hub && hub.hub_id) && (
+            <HubPermissionsButton
+              ref={hubPermissionsButtonRef}
+              onMouseDown={e => cancelEventIfFocusedWithin(e, hubPermissionsPopupElement)}
+              onClick={() => showHubPermissionsPopup(hubPermissionsButtonRef)}
+            />
+          )}
+        {isWorld && (
+          <HubNotificationButton
+            ref={hubNotificationButtonRef}
+            onMouseDown={e => cancelEventIfFocusedWithin(e, hubNotificationPopupElement)}
+            onClick={() => showHubNotificationPopup(hubNotificationButtonRef)}
+          />
+        )}
+        {isWorld &&
+          canSpawnAndMoveMedia && (
+            <HubCreateButton
+              ref={hubCreateButtonRef}
+              onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
+              onClick={() => {
+                store.handleActivityFlag("createMenu");
+                showCreateSelectPopup(hubCreateButtonRef, "bottom-end");
+              }}
+            />
+          )}
+        <HubContextButton
+          ref={hubContextButtonRef}
+          onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
+          onClick={() => {
+            showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
+              hideRename: true,
+              showExport: isWorld,
+              showReset: !!hub.template.name
+            });
+          }}
+        />
+        {isWorld && (
+          <DeviceStatuses>
+            <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
+            {triggerMode === "builder" && <EqippedBrushIcon />}
+            {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
+          </DeviceStatuses>
+        )}
+      </CornerButtons>
+    );
+  } else {
+    cornerButtons = (
+      <CornerButtons>
+        {cameraSystem.allowCursor && <CameraProjectionButton />}
+        {cameraSystem.allowCursor && <DisplayObjectsButton />}
+      </CornerButtons>
+    );
+  }
+
   return (
     <Top>
-      {!isInspecting && (
+      {!isInspecting ? (
         <HubTrail
           tree={treeForCurrentHub}
           history={history}
@@ -290,68 +421,10 @@ function CanvasTop(props) {
           showRenamePopup={showHubRenamePopup}
           onHubNameChanged={onTrailHubNameChanged}
         />
+      ) : (
+        <TopLeftPlaceholder />
       )}
-      {!isInspecting && (
-        <HubCornerButtons className={hub && hub.type === "world" ? "" : "opaque"}>
-          {pwaAvailable && (
-            <HubCornerButton onClick={installPWA}>
-              <FormattedMessage id="install.desktop" />
-            </HubCornerButton>
-          )}
-          {isWorld && (
-            <EnvironmentSettingsButton
-              ref={environmentSettingsButtonRef}
-              onMouseDown={e => cancelEventIfFocusedWithin(e, environmentSettingsPopupElement)}
-              onClick={() => showEnvironmentSettingsPopup(environmentSettingsButtonRef)}
-            />
-          )}
-          {isWorld &&
-            hubCan &&
-            hubCan("update_hub_roles", hub && hub.hub_id) && (
-              <HubPermissionsButton
-                ref={hubPermissionsButtonRef}
-                onMouseDown={e => cancelEventIfFocusedWithin(e, hubPermissionsPopupElement)}
-                onClick={() => showHubPermissionsPopup(hubPermissionsButtonRef)}
-              />
-            )}
-          {isWorld && (
-            <HubNotificationButton
-              ref={hubNotificationButtonRef}
-              onMouseDown={e => cancelEventIfFocusedWithin(e, hubNotificationPopupElement)}
-              onClick={() => showHubNotificationPopup(hubNotificationButtonRef)}
-            />
-          )}
-          {isWorld &&
-            canSpawnAndMoveMedia && (
-              <HubCreateButton
-                ref={hubCreateButtonRef}
-                onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
-                onClick={() => {
-                  store.handleActivityFlag("createMenu");
-                  showCreateSelectPopup(hubCreateButtonRef, "bottom-end");
-                }}
-              />
-            )}
-          <HubContextButton
-            ref={hubContextButtonRef}
-            onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
-            onClick={() => {
-              showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
-                hideRename: true,
-                showExport: isWorld,
-                showReset: !!hub.template.name
-              });
-            }}
-          />
-          {isWorld && (
-            <DeviceStatuses>
-              <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
-              {triggerMode === "builder" && <EqippedBrushIcon />}
-              {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
-            </DeviceStatuses>
-          )}
-        </HubCornerButtons>
-      )}
+      {cornerButtons}
     </Top>
   );
 }

@@ -33,10 +33,7 @@ const IDENTITY = new THREE.Matrix4().identity();
 
 // Given an object 3d, gets the bounding box for the vox, if it's a
 // vox entity, or the box for the underlying mesh.
-const getEntityBoxOrVoxBox = object => {
-  const mesh = object.el.getObject3D("mesh");
-  const voxBox = mesh && SYSTEMS.voxSystem.getBoundingBoxForSource(mesh);
-  if (voxBox) return voxBox;
+const getEntityBox = object => {
   return getBox(object.el, object.el.getObject3D("mesh") || object, true);
 };
 
@@ -61,7 +58,7 @@ const moveRigSoCameraLooksAtObject = (function() {
     decompose(camera.matrixWorld, cwp, cwq);
     rig.getWorldQuaternion(cwq);
 
-    const box = getEntityBoxOrVoxBox(object);
+    const box = getEntityBox(object);
     box.getCenter(center);
     const vrMode = object.el.sceneEl.is("vr-mode");
     const dist =
@@ -179,12 +176,12 @@ export class CameraSystem extends EventTarget {
     super();
 
     this.sceneEl = scene;
-    this.showEnvironment = true;
+    this.showWorld = true;
     this.verticalDelta = 0;
     this.horizontalDelta = 0;
     this.inspectZoom = 0;
-    this.allowEditing = false;
-    this.useOrthographic = true;
+    this.allowCursor = false;
+    this.orthographicEnabled = false;
     this.mode = CAMERA_MODE_FIRST_PERSON;
     this.snapshot = { audioTransform: new THREE.Matrix4(), matrixWorld: new THREE.Matrix4(), mask: null, mode: null };
     this.audioListenerTargetTransform = new THREE.Matrix4();
@@ -213,7 +210,9 @@ export class CameraSystem extends EventTarget {
   }
 
   isRenderingOrthographic() {
-    return this.inspected && this.useOrthographic;
+    // Orthographic is only shown when cursor is enabled otherwise
+    // user cannot toggle it off.
+    return this.inspected && this.orthographicEnabled && this.allowCursor;
   }
 
   unprojectCameraOn(vector) {
@@ -243,11 +242,11 @@ export class CameraSystem extends EventTarget {
     };
   })();
 
-  inspect(o, distanceMod, temporarilyDisableRegularExit, allowEditing = false) {
+  inspect(o, distanceMod, temporarilyDisableRegularExit, allowCursor = false) {
     this.verticalDelta = 0;
     this.horizontalDelta = 0;
     this.inspectZoom = 0;
-    this.allowEditing = allowEditing;
+    this.allowCursor = allowCursor;
     this.temporarilyDisableRegularExit = temporarilyDisableRegularExit; // TODO: Do this at the action set layer
     if (this.mode === CAMERA_MODE_INSPECT) return;
 
@@ -274,7 +273,7 @@ export class CameraSystem extends EventTarget {
 
     this.updateCameraSettings();
 
-    if (!this.showEnvironment) {
+    if (!this.showWorld && this.allowCursor) {
       this.hideEverythingButInspectedObjectAndCursors(o);
     }
 
@@ -383,7 +382,7 @@ export class CameraSystem extends EventTarget {
   }
 
   cameraViewAllowsEditing() {
-    return this.isInAvatarView() || (this.mode === CAMERA_MODE_INSPECT && this.allowEditing);
+    return this.isInAvatarView() || (this.mode === CAMERA_MODE_INSPECT && this.allowCursor);
   }
 
   cameraViewAllowsManipulation() {
@@ -391,19 +390,21 @@ export class CameraSystem extends EventTarget {
   }
 
   toggleOrthoCamera() {
-    this.useOrthographic = !this.useOrthographic;
+    this.orthographicEnabled = !this.orthographicEnabled;
     this.updateCameraSettings();
 
     this.dispatchEvent(new CustomEvent("settings_changed"));
   }
 
-  toggleEnvironment() {
-    this.showEnvironment = !this.showEnvironment;
+  toggleShowWorld() {
+    this.showWorld = !this.showWorld;
 
-    if (this.showEnvironment) {
-      this.revealEverything();
-    } else {
-      this.hideEverythingButInspectedObjectAndCursors();
+    if (this.allowCursor) {
+      if (this.showWorld) {
+        this.revealEverything();
+      } else {
+        this.hideEverythingButInspectedObjectAndCursors();
+      }
     }
 
     this.dispatchEvent(new CustomEvent("settings_changed"));
@@ -442,7 +443,7 @@ export class CameraSystem extends EventTarget {
 
       camera.far = FAR_PLANE_FOR_INSPECT;
 
-      if (this.useOrthographic) {
+      if (this.isRenderingOrthographic()) {
         // Hacky, use ortho camera matrix by copying it in, instead of having a separate camera.
         if (vrMode) {
           camera.cameras[0].projectionMatrix.copy(orthoCamera.projectionMatrix);
@@ -510,15 +511,14 @@ export class CameraSystem extends EventTarget {
           const inspectable = getInspectable(hoverEl);
 
           if (inspectable) {
-            // TODO mod distance based upon vox editor
-            this.inspect(inspectable.object3D);
+            this.inspect(inspectable.object3D, 1.5);
           }
         }
       } else if (
         !this.temporarilyDisableRegularExit &&
         this.mode === CAMERA_MODE_INSPECT &&
         // Editing uses different hotkey, so ignore toggle
-        ((this.userinput.get(paths.actions.toggleInspecting) && !this.allowEditing) ||
+        ((this.userinput.get(paths.actions.toggleInspecting) && !this.allowCursor) ||
           this.userinput.get(paths.actions.stopInspecting))
       ) {
         scene.emit("uninspect");
@@ -570,8 +570,8 @@ export class CameraSystem extends EventTarget {
         }
 
         // Disable panning in normal focus mode
-        const panX = this.allowEditing ? -this.userinput.get(paths.actions.inspectPanX) || 0 : 0;
-        const panY = this.allowEditing ? this.userinput.get(paths.actions.inspectPanY) || 0 : 0;
+        const panX = this.allowCursor ? -this.userinput.get(paths.actions.inspectPanX) || 0 : 0;
+        const panY = this.allowCursor ? this.userinput.get(paths.actions.inspectPanY) || 0 : 0;
         if (this.userinput.get(paths.actions.resetInspectView)) {
           moveRigSoCameraLooksAtObject(
             this.viewingRig.object3D,
@@ -642,8 +642,8 @@ export class CameraSystem extends EventTarget {
       target.quaternion.copy(cwq).premultiply(dhQ);
       const dPos = new THREE.Vector3().subVectors(cwp, owp);
       const zoom = 1 - dz * dt;
-      const newLength = dPos.length() * (this.useOrthographic ? 1 : zoom);
-      const box = getEntityBoxOrVoxBox(object);
+      const newLength = dPos.length() * (this.isRenderingOrthographic() ? 1 : zoom);
+      const box = getEntityBox(object);
       box.getCenter(center);
       const vrMode = object.el.sceneEl.is("vr-mode");
       const dist =
@@ -658,7 +658,7 @@ export class CameraSystem extends EventTarget {
 
       // TODO: These limits should be calculated based on the calculated view distance.
       if (
-        !this.useOrthographic &&
+        !this.isRenderingOrthographic() &&
         ((newLength > 0.1 || dz < 0.0) && (newLength < MAX_INSPECT_CAMERA_DISTANCE || dz > 0.0))
       ) {
         dPos.multiplyScalar(zoom);

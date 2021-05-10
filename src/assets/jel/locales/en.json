@@ -55,6 +55,7 @@
   "key-tips.smooth": "Smooth",
   "key-tips.scale": "Scale",
   "key-tips.focus": "Zoom",
+  "key-tips.zoom": "Zoom",
   "key-tips.pause": "Pause",
   "key-tips.play": "Play",
   "key-tips.seek": "Seek",
@@ -372,5 +373,11 @@
   "builder.color-fill-mode.existing-tip": "Fill new voxels with existing color.",
   "builder.help-tip": "Voxel brushes work just like those in MagicaVoxel. Click to watch a tutorial on MagicaVoxel brushes.",
   "toggle.launcher": "Blast",
-  "toggle.builder": "Build"
+  "toggle.builder": "Build",
+  "camera-projection.tip": "Toggle Camera Projection",
+  "camera-projection.pers": "Perspective",
+  "camera-projection.ortho": "Orthographic",
+  "display-objects.tip": "Toggle Visible Objects",
+  "display-objects.show-world": "Show World",
+  "display-objects.hide-world": "Hide World"
 }
