@@ -281,7 +281,7 @@ const TIP_DATA = {
   ],
   rotate: [["rotate", "G"], ["roll", "L+G,R"], ["guides", "q\\e"]],
   scale: [["scale", "G,R"]],
-  focus: [["orbit", "I"], ["pan", "O"], ["exit", "f|Z"]],
+  focus: [["orbit", "I"], ["exit", "f|Z"]],
   text_editor: [
     ["close", "~|@", "mediaTextEditClose"],
     ["bold", "L+b"],
