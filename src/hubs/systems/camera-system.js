@@ -28,60 +28,8 @@ const decompose = (function() {
   };
 })();
 
+const orthoCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, 0.001, 10000);
 const IDENTITY = new THREE.Matrix4().identity();
-const orbit = (function() {
-  const owq = new THREE.Quaternion();
-  const owp = new THREE.Vector3();
-  const cwq = new THREE.Quaternion();
-  const cwp = new THREE.Vector3();
-  const rwq = new THREE.Quaternion();
-  const UP = new THREE.Vector3();
-  const RIGHT = new THREE.Vector3();
-  const target = new THREE.Object3D();
-  const dhQ = new THREE.Quaternion();
-  const dvQ = new THREE.Quaternion();
-  return function orbit(object, rig, camera, dh, dv, dz, dt, panX, panY) {
-    if (!target.parent) {
-      // add dummy object to the scene, if this is the first time we call this function
-      AFRAME.scenes[0].object3D.add(target);
-      target.applyMatrix(IDENTITY); // make sure target gets updated at least once for our matrix optimizations
-    }
-    object.updateMatrices();
-    decompose(object.matrixWorld, owp, owq);
-    decompose(camera.matrixWorld, cwp, cwq);
-    rig.getWorldQuaternion(rwq);
-
-    dhQ.setFromAxisAngle(UP.set(0, 1, 0).applyQuaternion(owq), 0.1 * dh * dt);
-    target.quaternion.copy(cwq).premultiply(dhQ);
-    const dPos = new THREE.Vector3().subVectors(cwp, owp);
-    const zoom = 1 - dz * dt;
-    const newLength = dPos.length() * zoom;
-
-    // TODO: These limits should be calculated based on the calculated view distance.
-    if ((newLength > 0.1 || dz < 0.0) && (newLength < MAX_INSPECT_CAMERA_DISTANCE || dz > 0.0)) {
-      dPos.multiplyScalar(zoom);
-    }
-
-    dvQ.setFromAxisAngle(RIGHT.set(1, 0, 0).applyQuaternion(target.quaternion), 0.1 * dv * dt);
-    target.quaternion.premultiply(dvQ);
-
-    target.position
-      .addVectors(owp, dPos.applyQuaternion(dhQ).applyQuaternion(dvQ))
-      .add(
-        RIGHT.set(1, 0, 0)
-          .applyQuaternion(cwq)
-          .multiplyScalar(panX * newLength)
-      )
-      .add(
-        UP.set(0, 1, 0)
-          .applyQuaternion(cwq)
-          .multiplyScalar(panY * newLength)
-      );
-    target.matrixNeedsUpdate = true;
-    target.updateMatrices();
-    childMatch(rig, camera, target.matrixWorld);
-  };
-})();
 
 const moveRigSoCameraLooksAtObject = (function() {
   const owq = new THREE.Quaternion();
@@ -116,6 +64,10 @@ const moveRigSoCameraLooksAtObject = (function() {
         center,
         vrMode
       ) * distanceMod;
+
+    orthoCamera.zoom = 1.0 / dist;
+    orthoCamera.updateProjectionMatrix();
+
     target.position.addVectors(
       owp,
       oForw
@@ -212,13 +164,12 @@ function getAudio(o) {
 }
 
 const FALLOFF = 0.9;
-const orthoCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.001, 10000);
 
 export class CameraSystem extends EventTarget {
   constructor(scene) {
     super();
 
-    this.enableLights = localStorage.getItem("show-background-while-inspecting") !== "false";
+    this.showEnvironment = true;
     this.verticalDelta = 0;
     this.horizontalDelta = 0;
     this.inspectZoom = 0;
@@ -251,6 +202,10 @@ export class CameraSystem extends EventTarget {
     });
   }
 
+  isRenderingOrthographic() {
+    return this.inspected && this.useOrthographic;
+  }
+
   unprojectCameraOn(vector) {
     const { camera } = this.viewingCamera.object3DMap;
     camera.updateMatrices();
@@ -261,7 +216,7 @@ export class CameraSystem extends EventTarget {
     if (this.useOrthographic) {
       vector.applyMatrix4(camera.matrixWorld);
     } else {
-      camera.unproject(vector);
+      vector.unproject(camera);
     }
   }
 
@@ -293,10 +248,13 @@ export class CameraSystem extends EventTarget {
       viewAtCorner
     );
 
+    this.minOrthoZoom = orthoCamera.zoom * 0.75;
+    this.maxOrthoZoom = orthoCamera.zoom * 2.0;
+
     this.updateCameraSettings();
 
-    if (!this.enableLights || this.useOrthographic) {
-      this.hideEverythingButThisObjectAndCursors(o);
+    if (!this.showEnvironment) {
+      this.hideEverythingButInspectedObjectAndCursors(o);
     }
 
     this.snapshot.audio = getAudio(o);
@@ -324,11 +282,21 @@ export class CameraSystem extends EventTarget {
   uninspect() {
     this.temporarilyDisableRegularExit = false;
     if (this.mode !== CAMERA_MODE_INSPECT) return;
+
+    this.revealEverything();
+
+    for (const cursor of SYSTEMS.cursorTargettingSystem.getCursors()) {
+      cursor.object3D.traverse(disableInspectLayer);
+    }
+
     this.inspected = null;
     if (this.snapshot.audio) {
       setMatrixWorld(this.snapshot.audio, this.snapshot.audioTransform);
       this.snapshot.audio = null;
     }
+
+    orthoCamera.zoom = 1;
+    orthoCamera.updateProjectionMatrix();
 
     this.mode = this.snapshot.mode;
     this.updateCameraSettings();
@@ -346,8 +314,29 @@ export class CameraSystem extends EventTarget {
     return !!this.inspected;
   }
 
-  hideEverythingButThisObjectAndCursors(o) {
-    o.traverse(enableInspectLayer);
+  revealEverything() {
+    if (this.inspected) {
+      this.inspected.traverse(disableInspectLayer);
+    }
+
+    for (const cursor of SYSTEMS.cursorTargettingSystem.getCursors()) {
+      cursor.object3D.traverse(disableInspectLayer);
+    }
+
+    const scene = AFRAME.scenes[0];
+    const vrMode = scene.is("vr-mode");
+    const camera = vrMode ? scene.renderer.vr.getCamera(scene.camera) : scene.camera;
+    camera.layers.mask = this.snapshot.mask;
+    if (vrMode) {
+      camera.cameras[0].layers.mask = this.snapshot.mask0;
+      camera.cameras[1].layers.mask = this.snapshot.mask1;
+    }
+  }
+
+  hideEverythingButInspectedObjectAndCursors() {
+    if (this.inspected) {
+      this.inspected.traverse(enableInspectLayer);
+    }
 
     for (const cursor of SYSTEMS.cursorTargettingSystem.getCursors()) {
       cursor.object3D.traverse(enableInspectLayer);
@@ -379,6 +368,25 @@ export class CameraSystem extends EventTarget {
     return this.isInAvatarView();
   }
 
+  toggleOrthoCamera() {
+    this.useOrthographic = !this.useOrthographic;
+    this.updateCameraSettings();
+
+    this.dispatchEvent(new CustomEvent("settings_changed"));
+  }
+
+  toggleEnvironment() {
+    this.showEnvironment = !this.showEnvironment;
+
+    if (this.showEnvironment) {
+      this.revealEverything();
+    } else {
+      this.hideEverythingButInspectedObjectAndCursors();
+    }
+
+    this.dispatchEvent(new CustomEvent("settings_changed"));
+  }
+
   updateCameraSettings() {
     const scene = AFRAME.scenes[0];
     const vrMode = scene.is("vr-mode");
@@ -399,7 +407,7 @@ export class CameraSystem extends EventTarget {
       this.snapshot.far = camera.far;
       camera.far = FAR_PLANE_FOR_INSPECT;
 
-      if (this.useOrthographic) {
+      if (this.inspected && this.useOrthographic) {
         // Hacky, use ortho camera matrix by copying it in, instead of having a separate camera.
         if (vrMode) {
           camera.cameras[0].projectionMatrix.copy(orthoCamera.projectionMatrix);
@@ -417,14 +425,6 @@ export class CameraSystem extends EventTarget {
         }
 
         camera.updateProjectionMatrix();
-      }
-
-      if (this.inspected) {
-        this.inspected.traverse(disableInspectLayer);
-
-        for (const cursor of SYSTEMS.cursorTargettingSystem.getCursors()) {
-          cursor.object3D.traverse(disableInspectLayer);
-        }
       }
 
       SYSTEMS.atmosphereSystem.disableFog();
@@ -528,11 +528,6 @@ export class CameraSystem extends EventTarget {
           this.inspectZoom = 0;
         }
 
-        // Zooming in non-sensical in orthographic mode.
-        if (this.useOrthographic) {
-          this.inspectZoom = 0;
-        }
-
         // Disable panning in normal focus mode
         const panX = this.allowEditing ? -this.userinput.get(paths.actions.inspectPanX) || 0 : 0;
         const panY = this.allowEditing ? this.userinput.get(paths.actions.inspectPanY) || 0 : 0;
@@ -553,17 +548,7 @@ export class CameraSystem extends EventTarget {
           Math.abs(panY) > 0.0001
         ) {
           if (shouldOrbitOnInspect(this.inspected)) {
-            orbit(
-              this.inspected,
-              this.viewingRig.object3D,
-              this.viewingCamera.object3DMap.camera,
-              this.horizontalDelta,
-              this.verticalDelta,
-              this.inspectZoom,
-              dt,
-              panX,
-              panY
-            );
+            this.orbit(dt, panX, panY);
           }
         }
       }
@@ -580,6 +565,80 @@ export class CameraSystem extends EventTarget {
           this.viewingCamera.object3DMap.camera.add(scene.audioListener);
         }
       }
+    };
+  })();
+
+  orbit = (function() {
+    const owq = new THREE.Quaternion();
+    const owp = new THREE.Vector3();
+    const cwq = new THREE.Quaternion();
+    const cwp = new THREE.Vector3();
+    const rwq = new THREE.Quaternion();
+    const UP = new THREE.Vector3();
+    const RIGHT = new THREE.Vector3();
+    const target = new THREE.Object3D();
+    const dhQ = new THREE.Quaternion();
+    const dvQ = new THREE.Quaternion();
+    return function orbit(dt, panX, panY) {
+      const object = this.inspected;
+      const rig = this.viewingRig.object3D;
+      const camera = this.viewingCamera.object3DMap.camera;
+      const dh = this.horizontalDelta;
+      const dv = this.verticalDelta;
+      const dz = this.inspectZoom;
+      if (!target.parent) {
+        // add dummy object to the scene, if this is the first time we call this function
+        AFRAME.scenes[0].object3D.add(target);
+        target.applyMatrix(IDENTITY); // make sure target gets updated at least once for our matrix optimizations
+      }
+      object.updateMatrices();
+      decompose(object.matrixWorld, owp, owq);
+      decompose(camera.matrixWorld, cwp, cwq);
+      rig.getWorldQuaternion(rwq);
+
+      dhQ.setFromAxisAngle(UP.set(0, 1, 0).applyQuaternion(owq), 0.1 * dh * dt);
+      target.quaternion.copy(cwq).premultiply(dhQ);
+      const dPos = new THREE.Vector3().subVectors(cwp, owp);
+      const zoom = 1 - dz * dt;
+      const newLength = dPos.length() * (this.useOrthographic ? 1 : zoom);
+
+      // TODO: These limits should be calculated based on the calculated view distance.
+      if (
+        !this.useOrthographic &&
+        ((newLength > 0.1 || dz < 0.0) && (newLength < MAX_INSPECT_CAMERA_DISTANCE || dz > 0.0))
+      ) {
+        dPos.multiplyScalar(zoom);
+      }
+
+      dvQ.setFromAxisAngle(RIGHT.set(1, 0, 0).applyQuaternion(target.quaternion), 0.1 * dv * dt);
+      target.quaternion.premultiply(dvQ);
+
+      // Note that for orthographic camera, the length is irrelevant since there
+      // is no perspective transform.
+      target.position
+        .addVectors(owp, dPos.applyQuaternion(dhQ).applyQuaternion(dvQ))
+        .add(
+          RIGHT.set(1, 0, 0)
+            .applyQuaternion(cwq)
+            .multiplyScalar(panX * newLength)
+        )
+        .add(
+          UP.set(0, 1, 0)
+            .applyQuaternion(cwq)
+            .multiplyScalar(panY * newLength)
+        );
+
+      // Handle zooming of ortho camera
+      orthoCamera.zoom = Math.max(this.minOrthoZoom, Math.min(this.maxOrthoZoom, orthoCamera.zoom + dz * 0.05 * dt));
+      orthoCamera.updateProjectionMatrix();
+
+      if (this.useOrthographic) {
+        this.updateCameraSettings();
+      }
+
+      target.matrixNeedsUpdate = true;
+      target.updateMatrices();
+      childMatch(rig, camera, target.matrixWorld);
     };
   })();
 }
