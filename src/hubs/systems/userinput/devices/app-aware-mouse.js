@@ -18,6 +18,7 @@ const wKeyPath = paths.device.keyboard.key("w");
 const aKeyPath = paths.device.keyboard.key("a");
 const sKeyPath = paths.device.keyboard.key("s");
 const dKeyPath = paths.device.keyboard.key("d");
+const spaceKeyPath = paths.device.keyboard.key(" ");
 const shiftKeyPath = paths.device.keyboard.key("shift");
 const tabKeyPath = paths.device.keyboard.key("tab");
 const upKeyPath = paths.device.keyboard.key("arrowup");
@@ -83,6 +84,7 @@ export class AppAwareMouseDevice {
     const buttonLeft = frame.get(paths.device.mouse.buttonLeft);
     const buttonMiddle = frame.get(paths.device.mouse.buttonMiddle);
     const buttonRight = frame.get(paths.device.mouse.buttonRight);
+    const inspectPanKey = frame.get(spaceKeyPath);
     const mouseLookKey = frame.get(shiftKeyPath) && !isInEditableField();
     const grabKey = frame.get(tabKeyPath);
     const userinput = AFRAME.scenes[0].systems.userinput;
@@ -123,7 +125,7 @@ export class AppAwareMouseDevice {
     let isMouseLookingGesture;
 
     if (isInspecting) {
-      isMouseLookingGesture = buttonMiddle || buttonRight; // Rotate or pan
+      isMouseLookingGesture = buttonMiddle || buttonRight || inspectPanKey; // Rotate or pan
     } else {
       isMouseLookingGesture =
         mouseLookKey || // Holding shift

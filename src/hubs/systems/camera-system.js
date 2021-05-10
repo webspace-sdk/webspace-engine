@@ -169,6 +169,7 @@ export class CameraSystem extends EventTarget {
   constructor(scene) {
     super();
 
+    this.sceneEl = scene;
     this.showEnvironment = true;
     this.verticalDelta = 0;
     this.horizontalDelta = 0;
@@ -176,7 +177,7 @@ export class CameraSystem extends EventTarget {
     this.allowEditing = false;
     this.useOrthographic = true;
     this.mode = CAMERA_MODE_FIRST_PERSON;
-    this.snapshot = { audioTransform: new THREE.Matrix4(), matrixWorld: new THREE.Matrix4() };
+    this.snapshot = { audioTransform: new THREE.Matrix4(), matrixWorld: new THREE.Matrix4(), mask: null, mode: null };
     this.audioListenerTargetTransform = new THREE.Matrix4();
     waitForDOMContentLoaded().then(() => {
       this.avatarPOV = document.getElementById("avatar-pov-node");
@@ -305,6 +306,7 @@ export class CameraSystem extends EventTarget {
       setMatrixWorld(this.viewingRig.object3D, this.snapshot.matrixWorld);
     }
     this.snapshot.mode = null;
+    this.snapshot.mask = null;
     this.tick(AFRAME.scenes[0]);
     SYSTEMS.externalCameraSystem.releaseForcedViewingCamera();
     this.dispatchEvent(new CustomEvent("mode_changed"));
@@ -392,22 +394,35 @@ export class CameraSystem extends EventTarget {
     const vrMode = scene.is("vr-mode");
     const camera = vrMode ? scene.renderer.vr.getCamera(scene.camera) : scene.camera;
 
+    const canvasWidth = this.sceneEl.canvas.parentElement.offsetWidth;
+    const canvasHeight = this.sceneEl.canvas.parentElement.offsetHeight;
+    const aspectRatio = (canvasWidth * 1.0) / canvasHeight;
+
+    orthoCamera.left = -0.5 * aspectRatio;
+    orthoCamera.right = 0.5 * aspectRatio;
+    orthoCamera.updateProjectionMatrix();
+
     if (this.mode === CAMERA_MODE_INSPECT) {
-      this.snapshot.mask = camera.layers.mask;
+      if (this.snapshot.mask === null) {
+        this.snapshot.mask = camera.layers.mask;
+        this.snapshot.far = camera.far;
+
+        if (vrMode) {
+          this.snapshot.mask0 = camera.cameras[0].layers.mask;
+          this.snapshot.mask1 = camera.cameras[1].layers.mask;
+          this.snapshot.far0 = camera.cameras[0].far;
+          this.snapshot.far1 = camera.cameras[1].far;
+        }
+      }
 
       if (vrMode) {
-        this.snapshot.mask0 = camera.cameras[0].layers.mask;
-        this.snapshot.mask1 = camera.cameras[1].layers.mask;
-        this.snapshot.far0 = camera.cameras[0].far;
-        this.snapshot.far1 = camera.cameras[1].far;
         camera.cameras[0].far = FAR_PLANE_FOR_INSPECT;
         camera.cameras[1].far = FAR_PLANE_FOR_INSPECT;
       }
 
-      this.snapshot.far = camera.far;
       camera.far = FAR_PLANE_FOR_INSPECT;
 
-      if (this.inspected && this.useOrthographic) {
+      if (this.useOrthographic) {
         // Hacky, use ortho camera matrix by copying it in, instead of having a separate camera.
         if (vrMode) {
           camera.cameras[0].projectionMatrix.copy(orthoCamera.projectionMatrix);
@@ -429,19 +444,25 @@ export class CameraSystem extends EventTarget {
 
       SYSTEMS.atmosphereSystem.disableFog();
     } else {
-      camera.layers.mask = this.snapshot.mask;
+      if (this.snapshot.mask) {
+        camera.layers.mask = this.snapshot.mask;
+
+        if (vrMode) {
+          camera.cameras[0].layers.mask = this.snapshot.mask0;
+          camera.cameras[1].layers.mask = this.snapshot.mask1;
+          camera.cameras[0].far = this.snapshot.far0;
+          camera.cameras[1].far = this.snapshot.far1;
+        }
+
+        camera.far = this.snapshot.far;
+      }
+
+      camera.updateProjectionMatrix();
 
       if (vrMode) {
-        camera.cameras[0].layers.mask = this.snapshot.mask0;
-        camera.cameras[1].layers.mask = this.snapshot.mask1;
-        camera.cameras[0].far = this.snapshot.far0;
-        camera.cameras[1].far = this.snapshot.far1;
         camera.cameras[0].updateProjectionMatrix();
         camera.cameras[1].updateProjectionMatrix();
       }
-
-      camera.far = this.snapshot.far;
-      camera.updateProjectionMatrix();
 
       SYSTEMS.atmosphereSystem.enableFog();
     }

@@ -1045,6 +1045,16 @@ async function start() {
   mixpanel.track("Startup Start", {});
 
   const scene = document.querySelector("a-scene");
+
+  // Patch the scene resize handler to update the camera properly, since the
+  // camera system manages the projection matrix.
+  const sceneResize = scene.resize.bind(scene);
+  const resize = function() {
+    sceneResize();
+    SYSTEMS.cameraSystem.updateCameraSettings();
+  };
+  scene.resize = resize.bind(scene);
+
   const canvas = document.querySelector(".a-canvas");
   scene.renderer.setPixelRatio(1); // Start with low pixel ratio, quality adjustment system will raise
 
