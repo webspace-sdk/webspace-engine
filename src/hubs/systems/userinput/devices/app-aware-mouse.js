@@ -31,11 +31,11 @@ const HIDE_CURSOR_AFTER_IDLE_MS = 2000.0;
 const calculateCursorPose = function(camera, cursorX, cursorY, origin, direction, cursorPose) {
   camera.updateMatrices();
   origin.setFromMatrixPosition(camera.matrixWorld);
-  direction
-    .set(cursorX, cursorY, 0.5)
-    .unproject(camera)
-    .sub(origin)
-    .normalize();
+
+  direction.set(cursorX, cursorY, -0.5);
+  SYSTEMS.cameraSystem.unprojectCameraOn(direction);
+  direction.sub(origin).normalize();
+
   cursorPose.fromOriginAndDirection(origin, direction);
   return cursorPose;
 };

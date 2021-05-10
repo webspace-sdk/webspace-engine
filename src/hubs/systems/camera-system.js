@@ -223,7 +223,7 @@ export class CameraSystem extends EventTarget {
     this.horizontalDelta = 0;
     this.inspectZoom = 0;
     this.allowEditing = false;
-    this.useOrthographic = false;
+    this.useOrthographic = true;
     this.mode = CAMERA_MODE_FIRST_PERSON;
     this.snapshot = { audioTransform: new THREE.Matrix4(), matrixWorld: new THREE.Matrix4() };
     this.audioListenerTargetTransform = new THREE.Matrix4();
@@ -249,6 +249,20 @@ export class CameraSystem extends EventTarget {
         }
       }
     });
+  }
+
+  unprojectCameraOn(vector) {
+    const { camera } = this.viewingCamera.object3DMap;
+    camera.updateMatrices();
+
+    // For some reason, unproject doesn't work properly with the ortho
+    // camera projection.
+
+    if (this.useOrthographic) {
+      vector.applyMatrix4(camera.matrixWorld);
+    } else {
+      camera.unproject(vector);
+    }
   }
 
   inspect(o, distanceMod, temporarilyDisableRegularExit, allowEditing = false) {
@@ -282,7 +296,7 @@ export class CameraSystem extends EventTarget {
     this.updateCameraSettings();
 
     if (!this.enableLights || this.useOrthographic) {
-      this.hideEverythingButThisObject(o);
+      this.hideEverythingButThisObjectAndCursors(o);
     }
 
     this.snapshot.audio = getAudio(o);
@@ -332,8 +346,12 @@ export class CameraSystem extends EventTarget {
     return !!this.inspected;
   }
 
-  hideEverythingButThisObject(o) {
+  hideEverythingButThisObjectAndCursors(o) {
     o.traverse(enableInspectLayer);
+
+    for (const cursor of SYSTEMS.cursorTargettingSystem.getCursors()) {
+      cursor.object3D.traverse(enableInspectLayer);
+    }
 
     const scene = AFRAME.scenes[0];
     const vrMode = scene.is("vr-mode");
@@ -403,6 +421,10 @@ export class CameraSystem extends EventTarget {
 
       if (this.inspected) {
         this.inspected.traverse(disableInspectLayer);
+
+        for (const cursor of SYSTEMS.cursorTargettingSystem.getCursors()) {
+          cursor.object3D.traverse(disableInspectLayer);
+        }
       }
 
       SYSTEMS.atmosphereSystem.disableFog();

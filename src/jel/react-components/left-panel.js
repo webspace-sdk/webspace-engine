@@ -350,7 +350,6 @@ function LeftPanel({
   const invitePanelFieldElement = useRef();
   const spaceBannerRef = useRef();
   const showSpaceNotificationsButtonRef = useRef();
-  console.log("left render");
 
   const { spaceChannel } = window.APP;
 

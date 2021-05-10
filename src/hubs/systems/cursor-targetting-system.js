@@ -46,6 +46,20 @@ export class CursorTargettingSystem {
     this.dirty = true;
   }
 
+  getCursors() {
+    const cursors = [];
+
+    if (this.rightRemote) {
+      cursors.push(this.rightRemote.components["cursor-controller"].data.cursor);
+    }
+
+    if (this.leftRemote) {
+      cursors.push(this.leftRemote.components["cursor-controller"].data.cursor);
+    }
+
+    return cursors;
+  }
+
   tick(t) {
     if (this.dirty) {
       this.populateEntities(this.targets);
