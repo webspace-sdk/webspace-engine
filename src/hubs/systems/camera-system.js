@@ -211,15 +211,28 @@ export class CameraSystem extends EventTarget {
     const { camera } = this.viewingCamera.object3DMap;
     camera.updateMatrices();
 
-    // For some reason, unproject doesn't work properly with the ortho
-    // camera projection.
+    // Temporarily re-create perspective matrix, then re-gen
+    camera.updateProjectionMatrix();
 
-    if (this.useOrthographic) {
-      vector.applyMatrix4(camera.matrixWorld);
-    } else {
-      vector.unproject(camera);
-    }
+    vector.unproject(camera);
+    this.updateCameraSettings();
   }
+
+  cameraDistanceToInspectedObject = (function() {
+    const v1 = new THREE.Vector3();
+    const v2 = new THREE.Vector3();
+    return function() {
+      if (!this.inspected) return null;
+      this.inspected.updateMatrices();
+      this.inspected.getWorldPosition(v1);
+
+      const { camera } = this.viewingCamera.object3DMap;
+      camera.updateMatrices();
+      camera.getWorldPosition(v2);
+
+      return v2.sub(v1).length();
+    };
+  })();
 
   inspect(o, distanceMod, temporarilyDisableRegularExit, allowEditing = false) {
     this.verticalDelta = 0;
@@ -398,8 +411,8 @@ export class CameraSystem extends EventTarget {
     const canvasHeight = this.sceneEl.canvas.parentElement.offsetHeight;
     const aspectRatio = (canvasWidth * 1.0) / canvasHeight;
 
-    orthoCamera.left = -0.5 * aspectRatio;
-    orthoCamera.right = 0.5 * aspectRatio;
+    orthoCamera.left = -orthoCamera.top * aspectRatio;
+    orthoCamera.right = orthoCamera.top * aspectRatio;
     orthoCamera.updateProjectionMatrix();
 
     if (this.mode === CAMERA_MODE_INSPECT) {
