@@ -51,7 +51,7 @@ export default function EquippedBrushIcon() {
       const { builderSystem } = SYSTEMS;
       const handler = () => setEquippedBrush(builderSystem.brushType);
       builderSystem.addEventListener("settingschanged", handler);
-      return () => store.removeEventListener("settingschanged", handler);
+      return () => builderSystem.removeEventListener("settingschanged", handler);
     },
     [store, setEquippedBrush]
   );

@@ -31,6 +31,15 @@ const decompose = (function() {
 const orthoCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, 0.001, 10000);
 const IDENTITY = new THREE.Matrix4().identity();
 
+// Given an object 3d, gets the bounding box for the vox, if it's a
+// vox entity, or the box for the underlying mesh.
+const getEntityBoxOrVoxBox = object => {
+  const mesh = object.el.getObject3D("mesh");
+  const voxBox = mesh && SYSTEMS.voxSystem.getBoundingBoxForSource(mesh);
+  if (voxBox) return voxBox;
+  return getBox(object.el, object.el.getObject3D("mesh") || object, true);
+};
+
 const moveRigSoCameraLooksAtObject = (function() {
   const owq = new THREE.Quaternion();
   const owp = new THREE.Vector3();
@@ -52,7 +61,7 @@ const moveRigSoCameraLooksAtObject = (function() {
     decompose(camera.matrixWorld, cwp, cwq);
     rig.getWorldQuaternion(cwq);
 
-    const box = getBox(object.el, object.el.getObject3D("mesh") || object, true);
+    const box = getEntityBoxOrVoxBox(object);
     box.getCenter(center);
     const vrMode = object.el.sceneEl.is("vr-mode");
     const dist =
@@ -247,6 +256,7 @@ export class CameraSystem extends EventTarget {
     this.snapshot.mode = this.mode;
     this.mode = CAMERA_MODE_INSPECT;
     this.inspected = o;
+    this.distanceMod = distanceMod || 1;
 
     this.viewingCamera.object3DMap.camera.updateMatrices();
     this.snapshot.matrixWorld.copy(this.viewingRig.object3D.matrixWorld);
@@ -258,12 +268,9 @@ export class CameraSystem extends EventTarget {
       this.viewingRig.object3D,
       this.viewingCamera.object3DMap.camera,
       this.inspected,
-      distanceMod || 1,
+      this.distanceMod,
       viewAtCorner
     );
-
-    this.minOrthoZoom = orthoCamera.zoom * 0.75;
-    this.maxOrthoZoom = orthoCamera.zoom * 2.0;
 
     this.updateCameraSettings();
 
@@ -613,6 +620,7 @@ export class CameraSystem extends EventTarget {
     const target = new THREE.Object3D();
     const dhQ = new THREE.Quaternion();
     const dvQ = new THREE.Quaternion();
+    const center = new THREE.Vector3();
     return function orbit(dt, panX, panY) {
       const object = this.inspected;
       const rig = this.viewingRig.object3D;
@@ -635,6 +643,18 @@ export class CameraSystem extends EventTarget {
       const dPos = new THREE.Vector3().subVectors(cwp, owp);
       const zoom = 1 - dz * dt;
       const newLength = dPos.length() * (this.useOrthographic ? 1 : zoom);
+      const box = getEntityBoxOrVoxBox(object);
+      box.getCenter(center);
+      const vrMode = object.el.sceneEl.is("vr-mode");
+      const dist =
+        calculateViewingDistance(
+          object.el.sceneEl.camera.fov,
+          object.el.sceneEl.camera.aspect,
+          object,
+          box,
+          center,
+          vrMode
+        ) * this.distanceMod;
 
       // TODO: These limits should be calculated based on the calculated view distance.
       if (
@@ -662,13 +682,16 @@ export class CameraSystem extends EventTarget {
             .multiplyScalar(panY * newLength)
         );
 
+      // Viewing distance ends up approximating the size of the object,
+      // so use that to drive zoom extents and zoom speed.
+      const maxOrthoZoom = (1.0 / dist) * 2.0;
+      const minOrthoZoom = (1.0 / dist) * 0.5;
+
       // Handle zooming of ortho camera
-      orthoCamera.zoom = Math.max(this.minOrthoZoom, Math.min(this.maxOrthoZoom, orthoCamera.zoom + dz * 0.05 * dt));
+      orthoCamera.zoom = Math.max(minOrthoZoom, Math.min(maxOrthoZoom, orthoCamera.zoom + dz * (0.5 / dist) * dt));
       orthoCamera.updateProjectionMatrix();
 
-      if (this.useOrthographic) {
-        this.updateCameraSettings();
-      }
+      this.updateCameraSettings();
 
       target.matrixNeedsUpdate = true;
       target.updateMatrices();
