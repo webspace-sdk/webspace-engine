@@ -472,7 +472,8 @@ export class CameraSystem extends EventTarget {
           const inspectable = getInspectable(hoverEl);
 
           if (inspectable) {
-            this.inspect(inspectable.object3D, 1.5);
+            const distanceMod = shouldOrbitOnInspect(inspectable.object3D) ? 1.5 : 1;
+            this.inspect(inspectable.object3D, distanceMod);
           }
         }
       } else if (
