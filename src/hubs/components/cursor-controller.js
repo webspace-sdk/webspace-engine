@@ -101,7 +101,7 @@ AFRAME.registerComponent("cursor-controller", {
         this.intersectionIsValid = !!interaction.updateCursorIntersection(this.intersection, left);
 
         const defaultDistance =
-          SYSTEMS.cameraSystem.cameraDistanceToInspectedObject() || this.data.defaultDistance * playerScale;
+          SYSTEMS.cameraSystem.defaultCursorDistanceToInspectedObject() || this.data.defaultDistance * playerScale;
 
         this.distance = this.intersectionIsValid ? this.intersection.distance : defaultDistance;
       }

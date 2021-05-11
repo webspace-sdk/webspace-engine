@@ -118,7 +118,7 @@ AFRAME.registerComponent("media-vox", {
       if (SYSTEMS.cameraSystem.isInspecting()) return;
 
       // Start inspecting with editing enabled
-      SYSTEMS.cameraSystem.inspect(this.el.object3D, 1.5, false, true);
+      SYSTEMS.cameraSystem.inspect(this.el.object3D, 2.0, false, true);
 
       // Show panels
       endCursorLock();

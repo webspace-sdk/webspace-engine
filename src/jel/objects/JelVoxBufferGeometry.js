@@ -659,21 +659,26 @@ class JelVoxBufferGeometry extends BufferGeometry {
       }
     }
 
+    const gridMinX = xMin - 3;
+    const gridMaxX = xMax + 3;
+    const gridMinZ = zMin - 3;
+    const gridMaxZ = zMax + 3;
+
     if (addXZPlane) {
       pushFace(
         quadData.length / 14,
-        (xMin + xShift - 2) * VOXEL_SIZE,
-        0,
-        (zMax + zShift + 2) * VOXEL_SIZE,
-        (xMax + xShift + 2) * VOXEL_SIZE,
-        0,
-        (zMax + zShift + 2) * VOXEL_SIZE,
-        (xMax + xShift + 2) * VOXEL_SIZE,
-        0,
-        (zMin + zShift - 2) * VOXEL_SIZE,
-        (xMin + xShift - 2) * VOXEL_SIZE,
-        0,
-        (zMin + zShift - 2) * VOXEL_SIZE,
+        (gridMinX + xShift) * VOXEL_SIZE,
+        (yMin + yShift) * VOXEL_SIZE,
+        (gridMaxZ + zShift) * VOXEL_SIZE,
+        (gridMaxX + xShift) * VOXEL_SIZE,
+        (yMin + yShift) * VOXEL_SIZE,
+        (gridMaxZ + zShift) * VOXEL_SIZE,
+        (gridMaxX + xShift) * VOXEL_SIZE,
+        (yMin + yShift) * VOXEL_SIZE,
+        (gridMinZ + zShift) * VOXEL_SIZE,
+        (gridMinX + xShift) * VOXEL_SIZE,
+        (yMin + yShift) * VOXEL_SIZE,
+        (gridMinZ + zShift) * VOXEL_SIZE,
         0,
         0,
         Math.abs((zMax + zShift + 2) * VOXEL_SIZE - (zMin + zShift - 2) * VOXEL_SIZE),
