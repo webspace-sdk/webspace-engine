@@ -6,6 +6,7 @@ import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
 //import { m4String } from "../utils/pretty-print";
 import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../jel/systems/terrain-system";
 import qsTruthy from "../utils/qs_truthy";
+const CHARACTER_MAX_Y = 7.5;
 
 const calculateDisplacementToDesiredPOV = (function() {
   const translationCoordinateSpace = new THREE.Matrix4();
@@ -40,10 +41,10 @@ const INITIAL_JUMP_VELOCITY = 5.0;
 const isBotMode = qsTruthy("bot_move");
 
 export class CharacterControllerSystem {
-  constructor(scene, terrainSystem) {
+  constructor(scene, terrainSystem, builderSystem) {
     this.scene = scene;
     this.terrainSystem = terrainSystem;
-    this.fly = false;
+    this.fly = builderSystem.enabled;
     this.shouldLandWhenPossible = false;
     this.lastSeenNavVersion = -1;
     this.relativeMotion = new THREE.Vector3(0, 0, 0);
@@ -55,6 +56,14 @@ export class CharacterControllerSystem {
     this.jumpYVelocity = null;
 
     this.scene.addEventListener("terrain_chunk_loaded", () => {
+      if (!this.fly) {
+        this.shouldLandWhenPossible = true;
+      }
+    });
+
+    builderSystem.addEventListener("enabledchanged", () => {
+      this.fly = builderSystem.enabled;
+
       if (!this.fly) {
         this.shouldLandWhenPossible = true;
       }
@@ -83,6 +92,9 @@ export class CharacterControllerSystem {
   }
   enqueueInPlaceRotationAroundWorldUp(dXZ) {
     this.dXZ += dXZ;
+  }
+  shouldFly() {
+    return SYSTEMS.builderSystem.enabled;
   }
   // We assume the rig is at the root, and its local position === its world position.
   teleportTo = (function() {
@@ -279,6 +291,7 @@ export class CharacterControllerSystem {
             desiredPOVPosition.setFromMatrixPosition(newPOV),
             heightMapSnappedPOVPosition
           );
+
           squareDistHeightMapCorrection = desiredPOVPosition.distanceToSquared(heightMapSnappedPOVPosition);
 
           if (this.fly && this.shouldLandWhenPossible && squareDistHeightMapCorrection < 0.5) {
@@ -328,16 +341,18 @@ export class CharacterControllerSystem {
         }
       }
 
-      if (this.jumpYVelocity !== null) {
-        const dy = (dt / 1000.0) * this.jumpYVelocity;
-        this.jumpYVelocity += JUMP_GRAVITY * (dt / 1000.0);
-        const newY = newPOV.elements[13] + dy;
-
+      if (this.fly || this.jumpYVelocity !== null) {
         this.findPOVPositionAboveHeightMap(
           desiredPOVPosition.setFromMatrixPosition(newPOV),
           heightMapSnappedPOVPosition,
           true
         );
+      }
+
+      if (this.jumpYVelocity !== null) {
+        const dy = (dt / 1000.0) * this.jumpYVelocity;
+        this.jumpYVelocity += JUMP_GRAVITY * (dt / 1000.0);
+        const newY = newPOV.elements[13] + dy;
 
         if (newY >= heightMapSnappedPOVPosition.y) {
           newPOV.elements[13] = newY;
@@ -345,6 +360,11 @@ export class CharacterControllerSystem {
           newPOV.elements[13] = heightMapSnappedPOVPosition.y;
           this.jumpYVelocity = null;
         }
+      }
+
+      if (this.fly) {
+        // Clamp y when flying to be above heightmap and below high in the sky
+        newPOV.elements[13] = Math.max(heightMapSnappedPOVPosition.y, Math.min(CHARACTER_MAX_Y, newPOV.elements[13]));
       }
 
       childMatch(this.avatarRig.object3D, this.avatarPOV.object3D, newPOV);

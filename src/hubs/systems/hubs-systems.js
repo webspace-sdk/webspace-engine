@@ -95,7 +95,13 @@ AFRAME.registerSystem("hubs-systems", {
       this.soundEffectsSystem
     );
     this.terrainSystem = new TerrainSystem(this.el, this.atmosphereSystem);
-    this.characterController = new CharacterControllerSystem(this.el, this.terrainSystem);
+    this.builderSystem = new BuilderSystem(
+      this.el,
+      this.el.systems.userinput,
+      this.soundEffectsSystem,
+      this.cursorTargettingSystem
+    );
+    this.characterController = new CharacterControllerSystem(this.el, this.terrainSystem, this.builderSystem);
     this.mediaPresenceSystem = new MediaPresenceSystem(this.el, this.characterController);
     this.uiAnimationSystem = new UIAnimationSystem(this.el, this.atmosphereSystem);
     this.avatarSystem = new AvatarSystem(this.el, this.atmosphereSystem);
@@ -109,12 +115,6 @@ AFRAME.registerSystem("hubs-systems", {
       this.el.systems.userinput,
       this.characterController,
       this.soundEffectsSystem
-    );
-    this.builderSystem = new BuilderSystem(
-      this.el,
-      this.el.systems.userinput,
-      this.soundEffectsSystem,
-      this.cursorTargettingSystem
     );
     this.pasteSystem = new PasteSystem(this.el);
     this.externalCameraSystem = new ExternalCameraSystem(
