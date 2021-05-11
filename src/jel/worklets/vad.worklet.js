@@ -11,7 +11,7 @@ class VadWorklet extends AudioWorkletProcessor {
       channelCount: 1
     });
 
-    this.bufferResidue = new Float32Array([]);
+    this.bufferResidue = [];
     this.vadData = new Float32Array(processorOptions.vadBuffer);
     this.rnn = null;
     this.processFrame = (sample, i) => 1.0; // eslint-disable-line
@@ -48,18 +48,22 @@ class VadWorklet extends AudioWorkletProcessor {
   process(inputs) {
     if (inputs[0].length === 0) return true;
 
+    const { bufferResidue, vadData } = this;
     // proces data based on the sample length, use leftover buffer from previous process
-    const inData = [...this.bufferResidue, ...inputs[0][0]];
+    const inBuf = inputs[0][0];
+    for (let i = 0, l = inBuf.length; i < l; i++) {
+      bufferResidue.push(inBuf[i]);
+    }
 
     let i = 0;
-    const l = inData.length - SAMPLE_LENGTH;
+    const l = bufferResidue.length - SAMPLE_LENGTH;
 
     // process each viable sample
     for (; i < l; i += SAMPLE_LENGTH) {
-      this.vadData[0] = this.processFrame(inData, i);
+      vadData[0] = this.processFrame(bufferResidue, i);
     }
 
-    this.bufferResidue = inData.slice(i);
+    this.bufferResidue = i === 0 ? bufferResidue : bufferResidue.slice(i);
 
     return true;
   }
