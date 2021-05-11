@@ -3,12 +3,16 @@ import vadWorkletSrc from "../../jel/worklets/vad.worklet.js";
 import lipSyncWorker from "../../jel/workers/lipsync.worker.js";
 import sdpTransform from "sdp-transform";
 
+import qsTruthy from "../utils/qs_truthy";
+
 // Built via https://github.com/sipavlovic/wasm2js to load in worklet
 import rnnWasm from "../../jel/wasm/rnnoise-vad-wasm.js";
 const supportsInsertableStreams = !!(window.RTCRtpSender && !!RTCRtpSender.prototype.createEncodedStreams);
 
+const skipLipsync = qsTruthy("skip_lipsync");
+
 export const supportsLipSync = () =>
-  typeof AudioWorklet == "function" && window.SharedArrayBuffer && supportsInsertableStreams;
+  !skipLipsync && typeof AudioWorklet == "function" && window.SharedArrayBuffer && supportsInsertableStreams;
 
 export class AudioSystem {
   constructor(sceneEl) {
@@ -233,6 +237,7 @@ export class AudioSystem {
    *  All audio is now routed through Chrome's audio mixer, thus enabling AEC, while preserving all the audio processing that was performed via the WebAudio API.
    */
   async applyAECHack() {
+    if (qsTruthy("noaechack")) return;
     if (AFRAME.utils.device.isMobile() || !/chrome/i.test(navigator.userAgent)) return;
     this.audioContext = THREE.AudioContext.getContext();
     if (this.audioContext.state !== "running") return;
