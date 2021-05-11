@@ -121,6 +121,7 @@ export class CameraSystem extends EventTarget {
 
     this.sceneEl = scene;
     this.showWorld = false;
+    this.showFloor = true;
     this.verticalDelta = 0;
     this.horizontalDelta = 0;
     this.inspectZoom = 0;
@@ -178,6 +179,9 @@ export class CameraSystem extends EventTarget {
       if (!this.inspected) return null;
       if (this.isRenderingOrthographic()) {
         // Project cursor far off in ortho mode
+        // TODO this should actually be the distance to the XZ plane, probably.
+        //
+        // Until that is updated, the cursor will disappear on a miss.
         return 1000.0;
       }
 
@@ -199,6 +203,7 @@ export class CameraSystem extends EventTarget {
     this.allowCursor = allowCursor;
     this.temporarilyDisableRegularExit = temporarilyDisableRegularExit; // TODO: Do this at the action set layer
     if (this.mode === CAMERA_MODE_INSPECT) return;
+    this.dispatchEvent(new CustomEvent("mode_changing"));
 
     const scene = AFRAME.scenes[0];
     scene.object3D.traverse(ensureLightsAreSeenByCamera);
@@ -253,6 +258,7 @@ export class CameraSystem extends EventTarget {
     this.temporarilyDisableRegularExit = false;
     if (this.mode !== CAMERA_MODE_INSPECT) return;
 
+    this.dispatchEvent(new CustomEvent("mode_changing"));
     this.revealEverything();
 
     for (const cursor of SYSTEMS.cursorTargettingSystem.getCursors()) {
@@ -357,6 +363,11 @@ export class CameraSystem extends EventTarget {
       }
     }
 
+    this.dispatchEvent(new CustomEvent("settings_changed"));
+  }
+
+  toggleShowFloor() {
+    this.showFloor = !this.showFloor;
     this.dispatchEvent(new CustomEvent("settings_changed"));
   }
 

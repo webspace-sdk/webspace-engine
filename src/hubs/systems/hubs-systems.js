@@ -65,7 +65,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.skyBeamSystem = new SkyBeamSystem(this.el);
     this.voxmojiSystem = new VoxmojiSystem(this.el, this.atmosphereSystem);
     this.physicsSystem = new PhysicsSystem(this.el.object3D, this.atmosphereSystem);
-    this.voxSystem = new VoxSystem(this.el, this.cursorTargettingSystem, this.physicsSystem);
+    this.voxSystem = new VoxSystem(this.el, this.cursorTargettingSystem, this.physicsSystem, this.cameraSystem);
     this.constraintsSystem = new ConstraintsSystem(this.physicsSystem);
     this.twoPointStretchingSystem = new TwoPointStretchingSystem();
     this.singleActionButtonSystem = new SingleActionButtonSystem();

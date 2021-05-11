@@ -98,7 +98,7 @@ function createPhysicsMesh() {
 
 // Manages user-editable voxel objects
 export class VoxSystem extends EventTarget {
-  constructor(sceneEl, cursorTargettingSystem, physicsSystem) {
+  constructor(sceneEl, cursorTargettingSystem, physicsSystem, cameraSystem) {
     super();
     this.sceneEl = sceneEl;
     this.syncs = new Map();
@@ -115,6 +115,18 @@ export class VoxSystem extends EventTarget {
     this.onSpacePresenceSynced = this.onSpacePresenceSynced.bind(this);
     this.frame = 0;
     this.sceneEl.addEventListener("space-presence-synced", this.onSpacePresenceSynced);
+
+    // Need to remesh inspected vox when camera changes
+    for (const evt of ["settings_changed", "mode_changed", "mode_changing"]) {
+      cameraSystem.addEventListener(evt, () => {
+        const voxId = this.getInspectedEditingVoxId();
+        if (voxId === null) return;
+
+        const entry = this.voxMap.get(voxId);
+        entry.dirtyFrameMeshes.fill(true);
+        entry.regenerateDirtyMeshesOnNextFrame = true;
+      });
+    }
   }
 
   tick() {
@@ -273,7 +285,6 @@ export class VoxSystem extends EventTarget {
     const { sceneEl, syncs } = this;
     if (syncs.has(voxId)) return syncs.get(voxId);
 
-    console.log("Start syncing vox", voxId);
     const sync = new VoxSync(voxId);
     syncs.set(voxId, sync);
     await sync.init(sceneEl);
@@ -287,7 +298,6 @@ export class VoxSystem extends EventTarget {
     const { syncs } = this;
     const sync = syncs.get(voxId);
     if (!sync) return;
-    console.log("Stop syncing vox", voxId);
 
     sync.dispose();
     syncs.delete(voxId);
@@ -570,6 +580,27 @@ export class VoxSystem extends EventTarget {
     this.endSyncing(voxId);
   }
 
+  getInspectedEditingVoxId() {
+    const { cameraSystem } = SYSTEMS;
+    if (!cameraSystem.isInspecting()) return null;
+    if (!cameraSystem.allowCursor) return null;
+
+    const { voxMap } = this;
+
+    for (const [voxId, { sources }] of voxMap) {
+      for (let i = 0; i < sources.length; i++) {
+        const source = sources[i];
+        if (source === null) continue;
+
+        if (source.parent === cameraSystem.inspected) {
+          return voxId;
+        }
+      }
+    }
+
+    return null;
+  }
+
   regenerateDirtyMeshesForVoxId(voxId) {
     const { sceneEl, physicsSystem, meshToVoxId, voxMap } = this;
     const scene = sceneEl.object3D;
@@ -578,6 +609,8 @@ export class VoxSystem extends EventTarget {
     if (!entry) return;
 
     const { cameraSystem } = SYSTEMS;
+
+    const inspectedVoxId = this.getInspectedEditingVoxId();
 
     const {
       vox,
@@ -647,18 +680,7 @@ export class VoxSystem extends EventTarget {
           );
         }
 
-        let showXZPlane = false;
-
-        if (cameraSystem.isInspecting() && cameraSystem.allowCursor && cameraSystem.showXZPlane) {
-          for (let i = 0; i < sources.length; i++) {
-            const source = sources[i];
-            if (source === null) continue;
-
-            if (source.parent === cameraSystem.inspected) {
-              showXZPlane = true;
-            }
-          }
-        }
+        const showXZPlane = inspectedVoxId === voxId && cameraSystem.showFloor;
 
         const [xMin, yMin, zMin, xMax, yMax, zMax] = mesh.geometry.update(chunk, mesherQuadSize, false, showXZPlane);
 
