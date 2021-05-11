@@ -34,6 +34,7 @@ export class MediaInteractionSystem {
 
     if (!rightHand) return;
     if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
+    if (!SYSTEMS.cameraSystem.cameraViewAllowsManipulation()) return;
 
     this.userinput = this.userinput || scene.systems.userinput;
     if (this.userinput.get(paths.actions.mediaTransformReleaseAction)) {

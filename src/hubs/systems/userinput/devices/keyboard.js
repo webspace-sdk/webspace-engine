@@ -146,18 +146,20 @@ export class KeyboardDevice {
         }
 
         // ` in text editor blurs it, also non-modifier key @ for japanese keyboards since ` is missing
-        if (
-          e.type === "keydown" &&
-          (e.code === "Backquote" || (e.key === "@" && e.code === "BracketLeft")) &&
-          isInQuillEditor()
-        ) {
-          window.APP.store.handleActivityFlag("mediaTextEditClose");
-          // Without this, quill grabs focus when others types
-          document.activeElement.parentElement.__quill.blur();
-
-          canvas.focus();
-          pushEvent = false; // Prevent primary action this tick if cursor still over 3d text page
-          e.preventDefault();
+        // ` when editing vox exits inspector
+        if (e.type === "keydown" && (e.code === "Backquote" || (e.key === "@" && e.code === "BracketLeft"))) {
+          if (isInQuillEditor()) {
+            window.APP.store.handleActivityFlag("mediaTextEditClose");
+            // Without this, quill grabs focus when others types
+            document.activeElement.parentElement.__quill.blur();
+            canvas.focus();
+            pushEvent = false; // Prevent primary action this tick if cursor still over 3d text page
+            e.preventDefault();
+          } else if (SYSTEMS.cameraSystem.isInspecting()) {
+            // HACK if we uninspect this tick the media interaction system will run thinking
+            // inspection wasn't happening, and will re-trigger.
+            setTimeout(() => SYSTEMS.cameraSystem.uninspect(), 25);
+          }
         }
 
         // / in create popup blurs it

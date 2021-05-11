@@ -673,6 +673,9 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
           }
 
           if (isInitialJoin) {
+            // Reset inspect if we switched while inspecting
+            SYSTEMS.cameraSystem.uninspect();
+
             THREE.Cache.clear();
 
             // Clear voxmojis from prior world

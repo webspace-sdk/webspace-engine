@@ -99,7 +99,11 @@ AFRAME.registerComponent("cursor-controller", {
         this.raycaster.intersectObjects(SYSTEMS.cursorTargettingSystem.targets, true, rawIntersections);
         this.intersection = rawIntersections[0];
         this.intersectionIsValid = !!interaction.updateCursorIntersection(this.intersection, left);
-        this.distance = this.intersectionIsValid ? this.intersection.distance : this.data.defaultDistance * playerScale;
+
+        const defaultDistance =
+          SYSTEMS.cameraSystem.cameraDistanceToInspectedObject() || this.data.defaultDistance * playerScale;
+
+        this.distance = this.intersectionIsValid ? this.intersection.distance : defaultDistance;
       }
 
       const { cursor, minDistance, far, camera } = this.data;

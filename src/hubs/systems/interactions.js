@@ -227,7 +227,7 @@ AFRAME.registerSystem("interaction", {
           ? options.entity.components["body-helper"]
           : null
       );
-      if (state.hovered) {
+      if (state.hovered && SYSTEMS.cameraSystem.cameraViewAllowsManipulation()) {
         const entity = state.hovered;
         if (isTagged(entity, "isHoldable") && userinput.get(options.grabPath) && canMove(entity)) {
           state.held = entity;
@@ -237,9 +237,7 @@ AFRAME.registerSystem("interaction", {
   },
 
   tick2() {
-    if (!this.el.is("entered")) {
-      return;
-    }
+    if (!this.el.is("entered")) return;
 
     Object.assign(this.previousState.rightHand, this.state.rightHand);
     Object.assign(this.previousState.rightRemote, this.state.rightRemote);

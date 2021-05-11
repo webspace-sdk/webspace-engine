@@ -265,13 +265,58 @@ const TIP_DATA = {
   vox_pick: [["pick", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
   vox_fill: [["fill", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
   vox_attach: [["attach", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_erase: [["erase", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_remove: [["erase", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
   vox_paint: [["paint", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
   vox_pick_full: [["pick", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
   vox_fill_full: [["fill", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
   vox_attach_full: [["attach", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_erase_full: [["erase", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_remove_full: [["erase", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
   vox_paint_full: [["paint", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_pick_edit: [
+    ["orbit", "I"],
+    ["pan", "_S|O"],
+    ["zoom", "R"],
+    ["exit", "~|@|Z"],
+    ["pick", "K"],
+    ["undo", "P+z"],
+    ["redo", "P+y"]
+  ],
+  vox_fill_edit: [
+    ["orbit", "I"],
+    ["pan", "_S|O"],
+    ["zoom", "R"],
+    ["exit", "~|@|Z"],
+    ["fill", "K"],
+    ["undo", "P+z"],
+    ["redo", "P+y"]
+  ],
+  vox_attach_edit: [
+    ["orbit", "I"],
+    ["pan", "_S|O"],
+    ["zoom", "R"],
+    ["exit", "~|@|Z"],
+    ["attach", "K"],
+    ["undo", "P+z"],
+    ["redo", "P+y"]
+  ],
+  vox_remove_edit: [
+    ["orbit", "I"],
+    ["pan", "_S|O"],
+    ["zoom", "R"],
+    ["exit", "~|@|Z"],
+    ["erase", "K"],
+    ["undo", "P+z"],
+    ["redo", "P+y"]
+  ],
+  vox_paint_edit: [
+    ["orbit", "I"],
+    ["pan", "_S|O"],
+    ["zoom", "R"],
+    ["exit", "~|@|Z"],
+    ["paint", "K"],
+    ["undo", "P+z"],
+    ["redo", "P+y"]
+  ],
   pdf: [["next", "L+S"], ["page", "q\\e"], ...objectCommonTips],
   text: [
     ["edit", "~|@", "mediaTextEdit"],
@@ -281,7 +326,8 @@ const TIP_DATA = {
   ],
   rotate: [["rotate", "G"], ["roll", "L+G,R"], ["guides", "q\\e"]],
   scale: [["scale", "G,R"]],
-  focus: [["orbit", "I"], ["pan", "O"], ["exit", "f|Z"]],
+  focus: [["orbit", "I"], ["zoom", "R"], ["exit", "f|Z"]],
+  focus_edit: [["orbit", "I"], ["pan", "_S|O"], ["zoom", "R"], ["exit", "~|@|Z"]],
   text_editor: [
     ["close", "~|@", "mediaTextEditClose"],
     ["bold", "L+b"],

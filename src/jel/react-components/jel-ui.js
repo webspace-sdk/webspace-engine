@@ -1,39 +1,28 @@
-import React, { useRef, useState, useCallback, forwardRef, useEffect } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
 import cancelIcon from "../../assets/jel/images/icons/cancel.svgi";
 import { FieldEditButton } from "./form-components";
 import PropTypes from "prop-types";
-import HubTrail from "./hub-trail";
 import WorldImporter from "../utils/world-importer";
 import WorldExporter from "../utils/world-exporter";
 import styled from "styled-components";
 import mutedIcon from "../../assets/jel/images/icons/mic-muted.svgi";
 import unmutedIcon from "../../assets/jel/images/icons/mic-unmuted.svgi";
 import rotateIcon from "../../assets/jel/images/icons/rotate.svgi";
-import { BigIconButton } from "./icon-button";
 import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../utils/tree-utils";
 import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
-import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { getPresetAsColorTuples } from "../utils/world-color-presets";
 import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
 import Snackbar from "./snackbar";
-import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shadow.svgi";
-import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
-import notificationsIcon from "../../assets/jel/images/icons/notifications-shadow.svgi";
-import securityIcon from "../../assets/jel/images/icons/security-shadow.svgi";
-import sunIcon from "../../assets/jel/images/icons/sun-shadow.svgi";
 import RenamePopup from "./rename-popup";
 import CreateEmbedPopup from "./create-embed-popup";
 import HubContextMenu from "./hub-context-menu";
 import CreateSelectPopup from "./create-select-popup";
 import ChatInputPopup from "./chat-input-popup";
 import EmojiPopup from "./emoji-popup";
-import EqippedBrushIcon from "./equipped-brush-icon";
-import EqippedColorIcon from "./equipped-color-icon";
-import EquippedEmojiIcon from "./equipped-emoji-icon";
 import SpaceNotificationsPopup from "./space-notifications-popup";
 import HubPermissionsPopup from "./hub-permissions-popup";
 import HubNotificationsPopup from "./hub-notifications-popup";
@@ -41,13 +30,11 @@ import EnvironmentSettingsPopup from "./environment-settings-popup";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
-import { getMessages } from "../../hubs/utils/i18n";
-import Tooltip from "./tooltip";
 import KeyTips from "./key-tips";
 import LoadingPanel from "./loading-panel";
 import { CREATE_SELECT_WIDTH, CREATE_SELECT_LIST_HEIGHT } from "./create-select";
 import qsTruthy from "../../hubs/utils/qs_truthy";
-import { useInstallPWA } from "../../hubs/react-components/input/useInstallPWA";
+import CanvasTop from "./canvas-top";
 
 const skipSidePanels = qsTruthy("skip_panels");
 const skipNeon = qsTruthy("skip_neon");
@@ -163,18 +150,6 @@ const FadeEdges = styled.div`
   z-index: 0;
 `;
 
-const Top = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  align-items: flex-start;
-
-  body.paused #jel-interface.hub-type-world & {
-    opacity: 0.4;
-  }
-`;
-
 // Note the hack left: here is because the popper position update
 // ends up being behind if we try to change the placement of the popper
 // for the create select dropdown, which is necessary to support the top
@@ -205,95 +180,6 @@ const CenterPopupRef = styled.div`
   width: 1px;
   height: 1px;
   pointer-events: none;
-`;
-
-const HubCornerButtonElement = styled.button`
-  color: var(--canvas-overlay-text-color);
-  width: content-width;
-  margin: 0px 12px 0 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border-radius: 4px;
-  cursor: pointer;
-  pointer-events: auto;
-  padding: 6px 10px;
-  border: 0;
-  appearance: none;
-  -moz-appearance: none;
-  -webkit-appearance: none;
-  outline-style: none;
-  background-color: transparent;
-  font-weight: var(--canvas-overlay-item-text-weight);
-  text-align: left;
-  max-width: fit-content;
-  text-shadow: 0px 0px 4px;
-
-  &:hover {
-    background-color: var(--canvas-overlay-item-hover-background-color);
-  }
-
-  &:active {
-    background-color: var(--canvas-overlay-item-active-background-color);
-  }
-
-  .panels-expanded & {
-    display: none;
-  }
-`;
-
-const HubCornerButtons = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  align-items: center;
-  width: 50%;
-  padding: 12px 0;
-
-  &.opaque {
-    background-color: var(--channel-header-background-color);
-  }
-`;
-
-const HubCornerButton = styled.button`
-  position: relative;
-  color: var(--canvas-overlay-text-color);
-  width: content-width;
-  margin: 0 12px 0 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border-radius: 4px;
-  cursor: pointer;
-  pointer-events: auto;
-  padding: 6px 10px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  appearance: none;
-  -moz-appearance: none;
-  -webkit-appearance: none;
-  outline-style: none;
-  background-color: transparent;
-  font-weight: var(--canvas-overlay-item-text-weight);
-  text-align: left;
-  max-width: fit-content;
-  text-shadow: 0px 0px 4px var(--menu-shadow-color);
-
-  &:hover {
-    background-color: var(--canvas-overlay-item-hover-background-color);
-  }
-
-  &:active {
-    background-color: var(--canvas-overlay-item-active-background-color);
-  }
-
-  .panels-expanded & {
-    display: none;
-  }
-`;
-
-const HubCornerButtonIcon = styled.div`
-  width: 22px;
-  height: 22px;
 `;
 
 const PausedInfoLabel = styled.div`
@@ -389,72 +275,6 @@ const ExternalCameraRotateButtonIcon = styled.div`
   height: 30px;
 `;
 
-const HubContextButton = forwardRef((props, ref) => {
-  return (
-    <HubCornerButtonElement {...props} ref={ref}>
-      <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: dotsIcon }} />
-    </HubCornerButtonElement>
-  );
-});
-
-HubContextButton.displayName = "HubContextButton";
-
-const HubCreateButton = forwardRef((props, ref) => {
-  const messages = getMessages();
-
-  return (
-    <Tooltip content={messages["create.tip"]} placement="top" key="create" delay={500}>
-      <HubCornerButtonElement {...props} ref={ref}>
-        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: addIcon }} />
-      </HubCornerButtonElement>
-    </Tooltip>
-  );
-});
-
-HubCreateButton.displayName = "HubCreateButton";
-
-const EnvironmentSettingsButton = forwardRef((props, ref) => {
-  const messages = getMessages();
-
-  return (
-    <Tooltip content={messages["environment-settings.tip"]} placement="top" key="environment-settings" delay={500}>
-      <HubCornerButtonElement {...props} ref={ref}>
-        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: sunIcon }} />
-      </HubCornerButtonElement>
-    </Tooltip>
-  );
-});
-
-EnvironmentSettingsButton.displayName = "EnvironmentSettingsButton";
-
-const HubPermissionsButton = forwardRef((props, ref) => {
-  const messages = getMessages();
-
-  return (
-    <Tooltip content={messages["hub-permissions.tip"]} placement="top" key="hub-permissions" delay={500}>
-      <HubCornerButtonElement {...props} ref={ref}>
-        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: securityIcon }} />
-      </HubCornerButtonElement>
-    </Tooltip>
-  );
-});
-
-HubPermissionsButton.displayName = "HubPermissionsButton";
-
-const HubNotificationButton = forwardRef((props, ref) => {
-  const messages = getMessages();
-
-  return (
-    <Tooltip content={messages["hub-notifications.tip"]} placement="top" key="hub-notifications" delay={500}>
-      <HubCornerButtonElement {...props} ref={ref}>
-        <HubCornerButtonIcon dangerouslySetInnerHTML={{ __html: notificationsIcon }} />
-      </HubCornerButtonElement>
-    </Tooltip>
-  );
-});
-
-HubNotificationButton.displayName = "HubNotificationButton";
-
 const KeyTipsWrap = styled.div`
   position: absolute;
   bottom: 0;
@@ -472,16 +292,6 @@ const BottomLeftPanels = styled.div`
   width: 50%;
 `;
 
-const DeviceStatuses = styled.div`
-  flex-direction: row;
-  margin: 11px 12px 0 0;
-  display: none;
-
-  .panels-expanded & {
-    display: flex;
-  }
-`;
-
 function JelUI(props) {
   const {
     scene,
@@ -497,17 +307,13 @@ function JelUI(props) {
     subscriptions,
     spaceId
   } = props;
-  const { builderSystem, launcherSystem } = SYSTEMS;
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
-  const treeForCurrentHub = hub && hub.type === "world" ? worldTree : channelTree;
   const { store, hubChannel, spaceChannel, dynaChannel, matrix } = window.APP;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
-  const hubTrailHubIds =
-    (treeForCurrentHub && treeForCurrentHub.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
   const [unmuted, setUnmuted] = useState(false);
   const [worldTreeData, setWorldTreeData] = useState([]);
   const [worldTreeDataVersion, setWorldTreeDataVersion] = useState(0);
@@ -518,7 +324,6 @@ function JelUI(props) {
   const [isInitializingSpace, setIsInitializingSpace] = useState(store.state.context.isFirstVisitToSpace);
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [showingExternalCamera, setShowingExternalCamera] = useState(false);
-  const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const [showNotificationBanner, setShowNotificationBanner] = useState(
     subscriptions &&
       !subscriptions.subscribed &&
@@ -528,17 +333,11 @@ function JelUI(props) {
   );
   const [showNotificationBannerWarning, setShowNotificationBannerWarning] = useState(false);
 
-  const [canSpawnAndMoveMedia, setCanSpawnAndMoveMedia] = useState(
-    hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id)
-  );
-
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
 
   const hubRenameFocusRef = useRef();
   const spaceRenameFocusRef = useRef();
-  const hubContextButtonRef = useRef();
-  const hubCreateButtonRef = useRef();
   const createSelectFocusRef = useRef();
   const createSelectPopupRef = useRef();
   const chatInputFocusRef = useRef();
@@ -546,9 +345,7 @@ function JelUI(props) {
   const modalPopupRef = useRef();
   const createEmbedFocusRef = useRef();
   const emojiPopupFocusRef = useRef();
-  const hubPermissionsButtonRef = useRef();
   const environmentSettingsButtonRef = useRef();
-  const hubNotificationButtonRef = useRef();
 
   const {
     styles: hubRenamePopupStyles,
@@ -723,20 +520,6 @@ function JelUI(props) {
 
   useEffect(
     () => {
-      const handler = () => {
-        setTriggerMode(builderSystem.enabled ? "builder" : "launcher");
-      };
-
-      builderSystem.addEventListener("enabledchanged", handler);
-      () => {
-        builderSystem.removeEventListener("enabledchanged", handler);
-      };
-    },
-    [builderSystem, launcherSystem]
-  );
-
-  useEffect(
-    () => {
       if (!isInitializingSpace) return;
 
       const handler = () => {
@@ -749,17 +532,6 @@ function JelUI(props) {
       return () => store.removeEventListener("statechanged-context", handler);
     },
     [store, setIsInitializingSpace, isInitializingSpace]
-  );
-
-  // Handle permissions changed
-  useEffect(
-    () => {
-      const handler = () => setCanSpawnAndMoveMedia(hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id));
-      setCanSpawnAndMoveMedia(hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id));
-      hubChannel && hubChannel.addEventListener("permissions_updated", handler);
-      return () => hubChannel && hubChannel.removeEventListener("permissions_updated", handler);
-    },
-    [hub, hubCan, hubChannel]
   );
 
   // Handle create hotkey (typically /)
@@ -825,13 +597,9 @@ function JelUI(props) {
     [scene]
   );
 
-  const [pwaAvailable, installPWA] = useInstallPWA();
-
   const isHomeHub = hub && hub.is_home;
 
   const onCreateActionSelected = useCallback(a => scene.emit("create_action_exec", a), [scene]);
-
-  const onTrailHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
 
   const onTurnOnNotificationClicked = useCallback(() => subscriptions.subscribe(), [subscriptions]);
 
@@ -980,78 +748,24 @@ function JelUI(props) {
           <CreateSelectPopupRef ref={createSelectPopupRef} />
           <ModalPopupRef ref={modalPopupRef} />
           <CenterPopupRef ref={centerPopupRef} />
-          <Top>
-            <HubTrail
-              tree={treeForCurrentHub}
-              history={history}
-              hub={hub}
-              hubMetadata={hubMetadata}
-              hubCan={hubCan}
-              hubIds={hubTrailHubIds}
-              renamePopupElement={hubRenamePopupElement}
-              showRenamePopup={showHubRenamePopup}
-              onHubNameChanged={onTrailHubNameChanged}
-            />
-            <HubCornerButtons className={hub && hub.type === "world" ? "" : "opaque"}>
-              {pwaAvailable && (
-                <HubCornerButton onClick={installPWA}>
-                  <FormattedMessage id="install.desktop" />
-                </HubCornerButton>
-              )}
-              {isWorld && (
-                <EnvironmentSettingsButton
-                  ref={environmentSettingsButtonRef}
-                  onMouseDown={e => cancelEventIfFocusedWithin(e, environmentSettingsPopupElement)}
-                  onClick={() => showEnvironmentSettingsPopup(environmentSettingsButtonRef)}
-                />
-              )}
-              {isWorld &&
-                hubCan &&
-                hubCan("update_hub_roles", hub && hub.hub_id) && (
-                  <HubPermissionsButton
-                    ref={hubPermissionsButtonRef}
-                    onMouseDown={e => cancelEventIfFocusedWithin(e, hubPermissionsPopupElement)}
-                    onClick={() => showHubPermissionsPopup(hubPermissionsButtonRef)}
-                  />
-                )}
-              {isWorld && (
-                <HubNotificationButton
-                  ref={hubNotificationButtonRef}
-                  onMouseDown={e => cancelEventIfFocusedWithin(e, hubNotificationPopupElement)}
-                  onClick={() => showHubNotificationPopup(hubNotificationButtonRef)}
-                />
-              )}
-              {isWorld &&
-                canSpawnAndMoveMedia && (
-                  <HubCreateButton
-                    ref={hubCreateButtonRef}
-                    onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
-                    onClick={() => {
-                      store.handleActivityFlag("createMenu");
-                      showCreateSelectPopup(hubCreateButtonRef, "bottom-end");
-                    }}
-                  />
-                )}
-              <HubContextButton
-                ref={hubContextButtonRef}
-                onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
-                onClick={() => {
-                  showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
-                    hideRename: true,
-                    showExport: isWorld,
-                    showReset: !!hub.template.name
-                  });
-                }}
-              />
-              {isWorld && (
-                <DeviceStatuses>
-                  <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
-                  {triggerMode === "builder" && <EqippedBrushIcon />}
-                  {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
-                </DeviceStatuses>
-              )}
-            </HubCornerButtons>
-          </Top>
+          <CanvasTop
+            {...props}
+            worldTree={worldTree}
+            channelTree={channelTree}
+            hubRenamePopupElement={hubRenamePopupElement}
+            showHubRenamePopup={showHubRenamePopup}
+            environmentSettingsButtonRef={environmentSettingsButtonRef}
+            environmentSettingsPopupElement={environmentSettingsPopupElement}
+            showEnvironmentSettingsPopup={showEnvironmentSettingsPopup}
+            hubPermissionsPopupElement={hubPermissionsPopupElement}
+            showHubPermissionsPopup={showHubPermissionsPopup}
+            hubNotificationPopupElement={hubNotificationPopupElement}
+            showHubNotificationPopup={showHubNotificationPopup}
+            createSelectPopupElement={createSelectPopupElement}
+            showCreateSelectPopup={showCreateSelectPopup}
+            hubContextMenuElement={hubContextMenuElement}
+            showHubContextMenuPopup={showHubContextMenuPopup}
+          />
           <KeyTipsWrap
             style={{ visibility: isWorld ? "visible" : "hidden" }}
             onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}
@@ -1100,7 +814,6 @@ function JelUI(props) {
             showSpaceNotificationPopup={showSpaceNotificationPopup}
             showInviteTip={showInviteTip}
             setHasShownInvite={setHasShownInvite}
-            triggerMode={triggerMode}
           />
         )}
       </div>

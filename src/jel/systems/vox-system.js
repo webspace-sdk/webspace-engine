@@ -753,6 +753,16 @@ export class VoxSystem extends EventTarget {
     }
   }
 
+  getMeshesForSource(source) {
+    for (const entry of this.voxMap.values()) {
+      if (entry.sources.includes(source)) {
+        return entry.meshes.filter(m => m !== null);
+      }
+    }
+
+    return [];
+  }
+
   updateOpenVoxIdsInPresence() {
     const { syncs } = this;
     const openVoxIds = [];
@@ -887,6 +897,18 @@ export class VoxSystem extends EventTarget {
     }
 
     return targetableMeshes;
+  }
+
+  getTargettableMeshForSource(source) {
+    const { voxMap } = this;
+
+    for (const { sources, meshes, targettingMesh } of voxMap.values()) {
+      if (sources.includes(source)) {
+        return targettingMesh || meshes[0];
+      }
+    }
+
+    return null;
   }
 
   getBoundingBoxForSource(source) {

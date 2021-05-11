@@ -131,7 +131,7 @@ export class UIAnimationSystem {
       const width = this.sceneEl.canvas.parentElement.offsetWidth;
       const height = this.sceneEl.canvas.parentElement.offsetHeight;
       this.sceneEl.camera.aspect = width / height;
-      this.sceneEl.camera.updateProjectionMatrix();
+      SYSTEMS.cameraSystem.updateCameraSettings();
     } else {
       let finished = false;
 

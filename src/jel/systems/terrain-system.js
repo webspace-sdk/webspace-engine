@@ -904,8 +904,15 @@ export class TerrainSystem {
       p7.applyMatrix4(camera.matrixWorld);
       p8.applyMatrix4(camera.matrixWorld);
 
+      const { cameraSystem } = SYSTEMS;
+
       // Cull terrain
       for (const t of terrains) {
+        if (cameraSystem.isRenderingOrthographic()) {
+          t.visible = true;
+          continue;
+        }
+
         // eslint-disable-line no-restricted-syntax
         let show = true;
 
@@ -1053,6 +1060,11 @@ export class TerrainSystem {
       p8.applyMatrix4(camera.matrixWorld);
 
       for (const t of featureGroups) {
+        if (cameraSystem.isRenderingOrthographic()) {
+          t.visible = true;
+          continue;
+        }
+
         // eslint-disable-line no-restricted-syntax
         let show = true;
 

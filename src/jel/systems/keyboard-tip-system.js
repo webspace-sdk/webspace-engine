@@ -35,105 +35,112 @@ export class KeyboardTipSystem {
       } else if (this.scene.is("pointer-exited")) {
         showTips = this.scene.is("unmuted") ? "pointer_exited_unmuted" : "pointer_exited_muted";
       } else {
-        if (this.cameraSystem.isInAvatarView()) {
-          const expanded = getCursorLockState() === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
-          showTips = expanded
-            ? this.scene.is("unmuted")
-              ? "idle_full_unmuted"
-              : "idle_full_muted"
-            : shiftMouseLook
-              ? "idle_key_mouselook_panels"
-              : "idle_panels";
+        const expanded = getCursorLockState() === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
+        showTips = expanded
+          ? this.scene.is("unmuted")
+            ? "idle_full_unmuted"
+            : "idle_full_muted"
+          : shiftMouseLook
+            ? "idle_key_mouselook_panels"
+            : "idle_panels";
 
-          if (this.transformSystem.transforming) {
-            showTips = this.scaleSystem.isScaling ? "scale" : "rotate";
+        if (this.transformSystem.transforming) {
+          showTips = this.scaleSystem.isScaling ? "scale" : "rotate";
+        } else {
+          const held =
+            this.interaction.state.leftHand.held ||
+            this.interaction.state.rightHand.held ||
+            this.interaction.state.rightRemote.held ||
+            this.interaction.state.leftRemote.held;
+
+          if (held) {
+            showTips = "holding_interactable";
           } else {
-            const held =
-              this.interaction.state.leftHand.held ||
-              this.interaction.state.rightHand.held ||
-              this.interaction.state.rightRemote.held ||
-              this.interaction.state.leftRemote.held;
+            const hovered =
+              this.interaction.state.leftHand.hovered ||
+              this.interaction.state.rightHand.hovered ||
+              this.interaction.state.rightRemote.hovered ||
+              this.interaction.state.leftRemote.hovered;
 
-            if (held) {
-              showTips = "holding_interactable";
-            } else {
-              const hovered =
-                this.interaction.state.leftHand.hovered ||
-                this.interaction.state.rightHand.hovered ||
-                this.interaction.state.rightRemote.hovered ||
-                this.interaction.state.leftRemote.hovered;
+            if (hovered && cursorIsVisible()) {
+              const { components } = hovered;
 
-              if (hovered && cursorIsVisible()) {
-                const { components } = hovered;
-
-                if (components["media-text"]) {
-                  showTips = "text";
-                } else if (components["media-video"]) {
-                  showTips = components["media-video"].data.videoPaused ? "video_paused" : "video_playing";
-                } else if (components["media-vox"]) {
-                  if (SYSTEMS.builderSystem.enabled) {
-                    const expanded = getCursorLockState() === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
-                    if (SYSTEMS.builderSystem.brushType === BRUSH_TYPES.PICK) {
-                      showTips = expanded || shiftMouseLook ? "vox_pick_full" : "vox_pick";
-                    } else if (SYSTEMS.builderSystem.brushType === BRUSH_TYPES.FILL) {
-                      showTips = expanded || shiftMouseLook ? "vox_fill_full" : "vox_fill";
-                    } else {
-                      const mode = SYSTEMS.builderSystem.brushMode;
-                      switch (mode) {
-                        case BRUSH_MODES.ADD:
-                          showTips = expanded || shiftMouseLook ? "vox_attach_full" : "vox_attach";
-                          break;
-                        case BRUSH_MODES.REMOVE:
-                          showTips = expanded || shiftMouseLook ? "vox_erase_full" : "vox_erase";
-                          break;
-                        case BRUSH_MODES.PAINT:
-                          showTips = expanded || shiftMouseLook ? "vox_paint_full" : "vox_paint";
-                          break;
-                      }
-                    }
+              if (components["media-text"]) {
+                showTips = "text";
+              } else if (components["media-video"]) {
+                showTips = components["media-video"].data.videoPaused ? "video_paused" : "video_playing";
+              } else if (components["media-vox"]) {
+                if (SYSTEMS.builderSystem.enabled) {
+                  const expanded = getCursorLockState() === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
+                  const editing = SYSTEMS.cameraSystem.isInspecting() && SYSTEMS.cameraSystem.allowCursor;
+                  const suffix = editing ? "_edit" : expanded ? "_full" : "";
+                  if (SYSTEMS.builderSystem.brushType === BRUSH_TYPES.PICK) {
+                    showTips = `vox_pick${suffix}`;
+                  } else if (SYSTEMS.builderSystem.brushType === BRUSH_TYPES.FILL) {
+                    showTips = `vox_fill${suffix}`;
                   } else {
-                    showTips = "vox";
+                    const mode = SYSTEMS.builderSystem.brushMode;
+                    switch (mode) {
+                      case BRUSH_MODES.ADD:
+                        showTips = `vox_attach${suffix}`;
+                        break;
+                      case BRUSH_MODES.REMOVE:
+                        showTips = `vox_remove${suffix}`;
+                        break;
+                      case BRUSH_MODES.PAINT:
+                        showTips = `vox_paint${suffix}`;
+                        break;
+                    }
                   }
-                } else if (components["media-pdf"]) {
-                  showTips = "pdf";
                 } else {
-                  let isBakable = false;
-                  let isGroundable = false;
+                  showTips = "vox";
+                }
+              } else if (components["media-pdf"]) {
+                showTips = "pdf";
+              } else {
+                let isBakable = false;
+                let isGroundable = false;
 
-                  // TODO clean this up if a third attribute comes along
-                  for (const component of BAKABLE_MEDIA_VIEW_COMPONENTS) {
-                    if (components[component]) {
-                      isBakable = true;
-                      break;
-                    }
+                // TODO clean this up if a third attribute comes along
+                for (const component of BAKABLE_MEDIA_VIEW_COMPONENTS) {
+                  if (components[component]) {
+                    isBakable = true;
+                    break;
                   }
+                }
 
-                  for (const component of GROUNDABLE_MEDIA_VIEW_COMPONENTS) {
-                    if (components[component]) {
-                      isGroundable = true;
-                      break;
-                    }
+                for (const component of GROUNDABLE_MEDIA_VIEW_COMPONENTS) {
+                  if (components[component]) {
+                    isGroundable = true;
+                    break;
                   }
+                }
 
-                  if (isGroundable && isBakable) {
-                    showTips = "hover_bakable_groundable_interactable";
-                  } else if (isGroundable) {
-                    showTips = "hover_groundable_interactable";
-                  } else if (isBakable) {
-                    showTips = "hover_bakable_interactable";
-                  } else {
-                    showTips = "hover_interactable";
-                  }
+                if (isGroundable && isBakable) {
+                  showTips = "hover_bakable_groundable_interactable";
+                } else if (isGroundable) {
+                  showTips = "hover_groundable_interactable";
+                } else if (isBakable) {
+                  showTips = "hover_bakable_interactable";
+                } else {
+                  showTips = "hover_interactable";
                 }
               }
             }
           }
-        } else {
-          showTips = "focus";
         }
       }
     } else {
       showTips = "closed";
+    }
+
+    // Don't override _edit if we're inspecting to edit (vox)
+    if (!this.cameraSystem.isInAvatarView() && !showTips.endsWith("_edit")) {
+      if (this.cameraSystem.allowCursor) {
+        showTips = "focus_edit";
+      } else {
+        showTips = "focus";
+      }
     }
 
     if (showTips !== this.tipsToShow) {

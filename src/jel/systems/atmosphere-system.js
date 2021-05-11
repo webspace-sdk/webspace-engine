@@ -128,6 +128,14 @@ export class AtmosphereSystem {
     this.fog.needsUpdate = true;
   }
 
+  disableFog() {
+    this.sceneEl.object3D.fog = null;
+  }
+
+  enableFog() {
+    this.sceneEl.object3D.fog = this.fog;
+  }
+
   enableAmbience() {
     this.outdoorsSoundTargetGain = 2.0;
     this.waterSoundTargetGain = 1.0;
