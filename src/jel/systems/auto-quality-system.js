@@ -1,3 +1,4 @@
+import { EventTarget } from "event-target-shim";
 const SAMPLING_DURATION_MS = 1000.0 * 4.0;
 const LOWER_QUALITY_FRAME_LENGTH = 1000.0 / 50; // Ensure at least 50 FPS
 const MIN_SAMPLES_NEEDED = 15;
@@ -17,8 +18,10 @@ const debugAutoQuality = qsTruthy("debug_auto_quality");
 
 // Conservative quality adjuster, take frames during a SAMPLING_DURATION_MS
 // period and if we never see MIN_NUM_CONSECUTIVE_FAST_FRAMES consecutive fast frames then lower quality.
-export class AutoQualitySystem {
+export class AutoQualitySystem extends EventTarget {
   constructor(sceneEl) {
+    super();
+
     this.scene = sceneEl;
     this.enableTracking = false;
     this.numConsecutiveFastFrames = 0;
@@ -26,6 +29,7 @@ export class AutoQualitySystem {
     this.totalFrames = 0;
     this.sampledFrames = 0;
     this.slowStartupFrames = Array(STARTUP_SLOW_FRAME_THRESHOLDS.length).fill(0);
+    this.firedFrameStableEvent = false;
     this.lastTick = 0;
     this.debugStartTime = performance.now();
 
@@ -144,6 +148,11 @@ export class AutoQualitySystem {
 
       if (this.consecutiveFastFrames >= MIN_NUM_CONSECUTIVE_FAST_FRAMES) {
         this.metFastFrameTest = true;
+
+        if (!this.firedFrameStableEvent) {
+          this.dispatchEvent(new CustomEvent("framerate_stable", {}));
+          this.firedFrameStableEvent = true;
+        }
       }
     } else {
       this.consecutiveFastFrames = 0;

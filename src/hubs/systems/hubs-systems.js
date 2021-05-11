@@ -59,7 +59,8 @@ AFRAME.registerSystem("hubs-systems", {
     this.cursorTargettingSystem = new CursorTargettingSystem();
     this.positionAtBorderSystem = new PositionAtBorderSystem();
     this.cameraSystem = new CameraSystem(this.el);
-    this.audioSystem = new AudioSystem(this.el);
+    this.autoQualitySystem = new AutoQualitySystem(this.el);
+    this.audioSystem = new AudioSystem(this.el, this.autoQualitySystem);
     this.soundEffectsSystem = new SoundEffectsSystem(this.el);
     this.atmosphereSystem = new AtmosphereSystem(this.el, this.soundEffectsSystem);
     this.skyBeamSystem = new SkyBeamSystem(this.el);
@@ -107,7 +108,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.avatarSystem = new AvatarSystem(this.el, this.atmosphereSystem);
     this.cameraRotatorSystem = new CameraRotatorSystem(this.el);
     this.keyboardTipSystem = new KeyboardTipSystem(this.el, this.cameraSystem);
-    this.autoQualitySystem = new AutoQualitySystem(this.el);
     this.helpersSystem = new HelpersSystem(this.el);
     this.launcherSystem = new LauncherSystem(
       this.el,

@@ -16,7 +16,7 @@ export const supportsLipSync = () =>
   !skipLipsync && typeof AudioWorklet == "function" && window.SharedArrayBuffer && supportsInsertableStreams;
 
 export class AudioSystem {
-  constructor(sceneEl) {
+  constructor(sceneEl, autoQualitySystem) {
     sceneEl.audioListener = sceneEl.audioListener || new THREE.AudioListener();
     if (sceneEl.camera) {
       sceneEl.camera.add(sceneEl.audioListener);
@@ -60,7 +60,7 @@ export class AudioSystem {
     document.body.addEventListener("touchend", resume, false);
     document.body.addEventListener("mouseup", resume, false);
 
-    this.scene.addEventListener("terrain_chunk_loading_complete", () => {
+    autoQualitySystem.addEventListener("framerate_stable", () => {
       // Start lip syncing after level loads to avoid hitching.
       if (supportsLipSync()) {
         this.startLipSync(sceneEl);
