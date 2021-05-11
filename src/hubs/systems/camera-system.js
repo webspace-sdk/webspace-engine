@@ -143,7 +143,7 @@ const disableInspectLayer = function(o) {
     o.layers.disable(CAMERA_LAYER_INSPECT);
 
     // Check for vox/voxmoji
-    const sourceMesh = o.el.getObject3D("mesh");
+    const sourceMesh = o.el && o.el.getObject3D("mesh");
 
     if (sourceMesh) {
       for (const mesh of SYSTEMS.voxSystem.getMeshesForSource(sourceMesh)) {
