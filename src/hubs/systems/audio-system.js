@@ -10,6 +10,7 @@ import rnnWasm from "../../jel/wasm/rnnoise-vad-wasm.js";
 const supportsInsertableStreams = !!(window.RTCRtpSender && !!RTCRtpSender.prototype.createEncodedStreams);
 
 const skipLipsync = qsTruthy("skip_lipsync");
+const skipVad = qsTruthy("skip_vad");
 
 export const supportsLipSync = () =>
   !skipLipsync && typeof AudioWorklet == "function" && window.SharedArrayBuffer && supportsInsertableStreams;
@@ -141,7 +142,8 @@ export class AudioSystem {
         this.lipSyncVadProcessor = new AudioWorkletNode(this.audioContext, "vad", {
           processorOptions: {
             vadBuffer: this.lipSyncVadBuffer,
-            rnnWasm
+            rnnWasm,
+            enabled: !skipVad
           }
         });
 

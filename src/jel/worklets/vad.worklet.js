@@ -14,33 +14,35 @@ class VadWorklet extends AudioWorkletProcessor {
     this.bufferResidue = new Float32Array([]);
     this.vadData = new Float32Array(processorOptions.vadBuffer);
     this.rnn = null;
-    this.processFrame = (sample, i) => 0.1; // eslint-disable-line
+    this.processFrame = (sample, i) => 1.0; // eslint-disable-line
     const rnnWasm = processorOptions.rnnWasm;
 
     const instantiateWasm = (imports, cb) =>
       WebAssembly.instantiate(rnnWasm, imports).then(({ instance }) => cb(instance));
 
-    // TODO move wasm to CDN
-    loadRnnNoiseVad({ instantiateWasm }).then(rnnoise => {
-      const {
-        _rnnoise_create: createNoise,
-        _malloc: malloc,
-        _rnnoise_process_frame_vad: processNoiseVad,
-        HEAPF32
-      } = rnnoise;
+    if (processorOptions.enabled) {
+      // TODO move wasm to CDN
+      loadRnnNoiseVad({ instantiateWasm }).then(rnnoise => {
+        const {
+          _rnnoise_create: createNoise,
+          _malloc: malloc,
+          _rnnoise_process_frame_vad: processNoiseVad,
+          HEAPF32
+        } = rnnoise;
 
-      const pcmInputBuf = malloc(BUFFER_SIZE);
-      const pcmInputIndex = pcmInputBuf / 4;
+        const pcmInputBuf = malloc(BUFFER_SIZE);
+        const pcmInputIndex = pcmInputBuf / 4;
 
-      this.rnn = createNoise();
+        this.rnn = createNoise();
 
-      this.processFrame = (data, idx) => {
-        for (let i = 0; i < SAMPLE_LENGTH; i++) {
-          HEAPF32[pcmInputIndex + i] = data[idx + i] * 0x7fff;
-        }
-        return processNoiseVad(this.rnn, pcmInputBuf);
-      };
-    });
+        this.processFrame = (data, idx) => {
+          for (let i = 0; i < SAMPLE_LENGTH; i++) {
+            HEAPF32[pcmInputIndex + i] = data[idx + i] * 0x7fff;
+          }
+          return processNoiseVad(this.rnn, pcmInputBuf);
+        };
+      });
+    }
   }
 
   process(inputs) {
