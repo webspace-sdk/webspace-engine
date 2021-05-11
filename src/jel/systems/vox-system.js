@@ -577,6 +577,8 @@ export class VoxSystem extends EventTarget {
     const entry = voxMap.get(voxId);
     if (!entry) return;
 
+    const { cameraSystem } = SYSTEMS;
+
     const {
       vox,
       sources,
@@ -645,7 +647,20 @@ export class VoxSystem extends EventTarget {
           );
         }
 
-        const [xMin, yMin, zMin, xMax, yMax, zMax] = mesh.geometry.update(chunk, mesherQuadSize);
+        let showXZPlane = false;
+
+        if (cameraSystem.isInspecting() && cameraSystem.allowCursor && cameraSystem.showXZPlane) {
+          for (let i = 0; i < sources.length; i++) {
+            const source = sources[i];
+            if (source === null) continue;
+
+            if (source.parent === cameraSystem.inspected) {
+              showXZPlane = true;
+            }
+          }
+        }
+
+        const [xMin, yMin, zMin, xMax, yMax, zMax] = mesh.geometry.update(chunk, mesherQuadSize, false, showXZPlane);
 
         const xExtent = xMax - xMin;
         const yExtent = yMax - yMin;

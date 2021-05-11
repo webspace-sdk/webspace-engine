@@ -182,6 +182,7 @@ export class CameraSystem extends EventTarget {
     this.inspectZoom = 0;
     this.allowCursor = false;
     this.orthographicEnabled = false;
+    this.showXZPlane = true;
     this.mode = CAMERA_MODE_FIRST_PERSON;
     this.snapshot = { audioTransform: new THREE.Matrix4(), matrixWorld: new THREE.Matrix4(), mask: null, mode: null };
     this.audioListenerTargetTransform = new THREE.Matrix4();

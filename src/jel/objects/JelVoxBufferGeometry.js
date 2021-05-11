@@ -339,7 +339,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
 
   // Updates the geometry with the specified vox chunk, returning the extents of the mesh.
   // If false, generates a mesh without regard to color
-  update(chunk, maxQuadSize = 1, flat = false) {
+  update(chunk, maxQuadSize = 1, flat = false, addXZPlane = true) {
     this.freeAttributeMemory();
 
     const palette = [];
@@ -375,7 +375,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
     // Generate quadData via greedy mesher.
     const quadData = flat ? GreedyMeshFlat(chunk, maxQuadSize) : GreedyMesh(chunk, maxQuadSize);
 
-    const numQuads = quadData.length / 14;
+    const numQuads = quadData.length / 14 + (addXZPlane ? 1 : 0);
     const vertices = float32Pool.get(12 * numQuads);
     const normals = float32Pool.get(12 * numQuads);
     const colors = float32Pool.get(12 * numQuads);
@@ -657,6 +657,34 @@ class JelVoxBufferGeometry extends BufferGeometry {
 
           break;
       }
+    }
+
+    if (addXZPlane) {
+      pushFace(
+        quadData.length / 14,
+        (xMin + xShift - 2) * VOXEL_SIZE,
+        0,
+        (zMax + zShift + 2) * VOXEL_SIZE,
+        (xMax + xShift + 2) * VOXEL_SIZE,
+        0,
+        (zMax + zShift + 2) * VOXEL_SIZE,
+        (xMax + xShift + 2) * VOXEL_SIZE,
+        0,
+        (zMin + zShift - 2) * VOXEL_SIZE,
+        (xMin + xShift - 2) * VOXEL_SIZE,
+        0,
+        (zMin + zShift - 2) * VOXEL_SIZE,
+        0,
+        0,
+        Math.abs((zMax + zShift + 2) * VOXEL_SIZE - (zMin + zShift - 2) * VOXEL_SIZE),
+        Math.abs((xMax + xShift + 2) * VOXEL_SIZE - (xMin + xShift - 2) * VOXEL_SIZE),
+        0,
+        1,
+        0,
+        0.2,
+        0.2,
+        0.2
+      );
     }
 
     // Generate vertex indices for quads.
