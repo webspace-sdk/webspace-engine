@@ -211,7 +211,15 @@ const CameraProjectionButton = forwardRef(() => {
 
   return (
     <Tooltip content={messages["camera-projection.tip"]} placement="top" key="projection" delay={500}>
-      <CornerButton onClick={useCallback(() => cameraSystem.toggleOrthoCamera(), [cameraSystem])}>
+      <CornerButton
+        onClick={useCallback(
+          () => {
+            cameraSystem.toggleOrthoCamera();
+            document.activeElement.blur();
+          },
+          [cameraSystem]
+        )}
+      >
         <FormattedMessage id={isOrtho ? "camera-projection.ortho" : "camera-projection.pers"} />
       </CornerButton>
     </Tooltip>
@@ -236,7 +244,15 @@ const DisplayObjectsButton = forwardRef(() => {
 
   return (
     <Tooltip content={messages["display-objects.tip"]} placement="top" key="projection" delay={500}>
-      <CornerButton onClick={useCallback(() => cameraSystem.toggleShowWorld(), [cameraSystem])}>
+      <CornerButton
+        onClick={useCallback(
+          () => {
+            cameraSystem.toggleShowWorld();
+            document.activeElement.blur();
+          },
+          [cameraSystem]
+        )}
+      >
         <FormattedMessage id={showWorld ? "display-objects.hide-world" : "display-objects.show-world"} />
       </CornerButton>
     </Tooltip>

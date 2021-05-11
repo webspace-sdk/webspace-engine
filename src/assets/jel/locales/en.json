@@ -378,6 +378,6 @@
   "camera-projection.pers": "Perspective",
   "camera-projection.ortho": "Orthographic",
   "display-objects.tip": "Toggle Visible Objects",
-  "display-objects.show-world": "Show World",
-  "display-objects.hide-world": "Hide World"
+  "display-objects.show-world": "World Off",
+  "display-objects.hide-world": "World On"
 }
