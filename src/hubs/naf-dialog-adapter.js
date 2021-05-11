@@ -3,7 +3,7 @@ import protooClient from "protoo-client";
 import { debug as newDebug } from "debug";
 import { setupPeerConnectionConfig } from "../jel/utils/jel-url-utils";
 import { EventTarget } from "event-target-shim";
-import qsTruthy from "../utils/qs_truthy";
+import qsTruthy from "./utils/qs_truthy";
 
 const skipLipsync = qsTruthy("skip_lipsync");
 
