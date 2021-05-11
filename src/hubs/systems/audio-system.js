@@ -287,7 +287,7 @@ export class AudioSystem {
         for (let i = 0; i < parsedSdp.media.length; i++) {
           for (let j = 0; j < parsedSdp.media[i].fmtp.length; j++) {
             parsedSdp.media[i].fmtp[j].config =
-              parsedSdp.media[i].fmtp[j].config + ";stereo=1;maxaveragebitrate=524288;";
+              parsedSdp.media[i].fmtp[j].config + ";stereo=1;maxaveragebitrate=262144;";
           }
         }
 
