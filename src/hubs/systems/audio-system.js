@@ -40,10 +40,6 @@ export class AudioSystem {
     this.aecHackOutboundPeer = null;
     this.aecHackInboundPeer = null;
 
-    if (supportsLipSync()) {
-      this.startLipSync(sceneEl);
-    }
-
     /**
      * Chrome and Safari will start Audio contexts in a "suspended" state.
      * A user interaction (touch/mouse event) is needed in order to resume the AudioContext.
@@ -63,6 +59,13 @@ export class AudioSystem {
 
     document.body.addEventListener("touchend", resume, false);
     document.body.addEventListener("mouseup", resume, false);
+
+    this.scene.addEventListener("terrain_chunk_loading_complete", () => {
+      // Start lip syncing after level loads to avoid hitching.
+      if (supportsLipSync()) {
+        this.startLipSync(sceneEl);
+      }
+    });
   }
 
   disableLipSync() {
