@@ -1,6 +1,7 @@
 import audioForwardWorkletSrc from "../../jel/worklets/audio-forward.worklet.js";
 import vadWorkletSrc from "../../jel/worklets/vad.worklet.js";
 import lipSyncWorker from "../../jel/workers/lipsync.worker.js";
+import sdpTransform from "sdp-transform";
 
 // Built via https://github.com/sipavlovic/wasm2js to load in worklet
 import rnnWasm from "../../jel/wasm/rnnoise-vad-wasm.js";
@@ -232,7 +233,6 @@ export class AudioSystem {
    *  All audio is now routed through Chrome's audio mixer, thus enabling AEC, while preserving all the audio processing that was performed via the WebAudio API.
    */
   async applyAECHack() {
-    return true; // DISABLE FOR NOW
     if (AFRAME.utils.device.isMobile() || !/chrome/i.test(navigator.userAgent)) return;
     this.audioContext = THREE.AudioContext.getContext();
     if (this.audioContext.state !== "running") return;
@@ -281,7 +281,18 @@ export class AudioSystem {
         await this.aecHackInboundPeer.setRemoteDescription(offer);
         if (!this.aecHackOutboundPeer || !this.aecHackInboundPeer) return;
 
+        // Bump opus bitrate and set mono
         const answer = await this.aecHackInboundPeer.createAnswer();
+        const parsedSdp = sdpTransform.parse(answer.sdp);
+        for (let i = 0; i < parsedSdp.media.length; i++) {
+          for (let j = 0; j < parsedSdp.media[i].fmtp.length; j++) {
+            parsedSdp.media[i].fmtp[j].config =
+              parsedSdp.media[i].fmtp[j].config + ";stereo=1;maxaveragebitrate=524288;";
+          }
+        }
+
+        answer.sdp = sdpTransform.write(parsedSdp);
+
         if (!this.aecHackOutboundPeer || !this.aecHackInboundPeer) return;
 
         this.aecHackInboundPeer.setLocalDescription(answer);

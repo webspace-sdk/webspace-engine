@@ -119,6 +119,7 @@
     "react-transition-group": "^4.4.1",
     "screenfull": "^4.0.1",
     "scroll-into-view-if-needed": "^2.2.26",
+    "sdp-transform": "^2.14.1",
     "shared-aframe": "github:jel-app/shared-aframe#master",
     "storybook-addon-designs": "^5.4.2",
     "three": "github:jel-app/three.js#hubs/master",
