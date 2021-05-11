@@ -232,6 +232,7 @@ export class AudioSystem {
    *  All audio is now routed through Chrome's audio mixer, thus enabling AEC, while preserving all the audio processing that was performed via the WebAudio API.
    */
   async applyAECHack() {
+    return true; // DISABLE FOR NOW
     if (AFRAME.utils.device.isMobile() || !/chrome/i.test(navigator.userAgent)) return;
     this.audioContext = THREE.AudioContext.getContext();
     if (this.audioContext.state !== "running") return;
