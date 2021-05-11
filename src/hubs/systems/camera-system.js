@@ -663,7 +663,7 @@ export class CameraSystem extends EventTarget {
       const minOrthoZoom = (1.0 / dist) * 0.25;
 
       // Handle zooming of ortho camera
-      orthoCamera.zoom = Math.max(minOrthoZoom, Math.min(maxOrthoZoom, orthoCamera.zoom + dz * 0.1 * dt));
+      orthoCamera.zoom = Math.max(minOrthoZoom, Math.min(maxOrthoZoom, orthoCamera.zoom + dz * (0.5 / dist) * dt));
       orthoCamera.updateProjectionMatrix();
 
       this.updateCameraSettings();
