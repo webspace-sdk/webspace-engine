@@ -130,17 +130,17 @@ export class KeyboardTipSystem {
           }
         }
       }
+
+      // Don't override _edit if we're inspecting to edit (vox)
+      if (!this.cameraSystem.isInAvatarView() && !showTips.endsWith("_edit")) {
+        if (this.cameraSystem.allowCursor) {
+          showTips = "focus_edit";
+        } else {
+          showTips = "focus";
+        }
+      }
     } else {
       showTips = "closed";
-    }
-
-    // Don't override _edit if we're inspecting to edit (vox)
-    if (!this.cameraSystem.isInAvatarView() && !showTips.endsWith("_edit")) {
-      if (this.cameraSystem.allowCursor) {
-        showTips = "focus_edit";
-      } else {
-        showTips = "focus";
-      }
     }
 
     if (showTips !== this.tipsToShow) {

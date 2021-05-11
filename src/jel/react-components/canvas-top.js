@@ -206,12 +206,20 @@ const CameraProjectionButton = forwardRef(() => {
     };
 
     cameraSystem.addEventListener("settings_changed", handler);
-    () => cameraSystem.removeEventListener("settings_changed", handler);
+    return () => cameraSystem.removeEventListener("settings_changed", handler);
   });
 
   return (
     <Tooltip content={messages["camera-projection.tip"]} placement="top" key="projection" delay={500}>
-      <CornerButton onClick={useCallback(() => cameraSystem.toggleOrthoCamera(), [cameraSystem])}>
+      <CornerButton
+        onClick={useCallback(
+          () => {
+            cameraSystem.toggleOrthoCamera();
+            document.activeElement.blur();
+          },
+          [cameraSystem]
+        )}
+      >
         <FormattedMessage id={isOrtho ? "camera-projection.ortho" : "camera-projection.pers"} />
       </CornerButton>
     </Tooltip>
@@ -220,7 +228,7 @@ const CameraProjectionButton = forwardRef(() => {
 
 CameraProjectionButton.displayName = "CameraProjectionButton";
 
-const DisplayObjectsButton = forwardRef(() => {
+const ToggleWorldButton = forwardRef(() => {
   const { cameraSystem } = SYSTEMS;
   const messages = getMessages();
   const [showWorld, setShowWorld] = useState(cameraSystem.showWorld);
@@ -235,15 +243,56 @@ const DisplayObjectsButton = forwardRef(() => {
   });
 
   return (
-    <Tooltip content={messages["display-objects.tip"]} placement="top" key="projection" delay={500}>
-      <CornerButton onClick={useCallback(() => cameraSystem.toggleShowWorld(), [cameraSystem])}>
-        <FormattedMessage id={showWorld ? "display-objects.hide-world" : "display-objects.show-world"} />
+    <Tooltip content={messages["toggle-world.tip"]} placement="top" key="projection" delay={500}>
+      <CornerButton
+        onClick={useCallback(
+          () => {
+            cameraSystem.toggleShowWorld();
+            document.activeElement.blur();
+          },
+          [cameraSystem]
+        )}
+      >
+        <FormattedMessage id={showWorld ? "toggle-world.hide-world" : "toggle-world.show-world"} />
       </CornerButton>
     </Tooltip>
   );
 });
 
-DisplayObjectsButton.displayName = "DisplayObjectsButton";
+ToggleWorldButton.displayName = "ToggleWorldButton";
+
+const ToggleFloorButton = forwardRef(() => {
+  const { cameraSystem } = SYSTEMS;
+  const messages = getMessages();
+  const [showFloor, setShowFloor] = useState(cameraSystem.showFloor);
+
+  useEffect(() => {
+    const handler = () => {
+      setShowFloor(SYSTEMS.cameraSystem.showFloor);
+    };
+
+    cameraSystem.addEventListener("settings_changed", handler);
+    () => cameraSystem.removeEventListener("settings_changed", handler);
+  });
+
+  return (
+    <Tooltip content={messages["toggle-floor.tip"]} placement="top" key="projection" delay={500}>
+      <CornerButton
+        onClick={useCallback(
+          () => {
+            cameraSystem.toggleShowFloor();
+            document.activeElement.blur();
+          },
+          [cameraSystem]
+        )}
+      >
+        <FormattedMessage id={showFloor ? "toggle-floor.hide-floor" : "toggle-floor.show-floor"} />
+      </CornerButton>
+    </Tooltip>
+  );
+});
+
+ToggleFloorButton.displayName = "ToggleFloorButton";
 
 const DeviceStatuses = styled.div`
   flex-direction: row;
@@ -308,7 +357,8 @@ function CanvasTop(props) {
       };
 
       builderSystem.addEventListener("enabledchanged", handler);
-      () => {
+
+      return () => {
         builderSystem.removeEventListener("enabledchanged", handler);
       };
     },
@@ -319,7 +369,7 @@ function CanvasTop(props) {
     () => {
       const handler = () => setIsInspecting(SYSTEMS.cameraSystem.isInspecting());
       cameraSystem.addEventListener("mode_changed", handler);
-      () => cameraSystem.removeEventListener("mode_changed", handler);
+      return () => cameraSystem.removeEventListener("mode_changed", handler);
     },
     [cameraSystem]
   );
@@ -402,7 +452,8 @@ function CanvasTop(props) {
     cornerButtons = (
       <CornerButtons>
         {cameraSystem.allowCursor && <CameraProjectionButton />}
-        {cameraSystem.allowCursor && <DisplayObjectsButton />}
+        {cameraSystem.allowCursor && <ToggleWorldButton />}
+        {cameraSystem.allowCursor && <ToggleFloorButton />}
       </CornerButtons>
     );
   }

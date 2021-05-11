@@ -37,62 +37,6 @@ const getEntityBox = object => {
   return getBox(object.el, object.el.getObject3D("mesh") || object, true);
 };
 
-const moveRigSoCameraLooksAtObject = (function() {
-  const owq = new THREE.Quaternion();
-  const owp = new THREE.Vector3();
-  const cwq = new THREE.Quaternion();
-  const cwp = new THREE.Vector3();
-  const oForw = new THREE.Vector3();
-  const center = new THREE.Vector3();
-  const target = new THREE.Object3D();
-  const rm = new THREE.Matrix4();
-  return function moveRigSoCameraLooksAtObject(rig, camera, object, distanceMod, viewAtCorner = false) {
-    if (!target.parent) {
-      // add dummy object to the scene, if this is the first time we call this function
-      AFRAME.scenes[0].object3D.add(target);
-      target.applyMatrix(IDENTITY); // make sure target gets updated at least once for our matrix optimizations
-    }
-
-    object.updateMatrices();
-    decompose(object.matrixWorld, owp, owq);
-    decompose(camera.matrixWorld, cwp, cwq);
-    rig.getWorldQuaternion(cwq);
-
-    const box = getEntityBox(object);
-    box.getCenter(center);
-    const vrMode = object.el.sceneEl.is("vr-mode");
-    const dist =
-      calculateViewingDistance(
-        object.el.sceneEl.camera.fov,
-        object.el.sceneEl.camera.aspect,
-        object,
-        box,
-        center,
-        vrMode
-      ) * distanceMod;
-
-    orthoCamera.zoom = 1.0 / dist;
-    orthoCamera.updateProjectionMatrix();
-
-    target.position.addVectors(
-      owp,
-      oForw
-        .set(viewAtCorner ? 1 : 0, viewAtCorner ? 1 : 0, 1)
-        .normalize()
-        .multiplyScalar(dist)
-        .applyQuaternion(owq)
-    );
-
-    oForw.set(0, 1, 0).applyQuaternion(owq); // Up vector
-
-    rm.lookAt(target.position, object.position, oForw);
-    target.quaternion.setFromRotationMatrix(rm);
-    target.matrixNeedsUpdate = true;
-    target.updateMatrices();
-    childMatch(rig, camera, target.matrixWorld);
-  };
-})();
-
 export const CAMERA_MODE_FIRST_PERSON = 0;
 export const CAMERA_MODE_THIRD_PERSON_NEAR = 1;
 export const CAMERA_MODE_THIRD_PERSON_FAR = 2;
@@ -143,7 +87,7 @@ const disableInspectLayer = function(o) {
     o.layers.disable(CAMERA_LAYER_INSPECT);
 
     // Check for vox/voxmoji
-    const sourceMesh = o.el.getObject3D("mesh");
+    const sourceMesh = o.el && o.el.getObject3D("mesh");
 
     if (sourceMesh) {
       for (const mesh of SYSTEMS.voxSystem.getMeshesForSource(sourceMesh)) {
@@ -176,12 +120,14 @@ export class CameraSystem extends EventTarget {
     super();
 
     this.sceneEl = scene;
-    this.showWorld = true;
+    this.showWorld = false;
+    this.showFloor = true;
     this.verticalDelta = 0;
     this.horizontalDelta = 0;
     this.inspectZoom = 0;
     this.allowCursor = false;
     this.orthographicEnabled = false;
+    this.showXZPlane = true;
     this.mode = CAMERA_MODE_FIRST_PERSON;
     this.snapshot = { audioTransform: new THREE.Matrix4(), matrixWorld: new THREE.Matrix4(), mask: null, mode: null };
     this.audioListenerTargetTransform = new THREE.Matrix4();
@@ -226,11 +172,19 @@ export class CameraSystem extends EventTarget {
     this.updateCameraSettings();
   }
 
-  cameraDistanceToInspectedObject = (function() {
+  defaultCursorDistanceToInspectedObject = (function() {
     const v1 = new THREE.Vector3();
     const v2 = new THREE.Vector3();
     return function() {
       if (!this.inspected) return null;
+      if (this.isRenderingOrthographic()) {
+        // Project cursor far off in ortho mode
+        // TODO this should actually be the distance to the XZ plane, probably.
+        //
+        // Until that is updated, the cursor will disappear on a miss.
+        return 1000.0;
+      }
+
       this.inspected.updateMatrices();
       this.inspected.getWorldPosition(v1);
 
@@ -249,6 +203,7 @@ export class CameraSystem extends EventTarget {
     this.allowCursor = allowCursor;
     this.temporarilyDisableRegularExit = temporarilyDisableRegularExit; // TODO: Do this at the action set layer
     if (this.mode === CAMERA_MODE_INSPECT) return;
+    this.dispatchEvent(new CustomEvent("mode_changing"));
 
     const scene = AFRAME.scenes[0];
     scene.object3D.traverse(ensureLightsAreSeenByCamera);
@@ -263,7 +218,7 @@ export class CameraSystem extends EventTarget {
     // View the object at the upper corner upon inspection if it can be orbited.
     const viewAtCorner = shouldOrbitOnInspect(this.inspected);
 
-    moveRigSoCameraLooksAtObject(
+    this.moveRigSoCameraLooksAtObject(
       this.viewingRig.object3D,
       this.viewingCamera.object3DMap.camera,
       this.inspected,
@@ -303,6 +258,7 @@ export class CameraSystem extends EventTarget {
     this.temporarilyDisableRegularExit = false;
     if (this.mode !== CAMERA_MODE_INSPECT) return;
 
+    this.dispatchEvent(new CustomEvent("mode_changing"));
     this.revealEverything();
 
     for (const cursor of SYSTEMS.cursorTargettingSystem.getCursors()) {
@@ -407,6 +363,11 @@ export class CameraSystem extends EventTarget {
       }
     }
 
+    this.dispatchEvent(new CustomEvent("settings_changed"));
+  }
+
+  toggleShowFloor() {
+    this.showFloor = !this.showFloor;
     this.dispatchEvent(new CustomEvent("settings_changed"));
   }
 
@@ -573,7 +534,7 @@ export class CameraSystem extends EventTarget {
         const panX = this.allowCursor ? -this.userinput.get(paths.actions.inspectPanX) || 0 : 0;
         const panY = this.allowCursor ? this.userinput.get(paths.actions.inspectPanY) || 0 : 0;
         if (this.userinput.get(paths.actions.resetInspectView)) {
-          moveRigSoCameraLooksAtObject(
+          this.moveRigSoCameraLooksAtObject(
             this.viewingRig.object3D,
             this.viewingCamera.object3DMap.camera,
             this.inspected,
@@ -618,6 +579,7 @@ export class CameraSystem extends EventTarget {
     const UP = new THREE.Vector3();
     const RIGHT = new THREE.Vector3();
     const target = new THREE.Object3D();
+    const vv = new THREE.Vector3();
     const dhQ = new THREE.Quaternion();
     const dvQ = new THREE.Quaternion();
     const center = new THREE.Vector3();
@@ -667,8 +629,8 @@ export class CameraSystem extends EventTarget {
       dvQ.setFromAxisAngle(RIGHT.set(1, 0, 0).applyQuaternion(target.quaternion), 0.1 * dv * dt);
       target.quaternion.premultiply(dvQ);
 
-      // Note that for orthographic camera, the length is irrelevant since there
-      // is no perspective transform.
+      // Note that for orthographic camera, the length is irrelevant when panning
+      // since there is no perspective transform.
       target.position
         .addVectors(owp, dPos.applyQuaternion(dhQ).applyQuaternion(dvQ))
         .add(
@@ -682,17 +644,101 @@ export class CameraSystem extends EventTarget {
             .multiplyScalar(panY * newLength)
         );
 
+      // When rendering orthographic, push the target position
+      // out past dist so there is no clipping and cursor is targetted
+      // properly.
+      if (this.isRenderingOrthographic()) {
+        vv.copy(target.position);
+        vv.sub(object.position);
+        vv.normalize();
+        vv.multiplyScalar(Math.max(1.5, dist));
+        target.position.copy(object.position).add(vv);
+        target.matrixNeedsUpdate = true;
+        target.updateMatrices();
+      }
+
       // Viewing distance ends up approximating the size of the object,
       // so use that to drive zoom extents and zoom speed.
-      const maxOrthoZoom = (1.0 / dist) * 2.0;
-      const minOrthoZoom = (1.0 / dist) * 0.5;
+      const maxOrthoZoom = 100.0;
+      const minOrthoZoom = (1.0 / dist) * 0.25;
 
       // Handle zooming of ortho camera
-      orthoCamera.zoom = Math.max(minOrthoZoom, Math.min(maxOrthoZoom, orthoCamera.zoom + dz * (0.5 / dist) * dt));
+      orthoCamera.zoom = Math.max(minOrthoZoom, Math.min(maxOrthoZoom, orthoCamera.zoom + dz * 0.1 * dt));
       orthoCamera.updateProjectionMatrix();
 
       this.updateCameraSettings();
 
+      target.matrixNeedsUpdate = true;
+      target.updateMatrices();
+      childMatch(rig, camera, target.matrixWorld);
+    };
+  })();
+
+  moveRigSoCameraLooksAtObject = (function() {
+    const owq = new THREE.Quaternion();
+    const owp = new THREE.Vector3();
+    const cwq = new THREE.Quaternion();
+    const cwp = new THREE.Vector3();
+    const oForw = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    const vv = new THREE.Vector3();
+    const target = new THREE.Object3D();
+    const rm = new THREE.Matrix4();
+    return function moveRigSoCameraLooksAtObject(rig, camera, object, distanceMod, viewAtCorner = false) {
+      if (!target.parent) {
+        // add dummy object to the scene, if this is the first time we call this function
+        AFRAME.scenes[0].object3D.add(target);
+        target.applyMatrix(IDENTITY); // make sure target gets updated at least once for our matrix optimizations
+      }
+
+      object.updateMatrices();
+      decompose(object.matrixWorld, owp, owq);
+      decompose(camera.matrixWorld, cwp, cwq);
+      rig.getWorldQuaternion(cwq);
+
+      const box = getEntityBox(object);
+      box.getCenter(center);
+      const vrMode = object.el.sceneEl.is("vr-mode");
+      const dist =
+        calculateViewingDistance(
+          object.el.sceneEl.camera.fov,
+          object.el.sceneEl.camera.aspect,
+          object,
+          box,
+          center,
+          vrMode
+        ) * distanceMod;
+
+      orthoCamera.zoom = 1.0 / dist;
+      orthoCamera.updateProjectionMatrix();
+
+      target.position.addVectors(
+        owp,
+        oForw
+          .set(viewAtCorner ? 1 : 0, viewAtCorner ? 1 : 0, 1)
+          .normalize()
+          .multiplyScalar(dist)
+          .applyQuaternion(owq)
+      );
+
+      // When rendering orthographic, push the target position
+      // out past dist so there is no clipping and cursor is targetted
+      // properly.
+      if (this.isRenderingOrthographic()) {
+        vv.copy(target.position);
+        vv.sub(object.position);
+        vv.normalize();
+        console.log(dist);
+        vv.multiplyScalar(Math.max(1.5, dist));
+        target.position.copy(object.position).add(vv);
+        target.matrixNeedsUpdate = true;
+        target.updateMatrices();
+      }
+
+      oForw.set(0, 1, 0).applyQuaternion(owq); // Up vector
+
+      rm.lookAt(target.position, object.position, oForw);
+      target.quaternion.setFromRotationMatrix(rm);
       target.matrixNeedsUpdate = true;
       target.updateMatrices();
       childMatch(rig, camera, target.matrixWorld);
