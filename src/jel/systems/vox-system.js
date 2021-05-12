@@ -854,10 +854,10 @@ export class VoxSystem extends EventTarget {
 
     if (
       bodyHelper &&
-      (bodyHelper.data.collisionFilterGroup !== collisionFilterGroup ||
-        bodyHelper.data.collisionFilterMask !== collisionFilterMask)
+      (bodyHelper.data.collisionFilterMask !== collisionFilterMask ||
+        bodyHelper.data.collisionFilterGroup !== collisionFilterGroup)
     ) {
-      source.el.setAttribute("body-helper", { collisionFilterGroup, collisionFilterMask });
+      source.el.setAttribute("body-helper", { collisionFilterMask, collisionFilterGroup });
     }
 
     if (floatyObject && floatyObject.data.gravitySpeedLimit !== gravitySpeedLimit) {
