@@ -120,7 +120,7 @@ export class CameraSystem extends EventTarget {
     super();
 
     this.sceneEl = scene;
-    this.showWorld = false;
+    this.showWorldWithCursor = false;
     this.showFloor = true;
     this.verticalDelta = 0;
     this.horizontalDelta = 0;
@@ -228,7 +228,7 @@ export class CameraSystem extends EventTarget {
 
     this.updateCameraSettings();
 
-    if (!this.showWorld && this.allowCursor) {
+    if (!this.showWorldWithCursor && this.allowCursor) {
       this.hideEverythingButInspectedObjectAndCursors(o);
     }
 
@@ -352,11 +352,11 @@ export class CameraSystem extends EventTarget {
     this.dispatchEvent(new CustomEvent("settings_changed"));
   }
 
-  toggleShowWorld() {
-    this.showWorld = !this.showWorld;
+  toggleShowWorldWithCursor() {
+    this.showWorldWithCursor = !this.showWorldWithCursor;
 
     if (this.allowCursor) {
-      if (this.showWorld) {
+      if (this.showWorldWithCursor) {
         this.revealEverything();
       } else {
         this.hideEverythingButInspectedObjectAndCursors();

@@ -247,7 +247,7 @@ const ToggleWorldButton = forwardRef(() => {
       <CornerButton
         onClick={useCallback(
           () => {
-            cameraSystem.toggleShowWorld();
+            cameraSystem.toggleShowWorldWithCursor();
             document.activeElement.blur();
           },
           [cameraSystem]
