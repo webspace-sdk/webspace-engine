@@ -840,17 +840,16 @@ export class VoxSystem extends EventTarget {
     // The HACD environment shapes should *not* collide with each other or the  environment, to reduce physics lag.
     const collisionFilterGroup = shapeIsEnvironmental ? COLLISION_LAYERS.ENVIRONMENT : COLLISION_LAYERS.INTERACTABLES;
 
-    // For now, don't have interactable vox collide with interactable vox.
-    // Otherwise voxel jams end up running really slow.
-    //
-    // Eventually, when a vox is locked then it should become environmental.
+    const bodyHelper = source.el.components["body-helper"];
+
     const collisionFilterMask = shapeIsEnvironmental
-      ? COLLISION_LAYERS.INTERACTABLES | COLLISION_LAYERS.PROJECTILES
-      : COLLISION_LAYERS.PROJECTILES | COLLISION_LAYERS.ENVIRONMENT;
+      ? COLLISION_LAYERS.ENVIRONMENTAL_VOX
+      : bodyHelper
+        ? bodyHelper.data.collisionFilterMask
+        : COLLISION_LAYERS.UNOWNED_INTERACTABLE;
 
     const gravitySpeedLimit = shapeIsEnvironmental ? 0 : 1.85;
 
-    const bodyHelper = source.el.components["body-helper"];
     const floatyObject = source.el.components["floaty-object"];
 
     if (
