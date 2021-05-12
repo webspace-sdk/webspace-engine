@@ -6,7 +6,7 @@ import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
 //import { m4String } from "../utils/pretty-print";
 import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../jel/systems/terrain-system";
 import qsTruthy from "../utils/qs_truthy";
-const CHARACTER_MAX_Y = 7.5;
+const CHARACTER_MAX_Y = 10;
 
 const calculateDisplacementToDesiredPOV = (function() {
   const translationCoordinateSpace = new THREE.Matrix4();
