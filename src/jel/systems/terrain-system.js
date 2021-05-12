@@ -7,7 +7,7 @@ import { VOXLoader } from "../objects/VOXLoader";
 import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import grassVoxSrc from "!!url-loader!../../assets/jel/models/grass1.vox";
-import { RENDER_ORDER, WORLD_COLOR_TYPES } from "../../hubs/constants";
+import { RENDER_ORDER, WORLD_COLOR_TYPES, COLLISION_LAYERS } from "../../hubs/constants";
 import configs from "../../hubs/utils/configs";
 import { Layers } from "../../hubs/components/layers";
 import qsTruthy from "../../hubs/utils/qs_truthy";
@@ -610,8 +610,8 @@ export class TerrainSystem {
     el.setAttribute("body-helper", {
       type: TYPE.STATIC,
       mass: 1,
-      collisionFilterGroup: 1,
-      collisionFilterMask: 17
+      collisionFilterGroup: COLLISION_LAYERS.ENVIRONMENT,
+      collisionFilterMask: COLLISION_LAYERS.INTERACTABLES | COLLISION_LAYERS.PROJECTILES
     });
 
     el.setAttribute("shape-helper", {

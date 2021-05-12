@@ -26,7 +26,7 @@ AFRAME.registerComponent("floaty-object", {
   init() {
     this.onGrab = this.onGrab.bind(this);
     this.onRelease = this.onRelease.bind(this);
-    this.preGrabCollsionFilterMask = null;
+    this.onReleaseCollisionFilterMask = null;
   },
 
   tick() {
@@ -99,7 +99,7 @@ AFRAME.registerComponent("floaty-object", {
           linearDamping: 0.95,
           linearSleepingThreshold: 0.1,
           angularSleepingThreshold: 0.1,
-          collisionFilterMask: this.preGrabCollsionFilterMask
+          collisionFilterMask: this.onReleaseCollisionFilterMask
         });
 
         this._makeStaticWhenAtRest = true;
@@ -110,12 +110,12 @@ AFRAME.registerComponent("floaty-object", {
           linearDamping: 0.01,
           linearSleepingThreshold: 1.6,
           angularSleepingThreshold: 2.5,
-          collisionFilterMask: this.preGrabCollsionFilterMask
+          collisionFilterMask: this.onReleaseCollisionFilterMask
         });
       }
     } else {
       this.el.setAttribute("body-helper", {
-        collisionFilterMask: this.preGrabCollsionFilterMask,
+        collisionFilterMask: this.onReleaseCollisionFilterMask,
         gravity: { x: 0, y: -9.8, z: 0 }
       });
     }
@@ -129,7 +129,18 @@ AFRAME.registerComponent("floaty-object", {
   },
 
   onGrab() {
-    this.preGrabCollsionFilterMask = this.el.components["body-helper"].data.collisionFilterMask;
+    this.onReleaseCollisionFilterMask = this.el.components["body-helper"].data.collisionFilterMask;
+
+    // If unowned-body-kinematic component set this to the unowned interactable
+    // mask, assume it should be the default interactable mask on release.
+    //
+    // Pretty hacky.
+    if (
+      this.el.components["set-unowned-body-kinematic"] &&
+      this.onReleaseCollisionFilterMask === COLLISION_LAYERS.UNOWNED_INTERACTABLE
+    ) {
+      this.onReleaseCollisionFilterMask = COLLISION_LAYERS.DEFAULT_INTERACTABLE;
+    }
 
     this.el.setAttribute("body-helper", {
       gravity: { x: 0, y: 0, z: 0 },

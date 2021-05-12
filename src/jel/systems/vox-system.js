@@ -4,7 +4,7 @@ import { SHAPE, FIT } from "three-ammo/constants";
 import { setMatrixWorld, generateMeshBVH, disposeNode } from "../../hubs/utils/three-utils";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
-import { RENDER_ORDER } from "../../hubs/constants";
+import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { type as vox0, Vox, VoxChunk } from "ot-vox";
 import VoxSync from "../utils/vox-sync";
@@ -397,6 +397,8 @@ export class VoxSystem extends EventTarget {
         if (!voxMap.has(voxId)) return;
         const entry = voxMap.get(voxId);
 
+        this.updatePhysicsComponentsForSource(voxId, source);
+
         // Shape may have been updated already, skip it if so.
         if (shapesUuid !== entry.shapesUuid) return;
         physicsSystem.setShapes([bodyUuid], shapesUuid);
@@ -490,6 +492,10 @@ export class VoxSystem extends EventTarget {
 
       // UUID of the physics shape for this vox (derived from the first vox frame)
       shapesUuid: null,
+
+      // True if the vox's current mesh is a big HACD shape, and so should
+      // not collide with environment, etc.
+      shapeIsEnvironmental: false,
 
       // Geometry that is used for frustum culling, and is assigned as the geometry of every
       // source for this vox.
@@ -700,7 +706,10 @@ export class VoxSystem extends EventTarget {
 
         // Don't update physics when running pending for brush
         if (i === 0 && !pendingVoxChunk) {
-          const type = mesherQuadSize <= 2 ? SHAPE.HACD : SHAPE.HULL;
+          const shapeIsEnvironmental = mesherQuadSize <= 2;
+          entry.shapeIsEnvironmental = shapeIsEnvironmental;
+
+          const type = shapeIsEnvironmental ? SHAPE.HACD : SHAPE.HULL;
 
           // Generate a simpler mesh to improve generation time
           physicsMesh.geometry.update(chunk, Infinity, true);
@@ -718,7 +727,7 @@ export class VoxSystem extends EventTarget {
           const bodyReadyPromises = [];
           const bodyUuids = [];
 
-          // Collect body UUIDs, and then set shape + destroy existing.
+          // Collect body UUIDs, update collision masks, and then set shape + destroy existing.
           for (let j = 0; j <= maxRegisteredIndex; j++) {
             const source = sources[j];
             if (source === null) continue;
@@ -729,6 +738,9 @@ export class VoxSystem extends EventTarget {
                   if (bodyUuid !== null) {
                     bodyUuids.push(bodyUuid);
                   }
+
+                  this.updatePhysicsComponentsForSource(voxId, source);
+
                   res();
                 });
               })
@@ -742,6 +754,9 @@ export class VoxSystem extends EventTarget {
               if (bodyUuids.length > 0) {
                 physicsSystem.setShapes(bodyUuids, shapesUuid);
               }
+            } else {
+              // New shapes came along since this started, destroy these.
+              physicsSystem.destroyShapes(shapesUuid);
             }
 
             if (previousShapesUuid !== null) {
@@ -798,6 +813,38 @@ export class VoxSystem extends EventTarget {
     }
 
     return [];
+  }
+
+  updatePhysicsComponentsForSource(voxId, source) {
+    const { voxMap } = this;
+    if (!voxMap.has(voxId)) return;
+    const { shapeIsEnvironmental } = voxMap.get(voxId);
+
+    // The HACD environment shapes should *not* collide with each other or the  environment, to reduce physics lag.
+    const collisionFilterGroup = shapeIsEnvironmental ? COLLISION_LAYERS.ENVIRONMENT : COLLISION_LAYERS.INTERACTABLES;
+
+    const collisionFilterMask = shapeIsEnvironmental
+      ? COLLISION_LAYERS.INTERACTABLES | COLLISION_LAYERS.PROJECTILES
+      : COLLISION_LAYERS.INTERACTABLES | COLLISION_LAYERS.PROJECTILES | COLLISION_LAYERS.ENVIRONMENT;
+
+    const gravitySpeedLimit = shapeIsEnvironmental ? 0 : 1.85;
+
+    const bodyHelper = source.el.components["body-helper"];
+    const floatyObject = source.el.components["floaty-object"];
+
+    if (
+      bodyHelper &&
+      (bodyHelper.data.collisionFilterGroup !== collisionFilterGroup ||
+        bodyHelper.data.collisionFilterMask !== collisionFilterMask)
+    ) {
+      console.log("set group + mask", shapeIsEnvironmental, collisionFilterGroup, collisionFilterMask);
+      source.el.setAttribute("body-helper", { collisionFilterGroup, collisionFilterMask });
+    }
+
+    if (floatyObject && floatyObject.data.gravitySpeedLimit !== gravitySpeedLimit) {
+      source.el.setAttribute("floaty-object", { gravitySpeedLimit });
+      console.log("set floaty", shapeIsEnvironmental, gravitySpeedLimit);
+    }
   }
 
   updateOpenVoxIdsInPresence() {

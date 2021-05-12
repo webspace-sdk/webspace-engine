@@ -21,10 +21,19 @@ AFRAME.registerComponent("set-unowned-body-kinematic", {
     this.el.removeEventListener("ownership-lost", this.setBodyKinematic);
   },
   setBodyKinematic() {
-    this.el.setAttribute("body-helper", {
-      type: "kinematic",
-      collisionFilterMask: COLLISION_LAYERS.UNOWNED_INTERACTABLE
-    });
+    const collisionFilterGroup = this.el.components["body-helper"].data.collisionFilterGroup;
+
+    if (collisionFilterGroup === COLLISION_LAYERS.INTERACTABLES) {
+      this.el.setAttribute("body-helper", {
+        type: "kinematic",
+        collisionFilterMask: COLLISION_LAYERS.UNOWNED_INTERACTABLE
+      });
+    } else {
+      this.el.setAttribute("body-helper", {
+        type: "kinematic"
+      });
+    }
+
     if (this.el.components["floaty-object"]) {
       this.el.components["floaty-object"].locked = true;
     }
