@@ -131,17 +131,6 @@ AFRAME.registerComponent("floaty-object", {
   onGrab() {
     this.onReleaseCollisionFilterMask = this.el.components["body-helper"].data.collisionFilterMask;
 
-    // If unowned-body-kinematic component set this to the unowned interactable
-    // mask, assume it should be the default interactable mask on release.
-    //
-    // Pretty hacky.
-    if (
-      this.el.components["set-unowned-body-kinematic"] &&
-      this.onReleaseCollisionFilterMask === COLLISION_LAYERS.UNOWNED_INTERACTABLE
-    ) {
-      this.onReleaseCollisionFilterMask = COLLISION_LAYERS.DEFAULT_INTERACTABLE;
-    }
-
     this.el.setAttribute("body-helper", {
       gravity: { x: 0, y: 0, z: 0 },
       collisionFilterMask: COLLISION_LAYERS.HANDS
