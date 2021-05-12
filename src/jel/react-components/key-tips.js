@@ -200,7 +200,12 @@ const objectCommonTips = [
 ];
 
 // Vox label for clone is 'instance', to clarify it vs bake (which makes a fork.)
-const voxCommonTips = [["edit", "~|@"], ...objectCommonTips.map(t => (t[0] === "clone" ? ["instance", t[1]] : t))];
+const voxCommonTips = [
+  ["edit", "~|@"],
+  ...objectCommonTips
+    .map(t => (t[0] === "clone" ? ["instance", t[1]] : t))
+    .map(t => (t[0] === "bake" ? ["duplicate", t[1]] : t))
+];
 
 const TIP_DATA = {
   closed: [["help", "?"]],

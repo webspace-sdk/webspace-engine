@@ -12,7 +12,7 @@ import VoxSync from "../utils/vox-sync";
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, VertexColors, Matrix4, Mesh } = THREE;
 import { EventTarget } from "event-target-shim";
 
-const MAX_FRAMES_PER_VOX = 32;
+export const MAX_FRAMES_PER_VOX = 32;
 const MAX_INSTANCES_PER_VOX_ID = 255;
 const IDENTITY = new Matrix4();
 const tmpMatrix = new Matrix4();
@@ -281,12 +281,22 @@ export class VoxSystem extends EventTarget {
     this.getSync(voxId); // Side effect :P
   }
 
+  hasSync(voxId) {
+    const { syncs } = this;
+    return syncs.has(voxId);
+  }
+
   async getSync(voxId) {
     const { sceneEl, syncs } = this;
-    if (syncs.has(voxId)) return syncs.get(voxId);
+    if (syncs.has(voxId)) {
+      const sync = syncs.get(voxId);
+      await sync.whenReady();
+      return sync;
+    }
 
     const sync = new VoxSync(voxId);
     syncs.set(voxId, sync);
+    console.log("Start syncing vox", voxId);
     await sync.init(sceneEl);
 
     sync.addEventListener("vox_updated", this.onSyncedVoxUpdated);
@@ -301,6 +311,7 @@ export class VoxSystem extends EventTarget {
 
     sync.dispose();
     syncs.delete(voxId);
+    console.log("Stop syncing vox", voxId);
   }
 
   onSyncedVoxUpdated({ detail: { voxId, vox, op } }) {
@@ -544,17 +555,23 @@ export class VoxSystem extends EventTarget {
 
     const store = window.APP.store;
 
-    // Fetch frame data when first registering.
-    const res = await fetch(voxUrl, {
-      headers: { authorization: `bearer ${store.state.credentials.token}` }
-    });
+    // If the sync is already available and open, use it.
+    // Otherwise fetch frame data when first registering.
+    if (this.hasSync(voxId)) {
+      const sync = await this.getSync(voxId);
+      entry.vox = sync.getVox();
+    } else {
+      const res = await fetch(voxUrl, {
+        headers: { authorization: `bearer ${store.state.credentials.token}` }
+      });
 
-    const {
-      vox: [{ frames }]
-    } = await res.json();
+      const {
+        vox: [{ frames }]
+      } = await res.json();
 
-    const vox = new Vox(frames.map(f => VoxChunk.deserialize(f)));
-    entry.vox = vox;
+      const vox = new Vox(frames.map(f => VoxChunk.deserialize(f)));
+      entry.vox = vox;
+    }
 
     entry.regenerateDirtyMeshesOnNextFrame = true;
   }
@@ -824,6 +841,8 @@ export class VoxSystem extends EventTarget {
     const collisionFilterGroup = shapeIsEnvironmental ? COLLISION_LAYERS.ENVIRONMENT : COLLISION_LAYERS.INTERACTABLES;
 
     // For now, don't have interactable vox collide with interactable vox.
+    // Otherwise voxel jams end up running really slow.
+    //
     // Eventually, when a vox is locked then it should become environmental.
     const collisionFilterMask = shapeIsEnvironmental
       ? COLLISION_LAYERS.INTERACTABLES | COLLISION_LAYERS.PROJECTILES

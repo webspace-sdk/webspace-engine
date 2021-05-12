@@ -59,7 +59,7 @@ export default class VoxSync extends EventTarget {
   }
 
   async dispose() {
-    if (this._whenReady) await this._whenReady;
+    await this.whenReady();
     this._whenReady = null;
 
     if (this._doc) {
@@ -75,7 +75,7 @@ export default class VoxSync extends EventTarget {
   }
 
   async applyChunk(chunk, frame, offset) {
-    await this._whenReady;
+    await this.whenReady();
     this._submitOp({ f: frame, d: chunk.serialize(), o: offset });
   }
 
@@ -93,10 +93,20 @@ export default class VoxSync extends EventTarget {
     await this.applyChunk(delta, frame, [x, y, z]);
   }
 
+  getVox() {
+    return this._doc.data;
+  }
+
   _fireVoxUpdated(op, source) {
     this.dispatchEvent(
       new CustomEvent("vox_updated", { detail: { voxId: this._voxId, vox: this._doc.data, op, source } })
     );
+  }
+
+  async whenReady() {
+    if (this._whenReady) {
+      await this._whenReady;
+    }
   }
 
   async _refreshPermissions() {
