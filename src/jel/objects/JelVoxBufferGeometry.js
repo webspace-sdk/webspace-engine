@@ -428,7 +428,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
       const lod2 = lod / 2;
 
       // Scan only lowest level, since we want
-      // the terrain height to be closest to existing height.
+      // the height to be closest to existing height.
       for (let i = -lod2; i <= lod2; i++) {
         for (let j = -1; j <= -1; j++) {
           for (let k = -lod2; k <= lod2; k++) {
