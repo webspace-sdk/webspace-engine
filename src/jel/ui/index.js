@@ -303,14 +303,6 @@ function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, invi
               )}
             </Panel>
           </form>
-          <iframe
-            width="560"
-            height="315"
-            src="https://www.youtube.com/embed/_YXjGj3oYz8"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
         </InfoPanel>
         <Footer>
           <a href="https://discord.gg/wSCy58w54j">
