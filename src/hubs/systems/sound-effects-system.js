@@ -279,6 +279,7 @@ export class SoundEffectsSystem {
 
     // NOTE if you use this, disconnect() will not be called automaticlaly
     // for you because the source node is not connected to the destination
+    this.monoSourceFinalizers.push(() => {});
 
     return { gain, source };
   }
@@ -287,7 +288,6 @@ export class SoundEffectsSystem {
     const index = this.pendingAudioSourceNodes.indexOf(node);
     if (index !== -1) {
       this.monoSourceFinalizers[index]();
-
       this.pendingAudioSourceNodes.splice(index, 1);
       this.pendingAudioStartTimes.splice(index, 1);
       this.monoSourceFinalizers.splice(index, 1);
