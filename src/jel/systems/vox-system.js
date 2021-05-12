@@ -17,6 +17,7 @@ const MAX_INSTANCES_PER_VOX_ID = 255;
 const IDENTITY = new Matrix4();
 const tmpMatrix = new Matrix4();
 const tmpVec = new THREE.Vector3();
+const RESHAPE_DELAY_MS = 5000;
 
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
 targettingMaterial.visible = false;
@@ -246,6 +247,14 @@ export class VoxSystem extends EventTarget {
         // - Object may be getting removed and animating, so don't want to remesh
         clearTimeout(delayedRemeshTimeout);
         entry.delayedRemeshTimeout = setTimeout(() => (entry.regenerateDirtyMeshesOnNextFrame = true), 1000);
+
+        // The desired quad size may alter the algorithm used to generate shapes, so reshape.
+        this.markShapesDirtyAfterDelay(voxId);
+      }
+
+      // Generate shapes after desired quad size is computed, since shape algorithm is determined by that.
+      if (entry.hasDirtyShapes) {
+        this.regenerateShapesForVoxId(voxId);
       }
 
       const currentAnimationFrame = this.getCurrentAnimationFrame(voxId);
@@ -323,6 +332,10 @@ export class VoxSystem extends EventTarget {
 
     for (const { f: frame } of op) {
       dirtyFrameMeshes[frame] = true;
+
+      if (frame === 0) {
+        this.markShapesDirtyAfterDelay(voxId);
+      }
     }
 
     entry.vox = vox;
@@ -503,6 +516,9 @@ export class VoxSystem extends EventTarget {
 
       // UUID of the physics shape for this vox (derived from the first vox frame)
       shapesUuid: null,
+      hasDirtyShapes: false,
+      delayedReshapeTimeout: null,
+      shapeOffset: [0, 0, 0],
 
       // True if the vox's current mesh is a big HACD shape, and so should
       // not collide with environment, etc.
@@ -625,7 +641,7 @@ export class VoxSystem extends EventTarget {
   }
 
   regenerateDirtyMeshesForVoxId(voxId) {
-    const { sceneEl, physicsSystem, meshToVoxId, voxMap } = this;
+    const { sceneEl, meshToVoxId, voxMap } = this;
     const scene = sceneEl.object3D;
 
     const entry = voxMap.get(voxId);
@@ -684,6 +700,8 @@ export class VoxSystem extends EventTarget {
         this.dispatchEvent(new CustomEvent("mesh_added"));
 
         entry.hasDirtyMatrices = true;
+        entry.hasDirtyShapes = true;
+
         remesh = true;
       }
 
@@ -716,77 +734,14 @@ export class VoxSystem extends EventTarget {
         const dy = yMin + yExtent / 2;
         const dz = zMin + zExtent / 2;
 
+        entry.shapeOffset[0] = dx;
+        entry.shapeOffset[1] = dy;
+        entry.shapeOffset[2] = dz;
+
         generateMeshBVH(mesh, true);
         regenerateSizeBox = true;
 
         dirtyFrameMeshes[i] = false;
-
-        // Don't update physics when running pending for brush
-        if (i === 0 && !pendingVoxChunk) {
-          const shapeIsEnvironmental = mesherQuadSize <= 4;
-          entry.shapeIsEnvironmental = shapeIsEnvironmental;
-
-          const type = shapeIsEnvironmental ? SHAPE.HACD : SHAPE.HULL;
-
-          // Generate a simpler mesh to improve generation time
-          //
-          // Generate a LOD (which has less accuracy but will ensure HACD
-          // generation isn't terribly slow.)
-          const totalVoxels = chunk.getTotalNonEmptyVoxels();
-          const lod = totalVoxels > 12500 ? 3 : totalVoxels > 2500 ? 2 : 1;
-
-          physicsMesh.geometry.update(chunk, Infinity, true, false, lod);
-
-          // Physics shape is based upon the first mesh.
-          const shapesUuid = physicsSystem.createShapes(physicsMesh, {
-            type,
-            fit: FIT.ALL,
-            includeInvisible: true,
-            offset: new THREE.Vector3(dx * VOXEL_SIZE, dy * VOXEL_SIZE, dz * VOXEL_SIZE)
-          });
-
-          const previousShapesUuid = entry.shapesUuid;
-          entry.shapesUuid = shapesUuid;
-          const bodyReadyPromises = [];
-          const bodyUuids = [];
-
-          // Collect body UUIDs, update collision masks, and then set shape + destroy existing.
-          for (let j = 0; j <= maxRegisteredIndex; j++) {
-            const source = sources[j];
-            if (source === null) continue;
-
-            bodyReadyPromises.push(
-              new Promise(res => {
-                this.getBodyUuidForSource(source).then(bodyUuid => {
-                  if (bodyUuid !== null) {
-                    bodyUuids.push(bodyUuid);
-                  }
-
-                  this.updatePhysicsComponentsForSource(voxId, source);
-
-                  res();
-                });
-              })
-            );
-          }
-
-          Promise.all(bodyReadyPromises).then(() => {
-            // Destroy existing shapes after new shapes are set.
-            // Check that the entry wasn't updated while gathering body uuids.
-            if (entry.shapesUuid === shapesUuid) {
-              if (bodyUuids.length > 0) {
-                physicsSystem.setShapes(bodyUuids, shapesUuid);
-              }
-            } else {
-              // New shapes came along since this started, destroy these.
-              physicsSystem.destroyShapes(shapesUuid);
-            }
-
-            if (previousShapesUuid !== null) {
-              physicsSystem.destroyShapes(previousShapesUuid);
-            }
-          });
-        }
       }
     }
 
@@ -826,6 +781,88 @@ export class VoxSystem extends EventTarget {
         entry.maxMeshIndex = i;
       }
     }
+  }
+
+  regenerateShapesForVoxId(voxId) {
+    const { physicsSystem, voxMap } = this;
+
+    const entry = voxMap.get(voxId);
+    if (!entry) return;
+
+    const { vox, sources, mesherQuadSize, physicsMeshes, maxRegisteredIndex, shapeOffset } = entry;
+    if (!vox) return;
+    if (vox.frames.length === 0) return;
+    const chunk = vox.frames[0];
+
+    const physicsMesh = physicsMeshes[0];
+    if (physicsMesh === null) return;
+
+    const shapeIsEnvironmental = mesherQuadSize <= 4;
+    entry.shapeIsEnvironmental = shapeIsEnvironmental;
+
+    const [dx, dy, dz] = shapeOffset;
+    entry.hasDirtyShapes = false;
+
+    const type = shapeIsEnvironmental ? SHAPE.HACD : SHAPE.HULL;
+
+    // Generate a simpler mesh to improve generation time
+    //
+    // Generate a LOD (which has less accuracy but will ensure HACD
+    // generation isn't terribly slow.)
+    const totalVoxels = chunk.getTotalNonEmptyVoxels();
+    const lod = totalVoxels > 12500 ? 3 : totalVoxels > 2500 ? 2 : 1;
+
+    physicsMesh.geometry.update(chunk, Infinity, true, false, lod);
+
+    // Physics shape is based upon the first mesh.
+    const shapesUuid = physicsSystem.createShapes(physicsMesh, {
+      type,
+      fit: FIT.ALL,
+      includeInvisible: true,
+      offset: new THREE.Vector3(dx * VOXEL_SIZE, dy * VOXEL_SIZE, dz * VOXEL_SIZE)
+    });
+
+    const previousShapesUuid = entry.shapesUuid;
+    entry.shapesUuid = shapesUuid;
+    const bodyReadyPromises = [];
+    const bodyUuids = [];
+
+    // Collect body UUIDs, update collision masks, and then set shape + destroy existing.
+    for (let j = 0; j <= maxRegisteredIndex; j++) {
+      const source = sources[j];
+      if (source === null) continue;
+
+      bodyReadyPromises.push(
+        new Promise(res => {
+          this.getBodyUuidForSource(source).then(bodyUuid => {
+            if (bodyUuid !== null) {
+              bodyUuids.push(bodyUuid);
+            }
+
+            this.updatePhysicsComponentsForSource(voxId, source);
+
+            res();
+          });
+        })
+      );
+    }
+
+    Promise.all(bodyReadyPromises).then(() => {
+      // Destroy existing shapes after new shapes are set.
+      // Check that the entry wasn't updated while gathering body uuids.
+      if (entry.shapesUuid === shapesUuid) {
+        if (bodyUuids.length > 0) {
+          physicsSystem.setShapes(bodyUuids, shapesUuid);
+        }
+      } else {
+        // New shapes came along since this started, destroy these.
+        physicsSystem.destroyShapes(shapesUuid);
+      }
+
+      if (previousShapesUuid !== null) {
+        physicsSystem.destroyShapes(previousShapesUuid);
+      }
+    });
   }
 
   getMeshesForSource(source) {
@@ -1104,6 +1141,10 @@ export class VoxSystem extends EventTarget {
     disposeNode(physicsMesh);
 
     dirtyFrameMeshes[i] = true;
+    entry.hasDirtyShapes = true;
+    entry.shapeOffset[0] = 0;
+    entry.shapeOffset[1] = 0;
+    entry.shapeOffset[2] = 0;
 
     // Shape is the first mesh's shape
     if (i === 0 && shapesUuid) {
@@ -1228,6 +1269,23 @@ export class VoxSystem extends EventTarget {
     const chunk = vox.frames[frame];
     if (!chunk) return null;
     return chunk;
+  }
+
+  markShapesDirtyAfterDelay(voxId) {
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return;
+
+    const { delayedReshapeTimeout } = entry;
+
+    if (delayedReshapeTimeout) {
+      clearTimeout(delayedReshapeTimeout);
+    }
+
+    entry.delayedReshapeTimeout = setTimeout(() => {
+      entry.hasDirtyShapes = true;
+      entry.delayedReshapeTimeout = null;
+    }, RESHAPE_DELAY_MS);
   }
 
   getCurrentAnimationFrame(/* voxId */) {
