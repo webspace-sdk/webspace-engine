@@ -733,7 +733,7 @@ export class VoxSystem extends EventTarget {
           // Generate a LOD (which has less accuracy but will ensure HACD
           // generation isn't terribly slow.)
           const totalVoxels = chunk.getTotalNonEmptyVoxels();
-          const lod = totalVoxels > 7500 ? 3 : 2;
+          const lod = totalVoxels > 12500 ? 3 : totalVoxels > 2500 ? 2 : 1;
 
           physicsMesh.geometry.update(chunk, Infinity, true, false, lod);
 
