@@ -729,7 +729,13 @@ export class VoxSystem extends EventTarget {
           const type = shapeIsEnvironmental ? SHAPE.HACD : SHAPE.HULL;
 
           // Generate a simpler mesh to improve generation time
-          physicsMesh.geometry.update(chunk, Infinity, true);
+          //
+          // Generate a LOD (which has less accuracy but will ensure HACD
+          // generation isn't terribly slow.)
+          const totalVoxels = chunk.getTotalNonEmptyVoxels();
+          const lod = totalVoxels > 7500 ? 3 : 2;
+
+          physicsMesh.geometry.update(chunk, Infinity, true, false, lod);
 
           // Physics shape is based upon the first mesh.
           const shapesUuid = physicsSystem.createShapes(physicsMesh, {

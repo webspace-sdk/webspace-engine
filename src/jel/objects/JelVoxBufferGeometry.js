@@ -52,7 +52,11 @@ export function clearVoxAttributePools() {
 
 // Adapted from implementation by mikolalysenko:
 // https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/
-function GreedyMesh(chunk, maxQuadSize = Infinity) {
+//
+// LOD is commented out because we don't need to use it in GreedyMesh
+// (its only used in GreedyMeshFlat) but left to keep the update process
+// of GreedyMeshFlat easy.
+function GreedyMesh(chunk, maxQuadSize = Infinity /*, lod = 1, getLodVoxelCoord*/) {
   quadData.length = 0;
   const { size } = chunk;
 
@@ -91,9 +95,10 @@ function GreedyMesh(chunk, maxQuadSize = Infinity) {
       q2 = 1;
     }
 
-    const sd = size[d];
-    const sv = size[v];
-    const su = size[u];
+    const sd = Math.floor(size[d] /* / lod*/);
+    const sv = Math.floor(size[v] /* / lod*/);
+    const su = Math.floor(size[u] /* / lod*/);
+    //const hasLod = lod > 1;
 
     for (x[d] = -1; x[d] < sd; ) {
       // Compute mask
@@ -103,11 +108,29 @@ function GreedyMesh(chunk, maxQuadSize = Infinity) {
 
       for (x[v] = 0; x[v] < sv; ++x[v]) {
         for (x[u] = 0; x[u] < su; ++x[u]) {
-          const cx = x[0] - xShift;
-          const cy = x[1] - yShift;
-          const cz = x[2] - zShift;
-          const vFrom = mulFrom * chunk.getPaletteIndexAt(cx, cy, cz);
-          const vTo = mulTo * chunk.getPaletteIndexAt(cx + q0, cy + q1, cz + q2);
+          //let cx, cy, cz, cqx, cqy, cqz;
+
+          //if (hasLod) {
+          //  const l = getLodVoxelCoord(x[0], x[1], x[2]);
+          //  cx = l >> 16;
+          //  cy = (l & 0x0000ff00) >> 8;
+          //  cz = l & 0x000000ff;
+
+          //  const lq = getLodVoxelCoord(x[0] + q0, x[1] + q1, x[2] + q2);
+          //  cqx = lq >> 16;
+          //  cqy = (lq & 0x0000ff00) >> 8;
+          //  cqz = lq & 0x000000ff;
+          //} else {
+          const cx = x[0];
+          const cy = x[1];
+          const cz = x[2];
+          const cqx = cx + q0;
+          const cqy = cy + q1;
+          const cqz = cz + q2;
+          //}
+
+          const vFrom = mulFrom * chunk.getPaletteIndexAt(cx - xShift, cy - yShift, cz - zShift);
+          const vTo = mulTo * chunk.getPaletteIndexAt(cqx - xShift, cqy - yShift, cqz - zShift);
           mask[n] = (vFrom !== 0) !== (vTo !== 0);
           norms[n] = vFrom; // Non-zero means up
           // Need to split on side so negate key to break face up.
@@ -183,8 +206,10 @@ function GreedyMesh(chunk, maxQuadSize = Infinity) {
   return quadData;
 }
 
-// Copy + paste of function above, except hotspot. For performance reasons we avoid extra branches in the inner loop for this verion
-function GreedyMeshFlat(chunk, maxQuadSize = Infinity) {
+// Copy + paste of function above, except hotspot. For performance reasons we avoid extra branches in the inner loop for this version, which ignores colors.
+//
+// This is used for generating efficient physics meshes.
+function GreedyMeshFlat(chunk, maxQuadSize = Infinity, lod = 1, getLodVoxelCoord) {
   quadData.length = 0;
   const { size } = chunk;
 
@@ -223,9 +248,10 @@ function GreedyMeshFlat(chunk, maxQuadSize = Infinity) {
       q2 = 1;
     }
 
-    const sd = size[d];
-    const sv = size[v];
-    const su = size[u];
+    const sd = Math.floor(size[d] / lod);
+    const sv = Math.floor(size[v] / lod);
+    const su = Math.floor(size[u] / lod);
+    const hasLod = lod > 1;
 
     for (x[d] = -1; x[d] < sd; ) {
       // Compute mask
@@ -235,11 +261,29 @@ function GreedyMeshFlat(chunk, maxQuadSize = Infinity) {
 
       for (x[v] = 0; x[v] < sv; ++x[v]) {
         for (x[u] = 0; x[u] < su; ++x[u]) {
-          const cx = x[0] - xShift;
-          const cy = x[1] - yShift;
-          const cz = x[2] - zShift;
-          const vFrom = mulFrom * chunk.getPaletteIndexAt(cx, cy, cz);
-          const vTo = mulTo * chunk.getPaletteIndexAt(cx + q0, cy + q1, cz + q2);
+          let cx, cy, cz, cqx, cqy, cqz;
+
+          if (hasLod) {
+            const l = getLodVoxelCoord(x[0], x[1], x[2]);
+            cx = l >> 16;
+            cy = (l & 0x0000ff00) >> 8;
+            cz = l & 0x000000ff;
+
+            const lq = getLodVoxelCoord(x[0] + q0, x[1] + q1, x[2] + q2);
+            cqx = lq >> 16;
+            cqy = (lq & 0x0000ff00) >> 8;
+            cqz = lq & 0x000000ff;
+          } else {
+            cx = x[0];
+            cy = x[1];
+            cz = x[2];
+            cqx = cx + q0;
+            cqy = cy + q1;
+            cqz = cz + q2;
+          }
+
+          const vFrom = mulFrom * chunk.getPaletteIndexAt(cx - xShift, cy - yShift, cz - zShift);
+          const vTo = mulTo * chunk.getPaletteIndexAt(cqx - xShift, cqy - yShift, cqz - zShift);
           mask[n] = (vFrom !== 0) !== (vTo !== 0);
           norms[n] = vFrom; // Non-zero means up
           // Need to split on side so negate key to break face up.
@@ -339,11 +383,11 @@ class JelVoxBufferGeometry extends BufferGeometry {
 
   // Updates the geometry with the specified vox chunk, returning the extents of the mesh.
   // If false, generates a mesh without regard to color
-  update(chunk, maxQuadSize = 1, flat = false, addXZPlane = true) {
+  update(chunk, maxQuadSize = 1, flat = false, addXZPlane = true, lod = 1) {
     this.freeAttributeMemory();
 
     const palette = [];
-    const size = chunk.size;
+    const { size } = chunk;
 
     for (let i = 0; i < chunk.palette.length; i++) {
       const rgbt = chunk.palette[i];
@@ -358,6 +402,9 @@ class JelVoxBufferGeometry extends BufferGeometry {
       palette.push([r, g, b]);
     }
 
+    // LOD is 1, 2, 4
+    lod = Math.pow(2, lod - 1);
+
     let xMax = -Infinity;
     let yMax = -Infinity;
     let zMax = -Infinity;
@@ -371,9 +418,51 @@ class JelVoxBufferGeometry extends BufferGeometry {
     const xShiftVox = xShift * VOXEL_SIZE;
     const yShiftVox = yShift * VOXEL_SIZE;
     const zShiftVox = zShift * VOXEL_SIZE;
+    const hasLod = lod > 1;
+
+    let getLodVoxelCoord = null;
+
+    if (lod > 1) {
+      const lodIndices = [];
+
+      const lod2 = lod / 2;
+
+      // Scan only lowest level, since we want
+      // the height to be closest to existing height.
+      for (let i = -lod2; i <= lod2; i++) {
+        for (let j = -1; j <= -1; j++) {
+          for (let k = -lod2; k <= lod2; k++) {
+            lodIndices.push([i, j, k]);
+          }
+        }
+      }
+
+      lodIndices.sort(([ai, aj, ak], [bi, bj, bk]) => {
+        const a = Math.sqrt(ai * ai + aj * aj + ak * ak);
+        const b = Math.sqrt(bi * bi + bj * bj + bk * bk);
+        return a < b ? -1 : 1;
+      });
+
+      getLodVoxelCoord = (x, y, z) => {
+        let vx, vy, vz;
+
+        // For LOD, always take non-air voxel in LOD chunk to avoid gaps
+        for (const [i, j, k] of lodIndices) {
+          vx = Math.max(0, Math.min(x * lod + i, size[0]));
+          vy = Math.max(0, Math.min(y * lod + j, size[1]));
+          vz = Math.max(0, Math.min(z * lod + k, size[2]));
+
+          if (chunk.hasVoxelAt(vx - xShift, vy - yShift, vz - zShift)) break;
+        }
+
+        return (vx << 16) | (vy << 8) | vz;
+      };
+    }
 
     // Generate quadData via greedy mesher.
-    const quadData = flat ? GreedyMeshFlat(chunk, maxQuadSize) : GreedyMesh(chunk, maxQuadSize);
+    const quadData = flat
+      ? GreedyMeshFlat(chunk, maxQuadSize, lod, getLodVoxelCoord)
+      : GreedyMesh(chunk, maxQuadSize, lod, getLodVoxelCoord);
 
     const numQuads = quadData.length / 14 + (addXZPlane ? 1 : 0);
     const vertices = float32Pool.get(12 * numQuads);
@@ -415,18 +504,18 @@ class JelVoxBufferGeometry extends BufferGeometry {
       uvs[iQuad * 8 + 6] = u1;
       uvs[iQuad * 8 + 7] = v2;
 
-      vertices[iQuad * 12 + 0] = p1x - xShiftVox;
-      vertices[iQuad * 12 + 1] = p1y - yShiftVox;
-      vertices[iQuad * 12 + 2] = p1z - zShiftVox;
-      vertices[iQuad * 12 + 3] = p2x - xShiftVox;
-      vertices[iQuad * 12 + 4] = p2y - yShiftVox;
-      vertices[iQuad * 12 + 5] = p2z - zShiftVox;
-      vertices[iQuad * 12 + 6] = p3x - xShiftVox;
-      vertices[iQuad * 12 + 7] = p3y - yShiftVox;
-      vertices[iQuad * 12 + 8] = p3z - zShiftVox;
-      vertices[iQuad * 12 + 9] = p4x - xShiftVox;
-      vertices[iQuad * 12 + 10] = p4y - yShiftVox;
-      vertices[iQuad * 12 + 11] = p4z - zShiftVox;
+      vertices[iQuad * 12 + 0] = p1x * lod - xShiftVox;
+      vertices[iQuad * 12 + 1] = p1y * lod - yShiftVox;
+      vertices[iQuad * 12 + 2] = p1z * lod - zShiftVox;
+      vertices[iQuad * 12 + 3] = p2x * lod - xShiftVox;
+      vertices[iQuad * 12 + 4] = p2y * lod - yShiftVox;
+      vertices[iQuad * 12 + 5] = p2z * lod - zShiftVox;
+      vertices[iQuad * 12 + 6] = p3x * lod - xShiftVox;
+      vertices[iQuad * 12 + 7] = p3y * lod - yShiftVox;
+      vertices[iQuad * 12 + 8] = p3z * lod - zShiftVox;
+      vertices[iQuad * 12 + 9] = p4x * lod - xShiftVox;
+      vertices[iQuad * 12 + 10] = p4y * lod - yShiftVox;
+      vertices[iQuad * 12 + 11] = p4z * lod - zShiftVox;
 
       normals[iQuad * 12 + 0] = nx;
       normals[iQuad * 12 + 1] = ny;
@@ -485,7 +574,21 @@ class JelVoxBufferGeometry extends BufferGeometry {
       const y = y1 - (d === 1 && up !== 0 ? 1 : 0);
       const z = z1 - (d === 2 && up !== 0 ? 1 : 0);
 
-      const c = chunk.getPaletteIndexAt(x - xShift, y - yShift, z - zShift) - 1;
+      let vx, vy, vz;
+      if (hasLod) {
+        const lodCoord = getLodVoxelCoord(x, y, z);
+        vx = lodCoord >> 16;
+        vy = (lodCoord & 0x0000ff00) >> 8;
+        vz = lodCoord & 0x000000ff;
+      } else {
+        vx = x;
+        vy = y;
+        vz = z;
+      }
+
+      const c = chunk.getPaletteIndexAt(vx - xShift, vy - yShift, vz - zShift) - 1;
+
+      if (c === -1) continue;
       const [r, g, b] = palette[c];
 
       // Generate visible faces.
