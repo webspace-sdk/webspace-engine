@@ -837,13 +837,11 @@ export class VoxSystem extends EventTarget {
       (bodyHelper.data.collisionFilterGroup !== collisionFilterGroup ||
         bodyHelper.data.collisionFilterMask !== collisionFilterMask)
     ) {
-      console.log("set group + mask", shapeIsEnvironmental, collisionFilterGroup, collisionFilterMask);
       source.el.setAttribute("body-helper", { collisionFilterGroup, collisionFilterMask });
     }
 
     if (floatyObject && floatyObject.data.gravitySpeedLimit !== gravitySpeedLimit) {
       source.el.setAttribute("floaty-object", { gravitySpeedLimit });
-      console.log("set floaty", shapeIsEnvironmental, gravitySpeedLimit);
     }
   }
 
