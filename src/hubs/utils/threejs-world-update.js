@@ -123,7 +123,7 @@ THREE.Object3D.prototype.getWorldQuaternion = (function() {
   };
 })();
 
-THREE.Object3D.getWorldScale = (function() {
+THREE.Object3D.prototype.getWorldScale = (function() {
   const position = new THREE.Vector3();
   const quaternion = new THREE.Quaternion();
 
