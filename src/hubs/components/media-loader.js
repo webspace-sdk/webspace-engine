@@ -2,6 +2,8 @@ import { computeObjectAABB, getBox, getScaleCoefficient } from "../utils/auto-bo
 import { ensureOwnership, getNetworkedEntity, isSynchronized } from "../../jel/utils/ownership-utils";
 import { ParticleEmitter } from "lib-hubs/packages/three-particle-emitter/lib/esm/index";
 import loadingParticleSrc from "!!url-loader!../../assets/jel/images/loading-particle.png";
+import { VOXLoader } from "../../jel/objects/VOXLoader";
+import { createVox } from "../../hubs/utils/phoenix-utils";
 import {
   resolveUrl,
   getDefaultResolveQuality,
@@ -20,6 +22,8 @@ import {
 } from "../utils/media-url-utils";
 import { addAnimationComponents } from "../utils/animation";
 import qsTruthy from "../utils/qs_truthy";
+import { xyzRangeForSize, shiftForSize, MAX_SIZE as MAX_VOX_SIZE, VoxChunk } from "ot-vox";
+import { voxColorForRGBT } from "ot-vox";
 
 import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
 import { setMatrixWorld, disposeExistingMesh, disposeNode } from "../utils/three-utils";
@@ -679,6 +683,19 @@ AFRAME.registerComponent("media-loader", {
             batch
           })
         );
+      } else if (contentType.startsWith("model/vox-binary")) {
+        const voxSrc = await this.importVoxFromUrl(canonicalUrl);
+
+        this.el.setAttribute("media-loader", { src: voxSrc, resolve: false, contentType: "model/vnd.jel-vox" });
+        this.el.addEventListener("model-loaded", () => this.onMediaLoaded(null, false), { once: true });
+        this.el.addEventListener("model-error", this.onError, { once: true });
+        this.el.setAttribute("floaty-object", { gravitySpeedLimit: 1.85 });
+        this.setToSingletonMediaComponent(
+          "media-vox",
+          Object.assign({}, this.data.mediaOptions, {
+            src: voxSrc
+          })
+        );
       } else {
         throw new Error(`Unsupported content type: ${contentType}`);
       }
@@ -721,6 +738,68 @@ AFRAME.registerComponent("media-loader", {
     this.data.initialContents = null;
 
     return contents;
+  },
+
+  async importVoxFromUrl(importUrl) {
+    const spaceId = window.APP.spaceChannel.spaceId;
+    const { voxSystem } = SYSTEMS;
+
+    const {
+      vox: [{ vox_id: voxId, url }]
+    } = await createVox(spaceId);
+
+    const sync = await voxSystem.getSync(voxId);
+
+    // A VOX being loaded should be imported and then the src changed to the appropriate URL.
+    await new Promise(res => {
+      new VOXLoader().load(importUrl, async voxFileChunks => {
+        for (let frame = 0; frame < voxFileChunks.length; frame++) {
+          if (frame > 0) continue; // TODO multiple frames. Breaks physics, etc.
+          const {
+            size: { x: vsx, y: vsy, z: vsz },
+            palette,
+            data
+          } = voxFileChunks[frame];
+
+          const size = [Math.min(vsx, MAX_VOX_SIZE), Math.min(vsy, MAX_VOX_SIZE), Math.min(vsz, MAX_VOX_SIZE)];
+          const iPalToVoxColor = i => {
+            const rgba = palette[i];
+            const r = 0x000000ff & rgba;
+            const g = (0x0000ff00 & rgba) >>> 8;
+            const b = (0x00ff0000 & rgba) >>> 16;
+            return voxColorForRGBT(r, g, b);
+          };
+          const [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(size);
+
+          const shiftX = shiftForSize(size[0]);
+          const shiftY = shiftForSize(size[1]);
+          const shiftZ = shiftForSize(size[2]);
+
+          const voxChunk = new VoxChunk(size);
+
+          for (let i = 0; i < data.length; i += 4) {
+            const x = data[i + 0];
+            const z = data[i + 1];
+            const y = data[i + 2];
+            const c = data[i + 3];
+
+            const voxX = x - shiftX;
+            const voxY = y - shiftY;
+            const voxZ = z - shiftZ;
+
+            if (voxX >= minX && voxX <= maxX && voxY >= minY && voxY <= maxY && voxZ >= minZ && voxZ <= maxZ) {
+              const voxColor = iPalToVoxColor(c);
+              voxChunk.setColorAt(voxX, voxY, voxZ, voxColor);
+            }
+          }
+
+          await sync.applyChunk(voxChunk, frame, [0, 0, 0]);
+          res();
+        }
+      });
+    });
+
+    return url;
   }
 });
 

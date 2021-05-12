@@ -723,7 +723,7 @@ export class VoxSystem extends EventTarget {
 
         // Don't update physics when running pending for brush
         if (i === 0 && !pendingVoxChunk) {
-          const shapeIsEnvironmental = mesherQuadSize <= 2;
+          const shapeIsEnvironmental = mesherQuadSize <= 4;
           entry.shapeIsEnvironmental = shapeIsEnvironmental;
 
           const type = shapeIsEnvironmental ? SHAPE.HACD : SHAPE.HULL;
