@@ -172,6 +172,8 @@ export class VoxSystem extends EventTarget {
         const source = sources[instanceId];
         if (source === null) continue;
 
+        source.updateMatrices();
+
         if (this.sourceToLastCullPassFrame.has(source)) {
           const lastFrameCullPassed = this.sourceToLastCullPassFrame.get(source);
 
