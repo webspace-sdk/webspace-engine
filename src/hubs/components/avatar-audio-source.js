@@ -41,8 +41,8 @@ async function getMediaStream(el) {
 }
 
 function getPreferredPanningModel() {
-  // At lower detail levels, assume we are CPU bound and abandon trying to do HRTF.
-  return window.APP.detailLevel > 0 ? "equalpower" : "HRTF";
+  // HRTF can cause a ton of lag between viseme and voice.
+  return "equalpower";
 }
 
 function setPositionalAudioProperties(audio, settings) {
