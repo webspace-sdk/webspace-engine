@@ -577,10 +577,14 @@ export class BuilderSystem extends EventTarget {
 
   async createVoxAt(point) {
     const spaceId = window.APP.spaceChannel.spaceId;
+    const { voxSystem } = SYSTEMS;
 
     const {
       vox: [{ vox_id: voxId, url }]
     } = await createVox(spaceId);
+
+    const sync = await voxSystem.getSync(voxId);
+    await sync.setVoxel(0, 0, 0, this.brushVoxColor);
 
     // Skip resolving these URLs since they're from dyna.
     const { entity } = addMedia(
