@@ -4,6 +4,7 @@ import { hackyMobileSafariTest } from "./utils/detect-touchscreen";
 import { ensureOwnership } from "./../jel/utils/ownership-utils";
 import { MEDIA_TEXT_COLOR_PRESETS } from "../jel/components/media-text";
 import { waitForDOMContentLoaded } from "./utils/async-utils";
+import { createVox } from "./utils/phoenix-utils";
 
 const { detect } = require("detect-browser");
 
@@ -202,6 +203,25 @@ export default class SceneEntryManager {
       ];
 
       spawnMediaInfrontOfPlayer(null, "", null, e.detail, { backgroundColor, foregroundColor });
+    });
+
+    this.scene.addEventListener("add_media_vox", async () => {
+      const spaceId = window.APP.spaceChannel.spaceId;
+      const { voxSystem, builderSystem } = SYSTEMS;
+
+      const {
+        vox: [{ vox_id: voxId, url }]
+      } = await createVox(spaceId);
+      const entity = spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL, null, {}, true, true);
+
+      entity.addEventListener(
+        "model-loaded",
+        async () => {
+          const sync = await voxSystem.getSync(voxId);
+          await sync.setVoxel(0, 0, 0, builderSystem.brushVoxColor);
+        },
+        { once: true }
+      );
     });
 
     this.scene.addEventListener("add_media_emoji", ({ detail: emoji }) => {

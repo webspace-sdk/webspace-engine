@@ -201,7 +201,6 @@ const objectCommonTips = [
 
 // Vox label for clone is 'instance', to clarify it vs bake (which makes a fork.)
 const voxCommonTips = [
-  ["edit", "~|@"],
   ...objectCommonTips
     .map(t => (t[0] === "clone" ? ["instance", t[1]] : t))
     .map(t => (t[0] === "bake" ? ["duplicate", t[1]] : t))
@@ -266,17 +265,17 @@ const TIP_DATA = {
   hover_bakable_groundable_interactable: objectCommonTips,
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
-  vox: voxCommonTips,
-  vox_pick: [["pick", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_fill: [["fill", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_attach: [["attach", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_remove: [["erase", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_paint: [["paint", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_pick_full: [["pick", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_fill_full: [["fill", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_attach_full: [["attach", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_remove_full: [["erase", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_paint_full: [["paint", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox: [["edit", "~|@"], ...voxCommonTips],
+  vox_pick: [["edit", "~|@"], ["pick", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_fill: [["edit", "~|@"], ["fill", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_attach: [["edit", "~|@"], ["attach", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_remove: [["edit", "~|@"], ["erase", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_paint: [["edit", "~|@"], ["paint", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_pick_full: [["edit", "~|@"], ["pick", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_fill_full: [["edit", "~|@"], ["fill", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_attach_full: [["edit", "~|@"], ["attach", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_remove_full: [["edit", "~|@"], ["erase", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_paint_full: [["edit", "~|@"], ["paint", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
   vox_pick_edit: [
     ["orbit", "I"],
     ["pan", "_S|O"],
