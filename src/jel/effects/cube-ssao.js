@@ -429,7 +429,7 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
 
   render(renderer, writeBuffer /* , readBuffer, deltaTime, maskActive */) {
     // render scene and depth
-    if (window.APP.detailLevel <= 1) {
+    if (window.APP.detailLevel <= 2) {
       const f = this.camera.far;
       // HACK make shallow z-buffer, but keep projection matrix for proper frustum culling.
       this.camera.far = FAR_PLANE_FOR_SSAO;
@@ -477,7 +477,7 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
       this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
       // Copy composed buffer to screen
       this.renderPass(renderer, this.material, this.renderToScreen ? null : writeBuffer);
-    } else if (window.APP.detailLevel === 2 && !isFirefox /* Doesn't work on FF for some reason, punting for now */) {
+    } else if (window.APP.detailLevel === 3 && !isFirefox /* Doesn't work on FF for some reason, punting for now */) {
       renderer.setRenderTarget(this.sceneRenderTarget);
       renderer.clear();
       renderer.render(this.scene, this.camera);

@@ -179,10 +179,10 @@ export class AtmosphereSystem {
     this.sky.onAnimationTick({ delta: dt / 1000.0 });
     this.water.onAnimationTick({ delta: dt / 1000.0 });
     this.effectsSystem.disableEffects = false;
-    this.sunLight.castShadow = window.APP.detailLevel < 3;
+    this.sunLight.castShadow = window.APP.detailLevel < 2;
 
     // If low quality is tripped, reduce shadow map size and distance
-    if (window.APP.detailLevel < 2) {
+    if (window.APP.detailLevel < 1) {
       if (this.sunLight.shadow.mapSize.x !== 1024 * 4) {
         this.sunLight.shadow.mapSize.x = 1024 * 4;
         this.sunLight.shadow.mapSize.y = 1024 * 4;
@@ -195,7 +195,7 @@ export class AtmosphereSystem {
 
         this.sunLight.shadow.map = null;
       }
-    } else if (window.APP.detailLevel >= 2) {
+    } else {
       if (this.sunLight.shadow.mapSize.x !== 1024) {
         this.sunLight.shadow.mapSize.x = 1024;
         this.sunLight.shadow.mapSize.y = 1024;
