@@ -177,27 +177,20 @@ export class AutoQualitySystem extends EventTarget {
       this.sampledFrames = 0;
 
       if (!this.metFastFrameTest) {
-        const minPixelRatio =
-          window.APP.detailLevel === 0 || window.APP.detailLevel === 1
-            ? window.devicePixelRatio
-            : window.APP.detailLevel === LOWEST_DETAIL_LEVEL
-              ? window.devicePixelRatio / 4.0
-              : window.devicePixelRatio / 2.0;
+        const minPixelRatio = window.APP.detailLevel === 0 ? window.devicePixelRatio : window.devicePixelRatio / 3.0;
 
-        if (this.scene.renderer.getPixelRatio() > minPixelRatio - 0.01) {
-          if (this.scene.renderer.getPixelRatio() >= window.devicePixelRatio / 2.0 - 0.01) {
+        if (this.scene.renderer.getPixelRatio() > minPixelRatio) {
+          if (this.scene.renderer.getPixelRatio() > window.devicePixelRatio / 2.0) {
             console.warn("Dropping resolution to half.");
             this.scene.renderer.setPixelRatio(window.devicePixelRatio / 2.0);
             this.scene.systems.effects.updateComposer = true;
-          } else if (this.scene.renderer.getPixelRatio() >= window.devicePixelRatio / 4.0 - 0.01) {
-            console.warn("Dropping resolution to a quarter.");
-            this.scene.renderer.setPixelRatio(window.devicePixelRatio / 4.0);
+          } else {
+            console.warn("Dropping resolution to a third.");
+            this.scene.renderer.setPixelRatio(window.devicePixelRatio / 3.0);
             this.scene.systems.effects.updateComposer = true;
           }
         } else {
           if (window.APP.detailLevel < LOWEST_DETAIL_LEVEL) {
-            this.scene.renderer.setPixelRatio(window.devicePixelRatio);
-            this.scene.systems.effects.updateComposer = true;
             this.dropDetailLevel();
           }
         }

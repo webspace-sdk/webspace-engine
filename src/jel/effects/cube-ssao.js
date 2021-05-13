@@ -557,7 +557,7 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
     this.sceneRenderTarget.depthTexture.dispose();
     this.sceneRenderTarget.depthTexture = depthTexture;
 
-    this.material.uniforms.resolution.value.set(this.width, height);
+    this.material.uniforms.resolution.value.set(this.width, this.height);
   }
 });
 

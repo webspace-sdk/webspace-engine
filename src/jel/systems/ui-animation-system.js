@@ -160,8 +160,13 @@ export class UIAnimationSystem {
     }
 
     const width = document.body.clientWidth - this.sceneLeft - this.sceneRight;
-    this.sceneEl.style.cssText = `left: ${this.sceneLeft}px; width: ${width}px;`;
-    this.neon.style.cssText = `left: ${this.sceneLeft}px; width: ${width}px;`;
+    if (this.sceneEl) {
+      this.sceneEl.style.cssText = `left: ${this.sceneLeft}px; width: ${width}px;`;
+    }
+
+    if (this.neon) {
+      this.neon.style.cssText = `left: ${this.sceneLeft}px; width: ${width}px;`;
+    }
 
     if (includeUI) {
       this.applyUI(this.sceneLeft, this.sceneRight);
