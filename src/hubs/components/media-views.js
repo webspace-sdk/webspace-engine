@@ -1201,6 +1201,8 @@ AFRAME.registerComponent("media-image", {
       if (!disposeTexture) {
         this.mesh.material.map = null;
       }
+    } else if (this.mesh.material.map === errorTexture) {
+      this.mesh.material.map = null;
     }
 
     disposeExistingMesh(this.el);
