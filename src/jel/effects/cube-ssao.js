@@ -538,10 +538,26 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
     this.width = width;
     this.height = height;
 
-    this.sceneRenderTarget.setSize(width, height);
-    this.ssaoRenderTarget.setSize(width, height);
+    this.sceneRenderTarget.setSize(this.width, this.height);
+    this.ssaoRenderTarget.setSize(this.width, this.height);
 
-    this.material.uniforms.resolution.value.set(width, height);
+    const depthTexture = new DepthTexture(
+      this.width,
+      this.height,
+      UnsignedInt248Type,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      DepthStencilFormat
+    );
+
+    this.sceneRenderTarget.depthTexture.dispose();
+    this.sceneRenderTarget.depthTexture = depthTexture;
+
+    this.material.uniforms.resolution.value.set(this.width, height);
   }
 });
 
