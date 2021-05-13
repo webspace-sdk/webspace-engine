@@ -136,7 +136,7 @@
   "create-select.voxmoji.title": "Voxmoji",
   "create-select.voxmoji.description": "Create a floating 3D Emoji.",
   "create-select.voxmoji.tokens": "emoji voxmoji smiley object",
-  "create-select.vox.title": "Create Object",
+  "create-select.vox.title": "Voxel Object",
   "create-select.vox.description": "Create a new Voxel object.",
   "create-select.vox.tokens": "vox voxel object",
   "create-select.screen.title": "Share Screen",
