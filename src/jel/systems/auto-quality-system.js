@@ -180,7 +180,7 @@ export class AutoQualitySystem extends EventTarget {
               ? window.devicePixelRatio / 4.0
               : window.devicePixelRatio / 2.0;
 
-        if (this.scene.renderer.getPixelRatio() > minPixelRatio) {
+        if (this.scene.renderer.getPixelRatio() > minPixelRatio - 0.01) {
           if (this.scene.renderer.getPixelRatio() >= window.devicePixelRatio / 2.0 - 0.01) {
             console.warn("Dropping resolution to half.");
             this.scene.renderer.setPixelRatio(window.devicePixelRatio / 2.0);
