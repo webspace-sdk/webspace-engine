@@ -835,6 +835,7 @@ export const spawnMediaInfrontOfPlayer = (
   mediaOptions = null,
   networked = true,
   skipResolve = false,
+  contentType = null,
   zOffset = -1.5,
   yOffset = 0
 ) => {
@@ -851,7 +852,12 @@ export const spawnMediaInfrontOfPlayer = (
     true,
     true,
     mediaOptions,
-    networked
+    networked,
+    null,
+    null,
+    null,
+    false,
+    contentType
   );
 
   orientation.then(or => {

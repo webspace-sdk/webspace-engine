@@ -212,7 +212,16 @@ export default class SceneEntryManager {
       const {
         vox: [{ vox_id: voxId, url }]
       } = await createVox(spaceId);
-      const entity = spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL, null, {}, true, true);
+      const entity = spawnMediaInfrontOfPlayer(
+        url,
+        null,
+        ObjectContentOrigins.URL,
+        null,
+        {},
+        true,
+        true,
+        "model/vnd.jel-vox"
+      );
 
       entity.addEventListener(
         "model-loaded",

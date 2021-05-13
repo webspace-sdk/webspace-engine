@@ -155,7 +155,7 @@ AFRAME.registerComponent("media-vox", {
     }
 
     // Skip resolving these URLs since they're from dyna.
-    spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL, null, {}, true, true);
+    spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL, null, {}, true, true, "model/vnd.jel-vox");
   },
 
   shouldBurstProjectileOnImpact() {
