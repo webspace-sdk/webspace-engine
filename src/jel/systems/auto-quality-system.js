@@ -170,16 +170,19 @@ export class AutoQualitySystem extends EventTarget {
       this.sampledFrames = 0;
 
       if (!this.metFastFrameTest) {
-        if (window.APP.detailLevel < 2) {
-          this.dropDetailLevel();
-        } else {
+        const minPixelRatio = window.APP.detailLevel === 2 ? 0.33 : 0.5;
+
+        if (this.scene.renderer.getPixelRatio() > minPixelRatio) {
           if (this.scene.renderer.getPixelRatio() === 1.0) {
             console.warn("Dropping resolution to 0.5.");
             this.scene.renderer.setPixelRatio(0.5);
-          } else if (this.scene.renderer.getPixelRatio() > 0.33) {
+          } else if (this.scene.renderer.getPixelRatio() === 0.5) {
             console.warn("Dropping resolution to 0.33.");
             this.scene.renderer.setPixelRatio(0.33);
           }
+        } else {
+          this.scene.renderer.setPixelRatio(1.0);
+          this.dropDetailLevel();
         }
       }
 
