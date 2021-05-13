@@ -10,11 +10,12 @@ export class App {
 
     // Detail levels
     // 0 - Full
-    // 1 - Reduce shadow map, no reflections, simple sky, no SSAO, no terrain detail meshes
-    // 2 - Also disable shadows and FXAA
+    // 1 - No reflections, simple sky
+    // 2 - Reduce shadow map, no SSAO, no terrain detail meshes
+    // 3 - Also disable shadows and FXAA
     //
     // Start at lowest detail level, so app boots quickly.
-    this._detailLevel = 2;
+    this._detailLevel = 3;
   }
 
   setQuality(quality) {

@@ -5,6 +5,7 @@ const MIN_SAMPLES_NEEDED = 15;
 const RESET_ON_TIME_JUMP_MS = 2000.0;
 const DEBUG_DURATION_MS = 30000.0;
 const MIN_NUM_CONSECUTIVE_FAST_FRAMES = 2;
+const LOWEST_DETAIL_LEVEL = 3;
 
 // How long to maintain lower detail level on startup if machine seems to be underpowered.
 const CROSS_SESSION_DETAIL_LOWER_DURATION_S = 60 * 60 * 24;
@@ -36,7 +37,7 @@ export class AutoQualitySystem extends EventTarget {
     window.addEventListener("resize", () => {
       // On a resize, temporarily reset the pixel ratio to 1.0 in the case
       // where we no longer need lower res.
-      if (window.APP.detailLevel === 2) {
+      if (window.APP.detailLevel >= 2) {
         if (this.scene.renderer.getPixelRatio() !== 1.0) {
           this.scene.renderer.setPixelRatio(1.0);
         }
@@ -47,8 +48,8 @@ export class AutoQualitySystem extends EventTarget {
   debugLog() {
     if (!debugAutoQuality) return;
     if (performance.now() - this.debugStartTime > DEBUG_DURATION_MS) {
-      if (window.APP.detailLevel !== 2) {
-        window.APP.detailLevel = 2;
+      if (window.APP.detailLevel !== LOWEST_DETAIL_LEVEL) {
+        window.APP.detailLevel = LOWEST_DETAIL_LEVEL;
         console.log("Quality debug complete. Dropping quality level.");
       }
       return;
@@ -69,11 +70,11 @@ export class AutoQualitySystem extends EventTarget {
   }
 
   dropDetailLevel(saveToStore = false) {
-    window.APP.detailLevel = Math.min(2, window.APP.detailLevel + 1);
+    window.APP.detailLevel = Math.min(LOWEST_DETAIL_LEVEL, window.APP.detailLevel + 1);
     console.warn("Slow framerate detected. New detail level: ", window.APP.detailLevel);
 
     this.scene.renderer.setPixelRatio(1);
-    this.enableTracking = window.APP.detailLevel !== 2; // Stop tracking at lowest detail level
+    this.enableTracking = window.APP.detailLevel !== LOWEST_DETAIL_LEVEL; // Stop tracking at lowest detail level
     document.body.classList.add("low-detail");
 
     if (saveToStore) {
@@ -88,7 +89,7 @@ export class AutoQualitySystem extends EventTarget {
 
   tick(t) {
     if (!this.enableTracking) return;
-    if (window.APP.detailLevel === 2 && this.scene.renderer.pixelRatio <= 0.33) return; // Already lowest detail level, can't do anything else
+    if (window.APP.detailLevel === LOWEST_DETAIL_LEVEL && this.scene.renderer.pixelRatio <= 0.33) return; // Already lowest detail level, can't do anything else
 
     if (this.lastTick === 0) {
       this.lastTick = performance.now();
@@ -112,7 +113,7 @@ export class AutoQualitySystem extends EventTarget {
       if (dt > frameDuration && this.totalFrames <= frameCount) {
         this.slowStartupFrames[i] = this.slowStartupFrames[i] + 1;
 
-        if (this.slowStartupFrames[i] >= frameCount && window.APP.detailLevel < 2) {
+        if (this.slowStartupFrames[i] >= frameCount && window.APP.detailLevel < LOWEST_DETAIL_LEVEL) {
           this.debugLog(
             "Machine seems underpowered, dropping quality level for next day.",
             dt,
@@ -170,13 +171,14 @@ export class AutoQualitySystem extends EventTarget {
       this.sampledFrames = 0;
 
       if (!this.metFastFrameTest) {
-        const minPixelRatio = window.APP.detailLevel === 2 ? 0.33 : 0.5;
+        const minPixelRatio =
+          window.APP.detailLevel === 0 ? 1.0 : window.APP.detailLevel === LOWEST_DETAIL_LEVEL ? 0.33 : 0.5;
 
         if (this.scene.renderer.getPixelRatio() > minPixelRatio) {
           if (this.scene.renderer.getPixelRatio() === 1.0) {
             console.warn("Dropping resolution to 0.5.");
             this.scene.renderer.setPixelRatio(0.5);
-          } else if (this.scene.renderer.getPixelRatio() === 0.5) {
+          } else if (this.scene.renderer.getPixelRatio() >= 0.5) {
             console.warn("Dropping resolution to 0.33.");
             this.scene.renderer.setPixelRatio(0.33);
           }
