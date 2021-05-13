@@ -172,7 +172,11 @@ export class AutoQualitySystem extends EventTarget {
 
       if (!this.metFastFrameTest) {
         const minPixelRatio =
-          window.APP.detailLevel === 0 ? 1.0 : window.APP.detailLevel === LOWEST_DETAIL_LEVEL ? 0.33 : 0.5;
+          window.APP.detailLevel === 0 || window.APP.detailLevel === 1
+            ? 1.0
+            : window.APP.detailLevel === LOWEST_DETAIL_LEVEL
+              ? 0.33
+              : 0.5;
 
         if (this.scene.renderer.getPixelRatio() > minPixelRatio) {
           if (this.scene.renderer.getPixelRatio() === 1.0) {
