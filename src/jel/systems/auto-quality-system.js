@@ -182,7 +182,7 @@ export class AutoQualitySystem extends EventTarget {
           if (this.scene.renderer.getPixelRatio() === 1.0) {
             console.warn("Dropping resolution to 0.5.");
             this.scene.renderer.setPixelRatio(0.5);
-          } else if (this.scene.renderer.getPixelRatio() >= 0.5) {
+          } else if (this.scene.renderer.getPixelRatio() >= 0.49) {
             console.warn("Dropping resolution to 0.33.");
             this.scene.renderer.setPixelRatio(0.33);
           }
