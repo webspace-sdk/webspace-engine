@@ -317,7 +317,7 @@ export default class WorldImporter {
         mediaOptions.backgroundColor = mediaBackgroundColor;
       }
 
-      const { entity } = addMedia(
+      const entity = addMedia(
         src,
         contents,
         "#interactable-media",
