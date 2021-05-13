@@ -111,7 +111,8 @@ const CubeSSAOShader = {
       value: 0.0833
     },
     offset: { value: 1.0 },
-    darkness: { value: 1.0 }
+    darkness: { value: 1.0 },
+    aoRadius: { value: 5.0 }
   },
   vertexShader:
     "varying vec2 vUv;\nvoid main() {\nvUv = uv;\ngl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\n}",
@@ -134,6 +135,7 @@ const CubeSSAOShader = {
     "uniform float saturation;",
     "uniform float darkness;",
     "uniform float offset;",
+    "uniform float aoRadius;",
     "uniform bool runAO;",
     "uniform bool runFXAA;",
     "uniform bool runCopy;",
@@ -146,9 +148,6 @@ const CubeSSAOShader = {
     "#ifndef SAMPLES",
     "#define SAMPLES 8",
     "#endif",
-    "#ifndef RADIUS",
-    "#define RADIUS 5.0",
-    "#endif",
     "#if !defined( FLOAT_DEPTH ) && !defined( RGBA_DEPTH )",
     "#define RGBA_DEPTH",
     "#endif",
@@ -158,7 +157,6 @@ const CubeSSAOShader = {
     FXAAFunc,
     "const int samples = SAMPLES;",
     "#include <packing>",
-    "const float radius = RADIUS;",
     "const bool useNoise = false;",
     "const float noiseAmount = 0.0003;",
     "const float diffArea = 0.4;",
@@ -210,7 +208,7 @@ const CubeSSAOShader = {
     "return gauss;",
     "}",
     "float calcAO( float depth, float dw, float dh ) {",
-    "float dd = radius - depth * radius;",
+    "float dd = aoRadius - depth * aoRadius;",
     "vec2 vv = vec2( dw, dh );",
     "vec2 coord1 = vUv + dd * vv;",
     "vec2 coord2 = vUv - dd * vv;",
@@ -477,6 +475,41 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
       this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
       // Copy composed buffer to screen
       this.renderPass(renderer, this.material, this.renderToScreen ? null : writeBuffer);
+    } else if (window.APP.detailLevel === 2 && !isFirefox) {
+      // SSAO but no FXAA
+      const f = this.camera.far;
+      // HACK make shallow z-buffer, but keep projection matrix for proper frustum culling.
+      this.camera.far = FAR_PLANE_FOR_SSAO;
+      // TODO this.camera.updateProjectionMatrix();
+
+      renderer.setRenderTarget(this.sceneRenderTarget);
+      renderer.clear();
+      renderer.render(this.scene, this.camera);
+
+      this.camera.far = f;
+
+      // render SSAO + colorize
+      this.material.uniforms.runAO.value = true;
+      this.material.uniforms.runCopy.value = false;
+      this.material.uniforms.runFXAA.value = false;
+      this.material.uniforms.fxaaQualitySubpix.value = 0.0;
+      this.material.uniforms.fxaaEdgeThreshold.value = 1.0;
+      this.material.uniforms.fxaaEdgeThresholdMin.value = 1.0;
+      this.material.uniforms.offset.value = 0.35;
+      this.material.uniforms.darkness.value = 5.0;
+      this.material.uniforms.saturation.value = 0.1;
+      this.material.uniforms.brightness.value = 0.1;
+
+      this.material.uniforms.tDiffuse.value = this.sceneRenderTarget.texture;
+      this.material.uniforms.tDepth.value = this.sceneRenderTarget.depthTexture;
+      this.renderPass(renderer, this.material, this.ssaoRenderTarget);
+
+      this.material.stencilWrite = false;
+      this.material.uniforms.runFXAA.value = false;
+      this.material.uniforms.runCopy.value = true;
+      this.material.uniforms.tDiffuse.value = this.ssaoRenderTarget.texture;
+      // Copy composed buffer to screen
+      this.renderPass(renderer, this.material, this.renderToScreen ? null : writeBuffer);
     } else if (window.APP.detailLevel === 3 && !isFirefox /* Doesn't work on FF for some reason, punting for now */) {
       renderer.setRenderTarget(this.sceneRenderTarget);
       renderer.clear();
@@ -534,12 +567,14 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
     renderer.setClearAlpha(originalClearAlpha);
   },
 
+  setAORadius(aoRadius) {
+    this.material.uniforms.aoRadius.value = aoRadius;
+    this.material.uniformsNeedUpdate = true;
+  },
+
   setSize(width, height) {
     this.width = width;
     this.height = height;
-
-    this.sceneRenderTarget.setSize(this.width, this.height);
-    this.ssaoRenderTarget.setSize(this.width, this.height);
 
     const depthTexture = new DepthTexture(
       this.width,
@@ -556,6 +591,9 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
 
     this.sceneRenderTarget.depthTexture.dispose();
     this.sceneRenderTarget.depthTexture = depthTexture;
+
+    this.sceneRenderTarget.setSize(this.width, this.height);
+    this.ssaoRenderTarget.setSize(this.width, this.height);
 
     this.material.uniforms.resolution.value.set(this.width, this.height);
   }

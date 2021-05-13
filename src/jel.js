@@ -703,6 +703,7 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
       if (setToHighDetail) {
         window.APP.detailLevel = 0;
         scene.renderer.setPixelRatio(window.devicePixelRatio);
+        scene.systems.effects.updateComposer = true;
       }
 
       mixpanel.track("Event First World Load Complete", {});

@@ -5,7 +5,9 @@ const MIN_SAMPLES_NEEDED = 15;
 const RESET_ON_TIME_JUMP_MS = 2000.0;
 const DEBUG_DURATION_MS = 30000.0;
 const MIN_NUM_CONSECUTIVE_FAST_FRAMES = 2;
-const LOWEST_DETAIL_LEVEL = 3;
+
+// Lowest detail level should keep SSAO since seems worth it.
+const LOWEST_DETAIL_LEVEL = 2;
 
 // How long to maintain lower detail level on startup if machine seems to be underpowered.
 const CROSS_SESSION_DETAIL_LOWER_DURATION_S = 60 * 60 * 24;

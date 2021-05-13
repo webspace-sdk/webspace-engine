@@ -251,7 +251,7 @@ export class CharacterControllerSystem {
         this.networkedAvatar.data.is_jumping = this.jumpYVelocity !== null && this.jumpYVelocity > 2.5;
       }
 
-      const lerpC = vrMode ? 0 : 0.85; // TODO: To support drifting ("ice skating"), motion needs to keep initial direction
+      const lerpC = vrMode ? 0 : Math.max(0.66, Math.min(0.975, 0.85 * (16.0 / dt))); // TODO: To support drifting ("ice skating"), motion needs to keep initial direction
       this.nextRelativeMotion.copy(this.relativeMotion).multiplyScalar(lerpC);
       this.relativeMotion.multiplyScalar(1 - lerpC);
 

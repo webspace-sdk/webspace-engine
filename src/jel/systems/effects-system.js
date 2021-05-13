@@ -33,8 +33,9 @@ AFRAME.registerSystem("effects", {
       const scene = this.sceneEl.object3D;
       const { width, height } = this.sceneEl.getBoundingClientRect();
       const pixelRatio = renderer.getPixelRatio();
-      const w = width * pixelRatio;
-      const h = height * pixelRatio;
+      const w = Math.floor(width * pixelRatio);
+      const h = Math.floor(height * pixelRatio);
+      const aoRadius = 5.0 * pixelRatio;
 
       if (!this.composer) {
         this.composer = new EffectComposer(renderer);
@@ -63,6 +64,7 @@ AFRAME.registerSystem("effects", {
       }
 
       this.ssaoPass.setSize(w, h);
+      this.ssaoPass.setAORadius(aoRadius);
       this.composer.setSize(w, h);
     }
   }
