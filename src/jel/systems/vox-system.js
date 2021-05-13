@@ -1295,4 +1295,13 @@ export class VoxSystem extends EventTarget {
     return 0;
     //const isCurrentAnimationFrame = this.frame % (maxMeshIndex + 1) === i;
   }
+
+  shouldBurstProjectileOnImpact(voxId) {
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return;
+
+    // Environment VOX should have projectiles bounce off.
+    return !entry.shapeIsEnvironmental;
+  }
 }

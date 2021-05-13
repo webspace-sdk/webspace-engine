@@ -158,6 +158,11 @@ AFRAME.registerComponent("media-vox", {
     spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL, null, {}, true, true);
   },
 
+  shouldBurstProjectileOnImpact() {
+    if (!this.voxId) return true;
+    return SYSTEMS.voxSystem.shouldBurstProjectileOnImpact(this.voxId);
+  },
+
   remove() {
     if (this.mesh) {
       SYSTEMS.voxSystem.unregister(this.mesh);

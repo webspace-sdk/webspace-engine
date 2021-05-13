@@ -471,6 +471,14 @@ export class ProjectileSystem {
             }
           }
 
+          if (hitMedia) {
+            const hitVox = el.components["media-vox"];
+
+            if (hitVox && !hitVox.shouldBurstProjectileOnImpact()) {
+              hitMedia = false;
+            }
+          }
+
           if (hitMedia || hitAvatarSessionId) break;
         }
       }
