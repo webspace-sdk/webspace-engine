@@ -37,9 +37,9 @@ export class AutoQualitySystem extends EventTarget {
     window.addEventListener("resize", () => {
       // On a resize, temporarily reset the pixel ratio to 1.0 in the case
       // where we no longer need lower res.
-      if (window.APP.detailLevel >= 2) {
-        if (this.scene.renderer.getPixelRatio() !== window.devicePixelRatio) {
-          this.scene.renderer.setPixelRatio(window.devicePixelRatio);
+      if (window.APP.detailLevel >= 1) {
+        if (this.scene.renderer.getPixelRatio() !== 1.0) {
+          this.scene.renderer.setPixelRatio(1.0);
           this.scene.systems.effects.updateComposer = true;
         }
       }
@@ -74,7 +74,7 @@ export class AutoQualitySystem extends EventTarget {
     window.APP.detailLevel = Math.min(LOWEST_DETAIL_LEVEL, window.APP.detailLevel + 1);
     console.warn("Slow framerate detected. New detail level: ", window.APP.detailLevel);
 
-    this.scene.renderer.setPixelRatio(window.devicePixelRatio);
+    this.scene.renderer.setPixelRatio(1.0);
     this.scene.systems.effects.updateComposer = true;
     this.enableTracking = window.APP.detailLevel !== LOWEST_DETAIL_LEVEL; // Stop tracking at lowest detail level
     document.body.classList.add("low-detail");
@@ -91,7 +91,11 @@ export class AutoQualitySystem extends EventTarget {
 
   tick(t) {
     if (!this.enableTracking) return;
-    if (window.APP.detailLevel === LOWEST_DETAIL_LEVEL && this.scene.renderer.pixelRatio <= 0.33) return; // Already lowest detail level, can't do anything else
+    if (
+      window.APP.detailLevel === LOWEST_DETAIL_LEVEL &&
+      this.scene.renderer.pixelRatio <= window.devicePixelRatio / 3.0
+    )
+      return; // Already lowest detail level, can't do anything else
 
     if (this.lastTick === 0) {
       this.lastTick = performance.now();
