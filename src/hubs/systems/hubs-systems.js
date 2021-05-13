@@ -154,6 +154,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.superSpawnerSystem.tick();
     this.cursorPoseTrackingSystem.tick();
     this.voxSystem.tick(t, dt); // Vox system may generate targetting meshes
+    this.cameraSystem.tick(this.el, dt); // May update targets if inspecting
     this.cursorTargettingSystem.tick(t);
     this.positionAtBorderSystem.tick();
     this.scaleInScreenSpaceSystem.tick();
@@ -173,7 +174,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.scenePreviewCameraSystem.tick();
     this.physicsSystem.tick(dt);
     this.batchManagerSystem.tick(t);
-    this.cameraSystem.tick(this.el, dt);
     this.spriteSystem.tick(t, dt);
     this.enterVRButtonSystem.tick();
     this.uvScrollSystem.tick(dt);
