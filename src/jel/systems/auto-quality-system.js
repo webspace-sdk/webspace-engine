@@ -183,8 +183,10 @@ export class AutoQualitySystem extends EventTarget {
             this.scene.renderer.setPixelRatio(0.33);
           }
         } else {
-          this.scene.renderer.setPixelRatio(1.0);
-          this.dropDetailLevel();
+          if (window.APP.detailLevel < LOWEST_DETAIL_LEVEL) {
+            this.scene.renderer.setPixelRatio(1.0);
+            this.dropDetailLevel();
+          }
         }
       }
 
