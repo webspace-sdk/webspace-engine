@@ -64,7 +64,7 @@ AFRAME.registerSystem("effects", {
       }
 
       this.ssaoPass.setSize(w, h);
-      this.ssaoPass.setAORadius(aoRadius);
+      this.ssaoPass.setAORadius(Math.max(2.0, aoRadius));
       this.composer.setSize(w, h);
     }
   }

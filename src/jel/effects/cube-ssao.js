@@ -576,6 +576,10 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
     this.width = width;
     this.height = height;
 
+    // Not sure if this is necessary:
+    this.sceneRenderTarget.depthTexture.image.width = this.width;
+    this.sceneRenderTarget.depthTexture.image.height = this.height;
+
     this.sceneRenderTarget.setSize(this.width, this.height);
     this.ssaoRenderTarget.setSize(this.width, this.height);
 
