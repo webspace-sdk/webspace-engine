@@ -199,7 +199,8 @@ export class AutoQualitySystem extends EventTarget {
             console.warn("Dropping resolution to a third.", window.devicePixelRatio / 3.0);
             this.scene.renderer.setPixelRatio(window.devicePixelRatio / 3.0);
             this.scene.systems.effects.updateComposer = true;
-          } else {
+          } else if (window.devicePixelRatio >= 2.0) {
+            // Go even further on high density displays.
             console.warn("Dropping resolution to a quarter.", window.devicePixelRatio / 4.0);
             this.scene.renderer.setPixelRatio(window.devicePixelRatio / 4.0);
             this.scene.systems.effects.updateComposer = true;
