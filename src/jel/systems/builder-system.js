@@ -498,7 +498,6 @@ export class BuilderSystem extends EventTarget {
           brushDown &&
           !this.ignoreRestOfStroke &&
           this.targetVoxId === null &&
-          brushMode === BRUSH_MODES.ADD &&
           intersection &&
           intersection.point &&
           now - this.lastHoverTime >= HOVER_TO_CREATE_DELAY_MS &&

@@ -344,11 +344,11 @@ const TIP_DATA = {
 const KEY_TIP_TYPES = Object.keys(TIP_DATA);
 let equippedEmojiUrl;
 
-const itemForData = ([label, keys, flag]) => {
+const itemForData = ([label, keys, flag], triggerMode) => {
   let tipLabel;
 
   if (label === "jump" || label === "shoot") {
-    if (SYSTEMS.builderSystem.enabled) {
+    if (triggerMode === "builder") {
       if (label === "jump") {
         // No analog in builder mode
         return null;
@@ -579,10 +579,10 @@ const itemForData = ([label, keys, flag]) => {
   return React.createElement(component, { key: label, style: style, className }, [keyLabels, tipLabel]);
 };
 
-const genTips = tips => {
+const genTips = (tips, triggerMode) => {
   return (
     <KeyTipsElement key={tips} className={tips}>
-      {TIP_DATA[tips].map(itemForData)}
+      {TIP_DATA[tips].map(tip => itemForData(tip, triggerMode))}
     </KeyTipsElement>
   );
 };
@@ -603,8 +603,33 @@ const KeyTipChooser = styled.div`
 `;
 
 const KeyTips = forwardRef((props, ref) => {
+  const { builderSystem, launcherSystem } = SYSTEMS;
   const [flagVersion, setFlagVersion] = useState(0);
+  const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const store = window.APP.store;
+
+  useEffect(
+    () => {
+      const handler = () => {
+        setTriggerMode(builderSystem.enabled ? "builder" : "launcher");
+      };
+
+      builderSystem.addEventListener("enabledchanged", handler);
+      () => {
+        builderSystem.removeEventListener("enabledchanged", handler);
+      };
+    },
+    [builderSystem, launcherSystem]
+  );
+
+  useEffect(
+    () => {
+      const handler = () => setFlagVersion(flagVersion + 1);
+      store.addEventListener("activityflagged", handler);
+      return () => store.removeEventListener("activityflagged", handler);
+    },
+    [store, flagVersion]
+  );
 
   useEffect(
     () => {
@@ -643,7 +668,7 @@ const KeyTips = forwardRef((props, ref) => {
 
   return (
     <KeyTipChooser {...props} ref={ref}>
-      {[...Object.keys(TIP_DATA)].map(genTips)}
+      {[...Object.keys(TIP_DATA)].map(tip => genTips(tip, triggerMode))}
     </KeyTipChooser>
   );
 });
