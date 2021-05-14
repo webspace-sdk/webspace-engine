@@ -868,7 +868,8 @@ export default class DialogAdapter extends EventTarget {
                 this._micProducer = await this._sendTransport.produce({
                   track,
                   stopTracks: false,
-                  zeroRtpOnPause: true,
+                  // If this is set to true, audio can end up being delayed behind visemes
+                  zeroRtpOnPause: false,
                   codecOptions: { opusStereo: false, opusDtx: true },
                   encodings: [{ maxBitrate: 64000 }]
                 });

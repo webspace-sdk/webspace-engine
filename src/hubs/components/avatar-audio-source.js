@@ -41,8 +41,8 @@ async function getMediaStream(el) {
 }
 
 function getPreferredPanningModel() {
-  // HRTF can cause a ton of lag between viseme and voice.
-  return "equalpower";
+  // At lower detail levels, assume we are CPU bound and abandon trying to do HRTF.
+  return window.APP.detailLevel > 0 ? "equalpower" : "HRTF";
 }
 
 function setPositionalAudioProperties(audio, settings) {
@@ -96,6 +96,10 @@ AFRAME.registerComponent("avatar-audio-source", {
     const mediaStreamSource = audio.context.createMediaStreamSource(stream);
     audio.setNodeSource(mediaStreamSource);
     this.el.setObject3D(this.attrName, audio);
+
+    // Ensure panner node is positioned properly, even if tabbed away and
+    // tick loop isn't running.
+    audio.updateMatrixWorld();
 
     this.el.emit("sound-source-set", { soundSource: mediaStreamSource });
   },

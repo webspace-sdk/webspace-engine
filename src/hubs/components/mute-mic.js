@@ -1,5 +1,3 @@
-import { SOUND_TOGGLE_MIC } from "../systems/sound-effects-system";
-
 const bindAllEvents = function(elements, events, f) {
   if (!elements || !elements.length) return;
   for (const el of elements) {
@@ -58,20 +56,20 @@ AFRAME.registerComponent("mute-mic", {
     if (!this.el.is("unmuted")) {
       if (!this._beganAudioStream) {
         this._beganAudioStream = true;
-        await this.el.sceneEl.systems["hubs-systems"].mediaStreamSystem.beginStreamingPreferredMic();
+        await SYSTEMS.mediaStreamSystem.beginStreamingPreferredMic();
       }
       await NAF.connection.adapter.enableMicrophone(true);
-      this.el.sceneEl.systems["hubs-systems"].audioSystem.enableOutboundAudioStream("microphone");
+      SYSTEMS.audioSystem.enableOutboundAudioStream("microphone");
       this.el.addState("unmuted");
       window.APP.store.handleActivityFlag("unmute");
       window.APP.spaceChannel.updateUnmuted(true);
     } else {
       if (this._beganAudioStream) {
         this._beganAudioStream = false;
-        await this.el.sceneEl.systems["hubs-systems"].mediaStreamSystem.stopMicrophoneTrack();
+        await SYSTEMS.mediaStreamSystem.stopMicrophoneTrack();
       }
       await NAF.connection.adapter.enableMicrophone(false);
-      this.el.sceneEl.systems["hubs-systems"].audioSystem.disableOutboundAudioStream("microphone");
+      SYSTEMS.audioSystem.disableOutboundAudioStream("microphone");
       this.el.removeState("unmuted");
       window.APP.spaceChannel.updateUnmuted(false);
     }
