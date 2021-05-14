@@ -136,9 +136,17 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       src: {
         value: notControlSpace
       },
-      dest: { value: paths.actions.jump },
+      dest: { value: paths.actions.mash },
       priority: 1001,
       xform: xforms.rising
+    },
+    {
+      src: {
+        value: notControlSpace
+      },
+      dest: { value: paths.actions.mashRelease },
+      priority: 1001,
+      xform: xforms.falling
     },
     {
       src: {

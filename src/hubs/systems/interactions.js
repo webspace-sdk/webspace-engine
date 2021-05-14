@@ -99,24 +99,28 @@ AFRAME.registerSystem("interaction", {
   release(el) {
     if (this.state.leftHand.held === el) {
       this.state.leftHand.held = null;
+      this.state.leftHand.constrained = true;
     }
     if (this.state.leftHand.hovered === el) {
       this.state.leftHand.hovered = null;
     }
-    if (this.state.leftHand.held === el) {
-      this.state.leftHand.held = null;
+    if (this.state.rightHand.held === el) {
+      this.state.rightHand.held = null;
+      this.state.rightHand.constrained = true;
     }
     if (this.state.rightHand.hovered === el) {
       this.state.rightHand.hovered = null;
     }
     if (this.state.rightRemote.held === el) {
       this.state.rightRemote.held = null;
+      this.state.rightRemote.constrained = true;
     }
     if (this.state.rightRemote.hovered === el) {
       this.state.rightRemote.hovered = null;
     }
     if (this.state.leftRemote.held === el) {
       this.state.leftRemote.held = null;
+      this.state.leftRemote.constrained = true;
     }
     if (this.state.leftRemote.hovered === el) {
       this.state.leftRemote.hovered = null;
@@ -162,44 +166,52 @@ AFRAME.registerSystem("interaction", {
       leftHand: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true // Can be used to disable constraints
       },
       rightHand: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true
       },
       rightRemote: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true
       },
       leftRemote: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true
       }
     };
     this.previousState = {
       leftHand: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true
       },
       rightHand: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true
       },
       rightRemote: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true
       },
       leftRemote: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true
       }
     };
     waitForDOMContentLoaded().then(() => {

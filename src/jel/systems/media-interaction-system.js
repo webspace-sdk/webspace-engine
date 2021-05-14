@@ -51,11 +51,27 @@ export class MediaInteractionSystem {
       return;
     }
 
-    // Do not allow engaging media interactions if cursor has been hidden.
-    if (!cursorIsVisible()) return;
-
     this.interaction = this.interaction || scene.systems.interaction;
-    const hoverEl = this.interaction.state.rightRemote.hovered || this.interaction.state.leftRemote.hovered;
+    const interaction = this.interaction;
+    const hoverEl = interaction.state.rightRemote.hovered || interaction.state.leftRemote.hovered;
+    const heldEl = interaction.state.rightRemote.held || interaction.state.leftRemote.held;
+    const isHoldingObject = !!heldEl;
+
+    if (isHoldingObject) {
+      if (this.userinput.get(paths.actions.mash)) {
+        // When snapping, disable physics constraint
+        interaction.state.rightRemote.constraining = false;
+        interaction.state.leftRemote.constraining = false;
+      }
+
+      if (this.userinput.get(paths.actions.mashRelease)) {
+        // When un-snapping, restore physics constraint
+        interaction.state.rightRemote.constraining = true;
+        interaction.state.leftRemote.constraining = true;
+      }
+    }
+
+    // Do not allow engaging media interactions if cursor has been hidden.
     if (!cursorIsVisible()) return;
 
     if (!hoverEl) return;

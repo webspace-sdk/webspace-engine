@@ -85,7 +85,7 @@ export class KeyboardDevice {
           e.preventDefault();
         }
 
-        // Handle spacebar here since input system can't differentiate with and without modifier key held, and deal with repeats
+        // Handle spacebar widen here since input system can't differentiate with and without modifier key held, and deal with repeats
         if (e.type === "keydown" && e.key === " " && !e.repeat) {
           if (!e.altKey && !e.metaKey) {
             if (e.ctrlKey && !isInEditableField()) {
@@ -96,6 +96,13 @@ export class KeyboardDevice {
                 interaction.state.rightHand.hovered ||
                 interaction.state.rightRemote.hovered ||
                 interaction.state.leftRemote.hovered;
+
+              // Ignore widen when holding, since this is used for snapping.
+              const held =
+                interaction.state.leftHand.held ||
+                interaction.state.rightHand.held ||
+                interaction.state.rightRemote.held ||
+                interaction.state.leftRemote.held;
 
               // Paging using ctrl-space, so skip
               let hoveredOverPagableMedia = false;
@@ -109,7 +116,7 @@ export class KeyboardDevice {
                 }
               }
 
-              if (!hoveredOverPagableMedia) {
+              if (!hoveredOverPagableMedia && !held) {
                 const cursorLockState = getCursorLockState();
 
                 // Shift+Space widen
