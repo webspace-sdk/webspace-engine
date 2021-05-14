@@ -104,7 +104,7 @@ export class AutoQualitySystem extends EventTarget {
     if (!this.enableTracking) return;
     if (
       window.APP.detailLevel === LOWEST_DETAIL_LEVEL &&
-      this.scene.renderer.pixelRatio <= window.devicePixelRatio / 4.0
+      this.scene.renderer.pixelRatio <= window.devicePixelRatio / 3.0
     )
       return; // Already lowest detail level, can't do anything else
 
@@ -188,7 +188,7 @@ export class AutoQualitySystem extends EventTarget {
       this.sampledFrames = 0;
 
       if (!this.metFastFrameTest) {
-        const minPixelRatio = window.APP.detailLevel === 0 ? window.devicePixelRatio : window.devicePixelRatio / 4.0;
+        const minPixelRatio = window.APP.detailLevel === 0 ? window.devicePixelRatio : window.devicePixelRatio / 3.0;
 
         if (this.scene.renderer.getPixelRatio() > minPixelRatio) {
           if (this.scene.renderer.getPixelRatio() > window.devicePixelRatio / 2.0) {
@@ -198,11 +198,6 @@ export class AutoQualitySystem extends EventTarget {
           } else if (this.scene.renderer.getPixelRatio() > window.devicePixelRatio / 3.0) {
             console.warn("Dropping resolution to a third.", window.devicePixelRatio / 3.0);
             this.scene.renderer.setPixelRatio(window.devicePixelRatio / 3.0);
-            this.scene.systems.effects.updateComposer = true;
-          } else if (window.devicePixelRatio >= 2.0) {
-            // Go even further on high density displays.
-            console.warn("Dropping resolution to a quarter.", window.devicePixelRatio / 4.0);
-            this.scene.renderer.setPixelRatio(window.devicePixelRatio / 4.0);
             this.scene.systems.effects.updateComposer = true;
           }
         } else {
