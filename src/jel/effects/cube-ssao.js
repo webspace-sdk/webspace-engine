@@ -576,22 +576,6 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
     this.width = width;
     this.height = height;
 
-    const depthTexture = new DepthTexture(
-      this.width,
-      this.height,
-      UnsignedInt248Type,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      DepthStencilFormat
-    );
-
-    this.sceneRenderTarget.depthTexture.dispose();
-    this.sceneRenderTarget.depthTexture = depthTexture;
-
     this.sceneRenderTarget.setSize(this.width, this.height);
     this.ssaoRenderTarget.setSize(this.width, this.height);
 
