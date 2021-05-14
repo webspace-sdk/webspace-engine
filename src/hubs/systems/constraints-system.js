@@ -1,4 +1,3 @@
-/* global AFRAME */
 import { CONSTANTS } from "three-ammo";
 import { isNonNetworkedOrEnsureOwnership } from "../../jel/utils/ownership-utils";
 

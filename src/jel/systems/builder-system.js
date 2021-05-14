@@ -501,7 +501,8 @@ export class BuilderSystem extends EventTarget {
           brushMode === BRUSH_MODES.ADD &&
           intersection &&
           intersection.point &&
-          now - this.lastHoverTime >= HOVER_TO_CREATE_DELAY_MS
+          now - this.lastHoverTime >= HOVER_TO_CREATE_DELAY_MS &&
+          !SYSTEMS.cameraSystem.isInspecting()
         ) {
           // Not mid-build, create a new vox.
           this.hasInFlightOperation = true;
