@@ -46,6 +46,15 @@ export class AutoQualitySystem extends EventTarget {
         }
       }
     });
+
+    this.scene.addEventListener("animated_resize_complete", () => {
+      // On a panel collapse, temporarily reset the pixel ratio to 1.0 in the case
+      // where we no longer need lower res.
+      if (window.APP.detailLevel >= 1 && !SYSTEMS.uiAnimationSystem.isCollapsingOrCollapsed()) {
+        this.scene.renderer.setPixelRatio(1.0);
+        this.scene.systems.effects.updateComposer = true;
+      }
+    });
   }
 
   debugLog() {
@@ -183,11 +192,11 @@ export class AutoQualitySystem extends EventTarget {
 
         if (this.scene.renderer.getPixelRatio() > minPixelRatio) {
           if (this.scene.renderer.getPixelRatio() > window.devicePixelRatio / 2.0) {
-            console.warn("Dropping resolution to half.");
+            console.warn("Dropping resolution to half.", window.devicePixelRatio / 2.0);
             this.scene.renderer.setPixelRatio(window.devicePixelRatio / 2.0);
             this.scene.systems.effects.updateComposer = true;
           } else {
-            console.warn("Dropping resolution to a third.");
+            console.warn("Dropping resolution to a third.", window.devicePixelRatio / 3.0);
             this.scene.renderer.setPixelRatio(window.devicePixelRatio / 3.0);
             this.scene.systems.effects.updateComposer = true;
           }
