@@ -124,6 +124,7 @@ export function setMatrixWorld(object3D, m) {
   }
   object3D.matrix.decompose(object3D.position, object3D.quaternion, object3D.scale);
   object3D.childrenNeedMatrixWorldUpdate = true;
+  object3D.worldMatrixConsumerFlags = 0x00;
 }
 
 // Modified version of Don McCurdy's AnimationUtils.clone

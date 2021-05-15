@@ -84,6 +84,10 @@ export class ConstraintsSystem {
       // Constraining state removed
       if (isHolding && !state.constraining && prevState.constraining) {
         this.removeConstraint(entityId, prevState.held);
+
+        // If nothing is holding, and constraining was turned off, this object is likely going to be
+        // moved directly while being held so switch back to kinematic.
+        prevState.held.setAttribute("body-helper", { type: "kinematic" });
       }
 
       return;
@@ -167,10 +171,13 @@ export class ConstraintsSystem {
 
     const heldEntityId = held.id;
     const pairs = constraintPairs[heldEntityId];
-    pairs.splice(pairs.indexOf(entityId), 1);
 
-    if (pairs.length === 0) {
-      delete constraintPairs[heldEntityId];
+    if (pairs) {
+      pairs.splice(pairs.indexOf(entityId), 1);
+
+      if (pairs.length === 0) {
+        delete constraintPairs[heldEntityId];
+      }
     }
 
     SYSTEMS.physicsSystem.removeConstraint(entityId);

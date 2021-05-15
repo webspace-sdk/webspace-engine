@@ -10,6 +10,7 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { ensureOwnership, getNetworkedEntitySync, isSynchronized } from "../../jel/utils/ownership-utils";
 import { cursorIsVisible } from "../utils/dom-utils";
 import { releaseEphemeralCursorLock, beginEphemeralCursorLock } from "../utils/dom-utils";
+import { setMatrixWorld } from "../../hubs/utils/three-utils";
 import qsTruthy from "../../hubs/utils/qs_truthy";
 
 const REMOVE_ACTION_MAX_DELAY_MS = 500.0;
@@ -65,9 +66,19 @@ export class MediaInteractionSystem {
       }
 
       if (this.userinput.get(paths.actions.mashRelease)) {
-        // When un-snapping, restore physics constraint
-        interaction.state.rightRemote.constraining = true;
-        interaction.state.leftRemote.constraining = true;
+        const rightHeld = interaction.state.rightRemote.held;
+        const rightPreHoldMatrix = interaction.state.rightRemote.preHoldMatrixWorld;
+        const leftHeld = interaction.state.leftRemote.held;
+        const leftPreHoldMatrix = interaction.state.leftRemote.preHoldMatrixWorld;
+
+        // Lifted space before hold, cancel + restore
+        if (rightHeld) {
+          setMatrixWorld(rightHeld.object3D, rightPreHoldMatrix);
+        }
+
+        if (leftHeld) {
+          setMatrixWorld(leftHeld.object3D, leftPreHoldMatrix);
+        }
       }
     }
 
