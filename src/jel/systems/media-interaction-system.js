@@ -5,7 +5,7 @@ import {
   MEDIA_INTERACTION_TYPES,
   cloneMedia
 } from "../../hubs/utils/media-utils";
-import { TRANSFORM_MODE } from "../../hubs/components/transform-object-button";
+import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { ensureOwnership, getNetworkedEntitySync, isSynchronized } from "../../jel/utils/ownership-utils";
 import { cursorIsVisible } from "../utils/dom-utils";
@@ -38,8 +38,14 @@ export class MediaInteractionSystem {
     if (!SYSTEMS.cameraSystem.cameraViewAllowsManipulation()) return;
 
     this.userinput = this.userinput || scene.systems.userinput;
+    this.transformSystem = this.transformSystem || this.scene.systems["transform-selected-object"];
+
+    this.interaction = this.interaction || scene.systems.interaction;
+    const interaction = this.interaction;
+    const hoverEl = interaction.state.rightRemote.hovered || interaction.state.leftRemote.hovered;
+    const heldEl = interaction.state.rightRemote.held || interaction.state.leftRemote.held;
+
     if (this.userinput.get(paths.actions.mediaTransformReleaseAction)) {
-      this.transformSystem = this.transformSystem || this.scene.systems["transform-selected-object"];
       this.transformSystem.stopTransform();
       releaseEphemeralCursorLock();
       return;
@@ -52,41 +58,38 @@ export class MediaInteractionSystem {
       return;
     }
 
-    this.interaction = this.interaction || scene.systems.interaction;
-    const interaction = this.interaction;
-    const hoverEl = interaction.state.rightRemote.hovered || interaction.state.leftRemote.hovered;
-    const heldEl = interaction.state.rightRemote.held || interaction.state.leftRemote.held;
-    const isHoldingObject = !!heldEl;
+    const rightHeld = interaction.state.rightRemote.held;
 
-    if (isHoldingObject) {
-      if (this.userinput.get(paths.actions.mash)) {
-        // When snapping, disable physics constraint
-        interaction.state.rightRemote.constraining = false;
-        interaction.state.leftRemote.constraining = false;
-      }
+    // Stop sliding if held was dropped or slide key lifted
+    if (
+      this.userinput.get(paths.actions.mediaSlideReleaseAction) ||
+      (this.transformSystem.mode === TRANSFORM_MODE.SLIDE && this.transformSystem.transforming && !rightHeld)
+    ) {
+      this.transformSystem.stopTransform();
+      releaseEphemeralCursorLock();
 
-      if (this.userinput.get(paths.actions.mashRelease)) {
-        const rightHeld = interaction.state.rightRemote.held;
+      if (rightHeld) {
         const rightPreHoldMatrix = interaction.state.rightRemote.preHoldMatrixWorld;
-        const leftHeld = interaction.state.leftRemote.held;
-        const leftPreHoldMatrix = interaction.state.leftRemote.preHoldMatrixWorld;
-
-        // Lifted space before hold, cancel + restore
-        if (rightHeld) {
-          setMatrixWorld(rightHeld.object3D, rightPreHoldMatrix);
-        }
-
-        if (leftHeld) {
-          setMatrixWorld(leftHeld.object3D, leftPreHoldMatrix);
-        }
+        setMatrixWorld(rightHeld.object3D, rightPreHoldMatrix);
       }
+
+      return;
     }
 
+    if (heldEl) {
+      this.handleHeld(heldEl);
+    } else if (hoverEl) {
+      this.handleHover(hoverEl);
+    }
+  }
+
+  handleHover(hoverEl) {
     // Do not allow engaging media interactions if cursor has been hidden.
     if (!cursorIsVisible()) return;
 
-    if (!hoverEl) return;
     let interactionType = null;
+    const isSynced = isSynchronized(hoverEl);
+    const targetEl = isSynced ? getNetworkedEntitySync(hoverEl) : hoverEl;
 
     if (this.userinput.get(paths.actions.mediaPrimaryAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.PRIMARY;
@@ -153,14 +156,11 @@ export class MediaInteractionSystem {
             offset: { x: 0, y: 0, z: -1.15 * component.el.object3D.scale.z }
           });
         } else {
-          const isSynced = isSynchronized(hoverEl);
-          const targetEl = isSynced ? getNetworkedEntitySync(hoverEl) : hoverEl;
           if (isSynced && !ensureOwnership(targetEl)) return;
 
           if (interactionType === MEDIA_INTERACTION_TYPES.ROTATE) {
             beginEphemeralCursorLock();
 
-            this.transformSystem = this.transformSystem || this.scene.systems["transform-selected-object"];
             this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
               mode: TRANSFORM_MODE.CURSOR
             });
@@ -174,6 +174,43 @@ export class MediaInteractionSystem {
           } else {
             component.handleMediaInteraction(interactionType);
           }
+        }
+      }
+    }
+  }
+
+  handleHeld(heldEl) {
+    let interactionType = null;
+    const interaction = this.interaction;
+    const isSynced = isSynchronized(heldEl);
+    const targetEl = isSynced ? getNetworkedEntitySync(heldEl) : heldEl;
+
+    if (this.userinput.get(paths.actions.mediaSlideAction)) {
+      interactionType = MEDIA_INTERACTION_TYPES.SLIDE;
+    }
+
+    if (interactionType !== null) {
+      const component = getMediaViewComponent(heldEl);
+
+      if (component) {
+        if (isSynced && !ensureOwnership(targetEl)) return;
+
+        if (interactionType === MEDIA_INTERACTION_TYPES.SLIDE && !this.transformSystem.transforming) {
+          const rightHeld = interaction.state.rightRemote.held;
+
+          if (rightHeld) {
+            beginEphemeralCursorLock();
+            interaction.state.rightRemote.constraining = false;
+
+            const rightPreHoldMatrix = interaction.state.rightRemote.preHoldMatrixWorld;
+            setMatrixWorld(rightHeld.object3D, rightPreHoldMatrix);
+
+            this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
+              mode: TRANSFORM_MODE.SLIDE
+            });
+          }
+        } else {
+          component.handleMediaInteraction(interactionType);
         }
       }
     }

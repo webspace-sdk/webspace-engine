@@ -528,15 +528,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.any
     },
     {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.code("keyz")
-      },
-      dest: { value: paths.actions.cursor.right.undoDrawing },
-      priority: 1001,
-      xform: xforms.rising
-    },
-    {
       src: { value: togglePen },
       dest: { value: paths.actions.cursor.right.drop },
       xform: xforms.rising,
@@ -630,6 +621,18 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       src: [dropViaMouse, dropViaKeyboard],
       dest: { value: paths.actions.cursor.right.drop },
       xform: xforms.any,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("keyz") },
+      dest: { value: paths.actions.mediaSlideAction },
+      xform: xforms.copy,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("keyz") },
+      dest: { value: paths.actions.mediaSlideReleaseAction },
+      xform: xforms.falling,
       priority: 201
     }
   ],

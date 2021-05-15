@@ -1,5 +1,5 @@
 import { setMatrixWorld } from "../utils/three-utils";
-import { TRANSFORM_MODE } from "../components/transform-object-button";
+import { TRANSFORM_MODE } from "../systems/transform-selected-object";
 import { paths } from "./userinput/paths";
 
 //const calculatePlaneMatrix = (function() {

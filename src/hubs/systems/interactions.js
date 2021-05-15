@@ -264,6 +264,10 @@ AFRAME.registerSystem("interaction", {
           entity.object3D.updateMatrices();
           state.held = entity;
           state.preHoldMatrixWorld.copy(entity.object3D.matrixWorld);
+          const p = new THREE.Vector3();
+          const q = new THREE.Quaternion();
+          const s = new THREE.Vector3();
+          state.preHoldMatrixWorld.decompose(p, q, s);
         }
       }
     }
