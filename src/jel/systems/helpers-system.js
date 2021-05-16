@@ -4,14 +4,15 @@ import { paths } from "../../hubs/systems/userinput/paths";
 const wPos = new THREE.Vector3();
 const wRot = new THREE.Quaternion();
 
-const GUIDE_PLANE_MODES = {
+export const GUIDE_PLANE_MODES = {
   DISABLED: 0,
   Z: 1,
   Y: 2,
-  X: 3
+  X: 3,
+  CAMERA: 4
 };
 
-const MAX_GUIDE_PLANE_MODE = 3;
+const MAX_GUIDE_PLANE_MODE = 4;
 
 // Draws 3D world gizmos
 export class HelpersSystem {
@@ -63,6 +64,11 @@ export class HelpersSystem {
         this.guidePlaneMesh.rotation.x = 0;
         this.guidePlaneMesh.rotation.y = Math.PI / 2.0;
         break;
+      case GUIDE_PLANE_MODES.CAMERA:
+        // Aligned with camera
+        this.sceneEl.camera.getWorldQuaternion(wRot);
+        this.guidePlaneMesh.quaternion.copy(wRot);
+        break;
     }
 
     this.guidePlaneMesh.matrixNeedsUpdate = true;
@@ -101,10 +107,13 @@ export class HelpersSystem {
     if (!this.guidePlaneMesh.material.visible) return;
 
     target.getWorldPosition(wPos);
-    target.getWorldQuaternion(wRot);
-
     this.guidePlane.position.copy(wPos);
-    this.guidePlane.quaternion.copy(wRot);
+
+    if (this.guidePlaneMode !== GUIDE_PLANE_MODES.CAMERA) {
+      target.getWorldQuaternion(wRot);
+      this.guidePlane.quaternion.copy(wRot);
+    }
+
     this.guidePlane.matrixNeedsUpdate = true;
   }
 }

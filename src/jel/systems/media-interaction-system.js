@@ -5,6 +5,7 @@ import {
   MEDIA_INTERACTION_TYPES,
   cloneMedia
 } from "../../hubs/utils/media-utils";
+import { GUIDE_PLANE_MODES } from "./helpers-system";
 import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { ensureOwnership, getNetworkedEntitySync, isSynchronized } from "../../jel/utils/ownership-utils";
@@ -67,11 +68,7 @@ export class MediaInteractionSystem {
     ) {
       this.transformSystem.stopTransform();
       releaseEphemeralCursorLock();
-
-      if (rightHeld) {
-        const rightPreHoldMatrix = interaction.state.rightRemote.preHoldMatrixWorld;
-        setMatrixWorld(rightHeld.object3D, rightPreHoldMatrix);
-      }
+      SYSTEMS.helpersSystem.setGuidePlaneMode(GUIDE_PLANE_MODES.DISABLED);
 
       return;
     }
@@ -202,12 +199,11 @@ export class MediaInteractionSystem {
             beginEphemeralCursorLock();
             interaction.state.rightRemote.constraining = false;
 
-            const rightPreHoldMatrix = interaction.state.rightRemote.preHoldMatrixWorld;
-            setMatrixWorld(rightHeld.object3D, rightPreHoldMatrix);
-
             this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
               mode: TRANSFORM_MODE.SLIDE
             });
+
+            SYSTEMS.helpersSystem.setGuidePlaneMode(GUIDE_PLANE_MODES.CAMERA);
           }
         } else {
           component.handleMediaInteraction(interactionType);

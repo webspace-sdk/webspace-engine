@@ -1,6 +1,8 @@
 import { paths } from "../systems/userinput/paths";
 import { setMatrixWorld } from "../utils/three-utils";
 
+const MAX_SLIDE_DISTANCE = 5.0;
+
 export const TRANSFORM_MODE = {
   AXIS: "axis",
   PUPPET: "puppet",
@@ -25,6 +27,7 @@ const XAXIS = new THREE.Vector3(1, 0, 0);
 AFRAME.registerSystem("transform-selected-object", {
   init() {
     this.target = null;
+    this.targetInitialMatrixWorld = new THREE.Matrix4();
     this.mode = null;
     this.transforming = false;
     this.axis = new THREE.Vector3();
@@ -94,25 +97,29 @@ AFRAME.registerSystem("transform-selected-object", {
     const { plane, intersections, previousPointOnPlane } = this.planarInfo;
 
     this.el.camera.getWorldQuaternion(CAMERA_WORLD_QUATERNION);
+    this.el.camera.getWorldPosition(v);
 
+    const rightCursor = document.getElementById("right-cursor-controller").components["cursor-controller"];
+    const leftCursor = document.getElementById("left-cursor-controller").components["cursor-controller"];
+    const isLeft = this.hand.el.id === "player-left-controller";
+
+    const cursorObject3D = (isLeft ? leftCursor : rightCursor).data.cursor.object3D;
     if (this.mode === TRANSFORM_MODE.SLIDE) {
+      // This tries to avoid jumping when switching to plane cast, but needs work
+      cursorObject3D.getWorldPosition(plane.position);
       plane.quaternion.setFromAxisAngle(XAXIS, Math.PI / 2);
     } else {
+      this.target.getWorldPosition(plane.position);
       plane.quaternion.copy(CAMERA_WORLD_QUATERNION);
     }
 
-    this.target.getWorldPosition(plane.position);
     plane.matrixNeedsUpdate = true;
     plane.updateMatrices();
 
     intersections.length = 0;
-    this.raycasters.right =
-      this.raycasters.right ||
-      document.getElementById("right-cursor-controller").components["cursor-controller"].raycaster;
-    this.raycasters.left =
-      this.raycasters.left ||
-      document.getElementById("left-cursor-controller").components["cursor-controller"].raycaster;
-    const raycaster = this.hand.el.id === "player-left-controller" ? this.raycasters.left : this.raycasters.right;
+    this.raycasters.right = this.raycasters.right || rightCursor.raycaster;
+    this.raycasters.left = this.raycasters.left || leftCursor.raycaster;
+    const raycaster = isLeft ? this.raycasters.left : this.raycasters.right;
     const far = raycaster.far;
     raycaster.far = 1000;
     plane.raycast(raycaster, intersections);
@@ -144,6 +151,9 @@ AFRAME.registerSystem("transform-selected-object", {
 
   startTransform(target, hand, data) {
     this.target = target;
+    this.target.updateMatrices();
+    this.targetInitialMatrixWorld.copy(this.target.matrixWorld);
+
     this.hand = hand;
     this.mode = data.mode;
     this.transforming = true;
@@ -189,7 +199,7 @@ AFRAME.registerSystem("transform-selected-object", {
     this.target.matrixNeedsUpdate = true;
   },
 
-  cursorAxisOrScaleTick() {
+  cursorOrAxisTick() {
     const {
       plane,
       normal,
@@ -304,9 +314,31 @@ AFRAME.registerSystem("transform-selected-object", {
     const intersection = intersections[0];
     if (!intersection) return;
 
+    // Scale the motion by how parallel the camera angle is to the plane
+    // If we're at a grazing angle, reduce the motion speed
+    plane.updateMatrices();
+    v.set(0, 0, 1);
+    v.transformDirection(plane.matrixWorld);
+    v.normalize();
+    this.el.camera.getWorldPosition(v2);
+    v2.sub(plane.position);
+    v2.normalize();
+
+    const initialX = this.targetInitialMatrixWorld.elements[12];
+    const initialZ = this.targetInitialMatrixWorld.elements[14];
+    const dx = intersection.point.x - initialX;
+    const dz = intersection.point.z - initialZ;
+    v.set(dx, 0, dz);
+
+    if (v.length() > MAX_SLIDE_DISTANCE) {
+      v.normalize();
+      v.multiplyScalar(MAX_SLIDE_DISTANCE);
+    }
+
     this.target.updateMatrices();
-    tmpMatrix.copy(this.target.matrixWorld);
-    tmpMatrix.setPosition(intersection.point.x, tmpMatrix.elements[13], intersection.point.z);
+    tmpMatrix.copy(this.targetInitialMatrixWorld);
+
+    tmpMatrix.setPosition(initialX + v.x, tmpMatrix.elements[13], initialZ + v.z);
     setMatrixWorld(this.target, tmpMatrix);
   },
 
@@ -336,6 +368,6 @@ AFRAME.registerSystem("transform-selected-object", {
       return;
     }
 
-    this.cursorAxisOrScaleTick();
+    this.cursorOrAxisTick();
   }
 });

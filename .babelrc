@@ -4,8 +4,20 @@
     ["@babel/env", {
       "exclude": ["transform-regenerator"],
       "targets": {
-        "chrome": "80",
-        "firefox": "74"
+        "browsers": [
+          ">0.6%",
+
+          // No WebRTC support (including datachannels)
+          "not ios_saf < 11",
+          "not safari < 11",
+          "not ie >= 0",
+          "not edge >= 0",
+          "not ie_mob >= 0",
+          "not and_uc >= 0",
+
+          // No WebGL or WebRTC support
+          "not op_mini all"
+        ]
       },
       // false = do not polyfill stuff unneccessarily
       "useBuiltIns": false

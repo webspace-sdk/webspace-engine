@@ -4,6 +4,7 @@ import { Pose } from "../pose";
 import { findRemoteHoverTarget } from "../../interactions";
 import { getNetworkedTemplate } from "../../../../jel/utils/ownership-utils";
 import { canMove } from "../../../utils/permissions-utils";
+import { TRANSFORM_MODE } from "../../../systems/transform-selected-object";
 import {
   CURSOR_LOCK_STATES,
   getCursorLockState,
@@ -116,8 +117,11 @@ export class AppAwareMouseDevice {
 
     this.transformSystem = this.transformSystem || AFRAME.scenes[0].systems["transform-selected-object"];
     this.scaleSystem = this.scaleSystem || AFRAME.scenes[0].systems["scale-object"];
-    const isTransforming =
-      (this.transformSystem && this.transformSystem.transforming) || (this.scaleSystem && this.scaleSystem.isScaling);
+    const isNonSlideTransforming =
+      (this.transformSystem &&
+        this.transformSystem.transforming &&
+        this.transformSystem.mode !== TRANSFORM_MODE.SLIDE) || // Exclude slide because we do not want cursor to reset when transform ends
+      (this.scaleSystem && this.scaleSystem.isScaling);
 
     const isHoveringUI = userinput.activeSets.includes(sets.rightCursorHoveringOnUI);
     const isInspecting = cameraSystem.isInspecting();
@@ -135,7 +139,7 @@ export class AppAwareMouseDevice {
     // Handle ephemeral mouse locking for look key/button
     if (isMouseLookingGesture) {
       beginEphemeralCursorLock();
-    } else if (!isTransforming) {
+    } else if (!isNonSlideTransforming) {
       releaseEphemeralCursorLock();
     }
 
@@ -158,7 +162,7 @@ export class AppAwareMouseDevice {
         userinput.get(leftKeyPath) ||
         userinput.get(rightKeyPath);
 
-      if (!this.grabGesturedAnything && ((buttonLeft && !isTransforming) || buttonRight || isMoving)) {
+      if (!this.grabGesturedAnything && ((buttonLeft && !isNonSlideTransforming) || buttonRight || isMoving)) {
         this.lockClickCoordDelta[0] = 0;
         this.lockClickCoordDelta[1] = 0;
       }
@@ -176,7 +180,7 @@ export class AppAwareMouseDevice {
       this.hideCursorAfterIdleTime = performance.now() + HIDE_CURSOR_AFTER_IDLE_MS;
     }
 
-    if (cursorIsLocked && (this.grabGesturedAnything || isTransforming)) {
+    if (cursorIsLocked && (this.grabGesturedAnything || isNonSlideTransforming)) {
       this.lockClickCoordDelta[0] += movementXScreen;
       this.lockClickCoordDelta[1] += movementYScreen;
     }
@@ -188,7 +192,7 @@ export class AppAwareMouseDevice {
       useGazeCursor &&
       this.lockClickCoordDelta[0] === 0 &&
       this.lockClickCoordDelta[1] === 0 &&
-      !isTransforming &&
+      !isNonSlideTransforming &&
       !isInspecting &&
       !this.grabGesturedAnything &&
       now < this.hideCursorAfterIdleTime &&
@@ -198,7 +202,7 @@ export class AppAwareMouseDevice {
     // The 3D cursor visibility is coordinated via CSS classes on the body.
     const show3DCursor = !!(
       !AFRAME.scenes[0].is("pointer-exited") &&
-      !isTransforming &&
+      !isNonSlideTransforming &&
       !(isInspecting && isMouseLookingGesture) &&
       !this.grabGesturedAnything &&
       !showCSSCursor &&
@@ -218,7 +222,7 @@ export class AppAwareMouseDevice {
     }
 
     if (cursorIsLocked) {
-      if (isTransforming) {
+      if (isNonSlideTransforming) {
         this.transformStartCoordDelta[0] += movementXScreen;
         this.transformStartCoordDelta[1] += movementYScreen;
       } else {
@@ -236,10 +240,10 @@ export class AppAwareMouseDevice {
     // Move camera out of lock mode on LMB, or, in lock mode, when not holding something or
     // when holding something after panning past a certain FOV angle.
     const shouldMoveCamera =
-      (cursorIsLocked && !this.grabGesturedAnything && !isTransforming) ||
+      (cursorIsLocked && !this.grabGesturedAnything && !isNonSlideTransforming) ||
       (cursorIsLocked &&
         (Math.abs(this.lockClickCoordDelta[0]) > 0.2 || Math.abs(this.lockClickCoordDelta[1]) > 0.2) &&
-        !isTransforming) ||
+        !isNonSlideTransforming) ||
       !cameraSystem.isInAvatarView();
 
     const coords = frame.get(paths.device.mouse.coords);
