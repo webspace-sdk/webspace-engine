@@ -81,12 +81,24 @@ export class AppAwareMouseDevice {
       }
     }
 
+    this.transformSystem = this.transformSystem || AFRAME.scenes[0].systems["transform-selected-object"];
+    this.scaleSystem = this.scaleSystem || AFRAME.scenes[0].systems["scale-object"];
+    const isTransforming =
+      !!(this.transformSystem && this.transformSystem.transforming) ||
+      !!(this.scaleSystem && this.scaleSystem.isScaling);
+
+    const isGrabTransforming =
+      isTransforming &&
+      (this.transformSystem.mode === TRANSFORM_MODE.SLIDE || this.transformSystem.mode === TRANSFORM_MODE.LIFT);
+
+    const isNonGrabTransforming = isTransforming && !isGrabTransforming;
+
     const { cameraSystem, cursorTargettingSystem } = SYSTEMS;
     const buttonLeft = frame.get(paths.device.mouse.buttonLeft);
     const buttonMiddle = frame.get(paths.device.mouse.buttonMiddle);
     const buttonRight = frame.get(paths.device.mouse.buttonRight);
     const inspectPanKey = frame.get(spaceKeyPath);
-    const mouseLookKey = frame.get(shiftKeyPath) && !isInEditableField();
+    const mouseLookKey = frame.get(shiftKeyPath) && !isInEditableField() && !isGrabTransforming;
     const grabKey = frame.get(tabKeyPath);
     const userinput = AFRAME.scenes[0].systems.userinput;
 
@@ -110,18 +122,6 @@ export class AppAwareMouseDevice {
     }
     this.prevButtonRight = buttonRight;
     this.prevGrabKey = grabKey;
-
-    this.transformSystem = this.transformSystem || AFRAME.scenes[0].systems["transform-selected-object"];
-    this.scaleSystem = this.scaleSystem || AFRAME.scenes[0].systems["scale-object"];
-    const isTransforming =
-      !!(this.transformSystem && this.transformSystem.transforming) ||
-      !!(this.scaleSystem && this.scaleSystem.isScaling);
-
-    const isGrabTransforming =
-      isTransforming &&
-      (this.transformSystem.mode === TRANSFORM_MODE.SLIDE || this.transformSystem.mode === TRANSFORM_MODE.LIFT);
-
-    const isNonGrabTransforming = isTransforming && !isGrabTransforming;
 
     if ((!buttonRight && !grabKey) || isGrabTransforming) {
       this.isGrabbingForMove = false;

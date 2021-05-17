@@ -1,5 +1,6 @@
 import { paths } from "../systems/userinput/paths";
 import { setMatrixWorld } from "../utils/three-utils";
+import { VOXEL_SIZE } from "../../jel/systems/terrain-system";
 
 const MAX_SLIDE_DISTANCE = 20.0;
 
@@ -23,6 +24,15 @@ const q2 = new THREE.Quaternion();
 const tmpMatrix = new THREE.Matrix4();
 const WHEEL_SENSITIVITY = 2.0;
 const XAXIS = new THREE.Vector3(1, 0, 0);
+const shiftKeyPath = paths.device.keyboard.key("shift");
+
+function withSnap(shouldSnap, v) {
+  if (shouldSnap) {
+    return Math.floor(v * (1.0 / (VOXEL_SIZE * 2))) * (VOXEL_SIZE * 2);
+  } else {
+    return v;
+  }
+}
 
 AFRAME.registerSystem("transform-selected-object", {
   init() {
@@ -324,7 +334,9 @@ AFRAME.registerSystem("transform-selected-object", {
       this.target.updateMatrices();
       tmpMatrix.copy(this.targetInitialMatrixWorld);
 
-      tmpMatrix.setPosition(initialX, intersection.point.y - planeCastObjectOffset.y, initialZ);
+      const shouldSnap = !!userinput.get(shiftKeyPath);
+
+      tmpMatrix.setPosition(initialX, withSnap(shouldSnap, intersection.point.y - planeCastObjectOffset.y), initialZ);
       setMatrixWorld(this.target, tmpMatrix);
     }
 
@@ -373,11 +385,15 @@ AFRAME.registerSystem("transform-selected-object", {
     this.target.updateMatrices();
     tmpMatrix.copy(this.targetInitialMatrixWorld);
 
-    tmpMatrix.setPosition(
-      initialX + v.x - planeCastObjectOffset.x,
-      tmpMatrix.elements[13] + this.dWheelApplied,
-      initialZ + v.z - planeCastObjectOffset.z
-    );
+    const shouldSnap = !!userinput.get(shiftKeyPath);
+
+    const newX = withSnap(shouldSnap, initialX + v.x - planeCastObjectOffset.x);
+
+    const newY = withSnap(shouldSnap, tmpMatrix.elements[13] + this.dWheelApplied);
+
+    const newZ = withSnap(shouldSnap, initialZ + v.z - planeCastObjectOffset.z);
+
+    tmpMatrix.setPosition(newX, newY, newZ);
 
     setMatrixWorld(this.target, tmpMatrix);
   },
