@@ -147,6 +147,7 @@ const TipLabel = styled.div`
   font-size: var(--canvas-overlay-text-size);
   text-shadow: 0px 0px 4px var(--menu-shadow-color);
   margin-left: 16px;
+  white-space: nowrap;
 
   & .equipped-emoji,
   & .equipped-color {
@@ -258,7 +259,7 @@ const TIP_DATA = {
   ],
   pointer_exited_muted: [["unmute", "L+m", "toggleMuteKey"], ["mode", "L+b"], ["hide", "?"]],
   pointer_exited_unmuted: [["mute", "L+m", "toggleMuteKey"], ["mode", "L+b"], ["hide", "?"]],
-  holding_interactable: [["pull", "R"], ["guides", "q\\e"]],
+  holding_interactable: [["pull", "R"], ["movexz", "_q"], ["movey", "_e"]],
   hover_interactable: objectCommonTips.filter(x => x[0] !== "bake" && x[0] !== "ground"),
   hover_bakable_interactable: objectCommonTips.filter(x => x[0] !== "ground"),
   hover_groundable_interactable: objectCommonTips.filter(x => x[0] !== "bake"),
@@ -330,6 +331,8 @@ const TIP_DATA = {
   ],
   rotate: [["rotate", "G"], ["roll", "L+G,R"], ["guides", "q\\e"]],
   scale: [["scale", "G,R"]],
+  slide: [["movexz", "G"]],
+  lift: [["movey", "G"]],
   focus: [["orbit", "I"], ["zoom", "R"], ["exit", "f|Z"]],
   focus_edit: [["orbit", "I"], ["pan", "_S|O"], ["zoom", "R"], ["exit", "~|@|Z"]],
   text_editor: [

@@ -951,16 +951,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
   ],
   [sets.transforming]: [
     {
-      src: { value: paths.device.keyboard.code("keyq") },
-      dest: { value: paths.actions.prevGuidePlaneMode },
-      xform: xforms.rising
-    },
-    {
-      src: { value: paths.device.keyboard.code("keye") },
-      dest: { value: paths.actions.nextGuidePlaneMode },
-      xform: xforms.rising
-    },
-    {
       src: { value: paths.device.keyboard.key("control") },
       dest: { value: paths.actions.transformModifier },
       xform: xforms.copy,
