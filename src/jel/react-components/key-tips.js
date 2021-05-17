@@ -331,8 +331,8 @@ const TIP_DATA = {
   ],
   rotate: [["rotate", "G"], ["roll", "L+G,R"], ["guides", "q\\e"]],
   scale: [["scale", "G,R"]],
-  slide: [["movexz", "G"], ["movey", "R"]],
-  lift: [["movey", "G"]],
+  slide: [["movexz", "G"], ["movey", "R"], ["snap", "_H"]],
+  lift: [["movey", "G"], ["snap", "_H"]],
   focus: [["orbit", "I"], ["zoom", "R"], ["exit", "f|Z"]],
   focus_edit: [["orbit", "I"], ["pan", "_S|O"], ["zoom", "R"], ["exit", "~|@|Z"]],
   text_editor: [
@@ -425,6 +425,25 @@ const itemForData = ([label, keys, flag], triggerMode) => {
           els.push(
             <NamedKey key={key}>
               <FormattedMessage id="key-tips.space" />
+            </NamedKey>
+          );
+        }
+      } else if (key === "H") {
+        if (holdType === 1) {
+          els.push(
+            <NamedKey key={key}>
+              <FormattedMessage id="key-tips.hold" />&nbsp;&nbsp;<FormattedMessage id="key-tips.shift" />
+            </NamedKey>
+          );
+        } else {
+          els.push(
+            <KeyWideSeparator key="hold">
+              <FormattedMessage id="key-tips.hold" />
+            </KeyWideSeparator>
+          );
+          els.push(
+            <NamedKey key={key}>
+              <FormattedMessage id="key-tips.shift" />
             </NamedKey>
           );
         }
