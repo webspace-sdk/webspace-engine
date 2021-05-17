@@ -63,7 +63,10 @@ export class MediaInteractionSystem {
     if (
       this.userinput.get(paths.actions.mediaSlideReleaseAction) ||
       this.userinput.get(paths.actions.mediaLiftReleaseAction) ||
-      ((this.transformSystem.mode === TRANSFORM_MODE.SLIDE || this.transformSystem.mode === TRANSFORM_MODE.LIFT) &&
+      this.userinput.get(paths.actions.mashRelease) ||
+      ((this.transformSystem.mode === TRANSFORM_MODE.SLIDE ||
+        this.transformSystem.mode === TRANSFORM_MODE.LIFT ||
+        this.transformSystem.mode === TRANSFORM_MODE.STACK) &&
         this.transformSystem.transforming &&
         !rightHeld)
     ) {
@@ -191,6 +194,10 @@ export class MediaInteractionSystem {
       interactionType = MEDIA_INTERACTION_TYPES.LIFT;
     }
 
+    if (this.userinput.get(paths.actions.mash)) {
+      interactionType = MEDIA_INTERACTION_TYPES.STACK;
+    }
+
     if (interactionType !== null) {
       const component = getMediaViewComponent(heldEl);
 
@@ -205,12 +212,20 @@ export class MediaInteractionSystem {
             interaction.state.rightRemote.constraining = false;
 
             this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
-              mode: interactionType === MEDIA_INTERACTION_TYPES.SLIDE ? TRANSFORM_MODE.SLIDE : TRANSFORM_MODE.LIFT
+              mode:
+                interactionType === MEDIA_INTERACTION_TYPES.SLIDE
+                  ? TRANSFORM_MODE.SLIDE
+                  : interactionType === MEDIA_INTERACTION_TYPES.STACK
+                    ? TRANSFORM_MODE.STACK
+                    : TRANSFORM_MODE.LIFT
             });
 
-            SYSTEMS.helpersSystem.setGuidePlaneMode(
-              interactionType === MEDIA_INTERACTION_TYPES.SLIDE ? GUIDE_PLANE_MODES.CAMERA : GUIDE_PLANE_MODES.WORLDY
-            );
+            // Show guide plane during slide or lift
+            if (interactionType !== MEDIA_INTERACTION_TYPES.STACK) {
+              SYSTEMS.helpersSystem.setGuidePlaneMode(
+                interactionType === MEDIA_INTERACTION_TYPES.SLIDE ? GUIDE_PLANE_MODES.CAMERA : GUIDE_PLANE_MODES.WORLDY
+              );
+            }
           }
         } else {
           component.handleMediaInteraction(interactionType);

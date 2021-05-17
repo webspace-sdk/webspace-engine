@@ -10,7 +10,9 @@ export const TRANSFORM_MODE = {
   CURSOR: "cursor",
   ALIGN: "align",
   SCALE: "scale",
-  SLIDE: "slide"
+  SLIDE: "slide",
+  STACK: "stack",
+  LIFT: "lift"
 };
 
 const STEP_LENGTH = Math.PI / 100;
@@ -205,7 +207,9 @@ AFRAME.registerSystem("transform-selected-object", {
       this.axis.copy(data.axis);
     }
 
-    this.startPlaneCasting();
+    if (this.mode !== TRANSFORM_MODE.STACK) {
+      this.startPlaneCasting();
+    }
   },
 
   puppetingTick() {
@@ -343,6 +347,8 @@ AFRAME.registerSystem("transform-selected-object", {
     previousPointOnPlane.copy(currentPointOnPlane);
   },
 
+  stackTick() {},
+
   slideTick() {
     const { plane, intersections, planeCastObjectOffset } = this.planarInfo;
     intersections.length = 0;
@@ -403,6 +409,8 @@ AFRAME.registerSystem("transform-selected-object", {
       return;
     }
 
+    SYSTEMS.atmosphereSystem.updateShadows();
+
     if (this.mode === TRANSFORM_MODE.SCALE) {
       return; // Taken care of by scale-button
     }
@@ -421,6 +429,11 @@ AFRAME.registerSystem("transform-selected-object", {
 
     if (this.mode === TRANSFORM_MODE.SLIDE) {
       this.slideTick();
+      return;
+    }
+
+    if (this.mode === TRANSFORM_MODE.STACK) {
+      this.stackTick();
       return;
     }
 

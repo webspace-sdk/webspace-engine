@@ -89,7 +89,9 @@ export class AppAwareMouseDevice {
 
     const isGrabTransforming =
       isTransforming &&
-      (this.transformSystem.mode === TRANSFORM_MODE.SLIDE || this.transformSystem.mode === TRANSFORM_MODE.LIFT);
+      (this.transformSystem.mode === TRANSFORM_MODE.SLIDE ||
+        this.transformSystem.mode === TRANSFORM_MODE.LIFT ||
+        this.transformSystem.mode === TRANSFORM_MODE.STACK);
 
     const isNonGrabTransforming = isTransforming && !isGrabTransforming;
 
