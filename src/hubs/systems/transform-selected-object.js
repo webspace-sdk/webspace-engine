@@ -65,7 +65,8 @@ AFRAME.registerSystem("transform-selected-object", {
       previousPointOnPlane: new THREE.Vector3(),
       currentPointOnPlane: new THREE.Vector3(),
       deltaOnPlane: new THREE.Vector3(),
-      finalProjectedVec: new THREE.Vector3()
+      finalProjectedVec: new THREE.Vector3(),
+      planeCastObjectOffset: new THREE.Vector3()
     };
 
     this.el.object3D.add(this.planarInfo.plane);
@@ -94,7 +95,7 @@ AFRAME.registerSystem("transform-selected-object", {
   })(),
 
   startPlaneCasting() {
-    const { plane, intersections, previousPointOnPlane } = this.planarInfo;
+    const { plane, intersections, previousPointOnPlane, planeCastObjectOffset } = this.planarInfo;
 
     this.el.camera.getWorldQuaternion(CAMERA_WORLD_QUATERNION);
     this.el.camera.getWorldPosition(v);
@@ -105,8 +106,15 @@ AFRAME.registerSystem("transform-selected-object", {
 
     const cursorObject3D = (isLeft ? leftCursor : rightCursor).data.cursor.object3D;
     if (this.mode === TRANSFORM_MODE.SLIDE || this.mode === TRANSFORM_MODE.LIFT) {
-      // This tries to avoid jumping when switching to plane cast, but needs work
       cursorObject3D.getWorldPosition(plane.position);
+      this.target.updateMatrices();
+
+      // Store offset of object origin and cursor intersect so we precisely
+      // move the object as cursor offset on plane changes.
+      planeCastObjectOffset.copy(plane.position);
+      planeCastObjectOffset.x -= this.target.matrixWorld.elements[12];
+      planeCastObjectOffset.y -= this.target.matrixWorld.elements[13];
+      planeCastObjectOffset.z -= this.target.matrixWorld.elements[14];
 
       if (this.mode === TRANSFORM_MODE.SLIDE) {
         plane.quaternion.setFromAxisAngle(XAXIS, Math.PI / 2);
@@ -212,9 +220,13 @@ AFRAME.registerSystem("transform-selected-object", {
       previousPointOnPlane,
       currentPointOnPlane,
       deltaOnPlane,
+      planeCastObjectOffset,
       finalProjectedVec
     } = this.planarInfo;
-    this.target.getWorldPosition(plane.position);
+
+    if (this.mode !== TRANSFORM_MODE.LIFT) {
+      this.target.getWorldPosition(plane.position);
+    }
 
     //    this.el.camera.getWorldQuaternion(plane.quaternion);
     this.el.camera.getWorldPosition(v);
@@ -306,11 +318,12 @@ AFRAME.registerSystem("transform-selected-object", {
     } else if (this.mode === TRANSFORM_MODE.LIFT) {
       const initialX = this.targetInitialMatrixWorld.elements[12];
       const initialZ = this.targetInitialMatrixWorld.elements[14];
+      const dy = intersection.point.y - plane.position.y;
 
       this.target.updateMatrices();
       tmpMatrix.copy(this.targetInitialMatrixWorld);
 
-      tmpMatrix.setPosition(initialX, intersection.point.y, initialZ);
+      tmpMatrix.setPosition(initialX, intersection.point.y - planeCastObjectOffset.y, initialZ);
       setMatrixWorld(this.target, tmpMatrix);
     }
 
@@ -318,7 +331,7 @@ AFRAME.registerSystem("transform-selected-object", {
   },
 
   slideTick() {
-    const { plane, intersections } = this.planarInfo;
+    const { plane, intersections, planeCastObjectOffset } = this.planarInfo;
     intersections.length = 0;
     const raycaster = this.hand.el.id === "player-left-controller" ? this.raycasters.left : this.raycasters.right;
     const far = raycaster.far;
@@ -328,8 +341,6 @@ AFRAME.registerSystem("transform-selected-object", {
     const intersection = intersections[0];
     if (!intersection) return;
 
-    // Scale the motion by how parallel the camera angle is to the plane
-    // If we're at a grazing angle, reduce the motion speed
     plane.updateMatrices();
     v.set(0, 0, 1);
     v.transformDirection(plane.matrixWorld);
@@ -352,7 +363,12 @@ AFRAME.registerSystem("transform-selected-object", {
     this.target.updateMatrices();
     tmpMatrix.copy(this.targetInitialMatrixWorld);
 
-    tmpMatrix.setPosition(initialX + v.x, tmpMatrix.elements[13], initialZ + v.z);
+    tmpMatrix.setPosition(
+      initialX + v.x - planeCastObjectOffset.x,
+      tmpMatrix.elements[13],
+      initialZ + v.z - planeCastObjectOffset.z
+    );
+
     setMatrixWorld(this.target, tmpMatrix);
   },
 

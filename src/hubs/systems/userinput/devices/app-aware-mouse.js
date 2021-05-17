@@ -236,8 +236,10 @@ export class AppAwareMouseDevice {
           this.lockClickCoordDelta[1] -= this.transformStartCoordDelta[1];
         }
 
-        this.transformStartCoordDelta[0] = 0;
-        this.transformStartCoordDelta[1] = 0;
+        if (!this.isGrabbingForMove) {
+          this.transformStartCoordDelta[0] = 0;
+          this.transformStartCoordDelta[1] = 0;
+        }
       }
     }
 

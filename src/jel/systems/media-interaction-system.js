@@ -209,7 +209,7 @@ export class MediaInteractionSystem {
             });
 
             SYSTEMS.helpersSystem.setGuidePlaneMode(
-              interactionType === MEDIA_INTERACTION_TYPES.SLIDE ? GUIDE_PLANE_MODES.CAMERA : GUIDE_PLANE_MODES.Y
+              interactionType === MEDIA_INTERACTION_TYPES.SLIDE ? GUIDE_PLANE_MODES.CAMERA : GUIDE_PLANE_MODES.WORLDY
             );
           }
         } else {
