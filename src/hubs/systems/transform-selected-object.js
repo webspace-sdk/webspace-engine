@@ -39,6 +39,7 @@ AFRAME.registerSystem("transform-selected-object", {
     this.dyAll = 0;
     this.dyStore = 0;
     this.dyApplied = 0;
+    this.dWheelApplied = 0;
     this.raycasters = {};
 
     this.puppet = {
@@ -79,6 +80,7 @@ AFRAME.registerSystem("transform-selected-object", {
     return function stopTransform() {
       this.transforming = false;
       this.target = null;
+      this.dWheelApplied = 0;
 
       // Flips object, taken out for now but maybe put on another hotkey
       /*if (this.mode === TRANSFORM_MODE.CURSOR) {
@@ -318,7 +320,6 @@ AFRAME.registerSystem("transform-selected-object", {
     } else if (this.mode === TRANSFORM_MODE.LIFT) {
       const initialX = this.targetInitialMatrixWorld.elements[12];
       const initialZ = this.targetInitialMatrixWorld.elements[14];
-      const dy = intersection.point.y - plane.position.y;
 
       this.target.updateMatrices();
       tmpMatrix.copy(this.targetInitialMatrixWorld);
@@ -340,6 +341,15 @@ AFRAME.registerSystem("transform-selected-object", {
     raycaster.far = far;
     const intersection = intersections[0];
     if (!intersection) return;
+    const userinput = AFRAME.scenes[0].systems.userinput;
+
+    let wheelDelta = 0.0;
+
+    if (userinput.get(paths.actions.transformScroll)) {
+      const dWheel = userinput.get(paths.actions.transformScroll);
+      wheelDelta += dWheel * WHEEL_SENSITIVITY;
+      this.dWheelApplied += wheelDelta;
+    }
 
     plane.updateMatrices();
     v.set(0, 0, 1);
@@ -365,7 +375,7 @@ AFRAME.registerSystem("transform-selected-object", {
 
     tmpMatrix.setPosition(
       initialX + v.x - planeCastObjectOffset.x,
-      tmpMatrix.elements[13],
+      tmpMatrix.elements[13] + this.dWheelApplied,
       initialZ + v.z - planeCastObjectOffset.z
     );
 
