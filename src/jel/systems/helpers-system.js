@@ -130,6 +130,38 @@ export class HelpersSystem {
     if (!this.guidePlaneMesh.material.visible) return;
 
     target.getWorldPosition(wPos);
+
+    // Use mesh bounding box if available
+    const mesh = target.el.getObject3D("mesh");
+
+    if (mesh) {
+      // Use VOX bounding vox if available
+      let bbox = SYSTEMS.voxSystem.getBoundingBoxForSource(mesh);
+
+      if (!bbox) {
+        bbox = mesh?.geometry?.boundingBox;
+
+        if (bbox) {
+          mesh.updateMatrices();
+          bbox.getCenter(wPos);
+
+          if (this.guidePlaneMode === GUIDE_PLANE_MODES.WORLDY) {
+            // Use box bottom in WORLDY mode
+            wPos.y = bbox.min.y;
+          }
+
+          wPos.applyMatrix4(mesh.matrixWorld);
+        }
+      } else {
+        bbox.getCenter(wPos);
+
+        if (this.guidePlaneMode === GUIDE_PLANE_MODES.WORLDY) {
+          // Use box bottom in WORLDY mode
+          wPos.y = bbox.min.y;
+        }
+      }
+    }
+
     this.guidePlane.position.copy(wPos);
 
     if (
