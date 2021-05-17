@@ -46,7 +46,7 @@ export class AppAwareMouseDevice {
   constructor() {
     this.prevButtonRight = false;
     this.prevGrabKey = false;
-    this.grabGesturedAnything = false;
+    this.isGrabbingForMove = false;
     this.lockClickCoordDelta = [0, 0];
     this.transformStartCoordDelta = [0, 0];
     this.prevCoords = [Infinity, Infinity];
@@ -99,7 +99,7 @@ export class AppAwareMouseDevice {
       const template = remoteHoverTarget && getNetworkedTemplate(remoteHoverTarget);
       const isStaticControlledMedia = template && template === "#static-controlled-media";
       const isStaticMedia = template && template === "#static-media";
-      this.grabGesturedAnything =
+      this.isGrabbingForMove =
         (isInteractable &&
           (remoteHoverTarget && canMove(remoteHoverTarget)) &&
           !isStaticControlledMedia &&
@@ -111,17 +111,19 @@ export class AppAwareMouseDevice {
     this.prevButtonRight = buttonRight;
     this.prevGrabKey = grabKey;
 
-    if (!buttonRight && !grabKey) {
-      this.grabGesturedAnything = false;
-    }
-
     this.transformSystem = this.transformSystem || AFRAME.scenes[0].systems["transform-selected-object"];
     this.scaleSystem = this.scaleSystem || AFRAME.scenes[0].systems["scale-object"];
-    const isNonSlideTransforming =
-      (this.transformSystem &&
-        this.transformSystem.transforming &&
-        this.transformSystem.mode !== TRANSFORM_MODE.SLIDE) || // Exclude slide because we do not want cursor to reset when transform ends
-      (this.scaleSystem && this.scaleSystem.isScaling);
+    const isTransforming =
+      !!(this.transformSystem && this.transformSystem.transforming) ||
+      !!(this.scaleSystem && this.scaleSystem.isScaling);
+
+    const isGrabTransforming = isTransforming && this.transformSystem.mode === TRANSFORM_MODE.SLIDE;
+
+    const isNonGrabTransforming = isTransforming && !isGrabTransforming;
+
+    if ((!buttonRight && !grabKey) || isGrabTransforming) {
+      this.isGrabbingForMove = false;
+    }
 
     const isHoveringUI = userinput.activeSets.includes(sets.rightCursorHoveringOnUI);
     const isInspecting = cameraSystem.isInspecting();
@@ -139,7 +141,7 @@ export class AppAwareMouseDevice {
     // Handle ephemeral mouse locking for look key/button
     if (isMouseLookingGesture) {
       beginEphemeralCursorLock();
-    } else if (!isNonSlideTransforming) {
+    } else if (!isNonGrabTransforming) {
       releaseEphemeralCursorLock();
     }
 
@@ -162,7 +164,7 @@ export class AppAwareMouseDevice {
         userinput.get(leftKeyPath) ||
         userinput.get(rightKeyPath);
 
-      if (!this.grabGesturedAnything && ((buttonLeft && !isNonSlideTransforming) || buttonRight || isMoving)) {
+      if (!this.isGrabbingForMove && ((buttonLeft && !isTransforming) || buttonRight || isMoving)) {
         this.lockClickCoordDelta[0] = 0;
         this.lockClickCoordDelta[1] = 0;
       }
@@ -180,7 +182,7 @@ export class AppAwareMouseDevice {
       this.hideCursorAfterIdleTime = performance.now() + HIDE_CURSOR_AFTER_IDLE_MS;
     }
 
-    if (cursorIsLocked && (this.grabGesturedAnything || isNonSlideTransforming)) {
+    if (cursorIsLocked && (this.isGrabbingForMove || isTransforming)) {
       this.lockClickCoordDelta[0] += movementXScreen;
       this.lockClickCoordDelta[1] += movementYScreen;
     }
@@ -192,9 +194,9 @@ export class AppAwareMouseDevice {
       useGazeCursor &&
       this.lockClickCoordDelta[0] === 0 &&
       this.lockClickCoordDelta[1] === 0 &&
-      !isNonSlideTransforming &&
+      !isNonGrabTransforming &&
       !isInspecting &&
-      !this.grabGesturedAnything &&
+      !this.isGrabbingForMove &&
       now < this.hideCursorAfterIdleTime &&
       !SYSTEMS.directorSystem.trackingCamera
     );
@@ -202,9 +204,9 @@ export class AppAwareMouseDevice {
     // The 3D cursor visibility is coordinated via CSS classes on the body.
     const show3DCursor = !!(
       !AFRAME.scenes[0].is("pointer-exited") &&
-      !isNonSlideTransforming &&
+      !isNonGrabTransforming &&
       !(isInspecting && isMouseLookingGesture) &&
-      !this.grabGesturedAnything &&
+      !this.isGrabbingForMove &&
       !showCSSCursor &&
       (!isMouseLookingGesture || this.lockClickCoordDelta[0] !== 0 || this.lockClickCoordDelta[1] !== 0) &&
       now < this.hideCursorAfterIdleTime &&
@@ -222,7 +224,7 @@ export class AppAwareMouseDevice {
     }
 
     if (cursorIsLocked) {
-      if (isNonSlideTransforming) {
+      if (isTransforming) {
         this.transformStartCoordDelta[0] += movementXScreen;
         this.transformStartCoordDelta[1] += movementYScreen;
       } else {
@@ -240,10 +242,10 @@ export class AppAwareMouseDevice {
     // Move camera out of lock mode on LMB, or, in lock mode, when not holding something or
     // when holding something after panning past a certain FOV angle.
     const shouldMoveCamera =
-      (cursorIsLocked && !this.grabGesturedAnything && !isNonSlideTransforming) ||
+      (cursorIsLocked && !this.isGrabbingForMove && !isNonGrabTransforming) ||
       (cursorIsLocked &&
         (Math.abs(this.lockClickCoordDelta[0]) > 0.2 || Math.abs(this.lockClickCoordDelta[1]) > 0.2) &&
-        !isNonSlideTransforming) ||
+        !isNonGrabTransforming) ||
       !cameraSystem.isInAvatarView();
 
     const coords = frame.get(paths.device.mouse.coords);

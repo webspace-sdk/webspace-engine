@@ -1,7 +1,7 @@
 import { paths } from "../systems/userinput/paths";
 import { setMatrixWorld } from "../utils/three-utils";
 
-const MAX_SLIDE_DISTANCE = 5.0;
+const MAX_SLIDE_DISTANCE = 20.0;
 
 export const TRANSFORM_MODE = {
   AXIS: "axis",
