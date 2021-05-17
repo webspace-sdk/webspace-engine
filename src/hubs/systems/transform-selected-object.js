@@ -104,10 +104,15 @@ AFRAME.registerSystem("transform-selected-object", {
     const isLeft = this.hand.el.id === "player-left-controller";
 
     const cursorObject3D = (isLeft ? leftCursor : rightCursor).data.cursor.object3D;
-    if (this.mode === TRANSFORM_MODE.SLIDE) {
+    if (this.mode === TRANSFORM_MODE.SLIDE || this.mode === TRANSFORM_MODE.LIFT) {
       // This tries to avoid jumping when switching to plane cast, but needs work
       cursorObject3D.getWorldPosition(plane.position);
-      plane.quaternion.setFromAxisAngle(XAXIS, Math.PI / 2);
+
+      if (this.mode === TRANSFORM_MODE.SLIDE) {
+        plane.quaternion.setFromAxisAngle(XAXIS, Math.PI / 2);
+      } else {
+        plane.quaternion.copy(CAMERA_WORLD_QUATERNION);
+      }
     } else {
       this.target.getWorldPosition(plane.position);
       plane.quaternion.copy(CAMERA_WORLD_QUATERNION);
@@ -199,7 +204,7 @@ AFRAME.registerSystem("transform-selected-object", {
     this.target.matrixNeedsUpdate = true;
   },
 
-  cursorOrAxisTick() {
+  cursorOrAxisOrLiftTick() {
     const {
       plane,
       normal,
@@ -298,6 +303,15 @@ AFRAME.registerSystem("transform-selected-object", {
 
       this.target.quaternion.multiply(q.setFromAxisAngle(this.axis, -this.sign * this.dxApplied));
       this.target.matrixNeedsUpdate = true;
+    } else if (this.mode === TRANSFORM_MODE.LIFT) {
+      const initialX = this.targetInitialMatrixWorld.elements[12];
+      const initialZ = this.targetInitialMatrixWorld.elements[14];
+
+      this.target.updateMatrices();
+      tmpMatrix.copy(this.targetInitialMatrixWorld);
+
+      tmpMatrix.setPosition(initialX, intersection.point.y, initialZ);
+      setMatrixWorld(this.target, tmpMatrix);
     }
 
     previousPointOnPlane.copy(currentPointOnPlane);
@@ -368,6 +382,6 @@ AFRAME.registerSystem("transform-selected-object", {
       return;
     }
 
-    this.cursorOrAxisTick();
+    this.cursorOrAxisOrLiftTick();
   }
 });

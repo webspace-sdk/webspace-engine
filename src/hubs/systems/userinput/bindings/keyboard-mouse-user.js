@@ -608,30 +608,32 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 2
     },
     {
-      src: { value: paths.device.keyboard.code("keyq") },
-      dest: { value: paths.actions.prevGuidePlaneMode },
-      xform: xforms.rising
-    },
-    {
-      src: { value: paths.device.keyboard.code("keye") },
-      dest: { value: paths.actions.nextGuidePlaneMode },
-      xform: xforms.rising
-    },
-    {
       src: [dropViaMouse, dropViaKeyboard],
       dest: { value: paths.actions.cursor.right.drop },
       xform: xforms.any,
       priority: 201
     },
     {
-      src: { value: paths.device.keyboard.code("keyz") },
+      src: { value: paths.device.keyboard.code("keyq") },
       dest: { value: paths.actions.mediaSlideAction },
       xform: xforms.copy,
       priority: 201
     },
     {
-      src: { value: paths.device.keyboard.code("keyz") },
+      src: { value: paths.device.keyboard.code("keyq") },
       dest: { value: paths.actions.mediaSlideReleaseAction },
+      xform: xforms.falling,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("keye") },
+      dest: { value: paths.actions.mediaLiftAction },
+      xform: xforms.copy,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("keye") },
+      dest: { value: paths.actions.mediaLiftReleaseAction },
       xform: xforms.falling,
       priority: 201
     }

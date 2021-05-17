@@ -62,7 +62,10 @@ export class MediaInteractionSystem {
     // Stop sliding if held was dropped or slide key lifted
     if (
       this.userinput.get(paths.actions.mediaSlideReleaseAction) ||
-      (this.transformSystem.mode === TRANSFORM_MODE.SLIDE && this.transformSystem.transforming && !rightHeld)
+      this.userinput.get(paths.actions.mediaLiftReleaseAction) ||
+      ((this.transformSystem.mode === TRANSFORM_MODE.SLIDE || this.transformSystem.mode === TRANSFORM_MODE.LIFT) &&
+        this.transformSystem.transforming &&
+        !rightHeld)
     ) {
       this.transformSystem.stopTransform();
       releaseEphemeralCursorLock();
@@ -184,13 +187,17 @@ export class MediaInteractionSystem {
       interactionType = MEDIA_INTERACTION_TYPES.SLIDE;
     }
 
+    if (this.userinput.get(paths.actions.mediaLiftAction)) {
+      interactionType = MEDIA_INTERACTION_TYPES.LIFT;
+    }
+
     if (interactionType !== null) {
       const component = getMediaViewComponent(heldEl);
 
       if (component) {
         if (isSynced && !ensureOwnership(targetEl)) return;
 
-        if (interactionType === MEDIA_INTERACTION_TYPES.SLIDE && !this.transformSystem.transforming) {
+        if (!this.transformSystem.transforming) {
           const rightHeld = interaction.state.rightRemote.held;
 
           if (rightHeld) {
@@ -198,10 +205,12 @@ export class MediaInteractionSystem {
             interaction.state.rightRemote.constraining = false;
 
             this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
-              mode: TRANSFORM_MODE.SLIDE
+              mode: interactionType === MEDIA_INTERACTION_TYPES.SLIDE ? TRANSFORM_MODE.SLIDE : TRANSFORM_MODE.LIFT
             });
 
-            SYSTEMS.helpersSystem.setGuidePlaneMode(GUIDE_PLANE_MODES.CAMERA);
+            SYSTEMS.helpersSystem.setGuidePlaneMode(
+              interactionType === MEDIA_INTERACTION_TYPES.SLIDE ? GUIDE_PLANE_MODES.CAMERA : GUIDE_PLANE_MODES.Y
+            );
           }
         } else {
           component.handleMediaInteraction(interactionType);
