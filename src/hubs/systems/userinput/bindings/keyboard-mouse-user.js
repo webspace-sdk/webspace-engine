@@ -624,6 +624,18 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       dest: { value: paths.actions.mediaSlideReleaseAction },
       xform: xforms.falling,
       priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("keye") },
+      dest: { value: paths.actions.mediaLiftAction },
+      xform: xforms.copy,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("keye") },
+      dest: { value: paths.actions.mediaLiftReleaseAction },
+      xform: xforms.falling,
+      priority: 201
     }
   ],
   [sets.rightCursorHoldingUI]: [

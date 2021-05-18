@@ -183,6 +183,23 @@ AFRAME.registerSystem("transform-selected-object", {
     return this.mode === TRANSFORM_MODE.STACK;
   },
 
+  isGrabTransforming() {
+    return (
+      this.transforming &&
+      (this.mode === TRANSFORM_MODE.SLIDE || this.mode === TRANSFORM_MODE.LIFT || this.mode === TRANSFORM_MODE.STACK)
+    );
+  },
+
+  shouldCursorRaycastDuringTransform() {
+    return this.transforming && this.mode === TRANSFORM_MODE.STACK;
+  },
+
+  setTransformRaycastIntersection(intersection) {
+  }
+
+  clearTransformRaycastIntersection() {
+  }
+
   startTransform(target, hand, data) {
     this.target = target;
     this.target.updateMatrices();

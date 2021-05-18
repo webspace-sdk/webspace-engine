@@ -92,7 +92,11 @@ AFRAME.registerComponent("cursor-controller", {
 
       const interaction = AFRAME.scenes[0].systems.interaction;
       const isGrabbing = left ? !!interaction.state.leftRemote.held : !!interaction.state.rightRemote.held;
-      if (!isGrabbing) {
+      const transformObjectSystem = AFRAME.scenes[0].systems["transform-selected-object"];
+      const raycastForTransform =
+        transformObjectSystem.transforming && transformObjectSystem.shouldCursorRaycastDuringTransform();
+
+      if (!isGrabbing || raycastForTransform) {
         rawIntersections.length = 0;
         this.raycaster.ray.origin = cursorPose.position;
         this.raycaster.ray.direction = cursorPose.direction;
@@ -104,6 +108,14 @@ AFRAME.registerComponent("cursor-controller", {
           SYSTEMS.cameraSystem.defaultCursorDistanceToInspectedObject() || this.data.defaultDistance * playerScale;
 
         this.distance = this.intersectionIsValid ? this.intersection.distance : defaultDistance;
+      }
+
+      if (raycastForTransform) {
+        if (this.intersectionIsValid) {
+          transformObjectSystem.setTransformRaycastIntersection(this.intersection);
+        } else {
+          transformObjectSystem.clearTransformRaycastIntersection();
+        }
       }
 
       const { cursor, minDistance, far, camera } = this.data;
@@ -129,7 +141,6 @@ AFRAME.registerComponent("cursor-controller", {
       }
 
       // TODO : Check if the selected object being transformed is for this cursor!
-      const transformObjectSystem = AFRAME.scenes[0].systems["transform-selected-object"];
       if (
         transformObjectSystem.transforming &&
         ((left && transformObjectSystem.hand.el.id === "player-left-controller") ||
