@@ -56,7 +56,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.cursorTogglingSystem = new CursorTogglingSystem();
     this.interactionSfxSystem = new InteractionSfxSystem();
     this.superSpawnerSystem = new SuperSpawnerSystem();
-    this.cursorTargettingSystem = new CursorTargettingSystem();
+    this.cursorTargettingSystem = new CursorTargettingSystem(this.el);
     this.positionAtBorderSystem = new PositionAtBorderSystem();
     this.cameraSystem = new CameraSystem(this.el);
     this.autoQualitySystem = new AutoQualitySystem(this.el);

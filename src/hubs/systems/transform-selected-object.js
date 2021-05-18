@@ -105,6 +105,8 @@ AFRAME.registerSystem("transform-selected-object", {
           this.target.matrixNeedsUpdate = true;
         }
       }*/
+
+      this.el.emit("transform_stopped");
     };
   })(),
 
@@ -176,6 +178,11 @@ AFRAME.registerSystem("transform-selected-object", {
     this.dxApplied = 0;
   },
 
+  // When stacking do not raycast to the target anymore
+  shouldNotRaycastToTarget() {
+    return this.mode === TRANSFORM_MODE.STACK;
+  },
+
   startTransform(target, hand, data) {
     this.target = target;
     this.target.updateMatrices();
@@ -210,6 +217,8 @@ AFRAME.registerSystem("transform-selected-object", {
     if (this.mode !== TRANSFORM_MODE.STACK) {
       this.startPlaneCasting();
     }
+
+    this.el.emit("transform_started");
   },
 
   puppetingTick() {
@@ -269,7 +278,7 @@ AFRAME.registerSystem("transform-selected-object", {
       .applyQuaternion(q.copy(plane.quaternion).inverse())
       .multiplyScalar(SENSITIVITY / cameraToPlaneDistance);
 
-    const userinput = AFRAME.scenes[0].systems.userinput;
+    const userinput = this.el.systems.userinput;
 
     let wheelDelta = 0.0;
 
@@ -359,7 +368,7 @@ AFRAME.registerSystem("transform-selected-object", {
     raycaster.far = far;
     const intersection = intersections[0];
     if (!intersection) return;
-    const userinput = AFRAME.scenes[0].systems.userinput;
+    const userinput = this.el.systems.userinput;
 
     let wheelDelta = 0.0;
 

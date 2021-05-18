@@ -19,7 +19,8 @@ AFRAME.registerComponent("overwrite-raycast-as-noop", {
 });
 
 export class CursorTargettingSystem {
-  constructor() {
+  constructor(sceneEl) {
+    this.sceneEl = sceneEl;
     this.targets = [];
     this.setDirty = this.setDirty.bind(this);
     this.dirty = true;
@@ -34,6 +35,8 @@ export class CursorTargettingSystem {
       this.observer.observe(scene, { childList: true, attributes: true, subtree: true });
       scene.addEventListener("object3dset", this.setDirty);
       scene.addEventListener("object3dremove", this.setDirty);
+      scene.addEventListener("transform_started", this.setDirty);
+      scene.addEventListener("transform_stopped", this.setDirty);
       SYSTEMS.voxSystem.addEventListener("mesh_added", this.setDirty);
       SYSTEMS.voxSystem.addEventListener("mesh_removed", this.setDirty);
       SYSTEMS.voxmojiSystem.addEventListener("mesh_added", this.setDirty);
@@ -78,8 +81,9 @@ export class CursorTargettingSystem {
   populateEntities(targets) {
     targets.length = 0;
 
-    const els = AFRAME.scenes[0].querySelectorAll(".collidable, .interactable, .ui, .drawing");
+    const els = this.sceneEl.querySelectorAll(".collidable, .interactable, .ui, .drawing");
     const { inspected } = SYSTEMS.cameraSystem;
+    const transformSystem = this.sceneEl.systems["transform-selected-object"];
 
     // If cursor is on in inspect mode, we only can target the inspected object (or instances)
     if (inspected) {
@@ -121,6 +125,41 @@ export class CursorTargettingSystem {
 
     for (const terrainMesh of SYSTEMS.terrainSystem.getTargettableTerrainMeshes()) {
       targets.push(terrainMesh);
+    }
+
+    // Remove transform target, transform target mesh, or vox/voxmoji mesh
+    if (transformSystem.shouldNotRaycastToTarget() && transformSystem.target) {
+      const target = transformSystem.target;
+      const mesh = target.el.getObject3D("mesh");
+
+      let i = targets.indexOf(target);
+
+      if (i >= 0) {
+        targets.splice(i, 1);
+      }
+
+      if (mesh) {
+        i = targets.indexOf(mesh);
+
+        if (i >= 0) {
+          targets.splice(i, 1);
+        }
+
+        for (const voxMesh of SYSTEMS.voxSystem.getMeshesForSource(mesh)) {
+          i = targets.indexOf(voxMesh);
+
+          if (i >= 0) {
+            targets.splice(i, 1);
+          }
+        }
+
+        const voxmojiMesh = SYSTEMS.voxmojiSystem.getMeshForSource(mesh);
+        i = targets.indexOf(voxmojiMesh);
+
+        if (i >= 0) {
+          targets.splice(i, 1);
+        }
+      }
     }
   }
 
