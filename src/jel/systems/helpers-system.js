@@ -131,14 +131,14 @@ export class HelpersSystem {
 
     target.getWorldPosition(wPos);
 
-    // Use mesh bounding box if available
     const mesh = target.el.getObject3D("mesh");
 
     if (mesh) {
       // Use VOX bounding vox if available
-      let bbox = SYSTEMS.voxSystem.getBoundingBoxForSource(mesh);
+      let bbox = SYSTEMS.voxSystem.getBoundingBoxForSource(mesh, true);
 
       if (!bbox) {
+        // Use mesh bounding box if available
         bbox = mesh?.geometry?.boundingBox;
 
         if (bbox) {

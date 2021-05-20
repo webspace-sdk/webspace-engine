@@ -123,43 +123,8 @@ export class CursorTargettingSystem {
       targets.push(voxMesh);
     }
 
-    for (const terrainMesh of SYSTEMS.terrainSystem.getTargettableTerrainMeshes()) {
+    for (const terrainMesh of SYSTEMS.terrainSystem.activeTerrains) {
       targets.push(terrainMesh);
-    }
-
-    // Remove transform target, transform target mesh, or vox/voxmoji mesh
-    if (transformSystem.shouldNotRaycastToTarget() && transformSystem.target) {
-      const target = transformSystem.target;
-      const mesh = target.el.getObject3D("mesh");
-
-      let i = targets.indexOf(target);
-
-      if (i >= 0) {
-        targets.splice(i, 1);
-      }
-
-      if (mesh) {
-        i = targets.indexOf(mesh);
-
-        if (i >= 0) {
-          targets.splice(i, 1);
-        }
-
-        for (const voxMesh of SYSTEMS.voxSystem.getMeshesForSource(mesh)) {
-          i = targets.indexOf(voxMesh);
-
-          if (i >= 0) {
-            targets.splice(i, 1);
-          }
-        }
-
-        const voxmojiMesh = SYSTEMS.voxmojiSystem.getMeshForSource(mesh);
-        i = targets.indexOf(voxmojiMesh);
-
-        if (i >= 0) {
-          targets.splice(i, 1);
-        }
-      }
     }
   }
 

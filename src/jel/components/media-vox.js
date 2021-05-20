@@ -111,7 +111,7 @@ AFRAME.registerComponent("media-vox", {
 
   handleMediaInteraction(type) {
     if (type === MEDIA_INTERACTION_TYPES.DOWN) {
-      const bbox = SYSTEMS.voxSystem.getBoundingBoxForSource(this.mesh);
+      const bbox = SYSTEMS.voxSystem.getBoundingBoxForSource(this.mesh, true);
       const center = new THREE.Vector3();
       bbox.getCenter(center);
 

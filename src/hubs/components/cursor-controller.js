@@ -108,13 +108,9 @@ AFRAME.registerComponent("cursor-controller", {
           SYSTEMS.cameraSystem.defaultCursorDistanceToInspectedObject() || this.data.defaultDistance * playerScale;
 
         this.distance = this.intersectionIsValid ? this.intersection.distance : defaultDistance;
-      }
 
-      if (raycastForTransform) {
-        if (this.intersectionIsValid) {
-          transformObjectSystem.setTransformRaycastIntersection(this.intersection);
-        } else {
-          transformObjectSystem.clearTransformRaycastIntersection();
+        if (raycastForTransform) {
+          transformObjectSystem.handleCursorRaycastIntersections(rawIntersections);
         }
       }
 

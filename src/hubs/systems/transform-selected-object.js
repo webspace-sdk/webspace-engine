@@ -27,6 +27,9 @@ const tmpMatrix = new THREE.Matrix4();
 const WHEEL_SENSITIVITY = 2.0;
 const XAXIS = new THREE.Vector3(1, 0, 0);
 const shiftKeyPath = paths.device.keyboard.key("shift");
+const UP = new THREE.Vector3(0, 1, 0);
+const offset = new THREE.Vector3();
+const targetPoint = new THREE.Vector3();
 
 function withSnap(shouldSnap, v) {
   if (shouldSnap) {
@@ -179,8 +182,34 @@ AFRAME.registerSystem("transform-selected-object", {
   },
 
   // When stacking do not raycast to the target anymore
-  shouldNotRaycastToTarget() {
-    return this.mode === TRANSFORM_MODE.STACK;
+  handleCursorRaycastIntersections(intersections) {
+    if (this.mode !== TRANSFORM_MODE.STACK) return;
+
+    const instanceSource = this.target.el && this.target.el.getObject3D("mesh");
+
+    // Skip the hit if it's the object being targetted.
+    // Make sure to properly deref instances.
+    for (const {
+      instanceId,
+      object,
+      face: { normal },
+      point
+    } of intersections) {
+      if (instanceId === undefined && object === this.target) continue;
+
+      if (instanceSource && SYSTEMS.voxSystem.isMeshInstanceForSource(object, instanceId, instanceSource)) continue;
+
+      if (instanceSource && SYSTEMS.voxmojiSystem.isMeshInstanceForSource(object, instanceId, instanceSource)) continue;
+
+      const normalObject =
+        SYSTEMS.voxSystem.getSourceForMeshAndInstance(object, instanceId) ||
+        SYSTEMS.voxmojiSystem.getSourceForMeshAndInstance(object, instanceId) ||
+        object;
+
+      this.stackTargetAt(point, normal, normalObject);
+
+      break;
+    }
   },
 
   isGrabTransforming() {
@@ -194,11 +223,7 @@ AFRAME.registerSystem("transform-selected-object", {
     return this.transforming && this.mode === TRANSFORM_MODE.STACK;
   },
 
-  setTransformRaycastIntersection(intersection) {
-  }
-
-  clearTransformRaycastIntersection() {
-  }
+  clearTransformRaycastIntersection() {},
 
   startTransform(target, hand, data) {
     this.target = target;
@@ -373,8 +398,6 @@ AFRAME.registerSystem("transform-selected-object", {
     previousPointOnPlane.copy(currentPointOnPlane);
   },
 
-  stackTick() {},
-
   slideTick() {
     const { plane, intersections, planeCastObjectOffset } = this.planarInfo;
     intersections.length = 0;
@@ -430,6 +453,60 @@ AFRAME.registerSystem("transform-selected-object", {
     setMatrixWorld(this.target, tmpMatrix);
   },
 
+  stackTargetAt(point, normal, normalObject) {
+    const { target } = this;
+    const mesh = this.target.el && this.target.el.getObject3D("mesh");
+    let bbox = SYSTEMS.voxSystem.getBoundingBoxForSource(mesh, false);
+
+    target.updateMatrices();
+    normalObject.updateMatrices();
+
+    // v is the world space point of the bottom center of the bounding box
+    offset.set(0, 0, 0);
+
+    if (bbox) {
+      bbox.getCenter(v);
+      v.y = bbox.min.y;
+    } else {
+      bbox = mesh?.geometry?.boundingBox;
+
+      if (bbox) {
+        bbox.getCenter(v);
+        v.y = bbox.min.y;
+      }
+    }
+
+    // The offset for the stack should be the distance from the object's
+    // origin to the box face, in object space.
+    if (bbox) {
+      offset.sub(v);
+    }
+
+    // Stack the current target at the stack point to the target point,
+    // and orient it so its local Y axis is parallel to the normal.
+    v.copy(normal);
+    v.transformDirection(normalObject.matrixWorld);
+
+    q.setFromUnitVectors(UP, v);
+
+    // Offset is the vector displacement from object origin to the box
+    // face in object space, scaled properly here.
+    //console.log(len, offset);
+    target.matrixWorld.decompose(v, q2, v2);
+    offset.multiply(v2);
+    offset.applyQuaternion(q);
+
+    targetPoint.copy(point).add(offset);
+
+    tmpMatrix.compose(
+      targetPoint,
+      q,
+      v2
+    );
+
+    setMatrixWorld(this.target, tmpMatrix);
+  },
+
   tick() {
     if (!this.transforming) {
       return;
@@ -439,6 +516,10 @@ AFRAME.registerSystem("transform-selected-object", {
 
     if (this.mode === TRANSFORM_MODE.SCALE) {
       return; // Taken care of by scale-button
+    }
+
+    if (this.mode === TRANSFORM_MODE.STACK) {
+      return; // Taken care of in cursor controller tick
     }
 
     if (this.mode === TRANSFORM_MODE.ALIGN) {
@@ -455,11 +536,6 @@ AFRAME.registerSystem("transform-selected-object", {
 
     if (this.mode === TRANSFORM_MODE.SLIDE) {
       this.slideTick();
-      return;
-    }
-
-    if (this.mode === TRANSFORM_MODE.STACK) {
-      this.stackTick();
       return;
     }
 
