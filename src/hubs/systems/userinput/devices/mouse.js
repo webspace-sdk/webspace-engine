@@ -70,6 +70,10 @@ export class MouseDevice {
     this.coords[1] = -(event.clientY / window.innerHeight) * 2 + 1;
     this.movementXY[0] += event.movementX;
     this.movementXY[1] += event.movementY;
+    this.altKey = event.altKey;
+    this.ctrlKey = event.ctrlKey;
+    this.metaKey = event.metaKey;
+    this.shiftKey = event.shiftKey;
     if (event.type === "mousedown" && left) {
       this.mouseDownLeftThisFrame = true;
       this.buttonLeft = true;
@@ -127,6 +131,10 @@ export class MouseDevice {
     frame.setValueType(paths.device.mouse.buttonRight, this.buttonRight);
     frame.setValueType(paths.device.mouse.buttonMiddle, this.buttonMiddle);
     frame.setValueType(paths.device.mouse.wheel, this.wheel);
+    frame.setValueType(paths.device.keyboard.key("control"), this.ctrlKey);
+    frame.setValueType(paths.device.keyboard.key("alt"), this.altKey);
+    frame.setValueType(paths.device.keyboard.key("meta"), this.metaKey);
+    frame.setValueType(paths.device.keyboard.key("shift"), this.shiftKey);
   }
 }
 

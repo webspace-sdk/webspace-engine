@@ -190,12 +190,12 @@ const ColorSwatch = styled.div``;
 
 const objectCommonTips = [
   ["move", "T;I"],
+  ["clone", "L+I;c"],
+  ["bake", "b"],
   ["open", "o"],
   ["rotate", "_r"],
   ["scale", "_v"],
   ["focus", "f"],
-  ["clone", "c"],
-  ["bake", "b"],
   ["ground", "g"],
   ["remove", "x x"]
 ];
@@ -445,6 +445,44 @@ const itemForData = ([label, keys, flag], triggerMode) => {
           els.push(
             <NamedKey key={key}>
               <FormattedMessage id="key-tips.shift" />
+            </NamedKey>
+          );
+        }
+      } else if (key === "L") {
+        if (holdType === 1) {
+          els.push(
+            <NamedKey key={key}>
+              <FormattedMessage id="key-tips.hold" />&nbsp;&nbsp;<FormattedMessage id="key-tips.control" />
+            </NamedKey>
+          );
+        } else {
+          els.push(
+            <KeyWideSeparator key="hold">
+              <FormattedMessage id="key-tips.hold" />
+            </KeyWideSeparator>
+          );
+          els.push(
+            <NamedKey key={key}>
+              <FormattedMessage id="key-tips.control" />
+            </NamedKey>
+          );
+        }
+      } else if (key === "P") {
+        if (holdType === 1) {
+          els.push(
+            <NamedKey key={key}>
+              <FormattedMessage id="key-tips.hold" />&nbsp;&nbsp;<FormattedMessage id="key-tips.alt" />
+            </NamedKey>
+          );
+        } else {
+          els.push(
+            <KeyWideSeparator key="hold">
+              <FormattedMessage id="key-tips.hold" />
+            </KeyWideSeparator>
+          );
+          els.push(
+            <NamedKey key={key}>
+              <FormattedMessage id="key-tips.alt" />
             </NamedKey>
           );
         }

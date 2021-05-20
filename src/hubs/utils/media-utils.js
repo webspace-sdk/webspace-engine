@@ -434,7 +434,15 @@ export const groundMedia = (sourceEl, faceUp, bbox = null, meshOffset = 0.0) => 
   });
 };
 
-export const cloneMedia = (sourceEl, template, src = null, networked = true, link = false, parentEl = null) => {
+export const cloneMedia = (
+  sourceEl,
+  template,
+  src = null,
+  networked = true,
+  link = false,
+  parentEl = null,
+  animate = true
+) => {
   let contents = null;
   const extraMediaOptions = {};
 
@@ -465,7 +473,7 @@ export const cloneMedia = (sourceEl, template, src = null, networked = true, lin
     contentSubtype,
     true,
     fitToBox,
-    true,
+    animate,
     { ...mediaOptions, ...extraMediaOptions },
     networked,
     parentEl,

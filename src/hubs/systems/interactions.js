@@ -3,6 +3,8 @@ import { waitForDOMContentLoaded } from "../utils/async-utils";
 import { canMove } from "../utils/permissions-utils";
 import { isTagged } from "../components/tags";
 import { isSynchronized, isMine } from "../../jel/utils/ownership-utils";
+import { cloneMedia } from "../utils/media-utils";
+import { setMatrixWorld } from "../utils/three-utils";
 
 function findHandCollisionTargetForHand(bodyHelper) {
   const physicsSystem = this.el.sceneEl.systems["hubs-systems"].physicsSystem;
@@ -166,28 +168,24 @@ AFRAME.registerSystem("interaction", {
       leftHand: {
         hovered: null,
         held: null,
-        preHoldMatrixWorld: new THREE.Matrix4(),
         spawning: null,
         constraining: true // Can be used to disable constraints
       },
       rightHand: {
         hovered: null,
         held: null,
-        preHoldMatrixWorld: new THREE.Matrix4(),
         spawning: null,
         constraining: true
       },
       rightRemote: {
         hovered: null,
         held: null,
-        preHoldMatrixWorld: new THREE.Matrix4(),
         spawning: null,
         constraining: true
       },
       leftRemote: {
         hovered: null,
         held: null,
-        preHoldMatrixWorld: new THREE.Matrix4(),
         spawning: null,
         constraining: true
       }
@@ -196,28 +194,24 @@ AFRAME.registerSystem("interaction", {
       leftHand: {
         hovered: null,
         held: null,
-        preHoldMatrixWorld: new THREE.Matrix4(),
         spawning: null,
         constraining: true
       },
       rightHand: {
         hovered: null,
         held: null,
-        preHoldMatrixWorld: new THREE.Matrix4(),
         spawning: null,
         constraining: true
       },
       rightRemote: {
         hovered: null,
         held: null,
-        preHoldMatrixWorld: new THREE.Matrix4(),
         spawning: null,
         constraining: true
       },
       leftRemote: {
         hovered: null,
         held: null,
-        preHoldMatrixWorld: new THREE.Matrix4(),
         spawning: null,
         constraining: true
       }
@@ -245,6 +239,8 @@ AFRAME.registerSystem("interaction", {
 
   tickInteractor(options, state) {
     const userinput = AFRAME.scenes[0].systems.userinput;
+    const controlPath = paths.device.keyboard.key("control");
+
     if (state.held) {
       const lostOwnership = isSynchronized(state.held) && !isMine(state.held);
       if (userinput.get(options.dropPath) || lostOwnership) {
@@ -262,12 +258,23 @@ AFRAME.registerSystem("interaction", {
         const entity = state.hovered;
         if (isTagged(entity, "isHoldable") && userinput.get(options.grabPath) && canMove(entity)) {
           entity.object3D.updateMatrices();
-          state.held = entity;
-          state.preHoldMatrixWorld.copy(entity.object3D.matrixWorld);
-          const p = new THREE.Vector3();
-          const q = new THREE.Quaternion();
-          const s = new THREE.Vector3();
-          state.preHoldMatrixWorld.decompose(p, q, s);
+
+          let entityToGrab = entity;
+          const shouldDuplicate = userinput.get(controlPath);
+
+          if (shouldDuplicate) {
+            entityToGrab = cloneMedia(entity, "#interactable-media", null, true, false, null, false).entity;
+            setMatrixWorld(entityToGrab.object3D, entity.object3D.matrixWorld);
+            entityToGrab.addEventListener(
+              "media-loaded",
+              () => {
+                state.held = entityToGrab;
+              },
+              { once: true }
+            );
+          } else {
+            state.held = entityToGrab;
+          }
         }
       }
     }
@@ -283,7 +290,6 @@ AFRAME.registerSystem("interaction", {
       previousStateList[i].held = stateList[i].held;
       previousStateList[i].spawning = stateList[i].spawning;
       previousStateList[i].constraining = stateList[i].constraining;
-      previousStateList[i].preHoldMatrixWorld.copy(stateList[i].preHoldMatrixWorld);
     }
 
     if (options.leftHand.entity.object3D.visible && !state.leftRemote.held) {
