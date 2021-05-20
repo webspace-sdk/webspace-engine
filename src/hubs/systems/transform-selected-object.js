@@ -287,7 +287,7 @@ AFRAME.registerSystem("transform-selected-object", {
     this.target.matrixNeedsUpdate = true;
   },
 
-  cursorOrAxisOrLiftTick() {
+  axisOrLiftTick() {
     const {
       plane,
       normal,
@@ -559,6 +559,6 @@ AFRAME.registerSystem("transform-selected-object", {
       return;
     }
 
-    this.cursorOrAxisOrLiftTick();
+    this.axisOrLiftTick();
   }
 });
