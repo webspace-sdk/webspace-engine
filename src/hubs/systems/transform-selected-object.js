@@ -505,8 +505,9 @@ AFRAME.registerSystem("transform-selected-object", {
       const alignAxis = isFlat ? FORWARD : UP;
       q.setFromUnitVectors(alignAxis, v);
     } else {
-      // Otherwise, maintain its relative spin to the object
+      q2.setFromUnitVectors(objectSnapAlong, v);
       this.targetInitialMatrixWorld.decompose(v, q, v2);
+      q.multiply(q2);
     }
 
     target.matrixWorld.decompose(v, q2 /* ignored */, v2);

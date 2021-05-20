@@ -4,7 +4,6 @@ import { Pose } from "../pose";
 import { findRemoteHoverTarget } from "../../interactions";
 import { getNetworkedTemplate } from "../../../../jel/utils/ownership-utils";
 import { canMove } from "../../../utils/permissions-utils";
-import { TRANSFORM_MODE } from "../../../systems/transform-selected-object";
 import {
   CURSOR_LOCK_STATES,
   getCursorLockState,

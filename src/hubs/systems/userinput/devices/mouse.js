@@ -131,10 +131,22 @@ export class MouseDevice {
     frame.setValueType(paths.device.mouse.buttonRight, this.buttonRight);
     frame.setValueType(paths.device.mouse.buttonMiddle, this.buttonMiddle);
     frame.setValueType(paths.device.mouse.wheel, this.wheel);
-    frame.setValueType(paths.device.keyboard.key("control"), this.ctrlKey);
-    frame.setValueType(paths.device.keyboard.key("alt"), this.altKey);
-    frame.setValueType(paths.device.keyboard.key("meta"), this.metaKey);
-    frame.setValueType(paths.device.keyboard.key("shift"), this.shiftKey);
+
+    if (this.ctrlKey) {
+      frame.setValueType(paths.device.keyboard.key("control"), this.ctrlKey);
+    }
+
+    if (this.altKey) {
+      frame.setValueType(paths.device.keyboard.key("alt"), this.altKey);
+    }
+
+    if (this.metaKey) {
+      frame.setValueType(paths.device.keyboard.key("meta"), this.metaKey);
+    }
+
+    if (this.shiftKey) {
+      frame.setValueType(paths.device.keyboard.key("shift"), this.shiftKey);
+    }
   }
 }
 
