@@ -419,6 +419,17 @@ export const childMatch = (function() {
   };
 })();
 
+export function isChildOf(obj, parent) {
+  let node = obj.parent;
+
+  do {
+    if (node === parent) return true;
+    node = node.parent;
+  } while (node !== null);
+
+  return false;
+}
+
 export function generateMeshBVH(object3D, force = true) {
   object3D.traverse(obj => {
     // note that we might already have a bounds tree if this was a clone of an object with one

@@ -55,6 +55,14 @@ export const MEDIA_VIEW_COMPONENTS = [
 
 export const PAGABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-pdf"];
 export const BAKABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-text", "media-pdf", "media-canvas", "media-vox"];
+export const FLAT_MEDIA_VIEW_COMPONENTS = [
+  "media-video",
+  "media-text",
+  "media-pdf",
+  "media-canvas",
+  "media-image",
+  "media-emoji"
+];
 
 export const GROUNDABLE_MEDIA_VIEW_COMPONENTS = [
   "gltf-model-plus",
@@ -68,6 +76,14 @@ export const ORBIT_ON_INSPECT_MEDIA_VIEW_COMPONENTS = ["gltf-model-plus", "media
 
 export const shouldOrbitOnInspect = function(obj) {
   for (const component of ORBIT_ON_INSPECT_MEDIA_VIEW_COMPONENTS) {
+    if (obj.el.components[component]) return true;
+  }
+
+  return false;
+};
+
+export const isFlatMedia = function(obj) {
+  for (const component of FLAT_MEDIA_VIEW_COMPONENTS) {
     if (obj.el.components[component]) return true;
   }
 

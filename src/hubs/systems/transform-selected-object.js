@@ -1,5 +1,6 @@
 import { paths } from "../systems/userinput/paths";
-import { setMatrixWorld } from "../utils/three-utils";
+import { setMatrixWorld, isChildOf } from "../utils/three-utils";
+import { isFlatMedia } from "../utils/media-utils";
 import { VOXEL_SIZE } from "../../jel/systems/terrain-system";
 
 const MAX_SLIDE_DISTANCE = 20.0;
@@ -28,6 +29,7 @@ const WHEEL_SENSITIVITY = 2.0;
 const XAXIS = new THREE.Vector3(1, 0, 0);
 const shiftKeyPath = paths.device.keyboard.key("shift");
 const UP = new THREE.Vector3(0, 1, 0);
+const FORWARD = new THREE.Vector3(0, 0, 1);
 const offset = new THREE.Vector3();
 const targetPoint = new THREE.Vector3();
 
@@ -195,7 +197,7 @@ AFRAME.registerSystem("transform-selected-object", {
       face: { normal },
       point
     } of intersections) {
-      if (instanceId === undefined && object === this.target) continue;
+      if (instanceId === undefined && (object === this.target || isChildOf(object, this.target))) continue;
 
       if (instanceSource && SYSTEMS.voxSystem.isMeshInstanceForSource(object, instanceId, instanceSource)) continue;
 
@@ -463,16 +465,23 @@ AFRAME.registerSystem("transform-selected-object", {
 
     // v is the world space point of the bottom center of the bounding box
     offset.set(0, 0, 0);
+    const isFlat = isFlatMedia(this.target);
 
     if (bbox) {
       bbox.getCenter(v);
-      v.y = bbox.min.y;
+
+      if (!isFlat) {
+        v.y = bbox.min.y;
+      }
     } else {
       bbox = mesh?.geometry?.boundingBox;
 
       if (bbox) {
         bbox.getCenter(v);
-        v.y = bbox.min.y;
+
+        if (!isFlat) {
+          v.y = bbox.min.y;
+        }
       }
     }
 
@@ -487,7 +496,9 @@ AFRAME.registerSystem("transform-selected-object", {
     v.copy(normal);
     v.transformDirection(normalObject.matrixWorld);
 
-    q.setFromUnitVectors(UP, v);
+    // Flat media aligns to walls, other objects align to floor.
+    const alignAxis = isFlat ? FORWARD : UP;
+    q.setFromUnitVectors(alignAxis, v);
 
     // Offset is the vector displacement from object origin to the box
     // face in object space, scaled properly here.
