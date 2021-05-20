@@ -153,7 +153,7 @@ export class AppAwareMouseDevice {
     // Reset gaze cursor to center if user moves or clicks on environment
     if (cursorIsLocked) {
       // HACK, can't read character acceleration yet here, so just look at keys (which are added before mouse.)
-      const isMoving =
+      const isAvatarMoving =
         userinput.get(wKeyPath) ||
         userinput.get(aKeyPath) ||
         userinput.get(sKeyPath) ||
@@ -163,7 +163,7 @@ export class AppAwareMouseDevice {
         userinput.get(leftKeyPath) ||
         userinput.get(rightKeyPath);
 
-      if (!this.isGrabbingForMove && ((buttonLeft && !isTransforming) || buttonRight || isMoving)) {
+      if (!this.isGrabbingForMove && ((buttonLeft && !isTransforming) || buttonRight || isAvatarMoving)) {
         this.lockClickCoordDelta[0] = 0;
         this.lockClickCoordDelta[1] = 0;
       }

@@ -505,6 +505,7 @@ AFRAME.registerSystem("transform-selected-object", {
       const alignAxis = isFlat ? FORWARD : UP;
       q.setFromUnitVectors(alignAxis, v);
     } else {
+      // Nudge the object to be re-aligned instead of doing a full reorient.
       q2.setFromUnitVectors(objectSnapAlong, v);
       this.targetInitialMatrixWorld.decompose(v, q, v2);
       q.multiply(q2);
