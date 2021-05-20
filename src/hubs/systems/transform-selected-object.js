@@ -8,7 +8,6 @@ const MAX_SLIDE_DISTANCE = 20.0;
 export const TRANSFORM_MODE = {
   AXIS: "axis",
   PUPPET: "puppet",
-  CURSOR: "cursor",
   ALIGN: "align",
   SCALE: "scale",
   SLIDE: "slide",
@@ -112,18 +111,6 @@ AFRAME.registerSystem("transform-selected-object", {
       this.transforming = false;
       this.target = null;
       this.dWheelApplied = 0;
-
-      // Flips object, taken out for now but maybe put on another hotkey
-      /*if (this.mode === TRANSFORM_MODE.CURSOR) {
-        this.target.getWorldQuaternion(q);
-        if (qAlmostEquals(q, this.startQ)) {
-          q.multiply(PI_AROUND_Y);
-          this.target.parent.getWorldQuaternion(pInv);
-          pInv.inverse();
-          this.target.quaternion.copy(pInv).multiply(q);
-          this.target.matrixNeedsUpdate = true;
-        }
-      }*/
 
       this.el.emit("transform_stopped");
     };
@@ -271,10 +258,6 @@ AFRAME.registerSystem("transform-selected-object", {
       this.store.handleActivityFlag("rotated");
     }
 
-    if (this.mode === TRANSFORM_MODE.CURSOR) {
-      this.target.getWorldQuaternion(this.startQ);
-    }
-
     if (this.mode === TRANSFORM_MODE.PUPPET) {
       this.target.getWorldQuaternion(this.puppet.initialObjectOrientation);
       this.hand.getWorldQuaternion(this.puppet.initialControllerOrientation);
@@ -366,7 +349,7 @@ AFRAME.registerSystem("transform-selected-object", {
       // transform of the target because otherwise the rotation transforms
       // will end up having to construct a 3-axis delta quaternion, which
       // doesn't work.
-      if (this.mode === TRANSFORM_MODE.CURSOR || this.mode === TRANSFORM_MODE.AXIS) {
+      if (this.mode === TRANSFORM_MODE.AXIS) {
         this.target.updateMatrices();
         this.targetInitialMatrixWorld.copy(this.target.matrixWorld);
         this.targetBoundingBox.makeEmpty();
@@ -378,49 +361,7 @@ AFRAME.registerSystem("transform-selected-object", {
       this.prevModify = modify;
     }
 
-    if (this.mode === TRANSFORM_MODE.CURSOR) {
-      this.dyAll = this.dyStore + finalProjectedVec.y;
-      this.dyApplied = Math.round(this.dyAll / STEP_LENGTH) * STEP_LENGTH;
-      this.dyStore = this.dyAll - this.dyApplied;
-
-      this.dxAll = this.dxStore + finalProjectedVec.x;
-      this.dxApplied = Math.round(this.dxAll / STEP_LENGTH) * STEP_LENGTH;
-      this.dxStore = this.dxAll - this.dxApplied;
-
-      // Modify will roll the object in object space, non-modify will rotate it along camera x, y
-      if (modify) {
-        this.target.getWorldQuaternion(TARGET_WORLD_QUATERNION);
-
-        v.set(0, 0, 1).applyQuaternion(TARGET_WORLD_QUATERNION);
-        q.setFromAxisAngle(
-          v,
-          Math.abs(this.dxApplied) > Math.abs(this.dyApplied)
-            ? -this.dxApplied + wheelDelta
-            : -this.dyApplied + wheelDelta
-        );
-
-        this.target.quaternion.premultiply(q);
-      } else {
-        if (wheelDelta !== 0.0) {
-          this.target.getWorldQuaternion(TARGET_WORLD_QUATERNION);
-
-          v.set(0, 0, 1).applyQuaternion(TARGET_WORLD_QUATERNION);
-          q.setFromAxisAngle(v, wheelDelta);
-
-          this.target.quaternion.premultiply(q);
-        }
-
-        v.set(1, 0, 0).applyQuaternion(CAMERA_WORLD_QUATERNION);
-        q.setFromAxisAngle(v, this.sign2 * this.sign * -this.dyApplied);
-
-        v.set(0, 1, 0);
-        q2.setFromAxisAngle(v, this.dxApplied);
-
-        this.target.quaternion.premultiply(q).premultiply(q2);
-      }
-
-      this.target.matrixNeedsUpdate = true;
-    } else if (this.mode === TRANSFORM_MODE.AXIS) {
+    if (this.mode === TRANSFORM_MODE.AXIS) {
       // For axis mode just keep an aggregate delta
       // Doing increments inhibits snapping
       this.dxAll += finalProjectedVec.x;
