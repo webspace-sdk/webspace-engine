@@ -163,7 +163,7 @@ export class MediaInteractionSystem {
             beginEphemeralCursorLock();
 
             this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
-              mode: TRANSFORM_MODE.CURSOR
+              mode: TRANSFORM_MODE.AXIS
             });
           } else if (interactionType === MEDIA_INTERACTION_TYPES.SCALE) {
             beginEphemeralCursorLock();

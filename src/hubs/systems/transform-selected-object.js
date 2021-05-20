@@ -1,5 +1,5 @@
 import { paths } from "../systems/userinput/paths";
-import { setMatrixWorld, isChildOf } from "../utils/three-utils";
+import { setMatrixWorld, isChildOf, expandByEntityObjectSpaceBoundingBox } from "../utils/three-utils";
 import { isFlatMedia } from "../utils/media-utils";
 import { VOXEL_SIZE } from "../../jel/systems/terrain-system";
 
@@ -31,9 +31,14 @@ const shiftKeyPath = paths.device.keyboard.key("shift");
 const UP = new THREE.Vector3(0, 1, 0);
 const FORWARD = new THREE.Vector3(0, 0, 1);
 const offset = new THREE.Vector3();
+const objectSnapAlong = new THREE.Vector3();
 const targetPoint = new THREE.Vector3();
+const axis = new THREE.Vector3();
+const { DEG2RAD } = THREE.Math;
+const SNAP_DEGREES = 22.5;
+const SNAP_RADIANS = SNAP_DEGREES * DEG2RAD;
 
-function withSnap(shouldSnap, v) {
+function withGridSnap(shouldSnap, v) {
   if (shouldSnap) {
     return Math.floor(v * (1.0 / (VOXEL_SIZE * 2))) * (VOXEL_SIZE * 2);
   } else {
@@ -41,13 +46,21 @@ function withSnap(shouldSnap, v) {
   }
 }
 
+function withAngleSnap(shouldSnap, angle) {
+  if (shouldSnap) {
+    return Math.round(angle / SNAP_RADIANS) * SNAP_RADIANS;
+  } else {
+    return angle;
+  }
+}
+
 AFRAME.registerSystem("transform-selected-object", {
   init() {
     this.target = null;
     this.targetInitialMatrixWorld = new THREE.Matrix4();
+    this.targetBoundingBox = new THREE.Box3();
     this.mode = null;
     this.transforming = false;
-    this.axis = new THREE.Vector3();
     this.store = window.APP.store;
     this.startQ = new THREE.Quaternion();
 
@@ -58,6 +71,7 @@ AFRAME.registerSystem("transform-selected-object", {
     this.dyApplied = 0;
     this.dWheelApplied = 0;
     this.raycasters = {};
+    this.prevModify = false;
 
     this.puppet = {
       initialControllerOrientation: new THREE.Quaternion(),
@@ -181,6 +195,7 @@ AFRAME.registerSystem("transform-selected-object", {
     this.dxAll = 0;
     this.dxStore = 0;
     this.dxApplied = 0;
+    this.dWheelAll = 0;
   },
 
   // When stacking do not raycast to the target anymore
@@ -221,6 +236,16 @@ AFRAME.registerSystem("transform-selected-object", {
     );
   },
 
+  isSnappableTransforming() {
+    return (
+      this.transforming &&
+      (this.mode === TRANSFORM_MODE.SLIDE ||
+        this.mode === TRANSFORM_MODE.LIFT ||
+        this.mode === TRANSFORM_MODE.STACK ||
+        this.mode === TRANSFORM_MODE.AXIS)
+    );
+  },
+
   shouldCursorRaycastDuringTransform() {
     return this.transforming && this.mode === TRANSFORM_MODE.STACK;
   },
@@ -231,6 +256,9 @@ AFRAME.registerSystem("transform-selected-object", {
     this.target = target;
     this.target.updateMatrices();
     this.targetInitialMatrixWorld.copy(this.target.matrixWorld);
+
+    this.targetBoundingBox.makeEmpty();
+    expandByEntityObjectSpaceBoundingBox(this.targetBoundingBox, target.el);
 
     this.hand = hand;
     this.mode = data.mode;
@@ -252,10 +280,6 @@ AFRAME.registerSystem("transform-selected-object", {
       this.hand.getWorldQuaternion(this.puppet.initialControllerOrientation);
       this.puppet.initialControllerOrientation_inverse.copy(this.puppet.initialControllerOrientation).inverse();
       return;
-    }
-
-    if (this.mode === TRANSFORM_MODE.AXIS) {
-      this.axis.copy(data.axis);
     }
 
     if (this.mode !== TRANSFORM_MODE.STACK) {
@@ -329,11 +353,32 @@ AFRAME.registerSystem("transform-selected-object", {
     if (userinput.get(paths.actions.transformScroll)) {
       const dWheel = userinput.get(paths.actions.transformScroll);
       wheelDelta += dWheel * WHEEL_SENSITIVITY;
+
+      this.target.updateMatrices();
+    }
+
+    this.dWheelAll += wheelDelta;
+
+    const modify = userinput.get(paths.actions.transformModifier);
+
+    if (modify !== this.prevModify) {
+      // Hacky, when modify key is pressed, re-snapshot the world
+      // transform of the target because otherwise the rotation transforms
+      // will end up having to construct a 3-axis delta quaternion, which
+      // doesn't work.
+      if (this.mode === TRANSFORM_MODE.CURSOR || this.mode === TRANSFORM_MODE.AXIS) {
+        this.target.updateMatrices();
+        this.targetInitialMatrixWorld.copy(this.target.matrixWorld);
+        this.targetBoundingBox.makeEmpty();
+        expandByEntityObjectSpaceBoundingBox(this.targetBoundingBox, this.target.el);
+        this.dxAll = 0;
+        this.dyAll = 0;
+      }
+
+      this.prevModify = modify;
     }
 
     if (this.mode === TRANSFORM_MODE.CURSOR) {
-      const modify = userinput.get(paths.actions.transformModifier);
-
       this.dyAll = this.dyStore + finalProjectedVec.y;
       this.dyApplied = Math.round(this.dyAll / STEP_LENGTH) * STEP_LENGTH;
       this.dyStore = this.dyAll - this.dyApplied;
@@ -343,46 +388,73 @@ AFRAME.registerSystem("transform-selected-object", {
       this.dxStore = this.dxAll - this.dxApplied;
 
       // Modify will roll the object in object space, non-modify will rotate it along camera x, y
-      if (this.mode === TRANSFORM_MODE.CURSOR) {
-        if (modify) {
+      if (modify) {
+        this.target.getWorldQuaternion(TARGET_WORLD_QUATERNION);
+
+        v.set(0, 0, 1).applyQuaternion(TARGET_WORLD_QUATERNION);
+        q.setFromAxisAngle(
+          v,
+          Math.abs(this.dxApplied) > Math.abs(this.dyApplied)
+            ? -this.dxApplied + wheelDelta
+            : -this.dyApplied + wheelDelta
+        );
+
+        this.target.quaternion.premultiply(q);
+      } else {
+        if (wheelDelta !== 0.0) {
           this.target.getWorldQuaternion(TARGET_WORLD_QUATERNION);
 
           v.set(0, 0, 1).applyQuaternion(TARGET_WORLD_QUATERNION);
-          q.setFromAxisAngle(
-            v,
-            Math.abs(this.dxApplied) > Math.abs(this.dyApplied)
-              ? -this.dxApplied + wheelDelta
-              : -this.dyApplied + wheelDelta
-          );
+          q.setFromAxisAngle(v, wheelDelta);
 
           this.target.quaternion.premultiply(q);
-        } else {
-          if (wheelDelta !== 0.0) {
-            this.target.getWorldQuaternion(TARGET_WORLD_QUATERNION);
-
-            v.set(0, 0, 1).applyQuaternion(TARGET_WORLD_QUATERNION);
-            q.setFromAxisAngle(v, wheelDelta);
-
-            this.target.quaternion.premultiply(q);
-          }
-
-          v.set(1, 0, 0).applyQuaternion(CAMERA_WORLD_QUATERNION);
-          q.setFromAxisAngle(v, this.sign2 * this.sign * -this.dyApplied);
-
-          v.set(0, 1, 0);
-          q2.setFromAxisAngle(v, this.dxApplied);
-
-          this.target.quaternion.premultiply(q).premultiply(q2);
         }
+
+        v.set(1, 0, 0).applyQuaternion(CAMERA_WORLD_QUATERNION);
+        q.setFromAxisAngle(v, this.sign2 * this.sign * -this.dyApplied);
+
+        v.set(0, 1, 0);
+        q2.setFromAxisAngle(v, this.dxApplied);
+
+        this.target.quaternion.premultiply(q).premultiply(q2);
       }
 
       this.target.matrixNeedsUpdate = true;
     } else if (this.mode === TRANSFORM_MODE.AXIS) {
-      this.dxAll = this.dxStore + finalProjectedVec.x;
-      this.dxApplied = Math.round(this.dxAll / STEP_LENGTH) * STEP_LENGTH;
-      this.dxStore = this.dxAll - this.dxApplied;
+      // For axis mode just keep an aggregate delta
+      // Doing increments inhibits snapping
+      this.dxAll += finalProjectedVec.x;
+      this.dyAll += finalProjectedVec.y;
 
-      this.target.quaternion.multiply(q.setFromAxisAngle(this.axis, -this.sign * this.dxApplied));
+      tmpMatrix.extractRotation(this.targetInitialMatrixWorld);
+      q.setFromRotationMatrix(tmpMatrix);
+
+      const shouldSnap = !!userinput.get(shiftKeyPath);
+
+      if (modify) {
+        // Roll
+        axis.set(0, 0, 1);
+
+        q.multiply(q2.setFromAxisAngle(axis, withAngleSnap(shouldSnap, -this.sign * this.dyAll)));
+      } else {
+        // Pitch + Yaw
+        axis.set(0, 1, 0);
+
+        q.multiply(q2.setFromAxisAngle(axis, withAngleSnap(shouldSnap, -this.sign * this.dxAll)));
+
+        axis.set(1, 0, 0);
+        q.multiply(q2.setFromAxisAngle(axis, withAngleSnap(shouldSnap, -this.sign * this.dyAll)));
+
+        // TODO this doesn't work, because adding the roll to the incremental
+        // delta rotation causes the other axes to be wrong.
+        // if (this.dWheelAll !== 0.0) {
+        //   // Roll
+        //   axis.set(0, 0, 1);
+        //   q.multiply(q2.setFromAxisAngle(axis, withAngleSnap(shouldSnap, this.dWheelAll)));
+        // }
+      }
+
+      this.target.quaternion.copy(q);
       this.target.matrixNeedsUpdate = true;
     } else if (this.mode === TRANSFORM_MODE.LIFT) {
       const initialX = this.targetInitialMatrixWorld.elements[12];
@@ -393,7 +465,11 @@ AFRAME.registerSystem("transform-selected-object", {
 
       const shouldSnap = !!userinput.get(shiftKeyPath);
 
-      tmpMatrix.setPosition(initialX, withSnap(shouldSnap, intersection.point.y - planeCastObjectOffset.y), initialZ);
+      tmpMatrix.setPosition(
+        initialX,
+        withGridSnap(shouldSnap, intersection.point.y - planeCastObjectOffset.y),
+        initialZ
+      );
       setMatrixWorld(this.target, tmpMatrix);
     }
 
@@ -444,11 +520,11 @@ AFRAME.registerSystem("transform-selected-object", {
 
     const shouldSnap = !!userinput.get(shiftKeyPath);
 
-    const newX = withSnap(shouldSnap, initialX + v.x - planeCastObjectOffset.x);
+    const newX = withGridSnap(shouldSnap, initialX + v.x - planeCastObjectOffset.x);
 
-    const newY = withSnap(shouldSnap, tmpMatrix.elements[13] + this.dWheelApplied);
+    const newY = withGridSnap(shouldSnap, tmpMatrix.elements[13] + this.dWheelApplied);
 
-    const newZ = withSnap(shouldSnap, initialZ + v.z - planeCastObjectOffset.z);
+    const newZ = withGridSnap(shouldSnap, initialZ + v.z - planeCastObjectOffset.z);
 
     tmpMatrix.setPosition(newX, newY, newZ);
 
@@ -456,54 +532,47 @@ AFRAME.registerSystem("transform-selected-object", {
   },
 
   stackTargetAt(point, normal, normalObject) {
-    const { target } = this;
-    const mesh = this.target.el && this.target.el.getObject3D("mesh");
-    let bbox = SYSTEMS.voxSystem.getBoundingBoxForSource(mesh, false);
+    const { target, targetBoundingBox } = this;
 
     target.updateMatrices();
     normalObject.updateMatrices();
 
     // v is the world space point of the bottom center of the bounding box
     offset.set(0, 0, 0);
-    const isFlat = isFlatMedia(this.target);
+    const isFlat = isFlatMedia(target);
 
-    if (bbox) {
-      bbox.getCenter(v);
+    targetBoundingBox.getCenter(v);
 
-      if (!isFlat) {
-        v.y = bbox.min.y;
-      }
-    } else {
-      bbox = mesh?.geometry?.boundingBox;
-
-      if (bbox) {
-        bbox.getCenter(v);
-
-        if (!isFlat) {
-          v.y = bbox.min.y;
-        }
-      }
+    if (!isFlat) {
+      v.y = targetBoundingBox.min.y;
     }
 
     // The offset for the stack should be the distance from the object's
     // origin to the box face, in object space.
-    if (bbox) {
-      offset.sub(v);
-    }
+    offset.sub(v);
 
     // Stack the current target at the stack point to the target point,
     // and orient it so its local Y axis is parallel to the normal.
     v.copy(normal);
     v.transformDirection(normalObject.matrixWorld);
 
-    // Flat media aligns to walls, other objects align to floor.
-    const alignAxis = isFlat ? FORWARD : UP;
-    q.setFromUnitVectors(alignAxis, v);
+    objectSnapAlong.copy(isFlat ? FORWARD : UP);
+    objectSnapAlong.transformDirection(this.targetInitialMatrixWorld);
+
+    // If the world space normal and original world object up are not already parallel, reorient the object
+    if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.01) {
+      // Flat media aligns to walls, other objects align to floor.
+      const alignAxis = isFlat ? FORWARD : UP;
+      q.setFromUnitVectors(alignAxis, v);
+    } else {
+      // Otherwise, maintain its relative spin to the object
+      this.targetInitialMatrixWorld.decompose(v, q, v2);
+    }
+
+    target.matrixWorld.decompose(v, q2 /* ignored */, v2);
 
     // Offset is the vector displacement from object origin to the box
     // face in object space, scaled properly here.
-    //console.log(len, offset);
-    target.matrixWorld.decompose(v, q2, v2);
     offset.multiply(v2);
     offset.applyQuaternion(q);
 

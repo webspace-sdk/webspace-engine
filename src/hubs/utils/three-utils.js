@@ -451,3 +451,37 @@ export function generateMeshBVH(object3D, force = true) {
     }
   });
 }
+
+const expandByObjectSpaceBoundingBox = (bbox, object) => {
+  const geometry = object.geometry;
+
+  if (geometry !== undefined) {
+    if (geometry.boundingBox === null) {
+      geometry.computeBoundingBox();
+    }
+
+    bbox.expandByPoint(geometry.boundingBox.min);
+    bbox.expandByPoint(geometry.boundingBox.max);
+  }
+
+  const children = object.children;
+
+  for (let i = 0, l = children.length; i < l; i++) {
+    expandByObjectSpaceBoundingBox(bbox, children[i]);
+  }
+};
+
+export function expandByEntityObjectSpaceBoundingBox(bbox, el) {
+  const mesh = el.getObject3D("mesh");
+  const voxBox = SYSTEMS.voxSystem.getBoundingBoxForSource(mesh, false);
+
+  if (voxBox) {
+    bbox.copy(voxBox);
+    return bbox;
+  }
+
+  const object = el.object3D;
+  object.updateMatrices();
+  expandByObjectSpaceBoundingBox(bbox, object);
+  return bbox;
+}

@@ -88,6 +88,7 @@ export class AppAwareMouseDevice {
       !!(this.scaleSystem && this.scaleSystem.isScaling);
 
     const isGrabTransforming = this.transformSystem.isGrabTransforming();
+    const isSnappableTransforming = this.transformSystem.isSnappableTransforming();
     const isNonGrabTransforming = isTransforming && !isGrabTransforming;
 
     const { cameraSystem, cursorTargettingSystem } = SYSTEMS;
@@ -95,7 +96,7 @@ export class AppAwareMouseDevice {
     const buttonMiddle = frame.get(paths.device.mouse.buttonMiddle);
     const buttonRight = frame.get(paths.device.mouse.buttonRight);
     const inspectPanKey = frame.get(spaceKeyPath);
-    const mouseLookKey = frame.get(shiftKeyPath) && !isInEditableField() && !isGrabTransforming;
+    const mouseLookKey = frame.get(shiftKeyPath) && !isInEditableField() && !isSnappableTransforming;
     const grabKey = frame.get(tabKeyPath);
     const userinput = AFRAME.scenes[0].systems.userinput;
 

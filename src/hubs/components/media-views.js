@@ -22,7 +22,7 @@ import {
   meetsBatchingCriteria,
   hasMediaLayer,
   scaleToAspectRatio,
-  groundMedia,
+  resetMediaRotation,
   MEDIA_INTERACTION_TYPES
 } from "../utils/media-utils";
 import { proxiedUrlFor, getCorsProxyServer } from "../utils/media-url-utils";
@@ -1482,7 +1482,7 @@ AFRAME.registerComponent("media-image", {
     }
 
     if (type === MEDIA_INTERACTION_TYPES.DOWN) {
-      groundMedia(this.el, true);
+      resetMediaRotation(this.el);
     }
   }
 });
@@ -1737,7 +1737,7 @@ AFRAME.registerComponent("media-pdf", {
     }
 
     if (type === MEDIA_INTERACTION_TYPES.DOWN) {
-      groundMedia(this.el, true);
+      resetMediaRotation(this.el);
       return;
     }
 

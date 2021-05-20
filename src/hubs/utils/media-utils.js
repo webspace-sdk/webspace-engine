@@ -434,6 +434,53 @@ export const groundMedia = (sourceEl, faceUp, bbox = null, meshOffset = 0.0) => 
   });
 };
 
+// Resets the transform rotation of the media
+export const resetMediaRotation = sourceEl => {
+  const { object3D } = sourceEl;
+
+  const floatyObject = sourceEl.components["floaty-object"];
+
+  if (floatyObject) {
+    // If physics body was dynamic, lock it so physics system won't be updating it anymore.
+    floatyObject.setLocked(true);
+  }
+
+  const step = (function() {
+    const lastValue = {};
+    return function(anim) {
+      const value = anim.animatables[0].target;
+
+      // For animation timeline.
+      if (value.x === lastValue.x && value.y === lastValue.y && value.z === lastValue.z) {
+        return;
+      }
+
+      lastValue.x = value.x;
+      lastValue.y = value.y;
+      lastValue.z = value.z;
+
+      object3D.rotation.x = value.x;
+      object3D.rotation.y = value.y;
+      object3D.rotation.z = value.z;
+      object3D.matrixNeedsUpdate = true;
+    };
+  })();
+
+  anime({
+    duration: 800,
+    easing: "easeOutElastic",
+    elasticity: 800,
+    loop: 0,
+    round: false,
+    x: 0.0,
+    y: 0.0,
+    z: 0.0,
+    targets: [{ x: object3D.rotation.x, y: object3D.rotation.y, z: object3D.rotation.z }],
+    update: anim => step(anim),
+    complete: anim => step(anim)
+  });
+};
+
 export const cloneMedia = (
   sourceEl,
   template,

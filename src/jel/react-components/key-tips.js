@@ -196,7 +196,7 @@ const objectCommonTips = [
   ["rotate", "_r"],
   ["scale", "_v"],
   ["focus", "f"],
-  ["ground", "g"],
+  ["reset", "g"],
   ["remove", "x x"]
 ];
 
@@ -329,7 +329,7 @@ const TIP_DATA = {
     ["font", "t\\g"],
     ...objectCommonTips.filter(t => t[0] !== "open")
   ],
-  rotate: [["rotate", "G"], ["roll", "L+G,R"], ["guides", "q\\e"]],
+  rotate: [["yawpitch", "G"], ["roll", "L+G"], ["snap", "_H"]],
   scale: [["scale", "G,R"]],
   slide: [["movexz", "G"], ["movey", "R"], ["snap", "_H"]],
   stack: [["stack", "G"]],
