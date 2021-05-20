@@ -15,7 +15,6 @@ export const TRANSFORM_MODE = {
   LIFT: "lift"
 };
 
-const STEP_LENGTH = Math.PI / 100;
 const CAMERA_WORLD_QUATERNION = new THREE.Quaternion();
 const CAMERA_WORLD_POSITION = new THREE.Vector3();
 const TARGET_WORLD_QUATERNION = new THREE.Quaternion();
