@@ -2,6 +2,7 @@ import { MeshBVH } from "three-mesh-bvh";
 
 const tempVector3 = new THREE.Vector3();
 const tempQuaternion = new THREE.Quaternion();
+const tempMatrix = new THREE.Matrix4();
 
 export function getLastWorldPosition(src, target) {
   src.updateMatrices();
@@ -482,6 +483,8 @@ export function expandByEntityObjectSpaceBoundingBox(bbox, el) {
 
   const object = el.object3D;
   object.updateMatrices();
-  expandByObjectSpaceBoundingBox(bbox, object);
-  return bbox;
+  bbox.expandByObject(object);
+  tempMatrix.getInverse(object.matrixWorld);
+
+  return bbox.applyMatrix4(tempMatrix);
 }
