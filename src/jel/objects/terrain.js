@@ -246,6 +246,13 @@ class Terrain extends Object3D {
     this.meshes.forEach(mesh => mesh.geometry.dispose());
     this.heightmap = null;
   }
+
+  raycast(raycaster, intersects) {
+    // Do not ray cast into culled terrain
+    if (this.visible && this.meshes.length > 0) {
+      this.meshes[0].raycast(raycaster, intersects);
+    }
+  }
 }
 
 export { createVoxelMaterial, Terrain };

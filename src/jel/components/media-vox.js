@@ -1,6 +1,6 @@
 import { hasMediaLayer, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
-import { groundMedia, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
+import { resetMediaRotation, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { getNetworkedEntity } from "../../jel/utils/ownership-utils";
 import { endCursorLock } from "../utils/dom-utils";
@@ -111,13 +111,12 @@ AFRAME.registerComponent("media-vox", {
 
   handleMediaInteraction(type) {
     if (type === MEDIA_INTERACTION_TYPES.DOWN) {
-      const bbox = SYSTEMS.voxSystem.getBoundingBoxForSource(this.mesh);
+      const bbox = SYSTEMS.voxSystem.getBoundingBoxForSource(this.mesh, true);
       const center = new THREE.Vector3();
       bbox.getCenter(center);
 
       // Need to compute the offset of the generated mesh and the position of this source
-      const meshYOffset = this.el.object3D.position.y - center.y;
-      groundMedia(this.el, false, bbox, meshYOffset);
+      resetMediaRotation(this.el);
     } else if (type === MEDIA_INTERACTION_TYPES.EDIT) {
       if (SYSTEMS.cameraSystem.isInspecting()) return;
 

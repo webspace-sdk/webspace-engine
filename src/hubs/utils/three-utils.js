@@ -124,6 +124,7 @@ export function setMatrixWorld(object3D, m) {
   }
   object3D.matrix.decompose(object3D.position, object3D.quaternion, object3D.scale);
   object3D.childrenNeedMatrixWorldUpdate = true;
+  object3D.worldMatrixConsumerFlags = 0x00;
 }
 
 // Modified version of Don McCurdy's AnimationUtils.clone
@@ -418,6 +419,17 @@ export const childMatch = (function() {
   };
 })();
 
+export function isChildOf(obj, parent) {
+  let node = obj.parent;
+
+  do {
+    if (node === parent) return true;
+    node = node.parent;
+  } while (node !== null);
+
+  return false;
+}
+
 export function generateMeshBVH(object3D, force = true) {
   object3D.traverse(obj => {
     // note that we might already have a bounds tree if this was a clone of an object with one
@@ -438,4 +450,38 @@ export function generateMeshBVH(object3D, force = true) {
       }
     }
   });
+}
+
+const expandByObjectSpaceBoundingBox = (bbox, object) => {
+  const geometry = object.geometry;
+
+  if (geometry !== undefined) {
+    if (geometry.boundingBox === null) {
+      geometry.computeBoundingBox();
+    }
+
+    bbox.expandByPoint(geometry.boundingBox.min);
+    bbox.expandByPoint(geometry.boundingBox.max);
+  }
+
+  const children = object.children;
+
+  for (let i = 0, l = children.length; i < l; i++) {
+    expandByObjectSpaceBoundingBox(bbox, children[i]);
+  }
+};
+
+export function expandByEntityObjectSpaceBoundingBox(bbox, el) {
+  const mesh = el.getObject3D("mesh");
+  const voxBox = SYSTEMS.voxSystem.getBoundingBoxForSource(mesh, false);
+
+  if (voxBox) {
+    bbox.copy(voxBox);
+    return bbox;
+  }
+
+  const object = el.object3D;
+  object.updateMatrices();
+  expandByObjectSpaceBoundingBox(bbox, object);
+  return bbox;
 }

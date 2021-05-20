@@ -136,9 +136,17 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       src: {
         value: notControlSpace
       },
-      dest: { value: paths.actions.jump },
+      dest: { value: paths.actions.mash },
       priority: 1001,
       xform: xforms.rising
+    },
+    {
+      src: {
+        value: notControlSpace
+      },
+      dest: { value: paths.actions.mashRelease },
+      priority: 1001,
+      xform: xforms.falling
     },
     {
       src: {
@@ -520,15 +528,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.any
     },
     {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.code("keyz")
-      },
-      dest: { value: paths.actions.cursor.right.undoDrawing },
-      priority: 1001,
-      xform: xforms.rising
-    },
-    {
       src: { value: togglePen },
       dest: { value: paths.actions.cursor.right.drop },
       xform: xforms.rising,
@@ -609,19 +608,33 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 2
     },
     {
-      src: { value: paths.device.keyboard.code("keyq") },
-      dest: { value: paths.actions.prevGuidePlaneMode },
-      xform: xforms.rising
-    },
-    {
-      src: { value: paths.device.keyboard.code("keye") },
-      dest: { value: paths.actions.nextGuidePlaneMode },
-      xform: xforms.rising
-    },
-    {
       src: [dropViaMouse, dropViaKeyboard],
       dest: { value: paths.actions.cursor.right.drop },
       xform: xforms.any,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("keyq") },
+      dest: { value: paths.actions.mediaSlideAction },
+      xform: xforms.copy,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("keyq") },
+      dest: { value: paths.actions.mediaSlideReleaseAction },
+      xform: xforms.falling,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("keye") },
+      dest: { value: paths.actions.mediaLiftAction },
+      xform: xforms.copy,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("keye") },
+      dest: { value: paths.actions.mediaLiftReleaseAction },
+      xform: xforms.falling,
       priority: 201
     }
   ],
@@ -937,16 +950,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     }
   ],
   [sets.transforming]: [
-    {
-      src: { value: paths.device.keyboard.code("keyq") },
-      dest: { value: paths.actions.prevGuidePlaneMode },
-      xform: xforms.rising
-    },
-    {
-      src: { value: paths.device.keyboard.code("keye") },
-      dest: { value: paths.actions.nextGuidePlaneMode },
-      xform: xforms.rising
-    },
     {
       src: { value: paths.device.keyboard.key("control") },
       dest: { value: paths.actions.transformModifier },

@@ -68,7 +68,7 @@ export class LauncherSystem extends EventTarget {
     const holdingLeft = userinput.get(leftPath);
     const holdingSpace = userinput.get(spacePath);
     const holdingShift = userinput.get(shiftPath);
-    const didJump = userinput.get(paths.actions.jump);
+    const mashed = userinput.get(paths.actions.mash);
     const wheel = userinput.get(paths.actions.equipScroll);
 
     if (holdingShift && !holdingLeft) {
@@ -101,7 +101,13 @@ export class LauncherSystem extends EventTarget {
       }
     }
 
-    if (didJump) {
+    const isHoveringUI = userinput.activeSets.includes(sets.rightCursorHoveringOnUI);
+    this.interaction = this.interaction || this.sceneEl.systems.interaction;
+    const heldEl = this.interaction.state.rightRemote.held || this.interaction.state.leftRemote.held;
+    const isHoldingObject = !!heldEl; // Space is used while holding to snap
+
+    // No burst while holding object due to snap use of space. Can't use action bindings for this since when set changes it will trigger a rising.
+    if (mashed && !isHoldingObject) {
       const payload = projectileSystem.fireEmojiBurst(window.APP.store.state.equips.launcher);
       window.APP.hubChannel.sendMessage(payload, "emoji_burst");
     }
@@ -112,19 +118,18 @@ export class LauncherSystem extends EventTarget {
     //   - The cursor is locked (meaning we are in wide mode)
     //   - The previous frame was not holding left and the user is holding shift to mouse look.
 
-    const isHoveringUI = userinput.activeSets.includes(sets.rightCursorHoveringOnUI);
     const isFreeToLeftClick =
       (getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT && !isHoveringUI) ||
       (!this.heldLeftPreviousFrame && holdingShift && !isHoveringUI);
 
     const isFreeToLeftHold =
-      getCursorLockState() == CURSOR_LOCK_STATES.LOCKED_PERSISTENT || (holdingShift && this.sawLeftButtonUpWithShift);
+      getCursorLockState() == (CURSOR_LOCK_STATES.LOCKED_PERSISTENT || (holdingShift && this.sawLeftButtonUpWithShift));
 
     const launchOnce = userinput.get(middlePath) || (isFreeToLeftClick && userinput.get(leftPath));
 
     // Repeated fire if user is holding space and not control (due to widen)
     const launchRepeatedly =
-      (holdingSpace && !userinput.get(controlPath)) ||
+      (holdingSpace && !isHoldingObject && !userinput.get(controlPath)) ||
       userinput.get(middlePath) ||
       (isFreeToLeftHold && userinput.get(leftPath));
 

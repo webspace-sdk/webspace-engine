@@ -10,7 +10,7 @@ import { generateMeshBVH } from "../utils/three-utils";
 import { disposeNode, disposeExistingMesh, cloneObject3D } from "../utils/three-utils";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import HubsBasisTextureLoader from "../loaders/HubsBasisTextureLoader";
-import { groundMedia, MEDIA_PRESENCE } from "../utils/media-utils";
+import { resetMediaRotation, MEDIA_PRESENCE } from "../utils/media-utils";
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
 import { RENDER_ORDER } from "../constants";
 
@@ -801,7 +801,7 @@ AFRAME.registerComponent("gltf-model-plus", {
     }
 
     if (type === MEDIA_INTERACTION_TYPES.DOWN) {
-      groundMedia(this.el);
+      resetMediaRotation(this.el);
     }
   }
 });

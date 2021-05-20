@@ -5,7 +5,8 @@ import {
   MEDIA_INTERACTION_TYPES,
   cloneMedia
 } from "../../hubs/utils/media-utils";
-import { TRANSFORM_MODE } from "../../hubs/components/transform-object-button";
+import { GUIDE_PLANE_MODES } from "./helpers-system";
+import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { ensureOwnership, getNetworkedEntitySync, isSynchronized } from "../../jel/utils/ownership-utils";
 import { cursorIsVisible } from "../utils/dom-utils";
@@ -31,14 +32,19 @@ export class MediaInteractionSystem {
 
   tick() {
     const { scene, rightHand } = this;
-
     if (!rightHand) return;
     if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
     if (!SYSTEMS.cameraSystem.cameraViewAllowsManipulation()) return;
 
     this.userinput = this.userinput || scene.systems.userinput;
+    this.transformSystem = this.transformSystem || this.scene.systems["transform-selected-object"];
+
+    this.interaction = this.interaction || scene.systems.interaction;
+    const interaction = this.interaction;
+    const hoverEl = interaction.state.rightRemote.hovered || interaction.state.leftRemote.hovered;
+    const heldEl = interaction.state.rightRemote.held || interaction.state.leftRemote.held;
+
     if (this.userinput.get(paths.actions.mediaTransformReleaseAction)) {
-      this.transformSystem = this.transformSystem || this.scene.systems["transform-selected-object"];
       this.transformSystem.stopTransform();
       releaseEphemeralCursorLock();
       return;
@@ -51,15 +57,40 @@ export class MediaInteractionSystem {
       return;
     }
 
+    const rightHeld = interaction.state.rightRemote.held;
+
+    // Stop sliding if held was dropped or slide key lifted
+    if (
+      this.userinput.get(paths.actions.mediaSlideReleaseAction) ||
+      this.userinput.get(paths.actions.mediaLiftReleaseAction) ||
+      this.userinput.get(paths.actions.mashRelease) ||
+      ((this.transformSystem.mode === TRANSFORM_MODE.SLIDE ||
+        this.transformSystem.mode === TRANSFORM_MODE.LIFT ||
+        this.transformSystem.mode === TRANSFORM_MODE.STACK) &&
+        this.transformSystem.transforming &&
+        !rightHeld)
+    ) {
+      this.transformSystem.stopTransform();
+      releaseEphemeralCursorLock();
+      SYSTEMS.helpersSystem.setGuidePlaneMode(GUIDE_PLANE_MODES.DISABLED);
+
+      return;
+    }
+
+    if (heldEl) {
+      this.handleHeld(heldEl);
+    } else if (hoverEl) {
+      this.handleHover(hoverEl);
+    }
+  }
+
+  handleHover(hoverEl) {
     // Do not allow engaging media interactions if cursor has been hidden.
     if (!cursorIsVisible()) return;
 
-    this.interaction = this.interaction || scene.systems.interaction;
-    const hoverEl = this.interaction.state.rightRemote.hovered || this.interaction.state.leftRemote.hovered;
-    if (!cursorIsVisible()) return;
-
-    if (!hoverEl) return;
     let interactionType = null;
+    const isSynced = isSynchronized(hoverEl);
+    const targetEl = isSynced ? getNetworkedEntitySync(hoverEl) : hoverEl;
 
     if (this.userinput.get(paths.actions.mediaPrimaryAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.PRIMARY;
@@ -126,16 +157,13 @@ export class MediaInteractionSystem {
             offset: { x: 0, y: 0, z: -1.15 * component.el.object3D.scale.z }
           });
         } else {
-          const isSynced = isSynchronized(hoverEl);
-          const targetEl = isSynced ? getNetworkedEntitySync(hoverEl) : hoverEl;
           if (isSynced && !ensureOwnership(targetEl)) return;
 
           if (interactionType === MEDIA_INTERACTION_TYPES.ROTATE) {
             beginEphemeralCursorLock();
 
-            this.transformSystem = this.transformSystem || this.scene.systems["transform-selected-object"];
             this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
-              mode: TRANSFORM_MODE.CURSOR
+              mode: TRANSFORM_MODE.AXIS
             });
           } else if (interactionType === MEDIA_INTERACTION_TYPES.SCALE) {
             beginEphemeralCursorLock();
@@ -147,6 +175,60 @@ export class MediaInteractionSystem {
           } else {
             component.handleMediaInteraction(interactionType);
           }
+        }
+      }
+    }
+  }
+
+  handleHeld(heldEl) {
+    let interactionType = null;
+    const interaction = this.interaction;
+    const isSynced = isSynchronized(heldEl);
+    const targetEl = isSynced ? getNetworkedEntitySync(heldEl) : heldEl;
+
+    if (this.userinput.get(paths.actions.mediaSlideAction)) {
+      interactionType = MEDIA_INTERACTION_TYPES.SLIDE;
+    }
+
+    if (this.userinput.get(paths.actions.mediaLiftAction)) {
+      interactionType = MEDIA_INTERACTION_TYPES.LIFT;
+    }
+
+    if (this.userinput.get(paths.actions.mash)) {
+      interactionType = MEDIA_INTERACTION_TYPES.STACK;
+    }
+
+    if (interactionType !== null) {
+      const component = getMediaViewComponent(heldEl);
+
+      if (component) {
+        if (isSynced && !ensureOwnership(targetEl)) return;
+
+        if (!this.transformSystem.transforming) {
+          const rightHeld = interaction.state.rightRemote.held;
+
+          if (rightHeld) {
+            beginEphemeralCursorLock();
+            interaction.state.rightRemote.constraining = false;
+
+            this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
+              mode:
+                interactionType === MEDIA_INTERACTION_TYPES.SLIDE
+                  ? TRANSFORM_MODE.SLIDE
+                  : interactionType === MEDIA_INTERACTION_TYPES.STACK
+                    ? TRANSFORM_MODE.STACK
+                    : TRANSFORM_MODE.LIFT
+            });
+
+            // Show guide plane during slide or lift
+            if (interactionType !== MEDIA_INTERACTION_TYPES.STACK) {
+              SYSTEMS.helpersSystem.setGuidePlaneMode(
+                interactionType === MEDIA_INTERACTION_TYPES.SLIDE ? GUIDE_PLANE_MODES.CAMERA : GUIDE_PLANE_MODES.WORLDY
+              );
+            }
+          }
+        } else {
+          component.handleMediaInteraction(interactionType);
         }
       }
     }

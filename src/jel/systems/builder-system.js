@@ -196,6 +196,9 @@ export class BuilderSystem extends EventTarget {
   tick() {
     if (!this.enabled) return;
 
+    this.transformSystem = this.transformSystem || this.sceneEl.systems["transform-selected-object"];
+    const isGrabTransforming = this.transformSystem.isGrabTransforming();
+
     const { userinput } = this;
 
     if (!this.playerCamera) {
@@ -274,11 +277,17 @@ export class BuilderSystem extends EventTarget {
       brushDown = holdingLeft;
     } else {
       // Repeated build if user is holding space and not control (due to widen)
-      brushDown = (holdingSpace && !userinput.get(controlPath)) || holdingMiddle || (isFreeToLeftHold && holdingLeft);
+      brushDown =
+        ((holdingSpace && !userinput.get(controlPath)) || holdingMiddle || (isFreeToLeftHold && holdingLeft)) &&
+        !isGrabTransforming;
     }
 
     const intersection = cursor && cursor.intersection;
-    this.performBrushStep(brushDown, intersection);
+
+    if (!isGrabTransforming) {
+      this.performBrushStep(brushDown, intersection);
+    }
+
     this.undoOpOnNextTick = UNDO_OPS.NONE;
   }
 

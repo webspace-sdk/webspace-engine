@@ -877,6 +877,28 @@ export class VoxSystem extends EventTarget {
     return [];
   }
 
+  // Returns true if the specified source is the passed mesh's instance
+  isMeshInstanceForSource(mesh, instanceId, source) {
+    if (instanceId === undefined || instanceId === null || !mesh) return false;
+    const { sourceToVoxId, voxMap } = this;
+    const voxId = sourceToVoxId.get(source);
+    if (!voxId) return false;
+    const { sources, meshes, targettingMesh, targettingMeshInstanceId } = voxMap.get(voxId);
+
+    return (
+      (sources.indexOf(source) === instanceId || targettingMeshInstanceId === instanceId) &&
+      (meshes.indexOf(mesh) >= 0 || targettingMesh === mesh)
+    );
+  }
+
+  getVoxIdForSource(source) {
+    return this.sourceToVoxId.get(source);
+  }
+
+  getSourceForVoxId(voxId, instanceId) {
+    return this.voxMap.get(voxId).sources[instanceId];
+  }
+
   updatePhysicsComponentsForSource(voxId, source) {
     const { voxMap } = this;
     if (!voxMap.has(voxId)) return;
@@ -1058,7 +1080,7 @@ export class VoxSystem extends EventTarget {
     return null;
   }
 
-  getBoundingBoxForSource(source) {
+  getBoundingBoxForSource(source, worldSpace = false) {
     const { sourceToVoxId, voxMap } = this;
     if (!sourceToVoxId.has(source)) return null;
 
@@ -1074,7 +1096,11 @@ export class VoxSystem extends EventTarget {
     mesh.getMatrixAt(instanceId, matrix);
 
     bbox.expandByObject(mesh);
-    bbox.applyMatrix4(matrix);
+
+    if (worldSpace) {
+      bbox.applyMatrix4(matrix);
+    }
+
     return bbox;
   }
 
