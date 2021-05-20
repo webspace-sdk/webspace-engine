@@ -171,10 +171,17 @@ export class CharacterControllerSystem {
       const userinput = AFRAME.scenes[0].systems.userinput;
       const wasFlying = this.fly;
       const shouldSnapDueToLanding = this.shouldLandWhenPossible;
+      const heldEl = this.interaction.state.rightRemote.held || this.interaction.state.leftRemote.held;
+      // No jumping while holding due to snap. Can't use action bindings for this since when set changes it will trigger a rising.
 
-      const mayJump = SYSTEMS.launcherSystem.enabled && !this.isMotionDisabled && SYSTEMS.cameraSystem.isInAvatarView();
+      const isHoldingObject = !!heldEl;
+      const mayJump =
+        SYSTEMS.launcherSystem.enabled &&
+        !this.isMotionDisabled &&
+        SYSTEMS.cameraSystem.isInAvatarView() &&
+        !isHoldingObject;
 
-      if (mayJump && userinput.get(paths.actions.jump) && this.jumpYVelocity === null) {
+      if (mayJump && userinput.get(paths.actions.mash) && this.jumpYVelocity === null) {
         this.jumpYVelocity = INITIAL_JUMP_VELOCITY;
       }
 

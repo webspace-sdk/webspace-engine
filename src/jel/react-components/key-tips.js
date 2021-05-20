@@ -147,6 +147,7 @@ const TipLabel = styled.div`
   font-size: var(--canvas-overlay-text-size);
   text-shadow: 0px 0px 4px var(--menu-shadow-color);
   margin-left: 16px;
+  white-space: nowrap;
 
   & .equipped-emoji,
   & .equipped-color {
@@ -189,13 +190,13 @@ const ColorSwatch = styled.div``;
 
 const objectCommonTips = [
   ["move", "T;I"],
+  ["clone", "L+I;c"],
+  ["bake", "b"],
   ["open", "o"],
   ["rotate", "_r"],
   ["scale", "_v"],
   ["focus", "f"],
-  ["clone", "c"],
-  ["bake", "b"],
-  ["ground", "g"],
+  ["reset", "g"],
   ["remove", "x x"]
 ];
 
@@ -258,7 +259,7 @@ const TIP_DATA = {
   ],
   pointer_exited_muted: [["unmute", "L+m", "toggleMuteKey"], ["mode", "L+b"], ["hide", "?"]],
   pointer_exited_unmuted: [["mute", "L+m", "toggleMuteKey"], ["mode", "L+b"], ["hide", "?"]],
-  holding_interactable: [["pull", "R"], ["guides", "q\\e"]],
+  holding_interactable: [["pull", "R"], ["stack", "_S"], ["movexz", "_q"], ["movey", "_e"]],
   hover_interactable: objectCommonTips.filter(x => x[0] !== "bake" && x[0] !== "ground"),
   hover_bakable_interactable: objectCommonTips.filter(x => x[0] !== "ground"),
   hover_groundable_interactable: objectCommonTips.filter(x => x[0] !== "bake"),
@@ -328,8 +329,11 @@ const TIP_DATA = {
     ["font", "t\\g"],
     ...objectCommonTips.filter(t => t[0] !== "open")
   ],
-  rotate: [["rotate", "G"], ["roll", "L+G,R"], ["guides", "q\\e"]],
+  rotate: [["yawpitch", "G"], ["roll", "L+G"], ["snap", "_H"]],
   scale: [["scale", "G,R"]],
+  slide: [["movexz", "G"], ["movey", "R"], ["snap", "_H"]],
+  stack: [["stack", "G"]],
+  lift: [["movey", "G"], ["snap", "_H"]],
   focus: [["orbit", "I"], ["zoom", "R"], ["exit", "f|Z"]],
   focus_edit: [["orbit", "I"], ["pan", "_S|O"], ["zoom", "R"], ["exit", "~|@|Z"]],
   text_editor: [
@@ -422,6 +426,63 @@ const itemForData = ([label, keys, flag], triggerMode) => {
           els.push(
             <NamedKey key={key}>
               <FormattedMessage id="key-tips.space" />
+            </NamedKey>
+          );
+        }
+      } else if (key === "H") {
+        if (holdType === 1) {
+          els.push(
+            <NamedKey key={key}>
+              <FormattedMessage id="key-tips.hold" />&nbsp;&nbsp;<FormattedMessage id="key-tips.shift" />
+            </NamedKey>
+          );
+        } else {
+          els.push(
+            <KeyWideSeparator key="hold">
+              <FormattedMessage id="key-tips.hold" />
+            </KeyWideSeparator>
+          );
+          els.push(
+            <NamedKey key={key}>
+              <FormattedMessage id="key-tips.shift" />
+            </NamedKey>
+          );
+        }
+      } else if (key === "L") {
+        if (holdType === 1) {
+          els.push(
+            <NamedKey key={key}>
+              <FormattedMessage id="key-tips.hold" />&nbsp;&nbsp;<FormattedMessage id="key-tips.control" />
+            </NamedKey>
+          );
+        } else {
+          els.push(
+            <KeyWideSeparator key="hold">
+              <FormattedMessage id="key-tips.hold" />
+            </KeyWideSeparator>
+          );
+          els.push(
+            <NamedKey key={key}>
+              <FormattedMessage id="key-tips.control" />
+            </NamedKey>
+          );
+        }
+      } else if (key === "P") {
+        if (holdType === 1) {
+          els.push(
+            <NamedKey key={key}>
+              <FormattedMessage id="key-tips.hold" />&nbsp;&nbsp;<FormattedMessage id="key-tips.alt" />
+            </NamedKey>
+          );
+        } else {
+          els.push(
+            <KeyWideSeparator key="hold">
+              <FormattedMessage id="key-tips.hold" />
+            </KeyWideSeparator>
+          );
+          els.push(
+            <NamedKey key={key}>
+              <FormattedMessage id="key-tips.alt" />
             </NamedKey>
           );
         }

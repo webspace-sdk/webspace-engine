@@ -33,7 +33,10 @@ export const MEDIA_INTERACTION_TYPES = {
   REMOVE: 9,
   CLONE: 10,
   EDIT: 11,
-  OPEN: 12
+  OPEN: 12,
+  SLIDE: 13,
+  LIFT: 14,
+  STACK: 15
 };
 
 export const LOADING_EVENTS = ["model-loading", "image-loading", "text-loading", "pdf-loading"];
@@ -52,6 +55,14 @@ export const MEDIA_VIEW_COMPONENTS = [
 
 export const PAGABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-pdf"];
 export const BAKABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-text", "media-pdf", "media-canvas", "media-vox"];
+export const FLAT_MEDIA_VIEW_COMPONENTS = [
+  "media-video",
+  "media-text",
+  "media-pdf",
+  "media-canvas",
+  "media-image",
+  "media-emoji"
+];
 
 export const GROUNDABLE_MEDIA_VIEW_COMPONENTS = [
   "gltf-model-plus",
@@ -65,6 +76,14 @@ export const ORBIT_ON_INSPECT_MEDIA_VIEW_COMPONENTS = ["gltf-model-plus", "media
 
 export const shouldOrbitOnInspect = function(obj) {
   for (const component of ORBIT_ON_INSPECT_MEDIA_VIEW_COMPONENTS) {
+    if (obj.el.components[component]) return true;
+  }
+
+  return false;
+};
+
+export const isFlatMedia = function(obj) {
+  for (const component of FLAT_MEDIA_VIEW_COMPONENTS) {
     if (obj.el.components[component]) return true;
   }
 
@@ -415,7 +434,62 @@ export const groundMedia = (sourceEl, faceUp, bbox = null, meshOffset = 0.0) => 
   });
 };
 
-export const cloneMedia = (sourceEl, template, src = null, networked = true, link = false, parentEl = null) => {
+// Resets the transform rotation of the media
+export const resetMediaRotation = sourceEl => {
+  const { object3D } = sourceEl;
+
+  const floatyObject = sourceEl.components["floaty-object"];
+
+  if (floatyObject) {
+    // If physics body was dynamic, lock it so physics system won't be updating it anymore.
+    floatyObject.setLocked(true);
+  }
+
+  const step = (function() {
+    const lastValue = {};
+    return function(anim) {
+      const value = anim.animatables[0].target;
+
+      // For animation timeline.
+      if (value.x === lastValue.x && value.y === lastValue.y && value.z === lastValue.z) {
+        return;
+      }
+
+      lastValue.x = value.x;
+      lastValue.y = value.y;
+      lastValue.z = value.z;
+
+      object3D.rotation.x = value.x;
+      object3D.rotation.y = value.y;
+      object3D.rotation.z = value.z;
+      object3D.matrixNeedsUpdate = true;
+    };
+  })();
+
+  anime({
+    duration: 800,
+    easing: "easeOutElastic",
+    elasticity: 800,
+    loop: 0,
+    round: false,
+    x: 0.0,
+    y: 0.0,
+    z: 0.0,
+    targets: [{ x: object3D.rotation.x, y: object3D.rotation.y, z: object3D.rotation.z }],
+    update: anim => step(anim),
+    complete: anim => step(anim)
+  });
+};
+
+export const cloneMedia = (
+  sourceEl,
+  template,
+  src = null,
+  networked = true,
+  link = false,
+  parentEl = null,
+  animate = true
+) => {
   let contents = null;
   const extraMediaOptions = {};
 
@@ -446,7 +520,7 @@ export const cloneMedia = (sourceEl, template, src = null, networked = true, lin
     contentSubtype,
     true,
     fitToBox,
-    true,
+    animate,
     { ...mediaOptions, ...extraMediaOptions },
     networked,
     parentEl,

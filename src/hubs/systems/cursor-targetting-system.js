@@ -19,7 +19,8 @@ AFRAME.registerComponent("overwrite-raycast-as-noop", {
 });
 
 export class CursorTargettingSystem {
-  constructor() {
+  constructor(sceneEl) {
+    this.sceneEl = sceneEl;
     this.targets = [];
     this.setDirty = this.setDirty.bind(this);
     this.dirty = true;
@@ -34,6 +35,8 @@ export class CursorTargettingSystem {
       this.observer.observe(scene, { childList: true, attributes: true, subtree: true });
       scene.addEventListener("object3dset", this.setDirty);
       scene.addEventListener("object3dremove", this.setDirty);
+      scene.addEventListener("transform_started", this.setDirty);
+      scene.addEventListener("transform_stopped", this.setDirty);
       SYSTEMS.voxSystem.addEventListener("mesh_added", this.setDirty);
       SYSTEMS.voxSystem.addEventListener("mesh_removed", this.setDirty);
       SYSTEMS.voxmojiSystem.addEventListener("mesh_added", this.setDirty);
@@ -78,8 +81,9 @@ export class CursorTargettingSystem {
   populateEntities(targets) {
     targets.length = 0;
 
-    const els = AFRAME.scenes[0].querySelectorAll(".collidable, .interactable, .ui, .drawing");
+    const els = this.sceneEl.querySelectorAll(".collidable, .interactable, .ui, .drawing");
     const { inspected } = SYSTEMS.cameraSystem;
+    const transformSystem = this.sceneEl.systems["transform-selected-object"];
 
     // If cursor is on in inspect mode, we only can target the inspected object (or instances)
     if (inspected) {
@@ -119,7 +123,7 @@ export class CursorTargettingSystem {
       targets.push(voxMesh);
     }
 
-    for (const terrainMesh of SYSTEMS.terrainSystem.getTargettableTerrainMeshes()) {
+    for (const terrainMesh of SYSTEMS.terrainSystem.activeTerrains) {
       targets.push(terrainMesh);
     }
   }

@@ -3,6 +3,8 @@ import { waitForDOMContentLoaded } from "../utils/async-utils";
 import { canMove } from "../utils/permissions-utils";
 import { isTagged } from "../components/tags";
 import { isSynchronized, isMine } from "../../jel/utils/ownership-utils";
+import { cloneMedia } from "../utils/media-utils";
+import { setMatrixWorld } from "../utils/three-utils";
 
 function findHandCollisionTargetForHand(bodyHelper) {
   const physicsSystem = this.el.sceneEl.systems["hubs-systems"].physicsSystem;
@@ -99,24 +101,28 @@ AFRAME.registerSystem("interaction", {
   release(el) {
     if (this.state.leftHand.held === el) {
       this.state.leftHand.held = null;
+      this.state.leftHand.constrained = true;
     }
     if (this.state.leftHand.hovered === el) {
       this.state.leftHand.hovered = null;
     }
-    if (this.state.leftHand.held === el) {
-      this.state.leftHand.held = null;
+    if (this.state.rightHand.held === el) {
+      this.state.rightHand.held = null;
+      this.state.rightHand.constrained = true;
     }
     if (this.state.rightHand.hovered === el) {
       this.state.rightHand.hovered = null;
     }
     if (this.state.rightRemote.held === el) {
       this.state.rightRemote.held = null;
+      this.state.rightRemote.constrained = true;
     }
     if (this.state.rightRemote.hovered === el) {
       this.state.rightRemote.hovered = null;
     }
     if (this.state.leftRemote.held === el) {
       this.state.leftRemote.held = null;
+      this.state.leftRemote.constrained = true;
     }
     if (this.state.leftRemote.hovered === el) {
       this.state.leftRemote.hovered = null;
@@ -162,46 +168,64 @@ AFRAME.registerSystem("interaction", {
       leftHand: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true // Can be used to disable constraints
       },
       rightHand: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true
       },
       rightRemote: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true
       },
       leftRemote: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true
       }
     };
     this.previousState = {
       leftHand: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true
       },
       rightHand: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true
       },
       rightRemote: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true
       },
       leftRemote: {
         hovered: null,
         held: null,
-        spawning: null
+        spawning: null,
+        constraining: true
       }
     };
+
+    this.stateList = [this.state.leftHand, this.state.rightHand, this.state.leftRemote, this.state.rightRemote];
+
+    this.previousStateList = [
+      this.previousState.leftHand,
+      this.previousState.rightHand,
+      this.previousState.leftRemote,
+      this.previousState.rightRemote
+    ];
+
     waitForDOMContentLoaded().then(() => {
       this.options.leftHand.entity = document.getElementById("player-left-controller");
       this.options.rightHand.entity = document.getElementById("player-right-controller");
@@ -215,10 +239,13 @@ AFRAME.registerSystem("interaction", {
 
   tickInteractor(options, state) {
     const userinput = AFRAME.scenes[0].systems.userinput;
+    const controlPath = paths.device.keyboard.key("control");
+
     if (state.held) {
       const lostOwnership = isSynchronized(state.held) && !isMine(state.held);
       if (userinput.get(options.dropPath) || lostOwnership) {
         state.held = null;
+        state.constraining = true;
       }
     } else {
       state.hovered = options.hoverFn.call(
@@ -230,7 +257,24 @@ AFRAME.registerSystem("interaction", {
       if (state.hovered && SYSTEMS.cameraSystem.cameraViewAllowsManipulation()) {
         const entity = state.hovered;
         if (isTagged(entity, "isHoldable") && userinput.get(options.grabPath) && canMove(entity)) {
-          state.held = entity;
+          entity.object3D.updateMatrices();
+
+          let entityToGrab = entity;
+          const shouldDuplicate = userinput.get(controlPath);
+
+          if (shouldDuplicate) {
+            entityToGrab = cloneMedia(entity, "#interactable-media", null, true, false, null, false).entity;
+            setMatrixWorld(entityToGrab.object3D, entity.object3D.matrixWorld);
+            entityToGrab.addEventListener(
+              "media-loaded",
+              () => {
+                state.held = entityToGrab;
+              },
+              { once: true }
+            );
+          } else {
+            state.held = entityToGrab;
+          }
         }
       }
     }
@@ -239,22 +283,26 @@ AFRAME.registerSystem("interaction", {
   tick2() {
     if (!this.el.is("entered")) return;
 
-    Object.assign(this.previousState.rightHand, this.state.rightHand);
-    Object.assign(this.previousState.rightRemote, this.state.rightRemote);
-    Object.assign(this.previousState.leftHand, this.state.leftHand);
-    Object.assign(this.previousState.leftRemote, this.state.leftRemote);
+    const { previousStateList, stateList, options, state } = this;
 
-    if (this.options.leftHand.entity.object3D.visible && !this.state.leftRemote.held) {
-      this.tickInteractor(this.options.leftHand, this.state.leftHand);
+    for (let i = 0, l = stateList.length; i < l; i++) {
+      previousStateList[i].hovered = stateList[i].hovered;
+      previousStateList[i].held = stateList[i].held;
+      previousStateList[i].spawning = stateList[i].spawning;
+      previousStateList[i].constraining = stateList[i].constraining;
     }
-    if (this.options.rightHand.entity.object3D.visible && !this.state.rightRemote.held) {
-      this.tickInteractor(this.options.rightHand, this.state.rightHand);
+
+    if (options.leftHand.entity.object3D.visible && !state.leftRemote.held) {
+      this.tickInteractor(options.leftHand, state.leftHand);
     }
-    if (!this.state.rightHand.held && !this.state.rightHand.hovered) {
-      this.tickInteractor(this.options.rightRemote, this.state.rightRemote);
+    if (options.rightHand.entity.object3D.visible && !state.rightRemote.held) {
+      this.tickInteractor(options.rightHand, state.rightHand);
     }
-    if (!this.state.leftHand.held && !this.state.leftHand.hovered) {
-      this.tickInteractor(this.options.leftRemote, this.state.leftRemote);
+    if (!state.rightHand.held && !state.rightHand.hovered) {
+      this.tickInteractor(options.rightRemote, state.rightRemote);
+    }
+    if (!state.leftHand.held && !state.leftHand.hovered) {
+      this.tickInteractor(options.leftRemote, state.leftRemote);
     }
   }
 });

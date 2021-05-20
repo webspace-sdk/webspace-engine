@@ -609,6 +609,18 @@ export class VoxmojiSystem extends EventTarget {
     return null;
   }
 
+  isMeshInstanceForSource(targetMesh, instanceId, source) {
+    if (instanceId === undefined || instanceId === null || !targetMesh) return false;
+
+    for (const { mesh, sources } of this.meshes.values()) {
+      if (targetMesh === mesh && sources.indexOf(source) === instanceId) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   getSourceForMeshAndInstance(instancedMesh, instanceId) {
     for (const { mesh, sources } of this.meshes.values()) {
       if (mesh === instancedMesh) {

@@ -2,6 +2,7 @@ import { isInQuillEditor } from "../utils/quill-utils";
 import { BAKABLE_MEDIA_VIEW_COMPONENTS } from "../../hubs/utils/media-utils";
 import { GROUNDABLE_MEDIA_VIEW_COMPONENTS } from "../../hubs/utils/media-utils";
 import { cursorIsVisible, CURSOR_LOCK_STATES, getCursorLockState } from "../utils/dom-utils";
+import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
 import { paths } from "../../hubs/systems/userinput/paths";
 import { BRUSH_TYPES, BRUSH_MODES } from "../constants";
 
@@ -45,7 +46,17 @@ export class KeyboardTipSystem {
             : "idle_panels";
 
         if (this.transformSystem.transforming) {
-          showTips = this.scaleSystem.isScaling ? "scale" : "rotate";
+          if (this.scaleSystem.isScaling) {
+            showTips = "scale";
+          } else if (this.transformSystem.mode === TRANSFORM_MODE.AXIS) {
+            showTips = "rotate";
+          } else if (this.transformSystem.mode === TRANSFORM_MODE.SLIDE) {
+            showTips = "slide";
+          } else if (this.transformSystem.mode === TRANSFORM_MODE.LIFT) {
+            showTips = "lift";
+          } else if (this.transformSystem.mode === TRANSFORM_MODE.STACK) {
+            showTips = "stack";
+          }
         } else {
           const held =
             this.interaction.state.leftHand.held ||
