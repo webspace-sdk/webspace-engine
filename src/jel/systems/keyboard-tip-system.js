@@ -54,6 +54,8 @@ export class KeyboardTipSystem {
             showTips = "slide";
           } else if (this.transformSystem.mode === TRANSFORM_MODE.LIFT) {
             showTips = "lift";
+          } else if (this.transformSystem.mode === TRANSFORM_MODE.STACK) {
+            showTips = "stack";
           }
         } else {
           const held =
