@@ -800,7 +800,7 @@ AFRAME.registerComponent("gltf-model-plus", {
       window.open(this.data.src);
     }
 
-    if (type === MEDIA_INTERACTION_TYPES.DOWN) {
+    if (type === MEDIA_INTERACTION_TYPES.RESET) {
       resetMediaRotation(this.el);
     }
   }

@@ -1,6 +1,10 @@
 import { isInQuillEditor } from "../utils/quill-utils";
-import { BAKABLE_MEDIA_VIEW_COMPONENTS } from "../../hubs/utils/media-utils";
-import { GROUNDABLE_MEDIA_VIEW_COMPONENTS } from "../../hubs/utils/media-utils";
+import {
+  RESETABLE_MEDIA_VIEW_COMPONENTS,
+  BAKABLE_MEDIA_VIEW_COMPONENTS,
+  isLockedMedia,
+  getMediaViewComponent
+} from "../../hubs/utils/media-utils";
 import { cursorIsVisible, CURSOR_LOCK_STATES, getCursorLockState } from "../utils/dom-utils";
 import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
 import { paths } from "../../hubs/systems/userinput/paths";
@@ -75,67 +79,62 @@ export class KeyboardTipSystem {
 
             if (hovered && cursorIsVisible()) {
               const { components } = hovered;
+              const isLocked = isLockedMedia(hovered);
 
-              if (components["media-text"]) {
-                showTips = "text";
-              } else if (components["media-video"]) {
-                showTips = components["media-video"].data.videoPaused ? "video_paused" : "video_playing";
-              } else if (components["media-vox"]) {
-                if (SYSTEMS.builderSystem.enabled) {
-                  const expanded = getCursorLockState() === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
-                  const editing = SYSTEMS.cameraSystem.isInspecting() && SYSTEMS.cameraSystem.allowCursor;
-                  const suffix = editing ? "_edit" : expanded ? "_full" : "";
-                  if (SYSTEMS.builderSystem.brushType === BRUSH_TYPES.PICK) {
-                    showTips = `vox_pick${suffix}`;
-                  } else if (SYSTEMS.builderSystem.brushType === BRUSH_TYPES.FILL) {
-                    showTips = `vox_fill${suffix}`;
-                  } else {
-                    const mode = SYSTEMS.builderSystem.brushMode;
-                    switch (mode) {
-                      case BRUSH_MODES.ADD:
-                        showTips = `vox_attach${suffix}`;
-                        break;
-                      case BRUSH_MODES.REMOVE:
-                        showTips = `vox_remove${suffix}`;
-                        break;
-                      case BRUSH_MODES.PAINT:
-                        showTips = `vox_paint${suffix}`;
-                        break;
+              if (!isLocked) {
+                if (components["media-text"]) {
+                  showTips = "text";
+                } else if (components["media-video"]) {
+                  showTips = components["media-video"].data.videoPaused ? "video_paused" : "video_playing";
+                } else if (components["media-vox"]) {
+                  if (SYSTEMS.builderSystem.enabled) {
+                    const expanded = getCursorLockState() === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
+                    const editing = SYSTEMS.cameraSystem.isInspecting() && SYSTEMS.cameraSystem.allowCursor;
+                    const suffix = editing ? "_edit" : expanded ? "_full" : "";
+                    if (SYSTEMS.builderSystem.brushType === BRUSH_TYPES.PICK) {
+                      showTips = `vox_pick${suffix}`;
+                    } else if (SYSTEMS.builderSystem.brushType === BRUSH_TYPES.FILL) {
+                      showTips = `vox_fill${suffix}`;
+                    } else {
+                      const mode = SYSTEMS.builderSystem.brushMode;
+                      switch (mode) {
+                        case BRUSH_MODES.ADD:
+                          showTips = `vox_attach${suffix}`;
+                          break;
+                        case BRUSH_MODES.REMOVE:
+                          showTips = `vox_remove${suffix}`;
+                          break;
+                        case BRUSH_MODES.PAINT:
+                          showTips = `vox_paint${suffix}`;
+                          break;
+                      }
                     }
+                  } else {
+                    showTips = "vox";
                   }
+                } else if (components["media-pdf"]) {
+                  showTips = "pdf";
                 } else {
-                  showTips = "vox";
+                  const component = getMediaViewComponent(hovered);
+
+                  const isBakable = BAKABLE_MEDIA_VIEW_COMPONENTS.includes(component?.name);
+                  const isResetable = RESETABLE_MEDIA_VIEW_COMPONENTS.includes(component?.name);
+
+                  if (isResetable && isBakable) {
+                    showTips = "hover_bakable_resetable_interactable";
+                  } else if (isResetable) {
+                    showTips = "hover_resetable_interactable";
+                  } else if (isBakable) {
+                    showTips = "hover_bakable_interactable";
+                  } else {
+                    showTips = "hover_interactable";
+                  }
                 }
-              } else if (components["media-pdf"]) {
-                showTips = "pdf";
               } else {
-                let isBakable = false;
-                let isGroundable = false;
+                const component = getMediaViewComponent(hovered);
 
-                // TODO clean this up if a third attribute comes along
-                for (const component of BAKABLE_MEDIA_VIEW_COMPONENTS) {
-                  if (components[component]) {
-                    isBakable = true;
-                    break;
-                  }
-                }
-
-                for (const component of GROUNDABLE_MEDIA_VIEW_COMPONENTS) {
-                  if (components[component]) {
-                    isGroundable = true;
-                    break;
-                  }
-                }
-
-                if (isGroundable && isBakable) {
-                  showTips = "hover_bakable_groundable_interactable";
-                } else if (isGroundable) {
-                  showTips = "hover_groundable_interactable";
-                } else if (isBakable) {
-                  showTips = "hover_bakable_interactable";
-                } else {
-                  showTips = "hover_interactable";
-                }
+                const isBakable = BAKABLE_MEDIA_VIEW_COMPONENTS.includes(component?.name);
+                showTips = isBakable ? "hover_locked_bakable_interactable" : "hover_locked_interactable";
               }
             }
           }

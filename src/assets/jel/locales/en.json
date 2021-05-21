@@ -122,6 +122,8 @@
   "key-tips.instance": "Instance",
   "key-tips.duplicate": "Duplicate",
   "key-tips.mode": "Mode",
+  "key-tips.lock": "Lock",
+  "key-tips.unlock": "Unlock",
   "hub-pager.layer": "Layer",
   "create-select.text_group.title": "Text",
   "create-select.objects_group.title": "Objects",

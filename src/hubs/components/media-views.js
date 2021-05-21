@@ -1481,7 +1481,7 @@ AFRAME.registerComponent("media-image", {
       window.open(this.el.components["media-loader"].data.src);
     }
 
-    if (type === MEDIA_INTERACTION_TYPES.DOWN) {
+    if (type === MEDIA_INTERACTION_TYPES.RESET) {
       resetMediaRotation(this.el);
     }
   }
@@ -1736,7 +1736,7 @@ AFRAME.registerComponent("media-pdf", {
       return;
     }
 
-    if (type === MEDIA_INTERACTION_TYPES.DOWN) {
+    if (type === MEDIA_INTERACTION_TYPES.RESET) {
       resetMediaRotation(this.el);
       return;
     }

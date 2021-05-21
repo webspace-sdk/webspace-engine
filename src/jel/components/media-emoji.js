@@ -99,7 +99,7 @@ AFRAME.registerComponent("media-emoji", {
   },
 
   handleMediaInteraction(type) {
-    if (type === MEDIA_INTERACTION_TYPES.DOWN) {
+    if (type === MEDIA_INTERACTION_TYPES.RESET) {
       resetMediaRotation(this.el);
     }
   },

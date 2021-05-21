@@ -4,6 +4,7 @@ import {
   performAnimatedRemove,
   MEDIA_INTERACTION_TYPES,
   LOCKED_MEDIA_DISALLOWED_INTERACTIONS,
+  RESETABLE_MEDIA_VIEW_COMPONENTS,
   cloneMedia,
   isLockedMedia
 } from "../../hubs/utils/media-utils";
@@ -119,9 +120,15 @@ export class MediaInteractionSystem {
         // Director mode
         SYSTEMS.directorSystem.beginTrackingCamera();
       }
-    } else if (this.userinput.get(paths.actions.mediaDownAction)) {
+    } else if (this.userinput.get(paths.actions.mediaDownOrResetAction)) {
       if (!isDirectorMode) {
-        interactionType = MEDIA_INTERACTION_TYPES.DOWN;
+        const component = getMediaViewComponent(hoverEl);
+
+        if (RESETABLE_MEDIA_VIEW_COMPONENTS.includes(component.name)) {
+          interactionType = MEDIA_INTERACTION_TYPES.RESET;
+        } else {
+          interactionType = MEDIA_INTERACTION_TYPES.DOWN;
+        }
       } else {
         SYSTEMS.directorSystem.restart();
       }

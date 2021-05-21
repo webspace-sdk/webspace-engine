@@ -190,6 +190,7 @@ const ColorSwatch = styled.div``;
 
 const objectCommonTips = [
   ["move", "T;I"],
+  ["lock", "l"],
   ["clone", "L+I;c"],
   ["bake", "b"],
   ["open", "o"],
@@ -259,11 +260,19 @@ const TIP_DATA = {
   ],
   pointer_exited_muted: [["unmute", "L+m", "toggleMuteKey"], ["mode", "L+b"], ["hide", "?"]],
   pointer_exited_unmuted: [["mute", "L+m", "toggleMuteKey"], ["mode", "L+b"], ["hide", "?"]],
+  hover_locked_bakable_interactable: [
+    ["unlock", "l"],
+    ["clone", "L+I;c"],
+    ["bake", "b"],
+    ["open", "o"],
+    ["focus", "f"]
+  ],
+  hover_locked_interactable: [["unlock", "l"], ["clone", "L+I;c"], ["open", "o"], ["focus", "f"]],
   holding_interactable: [["pull", "R"], ["stack", "_S"], ["movexz", "_q"], ["movey", "_e"]],
   hover_interactable: objectCommonTips.filter(x => x[0] !== "bake" && x[0] !== "ground"),
-  hover_bakable_interactable: objectCommonTips.filter(x => x[0] !== "ground"),
-  hover_groundable_interactable: objectCommonTips.filter(x => x[0] !== "bake"),
-  hover_bakable_groundable_interactable: objectCommonTips,
+  hover_bakable_interactable: objectCommonTips.filter(x => x[0] !== "reset"),
+  hover_resetable_interactable: objectCommonTips.filter(x => x[0] !== "bake"),
+  hover_bakable_resetable_interactable: objectCommonTips,
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   vox: [["edit", "~|@"], ...voxCommonTips],

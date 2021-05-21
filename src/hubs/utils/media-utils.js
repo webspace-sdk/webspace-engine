@@ -37,7 +37,8 @@ export const MEDIA_INTERACTION_TYPES = {
   SLIDE: 13,
   LIFT: 14,
   STACK: 15,
-  TOGGLE_LOCK: 16
+  TOGGLE_LOCK: 16,
+  RESET: 17
 };
 
 export const LOCKED_MEDIA_DISALLOWED_INTERACTIONS = [
@@ -48,7 +49,8 @@ export const LOCKED_MEDIA_DISALLOWED_INTERACTIONS = [
   MEDIA_INTERACTION_TYPES.EDIT,
   MEDIA_INTERACTION_TYPES.SLIDE,
   MEDIA_INTERACTION_TYPES.LIFT,
-  MEDIA_INTERACTION_TYPES.STACK
+  MEDIA_INTERACTION_TYPES.STACK,
+  MEDIA_INTERACTION_TYPES.RESET
 ];
 
 export const LOADING_EVENTS = ["model-loading", "image-loading", "text-loading", "pdf-loading"];
@@ -76,7 +78,7 @@ export const FLAT_MEDIA_VIEW_COMPONENTS = [
   "media-emoji"
 ];
 
-export const GROUNDABLE_MEDIA_VIEW_COMPONENTS = [
+export const RESETABLE_MEDIA_VIEW_COMPONENTS = [
   "gltf-model-plus",
   "media-vox",
   "media-image",

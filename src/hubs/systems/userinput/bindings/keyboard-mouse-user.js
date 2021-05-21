@@ -755,7 +755,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/naked+g" },
-      dest: { value: paths.actions.mediaDownAction },
+      dest: { value: paths.actions.mediaDownOrResetAction },
       xform: xforms.rising,
       priority: 1001
     },
@@ -844,7 +844,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: { value: "/var/naked+g" },
-      dest: { value: paths.actions.mediaDownAction },
+      dest: { value: paths.actions.mediaDownOrResetAction },
       xform: xforms.rising,
       priority: 1001
     },
