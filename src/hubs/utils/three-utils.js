@@ -497,8 +497,6 @@ export function expandByEntityObjectSpaceBoundingBox(bbox, el) {
 
   const object = el.object3D;
   object.updateMatrices();
-  const mat = new THREE.Matrix4();
-  mat.identity();
   expandByObjectSpaceBoundingBox(bbox, object);
   return bbox;
 }
