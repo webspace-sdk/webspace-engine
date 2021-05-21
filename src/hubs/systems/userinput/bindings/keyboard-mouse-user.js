@@ -177,7 +177,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
-        value: paths.device.keyboard.code("keyl")
+        value: paths.device.keyboard.code("keyp")
       },
       dest: {
         value: paths.actions.logDebugFrame
@@ -283,6 +283,21 @@ export const keyboardMouseUserBindings = addSetsToBindings({
         value: "/var/rising+t"
       },
       dest: { value: "/var/naked+t" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: { value: paths.device.keyboard.code("keyl") },
+      dest: { value: "/var/rising+l" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("alt"),
+        value: "/var/rising+l"
+      },
+      dest: { value: "/var/naked+l" },
       xform: xforms.copyIfFalse,
       priority: 1001
     },
@@ -774,6 +789,12 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 1001
     },
     {
+      src: { value: "/var/naked+l" },
+      dest: { value: paths.actions.mediaToggleLockAction },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
       src: { value: paths.device.mouse.wheel },
       dest: { value: paths.actions.cursor.right.mediaScroll },
       xform: xforms.scale(-0.3),
@@ -845,8 +866,13 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
-      src: { value: paths.device.keyboard.code("keyc") },
+      src: { value: "/var/naked+c" },
       dest: { value: paths.actions.mediaCloneAction },
+      xform: xforms.rising
+    },
+    {
+      src: { value: "/var/naked+l" },
+      dest: { value: paths.actions.mediaToggleLockAction },
       xform: xforms.rising
     }
   ],

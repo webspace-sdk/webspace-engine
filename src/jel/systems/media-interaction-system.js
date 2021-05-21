@@ -3,10 +3,12 @@ import {
   getMediaViewComponent,
   performAnimatedRemove,
   MEDIA_INTERACTION_TYPES,
+  LOCKED_MEDIA_DISALLOWED_INTERACTIONS,
   cloneMedia
 } from "../../hubs/utils/media-utils";
 import { GUIDE_PLANE_MODES } from "./helpers-system";
 import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
+import { canCloneOrSnapshot } from "../../hubs/utils/permissions-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { ensureOwnership, getNetworkedEntitySync, isSynchronized } from "../../jel/utils/ownership-utils";
 import { cursorIsVisible } from "../utils/dom-utils";
@@ -121,17 +123,23 @@ export class MediaInteractionSystem {
         SYSTEMS.directorSystem.restart();
       }
     } else if (this.userinput.get(paths.actions.mediaSnapshotAction)) {
-      interactionType = MEDIA_INTERACTION_TYPES.SNAPSHOT;
+      if (canCloneOrSnapshot(hoverEl)) {
+        interactionType = MEDIA_INTERACTION_TYPES.SNAPSHOT;
+      }
     } else if (this.userinput.get(paths.actions.mediaRotateAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.ROTATE;
     } else if (this.userinput.get(paths.actions.mediaScaleAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.SCALE;
     } else if (this.userinput.get(paths.actions.mediaCloneAction)) {
-      interactionType = MEDIA_INTERACTION_TYPES.CLONE;
+      if (canCloneOrSnapshot(hoverEl)) {
+        interactionType = MEDIA_INTERACTION_TYPES.CLONE;
+      }
     } else if (this.userinput.get(paths.actions.mediaEditAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.EDIT;
     } else if (this.userinput.get(paths.actions.mediaOpenAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.OPEN;
+    } else if (this.userinput.get(paths.actions.mediaToggleLockAction)) {
+      interactionType = MEDIA_INTERACTION_TYPES.TOGGLE_LOCK;
     } else if (this.userinput.get(paths.actions.mediaRemoveAction)) {
       if (this.lastRemoveActionTarget !== hoverEl) {
         this.lastRemoveActionTarget = hoverEl;
@@ -144,8 +152,10 @@ export class MediaInteractionSystem {
 
     if (interactionType !== null) {
       const component = getMediaViewComponent(hoverEl);
+      const isLocked = !!hoverEl.components["media-loader"].data.locked;
+      const lockAllows = !isLocked || !LOCKED_MEDIA_DISALLOWED_INTERACTIONS.includes(interactionType);
 
-      if (component) {
+      if (component && lockAllows) {
         if (interactionType === MEDIA_INTERACTION_TYPES.CLONE) {
           const { entity } = cloneMedia(component.el, "#interactable-media");
 
@@ -172,6 +182,8 @@ export class MediaInteractionSystem {
             this.scaleSystem.startScaling(targetEl.object3D, this.rightHand.object3D);
           } else if (interactionType === MEDIA_INTERACTION_TYPES.REMOVE) {
             performAnimatedRemove(targetEl);
+          } else if (interactionType === MEDIA_INTERACTION_TYPES.TOGGLE_LOCK) {
+            hoverEl.setAttribute("media-loader", { locked: !isLocked });
           } else {
             component.handleMediaInteraction(interactionType);
           }

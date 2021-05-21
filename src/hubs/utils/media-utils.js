@@ -36,8 +36,20 @@ export const MEDIA_INTERACTION_TYPES = {
   OPEN: 12,
   SLIDE: 13,
   LIFT: 14,
-  STACK: 15
+  STACK: 15,
+  TOGGLE_LOCK: 16
 };
+
+export const LOCKED_MEDIA_DISALLOWED_INTERACTIONS = [
+  MEDIA_INTERACTION_TYPES.ROTATE,
+  MEDIA_INTERACTION_TYPES.SCALE,
+  MEDIA_INTERACTION_TYPES.TRANSFORM_RELEASE,
+  MEDIA_INTERACTION_TYPES.REMOVE,
+  MEDIA_INTERACTION_TYPES.EDIT,
+  MEDIA_INTERACTION_TYPES.SLIDE,
+  MEDIA_INTERACTION_TYPES.LIFT,
+  MEDIA_INTERACTION_TYPES.STACK
+];
 
 export const LOADING_EVENTS = ["model-loading", "image-loading", "text-loading", "pdf-loading"];
 export const LOADED_EVENTS = ["model-loaded", "image-loaded", "text-loaded", "pdf-loaded"];
@@ -899,6 +911,10 @@ export function performAnimatedRemove(el, callback) {
       if (callback) callback();
     }, 500);
   });
+}
+
+export function isLockedMedia(el) {
+  return !!(el && el.components["media-loader"] && el.components["media-loader"].data.locked);
 }
 
 export const spawnMediaInfrontOfPlayer = (

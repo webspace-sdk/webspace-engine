@@ -2,36 +2,26 @@ import { getCreator, getNetworkedTemplate } from "../../jel/utils/ownership-util
 
 // Brief overview of client authorization can be found in the wiki:
 // https://github.com/mozilla/hubs/wiki/Hubs-authorization
-export function showHoverEffect(el) {
-  const isFrozen = el.sceneEl.is("frozen");
-  const isSpawner = !!el.components["super-spawner"];
-  const isMedia = !!el.components["media-loader"];
-  const isEmojiSpawner = isSpawner && el.components["super-spawner"].data.template === "#interactable-emoji";
-  const isEmoji = !!el.components.emoji;
-  const canMove =
-    isEmoji || isEmojiSpawner
-      ? window.APP.hubChannel.can("spawn_emoji")
-      : window.APP.hubChannel.can("spawn_and_move_media");
-  return (isSpawner || isFrozen || isMedia) && canMove;
+export function canMove(el) {
+  const isHoldableButton = el.components.tags && el.components.tags.data.holdableButton;
+  const mediaLoader = el.components["media-loader"];
+  const isMedia = !!mediaLoader;
+  const canMove = window.APP.hubChannel.can("spawn_and_move_media");
+  const isLocked = mediaLoader && mediaLoader.data.locked;
+  return isHoldableButton || (isMedia && canMove && !isLocked);
 }
 
-export function canMove(entity) {
-  const networkedTemplate = entity && getNetworkedTemplate(entity);
-  const isCamera = networkedTemplate === "#interactable-camera";
-  const isPen = networkedTemplate === "#interactable-pen";
-  const spawnerTemplate =
-    entity && entity.components["super-spawner"] && entity.components["super-spawner"].data.template;
-  const isEmojiSpawner = spawnerTemplate === "#interactable-emoji";
-  const isEmoji = !!entity.components.emoji;
-  const isHoldableButton = entity.components.tags && entity.components.tags.data.holdableButton;
-  return (
-    isHoldableButton ||
-    ((isEmoji || isEmojiSpawner
-      ? window.APP.hubChannel.can("spawn_emoji")
-      : window.APP.hubChannel.can("spawn_and_move_media")) &&
-      (!isCamera || window.APP.hubChannel.can("spawn_camera")) &&
-      (!isPen || window.APP.hubChannel.can("spawn_drawing")))
-  );
+export function canCloneOrSnapshot(el) {
+  const isHoldableButton = el.components.tags && el.components.tags.data.holdableButton;
+  const mediaLoader = el.components["media-loader"];
+  const isMedia = !!mediaLoader;
+  const canSpawn = window.APP.hubChannel.can("spawn_and_move_media");
+  return isHoldableButton || (isMedia && canSpawn);
+}
+
+export function showHoverEffect(el) {
+  const isMedia = !!el.components["media-loader"];
+  return isMedia && canMove(el);
 }
 
 function indexForComponent(component, schema) {
@@ -93,8 +83,6 @@ function authorizeEntityManipulation(entityMetadata, sender, senderPermissions) 
     return isCreator || senderPermissions.spawn_camera;
   } else if (template.endsWith("-pen") || template.endsWith("-drawing")) {
     return isCreator || senderPermissions.spawn_drawing;
-  } else if (template.endsWith("-emoji")) {
-    return isCreator || senderPermissions.spawn_emoji;
   } else {
     return false;
   }

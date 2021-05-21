@@ -1,4 +1,4 @@
-import { computeObjectAABB, getBox, getScaleCoefficient } from "../utils/auto-box-collider";
+import { getBox, getScaleCoefficient } from "../utils/auto-box-collider";
 import { ensureOwnership, getNetworkedEntity, isSynchronized } from "../../jel/utils/ownership-utils";
 import { ParticleEmitter } from "lib-hubs/packages/three-particle-emitter/lib/esm/index";
 import loadingParticleSrc from "!!url-loader!../../assets/jel/images/loading-particle.png";
@@ -26,7 +26,7 @@ import { xyzRangeForSize, shiftForSize, MAX_SIZE as MAX_VOX_SIZE, VoxChunk } fro
 import { voxColorForRGBT } from "ot-vox";
 
 import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
-import { setMatrixWorld, disposeExistingMesh, disposeNode } from "../utils/three-utils";
+import { disposeExistingMesh, disposeNode } from "../utils/three-utils";
 
 import { SHAPE } from "three-ammo/constants";
 
@@ -51,7 +51,6 @@ AFRAME.registerComponent("media-loader", {
     initialContents: { type: "string" },
     version: { type: "number", default: 1 }, // Used to force a re-resolution
     fitToBox: { default: false },
-    moveTheParentNotTheMesh: { default: false },
     resolve: { default: true },
     contentType: { default: null },
     contentSubtype: { default: null },
@@ -64,7 +63,8 @@ AFRAME.registerComponent("media-loader", {
       default: {},
       parse: v => (typeof v === "object" ? v : JSON.parse(v)),
       stringify: JSON.stringify
-    }
+    },
+    locked: { default: false }
   },
 
   init() {
@@ -93,47 +93,19 @@ AFRAME.registerComponent("media-loader", {
 
   updateScale: (function() {
     const center = new THREE.Vector3();
-    const originalMeshMatrix = new THREE.Matrix4();
-    const desiredObjectMatrix = new THREE.Matrix4();
-    const position = new THREE.Vector3();
-    const quaternion = new THREE.Quaternion();
-    const scale = new THREE.Vector3();
-    const box = new THREE.Box3();
-    return function(fitToBox, moveTheParentNotTheMesh) {
+    return function(fitToBox) {
       this.el.object3D.updateMatrices();
       const mesh = this.el.getObject3D("mesh");
       if (!mesh) return;
       mesh.updateMatrices();
-      if (moveTheParentNotTheMesh) {
-        if (fitToBox) {
-          console.warn(
-            "Unexpected combination of inputs. Can fit the mesh to a box OR move the parent to the mesh, but did not expect to do both.",
-            this.el
-          );
-        }
-        // Keep the mesh exactly where it is, but move the parent transform such that it aligns with the center of the mesh's bounding box.
-        originalMeshMatrix.copy(mesh.matrixWorld);
-        computeObjectAABB(mesh, box);
-        center.addVectors(box.min, box.max).multiplyScalar(0.5);
-        this.el.object3D.matrixWorld.decompose(position, quaternion, scale);
-        desiredObjectMatrix.compose(
-          center,
-          quaternion,
-          scale
-        );
-        setMatrixWorld(this.el.object3D, desiredObjectMatrix);
-        mesh.updateMatrices();
-        setMatrixWorld(mesh, originalMeshMatrix);
-      } else {
-        // Move the mesh such that the center of its bounding box is in the same position as the parent matrix position
-        const box = getBox(this.el, mesh);
-        const scaleCoefficient = fitToBox ? getScaleCoefficient(0.5, box) : 1;
-        const { min, max } = box;
-        center.addVectors(min, max).multiplyScalar(0.5 * scaleCoefficient);
-        mesh.scale.multiplyScalar(scaleCoefficient);
-        mesh.position.sub(center);
-        mesh.matrixNeedsUpdate = true;
-      }
+      // Move the mesh such that the center of its bounding box is in the same position as the parent matrix position
+      const box = getBox(this.el, mesh);
+      const scaleCoefficient = fitToBox ? getScaleCoefficient(0.5, box) : 1;
+      const { min, max } = box;
+      center.addVectors(min, max).multiplyScalar(0.5 * scaleCoefficient);
+      mesh.scale.multiplyScalar(scaleCoefficient);
+      mesh.position.sub(center);
+      mesh.matrixNeedsUpdate = true;
     };
   })(),
 
@@ -339,7 +311,7 @@ AFRAME.registerComponent("media-loader", {
     if (this.shouldShowLoader() && this.data.animate) {
       if (!this.animating) {
         this.animating = true;
-        if (shouldUpdateScale) this.updateScale(this.data.fitToBox, this.data.moveTheParentNotTheMesh);
+        if (shouldUpdateScale) this.updateScale(this.data.fitToBox);
         const mesh = this.el.getObject3D("mesh");
 
         if (mesh) {
@@ -351,7 +323,7 @@ AFRAME.registerComponent("media-loader", {
         }
       }
     } else {
-      if (shouldUpdateScale) this.updateScale(this.data.fitToBox, this.data.moveTheParentNotTheMesh);
+      if (shouldUpdateScale) this.updateScale(this.data.fitToBox);
       finish();
     }
   },

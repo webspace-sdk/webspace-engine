@@ -2,6 +2,7 @@ import { paths } from "../systems/userinput/paths";
 import { sets } from "../systems/userinput/sets";
 import { almostEqualVec3, getLastWorldPosition } from "../utils/three-utils";
 import { RENDER_ORDER } from "../constants";
+import { isLockedMedia } from "../utils/media-utils";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
 
 const HIGHLIGHT = new THREE.Color(0, 0xec / 255, 0xff / 255);
@@ -96,13 +97,16 @@ AFRAME.registerComponent("cursor-controller", {
       const raycastForTransform =
         transformObjectSystem.transforming && transformObjectSystem.shouldCursorRaycastDuringTransform();
 
+      let intersectionTarget;
+
       if (!isGrabbing || raycastForTransform) {
         rawIntersections.length = 0;
         this.raycaster.ray.origin = cursorPose.position;
         this.raycaster.ray.direction = cursorPose.direction;
         this.raycaster.intersectObjects(SYSTEMS.cursorTargettingSystem.targets, true, rawIntersections);
         this.intersection = rawIntersections[0];
-        this.intersectionIsValid = !!interaction.updateCursorIntersection(this.intersection, left);
+        intersectionTarget = interaction.updateCursorIntersection(this.intersection, left);
+        this.intersectionIsValid = !!intersectionTarget;
 
         const defaultDistance =
           SYSTEMS.cameraSystem.defaultCursorDistanceToInspectedObject() || this.data.defaultDistance * playerScale;
@@ -143,7 +147,7 @@ AFRAME.registerComponent("cursor-controller", {
           (!left && transformObjectSystem.hand.el.id === "player-right-controller"))
       ) {
         this.color.copy(TRANSFORM_COLOR_1).lerpHSL(TRANSFORM_COLOR_2, 0.5 + 0.5 * Math.sin(t / 1000.0));
-      } else if (this.intersectionIsValid || isGrabbing) {
+      } else if ((this.intersectionIsValid || isGrabbing) && !isLockedMedia(intersectionTarget)) {
         this.color.copy(HIGHLIGHT);
       } else {
         this.color.copy(NO_HIGHLIGHT);

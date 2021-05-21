@@ -1,6 +1,6 @@
 import { paths } from "../../hubs/systems/userinput/paths";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "../../jel/utils/dom-utils";
-import { addMedia } from "../../hubs/utils/media-utils";
+import { addMedia, isLockedMedia } from "../../hubs/utils/media-utils";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { getWorldColor } from "../objects/terrain";
 import { EventTarget } from "event-target-shim";
@@ -199,7 +199,7 @@ export class BuilderSystem extends EventTarget {
     this.transformSystem = this.transformSystem || this.sceneEl.systems["transform-selected-object"];
     const isGrabTransforming = this.transformSystem.isGrabTransforming();
 
-    const { userinput } = this;
+    const { userinput, sceneEl } = this;
 
     if (!this.playerCamera) {
       this.playerCamera = document.getElementById("viewing-camera").getObject3D("camera");
@@ -282,10 +282,16 @@ export class BuilderSystem extends EventTarget {
         !isGrabTransforming;
     }
 
+    const interaction = sceneEl.systems.interaction;
     const intersection = cursor && cursor.intersection;
+    const isLocked = intersection && isLockedMedia(interaction.getRightRemoteHoverTarget());
 
-    if (!isGrabTransforming) {
+    if (!isGrabTransforming && !isLocked) {
       this.performBrushStep(brushDown, intersection);
+    }
+
+    if (isLocked && this.pendingChunk) {
+      this.cancelPending();
     }
 
     this.undoOpOnNextTick = UNDO_OPS.NONE;

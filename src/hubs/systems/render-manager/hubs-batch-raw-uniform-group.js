@@ -1,5 +1,6 @@
 import { BatchRawUniformGroup } from "@mozillareality/three-batch-manager";
 import { CAMERA_MODE_INSPECT, CAMERA_LAYER_BATCH_INSPECT } from "../camera-system";
+import { isLockedMedia } from "../../utils/media-utils";
 
 const tempVec3 = new Array(3);
 const tempVec4 = new Array(4);
@@ -94,6 +95,7 @@ export default class HubsBatchRawUniformGroup extends BatchRawUniformGroup {
           const ms3 = obj.matrixWorld.elements[6];
           const worldScale = Math.sqrt(ms1 * ms1 + ms2 * ms2 + ms3 * ms3);
           const scaledRadius = worldScale * hoverableVisuals.geometryRadius;
+          const isLocked = isLockedMedia(el);
 
           let highlightInteractorOne, highlightInteractorTwo;
           if (interaction.state.leftRemote.hovered === el && !interaction.state.leftRemote.held) {
@@ -114,8 +116,8 @@ export default class HubsBatchRawUniformGroup extends BatchRawUniformGroup {
 
           tempVec4[0] = worldY - scaledRadius;
           tempVec4[1] = worldY + scaledRadius;
-          tempVec4[2] = !!highlightInteractorOne && !this.isTouchscreen;
-          tempVec4[3] = !!highlightInteractorTwo && !this.isTouchscreen;
+          tempVec4[2] = !!highlightInteractorOne && !this.isTouchscreen && !isLocked;
+          tempVec4[3] = !!highlightInteractorTwo && !this.isTouchscreen && !isLocked;
           this.hubs_sweepParams.set(tempVec4, instanceId * 4);
         }
       }

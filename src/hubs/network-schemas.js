@@ -194,6 +194,10 @@ function registerNetworkSchemas() {
       {
         component: "media-loader",
         property: "createdAt"
+      },
+      {
+        component: "media-loader",
+        property: "locked"
       }
     ],
     nonAuthorizedComponents: [

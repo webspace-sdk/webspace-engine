@@ -1,9 +1,9 @@
 import { paths } from "./userinput/paths";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
-import { canMove } from "../utils/permissions-utils";
+import { canMove, canCloneOrSnapshot } from "../utils/permissions-utils";
 import { isTagged } from "../components/tags";
 import { isSynchronized, isMine } from "../../jel/utils/ownership-utils";
-import { cloneMedia } from "../utils/media-utils";
+import { cloneMedia, isLockedMedia } from "../utils/media-utils";
 import { setMatrixWorld } from "../utils/three-utils";
 
 function findHandCollisionTargetForHand(bodyHelper) {
@@ -256,11 +256,13 @@ AFRAME.registerSystem("interaction", {
       );
       if (state.hovered && SYSTEMS.cameraSystem.cameraViewAllowsManipulation()) {
         const entity = state.hovered;
-        if (isTagged(entity, "isHoldable") && userinput.get(options.grabPath) && canMove(entity)) {
+        const shouldDuplicate = userinput.get(controlPath);
+        const allowed = (shouldDuplicate && canCloneOrSnapshot(entity)) || (!shouldDuplicate && canMove(entity));
+
+        if (isTagged(entity, "isHoldable") && userinput.get(options.grabPath) && allowed) {
           entity.object3D.updateMatrices();
 
           let entityToGrab = entity;
-          const shouldDuplicate = userinput.get(controlPath);
 
           if (shouldDuplicate) {
             entityToGrab = cloneMedia(entity, "#interactable-media", null, true, false, null, false).entity;
@@ -273,7 +275,9 @@ AFRAME.registerSystem("interaction", {
               { once: true }
             );
           } else {
-            state.held = entityToGrab;
+            if (!isLockedMedia(entityToGrab)) {
+              state.held = entityToGrab;
+            }
           }
         }
       }
