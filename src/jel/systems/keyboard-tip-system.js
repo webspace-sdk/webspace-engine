@@ -133,8 +133,18 @@ export class KeyboardTipSystem {
               } else {
                 const component = getMediaViewComponent(hovered);
 
-                const isBakable = BAKABLE_MEDIA_VIEW_COMPONENTS.includes(component?.name);
-                showTips = isBakable ? "hover_locked_bakable_interactable" : "hover_locked_interactable";
+                if (components["media-video"]) {
+                  showTips = components["media-video"].data.videoPaused
+                    ? "locked_video_paused"
+                    : "locked_video_playing";
+                } else if (components["media-pdf"]) {
+                  showTips = "locked_pdf";
+                } else if (components["media-vox"]) {
+                  showTips = "locked_vox";
+                } else {
+                  const isBakable = BAKABLE_MEDIA_VIEW_COMPONENTS.includes(component?.name);
+                  showTips = isBakable ? "hover_locked_bakable_interactable" : "hover_locked_interactable";
+                }
               }
             }
           }

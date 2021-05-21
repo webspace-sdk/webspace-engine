@@ -201,9 +201,17 @@ const objectCommonTips = [
   ["remove", "x x"]
 ];
 
+const lockedObjectCommonTips = [["unlock", "l"], ["clone", "L+I;c"], ["bake", "b"], ["open", "o"], ["focus", "f"]];
+
 // Vox label for clone is 'instance', to clarify it vs bake (which makes a fork.)
 const voxCommonTips = [
   ...objectCommonTips
+    .map(t => (t[0] === "clone" ? ["instance", t[1]] : t))
+    .map(t => (t[0] === "bake" ? ["duplicate", t[1]] : t))
+];
+
+const lockedVoxCommonTips = [
+  ...lockedObjectCommonTips
     .map(t => (t[0] === "clone" ? ["instance", t[1]] : t))
     .map(t => (t[0] === "bake" ? ["duplicate", t[1]] : t))
 ];
@@ -260,14 +268,11 @@ const TIP_DATA = {
   ],
   pointer_exited_muted: [["unmute", "L+m", "toggleMuteKey"], ["mode", "L+b"], ["hide", "?"]],
   pointer_exited_unmuted: [["mute", "L+m", "toggleMuteKey"], ["mode", "L+b"], ["hide", "?"]],
-  hover_locked_bakable_interactable: [
-    ["unlock", "l"],
-    ["clone", "L+I;c"],
-    ["bake", "b"],
-    ["open", "o"],
-    ["focus", "f"]
-  ],
-  hover_locked_interactable: [["unlock", "l"], ["clone", "L+I;c"], ["open", "o"], ["focus", "f"]],
+  hover_locked_bakable_interactable: [...lockedObjectCommonTips],
+  hover_locked_interactable: lockedObjectCommonTips.filter(x => x[0] !== "bake"),
+  locked_video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...lockedObjectCommonTips],
+  locked_video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...lockedObjectCommonTips],
+  locked_pdf: [["next", "L+S"], ["page", "q\\e"], ...lockedObjectCommonTips],
   holding_interactable: [["pull", "R"], ["stack", "_S"], ["movexz", "_q"], ["movey", "_e"]],
   hover_interactable: objectCommonTips.filter(x => x[0] !== "bake" && x[0] !== "ground"),
   hover_bakable_interactable: objectCommonTips.filter(x => x[0] !== "reset"),
@@ -275,6 +280,7 @@ const TIP_DATA = {
   hover_bakable_resetable_interactable: objectCommonTips,
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
+  locked_vox: [...lockedVoxCommonTips],
   vox: [["edit", "~|@"], ...voxCommonTips],
   vox_pick: [["edit", "~|@"], ["pick", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
   vox_fill: [["edit", "~|@"], ["fill", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
