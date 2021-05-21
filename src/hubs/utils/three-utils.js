@@ -2,7 +2,6 @@ import { MeshBVH } from "three-mesh-bvh";
 
 const tempVector3 = new THREE.Vector3();
 const tempQuaternion = new THREE.Quaternion();
-const tempMatrix = new THREE.Matrix4();
 
 export function getLastWorldPosition(src, target) {
   src.updateMatrices();
@@ -453,22 +452,37 @@ export function generateMeshBVH(object3D, force = true) {
   });
 }
 
-const expandByObjectSpaceBoundingBox = (bbox, object) => {
+const _box = new THREE.Box3();
+
+const expandByObjectSpaceBoundingBox = (bbox, object, mat = null) => {
   const geometry = object.geometry;
+
+  object.updateMatrices();
+
+  const newMat = new THREE.Matrix4();
+
+  if (mat === null) {
+    newMat.identity();
+  } else {
+    newMat.multiplyMatrices(mat, object.matrix);
+  }
 
   if (geometry !== undefined) {
     if (geometry.boundingBox === null) {
       geometry.computeBoundingBox();
     }
 
-    bbox.expandByPoint(geometry.boundingBox.min);
-    bbox.expandByPoint(geometry.boundingBox.max);
+    _box.copy(geometry.boundingBox);
+    _box.applyMatrix4(newMat);
+
+    bbox.expandByPoint(_box.min);
+    bbox.expandByPoint(_box.max);
   }
 
   const children = object.children;
 
   for (let i = 0, l = children.length; i < l; i++) {
-    expandByObjectSpaceBoundingBox(bbox, children[i]);
+    expandByObjectSpaceBoundingBox(bbox, children[i], newMat);
   }
 };
 
@@ -483,8 +497,8 @@ export function expandByEntityObjectSpaceBoundingBox(bbox, el) {
 
   const object = el.object3D;
   object.updateMatrices();
-  bbox.expandByObject(object);
-  tempMatrix.getInverse(object.matrixWorld);
-
-  return bbox.applyMatrix4(tempMatrix);
+  const mat = new THREE.Matrix4();
+  mat.identity();
+  expandByObjectSpaceBoundingBox(bbox, object);
+  return bbox;
 }
