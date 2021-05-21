@@ -82,7 +82,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.scaleInScreenSpaceSystem = new ScaleInScreenSpaceSystem();
     this.audioSettingsSystem = new AudioSettingsSystem(this.el);
     this.enterVRButtonSystem = new EnterVRButtonSystem(this.el);
-    this.mediaInteractionSystem = new MediaInteractionSystem(this.el);
+    this.mediaInteractionSystem = new MediaInteractionSystem(this.el, this.soundEffectsSystem);
     this.animationMixerSystem = new AnimationMixerSystem();
     this.boneVisibilitySystem = new BoneVisibilitySystem();
     this.uvScrollSystem = new UVScrollSystem();

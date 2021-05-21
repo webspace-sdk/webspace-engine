@@ -4,7 +4,8 @@ import {
   performAnimatedRemove,
   MEDIA_INTERACTION_TYPES,
   LOCKED_MEDIA_DISALLOWED_INTERACTIONS,
-  cloneMedia
+  cloneMedia,
+  isLockedMedia
 } from "../../hubs/utils/media-utils";
 import { GUIDE_PLANE_MODES } from "./helpers-system";
 import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
@@ -14,18 +15,20 @@ import { ensureOwnership, getNetworkedEntitySync, isSynchronized } from "../../j
 import { cursorIsVisible } from "../utils/dom-utils";
 import { releaseEphemeralCursorLock, beginEphemeralCursorLock } from "../utils/dom-utils";
 import qsTruthy from "../../hubs/utils/qs_truthy";
+import { SOUND_LOCK, SOUND_UNLOCK } from "../../hubs/systems/sound-effects-system";
 
 const REMOVE_ACTION_MAX_DELAY_MS = 500.0;
 const isDirectorMode = qsTruthy("director");
 
 // System which manages keyboard-based media interactions
 export class MediaInteractionSystem {
-  constructor(scene) {
+  constructor(scene, soundEffectsSystem) {
     this.scene = scene;
     this.rightHand = null;
     this.transformSystem = null;
     this.scalingSystem = null;
     this.lastRemoveActionTarget = null;
+    this.soundEffectsSystem = soundEffectsSystem;
 
     waitForDOMContentLoaded().then(() => {
       this.rightHand = document.getElementById("player-right-controller");
@@ -152,7 +155,7 @@ export class MediaInteractionSystem {
 
     if (interactionType !== null) {
       const component = getMediaViewComponent(hoverEl);
-      const isLocked = !!hoverEl.components["media-loader"].data.locked;
+      const isLocked = isLockedMedia(hoverEl);
       const lockAllows = !isLocked || !LOCKED_MEDIA_DISALLOWED_INTERACTIONS.includes(interactionType);
 
       if (component && lockAllows) {
@@ -183,6 +186,7 @@ export class MediaInteractionSystem {
           } else if (interactionType === MEDIA_INTERACTION_TYPES.REMOVE) {
             performAnimatedRemove(targetEl);
           } else if (interactionType === MEDIA_INTERACTION_TYPES.TOGGLE_LOCK) {
+            this.soundEffectsSystem.playSoundOneShot(isLocked ? SOUND_UNLOCK : SOUND_LOCK);
             hoverEl.setAttribute("media-loader", { locked: !isLocked });
           } else {
             component.handleMediaInteraction(interactionType);

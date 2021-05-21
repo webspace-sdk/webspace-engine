@@ -79,6 +79,8 @@ export const SOUND_EMOJI_EQUIP = soundEnum++;
 export const SOUND_NOTIFICATION = soundEnum++;
 export const SOUND_OUTDOORS = soundEnum++;
 export const SOUND_WATER = soundEnum++;
+export const SOUND_LOCK = soundEnum++;
+export const SOUND_UNLOCK = soundEnum++;
 
 // Safari doesn't support the promise form of decodeAudioData, so we polyfill it.
 function decodeAudioData(audioContext, arrayBuffer) {
@@ -146,7 +148,9 @@ export class SoundEffectsSystem {
       [SOUND_EMOJI_EQUIP, URL_TICK_ALT],
       [SOUND_NOTIFICATION, URL_QUIET_POP],
       [SOUND_OUTDOORS, URL_OUTDOORS],
-      [SOUND_WATER, URL_WATER]
+      [SOUND_WATER, URL_WATER],
+      [SOUND_LOCK, URL_TACK],
+      [SOUND_UNLOCK, URL_TICK_ALT]
     ];
     const loading = new Map();
     const load = url => {
