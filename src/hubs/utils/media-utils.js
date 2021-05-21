@@ -250,7 +250,8 @@ export const addMedia = (
   linkedEl = null,
   networkId = null,
   skipLoader = false,
-  contentType = null
+  contentType = null,
+  locked = false
 ) => {
   const scene = AFRAME.scenes[0];
 
@@ -314,7 +315,8 @@ export const addMedia = (
     linkedEl,
     mediaLayer,
     mediaOptions,
-    contentType
+    contentType,
+    locked
   });
 
   if (contents && !isEmoji) {

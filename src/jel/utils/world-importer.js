@@ -195,6 +195,7 @@ export default class WorldImporter {
       let src = null;
       let contents = null;
       let resolve = false;
+      const type = el.getAttribute("type");
 
       if (tagName === "DIV" && fontFamily === "emoji") {
         // Voxmoji
@@ -331,6 +332,8 @@ export default class WorldImporter {
         null,
         null,
         id,
+        true,
+        type,
         true
       ).entity;
 

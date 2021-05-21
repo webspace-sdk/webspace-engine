@@ -130,7 +130,7 @@ export default class WorldExporter {
 
     if (el.components["media-vox"]) {
       exportEl = doc.createElement("embed");
-      exportEl.setAttribute("type", "model/vox-binary");
+      exportEl.setAttribute("type", "model/vnd.jel-vox");
     }
 
     if (el.components["gltf-model-plus"]) {
