@@ -1,4 +1,5 @@
 import { JelVoxBufferGeometry } from "../objects/JelVoxBufferGeometry";
+import jwtDecode from "jwt-decode";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { SHAPE, FIT } from "three-ammo/constants";
 import { setMatrixWorld, generateMeshBVH, disposeNode } from "../../hubs/utils/three-utils";
@@ -297,6 +298,59 @@ export class VoxSystem extends EventTarget {
     return syncs.has(voxId);
   }
 
+  async ensurePermissionsCached(voxId) {
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return;
+
+    const { cachedPermissions } = entry;
+    const exp = cachedPermissions && new Date(cachedPermissions.exp * 1000 - 60 * 1000);
+
+    const now = new Date();
+    const shouldFetch = !cachedPermissions || now > exp;
+    if (!shouldFetch) return;
+
+    const { permsToken } = await window.APP.accountChannel.fetchVoxPermsToken(voxId);
+    entry.cachedPermissions = jwtDecode(permsToken);
+  }
+
+  // Synchronous, returns null and fetches permissions if missing.
+  getPermissions(voxId) {
+    const { voxMap, syncs } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return null;
+
+    let perms;
+
+    // Use sync permissions if sync is available. Otherwise
+    // use a cache in this system.
+    if (this.hasSync(voxId)) {
+      const sync = syncs.get(voxId);
+      perms = sync.permissions;
+    }
+
+    if (!perms) {
+      perms = entry.cachedPermissions;
+
+      // If no permissions found here, ensure they're fetched for next round trip.
+      if (!perms) {
+        this.ensurePermissionsCached(voxId);
+      }
+    }
+
+    return perms;
+  }
+
+  canEdit(voxId) {
+    const perms = this.getPermissions(voxId);
+
+    if (perms) {
+      return perms.edit_vox;
+    } else {
+      return false;
+    }
+  }
+
   async getSync(voxId) {
     const { sceneEl, syncs } = this;
     if (syncs.has(voxId)) {
@@ -521,6 +575,7 @@ export class VoxSystem extends EventTarget {
       hasDirtyShapes: false,
       delayedReshapeTimeout: null,
       shapeOffset: [0, 0, 0],
+      cachedPermissions: null,
 
       // True if the vox's current mesh is a big HACD shape, and so should
       // not collide with environment, etc.

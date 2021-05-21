@@ -400,7 +400,14 @@ export class BuilderSystem extends EventTarget {
         this.lastHoverTime = now;
       }
 
-      if (hitVoxId && !readyToApplyPendingThisTick) {
+      let isDenied = this.targetVoxId && !SYSTEMS.voxSystem.canEdit(this.targetVoxId);
+
+      if (isDenied && this.pendingChunk) {
+        SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
+        this.pendingChunk = null;
+      }
+
+      if (hitVoxId && !readyToApplyPendingThisTick && !isDenied) {
         if (this.undoOpOnNextTick !== UNDO_OPS.NONE && this.targetVoxId !== null && this.targetVoxFrame !== null) {
           if (this.undoOpOnNextTick === UNDO_OPS.UNDO) {
             this.applyUndo(this.targetVoxId, this.targetVoxFrame);
@@ -415,7 +422,6 @@ export class BuilderSystem extends EventTarget {
           if (!skipDueToAnotherHover && !this.ignoreRestOfStroke) {
             // Hacky, presumes non-frozen meshes are instanced meshes.
             const isHittingFrozenMesh = typeof intersection.instanceId !== "number";
-
             // Freeze the mesh when we start hovering over a vox.
             if (this.targetVoxId !== hitVoxId) {
               if (this.targetVoxId) {
@@ -441,6 +447,8 @@ export class BuilderSystem extends EventTarget {
 
                 const elements = this.targetVoxInstanceMatrixWorld.elements;
                 this.targetVoxInstanceScale = tmpScale.set(elements[0], elements[1], elements[2]).length();
+
+                isDenied = !SYSTEMS.voxSystem.canEdit(this.targetVoxId);
 
                 brushStartCell.copy(cellToBrush);
                 brushEndCell.copy(cellToBrush);
@@ -538,7 +546,7 @@ export class BuilderSystem extends EventTarget {
         }
       }
 
-      if (this.targetVoxId && updatePending) {
+      if (this.targetVoxId && updatePending && !isDenied) {
         if (!this.pendingChunk) {
           // Create a new pending, pending will grow as needed.
           this.pendingChunk = new VoxChunk([1, 1, 1]);
@@ -547,7 +555,7 @@ export class BuilderSystem extends EventTarget {
         this.applyCurrentBrushToPendingChunk(this.targetVoxId);
       }
 
-      if (!brushDown) {
+      if (!brushDown && !isDenied) {
         if (this.hasInFlightOperation) return;
         this.ignoreRestOfStroke = false;
 

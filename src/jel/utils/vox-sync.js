@@ -126,6 +126,10 @@ export default class VoxSync extends EventTarget {
     }
   }
 
+  get permissions() {
+    return this._permissions;
+  }
+
   // Attempts to expire this sync, returns true if the sync was transitioned to being expired.
   tryExpire() {
     if (this.isExpired()) return false;
