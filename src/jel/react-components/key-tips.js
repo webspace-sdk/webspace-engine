@@ -201,6 +201,9 @@ const objectCommonTips = [
   ["remove", "x x"]
 ];
 
+// SHIELD YOUR EYES. This stuff is super ugly and not DRY, but some of the
+// ugliness is to avoid excessive react redraws by having pre-built DOM
+// elements for all the necessary combinations of keys to show.
 const lockedObjectCommonTips = [["unlock", "l"], ["clone", "L+I;c"], ["bake", "b"], ["open", "o"], ["focus", "f"]];
 
 // Vox label for clone is 'instance', to clarify it vs bake (which makes a fork.)
