@@ -477,19 +477,19 @@ AFRAME.registerSystem("transform-selected-object", {
     target.updateMatrices();
     normalObject.updateMatrices();
 
-    // v is the world space point of the bottom center of the bounding box
     offset.set(0, 0, 0);
     const isFlat = isFlatMedia(target);
 
     targetBoundingBox.getCenter(v);
 
     if (!isFlat) {
+      // v is the world space point of the bottom center of the bounding box
       v.y = targetBoundingBox.min.y;
-    }
 
-    // The offset for the stack should be the distance from the object's
-    // origin to the box face, in object space.
-    offset.sub(v);
+      // The offset for the stack should be the distance from the object's
+      // origin to the box face, in object space.
+      offset.sub(v);
+    }
 
     // Stack the current target at the stack point to the target point,
     // and orient it so its local Y axis is parallel to the normal.
