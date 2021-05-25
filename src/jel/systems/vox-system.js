@@ -1466,57 +1466,53 @@ export class VoxSystem extends EventTarget {
         voxMaterial.side = THREE.BackSide;
       }
 
-      try {
-        raycaster.ray.origin.copy(origin);
-        raycaster.ray.direction.y = up ? 1 : -1;
+      raycaster.ray.origin.copy(origin);
+      raycaster.ray.direction.y = up ? 1 : -1;
 
-        for (const { hasWalkableSources, walkableSources, sources, meshes, walkGeometry } of voxMap.values()) {
-          if (!hasWalkableSources) continue;
-          const voxMesh = meshes[0];
-          if (voxMesh === null) continue;
+      for (const entry of voxMap.values()) {
+        if (!entry.hasWalkableSources) continue;
+        const voxMesh = entry.meshes[0];
+        if (voxMesh === null) continue;
 
-          for (let instanceId = 0, l = sources.length; instanceId < l; instanceId++) {
-            const source = sources[instanceId];
-            if (source === null) continue;
-            if (!walkableSources[instanceId]) continue;
+        const { sources, walkableSources, walkGeometry } = entry;
 
-            // Bounding box check for origin X,Z since we are casting up/down
-            const bbox = this.getBoundingBoxForSource(source, true);
+        for (let instanceId = 0, l = sources.length; instanceId < l; instanceId++) {
+          const source = sources[instanceId];
+          if (source === null) continue;
+          if (!walkableSources[instanceId]) continue;
 
-            if (origin.x < bbox.min.x || origin.x > bbox.max.x || origin.z < bbox.min.z || origin.z > bbox.max.z)
-              continue;
+          // Bounding box check for origin X,Z since we are casting up/down
+          const bbox = this.getBoundingBoxForSource(source, true);
 
-            // Raycast once for each walkable source.
-            tmpMesh.geometry = walkGeometry;
-            tmpMesh.material = voxMaterial;
-            voxMesh.updateMatrices();
-            voxMesh.getMatrixAt(instanceId, instanceLocalMatrix);
-            instanceWorldMatrix.multiplyMatrices(voxMesh.matrixWorld, instanceLocalMatrix);
-            tmpMesh.matrixWorld = instanceWorldMatrix;
-            tmpMesh.raycast(raycaster, instanceIntersects);
+          if (origin.x < bbox.min.x || origin.x > bbox.max.x || origin.z < bbox.min.z || origin.z > bbox.max.z)
+            continue;
 
-            if (instanceIntersects.length === 0) continue;
+          // Raycast once for each walkable source.
+          tmpMesh.geometry = walkGeometry;
+          tmpMesh.material = voxMaterial;
+          voxMesh.updateMatrices();
+          voxMesh.getMatrixAt(instanceId, instanceLocalMatrix);
+          instanceWorldMatrix.multiplyMatrices(voxMesh.matrixWorld, instanceLocalMatrix);
+          tmpMesh.matrixWorld = instanceWorldMatrix;
+          tmpMesh.raycast(raycaster, instanceIntersects);
 
-            const newIntersection = instanceIntersects[0];
+          if (instanceIntersects.length === 0) continue;
 
-            if (intersection === null || intersection.distance > newIntersection.distance) {
-              intersection = newIntersection;
-              intersection.instanceId = instanceId;
-              intersection.object = voxMesh;
-            }
+          const newIntersection = instanceIntersects[0];
 
-            instanceIntersects.length = 0;
+          if (intersection === null || intersection.distance > newIntersection.distance) {
+            intersection = newIntersection;
+            intersection.instanceId = instanceId;
+            intersection.object = voxMesh;
           }
+
+          instanceIntersects.length = 0;
         }
-      } finally {
-        voxMaterial.side = side;
       }
+
+      voxMaterial.side = side;
 
       return intersection;
     };
   })();
-
-  hasWalkableSources() {
-    return true;
-  }
 }
