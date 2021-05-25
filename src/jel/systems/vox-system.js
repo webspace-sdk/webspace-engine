@@ -251,8 +251,10 @@ export class VoxSystem extends EventTarget {
         clearTimeout(delayedRemeshTimeout);
         entry.delayedRemeshTimeout = setTimeout(() => (entry.regenerateDirtyMeshesOnNextFrame = true), 1000);
 
-        // The desired quad size may alter the algorithm used to generate shapes, so reshape.
-        this.markShapesDirtyAfterDelay(voxId);
+        if (!entry.pendingVoxChunk) {
+          // The desired quad size may alter the algorithm used to generate shapes, so reshape.
+          this.markShapesDirtyAfterDelay(voxId);
+        }
       }
 
       // Generate shapes after desired quad size is computed, since shape algorithm is determined by that.
@@ -795,7 +797,10 @@ export class VoxSystem extends EventTarget {
         entry.shapeOffset[1] = dy;
         entry.shapeOffset[2] = dz;
 
-        generateMeshBVH(mesh, true);
+        if (!pendingVoxChunk) {
+          generateMeshBVH(mesh, true);
+        }
+
         regenerateSizeBox = true;
 
         dirtyFrameMeshes[i] = false;
