@@ -445,7 +445,7 @@ export class CharacterControllerSystem {
 
       if (intersections.length > 0) {
         // If there is a vox floor above us, consider two cases:
-        // - We're significantly far away from the nearest vox floor, or we hit
+        // - We're significantly far away from the nearest vox floor or terrain, or we hit
         //   a different vox. If so, jump up.
         //     - The former is for cases like an intra-vox jump where the upper
         //       level has multiple heights. Eg a multi-level roof.
@@ -456,7 +456,7 @@ export class CharacterControllerSystem {
         const aboveFloorHeight = intersection.point.y;
         const hitSameVox = intersection.object === voxFloorObj && intersection.instanceId === voxFloorObjInstanceId;
 
-        if (voxFloorY > 0 && (Math.abs(voxFloorY - end.y) > 1.0 || !hitSameVox)) {
+        if (voxFloorY > 0 && (Math.abs(Math.max(terrainY, voxFloorY) - end.y) > 1.0 || !hitSameVox)) {
           voxFloorY = aboveFloorHeight;
         } else if (voxFloorY < 0) {
           // Above terrain not a vox.
