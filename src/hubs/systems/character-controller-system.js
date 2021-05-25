@@ -112,7 +112,7 @@ export class CharacterControllerSystem {
       deltaFromHeadToTargetForHead.copy(targetForHead).sub(head);
       targetForRig.copy(rig).add(deltaFromHeadToTargetForHead);
 
-      this.findPositionOnHeightMap(targetForRig, this.avatarRig.object3D.position, true);
+      this.findGroundedPosition(targetForRig, this.avatarRig.object3D.position, true);
 
       this.avatarRig.object3D.matrixNeedsUpdate = true;
 
@@ -158,7 +158,7 @@ export class CharacterControllerSystem {
     const displacementToDesiredPOV = new THREE.Vector3();
 
     const desiredPOVPosition = new THREE.Vector3();
-    const heightMapSnappedPOVPosition = new THREE.Vector3();
+    const groundSnappedPOVPosition = new THREE.Vector3();
     const v = new THREE.Vector3();
 
     return function tick(t, dt) {
@@ -288,35 +288,28 @@ export class CharacterControllerSystem {
             .multiply(snapRotatedPOV);
         }
 
-        const shouldResnapToHeightMap =
+        const shouldResnapToGround =
           (didStopFlying || shouldSnapDueToLanding || triedToMove) && this.jumpYVelocity === null;
 
-        let squareDistHeightMapCorrection = 0;
+        let squareDistGroundCorrection = 0;
 
-        if (shouldResnapToHeightMap) {
-          this.findPOVPositionAboveHeightMap(
-            desiredPOVPosition.setFromMatrixPosition(newPOV),
-            heightMapSnappedPOVPosition
-          );
+        if (shouldResnapToGround) {
+          this.findPOVPositionAboveGround(desiredPOVPosition.setFromMatrixPosition(newPOV), groundSnappedPOVPosition);
 
-          squareDistHeightMapCorrection = desiredPOVPosition.distanceToSquared(heightMapSnappedPOVPosition);
+          squareDistGroundCorrection = desiredPOVPosition.distanceToSquared(groundSnappedPOVPosition);
 
-          if (this.fly && this.shouldLandWhenPossible && squareDistHeightMapCorrection < 0.5) {
+          if (this.fly && this.shouldLandWhenPossible && squareDistGroundCorrection < 0.5) {
             this.shouldLandWhenPossible = false;
             this.fly = false;
-            newPOV.setPosition(heightMapSnappedPOVPosition);
+            newPOV.setPosition(groundSnappedPOVPosition);
           } else if (!this.fly) {
-            newPOV.setPosition(heightMapSnappedPOVPosition);
+            newPOV.setPosition(groundSnappedPOVPosition);
           }
         }
 
         if (triedToMove) {
-          if (
-            this.fly &&
-            this.shouldLandWhenPossible &&
-            (shouldResnapToHeightMap && squareDistHeightMapCorrection < 3)
-          ) {
-            newPOV.setPosition(heightMapSnappedPOVPosition);
+          if (this.fly && this.shouldLandWhenPossible && (shouldResnapToGround && squareDistGroundCorrection < 3)) {
+            newPOV.setPosition(groundSnappedPOVPosition);
             this.shouldLandWhenPossible = false;
             this.fly = false;
           }
@@ -349,9 +342,9 @@ export class CharacterControllerSystem {
       }
 
       if (this.fly || this.jumpYVelocity !== null) {
-        this.findPOVPositionAboveHeightMap(
+        this.findPOVPositionAboveGround(
           desiredPOVPosition.setFromMatrixPosition(newPOV),
-          heightMapSnappedPOVPosition,
+          groundSnappedPOVPosition,
           true
         );
       }
@@ -361,17 +354,17 @@ export class CharacterControllerSystem {
         this.jumpYVelocity += JUMP_GRAVITY * (dt / 1000.0);
         const newY = newPOV.elements[13] + dy;
 
-        if (newY >= heightMapSnappedPOVPosition.y) {
+        if (newY >= groundSnappedPOVPosition.y) {
           newPOV.elements[13] = newY;
         } else {
-          newPOV.elements[13] = heightMapSnappedPOVPosition.y;
+          newPOV.elements[13] = groundSnappedPOVPosition.y;
           this.jumpYVelocity = null;
         }
       }
 
       if (this.fly) {
-        // Clamp y when flying to be above heightmap and below high in the sky
-        newPOV.elements[13] = Math.max(heightMapSnappedPOVPosition.y, Math.min(CHARACTER_MAX_Y, newPOV.elements[13]));
+        // Clamp y when flying to be above ground and below high in the sky
+        newPOV.elements[13] = Math.max(groundSnappedPOVPosition.y, Math.min(CHARACTER_MAX_Y, newPOV.elements[13]));
       }
 
       childMatch(this.avatarRig.object3D, this.avatarPOV.object3D, newPOV);
@@ -385,23 +378,23 @@ export class CharacterControllerSystem {
     };
   })();
 
-  findPOVPositionAboveHeightMap = (function() {
+  findPOVPositionAboveGround = (function() {
     const desiredFeetPosition = new THREE.Vector3();
     // TODO: Here we assume the player is standing straight up, but in VR it is often the case
     // that you want to lean over the edge of a balcony/table that does not have nav mesh below.
     // We should find way to allow leaning over the edge of a balcony and maybe disallow putting
     // your head through a wall.
-    return function findPOVPositionAboveHeightMap(desiredPOVPosition, outPOVPosition, shouldSnapImmediately) {
+    return function findPOVPositionAboveGround(desiredPOVPosition, outPOVPosition, shouldSnapImmediately) {
       const playerHeight = getCurrentPlayerHeight(true);
       desiredFeetPosition.copy(desiredPOVPosition);
       desiredFeetPosition.y -= playerHeight;
-      this.findPositionOnHeightMap(desiredFeetPosition, outPOVPosition, shouldSnapImmediately);
+      this.findGroundedPosition(desiredFeetPosition, outPOVPosition, shouldSnapImmediately);
       outPOVPosition.y += playerHeight;
       return outPOVPosition;
     };
   })();
 
-  findPositionOnHeightMap = (function() {
+  findGroundedPosition = (function() {
     const origin = new THREE.Vector3();
 
     return function(end, outPos, shouldSnapImmediately = false) {
