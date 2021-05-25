@@ -404,44 +404,48 @@ export class CharacterControllerSystem {
 
   findPositionOnHeightMap(end, outPos, shouldSnapImmediately = false) {
     const { terrainSystem } = this;
+    const terrainY = terrainSystem.getTerrainHeightAtWorldCoord(end.x, end.z);
+
     const raycaster = new THREE.Raycaster();
     raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
     raycaster.near = 0.01;
     raycaster.far = 40;
     const targets = SYSTEMS.voxSystem.getTargettableMeshes();
-    const avatarRig = document.getElementById("avatar-rig");
-    const pos = new THREE.Vector3();
-    avatarRig.object3D.getWorldPosition(pos);
-    raycaster.ray.origin.copy(pos);
-    raycaster.ray.origin.y += 0.25;
-    raycaster.ray.direction.set(0, -1, 0);
+    raycaster.ray.origin.copy(end);
+    raycaster.ray.origin.y += 0.05;
     const intersections = [];
-    raycaster.intersectObjects(targets, true, intersections);
 
-    let newY = terrainSystem.getTerrainHeightAtWorldCoord(end.x, end.z);
+    let voxFloorY = -Infinity;
+
+    raycaster.ray.direction.set(0, -1, 0);
+    raycaster.intersectObjects(targets, true, intersections);
 
     if (intersections.length > 0) {
-      newY = Math.max(newY, intersections[0].point.y);
+      voxFloorY = intersections[0].point.y;
     }
-    intersections.length = 0;
+
+    raycaster.ray.direction.set(0, 1, 0);
+    raycaster.ray.origin.y = Math.max(voxFloorY, terrainY) + 0.01;
 
     const { side } = voxMaterial;
-    raycaster.ray.direction.set(0, 1, 0);
-    raycaster.intersectObjects(targets, true, intersections);
-
-    const ceilingHeight = intersections.length > 0 ? intersections[0].point.y : Infinity;
     voxMaterial.side = THREE.BackSide;
+    intersections.length = 0;
     raycaster.intersectObjects(targets, true, intersections);
     voxMaterial.side = side;
 
     if (intersections.length > 0) {
       const aboveFloorHeight = intersections[0].point.y;
+
+      intersections.length = 0;
+      raycaster.intersectObjects(targets, true, intersections);
+      const ceilingHeight = intersections.length > 0 ? intersections[0].point.y : Infinity;
+
       if (ceilingHeight > aboveFloorHeight) {
-        newY = Math.max(newY, aboveFloorHeight);
+        voxFloorY = aboveFloorHeight;
       }
     }
 
-    console.log(newY);
+    const newY = Math.max(terrainY, voxFloorY);
 
     // Always allow x, z movement, smooth y
     outPos.x = end.x;
