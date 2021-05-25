@@ -7,6 +7,7 @@ const mask = new Int16Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
 const vals = new Int16Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
 const norms = new Int16Array(MAX_VOX_SIZE * MAX_VOX_SIZE);
 const quadData = [];
+const tmpVec = new THREE.Vector3();
 
 // These memory pools for attributes reduce GC as voxes are rapidly remeshed
 // as brush previews are applied to them.
@@ -469,11 +470,20 @@ class JelVoxBufferGeometry extends BufferGeometry {
     const normals = float32Pool.get(12 * numQuads);
     const colors = float32Pool.get(12 * numQuads);
     const uvs = float32Pool.get(8 * numQuads);
-    const boundingBox = new THREE.Box3();
+    let boundingBox = this.boundingBox;
+    let boundingSphere = this.boundingSphere;
+
+    if (!boundingBox) {
+      boundingBox = this.boundingBox = new THREE.Box3();
+    }
+
+    if (!boundingSphere) {
+      boundingSphere = this.boundingSphere = new THREE.Sphere();
+    }
+
+    boundingBox.makeEmpty();
     const boxMin = boundingBox.min;
     const boxMax = boundingBox.max;
-
-    this.boundingBox = boundingBox;
 
     const pushFace = (
       iQuad,
@@ -840,6 +850,17 @@ class JelVoxBufferGeometry extends BufferGeometry {
     this.setAttribute("uv", new BufferAttribute(uvs, 2));
     this.setDrawRange(0, indices.length);
 
+    const center = boundingSphere.center;
+    boundingBox.getCenter(center);
+
+    let maxRadiusSq = 0;
+
+    for (let j = 0, l = vertices.length; j < l; j += 3) {
+      tmpVec.set(vertices[j], vertices[j + 1], vertices[j + 2]);
+      maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(tmpVec));
+    }
+
+    boundingSphere.radius = Math.sqrt(maxRadiusSq);
     this.computeBoundingSphere();
 
     return numIndices === 0 ? [0, 0, 0, 0, 0, 0] : [xMin, yMin, zMin, xMax, yMax, zMax];
