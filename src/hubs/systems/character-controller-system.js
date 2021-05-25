@@ -402,81 +402,84 @@ export class CharacterControllerSystem {
     };
   })();
 
-  findPositionOnHeightMap(end, outPos, shouldSnapImmediately = false) {
-    const { terrainSystem } = this;
-    const terrainY = terrainSystem.getTerrainHeightAtWorldCoord(end.x, end.z);
-
+  findPositionOnHeightMap = (function() {
     const raycaster = new THREE.Raycaster();
     raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
     raycaster.near = 0.01;
     raycaster.far = 40;
-    const targets = SYSTEMS.voxSystem.getTargettableMeshes();
-    raycaster.ray.origin.copy(end);
-    raycaster.ray.origin.y += 0.05;
     const intersections = [];
+    return function(end, outPos, shouldSnapImmediately = false) {
+      const { terrainSystem } = this;
+      const terrainY = terrainSystem.getTerrainHeightAtWorldCoord(end.x, end.z);
 
-    let voxFloorY = -Infinity;
-    let voxFloorObj = null;
-    let voxFloorObjInstanceId = -1;
+      const targets = SYSTEMS.voxSystem.getTargettableMeshes();
 
-    // Check if there is a vox surface below us.
-    raycaster.ray.direction.set(0, -1, 0);
-    raycaster.intersectObjects(targets, true, intersections);
+      let voxFloorY = -Infinity;
+      let voxFloorObj = null;
+      let voxFloorObjInstanceId = -1;
 
-    if (intersections.length > 0) {
-      const intersection = intersections[0];
-      voxFloorY = intersection.point.y;
-      voxFloorObj = intersection.object;
-      voxFloorObjInstanceId = intersection.instanceId;
-    }
+      // Check if there is a vox surface below us.
+      raycaster.ray.origin.copy(end);
+      raycaster.ray.origin.y += 0.05;
+      raycaster.ray.direction.set(0, -1, 0);
+      intersections.length = 0;
+      raycaster.intersectObjects(targets, true, intersections);
 
-    // Check if we need to jump up to a vox floor above us.
-    raycaster.ray.direction.set(0, 1, 0);
-    raycaster.ray.origin.y = Math.max(voxFloorY, terrainY) + 0.05;
+      if (intersections.length > 0) {
+        const intersection = intersections[0];
+        voxFloorY = intersection.point.y;
+        voxFloorObj = intersection.object;
+        voxFloorObjInstanceId = intersection.instanceId;
+      }
 
-    const { side } = voxMaterial;
-    // Intersect backsides
-    voxMaterial.side = THREE.BackSide;
-    intersections.length = 0;
-    raycaster.intersectObjects(targets, true, intersections);
-    voxMaterial.side = side;
+      // Check if we need to jump up to a vox floor above us.
+      raycaster.ray.direction.set(0, 1, 0);
+      raycaster.ray.origin.y = Math.max(voxFloorY, terrainY) + 0.05;
 
-    if (intersections.length > 0) {
-      // If there is a vox floor above us, consider two cases:
-      // - We're significantly far away from the nearest vox floor, or we hit
-      //   a different vox. If so, jump up.
-      //     - The former is for cases like an intra-vox jump where the upper
-      //       level has multiple heights. Eg a multi-level roof.
-      // - If we're just above the terrain directly, jump up if the vox level
-      //   above us is not blocked by a vox surface facing us. Ie, we're inside
-      //   the bottom of a vox mesh.
-      const intersection = intersections[0];
-      const aboveFloorHeight = intersection.point.y;
-      const hitSameVox = intersection.object === voxFloorObj && intersection.instanceId === voxFloorObjInstanceId;
+      // Intersect backsides to find floors.
+      const { side } = voxMaterial;
+      voxMaterial.side = THREE.BackSide;
+      intersections.length = 0;
+      raycaster.intersectObjects(targets, true, intersections);
+      voxMaterial.side = side;
 
-      if (voxFloorY > 0 && (Math.abs(voxFloorY - end.y) > 1.0 || !hitSameVox)) {
-        voxFloorY = aboveFloorHeight;
-      } else if (voxFloorY < 0) {
-        intersections.length = 0;
+      if (intersections.length > 0) {
+        // If there is a vox floor above us, consider two cases:
+        // - We're significantly far away from the nearest vox floor, or we hit
+        //   a different vox. If so, jump up.
+        //     - The former is for cases like an intra-vox jump where the upper
+        //       level has multiple heights. Eg a multi-level roof.
+        // - If we're just above the terrain directly, jump up if the vox level
+        //   above us is not blocked by a vox surface facing us. Ie, we're inside
+        //   the bottom of a vox mesh.
+        const intersection = intersections[0];
+        const aboveFloorHeight = intersection.point.y;
+        const hitSameVox = intersection.object === voxFloorObj && intersection.instanceId === voxFloorObjInstanceId;
 
-        raycaster.ray.origin.y += 0.05;
-        raycaster.intersectObjects(targets, true, intersections);
-        raycaster.ray.origin.y -= 0.05;
-
-        if (intersections.length === 0 || intersections[0].point.y > aboveFloorHeight) {
+        if (voxFloorY > 0 && (Math.abs(voxFloorY - end.y) > 1.0 || !hitSameVox)) {
           voxFloorY = aboveFloorHeight;
+        } else if (voxFloorY < 0) {
+          // Above terrain not a vox.
+          intersections.length = 0;
+
+          // Check if there is an intermediate ceiling below the floor we may jump to.
+          raycaster.intersectObjects(targets, true, intersections);
+
+          if (intersections.length === 0 || intersections[0].point.y > aboveFloorHeight) {
+            voxFloorY = aboveFloorHeight;
+          }
         }
       }
-    }
 
-    const newY = Math.max(terrainY, voxFloorY);
+      const newY = Math.max(terrainY, voxFloorY);
 
-    // Always allow x, z movement, smooth y
-    outPos.x = end.x;
-    outPos.y = shouldSnapImmediately ? newY : 0.15 * newY + 0.85 * end.y;
+      // Always allow x, z movement, smooth y
+      outPos.x = end.x;
+      outPos.y = shouldSnapImmediately ? newY : 0.15 * newY + 0.85 * end.y;
 
-    outPos.z = end.z;
-  }
+      outPos.z = end.z;
+    };
+  })();
 
   enableFly(enabled) {
     if (enabled && window.APP.hubChannel && window.APP.hubChannel.can("fly")) {
