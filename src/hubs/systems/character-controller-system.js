@@ -407,23 +407,24 @@ export class CharacterControllerSystem {
     raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
     raycaster.near = 0.01;
     raycaster.far = 40;
+    const origin = new THREE.Vector3();
+    const direction = new THREE.Vector3();
+
     const intersections = [];
     return function(end, outPos, shouldSnapImmediately = false) {
       const { terrainSystem } = this;
       const terrainY = terrainSystem.getTerrainHeightAtWorldCoord(end.x, end.z);
-
-      const targets = SYSTEMS.voxSystem.getTargettableMeshes();
 
       let voxFloorY = -Infinity;
       let voxFloorObj = null;
       let voxFloorObjInstanceId = -1;
 
       // Check if there is a vox surface below us.
-      raycaster.ray.origin.copy(end);
-      raycaster.ray.origin.y += 0.05;
-      raycaster.ray.direction.set(0, -1, 0);
+      origin.copy(end);
+      origin.y += 0.05;
+      direction.set(0, -1, 0);
       intersections.length = 0;
-      raycaster.intersectObjects(targets, true, intersections);
+      SYSTEMS.voxSystem.raycastIntoWalkableSources(origin, direction, intersections);
 
       if (intersections.length > 0) {
         const intersection = intersections[0];
@@ -433,15 +434,13 @@ export class CharacterControllerSystem {
       }
 
       // Check if we need to jump up to a vox floor above us.
-      raycaster.ray.direction.set(0, 1, 0);
-      raycaster.ray.origin.y = Math.max(voxFloorY, terrainY) + 0.05;
+      //
+      intersections.length = 0;
+      direction.set(0, 1, 0);
+      origin.y = Math.max(voxFloorY, terrainY) + 0.05;
 
       // Intersect backsides to find floors.
-      const { side } = voxMaterial;
-      voxMaterial.side = THREE.BackSide;
-      intersections.length = 0;
-      raycaster.intersectObjects(targets, true, intersections);
-      voxMaterial.side = side;
+      SYSTEMS.voxSystem.raycastIntoWalkableSources(origin, direction, intersections, true);
 
       if (intersections.length > 0) {
         // If there is a vox floor above us, consider two cases:
@@ -463,7 +462,7 @@ export class CharacterControllerSystem {
           intersections.length = 0;
 
           // Check if there is an intermediate ceiling below the floor we may jump to.
-          raycaster.intersectObjects(targets, true, intersections);
+          SYSTEMS.voxSystem.raycastIntoWalkableSources(origin, direction, intersections);
 
           if (intersections.length === 0 || intersections[0].point.y > aboveFloorHeight) {
             voxFloorY = aboveFloorHeight;

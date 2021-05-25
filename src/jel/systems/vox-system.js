@@ -23,7 +23,7 @@ const RESHAPE_DELAY_MS = 5000;
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
 targettingMaterial.visible = false;
 
-export const voxMaterial = new ShaderMaterial({
+const voxMaterial = new ShaderMaterial({
   name: "vox",
   vertexColors: VertexColors,
   fog: true,
@@ -623,9 +623,16 @@ export class VoxSystem extends EventTarget {
       voxRegistered,
 
       // Resolver for promise of registration + meshing
-      voxRegisteredResolve
+      voxRegisteredResolve,
+
+      // True if vox source can be walked on.
+      walkableSources: Array(MAX_INSTANCES_PER_VOX_ID).fill(true),
+
+      // Geometry to use for raycast for walking.
+      walkGeometry: new JelVoxBufferGeometry()
     };
 
+    entry.walkGeometry.instanceAttributes = []; // For DynamicInstancedMesh
     voxMap.set(voxId, entry);
 
     const store = window.APP.store;
@@ -655,11 +662,13 @@ export class VoxSystem extends EventTarget {
     const { sceneEl, voxMap, meshToVoxId } = this;
     const scene = sceneEl.object3D;
     const voxEntry = voxMap.get(voxId);
-    const { targettingMesh, sizeBoxGeometry, maxMeshIndex } = voxEntry;
+    const { targettingMesh, sizeBoxGeometry, maxMeshIndex, walkGeometry } = voxEntry;
 
     for (let i = 0; i <= maxMeshIndex; i++) {
       this.removeMeshForIndex(voxId, i);
     }
+
+    walkGeometry.dispose();
 
     if (sizeBoxGeometry) {
       voxEntry.sizeBoxGeometry = null;
@@ -719,7 +728,9 @@ export class VoxSystem extends EventTarget {
       mesherQuadSize,
       maxRegisteredIndex,
       pendingVoxChunk,
-      pendingVoxChunkOffset
+      pendingVoxChunkOffset,
+      walkableSources,
+      walkGeometry
     } = entry;
     if (!vox) return;
 
@@ -766,6 +777,18 @@ export class VoxSystem extends EventTarget {
 
       if (remesh) {
         let chunk = vox.frames[i];
+
+        // If no pending + walkable update the walk geometry to match the first frame.
+        if (!pendingVoxChunk && i === 0) {
+          for (let j = 0, l = walkableSources.length; j < l; j++) {
+            const isWalkable = walkableSources[j];
+
+            if (isWalkable) {
+              walkGeometry.update(chunk, Infinity, true, false);
+              break;
+            }
+          }
+        }
 
         // Apply any ephemeral pending (eg from voxel brushes.)
         if (pendingVoxChunk) {
@@ -1389,5 +1412,30 @@ export class VoxSystem extends EventTarget {
 
     // Environment VOX should have projectiles bounce off.
     return !entry.shapeIsEnvironmental;
+  }
+
+  raycastIntoWalkableSources(origin, direction, intersections, backSide = false) {
+    const { side } = voxMaterial;
+
+    if (backSide) {
+      voxMaterial.side = THREE.BackSide;
+    }
+
+    try {
+      const raycaster = new THREE.Raycaster();
+      raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
+      raycaster.near = 0.01;
+      raycaster.far = 40;
+      raycaster.ray.origin.copy(origin);
+      raycaster.ray.direction.copy(direction);
+
+      raycaster.intersectObjects([...this.getTargettableMeshes()], true, intersections);
+    } finally {
+      voxMaterial.side = side;
+    }
+  }
+
+  hasWalkableSources() {
+    return true;
   }
 }
