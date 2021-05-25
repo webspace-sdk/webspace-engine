@@ -1476,8 +1476,15 @@ export class VoxSystem extends EventTarget {
           if (voxMesh === null) continue;
 
           for (let instanceId = 0, l = sources.length; instanceId < l; instanceId++) {
-            if (sources[instanceId] === null) continue;
+            const source = sources[instanceId];
+            if (source === null) continue;
             if (!walkableSources[instanceId]) continue;
+
+            // Bounding box check for origin X,Z since we are casting up/down
+            const bbox = this.getBoundingBoxForSource(source, true);
+
+            if (origin.x < bbox.min.x || origin.x > bbox.max.x || origin.z < bbox.min.z || origin.z > bbox.max.z)
+              continue;
 
             // Raycast once for each walkable source.
             tmpMesh.geometry = walkGeometry;

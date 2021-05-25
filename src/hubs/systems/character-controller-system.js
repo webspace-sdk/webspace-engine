@@ -430,7 +430,6 @@ export class CharacterControllerSystem {
       // Intersect backsides to find floors.
       intersection = SYSTEMS.voxSystem.raycastVerticallyToClosestWalkableSource(origin, true, true);
 
-      console.log("up", intersection);
       if (intersection !== null) {
         // If there is a vox floor above us, consider two cases:
         // - We're significantly far away from the nearest vox floor or terrain, or we hit
@@ -450,7 +449,6 @@ export class CharacterControllerSystem {
 
           // Check if there is an intermediate ceiling below the floor we may jump to.
           intersection = SYSTEMS.voxSystem.raycastVerticallyToClosestWalkableSource(origin, true);
-          console.log("ceiling", intersection && intersection.point.y, aboveFloorHeight);
 
           if (intersection === null || intersection.point.y > aboveFloorHeight) {
             voxFloorY = aboveFloorHeight;
