@@ -1,6 +1,7 @@
 import { JelVoxBufferGeometry } from "../objects/JelVoxBufferGeometry";
 import jwtDecode from "jwt-decode";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
+import { MeshBVH } from "three-mesh-bvh";
 import { SHAPE, FIT } from "three-ammo/constants";
 import { setMatrixWorld, generateMeshBVH, disposeNode } from "../../hubs/utils/three-utils";
 import { addVertexCurvingToShader } from "./terrain-system";
@@ -554,6 +555,8 @@ export class VoxSystem extends EventTarget {
 
       // List of DynamicInstanceMeshes, one per vox frame
       meshes: Array(MAX_FRAMES_PER_VOX).fill(null),
+      meshBoundingBoxes: Array(MAX_FRAMES_PER_VOX).fill(null),
+      sourceBoundingBoxes: Array(MAX_INSTANCES_PER_VOX_ID).fill(null),
 
       // Lightweight meshes used for physics hull generation
       physicsMeshes: Array(MAX_FRAMES_PER_VOX).fill(null),
@@ -610,6 +613,7 @@ export class VoxSystem extends EventTarget {
 
       // Flags to determine when remeshing is needed for a vox frame.
       dirtyFrameMeshes: Array(MAX_FRAMES_PER_VOX).fill(true),
+      dirtyFrameBoundingBoxes: Array(MAX_FRAMES_PER_VOX).fill(true),
       regenerateDirtyMeshesOnNextFrame: true,
 
       // Flag used to force a write of the source world matrices to the instanced mesh.
@@ -626,6 +630,7 @@ export class VoxSystem extends EventTarget {
       voxRegisteredResolve,
 
       // True if vox source can be walked on.
+      hasWalkableSources: true,
       walkableSources: Array(MAX_INSTANCES_PER_VOX_ID).fill(true),
 
       // Geometry to use for raycast for walking.
@@ -723,12 +728,15 @@ export class VoxSystem extends EventTarget {
       vox,
       sources,
       dirtyFrameMeshes,
+      dirtyFrameBoundingBoxes,
       meshes,
+      meshBoundingBoxes,
       physicsMeshes,
       mesherQuadSize,
       maxRegisteredIndex,
       pendingVoxChunk,
       pendingVoxChunkOffset,
+      hasWalkableSources,
       walkableSources,
       walkGeometry
     } = entry;
@@ -744,6 +752,13 @@ export class VoxSystem extends EventTarget {
       if (!mesh) {
         mesh = createMesh();
         meshes[i] = mesh;
+
+        // Only compute bounding box for frame zero
+        if (meshBoundingBoxes[i] === null && i === 0) {
+          meshBoundingBoxes[i] = new THREE.Box3();
+        }
+
+        dirtyFrameBoundingBoxes[i] = true;
 
         physicsMesh = createPhysicsMesh();
         physicsMeshes[i] = physicsMesh;
@@ -779,12 +794,13 @@ export class VoxSystem extends EventTarget {
         let chunk = vox.frames[i];
 
         // If no pending + walkable update the walk geometry to match the first frame.
-        if (!pendingVoxChunk && i === 0) {
+        if (!pendingVoxChunk && i === 0 && hasWalkableSources) {
           for (let j = 0, l = walkableSources.length; j < l; j++) {
             const isWalkable = walkableSources[j];
 
             if (isWalkable) {
               walkGeometry.update(chunk, Infinity, true, false);
+              walkGeometry.boundsTree = new MeshBVH(walkGeometry, { strategy: 0, maxDepth: 30, lazyGeneration: false });
               break;
             }
           }
@@ -822,9 +838,9 @@ export class VoxSystem extends EventTarget {
 
         if (!pendingVoxChunk) {
           generateMeshBVH(mesh, true);
+          dirtyFrameBoundingBoxes[i] = true;
+          regenerateSizeBox = true;
         }
-
-        regenerateSizeBox = true;
 
         dirtyFrameMeshes[i] = false;
       }
@@ -1163,29 +1179,42 @@ export class VoxSystem extends EventTarget {
     return null;
   }
 
-  getBoundingBoxForSource(source, worldSpace = false) {
-    const { sourceToVoxId, voxMap } = this;
-    if (!sourceToVoxId.has(source)) return null;
-
-    const voxId = sourceToVoxId.get(source);
-    const { sources, meshes } = voxMap.get(voxId);
-    if (meshes.length === 0) return null;
-
-    const instanceId = sources.indexOf(source);
-
-    const mesh = meshes[0];
-    const bbox = new THREE.Box3();
+  getBoundingBoxForSource = (function() {
     const matrix = new THREE.Matrix4();
-    mesh.getMatrixAt(instanceId, matrix);
+    return function(source, worldSpace = false) {
+      const { sourceToVoxId, voxMap } = this;
+      if (!sourceToVoxId.has(source)) return null;
 
-    bbox.expandByObject(mesh);
+      const voxId = sourceToVoxId.get(source);
+      const { sources, meshes, meshBoundingBoxes, sourceBoundingBoxes, dirtyFrameBoundingBoxes } = voxMap.get(voxId);
+      if (meshes.length === 0) return null;
 
-    if (worldSpace) {
-      bbox.applyMatrix4(matrix);
-    }
+      const mesh = meshes[0];
+      let bbox = meshBoundingBoxes[0];
 
-    return bbox;
-  }
+      if (dirtyFrameBoundingBoxes[0]) {
+        bbox.makeEmpty();
+        bbox.expandByObject(mesh);
+        dirtyFrameBoundingBoxes[0] = false;
+      }
+
+      if (worldSpace) {
+        const instanceId = sources.indexOf(source);
+        bbox = sourceBoundingBoxes[instanceId];
+
+        if (!bbox) {
+          bbox = sourceBoundingBoxes[instanceId] = new THREE.Box3();
+        }
+
+        mesh.getMatrixAt(instanceId, matrix);
+
+        bbox.copy(meshBoundingBoxes[0]);
+        bbox.applyMatrix4(matrix);
+      }
+
+      return bbox;
+    };
+  })();
 
   getSourceForMeshAndInstance(targetMesh, instanceId) {
     const { voxMap, meshToVoxId } = this;
@@ -1414,26 +1443,71 @@ export class VoxSystem extends EventTarget {
     return !entry.shapeIsEnvironmental;
   }
 
-  raycastIntoWalkableSources(origin, direction, intersections, backSide = false) {
-    const { side } = voxMaterial;
+  // Efficiently raycast to the closest walkable source, skipping non-walkable
+  // sources and avoiding extra raycasts. Only can cast up or down, so we can use
+  // bounding box to quickly cull as well.
+  raycastVerticallyToClosestWalkableSource = (function() {
+    const tmpMesh = new Mesh();
+    const instanceLocalMatrix = new Matrix4();
+    const instanceWorldMatrix = new Matrix4();
+    const instanceIntersects = [];
+    const raycaster = new THREE.Raycaster();
+    raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
+    raycaster.near = 0.01;
+    raycaster.far = 40;
+    raycaster.ray.direction.set(0, 1, 0);
 
-    if (backSide) {
-      voxMaterial.side = THREE.BackSide;
-    }
+    return function(origin, up = true, backSide = false) {
+      const { voxMap } = this;
+      const { side } = voxMaterial;
+      let intersection = null;
 
-    try {
-      const raycaster = new THREE.Raycaster();
-      raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
-      raycaster.near = 0.01;
-      raycaster.far = 40;
-      raycaster.ray.origin.copy(origin);
-      raycaster.ray.direction.copy(direction);
+      if (backSide) {
+        voxMaterial.side = THREE.BackSide;
+      }
 
-      raycaster.intersectObjects([...this.getTargettableMeshes()], true, intersections);
-    } finally {
-      voxMaterial.side = side;
-    }
-  }
+      try {
+        raycaster.ray.origin.copy(origin);
+        raycaster.ray.direction.y = up ? 1 : -1;
+
+        for (const { hasWalkableSources, walkableSources, sources, meshes, walkGeometry } of voxMap.values()) {
+          if (!hasWalkableSources) continue;
+          const voxMesh = meshes[0];
+          if (voxMesh === null) continue;
+
+          for (let instanceId = 0, l = sources.length; instanceId < l; instanceId++) {
+            if (sources[instanceId] === null) continue;
+            if (!walkableSources[instanceId]) continue;
+
+            // Raycast once for each walkable source.
+            tmpMesh.geometry = walkGeometry;
+            tmpMesh.material = voxMaterial;
+            voxMesh.updateMatrices();
+            voxMesh.getMatrixAt(instanceId, instanceLocalMatrix);
+            instanceWorldMatrix.multiplyMatrices(voxMesh.matrixWorld, instanceLocalMatrix);
+            tmpMesh.matrixWorld = instanceWorldMatrix;
+            tmpMesh.raycast(raycaster, instanceIntersects);
+
+            if (instanceIntersects.length === 0) continue;
+
+            const newIntersection = instanceIntersects[0];
+
+            if (intersection === null || intersection.distance > newIntersection.distance) {
+              intersection = newIntersection;
+              intersection.instanceId = instanceId;
+              intersection.object = voxMesh;
+            }
+
+            instanceIntersects.length = 0;
+          }
+        }
+      } finally {
+        voxMaterial.side = side;
+      }
+
+      return intersection;
+    };
+  })();
 
   hasWalkableSources() {
     return true;
