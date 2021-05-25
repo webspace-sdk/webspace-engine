@@ -416,32 +416,56 @@ export class CharacterControllerSystem {
     const intersections = [];
 
     let voxFloorY = -Infinity;
+    let voxFloorObj = null;
+    let voxFloorObjInstanceId = -1;
 
+    // Check if there is a vox surface below us.
     raycaster.ray.direction.set(0, -1, 0);
     raycaster.intersectObjects(targets, true, intersections);
 
     if (intersections.length > 0) {
-      voxFloorY = intersections[0].point.y;
+      const intersection = intersections[0];
+      voxFloorY = intersection.point.y;
+      voxFloorObj = intersection.object;
+      voxFloorObjInstanceId = intersection.instanceId;
     }
 
+    // Check if we need to jump up to a vox floor above us.
     raycaster.ray.direction.set(0, 1, 0);
-    raycaster.ray.origin.y = Math.max(voxFloorY, terrainY) + 0.01;
+    raycaster.ray.origin.y = Math.max(voxFloorY, terrainY) + 0.05;
 
     const { side } = voxMaterial;
+    // Intersect backsides
     voxMaterial.side = THREE.BackSide;
     intersections.length = 0;
     raycaster.intersectObjects(targets, true, intersections);
     voxMaterial.side = side;
 
     if (intersections.length > 0) {
-      const aboveFloorHeight = intersections[0].point.y;
+      // If there is a vox floor above us, consider two cases:
+      // - We're significantly far away from the nearest vox floor, or we hit
+      //   a different vox. If so, jump up.
+      //     - The former is for cases like an intra-vox jump where the upper
+      //       level has multiple heights. Eg a multi-level roof.
+      // - If we're just above the terrain directly, jump up if the vox level
+      //   above us is not blocked by a vox surface facing us. Ie, we're inside
+      //   the bottom of a vox mesh.
+      const intersection = intersections[0];
+      const aboveFloorHeight = intersection.point.y;
+      const hitSameVox = intersection.object === voxFloorObj && intersection.instanceId === voxFloorObjInstanceId;
 
-      intersections.length = 0;
-      raycaster.intersectObjects(targets, true, intersections);
-      const ceilingHeight = intersections.length > 0 ? intersections[0].point.y : Infinity;
-
-      if (ceilingHeight > aboveFloorHeight) {
+      if (voxFloorY > 0 && (Math.abs(voxFloorY - end.y) > 1.0 || !hitSameVox)) {
         voxFloorY = aboveFloorHeight;
+      } else if (voxFloorY < 0) {
+        intersections.length = 0;
+
+        raycaster.ray.origin.y += 0.05;
+        raycaster.intersectObjects(targets, true, intersections);
+        raycaster.ray.origin.y -= 0.05;
+
+        if (intersections.length === 0 || intersections[0].point.y > aboveFloorHeight) {
+          voxFloorY = aboveFloorHeight;
+        }
       }
     }
 
