@@ -469,6 +469,11 @@ class JelVoxBufferGeometry extends BufferGeometry {
     const normals = float32Pool.get(12 * numQuads);
     const colors = float32Pool.get(12 * numQuads);
     const uvs = float32Pool.get(8 * numQuads);
+    const boundingBox = new THREE.Box3();
+    const boxMin = boundingBox.min;
+    const boxMax = boundingBox.max;
+
+    this.boundingBox = boundingBox;
 
     const pushFace = (
       iQuad,
@@ -504,18 +509,38 @@ class JelVoxBufferGeometry extends BufferGeometry {
       uvs[iQuad * 8 + 6] = u1;
       uvs[iQuad * 8 + 7] = v2;
 
-      vertices[iQuad * 12 + 0] = p1x * lod - xShiftVox;
-      vertices[iQuad * 12 + 1] = p1y * lod - yShiftVox;
-      vertices[iQuad * 12 + 2] = p1z * lod - zShiftVox;
-      vertices[iQuad * 12 + 3] = p2x * lod - xShiftVox;
-      vertices[iQuad * 12 + 4] = p2y * lod - yShiftVox;
-      vertices[iQuad * 12 + 5] = p2z * lod - zShiftVox;
-      vertices[iQuad * 12 + 6] = p3x * lod - xShiftVox;
-      vertices[iQuad * 12 + 7] = p3y * lod - yShiftVox;
-      vertices[iQuad * 12 + 8] = p3z * lod - zShiftVox;
-      vertices[iQuad * 12 + 9] = p4x * lod - xShiftVox;
-      vertices[iQuad * 12 + 10] = p4y * lod - yShiftVox;
-      vertices[iQuad * 12 + 11] = p4z * lod - zShiftVox;
+      const p1xw = p1x * lod - xShiftVox;
+      const p1yw = p1y * lod - yShiftVox;
+      const p1zw = p1z * lod - zShiftVox;
+      const p2xw = p2x * lod - xShiftVox;
+      const p2yw = p2y * lod - yShiftVox;
+      const p2zw = p2z * lod - zShiftVox;
+      const p3xw = p3x * lod - xShiftVox;
+      const p3yw = p3y * lod - yShiftVox;
+      const p3zw = p3z * lod - zShiftVox;
+      const p4xw = p4x * lod - xShiftVox;
+      const p4yw = p4y * lod - yShiftVox;
+      const p4zw = p4z * lod - zShiftVox;
+
+      vertices[iQuad * 12 + 0] = p1xw;
+      vertices[iQuad * 12 + 1] = p1yw;
+      vertices[iQuad * 12 + 2] = p1zw;
+      vertices[iQuad * 12 + 3] = p2xw;
+      vertices[iQuad * 12 + 4] = p2yw;
+      vertices[iQuad * 12 + 5] = p2zw;
+      vertices[iQuad * 12 + 6] = p3xw;
+      vertices[iQuad * 12 + 7] = p3yw;
+      vertices[iQuad * 12 + 8] = p3zw;
+      vertices[iQuad * 12 + 9] = p4xw;
+      vertices[iQuad * 12 + 10] = p4yw;
+      vertices[iQuad * 12 + 11] = p4zw;
+
+      boxMin.x = Math.min(boxMin.x, p1xw, p2xw, p3xw, p4xw);
+      boxMin.y = Math.min(boxMin.y, p1yw, p2yw, p3yw, p4yw);
+      boxMin.z = Math.min(boxMin.z, p1zw, p2zw, p3zw, p4zw);
+      boxMax.x = Math.max(boxMax.x, p1xw, p2xw, p3xw, p4xw);
+      boxMax.y = Math.max(boxMax.y, p1yw, p2yw, p3yw, p4yw);
+      boxMax.z = Math.max(boxMax.z, p1zw, p2zw, p3zw, p4zw);
 
       normals[iQuad * 12 + 0] = nx;
       normals[iQuad * 12 + 1] = ny;
@@ -816,7 +841,6 @@ class JelVoxBufferGeometry extends BufferGeometry {
     this.setDrawRange(0, indices.length);
 
     this.computeBoundingSphere();
-    this.computeBoundingBox();
 
     return numIndices === 0 ? [0, 0, 0, 0, 0, 0] : [xMin, yMin, zMin, xMax, yMax, zMax];
   }
