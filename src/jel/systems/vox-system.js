@@ -23,7 +23,7 @@ const RESHAPE_DELAY_MS = 5000;
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
 targettingMaterial.visible = false;
 
-const voxMaterial = new ShaderMaterial({
+export const voxMaterial = new ShaderMaterial({
   name: "vox",
   vertexColors: VertexColors,
   fog: true,

@@ -5,6 +5,7 @@ import { childMatch, rotateInPlaceAroundWorldUp, affixToWorldUp, IDENTITY_QUATER
 import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
 //import { m4String } from "../utils/pretty-print";
 import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../jel/systems/terrain-system";
+import { voxMaterial } from "../../jel/systems/vox-system";
 import qsTruthy from "../utils/qs_truthy";
 const CHARACTER_MAX_Y = 10;
 
@@ -403,12 +404,49 @@ export class CharacterControllerSystem {
 
   findPositionOnHeightMap(end, outPos, shouldSnapImmediately = false) {
     const { terrainSystem } = this;
+    const raycaster = new THREE.Raycaster();
+    raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
+    raycaster.near = 0.01;
+    raycaster.far = 40;
+    const targets = SYSTEMS.voxSystem.getTargettableMeshes();
+    const avatarRig = document.getElementById("avatar-rig");
+    const pos = new THREE.Vector3();
+    avatarRig.object3D.getWorldPosition(pos);
+    raycaster.ray.origin.copy(pos);
+    raycaster.ray.origin.y += 0.25;
+    raycaster.ray.direction.set(0, -1, 0);
+    const intersections = [];
+    raycaster.intersectObjects(targets, true, intersections);
 
-    const newY = terrainSystem.getTerrainHeightAtWorldCoord(end.x, end.z);
+    let newY = terrainSystem.getTerrainHeightAtWorldCoord(end.x, end.z);
+
+    if (intersections.length > 0) {
+      newY = Math.max(newY, intersections[0].point.y);
+    }
+    intersections.length = 0;
+
+    const { side } = voxMaterial;
+    raycaster.ray.direction.set(0, 1, 0);
+    raycaster.intersectObjects(targets, true, intersections);
+
+    const ceilingHeight = intersections.length > 0 ? intersections[0].point.y : Infinity;
+    voxMaterial.side = THREE.BackSide;
+    raycaster.intersectObjects(targets, true, intersections);
+    voxMaterial.side = side;
+
+    if (intersections.length > 0) {
+      const aboveFloorHeight = intersections[0].point.y;
+      if (ceilingHeight > aboveFloorHeight) {
+        newY = Math.max(newY, aboveFloorHeight);
+      }
+    }
+
+    console.log(newY);
 
     // Always allow x, z movement, smooth y
     outPos.x = end.x;
     outPos.y = shouldSnapImmediately ? newY : 0.15 * newY + 0.85 * end.y;
+
     outPos.z = end.z;
   }
 
