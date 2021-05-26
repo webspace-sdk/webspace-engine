@@ -151,11 +151,11 @@ AFRAME.registerComponent("cursor-controller", {
           (!left && transformObjectSystem.hand.el.id === "player-right-controller"))
       ) {
         this.color.copy(TRANSFORM_COLOR_1).lerpHSL(TRANSFORM_COLOR_2, 0.5 + 0.5 * Math.sin(t / 1000.0));
-        cursorScale3D = 0.8;
+        cursorScale3D = 0.66;
         cursorScaleCSS = 1.0;
       } else if ((this.intersectionIsValid || isGrabbing) && !isLockedMedia(intersectionTarget)) {
         this.color.copy(HIGHLIGHT);
-        cursorScale3D = 0.8;
+        cursorScale3D = 0.66;
         cursorScaleCSS = 1.0;
       } else {
         this.color.copy(NO_HIGHLIGHT);
