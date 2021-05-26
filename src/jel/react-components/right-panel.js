@@ -75,9 +75,10 @@ const TriggerModePanel = styled.div`
 `;
 
 function RightPanel({ history, hub, hubCan, hubMetadata, sessionId, scene, showEmojiPopup }) {
-  const { builderSystem, launcherSystem } = SYSTEMS;
+  const { builderSystem, launcherSystem, cameraSystem } = SYSTEMS;
   const emojiEquipRef = useRef();
   const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
+  const [isInEditorView, setIsInEditorView] = useState(cameraSystem.isInspecting() && cameraSystem.allowCursor);
 
   useEffect(
     () => {
@@ -86,11 +87,21 @@ function RightPanel({ history, hub, hubCan, hubMetadata, sessionId, scene, showE
       };
 
       builderSystem.addEventListener("enabledchanged", handler);
-      () => {
-        builderSystem.removeEventListener("enabledchanged", handler);
-      };
+      return () => builderSystem.removeEventListener("enabledchanged", handler);
     },
     [builderSystem, launcherSystem]
+  );
+
+  useEffect(
+    () => {
+      const handler = () => {
+        setIsInEditorView(cameraSystem.isInspecting() && cameraSystem.allowCursor);
+      };
+
+      cameraSystem.addEventListener("mode_changed", handler);
+      return () => cameraSystem.removeEventListener("mode_changed", handler);
+    },
+    [cameraSystem]
   );
 
   const onTriggerModeChange = useCallback(
@@ -117,7 +128,10 @@ function RightPanel({ history, hub, hubCan, hubMetadata, sessionId, scene, showE
 
   return (
     <Right>
-      <PresenceContent className={triggerMode === "launcher" ? "launch" : "build"}>
+      <PresenceContent
+        style={isInEditorView ? { display: "none" } : {}}
+        className={triggerMode === "launcher" ? "launch" : "build"}
+      >
         <PresenceList
           hubMetadata={hubMetadata}
           hubCan={hubCan}
@@ -148,11 +162,12 @@ function RightPanel({ history, hub, hubCan, hubMetadata, sessionId, scene, showE
         )}
       {isWorld &&
         triggerMode === "builder" && (
-          <BuilderContent>
+          <BuilderContent style={isInEditorView ? { marginTop: "8px" } : {}}>
             <BuilderControls />
           </BuilderContent>
         )}
       {isWorld &&
+        !isInEditorView &&
         hubCan("spawn_and_move_media", hub.hub_id) && (
           <TriggerModePanel>
             <SegmentControl
