@@ -8,6 +8,10 @@ import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../jel/systems/
 import qsTruthy from "../utils/qs_truthy";
 const CHARACTER_MAX_Y = 10;
 
+// This threshold is used to determine when vox raycasting should determine
+// a jump up to another level or the same level on a multi-level vox.
+const MIN_VOX_FLOOR_HEIGHT = 2.5;
+
 const calculateDisplacementToDesiredPOV = (function() {
   const translationCoordinateSpace = new THREE.Matrix4();
   const translated = new THREE.Matrix4();
@@ -435,7 +439,7 @@ export class CharacterControllerSystem {
         const aboveFloorHeight = intersection.point.y;
         const hitSameVox = intersection.object === voxFloorObj && intersection.instanceId === voxFloorObjInstanceId;
 
-        if (voxFloorY > 0 && (Math.abs(Math.max(terrainY, voxFloorY) - end.y) > 1.0 || !hitSameVox)) {
+        if (voxFloorY > 0 && (Math.abs(Math.max(terrainY, voxFloorY) - end.y) > MIN_VOX_FLOOR_HEIGHT || !hitSameVox)) {
           voxFloorY = aboveFloorHeight;
         } else if (voxFloorY < 0) {
           // Above terrain not a vox.
