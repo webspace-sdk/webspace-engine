@@ -122,15 +122,10 @@ AFRAME.registerComponent("media-vox", {
       if (!(await SYSTEMS.voxSystem.canEditAsync(this.voxId))) return;
 
       // Start inspecting with editing enabled
-      SYSTEMS.cameraSystem.inspect(this.el.object3D, 2.0, false, true);
+      SYSTEMS.cameraSystem.inspect(this.el.object3D, 2.0, false, true, true);
 
       // Show panels
       endCursorLock();
-
-      if (!SYSTEMS.builderSystem.enabled) {
-        SYSTEMS.builderSystem.toggle();
-        SYSTEMS.launcherSystem.toggle();
-      }
     } else if (type === MEDIA_INTERACTION_TYPES.SNAPSHOT) {
       if (this.voxId) {
         this.snapshotNewVox();

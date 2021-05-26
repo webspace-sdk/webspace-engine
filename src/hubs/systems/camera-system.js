@@ -129,6 +129,7 @@ export class CameraSystem extends EventTarget {
     this.orthographicEnabled = false;
     this.showXZPlane = true;
     this.mode = CAMERA_MODE_FIRST_PERSON;
+    this.inspectingWithEphemeralBuildEnabled = false;
     this.snapshot = { audioTransform: new THREE.Matrix4(), matrixWorld: new THREE.Matrix4(), mask: null, mode: null };
     this.audioListenerTargetTransform = new THREE.Matrix4();
     waitForDOMContentLoaded().then(() => {
@@ -196,7 +197,7 @@ export class CameraSystem extends EventTarget {
     };
   })();
 
-  inspect(o, distanceMod, temporarilyDisableRegularExit, allowCursor = false) {
+  inspect(o, distanceMod, temporarilyDisableRegularExit, allowCursor = false, ephemerallyEnableBuild = false) {
     this.verticalDelta = 0;
     this.horizontalDelta = 0;
     this.inspectZoom = 0;
@@ -204,6 +205,15 @@ export class CameraSystem extends EventTarget {
     this.temporarilyDisableRegularExit = temporarilyDisableRegularExit; // TODO: Do this at the action set layer
     if (this.mode === CAMERA_MODE_INSPECT) return;
     this.dispatchEvent(new CustomEvent("mode_changing"));
+    this.inspectingWithEphemeralBuildEnabled = false;
+
+    if (ephemerallyEnableBuild) {
+      if (!SYSTEMS.builderSystem.enabled) {
+        SYSTEMS.builderSystem.toggle();
+        SYSTEMS.launcherSystem.toggle();
+        this.inspectingWithEphemeralBuildEnabled = true;
+      }
+    }
 
     const scene = AFRAME.scenes[0];
     scene.object3D.traverse(ensureLightsAreSeenByCamera);
@@ -284,6 +294,13 @@ export class CameraSystem extends EventTarget {
     this.snapshot.mask = null;
     this.tick(AFRAME.scenes[0]);
     SYSTEMS.externalCameraSystem.releaseForcedViewingCamera();
+
+    if (this.inspectingWithEphemeralBuildEnabled) {
+      SYSTEMS.builderSystem.toggle();
+      SYSTEMS.launcherSystem.toggle();
+      this.inspectingWithEphemeralBuildEnabled = false;
+    }
+
     this.dispatchEvent(new CustomEvent("mode_changed"));
   }
 
