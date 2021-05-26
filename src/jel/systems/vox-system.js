@@ -1438,6 +1438,12 @@ export class VoxSystem extends EventTarget {
     entry.walkableSources[instanceId] = !!(source.el && isLockedMedia(source.el));
 
     entry.hasWalkableSources = !!entry.walkableSources.find(x => x);
+
+    if (entry.hasWalkableSources && !entry.walkGeometry) {
+      // Remesh to generate walk geometry on first walkable source
+      entry.dirtyFrameMeshes[0] = true;
+      entry.regenerateDirtyMeshesOnNextFrame = true;
+    }
   }
 
   markShapesDirtyAfterDelay(voxId) {
