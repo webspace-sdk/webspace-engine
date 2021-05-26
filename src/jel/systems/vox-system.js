@@ -8,6 +8,7 @@ import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
+import { isLockedMedia } from "../../hubs/utils/media-utils";
 import { type as vox0, Vox, VoxChunk } from "ot-vox";
 import VoxSync from "../utils/vox-sync";
 
@@ -118,6 +119,14 @@ export class VoxSystem extends EventTarget {
     this.onSpacePresenceSynced = this.onSpacePresenceSynced.bind(this);
     this.frame = 0;
     this.sceneEl.addEventListener("space-presence-synced", this.onSpacePresenceSynced);
+
+    this.sceneEl.addEventListener("media_locked_changed", ({ target }) => {
+      const mediaVox = target && target.components["media-vox"];
+      if (!mediaVox) return;
+
+      const { voxId, mesh } = mediaVox;
+      this.updateSourceWalkability(voxId, mesh);
+    });
 
     // Need to remesh inspected vox when camera changes
     for (const evt of ["settings_changed", "mode_changed", "mode_changing"]) {
@@ -488,6 +497,8 @@ export class VoxSystem extends EventTarget {
       });
     }
 
+    this.updateSourceWalkability(voxId, source);
+
     return voxId;
   }
 
@@ -501,7 +512,7 @@ export class VoxSystem extends EventTarget {
     const voxEntry = voxMap.get(voxId);
     if (!voxEntry) return;
 
-    const { maxRegisteredIndex, sourceToIndex, sources, meshes, shapesUuid } = voxEntry;
+    const { maxRegisteredIndex, sourceToIndex, sources, meshes, shapesUuid, walkableSources } = voxEntry;
 
     if (!sourceToIndex.has(source)) return;
     const instanceIndex = sourceToIndex.get(source);
@@ -509,6 +520,8 @@ export class VoxSystem extends EventTarget {
     sourceToIndex.delete(source);
     source.onPassedFrustumCheck = () => {};
     sourceToLastCullPassFrame.delete(source);
+    walkableSources[instanceIndex] = false;
+    voxEntry.hasWalkableSources = !!voxEntry.walkableSources.find(x => x);
 
     if (shapesUuid !== null) {
       this.getBodyUuidForSource(source).then(bodyUuid => {
@@ -629,9 +642,11 @@ export class VoxSystem extends EventTarget {
       // Resolver for promise of registration + meshing
       voxRegisteredResolve,
 
-      // True if vox source can be walked on.
-      hasWalkableSources: true,
-      walkableSources: Array(MAX_INSTANCES_PER_VOX_ID).fill(true),
+      // True if vox source can be walked on on any source.
+      hasWalkableSources: false,
+
+      // If true, the corresponding source is walkable.
+      walkableSources: Array(MAX_INSTANCES_PER_VOX_ID).fill(false),
 
       // Geometry to use for raycast for walking.
       walkGeometry: new JelVoxBufferGeometry()
@@ -1411,6 +1426,20 @@ export class VoxSystem extends EventTarget {
     return chunk;
   }
 
+  updateSourceWalkability(voxId, source) {
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return null;
+
+    const { sources } = entry;
+    const instanceId = sources.indexOf(source);
+    if (instanceId === -1) return;
+
+    entry.walkableSources[instanceId] = !!(source.el && isLockedMedia(source.el));
+
+    entry.hasWalkableSources = !!entry.walkableSources.find(x => x);
+  }
+
   markShapesDirtyAfterDelay(voxId) {
     const { voxMap } = this;
     const entry = voxMap.get(voxId);
@@ -1459,6 +1488,7 @@ export class VoxSystem extends EventTarget {
 
     return function(origin, up = true, backSide = false) {
       const { voxMap } = this;
+
       const { side } = voxMaterial;
       let intersection = null;
 
