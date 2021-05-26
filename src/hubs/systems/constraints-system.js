@@ -7,22 +7,30 @@ export class ConstraintsSystem {
   constructor() {
     this.prevLeftHand = {
       held: null,
+      hovered: null,
       spawning: false,
+      preHoldMatrix: null,
       constraining: true
     };
     this.prevRightHand = {
       held: null,
+      hovered: null,
       spawning: false,
+      preHoldMatrix: null,
       constraining: true
     };
     this.prevRightRemote = {
       held: null,
+      hovered: null,
       spawning: false,
+      preHoldMatrix: null,
       constraining: true
     };
     this.prevLeftRemote = {
       held: null,
+      hovered: null,
       spawning: false,
+      preHoldMatrix: null,
       constraining: true
     };
 
@@ -58,18 +66,10 @@ export class ConstraintsSystem {
       this.prevLeftRemote
     );
 
-    this.prevLeftHand.held = interaction.state.leftHand.held;
-    this.prevLeftHand.spawning = interaction.state.leftHand.spawning;
-    this.prevLeftHand.constraining = interaction.state.leftHand.constraining;
-    this.prevRightHand.held = interaction.state.rightHand.held;
-    this.prevRightHand.spawning = interaction.state.rightHand.spawning;
-    this.prevRightHand.constraining = interaction.state.rightHand.constraining;
-    this.prevLeftRemote.held = interaction.state.leftRemote.held;
-    this.prevLeftRemote.spawning = interaction.state.leftRemote.spawning;
-    this.prevLeftRemote.constraining = interaction.state.leftRemote.constraining;
-    this.prevRightRemote.held = interaction.state.rightRemote.held;
-    this.prevRightRemote.spawning = interaction.state.rightRemote.spawning;
-    this.prevRightRemote.constraining = interaction.state.rightRemote.constraining;
+    Object.assign(this.prevLeftHand, interaction.state.leftHand);
+    Object.assign(this.prevRightHand, interaction.state.rightHand);
+    Object.assign(this.prevRightRemote, interaction.state.rightRemote);
+    Object.assign(this.prevLeftRemote, interaction.state.leftRemote);
   }
 
   tickInteractor(constraintTag, entityId, state, prevState) {

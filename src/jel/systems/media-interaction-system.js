@@ -228,20 +228,27 @@ export class MediaInteractionSystem {
         if (isSynced && !ensureOwnership(targetEl)) return;
 
         if (!this.transformSystem.transforming) {
-          const rightHeld = interaction.state.rightRemote.held;
+          const { rightRemote } = interaction.state;
+          const rightHeld = rightRemote.held;
 
           if (rightHeld) {
-            beginEphemeralCursorLock();
-            interaction.state.rightRemote.constraining = false;
+            if (interaction.state.rightRemote.constraining) {
+              // Restore to prehold transform so we can avoid drift from brief
+              // cursor constraint hold (eg when ctrl-drag duplicating.)
+              targetEl.object3D.setMatrix(rightRemote.preHoldMatrix);
+              targetEl.object3D.updateMatrices();
+            }
 
-            this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
-              mode:
-                interactionType === MEDIA_INTERACTION_TYPES.SLIDE
-                  ? TRANSFORM_MODE.SLIDE
-                  : interactionType === MEDIA_INTERACTION_TYPES.STACK
-                    ? TRANSFORM_MODE.STACK
-                    : TRANSFORM_MODE.LIFT
-            });
+            rightRemote.constraining = false;
+
+            const mode =
+              interactionType === MEDIA_INTERACTION_TYPES.SLIDE
+                ? TRANSFORM_MODE.SLIDE
+                : interactionType === MEDIA_INTERACTION_TYPES.STACK
+                  ? TRANSFORM_MODE.STACK
+                  : TRANSFORM_MODE.LIFT;
+
+            this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, { mode });
 
             // Show guide plane during slide or lift
             if (interactionType !== MEDIA_INTERACTION_TYPES.STACK) {

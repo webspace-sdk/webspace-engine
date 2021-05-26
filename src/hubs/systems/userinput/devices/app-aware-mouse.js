@@ -223,7 +223,7 @@ export class AppAwareMouseDevice {
     }
 
     if (cursorIsLocked) {
-      if (isTransforming) {
+      if (isNonGrabTransforming) {
         this.transformStartCoordDelta[0] += movementXScreen;
         this.transformStartCoordDelta[1] += movementYScreen;
       } else {
