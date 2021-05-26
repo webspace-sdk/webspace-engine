@@ -120,6 +120,12 @@ export const xforms = {
     if (frame.get(s)) y -= 1;
     frame.setVector2(vec2, x, y);
   },
+  qe_to_scalar: function(frame, { q, e }, { scalar }) {
+    let x = 0;
+    if (frame.get(q)) x -= 1;
+    if (frame.get(e)) x += 1;
+    frame.setValueType(scalar, x);
+  },
   add_vec2: function(frame, src, dest) {
     const first = frame.get(src.first);
     const second = frame.get(src.second);

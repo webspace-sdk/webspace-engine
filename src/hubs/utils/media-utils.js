@@ -68,6 +68,8 @@ export const MEDIA_VIEW_COMPONENTS = [
 ];
 
 export const PAGABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-pdf"];
+// Components supporting Q/E next and prev interactions
+export const NEXT_PREV_MEDIA_VIEW_COMPONENTS = ["media-video", "media-pdf", "media-text", "media-video"];
 export const BAKABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-text", "media-pdf", "media-canvas", "media-vox"];
 export const FLAT_MEDIA_VIEW_COMPONENTS = [
   "media-video",
@@ -919,6 +921,11 @@ export function performAnimatedRemove(el, callback) {
 
 export function isLockedMedia(el) {
   return !!(el && el.components["media-loader"] && el.components["media-loader"].data.locked);
+}
+
+export function isNextPrevMedia(el) {
+  const component = getMediaViewComponent(el);
+  return NEXT_PREV_MEDIA_VIEW_COMPONENTS.includes(component?.name);
 }
 
 export const spawnMediaInfrontOfPlayer = (

@@ -13,6 +13,7 @@ paths.actions.debugUserInput.describeCurrentMasks = "/actions/debugUserInput/des
 paths.actions.cameraDelta = "/actions/cameraDelta";
 paths.actions.lobbyCameraDelta = "/actions/lobbyCameraDelta";
 paths.actions.characterAcceleration = "/actions/characterAcceleration";
+paths.actions.characterLift = "/actions/characterLift";
 paths.actions.equipScroll = "/actions/equipScroll";
 paths.actions.boost = "/actions/boost";
 paths.actions.startGazeTeleport = "/actions/startTeleport";

@@ -219,67 +219,65 @@ const lockedVoxCommonTips = [
     .map(t => (t[0] === "bake" ? ["duplicate", t[1]] : t))
 ];
 
+const idleTips = [
+  ["move", "w a s d"],
+  ["fly", "q e"],
+  ["look", "H;G", "narrowMouseLook"],
+  ["run", "H"],
+  ["jump", "S"],
+  ["shoot", "_S|D"],
+  ["mute", "L+m", "toggleMuteKey"],
+  ["create", "/", "createMenu"],
+  ["paste", "L+v"],
+  ["chat", "E", "chat"],
+  ["widen", "L+S", "widen"],
+  ["hide", "?"]
+];
+
+const replaceTip = (tips, type, newType, newValue) =>
+  tips.map(([k, v, flag]) => {
+    if (flag) {
+      return [k === type ? newType : k, k === type ? newValue : v, flag];
+    } else {
+      return [k === type ? newType : k, k === type ? newValue : v, flag];
+    }
+  });
+
+const dropTip = (tips, type) => tips.filter(x => x[0] !== type);
+
 const TIP_DATA = {
   closed: [["help", "?"]],
-  idle_panels: [
-    ["move", "w a s d"],
-    ["look", "H;G", "narrowMouseLook"],
-    ["run", "H"],
-    ["jump", "S"],
-    ["shoot", "_S|D"],
-    ["create", "/", "createMenu"],
-    ["paste", "L+v"],
-    ["chat", "E", "chat"],
-    ["widen", "L+S", "widen"],
-    ["hide", "?"]
-  ],
-  idle_key_mouselook_panels: [
-    ["move", "w a s d"],
-    ["look", "H;G", "narrowMouseLook"],
-    ["run", "H"],
-    ["jump", "S"],
-    ["shoot", "_S|K"],
-    ["create", "/", "createMenu"],
-    ["paste", "L+v"],
-    ["chat", "E", "chat"],
-    ["widen", "L+S", "widen"],
-    ["hide", "?"]
-  ],
-  idle_full_muted: [
-    ["move", "w a s d"],
-    ["run", "H"],
-    ["jump", "S"],
-    ["shoot", "_S|K"],
-    ["unmute", "L+m", "toggleMuteKey"],
-    ["paste", "L+v"],
-    ["create", "/", "createMenu"],
-    ["chat", "E", "chat"],
-    ["narrow", "Z|L+S"],
-    ["hide", "?"]
-  ],
-  idle_full_unmuted: [
-    ["move", "w a s d"],
-    ["run", "H"],
-    ["jump", "S"],
-    ["shoot", "_S|K"],
-    ["mute", "L+m", "toggleMuteKey"],
-    ["paste", "L+v"],
-    ["create", "/", "createMenu"],
-    ["chat", "E", "chat"],
-    ["narrow", "Z|L+S"],
-    ["hide", "?"]
-  ],
+  idle_panels: dropTip(dropTip(idleTips, "mute"), "fly"),
+  idle_key_mouselook_panels: dropTip(
+    dropTip(dropTip(dropTip(replaceTip(idleTips, "shoot", "shoot", "_S|K"), "look"), "run"), "mute"),
+    "fly"
+  ),
+  idle_full_muted: dropTip(
+    dropTip(replaceTip(replaceTip(idleTips, "shoot", "shoot", "_S|K"), "mute", "unmute", "L+m"), "look"),
+    "fly"
+  ),
+  idle_full_unmuted: dropTip(dropTip(replaceTip(idleTips, "shoot", "shoot", "_S|K"), "look"), "fly"),
+  idle_panels_fly: dropTip(idleTips, "mute"),
+  idle_key_mouselook_panels_fly: dropTip(
+    dropTip(dropTip(replaceTip(idleTips, "shoot", "shoot", "_S|K"), "look"), "run"),
+    "mute"
+  ),
+  idle_full_muted_fly: dropTip(
+    replaceTip(replaceTip(idleTips, "shoot", "shoot", "_S|K"), "mute", "unmute", "L+m"),
+    "look"
+  ),
+  idle_full_unmuted_fly: dropTip(replaceTip(idleTips, "shoot", "shoot", "_S|K"), "look"),
   pointer_exited_muted: [["unmute", "L+m", "toggleMuteKey"], ["mode", "L+b"], ["hide", "?"]],
   pointer_exited_unmuted: [["mute", "L+m", "toggleMuteKey"], ["mode", "L+b"], ["hide", "?"]],
   hover_locked_bakable_interactable: [...lockedObjectCommonTips],
-  hover_locked_interactable: lockedObjectCommonTips.filter(x => x[0] !== "bake"),
+  hover_locked_interactable: dropTip(lockedObjectCommonTips, "bake"),
   locked_video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...lockedObjectCommonTips],
   locked_video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...lockedObjectCommonTips],
   locked_pdf: [["next", "L+S"], ["page", "q\\e"], ...lockedObjectCommonTips],
   holding_interactable: [["pull", "R"], ["stack", "_S"], ["movexz", "_q"], ["movey", "_e"]],
   hover_interactable: objectCommonTips.filter(x => x[0] !== "bake" && x[0] !== "ground"),
-  hover_bakable_interactable: objectCommonTips.filter(x => x[0] !== "reset"),
-  hover_resetable_interactable: objectCommonTips.filter(x => x[0] !== "bake"),
+  hover_bakable_interactable: dropTip(objectCommonTips, "reset"),
+  hover_resetable_interactable: dropTip(objectCommonTips, "bake"),
   hover_bakable_resetable_interactable: objectCommonTips,
   video_playing: [["pause", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],

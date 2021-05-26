@@ -60,6 +60,14 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     },
     {
       src: {
+        q: paths.device.keyboard.code("keyq"),
+        e: paths.device.keyboard.code("keye")
+      },
+      dest: { scalar: paths.actions.characterLift },
+      xform: xforms.qe_to_scalar
+    },
+    {
+      src: {
         w: paths.device.keyboard.key("arrowup"),
         a: paths.device.keyboard.key("arrowleft"),
         s: paths.device.keyboard.key("arrowdown"),

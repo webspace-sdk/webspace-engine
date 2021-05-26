@@ -3,6 +3,7 @@ import { SOUND_SNAP_ROTATE } from "./sound-effects-system";
 import { waitForDOMContentLoaded } from "../utils/async-utils";
 import { childMatch, rotateInPlaceAroundWorldUp, affixToWorldUp, IDENTITY_QUATERNION } from "../utils/three-utils";
 import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
+import { isNextPrevMedia } from "../utils/media-utils";
 //import { m4String } from "../utils/pretty-print";
 import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../jel/systems/terrain-system";
 import qsTruthy from "../utils/qs_truthy";
@@ -224,6 +225,7 @@ export class CharacterControllerSystem {
         this.scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_SNAP_ROTATE);
       }
       const characterAcceleration = userinput.get(paths.actions.characterAcceleration);
+      const characterLift = userinput.get(paths.actions.characterLift);
 
       if (isBotMode) {
         // Bot mode keeps moving around
@@ -254,6 +256,15 @@ export class CharacterControllerSystem {
           Math.max(Math.abs(characterAcceleration[0]), Math.abs(characterAcceleration[1])) * boost;
       } else {
         this.relativeMotionValue = 0;
+      }
+
+      if (this.fly && characterLift) {
+        const hoverEl = this.interaction && this.interaction.state.rightRemote.hovered;
+
+        // Hacky, can't mask out hovering on Q/E'able objects via binding, so do so here.
+        if (!hoverEl || !isNextPrevMedia(hoverEl)) {
+          this.relativeMotion.y += characterLift;
+        }
       }
 
       if (this.networkedAvatar) {

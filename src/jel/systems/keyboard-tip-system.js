@@ -49,6 +49,10 @@ export class KeyboardTipSystem {
             ? "idle_key_mouselook_panels"
             : "idle_panels";
 
+        if (SYSTEMS.characterController.fly) {
+          showTips += "_fly";
+        }
+
         if (this.transformSystem.transforming) {
           if (this.scaleSystem.isScaling) {
             showTips = "scale";
