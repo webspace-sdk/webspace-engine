@@ -363,6 +363,17 @@ export class VoxSystem extends EventTarget {
     }
   }
 
+  async canEditAsync(voxId) {
+    const perms = this.getPermissions(voxId);
+
+    if (perms) {
+      return perms.edit_vox;
+    } else {
+      await this.ensurePermissionsCached(voxId);
+      return this.canEdit(voxId);
+    }
+  }
+
   async getSync(voxId) {
     const { sceneEl, syncs } = this;
     if (syncs.has(voxId)) {

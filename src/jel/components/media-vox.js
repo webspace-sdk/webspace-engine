@@ -109,7 +109,7 @@ AFRAME.registerComponent("media-vox", {
     }
   },
 
-  handleMediaInteraction(type) {
+  async handleMediaInteraction(type) {
     if (type === MEDIA_INTERACTION_TYPES.RESET) {
       const bbox = SYSTEMS.voxSystem.getBoundingBoxForSource(this.mesh, true);
       const center = new THREE.Vector3();
@@ -119,7 +119,7 @@ AFRAME.registerComponent("media-vox", {
       resetMediaRotation(this.el);
     } else if (type === MEDIA_INTERACTION_TYPES.EDIT) {
       if (SYSTEMS.cameraSystem.isInspecting()) return;
-      if (!SYSTEMS.voxSystem.canEdit(this.voxId)) return;
+      if (!(await SYSTEMS.voxSystem.canEditAsync(this.voxId))) return;
 
       // Start inspecting with editing enabled
       SYSTEMS.cameraSystem.inspect(this.el.object3D, 2.0, false, true);
