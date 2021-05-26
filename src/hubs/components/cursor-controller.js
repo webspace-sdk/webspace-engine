@@ -43,6 +43,7 @@ AFRAME.registerComponent("cursor-controller", {
     waitForDOMContentLoaded().then(() => {
       this.cssGazeCursor = document.querySelector("#gaze-cursor .cursor");
       this.lastCssGazeCursorOffset = Infinity;
+      this.lastCssGazeCursorScale = Infinity;
     });
 
     const lineGeometry = new THREE.BufferGeometry();
@@ -140,6 +141,9 @@ AFRAME.registerComponent("cursor-controller", {
         cursor.object3D.matrixNeedsUpdate = true;
       }
 
+      let cursorScale3D = 0.4;
+      let cursorScaleCSS = 0.4;
+
       // TODO : Check if the selected object being transformed is for this cursor!
       if (
         transformObjectSystem.transforming &&
@@ -147,10 +151,20 @@ AFRAME.registerComponent("cursor-controller", {
           (!left && transformObjectSystem.hand.el.id === "player-right-controller"))
       ) {
         this.color.copy(TRANSFORM_COLOR_1).lerpHSL(TRANSFORM_COLOR_2, 0.5 + 0.5 * Math.sin(t / 1000.0));
+        cursorScale3D = 0.8;
+        cursorScaleCSS = 1.0;
       } else if ((this.intersectionIsValid || isGrabbing) && !isLockedMedia(intersectionTarget)) {
         this.color.copy(HIGHLIGHT);
+        cursorScale3D = 0.8;
+        cursorScaleCSS = 1.0;
       } else {
         this.color.copy(NO_HIGHLIGHT);
+      }
+
+      if (Math.abs(cursor.components["scale-in-screen-space"].data.baseScale.x - cursorScale3D) > 0.01) {
+        cursor.setAttribute("scale-in-screen-space", {
+          addedScale: { x: cursorScale3D, y: cursorScale3D, z: cursorScale3D }
+        });
       }
 
       const showCursor = document.body.classList.contains("show-3d-cursor");
@@ -160,9 +174,16 @@ AFRAME.registerComponent("cursor-controller", {
 
       // Huge hack, due to vertex curving, the CSS-based gaze cursor needs to be offset a bit
       // vertically based upon how far the intersection is in a way similar to the 3d cursor.
-      if (this.cssGazeCursor && this.lastCssGazeCursorOffset !== cssGazeYOffset) {
-        this.cssGazeCursor.setAttribute("style", `transform: translateY(${cssGazeYOffset}px);`);
+      if (
+        this.cssGazeCursor &&
+        (this.lastCssGazeCursorOffset !== cssGazeYOffset || this.lastCssGazeCursorScale !== cursorScaleCSS)
+      ) {
+        this.cssGazeCursor.setAttribute(
+          "style",
+          `transform: translateY(${cssGazeYOffset}px); transform: scale(${cursorScaleCSS}, ${cursorScaleCSS});`
+        );
         this.lastCssGazeCursorOffset = cssGazeYOffset;
+        this.lastCssGazeCursorScale = cursorScaleCSS;
       }
 
       const mesh = this.data.cursor.object3DMap.mesh;
