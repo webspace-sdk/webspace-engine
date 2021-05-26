@@ -420,6 +420,7 @@ class JelVoxBufferGeometry extends BufferGeometry {
     const yShiftVox = yShift * VOXEL_SIZE;
     const zShiftVox = zShift * VOXEL_SIZE;
     const hasLod = lod > 1;
+    const lodOffset = lod === 1 ? 0 : lod === 2 ? -VOXEL_SIZE / 2 : -VOXEL_SIZE * 2;
 
     let getLodVoxelCoord = null;
 
@@ -519,18 +520,18 @@ class JelVoxBufferGeometry extends BufferGeometry {
       uvs[iQuad * 8 + 6] = u1;
       uvs[iQuad * 8 + 7] = v2;
 
-      const p1xw = p1x * lod - xShiftVox;
-      const p1yw = p1y * lod - yShiftVox;
-      const p1zw = p1z * lod - zShiftVox;
-      const p2xw = p2x * lod - xShiftVox;
-      const p2yw = p2y * lod - yShiftVox;
-      const p2zw = p2z * lod - zShiftVox;
-      const p3xw = p3x * lod - xShiftVox;
-      const p3yw = p3y * lod - yShiftVox;
-      const p3zw = p3z * lod - zShiftVox;
-      const p4xw = p4x * lod - xShiftVox;
-      const p4yw = p4y * lod - yShiftVox;
-      const p4zw = p4z * lod - zShiftVox;
+      const p1xw = p1x * lod - xShiftVox + lodOffset;
+      const p1yw = p1y * lod - yShiftVox + lodOffset;
+      const p1zw = p1z * lod - zShiftVox + lodOffset;
+      const p2xw = p2x * lod - xShiftVox + lodOffset;
+      const p2yw = p2y * lod - yShiftVox + lodOffset;
+      const p2zw = p2z * lod - zShiftVox + lodOffset;
+      const p3xw = p3x * lod - xShiftVox + lodOffset;
+      const p3yw = p3y * lod - yShiftVox + lodOffset;
+      const p3zw = p3z * lod - zShiftVox + lodOffset;
+      const p4xw = p4x * lod - xShiftVox + lodOffset;
+      const p4yw = p4y * lod - yShiftVox + lodOffset;
+      const p4zw = p4z * lod - zShiftVox + lodOffset;
 
       vertices[iQuad * 12 + 0] = p1xw;
       vertices[iQuad * 12 + 1] = p1yw;
