@@ -8,9 +8,7 @@ import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../jel/systems/
 import qsTruthy from "../utils/qs_truthy";
 const CHARACTER_MAX_Y = 10;
 
-// This threshold is used to determine when vox raycasting should determine
-// a jump up to another level or the same level on a multi-level vox.
-const MIN_VOX_FLOOR_HEIGHT = 2.5;
+const MAX_VOX_HOP_SIZE = 1.0;
 
 const calculateDisplacementToDesiredPOV = (function() {
   const translationCoordinateSpace = new THREE.Matrix4();
@@ -406,49 +404,34 @@ export class CharacterControllerSystem {
       const terrainY = terrainSystem.getTerrainHeightAtWorldCoord(end.x, end.z);
 
       let voxFloorY = -Infinity;
-      let voxFloorObj = null;
-      let voxFloorObjInstanceId = -1;
 
-      // Check if there is a vox surface below us.
+      // Check if there is a vox surface to walk along.
       origin.copy(end);
-      origin.y += 0.05;
+      origin.y += MAX_VOX_HOP_SIZE;
+
       let intersection = SYSTEMS.voxSystem.raycastVerticallyToClosestWalkableSource(origin, false);
 
       if (intersection !== null) {
         voxFloorY = intersection.point.y;
-        voxFloorObj = intersection.object;
-        voxFloorObjInstanceId = intersection.instanceId;
       }
 
       // Check if we need to jump up to a vox floor above us.
       //
-      origin.y = Math.max(voxFloorY, terrainY) + 0.05;
+      //origin.y = Math.max(voxFloorY, terrainY) + 0.05;
 
       // Intersect backsides to find floors.
       intersection = SYSTEMS.voxSystem.raycastVerticallyToClosestWalkableSource(origin, true, true);
 
       if (intersection !== null) {
-        // If there is a vox floor above us, consider two cases:
-        // - We're significantly far away from the nearest vox floor or terrain, or we hit
-        //   a different vox. If so, jump up.
-        //     - The former is for cases like an intra-vox jump where the upper
-        //       level has multiple heights. Eg a multi-level roof.
-        // - If we're just above the terrain directly, jump up if the vox level
-        //   above us is not blocked by a vox surface facing us. Ie, we're inside
-        //   the bottom of a vox mesh.
+        // Check to see if we should jump up to a higher level.
         const aboveFloorHeight = intersection.point.y;
-        const hitSameVox = intersection.object === voxFloorObj && intersection.instanceId === voxFloorObjInstanceId;
-
-        if (voxFloorY > 0 && (Math.abs(Math.max(terrainY, voxFloorY) - end.y) > MIN_VOX_FLOOR_HEIGHT || !hitSameVox)) {
-          voxFloorY = aboveFloorHeight;
-        } else if (voxFloorY < 0) {
-          // Above terrain not a vox.
-
+        if (aboveFloorHeight > end.y) {
           // Check if there is an intermediate ceiling below the floor we may jump to.
-          intersection = SYSTEMS.voxSystem.raycastVerticallyToClosestWalkableSource(origin, true);
-
-          if (intersection === null || intersection.point.y > aboveFloorHeight) {
-            voxFloorY = aboveFloorHeight;
+          if (aboveFloorHeight - end.y >= MAX_VOX_HOP_SIZE) {
+            intersection = SYSTEMS.voxSystem.raycastVerticallyToClosestWalkableSource(origin, true);
+            if (intersection === null || intersection.point.y > aboveFloorHeight) {
+              voxFloorY = Math.max(voxFloorY, aboveFloorHeight);
+            }
           }
         }
       }

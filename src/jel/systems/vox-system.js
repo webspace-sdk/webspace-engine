@@ -814,8 +814,8 @@ export class VoxSystem extends EventTarget {
             const isWalkable = walkableSources[j];
 
             if (isWalkable) {
-              walkGeometry.update(chunk, Infinity, true, false);
-              walkGeometry.boundsTree = new MeshBVH(walkGeometry, { strategy: 0, maxDepth: 30, lazyGeneration: false });
+              walkGeometry.update(chunk, 32, true, false);
+              walkGeometry.boundsTree = new MeshBVH(walkGeometry, { strategy: 0, maxDepth: 30 });
               break;
             }
           }
@@ -928,7 +928,7 @@ export class VoxSystem extends EventTarget {
     const totalVoxels = chunk.getTotalNonEmptyVoxels();
     const lod = totalVoxels > 12500 ? 3 : totalVoxels > 2500 ? 2 : 1;
 
-    physicsMesh.geometry.update(chunk, Infinity, true, false, lod);
+    physicsMesh.geometry.update(chunk, 32, true, false, lod);
 
     // Physics shape is based upon the first mesh.
     const shapesUuid = physicsSystem.createShapes(physicsMesh, {
