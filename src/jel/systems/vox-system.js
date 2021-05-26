@@ -649,10 +649,9 @@ export class VoxSystem extends EventTarget {
       walkableSources: Array(MAX_INSTANCES_PER_VOX_ID).fill(false),
 
       // Geometry to use for raycast for walking.
-      walkGeometry: new JelVoxBufferGeometry()
+      walkGeometry: null
     };
 
-    entry.walkGeometry.instanceAttributes = []; // For DynamicInstancedMesh
     voxMap.set(voxId, entry);
 
     const store = window.APP.store;
@@ -688,7 +687,10 @@ export class VoxSystem extends EventTarget {
       this.removeMeshForIndex(voxId, i);
     }
 
-    walkGeometry.dispose();
+    if (walkGeometry) {
+      voxEntry.walkGeometry = null;
+      walkGeometry.dispose();
+    }
 
     if (sizeBoxGeometry) {
       voxEntry.sizeBoxGeometry = null;
@@ -751,9 +753,7 @@ export class VoxSystem extends EventTarget {
       maxRegisteredIndex,
       pendingVoxChunk,
       pendingVoxChunkOffset,
-      hasWalkableSources,
-      walkableSources,
-      walkGeometry
+      hasWalkableSources
     } = entry;
     if (!vox) return;
 
@@ -810,15 +810,15 @@ export class VoxSystem extends EventTarget {
 
         // If no pending + walkable update the walk geometry to match the first frame.
         if (!pendingVoxChunk && i === 0 && hasWalkableSources) {
-          for (let j = 0, l = walkableSources.length; j < l; j++) {
-            const isWalkable = walkableSources[j];
+          let walkGeometry = entry.walkGeometry;
 
-            if (isWalkable) {
-              walkGeometry.update(chunk, 32, true, false);
-              walkGeometry.boundsTree = new MeshBVH(walkGeometry, { strategy: 0, maxDepth: 30 });
-              break;
-            }
+          if (walkGeometry === null) {
+            walkGeometry = entry.walkGeometry = new JelVoxBufferGeometry();
+            walkGeometry.instanceAttributes = []; // For DynamicInstancedMesh
           }
+
+          walkGeometry.update(chunk, 32, true, false);
+          walkGeometry.boundsTree = new MeshBVH(walkGeometry, { strategy: 0, maxDepth: 30 });
         }
 
         // Apply any ephemeral pending (eg from voxel brushes.)
@@ -1505,6 +1505,7 @@ export class VoxSystem extends EventTarget {
         if (voxMesh === null) continue;
 
         const { sources, walkableSources, walkGeometry } = entry;
+        if (walkGeometry === null) continue;
 
         for (let instanceId = 0, l = sources.length; instanceId < l; instanceId++) {
           const source = sources[instanceId];

@@ -8,6 +8,7 @@ import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../jel/systems/
 import qsTruthy from "../utils/qs_truthy";
 const CHARACTER_MAX_Y = 10;
 
+// Largest vertical distance we can just hop up without additional raycasts.
 const MAX_VOX_HOP_SIZE = 1.0;
 
 const calculateDisplacementToDesiredPOV = (function() {
@@ -415,11 +416,8 @@ export class CharacterControllerSystem {
         voxFloorY = intersection.point.y;
       }
 
-      // Check if we need to jump up to a vox floor above us.
-      //
-      //origin.y = Math.max(voxFloorY, terrainY) + 0.05;
-
-      // Intersect backsides to find floors.
+      // Intersect backsides to find floors above us and determine if we need
+      // to jump up to one.
       intersection = SYSTEMS.voxSystem.raycastVerticallyToClosestWalkableSource(origin, true, true);
 
       if (intersection !== null) {
