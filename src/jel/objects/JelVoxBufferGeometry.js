@@ -861,7 +861,6 @@ class JelVoxBufferGeometry extends BufferGeometry {
     }
 
     boundingSphere.radius = Math.sqrt(maxRadiusSq);
-    this.computeBoundingSphere();
 
     return numIndices === 0 ? [0, 0, 0, 0, 0, 0] : [xMin, yMin, zMin, xMax, yMax, zMax];
   }
