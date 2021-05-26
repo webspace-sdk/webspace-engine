@@ -338,11 +338,17 @@ AFRAME.registerComponent("media-loader", {
   },
 
   async update(oldData, forceLocalRefresh) {
-    const { src, version, contentSubtype } = this.data;
+    const { src, version, contentSubtype, locked } = this.data;
     if (!src) return;
 
     const mediaChanged = oldData.src !== src;
     const versionChanged = !!(oldData.version && oldData.version !== version);
+    const lockedChanged = oldData.locked !== undefined && oldData.locked !== locked;
+
+    if (lockedChanged) {
+      this.el.emit("media_locked_changed");
+    }
+
     if (!mediaChanged && !versionChanged && !forceLocalRefresh) return;
 
     if (versionChanged) {
