@@ -6,7 +6,7 @@ import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
 //import { m4String } from "../utils/pretty-print";
 import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "../../jel/systems/terrain-system";
 import qsTruthy from "../utils/qs_truthy";
-const CHARACTER_MAX_Y = 10;
+const CHARACTER_MAX_Y = 15;
 
 // Largest vertical distance we can just hop up without additional raycasts.
 const MAX_VOX_HOP_SIZE = 1.0;
