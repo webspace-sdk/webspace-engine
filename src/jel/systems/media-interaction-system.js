@@ -231,7 +231,6 @@ export class MediaInteractionSystem {
           const rightHeld = interaction.state.rightRemote.held;
 
           if (rightHeld) {
-            beginEphemeralCursorLock();
             interaction.state.rightRemote.constraining = false;
 
             this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {

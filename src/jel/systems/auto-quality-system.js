@@ -87,7 +87,11 @@ export class AutoQualitySystem extends EventTarget {
 
     this.scene.renderer.setPixelRatio(1.0);
     this.scene.systems.effects.updateComposer = true;
-    this.enableTracking = window.APP.detailLevel !== LOWEST_DETAIL_LEVEL; // Stop tracking at lowest detail level
+    const minPixelRatio = window.APP.detailLevel === 0 ? window.devicePixelRatio : window.devicePixelRatio / 3.0;
+
+    this.enableTracking =
+      window.APP.detailLevel < LOWEST_DETAIL_LEVEL || this.scene.renderer.getPixelRatio() > minPixelRatio; // Stop tracking at lowest detail level
+
     document.body.classList.add("low-detail");
 
     if (saveToStore) {
@@ -199,6 +203,12 @@ export class AutoQualitySystem extends EventTarget {
             console.warn("Dropping resolution to a third.", window.devicePixelRatio / 3.0);
             this.scene.renderer.setPixelRatio(window.devicePixelRatio / 3.0);
             this.scene.systems.effects.updateComposer = true;
+
+            // Fire framerate stable event when we bottom out.
+            if (window.APP.detailLevel >= LOWEST_DETAIL_LEVEL && !this.firedFrameStableEvent) {
+              this.dispatchEvent(new CustomEvent("framerate_stable", {}));
+              this.firedFrameStableEvent = true;
+            }
           }
         } else {
           if (window.APP.detailLevel < LOWEST_DETAIL_LEVEL) {
