@@ -14,7 +14,7 @@ import initialBatchImage from "./assets/hubs/images/warning_icon.png";
 
 import "aframe";
 import "./hubs/utils/logging";
-import { patchWebGLRenderingContext } from "./hubs/utils/webgl";
+import { patchWebGLRenderingContext, isSoftwareRenderer } from "./hubs/utils/webgl";
 patchWebGLRenderingContext();
 
 import "three/examples/js/loaders/GLTFLoader";
@@ -678,15 +678,12 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
     if (!performedInitialQualityBoost && !isBotMode) {
       performedInitialQualityBoost = true;
 
-      let setToHighDetail = true;
+      let setToDefaultDefaultDetail = true;
 
-      if (window.APP.store.state.settings.defaultDetailLevel) {
+      const isSoftware = isSoftwareRenderer();
+
+      if (!isSoftware && window.APP.store.state.settings.defaultDetailLevel) {
         const now = Math.floor(new Date() / 1000.0);
-
-        if (window.APP.store.state.settings.defaultDetailLevelUntilSeconds > 1700000000) {
-          // TODO Bug workaround, remove after 4/1/21
-          window.APP.store.update({ settings: { defaultDetailLevelUntilSeconds: Math.floor(new Date() / 1000) } });
-        }
 
         // The default detail level has an expiration date, for cases where the user has
         // re-configured their machine properly to use the GPU, etc.
@@ -695,14 +692,14 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
 
         if (shouldApplyDefaultDetailLevel) {
           window.APP.detailLevel = window.APP.store.state.settings.defaultDetailLevel;
-          setToHighDetail = false;
+          setToDefaultDefaultDetail = false;
         }
       }
 
       // If not overridden, set the detail level to high and assume auto quality system will handle it.
-      if (setToHighDetail) {
-        window.APP.detailLevel = 0;
-        scene.renderer.setPixelRatio(window.devicePixelRatio);
+      if (setToDefaultDefaultDetail) {
+        window.APP.detailLevel = isSoftware ? 3 : 0;
+        scene.renderer.setPixelRatio(isSoftware ? 1.0 : window.devicePixelRatio);
         scene.systems.effects.updateComposer = true;
       }
 
