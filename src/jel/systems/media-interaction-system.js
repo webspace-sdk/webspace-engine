@@ -232,7 +232,7 @@ export class MediaInteractionSystem {
           const rightHeld = rightRemote.held;
 
           if (rightHeld) {
-            if (interaction.state.rightRemote.constraining) {
+            if (rightRemote.constraining) {
               // Restore to prehold transform so we can avoid drift from brief
               // cursor constraint hold (eg when ctrl-drag duplicating.)
               targetEl.object3D.setMatrix(rightRemote.preHoldMatrix);
