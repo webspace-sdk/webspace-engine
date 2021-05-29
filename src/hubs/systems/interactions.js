@@ -263,8 +263,7 @@ AFRAME.registerSystem("interaction", {
           const { object3D } = state.held;
           object3D.updateMatrices();
 
-          SYSTEMS.undoSystem.pushMatrixUpdateUndo(state.held, CHANGE_TYPES.MOVE, object3D.matrix, state.preHoldMatrix);
-          console.log("push undo");
+          SYSTEMS.undoSystem.pushMatrixUpdateUndo(state.held, CHANGE_TYPES.MOVE, state.preHoldMatrix, object3D.matrix);
         }
 
         state.held = null;

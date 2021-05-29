@@ -1,3 +1,4 @@
+import { ensureOwnership } from "../utils/ownership-utils";
 const MAX_UNDO_STEPS = 32;
 
 export const CHANGE_TYPES = {
@@ -7,9 +8,16 @@ export const CHANGE_TYPES = {
   SCALE: 3
 };
 
+const UNDO_OPS = {
+  NONE: 0,
+  UNDO: 1,
+  REDO: 2
+};
+
 export class UndoSystem {
   constructor() {
     this.undoStacks = new Map();
+    this.pendingOps = [];
   }
 
   register(entity) {
@@ -30,11 +38,70 @@ export class UndoSystem {
     undoStacks.delete(entity);
   }
 
-  tick() {}
+  tick() {
+    const { pendingOps } = this;
+
+    for (const [op, entity] of pendingOps) {
+      if (op === UNDO_OPS.UNDO) {
+        this.applyUndo(entity);
+      } else if (op === UNDO_OPS.REDO) {
+        this.applyRedo(entity);
+      }
+    }
+
+    pendingOps.length = 0;
+  }
+
+  applyUndo(entity) {
+    const { undoStacks } = this;
+    const stack = undoStacks.get(entity);
+    if (!stack) return;
+
+    const { backward, position } = stack;
+    if (!backward[position]) return;
+
+    if (!ensureOwnership(entity)) return;
+
+    const [, { values }] = backward[position];
+    this.applyValues(entity, values);
+    stack.position--;
+  }
+
+  applyRedo(entity) {
+    const { undoStacks } = this;
+    const stack = undoStacks.get(entity);
+    if (!stack) return;
+
+    const { forward, position } = stack;
+    if (!forward[position]) return;
+
+    if (!ensureOwnership(entity)) return;
+
+    const [, { values }] = forward[position];
+    this.applyValues(entity, values);
+    stack.position++;
+  }
+
+  applyValues(entity, values) {
+    for (const { key, value } of values) {
+      switch (key) {
+        case "matrix":
+          entity.object3D.setMatrix(value);
+          break;
+      }
+    }
+  }
+
+  doUndo(entity) {
+    this.pendingOps.push([UNDO_OPS.UNDO, entity]);
+  }
+
+  doRedo(entity) {
+    this.pendingOps.push([UNDO_OPS.REDO, entity]);
+  }
 
   pushMatrixUpdateUndo(entity, type, fromMatrix, toMatrix) {
     const [forwardStep, backwardStep] = this._createStepsForMatrixUpdate(fromMatrix, toMatrix);
-    console.log("push", type, backwardStep, forwardStep);
     this.pushUndo(entity, type, backwardStep, forwardStep);
   }
 

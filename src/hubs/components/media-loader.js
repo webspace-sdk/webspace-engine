@@ -77,15 +77,15 @@ AFRAME.registerComponent("media-loader", {
     this.animating = false;
     this.cachedShouldShowLoader = null;
 
-    const hubsSystems = this.el.sceneEl.systems["hubs-systems"];
-    hubsSystems.skyBeamSystem.register(this.el.object3D);
+    SYSTEMS.skyBeamSystem.register(this.el.object3D);
+    SYSTEMS.undoSystem.register(this.el);
 
     if (isSynchronized(this.el)) {
       getNetworkedEntity(this.el).then(networkedEl => {
         this.networkedEl = networkedEl;
 
         if (typeof this.data.mediaLayer === "number") {
-          hubsSystems.mediaPresenceSystem.updateDesiredMediaPresence(this.el);
+          SYSTEMS.mediaPresenceSystem.updateDesiredMediaPresence(this.el);
         }
       });
     }
@@ -136,10 +136,10 @@ AFRAME.registerComponent("media-loader", {
       this.data.linkedEl.removeEventListener("componentremoved", this.handleLinkedElRemoved);
     }
 
-    const hubsSystems = this.el.sceneEl.systems["hubs-systems"];
-    hubsSystems.skyBeamSystem.unregister(this.el.object3D);
+    SYSTEMS.skyBeamSystem.unregister(this.el.object3D);
+    SYSTEMS.undoSystem.unregister(this.el);
 
-    const sfx = hubsSystems.soundEffectsSystem;
+    const sfx = SYSTEMS.soundEffectsSystem;
 
     if (this.loadingSoundEffect) {
       sfx.stopPositionalAudio(this.loadingSoundEffect);
