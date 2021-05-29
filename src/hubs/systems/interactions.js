@@ -4,7 +4,6 @@ import { canMove, canCloneOrSnapshot } from "../utils/permissions-utils";
 import { isTagged } from "../components/tags";
 import { isSynchronized, isMine } from "../../jel/utils/ownership-utils";
 import { cloneMedia, isLockedMedia } from "../utils/media-utils";
-import { CHANGE_TYPES } from "../../jel/systems/undo-system";
 
 function findHandCollisionTargetForHand(bodyHelper) {
   const physicsSystem = this.el.sceneEl.systems["hubs-systems"].physicsSystem;
@@ -263,7 +262,7 @@ AFRAME.registerSystem("interaction", {
           const { object3D } = state.held;
           object3D.updateMatrices();
 
-          SYSTEMS.undoSystem.pushMatrixUpdateUndo(state.held, CHANGE_TYPES.MOVE, state.preHoldMatrix, object3D.matrix);
+          SYSTEMS.undoSystem.pushMatrixUpdateUndo(state.held, state.preHoldMatrix, object3D.matrix);
         }
 
         state.held = null;

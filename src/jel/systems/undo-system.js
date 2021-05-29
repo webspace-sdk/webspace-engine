@@ -1,12 +1,5 @@
 import { ensureOwnership } from "../utils/ownership-utils";
-const MAX_UNDO_STEPS = 32;
-
-export const CHANGE_TYPES = {
-  NONE: 0,
-  MOVE: 1,
-  ROTATE: 2,
-  SCALE: 3
-};
+const MAX_UNDO_STEPS = 64;
 
 const UNDO_OPS = {
   NONE: 0,
@@ -16,70 +9,69 @@ const UNDO_OPS = {
 
 export class UndoSystem {
   constructor() {
-    this.undoStacks = new Map();
-    this.pendingOps = [];
-  }
-
-  register(entity) {
-    const { undoStacks } = this;
-
-    const stack = {
+    this.undoStack = {
       backward: new Array(MAX_UNDO_STEPS).fill(null),
       forward: new Array(MAX_UNDO_STEPS).fill(null),
-      types: new Array(MAX_UNDO_STEPS).fill(0),
       position: 0
     };
 
-    undoStacks.set(entity, stack);
+    this.pendingOps = [];
+  }
+
+  register(/*entity*/) {
+    // No-op
   }
 
   unregister(entity) {
-    const { undoStacks } = this;
-    undoStacks.delete(entity);
+    const { undoStack } = this;
+
+    for (const entry of undoStack.backward) {
+      if (entry && entry.entity === entity) entry.entity = null;
+    }
+
+    for (const entry of undoStack.forward) {
+      if (entry && entry.entity === entity) entry.entity = null;
+    }
   }
 
   tick() {
     const { pendingOps } = this;
 
-    for (const [op, entity] of pendingOps) {
+    for (const op of pendingOps) {
       if (op === UNDO_OPS.UNDO) {
-        this.applyUndo(entity);
+        this.applyUndo();
       } else if (op === UNDO_OPS.REDO) {
-        this.applyRedo(entity);
+        this.applyRedo();
       }
     }
 
     pendingOps.length = 0;
   }
 
-  applyUndo(entity) {
-    const { undoStacks } = this;
-    const stack = undoStacks.get(entity);
-    if (!stack) return;
-
-    const { backward, position } = stack;
-    if (!backward[position]) return;
-
-    if (!ensureOwnership(entity)) return;
-
-    const [, { values }] = backward[position];
-    this.applyValues(entity, values);
-    stack.position--;
+  applyUndo() {
+    this.apply(-1);
   }
 
-  applyRedo(entity) {
-    const { undoStacks } = this;
-    const stack = undoStacks.get(entity);
-    if (!stack) return;
+  applyRedo() {
+    this.apply(1);
+  }
 
-    const { forward, position } = stack;
-    if (!forward[position]) return;
+  apply(direction) {
+    const { undoStack } = this;
+    const { backward, forward, position } = undoStack;
 
-    if (!ensureOwnership(entity)) return;
+    const entries = direction === -1 ? backward : forward;
+    if (!entries[position]) return;
 
-    const [, { values }] = forward[position];
-    this.applyValues(entity, values);
-    stack.position++;
+    const { entity, values } = entries[position];
+    undoStack.position = position + direction;
+
+    if (entity !== null) {
+      this.applyValues(entity, values);
+    } else {
+      // Entity removed, try again
+      this.apply(direction);
+    }
   }
 
   applyValues(entity, values) {
@@ -92,54 +84,51 @@ export class UndoSystem {
     }
   }
 
-  doUndo(entity) {
-    this.pendingOps.push([UNDO_OPS.UNDO, entity]);
+  doUndo() {
+    this.pendingOps.push(UNDO_OPS.UNDO);
   }
 
-  doRedo(entity) {
-    this.pendingOps.push([UNDO_OPS.REDO, entity]);
+  doRedo() {
+    this.pendingOps.push(UNDO_OPS.REDO);
   }
 
-  pushMatrixUpdateUndo(entity, type, fromMatrix, toMatrix) {
-    const [forwardStep, backwardStep] = this._createStepsForMatrixUpdate(fromMatrix, toMatrix);
-    this.pushUndo(entity, type, backwardStep, forwardStep);
+  pushMatrixUpdateUndo(entity, fromMatrix, toMatrix) {
+    const [forwardStep, backwardStep] = this._createStepsForMatrixUpdate(entity, fromMatrix, toMatrix);
+    this.pushUndo(backwardStep, forwardStep);
   }
 
-  pushUndo(entity, type, backwardStep, forwardStep) {
-    const { undoStacks } = this;
-    const stack = undoStacks.get(entity);
-    if (!stack) return;
+  pushUndo(backwardStep, forwardStep) {
+    const { undoStack } = this;
+    const { backward, forward, position } = undoStack;
 
-    if (stack.position === MAX_UNDO_STEPS - 1) {
+    if (undoStack.position === MAX_UNDO_STEPS - 1) {
       // Stack is full, shift everything over.
       // We could use a circular buffer but then would need to maintain two pointers, this is easier.
-      stack.position -= 1;
+      undoStack.position -= 1;
 
       for (let i = 0; i < MAX_UNDO_STEPS - 1; i++) {
-        stack.forward[i] = stack.forward[i + 1];
-        stack.backward[i] = stack.backward[i + 1];
+        undoStack.forward[i] = undoStack.forward[i + 1];
+        undoStack.backward[i] = undoStack.backward[i + 1];
       }
     }
 
-    const { backward, forward, position } = stack;
-
     // Stack slot at position has pendinges to apply to move forward/backwards.
-    const newPosition = position + 1; // We're going to move forwards in the stack.
-    backward[newPosition] = [type, backwardStep]; // Add the backwards step
+    const newPosition = undoStack.position + 1; // We're going to move forwards in the stack.
+    backward[newPosition] = backwardStep; // Add the backwards step
     forward.fill(null, newPosition); // Free residual redos ahead of us
-    forward[position] = [type, forwardStep]; // The previous stack frame can now move forward to this one
-    stack.position = newPosition;
+    forward[position] = forwardStep; // The previous stack frame can now move forward to this one
+    undoStack.position = newPosition;
   }
 
-  _createStepsForMatrixUpdate(fromMatrix, toMatrix) {
+  _createStepsForMatrixUpdate(entity, fromMatrix, toMatrix) {
     const from = new THREE.Matrix4();
     from.copy(fromMatrix);
 
     const to = new THREE.Matrix4();
     to.copy(toMatrix);
 
-    const forwardStep = { values: [{ key: "matrix", value: to }] };
-    const backwardStep = { values: [{ key: "matrix", value: from }] };
+    const forwardStep = { entity, values: [{ key: "matrix", value: to }] };
+    const backwardStep = { entity, values: [{ key: "matrix", value: from }] };
 
     return [forwardStep, backwardStep];
   }
