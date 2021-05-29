@@ -229,6 +229,7 @@ const idleTips = [
   ["mute", "L+m", "toggleMuteKey"],
   ["create", "/", "createMenu"],
   ["paste", "L+v"],
+  ["undo", "L+z,y"],
   ["chat", "E", "chat"],
   ["widen", "L+S", "widen"],
   ["hide", "?"]
@@ -283,24 +284,23 @@ const TIP_DATA = {
   video_paused: [["play", "L+S"], ["seek", "q\\e"], ["volume", "R;t\\g"], ...objectCommonTips],
   locked_vox: [...lockedVoxCommonTips],
   vox: [["edit", "~|@"], ...voxCommonTips],
-  vox_pick: [["edit", "~|@"], ["pick", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_fill: [["edit", "~|@"], ["fill", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_attach: [["edit", "~|@"], ["attach", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_remove: [["edit", "~|@"], ["erase", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_paint: [["edit", "~|@"], ["paint", "_S|D"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_pick_full: [["edit", "~|@"], ["pick", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_fill_full: [["edit", "~|@"], ["fill", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_attach_full: [["edit", "~|@"], ["attach", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_remove_full: [["edit", "~|@"], ["erase", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
-  vox_paint_full: [["edit", "~|@"], ["paint", "_S|K"], ...voxCommonTips, ["undo", "P+z"], ["redo", "P+y"]],
+  vox_pick: [["edit", "~|@"], ["pick", "_S|D"], ...voxCommonTips, ["undo-edit", "P+z,y"]],
+  vox_fill: [["edit", "~|@"], ["fill", "_S|D"], ...voxCommonTips, ["undo-edit", "P+z,y"]],
+  vox_attach: [["edit", "~|@"], ["attach", "_S|D"], ...voxCommonTips, ["undo-edit", "P+z,y"]],
+  vox_remove: [["edit", "~|@"], ["erase", "_S|D"], ...voxCommonTips, ["undo-edit", "P+z,y"]],
+  vox_paint: [["edit", "~|@"], ["paint", "_S|D"], ...voxCommonTips, ["undo-edit", "P+z,y"]],
+  vox_pick_full: [["edit", "~|@"], ["pick", "_S|K"], ...voxCommonTips, ["undo-edit", "P+z,y"]],
+  vox_fill_full: [["edit", "~|@"], ["fill", "_S|K"], ...voxCommonTips, ["undo-edit", "P+z,y"]],
+  vox_attach_full: [["edit", "~|@"], ["attach", "_S|K"], ...voxCommonTips, ["undo-edit", "P+z,y"]],
+  vox_remove_full: [["edit", "~|@"], ["erase", "_S|K"], ...voxCommonTips, ["undo-edit", "P+z,y"]],
+  vox_paint_full: [["edit", "~|@"], ["paint", "_S|K"], ...voxCommonTips, ["undo-edit", "P+z,y"]],
   vox_pick_edit: [
     ["orbit", "I"],
     ["pan", "_S|O"],
     ["zoom", "R"],
     ["exit", "~|@|Z"],
     ["pick", "K"],
-    ["undo", "P+z"],
-    ["redo", "P+y"]
+    ["undo-edit", "P+z"]
   ],
   vox_fill_edit: [
     ["orbit", "I"],
@@ -308,8 +308,7 @@ const TIP_DATA = {
     ["zoom", "R"],
     ["exit", "~|@|Z"],
     ["fill", "K"],
-    ["undo", "P+z"],
-    ["redo", "P+y"]
+    ["undo-edit", "P+z"]
   ],
   vox_attach_edit: [
     ["orbit", "I"],
@@ -317,8 +316,7 @@ const TIP_DATA = {
     ["zoom", "R"],
     ["exit", "~|@|Z"],
     ["attach", "K"],
-    ["undo", "P+z"],
-    ["redo", "P+y"]
+    ["undo-edit", "P+z"]
   ],
   vox_remove_edit: [
     ["orbit", "I"],
@@ -326,8 +324,7 @@ const TIP_DATA = {
     ["zoom", "R"],
     ["exit", "~|@|Z"],
     ["erase", "K"],
-    ["undo", "P+z"],
-    ["redo", "P+y"]
+    ["undo-edit", "P+z"]
   ],
   vox_paint_edit: [
     ["orbit", "I"],
@@ -335,8 +332,7 @@ const TIP_DATA = {
     ["zoom", "R"],
     ["exit", "~|@|Z"],
     ["paint", "K"],
-    ["undo", "P+z"],
-    ["redo", "P+y"]
+    ["undo-edit", "P+z"]
   ],
   pdf: [["next", "L+S"], ["page", "q\\e"], ...objectCommonTips],
   text: [

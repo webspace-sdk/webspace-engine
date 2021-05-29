@@ -47,6 +47,7 @@ import { PasteSystem } from "../../hubs/systems/paste-system";
 import { ExternalCameraSystem } from "../../jel/systems/external-camera-system";
 import { VideoBridgeSystem } from "../../jel/systems/video-bridge-system";
 import { DirectorSystem } from "../../jel/systems/director-system";
+import { UndoSystem } from "../../jel/systems/undo-system";
 
 AFRAME.registerSystem("hubs-systems", {
   init() {
@@ -132,6 +133,7 @@ AFRAME.registerSystem("hubs-systems", {
       this.autoQualitySystem
     );
     this.directorSystem = new DirectorSystem();
+    this.undoSystem = new UndoSystem();
 
     window.SYSTEMS = this;
   },
@@ -193,6 +195,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.builderSystem.tick(t, dt);
     this.videoBridgeSystem.tick();
     this.directorSystem.tick(t, dt);
+    this.undoSystem.tick(t, dt);
 
     // We run this late in the frame so that its the last thing to have an opinion about the scale of an object
     this.boneVisibilitySystem.tick();

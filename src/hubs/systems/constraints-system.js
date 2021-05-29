@@ -7,22 +7,30 @@ export class ConstraintsSystem {
   constructor() {
     this.prevLeftHand = {
       held: null,
+      hovered: null,
       spawning: false,
+      preHoldMatrix: null,
       constraining: true
     };
     this.prevRightHand = {
       held: null,
+      hovered: null,
       spawning: false,
+      preHoldMatrix: null,
       constraining: true
     };
     this.prevRightRemote = {
       held: null,
+      hovered: null,
       spawning: false,
+      preHoldMatrix: null,
       constraining: true
     };
     this.prevLeftRemote = {
       held: null,
+      hovered: null,
       spawning: false,
+      preHoldMatrix: null,
       constraining: true
     };
 

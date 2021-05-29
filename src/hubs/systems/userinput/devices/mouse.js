@@ -112,12 +112,7 @@ export class MouseDevice {
     this.mouseDownRightThisFrame = false;
     this.mouseDownMiddleThisFrame = false;
 
-    if (this.events.length > 0) {
-      frame.setValueType(paths.device.keyboard.key("control"), this.ctrlKey);
-      frame.setValueType(paths.device.keyboard.key("alt"), this.altKey);
-      frame.setValueType(paths.device.keyboard.key("meta"), this.metaKey);
-      frame.setValueType(paths.device.keyboard.key("shift"), this.shiftKey);
-    }
+    const shouldWriteModifierKeys = this.events.length > 0;
 
     for (let i = 0; i < this.events.length; i++) {
       const event = this.events[i];
@@ -126,6 +121,13 @@ export class MouseDevice {
         this.events.splice(0, i);
         break;
       }
+    }
+
+    if (shouldWriteModifierKeys) {
+      frame.setValueType(paths.device.keyboard.key("control"), this.ctrlKey);
+      frame.setValueType(paths.device.keyboard.key("alt"), this.altKey);
+      frame.setValueType(paths.device.keyboard.key("meta"), this.metaKey);
+      frame.setValueType(paths.device.keyboard.key("shift"), this.shiftKey);
     }
 
     if (!this.didStopProcessingEarly) {

@@ -1,5 +1,5 @@
 import { paths } from "../systems/userinput/paths";
-import { setMatrixWorld, isChildOf, expandByEntityObjectSpaceBoundingBox } from "../utils/three-utils";
+import { isChildOf, expandByEntityObjectSpaceBoundingBox } from "../utils/three-utils";
 import { isFlatMedia } from "../utils/media-utils";
 import { VOXEL_SIZE } from "../../jel/systems/terrain-system";
 
@@ -55,7 +55,7 @@ function withAngleSnap(shouldSnap, angle) {
 AFRAME.registerSystem("transform-selected-object", {
   init() {
     this.target = null;
-    this.targetInitialMatrixWorld = new THREE.Matrix4();
+    this.targetInitialMatrix = new THREE.Matrix4();
     this.targetBoundingBox = new THREE.Box3();
     this.mode = null;
     this.transforming = false;
@@ -107,6 +107,12 @@ AFRAME.registerSystem("transform-selected-object", {
     //const PI_AROUND_Y = new THREE.Quaternion(0, 1, 0, 0);
     //const pInv = new THREE.Quaternion();
     return function stopTransform() {
+      if (this.target && this.target.el) {
+        this.target.updateMatrices();
+        SYSTEMS.undoSystem.pushMatrixUpdateUndo(this.target.el, this.targetInitialMatrix, this.target.matrix);
+      }
+
+      this.mode = null;
       this.transforming = false;
       this.target = null;
       this.dWheelApplied = 0;
@@ -241,7 +247,7 @@ AFRAME.registerSystem("transform-selected-object", {
   startTransform(target, hand, data) {
     this.target = target;
     this.target.updateMatrices();
-    this.targetInitialMatrixWorld.copy(this.target.matrixWorld);
+    this.targetInitialMatrix.copy(this.target.matrix);
 
     this.targetBoundingBox.makeEmpty();
     expandByEntityObjectSpaceBoundingBox(this.targetBoundingBox, target.el);
@@ -341,7 +347,7 @@ AFRAME.registerSystem("transform-selected-object", {
 
     this.dWheelAll += wheelDelta;
 
-    const modify = userinput.get(paths.actions.transformModifier);
+    const modify = !!userinput.get(paths.actions.transformModifier);
 
     if (modify !== this.prevModify) {
       // Hacky, when modify key is pressed, re-snapshot the world
@@ -350,7 +356,7 @@ AFRAME.registerSystem("transform-selected-object", {
       // doesn't work.
       if (this.mode === TRANSFORM_MODE.AXIS) {
         this.target.updateMatrices();
-        this.targetInitialMatrixWorld.copy(this.target.matrixWorld);
+        this.targetInitialMatrix.copy(this.target.matrix);
         this.targetBoundingBox.makeEmpty();
         expandByEntityObjectSpaceBoundingBox(this.targetBoundingBox, this.target.el);
         this.dxAll = 0;
@@ -366,7 +372,7 @@ AFRAME.registerSystem("transform-selected-object", {
       this.dxAll += finalProjectedVec.x;
       this.dyAll += finalProjectedVec.y;
 
-      tmpMatrix.extractRotation(this.targetInitialMatrixWorld);
+      tmpMatrix.extractRotation(this.targetInitialMatrix);
       q.setFromRotationMatrix(tmpMatrix);
 
       const shouldSnap = !!userinput.get(shiftKeyPath);
@@ -397,11 +403,11 @@ AFRAME.registerSystem("transform-selected-object", {
       this.target.quaternion.copy(q);
       this.target.matrixNeedsUpdate = true;
     } else if (this.mode === TRANSFORM_MODE.LIFT) {
-      const initialX = this.targetInitialMatrixWorld.elements[12];
-      const initialZ = this.targetInitialMatrixWorld.elements[14];
+      const initialX = this.targetInitialMatrix.elements[12];
+      const initialZ = this.targetInitialMatrix.elements[14];
 
       this.target.updateMatrices();
-      tmpMatrix.copy(this.targetInitialMatrixWorld);
+      tmpMatrix.copy(this.targetInitialMatrix);
 
       const shouldSnap = !!userinput.get(shiftKeyPath);
 
@@ -410,7 +416,7 @@ AFRAME.registerSystem("transform-selected-object", {
         withGridSnap(shouldSnap, intersection.point.y - planeCastObjectOffset.y),
         initialZ
       );
-      setMatrixWorld(this.target, tmpMatrix);
+      this.target.setMatrix(tmpMatrix);
     }
 
     previousPointOnPlane.copy(currentPointOnPlane);
@@ -444,8 +450,8 @@ AFRAME.registerSystem("transform-selected-object", {
     v2.sub(plane.position);
     v2.normalize();
 
-    const initialX = this.targetInitialMatrixWorld.elements[12];
-    const initialZ = this.targetInitialMatrixWorld.elements[14];
+    const initialX = this.targetInitialMatrix.elements[12];
+    const initialZ = this.targetInitialMatrix.elements[14];
     const dx = intersection.point.x - initialX;
     const dz = intersection.point.z - initialZ;
     v.set(dx, 0, dz);
@@ -456,7 +462,7 @@ AFRAME.registerSystem("transform-selected-object", {
     }
 
     this.target.updateMatrices();
-    tmpMatrix.copy(this.targetInitialMatrixWorld);
+    tmpMatrix.copy(this.targetInitialMatrix);
 
     const shouldSnap = !!userinput.get(shiftKeyPath);
 
@@ -467,8 +473,7 @@ AFRAME.registerSystem("transform-selected-object", {
     const newZ = withGridSnap(shouldSnap, initialZ + v.z - planeCastObjectOffset.z);
 
     tmpMatrix.setPosition(newX, newY, newZ);
-
-    setMatrixWorld(this.target, tmpMatrix);
+    this.target.setMatrix(tmpMatrix);
   },
 
   stackTargetAt(point, normal, normalObject) {
@@ -497,7 +502,7 @@ AFRAME.registerSystem("transform-selected-object", {
     v.transformDirection(normalObject.matrixWorld);
 
     objectSnapAlong.copy(isFlat ? FORWARD : UP);
-    objectSnapAlong.transformDirection(this.targetInitialMatrixWorld);
+    objectSnapAlong.transformDirection(this.targetInitialMatrix);
 
     // If the world space normal and original world object up are not already parallel, reorient the object
     if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.01) {
@@ -507,7 +512,7 @@ AFRAME.registerSystem("transform-selected-object", {
     } else {
       // Nudge the object to be re-aligned instead of doing a full reorient.
       q2.setFromUnitVectors(objectSnapAlong, v);
-      this.targetInitialMatrixWorld.decompose(v, q, v2);
+      this.targetInitialMatrix.decompose(v, q, v2);
       q.multiply(q2);
     }
 
@@ -526,7 +531,7 @@ AFRAME.registerSystem("transform-selected-object", {
       v2
     );
 
-    setMatrixWorld(this.target, tmpMatrix);
+    this.target.setMatrix(tmpMatrix);
   },
 
   tick() {

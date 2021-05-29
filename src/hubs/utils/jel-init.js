@@ -685,6 +685,7 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
 
             // Free memory from voxel editing undo stacks.
             SYSTEMS.builderSystem.clearUndoStacks();
+            SYSTEMS.undoSystem.clearUndoStacks();
 
             clearVoxAttributePools();
 

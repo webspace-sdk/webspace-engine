@@ -17,6 +17,14 @@ function checkFloatTextureSupport() {
   return result;
 }
 
+export function isSoftwareRenderer() {
+  const gl = AFRAME.scenes[0].renderer.getContext();
+  const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+  const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+
+  return renderer === null || renderer.indexOf("Software Renderer") !== -1 || renderer.indexOf("SwiftShader") !== -1;
+}
+
 export function patchWebGLRenderingContext() {
   if (/Android.+Firefox/.test(navigator.userAgent)) {
     // It appears that Galaxy S6 devices falsely report that they support

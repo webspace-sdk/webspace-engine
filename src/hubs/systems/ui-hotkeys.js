@@ -40,6 +40,12 @@ AFRAME.registerSystem("ui-hotkeys", {
 
     let slotToEquip = 0;
 
+    if (this.userinput.get(paths.actions.undo)) {
+      SYSTEMS.undoSystem.doUndo();
+    } else if (this.userinput.get(paths.actions.redo)) {
+      SYSTEMS.undoSystem.doRedo();
+    }
+
     if (this.userinput.get(paths.actions.equip1)) {
       slotToEquip = 1;
     } else if (this.userinput.get(paths.actions.equip2)) {
