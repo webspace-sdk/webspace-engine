@@ -59,6 +59,7 @@ AFRAME.registerSystem("scale-object", {
     this.initialIntersectionPoint = new THREE.Vector3();
     this.intersectionPoint = new THREE.Vector3();
     this.initialObjectScale = new THREE.Vector3();
+    this.initialObjectMatrix = new THREE.Matrix4();
     this.desiredObjectScale = new THREE.Vector3();
     this.deltaScale = new THREE.Vector3();
     this.objectMatrix = new THREE.Matrix4();
@@ -75,6 +76,7 @@ AFRAME.registerSystem("scale-object", {
       if (this.isScaling) return;
 
       this.objectToScale = object;
+      this.objectToScale.updateMatrices();
       this.wheelDelta = 0.0;
 
       if (!this.didGetObjectReferences) {
@@ -93,7 +95,7 @@ AFRAME.registerSystem("scale-object", {
       this.objectToScale.updateMatrices();
       this.objectToScale.getWorldPosition(this.plane.position);
       this.plane.matrixNeedsUpdate = true;
-      this.plane.updateMatrixWorld(true);
+      this.plane.updateMatrices();
 
       //setMatrixWorld(this.plane, calculatePlaneMatrix(this.viewingCamera, this.el.object3D));
       this.planeRotation.extractRotation(this.plane.matrixWorld);
@@ -104,7 +106,8 @@ AFRAME.registerSystem("scale-object", {
       if (!intersection) return;
       this.isScaling = true;
       this.initialIntersectionPoint.copy(intersection.point);
-      this.initialObjectScale.setFromMatrixScale(this.objectToScale.matrixWorld);
+      this.initialObjectScale.setFromMatrixScale(this.objectToScale.matrix);
+      this.initialObjectMatrix.copy(this.objectToScale.matrix);
       this.initialDistanceToObject = objectToCam
         .subVectors(
           camPosition.setFromMatrixPosition(this.viewingCamera.matrixWorld),
@@ -128,7 +131,16 @@ AFRAME.registerSystem("scale-object", {
         (this.isScalingLeft && this.raycaster === this.leftRaycaster) ||
         (!this.isScalingLeft && this.raycaster === this.rightRaycaster)
       ) {
+        this.objectToScale.updateMatrices();
+        if (this.objectToScale.el) {
+          SYSTEMS.undoSystem.pushMatrixUpdateUndo(
+            this.objectToScale.el,
+            this.initialObjectMatrix,
+            this.objectToScale.matrix
+          );
+        }
         this.isScaling = false;
+        this.objectToScale = null;
         this.transformSelectedObjectSystem =
           this.transformSelectedObjectSystem || this.el.systems["transform-selected-object"];
         this.transformSelectedObjectSystem.transforming = false;
@@ -170,15 +182,15 @@ AFRAME.registerSystem("scale-object", {
     scaleFactor += this.wheelDelta;
     this.desiredObjectScale.copy(this.initialObjectScale).multiplyScalar(scaleFactor);
     this.objectToScale.updateMatrices();
-    this.currentObjectScale.setFromMatrixScale(this.objectToScale.matrixWorld);
+    this.currentObjectScale.setFromMatrixScale(this.objectToScale.matrix);
     this.deltaScale.set(
       this.desiredObjectScale.x / this.currentObjectScale.x,
       this.desiredObjectScale.y / this.currentObjectScale.y,
       this.desiredObjectScale.z / this.currentObjectScale.z
     );
-    this.objectMatrix.copy(this.objectToScale.matrixWorld);
+    this.objectMatrix.copy(this.objectToScale.matrix);
     this.objectMatrix.scale(this.deltaScale);
-    setMatrixWorld(this.objectToScale, this.objectMatrix);
+    this.objectToScale.setMatrix(this.objectMatrix);
     this.objectToScale.matrixNeedsUpdate = true;
   }
 });

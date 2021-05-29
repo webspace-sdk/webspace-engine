@@ -107,6 +107,12 @@ AFRAME.registerSystem("transform-selected-object", {
     //const PI_AROUND_Y = new THREE.Quaternion(0, 1, 0, 0);
     //const pInv = new THREE.Quaternion();
     return function stopTransform() {
+      if (this.target && this.target.el) {
+        this.target.updateMatrices();
+        SYSTEMS.undoSystem.pushMatrixUpdateUndo(this.target.el, this.targetInitialMatrix, this.target.matrix);
+      }
+
+      this.mode = null;
       this.transforming = false;
       this.target = null;
       this.dWheelApplied = 0;
@@ -341,7 +347,7 @@ AFRAME.registerSystem("transform-selected-object", {
 
     this.dWheelAll += wheelDelta;
 
-    const modify = userinput.get(paths.actions.transformModifier);
+    const modify = !!userinput.get(paths.actions.transformModifier);
 
     if (modify !== this.prevModify) {
       // Hacky, when modify key is pressed, re-snapshot the world
