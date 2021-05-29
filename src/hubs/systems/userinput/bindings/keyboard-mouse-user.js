@@ -334,6 +334,75 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 1001
     },
     {
+      src: { value: paths.device.keyboard.code("keyz") },
+      dest: { value: "/var/rising+z" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("alt"),
+        value: "/var/rising+z"
+      },
+      dest: { value: "/var/rising+z+noalt" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("control"),
+        value: "/var/rising+z+noalt"
+      },
+      dest: { value: "/var/naked+z" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    }, // ctrl+Z and alt+z both bound, so need extra element
+    {
+      src: {
+        bool: paths.device.keyboard.key("control"),
+        value: paths.device.keyboard.code("keyz")
+      },
+      dest: { value: "/var/control+z" },
+      xform: xforms.copyIfTrue,
+      priority: 1001
+    }, // ctrl+Z and alt+z both bound, so need extra element
+    {
+      src: { value: "/var/control+z" },
+      dest: { value: paths.actions.undo },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: { value: paths.device.keyboard.code("keyy") },
+      dest: { value: "/var/rising+y" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("control"),
+        value: "/var/rising+y"
+      },
+      dest: { value: "/var/naked+y" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("control"),
+        value: paths.device.keyboard.code("keyy")
+      },
+      dest: { value: "/var/control+y" },
+      xform: xforms.copyIfTrue,
+      priority: 1001
+    },
+    {
+      src: { value: "/var/control+y" },
+      dest: { value: paths.actions.redo },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
       src: { value: "/var/naked+v" },
       dest: { value: paths.actions.mediaScaleReleaseAction },
       xform: xforms.falling

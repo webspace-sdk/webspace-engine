@@ -1,4 +1,6 @@
 import { ensureOwnership } from "../utils/ownership-utils";
+import { canMove } from "../../hubs/utils/permissions-utils";
+
 const MAX_UNDO_STEPS = 64;
 
 const UNDO_OPS = {
@@ -67,7 +69,9 @@ export class UndoSystem {
     undoStack.position = position + direction;
 
     if (entity !== null) {
-      this.applyValues(entity, values);
+      if (ensureOwnership(entity) && canMove(entity)) {
+        this.applyValues(entity, values);
+      }
     } else {
       // Entity removed, try again
       this.apply(direction);
@@ -118,6 +122,12 @@ export class UndoSystem {
     forward.fill(null, newPosition); // Free residual redos ahead of us
     forward[position] = forwardStep; // The previous stack frame can now move forward to this one
     undoStack.position = newPosition;
+  }
+
+  clearUndoStacks() {
+    this.undoStack.forward.length = 0;
+    this.undoStack.backward.length = 0;
+    this.undoStack.position = 0;
   }
 
   _createStepsForMatrixUpdate(entity, fromMatrix, toMatrix) {
