@@ -119,6 +119,7 @@ export class SkyBeamSystem {
   }
 
   register(source, isAvatar = false) {
+    if (this.sourceToIndex.has(source)) return;
     const index = this.mesh.addInstance(ZERO, 0.0, IDENTITY);
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.sourceToIndex.set(source, index);
@@ -126,6 +127,7 @@ export class SkyBeamSystem {
     this.dirtyColors[index] = true;
     this.instanceWidthAttribute.array[index] = isAvatar ? WIDE_BEAM_WIDTH : NARROW_BEAM_WIDTH;
     this.instanceWidthAttribute.needsUpdate = true;
+    source.matrixNeedsUpdate = true; // Ensure matrix dirty
 
     if (isAvatar) {
       getNetworkedEntity(source.el).then(e => (this.sourceCreatorIds[index] = getCreator(e)));
@@ -139,6 +141,7 @@ export class SkyBeamSystem {
     this.sourceCreatorIds[i] = null;
     this.mesh.freeInstance(i);
     this.sourceToIndex.delete(source);
+    source.matrixNeedsUpdate = true; // Ensure matrix dirty
 
     if (i === this.maxRegisteredIndex) {
       this.maxRegisteredIndex--;

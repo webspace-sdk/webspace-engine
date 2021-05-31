@@ -77,7 +77,10 @@ AFRAME.registerComponent("media-loader", {
     this.animating = false;
     this.cachedShouldShowLoader = null;
 
-    SYSTEMS.skyBeamSystem.register(this.el.object3D);
+    if (!this.data.locked) {
+      SYSTEMS.skyBeamSystem.register(this.el.object3D);
+    }
+
     SYSTEMS.undoSystem.register(this.el);
 
     if (isSynchronized(this.el)) {
@@ -346,6 +349,12 @@ AFRAME.registerComponent("media-loader", {
     const lockedChanged = oldData.locked !== undefined && oldData.locked !== locked;
 
     if (lockedChanged) {
+      if (this.data.locked) {
+        SYSTEMS.skyBeamSystem.unregister(this.el.object3D);
+      } else {
+        SYSTEMS.skyBeamSystem.register(this.el.object3D);
+      }
+
       this.el.emit("media_locked_changed");
     }
 
