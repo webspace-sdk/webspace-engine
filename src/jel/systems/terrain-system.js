@@ -11,6 +11,7 @@ import { RENDER_ORDER, WORLD_COLOR_TYPES, COLLISION_LAYERS } from "../../hubs/co
 import configs from "../../hubs/utils/configs";
 import { Layers } from "../../hubs/components/layers";
 import qsTruthy from "../../hubs/utils/qs_truthy";
+import nextTick from "../../hubs/utils/next-tick";
 
 const { SHAPE, TYPE, FIT } = CONSTANTS;
 
@@ -149,6 +150,7 @@ export class TerrainSystem {
     this.pool = [...Array(LOAD_GRID.length)].map(() => new Terrain());
     this.activeTerrains = [];
     this.frame = 0;
+    this.lastLoadedChunkFrame = 0;
     this.loadedChunks = new Map();
     this.loadingChunks = new Map();
     this.spawningChunks = new Map();
@@ -256,6 +258,13 @@ export class TerrainSystem {
               }`
             )
               .then(async res => {
+                // Decode + spawn at most one terrain per frame
+                while (this.lastLoadedChunkFrame === this.frame) {
+                  await nextTick();
+                }
+
+                this.lastLoadedChunkFrame = this.frame;
+
                 if (!heightMapOnly) {
                   if (!loadingChunks.has(key)) return;
                   loadingChunks.delete(key);
@@ -803,6 +812,10 @@ export class TerrainSystem {
       }
     };
   })();
+
+  worldTypeHasWater() {
+    return this.worldType === 1;
+  }
 
   cullChunksAndFeatureGroups = (() => {
     // Chunk + feature culling based upon AABB

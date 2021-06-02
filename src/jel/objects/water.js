@@ -238,6 +238,16 @@ class Water extends Mesh {
       virtualCamera
     } = this;
 
+    const worldHasWater = SYSTEMS.terrainSystem.worldTypeHasWater();
+
+    if (!worldHasWater) {
+      if (this.visible) {
+        this.visible = false;
+      }
+
+      return;
+    }
+
     const time = this.material.uniforms.time.value + delta;
     this.material.uniforms.time.value = time;
 
@@ -247,7 +257,7 @@ class Water extends Mesh {
       this.material.uniformsNeedUpdate = true;
     }
 
-    if (!this.needsUpdate || !this.camera || !enableReflections) return;
+    if (!this.needsUpdate || !this.camera || !enableReflections || !worldHasWater) return;
     this.needsUpdate = false;
 
     this.updateMatrices();
