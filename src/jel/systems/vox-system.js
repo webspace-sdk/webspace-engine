@@ -1450,8 +1450,8 @@ export class VoxSystem extends EventTarget {
 
     entry.hasWalkableSources = !!entry.walkableSources.find(x => x);
 
-    if (entry.hasWalkableSources && !entry.walkGeometry) {
-      // Remesh to generate walk geometry on first walkable source
+    if (entry.hasWalkableSources) {
+      // Remesh to generate or update walk geometry
       entry.dirtyFrameMeshes[0] = true;
       entry.regenerateDirtyMeshesOnNextFrame = true;
     }
