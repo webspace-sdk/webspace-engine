@@ -778,7 +778,7 @@ AFRAME.registerComponent("media-loader", {
 
             let voxX = x - shiftX;
             // ?? not sure why this is needed but objects come in mirrored
-            voxX = voxX == 0 ? 0 : voxX < 0 ? -voxX - 1 : -voxX + 1;
+            voxX = voxX == 0 ? 0 : voxX < 0 ? -voxX : -voxX + 1;
             const voxY = y - shiftY;
             const voxZ = z - shiftZ;
 
