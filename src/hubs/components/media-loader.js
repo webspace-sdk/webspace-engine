@@ -742,11 +742,17 @@ AFRAME.registerComponent("media-loader", {
       new VOXLoader().load(importUrl, async voxFileChunks => {
         for (let frame = 0; frame < voxFileChunks.length; frame++) {
           if (frame > 0) continue; // TODO multiple frames. Breaks physics, etc.
-          const {
-            size: { x: vsx, y: vsy, z: vsz },
-            palette,
-            data
-          } = voxFileChunks[frame];
+          const { palette, data } = voxFileChunks[frame];
+
+          let vsx = 0;
+          let vsy = 0;
+          let vsz = 0;
+
+          for (let i = 0; i < data.length; i += 4) {
+            vsx = Math.max(data[i + 0] + 1, vsx);
+            vsz = Math.max(data[i + 1] + 1, vsz);
+            vsy = Math.max(data[i + 2] + 1, vsy);
+          }
 
           const size = [Math.min(vsx, MAX_VOX_SIZE), Math.min(vsy, MAX_VOX_SIZE), Math.min(vsz, MAX_VOX_SIZE)];
           const iPalToVoxColor = i => {
@@ -770,7 +776,9 @@ AFRAME.registerComponent("media-loader", {
             const y = data[i + 2];
             const c = data[i + 3];
 
-            const voxX = x - shiftX;
+            let voxX = x - shiftX;
+            // ?? not sure why this is needed but objects come in mirrored
+            voxX = voxX == 0 ? 0 : voxX < 0 ? -voxX - 1 : -voxX + 1;
             const voxY = y - shiftY;
             const voxZ = z - shiftZ;
 
