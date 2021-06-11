@@ -286,8 +286,8 @@ export class BuilderSystem extends EventTarget {
     const intersection = cursor && cursor.intersection;
     const isLocked = intersection && isLockedMedia(interaction.getRightRemoteHoverTarget());
 
-    if (!isGrabTransforming && !isLocked) {
-      this.performBrushStep(brushDown, intersection);
+    if (!isGrabTransforming) {
+      this.performBrushStep(brushDown, intersection, isLocked);
     }
 
     if (isLocked && this.pendingChunk) {
@@ -311,10 +311,35 @@ export class BuilderSystem extends EventTarget {
     sweepRaycaster.near = 0.0001;
     sweepRaycaster.far = 100.0;
 
-    return (brushDown, intersection) => {
+    return (brushDown, intersection, isHoveringOnLocked) => {
       if (!this.enabled) return;
 
       const now = performance.now();
+
+      const shouldCreateVox =
+        brushDown &&
+        !this.ignoreRestOfStroke &&
+        intersection &&
+        intersection.point &&
+        now - this.lastHoverTime >= HOVER_TO_CREATE_DELAY_MS &&
+        !SYSTEMS.cameraSystem.isInspecting();
+
+      if (isHoveringOnLocked) {
+        if (shouldCreateVox && this.brushMode === BRUSH_MODES.ADD) {
+          // Create gesture on locked surface
+          this.hasInFlightOperation = true;
+          this.ignoreRestOfStroke = true;
+          this.createVoxAt(intersection.point)
+            .then(() => (this.hasInFlightOperation = false))
+            .catch(() => {
+              // Rate limiting or backend error
+              this.hasInFlightOperation = false;
+              this.ignoreRestOfStroke = false;
+            });
+        }
+
+        return;
+      }
 
       const {
         brushStartCell,
@@ -517,15 +542,7 @@ export class BuilderSystem extends EventTarget {
         //
         // If brush is down, we're not currently brushing, and we have a target,
         // create a vox.
-        if (
-          brushDown &&
-          !this.ignoreRestOfStroke &&
-          this.targetVoxId === null &&
-          intersection &&
-          intersection.point &&
-          now - this.lastHoverTime >= HOVER_TO_CREATE_DELAY_MS &&
-          !SYSTEMS.cameraSystem.isInspecting()
-        ) {
+        if (this.targetVoxId === null && shouldCreateVox) {
           // Not mid-build, create a new vox.
           this.hasInFlightOperation = true;
           this.ignoreRestOfStroke = true;
