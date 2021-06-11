@@ -126,6 +126,29 @@ export default class AccountChannel extends EventTarget {
     this.channel = null;
   };
 
+  getVoxMetas(voxIds) {
+    return new Promise(res => {
+      this.channel.push("get_vox_metas", { vox_ids: [...voxIds] }).receive("ok", ({ vox }) => res(vox));
+    });
+  }
+
+  subscribeToVox = voxId => {
+    this.channel.push("subscribe_to_vox", { vox_id: voxId });
+  };
+
+  unsubscribeFromVox = voxId => {
+    this.channel.push("unsubscribe_from_vox", { vox_id: voxId });
+  };
+
+  updateVox = (voxId, newVoxFields) => {
+    if (!this.channel) return;
+    const { voxMetadata } = window.APP;
+    const canUpdateVoxMeta = voxMetadata.can("edit_vox", voxId);
+    if (!canUpdateVoxMeta) return "unauthorized";
+    this.channel.push("update_vox", { ...newVoxFields, vox_id: voxId });
+    voxMetadata.localUpdate(voxId, newVoxFields);
+  };
+
   requestSupport = () => {
     if (!this.channel) return;
 

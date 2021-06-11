@@ -174,7 +174,7 @@ export class MediaInteractionSystem {
 
           entity.setAttribute("offset-relative-to", {
             target: "#avatar-pov-node",
-            offset: { x: 0, y: 0, z: -1.15 * component.el.object3D.scale.z }
+            offset: { x: 0, y: 0, z: -5.15 * component.el.object3D.scale.z }
           });
         } else {
           if (isSynced && !ensureOwnership(targetEl)) return;

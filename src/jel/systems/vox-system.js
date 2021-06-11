@@ -66,7 +66,7 @@ voxMaterial.onBeforeCompile = shader => {
   shader.fragmentShader = shader.fragmentShader.replace(
     "#include <fog_fragment>",
     [
-      "vec3 shadows = clamp(vec3(pow(outgoingLight.r * 2.5, 3.0), pow(outgoingLight.g * 2.5, 3.0), pow(outgoingLight.b * 2.5, 3.0)), 0.0, 1.0);",
+      "vec3 shadows = clamp(vec3(pow(outgoingLight.r * 4.5, 5.0), pow(outgoingLight.g * 4.5, 5.0), pow(outgoingLight.b * 4.5, 5.0)), 0.0, 1.0);",
       "gl_FragColor = vec4(mix(shadows, vColor.rgb, 0.8), diffuseColor.a);",
       "#include <fog_fragment>"
     ].join("\n")

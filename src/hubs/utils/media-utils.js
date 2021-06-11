@@ -937,7 +937,7 @@ export const spawnMediaInfrontOfPlayer = (
   networked = true,
   skipResolve = false,
   contentType = null,
-  zOffset = -1.5,
+  zOffset = -2.5,
   yOffset = 0
 ) => {
   if (!window.APP.hubChannel.can("spawn_and_move_media")) return;

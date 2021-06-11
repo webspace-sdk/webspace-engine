@@ -5,7 +5,8 @@ import { useEffect } from "react";
 
 const ATOM_TYPES = {
   HUB: 0,
-  SPACE: 1
+  SPACE: 1,
+  VOX: 2
 };
 
 export const ATOM_NOTIFICATION_TYPES = {
@@ -46,7 +47,8 @@ const VALID_PERMISSIONS = {
     "update_space_meta",
     "create_invite",
     "go_home"
-  ]
+  ],
+  [ATOM_TYPES.VOX]: ["view_vox", "edit_vox"]
 };
 
 // This value is placed in the metadata lookup table while a fetch is
@@ -79,6 +81,12 @@ class AtomMetadata {
         this._idColumn = "space_id";
         this._sourceGetMethod = "getSpaceMetas";
         this._defaultNames.set("space", messages["space.unnamed-title"]);
+        break;
+      case ATOM_TYPES.VOX:
+        this._refreshMessage = "vox_meta_refresh";
+        this._idColumn = "vox_id";
+        this._sourceGetMethod = "getVoxMetas";
+        this._defaultNames.set("vox", messages["vox.unnamed-title"]);
         break;
     }
   }
@@ -120,6 +128,8 @@ class AtomMetadata {
   defaultNameForType(type = null) {
     if (this._atomType === ATOM_TYPES.SPACE) {
       return this._defaultNames.get("space");
+    } else if (this._atomType === ATOM_TYPES.VOX) {
+      return this._defaultNames.get("vox");
     } else {
       return this._defaultNames.get(type);
     }
@@ -262,6 +272,10 @@ class AtomMetadata {
   getMetadata(id) {
     const metadata = this._metadata.get(id);
     return metadata && metadata !== pendingMetadataValue ? metadata : null;
+  }
+
+  get atomType() {
+    return this._atomType;
   }
 
   async getOrFetchMetadata(id) {

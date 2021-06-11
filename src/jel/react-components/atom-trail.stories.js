@@ -1,5 +1,5 @@
 import React from "react";
-import HubTrail from "./hub-trail";
+import AtomTrail from "./atom-trail";
 import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
 
 const metadata = new AtomMetadata(ATOM_TYPES.HUB);
@@ -19,7 +19,7 @@ export const TrailMulti = () => (
       flexDirection: "column"
     }}
   >
-    <HubTrail
+    <AtomTrail
       hubIds={["ARbzxCd", "QxRKdNF", "JRrZerh", "QcAVkAR"]}
       hubMetadata={metadata}
       onItemClick={hubId => console.log(hubId)}
@@ -29,5 +29,5 @@ export const TrailMulti = () => (
 );
 
 export default {
-  title: "HubTrail"
+  title: "AtomTrail"
 };

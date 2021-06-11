@@ -162,7 +162,7 @@ export class KeyboardDevice {
             canvas.focus();
             pushEvent = false; // Prevent primary action this tick if cursor still over 3d text page
             e.preventDefault();
-          } else if (SYSTEMS.cameraSystem.isInspecting()) {
+          } else if (SYSTEMS.cameraSystem.isInspecting() && !isInEditableField()) {
             // HACK if we uninspect this tick the media interaction system will run thinking
             // inspection wasn't happening, and will re-trigger.
             setTimeout(() => SYSTEMS.cameraSystem.uninspect(), 25);

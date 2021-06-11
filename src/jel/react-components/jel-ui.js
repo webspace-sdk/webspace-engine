@@ -14,6 +14,7 @@ import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { getPresetAsColorTuples } from "../utils/world-color-presets";
+import { ATOM_TYPES } from "../utils/atom-metadata";
 import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
 import Snackbar from "./snackbar";
@@ -310,7 +311,7 @@ function JelUI(props) {
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
-  const { store, hubChannel, spaceChannel, dynaChannel, matrix } = window.APP;
+  const { store, hubChannel, spaceChannel, dynaChannel, accountChannel, matrix } = window.APP;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
@@ -336,7 +337,7 @@ function JelUI(props) {
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
 
-  const hubRenameFocusRef = useRef();
+  const atomRenameFocusRef = useRef();
   const spaceRenameFocusRef = useRef();
   const createSelectFocusRef = useRef();
   const createSelectPopupRef = useRef();
@@ -348,21 +349,23 @@ function JelUI(props) {
   const environmentSettingsButtonRef = useRef();
 
   const {
-    styles: hubRenamePopupStyles,
-    attributes: hubRenamePopupAttributes,
-    setPopup: setHubRenamePopupElement,
-    setRef: setHubRenameReferenceElement,
-    atomId: hubRenameHubId,
-    show: showHubRenamePopup,
-    popupElement: hubRenamePopupElement,
-    update: updateHubRenamePopup
-  } = useAtomBoundPopupPopper(hubRenameFocusRef, "bottom-start", [0, 8]);
+    styles: atomRenamePopupStyles,
+    attributes: atomRenamePopupAttributes,
+    setPopup: setAtomRenamePopupElement,
+    setRef: setAtomRenameReferenceElement,
+    atomId: atomRenameAtomId,
+    atomMetadata: atomRenameMetadata,
+    show: showAtomRenamePopup,
+    popupElement: atomRenamePopupElement,
+    update: updateAtomRenamePopup
+  } = useAtomBoundPopupPopper(atomRenameFocusRef, "bottom-start", [0, 8]);
 
   const {
     styles: spaceRenamePopupStyles,
     attributes: spaceRenamePopupAttributes,
     setPopup: setSpaceRenamePopupElement,
     atomId: spaceRenameSpaceId,
+    atomMetadata: spaceRenameMetadata,
     show: showSpaceRenamePopup,
     popupElement: spaceRenamePopupElement,
     update: updateSpaceRenamePopup
@@ -453,7 +456,7 @@ function JelUI(props) {
     () => {
       const handleResizeComplete = () => {
         if (updateSpaceRenamePopup) updateSpaceRenamePopup();
-        if (updateHubRenamePopup) updateHubRenamePopup();
+        if (updateAtomRenamePopup) updateAtomRenamePopup();
         if (updateHubContextMenu) updateHubContextMenu();
         if (updateCreateSelectPopup) updateCreateSelectPopup();
         if (updateCreateEmbedPopup) updateCreateEmbedPopup();
@@ -470,7 +473,7 @@ function JelUI(props) {
     },
     [
       scene,
-      updateHubRenamePopup,
+      updateAtomRenamePopup,
       updateSpaceRenamePopup,
       updateHubContextMenu,
       updateCreateSelectPopup,
@@ -752,8 +755,8 @@ function JelUI(props) {
             {...props}
             worldTree={worldTree}
             channelTree={channelTree}
-            hubRenamePopupElement={hubRenamePopupElement}
-            showHubRenamePopup={showHubRenamePopup}
+            atomRenamePopupElement={atomRenamePopupElement}
+            showAtomRenamePopup={showAtomRenamePopup}
             environmentSettingsButtonRef={environmentSettingsButtonRef}
             environmentSettingsPopupElement={environmentSettingsPopupElement}
             showEnvironmentSettingsPopup={showEnvironmentSettingsPopup}
@@ -805,8 +808,8 @@ function JelUI(props) {
             {...props}
             spaceMetadata={spaceMetadata}
             hubMetadata={hubMetadata}
-            showHubRenamePopup={showHubRenamePopup}
-            setHubRenameReferenceElement={setHubRenameReferenceElement}
+            showAtomRenamePopup={showAtomRenamePopup}
+            setAtomRenameReferenceElement={setAtomRenameReferenceElement}
             showHubContextMenuPopup={showHubContextMenuPopup}
             showSpaceRenamePopup={showSpaceRenamePopup}
             spaceRenamePopupElement={spaceRenamePopupElement}
@@ -818,23 +821,31 @@ function JelUI(props) {
         )}
       </div>
       <RenamePopup
-        setPopperElement={setHubRenamePopupElement}
-        styles={hubRenamePopupStyles}
-        attributes={hubRenamePopupAttributes}
-        atomId={hubRenameHubId}
-        atomMetadata={hubMetadata}
-        ref={hubRenameFocusRef}
-        onNameChanged={useCallback(name => spaceChannel.updateHub(hubRenameHubId, { name }), [
-          spaceChannel,
-          hubRenameHubId
-        ])}
+        setPopperElement={setAtomRenamePopupElement}
+        styles={atomRenamePopupStyles}
+        attributes={atomRenamePopupAttributes}
+        atomId={atomRenameAtomId}
+        atomMetadata={atomRenameMetadata}
+        ref={atomRenameFocusRef}
+        onNameChanged={useCallback(
+          name => {
+            const { atomType } = atomRenameMetadata;
+
+            if (atomType === ATOM_TYPES.HUB) {
+              spaceChannel.updateHub(atomRenameAtomId, { name });
+            } else if (atomType === ATOM_TYPES.VOX) {
+              accountChannel.updateVox(atomRenameAtomId, { name });
+            }
+          },
+          [spaceChannel, accountChannel, atomRenameAtomId, atomRenameMetadata]
+        )}
       />
       <RenamePopup
         setPopperElement={setSpaceRenamePopupElement}
         styles={spaceRenamePopupStyles}
         attributes={spaceRenamePopupAttributes}
         atomId={spaceRenameSpaceId}
-        atomMetadata={spaceMetadata}
+        atomMetadata={spaceRenameMetadata}
         ref={spaceRenameFocusRef}
         onNameChanged={useCallback(name => dynaChannel.updateSpace(spaceRenameSpaceId, { name }), [
           dynaChannel,
@@ -938,7 +949,10 @@ function JelUI(props) {
         spaceCan={spaceCan}
         hubCan={hubCan}
         roomForHubCan={roomForHubCan}
-        onRenameClick={useCallback(hubId => showHubRenamePopup(hubId, null), [showHubRenamePopup])}
+        onRenameClick={useCallback(hubId => showAtomRenamePopup(hubId, hubMetadata, null), [
+          showAtomRenamePopup,
+          hubMetadata
+        ])}
         onImportClick={useCallback(
           () => {
             document.querySelector("#import-upload-input").click();
