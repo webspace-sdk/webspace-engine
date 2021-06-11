@@ -207,11 +207,12 @@ export default class SceneEntryManager {
 
     this.scene.addEventListener("add_media_vox", async () => {
       const spaceId = window.APP.spaceChannel.spaceId;
+      const hubId = window.APP.hubChannel.hubId;
       const { voxSystem, builderSystem, launcherSystem } = SYSTEMS;
 
       const {
         vox: [{ vox_id: voxId, url }]
-      } = await createVox(spaceId);
+      } = await createVox(spaceId, hubId);
 
       const sync = await voxSystem.getSync(voxId);
       await sync.setVoxel(0, 0, 0, builderSystem.brushVoxColor);

@@ -617,11 +617,12 @@ export class BuilderSystem extends EventTarget {
 
   async createVoxAt(point) {
     const spaceId = window.APP.spaceChannel.spaceId;
+    const hubId = window.APP.hubChannel.spaceId;
     const { voxSystem } = SYSTEMS;
 
     const {
       vox: [{ vox_id: voxId, url }]
-    } = await createVox(spaceId);
+    } = await createVox(spaceId, hubId);
 
     const sync = await voxSystem.getSync(voxId);
     await sync.setVoxel(0, 0, 0, this.brushVoxColor);
