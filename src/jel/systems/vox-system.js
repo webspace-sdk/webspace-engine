@@ -660,7 +660,10 @@ export class VoxSystem extends EventTarget {
       walkableSources: Array(MAX_INSTANCES_PER_VOX_ID).fill(false),
 
       // Geometry to use for raycast for walking.
-      walkGeometry: null
+      walkGeometry: null,
+
+      // Flag to determine when to send first_apply event to dyna which marks vox as edited
+      hasAppliedAnyChunk: false
     };
 
     voxMap.set(voxId, entry);
@@ -1382,6 +1385,8 @@ export class VoxSystem extends EventTarget {
 
   applyPendingAndUnfreezeMesh(voxId) {
     const { voxMap } = this;
+    const { accountChannel } = window.APP;
+
     const entry = voxMap.get(voxId);
     if (!entry) return;
     const { pendingVoxChunk, targettingMeshFrame, pendingVoxChunkOffset } = entry;
@@ -1398,6 +1403,11 @@ export class VoxSystem extends EventTarget {
       // Clear pending chunk after apply is done
       if (entry.pendingVoxChunk === pendingVoxChunk) {
         entry.pendingVoxChunk = null;
+      }
+
+      if (!entry.hasAppliedAnyChunk) {
+        accountChannel.markVoxEdited(voxId);
+        entry.hasAppliedAnyChunk = true;
       }
     });
   }

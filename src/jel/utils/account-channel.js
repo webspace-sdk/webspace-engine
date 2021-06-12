@@ -140,6 +140,10 @@ export default class AccountChannel extends EventTarget {
     this.channel.push("unsubscribe_from_vox", { vox_id: voxId });
   };
 
+  markVoxEdited = voxId => {
+    this.channel.push("mark_vox_edited", { vox_id: voxId });
+  };
+
   updateVox = (voxId, newVoxFields) => {
     if (!this.channel) return;
     const { voxMetadata } = window.APP;
