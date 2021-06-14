@@ -1574,15 +1574,29 @@ export class VoxSystem extends EventTarget {
     };
   })();
 
-  async publishAllInCurrentWorld(collection, category) {
-    const { voxMap } = this;
-    const { accountChannel } = window.APP;
+  publishAllInCurrentWorld = (function() {
+    const tmpVec = new THREE.Vector3();
 
-    for (const voxId of voxMap.keys()) {
-      console.log(`Publishing ${voxId}`);
-      await accountChannel.publishVox(voxId, collection, category);
-    }
+    return async function(collection, category) {
+      const { voxMap } = this;
+      const { accountChannel } = window.APP;
 
-    console.log("Done publishing.");
-  }
+      for (const [voxId, { sources }] of voxMap.entries()) {
+        let scale = 1.0;
+
+        for (let i = 0; i < sources.length; i++) {
+          const source = sources[i];
+          if (source === null) continue;
+          source.el.object3D.getWorldScale(tmpVec);
+          scale = tmpVec.x;
+          break;
+        }
+
+        console.log(`Publishing ${voxId} with scale ${scale}`);
+        await accountChannel.publishVox(voxId, collection, category, scale);
+      }
+
+      console.log("Done publishing.");
+    };
+  })();
 }

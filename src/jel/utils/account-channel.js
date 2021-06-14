@@ -146,13 +146,13 @@ export default class AccountChannel extends EventTarget {
     this.channel.push("mark_vox_edited", { vox_id: voxId });
   };
 
-  publishVox = (voxId, collection, category) => {
+  publishVox = (voxId, collection, category, scale) => {
     const scene = AFRAME.scenes[0];
     const { voxSystem } = SYSTEMS;
 
     return new Promise(res => {
       this.channel
-        .push("publish_vox", { vox_id: voxId, collection, category })
+        .push("publish_vox", { vox_id: voxId, collection, category, scale })
         .receive("ok", async ({ published_to_vox_id: publishedVoxId }) => {
           const sync = new VoxSync(publishedVoxId);
           await sync.init(scene);
