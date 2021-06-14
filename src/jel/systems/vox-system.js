@@ -1573,4 +1573,16 @@ export class VoxSystem extends EventTarget {
       return intersection;
     };
   })();
+
+  async publishAllInCurrentWorld(collection, category) {
+    const { voxMap } = this;
+    const { accountChannel } = window.APP;
+
+    for (const voxId of voxMap.keys()) {
+      console.log(`Publishing ${voxId}`);
+      await accountChannel.publishVox(voxId, collection, category);
+    }
+
+    console.log("Done publishing.");
+  }
 }

@@ -943,6 +943,7 @@ function JelUI(props) {
         hideRename={!!hubContextMenuOpenOptions.hideRename}
         showExport={!!hubContextMenuOpenOptions.showExport}
         showReset={!!hubContextMenuOpenOptions.showReset}
+        worldTree={worldTree}
         styles={hubContextMenuStyles}
         attributes={hubContextMenuAttributes}
         hubId={hubContextMenuHubId}

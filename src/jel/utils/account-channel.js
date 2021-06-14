@@ -1,4 +1,6 @@
 import { EventTarget } from "event-target-shim";
+import { MAX_FRAMES_PER_VOX } from "../systems/vox-system";
+import VoxSync from "../utils/vox-sync";
 
 export default class AccountChannel extends EventTarget {
   constructor(store) {
@@ -142,6 +144,27 @@ export default class AccountChannel extends EventTarget {
 
   markVoxEdited = voxId => {
     this.channel.push("mark_vox_edited", { vox_id: voxId });
+  };
+
+  publishVox = (voxId, collection, category) => {
+    const scene = AFRAME.scenes[0];
+    const { voxSystem } = SYSTEMS;
+
+    return new Promise(res => {
+      this.channel
+        .push("publish_vox", { vox_id: voxId, collection, category })
+        .receive("ok", async ({ published_to_vox_id: publishedVoxId }) => {
+          const sync = new VoxSync(publishedVoxId);
+          await sync.init(scene);
+          for (let i = 0; i < MAX_FRAMES_PER_VOX; i++) {
+            const chunk = voxSystem.getChunkFrameOfVox(voxId, i);
+            if (!chunk) continue;
+            await sync.applyChunk(chunk, i, [0, 0, 0]);
+          }
+          sync.dispose();
+          res();
+        });
+    });
   };
 
   updateVox = (voxId, newVoxFields) => {
