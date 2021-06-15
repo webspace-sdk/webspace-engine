@@ -471,7 +471,7 @@ function CanvasTop(props) {
           metadata={metadata}
           can={atomType === ATOM_TYPES.VOX ? voxCan : hubCan}
           viewPermission={atomType === ATOM_TYPES.VOX ? "view_vox" : "join_hub"}
-          editPermission={atomType === ATOM_TYPES.VOX ? "edit_vox" : "update_hub_meta"}
+          editPermission={atomType === ATOM_TYPES.VOX ? "edit_vox" : "update_hub_meta"} // TODO bug need to check matrix room permissions
           opaque={!isWorld}
           renamePopupElement={hubRenamePopupElement}
           showRenamePopup={showAtomRenamePopup}

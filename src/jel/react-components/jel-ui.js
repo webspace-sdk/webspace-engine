@@ -36,17 +36,68 @@ import LoadingPanel from "./loading-panel";
 import { CREATE_SELECT_WIDTH, CREATE_SELECT_LIST_HEIGHT } from "./create-select";
 import qsTruthy from "../../hubs/utils/qs_truthy";
 import CanvasTop from "./canvas-top";
+import AssetPanel from "./asset-panel";
 
 const skipSidePanels = qsTruthy("skip_panels");
 const skipNeon = qsTruthy("skip_neon");
 
+const Root = styled.div`
+  & #jel-ui-wrap {
+    height: 100%;
+  }
+
+  &.show-asset-panel #jel-ui-wrap {
+    height: calc(100% - 64px);
+  }
+
+  body.panels-expanded &.show-asset-panel #jel-ui-wrap {
+    height: 100%;
+  }
+
+  & #asset-panel {
+    display: none;
+  }
+
+  &.show-asset-panel #asset-panel {
+    display: flex;
+  }
+
+  body.panels-expanded &.show-asset-panel #asset-panel {
+    display: none;
+  }
+`;
+
 const Wrap = styled.div`
   pointer-events: none;
-  height: 100%;
   top: 0;
   position: fixed;
   z-index: 4;
   display: flex;
+  flex-direction: column;
+
+  #jel-interface:focus-within & {
+    pointer-events: auto;
+  }
+
+  body.paused #jel-interface.hub-type-world & {
+    pointer-events: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+
+  body.paused #jel-interface.hub-type-channel & {
+    pointer-events: none;
+    background-color: transparent;
+  }
+`;
+
+const AssetPanelWrap = styled.div`
+  pointer-events: none;
+  height: 64px;
+  left: var(--nav-width);
+  width: calc(100% - var(--nav-width) - var(--presence-width));
+  bottom: 0;
+  position: fixed;
+  z-index: 4;
   flex-direction: column;
 
   #jel-interface:focus-within & {
@@ -312,10 +363,12 @@ function JelUI(props) {
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
   const { store, hubChannel, spaceChannel, dynaChannel, accountChannel, matrix } = window.APP;
+  const { launcherSystem, builderSystem } = SYSTEMS;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
   const [unmuted, setUnmuted] = useState(false);
+  const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const [worldTreeData, setWorldTreeData] = useState([]);
   const [worldTreeDataVersion, setWorldTreeDataVersion] = useState(0);
   const [channelTreeData, setChannelTreeData] = useState([]);
@@ -485,6 +538,21 @@ function JelUI(props) {
       updateHubPermissionsPopup,
       updateEnvironmentSettingsPopup
     ]
+  );
+
+  useEffect(
+    () => {
+      const handler = () => {
+        setTriggerMode(builderSystem.enabled ? "builder" : "launcher");
+      };
+
+      builderSystem.addEventListener("enabledchanged", handler);
+
+      return () => {
+        builderSystem.removeEventListener("enabledchanged", handler);
+      };
+    },
+    [builderSystem, launcherSystem]
   );
 
   useEffect(
@@ -706,7 +774,7 @@ function JelUI(props) {
 
   return (
     <WrappedIntlProvider>
-      <div>
+      <Root className={triggerMode === "builder" ? "show-asset-panel" : ""}>
         <LoadingPanel
           isLoading={waitingForMatrix || isInitializingSpace || !hasFetchedInitialHubMetadata}
           unavailableReason={unavailableReason}
@@ -803,6 +871,9 @@ function JelUI(props) {
             </BottomLeftPanels>
           )}
         </Wrap>
+        <AssetPanelWrap id="asset-panel">
+          <AssetPanel />
+        </AssetPanelWrap>
         {!skipSidePanels && (
           <JelSidePanels
             {...props}
@@ -819,7 +890,7 @@ function JelUI(props) {
             setHasShownInvite={setHasShownInvite}
           />
         )}
-      </div>
+      </Root>
       <RenamePopup
         setPopperElement={setAtomRenamePopupElement}
         styles={atomRenamePopupStyles}
