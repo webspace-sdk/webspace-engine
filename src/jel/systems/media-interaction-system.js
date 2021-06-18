@@ -38,6 +38,8 @@ export class MediaInteractionSystem {
 
   tick() {
     const { scene, rightHand } = this;
+    const { voxSystem } = SYSTEMS;
+
     if (!rightHand) return;
     if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
     if (!SYSTEMS.cameraSystem.cameraViewAllowsManipulation()) return;
@@ -74,7 +76,7 @@ export class MediaInteractionSystem {
         this.transformSystem.mode === TRANSFORM_MODE.LIFT ||
         this.transformSystem.mode === TRANSFORM_MODE.STACK) &&
         this.transformSystem.transforming &&
-        !rightHeld)
+        (!rightHeld && !voxSystem.assetPanelDraggingVoxId))
     ) {
       this.transformSystem.stopTransform();
       releaseEphemeralCursorLock();

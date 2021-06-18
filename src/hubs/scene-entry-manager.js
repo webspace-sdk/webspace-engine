@@ -265,6 +265,14 @@ export default class SceneEntryManager {
 
     document.addEventListener("dragover", e => e.preventDefault());
 
+    this.scene.addEventListener("dragenter", e => {
+      const { types } = e.dataTransfer;
+
+      if (types.length === 1 && types[0] === "jel/vox") {
+        SYSTEMS.voxSystem.beginPlacingDraggedVox();
+      }
+    });
+
     document.addEventListener("drop", e => {
       e.preventDefault();
 

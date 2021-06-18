@@ -1,5 +1,7 @@
 import { JelVoxBufferGeometry } from "../objects/JelVoxBufferGeometry";
 import jwtDecode from "jwt-decode";
+import { ObjectContentOrigins } from "../../hubs/object-types";
+import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { MeshBVH } from "three-mesh-bvh";
 import { SHAPE, FIT } from "three-ammo/constants";
@@ -8,7 +10,7 @@ import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
-import { isLockedMedia } from "../../hubs/utils/media-utils";
+import { addMedia, isLockedMedia } from "../../hubs/utils/media-utils";
 import { type as vox0, Vox, VoxChunk } from "ot-vox";
 import VoxSync from "../utils/vox-sync";
 
@@ -108,6 +110,7 @@ export class VoxSystem extends EventTarget {
     this.syncs = new Map();
     this.voxMap = new Map();
     this.sourceToVoxId = new Map();
+    this.assetPanelDraggingVoxId = null;
 
     // Maps meshes to vox ids, this will include an entry for an active targeting mesh.
     this.meshToVoxId = new Map();
@@ -1593,10 +1596,66 @@ export class VoxSystem extends EventTarget {
         }
 
         console.log(`Publishing ${voxId} with scale ${scale}`);
-        await accountChannel.publishVox(voxId, collection, category, scale);
+        const publishedVoxId = await accountChannel.publishVox(voxId, collection, category, scale);
+        this.copyVoxContent(voxId, publishedVoxId);
       }
 
       console.log("Done publishing.");
     };
   })();
+
+  async copyVoxContent(fromVoxId, toVoxId) {
+    const sync = new VoxSync(toVoxId);
+    await sync.init(this.sceneEl);
+    for (let i = 0; i < MAX_FRAMES_PER_VOX; i++) {
+      const chunk = this.getChunkFrameOfVox(fromVoxId, i);
+      if (!chunk) continue;
+      await sync.applyChunk(chunk, i, [0, 0, 0]);
+    }
+    sync.dispose();
+  }
+
+  async beginPlacingDraggedVox() {
+    const { assetPanelDraggingVoxId } = this;
+    const { voxMetadata } = window.APP;
+    if (!assetPanelDraggingVoxId) return;
+
+    const metadata = await voxMetadata.getOrFetchMetadata(assetPanelDraggingVoxId);
+
+    const { url, published_scale } = metadata;
+
+    const { entity } = addMedia(
+      url,
+      null,
+      "#interactable-media",
+      ObjectContentOrigins.URL,
+      null,
+      false,
+      false,
+      true,
+      {},
+      true,
+      null,
+      null,
+      null,
+      false,
+      "model/vnd.jel-vox"
+    );
+
+    entity.object3D.scale.setScalar(published_scale);
+    entity.object3D.matrixNeedsUpdate = true;
+
+    const rightHand = document.getElementById("player-right-controller");
+    const transformSystem = this.sceneEl.systems["transform-selected-object"];
+
+    entity.addEventListener(
+      "model-loaded",
+      () => {
+        transformSystem.startTransform(entity.object3D, rightHand.object3D, {
+          mode: TRANSFORM_MODE.STACK
+        });
+      },
+      { once: true }
+    );
+  }
 }

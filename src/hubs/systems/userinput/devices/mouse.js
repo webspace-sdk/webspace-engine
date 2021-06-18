@@ -42,6 +42,7 @@ export class MouseDevice {
     });
     ["mousedown", "wheel"].map(x => canvas.addEventListener(x, queueEvent, { passive: false }));
     ["mousemove", "mouseup"].map(x => window.addEventListener(x, queueEvent, { passive: false }));
+    document.addEventListener("dragover", queueEvent, { passive: false });
 
     document.addEventListener(
       "wheel",

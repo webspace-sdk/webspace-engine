@@ -47,7 +47,11 @@ const Root = styled.div`
   }
 
   &.show-asset-panel #jel-ui-wrap {
-    height: calc(100% - 64px);
+    height: calc(100% - 128px);
+  }
+
+  body.paused &.show-asset-panel #jel-ui-wrap {
+    height: 100%;
   }
 
   body.panels-expanded &.show-asset-panel #jel-ui-wrap {
@@ -91,8 +95,12 @@ const Wrap = styled.div`
 `;
 
 const AssetPanelWrap = styled.div`
-  pointer-events: none;
-  height: 64px;
+  color: var(--panel-text-color);
+  background-color: var(--secondary-panel-background-color);
+  font-size: var(--panel-text-size);
+  font-weight: var(--panel-text-weight);
+  pointer-events: auto;
+  height: 192px;
   left: var(--nav-width);
   width: calc(100% - var(--nav-width) - var(--presence-width));
   bottom: 0;
@@ -105,13 +113,11 @@ const AssetPanelWrap = styled.div`
   }
 
   body.paused #jel-interface.hub-type-world & {
-    pointer-events: auto;
-    background-color: rgba(0, 0, 0, 0.6);
+    display: none;
   }
 
   body.paused #jel-interface.hub-type-channel & {
-    pointer-events: none;
-    background-color: transparent;
+    display: none;
   }
 `;
 
@@ -357,7 +363,8 @@ function JelUI(props) {
     hubSettings,
     unavailableReason,
     subscriptions,
-    spaceId
+    spaceId,
+    publishedVoxTree
   } = props;
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
@@ -872,7 +879,7 @@ function JelUI(props) {
           )}
         </Wrap>
         <AssetPanelWrap id="asset-panel">
-          <AssetPanel />
+          <AssetPanel voxTree={publishedVoxTree} />
         </AssetPanelWrap>
         {!skipSidePanels && (
           <JelSidePanels
@@ -1113,7 +1120,8 @@ JelUI.propTypes = {
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
   hubSettings: PropTypes.array,
-  unavailableReason: PropTypes.string
+  unavailableReason: PropTypes.string,
+  publishedVoxTree: PropTypes.object
 };
 
 export default JelUI;
