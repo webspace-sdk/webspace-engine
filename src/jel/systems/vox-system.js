@@ -1645,6 +1645,12 @@ export class VoxSystem extends EventTarget {
     entity.object3D.scale.setScalar(published_scale);
     entity.object3D.matrixNeedsUpdate = true;
 
+    // Needed to ensure media presence is triggered
+    entity.setAttribute("offset-relative-to", {
+      target: "#avatar-pov-node",
+      offset: { x: 0, y: 0, z: 0 }
+    });
+
     const rightHand = document.getElementById("player-right-controller");
     const transformSystem = this.sceneEl.systems["transform-selected-object"];
 
