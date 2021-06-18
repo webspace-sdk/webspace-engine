@@ -593,6 +593,13 @@ AFRAME.registerSystem("transform-selected-object", {
     if (this.mode === TRANSFORM_MODE.STACK) {
       const userinput = this.el.systems.userinput;
 
+      // Use stored stack axis if available on element.
+      const mediaLoader = this.target.el && this.target.el.components["media-loader"];
+
+      if (mediaLoader) {
+        this.stackAlongAxis = mediaLoader.data.stackAxis;
+      }
+
       if (userinput.get(paths.actions.transformAxisNextAction)) {
         this.stackAlongAxis++;
       } else if (userinput.get(paths.actions.transformAxisPrevAction)) {
@@ -613,6 +620,10 @@ AFRAME.registerSystem("transform-selected-object", {
         this.stackAlongAxis = FLAT_STACK_AXES.length - 1;
       } else {
         this.stackAlongAxis = this.stackAlongAxis % FLAT_STACK_AXES.length;
+      }
+
+      if (mediaLoader) {
+        mediaLoader.el.setAttribute("media-loader", { stackAxis: this.stackAlongAxis });
       }
 
       return; // Taken care of in cursor controller tick

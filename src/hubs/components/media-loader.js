@@ -59,6 +59,7 @@ AFRAME.registerComponent("media-loader", {
     skipLoader: { default: false },
     animate: { default: true },
     linkedEl: { default: null }, // This is the element of which this is a linked derivative. See linked-media.js
+    stackAxis: { default: 0 },
     mediaOptions: {
       default: {},
       parse: v => (typeof v === "object" ? v : JSON.parse(v)),
