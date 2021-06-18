@@ -2,14 +2,37 @@ import React, { useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import Tree from "rc-tree";
+import PanelSectionHeader from "./panel-section-header";
 
 const AssetPanelElement = styled.div`
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: flex-start;
   height: 100%;
   width: 100%;
   padding: 8px 12px;
+  user-select: none;
+`;
+
+const AssetPanelTop = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+`;
+
+const SearchBar = styled.div`
+  display: flex;
+  margin: 0px 16px 16px 16px;
+`;
+
+const AssetPanelContent = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  overflow-x: hidden;
+  overflow-y: auto;
 `;
 
 const TreeWrap = styled.div`
@@ -190,19 +213,25 @@ export default function AssetPanel(props) {
 
   return (
     <AssetPanelElement>
-      <TreeWrap>
-        <Tree
-          prefixCls="atom-tree"
-          treeData={voxTreeData}
-          selectable={true}
-          selectedKeys={selectedKeys}
-          draggable={false}
-          onSelect={onSelect}
-          expandedKeys={expandedKeys}
-          onExpand={onExpand}
-        />
-      </TreeWrap>
-      <Tiles>{voxMetas.map(voxMetaToTile)}</Tiles>
+      <AssetPanelTop>
+        <PanelSectionHeader>Objects</PanelSectionHeader>
+        <SearchBar />
+      </AssetPanelTop>
+      <AssetPanelContent>
+        <TreeWrap>
+          <Tree
+            prefixCls="atom-tree"
+            treeData={voxTreeData}
+            selectable={true}
+            selectedKeys={selectedKeys}
+            draggable={false}
+            onSelect={onSelect}
+            expandedKeys={expandedKeys}
+            onExpand={onExpand}
+          />
+        </TreeWrap>
+        <Tiles>{voxMetas.map(voxMetaToTile)}</Tiles>
+      </AssetPanelContent>
     </AssetPanelElement>
   );
 }
