@@ -255,7 +255,8 @@ export const addMedia = (
   networkId = null,
   skipLoader = false,
   contentType = null,
-  locked = false
+  locked = false,
+  stackAxis = 0
 ) => {
   const scene = AFRAME.scenes[0];
 
@@ -320,7 +321,8 @@ export const addMedia = (
     mediaLayer,
     mediaOptions,
     contentType,
-    locked
+    locked,
+    stackAxis
   });
 
   if (contents && !isEmoji) {
@@ -528,7 +530,7 @@ export const cloneMedia = (
     }
   }
 
-  const { contentType, contentSubtype, fitToBox, mediaOptions } = sourceEl.components["media-loader"].data;
+  const { contentType, contentSubtype, fitToBox, mediaOptions, stackAxis } = sourceEl.components["media-loader"].data;
 
   return addMedia(
     src,
@@ -545,7 +547,9 @@ export const cloneMedia = (
     link ? sourceEl : null,
     null,
     false,
-    contentType
+    contentType,
+    false,
+    stackAxis
   );
 };
 
