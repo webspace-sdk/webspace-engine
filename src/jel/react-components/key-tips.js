@@ -325,7 +325,7 @@ const TIP_DATA = {
   rotate: [["yawpitch", "G"], ["roll", "L+G"], ["snap", "_H"]],
   scale: [["scale", "G,R"]],
   slide: [["movexz", "G"], ["movey", "R"], ["snap", "_H"]],
-  stack: [["stack", "G"]],
+  stack: [["stack", "G"], ["spin", "q\\e"], ["flip", "t\\g"]],
   lift: [["movey", "G"], ["snap", "_H"]],
   focus: [["orbit", "I"], ["zoom", "R"], ["exit", "f|Z"]],
   focus_edit: [["orbit", "I"], ["pan", "_S|O"], ["zoom", "R"], ["exit", "~|@|Z"]],

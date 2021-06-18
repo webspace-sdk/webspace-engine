@@ -371,7 +371,7 @@ function JelUI(props) {
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
   const { store, hubChannel, spaceChannel, dynaChannel, accountChannel, matrix } = window.APP;
-  const { launcherSystem, builderSystem } = SYSTEMS;
+  const { cameraSystem, launcherSystem, builderSystem } = SYSTEMS;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
@@ -384,6 +384,7 @@ function JelUI(props) {
   const [isMatrixLoading, setIsMatrixLoading] = useState(!matrix || !matrix.isInitialSyncFinished);
   const [hasFetchedInitialHubMetadata, setHasFetchedInitialHubMetadata] = useState(false);
   const [isInitializingSpace, setIsInitializingSpace] = useState(store.state.context.isFirstVisitToSpace);
+  const [isInspecting, setIsInspecting] = useState(cameraSystem.isInspecting());
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [showingExternalCamera, setShowingExternalCamera] = useState(false);
   const [showNotificationBanner, setShowNotificationBanner] = useState(
@@ -599,6 +600,15 @@ function JelUI(props) {
 
   useEffect(
     () => {
+      const handler = () => setIsInspecting(SYSTEMS.cameraSystem.isInspecting());
+      cameraSystem.addEventListener("mode_changed", handler);
+      return () => cameraSystem.removeEventListener("mode_changed", handler);
+    },
+    [cameraSystem]
+  );
+
+  useEffect(
+    () => {
       if (!isInitializingSpace) return;
 
       const handler = () => {
@@ -779,10 +789,11 @@ function JelUI(props) {
 
   const isWorld = hub && hub.type === "world";
   const waitingForMatrix = isMatrixLoading && !skipNeon;
+  const showAssetPanel = triggerMode === "builder" && !isInspecting;
 
   return (
     <WrappedIntlProvider>
-      <Root className={triggerMode === "builder" ? "show-asset-panel" : ""}>
+      <Root className={showAssetPanel ? "show-asset-panel" : ""}>
         <LoadingPanel
           isLoading={waitingForMatrix || isInitializingSpace || !hasFetchedInitialHubMetadata}
           unavailableReason={unavailableReason}

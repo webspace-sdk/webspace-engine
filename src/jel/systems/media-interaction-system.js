@@ -69,8 +69,9 @@ export class MediaInteractionSystem {
 
     // Stop sliding if held was dropped or slide key lifted
     if (
-      this.userinput.get(paths.actions.mediaSlideReleaseAction) ||
-      this.userinput.get(paths.actions.mediaLiftReleaseAction) ||
+      (this.userinput.get(paths.actions.mediaSlideReleaseAction) &&
+        this.transformSystem.mode === TRANSFORM_MODE.SLIDE) ||
+      (this.transformSystem.mode === TRANSFORM_MODE.LIFT && this.userinput.get(paths.actions.mediaLiftReleaseAction)) ||
       this.userinput.get(paths.actions.mashRelease) ||
       ((this.transformSystem.mode === TRANSFORM_MODE.SLIDE ||
         this.transformSystem.mode === TRANSFORM_MODE.LIFT ||
@@ -176,7 +177,7 @@ export class MediaInteractionSystem {
 
           entity.setAttribute("offset-relative-to", {
             target: "#avatar-pov-node",
-            offset: { x: 0, y: 0, z: -5.15 * component.el.object3D.scale.z }
+            offset: { x: 0, y: 0, z: -4.15 * component.el.object3D.scale.z }
           });
         } else {
           if (isSynced && !ensureOwnership(targetEl)) return;

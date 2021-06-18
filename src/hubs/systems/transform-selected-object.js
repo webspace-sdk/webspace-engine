@@ -28,6 +28,12 @@ const XAXIS = new THREE.Vector3(1, 0, 0);
 const shiftKeyPath = paths.device.keyboard.key("shift");
 const UP = new THREE.Vector3(0, 1, 0);
 const FORWARD = new THREE.Vector3(0, 0, 1);
+const ALONG = new THREE.Vector3(1, 0, 0);
+const DOWN = new THREE.Vector3(0, -1, 0);
+const BACKWARD = new THREE.Vector3(0, 0, -1);
+const AGAINST = new THREE.Vector3(-1, 0, 0);
+const FLAT_STACK_AXES = [FORWARD, FORWARD, FORWARD, FORWARD, FORWARD, FORWARD];
+const NON_FLAT_STACK_AXES = [UP, DOWN, FORWARD, BACKWARD, ALONG, AGAINST];
 const offset = new THREE.Vector3();
 const objectSnapAlong = new THREE.Vector3();
 const targetPoint = new THREE.Vector3();
@@ -70,6 +76,8 @@ AFRAME.registerSystem("transform-selected-object", {
     this.dWheelApplied = 0;
     this.raycasters = {};
     this.prevModify = false;
+    this.stackAlongAxis = 0;
+    this.stackRotationAmount = 0;
 
     this.puppet = {
       initialControllerOrientation: new THREE.Quaternion(),
@@ -248,6 +256,8 @@ AFRAME.registerSystem("transform-selected-object", {
     this.target = target;
     this.target.updateMatrices();
     this.targetInitialMatrix.copy(this.target.matrix);
+    this.stackAlongAxis = 0;
+    this.stackRotationAmount = 0;
 
     this.targetBoundingBox.makeEmpty();
     expandByEntityObjectSpaceBoundingBox(this.targetBoundingBox, target.el);
@@ -487,32 +497,42 @@ AFRAME.registerSystem("transform-selected-object", {
 
     targetBoundingBox.getCenter(v);
 
-    if (!isFlat) {
-      // v is the world space point of the bottom center of the bounding box
-      v.y = targetBoundingBox.min.y;
+    const axis = (isFlat ? FLAT_STACK_AXES : NON_FLAT_STACK_AXES)[this.stackAlongAxis];
 
-      // The offset for the stack should be the distance from the object's
-      // origin to the box face, in object space.
-      offset.sub(v);
+    // v is the world space point of the bottom/top center of the bounding box
+    if (axis.x !== 0) {
+      v.x = axis.x < 0 ? targetBoundingBox.max.x : targetBoundingBox.min.x;
+    } else if (axis.y !== 0) {
+      v.y = axis.y < 0 ? targetBoundingBox.max.y : targetBoundingBox.min.y;
+    } else if (axis.z !== 0) {
+      v.z = axis.z < 0 ? targetBoundingBox.max.z : targetBoundingBox.min.z;
     }
+
+    // The offset for the stack should be the distance from the object's
+    // origin to the box face, in object space.
+    offset.sub(v);
 
     // Stack the current target at the stack point to the target point,
     // and orient it so its local Y axis is parallel to the normal.
     v.copy(normal);
     v.transformDirection(normalObject.matrixWorld);
 
-    objectSnapAlong.copy(isFlat ? FORWARD : UP);
+    objectSnapAlong.copy(axis);
     objectSnapAlong.transformDirection(this.targetInitialMatrix);
 
     // If the world space normal and original world object up are not already parallel, reorient the object
     if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.01) {
       // Flat media aligns to walls, other objects align to floor.
-      const alignAxis = isFlat ? FORWARD : UP;
-      q.setFromUnitVectors(alignAxis, v);
+      q.setFromUnitVectors(axis, v);
     } else {
       // Nudge the object to be re-aligned instead of doing a full reorient.
       q2.setFromUnitVectors(objectSnapAlong, v);
       this.targetInitialMatrix.decompose(v, q, v2);
+      q.multiply(q2);
+    }
+
+    if (this.stackRotationAmount > 0) {
+      q2.setFromAxisAngle(axis, this.stackRotationAmount);
       q.multiply(q2);
     }
 
@@ -546,6 +566,30 @@ AFRAME.registerSystem("transform-selected-object", {
     }
 
     if (this.mode === TRANSFORM_MODE.STACK) {
+      const userinput = this.el.systems.userinput;
+
+      if (userinput.get(paths.actions.transformAxisNextAction)) {
+        this.stackAlongAxis++;
+      } else if (userinput.get(paths.actions.transformAxisPrevAction)) {
+        this.stackAlongAxis--;
+      }
+
+      if (userinput.get(paths.actions.transformRotateNextAction)) {
+        this.stackRotationAmount += Math.PI / 8.0;
+      } else if (userinput.get(paths.actions.transformRotatePrevAction)) {
+        this.stackRotationAmount -= Math.PI / 8.0;
+
+        if (this.stackRotationAmount < 0) {
+          this.stackRotationAmount += Math.PI * 2.0;
+        }
+      }
+
+      if (this.stackAlongAxis < 0) {
+        this.stackAlongAxis = FLAT_STACK_AXES.length - 1;
+      } else {
+        this.stackAlongAxis = this.stackAlongAxis % FLAT_STACK_AXES.length;
+      }
+
       return; // Taken care of in cursor controller tick
     }
 
