@@ -607,13 +607,13 @@ AFRAME.registerSystem("transform-selected-object", {
       }
 
       if (userinput.get(paths.actions.transformRotateNextAction)) {
-        this.stackRotationAmount += Math.PI / 8.0;
-      } else if (userinput.get(paths.actions.transformRotatePrevAction)) {
         this.stackRotationAmount -= Math.PI / 8.0;
 
         if (this.stackRotationAmount < 0) {
           this.stackRotationAmount += Math.PI * 2.0;
         }
+      } else if (userinput.get(paths.actions.transformRotatePrevAction)) {
+        this.stackRotationAmount += Math.PI / 8.0;
       }
 
       if (this.stackAlongAxis < 0) {
