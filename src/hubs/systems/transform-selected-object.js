@@ -42,9 +42,11 @@ const { DEG2RAD } = THREE.Math;
 const SNAP_DEGREES = 22.5;
 const SNAP_RADIANS = SNAP_DEGREES * DEG2RAD;
 
-function withGridSnap(shouldSnap, v) {
+function withGridSnap(shouldSnap, v, scale = 1.0) {
+  scale = Math.max(0.25, scale);
+
   if (shouldSnap) {
-    return Math.floor(v * (1.0 / (VOXEL_SIZE * 2))) * (VOXEL_SIZE * 2);
+    return Math.floor(v * (1.0 / (VOXEL_SIZE * scale))) * (VOXEL_SIZE * scale);
   } else {
     return v;
   }
@@ -413,8 +415,11 @@ AFRAME.registerSystem("transform-selected-object", {
       this.target.quaternion.copy(q);
       this.target.matrixNeedsUpdate = true;
     } else if (this.mode === TRANSFORM_MODE.LIFT) {
-      const initialX = this.targetInitialMatrix.elements[12];
-      const initialZ = this.targetInitialMatrix.elements[14];
+      const { elements } = this.targetInitialMatrix;
+      const initialX = elements[12];
+      const initialZ = elements[14];
+
+      const scale = v.set(elements[0], elements[1], elements[2]).length();
 
       this.target.updateMatrices();
       tmpMatrix.copy(this.targetInitialMatrix);
@@ -423,7 +428,7 @@ AFRAME.registerSystem("transform-selected-object", {
 
       tmpMatrix.setPosition(
         initialX,
-        withGridSnap(shouldSnap, intersection.point.y - planeCastObjectOffset.y),
+        withGridSnap(shouldSnap, intersection.point.y - planeCastObjectOffset.y, scale),
         initialZ
       );
       this.target.setMatrix(tmpMatrix);
@@ -452,6 +457,11 @@ AFRAME.registerSystem("transform-selected-object", {
       this.dWheelApplied += wheelDelta;
     }
 
+    const { elements } = this.targetInitialMatrix;
+    const initialX = elements[12];
+    const initialZ = elements[14];
+    const scale = v.set(elements[0], elements[1], elements[2]).length();
+
     plane.updateMatrices();
     v.set(0, 0, 1);
     v.transformDirection(plane.matrixWorld);
@@ -460,8 +470,6 @@ AFRAME.registerSystem("transform-selected-object", {
     v2.sub(plane.position);
     v2.normalize();
 
-    const initialX = this.targetInitialMatrix.elements[12];
-    const initialZ = this.targetInitialMatrix.elements[14];
     const dx = intersection.point.x - initialX;
     const dz = intersection.point.z - initialZ;
     v.set(dx, 0, dz);
@@ -476,11 +484,11 @@ AFRAME.registerSystem("transform-selected-object", {
 
     const shouldSnap = !!userinput.get(shiftKeyPath);
 
-    const newX = withGridSnap(shouldSnap, initialX + v.x - planeCastObjectOffset.x);
+    const newX = withGridSnap(shouldSnap, initialX + v.x - planeCastObjectOffset.x, scale);
 
-    const newY = withGridSnap(shouldSnap, tmpMatrix.elements[13] + this.dWheelApplied);
+    const newY = withGridSnap(shouldSnap, tmpMatrix.elements[13] + this.dWheelApplied, scale);
 
-    const newZ = withGridSnap(shouldSnap, initialZ + v.z - planeCastObjectOffset.z);
+    const newZ = withGridSnap(shouldSnap, initialZ + v.z - planeCastObjectOffset.z, scale);
 
     tmpMatrix.setPosition(newX, newY, newZ);
     this.target.setMatrix(tmpMatrix);
@@ -488,6 +496,9 @@ AFRAME.registerSystem("transform-selected-object", {
 
   stackTargetAt(point, normal, normalObject) {
     const { target, targetBoundingBox } = this;
+    const userinput = this.el.systems.userinput;
+    const { elements } = this.targetInitialMatrix;
+    const scale = v.set(elements[0], elements[1], elements[2]).length();
 
     target.updateMatrices();
     normalObject.updateMatrices();
@@ -517,6 +528,14 @@ AFRAME.registerSystem("transform-selected-object", {
     v.copy(normal);
     v.transformDirection(normalObject.matrixWorld);
 
+    // Snap except along axis in direction of normal
+    const nx = Math.abs(v.x);
+    const ny = Math.abs(v.y);
+    const nz = Math.abs(v.z);
+    const normalIsMaxX = nx >= ny && nx >= nz;
+    const normalIsMaxY = !normalIsMaxX && ny >= nx && ny >= nz;
+    const normalIsMaxZ = !normalIsMaxX && !normalIsMaxY;
+
     objectSnapAlong.copy(axis);
     objectSnapAlong.transformDirection(this.targetInitialMatrix);
 
@@ -543,7 +562,13 @@ AFRAME.registerSystem("transform-selected-object", {
     offset.multiply(v2);
     offset.applyQuaternion(q);
 
-    targetPoint.copy(point).add(offset);
+    const shouldSnap = !!userinput.get(shiftKeyPath);
+
+    const newX = withGridSnap(shouldSnap && !normalIsMaxX, point.x, scale);
+    const newY = withGridSnap(shouldSnap && !normalIsMaxY, point.y, scale);
+    const newZ = withGridSnap(shouldSnap && !normalIsMaxZ, point.z, scale);
+
+    targetPoint.set(newX, newY, newZ).add(offset);
 
     tmpMatrix.compose(
       targetPoint,
