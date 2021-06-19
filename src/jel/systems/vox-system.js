@@ -1,6 +1,7 @@
 import { JelVoxBufferGeometry } from "../objects/JelVoxBufferGeometry";
 import jwtDecode from "jwt-decode";
 import { ObjectContentOrigins } from "../../hubs/object-types";
+import { createVox } from "../../hubs/utils/phoenix-utils";
 import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { MeshBVH } from "three-mesh-bvh";
@@ -671,23 +672,14 @@ export class VoxSystem extends EventTarget {
 
     voxMap.set(voxId, entry);
 
-    const store = window.APP.store;
-
     // If the sync is already available and open, use it.
     // Otherwise fetch frame data when first registering.
     if (this.hasSync(voxId)) {
       const sync = await this.getSync(voxId);
       entry.vox = sync.getVox();
     } else {
-      const res = await fetch(voxUrl, {
-        headers: { authorization: `bearer ${store.state.credentials.token}` }
-      });
-
-      const {
-        vox: [{ frames }]
-      } = await res.json();
-
-      const vox = new Vox(frames.map(f => VoxChunk.deserialize(f)));
+      const frames = await this.fetchVoxFrameChunks(voxUrl);
+      const vox = new Vox(frames);
       entry.vox = vox;
     }
 
@@ -1438,6 +1430,27 @@ export class VoxSystem extends EventTarget {
     return vox.frames[targettingMeshFrame].getTotalNonEmptyVoxels();
   }
 
+  async fetchVoxFrameChunks(voxUrl) {
+    const store = window.APP.store;
+
+    const res = await fetch(voxUrl, {
+      headers: { authorization: `bearer ${store.state.credentials.token}` }
+    });
+
+    const {
+      vox: [{ frames }]
+    } = await res.json();
+
+    return frames.map(f => VoxChunk.deserialize(f));
+  }
+
+  async getOrFetchVoxFrameChunks(voxId) {
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (entry && entry.vox) return entry.vox.frames;
+    return await this.fetchVoxFrameChunks(voxId);
+  }
+
   getChunkFrameOfVox(voxId, frame) {
     const { voxMap } = this;
     const entry = voxMap.get(voxId);
@@ -1604,15 +1617,50 @@ export class VoxSystem extends EventTarget {
     };
   })();
 
-  async copyVoxContent(fromVoxId, toVoxId) {
-    const sync = new VoxSync(toVoxId);
-    await sync.init(this.sceneEl);
+  // If toVoxId is null, create a new vox.
+  //
+  // Returns null if not creating a new vox, or the vox id and url if a new vox
+  // is created.
+  async copyVoxContent(fromVoxId, toVoxId = null) {
+    const spaceId = window.APP.spaceChannel.spaceId;
+
+    let sync;
+    let disposeSync = false;
+    let returnValue = null;
+
+    if (toVoxId === null) {
+      const {
+        vox: [{ vox_id: voxId, url }]
+      } = await createVox(spaceId);
+
+      toVoxId = voxId;
+      returnValue = { voxId, url };
+
+      sync = await this.getSync(voxId);
+    } else {
+      // Re-use existing sync if possible.
+      if (this.hasSync(toVoxId)) {
+        sync = await this.getSync(toVoxId);
+      } else {
+        sync = new VoxSync(toVoxId);
+        await sync.init(this.sceneEl);
+        disposeSync = true;
+      }
+    }
+
+    const frames = await this.getOrFetchVoxFrameChunks(fromVoxId);
+
     for (let i = 0; i < MAX_FRAMES_PER_VOX; i++) {
-      const chunk = this.getChunkFrameOfVox(fromVoxId, i);
+      const chunk = frames[i];
       if (!chunk) continue;
       await sync.applyChunk(chunk, i, [0, 0, 0]);
     }
-    sync.dispose();
+
+    if (disposeSync) {
+      sync.dispose();
+    }
+
+    return returnValue;
   }
 
   async beginPlacingDraggedVox() {
@@ -1663,5 +1711,22 @@ export class VoxSystem extends EventTarget {
       },
       { once: true }
     );
+  }
+
+  // Given a src URL to a vox, determines if we should bake and/or modify the src before instantation.
+  //
+  // If the specified vox is a published vox, we do not want to instantiate that directly. Dyna is queried
+  // to determine if there is already an existing, unmodified, baked vox based on this published vox. If not,
+
+  async resolveBakedOrInstantiatedVox(voxSrc) {
+    const { voxMetadata } = window.APP;
+
+    const voxId = voxIdForVoxUrl(voxSrc);
+    const metadata = await voxMetadata.getOrFetchMetadata(voxId);
+
+    if (!metadata.is_published) return voxSrc;
+
+    const { url } = await this.copyVoxContent(voxId);
+    return url;
   }
 }

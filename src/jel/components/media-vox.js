@@ -4,8 +4,6 @@ import { resetMediaRotation, MEDIA_INTERACTION_TYPES, isLockedMedia } from "../.
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { getNetworkedEntity } from "../../jel/utils/ownership-utils";
 import { endCursorLock } from "../utils/dom-utils";
-import { MAX_FRAMES_PER_VOX } from "../systems/vox-system";
-import { createVox } from "../../hubs/utils/phoenix-utils";
 import { spawnMediaInfrontOfPlayer } from "../../hubs/utils/media-utils";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import "../utils/vox-sync";
@@ -146,20 +144,8 @@ AFRAME.registerComponent("media-vox", {
   },
 
   async snapshotNewVox() {
-    const spaceId = window.APP.spaceChannel.spaceId;
     const { voxSystem } = SYSTEMS;
-
-    const {
-      vox: [{ vox_id: voxId, url }]
-    } = await createVox(spaceId);
-
-    const sync = await voxSystem.getSync(voxId);
-
-    for (let i = 0; i < MAX_FRAMES_PER_VOX; i++) {
-      const chunk = voxSystem.getChunkFrameOfVox(this.voxId, i);
-      if (!chunk) continue;
-      await sync.applyChunk(chunk, i, [0, 0, 0]);
-    }
+    const { url } = await voxSystem.copyVoxContent(this.voxId);
 
     // Skip resolving these URLs since they're from dyna.
     spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL, null, {}, true, true, "model/vnd.jel-vox");
