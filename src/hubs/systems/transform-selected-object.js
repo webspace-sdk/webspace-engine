@@ -541,7 +541,7 @@ AFRAME.registerSystem("transform-selected-object", {
     objectSnapAlong.transformDirection(this.targetInitialMatrix);
 
     // If the world space normal and original world object up are not already parallel, reorient the object
-    if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.01) {
+    if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.001) {
       // Flat media aligns to walls, other objects align to floor.
       q.setFromUnitVectors(axis, v);
     } else {

@@ -13,6 +13,7 @@ import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
 import { canCloneOrSnapshot } from "../../hubs/utils/permissions-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { ensureOwnership, getNetworkedEntitySync, isSynchronized } from "../../jel/utils/ownership-utils";
+import { expandByEntityObjectSpaceBoundingBox } from "../../hubs/utils/three-utils";
 import { cursorIsVisible } from "../utils/dom-utils";
 import { releaseEphemeralCursorLock, beginEphemeralCursorLock } from "../utils/dom-utils";
 import qsTruthy from "../../hubs/utils/qs_truthy";
@@ -170,14 +171,25 @@ export class MediaInteractionSystem {
 
       if (component && lockAllows) {
         if (interactionType === MEDIA_INTERACTION_TYPES.CLONE) {
-          const { entity } = cloneMedia(component.el, "#interactable-media");
+          const sourceEntity = component.el;
+          const { entity } = cloneMedia(sourceEntity, "#interactable-media");
+          const sourceScale = sourceEntity.object3D.scale;
 
-          entity.object3D.scale.copy(component.el.object3D.scale);
+          entity.object3D.scale.copy(sourceScale);
           entity.object3D.matrixNeedsUpdate = true;
+
+          const box = new THREE.Box3();
+          const size = new THREE.Vector3();
+
+          expandByEntityObjectSpaceBoundingBox(box, sourceEntity);
+          box.getSize(size);
+
+          const scaledSize = sourceScale.z * Math.min(size.x, size.y, size.z);
+          console.log(scaledSize);
 
           entity.setAttribute("offset-relative-to", {
             target: "#avatar-pov-node",
-            offset: { x: 0, y: 0, z: -4.15 * component.el.object3D.scale.z }
+            offset: { x: 0, y: 0, z: Math.min(-1, -2.15 * scaledSize) }
           });
         } else {
           if (isSynced && !ensureOwnership(targetEl)) return;

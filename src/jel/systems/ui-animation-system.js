@@ -136,11 +136,17 @@ export class UIAnimationSystem {
       let finished = false;
 
       if (this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDING) {
-        this.applySceneSize(this.targetSceneLeft, this.targetSceneRight, true);
+        if (!skipPanels) {
+          this.applySceneSize(this.targetSceneLeft, this.targetSceneRight, true);
+        }
+
         this.panelExpansionState = PANEL_EXPANSION_STATES.EXPANDED;
         finished = true;
       } else if (this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSING) {
-        this.applySceneSize(0, 0, true);
+        if (!skipPanels) {
+          this.applySceneSize(0, 0, true);
+        }
+
         this.panelExpansionState = PANEL_EXPANSION_STATES.COLLAPSED;
         finished = true;
       }
