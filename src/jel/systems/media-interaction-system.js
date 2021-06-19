@@ -185,7 +185,6 @@ export class MediaInteractionSystem {
           box.getSize(size);
 
           const scaledSize = sourceScale.z * Math.min(size.x, size.y, size.z);
-          console.log(scaledSize);
 
           entity.setAttribute("offset-relative-to", {
             target: "#avatar-pov-node",
