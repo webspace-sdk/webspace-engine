@@ -1,5 +1,6 @@
 import { TRANSFORM_MODE } from "../systems/transform-selected-object";
 import { paths } from "./userinput/paths";
+const shiftKeyPath = paths.device.keyboard.key("shift");
 
 //const calculatePlaneMatrix = (function() {
 //  const planeMatrix = new THREE.Matrix4();
@@ -182,6 +183,7 @@ AFRAME.registerSystem("scale-object", {
     this.desiredObjectScale.copy(this.initialObjectScale).multiplyScalar(scaleFactor);
     this.objectToScale.updateMatrices();
     this.currentObjectScale.setFromMatrixScale(this.objectToScale.matrix);
+
     this.deltaScale.set(
       this.desiredObjectScale.x / this.currentObjectScale.x,
       this.desiredObjectScale.y / this.currentObjectScale.y,

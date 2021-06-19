@@ -387,7 +387,7 @@ AFRAME.registerSystem("transform-selected-object", {
       tmpMatrix.extractRotation(this.targetInitialMatrix);
       q.setFromRotationMatrix(tmpMatrix);
 
-      const shouldSnap = !!userinput.get(shiftKeyPath);
+      const shouldSnap = !userinput.get(shiftKeyPath);
 
       if (modify) {
         // Roll
@@ -424,7 +424,7 @@ AFRAME.registerSystem("transform-selected-object", {
       this.target.updateMatrices();
       tmpMatrix.copy(this.targetInitialMatrix);
 
-      const shouldSnap = !!userinput.get(shiftKeyPath);
+      const shouldSnap = !userinput.get(shiftKeyPath);
 
       tmpMatrix.setPosition(
         initialX,
@@ -482,11 +482,11 @@ AFRAME.registerSystem("transform-selected-object", {
     this.target.updateMatrices();
     tmpMatrix.copy(this.targetInitialMatrix);
 
-    const shouldSnap = !!userinput.get(shiftKeyPath);
+    const shouldSnap = !userinput.get(shiftKeyPath);
 
     const newX = withGridSnap(shouldSnap, initialX + v.x - planeCastObjectOffset.x, scale);
 
-    const newY = withGridSnap(shouldSnap, tmpMatrix.elements[13] + this.dWheelApplied, scale);
+    const newY = tmpMatrix.elements[13] + withGridSnap(shouldSnap, this.dWheelApplied, scale);
 
     const newZ = withGridSnap(shouldSnap, initialZ + v.z - planeCastObjectOffset.z, scale);
 
@@ -509,6 +509,7 @@ AFRAME.registerSystem("transform-selected-object", {
     targetBoundingBox.getCenter(v);
 
     const axis = (isFlat ? FLAT_STACK_AXES : NON_FLAT_STACK_AXES)[this.stackAlongAxis];
+    v.set(0, 0, 0);
 
     // v is the world space point of the bottom/top center of the bounding box
     if (axis.x !== 0) {
@@ -562,7 +563,7 @@ AFRAME.registerSystem("transform-selected-object", {
     offset.multiply(v2);
     offset.applyQuaternion(q);
 
-    const shouldSnap = !!userinput.get(shiftKeyPath);
+    const shouldSnap = !userinput.get(shiftKeyPath);
 
     const newX = withGridSnap(shouldSnap && !normalIsMaxX, point.x, scale);
     const newY = withGridSnap(shouldSnap && !normalIsMaxY, point.y, scale);
