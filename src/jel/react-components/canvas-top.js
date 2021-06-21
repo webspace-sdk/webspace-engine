@@ -339,7 +339,7 @@ function CanvasTop(props) {
     atomTrailAtomIds = [atomId];
   } else if (!isInspecting) {
     atomTrailAtomIds =
-      (treeForCurrentHub && treeForCurrentHub.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
+      (treeForCurrentHub && hub && treeForCurrentHub.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
   }
 
   const hubMetadata = worldTree && worldTree.atomMetadata;

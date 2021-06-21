@@ -164,6 +164,16 @@ export default class AccountChannel extends EventTarget {
     });
   };
 
+  getExportableVox = voxId => {
+    return new Promise(res => {
+      this.channel
+        .push("get_exportable_vox", { vox_id: voxId })
+        .receive("ok", async ({ exportable_vox_id: exportableVoxId }) => {
+          res(exportableVoxId);
+        });
+    });
+  };
+
   updateVox = (voxId, newVoxFields) => {
     if (!this.channel) return;
     const { voxMetadata } = window.APP;

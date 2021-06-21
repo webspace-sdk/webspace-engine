@@ -3,6 +3,7 @@ import cleaner from "clean-html";
 import { FONT_FACES } from "./quill-utils";
 import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { normalizeCoord } from "../systems/wrapped-entity-system";
+import { voxIdForVoxUrl } from "../systems/vox-system";
 
 const tmpPos = new THREE.Vector3();
 const tmpQuat = new THREE.Quaternion();
@@ -22,6 +23,7 @@ export default class WorldExporter {
 
   async currentWorldToHtml() {
     const { hubMetadata, hubChannel } = window.APP;
+    const { voxSystem } = SYSTEMS.voxSystem;
     const metadata = hubMetadata.getMetadata(hubChannel.hubId);
 
     const avatarPovNode = document.querySelector("#avatar-pov-node").object3D;
@@ -68,7 +70,7 @@ export default class WorldExporter {
     mediaEls.sort((x, y) => (x.id > y.id ? -1 : x.id < y.id ? 1 : 0));
 
     for (const el of mediaEls) {
-      const exportEl = this.elToExportEl(doc, el);
+      const exportEl = await this.elToExportEl(doc, el);
       if (!exportEl) continue;
 
       doc.body.appendChild(exportEl);
@@ -99,8 +101,11 @@ export default class WorldExporter {
     });
   }
 
-  elToExportEl(doc, el) {
+  async elToExportEl(doc, el) {
     const { terrainSystem } = AFRAME.scenes[0].systems["hubs-systems"];
+    const { accountChannel } = window.APP;
+    const { voxSystem } = SYSTEMS;
+
     let { src, contentSubtype } = el.components["media-loader"].data;
 
     let exportEl;
@@ -131,6 +136,20 @@ export default class WorldExporter {
     if (el.components["media-vox"]) {
       exportEl = doc.createElement("embed");
       exportEl.setAttribute("type", "model/vnd.jel-vox");
+
+      // Look up export vox id
+      const voxId = voxIdForVoxUrl(src);
+      let exportableVoxId = await accountChannel.getExportableVox(voxId);
+
+      if (!exportableVoxId) {
+        // No exportable vox, publish one.
+        const tmpVec = new THREE.Vector3();
+        el.object3D.getWorldScale(tmpVec);
+        exportableVoxId = await accountChannel.publishVox(voxId, "", "", tmpVec.x);
+        await voxSystem.copyVoxContent(voxId, exportableVoxId);
+      }
+
+      src = src.replaceAll(voxId, exportableVoxId);
     }
 
     if (el.components["gltf-model-plus"]) {

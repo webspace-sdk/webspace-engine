@@ -76,7 +76,7 @@ voxMaterial.onBeforeCompile = shader => {
   );
 };
 
-function voxIdForVoxUrl(url) {
+export function voxIdForVoxUrl(url) {
   // Parse vox id from URL
   const pathParts = new URL(url).pathname.split("/");
   return pathParts[pathParts.length - 1];
