@@ -13,7 +13,7 @@ import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
 import { canCloneOrSnapshot } from "../../hubs/utils/permissions-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { ensureOwnership, getNetworkedEntitySync, isSynchronized } from "../../jel/utils/ownership-utils";
-import { expandByEntityObjectSpaceBoundingBox } from "../../hubs/utils/three-utils";
+import { getSpawnInFrontZOffsetForEntity } from "../../hubs/utils/three-utils";
 import { cursorIsVisible } from "../utils/dom-utils";
 import { releaseEphemeralCursorLock, beginEphemeralCursorLock } from "../utils/dom-utils";
 import qsTruthy from "../../hubs/utils/qs_truthy";
@@ -178,17 +178,11 @@ export class MediaInteractionSystem {
           entity.object3D.scale.copy(sourceScale);
           entity.object3D.matrixNeedsUpdate = true;
 
-          const box = new THREE.Box3();
-          const size = new THREE.Vector3();
-
-          expandByEntityObjectSpaceBoundingBox(box, sourceEntity);
-          box.getSize(size);
-
-          const scaledSize = sourceScale.z * Math.min(size.x, size.y, size.z);
+          const zOffset = getSpawnInFrontZOffsetForEntity(sourceEntity);
 
           entity.setAttribute("offset-relative-to", {
             target: "#avatar-pov-node",
-            offset: { x: 0, y: 0, z: Math.min(-1, -2.15 * scaledSize) }
+            offset: { x: 0, y: 0, z: zOffset }
           });
         } else {
           if (isSynced && !ensureOwnership(targetEl)) return;

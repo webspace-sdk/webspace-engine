@@ -6,6 +6,7 @@ import { getNetworkedEntity } from "../../jel/utils/ownership-utils";
 import { endCursorLock } from "../utils/dom-utils";
 import { spawnMediaInfrontOfPlayer } from "../../hubs/utils/media-utils";
 import { ObjectContentOrigins } from "../../hubs/object-types";
+import { getSpawnInFrontZOffsetForEntity } from "../../hubs/utils/three-utils";
 import "../utils/vox-sync";
 
 AFRAME.registerComponent("media-vox", {
@@ -146,9 +147,24 @@ AFRAME.registerComponent("media-vox", {
   async snapshotNewVox() {
     const { voxSystem } = SYSTEMS;
     const { url } = await voxSystem.copyVoxContent(this.voxId);
+    const zOffset = getSpawnInFrontZOffsetForEntity(this.el);
+    const sourceScale = this.el.object3D.scale;
 
     // Skip resolving these URLs since they're from dyna.
-    spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL, null, {}, true, true, "model/vnd.jel-vox");
+    const entity = spawnMediaInfrontOfPlayer(
+      url,
+      null,
+      ObjectContentOrigins.URL,
+      null,
+      {},
+      true,
+      true,
+      "model/vnd.jel-vox",
+      zOffset
+    );
+
+    entity.object3D.scale.copy(sourceScale);
+    entity.object3D.matrixNeedsUpdate = true;
   },
 
   shouldBurstProjectileOnImpact() {

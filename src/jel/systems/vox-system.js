@@ -1446,9 +1446,11 @@ export class VoxSystem extends EventTarget {
 
   async getOrFetchVoxFrameChunks(voxId) {
     const { voxMap } = this;
+    const { voxMetadata } = window.APP;
     const entry = voxMap.get(voxId);
     if (entry && entry.vox) return entry.vox.frames;
-    return await this.fetchVoxFrameChunks(voxId);
+    const { url } = await voxMetadata.getOrFetchMetadata(voxId);
+    return await this.fetchVoxFrameChunks(url);
   }
 
   getChunkFrameOfVox(voxId, frame) {
@@ -1623,6 +1625,7 @@ export class VoxSystem extends EventTarget {
   // is created.
   async copyVoxContent(fromVoxId, toVoxId = null) {
     const spaceId = window.APP.spaceChannel.spaceId;
+    const hubId = window.APP.hubChannel.hubId;
 
     let sync;
     let disposeSync = false;
@@ -1631,7 +1634,7 @@ export class VoxSystem extends EventTarget {
     if (toVoxId === null) {
       const {
         vox: [{ vox_id: voxId, url }]
-      } = await createVox(spaceId);
+      } = await createVox(spaceId, hubId, fromVoxId);
 
       toVoxId = voxId;
       returnValue = { voxId, url };
@@ -1719,14 +1722,18 @@ export class VoxSystem extends EventTarget {
   // to determine if there is already an existing, unmodified, baked vox based on this published vox. If not,
 
   async resolveBakedOrInstantiatedVox(voxSrc) {
-    const { voxMetadata } = window.APP;
+    const { voxMetadata, hubChannel, accountChannel } = window.APP;
+    const hubId = hubChannel.hubId;
 
     const voxId = voxIdForVoxUrl(voxSrc);
     const metadata = await voxMetadata.getOrFetchMetadata(voxId);
 
     if (!metadata.is_published) return voxSrc;
 
-    const { url } = await this.copyVoxContent(voxId);
+    // Determine if there is a cleanly baked version of this vox already.
+    const existingVoxId = await accountChannel.getExistingBakedVox(voxId, hubId);
+
+    const { url } = await (existingVoxId ? voxMetadata.getOrFetchMetadata(existingVoxId) : this.copyVoxContent(voxId));
     return url;
   }
 }

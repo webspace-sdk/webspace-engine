@@ -267,8 +267,9 @@ export default class SceneEntryManager {
 
     this.scene.addEventListener("dragenter", e => {
       const { types } = e.dataTransfer;
+      const transformSystem = this.scene.systems["transform-selected-object"];
 
-      if (types.length === 1 && types[0] === "jel/vox") {
+      if (types.length === 1 && types[0] === "jel/vox" && !transformSystem.transforming) {
         SYSTEMS.voxSystem.beginPlacingDraggedVox();
       }
     });

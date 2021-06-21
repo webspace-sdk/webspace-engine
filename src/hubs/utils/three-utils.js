@@ -500,3 +500,16 @@ export function expandByEntityObjectSpaceBoundingBox(bbox, el) {
   expandByObjectSpaceBoundingBox(bbox, object);
   return bbox;
 }
+
+export function getSpawnInFrontZOffsetForEntity(sourceEntity) {
+  const sourceScale = sourceEntity.object3D.scale;
+
+  const box = new THREE.Box3();
+  const size = new THREE.Vector3();
+
+  expandByEntityObjectSpaceBoundingBox(box, sourceEntity);
+  box.getSize(size);
+
+  const scaledSize = sourceScale.z * Math.min(size.x, size.y, size.z);
+  return Math.min(-1, -2.15 * scaledSize);
+}
