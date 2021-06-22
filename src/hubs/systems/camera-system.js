@@ -374,14 +374,20 @@ export class CameraSystem extends EventTarget {
     this.showWorldWithCursor = !this.showWorldWithCursor;
 
     if (this.allowCursor) {
-      if (this.showWorldWithCursor) {
-        this.revealEverything();
-      } else {
-        this.hideEverythingButInspectedObjectAndCursors();
-      }
+      this.refreshCameraLayersAndMask();
     }
 
     this.dispatchEvent(new CustomEvent("settings_changed"));
+  }
+
+  refreshCameraLayersAndMask() {
+    if (!this.inspected) return;
+
+    if (this.showWorldWithCursor) {
+      this.revealEverything();
+    } else {
+      this.hideEverythingButInspectedObjectAndCursors();
+    }
   }
 
   toggleShowFloor() {

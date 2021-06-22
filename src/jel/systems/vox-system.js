@@ -13,6 +13,7 @@ import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { addMedia, isLockedMedia } from "../../hubs/utils/media-utils";
 import { type as vox0, Vox, VoxChunk } from "ot-vox";
+import { ensureOwnership } from "../utils/ownership-utils";
 import VoxSync from "../utils/vox-sync";
 
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, VertexColors, Matrix4, Mesh } = THREE;
@@ -458,6 +459,8 @@ export class VoxSystem extends EventTarget {
 
   async register(voxUrl, source) {
     const { physicsSystem, voxMap, sourceToVoxId } = this;
+
+    this.unregister(source);
 
     const voxId = voxIdForVoxUrl(voxUrl);
 
@@ -1714,6 +1717,28 @@ export class VoxSystem extends EventTarget {
       },
       { once: true }
     );
+  }
+
+  async bakeOrInstantiatePublishedVoxEntities(voxId) {
+    const { voxMetadata } = window.APP;
+    const { url, is_published } = await voxMetadata.getOrFetchMetadata(voxId);
+
+    // Called on a non-published vox
+    if (!is_published) return;
+
+    // Get the new baked/instantiated URL and update all the entities
+    const newVoxUrl = await this.resolveBakedOrInstantiatedVox(url);
+    const promises = [];
+
+    for (const entity of document.querySelectorAll("[media-vox]")) {
+      const entityVoxId = entity.components["media-vox"].voxId;
+      if (entityVoxId !== voxId) continue;
+      if (!ensureOwnership(entity)) continue;
+      promises.push(new Promise(res => entity.addEventListener("model-loaded", res, { once: true })));
+      entity.setAttribute("media-loader", { src: newVoxUrl });
+    }
+
+    await Promise.all(promises);
   }
 
   // Given a src URL to a vox, determines if we should bake and/or modify the src before instantation.

@@ -285,7 +285,6 @@ export const addMedia = (
   }
 
   const needsToBeUploaded = src instanceof File;
-  const isVox = contentType === "model/vnd.jel-vox";
 
   // TODO JEL deal with text files dropped or uploaded
 
@@ -312,7 +311,7 @@ export const addMedia = (
     fitToBox,
     resolve,
     animate,
-    src: typeof src === "string" && contents === null && !isVox ? coerceToUrl(src) || src : "",
+    src: typeof src === "string" && contents === null ? coerceToUrl(src) || src : "",
     initialContents: contents != null ? contents : null,
     addedLocally: true,
     createdAt,
@@ -360,11 +359,6 @@ export const addMedia = (
         console.error("Media upload failed", e);
         entity.setAttribute("media-loader", { src: "error" });
       });
-  } else if (isVox) {
-    // If we're adding a vox that is based on a published vox, it will need to be baked.
-    SYSTEMS.voxSystem.resolveBakedOrInstantiatedVox(src).then(src => {
-      entity.setAttribute("media-loader", { src });
-    });
   } else if (isVideoShare) {
     const selfVideoShareUrl = `jel://clients/${NAF.clientId}/video`;
     entity.setAttribute("media-loader", { src: selfVideoShareUrl });

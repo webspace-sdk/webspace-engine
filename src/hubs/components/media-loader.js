@@ -431,8 +431,17 @@ AFRAME.registerComponent("media-loader", {
         contentType = "application/vnd.apple.mpegurl";
       }
 
-      // Clear loader, if any.
-      disposeExistingMesh(this.el);
+      const isSrcChange = !!oldData.src;
+
+      if (!isSrcChange) {
+        // Clear loader, if any.
+        disposeExistingMesh(this.el);
+      }
+
+      if (isSrcChange) {
+        // Don't animate when changing src
+        this.data.animate = false;
+      }
 
       // We don't want to emit media_resolved for index updates.
       if (forceLocalRefresh || mediaChanged) {
@@ -697,7 +706,6 @@ AFRAME.registerComponent("media-loader", {
 
   setToSingletonMediaComponent(attr, properties) {
     for (const component of MEDIA_VIEW_COMPONENTS) {
-      if (attr === component) continue;
       this.el.removeAttribute(component);
     }
 

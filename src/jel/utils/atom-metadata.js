@@ -270,6 +270,11 @@ class AtomMetadata {
     return metadata && metadata !== pendingMetadataValue;
   }
 
+  hasOrIsPendingMetadata(id) {
+    const metadata = this._metadata.get(id);
+    return !!metadata;
+  }
+
   getMetadata(id) {
     const metadata = this._metadata.get(id);
     return metadata && metadata !== pendingMetadataValue ? metadata : null;
