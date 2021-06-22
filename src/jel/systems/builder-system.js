@@ -585,7 +585,7 @@ export class BuilderSystem extends EventTarget {
         }
       }
 
-      if (this.targetVoxId && updatePending && !isDenied) {
+      if (this.targetVoxId && updatePending && (!isDenied || isPublished)) {
         if (!this.pendingChunk) {
           // Create a new pending, pending will grow as needed.
           this.pendingChunk = new VoxChunk([1, 1, 1]);
