@@ -149,9 +149,9 @@ export const resolveUrl = async (url, quality = null, version = 1, bustCache) =>
   return resultPromise;
 };
 
-export const upload = (file, desiredContentType, hubId) => {
+export const upload = (fileOrBlob, desiredContentType, hubId) => {
   const formData = new FormData();
-  formData.append("media", file);
+  formData.append("media", fileOrBlob);
 
   if (hubId) {
     formData.append("hub_id", hubId);

@@ -11,10 +11,12 @@ import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
-import { addMedia, isLockedMedia } from "../../hubs/utils/media-utils";
-import { type as vox0, Vox, VoxChunk } from "ot-vox";
+import { addMedia, isLockedMedia, upload } from "../../hubs/utils/media-utils";
+import { type as vox0, Vox, VoxChunk, rgbtForVoxColor } from "ot-vox";
 import { ensureOwnership } from "../utils/ownership-utils";
+import { dataURItoBlob } from "../utils/dom-utils";
 import VoxSync from "../utils/vox-sync";
+import FastVixel from "fast-vixel";
 
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, VertexColors, Matrix4, Mesh } = THREE;
 import { EventTarget } from "event-target-shim";
@@ -1600,7 +1602,8 @@ export class VoxSystem extends EventTarget {
 
     return async function(collection, category) {
       const { voxMap } = this;
-      const { accountChannel } = window.APP;
+      const { accountChannel, hubChannel } = window.APP;
+      const hubId = hubChannel.hubId;
 
       for (const [voxId, { sources }] of voxMap.entries()) {
         let scale = 1.0;
@@ -1614,7 +1617,21 @@ export class VoxSystem extends EventTarget {
         }
 
         console.log(`Publishing ${voxId} with scale ${scale}`);
-        const publishedVoxId = await accountChannel.publishVox(voxId, collection, category, scale);
+        const { thumbData, previewData } = await this.renderVoxToImage(voxId);
+        const thumbBlob = dataURItoBlob(thumbData);
+        const previewBlob = dataURItoBlob(previewData);
+        const { file_id: thumbFileId } = await upload(thumbBlob, "image/png", hubId);
+        const { file_id: previewFileId } = await upload(previewBlob, "image/png", hubId);
+
+        const publishedVoxId = await accountChannel.publishVox(
+          voxId,
+          collection,
+          category,
+          scale,
+          thumbFileId,
+          previewFileId
+        );
+
         this.copyVoxContent(voxId, publishedVoxId);
       }
 
@@ -1760,5 +1777,149 @@ export class VoxSystem extends EventTarget {
 
     const { url } = await (existingVoxId ? voxMetadata.getOrFetchMetadata(existingVoxId) : this.copyVoxContent(voxId));
     return url;
+  }
+
+  async renderVoxToImage(voxId) {
+    const frames = await this.getOrFetchVoxFrameChunks(voxId);
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 256;
+    canvas.setAttribute("style", "visibility: hidden; width: 256px; height: 256px;");
+    const preview = document.createElement("canvas");
+    const thumb = document.createElement("canvas");
+
+    preview.width = 256 * 5;
+    preview.height = 256 * 5;
+    thumb.width = 256;
+    thumb.height = 256;
+
+    const previewContext = preview.getContext("2d");
+    const thumbContext = thumb.getContext("2d");
+
+    document.body.appendChild(canvas);
+
+    const chunk = frames[0];
+    const fvixel = new FastVixel({ canvas: canvas, size: chunk.size });
+    fvixel.setGround({ color: [234 / 255.0, 240.0 / 255.0, 251.0 / 255.0] });
+
+    const shiftForSize = size => Math.floor(size % 2 === 0 ? size / 2 - 1 : size / 2);
+    const xShift = shiftForSize(chunk.size[0]);
+    const yShift = shiftForSize(chunk.size[1]);
+    const zShift = shiftForSize(chunk.size[2]);
+    const colorMap = new Map();
+
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    let maxZ = -Infinity;
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let minZ = Infinity;
+
+    // Fill vixel voxels
+    for (let x = 0, lx = chunk.size[0]; x < lx; x++) {
+      for (let y = 0, ly = chunk.size[1]; y < ly; y++) {
+        for (let z = 0, lz = chunk.size[2]; z < lz; z++) {
+          const idx = chunk.getPaletteIndexAt(x - xShift, y - yShift, z - zShift);
+          if (idx === 0) continue;
+
+          maxX = Math.max(x, maxX);
+          maxY = Math.max(y, maxY);
+          maxZ = Math.max(z, maxZ);
+
+          minX = Math.min(x, minX);
+          minY = Math.min(y, minY);
+          minZ = Math.min(z, minZ);
+
+          let color = colorMap.get(idx);
+
+          if (!color) {
+            const rgbt = rgbtForVoxColor(chunk.colorForPaletteIndex(idx));
+            color = {
+              red: rgbt.r / 255.0,
+              green: rgbt.g / 255.0,
+              blue: rgbt.b / 255.0
+            };
+
+            colorMap.set(idx, color);
+          }
+
+          fvixel.set(x, y, z, color);
+        }
+      }
+    }
+
+    const cx = (maxX + minX) / 2.0;
+    const cy = (maxY + minY) / 2.0;
+    const cz = (maxZ + minZ) / 2.0;
+
+    const rho =
+      Math.sqrt((maxX - minX) * (maxX - minX) + (maxY - minY) * (maxY - minY) + (maxZ - minZ) * (maxZ - minZ)) * 1.5;
+
+    const phi = Math.PI / 2.8;
+    const y = rho * Math.cos(phi) + cy;
+    const imageDrawPromises = [];
+
+    // 24 frames - rotate camera around origin
+    for (let i = 0; i < 24; i++) {
+      const theta = Math.PI / 4 + (Math.PI / 12) * i;
+
+      const x = rho * Math.sin(phi) * Math.cos(theta) + cx;
+      const z = rho * Math.sin(phi) * Math.sin(theta) + cz;
+
+      fvixel.setCamera({
+        eye: [x, y, z], // Camera position
+        center: [cx, cy - (maxY - minY) * 0.05, cz], // Camera target
+        up: [0, 1, 0], // Up
+        fov: Math.PI / 4 // Field of view
+      });
+
+      await new Promise(res => {
+        const wait = () => {
+          fvixel.sample(256);
+
+          if (fvixel.sampleCount === 256) {
+            fvixel.display();
+            const data = canvas.toDataURL();
+
+            imageDrawPromises.push(
+              new Promise(res => {
+                const img = new Image();
+
+                img.onload = () => {
+                  const x = Math.floor(i % 5);
+                  const y = Math.floor(i / 5);
+                  previewContext.drawImage(img, x * 256, y * 256, 256, 256);
+
+                  if (i === 0) {
+                    // Thumb is first frame
+                    thumbContext.drawImage(img, 0, 0, 256, 256);
+                  }
+
+                  res();
+                };
+
+                img.src = data;
+              })
+            );
+
+            res();
+          } else {
+            requestAnimationFrame(wait);
+          }
+        };
+
+        requestAnimationFrame(wait);
+      });
+    }
+
+    await Promise.all(imageDrawPromises);
+
+    const previewData = preview.toDataURL();
+    const thumbData = thumb.toDataURL();
+
+    document.body.removeChild(canvas);
+
+    return { previewData, thumbData };
   }
 }

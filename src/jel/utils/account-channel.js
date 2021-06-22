@@ -144,10 +144,17 @@ export default class AccountChannel extends EventTarget {
     this.channel.push("mark_vox_edited", { vox_id: voxId });
   };
 
-  publishVox = (voxId, collection, category, scale) => {
+  publishVox = (voxId, collection, category, scale, thumbFileId, previewFileId) => {
     return new Promise(res => {
       this.channel
-        .push("publish_vox", { vox_id: voxId, collection, category, scale })
+        .push("publish_vox", {
+          vox_id: voxId,
+          collection,
+          category,
+          scale,
+          thumb_file_id: thumbFileId,
+          preview_file_id: previewFileId
+        })
         .receive("ok", async ({ published_to_vox_id: publishedVoxId }) => {
           res(publishedVoxId);
         });

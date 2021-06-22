@@ -203,7 +203,7 @@ export default function AssetPanel(props) {
   );
 
   const voxMetaToTile = useCallback(
-    ({ voxId }) => {
+    ({ voxId, thumb_url }) => {
       return <Tile data-vox-id={voxId} onDragStart={onDragStart} onDragEnd={onDragEnd} key={voxId} draggable={true} />;
     },
     [onDragStart, onDragEnd]
