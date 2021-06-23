@@ -293,7 +293,7 @@ export class BuilderSystem extends EventTarget {
       this.performBrushStep(brushDown, intersection, isLocked);
     }
 
-    if (isLocked && this.pendingChunk) {
+    if (isLocked && this.pendingChunk && !this.isBrushing) {
       this.cancelPending();
     }
 
