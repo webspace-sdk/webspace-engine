@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import Tree from "rc-tree";
@@ -31,8 +31,7 @@ const AssetPanelContent = styled.div`
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
 `;
 
 const TreeWrap = styled.div`
@@ -84,6 +83,38 @@ const TreeWrap = styled.div`
   }
 `;
 
+const PreviewWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 250px;
+  height: 100%;
+  margin-top: 8px;
+`;
+
+const PreviewImage = styled.div`
+  width: 192px;
+  height: 192px;
+  margin: 4px 4px;
+  border-radius: 4px;
+  background-size: 960px 960px;
+`;
+
+const PreviewName = styled.div`
+  margin: 8px 4px;
+  color: var(--panel-small-banner-text-color);
+  font-weight: var(--panel-small-banner-text-weight);
+  font-size: var(--panel-small-banner-text-size);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  flex-grow: 0;
+  width: 100%;
+  text-align: center;
+  min-height: calc(var(--panel-small-banner-text-size) + 4px);
+`;
+
 const Tiles = styled.div`
   display: flex;
   height: calc(100% - 16px);
@@ -93,6 +124,7 @@ const Tiles = styled.div`
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
+
   overflow-x: hidden;
   overflow-y: auto;
 
@@ -140,7 +172,6 @@ const Tile = styled.div`
   position: relative;
   width: 92px;
   height: 92px;
-  background-color: red;
   border-radius: 4px;
   background-color: var(--panel-background-color);
   cursor: pointer;
@@ -153,6 +184,11 @@ export default function AssetPanel(props) {
   const [selectedKeys, setSelectedKeys] = useState([]);
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [voxMetas, setVoxMetas] = useState([]);
+  const [previewVoxId, setPreviewVoxId] = useState(null);
+  const [previewClearTimeout, setPreviewClearTimeout] = useState(null);
+  const [previewSheetX, setPreviewSheetX] = useState(0);
+  const [previewSheetY, setPreviewSheetY] = useState(0);
+  const tilesRef = useRef();
 
   const onSelect = useCallback(
     (selectedKeys, { node: { key } }) => {
@@ -202,6 +238,30 @@ export default function AssetPanel(props) {
     [voxSystem]
   );
 
+  const onMouseLeave = useCallback(
+    () => {
+      setPreviewVoxId(null);
+    },
+    [setPreviewVoxId]
+  );
+
+  const onMouseMove = useCallback(
+    e => {
+      if (tilesRef.current === null) return;
+      const tile = tilesRef.current.querySelector(`[data-vox-id='${previewVoxId}']`);
+      if (!tile) return;
+      const tileRect = tile.getBoundingClientRect();
+      const px = (e.clientX - tileRect.left) / (tileRect.right - tileRect.left);
+      const frame = Math.floor(px / (1.0 / 24.0)); // frame 0 - 24
+      const shiftedFrame = (frame + 12) % 24; // Shift so center is frame 0
+      setPreviewSheetX(shiftedFrame % 5);
+      setPreviewSheetY(Math.floor(shiftedFrame / 5));
+    },
+    [tilesRef, previewVoxId]
+  );
+
+  const previewVoxMeta = previewVoxId ? voxMetas.find(({ voxId }) => voxId === previewVoxId) : {};
+
   const voxMetaToTile = useCallback(
     ({ voxId, thumb_url }) => {
       return (
@@ -210,12 +270,17 @@ export default function AssetPanel(props) {
           data-vox-id={voxId}
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
+          onMouseEnter={() => {
+            setPreviewVoxId(voxId);
+          }}
+          onMouseLeave={onMouseLeave}
+          onMouseMove={onMouseMove}
           key={voxId}
           draggable={true}
         />
       );
     },
-    [onDragStart, onDragEnd]
+    [onDragStart, onDragEnd, onMouseLeave, previewClearTimeout, onMouseMove]
   );
 
   if (!voxTree) return <div />;
@@ -227,7 +292,7 @@ export default function AssetPanel(props) {
         <SearchBar />
       </AssetPanelTop>
       <AssetPanelContent>
-        <TreeWrap>
+        <TreeWrap style={!previewVoxId ? null : { display: "none" }}>
           <Tree
             prefixCls="atom-tree"
             treeData={voxTreeData}
@@ -239,7 +304,16 @@ export default function AssetPanel(props) {
             onExpand={onExpand}
           />
         </TreeWrap>
-        <Tiles>{voxMetas.map(voxMetaToTile)}</Tiles>
+        <PreviewWrap style={previewVoxId ? null : { display: "none" }}>
+          <PreviewImage
+            style={{
+              backgroundImage: `url(${previewVoxMeta.preview_url})`,
+              backgroundPosition: `left ${-previewSheetX * 192}px top ${-previewSheetY * 192}px`
+            }}
+          />
+          <PreviewName>{previewVoxMeta.name}</PreviewName>
+        </PreviewWrap>
+        <Tiles ref={tilesRef}>{voxMetas.map(voxMetaToTile)}</Tiles>
       </AssetPanelContent>
     </AssetPanelElement>
   );

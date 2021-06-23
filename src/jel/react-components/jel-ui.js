@@ -47,7 +47,7 @@ const Root = styled.div`
   }
 
   &.show-asset-panel #jel-ui-wrap {
-    height: calc(100% - 240px);
+    height: calc(100% - 290px);
   }
 
   body.paused &.show-asset-panel #jel-ui-wrap {
@@ -100,7 +100,7 @@ const AssetPanelWrap = styled.div`
   font-size: var(--panel-text-size);
   font-weight: var(--panel-text-weight);
   pointer-events: auto;
-  height: 240px;
+  height: 290px;
   left: var(--nav-width);
   width: calc(100% - var(--nav-width) - var(--presence-width));
   bottom: 0;

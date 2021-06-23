@@ -9,8 +9,9 @@ const VOX_DATA = [
     vox_id: "EWCKYaB",
     url: "https://hubs.local:4000/api/v1/vox/EWCKYaB",
     thumb_url: "https://hubs.local:4000/files/af765fc2-74d8-4031-a66b-d17562f3c8b7.png",
+    preview_url: "https://hubs.local:4000/files/acf25b39-5bf8-4153-8cb3-53d216f4ff95.png",
     permissions: { view_vox: true, edit_vox: true },
-    name: null,
+    name: "Object Name",
     collection: "Office Kit",
     category: "Conference Props"
   },
@@ -18,8 +19,9 @@ const VOX_DATA = [
     vox_id: "i7kdAZj",
     url: "https://hubs.local:4000/api/v1/vox/i7kdAZj",
     thumb_url: "https://hubs.local:4000/files/af765fc2-74d8-4031-a66b-d17562f3c8b7.png",
+    preview_url: "https://hubs.local:4000/files/acf25b39-5bf8-4153-8cb3-53d216f4ff95.png",
     permissions: { view_vox: true, edit_vox: true },
-    name: null,
+    name: "Really Really Really Long Object Name",
     collection: "Office Kit",
     category: "Conference Props"
   },
@@ -488,7 +490,7 @@ voxTree.build(VOX_DATA);
 export const Normal = () => (
   <div
     className={classNames(sharedStyles.secondaryPanel)}
-    style={{ display: "flex", flexDirection: "row", width: "800px", height: "128px" }}
+    style={{ display: "flex", flexDirection: "row", width: "800px", height: "290px" }}
   >
     <AssetPanel voxTree={voxTree} />
   </div>
