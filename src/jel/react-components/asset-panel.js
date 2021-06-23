@@ -122,7 +122,7 @@ const Tiles = styled.div`
   display: flex;
   margin: 8px;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
 
   overflow-x: hidden;
@@ -261,7 +261,7 @@ export default function AssetPanel(props) {
   const previewVoxMeta = previewVoxId ? voxMetas.find(({ voxId }) => voxId === previewVoxId) : {};
 
   const voxMetaToTile = useCallback(
-    ({ voxId, thumb_url }) => {
+    ({ voxId, url, thumb_url }) => {
       return (
         <Tile
           style={{ backgroundImage: `url("${thumb_url}")`, backgroundSize: "92px 92px" }}
@@ -273,6 +273,7 @@ export default function AssetPanel(props) {
           }}
           onMouseLeave={onMouseLeave}
           onMouseMove={onMouseMove}
+          onClick={() => SYSTEMS.voxSystem.spawnVoxInFrontOfPlayer(voxId)}
           key={voxId}
           draggable={true}
         />

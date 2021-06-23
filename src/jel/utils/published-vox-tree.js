@@ -23,7 +23,7 @@ export default class PublishedVoxTree extends EventTarget {
     this.voxData = voxData;
     this.filteredTreeData.length = 0;
 
-    for (const { vox_id, name, thumb_url, preview_url, collection, category } of this.voxData) {
+    for (const { vox_id, url, name, thumb_url, preview_url, collection, category } of this.voxData) {
       let collectionNode = filteredTreeData.find(({ key }) => key === collection);
 
       if (!collectionNode) {
@@ -47,6 +47,7 @@ export default class PublishedVoxTree extends EventTarget {
 
       vox.push({
         voxId: vox_id,
+        url,
         thumb_url,
         preview_url,
         name: name || "Unnamed Object"

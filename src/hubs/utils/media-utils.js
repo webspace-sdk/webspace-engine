@@ -943,7 +943,8 @@ export const spawnMediaInfrontOfPlayer = (
   skipResolve = false,
   contentType = null,
   zOffset = -2.5,
-  yOffset = 0
+  yOffset = 0,
+  stackAxis = 0
 ) => {
   if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
   if (src instanceof File && !window.APP.hubChannel.can("upload_files")) return;
@@ -963,7 +964,9 @@ export const spawnMediaInfrontOfPlayer = (
     null,
     null,
     false,
-    contentType
+    contentType,
+    false,
+    stackAxis
   );
 
   orientation.then(or => {

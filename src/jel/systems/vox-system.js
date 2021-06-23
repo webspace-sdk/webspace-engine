@@ -11,7 +11,7 @@ import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
-import { addMedia, isLockedMedia, upload } from "../../hubs/utils/media-utils";
+import { addMedia, isLockedMedia, upload, spawnMediaInfrontOfPlayer } from "../../hubs/utils/media-utils";
 import { type as vox0, Vox, VoxChunk, rgbtForVoxColor } from "ot-vox";
 import { ensureOwnership } from "../utils/ownership-utils";
 import { dataURItoBlob } from "../utils/dom-utils";
@@ -1606,12 +1606,20 @@ export class VoxSystem extends EventTarget {
       const hubId = hubChannel.hubId;
 
       for (const [voxId, { sources }] of voxMap.entries()) {
+        let stackAxis = 0;
         let scale = 1.0;
 
         for (let i = 0; i < sources.length; i++) {
           const source = sources[i];
           if (source === null) continue;
           source.el.object3D.getWorldScale(tmpVec);
+
+          const mediaLoader = source.el.components["media-loader"];
+
+          if (mediaLoader) {
+            stackAxis = mediaLoader.data.stackAxis;
+          }
+
           scale = tmpVec.x;
           break;
         }
@@ -1630,6 +1638,7 @@ export class VoxSystem extends EventTarget {
           voxId,
           collection,
           category,
+          stackAxis,
           scale,
           thumbFileId,
           previewFileId
@@ -1692,6 +1701,37 @@ export class VoxSystem extends EventTarget {
     return returnValue;
   }
 
+  async spawnVoxInFrontOfPlayer(voxId) {
+    const { builderSystem, launcherSystem } = SYSTEMS;
+    const { voxMetadata } = window.APP;
+
+    const metadata = await voxMetadata.getOrFetchMetadata(voxId);
+
+    const { url, published_stack_axis, published_scale } = metadata;
+
+    const entity = spawnMediaInfrontOfPlayer(
+      url,
+      null,
+      ObjectContentOrigins.URL,
+      null,
+      {},
+      true,
+      true,
+      "model/vnd.jel-vox",
+      -2.5,
+      0,
+      published_stack_axis
+    );
+
+    entity.object3D.scale.setScalar(published_scale);
+    entity.object3D.matrixNeedsUpdate = true;
+
+    if (!builderSystem.enabled) {
+      builderSystem.toggle();
+      launcherSystem.toggle();
+    }
+  }
+
   async beginPlacingDraggedVox() {
     const { assetPanelDraggingVoxId } = this;
     const { voxMetadata } = window.APP;
@@ -1699,7 +1739,7 @@ export class VoxSystem extends EventTarget {
 
     const metadata = await voxMetadata.getOrFetchMetadata(assetPanelDraggingVoxId);
 
-    const { url, published_scale } = metadata;
+    const { url, published_stack_axis, published_scale } = metadata;
 
     const { entity } = addMedia(
       url,
@@ -1716,7 +1756,9 @@ export class VoxSystem extends EventTarget {
       null,
       null,
       false,
-      "model/vnd.jel-vox"
+      "model/vnd.jel-vox",
+      false,
+      published_stack_axis
     );
 
     entity.object3D.scale.setScalar(published_scale);

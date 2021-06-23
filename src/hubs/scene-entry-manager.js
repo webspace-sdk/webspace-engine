@@ -208,21 +208,15 @@ export default class SceneEntryManager {
     this.scene.addEventListener("add_media_vox", async () => {
       const spaceId = window.APP.spaceChannel.spaceId;
       const hubId = window.APP.hubChannel.hubId;
-      const { voxSystem, builderSystem, launcherSystem } = SYSTEMS;
+      const { voxSystem, builderSystem } = SYSTEMS;
 
       const {
-        vox: [{ vox_id: voxId, url }]
+        vox: [{ vox_id: voxId }]
       } = await createVox(spaceId, hubId);
 
       const sync = await voxSystem.getSync(voxId);
       await sync.setVoxel(0, 0, 0, builderSystem.brushVoxColor);
-
-      spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL, null, {}, true, true, "model/vnd.jel-vox");
-
-      if (!builderSystem.enabled) {
-        builderSystem.toggle();
-        launcherSystem.toggle();
-      }
+      await voxSystem.spawnVoxInFrontOfPlayer(voxId);
     });
 
     this.scene.addEventListener("add_media_emoji", ({ detail: emoji }) => {
