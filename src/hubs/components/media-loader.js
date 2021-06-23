@@ -785,11 +785,11 @@ AFRAME.registerComponent("media-loader", {
             const y = data[i + 2];
             const c = data[i + 3];
 
-            let voxX = x - shiftX;
-            // ?? not sure why this is needed but objects come in mirrored
-            voxX = voxX == 0 ? 0 : voxX < 0 ? -voxX : -voxX + 1;
+            const voxX = x - shiftX;
             const voxY = y - shiftY;
-            const voxZ = z - shiftZ;
+            let voxZ = z - shiftZ;
+            // ?? not sure why this is needed but objects come in mirrored
+            voxZ = voxZ == 0 ? 0 : voxZ < 0 ? -voxZ : -voxZ + 1;
 
             if (voxX >= minX && voxX <= maxX && voxY >= minY && voxY <= maxY && voxZ >= minZ && voxZ <= maxZ) {
               const voxColor = iPalToVoxColor(c);

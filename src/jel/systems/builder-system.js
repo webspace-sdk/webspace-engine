@@ -277,9 +277,12 @@ export class BuilderSystem extends EventTarget {
       brushDown = holdingLeft;
     } else {
       // Repeated build if user is holding space and not control (due to widen)
-      brushDown =
-        ((holdingSpace && !userinput.get(controlPath)) || holdingMiddle || (isFreeToLeftHold && holdingLeft)) &&
-        !isGrabTransforming;
+      brushDown = (holdingSpace && !userinput.get(controlPath)) || holdingMiddle || (isFreeToLeftHold && holdingLeft);
+    }
+
+    if (brushDown && this.transformSystem.isGrabTransforming()) {
+      // Don't start brushing if the object was being grabbed transform. Holding space can cause this.
+      this.ignoreRestOfStroke = true;
     }
 
     const interaction = sceneEl.systems.interaction;

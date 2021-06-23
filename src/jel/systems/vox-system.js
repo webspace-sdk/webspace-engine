@@ -1616,13 +1616,16 @@ export class VoxSystem extends EventTarget {
           break;
         }
 
-        console.log(`Publishing ${voxId} with scale ${scale}`);
+        console.log(`Publishing ${voxId} with scale ${scale}.`);
         const { thumbData, previewData } = await this.renderVoxToImage(voxId);
+
+        console.log(`Generated image for ${voxId}.`);
         const thumbBlob = dataURItoBlob(thumbData);
         const previewBlob = dataURItoBlob(previewData);
         const { file_id: thumbFileId } = await upload(thumbBlob, "image/png", hubId);
         const { file_id: previewFileId } = await upload(previewBlob, "image/png", hubId);
 
+        console.log(`Uploaded images for ${voxId}.`);
         const publishedVoxId = await accountChannel.publishVox(
           voxId,
           collection,
@@ -1631,8 +1634,11 @@ export class VoxSystem extends EventTarget {
           thumbFileId,
           previewFileId
         );
+        console.log(`Updated published vox for ${voxId}: ${publishedVoxId}.`);
 
         this.copyVoxContent(voxId, publishedVoxId);
+
+        console.log(`Synced voxels to ${publishedVoxId}.`);
       }
 
       console.log("Done publishing.");
@@ -1800,7 +1806,7 @@ export class VoxSystem extends EventTarget {
 
     const chunk = frames[0];
     const fvixel = new FastVixel({ canvas: canvas, size: chunk.size });
-    fvixel.setGround({ color: [234 / 255.0, 240.0 / 255.0, 251.0 / 255.0] });
+    fvixel.setGround({ color: [17 / 255.0, 23.0 / 255.0, 71.0 / 255.0] });
 
     const shiftForSize = size => Math.floor(size % 2 === 0 ? size / 2 - 1 : size / 2);
     const xShift = shiftForSize(chunk.size[0]);
@@ -1853,8 +1859,10 @@ export class VoxSystem extends EventTarget {
     const cy = (maxY + minY) / 2.0;
     const cz = (maxZ + minZ) / 2.0;
 
-    const rho =
+    let rho =
       Math.sqrt((maxX - minX) * (maxX - minX) + (maxY - minY) * (maxY - minY) + (maxZ - minZ) * (maxZ - minZ)) * 1.5;
+
+    rho = Math.max(rho, 8);
 
     const phi = Math.PI / 2.8;
     const y = rho * Math.cos(phi) + cy;
@@ -1878,7 +1886,7 @@ export class VoxSystem extends EventTarget {
         const wait = () => {
           fvixel.sample(256);
 
-          if (fvixel.sampleCount === 256) {
+          if (fvixel.sampleCount >= 256) {
             fvixel.display();
             const data = canvas.toDataURL();
 

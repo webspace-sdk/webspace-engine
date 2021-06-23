@@ -204,7 +204,16 @@ export default function AssetPanel(props) {
 
   const voxMetaToTile = useCallback(
     ({ voxId, thumb_url }) => {
-      return <Tile data-vox-id={voxId} onDragStart={onDragStart} onDragEnd={onDragEnd} key={voxId} draggable={true} />;
+      return (
+        <Tile
+          style={{ backgroundImage: `url("${thumb_url}")`, backgroundSize: "92px 92px" }}
+          data-vox-id={voxId}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          key={voxId}
+          draggable={true}
+        />
+      );
     },
     [onDragStart, onDragEnd]
   );

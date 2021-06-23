@@ -8,6 +8,7 @@ const VOX_DATA = [
   {
     vox_id: "EWCKYaB",
     url: "https://hubs.local:4000/api/v1/vox/EWCKYaB",
+    thumb_url: "https://hubs.local:4000/files/af765fc2-74d8-4031-a66b-d17562f3c8b7.png",
     permissions: { view_vox: true, edit_vox: true },
     name: null,
     collection: "Office Kit",
@@ -16,6 +17,7 @@ const VOX_DATA = [
   {
     vox_id: "i7kdAZj",
     url: "https://hubs.local:4000/api/v1/vox/i7kdAZj",
+    thumb_url: "https://hubs.local:4000/files/af765fc2-74d8-4031-a66b-d17562f3c8b7.png",
     permissions: { view_vox: true, edit_vox: true },
     name: null,
     collection: "Office Kit",
@@ -24,6 +26,7 @@ const VOX_DATA = [
   {
     vox_id: "cpzqq3H",
     url: "https://hubs.local:4000/api/v1/vox/cpzqq3H",
+    thumb_url: "https://hubs.local:4000/files/af765fc2-74d8-4031-a66b-d17562f3c8b7.png",
     permissions: { view_vox: true, edit_vox: true },
     name: null,
     collection: "Office Kit",
