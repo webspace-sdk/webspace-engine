@@ -185,7 +185,6 @@ export default function AssetPanel(props) {
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [voxMetas, setVoxMetas] = useState([]);
   const [previewVoxId, setPreviewVoxId] = useState(null);
-  const [previewClearTimeout, setPreviewClearTimeout] = useState(null);
   const [previewSheetX, setPreviewSheetX] = useState(0);
   const [previewSheetY, setPreviewSheetY] = useState(0);
   const tilesRef = useRef();
@@ -253,9 +252,8 @@ export default function AssetPanel(props) {
       const tileRect = tile.getBoundingClientRect();
       const px = (e.clientX - tileRect.left) / (tileRect.right - tileRect.left);
       const frame = Math.floor(px / (1.0 / 24.0)); // frame 0 - 24
-      const shiftedFrame = (frame + 12) % 24; // Shift so center is frame 0
-      setPreviewSheetX(shiftedFrame % 5);
-      setPreviewSheetY(Math.floor(shiftedFrame / 5));
+      setPreviewSheetX(frame % 5);
+      setPreviewSheetY(Math.floor(frame / 5));
     },
     [tilesRef, previewVoxId]
   );
@@ -280,7 +278,7 @@ export default function AssetPanel(props) {
         />
       );
     },
-    [onDragStart, onDragEnd, onMouseLeave, previewClearTimeout, onMouseMove]
+    [onDragStart, onDragEnd, onMouseLeave, onMouseMove]
   );
 
   if (!voxTree) return <div />;
