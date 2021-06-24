@@ -490,7 +490,7 @@ voxTree.build(VOX_DATA);
 export const Normal = () => (
   <div
     className={classNames(sharedStyles.secondaryPanel)}
-    style={{ display: "flex", flexDirection: "row", width: "800px", height: "290px" }}
+    style={{ display: "flex", flexDirection: "row", width: "1200px", height: "190px" }}
   >
     <AssetPanel voxTree={voxTree} />
   </div>

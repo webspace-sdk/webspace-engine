@@ -32,6 +32,7 @@ const AssetPanelContent = styled.div`
   flex-direction: row;
   align-items: flex-start;
   overflow: hidden;
+  height: 100%;
 `;
 
 const TreeWrap = styled.div`
@@ -116,14 +117,16 @@ const PreviewName = styled.div`
 `;
 
 const Tiles = styled.div`
-  display: flex;
-  height: calc(100% - 16px);
+  height: 100%;
   flex: 1;
+  flex-direction: row;
   display: flex;
-  margin: 8px;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start;
+  align-content: flex-start;
   flex-wrap: wrap;
+  flex-gap: 0;
+  margin: 8px;
 
   overflow-x: hidden;
   overflow-y: auto;
@@ -168,8 +171,8 @@ const Tiles = styled.div`
 `;
 
 const Tile = styled.div`
-  margin: 4px 4px;
   position: relative;
+  margin: 4px 4px;
   width: 92px;
   height: 92px;
   border-radius: 4px;
@@ -261,7 +264,7 @@ export default function AssetPanel(props) {
   const previewVoxMeta = previewVoxId ? voxMetas.find(({ voxId }) => voxId === previewVoxId) : {};
 
   const voxMetaToTile = useCallback(
-    ({ voxId, url, thumb_url }) => {
+    ({ voxId, thumb_url }) => {
       return (
         <Tile
           style={{ backgroundImage: `url("${thumb_url}")`, backgroundSize: "92px 92px" }}

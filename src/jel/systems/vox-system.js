@@ -1608,10 +1608,14 @@ export class VoxSystem extends EventTarget {
       for (const [voxId, { sources }] of voxMap.entries()) {
         let stackAxis = 0;
         let scale = 1.0;
+        let hasLockedMedia = false;
 
         for (let i = 0; i < sources.length; i++) {
           const source = sources[i];
           if (source === null) continue;
+
+          hasLockedMedia = hasLockedMedia || isLockedMedia(source.el);
+
           source.el.object3D.getWorldScale(tmpVec);
 
           const mediaLoader = source.el.components["media-loader"];
@@ -1623,6 +1627,8 @@ export class VoxSystem extends EventTarget {
           scale = tmpVec.x;
           break;
         }
+
+        if (!hasLockedMedia) continue;
 
         console.log(`Publishing ${voxId} with scale ${scale}.`);
         const { thumbData, previewData } = await this.renderVoxToImage(voxId);
