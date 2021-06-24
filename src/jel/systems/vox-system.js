@@ -1918,7 +1918,7 @@ export class VoxSystem extends EventTarget {
 
     // 24 frames - rotate camera around origin across an arc of PI / 2
     for (let i = 0; i < 24; i++) {
-      const theta = (Math.PI / 48) * (i - 12);
+      const theta = (Math.PI / 36) * (i - 12);
 
       const x = rho * Math.sin(phi) * Math.cos(theta) + cx;
       const z = rho * Math.sin(phi) * Math.sin(theta) + cz;
