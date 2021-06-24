@@ -306,7 +306,7 @@ export default function AssetPanel(props) {
       <AssetPanelElement>
         <AssetPanelTop>
           <IconButton iconSrc={downIcon} onClick={expandToggleClicked} />
-          <PanelSectionHeader style={{ marginTop: "5px" }} onClick={expandToggleClicked}>
+          <PanelSectionHeader style={{ marginTop: "5px", cursor: "pointer" }} onClick={expandToggleClicked}>
             <FormattedMessage id="asset-panel.objects" />
           </PanelSectionHeader>
           <SearchBar />
@@ -342,7 +342,7 @@ export default function AssetPanel(props) {
       <AssetPanelElement>
         <AssetPanelTop>
           <IconButton iconSrc={upIcon} onClick={expandToggleClicked} />
-          <PanelSectionHeader style={{ marginTop: "5px" }} onClick={expandToggleClicked}>
+          <PanelSectionHeader style={{ marginTop: "5px", cursor: "pointer" }} onClick={expandToggleClicked}>
             <FormattedMessage id="asset-panel.objects" />
           </PanelSectionHeader>
         </AssetPanelTop>
