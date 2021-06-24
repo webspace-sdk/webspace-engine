@@ -7,7 +7,7 @@ import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 
 const MAX_ITEMS_IN_TRAIL = 3;
 
-const HubTrailElement = styled.div`
+const AtomTrailElement = styled.div`
   display: flex;
   flex: 1;
   flex-direction: row;
@@ -29,7 +29,7 @@ const HubTrailElement = styled.div`
   }
 `;
 
-const HubTrailHubItem = styled.button`
+const AtomTrailAtomItem = styled.button`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -71,18 +71,28 @@ const HubTrailHubItem = styled.button`
   }
 `;
 
-const HubTrailSeparatorItem = styled.div`
+const AtomTrailSeparatorItem = styled.div`
   width: 8px;
 `;
 
-export default function HubTrail({ hubIds, hubCan, hubMetadata, hub, history, renamePopupElement, showRenamePopup }) {
+export default function AtomTrail({
+  atomIds,
+  can,
+  viewPermission,
+  editPermission,
+  metadata,
+  opaque,
+  history,
+  renamePopupElement,
+  showRenamePopup
+}) {
   const primaryItemRef = useRef();
 
-  const hubIdsToShow = hubIds || [];
+  const atomIdsToShow = atomIds || [];
   const names = [];
 
-  while (hubIdsToShow.length > MAX_ITEMS_IN_TRAIL) {
-    hubIdsToShow.shift();
+  while (atomIdsToShow.length > MAX_ITEMS_IN_TRAIL) {
+    atomIdsToShow.shift();
   }
 
   // Yes, we use hooks in a loop here, but its a constant loop so it's OK
@@ -93,35 +103,35 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata, hub, history, re
     names.push(name);
 
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    useNameUpdateFromMetadata(hubIdsToShow[i] || null, hubMetadata, setName);
+    useNameUpdateFromMetadata(atomIdsToShow[i] || null, metadata, setName);
   }
 
   const items = [];
 
-  if (hubIdsToShow.length > 1) {
-    for (let i = 0; i < hubIdsToShow.length - 1; i++) {
-      const hubId = hubIdsToShow[i];
+  if (atomIdsToShow.length > 1) {
+    for (let i = 0; i < atomIdsToShow.length - 1; i++) {
+      const atomId = atomIdsToShow[i];
 
-      if (hubCan("join_hub", hubId)) {
+      if (can(viewPermission, atomId)) {
         items.push(
-          <HubTrailHubItem
+          <AtomTrailAtomItem
             key={`item-${i}`}
             className="short"
-            onClick={() => navigateToHubUrl(history, hubMetadata.getMetadata(hubId).url)}
+            onClick={() => navigateToHubUrl(history, metadata.getMetadata(atomId).url)}
           >
             {names[i]}
-          </HubTrailHubItem>
+          </AtomTrailAtomItem>
         );
-        items.push(<HubTrailSeparatorItem key={`separator-${i}`}>/</HubTrailSeparatorItem>);
+        items.push(<AtomTrailSeparatorItem key={`separator-${i}`}>/</AtomTrailSeparatorItem>);
       }
     }
   }
 
-  const primaryHubId = hubIdsToShow[hubIdsToShow.length - 1];
-  const canRename = hubCan && hubCan("update_hub_meta", primaryHubId);
+  const primaryAtomId = atomIdsToShow[atomIdsToShow.length - 1];
 
+  const canRename = can && can(editPermission, primaryAtomId);
   items.push(
-    <HubTrailHubItem
+    <AtomTrailAtomItem
       key="primary-item"
       className={canRename ? "" : "denied"}
       ref={primaryItemRef}
@@ -129,26 +139,27 @@ export default function HubTrail({ hubIds, hubCan, hubMetadata, hub, history, re
       onClick={useCallback(
         () => {
           if (canRename) {
-            showRenamePopup(primaryHubId, primaryItemRef, null, null);
+            showRenamePopup(primaryAtomId, metadata, primaryItemRef, null, null);
           }
         },
-        [canRename, primaryHubId, primaryItemRef, showRenamePopup]
+        [canRename, primaryAtomId, primaryItemRef, metadata, showRenamePopup]
       )}
     >
-      {names[hubIdsToShow.length - 1]}
-    </HubTrailHubItem>
+      {names[atomIdsToShow.length - 1]}
+    </AtomTrailAtomItem>
   );
 
-  return <HubTrailElement className={hub && hub.type === "world" ? "" : "opaque"}>{items}</HubTrailElement>;
+  return <AtomTrailElement className={opaque ? "opaque" : ""}>{items}</AtomTrailElement>;
 }
 
-HubTrail.propTypes = {
+AtomTrail.propTypes = {
   history: PropTypes.object,
-  hub: PropTypes.object,
-  hubIds: PropTypes.array,
-  hubMetadata: PropTypes.object,
-  hubCan: PropTypes.func,
-  onHubNameChanged: PropTypes.func,
+  atomIds: PropTypes.array,
+  metadata: PropTypes.object,
+  can: PropTypes.func,
+  viewPermission: PropTypes.string,
+  editPermission: PropTypes.string,
   renamePopupElement: PropTypes.object,
-  showRenamePopup: PropTypes.func
+  showRenamePopup: PropTypes.func,
+  opaque: PropTypes.bool
 };

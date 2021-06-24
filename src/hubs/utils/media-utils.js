@@ -149,9 +149,9 @@ export const resolveUrl = async (url, quality = null, version = 1, bustCache) =>
   return resultPromise;
 };
 
-export const upload = (file, desiredContentType, hubId) => {
+export const upload = (fileOrBlob, desiredContentType, hubId) => {
   const formData = new FormData();
-  formData.append("media", file);
+  formData.append("media", fileOrBlob);
 
   if (hubId) {
     formData.append("hub_id", hubId);
@@ -255,7 +255,8 @@ export const addMedia = (
   networkId = null,
   skipLoader = false,
   contentType = null,
-  locked = false
+  locked = false,
+  stackAxis = 0
 ) => {
   const scene = AFRAME.scenes[0];
 
@@ -284,6 +285,7 @@ export const addMedia = (
   }
 
   const needsToBeUploaded = src instanceof File;
+
   // TODO JEL deal with text files dropped or uploaded
 
   // If we're re-pasting an existing src in the scene, we should use the latest version
@@ -320,7 +322,8 @@ export const addMedia = (
     mediaLayer,
     mediaOptions,
     contentType,
-    locked
+    locked,
+    stackAxis
   });
 
   if (contents && !isEmoji) {
@@ -528,7 +531,7 @@ export const cloneMedia = (
     }
   }
 
-  const { contentType, contentSubtype, fitToBox, mediaOptions } = sourceEl.components["media-loader"].data;
+  const { contentType, contentSubtype, fitToBox, mediaOptions, stackAxis } = sourceEl.components["media-loader"].data;
 
   return addMedia(
     src,
@@ -545,7 +548,9 @@ export const cloneMedia = (
     link ? sourceEl : null,
     null,
     false,
-    contentType
+    contentType,
+    false,
+    stackAxis
   );
 };
 
@@ -937,8 +942,9 @@ export const spawnMediaInfrontOfPlayer = (
   networked = true,
   skipResolve = false,
   contentType = null,
-  zOffset = -1.5,
-  yOffset = 0
+  zOffset = -2.5,
+  yOffset = 0,
+  stackAxis = 0
 ) => {
   if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
   if (src instanceof File && !window.APP.hubChannel.can("upload_files")) return;
@@ -958,7 +964,9 @@ export const spawnMediaInfrontOfPlayer = (
     null,
     null,
     false,
-    contentType
+    contentType,
+    false,
+    stackAxis
   );
 
   orientation.then(or => {

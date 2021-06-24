@@ -1,5 +1,8 @@
 import { JelVoxBufferGeometry } from "../objects/JelVoxBufferGeometry";
 import jwtDecode from "jwt-decode";
+import { ObjectContentOrigins } from "../../hubs/object-types";
+import { createVox } from "../../hubs/utils/phoenix-utils";
+import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { MeshBVH } from "three-mesh-bvh";
 import { SHAPE, FIT } from "three-ammo/constants";
@@ -8,9 +11,12 @@ import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
-import { isLockedMedia } from "../../hubs/utils/media-utils";
-import { type as vox0, Vox, VoxChunk } from "ot-vox";
+import { addMedia, isLockedMedia, upload, spawnMediaInfrontOfPlayer } from "../../hubs/utils/media-utils";
+import { type as vox0, Vox, VoxChunk, rgbtForVoxColor } from "ot-vox";
+import { ensureOwnership } from "../utils/ownership-utils";
+import { dataURItoBlob } from "../utils/dom-utils";
 import VoxSync from "../utils/vox-sync";
+import FastVixel from "fast-vixel";
 
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, VertexColors, Matrix4, Mesh } = THREE;
 import { EventTarget } from "event-target-shim";
@@ -66,14 +72,14 @@ voxMaterial.onBeforeCompile = shader => {
   shader.fragmentShader = shader.fragmentShader.replace(
     "#include <fog_fragment>",
     [
-      "vec3 shadows = clamp(vec3(pow(outgoingLight.r * 2.5, 3.0), pow(outgoingLight.g * 2.5, 3.0), pow(outgoingLight.b * 2.5, 3.0)), 0.0, 1.0);",
+      "vec3 shadows = clamp(vec3(pow(outgoingLight.r * 4.5, 5.0), pow(outgoingLight.g * 4.5, 5.0), pow(outgoingLight.b * 4.5, 5.0)), 0.0, 1.0);",
       "gl_FragColor = vec4(mix(shadows, vColor.rgb, 0.8), diffuseColor.a);",
       "#include <fog_fragment>"
     ].join("\n")
   );
 };
 
-function voxIdForVoxUrl(url) {
+export function voxIdForVoxUrl(url) {
   // Parse vox id from URL
   const pathParts = new URL(url).pathname.split("/");
   return pathParts[pathParts.length - 1];
@@ -108,6 +114,7 @@ export class VoxSystem extends EventTarget {
     this.syncs = new Map();
     this.voxMap = new Map();
     this.sourceToVoxId = new Map();
+    this.assetPanelDraggingVoxId = null;
 
     // Maps meshes to vox ids, this will include an entry for an active targeting mesh.
     this.meshToVoxId = new Map();
@@ -455,6 +462,8 @@ export class VoxSystem extends EventTarget {
   async register(voxUrl, source) {
     const { physicsSystem, voxMap, sourceToVoxId } = this;
 
+    this.unregister(source);
+
     const voxId = voxIdForVoxUrl(voxUrl);
 
     if (!voxMap.has(voxId)) {
@@ -660,12 +669,13 @@ export class VoxSystem extends EventTarget {
       walkableSources: Array(MAX_INSTANCES_PER_VOX_ID).fill(false),
 
       // Geometry to use for raycast for walking.
-      walkGeometry: null
+      walkGeometry: null,
+
+      // Flag to determine when to send first_apply event to dyna which marks vox as edited
+      hasAppliedAnyChunk: false
     };
 
     voxMap.set(voxId, entry);
-
-    const store = window.APP.store;
 
     // If the sync is already available and open, use it.
     // Otherwise fetch frame data when first registering.
@@ -673,15 +683,8 @@ export class VoxSystem extends EventTarget {
       const sync = await this.getSync(voxId);
       entry.vox = sync.getVox();
     } else {
-      const res = await fetch(voxUrl, {
-        headers: { authorization: `bearer ${store.state.credentials.token}` }
-      });
-
-      const {
-        vox: [{ frames }]
-      } = await res.json();
-
-      const vox = new Vox(frames.map(f => VoxChunk.deserialize(f)));
+      const frames = await this.fetchVoxFrameChunks(voxUrl);
+      const vox = new Vox(frames);
       entry.vox = vox;
     }
 
@@ -1382,6 +1385,8 @@ export class VoxSystem extends EventTarget {
 
   applyPendingAndUnfreezeMesh(voxId) {
     const { voxMap } = this;
+    const { accountChannel } = window.APP;
+
     const entry = voxMap.get(voxId);
     if (!entry) return;
     const { pendingVoxChunk, targettingMeshFrame, pendingVoxChunkOffset } = entry;
@@ -1398,6 +1403,11 @@ export class VoxSystem extends EventTarget {
       // Clear pending chunk after apply is done
       if (entry.pendingVoxChunk === pendingVoxChunk) {
         entry.pendingVoxChunk = null;
+      }
+
+      if (!entry.hasAppliedAnyChunk) {
+        accountChannel.markVoxEdited(voxId);
+        entry.hasAppliedAnyChunk = true;
       }
     });
   }
@@ -1423,6 +1433,29 @@ export class VoxSystem extends EventTarget {
     if (!targettingMesh) return null;
 
     return vox.frames[targettingMeshFrame].getTotalNonEmptyVoxels();
+  }
+
+  async fetchVoxFrameChunks(voxUrl) {
+    const store = window.APP.store;
+
+    const res = await fetch(voxUrl, {
+      headers: { authorization: `bearer ${store.state.credentials.token}` }
+    });
+
+    const {
+      vox: [{ frames }]
+    } = await res.json();
+
+    return frames.map(f => VoxChunk.deserialize(f));
+  }
+
+  async getOrFetchVoxFrameChunks(voxId) {
+    const { voxMap } = this;
+    const { voxMetadata } = window.APP;
+    const entry = voxMap.get(voxId);
+    if (entry && entry.vox) return entry.vox.frames;
+    const { url } = await voxMetadata.getOrFetchMetadata(voxId);
+    return await this.fetchVoxFrameChunks(url);
   }
 
   getChunkFrameOfVox(voxId, frame) {
@@ -1563,4 +1596,386 @@ export class VoxSystem extends EventTarget {
       return intersection;
     };
   })();
+
+  publishAllInCurrentWorld = (function() {
+    const tmpVec = new THREE.Vector3();
+
+    return async function(collection, category) {
+      const { voxMap } = this;
+      const { accountChannel, hubChannel } = window.APP;
+      const hubId = hubChannel.hubId;
+
+      for (const [voxId, { sources }] of voxMap.entries()) {
+        let stackAxis = 0;
+        let scale = 1.0;
+        let hasLockedMedia = false;
+
+        for (let i = 0; i < sources.length; i++) {
+          const source = sources[i];
+          if (source === null) continue;
+
+          hasLockedMedia = hasLockedMedia || isLockedMedia(source.el);
+
+          source.el.object3D.getWorldScale(tmpVec);
+
+          const mediaLoader = source.el.components["media-loader"];
+
+          if (mediaLoader) {
+            stackAxis = mediaLoader.data.stackAxis;
+          }
+
+          scale = tmpVec.x;
+          break;
+        }
+
+        if (!hasLockedMedia) continue;
+
+        console.log(`Publishing ${voxId} with scale ${scale}.`);
+        const { thumbData, previewData } = await this.renderVoxToImage(voxId);
+
+        console.log(`Generated image for ${voxId}.`);
+        const thumbBlob = dataURItoBlob(thumbData);
+        const previewBlob = dataURItoBlob(previewData);
+        const { file_id: thumbFileId } = await upload(thumbBlob, "image/png", hubId);
+        const { file_id: previewFileId } = await upload(previewBlob, "image/png", hubId);
+
+        console.log(`Uploaded images for ${voxId}.`);
+        const publishedVoxId = await accountChannel.publishVox(
+          voxId,
+          collection,
+          category,
+          stackAxis,
+          scale,
+          thumbFileId,
+          previewFileId
+        );
+        console.log(`Updated published vox for ${voxId}: ${publishedVoxId}.`);
+
+        this.copyVoxContent(voxId, publishedVoxId);
+
+        console.log(`Synced voxels to ${publishedVoxId}.`);
+      }
+
+      console.log("Done publishing.");
+    };
+  })();
+
+  // If toVoxId is null, create a new vox.
+  //
+  // Returns null if not creating a new vox, or the vox id and url if a new vox
+  // is created.
+  async copyVoxContent(fromVoxId, toVoxId = null) {
+    const spaceId = window.APP.spaceChannel.spaceId;
+    const hubId = window.APP.hubChannel.hubId;
+
+    let sync;
+    let disposeSync = false;
+    let returnValue = null;
+
+    if (toVoxId === null) {
+      const {
+        vox: [{ vox_id: voxId, url }]
+      } = await createVox(spaceId, hubId, fromVoxId);
+
+      toVoxId = voxId;
+      returnValue = { voxId, url };
+
+      sync = await this.getSync(voxId);
+    } else {
+      // Re-use existing sync if possible.
+      if (this.hasSync(toVoxId)) {
+        sync = await this.getSync(toVoxId);
+      } else {
+        sync = new VoxSync(toVoxId);
+        await sync.init(this.sceneEl);
+        disposeSync = true;
+      }
+    }
+
+    const frames = await this.getOrFetchVoxFrameChunks(fromVoxId);
+
+    for (let i = 0; i < MAX_FRAMES_PER_VOX; i++) {
+      const chunk = frames[i];
+      if (!chunk) continue;
+      await sync.applyChunk(chunk, i, [0, 0, 0]);
+    }
+
+    if (disposeSync) {
+      sync.dispose();
+    }
+
+    return returnValue;
+  }
+
+  async spawnVoxInFrontOfPlayer(voxId) {
+    const { builderSystem, launcherSystem } = SYSTEMS;
+    const { voxMetadata } = window.APP;
+
+    const metadata = await voxMetadata.getOrFetchMetadata(voxId);
+
+    const { url, published_stack_axis, published_scale } = metadata;
+
+    const entity = spawnMediaInfrontOfPlayer(
+      url,
+      null,
+      ObjectContentOrigins.URL,
+      null,
+      {},
+      true,
+      true,
+      "model/vnd.jel-vox",
+      -2.5,
+      0,
+      published_stack_axis
+    );
+
+    entity.object3D.scale.setScalar(published_scale);
+    entity.object3D.matrixNeedsUpdate = true;
+
+    if (!builderSystem.enabled) {
+      builderSystem.toggle();
+      launcherSystem.toggle();
+    }
+  }
+
+  async beginPlacingDraggedVox() {
+    const { assetPanelDraggingVoxId } = this;
+    const { voxMetadata } = window.APP;
+    if (!assetPanelDraggingVoxId) return;
+
+    const metadata = await voxMetadata.getOrFetchMetadata(assetPanelDraggingVoxId);
+
+    const { url, published_stack_axis, published_scale } = metadata;
+
+    const { entity } = addMedia(
+      url,
+      null,
+      "#interactable-media",
+      ObjectContentOrigins.URL,
+      null,
+      false,
+      false,
+      true,
+      {},
+      true,
+      null,
+      null,
+      null,
+      false,
+      "model/vnd.jel-vox",
+      false,
+      published_stack_axis
+    );
+
+    entity.object3D.scale.setScalar(published_scale);
+    entity.object3D.matrixNeedsUpdate = true;
+
+    // Needed to ensure media presence is triggered
+    entity.setAttribute("offset-relative-to", {
+      target: "#avatar-pov-node",
+      offset: { x: 0, y: 0, z: 0 }
+    });
+
+    const rightHand = document.getElementById("player-right-controller");
+    const transformSystem = this.sceneEl.systems["transform-selected-object"];
+
+    entity.addEventListener(
+      "model-loaded",
+      () => {
+        transformSystem.startTransform(entity.object3D, rightHand.object3D, {
+          mode: TRANSFORM_MODE.STACK
+        });
+      },
+      { once: true }
+    );
+  }
+
+  async bakeOrInstantiatePublishedVoxEntities(voxId) {
+    const { voxMetadata } = window.APP;
+    const { url, is_published } = await voxMetadata.getOrFetchMetadata(voxId);
+
+    // Called on a non-published vox
+    if (!is_published) return;
+
+    // Get the new baked/instantiated URL and update all the entities
+    const newVoxUrl = await this.resolveBakedOrInstantiatedVox(url);
+    const promises = [];
+
+    for (const entity of document.querySelectorAll("[media-vox]")) {
+      const entityVoxId = entity.components["media-vox"].voxId;
+      if (entityVoxId !== voxId) continue;
+      if (!ensureOwnership(entity)) continue;
+      promises.push(new Promise(res => entity.addEventListener("model-loaded", res, { once: true })));
+      entity.setAttribute("media-loader", { src: newVoxUrl });
+    }
+
+    await Promise.all(promises);
+  }
+
+  // Given a src URL to a vox, determines if we should bake and/or modify the src before instantation.
+  //
+  // If the specified vox is a published vox, we do not want to instantiate that directly. Dyna is queried
+  // to determine if there is already an existing, unmodified, baked vox based on this published vox. If not,
+
+  async resolveBakedOrInstantiatedVox(voxSrc) {
+    const { voxMetadata, hubChannel, accountChannel } = window.APP;
+    const hubId = hubChannel.hubId;
+
+    const voxId = voxIdForVoxUrl(voxSrc);
+    const metadata = await voxMetadata.getOrFetchMetadata(voxId);
+
+    if (!metadata.is_published) return voxSrc;
+
+    // Determine if there is a cleanly baked version of this vox already.
+    const existingVoxId = await accountChannel.getExistingBakedVox(voxId, hubId);
+
+    const { url } = await (existingVoxId ? voxMetadata.getOrFetchMetadata(existingVoxId) : this.copyVoxContent(voxId));
+    return url;
+  }
+
+  async renderVoxToImage(voxId) {
+    const frames = await this.getOrFetchVoxFrameChunks(voxId);
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 256;
+    canvas.setAttribute("style", "visibility: hidden; width: 256px; height: 256px;");
+    const preview = document.createElement("canvas");
+    const thumb = document.createElement("canvas");
+
+    preview.width = 256 * 5;
+    preview.height = 256 * 5;
+    thumb.width = 256;
+    thumb.height = 256;
+
+    const previewContext = preview.getContext("2d");
+    const thumbContext = thumb.getContext("2d");
+
+    document.body.appendChild(canvas);
+
+    const chunk = frames[0];
+    const fvixel = new FastVixel({ canvas: canvas, size: chunk.size });
+    fvixel.setGround({ color: [17 / 255.0, 23.0 / 255.0, 71.0 / 255.0] });
+
+    const shiftForSize = size => Math.floor(size % 2 === 0 ? size / 2 - 1 : size / 2);
+    const xShift = shiftForSize(chunk.size[0]);
+    const yShift = shiftForSize(chunk.size[1]);
+    const zShift = shiftForSize(chunk.size[2]);
+    const colorMap = new Map();
+
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    let maxZ = -Infinity;
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let minZ = Infinity;
+
+    // Fill vixel voxels
+    for (let x = 0, lx = chunk.size[0]; x < lx; x++) {
+      for (let y = 0, ly = chunk.size[1]; y < ly; y++) {
+        for (let z = 0, lz = chunk.size[2]; z < lz; z++) {
+          const idx = chunk.getPaletteIndexAt(x - xShift, y - yShift, z - zShift);
+          if (idx === 0) continue;
+
+          maxX = Math.max(x, maxX);
+          maxY = Math.max(y, maxY);
+          maxZ = Math.max(z, maxZ);
+
+          minX = Math.min(x, minX);
+          minY = Math.min(y, minY);
+          minZ = Math.min(z, minZ);
+
+          let color = colorMap.get(idx);
+
+          if (!color) {
+            const rgbt = rgbtForVoxColor(chunk.colorForPaletteIndex(idx));
+            color = {
+              red: rgbt.r / 255.0,
+              green: rgbt.g / 255.0,
+              blue: rgbt.b / 255.0
+            };
+
+            colorMap.set(idx, color);
+          }
+
+          fvixel.set(x, y, z, color);
+        }
+      }
+    }
+
+    const cx = (maxX + minX) / 2.0;
+    const cy = (maxY + minY) / 2.0;
+    const cz = (maxZ + minZ) / 2.0;
+
+    let rho =
+      Math.sqrt((maxX - minX) * (maxX - minX) + (maxY - minY) * (maxY - minY) + (maxZ - minZ) * (maxZ - minZ)) * 1.5;
+
+    rho = Math.max(rho, 8);
+
+    const phi = Math.PI / 2.8;
+    const y = rho * Math.cos(phi) + cy;
+    const imageDrawPromises = [];
+
+    // 24 frames - rotate camera around origin across an arc of PI / 2
+    for (let i = 0; i < 24; i++) {
+      const theta = (Math.PI / 48) * (i - 12);
+
+      const x = rho * Math.sin(phi) * Math.cos(theta) + cx;
+      const z = rho * Math.sin(phi) * Math.sin(theta) + cz;
+
+      fvixel.setCamera({
+        eye: [x, y, z], // Camera position
+        center: [cx, cy - (maxY - minY) * 0.05, cz], // Camera target
+        up: [0, 1, 0], // Up
+        fov: Math.PI / 4 // Field of view
+      });
+
+      await new Promise(res => {
+        const wait = () => {
+          fvixel.sample(256);
+
+          if (fvixel.sampleCount >= 256) {
+            fvixel.display();
+            const data = canvas.toDataURL();
+
+            imageDrawPromises.push(
+              new Promise(res => {
+                const img = new Image();
+
+                img.onload = () => {
+                  const x = Math.floor(i % 5);
+                  const y = Math.floor(i / 5);
+                  previewContext.drawImage(img, x * 256, y * 256, 256, 256);
+
+                  if (i === 0) {
+                    // Thumb is first frame
+                    thumbContext.drawImage(img, 0, 0, 256, 256);
+                  }
+
+                  res();
+                };
+
+                img.src = data;
+              })
+            );
+
+            res();
+          } else {
+            requestAnimationFrame(wait);
+          }
+        };
+
+        requestAnimationFrame(wait);
+      });
+    }
+
+    await Promise.all(imageDrawPromises);
+
+    const previewData = preview.toDataURL();
+    const thumbData = thumb.toDataURL();
+
+    document.body.removeChild(canvas);
+
+    return { previewData, thumbData };
+  }
 }

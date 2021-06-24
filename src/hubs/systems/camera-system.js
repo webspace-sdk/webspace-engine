@@ -7,6 +7,7 @@ import { qsGet } from "../utils/qs_truthy";
 import SkyboxBufferGeometry from "../../jel/objects/skybox-buffer-geometry";
 const customFOV = qsGet("fov");
 import { EventTarget } from "event-target-shim";
+import { ATOM_TYPES } from "../../jel/utils/atom-metadata";
 
 // In inspect mode we extend the far plane and disable the fog, so we can observe big objects.
 const FAR_PLANE_FOR_INSPECT = 100;
@@ -373,14 +374,20 @@ export class CameraSystem extends EventTarget {
     this.showWorldWithCursor = !this.showWorldWithCursor;
 
     if (this.allowCursor) {
-      if (this.showWorldWithCursor) {
-        this.revealEverything();
-      } else {
-        this.hideEverythingButInspectedObjectAndCursors();
-      }
+      this.refreshCameraLayersAndMask();
     }
 
     this.dispatchEvent(new CustomEvent("settings_changed"));
+  }
+
+  refreshCameraLayersAndMask() {
+    if (!this.inspected) return;
+
+    if (this.showWorldWithCursor) {
+      this.revealEverything();
+    } else {
+      this.hideEverythingButInspectedObjectAndCursors();
+    }
   }
 
   toggleShowFloor() {
@@ -762,4 +769,30 @@ export class CameraSystem extends EventTarget {
       childMatch(rig, camera, target.matrixWorld);
     };
   })();
+
+  getInspectedAtomId() {
+    const { inspected } = this;
+    if (!inspected) return null;
+
+    const mediaVox = inspected.el && inspected.el.components["media-vox"];
+
+    if (mediaVox) {
+      return mediaVox.voxId;
+    } else {
+      return null;
+    }
+  }
+
+  getInspectedAtomType() {
+    const { inspected } = this;
+    if (!inspected) return null;
+
+    const mediaVox = inspected.el && inspected.el.components["media-vox"];
+
+    if (mediaVox) {
+      return ATOM_TYPES.VOX;
+    } else {
+      return null;
+    }
+  }
 }

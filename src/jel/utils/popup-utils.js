@@ -27,6 +27,7 @@ export function useAtomBoundPopupPopper(focusRef, initialPlacement = "bottom", i
   const [referenceElement, setReferenceElement] = useState(null);
   const [popupElement, setPopupElement] = useState(null);
   const [atomId, setAtomId] = useState(null);
+  const [atomMetadata, setAtomMetadata] = useState(null);
   const [placement, setPlacement] = useState(initialPlacement);
   const [offset, setOffset] = useState(initialOffset);
   const [popupOpenOptions, setPopupOpenOptions] = useState(EMPTY);
@@ -52,8 +53,9 @@ export function useAtomBoundPopupPopper(focusRef, initialPlacement = "bottom", i
   });
 
   const show = useCallback(
-    (newAtomId, ref, newPlacement, newOffset, newPopupOpenOptions = null) => {
+    (newAtomId, newAtomMetadata, ref, newPlacement, newOffset, newPopupOpenOptions = null) => {
       if (newAtomId) setAtomId(newAtomId);
+      if (newAtomMetadata) setAtomMetadata(newAtomMetadata);
       if (newPlacement) setPlacement(newPlacement);
       if (newOffset) setOffset(newOffset);
       if (ref && ref.current) setReferenceElement(ref.current);
@@ -70,6 +72,7 @@ export function useAtomBoundPopupPopper(focusRef, initialPlacement = "bottom", i
   return {
     show,
     atomId,
+    atomMetadata,
     popupElement,
     setPopup: setPopupElement,
     setRef,

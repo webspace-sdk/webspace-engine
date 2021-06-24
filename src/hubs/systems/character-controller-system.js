@@ -163,7 +163,10 @@ export class CharacterControllerSystem {
 
     const desiredPOVPosition = new THREE.Vector3();
     const groundSnappedPOVPosition = new THREE.Vector3();
+    const m = new THREE.Matrix4();
     const v = new THREE.Vector3();
+    const v2 = new THREE.Vector3();
+    const q = new THREE.Quaternion();
 
     return function tick(t, dt) {
       const entered = this.scene.is("entered");
@@ -258,12 +261,18 @@ export class CharacterControllerSystem {
         this.relativeMotionValue = 0;
       }
 
+      this.avatarPOV.object3D.updateMatrices();
+
       if (this.fly && characterLift) {
         const hoverEl = this.interaction && this.interaction.state.rightRemote.hovered;
 
         // Hacky, can't mask out hovering on Q/E'able objects via binding, so do so here.
         if (!hoverEl || !isNextPrevMedia(hoverEl)) {
-          this.relativeMotion.y += characterLift;
+          m.getInverse(this.avatarPOV.object3D.matrixWorld);
+          m.decompose(v2, q, v2);
+          v.set(0, characterLift, 0);
+          v.applyQuaternion(q);
+          this.relativeMotion.add(v);
         }
       }
 
@@ -275,8 +284,6 @@ export class CharacterControllerSystem {
       const lerpC = vrMode ? 0 : Math.max(0.66, Math.min(0.975, 0.85 * (16.0 / dt))); // TODO: To support drifting ("ice skating"), motion needs to keep initial direction
       this.nextRelativeMotion.copy(this.relativeMotion).multiplyScalar(lerpC);
       this.relativeMotion.multiplyScalar(1 - lerpC);
-
-      this.avatarPOV.object3D.updateMatrices();
 
       if (!this.isMotionDisabled && SYSTEMS.cameraSystem.isInAvatarView()) {
         rotateInPlaceAroundWorldUp(this.avatarPOV.object3D.matrixWorld, this.dXZ, snapRotatedPOV);

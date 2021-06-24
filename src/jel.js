@@ -185,6 +185,7 @@ const hubChannel = new HubChannel(store);
 const linkChannel = new LinkChannel(store);
 const spaceMetadata = new AtomMetadata(ATOM_TYPES.SPACE);
 const hubMetadata = new AtomMetadata(ATOM_TYPES.HUB);
+const voxMetadata = new AtomMetadata(ATOM_TYPES.VOX);
 const matrix = new Matrix(store, spaceMetadata, hubMetadata);
 
 window.APP.history = history;
@@ -196,6 +197,7 @@ window.APP.authChannel = authChannel;
 window.APP.linkChannel = linkChannel;
 window.APP.hubMetadata = hubMetadata;
 window.APP.spaceMetadata = spaceMetadata;
+window.APP.voxMetadata = voxMetadata;
 window.APP.matrix = matrix;
 
 store.addEventListener("profilechanged", spaceChannel.sendProfileUpdate.bind(hubChannel));
@@ -1201,7 +1203,9 @@ async function start() {
     }
 
     const hubCan = hubMetadata.can.bind(hubMetadata);
-    remountJelUI({ hubCan });
+    const voxCan = voxMetadata.can.bind(voxMetadata);
+
+    remountJelUI({ hubCan, voxCan });
 
     // Switch off building mode if we cannot spawn media
     if (!hubCan("spawn_and_move_media", hubChannel.hubId)) {
@@ -1251,6 +1255,8 @@ async function start() {
           });
 
           if (isInitialAccountChannelJoin) {
+            voxMetadata.bind(accountChannel);
+
             if (!skipNeon) {
               // Initialize connection to matrix homeserver.
               await matrix.init(

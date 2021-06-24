@@ -14,6 +14,7 @@ import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { getPresetAsColorTuples } from "../utils/world-color-presets";
+import { ATOM_TYPES } from "../utils/atom-metadata";
 import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
 import Snackbar from "./snackbar";
@@ -35,13 +36,43 @@ import LoadingPanel from "./loading-panel";
 import { CREATE_SELECT_WIDTH, CREATE_SELECT_LIST_HEIGHT } from "./create-select";
 import qsTruthy from "../../hubs/utils/qs_truthy";
 import CanvasTop from "./canvas-top";
+import AssetPanel from "./asset-panel";
 
 const skipSidePanels = qsTruthy("skip_panels");
 const skipNeon = qsTruthy("skip_neon");
 
+const Root = styled.div`
+  & #jel-ui-wrap {
+    height: 100%;
+  }
+
+  &.show-asset-panel #jel-ui-wrap {
+    height: calc(100% - 290px);
+  }
+
+  body.paused &.show-asset-panel #jel-ui-wrap {
+    height: 100%;
+  }
+
+  body.panels-expanded &.show-asset-panel #jel-ui-wrap {
+    height: 100%;
+  }
+
+  & #asset-panel {
+    display: none;
+  }
+
+  &.show-asset-panel #asset-panel {
+    display: flex;
+  }
+
+  body.panels-expanded &.show-asset-panel #asset-panel {
+    display: none;
+  }
+`;
+
 const Wrap = styled.div`
   pointer-events: none;
-  height: 100%;
   top: 0;
   position: fixed;
   z-index: 4;
@@ -60,6 +91,34 @@ const Wrap = styled.div`
   body.paused #jel-interface.hub-type-channel & {
     pointer-events: none;
     background-color: transparent;
+  }
+`;
+
+const AssetPanelWrap = styled.div`
+  color: var(--panel-text-color);
+  background-color: var(--secondary-panel-background-color);
+  font-size: var(--panel-text-size);
+  font-weight: var(--panel-text-weight);
+  pointer-events: auto;
+  height: 290px;
+  left: var(--nav-width);
+  width: calc(100% - var(--nav-width) - var(--presence-width));
+  bottom: 0;
+  position: fixed;
+  z-index: 4;
+  flex-direction: column;
+  padding-top: 8px;
+
+  #jel-interface:focus-within & {
+    pointer-events: auto;
+  }
+
+  body.paused #jel-interface.hub-type-world & {
+    display: none;
+  }
+
+  body.paused #jel-interface.hub-type-channel & {
+    display: none;
   }
 `;
 
@@ -305,16 +364,19 @@ function JelUI(props) {
     hubSettings,
     unavailableReason,
     subscriptions,
-    spaceId
+    spaceId,
+    publishedVoxTree
   } = props;
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
-  const { store, hubChannel, spaceChannel, dynaChannel, matrix } = window.APP;
+  const { store, hubChannel, spaceChannel, dynaChannel, accountChannel, matrix } = window.APP;
+  const { cameraSystem, launcherSystem, builderSystem } = SYSTEMS;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
   const [unmuted, setUnmuted] = useState(false);
+  const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const [worldTreeData, setWorldTreeData] = useState([]);
   const [worldTreeDataVersion, setWorldTreeDataVersion] = useState(0);
   const [channelTreeData, setChannelTreeData] = useState([]);
@@ -322,6 +384,7 @@ function JelUI(props) {
   const [isMatrixLoading, setIsMatrixLoading] = useState(!matrix || !matrix.isInitialSyncFinished);
   const [hasFetchedInitialHubMetadata, setHasFetchedInitialHubMetadata] = useState(false);
   const [isInitializingSpace, setIsInitializingSpace] = useState(store.state.context.isFirstVisitToSpace);
+  const [isInspecting, setIsInspecting] = useState(cameraSystem.isInspecting());
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [showingExternalCamera, setShowingExternalCamera] = useState(false);
   const [showNotificationBanner, setShowNotificationBanner] = useState(
@@ -336,7 +399,7 @@ function JelUI(props) {
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
 
-  const hubRenameFocusRef = useRef();
+  const atomRenameFocusRef = useRef();
   const spaceRenameFocusRef = useRef();
   const createSelectFocusRef = useRef();
   const createSelectPopupRef = useRef();
@@ -348,21 +411,23 @@ function JelUI(props) {
   const environmentSettingsButtonRef = useRef();
 
   const {
-    styles: hubRenamePopupStyles,
-    attributes: hubRenamePopupAttributes,
-    setPopup: setHubRenamePopupElement,
-    setRef: setHubRenameReferenceElement,
-    atomId: hubRenameHubId,
-    show: showHubRenamePopup,
-    popupElement: hubRenamePopupElement,
-    update: updateHubRenamePopup
-  } = useAtomBoundPopupPopper(hubRenameFocusRef, "bottom-start", [0, 8]);
+    styles: atomRenamePopupStyles,
+    attributes: atomRenamePopupAttributes,
+    setPopup: setAtomRenamePopupElement,
+    setRef: setAtomRenameReferenceElement,
+    atomId: atomRenameAtomId,
+    atomMetadata: atomRenameMetadata,
+    show: showAtomRenamePopup,
+    popupElement: atomRenamePopupElement,
+    update: updateAtomRenamePopup
+  } = useAtomBoundPopupPopper(atomRenameFocusRef, "bottom-start", [0, 8]);
 
   const {
     styles: spaceRenamePopupStyles,
     attributes: spaceRenamePopupAttributes,
     setPopup: setSpaceRenamePopupElement,
     atomId: spaceRenameSpaceId,
+    atomMetadata: spaceRenameMetadata,
     show: showSpaceRenamePopup,
     popupElement: spaceRenamePopupElement,
     update: updateSpaceRenamePopup
@@ -453,7 +518,7 @@ function JelUI(props) {
     () => {
       const handleResizeComplete = () => {
         if (updateSpaceRenamePopup) updateSpaceRenamePopup();
-        if (updateHubRenamePopup) updateHubRenamePopup();
+        if (updateAtomRenamePopup) updateAtomRenamePopup();
         if (updateHubContextMenu) updateHubContextMenu();
         if (updateCreateSelectPopup) updateCreateSelectPopup();
         if (updateCreateEmbedPopup) updateCreateEmbedPopup();
@@ -470,7 +535,7 @@ function JelUI(props) {
     },
     [
       scene,
-      updateHubRenamePopup,
+      updateAtomRenamePopup,
       updateSpaceRenamePopup,
       updateHubContextMenu,
       updateCreateSelectPopup,
@@ -482,6 +547,21 @@ function JelUI(props) {
       updateHubPermissionsPopup,
       updateEnvironmentSettingsPopup
     ]
+  );
+
+  useEffect(
+    () => {
+      const handler = () => {
+        setTriggerMode(builderSystem.enabled ? "builder" : "launcher");
+      };
+
+      builderSystem.addEventListener("enabledchanged", handler);
+
+      return () => {
+        builderSystem.removeEventListener("enabledchanged", handler);
+      };
+    },
+    [builderSystem, launcherSystem]
   );
 
   useEffect(
@@ -516,6 +596,15 @@ function JelUI(props) {
       () => matrix && matrix.removeEventListener("initial_sync_finished", handler);
     },
     [matrix]
+  );
+
+  useEffect(
+    () => {
+      const handler = () => setIsInspecting(SYSTEMS.cameraSystem.isInspecting());
+      cameraSystem.addEventListener("mode_changed", handler);
+      return () => cameraSystem.removeEventListener("mode_changed", handler);
+    },
+    [cameraSystem]
   );
 
   useEffect(
@@ -700,10 +789,11 @@ function JelUI(props) {
 
   const isWorld = hub && hub.type === "world";
   const waitingForMatrix = isMatrixLoading && !skipNeon;
+  const showAssetPanel = triggerMode === "builder" && !isInspecting;
 
   return (
     <WrappedIntlProvider>
-      <div>
+      <Root className={showAssetPanel ? "show-asset-panel" : ""}>
         <LoadingPanel
           isLoading={waitingForMatrix || isInitializingSpace || !hasFetchedInitialHubMetadata}
           unavailableReason={unavailableReason}
@@ -752,8 +842,8 @@ function JelUI(props) {
             {...props}
             worldTree={worldTree}
             channelTree={channelTree}
-            hubRenamePopupElement={hubRenamePopupElement}
-            showHubRenamePopup={showHubRenamePopup}
+            atomRenamePopupElement={atomRenamePopupElement}
+            showAtomRenamePopup={showAtomRenamePopup}
             environmentSettingsButtonRef={environmentSettingsButtonRef}
             environmentSettingsPopupElement={environmentSettingsPopupElement}
             showEnvironmentSettingsPopup={showEnvironmentSettingsPopup}
@@ -800,13 +890,16 @@ function JelUI(props) {
             </BottomLeftPanels>
           )}
         </Wrap>
+        <AssetPanelWrap id="asset-panel">
+          <AssetPanel voxTree={publishedVoxTree} />
+        </AssetPanelWrap>
         {!skipSidePanels && (
           <JelSidePanels
             {...props}
             spaceMetadata={spaceMetadata}
             hubMetadata={hubMetadata}
-            showHubRenamePopup={showHubRenamePopup}
-            setHubRenameReferenceElement={setHubRenameReferenceElement}
+            showAtomRenamePopup={showAtomRenamePopup}
+            setAtomRenameReferenceElement={setAtomRenameReferenceElement}
             showHubContextMenuPopup={showHubContextMenuPopup}
             showSpaceRenamePopup={showSpaceRenamePopup}
             spaceRenamePopupElement={spaceRenamePopupElement}
@@ -816,25 +909,33 @@ function JelUI(props) {
             setHasShownInvite={setHasShownInvite}
           />
         )}
-      </div>
+      </Root>
       <RenamePopup
-        setPopperElement={setHubRenamePopupElement}
-        styles={hubRenamePopupStyles}
-        attributes={hubRenamePopupAttributes}
-        atomId={hubRenameHubId}
-        atomMetadata={hubMetadata}
-        ref={hubRenameFocusRef}
-        onNameChanged={useCallback(name => spaceChannel.updateHub(hubRenameHubId, { name }), [
-          spaceChannel,
-          hubRenameHubId
-        ])}
+        setPopperElement={setAtomRenamePopupElement}
+        styles={atomRenamePopupStyles}
+        attributes={atomRenamePopupAttributes}
+        atomId={atomRenameAtomId}
+        atomMetadata={atomRenameMetadata}
+        ref={atomRenameFocusRef}
+        onNameChanged={useCallback(
+          name => {
+            const { atomType } = atomRenameMetadata;
+
+            if (atomType === ATOM_TYPES.HUB) {
+              spaceChannel.updateHub(atomRenameAtomId, { name });
+            } else if (atomType === ATOM_TYPES.VOX) {
+              accountChannel.updateVox(atomRenameAtomId, { name });
+            }
+          },
+          [spaceChannel, accountChannel, atomRenameAtomId, atomRenameMetadata]
+        )}
       />
       <RenamePopup
         setPopperElement={setSpaceRenamePopupElement}
         styles={spaceRenamePopupStyles}
         attributes={spaceRenamePopupAttributes}
         atomId={spaceRenameSpaceId}
-        atomMetadata={spaceMetadata}
+        atomMetadata={spaceRenameMetadata}
         ref={spaceRenameFocusRef}
         onNameChanged={useCallback(name => dynaChannel.updateSpace(spaceRenameSpaceId, { name }), [
           dynaChannel,
@@ -932,13 +1033,17 @@ function JelUI(props) {
         hideRename={!!hubContextMenuOpenOptions.hideRename}
         showExport={!!hubContextMenuOpenOptions.showExport}
         showReset={!!hubContextMenuOpenOptions.showReset}
+        worldTree={worldTree}
         styles={hubContextMenuStyles}
         attributes={hubContextMenuAttributes}
         hubId={hubContextMenuHubId}
         spaceCan={spaceCan}
         hubCan={hubCan}
         roomForHubCan={roomForHubCan}
-        onRenameClick={useCallback(hubId => showHubRenamePopup(hubId, null), [showHubRenamePopup])}
+        onRenameClick={useCallback(hubId => showAtomRenamePopup(hubId, hubMetadata, null), [
+          showAtomRenamePopup,
+          hubMetadata
+        ])}
         onImportClick={useCallback(
           () => {
             document.querySelector("#import-upload-input").click();
@@ -1027,7 +1132,8 @@ JelUI.propTypes = {
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
   hubSettings: PropTypes.array,
-  unavailableReason: PropTypes.string
+  unavailableReason: PropTypes.string,
+  publishedVoxTree: PropTypes.object
 };
 
 export default JelUI;

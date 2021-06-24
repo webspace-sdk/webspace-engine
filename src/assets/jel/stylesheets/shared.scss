@@ -6,6 +6,14 @@
   font-weight: jel-theme.$small-text-weight;
 }
 
+:local(.secondary-panel) {
+  color: var(--panel-text-color);
+  background-color: var(--secondary-panel-background-color);
+  font-weight: jel-theme.$small-text-weight;
+  font-size: var(--panel-text-size);
+  font-weight: var(--panel-text-weight);
+}
+
 :local(.show-when-popped) {
   position: relative;
   opacity: 0;

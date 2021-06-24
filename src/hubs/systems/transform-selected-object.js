@@ -28,6 +28,12 @@ const XAXIS = new THREE.Vector3(1, 0, 0);
 const shiftKeyPath = paths.device.keyboard.key("shift");
 const UP = new THREE.Vector3(0, 1, 0);
 const FORWARD = new THREE.Vector3(0, 0, 1);
+const ALONG = new THREE.Vector3(1, 0, 0);
+const DOWN = new THREE.Vector3(0, -1, 0);
+const BACKWARD = new THREE.Vector3(0, 0, -1);
+const AGAINST = new THREE.Vector3(-1, 0, 0);
+const FLAT_STACK_AXES = [FORWARD, FORWARD, FORWARD, FORWARD, FORWARD, FORWARD];
+const NON_FLAT_STACK_AXES = [UP, DOWN, FORWARD, BACKWARD, ALONG, AGAINST];
 const offset = new THREE.Vector3();
 const objectSnapAlong = new THREE.Vector3();
 const targetPoint = new THREE.Vector3();
@@ -36,9 +42,11 @@ const { DEG2RAD } = THREE.Math;
 const SNAP_DEGREES = 22.5;
 const SNAP_RADIANS = SNAP_DEGREES * DEG2RAD;
 
-function withGridSnap(shouldSnap, v) {
+function withGridSnap(shouldSnap, v, scale = 1.0) {
+  scale = Math.max(0.25, scale);
+
   if (shouldSnap) {
-    return Math.floor(v * (1.0 / (VOXEL_SIZE * 2))) * (VOXEL_SIZE * 2);
+    return Math.floor(v * (1.0 / (VOXEL_SIZE * scale))) * (VOXEL_SIZE * scale);
   } else {
     return v;
   }
@@ -70,6 +78,8 @@ AFRAME.registerSystem("transform-selected-object", {
     this.dWheelApplied = 0;
     this.raycasters = {};
     this.prevModify = false;
+    this.stackAlongAxis = 0;
+    this.stackRotationAmount = 0;
 
     this.puppet = {
       initialControllerOrientation: new THREE.Quaternion(),
@@ -248,6 +258,8 @@ AFRAME.registerSystem("transform-selected-object", {
     this.target = target;
     this.target.updateMatrices();
     this.targetInitialMatrix.copy(this.target.matrix);
+    this.stackAlongAxis = 0;
+    this.stackRotationAmount = 0;
 
     this.targetBoundingBox.makeEmpty();
     expandByEntityObjectSpaceBoundingBox(this.targetBoundingBox, target.el);
@@ -375,7 +387,7 @@ AFRAME.registerSystem("transform-selected-object", {
       tmpMatrix.extractRotation(this.targetInitialMatrix);
       q.setFromRotationMatrix(tmpMatrix);
 
-      const shouldSnap = !!userinput.get(shiftKeyPath);
+      const shouldSnap = !userinput.get(shiftKeyPath);
 
       if (modify) {
         // Roll
@@ -403,17 +415,20 @@ AFRAME.registerSystem("transform-selected-object", {
       this.target.quaternion.copy(q);
       this.target.matrixNeedsUpdate = true;
     } else if (this.mode === TRANSFORM_MODE.LIFT) {
-      const initialX = this.targetInitialMatrix.elements[12];
-      const initialZ = this.targetInitialMatrix.elements[14];
+      const { elements } = this.targetInitialMatrix;
+      const initialX = elements[12];
+      const initialZ = elements[14];
+
+      const scale = v.set(elements[0], elements[1], elements[2]).length();
 
       this.target.updateMatrices();
       tmpMatrix.copy(this.targetInitialMatrix);
 
-      const shouldSnap = !!userinput.get(shiftKeyPath);
+      const shouldSnap = !userinput.get(shiftKeyPath);
 
       tmpMatrix.setPosition(
         initialX,
-        withGridSnap(shouldSnap, intersection.point.y - planeCastObjectOffset.y),
+        withGridSnap(shouldSnap, intersection.point.y - planeCastObjectOffset.y, scale),
         initialZ
       );
       this.target.setMatrix(tmpMatrix);
@@ -442,6 +457,11 @@ AFRAME.registerSystem("transform-selected-object", {
       this.dWheelApplied += wheelDelta;
     }
 
+    const { elements } = this.targetInitialMatrix;
+    const initialX = elements[12];
+    const initialZ = elements[14];
+    const scale = v.set(elements[0], elements[1], elements[2]).length();
+
     plane.updateMatrices();
     v.set(0, 0, 1);
     v.transformDirection(plane.matrixWorld);
@@ -450,8 +470,6 @@ AFRAME.registerSystem("transform-selected-object", {
     v2.sub(plane.position);
     v2.normalize();
 
-    const initialX = this.targetInitialMatrix.elements[12];
-    const initialZ = this.targetInitialMatrix.elements[14];
     const dx = intersection.point.x - initialX;
     const dz = intersection.point.z - initialZ;
     v.set(dx, 0, dz);
@@ -464,13 +482,13 @@ AFRAME.registerSystem("transform-selected-object", {
     this.target.updateMatrices();
     tmpMatrix.copy(this.targetInitialMatrix);
 
-    const shouldSnap = !!userinput.get(shiftKeyPath);
+    const shouldSnap = !userinput.get(shiftKeyPath);
 
-    const newX = withGridSnap(shouldSnap, initialX + v.x - planeCastObjectOffset.x);
+    const newX = withGridSnap(shouldSnap, initialX + v.x - planeCastObjectOffset.x, scale);
 
-    const newY = withGridSnap(shouldSnap, tmpMatrix.elements[13] + this.dWheelApplied);
+    const newY = tmpMatrix.elements[13] + withGridSnap(shouldSnap, this.dWheelApplied, scale);
 
-    const newZ = withGridSnap(shouldSnap, initialZ + v.z - planeCastObjectOffset.z);
+    const newZ = withGridSnap(shouldSnap, initialZ + v.z - planeCastObjectOffset.z, scale);
 
     tmpMatrix.setPosition(newX, newY, newZ);
     this.target.setMatrix(tmpMatrix);
@@ -478,6 +496,9 @@ AFRAME.registerSystem("transform-selected-object", {
 
   stackTargetAt(point, normal, normalObject) {
     const { target, targetBoundingBox } = this;
+    const userinput = this.el.systems.userinput;
+    const { elements } = this.targetInitialMatrix;
+    const scale = v.set(elements[0], elements[1], elements[2]).length();
 
     target.updateMatrices();
     normalObject.updateMatrices();
@@ -487,32 +508,51 @@ AFRAME.registerSystem("transform-selected-object", {
 
     targetBoundingBox.getCenter(v);
 
-    if (!isFlat) {
-      // v is the world space point of the bottom center of the bounding box
-      v.y = targetBoundingBox.min.y;
+    const axis = (isFlat ? FLAT_STACK_AXES : NON_FLAT_STACK_AXES)[this.stackAlongAxis];
+    v.set(0, 0, 0);
 
-      // The offset for the stack should be the distance from the object's
-      // origin to the box face, in object space.
-      offset.sub(v);
+    // v is the world space point of the bottom/top center of the bounding box
+    if (axis.x !== 0) {
+      v.x = axis.x < 0 ? targetBoundingBox.max.x : targetBoundingBox.min.x;
+    } else if (axis.y !== 0) {
+      v.y = axis.y < 0 ? targetBoundingBox.max.y : targetBoundingBox.min.y;
+    } else if (axis.z !== 0) {
+      v.z = axis.z < 0 ? targetBoundingBox.max.z : targetBoundingBox.min.z;
     }
+
+    // The offset for the stack should be the distance from the object's
+    // origin to the box face, in object space.
+    offset.sub(v);
 
     // Stack the current target at the stack point to the target point,
     // and orient it so its local Y axis is parallel to the normal.
     v.copy(normal);
     v.transformDirection(normalObject.matrixWorld);
 
-    objectSnapAlong.copy(isFlat ? FORWARD : UP);
+    // Snap except along axis in direction of normal
+    const nx = Math.abs(v.x);
+    const ny = Math.abs(v.y);
+    const nz = Math.abs(v.z);
+    const normalIsMaxX = nx >= ny && nx >= nz;
+    const normalIsMaxY = !normalIsMaxX && ny >= nx && ny >= nz;
+    const normalIsMaxZ = !normalIsMaxX && !normalIsMaxY;
+
+    objectSnapAlong.copy(axis);
     objectSnapAlong.transformDirection(this.targetInitialMatrix);
 
     // If the world space normal and original world object up are not already parallel, reorient the object
-    if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.01) {
+    if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.001) {
       // Flat media aligns to walls, other objects align to floor.
-      const alignAxis = isFlat ? FORWARD : UP;
-      q.setFromUnitVectors(alignAxis, v);
+      q.setFromUnitVectors(axis, v);
     } else {
       // Nudge the object to be re-aligned instead of doing a full reorient.
       q2.setFromUnitVectors(objectSnapAlong, v);
       this.targetInitialMatrix.decompose(v, q, v2);
+      q.multiply(q2);
+    }
+
+    if (this.stackRotationAmount > 0) {
+      q2.setFromAxisAngle(axis, this.stackRotationAmount);
       q.multiply(q2);
     }
 
@@ -523,7 +563,13 @@ AFRAME.registerSystem("transform-selected-object", {
     offset.multiply(v2);
     offset.applyQuaternion(q);
 
-    targetPoint.copy(point).add(offset);
+    const shouldSnap = !userinput.get(shiftKeyPath);
+
+    const newX = withGridSnap(shouldSnap && !normalIsMaxX, point.x, scale);
+    const newY = withGridSnap(shouldSnap && !normalIsMaxY, point.y, scale);
+    const newZ = withGridSnap(shouldSnap && !normalIsMaxZ, point.z, scale);
+
+    targetPoint.set(newX, newY, newZ).add(offset);
 
     tmpMatrix.compose(
       targetPoint,
@@ -546,6 +592,41 @@ AFRAME.registerSystem("transform-selected-object", {
     }
 
     if (this.mode === TRANSFORM_MODE.STACK) {
+      const userinput = this.el.systems.userinput;
+
+      // Use stored stack axis if available on element.
+      const mediaLoader = this.target.el && this.target.el.components["media-loader"];
+
+      if (mediaLoader) {
+        this.stackAlongAxis = mediaLoader.data.stackAxis;
+      }
+
+      if (userinput.get(paths.actions.transformAxisNextAction)) {
+        this.stackAlongAxis++;
+      } else if (userinput.get(paths.actions.transformAxisPrevAction)) {
+        this.stackAlongAxis--;
+      }
+
+      if (userinput.get(paths.actions.transformRotateNextAction)) {
+        this.stackRotationAmount -= Math.PI / 8.0;
+
+        if (this.stackRotationAmount < 0) {
+          this.stackRotationAmount += Math.PI * 2.0;
+        }
+      } else if (userinput.get(paths.actions.transformRotatePrevAction)) {
+        this.stackRotationAmount += Math.PI / 8.0;
+      }
+
+      if (this.stackAlongAxis < 0) {
+        this.stackAlongAxis = FLAT_STACK_AXES.length - 1;
+      } else {
+        this.stackAlongAxis = this.stackAlongAxis % FLAT_STACK_AXES.length;
+      }
+
+      if (mediaLoader) {
+        mediaLoader.el.setAttribute("media-loader", { stackAxis: this.stackAlongAxis });
+      }
+
       return; // Taken care of in cursor controller tick
     }
 

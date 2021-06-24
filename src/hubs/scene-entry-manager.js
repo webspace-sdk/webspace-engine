@@ -207,21 +207,16 @@ export default class SceneEntryManager {
 
     this.scene.addEventListener("add_media_vox", async () => {
       const spaceId = window.APP.spaceChannel.spaceId;
-      const { voxSystem, builderSystem, launcherSystem } = SYSTEMS;
+      const hubId = window.APP.hubChannel.hubId;
+      const { voxSystem, builderSystem } = SYSTEMS;
 
       const {
-        vox: [{ vox_id: voxId, url }]
-      } = await createVox(spaceId);
+        vox: [{ vox_id: voxId }]
+      } = await createVox(spaceId, hubId);
 
       const sync = await voxSystem.getSync(voxId);
       await sync.setVoxel(0, 0, 0, builderSystem.brushVoxColor);
-
-      spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL, null, {}, true, true, "model/vnd.jel-vox");
-
-      if (!builderSystem.enabled) {
-        builderSystem.toggle();
-        launcherSystem.toggle();
-      }
+      await voxSystem.spawnVoxInFrontOfPlayer(voxId);
     });
 
     this.scene.addEventListener("add_media_emoji", ({ detail: emoji }) => {
@@ -263,6 +258,15 @@ export default class SceneEntryManager {
     document.addEventListener("paste", e => AFRAME.scenes[0].systems["hubs-systems"].pasteSystem.enqueuePaste(e));
 
     document.addEventListener("dragover", e => e.preventDefault());
+
+    this.scene.addEventListener("dragenter", e => {
+      const { types } = e.dataTransfer;
+      const transformSystem = this.scene.systems["transform-selected-object"];
+
+      if (types.length === 1 && types[0] === "jel/vox" && !transformSystem.transforming) {
+        SYSTEMS.voxSystem.beginPlacingDraggedVox();
+      }
+    });
 
     document.addEventListener("drop", e => {
       e.preventDefault();

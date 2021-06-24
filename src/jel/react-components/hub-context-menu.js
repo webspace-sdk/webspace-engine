@@ -5,7 +5,11 @@ import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import PopupMenu, { PopupMenuItem } from "./popup-menu";
 import trashIcon from "../../assets/jel/images/icons/trash.svgi";
 import restoreIcon from "../../assets/jel/images/icons/restore.svgi";
+import cubeIcon from "../../assets/jel/images/icons/cube.svgi";
 import { FormattedMessage } from "react-intl";
+import qsTruthy from "../../hubs/utils/qs_truthy";
+
+const showPublishObjects = qsTruthy("show_publish");
 
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
@@ -17,6 +21,7 @@ function HubContextMenu({
   hubId,
   spaceCan,
   hubCan,
+  worldTree,
   roomForHubCan,
   hideRename,
   showReset,
@@ -88,6 +93,41 @@ function HubContextMenu({
         iconSrc={restoreIcon}
       >
         <FormattedMessage id="hub-context.reset-objects" />
+      </PopupMenuItem>
+    );
+  }
+  if (hubId && showPublishObjects && hubCan("spawn_and_move_media", hubId)) {
+    items.push(
+      <PopupMenuItem
+        key={`publish-${hubId}`}
+        onClick={async e => {
+          const { hubChannel, hubMetadata } = window.APP;
+          const { hubId } = hubChannel;
+
+          e.preventDefault();
+          e.stopPropagation();
+
+          const hubNodeId = worldTree.getNodeIdForAtomId(hubId);
+          const parentNodeId = worldTree.getParentNodeId(hubNodeId);
+
+          if (!parentNodeId) {
+            console.log("No parent world, can't publish");
+            return;
+          }
+
+          const parentHubId = worldTree.getAtomIdForNodeId(parentNodeId);
+
+          const currentHubMeta = await hubMetadata.getOrFetchMetadata(hubId);
+          const parentHubMeta = await hubMetadata.getOrFetchMetadata(parentHubId);
+
+          const collection = parentHubMeta.displayName;
+          const category = currentHubMeta.displayName;
+
+          SYSTEMS.voxSystem.publishAllInCurrentWorld(collection, category);
+        }}
+        iconSrc={cubeIcon}
+      >
+        <FormattedMessage id="hub-context.publish-objects" />
       </PopupMenuItem>
     );
   }

@@ -322,11 +322,11 @@ const TIP_DATA = {
     ["font", "t\\g"],
     ...objectCommonTips.filter(t => t[0] !== "open")
   ],
-  rotate: [["yawpitch", "G"], ["roll", "L+G"], ["snap", "_H"]],
+  rotate: [["yawpitch", "G"], ["roll", "L+G"], ["nosnap", "_H"]],
   scale: [["scale", "G,R"]],
-  slide: [["movexz", "G"], ["movey", "R"], ["snap", "_H"]],
-  stack: [["stack", "G"]],
-  lift: [["movey", "G"], ["snap", "_H"]],
+  slide: [["movexz", "G"], ["movey", "R"], ["nosnap", "_H"]],
+  stack: [["stack", "G"], ["spin", "q\\e"], ["flip", "t\\g"], ["nosnap", "_H"]],
+  lift: [["movey", "G"], ["nosnap", "_H"]],
   focus: [["orbit", "I"], ["zoom", "R"], ["exit", "f|Z"]],
   focus_edit: [["orbit", "I"], ["pan", "_S|O"], ["zoom", "R"], ["exit", "~|@|Z"]],
   text_editor: [

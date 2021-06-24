@@ -13,6 +13,7 @@ import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
 import { canCloneOrSnapshot } from "../../hubs/utils/permissions-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { ensureOwnership, getNetworkedEntitySync, isSynchronized } from "../../jel/utils/ownership-utils";
+import { getSpawnInFrontZOffsetForEntity } from "../../hubs/utils/three-utils";
 import { cursorIsVisible } from "../utils/dom-utils";
 import { releaseEphemeralCursorLock, beginEphemeralCursorLock } from "../utils/dom-utils";
 import qsTruthy from "../../hubs/utils/qs_truthy";
@@ -38,6 +39,8 @@ export class MediaInteractionSystem {
 
   tick() {
     const { scene, rightHand } = this;
+    const { voxSystem } = SYSTEMS;
+
     if (!rightHand) return;
     if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
     if (!SYSTEMS.cameraSystem.cameraViewAllowsManipulation()) return;
@@ -67,14 +70,15 @@ export class MediaInteractionSystem {
 
     // Stop sliding if held was dropped or slide key lifted
     if (
-      this.userinput.get(paths.actions.mediaSlideReleaseAction) ||
-      this.userinput.get(paths.actions.mediaLiftReleaseAction) ||
+      (this.userinput.get(paths.actions.mediaSlideReleaseAction) &&
+        this.transformSystem.mode === TRANSFORM_MODE.SLIDE) ||
+      (this.transformSystem.mode === TRANSFORM_MODE.LIFT && this.userinput.get(paths.actions.mediaLiftReleaseAction)) ||
       this.userinput.get(paths.actions.mashRelease) ||
       ((this.transformSystem.mode === TRANSFORM_MODE.SLIDE ||
         this.transformSystem.mode === TRANSFORM_MODE.LIFT ||
         this.transformSystem.mode === TRANSFORM_MODE.STACK) &&
         this.transformSystem.transforming &&
-        !rightHeld)
+        (!rightHeld && !voxSystem.assetPanelDraggingVoxId))
     ) {
       this.transformSystem.stopTransform();
       releaseEphemeralCursorLock();
@@ -167,14 +171,18 @@ export class MediaInteractionSystem {
 
       if (component && lockAllows) {
         if (interactionType === MEDIA_INTERACTION_TYPES.CLONE) {
-          const { entity } = cloneMedia(component.el, "#interactable-media");
+          const sourceEntity = component.el;
+          const { entity } = cloneMedia(sourceEntity, "#interactable-media");
+          const sourceScale = sourceEntity.object3D.scale;
 
-          entity.object3D.scale.copy(component.el.object3D.scale);
+          entity.object3D.scale.copy(sourceScale);
           entity.object3D.matrixNeedsUpdate = true;
+
+          const zOffset = getSpawnInFrontZOffsetForEntity(sourceEntity);
 
           entity.setAttribute("offset-relative-to", {
             target: "#avatar-pov-node",
-            offset: { x: 0, y: 0, z: -1.15 * component.el.object3D.scale.z }
+            offset: { x: 0, y: 0, z: zOffset }
           });
         } else {
           if (isSynced && !ensureOwnership(targetEl)) return;

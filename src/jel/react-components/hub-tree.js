@@ -22,7 +22,15 @@ const EmptyMessage = styled.div`
   white-space: pre;
 `;
 
-function HubTree({ treeManager, type, history, hub, spaceCan, setHubRenameReferenceElement, showHubContextMenuPopup }) {
+function HubTree({
+  treeManager,
+  type,
+  history,
+  hub,
+  spaceCan,
+  setAtomRenameReferenceElement,
+  showHubContextMenuPopup
+}) {
   const [navTreeData, setNavTreeData] = useState([]);
   const [navTreeDataVersion, setNavTreeDataVersion] = useState(0);
 
@@ -55,15 +63,15 @@ function HubTree({ treeManager, type, history, hub, spaceCan, setHubRenameRefere
           }}
           onDotsClick={(e, ref) => {
             e.stopPropagation(); // Otherwise this will perform a tree node click event
-            showHubContextMenuPopup(data.atomId, ref, "bottom-start", [0, 0], {
+            showHubContextMenuPopup(data.atomId, atomMetadata, ref, "bottom-start", [0, 0], {
               hideRename: false
             });
-            setHubRenameReferenceElement(ref);
+            setAtomRenameReferenceElement(ref);
           }}
         />
       );
     },
-    [history, hub, treeManager, atomMetadata, showHubContextMenuPopup, setHubRenameReferenceElement, spaceCan]
+    [history, hub, treeManager, atomMetadata, showHubContextMenuPopup, setAtomRenameReferenceElement, spaceCan]
   );
 
   const onDragEnter = useCallback(({ node }) => treeManager.setNodeIsExpanded(node.key, true, tree), [
@@ -129,7 +137,7 @@ HubTree.propTypes = {
   hub: PropTypes.object,
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,
-  setHubRenameReferenceElement: PropTypes.func,
+  setAtomRenameReferenceElement: PropTypes.func,
   showHubContextMenuPopup: PropTypes.func
 };
 

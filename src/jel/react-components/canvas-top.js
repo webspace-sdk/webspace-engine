@@ -1,7 +1,7 @@
 import React, { useRef, useState, useCallback, forwardRef, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
-import HubTrail from "./hub-trail";
+import AtomTrail from "./atom-trail";
 import styled from "styled-components";
 import mutedIcon from "../../assets/jel/images/icons/mic-muted.svgi";
 import unmutedIcon from "../../assets/jel/images/icons/mic-unmuted.svgi";
@@ -19,6 +19,7 @@ import { useSceneMuteState } from "../utils/shared-effects";
 import { getMessages } from "../../hubs/utils/i18n";
 import Tooltip from "./tooltip";
 import { useInstallPWA } from "../../hubs/react-components/input/useInstallPWA";
+import { ATOM_TYPES } from "../utils/atom-metadata";
 
 const Top = styled.div`
   flex: 1;
@@ -30,14 +31,6 @@ const Top = styled.div`
   body.paused #jel-interface.hub-type-world & {
     opacity: 0.4;
   }
-`;
-
-const TopLeftPlaceholder = styled.div`
-  flex: 1;
-  position: relative;
-  margin: 0;
-  padding: 14px 0 14px 8px;
-  width: 50%;
 `;
 
 const CornerButtonElement = styled.button`
@@ -308,9 +301,10 @@ function CanvasTop(props) {
     scene,
     history,
     hubCan,
+    voxCan,
     hub,
     hubRenamePopupElement,
-    showHubRenamePopup,
+    showAtomRenamePopup,
     environmentSettingsPopupElement,
     showEnvironmentSettingsPopup,
     hubPermissionsPopupElement,
@@ -326,7 +320,7 @@ function CanvasTop(props) {
   } = props;
 
   const { launcherSystem, builderSystem, cameraSystem } = SYSTEMS;
-  const { store, hubChannel, spaceChannel } = window.APP;
+  const { store, hubChannel } = window.APP;
   const [canSpawnAndMoveMedia, setCanSpawnAndMoveMedia] = useState(
     hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id)
   );
@@ -334,12 +328,22 @@ function CanvasTop(props) {
   const [unmuted, setUnmuted] = useState(false);
   const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
 
-  const hubMetadata = worldTree && worldTree.atomMetadata;
   const treeForCurrentHub = hub && hub.type === "world" ? worldTree : channelTree;
-  const hubTrailHubIds =
-    (treeForCurrentHub && treeForCurrentHub.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
-  const onTrailHubNameChanged = useCallback((hubId, name) => spaceChannel.updateHub(hubId, { name }), [spaceChannel]);
 
+  const atomId = isInspecting ? cameraSystem.getInspectedAtomId() : hub && hub.hub_id;
+  const atomType = isInspecting ? cameraSystem.getInspectedAtomType() : ATOM_TYPES.HUB;
+
+  let atomTrailAtomIds = null;
+
+  if (isInspecting && atomId) {
+    atomTrailAtomIds = [atomId];
+  } else if (!isInspecting) {
+    atomTrailAtomIds =
+      (treeForCurrentHub && hub && treeForCurrentHub.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
+  }
+
+  const hubMetadata = worldTree && worldTree.atomMetadata;
+  const metadata = atomType === ATOM_TYPES.VOX ? window.APP.voxMetadata : hubMetadata;
   const isWorld = hub && hub.type === "world";
   const [pwaAvailable, installPWA] = useInstallPWA();
   const environmentSettingsButtonRef = useRef();
@@ -432,7 +436,7 @@ function CanvasTop(props) {
           ref={hubContextButtonRef}
           onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
           onClick={() => {
-            showHubContextMenuPopup(hub.hub_id, hubContextButtonRef, "bottom-end", [0, 8], {
+            showHubContextMenuPopup(hub.hub_id, hubMetadata, hubContextButtonRef, "bottom-end", [0, 8], {
               hideRename: true,
               showExport: isWorld,
               showReset: !!hub.template.name
@@ -460,20 +464,18 @@ function CanvasTop(props) {
 
   return (
     <Top>
-      {!isInspecting ? (
-        <HubTrail
-          tree={treeForCurrentHub}
+      {atomTrailAtomIds && (
+        <AtomTrail
+          atomIds={atomTrailAtomIds}
           history={history}
-          hub={hub}
-          hubMetadata={hubMetadata}
-          hubCan={hubCan}
-          hubIds={hubTrailHubIds}
+          metadata={metadata}
+          can={atomType === ATOM_TYPES.VOX ? voxCan : hubCan}
+          viewPermission={atomType === ATOM_TYPES.VOX ? "view_vox" : "join_hub"}
+          editPermission={atomType === ATOM_TYPES.VOX ? "edit_vox" : "update_hub_meta"} // TODO bug need to check matrix room permissions
+          opaque={!isWorld}
           renamePopupElement={hubRenamePopupElement}
-          showRenamePopup={showHubRenamePopup}
-          onHubNameChanged={onTrailHubNameChanged}
+          showRenamePopup={showAtomRenamePopup}
         />
-      ) : (
-        <TopLeftPlaceholder />
       )}
       {cornerButtons}
     </Top>
@@ -483,9 +485,10 @@ CanvasTop.propTypes = {
   history: PropTypes.object,
   hub: PropTypes.object,
   hubCan: PropTypes.func,
+  voxCan: PropTypes.func,
   scene: PropTypes.object,
   hubRenamePopupElement: PropTypes.object,
-  showHubRenamePopup: PropTypes.func,
+  showAtomRenamePopup: PropTypes.func,
   environmentSettingsPopupElement: PropTypes.object,
   showEnvironmentSettingsPopup: PropTypes.func,
   hubPermissionsPopupElement: PropTypes.object,

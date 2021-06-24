@@ -277,20 +277,23 @@ export class BuilderSystem extends EventTarget {
       brushDown = holdingLeft;
     } else {
       // Repeated build if user is holding space and not control (due to widen)
-      brushDown =
-        ((holdingSpace && !userinput.get(controlPath)) || holdingMiddle || (isFreeToLeftHold && holdingLeft)) &&
-        !isGrabTransforming;
+      brushDown = (holdingSpace && !userinput.get(controlPath)) || holdingMiddle || (isFreeToLeftHold && holdingLeft);
+    }
+
+    if (brushDown && this.transformSystem.isGrabTransforming()) {
+      // Don't start brushing if the object was being grabbed transform. Holding space can cause this.
+      this.ignoreRestOfStroke = true;
     }
 
     const interaction = sceneEl.systems.interaction;
     const intersection = cursor && cursor.intersection;
     const isLocked = intersection && isLockedMedia(interaction.getRightRemoteHoverTarget());
 
-    if (!isGrabTransforming && !isLocked) {
-      this.performBrushStep(brushDown, intersection);
+    if (!isGrabTransforming) {
+      this.performBrushStep(brushDown, intersection, isLocked);
     }
 
-    if (isLocked && this.pendingChunk) {
+    if (isLocked && this.pendingChunk && !this.isBrushing) {
       this.cancelPending();
     }
 
@@ -311,10 +314,37 @@ export class BuilderSystem extends EventTarget {
     sweepRaycaster.near = 0.0001;
     sweepRaycaster.far = 100.0;
 
-    return (brushDown, intersection) => {
+    return (brushDown, intersection, isHoveringOnLocked) => {
       if (!this.enabled) return;
 
       const now = performance.now();
+      const { voxMetadata } = window.APP;
+      const { cameraSystem } = SYSTEMS;
+
+      const shouldCreateVox =
+        brushDown &&
+        !this.ignoreRestOfStroke &&
+        intersection &&
+        intersection.point &&
+        now - this.lastHoverTime >= HOVER_TO_CREATE_DELAY_MS &&
+        !cameraSystem.isInspecting();
+
+      if (isHoveringOnLocked) {
+        if (shouldCreateVox && this.brushMode === BRUSH_MODES.ADD) {
+          // Create gesture on locked surface
+          this.hasInFlightOperation = true;
+          this.ignoreRestOfStroke = true;
+          this.createVoxAt(intersection.point)
+            .then(() => (this.hasInFlightOperation = false))
+            .catch(() => {
+              // Rate limiting or backend error
+              this.hasInFlightOperation = false;
+              this.ignoreRestOfStroke = false;
+            });
+        }
+
+        return;
+      }
 
       const {
         brushStartCell,
@@ -400,14 +430,22 @@ export class BuilderSystem extends EventTarget {
         this.lastHoverTime = now;
       }
 
+      if (this.targetVoxId && !voxMetadata.hasOrIsPendingMetadata(this.targetVoxId)) {
+        voxMetadata.ensureMetadataForIds([this.targetVoxId]);
+      }
+
       let isDenied = this.targetVoxId && !SYSTEMS.voxSystem.canEdit(this.targetVoxId);
+      const isPublished =
+        this.targetVoxId &&
+        voxMetadata.hasMetadata(this.targetVoxId) &&
+        voxMetadata.getMetadata(this.targetVoxId).is_published;
 
       if (isDenied && this.pendingChunk) {
         SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
         this.pendingChunk = null;
       }
 
-      if (hitVoxId && !readyToApplyPendingThisTick && !isDenied) {
+      if (hitVoxId && !readyToApplyPendingThisTick && (!isDenied || isPublished)) {
         if (this.undoOpOnNextTick !== UNDO_OPS.NONE && this.targetVoxId !== null && this.targetVoxFrame !== null) {
           if (this.undoOpOnNextTick === UNDO_OPS.UNDO) {
             this.applyUndo(this.targetVoxId, this.targetVoxFrame);
@@ -437,6 +475,7 @@ export class BuilderSystem extends EventTarget {
               if (!isHittingFrozenMesh) {
                 this.targetVoxId = hitVoxId;
                 this.targetVoxFrame = SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
+                voxMetadata.ensureMetadataForIds([this.targetVoxId]);
 
                 if (typeof hitInstanceId === "number") {
                   hitObject.getMatrixAt(hitInstanceId, this.targetVoxInstanceMatrixWorld);
@@ -456,47 +495,58 @@ export class BuilderSystem extends EventTarget {
               }
             }
 
-            if (brushDown && !this.isBrushing) {
-              this.isBrushing = true;
-              brushStartWorldPoint.copy(intersection.point);
+            if (brushDown && !this.isBrushing && voxMetadata.hasMetadata(this.targetVoxId)) {
+              const isNonPublished = !voxMetadata.getMetadata(this.targetVoxId).is_published;
 
-              brushFaceNormal.copy(hitNormal);
-              brushFaceWorldNormal.copy(hitNormal);
-              brushFaceWorldNormal.transformDirection(this.targetVoxInstanceMatrixWorld);
+              if (isNonPublished) {
+                // Begin brushing!
+                this.isBrushing = true;
+                brushStartWorldPoint.copy(intersection.point);
 
-              updatePending = true;
+                brushFaceNormal.copy(hitNormal);
+                brushFaceWorldNormal.copy(hitNormal);
+                brushFaceWorldNormal.transformDirection(this.targetVoxInstanceMatrixWorld);
 
-              if (this.brushType === BRUSH_TYPES.FACE) {
-                this.startFaceBrushStroke(hitCell, hitNormal, hitWorldPoint, hitObject, hitInstanceId);
-              } else if (this.brushType === BRUSH_TYPES.FILL) {
-                // For fill crawl the whole thing.
-                [, this.pendingChunk] = this.crawlIntoChunkAt(hitCell, 0, this.brushVoxColor);
+                updatePending = true;
 
-                // Update the pending chunk + apply it immediately
-                SYSTEMS.voxSystem.setPendingVoxChunk(this.targetVoxId, this.pendingChunk, 0, 0, 0);
-                this.pushToUndoStack(this.targetVoxId, this.targetVoxFrame, this.pendingChunk, [0, 0, 0]);
-                SYSTEMS.voxSystem.applyPendingAndUnfreezeMesh(this.targetVoxId);
-                this.pendingChunk = null;
+                if (this.brushType === BRUSH_TYPES.FACE) {
+                  this.startFaceBrushStroke(hitCell, hitNormal, hitWorldPoint, hitObject, hitInstanceId);
+                } else if (this.brushType === BRUSH_TYPES.FILL) {
+                  // For fill crawl the whole thing.
+                  [, this.pendingChunk] = this.crawlIntoChunkAt(hitCell, 0, this.brushVoxColor);
 
-                // Fill is one-and-done, and ignores mode
-                updatePending = false;
+                  // Update the pending chunk + apply it immediately
+                  SYSTEMS.voxSystem.setPendingVoxChunk(this.targetVoxId, this.pendingChunk, 0, 0, 0);
+                  this.pushToUndoStack(this.targetVoxId, this.targetVoxFrame, this.pendingChunk, [0, 0, 0]);
+                  SYSTEMS.voxSystem.applyPendingAndUnfreezeMesh(this.targetVoxId);
+                  this.pendingChunk = null;
+
+                  // Fill is one-and-done, and ignores mode
+                  updatePending = false;
+                  this.ignoreRestOfStroke = true;
+                } else if (this.brushType === BRUSH_TYPES.PICK) {
+                  // Pick tool over non-vox
+                  const color = SYSTEMS.voxSystem.getVoxColorAt(
+                    this.targetVoxId,
+                    this.targetVoxFrame,
+                    hitCell.x,
+                    hitCell.y,
+                    hitCell.z
+                  );
+
+                  const rgbt = rgbtForVoxColor(color);
+
+                  this.handlePick(rgbt);
+
+                  updatePending = false;
+                  this.ignoreRestOfStroke = true;
+                }
+              } else {
+                // Started brushing on a published vox.
                 this.ignoreRestOfStroke = true;
-              } else if (this.brushType === BRUSH_TYPES.PICK) {
-                // Pick tool over non-vox
-                const color = SYSTEMS.voxSystem.getVoxColorAt(
-                  this.targetVoxId,
-                  this.targetVoxFrame,
-                  hitCell.x,
-                  hitCell.y,
-                  hitCell.z
-                );
-
-                const rgbt = rgbtForVoxColor(color);
-
-                this.handlePick(rgbt);
-
-                updatePending = false;
-                this.ignoreRestOfStroke = true;
+                SYSTEMS.voxSystem.bakeOrInstantiatePublishedVoxEntities(this.targetVoxId).then(() => {
+                  this.ignoreRestOfStroke = false;
+                });
               }
             }
 
@@ -517,15 +567,7 @@ export class BuilderSystem extends EventTarget {
         //
         // If brush is down, we're not currently brushing, and we have a target,
         // create a vox.
-        if (
-          brushDown &&
-          !this.ignoreRestOfStroke &&
-          this.targetVoxId === null &&
-          intersection &&
-          intersection.point &&
-          now - this.lastHoverTime >= HOVER_TO_CREATE_DELAY_MS &&
-          !SYSTEMS.cameraSystem.isInspecting()
-        ) {
+        if (this.targetVoxId === null && shouldCreateVox) {
           // Not mid-build, create a new vox.
           this.hasInFlightOperation = true;
           this.ignoreRestOfStroke = true;
@@ -546,7 +588,7 @@ export class BuilderSystem extends EventTarget {
         }
       }
 
-      if (this.targetVoxId && updatePending && !isDenied) {
+      if (this.targetVoxId && updatePending && (!isDenied || isPublished)) {
         if (!this.pendingChunk) {
           // Create a new pending, pending will grow as needed.
           this.pendingChunk = new VoxChunk([1, 1, 1]);
@@ -600,11 +642,12 @@ export class BuilderSystem extends EventTarget {
 
   async createVoxAt(point) {
     const spaceId = window.APP.spaceChannel.spaceId;
+    const hubId = window.APP.hubChannel.spaceId;
     const { voxSystem } = SYSTEMS;
 
     const {
       vox: [{ vox_id: voxId, url }]
-    } = await createVox(spaceId);
+    } = await createVox(spaceId, hubId);
 
     const sync = await voxSystem.getSync(voxId);
     await sync.setVoxel(0, 0, 0, this.brushVoxColor);

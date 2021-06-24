@@ -329,7 +329,7 @@ function LeftPanel({
   hubMetadata,
   memberships,
   showHubContextMenuPopup,
-  setHubRenameReferenceElement,
+  setAtomRenameReferenceElement,
   showSpaceRenamePopup,
   spaceRenamePopupElement,
   spaceId,
@@ -387,7 +387,7 @@ function LeftPanel({
               <SpaceNameButton
                 ref={spaceBannerRef}
                 onMouseDown={e => cancelEventIfFocusedWithin(e, spaceRenamePopupElement)}
-                onClick={() => showSpaceRenamePopup(spaceId, spaceBannerRef)}
+                onClick={() => showSpaceRenamePopup(spaceId, spaceMetadata, spaceBannerRef)}
               >
                 {spaceName}
               </SpaceNameButton>
@@ -456,7 +456,7 @@ function LeftPanel({
             spaceCan={spaceCan}
             hubCan={hubCan}
             showHubContextMenuPopup={showHubContextMenuPopup}
-            setHubRenameReferenceElement={setHubRenameReferenceElement}
+            setAtomRenameReferenceElement={setAtomRenameReferenceElement}
           />
           <PanelSectionHeader>
             <FormattedMessage id="nav.space-worlds" />
@@ -484,7 +484,7 @@ function LeftPanel({
             spaceCan={spaceCan}
             hubCan={hubCan}
             showHubContextMenuPopup={showHubContextMenuPopup}
-            setHubRenameReferenceElement={setHubRenameReferenceElement}
+            setAtomRenameReferenceElement={setAtomRenameReferenceElement}
           />
         </NavSpill>
         <NavFoot>
@@ -616,7 +616,7 @@ LeftPanel.propTypes = {
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
   showHubContextMenuPopup: PropTypes.func,
-  setHubRenameReferenceElement: PropTypes.func,
+  setAtomRenameReferenceElement: PropTypes.func,
   showSpaceRenamePopup: PropTypes.func,
   spaceRenamePopupElement: PropTypes.object,
   showSpaceNotificationPopup: PropTypes.func

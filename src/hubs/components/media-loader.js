@@ -59,6 +59,7 @@ AFRAME.registerComponent("media-loader", {
     skipLoader: { default: false },
     animate: { default: true },
     linkedEl: { default: null }, // This is the element of which this is a linked derivative. See linked-media.js
+    stackAxis: { default: 0 },
     mediaOptions: {
       default: {},
       parse: v => (typeof v === "object" ? v : JSON.parse(v)),
@@ -430,8 +431,17 @@ AFRAME.registerComponent("media-loader", {
         contentType = "application/vnd.apple.mpegurl";
       }
 
-      // Clear loader, if any.
-      disposeExistingMesh(this.el);
+      const isSrcChange = !!oldData.src;
+
+      if (!isSrcChange) {
+        // Clear loader, if any.
+        disposeExistingMesh(this.el);
+      }
+
+      if (isSrcChange) {
+        // Don't animate when changing src
+        this.data.animate = false;
+      }
 
       // We don't want to emit media_resolved for index updates.
       if (forceLocalRefresh || mediaChanged) {
@@ -696,7 +706,6 @@ AFRAME.registerComponent("media-loader", {
 
   setToSingletonMediaComponent(attr, properties) {
     for (const component of MEDIA_VIEW_COMPONENTS) {
-      if (attr === component) continue;
       this.el.removeAttribute(component);
     }
 
@@ -776,11 +785,11 @@ AFRAME.registerComponent("media-loader", {
             const y = data[i + 2];
             const c = data[i + 3];
 
-            let voxX = x - shiftX;
-            // ?? not sure why this is needed but objects come in mirrored
-            voxX = voxX == 0 ? 0 : voxX < 0 ? -voxX : -voxX + 1;
+            const voxX = x - shiftX;
             const voxY = y - shiftY;
-            const voxZ = z - shiftZ;
+            let voxZ = z - shiftZ;
+            // ?? not sure why this is needed but objects come in mirrored
+            voxZ = voxZ == 0 ? 0 : voxZ < 0 ? -voxZ : -voxZ + 1;
 
             if (voxX >= minX && voxX <= maxX && voxY >= minY && voxY <= maxY && voxZ >= minZ && voxZ <= maxZ) {
               const voxColor = iPalToVoxColor(c);

@@ -1064,6 +1064,30 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       dest: { value: paths.actions.transformScroll },
       xform: xforms.copy,
       priority: 1001
+    },
+    {
+      src: { value: paths.device.keyboard.code("keyq") },
+      dest: { value: paths.actions.transformRotatePrevAction },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: { value: paths.device.keyboard.code("keye") },
+      dest: { value: paths.actions.transformRotateNextAction },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: { value: paths.device.keyboard.code("keyg") },
+      dest: { value: paths.actions.transformAxisPrevAction },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: { value: paths.device.keyboard.code("keyt") },
+      dest: { value: paths.actions.transformAxisNextAction },
+      xform: xforms.rising,
+      priority: 1001
     }
   ],
   [sets.debugUserInput]: [

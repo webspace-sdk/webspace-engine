@@ -16,6 +16,8 @@ const store = new Store();
 window.APP = { store, accountChannel: new AccountChannel(),
   spaceChannel: new SpaceChannel(store), scene: new Scene() }
 
+window.SYSTEMS = { voxSystem: {} };
+
 const Layout = ({ children }) => {
   useAccessibleOutlineStyle();
   return <>{children}</>;

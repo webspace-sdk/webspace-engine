@@ -198,6 +198,10 @@ function registerNetworkSchemas() {
       {
         component: "media-loader",
         property: "locked"
+      },
+      {
+        component: "media-loader",
+        property: "stackAxis"
       }
     ],
     nonAuthorizedComponents: [
