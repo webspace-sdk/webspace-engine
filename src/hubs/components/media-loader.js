@@ -472,11 +472,11 @@ AFRAME.registerComponent("media-loader", {
           properties.font = mediaOptions.font;
         }
 
-        this.setToSingletonMediaComponent("media-text", properties);
+        this.setToSingletonMediaComponent("media-text", properties, isSrcChange);
       } else if (src.startsWith("jel://entities/") && src.includes("/components/media-emoji")) {
         this.el.addEventListener("model-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
 
-        this.setToSingletonMediaComponent("media-emoji", { src: accessibleUrl });
+        this.setToSingletonMediaComponent("media-emoji", { src: accessibleUrl }, isSrcChange);
       } else if (contentType === "video/vnd.jel-bridge") {
         this.el.setAttribute("floaty-object", {
           autoLockOnRelease: true, // Needed so object becomes kinematic on release for repositioning
@@ -496,7 +496,7 @@ AFRAME.registerComponent("media-loader", {
           contentType
         });
 
-        this.setToSingletonMediaComponent("media-canvas", canvasAttributes);
+        this.setToSingletonMediaComponent("media-canvas", canvasAttributes, isSrcChange);
 
         // These behaviors cause the video bridge to follow the avatar.
         this.el.setAttribute("pinned-to-self", {});
@@ -549,7 +549,7 @@ AFRAME.registerComponent("media-loader", {
           videoAttributes.time = startTime;
         }
 
-        this.setToSingletonMediaComponent("media-video", videoAttributes);
+        this.setToSingletonMediaComponent("media-video", videoAttributes, isSrcChange);
 
         // Add the media-stream component to any entity that is streaming this client's video stream.
         if (contentType === "video/vnd.jel-webrtc" && src.indexOf(NAF.clientId)) {
@@ -582,7 +582,8 @@ AFRAME.registerComponent("media-loader", {
             version,
             contentType,
             batch
-          })
+          }),
+          isSrcChange
         );
       } else if (contentType.startsWith("application/pdf")) {
         this.setToSingletonMediaComponent(
@@ -591,7 +592,8 @@ AFRAME.registerComponent("media-loader", {
             src: accessibleUrl,
             contentType,
             batch: false // Batching disabled until atlas is updated properly
-          })
+          }),
+          isSrcChange
         );
         this.el.setAttribute("media-pager", {});
         this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
@@ -631,7 +633,8 @@ AFRAME.registerComponent("media-loader", {
             toon: true,
             batch,
             modelToWorldScale: this.data.fitToBox ? 0.0001 : 1.0
-          })
+          }),
+          isSrcChange
         );
       } else if (contentType.startsWith("model/vnd.jel-vox")) {
         this.el.addEventListener("model-loaded", () => this.onMediaLoaded(null, false), { once: true });
@@ -641,7 +644,8 @@ AFRAME.registerComponent("media-loader", {
           "media-vox",
           Object.assign({}, this.data.mediaOptions, {
             src: accessibleUrl
-          })
+          }),
+          isSrcChange
         );
       } else if (contentType.startsWith("text/html")) {
         this.el.addEventListener(
@@ -678,7 +682,8 @@ AFRAME.registerComponent("media-loader", {
             version,
             contentType: guessContentType(thumbnail) || "image/png",
             batch
-          })
+          }),
+          isSrcChange
         );
       } else if (contentType.startsWith("model/vox-binary")) {
         const voxSrc = await this.importVoxFromUrl(canonicalUrl);
@@ -691,7 +696,8 @@ AFRAME.registerComponent("media-loader", {
           "media-vox",
           Object.assign({}, this.data.mediaOptions, {
             src: voxSrc
-          })
+          }),
+          isSrcChange
         );
       } else {
         throw new Error(`Unsupported content type: ${contentType}`);
@@ -704,8 +710,9 @@ AFRAME.registerComponent("media-loader", {
     }
   },
 
-  setToSingletonMediaComponent(attr, properties) {
+  setToSingletonMediaComponent(attr, properties, removeExisting = false) {
     for (const component of MEDIA_VIEW_COMPONENTS) {
+      if (component === attr && !removeExisting) continue;
       this.el.removeAttribute(component);
     }
 
