@@ -400,5 +400,6 @@
   "toggle-world.hide-world": "World On",
   "toggle-floor.tip": "Toggle Floor",
   "toggle-floor.show-floor": "Floor Off",
-  "toggle-floor.hide-floor": "Floor On"
+  "toggle-floor.hide-floor": "Floor On",
+  "asset-panel.objects": "Objects"
 }

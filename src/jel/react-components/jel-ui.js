@@ -43,30 +43,28 @@ const skipNeon = qsTruthy("skip_neon");
 
 const Root = styled.div`
   & #jel-ui-wrap {
-    height: 100%;
-  }
-
-  &.show-asset-panel #jel-ui-wrap {
-    height: calc(100% - 290px);
-  }
-
-  body.paused &.show-asset-panel #jel-ui-wrap {
-    height: 100%;
-  }
-
-  body.panels-expanded &.show-asset-panel #jel-ui-wrap {
-    height: 100%;
+    height: calc(100% - 64px);
   }
 
   & #asset-panel {
-    display: none;
-  }
-
-  &.show-asset-panel #asset-panel {
     display: flex;
+    height: 64px;
   }
 
-  body.panels-expanded &.show-asset-panel #asset-panel {
+  body &.expand-asset-panel #jel-ui-wrap {
+    height: calc(100% - 290px);
+  }
+
+  body.panels-expanded & #jel-ui-wrap,
+  body.paused & #jel-ui-wrap {
+    height: 100%;
+  }
+
+  &.expand-asset-panel #asset-panel {
+    height: 290px;
+  }
+
+  body.panels-expanded & #asset-panel {
     display: none;
   }
 `;
@@ -100,7 +98,6 @@ const AssetPanelWrap = styled.div`
   font-size: var(--panel-text-size);
   font-weight: var(--panel-text-weight);
   pointer-events: auto;
-  height: 290px;
   left: var(--nav-width);
   width: calc(100% - var(--nav-width) - var(--presence-width));
   bottom: 0;
@@ -376,7 +373,6 @@ function JelUI(props) {
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
   const [unmuted, setUnmuted] = useState(false);
-  const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const [worldTreeData, setWorldTreeData] = useState([]);
   const [worldTreeDataVersion, setWorldTreeDataVersion] = useState(0);
   const [channelTreeData, setChannelTreeData] = useState([]);
@@ -384,7 +380,6 @@ function JelUI(props) {
   const [isMatrixLoading, setIsMatrixLoading] = useState(!matrix || !matrix.isInitialSyncFinished);
   const [hasFetchedInitialHubMetadata, setHasFetchedInitialHubMetadata] = useState(false);
   const [isInitializingSpace, setIsInitializingSpace] = useState(store.state.context.isFirstVisitToSpace);
-  const [isInspecting, setIsInspecting] = useState(cameraSystem.isInspecting());
   const [createEmbedType, setCreateEmbedType] = useState("image");
   const [showingExternalCamera, setShowingExternalCamera] = useState(false);
   const [showNotificationBanner, setShowNotificationBanner] = useState(
@@ -398,6 +393,7 @@ function JelUI(props) {
 
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
+  const [assetPanelExpanded, setAssetPanelExpanded] = useState(!!store.state.uiState.assetPanelExpanded);
 
   const atomRenameFocusRef = useRef();
   const spaceRenameFocusRef = useRef();
@@ -551,21 +547,6 @@ function JelUI(props) {
 
   useEffect(
     () => {
-      const handler = () => {
-        setTriggerMode(builderSystem.enabled ? "builder" : "launcher");
-      };
-
-      builderSystem.addEventListener("enabledchanged", handler);
-
-      return () => {
-        builderSystem.removeEventListener("enabledchanged", handler);
-      };
-    },
-    [builderSystem, launcherSystem]
-  );
-
-  useEffect(
-    () => {
       if (hasFetchedInitialHubMetadata) return;
       if (!hub || !hubMetadata) return;
 
@@ -600,15 +581,6 @@ function JelUI(props) {
 
   useEffect(
     () => {
-      const handler = () => setIsInspecting(SYSTEMS.cameraSystem.isInspecting());
-      cameraSystem.addEventListener("mode_changed", handler);
-      return () => cameraSystem.removeEventListener("mode_changed", handler);
-    },
-    [cameraSystem]
-  );
-
-  useEffect(
-    () => {
       if (!isInitializingSpace) return;
 
       const handler = () => {
@@ -621,6 +593,18 @@ function JelUI(props) {
       return () => store.removeEventListener("statechanged-context", handler);
     },
     [store, setIsInitializingSpace, isInitializingSpace]
+  );
+
+  useEffect(
+    () => {
+      const handler = () => {
+        // Slight delay so room will switch before loader
+        setAssetPanelExpanded(!!store.state.uiState.assetPanelExpanded);
+      };
+      store.addEventListener("statechanged-uiState", handler);
+      return () => store.removeEventListener("statechanged-uiState", handler);
+    },
+    [store, setAssetPanelExpanded]
   );
 
   // Handle create hotkey (typically /)
@@ -789,11 +773,11 @@ function JelUI(props) {
 
   const isWorld = hub && hub.type === "world";
   const waitingForMatrix = isMatrixLoading && !skipNeon;
-  const showAssetPanel = triggerMode === "builder" && !isInspecting;
+  const assetPanelClassName = assetPanelExpanded ? "expand-asset-panel" : "";
 
   return (
     <WrappedIntlProvider>
-      <Root className={showAssetPanel ? "show-asset-panel" : ""}>
+      <Root className={assetPanelClassName}>
         <LoadingPanel
           isLoading={waitingForMatrix || isInitializingSpace || !hasFetchedInitialHubMetadata}
           unavailableReason={unavailableReason}
@@ -891,7 +875,7 @@ function JelUI(props) {
           )}
         </Wrap>
         <AssetPanelWrap id="asset-panel">
-          <AssetPanel voxTree={publishedVoxTree} />
+          <AssetPanel voxTree={publishedVoxTree} expanded={assetPanelExpanded} />
         </AssetPanelWrap>
         {!skipSidePanels && (
           <JelSidePanels

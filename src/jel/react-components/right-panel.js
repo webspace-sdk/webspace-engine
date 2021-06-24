@@ -62,8 +62,9 @@ const BuilderContent = styled.div`
 const TriggerModePanel = styled.div`
   flex: 1 1 auto;
   width: 100%;
-  min-height: 60px;
-  height: 60px;
+  min-height: 64px;
+  height: 64px;
+  flex-grow: 0;
   display: flex;
   justify-content: center;
   align-items: center;

@@ -1,8 +1,12 @@
 import React, { useState, useCallback, useRef } from "react";
+import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import Tree from "rc-tree";
 import PanelSectionHeader from "./panel-section-header";
+import IconButton from "./icon-button";
+import upIcon from "../../assets/jel/images/icons/expand-up.svgi";
+import downIcon from "../../assets/jel/images/icons/expand-down.svgi";
 
 const AssetPanelElement = styled.div`
   display: flex;
@@ -18,8 +22,9 @@ const AssetPanelTop = styled.div`
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: flex-start;
   width: 100%;
+  margin-top: 2px;
 `;
 
 const SearchBar = styled.div`
@@ -181,8 +186,10 @@ const Tile = styled.div`
 `;
 
 export default function AssetPanel(props) {
-  const { voxTree } = props;
+  const { voxTree, expanded } = props;
   const { voxSystem } = SYSTEMS;
+  const { store } = window.APP;
+
   const voxTreeData = voxTree && voxTree.filteredTreeData;
   const [selectedKeys, setSelectedKeys] = useState([]);
   const [expandedKeys, setExpandedKeys] = useState([]);
@@ -261,6 +268,13 @@ export default function AssetPanel(props) {
     [tilesRef, previewVoxId]
   );
 
+  const expandToggleClicked = useCallback(
+    () => {
+      store.update({ uiState: { assetPanelExpanded: !store.state.uiState.assetPanelExpanded } });
+    },
+    [store]
+  );
+
   const previewVoxMeta = previewVoxId ? voxMetas.find(({ voxId }) => voxId === previewVoxId) : {};
 
   const voxMetaToTile = useCallback(
@@ -287,40 +301,57 @@ export default function AssetPanel(props) {
 
   if (!voxTree) return <div />;
 
-  return (
-    <AssetPanelElement>
-      <AssetPanelTop>
-        <PanelSectionHeader>Objects</PanelSectionHeader>
-        <SearchBar />
-      </AssetPanelTop>
-      <AssetPanelContent>
-        <TreeWrap style={!previewVoxId ? null : { display: "none" }}>
-          <Tree
-            prefixCls="atom-tree"
-            treeData={voxTreeData}
-            selectable={true}
-            selectedKeys={selectedKeys}
-            draggable={false}
-            onSelect={onSelect}
-            expandedKeys={expandedKeys}
-            onExpand={onExpand}
-          />
-        </TreeWrap>
-        <PreviewWrap style={previewVoxId ? null : { display: "none" }}>
-          <PreviewImage
-            style={{
-              backgroundImage: `url(${previewVoxMeta.preview_url})`,
-              backgroundPosition: `left ${-previewSheetX * 192}px top ${-previewSheetY * 192}px`
-            }}
-          />
-          <PreviewName>{previewVoxMeta.name}</PreviewName>
-        </PreviewWrap>
-        <Tiles ref={tilesRef}>{voxMetas.map(voxMetaToTile)}</Tiles>
-      </AssetPanelContent>
-    </AssetPanelElement>
-  );
+  if (expanded) {
+    return (
+      <AssetPanelElement>
+        <AssetPanelTop>
+          <IconButton iconSrc={downIcon} onClick={expandToggleClicked} />
+          <PanelSectionHeader style={{ marginTop: "5px" }} onClick={expandToggleClicked}>
+            <FormattedMessage id="asset-panel.objects" />
+          </PanelSectionHeader>
+          <SearchBar />
+        </AssetPanelTop>
+        <AssetPanelContent>
+          <TreeWrap style={!previewVoxId ? null : { display: "none" }}>
+            <Tree
+              prefixCls="atom-tree"
+              treeData={voxTreeData}
+              selectable={true}
+              selectedKeys={selectedKeys}
+              draggable={false}
+              onSelect={onSelect}
+              expandedKeys={expandedKeys}
+              onExpand={onExpand}
+            />
+          </TreeWrap>
+          <PreviewWrap style={previewVoxId ? null : { display: "none" }}>
+            <PreviewImage
+              style={{
+                backgroundImage: `url(${previewVoxMeta.preview_url})`,
+                backgroundPosition: `left ${-previewSheetX * 192}px top ${-previewSheetY * 192}px`
+              }}
+            />
+            <PreviewName>{previewVoxMeta.name}</PreviewName>
+          </PreviewWrap>
+          <Tiles ref={tilesRef}>{voxMetas.map(voxMetaToTile)}</Tiles>
+        </AssetPanelContent>
+      </AssetPanelElement>
+    );
+  } else {
+    return (
+      <AssetPanelElement>
+        <AssetPanelTop>
+          <IconButton iconSrc={upIcon} onClick={expandToggleClicked} />
+          <PanelSectionHeader style={{ marginTop: "5px" }} onClick={expandToggleClicked}>
+            <FormattedMessage id="asset-panel.objects" />
+          </PanelSectionHeader>
+        </AssetPanelTop>
+      </AssetPanelElement>
+    );
+  }
 }
 
 AssetPanel.propTypes = {
-  voxTree: PropTypes.object
+  voxTree: PropTypes.object,
+  expanded: PropTypes.bool
 };

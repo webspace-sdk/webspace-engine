@@ -396,7 +396,8 @@ export const SCHEMA = {
         navPanelWidth: { type: "number" },
         presencePanelWidth: { type: "number" },
         mediaTextColorPresetIndex: { type: "number" },
-        closedNotificationBanner: { type: "boolean" } // Deprecated
+        closedNotificationBanner: { type: "boolean" }, // Deprecated
+        assetPanelExpanded: { type: "boolean" }
       }
     },
 
