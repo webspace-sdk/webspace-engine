@@ -1196,6 +1196,18 @@ export class VoxSystem extends EventTarget {
     return targetableMeshes;
   }
 
+  isTargettingMesh(mesh) {
+    if (!mesh) return false;
+
+    const { voxMap } = this;
+
+    for (const { meshes, targettingMesh } of voxMap.values()) {
+      if ((targettingMesh || meshes[0]) === mesh) return true;
+    }
+
+    return false;
+  }
+
   getTargettableMeshForSource(source) {
     const { voxMap } = this;
 

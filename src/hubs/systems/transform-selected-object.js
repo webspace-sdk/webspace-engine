@@ -220,6 +220,8 @@ AFRAME.registerSystem("transform-selected-object", {
 
       if (instanceSource && SYSTEMS.voxmojiSystem.isMeshInstanceForSource(object, instanceId, instanceSource)) continue;
 
+      if (SYSTEMS.voxSystem.isTargettingMesh(object)) continue;
+
       const normalObject =
         SYSTEMS.voxSystem.getSourceForMeshAndInstance(object, instanceId) ||
         SYSTEMS.voxmojiSystem.getSourceForMeshAndInstance(object, instanceId) ||

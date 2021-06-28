@@ -102,7 +102,7 @@ export class AppAwareMouseDevice {
     if (((buttonRight && !this.prevButtonRight) || (grabKey && !this.prevGrabKey)) && this.cursorController) {
       const rawIntersections = [];
       this.cursorController.raycaster.intersectObjects(cursorTargettingSystem.targets, true, rawIntersections);
-      const intersection = rawIntersections.find(x => x.object.el);
+      const intersection = rawIntersections.find(x => x.object.el && x.object.material);
       const remoteHoverTarget = intersection && findRemoteHoverTarget(intersection.object, intersection.instanceId);
       const isInteractable = intersection && intersection.object.el.matches(".interactable, .interactable *");
       const template = remoteHoverTarget && getNetworkedTemplate(remoteHoverTarget);
