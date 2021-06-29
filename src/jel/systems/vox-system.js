@@ -1201,8 +1201,8 @@ export class VoxSystem extends EventTarget {
 
     const { voxMap } = this;
 
-    for (const { meshes, targettingMesh } of voxMap.values()) {
-      if ((targettingMesh || meshes[0]) === mesh) return true;
+    for (const { targettingMesh } of voxMap.values()) {
+      if (targettingMesh === mesh) return true;
     }
 
     return false;
