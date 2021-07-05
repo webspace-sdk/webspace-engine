@@ -23,6 +23,7 @@
   "hub-context.import": "Import",
   "hub-context.reset-objects": "Reset Objects",
   "hub-context.publish-objects": "Publish Objects",
+  "hub-context.publish-template": "Publish Template",
   "channel-context.empty": "No Actions",
   "channel-context.rename": "Rename",
   "channel-context.delete": "Delete Channel",

@@ -368,7 +368,6 @@ function JelUI(props) {
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
   const { store, hubChannel, spaceChannel, dynaChannel, accountChannel, matrix } = window.APP;
-  const { cameraSystem, launcherSystem, builderSystem } = SYSTEMS;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
@@ -381,7 +380,7 @@ function JelUI(props) {
   const [hasFetchedInitialHubMetadata, setHasFetchedInitialHubMetadata] = useState(false);
   const [isInitializingSpace, setIsInitializingSpace] = useState(store.state.context.isFirstVisitToSpace);
   const [createEmbedType, setCreateEmbedType] = useState("image");
-  const [showingExternalCamera, setShowingExternalCamera] = useState(false);
+  const [showingExternalCamera /*, setShowingExternalCamera*/] = useState(false);
   const [showNotificationBanner, setShowNotificationBanner] = useState(
     subscriptions &&
       !subscriptions.subscribed &&
@@ -654,21 +653,27 @@ function JelUI(props) {
   );
 
   // Handle external camera toggle
-  useEffect(
-    () => {
-      const handleOn = () => setShowingExternalCamera(true);
-      const handleOff = () => setShowingExternalCamera(false);
+  //
+  // Disabled for now, this was used for Zoom integration.
+  //
+  // Note the external camera is now used to generate thumbnails of
+  // published world templates.
+  //
+  // useEffect(
+  //   () => {
+  //     const handleOn = () => setShowingExternalCamera(true);
+  //     const handleOff = () => setShowingExternalCamera(false);
 
-      scene && scene.addEventListener("external_camera_added", handleOn);
-      scene && scene.addEventListener("external_camera_removed", handleOff);
+  //     scene && scene.addEventListener("external_camera_added", handleOn);
+  //     scene && scene.addEventListener("external_camera_removed", handleOff);
 
-      return () => {
-        scene && scene.removeEventListener("external_camera_added", handleOn);
-        scene && scene.removeEventListener("external_camera_removed", handleOff);
-      };
-    },
-    [scene]
-  );
+  //     return () => {
+  //       scene && scene.removeEventListener("external_camera_added", handleOn);
+  //       scene && scene.removeEventListener("external_camera_removed", handleOff);
+  //     };
+  //   },
+  //   [scene]
+  // );
 
   const isHomeHub = hub && hub.is_home;
 
@@ -1017,6 +1022,7 @@ function JelUI(props) {
         hideRename={!!hubContextMenuOpenOptions.hideRename}
         showExport={!!hubContextMenuOpenOptions.showExport}
         showReset={!!hubContextMenuOpenOptions.showReset}
+        isCurrentWorld={!!hubContextMenuOpenOptions.isCurrentWorld}
         worldTree={worldTree}
         styles={hubContextMenuStyles}
         attributes={hubContextMenuAttributes}
@@ -1038,6 +1044,13 @@ function JelUI(props) {
         onExportClick={useCallback(
           () => {
             new WorldExporter().downloadCurrentWorldHtml();
+            scene.canvas.focus();
+          },
+          [scene]
+        )}
+        onPublishTemplateClick={useCallback(
+          async collection => {
+            scene.emit("action_publish_template", { collection });
             scene.canvas.focus();
           },
           [scene]

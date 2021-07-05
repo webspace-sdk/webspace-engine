@@ -1,4 +1,7 @@
 import { MeshBVH } from "three-mesh-bvh";
+import nextTick from "./next-tick";
+import { upload } from "./media-utils";
+import { dataURItoBlob } from "../../jel/utils/dom-utils";
 
 const tempVector3 = new THREE.Vector3();
 const tempQuaternion = new THREE.Quaternion();
@@ -512,4 +515,39 @@ export function getSpawnInFrontZOffsetForEntity(sourceEntity) {
 
   const scaledSize = sourceScale.z * Math.min(size.x, size.y, size.z);
   return Math.min(-1, -2.15 * scaledSize);
+}
+
+export function screenshotSceneCanvas(scene, width, height) {
+  return new Promise(res => {
+    const { externalCameraSystem } = SYSTEMS;
+
+    if (SYSTEMS.externalCameraSystem.isEnabled()) {
+      console.error("cannot take scene screenshot when external camera already enabled");
+      return;
+    }
+
+    scene.addEventListener(
+      "external_camera_added",
+      async () => {
+        await nextTick();
+        const canvas = externalCameraSystem.canvas;
+        const data = canvas.toDataURL();
+        externalCameraSystem.removeExternalCamera();
+        externalCameraSystem.releaseForcedViewingCamera();
+        res(data);
+      },
+      { once: true }
+    );
+
+    externalCameraSystem.enableForcedViewingCamera();
+    externalCameraSystem.addExternalCamera(width, height, true, { preserveDrawingBuffer: true });
+  });
+}
+
+export async function screenshotAndUploadSceneCanvas(scene, width, height) {
+  const { hubChannel } = window.APP;
+
+  const data = await screenshotSceneCanvas(scene, width, height);
+  const blob = dataURItoBlob(data);
+  return await upload(blob, "image/png", hubChannel.hubId);
 }

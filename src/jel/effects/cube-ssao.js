@@ -16,6 +16,7 @@ const {
 
 import { Pass } from "three/examples/jsm/postprocessing/Pass.js";
 import { FXAAFunc } from "./fxaa-shader";
+import { disposeNode } from "../../hubs/utils/three-utils";
 
 const isFirefox = navigator.userAgent.toLowerCase().indexOf("firefox") > -1;
 const FAR_PLANE_FOR_SSAO = 2;
@@ -416,13 +417,10 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
     this.ssaoRenderTarget.dispose();
 
     // dispose geometry
-
-    this.quad.geometry.dispose();
+    disposeNode(this.fsQuad._mesh);
 
     // dispose materials
-
-    this.normalMaterial.dispose();
-    this.copyMaterial.dispose();
+    this.material.dispose();
   },
 
   render(renderer, writeBuffer /* , readBuffer, deltaTime, maskActive */) {

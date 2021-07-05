@@ -201,8 +201,8 @@ AFRAME.registerSystem("hubs-systems", {
     this.boneVisibilitySystem.tick();
   },
 
-  tock(t) {
-    this.externalCameraSystem.tock(t);
+  tock(t, dt) {
+    this.externalCameraSystem.tock(t, dt);
   },
 
   remove() {

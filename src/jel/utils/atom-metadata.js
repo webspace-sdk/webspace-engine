@@ -1,6 +1,5 @@
 import { hasIntersection } from "./set-utils";
 import fastDeepEqual from "fast-deep-equal";
-import { ObjectContentOrigins } from "../../hubs/object-types";
 import { getMessages } from "../../hubs/utils/i18n";
 import { useEffect } from "react";
 
@@ -47,7 +46,8 @@ const VALID_PERMISSIONS = {
     "edit_nav",
     "update_space_meta",
     "create_invite",
-    "go_home"
+    "go_home",
+    "publish_world_template"
   ],
   [ATOM_TYPES.VOX]: ["view_vox", "edit_vox"]
 };

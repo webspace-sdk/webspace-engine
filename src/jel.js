@@ -1268,6 +1268,8 @@ async function start() {
                 accountInfo.matrix_user_id
               );
               remountJelUI({ roomForHubCan: matrix.roomForHubCan.bind(matrix) });
+            } else {
+              remountJelUI({ roomForHubCan: () => true });
             }
 
             isInitialAccountChannelJoin = false;

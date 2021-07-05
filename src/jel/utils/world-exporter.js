@@ -23,7 +23,6 @@ export default class WorldExporter {
 
   async currentWorldToHtml() {
     const { hubMetadata, hubChannel } = window.APP;
-    const { voxSystem } = SYSTEMS.voxSystem;
     const metadata = hubMetadata.getMetadata(hubChannel.hubId);
 
     const avatarPovNode = document.querySelector("#avatar-pov-node").object3D;

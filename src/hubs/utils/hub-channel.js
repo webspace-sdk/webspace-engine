@@ -206,6 +206,21 @@ export default class HubChannel extends EventTarget {
     this.channel = null;
   };
 
+  publishWorldTemplate = (name, collection, body, thumbFileId) => {
+    return new Promise(res => {
+      this.channel
+        .push("publish_world_template", {
+          name,
+          collection,
+          body,
+          thumb_file_id: thumbFileId
+        })
+        .receive("ok", async ({ published_to_vox_id: publishedWorldTemplateId }) => {
+          res(publishedWorldTemplateId);
+        });
+    });
+  };
+
   disconnect = () => {
     if (this.channel) {
       this.channel.socket.disconnect();
