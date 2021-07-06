@@ -17,7 +17,7 @@ export default class PublishedVoxTree extends EventTarget {
     const { filteredTreeData, voxMetasForCategoryKey } = this;
 
     if (voxData === null) {
-      voxData = await fetchReticulumAuthenticated("/api/v1/vox/published");
+      voxData = (await fetchReticulumAuthenticated("/api/v1/media/search?source=vox&filter=featured")).entries;
     }
 
     this.voxData = voxData;

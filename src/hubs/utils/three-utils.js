@@ -529,7 +529,9 @@ export function screenshotSceneCanvas(scene, width, height) {
     scene.addEventListener(
       "external_camera_added",
       async () => {
-        await nextTick();
+        for (let i = 0; i < 10; i++) {
+          await nextTick();
+        }
         const canvas = externalCameraSystem.canvas;
         const data = canvas.toDataURL();
         externalCameraSystem.removeExternalCamera();

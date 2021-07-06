@@ -32,6 +32,9 @@ export default class WorldExporter {
     avatarPovNode.getWorldPosition(spawnPosition);
     avatarPovNode.getWorldQuaternion(spawnRotation);
 
+    const groundedPosition = new THREE.Vector3();
+    SYSTEMS.characterController.findGroundedPosition(spawnPosition, groundedPosition, true);
+
     const doc = document.implementation.createHTMLDocument(metadata.displayName);
 
     const addMeta = (name, content) => {
@@ -52,7 +55,7 @@ export default class WorldExporter {
     });
 
     addMeta("jel-spawn-position-x", `${spawnPosition.x}`);
-    addMeta("jel-spawn-position-y", `${spawnPosition.y}`);
+    addMeta("jel-spawn-position-y", `${groundedPosition.y + 0.01}`);
     addMeta("jel-spawn-position-z", `${spawnPosition.z}`);
     addMeta("jel-spawn-rotation-x", `${spawnRotation.x}`);
     addMeta("jel-spawn-rotation-y", `${spawnRotation.y}`);
