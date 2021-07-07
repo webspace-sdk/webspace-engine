@@ -402,5 +402,7 @@
   "toggle-floor.tip": "Toggle Floor",
   "toggle-floor.show-floor": "Floor Off",
   "toggle-floor.hide-floor": "Floor On",
-  "asset-panel.objects": "Object Library"
+  "asset-panel.title": "Library",
+  "asset-panel.objects": "Objects",
+  "asset-panel.scenes": "Scenes"
 }

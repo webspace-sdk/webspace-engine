@@ -12,7 +12,7 @@ import { navigateToHubUrl } from "../../jel/utils/jel-url-utils";
 import qsTruthy from "./qs_truthy";
 import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
 import HubStore from "../storage/hub-store";
-import PublishedVoxTree from "../../jel/utils/published-vox-tree";
+import MediaTree from "../../jel/utils/media-tree";
 import WorldImporter from "../../jel/utils/world-importer";
 import { getHtmlForTemplate, applyTemplate } from "../../jel/utils/template-utils";
 import { clearVoxAttributePools } from "../../jel/objects/JelVoxBufferGeometry";
@@ -904,8 +904,11 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
   hasJoinedPublicWorldForCurrentSpace = false;
 
   const treeManager = new TreeManager(spaceMetadata, hubMetadata);
-  const publishedVoxTree = new PublishedVoxTree();
-  publishedVoxTree.build();
+  const voxTree = new MediaTree("vox");
+  const sceneTree = new MediaTree("world_templates");
+
+  voxTree.build();
+  sceneTree.build();
 
   document.body.addEventListener(
     "share-connected",
@@ -955,7 +958,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
         store.update({ context: { isFirstVisitToSpace: false } });
       }
 
-      remountJelUI({ history, treeManager, publishedVoxTree });
+      remountJelUI({ history, treeManager, voxTree, sceneTree });
     },
     { once: true }
   );

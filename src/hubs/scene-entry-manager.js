@@ -6,6 +6,7 @@ import { MEDIA_TEXT_COLOR_PRESETS } from "../jel/components/media-text";
 import { waitForDOMContentLoaded } from "./utils/async-utils";
 import { createVox } from "./utils/phoenix-utils";
 import WorldExporter from "../jel/utils/world-exporter";
+import { switchCurrentHubToWorldTemplate } from "../jel/utils/template-utils";
 import { screenshotAndUploadSceneCanvas } from "./utils/three-utils";
 
 const { detect } = require("detect-browser");
@@ -267,6 +268,10 @@ export default class SceneEntryManager {
 
         hubChannel.publishWorldTemplate(name, collection, body, thumbFileId);
       });
+    });
+
+    this.scene.addEventListener("action_switch_template", ({ detail: { worldTemplateId } }) => {
+      switchCurrentHubToWorldTemplate(worldTemplateId);
     });
 
     document.addEventListener("paste", e => AFRAME.scenes[0].systems["hubs-systems"].pasteSystem.enqueuePaste(e));

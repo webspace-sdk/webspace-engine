@@ -362,7 +362,8 @@ function JelUI(props) {
     unavailableReason,
     subscriptions,
     spaceId,
-    publishedVoxTree
+    voxTree,
+    sceneTree
   } = props;
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
@@ -880,7 +881,7 @@ function JelUI(props) {
           )}
         </Wrap>
         <AssetPanelWrap id="asset-panel">
-          <AssetPanel voxTree={publishedVoxTree} expanded={assetPanelExpanded} />
+          <AssetPanel voxTree={voxTree} sceneTree={sceneTree} expanded={assetPanelExpanded} />
         </AssetPanelWrap>
         {!skipSidePanels && (
           <JelSidePanels
@@ -1130,7 +1131,8 @@ JelUI.propTypes = {
   memberships: PropTypes.array,
   hubSettings: PropTypes.array,
   unavailableReason: PropTypes.string,
-  publishedVoxTree: PropTypes.object
+  voxTree: PropTypes.object,
+  sceneTree: PropTypes.object
 };
 
 export default JelUI;

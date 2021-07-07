@@ -374,12 +374,11 @@ export class TerrainSystem {
     if (hubType === "channel") return;
 
     // Update colors
-    const colors = [];
-    WORLD_COLOR_TYPES.forEach(type => {
+    const colors = WORLD_COLOR_TYPES.map(type => {
       const r = world[`${type}_color_r`];
       const g = world[`${type}_color_g`];
       const b = world[`${type}_color_b`];
-      colors.push({ r, g, b });
+      return { r, g, b };
     });
 
     this.updateWorldColors(...colors);
