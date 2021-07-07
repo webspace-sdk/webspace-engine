@@ -222,6 +222,41 @@ export default function AssetPanel(props) {
   const tree = showObjects ? voxTree : sceneTree;
   const treeData = tree && tree.filteredTreeData;
 
+  useEffect(
+    () => {
+      if (!treeData) return;
+
+      const collection = treeData[0];
+      const expandedKeys = [];
+      const selectedKeys = [];
+
+      if (collection) {
+        if (collection.isLeaf) {
+          selectedKeys.push(collection.key);
+        } else {
+          expandedKeys.push(collection.key);
+
+          const category = collection.children[0];
+
+          if (category) {
+            selectedKeys.push(category.key);
+          }
+        }
+      }
+
+      setExpandedKeys(expandedKeys);
+      setSelectedKeys(selectedKeys);
+
+      const selectedKey = selectedKeys[0];
+
+      if (selectedKey) {
+        const newMetas = tree.getMetasForTreeKey(selectedKey);
+        setMetas(newMetas);
+      }
+    },
+    [treeData, setMetas, tree]
+  );
+
   // Show scenes when creating a new world
   useEffect(
     () => {
@@ -325,6 +360,8 @@ export default function AssetPanel(props) {
 
   const metaToTile = useCallback(
     ({ [idKey]: id, thumb_url }) => {
+      if (!id) return null;
+
       return (
         <Tile
           style={{ backgroundImage: `url("${thumb_url}")`, backgroundSize: "92px 92px" }}

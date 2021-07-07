@@ -134,7 +134,7 @@ function HubContextMenu({
     );
   }
 
-  if (hubId && isCurrentWorld && spaceCan("publish_world_template")) {
+  if (hubId && isCurrentWorld && showPublishObjects && spaceCan("publish_world_template")) {
     items.push(
       <PopupMenuItem
         key={`publish-world-template-${hubId}`}
