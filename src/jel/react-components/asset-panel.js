@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
 import styled from "styled-components";
@@ -206,7 +206,7 @@ const Tile = styled.div`
 `;
 
 export default function AssetPanel(props) {
-  const { voxTree, sceneTree, expanded } = props;
+  const { voxTree, sceneTree, expanded, scene } = props;
   const { voxSystem } = SYSTEMS;
   const { store } = window.APP;
 
@@ -221,6 +221,16 @@ export default function AssetPanel(props) {
 
   const tree = showObjects ? voxTree : sceneTree;
   const treeData = tree && tree.filteredTreeData;
+
+  // Show scenes when creating a new world
+  useEffect(
+    () => {
+      const handler = () => setShowObjects(false);
+      scene.addEventListener("created_world", handler);
+      return () => scene.removeEventListener("created_world", handler);
+    },
+    [scene, setShowObjects]
+  );
 
   const onSelect = useCallback(
     (selectedKeys, { node: { key } }) => {
@@ -333,7 +343,7 @@ export default function AssetPanel(props) {
             if (showObjects) {
               SYSTEMS.voxSystem.spawnVoxInFrontOfPlayer(id);
             } else {
-              AFRAME.scenes[0].emit("action_switch_template", { worldTemplateId: id });
+              scene.emit("action_switch_template", { worldTemplateId: id });
             }
 
             tilesRef.current.querySelector(`[data-item-id='${id}']`).classList.remove("active");
@@ -343,7 +353,7 @@ export default function AssetPanel(props) {
         />
       );
     },
-    [onDragStart, onDragEnd, onMouseLeave, onMouseMove, idKey, showObjects, tilesRef]
+    [onDragStart, onDragEnd, onMouseLeave, onMouseMove, idKey, showObjects, tilesRef, scene]
   );
 
   if (!tree) return <div />;
@@ -429,5 +439,6 @@ export default function AssetPanel(props) {
 AssetPanel.propTypes = {
   voxTree: PropTypes.object,
   sceneTree: PropTypes.object,
+  scene: PropTypes.object,
   expanded: PropTypes.bool
 };

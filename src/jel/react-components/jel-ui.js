@@ -597,14 +597,21 @@ function JelUI(props) {
 
   useEffect(
     () => {
-      const handler = () => {
-        // Slight delay so room will switch before loader
-        setAssetPanelExpanded(!!store.state.uiState.assetPanelExpanded);
-      };
+      const handler = () => setAssetPanelExpanded(!!store.state.uiState.assetPanelExpanded);
       store.addEventListener("statechanged-uiState", handler);
       return () => store.removeEventListener("statechanged-uiState", handler);
     },
     [store, setAssetPanelExpanded]
+  );
+
+  // Expand asset panel when world is created, to show scene library
+  useEffect(
+    () => {
+      const handler = () => setAssetPanelExpanded(true);
+      scene.addEventListener("created_world", handler);
+      return () => scene.removeEventListener("created_world", handler);
+    },
+    [scene, setAssetPanelExpanded]
   );
 
   // Handle create hotkey (typically /)
@@ -881,7 +888,7 @@ function JelUI(props) {
           )}
         </Wrap>
         <AssetPanelWrap id="asset-panel">
-          <AssetPanel voxTree={voxTree} sceneTree={sceneTree} expanded={assetPanelExpanded} />
+          <AssetPanel voxTree={voxTree} sceneTree={sceneTree} expanded={assetPanelExpanded} scene={scene} />
         </AssetPanelWrap>
         {!skipSidePanels && (
           <JelSidePanels

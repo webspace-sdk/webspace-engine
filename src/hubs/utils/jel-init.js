@@ -925,7 +925,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
         await addNewHubToTree(treeManager, spaceId, "channel", null, "General Discussion");
         await addNewHubToTree(treeManager, spaceId, "channel", null, "Random");
 
-        for (const world of ["first", "welcome", "whats-new", "faq"]) {
+        for (const world of ["first"]) {
           const name = getMessages()[`space.${world}-world-name`];
           const templateName = world;
           const html = getHtmlForTemplate(templateName);
