@@ -195,6 +195,14 @@ const Tile = styled.div`
   border-radius: 4px;
   background-color: var(--panel-background-color);
   cursor: pointer;
+
+  &:hover {
+    opacity: 0.7;
+  }
+
+  &.active {
+    opacity: 0.5;
+  }
 `;
 
 export default function AssetPanel(props) {
@@ -250,6 +258,7 @@ export default function AssetPanel(props) {
       e.dataTransfer.setData(`jel/vox`, id);
       canvas.width = canvas.height = 1;
       e.dataTransfer.setDragImage(canvas, 0, 0);
+      e.target.classList.remove("active");
       voxSystem.assetPanelDraggingVoxId = id;
     },
     [voxSystem]
@@ -316,6 +325,9 @@ export default function AssetPanel(props) {
             setPreviewId(id);
           }}
           onMouseLeave={onMouseLeave}
+          onMouseDown={() => {
+            tilesRef.current.querySelector(`[data-item-id='${id}']`).classList.add("active");
+          }}
           onMouseMove={showObjects ? onMouseMove : null}
           onClick={() => {
             if (showObjects) {
@@ -323,13 +335,15 @@ export default function AssetPanel(props) {
             } else {
               AFRAME.scenes[0].emit("action_switch_template", { worldTemplateId: id });
             }
+
+            tilesRef.current.querySelector(`[data-item-id='${id}']`).classList.remove("active");
           }}
           key={id}
           draggable={showObjects ? true : false}
         />
       );
     },
-    [onDragStart, onDragEnd, onMouseLeave, onMouseMove, idKey, showObjects]
+    [onDragStart, onDragEnd, onMouseLeave, onMouseMove, idKey, showObjects, tilesRef]
   );
 
   if (!tree) return <div />;
