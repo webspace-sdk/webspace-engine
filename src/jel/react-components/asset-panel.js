@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
 import styled from "styled-components";
@@ -6,7 +6,13 @@ import Tree from "rc-tree";
 import PanelSectionHeader from "./panel-section-header";
 import IconButton from "./icon-button";
 import upIcon from "../../assets/jel/images/icons/expand-up.svgi";
+import SegmentControl from "./segment-control";
 import downIcon from "../../assets/jel/images/icons/expand-down.svgi";
+import scenesOnIcon from "../../assets/jel/images/icons/scenes-on.svgi";
+import scenesOffIcon from "../../assets/jel/images/icons/scenes-off.svgi";
+import objectsOnIcon from "../../assets/jel/images/icons/builder-on.svgi";
+import objectsOffIcon from "../../assets/jel/images/icons/builder-off.svgi";
+import { getMessages } from "../../hubs/utils/i18n";
 
 const AssetPanelElement = styled.div`
   display: flex;
@@ -22,9 +28,16 @@ const AssetPanelTop = styled.div`
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  justify-content: flex-start;
+  justify-content: space-between;
   width: 100%;
   margin-top: 2px;
+`;
+
+const AssetPanelHeaderWrap = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
 `;
 
 const SearchBar = styled.div`
@@ -104,7 +117,6 @@ const PreviewImage = styled.div`
   height: 192px;
   margin: 4px 4px;
   border-radius: 4px;
-  background-size: 960px 960px;
 `;
 
 const PreviewName = styled.div`
@@ -183,28 +195,84 @@ const Tile = styled.div`
   border-radius: 4px;
   background-color: var(--panel-background-color);
   cursor: pointer;
+
+  &:hover {
+    opacity: 0.7;
+  }
+
+  &.active {
+    opacity: 0.5;
+  }
 `;
 
 export default function AssetPanel(props) {
-  const { voxTree, expanded } = props;
+  const { voxTree, sceneTree, expanded, scene } = props;
   const { voxSystem } = SYSTEMS;
   const { store } = window.APP;
 
-  const voxTreeData = voxTree && voxTree.filteredTreeData;
   const [selectedKeys, setSelectedKeys] = useState([]);
   const [expandedKeys, setExpandedKeys] = useState([]);
-  const [voxMetas, setVoxMetas] = useState([]);
-  const [previewVoxId, setPreviewVoxId] = useState(null);
+  const [showObjects, setShowObjects] = useState(true);
+  const [metas, setMetas] = useState([]);
+  const [previewId, setPreviewId] = useState(null);
   const [previewSheetX, setPreviewSheetX] = useState(0);
   const [previewSheetY, setPreviewSheetY] = useState(0);
   const tilesRef = useRef();
 
+  const tree = showObjects ? voxTree : sceneTree;
+  const treeData = tree && tree.filteredTreeData;
+
+  useEffect(
+    () => {
+      if (!treeData) return;
+
+      const collection = treeData[0];
+      const expandedKeys = [];
+      const selectedKeys = [];
+
+      if (collection) {
+        if (collection.isLeaf) {
+          selectedKeys.push(collection.key);
+        } else {
+          expandedKeys.push(collection.key);
+
+          const category = collection.children[0];
+
+          if (category) {
+            selectedKeys.push(category.key);
+          }
+        }
+      }
+
+      setExpandedKeys(expandedKeys);
+      setSelectedKeys(selectedKeys);
+
+      const selectedKey = selectedKeys[0];
+
+      if (selectedKey) {
+        const newMetas = tree.getMetasForTreeKey(selectedKey);
+        setMetas(newMetas);
+      }
+    },
+    [treeData, setMetas, tree]
+  );
+
+  // Show scenes when creating a new world
+  useEffect(
+    () => {
+      const handler = () => setShowObjects(false);
+      scene.addEventListener("created_world", handler);
+      return () => scene.removeEventListener("created_world", handler);
+    },
+    [scene, setShowObjects]
+  );
+
   const onSelect = useCallback(
     (selectedKeys, { node: { key } }) => {
-      const voxMetas = voxTree.getVoxMetasForTreeKey(key);
-      if (voxMetas.length > 0) {
+      const newMetas = tree.getMetasForTreeKey(key);
+      if (newMetas.length > 0) {
         setSelectedKeys([key]);
-        setVoxMetas(voxMetas);
+        setMetas(newMetas);
       } else {
         if (expandedKeys.includes(key)) {
           setExpandedKeys(expandedKeys.filter(x => x !== key));
@@ -213,7 +281,7 @@ export default function AssetPanel(props) {
         }
       }
     },
-    [voxTree, expandedKeys, setExpandedKeys]
+    [tree, expandedKeys, setExpandedKeys]
   );
 
   const onExpand = useCallback(
@@ -230,12 +298,13 @@ export default function AssetPanel(props) {
   const onDragStart = useCallback(
     e => {
       e.dataTransfer.dropEffect = "move";
-      const voxId = e.target.getAttribute("data-vox-id");
+      const id = e.target.getAttribute("data-item-id");
       const canvas = document.createElement("canvas");
-      e.dataTransfer.setData(`jel/vox`, voxId);
+      e.dataTransfer.setData(`jel/vox`, id);
       canvas.width = canvas.height = 1;
       e.dataTransfer.setDragImage(canvas, 0, 0);
-      voxSystem.assetPanelDraggingVoxId = voxId;
+      e.target.classList.remove("active");
+      voxSystem.assetPanelDraggingVoxId = id;
     },
     [voxSystem]
   );
@@ -249,15 +318,15 @@ export default function AssetPanel(props) {
 
   const onMouseLeave = useCallback(
     () => {
-      setPreviewVoxId(null);
+      setPreviewId(null);
     },
-    [setPreviewVoxId]
+    [setPreviewId]
   );
 
   const onMouseMove = useCallback(
     e => {
       if (tilesRef.current === null) return;
-      const tile = tilesRef.current.querySelector(`[data-vox-id='${previewVoxId}']`);
+      const tile = tilesRef.current.querySelector(`[data-item-id='${previewId}']`);
       if (!tile) return;
       const tileRect = tile.getBoundingClientRect();
       const px = (e.clientX - tileRect.left) / (tileRect.right - tileRect.left);
@@ -265,7 +334,7 @@ export default function AssetPanel(props) {
       setPreviewSheetX(frame % 5);
       setPreviewSheetY(Math.floor(frame / 5));
     },
-    [tilesRef, previewVoxId]
+    [tilesRef, previewId]
   );
 
   const expandToggleClicked = useCallback(
@@ -275,47 +344,97 @@ export default function AssetPanel(props) {
     [store]
   );
 
-  const previewVoxMeta = previewVoxId ? voxMetas.find(({ voxId }) => voxId === previewVoxId) : {};
+  const sourceToggleOnChange = useCallback(
+    () => {
+      setShowObjects(!showObjects);
+      setPreviewId(null);
+      setExpandedKeys([]);
+      setSelectedKeys([]);
+      setMetas([]);
+    },
+    [setShowObjects, showObjects]
+  );
 
-  const voxMetaToTile = useCallback(
-    ({ voxId, thumb_url }) => {
+  const idKey = showObjects ? "vox_id" : "world_template_id";
+  const previewMeta = previewId ? metas.find(entry => entry[idKey] === previewId) : {};
+
+  const metaToTile = useCallback(
+    ({ [idKey]: id, thumb_url }) => {
+      if (!id) return null;
+
       return (
         <Tile
           style={{ backgroundImage: `url("${thumb_url}")`, backgroundSize: "92px 92px" }}
-          data-vox-id={voxId}
+          data-item-id={id}
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
           onMouseEnter={() => {
-            setPreviewVoxId(voxId);
+            setPreviewId(id);
           }}
           onMouseLeave={onMouseLeave}
-          onMouseMove={onMouseMove}
-          onClick={() => SYSTEMS.voxSystem.spawnVoxInFrontOfPlayer(voxId)}
-          key={voxId}
-          draggable={true}
+          onMouseDown={() => {
+            tilesRef.current.querySelector(`[data-item-id='${id}']`).classList.add("active");
+          }}
+          onMouseMove={showObjects ? onMouseMove : null}
+          onClick={() => {
+            if (showObjects) {
+              SYSTEMS.voxSystem.spawnVoxInFrontOfPlayer(id);
+            } else {
+              scene.emit("action_switch_template", { worldTemplateId: id });
+            }
+
+            tilesRef.current.querySelector(`[data-item-id='${id}']`).classList.remove("active");
+          }}
+          key={id}
+          draggable={showObjects ? true : false}
         />
       );
     },
-    [onDragStart, onDragEnd, onMouseLeave, onMouseMove]
+    [onDragStart, onDragEnd, onMouseLeave, onMouseMove, idKey, showObjects, tilesRef, scene]
   );
 
-  if (!voxTree) return <div />;
+  if (!tree) return <div />;
 
   if (expanded) {
+    const messages = getMessages();
+
     return (
       <AssetPanelElement>
         <AssetPanelTop>
-          <IconButton iconSrc={downIcon} onClick={expandToggleClicked} />
-          <PanelSectionHeader style={{ marginTop: "5px", cursor: "pointer" }} onClick={expandToggleClicked}>
-            <FormattedMessage id="asset-panel.objects" />
-          </PanelSectionHeader>
+          <AssetPanelHeaderWrap>
+            <IconButton iconSrc={downIcon} onClick={expandToggleClicked} />
+            <PanelSectionHeader style={{ marginTop: "5px", cursor: "pointer" }} onClick={expandToggleClicked}>
+              <FormattedMessage id="asset-panel.title" />
+            </PanelSectionHeader>
+          </AssetPanelHeaderWrap>
           <SearchBar />
+          <SegmentControl
+            rows={1}
+            cols={2}
+            items={[
+              {
+                id: "asset-panel.objects",
+                text: messages["asset-panel.objects"],
+                iconSrc: objectsOnIcon,
+                offIconSrc: objectsOffIcon
+              },
+              {
+                id: "asset-panel.scenes",
+                text: messages["asset-panel.scenes"],
+                iconSrc: scenesOnIcon,
+                offIconSrc: scenesOffIcon
+              }
+            ]}
+            hideTips={true}
+            selectedIndices={showObjects ? [0] : [1]}
+            onChange={sourceToggleOnChange}
+          />
         </AssetPanelTop>
         <AssetPanelContent>
-          <TreeWrap style={!previewVoxId ? null : { display: "none" }}>
+          <TreeWrap style={!previewId ? null : { display: "none" }}>
             <Tree
               prefixCls="atom-tree"
-              treeData={voxTreeData}
+              treeData={treeData}
               selectable={true}
               selectedKeys={selectedKeys}
               draggable={false}
@@ -324,16 +443,17 @@ export default function AssetPanel(props) {
               onExpand={onExpand}
             />
           </TreeWrap>
-          <PreviewWrap style={previewVoxId ? null : { display: "none" }}>
+          <PreviewWrap style={previewId ? null : { display: "none" }}>
             <PreviewImage
               style={{
-                backgroundImage: `url(${previewVoxMeta.preview_url})`,
-                backgroundPosition: `left ${-previewSheetX * 192}px top ${-previewSheetY * 192}px`
+                backgroundImage: `url(${previewMeta.preview_url})`,
+                backgroundSize: showObjects ? "960px 960px" : "256px 256px",
+                backgroundPosition: showObjects ? `left ${-previewSheetX * 192}px top ${-previewSheetY * 192}px` : null
               }}
             />
-            <PreviewName>{previewVoxMeta.name}</PreviewName>
+            <PreviewName>{previewMeta.name}</PreviewName>
           </PreviewWrap>
-          <Tiles ref={tilesRef}>{voxMetas.map(voxMetaToTile)}</Tiles>
+          <Tiles ref={tilesRef}>{metas.map(metaToTile)}</Tiles>
         </AssetPanelContent>
       </AssetPanelElement>
     );
@@ -341,10 +461,12 @@ export default function AssetPanel(props) {
     return (
       <AssetPanelElement>
         <AssetPanelTop>
-          <IconButton iconSrc={upIcon} onClick={expandToggleClicked} />
-          <PanelSectionHeader style={{ marginTop: "5px", cursor: "pointer" }} onClick={expandToggleClicked}>
-            <FormattedMessage id="asset-panel.objects" />
-          </PanelSectionHeader>
+          <AssetPanelHeaderWrap>
+            <IconButton iconSrc={upIcon} onClick={expandToggleClicked} />
+            <PanelSectionHeader style={{ marginTop: "5px", cursor: "pointer" }} onClick={expandToggleClicked}>
+              <FormattedMessage id="asset-panel.title" />
+            </PanelSectionHeader>
+          </AssetPanelHeaderWrap>
         </AssetPanelTop>
       </AssetPanelElement>
     );
@@ -353,5 +475,7 @@ export default function AssetPanel(props) {
 
 AssetPanel.propTypes = {
   voxTree: PropTypes.object,
+  sceneTree: PropTypes.object,
+  scene: PropTypes.object,
   expanded: PropTypes.bool
 };

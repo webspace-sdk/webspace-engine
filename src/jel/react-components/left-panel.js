@@ -518,6 +518,7 @@ function LeftPanel({
                 const hub = await addNewHubToTree(treeManager, spaceId, "world");
                 setIsCreating(false);
                 navigateToHubUrl(history, hub.url);
+                scene.emit("created_world");
               }}
               style={{ width: "60%" }}
             >

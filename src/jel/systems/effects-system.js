@@ -15,7 +15,7 @@ AFRAME.registerSystem("effects", {
     this.updateComposer = true;
   },
 
-  tick: function(t, dt) {
+  tick: function() {
     if (!this.sceneEl.renderer) return;
 
     if (!this.playerCamera) {
@@ -57,7 +57,7 @@ AFRAME.registerSystem("effects", {
             render.apply(this, arguments);
           } else {
             isEffectSystem = true;
-            self.composer.render(dt * 1000);
+            self.composer.render();
             isEffectSystem = false;
           }
         };

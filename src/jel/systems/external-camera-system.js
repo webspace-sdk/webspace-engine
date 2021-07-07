@@ -3,6 +3,8 @@ import patchThreeNoProgramDispose from "../../jel/utils/threejs-avoid-disposing-
 
 const tmpVec3 = new THREE.Vector3();
 const lookAtMatrix = new THREE.Matrix4();
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import CubeSSAOPass from "../effects/cube-ssao";
 
 export class ExternalCameraSystem {
   constructor(sceneEl, atmosphereSystem, terrainSystem, cameraSystem, avatarSystem, wrappedEntitySystem) {
@@ -43,7 +45,7 @@ export class ExternalCameraSystem {
     this.forceViewingCamera = false;
   }
 
-  addExternalCamera(width, height) {
+  addExternalCamera(width, height, enablePostprocessing = false, contextAttributes = {}) {
     if (this.camera) return;
     if (!this.viewingCamera) {
       const viewingCameraEl = document.getElementById("viewing-camera");
@@ -77,7 +79,8 @@ export class ExternalCameraSystem {
       premultipliedAlpha: true,
       preserveDrawingBuffer: false,
       powerPreference: "default",
-      xrCompatible: true
+      xrCompatible: true,
+      ...contextAttributes
     });
 
     const rendererConfig = {
@@ -106,6 +109,38 @@ export class ExternalCameraSystem {
     patchThreeAllocations(renderer);
     patchThreeNoProgramDispose(renderer);
 
+    if (enablePostprocessing) {
+      const pixelRatio = renderer.getPixelRatio();
+      const w = Math.floor(width * pixelRatio);
+      const h = Math.floor(height * pixelRatio);
+      const aoRadius = 5.0 * pixelRatio;
+      const composer = new EffectComposer(renderer);
+      const ssaoPass = new CubeSSAOPass(scene, camera, w, h);
+
+      ssaoPass.needsSwap = false;
+      composer.addPass(ssaoPass);
+      ssaoPass.setSize(w, h);
+      ssaoPass.setAORadius(Math.max(2.0, aoRadius));
+      composer.setSize(w, h);
+
+      const render = renderer.render;
+      let isEffectSystem = false;
+      const self = this;
+
+      renderer.render = function() {
+        if (isEffectSystem || self.disableEffects) {
+          render.apply(this, arguments);
+        } else {
+          isEffectSystem = true;
+          self.composer.render();
+          isEffectSystem = false;
+        }
+      };
+
+      this.composer = composer;
+      this.ssaoPass = ssaoPass;
+    }
+
     this.camera = camera;
     this.renderer = renderer;
     this.canvas = canvas;
@@ -126,12 +161,16 @@ export class ExternalCameraSystem {
   }
 
   removeExternalCamera() {
-    const { camera, track, renderer, scene, sceneEl, wrappedEntitySystem } = this;
+    const { camera, track, renderer, ssaoPass, scene, sceneEl, wrappedEntitySystem } = this;
     if (!camera) return;
 
     wrappedEntitySystem.unregister(camera);
     scene.remove(camera);
     renderer.dispose();
+
+    if (ssaoPass) {
+      ssaoPass.dispose();
+    }
 
     if (track) {
       track.stop();
@@ -139,6 +178,8 @@ export class ExternalCameraSystem {
 
     this.camera = null;
     this.renderer = null;
+    this.composer = null;
+    this.ssaoPass = null;
     this.canvas = null;
     this.stream = null;
     this.track = null;

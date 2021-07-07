@@ -42,6 +42,59 @@ export default class WorldImporter {
     }
   }
 
+  removeEntitiesFromHtmlFromCurrentWorld(html) {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+
+    if (doc.body && doc.querySelector(`meta[name='jel-schema']`)) {
+      return this.removeEntitiesFromJelDocument(doc);
+    }
+  }
+
+  applyWorldMetadataFromHtml(html) {
+    const { hubChannel, spaceChannel } = window.APP;
+    const { hubId } = hubChannel;
+
+    const [
+      worldType,
+      worldSeed,
+      worldColors,
+      spawnPosition,
+      spawnRotation,
+      spawnRadius
+    ] = this.getWorldMetadataFromHtml(html);
+
+    const toRgb = type => {
+      return {
+        r: parseFloat(worldColors[`${type}_color_r`]),
+        g: parseFloat(worldColors[`${type}_color_g`]),
+        b: parseFloat(worldColors[`${type}_color_b`])
+      };
+    };
+
+    SYSTEMS.terrainSystem.updateWorldColors(...WORLD_COLOR_TYPES.map(toRgb));
+    SYSTEMS.atmosphereSystem.updateWaterColor(toRgb("water"));
+    SYSTEMS.atmosphereSystem.updateSkyColor(toRgb("sky"));
+
+    const hubWorldColors = {};
+    for (const [k, v] of Object.entries(worldColors)) {
+      hubWorldColors[`world_${k}`] = parseFloat(v);
+    }
+
+    spaceChannel.updateHub(hubId, {
+      ...hubWorldColors,
+      world_type: worldType,
+      world_seed: worldSeed,
+      spawn_position_x: spawnPosition.x,
+      spawn_position_y: spawnPosition.y,
+      spawn_position_z: spawnPosition.z,
+      spawn_rotation_x: spawnRotation.x,
+      spawn_rotation_y: spawnRotation.y,
+      spawn_rotation_z: spawnRotation.z,
+      spawn_rotation_w: spawnRotation.w,
+      spawn_radius: spawnRadius
+    });
+  }
+
   getWorldMetadataFromHtml(html) {
     const doc = new DOMParser().parseFromString(html, "text/html");
 
@@ -110,47 +163,59 @@ export default class WorldImporter {
     return [null, null, null, null, null];
   }
 
+  async removeEntitiesFromJelDocument(doc) {
+    const promises = [];
+
+    for (const el of doc.body.childNodes) {
+      const id = el.id;
+      if (!id || id.length !== 7) continue; // Sanity check
+
+      const existingEl = document.getElementById(`naf-${id}`);
+
+      if (existingEl) {
+        // Proceed once the shared component is removed so the id has been freed.
+        promises.push(
+          new Promise(res => {
+            if (!ensureOwnership(existingEl)) res();
+
+            existingEl.components.shared.whenInstantiated(() => {
+              let c = 0;
+
+              const handler = () => {
+                c++;
+
+                if (c === Object.keys(existingEl.components).length) {
+                  existingEl.removeEventListener("componentremoved", handler);
+                  res();
+                }
+              };
+
+              existingEl.addEventListener("componentremoved", handler);
+
+              existingEl.parentNode.removeChild(existingEl);
+            });
+          })
+        );
+      }
+    }
+
+    await Promise.all(promises);
+  }
+
   async importJelDocument(doc, replaceExisting = true, removeEntitiesNotInTemplate = false) {
     const { terrainSystem, autoQualitySystem } = AFRAME.scenes[0].systems["hubs-systems"];
     autoQualitySystem.stopTracking();
 
-    const prepareImportPromises = [];
+    if (replaceExisting) {
+      await this.removeEntitiesFromJelDocument(doc);
+    }
+
     const docEntityIds = new Set();
 
-    if (replaceExisting) {
-      for (const el of doc.body.childNodes) {
-        const id = el.id;
-        if (!id || id.length !== 7) continue; // Sanity check
-        docEntityIds.add(`naf-${id}`);
-
-        const existingEl = document.getElementById(`naf-${id}`);
-
-        if (existingEl) {
-          // Proceed once the shared component is removed so the id has been freed.
-          prepareImportPromises.push(
-            new Promise(res => {
-              if (!ensureOwnership(existingEl)) res();
-
-              existingEl.components.shared.whenInstantiated(() => {
-                let c = 0;
-
-                const handler = () => {
-                  c++;
-
-                  if (c === Object.keys(existingEl.components).length) {
-                    existingEl.removeEventListener("componentremoved", handler);
-                    res();
-                  }
-                };
-
-                existingEl.addEventListener("componentremoved", handler);
-
-                existingEl.parentNode.removeChild(existingEl);
-              });
-            })
-          );
-        }
-      }
+    for (const el of doc.body.childNodes) {
+      const id = el.id;
+      if (!id || id.length !== 7) continue; // Sanity check
+      docEntityIds.add(`naf-${id}`);
     }
 
     if (removeEntitiesNotInTemplate) {
@@ -169,9 +234,8 @@ export default class WorldImporter {
 
     // Terrain system needs to pre-cache all the heightmaps, since this routine
     // will need to globally reference the terrain heights to place the new media properly in Y.
-    prepareImportPromises.push(terrainSystem.loadAllHeightMaps());
+    await terrainSystem.loadAllHeightMaps();
 
-    await Promise.all(prepareImportPromises);
     let pendingCount = 0;
 
     for (const el of doc.body.childNodes) {

@@ -23,7 +23,6 @@ export default class WorldExporter {
 
   async currentWorldToHtml() {
     const { hubMetadata, hubChannel } = window.APP;
-    const { voxSystem } = SYSTEMS.voxSystem;
     const metadata = hubMetadata.getMetadata(hubChannel.hubId);
 
     const avatarPovNode = document.querySelector("#avatar-pov-node").object3D;
@@ -32,6 +31,9 @@ export default class WorldExporter {
     const spawnRadius = metadata.spawn_point.radius;
     avatarPovNode.getWorldPosition(spawnPosition);
     avatarPovNode.getWorldQuaternion(spawnRotation);
+
+    const groundedPosition = new THREE.Vector3();
+    SYSTEMS.characterController.findGroundedPosition(spawnPosition, groundedPosition, true);
 
     const doc = document.implementation.createHTMLDocument(metadata.displayName);
 
@@ -53,7 +55,7 @@ export default class WorldExporter {
     });
 
     addMeta("jel-spawn-position-x", `${spawnPosition.x}`);
-    addMeta("jel-spawn-position-y", `${spawnPosition.y}`);
+    addMeta("jel-spawn-position-y", `${groundedPosition.y + 0.01}`);
     addMeta("jel-spawn-position-z", `${spawnPosition.z}`);
     addMeta("jel-spawn-rotation-x", `${spawnRotation.x}`);
     addMeta("jel-spawn-rotation-y", `${spawnRotation.y}`);

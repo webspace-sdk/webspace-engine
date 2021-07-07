@@ -439,6 +439,7 @@ function CanvasTop(props) {
             showHubContextMenuPopup(hub.hub_id, hubMetadata, hubContextButtonRef, "bottom-end", [0, 8], {
               hideRename: true,
               showExport: isWorld,
+              isCurrentWorld: hub.hub_id === window.APP.hubChannel.hubId,
               showReset: !!hub.template.name
             });
           }}

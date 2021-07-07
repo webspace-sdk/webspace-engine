@@ -26,9 +26,11 @@ function HubContextMenu({
   hideRename,
   showReset,
   showExport,
+  isCurrentWorld,
   onRenameClick,
   onImportClick,
   onExportClick,
+  onPublishTemplateClick,
   onResetClick,
   onTrashClick
 }) {
@@ -96,7 +98,7 @@ function HubContextMenu({
       </PopupMenuItem>
     );
   }
-  if (hubId && showPublishObjects && hubCan("spawn_and_move_media", hubId)) {
+  if (hubId && isCurrentWorld && showPublishObjects && hubCan("spawn_and_move_media", hubId)) {
     items.push(
       <PopupMenuItem
         key={`publish-${hubId}`}
@@ -128,6 +130,38 @@ function HubContextMenu({
         iconSrc={cubeIcon}
       >
         <FormattedMessage id="hub-context.publish-objects" />
+      </PopupMenuItem>
+    );
+  }
+
+  if (hubId && isCurrentWorld && showPublishObjects && spaceCan("publish_world_template")) {
+    items.push(
+      <PopupMenuItem
+        key={`publish-world-template-${hubId}`}
+        onClick={async e => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const { hubChannel, hubMetadata } = window.APP;
+          const { hubId } = hubChannel;
+
+          const hubNodeId = worldTree.getNodeIdForAtomId(hubId);
+          const parentNodeId = worldTree.getParentNodeId(hubNodeId);
+
+          if (!parentNodeId) {
+            console.log("No parent world, can't publish");
+            return;
+          }
+
+          const parentHubId = worldTree.getAtomIdForNodeId(parentNodeId);
+          const parentHubMeta = await hubMetadata.getOrFetchMetadata(parentHubId);
+          const collection = parentHubMeta.displayName;
+
+          onPublishTemplateClick(collection, hubId);
+        }}
+        iconSrc={cubeIcon}
+      >
+        <FormattedMessage id="hub-context.publish-template" />
       </PopupMenuItem>
     );
   }

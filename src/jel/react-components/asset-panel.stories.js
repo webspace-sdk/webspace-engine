@@ -2,7 +2,7 @@ import React from "react";
 import AssetPanel from "./asset-panel";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import classNames from "classnames";
-import PublishedVoxTree from "../utils/published-vox-tree";
+import MediaTree from "../utils/media-tree";
 
 const VOX_DATA = [
   {
@@ -484,15 +484,39 @@ const VOX_DATA = [
   }
 ];
 
-const voxTree = new PublishedVoxTree();
+const SCENE_DATA = [
+  {
+    collection: "Welcome World",
+    name: "Hello World",
+    permissions: {
+      view_world_template: true
+    },
+    thumb_url: "https://hubs.local:4000/files/2d7a0559-e64f-45c7-b764-2589501e1842.png",
+    preview_url: "https://hubs.local:4000/files/2d7a0559-e64f-45c7-b764-2589501e1842.png",
+    url: "https://hubs.local:4000/api/v1/world_templates/GRYzhpx",
+    world_template_id: "GRYzhpx"
+  }
+];
+
+const voxTree = new MediaTree("vox");
 voxTree.build(VOX_DATA);
+
+const sceneTree = new MediaTree("world_templates");
+sceneTree.build(SCENE_DATA);
 
 export const Normal = () => (
   <div
     className={classNames(sharedStyles.secondaryPanel)}
-    style={{ display: "flex", flexDirection: "row", width: "1200px", height: "190px" }}
+    style={{
+      display: "flex",
+      flexDirection: "row",
+      width: "1200px",
+      height: "290px",
+      paddingTop: "8px",
+      paddingBottom: "8px"
+    }}
   >
-    <AssetPanel voxTree={voxTree} />
+    <AssetPanel voxTree={voxTree} sceneTree={sceneTree} expanded={true} />
   </div>
 );
 

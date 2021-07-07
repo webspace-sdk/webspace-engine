@@ -23,6 +23,7 @@
   "hub-context.import": "Import",
   "hub-context.reset-objects": "Reset Objects",
   "hub-context.publish-objects": "Publish Objects",
+  "hub-context.publish-template": "Publish Template",
   "channel-context.empty": "No Actions",
   "channel-context.rename": "Rename",
   "channel-context.delete": "Delete Channel",
@@ -401,5 +402,7 @@
   "toggle-floor.tip": "Toggle Floor",
   "toggle-floor.show-floor": "Floor Off",
   "toggle-floor.hide-floor": "Floor On",
-  "asset-panel.objects": "Object Library"
+  "asset-panel.title": "Library",
+  "asset-panel.objects": "Objects",
+  "asset-panel.scenes": "Scenes"
 }

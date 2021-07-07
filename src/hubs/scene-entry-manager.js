@@ -5,6 +5,9 @@ import { ensureOwnership } from "./../jel/utils/ownership-utils";
 import { MEDIA_TEXT_COLOR_PRESETS } from "../jel/components/media-text";
 import { waitForDOMContentLoaded } from "./utils/async-utils";
 import { createVox } from "./utils/phoenix-utils";
+import WorldExporter from "../jel/utils/world-exporter";
+import { switchCurrentHubToWorldTemplate } from "../jel/utils/template-utils";
+import { screenshotAndUploadSceneCanvas } from "./utils/three-utils";
 
 const { detect } = require("detect-browser");
 
@@ -254,6 +257,22 @@ export default class SceneEntryManager {
     });
 
     this.scene.addEventListener("action_vr_notice_closed", () => forceExitFrom2DInterstitial());
+
+    this.scene.addEventListener("action_publish_template", ({ detail: { collection } }) => {
+      new WorldExporter().currentWorldToHtml().then(async body => {
+        const { hubChannel, hubMetadata } = window.APP;
+        const { hubId } = hubChannel;
+
+        const { name } = await hubMetadata.getOrFetchMetadata(hubId);
+        const { file_id: thumbFileId } = await screenshotAndUploadSceneCanvas(this.scene, 256, 256);
+
+        hubChannel.publishWorldTemplate(name, collection, body, thumbFileId);
+      });
+    });
+
+    this.scene.addEventListener("action_switch_template", ({ detail: { worldTemplateId } }) => {
+      switchCurrentHubToWorldTemplate(worldTemplateId);
+    });
 
     document.addEventListener("paste", e => AFRAME.scenes[0].systems["hubs-systems"].pasteSystem.enqueuePaste(e));
 
