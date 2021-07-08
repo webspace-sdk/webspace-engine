@@ -213,6 +213,7 @@ const idleTips = [
   ["undo", "L+z,y"],
   ["chat", "E", "chat"],
   ["widen", "L+S", "widen"],
+  ["unlock", "l"],
   ["hide", "?"]
 ];
 

@@ -134,7 +134,7 @@ export class KeyboardTipSystem {
                     showTips = "hover_interactable";
                   }
                 }
-              } else {
+              } /* else {
                 const component = getMediaViewComponent(hovered);
 
                 if (components["media-video"]) {
@@ -149,7 +149,7 @@ export class KeyboardTipSystem {
                   const isBakable = BAKABLE_MEDIA_VIEW_COMPONENTS.includes(component?.name);
                   showTips = isBakable ? "hover_locked_bakable_interactable" : "hover_locked_interactable";
                 }
-              }
+              }*/
             }
           }
         }
