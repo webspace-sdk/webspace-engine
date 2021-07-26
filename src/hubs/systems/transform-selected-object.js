@@ -427,10 +427,11 @@ AFRAME.registerSystem("transform-selected-object", {
       tmpMatrix.copy(this.targetInitialMatrix);
 
       const shouldSnap = !userinput.get(shiftKeyPath);
+      const snapScale = isFlatMedia(this.target) ? 1.0 : scale;
 
       tmpMatrix.setPosition(
         initialX,
-        withGridSnap(shouldSnap, intersection.point.y - planeCastObjectOffset.y, scale),
+        withGridSnap(shouldSnap, intersection.point.y - planeCastObjectOffset.y, snapScale),
         initialZ
       );
       this.target.setMatrix(tmpMatrix);
@@ -486,11 +487,13 @@ AFRAME.registerSystem("transform-selected-object", {
 
     const shouldSnap = !userinput.get(shiftKeyPath);
 
-    const newX = withGridSnap(shouldSnap, initialX + v.x - planeCastObjectOffset.x, scale);
+    const snapScale = isFlatMedia(this.target) ? 1.0 : scale;
 
-    const newY = tmpMatrix.elements[13] + withGridSnap(shouldSnap, this.dWheelApplied, scale);
+    const newX = withGridSnap(shouldSnap, initialX + v.x - planeCastObjectOffset.x, snapScale);
 
-    const newZ = withGridSnap(shouldSnap, initialZ + v.z - planeCastObjectOffset.z, scale);
+    const newY = tmpMatrix.elements[13] + withGridSnap(shouldSnap, this.dWheelApplied, snapScale);
+
+    const newZ = withGridSnap(shouldSnap, initialZ + v.z - planeCastObjectOffset.z, snapScale);
 
     tmpMatrix.setPosition(newX, newY, newZ);
     this.target.setMatrix(tmpMatrix);
@@ -566,10 +569,11 @@ AFRAME.registerSystem("transform-selected-object", {
     offset.applyQuaternion(q);
 
     const shouldSnap = !userinput.get(shiftKeyPath);
+    const snapScale = isFlatMedia(this.target) ? 1.0 : scale;
 
-    const newX = withGridSnap(shouldSnap && !normalIsMaxX, point.x, scale);
-    const newY = withGridSnap(shouldSnap && !normalIsMaxY, point.y, scale);
-    const newZ = withGridSnap(shouldSnap && !normalIsMaxZ, point.z, scale);
+    const newX = withGridSnap(shouldSnap && !normalIsMaxX, point.x, snapScale);
+    const newY = withGridSnap(shouldSnap && !normalIsMaxY, point.y, snapScale);
+    const newZ = withGridSnap(shouldSnap && !normalIsMaxZ, point.z, snapScale);
 
     targetPoint.set(newX, newY, newZ).add(offset);
 
