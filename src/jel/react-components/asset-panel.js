@@ -261,8 +261,13 @@ export default function AssetPanel(props) {
   useEffect(
     () => {
       const handler = () => setShowObjects(false);
-      scene.addEventListener("created_world", handler);
-      return () => scene.removeEventListener("created_world", handler);
+
+      if (scene) {
+        scene.addEventListener("created_world", handler);
+        return () => scene.removeEventListener("created_world", handler);
+      }
+
+      return null;
     },
     [scene, setShowObjects]
   );
