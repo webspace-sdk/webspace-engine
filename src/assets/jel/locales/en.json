@@ -185,7 +185,7 @@
   "create-select.duck.title": "Duck",
   "create-select.duck.description": "Create a duck. Quack.",
   "create-select.placeholder": "Press '/' to toggle...",
-  "text-editor.placeholder": "Hover and press tidle (~) to edit...",
+  "text-editor.placeholder": "Hover and press tilde (~) to edit...",
   "create.tip": "Create",
   "hub-notifications.tip": "World Notifications",
   "hub-permissions.tip": "World Permissions",
