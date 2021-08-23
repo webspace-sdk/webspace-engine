@@ -986,7 +986,7 @@ export const hasActiveScreenShare = () => {
   for (const videoEl of videoEls) {
     const component = videoEl.components["media-loader"];
 
-    if (component.contentType === "video/vnd.jel-webrtc") {
+    if (component.data.contentType === "video/vnd.jel-webrtc") {
       return true;
     }
   }
