@@ -979,3 +979,17 @@ export const spawnMediaInfrontOfPlayer = (
 
   return entity;
 };
+
+export const hasActiveScreenShare = () => {
+  const videoEls = document.querySelectorAll("[media-video]");
+
+  for (const videoEl of videoEls) {
+    const component = videoEl.components["media-loader"];
+
+    if (component.contentType === "video/vnd.jel-webrtc") {
+      return true;
+    }
+  }
+
+  return false;
+};

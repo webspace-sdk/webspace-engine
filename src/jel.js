@@ -116,6 +116,7 @@ import Subscriptions from "./hubs/subscriptions";
 import { SOUND_QUACK, SOUND_SPECIAL_QUACK, SOUND_NOTIFICATION } from "./hubs/systems/sound-effects-system";
 import ducky from "./assets/hubs/models/DuckyMesh.glb";
 import { getAbsoluteHref } from "./hubs/utils/media-url-utils";
+import { hasActiveScreenShare } from "./hubs/utils/media-utils";
 
 import ReactDOM from "react-dom";
 import React from "react";
@@ -802,6 +803,9 @@ function setupGameEnginePausing(scene) {
       if (document.activeElement.contentWindow && document.activeElement.contentWindow.document.hasFocus()) {
         return;
       }
+
+      // If there's a screen share active, don't pause since user may be watching on dual monitors.
+      if (hasActiveScreenShare()) return;
 
       const disableBlurHandlerOnceIfVisible = window.APP.disableBlurHandlerOnceIfVisible;
       window.APP.disableBlurHandlerOnceIfVisible = false;
