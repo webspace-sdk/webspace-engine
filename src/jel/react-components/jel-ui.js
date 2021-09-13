@@ -608,8 +608,8 @@ function JelUI(props) {
   useEffect(
     () => {
       const handler = () => setAssetPanelExpanded(true);
-      scene.addEventListener("created_world", handler);
-      return () => scene.removeEventListener("created_world", handler);
+      scene && scene.addEventListener("created_world", handler);
+      return () => scene && scene.removeEventListener("created_world", handler);
     },
     [scene, setAssetPanelExpanded]
   );
