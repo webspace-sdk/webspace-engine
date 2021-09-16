@@ -199,7 +199,13 @@ export class AutoQualitySystem extends EventTarget {
             console.warn("Dropping resolution to half.", window.devicePixelRatio / 2.0);
             this.scene.renderer.setPixelRatio(window.devicePixelRatio / 2.0);
             this.scene.systems.effects.updateComposer = true;
-          } else if (this.scene.renderer.getPixelRatio() > window.devicePixelRatio / 3.0) {
+
+            // Fire framerate stable event when we bottom out.
+            if (window.APP.detailLevel >= LOWEST_DETAIL_LEVEL && !this.firedFrameStableEvent) {
+              this.dispatchEvent(new CustomEvent("framerate_stable", {}));
+              this.firedFrameStableEvent = true;
+            }
+          } /*else if (this.scene.renderer.getPixelRatio() > window.devicePixelRatio / 3.0) {
             console.warn("Dropping resolution to a third.", window.devicePixelRatio / 3.0);
             this.scene.renderer.setPixelRatio(window.devicePixelRatio / 3.0);
             this.scene.systems.effects.updateComposer = true;
@@ -209,7 +215,7 @@ export class AutoQualitySystem extends EventTarget {
               this.dispatchEvent(new CustomEvent("framerate_stable", {}));
               this.firedFrameStableEvent = true;
             }
-          }
+          }*/
         } else {
           if (window.APP.detailLevel < LOWEST_DETAIL_LEVEL) {
             this.dropDetailLevel();
