@@ -1,5 +1,5 @@
 import { paths } from "../systems/userinput/paths";
-import { isChildOf, expandByEntityObjectSpaceBoundingBox } from "../utils/three-utils";
+import { almostEqual, isChildOf, expandByEntityObjectSpaceBoundingBox } from "../utils/three-utils";
 import { isFlatMedia } from "../utils/media-utils";
 import { VOXEL_SIZE } from "../../jel/systems/terrain-system";
 
@@ -65,6 +65,8 @@ AFRAME.registerSystem("transform-selected-object", {
     this.target = null;
     this.targetInitialMatrix = new THREE.Matrix4();
     this.targetBoundingBox = new THREE.Box3();
+    this.hitNormalObject = null;
+    this.hitNormalObjectBoundingBox = new THREE.Box3();
     this.mode = null;
     this.transforming = false;
     this.store = window.APP.store;
@@ -125,6 +127,7 @@ AFRAME.registerSystem("transform-selected-object", {
       this.mode = null;
       this.transforming = false;
       this.target = null;
+      this.hitNormalObject = null;
       this.dWheelApplied = 0;
 
       this.el.emit("transform_stopped");
@@ -222,12 +225,18 @@ AFRAME.registerSystem("transform-selected-object", {
 
       if (SYSTEMS.voxSystem.isTargettingMesh(object)) continue;
 
-      const normalObject =
+      const newNormalObject =
         SYSTEMS.voxSystem.getSourceForMeshAndInstance(object, instanceId) ||
         SYSTEMS.voxmojiSystem.getSourceForMeshAndInstance(object, instanceId) ||
         object;
 
-      this.stackTargetAt(point, normal, normalObject);
+      if (this.hitNormalObject !== newNormalObject) {
+        this.hitNormalObject = newNormalObject;
+        this.hitNormalObjectBoundingBox.makeEmpty();
+        expandByEntityObjectSpaceBoundingBox(this.hitNormalObjectBoundingBox, this.hitNormalObject.el);
+      }
+
+      this.stackTargetAt(point, normal, this.hitNormalObject, this.hitNormalObjectBoundingBox);
 
       break;
     }
@@ -499,7 +508,7 @@ AFRAME.registerSystem("transform-selected-object", {
     this.target.setMatrix(tmpMatrix);
   },
 
-  stackTargetAt(point, normal, normalObject) {
+  stackTargetAt(point, normal, normalObject, normalObjectBoundingBox) {
     const { target, targetBoundingBox } = this;
     const userinput = this.el.systems.userinput;
     const { elements } = this.targetInitialMatrix;
@@ -516,7 +525,7 @@ AFRAME.registerSystem("transform-selected-object", {
     const axis = (isFlat ? FLAT_STACK_AXES : NON_FLAT_STACK_AXES)[this.stackAlongAxis];
     v.set(0, 0, 0);
 
-    // v is the world space point of the bottom/top center of the bounding box
+    // v is the object space point of the bottom/top center of the bounding box
     if (axis.x !== 0) {
       v.x = axis.x < 0 ? targetBoundingBox.max.x : targetBoundingBox.min.x;
     } else if (axis.y !== 0) {
@@ -571,11 +580,63 @@ AFRAME.registerSystem("transform-selected-object", {
     const shouldSnap = !userinput.get(shiftKeyPath);
     const snapScale = isFlatMedia(this.target) ? 1.0 : scale;
 
-    const newX = withGridSnap(shouldSnap && !normalIsMaxX, point.x, snapScale);
-    const newY = withGridSnap(shouldSnap && !normalIsMaxY, point.y, snapScale);
-    const newZ = withGridSnap(shouldSnap && !normalIsMaxZ, point.z, snapScale);
+    // Stack position snapping will center-snap the origin of the target object to the box face.
+    const stackSnapPosition = true;
+    const stackSnapScale = true;
 
-    targetPoint.set(newX, newY, newZ).add(offset);
+    if (stackSnapPosition) {
+      normalObjectBoundingBox.getCenter(v);
+
+      const nmx = Math.abs(normal.x);
+      const nmy = Math.abs(normal.y);
+      const nmz = Math.abs(normal.z);
+      const maxNormalAxis = Math.max(nmx, nmy, nmz);
+
+      if (almostEqual(maxNormalAxis, nmx)) {
+        v.x = normal.x > 0 ? normalObjectBoundingBox.max.x : normalObjectBoundingBox.min.x;
+      } else if (almostEqual(maxNormalAxis, nmy)) {
+        v.y = normal.y > 0 ? normalObjectBoundingBox.max.y : normalObjectBoundingBox.min.y;
+      } else if (almostEqual(maxNormalAxis, nmz)) {
+        v.z = normal.z > 0 ? normalObjectBoundingBox.max.z : normalObjectBoundingBox.min.z;
+      }
+
+      v.applyMatrix4(normalObject.matrixWorld);
+      targetPoint.set(v.x, v.y, v.z).add(offset);
+    } else {
+      const newX = withGridSnap(shouldSnap && !normalIsMaxX, point.x, snapScale);
+      const newY = withGridSnap(shouldSnap && !normalIsMaxY, point.y, snapScale);
+      const newZ = withGridSnap(shouldSnap && !normalIsMaxZ, point.z, snapScale);
+
+      targetPoint.set(newX, newY, newZ).add(offset);
+    }
+
+    if (stackSnapScale) {
+      const extentX = normalObjectBoundingBox.max.x - normalObjectBoundingBox.min.x;
+      const extentY = normalObjectBoundingBox.max.y - normalObjectBoundingBox.min.y;
+      const extentZ = normalObjectBoundingBox.max.z - normalObjectBoundingBox.min.z;
+
+      const nmx = Math.abs(normal.x);
+      const nmy = Math.abs(normal.y);
+      const nmz = Math.abs(normal.z);
+      const maxNormalAxis = Math.max(nmx, nmy, nmz);
+
+      if (almostEqual(maxNormalAxis, nmx)) {
+        //desiredExtent = Math.max(extentY, extentZ);
+      } else if (almostEqual(maxNormalAxis, nmy)) {
+        //desiredExtent = Math.max(extentX, extentZ);
+      } else if (almostEqual(maxNormalAxis, nmz)) {
+        //desiredExtent = Math.max(extentX, extentY);
+      }
+
+      const targetExtentX = targetBoundingBox.max.x - targetBoundingBox.min.x;
+      const targetExtentY = targetBoundingBox.max.y - targetBoundingBox.min.y;
+      const targetExtentZ = targetBoundingBox.max.z - targetBoundingBox.min.z;
+
+      // Normal is Y, Axis is FORWARD (0, 0, 1)
+      //   match normal X extent, by scaling to match target X extent
+
+      console.log(desiredExtent);
+    }
 
     tmpMatrix.compose(
       targetPoint,
