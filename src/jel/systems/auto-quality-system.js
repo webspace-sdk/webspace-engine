@@ -40,10 +40,7 @@ export class AutoQualitySystem extends EventTarget {
       // On a resize, temporarily reset the pixel ratio to 1.0 in the case
       // where we no longer need lower res.
       if (window.APP.detailLevel >= 1) {
-        if (this.scene.renderer.getPixelRatio() !== 1.0) {
-          this.scene.renderer.setPixelRatio(1.0);
-          this.scene.systems.effects.updateComposer = true;
-        }
+        this.tryResetPixelRatio();
       }
     });
 
@@ -124,6 +121,12 @@ export class AutoQualitySystem extends EventTarget {
     this.totalFrames++;
     this.sampledFrames++;
 
+    const forceHighResolution = SYSTEMS.cameraSystem.isInspecting();
+
+    if (forceHighResolution) {
+      this.tryResetPixelRatio();
+    }
+
     // For ridiculously underpowered machines, have a special code path that just looks at the
     // first N frames and if they're all slower than a conservative threshold
     // we immediately drop quality. This heuristic also burns in this as the max detail level
@@ -194,18 +197,12 @@ export class AutoQualitySystem extends EventTarget {
       if (!this.metFastFrameTest) {
         const minPixelRatio = window.APP.detailLevel === 0 ? window.devicePixelRatio : window.devicePixelRatio / 3.0;
 
-        if (this.scene.renderer.getPixelRatio() > minPixelRatio) {
+        if (!forceHighResolution && this.scene.renderer.getPixelRatio() > minPixelRatio) {
           if (this.scene.renderer.getPixelRatio() > window.devicePixelRatio / 2.0) {
             console.warn("Dropping resolution to half.", window.devicePixelRatio / 2.0);
             this.scene.renderer.setPixelRatio(window.devicePixelRatio / 2.0);
             this.scene.systems.effects.updateComposer = true;
-
-            // Fire framerate stable event when we bottom out.
-            if (window.APP.detailLevel >= LOWEST_DETAIL_LEVEL && !this.firedFrameStableEvent) {
-              this.dispatchEvent(new CustomEvent("framerate_stable", {}));
-              this.firedFrameStableEvent = true;
-            }
-          } /*else if (this.scene.renderer.getPixelRatio() > window.devicePixelRatio / 3.0) {
+          } else if (this.scene.renderer.getPixelRatio() > window.devicePixelRatio / 3.0) {
             console.warn("Dropping resolution to a third.", window.devicePixelRatio / 3.0);
             this.scene.renderer.setPixelRatio(window.devicePixelRatio / 3.0);
             this.scene.systems.effects.updateComposer = true;
@@ -215,7 +212,7 @@ export class AutoQualitySystem extends EventTarget {
               this.dispatchEvent(new CustomEvent("framerate_stable", {}));
               this.firedFrameStableEvent = true;
             }
-          }*/
+          }
         } else {
           if (window.APP.detailLevel < LOWEST_DETAIL_LEVEL) {
             this.dropDetailLevel();
@@ -225,6 +222,13 @@ export class AutoQualitySystem extends EventTarget {
 
       this.consecutiveFastFrames = 0;
       this.metFastFrameTest = false;
+    }
+  }
+
+  tryResetPixelRatio() {
+    if (this.scene.renderer.getPixelRatio() !== 1.0) {
+      this.scene.renderer.setPixelRatio(1.0);
+      this.scene.systems.effects.updateComposer = true;
     }
   }
 }
