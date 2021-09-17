@@ -555,8 +555,14 @@ AFRAME.registerSystem("transform-selected-object", {
     objectSnapAlong.copy(axis);
     objectSnapAlong.transformDirection(this.targetInitialMatrix);
 
+    // Stack position snapping will center-snap the origin of the target object to the box face.
+    const stackSnapPosition = true;
+
+    // Stack scale snapping will scale the object to fit.
+    const stackSnapScale = true;
+
     // If the world space normal and original world object up are not already parallel, reorient the object
-    if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.001) {
+    if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.001 || stackSnapScale) {
       // Flat media aligns to walls, other objects align to floor.
       q.setFromUnitVectors(axis, v);
     } else {
@@ -571,7 +577,7 @@ AFRAME.registerSystem("transform-selected-object", {
       q.multiply(q2);
     }
 
-    target.matrixWorld.decompose(v, q2 /* ignored */, v2);
+    target.matrixWorld.decompose(v /* ignored */, q2 /* ignored */, v2);
 
     // Offset is the vector displacement from object origin to the box
     // face in object space, scaled properly here.
@@ -581,23 +587,14 @@ AFRAME.registerSystem("transform-selected-object", {
     const shouldSnap = !userinput.get(shiftKeyPath);
     const snapScale = isFlatMedia(this.target) ? 1.0 : scale;
 
-    // Stack position snapping will center-snap the origin of the target object to the box face.
-    const stackSnapPosition = true;
-    const stackSnapScale = true;
-
     if (stackSnapPosition) {
       normalObjectBoundingBox.getCenter(v);
 
-      const nmx = Math.abs(normal.x);
-      const nmy = Math.abs(normal.y);
-      const nmz = Math.abs(normal.z);
-      const maxNormalAxis = Math.max(nmx, nmy, nmz);
-
-      if (almostEqual(maxNormalAxis, nmx)) {
+      if (normalIsMaxX) {
         v.x = normal.x > 0 ? normalObjectBoundingBox.max.x : normalObjectBoundingBox.min.x;
-      } else if (almostEqual(maxNormalAxis, nmy)) {
+      } else if (normalIsMaxY) {
         v.y = normal.y > 0 ? normalObjectBoundingBox.max.y : normalObjectBoundingBox.min.y;
-      } else if (almostEqual(maxNormalAxis, nmz)) {
+      } else if (normalIsMaxZ) {
         v.z = normal.z > 0 ? normalObjectBoundingBox.max.z : normalObjectBoundingBox.min.z;
       }
 
@@ -618,35 +615,52 @@ AFRAME.registerSystem("transform-selected-object", {
       const extentY = normalObjectBoundingBox.max.y * v.y - normalObjectBoundingBox.min.y * v.y;
       const extentZ = normalObjectBoundingBox.max.z * v.z - normalObjectBoundingBox.min.z * v.z;
 
-      const nmx = Math.abs(normal.x);
-      const nmy = Math.abs(normal.y);
-      const nmz = Math.abs(normal.z);
-      const maxNormalAxis = Math.max(nmx, nmy, nmz);
-
-      if (almostEqual(maxNormalAxis, nmx)) {
-        //desiredExtent = Math.max(extentY, extentZ);
-      } else if (almostEqual(maxNormalAxis, nmy)) {
-        //desiredExtent = Math.max(extentX, extentZ);
-      } else if (almostEqual(maxNormalAxis, nmz)) {
-        //desiredExtent = Math.max(extentX, extentY);
-      }
-
       target.matrixWorld.decompose(v3 /* ignored */, q2 /* ignored */, v /* target scale */);
       const targetExtentX = targetBoundingBox.max.x * v.x - targetBoundingBox.min.x * v.x;
       const targetExtentY = targetBoundingBox.max.y * v.y - targetBoundingBox.min.y * v.y;
       const targetExtentZ = targetBoundingBox.max.z * v.z - targetBoundingBox.min.z * v.z;
 
-      // Normal is Y, Axis is FORWARD (0, 0, 1)
-      //   match normal X extent, by scaling to match target X extent
-      //
-      //  output is target extent match axis, normal extent match axis
-      const scaleRatio = extentY / targetExtentX;
-      //console.log(v2);
-      //
+      // Get the target UV extents, which are extents orthogonal to the axis
+      let targetExtentU, targetExtentV;
+
+      if (Math.abs(axis.x) === 1) {
+        targetExtentU = targetExtentZ;
+        targetExtentV = targetExtentY;
+      } else if (Math.abs(axis.y) === 1) {
+        targetExtentU = targetExtentX;
+        targetExtentV = targetExtentZ;
+      } else if (Math.abs(axis.z) === 1) {
+        targetExtentU = targetExtentX;
+        targetExtentV = targetExtentY;
+      }
+
+      let scaleRatio = 0.0;
+
+      if (normalIsMaxX) {
+        console.log("X", Math.max(targetExtentU, targetExtentV));
+        scaleRatio = Math.min(extentY, extentZ) / Math.max(targetExtentU, targetExtentV);
+      } else if (normalIsMaxY) {
+        console.log("Y", Math.max(targetExtentU, targetExtentV));
+        scaleRatio = Math.min(extentX, extentZ) / Math.max(targetExtentU, targetExtentV);
+      } else if (normalIsMaxZ) {
+        console.log("Z");
+        if ((extentX / targetExtentU) * targetExtentV <= extentY) {
+          scaleRatio = Math.max(scaleRatio, extentX / targetExtentU);
+        }
+
+        if ((extentY / targetExtentV) * targetExtentU <= extentX) {
+          scaleRatio = Math.max(scaleRatio, extentY / targetExtentV);
+        }
+
+        if (scaleRatio === 0.0) {
+          scaleRatio = 1.0;
+        }
+      }
+
       if (!almostEqual(scaleRatio, 1.0)) {
         console.log("target extent x", targetExtentX);
         console.log("normal extent x", extentX);
-        console.log("x/x ratio", extentX / targetExtentX);
+        console.log("ratio", scaleRatio);
         v2.multiplyScalar(scaleRatio);
       }
     }
