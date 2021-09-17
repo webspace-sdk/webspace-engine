@@ -20,6 +20,7 @@ const CAMERA_WORLD_POSITION = new THREE.Vector3();
 const TARGET_WORLD_QUATERNION = new THREE.Quaternion();
 const v = new THREE.Vector3();
 const v2 = new THREE.Vector3();
+const v3 = new THREE.Vector3();
 const q = new THREE.Quaternion();
 const q2 = new THREE.Quaternion();
 const tmpMatrix = new THREE.Matrix4();
@@ -611,9 +612,11 @@ AFRAME.registerSystem("transform-selected-object", {
     }
 
     if (stackSnapScale) {
-      const extentX = normalObjectBoundingBox.max.x - normalObjectBoundingBox.min.x;
-      const extentY = normalObjectBoundingBox.max.y - normalObjectBoundingBox.min.y;
-      const extentZ = normalObjectBoundingBox.max.z - normalObjectBoundingBox.min.z;
+      normalObject.matrixWorld.decompose(v3 /* ignored */, q2 /* ignored */, v /* target scale */);
+
+      const extentX = normalObjectBoundingBox.max.x * v.x - normalObjectBoundingBox.min.x * v.x;
+      const extentY = normalObjectBoundingBox.max.y * v.y - normalObjectBoundingBox.min.y * v.y;
+      const extentZ = normalObjectBoundingBox.max.z * v.z - normalObjectBoundingBox.min.z * v.z;
 
       const nmx = Math.abs(normal.x);
       const nmy = Math.abs(normal.y);
@@ -628,14 +631,24 @@ AFRAME.registerSystem("transform-selected-object", {
         //desiredExtent = Math.max(extentX, extentY);
       }
 
-      const targetExtentX = targetBoundingBox.max.x - targetBoundingBox.min.x;
-      const targetExtentY = targetBoundingBox.max.y - targetBoundingBox.min.y;
-      const targetExtentZ = targetBoundingBox.max.z - targetBoundingBox.min.z;
+      target.matrixWorld.decompose(v3 /* ignored */, q2 /* ignored */, v /* target scale */);
+      const targetExtentX = targetBoundingBox.max.x * v.x - targetBoundingBox.min.x * v.x;
+      const targetExtentY = targetBoundingBox.max.y * v.y - targetBoundingBox.min.y * v.y;
+      const targetExtentZ = targetBoundingBox.max.z * v.z - targetBoundingBox.min.z * v.z;
 
       // Normal is Y, Axis is FORWARD (0, 0, 1)
       //   match normal X extent, by scaling to match target X extent
-
-      console.log(desiredExtent);
+      //
+      //  output is target extent match axis, normal extent match axis
+      const scaleRatio = extentY / targetExtentX;
+      //console.log(v2);
+      //
+      if (!almostEqual(scaleRatio, 1.0)) {
+        console.log("target extent x", targetExtentX);
+        console.log("normal extent x", extentX);
+        console.log("x/x ratio", extentX / targetExtentX);
+        v2.multiplyScalar(scaleRatio);
+      }
     }
 
     tmpMatrix.compose(
