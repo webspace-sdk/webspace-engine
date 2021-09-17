@@ -562,7 +562,7 @@ AFRAME.registerSystem("transform-selected-object", {
     const stackSnapScale = true;
 
     // If the world space normal and original world object up are not already parallel, reorient the object
-    if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.001 || stackSnapScale) {
+    if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.001 || stackSnapPosition) {
       // Flat media aligns to walls, other objects align to floor.
       q.setFromUnitVectors(axis, v);
     } else {
@@ -620,7 +620,7 @@ AFRAME.registerSystem("transform-selected-object", {
       const targetExtentY = targetBoundingBox.max.y * v.y - targetBoundingBox.min.y * v.y;
       const targetExtentZ = targetBoundingBox.max.z * v.z - targetBoundingBox.min.z * v.z;
 
-      // Get the target UV extents, which are extents orthogonal to the axis
+      // Get the target UV extents to scale on, which are extents orthogonal to the axis
       let targetExtentU, targetExtentV;
 
       if (Math.abs(axis.x) === 1) {
@@ -637,13 +637,22 @@ AFRAME.registerSystem("transform-selected-object", {
       let scaleRatio = 0.0;
 
       if (normalIsMaxX) {
-        console.log("X", Math.max(targetExtentU, targetExtentV));
-        scaleRatio = Math.min(extentY, extentZ) / Math.max(targetExtentU, targetExtentV);
+        if ((extentZ / targetExtentU) * targetExtentV <= extentY) {
+          scaleRatio = Math.max(scaleRatio, extentZ / targetExtentU);
+        }
+
+        if ((extentY / targetExtentV) * targetExtentU <= extentZ) {
+          scaleRatio = Math.max(scaleRatio, extentY / targetExtentV);
+        }
       } else if (normalIsMaxY) {
-        console.log("Y", Math.max(targetExtentU, targetExtentV));
-        scaleRatio = Math.min(extentX, extentZ) / Math.max(targetExtentU, targetExtentV);
+        if ((extentX / targetExtentU) * targetExtentV <= extentX) {
+          scaleRatio = Math.max(scaleRatio, extentX / targetExtentU);
+        }
+
+        if ((extentZ / targetExtentV) * targetExtentU <= extentX) {
+          scaleRatio = Math.max(scaleRatio, extentZ / targetExtentV);
+        }
       } else if (normalIsMaxZ) {
-        console.log("Z");
         if ((extentX / targetExtentU) * targetExtentV <= extentY) {
           scaleRatio = Math.max(scaleRatio, extentX / targetExtentU);
         }
@@ -651,16 +660,13 @@ AFRAME.registerSystem("transform-selected-object", {
         if ((extentY / targetExtentV) * targetExtentU <= extentX) {
           scaleRatio = Math.max(scaleRatio, extentY / targetExtentV);
         }
+      }
 
-        if (scaleRatio === 0.0) {
-          scaleRatio = 1.0;
-        }
+      if (scaleRatio === 0.0) {
+        scaleRatio = 1.0;
       }
 
       if (!almostEqual(scaleRatio, 1.0)) {
-        console.log("target extent x", targetExtentX);
-        console.log("normal extent x", extentX);
-        console.log("ratio", scaleRatio);
         v2.multiplyScalar(scaleRatio);
       }
     }
