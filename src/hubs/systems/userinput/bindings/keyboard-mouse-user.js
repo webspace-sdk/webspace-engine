@@ -22,7 +22,6 @@ const notControlSpace = "/vars/mouse-and-keyboard/notControlSpace";
 
 const qs = new URLSearchParams(location.search);
 const inspectZoomSpeed = parseFloat(qs.get("izs")) || -10.0;
-const controlSpace = "/var/control+space";
 const controlM = "/var/control+m";
 const movementX = "/var/movementX";
 const movementY = "/var/movementY";
@@ -155,15 +154,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       dest: { value: paths.actions.mashRelease },
       priority: 1001,
       xform: xforms.falling
-    },
-    {
-      src: {
-        bool: paths.device.keyboard.key("control"),
-        value: paths.device.keyboard.key(" ")
-      },
-      dest: { value: controlSpace },
-      priority: 1001,
-      xform: xforms.copyIfTrue
     },
     {
       src: {
@@ -785,12 +775,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 1001
     },
     {
-      src: { value: controlSpace },
-      dest: { value: paths.actions.mediaPrimaryAction },
-      xform: xforms.rising,
-      priority: 201
-    },
-    {
       src: { value: paths.device.keyboard.code("keyo") },
       dest: { value: paths.actions.mediaOpenAction },
       xform: xforms.rising,
@@ -884,12 +868,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       dest: { value: paths.actions.cursor.right.mediaVolumeMod },
       xform: xforms.scale(-0.3),
       priority: 1
-    },
-    {
-      src: { value: controlSpace },
-      dest: { value: paths.actions.mediaPrimaryAction },
-      xform: xforms.rising,
-      priority: 201
     },
     {
       src: { value: paths.device.keyboard.code("keyo") },

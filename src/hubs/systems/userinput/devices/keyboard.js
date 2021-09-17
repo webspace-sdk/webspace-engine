@@ -4,7 +4,6 @@ import { isInEditableField } from "../../../../jel/utils/dom-utils";
 import { isInQuillEditor } from "../../../../jel/utils/quill-utils";
 import { beginPersistentCursorLock, endCursorLock } from "../../../../jel/utils/dom-utils";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "../../../../jel/utils/dom-utils";
-import { PAGABLE_MEDIA_VIEW_COMPONENTS } from "../../../utils/media-utils";
 import { BRUSH_TYPES, BRUSH_MODES } from "../../../../jel/constants";
 
 export class KeyboardDevice {
@@ -91,12 +90,6 @@ export class KeyboardDevice {
             if (e.ctrlKey && !isInEditableField()) {
               const interaction = AFRAME.scenes[0].systems.interaction;
 
-              const hovered =
-                interaction.state.leftHand.hovered ||
-                interaction.state.rightHand.hovered ||
-                interaction.state.rightRemote.hovered ||
-                interaction.state.leftRemote.hovered;
-
               // Ignore widen when holding, since this is used for snapping.
               const held =
                 interaction.state.leftHand.held ||
@@ -104,19 +97,7 @@ export class KeyboardDevice {
                 interaction.state.rightRemote.held ||
                 interaction.state.leftRemote.held;
 
-              // Paging using ctrl-space, so skip
-              let hoveredOverPagableMedia = false;
-
-              if (hovered) {
-                for (const name of PAGABLE_MEDIA_VIEW_COMPONENTS) {
-                  if (hovered.components[name]) {
-                    hoveredOverPagableMedia = true;
-                    break;
-                  }
-                }
-              }
-
-              if (!hoveredOverPagableMedia && !held) {
+              if (!held) {
                 const cursorLockState = getCursorLockState();
 
                 // Shift+Space widen
