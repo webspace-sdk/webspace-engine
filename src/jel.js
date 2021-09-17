@@ -807,15 +807,6 @@ function setupGameEnginePausing(scene) {
       // If there's a screen share active, don't pause since user may be watching on dual monitors.
       if (hasActiveScreenShare()) return;
 
-      const disableBlurHandlerOnceIfVisible = window.APP.disableBlurHandlerOnceIfVisible;
-      window.APP.disableBlurHandlerOnceIfVisible = false;
-
-      if (disableBlurHandlerOnceIfVisible && document.visibilityState === "visible") {
-        // HACK needed to deal with browser stealing window focus occasionally eg screen share nag
-        clearTimeout(windowBlurredTimeout);
-        return;
-      }
-
       windowBlurredTimeout = setTimeout(() => {
         apply(true);
       }, 500);

@@ -331,14 +331,6 @@ export default class SceneEntryManager {
         return;
       }
 
-      const browser = detect();
-
-      if (browser.name === "chrome") {
-        // HACK Chrome will move focus to the screen share nag so disable
-        // the blur handler one time.
-        window.APP.disableBlurHandlerOnceIfVisible = true;
-      }
-
       const videoTracks = newStream ? newStream.getVideoTracks() : [];
       const mediaStreamSystem = this.scene.systems["hubs-systems"].mediaStreamSystem;
 
