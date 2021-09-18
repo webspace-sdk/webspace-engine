@@ -649,7 +649,7 @@ AFRAME.registerSystem("transform-selected-object", {
           scaleRatio = Math.max(scaleRatio, extentY / targetExtentV);
         }
       } else if (normalIsMaxY) {
-        if ((extentX / targetExtentU) * targetExtentV <= extentX) {
+        if ((extentX / targetExtentU) * targetExtentV <= extentZ) {
           scaleRatio = Math.max(scaleRatio, extentX / targetExtentU);
         }
 
