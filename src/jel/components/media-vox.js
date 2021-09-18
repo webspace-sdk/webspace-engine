@@ -155,6 +155,7 @@ AFRAME.registerComponent("media-vox", {
     const { url } = await voxSystem.copyVoxContent(this.voxId);
     const zOffset = getSpawnInFrontZOffsetForEntity(this.el);
     const sourceScale = this.el.object3D.scale;
+    const { stackSnapPosition, stackSnapScale } = this.el.components["media-loader"].data;
 
     // Skip resolving these URLs since they're from dyna.
     const entity = spawnMediaInfrontOfPlayer(
@@ -166,7 +167,11 @@ AFRAME.registerComponent("media-vox", {
       true,
       true,
       "model/vnd.jel-vox",
-      zOffset
+      zOffset,
+      0, // yOffset
+      0, // Stack axis
+      stackSnapPosition,
+      stackSnapScale
     );
 
     entity.object3D.scale.copy(sourceScale);
