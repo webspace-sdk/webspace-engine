@@ -470,7 +470,7 @@ const expandByObjectSpaceBoundingBox = (bbox, object, mat = null) => {
     newMat.multiplyMatrices(mat, object.matrix);
   }
 
-  if (geometry !== undefined) {
+  if (geometry !== undefined && object.userData.excludeFromBoundingBox !== true) {
     if (geometry.boundingBox === null) {
       geometry.computeBoundingBox();
     }

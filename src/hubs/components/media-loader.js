@@ -212,6 +212,8 @@ AFRAME.registerComponent("media-loader", {
     this.loaderParticles.scale.y = 0.35;
     this.loaderParticles.rotation.set(-Math.PI / 2, 0, 0);
     this.loaderParticles.matrixNeedsUpdate = true;
+    this.loaderParticles.userData.excludeFromBoundingBox = true;
+
     this.el.setObject3D("loader-particles", this.loaderParticles);
 
     this.updateScale(true, false);
