@@ -545,12 +545,19 @@ AFRAME.registerSystem("transform-selected-object", {
     v.transformDirection(normalObject.matrixWorld);
 
     // Snap except along axis in direction of normal
-    const nx = Math.abs(v.x);
-    const ny = Math.abs(v.y);
-    const nz = Math.abs(v.z);
-    const normalIsMaxX = nx >= ny && nx >= nz;
-    const normalIsMaxY = !normalIsMaxX && ny >= nx && ny >= nz;
-    const normalIsMaxZ = !normalIsMaxX && !normalIsMaxY;
+    const nx = Math.abs(normal.x);
+    const ny = Math.abs(normal.y);
+    const nz = Math.abs(normal.z);
+    const nwx = Math.abs(v.x);
+    const nwy = Math.abs(v.y);
+    const nwz = Math.abs(v.z);
+
+    const normalIsObjectMaxX = nx >= ny && nx >= nz;
+    const normalIsObjectMaxY = !normalIsObjectMaxX && ny >= nx && ny >= nz;
+    const normalIsObjectMaxZ = !normalIsObjectMaxX && !normalIsObjectMaxY;
+    const normalIsWorldMaxX = nwx >= nwy && nwx >= nwz;
+    const normalIsWorldMaxY = !normalIsWorldMaxX && nwy >= nwx && nwy >= nwz;
+    const normalIsWorldMaxZ = !normalIsWorldMaxX && !normalIsWorldMaxY;
 
     objectSnapAlong.copy(axis);
     objectSnapAlong.transformDirection(this.targetInitialMatrix);
@@ -594,20 +601,20 @@ AFRAME.registerSystem("transform-selected-object", {
     if (stackSnapPosition) {
       normalObjectBoundingBox.getCenter(v);
 
-      if (normalIsMaxX) {
+      if (normalIsObjectMaxX) {
         v.x = normal.x > 0 ? normalObjectBoundingBox.max.x : normalObjectBoundingBox.min.x;
-      } else if (normalIsMaxY) {
+      } else if (normalIsObjectMaxY) {
         v.y = normal.y > 0 ? normalObjectBoundingBox.max.y : normalObjectBoundingBox.min.y;
-      } else if (normalIsMaxZ) {
+      } else if (normalIsObjectMaxZ) {
         v.z = normal.z > 0 ? normalObjectBoundingBox.max.z : normalObjectBoundingBox.min.z;
       }
 
       v.applyMatrix4(normalObject.matrixWorld);
       targetPoint.set(v.x, v.y, v.z).add(offset);
     } else {
-      const newX = withGridSnap(shouldSnap && !normalIsMaxX, point.x, snapScale);
-      const newY = withGridSnap(shouldSnap && !normalIsMaxY, point.y, snapScale);
-      const newZ = withGridSnap(shouldSnap && !normalIsMaxZ, point.z, snapScale);
+      const newX = withGridSnap(shouldSnap && !normalIsWorldMaxX, point.x, snapScale);
+      const newY = withGridSnap(shouldSnap && !normalIsWorldMaxY, point.y, snapScale);
+      const newZ = withGridSnap(shouldSnap && !normalIsWorldMaxZ, point.z, snapScale);
 
       targetPoint.set(newX, newY, newZ).add(offset);
     }
@@ -640,7 +647,7 @@ AFRAME.registerSystem("transform-selected-object", {
 
       let scaleRatio = 0.0;
 
-      if (normalIsMaxX) {
+      if (normalIsObjectMaxX) {
         if ((extentZ / targetExtentU) * targetExtentV <= extentY) {
           scaleRatio = Math.max(scaleRatio, extentZ / targetExtentU);
         }
@@ -648,7 +655,7 @@ AFRAME.registerSystem("transform-selected-object", {
         if ((extentY / targetExtentV) * targetExtentU <= extentZ) {
           scaleRatio = Math.max(scaleRatio, extentY / targetExtentV);
         }
-      } else if (normalIsMaxY) {
+      } else if (normalIsObjectMaxY) {
         if ((extentX / targetExtentU) * targetExtentV <= extentZ) {
           scaleRatio = Math.max(scaleRatio, extentX / targetExtentU);
         }
@@ -656,7 +663,7 @@ AFRAME.registerSystem("transform-selected-object", {
         if ((extentZ / targetExtentV) * targetExtentU <= extentX) {
           scaleRatio = Math.max(scaleRatio, extentZ / targetExtentV);
         }
-      } else if (normalIsMaxZ) {
+      } else if (normalIsObjectMaxZ) {
         if ((extentX / targetExtentU) * targetExtentV <= extentY) {
           scaleRatio = Math.max(scaleRatio, extentX / targetExtentU);
         }
