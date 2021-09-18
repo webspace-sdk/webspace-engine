@@ -257,6 +257,7 @@ const isDebug = qsTruthy("debug");
 const disablePausing = qsTruthy("no_pause") || isBotMode;
 const skipNeon = qsTruthy("skip_neon");
 const skipPanels = qsTruthy("skip_panels");
+const PAUSE_AFTER_BLUR_DURATION_MS = 15000;
 
 if (isBotMode) {
   const token = qs.get("credentials_token");
@@ -804,12 +805,23 @@ function setupGameEnginePausing(scene) {
         return;
       }
 
+      const { pauseImmediatelyOnNextBlur } = window.APP;
+      window.APP.pauseImmediatelyOnNextBlur = false;
+
+      if (pauseImmediatelyOnNextBlur && document.visibilityState === "visible") {
+        // HACK needed to deal with browser stealing window focus occasionally eg screen share nag
+        // Force the pause because we want the user to click back in.
+        clearTimeout(windowBlurredTimeout);
+        apply(true);
+        return;
+      }
+
       // If there's a screen share active, don't pause since user may be watching on dual monitors.
       if (hasActiveScreenShare()) return;
 
       windowBlurredTimeout = setTimeout(() => {
         apply(true);
-      }, 500);
+      }, PAUSE_AFTER_BLUR_DURATION_MS);
     });
 
     window.addEventListener("focus", () => {

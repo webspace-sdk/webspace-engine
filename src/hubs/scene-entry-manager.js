@@ -331,6 +331,14 @@ export default class SceneEntryManager {
         return;
       }
 
+      const browser = detect();
+
+      if (browser.name === "chrome") {
+        // HACK Chrome will move focus to the screen share nag so pause immediately
+        // to ensure user clicks back in.
+        window.APP.pauseImmediatelyOnNextBlur = true;
+      }
+
       const videoTracks = newStream ? newStream.getVideoTracks() : [];
       const mediaStreamSystem = this.scene.systems["hubs-systems"].mediaStreamSystem;
 

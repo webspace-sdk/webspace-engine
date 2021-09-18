@@ -1002,7 +1002,7 @@ export const hasActiveScreenShare = () => {
   const videoEls = document.querySelectorAll("[media-video]");
 
   for (const videoEl of videoEls) {
-    const component = videoEl.components["media-loader"];
+    const component = videoEl.components["media-video"];
 
     if (component.data.contentType === "video/vnd.jel-webrtc") {
       return true;
