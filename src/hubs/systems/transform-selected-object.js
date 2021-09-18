@@ -556,10 +556,14 @@ AFRAME.registerSystem("transform-selected-object", {
     objectSnapAlong.transformDirection(this.targetInitialMatrix);
 
     // Stack position snapping will center-snap the origin of the target object to the box face.
-    const stackSnapPosition = true;
+    let stackSnapPosition = false;
 
     // Stack scale snapping will scale the object to fit.
-    const stackSnapScale = true;
+    let stackSnapScale = false;
+
+    if (normalObject.el && normalObject.el.components["media-loader"]) {
+      ({ stackSnapPosition, stackSnapScale } = normalObject.el.components["media-loader"].data);
+    }
 
     // If the world space normal and original world object up are not already parallel, reorient the object
     if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.001 || stackSnapPosition) {

@@ -1619,6 +1619,9 @@ export class VoxSystem extends EventTarget {
 
       for (const [voxId, { sources }] of voxMap.entries()) {
         let stackAxis = 0;
+        let stackSnapPosition = false;
+        let stackSnapScale = false;
+
         let scale = 1.0;
         let hasLockedMedia = false;
 
@@ -1634,6 +1637,8 @@ export class VoxSystem extends EventTarget {
 
           if (mediaLoader) {
             stackAxis = mediaLoader.data.stackAxis;
+            stackSnapPosition = mediaLoader.data.stackSnapPosition;
+            stackSnapScale = mediaLoader.data.stackSnapScale;
           }
 
           scale = tmpVec.x;
@@ -1657,6 +1662,8 @@ export class VoxSystem extends EventTarget {
           collection,
           category,
           stackAxis,
+          stackSnapPosition,
+          stackSnapScale,
           scale,
           thumbFileId,
           previewFileId
@@ -1725,7 +1732,13 @@ export class VoxSystem extends EventTarget {
 
     const metadata = await voxMetadata.getOrFetchMetadata(voxId);
 
-    const { url, published_stack_axis, published_scale } = metadata;
+    const {
+      url,
+      published_stack_axis,
+      published_stack_snap_position,
+      published_stack_snap_scale,
+      published_scale
+    } = metadata;
 
     const entity = spawnMediaInfrontOfPlayer(
       url,
@@ -1738,7 +1751,9 @@ export class VoxSystem extends EventTarget {
       "model/vnd.jel-vox",
       -2.5,
       0,
-      published_stack_axis
+      published_stack_axis,
+      published_stack_snap_position,
+      published_stack_snap_scale
     );
 
     entity.object3D.scale.setScalar(published_scale);
@@ -1757,7 +1772,13 @@ export class VoxSystem extends EventTarget {
 
     const metadata = await voxMetadata.getOrFetchMetadata(assetPanelDraggingVoxId);
 
-    const { url, published_stack_axis, published_scale } = metadata;
+    const {
+      url,
+      published_stack_axis,
+      published_stack_snap_position,
+      published_stack_snap_scale,
+      published_scale
+    } = metadata;
 
     const { entity } = addMedia(
       url,
@@ -1776,7 +1797,9 @@ export class VoxSystem extends EventTarget {
       false,
       "model/vnd.jel-vox",
       false,
-      published_stack_axis
+      published_stack_axis,
+      published_stack_snap_position,
+      published_stack_snap_scale
     );
 
     entity.object3D.scale.setScalar(published_scale);

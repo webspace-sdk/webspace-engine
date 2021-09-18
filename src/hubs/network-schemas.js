@@ -202,6 +202,14 @@ function registerNetworkSchemas() {
       {
         component: "media-loader",
         property: "stackAxis"
+      },
+      {
+        component: "media-loader",
+        property: "stackSnapPosition"
+      },
+      {
+        component: "media-loader",
+        property: "stackSnapScale"
       }
     ],
     nonAuthorizedComponents: [
