@@ -647,6 +647,8 @@ AFRAME.registerSystem("transform-selected-object", {
 
       let scaleRatio = 0.0;
 
+      // Take the best scale that will fit within the target object's world space extents,
+      // along the longest allowable edge of the target object.
       if (normalIsObjectMaxX) {
         if ((extentZ / targetExtentU) * targetExtentV <= extentY) {
           scaleRatio = Math.max(scaleRatio, extentZ / targetExtentU);
