@@ -1,5 +1,5 @@
 import { paths } from "../systems/userinput/paths";
-import { isChildOf, expandByEntityObjectSpaceBoundingBox } from "../utils/three-utils";
+import { almostEqual, isChildOf, expandByEntityObjectSpaceBoundingBox } from "../utils/three-utils";
 import { isFlatMedia } from "../utils/media-utils";
 import { VOXEL_SIZE } from "../../jel/systems/terrain-system";
 
@@ -20,6 +20,7 @@ const CAMERA_WORLD_POSITION = new THREE.Vector3();
 const TARGET_WORLD_QUATERNION = new THREE.Quaternion();
 const v = new THREE.Vector3();
 const v2 = new THREE.Vector3();
+const v3 = new THREE.Vector3();
 const q = new THREE.Quaternion();
 const q2 = new THREE.Quaternion();
 const tmpMatrix = new THREE.Matrix4();
@@ -65,6 +66,8 @@ AFRAME.registerSystem("transform-selected-object", {
     this.target = null;
     this.targetInitialMatrix = new THREE.Matrix4();
     this.targetBoundingBox = new THREE.Box3();
+    this.hitNormalObject = null;
+    this.hitNormalObjectBoundingBox = new THREE.Box3();
     this.mode = null;
     this.transforming = false;
     this.store = window.APP.store;
@@ -125,6 +128,7 @@ AFRAME.registerSystem("transform-selected-object", {
       this.mode = null;
       this.transforming = false;
       this.target = null;
+      this.hitNormalObject = null;
       this.dWheelApplied = 0;
 
       this.el.emit("transform_stopped");
@@ -222,12 +226,18 @@ AFRAME.registerSystem("transform-selected-object", {
 
       if (SYSTEMS.voxSystem.isTargettingMesh(object)) continue;
 
-      const normalObject =
+      const newNormalObject =
         SYSTEMS.voxSystem.getSourceForMeshAndInstance(object, instanceId) ||
         SYSTEMS.voxmojiSystem.getSourceForMeshAndInstance(object, instanceId) ||
         object;
 
-      this.stackTargetAt(point, normal, normalObject);
+      if (this.hitNormalObject !== newNormalObject) {
+        this.hitNormalObject = newNormalObject;
+        this.hitNormalObjectBoundingBox.makeEmpty();
+        expandByEntityObjectSpaceBoundingBox(this.hitNormalObjectBoundingBox, this.hitNormalObject.el);
+      }
+
+      this.stackTargetAt(point, normal, this.hitNormalObject, this.hitNormalObjectBoundingBox);
 
       break;
     }
@@ -499,7 +509,7 @@ AFRAME.registerSystem("transform-selected-object", {
     this.target.setMatrix(tmpMatrix);
   },
 
-  stackTargetAt(point, normal, normalObject) {
+  stackTargetAt(point, normal, normalObject, normalObjectBoundingBox) {
     const { target, targetBoundingBox } = this;
     const userinput = this.el.systems.userinput;
     const { elements } = this.targetInitialMatrix;
@@ -516,7 +526,7 @@ AFRAME.registerSystem("transform-selected-object", {
     const axis = (isFlat ? FLAT_STACK_AXES : NON_FLAT_STACK_AXES)[this.stackAlongAxis];
     v.set(0, 0, 0);
 
-    // v is the world space point of the bottom/top center of the bounding box
+    // v is the object space point of the bottom/top center of the bounding box
     if (axis.x !== 0) {
       v.x = axis.x < 0 ? targetBoundingBox.max.x : targetBoundingBox.min.x;
     } else if (axis.y !== 0) {
@@ -545,8 +555,18 @@ AFRAME.registerSystem("transform-selected-object", {
     objectSnapAlong.copy(axis);
     objectSnapAlong.transformDirection(this.targetInitialMatrix);
 
+    // Stack position snapping will center-snap the origin of the target object to the box face.
+    let stackSnapPosition = false;
+
+    // Stack scale snapping will scale the object to fit.
+    let stackSnapScale = false;
+
+    if (normalObject.el && normalObject.el.components["media-loader"]) {
+      ({ stackSnapPosition, stackSnapScale } = normalObject.el.components["media-loader"].data);
+    }
+
     // If the world space normal and original world object up are not already parallel, reorient the object
-    if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.001) {
+    if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.001 || stackSnapPosition) {
       // Flat media aligns to walls, other objects align to floor.
       q.setFromUnitVectors(axis, v);
     } else {
@@ -561,7 +581,7 @@ AFRAME.registerSystem("transform-selected-object", {
       q.multiply(q2);
     }
 
-    target.matrixWorld.decompose(v, q2 /* ignored */, v2);
+    target.matrixWorld.decompose(v /* ignored */, q2 /* ignored */, v2);
 
     // Offset is the vector displacement from object origin to the box
     // face in object space, scaled properly here.
@@ -571,11 +591,89 @@ AFRAME.registerSystem("transform-selected-object", {
     const shouldSnap = !userinput.get(shiftKeyPath);
     const snapScale = isFlatMedia(this.target) ? 1.0 : scale;
 
-    const newX = withGridSnap(shouldSnap && !normalIsMaxX, point.x, snapScale);
-    const newY = withGridSnap(shouldSnap && !normalIsMaxY, point.y, snapScale);
-    const newZ = withGridSnap(shouldSnap && !normalIsMaxZ, point.z, snapScale);
+    if (stackSnapPosition) {
+      normalObjectBoundingBox.getCenter(v);
 
-    targetPoint.set(newX, newY, newZ).add(offset);
+      if (normalIsMaxX) {
+        v.x = normal.x > 0 ? normalObjectBoundingBox.max.x : normalObjectBoundingBox.min.x;
+      } else if (normalIsMaxY) {
+        v.y = normal.y > 0 ? normalObjectBoundingBox.max.y : normalObjectBoundingBox.min.y;
+      } else if (normalIsMaxZ) {
+        v.z = normal.z > 0 ? normalObjectBoundingBox.max.z : normalObjectBoundingBox.min.z;
+      }
+
+      v.applyMatrix4(normalObject.matrixWorld);
+      targetPoint.set(v.x, v.y, v.z).add(offset);
+    } else {
+      const newX = withGridSnap(shouldSnap && !normalIsMaxX, point.x, snapScale);
+      const newY = withGridSnap(shouldSnap && !normalIsMaxY, point.y, snapScale);
+      const newZ = withGridSnap(shouldSnap && !normalIsMaxZ, point.z, snapScale);
+
+      targetPoint.set(newX, newY, newZ).add(offset);
+    }
+
+    if (stackSnapScale) {
+      normalObject.matrixWorld.decompose(v3 /* ignored */, q2 /* ignored */, v /* target scale */);
+
+      const extentX = normalObjectBoundingBox.max.x * v.x - normalObjectBoundingBox.min.x * v.x;
+      const extentY = normalObjectBoundingBox.max.y * v.y - normalObjectBoundingBox.min.y * v.y;
+      const extentZ = normalObjectBoundingBox.max.z * v.z - normalObjectBoundingBox.min.z * v.z;
+
+      target.matrixWorld.decompose(v3 /* ignored */, q2 /* ignored */, v /* target scale */);
+      const targetExtentX = targetBoundingBox.max.x * v.x - targetBoundingBox.min.x * v.x;
+      const targetExtentY = targetBoundingBox.max.y * v.y - targetBoundingBox.min.y * v.y;
+      const targetExtentZ = targetBoundingBox.max.z * v.z - targetBoundingBox.min.z * v.z;
+
+      // Get the target UV extents to scale on, which are extents orthogonal to the axis
+      let targetExtentU, targetExtentV;
+
+      if (Math.abs(axis.x) === 1) {
+        targetExtentU = targetExtentZ;
+        targetExtentV = targetExtentY;
+      } else if (Math.abs(axis.y) === 1) {
+        targetExtentU = targetExtentX;
+        targetExtentV = targetExtentZ;
+      } else if (Math.abs(axis.z) === 1) {
+        targetExtentU = targetExtentX;
+        targetExtentV = targetExtentY;
+      }
+
+      let scaleRatio = 0.0;
+
+      if (normalIsMaxX) {
+        if ((extentZ / targetExtentU) * targetExtentV <= extentY) {
+          scaleRatio = Math.max(scaleRatio, extentZ / targetExtentU);
+        }
+
+        if ((extentY / targetExtentV) * targetExtentU <= extentZ) {
+          scaleRatio = Math.max(scaleRatio, extentY / targetExtentV);
+        }
+      } else if (normalIsMaxY) {
+        if ((extentX / targetExtentU) * targetExtentV <= extentZ) {
+          scaleRatio = Math.max(scaleRatio, extentX / targetExtentU);
+        }
+
+        if ((extentZ / targetExtentV) * targetExtentU <= extentX) {
+          scaleRatio = Math.max(scaleRatio, extentZ / targetExtentV);
+        }
+      } else if (normalIsMaxZ) {
+        if ((extentX / targetExtentU) * targetExtentV <= extentY) {
+          scaleRatio = Math.max(scaleRatio, extentX / targetExtentU);
+        }
+
+        if ((extentY / targetExtentV) * targetExtentU <= extentX) {
+          scaleRatio = Math.max(scaleRatio, extentY / targetExtentV);
+        }
+      }
+
+      if (scaleRatio === 0.0) {
+        scaleRatio = 1.0;
+      }
+
+      if (!almostEqual(scaleRatio, 1.0)) {
+        v2.multiplyScalar(scaleRatio);
+      }
+    }
 
     tmpMatrix.compose(
       targetPoint,

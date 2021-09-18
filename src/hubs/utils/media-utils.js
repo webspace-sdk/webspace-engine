@@ -256,7 +256,9 @@ export const addMedia = (
   skipLoader = false,
   contentType = null,
   locked = false,
-  stackAxis = 0
+  stackAxis = 0,
+  stackSnapPosition = false,
+  stackSnapScale = false
 ) => {
   const scene = AFRAME.scenes[0];
 
@@ -323,7 +325,9 @@ export const addMedia = (
     mediaOptions,
     contentType,
     locked,
-    stackAxis
+    stackAxis,
+    stackSnapPosition,
+    stackSnapScale
   });
 
   if (contents && !isEmoji) {
@@ -531,7 +535,15 @@ export const cloneMedia = (
     }
   }
 
-  const { contentType, contentSubtype, fitToBox, mediaOptions, stackAxis } = sourceEl.components["media-loader"].data;
+  const {
+    contentType,
+    contentSubtype,
+    fitToBox,
+    mediaOptions,
+    stackAxis,
+    stackSnapPosition,
+    stackSnapScale
+  } = sourceEl.components["media-loader"].data;
 
   return addMedia(
     src,
@@ -550,7 +562,9 @@ export const cloneMedia = (
     false,
     contentType,
     false,
-    stackAxis
+    stackAxis,
+    stackSnapPosition,
+    stackSnapScale
   );
 };
 
@@ -944,7 +958,9 @@ export const spawnMediaInfrontOfPlayer = (
   contentType = null,
   zOffset = -2.5,
   yOffset = 0,
-  stackAxis = 0
+  stackAxis = 0,
+  stackSnapPosition = false,
+  stackSnapScale = false
 ) => {
   if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
   if (src instanceof File && !window.APP.hubChannel.can("upload_files")) return;
@@ -966,7 +982,9 @@ export const spawnMediaInfrontOfPlayer = (
     false,
     contentType,
     false,
-    stackAxis
+    stackAxis,
+    stackSnapPosition,
+    stackSnapScale
   );
 
   orientation.then(or => {
@@ -984,7 +1002,7 @@ export const hasActiveScreenShare = () => {
   const videoEls = document.querySelectorAll("[media-video]");
 
   for (const videoEl of videoEls) {
-    const component = videoEl.components["media-loader"];
+    const component = videoEl.components["media-video"];
 
     if (component.data.contentType === "video/vnd.jel-webrtc") {
       return true;

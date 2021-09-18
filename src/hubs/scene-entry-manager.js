@@ -334,9 +334,9 @@ export default class SceneEntryManager {
       const browser = detect();
 
       if (browser.name === "chrome") {
-        // HACK Chrome will move focus to the screen share nag so disable
-        // the blur handler one time.
-        window.APP.disableBlurHandlerOnceIfVisible = true;
+        // HACK Chrome will move focus to the screen share nag so pause immediately
+        // to ensure user clicks back in.
+        window.APP.pauseImmediatelyOnNextBlur = true;
       }
 
       const videoTracks = newStream ? newStream.getVideoTracks() : [];

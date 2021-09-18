@@ -60,6 +60,8 @@ AFRAME.registerComponent("media-loader", {
     animate: { default: true },
     linkedEl: { default: null }, // This is the element of which this is a linked derivative. See linked-media.js
     stackAxis: { default: 0 },
+    stackSnapPosition: { default: false },
+    stackSnapScale: { default: false },
     mediaOptions: {
       default: {},
       parse: v => (typeof v === "object" ? v : JSON.parse(v)),
@@ -212,6 +214,8 @@ AFRAME.registerComponent("media-loader", {
     this.loaderParticles.scale.y = 0.35;
     this.loaderParticles.rotation.set(-Math.PI / 2, 0, 0);
     this.loaderParticles.matrixNeedsUpdate = true;
+    this.loaderParticles.userData.excludeFromBoundingBox = true;
+
     this.el.setObject3D("loader-particles", this.loaderParticles);
 
     this.updateScale(true, false);
