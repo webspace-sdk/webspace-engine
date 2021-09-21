@@ -75,6 +75,6 @@ export async function getInitialHubForSpaceId(spaceId) {
 
   const accountId = store.credentialsAccountId;
   const res = await fetchReticulumAuthenticated(`/api/v1/accounts/${accountId}`);
-  const membership = res.memberships.filter(m => m.space.space_id === spaceId)[0];
+  const membership = (res.memberships || []).filter(m => m.space.space_id === spaceId)[0];
   return (membership && membership.default_hub) || null;
 }

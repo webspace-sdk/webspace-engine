@@ -604,7 +604,7 @@ let updateTitleAndWorldForHubHandler;
 
 const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI) => {
   let isInitialJoin = true;
-  const { spaceChannel, hubChannel, hubMetadata, matrix } = window.APP;
+  const { spaceChannel, hubChannel, spaceMetadata, hubMetadata, matrix } = window.APP;
 
   return new Promise(joinFinished => {
     hubPhxChannel
@@ -728,7 +728,26 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
           remountJelUI({ unavailableReason: "closed" });
         } else if (res.reason === "join_denied") {
           entryManager.exitScene();
-          remountJelUI({ unavailableReason: "denied" });
+
+          // Check if we can invite ourselves to the space.
+          spaceMetadata.getOrFetchMetadata(spaceChannel.spaceId).then(async ({ permissions: { create_invite } }) => {
+            if (create_invite) {
+              // Kind of hacky, get hub id and create new space channel.
+              const spaceId = spaceChannel.spaceId;
+              const hubId = hubPhxChannel.topic.split(":")[1];
+
+              const socket = await connectToReticulum();
+
+              const spacePhxChannel = socket.channel(spaceChannel.channel.topic, createSpaceChannelParams());
+
+              spacePhxChannel.join().receive("ok", async () => {
+                spaceChannel.bind(spacePhxChannel, spaceId);
+                document.location = await spaceChannel.createInvite(hubId);
+              });
+            } else {
+              remountJelUI({ unavailableReason: "denied" });
+            }
+          });
         }
 
         joinFinished(false);
