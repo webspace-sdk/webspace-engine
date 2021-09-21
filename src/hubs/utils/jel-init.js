@@ -730,9 +730,20 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
           entryManager.exitScene();
 
           // Check if we can invite ourselves to the space.
-          spaceMetadata.getOrFetchMetadata(spaceChannel.spaceId).then(({ permissions: { create_invite } }) => {
+          spaceMetadata.getOrFetchMetadata(spaceChannel.spaceId).then(async ({ permissions: { create_invite } }) => {
             if (create_invite) {
-              console.log("INVITE MYSELF");
+              // Kind of hacky, get hub id and create new space channel.
+              const spaceId = spaceChannel.spaceId;
+              const hubId = hubPhxChannel.topic.split(":")[1];
+
+              const socket = await connectToReticulum();
+
+              const spacePhxChannel = socket.channel(spaceChannel.channel.topic, createSpaceChannelParams());
+
+              spacePhxChannel.join().receive("ok", async () => {
+                spaceChannel.bind(spacePhxChannel, spaceId);
+                document.location = await spaceChannel.createInvite(hubId);
+              });
             } else {
               remountJelUI({ unavailableReason: "denied" });
             }

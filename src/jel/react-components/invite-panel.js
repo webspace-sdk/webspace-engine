@@ -138,9 +138,7 @@ const InvitePanel = forwardRef((props, ref) => {
       <InviteInfo>
         <FormattedMessage id={`invite-panel.info`} />
       </InviteInfo>
-      <InviteTip>
-        <FormattedMessage id={`invite-panel.expires-info`} />
-      </InviteTip>
+      <InviteTip>{inviteLinkType !== "hub" && <FormattedMessage id={`invite-panel.expires-info`} />}</InviteTip>
     </InvitePanelElement>
   );
 });
