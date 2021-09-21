@@ -754,7 +754,6 @@ function setupGameEnginePausing(scene) {
       }
 
       document.body.classList.add("paused");
-      autoQuality.stopTracking();
       physics.updateSimulationRate(1000.0 / 15.0);
       accountChannel.setInactive();
       clearTimeout(disableAmbienceTimeout);
@@ -778,7 +777,6 @@ function setupGameEnginePausing(scene) {
           scene.play();
           scene.renderer.animation.start();
           SYSTEMS.externalCameraSystem.startRendering();
-          autoQuality.startTracking();
         }
 
         clearTimeout(disableAmbienceTimeout);
@@ -786,6 +784,10 @@ function setupGameEnginePausing(scene) {
         physics.updateSimulationRate(1000.0 / 90.0);
         accountChannel.setActive();
         SYSTEMS.atmosphereSystem.enableAmbience();
+      }
+
+      if (document.visibilityState === "visible") {
+        autoQuality.startTracking();
       }
     }
   };
@@ -815,6 +817,9 @@ function setupGameEnginePausing(scene) {
         apply(true);
         return;
       }
+
+      // Stop tracking quality immediately on blur to make sure it doesn't drop it.
+      autoQuality.stopTracking();
 
       // If there's a screen share active, don't pause since user may be watching on dual monitors.
       if (hasActiveScreenShare()) return;
