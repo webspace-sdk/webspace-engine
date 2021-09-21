@@ -350,6 +350,7 @@ function LeftPanel({
   const invitePanelFieldElement = useRef();
   const spaceBannerRef = useRef();
   const showSpaceNotificationsButtonRef = useRef();
+  const inviteLinkType = metadata ? metadata.invite_link_type : "invite";
 
   const { spaceChannel } = window.APP;
 
@@ -548,8 +549,16 @@ function LeftPanel({
       <Invite setPopperElement={setInviteElement} styles={inviteStyles} attributes={inviteAttributes}>
         <InvitePanel
           spaceId={spaceId}
+          inviteLinkType={inviteLinkType}
           ref={invitePanelFieldElement}
-          fetchInviteUrl={async () => await spaceChannel.createInvite()}
+          fetchInviteUrl={async () => {
+            if (inviteLinkType === "hub") {
+              const metadata = hubMetadata.getMetadata(hubId);
+              return metadata && metadata.url;
+            } else {
+              return await spaceChannel.createInvite();
+            }
+          }}
         />
       </Invite>
       <TrashMenu setPopperElement={setTrashMenuElement} styles={trashMenuStyles} attributes={trashMenuAttributes}>

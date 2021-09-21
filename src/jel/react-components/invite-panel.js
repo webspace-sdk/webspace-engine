@@ -73,7 +73,7 @@ const InviteElement = styled.input`
 `;
 
 const InvitePanel = forwardRef((props, ref) => {
-  const { fetchInviteUrl } = props;
+  const { fetchInviteUrl, inviteLinkType } = props;
   const [inviteUrl, setInviteUrl] = useState("");
   const [inviteUrlCreatedAt, setInviteUrlCreatedAt] = useState(null);
   const [inviteUrlSpaceId, setInviteUrlSpaceId] = useState(null);
@@ -81,9 +81,13 @@ const InvitePanel = forwardRef((props, ref) => {
   const spaceId = props.spaceId;
 
   const shouldRefetch = useCallback(
-    () =>
-      !inviteUrl || performance.now() - inviteUrlCreatedAt >= REFETCH_INVITE_LINK_MS || inviteUrlSpaceId !== spaceId,
-    [inviteUrl, inviteUrlCreatedAt, inviteUrlSpaceId, spaceId]
+    () => {
+      if (inviteLinkType === "hub") return true;
+      return (
+        !inviteUrl || performance.now() - inviteUrlCreatedAt >= REFETCH_INVITE_LINK_MS || inviteUrlSpaceId !== spaceId
+      );
+    },
+    [inviteUrl, inviteLinkType, inviteUrlCreatedAt, inviteUrlSpaceId, spaceId]
   );
 
   return (
@@ -145,7 +149,8 @@ InvitePanel.displayName = "InvitePanel";
 
 InvitePanel.propTypes = {
   fetchInviteUrl: PropTypes.func,
-  spaceId: PropTypes.string
+  spaceId: PropTypes.string,
+  inviteLinkType: PropTypes.string
 };
 
 export default InvitePanel;
