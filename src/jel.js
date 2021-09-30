@@ -617,7 +617,12 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
     const locked = cursorLockState === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
     const unlocked = cursorLockState === CURSOR_LOCK_STATES.UNLOCKED_PERSISTENT;
 
-    if (!isInQuillEditor() && !isInEditableField() && ((panelsCollapsed && unlocked) || (!panelsCollapsed && locked))) {
+    if (
+      !isInQuillEditor() &&
+      !isInEditableField() &&
+      ((panelsCollapsed && unlocked) || (!panelsCollapsed && locked)) &&
+      !SYSTEMS.cameraSystem.isInspecting()
+    ) {
       uiAnimationSystem[panelsCollapsed ? "expandSidePanels" : "collapseSidePanels"]();
     }
   });

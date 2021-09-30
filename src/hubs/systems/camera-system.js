@@ -126,6 +126,7 @@ export class CameraSystem extends EventTarget {
     this.verticalDelta = 0;
     this.horizontalDelta = 0;
     this.inspectZoom = 0;
+    this.collapsedPanelsOnInspect = false;
     this.allowCursor = false;
     this.orthographicEnabled = false;
     this.showXZPlane = true;
@@ -497,6 +498,11 @@ export class CameraSystem extends EventTarget {
 
           if (inspectable) {
             const distanceMod = shouldOrbitOnInspect(inspectable.object3D) ? 1.5 : 1;
+            if (!SYSTEMS.uiAnimationSystem.isCollapsingOrCollapsed()) {
+              SYSTEMS.uiAnimationSystem.collapseSidePanels();
+              this.collapsedPanelsOnInspect = true;
+            }
+
             this.inspect(inspectable.object3D, distanceMod);
           }
         }
@@ -509,6 +515,11 @@ export class CameraSystem extends EventTarget {
       ) {
         scene.emit("uninspect");
         this.uninspect();
+
+        if (this.collapsedPanelsOnInspect) {
+          SYSTEMS.uiAnimationSystem.expandSidePanels();
+          this.collapsedPanelsOnInspect = false;
+        }
       }
 
       const headShouldBeVisible = this.mode !== CAMERA_MODE_FIRST_PERSON;
