@@ -257,7 +257,12 @@ const isDebug = qsTruthy("debug");
 const disablePausing = qsTruthy("no_pause") || isBotMode;
 const skipNeon = qsTruthy("skip_neon");
 const skipPanels = qsTruthy("skip_panels");
-const PAUSE_AFTER_BLUR_DURATION_MS = 15000;
+
+const browser = detect();
+
+// Don't pause on blur on linux bc of gfx instability
+const performConservativePausing = browser.os === "Linux";
+const PAUSE_AFTER_BLUR_DURATION_MS = performConservativePausing ? 0 : 15000;
 
 if (isBotMode) {
   const token = qs.get("credentials_token");
@@ -476,7 +481,6 @@ async function checkPrerequisites() {
 
   const detectedOS = detectOS(navigator.userAgent);
 
-  const browser = detect();
   // HACK - it seems if we don't initialize the mic track up-front, voices can drop out on iOS
   // safari when initializing it later.
   if (["iOS", "Mac OS"].includes(detectedOS) && ["safari", "ios"].includes(browser.name)) {
@@ -827,7 +831,7 @@ function setupGameEnginePausing(scene) {
       autoQuality.stopTracking();
 
       // If there's a screen share active, don't pause since user may be watching on dual monitors.
-      if (hasActiveScreenShare()) return;
+      if (!performConservativePausing && hasActiveScreenShare()) return;
 
       windowBlurredTimeout = setTimeout(() => {
         apply(true);
