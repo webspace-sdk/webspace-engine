@@ -12,6 +12,8 @@ import { ATOM_TYPES } from "../../jel/utils/atom-metadata";
 // In inspect mode we extend the far plane and disable the fog, so we can observe big objects.
 const FAR_PLANE_FOR_INSPECT = 100;
 const MAX_INSPECT_CAMERA_DISTANCE = 40;
+const FAR_PLANE_FOR_FOG = 26;
+const FAR_PLANE_FOR_NO_FOG = 100;
 
 export function getInspectable(child) {
   let el = child;
@@ -412,13 +414,10 @@ export class CameraSystem extends EventTarget {
     if (this.mode === CAMERA_MODE_INSPECT) {
       if (this.snapshot.mask === null) {
         this.snapshot.mask = camera.layers.mask;
-        this.snapshot.far = camera.far;
 
         if (vrMode) {
           this.snapshot.mask0 = camera.cameras[0].layers.mask;
           this.snapshot.mask1 = camera.cameras[1].layers.mask;
-          this.snapshot.far0 = camera.cameras[0].far;
-          this.snapshot.far1 = camera.cameras[1].far;
         }
       }
 
@@ -451,17 +450,20 @@ export class CameraSystem extends EventTarget {
 
       SYSTEMS.atmosphereSystem.disableFog();
     } else {
+      const enableFog = SYSTEMS.terrainSystem.worldTypeHasFog();
+      const far = enableFog ? FAR_PLANE_FOR_FOG : FAR_PLANE_FOR_NO_FOG;
+
       if (this.snapshot.mask) {
         camera.layers.mask = this.snapshot.mask;
 
         if (vrMode) {
           camera.cameras[0].layers.mask = this.snapshot.mask0;
           camera.cameras[1].layers.mask = this.snapshot.mask1;
-          camera.cameras[0].far = this.snapshot.far0;
-          camera.cameras[1].far = this.snapshot.far1;
+          camera.cameras[0].far = far;
+          camera.cameras[1].far = far;
         }
 
-        camera.far = this.snapshot.far;
+        camera.far = far;
       }
 
       camera.updateProjectionMatrix();
@@ -471,7 +473,11 @@ export class CameraSystem extends EventTarget {
         camera.cameras[1].updateProjectionMatrix();
       }
 
-      SYSTEMS.atmosphereSystem.enableFog();
+      if (SYSTEMS.terrainSystem.worldTypeHasFog()) {
+        SYSTEMS.atmosphereSystem.enableFog();
+      } else {
+        SYSTEMS.atmosphereSystem.disableFog();
+      }
     }
   }
 
@@ -499,11 +505,18 @@ export class CameraSystem extends EventTarget {
           if (inspectable) {
             const distanceMod = shouldOrbitOnInspect(inspectable.object3D) ? 1.5 : 1;
             if (!SYSTEMS.uiAnimationSystem.isCollapsingOrCollapsed()) {
+              this.sceneEl.addEventListener(
+                "animated_resize_complete",
+                () => {
+                  this.inspect(inspectable.object3D, distanceMod);
+                },
+                { once: true }
+              );
               SYSTEMS.uiAnimationSystem.collapseSidePanels();
               this.collapsedPanelsOnInspect = true;
+            } else {
+              this.inspect(inspectable.object3D, distanceMod);
             }
-
-            this.inspect(inspectable.object3D, distanceMod);
           }
         }
       } else if (

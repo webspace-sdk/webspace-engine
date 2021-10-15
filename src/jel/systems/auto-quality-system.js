@@ -121,7 +121,7 @@ export class AutoQualitySystem extends EventTarget {
     this.totalFrames++;
     this.sampledFrames++;
 
-    const forceHighResolution = SYSTEMS.cameraSystem.isInspecting();
+    const forceHighResolution = true; // TODO revisit resolution lowering, can make text hard to read. SYSTEMS.cameraSystem.isInspecting();
 
     if (forceHighResolution) {
       this.tryResetPixelRatio();

@@ -816,6 +816,11 @@ export class TerrainSystem {
     return this.worldType === 1;
   }
 
+  worldTypeHasFog() {
+    // Flat worlds disable fog
+    return this.worldType !== 3;
+  }
+
   cullChunksAndFeatureGroups = (() => {
     // Chunk + feature culling based upon AABB
     // https://iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm
