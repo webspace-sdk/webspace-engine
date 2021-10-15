@@ -138,13 +138,14 @@ const decodeChunks = buffer => {
 };
 
 export class TerrainSystem {
-  constructor(scene, atmosphereSystem) {
+  constructor(scene, atmosphereSystem, cameraSystem) {
     waitForDOMContentLoaded().then(() => {
       this.avatarPovEl = document.getElementById("avatar-pov-node");
       this.viewingCameraEl = document.getElementById("viewing-camera");
     });
 
     this.atmosphereSystem = atmosphereSystem;
+    this.cameraSystem = cameraSystem;
     this.avatarChunk = new THREE.Vector3(Infinity, 0, Infinity);
     this.avatarZone = null;
     this.pool = [...Array(LOAD_GRID.length)].map(() => new Terrain());
@@ -390,6 +391,7 @@ export class TerrainSystem {
 
     // Perform fog effect
     this.atmosphereSystem.maximizeFog();
+    this.cameraSystem.updateCameraSettings();
 
     this.worldType = type;
     this.worldSeed = seed;

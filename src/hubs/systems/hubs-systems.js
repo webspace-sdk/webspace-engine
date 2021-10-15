@@ -96,7 +96,7 @@ AFRAME.registerSystem("hubs-systems", {
       this.wrappedEntitySystem,
       this.soundEffectsSystem
     );
-    this.terrainSystem = new TerrainSystem(this.el, this.atmosphereSystem);
+    this.terrainSystem = new TerrainSystem(this.el, this.atmosphereSystem, this.cameraSystem);
     this.builderSystem = new BuilderSystem(
       this.el,
       this.el.systems.userinput,

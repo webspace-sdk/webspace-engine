@@ -13,7 +13,7 @@ import { ATOM_TYPES } from "../../jel/utils/atom-metadata";
 const FAR_PLANE_FOR_INSPECT = 100;
 const MAX_INSPECT_CAMERA_DISTANCE = 40;
 const FAR_PLANE_FOR_FOG = 26;
-const FAR_PLANE_FOR_NO_FOG = 300;
+const FAR_PLANE_FOR_NO_FOG = 2000;
 
 export function getInspectable(child) {
   let el = child;
@@ -469,9 +469,14 @@ export class CameraSystem extends EventTarget {
           camera.cameras[0].far = far;
           camera.cameras[1].far = far;
         }
-
-        camera.far = far;
       }
+
+      if (vrMode) {
+        camera.cameras[0].far = far;
+        camera.cameras[1].far = far;
+      }
+
+      camera.far = far;
 
       camera.updateProjectionMatrix();
 
