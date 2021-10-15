@@ -526,8 +526,8 @@ function JelUI(props) {
         if (updateHubPermissionsPopup) updateHubPermissionsPopup();
       };
 
-      scene && scene.addEventListener("animated_resize_complete", handleResizeComplete);
-      () => scene && scene.removeEventListener("animated_resize_complete", handleResizeComplete);
+      scene && scene.addEventListener("side_panel_resize_complete", handleResizeComplete);
+      () => scene && scene.removeEventListener("side_panel_resize_complete", handleResizeComplete);
     },
     [
       scene,

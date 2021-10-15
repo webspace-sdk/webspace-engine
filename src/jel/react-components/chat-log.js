@@ -291,11 +291,11 @@ export default function ChatLog({ scene, hub, store, leftOffset }) {
       relayout();
 
       window.addEventListener("resize", relayout);
-      window.addEventListener("animated_resize_complete", relayout);
+      window.addEventListener("side_panel_resize_complete", relayout);
 
       return () => {
         window.removeEventListener("resize", relayout);
-        window.removeEventListener("animated_resize_complete", relayout);
+        window.removeEventListener("side_panel_resize_complete", relayout);
       };
     },
     [ref, entryHash]

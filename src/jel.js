@@ -880,7 +880,7 @@ function setupSidePanelLayout(scene) {
       document.addEventListener(
         "mouseup",
         () => {
-          scene.emit("animated_resize_complete");
+          scene.emit("side_panel_resize_complete");
           document.removeEventListener("mousemove", handleMove);
         },
         { once: true }

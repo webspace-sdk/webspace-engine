@@ -27,9 +27,9 @@ export class AtmosphereSystem {
     });
 
     // Disable extra rendering while UI resizing
-    sceneEl.addEventListener("animated_resize_started", () => (this.disableExtraPasses = true));
+    sceneEl.addEventListener("side_panel_resize_started", () => (this.disableExtraPasses = true));
 
-    sceneEl.addEventListener("animated_resize_complete", () => (this.disableExtraPasses = false));
+    sceneEl.addEventListener("side_panel_resize_complete", () => (this.disableExtraPasses = false));
 
     // Disable reflection pass when external camera is up to keep # of scene draws to 2.
     sceneEl.addEventListener("external_camera_added", () => this.water.forceReflectionsOff());

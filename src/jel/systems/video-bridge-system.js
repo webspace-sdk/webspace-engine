@@ -34,7 +34,7 @@ export class VideoBridgeSystem {
       }, 500);
     });
 
-    this.sceneEl.addEventListener("animated_resize_complete", () => this.updatePreviews());
+    this.sceneEl.addEventListener("side_panel_resize_complete", () => this.updatePreviews());
     this.sceneEl.addEventListener("space-presence-synced", () => {
       if (this.bridgeId) {
         this.muteAvatarsInSameBridge();

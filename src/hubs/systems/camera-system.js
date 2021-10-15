@@ -506,13 +506,13 @@ export class CameraSystem extends EventTarget {
             const distanceMod = shouldOrbitOnInspect(inspectable.object3D) ? 1.5 : 1;
             if (!SYSTEMS.uiAnimationSystem.isCollapsingOrCollapsed()) {
               this.sceneEl.addEventListener(
-                "animated_resize_complete",
+                "side_panel_resize_complete",
                 () => {
                   this.inspect(inspectable.object3D, distanceMod);
                 },
                 { once: true }
               );
-              SYSTEMS.uiAnimationSystem.collapseSidePanels();
+              SYSTEMS.uiAnimationSystem.collapseSidePanels(false);
               this.collapsedPanelsOnInspect = true;
             } else {
               this.inspect(inspectable.object3D, distanceMod);
@@ -530,7 +530,7 @@ export class CameraSystem extends EventTarget {
         this.uninspect();
 
         if (this.collapsedPanelsOnInspect) {
-          SYSTEMS.uiAnimationSystem.expandSidePanels();
+          SYSTEMS.uiAnimationSystem.expandSidePanels(false);
           this.collapsedPanelsOnInspect = false;
         }
       }

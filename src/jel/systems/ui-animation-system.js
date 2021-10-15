@@ -55,17 +55,17 @@ export class UIAnimationSystem {
     window.addEventListener("resize", () => this.applySceneSize(null, null, true));
   }
 
-  expandSidePanels() {
+  expandSidePanels(animate = true) {
     if (this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDED) return;
-    this.performPanelExpansion(PANEL_EXPANSION_STATES.EXPANDING);
-    this.sceneEl.emit("animated_resize_started");
+    this.performPanelExpansion(PANEL_EXPANSION_STATES.EXPANDING, animate);
+    this.sceneEl.emit("side_panel_resize_started");
     this.store.handleActivityFlag("widen");
   }
 
-  collapseSidePanels() {
+  collapseSidePanels(animate = true) {
     if (this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSED) return;
-    this.performPanelExpansion(PANEL_EXPANSION_STATES.COLLAPSING);
-    this.sceneEl.emit("animated_resize_started");
+    this.performPanelExpansion(PANEL_EXPANSION_STATES.COLLAPSING, animate);
+    this.sceneEl.emit("side_panel_resize_started");
     this.store.handleActivityFlag("narrow");
   }
 
@@ -76,7 +76,7 @@ export class UIAnimationSystem {
     );
   }
 
-  performPanelExpansion(newState) {
+  performPanelExpansion(newState, animate = true) {
     if (
       this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDING ||
       this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSING
@@ -92,6 +92,10 @@ export class UIAnimationSystem {
       this.applyUI(this.targetSceneLeft, this.targetSceneRight);
     } else {
       this.applyUI(0, 0);
+    }
+
+    if (!animate) {
+      this.panelExpandStartT -= PANEL_EXPAND_DURATION_MS;
     }
   }
 
@@ -153,7 +157,7 @@ export class UIAnimationSystem {
 
       if (finished) {
         this.sceneEl.resize();
-        this.sceneEl.emit("animated_resize_complete");
+        this.sceneEl.emit("side_panel_resize_complete");
       }
     }
   }

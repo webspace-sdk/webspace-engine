@@ -44,7 +44,7 @@ export class AutoQualitySystem extends EventTarget {
       }
     });
 
-    this.scene.addEventListener("animated_resize_complete", () => {
+    this.scene.addEventListener("side_panel_resize_complete", () => {
       // On a panel collapse, temporarily reset the pixel ratio to 1.0 in the case
       // where we no longer need lower res.
       if (window.APP.detailLevel >= 1 && !SYSTEMS.uiAnimationSystem.isCollapsingOrCollapsed()) {
