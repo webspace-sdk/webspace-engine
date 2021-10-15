@@ -13,7 +13,7 @@ import { ATOM_TYPES } from "../../jel/utils/atom-metadata";
 const FAR_PLANE_FOR_INSPECT = 100;
 const MAX_INSPECT_CAMERA_DISTANCE = 40;
 const FAR_PLANE_FOR_FOG = 26;
-const FAR_PLANE_FOR_NO_FOG = 100;
+const FAR_PLANE_FOR_NO_FOG = 300;
 
 export function getInspectable(child) {
   let el = child;
