@@ -9,6 +9,8 @@ import { proxiedUrlFor, guessContentType } from "../utils/media-url-utils";
 import { getNetworkedEntity, getNetworkId, ensureOwnership, isSynchronized } from "../../jel/utils/ownership-utils";
 import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
 import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
+import { expandByEntityObjectSpaceBoundingBox } from "./three-utils";
+import { NON_FLAT_STACK_AXES } from "../systems/transform-selected-object";
 import anime from "animejs";
 
 // We use the legacy 'text' regex since it matches some items like beach_umbrella
@@ -1011,3 +1013,43 @@ export const hasActiveScreenShare = () => {
 
   return false;
 };
+
+const MAX_SCREENSHARE_SNAP_TARGET_DISTANCE = 25.0;
+
+export const findScreenShareSnapTarget = () => {
+  let bestTarget = null;
+  let bestTargetVolume = -Infinity;
+  const v = new THREE.Vector3();
+  const avatarPos = new THREE.Vector3();
+  document.getElementById("avatar-rig").object3D.getWorldPosition(avatarPos);
+
+  // Screen share target is a position/scale snappable media that snaps to walls
+  for (const el of document.querySelectorAll("[media-loader]")) {
+    const mediaLoader = el.components["media-loader"];
+    if (!mediaLoader.data.stackSnapPosition) continue;
+    if (!mediaLoader.data.stackSnapScale) continue;
+    if (mediaLoader.data.stackAxis === null) continue;
+
+    const axis = NON_FLAT_STACK_AXES[mediaLoader.data.stackAxis];
+
+    // Skip over 3d snap zones, which are stacked face up along y
+    if (axis.y !== 0) continue;
+
+    const box = new THREE.Box3();
+    expandByEntityObjectSpaceBoundingBox(box, el);
+    box.getSize(v);
+    const volume = v.x * v.y * v.z;
+
+    el.object3D.getWorldPosition(v);
+    const dist = v.distanceTo(avatarPos);
+
+    if (volume > bestTargetVolume && dist < MAX_SCREENSHARE_SNAP_TARGET_DISTANCE) {
+      bestTarget = el;
+      bestTargetVolume = volume;
+    }
+  }
+
+  return bestTarget;
+};
+
+window.findf = findScreenShareSnapTarget;

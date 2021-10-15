@@ -34,7 +34,7 @@ const DOWN = new THREE.Vector3(0, -1, 0);
 const BACKWARD = new THREE.Vector3(0, 0, -1);
 const AGAINST = new THREE.Vector3(-1, 0, 0);
 const FLAT_STACK_AXES = [FORWARD, FORWARD, FORWARD, FORWARD, FORWARD, FORWARD];
-const NON_FLAT_STACK_AXES = [UP, DOWN, FORWARD, BACKWARD, ALONG, AGAINST];
+export const NON_FLAT_STACK_AXES = [UP, DOWN, FORWARD, BACKWARD, ALONG, AGAINST];
 const offset = new THREE.Vector3();
 const objectSnapAlong = new THREE.Vector3();
 const targetPoint = new THREE.Vector3();
@@ -59,6 +59,199 @@ function withAngleSnap(shouldSnap, angle) {
   } else {
     return angle;
   }
+}
+
+export function stackTargetAt(
+  target,
+  targetBoundingBox,
+  targetMatrix,
+  stackAlongAxis,
+  stackRotationAmount,
+  point,
+  normal,
+  normalObject,
+  normalObjectBoundingBox
+) {
+  const userinput = AFRAME.scenes[0].systems.userinput;
+  const { elements } = targetMatrix;
+  const scale = v.set(elements[0], elements[1], elements[2]).length();
+
+  target.updateMatrices();
+  normalObject.updateMatrices();
+
+  offset.set(0, 0, 0);
+  const isFlat = isFlatMedia(target);
+
+  targetBoundingBox.getCenter(v);
+
+  const axis = (isFlat ? FLAT_STACK_AXES : NON_FLAT_STACK_AXES)[stackAlongAxis];
+  v.set(0, 0, 0);
+
+  // v is the object space point of the bottom/top center of the bounding box
+  if (axis.x !== 0) {
+    v.x = axis.x < 0 ? targetBoundingBox.max.x : targetBoundingBox.min.x;
+  } else if (axis.y !== 0) {
+    v.y = axis.y < 0 ? targetBoundingBox.max.y : targetBoundingBox.min.y;
+  } else if (axis.z !== 0) {
+    v.z = axis.z < 0 ? targetBoundingBox.max.z : targetBoundingBox.min.z;
+  }
+
+  // The offset for the stack should be the distance from the object's
+  // origin to the box face, in object space.
+  offset.sub(v);
+
+  // Stack the current target at the stack point to the target point,
+  // and orient it so its local Y axis is parallel to the normal.
+  v.copy(normal);
+  v.transformDirection(normalObject.matrixWorld);
+
+  // Snap except along axis in direction of normal
+  const nx = Math.abs(normal.x);
+  const ny = Math.abs(normal.y);
+  const nz = Math.abs(normal.z);
+  const nwx = Math.abs(v.x);
+  const nwy = Math.abs(v.y);
+  const nwz = Math.abs(v.z);
+
+  const normalIsObjectMaxX = nx >= ny && nx >= nz;
+  const normalIsObjectMaxY = !normalIsObjectMaxX && ny >= nx && ny >= nz;
+  const normalIsObjectMaxZ = !normalIsObjectMaxX && !normalIsObjectMaxY;
+  const normalIsWorldMaxX = nwx >= nwy && nwx >= nwz;
+  const normalIsWorldMaxY = !normalIsWorldMaxX && nwy >= nwx && nwy >= nwz;
+  const normalIsWorldMaxZ = !normalIsWorldMaxX && !normalIsWorldMaxY;
+
+  objectSnapAlong.copy(axis);
+  objectSnapAlong.transformDirection(targetMatrix);
+
+  // Stack position snapping will center-snap the origin of the target object to the box face.
+  let stackSnapPosition = false;
+
+  // Stack scale snapping will scale the object to fit.
+  let stackSnapScale = false;
+
+  if (normalObject.el && normalObject.el.components["media-loader"]) {
+    ({ stackSnapPosition, stackSnapScale } = normalObject.el.components["media-loader"].data);
+  }
+
+  // If the world space normal and original world object up are not already parallel, reorient the object
+  if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.001 || stackSnapPosition) {
+    // Flat media aligns to walls, other objects align to floor.
+    q.setFromUnitVectors(axis, v);
+  } else {
+    // Nudge the object to be re-aligned instead of doing a full reorient.
+    q2.setFromUnitVectors(objectSnapAlong, v);
+    targetMatrix.decompose(v, q, v2);
+    q.multiply(q2);
+  }
+
+  if (stackRotationAmount > 0) {
+    q2.setFromAxisAngle(axis, stackRotationAmount);
+    q.multiply(q2);
+  }
+
+  target.matrixWorld.decompose(v /* ignored */, q2 /* ignored */, v2);
+
+  // Offset is the vector displacement from object origin to the box
+  // face in object space, scaled properly here.
+  offset.multiply(v2);
+  offset.applyQuaternion(q);
+
+  const shouldSnap = !userinput.get(shiftKeyPath);
+  const snapScale = isFlatMedia(target) ? 1.0 : scale;
+
+  if (stackSnapPosition) {
+    normalObjectBoundingBox.getCenter(v);
+
+    if (normalIsObjectMaxX) {
+      v.x = normal.x > 0 ? normalObjectBoundingBox.max.x : normalObjectBoundingBox.min.x;
+    } else if (normalIsObjectMaxY) {
+      v.y = normal.y > 0 ? normalObjectBoundingBox.max.y : normalObjectBoundingBox.min.y;
+    } else if (normalIsObjectMaxZ) {
+      v.z = normal.z > 0 ? normalObjectBoundingBox.max.z : normalObjectBoundingBox.min.z;
+    }
+
+    v.applyMatrix4(normalObject.matrixWorld);
+    targetPoint.set(v.x, v.y, v.z).add(offset);
+  } else {
+    const newX = withGridSnap(shouldSnap && !normalIsWorldMaxX, point.x, snapScale);
+    const newY = withGridSnap(shouldSnap && !normalIsWorldMaxY, point.y, snapScale);
+    const newZ = withGridSnap(shouldSnap && !normalIsWorldMaxZ, point.z, snapScale);
+
+    targetPoint.set(newX, newY, newZ).add(offset);
+  }
+
+  if (stackSnapScale) {
+    normalObject.matrixWorld.decompose(v3 /* ignored */, q2 /* ignored */, v /* target scale */);
+
+    const extentX = normalObjectBoundingBox.max.x * v.x - normalObjectBoundingBox.min.x * v.x;
+    const extentY = normalObjectBoundingBox.max.y * v.y - normalObjectBoundingBox.min.y * v.y;
+    const extentZ = normalObjectBoundingBox.max.z * v.z - normalObjectBoundingBox.min.z * v.z;
+
+    target.matrixWorld.decompose(v3 /* ignored */, q2 /* ignored */, v /* target scale */);
+    const targetExtentX = targetBoundingBox.max.x * v.x - targetBoundingBox.min.x * v.x;
+    const targetExtentY = targetBoundingBox.max.y * v.y - targetBoundingBox.min.y * v.y;
+    const targetExtentZ = targetBoundingBox.max.z * v.z - targetBoundingBox.min.z * v.z;
+
+    // Get the target UV extents to scale on, which are extents orthogonal to the axis
+    let targetExtentU, targetExtentV;
+
+    if (Math.abs(axis.x) === 1) {
+      targetExtentU = targetExtentZ;
+      targetExtentV = targetExtentY;
+    } else if (Math.abs(axis.y) === 1) {
+      targetExtentU = targetExtentX;
+      targetExtentV = targetExtentZ;
+    } else if (Math.abs(axis.z) === 1) {
+      targetExtentU = targetExtentX;
+      targetExtentV = targetExtentY;
+    }
+
+    let scaleRatio = 0.0;
+
+    // Take the best scale that will fit within the target object's world space extents,
+    // along the longest allowable edge of the target object.
+    if (normalIsObjectMaxX) {
+      if ((extentZ / targetExtentU) * targetExtentV <= extentY) {
+        scaleRatio = Math.max(scaleRatio, extentZ / targetExtentU);
+      }
+
+      if ((extentY / targetExtentV) * targetExtentU <= extentZ) {
+        scaleRatio = Math.max(scaleRatio, extentY / targetExtentV);
+      }
+    } else if (normalIsObjectMaxY) {
+      if ((extentX / targetExtentU) * targetExtentV <= extentZ) {
+        scaleRatio = Math.max(scaleRatio, extentX / targetExtentU);
+      }
+
+      if ((extentZ / targetExtentV) * targetExtentU <= extentX) {
+        scaleRatio = Math.max(scaleRatio, extentZ / targetExtentV);
+      }
+    } else if (normalIsObjectMaxZ) {
+      if ((extentX / targetExtentU) * targetExtentV <= extentY) {
+        scaleRatio = Math.max(scaleRatio, extentX / targetExtentU);
+      }
+
+      if ((extentY / targetExtentV) * targetExtentU <= extentX) {
+        scaleRatio = Math.max(scaleRatio, extentY / targetExtentV);
+      }
+    }
+
+    if (scaleRatio === 0.0) {
+      scaleRatio = 1.0;
+    }
+
+    if (!almostEqual(scaleRatio, 1.0)) {
+      v2.multiplyScalar(scaleRatio);
+    }
+  }
+
+  tmpMatrix.compose(
+    targetPoint,
+    q,
+    v2
+  );
+
+  target.setMatrix(tmpMatrix);
 }
 
 AFRAME.registerSystem("transform-selected-object", {
@@ -237,7 +430,17 @@ AFRAME.registerSystem("transform-selected-object", {
         expandByEntityObjectSpaceBoundingBox(this.hitNormalObjectBoundingBox, this.hitNormalObject.el);
       }
 
-      this.stackTargetAt(point, normal, this.hitNormalObject, this.hitNormalObjectBoundingBox);
+      stackTargetAt(
+        this.target,
+        this.targetBoundingBox,
+        this.targetInitialMatrix,
+        this.stackAlongAxis,
+        this.stackRotationAmount,
+        point,
+        normal,
+        this.hitNormalObject,
+        this.hitNormalObjectBoundingBox
+      );
 
       break;
     }
@@ -506,190 +709,6 @@ AFRAME.registerSystem("transform-selected-object", {
     const newZ = withGridSnap(shouldSnap, initialZ + v.z - planeCastObjectOffset.z, snapScale);
 
     tmpMatrix.setPosition(newX, newY, newZ);
-    this.target.setMatrix(tmpMatrix);
-  },
-
-  stackTargetAt(point, normal, normalObject, normalObjectBoundingBox) {
-    const { target, targetBoundingBox } = this;
-    const userinput = this.el.systems.userinput;
-    const { elements } = this.targetInitialMatrix;
-    const scale = v.set(elements[0], elements[1], elements[2]).length();
-
-    target.updateMatrices();
-    normalObject.updateMatrices();
-
-    offset.set(0, 0, 0);
-    const isFlat = isFlatMedia(target);
-
-    targetBoundingBox.getCenter(v);
-
-    const axis = (isFlat ? FLAT_STACK_AXES : NON_FLAT_STACK_AXES)[this.stackAlongAxis];
-    v.set(0, 0, 0);
-
-    // v is the object space point of the bottom/top center of the bounding box
-    if (axis.x !== 0) {
-      v.x = axis.x < 0 ? targetBoundingBox.max.x : targetBoundingBox.min.x;
-    } else if (axis.y !== 0) {
-      v.y = axis.y < 0 ? targetBoundingBox.max.y : targetBoundingBox.min.y;
-    } else if (axis.z !== 0) {
-      v.z = axis.z < 0 ? targetBoundingBox.max.z : targetBoundingBox.min.z;
-    }
-
-    // The offset for the stack should be the distance from the object's
-    // origin to the box face, in object space.
-    offset.sub(v);
-
-    // Stack the current target at the stack point to the target point,
-    // and orient it so its local Y axis is parallel to the normal.
-    v.copy(normal);
-    v.transformDirection(normalObject.matrixWorld);
-
-    // Snap except along axis in direction of normal
-    const nx = Math.abs(normal.x);
-    const ny = Math.abs(normal.y);
-    const nz = Math.abs(normal.z);
-    const nwx = Math.abs(v.x);
-    const nwy = Math.abs(v.y);
-    const nwz = Math.abs(v.z);
-
-    const normalIsObjectMaxX = nx >= ny && nx >= nz;
-    const normalIsObjectMaxY = !normalIsObjectMaxX && ny >= nx && ny >= nz;
-    const normalIsObjectMaxZ = !normalIsObjectMaxX && !normalIsObjectMaxY;
-    const normalIsWorldMaxX = nwx >= nwy && nwx >= nwz;
-    const normalIsWorldMaxY = !normalIsWorldMaxX && nwy >= nwx && nwy >= nwz;
-    const normalIsWorldMaxZ = !normalIsWorldMaxX && !normalIsWorldMaxY;
-
-    objectSnapAlong.copy(axis);
-    objectSnapAlong.transformDirection(this.targetInitialMatrix);
-
-    // Stack position snapping will center-snap the origin of the target object to the box face.
-    let stackSnapPosition = false;
-
-    // Stack scale snapping will scale the object to fit.
-    let stackSnapScale = false;
-
-    if (normalObject.el && normalObject.el.components["media-loader"]) {
-      ({ stackSnapPosition, stackSnapScale } = normalObject.el.components["media-loader"].data);
-    }
-
-    // If the world space normal and original world object up are not already parallel, reorient the object
-    if (Math.abs(v.dot(objectSnapAlong) - 1) > 0.001 || stackSnapPosition) {
-      // Flat media aligns to walls, other objects align to floor.
-      q.setFromUnitVectors(axis, v);
-    } else {
-      // Nudge the object to be re-aligned instead of doing a full reorient.
-      q2.setFromUnitVectors(objectSnapAlong, v);
-      this.targetInitialMatrix.decompose(v, q, v2);
-      q.multiply(q2);
-    }
-
-    if (this.stackRotationAmount > 0) {
-      q2.setFromAxisAngle(axis, this.stackRotationAmount);
-      q.multiply(q2);
-    }
-
-    target.matrixWorld.decompose(v /* ignored */, q2 /* ignored */, v2);
-
-    // Offset is the vector displacement from object origin to the box
-    // face in object space, scaled properly here.
-    offset.multiply(v2);
-    offset.applyQuaternion(q);
-
-    const shouldSnap = !userinput.get(shiftKeyPath);
-    const snapScale = isFlatMedia(this.target) ? 1.0 : scale;
-
-    if (stackSnapPosition) {
-      normalObjectBoundingBox.getCenter(v);
-
-      if (normalIsObjectMaxX) {
-        v.x = normal.x > 0 ? normalObjectBoundingBox.max.x : normalObjectBoundingBox.min.x;
-      } else if (normalIsObjectMaxY) {
-        v.y = normal.y > 0 ? normalObjectBoundingBox.max.y : normalObjectBoundingBox.min.y;
-      } else if (normalIsObjectMaxZ) {
-        v.z = normal.z > 0 ? normalObjectBoundingBox.max.z : normalObjectBoundingBox.min.z;
-      }
-
-      v.applyMatrix4(normalObject.matrixWorld);
-      targetPoint.set(v.x, v.y, v.z).add(offset);
-    } else {
-      const newX = withGridSnap(shouldSnap && !normalIsWorldMaxX, point.x, snapScale);
-      const newY = withGridSnap(shouldSnap && !normalIsWorldMaxY, point.y, snapScale);
-      const newZ = withGridSnap(shouldSnap && !normalIsWorldMaxZ, point.z, snapScale);
-
-      targetPoint.set(newX, newY, newZ).add(offset);
-    }
-
-    if (stackSnapScale) {
-      normalObject.matrixWorld.decompose(v3 /* ignored */, q2 /* ignored */, v /* target scale */);
-
-      const extentX = normalObjectBoundingBox.max.x * v.x - normalObjectBoundingBox.min.x * v.x;
-      const extentY = normalObjectBoundingBox.max.y * v.y - normalObjectBoundingBox.min.y * v.y;
-      const extentZ = normalObjectBoundingBox.max.z * v.z - normalObjectBoundingBox.min.z * v.z;
-
-      target.matrixWorld.decompose(v3 /* ignored */, q2 /* ignored */, v /* target scale */);
-      const targetExtentX = targetBoundingBox.max.x * v.x - targetBoundingBox.min.x * v.x;
-      const targetExtentY = targetBoundingBox.max.y * v.y - targetBoundingBox.min.y * v.y;
-      const targetExtentZ = targetBoundingBox.max.z * v.z - targetBoundingBox.min.z * v.z;
-
-      // Get the target UV extents to scale on, which are extents orthogonal to the axis
-      let targetExtentU, targetExtentV;
-
-      if (Math.abs(axis.x) === 1) {
-        targetExtentU = targetExtentZ;
-        targetExtentV = targetExtentY;
-      } else if (Math.abs(axis.y) === 1) {
-        targetExtentU = targetExtentX;
-        targetExtentV = targetExtentZ;
-      } else if (Math.abs(axis.z) === 1) {
-        targetExtentU = targetExtentX;
-        targetExtentV = targetExtentY;
-      }
-
-      let scaleRatio = 0.0;
-
-      // Take the best scale that will fit within the target object's world space extents,
-      // along the longest allowable edge of the target object.
-      if (normalIsObjectMaxX) {
-        if ((extentZ / targetExtentU) * targetExtentV <= extentY) {
-          scaleRatio = Math.max(scaleRatio, extentZ / targetExtentU);
-        }
-
-        if ((extentY / targetExtentV) * targetExtentU <= extentZ) {
-          scaleRatio = Math.max(scaleRatio, extentY / targetExtentV);
-        }
-      } else if (normalIsObjectMaxY) {
-        if ((extentX / targetExtentU) * targetExtentV <= extentZ) {
-          scaleRatio = Math.max(scaleRatio, extentX / targetExtentU);
-        }
-
-        if ((extentZ / targetExtentV) * targetExtentU <= extentX) {
-          scaleRatio = Math.max(scaleRatio, extentZ / targetExtentV);
-        }
-      } else if (normalIsObjectMaxZ) {
-        if ((extentX / targetExtentU) * targetExtentV <= extentY) {
-          scaleRatio = Math.max(scaleRatio, extentX / targetExtentU);
-        }
-
-        if ((extentY / targetExtentV) * targetExtentU <= extentX) {
-          scaleRatio = Math.max(scaleRatio, extentY / targetExtentV);
-        }
-      }
-
-      if (scaleRatio === 0.0) {
-        scaleRatio = 1.0;
-      }
-
-      if (!almostEqual(scaleRatio, 1.0)) {
-        v2.multiplyScalar(scaleRatio);
-      }
-    }
-
-    tmpMatrix.compose(
-      targetPoint,
-      q,
-      v2
-    );
-
     this.target.setMatrix(tmpMatrix);
   },
 
