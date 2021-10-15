@@ -466,8 +466,6 @@ export class CameraSystem extends EventTarget {
         if (vrMode) {
           camera.cameras[0].layers.mask = this.snapshot.mask0;
           camera.cameras[1].layers.mask = this.snapshot.mask1;
-          camera.cameras[0].far = far;
-          camera.cameras[1].far = far;
         }
       }
 
