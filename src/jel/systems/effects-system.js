@@ -10,7 +10,7 @@ AFRAME.registerSystem("effects", {
 
     window.addEventListener("resize", () => (this.updateComposer = true));
 
-    this.el.addEventListener("animated_resize_complete", () => (this.updateComposer = true));
+    this.el.addEventListener("side_panel_resize_complete", () => (this.updateComposer = true));
 
     this.updateComposer = true;
   },

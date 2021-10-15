@@ -272,6 +272,8 @@ export class CameraSystem extends EventTarget {
     this.temporarilyDisableRegularExit = false;
     if (this.mode !== CAMERA_MODE_INSPECT) return;
 
+    this.sceneEl.emit("uninspect");
+
     this.dispatchEvent(new CustomEvent("mode_changing"));
     this.revealEverything();
 
@@ -306,6 +308,11 @@ export class CameraSystem extends EventTarget {
     }
 
     this.dispatchEvent(new CustomEvent("mode_changed"));
+
+    if (this.collapsedPanelsOnInspect) {
+      SYSTEMS.uiAnimationSystem.expandSidePanels(false);
+      this.collapsedPanelsOnInspect = false;
+    }
   }
 
   isInspecting() {
@@ -526,13 +533,7 @@ export class CameraSystem extends EventTarget {
         ((this.userinput.get(paths.actions.toggleInspecting) && !this.allowCursor) ||
           this.userinput.get(paths.actions.stopInspecting))
       ) {
-        scene.emit("uninspect");
         this.uninspect();
-
-        if (this.collapsedPanelsOnInspect) {
-          SYSTEMS.uiAnimationSystem.expandSidePanels(false);
-          this.collapsedPanelsOnInspect = false;
-        }
       }
 
       const headShouldBeVisible = this.mode !== CAMERA_MODE_FIRST_PERSON;

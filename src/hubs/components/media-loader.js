@@ -145,6 +145,10 @@ AFRAME.registerComponent("media-loader", {
     SYSTEMS.skyBeamSystem.unregister(this.el.object3D);
     SYSTEMS.undoSystem.unregister(this.el);
 
+    if (SYSTEMS.cameraSystem.inspected === this.el.object3D) {
+      SYSTEMS.cameraSystem.uninspect();
+    }
+
     const sfx = SYSTEMS.soundEffectsSystem;
 
     if (this.loadingSoundEffect) {
