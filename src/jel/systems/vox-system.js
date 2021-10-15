@@ -1609,6 +1609,41 @@ export class VoxSystem extends EventTarget {
     };
   })();
 
+  raycastToVoxSource = (function() {
+    const raycaster = new THREE.Raycaster();
+    raycaster.firstHitOnly = false; // flag specific to three-mesh-bvh
+    raycaster.far = 100.0;
+    raycaster.near = 0.001;
+    const intersections = [];
+
+    return function(origin, direction, source) {
+      const { voxMap } = this;
+
+      raycaster.ray.origin = origin;
+      raycaster.ray.direction = direction;
+
+      const targettableMesh = this.getTargettableMeshForSource(source);
+      if (!targettableMesh) return null;
+
+      let instanceId = -1;
+      for (const { sources } of voxMap.values()) {
+        instanceId = sources.indexOf(source);
+        if (instanceId >= 0) break;
+      }
+
+      intersections.length = 0;
+      raycaster.intersectObjects([targettableMesh], true, intersections);
+
+      for (const intersection of intersections) {
+        if (intersection.instanceId === instanceId) {
+          return intersection;
+        }
+      }
+
+      return null;
+    };
+  })();
+
   publishAllInCurrentWorld = (function() {
     const tmpVec = new THREE.Vector3();
 

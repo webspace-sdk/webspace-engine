@@ -18,7 +18,7 @@ const isMobileVR = AFRAME.utils.device.isMobileVR();
 const isDebug = qsTruthy("debug");
 const qs = new URLSearchParams(location.search);
 
-import { spawnMediaInfrontOfPlayer, performAnimatedRemove } from "./utils/media-utils";
+import { spawnMediaInfrontOfPlayer, performAnimatedRemove, snapEntityToBiggestNearbyScreen } from "./utils/media-utils";
 import {
   isIn2DInterstitial,
   handleExitTo2DInterstitial,
@@ -375,7 +375,16 @@ export default class SceneEntryManager {
           audioSystem.addStreamToOutboundAudio("screenshare", newStream);
         }
 
-        spawnMediaInfrontOfPlayer(mediaStreamSystem.mediaStream);
+        const entity = spawnMediaInfrontOfPlayer(mediaStreamSystem.mediaStream);
+
+        // Snap screen share to screen
+        entity.addEventListener(
+          "media-loaded",
+          () => {
+            snapEntityToBiggestNearbyScreen(entity);
+          },
+          { once: true }
+        );
       }
 
       this.scene.addState("sharing_video");

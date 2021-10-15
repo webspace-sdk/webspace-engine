@@ -83,7 +83,6 @@ export class CursorTargettingSystem {
 
     const els = this.sceneEl.querySelectorAll(".collidable, .interactable, .ui, .drawing");
     const { inspected } = SYSTEMS.cameraSystem;
-    const transformSystem = this.sceneEl.systems["transform-selected-object"];
 
     // If cursor is on in inspect mode, we only can target the inspected object (or instances)
     if (inspected) {

@@ -10,7 +10,7 @@ import { getNetworkedEntity, getNetworkId, ensureOwnership, isSynchronized } fro
 import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
 import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
 import { expandByEntityObjectSpaceBoundingBox } from "./three-utils";
-import { NON_FLAT_STACK_AXES } from "../systems/transform-selected-object";
+import { stackTargetAt, NON_FLAT_STACK_AXES } from "../systems/transform-selected-object";
 import anime from "animejs";
 
 // We use the legacy 'text' regex since it matches some items like beach_umbrella
@@ -1016,16 +1016,20 @@ export const hasActiveScreenShare = () => {
 
 const MAX_SCREENSHARE_SNAP_TARGET_DISTANCE = 25.0;
 
-export const findScreenShareSnapTarget = () => {
-  let bestTarget = null;
-  let bestTargetVolume = -Infinity;
+export const snapEntityToBiggestNearbyScreen = entity => {
+  let bestEntity = null;
+  let bestEntityVolume = -Infinity;
+  const bestEntityCenter = new THREE.Vector3();
+
   const v = new THREE.Vector3();
   const avatarPos = new THREE.Vector3();
   document.getElementById("avatar-rig").object3D.getWorldPosition(avatarPos);
+  const box = new THREE.Box3();
 
-  // Screen share target is a position/scale snappable media that snaps to walls
-  for (const el of document.querySelectorAll("[media-loader]")) {
+  // Screen target is a position/scale snappable vox that snaps to walls
+  for (const el of document.querySelectorAll("[media-vox]")) {
     const mediaLoader = el.components["media-loader"];
+    if (!mediaLoader) continue;
     if (!mediaLoader.data.stackSnapPosition) continue;
     if (!mediaLoader.data.stackSnapScale) continue;
     if (mediaLoader.data.stackAxis === null) continue;
@@ -1035,21 +1039,52 @@ export const findScreenShareSnapTarget = () => {
     // Skip over 3d snap zones, which are stacked face up along y
     if (axis.y !== 0) continue;
 
-    const box = new THREE.Box3();
+    box.makeEmpty();
     expandByEntityObjectSpaceBoundingBox(box, el);
+    el.object3D.updateMatrices();
+    box.applyMatrix4(el.object3D.matrixWorld);
     box.getSize(v);
-    const volume = v.x * v.y * v.z;
 
-    el.object3D.getWorldPosition(v);
+    const volume = v.x * v.y * v.z;
+    box.getCenter(v);
+
     const dist = v.distanceTo(avatarPos);
 
-    if (volume > bestTargetVolume && dist < MAX_SCREENSHARE_SNAP_TARGET_DISTANCE) {
-      bestTarget = el;
-      bestTargetVolume = volume;
+    if (volume > bestEntityVolume && dist < MAX_SCREENSHARE_SNAP_TARGET_DISTANCE) {
+      bestEntity = el;
+      bestEntityVolume = volume;
+      bestEntityCenter.copy(v);
     }
   }
 
-  return bestTarget;
-};
+  if (bestEntity) {
+    v.copy(bestEntityCenter);
+    v.sub(avatarPos);
+    v.normalize();
 
-window.findf = findScreenShareSnapTarget;
+    const voxSource = bestEntity.components["media-vox"].mesh;
+    const intersection = SYSTEMS.voxSystem.raycastToVoxSource(avatarPos, v, voxSource);
+
+    if (intersection) {
+      box.makeEmpty();
+      expandByEntityObjectSpaceBoundingBox(box, bestEntity);
+      const target = entity.object3D;
+      const targetBoundingBox = new THREE.Box3();
+      const targetMatrix = new THREE.Matrix4();
+      targetMatrix.copy(target.matrix);
+      expandByEntityObjectSpaceBoundingBox(targetBoundingBox, entity);
+
+      stackTargetAt(
+        target,
+        targetBoundingBox,
+        targetMatrix,
+        0, // stackAlongAxis
+        0, // stackRotationAmount
+        intersection.point,
+        intersection.face.normal,
+        voxSource,
+        box
+      );
+    }
+  }
+};
