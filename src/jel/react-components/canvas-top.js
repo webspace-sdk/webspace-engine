@@ -62,10 +62,6 @@ const CornerButtonElement = styled.button`
   &:active {
     background-color: var(--canvas-overlay-item-active-background-color);
   }
-
-  .panels-expanded & {
-    display: none;
-  }
 `;
 
 const CornerButtons = styled.div`

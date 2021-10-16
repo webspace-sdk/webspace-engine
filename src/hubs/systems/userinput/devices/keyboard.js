@@ -78,10 +78,17 @@ export class KeyboardDevice {
           e.preventDefault();
         }
 
-        // Blur focused elements when a popup menu is open so it is closed
-        if (e.type === "keydown" && e.key === "Escape" && isInEditableField()) {
-          canvas.focus();
-          e.preventDefault();
+        if (e.type === "keydown" && e.key === "Escape") {
+          // Blur focused elements when a popup menu is open so it is closed
+          if (isInEditableField()) {
+            canvas.focus();
+            e.preventDefault();
+          } else {
+            // On ESC, show panels if necessary when in unlocked cursor mode.
+            if (getCursorLockState() === CURSOR_LOCK_STATES.UNLOCKED_PERSISTENT) {
+              SYSTEMS.uiAnimationSystem.expandSidePanels();
+            }
+          }
         }
 
         // Handle spacebar widen here since input system can't differentiate with and without modifier key held, and deal with repeats

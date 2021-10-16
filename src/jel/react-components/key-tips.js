@@ -204,6 +204,7 @@ const idleTips = [
   ["move", "w a s d"],
   ["fly", "q e"],
   ["look", "H;G", "narrowMouseLook"],
+  ["look_lock", "L+S"],
   ["run", "H"],
   ["jump", "S"],
   ["shoot", "_S|D"],
@@ -212,7 +213,6 @@ const idleTips = [
   ["paste", "L+v"],
   ["undo", "L+z,y"],
   ["chat", "E", "chat"],
-  ["widen", "L+S", "widen"],
   ["unlock", "l"],
   ["hide", "?"]
 ];
@@ -236,7 +236,15 @@ const TIP_DATA = {
     "fly"
   ),
   idle_full_muted: dropTip(
-    dropTip(replaceTip(replaceTip(idleTips, "shoot", "shoot", "_S|K"), "mute", "unmute", "L+m"), "look"),
+    dropTip(
+      replaceTip(
+        replaceTip(replaceTip(idleTips, "shoot", "shoot", "_S|K"), "mute", "unmute", "L+m"),
+        "look_lock",
+        "look_unlock",
+        "L+S"
+      ),
+      "look"
+    ),
     "fly"
   ),
   idle_full_unmuted: dropTip(dropTip(replaceTip(idleTips, "shoot", "shoot", "_S|K"), "look"), "fly"),

@@ -611,7 +611,7 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
     }
   });
 
-  scene.addEventListener("cursor-lock-state-changed", () => {
+  scene.addEventListener("cursor-lock-state-changed", ({ detail: { oldCursorLockState } }) => {
     const uiAnimationSystem = scene.systems["hubs-systems"].uiAnimationSystem;
 
     const cursorLockState = getCursorLockState();
@@ -620,14 +620,15 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
     // Do not affect panels when in ephemeral locking states
     const locked = cursorLockState === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
     const unlocked = cursorLockState === CURSOR_LOCK_STATES.UNLOCKED_PERSISTENT;
-
     if (
       !isInQuillEditor() &&
       !isInEditableField() &&
       ((panelsCollapsed && unlocked) || (!panelsCollapsed && locked)) &&
       !SYSTEMS.cameraSystem.isInspecting()
     ) {
-      uiAnimationSystem[panelsCollapsed ? "expandSidePanels" : "collapseSidePanels"]();
+      if (panelsCollapsed) {
+        uiAnimationSystem.collapseSidePanels();
+      }
     }
   });
 
@@ -1124,6 +1125,13 @@ async function start() {
   // was focused.
   canvas.addEventListener("mouseover", () => {
     if (!isInEditableField()) {
+      const { uiAnimationSystem } = SYSTEMS;
+
+      // Collapse the UI on canvas mouse over unless cursor is locked.
+      if (getCursorLockState() === CURSOR_LOCK_STATES.UNLOCKED_PERSISTENT) {
+        uiAnimationSystem.collapseSidePanels();
+      }
+
       clearTimeout(focusCanvasTimeout);
       focusCanvasTimeout = setTimeout(() => {
         if (!isInEditableField()) {
@@ -1352,6 +1360,14 @@ async function start() {
   mixpanel.track("Startup Joining", {});
   await performJoin();
   mixpanel.track("Startup Joined", {});
+
+  // Initial panel collapse if we landed on a world.
+  const metadata = hubMetadata.getMetadata(hubChannel.hubId);
+  const isWorld = metadata.type === "world";
+
+  if (isWorld) {
+    SYSTEMS.uiAnimationSystem.collapseSidePanels(false);
+  }
 
   entryManager.enterScene(false);
 }

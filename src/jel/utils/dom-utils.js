@@ -70,8 +70,9 @@ const lockCursor = (ephemeral = false) => {
   if (document.pointerLockElement) {
     // Already locked, but allow an escalation from ephemeral -> persistent.
     if (lockedCursorLockState === CURSOR_LOCK_STATES.LOCKED_EPHEMERAL && !ephemeral) {
+      const oldCursorLockState = lockedCursorLockState;
       lockedCursorLockState = CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
-      scene.emit("cursor-lock-state-changed");
+      scene.emit("cursor-lock-state-changed", { oldCursorLockState });
     }
 
     return;
@@ -93,7 +94,8 @@ const lockCursor = (ephemeral = false) => {
       }
 
       if (document.pointerLockElement) {
-        AFRAME.scenes[0].emit("cursor-lock-state-changed");
+        const oldCursorLockState = lockedCursorLockState;
+        AFRAME.scenes[0].emit("cursor-lock-state-changed", { oldCursorLockState });
       }
     },
     { once: true }
@@ -114,8 +116,9 @@ const lockCursor = (ephemeral = false) => {
 // Fire cursor-lock-state-changed when pointer lock exited
 document.addEventListener("pointerlockchange", () => {
   if (!document.pointerLockElement) {
+    const oldCursorLockState = lockedCursorLockState;
     lockedCursorLockState = null;
-    AFRAME.scenes[0].emit("cursor-lock-state-changed");
+    AFRAME.scenes[0].emit("cursor-lock-state-changed", { oldCursorLockState });
   }
 });
 

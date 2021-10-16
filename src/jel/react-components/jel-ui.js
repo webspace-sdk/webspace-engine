@@ -37,22 +37,23 @@ import { CREATE_SELECT_WIDTH, CREATE_SELECT_LIST_HEIGHT } from "./create-select"
 import qsTruthy from "../../hubs/utils/qs_truthy";
 import CanvasTop from "./canvas-top";
 import AssetPanel from "./asset-panel";
+import { ASSET_PANEL_HEIGHT_EXPANDED, ASSET_PANEL_HEIGHT_COLLAPSED } from "../systems/ui-animation-system";
 
 const skipSidePanels = qsTruthy("skip_panels");
 const skipNeon = qsTruthy("skip_neon");
 
 const Root = styled.div`
   & #jel-ui-wrap {
-    height: calc(100% - 64px);
+    height: calc(100% - ${ASSET_PANEL_HEIGHT_COLLAPSED}px);
   }
 
   & #asset-panel {
     display: flex;
-    height: 64px;
+    height: ${ASSET_PANEL_HEIGHT_COLLAPSED}px;
   }
 
   body &.expand-asset-panel #jel-ui-wrap {
-    height: calc(100% - 290px);
+    height: calc(100% - ${ASSET_PANEL_HEIGHT_EXPANDED}px);
   }
 
   body.panels-expanded & #jel-ui-wrap,
@@ -61,7 +62,7 @@ const Root = styled.div`
   }
 
   &.expand-asset-panel #asset-panel {
-    height: 290px;
+    height: ${ASSET_PANEL_HEIGHT_EXPANDED}px;
   }
 
   body.panels-expanded & #asset-panel {
@@ -404,6 +405,8 @@ function JelUI(props) {
   const modalPopupRef = useRef();
   const createEmbedFocusRef = useRef();
   const emojiPopupFocusRef = useRef();
+  console.trace();
+  console.log(Math.random());
   const environmentSettingsButtonRef = useRef();
 
   const {

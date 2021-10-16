@@ -16,6 +16,8 @@ export const PANEL_EXPANSION_STATES = {
 const DEFAULT_NAV_PANEL_WIDTH = 400;
 const DEFAULT_PRESENCE_PANEL_WIDTH = 220;
 export const PANEL_EXPAND_DURATION_MS = 250;
+export const ASSET_PANEL_HEIGHT_EXPANDED = 290;
+export const ASSET_PANEL_HEIGHT_COLLAPSED = 64;
 
 const panelExpandStep = BezierEasing(0.12, 0.98, 0.18, 0.98);
 
@@ -42,11 +44,38 @@ export class UIAnimationSystem {
     const layoutOnFocus = () => {
       // Attempt to fix issues with layout not being set when focusing window
       if (document.visibilityState === "visible") {
-        this.applyUI(this.targetSceneLeft, this.targetSceneRight);
+        if (this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDED) {
+          this.applyUI(this.targetSceneLeft, this.targetSceneRight);
+        } else if (this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSED) {
+          this.applyUI(0, 0);
+        }
       }
     };
 
     window.addEventListener("focus", layoutOnFocus);
+
+    window.addEventListener("mousemove", ({ clientX, clientY }) => {
+      // check holding, locked, chat channel, text field, inspecting, build mode, dragging panels
+      // pause panel wrong size?
+      const store = window.APP.store;
+      const navX = store.state.uiState.navPanelWidth || DEFAULT_NAV_PANEL_WIDTH;
+      const presenceX = window.innerWidth - (store.state.uiState.presencePanelWidth || DEFAULT_PRESENCE_PANEL_WIDTH);
+      const margin = 16;
+      const assetPanelY =
+        window.innerHeight -
+        (store.state.uiState.assetPanelExpanded ? ASSET_PANEL_HEIGHT_EXPANDED / 2.0 : ASSET_PANEL_HEIGHT_COLLAPSED);
+
+      if (
+        clientX <= margin ||
+        clientX >= window.innerWidth - margin ||
+        (clientY >= assetPanelY && clientX > navX && clientX < presenceX)
+      ) {
+        if (this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSED) {
+          this.expandSidePanels();
+        }
+      }
+    });
+
     document.addEventListener("visibilitychange", layoutOnFocus);
 
     // Initialize nav and presence width CSS vars to stored state.
