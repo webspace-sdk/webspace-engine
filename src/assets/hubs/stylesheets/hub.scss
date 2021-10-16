@@ -55,22 +55,24 @@ body {
 
   #nav-drag-target {
     position: absolute;
-    width: 16px;
-    left: calc(var(--nav-width) - 8px); 
+    width: 32px;
+    left: calc(var(--nav-width) - 16px);
     top: 0;
     z-index: 6;
     height: 100%;
     cursor: col-resize;
+    display: block;
   }
 
   #presence-drag-target {
     position: absolute;
-    width: 16px;
-    right: calc(var(--presence-width) - 8px); 
+    width: 32px;
+    right: calc(var(--presence-width) - 16px);
     top: 0;
     z-index: 6;
     height: 100%;
     cursor: col-resize;
+    display: block;
   }
 
   #gaze-cursor {
@@ -92,12 +94,20 @@ body {
       background-color: rgba(128, 128, 128);
     }
   }
-
 }
 
 body.show-css-cursor #gaze-cursor {
   visibility: visible;
 }
+
+body.panels-collapsed #presence-drag-target {
+  display: none;
+}
+
+body.panels-collapsed #nav-drag-target {
+  display: none;
+}
+
 
 body.vr-mode-stretch {
   a-scene {

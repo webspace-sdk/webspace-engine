@@ -3,18 +3,12 @@ import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
 import AtomTrail from "./atom-trail";
 import styled from "styled-components";
-import mutedIcon from "../../assets/jel/images/icons/mic-muted.svgi";
-import unmutedIcon from "../../assets/jel/images/icons/mic-unmuted.svgi";
-import { BigIconButton } from "./icon-button";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shadow.svgi";
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
 import notificationsIcon from "../../assets/jel/images/icons/notifications-shadow.svgi";
 import securityIcon from "../../assets/jel/images/icons/security-shadow.svgi";
 import sunIcon from "../../assets/jel/images/icons/sun-shadow.svgi";
-import EqippedBrushIcon from "./equipped-brush-icon";
-import EqippedColorIcon from "./equipped-color-icon";
-import EquippedEmojiIcon from "./equipped-emoji-icon";
 import { useSceneMuteState } from "../utils/shared-effects";
 import { getMessages } from "../../hubs/utils/i18n";
 import Tooltip from "./tooltip";
@@ -108,7 +102,7 @@ const CornerButton = styled.button`
     background-color: var(--canvas-overlay-item-active-background-color);
   }
 
-  .panels-expanded & {
+  .panels-collapsed & {
     display: none;
   }
 `;
@@ -283,15 +277,6 @@ const ToggleFloorButton = forwardRef(() => {
 
 ToggleFloorButton.displayName = "ToggleFloorButton";
 
-const DeviceStatuses = styled.div`
-  flex-direction: row;
-  margin: 11px 12px 0 0;
-  display: none;
-
-  .panels-expanded & {
-    display: flex;
-  }
-`;
 function CanvasTop(props) {
   const {
     scene,
@@ -315,14 +300,12 @@ function CanvasTop(props) {
     showHubContextMenuPopup
   } = props;
 
-  const { launcherSystem, builderSystem, cameraSystem } = SYSTEMS;
+  const { cameraSystem } = SYSTEMS;
   const { store, hubChannel } = window.APP;
   const [canSpawnAndMoveMedia, setCanSpawnAndMoveMedia] = useState(
     hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id)
   );
   const [isInspecting, setIsInspecting] = useState(cameraSystem.isInspecting());
-  const [unmuted, setUnmuted] = useState(false);
-  const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
 
   const treeForCurrentHub = hub && hub.type === "world" ? worldTree : channelTree;
 
@@ -347,23 +330,6 @@ function CanvasTop(props) {
   const hubPermissionsButtonRef = useRef();
   const hubCreateButtonRef = useRef();
   const hubContextButtonRef = useRef();
-
-  useSceneMuteState(scene, setUnmuted);
-
-  useEffect(
-    () => {
-      const handler = () => {
-        setTriggerMode(builderSystem.enabled ? "builder" : "launcher");
-      };
-
-      builderSystem.addEventListener("enabledchanged", handler);
-
-      return () => {
-        builderSystem.removeEventListener("enabledchanged", handler);
-      };
-    },
-    [builderSystem, launcherSystem]
-  );
 
   useEffect(
     () => {
@@ -440,13 +406,6 @@ function CanvasTop(props) {
             });
           }}
         />
-        {isWorld && (
-          <DeviceStatuses>
-            <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
-            {triggerMode === "builder" && <EqippedBrushIcon />}
-            {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
-          </DeviceStatuses>
-        )}
       </CornerButtons>
     );
   } else {

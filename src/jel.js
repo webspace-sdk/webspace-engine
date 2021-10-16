@@ -611,7 +611,7 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
     }
   });
 
-  scene.addEventListener("cursor-lock-state-changed", ({ detail: { oldCursorLockState } }) => {
+  scene.addEventListener("cursor-lock-state-changed", () => {
     const uiAnimationSystem = scene.systems["hubs-systems"].uiAnimationSystem;
 
     const cursorLockState = getCursorLockState();
@@ -1123,12 +1123,12 @@ async function start() {
   // Focus canvas if we mouse over it and aren't in an input field
   // Delay the focus change unless we're focused on the body, which means nothing
   // was focused.
-  canvas.addEventListener("mouseover", () => {
+  canvas.addEventListener("mouseover", ({ buttons }) => {
     if (!isInEditableField()) {
       const { uiAnimationSystem } = SYSTEMS;
 
       // Collapse the UI on canvas mouse over unless cursor is locked.
-      if (getCursorLockState() === CURSOR_LOCK_STATES.UNLOCKED_PERSISTENT) {
+      if (buttons === 0 && getCursorLockState() === CURSOR_LOCK_STATES.UNLOCKED_PERSISTENT) {
         uiAnimationSystem.collapseSidePanels();
       }
 

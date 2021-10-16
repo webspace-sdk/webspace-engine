@@ -40,7 +40,7 @@ const SnackbarElement = styled.div`
     transform: translate(-50%, -6px);
   }
 
-  .panels-expanded & {
+  .panels-collapsed & {
     display: none;
   }
 

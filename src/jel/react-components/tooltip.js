@@ -29,7 +29,7 @@ const TooltipStyled = styled(Tippy)`
     transition-duration: 75ms, 75ms !important;
   }
 
-  .panels-expanded &.hide-when-expanded {
+  .panels-collapsed &.hide-when-expanded {
     display: none;
   }
 `;

@@ -9,6 +9,10 @@ import styled from "styled-components";
 import mutedIcon from "../../assets/jel/images/icons/mic-muted.svgi";
 import unmutedIcon from "../../assets/jel/images/icons/mic-unmuted.svgi";
 import rotateIcon from "../../assets/jel/images/icons/rotate.svgi";
+import { BigIconButton } from "./icon-button";
+import EqippedBrushIcon from "./equipped-brush-icon";
+import EqippedColorIcon from "./equipped-color-icon";
+import EquippedEmojiIcon from "./equipped-emoji-icon";
 import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../utils/tree-utils";
 import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
@@ -56,7 +60,7 @@ const Root = styled.div`
     height: calc(100% - ${ASSET_PANEL_HEIGHT_EXPANDED}px);
   }
 
-  body.panels-expanded & #jel-ui-wrap,
+  body.panels-collapsed & #jel-ui-wrap,
   body.paused & #jel-ui-wrap {
     height: 100%;
   }
@@ -65,7 +69,7 @@ const Root = styled.div`
     height: ${ASSET_PANEL_HEIGHT_EXPANDED}px;
   }
 
-  body.panels-expanded & #asset-panel {
+  body.panels-collapsed & #asset-panel {
     display: none;
   }
 `;
@@ -133,7 +137,7 @@ const NotifyBanner = styled.div`
   pointer-events: auto;
   user-select: none;
 
-  .panels-expanded & {
+  .panels-collapsed & {
     display: none;
   }
 `;
@@ -167,7 +171,7 @@ const NotifyBannerButton = styled.button`
     background-color: var(--canvas-overlay-item-active-background-color);
   }
 
-  .panels-expanded & {
+  .panels-collapsed & {
     display: none;
   }
 `;
@@ -349,6 +353,20 @@ const BottomLeftPanels = styled.div`
   width: 50%;
 `;
 
+const DeviceStatuses = styled.div`
+  flex-direction: row;
+  margin: 11px 0 0 12px;
+  display: none;
+
+  .panels-collapsed & {
+    display: flex;
+  }
+
+  body.paused & {
+    display: none;
+  }
+`;
+
 function JelUI(props) {
   const {
     scene,
@@ -366,6 +384,9 @@ function JelUI(props) {
     voxTree,
     sceneTree
   } = props;
+
+  const { launcherSystem, builderSystem, terrainSystem, atmosphereSystem, externalCameraSystem } = SYSTEMS;
+
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
@@ -374,6 +395,7 @@ function JelUI(props) {
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
   const [unmuted, setUnmuted] = useState(false);
+  const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const [worldTreeData, setWorldTreeData] = useState([]);
   const [worldTreeDataVersion, setWorldTreeDataVersion] = useState(0);
   const [channelTreeData, setChannelTreeData] = useState([]);
@@ -548,6 +570,21 @@ function JelUI(props) {
 
   useEffect(
     () => {
+      const handler = () => {
+        setTriggerMode(builderSystem.enabled ? "builder" : "launcher");
+      };
+
+      builderSystem.addEventListener("enabledchanged", handler);
+
+      return () => {
+        builderSystem.removeEventListener("enabledchanged", handler);
+      };
+    },
+    [builderSystem, launcherSystem]
+  );
+
+  useEffect(
+    () => {
       if (hasFetchedInitialHubMetadata) return;
       if (!hub || !hubMetadata) return;
 
@@ -690,11 +727,14 @@ function JelUI(props) {
 
   const onTurnOnNotificationClicked = useCallback(() => subscriptions.subscribe(), [subscriptions]);
 
-  const temporarilyUpdateEnvironmentColors = useCallback((...colors) => {
-    SYSTEMS.terrainSystem.updateWorldColors(...colors);
-    SYSTEMS.atmosphereSystem.updateWaterColor(colors[7]);
-    SYSTEMS.atmosphereSystem.updateSkyColor(colors[6]);
-  }, []);
+  const temporarilyUpdateEnvironmentColors = useCallback(
+    (...colors) => {
+      terrainSystem.updateWorldColors(...colors);
+      atmosphereSystem.updateWaterColor(colors[7]);
+      atmosphereSystem.updateSkyColor(colors[6]);
+    },
+    [terrainSystem, atmosphereSystem]
+  );
 
   const updateWorldType = useCallback(
     worldType => {
@@ -705,7 +745,7 @@ function JelUI(props) {
 
   const saveCurrentEnvironmentColors = useCallback(
     () => {
-      const colors = SYSTEMS.terrainSystem.worldColors;
+      const colors = terrainSystem.worldColors;
       const hubWorldColors = {};
 
       WORLD_COLOR_TYPES.forEach((type, idx) => {
@@ -716,7 +756,7 @@ function JelUI(props) {
 
       spaceChannel.updateHub(hub.hub_id, hubWorldColors);
     },
-    [hub, spaceChannel]
+    [terrainSystem.worldColors, hub, spaceChannel]
   );
 
   const onEnvironmentPresetColorsHovered = useCallback(
@@ -729,10 +769,10 @@ function JelUI(props) {
 
   const onEnvironmentPresetColorsLeft = useCallback(
     () => {
-      SYSTEMS.terrainSystem.updateWorldForHub(hub);
-      SYSTEMS.atmosphereSystem.updateAtmosphereForHub(hub);
+      terrainSystem.updateWorldForHub(hub);
+      atmosphereSystem.updateAtmosphereForHub(hub);
     },
-    [hub]
+    [hub, terrainSystem, atmosphereSystem]
   );
 
   const onEnvironmentPresetColorsClicked = useCallback(
@@ -783,7 +823,7 @@ function JelUI(props) {
 
   const onNotifyBannerClose = useCallback(() => setShowNotificationBannerWarning(true), []);
 
-  const onClickExternalCameraRotate = useCallback(() => SYSTEMS.externalCameraSystem.toggleCamera(), []);
+  const onClickExternalCameraRotate = useCallback(() => externalCameraSystem.toggleCamera(), [externalCameraSystem]);
 
   const isWorld = hub && hub.type === "world";
   const waitingForMatrix = isMatrixLoading && !skipNeon;
@@ -884,6 +924,13 @@ function JelUI(props) {
 
               {!isHomeHub && (
                 <ChatLog leftOffset={showingExternalCamera ? 300 : 0} hub={hub} scene={scene} store={store} />
+              )}
+              {isWorld && (
+                <DeviceStatuses>
+                  <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
+                  {triggerMode === "builder" && <EqippedBrushIcon />}
+                  {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
+                </DeviceStatuses>
               )}
             </BottomLeftPanels>
           )}
