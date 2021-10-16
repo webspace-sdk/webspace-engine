@@ -28,43 +28,43 @@ export const WORLD_MIN_COORD = -WORLD_MAX_COORD;
 export const WORLD_SIZE = WORLD_MAX_COORD - WORLD_MIN_COORD;
 
 // Radius is artificial, want to have a specific curve effect not accurancy
-export const WORLD_RADIUS = 128.0;
+// TODO adjust based on world type, note also changed in unlit-batch.vert.
+export const WORLD_RADIUS = 12800.0;
 
-export const addVertexCurvingToShader = (/*shader, postCurveShader = ""*/) => {
-  // TODO, make this only enabled when non-flat
-  //shader.vertexShader = shader.vertexShader.replace(
-  //  "#include <project_vertex>",
-  //  [
-  //    "#define cplx vec2",
-  //    "#define cplx_new(re, im) vec2(re, im)",
-  //    "#define cplx_re(z) z.x",
-  //    "#define cplx_im(z) z.y",
-  //    "#define cplx_exp(z) (exp(z.x) * cplx_new(cos(z.y), sin(z.y)))",
-  //    "#define cplx_scale(z, scalar) (z * scalar)",
-  //    "#define cplx_abs(z) (sqrt(z.x * z.x + z.y * z.y))",
-  //    `float rp = ${WORLD_RADIUS.toFixed(2)};`,
-  //    "vec4 mvPosition = vec4( transformed, 1.0 );",
-  //    "#ifdef USE_INSTANCING",
-  //    "mvPosition = instanceMatrix * mvPosition;",
-  //    "#endif",
-  //    "vec4 pos = modelMatrix * mvPosition;",
-  //    "mvPosition = modelViewMatrix * mvPosition;", // Leave mvPosition correct for remainder of shader.
-  //    "#ifdef STANDARD",
-  //    "vec3 camPos = cameraPosition;",
-  //    "#else",
-  //    "mat4 worldViewMatrix = inverse(viewMatrix);",
-  //    "vec3 camPos = worldViewMatrix[3].xyz;",
-  //    "#endif",
-  //    "vec2 planedir = normalize(vec2(pos.x - camPos.x, pos.z - camPos.z));",
-  //    "cplx plane = cplx_new(pos.y - camPos.y, sqrt((pos.x - camPos.x) * (pos.x - camPos.x) + (pos.z - camPos.z) * (pos.z - camPos.z)));",
-  //    "cplx circle = rp * cplx_exp(cplx_scale(plane, 1.0 / rp)) - cplx_new(rp, 0);",
-  //    "pos.x = cplx_im(circle) * planedir.x + camPos.x;",
-  //    "pos.z = cplx_im(circle) * planedir.y + camPos.z;",
-  //    "pos.y = cplx_re(circle) + camPos.y;",
-  //    "gl_Position = projectionMatrix * viewMatrix * pos;",
-  //    postCurveShader
-  //  ].join("\n")
-  //);
+export const addVertexCurvingToShader = (shader, postCurveShader = "") => {
+  shader.vertexShader = shader.vertexShader.replace(
+    "#include <project_vertex>",
+    [
+      "#define cplx vec2",
+      "#define cplx_new(re, im) vec2(re, im)",
+      "#define cplx_re(z) z.x",
+      "#define cplx_im(z) z.y",
+      "#define cplx_exp(z) (exp(z.x) * cplx_new(cos(z.y), sin(z.y)))",
+      "#define cplx_scale(z, scalar) (z * scalar)",
+      "#define cplx_abs(z) (sqrt(z.x * z.x + z.y * z.y))",
+      `float rp = ${WORLD_RADIUS.toFixed(2)};`,
+      "vec4 mvPosition = vec4( transformed, 1.0 );",
+      "#ifdef USE_INSTANCING",
+      "mvPosition = instanceMatrix * mvPosition;",
+      "#endif",
+      "vec4 pos = modelMatrix * mvPosition;",
+      "mvPosition = modelViewMatrix * mvPosition;", // Leave mvPosition correct for remainder of shader.
+      "#ifdef STANDARD",
+      "vec3 camPos = cameraPosition;",
+      "#else",
+      "mat4 worldViewMatrix = inverse(viewMatrix);",
+      "vec3 camPos = worldViewMatrix[3].xyz;",
+      "#endif",
+      "vec2 planedir = normalize(vec2(pos.x - camPos.x, pos.z - camPos.z));",
+      "cplx plane = cplx_new(pos.y - camPos.y, sqrt((pos.x - camPos.x) * (pos.x - camPos.x) + (pos.z - camPos.z) * (pos.z - camPos.z)));",
+      "cplx circle = rp * cplx_exp(cplx_scale(plane, 1.0 / rp)) - cplx_new(rp, 0);",
+      "pos.x = cplx_im(circle) * planedir.x + camPos.x;",
+      "pos.z = cplx_im(circle) * planedir.y + camPos.z;",
+      "pos.y = cplx_re(circle) + camPos.y;",
+      "gl_Position = projectionMatrix * viewMatrix * pos;",
+      postCurveShader
+    ].join("\n")
+  );
 };
 
 export const addVertexCurvingToMaterial = material => {

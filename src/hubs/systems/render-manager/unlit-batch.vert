@@ -71,7 +71,7 @@ void main() {
 
   vec4 mvPosition = instanceData.transforms[instanceIndex] * vec4(position, 1.0);
 
-  float rp = 128.0;
+  float rp = 12800.0;
   vec4 pos = mvPosition;
   mvPosition = viewMatrix * mvPosition;
   vec2 planedir = normalize(vec2(pos.x - cameraPosition.x, pos.z - cameraPosition.z));
