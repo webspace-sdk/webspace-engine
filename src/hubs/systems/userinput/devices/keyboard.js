@@ -142,6 +142,7 @@ export class KeyboardDevice {
 
         // ` in text editor blurs it, also non-modifier key @ for japanese keyboards since ` is missing
         // ` when editing vox exits inspector
+        // ` otherwise toggles panels
         if (e.type === "keydown" && (e.code === "Backquote" || (e.key === "@" && e.code === "BracketLeft"))) {
           if (isInQuillEditor()) {
             window.APP.store.handleActivityFlag("mediaTextEditClose");
@@ -154,6 +155,23 @@ export class KeyboardDevice {
             // HACK if we uninspect this tick the media interaction system will run thinking
             // inspection wasn't happening, and will re-trigger.
             setTimeout(() => SYSTEMS.cameraSystem.uninspect(), 25);
+          } else if (getCursorLockState() === CURSOR_LOCK_STATES.UNLOCKED_PERSISTENT) {
+            const interaction = AFRAME.scenes[0].systems.interaction;
+
+            // Ignore widen when holding, since this is used for snapping.
+            const heldOrHovered =
+              interaction.state.leftHand.held ||
+              interaction.state.rightHand.held ||
+              interaction.state.rightRemote.held ||
+              interaction.state.leftRemote.held ||
+              interaction.state.leftHand.hovered ||
+              interaction.state.rightHand.hovered ||
+              interaction.state.rightRemote.hovered ||
+              interaction.state.leftRemote.hovered;
+
+            if (!heldOrHovered) {
+              SYSTEMS.uiAnimationSystem.toggleSidePanels();
+            }
           }
         }
 

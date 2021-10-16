@@ -90,6 +90,14 @@ export class UIAnimationSystem {
     window.addEventListener("resize", () => this.applySceneSize(null, null, true));
   }
 
+  toggleSidePanels(animate = true) {
+    if (this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDED) {
+      this.collapseSidePanels(animate);
+    } else if (this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSED) {
+      this.expandSidePanels(animate);
+    }
+  }
+
   expandSidePanels(animate = true) {
     if (this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDED) return;
     this.performPanelExpansion(PANEL_EXPANSION_STATES.EXPANDING, animate);
