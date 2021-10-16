@@ -58,21 +58,27 @@ export class UIAnimationSystem {
       // check holding, locked, chat channel, text field, inspecting, build mode, dragging panels
       // pause panel wrong size?
       const store = window.APP.store;
-      const navX = store.state.uiState.navPanelWidth || DEFAULT_NAV_PANEL_WIDTH;
-      const presenceX = window.innerWidth - (store.state.uiState.presencePanelWidth || DEFAULT_PRESENCE_PANEL_WIDTH);
-      const margin = 16;
+      const navWidth = store.state.uiState.navPanelWidth || DEFAULT_NAV_PANEL_WIDTH;
+      const presenceWidth = store.state.uiState.presencePanelWidth || DEFAULT_PRESENCE_PANEL_WIDTH;
       const assetPanelY =
         window.innerHeight -
-        (store.state.uiState.assetPanelExpanded ? ASSET_PANEL_HEIGHT_EXPANDED / 2.0 : ASSET_PANEL_HEIGHT_COLLAPSED);
+        (store.state.uiState.assetPanelExpanded ? ASSET_PANEL_HEIGHT_EXPANDED / 1.5 : ASSET_PANEL_HEIGHT_COLLAPSED);
 
-      if (
-        clientX <= margin ||
-        clientX >= window.innerWidth - margin ||
-        (clientY >= assetPanelY && clientX > navX && clientX < presenceX)
-      ) {
-        if (this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSED) {
-          this.expandSidePanels();
-        }
+      const pctTopY = (clientY * 1.0) / (window.innerHeight / 2.0);
+      const topMargin = 64;
+
+      // Trigger panels on if in region: rectangle at bottom left, asset panel, rectangle at bottom right, triangles in top left + right, and an empty topMargin tall region at top to ensure controls at top are clicked.
+      const inTriggerRegion =
+        (clientY >= window.innerHeight / 2 && clientX < navWidth) ||
+        (clientY >= topMargin && clientY <= window.innerHeight / 2 && clientX < navWidth * pctTopY * 0.5) ||
+        (clientY >= window.innerHeight / 2 && clientX > window.innerWidth - presenceWidth) ||
+        (clientY >= topMargin &&
+          clientY <= window.innerHeight / 2 &&
+          clientX > window.innerWidth - presenceWidth * pctTopY * 0.5) ||
+        (clientY >= assetPanelY && clientX > navWidth && clientX < window.innerWidth - presenceWidth);
+
+      if (inTriggerRegion && this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSED) {
+        this.expandSidePanels();
       }
     });
 
