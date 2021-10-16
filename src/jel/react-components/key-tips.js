@@ -204,7 +204,6 @@ const idleTips = [
   ["move", "w a s d"],
   ["fly", "q e"],
   ["look", "H;G", "narrowMouseLook"],
-  ["look_lock", "L+S"],
   ["run", "H"],
   ["jump", "S"],
   ["shoot", "_S|D"],
@@ -214,6 +213,8 @@ const idleTips = [
   ["undo", "L+z,y"],
   ["chat", "E", "chat"],
   ["unlock", "l"],
+  ["ui", "~|@"],
+  ["look_lock", "L+S"],
   ["hide", "?"]
 ];
 
