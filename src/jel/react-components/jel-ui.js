@@ -405,8 +405,6 @@ function JelUI(props) {
   const modalPopupRef = useRef();
   const createEmbedFocusRef = useRef();
   const emojiPopupFocusRef = useRef();
-  console.trace();
-  console.log(Math.random());
   const environmentSettingsButtonRef = useRef();
 
   const {
