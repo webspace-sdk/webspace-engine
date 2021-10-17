@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { usePopper } from "react-popper";
 import { toggleFocus } from "./dom-utils";
 
@@ -51,6 +51,15 @@ export function useAtomBoundPopupPopper(focusRef, initialPlacement = "bottom", i
       }
     ]
   });
+
+  useEffect(
+    () => {
+      const scene = AFRAME.scenes[0]; // TODO
+      scene && scene.addEventListener("side_panel_resize_complete", update);
+      () => scene && scene.removeEventListener("side_panel_resize_complete", update);
+    },
+    [update]
+  );
 
   const show = useCallback(
     (newAtomId, newAtomMetadata, ref, newPlacement, newOffset, newPopupOpenOptions = null) => {
@@ -116,6 +125,15 @@ export function usePopupPopper(
       ...extraModifiers
     ]
   });
+
+  useEffect(
+    () => {
+      const scene = AFRAME.scenes[0]; // TODO
+      scene && scene.addEventListener("side_panel_resize_complete", update);
+      () => scene && scene.removeEventListener("side_panel_resize_complete", update);
+    },
+    [update]
+  );
 
   const show = useCallback(
     (ref, newPlacement, newOffset, newPopupOpenOptions = null) => {

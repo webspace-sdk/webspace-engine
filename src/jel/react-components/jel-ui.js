@@ -437,8 +437,7 @@ function JelUI(props) {
     atomId: atomRenameAtomId,
     atomMetadata: atomRenameMetadata,
     show: showAtomRenamePopup,
-    popupElement: atomRenamePopupElement,
-    update: updateAtomRenamePopup
+    popupElement: atomRenamePopupElement
   } = useAtomBoundPopupPopper(atomRenameFocusRef, "bottom-start", [0, 8]);
 
   const {
@@ -448,8 +447,7 @@ function JelUI(props) {
     atomId: spaceRenameSpaceId,
     atomMetadata: spaceRenameMetadata,
     show: showSpaceRenamePopup,
-    popupElement: spaceRenamePopupElement,
-    update: updateSpaceRenamePopup
+    popupElement: spaceRenamePopupElement
   } = useAtomBoundPopupPopper(spaceRenameFocusRef, "bottom-start", [0, 16]);
 
   const {
@@ -459,8 +457,7 @@ function JelUI(props) {
     show: showHubContextMenuPopup,
     setPopup: setHubContextMenuElement,
     popupOpenOptions: hubContextMenuOpenOptions,
-    popupElement: hubContextMenuElement,
-    update: updateHubContextMenu
+    popupElement: hubContextMenuElement
   } = useAtomBoundPopupPopper();
 
   const {
@@ -468,16 +465,14 @@ function JelUI(props) {
     attributes: createSelectPopupAttributes,
     show: showCreateSelectPopup,
     setPopup: setCreateSelectPopupElement,
-    popupElement: createSelectPopupElement,
-    update: updateCreateSelectPopup
+    popupElement: createSelectPopupElement
   } = usePopupPopper(".create-select-selection-search-input", "bottom-end", [0, 8]);
 
   const {
     styles: chatInputPopupStyles,
     attributes: chatInputPopupAttributes,
     show: showChatInputPopup,
-    setPopup: setChatInputPopupElement,
-    update: updateChatInputPopup
+    setPopup: setChatInputPopupElement
   } = usePopupPopper(chatInputFocusRef, "top", [0, 8]);
 
   const {
@@ -485,7 +480,6 @@ function JelUI(props) {
     attributes: emojiPopupAttributes,
     show: showEmojiPopup,
     setPopup: setEmojiPopupElement,
-    update: updateEmojiPopup,
     popupOpenOptions: emojiPopupOpenOptions
   } = usePopupPopper(emojiPopupFocusRef, "bottom", [0, 8]);
 
@@ -493,16 +487,14 @@ function JelUI(props) {
     styles: createEmbedPopupStyles,
     attributes: createEmbedPopupAttributes,
     show: showCreateEmbedPopup,
-    setPopup: setCreateEmbedPopupElement,
-    update: updateCreateEmbedPopup
+    setPopup: setCreateEmbedPopupElement
   } = usePopupPopper(createEmbedFocusRef, "bottom", [0, 8]);
 
   const {
     styles: spaceNotificationPopupStyles,
     attributes: spaceNotificationPopupAttributes,
     show: showSpaceNotificationPopup,
-    setPopup: setSpaceNotificationPopupElement,
-    update: updateSpaceNotificationPopup
+    setPopup: setSpaceNotificationPopupElement
   } = usePopupPopper(null, "bottom", [0, 8]);
 
   const {
@@ -510,8 +502,7 @@ function JelUI(props) {
     attributes: hubNotificationPopupAttributes,
     show: showHubNotificationPopup,
     setPopup: setHubNotificationPopupElement,
-    popupElement: hubNotificationPopupElement,
-    update: updateHubNotificationPopup
+    popupElement: hubNotificationPopupElement
   } = usePopupPopper(null, "bottom-end", [0, 8]);
 
   const {
@@ -519,8 +510,7 @@ function JelUI(props) {
     attributes: environmentSettingsPopupAttributes,
     show: showEnvironmentSettingsPopup,
     setPopup: setEnvironmentSettingsPopupElement,
-    popupElement: environmentSettingsPopupElement,
-    update: updateEnvironmentSettingsPopup
+    popupElement: environmentSettingsPopupElement
   } = usePopupPopper(null, "bottom-end", [0, 8]);
 
   const {
@@ -528,45 +518,8 @@ function JelUI(props) {
     attributes: hubPermissionsPopupAttributes,
     show: showHubPermissionsPopup,
     setPopup: setHubPermissionsPopupElement,
-    popupElement: hubPermissionsPopupElement,
-    update: updateHubPermissionsPopup
+    popupElement: hubPermissionsPopupElement
   } = usePopupPopper(null, "bottom-end", [0, 8]);
-
-  // When panels are re-sized we need to re-layout popups
-  useEffect(
-    () => {
-      const handleResizeComplete = () => {
-        if (updateSpaceRenamePopup) updateSpaceRenamePopup();
-        if (updateAtomRenamePopup) updateAtomRenamePopup();
-        if (updateHubContextMenu) updateHubContextMenu();
-        if (updateCreateSelectPopup) updateCreateSelectPopup();
-        if (updateCreateEmbedPopup) updateCreateEmbedPopup();
-        if (updateChatInputPopup) updateChatInputPopup();
-        if (updateEmojiPopup) updateEmojiPopup();
-        if (updateSpaceNotificationPopup) updateSpaceNotificationPopup();
-        if (updateHubNotificationPopup) updateHubNotificationPopup();
-        if (updateEnvironmentSettingsPopup) updateEnvironmentSettingsPopup();
-        if (updateHubPermissionsPopup) updateHubPermissionsPopup();
-      };
-
-      scene && scene.addEventListener("side_panel_resize_complete", handleResizeComplete);
-      () => scene && scene.removeEventListener("side_panel_resize_complete", handleResizeComplete);
-    },
-    [
-      scene,
-      updateAtomRenamePopup,
-      updateSpaceRenamePopup,
-      updateHubContextMenu,
-      updateCreateSelectPopup,
-      updateCreateEmbedPopup,
-      updateChatInputPopup,
-      updateEmojiPopup,
-      updateSpaceNotificationPopup,
-      updateHubNotificationPopup,
-      updateHubPermissionsPopup,
-      updateEnvironmentSettingsPopup
-    ]
-  );
 
   useEffect(
     () => {
