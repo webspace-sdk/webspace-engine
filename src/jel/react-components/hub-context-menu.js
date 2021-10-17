@@ -4,10 +4,14 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import PopupMenu, { PopupMenuItem } from "./popup-menu";
 import trashIcon from "../../assets/jel/images/icons/trash.svgi";
+import WorldExporter from "../utils/world-exporter";
 import restoreIcon from "../../assets/jel/images/icons/restore.svgi";
 import cubeIcon from "../../assets/jel/images/icons/cube.svgi";
 import { FormattedMessage } from "react-intl";
 import qsTruthy from "../../hubs/utils/qs_truthy";
+import { navigateToHubUrl } from "../utils/jel-url-utils";
+import { isAtomInSubtree, findChildrenAtomsInTreeData } from "../utils/tree-utils";
+import { homeHubForSpaceId } from "../utils/membership-utils";
 
 const showPublishObjects = qsTruthy("show_publish");
 
@@ -15,6 +19,7 @@ let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
 
 function HubContextMenu({
+  scene,
   styles,
   attributes,
   setPopperElement,
@@ -27,15 +32,17 @@ function HubContextMenu({
   showReset,
   showExport,
   isCurrentWorld,
-  onRenameClick,
-  onImportClick,
-  onExportClick,
-  onPublishTemplateClick,
-  onResetClick,
-  onTrashClick
+  showAtomRenamePopup,
+  channelTree,
+  hub,
+  memberships,
+  worldTreeData,
+  channelTreeData,
+  history
 }) {
   if (!popupRoot || !spaceCan || !hubCan) return null;
 
+  const { spaceChannel, hubMetadata } = window.APP;
   const items = [];
 
   if (hubId && hubCan("update_hub_meta", hubId) && roomForHubCan("state:m.room.name", hubId) && !hideRename) {
@@ -43,7 +50,7 @@ function HubContextMenu({
       <PopupMenuItem
         key={`rename-${hubId}`}
         onClick={e => {
-          onRenameClick(hubId);
+          showAtomRenamePopup(hubId, hubMetadata, null);
           e.preventDefault();
           e.stopPropagation();
         }}
@@ -59,7 +66,8 @@ function HubContextMenu({
         <PopupMenuItem
           key={`import-${hubId}`}
           onClick={e => {
-            onImportClick(hubId);
+            document.querySelector("#import-upload-input").click();
+            scene.canvas.focus();
             e.preventDefault();
             e.stopPropagation();
           }}
@@ -73,7 +81,8 @@ function HubContextMenu({
       <PopupMenuItem
         key={`export-${hubId}`}
         onClick={e => {
-          onExportClick(hubId);
+          new WorldExporter().downloadCurrentWorldHtml();
+          scene.canvas.focus();
           e.preventDefault();
           e.stopPropagation();
         }}
@@ -88,7 +97,7 @@ function HubContextMenu({
       <PopupMenuItem
         key={`reset-${hubId}`}
         onClick={e => {
-          onResetClick(hubId);
+          scene.emit("action_reset_objects");
           e.preventDefault();
           e.stopPropagation();
         }}
@@ -157,7 +166,8 @@ function HubContextMenu({
           const parentHubMeta = await hubMetadata.getOrFetchMetadata(parentHubId);
           const collection = parentHubMeta.displayName;
 
-          onPublishTemplateClick(collection, hubId);
+          scene.emit("action_publish_template", { collection });
+          scene.canvas.focus();
         }}
         iconSrc={cubeIcon}
       >
@@ -170,7 +180,21 @@ function HubContextMenu({
       <PopupMenuItem
         key={`trash-${hubId}`}
         onClick={e => {
-          onTrashClick(hubId);
+          if (!worldTree.getNodeIdForAtomId(hubId) && !channelTree.getNodeIdForAtomId(hubId)) return;
+
+          // If this hub or any of its parents were deleted, go home.
+          if (isAtomInSubtree(worldTree, hubId, hub.hub_id) || isAtomInSubtree(channelTree, hubId, hub.hub_id)) {
+            const homeHub = homeHubForSpaceId(hub.space_id, memberships);
+            navigateToHubUrl(history, homeHub.url);
+          }
+
+          // All trashable children are trashed too.
+          const trashableChildrenHubIds = [
+            ...findChildrenAtomsInTreeData(worldTreeData, hubId),
+            ...findChildrenAtomsInTreeData(channelTreeData, hubId)
+          ].filter(hubId => hubCan("trash_hub", hubId));
+
+          spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
           // Blur button so menu hides
           document.activeElement.blur();
           e.preventDefault();

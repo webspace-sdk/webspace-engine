@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
-import React, { forwardRef } from "react";
+import React, { forwardRef, useCallback } from "react";
+import { ATOM_TYPES } from "../utils/atom-metadata";
 import ReactDOM from "react-dom";
 import NameInputPanel from "./name-input-panel";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
@@ -8,7 +9,9 @@ import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
 
-const RenamePopup = forwardRef(({ styles, attributes, atomMetadata, setPopperElement, onNameChanged, atomId }, ref) => {
+const RenamePopup = forwardRef(({ styles, attributes, atomMetadata, setPopperElement, atomId }, ref) => {
+  const { spaceChannel, accountChannel, dynaChannel } = window.APP;
+
   const popupInput = (
     <div
       tabIndex={-1} // Ensures can be focused
@@ -21,7 +24,20 @@ const RenamePopup = forwardRef(({ styles, attributes, atomMetadata, setPopperEle
         className={sharedStyles.slideDownWhenPopped}
         atomId={atomId}
         atomMetadata={atomMetadata}
-        onNameChanged={onNameChanged}
+        onNameChanged={useCallback(
+          name => {
+            const { atomType } = atomMetadata;
+
+            if (atomType === ATOM_TYPES.HUB) {
+              spaceChannel.updateHub(atomId, { name });
+            } else if (atomType === ATOM_TYPES.VOX) {
+              accountChannel.updateVox(atomId, { name });
+            } else if (atomType === ATOM_TYPES.SPACE) {
+              dynaChannel.updateSpace(atomId, { name });
+            }
+          },
+          [spaceChannel, accountChannel, dynaChannel, atomId, atomMetadata]
+        )}
         ref={ref}
       />
     </div>
@@ -36,7 +52,6 @@ RenamePopup.propTypes = {
   attributes: PropTypes.object,
   atomMetadata: PropTypes.object,
   setPopperElement: PropTypes.func,
-  onNameChanged: PropTypes.func,
   atomId: PropTypes.string
 };
 

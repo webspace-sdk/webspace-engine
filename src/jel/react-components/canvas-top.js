@@ -2,7 +2,6 @@ import React, { useRef, useState, useCallback, forwardRef, useEffect } from "rea
 import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
 import RenamePopup from "./rename-popup";
-import WorldExporter from "../utils/world-exporter";
 import AtomTrail from "./atom-trail";
 import styled from "styled-components";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
@@ -14,12 +13,9 @@ import securityIcon from "../../assets/jel/images/icons/security-shadow.svgi";
 import sunIcon from "../../assets/jel/images/icons/sun-shadow.svgi";
 import { useAtomBoundPopupPopper } from "../utils/popup-utils";
 import { getMessages } from "../../hubs/utils/i18n";
-import { navigateToHubUrl } from "../utils/jel-url-utils";
 import Tooltip from "./tooltip";
 import { useInstallPWA } from "../../hubs/react-components/input/useInstallPWA";
 import { ATOM_TYPES } from "../utils/atom-metadata";
-import { isAtomInSubtree, findChildrenAtomsInTreeData } from "../utils/tree-utils";
-import { homeHubForSpaceId } from "../utils/membership-utils";
 
 const Top = styled.div`
   flex: 1;
@@ -308,7 +304,7 @@ function CanvasTop(props) {
   } = props;
 
   const { cameraSystem } = SYSTEMS;
-  const { store, accountChannel, hubChannel, spaceChannel } = window.APP;
+  const { store, hubChannel } = window.APP;
 
   const {
     styles: hubContextMenuStyles,
@@ -469,6 +465,7 @@ function CanvasTop(props) {
         showExport={!!hubContextMenuOpenOptions.showExport}
         showReset={!!hubContextMenuOpenOptions.showReset}
         isCurrentWorld={!!hubContextMenuOpenOptions.isCurrentWorld}
+        showAtomRenamePopup={showAtomRenamePopup}
         worldTree={worldTree}
         styles={hubContextMenuStyles}
         attributes={hubContextMenuAttributes}
@@ -476,52 +473,13 @@ function CanvasTop(props) {
         spaceCan={spaceCan}
         hubCan={hubCan}
         roomForHubCan={roomForHubCan}
-        onRenameClick={useCallback(hubId => showAtomRenamePopup(hubId, hubMetadata, null), [
-          showAtomRenamePopup,
-          hubMetadata
-        ])}
-        onImportClick={useCallback(
-          () => {
-            document.querySelector("#import-upload-input").click();
-            scene.canvas.focus();
-          },
-          [scene]
-        )}
-        onExportClick={useCallback(
-          () => {
-            new WorldExporter().downloadCurrentWorldHtml();
-            scene.canvas.focus();
-          },
-          [scene]
-        )}
-        onPublishTemplateClick={useCallback(
-          async collection => {
-            scene.emit("action_publish_template", { collection });
-            scene.canvas.focus();
-          },
-          [scene]
-        )}
-        onResetClick={useCallback(() => scene.emit("action_reset_objects"), [scene])}
-        onTrashClick={useCallback(
-          hubId => {
-            if (!worldTree.getNodeIdForAtomId(hubId) && !channelTree.getNodeIdForAtomId(hubId)) return;
-
-            // If this hub or any of its parents were deleted, go home.
-            if (isAtomInSubtree(worldTree, hubId, hub.hub_id) || isAtomInSubtree(channelTree, hubId, hub.hub_id)) {
-              const homeHub = homeHubForSpaceId(hub.space_id, memberships);
-              navigateToHubUrl(history, homeHub.url);
-            }
-
-            // All trashable children are trashed too.
-            const trashableChildrenHubIds = [
-              ...findChildrenAtomsInTreeData(worldTreeData, hubId),
-              ...findChildrenAtomsInTreeData(channelTreeData, hubId)
-            ].filter(hubId => hubCan("trash_hub", hubId));
-
-            spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
-          },
-          [worldTree, hub, history, hubCan, memberships, spaceChannel, worldTreeData, channelTree, channelTreeData]
-        )}
+        scene={scene}
+        channelTree={channelTree}
+        worldTreeData={worldTreeData}
+        channelTreeData={channelTreeData}
+        memberships={memberships}
+        hub={hub}
+        history={history}
       />
       <RenamePopup
         setPopperElement={setAtomRenamePopupElement}
@@ -530,18 +488,6 @@ function CanvasTop(props) {
         atomId={atomRenameAtomId}
         atomMetadata={atomRenameMetadata}
         ref={atomRenameFocusRef}
-        onNameChanged={useCallback(
-          name => {
-            const { atomType } = atomRenameMetadata;
-
-            if (atomType === ATOM_TYPES.HUB) {
-              spaceChannel.updateHub(atomRenameAtomId, { name });
-            } else if (atomType === ATOM_TYPES.VOX) {
-              accountChannel.updateVox(atomRenameAtomId, { name });
-            }
-          },
-          [spaceChannel, accountChannel, atomRenameAtomId, atomRenameMetadata]
-        )}
       />
     </Top>
   );
@@ -560,11 +506,10 @@ CanvasTop.propTypes = {
   showHubNotificationPopup: PropTypes.func,
   createSelectPopupElement: PropTypes.object,
   showCreateSelectPopup: PropTypes.func,
-  hubContextMenuElement: PropTypes.object,
   worldTree: PropTypes.object,
   channelTree: PropTypes.object,
-  worldTreeData: PropTypes.object,
-  channelTreeData: PropTypes.object,
+  worldTreeData: PropTypes.array,
+  channelTreeData: PropTypes.array,
   spaceCan: PropTypes.func,
   memberships: PropTypes.array,
   roomForHubCan: PropTypes.func

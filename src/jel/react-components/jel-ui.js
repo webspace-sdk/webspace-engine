@@ -4,7 +4,6 @@ import cancelIcon from "../../assets/jel/images/icons/cancel.svgi";
 import { FieldEditButton } from "./form-components";
 import PropTypes from "prop-types";
 import WorldImporter from "../utils/world-importer";
-import WorldExporter from "../utils/world-exporter";
 import styled from "styled-components";
 import mutedIcon from "../../assets/jel/images/icons/mic-muted.svgi";
 import unmutedIcon from "../../assets/jel/images/icons/mic-unmuted.svgi";
@@ -13,18 +12,15 @@ import { BigIconButton } from "./icon-button";
 import EqippedBrushIcon from "./equipped-brush-icon";
 import EqippedColorIcon from "./equipped-color-icon";
 import EquippedEmojiIcon from "./equipped-emoji-icon";
-import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../utils/tree-utils";
+import { useTreeData } from "../utils/tree-utils";
 import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
-import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { getPresetAsColorTuples } from "../utils/world-color-presets";
-import { ATOM_TYPES } from "../utils/atom-metadata";
 import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
 import Snackbar from "./snackbar";
 import RenamePopup from "./rename-popup";
 import CreateEmbedPopup from "./create-embed-popup";
-import HubContextMenu from "./hub-context-menu";
 import CreateSelectPopup from "./create-select-popup";
 import ChatInputPopup from "./chat-input-popup";
 import EmojiPopup from "./emoji-popup";
@@ -32,7 +28,6 @@ import SpaceNotificationsPopup from "./space-notifications-popup";
 import HubPermissionsPopup from "./hub-permissions-popup";
 import HubNotificationsPopup from "./hub-notifications-popup";
 import EnvironmentSettingsPopup from "./environment-settings-popup";
-import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
 import KeyTips from "./key-tips";
@@ -271,7 +266,7 @@ const UnpausedInfoLabel = styled.div`
   line-height: calc(var(--canvas-overlay-tertiary-text-size) + 2px);
   font-weight: var(--canvas-overlay-item-tertiary-weight);
   font-size: var(--canvas-overlay-tertiary-text-size);
-  margin: 11px 0 0 8px;
+  margin: 11px 0 42px 8px;
   padding: 6px 10px;
   white-space: pre;
 
@@ -371,9 +366,6 @@ function JelUI(props) {
   const {
     scene,
     treeManager,
-    history,
-    spaceCan,
-    roomForHubCan,
     hubCan,
     hub,
     memberships,
@@ -390,7 +382,7 @@ function JelUI(props) {
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
-  const { store, hubChannel, spaceChannel, dynaChannel, accountChannel, matrix } = window.APP;
+  const { store, hubChannel, spaceChannel, matrix } = window.APP;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
@@ -418,7 +410,6 @@ function JelUI(props) {
   const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
   const [assetPanelExpanded, setAssetPanelExpanded] = useState(!!store.state.uiState.assetPanelExpanded);
 
-  const atomRenameFocusRef = useRef();
   const spaceRenameFocusRef = useRef();
   const createSelectFocusRef = useRef();
   const createSelectPopupRef = useRef();
@@ -430,17 +421,6 @@ function JelUI(props) {
   const environmentSettingsButtonRef = useRef();
 
   const {
-    styles: atomRenamePopupStyles,
-    attributes: atomRenamePopupAttributes,
-    setPopup: setAtomRenamePopupElement,
-    setRef: setAtomRenameReferenceElement,
-    atomId: atomRenameAtomId,
-    atomMetadata: atomRenameMetadata,
-    show: showAtomRenamePopup,
-    popupElement: atomRenamePopupElement
-  } = useAtomBoundPopupPopper(atomRenameFocusRef, "bottom-start", [0, 8]);
-
-  const {
     styles: spaceRenamePopupStyles,
     attributes: spaceRenamePopupAttributes,
     setPopup: setSpaceRenamePopupElement,
@@ -449,16 +429,6 @@ function JelUI(props) {
     show: showSpaceRenamePopup,
     popupElement: spaceRenamePopupElement
   } = useAtomBoundPopupPopper(spaceRenameFocusRef, "bottom-start", [0, 16]);
-
-  const {
-    styles: hubContextMenuStyles,
-    attributes: hubContextMenuAttributes,
-    atomId: hubContextMenuHubId,
-    show: showHubContextMenuPopup,
-    setPopup: setHubContextMenuElement,
-    popupOpenOptions: hubContextMenuOpenOptions,
-    popupElement: hubContextMenuElement
-  } = useAtomBoundPopupPopper();
 
   const {
     styles: createSelectPopupStyles,
@@ -833,8 +803,8 @@ function JelUI(props) {
             {...props}
             worldTree={worldTree}
             channelTree={channelTree}
-            atomRenamePopupElement={atomRenamePopupElement}
-            showAtomRenamePopup={showAtomRenamePopup}
+            worldTreeData={worldTreeData}
+            channelTreeData={channelTreeData}
             environmentSettingsButtonRef={environmentSettingsButtonRef}
             environmentSettingsPopupElement={environmentSettingsPopupElement}
             showEnvironmentSettingsPopup={showEnvironmentSettingsPopup}
@@ -844,8 +814,6 @@ function JelUI(props) {
             showHubNotificationPopup={showHubNotificationPopup}
             createSelectPopupElement={createSelectPopupElement}
             showCreateSelectPopup={showCreateSelectPopup}
-            hubContextMenuElement={hubContextMenuElement}
-            showHubContextMenuPopup={showHubContextMenuPopup}
           />
           <KeyTipsWrap
             style={{ visibility: isWorld ? "visible" : "hidden" }}
@@ -896,9 +864,10 @@ function JelUI(props) {
             {...props}
             spaceMetadata={spaceMetadata}
             hubMetadata={hubMetadata}
-            showAtomRenamePopup={showAtomRenamePopup}
-            setAtomRenameReferenceElement={setAtomRenameReferenceElement}
-            showHubContextMenuPopup={showHubContextMenuPopup}
+            worldTree={worldTree}
+            channelTree={channelTree}
+            worldTreeData={worldTreeData}
+            channelTreeData={channelTreeData}
             showSpaceRenamePopup={showSpaceRenamePopup}
             spaceRenamePopupElement={spaceRenamePopupElement}
             showEmojiPopup={showEmojiPopup}
@@ -909,36 +878,12 @@ function JelUI(props) {
         )}
       </Root>
       <RenamePopup
-        setPopperElement={setAtomRenamePopupElement}
-        styles={atomRenamePopupStyles}
-        attributes={atomRenamePopupAttributes}
-        atomId={atomRenameAtomId}
-        atomMetadata={atomRenameMetadata}
-        ref={atomRenameFocusRef}
-        onNameChanged={useCallback(
-          name => {
-            const { atomType } = atomRenameMetadata;
-
-            if (atomType === ATOM_TYPES.HUB) {
-              spaceChannel.updateHub(atomRenameAtomId, { name });
-            } else if (atomType === ATOM_TYPES.VOX) {
-              accountChannel.updateVox(atomRenameAtomId, { name });
-            }
-          },
-          [spaceChannel, accountChannel, atomRenameAtomId, atomRenameMetadata]
-        )}
-      />
-      <RenamePopup
         setPopperElement={setSpaceRenamePopupElement}
         styles={spaceRenamePopupStyles}
         attributes={spaceRenamePopupAttributes}
         atomId={spaceRenameSpaceId}
         atomMetadata={spaceRenameMetadata}
         ref={spaceRenameFocusRef}
-        onNameChanged={useCallback(name => dynaChannel.updateSpace(spaceRenameSpaceId, { name }), [
-          dynaChannel,
-          spaceRenameSpaceId
-        ])}
       />
       <ChatInputPopup
         setPopperElement={setChatInputPopupElement}
@@ -1025,66 +970,6 @@ function JelUI(props) {
         embedType={createEmbedType}
         ref={createEmbedFocusRef}
         onURLEntered={useCallback(url => scene.emit("add_media", url), [scene])}
-      />
-      <HubContextMenu
-        setPopperElement={setHubContextMenuElement}
-        hideRename={!!hubContextMenuOpenOptions.hideRename}
-        showExport={!!hubContextMenuOpenOptions.showExport}
-        showReset={!!hubContextMenuOpenOptions.showReset}
-        isCurrentWorld={!!hubContextMenuOpenOptions.isCurrentWorld}
-        worldTree={worldTree}
-        styles={hubContextMenuStyles}
-        attributes={hubContextMenuAttributes}
-        hubId={hubContextMenuHubId}
-        spaceCan={spaceCan}
-        hubCan={hubCan}
-        roomForHubCan={roomForHubCan}
-        onRenameClick={useCallback(hubId => showAtomRenamePopup(hubId, hubMetadata, null), [
-          showAtomRenamePopup,
-          hubMetadata
-        ])}
-        onImportClick={useCallback(
-          () => {
-            document.querySelector("#import-upload-input").click();
-            scene.canvas.focus();
-          },
-          [scene]
-        )}
-        onExportClick={useCallback(
-          () => {
-            new WorldExporter().downloadCurrentWorldHtml();
-            scene.canvas.focus();
-          },
-          [scene]
-        )}
-        onPublishTemplateClick={useCallback(
-          async collection => {
-            scene.emit("action_publish_template", { collection });
-            scene.canvas.focus();
-          },
-          [scene]
-        )}
-        onResetClick={useCallback(() => scene.emit("action_reset_objects"), [scene])}
-        onTrashClick={useCallback(
-          hubId => {
-            if (!worldTree.getNodeIdForAtomId(hubId) && !channelTree.getNodeIdForAtomId(hubId)) return;
-
-            // If this hub or any of its parents were deleted, go home.
-            if (isAtomInSubtree(worldTree, hubId, hub.hub_id) || isAtomInSubtree(channelTree, hubId, hub.hub_id)) {
-              const homeHub = homeHubForSpaceId(hub.space_id, memberships);
-              navigateToHubUrl(history, homeHub.url);
-            }
-
-            // All trashable children are trashed too.
-            const trashableChildrenHubIds = [
-              ...findChildrenAtomsInTreeData(worldTreeData, hubId),
-              ...findChildrenAtomsInTreeData(channelTreeData, hubId)
-            ].filter(hubId => hubCan("trash_hub", hubId));
-
-            spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
-          },
-          [worldTree, hub, history, hubCan, memberships, spaceChannel, worldTreeData, channelTree, channelTreeData]
-        )}
       />
       <CreateSelectPopup
         popperElement={createSelectPopupElement}
