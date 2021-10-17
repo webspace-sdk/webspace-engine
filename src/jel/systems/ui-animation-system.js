@@ -81,7 +81,7 @@ export class UIAnimationSystem {
         (store.state.uiState.assetPanelExpanded ? ASSET_PANEL_HEIGHT_EXPANDED / 1.5 : ASSET_PANEL_HEIGHT_COLLAPSED);
 
       const pctTopY = (clientY * 1.0) / (window.innerHeight / 2.0);
-      const topMargin = 64;
+      const topMargin = 82;
 
       // Trigger panels on if in region: rectangle at bottom left, asset panel, rectangle at bottom right, triangles in top left + right, and an empty topMargin tall region at top to ensure controls at top are clicked.
       const inTriggerRegion =
