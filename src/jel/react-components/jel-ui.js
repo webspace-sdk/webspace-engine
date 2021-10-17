@@ -13,13 +13,12 @@ import EqippedBrushIcon from "./equipped-brush-icon";
 import EqippedColorIcon from "./equipped-color-icon";
 import EquippedEmojiIcon from "./equipped-emoji-icon";
 import { useTreeData } from "../utils/tree-utils";
-import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
+import { usePopupPopper } from "../utils/popup-utils";
 import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { getPresetAsColorTuples } from "../utils/world-color-presets";
 import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
 import Snackbar from "./snackbar";
-import RenamePopup from "./rename-popup";
 import CreateEmbedPopup from "./create-embed-popup";
 import CreateSelectPopup from "./create-select-popup";
 import ChatInputPopup from "./chat-input-popup";
@@ -131,10 +130,6 @@ const NotifyBanner = styled.div`
   z-index: 6;
   pointer-events: auto;
   user-select: none;
-
-  .panels-collapsed & {
-    display: none;
-  }
 `;
 
 const NotifyBannerButton = styled.button`
@@ -164,10 +159,6 @@ const NotifyBannerButton = styled.button`
 
   &:active {
     background-color: var(--canvas-overlay-item-active-background-color);
-  }
-
-  .panels-collapsed & {
-    display: none;
   }
 `;
 
@@ -408,9 +399,7 @@ function JelUI(props) {
 
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
-  const [assetPanelExpanded, setAssetPanelExpanded] = useState(!!store.state.uiState.assetPanelExpanded);
 
-  const spaceRenameFocusRef = useRef();
   const createSelectFocusRef = useRef();
   const createSelectPopupRef = useRef();
   const chatInputFocusRef = useRef();
@@ -419,16 +408,6 @@ function JelUI(props) {
   const createEmbedFocusRef = useRef();
   const emojiPopupFocusRef = useRef();
   const environmentSettingsButtonRef = useRef();
-
-  const {
-    styles: spaceRenamePopupStyles,
-    attributes: spaceRenamePopupAttributes,
-    setPopup: setSpaceRenamePopupElement,
-    atomId: spaceRenameSpaceId,
-    atomMetadata: spaceRenameMetadata,
-    show: showSpaceRenamePopup,
-    popupElement: spaceRenamePopupElement
-  } = useAtomBoundPopupPopper(spaceRenameFocusRef, "bottom-start", [0, 16]);
 
   const {
     styles: createSelectPopupStyles,
@@ -554,25 +533,6 @@ function JelUI(props) {
       return () => store.removeEventListener("statechanged-context", handler);
     },
     [store, setIsInitializingSpace, isInitializingSpace]
-  );
-
-  useEffect(
-    () => {
-      const handler = () => setAssetPanelExpanded(!!store.state.uiState.assetPanelExpanded);
-      store.addEventListener("statechanged-uiState", handler);
-      return () => store.removeEventListener("statechanged-uiState", handler);
-    },
-    [store, setAssetPanelExpanded]
-  );
-
-  // Expand asset panel when world is created, to show scene library
-  useEffect(
-    () => {
-      const handler = () => setAssetPanelExpanded(true);
-      scene && scene.addEventListener("created_world", handler);
-      return () => scene && scene.removeEventListener("created_world", handler);
-    },
-    [scene, setAssetPanelExpanded]
   );
 
   // Handle create hotkey (typically /)
@@ -750,11 +710,10 @@ function JelUI(props) {
 
   const isWorld = hub && hub.type === "world";
   const waitingForMatrix = isMatrixLoading && !skipNeon;
-  const assetPanelClassName = assetPanelExpanded ? "expand-asset-panel" : "";
 
   return (
     <WrappedIntlProvider>
-      <Root className={assetPanelClassName}>
+      <Root className="expand-asset-panel">
         <LoadingPanel
           isLoading={waitingForMatrix || isInitializingSpace || !hasFetchedInitialHubMetadata}
           unavailableReason={unavailableReason}
@@ -857,7 +816,7 @@ function JelUI(props) {
           )}
         </Wrap>
         <AssetPanelWrap id="asset-panel">
-          <AssetPanel voxTree={voxTree} sceneTree={sceneTree} expanded={assetPanelExpanded} scene={scene} />
+          <AssetPanel voxTree={voxTree} sceneTree={sceneTree} expanded={true} scene={scene} />
         </AssetPanelWrap>
         {!skipSidePanels && (
           <JelSidePanels
@@ -868,8 +827,6 @@ function JelUI(props) {
             channelTree={channelTree}
             worldTreeData={worldTreeData}
             channelTreeData={channelTreeData}
-            showSpaceRenamePopup={showSpaceRenamePopup}
-            spaceRenamePopupElement={spaceRenamePopupElement}
             showEmojiPopup={showEmojiPopup}
             showSpaceNotificationPopup={showSpaceNotificationPopup}
             showInviteTip={showInviteTip}
@@ -877,14 +834,6 @@ function JelUI(props) {
           />
         )}
       </Root>
-      <RenamePopup
-        setPopperElement={setSpaceRenamePopupElement}
-        styles={spaceRenamePopupStyles}
-        attributes={spaceRenamePopupAttributes}
-        atomId={spaceRenameSpaceId}
-        atomMetadata={spaceRenameMetadata}
-        ref={spaceRenameFocusRef}
-      />
       <ChatInputPopup
         setPopperElement={setChatInputPopupElement}
         styles={chatInputPopupStyles}

@@ -76,21 +76,19 @@ export class UIAnimationSystem {
       const store = window.APP.store;
       const navWidth = store.state.uiState.navPanelWidth || DEFAULT_NAV_PANEL_WIDTH;
       const presenceWidth = store.state.uiState.presencePanelWidth || DEFAULT_PRESENCE_PANEL_WIDTH;
-      const assetPanelY =
-        window.innerHeight -
-        (store.state.uiState.assetPanelExpanded ? ASSET_PANEL_HEIGHT_EXPANDED / 1.5 : ASSET_PANEL_HEIGHT_COLLAPSED);
+      const assetPanelY = window.innerHeight - ASSET_PANEL_HEIGHT_EXPANDED / 1.5;
 
       const pctTopY = (clientY * 1.0) / (window.innerHeight / 2.0);
-      const topMargin = 82;
+      const topMargin = 100;
 
       // Trigger panels on if in region: rectangle at bottom left, asset panel, rectangle at bottom right, triangles in top left + right, and an empty topMargin tall region at top to ensure controls at top are clicked.
       const inTriggerRegion =
         (clientY >= window.innerHeight / 2 && clientX < navWidth) ||
-        (clientY >= topMargin && clientY <= window.innerHeight / 2 && clientX < navWidth * pctTopY * 0.5) ||
+        (clientY >= topMargin && clientY <= window.innerHeight / 2 && clientX < navWidth * pctTopY * 0.8) ||
         (clientY >= window.innerHeight / 2 && clientX > window.innerWidth - presenceWidth) ||
         (clientY >= topMargin &&
           clientY <= window.innerHeight / 2 &&
-          clientX > window.innerWidth - presenceWidth * pctTopY * 0.5) ||
+          clientX > window.innerWidth - presenceWidth * pctTopY * 0.8) ||
         (clientY >= assetPanelY && clientX > navWidth && clientX < window.innerWidth - presenceWidth);
 
       if (inTriggerRegion && this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSED) {

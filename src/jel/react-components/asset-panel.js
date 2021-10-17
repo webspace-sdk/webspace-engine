@@ -342,13 +342,6 @@ export default function AssetPanel(props) {
     [tilesRef, previewId]
   );
 
-  const expandToggleClicked = useCallback(
-    () => {
-      store.update({ uiState: { assetPanelExpanded: !store.state.uiState.assetPanelExpanded } });
-    },
-    [store]
-  );
-
   const sourceToggleOnChange = useCallback(
     () => {
       setShowObjects(!showObjects);
@@ -407,8 +400,7 @@ export default function AssetPanel(props) {
       <AssetPanelElement>
         <AssetPanelTop>
           <AssetPanelHeaderWrap>
-            <IconButton iconSrc={downIcon} onClick={expandToggleClicked} />
-            <PanelSectionHeader style={{ marginTop: "5px", cursor: "pointer" }} onClick={expandToggleClicked}>
+            <PanelSectionHeader style={{ marginTop: "5px", cursor: "pointer" }}>
               <FormattedMessage id="asset-panel.title" />
             </PanelSectionHeader>
           </AssetPanelHeaderWrap>

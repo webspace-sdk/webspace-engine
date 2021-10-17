@@ -331,8 +331,6 @@ function LeftPanel({
   spaceMetadata,
   hubMetadata,
   memberships,
-  showSpaceRenamePopup,
-  spaceRenamePopupElement,
   spaceId,
   sessionId,
   scene,
@@ -375,6 +373,7 @@ function LeftPanel({
       placement: "right-end"
     }
   );
+  const spaceRenameFocusRef = useRef();
 
   const {
     styles: hubContextMenuStyles,
@@ -395,6 +394,16 @@ function LeftPanel({
     atomMetadata: atomRenameMetadata,
     setRef: setAtomRenameReferenceElement
   } = useAtomBoundPopupPopper(atomRenameFocusRef, "bottom-start", [0, 8]);
+
+  const {
+    styles: spaceRenamePopupStyles,
+    attributes: spaceRenamePopupAttributes,
+    setPopup: setSpaceRenamePopupElement,
+    atomId: spaceRenameSpaceId,
+    atomMetadata: spaceRenameMetadata,
+    show: showSpaceRenamePopup,
+    popupElement: spaceRenamePopupElement
+  } = useAtomBoundPopupPopper(spaceRenameFocusRef, "bottom-start", [0, 16]);
 
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setSpaceName);
 
@@ -663,6 +672,14 @@ function LeftPanel({
         atomMetadata={atomRenameMetadata}
         ref={atomRenameFocusRef}
       />
+      <RenamePopup
+        setPopperElement={setSpaceRenamePopupElement}
+        styles={spaceRenamePopupStyles}
+        attributes={spaceRenamePopupAttributes}
+        atomId={spaceRenameSpaceId}
+        atomMetadata={spaceRenameMetadata}
+        ref={spaceRenameFocusRef}
+      />
     </Left>
   );
 }
@@ -683,8 +700,6 @@ LeftPanel.propTypes = {
   memberships: PropTypes.array,
   showHubContextMenuPopup: PropTypes.func,
   setAtomRenameReferenceElement: PropTypes.func,
-  showSpaceRenamePopup: PropTypes.func,
-  spaceRenamePopupElement: PropTypes.object,
   showSpaceNotificationPopup: PropTypes.func,
   worldTreeData: PropTypes.array,
   channelTreeData: PropTypes.array,

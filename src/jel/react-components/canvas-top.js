@@ -50,7 +50,6 @@ const CornerButtonElement = styled.button`
   text-align: left;
   max-width: fit-content;
   text-shadow: 0px 0px 4px;
-
   &:hover {
     background-color: var(--canvas-overlay-item-hover-background-color);
   }
@@ -61,12 +60,17 @@ const CornerButtonElement = styled.button`
 `;
 
 const CornerButtons = styled.div`
-  display: flex;
   flex-direction: row;
   justify-content: flex-end;
   align-items: center;
   width: 50%;
   padding: 12px 0;
+
+  display: none;
+
+  .panels-collapsed & {
+    display: flex;
+  }
 
   &.opaque {
     background-color: var(--channel-header-background-color);
