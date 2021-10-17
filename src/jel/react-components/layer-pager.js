@@ -60,7 +60,7 @@ const LayerPagerPageButton = styled.button`
   line-height: calc(var(--canvas-overlay-text-size) + 2px);
   text-shadow: 0px 0px 4px var(--menu-shadow-color);
 
-  .panels-expanded & {
+  .panels-collapsed & {
     display: none;
   }
 

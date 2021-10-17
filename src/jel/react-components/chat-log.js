@@ -13,6 +13,11 @@ const ChatLogElement = styled.div`
   position: absolute;
   left: 0;
   bottom: 0;
+
+  .panels-collapsed & {
+    bottom: 36px;
+  }
+
   overflow: hidden;
   mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), 80%, transparent);
   width: 50%;
