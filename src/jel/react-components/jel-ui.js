@@ -20,7 +20,6 @@ import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
 import Snackbar from "./snackbar";
 import CreateEmbedPopup from "./create-embed-popup";
-import CreateSelectPopup from "./create-select-popup";
 import ChatInputPopup from "./chat-input-popup";
 import EmojiPopup from "./emoji-popup";
 import SpaceNotificationsPopup from "./space-notifications-popup";
@@ -400,7 +399,6 @@ function JelUI(props) {
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
 
-  const createSelectFocusRef = useRef();
   const createSelectPopupRef = useRef();
   const chatInputFocusRef = useRef();
   const centerPopupRef = useRef();
@@ -408,14 +406,6 @@ function JelUI(props) {
   const createEmbedFocusRef = useRef();
   const emojiPopupFocusRef = useRef();
   const environmentSettingsButtonRef = useRef();
-
-  const {
-    styles: createSelectPopupStyles,
-    attributes: createSelectPopupAttributes,
-    show: showCreateSelectPopup,
-    setPopup: setCreateSelectPopupElement,
-    popupElement: createSelectPopupElement
-  } = usePopupPopper(".create-select-selection-search-input", "bottom-end", [0, 8]);
 
   const {
     styles: chatInputPopupStyles,
@@ -535,16 +525,6 @@ function JelUI(props) {
     [store, setIsInitializingSpace, isInitializingSpace]
   );
 
-  // Handle create hotkey (typically /)
-  useEffect(
-    () => {
-      const handleCreateHotkey = () => showCreateSelectPopup(createSelectPopupRef);
-      scene && scene.addEventListener("action_create", handleCreateHotkey);
-      return () => scene && scene.removeEventListener("action_create", handleCreateHotkey);
-    },
-    [scene, createSelectPopupRef, showCreateSelectPopup]
-  );
-
   // Handle chat message hotkey (typically space)
   // Show chat message entry and chat log.
   useEffect(
@@ -605,8 +585,6 @@ function JelUI(props) {
   // );
 
   const isHomeHub = hub && hub.is_home;
-
-  const onCreateActionSelected = useCallback(a => scene.emit("create_action_exec", a), [scene]);
 
   const onTurnOnNotificationClicked = useCallback(() => subscriptions.subscribe(), [subscriptions]);
 
@@ -771,8 +749,7 @@ function JelUI(props) {
             showHubPermissionsPopup={showHubPermissionsPopup}
             hubNotificationPopupElement={hubNotificationPopupElement}
             showHubNotificationPopup={showHubNotificationPopup}
-            createSelectPopupElement={createSelectPopupElement}
-            showCreateSelectPopup={showCreateSelectPopup}
+            createSelectPopupRef={createSelectPopupRef}
           />
           <KeyTipsWrap
             style={{ visibility: isWorld ? "visible" : "hidden" }}
@@ -919,14 +896,6 @@ function JelUI(props) {
         embedType={createEmbedType}
         ref={createEmbedFocusRef}
         onURLEntered={useCallback(url => scene.emit("add_media", url), [scene])}
-      />
-      <CreateSelectPopup
-        popperElement={createSelectPopupElement}
-        setPopperElement={setCreateSelectPopupElement}
-        styles={createSelectPopupStyles}
-        attributes={createSelectPopupAttributes}
-        ref={createSelectFocusRef}
-        onActionSelected={onCreateActionSelected}
       />
       <input
         id="import-upload-input"

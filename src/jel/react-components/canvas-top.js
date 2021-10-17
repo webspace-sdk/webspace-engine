@@ -6,12 +6,13 @@ import AtomTrail from "./atom-trail";
 import styled from "styled-components";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 import HubContextMenu from "./hub-context-menu";
+import CreateSelectPopup from "./create-select-popup";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shadow.svgi";
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
 import notificationsIcon from "../../assets/jel/images/icons/notifications-shadow.svgi";
 import securityIcon from "../../assets/jel/images/icons/security-shadow.svgi";
 import sunIcon from "../../assets/jel/images/icons/sun-shadow.svgi";
-import { useAtomBoundPopupPopper } from "../utils/popup-utils";
+import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { getMessages } from "../../hubs/utils/i18n";
 import Tooltip from "./tooltip";
 import { useInstallPWA } from "../../hubs/react-components/input/useInstallPWA";
@@ -297,14 +298,13 @@ function CanvasTop(props) {
     showHubNotificationPopup,
     worldTree,
     channelTree,
-    showCreateSelectPopup,
-    createSelectPopupElement,
     scene,
     spaceCan,
     roomForHubCan,
     memberships,
     worldTreeData,
-    channelTreeData
+    channelTreeData,
+    createSelectPopupRef
   } = props;
 
   const { cameraSystem } = SYSTEMS;
@@ -321,6 +321,8 @@ function CanvasTop(props) {
   } = useAtomBoundPopupPopper();
 
   const atomRenameFocusRef = useRef();
+  const createSelectFocusRef = useRef();
+
   const {
     styles: atomRenamePopupStyles,
     attributes: atomRenamePopupAttributes,
@@ -330,6 +332,24 @@ function CanvasTop(props) {
     show: showAtomRenamePopup,
     popupElement: atomRenamePopupElement
   } = useAtomBoundPopupPopper(atomRenameFocusRef, "bottom-start", [0, 8]);
+
+  const {
+    styles: createSelectPopupStyles,
+    attributes: createSelectPopupAttributes,
+    show: showCreateSelectPopup,
+    setPopup: setCreateSelectPopupElement,
+    popupElement: createSelectPopupElement
+  } = usePopupPopper(".create-select-selection-search-input", "bottom-end", [0, 8]);
+
+  // Handle create hotkey (typically /)
+  useEffect(
+    () => {
+      const handleCreateHotkey = () => showCreateSelectPopup(createSelectPopupRef);
+      scene && scene.addEventListener("action_create", handleCreateHotkey);
+      return () => scene && scene.removeEventListener("action_create", handleCreateHotkey);
+    },
+    [scene, createSelectPopupRef, showCreateSelectPopup]
+  );
 
   const [canSpawnAndMoveMedia, setCanSpawnAndMoveMedia] = useState(
     hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id)
@@ -493,6 +513,14 @@ function CanvasTop(props) {
         atomMetadata={atomRenameMetadata}
         ref={atomRenameFocusRef}
       />
+      <CreateSelectPopup
+        popperElement={createSelectPopupElement}
+        setPopperElement={setCreateSelectPopupElement}
+        styles={createSelectPopupStyles}
+        attributes={createSelectPopupAttributes}
+        ref={createSelectFocusRef}
+        onActionSelected={useCallback(a => scene.emit("create_action_exec", a), [scene])}
+      />
     </Top>
   );
 }
@@ -509,14 +537,14 @@ CanvasTop.propTypes = {
   hubNotificationPopupElement: PropTypes.object,
   showHubNotificationPopup: PropTypes.func,
   createSelectPopupElement: PropTypes.object,
-  showCreateSelectPopup: PropTypes.func,
   worldTree: PropTypes.object,
   channelTree: PropTypes.object,
   worldTreeData: PropTypes.array,
   channelTreeData: PropTypes.array,
   spaceCan: PropTypes.func,
   memberships: PropTypes.array,
-  roomForHubCan: PropTypes.func
+  roomForHubCan: PropTypes.func,
+  createSelectPopupRef: PropTypes.object
 };
 
 export default CanvasTop;
