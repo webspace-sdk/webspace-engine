@@ -2,6 +2,7 @@ import { paths } from "../paths";
 import { ArrayBackedSet } from "../array-backed-set";
 import { isInEditableField } from "../../../../jel/utils/dom-utils";
 import { isInQuillEditor } from "../../../../jel/utils/quill-utils";
+import { isLockedMedia } from "../../../../hubs/utils/media-utils";
 import { beginPersistentCursorLock, endCursorLock } from "../../../../jel/utils/dom-utils";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "../../../../jel/utils/dom-utils";
 import { BRUSH_TYPES, BRUSH_MODES } from "../../../../jel/constants";
@@ -158,18 +159,22 @@ export class KeyboardDevice {
           } else if (getCursorLockState() === CURSOR_LOCK_STATES.UNLOCKED_PERSISTENT) {
             const interaction = AFRAME.scenes[0].systems.interaction;
 
-            // Ignore widen when holding, since this is used for snapping.
-            const heldOrHovered =
-              interaction.state.leftHand.held ||
-              interaction.state.rightHand.held ||
-              interaction.state.rightRemote.held ||
-              interaction.state.leftRemote.held ||
+            const hovered =
               interaction.state.leftHand.hovered ||
               interaction.state.rightHand.hovered ||
               interaction.state.rightRemote.hovered ||
               interaction.state.leftRemote.hovered;
 
-            if (!heldOrHovered) {
+            const held =
+              interaction.state.leftHand.held ||
+              interaction.state.rightHand.held ||
+              interaction.state.rightRemote.held ||
+              interaction.state.leftRemote.held;
+
+            // Ignore widen when holding, since this is used for snapping.
+            const heldOrHoveredOnNonLocked = held || (hovered && !isLockedMedia(hovered));
+
+            if (!heldOrHoveredOnNonLocked) {
               SYSTEMS.uiAnimationSystem.toggleSidePanels();
             }
           }
