@@ -1,9 +1,11 @@
-import React, { useState, useEffect, forwardRef } from "react";
+import React, { useCallback, useRef, useState, useEffect, forwardRef } from "react";
 import PropTypes from "prop-types";
 import Tooltip from "./tooltip";
 import { useSingleton } from "@tippyjs/react";
 import styled from "styled-components";
 import { imageUrlForEmoji } from "../../hubs/utils/media-url-utils";
+import EmojiPopup from "./emoji-popup";
+import { usePopupPopper } from "../utils/popup-utils";
 import { getMessages } from "../../hubs/utils/i18n";
 
 const EmojiEquipElement = styled.div`
@@ -236,9 +238,12 @@ const buildEmojisFromStore = store => {
   });
 };
 
-const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
+const EmojiEquip = forwardRef(({ scene, centerPopupRef }, ref) => {
   const store = window.APP.store;
   const messages = getMessages();
+
+  const emojiEquipRef = useRef();
+  const emojiPopupFocusRef = useRef();
 
   const [hoverSlot, setHoverSlot] = useState(null);
   const [isClicking, setIsClicking] = useState(false);
@@ -250,6 +255,14 @@ const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
 
   const selectedEmoji = store.state.equips.launcher;
   const selectedEmojiImageUrl = imageUrlForEmoji(selectedEmoji, 128);
+
+  const {
+    styles: emojiPopupStyles,
+    attributes: emojiPopupAttributes,
+    show: showEmojiPopup,
+    setPopup: setEmojiPopupElement,
+    popupOpenOptions: emojiPopupOpenOptions
+  } = usePopupPopper(emojiPopupFocusRef, "bottom", [0, 8]);
 
   // Animate center emoji when slot changes.
   useEffect(
@@ -280,8 +293,19 @@ const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
     [store, setEmojis, setSelectedSlot]
   );
 
+  // Handle emoji popup trigger
+  useEffect(
+    () => {
+      const handleCreateVoxmoji = () => showEmojiPopup(centerPopupRef, "bottom", [0, 8], { equip: false });
+
+      scene && scene.addEventListener("action_show_emoji_picker", handleCreateVoxmoji);
+      return () => scene && scene.removeEventListener("action_show_emoji_picker", handleCreateVoxmoji);
+    },
+    [scene, centerPopupRef, showEmojiPopup]
+  );
+
   return (
-    <EmojiEquipElement>
+    <EmojiEquipElement ref={emojiEquipRef}>
       <Tooltip delay={750} singleton={tipSource} />
 
       <EmojiEquipOuter>
@@ -311,7 +335,12 @@ const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
               </Tooltip>
             ))}
           <Tooltip content={messages[`emoji-equip.select-slot`]} placement="left" key={`slot-choose-tip`} delay={0}>
-            <SelectedButton ref={ref} onClick={() => onSelectedEmojiClicked()}>
+            <SelectedButton
+              ref={ref}
+              onClick={() => {
+                showEmojiPopup(emojiEquipRef, "top-end", [0, 12], { equip: true });
+              }}
+            >
               <img crossOrigin="anonymous" src={selectedEmojiImageUrl} />
             </SelectedButton>
           </Tooltip>
@@ -340,6 +369,38 @@ const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
             ))}
         </EmojiEquipInner>
       </EmojiEquipOuter>
+      <EmojiPopup
+        setPopperElement={setEmojiPopupElement}
+        styles={emojiPopupStyles}
+        attributes={emojiPopupAttributes}
+        ref={emojiPopupFocusRef}
+        onEmojiSelected={useCallback(
+          ({ unicode }) => {
+            const parsed = unicode.split("-").map(str => parseInt(str, 16));
+            const emoji = String.fromCodePoint(...parsed);
+
+            if (emojiPopupOpenOptions.equip) {
+              let currentSlot = -1;
+
+              for (let i = 0; i < 10; i++) {
+                if (store.state.equips.launcher === store.state.equips[`launcherSlot${i + 1}`]) {
+                  currentSlot = i;
+                  break;
+                }
+              }
+
+              if (currentSlot !== -1) {
+                store.update({ equips: { [`launcherSlot${currentSlot + 1}`]: emoji } });
+              }
+
+              store.update({ equips: { launcher: emoji } });
+            } else {
+              scene.emit("add_media_emoji", emoji);
+            }
+          },
+          [scene, store, emojiPopupOpenOptions.equip]
+        )}
+      />
     </EmojiEquipElement>
   );
 });
@@ -347,7 +408,8 @@ const EmojiEquip = forwardRef(({ onSelectedEmojiClicked }, ref) => {
 EmojiEquip.displayName = "EmojiEquip";
 
 EmojiEquip.propTypes = {
-  onSelectedEmojiClicked: PropTypes.func
+  scene: PropTypes.object,
+  centerPopupRef: PropTypes.object
 };
 
 export { EmojiEquip as default };

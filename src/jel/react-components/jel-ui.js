@@ -4,7 +4,6 @@ import cancelIcon from "../../assets/jel/images/icons/cancel.svgi";
 import { FieldEditButton } from "./form-components";
 import PropTypes from "prop-types";
 import WorldImporter from "../utils/world-importer";
-import WorldExporter from "../utils/world-exporter";
 import styled from "styled-components";
 import mutedIcon from "../../assets/jel/images/icons/mic-muted.svgi";
 import unmutedIcon from "../../assets/jel/images/icons/mic-unmuted.svgi";
@@ -13,26 +12,11 @@ import { BigIconButton } from "./icon-button";
 import EqippedBrushIcon from "./equipped-brush-icon";
 import EqippedColorIcon from "./equipped-color-icon";
 import EquippedEmojiIcon from "./equipped-emoji-icon";
-import { isAtomInSubtree, findChildrenAtomsInTreeData, useTreeData } from "../utils/tree-utils";
-import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
-import { navigateToHubUrl } from "../utils/jel-url-utils";
-import { WORLD_COLOR_TYPES } from "../../hubs/constants";
-import { getPresetAsColorTuples } from "../utils/world-color-presets";
-import { ATOM_TYPES } from "../utils/atom-metadata";
+import { useTreeData } from "../utils/tree-utils";
+import RootPopups from "./root-popups";
 import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
 import Snackbar from "./snackbar";
-import RenamePopup from "./rename-popup";
-import CreateEmbedPopup from "./create-embed-popup";
-import HubContextMenu from "./hub-context-menu";
-import CreateSelectPopup from "./create-select-popup";
-import ChatInputPopup from "./chat-input-popup";
-import EmojiPopup from "./emoji-popup";
-import SpaceNotificationsPopup from "./space-notifications-popup";
-import HubPermissionsPopup from "./hub-permissions-popup";
-import HubNotificationsPopup from "./hub-notifications-popup";
-import EnvironmentSettingsPopup from "./environment-settings-popup";
-import { homeHubForSpaceId } from "../utils/membership-utils";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
 import KeyTips from "./key-tips";
@@ -136,10 +120,6 @@ const NotifyBanner = styled.div`
   z-index: 6;
   pointer-events: auto;
   user-select: none;
-
-  .panels-collapsed & {
-    display: none;
-  }
 `;
 
 const NotifyBannerButton = styled.button`
@@ -169,10 +149,6 @@ const NotifyBannerButton = styled.button`
 
   &:active {
     background-color: var(--canvas-overlay-item-active-background-color);
-  }
-
-  .panels-collapsed & {
-    display: none;
   }
 `;
 
@@ -271,7 +247,7 @@ const UnpausedInfoLabel = styled.div`
   line-height: calc(var(--canvas-overlay-tertiary-text-size) + 2px);
   font-weight: var(--canvas-overlay-item-tertiary-weight);
   font-size: var(--canvas-overlay-tertiary-text-size);
-  margin: 11px 0 0 8px;
+  margin: 11px 0 42px 8px;
   padding: 6px 10px;
   white-space: pre;
 
@@ -368,29 +344,14 @@ const DeviceStatuses = styled.div`
 `;
 
 function JelUI(props) {
-  const {
-    scene,
-    treeManager,
-    history,
-    spaceCan,
-    roomForHubCan,
-    hubCan,
-    hub,
-    memberships,
-    hubSettings,
-    unavailableReason,
-    subscriptions,
-    spaceId,
-    voxTree,
-    sceneTree
-  } = props;
+  const { scene, treeManager, hub, unavailableReason, subscriptions, voxTree, sceneTree } = props;
 
   const { launcherSystem, builderSystem, terrainSystem, atmosphereSystem, externalCameraSystem } = SYSTEMS;
 
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
-  const { store, hubChannel, spaceChannel, dynaChannel, accountChannel, matrix } = window.APP;
+  const { store, spaceChannel, matrix } = window.APP;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
@@ -403,7 +364,6 @@ function JelUI(props) {
   const [isMatrixLoading, setIsMatrixLoading] = useState(!matrix || !matrix.isInitialSyncFinished);
   const [hasFetchedInitialHubMetadata, setHasFetchedInitialHubMetadata] = useState(false);
   const [isInitializingSpace, setIsInitializingSpace] = useState(store.state.context.isFirstVisitToSpace);
-  const [createEmbedType, setCreateEmbedType] = useState("image");
   const [showingExternalCamera /*, setShowingExternalCamera*/] = useState(false);
   const [showNotificationBanner, setShowNotificationBanner] = useState(
     subscriptions &&
@@ -416,110 +376,11 @@ function JelUI(props) {
 
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
-  const [assetPanelExpanded, setAssetPanelExpanded] = useState(!!store.state.uiState.assetPanelExpanded);
 
-  const atomRenameFocusRef = useRef();
-  const spaceRenameFocusRef = useRef();
-  const createSelectFocusRef = useRef();
   const createSelectPopupRef = useRef();
-  const chatInputFocusRef = useRef();
   const centerPopupRef = useRef();
   const modalPopupRef = useRef();
-  const createEmbedFocusRef = useRef();
-  const emojiPopupFocusRef = useRef();
   const environmentSettingsButtonRef = useRef();
-
-  const {
-    styles: atomRenamePopupStyles,
-    attributes: atomRenamePopupAttributes,
-    setPopup: setAtomRenamePopupElement,
-    setRef: setAtomRenameReferenceElement,
-    atomId: atomRenameAtomId,
-    atomMetadata: atomRenameMetadata,
-    show: showAtomRenamePopup,
-    popupElement: atomRenamePopupElement
-  } = useAtomBoundPopupPopper(atomRenameFocusRef, "bottom-start", [0, 8]);
-
-  const {
-    styles: spaceRenamePopupStyles,
-    attributes: spaceRenamePopupAttributes,
-    setPopup: setSpaceRenamePopupElement,
-    atomId: spaceRenameSpaceId,
-    atomMetadata: spaceRenameMetadata,
-    show: showSpaceRenamePopup,
-    popupElement: spaceRenamePopupElement
-  } = useAtomBoundPopupPopper(spaceRenameFocusRef, "bottom-start", [0, 16]);
-
-  const {
-    styles: hubContextMenuStyles,
-    attributes: hubContextMenuAttributes,
-    atomId: hubContextMenuHubId,
-    show: showHubContextMenuPopup,
-    setPopup: setHubContextMenuElement,
-    popupOpenOptions: hubContextMenuOpenOptions,
-    popupElement: hubContextMenuElement
-  } = useAtomBoundPopupPopper();
-
-  const {
-    styles: createSelectPopupStyles,
-    attributes: createSelectPopupAttributes,
-    show: showCreateSelectPopup,
-    setPopup: setCreateSelectPopupElement,
-    popupElement: createSelectPopupElement
-  } = usePopupPopper(".create-select-selection-search-input", "bottom-end", [0, 8]);
-
-  const {
-    styles: chatInputPopupStyles,
-    attributes: chatInputPopupAttributes,
-    show: showChatInputPopup,
-    setPopup: setChatInputPopupElement
-  } = usePopupPopper(chatInputFocusRef, "top", [0, 8]);
-
-  const {
-    styles: emojiPopupStyles,
-    attributes: emojiPopupAttributes,
-    show: showEmojiPopup,
-    setPopup: setEmojiPopupElement,
-    popupOpenOptions: emojiPopupOpenOptions
-  } = usePopupPopper(emojiPopupFocusRef, "bottom", [0, 8]);
-
-  const {
-    styles: createEmbedPopupStyles,
-    attributes: createEmbedPopupAttributes,
-    show: showCreateEmbedPopup,
-    setPopup: setCreateEmbedPopupElement
-  } = usePopupPopper(createEmbedFocusRef, "bottom", [0, 8]);
-
-  const {
-    styles: spaceNotificationPopupStyles,
-    attributes: spaceNotificationPopupAttributes,
-    show: showSpaceNotificationPopup,
-    setPopup: setSpaceNotificationPopupElement
-  } = usePopupPopper(null, "bottom", [0, 8]);
-
-  const {
-    styles: hubNotificationPopupStyles,
-    attributes: hubNotificationPopupAttributes,
-    show: showHubNotificationPopup,
-    setPopup: setHubNotificationPopupElement,
-    popupElement: hubNotificationPopupElement
-  } = usePopupPopper(null, "bottom-end", [0, 8]);
-
-  const {
-    styles: environmentSettingsPopupStyles,
-    attributes: environmentSettingsPopupAttributes,
-    show: showEnvironmentSettingsPopup,
-    setPopup: setEnvironmentSettingsPopupElement,
-    popupElement: environmentSettingsPopupElement
-  } = usePopupPopper(null, "bottom-end", [0, 8]);
-
-  const {
-    styles: hubPermissionsPopupStyles,
-    attributes: hubPermissionsPopupAttributes,
-    show: showHubPermissionsPopup,
-    setPopup: setHubPermissionsPopupElement,
-    popupElement: hubPermissionsPopupElement
-  } = usePopupPopper(null, "bottom-end", [0, 8]);
 
   useEffect(
     () => {
@@ -586,71 +447,6 @@ function JelUI(props) {
     [store, setIsInitializingSpace, isInitializingSpace]
   );
 
-  useEffect(
-    () => {
-      const handler = () => setAssetPanelExpanded(!!store.state.uiState.assetPanelExpanded);
-      store.addEventListener("statechanged-uiState", handler);
-      return () => store.removeEventListener("statechanged-uiState", handler);
-    },
-    [store, setAssetPanelExpanded]
-  );
-
-  // Expand asset panel when world is created, to show scene library
-  useEffect(
-    () => {
-      const handler = () => setAssetPanelExpanded(true);
-      scene && scene.addEventListener("created_world", handler);
-      return () => scene && scene.removeEventListener("created_world", handler);
-    },
-    [scene, setAssetPanelExpanded]
-  );
-
-  // Handle create hotkey (typically /)
-  useEffect(
-    () => {
-      const handleCreateHotkey = () => showCreateSelectPopup(createSelectPopupRef);
-      scene && scene.addEventListener("action_create", handleCreateHotkey);
-      return () => scene && scene.removeEventListener("action_create", handleCreateHotkey);
-    },
-    [scene, createSelectPopupRef, showCreateSelectPopup]
-  );
-
-  // Handle chat message hotkey (typically space)
-  // Show chat message entry and chat log.
-  useEffect(
-    () => {
-      const handleChatHotkey = () => showChatInputPopup(centerPopupRef);
-      scene && scene.addEventListener("action_chat_entry", handleChatHotkey);
-      return () => scene && scene.removeEventListener("action_chat_entry", handleChatHotkey);
-    },
-    [scene, centerPopupRef, showChatInputPopup]
-  );
-
-  // Handle embed popup trigger
-  useEffect(
-    () => {
-      const handleCreateEmbed = e => {
-        setCreateEmbedType(e.detail);
-        showCreateEmbedPopup(centerPopupRef);
-      };
-
-      scene && scene.addEventListener("action_show_create_embed", handleCreateEmbed);
-      return () => scene && scene.removeEventListener("action_show_create_embed", handleCreateEmbed);
-    },
-    [scene, centerPopupRef, showCreateEmbedPopup]
-  );
-
-  // Handle emoji popup trigger
-  useEffect(
-    () => {
-      const handleCreateVoxmoji = () => showEmojiPopup(centerPopupRef, "bottom", [0, 8], { equip: false });
-
-      scene && scene.addEventListener("action_show_emoji_picker", handleCreateVoxmoji);
-      return () => scene && scene.removeEventListener("action_show_emoji_picker", handleCreateVoxmoji);
-    },
-    [scene, centerPopupRef, showEmojiPopup]
-  );
-
   // Handle external camera toggle
   //
   // Disabled for now, this was used for Zoom integration.
@@ -676,66 +472,7 @@ function JelUI(props) {
 
   const isHomeHub = hub && hub.is_home;
 
-  const onCreateActionSelected = useCallback(a => scene.emit("create_action_exec", a), [scene]);
-
   const onTurnOnNotificationClicked = useCallback(() => subscriptions.subscribe(), [subscriptions]);
-
-  const temporarilyUpdateEnvironmentColors = useCallback(
-    (...colors) => {
-      terrainSystem.updateWorldColors(...colors);
-      atmosphereSystem.updateWaterColor(colors[7]);
-      atmosphereSystem.updateSkyColor(colors[6]);
-    },
-    [terrainSystem, atmosphereSystem]
-  );
-
-  const updateWorldType = useCallback(
-    worldType => {
-      spaceChannel.updateHub(hub.hub_id, { world_type: worldType });
-    },
-    [hub, spaceChannel]
-  );
-
-  const saveCurrentEnvironmentColors = useCallback(
-    () => {
-      const colors = terrainSystem.worldColors;
-      const hubWorldColors = {};
-
-      WORLD_COLOR_TYPES.forEach((type, idx) => {
-        hubWorldColors[`world_${type}_color_r`] = (colors[idx] && colors[idx].r) || 0;
-        hubWorldColors[`world_${type}_color_g`] = (colors[idx] && colors[idx].g) || 0;
-        hubWorldColors[`world_${type}_color_b`] = (colors[idx] && colors[idx].b) || 0;
-      });
-
-      spaceChannel.updateHub(hub.hub_id, hubWorldColors);
-    },
-    [terrainSystem.worldColors, hub, spaceChannel]
-  );
-
-  const onEnvironmentPresetColorsHovered = useCallback(
-    i => {
-      const colors = getPresetAsColorTuples(i);
-      temporarilyUpdateEnvironmentColors(...colors);
-    },
-    [temporarilyUpdateEnvironmentColors]
-  );
-
-  const onEnvironmentPresetColorsLeft = useCallback(
-    () => {
-      terrainSystem.updateWorldForHub(hub);
-      atmosphereSystem.updateAtmosphereForHub(hub);
-    },
-    [hub, terrainSystem, atmosphereSystem]
-  );
-
-  const onEnvironmentPresetColorsClicked = useCallback(
-    i => {
-      const colors = getPresetAsColorTuples(i);
-      temporarilyUpdateEnvironmentColors(...colors);
-      saveCurrentEnvironmentColors();
-    },
-    [saveCurrentEnvironmentColors, temporarilyUpdateEnvironmentColors]
-  );
 
   // Handle subscriptions changed
 
@@ -780,11 +517,10 @@ function JelUI(props) {
 
   const isWorld = hub && hub.type === "world";
   const waitingForMatrix = isMatrixLoading && !skipNeon;
-  const assetPanelClassName = assetPanelExpanded ? "expand-asset-panel" : "";
 
   return (
     <WrappedIntlProvider>
-      <Root className={assetPanelClassName}>
+      <Root className="expand-asset-panel">
         <LoadingPanel
           isLoading={waitingForMatrix || isInitializingSpace || !hasFetchedInitialHubMetadata}
           unavailableReason={unavailableReason}
@@ -833,19 +569,10 @@ function JelUI(props) {
             {...props}
             worldTree={worldTree}
             channelTree={channelTree}
-            atomRenamePopupElement={atomRenamePopupElement}
-            showAtomRenamePopup={showAtomRenamePopup}
+            worldTreeData={worldTreeData}
+            channelTreeData={channelTreeData}
             environmentSettingsButtonRef={environmentSettingsButtonRef}
-            environmentSettingsPopupElement={environmentSettingsPopupElement}
-            showEnvironmentSettingsPopup={showEnvironmentSettingsPopup}
-            hubPermissionsPopupElement={hubPermissionsPopupElement}
-            showHubPermissionsPopup={showHubPermissionsPopup}
-            hubNotificationPopupElement={hubNotificationPopupElement}
-            showHubNotificationPopup={showHubNotificationPopup}
-            createSelectPopupElement={createSelectPopupElement}
-            showCreateSelectPopup={showCreateSelectPopup}
-            hubContextMenuElement={hubContextMenuElement}
-            showHubContextMenuPopup={showHubContextMenuPopup}
+            createSelectPopupRef={createSelectPopupRef}
           />
           <KeyTipsWrap
             style={{ visibility: isWorld ? "visible" : "hidden" }}
@@ -889,211 +616,24 @@ function JelUI(props) {
           )}
         </Wrap>
         <AssetPanelWrap id="asset-panel">
-          <AssetPanel voxTree={voxTree} sceneTree={sceneTree} expanded={assetPanelExpanded} scene={scene} />
+          <AssetPanel voxTree={voxTree} sceneTree={sceneTree} expanded={true} scene={scene} />
         </AssetPanelWrap>
         {!skipSidePanels && (
           <JelSidePanels
             {...props}
             spaceMetadata={spaceMetadata}
             hubMetadata={hubMetadata}
-            showAtomRenamePopup={showAtomRenamePopup}
-            setAtomRenameReferenceElement={setAtomRenameReferenceElement}
-            showHubContextMenuPopup={showHubContextMenuPopup}
-            showSpaceRenamePopup={showSpaceRenamePopup}
-            spaceRenamePopupElement={spaceRenamePopupElement}
-            showEmojiPopup={showEmojiPopup}
-            showSpaceNotificationPopup={showSpaceNotificationPopup}
+            worldTree={worldTree}
+            channelTree={channelTree}
+            worldTreeData={worldTreeData}
+            channelTreeData={channelTreeData}
+            centerPopupRef={centerPopupRef}
             showInviteTip={showInviteTip}
             setHasShownInvite={setHasShownInvite}
           />
         )}
       </Root>
-      <RenamePopup
-        setPopperElement={setAtomRenamePopupElement}
-        styles={atomRenamePopupStyles}
-        attributes={atomRenamePopupAttributes}
-        atomId={atomRenameAtomId}
-        atomMetadata={atomRenameMetadata}
-        ref={atomRenameFocusRef}
-        onNameChanged={useCallback(
-          name => {
-            const { atomType } = atomRenameMetadata;
-
-            if (atomType === ATOM_TYPES.HUB) {
-              spaceChannel.updateHub(atomRenameAtomId, { name });
-            } else if (atomType === ATOM_TYPES.VOX) {
-              accountChannel.updateVox(atomRenameAtomId, { name });
-            }
-          },
-          [spaceChannel, accountChannel, atomRenameAtomId, atomRenameMetadata]
-        )}
-      />
-      <RenamePopup
-        setPopperElement={setSpaceRenamePopupElement}
-        styles={spaceRenamePopupStyles}
-        attributes={spaceRenamePopupAttributes}
-        atomId={spaceRenameSpaceId}
-        atomMetadata={spaceRenameMetadata}
-        ref={spaceRenameFocusRef}
-        onNameChanged={useCallback(name => dynaChannel.updateSpace(spaceRenameSpaceId, { name }), [
-          dynaChannel,
-          spaceRenameSpaceId
-        ])}
-      />
-      <ChatInputPopup
-        setPopperElement={setChatInputPopupElement}
-        styles={chatInputPopupStyles}
-        attributes={chatInputPopupAttributes}
-        ref={chatInputFocusRef}
-        onMessageEntered={useCallback(message => hubChannel.sendMessage(message), [hubChannel])}
-        onEntryComplete={useCallback(() => scene.emit("chat_entry_complete"), [scene])}
-      />
-      <EmojiPopup
-        setPopperElement={setEmojiPopupElement}
-        styles={emojiPopupStyles}
-        attributes={emojiPopupAttributes}
-        ref={emojiPopupFocusRef}
-        onEmojiSelected={useCallback(
-          ({ unicode }) => {
-            const parsed = unicode.split("-").map(str => parseInt(str, 16));
-            const emoji = String.fromCodePoint(...parsed);
-
-            if (emojiPopupOpenOptions.equip) {
-              let currentSlot = -1;
-
-              for (let i = 0; i < 10; i++) {
-                if (store.state.equips.launcher === store.state.equips[`launcherSlot${i + 1}`]) {
-                  currentSlot = i;
-                  break;
-                }
-              }
-
-              if (currentSlot !== -1) {
-                store.update({ equips: { [`launcherSlot${currentSlot + 1}`]: emoji } });
-              }
-
-              store.update({ equips: { launcher: emoji } });
-            } else {
-              scene.emit("add_media_emoji", emoji);
-            }
-          },
-          [scene, store, emojiPopupOpenOptions.equip]
-        )}
-      />
-      <SpaceNotificationsPopup
-        matrix={matrix}
-        setPopperElement={setSpaceNotificationPopupElement}
-        styles={spaceNotificationPopupStyles}
-        attributes={spaceNotificationPopupAttributes}
-        subscriptions={subscriptions}
-        spaceId={spaceId}
-        memberships={memberships}
-      />
-      <HubPermissionsPopup
-        setPopperElement={setHubPermissionsPopupElement}
-        styles={hubPermissionsPopupStyles}
-        attributes={hubPermissionsPopupAttributes}
-        hubMetadata={hubMetadata}
-        hub={hub}
-      />
-      <HubNotificationsPopup
-        setPopperElement={setHubNotificationPopupElement}
-        styles={hubNotificationPopupStyles}
-        attributes={hubNotificationPopupAttributes}
-        subscriptions={subscriptions}
-        hub={hub}
-        hubSettings={hubSettings}
-      />
-      <EnvironmentSettingsPopup
-        setPopperElement={setEnvironmentSettingsPopupElement}
-        styles={environmentSettingsPopupStyles}
-        attributes={environmentSettingsPopupAttributes}
-        hub={hub}
-        hubMetadata={hubMetadata}
-        hubCan={hubCan}
-        onColorsChanged={temporarilyUpdateEnvironmentColors}
-        onColorChangeComplete={saveCurrentEnvironmentColors}
-        onTypeChanged={updateWorldType}
-        onPresetColorsHovered={onEnvironmentPresetColorsHovered}
-        onPresetColorsLeft={onEnvironmentPresetColorsLeft}
-        onPresetColorsClicked={onEnvironmentPresetColorsClicked}
-      />
-      <CreateEmbedPopup
-        setPopperElement={setCreateEmbedPopupElement}
-        styles={createEmbedPopupStyles}
-        attributes={createEmbedPopupAttributes}
-        embedType={createEmbedType}
-        ref={createEmbedFocusRef}
-        onURLEntered={useCallback(url => scene.emit("add_media", url), [scene])}
-      />
-      <HubContextMenu
-        setPopperElement={setHubContextMenuElement}
-        hideRename={!!hubContextMenuOpenOptions.hideRename}
-        showExport={!!hubContextMenuOpenOptions.showExport}
-        showReset={!!hubContextMenuOpenOptions.showReset}
-        isCurrentWorld={!!hubContextMenuOpenOptions.isCurrentWorld}
-        worldTree={worldTree}
-        styles={hubContextMenuStyles}
-        attributes={hubContextMenuAttributes}
-        hubId={hubContextMenuHubId}
-        spaceCan={spaceCan}
-        hubCan={hubCan}
-        roomForHubCan={roomForHubCan}
-        onRenameClick={useCallback(hubId => showAtomRenamePopup(hubId, hubMetadata, null), [
-          showAtomRenamePopup,
-          hubMetadata
-        ])}
-        onImportClick={useCallback(
-          () => {
-            document.querySelector("#import-upload-input").click();
-            scene.canvas.focus();
-          },
-          [scene]
-        )}
-        onExportClick={useCallback(
-          () => {
-            new WorldExporter().downloadCurrentWorldHtml();
-            scene.canvas.focus();
-          },
-          [scene]
-        )}
-        onPublishTemplateClick={useCallback(
-          async collection => {
-            scene.emit("action_publish_template", { collection });
-            scene.canvas.focus();
-          },
-          [scene]
-        )}
-        onResetClick={useCallback(() => scene.emit("action_reset_objects"), [scene])}
-        onTrashClick={useCallback(
-          hubId => {
-            if (!worldTree.getNodeIdForAtomId(hubId) && !channelTree.getNodeIdForAtomId(hubId)) return;
-
-            // If this hub or any of its parents were deleted, go home.
-            if (isAtomInSubtree(worldTree, hubId, hub.hub_id) || isAtomInSubtree(channelTree, hubId, hub.hub_id)) {
-              const homeHub = homeHubForSpaceId(hub.space_id, memberships);
-              navigateToHubUrl(history, homeHub.url);
-            }
-
-            // All trashable children are trashed too.
-            const trashableChildrenHubIds = [
-              ...findChildrenAtomsInTreeData(worldTreeData, hubId),
-              ...findChildrenAtomsInTreeData(channelTreeData, hubId)
-            ].filter(hubId => hubCan("trash_hub", hubId));
-
-            spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
-          },
-          [worldTree, hub, history, hubCan, memberships, spaceChannel, worldTreeData, channelTree, channelTreeData]
-        )}
-      />
-      <CreateSelectPopup
-        popperElement={createSelectPopupElement}
-        setPopperElement={setCreateSelectPopupElement}
-        styles={createSelectPopupStyles}
-        attributes={createSelectPopupAttributes}
-        ref={createSelectFocusRef}
-        onActionSelected={onCreateActionSelected}
-      />
+      <RootPopups centerPopupRef={centerPopupRef} scene={scene} />
       <input
         id="import-upload-input"
         type="file"

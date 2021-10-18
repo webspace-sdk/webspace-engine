@@ -87,7 +87,7 @@ const UnpausedInfoLabel = styled.div`
   line-height: calc(var(--canvas-overlay-tertiary-text-size) + 2px);
   font-weight: var(--canvas-overlay-item-tertiary-weight);
   font-size: var(--canvas-overlay-tertiary-text-size);
-  margin: 11px 0 0 8px;
+  margin: 11px 0 42px 8px;
   padding: 6px 10px;
   white-space: pre;
 

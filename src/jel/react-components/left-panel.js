@@ -1,13 +1,18 @@
 import React, { useState, useCallback, useRef } from "react";
 import { FormattedMessage } from "react-intl";
+import { useAtomBoundPopupPopper } from "../utils/popup-utils";
 import { usePopper } from "react-popper";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
 import TinyOutlineIconButton from "./tiny-outline-icon-button";
+import { usePopupPopper } from "../utils/popup-utils";
 import SelfPanel from "./self-panel";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
+import HubContextMenu from "./hub-context-menu";
+import SpaceNotificationsPopup from "./space-notifications-popup";
+import RenamePopup from "./rename-popup";
 import notificationsIcon from "../../assets/jel/images/icons/notifications.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { homeHubForSpaceId, spaceForSpaceId } from "../utils/membership-utils";
@@ -328,18 +333,19 @@ function LeftPanel({
   spaceMetadata,
   hubMetadata,
   memberships,
-  showHubContextMenuPopup,
-  setAtomRenameReferenceElement,
-  showSpaceRenamePopup,
-  spaceRenamePopupElement,
+  subscriptions,
   spaceId,
   sessionId,
   scene,
-  showSpaceNotificationPopup,
   showInviteTip,
-  setHasShownInvite
+  setHasShownInvite,
+  worldTree,
+  channelTree,
+  worldTreeData,
+  channelTreeData,
+  roomForHubCan
 }) {
-  const store = window.APP.store;
+  const { matrix, store } = window.APP;
   const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
   const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
   const [trashMenuElement, setTrashMenuElement] = useState(null);
@@ -369,6 +375,44 @@ function LeftPanel({
       placement: "right-end"
     }
   );
+  const spaceRenameFocusRef = useRef();
+
+  const {
+    styles: hubContextMenuStyles,
+    attributes: hubContextMenuAttributes,
+    atomId: hubContextMenuHubId,
+    show: showHubContextMenuPopup,
+    setPopup: setHubContextMenuElement,
+    popupOpenOptions: hubContextMenuOpenOptions
+  } = useAtomBoundPopupPopper();
+
+  const atomRenameFocusRef = useRef();
+  const {
+    styles: atomRenamePopupStyles,
+    attributes: atomRenamePopupAttributes,
+    setPopup: setAtomRenamePopupElement,
+    show: showAtomRenamePopup,
+    atomId: atomRenameAtomId,
+    atomMetadata: atomRenameMetadata,
+    setRef: setAtomRenameReferenceElement
+  } = useAtomBoundPopupPopper(atomRenameFocusRef, "bottom-start", [0, 8]);
+
+  const {
+    styles: spaceRenamePopupStyles,
+    attributes: spaceRenamePopupAttributes,
+    setPopup: setSpaceRenamePopupElement,
+    atomId: spaceRenameSpaceId,
+    atomMetadata: spaceRenameMetadata,
+    show: showSpaceRenamePopup,
+    popupElement: spaceRenamePopupElement
+  } = useAtomBoundPopupPopper(spaceRenameFocusRef, "bottom-start", [0, 16]);
+
+  const {
+    styles: spaceNotificationPopupStyles,
+    attributes: spaceNotificationPopupAttributes,
+    show: showSpaceNotificationPopup,
+    setPopup: setSpaceNotificationPopupElement
+  } = usePopupPopper(null, "bottom", [0, 8]);
 
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setSpaceName);
 
@@ -607,6 +651,53 @@ function LeftPanel({
           )}
         />
       </TrashMenu>
+      <HubContextMenu
+        setPopperElement={setHubContextMenuElement}
+        hideRename={!!hubContextMenuOpenOptions.hideRename}
+        showExport={!!hubContextMenuOpenOptions.showExport}
+        showReset={!!hubContextMenuOpenOptions.showReset}
+        isCurrentWorld={!!hubContextMenuOpenOptions.isCurrentWorld}
+        showAtomRenamePopup={showAtomRenamePopup}
+        worldTree={worldTree}
+        styles={hubContextMenuStyles}
+        attributes={hubContextMenuAttributes}
+        hubId={hubContextMenuHubId}
+        spaceCan={spaceCan}
+        hubCan={hubCan}
+        roomForHubCan={roomForHubCan}
+        scene={scene}
+        channelTree={channelTree}
+        worldTreeData={worldTreeData}
+        channelTreeData={channelTreeData}
+        memberships={memberships}
+        hub={hub}
+        history={history}
+      />
+      <RenamePopup
+        setPopperElement={setAtomRenamePopupElement}
+        styles={atomRenamePopupStyles}
+        attributes={atomRenamePopupAttributes}
+        atomId={atomRenameAtomId}
+        atomMetadata={atomRenameMetadata}
+        ref={atomRenameFocusRef}
+      />
+      <RenamePopup
+        setPopperElement={setSpaceRenamePopupElement}
+        styles={spaceRenamePopupStyles}
+        attributes={spaceRenamePopupAttributes}
+        atomId={spaceRenameSpaceId}
+        atomMetadata={spaceRenameMetadata}
+        ref={spaceRenameFocusRef}
+      />
+      <SpaceNotificationsPopup
+        matrix={matrix}
+        setPopperElement={setSpaceNotificationPopupElement}
+        styles={spaceNotificationPopupStyles}
+        attributes={spaceNotificationPopupAttributes}
+        subscriptions={subscriptions}
+        spaceId={spaceId}
+        memberships={memberships}
+      />
     </Left>
   );
 }
@@ -620,6 +711,7 @@ LeftPanel.propTypes = {
   scene: PropTypes.object,
   spaceMetadata: PropTypes.object,
   hubMetadata: PropTypes.object,
+  subscriptions: PropTypes.object,
   showInviteTip: PropTypes.bool,
   setHasShownInvite: PropTypes.func,
   sessionId: PropTypes.string,
@@ -627,9 +719,11 @@ LeftPanel.propTypes = {
   memberships: PropTypes.array,
   showHubContextMenuPopup: PropTypes.func,
   setAtomRenameReferenceElement: PropTypes.func,
-  showSpaceRenamePopup: PropTypes.func,
-  spaceRenamePopupElement: PropTypes.object,
-  showSpaceNotificationPopup: PropTypes.func
+  worldTreeData: PropTypes.array,
+  channelTreeData: PropTypes.array,
+  worldTree: PropTypes.object,
+  channelTree: PropTypes.object,
+  roomForHubCan: PropTypes.func
 };
 
 export default LeftPanel;

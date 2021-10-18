@@ -2,24 +2,26 @@ import React, { useRef, useState, useCallback, forwardRef, useEffect } from "rea
 import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
 import RenamePopup from "./rename-popup";
-import WorldExporter from "../utils/world-exporter";
 import AtomTrail from "./atom-trail";
 import styled from "styled-components";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 import HubContextMenu from "./hub-context-menu";
+import CreateSelectPopup from "./create-select-popup";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shadow.svgi";
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
 import notificationsIcon from "../../assets/jel/images/icons/notifications-shadow.svgi";
 import securityIcon from "../../assets/jel/images/icons/security-shadow.svgi";
 import sunIcon from "../../assets/jel/images/icons/sun-shadow.svgi";
-import { useAtomBoundPopupPopper } from "../utils/popup-utils";
+import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { getMessages } from "../../hubs/utils/i18n";
-import { navigateToHubUrl } from "../utils/jel-url-utils";
 import Tooltip from "./tooltip";
 import { useInstallPWA } from "../../hubs/react-components/input/useInstallPWA";
 import { ATOM_TYPES } from "../utils/atom-metadata";
-import { isAtomInSubtree, findChildrenAtomsInTreeData } from "../utils/tree-utils";
-import { homeHubForSpaceId } from "../utils/membership-utils";
+import { WORLD_COLOR_TYPES } from "../../hubs/constants";
+import { getPresetAsColorTuples } from "../utils/world-color-presets";
+import HubPermissionsPopup from "./hub-permissions-popup";
+import HubNotificationsPopup from "./hub-notifications-popup";
+import EnvironmentSettingsPopup from "./environment-settings-popup";
 
 const Top = styled.div`
   flex: 1;
@@ -54,7 +56,6 @@ const CornerButtonElement = styled.button`
   text-align: left;
   max-width: fit-content;
   text-shadow: 0px 0px 4px;
-
   &:hover {
     background-color: var(--canvas-overlay-item-hover-background-color);
   }
@@ -65,12 +66,17 @@ const CornerButtonElement = styled.button`
 `;
 
 const CornerButtons = styled.div`
-  display: flex;
   flex-direction: row;
   justify-content: flex-end;
   align-items: center;
   width: 50%;
   padding: 12px 0;
+
+  display: none;
+
+  .panels-collapsed & {
+    display: flex;
+  }
 
   &.opaque {
     background-color: var(--channel-header-background-color);
@@ -287,28 +293,23 @@ function CanvasTop(props) {
   const {
     history,
     hubCan,
+    hubSettings,
     voxCan,
     hub,
-    environmentSettingsPopupElement,
-    showEnvironmentSettingsPopup,
-    hubPermissionsPopupElement,
-    showHubPermissionsPopup,
-    hubNotificationPopupElement,
-    showHubNotificationPopup,
     worldTree,
     channelTree,
-    showCreateSelectPopup,
-    createSelectPopupElement,
     scene,
     spaceCan,
     roomForHubCan,
     memberships,
     worldTreeData,
-    channelTreeData
+    channelTreeData,
+    createSelectPopupRef,
+    subscriptions
   } = props;
 
-  const { cameraSystem } = SYSTEMS;
-  const { store, accountChannel, hubChannel, spaceChannel } = window.APP;
+  const { cameraSystem, terrainSystem, atmosphereSystem } = SYSTEMS;
+  const { store, hubChannel, spaceChannel } = window.APP;
 
   const {
     styles: hubContextMenuStyles,
@@ -321,6 +322,8 @@ function CanvasTop(props) {
   } = useAtomBoundPopupPopper();
 
   const atomRenameFocusRef = useRef();
+  const createSelectFocusRef = useRef();
+
   const {
     styles: atomRenamePopupStyles,
     attributes: atomRenamePopupAttributes,
@@ -330,6 +333,105 @@ function CanvasTop(props) {
     show: showAtomRenamePopup,
     popupElement: atomRenamePopupElement
   } = useAtomBoundPopupPopper(atomRenameFocusRef, "bottom-start", [0, 8]);
+
+  const {
+    styles: createSelectPopupStyles,
+    attributes: createSelectPopupAttributes,
+    show: showCreateSelectPopup,
+    setPopup: setCreateSelectPopupElement,
+    popupElement: createSelectPopupElement
+  } = usePopupPopper(".create-select-selection-search-input", "bottom-end", [0, 8]);
+
+  const {
+    styles: hubNotificationPopupStyles,
+    attributes: hubNotificationPopupAttributes,
+    show: showHubNotificationPopup,
+    setPopup: setHubNotificationPopupElement,
+    popupElement: hubNotificationPopupElement
+  } = usePopupPopper(null, "bottom-end", [0, 8]);
+
+  const {
+    styles: environmentSettingsPopupStyles,
+    attributes: environmentSettingsPopupAttributes,
+    show: showEnvironmentSettingsPopup,
+    setPopup: setEnvironmentSettingsPopupElement,
+    popupElement: environmentSettingsPopupElement
+  } = usePopupPopper(null, "bottom-end", [0, 8]);
+
+  const {
+    styles: hubPermissionsPopupStyles,
+    attributes: hubPermissionsPopupAttributes,
+    show: showHubPermissionsPopup,
+    setPopup: setHubPermissionsPopupElement,
+    popupElement: hubPermissionsPopupElement
+  } = usePopupPopper(null, "bottom-end", [0, 8]);
+
+  const updateWorldType = useCallback(
+    worldType => {
+      spaceChannel.updateHub(hub.hub_id, { world_type: worldType });
+    },
+    [hub, spaceChannel]
+  );
+
+  const temporarilyUpdateEnvironmentColors = useCallback(
+    (...colors) => {
+      terrainSystem.updateWorldColors(...colors);
+      atmosphereSystem.updateWaterColor(colors[7]);
+      atmosphereSystem.updateSkyColor(colors[6]);
+    },
+    [terrainSystem, atmosphereSystem]
+  );
+
+  const saveCurrentEnvironmentColors = useCallback(
+    () => {
+      const colors = terrainSystem.worldColors;
+      const hubWorldColors = {};
+
+      WORLD_COLOR_TYPES.forEach((type, idx) => {
+        hubWorldColors[`world_${type}_color_r`] = (colors[idx] && colors[idx].r) || 0;
+        hubWorldColors[`world_${type}_color_g`] = (colors[idx] && colors[idx].g) || 0;
+        hubWorldColors[`world_${type}_color_b`] = (colors[idx] && colors[idx].b) || 0;
+      });
+
+      spaceChannel.updateHub(hub.hub_id, hubWorldColors);
+    },
+    [terrainSystem.worldColors, hub, spaceChannel]
+  );
+
+  const onEnvironmentPresetColorsHovered = useCallback(
+    i => {
+      const colors = getPresetAsColorTuples(i);
+      temporarilyUpdateEnvironmentColors(...colors);
+    },
+    [temporarilyUpdateEnvironmentColors]
+  );
+
+  const onEnvironmentPresetColorsLeft = useCallback(
+    () => {
+      terrainSystem.updateWorldForHub(hub);
+      atmosphereSystem.updateAtmosphereForHub(hub);
+    },
+    [hub, terrainSystem, atmosphereSystem]
+  );
+
+  const onEnvironmentPresetColorsClicked = useCallback(
+    i => {
+      const colors = getPresetAsColorTuples(i);
+      temporarilyUpdateEnvironmentColors(...colors);
+      saveCurrentEnvironmentColors();
+    },
+    [saveCurrentEnvironmentColors, temporarilyUpdateEnvironmentColors]
+  );
+
+  // Handle create hotkey (typically /)
+  useEffect(
+    () => {
+      const handleCreateHotkey = () => showCreateSelectPopup(createSelectPopupRef);
+      scene && scene.addEventListener("action_create", handleCreateHotkey);
+      return () => scene && scene.removeEventListener("action_create", handleCreateHotkey);
+    },
+    [scene, createSelectPopupRef, showCreateSelectPopup]
+  );
 
   const [canSpawnAndMoveMedia, setCanSpawnAndMoveMedia] = useState(
     hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id)
@@ -469,6 +571,7 @@ function CanvasTop(props) {
         showExport={!!hubContextMenuOpenOptions.showExport}
         showReset={!!hubContextMenuOpenOptions.showReset}
         isCurrentWorld={!!hubContextMenuOpenOptions.isCurrentWorld}
+        showAtomRenamePopup={showAtomRenamePopup}
         worldTree={worldTree}
         styles={hubContextMenuStyles}
         attributes={hubContextMenuAttributes}
@@ -476,52 +579,13 @@ function CanvasTop(props) {
         spaceCan={spaceCan}
         hubCan={hubCan}
         roomForHubCan={roomForHubCan}
-        onRenameClick={useCallback(hubId => showAtomRenamePopup(hubId, hubMetadata, null), [
-          showAtomRenamePopup,
-          hubMetadata
-        ])}
-        onImportClick={useCallback(
-          () => {
-            document.querySelector("#import-upload-input").click();
-            scene.canvas.focus();
-          },
-          [scene]
-        )}
-        onExportClick={useCallback(
-          () => {
-            new WorldExporter().downloadCurrentWorldHtml();
-            scene.canvas.focus();
-          },
-          [scene]
-        )}
-        onPublishTemplateClick={useCallback(
-          async collection => {
-            scene.emit("action_publish_template", { collection });
-            scene.canvas.focus();
-          },
-          [scene]
-        )}
-        onResetClick={useCallback(() => scene.emit("action_reset_objects"), [scene])}
-        onTrashClick={useCallback(
-          hubId => {
-            if (!worldTree.getNodeIdForAtomId(hubId) && !channelTree.getNodeIdForAtomId(hubId)) return;
-
-            // If this hub or any of its parents were deleted, go home.
-            if (isAtomInSubtree(worldTree, hubId, hub.hub_id) || isAtomInSubtree(channelTree, hubId, hub.hub_id)) {
-              const homeHub = homeHubForSpaceId(hub.space_id, memberships);
-              navigateToHubUrl(history, homeHub.url);
-            }
-
-            // All trashable children are trashed too.
-            const trashableChildrenHubIds = [
-              ...findChildrenAtomsInTreeData(worldTreeData, hubId),
-              ...findChildrenAtomsInTreeData(channelTreeData, hubId)
-            ].filter(hubId => hubCan("trash_hub", hubId));
-
-            spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
-          },
-          [worldTree, hub, history, hubCan, memberships, spaceChannel, worldTreeData, channelTree, channelTreeData]
-        )}
+        scene={scene}
+        channelTree={channelTree}
+        worldTreeData={worldTreeData}
+        channelTreeData={channelTreeData}
+        memberships={memberships}
+        hub={hub}
+        history={history}
       />
       <RenamePopup
         setPopperElement={setAtomRenamePopupElement}
@@ -530,18 +594,43 @@ function CanvasTop(props) {
         atomId={atomRenameAtomId}
         atomMetadata={atomRenameMetadata}
         ref={atomRenameFocusRef}
-        onNameChanged={useCallback(
-          name => {
-            const { atomType } = atomRenameMetadata;
-
-            if (atomType === ATOM_TYPES.HUB) {
-              spaceChannel.updateHub(atomRenameAtomId, { name });
-            } else if (atomType === ATOM_TYPES.VOX) {
-              accountChannel.updateVox(atomRenameAtomId, { name });
-            }
-          },
-          [spaceChannel, accountChannel, atomRenameAtomId, atomRenameMetadata]
-        )}
+      />
+      <CreateSelectPopup
+        popperElement={createSelectPopupElement}
+        setPopperElement={setCreateSelectPopupElement}
+        styles={createSelectPopupStyles}
+        attributes={createSelectPopupAttributes}
+        ref={createSelectFocusRef}
+        onActionSelected={useCallback(a => scene.emit("create_action_exec", a), [scene])}
+      />
+      <HubPermissionsPopup
+        setPopperElement={setHubPermissionsPopupElement}
+        styles={hubPermissionsPopupStyles}
+        attributes={hubPermissionsPopupAttributes}
+        hubMetadata={hubMetadata}
+        hub={hub}
+      />
+      <HubNotificationsPopup
+        setPopperElement={setHubNotificationPopupElement}
+        styles={hubNotificationPopupStyles}
+        attributes={hubNotificationPopupAttributes}
+        subscriptions={subscriptions}
+        hub={hub}
+        hubSettings={hubSettings}
+      />
+      <EnvironmentSettingsPopup
+        setPopperElement={setEnvironmentSettingsPopupElement}
+        styles={environmentSettingsPopupStyles}
+        attributes={environmentSettingsPopupAttributes}
+        hub={hub}
+        hubMetadata={hubMetadata}
+        hubCan={hubCan}
+        onColorsChanged={temporarilyUpdateEnvironmentColors}
+        onColorChangeComplete={saveCurrentEnvironmentColors}
+        onTypeChanged={updateWorldType}
+        onPresetColorsHovered={onEnvironmentPresetColorsHovered}
+        onPresetColorsLeft={onEnvironmentPresetColorsLeft}
+        onPresetColorsClicked={onEnvironmentPresetColorsClicked}
       />
     </Top>
   );
@@ -552,22 +641,16 @@ CanvasTop.propTypes = {
   hubCan: PropTypes.func,
   voxCan: PropTypes.func,
   scene: PropTypes.object,
-  environmentSettingsPopupElement: PropTypes.object,
-  showEnvironmentSettingsPopup: PropTypes.func,
-  hubPermissionsPopupElement: PropTypes.object,
-  showHubPermissionsPopup: PropTypes.func,
-  hubNotificationPopupElement: PropTypes.object,
-  showHubNotificationPopup: PropTypes.func,
-  createSelectPopupElement: PropTypes.object,
-  showCreateSelectPopup: PropTypes.func,
-  hubContextMenuElement: PropTypes.object,
   worldTree: PropTypes.object,
   channelTree: PropTypes.object,
-  worldTreeData: PropTypes.object,
-  channelTreeData: PropTypes.object,
+  worldTreeData: PropTypes.array,
+  channelTreeData: PropTypes.array,
   spaceCan: PropTypes.func,
   memberships: PropTypes.array,
-  roomForHubCan: PropTypes.func
+  roomForHubCan: PropTypes.func,
+  hubSettings: PropTypes.array,
+  subscriptions: PropTypes.object,
+  createSelectPopupRef: PropTypes.object
 };
 
 export default CanvasTop;

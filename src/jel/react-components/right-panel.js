@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
 import styled from "styled-components";
@@ -75,9 +75,9 @@ const TriggerModePanel = styled.div`
   z-index: 10;
 `;
 
-function RightPanel({ history, hub, hubCan, hubMetadata, sessionId, scene, showEmojiPopup }) {
+function RightPanel({ history, hub, hubCan, hubMetadata, sessionId, scene, centerPopupRef }) {
   const { builderSystem, launcherSystem, cameraSystem } = SYSTEMS;
-  const emojiEquipRef = useRef();
+
   const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const [isInEditorView, setIsInEditorView] = useState(cameraSystem.isInspecting() && cameraSystem.allowCursor);
 
@@ -117,13 +117,6 @@ function RightPanel({ history, hub, hubCan, hubMetadata, sessionId, scene, showE
     [builderSystem, launcherSystem]
   );
 
-  const onSelectedEmojiClicked = useCallback(
-    () => {
-      showEmojiPopup(emojiEquipRef, "top-end", [0, 12], { equip: true });
-    },
-    [showEmojiPopup]
-  );
-
   const messages = getMessages();
   const isWorld = hub && hub.type === "world";
 
@@ -158,7 +151,7 @@ function RightPanel({ history, hub, hubCan, hubMetadata, sessionId, scene, showE
             <PanelSectionHeader style={{ height: "16px" }}>
               <FormattedMessage id="blaster.header" />
             </PanelSectionHeader>
-            <EmojiEquip ref={emojiEquipRef} onSelectedEmojiClicked={onSelectedEmojiClicked} />
+            <EmojiEquip centerPopupRef={centerPopupRef} scene={scene} />
           </BlasterContent>
         )}
       {isWorld &&
@@ -205,7 +198,7 @@ RightPanel.propTypes = {
   scene: PropTypes.object,
   hubMetadata: PropTypes.object,
   sessionId: PropTypes.string,
-  showEmojiPopup: PropTypes.func
+  centerPopupRef: PropTypes.object
 };
 
 export default RightPanel;
