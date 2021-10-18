@@ -1167,11 +1167,11 @@ async function start() {
 
       // Hide when near corners, due to fitts
       // y margins to fully hide triggers
-      const xMarginDisablePx = 128.0;
+      const xMarginDisablePx = 192.0;
       const yMarginDisablePx = 64.0;
 
       // y margins to slide out triggers
-      const xMarginSlicePx = 256.0;
+      const xMarginSlicePx = 320.0;
       const yMarginSlicePx = 128.0;
 
       if (clientX < window.innerWidth * peekRegionPct) {

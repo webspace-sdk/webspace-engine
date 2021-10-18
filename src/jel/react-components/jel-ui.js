@@ -407,7 +407,7 @@ const DeviceStatuses = styled.div`
 function JelUI(props) {
   const { scene, treeManager, hub, unavailableReason, subscriptions, voxTree, sceneTree } = props;
 
-  const { launcherSystem, builderSystem, externalCameraSystem } = SYSTEMS;
+  const { launcherSystem, cameraSystem, builderSystem, externalCameraSystem } = SYSTEMS;
 
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
@@ -436,12 +436,23 @@ function JelUI(props) {
   const [showNotificationBannerWarning, setShowNotificationBannerWarning] = useState(false);
 
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
+  const [isInspecting, setIsInspecting] = useState(cameraSystem.isInspecting());
+
   const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
 
   const createSelectPopupRef = useRef();
   const centerPopupRef = useRef();
   const modalPopupRef = useRef();
   const environmentSettingsButtonRef = useRef();
+
+  useEffect(
+    () => {
+      const handler = () => setIsInspecting(SYSTEMS.cameraSystem.isInspecting());
+      cameraSystem.addEventListener("mode_changed", handler);
+      return () => cameraSystem.removeEventListener("mode_changed", handler);
+    },
+    [cameraSystem]
+  );
 
   useEffect(
     () => {
@@ -684,9 +695,11 @@ function JelUI(props) {
             </BottomLeftPanels>
           )}
         </Wrap>
-        <AssetPanelWrap id="asset-panel">
-          <AssetPanel voxTree={voxTree} sceneTree={sceneTree} expanded={true} scene={scene} />
-        </AssetPanelWrap>
+        {!isInspecting && (
+          <AssetPanelWrap id="asset-panel">
+            <AssetPanel voxTree={voxTree} sceneTree={sceneTree} expanded={true} scene={scene} />
+          </AssetPanelWrap>
+        )}
         {!skipSidePanels && (
           <JelSidePanels
             {...props}

@@ -7,7 +7,6 @@ import PanelSectionHeader from "./panel-section-header";
 import IconButton from "./icon-button";
 import upIcon from "../../assets/jel/images/icons/expand-up.svgi";
 import SegmentControl from "./segment-control";
-import downIcon from "../../assets/jel/images/icons/expand-down.svgi";
 import scenesOnIcon from "../../assets/jel/images/icons/scenes-on.svgi";
 import scenesOffIcon from "../../assets/jel/images/icons/scenes-off.svgi";
 import objectsOnIcon from "../../assets/jel/images/icons/builder-on.svgi";
@@ -208,7 +207,6 @@ const Tile = styled.div`
 export default function AssetPanel(props) {
   const { voxTree, sceneTree, expanded, scene } = props;
   const { voxSystem } = SYSTEMS;
-  const { store } = window.APP;
 
   const [selectedKeys, setSelectedKeys] = useState([]);
   const [expandedKeys, setExpandedKeys] = useState([]);

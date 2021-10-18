@@ -129,6 +129,7 @@ export class CameraSystem extends EventTarget {
     this.horizontalDelta = 0;
     this.inspectZoom = 0;
     this.collapsedPanelsOnInspect = false;
+    this.expandedPanelsOnInspect = false;
     this.allowCursor = false;
     this.orthographicEnabled = false;
     this.showXZPlane = true;
@@ -206,6 +207,12 @@ export class CameraSystem extends EventTarget {
     this.horizontalDelta = 0;
     this.inspectZoom = 0;
     this.allowCursor = allowCursor;
+
+    if (allowCursor) {
+      SYSTEMS.uiAnimationSystem.expandSidePanels();
+      this.expandedPanelsOnInspect = true;
+    }
+
     this.temporarilyDisableRegularExit = temporarilyDisableRegularExit; // TODO: Do this at the action set layer
     if (this.mode === CAMERA_MODE_INSPECT) return;
     this.dispatchEvent(new CustomEvent("mode_changing"));
@@ -311,8 +318,12 @@ export class CameraSystem extends EventTarget {
 
     if (this.collapsedPanelsOnInspect) {
       SYSTEMS.uiAnimationSystem.expandSidePanels(false);
-      this.collapsedPanelsOnInspect = false;
+    } else if (this.expandedPanelsOnInspect) {
+      SYSTEMS.uiAnimationSystem.collapseSidePanels();
     }
+
+    this.collapsedPanelsOnInspect = false;
+    this.expandedPanelsOnInspect = false;
   }
 
   isInspecting() {
