@@ -7,9 +7,11 @@ import styled from "styled-components";
 import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
 import TinyOutlineIconButton from "./tiny-outline-icon-button";
+import { usePopupPopper } from "../utils/popup-utils";
 import SelfPanel from "./self-panel";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
 import HubContextMenu from "./hub-context-menu";
+import SpaceNotificationsPopup from "./space-notifications-popup";
 import RenamePopup from "./rename-popup";
 import notificationsIcon from "../../assets/jel/images/icons/notifications.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
@@ -331,10 +333,10 @@ function LeftPanel({
   spaceMetadata,
   hubMetadata,
   memberships,
+  subscriptions,
   spaceId,
   sessionId,
   scene,
-  showSpaceNotificationPopup,
   showInviteTip,
   setHasShownInvite,
   worldTree,
@@ -343,7 +345,7 @@ function LeftPanel({
   channelTreeData,
   roomForHubCan
 }) {
-  const store = window.APP.store;
+  const { matrix, store } = window.APP;
   const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
   const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
   const [trashMenuElement, setTrashMenuElement] = useState(null);
@@ -404,6 +406,13 @@ function LeftPanel({
     show: showSpaceRenamePopup,
     popupElement: spaceRenamePopupElement
   } = useAtomBoundPopupPopper(spaceRenameFocusRef, "bottom-start", [0, 16]);
+
+  const {
+    styles: spaceNotificationPopupStyles,
+    attributes: spaceNotificationPopupAttributes,
+    show: showSpaceNotificationPopup,
+    setPopup: setSpaceNotificationPopupElement
+  } = usePopupPopper(null, "bottom", [0, 8]);
 
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setSpaceName);
 
@@ -680,6 +689,15 @@ function LeftPanel({
         atomMetadata={spaceRenameMetadata}
         ref={spaceRenameFocusRef}
       />
+      <SpaceNotificationsPopup
+        matrix={matrix}
+        setPopperElement={setSpaceNotificationPopupElement}
+        styles={spaceNotificationPopupStyles}
+        attributes={spaceNotificationPopupAttributes}
+        subscriptions={subscriptions}
+        spaceId={spaceId}
+        memberships={memberships}
+      />
     </Left>
   );
 }
@@ -693,6 +711,7 @@ LeftPanel.propTypes = {
   scene: PropTypes.object,
   spaceMetadata: PropTypes.object,
   hubMetadata: PropTypes.object,
+  subscriptions: PropTypes.object,
   showInviteTip: PropTypes.bool,
   setHasShownInvite: PropTypes.func,
   sessionId: PropTypes.string,
@@ -700,7 +719,6 @@ LeftPanel.propTypes = {
   memberships: PropTypes.array,
   showHubContextMenuPopup: PropTypes.func,
   setAtomRenameReferenceElement: PropTypes.func,
-  showSpaceNotificationPopup: PropTypes.func,
   worldTreeData: PropTypes.array,
   channelTreeData: PropTypes.array,
   worldTree: PropTypes.object,

@@ -17,6 +17,11 @@ import { getMessages } from "../../hubs/utils/i18n";
 import Tooltip from "./tooltip";
 import { useInstallPWA } from "../../hubs/react-components/input/useInstallPWA";
 import { ATOM_TYPES } from "../utils/atom-metadata";
+import { WORLD_COLOR_TYPES } from "../../hubs/constants";
+import { getPresetAsColorTuples } from "../utils/world-color-presets";
+import HubPermissionsPopup from "./hub-permissions-popup";
+import HubNotificationsPopup from "./hub-notifications-popup";
+import EnvironmentSettingsPopup from "./environment-settings-popup";
 
 const Top = styled.div`
   flex: 1;
@@ -288,14 +293,9 @@ function CanvasTop(props) {
   const {
     history,
     hubCan,
+    hubSettings,
     voxCan,
     hub,
-    environmentSettingsPopupElement,
-    showEnvironmentSettingsPopup,
-    hubPermissionsPopupElement,
-    showHubPermissionsPopup,
-    hubNotificationPopupElement,
-    showHubNotificationPopup,
     worldTree,
     channelTree,
     scene,
@@ -304,11 +304,12 @@ function CanvasTop(props) {
     memberships,
     worldTreeData,
     channelTreeData,
-    createSelectPopupRef
+    createSelectPopupRef,
+    subscriptions
   } = props;
 
-  const { cameraSystem } = SYSTEMS;
-  const { store, hubChannel } = window.APP;
+  const { cameraSystem, terrainSystem, atmosphereSystem } = SYSTEMS;
+  const { store, hubChannel, spaceChannel } = window.APP;
 
   const {
     styles: hubContextMenuStyles,
@@ -340,6 +341,87 @@ function CanvasTop(props) {
     setPopup: setCreateSelectPopupElement,
     popupElement: createSelectPopupElement
   } = usePopupPopper(".create-select-selection-search-input", "bottom-end", [0, 8]);
+
+  const {
+    styles: hubNotificationPopupStyles,
+    attributes: hubNotificationPopupAttributes,
+    show: showHubNotificationPopup,
+    setPopup: setHubNotificationPopupElement,
+    popupElement: hubNotificationPopupElement
+  } = usePopupPopper(null, "bottom-end", [0, 8]);
+
+  const {
+    styles: environmentSettingsPopupStyles,
+    attributes: environmentSettingsPopupAttributes,
+    show: showEnvironmentSettingsPopup,
+    setPopup: setEnvironmentSettingsPopupElement,
+    popupElement: environmentSettingsPopupElement
+  } = usePopupPopper(null, "bottom-end", [0, 8]);
+
+  const {
+    styles: hubPermissionsPopupStyles,
+    attributes: hubPermissionsPopupAttributes,
+    show: showHubPermissionsPopup,
+    setPopup: setHubPermissionsPopupElement,
+    popupElement: hubPermissionsPopupElement
+  } = usePopupPopper(null, "bottom-end", [0, 8]);
+
+  const updateWorldType = useCallback(
+    worldType => {
+      spaceChannel.updateHub(hub.hub_id, { world_type: worldType });
+    },
+    [hub, spaceChannel]
+  );
+
+  const temporarilyUpdateEnvironmentColors = useCallback(
+    (...colors) => {
+      terrainSystem.updateWorldColors(...colors);
+      atmosphereSystem.updateWaterColor(colors[7]);
+      atmosphereSystem.updateSkyColor(colors[6]);
+    },
+    [terrainSystem, atmosphereSystem]
+  );
+
+  const saveCurrentEnvironmentColors = useCallback(
+    () => {
+      const colors = terrainSystem.worldColors;
+      const hubWorldColors = {};
+
+      WORLD_COLOR_TYPES.forEach((type, idx) => {
+        hubWorldColors[`world_${type}_color_r`] = (colors[idx] && colors[idx].r) || 0;
+        hubWorldColors[`world_${type}_color_g`] = (colors[idx] && colors[idx].g) || 0;
+        hubWorldColors[`world_${type}_color_b`] = (colors[idx] && colors[idx].b) || 0;
+      });
+
+      spaceChannel.updateHub(hub.hub_id, hubWorldColors);
+    },
+    [terrainSystem.worldColors, hub, spaceChannel]
+  );
+
+  const onEnvironmentPresetColorsHovered = useCallback(
+    i => {
+      const colors = getPresetAsColorTuples(i);
+      temporarilyUpdateEnvironmentColors(...colors);
+    },
+    [temporarilyUpdateEnvironmentColors]
+  );
+
+  const onEnvironmentPresetColorsLeft = useCallback(
+    () => {
+      terrainSystem.updateWorldForHub(hub);
+      atmosphereSystem.updateAtmosphereForHub(hub);
+    },
+    [hub, terrainSystem, atmosphereSystem]
+  );
+
+  const onEnvironmentPresetColorsClicked = useCallback(
+    i => {
+      const colors = getPresetAsColorTuples(i);
+      temporarilyUpdateEnvironmentColors(...colors);
+      saveCurrentEnvironmentColors();
+    },
+    [saveCurrentEnvironmentColors, temporarilyUpdateEnvironmentColors]
+  );
 
   // Handle create hotkey (typically /)
   useEffect(
@@ -521,6 +603,35 @@ function CanvasTop(props) {
         ref={createSelectFocusRef}
         onActionSelected={useCallback(a => scene.emit("create_action_exec", a), [scene])}
       />
+      <HubPermissionsPopup
+        setPopperElement={setHubPermissionsPopupElement}
+        styles={hubPermissionsPopupStyles}
+        attributes={hubPermissionsPopupAttributes}
+        hubMetadata={hubMetadata}
+        hub={hub}
+      />
+      <HubNotificationsPopup
+        setPopperElement={setHubNotificationPopupElement}
+        styles={hubNotificationPopupStyles}
+        attributes={hubNotificationPopupAttributes}
+        subscriptions={subscriptions}
+        hub={hub}
+        hubSettings={hubSettings}
+      />
+      <EnvironmentSettingsPopup
+        setPopperElement={setEnvironmentSettingsPopupElement}
+        styles={environmentSettingsPopupStyles}
+        attributes={environmentSettingsPopupAttributes}
+        hub={hub}
+        hubMetadata={hubMetadata}
+        hubCan={hubCan}
+        onColorsChanged={temporarilyUpdateEnvironmentColors}
+        onColorChangeComplete={saveCurrentEnvironmentColors}
+        onTypeChanged={updateWorldType}
+        onPresetColorsHovered={onEnvironmentPresetColorsHovered}
+        onPresetColorsLeft={onEnvironmentPresetColorsLeft}
+        onPresetColorsClicked={onEnvironmentPresetColorsClicked}
+      />
     </Top>
   );
 }
@@ -530,13 +641,6 @@ CanvasTop.propTypes = {
   hubCan: PropTypes.func,
   voxCan: PropTypes.func,
   scene: PropTypes.object,
-  environmentSettingsPopupElement: PropTypes.object,
-  showEnvironmentSettingsPopup: PropTypes.func,
-  hubPermissionsPopupElement: PropTypes.object,
-  showHubPermissionsPopup: PropTypes.func,
-  hubNotificationPopupElement: PropTypes.object,
-  showHubNotificationPopup: PropTypes.func,
-  createSelectPopupElement: PropTypes.object,
   worldTree: PropTypes.object,
   channelTree: PropTypes.object,
   worldTreeData: PropTypes.array,
@@ -544,6 +648,8 @@ CanvasTop.propTypes = {
   spaceCan: PropTypes.func,
   memberships: PropTypes.array,
   roomForHubCan: PropTypes.func,
+  hubSettings: PropTypes.array,
+  subscriptions: PropTypes.object,
   createSelectPopupRef: PropTypes.object
 };
 

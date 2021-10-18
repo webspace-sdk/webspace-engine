@@ -13,17 +13,10 @@ import EqippedBrushIcon from "./equipped-brush-icon";
 import EqippedColorIcon from "./equipped-color-icon";
 import EquippedEmojiIcon from "./equipped-emoji-icon";
 import { useTreeData } from "../utils/tree-utils";
-import { usePopupPopper } from "../utils/popup-utils";
-import { WORLD_COLOR_TYPES } from "../../hubs/constants";
-import { getPresetAsColorTuples } from "../utils/world-color-presets";
 import RootPopups from "./root-popups";
 import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
 import Snackbar from "./snackbar";
-import SpaceNotificationsPopup from "./space-notifications-popup";
-import HubPermissionsPopup from "./hub-permissions-popup";
-import HubNotificationsPopup from "./hub-notifications-popup";
-import EnvironmentSettingsPopup from "./environment-settings-popup";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
 import KeyTips from "./key-tips";
@@ -351,19 +344,7 @@ const DeviceStatuses = styled.div`
 `;
 
 function JelUI(props) {
-  const {
-    scene,
-    treeManager,
-    hubCan,
-    hub,
-    memberships,
-    hubSettings,
-    unavailableReason,
-    subscriptions,
-    spaceId,
-    voxTree,
-    sceneTree
-  } = props;
+  const { scene, treeManager, hub, unavailableReason, subscriptions, voxTree, sceneTree } = props;
 
   const { launcherSystem, builderSystem, terrainSystem, atmosphereSystem, externalCameraSystem } = SYSTEMS;
 
@@ -400,37 +381,6 @@ function JelUI(props) {
   const centerPopupRef = useRef();
   const modalPopupRef = useRef();
   const environmentSettingsButtonRef = useRef();
-
-  const {
-    styles: spaceNotificationPopupStyles,
-    attributes: spaceNotificationPopupAttributes,
-    show: showSpaceNotificationPopup,
-    setPopup: setSpaceNotificationPopupElement
-  } = usePopupPopper(null, "bottom", [0, 8]);
-
-  const {
-    styles: hubNotificationPopupStyles,
-    attributes: hubNotificationPopupAttributes,
-    show: showHubNotificationPopup,
-    setPopup: setHubNotificationPopupElement,
-    popupElement: hubNotificationPopupElement
-  } = usePopupPopper(null, "bottom-end", [0, 8]);
-
-  const {
-    styles: environmentSettingsPopupStyles,
-    attributes: environmentSettingsPopupAttributes,
-    show: showEnvironmentSettingsPopup,
-    setPopup: setEnvironmentSettingsPopupElement,
-    popupElement: environmentSettingsPopupElement
-  } = usePopupPopper(null, "bottom-end", [0, 8]);
-
-  const {
-    styles: hubPermissionsPopupStyles,
-    attributes: hubPermissionsPopupAttributes,
-    show: showHubPermissionsPopup,
-    setPopup: setHubPermissionsPopupElement,
-    popupElement: hubPermissionsPopupElement
-  } = usePopupPopper(null, "bottom-end", [0, 8]);
 
   useEffect(
     () => {
@@ -523,63 +473,6 @@ function JelUI(props) {
   const isHomeHub = hub && hub.is_home;
 
   const onTurnOnNotificationClicked = useCallback(() => subscriptions.subscribe(), [subscriptions]);
-
-  const temporarilyUpdateEnvironmentColors = useCallback(
-    (...colors) => {
-      terrainSystem.updateWorldColors(...colors);
-      atmosphereSystem.updateWaterColor(colors[7]);
-      atmosphereSystem.updateSkyColor(colors[6]);
-    },
-    [terrainSystem, atmosphereSystem]
-  );
-
-  const updateWorldType = useCallback(
-    worldType => {
-      spaceChannel.updateHub(hub.hub_id, { world_type: worldType });
-    },
-    [hub, spaceChannel]
-  );
-
-  const saveCurrentEnvironmentColors = useCallback(
-    () => {
-      const colors = terrainSystem.worldColors;
-      const hubWorldColors = {};
-
-      WORLD_COLOR_TYPES.forEach((type, idx) => {
-        hubWorldColors[`world_${type}_color_r`] = (colors[idx] && colors[idx].r) || 0;
-        hubWorldColors[`world_${type}_color_g`] = (colors[idx] && colors[idx].g) || 0;
-        hubWorldColors[`world_${type}_color_b`] = (colors[idx] && colors[idx].b) || 0;
-      });
-
-      spaceChannel.updateHub(hub.hub_id, hubWorldColors);
-    },
-    [terrainSystem.worldColors, hub, spaceChannel]
-  );
-
-  const onEnvironmentPresetColorsHovered = useCallback(
-    i => {
-      const colors = getPresetAsColorTuples(i);
-      temporarilyUpdateEnvironmentColors(...colors);
-    },
-    [temporarilyUpdateEnvironmentColors]
-  );
-
-  const onEnvironmentPresetColorsLeft = useCallback(
-    () => {
-      terrainSystem.updateWorldForHub(hub);
-      atmosphereSystem.updateAtmosphereForHub(hub);
-    },
-    [hub, terrainSystem, atmosphereSystem]
-  );
-
-  const onEnvironmentPresetColorsClicked = useCallback(
-    i => {
-      const colors = getPresetAsColorTuples(i);
-      temporarilyUpdateEnvironmentColors(...colors);
-      saveCurrentEnvironmentColors();
-    },
-    [saveCurrentEnvironmentColors, temporarilyUpdateEnvironmentColors]
-  );
 
   // Handle subscriptions changed
 
@@ -679,12 +572,6 @@ function JelUI(props) {
             worldTreeData={worldTreeData}
             channelTreeData={channelTreeData}
             environmentSettingsButtonRef={environmentSettingsButtonRef}
-            environmentSettingsPopupElement={environmentSettingsPopupElement}
-            showEnvironmentSettingsPopup={showEnvironmentSettingsPopup}
-            hubPermissionsPopupElement={hubPermissionsPopupElement}
-            showHubPermissionsPopup={showHubPermissionsPopup}
-            hubNotificationPopupElement={hubNotificationPopupElement}
-            showHubNotificationPopup={showHubNotificationPopup}
             createSelectPopupRef={createSelectPopupRef}
           />
           <KeyTipsWrap
@@ -740,51 +627,12 @@ function JelUI(props) {
             channelTree={channelTree}
             worldTreeData={worldTreeData}
             channelTreeData={channelTreeData}
-            showSpaceNotificationPopup={showSpaceNotificationPopup}
             centerPopupRef={centerPopupRef}
             showInviteTip={showInviteTip}
             setHasShownInvite={setHasShownInvite}
           />
         )}
       </Root>
-      <SpaceNotificationsPopup
-        matrix={matrix}
-        setPopperElement={setSpaceNotificationPopupElement}
-        styles={spaceNotificationPopupStyles}
-        attributes={spaceNotificationPopupAttributes}
-        subscriptions={subscriptions}
-        spaceId={spaceId}
-        memberships={memberships}
-      />
-      <HubPermissionsPopup
-        setPopperElement={setHubPermissionsPopupElement}
-        styles={hubPermissionsPopupStyles}
-        attributes={hubPermissionsPopupAttributes}
-        hubMetadata={hubMetadata}
-        hub={hub}
-      />
-      <HubNotificationsPopup
-        setPopperElement={setHubNotificationPopupElement}
-        styles={hubNotificationPopupStyles}
-        attributes={hubNotificationPopupAttributes}
-        subscriptions={subscriptions}
-        hub={hub}
-        hubSettings={hubSettings}
-      />
-      <EnvironmentSettingsPopup
-        setPopperElement={setEnvironmentSettingsPopupElement}
-        styles={environmentSettingsPopupStyles}
-        attributes={environmentSettingsPopupAttributes}
-        hub={hub}
-        hubMetadata={hubMetadata}
-        hubCan={hubCan}
-        onColorsChanged={temporarilyUpdateEnvironmentColors}
-        onColorChangeComplete={saveCurrentEnvironmentColors}
-        onTypeChanged={updateWorldType}
-        onPresetColorsHovered={onEnvironmentPresetColorsHovered}
-        onPresetColorsLeft={onEnvironmentPresetColorsLeft}
-        onPresetColorsClicked={onEnvironmentPresetColorsClicked}
-      />
       <RootPopups centerPopupRef={centerPopupRef} scene={scene} />
       <input
         id="import-upload-input"
