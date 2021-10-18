@@ -443,10 +443,10 @@ function buildWorldPresenceData(
       }
 
       const allowJumpTo = sessionId !== currentSessionId;
-      let showJumpTip = false;
+      const showJumpTip = false;
 
       if (!addedJumpTip && allowJumpTo && !store.state.activity.hasShownJumpedToMember) {
-        showJumpTip = true;
+        // TODO removed due to event speaker risk showJumpTip = true;
         addedJumpTip = true;
       }
 
