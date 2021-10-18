@@ -20,7 +20,6 @@ import RootPopups from "./root-popups";
 import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
 import Snackbar from "./snackbar";
-import CreateEmbedPopup from "./create-embed-popup";
 import SpaceNotificationsPopup from "./space-notifications-popup";
 import HubPermissionsPopup from "./hub-permissions-popup";
 import HubNotificationsPopup from "./hub-notifications-popup";
@@ -384,7 +383,6 @@ function JelUI(props) {
   const [isMatrixLoading, setIsMatrixLoading] = useState(!matrix || !matrix.isInitialSyncFinished);
   const [hasFetchedInitialHubMetadata, setHasFetchedInitialHubMetadata] = useState(false);
   const [isInitializingSpace, setIsInitializingSpace] = useState(store.state.context.isFirstVisitToSpace);
-  const [createEmbedType, setCreateEmbedType] = useState("image");
   const [showingExternalCamera /*, setShowingExternalCamera*/] = useState(false);
   const [showNotificationBanner, setShowNotificationBanner] = useState(
     subscriptions &&
@@ -401,15 +399,7 @@ function JelUI(props) {
   const createSelectPopupRef = useRef();
   const centerPopupRef = useRef();
   const modalPopupRef = useRef();
-  const createEmbedFocusRef = useRef();
   const environmentSettingsButtonRef = useRef();
-
-  const {
-    styles: createEmbedPopupStyles,
-    attributes: createEmbedPopupAttributes,
-    show: showCreateEmbedPopup,
-    setPopup: setCreateEmbedPopupElement
-  } = usePopupPopper(createEmbedFocusRef, "bottom", [0, 8]);
 
   const {
     styles: spaceNotificationPopupStyles,
@@ -505,20 +495,6 @@ function JelUI(props) {
       return () => store.removeEventListener("statechanged-context", handler);
     },
     [store, setIsInitializingSpace, isInitializingSpace]
-  );
-
-  // Handle embed popup trigger
-  useEffect(
-    () => {
-      const handleCreateEmbed = e => {
-        setCreateEmbedType(e.detail);
-        showCreateEmbedPopup(centerPopupRef);
-      };
-
-      scene && scene.addEventListener("action_show_create_embed", handleCreateEmbed);
-      return () => scene && scene.removeEventListener("action_show_create_embed", handleCreateEmbed);
-    },
-    [scene, centerPopupRef, showCreateEmbedPopup]
   );
 
   // Handle external camera toggle
@@ -808,14 +784,6 @@ function JelUI(props) {
         onPresetColorsHovered={onEnvironmentPresetColorsHovered}
         onPresetColorsLeft={onEnvironmentPresetColorsLeft}
         onPresetColorsClicked={onEnvironmentPresetColorsClicked}
-      />
-      <CreateEmbedPopup
-        setPopperElement={setCreateEmbedPopupElement}
-        styles={createEmbedPopupStyles}
-        attributes={createEmbedPopupAttributes}
-        embedType={createEmbedType}
-        ref={createEmbedFocusRef}
-        onURLEntered={useCallback(url => scene.emit("add_media", url), [scene])}
       />
       <RootPopups centerPopupRef={centerPopupRef} scene={scene} />
       <input
