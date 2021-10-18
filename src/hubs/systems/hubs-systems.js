@@ -104,7 +104,7 @@ AFRAME.registerSystem("hubs-systems", {
       this.cursorTargettingSystem
     );
     this.characterController = new CharacterControllerSystem(this.el, this.terrainSystem, this.builderSystem);
-    this.mediaPresenceSystem = new MediaPresenceSystem(this.el, this.characterController);
+    this.mediaPresenceSystem = new MediaPresenceSystem(this.el, this.characterController, this.terrainSystem);
     this.uiAnimationSystem = new UIAnimationSystem(this.el, this.atmosphereSystem);
     this.avatarSystem = new AvatarSystem(this.el, this.atmosphereSystem);
     this.cameraRotatorSystem = new CameraRotatorSystem(this.el);

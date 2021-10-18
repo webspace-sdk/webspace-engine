@@ -38,9 +38,10 @@ AFRAME.registerComponent("shared-media", {
 // are transactions and not cancellable, so before we transition to HIDDEN for example if a transition
 // to PRESENT was underway, it will be allowed to complete.
 export class MediaPresenceSystem {
-  constructor(scene, characterController) {
+  constructor(scene, characterController, terrainSystem) {
     this.scene = scene;
     this.characterController = characterController;
+    this.terrainSystem = terrainSystem;
     this.mediaPresence = new Map();
     this.desiredMediaPresence = new Map();
     this.mediaComponents = new Map();
@@ -193,22 +194,24 @@ export class MediaPresenceSystem {
 
     let shouldDelay = false;
 
-    if (this.distanceDelayedNetworkIds.has(networkId)) {
-      if (!this.avatarPovEl) return;
+    if (this.terrainSystem.worldTypeDelaysMediaPresence()) {
+      if (this.distanceDelayedNetworkIds.has(networkId)) {
+        if (!this.avatarPovEl) return;
 
-      shouldDelay = true;
+        shouldDelay = true;
 
-      const avatarPovNode = this.avatarPovEl.object3D;
-      avatarPovNode.getWorldPosition(tmpVec3);
-      const ax = tmpVec3.x;
-      const az = tmpVec3.z;
+        const avatarPovNode = this.avatarPovEl.object3D;
+        avatarPovNode.getWorldPosition(tmpVec3);
+        const ax = tmpVec3.x;
+        const az = tmpVec3.z;
 
-      el.object3D.getWorldPosition(tmpVec3);
-      const ox = denormalizeCoord(normalizeCoord(tmpVec3.x), ax);
-      const oz = denormalizeCoord(normalizeCoord(tmpVec3.z), az);
+        el.object3D.getWorldPosition(tmpVec3);
+        const ox = denormalizeCoord(normalizeCoord(tmpVec3.x), ax);
+        const oz = denormalizeCoord(normalizeCoord(tmpVec3.z), az);
 
-      const distSq = (ax - ox) * (ax - ox) + (az - oz) * (az - oz);
-      shouldDelay = distSq > SQ_DISTANCE_TO_DELAY_PRESENCE;
+        const distSq = (ax - ox) * (ax - ox) + (az - oz) * (az - oz);
+        shouldDelay = distSq > SQ_DISTANCE_TO_DELAY_PRESENCE;
+      }
     }
 
     const presence =

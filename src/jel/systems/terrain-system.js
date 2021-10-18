@@ -824,6 +824,11 @@ export class TerrainSystem {
     return this.worldType !== 3;
   }
 
+  worldTypeDelaysMediaPresence() {
+    // Flat worlds load all objects immediately
+    return this.worldType !== 3;
+  }
+
   cullChunksAndFeatureGroups = (() => {
     // Chunk + feature culling based upon AABB
     // https://iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm
