@@ -16,12 +16,11 @@ import { useTreeData } from "../utils/tree-utils";
 import { usePopupPopper } from "../utils/popup-utils";
 import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { getPresetAsColorTuples } from "../utils/world-color-presets";
+import RootPopups from "./root-popups";
 import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
 import Snackbar from "./snackbar";
 import CreateEmbedPopup from "./create-embed-popup";
-import ChatInputPopup from "./chat-input-popup";
-import EmojiPopup from "./emoji-popup";
 import SpaceNotificationsPopup from "./space-notifications-popup";
 import HubPermissionsPopup from "./hub-permissions-popup";
 import HubNotificationsPopup from "./hub-notifications-popup";
@@ -372,7 +371,7 @@ function JelUI(props) {
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
-  const { store, hubChannel, spaceChannel, matrix } = window.APP;
+  const { store, spaceChannel, matrix } = window.APP;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
@@ -400,27 +399,10 @@ function JelUI(props) {
   const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
 
   const createSelectPopupRef = useRef();
-  const chatInputFocusRef = useRef();
   const centerPopupRef = useRef();
   const modalPopupRef = useRef();
   const createEmbedFocusRef = useRef();
-  const emojiPopupFocusRef = useRef();
   const environmentSettingsButtonRef = useRef();
-
-  const {
-    styles: chatInputPopupStyles,
-    attributes: chatInputPopupAttributes,
-    show: showChatInputPopup,
-    setPopup: setChatInputPopupElement
-  } = usePopupPopper(chatInputFocusRef, "top", [0, 8]);
-
-  const {
-    styles: emojiPopupStyles,
-    attributes: emojiPopupAttributes,
-    show: showEmojiPopup,
-    setPopup: setEmojiPopupElement,
-    popupOpenOptions: emojiPopupOpenOptions
-  } = usePopupPopper(emojiPopupFocusRef, "bottom", [0, 8]);
 
   const {
     styles: createEmbedPopupStyles,
@@ -525,17 +507,6 @@ function JelUI(props) {
     [store, setIsInitializingSpace, isInitializingSpace]
   );
 
-  // Handle chat message hotkey (typically space)
-  // Show chat message entry and chat log.
-  useEffect(
-    () => {
-      const handleChatHotkey = () => showChatInputPopup(centerPopupRef);
-      scene && scene.addEventListener("action_chat_entry", handleChatHotkey);
-      return () => scene && scene.removeEventListener("action_chat_entry", handleChatHotkey);
-    },
-    [scene, centerPopupRef, showChatInputPopup]
-  );
-
   // Handle embed popup trigger
   useEffect(
     () => {
@@ -548,17 +519,6 @@ function JelUI(props) {
       return () => scene && scene.removeEventListener("action_show_create_embed", handleCreateEmbed);
     },
     [scene, centerPopupRef, showCreateEmbedPopup]
-  );
-
-  // Handle emoji popup trigger
-  useEffect(
-    () => {
-      const handleCreateVoxmoji = () => showEmojiPopup(centerPopupRef, "bottom", [0, 8], { equip: false });
-
-      scene && scene.addEventListener("action_show_emoji_picker", handleCreateVoxmoji);
-      return () => scene && scene.removeEventListener("action_show_emoji_picker", handleCreateVoxmoji);
-    },
-    [scene, centerPopupRef, showEmojiPopup]
   );
 
   // Handle external camera toggle
@@ -804,53 +764,13 @@ function JelUI(props) {
             channelTree={channelTree}
             worldTreeData={worldTreeData}
             channelTreeData={channelTreeData}
-            showEmojiPopup={showEmojiPopup}
             showSpaceNotificationPopup={showSpaceNotificationPopup}
+            centerPopupRef={centerPopupRef}
             showInviteTip={showInviteTip}
             setHasShownInvite={setHasShownInvite}
           />
         )}
       </Root>
-      <ChatInputPopup
-        setPopperElement={setChatInputPopupElement}
-        styles={chatInputPopupStyles}
-        attributes={chatInputPopupAttributes}
-        ref={chatInputFocusRef}
-        onMessageEntered={useCallback(message => hubChannel.sendMessage(message), [hubChannel])}
-        onEntryComplete={useCallback(() => scene.emit("chat_entry_complete"), [scene])}
-      />
-      <EmojiPopup
-        setPopperElement={setEmojiPopupElement}
-        styles={emojiPopupStyles}
-        attributes={emojiPopupAttributes}
-        ref={emojiPopupFocusRef}
-        onEmojiSelected={useCallback(
-          ({ unicode }) => {
-            const parsed = unicode.split("-").map(str => parseInt(str, 16));
-            const emoji = String.fromCodePoint(...parsed);
-
-            if (emojiPopupOpenOptions.equip) {
-              let currentSlot = -1;
-
-              for (let i = 0; i < 10; i++) {
-                if (store.state.equips.launcher === store.state.equips[`launcherSlot${i + 1}`]) {
-                  currentSlot = i;
-                  break;
-                }
-              }
-
-              if (currentSlot !== -1) {
-                store.update({ equips: { [`launcherSlot${currentSlot + 1}`]: emoji } });
-              }
-
-              store.update({ equips: { launcher: emoji } });
-            } else {
-              scene.emit("add_media_emoji", emoji);
-            }
-          },
-          [scene, store, emojiPopupOpenOptions.equip]
-        )}
-      />
       <SpaceNotificationsPopup
         matrix={matrix}
         setPopperElement={setSpaceNotificationPopupElement}
@@ -897,6 +817,7 @@ function JelUI(props) {
         ref={createEmbedFocusRef}
         onURLEntered={useCallback(url => scene.emit("add_media", url), [scene])}
       />
+      <RootPopups centerPopupRef={centerPopupRef} scene={scene} />
       <input
         id="import-upload-input"
         type="file"

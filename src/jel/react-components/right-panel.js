@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
+import EmojiPopup from "./emoji-popup";
 import styled from "styled-components";
 import PanelSectionHeader from "./panel-section-header";
 import SegmentControl from "./segment-control";
@@ -10,6 +11,7 @@ import launcherOffIcon from "../../assets/jel/images/icons/launcher-off.svgi";
 import builderOnIcon from "../../assets/jel/images/icons/builder-on.svgi";
 import builderOffIcon from "../../assets/jel/images/icons/builder-off.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
+import { usePopupPopper } from "../utils/popup-utils";
 import PresenceList from "./presence-list";
 import EmojiEquip from "./emoji-equip";
 import { getMessages } from "../../hubs/utils/i18n";
@@ -75,11 +77,34 @@ const TriggerModePanel = styled.div`
   z-index: 10;
 `;
 
-function RightPanel({ history, hub, hubCan, hubMetadata, sessionId, scene, showEmojiPopup }) {
+function RightPanel({ history, hub, hubCan, hubMetadata, sessionId, scene, centerPopupRef }) {
   const { builderSystem, launcherSystem, cameraSystem } = SYSTEMS;
+  const { store } = window.APP;
+
   const emojiEquipRef = useRef();
+  const emojiPopupFocusRef = useRef();
+
   const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const [isInEditorView, setIsInEditorView] = useState(cameraSystem.isInspecting() && cameraSystem.allowCursor);
+
+  const {
+    styles: emojiPopupStyles,
+    attributes: emojiPopupAttributes,
+    show: showEmojiPopup,
+    setPopup: setEmojiPopupElement,
+    popupOpenOptions: emojiPopupOpenOptions
+  } = usePopupPopper(emojiPopupFocusRef, "bottom", [0, 8]);
+
+  // Handle emoji popup trigger
+  useEffect(
+    () => {
+      const handleCreateVoxmoji = () => showEmojiPopup(centerPopupRef, "bottom", [0, 8], { equip: false });
+
+      scene && scene.addEventListener("action_show_emoji_picker", handleCreateVoxmoji);
+      return () => scene && scene.removeEventListener("action_show_emoji_picker", handleCreateVoxmoji);
+    },
+    [scene, centerPopupRef, showEmojiPopup]
+  );
 
   useEffect(
     () => {
@@ -194,6 +219,38 @@ function RightPanel({ history, hub, hubCan, hubMetadata, sessionId, scene, showE
             />
           </TriggerModePanel>
         )}
+      <EmojiPopup
+        setPopperElement={setEmojiPopupElement}
+        styles={emojiPopupStyles}
+        attributes={emojiPopupAttributes}
+        ref={emojiPopupFocusRef}
+        onEmojiSelected={useCallback(
+          ({ unicode }) => {
+            const parsed = unicode.split("-").map(str => parseInt(str, 16));
+            const emoji = String.fromCodePoint(...parsed);
+
+            if (emojiPopupOpenOptions.equip) {
+              let currentSlot = -1;
+
+              for (let i = 0; i < 10; i++) {
+                if (store.state.equips.launcher === store.state.equips[`launcherSlot${i + 1}`]) {
+                  currentSlot = i;
+                  break;
+                }
+              }
+
+              if (currentSlot !== -1) {
+                store.update({ equips: { [`launcherSlot${currentSlot + 1}`]: emoji } });
+              }
+
+              store.update({ equips: { launcher: emoji } });
+            } else {
+              scene.emit("add_media_emoji", emoji);
+            }
+          },
+          [scene, store, emojiPopupOpenOptions.equip]
+        )}
+      />
     </Right>
   );
 }
@@ -205,7 +262,7 @@ RightPanel.propTypes = {
   scene: PropTypes.object,
   hubMetadata: PropTypes.object,
   sessionId: PropTypes.string,
-  showEmojiPopup: PropTypes.func
+  centerPopupRef: PropTypes.object
 };
 
 export default RightPanel;
