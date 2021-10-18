@@ -20,6 +20,7 @@ import Snackbar from "./snackbar";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
 import KeyTips from "./key-tips";
+import { isInEditableField } from "../utils/dom-utils";
 import LoadingPanel from "./loading-panel";
 import { CREATE_SELECT_WIDTH, CREATE_SELECT_LIST_HEIGHT } from "./create-select";
 import qsTruthy from "../../hubs/utils/qs_truthy";
@@ -105,6 +106,66 @@ const AssetPanelWrap = styled.div`
 
   body.paused #jel-interface.hub-type-channel & {
     display: none;
+  }
+`;
+
+const LeftExpandTrigger = styled.div`
+  position: absolute;
+  width: 16px;
+  height: 100vh;
+  border-radius: 0 6px 6px 0;
+  left: -16px;
+  top: 0;
+  background-color: var(--panel-background-color);
+  font-size: var(--panel-text-size);
+  color: var(--panel-banner-text-color);
+  font-weight: var(--panel-text-weight);
+  z-index: 3;
+  cursor: pointer;
+  display: none;
+
+  body.panels-collapsed & {
+    display: flex;
+  }
+`;
+
+const RightExpandTrigger = styled.div`
+  position: absolute;
+  width: 16px;
+  height: 100vh;
+  border-radius: 6px 0 0 6px;
+  right: -16px;
+  top: 0;
+  background-color: var(--panel-background-color);
+  font-size: var(--panel-text-size);
+  color: var(--panel-banner-text-color);
+  font-weight: var(--panel-text-weight);
+  z-index: 3;
+  cursor: pointer;
+  display: none;
+
+  body.panels-collapsed & {
+    display: flex;
+  }
+`;
+
+const BottomExpandTrigger = styled.div`
+  position: absolute;
+  width: 100vw;
+  height: 16px;
+  border-radius: 6px 6px 0 0;
+  left: 0;
+  bottom: -16px;
+  background-color: var(--panel-background-color);
+  font-size: var(--panel-text-size);
+  color: var(--panel-banner-text-color);
+  font-weight: var(--panel-text-weight);
+  z-index: 3;
+  cursor: pointer;
+  display: none;
+
+  body.panels-collapsed & {
+    display: flex;
   }
 `;
 
@@ -346,12 +407,12 @@ const DeviceStatuses = styled.div`
 function JelUI(props) {
   const { scene, treeManager, hub, unavailableReason, subscriptions, voxTree, sceneTree } = props;
 
-  const { launcherSystem, builderSystem, terrainSystem, atmosphereSystem, externalCameraSystem } = SYSTEMS;
+  const { launcherSystem, builderSystem, externalCameraSystem } = SYSTEMS;
 
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
-  const { store, spaceChannel, matrix } = window.APP;
+  const { store, matrix } = window.APP;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
@@ -518,6 +579,14 @@ function JelUI(props) {
   const isWorld = hub && hub.type === "world";
   const waitingForMatrix = isMatrixLoading && !skipNeon;
 
+  const onExpandTriggerMouseOver = useCallback(({ buttons }) => {
+    if (buttons !== 0) return;
+
+    if (!isInEditableField() && buttons === 0) {
+      SYSTEMS.uiAnimationSystem.expandSidePanels();
+    }
+  }, []);
+
   return (
     <WrappedIntlProvider>
       <Root className="expand-asset-panel">
@@ -634,6 +703,9 @@ function JelUI(props) {
         )}
       </Root>
       <RootPopups centerPopupRef={centerPopupRef} scene={scene} />
+      <LeftExpandTrigger id="left-expand-trigger" onMouseOver={onExpandTriggerMouseOver} />
+      <RightExpandTrigger id="right-expand-trigger" onMouseOver={onExpandTriggerMouseOver} />
+      <BottomExpandTrigger id="bottom-expand-trigger" onMouseOver={onExpandTriggerMouseOver} />
       <input
         id="import-upload-input"
         type="file"

@@ -1141,6 +1141,85 @@ async function start() {
     }
   });
 
+  canvas.addEventListener("mousemove", ({ buttons, clientX, clientY }) => {
+    let leftDelta = 0;
+    let rightDelta = 0;
+    let bottomDelta = 0;
+
+    const triggerSizePx = document.querySelector("#left-expand-trigger").offsetWidth;
+    const interaction = AFRAME.scenes[0].systems.interaction;
+
+    // Ignore when holding.
+    const held =
+      interaction.state.leftHand.held ||
+      interaction.state.rightHand.held ||
+      interaction.state.rightRemote.held ||
+      interaction.state.leftRemote.held;
+
+    if (
+      buttons === 0 && // No buttons
+      document.activeElement === canvas && // Over canvas
+      !held && // Not holding
+      !SYSTEMS.cameraSystem.isInspecting() // Not Inspecting
+    ) {
+      // Show expansion triggers when moving around canvas.
+      const peekRegionPct = 0.2; // % of window width to peek
+
+      // Hide when near corners, due to fitts
+      // y margins to fully hide triggers
+      const xMarginDisablePx = 128.0;
+      const yMarginDisablePx = 64.0;
+
+      // y margins to slide out triggers
+      const xMarginSlicePx = 256.0;
+      const yMarginSlicePx = 128.0;
+
+      if (clientX < window.innerWidth * peekRegionPct) {
+        leftDelta = triggerSizePx * (1.0 - clientX / (window.innerWidth * peekRegionPct));
+      } else if (clientX > window.innerWidth - window.innerWidth * peekRegionPct) {
+        rightDelta = triggerSizePx * (1.0 - (window.innerWidth - clientX) / (window.innerWidth * peekRegionPct));
+      }
+
+      if (clientY > window.innerHeight - window.innerHeight * peekRegionPct) {
+        bottomDelta = triggerSizePx * (1.0 - (window.innerHeight - clientY) / (window.innerHeight * peekRegionPct));
+      }
+
+      // Corner detection
+      if (clientX <= xMarginDisablePx || clientX > window.innerWidth - xMarginDisablePx) {
+        bottomDelta = 0;
+      } else if (clientX < xMarginSlicePx) {
+        const slideAmount = (clientX - xMarginDisablePx) / (xMarginSlicePx - xMarginDisablePx);
+        bottomDelta *= slideAmount;
+      } else if (clientX > window.innerWidth - xMarginSlicePx && clientX < window.innerWidth - xMarginDisablePx) {
+        const slideAmount = (window.innerWidth - clientX - xMarginDisablePx) / (xMarginSlicePx - xMarginDisablePx);
+        bottomDelta *= slideAmount;
+      }
+
+      if (clientY <= yMarginDisablePx || clientY > window.innerHeight - yMarginDisablePx) {
+        leftDelta = 0;
+        rightDelta = 0;
+      } else if (clientY < yMarginSlicePx) {
+        const slideAmount = (clientY - yMarginDisablePx) / (yMarginSlicePx - yMarginDisablePx);
+        leftDelta *= slideAmount;
+        rightDelta *= slideAmount;
+      } else if (clientY > window.innerHeight - yMarginSlicePx && clientY < window.innerHeight - yMarginDisablePx) {
+        const slideAmount = (window.innerHeight - clientY - yMarginDisablePx) / (yMarginSlicePx - yMarginDisablePx);
+        leftDelta *= slideAmount;
+        rightDelta *= slideAmount;
+      }
+    }
+
+    document
+      .querySelector("#left-expand-trigger")
+      .setAttribute("style", `left: ${-triggerSizePx + Math.floor(leftDelta)}px`);
+    document
+      .querySelector("#right-expand-trigger")
+      .setAttribute("style", `right: ${-triggerSizePx + Math.floor(rightDelta)}px`);
+    document
+      .querySelector("#bottom-expand-trigger")
+      .setAttribute("style", `bottom: ${-triggerSizePx + Math.floor(bottomDelta)}px`);
+  });
+
   canvas.addEventListener("mouseout", () => {
     clearTimeout(focusCanvasTimeout);
     canvas.blur();
