@@ -138,6 +138,25 @@ const inflateEntities = function(indexToEntityMap, node, templates, isRoot, mode
     node.name = "AvatarMesh";
   }
 
+  const entityComponents = getHubsComponents(node);
+
+  // Skip legacy hubs nav meshes
+  if (
+    entityComponents &&
+    ("nav-mesh" in entityComponents ||
+      "heightfield" in entityComponents ||
+      "image" in entityComponents ||
+      "skybox" in entityComponents ||
+      "media-frame" in entityComponents ||
+      "networked" in entityComponents ||
+      "spawn-point" in entityComponents ||
+      "scene-preview-camera" in entityComponents)
+  ) {
+    node.parent.remove(node);
+
+    return;
+  }
+
   // inflate subtrees first so that we can determine whether or not this node needs to be inflated
   const childEntities = [];
   const children = node.children.slice(0); // setObject3D mutates the node's parent, so we have to copy
@@ -148,8 +167,6 @@ const inflateEntities = function(indexToEntityMap, node, templates, isRoot, mode
     }
   }
 
-  const entityComponents = getHubsComponents(node);
-
   const nodeHasBehavior = !!entityComponents || node.name in templates;
   if (!nodeHasBehavior && !childEntities.length && !isRoot) {
     return null; // we don't need an entity for this node
@@ -157,6 +174,11 @@ const inflateEntities = function(indexToEntityMap, node, templates, isRoot, mode
 
   const el = document.createElement("a-entity");
   el.append.apply(el, childEntities);
+
+  // hubs components removed, so deal with visibility here
+  if (entityComponents && entityComponents.visible && !entityComponents.visible.visible) {
+    el.object3D.visible = false;
+  }
 
   // Remove invalid CSS class name characters.
   const className = (node.name || node.uuid).replace(/[^\w-]/g, "");
@@ -178,10 +200,13 @@ const inflateEntities = function(indexToEntityMap, node, templates, isRoot, mode
   node.matrix.identity();
   node.matrix.decompose(node.position, node.rotation, node.scale);
 
-  el.setObject3D(node.type.toLowerCase(), node);
-  if (entityComponents && "nav-mesh" in entityComponents) {
-    el.setObject3D("mesh", node);
+  // HACK for 1729
+  if (node.name.startsWith("HexFloor")) {
+    el.object3D.position.y += 0.05;
+    el.object3D.matrixNeedsUpdate = true;
   }
+
+  el.setObject3D(node.type.toLowerCase(), node);
 
   // Set the name of the `THREE.Group` to match the name of the node,
   // so that templates can be attached to the correct AFrame entity.
