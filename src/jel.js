@@ -1209,25 +1209,26 @@ async function start() {
       }
     }
 
-    const [, isRightEdge, isBottomEdge, isLeftEdge] = await getIsWindowAtMultimonitorEdges();
+    // TODO permission dialog for placement API is annoying, just do bottom.
+    //const [, isRightEdge, isBottomEdge, isLeftEdge] = await getIsWindowAtMultimonitorEdges();
 
-    if (isLeftEdge) {
-      document
-        .querySelector("#left-expand-trigger")
-        .setAttribute("style", `left: ${-triggerSizePx + Math.floor(leftDelta)}px`);
-    }
+    //if (isLeftEdge) {
+    //  document
+    //    .querySelector("#left-expand-trigger")
+    //    .setAttribute("style", `left: ${-triggerSizePx + Math.floor(leftDelta)}px`);
+    //}
 
-    if (isRightEdge) {
-      document
-        .querySelector("#right-expand-trigger")
-        .setAttribute("style", `right: ${-triggerSizePx + Math.floor(rightDelta)}px`);
-    }
+    //if (isRightEdge) {
+    //  document
+    //    .querySelector("#right-expand-trigger")
+    //    .setAttribute("style", `right: ${-triggerSizePx + Math.floor(rightDelta)}px`);
+    //}
 
-    if (isBottomEdge) {
-      document
-        .querySelector("#bottom-expand-trigger")
-        .setAttribute("style", `bottom: ${-triggerSizePx + Math.floor(bottomDelta)}px`);
-    }
+    //if (isBottomEdge) {
+    document
+      .querySelector("#bottom-expand-trigger")
+      .setAttribute("style", `bottom: ${-triggerSizePx + Math.floor(bottomDelta)}px`);
+    //}
   });
 
   canvas.addEventListener("mouseout", () => {
