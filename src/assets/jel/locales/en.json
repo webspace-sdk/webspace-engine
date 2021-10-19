@@ -363,6 +363,7 @@
   "environment-settings-popup.swatch-rock": "Rock Color",
   "environment-settings-popup.presets": "Presets",
   "environment-settings-popup.world-type-flat": "Flat",
+  "environment-settings-popup.world-type-plains": "Plains",
   "environment-settings-popup.world-type-hills": "Hills",
   "environment-settings-popup.world-type-islands": "Islands",
   "builder.mode.attach": "Attach",

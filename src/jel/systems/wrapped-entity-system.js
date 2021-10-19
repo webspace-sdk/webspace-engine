@@ -70,10 +70,11 @@ AFRAME.registerComponent("wrapped-entity", {
 });
 
 export class WrappedEntitySystem {
-  constructor(scene, atmosphereSystem, skyBeamSystem) {
+  constructor(scene, atmosphereSystem, skyBeamSystem, terrainSystem) {
     this.scene = scene;
     this.atmosphereSystem = atmosphereSystem;
     this.skyBeamSystem = skyBeamSystem;
+    this.terrainSystem = terrainSystem;
     this.frame = 0;
 
     this.objs = [];
@@ -212,15 +213,24 @@ export class WrappedEntitySystem {
       // Current min distance
       let d = Number.MAX_VALUE;
 
+      let wrapForPointX = avatarX;
+      let wrapForPointZ = avatarZ;
+
+      if (!this.terrainSystem.worldTypeWraps()) {
+        // Always wrap based on origin if no wrapping
+        wrapForPointX = 0;
+        wrapForPointZ = 0;
+      }
+
       for (let i = -1; i <= 1; i++) {
         for (let j = -1; j <= 1; j++) {
           // Candidate out x, z
           const cx = objX + i * WORLD_SIZE;
           const cz = objZ + j * WORLD_SIZE;
 
-          // Compute distance to avatar
-          const dx = cx - avatarX;
-          const dz = cz - avatarZ;
+          // Compute distance to wrap point
+          const dx = cx - wrapForPointX;
+          const dz = cz - wrapForPointZ;
 
           const distSq = dx * dx + dz * dz;
 

@@ -18,6 +18,7 @@ import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
 import BigIconButton from "./icon-button";
 import presetsIcon from "../../assets/jel/images/icons/presets.svgi";
 import { showTargetBelowElement } from "../utils/popup-utils";
+import { WORLD_TYPES } from "../systems/terrain-system";
 
 function almostEqual(a, b, epsilon = 0.01) {
   return Math.abs(a - b) < epsilon;
@@ -416,7 +417,16 @@ const EnvironmentSettingsPopup = ({
   const flatRadioChange = useCallback(
     e => {
       if (e.target.checked) {
-        onTypeChanged(3);
+        onTypeChanged(WORLD_TYPES.FLAT);
+      }
+    },
+    [onTypeChanged]
+  );
+
+  const plainsRadioChange = useCallback(
+    e => {
+      if (e.target.checked) {
+        onTypeChanged(WORLD_TYPES.PLAINS);
       }
     },
     [onTypeChanged]
@@ -425,7 +435,7 @@ const EnvironmentSettingsPopup = ({
   const hillsRadioChange = useCallback(
     e => {
       if (e.target.checked) {
-        onTypeChanged(2);
+        onTypeChanged(WORLD_TYPES.HILLS);
       }
     },
     [onTypeChanged]
@@ -434,7 +444,7 @@ const EnvironmentSettingsPopup = ({
   const islandsRadioChange = useCallback(
     e => {
       if (e.target.checked) {
-        onTypeChanged(1);
+        onTypeChanged(WORLD_TYPES.ISLANDS);
       }
     },
     [onTypeChanged]
@@ -631,8 +641,8 @@ const EnvironmentSettingsPopup = ({
                   type="radio"
                   id={"world_type_flat"}
                   name={"world_type"}
-                  checked={worldType === 3}
-                  value={3}
+                  checked={worldType === WORLD_TYPES.FLAT}
+                  value={WORLD_TYPES.FLAT}
                   onChange={flatRadioChange}
                 />
                 <Label htmlFor="world_type_flat" style={{ cursor: "pointer" }}>
@@ -642,10 +652,23 @@ const EnvironmentSettingsPopup = ({
               <RadioWrap>
                 <Radio
                   type="radio"
+                  id={"world_type_plains"}
+                  name={"world_type"}
+                  checked={worldType === WORLD_TYPES.PLAINS}
+                  value={WORLD_TYPES.PLAINS}
+                  onChange={plainsRadioChange}
+                />
+                <Label htmlFor="world_type_plains" style={{ cursor: "pointer" }}>
+                  <FormattedMessage id="environment-settings-popup.world-type-plains" />
+                </Label>
+              </RadioWrap>
+              <RadioWrap>
+                <Radio
+                  type="radio"
                   id={"world_type_hills"}
                   name={"world_type"}
-                  checked={worldType === 2}
-                  value={2}
+                  checked={worldType === WORLD_TYPES.HILLS}
+                  value={WORLD_TYPES.PLAINS}
                   onChange={hillsRadioChange}
                 />
                 <Label htmlFor="world_type_hills" style={{ cursor: "pointer" }}>
@@ -657,8 +680,8 @@ const EnvironmentSettingsPopup = ({
                   type="radio"
                   id={"world_type_islands"}
                   name={"world_type"}
-                  checked={worldType === 1}
-                  value={1}
+                  checked={worldType === WORLD_TYPES.ISLANDS}
+                  value={WORLD_TYPES.ISLANDS}
                   onChange={islandsRadioChange}
                 />
                 <Label htmlFor="world_type_islands" style={{ cursor: "pointer" }}>

@@ -13,6 +13,13 @@ import { Layers } from "../../hubs/components/layers";
 import qsTruthy from "../../hubs/utils/qs_truthy";
 import nextTick from "../../hubs/utils/next-tick";
 
+export const WORLD_TYPES = {
+  ISLANDS: 1,
+  HILLS: 2,
+  PLAINS: 3,
+  FLAT: 4
+};
+
 const { SHAPE, TYPE, FIT } = CONSTANTS;
 
 const { Vector3, Vector4, Matrix4, Object3D, Group } = THREE;
@@ -255,9 +262,11 @@ export class TerrainSystem {
             fetch(
               // cache: reload not working, use a hack for now
               // to force avoiding cache
-              `https://${configs.TERRA_SERVER}/chunks/${worldType}/${worldSeed}/${chunk.x}/${chunk.z}/1${
-                i === 0 ? "" : `?r=${Math.floor(Math.random() * 10000)}`
-              }`
+              //
+              // hack for now, use plains geo for flat, need to regen
+              `https://${configs.TERRA_SERVER}/chunks/${
+                worldType == WORLD_TYPES.FLAT ? WORLD_TYPES.PLAINS : worldType
+              }/${worldSeed}/${chunk.x}/${chunk.z}/1${i === 0 ? "" : `?r=${Math.floor(Math.random() * 10000)}`}`
             )
               .then(async res => {
                 // Decode + spawn at most one terrain per frame
@@ -351,6 +360,7 @@ export class TerrainSystem {
           geometries
         });
 
+        terrain.enableLod(this.worldTypeLODs());
         terrain.performWork(this.playerCamera);
         terrains.set(key, terrain);
         this.activeTerrains.push(terrain);
@@ -514,6 +524,9 @@ export class TerrainSystem {
 
     const instances = this.fieldFeatureInstances;
     if (instances.has(key)) return; // Already spawned
+
+    // Skip features when world doesn't wrap, since shows past horizon
+    if (!this.worldTypeWraps()) return;
 
     const featureMeshKeys = [];
 
@@ -762,15 +775,24 @@ export class TerrainSystem {
 
           const newChunks = [];
 
-          // Wrap chunks so they pre-emptively load over border
-          LOAD_GRID.forEach(({ x, z }) => {
-            const cx = normalizeChunkCoord(avatarChunk.x + x);
-            const cz = normalizeChunkCoord(avatarChunk.z + z);
-
-            const newChunk = { x: cx, z: cz };
-            newChunks.push(newChunk);
-            this.loadChunk(newChunk);
-          });
+          if (this.worldTypeChunkedLoads()) {
+            // Wrap chunks so they pre-emptively load over border
+            LOAD_GRID.forEach(({ x, z }) => {
+              const cx = normalizeChunkCoord(avatarChunk.x + x);
+              const cz = normalizeChunkCoord(avatarChunk.z + z);
+              const newChunk = { x: cx, z: cz };
+              newChunks.push(newChunk);
+              this.loadChunk(newChunk);
+            });
+          } else {
+            for (let cx = MIN_CHUNK_COORD; cx <= MAX_CHUNK_COORD; cx++) {
+              for (let cz = MIN_CHUNK_COORD; cz <= MAX_CHUNK_COORD; cz++) {
+                const newChunk = { x: cx, z: cz };
+                newChunks.push(newChunk);
+                this.loadChunk(newChunk);
+              }
+            }
+          }
 
           loadedChunks.forEach(chunk => {
             if (!newChunks.find(({ x, z }) => chunk.x === x && chunk.z === z)) {
@@ -816,17 +838,32 @@ export class TerrainSystem {
   })();
 
   worldTypeHasWater() {
-    return this.worldType === 1;
+    return this.worldType === WORLD_TYPES.ISLANDS;
   }
 
   worldTypeHasFog() {
     // Flat worlds disable fog
-    return this.worldType !== 3;
+    return this.worldType !== WORLD_TYPES.FLAT;
   }
 
   worldTypeDelaysMediaPresence() {
     // Flat worlds load all objects immediately
-    return this.worldType !== 3;
+    return this.worldType !== WORLD_TYPES.FLAT;
+  }
+
+  worldTypeWraps() {
+    // Flat worlds don't wrap
+    return this.worldType !== WORLD_TYPES.FLAT;
+  }
+
+  worldTypeLODs() {
+    // Flat + plain worlds don't LOD
+    return this.worldType !== WORLD_TYPES.FLAT;
+  }
+
+  worldTypeChunkedLoads() {
+    // Flat + plain worlds don't load in chunks
+    return this.worldType !== WORLD_TYPES.FLAT;
   }
 
   cullChunksAndFeatureGroups = (() => {

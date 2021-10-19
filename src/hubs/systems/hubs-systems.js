@@ -88,7 +88,13 @@ AFRAME.registerSystem("hubs-systems", {
     this.boneVisibilitySystem = new BoneVisibilitySystem();
     this.uvScrollSystem = new UVScrollSystem();
     this.mediaStreamSystem = new MediaStreamSystem(this.el);
-    this.wrappedEntitySystem = new WrappedEntitySystem(this.el, this.atmosphereSystem, this.skyBeamSystem);
+    this.terrainSystem = new TerrainSystem(this.el, this.atmosphereSystem, this.cameraSystem);
+    this.wrappedEntitySystem = new WrappedEntitySystem(
+      this.el,
+      this.atmosphereSystem,
+      this.skyBeamSystem,
+      this.terrainSystem
+    );
     this.projectileSystem = new ProjectileSystem(
       this.el,
       this.voxmojiSystem,
@@ -96,7 +102,6 @@ AFRAME.registerSystem("hubs-systems", {
       this.wrappedEntitySystem,
       this.soundEffectsSystem
     );
-    this.terrainSystem = new TerrainSystem(this.el, this.atmosphereSystem, this.cameraSystem);
     this.builderSystem = new BuilderSystem(
       this.el,
       this.el.systems.userinput,
