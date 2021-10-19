@@ -162,7 +162,7 @@ import "./hubs/systems/camera-rotator-system";
 import "./jel/systems/media-presence-system";
 import "./jel/systems/wrapped-entity-system";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
-import { getIsWindowAtMultimonitorEdges, isInEditableField } from "./jel/utils/dom-utils";
+import { getIsWindowAtScreenEdges, isInEditableField } from "./jel/utils/dom-utils";
 import { resetTemplate } from "./jel/utils/template-utils";
 
 import "./hubs/gltf-component-mappings";
@@ -1210,11 +1210,7 @@ async function start() {
     }
 
     // TODO permission dialog for placement API is annoying, just do bottom.
-    //const [, isRightEdge, isBottomEdge, isLeftEdge] = await getIsWindowAtMultimonitorEdges();
-
-    const isLeftEdge = false;
-    const isRightEdge = false;
-    const isBottomEdge = true;
+    const [, isRightEdge, isBottomEdge, isLeftEdge] = await getIsWindowAtScreenEdges();
 
     if (isLeftEdge) {
       document

@@ -226,15 +226,21 @@ export function dataURItoBlob(dataURI) {
 let currentScreen = null;
 let screens = null;
 
-// Returns top, right, bottom, left boolean values as true if the current window has no additional pixels past the edge
-export async function getIsWindowAtMultimonitorEdges() {
-  let atTopWindowEdge = window.screenY <= window.screen.height - window.screen.availHeight;
-  let atRightWindowEdge =
+export function getIsWindowAtScreenEdges() {
+  const atTopWindowEdge = window.screenY <= window.screen.height - window.screen.availHeight;
+  const atRightWindowEdge =
     window.screenX - (window.screen.width - window.screen.availWidth) + window.outerWidth >= window.screen.availWidth;
-  let atBottomWindowEdge =
+  const atBottomWindowEdge =
     window.screenY - (window.screen.height - window.screen.availHeight) + window.outerHeight >=
     window.screen.availHeight;
-  let atLeftWindowEdge = window.screenX <= window.screen.width - window.screen.availWidth;
+  const atLeftWindowEdge = window.screenX <= window.screen.width - window.screen.availWidth;
+
+  return [atTopWindowEdge, atRightWindowEdge, atBottomWindowEdge, atLeftWindowEdge];
+}
+
+// Returns top, right, bottom, left boolean values as true if the current window has no additional pixels past the edge
+export async function getIsWindowAtMultimonitorEdges() {
+  let [atTopWindowEdge, atRightWindowEdge, atBottomWindowEdge, atLeftWindowEdge] = getIsWindowAtScreenEdges();
 
   if (!("getScreens" in window)) {
     // Assume no monitors above or below if getScreens not supported.

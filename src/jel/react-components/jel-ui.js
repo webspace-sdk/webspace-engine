@@ -594,7 +594,14 @@ function JelUI(props) {
     if (buttons !== 0) return;
 
     if (!isInEditableField() && buttons === 0) {
-      SYSTEMS.uiAnimationSystem.expandSidePanels();
+      // On multi-monitor setups, cursor will exit window if overshot, so
+      // add a small delay and cancel it so we don't flip open UI
+      let timeout = setTimeout(() => {
+        SYSTEMS.uiAnimationSystem.expandSidePanels();
+        timeout = null;
+      }, 100);
+
+      window.addEventListener("mouseout", () => clearTimeout(timeout), { once: true });
     }
   }, []);
 

@@ -18,7 +18,7 @@ pkg_deps=(
 )
 
 do_build() {
-  ln -fs "$(hab pkg path core/coreutils)/bin/env" /usr/bin/env
+  ln -fs "$(bio pkg path core/coreutils)/bin/env" /usr/bin/env
 
   [ -d "./dotssh" ] && rm -rf ~/.ssh && mv dotssh ~/.ssh
   [ -d "./dotaws" ] && rm -rf ~/.aws && mv dotaws ~/.aws

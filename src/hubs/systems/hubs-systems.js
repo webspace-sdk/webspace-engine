@@ -64,7 +64,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.audioSystem = new AudioSystem(this.el, this.autoQualitySystem);
     this.soundEffectsSystem = new SoundEffectsSystem(this.el);
     this.atmosphereSystem = new AtmosphereSystem(this.el, this.soundEffectsSystem);
-    this.skyBeamSystem = new SkyBeamSystem(this.el);
     this.voxmojiSystem = new VoxmojiSystem(this.el, this.atmosphereSystem);
     this.physicsSystem = new PhysicsSystem(this.el.object3D, this.atmosphereSystem);
     this.voxSystem = new VoxSystem(this.el, this.cursorTargettingSystem, this.physicsSystem, this.cameraSystem);
@@ -89,6 +88,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.uvScrollSystem = new UVScrollSystem();
     this.mediaStreamSystem = new MediaStreamSystem(this.el);
     this.terrainSystem = new TerrainSystem(this.el, this.atmosphereSystem, this.cameraSystem);
+    this.skyBeamSystem = new SkyBeamSystem(this.el, this.terrainSystem);
     this.wrappedEntitySystem = new WrappedEntitySystem(
       this.el,
       this.atmosphereSystem,

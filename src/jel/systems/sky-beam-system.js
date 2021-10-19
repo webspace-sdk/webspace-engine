@@ -105,12 +105,13 @@ const MAX_BEAMS = 256;
 
 // Draws instanced sky beams.
 export class SkyBeamSystem {
-  constructor(sceneEl) {
+  constructor(sceneEl, terrainSystem) {
     this.sceneEl = sceneEl;
     this.beamSources = Array(MAX_BEAMS).fill(null);
     this.sourceToIndex = new Map();
     this.dirtyColors = Array(MAX_BEAMS).fill(false);
     this.sourceCreatorIds = Array(MAX_BEAMS).fill(null);
+    this.terrainSystem = terrainSystem;
 
     this.maxRegisteredIndex = -1;
     this.frame = 0;
@@ -120,6 +121,10 @@ export class SkyBeamSystem {
 
   register(source, isAvatar = false) {
     if (this.sourceToIndex.has(source)) return;
+
+    // No sky beams on worlds with full draw distance.
+    if (!this.terrainSystem.worldTypeHasFog()) return;
+
     const index = this.mesh.addInstance(ZERO, 0.0, IDENTITY);
     this.maxRegisteredIndex = Math.max(index, this.maxRegisteredIndex);
     this.sourceToIndex.set(source, index);
