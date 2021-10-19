@@ -222,3 +222,58 @@ export function dataURItoBlob(dataURI) {
   // write the ArrayBuffer to a blob, and you're done
   return new Blob([ab], { type: mimeString });
 }
+
+let currentScreen = null;
+let screens = null;
+
+// Returns top, right, bottom, left boolean values as true if the current window has no additional pixels past the edge
+export async function getIsWindowAtMultimonitorEdges() {
+  let atTopWindowEdge = window.screenY <= window.screen.height - window.screen.availHeight;
+  let atRightWindowEdge =
+    window.screenX - (window.screen.width - window.screen.availWidth) + window.outerWidth >= window.screen.availWidth;
+  let atBottomWindowEdge =
+    window.screenY - (window.screen.height - window.screen.availHeight) + window.outerHeight >=
+    window.screen.availHeight;
+  let atLeftWindowEdge = window.screenX <= window.screen.width - window.screen.availWidth;
+
+  if (!("getScreens" in window)) {
+    // Assume no monitors above or below if getScreens not supported.
+    return [atTopWindowEdge, false, atBottomWindowEdge, false];
+  }
+
+  if (screens === null) {
+    const iface = await window.getScreens();
+    screens = iface.screens;
+    currentScreen = iface.currentScreen;
+
+    iface.addEventListener("screenschange", () => {
+      screens = iface.screens;
+      currentScreen = iface.currentScreen;
+    });
+  }
+
+  const hasScreenAbove = !!screens.find(({ top: screenTop }) => screenTop < currentScreen.top);
+  const hasScreenBelow = !!screens.find(({ top: screenTop }) => screenTop > currentScreen.top + currentScreen.height);
+  const hasScreenLeft = !!screens.find(({ left: screenLeft }) => screenLeft < currentScreen.left);
+  const hasScreenRight = !!screens.find(
+    ({ left: screenLeft }) => screenLeft > currentScreen.left + currentScreen.width
+  );
+
+  if (atTopWindowEdge && hasScreenAbove) {
+    atTopWindowEdge = false;
+  }
+
+  if (atRightWindowEdge && hasScreenRight) {
+    atRightWindowEdge = false;
+  }
+
+  if (atBottomWindowEdge && hasScreenBelow) {
+    atBottomWindowEdge = false;
+  }
+
+  if (atLeftWindowEdge && hasScreenLeft) {
+    atLeftWindowEdge = false;
+  }
+
+  return [atTopWindowEdge, atRightWindowEdge, atBottomWindowEdge, atLeftWindowEdge];
+}

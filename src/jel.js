@@ -162,7 +162,7 @@ import "./hubs/systems/camera-rotator-system";
 import "./jel/systems/media-presence-system";
 import "./jel/systems/wrapped-entity-system";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
-import { isInEditableField } from "./jel/utils/dom-utils";
+import { getIsWindowAtMultimonitorEdges, isInEditableField } from "./jel/utils/dom-utils";
 import { resetTemplate } from "./jel/utils/template-utils";
 
 import "./hubs/gltf-component-mappings";
@@ -1141,7 +1141,7 @@ async function start() {
     }
   });
 
-  canvas.addEventListener("mousemove", ({ buttons, clientX, clientY }) => {
+  canvas.addEventListener("mousemove", async ({ buttons, clientX, clientY }) => {
     let leftDelta = 0;
     let rightDelta = 0;
     let bottomDelta = 0;
@@ -1209,15 +1209,25 @@ async function start() {
       }
     }
 
-    document
-      .querySelector("#left-expand-trigger")
-      .setAttribute("style", `left: ${-triggerSizePx + Math.floor(leftDelta)}px`);
-    document
-      .querySelector("#right-expand-trigger")
-      .setAttribute("style", `right: ${-triggerSizePx + Math.floor(rightDelta)}px`);
-    document
-      .querySelector("#bottom-expand-trigger")
-      .setAttribute("style", `bottom: ${-triggerSizePx + Math.floor(bottomDelta)}px`);
+    const [, isRightEdge, isBottomEdge, isLeftEdge] = await getIsWindowAtMultimonitorEdges();
+
+    if (isLeftEdge) {
+      document
+        .querySelector("#left-expand-trigger")
+        .setAttribute("style", `left: ${-triggerSizePx + Math.floor(leftDelta)}px`);
+    }
+
+    if (isRightEdge) {
+      document
+        .querySelector("#right-expand-trigger")
+        .setAttribute("style", `right: ${-triggerSizePx + Math.floor(rightDelta)}px`);
+    }
+
+    if (isBottomEdge) {
+      document
+        .querySelector("#bottom-expand-trigger")
+        .setAttribute("style", `bottom: ${-triggerSizePx + Math.floor(bottomDelta)}px`);
+    }
   });
 
   canvas.addEventListener("mouseout", () => {
