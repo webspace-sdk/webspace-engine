@@ -1014,7 +1014,8 @@ export const hasActiveScreenShare = () => {
   return false;
 };
 
-const MAX_SCREENSHARE_SNAP_TARGET_DISTANCE = 25.0;
+const MAX_SCREENSHARE_SNAP_TARGET_DISTANCE_PER_UNIT_VOLUME = 0.15;
+const MIN_SCREENSHARE_SNAP_TARGET_DISTANCE = 25.0;
 
 export const snapEntityToBiggestNearbyScreen = entity => {
   let bestEntity = null;
@@ -1050,7 +1051,12 @@ export const snapEntityToBiggestNearbyScreen = entity => {
 
     const dist = v.distanceTo(avatarPos);
 
-    if (volume > bestEntityVolume && dist < MAX_SCREENSHARE_SNAP_TARGET_DISTANCE) {
+    const testDist = Math.max(
+      MIN_SCREENSHARE_SNAP_TARGET_DISTANCE,
+      volume * MAX_SCREENSHARE_SNAP_TARGET_DISTANCE_PER_UNIT_VOLUME
+    );
+
+    if (volume > bestEntityVolume && dist < testDist) {
       bestEntity = el;
       bestEntityVolume = volume;
       bestEntityCenter.copy(v);
