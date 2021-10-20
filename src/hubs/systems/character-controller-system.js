@@ -342,12 +342,14 @@ export class CharacterControllerSystem {
       const newX = newPOV.elements[12];
       const newZ = newPOV.elements[14];
 
+      // Wrap avatar
       if (
         !this.interaction ||
         (!this.interaction.state.rightHand.held &&
           !this.interaction.state.leftHand.held &&
           !this.interaction.state.leftRemote.held &&
-          !this.interaction.state.rightRemote.held)
+          !this.interaction.state.rightRemote.held &&
+          this.terrainSystem.worldTypeWraps())
       ) {
         if (newX > WORLD_MAX_COORD) {
           newPOV.elements[12] = -WORLD_SIZE + newX;
