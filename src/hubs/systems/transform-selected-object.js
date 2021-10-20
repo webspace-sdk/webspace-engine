@@ -257,6 +257,13 @@ export function stackTargetAt(
   );
 
   target.setMatrix(tmpMatrix);
+
+  // BUG the q quaternion aligns normal but roll isn't right. Needs to align
+  // roll with snapped face.
+  //
+  // Tried a bunch of attempts setting rotation.{x,y,z} and quaternion
+  // hacking to no avail. Rotating the object on x did not seem to actually
+  // be rotating it on a object space axis.
 }
 
 AFRAME.registerSystem("transform-selected-object", {
