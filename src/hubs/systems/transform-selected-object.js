@@ -73,8 +73,6 @@ export function stackTargetAt(
   normalObjectBoundingBox
 ) {
   const userinput = AFRAME.scenes[0].systems.userinput;
-  const { elements } = targetMatrix;
-  const scale = v.set(elements[0], elements[1], elements[2]).length();
 
   target.updateMatrices();
   normalObject.updateMatrices();
@@ -109,16 +107,10 @@ export function stackTargetAt(
   const nx = Math.abs(normal.x);
   const ny = Math.abs(normal.y);
   const nz = Math.abs(normal.z);
-  const nwx = Math.abs(v.x);
-  const nwy = Math.abs(v.y);
-  const nwz = Math.abs(v.z);
 
   const normalIsObjectMaxX = nx >= ny && nx >= nz;
   const normalIsObjectMaxY = !normalIsObjectMaxX && ny >= nx && ny >= nz;
   const normalIsObjectMaxZ = !normalIsObjectMaxX && !normalIsObjectMaxY;
-  const normalIsWorldMaxX = nwx >= nwy && nwx >= nwz;
-  const normalIsWorldMaxY = !normalIsWorldMaxX && nwy >= nwx && nwy >= nwz;
-  const normalIsWorldMaxZ = !normalIsWorldMaxX && !normalIsWorldMaxY;
 
   objectSnapAlong.copy(axis);
   objectSnapAlong.transformDirection(targetMatrix);
@@ -157,7 +149,6 @@ export function stackTargetAt(
   offset.applyQuaternion(q);
 
   const shouldSnap = !userinput.get(shiftKeyPath);
-  const snapScale = isFlatMedia(target) ? 1.0 : scale;
 
   if (stackSnapPosition) {
     normalObjectBoundingBox.getCenter(v);
@@ -173,11 +164,25 @@ export function stackTargetAt(
     v.applyMatrix4(normalObject.matrixWorld);
     targetPoint.set(v.x, v.y, v.z).add(offset);
   } else {
-    const newX = withGridSnap(shouldSnap && !normalIsWorldMaxX, point.x, snapScale);
-    const newY = withGridSnap(shouldSnap && !normalIsWorldMaxY, point.y, snapScale);
-    const newZ = withGridSnap(shouldSnap && !normalIsWorldMaxZ, point.z, snapScale);
+    tmpMatrix.getInverse(normalObject.matrixWorld);
+    v3.copy(point);
+    v3.add(offset);
+    v3.applyMatrix4(tmpMatrix);
 
-    targetPoint.set(newX, newY, newZ).add(offset);
+    const { elements: te } = targetMatrix;
+    const targetScale = v.set(te[0], te[1], te[2]).length();
+
+    const { elements: ne } = normalObject.matrixWorld;
+    const normalScale = v.set(ne[0], ne[1], ne[2]).length();
+
+    const snapScale = isFlatMedia(target) ? 1.0 : targetScale / normalScale;
+
+    v3.x = withGridSnap(shouldSnap && !normalIsObjectMaxX, v3.x, snapScale);
+    v3.y = withGridSnap(shouldSnap && !normalIsObjectMaxY, v3.y, snapScale);
+    v3.z = withGridSnap(shouldSnap && !normalIsObjectMaxZ, v3.z, snapScale);
+    v3.applyMatrix4(normalObject.matrixWorld);
+
+    targetPoint.set(v3.x, v3.y, v3.z);
   }
 
   if (stackSnapScale) {
