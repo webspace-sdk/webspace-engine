@@ -239,7 +239,7 @@ export default class SceneEntryManager {
 
       const fileOrUrl = e.detail.fileOrUrl;
       const startPhi = e.detail.startPhi || -Math.PI;
-      const endPhi = e.detail.startPhi || Math.PI;
+      const endPhi = e.detail.endPhi || Math.PI;
       const width = e.detail.width || 3;
       const margin = e.detail.margin || 0.75;
 
