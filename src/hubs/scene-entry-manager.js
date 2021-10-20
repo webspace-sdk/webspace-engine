@@ -8,6 +8,7 @@ import { createVox } from "./utils/phoenix-utils";
 import WorldExporter from "../jel/utils/world-exporter";
 import { switchCurrentHubToWorldTemplate } from "../jel/utils/template-utils";
 import { screenshotAndUploadSceneCanvas } from "./utils/three-utils";
+import { retainPdf, releasePdf } from "../jel/utils/pdf-pool";
 
 const { detect } = require("detect-browser");
 
@@ -18,7 +19,13 @@ const isMobileVR = AFRAME.utils.device.isMobileVR();
 const isDebug = qsTruthy("debug");
 const qs = new URLSearchParams(location.search);
 
-import { spawnMediaInfrontOfPlayer, performAnimatedRemove, snapEntityToBiggestNearbyScreen } from "./utils/media-utils";
+import {
+  spawnMediaInfrontOfPlayer,
+  performAnimatedRemove,
+  snapEntityToBiggestNearbyScreen,
+  addAndArrangeRoundtableMedia,
+  upload
+} from "./utils/media-utils";
 import {
   isIn2DInterstitial,
   handleExitTo2DInterstitial,
@@ -28,6 +35,7 @@ import {
 import { ObjectContentOrigins } from "./object-types";
 import { getAvatarSrc, getAvatarType } from "./utils/avatar-utils";
 import { pushHistoryState } from "./utils/history";
+import { proxiedUrlFor } from "./utils/media-url-utils";
 
 const isIOS = AFRAME.utils.device.isIOS();
 
@@ -224,6 +232,51 @@ export default class SceneEntryManager {
 
     this.scene.addEventListener("add_media_emoji", ({ detail: emoji }) => {
       spawnMediaInfrontOfPlayer(null, emoji);
+    });
+
+    this.scene.addEventListener("add_media_exploded_pdf", async e => {
+      let pdfUrl;
+
+      // This is going to generate an array of media, get the URL first.
+      if (e.detail instanceof File) {
+        if (!window.APP.hubChannel.can("upload_files")) return;
+
+        const {
+          origin,
+          meta: { access_token }
+        } = await upload(e.detail, "application/pdf", window.APP.hubChannel.hubId);
+
+        const url = new URL(proxiedUrlFor(origin));
+        url.searchParams.set("token", access_token);
+        pdfUrl = url.ref;
+      } else {
+        pdfUrl = e.detail;
+      }
+
+      const pdf = await retainPdf(proxiedUrlFor(pdfUrl));
+      const numPages = pdf.numPages;
+
+      const centerMatrixWorld = new THREE.Matrix4();
+      const avatarPov = document.querySelector("#avatar-pov-node");
+      avatarPov.object3D.updateMatrices();
+      centerMatrixWorld.copy(avatarPov.object3D.matrixWorld);
+
+      for (let i = 0; i < numPages; i++) {
+        addAndArrangeRoundtableMedia(
+          centerMatrixWorld,
+          pdfUrl,
+          6,
+          1.25,
+          numPages,
+          i,
+          { index: i, pagable: false },
+          true,
+          -Math.PI + Math.PI / 4,
+          Math.PI - Math.PI / 4
+        );
+      }
+
+      releasePdf(pdf);
     });
 
     this.scene.addEventListener("object_spawned", e => {

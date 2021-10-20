@@ -745,24 +745,26 @@ export function addAndArrangeRadialMedia(
 
 // Arranges media around the centerEl in X + Z, as chairs in a roundtable discussion
 export function addAndArrangeRoundtableMedia(
-  centerEl,
+  centerMatrixWorld,
   media,
   width,
   margin,
   numItems,
   itemIndex,
+  mediaOptions = {},
   ground = false,
   phiStart = -Math.PI,
   phiEnd = Math.PI
 ) {
   const entities = [];
 
+  const bbox = new THREE.Box3();
   const phiSpan = Math.abs(phiStart - phiEnd);
 
   const circumference = (width * numItems + (margin * numItems + 1)) * ((Math.PI * 2) / phiSpan);
   const radius = circumference / (2 * Math.PI);
 
-  for (let phi = phiStart, i = 0; phi <= phiEnd; phi += phiSpan / numItems, i++) {
+  for (let phi = phiEnd, i = 0; phi >= phiStart; phi -= phiSpan / numItems, i++) {
     if (i !== itemIndex) continue;
 
     const { entity, orientation } = addMedia(
@@ -774,21 +776,20 @@ export function addAndArrangeRoundtableMedia(
       true, // resolve
       true, // fitToBox
       false, // animate
-      {}, // mediaOptions
+      mediaOptions, // mediaOptions
       true, // networked
       null, // parentEl
       null, // linkedEl
       null, // networkId
       true, // skipLoader
       null, // contentType
-      false // locked
+      true // locked
     );
 
     entity.addEventListener(
       "media-loaded",
       () => {
         orientation.then(async or => {
-          const target = document.querySelector("#avatar-pov-node");
           const obj = entity.object3D;
           const offset = new THREE.Vector3(0, 0, -radius);
           const lookAt = true;
@@ -798,7 +799,15 @@ export function addAndArrangeRoundtableMedia(
             return;
           }
 
-          offsetRelativeTo(obj, target.object3D, offset, lookAt, or, null, null, null, true, phi);
+          offsetRelativeTo(obj, centerMatrixWorld, offset, lookAt, or, null, null, null, true, phi);
+
+          // scale to width
+          bbox.makeEmpty();
+          expandByEntityObjectSpaceBoundingBox(bbox, entity);
+
+          const targetScale = width / (bbox.max.x - bbox.min.x);
+          entity.object3D.scale.x = entity.object3D.scale.y = entity.object3D.scale.z = targetScale;
+          entity.object3D.matrixNeedsUpdate = true;
 
           if (ground) {
             groundMedia(entity, false, null, 0.0, false, true);

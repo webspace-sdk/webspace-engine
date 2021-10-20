@@ -210,6 +210,10 @@ function registerNetworkSchemas() {
       {
         component: "media-loader",
         property: "stackSnapScale"
+      },
+      {
+        component: "media-pdf",
+        property: "pagable"
       }
     ],
     nonAuthorizedComponents: [

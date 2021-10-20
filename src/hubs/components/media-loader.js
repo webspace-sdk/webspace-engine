@@ -353,7 +353,7 @@ AFRAME.registerComponent("media-loader", {
     const { src, version, contentSubtype, locked } = this.data;
     if (!src) return;
 
-    const mediaChanged = oldData.src !== src;
+    const mediaSrcChanged = oldData.src !== src && !!oldData.src;
     const versionChanged = !!(oldData.version && oldData.version !== version);
     const lockedChanged = oldData.locked !== undefined && oldData.locked !== locked;
 
@@ -367,7 +367,7 @@ AFRAME.registerComponent("media-loader", {
       this.el.emit("media_locked_changed");
     }
 
-    if (!mediaChanged && !versionChanged && !forceLocalRefresh) return;
+    if (oldData.src && !mediaSrcChanged && !versionChanged && !forceLocalRefresh) return;
 
     if (versionChanged) {
       this.el.emit("media_refreshing");
@@ -378,7 +378,7 @@ AFRAME.registerComponent("media-loader", {
     }
 
     try {
-      if ((forceLocalRefresh || mediaChanged) && !this.showLoaderTimeout && this.shouldShowLoader()) {
+      if ((forceLocalRefresh || mediaSrcChanged) && !this.showLoaderTimeout && this.shouldShowLoader()) {
         // Delay loader so we don't do it if media is locally cached, etc.
         this.showLoaderTimeout = setTimeout(this.showLoader, 100);
       }
@@ -439,20 +439,18 @@ AFRAME.registerComponent("media-loader", {
         contentType = "application/vnd.apple.mpegurl";
       }
 
-      const isSrcChange = !!oldData.src;
-
-      if (!isSrcChange) {
+      if (!mediaSrcChanged) {
         // Clear loader, if any.
         disposeExistingMesh(this.el);
       }
 
-      if (isSrcChange) {
+      if (mediaSrcChanged) {
         // Don't animate when changing src
         this.data.animate = false;
       }
 
       // We don't want to emit media_resolved for index updates.
-      if (forceLocalRefresh || mediaChanged) {
+      if (forceLocalRefresh || mediaSrcChanged) {
         this.el.emit("media_resolved", { src, raw: accessibleUrl, contentType });
       } else {
         this.el.emit("media_refreshed", { src, raw: accessibleUrl, contentType });
@@ -480,11 +478,11 @@ AFRAME.registerComponent("media-loader", {
           properties.font = mediaOptions.font;
         }
 
-        this.setToSingletonMediaComponent("media-text", properties, isSrcChange);
+        this.setToSingletonMediaComponent("media-text", properties, mediaSrcChanged);
       } else if (src.startsWith("jel://entities/") && src.includes("/components/media-emoji")) {
         this.el.addEventListener("model-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
 
-        this.setToSingletonMediaComponent("media-emoji", { src: accessibleUrl }, isSrcChange);
+        this.setToSingletonMediaComponent("media-emoji", { src: accessibleUrl }, mediaSrcChanged);
       } else if (contentType === "video/vnd.jel-bridge") {
         this.el.setAttribute("floaty-object", {
           autoLockOnRelease: true, // Needed so object becomes kinematic on release for repositioning
@@ -504,7 +502,7 @@ AFRAME.registerComponent("media-loader", {
           contentType
         });
 
-        this.setToSingletonMediaComponent("media-canvas", canvasAttributes, isSrcChange);
+        this.setToSingletonMediaComponent("media-canvas", canvasAttributes, mediaSrcChanged);
 
         // These behaviors cause the video bridge to follow the avatar.
         this.el.setAttribute("pinned-to-self", {});
@@ -557,7 +555,7 @@ AFRAME.registerComponent("media-loader", {
           videoAttributes.time = startTime;
         }
 
-        this.setToSingletonMediaComponent("media-video", videoAttributes, isSrcChange);
+        this.setToSingletonMediaComponent("media-video", videoAttributes, mediaSrcChanged);
 
         // Add the media-stream component to any entity that is streaming this client's video stream.
         if (contentType === "video/vnd.jel-webrtc" && src.indexOf(NAF.clientId)) {
@@ -591,7 +589,7 @@ AFRAME.registerComponent("media-loader", {
             contentType,
             batch
           }),
-          isSrcChange
+          mediaSrcChanged
         );
       } else if (contentType.startsWith("application/pdf")) {
         this.setToSingletonMediaComponent(
@@ -601,9 +599,13 @@ AFRAME.registerComponent("media-loader", {
             contentType,
             batch: false // Batching disabled until atlas is updated properly
           }),
-          isSrcChange
+          mediaSrcChanged
         );
-        this.el.setAttribute("media-pager", {});
+
+        if (this.data.mediaOptions.pagable !== false) {
+          this.el.setAttribute("media-pager", {});
+        }
+
         this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
         this.el.addEventListener(
           "pdf-loaded",
@@ -642,7 +644,7 @@ AFRAME.registerComponent("media-loader", {
             batch,
             modelToWorldScale: this.data.fitToBox ? 0.0001 : 1.0
           }),
-          isSrcChange
+          mediaSrcChanged
         );
       } else if (contentType.startsWith("model/vnd.jel-vox")) {
         this.el.addEventListener("model-loaded", () => this.onMediaLoaded(null, false), { once: true });
@@ -653,7 +655,7 @@ AFRAME.registerComponent("media-loader", {
           Object.assign({}, this.data.mediaOptions, {
             src: accessibleUrl
           }),
-          isSrcChange
+          mediaSrcChanged
         );
       } else if (contentType.startsWith("text/html")) {
         this.el.addEventListener(
@@ -691,7 +693,7 @@ AFRAME.registerComponent("media-loader", {
             contentType: guessContentType(thumbnail) || "image/png",
             batch
           }),
-          isSrcChange
+          mediaSrcChanged
         );
       } else if (contentType.startsWith("model/vox-binary")) {
         const voxSrc = await this.importVoxFromUrl(canonicalUrl);
@@ -705,7 +707,7 @@ AFRAME.registerComponent("media-loader", {
           Object.assign({}, this.data.mediaOptions, {
             src: voxSrc
           }),
-          isSrcChange
+          mediaSrcChanged
         );
       } else {
         throw new Error(`Unsupported content type: ${contentType}`);

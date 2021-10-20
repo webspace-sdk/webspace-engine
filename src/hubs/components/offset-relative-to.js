@@ -16,7 +16,7 @@ export const offsetRelativeTo = (() => {
 
   return function(
     obj,
-    target,
+    targetMatrixWorld,
     offset,
     lookAt = false,
     orientation = 1,
@@ -44,12 +44,11 @@ export const offsetRelativeTo = (() => {
 
     offsetVector.copy(offset);
 
-    target.updateMatrices();
-    target.matrixWorld.decompose(v1, q, v2);
+    targetMatrixWorld.decompose(v1, q, v2);
 
     if (ignoreTargetPitch) {
       v3.set(0, 0, -1);
-      v3.transformDirection(target.matrixWorld);
+      v3.transformDirection(targetMatrixWorld);
       v4.copy(v3);
       v4.y = 0;
       v4.normalize();
@@ -77,11 +76,11 @@ export const offsetRelativeTo = (() => {
 
     outPos.copy(offsetVector);
     if (lookAt) {
-      target.getWorldPosition(targetWorldPos);
+      targetWorldPos.setFromMatrixPosition(targetMatrixWorld);
       obj.updateMatrices(true);
       obj.lookAt(targetWorldPos);
     } else {
-      target.getWorldQuaternion(outQuaternion);
+      targetMatrixWorld.decompose(v1, outQuaternion, v2);
     }
 
     // See doc/image_orientations.gif
@@ -165,7 +164,8 @@ AFRAME.registerComponent("offset-relative-to", {
   updateOffset: function() {
     const { target, offset, lookAt, orientation } = this.data;
     const obj = this.el.object3D;
-    offsetRelativeTo(obj, target.object3D, offset, lookAt, orientation);
+    target.object3D.updateMatrices();
+    offsetRelativeTo(obj, target.object3D.matrixWorld, offset, lookAt, orientation);
 
     if (this.data.selfDestruct) {
       if (this.data.on) {
