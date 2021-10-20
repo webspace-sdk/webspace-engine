@@ -491,6 +491,8 @@ const expandByObjectSpaceBoundingBox = (bbox, object, mat = null) => {
 
 export function expandByEntityObjectSpaceBoundingBox(bbox, el) {
   const mesh = el.getObject3D("mesh");
+  if (!mesh) return bbox;
+
   const voxBox = SYSTEMS.voxSystem.getBoundingBoxForSource(mesh, false);
 
   if (voxBox) {

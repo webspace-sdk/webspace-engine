@@ -402,6 +402,7 @@ AFRAME.registerSystem("transform-selected-object", {
     if (this.mode !== TRANSFORM_MODE.STACK) return;
 
     const instanceSource = this.target.el && this.target.el.getObject3D("mesh");
+    intersections.sort(({ distance: x }, { distance: y }) => x - y);
 
     // Skip the hit if it's the object being targetted.
     // Make sure to properly deref instances.
@@ -423,6 +424,8 @@ AFRAME.registerSystem("transform-selected-object", {
         SYSTEMS.voxSystem.getSourceForMeshAndInstance(object, instanceId) ||
         SYSTEMS.voxmojiSystem.getSourceForMeshAndInstance(object, instanceId) ||
         object;
+
+      if (!newNormalObject.el) continue;
 
       if (this.hitNormalObject !== newNormalObject) {
         this.hitNormalObject = newNormalObject;

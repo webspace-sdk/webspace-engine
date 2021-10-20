@@ -29,10 +29,6 @@ import { SOUND_EMOJI_EQUIP } from "../../hubs/systems/sound-effects-system";
 const WHEEL_THRESHOLD = 0.15;
 const MAX_UNDO_STEPS = 32;
 
-// Number of ms that need to pass from last hover before a click will create a voxel, to reduce
-// chance of mis-creation.
-const HOVER_TO_CREATE_DELAY_MS = 1000;
-
 const { Vector3, Matrix4, Raycaster, MeshBasicMaterial, Mesh, PlaneBufferGeometry } = THREE;
 import { createVox } from "../../hubs/utils/phoenix-utils";
 
@@ -319,30 +315,8 @@ export class BuilderSystem extends EventTarget {
 
       const now = performance.now();
       const { voxMetadata } = window.APP;
-      const { cameraSystem } = SYSTEMS;
-
-      const shouldCreateVox =
-        brushDown &&
-        !this.ignoreRestOfStroke &&
-        intersection &&
-        intersection.point &&
-        now - this.lastHoverTime >= HOVER_TO_CREATE_DELAY_MS &&
-        !cameraSystem.isInspecting();
 
       if (isHoveringOnLocked) {
-        if (shouldCreateVox && this.brushMode === BRUSH_MODES.ADD) {
-          // Create gesture on locked surface
-          this.hasInFlightOperation = true;
-          this.ignoreRestOfStroke = true;
-          this.createVoxAt(intersection.point)
-            .then(() => (this.hasInFlightOperation = false))
-            .catch(() => {
-              // Rate limiting or backend error
-              this.hasInFlightOperation = false;
-              this.ignoreRestOfStroke = false;
-            });
-        }
-
         return;
       }
 
@@ -563,23 +537,6 @@ export class BuilderSystem extends EventTarget {
           }
         }
       } else if (!hitVoxId) {
-        // No vox was hit this tick. Check if we need to create one.
-        //
-        // If brush is down, we're not currently brushing, and we have a target,
-        // create a vox.
-        if (this.targetVoxId === null && shouldCreateVox) {
-          // Not mid-build, create a new vox.
-          this.hasInFlightOperation = true;
-          this.ignoreRestOfStroke = true;
-          this.createVoxAt(intersection.point)
-            .then(() => (this.hasInFlightOperation = false))
-            .catch(() => {
-              // Rate limiting or backend error
-              this.hasInFlightOperation = false;
-              this.ignoreRestOfStroke = false;
-            });
-        }
-
         // If we're not brushing, and we had a target vox, we just cursor
         // exited from hover so clear the pending.
         if (this.targetVoxId !== null && !this.isBrushing) {
