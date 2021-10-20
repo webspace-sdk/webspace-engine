@@ -184,8 +184,8 @@ class Terrain extends Object3D {
   enableLod(enable) {
     this.lodEnabled = enable;
     this.updateLodNextFrame = true;
-    this.lod.levels[1].distance = enable ? LOD_DISTANCES[1] : 100;
-    this.lod.levels[2].distance = enable ? LOD_DISTANCES[2] : 100;
+    this.lod.levels[1].distance = enable ? LOD_DISTANCES[1] : 1000;
+    this.lod.levels[2].distance = enable ? LOD_DISTANCES[2] : 1000;
   }
 
   performWork(camera) {

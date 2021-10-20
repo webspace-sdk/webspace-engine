@@ -170,8 +170,9 @@ export class ProjectileSystem {
 
     if (!avatarPovEl) return;
     const avatarPovNode = avatarPovEl.object3D;
+    avatarPovNode.updateMatrices();
 
-    offsetRelativeTo(null, avatarPovNode, SPAWN_OFFSET, false, 1, this.sceneEl.object3D, tmpVec3, tmpQuat);
+    offsetRelativeTo(null, avatarPovNode.matrixWorld, SPAWN_OFFSET, false, 1, this.sceneEl.object3D, tmpVec3, tmpQuat);
 
     const ox = tmpVec3.x;
     const oy = tmpVec3.y;
