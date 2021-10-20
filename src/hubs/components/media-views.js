@@ -16,7 +16,7 @@ import HLS from "hls.js";
 import { RENDER_ORDER } from "../constants";
 import { MediaPlayer } from "dashjs";
 import {
-  addAndArrangeMedia,
+  addAndArrangeRadialMedia,
   createImageTexture,
   createBasisTexture,
   meetsBatchingCriteria,
@@ -413,7 +413,7 @@ AFRAME.registerComponent("media-video", {
     const file = new File([blob], "snap.png", TYPE_IMG_PNG);
 
     this.localSnapCount++;
-    const { entity } = addAndArrangeMedia(this.el, file, "photo-snapshot", this.localSnapCount);
+    const { entity } = addAndArrangeRadialMedia(this.el, file, "photo-snapshot", this.localSnapCount);
     entity.addEventListener("image-loaded", this.onSnapImageLoaded, ONCE_TRUE);
   },
 
@@ -1522,7 +1522,7 @@ AFRAME.registerComponent("media-pdf", {
     const file = new File([blob], "snap.png", TYPE_IMG_PNG);
 
     this.localSnapCount++;
-    const { entity } = addAndArrangeMedia(this.el, file, "photo-snapshot", this.localSnapCount, false, 1);
+    const { entity } = addAndArrangeRadialMedia(this.el, file, "photo-snapshot", this.localSnapCount, false, 1);
     entity.addEventListener("image-loaded", this.onSnapImageLoaded, ONCE_TRUE);
   },
 
@@ -1915,7 +1915,7 @@ AFRAME.registerComponent("media-canvas", {
     const file = new File([blob], "snap.png", TYPE_IMG_PNG);
 
     this.localSnapCount++;
-    const { entity } = addAndArrangeMedia(this.el, file, "photo-snapshot", this.localSnapCount);
+    const { entity } = addAndArrangeRadialMedia(this.el, file, "photo-snapshot", this.localSnapCount);
     entity.addEventListener("image-loaded", this.onSnapImageLoaded, ONCE_TRUE);
   },
 

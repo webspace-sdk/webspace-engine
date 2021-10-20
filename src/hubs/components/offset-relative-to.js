@@ -6,6 +6,13 @@ export const offsetRelativeTo = (() => {
   const QUARTER_CIRCLE = Math.PI / 2;
   const offsetVector = new THREE.Vector3();
   const targetWorldPos = new THREE.Vector3();
+  const m = new THREE.Matrix4();
+  const v1 = new THREE.Vector3();
+  const v2 = new THREE.Vector3();
+  const v3 = new THREE.Vector3();
+  const v4 = new THREE.Vector3();
+  const q = new THREE.Quaternion();
+  const q2 = new THREE.Quaternion();
 
   return function(
     obj,
@@ -15,7 +22,9 @@ export const offsetRelativeTo = (() => {
     orientation = 1,
     parent = null,
     outPos = null,
-    outQuaternion = null
+    outQuaternion = null,
+    ignoreTargetPitch = false,
+    phi = 0
   ) {
     if (!obj && (orientation !== 1 || lookAt)) {
       throw new Error("Orientation/lookAt on non-object target not supported");
@@ -34,10 +43,38 @@ export const offsetRelativeTo = (() => {
     }
 
     offsetVector.copy(offset);
-    target.localToWorld(offsetVector);
+
+    target.updateMatrices();
+    target.matrixWorld.decompose(v1, q, v2);
+
+    if (ignoreTargetPitch) {
+      v3.set(0, 0, -1);
+      v3.transformDirection(target.matrixWorld);
+      v4.copy(v3);
+      v4.y = 0;
+      v4.normalize();
+      q2.setFromUnitVectors(v3, v4);
+      q.premultiply(q2);
+    }
+
+    if (phi !== 0) {
+      v3.set(0, 1, 0);
+      q2.setFromAxisAngle(v3, phi);
+      q.premultiply(q2);
+    }
+
+    m.compose(
+      v1,
+      q,
+      v2
+    );
+
+    offsetVector.applyMatrix4(m);
+
     if (parent) {
       parent.worldToLocal(offsetVector);
     }
+
     outPos.copy(offsetVector);
     if (lookAt) {
       target.getWorldPosition(targetWorldPos);
@@ -76,6 +113,10 @@ export const offsetRelativeTo = (() => {
       case 1:
       default:
         break;
+    }
+
+    if (ignoreTargetPitch) {
+      obj.rotation.x = 0;
     }
 
     if (obj) {

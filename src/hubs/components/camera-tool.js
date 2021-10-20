@@ -1,4 +1,4 @@
-import { addAndArrangeMedia } from "../utils/media-utils";
+import { addAndArrangeRadialMedia } from "../utils/media-utils";
 import { createImageBitmap } from "../utils/image-bitmap-utils";
 import { ensureOwnership } from "../../jel/utils/ownership-utils";
 import { ObjectTypes } from "../object-types";
@@ -456,7 +456,7 @@ AFRAME.registerComponent("camera-tool", {
 
       chunks.length = 0;
 
-      const { entity, orientation } = addAndArrangeMedia(
+      const { entity, orientation } = addAndArrangeRadialMedia(
         this.el,
         new File([blob], "capture", { type: mimeType.split(";")[0] }), // Drop codec
         "video-camera",
@@ -731,7 +731,7 @@ AFRAME.registerComponent("camera-tool", {
         renderer.readRenderTargetPixels(this.renderTarget, 0, 0, RENDER_WIDTH, RENDER_HEIGHT, this.snapPixels);
 
         pixelsToPNG(this.snapPixels, RENDER_WIDTH, RENDER_HEIGHT).then(file => {
-          const { orientation } = addAndArrangeMedia(
+          const { orientation } = addAndArrangeRadialMedia(
             this.el,
             file,
             "photo-camera",

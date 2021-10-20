@@ -5,6 +5,7 @@ import mediaHighlightFrag from "./media-highlight-frag.glsl";
 import { mapMaterials } from "./material-utils";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import { validMaterials } from "../components/hoverable-visuals";
+import { offsetRelativeTo } from "../components/offset-relative-to";
 import { proxiedUrlFor, guessContentType } from "../utils/media-url-utils";
 import { getNetworkedEntity, getNetworkId, ensureOwnership, isSynchronized } from "../../jel/utils/ownership-utils";
 import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
@@ -388,8 +389,8 @@ export const addMedia = (
   return { entity, orientation };
 };
 
-// Animates the given object to the terrain ground.
-export const groundMedia = (sourceEl, faceUp, bbox = null, meshOffset = 0.0) => {
+// Moves the given object to the terrain ground.
+export const groundMedia = (sourceEl, faceUp, bbox = null, meshOffset = 0.0, animate = true, positionOnly = false) => {
   const { object3D } = sourceEl;
   const finalXRotation = faceUp ? (3.0 * Math.PI) / 2.0 : 0.0;
   const px = object3D.rotation.x;
@@ -425,40 +426,50 @@ export const groundMedia = (sourceEl, faceUp, bbox = null, meshOffset = 0.0) => 
     floatyObject.setLocked(true);
   }
 
-  const step = (function() {
-    const lastValue = {};
-    return function(anim) {
-      const value = anim.animatables[0].target;
+  if (animate) {
+    const step = (function() {
+      const lastValue = {};
+      return function(anim) {
+        const value = anim.animatables[0].target;
 
-      // For animation timeline.
-      if (value.x === lastValue.x && value.y === lastValue.y && value.z === lastValue.z) {
-        return;
-      }
+        // For animation timeline.
+        if (value.x === lastValue.x && value.y === lastValue.y && value.z === lastValue.z) {
+          return;
+        }
 
-      lastValue.x = value.x;
-      lastValue.y = value.y;
-      lastValue.z = value.z;
+        lastValue.x = value.x;
+        lastValue.y = value.y;
+        lastValue.z = value.z;
 
-      object3D.rotation.x = value.x;
-      object3D.position.y = value.y;
-      object3D.rotation.z = value.z;
-      object3D.matrixNeedsUpdate = true;
-    };
-  })();
+        object3D.rotation.x = value.x;
+        object3D.position.y = value.y;
+        object3D.rotation.z = value.z;
+        object3D.matrixNeedsUpdate = true;
+      };
+    })();
 
-  anime({
-    duration: 800,
-    easing: "easeOutElastic",
-    elasticity: 800,
-    loop: 0,
-    round: false,
-    x: finalXRotation,
-    y: finalYPosition,
-    z: 0.0,
-    targets: [{ x: object3D.rotation.x, y: object3D.position.y, z: object3D.rotation.z }],
-    update: anim => step(anim),
-    complete: anim => step(anim)
-  });
+    anime({
+      duration: 800,
+      easing: "easeOutElastic",
+      elasticity: 800,
+      loop: 0,
+      round: false,
+      x: positionOnly ? object3D.rotation.x : finalXRotation,
+      y: finalYPosition,
+      z: positionOnly ? object3D.rotation.z : 0.0,
+      targets: [{ x: object3D.rotation.x, y: object3D.position.y, z: object3D.rotation.z }],
+      update: anim => step(anim),
+      complete: anim => step(anim)
+    });
+  } else {
+    if (!positionOnly) {
+      object3D.rotation.x = finalXRotation;
+      object3D.rotation.z = 0.0;
+    }
+
+    object3D.position.y = finalYPosition;
+    object3D.matrixNeedsUpdate = true;
+  }
 };
 
 // Resets the transform rotation of the media
@@ -662,13 +673,21 @@ export function injectCustomShaderChunks(obj) {
 
 const mediaPos = new THREE.Vector3();
 
-export function addAndArrangeMedia(el, media, contentSubtype, snapCount, mirrorOrientation = false, distance = 0.75) {
+// Adds media radiating from the centerEl vertically
+export function addAndArrangeRadialMedia(
+  centerEl,
+  media,
+  contentSubtype,
+  snapCount,
+  mirrorOrientation = false,
+  distance = 0.75
+) {
   const { entity, orientation } = addMedia(media, null, "#interactable-media", undefined, contentSubtype, false);
 
-  const pos = el.object3D.position;
+  const pos = centerEl.object3D.position;
 
   entity.object3D.position.set(pos.x, pos.y, pos.z);
-  entity.object3D.rotation.copy(el.object3D.rotation);
+  entity.object3D.rotation.copy(centerEl.object3D.rotation);
 
   if (mirrorOrientation) {
     entity.object3D.rotateY(Math.PI);
@@ -684,7 +703,7 @@ export function addAndArrangeMedia(el, media, contentSubtype, snapCount, mirrorO
     -0.05 + idx * 0.001
   );
 
-  el.object3D.localToWorld(mediaPos);
+  centerEl.object3D.localToWorld(mediaPos);
   entity.object3D.visible = false;
 
   const handler = () => {
@@ -716,12 +735,83 @@ export function addAndArrangeMedia(el, media, contentSubtype, snapCount, mirrorO
   entity.addEventListener(
     "media_resolved",
     () => {
-      el.emit(`${eventType}_taken`, entity.components["media-loader"].data.src);
+      centerEl.emit(`${eventType}_taken`, entity.components["media-loader"].data.src);
     },
     { once: true }
   );
 
   return { entity, orientation };
+}
+
+// Arranges media around the centerEl in X + Z, as chairs in a roundtable discussion
+export function addAndArrangeRoundtableMedia(
+  centerEl,
+  media,
+  width,
+  margin,
+  numItems,
+  itemIndex,
+  ground = false,
+  phiStart = -Math.PI,
+  phiEnd = Math.PI
+) {
+  const entities = [];
+
+  const phiSpan = Math.abs(phiStart - phiEnd);
+
+  const circumference = (width * numItems + (margin * numItems + 1)) * ((Math.PI * 2) / phiSpan);
+  const radius = circumference / (2 * Math.PI);
+
+  for (let phi = phiStart, i = 0; phi <= phiEnd; phi += phiSpan / numItems, i++) {
+    if (i !== itemIndex) continue;
+
+    const { entity, orientation } = addMedia(
+      media, // src
+      null, // contents
+      "#interactable-media", // template
+      undefined, // contentOrigin
+      null, // contentSubtype
+      true, // resolve
+      true, // fitToBox
+      false, // animate
+      {}, // mediaOptions
+      true, // networked
+      null, // parentEl
+      null, // linkedEl
+      null, // networkId
+      true, // skipLoader
+      null, // contentType
+      false // locked
+    );
+
+    entity.addEventListener(
+      "media-loaded",
+      () => {
+        orientation.then(async or => {
+          const target = document.querySelector("#avatar-pov-node");
+          const obj = entity.object3D;
+          const offset = new THREE.Vector3(0, 0, -radius);
+          const lookAt = true;
+
+          if (isSynchronized(entity) && !ensureOwnership(entity)) {
+            console.warn("Cannot arrange element because unable to become owner.");
+            return;
+          }
+
+          offsetRelativeTo(obj, target.object3D, offset, lookAt, or, null, null, null, true, phi);
+
+          if (ground) {
+            groundMedia(entity, false, null, 0.0, false, true);
+          }
+        });
+      },
+      { once: true }
+    );
+
+    entities.push(entity);
+  }
+
+  return entities;
 }
 
 export const textureLoader = new HubsTextureLoader().setCrossOrigin("anonymous");

@@ -12,7 +12,7 @@ import { getNetworkId } from "../utils/ownership-utils";
 import { temporarilyReleaseCanvasCursorLock } from "../utils/dom-utils";
 import {
   hasMediaLayer,
-  addAndArrangeMedia,
+  addAndArrangeRadialMedia,
   MEDIA_PRESENCE,
   MEDIA_INTERACTION_TYPES
 } from "../../hubs/utils/media-utils";
@@ -536,7 +536,7 @@ AFRAME.registerComponent("media-text", {
         canvas.toBlob(blob => {
           const file = new File([blob], "text.png", { type: "image/png" });
           this.localSnapCount++;
-          const { entity } = addAndArrangeMedia(this.el, file, "photo-snapshot", this.localSnapCount);
+          const { entity } = addAndArrangeRadialMedia(this.el, file, "photo-snapshot", this.localSnapCount);
           entity.addEventListener("image-loaded", () => (this.isSnapping = false), { once: true });
         });
       };

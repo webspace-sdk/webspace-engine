@@ -4,8 +4,6 @@ import PropTypes from "prop-types";
 import styled from "styled-components";
 import Tree from "rc-tree";
 import PanelSectionHeader from "./panel-section-header";
-import IconButton from "./icon-button";
-import upIcon from "../../assets/jel/images/icons/expand-up.svgi";
 import SegmentControl from "./segment-control";
 import scenesOnIcon from "../../assets/jel/images/icons/scenes-on.svgi";
 import scenesOffIcon from "../../assets/jel/images/icons/scenes-off.svgi";
@@ -457,10 +455,7 @@ export default function AssetPanel(props) {
       <AssetPanelElement>
         <AssetPanelTop>
           <AssetPanelHeaderWrap>
-            <IconButton iconSrc={upIcon} onClick={expandToggleClicked} />
-            <PanelSectionHeader style={{ marginTop: "5px", cursor: "pointer" }} onClick={expandToggleClicked}>
-              <FormattedMessage id="asset-panel.title" />
-            </PanelSectionHeader>
+            <FormattedMessage id="asset-panel.title" />
           </AssetPanelHeaderWrap>
         </AssetPanelTop>
       </AssetPanelElement>
