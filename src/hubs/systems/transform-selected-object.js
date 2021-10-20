@@ -111,6 +111,10 @@ export function stackTargetAt(
   const normalIsObjectMaxX = nx >= ny && nx >= nz;
   const normalIsObjectMaxY = !normalIsObjectMaxX && ny >= nx && ny >= nz;
   const normalIsObjectMaxZ = !normalIsObjectMaxX && !normalIsObjectMaxY;
+  const normalXIsZero = Math.abs(nx) < 0.0001;
+  const normalYIsZero = Math.abs(ny) < 0.0001;
+  const normalZIsZero = Math.abs(ny) < 0.0001;
+  const normalIsBasisVector = (normalXIsZero ? 1 : 0) + (normalYIsZero ? 1 : 0) + (normalZIsZero ? 1 : 0) === 1;
 
   objectSnapAlong.copy(axis);
   objectSnapAlong.transformDirection(targetMatrix);
@@ -148,7 +152,9 @@ export function stackTargetAt(
   offset.multiply(v2);
   offset.applyQuaternion(q);
 
-  const shouldSnap = !userinput.get(shiftKeyPath);
+  // Only snap to objects if the face is along a basis vector, since otherwise the snap grid is
+  // hard to define.
+  const shouldSnap = !userinput.get(shiftKeyPath) && normalIsBasisVector;
 
   if (stackSnapPosition) {
     normalObjectBoundingBox.getCenter(v);

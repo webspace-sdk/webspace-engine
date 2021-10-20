@@ -65,6 +65,7 @@ cat build-config.toml
 sudo /usr/bin/hab-user-toml-install $pkg_name build-config.toml
 echo "Starting $PKG"
 hab svc unload $PKG
+sleep 3
 hab svc load $PKG
 echo "Started $PKG"
 #sudo /usr/bin/hab-pkg-upload results/*.hart
