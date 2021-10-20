@@ -113,7 +113,7 @@ export function stackTargetAt(
   const normalIsObjectMaxZ = !normalIsObjectMaxX && !normalIsObjectMaxY;
   const normalXIsZero = Math.abs(nx) < 0.0001;
   const normalYIsZero = Math.abs(ny) < 0.0001;
-  const normalZIsZero = Math.abs(ny) < 0.0001;
+  const normalZIsZero = Math.abs(nz) < 0.0001;
   const normalIsBasisVector = (normalXIsZero ? 0 : 1) + (normalYIsZero ? 0 : 1) + (normalZIsZero ? 0 : 1) === 1;
 
   objectSnapAlong.copy(axis);
