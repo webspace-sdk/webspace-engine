@@ -237,20 +237,26 @@ export default class SceneEntryManager {
     this.scene.addEventListener("add_media_exploded_pdf", async e => {
       let pdfUrl;
 
+      const fileOrUrl = e.detail.fileOrUrl;
+      const startPhi = e.detail.startPhi || -Math.PI;
+      const endPhi = e.detail.startPhi || Math.PI;
+      const width = e.detail.width || 3;
+      const margin = e.detail.margin || 0.75;
+
       // This is going to generate an array of media, get the URL first.
-      if (e.detail instanceof File) {
+      if (fileOrUrl instanceof File) {
         if (!window.APP.hubChannel.can("upload_files")) return;
 
         const {
           origin,
           meta: { access_token }
-        } = await upload(e.detail, "application/pdf", window.APP.hubChannel.hubId);
+        } = await upload(fileOrUrl, "application/pdf", window.APP.hubChannel.hubId);
 
         const url = new URL(proxiedUrlFor(origin));
         url.searchParams.set("token", access_token);
         pdfUrl = url.ref;
       } else {
-        pdfUrl = e.detail;
+        pdfUrl = fileOrUrl;
       }
 
       const pdf = await retainPdf(proxiedUrlFor(pdfUrl));
@@ -265,14 +271,14 @@ export default class SceneEntryManager {
         addAndArrangeRoundtableMedia(
           centerMatrixWorld,
           pdfUrl,
-          6,
-          1.25,
+          width,
+          margin,
           numPages,
           i,
           { index: i, pagable: false },
           true,
-          -Math.PI + Math.PI / 4,
-          Math.PI - Math.PI / 4
+          startPhi,
+          endPhi
         );
       }
 
