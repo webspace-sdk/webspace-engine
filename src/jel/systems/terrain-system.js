@@ -609,7 +609,7 @@ export class TerrainSystem {
   ensureBodiesSpawned(x, z, subchunk) {
     const key = `${keyForChunk({ x, z })}:${subchunk}`;
     const el = this.entities.get(key);
-    if (el.components["body-helper"]) return;
+    if (!el || el.components["body-helper"]) return;
     const heightmap = this.chunkHeightMaps.get(key);
     if (!heightmap) return;
     const terrain = this.terrains.get(key);
@@ -655,6 +655,7 @@ export class TerrainSystem {
   ensureBodiesFreed(x, z, subchunk) {
     const key = `${keyForChunk({ x, z })}:${subchunk}`;
     const el = this.entities.get(key);
+    if (!el) return;
     el.removeAttribute("body-helper");
     el.removeAttribute("shape-helper");
   }

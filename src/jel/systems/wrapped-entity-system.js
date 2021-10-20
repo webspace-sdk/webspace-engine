@@ -1,5 +1,6 @@
 // TODO deal with thrown physics object disappearing - wait for rest
 import { WORLD_SIZE, WORLD_MIN_COORD, WORLD_MAX_COORD } from "./terrain-system";
+import { Terrain } from "../objects/terrain";
 const MAX_AVATAR_DISTANCE_TO_ALLOW_SCHEDULED_WRAP = 5;
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
@@ -200,6 +201,12 @@ export class WrappedEntitySystem {
     const pos = new THREE.Vector3();
 
     return function(obj, avatarX = this.previousAvatarX, avatarZ = this.previousAvatarZ) {
+      if (!this.terrainSystem.worldTypeWraps()) {
+        const isTerrain = obj.children && obj.children.length === 1 && obj.children[0] instanceof Terrain;
+        // Keep wrapping terrain but not objects
+        if (!isTerrain) return;
+      }
+
       obj.getWorldPosition(pos);
 
       // Normalized object x, z
@@ -213,14 +220,8 @@ export class WrappedEntitySystem {
       // Current min distance
       let d = Number.MAX_VALUE;
 
-      let wrapForPointX = avatarX;
-      let wrapForPointZ = avatarZ;
-
-      if (!this.terrainSystem.worldTypeWraps()) {
-        // Always wrap based on origin if no wrapping
-        wrapForPointX = 0;
-        wrapForPointZ = 0;
-      }
+      const wrapForPointX = avatarX;
+      const wrapForPointZ = avatarZ;
 
       for (let i = -1; i <= 1; i++) {
         for (let j = -1; j <= 1; j++) {
