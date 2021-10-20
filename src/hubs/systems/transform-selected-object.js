@@ -114,7 +114,7 @@ export function stackTargetAt(
   const normalXIsZero = Math.abs(nx) < 0.0001;
   const normalYIsZero = Math.abs(ny) < 0.0001;
   const normalZIsZero = Math.abs(ny) < 0.0001;
-  const normalIsBasisVector = (normalXIsZero ? 1 : 0) + (normalYIsZero ? 1 : 0) + (normalZIsZero ? 1 : 0) === 1;
+  const normalIsBasisVector = (normalXIsZero ? 0 : 1) + (normalYIsZero ? 0 : 1) + (normalZIsZero ? 0 : 1) === 1;
 
   objectSnapAlong.copy(axis);
   objectSnapAlong.transformDirection(targetMatrix);
