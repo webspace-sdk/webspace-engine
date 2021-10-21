@@ -326,6 +326,10 @@ export class CameraSystem extends EventTarget {
     this.expandedPanelsOnInspect = false;
   }
 
+  isEditing() {
+    return this.isInspecting() && this.allowCursor;
+  }
+
   isInspecting() {
     return !!this.inspected;
   }

@@ -1124,7 +1124,7 @@ async function start() {
   // Delay the focus change unless we're focused on the body, which means nothing
   // was focused.
   canvas.addEventListener("mouseover", ({ buttons }) => {
-    if (!isInEditableField()) {
+    if (!isInEditableField() && !SYSTEMS.cameraSystem.isEditing()) {
       const { uiAnimationSystem } = SYSTEMS;
 
       // Collapse the UI on canvas mouse over unless cursor is locked.

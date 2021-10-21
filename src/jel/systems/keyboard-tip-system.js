@@ -93,7 +93,7 @@ export class KeyboardTipSystem {
                 } else if (components["media-vox"]) {
                   if (SYSTEMS.builderSystem.enabled) {
                     const expanded = getCursorLockState() === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
-                    const editing = SYSTEMS.cameraSystem.isInspecting() && SYSTEMS.cameraSystem.allowCursor;
+                    const editing = SYSTEMS.cameraSystem.isEditing();
                     const suffix = editing ? "_edit" : expanded ? "_full" : "";
                     if (SYSTEMS.builderSystem.brushType === BRUSH_TYPES.PICK) {
                       showTips = `vox_pick${suffix}`;
