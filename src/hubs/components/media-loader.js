@@ -640,7 +640,7 @@ AFRAME.registerComponent("media-loader", {
             src: accessibleUrl,
             contentType: contentType,
             inflate: true,
-            toon: true,
+            toon: false,
             batch,
             modelToWorldScale: this.data.fitToBox ? 0.0001 : 1.0
           }),
