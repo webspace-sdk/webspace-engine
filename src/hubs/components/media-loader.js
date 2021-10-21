@@ -378,7 +378,7 @@ AFRAME.registerComponent("media-loader", {
     }
 
     try {
-      if ((forceLocalRefresh || mediaSrcChanged) && !this.showLoaderTimeout && this.shouldShowLoader()) {
+      if ((forceLocalRefresh || oldData.src !== src) && !this.showLoaderTimeout && this.shouldShowLoader()) {
         // Delay loader so we don't do it if media is locally cached, etc.
         this.showLoaderTimeout = setTimeout(this.showLoader, 100);
       }
