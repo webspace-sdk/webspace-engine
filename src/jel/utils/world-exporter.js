@@ -147,7 +147,7 @@ export default class WorldExporter {
         // No exportable vox, publish one.
         const tmpVec = new THREE.Vector3();
         el.object3D.getWorldScale(tmpVec);
-        exportableVoxId = await accountChannel.publishVox(voxId, "", "", tmpVec.x);
+        exportableVoxId = await accountChannel.publishVox(voxId, "", "", 0, false, false, tmpVec.x, null, null);
         await voxSystem.copyVoxContent(voxId, exportableVoxId);
       }
 

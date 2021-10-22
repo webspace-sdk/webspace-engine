@@ -118,7 +118,6 @@ AFRAME.registerComponent("media-vox", {
       resetMediaRotation(this.el);
     } else if (type === MEDIA_INTERACTION_TYPES.EDIT) {
       if (SYSTEMS.cameraSystem.isInspecting()) return;
-      if (!(await SYSTEMS.voxSystem.canEditAsync(this.voxId))) return;
       const { voxMetadata, accountChannel } = window.APP;
 
       const { is_published } = await voxMetadata.getOrFetchMetadata(this.voxId, true);
@@ -127,6 +126,8 @@ AFRAME.registerComponent("media-vox", {
         // Before entering editor, bake published vox.
         // Tnis ensures UI and editor doesn't need to properly deal with updating vox mid-session.
         await SYSTEMS.voxSystem.bakeOrInstantiatePublishedVoxEntities(this.voxId);
+      } else {
+        if (!(await SYSTEMS.voxSystem.canEditAsync(this.voxId))) return;
       }
 
       // Start inspecting with editing enabled

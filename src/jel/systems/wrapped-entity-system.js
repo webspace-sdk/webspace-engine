@@ -36,16 +36,28 @@ export const registerWrappedEntityPositionNormalizers = () => {
   const pos = new THREE.Vector3();
 
   const normalizer = data => {
-    pos.x = normalizeCoord(data.x);
+    const shouldNormalize = SYSTEMS.terrainSystem.worldTypeWraps();
+
+    if (shouldNormalize) {
+      pos.x = normalizeCoord(data.x);
+      pos.z = normalizeCoord(data.z);
+    } else {
+      pos.x = data.x;
+      pos.z = data.z;
+    }
+
     pos.y = data.y;
-    pos.z = normalizeCoord(data.z);
 
     return new THREE.Vector3(pos.x, pos.y, pos.z);
   };
 
   const denormalizer = (data, prev) => {
-    data.x = denormalizeCoord(data.x, prev.x);
-    data.z = denormalizeCoord(data.z, prev.z);
+    const shouldNormalize = SYSTEMS.terrainSystem.worldTypeWraps();
+
+    if (shouldNormalize) {
+      data.x = denormalizeCoord(data.x, prev.x);
+      data.z = denormalizeCoord(data.z, prev.z);
+    }
 
     return data;
   };
