@@ -590,18 +590,9 @@ function JelUI(props) {
   const isWorld = hub && hub.type === "world";
   const waitingForMatrix = isMatrixLoading && !skipNeon;
 
-  const onExpandTriggerMouseOver = useCallback(({ buttons }) => {
-    if (buttons !== 0) return;
-
-    if (!isInEditableField() && buttons === 0) {
-      // On multi-monitor setups, cursor will exit window if overshot, so
-      // add a small delay and cancel it so we don't flip open UI
-      let timeout = setTimeout(() => {
-        SYSTEMS.uiAnimationSystem.expandSidePanels();
-        timeout = null;
-      }, 100);
-
-      window.addEventListener("mouseout", () => clearTimeout(timeout), { once: true });
+  const onExpandTriggerClick = useCallback(() => {
+    if (!isInEditableField()) {
+      SYSTEMS.uiAnimationSystem.expandSidePanels();
     }
   }, []);
 
@@ -723,9 +714,9 @@ function JelUI(props) {
         )}
       </Root>
       <RootPopups centerPopupRef={centerPopupRef} scene={scene} />
-      <LeftExpandTrigger id="left-expand-trigger" onMouseOver={onExpandTriggerMouseOver} />
-      <RightExpandTrigger id="right-expand-trigger" onMouseOver={onExpandTriggerMouseOver} />
-      <BottomExpandTrigger id="bottom-expand-trigger" onMouseOver={onExpandTriggerMouseOver} />
+      <LeftExpandTrigger id="left-expand-trigger" onClick={onExpandTriggerClick} />
+      <RightExpandTrigger id="right-expand-trigger" onClick={onExpandTriggerClick} />
+      <BottomExpandTrigger id="bottom-expand-trigger" onClick={onExpandTriggerClick} />
       <input
         id="import-upload-input"
         type="file"

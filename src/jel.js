@@ -1123,15 +1123,8 @@ async function start() {
   // Focus canvas if we mouse over it and aren't in an input field
   // Delay the focus change unless we're focused on the body, which means nothing
   // was focused.
-  canvas.addEventListener("mouseover", ({ buttons }) => {
+  canvas.addEventListener("mouseover", () => {
     if (!isInEditableField() && !SYSTEMS.cameraSystem.isEditing()) {
-      const { uiAnimationSystem } = SYSTEMS;
-
-      // Collapse the UI on canvas mouse over unless cursor is locked.
-      if (buttons === 0 && getCursorLockState() === CURSOR_LOCK_STATES.UNLOCKED_PERSISTENT) {
-        uiAnimationSystem.collapseSidePanels();
-      }
-
       clearTimeout(focusCanvasTimeout);
       focusCanvasTimeout = setTimeout(() => {
         if (!isInEditableField()) {
@@ -1139,6 +1132,10 @@ async function start() {
         }
       }, document.activeElement === document.body ? 0 : 3000);
     }
+  });
+
+  canvas.addEventListener("mousedown", () => {
+    SYSTEMS.uiAnimationSystem.collapseSidePanels();
   });
 
   canvas.addEventListener("mousemove", async ({ buttons, clientX, clientY }) => {
