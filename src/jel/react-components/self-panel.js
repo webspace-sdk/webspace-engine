@@ -27,15 +27,26 @@ import mixpanel from "mixpanel-browser";
 
 const SelfPanelElement = styled.div`
   width: 100%;
-  height: 64px;
+  height: 72px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 5;
+  width: var(--nav-width);
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-direction: row;
-  background-color: var(--secondary-panel-background-color);
   color: var(--secondary-panel-text-color);
   align-self: flex-end;
   margin-top: 18px;
+  background-color: var(--secondary-panel-background-color);
+
+  body.panels-collapsed & {
+    background-color: var(--canvas-overlay-neutral-item-background-color);
+    text-shadow: 0px 0px 4px var(--menu-shadow-color);
+    border-radius: 0 12px 0 0;
+  }
 `;
 
 const SelfName = styled.div`

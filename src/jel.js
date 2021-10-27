@@ -262,7 +262,7 @@ const browser = detect();
 
 // Don't pause on blur on linux bc of gfx instability
 const performConservativePausing = browser.os === "Linux";
-const PAUSE_AFTER_BLUR_DURATION_MS = performConservativePausing ? 0 : 15000;
+const PAUSE_AFTER_BLUR_DURATION_MS = performConservativePausing ? 0 : 2 * 60000;
 
 if (isBotMode) {
   const token = qs.get("credentials_token");
@@ -899,8 +899,8 @@ function setupSidePanelLayout(scene) {
       "#nav-drag-target",
       ["nav-width"],
       true,
-      400,
-      600,
+      320,
+      440,
       x => x,
       w => store.update({ uiState: { navPanelWidth: w } })
     );
@@ -909,8 +909,8 @@ function setupSidePanelLayout(scene) {
       "#presence-drag-target",
       ["presence-width"],
       false,
-      220,
-      300,
+      310,
+      400,
       x => window.innerWidth - x,
       w => store.update({ uiState: { presencePanelWidth: w } })
     );
@@ -1135,7 +1135,9 @@ async function start() {
   });
 
   canvas.addEventListener("mousedown", () => {
-    SYSTEMS.uiAnimationSystem.collapseSidePanels();
+    if (!isInEditableField() && !SYSTEMS.cameraSystem.isEditing()) {
+      SYSTEMS.uiAnimationSystem.collapseSidePanels();
+    }
   });
 
   canvas.addEventListener("mousemove", async ({ buttons, clientX, clientY }) => {
@@ -1164,12 +1166,12 @@ async function start() {
 
       // Hide when near corners, due to fitts
       // y margins to fully hide triggers
-      const xMarginDisablePx = 192.0;
-      const yMarginDisablePx = 64.0;
+      const xMarginDisablePx = SYSTEMS.uiAnimationSystem.targetSceneLeft + 12.0;
+      const yMarginDisablePx = 84.0;
 
       // y margins to slide out triggers
-      const xMarginSlicePx = 320.0;
-      const yMarginSlicePx = 128.0;
+      const xMarginSlicePx = xMarginDisablePx + 64;
+      const yMarginSlicePx = 148.0;
 
       if (clientX < window.innerWidth * peekRegionPct) {
         leftDelta = triggerSizePx * (1.0 - clientX / (window.innerWidth * peekRegionPct));
@@ -1447,14 +1449,6 @@ async function start() {
   mixpanel.track("Startup Joining", {});
   await performJoin();
   mixpanel.track("Startup Joined", {});
-
-  // Initial panel collapse if we landed on a world.
-  const metadata = hubMetadata.getMetadata(hubChannel.hubId);
-  const isWorld = metadata.type === "world";
-
-  if (isWorld) {
-    SYSTEMS.uiAnimationSystem.collapseSidePanels(false);
-  }
 
   entryManager.enterScene(false);
 }

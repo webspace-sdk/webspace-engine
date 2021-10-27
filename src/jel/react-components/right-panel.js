@@ -9,20 +9,27 @@ import launcherOnIcon from "../../assets/jel/images/icons/launcher-on.svgi";
 import launcherOffIcon from "../../assets/jel/images/icons/launcher-off.svgi";
 import builderOnIcon from "../../assets/jel/images/icons/builder-on.svgi";
 import builderOffIcon from "../../assets/jel/images/icons/builder-off.svgi";
+import { spaceForSpaceId } from "../utils/membership-utils";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import PresenceList from "./presence-list";
 import EmojiEquip from "./emoji-equip";
+import SpaceTree from "./space-tree";
 import { getMessages } from "../../hubs/utils/i18n";
 import { SOUND_TELEPORT_END } from "../../hubs/systems/sound-effects-system";
 
 const Right = styled.div`
   pointer-events: auto;
   width: var(--presence-width);
+  display: flex;
+  flex-direction: row;
   box-shadow: 0px 0px 4px;
+`;
+
+const Presence = styled.div`
+  pointer-events: auto;
+  width: calc(var(--presence-width) - 88px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
 `;
 
 const PresenceContent = styled.div`
@@ -62,8 +69,8 @@ const BuilderContent = styled.div`
 const TriggerModePanel = styled.div`
   flex: 1 1 auto;
   width: 100%;
-  min-height: 64px;
-  height: 64px;
+  min-height: 72px;
+  height: 72px;
   flex-grow: 0;
   display: flex;
   justify-content: center;
@@ -75,11 +82,73 @@ const TriggerModePanel = styled.div`
   z-index: 10;
 `;
 
-function RightPanel({ history, hub, hubCan, hubMetadata, sessionId, scene, centerPopupRef }) {
+const SpaceTreeSpill = styled.div`
+  overflow-x: hidden;
+  overflow-y: scroll;
+
+  scrollbar-color: transparent transparent;
+  scrollbar-width: thin;
+  background-color: var(--tertiary-panel-background-color);
+  width: 88px;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    visibility: hidden;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-clip: padding-box;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    background-color: transparent;
+    transition: background-color 0.25s;
+    min-height: 40px;
+  }
+
+  &::-webkit-scrollbar-corner {
+    background-color: transparent;
+  }
+
+  &::-webkit-scrollbar-track {
+    border-color: transparent;
+    background-color: transparent;
+    border: 2px solid transparent;
+    visibility: hidden;
+  }
+
+  &:hover {
+    scrollbar-color: var(--secondary-scroll-thumb-color) transparent;
+
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--secondary-scroll-thumb-color);
+      transition: background-color 0.25s;
+    }
+  }
+`;
+
+function RightPanel({
+  history,
+  hub,
+  hubCan,
+  hubMetadata,
+  sessionId,
+  scene,
+  centerPopupRef,
+  spaceId,
+  memberships,
+  treeManager
+}) {
   const { builderSystem, launcherSystem, cameraSystem } = SYSTEMS;
 
   const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const [isInEditorView, setIsInEditorView] = useState(cameraSystem.isInspecting() && cameraSystem.allowCursor);
+
+  const space = spaceForSpaceId(spaceId, memberships);
 
   useEffect(
     () => {
@@ -122,71 +191,76 @@ function RightPanel({ history, hub, hubCan, hubMetadata, sessionId, scene, cente
 
   return (
     <Right>
-      <PresenceContent
-        style={isInEditorView ? { display: "none" } : {}}
-        className={triggerMode === "launcher" ? "launch" : "build"}
-      >
-        <PresenceList
-          hubMetadata={hubMetadata}
-          hubCan={hubCan}
-          scene={scene}
-          isWorld={isWorld}
-          sessionId={sessionId}
-          onGoToUserClicked={sessionId => {
-            SYSTEMS.characterController.teleportToUser(sessionId);
-            SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_TELEPORT_END);
-          }}
-          onGoToHubClicked={hubId => {
-            const metadata = hubMetadata.getMetadata(hubId);
+      <Presence>
+        <PresenceContent
+          style={isInEditorView ? { display: "none" } : {}}
+          className={triggerMode === "launcher" ? "launch" : "build"}
+        >
+          <PresenceList
+            hubMetadata={hubMetadata}
+            hubCan={hubCan}
+            scene={scene}
+            isWorld={isWorld}
+            sessionId={sessionId}
+            onGoToUserClicked={sessionId => {
+              SYSTEMS.characterController.teleportToUser(sessionId);
+              SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_TELEPORT_END);
+            }}
+            onGoToHubClicked={hubId => {
+              const metadata = hubMetadata.getMetadata(hubId);
 
-            if (metadata) {
-              navigateToHubUrl(history, metadata.url);
-            }
-          }}
-        />
-      </PresenceContent>
-      {isWorld &&
-        triggerMode === "launcher" && (
-          <BlasterContent>
-            <PanelSectionHeader style={{ height: "16px" }}>
-              <FormattedMessage id="blaster.header" />
-            </PanelSectionHeader>
-            <EmojiEquip centerPopupRef={centerPopupRef} scene={scene} />
-          </BlasterContent>
-        )}
-      {isWorld &&
-        triggerMode === "builder" && (
-          <BuilderContent style={isInEditorView ? { marginTop: "8px" } : {}}>
-            <BuilderControls />
-          </BuilderContent>
-        )}
-      {isWorld &&
-        !isInEditorView &&
-        hubCan("spawn_and_move_media", hub.hub_id) && (
-          <TriggerModePanel>
-            <SegmentControl
-              rows={1}
-              cols={2}
-              items={[
-                {
-                  id: "trigger-mode.blast",
-                  text: messages["toggle.launcher"],
-                  iconSrc: launcherOnIcon,
-                  offIconSrc: launcherOffIcon
-                },
-                {
-                  id: "trigger-mode.build",
-                  text: messages["toggle.builder"],
-                  iconSrc: builderOnIcon,
-                  offIconSrc: builderOffIcon
-                }
-              ]}
-              hideTips={true}
-              selectedIndices={triggerMode === "launcher" ? [0] : [1]}
-              onChange={onTriggerModeChange}
-            />
-          </TriggerModePanel>
-        )}
+              if (metadata) {
+                navigateToHubUrl(history, metadata.url);
+              }
+            }}
+          />
+        </PresenceContent>
+        {isWorld &&
+          triggerMode === "launcher" && (
+            <BlasterContent>
+              <PanelSectionHeader style={{ height: "16px" }}>
+                <FormattedMessage id="blaster.header" />
+              </PanelSectionHeader>
+              <EmojiEquip centerPopupRef={centerPopupRef} scene={scene} />
+            </BlasterContent>
+          )}
+        {isWorld &&
+          triggerMode === "builder" && (
+            <BuilderContent style={isInEditorView ? { marginTop: "8px" } : {}}>
+              <BuilderControls />
+            </BuilderContent>
+          )}
+        {isWorld &&
+          !isInEditorView &&
+          hubCan("spawn_and_move_media", hub.hub_id) && (
+            <TriggerModePanel>
+              <SegmentControl
+                rows={1}
+                cols={2}
+                items={[
+                  {
+                    id: "trigger-mode.blast",
+                    text: messages["toggle.launcher"],
+                    iconSrc: launcherOnIcon,
+                    offIconSrc: launcherOffIcon
+                  },
+                  {
+                    id: "trigger-mode.build",
+                    text: messages["toggle.builder"],
+                    iconSrc: builderOnIcon,
+                    offIconSrc: builderOffIcon
+                  }
+                ]}
+                hideTips={true}
+                selectedIndices={triggerMode === "launcher" ? [0] : [1]}
+                onChange={onTriggerModeChange}
+              />
+            </TriggerModePanel>
+          )}
+      </Presence>
+      <SpaceTreeSpill>
+        <SpaceTree treeManager={treeManager} space={space} history={history} memberships={memberships} />
+      </SpaceTreeSpill>
     </Right>
   );
 }
@@ -198,7 +272,10 @@ RightPanel.propTypes = {
   scene: PropTypes.object,
   hubMetadata: PropTypes.object,
   sessionId: PropTypes.string,
-  centerPopupRef: PropTypes.object
+  centerPopupRef: PropTypes.object,
+  spaceId: PropTypes.string,
+  treeManager: PropTypes.object,
+  memberships: PropTypes.array
 };
 
 export default RightPanel;
