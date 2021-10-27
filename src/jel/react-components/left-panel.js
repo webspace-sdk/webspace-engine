@@ -8,17 +8,15 @@ import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
 import TinyOutlineIconButton from "./tiny-outline-icon-button";
 import { usePopupPopper } from "../utils/popup-utils";
-import SelfPanel from "./self-panel";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
 import HubContextMenu from "./hub-context-menu";
 import SpaceNotificationsPopup from "./space-notifications-popup";
 import RenamePopup from "./rename-popup";
 import notificationsIcon from "../../assets/jel/images/icons/notifications.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
-import { homeHubForSpaceId, spaceForSpaceId } from "../utils/membership-utils";
+import { homeHubForSpaceId } from "../utils/membership-utils";
 import { addNewHubToTree } from "../utils/tree-utils";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
-import SpaceTree from "./space-tree";
 import HubTree from "./hub-tree";
 import InvitePanel from "./invite-panel";
 import HubTrashTree from "./hub-trash-tree";
@@ -43,7 +41,7 @@ const Left = styled.div`
 
 const Nav = styled.div`
   pointer-events: auto;
-  width: calc(var(--nav-width) - 88px);
+  width: calc(var(--nav-width));
   display: flex;
   flex-direction: column;
 `;
@@ -138,6 +136,7 @@ const NavFoot = styled.div`
   align-items: center;
   flex-direction: column;
   margin-top: 16px;
+  margin-bottom: 86px;
 `;
 
 const NavSpill = styled.div`
@@ -232,55 +231,6 @@ const TrashSpill = styled.div`
   }
 `;
 
-const SpaceTreeSpill = styled.div`
-  overflow-x: hidden;
-  overflow-y: scroll;
-
-  scrollbar-color: transparent transparent;
-  scrollbar-width: thin;
-  background-color: var(--tertiary-panel-background-color);
-  width: fit-content;
-  height: 100%;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-
-  &::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-    visibility: hidden;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-clip: padding-box;
-    border: 2px solid transparent;
-    border-radius: 4px;
-    background-color: transparent;
-    transition: background-color 0.25s;
-    min-height: 40px;
-  }
-
-  &::-webkit-scrollbar-corner {
-    background-color: transparent;
-  }
-
-  &::-webkit-scrollbar-track {
-    border-color: transparent;
-    background-color: transparent;
-    border: 2px solid transparent;
-    visibility: hidden;
-  }
-
-  &:hover {
-    scrollbar-color: var(--secondary-scroll-thumb-color) transparent;
-
-    &::-webkit-scrollbar-thumb {
-      background-color: var(--secondary-scroll-thumb-color);
-      transition: background-color 0.25s;
-    }
-  }
-`;
-
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
 
@@ -335,7 +285,6 @@ function LeftPanel({
   memberships,
   subscriptions,
   spaceId,
-  sessionId,
   scene,
   showInviteTip,
   setHasShownInvite,
@@ -416,15 +365,11 @@ function LeftPanel({
 
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setSpaceName);
 
-  const space = spaceForSpaceId(spaceId, memberships);
   const hubId = hub && hub.hub_id;
   const messages = getMessages();
-  const isWorld = hub && hub.type === "world";
+
   return (
     <Left>
-      <SpaceTreeSpill>
-        <SpaceTree treeManager={treeManager} space={space} history={history} memberships={memberships} />
-      </SpaceTreeSpill>
       <Nav>
         <NavHead>
           <NavTop>
@@ -570,24 +515,6 @@ function LeftPanel({
               <FormattedMessage id="nav.create-world" />
             </ActionButton>
           )}
-          <SelfPanel
-            spaceId={spaceId}
-            spaceChannel={spaceChannel}
-            memberships={memberships}
-            scene={scene}
-            showDeviceControls={isWorld}
-            sessionId={sessionId}
-            onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {
-              spaceChannel.sendAvatarColorUpdate(r / 255.0, g / 255.0, b / 255.0);
-              window.APP.matrix.updateAvatarColor(r / 255.0, g / 255.0, b / 255.0);
-            }}
-            onSignOutClicked={async () => {
-              await window.APP.spaceChannel.signOut(store.state.credentials.deviceId);
-              await window.APP.matrix.logout();
-              store.clearCredentials();
-              document.location = "/";
-            }}
-          />
         </NavFoot>
       </Nav>
       <Invite setPopperElement={setInviteElement} styles={inviteStyles} attributes={inviteAttributes}>

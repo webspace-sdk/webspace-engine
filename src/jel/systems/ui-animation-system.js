@@ -13,8 +13,8 @@ export const PANEL_EXPANSION_STATES = {
   COLLAPSED: 3
 };
 
-const DEFAULT_NAV_PANEL_WIDTH = 400;
-const DEFAULT_PRESENCE_PANEL_WIDTH = 220;
+const DEFAULT_NAV_PANEL_WIDTH = 320;
+const DEFAULT_PRESENCE_PANEL_WIDTH = 380;
 export const PANEL_EXPAND_DURATION_MS = 250;
 export const ASSET_PANEL_HEIGHT_EXPANDED = 290;
 export const ASSET_PANEL_HEIGHT_COLLAPSED = 64;
@@ -79,9 +79,20 @@ export class UIAnimationSystem {
 
   collapseSidePanels(animate = true) {
     if (this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSED) return;
+
+    const metadata = window.APP.hubMetadata.getMetadata(window.APP.hubChannel.hubId);
+    const isWorld = metadata.type === "world";
+    if (!isWorld) return;
+
     this.performPanelExpansion(PANEL_EXPANSION_STATES.COLLAPSING, animate);
     this.sceneEl.emit("side_panel_resize_started");
     this.store.handleActivityFlag("narrow");
+
+    // Hide triggers upon collapse
+    const triggerSizePx = document.querySelector("#left-expand-trigger").offsetWidth;
+    document.querySelector("#left-expand-trigger").setAttribute("style", `left: ${-triggerSizePx}px`);
+    document.querySelector("#right-expand-trigger").setAttribute("style", `right: ${-triggerSizePx}px`);
+    document.querySelector("#bottom-expand-trigger").setAttribute("style", `bottom: ${-triggerSizePx}px`);
   }
 
   isCollapsingOrCollapsed() {

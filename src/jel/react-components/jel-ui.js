@@ -8,7 +8,6 @@ import styled from "styled-components";
 import mutedIcon from "../../assets/jel/images/icons/mic-muted.svgi";
 import unmutedIcon from "../../assets/jel/images/icons/mic-unmuted.svgi";
 import rotateIcon from "../../assets/jel/images/icons/rotate.svgi";
-import { BigIconButton } from "./icon-button";
 import EqippedBrushIcon from "./equipped-brush-icon";
 import EqippedColorIcon from "./equipped-color-icon";
 import EquippedEmojiIcon from "./equipped-emoji-icon";
@@ -26,6 +25,7 @@ import { CREATE_SELECT_WIDTH, CREATE_SELECT_LIST_HEIGHT } from "./create-select"
 import qsTruthy from "../../hubs/utils/qs_truthy";
 import CanvasTop from "./canvas-top";
 import AssetPanel from "./asset-panel";
+import SelfPanel from "./self-panel";
 import { ASSET_PANEL_HEIGHT_EXPANDED, ASSET_PANEL_HEIGHT_COLLAPSED } from "../systems/ui-animation-system";
 
 const skipSidePanels = qsTruthy("skip_panels");
@@ -283,11 +283,15 @@ const CenterPopupRef = styled.div`
 const PausedInfoLabel = styled.div`
   position: absolute;
   bottom: 0px;
+  white-space: pre;
+  .panels-collapsed & {
+    bottom: 76px;
+  }
   left: 0px;
   display: none;
   color: var(--canvas-overlay-text-color);
   text-shadow: 0px 0px 4px var(--menu-shadow-color);
-  line-height: calc(var(--canvas-overlay-text-size) + 2px);
+  line-height: calc(var(--canvas-overlay-text-size) + 4px);
   font-weight: var(--canvas-overlay-item-text-weight);
   font-size: var(--canvas-overlay-text-size);
   margin: 11px 0 0 8px;
@@ -391,6 +395,10 @@ const BottomLeftPanels = styled.div`
 `;
 
 const DeviceStatuses = styled.div`
+  position: absolute;
+  bottom: 17px;
+  right: 138px;
+
   flex-direction: row;
   margin: 11px 0 0 12px;
   display: none;
@@ -405,14 +413,25 @@ const DeviceStatuses = styled.div`
 `;
 
 function JelUI(props) {
-  const { scene, treeManager, hub, unavailableReason, subscriptions, voxTree, sceneTree } = props;
+  const {
+    scene,
+    treeManager,
+    hub,
+    unavailableReason,
+    subscriptions,
+    voxTree,
+    sceneTree,
+    spaceId,
+    sessionId,
+    memberships
+  } = props;
 
   const { launcherSystem, cameraSystem, builderSystem, externalCameraSystem } = SYSTEMS;
 
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
-  const { store, matrix } = window.APP;
+  const { spaceChannel, store, matrix } = window.APP;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
@@ -659,6 +678,12 @@ function JelUI(props) {
             <KeyTips id="key-tips" />
           </KeyTipsWrap>
           {isWorld && (
+            <DeviceStatuses>
+              {triggerMode === "builder" && <EqippedBrushIcon />}
+              {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
+            </DeviceStatuses>
+          )}
+          {isWorld && (
             <BottomLeftPanels className={`${showingExternalCamera ? "external-camera-on" : ""}`}>
               <ExternalCameraCanvas id="external-camera-canvas" />
               {showingExternalCamera && (
@@ -682,13 +707,6 @@ function JelUI(props) {
 
               {!isHomeHub && (
                 <ChatLog leftOffset={showingExternalCamera ? 300 : 0} hub={hub} scene={scene} store={store} />
-              )}
-              {isWorld && (
-                <DeviceStatuses>
-                  <BigIconButton tabIndex={-1} iconSrc={unmuted ? unmutedIcon : mutedIcon} />
-                  {triggerMode === "builder" && <EqippedBrushIcon />}
-                  {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
-                </DeviceStatuses>
               )}
             </BottomLeftPanels>
           )}
@@ -717,6 +735,24 @@ function JelUI(props) {
       <LeftExpandTrigger id="left-expand-trigger" onClick={onExpandTriggerClick} />
       <RightExpandTrigger id="right-expand-trigger" onClick={onExpandTriggerClick} />
       <BottomExpandTrigger id="bottom-expand-trigger" onClick={onExpandTriggerClick} />
+      <SelfPanel
+        spaceId={spaceId}
+        spaceChannel={spaceChannel}
+        memberships={memberships}
+        scene={scene}
+        showDeviceControls={isWorld}
+        sessionId={sessionId}
+        onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {
+          spaceChannel.sendAvatarColorUpdate(r / 255.0, g / 255.0, b / 255.0);
+          window.APP.matrix.updateAvatarColor(r / 255.0, g / 255.0, b / 255.0);
+        }}
+        onSignOutClicked={async () => {
+          await window.APP.spaceChannel.signOut(store.state.credentials.deviceId);
+          await window.APP.matrix.logout();
+          store.clearCredentials();
+          document.location = "/";
+        }}
+      />
       <input
         id="import-upload-input"
         type="file"
@@ -763,7 +799,8 @@ JelUI.propTypes = {
   hubSettings: PropTypes.array,
   unavailableReason: PropTypes.string,
   voxTree: PropTypes.object,
-  sceneTree: PropTypes.object
+  sceneTree: PropTypes.object,
+  sessionId: PropTypes.string
 };
 
 export default JelUI;
