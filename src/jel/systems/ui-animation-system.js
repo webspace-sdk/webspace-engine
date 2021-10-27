@@ -127,8 +127,8 @@ export class UIAnimationSystem {
 
   setTargetSceneSizes() {
     const store = window.APP.store;
-    this.targetSceneLeft = store.state.uiState.navPanelWidth || DEFAULT_NAV_PANEL_WIDTH;
-    this.targetSceneRight = store.state.uiState.presencePanelWidth || DEFAULT_PRESENCE_PANEL_WIDTH;
+    this.targetSceneLeft = store.state.uiState.navPanelWidthPx || DEFAULT_NAV_PANEL_WIDTH;
+    this.targetSceneRight = store.state.uiState.presencePanelWidthPx || DEFAULT_PRESENCE_PANEL_WIDTH;
   }
 
   tick(t) {

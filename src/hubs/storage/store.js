@@ -393,8 +393,10 @@ export const SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
-        navPanelWidth: { type: "number" },
-        presencePanelWidth: { type: "number" },
+        navPanelWidth: { type: "number" }, // Deprecated
+        presencePanelWidth: { type: "number" }, // Deprecated
+        navPanelWidthPx: { type: "number" },
+        presencePanelWidthPx: { type: "number" },
         mediaTextColorPresetIndex: { type: "number" },
         closedNotificationBanner: { type: "boolean" }, // Deprecated
         assetPanelExpanded: { type: "boolean" }
