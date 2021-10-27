@@ -71,12 +71,7 @@ const CornerButtons = styled.div`
   align-items: center;
   width: 50%;
   padding: 12px 0;
-
-  display: none;
-
-  .panels-collapsed & {
-    display: flex;
-  }
+  display: flex;
 
   &.opaque {
     background-color: var(--channel-header-background-color);
