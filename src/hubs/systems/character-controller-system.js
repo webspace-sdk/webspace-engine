@@ -56,7 +56,6 @@ export class CharacterControllerSystem {
     this.nextRelativeMotion = new THREE.Vector3(0, 0, 0);
     this.dXZ = 0;
     this.movedThisFrame = false;
-    this.jumpStartTime = null;
     this.jumpYVelocity = null;
 
     this.scene.addEventListener("terrain_chunk_loaded", () => {

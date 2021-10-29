@@ -73,9 +73,6 @@ export class AudioSystem {
 
     if (this.lipSyncGain) {
       this.outboundGainNode.disconnect(this.lipSyncGain);
-      this.outboundAnalyser.connect(this.mediaStreamDestinationNode);
-      this.outboundAnalyser.disconnect(this.delayVoiceNode);
-      this.delayVoiceNode.disconnect(this.mediaStreamDestinationNode);
       this.lipSyncForwardingNode.disconnect(this.lipSyncForwardingDestination);
       this.lipSyncHardLimit.disconnect(this.lipSyncVadProcessor);
       this.lipSyncGain.disconnect(this.lipSyncHardLimit);
@@ -90,9 +87,6 @@ export class AudioSystem {
 
     if (this.lipSyncGain) {
       this.outboundGainNode.connect(this.lipSyncGain);
-      this.outboundAnalyser.disconnect(this.mediaStreamDestinationNode);
-      this.outboundAnalyser.connect(this.delayVoiceNode);
-      this.delayVoiceNode.connect(this.mediaStreamDestinationNode);
       this.lipSyncForwardingNode.connect(this.lipSyncForwardingDestination);
       this.lipSyncHardLimit.connect(this.lipSyncVadProcessor);
       this.lipSyncGain.connect(this.lipSyncHardLimit);
@@ -106,8 +100,6 @@ export class AudioSystem {
   startLipSync(sceneEl) {
     // Lip syncing - add gain and compress and then send to forwarding and VAD worklets
     // Create buffers, worklet, VAD detector, and lip sync worker.
-    this.delayVoiceNode = this.audioContext.createDelay();
-    this.delayVoiceNode.delayTime.value = 0.05; // Delay bc of inference
 
     this.lipSyncFeatureBuffer = new SharedArrayBuffer(28 * Float32Array.BYTES_PER_ELEMENT);
     this.lipSyncResultBuffer = new SharedArrayBuffer(1);
