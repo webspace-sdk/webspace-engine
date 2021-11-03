@@ -218,6 +218,7 @@ if (!debugMatrices) {
       this.hasHadFirstMatrixUpdate = true;
       this.matrixWorldNeedsUpdate = true;
       this.matrixNeedsUpdate = false;
+      this.childrenNeedMatrixWorldUpdate = false;
       this.worldMatrixConsumerFlags = 0x00;
       this.cachedMatrixWorld = this.matrixWorld;
     } else if (this.matrixNeedsUpdate || this.matrixAutoUpdate || forceLocalUpdate) {
