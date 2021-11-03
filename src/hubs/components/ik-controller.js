@@ -277,7 +277,7 @@ AFRAME.registerComponent("ik-controller", {
       this.jumpMotionProgress = Math.max(0, this.jumpMotionProgress - dt * 0.004);
     }
 
-    camera.object3D.updateMatrix();
+    camera.object3D.updateMatrices();
 
     const hasNewCameraTransform = !this.lastCameraTransform.equals(camera.object3D.matrix);
 
@@ -376,7 +376,7 @@ AFRAME.registerComponent("ik-controller", {
         invHipsQuaternion.copy(avatar.quaternion).inverse();
         head.quaternion.setFromRotationMatrix(headTransform).premultiply(invHipsQuaternion);
 
-        avatar.updateMatrix();
+        avatar.updateMatrices();
 
         rootToChest.multiplyMatrices(avatar.matrix, chest.matrix);
         invRootToChest.getInverse(rootToChest);

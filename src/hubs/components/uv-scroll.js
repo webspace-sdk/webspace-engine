@@ -20,7 +20,7 @@ export class UVScrollSystem {
         const mesh = instances[j].mesh;
         if (mesh.material.isMobileStandardMaterial) {
           if (!matrixUpdated) {
-            map.updateMatrix();
+            map.updateMatrices();
             matrixUpdated = true;
           }
           mesh.material.uniforms.uvTransform.value.copy(map.matrix);

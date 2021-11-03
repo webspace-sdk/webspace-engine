@@ -142,7 +142,7 @@ export default class MobileStandardMaterial extends THREE.ShaderMaterial {
 
     const uvScaleMap = this.map || this.emissiveMap;
     if (uvScaleMap && uvScaleMap.matrixAutoUpdate === true) {
-      uvScaleMap.updateMatrix();
+      uvScaleMap.updateMatrices();
       this.uniforms.uvTransform.value.copy(uvScaleMap.matrix);
     }
   }
