@@ -1,4 +1,5 @@
-const SYNC_DURATION_MS = 5000;
+const SYNC_DURATION_MS = 2000;
+const NUM_EXTRA_SYNCS = 5;
 
 // HACK this is a hacky component that is used to mitigate the situation where a first sync is missed on critical
 // networked elements. (At the time of this writing, specifically just the user's avatar.) The motivation
@@ -10,19 +11,17 @@ const SYNC_DURATION_MS = 5000;
 AFRAME.registerComponent("periodic-full-syncs", {
   init() {
     this.lastSync = 0;
+    this.syncCount = 0;
   },
 
   tick() {
+    if (this.syncCount > NUM_EXTRA_SYNCS) return;
+
     const now = performance.now();
 
-    if (
-      now - this.lastSync >= SYNC_DURATION_MS &&
-      this.el.components &&
-      this.el.components.networked &&
-      NAF.connection.adapter &&
-      NAF.connection.isConnected()
-    ) {
+    if (now - this.lastSync >= SYNC_DURATION_MS && this.el.components && this.el.components.networked) {
       this.lastSync = now;
+      this.syncCount++;
 
       // Sends an undirected first sync message.
       this.el.components.networked.syncAll(null, true);
