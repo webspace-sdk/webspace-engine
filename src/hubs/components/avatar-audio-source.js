@@ -2,19 +2,6 @@ const INFO_INIT_FAILED = "Failed to initialize avatar-audio-source.";
 const INFO_NO_NETWORKED_EL = "Could not find networked el.";
 const INFO_NO_OWNER = "Networked component has no owner.";
 
-// Chrome seems to require a MediaStream be attached to an AudioElement before AudioNodes work correctly
-// We don't want to do this in other browsers, particularly in Safari, which actually plays the audio despite
-// setting the volume to 0.
-const SHOULD_CREATE_SILENT_AUDIO_ELS = /chrome/i.test(navigator.userAgent);
-function createSilentAudioEl(stream) {
-  const audioEl = new Audio();
-  audioEl.setAttribute("autoplay", "autoplay");
-  audioEl.setAttribute("playsinline", "playsinline");
-  audioEl.srcObject = stream;
-  audioEl.volume = 0; // we don't actually want to hear audio from this element
-  return audioEl;
-}
-
 async function getOwnerId(el) {
   const networkedEl = await NAF.utils.getNetworkedEntity(el).catch(e => {
     console.error(INFO_INIT_FAILED, INFO_NO_NETWORKED_EL, e);
@@ -87,10 +74,6 @@ AFRAME.registerComponent("avatar-audio-source", {
     if (this.data.positional) {
       setPositionalAudioProperties(audio, this.data);
       setPositionalAudioPanningModel(audio);
-    }
-
-    if (SHOULD_CREATE_SILENT_AUDIO_ELS) {
-      createSilentAudioEl(stream); // TODO: Do the audio els need to get cleaned up?
     }
 
     const mediaStreamSource = audio.context.createMediaStreamSource(stream);
