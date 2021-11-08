@@ -58,8 +58,6 @@ export class MediaStreamSystem {
     } else {
       await this.fetchAndAddAudioTrack({ audio: {} });
     }
-
-    this.scene.emit("local-media-stream-created");
   }
 
   async fetchAndAddAudioTrack(constraints) {

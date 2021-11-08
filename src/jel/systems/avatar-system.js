@@ -337,7 +337,8 @@ export class AvatarSystem {
       avatarIkControllers
     } = this;
 
-    const presenceState = window.APP.spaceChannel.presence.state;
+    const presenceState = window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state;
+    if (!presenceState) return;
 
     const nafAdapter = NAF.connection.adapter;
     let duvNeedsUpdate = false,

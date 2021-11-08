@@ -76,15 +76,18 @@ AFRAME.registerComponent("avatar-audio-source", {
       setPositionalAudioPanningModel(audio);
     }
 
-    const mediaStreamSource = audio.context.createMediaStreamSource(stream);
-    audio.setNodeSource(mediaStreamSource);
+    this.mediaStreamSource = audio.context.createMediaStreamSource(stream);
+    this.destination = audio.context.createMediaStreamDestination();
+    const destinationSource = audio.context.createMediaStreamSource(this.destination.stream);
+    this.mediaStreamSource.connect(this.destination);
+    audio.setNodeSource(destinationSource);
     this.el.setObject3D(this.attrName, audio);
 
     // Ensure panner node is positioned properly, even if tabbed away and
     // tick loop isn't running.
     audio.updateMatrixWorld();
 
-    this.el.emit("sound-source-set", { soundSource: mediaStreamSource });
+    this.el.emit("sound-source-set", { soundSource: this.mediaStreamSource });
   },
 
   destroyAudio() {
@@ -150,7 +153,9 @@ AFRAME.registerComponent("avatar-audio-source", {
 
     if (!newStream) return;
 
-    this.recreateAudio();
+    this.mediaStreamSource.disconnect();
+    this.mediaStreamSource = audio.context.createMediaStreamSource(newStream);
+    this.mediaStreamSource.connect(this.destination);
   },
 
   remove: function() {
