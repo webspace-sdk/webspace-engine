@@ -26,5 +26,9 @@ AFRAME.registerComponent("periodic-full-syncs", {
       // Sends an undirected first sync message.
       this.el.components.networked.syncAll(null, true);
     }
+  },
+
+  reset() {
+    this.lastSync = 0;
   }
 });

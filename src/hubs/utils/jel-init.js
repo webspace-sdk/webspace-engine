@@ -63,7 +63,7 @@ async function updateEnvironmentForHub(hub) {
   SYSTEMS.atmosphereSystem.updateAtmosphereForHub(hub);
 }
 
-async function moveToInitialHubLocation(hub, hubStore) {
+async function moveToInitialHubLocationAndBeginPeriodicSyncs(hub, hubStore) {
   const sceneEl = document.querySelector("a-scene");
 
   const characterController = sceneEl.systems["hubs-systems"].characterController;
@@ -112,6 +112,8 @@ async function moveToInitialHubLocation(hub, hubStore) {
   }
 
   characterController.teleportTo(startPosition, startRotation);
+
+  [...document.querySelectorAll("[periodic-full-syncs]")].forEach(el => el.components["periodic-full-syncs"].reset());
 }
 
 const createDynaChannelParams = () => {
@@ -698,7 +700,7 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
               return;
             }
 
-            moveToInitialHubLocation(hub, hubStore);
+            moveToInitialHubLocationAndBeginPeriodicSyncs(hub, hubStore);
 
             NAF.connection.adapter
               .joinHub(hub.hub_id)

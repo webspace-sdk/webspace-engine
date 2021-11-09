@@ -92,7 +92,7 @@ AFRAME.registerComponent("avatar-audio-source", {
     // tick loop isn't running.
     audio.updateMatrixWorld();
 
-    this.el.emit("sound-source-set", { soundSource: this.mediaStreamSource });
+    this.el.emit("sound-source-set", { soundSource: destinationSource });
   },
 
   destroyAudio() {
