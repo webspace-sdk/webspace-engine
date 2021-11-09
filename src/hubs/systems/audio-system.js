@@ -39,6 +39,10 @@ export class AudioSystem {
     this.outboundAnalyser.connect(this.mediaStreamDestinationNode);
     this.aecHackOutboundPeer = null;
     this.aecHackInboundPeer = null;
+    this.aecHackApplyInterval = null;
+    this.aecHackAudioEl = null;
+    this.aecHackApplying = false;
+    this.aecHackDisableAt = null;
 
     /**
      * Chrome and Safari will start Audio contexts in a "suspended" state.
@@ -49,10 +53,16 @@ export class AudioSystem {
 
       setTimeout(() => {
         if (this.audioContext.state === "running") {
-          this.applyAECHack();
-
           document.body.removeEventListener("touchend", resume, false);
           document.body.removeEventListener("mouseup", resume, false);
+
+          if (qsTruthy("noaechack")) return;
+          if (AFRAME.utils.device.isMobile() || !/chrome/i.test(navigator.userAgent)) return;
+          if (this.aecHackApplyInterval) return;
+
+          this.aecHackApplyInterval = setInterval(() => {
+            this.applyAECAndMediaSourceHack();
+          }, 500);
         }
       }, 0);
     };
@@ -183,9 +193,6 @@ export class AudioSystem {
         this.audioNodes.set(id, { sourceNode, gainNode, connected: true });
       }
     }
-
-    clearTimeout(this.disableAECHackTimeout);
-    this.applyAECHack();
   }
 
   disableOutboundAudioStream(id) {
@@ -197,9 +204,6 @@ export class AudioSystem {
         this.audioNodes.set(id, { sourceNode, gainNode, connected: false });
       }
     }
-
-    // Delay disabling AEC hack to avoid rapid oscillations of WebRTC setup if muting/unmuting
-    this.disableAECHackTimeout = setTimeout(() => this.applyAECHack(), 5000);
   }
 
   addStreamToOutboundAudio(id, mediaStream) {
@@ -224,7 +228,11 @@ export class AudioSystem {
   }
 
   /**
-   *  workaround for: https://bugs.chromium.org/p/chromium/issues/detail?id=687574
+   *  workaround for both:
+   *
+   *  https://bugs.chromium.org/p/chromium/issues/detail?id=687574
+   *  https://bugs.chromium.org/p/chromium/issues/detail?id=933677
+   *
    *  1. grab the GainNode from the scene's THREE.AudioListener
    *  2. disconnect the GainNode from the AudioDestinationNode (basically the audio out), this prevents hearing the audio twice.
    *  3. create a local webrtc connection between two RTCPeerConnections (see this example: https://webrtc.github.io/samples/src/content/peerconnection/pc1/)
@@ -232,45 +240,74 @@ export class AudioSystem {
    *  5. add the MediaStreamDestination's track  to one of those RTCPeerConnections
    *  6. connect the other RTCPeerConnection's stream to a new audio element.
    *  All audio is now routed through Chrome's audio mixer, thus enabling AEC, while preserving all the audio processing that was performed via the WebAudio API.
+   *  7. Add an audio element for the source, which will address 933677
+   *
+   *  This routine is run every 500ms, and determines if the hack should be enabled currently. It should be enabled if the user is unmuted or if there is another person in the room. Once this condition fails, the hack is disabled after 30s.
    */
-  async applyAECHack() {
-    if (qsTruthy("noaechack")) return;
-    if (AFRAME.utils.device.isMobile() || !/chrome/i.test(navigator.userAgent)) return;
-    this.audioContext = THREE.AudioContext.getContext();
-    if (this.audioContext.state !== "running") return;
+  async applyAECAndMediaSourceHack() {
+    if (this.aecHackApplying) return;
 
-    const hasConnectedNode = !![...this.audioNodes.values()].find(({ connected }) => connected);
-    const gainNode = this.scene.audioListener.gain;
+    this.aecHackApplying = true;
 
-    if (hasConnectedNode) {
-      if (this.aecHackOutboundPeer) return;
+    try {
+      this.audioContext = THREE.AudioContext.getContext();
+      if (this.audioContext.state !== "running") return;
+      if (!window.APP.hubChannel || !window.APP.hubChannel.presence || !window.APP.hubChannel.presence.state) return;
 
-      const audioEl = new Audio();
-      audioEl.setAttribute("autoplay", "autoplay");
-      audioEl.setAttribute("playsinline", "playsinline");
+      // Hacky but efficient way to check if 2 or more keys in presence
+      let maxTwoOccupantCount = 0;
+      // eslint-disable-next-line no-unused-vars
+      for (const k in window.APP.hubChannel.presence.state) {
+        maxTwoOccupantCount++;
+        if (maxTwoOccupantCount === 2) break;
+      }
 
-      const context = THREE.AudioContext.getContext();
-      const loopbackDestination = context.createMediaStreamDestination();
-      this.aecHackOutboundPeer = new RTCPeerConnection();
-      this.aecHackInboundPeer = new RTCPeerConnection();
+      // We need the AEC + media stream source hack if the user is unmuted
+      // or there are other avatars.
+      const hackNeeded = this.scene.is("unmuted") || maxTwoOccupantCount > 1;
 
-      const onError = e => {
-        console.error("RTCPeerConnection loopback initialization error", e);
-      };
+      const now = performance.now();
 
-      this.aecHackOutboundPeer.addEventListener("icecandidate", e => {
-        this.aecHackInboundPeer.addIceCandidate(e.candidate).catch(onError);
-      });
+      // Disable the hack after a grace period when muted and no other avatar sources
+      if (this.aecHackDisableAt === null && !hackNeeded) {
+        this.aecHackDisableAt = now + 30000;
+      } else if (hackNeeded && this.aecHackDisableAt !== null) {
+        this.aecHackDisableAt = null;
+      }
 
-      this.aecHackInboundPeer.addEventListener("icecandidate", e => {
-        this.aecHackOutboundPeer.addIceCandidate(e.candidate).catch(onError);
-      });
+      const shouldApplyHack = this.aecHackDisableAt === null || this.aecHackDisableAt > performance.now();
 
-      this.aecHackInboundPeer.addEventListener("track", e => {
-        audioEl.srcObject = e.streams[0];
-      });
+      if (shouldApplyHack) {
+        if (this.aecHackOutboundPeer) return;
+        const gainNode = this.scene.audioListener.gain;
 
-      try {
+        const onError = e => {
+          console.error("RTCPeerConnection loopback initialization error", e);
+        };
+
+        if (!this.aecHackAudioEl) {
+          this.aecHackAudioEl = new Audio();
+          this.aecHackAudioEl.setAttribute("autoplay", "autoplay");
+          this.aecHackAudioEl.setAttribute("playsinline", "playsinline");
+        }
+
+        const context = THREE.AudioContext.getContext();
+        const loopbackDestination = context.createMediaStreamDestination();
+        this.aecHackOutboundPeer = new RTCPeerConnection();
+        this.aecHackInboundPeer = new RTCPeerConnection();
+
+        this.aecHackOutboundPeer.addEventListener("icecandidate", e => {
+          this.aecHackInboundPeer.addIceCandidate(e.candidate).catch(onError);
+        });
+
+        this.aecHackInboundPeer.addEventListener("icecandidate", e => {
+          this.aecHackOutboundPeer.addIceCandidate(e.candidate).catch(onError);
+        });
+
+        this.aecHackInboundPeer.addEventListener("track", e => {
+          this.aecHackAudioEl.srcObject = e.streams[0];
+        });
+
         //The following should never fail, but just in case, we won't disconnect/reconnect the gainNode unless all of this succeeds
         loopbackDestination.stream.getTracks().forEach(track => {
           this.aecHackOutboundPeer.addTrack(track, loopbackDestination.stream);
@@ -302,17 +339,24 @@ export class AudioSystem {
 
         gainNode.disconnect();
         gainNode.connect(loopbackDestination);
-      } catch (e) {
-        onError(e);
+      } else {
+        if (!this.aecHackOutboundPeer) return;
+
+        const gainNode = this.scene.audioListener.gain;
+
+        this.aecHackOutboundPeer.close();
+        this.aecHackInboundPeer.close();
+        this.aecHackOutboundPeer.srcObject = null;
+
+        this.aecHackOutboundPeer = null;
+        this.aecHackInboundPeer = null;
+        gainNode.disconnect();
+        gainNode.connect(this.audioContext.destination);
       }
-    } else {
-      if (!this.aecHackOutboundPeer) return;
-      if (this.aecHackOutboundPeer) this.aecHackOutboundPeer.close();
-      if (this.aecHackInboundPeer) this.aecHackInboundPeer.close();
-      this.aecHackOutboundPeer = null;
-      this.aecHackInboundPeer = null;
-      gainNode.disconnect();
-      gainNode.connect(this.audioContext.destination);
+    } catch (e) {
+      console.error("AEC Hack error", e);
+    } finally {
+      this.aecHackApplying = false;
     }
   }
 }

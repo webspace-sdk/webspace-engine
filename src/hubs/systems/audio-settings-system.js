@@ -87,6 +87,10 @@ export class AudioSettingsSystem {
     }
   }
 
+  hasAvatarAudioSources() {
+    return this.avatarAudioSources.length > 0;
+  }
+
   updateAudioSettings(settings) {
     this.audioSettings = Object.assign({}, this.defaultSettings, settings);
 
