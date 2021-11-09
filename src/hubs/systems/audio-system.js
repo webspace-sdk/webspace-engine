@@ -55,20 +55,18 @@ export class AudioSystem {
         if (this.audioContext.state === "running") {
           document.body.removeEventListener("touchend", resume, false);
           document.body.removeEventListener("mouseup", resume, false);
-
-          if (qsTruthy("noaechack")) return;
-          if (AFRAME.utils.device.isMobile() || !/chrome/i.test(navigator.userAgent)) return;
-          if (this.aecHackApplyInterval) return;
-
-          this.aecHackApplyInterval = setInterval(() => {
-            this.applyAECAndMediaSourceHack();
-          }, 500);
         }
       }, 0);
     };
 
     document.body.addEventListener("touchend", resume, false);
     document.body.addEventListener("mouseup", resume, false);
+
+    if (!qsTruthy("noaechack") && !AFRAME.utils.device.isMobile() && /chrome/i.test(navigator.userAgent)) {
+      this.aecHackApplyInterval = setInterval(() => {
+        this.applyAECAndMediaSourceHack();
+      }, 500);
+    }
 
     autoQualitySystem.addEventListener("framerate_stable", () => {
       // Start lip syncing after level loads to avoid hitching.

@@ -1,5 +1,5 @@
-const SYNC_DURATION_MS = 2000;
-const NUM_EXTRA_SYNCS = 5;
+const SYNC_DURATION_MS = 3000;
+const NUM_EXTRA_SYNCS = 3;
 
 // HACK this is a hacky component that is used to mitigate the situation where a first sync is missed on critical
 // networked elements. (At the time of this writing, specifically just the user's avatar.) The motivation
@@ -10,8 +10,7 @@ const NUM_EXTRA_SYNCS = 5;
 // every SYNC_DURATION_MS milliseconds.
 AFRAME.registerComponent("periodic-full-syncs", {
   init() {
-    this.lastSync = 0;
-    this.syncCount = 0;
+    this.reset();
   },
 
   tick() {
@@ -30,5 +29,10 @@ AFRAME.registerComponent("periodic-full-syncs", {
 
   reset() {
     this.lastSync = 0;
+    this.syncCount = 0;
   }
 });
+
+export function restartPeriodicSyncs() {
+  [...document.querySelectorAll("[periodic-full-syncs]")].forEach(el => el.components["periodic-full-syncs"].reset());
+}

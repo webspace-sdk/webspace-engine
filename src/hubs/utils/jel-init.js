@@ -16,6 +16,7 @@ import MediaTree from "../../jel/utils/media-tree";
 import WorldImporter from "../../jel/utils/world-importer";
 import { getHtmlForTemplate, applyTemplate } from "../../jel/utils/template-utils";
 import { clearVoxAttributePools } from "../../jel/objects/JelVoxBufferGeometry";
+import { restartPeriodicSyncs } from "../components/periodic-full-syncs";
 import mixpanel from "mixpanel-browser";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
@@ -113,7 +114,7 @@ async function moveToInitialHubLocationAndBeginPeriodicSyncs(hub, hubStore) {
 
   characterController.teleportTo(startPosition, startRotation);
 
-  [...document.querySelectorAll("[periodic-full-syncs]")].forEach(el => el.components["periodic-full-syncs"].reset());
+  restartPeriodicSyncs();
 }
 
 const createDynaChannelParams = () => {
