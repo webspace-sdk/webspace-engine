@@ -1101,7 +1101,9 @@ export default class DialogAdapter extends EventTarget {
       this._timeOffsets[this._serverTimeRequests % 10] = timeOffset;
     }
 
-    this._avgTimeOffset = this._timeOffsets.reduce((acc, offset) => (acc += offset), 0) / this._timeOffsets.length;
+    this._avgTimeOffset = Math.floor(
+      this._timeOffsets.reduce((acc, offset) => (acc += offset), 0) / this._timeOffsets.length
+    );
 
     if (this._serverTimeRequests > 10) {
       debug(`new server time offset: ${this._avgTimeOffset}ms`);
