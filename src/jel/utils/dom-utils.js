@@ -78,7 +78,9 @@ const lockCursor = (ephemeral = false) => {
     return;
   }
 
-  lockedCursorLockState = ephemeral ? CURSOR_LOCK_STATES.LOCKED_EPHEMERAL : CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
+  const newLockedCursorLockState = ephemeral
+    ? CURSOR_LOCK_STATES.LOCKED_EPHEMERAL
+    : CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
 
   const canvas = scene.canvas;
   const userinput = scene.systems.userinput;
@@ -88,6 +90,8 @@ const lockCursor = (ephemeral = false) => {
   document.addEventListener(
     "pointerlockchange",
     () => {
+      lockedCursorLockState = newLockedCursorLockState;
+
       if (retryLockTimeout) {
         clearTimeout(retryLockTimeout);
         retryLockTimeout = null;
