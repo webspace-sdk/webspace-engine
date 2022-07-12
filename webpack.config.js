@@ -244,7 +244,7 @@ module.exports = async (env, argv) => {
     node: {
       // need to specify this manually because some random lodash code will try to access
       // Buffer on the global object if it exists, so webpack will polyfill on its behalf
-      Buffer: false,
+      Buffer: true,
       fs: "empty"
     },
     entry: {
