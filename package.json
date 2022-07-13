@@ -128,7 +128,7 @@
     "three-bmfont-text": "github:mozillareality/three-bmfont-text#hubs/master",
     "three-mesh-bvh": "^0.2.0",
     "three-pathfinding": "github:MozillaReality/three-pathfinding#hubs/master2",
-    "three-to-ammo": "github:infinitelee/three-to-ammo",
+    "three-to-ammo": "github:infinitelee/three-to-ammo#a15da9afc16b834f6c1906ab94e0ab3071e9ff09",
     "transform-parser": "^1.0.1",
     "uuid": "^3.2.1",
     "webrtc-adapter": "^6.0.2",
