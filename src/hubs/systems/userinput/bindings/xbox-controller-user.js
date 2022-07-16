@@ -181,11 +181,6 @@ export const xboxControllerUserBindings = addSetsToBindings({
       xform: xforms.falling
     },
     {
-      src: { value: button("start").pressed },
-      dest: { value: paths.actions.toggleFreeze },
-      xform: xforms.rising
-    },
-    {
       src: { value: button("a").pressed },
       dest: { value: paths.actions.startGazeTeleport },
       xform: xforms.rising

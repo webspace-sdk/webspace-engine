@@ -305,7 +305,6 @@ AFRAME.registerComponent("media-video", {
     getNetworkedEntity(this.el)
       .then(networkedEl => {
         this.networkedEl = networkedEl;
-        applyPersistentSync(getNetworkId(this.networkedEl));
         this.updatePlaybackState();
 
         window.APP.hubChannel.addEventListener("permissions_updated", this.updateHoverMenu);

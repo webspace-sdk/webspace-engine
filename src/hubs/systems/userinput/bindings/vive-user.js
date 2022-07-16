@@ -398,11 +398,6 @@ export const viveUserBindings = addSetsToBindings({
       xform: xforms.any
     },
     {
-      src: { value: paths.device.keyboard.key("Tab") },
-      dest: { value: paths.actions.toggleFreeze },
-      xform: xforms.rising
-    },
-    {
       src: { value: paths.device.keyboard.key(" ") },
       dest: { value: ensureFrozenViaKeyboard },
       xform: xforms.copy

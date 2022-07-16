@@ -27,41 +27,41 @@ export function navigateToHubUrl(history, url, replace = false) {
   (replace ? replaceHistoryPath : pushHistoryPath)(history, path, search);
 }
 
-export function setupPeerConnectionConfig(adapter, host, turn) {
-  const forceTurn = qs.get("force_turn");
-  const forceTcp = qs.get("force_tcp");
-  const peerConnectionConfig = {};
-
-  if (turn && turn.enabled) {
-    const iceServers = [];
-
-    turn.transports.forEach(ts => {
-      // Try both TURN DTLS and TCP/TLS
-      if (!forceTcp) {
-        iceServers.push({ urls: `turns:${host}:${ts.port}`, username: turn.username, credential: turn.credential });
-      }
-
-      iceServers.push({
-        urls: `turns:${host}:${ts.port}?transport=tcp`,
-        username: turn.username,
-        credential: turn.credential
-      });
-    });
-
-    iceServers.push({ urls: "stun:stun1.l.google.com:19302" });
-
-    peerConnectionConfig.iceServers = iceServers;
-    peerConnectionConfig.iceTransportPolicy = "all";
-
-    if (forceTurn || forceTcp) {
-      peerConnectionConfig.iceTransportPolicy = "relay";
-    }
-  } else {
-    peerConnectionConfig.iceServers = [
-      { urls: "stun:stun1.l.google.com:19302" },
-      { urls: "stun:stun2.l.google.com:19302" }
-    ];
-  }
-
-  adapter.setPeerConnectionConfig(peerConnectionConfig);
-}
+// export function setupPeerConnectionConfig(adapter, host, turn) {
+//   const forceTurn = qs.get("force_turn");
+//   const forceTcp = qs.get("force_tcp");
+//   const peerConnectionConfig = {};
+//
+//   if (turn && turn.enabled) {
+//     const iceServers = [];
+//
+//     turn.transports.forEach(ts => {
+//       // Try both TURN DTLS and TCP/TLS
+//       if (!forceTcp) {
+//         iceServers.push({ urls: `turns:${host}:${ts.port}`, username: turn.username, credential: turn.credential });
+//       }
+//
+//       iceServers.push({
+//         urls: `turns:${host}:${ts.port}?transport=tcp`,
+//         username: turn.username,
+//         credential: turn.credential
+//       });
+//     });
+//
+//     iceServers.push({ urls: "stun:stun1.l.google.com:19302" });
+//
+//     peerConnectionConfig.iceServers = iceServers;
+//     peerConnectionConfig.iceTransportPolicy = "all";
+//
+//     if (forceTurn || forceTcp) {
+//       peerConnectionConfig.iceTransportPolicy = "relay";
+//     }
+//   } else {
+//     peerConnectionConfig.iceServers = [
+//       { urls: "stun:stun1.l.google.com:19302" },
+//       { urls: "stun:stun2.l.google.com:19302" }
+//     ];
+//   }
+//
+//   adapter.setPeerConnectionConfig(peerConnectionConfig);
+// }

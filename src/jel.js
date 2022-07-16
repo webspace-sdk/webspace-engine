@@ -52,7 +52,6 @@ import "./hubs/components/player-info";
 import "./hubs/components/debug";
 import "./hubs/components/hand-poses";
 import "./hubs/components/hud-controller";
-import "./hubs/components/freeze-controller";
 import "./hubs/components/icon-button";
 import "./hubs/components/text-button";
 import "./hubs/components/block-button";
@@ -1335,6 +1334,7 @@ async function start() {
   });
 
   scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(socket.params().session_id));
+  scene.addEventListener("adapter-ready", () => NAF.connection.dataAdapter.setClientId(socket.params().session_id));
 
   authChannel.setSocket(socket);
 

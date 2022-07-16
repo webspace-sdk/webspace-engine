@@ -1,7 +1,6 @@
 import TreeManager from "../../jel/utils/tree-manager";
-import { getHubIdFromHistory, getSpaceIdFromHistory, setupPeerConnectionConfig } from "../../jel/utils/jel-url-utils";
+import { getHubIdFromHistory, getSpaceIdFromHistory } from "../../jel/utils/jel-url-utils";
 import nextTick from "./next-tick";
-import { authorizeOrSanitizeMessage } from "./permissions-utils";
 import { isSetEqual } from "../../jel/utils/set-utils";
 import { homeHubForSpaceId, getInitialHubForSpaceId } from "../../jel/utils/membership-utils";
 import { clearResolveUrlCache } from "./media-utils";
@@ -19,7 +18,6 @@ import { clearVoxAttributePools } from "../../jel/objects/JelVoxBufferGeometry";
 import { restartPeriodicSyncs } from "../components/periodic-full-syncs";
 import mixpanel from "mixpanel-browser";
 
-const PHOENIX_RELIABLE_NAF = "phx-reliable";
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
 
 const isDebug = qsTruthy("debug");
@@ -411,52 +409,6 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
 
         isInitialJoin = false;
 
-        const { xana_host, turn } = data.spaces[0];
-
-        const setupNAFAdapter = () => {
-          const adapter = NAF.connection.adapter;
-
-          if (!adapter.reliableTransport) {
-            // These will be set later when we join a hub.
-            adapter.reliableTransport = () => {};
-            adapter.unreliableTransport = () => {};
-          }
-
-          setupPeerConnectionConfig(adapter, xana_host, turn);
-
-          let newXanaHostPollInterval = null;
-
-          // When reconnecting, update the server URL if necessary
-          adapter.setReconnectionListeners(
-            () => {
-              if (newXanaHostPollInterval) return;
-
-              newXanaHostPollInterval = setInterval(async () => {
-                const { xana_host, xana_port, turn } = await spaceChannel.getHosts();
-
-                const currentXanaURL = adapter.getServerUrl();
-                const newXanaURL = `wss://${xana_host}:${xana_port}`;
-
-                setupPeerConnectionConfig(adapter, xana_host, turn);
-
-                if (currentXanaURL !== newXanaURL) {
-                  console.log(`Updated Xana Host: ${newXanaURL}`);
-                  scene.setAttribute("networked-scene", { serverURL: newXanaURL });
-                  adapter.setServerUrl(newXanaURL);
-                }
-              }, 10000);
-            },
-            () => {
-              clearInterval(newXanaHostPollInterval);
-              newXanaHostPollInterval = null;
-            },
-            () => {
-              clearInterval(newXanaHostPollInterval);
-              newXanaHostPollInterval = null;
-            }
-          );
-        };
-
         const setupSAFAdapter = () => {
           SAF.connection.adapter.setClientId(socket.params().session_id);
           const adapter = SAF.connection.adapter;
@@ -487,12 +439,6 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
             }
           );
         };
-
-        if (NAF.connection.adapter) {
-          setupNAFAdapter();
-        } else {
-          scene.addEventListener("adapter-ready", setupNAFAdapter, { once: true });
-        }
 
         if (SAF.connection.adapter) {
           setupSAFAdapter();
@@ -619,10 +565,6 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
         const presence = hubChannel.presence;
         const permsToken = data.perms_token;
         hubChannel.setPermissionsFromToken(permsToken);
-
-        const adapter = NAF.connection.adapter;
-        adapter.reliableTransport = hubChannel.sendReliableNAF.bind(hubChannel);
-        adapter.unreliableTransport = hubChannel.sendUnreliableNAF.bind(hubChannel);
 
         if (isInitialJoin) {
           await initHubPresence(presence);
@@ -777,20 +719,6 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
   const scene = document.querySelector("a-scene");
   const { hubChannel, spaceChannel } = window.APP;
   const messages = getMessages();
-
-  const handleIncomingNAF = data => {
-    if (!NAF.connection.adapter) return;
-
-    NAF.connection.adapter.onData(authorizeOrSanitizeMessage(data), PHOENIX_RELIABLE_NAF);
-  };
-
-  hubPhxChannel.on("naf", data => handleIncomingNAF(data));
-  hubPhxChannel.on("nafr", ({ from_session_id, naf: unparsedData }) => {
-    // Server optimization: server passes through unparsed NAF message, we must now parse it.
-    const data = JSON.parse(unparsedData);
-    data.from_session_id = from_session_id;
-    handleIncomingNAF(data);
-  });
 
   hubPhxChannel.on("message", ({ session_id, to_session_id, type, body }) => {
     const getName = session_id => {

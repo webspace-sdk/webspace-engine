@@ -20,7 +20,6 @@ paths.actions.startGazeTeleport = "/actions/startTeleport";
 paths.actions.stopGazeTeleport = "/actions/stopTeleport";
 paths.actions.spawnPen = "/actions/spawnPen";
 paths.actions.ensureFrozen = "/actions/ensureFrozen";
-paths.actions.toggleFreeze = "/actions/toggleFreeze";
 paths.actions.thaw = "/actions/thaw";
 paths.actions.mash = "/actions/mash";
 paths.actions.mashRelease = "/actions/mashRelease";

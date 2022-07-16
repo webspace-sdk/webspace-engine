@@ -1,7 +1,6 @@
 import * as mediasoupClient from "mediasoup-client";
 import protooClient from "protoo-client";
 import { debug as newDebug } from "debug";
-import { setupPeerConnectionConfig } from "../jel/utils/jel-url-utils";
 import { EventTarget } from "event-target-shim";
 import qsTruthy from "./utils/qs_truthy";
 
@@ -76,6 +75,9 @@ export default class DialogAdapter extends EventTarget {
     this._recvTransport = null;
     this.type = "dialog";
     this.occupants = {}; // This is a public field
+    this._onOccupantConnected = () => {};
+    this._onOccupantDisconnected = () => {};
+    this._onOccupantMessage = () => {};
   }
 
   setOutgoingVisemeBuffer(buffer) {
@@ -147,11 +149,7 @@ export default class DialogAdapter extends EventTarget {
     this._onOccupantsChanged = occupantListener;
   }
 
-  setDataChannelListeners(openListener, closedListener, messageListener) {
-    this._onOccupantConnected = openListener;
-    this._onOccupantDisconnected = closedListener;
-    this._onOccupantMessage = messageListener;
-  }
+  setDataChannelListeners(/*openListener, closedListener, messageListener*/) {}
 
   async connect() {
     const urlWithParams = new URL(this._serverUrl);
@@ -825,9 +823,6 @@ export default class DialogAdapter extends EventTarget {
     } else {
       console.warn("Transport closed, checking for new server + re-creating.");
 
-      const { xana_host, turn } = await window.APP.spaceChannel.getHosts();
-      setupPeerConnectionConfig(this, xana_host, turn);
-
       if (type === "send") {
         await this.ensureSendTransportClosed();
 
@@ -1113,23 +1108,6 @@ export default class DialogAdapter extends EventTarget {
     }
   }
 
-  toggleFreeze() {
-    if (this.frozen) {
-      this.unfreeze();
-    } else {
-      this.freeze();
-    }
-  }
-
-  freeze() {
-    this.frozen = true;
-  }
-
-  unfreeze() {
-    this.frozen = false;
-    this.flushPendingUpdates();
-  }
-
   storeMessage(message) {
     if (message.dataType === "um") {
       // UpdateMulti
@@ -1192,11 +1170,7 @@ export default class DialogAdapter extends EventTarget {
 
     message.source = source;
 
-    if (this.frozen) {
-      this.storeMessage(message);
-    } else {
-      this._onOccupantMessage(null, message.dataType, message.data, message.source);
-    }
+    this._onOccupantMessage(null, message.dataType, message.data, message.source);
   }
 
   getPendingData(networkId, message) {

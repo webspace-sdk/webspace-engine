@@ -16,7 +16,6 @@ const isBotMode = qsTruthy("bot");
 const isMobile = AFRAME.utils.device.isMobile();
 const forceEnableTouchscreen = hackyMobileSafariTest();
 const isMobileVR = AFRAME.utils.device.isMobileVR();
-const isDebug = qsTruthy("debug");
 const qs = new URLSearchParams(location.search);
 
 import {
@@ -63,14 +62,6 @@ export default class SceneEntryManager {
   };
 
   enterScene = async enterInVR => {
-    if (isDebug && NAF.connection.adapter.session) {
-      NAF.connection.adapter.session.options.verbose = true;
-    }
-
-    if (isDebug && SAF.connection.adapter.session) {
-      SAF.connection.adapter.session.options.verbose = true;
-    }
-
     if (enterInVR) {
       // This specific scene state var is used to check if the user went through the
       // entry flow and chose VR entry, and is used to preempt VR mode on refreshes.
