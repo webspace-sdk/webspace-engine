@@ -32,8 +32,6 @@ import patchThreeNoProgramDispose from "./jel/utils/threejs-avoid-disposing-prog
 import { detectOS, detect } from "detect-browser";
 import { getReticulumMeta } from "./hubs/utils/phoenix-utils";
 
-import "./hubs/naf-dialog-adapter";
-
 import "./hubs/components/scene-components";
 import "./hubs/components/scale-in-screen-space";
 import "./hubs/components/mute-mic";
@@ -1283,14 +1281,6 @@ async function start() {
   const socket = await createSocket(entryManager);
 
   spaceChannel.addEventListener("permissions_updated", ({ detail: { permsToken } }) => {
-    const assignJoinToken = () => NAF.connection.adapter.setSpaceJoinToken(permsToken);
-
-    if (NAF.connection.adapter) {
-      assignJoinToken();
-    } else {
-      scene.addEventListener("adapter-ready", assignJoinToken, { once: true });
-    }
-
     const assignCollectionToken = () => SAF.connection.adapter.setCollectionPermsToken(permsToken);
 
     if (SAF.connection.adapter) {
@@ -1303,14 +1293,6 @@ async function start() {
   });
 
   hubChannel.addEventListener("permissions_updated", ({ detail: { permsToken } }) => {
-    const assignJoinToken = () => NAF.connection.adapter.setHubJoinToken(permsToken);
-
-    if (NAF.connection.adapter) {
-      assignJoinToken();
-    } else {
-      scene.addEventListener("adapter-ready", assignJoinToken, { once: true });
-    }
-
     const assignDocToken = () => SAF.connection.adapter.setDocPermsToken(hubChannel.hubId, permsToken);
 
     if (SAF.connection.adapter) {
@@ -1334,7 +1316,6 @@ async function start() {
   });
 
   scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(socket.params().session_id));
-  scene.addEventListener("adapter-ready", () => NAF.connection.dataAdapter.setClientId(socket.params().session_id));
 
   authChannel.setSocket(socket);
 

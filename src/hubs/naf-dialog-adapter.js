@@ -1218,5 +1218,3 @@ export default class DialogAdapter extends EventTarget {
     return null;
   }
 }
-
-NAF.adapters.register("dialog", DialogAdapter);

@@ -458,19 +458,18 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
         console.log(`Xana host: ${space.xana_host}:${space.xana_port}`);
         console.log(`Arpa host: ${space.arpa_host}:${space.arpa_port}`);
 
-        const xanaUrl = `wss://${space.xana_host}:${space.xana_port}`;
         const arpaUrl = `wss://${space.arpa_host}:${space.arpa_port}`;
 
+        const safConnected = new Promise(res => document.body.addEventListener("share-connected", res, { once: true }));
+
         // Wait for scene objects to load before connecting, so there is no race condition on network state.
-        scene.setAttribute("networked-scene", {
-          audio: true,
-          connectOnLoad: false,
-          adapter: "dialog",
-          app: "jel",
-          room: spaceId,
-          serverURL: xanaUrl,
-          debug: !!isDebug
-        });
+        const handle = evt => {
+          if (evt.detail.name !== "shared-scene") return;
+          scene.removeEventListener("componentinitialized", handle);
+          scene.components["shared-scene"].connect();
+        };
+
+        scene.addEventListener("componentinitialized", handle);
 
         scene.setAttribute("shared-scene", {
           connectOnLoad: false,
@@ -479,25 +478,15 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
           debug: !!isDebug
         });
 
-        while (!scene.components["networked-scene"] || !scene.components["networked-scene"].data) await nextTick();
-
         const connectionErrorTimeout = setTimeout(() => {
           console.error("Unknown error occurred while attempting to connect to networked scene.");
           remountJelUI({ unavailableReason: "connect_error" });
           entryManager.exitScene();
         }, 90000);
 
-        const nafConnected = new Promise(res => document.body.addEventListener("connected", res, { once: true }));
-        const safConnected = new Promise(res => document.body.addEventListener("share-connected", res, { once: true }));
-
-        scene.components["networked-scene"]
-          .connect()
-          .then(() => scene.components["shared-scene"].connect())
-          .then(() => nafConnected)
-          .then(() => safConnected)
+        safConnected
           .then(() => {
             clearTimeout(connectionErrorTimeout);
-            scene.emit("didConnectToNetworkedScene");
             joinFinished();
           })
           .catch(connectError => {
@@ -645,8 +634,36 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
 
             moveToInitialHubLocationAndBeginPeriodicSyncs(hub, hubStore);
 
-            NAF.connection.adapter
-              .joinHub(hub.hub_id)
+            const joinPromise = new Promise(res => document.body.addEventListener("connected", res, { once: true }));
+
+            if (isInitialJoin) {
+              const handle = evt => {
+                if (evt.detail.name !== "networked-scene");
+                scene.removeEventListener("componentinitialized", handle);
+                scene.components["networked-scene"].connect();
+              };
+
+              scene.addEventListener("componentinitialized", handle);
+
+              scene.setAttribute("networked-scene", {
+                audio: true,
+                connectOnLoad: false,
+                room: hub.hub_id,
+                adapter: "p2pt",
+                app: "jel",
+                debug: !!isDebug
+              });
+            } else {
+              NAF.connection.adapter.joinRoom(hub.hub_id);
+            }
+
+            const connectionErrorTimeout = setTimeout(() => {
+              console.error("Unknown error occurred while attempting to connect to networked scene.");
+              remountJelUI({ unavailableReason: "connect_error" });
+              entryManager.exitScene();
+            }, 90000);
+
+            joinPromise
               .then(() => scene.components["shared-scene"].subscribe(hub.hub_id))
               .then(() => {
                 if (isInitialJoin) {
@@ -659,6 +676,10 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
                 } else {
                   return Promise.resolve();
                 }
+              })
+              .then(() => {
+                clearTimeout(connectionErrorTimeout);
+                scene.emit("didConnectToNetworkedScene");
               })
               .then(res);
           }
@@ -953,7 +974,7 @@ export async function joinHub(scene, socket, history, entryManager, remountUI, r
     // join another hub over NAF.
     const sendExitMessage = !isWorld;
 
-    NAF.connection.adapter.leaveHub(sendExitMessage);
+    NAF.connection.adapter.leaveRoom(sendExitMessage);
   }
 
   if (SAF.connection.adapter && scene.components["shared-scene"]) {
