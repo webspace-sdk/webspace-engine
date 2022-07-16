@@ -114,7 +114,7 @@ AFRAME.registerComponent("avatar-audio-source", {
     this.createAudio();
 
     NAF.utils.getNetworkedEntity(this.el).then(() => {
-      NAF.connection.adapter.addEventListener("audio_stream_changed", this.onAudioStreamChanged);
+      document.body.addEventListener("audio_stream_changed", this.onAudioStreamChanged);
     });
   },
 
@@ -169,7 +169,7 @@ AFRAME.registerComponent("avatar-audio-source", {
     this.destroyAudio();
 
     if (NAF.connection.adapter) {
-      NAF.connection.adapter.removeEventListener("audio_stream_changed", this.onAudioStreamChanged);
+      document.body.removeEventListener("audio_stream_changed", this.onAudioStreamChanged);
     }
   }
 });

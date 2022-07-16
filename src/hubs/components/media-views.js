@@ -827,7 +827,7 @@ AFRAME.registerComponent("media-video", {
         const streamClientId = url.substring(7).split("/")[1]; // /clients/<client id>/video is only URL for now
         const stream = await NAF.connection.adapter.getMediaStream(streamClientId, "video");
         if (this._onVideoStreamChanged) {
-          NAF.connection.adapter.removeEventListener("video_stream_changed", this._onVideoStreamChanged);
+          document.body.removeEventListener("video_stream_changed", this._onVideoStreamChanged);
         }
 
         this._onVideoStreamChanged = async ({ detail: { peerId } }) => {
@@ -842,7 +842,7 @@ AFRAME.registerComponent("media-video", {
           }
         };
 
-        NAF.connection.adapter.addEventListener("video_stream_changed", this._onVideoStreamChanged);
+        document.body.addEventListener("video_stream_changed", this._onVideoStreamChanged);
         videoEl.srcObject = new MediaStream(stream.getVideoTracks());
         // If hls.js is supported we always use it as it gives us better events
       } else if (contentType.startsWith("application/dash")) {
