@@ -232,12 +232,8 @@ module.exports = async (env, argv) => {
   const host = process.env.HOST_IP || env.localDev || env.remoteDev ? "hubs.local" : "hubs.local";
 
   const legacyBabelConfig = {
-    presets: ["@babel/react", ["@babel/env", { targets: { ie: 11 } }]],
-    plugins: [
-      "@babel/proposal-class-properties",
-      "@babel/proposal-object-rest-spread",
-      "@babel/plugin-transform-async-to-generator"
-    ]
+    presets: ["@babel/react", ["@babel/preset-env", { useBuiltIns: false }]],
+    plugins: []
   };
 
   return {
@@ -355,6 +351,11 @@ module.exports = async (env, argv) => {
           ],
           loader: "babel-loader",
           options: legacyBabelConfig
+        },
+        {
+          test: /p2pcf\.js$/,
+          // p2pcf assumes es2020
+          loader: "babel-loader"
         },
         {
           test: /\.js$/,

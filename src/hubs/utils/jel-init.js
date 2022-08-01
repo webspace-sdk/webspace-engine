@@ -649,7 +649,7 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
                 audio: true,
                 connectOnLoad: false,
                 room: hub.hub_id,
-                adapter: "p2pt",
+                adapter: "p2pcf",
                 app: "jel",
                 debug: !!isDebug
               });
