@@ -22,7 +22,6 @@ import "networked-aframe/src/index";
 import "shared-aframe/src/index";
 import "naf-janus-adapter";
 import "aframe-rounded";
-import "webrtc-adapter";
 import "aframe-slice9-component";
 import configs from "./hubs/utils/configs";
 import "./hubs/utils/threejs-positional-audio-updatematrixworld";

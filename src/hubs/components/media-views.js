@@ -538,7 +538,7 @@ AFRAME.registerComponent("media-video", {
     if (isMine(this.networkedEl)) return;
 
     const owner = getNetworkOwner(this.networkedEl);
-    const occupants = NAF.connection.connectedClients;
+    const occupants = NAF.connection.getConnectedClients();
 
     let isPresent = true;
 
