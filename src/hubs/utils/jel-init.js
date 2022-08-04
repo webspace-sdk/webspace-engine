@@ -640,8 +640,12 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
               const handle = evt => {
                 if (evt.detail.name !== "networked-scene");
                 scene.removeEventListener("componentinitialized", handle);
-                scene.components["networked-scene"].connect();
+                scene.components["networked-scene"].connect()
               };
+
+              NAF.connection.subscribeToDataChannel("message", (_type, msg) => {
+                console.log(msg)
+              });
 
               scene.addEventListener("componentinitialized", handle);
 
