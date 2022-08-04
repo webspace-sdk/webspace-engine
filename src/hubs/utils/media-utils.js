@@ -310,7 +310,7 @@ export const addMedia = (
     isEmoji = match && match[0] === trimmed;
   }
 
-  const createdAt = Math.floor(NAF.connection.getServerTime());
+  const createdAt = Math.floor(NAF.connection.getServerTime() / 1000);
 
   entity.setAttribute("media-loader", {
     fitToBox,

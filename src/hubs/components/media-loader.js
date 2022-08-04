@@ -182,7 +182,7 @@ AFRAME.registerComponent("media-loader", {
       // to determine if this object was spawned right in front of you by another
       // user (alternatively the shared component would need to propagate state
       // about if the entity was spawned during initialzation.)
-      this.cachedShouldShowLoader = Math.floor(NAF.connection.getServerTime()) - this.data.createdAt <= 15000;
+      this.cachedShouldShowLoader = Math.floor(NAF.connection.getServerTime() / 1000) - this.data.createdAt <= 15;
     }
 
     return this.cachedShouldShowLoader;
