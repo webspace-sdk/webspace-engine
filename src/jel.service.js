@@ -13,6 +13,18 @@ self.addEventListener("activate", function(e) {
   return e.waitUntil(self.clients.claim());
 });
 
+const addCoepHeaders = (response) => {
+  const headers = new Headers(response.headers);
+  headers.set("Cross-Origin-Embedder-Policy", "credentialless");
+  headers.set("Cross-Origin-Opener-Policy", "same-origin");
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+};
+
 self.addEventListener("fetch", function(event) {
   if (event.request.mode === "navigate") {
     event.respondWith(
@@ -25,8 +37,7 @@ self.addEventListener("fetch", function(event) {
           }
 
           // Always try the network first.
-          const networkResponse = await fetch(event.request);
-          return networkResponse;
+          return addCoepHeaders(await fetch(event.request));
         } catch (error) {
           // catch is only triggered if an exception is thrown, which is likely
           // due to a network error.
