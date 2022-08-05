@@ -540,6 +540,63 @@ const initHubPresence = async presence => {
 
 let updateTitleAndWorldForHubHandler;
 
+const setupDataChannelMessageHandlers = () => {
+  const scene = document.querySelector("a-scene");
+  const { spaceChannel } = window.APP;
+  const messages = getMessages();
+
+  NAF.connection.subscribeToDataChannel("message", (_type, { to_session_id, type, body }, fromSessionId) => {
+    const getName = session_id => {
+      const userInfo = spaceChannel.presence.state[session_id];
+      if (userInfo) {
+        return userInfo.metas[0].profile.displayName;
+      } else {
+        return messages["chat.default-name"];
+      }
+    };
+
+    switch (type) {
+      case "chat": {
+        const name = getName(fromSessionId);
+        const entry = { name, type, body, posted_at: performance.now() };
+
+        scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
+
+        scene.emit("chat_log_entry", entry);
+        break;
+      }
+      case "reactji": {
+        const name = getName(fromSessionId);
+        const toName = getName(to_session_id);
+        const entry = { name, toName, type, body, posted_at: performance.now() };
+
+        scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
+        scene.emit("chat_log_entry", entry);
+        break;
+      }
+      case "emoji_launch":
+      case "emoji_burst": {
+        // Don't replicate emojis when paused, so we don't see a huge burst of them after the fact.
+        if (!scene.isPlaying) return;
+
+        if (fromSessionId !== NAF.clientId) {
+          const projectileSystem = scene.systems["hubs-systems"].projectileSystem;
+
+          if (type === "emoji_launch") {
+            projectileSystem.replayEmojiSpawnerProjectile(body);
+          }
+
+          if (type === "emoji_burst") {
+            projectileSystem.replayEmojiBurst(body);
+          }
+        }
+
+        break;
+      }
+    }
+  });
+};
+
 const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI) => {
   let isInitialJoin = true;
   const { spaceChannel, hubChannel, spaceMetadata, hubMetadata, matrix } = window.APP;
@@ -640,12 +697,10 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
               const handle = evt => {
                 if (evt.detail.name !== "networked-scene");
                 scene.removeEventListener("componentinitialized", handle);
-                scene.components["networked-scene"].connect()
+                scene.components["networked-scene"].connect();
               };
 
-              NAF.connection.subscribeToDataChannel("message", (_type, msg) => {
-                console.log(msg)
-              });
+              setupDataChannelMessageHandlers();
 
               scene.addEventListener("componentinitialized", handle);
 
@@ -743,58 +798,6 @@ const setupSpaceChannelMessageHandlers = spacePhxChannel => {
 const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, history, remountUI, remountJelUI) => {
   const scene = document.querySelector("a-scene");
   const { hubChannel, spaceChannel } = window.APP;
-  const messages = getMessages();
-
-  hubPhxChannel.on("message", ({ session_id, to_session_id, type, body }) => {
-    const getName = session_id => {
-      const userInfo = spaceChannel.presence.state[session_id];
-      if (userInfo) {
-        return userInfo.metas[0].profile.displayName;
-      } else {
-        return messages["chat.default-name"];
-      }
-    };
-
-    switch (type) {
-      case "chat": {
-        const name = getName(session_id);
-        const entry = { name, type, body, posted_at: performance.now() };
-
-        scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
-
-        scene.emit("chat_log_entry", entry);
-        break;
-      }
-      case "reactji": {
-        const name = getName(session_id);
-        const toName = getName(to_session_id);
-        const entry = { name, toName, type, body, posted_at: performance.now() };
-
-        scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
-        scene.emit("chat_log_entry", entry);
-        break;
-      }
-      case "emoji_launch":
-      case "emoji_burst": {
-        // Don't replicate emojis when paused, so we don't see a huge burst of them after the fact.
-        if (!scene.isPlaying) return;
-
-        if (session_id !== NAF.clientId) {
-          const projectileSystem = scene.systems["hubs-systems"].projectileSystem;
-
-          if (type === "emoji_launch") {
-            projectileSystem.replayEmojiSpawnerProjectile(body);
-          }
-
-          if (type === "emoji_burst") {
-            projectileSystem.replayEmojiBurst(body);
-          }
-        }
-
-        break;
-      }
-    }
-  });
 
   // Avoid updating the history frequently, as users type new hub names
   let historyReplaceTimeout = null;

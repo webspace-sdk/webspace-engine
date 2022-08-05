@@ -93,13 +93,13 @@ export default class HubChannel extends EventTarget {
   };
 
   sendMessage = (body, type = "chat", toSessionId) => {
-    if (!this.channel) return;
     if (!body) return;
     const payload = { body, type };
     if (toSessionId) {
       payload.to_session_id = toSessionId;
     }
-    this.channel.push("message", payload);
+
+    NAF.connection.broadcastCustomData("message", payload);
   };
 
   templateSynced = template_hash => {
