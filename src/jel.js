@@ -528,10 +528,6 @@ function initBatching() {
 }
 
 function addGlobalEventListeners(scene, entryManager, matrix) {
-  scene.addEventListener("scene_selected_media_layer_changed", ({ detail: { selectedMediaLayer } }) => {
-    remountJelUI({ selectedMediaLayer });
-  });
-
   scene.addEventListener("preferred_mic_changed", e => {
     const deviceId = e.detail;
     scene.systems["hubs-systems"].mediaStreamSystem.updatePreferredMicDevice(deviceId);

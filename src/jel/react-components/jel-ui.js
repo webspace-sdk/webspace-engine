@@ -793,7 +793,6 @@ JelUI.propTypes = {
   roomForHubCan: PropTypes.func,
   scene: PropTypes.object,
   subscriptions: PropTypes.object,
-  selectedMediaLayer: PropTypes.number,
   spaceId: PropTypes.string,
   memberships: PropTypes.array,
   hubSettings: PropTypes.array,

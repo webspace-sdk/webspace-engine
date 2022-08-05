@@ -82,20 +82,6 @@ function registerNetworkSchemas() {
     ]
   });
 
-  SAF.schemas.add({
-    template: "#shared-media",
-    components: [
-      {
-        component: "shared-media",
-        property: "activeMediaLayers"
-      },
-      {
-        component: "shared-media",
-        property: "selectedMediaLayer"
-      }
-    ]
-  });
-
   const interactableMediaSchema = {
     template: "#interactable-media",
     components: [

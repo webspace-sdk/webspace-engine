@@ -1,4 +1,4 @@
-import { ensureOwnership, getNetworkId, getNetworkedEntity } from "../utils/ownership-utils";
+import { getNetworkId, getNetworkedEntity } from "../utils/ownership-utils";
 import { MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { normalizeCoord, denormalizeCoord } from "./wrapped-entity-system";
@@ -7,29 +7,6 @@ export const MAX_MEDIA_LAYER = 7;
 const MAX_CONCURRENT_TRANSITIONS = 4;
 const tmpVec3 = new THREE.Vector3();
 const SQ_DISTANCE_TO_DELAY_PRESENCE = 300.0;
-
-AFRAME.registerComponent("shared-media", {
-  schema: {
-    selectedMediaLayer: { default: 0 },
-    activeMediaLayers: { default: 1 }
-  },
-
-  setActiveLayer(mediaLayer) {
-    if (!ensureOwnership(this.el)) return;
-    this.el.setAttribute("shared-media", {
-      activeMediaLayers: 0x1 << mediaLayer,
-      selectedMediaLayer: mediaLayer
-    });
-  },
-
-  update(oldData) {
-    if (oldData.selectedMediaLayer !== this.data.selectedMediaLayer) {
-      this.el.sceneEl.emit("scene_selected_media_layer_changed", {
-        selectedMediaLayer: this.data.selectedMediaLayer
-      });
-    }
-  }
-});
 
 // System which manages media presence based upon media layers and eventually other contexts.
 //
@@ -112,23 +89,11 @@ export class MediaPresenceSystem {
   }
 
   getActiveMediaLayers() {
-    const el = document.querySelector("[shared-media]");
-    if (!el) {
-      console.warn("Trying to get active media layers but shared media space entity in scene.");
-      return 1;
-    }
-
-    return el.components["shared-media"].data.activeMediaLayers;
+    return 1;
   }
 
   getSelectedMediaLayer() {
-    const el = document.querySelector("[shared-media]");
-    if (!el) {
-      console.warn("Trying to get seleced media layers but shared media space entity in scene.");
-      return 0;
-    }
-
-    return el.components["shared-media"].data.selectedMediaLayer;
+    return 0;
   }
 
   setActiveLayer(mediaLayer) {

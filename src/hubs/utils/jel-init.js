@@ -203,8 +203,6 @@ const migrateToNewDynaServer = async deployNotification => {
 };
 
 function updateUIForHub(isTransition, hub, hubChannel, remountUI, remountJelUI) {
-  const selectedMediaLayer = SYSTEMS.mediaPresenceSystem.getSelectedMediaLayer();
-
   if (isTransition) {
     const neon = document.querySelector("#neon");
     const canvas = document.querySelector(".a-canvas");
@@ -226,7 +224,7 @@ function updateUIForHub(isTransition, hub, hubChannel, remountUI, remountJelUI) 
   }
 
   remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
-  remountJelUI({ hub, selectedMediaLayer });
+  remountJelUI({ hub });
 }
 
 const updateSceneStateForHub = (() => {

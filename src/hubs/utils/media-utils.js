@@ -296,11 +296,6 @@ export const addMedia = (
   // If we're re-pasting an existing src in the scene, we should use the latest version
   // seen across any other entities. Otherwise, start with version 1.
   const version = getLatestMediaVersionOfSrc(src);
-  const mediaPresentingSpace = document.querySelector("[shared-media]");
-  const mediaLayer =
-    mediaPresentingSpace && mediaPresentingSpace.components["shared-media"]
-      ? mediaPresentingSpace.components["shared-media"].data.selectedMediaLayer
-      : 0;
 
   let isEmoji = false;
 
@@ -324,7 +319,7 @@ export const addMedia = (
     version,
     contentSubtype,
     linkedEl,
-    mediaLayer,
+    mediaLayer: 0,
     mediaOptions,
     contentType,
     locked,
