@@ -178,7 +178,7 @@ export default class WorldImporter {
           new Promise(res => {
             if (!ensureOwnership(existingEl)) res();
 
-            existingEl.components.shared.whenInstantiated(() => {
+            existingEl.components.networked.whenInstantiated(() => {
               let c = 0;
 
               const handler = () => {
@@ -224,7 +224,7 @@ export default class WorldImporter {
       );
 
       for (const el of toRemove) {
-        el.components.shared.whenInstantiated(() => {
+        el.components.networked.whenInstantiated(() => {
           if (el.components["media-loader"]) {
             el.parentNode.removeChild(el);
           }

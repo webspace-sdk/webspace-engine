@@ -180,8 +180,7 @@ AFRAME.registerComponent("media-loader", {
       // Note that this means if you spawn an object and switch worlds quickly
       // it will re-show the animation. But this seemed to be the best way
       // to determine if this object was spawned right in front of you by another
-      // user (alternatively the shared component would need to propagate state
-      // about if the entity was spawned during initialzation.)
+      // user
       this.cachedShouldShowLoader = Math.floor(NAF.connection.getServerTime() / 1000) - this.data.createdAt <= 15;
     }
 

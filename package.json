@@ -120,7 +120,6 @@
     "screenfull": "^4.0.1",
     "scroll-into-view-if-needed": "^2.2.26",
     "sdp-transform": "^2.14.1",
-    "shared-aframe": "github:jel-app/shared-aframe#master",
     "three": "github:jel-app/three.js#hubs/master",
     "three-ammo": "github:jel-app/three-ammo#jel/master",
     "three-bmfont-text": "github:mozillareality/three-bmfont-text#hubs/master",

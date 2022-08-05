@@ -96,13 +96,8 @@ export class MediaPresenceSystem {
     return 0;
   }
 
-  setActiveLayer(mediaLayer) {
-    const el = document.querySelector("[shared-media]");
-    if (!el) {
-      console.warn("Trying to get active media layers but shared media space entity in scene.");
-    }
-
-    el.components["shared-media"].setActiveLayer(mediaLayer);
+  setActiveLayer() {
+    // No longer implemented
   }
 
   selectNextMediaLayer() {
@@ -220,7 +215,7 @@ export class MediaPresenceSystem {
         })
         .catch(() => {}); //ignore exception, entity might not be networked
     } catch (e) {
-      // NAF/SAF may not exist on scene landing page
+      // NAF may not exist on scene landing page
     }
   }
 

@@ -13,7 +13,7 @@ AFRAME.registerComponent("duck", {
     this.initialScale = this.el.object3D.scale.x;
     this.maxScale = this.data.maxScale * this.initialScale;
 
-    SAF.utils.getNetworkedEntity(this.el).then(networkedEntity => {
+    NAF.utils.getNetworkedEntity(this.el).then(networkedEntity => {
       this.networkedEntity = networkedEntity;
 
       this.initialScale = this.networkedEntity.object3D.scale.x;
@@ -22,7 +22,7 @@ AFRAME.registerComponent("duck", {
   },
 
   tick: function() {
-    if (!this.networkedEntity || SAF.utils.isMine(this.networkedEntity)) {
+    if (!this.networkedEntity || NAF.utils.isMine(this.networkedEntity)) {
       const entity = this.networkedEntity || this.el;
       const currentScale = entity.object3D.scale.x;
       const ratio = Math.min(1, (currentScale - this.initialScale) / (this.maxScale - this.initialScale));

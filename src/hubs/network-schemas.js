@@ -219,7 +219,6 @@ function registerNetworkSchemas() {
   };
 
   NAF.schemas.add(interactableMediaSchema);
-  SAF.schemas.add(interactableMediaSchema);
 
   NAF.schemas.add({
     template: "#static-media",

@@ -140,11 +140,11 @@ AFRAME.registerComponent("media-text", {
         }
       }
 
-      const shared = this.el.components.shared;
+      // const networked = this.el.components.networked;
 
-      shared.whenReadyForBinding().then(() => {
-        shared.initializeRichTextContents(delta, this.name, "deltaOps");
-      });
+      //shared.whenReadyForBinding().then(() => {
+      //  shared.initializeRichTextContents(delta, this.name, "deltaOps");
+      //});
     }
 
     if (!hasLayer || refresh) {
@@ -254,8 +254,8 @@ AFRAME.registerComponent("media-text", {
 
       if (!this.quill || refresh) {
         this.unbindAndRemoveQuill();
-        const shared = this.el.components.shared;
-        await shared.whenReadyForBinding();
+        //const networked = this.el.components.networked;
+        //await networked.whenReadyForBinding();
         this.quill = this.bindQuill();
 
         this.applyFont();
@@ -425,7 +425,7 @@ AFRAME.registerComponent("media-text", {
     quill.on("text-change", this.rerenderQuill);
     quill.container.querySelector(".ql-editor").addEventListener("scroll", this.rerenderQuill);
 
-    this.el.components.shared.bindRichTextEditor(quill, this.name, "deltaOps");
+    // this.el.components.networked.bindRichTextEditor(quill, this.name, "deltaOps");
     return quill;
   },
 
@@ -436,7 +436,7 @@ AFRAME.registerComponent("media-text", {
     const quill = getQuill(networkId);
     quill.off("text-change", this.rerenderQuill);
     quill.container.querySelector(".ql-editor").removeEventListener("scroll", this.rerenderQuill);
-    this.el.components.shared.unbindRichTextEditor(this.name, "deltaOps");
+    // this.el.components.networked.unbindRichTextEditor(this.name, "deltaOps");
     destroyQuill(networkId);
     this.quill = null;
   },

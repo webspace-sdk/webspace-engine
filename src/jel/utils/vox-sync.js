@@ -32,30 +32,33 @@ export default class VoxSync extends EventTarget {
   }
 
   async init(scene) {
-    if (!SAF.connection.adapter) {
-      await new Promise(res => scene.addEventListener("shared-adapter-ready", res, { once: true }));
-    }
+    console.warn("VOX sync is disabled due to shared aframe no longer being set up");
+    return;
 
-    this._connection = SAF.connection.adapter.connection;
+    // if (!NAF.connection.adapter) {
+    //   await new Promise(res => scene.addEventListener("adapter-ready", res, { once: true }));
+    // }
 
-    let finish;
-    this._whenReady = new Promise(res => (finish = res));
+    // this._connection = NAF.connection.adapter.connection;
 
-    const doc = this._connection.get("vox", this._voxId);
-    this._doc = doc;
+    // let finish;
+    // this._whenReady = new Promise(res => (finish = res));
 
-    await this._refreshPermissions();
+    // const doc = this._connection.get("vox", this._voxId);
+    // this._doc = doc;
 
-    await new Promise(res => {
-      doc.subscribe(() => {
-        doc.on("op", this._fireVoxUpdated);
-        this._fireVoxUpdated(); // Initialize mesh
+    // await this._refreshPermissions();
 
-        res();
-      });
-    });
+    // await new Promise(res => {
+    //   doc.subscribe(() => {
+    //     doc.on("op", this._fireVoxUpdated);
+    //     this._fireVoxUpdated(); // Initialize mesh
 
-    finish();
+    //     res();
+    //   });
+    // });
+
+    // finish();
   }
 
   async dispose() {

@@ -66,16 +66,18 @@ class TreeSync extends EventTarget {
   init(connection) {
     if (!this.collectionId || !this.docId) return Promise.resolve();
 
-    const doc = connection.get(this.collectionId, this.docId);
-    this.doc = doc;
+    console.warn("tree sync disabled due to share being unplugged");
+    return;
+    //const doc = connection.get(this.collectionId, this.docId);
+    //this.doc = doc;
 
-    return new Promise(res => {
-      doc.subscribe(async () => {
-        doc.on("op", () => this.rebuildFilteredTreeDataIfAutoRefresh());
-        this.rebuildFilteredTreeDataIfAutoRefresh();
-        res();
-      });
-    });
+    //return new Promise(res => {
+    //  doc.subscribe(async () => {
+    //    doc.on("op", () => this.rebuildFilteredTreeDataIfAutoRefresh());
+    //    this.rebuildFilteredTreeDataIfAutoRefresh();
+    //    res();
+    //  });
+    //});
   }
 
   rebuildFilteredTreeDataIfAutoRefresh = updatedIds => {
@@ -94,12 +96,12 @@ class TreeSync extends EventTarget {
   };
 
   addToRoot(atomId) {
-    if (Object.entries(this.doc.data).length === 0) {
-      this.addInitialItem(atomId);
-    } else {
-      const belowNodeId = this.findTailNodeIdUnder(null);
-      this.insertBelow(atomId, belowNodeId);
-    }
+    // if (Object.entries(this.doc.data).length === 0) {
+    //   this.addInitialItem(atomId);
+    // } else {
+    //   const belowNodeId = this.findTailNodeIdUnder(null);
+    //   this.insertBelow(atomId, belowNodeId);
+    // }
   }
 
   addToRootIfNotExists(atomId) {
@@ -119,22 +121,23 @@ class TreeSync extends EventTarget {
   }
 
   getAtomTrailForAtomId(atomId) {
-    const atomTrail = [];
+    return [];
+    // const atomTrail = [];
 
-    let nid = this.getNodeIdForAtomId(atomId);
+    // let nid = this.getNodeIdForAtomId(atomId);
 
-    do {
-      const node = this.doc.data[nid];
+    // do {
+    //   const node = this.doc.data[nid];
 
-      if (node) {
-        atomTrail.unshift(node.h);
-        nid = node && node.p;
-      } else {
-        break;
-      }
-    } while (nid);
+    //   if (node) {
+    //     atomTrail.unshift(node.h);
+    //     nid = node && node.p;
+    //   } else {
+    //     break;
+    //   }
+    // } while (nid);
 
-    return atomTrail.length === 0 ? null : atomTrail;
+    // return atomTrail.length === 0 ? null : atomTrail;
   }
 
   moveInto(nodeId, withinNodeId) {
@@ -445,6 +448,8 @@ class TreeSync extends EventTarget {
   }
 
   computeTree(nodeFilter = () => true, parentFilter = () => true) {
+    if (!this.doc) return [];
+
     // The goal here is to convert the OT document to the UI's tree data structure.
     const depths = new Map();
     const tailNodes = new Set();
@@ -608,9 +613,9 @@ class TreeSync extends EventTarget {
 
       subscribedAtomIds.clear();
 
-      for (const node of Object.values(this.doc.data)) {
-        subscribedAtomIds.add(node.h);
-      }
+      // for (const node of Object.values(this.doc.data)) {
+      //   subscribedAtomIds.add(node.h);
+      // }
 
       this.atomIdToFilteredTreeDataItem.clear();
 
@@ -689,10 +694,10 @@ class TreeSync extends EventTarget {
     return d;
   }
 
-  getNodeIdForAtomId(atomIdToFind) {
-    for (const [nid, data] of Object.entries(this.doc.data)) {
-      if (data.h === atomIdToFind) return nid;
-    }
+  getNodeIdForAtomId(/*atomIdToFind*/) {
+    // for (const [nid, data] of Object.entries(this.doc.data)) {
+    //   if (data.h === atomIdToFind) return nid;
+    // }
 
     return null;
   }

@@ -163,7 +163,6 @@ export default class SceneEntryManager {
   _setupKicking = () => {
     // This event is only received by the kicker
     document.body.addEventListener("kicked", ({ detail }) => {
-      // TODO JEL need to handle SAF
       const { clientId: kickedClientId } = detail;
       const { entities } = NAF.connection.entities;
       for (const id in entities) {
@@ -182,12 +181,10 @@ export default class SceneEntryManager {
 
   _setupBlocking = () => {
     document.body.addEventListener("blocked", ev => {
-      // TODO JEL need to handle SAF
       NAF.connection.entities.removeEntitiesOfClient(ev.detail.clientId);
     });
 
     document.body.addEventListener("unblocked", ev => {
-      // TODO JEL need to handle SAF
       NAF.connection.entities.completeSync(ev.detail.clientId, true);
     });
   };

@@ -19,7 +19,6 @@ patchWebGLRenderingContext();
 
 import "three/examples/js/loaders/GLTFLoader";
 import "networked-aframe/src/index";
-import "shared-aframe/src/index";
 import "naf-janus-adapter";
 import "aframe-rounded";
 import "aframe-slice9-component";
@@ -449,7 +448,6 @@ async function runBotMode(scene, entryManager) {
   scene.renderer = { setAnimationLoop: noop, render: noop };
 
   while (!NAF.connection.isConnected()) await nextTick();
-  while (!SAF.connection.isConnected()) await nextTick();
   entryManager.enterSceneWhenLoaded(false);
 }
 
@@ -1275,27 +1273,7 @@ async function start() {
 
   const socket = await createSocket(entryManager);
 
-  spaceChannel.addEventListener("permissions_updated", ({ detail: { permsToken } }) => {
-    const assignCollectionToken = () => SAF.connection.adapter.setCollectionPermsToken(permsToken);
-
-    if (SAF.connection.adapter) {
-      assignCollectionToken();
-    } else {
-      scene.addEventListener("shared-adapter-ready", assignCollectionToken, { once: true });
-    }
-
-    remountJelUI({ spaceCan: spaceChannel.can.bind(spaceChannel) });
-  });
-
-  hubChannel.addEventListener("permissions_updated", ({ detail: { permsToken } }) => {
-    const assignDocToken = () => SAF.connection.adapter.setDocPermsToken(hubChannel.hubId, permsToken);
-
-    if (SAF.connection.adapter) {
-      assignDocToken();
-    } else {
-      scene.addEventListener("shared-adapter-ready", assignDocToken, { once: true });
-    }
-
+  hubChannel.addEventListener("permissions_updated", () => {
     const hubCan = hubMetadata.can.bind(hubMetadata);
     const voxCan = voxMetadata.can.bind(voxMetadata);
 

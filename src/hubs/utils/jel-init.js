@@ -387,11 +387,10 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
           // going to new channel (and re-run in-flight ones.)
           hubMetadata.bind(spaceChannel);
 
-          // Disconnect + reconnect NAF + SAF unless this is a re-join
+          // Disconnect + reconnect NAF unless this is a re-join
 
           // Disconnect AFrame if already connected
           scene.removeAttribute("networked-scene");
-          scene.removeAttribute("shared-scene");
 
           // Allow disconnect cleanup
           await nextTick();
@@ -407,43 +406,6 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
 
         isInitialJoin = false;
 
-        const setupSAFAdapter = () => {
-          SAF.connection.adapter.setClientId(socket.params().session_id);
-          const adapter = SAF.connection.adapter;
-
-          let newArpaHostPollInterval = null;
-
-          // When reconnecting, update the server URL if necessary
-          adapter.setReconnectionListeners(
-            () => {
-              if (newArpaHostPollInterval) return;
-
-              newArpaHostPollInterval = setInterval(async () => {
-                const { arpa_host, arpa_port } = await spaceChannel.getHosts();
-
-                const currentArpaURL = adapter.getServerUrl();
-                const newArpaURL = `wss://${arpa_host}:${arpa_port}`;
-
-                if (currentArpaURL !== newArpaURL) {
-                  console.log(`Updated Arpa Host: ${newArpaURL}`);
-                  scene.setAttribute("shared-scene", { serverURL: newArpaURL });
-                  adapter.setServerUrl(newArpaURL);
-                }
-              }, 1000);
-            },
-            () => {
-              clearInterval(newArpaHostPollInterval);
-              newArpaHostPollInterval = null;
-            }
-          );
-        };
-
-        if (SAF.connection.adapter) {
-          setupSAFAdapter();
-        } else {
-          scene.addEventListener("shared-adapter-ready", setupSAFAdapter, { once: true });
-        }
-
         await presenceInitPromise;
 
         const space = data.spaces[0];
@@ -453,49 +415,7 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
         treeManager.setAccountCollectionId(accountId);
         treeManager.setSpaceCollectionId(spaceId);
 
-        console.log(`Xana host: ${space.xana_host}:${space.xana_port}`);
-        console.log(`Arpa host: ${space.arpa_host}:${space.arpa_port}`);
-
-        const arpaUrl = `wss://${space.arpa_host}:${space.arpa_port}`;
-
-        const safConnected = new Promise(res => document.body.addEventListener("share-connected", res, { once: true }));
-
-        // Wait for scene objects to load before connecting, so there is no race condition on network state.
-        const handle = evt => {
-          if (evt.detail.name !== "shared-scene") return;
-          scene.removeEventListener("componentinitialized", handle);
-          scene.components["shared-scene"].connect();
-        };
-
-        scene.addEventListener("componentinitialized", handle);
-
-        scene.setAttribute("shared-scene", {
-          connectOnLoad: false,
-          collection: spaceId,
-          serverURL: arpaUrl,
-          debug: !!isDebug
-        });
-
-        const connectionErrorTimeout = setTimeout(() => {
-          console.error("Unknown error occurred while attempting to connect to networked scene.");
-          remountJelUI({ unavailableReason: "connect_error" });
-          entryManager.exitScene();
-        }, 90000);
-
-        safConnected
-          .then(() => {
-            clearTimeout(connectionErrorTimeout);
-            joinFinished();
-          })
-          .catch(connectError => {
-            clearTimeout(connectionErrorTimeout);
-            // hacky until we get return codes
-            const isFull = connectError.msg && connectError.msg.match(/\bfull\b/i);
-            console.error(connectError);
-            remountJelUI({ unavailableReason: isFull ? "full" : "connect_error" });
-            entryManager.exitScene();
-            joinFinished();
-          });
+        joinFinished();
       })
       .receive("error", res => {
         if (res.reason === "closed") {
@@ -681,7 +601,7 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
 
             clearResolveUrlCache();
 
-            // If this is not a world, skip connecting to NAF + SAF
+            // If this is not a world, skip connecting to NAF
             if (!isWorld) {
               res();
               return;
@@ -721,7 +641,6 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
             }, 90000);
 
             joinPromise
-              .then(() => scene.components["shared-scene"].subscribe(hub.hub_id))
               .then(() => {
                 if (isInitialJoin) {
                   if (hub.template && hub.template.name) {
@@ -887,7 +806,7 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
   sceneTree.build();
 
   document.body.addEventListener(
-    "share-connected",
+    "connected",
     async ({ detail: { connection } }) => {
       const memberships = await membershipsPromise;
       await treeManager.init(connection, memberships);
@@ -980,10 +899,6 @@ export async function joinHub(scene, socket, history, entryManager, remountUI, r
     const sendExitMessage = !isWorld;
 
     NAF.connection.adapter.leaveRoom(sendExitMessage);
-  }
-
-  if (SAF.connection.adapter && scene.components["shared-scene"]) {
-    scene.components["shared-scene"].unsubscribe();
   }
 
   const joinSuccessful = await joinHubChannel(hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI);

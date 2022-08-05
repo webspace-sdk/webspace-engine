@@ -63,13 +63,10 @@ export const registerWrappedEntityPositionNormalizers = () => {
   };
 
   NAF.entities.setPositionNormalizer(normalizer);
-  SAF.entities.setPositionNormalizer(normalizer);
 
   NAF.entities.setPositionDenormalizer(denormalizer);
-  SAF.entities.setPositionDenormalizer(denormalizer);
 
   NAF.options.maxLerpDistance = WORLD_SIZE - 1;
-  SAF.options.maxLerpDistance = WORLD_SIZE - 1;
 };
 
 AFRAME.registerComponent("wrapped-entity", {

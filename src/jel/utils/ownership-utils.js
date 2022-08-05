@@ -1,66 +1,52 @@
-/* global NAF SAF */
-
 export function ensureOwnership(el) {
-  const isShared = !!el.components.shared;
-  if (!isShared && !el.components.networked) return false;
+  if (!el.components.networked) return false;
 
-  // Can't take ownership of shared objects without media permissions.
-  if (isShared && !window.APP.hubChannel.can("spawn_and_move_media")) return false;
+  // TODO SHARED
+  // if (!window.APP.hubChannel.can("spawn_and_move_media")) return false;
 
-  const utils = (isShared ? SAF : NAF).utils;
-  return utils.isMine(el) || utils.takeOwnership(el);
+  return NAF.utils.isMine(el) || NAF.utils.takeOwnership(el);
 }
 
 export function takeOwnership(el) {
-  const isShared = !!el.components.shared;
-  if (!isShared && !el.components.networked) return false;
+  if (!el.components.networked) return false;
 
-  // Can't take ownership of shared objects without media permissions.
-  if (isShared && !window.APP.hubChannel.can("spawn_and_move_media")) return false;
+  // TODO SHARED
+  // if (!window.APP.hubChannel.can("spawn_and_move_media")) return false;
 
-  const utils = (isShared ? SAF : NAF).utils;
-  return utils.takeOwnership(el);
+  return NAF.utils.takeOwnership(el);
 }
 
 export function getNetworkedTemplate(el) {
-  if (!el.components.shared && !el.components.networked) return null;
-  return (el.components.shared || el.components.networked).data.template;
+  if (!el.components.networked) return null;
+  return el.components.networked.data.template;
 }
 
 export function getNetworkId(el) {
-  if (!el.components.shared && !el.components.networked) return null;
-  return (el.components.shared || el.components.networked).data.networkId;
+  if (!el.components.networked) return null;
+  return el.components.networked.data.networkId;
 }
 
 export function isMine(el) {
   // Inlined for optimization
   if (!el) {
-    throw new Error(
-      "Entity does not have and is not a child of an entity with the [networking] or [shared] component "
-    );
+    throw new Error("Entity does not have and is not a child of an entity with the [networking] component ");
   }
 
   const components = el.components;
 
   if (!components) {
-    throw new Error(
-      "Entity does not have and is not a child of an entity with the [networking] or [shared] component "
-    );
+    throw new Error("Entity does not have and is not a child of an entity with the [networking] component ");
   }
 
-  if (components.shared) {
-    return components.shared.initialized && components.shared.data.owner == SAF.clientId;
-  } else if (components.networked) {
+  if (components.networked) {
     return components.networked.initialized && components.networked.data.owner == NAF.clientId;
   } else {
-    throw new Error(
-      "Entity does not have and is not a child of an entity with the [networking] or [shared] component "
-    );
+    throw new Error("Entity does not have and is not a child of an entity with the [networking] component ");
   }
 }
 
 export function isSynchronized(el) {
-  return el.components.shared || el.components.networked;
+  return !!el.components.networked;
 }
 
 export function isNonNetworkedOrEnsureOwnership(el) {
@@ -68,31 +54,27 @@ export function isNonNetworkedOrEnsureOwnership(el) {
 }
 
 export function getNetworkOwner(el) {
-  const isShared = !!el.components.shared;
-  if (!isShared && !el.components.networked) return false;
+  if (!el.components.networked) return false;
 
-  const utils = (isShared ? SAF : NAF).utils;
-  return utils.getNetworkOwner(el);
+  return NAF.utils.getNetworkOwner(el);
 }
 
 export function getCreator(el) {
-  const isShared = !!el.components.shared;
-  if (!isShared && !el.components.networked) return false;
+  if (!el.components.networked) return false;
 
-  const utils = (isShared ? SAF : NAF).utils;
-  return utils.getCreator(el);
+  return NAF.utils.getCreator(el);
 }
 
 export function getNetworkedEntity(entity) {
   return new Promise((resolve, reject) => {
     let curEntity = entity;
 
-    while (curEntity && curEntity.components && !curEntity.components.networked && !curEntity.components.shared) {
+    while (curEntity && curEntity.components && !curEntity.components.networked) {
       curEntity = curEntity.parentNode;
     }
 
-    if (!curEntity || !curEntity.components || (!curEntity.components.networked && !curEntity.components.shared)) {
-      return reject("Entity does not have and is not a child of an entity with the [networked] or [shared] component ");
+    if (!curEntity || !curEntity.components || !curEntity.components.networked) {
+      return reject("Entity does not have and is not a child of an entity with the [networked] component ");
     }
 
     if (curEntity.hasLoaded) {
@@ -112,11 +94,11 @@ export function getNetworkedEntity(entity) {
 export function getNetworkedEntitySync(entity) {
   let curEntity = entity;
 
-  while (curEntity && curEntity.components && !curEntity.components.networked && !curEntity.components.shared) {
+  while (curEntity && curEntity.components && !curEntity.components.networked) {
     curEntity = curEntity.parentNode;
   }
 
-  if (!curEntity || !curEntity.components || (!curEntity.components.networked && !curEntity.components.shared)) {
+  if (!curEntity || !curEntity.components || !curEntity.components.networked) {
     return null;
   }
 

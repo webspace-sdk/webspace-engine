@@ -269,9 +269,7 @@ export const addMedia = (
   const isVideoShare = src instanceof MediaStream;
 
   if (networked) {
-    const isPersistent = !isVideoShare;
-
-    entity.setAttribute(isPersistent ? "shared" : "networked", { template, networkId });
+    entity.setAttribute("networked", { template, networkId });
   } else {
     const templateBody = document
       .importNode(document.body.querySelector(template).content, true)
@@ -972,9 +970,6 @@ export function meetsBatchingCriteria(textureInfo) {
 export function hasMediaLayer(el) {
   const mediaLoader = el.components["media-loader"];
   if (!mediaLoader) return false;
-
-  const isShared = !!el.components["shared"];
-  if (!isShared) return false;
 
   return !!(mediaLoader.data && typeof mediaLoader.data.mediaLayer === "number");
 }
