@@ -16,7 +16,6 @@ import WorldImporter from "../../jel/utils/world-importer";
 import { getHtmlForTemplate, applyTemplate } from "../../jel/utils/template-utils";
 import { clearVoxAttributePools } from "../../jel/objects/JelVoxBufferGeometry";
 import { restartPeriodicSyncs } from "../components/periodic-full-syncs";
-import mixpanel from "mixpanel-browser";
 
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
 
@@ -258,11 +257,10 @@ const updateSceneStateForHub = (() => {
   };
 })();
 
-const initSpacePresence = (presence, socket) => {
+const initSpacePresence = presence => {
   const { hubChannel, spaceChannel } = window.APP;
 
   const scene = document.querySelector("a-scene");
-  let sentMultipleOccupantGaugeThisSession = false;
 
   return new Promise(res => {
     presence.onSync(() => {
@@ -280,50 +278,6 @@ const initSpacePresence = (presence, socket) => {
       if (!hubChannel.presence || !hubChannel.presence.state) return;
 
       const meta = info.metas[info.metas.length - 1];
-      const occupantCount = Object.entries(hubChannel.presence.state).length;
-      const currentHubId = spaceChannel.getCurrentHubFromPresence();
-      const isCurrentHub = meta.hub_id === currentHubId;
-
-      if (occupantCount <= NOISY_OCCUPANT_COUNT) {
-        if (current) {
-          // Change to existing presence
-          const isSelf = sessionId === socket.params().session_id;
-          const currentMeta = current.metas[0];
-
-          if (!isSelf && currentMeta.hub_id !== meta.hub_id && meta.profile.displayName && isCurrentHub) {
-            scene.emit("chat_log_entry", {
-              type: "join",
-              name: meta.profile.displayName,
-              posted_at: performance.now()
-            });
-          }
-
-          if (currentMeta.profile && meta.profile && currentMeta.profile.displayName !== meta.profile.displayName) {
-            scene.emit("chat_log_entry", {
-              type: "display_name_changed",
-              oldName: currentMeta.profile.displayName,
-              name: meta.profile.displayName,
-              posted_at: performance.now()
-            });
-          }
-        } else if (info.metas.length === 1 && isCurrentHub) {
-          // New presence
-          const meta = info.metas[0];
-
-          if (meta.presence && meta.profile.displayName) {
-            scene.emit("chat_log_entry", {
-              type: "join",
-              name: meta.profile.displayName,
-              posted_at: performance.now()
-            });
-          }
-        }
-      }
-
-      if (occupantCount > 1 && !sentMultipleOccupantGaugeThisSession) {
-        sentMultipleOccupantGaugeThisSession = true;
-        mixpanel.track("Gauge Multiple Occupants", {});
-      }
 
       scene.emit("space_presence_updated", {
         sessionId,
@@ -331,28 +285,6 @@ const initSpacePresence = (presence, socket) => {
         streaming: meta.streaming,
         recording: meta.recording
       });
-    });
-
-    presence.onLeave((sessionId, current, info) => {
-      // Ignore presence join/leaves if this Presence has not yet had its initial sync
-      if (!spaceChannel.presence.__hadInitialSync) return;
-      if (!hubChannel.presence || !hubChannel.presence.state) return;
-
-      const occupantCount = Object.entries(hubChannel.presence.state).length;
-      if (occupantCount > NOISY_OCCUPANT_COUNT) return;
-
-      if (!current) return;
-
-      const isSelf = sessionId === socket.params().session_id;
-      const meta = info.metas[info.metas.length - 1];
-      const currentHubId = spaceChannel.getCurrentHubFromPresence();
-      const currentMeta = current.metas[current.metas.length - 1];
-      const wasCurrentHub = meta.hub_id === currentHubId;
-      const isCurrentHub = currentMeta && currentMeta.hub_id === currentHubId;
-
-      if (!isSelf && meta && meta.profile.displayName && !isCurrentHub && wasCurrentHub) {
-        scene.emit("chat_log_entry", { type: "leave", name: meta.profile.displayName, posted_at: performance.now() });
-      }
     });
   });
 };
@@ -770,6 +702,84 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
 // notifications.
 let hasJoinedPublicWorldForCurrentSpace;
 
+const initPresence = (function() {
+  const lastPostedDisplayNames = new Map();
+  const presenceIdToClientId = new Map();
+
+  return presence => {
+    const { store } = window.APP;
+    const scene = document.querySelector("a-scene");
+
+    const postJoinOrNameChange = (clientId, displayName) => {
+      const isSelf = clientId === NAF.clientId;
+
+      if (!lastPostedDisplayNames.has(clientId)) {
+        if (!isSelf) {
+          scene.emit("chat_log_entry", {
+            type: "join",
+            name: displayName,
+            posted_at: performance.now()
+          });
+        }
+      } else if (lastPostedDisplayNames.get(clientId) !== displayName) {
+        scene.emit("chat_log_entry", {
+          type: "display_name_changed",
+          oldName: lastPostedDisplayNames.get(clientId),
+          name: displayName,
+          posted_at: performance.now()
+        });
+      }
+
+      lastPostedDisplayNames.set(clientId, displayName);
+    };
+
+    presence.on("change", ({ added, updated, removed }) => {
+      const { states } = presence;
+      if (states.size >= NOISY_OCCUPANT_COUNT) return;
+
+      for (const addedId of added) {
+        const { client_id: clientId, profile } = states.get(addedId);
+        if (!clientId) continue;
+
+        presenceIdToClientId.set(addedId, clientId);
+
+        if (profile?.displayName) {
+          postJoinOrNameChange(clientId, profile.displayName);
+        }
+      }
+
+      for (const updateId of updated) {
+        const { client_id: clientId, profile } = states.get(updateId);
+        if (!clientId) continue;
+
+        presenceIdToClientId.set(updateId, clientId);
+
+        if (profile?.displayName) {
+          postJoinOrNameChange(clientId, profile.displayName);
+        }
+      }
+
+      for (const removeId of removed) {
+        if (!presenceIdToClientId.has(removeId)) continue;
+        const clientId = presenceIdToClientId.get(removeId);
+
+        if (lastPostedDisplayNames.has(clientId)) {
+          scene.emit("chat_log_entry", {
+            type: "leave",
+            name: lastPostedDisplayNames.get(clientId),
+            posted_at: performance.now()
+          });
+        }
+
+        presenceIdToClientId.delete(removeId);
+        lastPostedDisplayNames.delete(clientId);
+      }
+    });
+
+    presence.setLocalStateField("profile", store.state.profile);
+  };
+})();
+
 export function joinSpace(socket, history, subscriptions, entryManager, remountUI, remountJelUI, membershipsPromise) {
   const spaceId = getSpaceIdFromHistory(history);
   const { dynaChannel, spaceChannel, spaceMetadata, hubMetadata, store } = window.APP;
@@ -807,7 +817,9 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
 
   document.body.addEventListener(
     "connected",
-    async ({ detail: { connection } }) => {
+    async ({ detail: { connection, presence } }) => {
+      initPresence(presence);
+
       const memberships = await membershipsPromise;
       await treeManager.init(connection, memberships);
       const homeHub = homeHubForSpaceId(spaceId, memberships);

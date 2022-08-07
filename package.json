@@ -91,7 +91,7 @@
     "mixpanel-browser": "^2.39.0",
     "moving-average": "^1.0.0",
     "naf-janus-adapter": "^4.0.1",
-    "networked-aframe": "github:jel-app/networked-aframe#feature/new-lerping",
+    "networked-aframe": "github:jel-app/networked-aframe#p2pt",
     "nipplejs": "github:mozillareality/nipplejs#mr-social-client/master",
     "node-ensure": "0.0.0",
     "normalize.css": "^8.0.1",
@@ -129,6 +129,8 @@
     "transform-parser": "^1.0.1",
     "uuid": "^3.2.1",
     "worklet-loader": "^1.0.0",
+    "y-protocols": "^1.0.5",
+    "yjs": "^13.5.41",
     "zip-loader": "^1.1.0"
   },
   "devDependencies": {
