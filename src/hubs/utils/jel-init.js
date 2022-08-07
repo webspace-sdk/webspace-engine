@@ -257,43 +257,10 @@ const updateSceneStateForHub = (() => {
   };
 })();
 
-const initSpacePresence = presence => {
-  const { hubChannel, spaceChannel } = window.APP;
-
-  const scene = document.querySelector("a-scene");
-
-  return new Promise(res => {
-    presence.onSync(() => {
-      const presence = spaceChannel.presence;
-      presence.__hadInitialSync = true;
-
-      scene.emit("space-presence-synced");
-      res();
-    });
-
-    presence.onJoin((sessionId, current, info) => {
-      // Ignore presence join/leaves if this Presence has not yet had its initial sync (o/w the user
-      // will see join messages for every user.)
-      if (!spaceChannel.presence.__hadInitialSync) return;
-      if (!hubChannel.presence || !hubChannel.presence.state) return;
-
-      const meta = info.metas[info.metas.length - 1];
-
-      scene.emit("space_presence_updated", {
-        sessionId,
-        profile: meta.profile,
-        streaming: meta.streaming,
-        recording: meta.recording
-      });
-    });
-  });
-};
-
 const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI) => {
   const scene = document.querySelector("a-scene");
   const { store, spaceChannel, hubMetadata } = window.APP;
 
-  let presenceInitPromise;
   let isInitialJoin = true;
 
   const socket = spacePhxChannel.socket;
@@ -302,12 +269,7 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
     spacePhxChannel
       .join()
       .receive("ok", async data => {
-        const presence = spaceChannel.presence;
         const sessionId = (socket.params().session_id = data.session_id);
-
-        if (!presenceInitPromise) {
-          presenceInitPromise = initSpacePresence(presence, socket);
-        }
 
         socket.params().session_token = data.session_token;
 
@@ -337,8 +299,6 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
         }
 
         isInitialJoin = false;
-
-        await presenceInitPromise;
 
         const space = data.spaces[0];
         const spaceId = space.space_id;
@@ -710,6 +670,10 @@ const initPresence = (function() {
     const { store } = window.APP;
     const scene = document.querySelector("a-scene");
 
+    store.addEventListener("profilechanged", () => {
+      presence.setLocalStateField("profile", store.state.profile);
+    });
+
     const postJoinOrNameChange = (clientId, displayName) => {
       const isSelf = clientId === NAF.clientId;
 
@@ -790,7 +754,6 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
   const spaceId = getSpaceIdFromHistory(history);
   const { dynaChannel, spaceChannel, spaceMetadata, hubMetadata, store } = window.APP;
   console.log(`Space ID: ${spaceId}`);
-  remountJelUI({ spaceId });
 
   const dynaPhxChannel = socket.channel(`dyna`, createDynaChannelParams());
   dynaPhxChannel

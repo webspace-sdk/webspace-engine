@@ -49,11 +49,6 @@ export function spaceForSpaceId(spaceId, memberships) {
   return m ? m.space : null;
 }
 
-export function isAdminOfSpaceId(spaceId, memberships) {
-  const m = membershipForSpaceId(spaceId, memberships);
-  return !!(m && m.role === "admin");
-}
-
 export async function getInitialHubForSpaceId(spaceId) {
   const { store } = window.APP;
 

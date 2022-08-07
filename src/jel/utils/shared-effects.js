@@ -58,25 +58,21 @@ export const useRefFocusResetter = (ref, handler) => {
   );
 };
 
-export const useSpacePresenceMeta = (sessionId, scene, meta, onMetaChange) => {
+export const useClientPresenceState = (clientId, scene, state, onStateChange) => {
   useEffect(
     () => {
       if (!scene) return () => {};
 
-      const handler = () => {
-        const spacePresences =
-          window.APP.spaceChannel && window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state;
-        const spacePresence = spacePresences && spacePresences[sessionId];
-        const newMeta = spacePresence && spacePresence.metas[spacePresence.metas.length - 1];
-
-        if (meta !== newMeta) {
-          onMetaChange(newMeta);
+      const handler = ({ detail: newState }) => {
+        console.log("handle", state, newState);
+        if (state !== newState && newState.clientId === clientId) {
+          onStateChange(newState);
         }
       };
 
-      scene.addEventListener("space-presence-synced", handler);
-      return () => scene.removeEventListener("space-presence-synced", handler);
+      scene.addEventListener("client-presence-updated", handler);
+      return () => scene.removeEventListener("client-presence-updated", handler);
     },
-    [scene, sessionId, onMetaChange, meta]
+    [scene, clientId, state, onStateChange]
   );
 };

@@ -1322,7 +1322,6 @@ async function start() {
           accountChannel.syncAccountInfo(accountInfo);
 
           remountJelUI({
-            memberships: accountChannel.memberships,
             hubSettings: accountChannel.hubSettings
           });
 

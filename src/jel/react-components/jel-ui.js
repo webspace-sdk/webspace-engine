@@ -413,18 +413,7 @@ const DeviceStatuses = styled.div`
 `;
 
 function JelUI(props) {
-  const {
-    scene,
-    treeManager,
-    hub,
-    unavailableReason,
-    subscriptions,
-    voxTree,
-    sceneTree,
-    spaceId,
-    sessionId,
-    memberships
-  } = props;
+  const { scene, treeManager, hub, unavailableReason, subscriptions, voxTree, sceneTree, sessionId } = props;
 
   const { launcherSystem, cameraSystem, builderSystem, externalCameraSystem } = SYSTEMS;
 
@@ -736,21 +725,13 @@ function JelUI(props) {
       <RightExpandTrigger id="right-expand-trigger" onClick={onExpandTriggerClick} />
       <BottomExpandTrigger id="bottom-expand-trigger" onClick={onExpandTriggerClick} />
       <SelfPanel
-        spaceId={spaceId}
         spaceChannel={spaceChannel}
-        memberships={memberships}
         scene={scene}
         showDeviceControls={isWorld}
         sessionId={sessionId}
         onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {
           spaceChannel.sendAvatarColorUpdate(r / 255.0, g / 255.0, b / 255.0);
           window.APP.matrix.updateAvatarColor(r / 255.0, g / 255.0, b / 255.0);
-        }}
-        onSignOutClicked={async () => {
-          await window.APP.spaceChannel.signOut(store.state.credentials.deviceId);
-          await window.APP.matrix.logout();
-          store.clearCredentials();
-          document.location = "/";
         }}
       />
       <input
@@ -793,8 +774,6 @@ JelUI.propTypes = {
   roomForHubCan: PropTypes.func,
   scene: PropTypes.object,
   subscriptions: PropTypes.object,
-  spaceId: PropTypes.string,
-  memberships: PropTypes.array,
   hubSettings: PropTypes.array,
   unavailableReason: PropTypes.string,
   voxTree: PropTypes.object,
