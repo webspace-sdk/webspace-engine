@@ -738,7 +738,8 @@ const initPresence = (function() {
       if (states.size >= NOISY_OCCUPANT_COUNT) return;
 
       for (const addedId of added) {
-        const { client_id: clientId, profile } = states.get(addedId);
+        const state = states.get(addedId);
+        const { client_id: clientId, profile } = state;
         if (!clientId) continue;
 
         presenceIdToClientId.set(addedId, clientId);
@@ -746,10 +747,13 @@ const initPresence = (function() {
         if (profile?.displayName) {
           postJoinOrNameChange(clientId, profile.displayName);
         }
+
+        scene.emit("client-presence-updated", { ...state, clientId });
       }
 
       for (const updateId of updated) {
-        const { client_id: clientId, profile } = states.get(updateId);
+        const state = states.get(updateId);
+        const { client_id: clientId, profile } = state;
         if (!clientId) continue;
 
         presenceIdToClientId.set(updateId, clientId);
@@ -757,6 +761,8 @@ const initPresence = (function() {
         if (profile?.displayName) {
           postJoinOrNameChange(clientId, profile.displayName);
         }
+
+        scene.emit("client-presence-updated", { ...state, clientId });
       }
 
       for (const removeId of removed) {

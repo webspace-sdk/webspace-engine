@@ -48,21 +48,22 @@ AFRAME.registerComponent("player-info", {
     this.update = this.update.bind(this);
 
     this.isLocalPlayerInfo = this.el.id === "avatar-rig";
-    this.playerSessionId = null;
+    this.playerClientId = null;
 
     if (!this.isLocalPlayerInfo) {
       getNetworkedEntity(this.el).then(networkedEntity => {
-        this.playerSessionId = getCreator(networkedEntity);
-        const playerPresence = window.APP.spaceChannel.presence.state[this.playerSessionId];
+        this.playerClientId = getCreator(networkedEntity);
+        const playerPresence = NAF.connection.getPresenceStateForClientId(this.playerClientId);
+
         if (playerPresence) {
-          this.updateDisplayNameFromPresenceMeta(playerPresence.metas[0]);
+          this.updateDisplayNameFromPresenceState(playerPresence);
         }
       });
     }
   },
   play() {
     this.el.addEventListener("model-loaded", this.applyProperties);
-    this.el.sceneEl.addEventListener("space_presence_updated", this.updateDisplayName);
+    this.el.sceneEl.addEventListener("client-presence-updated", this.updateDisplayName);
     if (this.isLocalPlayerInfo) {
       this.el.querySelector(".model").addEventListener("model-error", this.handleModelError);
     }
@@ -73,7 +74,7 @@ AFRAME.registerComponent("player-info", {
   },
   pause() {
     this.el.removeEventListener("model-loaded", this.applyProperties);
-    this.el.sceneEl.removeEventListener("space_presence_updated", this.updateDisplayName);
+    this.el.sceneEl.removeEventListener("client-presence-updated", this.updateDisplayName);
     if (this.isLocalPlayerInfo) {
       this.el.querySelector(".model").removeEventListener("model-error", this.handleModelError);
     }
@@ -86,19 +87,20 @@ AFRAME.registerComponent("player-info", {
     this.applyProperties();
   },
   updateDisplayName(e) {
-    if (!this.playerSessionId && this.isLocalPlayerInfo) {
-      this.playerSessionId = NAF.clientId;
+    if (!this.playerClientId && this.isLocalPlayerInfo) {
+      this.playerClientId = NAF.clientId;
     }
-    if (!this.playerSessionId) return;
-    if (this.playerSessionId !== e.detail.sessionId) return;
+    if (!this.playerClientId) return;
+    if (this.playerClientId !== e.detail.clientId) return;
 
-    this.updateDisplayNameFromPresenceMeta(e.detail);
+    this.updateDisplayNameFromPresenceState(e.detail);
   },
-  updateDisplayNameFromPresenceMeta(presenceMeta) {
-    this.displayName = presenceMeta.profile.displayName;
-    this.identityName = presenceMeta.profile.identityName;
-    this.isRecording = !!(presenceMeta.streaming || presenceMeta.recording);
-    this.isOwner = !!(presenceMeta.roles && presenceMeta.roles.owner);
+  updateDisplayNameFromPresenceState(presenceState) {
+    this.displayName = presenceState.profile.displayName;
+    // TODO SHARED
+    this.identityName = this.displayName;
+    this.isRecording = false;
+    this.isOwner = false;
     this.applyDisplayName();
   },
   applyDisplayName() {
