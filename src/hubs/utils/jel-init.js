@@ -352,58 +352,45 @@ let updateTitleAndWorldForHubHandler;
 
 const setupDataChannelMessageHandlers = () => {
   const scene = document.querySelector("a-scene");
-  const { spaceChannel } = window.APP;
+  const projectileSystem = scene.systems["hubs-systems"].projectileSystem;
+
   const messages = getMessages();
 
-  NAF.connection.subscribeToDataChannel("message", (_type, { to_session_id, type, body }, fromSessionId) => {
-    const getName = session_id => {
-      const userInfo = spaceChannel.presence.state[session_id];
-      if (userInfo) {
-        return userInfo.metas[0].profile.displayName;
-      } else {
-        return messages["chat.default-name"];
-      }
-    };
-
-    switch (type) {
-      case "chat": {
-        const name = getName(fromSessionId);
-        const entry = { name, type, body, posted_at: performance.now() };
-
-        scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
-
-        scene.emit("chat_log_entry", entry);
-        break;
-      }
-      case "reactji": {
-        const name = getName(fromSessionId);
-        const toName = getName(to_session_id);
-        const entry = { name, toName, type, body, posted_at: performance.now() };
-
-        scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
-        scene.emit("chat_log_entry", entry);
-        break;
-      }
-      case "emoji_launch":
-      case "emoji_burst": {
-        // Don't replicate emojis when paused, so we don't see a huge burst of them after the fact.
-        if (!scene.isPlaying) return;
-
-        if (fromSessionId !== NAF.clientId) {
-          const projectileSystem = scene.systems["hubs-systems"].projectileSystem;
-
-          if (type === "emoji_launch") {
-            projectileSystem.replayEmojiSpawnerProjectile(body);
-          }
-
-          if (type === "emoji_burst") {
-            projectileSystem.replayEmojiBurst(body);
-          }
-        }
-
-        break;
-      }
+  const getName = clientId => {
+    const presenceState = NAF.connection.getPresenceStateForClientId(clientId);
+    if (presenceState) {
+      return presenceState.profile.displayName;
+    } else {
+      return messages["chat.default-name"];
     }
+  };
+
+  NAF.connection.subscribeToDataChannel("chat", (_type, { body }, fromSessionId) => {
+    const name = getName(fromSessionId);
+
+    scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
+
+    scene.emit("chat_log_entry", { name, type: "chat", body, posted_at: performance.now() });
+  });
+
+  NAF.connection.subscribeToDataChannel("reactji", (_type, { to_session_id, body }, fromSessionId) => {
+    const name = getName(fromSessionId);
+    const toName = getName(to_session_id);
+
+    scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CHAT_MESSAGE);
+    scene.emit("chat_log_entry", { name, toName, type: "reactji", body, posted_at: performance.now() });
+  });
+
+  NAF.connection.subscribeToDataChannel("emoji_launch", (_type, { body }, fromSessionId) => {
+    if (!scene.isPlaying) return;
+    if (fromSessionId === NAF.clientId) return;
+    projectileSystem.replayEmojiSpawnerProjectile(body);
+  });
+
+  NAF.connection.subscribeToDataChannel("emoji_burst", (_type, { body }, fromSessionId) => {
+    if (!scene.isPlaying) return;
+    if (fromSessionId === NAF.clientId) return;
+    projectileSystem.replayEmojiBurst(body);
   });
 };
 
