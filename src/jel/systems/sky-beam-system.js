@@ -179,7 +179,7 @@ export class SkyBeamSystem {
   }
 
   tick() {
-    if (!window.APP.spaceChannel.presence) return;
+    if (!NAF.connection.presence) return;
 
     const { beamSources, sourceCreatorIds, maxRegisteredIndex, instanceColorAttribute, mesh, dirtyColors } = this;
     if (maxRegisteredIndex === -1) return;
@@ -188,8 +188,6 @@ export class SkyBeamSystem {
 
     let instanceMatrixNeedsUpdate = false,
       instanceColorNeedsUpdate = false;
-
-    const presenceState = window.APP.spaceChannel.presence.state;
 
     for (let i = 0; i <= maxRegisteredIndex; i++) {
       const source = beamSources[i];
@@ -204,8 +202,9 @@ export class SkyBeamSystem {
         // Check if the color is for an avatar and is in presence
         const creatorId = sourceCreatorIds[i];
 
-        if (creatorId && presenceState[creatorId] && presenceState[creatorId].metas) {
-          color = presenceState[creatorId].metas[0].profile.persona.avatar.primary_color;
+        const presenceState = NAF.connection.getPresenceStateForClientId(creatorId);
+        if (creatorId && presenceState?.profile?.persona) {
+          color = presenceState.profile.persona.avatar.primary_color;
         }
 
         instanceColorAttribute.array[i * 3 + 0] = color.r;

@@ -730,8 +730,14 @@ function JelUI(props) {
         showDeviceControls={isWorld}
         sessionId={sessionId}
         onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {
-          spaceChannel.sendAvatarColorUpdate(r / 255.0, g / 255.0, b / 255.0);
-          window.APP.matrix.updateAvatarColor(r / 255.0, g / 255.0, b / 255.0);
+          const { store } = window.APP;
+          const { profile } = store.state;
+          // Copy these to ensure presence changes
+          const persona = { ...(profile.persona || {}) };
+          const avatar = { ...(persona.avatar || {}) };
+          persona.avatar = avatar;
+          avatar.primary_color = { r: r / 255.0, g: g / 255.0, b: b / 255.0 };
+          store.update({ profile: { persona } });
         }}
       />
       <input

@@ -127,7 +127,7 @@ export class VoxSystem extends EventTarget {
     this.frame = 0;
 
     // TODO SHARED
-    this.sceneEl.addEventListener("space-presence-synced", this.onSpacePresenceSynced);
+    // this.sceneEl.addEventListener("space-presence-synced", this.onSpacePresenceSynced);
 
     this.sceneEl.addEventListener("media_locked_changed", ({ target }) => {
       const mediaVox = target && target.components["media-vox"];

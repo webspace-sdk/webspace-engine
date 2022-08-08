@@ -147,12 +147,39 @@ export const SCHEMA = {
       }
     },
 
+    color: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        r: { type: "number" },
+        g: { type: "number" },
+        b: { type: "number" }
+      }
+    },
+
+    avatar: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        primary_color: { $ref: "#/definitions/color" }
+      }
+    },
+
+    persona: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        avatar: { $ref: "#/definitions/avatar" }
+      }
+    },
+
     profile: {
       type: "object",
       additionalProperties: false,
       properties: {
         displayName: { type: "string", pattern: "^[A-Za-z0-9 -]{3,32}$" },
-        avatarId: { type: "string" }
+        avatarId: { type: "string" },
+        persona: { $ref: "#/definitions/persona" }
       }
     },
 
@@ -499,8 +526,20 @@ export default class Store extends EventTarget {
     }
 
     // Regenerate name to encourage users to change it.
-    if (!this.state.activity.hasChangedName) {
+    if (!this.state.profile.displayName) {
       this.update({ profile: { displayName: generateRandomName() } });
+    }
+
+    if (!this.state.profile.persona) {
+      this.update({
+        profile: {
+          persona: {
+            avatar: {
+              primary_color: { r: 0, g: 0.22, b: 0.66 }
+            }
+          }
+        }
+      });
     }
 
     if (!this.state.equips.launcher) {

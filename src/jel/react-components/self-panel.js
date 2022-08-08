@@ -306,7 +306,6 @@ const SelfPanel = ({ scene, spaceChannel, showDeviceControls, sessionId, onAvata
         sessionId={sessionId}
         onNameEditSaved={name => {
           const { store } = window.APP;
-          store.handleActivityFlag("hasChangedName");
           store.update({ profile: { displayName: name } });
         }}
       >

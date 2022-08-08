@@ -64,7 +64,6 @@ export const useClientPresenceState = (clientId, scene, state, onStateChange) =>
       if (!scene) return () => {};
 
       const handler = ({ detail: newState }) => {
-        console.log("handle", state, newState);
         if (state !== newState && newState.clientId === clientId) {
           onStateChange(newState);
         }

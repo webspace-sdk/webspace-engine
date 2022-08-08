@@ -27,17 +27,14 @@ const AvatarEditorPopup = ({
   const [pickerColorValue, setPickerColorValue] = useState({ r: 0, g: 0, b: 0 });
   useEffect(
     () => {
-      if (!scene || !spaceChannel) return;
+      if (!scene || !spaceChannel || !NAF.connection.presence) return;
 
       const handler = () => {
         const sessionId = NAF.clientId;
-        const presenceState = spaceChannel.presence && spaceChannel.presence.state;
-        const creatorPresenceState = presenceState && presenceState[sessionId];
-        const presenceMetas = creatorPresenceState && presenceState[sessionId].metas;
-        const presenceMeta = presenceMetas && presenceMetas[0];
+        const creatorPresenceState = NAF.connection.getPresenceStateForClientId(sessionId);
 
-        if (presenceMeta) {
-          const color = presenceMeta.profile.persona.avatar.primary_color;
+        if (creatorPresenceState?.profile?.persona) {
+          const color = creatorPresenceState.profile.persona.avatar.primary_color;
           setPickerColorValue(rgbToPickerValue(color));
         }
       };

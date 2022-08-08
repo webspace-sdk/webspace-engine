@@ -596,12 +596,6 @@ const setupSpaceChannelMessageHandlers = spacePhxChannel => {
     spaceChannel.fetchPermissions();
     hubChannel.fetchPermissions();
   });
-
-  spacePhxChannel.on("persona_refresh", ({ session_id }) => {
-    // If persona changed, update avatar color + sky beam color
-    SYSTEMS.avatarSystem.markPersonaAvatarDirty(session_id);
-    SYSTEMS.skyBeamSystem.markColorDirtyForCreator(session_id);
-  });
 };
 
 const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, history, remountUI, remountJelUI) => {
@@ -699,7 +693,6 @@ const initPresence = (function() {
 
     presence.on("change", ({ added, updated, removed }) => {
       const { states } = presence;
-      if (states.size >= NOISY_OCCUPANT_COUNT) return;
 
       for (const addedId of added) {
         const state = states.get(addedId);
@@ -708,7 +701,7 @@ const initPresence = (function() {
 
         presenceIdToClientId.set(addedId, clientId);
 
-        if (profile?.displayName) {
+        if (profile?.displayName && states.size <= NOISY_OCCUPANT_COUNT) {
           postJoinOrNameChange(clientId, profile.displayName);
         }
 
@@ -722,7 +715,7 @@ const initPresence = (function() {
 
         presenceIdToClientId.set(updateId, clientId);
 
-        if (profile?.displayName) {
+        if (profile?.displayName && states.size <= NOISY_OCCUPANT_COUNT) {
           postJoinOrNameChange(clientId, profile.displayName);
         }
 
@@ -747,6 +740,11 @@ const initPresence = (function() {
     });
 
     presence.setLocalStateField("profile", store.state.profile);
+
+    scene.addEventListener("client-presence-updated", ({ detail: { clientId } }) => {
+      SYSTEMS.avatarSystem.markPersonaAvatarDirty(clientId);
+      SYSTEMS.skyBeamSystem.markColorDirtyForCreator(clientId);
+    });
   };
 })();
 

@@ -35,11 +35,13 @@ export class VideoBridgeSystem {
     });
 
     this.sceneEl.addEventListener("side_panel_resize_complete", () => this.updatePreviews());
-    this.sceneEl.addEventListener("space-presence-synced", () => {
-      if (this.bridgeId) {
-        this.muteAvatarsInSameBridge();
-      }
-    });
+    // TODO SHARED
+    //
+    // this.sceneEl.addEventListener("space-presence-synced", () => {
+    //   if (this.bridgeId) {
+    //     this.muteAvatarsInSameBridge();
+    //   }
+    // });
   }
 
   updatePreviews() {
