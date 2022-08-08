@@ -321,7 +321,6 @@ const SelfPanel = ({ scene, spaceChannel, showDeviceControls, sessionId, onAvata
 
 SelfPanel.propTypes = {
   scene: PropTypes.object,
-  spacePresences: PropTypes.object,
   spaceChannel: PropTypes.object,
   sessionId: PropTypes.string,
   showDeviceControls: PropTypes.bool,

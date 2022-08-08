@@ -37,7 +37,7 @@ export class VideoBridgeSystem {
     this.sceneEl.addEventListener("side_panel_resize_complete", () => this.updatePreviews());
     // TODO SHARED
     //
-    // this.sceneEl.addEventListener("space-presence-synced", () => {
+    // this.sceneEl.addEventListener("space-oldpresence-synced", () => {
     //   if (this.bridgeId) {
     //     this.muteAvatarsInSameBridge();
     //   }

@@ -39,8 +39,8 @@ const AvatarEditorPopup = ({
         }
       };
 
-      scene.addEventListener("space-presence-synced", handler);
-      return () => scene.removeEventListener("space-presence-synced", handler);
+      scene.addEventListener("presence-synced", handler);
+      return () => scene.removeEventListener("presence-synced", handler);
     },
 
     [scene, spaceChannel, pickerColorValue, setPickerColorValue]

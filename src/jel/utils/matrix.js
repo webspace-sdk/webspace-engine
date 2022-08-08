@@ -169,7 +169,8 @@ export default class Matrix extends EventTarget {
               this._joinMissingRooms();
             });
 
-            scene.addEventListener("space-presence-synced", () => this._syncProfile());
+            // TODO SHARED
+            scene.addEventListener("space-oldpresence-synced", () => this._syncProfile());
             this._disableGlobalPushRules();
 
             const { spaceStore } = this.neonStores;

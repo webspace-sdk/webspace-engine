@@ -9,7 +9,7 @@ const metadata = new AtomMetadata(ATOM_TYPES.HUB);
 metadata._metadata.set("ZJenEkZ", { displayName: "World Name" });
 metadata._metadata.set("J8eetqM", { displayName: "Test Very Long World Name That Keeps Going and Going" });
 
-const spacePresences = {
+const presences = {
   "0cea1949-b385-4c60-966d-c45988fbdb7b": {
     metas: [
       {
@@ -107,10 +107,10 @@ const spacePresences = {
   }
 };
 
-window.APP.spaceChannel.presence = { state: spacePresences };
+window.APP.spaceChannel.presence = { state: presences };
 
 export const Normal = () => {
-  setTimeout(() => scene.dispatchEvent(new CustomEvent("space-presence-synced")));
+  setTimeout(() => scene.dispatchEvent(new CustomEvent("presence-synced")));
 
   return (
     <div

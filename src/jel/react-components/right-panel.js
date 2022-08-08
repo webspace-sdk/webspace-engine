@@ -10,7 +10,6 @@ import launcherOffIcon from "../../assets/jel/images/icons/launcher-off.svgi";
 import builderOnIcon from "../../assets/jel/images/icons/builder-on.svgi";
 import builderOffIcon from "../../assets/jel/images/icons/builder-off.svgi";
 import { spaceForSpaceId } from "../utils/membership-utils";
-import { navigateToHubUrl } from "../utils/jel-url-utils";
 import PresenceList from "./presence-list";
 import EmojiEquip from "./emoji-equip";
 import SpaceTree from "./space-tree";
@@ -197,21 +196,11 @@ function RightPanel({
           className={triggerMode === "launcher" ? "launch" : "build"}
         >
           <PresenceList
-            hubMetadata={hubMetadata}
-            hubCan={hubCan}
             scene={scene}
-            isWorld={isWorld}
             sessionId={sessionId}
             onGoToUserClicked={sessionId => {
               SYSTEMS.characterController.teleportToUser(sessionId);
               SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_TELEPORT_END);
-            }}
-            onGoToHubClicked={hubId => {
-              const metadata = hubMetadata.getMetadata(hubId);
-
-              if (metadata) {
-                navigateToHubUrl(history, metadata.url);
-              }
             }}
           />
         </PresenceContent>

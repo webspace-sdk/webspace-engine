@@ -724,6 +724,8 @@ const initPresence = (function() {
         presenceIdToClientId.delete(removeId);
         lastPostedDisplayNames.delete(clientId);
       }
+
+      scene.emit("presence-synced", {});
     });
 
     presence.setLocalStateField("profile", store.state.profile);
