@@ -62,7 +62,7 @@ AFRAME.registerComponent("mute-mic", {
       SYSTEMS.audioSystem.enableOutboundAudioStream("microphone");
       this.el.addState("unmuted");
       window.APP.store.handleActivityFlag("unmute");
-      window.APP.spaceChannel.updateUnmuted(true);
+      NAF.connection.presence.setLocalStateField("unmuted", true);
     } else {
       if (this._beganAudioStream) {
         this._beganAudioStream = false;
@@ -71,7 +71,7 @@ AFRAME.registerComponent("mute-mic", {
       await NAF.connection.adapter.enableMicrophone(false);
       SYSTEMS.audioSystem.disableOutboundAudioStream("microphone");
       this.el.removeState("unmuted");
-      window.APP.spaceChannel.updateUnmuted(false);
+      NAF.connection.presence.setLocalStateField("unmuted", false);
     }
   },
 
@@ -80,7 +80,7 @@ AFRAME.registerComponent("mute-mic", {
     if (this.el.is("unmuted")) {
       await NAF.connection.adapter.enableMicrophone(false);
       this.el.removeState("unmuted");
-      window.APP.spaceChannel.updateUnmuted(false);
+      NAF.connection.presence.setLocalStateField("unmuted", false);
     }
   },
 
@@ -88,7 +88,7 @@ AFRAME.registerComponent("mute-mic", {
     if (!this.el.is("unmuted")) {
       await NAF.connection.adapter.enableMicrophone(true);
       this.el.addState("unmuted");
-      window.APP.spaceChannel.updateUnmuted(true);
+      NAF.connection.presence.setLocalStateField("unmuted", true);
     }
   }
 });
