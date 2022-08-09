@@ -61,46 +61,6 @@ function createHTTPSConfig() {
   }
 }
 
-function getModuleDependencies(moduleName) {
-  const deps = packageLock.dependencies;
-  const arr = [];
-
-  const gatherDeps = name => {
-    arr.push(path.join(__dirname, "node_modules", name) + path.sep);
-
-    const moduleDef = deps[name];
-
-    if (moduleDef && moduleDef.requires) {
-      for (const requiredModuleName in moduleDef.requires) {
-        gatherDeps(requiredModuleName);
-      }
-    }
-  };
-
-  gatherDeps(moduleName);
-
-  return arr;
-}
-
-function deepModuleDependencyTest(modulesArr) {
-  const deps = [];
-
-  for (const moduleName of modulesArr) {
-    const moduleDependencies = getModuleDependencies(moduleName);
-    deps.push(...moduleDependencies);
-  }
-
-  return module => {
-    if (!module.nameForCondition) {
-      return false;
-    }
-
-    const name = module.nameForCondition();
-
-    return deps.some(depName => name.startsWith(depName));
-  };
-}
-
 function createDefaultAppConfig() {
   const schemaPath = path.join(__dirname, "src", "schema.toml");
   const schemaString = fs.readFileSync(schemaPath).toString();
@@ -244,12 +204,7 @@ module.exports = async (env, argv) => {
       fs: "empty"
     },
     entry: {
-      support: path.join(__dirname, "src", "hubs", "support.js"),
-      index: path.join(__dirname, "src", "jel", "ui", "index.js"),
-      jel: path.join(__dirname, "src", "jel.js"),
-      livehelp: path.join(__dirname, "src", "livehelp.js")
-      // don't build zoom every time to reduce build times
-      // zoom: path.join(__dirname, "src", "zoom.js")
+      jel: path.join(__dirname, "src", "jel.js")
     },
     output: {
       filename: "assets/js/[name]-[chunkhash].js",
@@ -368,9 +323,6 @@ module.exports = async (env, argv) => {
           test: /\.(scss|css)$/,
           use: [
             {
-              loader: MiniCssExtractPlugin.loader
-            },
-            {
               loader: "css-loader",
               options: {
                 name: "[path][name]-[hash].[ext]",
@@ -417,74 +369,9 @@ module.exports = async (env, argv) => {
       ]
     },
 
-    optimization: {
-      splitChunks: {
-        maxAsyncRequests: 10,
-        maxInitialRequests: 10,
-        cacheGroups: {
-          quill: {
-            test: /quill[.-].+\.css$/,
-            name: "quill-styles",
-            chunks: "initial",
-            priority: 50
-          },
-          frontend: {
-            test: deepModuleDependencyTest([
-              "react",
-              "react-dom",
-              "prop-types",
-              "raven-js",
-              "react-intl",
-              "classnames",
-              "react-router",
-              "@fortawesome/fontawesome-svg-core",
-              "@fortawesome/free-solid-svg-icons",
-              "@fortawesome/react-fontawesome"
-            ]),
-            name: "frontend",
-            chunks: "initial",
-            priority: 40
-          },
-          engine: {
-            test: deepModuleDependencyTest(["aframe", "three"]),
-            name: "engine",
-            chunks: "initial",
-            priority: 30
-          },
-          store: {
-            test: deepModuleDependencyTest(["phoenix", "jsonschema", "event-target-shim", "jwt-decode", "js-cookie"]),
-            name: "store",
-            chunks: "initial",
-            priority: 20
-          },
-          zoomsdk: {
-            test: deepModuleDependencyTest(["@zoomus/websdk", "react-redux", "redux", "redux-thunk"]),
-            name: "zoomsdk",
-            chunks: "initial",
-            priority: 10
-          },
-          hubVendors: {
-            test: /[\\/]node_modules[\\/]/,
-            name: "hub-vendors",
-            chunks: chunk => chunk.name === "hub",
-            priority: 10
-          }
-        }
-      }
-    },
     plugins: [
       new BundleAnalyzerPlugin({
         analyzerMode: env && env.bundleAnalyzer ? "server" : "disabled"
-      }),
-      // Each output page needs a HTMLWebpackPlugin entry
-      new HTMLWebpackPlugin({
-        filename: "index.html",
-        template: path.join(__dirname, "src", "index.html"),
-        chunks: ["index"],
-        chunksSortMode: "manual",
-        minify: {
-          removeComments: false
-        }
       }),
       new HTMLWebpackPlugin({
         filename: "jel.html",
@@ -496,41 +383,16 @@ module.exports = async (env, argv) => {
           removeComments: false
         }
       }),
-      new HTMLWebpackPlugin({
-        filename: "livehelp.html",
-        template: path.join(__dirname, "src", "livehelp.html"),
-        chunks: ["livehelp"],
-        chunksSortMode: "manual",
-        minify: {
-          removeComments: false
-        }
-      }),
-      // don't build zoom every time to reduce build times
-      //new HTMLWebpackPlugin({
-      //  filename: "zoom.html",
-      //  template: path.join(__dirname, "src", "zoom.html"),
-      //  chunks: ["zoom"],
-      //  chunksSortMode: "manual",
-      //  inject: "body",
-      //  minify: {
-      //    removeComments: false
-      //  }
-      //}),
       new CopyWebpackPlugin([
         {
           from: "src/jel.service.js",
           to: "jel.service.js"
         }
       ]),
-      new CopyWebpackPlugin([
-        {
-          from: "src/schema.toml",
-          to: "schema.toml"
-        }
-      ]),
       // Extract required css and add a content hash.
       new MiniCssExtractPlugin({
         filename: "assets/stylesheets/[name]-[contenthash].css",
+        insert: linkTag => document.body.querySelector("template").appendChild(linkTag),
         disable: argv.mode !== "production"
       }),
       // Define process.env variables in the browser context.

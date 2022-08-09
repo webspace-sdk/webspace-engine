@@ -14,7 +14,6 @@ import "quill-emoji";
 import Quill from "quill";
 
 import styles from "../../assets/jel/stylesheets/text-editor.scss";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 
 export const EDITOR_WIDTH = 600;
 export const EDITOR_HEIGHT = Math.floor(EDITOR_WIDTH * 0.5625);
@@ -31,6 +30,8 @@ const quills = {};
 let quillStyles;
 
 export function initQuillPool() {
+  return;
+
   return new Promise(res => {
     // Load quill styles out of <link> tag, which is in its own webpack chunk.
     const cssUrl = document.querySelector("link[href*=quill-styles]").href;
@@ -265,7 +266,7 @@ export function getQuill(networkId) {
   const id = `quill-${networkId}`;
   el.setAttribute("id", id);
   el.classList.add(styles.editorWrap);
-  el.classList.add(sharedStyles.fastShowWhenPopped);
+  el.classList.add("fast-show-when-popped");
 
   const styleTag = document.createElement("style");
   styleTag.innerHTML = quillStyles;

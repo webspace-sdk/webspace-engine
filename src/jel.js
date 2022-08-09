@@ -9,7 +9,6 @@ import mixpanel from "mixpanel-browser";
 
 console.log(`App version: ${process.env.BUILD_VERSION || "?"}`);
 
-import "./assets/hubs/stylesheets/hub.scss";
 import initialBatchImage from "./assets/hubs/images/warning_icon.png";
 
 import "aframe";

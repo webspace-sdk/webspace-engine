@@ -9,7 +9,6 @@ import BridgeStartPopup from "./bridge-start-popup";
 import { BigIconButton } from "./icon-button";
 import Tooltip from "./tooltip";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import { usePopper } from "react-popper";
 import { useSingleton } from "@tippyjs/react";
 import { getMessages } from "../../hubs/utils/i18n";
@@ -226,7 +225,7 @@ const BridgePanel = ({ scene, spaceCan }) => {
         <PopupPanelMenuArrow
           ref={setBridgeStartArrowElement}
           style={bridgeStartStyles.arrow}
-          className={sharedStyles.popperArrow}
+          className="popper-arrow"
         />
       </BridgeStartPopup>
     </BridgePanelElement>

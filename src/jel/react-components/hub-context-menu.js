@@ -1,7 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import PopupMenu, { PopupMenuItem } from "./popup-menu";
 import trashIcon from "../../assets/jel/images/icons/trash.svgi";
 import WorldExporter from "../utils/world-exporter";
@@ -210,12 +209,12 @@ function HubContextMenu({
   const popupMenu = (
     <div
       tabIndex={-1} // Ensures can be focused
-      className={sharedStyles.showWhenPopped}
+      className="show-when-popped"
       ref={setPopperElement}
       style={styles.popper}
       {...attributes.popper}
     >
-      <PopupMenu className={sharedStyles.slideDownWhenPopped}>
+      <PopupMenu className="slide-up-when-popped">
         {items.length > 0 ? (
           items
         ) : (

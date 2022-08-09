@@ -27,7 +27,6 @@ import trashIcon from "../../assets/jel/images/icons/trash.svgi";
 import { getMessages } from "../../hubs/utils/i18n";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import ReactDOM from "react-dom";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import PopupPanel from "./popup-panel";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 
@@ -239,7 +238,7 @@ function TrashMenu({ styles, attributes, setPopperElement, children }) {
   const popupMenu = (
     <PopupPanel
       tabIndex={-1} // Ensures can be focused
-      className={sharedStyles.showWhenPopped}
+      className="show-when-popped"
       ref={setPopperElement}
       style={styles.popper}
       {...attributes.popper}
@@ -259,7 +258,7 @@ function Invite({ styles, attributes, setPopperElement, children }) {
   const popupMenu = (
     <PopupPanel
       tabIndex={-1} // Ensures can be focused
-      className={sharedStyles.showWhenPopped}
+      className="show-when-popped"
       ref={setPopperElement}
       style={styles.popper}
       {...attributes.popper}

@@ -8,16 +8,7 @@
 @import 'audio';
 @import 'info-dialog';
 
-:root {
-  // CSS vars for laying out side panels. Center canvas and UI are laid out in UIAnimationSystem
-  --nav-width: 300px;
-  --presence-width: 200px;
-}
-
 body {
-  background-color: #333;
-  overflow: hidden;
-
   a-scene {
     height: 100%;
     top: 0;
@@ -29,45 +20,7 @@ body {
       visibility: visible;
     }
   }
-
-  #neon {
-    height: calc(100% - 30px);
-    border: 0px;
-    top: 30px;
-    position: fixed;
-    z-index: 3;
-    display: none;
-
-    &.visible {
-      display: block;
-    }
-  }
-
-  #gaze-cursor {
-    position: absolute;
-    mix-blend-mode: color-dodge;
-    width: 6px;
-    height: 6px;
-    z-index: 10000;
-    pointer-events: none;
-    visibility: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .cursor {
-      width: 6px;
-      height: 6px;
-      border-radius: 4px;
-      background-color: rgba(128, 128, 128);
-    }
-  }
 }
-
-body.show-css-cursor #gaze-cursor {
-  visibility: visible;
-}
-
 
 body.vr-mode-stretch {
   a-scene {
@@ -101,10 +54,10 @@ a-entity {
   display: none;
 }
 
-.svg-icon {
-  overflow: visible;
-  display: inline-block;
-  font-size: inherit;
-  vertical-align: -0.125em;
-  height: 1em;
-}
+// .svg-icon {
+//   overflow: visible;
+//   display: inline-block;
+//   font-size: inherit;
+//   vertical-align: -0.125em;
+//   height: 1em;
+// }

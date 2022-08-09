@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { FormattedMessage } from "react-intl";
 import PropTypes from "prop-types";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import checkIcon from "../../assets/jel/images/icons/check.svgi";
 import PopupPanelMenu, {
   PopupPanelMenuItem,
@@ -43,12 +42,12 @@ const DeviceSelectorPopup = ({ scene, setPopperElement, styles, attributes, chil
   const popupInput = (
     <div
       tabIndex={-1} // Ensures can be focused
-      className={sharedStyles.showWhenPopped}
+      className="show-when-popped"
       ref={setPopperElement}
       style={styles.popper}
       {...attributes.popper}
     >
-      <PopupPanelMenu className={sharedStyles.slideUpWhenPopped}>
+      <PopupPanelMenu className="slide-up-when-popped">
         <PopupPanelMenuSectionHeader key="mic-header">
           <FormattedMessage id="device-selector.mic-devices" />
         </PopupPanelMenuSectionHeader>

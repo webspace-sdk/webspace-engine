@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupPanelMenu from "./popup-panel-menu";
 import PanelSectionHeader from "./panel-section-header";
@@ -454,7 +453,7 @@ const EnvironmentSettingsPopup = ({
   const popupInput = (
     <div
       tabIndex={-1} // Ensures can be focused
-      className={sharedStyles.showWhenPopped}
+      className="show-when-popped"
       ref={setPopperElement}
       style={styles.popper}
       {...attributes.popper}
@@ -503,7 +502,7 @@ const EnvironmentSettingsPopup = ({
       <PopupPanelMenu
         ref={panelRef}
         style={{ padding: "32px 0px", borderRadius: "12px" }}
-        className={sharedStyles.slideUpWhenPopped}
+        className="slide-up-when-popped"
       >
         <PanelWrap>
           <PanelSectionHeader style={{ marginLeft: 0 }}>

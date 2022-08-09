@@ -12,7 +12,6 @@ import AvatarEditorPopup from "./avatar-editor-popup";
 import { BigIconButton } from "./icon-button";
 import Tooltip from "./tooltip";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import { useClientPresenceState } from "../utils/shared-effects";
 import { usePopper } from "react-popper";
 import { useSingleton } from "@tippyjs/react";
@@ -275,7 +274,7 @@ const SelfPanel = ({ scene, spaceChannel, showDeviceControls, sessionId, onAvata
         <PopupPanelMenuArrow
           ref={setDeviceSelectorArrowElement}
           style={deviceSelectorStyles.arrow}
-          className={sharedStyles.popperArrow}
+          className="popper-arrow"
         />
       </DeviceSelectorPopup>
       <AvatarEditorPopup
@@ -289,7 +288,7 @@ const SelfPanel = ({ scene, spaceChannel, showDeviceControls, sessionId, onAvata
         <PopupPanelMenuArrow
           ref={setAvatarEditorArrowElement}
           style={avatarEditorStyles.arrow}
-          className={sharedStyles.popperArrow}
+          className="popper-arrow"
         />
       </AvatarEditorPopup>
       <ProfileEditorPopup
@@ -306,7 +305,7 @@ const SelfPanel = ({ scene, spaceChannel, showDeviceControls, sessionId, onAvata
         <PopupPanelMenuArrow
           ref={setProfileEditorArrowElement}
           style={profileEditorStyles.arrow}
-          className={sharedStyles.popperArrow}
+          className="popper-arrow"
         />
       </ProfileEditorPopup>
     </SelfPanelElement>

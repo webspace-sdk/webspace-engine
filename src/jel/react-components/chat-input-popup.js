@@ -3,7 +3,6 @@ import React, { forwardRef } from "react";
 import ReactDOM from "react-dom";
 import ChatInputPanel from "./chat-input-panel";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.body.shadowRoot.getElementById("jel-popup-root")));
@@ -13,13 +12,13 @@ const ChatInputPopup = forwardRef(
     const popupInput = (
       <div
         tabIndex={-1} // Ensures can be focused
-        className={sharedStyles.showWhenPopped}
+        className="show-when-popped"
         ref={setPopperElement}
         style={styles.popper}
         {...attributes.popper}
       >
         <ChatInputPanel
-          className={sharedStyles.slideDownWhenPopped}
+          className="slide-down-when-popped"
           onMessageEntered={onMessageEntered}
           onEntryComplete={onEntryComplete}
           ref={ref}

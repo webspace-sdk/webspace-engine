@@ -1,7 +1,6 @@
 import React, { useRef, useState, useCallback } from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupPanelMenu from "./popup-panel-menu";
 import editIcon from "../../assets/jel/images/icons/edit.svgi";
@@ -48,12 +47,12 @@ const ProfileEditorPopup = ({ setPopperElement, styles, attributes, children, on
   const popupInput = (
     <div
       tabIndex={-1} // Ensures can be focused
-      className={sharedStyles.showWhenPopped}
+      className="show-when-popped"
       ref={setPopperElement}
       style={styles.popper}
       {...attributes.popper}
     >
-      <PopupPanelMenu style={{ padding: "12px", borderRadius: "12px" }} className={sharedStyles.slideUpWhenPopped}>
+      <PopupPanelMenu style={{ padding: "12px", borderRadius: "12px" }} className="slide-up-when-popped">
         <PanelWrap>
           <Tip>
             <FormattedMessage id="profile-editor.your-display-name" />

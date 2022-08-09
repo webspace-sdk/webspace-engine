@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupPanelMenu from "./popup-panel-menu";
 import PanelSectionHeader from "./panel-section-header";
@@ -228,12 +227,12 @@ const SpaceNotificationsPopup = ({
   const popupInput = (
     <div
       tabIndex={-1} // Ensures can be focused
-      className={sharedStyles.showWhenPopped}
+      className="show-when-popped"
       ref={setPopperElement}
       style={styles.popper}
       {...attributes.popper}
     >
-      <PopupPanelMenu style={{ padding: "32px 0px", borderRadius: "12px" }} className={sharedStyles.slideUpWhenPopped}>
+      <PopupPanelMenu style={{ padding: "32px 0px", borderRadius: "12px" }} className="slide-up-when-popped">
         {contents}
       </PopupPanelMenu>
       {children}

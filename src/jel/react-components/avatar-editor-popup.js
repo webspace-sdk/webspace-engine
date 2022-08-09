@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import ReactDOM from "react-dom";
 import styled from "styled-components";
 import PropTypes from "prop-types";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import ColorPicker, { rgbToPickerValue } from "./color-picker";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupPanelMenu from "./popup-panel-menu";
@@ -49,12 +48,12 @@ const AvatarEditorPopup = ({
   const popupInput = (
     <div
       tabIndex={-1} // Ensures can be focused
-      className={sharedStyles.showWhenPopped}
+      className="show-when-popped"
       ref={setPopperElement}
       style={styles.popper}
       {...attributes.popper}
     >
-      <PopupPanelMenu style={{ padding: "12px", borderRadius: "12px" }} className={sharedStyles.slideUpWhenPopped}>
+      <PopupPanelMenu style={{ padding: "12px", borderRadius: "12px" }} className="slide-up-when-popped">
         <PickerWrap>
           <ColorPicker
             color={pickerColorValue}

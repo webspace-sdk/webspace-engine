@@ -56,7 +56,6 @@
     "@mozillareality/three-batch-manager": "github:mozillareality/three-batch-manager#master",
     "@popperjs/core": "^2.5.3",
     "@tippyjs/react": "^4.2.0",
-    "@zoomus/websdk": "^1.9.0",
     "aframe": "github:jel-app/aframe#hubs/master",
     "aframe-rounded": "^1.0.3",
     "aframe-slice9-component": "github:jel-app/aframe-slice9-component#master",

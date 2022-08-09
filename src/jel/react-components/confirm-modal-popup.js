@@ -4,7 +4,6 @@ import styled from "styled-components";
 import ReactDOM from "react-dom";
 import ConfirmModalPanel from "./confirm-modal-panel";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.body.shadowRoot.getElementById("jel-popup-root")));
@@ -26,18 +25,13 @@ const ConfirmModalPopup = forwardRef(({ styles, attributes, setPopperElement, at
   const popupInput = (
     <div
       tabIndex={-1} // Ensures can be focused
-      className={sharedStyles.showWhenPopped}
+      className="show-when-popped"
       ref={setPopperElement}
       style={styles.popper}
       {...attributes.popper}
     >
       <Background className="modal-background" />
-      <ConfirmModalPanel
-        className={sharedStyles.slideDownWhenPopped}
-        atomId={atomId}
-        atomMetadata={atomMetadata}
-        ref={ref}
-      />
+      <ConfirmModalPanel className="slide-down-when-popped" atomId={atomId} atomMetadata={atomMetadata} ref={ref} />
     </div>
   );
 
