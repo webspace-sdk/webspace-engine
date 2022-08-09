@@ -30,7 +30,7 @@ const Top = styled.div`
   width: 100%;
   align-items: flex-start;
 
-  body.paused #jel-interface.hub-type-world & {
+  :host(.paused) #jel-interface.hub-type-world & {
     opacity: 0.4;
   }
 `;
@@ -107,10 +107,6 @@ const CornerButton = styled.button`
 
   &:active {
     background-color: var(--canvas-overlay-item-active-background-color);
-  }
-
-  .panels-collapsed & {
-    display: none;
   }
 `;
 
@@ -545,7 +541,7 @@ function CanvasTop(props) {
   }
 
   return (
-    <Top>
+    <Top id="top-panel">
       {atomTrailAtomIds && (
         <AtomTrail
           atomIds={atomTrailAtomIds}

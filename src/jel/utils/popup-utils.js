@@ -145,7 +145,7 @@ export function usePopupPopper(
       let elToFocus;
 
       if (typeof focusRefOrSelector === "string") {
-        elToFocus = document.querySelector(focusRefOrSelector);
+        elToFocus = document.body.shadowRoot.querySelector(focusRefOrSelector);
       } else {
         elToFocus = focusRefOrSelector ? focusRefOrSelector.current : popupElement;
       }

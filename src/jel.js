@@ -300,26 +300,6 @@ registerWrappedEntityPositionNormalizers();
 disableiOSZoom();
 detectConcurrentLoad();
 
-// TODO JEL do we need lobby camera?
-/*function setupLobbyCamera() {
-  const camera = document.getElementById("scene-preview-node");
-  const previewCamera = document.getElementById("environment-scene").object3D.getObjectByName("scene-preview-camera");
-
-  if (previewCamera) {
-    camera.object3D.position.copy(previewCamera.position);
-    camera.object3D.rotation.copy(previewCamera.rotation);
-    camera.object3D.rotation.reorder("YXZ");
-  } else {
-    const cameraPos = camera.object3D.position;
-    camera.object3D.position.set(cameraPos.x, 2.5, cameraPos.z);
-  }
-
-  camera.object3D.matrixNeedsUpdate = true;
-
-  camera.removeAttribute("scene-preview-camera");
-  camera.setAttribute("scene-preview-camera", "positionOnly: true; duration: 60");
-}*/
-
 let uiProps = {};
 let jelUIProps = {};
 
@@ -391,7 +371,7 @@ function mountJelUI(props = {}) {
         )}
       />
     </Router>,
-    document.getElementById("jel-ui")
+    document.body.shadowRoot.getElementById("jel-ui")
   );
 }
 
@@ -595,7 +575,7 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
     }
 
     if (uploadAccept) {
-      const el = document.querySelector("#file-upload-input");
+      const el = document.body.shadowRoot.querySelector("#file-upload-input");
       el.accept = uploadAccept;
       el.click();
     }
@@ -623,7 +603,7 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
   });
 
   scene.addEventListener("action_focus_chat", () => {
-    const chatFocusTarget = document.querySelector(".chat-focus-target");
+    const chatFocusTarget = document.body.shadowRoot.querySelector(".chat-focus-target");
     chatFocusTarget && chatFocusTarget.focus();
   });
 
@@ -669,7 +649,7 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
   });
 
   ["#jel-ui", "#jel-popup-root"].forEach(selector => {
-    const el = document.querySelector(selector);
+    const el = document.body.shadowRoot.querySelector(selector);
     el.addEventListener("mouseover", () => scene.addState("pointer-exited"));
     el.addEventListener("mouseout", () => scene.removeState("pointer-exited"));
   });
@@ -850,7 +830,7 @@ function setupGameEnginePausing(scene) {
 
 function setupSidePanelLayout(scene) {
   const handleSidebarResizerDrag = (selector, cssVars, isLeft, min, max, xToWidth, storeCallback) => {
-    document.querySelector(selector).addEventListener("mousedown", () => {
+    document.body.shadowRoot.querySelector(selector).addEventListener("mousedown", () => {
       const handleMove = e => {
         const w = Math.min(max, Math.max(min, xToWidth(e.clientX)));
 
@@ -881,7 +861,7 @@ function setupSidePanelLayout(scene) {
 
   if (skipPanels) {
     for (const id of ["#nav-drag-target", "#presence-drag-target"]) {
-      const el = document.querySelector(id);
+      const el = document.body.shadowRoot.querySelector(id);
       el.parentNode.removeChild(el);
     }
   } else {
@@ -1135,7 +1115,7 @@ async function start() {
     let rightDelta = 0;
     let bottomDelta = 0;
 
-    const triggerSizePx = document.querySelector("#left-expand-trigger").offsetWidth;
+    const triggerSizePx = document.body.shadowRoot.querySelector("#left-expand-trigger").offsetWidth;
     const interaction = AFRAME.scenes[0].systems.interaction;
 
     // Ignore when holding.

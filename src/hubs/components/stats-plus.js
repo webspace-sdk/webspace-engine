@@ -37,7 +37,7 @@ AFRAME.registerComponent("stats-plus", {
 
     const scene = this.el.sceneEl;
     this.stats = createStats(scene);
-    this.statsEl = document.querySelector(".rs-base");
+    this.statsEl = document.body.shadowRoot.querySelector(".rs-base");
     // HACK for now in rare case where dom isn't ready, just bail
     if (!this.statsEl) return;
 

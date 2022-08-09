@@ -12,7 +12,7 @@ const isInModal = (() => {
 
   return function() {
     if (!uiRoot) {
-      uiRoot = document.querySelector(".ui-root");
+      uiRoot = document.body.shadowRoot.querySelector(".ui-root");
     }
 
     return uiRoot && uiRoot.classList.contains("in-modal-or-overlay");

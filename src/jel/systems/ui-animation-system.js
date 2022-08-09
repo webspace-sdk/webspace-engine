@@ -24,7 +24,7 @@ const panelExpandStep = BezierEasing(0.12, 0.98, 0.18, 0.98);
 export class UIAnimationSystem {
   constructor(sceneEl) {
     this.sceneEl = sceneEl;
-    waitForDOMContentLoaded().then(() => (this.neon = document.querySelector("#neon")));
+    waitForDOMContentLoaded().then(() => (this.neon = document.body.shadowRoot.querySelector("#neon")));
 
     this.lastTickT = 0;
     this.panelExpansionState = PANEL_EXPANSION_STATES.EXPANDING;
@@ -89,10 +89,12 @@ export class UIAnimationSystem {
     this.store.handleActivityFlag("narrow");
 
     // Hide triggers upon collapse
-    const triggerSizePx = document.querySelector("#left-expand-trigger").offsetWidth;
-    document.querySelector("#left-expand-trigger").setAttribute("style", `left: ${-triggerSizePx}px`);
-    document.querySelector("#right-expand-trigger").setAttribute("style", `right: ${-triggerSizePx}px`);
-    document.querySelector("#bottom-expand-trigger").setAttribute("style", `bottom: ${-triggerSizePx}px`);
+    const triggerSizePx = document.body.shadowRoot.querySelector("#left-expand-trigger").offsetWidth;
+    document.body.shadowRoot.querySelector("#left-expand-trigger").setAttribute("style", `left: ${-triggerSizePx}px`);
+    document.body.shadowRoot.querySelector("#right-expand-trigger").setAttribute("style", `right: ${-triggerSizePx}px`);
+    document.body.shadowRoot
+      .querySelector("#bottom-expand-trigger")
+      .setAttribute("style", `bottom: ${-triggerSizePx}px`);
   }
 
   isCollapsingOrCollapsed() {
@@ -228,7 +230,7 @@ export class UIAnimationSystem {
       gazeCursor.style.cssText = `left: ${center - 3}px; top: 50vh;`;
     }
 
-    const wrap = document.getElementById("jel-ui-wrap");
+    const wrap = document.body.shadowRoot.getElementById("jel-ui-wrap");
     if (wrap) {
       wrap.style.cssText = `left: ${left}px; width: ${width}px;`;
 

@@ -13,7 +13,7 @@ import { getMessages } from "../../hubs/utils/i18n";
 import { PanelWrap, Info, Tip, Label, TextInputWrap, InputWrap, Input, Checkbox } from "./form-components";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
+waitForDOMContentLoaded().then(() => (popupRoot = document.body.shadowRoot.getElementById("jel-popup-root")));
 
 const Footer = styled.div`
   width: 100%;

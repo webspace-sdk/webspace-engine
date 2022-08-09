@@ -80,7 +80,7 @@ AFRAME.registerSystem("ui-hotkeys", {
   },
 
   focusChat: function(prefix) {
-    const target = document.querySelector(".chat-focus-target");
+    const target = document.body.shadowRoot.querySelector(".chat-focus-target");
     if (!target) return;
 
     target.focus();

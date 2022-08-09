@@ -40,14 +40,6 @@ const SnackbarElement = styled.div`
     transform: translate(-50%, -6px);
   }
 
-  .panels-collapsed & {
-    display: none;
-  }
-
-  body paused & {
-    display: none;
-  }
-
   z-index: 100;
 `;
 
@@ -164,7 +156,7 @@ export default function Snackbar() {
   );
 
   return (
-    <SnackbarElement className={hidden ? "hidden" : ""}>
+    <SnackbarElement id="snackbar" className={hidden ? "hidden" : ""}>
       <Message>
         <FormattedMessage id="support.title" />
         <div>

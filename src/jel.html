@@ -33,7 +33,177 @@
     </head>
 
 <body>
-    <div id="support-root"></div>
+    <template shadowroot="open">
+        <style>
+          #jel-popup-root {
+            position: absolute;
+            pointer-events: none;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 7;
+          }
+
+          #nav-drag-target {
+            position: absolute;
+            width: 32px;
+            left: calc(var(--nav-width) - 16px);
+            top: 0;
+            z-index: 6;
+            height: 100%;
+            cursor: col-resize;
+            display: block;
+          }
+
+          #presence-drag-target {
+            position: absolute;
+            width: 32px;
+            right: calc(var(--presence-width) - 16px);
+            top: 0;
+            z-index: 6;
+            height: 100%;
+            cursor: col-resize;
+            display: block;
+          }
+
+          :host(.panels-collapsed) #presence-drag-target {
+            display: none;
+          }
+
+          :host(.panels-collapsed) #nav-drag-target {
+            display: none;
+          }
+
+          :host(.panels-collapsed) #jel-ui-wrap,
+          :host(.paused) #jel-ui-wrap {
+            height: 100%;
+          }
+
+          :host(.panels-collapsed) #asset-panel {
+            display: none;
+          }
+
+          :host(.panels-collapsed) #left-expand-trigger {
+            display: flex;
+          }
+
+          :host(.paused) #jel-interface.hub-type-world #jel-ui-wrap {
+            pointer-events: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+          }
+
+          :host(.paused) #jel-interface.hub-type-channel #jel-ui-wrap {
+            pointer-events: none;
+            background-color: transparent;
+          }
+
+          :host(.paused) #jel-interface.hub-type-world #asset-panel {
+            display: none;
+          }
+
+          :host(.paused) #jel-interface.hub-type-channel #asset-panel {
+            display: none;
+          }
+
+          :host(.panels-collapsed) #right-expand-trigger {
+            display: flex;
+          }
+
+          :host(.panels-collapsed) #bottom-expand-trigger {
+            display: flex;
+          }
+
+          :host(.low-detail) #fade-edges {
+            background: none;
+          }
+
+          :host(.paused) #paused-info-label {
+            display: block;
+          }
+
+          :host(.paused) #unpaused-info-label {
+            display: none;
+          }
+
+          :host(.paused) #unpaused-info-label-2 {
+            display: none;
+          }
+
+          :host(.paused) .external-camera-on #external-camera-canvas {
+            display: none;
+          }
+
+          :host(.paused) .external-camera-on #external-camera-rotate-button {
+            display: none;
+          }
+
+          :host(.paused) #key-tips-wrap {
+              opacity: 0.4;
+          }
+
+          :host(.panels-collapsed) #device-statuses {
+            display: flex;
+          }
+
+          :host(.paused) #device-statuses {
+            display: none;
+          }
+
+          :host(.panels-collapsed) #snackbar {
+            display: none;
+          }
+
+          :host(.paused) #snackbar {
+            display: none;
+          }
+
+          :host(.panels-collapsed) #self-panel {
+             background-color: var(--canvas-overlay-neutral-item-background-color);
+             text-shadow: 0px 0px 4px var(--menu-shadow-color);
+             border-radius: 0 12px 0 0;
+          }
+
+          :host(.panels-collapsed) #top-panel {
+             display: none;
+          }
+
+          :host(.panels-collapsed) #chat-log {
+            bottom: 64px;
+          }
+
+          :host(.paused) #chat-log {
+              visibility: hidden;
+          }
+
+          :host(.panels-collapsed) .hide-when-expanded {
+            display: none;
+          }
+
+          :host(.panels-collapsed) .pause-info-label {
+             bottom: 76px;
+          }
+        </style>
+
+        <div id="support-root"></div>
+
+        <div id="jel-interface">
+            <div id="jel-popup-root"></div>
+            <div id="jel-ui"></div>
+        </div>
+
+        <div id="ui-root"></div>
+        <div id="nav-drag-target"></div>
+        <div id="presence-drag-target"></div>
+
+        <iframe id="neon" src="about:blank"></iframe>
+
+        <div id="gaze-cursor">
+            <div class="cursor"></div>
+        </div>
+
+        <img src="https://assets.jel.app/static/emoji/emoji-map-64.png" style="display: none" width="0" height="0"/>
+    </template>
 
     <a-scene
         embedded
@@ -513,23 +683,6 @@
         <a-entity id="scene-preview-node">
         </a-entity>
     </a-scene>
-
-    <div id="jel-interface">
-        <div id="jel-popup-root"></div>
-        <div id="jel-ui"></div>
-    </div>
-
-    <div id="ui-root"></div>
-    <div id="nav-drag-target"></div>
-    <div id="presence-drag-target"></div>
-
-    <iframe id="neon" src="about:blank"></iframe>
-
-    <div id="gaze-cursor">
-        <div class="cursor"></div>
-    </div>
-
-    <img src="https://assets.jel.app/static/emoji/emoji-map-64.png" style="display: none" width="0" height="0"/>
 </body>
 
 </html>

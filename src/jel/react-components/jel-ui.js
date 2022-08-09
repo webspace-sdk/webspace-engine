@@ -4,7 +4,7 @@ import cancelIcon from "../../assets/jel/images/icons/cancel.svgi";
 import { FieldEditButton } from "./form-components";
 import PropTypes from "prop-types";
 import WorldImporter from "../utils/world-importer";
-import styled from "styled-components";
+import styled, { StyleSheetManager } from "styled-components";
 import mutedIcon from "../../assets/jel/images/icons/mic-muted.svgi";
 import unmutedIcon from "../../assets/jel/images/icons/mic-unmuted.svgi";
 import rotateIcon from "../../assets/jel/images/icons/rotate.svgi";
@@ -41,21 +41,12 @@ const Root = styled.div`
     height: ${ASSET_PANEL_HEIGHT_COLLAPSED}px;
   }
 
-  body &.expand-asset-panel #jel-ui-wrap {
+  &.expand-asset-panel #jel-ui-wrap {
     height: calc(100% - ${ASSET_PANEL_HEIGHT_EXPANDED}px);
-  }
-
-  body.panels-collapsed & #jel-ui-wrap,
-  body.paused & #jel-ui-wrap {
-    height: 100%;
   }
 
   &.expand-asset-panel #asset-panel {
     height: ${ASSET_PANEL_HEIGHT_EXPANDED}px;
-  }
-
-  body.panels-collapsed & #asset-panel {
-    display: none;
   }
 `;
 
@@ -69,16 +60,6 @@ const Wrap = styled.div`
 
   #jel-interface:focus-within & {
     pointer-events: auto;
-  }
-
-  body.paused #jel-interface.hub-type-world & {
-    pointer-events: auto;
-    background-color: rgba(0, 0, 0, 0.6);
-  }
-
-  body.paused #jel-interface.hub-type-channel & {
-    pointer-events: none;
-    background-color: transparent;
   }
 `;
 
@@ -99,14 +80,6 @@ const AssetPanelWrap = styled.div`
   #jel-interface:focus-within & {
     pointer-events: auto;
   }
-
-  body.paused #jel-interface.hub-type-world & {
-    display: none;
-  }
-
-  body.paused #jel-interface.hub-type-channel & {
-    display: none;
-  }
 `;
 
 const LeftExpandTrigger = styled.div`
@@ -123,10 +96,6 @@ const LeftExpandTrigger = styled.div`
   z-index: 3;
   cursor: pointer;
   display: none;
-
-  body.panels-collapsed & {
-    display: flex;
-  }
 `;
 
 const RightExpandTrigger = styled.div`
@@ -143,10 +112,6 @@ const RightExpandTrigger = styled.div`
   z-index: 3;
   cursor: pointer;
   display: none;
-
-  body.panels-collapsed & {
-    display: flex;
-  }
 `;
 
 const BottomExpandTrigger = styled.div`
@@ -163,10 +128,6 @@ const BottomExpandTrigger = styled.div`
   z-index: 3;
   cursor: pointer;
   display: none;
-
-  body.panels-collapsed & {
-    display: flex;
-  }
 `;
 
 const NotifyBanner = styled.div`
@@ -240,10 +201,6 @@ const FadeEdges = styled.div`
 
   background: linear-gradient(180deg, rgba(64, 64, 64, 0.4) 0%, rgba(32, 32, 32, 0) 128px, rgba(32, 32, 32, 0) 100%);
 
-  body.low-detail & {
-    background: none;
-  }
-
   pointer-events: none;
   z-index: 0;
 `;
@@ -284,9 +241,6 @@ const PausedInfoLabel = styled.div`
   position: absolute;
   bottom: 0px;
   white-space: pre;
-  .panels-collapsed & {
-    bottom: 76px;
-  }
   left: 0px;
   display: none;
   color: var(--canvas-overlay-text-color);
@@ -296,10 +250,6 @@ const PausedInfoLabel = styled.div`
   font-size: var(--canvas-overlay-text-size);
   margin: 11px 0 0 8px;
   padding: 6px 10px;
-
-  body.paused & {
-    display: block;
-  }
 `;
 
 const UnpausedInfoLabel = styled.div`
@@ -315,10 +265,6 @@ const UnpausedInfoLabel = styled.div`
   margin: 11px 0 42px 8px;
   padding: 6px 10px;
   white-space: pre;
-
-  body.paused & {
-    display: none;
-  }
 `;
 
 const ExternalCameraCanvas = styled.canvas`
@@ -328,14 +274,6 @@ const ExternalCameraCanvas = styled.canvas`
   pointer-events: auto;
 
   display: none;
-
-  .external-camera-on & {
-    display: block;
-  }
-
-  body.paused .external-camera-on & {
-    display: none;
-  }
 `;
 
 const ExternalCameraRotateButton = styled.button`
@@ -366,10 +304,6 @@ const ExternalCameraRotateButton = styled.button`
   &:active {
     background-color: var(--canvas-overlay-item-active-background-color);
   }
-
-  body.paused & {
-    display: none;
-  }
 `;
 
 const ExternalCameraRotateButtonIcon = styled.div`
@@ -381,10 +315,6 @@ const KeyTipsWrap = styled.div`
   position: absolute;
   bottom: 0;
   right: 0;
-
-  body.paused & {
-    opacity: 0.4;
-  }
 `;
 
 const BottomLeftPanels = styled.div`
@@ -405,10 +335,6 @@ const DeviceStatuses = styled.div`
 
   .panels-collapsed & {
     display: flex;
-  }
-
-  body.paused & {
-    display: none;
   }
 `;
 
@@ -605,169 +531,173 @@ function JelUI(props) {
   }, []);
 
   return (
-    <WrappedIntlProvider>
-      <Root className="expand-asset-panel">
-        <LoadingPanel
-          isLoading={waitingForMatrix || isInitializingSpace || !hasFetchedInitialHubMetadata}
-          unavailableReason={unavailableReason}
-        />
-        <Snackbar />
-        <Wrap id="jel-ui-wrap">
-          {showNotificationBanner &&
-            !showInviteTip &&
-            !showNotificationBannerWarning && (
-              <NotifyBanner>
-                <FieldEditButton
-                  style={{ position: "absolute", left: "2px", top: "6px" }}
-                  onClick={onNotifyBannerClose}
-                  iconSrc={cancelIcon}
-                />
-                <div>
-                  <FormattedMessage id="notification-banner.info" />
-                </div>
-                <NotifyBannerButton onClick={onTurnOnNotificationClicked}>
-                  <FormattedMessage id="notification-banner.notify-on" />
-                </NotifyBannerButton>
-              </NotifyBanner>
-            )}
-          {showNotificationBanner &&
-            showNotificationBannerWarning && (
-              <NotifyBanner>
-                <div>
-                  <FormattedMessage id="notification-banner.info-warning" />
-                </div>
-                <NotifyBannerButton onClick={onTurnOnNotificationClicked}>
-                  <FormattedMessage id="notification-banner.notify-on" />
-                </NotifyBannerButton>
-                <NotifyBannerClose onClick={onNotifyBannerLater}>
-                  <FormattedMessage id="notification-banner.close-later" />
-                </NotifyBannerClose>
-                <NotifyBannerClose onClick={onNotifyBannerNever}>
-                  <FormattedMessage id="notification-banner.close-never" />
-                </NotifyBannerClose>
-              </NotifyBanner>
-            )}
-          {isWorld && <FadeEdges />}
-          <CreateSelectPopupRef ref={createSelectPopupRef} />
-          <ModalPopupRef ref={modalPopupRef} />
-          <CenterPopupRef ref={centerPopupRef} />
-          <CanvasTop
-            {...props}
-            worldTree={worldTree}
-            channelTree={channelTree}
-            worldTreeData={worldTreeData}
-            channelTreeData={channelTreeData}
-            environmentSettingsButtonRef={environmentSettingsButtonRef}
-            createSelectPopupRef={createSelectPopupRef}
+    <StyleSheetManager target={document.body.shadowRoot}>
+      <WrappedIntlProvider>
+        <Root className="expand-asset-panel">
+          <LoadingPanel
+            isLoading={waitingForMatrix || isInitializingSpace || !hasFetchedInitialHubMetadata}
+            unavailableReason={unavailableReason}
           />
-          <KeyTipsWrap
-            style={{ visibility: isWorld ? "visible" : "hidden" }}
-            onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}
-          >
-            <KeyTips id="key-tips" />
-          </KeyTipsWrap>
-          {isWorld && (
-            <DeviceStatuses>
-              {triggerMode === "builder" && <EqippedBrushIcon />}
-              {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
-            </DeviceStatuses>
-          )}
-          {isWorld && (
-            <BottomLeftPanels className={`${showingExternalCamera ? "external-camera-on" : ""}`}>
-              <ExternalCameraCanvas id="external-camera-canvas" />
-              {showingExternalCamera && (
-                <ExternalCameraRotateButton
-                  tabIndex={-1}
-                  iconSrc={unmuted ? unmutedIcon : mutedIcon}
-                  onClick={onClickExternalCameraRotate}
-                >
-                  <ExternalCameraRotateButtonIcon dangerouslySetInnerHTML={{ __html: rotateIcon }} />
-                </ExternalCameraRotateButton>
+          <Snackbar />
+          <Wrap id="jel-ui-wrap">
+            {showNotificationBanner &&
+              !showInviteTip &&
+              !showNotificationBannerWarning && (
+                <NotifyBanner>
+                  <FieldEditButton
+                    style={{ position: "absolute", left: "2px", top: "6px" }}
+                    onClick={onNotifyBannerClose}
+                    iconSrc={cancelIcon}
+                  />
+                  <div>
+                    <FormattedMessage id="notification-banner.info" />
+                  </div>
+                  <NotifyBannerButton onClick={onTurnOnNotificationClicked}>
+                    <FormattedMessage id="notification-banner.notify-on" />
+                  </NotifyBannerButton>
+                </NotifyBanner>
               )}
-              <PausedInfoLabel>
-                <FormattedMessage id="paused.info" />
-              </PausedInfoLabel>
-              {isHomeHub &&
-                !showingExternalCamera && (
-                  <UnpausedInfoLabel>
-                    <FormattedMessage id="home-hub.info" />
-                  </UnpausedInfoLabel>
+            {showNotificationBanner &&
+              showNotificationBannerWarning && (
+                <NotifyBanner>
+                  <div>
+                    <FormattedMessage id="notification-banner.info-warning" />
+                  </div>
+                  <NotifyBannerButton onClick={onTurnOnNotificationClicked}>
+                    <FormattedMessage id="notification-banner.notify-on" />
+                  </NotifyBannerButton>
+                  <NotifyBannerClose onClick={onNotifyBannerLater}>
+                    <FormattedMessage id="notification-banner.close-later" />
+                  </NotifyBannerClose>
+                  <NotifyBannerClose onClick={onNotifyBannerNever}>
+                    <FormattedMessage id="notification-banner.close-never" />
+                  </NotifyBannerClose>
+                </NotifyBanner>
+              )}
+            {isWorld && <FadeEdges id="fade-edges" />}
+            <CreateSelectPopupRef ref={createSelectPopupRef} />
+            <ModalPopupRef ref={modalPopupRef} />
+            <CenterPopupRef ref={centerPopupRef} />
+            <CanvasTop
+              {...props}
+              worldTree={worldTree}
+              channelTree={channelTree}
+              worldTreeData={worldTreeData}
+              channelTreeData={channelTreeData}
+              environmentSettingsButtonRef={environmentSettingsButtonRef}
+              createSelectPopupRef={createSelectPopupRef}
+            />
+            <KeyTipsWrap
+              id="key-tips-wrap"
+              style={{ visibility: isWorld ? "visible" : "hidden" }}
+              onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}
+            >
+              <KeyTips id="key-tips" />
+            </KeyTipsWrap>
+            {isWorld && (
+              <DeviceStatuses id="device-statuses">
+                {triggerMode === "builder" && <EqippedBrushIcon />}
+                {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
+              </DeviceStatuses>
+            )}
+            {isWorld && (
+              <BottomLeftPanels className={`${showingExternalCamera ? "external-camera-on" : ""}`}>
+                <ExternalCameraCanvas id="external-camera-canvas" />
+                {showingExternalCamera && (
+                  <ExternalCameraRotateButton
+                    id="external-camera-rotate-button"
+                    tabIndex={-1}
+                    iconSrc={unmuted ? unmutedIcon : mutedIcon}
+                    onClick={onClickExternalCameraRotate}
+                  >
+                    <ExternalCameraRotateButtonIcon dangerouslySetInnerHTML={{ __html: rotateIcon }} />
+                  </ExternalCameraRotateButton>
                 )}
+                <PausedInfoLabel id="pause-info-label">
+                  <FormattedMessage id="paused.info" />
+                </PausedInfoLabel>
+                {isHomeHub &&
+                  !showingExternalCamera && (
+                    <UnpausedInfoLabel id="unpaused-info-label">
+                      <FormattedMessage id="home-hub.info" />
+                    </UnpausedInfoLabel>
+                  )}
 
-              {!isHomeHub && (
-                <ChatLog leftOffset={showingExternalCamera ? 300 : 0} hub={hub} scene={scene} store={store} />
-              )}
-            </BottomLeftPanels>
+                {!isHomeHub && (
+                  <ChatLog leftOffset={showingExternalCamera ? 300 : 0} hub={hub} scene={scene} store={store} />
+                )}
+              </BottomLeftPanels>
+            )}
+          </Wrap>
+          {!isInspecting && (
+            <AssetPanelWrap id="asset-panel">
+              <AssetPanel voxTree={voxTree} sceneTree={sceneTree} expanded={true} scene={scene} />
+            </AssetPanelWrap>
           )}
-        </Wrap>
-        {!isInspecting && (
-          <AssetPanelWrap id="asset-panel">
-            <AssetPanel voxTree={voxTree} sceneTree={sceneTree} expanded={true} scene={scene} />
-          </AssetPanelWrap>
-        )}
-        {!skipSidePanels && (
-          <JelSidePanels
-            {...props}
-            spaceMetadata={spaceMetadata}
-            hubMetadata={hubMetadata}
-            worldTree={worldTree}
-            channelTree={channelTree}
-            worldTreeData={worldTreeData}
-            channelTreeData={channelTreeData}
-            centerPopupRef={centerPopupRef}
-            showInviteTip={showInviteTip}
-            setHasShownInvite={setHasShownInvite}
-          />
-        )}
-      </Root>
-      <RootPopups centerPopupRef={centerPopupRef} scene={scene} />
-      <LeftExpandTrigger id="left-expand-trigger" onClick={onExpandTriggerClick} />
-      <RightExpandTrigger id="right-expand-trigger" onClick={onExpandTriggerClick} />
-      <BottomExpandTrigger id="bottom-expand-trigger" onClick={onExpandTriggerClick} />
-      <SelfPanel
-        spaceChannel={spaceChannel}
-        scene={scene}
-        showDeviceControls={isWorld}
-        sessionId={sessionId}
-        onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {
-          const { store } = window.APP;
-          const { profile } = store.state;
-          // Copy these to ensure presence changes
-          const persona = { ...(profile.persona || {}) };
-          const avatar = { ...(persona.avatar || {}) };
-          persona.avatar = avatar;
-          avatar.primary_color = { r: r / 255.0, g: g / 255.0, b: b / 255.0 };
-          store.update({ profile: { persona } });
-        }}
-      />
-      <input
-        id="import-upload-input"
-        type="file"
-        accept="text/html"
-        style={{ display: "none" }}
-        onChange={async e => {
-          const files = [...e.target.files];
-          e.target.value = null;
+          {!skipSidePanels && (
+            <JelSidePanels
+              {...props}
+              spaceMetadata={spaceMetadata}
+              hubMetadata={hubMetadata}
+              worldTree={worldTree}
+              channelTree={channelTree}
+              worldTreeData={worldTreeData}
+              channelTreeData={channelTreeData}
+              centerPopupRef={centerPopupRef}
+              showInviteTip={showInviteTip}
+              setHasShownInvite={setHasShownInvite}
+            />
+          )}
+        </Root>
+        <RootPopups centerPopupRef={centerPopupRef} scene={scene} />
+        <LeftExpandTrigger id="left-expand-trigger" onClick={onExpandTriggerClick} />
+        <RightExpandTrigger id="right-expand-trigger" onClick={onExpandTriggerClick} />
+        <BottomExpandTrigger id="bottom-expand-trigger" onClick={onExpandTriggerClick} />
+        <SelfPanel
+          spaceChannel={spaceChannel}
+          scene={scene}
+          showDeviceControls={isWorld}
+          sessionId={sessionId}
+          onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {
+            const { store } = window.APP;
+            const { profile } = store.state;
+            // Copy these to ensure presence changes
+            const persona = { ...(profile.persona || {}) };
+            const avatar = { ...(persona.avatar || {}) };
+            persona.avatar = avatar;
+            avatar.primary_color = { r: r / 255.0, g: g / 255.0, b: b / 255.0 };
+            store.update({ profile: { persona } });
+          }}
+        />
+        <input
+          id="import-upload-input"
+          type="file"
+          accept="text/html"
+          style={{ display: "none" }}
+          onChange={async e => {
+            const files = [...e.target.files];
+            e.target.value = null;
 
-          for (const file of files) {
-            new WorldImporter().importHtmlToCurrentWorld(await file.text());
-          }
-        }}
-      />
-      <input
-        id="file-upload-input"
-        type="file"
-        style={{ display: "none" }}
-        accept={"*"}
-        multiple
-        onChange={e => {
-          for (const file of e.target.files) {
-            scene.emit("add_media", file);
-          }
-          e.target.value = null;
-        }}
-      />
-    </WrappedIntlProvider>
+            for (const file of files) {
+              new WorldImporter().importHtmlToCurrentWorld(await file.text());
+            }
+          }}
+        />
+        <input
+          id="file-upload-input"
+          type="file"
+          style={{ display: "none" }}
+          accept={"*"}
+          multiple
+          onChange={e => {
+            for (const file of e.target.files) {
+              scene.emit("add_media", file);
+            }
+            e.target.value = null;
+          }}
+        />
+      </WrappedIntlProvider>
+    </StyleSheetManager>
   );
 }
 

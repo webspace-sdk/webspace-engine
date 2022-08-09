@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <WrappedIntlProvider>
         <LoadingPanel isLoading={true} unsupportedMessage={isMobile ? "mobile" : "non-mobile"} />
       </WrappedIntlProvider>,
-      document.getElementById("support-root")
+      document.body.shadowRoot.getElementById("support-root")
     );
   }
 });

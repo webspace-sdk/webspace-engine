@@ -41,7 +41,7 @@ export function useExpandableTree(treeManager, tree) {
 export function useScrollToSelectedTreeNode(treeData, atom) {
   useEffect(
     () => {
-      const node = document.querySelector(".atom-tree-treenode-selected");
+      const node = document.body.shadowRoot.querySelector(".atom-tree-treenode-selected");
 
       if (node) {
         scrollIntoView(node, { scrollMode: "if-needed", inline: "start" });
@@ -53,7 +53,7 @@ export function useScrollToSelectedTreeNode(treeData, atom) {
         }
 
         // Undo the scroll this algorithm can induce on the outer wrap, which is undesired.
-        document.querySelector("#jel-side-panels-wrap").scrollTop = 0;
+        document.body.shadowRoot.querySelector("#jel-side-panels-wrap").scrollTop = 0;
       }
       return () => {};
     },

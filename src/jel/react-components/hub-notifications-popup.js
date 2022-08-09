@@ -11,7 +11,7 @@ import { PanelWrap, checkboxControlFor } from "./form-components";
 import { hubSettingsForHubId } from "../utils/membership-utils";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
+waitForDOMContentLoaded().then(() => (popupRoot = document.body.shadowRoot.getElementById("jel-popup-root")));
 
 const HubNotificationsPopup = ({ setPopperElement, styles, attributes, subscriptions, hubSettings, hub, children }) => {
   const { accountChannel } = window.APP;

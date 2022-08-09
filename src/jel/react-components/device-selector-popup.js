@@ -12,7 +12,7 @@ import PopupPanelMenu, {
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
+waitForDOMContentLoaded().then(() => (popupRoot = document.body.shadowRoot.getElementById("jel-popup-root")));
 
 const DeviceSelectorPopup = ({ scene, setPopperElement, styles, attributes, children, micDevices }) => {
   const [activeMicDeviceId, setSelectedMicDeviceId] = useState(null);

@@ -65,7 +65,7 @@ export class ExternalCameraSystem {
     scene.add(camera);
     wrappedEntitySystem.register(camera);
 
-    const canvas = document.getElementById("external-camera-canvas");
+    const canvas = document.body.shadowRoot.getElementById("external-camera-canvas");
     canvas.width = width;
     canvas.height = height;
 

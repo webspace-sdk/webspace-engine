@@ -6,7 +6,7 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = document.getElementById("jel-popup-root")));
+waitForDOMContentLoaded().then(() => (popupRoot = document.body.shadowRoot.getElementById("jel-popup-root")));
 
 const ChatInputPopup = forwardRef(
   ({ styles, attributes, setPopperElement, onMessageEntered, onEntryComplete }, ref) => {

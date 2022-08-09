@@ -27,7 +27,7 @@ export class KeyboardTipSystem {
     let showTips = null;
 
     if (!this.tipEl) {
-      this.tipEl = document.getElementById("key-tips");
+      this.tipEl = document.body.shadowRoot.getElementById("key-tips");
       if (!this.tipEl) return;
     }
 

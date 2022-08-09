@@ -18,7 +18,7 @@ export class ScenePreviewCameraSystem {
 
   tick() {
     viewingCamera = viewingCamera || document.getElementById("viewing-camera");
-    uiRoot = uiRoot || document.getElementById("ui-root");
+    uiRoot = uiRoot || document.body.shadowRoot.getElementById("ui-root");
     const entered = viewingCamera && viewingCamera.sceneEl.is("entered");
     const isGhost = !entered && uiRoot && uiRoot.firstChild && uiRoot.firstChild.classList.contains("isGhost");
     for (let i = 0; i < this.entities.length; i++) {
