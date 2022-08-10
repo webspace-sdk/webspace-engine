@@ -5,7 +5,6 @@ import SpaceNodeIcon, { AddSpaceIcon, JoinDiscordIcon } from "./space-node-icon"
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { getInitialHubForSpaceId, homeHubForSpaceId } from "../utils/membership-utils";
 import { useTreeDropHandler, useTreeData, useScrollToSelectedTreeNode } from "../utils/tree-utils";
-import "../../assets/jel/stylesheets/space-tree.scss";
 
 const addSpaceIconTreeItem = { key: "add", children: null, isLeaf: true };
 const joinDiscordSpaceIconTreeItem = { key: "discord", children: null, isLeaf: true };

@@ -1,3 +1,4 @@
+export const EMOJIS = `
 .emoji-map {
   background-image: url(https://assets.jel.app/static/emoji/emoji-map-64.png) !important;
   background-size: 962px 910px !important;
@@ -5062,4 +5063,4 @@
 .emoji-speech {
   background-position: -0px -0px !important;
 }
-
+`;

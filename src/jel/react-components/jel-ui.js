@@ -28,8 +28,6 @@ import AssetPanel from "./asset-panel";
 import SelfPanel from "./self-panel";
 import { ASSET_PANEL_HEIGHT_EXPANDED, ASSET_PANEL_HEIGHT_COLLAPSED } from "../systems/ui-animation-system";
 
-import Styles from "./styles";
-
 const skipSidePanels = qsTruthy("skip_panels");
 const skipNeon = qsTruthy("skip_neon");
 
@@ -531,7 +529,6 @@ function JelUI(props) {
   return (
     <StyleSheetManager target={document.body.shadowRoot}>
       <WrappedIntlProvider>
-        <Styles />
         <Root className="expand-asset-panel">
           <LoadingPanel
             isLoading={waitingForMatrix || isInitializingSpace || !hasFetchedInitialHubMetadata}

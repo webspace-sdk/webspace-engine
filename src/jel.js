@@ -2,6 +2,7 @@ import "./hubs/webxr-bypass-hacks";
 import "./hubs/utils/theme";
 import "@babel/polyfill";
 import "./hubs/utils/debug-log";
+import STYLES_CSS from "./jel/react-components/styles/styles";
 import { isInQuillEditor } from "./jel/utils/quill-utils";
 import { homeHubForSpaceId } from "./jel/utils/membership-utils";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
@@ -1036,6 +1037,12 @@ async function start() {
   mixpanel.track("Startup Start", {});
 
   const scene = document.querySelector("a-scene");
+  window.ROOT = document.body.shadowRoot;
+
+  const styles = document.createElement("style");
+  styles.type = "text/css";
+  styles.appendChild(document.createTextNode(STYLES_CSS));
+  window.ROOT.appendChild(styles);
 
   // Patch the scene resize handler to update the camera properly, since the
   // camera system manages the projection matrix.

@@ -2,7 +2,6 @@ import PropTypes from "prop-types";
 import styled from "styled-components";
 import React, { useCallback, useMemo, useRef, useState, forwardRef } from "react";
 import Select, { Option, OptGroup } from "rc-select";
-import "../../assets/jel/stylesheets/create-select.scss";
 import { getMessages } from "../../hubs/utils/i18n";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
 import uploadIconSrc from "../../assets/jel/images/icons/upload.svgi";

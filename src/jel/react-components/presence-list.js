@@ -6,7 +6,6 @@ import React, { useCallback, useRef, useState, useEffect, forwardRef } from "rea
 import List from "rc-virtual-list";
 import PanelSectionHeader from "./panel-section-header";
 import { outerHeight } from "../utils/layout-utils";
-import styles from "../../assets/jel/stylesheets/presence-list.scss";
 import { AvatarSwatchBody, AvatarSwatchEyeSrcs, AvatarSwatchVisemeSrcs } from "./avatar-swatch";
 import { rgbToCssRgb } from "../utils/dom-utils";
 import Tooltip from "./tooltip";
@@ -133,7 +132,12 @@ const PresenceListWorldMemberItem = forwardRef((props, ref) => {
   );
 
   return (
-    <PresenceListMemberItemElement style={{ height: "58px" }} onMouseOver={handleHover} ref={ref}>
+    <PresenceListMemberItemElement
+      className="presence-list"
+      style={{ height: "58px" }}
+      onMouseOver={handleHover}
+      ref={ref}
+    >
       <Tooltip
         visible={!!showJumpTip}
         disabled={!showJumpTip}
@@ -282,7 +286,7 @@ function PresenceList({ scene, sessionId, onGoToUserClicked }) {
   );
 
   return (
-    <ListWrap ref={outerRef} className={styles.presenceList}>
+    <ListWrap ref={outerRef} className="presence-list">
       <List height={height} itemHeight={16} itemKey="key" data={[...worldPresenceData]}>
         {useCallback(
           (item, _, props) => {

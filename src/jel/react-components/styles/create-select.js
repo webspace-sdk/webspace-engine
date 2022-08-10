@@ -1,10 +1,10 @@
-$selectPrefixCls: 'create-select';
+export const CREATE_SELECT = `
 
 * {
   box-sizing: border-box;
 }
 
-.#{$selectPrefixCls} {
+.create-select {
   display: inline-block;
   font-size: 12px;
   width: 100px;
@@ -16,13 +16,13 @@ $selectPrefixCls: 'create-select';
       cursor: not-allowed;
     }
 
-    .#{$selectPrefixCls}-selector {
+    .create-select-selector {
       opacity: 0.3;
     }
   }
 
   &-show-arrow &-loading {
-    .#{$selectPrefixCls}-arrow {
+    .create-select-arrow {
       &-icon::after {
         box-sizing: border-box;
         width: 12px;
@@ -38,7 +38,7 @@ $selectPrefixCls: 'create-select';
   }
 
   // ============== Search ===============
-  .#{$selectPrefixCls}-selection-search-input {
+  .create-select-selection-search-input {
     appearance: none;
 
     &::-webkit-search-cancel-button {
@@ -49,7 +49,7 @@ $selectPrefixCls: 'create-select';
 
   // --------------- Single ----------------
   &-single {
-    .#{$selectPrefixCls}-selector {
+    .create-select-selector {
       display: flex;
       position: relative;
       background-color: var(--menu-background-color);
@@ -64,7 +64,7 @@ $selectPrefixCls: 'create-select';
       padding: 6px;
       box-sizing: border-box;
 
-      .#{$selectPrefixCls}-selection-search {
+      .create-select-selection-search {
         width: 100%;
         flex: 1;
         padding: 2px;
@@ -83,8 +83,8 @@ $selectPrefixCls: 'create-select';
         }
       }
 
-      .#{$selectPrefixCls}-selection-item,
-      .#{$selectPrefixCls}-selection-placeholder {
+      .create-select-selection-item,
+      .create-select-selection-placeholder {
         position: absolute;
         padding: 4px;
         top: 9px;
@@ -98,12 +98,12 @@ $selectPrefixCls: 'create-select';
     }
 
     // Not customize
-    &:not(.#{$selectPrefixCls}-customize-input) {
-      .#{$selectPrefixCls}-selector {
+    &:not(.create-select-customize-input) {
+      .create-select-selector {
         padding: 1px;
         border: 1px solid #000;
 
-        .#{$selectPrefixCls}-selection-search-input {
+        .create-select-selection-search-input {
           border: none;
           outline: none;
           background: rgba(255, 0, 0, 0.2);
@@ -160,7 +160,7 @@ $selectPrefixCls: 'create-select';
   }
 }
 
-.#{$selectPrefixCls}-dropdown {
+.create-select-dropdown {
   z-index: 5;
   opacity: 1 !important; // rc-select sets opacity to 0 on initial frame it seems.
 
@@ -231,3 +231,4 @@ $selectPrefixCls: 'create-select';
     width: 4px !important;
   }
 }
+`;

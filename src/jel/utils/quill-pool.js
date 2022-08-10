@@ -1,9 +1,6 @@
 import hljs from "highlight.js/lib/core";
-import "../../assets/jel/stylesheets/quill-pool.scss";
 import javascript from "highlight.js/lib/languages/javascript";
 hljs.registerLanguage("javascript", javascript);
-import "highlight.js/styles/github.css";
-import "quill-emoji/dist/quill-emoji.css";
 import { getMessages } from "../../hubs/utils/i18n";
 
 hljs.configure({
@@ -12,8 +9,6 @@ hljs.configure({
 
 import "quill-emoji";
 import Quill from "quill";
-
-import styles from "../../assets/jel/stylesheets/text-editor.scss";
 
 export const EDITOR_WIDTH = 600;
 export const EDITOR_HEIGHT = Math.floor(EDITOR_WIDTH * 0.5625);
@@ -265,7 +260,7 @@ export function getQuill(networkId) {
   const el = document.createElement("div");
   const id = `quill-${networkId}`;
   el.setAttribute("id", id);
-  el.classList.add(styles.editorWrap);
+  el.classList.add("quill-editor-wrap");
   el.classList.add("fast-show-when-popped");
 
   const styleTag = document.createElement("style");

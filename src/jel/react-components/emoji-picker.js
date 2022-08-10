@@ -6,7 +6,6 @@ import Fuse from "fuse.js";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
 import { FloatingTextWrap, FloatingTextElement } from "./floating-text-input";
 import { getMessages } from "../../hubs/utils/i18n";
-import "../../assets/jel/stylesheets/emoji.scss";
 import { useRefFocusResetter } from "../utils/shared-effects";
 
 import { EmojiList } from "../utils/emojis";
