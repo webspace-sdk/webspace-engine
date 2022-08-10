@@ -1,183 +1,31 @@
-import { NORMALIZE_CSS } from "./normalize-css";
+import { NORMALIZE_CSS, JEL_NORMALIZE_CSS } from "./normalize-css";
 import { ATOM_TREE, SPACE_TREE } from "./trees";
 import { CREATE_SELECT } from "./create-select";
 import { EMOJIS } from "./emojis";
 import { QUILL_CORE, QUILL_BUBBLE, QUILL_EMOJI, QUILL_HIGHLIGHT } from "./quill";
-import { SMALL_TEXT_SIZE, SMALL_TEXT_WEIGHT, XSMALL_TEXT_SIZE, XSMALL_TEXT_WEIGHT, JEL_THEME_VARS } from "./jel-theme";
+import { JEL_THEME_VARS } from "./jel-theme";
 
 export default `
   ${JEL_THEME_VARS}
+
   ${NORMALIZE_CSS}
+  ${JEL_NORMALIZE_CSS}
+
+  @keyframes expand-tree-node { from { transform: rotate(0deg); } to { transform: rotate(90deg); } }
+  @keyframes collapse-tree-node { from { transform: rotate(90deg); } to { transform: rotate(0deg); } }
+
+  @keyframes float_logo { from { top: -18px; } to { top: -5px; }  }
+  @keyframes float_logo_shadow { from { transform: scaleX(1.2) } to { transform: scaleX(1.0); }  }
+
   ${EMOJIS}
   ${QUILL_CORE}
   ${QUILL_BUBBLE}
   ${QUILL_EMOJI}
   ${QUILL_HIGHLIGHT}
-
-  @keyframes expand-tree-node { from { transform: rotate(0deg); } to { transform: rotate(90deg); } }
-  @keyframes collapse-tree-node { from { transform: rotate(90deg); } to { transform: rotate(0deg); } }
-
   ${ATOM_TREE}
   ${SPACE_TREE}
   ${CREATE_SELECT}
 
-  *, *:before, *:after {
-    box-sizing: inherit;
-  }
-
-  blockquote, dl, dd, h1, h2, h3, h4, h5, h6, hr, figure, p, pre {
-    margin: 0;
-  }
-  
-  fieldset {
-    margin: 0;
-    padding: 0;
-  }
-  
-  ol, ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-  
-  /*
-   * Ensure horizontal rules are visible by default
-   */
-  
-  hr {
-    border-top-width: 1px;
-  }
-  
-  textarea {
-    resize: vertical;
-  }
-  
-  button, [role="button"] {
-    cursor: pointer;
-    user-select: none;
-  }
-  
-  table {
-    border-collapse: collapse;
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    font-size: inherit;
-    font-weight: inherit;
-  }
-  
-  /**
-   * Reset form element properties that are easy to forget to
-   * style explicitly so you don't inadvertently introduce
-   * styles that deviate from your design system. These styles
-   * supplement a partial reset that is already applied by
-   * normalize.css.
-   */
-  
-  button, input, optgroup, select, textarea {
-    padding: 0;
-    line-height: inherit;
-    color: inherit;
-  }
-  
-  /**
-   * Monospace font stack: https://css-tricks.com/snippets/css/font-stacks/
-   */
-  
-  pre, code, kbd, samp {
-    font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
-  }
-  
-  /**
-   * Make replaced elements display: block by default as that's
-   * the behavior you want almost all of the time. Inspired by
-   * CSS Remedy, with svg added as well.
-   *
-   * https://github.com/mozdevs/cssremedy/issues/14
-   */
-  
-  img, svg, video, canvas, audio, iframe, embed, object {
-    display: block;
-    vertical-align: middle;
-  }
-  
-  /**
-   * Constrain images and videos to the parent width and preserve
-   * their instrinsic aspect ratio.
-   *
-   * https://github.com/mozdevs/cssremedy/issues/14
-   */
-  
-  img, video {
-    max-width: 100%;
-    height: auto;
-  }
-  
-  label {
-    font-size: ${SMALL_TEXT_SIZE};
-    font-weight: ${SMALL_TEXT_WEIGHT};
-  }
-  
-  body :focus {
-    outline: none;
-  }
-  
-  /* We want svg icons to have title elements for screen readers, but we don't need to show their tooltips when they are inside buttons */
-  button svg {
-    pointer-events: none;
-  }
-  
-  /**
-   * Breakpoint definitions for use wuth react-use-css-breakpoints
-   * https://github.com/matthewhall/react-use-css-breakpoints
-   */
-  body::before {
-    content: "sm";
-    display: none;
-  }
-  
-  @media (min-width: hubs-theme.$breakpoint-md) {
-    body::before {
-      content: "md";
-    }
-  }
-  
-  @media (min-width: hubs-theme.$breakpoint-lg) {
-    body::before {
-      content: "lg";
-    }
-  }
-  
-  h5 {
-    font-size: ${XSMALL_TEXT_SIZE};
-    font-weight: ${XSMALL_TEXT_WEIGHT};
-  }
-  
-  label, small {
-    font-size: ${XSMALL_TEXT_SIZE};
-    font-weight: ${XSMALL_TEXT_WEIGHT};
-  }
-  
-  /**
-   * Reset links to optimize for opt-in styling instead of
-   * opt-out.
-   */
-  
-  a {
-    color: var(--action-color);
-  
-    &:hover {
-      color: var(--action-hover-color);
-    }
-  
-    &:active {
-      color: var(--action-pressed-color);
-    }
-  
-    color: inherit;
-    text-decoration: inherit;
-  }
-  
   input::placeholder {
     color: var(--input-text-color);
   }
@@ -197,89 +45,80 @@ export default `
   }
 
   .show-when-popped {
-    position: relative;
-    opacity: 0;
-    pointer-events: none;
+     position: relative;
+     opacity: 0;
+     pointer-events: none;
+     transition: opacity 0.15s linear;
+  }
 
-    transition: opacity 0.15s linear;
+  .show-when-popped .slide-down-when-popped {
+     transform: translateY(-4px) scale(0.95, 0.95);
+     transition: transform 0.15s linear;
+  }
 
-    .slide-down-when-popped {
-      transform: translateY(-4px) scale(0.95,0.95);
-      transition: transform 0.15s linear
-    }
+  .show-when-popped .slide-up-when-popped {
+     transform: translateY(4px) scale(0.95, 0.95);
+     transition: transform 0.15s linear;
+  }
 
-    .slide-up-when-popped {
-      transform: translateY(4px) scale(0.95,0.95);
-      transition: transform 0.15s linear
-    }
+  .show-when-popped :focus-within {
+     opacity: 1;
+     pointer-events: auto;
+     transition: opacity 0.15s linear;
+  }
 
-    :focus-within {
-      opacity: 1;
-      pointer-events: auto;
+  .show-when-popped :focus-within .slide-down-when-popped, .show-when-popped :focus-within .slide-up-when-popped {
+     transform: translateY(0px) scale(1, 1);
+     transition: transform 0.15s cubic-bezier(0.76, -0.005, 0.515, 2.25);
+  }
 
-      transition: opacity 0.15s linear;
-
-      .slide-down-when-popped , .slide-up-when-popped {
-        transform: translateY(0px) scale(1, 1);
-        transition: transform 0.15s cubic-bezier(0.760, -0.005, 0.515, 2.25);
-      }
-
-      .modal-background {
-        pointer-events: auto;
-      }
-    }
+  .show-when-popped :focus-within .modal-background {
+     pointer-events: auto;
   }
 
   .fast-show-when-popped {
-    opacity: 0;
-    pointer-events: none;
+     opacity: 0;
+     pointer-events: none;
+     transition: opacity 0.05s linear;
+  }
 
-    transition: opacity 0.05s linear;
+  .fast-show-when-popped:focus-within {
+     opacity: 1;
+     pointer-events: auto;
+     transition: opacity 0.05s linear;
+  }
 
-    &:focus-within {
-      opacity: 1;
-      pointer-events: auto;
-
-      transition: opacity 0.05s linear;
-
-      .modal-background {
-        pointer-events: auto;
-      }
-    }
+  .fast-show-when-popped:focus-within .modal-background {
+     pointer-events: auto;
   }
 
   .svg-overlay-shadow {
     filter: drop-shadow(0px 0px 4px var(--menu-shadow-color));
   }
 
-  @keyframes float_logo { from { top: -18px; } to { top: -5px; }  }
-  @keyframes float_logo_shadow { from { transform: scaleX(1.2) } to { transform: scaleX(1.0); }  }
+  .presence-list .rc-virtual-list-scrollbar {
+    background-color: transparent;
+  }
 
-  .presence-list {
-    .rc-virtual-list-scrollbar {
-      background-color: transparent;
-    }
-
-    .rc-virtual-list-scrollbar-thumb {
-      background-color: var(--scroll-thumb-color) !important;
-      width: 4px !important;
-    }
+  .presence-list .rc-virtual-list-scrollbar-thumb {
+    background-color: var(--scroll-thumb-color) !important;
+    width: 4px !important;
   }
 
   :host(body) {
     overflow: hidden;
+  }
 
-    a-scene {
-      height: 100%;
-      top: 0;
-      position: fixed;
-      z-index: 3;
-      visibility: hidden;
+  :host(body) a-scene {
+    height: 100%;
+    top: 0;
+    position: fixed;
+    z-index: 3;
+    visibility: hidden;
+  }
 
-      &.visible {
-        visibility: visible;
-      }
-    }
+  :host(body) a-scene.visible {
+    visibility: visible;
   }
 
   :host(.show-css-cursor) #gaze-cursor{
