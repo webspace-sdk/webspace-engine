@@ -136,7 +136,7 @@ export default class Matrix extends EventTarget {
     // Set up neon in iframe
     await waitForDOMContentLoaded();
 
-    this.neon = document.body.shadowRoot.getElementById("neon");
+    this.neon = UI_ROOT.getElementById("neon");
 
     const neon = this.neon;
 

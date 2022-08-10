@@ -276,7 +276,7 @@ export default class ObjectInfoDialog extends Component {
     const { onClose } = this.props;
     const isStatic = this.props.el.components.tags && this.props.el.components.tags.data.isStatic;
     const showNavigationButtons = this.state.mediaEntities.length > 1;
-    uiRoot = uiRoot || document.body.shadowRoot.getElementById("ui-root");
+    uiRoot = uiRoot || UI_ROOT.getElementById("ui-root");
     const isGhost = uiRoot && uiRoot.firstChild && uiRoot.firstChild.classList.contains("isGhost");
     const showGoToButton = this.props.scene.is("entered") || isGhost;
     const showRemoveButton =

@@ -2,7 +2,7 @@ import "./hubs/webxr-bypass-hacks";
 import "./hubs/utils/theme";
 import "@babel/polyfill";
 import "./hubs/utils/debug-log";
-import STYLES_CSS from "./jel/styles/styles";
+import { ROOT_DOM_STYLES, SHADOW_DOM_STYLES } from "./jel/styles/styles";
 import { isInQuillEditor } from "./jel/utils/quill-utils";
 import { homeHubForSpaceId } from "./jel/utils/membership-utils";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
@@ -371,7 +371,7 @@ function mountJelUI(props = {}) {
         )}
       />
     </Router>,
-    document.body.shadowRoot.getElementById("jel-ui")
+    UI_ROOT.getElementById("jel-ui")
   );
 }
 
@@ -575,7 +575,7 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
     }
 
     if (uploadAccept) {
-      const el = document.body.shadowRoot.querySelector("#file-upload-input");
+      const el = UI_ROOT.querySelector("#file-upload-input");
       el.accept = uploadAccept;
       el.click();
     }
@@ -603,7 +603,7 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
   });
 
   scene.addEventListener("action_focus_chat", () => {
-    const chatFocusTarget = document.body.shadowRoot.querySelector(".chat-focus-target");
+    const chatFocusTarget = UI_ROOT.querySelector(".chat-focus-target");
     chatFocusTarget && chatFocusTarget.focus();
   });
 
@@ -649,7 +649,7 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
   });
 
   ["#jel-ui", "#jel-popup-root"].forEach(selector => {
-    const el = document.body.shadowRoot.querySelector(selector);
+    const el = UI_ROOT.querySelector(selector);
     el.addEventListener("mouseover", () => scene.addState("pointer-exited"));
     el.addEventListener("mouseout", () => scene.removeState("pointer-exited"));
   });
@@ -830,7 +830,7 @@ function setupGameEnginePausing(scene) {
 
 function setupSidePanelLayout(scene) {
   const handleSidebarResizerDrag = (selector, cssVars, isLeft, min, max, xToWidth, storeCallback) => {
-    document.body.shadowRoot.querySelector(selector).addEventListener("mousedown", () => {
+    UI_ROOT.querySelector(selector).addEventListener("mousedown", () => {
       const handleMove = e => {
         const w = Math.min(max, Math.max(min, xToWidth(e.clientX)));
 
@@ -861,7 +861,7 @@ function setupSidePanelLayout(scene) {
 
   if (skipPanels) {
     for (const id of ["#nav-drag-target", "#presence-drag-target"]) {
-      const el = document.body.shadowRoot.querySelector(id);
+      const el = UI_ROOT.querySelector(id);
       el.parentNode.removeChild(el);
     }
   } else {
@@ -1037,12 +1037,37 @@ async function start() {
   mixpanel.track("Startup Start", {});
 
   const scene = document.querySelector("a-scene");
-  window.ROOT = document.body.shadowRoot;
+  window.UI_ROOT = document.body.attachShadow({ mode: "open" });
+  const rootStyles = document.createElement("style");
+  rootStyles.type = "text/css";
+  rootStyles.appendChild(document.createTextNode(ROOT_DOM_STYLES));
+  document.head.appendChild(rootStyles);
 
-  const styles = document.createElement("style");
-  styles.type = "text/css";
-  styles.appendChild(document.createTextNode(STYLES_CSS));
-  window.ROOT.appendChild(styles);
+  const shadowStyles = document.createElement("style");
+  shadowStyles.type = "text/css";
+  shadowStyles.appendChild(document.createTextNode(SHADOW_DOM_STYLES));
+  UI_ROOT.appendChild(shadowStyles);
+
+  UI_ROOT.innerHTML += `
+      <div id="support-root"></div>
+
+      <div id="jel-interface">
+          <div id="jel-popup-root"></div>
+          <div id="jel-ui"></div>
+      </div>
+
+      <div id="ui-root"></div>
+      <div id="nav-drag-target"></div>
+      <div id="presence-drag-target"></div>
+
+      <iframe id="neon" src="about:blank"></iframe>
+
+      <div id="gaze-cursor">
+          <div class="cursor"></div>
+      </div>
+
+      <img src="https://assets.jel.app/static/emoji/emoji-map-64.png" style="display: none" width="0" height="0"/>
+  `;
 
   // Patch the scene resize handler to update the camera properly, since the
   // camera system manages the projection matrix.
@@ -1121,7 +1146,7 @@ async function start() {
     let rightDelta = 0;
     let bottomDelta = 0;
 
-    const triggerSizePx = document.body.shadowRoot.querySelector("#left-expand-trigger").offsetWidth;
+    const triggerSizePx = UI_ROOT.querySelector("#left-expand-trigger").offsetWidth;
     const interaction = AFRAME.scenes[0].systems.interaction;
 
     // Ignore when holding.

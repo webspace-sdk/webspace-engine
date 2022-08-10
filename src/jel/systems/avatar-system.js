@@ -514,7 +514,7 @@ export class AvatarSystem {
     let swatch = this.selfAvatarSwatch;
 
     if (!swatch) {
-      swatch = document.body.shadowRoot.getElementById("self-avatar-swatch");
+      swatch = UI_ROOT.getElementById("self-avatar-swatch");
 
       if (swatch) {
         swatch.setAttribute("data-eyes", 0);

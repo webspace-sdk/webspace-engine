@@ -203,9 +203,9 @@ const migrateToNewDynaServer = async deployNotification => {
 
 function updateUIForHub(isTransition, hub, hubChannel, remountUI, remountJelUI) {
   if (isTransition) {
-    const neon = document.body.shadowRoot.querySelector("#neon");
+    const neon = UI_ROOT.querySelector("#neon");
     const canvas = document.querySelector(".a-canvas");
-    const jelInterface = document.body.shadowRoot.querySelector("#jel-interface");
+    const jelInterface = UI_ROOT.querySelector("#jel-interface");
 
     if (hub.type === "world") {
       neon.classList.remove("visible");

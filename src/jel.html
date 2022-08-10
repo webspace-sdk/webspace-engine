@@ -29,60 +29,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Sriracha&display=swap" rel="stylesheet">
     </head>
 
-    <style>
-  html {
-    box-sizing: border-box;
-    line-height: 1;
-  
-    font-family: Lato, Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"
-  }
-  
-  :root {
-    --nav-width: 300px;
-    --presence-width: 200px;
-  }
-  
-  body {
-    background-color: #333;
-    margin: 0;
-  }
-  
-  body:focus {
-    outline: none;
-  }
-    
-  body::before {
-    content: "sm";
-    display: none;
-  }
-
-  #neon {
-    display: none;
-  }
-    </style>
-
 <body>
-    <template shadowroot="open">
-        <div id="support-root"></div>
-
-        <div id="jel-interface">
-            <div id="jel-popup-root"></div>
-            <div id="jel-ui"></div>
-        </div>
-
-        <div id="ui-root"></div>
-        <div id="nav-drag-target"></div>
-        <div id="presence-drag-target"></div>
-
-        <iframe id="neon" src="about:blank"></iframe>
-
-        <div id="gaze-cursor">
-            <div class="cursor"></div>
-        </div>
-
-        <img src="https://assets.jel.app/static/emoji/emoji-map-64.png" style="display: none" width="0" height="0"/>
-    </template>
-
     <a-scene
         embedded
         loading-screen="enabled: false"
@@ -108,13 +55,13 @@
         light="defaultLightsEnabled: false"
     >
         <a-assets>
-            <img id="presence-count" crossorigin="anonymous" src="./assets/hubs/hud/presence-count.png">
-            <img id="action-button" crossorigin="anonymous" src="./assets/hubs/hud/action_button.9.png">
-            <img id="button" crossorigin="anonymous" src="./assets/hubs/hud/button.9.png">
-            <img id="video-play" crossorigin="anonymous" src="./assets/hubs/video-overlay/play.png">
-            <img id="video-play-hover" crossorigin="anonymous" src="./assets/hubs/video-overlay/play-hover.png">
-            <img id="video-pause" crossorigin="anonymous" src="./assets/hubs/video-overlay/pause.png">
-            <img id="video-pause-hover" crossorigin="anonymous" src="./assets/hubs/video-overlay/pause-hover.png">
+            <img style="display: none;" id="presence-count" crossorigin="anonymous" src="./assets/hubs/hud/presence-count.png">
+            <img style="display: none;" id="action-button" crossorigin="anonymous" src="./assets/hubs/hud/action_button.9.png">
+            <img style="display: none;" id="button" crossorigin="anonymous" src="./assets/hubs/hud/button.9.png">
+            <img style="display: none;" id="video-play" crossorigin="anonymous" src="./assets/hubs/video-overlay/play.png">
+            <img style="display: none;" id="video-play-hover" crossorigin="anonymous" src="./assets/hubs/video-overlay/play-hover.png">
+            <img style="display: none;" id="video-pause" crossorigin="anonymous" src="./assets/hubs/video-overlay/pause.png">
+            <img style="display: none;" id="video-pause-hover" crossorigin="anonymous" src="./assets/hubs/video-overlay/pause-hover.png">
 
             <a-asset-item id="drawing-pen" response-type="arraybuffer" src="./assets/hubs/models/DrawingPen.glb"></a-asset-item>
             <a-asset-item id="spawn-point" response-type="arraybuffer" src="./assets/hubs/models/spawn-point.glb"></a-asset-item>

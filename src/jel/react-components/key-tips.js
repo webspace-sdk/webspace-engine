@@ -711,8 +711,8 @@ const KeyTips = forwardRef((props, ref) => {
         const { store } = window.APP;
         const { r, g, b } = storedColorToRgb(store.state.equips.color);
         const cssRgb = objRgbToCssRgb({ r: r / 255.0, g: g / 255.0, b: b / 255.0 });
-        const emojiEls = document.body.shadowRoot.querySelectorAll("#key-tips .equipped-emoji");
-        const colorEls = document.body.shadowRoot.querySelectorAll("#key-tips .equipped-color");
+        const emojiEls = UI_ROOT.querySelectorAll("#key-tips .equipped-emoji");
+        const colorEls = UI_ROOT.querySelectorAll("#key-tips .equipped-color");
         const emoji = store.state.equips.launcher;
         equippedEmojiUrl = imageUrlForEmoji(emoji, 64);
 

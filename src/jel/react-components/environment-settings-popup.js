@@ -27,7 +27,7 @@ const metadata = new AtomMetadata(ATOM_TYPES.HUB);
 metadata._metadata.set("abc123", { roles: { space: "viewer" } });
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = document.body.shadowRoot.getElementById("jel-popup-root")));
+waitForDOMContentLoaded().then(() => (popupRoot = UI_ROOT.getElementById("jel-popup-root")));
 
 const Swatch = styled.button`
   width: 32px;

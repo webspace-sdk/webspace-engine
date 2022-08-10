@@ -5,7 +5,39 @@ import { EMOJIS } from "./emojis";
 import { QUILL_CORE, QUILL_BUBBLE, QUILL_EMOJI, QUILL_HIGHLIGHT } from "./quill";
 import { JEL_THEME_VARS } from "./jel-theme";
 
-export default `
+export const ROOT_DOM_STYLES = `
+  html {
+    box-sizing: border-box;
+    line-height: 1;
+  
+    font-family: Lato, Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"
+  }
+  
+  :root {
+    --nav-width: 300px;
+    --presence-width: 200px;
+  }
+  
+  body {
+    background-color: #333;
+    margin: 0;
+  }
+  
+  body:focus {
+    outline: none;
+  }
+    
+  body::before {
+    content: "sm";
+    display: none;
+  }
+
+  a-assets img {
+    display: none;
+  }
+`;
+
+export const SHADOW_DOM_STYLES = `
   ${JEL_THEME_VARS}
 
   ${NORMALIZE_CSS}
@@ -28,6 +60,10 @@ export default `
 
   input::placeholder {
     color: var(--input-text-color);
+  }
+
+  #neon {
+    display: none;
   }
 
   .base-panel {

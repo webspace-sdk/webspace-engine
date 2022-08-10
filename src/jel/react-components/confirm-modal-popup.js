@@ -6,7 +6,7 @@ import ConfirmModalPanel from "./confirm-modal-panel";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = document.body.shadowRoot.getElementById("jel-popup-root")));
+waitForDOMContentLoaded().then(() => (popupRoot = UI_ROOT.getElementById("jel-popup-root")));
 
 // Extremely hacky modal overlay background
 // Modal is not centered so need 2x spillover

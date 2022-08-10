@@ -527,7 +527,7 @@ function JelUI(props) {
   }, []);
 
   return (
-    <StyleSheetManager target={document.body.shadowRoot}>
+    <StyleSheetManager target={UI_ROOT}>
       <WrappedIntlProvider>
         <Root className="expand-asset-panel">
           <LoadingPanel

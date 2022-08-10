@@ -11,7 +11,7 @@ import { membershipSettingsForSpaceId } from "../utils/membership-utils";
 import styled from "styled-components";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = document.body.shadowRoot.getElementById("jel-popup-root")));
+waitForDOMContentLoaded().then(() => (popupRoot = UI_ROOT.getElementById("jel-popup-root")));
 
 const RadioWrap = styled.div`
   display: flex;

@@ -241,7 +241,7 @@ export function hasQuill(networkId) {
 
 export function destroyQuill(networkId) {
   const id = `#quill-${networkId}`;
-  const node = document.body.shadowRoot.querySelector(id);
+  const node = UI_ROOT.querySelector(id);
 
   if (node) {
     node.parentElement.removeChild(node);
@@ -287,7 +287,7 @@ export function getQuill(networkId) {
     handlers: { emoji: function() {} }
   };
 
-  document.body.shadowRoot.querySelector("#jel-ui-wrap").appendChild(el);
+  UI_ROOT.querySelector("#jel-ui-wrap").appendChild(el);
   const messages = getMessages();
 
   quills[networkId] = {
@@ -308,7 +308,7 @@ export function getQuill(networkId) {
   editor.prepend(styleTag);
 
   // Prevent cycling via tab
-  document.body.shadowRoot.querySelector(`#${id}-editor [contenteditable=true]`).tabIndex = -1;
+  UI_ROOT.querySelector(`#${id}-editor [contenteditable=true]`).tabIndex = -1;
 
   return getQuill(networkId);
 }

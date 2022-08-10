@@ -5,7 +5,7 @@ import CreateSelect from "./create-select";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = document.body.shadowRoot.getElementById("jel-popup-root")));
+waitForDOMContentLoaded().then(() => (popupRoot = UI_ROOT.getElementById("jel-popup-root")));
 
 // Note that we can't use slide-down-when-popped transition
 // since it causes positioning artifacts in rc-select
