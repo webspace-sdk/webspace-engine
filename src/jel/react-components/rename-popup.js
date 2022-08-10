@@ -4,7 +4,6 @@ import { ATOM_TYPES } from "../utils/atom-metadata";
 import ReactDOM from "react-dom";
 import NameInputPanel from "./name-input-panel";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.body.shadowRoot.getElementById("jel-popup-root")));
@@ -15,13 +14,13 @@ const RenamePopup = forwardRef(({ styles, attributes, atomMetadata, setPopperEle
   const popupInput = (
     <div
       tabIndex={-1} // Ensures can be focused
-      className={sharedStyles.showWhenPopped}
+      className="show-when-popped"
       ref={setPopperElement}
       style={styles.popper}
       {...attributes.popper}
     >
       <NameInputPanel
-        className={sharedStyles.slideDownWhenPopped}
+        className="slide-down-when-popped"
         atomId={atomId}
         atomMetadata={atomMetadata}
         onNameChanged={useCallback(

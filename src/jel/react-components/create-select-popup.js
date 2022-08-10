@@ -3,7 +3,6 @@ import React, { forwardRef } from "react";
 import ReactDOM from "react-dom";
 import CreateSelect from "./create-select";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 
 let popupRoot = null;
 waitForDOMContentLoaded().then(() => (popupRoot = document.body.shadowRoot.getElementById("jel-popup-root")));
@@ -15,7 +14,7 @@ const CreateSelectPopup = forwardRef(
     const popup = (
       <div
         tabIndex={-1} // Ensures can be focused
-        className={sharedStyles.fastShowWhenPopped}
+        className="fast-show-when-popped"
         ref={setPopperElement}
         style={styles.popper}
         {...attributes.popper}

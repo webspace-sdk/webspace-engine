@@ -29,7 +29,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Sriracha&display=swap" rel="stylesheet">
     </head>
 
-<body style="background-color: #333">
+    <style>
+  html {
+    box-sizing: border-box;
+    line-height: 1;
+  
+    font-family: Lato, Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"
+  }
+  
+  :root {
+    --nav-width: 300px;
+    --presence-width: 200px;
+  }
+  
+  body {
+    background-color: #333;
+  }
+  
+  body:focus {
+    outline: none;
+  }
+    
+  body::before {
+    content: "sm";
+    display: none;
+  }
+    </style>
+
+<body>
     <template shadowroot="open">
         <div id="support-root"></div>
 
