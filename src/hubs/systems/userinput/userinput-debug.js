@@ -72,7 +72,7 @@ AFRAME.registerSystem("userinput-debug", {
           font-family: monospace;
           font-size: 8pt;
         `;
-        document.body.append(this.userinputFrameStatus);
+        UI_ROOT.append(this.userinputFrameStatus);
       }
 
       console.log(userinput);

@@ -158,7 +158,7 @@ export class ConstraintsSystem {
 
     const heldEntityId = held.id;
     const { uuid: bodyUuid } = held.components["body-helper"];
-    const targetEl = document.getElementById(entityId);
+    const targetEl = UI_ROOT.getElementById(entityId);
     const { uuid: targetUuid } = targetEl.components["body-helper"];
 
     if (bodyUuid === -1 || targetUuid === -1) return;

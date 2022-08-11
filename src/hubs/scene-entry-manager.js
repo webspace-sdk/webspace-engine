@@ -50,10 +50,10 @@ export default class SceneEntryManager {
     this.history = history;
 
     waitForDOMContentLoaded().then(() => {
-      this.scene = document.querySelector("a-scene");
-      this.rightCursorController = document.getElementById("right-cursor-controller");
-      this.leftCursorController = document.getElementById("left-cursor-controller");
-      this.avatarRig = document.getElementById("avatar-rig");
+      this.scene = UI_ROOT.querySelector("a-scene");
+      this.rightCursorController = UI_ROOT.getElementById("right-cursor-controller");
+      this.leftCursorController = UI_ROOT.getElementById("left-cursor-controller");
+      this.avatarRig = UI_ROOT.getElementById("avatar-rig");
     });
   }
 
@@ -251,7 +251,7 @@ export default class SceneEntryManager {
       const numPages = pdf.numPages;
 
       const centerMatrixWorld = new THREE.Matrix4();
-      const avatarPov = document.querySelector("#avatar-pov-node");
+      const avatarPov = UI_ROOT.querySelector("#avatar-pov-node");
       avatarPov.object3D.updateMatrices();
       centerMatrixWorld.copy(avatarPov.object3D.matrixWorld);
 
@@ -396,7 +396,7 @@ export default class SceneEntryManager {
           if (isHandlingVideoShare) return;
           isHandlingVideoShare = true;
 
-          const mediaStreamEntities = document.querySelectorAll("[media-stream]");
+          const mediaStreamEntities = UI_ROOT.querySelectorAll("[media-stream]");
 
           for (const mediaStreamEntity of mediaStreamEntities) {
             if (mediaStreamEntity && mediaStreamEntity.parentNode) {
@@ -537,8 +537,8 @@ export default class SceneEntryManager {
 
     // Wait for startup to render form
     do {
-      audioInput = document.querySelector("#bot-audio-input");
-      dataInput = document.querySelector("#bot-data-input");
+      audioInput = UI_ROOT.querySelector("#bot-audio-input");
+      dataInput = UI_ROOT.querySelector("#bot-data-input");
       await nextTick();
     } while (!audioInput || !dataInput);
 
@@ -556,9 +556,9 @@ export default class SceneEntryManager {
       audioInput.onchange = getAudio;
     }
 
-    const camera = document.querySelector("#avatar-pov-node");
-    const leftController = document.querySelector("#player-left-controller");
-    const rightController = document.querySelector("#player-right-controller");
+    const camera = UI_ROOT.querySelector("#avatar-pov-node");
+    const leftController = UI_ROOT.querySelector("#player-left-controller");
+    const rightController = UI_ROOT.querySelector("#player-right-controller");
     const getRecording = () => {
       fetch(URL.createObjectURL(dataInput.files[0]))
         .then(resp => resp.json())

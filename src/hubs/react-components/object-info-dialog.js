@@ -114,7 +114,7 @@ export default class ObjectInfoDialog extends Component {
     this.navigateNext = this.navigateNext.bind(this);
     this.navigatePrev = this.navigatePrev.bind(this);
     this.navigate = this.navigate.bind(this);
-    this.viewingCamera = document.getElementById("viewing-camera");
+    this.viewingCamera = UI_ROOT.getElementById("viewing-camera");
     this.props.scene.addEventListener("uninspect", () => {
       this.props.onClose();
     });

@@ -43,7 +43,7 @@ class ProfileEntryPanel extends Component {
       this.state.avatarId = props.avatarId;
     }
     this.props.store.addEventListener("statechanged", this.storeUpdated);
-    this.scene = document.querySelector("a-scene");
+    this.scene = UI_ROOT.querySelector("a-scene");
   }
 
   getStateFromProfile = () => {

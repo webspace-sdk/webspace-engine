@@ -39,7 +39,7 @@ export class DaydreamControllerDevice {
 
       // TODO ideally we should just be getting pose from the gamepad
       if (!this.rayObject) {
-        this.rayObject = document.querySelector(this.selector).object3D;
+        this.rayObject = UI_ROOT.querySelector(this.selector).object3D;
       }
       this.rayObject.updateMatrixWorld();
       this.rayObjectRotation.setFromRotationMatrix(m.extractRotation(this.rayObject.matrixWorld));
@@ -48,7 +48,7 @@ export class DaydreamControllerDevice {
       this.pose.fromOriginAndDirection(this.pose.position, this.pose.direction);
       frame.setPose(POSE, this.pose);
 
-      this.headObject3D = this.headObject3D || document.querySelector("#avatar-pov-node").object3D;
+      this.headObject3D = this.headObject3D || UI_ROOT.querySelector("#avatar-pov-node").object3D;
 
       if (this.gamepad.pose.orientation) {
         frame.setMatrix4(

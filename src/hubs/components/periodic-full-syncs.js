@@ -34,5 +34,5 @@ AFRAME.registerComponent("periodic-full-syncs", {
 });
 
 export function restartPeriodicSyncs() {
-  [...document.querySelectorAll("[periodic-full-syncs]")].forEach(el => el.components["periodic-full-syncs"].reset());
+  [...UI_ROOT.querySelectorAll("[periodic-full-syncs]")].forEach(el => el.components["periodic-full-syncs"].reset());
 }

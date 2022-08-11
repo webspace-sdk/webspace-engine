@@ -81,7 +81,7 @@ export class CameraRotatorSystem {
       const { scene } = this;
       const userinput = scene.systems.userinput;
       uiRoot = uiRoot || UI_ROOT.getElementById("ui-root");
-      scenePreviewNode = scenePreviewNode || document.getElementById("scene-preview-node");
+      scenePreviewNode = scenePreviewNode || UI_ROOT.getElementById("scene-preview-node");
       const lobby = !scene.is("entered");
       let rotated = false;
 

@@ -3,7 +3,7 @@ let mirrorTarget;
 export function getCurrentMirroredMedia() {
   // TODO JEL
   return null;
-  /*mirrorTarget = mirrorTarget || document.querySelector("#media-mirror-target");
+  /*mirrorTarget = mirrorTarget || UI_ROOT.querySelector("#media-mirror-target");
   const mirrorEl = mirrorTarget.firstChild;
   const linkedEl = mirrorEl && mirrorEl.components["media-loader"] && mirrorEl.components["media-loader"].data.linkedEl;
   return linkedEl;*/

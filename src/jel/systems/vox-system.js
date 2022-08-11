@@ -1848,7 +1848,7 @@ export class VoxSystem extends EventTarget {
       offset: { x: 0, y: 0, z: 0 }
     });
 
-    const rightHand = document.getElementById("player-right-controller");
+    const rightHand = UI_ROOT.getElementById("player-right-controller");
     const transformSystem = this.sceneEl.systems["transform-selected-object"];
 
     entity.addEventListener(
@@ -1873,7 +1873,7 @@ export class VoxSystem extends EventTarget {
     const newVoxUrl = await this.resolveBakedOrInstantiatedVox(url);
     const promises = [];
 
-    for (const entity of document.querySelectorAll("[media-vox]")) {
+    for (const entity of UI_ROOT.querySelectorAll("[media-vox]")) {
       const entityVoxId = entity.components["media-vox"].voxId;
       if (entityVoxId !== voxId) continue;
       if (!ensureOwnership(entity)) continue;
@@ -1922,7 +1922,7 @@ export class VoxSystem extends EventTarget {
     const previewContext = preview.getContext("2d");
     const thumbContext = thumb.getContext("2d");
 
-    document.body.appendChild(canvas);
+    UI_ROOT.appendChild(canvas);
 
     const chunk = frames[0];
     const fvixel = new FastVixel({ canvas: canvas, size: chunk.size });
@@ -2046,7 +2046,7 @@ export class VoxSystem extends EventTarget {
     const previewData = preview.toDataURL();
     const thumbData = thumb.toDataURL();
 
-    document.body.removeChild(canvas);
+    UI_ROOT.removeChild(canvas);
 
     return { previewData, thumbData };
   }

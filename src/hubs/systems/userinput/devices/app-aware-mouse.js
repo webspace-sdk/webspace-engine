@@ -65,7 +65,7 @@ export class AppAwareMouseDevice {
     this.prevDirection.copy(this.prevDirection);
 
     if (!this.cursorController) {
-      const rightCursorController = document.getElementById("right-cursor-controller");
+      const rightCursorController = UI_ROOT.getElementById("right-cursor-controller");
 
       if (rightCursorController && rightCursorController.components) {
         this.cursorController = rightCursorController.components["cursor-controller"];
@@ -73,7 +73,7 @@ export class AppAwareMouseDevice {
     }
 
     if (!this.camera) {
-      const viewingCamera = document.getElementById("viewing-camera");
+      const viewingCamera = UI_ROOT.getElementById("viewing-camera");
 
       if (viewingCamera && viewingCamera.components) {
         this.camera = viewingCamera.components.camera.camera;

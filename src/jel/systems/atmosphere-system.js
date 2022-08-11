@@ -22,8 +22,8 @@ export class AtmosphereSystem {
     this.soundEffectsSystem = soundEffectsSystem;
 
     waitForDOMContentLoaded().then(() => {
-      this.avatarPovEl = document.getElementById("avatar-pov-node");
-      this.viewingCameraEl = document.getElementById("viewing-camera");
+      this.avatarPovEl = UI_ROOT.getElementById("avatar-pov-node");
+      this.viewingCameraEl = UI_ROOT.getElementById("viewing-camera");
     });
 
     // Disable extra rendering while UI resizing

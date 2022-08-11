@@ -185,11 +185,11 @@ export function downloadText(filename, contentType, text) {
   element.setAttribute("download", filename);
 
   element.style.display = "none";
-  document.body.appendChild(element);
+  UI_ROOT.appendChild(element);
 
   element.click();
 
-  document.body.removeChild(element);
+  UI_ROOT.removeChild(element);
 }
 
 export function setNativeValue(element, value) {
@@ -287,3 +287,78 @@ export async function getIsWindowAtMultimonitorEdges() {
 
   return [atTopWindowEdge, atRightWindowEdge, atBottomWindowEdge, atLeftWindowEdge];
 }
+
+// export const setAFrameInnerHTMLOnRoot = (function(document) {
+//   const EXTENDS = "extends",
+//     register = document.registerElement,
+//     div = document.createElement("div"),
+//     dre = "document-register-element",
+//     innerHTML = register.innerHTML;
+//
+//   // avoid duplicated wrappers
+//   if (innerHTML) return innerHTML;
+//
+//   try {
+//     // feature detect the problem
+//     register.call(document, dre, {
+//       prototype: Object.create(HTMLElement.prototype, { createdCallback: { value: Object } })
+//     });
+//
+//     div.innerHTML = "<" + dre + "></" + dre + ">";
+//
+//     // if natively supported, nothing to do
+//     if ("createdCallback" in div.querySelector(dre)) {
+//       // return just an innerHTML wrap
+//       return (register.innerHTML = function(el, html) {
+//         el.innerHTML = html;
+//         return el;
+//       });
+//     }
+//   } catch (meh) {} // eslint-disable-line
+//
+//   // in other cases
+//   const registered = [];
+//   const initialize = function(el) {
+//     if (
+//       "createdCallback" in el ||
+//       "attachedCallback" in el ||
+//       "detachedCallback" in el ||
+//       "attributeChangedCallback" in el
+//     )
+//       return;
+//     document.createElement.innerHTMLHelper = true;
+//     const parentNode = el.parentNode,
+//       type = el.getAttribute("is"),
+//       name = el.nodeName,
+//       node = document.createElement.apply(document, type ? [name, type] : [name]),
+//       attributes = el.attributes;
+//
+//     let fc;
+//     for (let i = 0, length = attributes.length, attr; i < length; i++) {
+//       attr = attributes[i];
+//       node.setAttribute(attr.name, attr.value);
+//     }
+//     while ((fc = el.firstChild)) node.appendChild(fc);
+//     document.createElement.innerHTMLHelper = false;
+//     if (parentNode) parentNode.replaceChild(node, el);
+//     if (node.createdCallback) {
+//       node.created = true;
+//       node.createdCallback();
+//       node.created = false;
+//     }
+//   };
+//   // augment the document.registerElement method
+//   return ((document.registerElement = function registerElement(type, options) {
+//     const name = (options[EXTENDS] ? options[EXTENDS] + '[is="' + type + '"]' : type).toLowerCase();
+//     if (registered.indexOf(name) < 0) registered.push(name);
+//     return register.apply(document, arguments);
+//   }).innerHTML = function(el, html) {
+//     el.innerHTML = html;
+//     for (
+//       let nodes = registered.length ? el.querySelectorAll(registered.join(",")) : [], i = nodes.length;
+//       i--;
+//       initialize(nodes[i])
+//     ) {} // eslint-disable-line
+//     return el;
+//   });
+// })(document);

@@ -30,7 +30,7 @@ export class MouseDevice {
     this.wheel = 0; // delta
 
     const queueEvent = this.events.push.bind(this.events);
-    const canvas = document.querySelector("canvas");
+    const canvas = UI_ROOT.querySelector("canvas");
     this.canvas = canvas;
 
     canvas.addEventListener("contextmenu", e => {

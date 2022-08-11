@@ -25,8 +25,8 @@ export class OculusGoControllerDevice {
     // TODO if controller is set to left hand, we still use right hand query here
     // because otherwise things break.
     waitForDOMContentLoaded().then(() => {
-      this.rayObject = document.querySelector("#player-right-controller").object3D;
-      this.headObject3D = document.querySelector("#avatar-pov-node").object3D;
+      this.rayObject = UI_ROOT.querySelector("#player-right-controller").object3D;
+      this.headObject3D = UI_ROOT.querySelector("#avatar-pov-node").object3D;
     });
 
     navigator.getGamepads();

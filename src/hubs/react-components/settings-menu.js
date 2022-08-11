@@ -55,7 +55,7 @@ export default class SettingsMenu extends Component {
 
   componentDidMount() {
     this.onMouseUp = () => this.unexpand();
-    this.acanvas = document.querySelector(".a-canvas");
+    this.acanvas = UI_ROOT.querySelector(".a-canvas");
     this.acanvas.addEventListener("mouseup", this.onMouseUp);
   }
 

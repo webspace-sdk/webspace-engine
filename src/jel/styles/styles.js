@@ -193,120 +193,120 @@ export const SHADOW_DOM_STYLES = `
     display: block;
   }
 
-  :host(.panels-collapsed) #presence-drag-target {
+  .panels-collapsed #presence-drag-target {
     display: none;
   }
 
-  :host(.panels-collapsed) #nav-drag-target {
+  .panels-collapsed #nav-drag-target {
     display: none;
   }
 
-  :host(.panels-collapsed) #jel-ui-wrap,
-  :host(.paused) #jel-ui-wrap {
+  .panels-collapsed #jel-ui-wrap,
+  .paused #jel-ui-wrap {
     height: 100%;
   }
 
-  :host(.panels-collapsed) #asset-panel {
+  .panels-collapsed #asset-panel {
     display: none;
   }
 
-  :host(.panels-collapsed) #left-expand-trigger {
+  .panels-collapsed #left-expand-trigger {
     display: flex;
   }
 
-  :host(.paused) #jel-interface.hub-type-world #jel-ui-wrap {
+  .paused #jel-interface.hub-type-world #jel-ui-wrap {
     pointer-events: auto;
     background-color: rgba(0, 0, 0, 0.6);
   }
 
-  :host(.paused) #jel-interface.hub-type-channel #jel-ui-wrap {
+  .paused #jel-interface.hub-type-channel #jel-ui-wrap {
     pointer-events: none;
     background-color: transparent;
   }
 
-  :host(.paused) #jel-interface.hub-type-world #asset-panel {
+  .paused #jel-interface.hub-type-world #asset-panel {
     display: none;
   }
 
-  :host(.paused) #jel-interface.hub-type-channel #asset-panel {
+  .paused #jel-interface.hub-type-channel #asset-panel {
     display: none;
   }
 
-  :host(.panels-collapsed) #right-expand-trigger {
+  .panels-collapsed #right-expand-trigger {
     display: flex;
   }
 
-  :host(.panels-collapsed) #bottom-expand-trigger {
+  .panels-collapsed #bottom-expand-trigger {
     display: flex;
   }
 
-  :host(.low-detail) #fade-edges {
+  .low-detail #fade-edges {
     background: none;
   }
 
-  :host(.paused) #paused-info-label {
+  .paused #paused-info-label {
     display: block;
   }
 
-  :host(.paused) #unpaused-info-label {
+  .paused #unpaused-info-label {
     display: none;
   }
 
-  :host(.paused) #unpaused-info-label-2 {
+  .paused #unpaused-info-label-2 {
     display: none;
   }
 
-  :host(.paused) .external-camera-on #external-camera-canvas {
+  .paused .external-camera-on #external-camera-canvas {
     display: none;
   }
 
-  :host(.paused) .external-camera-on #external-camera-rotate-button {
+  .paused .external-camera-on #external-camera-rotate-button {
     display: none;
   }
 
-  :host(.paused) #key-tips-wrap {
+  .paused #key-tips-wrap {
       opacity: 0.4;
   }
 
-  :host(.panels-collapsed) #device-statuses {
+  .panels-collapsed #device-statuses {
     display: flex;
   }
 
-  :host(.paused) #device-statuses {
+  .paused #device-statuses {
     display: none;
   }
 
-  :host(.panels-collapsed) #snackbar {
+  .panels-collapsed #snackbar {
     display: none;
   }
 
-  :host(.paused) #snackbar {
+  .paused #snackbar {
     display: none;
   }
 
-  :host(.panels-collapsed) #self-panel {
+  .panels-collapsed #self-panel {
      background-color: var(--canvas-overlay-neutral-item-background-color);
      text-shadow: 0px 0px 4px var(--menu-shadow-color);
      border-radius: 0 12px 0 0;
   }
 
-  :host(.panels-collapsed) #top-panel {
+  .panels-collapsed #top-panel {
      display: none;
   }
 
-  :host(.panels-collapsed) #chat-log {
+  .panels-collapsed #chat-log {
     bottom: 64px;
   }
 
-  :host(.paused) #chat-log {
+  .paused #chat-log {
       visibility: hidden;
   }
 
-  :host(.panels-collapsed) .hide-when-expanded {
+  .panels-collapsed .hide-when-expanded {
     display: none;
   }
 
-  :host(.panels-collapsed) .pause-info-label {
+  .panels-collapsed .pause-info-label {
      bottom: 76px;
   }
 

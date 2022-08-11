@@ -170,7 +170,7 @@ export default class WorldImporter {
       const id = el.id;
       if (!id || id.length !== 7) continue; // Sanity check
 
-      const existingEl = document.getElementById(`naf-${id}`);
+      const existingEl = UI_ROOT.getElementById(`naf-${id}`);
 
       if (existingEl) {
         // Proceed once the shared component is removed so the id has been freed.
@@ -219,7 +219,7 @@ export default class WorldImporter {
     }
 
     if (removeEntitiesNotInTemplate) {
-      const toRemove = [...(document.querySelectorAll("[shared]") || [])].filter(
+      const toRemove = [...(UI_ROOT.querySelectorAll("[shared]") || [])].filter(
         el => !docEntityIds.has(el.getAttribute("id"))
       );
 
@@ -241,7 +241,7 @@ export default class WorldImporter {
     for (const el of doc.body.childNodes) {
       const id = el.id;
       if (!id || id.length !== 7) continue; // Sanity check
-      if (document.getElementById(`naf-${id}`)) continue;
+      if (UI_ROOT.getElementById(`naf-${id}`)) continue;
 
       const style = `:root { ${el.getAttribute("style") || ""}`;
       const styleEl = doc.createElement("style");

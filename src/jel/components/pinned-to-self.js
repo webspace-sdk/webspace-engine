@@ -12,7 +12,7 @@ AFRAME.registerComponent("pinned-to-self", {
     this.previousBodyType = null;
 
     waitForDOMContentLoaded().then(() => {
-      this.avatarPovNode = document.querySelector("#avatar-pov-node");
+      this.avatarPovNode = UI_ROOT.querySelector("#avatar-pov-node");
     });
   },
 

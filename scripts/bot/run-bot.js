@@ -85,7 +85,7 @@ function log(...objs) {
         try {
           avatarCounts = await page.evaluate(() => ({
             connectionCount: Object.keys(NAF.connection.adapter.occupants).length,
-            avatarCount: document.querySelectorAll("[networked-avatar]").length - 1
+            avatarCount: UI_ROOT.querySelectorAll("[networked-avatar]").length - 1
           }));
           log(JSON.stringify(avatarCounts));
         } catch (e) {

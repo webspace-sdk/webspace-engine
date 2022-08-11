@@ -56,10 +56,12 @@ export class UIAnimationSystem {
 
     document.addEventListener("visibilitychange", layoutOnFocus);
 
-    // Initialize nav and presence width CSS vars to stored state.
-    document.documentElement.style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
-    document.documentElement.style.setProperty("--presence-width", `${this.targetSceneRight}px`);
-    window.addEventListener("resize", () => this.applySceneSize(null, null, true));
+    waitForDOMContentLoaded().then(() => {
+      // Initialize nav and presence width CSS vars to stored state.
+      UI_ROOT.style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
+      UI_ROOT.style.setProperty("--presence-width", `${this.targetSceneRight}px`);
+      window.addEventListener("resize", () => this.applySceneSize(null, null, true));
+    });
   }
 
   toggleSidePanels(animate = true) {
@@ -92,9 +94,7 @@ export class UIAnimationSystem {
     const triggerSizePx = UI_ROOT.querySelector("#left-expand-trigger").offsetWidth;
     UI_ROOT.querySelector("#left-expand-trigger").setAttribute("style", `left: ${-triggerSizePx}px`);
     UI_ROOT.querySelector("#right-expand-trigger").setAttribute("style", `right: ${-triggerSizePx}px`);
-    UI_ROOT
-      .querySelector("#bottom-expand-trigger")
-      .setAttribute("style", `bottom: ${-triggerSizePx}px`);
+    UI_ROOT.querySelector("#bottom-expand-trigger").setAttribute("style", `bottom: ${-triggerSizePx}px`);
   }
 
   isCollapsingOrCollapsed() {
@@ -199,7 +199,7 @@ export class UIAnimationSystem {
       this.sceneRight = sceneRight;
     }
 
-    const width = document.body.clientWidth - this.sceneLeft - this.sceneRight;
+    const width = UI_ROOT.clientWidth - this.sceneLeft - this.sceneRight;
     if (this.sceneEl) {
       this.sceneEl.style.cssText = `left: ${this.sceneLeft}px; width: ${width}px;`;
     }
@@ -220,10 +220,10 @@ export class UIAnimationSystem {
       right = 0;
     }
 
-    const body = document.body;
+    const body = UI_ROOT;
 
     const width = body.clientWidth - left - right;
-    const gazeCursor = document.getElementById("gaze-cursor");
+    const gazeCursor = UI_ROOT.getElementById("gaze-cursor");
 
     if (gazeCursor) {
       const center = Math.floor(left + width / 2.0);
@@ -235,9 +235,9 @@ export class UIAnimationSystem {
       wrap.style.cssText = `left: ${left}px; width: ${width}px;`;
 
       if (left === 0) {
-        document.body.classList.add("panels-collapsed");
+        UI_ROOT.classList.add("panels-collapsed");
       } else {
-        document.body.classList.remove("panels-collapsed");
+        UI_ROOT.classList.remove("panels-collapsed");
       }
 
       return true;

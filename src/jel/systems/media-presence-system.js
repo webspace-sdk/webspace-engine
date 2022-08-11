@@ -31,7 +31,7 @@ export class MediaPresenceSystem {
     this.distanceDelayedNetworkIds = new Set();
 
     waitForDOMContentLoaded().then(() => {
-      this.avatarPovEl = document.querySelector("#avatar-pov-node");
+      this.avatarPovEl = UI_ROOT.querySelector("#avatar-pov-node");
     });
   }
 

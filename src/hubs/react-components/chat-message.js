@@ -97,7 +97,7 @@ function renderChatMessage(body, from, allowEmojiRender) {
 
   // The element is added to the DOM in order to have layout compute the width & height,
   // and then it is removed after being rendered.
-  document.body.appendChild(el);
+  UI_ROOT.appendChild(el);
 
   const entryDom = (
     <div
@@ -150,7 +150,7 @@ export async function createInWorldLogMessage({ name, type, body }) {
   const entity = document.createElement("a-entity");
   const meshEntity = document.createElement("a-entity");
 
-  document.querySelector("a-scene").appendChild(entity);
+  UI_ROOT.querySelector("a-scene").appendChild(entity);
 
   entity.appendChild(meshEntity);
   entity.setAttribute("class", "ui");
@@ -214,7 +214,7 @@ export async function spawnChatMessage(body, from) {
   try {
     const url = new URL(coerceToUrl(body));
     if (url.host) {
-      document.querySelector("a-scene").emit("add_media", body);
+      UI_ROOT.querySelector("a-scene").emit("add_media", body);
       return;
     }
   } catch (e) {
@@ -224,7 +224,7 @@ export async function spawnChatMessage(body, from) {
   // If not a URL, spawn as a text bubble
 
   const [blob] = await renderChatMessage(body, from, true);
-  document.querySelector("a-scene").emit("add_media", new File([blob], "message.png", { type: "image/png" }));
+  UI_ROOT.querySelector("a-scene").emit("add_media", new File([blob], "message.png", { type: "image/png" }));
 }
 
 export default function ChatMessage(props) {

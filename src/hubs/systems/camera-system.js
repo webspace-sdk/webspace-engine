@@ -138,10 +138,10 @@ export class CameraSystem extends EventTarget {
     this.snapshot = { audioTransform: new THREE.Matrix4(), matrixWorld: new THREE.Matrix4(), mask: null, mode: null };
     this.audioListenerTargetTransform = new THREE.Matrix4();
     waitForDOMContentLoaded().then(() => {
-      this.avatarPOV = document.getElementById("avatar-pov-node");
-      this.avatarRig = document.getElementById("avatar-rig");
-      this.viewingCamera = document.getElementById("viewing-camera");
-      this.viewingRig = document.getElementById("viewing-rig");
+      this.avatarPOV = UI_ROOT.getElementById("avatar-pov-node");
+      this.avatarRig = UI_ROOT.getElementById("avatar-rig");
+      this.viewingCamera = UI_ROOT.getElementById("viewing-camera");
+      this.viewingRig = UI_ROOT.getElementById("viewing-rig");
 
       const bg = new THREE.Mesh(
         new SkyboxBufferGeometry(100, 100, 100),
@@ -555,7 +555,7 @@ export class CameraSystem extends EventTarget {
       }
 
       const headShouldBeVisible = this.mode !== CAMERA_MODE_FIRST_PERSON;
-      this.playerHead = this.playerHead || document.getElementById("avatar-head");
+      this.playerHead = this.playerHead || UI_ROOT.getElementById("avatar-head");
       if (this.playerHead && headShouldBeVisible !== this.playerHead.object3D.visible) {
         this.playerHead.object3D.visible = headShouldBeVisible;
 

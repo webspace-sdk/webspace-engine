@@ -9,4 +9,4 @@ const store = new Store();
 window.APP = { store };
 
 const root = <NewUI />;
-ReactDOM.render(root, document.getElementById("new-root"));
+ReactDOM.render(root, UI_ROOT.getElementById("new-root"));

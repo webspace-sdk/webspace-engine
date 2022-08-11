@@ -48,7 +48,7 @@ export class ExternalCameraSystem {
   addExternalCamera(width, height, enablePostprocessing = false, contextAttributes = {}) {
     if (this.camera) return;
     if (!this.viewingCamera) {
-      const viewingCameraEl = document.getElementById("viewing-camera");
+      const viewingCameraEl = UI_ROOT.getElementById("viewing-camera");
 
       if (viewingCameraEl && viewingCameraEl.components.camera.camera) {
         this.viewingCamera = viewingCameraEl.components.camera.camera;

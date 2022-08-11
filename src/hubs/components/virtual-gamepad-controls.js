@@ -38,7 +38,7 @@ AFRAME.registerComponent("virtual-gamepad-controls", {
     this.enableLeft = window.APP.store.state.preferences.enableOnScreenJoystickLeft;
     this.enableRight = window.APP.store.state.preferences.enableOnScreenJoystickRight;
     if (this.enableLeft || this.enableRight) {
-      document.body.appendChild(this.mockJoystickContainer);
+      UI_ROOT.appendChild(this.mockJoystickContainer);
     }
     if (this.enableLeft) {
       this.createLeftStick();
@@ -108,7 +108,7 @@ AFRAME.registerComponent("virtual-gamepad-controls", {
       this.rightStick.on("start", this.onFirstInteraction);
     }
     if ((this.enableLeft || this.enableRight) && !this.mockJoystickContainer.parentNode) {
-      document.body.appendChild(this.mockJoystickContainer);
+      UI_ROOT.appendChild(this.mockJoystickContainer);
     }
     if (!this.enableLeft && !this.enableRight) {
       this.mockJoystickContainer.parentNode &&
@@ -119,7 +119,7 @@ AFRAME.registerComponent("virtual-gamepad-controls", {
   createRightStick() {
     this.rightTouchZone = document.createElement("div");
     this.rightTouchZone.classList.add(styles.touchZone, styles.right);
-    document.body.appendChild(this.rightTouchZone);
+    UI_ROOT.appendChild(this.rightTouchZone);
     this.rightStick = nipplejs.create({
       zone: this.rightTouchZone,
       color: "white",
@@ -133,7 +133,7 @@ AFRAME.registerComponent("virtual-gamepad-controls", {
   createLeftStick() {
     this.leftTouchZone = document.createElement("div");
     this.leftTouchZone.classList.add(styles.touchZone, styles.left);
-    document.body.appendChild(this.leftTouchZone);
+    UI_ROOT.appendChild(this.leftTouchZone);
     this.leftStick = nipplejs.create({
       zone: this.leftTouchZone,
       color: "white",
@@ -214,7 +214,7 @@ AFRAME.registerComponent("virtual-gamepad-controls", {
     this.el.sceneEl.removeEventListener("exitvr", this.onExitVr);
     this.mockJoystickContainer.parentNode &&
       this.mockJoystickContainer.parentNode.removeChild(this.mockJoystickContainer);
-    if (this.leftTouchZone) document.body.removeChild(this.leftTouchZone);
-    if (this.rightTouchZone) document.body.removeChild(this.rightTouchZone);
+    if (this.leftTouchZone) UI_ROOT.removeChild(this.leftTouchZone);
+    if (this.rightTouchZone) UI_ROOT.removeChild(this.rightTouchZone);
   }
 });

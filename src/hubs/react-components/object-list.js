@@ -84,7 +84,7 @@ export default class ObjectList extends Component {
 
   componentDidMount() {
     this.unexpand = this.unexpand.bind(this);
-    document.querySelector(".a-canvas").addEventListener("mousedown", this.unexpand);
+    UI_ROOT.querySelector(".a-canvas").addEventListener("mousedown", this.unexpand);
     this.updateMediaEntities = this.updateMediaEntities.bind(this);
     this.updateMediaEntities();
     this.props.scene.addEventListener("listed_media_changed", () => setTimeout(() => this.updateMediaEntities(), 0));
@@ -92,7 +92,7 @@ export default class ObjectList extends Component {
     // Sorry in advance for the day this comment is out of date.
   }
   componentWillUnmount() {
-    const canvas = document.querySelector(".a-canvas");
+    const canvas = UI_ROOT.querySelector(".a-canvas");
     if (canvas) {
       canvas.removeEventListener("mousedown", this.unexpand);
     }

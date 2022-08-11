@@ -61,7 +61,7 @@ AFRAME.registerComponent("stats-plus", {
     this.fpsEl = document.createElement("div");
     this.fpsEl.addEventListener("click", this.onExpand);
     this.fpsEl.classList.add("rs-fps-counter");
-    document.body.appendChild(this.fpsEl);
+    UI_ROOT.appendChild(this.fpsEl);
     this.lastFpsUpdate = performance.now();
     this.lastFps = 0;
     this.frameCount = 0;

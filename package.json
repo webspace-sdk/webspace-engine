@@ -90,7 +90,7 @@
     "mixpanel-browser": "^2.39.0",
     "moving-average": "^1.0.0",
     "naf-janus-adapter": "^4.0.1",
-    "networked-aframe": "github:jel-app/networked-aframe#p2pt",
+    "networked-aframe": "github:jel-app/networked-aframe#yjs-sync",
     "nipplejs": "github:mozillareality/nipplejs#mr-social-client/master",
     "node-ensure": "0.0.0",
     "normalize.css": "^8.0.1",

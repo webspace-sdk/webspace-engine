@@ -238,12 +238,12 @@ AFRAME.registerSystem("interaction", {
     ];
 
     waitForDOMContentLoaded().then(() => {
-      this.options.leftHand.entity = document.getElementById("player-left-controller");
-      this.options.rightHand.entity = document.getElementById("player-right-controller");
-      this.options.rightRemote.entity = document.getElementById("right-cursor");
-      this.options.leftRemote.entity = document.getElementById("left-cursor");
-      this.rightCursorControllerEl = document.getElementById("right-cursor-controller");
-      this.leftCursorControllerEl = document.getElementById("left-cursor-controller");
+      this.options.leftHand.entity = UI_ROOT.getElementById("player-left-controller");
+      this.options.rightHand.entity = UI_ROOT.getElementById("player-right-controller");
+      this.options.rightRemote.entity = UI_ROOT.getElementById("right-cursor");
+      this.options.leftRemote.entity = UI_ROOT.getElementById("left-cursor");
+      this.rightCursorControllerEl = UI_ROOT.getElementById("right-cursor-controller");
+      this.leftCursorControllerEl = UI_ROOT.getElementById("left-cursor-controller");
       this.ready = true;
     });
   },

@@ -36,9 +36,9 @@ const startTrackingPosition = (() => {
 
   return hubStore => {
     stopTrackingPosition();
-    const avatarRig = document.getElementById("avatar-rig");
-    const avatarPov = document.getElementById("avatar-pov-node");
-    const scene = document.querySelector("a-scene");
+    const avatarRig = UI_ROOT.getElementById("avatar-rig");
+    const avatarPov = UI_ROOT.getElementById("avatar-pov-node");
+    const scene = UI_ROOT.querySelector("a-scene");
 
     positionTrackerInterval = setInterval(() => {
       if (!scene.isPlaying) return;
@@ -55,14 +55,14 @@ const startTrackingPosition = (() => {
 })();
 
 async function updateEnvironmentForHub(hub) {
-  document.querySelector(".a-canvas").classList.remove("a-hidden");
+  UI_ROOT.querySelector(".a-canvas").classList.remove("a-hidden");
 
   SYSTEMS.terrainSystem.updateWorldForHub(hub);
   SYSTEMS.atmosphereSystem.updateAtmosphereForHub(hub);
 }
 
 async function moveToInitialHubLocationAndBeginPeriodicSyncs(hub, hubStore) {
-  const sceneEl = document.querySelector("a-scene");
+  const sceneEl = UI_ROOT.querySelector("a-scene");
 
   const characterController = sceneEl.systems["hubs-systems"].characterController;
 
@@ -204,7 +204,7 @@ const migrateToNewDynaServer = async deployNotification => {
 function updateUIForHub(isTransition, hub, hubChannel, remountUI, remountJelUI) {
   if (isTransition) {
     const neon = UI_ROOT.querySelector("#neon");
-    const canvas = document.querySelector(".a-canvas");
+    const canvas = UI_ROOT.querySelector(".a-canvas");
     const jelInterface = UI_ROOT.querySelector("#jel-interface");
 
     if (hub.type === "world") {
@@ -233,7 +233,7 @@ const updateSceneStateForHub = (() => {
   let wasMutedOnLastChannelEntry = true;
 
   return hub => {
-    const scene = document.querySelector("a-scene");
+    const scene = UI_ROOT.querySelector("a-scene");
 
     if (hub.type === "world") {
       scene.removeState("off");
@@ -258,7 +258,7 @@ const updateSceneStateForHub = (() => {
 })();
 
 const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI) => {
-  const scene = document.querySelector("a-scene");
+  const scene = UI_ROOT.querySelector("a-scene");
   const { store, spaceChannel, hubMetadata } = window.APP;
 
   let isInitialJoin = true;
@@ -325,7 +325,7 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
 };
 
 const initHubPresence = async presence => {
-  const scene = document.querySelector("a-scene");
+  const scene = UI_ROOT.querySelector("a-scene");
   const { hubChannel } = window.APP;
 
   await new Promise(res => {
@@ -351,7 +351,7 @@ const initHubPresence = async presence => {
 let updateTitleAndWorldForHubHandler;
 
 const setupDataChannelMessageHandlers = () => {
-  const scene = document.querySelector("a-scene");
+  const scene = UI_ROOT.querySelector("a-scene");
   const projectileSystem = scene.systems["hubs-systems"].projectileSystem;
 
   const messages = getMessages();
@@ -418,7 +418,7 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
           }
         }
 
-        const scene = document.querySelector("a-scene");
+        const scene = UI_ROOT.querySelector("a-scene");
 
         spaceChannel.sendJoinedHubEvent(hub.hub_id);
 
@@ -586,7 +586,7 @@ const setupSpaceChannelMessageHandlers = spacePhxChannel => {
 };
 
 const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, history, remountUI, remountJelUI) => {
-  const scene = document.querySelector("a-scene");
+  const scene = UI_ROOT.querySelector("a-scene");
   const { hubChannel, spaceChannel } = window.APP;
 
   // Avoid updating the history frequently, as users type new hub names
@@ -649,7 +649,7 @@ const initPresence = (function() {
 
   return presence => {
     const { store } = window.APP;
-    const scene = document.querySelector("a-scene");
+    const scene = UI_ROOT.querySelector("a-scene");
 
     store.addEventListener("profilechanged", () => {
       presence.setLocalStateField("profile", store.state.profile);

@@ -58,7 +58,7 @@ export const traverseMeshesAndAddShapes = (function() {
 
     console.group("traverseMeshesAndAddShapes");
 
-    if (document.querySelector(["[shape-helper__trimesh]", "[shape-helper__heightfield]"])) {
+    if (UI_ROOT.querySelector(["[shape-helper__trimesh]", "[shape-helper__heightfield]"])) {
       console.log("heightfield or trimesh found on scene");
     } else {
       console.log("collision not found in scene");
@@ -83,7 +83,7 @@ export const traverseMeshesAndAddShapes = (function() {
 
       if (isHighDensity) {
         console.log("mesh contains high triangle density region");
-        navMesh = document.querySelector("[nav-mesh]");
+        navMesh = UI_ROOT.querySelector("[nav-mesh]");
       }
 
       if (navMesh) {

@@ -556,7 +556,7 @@ export async function loadModel(src, contentType = null, useCache = false, jsonP
 function resolveAsset(src) {
   // If the src attribute is a selector, get the url from the asset item.
   if (src && src.charAt(0) === "#") {
-    const assetEl = document.getElementById(src.substring(1));
+    const assetEl = UI_ROOT.getElementById(src.substring(1));
     if (assetEl) {
       return assetEl.getAttribute("src");
     }

@@ -63,7 +63,7 @@ if (showLog) {
   `;
 
   document.addEventListener("DOMContentLoaded", () => {
-    document.body.appendChild(template.content);
+    UI_ROOT.appendChild(template.content);
   });
 
   const debugLog = template.content.querySelector("#debug-log-log");

@@ -110,7 +110,7 @@ export class ViveControllerDevice {
         return;
       }
     }
-    const el = document.querySelector(this.selector);
+    const el = UI_ROOT.querySelector(this.selector);
     const rayObject = el.object3D;
     rayObject.updateMatrixWorld();
     this.rayObjectRotation.setFromRotationMatrix(m.extractRotation(rayObject.matrixWorld));

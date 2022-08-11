@@ -4,10 +4,10 @@ export const waitForEvent = function(eventName, eventObj) {
   });
 };
 
-export const waitForDOMContentLoaded = function(doc = document, win = window) {
-  if (doc.readyState === "complete" || doc.readyState === "loaded" || doc.readyState === "interactive") {
+export const waitForDOMContentLoaded = function() {
+  if (window.UI_ROOT?._ready) {
     return Promise.resolve(null);
   } else {
-    return waitForEvent("DOMContentLoaded", win);
+    return waitForEvent("shadow-root-ready", document);
   }
 };

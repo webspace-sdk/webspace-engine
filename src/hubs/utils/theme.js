@@ -34,7 +34,7 @@ waitForDOMContentLoaded().then(() => {
   const actionColor = getThemeColor("action-color");
   const actionHoverColor = getThemeColor("action-color-highlight");
 
-  if (document.querySelector("#rounded-text-button")) {
+  if (UI_ROOT.querySelector("#rounded-text-button")) {
     // NOTE, using the object-based {} setAttribute variant in a-frame
     // seems to not work in Firefox here -- the entities with the mixins are not
     // updated.

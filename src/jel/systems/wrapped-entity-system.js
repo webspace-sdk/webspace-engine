@@ -92,8 +92,8 @@ export class WrappedEntitySystem {
     this.handleOwnershipChanged = this.handleOwnershipChanged.bind(this);
 
     waitForDOMContentLoaded().then(() => {
-      this.avatarPovEl = document.getElementById("avatar-pov-node");
-      this.avatarRigEl = document.getElementById("avatar-rig");
+      this.avatarPovEl = UI_ROOT.getElementById("avatar-pov-node");
+      this.avatarRigEl = UI_ROOT.getElementById("avatar-rig");
     });
 
     this.previousAvatarX = null;

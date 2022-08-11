@@ -29,7 +29,7 @@ const getPlayerCamera = (() => {
 
   return function() {
     if (!playerCamera) {
-      playerCamera = document.getElementById("viewing-camera").components.camera.camera;
+      playerCamera = UI_ROOT.getElementById("viewing-camera").components.camera.camera;
     }
 
     return playerCamera;
@@ -78,7 +78,7 @@ export class AppAwareTouchscreenDevice {
 
     this.events = [];
     ["touchstart", "touchend", "touchmove", "touchcancel"].map(x =>
-      document.querySelector("canvas").addEventListener(x, this.events.push.bind(this.events))
+      UI_ROOT.querySelector("canvas").addEventListener(x, this.events.push.bind(this.events))
     );
   }
 

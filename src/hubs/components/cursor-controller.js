@@ -41,7 +41,7 @@ AFRAME.registerComponent("cursor-controller", {
     this.color = new THREE.Color(0, 0, 0);
 
     waitForDOMContentLoaded().then(() => {
-      this.cssGazeCursor = document.querySelector("#gaze-cursor .cursor");
+      this.cssGazeCursor = UI_ROOT.querySelector("#gaze-cursor .cursor");
       this.lastCssGazeCursorOffset = Infinity;
       this.lastCssGazeCursorScale = Infinity;
     });

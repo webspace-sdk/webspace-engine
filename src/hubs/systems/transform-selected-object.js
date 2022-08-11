@@ -352,8 +352,8 @@ AFRAME.registerSystem("transform-selected-object", {
     this.el.camera.getWorldQuaternion(CAMERA_WORLD_QUATERNION);
     this.el.camera.getWorldPosition(v);
 
-    const rightCursor = document.getElementById("right-cursor-controller").components["cursor-controller"];
-    const leftCursor = document.getElementById("left-cursor-controller").components["cursor-controller"];
+    const rightCursor = UI_ROOT.getElementById("right-cursor-controller").components["cursor-controller"];
+    const leftCursor = UI_ROOT.getElementById("left-cursor-controller").components["cursor-controller"];
     const isLeft = this.hand.el.id === "player-left-controller";
 
     const cursorObject3D = (isLeft ? leftCursor : rightCursor).data.cursor.object3D;

@@ -5,7 +5,7 @@ import CubeSSAOPass from "../effects/cube-ssao";
 AFRAME.registerSystem("effects", {
   init: function() {
     waitForDOMContentLoaded().then(() => {
-      this.viewingCameraEl = document.getElementById("viewing-camera");
+      this.viewingCameraEl = UI_ROOT.getElementById("viewing-camera");
     });
 
     window.addEventListener("resize", () => (this.updateComposer = true));

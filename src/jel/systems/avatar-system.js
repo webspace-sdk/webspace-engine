@@ -313,7 +313,7 @@ export class AvatarSystem {
   }
 
   getAvatarElForSessionId(sessionId) {
-    for (const avatarEl of document.querySelectorAll("[networked-avatar]")) {
+    for (const avatarEl of UI_ROOT.querySelectorAll("[networked-avatar]")) {
       if (avatarEl.components.networked && avatarEl.components.networked.data.creator === sessionId) {
         return avatarEl;
       }

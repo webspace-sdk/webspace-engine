@@ -6,7 +6,7 @@
 AFRAME.registerComponent("nav-mesh-helper", {
   init: function() {
     this.el.addEventListener("model-loaded", () => {
-      const teleporters = document.querySelectorAll("[teleporter]");
+      const teleporters = UI_ROOT.querySelectorAll("[teleporter]");
       for (let i = 0; i < teleporters.length; i++) {
         teleporters[i].components["teleporter"].queryCollisionEntities();
       }

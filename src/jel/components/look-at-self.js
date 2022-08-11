@@ -16,7 +16,7 @@ AFRAME.registerComponent("look-at-self", {
     this.avatarPovNode = null;
 
     waitForDOMContentLoaded().then(() => {
-      this.avatarPovNode = document.querySelector("#avatar-pov-node");
+      this.avatarPovNode = UI_ROOT.querySelector("#avatar-pov-node");
     });
   },
 

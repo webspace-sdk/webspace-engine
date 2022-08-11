@@ -3,6 +3,7 @@ import "./hubs/utils/theme";
 import "@babel/polyfill";
 import "./hubs/utils/debug-log";
 import { ROOT_DOM_STYLES, SHADOW_DOM_STYLES } from "./jel/styles/styles";
+import AFRAME_DOM from "./jel/aframe-dom";
 import { isInQuillEditor } from "./jel/utils/quill-utils";
 import { homeHubForSpaceId } from "./jel/utils/membership-utils";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
@@ -310,7 +311,7 @@ const qsVREntryType = qs.get("vr_entry_type");
 let performConditionalSignIn;
 
 function mountUI(/*props = {}*/) {
-  //const scene = document.querySelector("a-scene");
+  //const scene = UI_ROOT.querySelector("a-scene");
   //const disableAutoExitOnIdle =
   //  qsTruthy("allow_idle") || (process.env.NODE_ENV === "development" && !qs.get("idle_timeout"));
   //const isCursorHoldingPen =
@@ -341,7 +342,7 @@ function mountUI(/*props = {}*/) {
   //      )}
   //    />
   //  </Router>,
-  //  document.getElementById("ui-root")
+  //  UI_ROOT.getElementById("ui-root")
   //);
 }
 
@@ -353,7 +354,7 @@ function remountUI(props) {
 function mountJelUI(props = {}) {
   if (isBotMode) return;
 
-  const scene = document.querySelector("a-scene");
+  const scene = UI_ROOT.querySelector("a-scene");
 
   ReactDOM.render(
     <Router history={history}>
@@ -391,7 +392,7 @@ function setupPerformConditionalSignin(entryManager) {
   ) => {
     if (predicate()) return action();
 
-    const scene = document.querySelector("a-scene");
+    const scene = UI_ROOT.querySelector("a-scene");
     const signInContinueTextId = scene.is("vr-mode") ? "entry.return-to-vr" : "dialog.close";
 
     await handleExitTo2DInterstitial(true, () => remountUI({ showSignInDialog: false }));
@@ -493,14 +494,13 @@ async function checkPrerequisites() {
 }
 
 function hideCanvas() {
-  const canvas = document.querySelector(".a-canvas");
+  const canvas = UI_ROOT.querySelector(".a-canvas");
   canvas.classList.add("a-hidden");
 }
 
 function initBatching() {
   // HACK - Trigger initial batch preparation with an invisible object
-  document
-    .querySelector("a-scene")
+  UI_ROOT.querySelector("a-scene")
     .querySelector("#batch-prep")
     .setAttribute("media-image", { batch: true, src: initialBatchImage, contentType: "image/png" });
 }
@@ -835,7 +835,7 @@ function setupSidePanelLayout(scene) {
         const w = Math.min(max, Math.max(min, xToWidth(e.clientX)));
 
         for (let i = 0; i < cssVars.length; i++) {
-          document.documentElement.style.setProperty(`--${cssVars[i]}`, `${w}px`);
+          UI_ROOT.setProperty(`--${cssVars[i]}`, `${w}px`);
         }
 
         SYSTEMS.uiAnimationSystem.applySceneSize(isLeft ? w : null, !isLeft ? w : null, true);
@@ -949,7 +949,7 @@ function setupVREventHandlers(scene, availableVREntryTypesPromise) {
 
     // HACK: Oculus browser pauses videos when exiting VR mode, so we need to resume them after a timeout.
     if (/OculusBrowser/i.test(window.navigator.userAgent)) {
-      document.querySelectorAll("[media-video]").forEach(m => {
+      UI_ROOT.querySelectorAll("[media-video]").forEach(m => {
         const videoComponent = m.components["media-video"];
 
         if (videoComponent) {
@@ -1036,8 +1036,9 @@ async function start() {
   if (!(await checkPrerequisites())) return;
   mixpanel.track("Startup Start", {});
 
-  const scene = document.querySelector("a-scene");
   window.UI_ROOT = document.body.attachShadow({ mode: "open" });
+  window.UI_ROOT._ready = false;
+
   const rootStyles = document.createElement("style");
   rootStyles.type = "text/css";
   rootStyles.appendChild(document.createTextNode(ROOT_DOM_STYLES));
@@ -1046,7 +1047,7 @@ async function start() {
   const shadowStyles = document.createElement("style");
   shadowStyles.type = "text/css";
   shadowStyles.appendChild(document.createTextNode(SHADOW_DOM_STYLES));
-  UI_ROOT.appendChild(shadowStyles);
+  //UI_ROOT.appendChild(shadowStyles);
 
   UI_ROOT.innerHTML += `
       <div id="support-root"></div>
@@ -1069,8 +1070,19 @@ async function start() {
       <img src="https://assets.jel.app/static/emoji/emoji-map-64.png" style="display: none" width="0" height="0"/>
   `;
 
+  const tmp = document.createElement("div");
+  tmp.innerHTML = AFRAME_DOM;
+
+  const sceneReady = new Promise(r => tmp.children[0].addEventListener("nodeready", r, { once: true }));
+  UI_ROOT.appendChild(tmp.children[0]);
+
+  await sceneReady;
+  UI_ROOT._ready = true;
+  document.dispatchEvent(new CustomEvent("shadow-root-ready"));
+
   // Patch the scene resize handler to update the camera properly, since the
   // camera system manages the projection matrix.
+  const scene = UI_ROOT.querySelector("a-scene");
   const sceneResize = scene.resize.bind(scene);
   const resize = function() {
     sceneResize();
@@ -1078,7 +1090,7 @@ async function start() {
   };
   scene.resize = resize.bind(scene);
 
-  const canvas = document.querySelector(".a-canvas");
+  const canvas = UI_ROOT.querySelector(".a-canvas");
   scene.renderer.setPixelRatio(1); // Start with low pixel ratio, quality adjustment system will raise
 
   canvas.setAttribute("tabindex", 0); // Make it so canvas can be focused

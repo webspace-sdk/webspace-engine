@@ -2,7 +2,7 @@
 // stream from this client.
 AFRAME.registerComponent("media-stream", {
   remove() {
-    const streams = document.querySelectorAll("[media-stream]");
+    const streams = UI_ROOT.querySelectorAll("[media-stream]");
     if (streams.length > 0) return;
 
     // No entities left, end the stream.

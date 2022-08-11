@@ -78,7 +78,7 @@ const onReady = async () => {
   const sceneRoot = document.querySelector("#scene-root");
   const sceneModelEntity = document.createElement("a-entity");
   const gltfEl = document.createElement("a-entity");
-  const camera = document.getElementById("camera");
+  const camera = UI_ROOT.getElementById("camera");
 
   connectToReticulum().then(socket => {
     const joinParams = { hub_id: "scene" };

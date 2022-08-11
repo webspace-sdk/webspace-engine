@@ -64,7 +64,7 @@ export class WebXRControllerDevice {
     frame.setValueType(path.axis.joyX, this.gamepad.axes[2]);
     frame.setValueType(path.axis.joyY, this.gamepad.axes[3]);
 
-    this.rayObject = this.rayObject || document.querySelector(this.selector).object3D;
+    this.rayObject = this.rayObject || UI_ROOT.querySelector(this.selector).object3D;
     this.rayObject.updateMatrixWorld();
     this.rayObjectRotation.setFromRotationMatrix(m.extractRotation(this.rayObject.matrixWorld));
 
