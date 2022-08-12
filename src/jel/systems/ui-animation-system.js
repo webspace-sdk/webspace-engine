@@ -240,9 +240,9 @@ export class UIAnimationSystem {
       wrap.style.cssText = `left: ${left}px; width: ${width}px;`;
 
       if (left === 0) {
-        UI_ROOT.getElementById("jel-interface").classList.add("panels-collapsed");
+        this.jelInterfaceEl.classList.add("panels-collapsed");
       } else {
-        UI_ROOT.getElementById("jel-interface").classList.remove("panels-collapsed");
+        this.jelInterfaceEl.classList.remove("panels-collapsed");
       }
 
       return true;
