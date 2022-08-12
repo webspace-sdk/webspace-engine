@@ -10,7 +10,6 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 const TOML = require("@iarna/toml");
 const fetch = require("node-fetch");
-const packageLock = require("./package-lock.json");
 const request = require("request");
 
 function createHTTPSConfig() {
@@ -207,7 +206,7 @@ module.exports = async (env, argv) => {
       jel: path.join(__dirname, "src", "jel.js")
     },
     output: {
-      filename: "assets/js/[name]-[chunkhash].js",
+      filename: "assets/js/[name].js",
       publicPath: process.env.BASE_ASSETS_PATH || ""
     },
     devtool: argv.mode === "production" ? "source-map" : "inline-source-map",
@@ -286,7 +285,7 @@ module.exports = async (env, argv) => {
           test: /\.worker\.js$/,
           loader: "worker-loader",
           options: {
-            name: "assets/js/[name]-[hash].js",
+            name: "assets/js/[name].js",
             publicPath: "/",
             inline: true
           }
@@ -295,7 +294,7 @@ module.exports = async (env, argv) => {
           test: /\.worklet\.js$/,
           loader: "worklet-loader",
           options: {
-            name: "assets/js/[name]-[hash].js"
+            name: "assets/js/[name].js"
           }
         },
         {
@@ -325,7 +324,7 @@ module.exports = async (env, argv) => {
             {
               loader: "css-loader",
               options: {
-                name: "[path][name]-[hash].[ext]",
+                name: "[path][name].[ext]",
                 localIdentName: "[name]__[local]__[hash:base64:5]",
                 camelCase: true
               }
@@ -339,7 +338,7 @@ module.exports = async (env, argv) => {
             loader: "file-loader",
             options: {
               // move required assets to output dir and add a hash for cache busting
-              name: "[path][name]-[hash].[ext]",
+              name: "[path][name].[ext]",
               // Make asset paths relative to /src
               context: path.join(__dirname, "src")
             }
@@ -358,7 +357,7 @@ module.exports = async (env, argv) => {
             loader: "file-loader",
             options: {
               outputPath: "assets/wasm",
-              name: "[name]-[hash].[ext]"
+              name: "[name].[ext]"
             }
           }
         },
@@ -376,6 +375,17 @@ module.exports = async (env, argv) => {
       new HTMLWebpackPlugin({
         filename: "jel.html",
         template: path.join(__dirname, "src", "jel.html"),
+        chunks: ["support", "jel"],
+        chunksSortMode: "manual",
+        inject: "head",
+        minify: {
+          removeComments: false
+        }
+      }),
+      // TODO SHARED remove this, its used to force the a-assets in
+      new HTMLWebpackPlugin({
+        filename: "assets.html",
+        template: path.join(__dirname, "src", "assets.html"),
         chunks: ["support", "jel"],
         chunksSortMode: "manual",
         inject: "head",
@@ -411,6 +421,7 @@ module.exports = async (env, argv) => {
           MIXPANEL_TOKEN: process.env.MIXPANEL_TOKEN,
           GA_TRACKING_ID: process.env.GA_TRACKING_ID,
           POSTGREST_SERVER: process.env.POSTGREST_SERVER,
+          BASE_ASSETS_PATH: process.env.BASE_ASSETS_PATH,
           APP_CONFIG: appConfig
         })
       })

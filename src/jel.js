@@ -1037,6 +1037,7 @@ async function start() {
   mixpanel.track("Startup Start", {});
 
   window.UI_ROOT = document.body.attachShadow({ mode: "open" });
+  AFRAME.selectorRoot = window.UI_ROOT;
   window.UI_ROOT._ready = false;
 
   const rootStyles = document.createElement("style");
@@ -1227,21 +1228,24 @@ async function start() {
     const [, isRightEdge, isBottomEdge, isLeftEdge] = await getIsWindowAtScreenEdges();
 
     if (isLeftEdge) {
-      document
-        .querySelector("#left-expand-trigger")
-        .setAttribute("style", `left: ${-triggerSizePx + Math.floor(leftDelta)}px`);
+      UI_ROOT.querySelector("#left-expand-trigger").setAttribute(
+        "style",
+        `left: ${-triggerSizePx + Math.floor(leftDelta)}px`
+      );
     }
 
     if (isRightEdge) {
-      document
-        .querySelector("#right-expand-trigger")
-        .setAttribute("style", `right: ${-triggerSizePx + Math.floor(rightDelta)}px`);
+      UI_ROOT.querySelector("#right-expand-trigger").setAttribute(
+        "style",
+        `right: ${-triggerSizePx + Math.floor(rightDelta)}px`
+      );
     }
 
     if (isBottomEdge) {
-      document
-        .querySelector("#bottom-expand-trigger")
-        .setAttribute("style", `bottom: ${-triggerSizePx + Math.floor(bottomDelta)}px`);
+      UI_ROOT.querySelector("#bottom-expand-trigger").setAttribute(
+        "style",
+        `bottom: ${-triggerSizePx + Math.floor(bottomDelta)}px`
+      );
     }
   });
 
