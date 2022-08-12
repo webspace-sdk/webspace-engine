@@ -13,11 +13,6 @@ export const ROOT_DOM_STYLES = `
     font-family: Lato, Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"
   }
   
-  :root {
-    --nav-width: 300px;
-    --presence-width: 200px;
-  }
-  
   body {
     background-color: #333;
     margin: 0;
@@ -42,6 +37,11 @@ export const SHADOW_DOM_STYLES = `
 
   ${NORMALIZE_CSS}
   ${JEL_NORMALIZE_CSS}
+
+  #jel-interface {
+    --nav-width: 300px;
+    --presence-width: 200px;
+  }
 
   @keyframes expand-tree-node { from { transform: rotate(0deg); } to { transform: rotate(90deg); } }
   @keyframes collapse-tree-node { from { transform: rotate(90deg); } to { transform: rotate(0deg); } }
@@ -193,50 +193,41 @@ export const SHADOW_DOM_STYLES = `
     display: block;
   }
 
-  .panels-collapsed #presence-drag-target {
+  #jel-interface.panels-collapsed #presence-drag-target {
     display: none;
   }
 
-  .panels-collapsed #nav-drag-target {
+  #jel-interface.panels-collapsed #nav-drag-target {
     display: none;
   }
 
-  .panels-collapsed #jel-ui-wrap,
-  .paused #jel-ui-wrap {
+  #jel-interface.panels-collapsed #jel-ui-wrap,
+  #jel-interface.paused #jel-ui-wrap {
     height: 100%;
   }
 
-  .panels-collapsed #asset-panel {
+  #jel-interface.panels-collapsed #asset-panel {
     display: none;
   }
 
-  .panels-collapsed #left-expand-trigger {
+  #jel-interface.panels-collapsed #left-expand-trigger {
     display: flex;
   }
 
-  .paused #jel-interface.hub-type-world #jel-ui-wrap {
+  #jel-interface.paused #jel-ui-wrap {
     pointer-events: auto;
     background-color: rgba(0, 0, 0, 0.6);
   }
 
-  .paused #jel-interface.hub-type-channel #jel-ui-wrap {
-    pointer-events: none;
-    background-color: transparent;
-  }
-
-  .paused #jel-interface.hub-type-world #asset-panel {
+  #jel-interface.paused #asset-panel {
     display: none;
   }
 
-  .paused #jel-interface.hub-type-channel #asset-panel {
-    display: none;
-  }
-
-  .panels-collapsed #right-expand-trigger {
+  #jel-interface.panels-collapsed #right-expand-trigger {
     display: flex;
   }
 
-  .panels-collapsed #bottom-expand-trigger {
+  #jel-interface.panels-collapsed #bottom-expand-trigger {
     display: flex;
   }
 
@@ -244,69 +235,69 @@ export const SHADOW_DOM_STYLES = `
     background: none;
   }
 
-  .paused #paused-info-label {
+  #jel-interface.paused #paused-info-label {
     display: block;
   }
 
-  .paused #unpaused-info-label {
+  #jel-interface.paused #unpaused-info-label {
     display: none;
   }
 
-  .paused #unpaused-info-label-2 {
+  #jel-interface.paused #unpaused-info-label-2 {
     display: none;
   }
 
-  .paused .external-camera-on #external-camera-canvas {
+  #jel-interface.paused .external-camera-on #external-camera-canvas {
     display: none;
   }
 
-  .paused .external-camera-on #external-camera-rotate-button {
+  #jel-interface.paused .external-camera-on #external-camera-rotate-button {
     display: none;
   }
 
-  .paused #key-tips-wrap {
+  #jel-interface.paused #key-tips-wrap {
       opacity: 0.4;
   }
 
-  .panels-collapsed #device-statuses {
+  #jel-interface.panels-collapsed #device-statuses {
     display: flex;
   }
 
-  .paused #device-statuses {
+  #jel-interface.paused #device-statuses {
     display: none;
   }
 
-  .panels-collapsed #snackbar {
+  #jel-interface.panels-collapsed #snackbar {
     display: none;
   }
 
-  .paused #snackbar {
+  #jel-interface.paused #snackbar {
     display: none;
   }
 
-  .panels-collapsed #self-panel {
+  #jel-interface.panels-collapsed #self-panel {
      background-color: var(--canvas-overlay-neutral-item-background-color);
      text-shadow: 0px 0px 4px var(--menu-shadow-color);
      border-radius: 0 12px 0 0;
   }
 
-  .panels-collapsed #top-panel {
+  #jel-interface.panels-collapsed #top-panel {
      display: none;
   }
 
-  .panels-collapsed #chat-log {
+  #jel-interface.panels-collapsed #chat-log {
     bottom: 64px;
   }
 
-  .paused #chat-log {
+  #jel-interface.paused #chat-log {
       visibility: hidden;
   }
 
-  .panels-collapsed .hide-when-expanded {
+  #jel-interface.panels-collapsed .hide-when-expanded {
     display: none;
   }
 
-  .panels-collapsed .pause-info-label {
+  #jel-interface.panels-collapsed .pause-info-label {
      bottom: 76px;
   }
 

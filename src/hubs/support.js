@@ -9,6 +9,7 @@ import ReactDOM from "react-dom";
 import { detectOS } from "detect-browser";
 import LoadingPanel from "../jel/react-components/loading-panel";
 import { WrappedIntlProvider } from "./react-components/wrapped-intl-provider";
+import { waitForDOMContentLoaded } from "./utils/async-utils";
 
 const SHORTHAND_INITIALIZER = "var foo = 'bar'; var baz = { foo };";
 const SPREAD_SYNTAX = "var foo = {}; var baz = { ...foo };";
@@ -58,7 +59,7 @@ export function platformUnsupported() {
   );
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+waitForDOMContentLoaded().then(() => {
   if (platformUnsupported()) {
     const isMobile = typeof AFRAME !== "undefined" && AFRAME.utils.device.isMobile();
 

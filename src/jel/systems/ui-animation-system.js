@@ -58,8 +58,8 @@ export class UIAnimationSystem {
 
     waitForDOMContentLoaded().then(() => {
       // Initialize nav and presence width CSS vars to stored state.
-      UI_ROOT.style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
-      UI_ROOT.style.setProperty("--presence-width", `${this.targetSceneRight}px`);
+      UI_ROOT.getElementById("jel-interface").style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
+      UI_ROOT.getElementById("jel-interface").style.setProperty("--presence-width", `${this.targetSceneRight}px`);
       window.addEventListener("resize", () => this.applySceneSize(null, null, true));
     });
   }
@@ -91,10 +91,10 @@ export class UIAnimationSystem {
     this.store.handleActivityFlag("narrow");
 
     // Hide triggers upon collapse
-    const triggerSizePx = UI_ROOT.querySelector("#left-expand-trigger").offsetWidth;
-    UI_ROOT.querySelector("#left-expand-trigger").setAttribute("style", `left: ${-triggerSizePx}px`);
-    UI_ROOT.querySelector("#right-expand-trigger").setAttribute("style", `right: ${-triggerSizePx}px`);
-    UI_ROOT.querySelector("#bottom-expand-trigger").setAttribute("style", `bottom: ${-triggerSizePx}px`);
+    const triggerSizePx = UI_ROOT.getElementById("left-expand-trigger").offsetWidth;
+    UI_ROOT.getElementById("left-expand-trigger").setAttribute("style", `left: ${-triggerSizePx}px`);
+    UI_ROOT.getElementById("right-expand-trigger").setAttribute("style", `right: ${-triggerSizePx}px`);
+    UI_ROOT.getElementById("bottom-expand-trigger").setAttribute("style", `bottom: ${-triggerSizePx}px`);
   }
 
   isCollapsingOrCollapsed() {
@@ -235,9 +235,9 @@ export class UIAnimationSystem {
       wrap.style.cssText = `left: ${left}px; width: ${width}px;`;
 
       if (left === 0) {
-        UI_ROOT.classList.add("panels-collapsed");
+        UI_ROOT.getElementById("jel-interface").classList.add("panels-collapsed");
       } else {
-        UI_ROOT.classList.remove("panels-collapsed");
+        UI_ROOT.getElementById("jel-interface").classList.remove("panels-collapsed");
       }
 
       return true;

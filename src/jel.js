@@ -733,7 +733,7 @@ function setupGameEnginePausing(scene) {
         SYSTEMS.externalCameraSystem.stopRendering();
       }
 
-      document.body.classList.add("paused");
+      UI_ROOT.getElementById("jel-interface").classList.add("paused");
       physics.updateSimulationRate(1000.0 / 15.0);
       accountChannel.setInactive();
       clearTimeout(disableAmbienceTimeout);
@@ -760,7 +760,7 @@ function setupGameEnginePausing(scene) {
         }
 
         clearTimeout(disableAmbienceTimeout);
-        document.body.classList.remove("paused");
+        UI_ROOT.getElementById("jel-interface").classList.remove("paused");
         physics.updateSimulationRate(1000.0 / 90.0);
         accountChannel.setActive();
         SYSTEMS.atmosphereSystem.enableAmbience();
@@ -835,7 +835,7 @@ function setupSidePanelLayout(scene) {
         const w = Math.min(max, Math.max(min, xToWidth(e.clientX)));
 
         for (let i = 0; i < cssVars.length; i++) {
-          UI_ROOT.setProperty(`--${cssVars[i]}`, `${w}px`);
+          UI_ROOT.getElementById("jel-interface").setProperty(`--${cssVars[i]}`, `${w}px`);
         }
 
         SYSTEMS.uiAnimationSystem.applySceneSize(isLeft ? w : null, !isLeft ? w : null, true);
@@ -909,12 +909,12 @@ function setupVREventHandlers(scene, availableVREntryTypesPromise) {
       remountUI({ hide: true });
     }
 
-    document.body.classList.add("vr-mode");
+    UI_ROOT.getElementById("jel-interface").classList.add("vr-mode");
 
     availableVREntryTypesPromise.then(availableVREntryTypes => {
       // Don't stretch canvas on cardboard, since that's drawing the actual VR view :)
       if ((!isMobile && !isMobileVR) || availableVREntryTypes.cardboard !== VR_DEVICE_AVAILABILITY.yes) {
-        document.body.classList.add("vr-mode-stretch");
+        UI_ROOT.getElementById("jel-interface").classList.add("vr-mode-stretch");
       }
     });
   });
@@ -942,8 +942,8 @@ function setupVREventHandlers(scene, availableVREntryTypesPromise) {
   );
 
   scene.addEventListener("exit-vr", () => {
-    document.body.classList.remove("vr-mode");
-    document.body.classList.remove("vr-mode-stretch");
+    UI_ROOT.getElementById("jel-interface").classList.remove("vr-mode");
+    UI_ROOT.getElementById("jel-interface").classList.remove("vr-mode-stretch");
 
     remountUI({ hide: false });
 
@@ -1050,12 +1050,12 @@ async function start() {
   //UI_ROOT.appendChild(shadowStyles);
 
   UI_ROOT.innerHTML += `
-      <div id="support-root"></div>
-
       <div id="jel-interface">
           <div id="jel-popup-root"></div>
           <div id="jel-ui"></div>
       </div>
+
+      <div id="support-root"></div>
 
       <div id="ui-root"></div>
       <div id="nav-drag-target"></div>
@@ -1079,6 +1079,8 @@ async function start() {
   await sceneReady;
   UI_ROOT._ready = true;
   document.dispatchEvent(new CustomEvent("shadow-root-ready"));
+
+  registerNetworkSchemas();
 
   // Patch the scene resize handler to update the camera properly, since the
   // camera system manages the projection matrix.
@@ -1270,8 +1272,6 @@ async function start() {
 
   remountUI({ availableVREntryTypes: ONLY_SCREEN_AVAILABLE, checkingForDeviceAvailability: true });
   const availableVREntryTypesPromise = getAvailableVREntryTypes();
-
-  registerNetworkSchemas();
 
   remountUI({
     authChannel,
