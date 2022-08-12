@@ -231,7 +231,7 @@ export const SHADOW_DOM_STYLES = `
     display: flex;
   }
 
-  .low-detail #fade-edges {
+  #jel-interface.low-detail #fade-edges {
     background: none;
   }
 
