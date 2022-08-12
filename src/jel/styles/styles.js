@@ -17,6 +17,7 @@ export const ROOT_DOM_STYLES = `
   body {
     background-color: #333;
     margin: 0;
+    overflow: hidden;
   }
   
   body:focus {
@@ -151,10 +152,6 @@ export const SHADOW_DOM_STYLES = `
     width: 4px !important;
   }
 
-  :root {
-    overflow: hidden;
-  }
-
   a-scene {
     height: 100%;
     top: 0;
@@ -171,8 +168,28 @@ export const SHADOW_DOM_STYLES = `
     width: 200% !important;
   }
 
-  #jel-interface.show-css-cursor #gaze-cursor{
-    overflow: hidden;
+  #gaze-cursor {
+    position: absolute;
+    mix-blend-mode: color-dodge;
+    width: 6px;
+    height: 6px;
+    z-index: 10000;
+    pointer-events: none;
+    visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #gaze-cursor .cursor {
+    width: 6px;
+    height: 6px;
+    border-radius: 4px;
+    background-color: rgba(128, 128, 128);
+  }
+
+  #gaze-cursor.show {
+    visibility: visible;
   }
 
   #jel-popup-root {

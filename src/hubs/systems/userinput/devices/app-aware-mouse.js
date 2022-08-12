@@ -213,9 +213,10 @@ export class AppAwareMouseDevice {
     );
 
     const bodyClassList = UI_ROOT.getElementById("jel-interface").classList;
+    const gazeCursorClassList = UI_ROOT.getElementById("gaze-cursor").classList;
 
-    if (showCSSCursor !== bodyClassList.contains("show-css-cursor")) {
-      bodyClassList.toggle("show-css-cursor");
+    if (showCSSCursor !== gazeCursorClassList.contains("show")) {
+      gazeCursorClassList.toggle("show");
     }
 
     if (show3DCursor !== bodyClassList.contains("show-3d-cursor")) {
