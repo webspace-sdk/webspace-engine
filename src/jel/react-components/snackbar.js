@@ -40,6 +40,10 @@ const SnackbarElement = styled.div`
     transform: translate(-50%, -6px);
   }
 
+  .panels-collapsed & {
+    display: none;
+  }
+
   z-index: 100;
 `;
 

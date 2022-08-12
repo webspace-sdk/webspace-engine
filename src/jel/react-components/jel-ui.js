@@ -45,8 +45,17 @@ const Root = styled.div`
     height: calc(100% - ${ASSET_PANEL_HEIGHT_EXPANDED}px);
   }
 
+  .panels-collapsed & #jel-ui-wrap,
+  .paused & #jel-ui-wrap {
+    height: 100%;
+  }
+
   &.expand-asset-panel #asset-panel {
     height: ${ASSET_PANEL_HEIGHT_EXPANDED}px;
+  }
+
+  .panels-collapsed & #asset-panel {
+    display: none;
   }
 `;
 
@@ -60,6 +69,11 @@ const Wrap = styled.div`
 
   #jel-interface:focus-within & {
     pointer-events: auto;
+  }
+
+  .paused & {
+    pointer-events: auto;
+    background-color: rgba(0, 0, 0, 0.6);
   }
 `;
 
@@ -80,6 +94,10 @@ const AssetPanelWrap = styled.div`
   #jel-interface:focus-within & {
     pointer-events: auto;
   }
+
+  .paused & {
+    display: none;
+  }
 `;
 
 const LeftExpandTrigger = styled.div`
@@ -96,6 +114,10 @@ const LeftExpandTrigger = styled.div`
   z-index: 3;
   cursor: pointer;
   display: none;
+
+  .panels-collapsed & {
+    display: flex;
+  }
 `;
 
 const RightExpandTrigger = styled.div`
@@ -112,6 +134,10 @@ const RightExpandTrigger = styled.div`
   z-index: 3;
   cursor: pointer;
   display: none;
+
+  .panels-collapsed & {
+    display: flex;
+  }
 `;
 
 const BottomExpandTrigger = styled.div`
@@ -203,6 +229,10 @@ const FadeEdges = styled.div`
 
   pointer-events: none;
   z-index: 0;
+
+  .low-detail {
+    background: none;
+  }
 `;
 
 // Note the hack left: here is because the popper position update
@@ -250,6 +280,10 @@ const PausedInfoLabel = styled.div`
   font-size: var(--canvas-overlay-text-size);
   margin: 11px 0 0 8px;
   padding: 6px 10px;
+
+  .paused & {
+    display: block;
+  }
 `;
 
 const UnpausedInfoLabel = styled.div`
@@ -265,6 +299,10 @@ const UnpausedInfoLabel = styled.div`
   margin: 11px 0 42px 8px;
   padding: 6px 10px;
   white-space: pre;
+
+  .paused & {
+    display: none;
+  }
 `;
 
 const ExternalCameraCanvas = styled.canvas`
@@ -274,6 +312,10 @@ const ExternalCameraCanvas = styled.canvas`
   pointer-events: auto;
 
   display: none;
+
+  .paused .external-camera-on & {
+    display: none;
+  }
 `;
 
 const ExternalCameraRotateButton = styled.button`
@@ -304,6 +346,10 @@ const ExternalCameraRotateButton = styled.button`
   &:active {
     background-color: var(--canvas-overlay-item-active-background-color);
   }
+
+  .paused & {
+    display: none;
+  }
 `;
 
 const ExternalCameraRotateButtonIcon = styled.div`
@@ -315,6 +361,10 @@ const KeyTipsWrap = styled.div`
   position: absolute;
   bottom: 0;
   right: 0;
+
+  .paused & {
+    opacity: 0.4;
+  }
 `;
 
 const BottomLeftPanels = styled.div`
@@ -332,6 +382,14 @@ const DeviceStatuses = styled.div`
   flex-direction: row;
   margin: 11px 0 0 12px;
   display: none;
+
+  .panels-collapsed & {
+    display: flex;
+  }
+
+  .paused & {
+    display: none;
+  }
 `;
 
 function JelUI(props) {
@@ -570,7 +628,7 @@ function JelUI(props) {
                   </NotifyBannerClose>
                 </NotifyBanner>
               )}
-            {isWorld && <FadeEdges id="fade-edges" />}
+            {isWorld && <FadeEdges />}
             <CreateSelectPopupRef ref={createSelectPopupRef} />
             <ModalPopupRef ref={modalPopupRef} />
             <CenterPopupRef ref={centerPopupRef} />
@@ -584,7 +642,6 @@ function JelUI(props) {
               createSelectPopupRef={createSelectPopupRef}
             />
             <KeyTipsWrap
-              id="key-tips-wrap"
               style={{ visibility: isWorld ? "visible" : "hidden" }}
               onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}
             >
@@ -601,7 +658,6 @@ function JelUI(props) {
                 <ExternalCameraCanvas id="external-camera-canvas" />
                 {showingExternalCamera && (
                   <ExternalCameraRotateButton
-                    id="external-camera-rotate-button"
                     tabIndex={-1}
                     iconSrc={unmuted ? unmutedIcon : mutedIcon}
                     onClick={onClickExternalCameraRotate}
@@ -609,12 +665,12 @@ function JelUI(props) {
                     <ExternalCameraRotateButtonIcon dangerouslySetInnerHTML={{ __html: rotateIcon }} />
                   </ExternalCameraRotateButton>
                 )}
-                <PausedInfoLabel id="pause-info-label">
+                <PausedInfoLabel>
                   <FormattedMessage id="paused.info" />
                 </PausedInfoLabel>
                 {isHomeHub &&
                   !showingExternalCamera && (
-                    <UnpausedInfoLabel id="unpaused-info-label">
+                    <UnpausedInfoLabel>
                       <FormattedMessage id="home-hub.info" />
                     </UnpausedInfoLabel>
                   )}

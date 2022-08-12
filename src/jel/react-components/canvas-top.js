@@ -30,7 +30,7 @@ const Top = styled.div`
   width: 100%;
   align-items: flex-start;
 
-  :host(.paused) #jel-interface.hub-type-world & {
+  .paused #jel-interface.hub-type-world & {
     opacity: 0.4;
   }
 `;
@@ -107,6 +107,10 @@ const CornerButton = styled.button`
 
   &:active {
     background-color: var(--canvas-overlay-item-active-background-color);
+  }
+
+  .panels-collapsed & {
+    display: none;
   }
 `;
 

@@ -35,6 +35,12 @@ const SelfPanelElement = styled.div`
   align-self: flex-end;
   margin-top: 18px;
   background-color: var(--secondary-panel-background-color);
+
+  .panels-collapsed & {
+    background-color: var(--canvas-overlay-neutral-item-background-color);
+    text-shadow: 0px 0px 4px var(--menu-shadow-color);
+    border-radius: 0 12px 0 0;
+  }
 `;
 
 const SelfName = styled.div`

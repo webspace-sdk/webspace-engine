@@ -830,12 +830,19 @@ function setupGameEnginePausing(scene) {
 
 function setupSidePanelLayout(scene) {
   const handleSidebarResizerDrag = (selector, cssVars, isLeft, min, max, xToWidth, storeCallback) => {
-    UI_ROOT.querySelector(selector).addEventListener("mousedown", () => {
+    const dragTarget = UI_ROOT.querySelector(selector);
+    const uiEl = UI_ROOT.getElementById("jel-interface");
+
+    dragTarget.addEventListener("mousedown", () => {
       const handleMove = e => {
         const w = Math.min(max, Math.max(min, xToWidth(e.clientX)));
 
         for (let i = 0; i < cssVars.length; i++) {
-          UI_ROOT.getElementById("jel-interface").setProperty(`--${cssVars[i]}`, `${w}px`);
+          const propKey = `--${cssVars[i]}`;
+          const propVal = `${w}px`;
+
+          uiEl.style.setProperty(propKey, propVal);
+          dragTarget.style.setProperty(propKey, propVal);
         }
 
         SYSTEMS.uiAnimationSystem.applySceneSize(isLeft ? w : null, !isLeft ? w : null, true);

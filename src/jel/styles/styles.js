@@ -2,6 +2,7 @@ import { NORMALIZE_CSS, JEL_NORMALIZE_CSS } from "./normalize-css";
 import { ATOM_TREE, SPACE_TREE } from "./trees";
 import { CREATE_SELECT } from "./create-select";
 import { EMOJIS } from "./emojis";
+import { AFRAME_CSS } from "./aframe";
 import { QUILL_CORE, QUILL_BUBBLE, QUILL_EMOJI, QUILL_HIGHLIGHT } from "./quill";
 import { JEL_THEME_VARS } from "./jel-theme";
 
@@ -37,9 +38,18 @@ export const SHADOW_DOM_STYLES = `
 
   ${NORMALIZE_CSS}
   ${JEL_NORMALIZE_CSS}
+  ${AFRAME_CSS}
 
   #jel-interface {
     --nav-width: 300px;
+    --presence-width: 200px;
+  }
+
+  #nav-drag-target {
+    --nav-width: 300px;
+  }
+
+  #presence-drag-target {
     --presence-width: 200px;
   }
 
@@ -141,11 +151,11 @@ export const SHADOW_DOM_STYLES = `
     width: 4px !important;
   }
 
-  :host(body) {
+  :root {
     overflow: hidden;
   }
 
-  :host(body) a-scene {
+  a-scene {
     height: 100%;
     top: 0;
     position: fixed;
@@ -153,8 +163,12 @@ export const SHADOW_DOM_STYLES = `
     visibility: hidden;
   }
 
-  :host(body) a-scene.visible {
+  a-scene.visible {
     visibility: visible;
+  }
+
+  #jel-interface.vr-mode-stretch .a-canvas {
+    width: 200% !important;
   }
 
   #jel-interface.show-css-cursor #gaze-cursor{
@@ -199,106 +213,6 @@ export const SHADOW_DOM_STYLES = `
 
   #jel-interface.panels-collapsed #nav-drag-target {
     display: none;
-  }
-
-  #jel-interface.panels-collapsed #jel-ui-wrap,
-  #jel-interface.paused #jel-ui-wrap {
-    height: 100%;
-  }
-
-  #jel-interface.panels-collapsed #asset-panel {
-    display: none;
-  }
-
-  #jel-interface.panels-collapsed #left-expand-trigger {
-    display: flex;
-  }
-
-  #jel-interface.paused #jel-ui-wrap {
-    pointer-events: auto;
-    background-color: rgba(0, 0, 0, 0.6);
-  }
-
-  #jel-interface.paused #asset-panel {
-    display: none;
-  }
-
-  #jel-interface.panels-collapsed #right-expand-trigger {
-    display: flex;
-  }
-
-  #jel-interface.panels-collapsed #bottom-expand-trigger {
-    display: flex;
-  }
-
-  #jel-interface.low-detail #fade-edges {
-    background: none;
-  }
-
-  #jel-interface.paused #paused-info-label {
-    display: block;
-  }
-
-  #jel-interface.paused #unpaused-info-label {
-    display: none;
-  }
-
-  #jel-interface.paused #unpaused-info-label-2 {
-    display: none;
-  }
-
-  #jel-interface.paused .external-camera-on #external-camera-canvas {
-    display: none;
-  }
-
-  #jel-interface.paused .external-camera-on #external-camera-rotate-button {
-    display: none;
-  }
-
-  #jel-interface.paused #key-tips-wrap {
-      opacity: 0.4;
-  }
-
-  #jel-interface.panels-collapsed #device-statuses {
-    display: flex;
-  }
-
-  #jel-interface.paused #device-statuses {
-    display: none;
-  }
-
-  #jel-interface.panels-collapsed #snackbar {
-    display: none;
-  }
-
-  #jel-interface.paused #snackbar {
-    display: none;
-  }
-
-  #jel-interface.panels-collapsed #self-panel {
-     background-color: var(--canvas-overlay-neutral-item-background-color);
-     text-shadow: 0px 0px 4px var(--menu-shadow-color);
-     border-radius: 0 12px 0 0;
-  }
-
-  #jel-interface.panels-collapsed #top-panel {
-     display: none;
-  }
-
-  #jel-interface.panels-collapsed #chat-log {
-    bottom: 64px;
-  }
-
-  #jel-interface.paused #chat-log {
-      visibility: hidden;
-  }
-
-  #jel-interface.panels-collapsed .hide-when-expanded {
-    display: none;
-  }
-
-  #jel-interface.panels-collapsed .pause-info-label {
-     bottom: 76px;
   }
 
   .quill-editor-wrap {

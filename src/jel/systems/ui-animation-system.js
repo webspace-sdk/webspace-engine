@@ -57,9 +57,16 @@ export class UIAnimationSystem {
     document.addEventListener("visibilitychange", layoutOnFocus);
 
     waitForDOMContentLoaded().then(() => {
+      this.jelInterfaceEl = UI_ROOT.getElementById("jel-interface");
       // Initialize nav and presence width CSS vars to stored state.
-      UI_ROOT.getElementById("jel-interface").style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
-      UI_ROOT.getElementById("jel-interface").style.setProperty("--presence-width", `${this.targetSceneRight}px`);
+      this.jelInterfaceEl.style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
+      this.jelInterfaceEl.style.setProperty("--presence-width", `${this.targetSceneRight}px`);
+
+      UI_ROOT.getElementById("nav-drag-target").style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
+      UI_ROOT.getElementById("presence-drag-target").style.setProperty(
+        "--presence-width",
+        `${this.targetSceneRight}px`
+      );
       window.addEventListener("resize", () => this.applySceneSize(null, null, true));
     });
   }
@@ -199,7 +206,7 @@ export class UIAnimationSystem {
       this.sceneRight = sceneRight;
     }
 
-    const width = UI_ROOT.clientWidth - this.sceneLeft - this.sceneRight;
+    const width = this.jelInterfaceEl.clientWidth - this.sceneLeft - this.sceneRight;
     if (this.sceneEl) {
       this.sceneEl.style.cssText = `left: ${this.sceneLeft}px; width: ${width}px;`;
     }
@@ -220,9 +227,7 @@ export class UIAnimationSystem {
       right = 0;
     }
 
-    const body = UI_ROOT;
-
-    const width = body.clientWidth - left - right;
+    const width = this.jelInterfaceEl.clientWidth - left - right;
     const gazeCursor = UI_ROOT.getElementById("gaze-cursor");
 
     if (gazeCursor) {

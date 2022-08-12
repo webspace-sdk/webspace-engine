@@ -14,12 +14,20 @@ const ChatLogElement = styled.div`
   left: 0;
   bottom: 0;
 
+  .panels-collapsed & {
+    bottom: 64px;
+  }
+
   overflow: hidden;
   mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), 80%, transparent);
   width: 50%;
   min-width: 200px;
   margin: 12px;
   transition: transform 0.15s linear, opacity 0.15s linear;
+
+  .paused & {
+    visibility: hidden;
+  }
 
   &.hidden {
     opacity: 0;
@@ -82,6 +90,10 @@ const UnpausedInfoLabel = styled.div`
   margin: 11px 0 42px 8px;
   padding: 6px 10px;
   white-space: pre;
+
+  .paused & {
+    display: none;
+  }
 `;
 
 const MESSAGE_MARGIN = 6;
@@ -296,7 +308,7 @@ export default function ChatLog({ scene, hub, store, leftOffset }) {
 
   if (hasOtherOccupants && !hasChatted && entries.filter(({ type }) => type === "chat").length === 0) {
     return (
-      <UnpausedInfoLabel id="unpaused-info-label-2">
+      <UnpausedInfoLabel>
         <FormattedMessage id="chat.info" />
       </UnpausedInfoLabel>
     );
