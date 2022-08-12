@@ -157,7 +157,7 @@ export const SHADOW_DOM_STYLES = `
     visibility: visible;
   }
 
-  :host(.show-css-cursor) #gaze-cursor{
+  #jel-interface.show-css-cursor #gaze-cursor{
     overflow: hidden;
   }
 

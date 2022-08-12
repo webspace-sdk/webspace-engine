@@ -177,7 +177,8 @@ export const getCursorLockState = () => {
 export const getLastKnownUnlockedCursorCoords = () => lastKnownCursorCoords;
 
 export const cursorIsVisible = () =>
-  document.body.classList.contains("show-3d-cursor") || document.body.classList.contains("show-css-cursor");
+  UI_ROOT.getElementById("jel-interface").classList.contains("show-3d-cursor") ||
+  UI_ROOT.getElementById("jel-interface").classList.contains("show-css-cursor");
 
 export function downloadText(filename, contentType, text) {
   const element = document.createElement("a");

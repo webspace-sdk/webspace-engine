@@ -1048,7 +1048,7 @@ async function start() {
   const shadowStyles = document.createElement("style");
   shadowStyles.type = "text/css";
   shadowStyles.appendChild(document.createTextNode(SHADOW_DOM_STYLES));
-  //UI_ROOT.appendChild(shadowStyles);
+  UI_ROOT.appendChild(shadowStyles);
 
   UI_ROOT.innerHTML += `
       <div id="jel-interface">

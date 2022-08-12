@@ -212,7 +212,7 @@ export class AppAwareMouseDevice {
       !SYSTEMS.directorSystem.trackingCamera
     );
 
-    const bodyClassList = document.body.classList;
+    const bodyClassList = UI_ROOT.getElementById("jel-interface").classList;
 
     if (showCSSCursor !== bodyClassList.contains("show-css-cursor")) {
       bodyClassList.toggle("show-css-cursor");

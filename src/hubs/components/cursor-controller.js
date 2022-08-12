@@ -167,7 +167,7 @@ AFRAME.registerComponent("cursor-controller", {
         });
       }
 
-      const showCursor = document.body.classList.contains("show-3d-cursor");
+      const showCursor = UI_ROOT.getElementById("jel-interface").classList.contains("show-3d-cursor");
       const canvasHeight = AFRAME.scenes[0].canvas.offsetHeight;
       // This magic number is determined by trial-and-error, is a function of the world radius
       const cssGazeYOffset = Math.floor(this.distance * (canvasHeight / 425.0));
