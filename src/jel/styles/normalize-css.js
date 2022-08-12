@@ -275,22 +275,13 @@ export const JEL_NORMALIZE_CSS = `
     font-weight: ${SMALL_TEXT_WEIGHT};
   }
   
-  body :focus {
+  * :focus {
     outline: none;
   }
   
   /* We want svg icons to have title elements for screen readers, but we don't need to show their tooltips when they are inside buttons */
   button svg {
     pointer-events: none;
-  }
-  
-  /**
-   * Breakpoint definitions for use wuth react-use-css-breakpoints
-   * https://github.com/matthewhall/react-use-css-breakpoints
-   */
-  body::before {
-    content: "sm";
-    display: none;
   }
   
   h5 {

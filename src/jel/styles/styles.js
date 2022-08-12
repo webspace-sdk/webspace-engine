@@ -243,4 +243,39 @@ export const SHADOW_DOM_STYLES = `
     justify-content: flex-end;
     align-items: center;
   }
+
+  .a-enter-vr, .a-orientation-modal {
+    display: none;
+  }
+
+  .grab-cursor {
+    cursor: grab;
+  }
+
+  .no-cursor {
+    cursor: none;
+  }
+
+  .webxr-realities, .webxr-sessions {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  // HACK: Deals with a performance regression in Chrome 75 where, once
+  // enough elements are on the page, the Chrome "reader" functionality continually
+  // scanning the page on mouse drag kills performance.
+
+  a-entity {
+    display: none;
+  }
+
+  .svg-icon {
+    overflow: visible;
+    display: inline-block;
+    font-size: inherit;
+    vertical-align: -0.125em;
+    height: 1em;
+  }
 `;
