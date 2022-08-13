@@ -15,7 +15,7 @@ import { homeHubForSpaceId } from "../utils/membership-utils";
 const showPublishObjects = qsTruthy("show_publish");
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = UI_ROOT.getElementById("jel-popup-root")));
+waitForDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 function HubContextMenu({
   scene,
@@ -65,7 +65,7 @@ function HubContextMenu({
         <PopupMenuItem
           key={`import-${hubId}`}
           onClick={e => {
-            UI_ROOT.querySelector("#import-upload-input").click();
+            DOM_ROOT.querySelector("#import-upload-input").click();
             scene.canvas.focus();
             e.preventDefault();
             e.stopPropagation();

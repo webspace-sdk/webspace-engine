@@ -193,12 +193,12 @@ export class VideoBridgeSystem {
         }, 500);
       }, 500);
 
-      UI_ROOT.append(el);
+      DOM_ROOT.append(el);
     });
   }
 
   hasBridge() {
-    return !!UI_ROOT.getElementById("video-bridge-iframe");
+    return !!DOM_ROOT.getElementById("video-bridge-iframe");
   }
 
   hidePreview() {
@@ -265,7 +265,7 @@ export class VideoBridgeSystem {
 
     const sessionIdToAvatarEl = new Map();
 
-    for (const avatarEl of UI_ROOT.querySelectorAll("[networked-avatar]")) {
+    for (const avatarEl of DOM_ROOT.querySelectorAll("[networked-avatar]")) {
       const sessionId = avatarEl.components.networked && avatarEl.components.networked.data.creator;
       if (!sessionId) continue;
 
@@ -297,7 +297,7 @@ export class VideoBridgeSystem {
     }
 
     // Remove media elements
-    const els = UI_ROOT.querySelectorAll("[media-canvas]");
+    const els = DOM_ROOT.querySelectorAll("[media-canvas]");
     const toRemove = [];
     for (const el of els) {
       if (el.components["media-canvas"].data.src.startsWith("jel://bridge")) {
@@ -332,7 +332,7 @@ export class VideoBridgeSystem {
       this.sharePreviewTexture = null;
     }
 
-    const bridge = UI_ROOT.getElementById("video-bridge-iframe");
+    const bridge = DOM_ROOT.getElementById("video-bridge-iframe");
     await bridge.contentWindow.leave();
     bridge.parentElement.removeChild(bridge);
     this.externalCameraSystem.removeExternalCamera();

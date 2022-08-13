@@ -24,7 +24,7 @@ const panelExpandStep = BezierEasing(0.12, 0.98, 0.18, 0.98);
 export class UIAnimationSystem {
   constructor(sceneEl) {
     this.sceneEl = sceneEl;
-    waitForDOMContentLoaded().then(() => (this.neon = UI_ROOT.querySelector("#neon")));
+    waitForDOMContentLoaded().then(() => (this.neon = DOM_ROOT.querySelector("#neon")));
 
     this.lastTickT = 0;
     this.panelExpansionState = PANEL_EXPANSION_STATES.EXPANDING;
@@ -57,13 +57,12 @@ export class UIAnimationSystem {
     document.addEventListener("visibilitychange", layoutOnFocus);
 
     waitForDOMContentLoaded().then(() => {
-      this.jelInterfaceEl = UI_ROOT.getElementById("jel-interface");
       // Initialize nav and presence width CSS vars to stored state.
-      this.jelInterfaceEl.style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
-      this.jelInterfaceEl.style.setProperty("--presence-width", `${this.targetSceneRight}px`);
+      UI.style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
+      UI.style.setProperty("--presence-width", `${this.targetSceneRight}px`);
 
-      UI_ROOT.getElementById("nav-drag-target").style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
-      UI_ROOT.getElementById("presence-drag-target").style.setProperty(
+      DOM_ROOT.getElementById("nav-drag-target").style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
+      DOM_ROOT.getElementById("presence-drag-target").style.setProperty(
         "--presence-width",
         `${this.targetSceneRight}px`
       );
@@ -98,10 +97,10 @@ export class UIAnimationSystem {
     this.store.handleActivityFlag("narrow");
 
     // Hide triggers upon collapse
-    const triggerSizePx = UI_ROOT.getElementById("left-expand-trigger").offsetWidth;
-    UI_ROOT.getElementById("left-expand-trigger").setAttribute("style", `left: ${-triggerSizePx}px`);
-    UI_ROOT.getElementById("right-expand-trigger").setAttribute("style", `right: ${-triggerSizePx}px`);
-    UI_ROOT.getElementById("bottom-expand-trigger").setAttribute("style", `bottom: ${-triggerSizePx}px`);
+    const triggerSizePx = DOM_ROOT.getElementById("left-expand-trigger").offsetWidth;
+    DOM_ROOT.getElementById("left-expand-trigger").setAttribute("style", `left: ${-triggerSizePx}px`);
+    DOM_ROOT.getElementById("right-expand-trigger").setAttribute("style", `right: ${-triggerSizePx}px`);
+    DOM_ROOT.getElementById("bottom-expand-trigger").setAttribute("style", `bottom: ${-triggerSizePx}px`);
   }
 
   isCollapsingOrCollapsed() {
@@ -206,7 +205,7 @@ export class UIAnimationSystem {
       this.sceneRight = sceneRight;
     }
 
-    const width = this.jelInterfaceEl.clientWidth - this.sceneLeft - this.sceneRight;
+    const width = UI.clientWidth - this.sceneLeft - this.sceneRight;
     if (this.sceneEl) {
       this.sceneEl.style.cssText = `left: ${this.sceneLeft}px; width: ${width}px;`;
     }
@@ -227,22 +226,22 @@ export class UIAnimationSystem {
       right = 0;
     }
 
-    const width = this.jelInterfaceEl.clientWidth - left - right;
-    const gazeCursor = UI_ROOT.getElementById("gaze-cursor");
+    const width = UI.clientWidth - left - right;
+    const gazeCursor = DOM_ROOT.getElementById("gaze-cursor");
 
     if (gazeCursor) {
       const center = Math.floor(left + width / 2.0);
       gazeCursor.style.cssText = `left: ${center - 3}px; top: 50vh;`;
     }
 
-    const wrap = UI_ROOT.getElementById("jel-ui-wrap");
+    const wrap = DOM_ROOT.getElementById("jel-ui-wrap");
     if (wrap) {
       wrap.style.cssText = `left: ${left}px; width: ${width}px;`;
 
       if (left === 0) {
-        this.jelInterfaceEl.classList.add("panels-collapsed");
+        UI.classList.add("panels-collapsed");
       } else {
-        this.jelInterfaceEl.classList.remove("panels-collapsed");
+        UI.classList.remove("panels-collapsed");
       }
 
       return true;

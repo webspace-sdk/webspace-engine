@@ -81,11 +81,11 @@ AFRAME.registerSystem("scale-object", {
 
       if (!this.didGetObjectReferences) {
         this.didGetObjectReferences = true;
-        const leftCursorController = UI_ROOT.getElementById("left-cursor-controller");
+        const leftCursorController = DOM_ROOT.getElementById("left-cursor-controller");
         this.leftRaycaster = leftCursorController.components["cursor-controller"].raycaster;
-        const rightCursorController = UI_ROOT.getElementById("right-cursor-controller");
+        const rightCursorController = DOM_ROOT.getElementById("right-cursor-controller");
         this.rightRaycaster = rightCursorController.components["cursor-controller"].raycaster;
-        this.viewingCamera = UI_ROOT.getElementById("viewing-camera").object3DMap.camera;
+        this.viewingCamera = DOM_ROOT.getElementById("viewing-camera").object3DMap.camera;
       }
       this.isScalingLeft = hand.el.id === "player-left-controller";
       this.plane = this.isScalingLeft ? planeForLeftCursor : planeForRightCursor;

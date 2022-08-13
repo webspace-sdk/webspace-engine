@@ -28,26 +28,26 @@ waitForDOMContentLoaded().then(() => {
   const actionColor = getThemeColor("action-color");
   const actionHoverColor = getThemeColor("action-color-highlight");
 
-  if (UI_ROOT.querySelector("#rounded-text-button")) {
+  if (DOM_ROOT.querySelector("#rounded-text-button")) {
     // NOTE, using the object-based {} setAttribute variant in a-frame
     // seems to not work in Firefox here -- the entities with the mixins are not
     // updated.
-    UI_ROOT.querySelector("#rounded-text-button").setAttribute(
+    DOM_ROOT.querySelector("#rounded-text-button").setAttribute(
       "text-button",
       `textHoverColor: ${actionHoverColor}; textColor: ${actionColor}; backgroundColor: #fff; backgroundHoverColor: #aaa;`
     );
 
-    UI_ROOT.querySelector("#rounded-button").setAttribute(
+    DOM_ROOT.querySelector("#rounded-button").setAttribute(
       "text-button",
       `textHoverColor: ${actionHoverColor}; textColor: ${actionColor}; backgroundColor: #fff; backgroundHoverColor: #aaa;`
     );
 
-    UI_ROOT.querySelector("#rounded-text-action-button").setAttribute(
+    DOM_ROOT.querySelector("#rounded-text-action-button").setAttribute(
       "text-button",
       `textHoverColor: #fff; textColor: #fff; backgroundColor: ${actionColor}; backgroundHoverColor: ${actionHoverColor}`
     );
 
-    UI_ROOT.querySelector("#rounded-action-button").setAttribute(
+    DOM_ROOT.querySelector("#rounded-action-button").setAttribute(
       "text-button",
       `textHoverColor: #fff; textColor: #fff; backgroundColor: ${actionColor}; backgroundHoverColor: ${actionHoverColor}`
     );

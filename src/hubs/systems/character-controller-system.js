@@ -73,8 +73,8 @@ export class CharacterControllerSystem {
     });
 
     waitForDOMContentLoaded().then(() => {
-      this.avatarPOV = UI_ROOT.getElementById("avatar-pov-node");
-      this.avatarRig = UI_ROOT.getElementById("avatar-rig");
+      this.avatarPOV = DOM_ROOT.getElementById("avatar-pov-node");
+      this.avatarRig = DOM_ROOT.getElementById("avatar-rig");
 
       if (this.avatarRig.components["networked-avatar"]) {
         this.networkedAvatar = this.avatarRig.components["networked-avatar"];

@@ -29,9 +29,9 @@ export class CursorTargettingSystem {
     this.observer = new MutationObserver(this.setDirty);
 
     waitForDOMContentLoaded().then(() => {
-      const scene = UI_ROOT.querySelector("a-scene");
-      this.rightRemote = UI_ROOT.getElementById("right-cursor-controller");
-      this.leftRemote = UI_ROOT.getElementById("left-cursor-controller");
+      const scene = DOM_ROOT.querySelector("a-scene");
+      this.rightRemote = DOM_ROOT.getElementById("right-cursor-controller");
+      this.leftRemote = DOM_ROOT.getElementById("left-cursor-controller");
       this.observer.observe(scene, { childList: true, attributes: true, subtree: true });
       scene.addEventListener("object3dset", this.setDirty);
       scene.addEventListener("object3dremove", this.setDirty);

@@ -64,7 +64,7 @@ export class WindowsMixedRealityControllerDevice {
       this.selector = `#player-${this.gamepad.hand}-controller`;
     }
 
-    this.rayObject = this.rayObject || UI_ROOT.querySelector(this.selector).object3D;
+    this.rayObject = this.rayObject || DOM_ROOT.querySelector(this.selector).object3D;
     this.rayObject.updateMatrixWorld();
     this.rayObjectRotation.setFromRotationMatrix(m.extractRotation(this.rayObject.matrixWorld));
 

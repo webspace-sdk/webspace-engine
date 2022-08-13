@@ -89,7 +89,7 @@ export class AutoQualitySystem extends EventTarget {
     this.enableTracking =
       window.APP.detailLevel < LOWEST_DETAIL_LEVEL || this.scene.renderer.getPixelRatio() > minPixelRatio; // Stop tracking at lowest detail level
 
-    UI_ROOT.getElementById("jel-interface").classList.add("low-detail");
+    UI.classList.add("low-detail");
 
     if (saveToStore) {
       window.APP.store.update({

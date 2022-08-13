@@ -23,7 +23,7 @@ export class DrawingMenuSystem {
     this.buttonMap = {};
 
     waitForDOMContentLoaded().then(() => {
-      this.cursorControllers = UI_ROOT.querySelectorAll("[cursor-controller]");
+      this.cursorControllers = DOM_ROOT.querySelectorAll("[cursor-controller]");
       this.camera = this.sceneEl.querySelector("#avatar-pov-node");
     });
   }

@@ -39,7 +39,7 @@ export class PasteSystem {
     if (this.lastMiddleClick && t - this.lastMiddleClick < 1000) return;
 
     // Never paste into scene if dialog is open
-    const uiRoot = UI_ROOT.querySelector(".ui-root");
+    const uiRoot = DOM_ROOT.querySelector(".ui-root");
     if (uiRoot && uiRoot.classList.contains("in-modal-or-overlay")) return;
 
     // Check if data or http url

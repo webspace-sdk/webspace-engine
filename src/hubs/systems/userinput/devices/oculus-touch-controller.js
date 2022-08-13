@@ -75,7 +75,7 @@ export class OculusTouchControllerDevice {
       frame.setValueType(this.path.axesSum, frame.get(this.path.axesSum) + Math.abs(this.gamepad.axes[axis.axisId]));
     });
 
-    this.rayObject = this.rayObject || UI_ROOT.querySelector(this.selector).object3D;
+    this.rayObject = this.rayObject || DOM_ROOT.querySelector(this.selector).object3D;
     this.rayObject.updateMatrixWorld();
     this.rayObjectRotation.setFromRotationMatrix(m.extractRotation(this.rayObject.matrixWorld));
     this.pose.position.setFromMatrixPosition(this.rayObject.matrixWorld);

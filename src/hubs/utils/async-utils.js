@@ -5,7 +5,7 @@ export const waitForEvent = function(eventName, eventObj) {
 };
 
 export const waitForDOMContentLoaded = function() {
-  if (window.UI_ROOT?._ready) {
+  if (window.DOM_ROOT?._ready) {
     return Promise.resolve(null);
   } else {
     return waitForEvent("shadow-root-ready", document);

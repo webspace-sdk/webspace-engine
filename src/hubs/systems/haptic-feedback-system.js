@@ -88,9 +88,9 @@ export class HapticFeedbackSystem {
 
     const interaction = AFRAME.scenes[0].systems.interaction;
     const { leftHand, rightHand, rightRemote, leftRemote } = interaction.state;
-    this.leftTeleporter = this.leftTeleporter || UI_ROOT.querySelector("#player-left-controller").components.teleporter;
+    this.leftTeleporter = this.leftTeleporter || DOM_ROOT.querySelector("#player-left-controller").components.teleporter;
     this.rightTeleporter =
-      this.rightTeleporter || UI_ROOT.querySelector("#player-right-controller").components.teleporter;
+      this.rightTeleporter || DOM_ROOT.querySelector("#player-right-controller").components.teleporter;
 
     const leftHandStrength = determineStrength(this.state.leftHand, leftHand, this.leftTeleporter.isTeleporting);
     const rightHandStrength = determineStrength(this.state.rightHand, rightHand, this.rightTeleporter.isTeleporting);

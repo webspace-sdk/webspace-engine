@@ -114,7 +114,7 @@ export default class ObjectInfoDialog extends Component {
     this.navigateNext = this.navigateNext.bind(this);
     this.navigatePrev = this.navigatePrev.bind(this);
     this.navigate = this.navigate.bind(this);
-    this.viewingCamera = UI_ROOT.getElementById("viewing-camera");
+    this.viewingCamera = DOM_ROOT.getElementById("viewing-camera");
     this.props.scene.addEventListener("uninspect", () => {
       this.props.onClose();
     });
@@ -276,7 +276,7 @@ export default class ObjectInfoDialog extends Component {
     const { onClose } = this.props;
     const isStatic = this.props.el.components.tags && this.props.el.components.tags.data.isStatic;
     const showNavigationButtons = this.state.mediaEntities.length > 1;
-    uiRoot = uiRoot || UI_ROOT.getElementById("ui-root");
+    uiRoot = uiRoot || DOM_ROOT.getElementById("ui-root");
     const isGhost = uiRoot && uiRoot.firstChild && uiRoot.firstChild.classList.contains("isGhost");
     const showGoToButton = this.props.scene.is("entered") || isGhost;
     const showRemoveButton =

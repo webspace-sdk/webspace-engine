@@ -20,7 +20,7 @@ const Wrap = styled.div`
   overflow: hidden;
   user-select: none;
 
-  #jel-interface:focus-within & {
+  #jel-ui:focus-within & {
     pointer-events: auto;
   }
 `;

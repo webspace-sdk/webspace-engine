@@ -240,7 +240,7 @@ AFRAME.registerComponent("camera-tool", {
       this.cameraSystem.register(this.el);
 
       waitForDOMContentLoaded().then(() => {
-        this.playerCamera = UI_ROOT.getElementById("viewing-camera").getObject3D("camera");
+        this.playerCamera = DOM_ROOT.getElementById("viewing-camera").getObject3D("camera");
       });
     });
   },
@@ -587,7 +587,7 @@ AFRAME.registerComponent("camera-tool", {
       }
 
       if (!this.playerHud) {
-        const hudEl = UI_ROOT.getElementById("player-hud");
+        const hudEl = DOM_ROOT.getElementById("player-hud");
         this.playerHud = hudEl && hudEl.object3D;
       }
 

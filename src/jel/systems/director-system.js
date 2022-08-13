@@ -33,8 +33,8 @@ export class DirectorSystem {
     this.startPos = new THREE.Vector3();
     this.startRot = new THREE.Quaternion();
     obj.matrixWorld.decompose(this.startPos, this.startRot, new THREE.Vector3());
-    this.avatarPov = UI_ROOT.querySelector("#avatar-pov-node");
-    this.viewingCamera = UI_ROOT.querySelector("#viewing-camera");
+    this.avatarPov = DOM_ROOT.querySelector("#avatar-pov-node");
+    this.viewingCamera = DOM_ROOT.querySelector("#viewing-camera");
   }
 
   beginLerpingTrackedObject() {

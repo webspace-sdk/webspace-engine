@@ -148,8 +148,8 @@ const decodeChunks = buffer => {
 export class TerrainSystem {
   constructor(scene, atmosphereSystem, cameraSystem) {
     waitForDOMContentLoaded().then(() => {
-      this.avatarPovEl = UI_ROOT.getElementById("avatar-pov-node");
-      this.viewingCameraEl = UI_ROOT.getElementById("viewing-camera");
+      this.avatarPovEl = DOM_ROOT.getElementById("avatar-pov-node");
+      this.viewingCameraEl = DOM_ROOT.getElementById("viewing-camera");
     });
 
     this.atmosphereSystem = atmosphereSystem;

@@ -18,7 +18,7 @@ export class EnterVRButtonSystem {
     if (this.scene.is("entered")) {
       return;
     }
-    uiRoot = uiRoot || UI_ROOT.getElementById("ui-root");
+    uiRoot = uiRoot || DOM_ROOT.getElementById("ui-root");
     const enable =
       configs.feature("enable_lobby_ghosts") &&
       uiRoot &&

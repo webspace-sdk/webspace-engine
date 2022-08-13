@@ -33,7 +33,7 @@ export class MediaInteractionSystem {
     this.soundEffectsSystem = soundEffectsSystem;
 
     waitForDOMContentLoaded().then(() => {
-      this.rightHand = UI_ROOT.getElementById("player-right-controller");
+      this.rightHand = DOM_ROOT.getElementById("player-right-controller");
     });
   }
 

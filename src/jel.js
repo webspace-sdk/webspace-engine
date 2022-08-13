@@ -311,7 +311,7 @@ const qsVREntryType = qs.get("vr_entry_type");
 let performConditionalSignIn;
 
 function mountUI(/*props = {}*/) {
-  //const scene = UI_ROOT.querySelector("a-scene");
+  //const scene = DOM_ROOT.querySelector("a-scene");
   //const disableAutoExitOnIdle =
   //  qsTruthy("allow_idle") || (process.env.NODE_ENV === "development" && !qs.get("idle_timeout"));
   //const isCursorHoldingPen =
@@ -342,7 +342,7 @@ function mountUI(/*props = {}*/) {
   //      )}
   //    />
   //  </Router>,
-  //  UI_ROOT.getElementById("ui-root")
+  //  DOM_ROOT.getElementById("ui-root")
   //);
 }
 
@@ -354,7 +354,7 @@ function remountUI(props) {
 function mountJelUI(props = {}) {
   if (isBotMode) return;
 
-  const scene = UI_ROOT.querySelector("a-scene");
+  const scene = DOM_ROOT.querySelector("a-scene");
 
   ReactDOM.render(
     <Router history={history}>
@@ -372,7 +372,7 @@ function mountJelUI(props = {}) {
         )}
       />
     </Router>,
-    UI_ROOT.getElementById("jel-ui")
+    DOM_ROOT.getElementById("jel-react-root")
   );
 }
 
@@ -392,7 +392,7 @@ function setupPerformConditionalSignin(entryManager) {
   ) => {
     if (predicate()) return action();
 
-    const scene = UI_ROOT.querySelector("a-scene");
+    const scene = DOM_ROOT.querySelector("a-scene");
     const signInContinueTextId = scene.is("vr-mode") ? "entry.return-to-vr" : "dialog.close";
 
     await handleExitTo2DInterstitial(true, () => remountUI({ showSignInDialog: false }));
@@ -494,13 +494,13 @@ async function checkPrerequisites() {
 }
 
 function hideCanvas() {
-  const canvas = UI_ROOT.querySelector(".a-canvas");
+  const canvas = DOM_ROOT.querySelector(".a-canvas");
   canvas.classList.add("a-hidden");
 }
 
 function initBatching() {
   // HACK - Trigger initial batch preparation with an invisible object
-  UI_ROOT.querySelector("a-scene")
+  DOM_ROOT.querySelector("a-scene")
     .querySelector("#batch-prep")
     .setAttribute("media-image", { batch: true, src: initialBatchImage, contentType: "image/png" });
 }
@@ -575,7 +575,7 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
     }
 
     if (uploadAccept) {
-      const el = UI_ROOT.querySelector("#file-upload-input");
+      const el = DOM_ROOT.querySelector("#file-upload-input");
       el.accept = uploadAccept;
       el.click();
     }
@@ -603,7 +603,7 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
   });
 
   scene.addEventListener("action_focus_chat", () => {
-    const chatFocusTarget = UI_ROOT.querySelector(".chat-focus-target");
+    const chatFocusTarget = DOM_ROOT.querySelector(".chat-focus-target");
     chatFocusTarget && chatFocusTarget.focus();
   });
 
@@ -648,8 +648,8 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
     });
   });
 
-  ["#jel-ui", "#jel-popup-root"].forEach(selector => {
-    const el = UI_ROOT.querySelector(selector);
+  ["#jel-react-root", "#jel-popup-root"].forEach(selector => {
+    const el = DOM_ROOT.querySelector(selector);
     el.addEventListener("mouseover", () => scene.addState("pointer-exited"));
     el.addEventListener("mouseout", () => scene.removeState("pointer-exited"));
   });
@@ -733,7 +733,7 @@ function setupGameEnginePausing(scene) {
         SYSTEMS.externalCameraSystem.stopRendering();
       }
 
-      UI_ROOT.getElementById("jel-interface").classList.add("paused");
+      UI.classList.add("paused");
       physics.updateSimulationRate(1000.0 / 15.0);
       accountChannel.setInactive();
       clearTimeout(disableAmbienceTimeout);
@@ -760,7 +760,7 @@ function setupGameEnginePausing(scene) {
         }
 
         clearTimeout(disableAmbienceTimeout);
-        UI_ROOT.getElementById("jel-interface").classList.remove("paused");
+        UI.classList.remove("paused");
         physics.updateSimulationRate(1000.0 / 90.0);
         accountChannel.setActive();
         SYSTEMS.atmosphereSystem.enableAmbience();
@@ -830,8 +830,7 @@ function setupGameEnginePausing(scene) {
 
 function setupSidePanelLayout(scene) {
   const handleSidebarResizerDrag = (selector, cssVars, isLeft, min, max, xToWidth, storeCallback) => {
-    const dragTarget = UI_ROOT.querySelector(selector);
-    const uiEl = UI_ROOT.getElementById("jel-interface");
+    const dragTarget = DOM_ROOT.querySelector(selector);
 
     dragTarget.addEventListener("mousedown", () => {
       const handleMove = e => {
@@ -841,7 +840,7 @@ function setupSidePanelLayout(scene) {
           const propKey = `--${cssVars[i]}`;
           const propVal = `${w}px`;
 
-          uiEl.style.setProperty(propKey, propVal);
+          UI.style.setProperty(propKey, propVal);
           dragTarget.style.setProperty(propKey, propVal);
         }
 
@@ -868,7 +867,7 @@ function setupSidePanelLayout(scene) {
 
   if (skipPanels) {
     for (const id of ["#nav-drag-target", "#presence-drag-target"]) {
-      const el = UI_ROOT.querySelector(id);
+      const el = DOM_ROOT.querySelector(id);
       el.parentNode.removeChild(el);
     }
   } else {
@@ -916,12 +915,12 @@ function setupVREventHandlers(scene, availableVREntryTypesPromise) {
       remountUI({ hide: true });
     }
 
-    UI_ROOT.getElementById("jel-interface").classList.add("vr-mode");
+    UI.classList.add("vr-mode");
 
     availableVREntryTypesPromise.then(availableVREntryTypes => {
       // Don't stretch canvas on cardboard, since that's drawing the actual VR view :)
       if ((!isMobile && !isMobileVR) || availableVREntryTypes.cardboard !== VR_DEVICE_AVAILABILITY.yes) {
-        UI_ROOT.getElementById("jel-interface").classList.add("vr-mode-stretch");
+        UI.classList.add("vr-mode-stretch");
       }
     });
   });
@@ -949,14 +948,14 @@ function setupVREventHandlers(scene, availableVREntryTypesPromise) {
   );
 
   scene.addEventListener("exit-vr", () => {
-    UI_ROOT.getElementById("jel-interface").classList.remove("vr-mode");
-    UI_ROOT.getElementById("jel-interface").classList.remove("vr-mode-stretch");
+    UI.classList.remove("vr-mode");
+    UI.classList.remove("vr-mode-stretch");
 
     remountUI({ hide: false });
 
     // HACK: Oculus browser pauses videos when exiting VR mode, so we need to resume them after a timeout.
     if (/OculusBrowser/i.test(window.navigator.userAgent)) {
-      UI_ROOT.querySelectorAll("[media-video]").forEach(m => {
+      DOM_ROOT.querySelectorAll("[media-video]").forEach(m => {
         const videoComponent = m.components["media-video"];
 
         if (videoComponent) {
@@ -1043,9 +1042,9 @@ async function start() {
   if (!(await checkPrerequisites())) return;
   mixpanel.track("Startup Start", {});
 
-  window.UI_ROOT = document.body.attachShadow({ mode: "open" });
-  AFRAME.selectorRoot = window.UI_ROOT;
-  window.UI_ROOT._ready = false;
+  window.DOM_ROOT = document.body.attachShadow({ mode: "open" });
+  AFRAME.selectorRoot = window.DOM_ROOT;
+  window.DOM_ROOT._ready = false;
 
   const rootStyles = document.createElement("style");
   rootStyles.type = "text/css";
@@ -1055,12 +1054,12 @@ async function start() {
   const shadowStyles = document.createElement("style");
   shadowStyles.type = "text/css";
   shadowStyles.appendChild(document.createTextNode(SHADOW_DOM_STYLES));
-  UI_ROOT.appendChild(shadowStyles);
+  DOM_ROOT.appendChild(shadowStyles);
 
-  UI_ROOT.innerHTML += `
-      <div id="jel-interface">
+  DOM_ROOT.innerHTML += `
+      <div id="jel-ui">
           <div id="jel-popup-root"></div>
-          <div id="jel-ui"></div>
+          <div id="jel-react-root"></div>
       </div>
 
       <div id="support-root"></div>
@@ -1082,17 +1081,19 @@ async function start() {
   tmp.innerHTML = AFRAME_DOM;
 
   const sceneReady = new Promise(r => tmp.children[0].addEventListener("nodeready", r, { once: true }));
-  UI_ROOT.appendChild(tmp.children[0]);
+  DOM_ROOT.appendChild(tmp.children[0]);
 
   await sceneReady;
-  UI_ROOT._ready = true;
+  DOM_ROOT._ready = true;
+  window.UI = DOM_ROOT.getElementById("jel-ui");
+
   document.dispatchEvent(new CustomEvent("shadow-root-ready"));
 
   registerNetworkSchemas();
 
   // Patch the scene resize handler to update the camera properly, since the
   // camera system manages the projection matrix.
-  const scene = UI_ROOT.querySelector("a-scene");
+  const scene = DOM_ROOT.querySelector("a-scene");
   const sceneResize = scene.resize.bind(scene);
   const resize = function() {
     sceneResize();
@@ -1100,7 +1101,7 @@ async function start() {
   };
   scene.resize = resize.bind(scene);
 
-  const canvas = UI_ROOT.querySelector(".a-canvas");
+  const canvas = DOM_ROOT.querySelector(".a-canvas");
   scene.renderer.setPixelRatio(1); // Start with low pixel ratio, quality adjustment system will raise
 
   canvas.setAttribute("tabindex", 0); // Make it so canvas can be focused
@@ -1168,7 +1169,7 @@ async function start() {
     let rightDelta = 0;
     let bottomDelta = 0;
 
-    const triggerSizePx = UI_ROOT.querySelector("#left-expand-trigger").offsetWidth;
+    const triggerSizePx = DOM_ROOT.querySelector("#left-expand-trigger").offsetWidth;
     const interaction = AFRAME.scenes[0].systems.interaction;
 
     // Ignore when holding.
@@ -1235,21 +1236,21 @@ async function start() {
     const [, isRightEdge, isBottomEdge, isLeftEdge] = await getIsWindowAtScreenEdges();
 
     if (isLeftEdge) {
-      UI_ROOT.querySelector("#left-expand-trigger").setAttribute(
+      DOM_ROOT.querySelector("#left-expand-trigger").setAttribute(
         "style",
         `left: ${-triggerSizePx + Math.floor(leftDelta)}px`
       );
     }
 
     if (isRightEdge) {
-      UI_ROOT.querySelector("#right-expand-trigger").setAttribute(
+      DOM_ROOT.querySelector("#right-expand-trigger").setAttribute(
         "style",
         `right: ${-triggerSizePx + Math.floor(rightDelta)}px`
       );
     }
 
     if (isBottomEdge) {
-      UI_ROOT.querySelector("#bottom-expand-trigger").setAttribute(
+      DOM_ROOT.querySelector("#bottom-expand-trigger").setAttribute(
         "style",
         `bottom: ${-triggerSizePx + Math.floor(bottomDelta)}px`
       );

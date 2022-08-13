@@ -173,7 +173,7 @@ export default class PresenceList extends Component {
 
   componentDidMount() {
     this.updateMicrophoneState();
-    UI_ROOT.querySelector(".a-canvas").addEventListener(
+    DOM_ROOT.querySelector(".a-canvas").addEventListener(
       "mouseup",
       () => {
         this.props.onExpand(false);

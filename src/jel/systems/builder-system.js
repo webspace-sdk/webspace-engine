@@ -198,7 +198,7 @@ export class BuilderSystem extends EventTarget {
     const { userinput, sceneEl } = this;
 
     if (!this.playerCamera) {
-      this.playerCamera = UI_ROOT.getElementById("viewing-camera").getObject3D("camera");
+      this.playerCamera = DOM_ROOT.getElementById("viewing-camera").getObject3D("camera");
       if (!this.playerCamera) return;
     }
 

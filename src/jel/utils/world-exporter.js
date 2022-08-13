@@ -25,7 +25,7 @@ export default class WorldExporter {
     const { hubMetadata, hubChannel } = window.APP;
     const metadata = hubMetadata.getMetadata(hubChannel.hubId);
 
-    const avatarPovNode = UI_ROOT.querySelector("#avatar-pov-node").object3D;
+    const avatarPovNode = DOM_ROOT.querySelector("#avatar-pov-node").object3D;
     const spawnPosition = new THREE.Vector3();
     const spawnRotation = new THREE.Quaternion();
     const spawnRadius = metadata.spawn_point.radius;
@@ -67,7 +67,7 @@ export default class WorldExporter {
 
     await Promise.all([terrainSystem.loadAllHeightMaps(), mediaPresenceSystem.instantiateAllDelayedMedia()]);
 
-    const mediaEls = [...UI_ROOT.querySelectorAll("[shared]")].filter(el => el.components["media-loader"]);
+    const mediaEls = [...DOM_ROOT.querySelectorAll("[shared]")].filter(el => el.components["media-loader"]);
 
     mediaEls.sort((x, y) => (x.id > y.id ? -1 : x.id < y.id ? 1 : 0));
 

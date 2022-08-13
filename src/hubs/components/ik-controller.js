@@ -155,7 +155,7 @@ AFRAME.registerComponent("ik-controller", {
     this.hasConvergedHips = false;
     this.lastCameraTransform = new THREE.Matrix4();
     waitForDOMContentLoaded().then(() => {
-      this.playerCamera = UI_ROOT.getElementById("viewing-camera").getObject3D("camera");
+      this.playerCamera = DOM_ROOT.getElementById("viewing-camera").getObject3D("camera");
       this.audioFeedbackScale = 1.0;
     });
 

@@ -14,7 +14,7 @@ export class ScaleInScreenSpaceSystem {
   tick = (function() {
     const parentScale = new THREE.Vector3();
     return function tick() {
-      this.viewingCamera = this.viewingCamera || UI_ROOT.getElementById("viewing-camera");
+      this.viewingCamera = this.viewingCamera || DOM_ROOT.getElementById("viewing-camera");
       for (let i = 0; i < this.components.length; i++) {
         const component = this.components[i];
         // TODO: This calculates the distance to the viewing camera, the correct distance might be to the viewing plane.

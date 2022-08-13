@@ -12,7 +12,7 @@ const isInModal = (() => {
 
   return function() {
     if (!uiRoot) {
-      uiRoot = UI_ROOT.querySelector(".ui-root");
+      uiRoot = DOM_ROOT.querySelector(".ui-root");
     }
 
     return uiRoot && uiRoot.classList.contains("in-modal-or-overlay");
@@ -30,7 +30,7 @@ export class MouseDevice {
     this.wheel = 0; // delta
 
     const queueEvent = this.events.push.bind(this.events);
-    const canvas = UI_ROOT.querySelector("canvas");
+    const canvas = DOM_ROOT.querySelector("canvas");
     this.canvas = canvas;
 
     canvas.addEventListener("contextmenu", e => {

@@ -21,7 +21,7 @@ AFRAME.registerComponent("spawn-controller", {
     });
   },
   moveToSpawnPoint() {
-    const spawnPoints = UI_ROOT.querySelectorAll("[spawn-point]");
+    const spawnPoints = DOM_ROOT.querySelectorAll("[spawn-point]");
 
     if (spawnPoints.length === 0) {
       // Keep default position

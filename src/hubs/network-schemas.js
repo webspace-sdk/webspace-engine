@@ -82,7 +82,7 @@ function registerNetworkSchemas() {
         }
       ]
     },
-    UI_ROOT
+    DOM_ROOT
   );
 
   const interactableMediaSchema = {
@@ -221,7 +221,7 @@ function registerNetworkSchemas() {
     ]
   };
 
-  NAF.schemas.add(interactableMediaSchema, UI_ROOT);
+  NAF.schemas.add(interactableMediaSchema, DOM_ROOT);
 
   NAF.schemas.add(
     {
@@ -241,7 +241,7 @@ function registerNetworkSchemas() {
         }
       ]
     },
-    UI_ROOT
+    DOM_ROOT
   );
 
   NAF.schemas.add(
@@ -278,7 +278,7 @@ function registerNetworkSchemas() {
         }
       ]
     },
-    UI_ROOT
+    DOM_ROOT
   );
 
   NAF.schemas.add(
@@ -300,7 +300,7 @@ function registerNetworkSchemas() {
         "networked-drawing"
       ]
     },
-    UI_ROOT
+    DOM_ROOT
   );
 
   NAF.schemas.add(
@@ -323,7 +323,7 @@ function registerNetworkSchemas() {
         }
       ]
     },
-    UI_ROOT
+    DOM_ROOT
   );
 
   NAF.schemas.add(
@@ -381,7 +381,7 @@ function registerNetworkSchemas() {
         }
       ]
     },
-    UI_ROOT
+    DOM_ROOT
   );
 }
 

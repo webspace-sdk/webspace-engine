@@ -1068,7 +1068,7 @@ export default class DialogAdapter extends EventTarget {
         token: permsToken
       })
       .then(() => {
-        UI_ROOT.dispatchEvent(new CustomEvent("kicked", { detail: { clientId: clientId } }));
+        DOM_ROOT.dispatchEvent(new CustomEvent("kicked", { detail: { clientId: clientId } }));
       });
   }
 

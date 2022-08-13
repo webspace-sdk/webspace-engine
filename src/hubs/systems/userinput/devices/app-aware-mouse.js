@@ -65,7 +65,7 @@ export class AppAwareMouseDevice {
     this.prevDirection.copy(this.prevDirection);
 
     if (!this.cursorController) {
-      const rightCursorController = UI_ROOT.getElementById("right-cursor-controller");
+      const rightCursorController = DOM_ROOT.getElementById("right-cursor-controller");
 
       if (rightCursorController && rightCursorController.components) {
         this.cursorController = rightCursorController.components["cursor-controller"];
@@ -73,7 +73,7 @@ export class AppAwareMouseDevice {
     }
 
     if (!this.camera) {
-      const viewingCamera = UI_ROOT.getElementById("viewing-camera");
+      const viewingCamera = DOM_ROOT.getElementById("viewing-camera");
 
       if (viewingCamera && viewingCamera.components) {
         this.camera = viewingCamera.components.camera.camera;
@@ -212,15 +212,15 @@ export class AppAwareMouseDevice {
       !SYSTEMS.directorSystem.trackingCamera
     );
 
-    const bodyClassList = UI_ROOT.getElementById("jel-interface").classList;
-    const gazeCursorClassList = UI_ROOT.getElementById("gaze-cursor").classList;
+    const uiClassList = UI.classList;
+    const gazeCursorClassList = DOM_ROOT.getElementById("gaze-cursor").classList;
 
     if (showCSSCursor !== gazeCursorClassList.contains("show")) {
       gazeCursorClassList.toggle("show");
     }
 
-    if (show3DCursor !== bodyClassList.contains("show-3d-cursor")) {
-      bodyClassList.toggle("show-3d-cursor");
+    if (show3DCursor !== uiClassList.contains("show-3d-cursor")) {
+      uiClassList.toggle("show-3d-cursor");
     }
 
     if (cursorIsLocked) {

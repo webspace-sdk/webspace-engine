@@ -67,7 +67,7 @@ waitForDOMContentLoaded().then(() => {
       <WrappedIntlProvider>
         <LoadingPanel isLoading={true} unsupportedMessage={isMobile ? "mobile" : "non-mobile"} />
       </WrappedIntlProvider>,
-      UI_ROOT.getElementById("support-root")
+      DOM_ROOT.getElementById("support-root")
     );
   }
 });

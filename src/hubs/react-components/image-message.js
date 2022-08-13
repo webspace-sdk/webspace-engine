@@ -5,7 +5,7 @@ import classNames from "classnames";
 import { proxiedUrlFor } from "../utils/media-url-utils";
 
 function spawnImage(url) {
-  UI_ROOT.querySelector("a-scene").emit("add_media", url);
+  DOM_ROOT.querySelector("a-scene").emit("add_media", url);
 }
 
 export default function ImageMessage({ name, body: { src: url }, className, maySpawn }) {

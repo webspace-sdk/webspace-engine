@@ -30,7 +30,7 @@ const Top = styled.div`
   width: 100%;
   align-items: flex-start;
 
-  .paused #jel-interface.hub-type-world & {
+  .paused #jel-ui.hub-type-world & {
     opacity: 0.4;
   }
 `;

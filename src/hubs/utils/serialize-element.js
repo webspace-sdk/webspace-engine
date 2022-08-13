@@ -137,12 +137,12 @@ const tagNames = [
 
 function computeDefaultStyleByTagName(tagName) {
   const defaultStyle = {};
-  const element = UI_ROOT.appendChild(document.createElement(tagName));
+  const element = DOM_ROOT.appendChild(document.createElement(tagName));
   const computedStyle = getComputedStyle(element);
   for (let i = 0; i < computedStyle.length; i++) {
     defaultStyle[computedStyle[i]] = computedStyle[computedStyle[i]];
   }
-  UI_ROOT.removeChild(element);
+  DOM_ROOT.removeChild(element);
   return defaultStyle;
 }
 

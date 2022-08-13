@@ -37,7 +37,7 @@ AFRAME.registerComponent("stats-plus", {
 
     const scene = this.el.sceneEl;
     this.stats = createStats(scene);
-    this.statsEl = UI_ROOT.querySelector(".rs-base");
+    this.statsEl = DOM_ROOT.querySelector(".rs-base");
     // HACK for now in rare case where dom isn't ready, just bail
     if (!this.statsEl) return;
 
@@ -61,7 +61,7 @@ AFRAME.registerComponent("stats-plus", {
     this.fpsEl = document.createElement("div");
     this.fpsEl.addEventListener("click", this.onExpand);
     this.fpsEl.classList.add("rs-fps-counter");
-    UI_ROOT.appendChild(this.fpsEl);
+    DOM_ROOT.appendChild(this.fpsEl);
     this.lastFpsUpdate = performance.now();
     this.lastFps = 0;
     this.frameCount = 0;

@@ -89,7 +89,7 @@ export const XSMALL_TEXT_WEIGHT = TEXT_1_WEIGHT;
 export const XSMALL_TEXT_BOLD_WEIGHT = TEXT_2_WEIGHT; // eslint-disable-line
 
 export const JEL_THEME_VARS = `
-  #jel-interface {
+  #jel-ui {
     --panel-header-text-color: ${PRIMARY_6};
     --panel-header-text-size: ${TEXT_2_SIZE};
     --panel-header-text-weight: ${TEXT_2_WEIGHT};

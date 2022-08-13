@@ -43,23 +43,23 @@ function findLocale() {
 }
 
 function updateLocale() {
-  if (!window.UI_ROOT) return;
+  if (!window.DOM_ROOT) return;
 
   const locale = findLocale();
 
   if (locale === DEFAULT_LOCALE) {
     _locale = locale;
     _localeData = defaultLocaleData;
-    UI_ROOT.dispatchEvent(new CustomEvent("locale-updated"));
+    DOM_ROOT.dispatchEvent(new CustomEvent("locale-updated"));
   } else {
     if (cachedMessages.has(locale)) {
       _locale = locale;
-      UI_ROOT.dispatchEvent(new CustomEvent("locale-updated"));
+      DOM_ROOT.dispatchEvent(new CustomEvent("locale-updated"));
     } else {
       import(`../../assets/hubs/locales/${locale}.json`).then(({ default: localeData }) => {
         _locale = locale;
         _localeData = localeData;
-        UI_ROOT.dispatchEvent(new CustomEvent("locale-updated"));
+        DOM_ROOT.dispatchEvent(new CustomEvent("locale-updated"));
       });
     }
   }

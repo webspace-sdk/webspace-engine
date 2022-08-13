@@ -183,7 +183,7 @@ AFRAME.registerComponent("teleporter", {
   },
 
   tick(t, dt) {
-    uiRoot = uiRoot || UI_ROOT.getElementById("ui-root");
+    uiRoot = uiRoot || DOM_ROOT.getElementById("ui-root");
     const entered = this.el.sceneEl.is("entered");
     const isGhost = !entered && uiRoot && uiRoot.firstChild && uiRoot.firstChild.classList.contains("isGhost");
     if (!entered && !isGhost) return;

@@ -177,8 +177,7 @@ export const getCursorLockState = () => {
 export const getLastKnownUnlockedCursorCoords = () => lastKnownCursorCoords;
 
 export const cursorIsVisible = () =>
-  UI_ROOT.getElementById("jel-interface").classList.contains("show-3d-cursor") ||
-  UI_ROOT.getElementById("gaze-cursor").classList.contains("show");
+  UI.classList.contains("show-3d-cursor") || DOM_ROOT.getElementById("gaze-cursor").classList.contains("show");
 
 export function downloadText(filename, contentType, text) {
   const element = document.createElement("a");
@@ -186,11 +185,11 @@ export function downloadText(filename, contentType, text) {
   element.setAttribute("download", filename);
 
   element.style.display = "none";
-  UI_ROOT.appendChild(element);
+  DOM_ROOT.appendChild(element);
 
   element.click();
 
-  UI_ROOT.removeChild(element);
+  DOM_ROOT.removeChild(element);
 }
 
 export function setNativeValue(element, value) {

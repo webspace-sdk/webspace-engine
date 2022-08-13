@@ -67,7 +67,7 @@ const Wrap = styled.div`
   display: flex;
   flex-direction: column;
 
-  #jel-interface:focus-within & {
+  #jel-ui:focus-within & {
     pointer-events: auto;
   }
 
@@ -91,7 +91,7 @@ const AssetPanelWrap = styled.div`
   flex-direction: column;
   padding-top: 8px;
 
-  #jel-interface:focus-within & {
+  #jel-ui:focus-within & {
     pointer-events: auto;
   }
 
@@ -585,7 +585,7 @@ function JelUI(props) {
   }, []);
 
   return (
-    <StyleSheetManager target={UI_ROOT}>
+    <StyleSheetManager target={DOM_ROOT}>
       <WrappedIntlProvider>
         <Root className="expand-asset-panel">
           <LoadingPanel

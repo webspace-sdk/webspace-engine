@@ -8,14 +8,14 @@ const isMobileVR = AFRAME.utils.device.isMobileVR();
 
 const getUserGesture = () => {
   return new Promise(resolve => {
-    const scene = UI_ROOT.querySelector("a-scene");
+    const scene = DOM_ROOT.querySelector("a-scene");
     scene.addEventListener("2d-interstitial-gesture-complete", resolve, { once: true });
     scene.emit("2d-interstitial-gesture-required");
   });
 };
 
 export async function handleExitTo2DInterstitial(isLower, exitAction, nonFullscreen) {
-  const scene = UI_ROOT.querySelector("a-scene");
+  const scene = DOM_ROOT.querySelector("a-scene");
   if (!scene.is("vr-mode")) {
     if (isMobileVR && willRequireUserGesture()) {
       await getUserGesture();
@@ -37,7 +37,7 @@ export async function handleExitTo2DInterstitial(isLower, exitAction, nonFullscr
     }
   } else {
     // Non-immersive browser, show notice
-    const vrNotice = UI_ROOT.querySelector(".vr-notice");
+    const vrNotice = DOM_ROOT.querySelector(".vr-notice");
     vrNotice.object3D.visible = true;
     vrNotice.setAttribute("follow-in-fov", {
       angle: isLower ? 39 : -15
@@ -52,9 +52,9 @@ export async function exit2DInterstitialAndEnterVR(force) {
 
   _isIn2DInterstitial = false;
 
-  UI_ROOT.querySelector(".vr-notice").object3D.visible = false;
+  DOM_ROOT.querySelector(".vr-notice").object3D.visible = false;
 
-  const scene = UI_ROOT.querySelector("a-scene");
+  const scene = DOM_ROOT.querySelector("a-scene");
 
   if (isMobileVR) {
     if (screenfull.isFullscreen) {

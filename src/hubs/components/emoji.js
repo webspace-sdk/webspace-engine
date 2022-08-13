@@ -19,7 +19,7 @@ AFRAME.registerComponent("emoji", {
     this.data.emitEndTime = performance.now() + this.data.emitDecayTime * 1000;
     this.physicsSystem = this.el.sceneEl.systems["hubs-systems"].physicsSystem;
 
-    this.emojiHud = UI_ROOT.querySelector("[emoji-hud]").components["emoji-hud"];
+    this.emojiHud = DOM_ROOT.querySelector("[emoji-hud]").components["emoji-hud"];
   },
 
   play() {

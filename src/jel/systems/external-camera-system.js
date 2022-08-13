@@ -48,7 +48,7 @@ export class ExternalCameraSystem {
   addExternalCamera(width, height, enablePostprocessing = false, contextAttributes = {}) {
     if (this.camera) return;
     if (!this.viewingCamera) {
-      const viewingCameraEl = UI_ROOT.getElementById("viewing-camera");
+      const viewingCameraEl = DOM_ROOT.getElementById("viewing-camera");
 
       if (viewingCameraEl && viewingCameraEl.components.camera.camera) {
         this.viewingCamera = viewingCameraEl.components.camera.camera;
@@ -65,7 +65,7 @@ export class ExternalCameraSystem {
     scene.add(camera);
     wrappedEntitySystem.register(camera);
 
-    const canvas = UI_ROOT.getElementById("external-camera-canvas");
+    const canvas = DOM_ROOT.getElementById("external-camera-canvas");
     canvas.width = width;
     canvas.height = height;
 

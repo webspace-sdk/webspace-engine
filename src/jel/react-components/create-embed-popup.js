@@ -5,7 +5,7 @@ import CreateEmbedInputPanel from "./create-embed-input-panel";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = UI_ROOT.getElementById("jel-popup-root")));
+waitForDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 const CreateEmbedPopup = forwardRef(({ styles, attributes, setPopperElement, onURLEntered, embedType }, ref) => {
   const popupInput = (

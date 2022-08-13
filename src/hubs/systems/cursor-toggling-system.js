@@ -25,10 +25,10 @@ export class CursorTogglingSystem {
     if (!this.domContentLoadedButComponentsMayNotHave) return;
     if (!this.gotComponentReferences) {
       this.gotComponentReferences = true;
-      this.rightCursorController = UI_ROOT.getElementById("right-cursor-controller").components["cursor-controller"];
-      this.leftCursorController = UI_ROOT.getElementById("left-cursor-controller").components["cursor-controller"];
-      this.rightHandTeleporter = UI_ROOT.getElementById("player-right-controller").components["teleporter"];
-      this.leftHandTeleporter = UI_ROOT.getElementById("player-left-controller").components["teleporter"];
+      this.rightCursorController = DOM_ROOT.getElementById("right-cursor-controller").components["cursor-controller"];
+      this.leftCursorController = DOM_ROOT.getElementById("left-cursor-controller").components["cursor-controller"];
+      this.rightHandTeleporter = DOM_ROOT.getElementById("player-right-controller").components["teleporter"];
+      this.leftHandTeleporter = DOM_ROOT.getElementById("player-left-controller").components["teleporter"];
     }
 
     const rightRemote = interaction.state.rightRemote;

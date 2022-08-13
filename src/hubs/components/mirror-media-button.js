@@ -16,7 +16,7 @@ AFRAME.registerComponent("mirror-media-button", {
     });
 
     this.onClick = async () => {
-      const mirrorTarget = UI_ROOT.querySelector("#media-mirror-target");
+      const mirrorTarget = DOM_ROOT.querySelector("#media-mirror-target");
 
       await closeExistingMediaMirror();
 

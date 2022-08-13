@@ -13,7 +13,8 @@ module.exports = {
     SAF: true,
     TransformStream: true,
     SYSTEMS: true,
-    UI_ROOT: true
+    DOM_ROOT: true,
+    UI: true
   },
   plugins: ["prettier", "react"],
   rules: {

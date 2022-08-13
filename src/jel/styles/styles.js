@@ -41,7 +41,7 @@ export const SHADOW_DOM_STYLES = `
   ${JEL_NORMALIZE_CSS}
   ${AFRAME_CSS}
 
-  #jel-interface {
+  #jel-ui {
     --nav-width: 300px;
     --presence-width: 200px;
   }
@@ -164,7 +164,7 @@ export const SHADOW_DOM_STYLES = `
     visibility: visible;
   }
 
-  #jel-interface.vr-mode-stretch .a-canvas {
+  #jel-ui.vr-mode-stretch .a-canvas {
     width: 200% !important;
   }
 
@@ -224,11 +224,11 @@ export const SHADOW_DOM_STYLES = `
     display: block;
   }
 
-  #jel-interface.panels-collapsed #presence-drag-target {
+  #jel-ui.panels-collapsed #presence-drag-target {
     display: none;
   }
 
-  #jel-interface.panels-collapsed #nav-drag-target {
+  #jel-ui.panels-collapsed #nav-drag-target {
     display: none;
   }
 

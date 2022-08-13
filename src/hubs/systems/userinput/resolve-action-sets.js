@@ -10,12 +10,12 @@ let leftTeleporter, rightTeleporter, transformSystem, scalingSystem;
 export function resolveActionSets() {
   leftTeleporter =
     leftTeleporter ||
-    (UI_ROOT.getElementById("player-left-controller") &&
-      UI_ROOT.getElementById("player-left-controller").components.teleporter);
+    (DOM_ROOT.getElementById("player-left-controller") &&
+      DOM_ROOT.getElementById("player-left-controller").components.teleporter);
   rightTeleporter =
     rightTeleporter ||
-    (UI_ROOT.getElementById("player-right-controller") &&
-      UI_ROOT.getElementById("player-right-controller").components.teleporter);
+    (DOM_ROOT.getElementById("player-right-controller") &&
+      DOM_ROOT.getElementById("player-right-controller").components.teleporter);
   if (!leftTeleporter || !rightTeleporter) return;
   const userinput = AFRAME.scenes[0].systems.userinput;
   const { leftHand, rightHand, rightRemote, leftRemote } = AFRAME.scenes[0].systems.interaction.state;

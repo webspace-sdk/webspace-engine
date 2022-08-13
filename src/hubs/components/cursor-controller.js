@@ -41,7 +41,7 @@ AFRAME.registerComponent("cursor-controller", {
     this.color = new THREE.Color(0, 0, 0);
 
     waitForDOMContentLoaded().then(() => {
-      this.cssGazeCursor = UI_ROOT.querySelector("#gaze-cursor .cursor");
+      this.cssGazeCursor = DOM_ROOT.querySelector("#gaze-cursor .cursor");
       this.lastCssGazeCursorOffset = Infinity;
       this.lastCssGazeCursorScale = Infinity;
     });
@@ -167,7 +167,7 @@ AFRAME.registerComponent("cursor-controller", {
         });
       }
 
-      const showCursor = UI_ROOT.getElementById("jel-interface").classList.contains("show-3d-cursor");
+      const showCursor = UI.classList.contains("show-3d-cursor");
       const canvasHeight = AFRAME.scenes[0].canvas.offsetHeight;
       // This magic number is determined by trial-and-error, is a function of the world radius
       const cssGazeYOffset = Math.floor(this.distance * (canvasHeight / 425.0));

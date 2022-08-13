@@ -7,7 +7,7 @@ export class MenuAnimationSystem {
     this.data = new Map();
     this.tick = this.tick.bind(this);
     waitForDOMContentLoaded().then(() => {
-      this.viewingCameraEl = UI_ROOT.getElementById("viewing-camera");
+      this.viewingCameraEl = DOM_ROOT.getElementById("viewing-camera");
     });
   }
   register(component, menuEl, chooseScale) {

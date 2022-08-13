@@ -3,7 +3,7 @@ import { paths } from "../paths";
 export class HudDevice {
   constructor() {
     this.events = [];
-    UI_ROOT.querySelector("a-scene").addEventListener("penButtonPressed", this.events.push.bind(this.events));
+    DOM_ROOT.querySelector("a-scene").addEventListener("penButtonPressed", this.events.push.bind(this.events));
   }
 
   write(frame) {

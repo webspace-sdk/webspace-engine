@@ -220,7 +220,7 @@ function getOrientation(file, callback) {
 }
 
 function getLatestMediaVersionOfSrc(src) {
-  const els = UI_ROOT.querySelectorAll("[media-loader]");
+  const els = DOM_ROOT.querySelectorAll("[media-loader]");
   let version = 1;
 
   for (const el of els) {
@@ -272,7 +272,7 @@ export const addMedia = (
     entity.setAttribute("networked", { template, networkId });
   } else {
     const templateBody = document
-      .importNode(UI_ROOT.querySelector(template).content, true)
+      .importNode(DOM_ROOT.querySelector(template).content, true)
       .firstElementChild.cloneNode(true);
     const elAttrs = templateBody.attributes;
 
@@ -922,7 +922,7 @@ export function addMeshScaleAnimation(mesh, initialScale, onComplete) {
 }
 
 export function closeExistingMediaMirror() {
-  const mirrorTarget = UI_ROOT.querySelector("#media-mirror-target");
+  const mirrorTarget = DOM_ROOT.querySelector("#media-mirror-target");
 
   // Remove old mirror target media element
   if (mirrorTarget.firstChild) {
@@ -1090,7 +1090,7 @@ export const spawnMediaInfrontOfPlayer = (
 };
 
 export const hasActiveScreenShare = () => {
-  const videoEls = UI_ROOT.querySelectorAll("[media-video]");
+  const videoEls = DOM_ROOT.querySelectorAll("[media-video]");
 
   for (const videoEl of videoEls) {
     const component = videoEl.components["media-video"];
@@ -1113,11 +1113,11 @@ export const snapEntityToBiggestNearbyScreen = entity => {
 
   const v = new THREE.Vector3();
   const avatarPos = new THREE.Vector3();
-  UI_ROOT.getElementById("avatar-rig").object3D.getWorldPosition(avatarPos);
+  DOM_ROOT.getElementById("avatar-rig").object3D.getWorldPosition(avatarPos);
   const box = new THREE.Box3();
 
   // Screen target is a position/scale snappable vox that snaps to walls
-  for (const el of UI_ROOT.querySelectorAll("[media-vox]")) {
+  for (const el of DOM_ROOT.querySelectorAll("[media-vox]")) {
     const mediaLoader = el.components["media-loader"];
     if (!mediaLoader) continue;
     if (!mediaLoader.data.stackSnapPosition) continue;

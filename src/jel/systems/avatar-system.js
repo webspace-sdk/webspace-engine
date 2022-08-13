@@ -313,7 +313,7 @@ export class AvatarSystem {
   }
 
   getAvatarElForSessionId(sessionId) {
-    for (const avatarEl of UI_ROOT.querySelectorAll("[networked-avatar]")) {
+    for (const avatarEl of DOM_ROOT.querySelectorAll("[networked-avatar]")) {
       if (avatarEl.components.networked && avatarEl.components.networked.data.creator === sessionId) {
         return avatarEl;
       }
@@ -514,7 +514,7 @@ export class AvatarSystem {
     let swatch = this.selfAvatarSwatch;
 
     if (!swatch) {
-      swatch = UI_ROOT.getElementById("self-avatar-swatch");
+      swatch = DOM_ROOT.getElementById("self-avatar-swatch");
 
       if (swatch) {
         swatch.setAttribute("data-eyes", 0);

@@ -341,8 +341,8 @@ AFRAME.registerSystem("tips", {
 
     if (!this._mediaCounter) {
       this._mediaCounter =
-        UI_ROOT.querySelector("#media-counter") &&
-        UI_ROOT.querySelector("#media-counter").components["networked-counter"];
+        DOM_ROOT.querySelector("#media-counter") &&
+        DOM_ROOT.querySelector("#media-counter").components["networked-counter"];
 
       if (!this._mediaCounter) return;
     }

@@ -160,7 +160,7 @@ AFRAME.registerComponent("pen", {
     this.observer = new MutationObserver(this.setDirty);
 
     waitForDOMContentLoaded().then(() => {
-      const scene = UI_ROOT.querySelector("a-scene");
+      const scene = DOM_ROOT.querySelector("a-scene");
       this.observer.observe(scene, { childList: true, attributes: true, subtree: true });
       scene.addEventListener("object3dset", this.setDirty);
       scene.addEventListener("object3dremove", this.setDirty);
@@ -168,7 +168,7 @@ AFRAME.registerComponent("pen", {
   },
 
   play() {
-    this.drawingManager = UI_ROOT.querySelector(this.data.drawingManager).components["drawing-manager"];
+    this.drawingManager = DOM_ROOT.querySelector(this.data.drawingManager).components["drawing-manager"];
   },
 
   update(prevData) {

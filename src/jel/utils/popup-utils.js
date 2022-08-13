@@ -145,7 +145,7 @@ export function usePopupPopper(
       let elToFocus;
 
       if (typeof focusRefOrSelector === "string") {
-        elToFocus = UI_ROOT.querySelector(focusRefOrSelector);
+        elToFocus = DOM_ROOT.querySelector(focusRefOrSelector);
       } else {
         elToFocus = focusRefOrSelector ? focusRefOrSelector.current : popupElement;
       }

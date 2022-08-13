@@ -47,7 +47,7 @@ export class GearVRControllerDevice {
 
       // TODO we should just be getting pose from the gamepad
       if (!this.rayObject) {
-        this.rayObject = UI_ROOT.querySelector(this.selector).object3D;
+        this.rayObject = DOM_ROOT.querySelector(this.selector).object3D;
       }
       this.rayObject.updateMatrixWorld();
       this.rayObjectRotation.setFromRotationMatrix(m.extractRotation(this.rayObject.matrixWorld));
@@ -55,7 +55,7 @@ export class GearVRControllerDevice {
       this.pose.direction.set(0, 0, -1).applyQuaternion(this.rayObjectRotation);
       this.pose.fromOriginAndDirection(this.pose.position, this.pose.direction);
       frame.setPose(paths.device.gearVRController.pose, this.pose);
-      this.headObject3D = this.headObject3D || UI_ROOT.querySelector("#avatar-pov-node").object3D;
+      this.headObject3D = this.headObject3D || DOM_ROOT.querySelector("#avatar-pov-node").object3D;
       if (this.gamepad.pose.orientation) {
         frame.setMatrix4(
           paths.device.gearVRController.matrix,
