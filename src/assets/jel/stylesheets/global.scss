@@ -1,0 +1,362 @@
+*:before, *:after {
+  box-sizing: inherit;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+blockquote, dl, dd, h1, h2, h3, h4, h5, h6, hr, figure, p, pre {
+  margin: 0;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+}
+
+ol, ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * Ensure horizontal rules are visible by default
+ */
+
+hr {
+  border-top-width: 1px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button, [role="button"] {
+  cursor: pointer;
+  user-select: none;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/**
+ * Reset form element properties that are easy to forget to
+ * style explicitly so you don't inadvertently introduce
+ * styles that deviate from your design system. These styles
+ * supplement a partial reset that is already applied by
+ * normalize.css.
+ */
+
+button, input, optgroup, select, textarea {
+  padding: 0;
+  line-height: inherit;
+  color: inherit;
+}
+
+/**
+ * Monospace font stack: https://css-tricks.com/snippets/css/font-stacks/
+ */
+
+pre, code, kbd, samp {
+  font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+}
+
+/**
+ * Make replaced elements display: block by default as that's
+ * the behavior you want almost all of the time. Inspired by
+ * CSS Remedy, with svg added as well.
+ *
+ * https://github.com/mozdevs/cssremedy/issues/14
+ */
+
+img, svg, video, canvas, audio, iframe, embed, object {
+  display: block;
+  vertical-align: middle;
+}
+
+/**
+ * Constrain images and videos to the parent width and preserve
+ * their instrinsic aspect ratio.
+ *
+ * https://github.com/mozdevs/cssremedy/issues/14
+ */
+
+img, video {
+  max-width: 100%;
+  height: auto;
+}
+
+label {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+* :focus {
+  outline: none;
+}
+
+/* We want svg icons to have title elements for screen readers, but we don't need to show their tooltips when they are inside buttons */
+button svg {
+  pointer-events: none;
+}
+
+h5 {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+label, small {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/**
+ * Reset links to optimize for opt-in styling instead of
+ * opt-out.
+ */
+
+a {
+  color: var(--action-color);
+  color: inherit;
+  text-decoration: inherit;
+  &:hover {
+    color: var(--action-hover-color);
+  }
+  &:active {
+    color: var(--action-pressed-color);
+  }
+}
+#jel-ui {
+  --nav-width: 300px;
+  --presence-width: 200px;
+}
+#neon {
+  display: none;
+}
+
+.base-panel {
+  color: var(--panel-text-color);
+  background-color: var(--panel-background-color);
+  font-weight: 400;
+}
+
+.secondary-panel {
+  color: var(--panel-text-color);
+  background-color: var(--secondary-panel-background-color);
+  font-size: var(--panel-text-size);
+  font-weight: var(--panel-text-weight);
+}
+
+.show-when-popped {
+  position: relative;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s linear;
+
+  .slide-down-when-popped {
+    transform: translateY(-4px) scale(0.95, 0.95);
+    transition: transform 0.15s linear;
+  }
+
+  .slide-up-when-popped {
+    transform: translateY(4px) scale(0.95, 0.95);
+    transition: transform 0.15s linear;
+  }
+
+  &:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.15s linear;
+
+    .slide-down-when-popped {
+      transform: translateY(0px) scale(1, 1);
+      transition: transform 0.15s cubic-bezier(0.76, -0.005, 0.515, 2.25);
+    }
+
+    .slide-up-when-popped {
+      transform: translateY(0px) scale(1, 1);
+      transition: transform 0.15s cubic-bezier(0.76, -0.005, 0.515, 2.25);
+    }
+
+    .modal-background {
+      pointer-events: auto;
+    }
+  }
+}
+
+.fast-show-when-popped {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.05s linear;
+
+  &:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.05s linear;
+    .modal-background {
+      pointer-events: auto;
+    }
+  }
+}
+.svg-overlay-shadow {
+  filter: drop-shadow(0px 0px 4px var(--menu-shadow-color));
+}
+
+.presence-list {
+  .rc-virtual-list-scrollbar {
+    background-color: transparent;
+  }
+
+  .rc-virtual-list-scrollbar-thumb {
+    background-color: var(--scroll-thumb-color) !important;
+    width: 4px !important;
+  }
+}
+
+a-scene {
+  height: 100%;
+  top: 0;
+  position: fixed;
+  z-index: 3;
+  visibility: hidden;
+}
+
+a-scene.visible {
+  visibility: visible;
+}
+
+#jel-ui.vr-mode-stretch {
+  .a-canvas {
+    width: 200% !important;
+  }
+}
+
+#gaze-cursor {
+  position: absolute;
+  mix-blend-mode: color-dodge;
+  width: 6px;
+  height: 6px;
+  z-index: 10000;
+  pointer-events: none;
+  visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .cursor {
+    width: 6px;
+    height: 6px;
+    border-radius: 4px;
+    background-color: rgba(128, 128, 128);
+  }
+}
+
+#gaze-cursor.show {
+  visibility: visible;
+}
+
+#jel-popup-root {
+  position: absolute;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 7;
+}
+
+#nav-drag-target {
+  --nav-width: 300px;
+  position: absolute;
+  width: 32px;
+  left: calc(var(--nav-width) - 16px);
+  top: 0;
+  z-index: 6;
+  height: 100%;
+  cursor: col-resize;
+  display: block;
+}
+
+#presence-drag-target {
+  --presence-width: 200px;
+  position: absolute;
+  width: 32px;
+  right: calc(var(--presence-width) - 16px);
+  top: 0;
+  z-index: 6;
+  height: 100%;
+  cursor: col-resize;
+  display: block;
+}
+
+#jel-ui.panels-collapsed {
+  #presence-drag-target {
+    display: none;
+  }
+
+  #nav-drag-target {
+    display: none;
+  }
+}
+
+.quill-editor-wrap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.a-enter-vr {
+  display: none;
+}
+
+.a-orientation-modal {
+  display: none;
+}
+
+.grab-cursor {
+  cursor: grab;
+}
+
+.no-cursor {
+  cursor: none;
+}
+
+.webxr-realities {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.webxr-sessions {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+a-entity {
+  display: none;
+}
+
+.svg-icon {
+  overflow: visible;
+  display: inline-block;
+  font-size: inherit;
+  vertical-align: -0.125em;
+  height: 1em;
+}

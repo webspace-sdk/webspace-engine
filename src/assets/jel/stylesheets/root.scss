@@ -1,0 +1,25 @@
+html {
+  box-sizing: border-box;
+  line-height: 1;
+
+  font-family: Lato, Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"
+}
+
+body {
+  background-color: #333;
+  margin: 0;
+  overflow: hidden;
+}
+
+body:focus {
+  outline: none;
+}
+  
+body::before {
+  content: "sm";
+  display: none;
+}
+
+a-assets img {
+  display: none;
+}

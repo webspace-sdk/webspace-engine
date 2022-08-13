@@ -35,7 +35,7 @@ const TooltipStyled = styled(Tippy)`
 `;
 
 const Tooltip = function(props) {
-  return <TooltipStyled animation="open" {...props} />;
+  return <TooltipStyled appendTo={UI} animation="open" {...props} />;
 };
 
 export default Tooltip;

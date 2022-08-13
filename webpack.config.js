@@ -322,12 +322,7 @@ module.exports = async (env, argv) => {
           test: /\.(scss|css)$/,
           use: [
             {
-              loader: "css-loader",
-              options: {
-                name: "[path][name].[ext]",
-                localIdentName: "[name]__[local]__[hash:base64:5]",
-                camelCase: true
-              }
+              loader: "raw-loader"
             },
             "sass-loader"
           ]

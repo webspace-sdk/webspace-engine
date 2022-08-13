@@ -2,7 +2,7 @@ import "./hubs/webxr-bypass-hacks";
 import "./hubs/utils/theme";
 import "@babel/polyfill";
 import "./hubs/utils/debug-log";
-import { ROOT_DOM_STYLES, SHADOW_DOM_STYLES } from "./jel/styles/styles";
+import { ROOT_DOM_STYLES, SHADOW_DOM_STYLES } from "./jel/styles";
 import AFRAME_DOM from "./jel/aframe-dom";
 import { isInQuillEditor } from "./jel/utils/quill-utils";
 import { homeHubForSpaceId } from "./jel/utils/membership-utils";
