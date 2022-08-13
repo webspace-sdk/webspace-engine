@@ -160,6 +160,7 @@ import "./jel/systems/wrapped-entity-system";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
 import { getIsWindowAtScreenEdges, isInEditableField } from "./jel/utils/dom-utils";
 import { resetTemplate } from "./jel/utils/template-utils";
+import retargetShadowEvents from "react-shadow-dom-retarget-events";
 
 import "./hubs/gltf-component-mappings";
 
@@ -1043,6 +1044,7 @@ async function start() {
   mixpanel.track("Startup Start", {});
 
   window.DOM_ROOT = document.body.attachShadow({ mode: "open" });
+  retargetShadowEvents(DOM_ROOT);
   AFRAME.selectorRoot = window.DOM_ROOT;
   window.DOM_ROOT._ready = false;
 

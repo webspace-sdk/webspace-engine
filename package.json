@@ -115,6 +115,7 @@
     "react-popper": "^2.2.3",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
+    "react-shadow-dom-retarget-events": "^1.1.0",
     "react-transition-group": "^4.4.1",
     "screenfull": "^4.0.1",
     "scroll-into-view-if-needed": "^2.2.26",
