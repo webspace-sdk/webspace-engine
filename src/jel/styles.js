@@ -16,13 +16,11 @@ import QUILL_HIGHLIGHT from "highlight.js/scss/github.scss";
 export const ROOT_DOM_STYLES = ROOT_STYLES;
 
 export const SHADOW_DOM_STYLES = `
+  ${AFRAME_CSS}
   ${JEL_THEME}
-
   ${NORMALIZE_CSS}
   ${GLOBAL_CSS}
-  ${AFRAME_CSS}
   ${TIPPY_CSS}
-
   ${EMOJIS}
   ${QUILL_CORE}
   ${QUILL_BUBBLE}
@@ -31,5 +29,4 @@ export const SHADOW_DOM_STYLES = `
   ${ATOM_TREE}
   ${SPACE_TREE}
   ${CREATE_SELECT}
-
 `;
