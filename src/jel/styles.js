@@ -8,6 +8,7 @@ import JEL_THEME from "../assets/jel/stylesheets/jel-theme.scss";
 import ROOT_STYLES from "../assets/jel/stylesheets/root.scss";
 import AFRAME_CSS from "aframe/src/style/aframe.css";
 import TIPPY_CSS from "tippy.js/dist/tippy.css";
+import QUILL_PRE from "../assets/jel/stylesheets/quill-pre.scss";
 import QUILL_CORE from "quill/dist/quill.core.css";
 import QUILL_BUBBLE from "quill/dist/quill.bubble.css";
 import QUILL_EMOJI from "quill-emoji/dist/quill-emoji.css";
@@ -22,6 +23,7 @@ export const SHADOW_DOM_STYLES = `
   ${GLOBAL_CSS}
   ${TIPPY_CSS}
   ${EMOJIS}
+  ${QUILL_PRE}
   ${QUILL_CORE}
   ${QUILL_BUBBLE}
   ${QUILL_EMOJI}

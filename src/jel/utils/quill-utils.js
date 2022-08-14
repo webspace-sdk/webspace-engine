@@ -11,6 +11,20 @@ import {
   WritingFont2CSS
 } from "../fonts/quill-fonts";
 
+import QUILL_PRE from "../../assets/jel/stylesheets/quill-pre.scss";
+import QUILL_CORE from "quill/dist/quill.core.css";
+import QUILL_BUBBLE from "quill/dist/quill.bubble.css";
+import QUILL_EMOJI from "quill-emoji/dist/quill-emoji.css";
+import QUILL_HIGHLIGHT from "highlight.js/scss/github.scss";
+
+export const QUILL_STYLES = `
+  ${QUILL_PRE}
+  ${QUILL_CORE}
+  ${QUILL_BUBBLE}
+  ${QUILL_EMOJI}
+  ${QUILL_HIGHLIGHT}
+`.replace(/\/\*[^]*?\*\//g, ""); // Strip comments, o/w rendering fails due to spec perhaps
+
 export const FONT_FACES = {
   SANS_SERIF: 0,
   SERIF: 1,
@@ -37,7 +51,6 @@ export function renderQuillToImg(
 ) {
   const el = quill.container;
   const editor = quill.container.querySelector(".ql-editor");
-  const styles = quill.container.querySelector("style");
 
   if (transparent) {
     // Copy contents into attributes to perform outlining trick for transparent renders.
@@ -49,11 +62,12 @@ export function renderQuillToImg(
   }
 
   const editorXml = new XMLSerializer().serializeToString(editor);
-  const stylesXml = new XMLSerializer().serializeToString(styles);
 
   let xml = `
     <div xmlns="http://www.w3.org/1999/xhtml" class="ql-container ql-bubble">
-    ${stylesXml}
+    <style xmlns="http://www.w3.org/1999/xhtml">
+      ${QUILL_STYLES}
+    </style>
     ${editorXml}
     </div>
   `;

@@ -65,7 +65,6 @@ import "./jel/components/media-vox";
 import "./jel/components/media-text";
 import "./jel/components/media-emoji";
 import "./jel/components/media-stream";
-import { initQuillPool } from "./jel/utils/quill-pool";
 import nextTick from "./hubs/utils/next-tick";
 import "./hubs/components/avatar-volume-controls";
 import "./hubs/components/pinch-to-move";
@@ -1067,6 +1066,7 @@ async function start() {
       <div id="ui-root"></div>
       <div id="nav-drag-target"></div>
       <div id="presence-drag-target"></div>
+      <div id="quill-container"></div>
 
       <iframe id="neon" src="about:blank"></iframe>
 
@@ -1138,7 +1138,6 @@ async function start() {
   await store.initDefaults();
 
   warmSerializeElement();
-  const quillPoolPromise = initQuillPool();
 
   window.APP.scene = scene;
 
@@ -1430,8 +1429,6 @@ async function start() {
       await joinHubPromise;
     }
   };
-
-  await quillPoolPromise;
 
   history.listen(performJoin);
   mixpanel.track("Startup Joining", {});
