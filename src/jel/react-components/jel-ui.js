@@ -269,7 +269,7 @@ const CenterPopupRef = styled.div`
 
 const PausedInfoLabel = styled.div`
   position: absolute;
-  bottom: 0px;
+  bottom: 64px;
   white-space: pre;
   left: 0px;
   display: none;
