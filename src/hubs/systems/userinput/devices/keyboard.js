@@ -110,7 +110,6 @@ export class KeyboardDevice {
 
                 if (el.classList.contains("blur-on-empty-space") && el.value === "") {
                   canvas.focus();
-                  console.log(document.activeElement, DOM_ROOT.activeElement);
                   e.preventDefault();
 
                   // This is needed to prevent enter being proceseed twice and toggling.
