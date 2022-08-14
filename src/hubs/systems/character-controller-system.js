@@ -1,6 +1,6 @@
 import { paths } from "./userinput/paths";
 import { SOUND_SNAP_ROTATE } from "./sound-effects-system";
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { childMatch, rotateInPlaceAroundWorldUp, affixToWorldUp, IDENTITY_QUATERNION } from "../utils/three-utils";
 import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
 import { isNextPrevMedia } from "../utils/media-utils";
@@ -72,7 +72,7 @@ export class CharacterControllerSystem {
       }
     });
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.avatarPOV = DOM_ROOT.getElementById("avatar-pov-node");
       this.avatarRig = DOM_ROOT.getElementById("avatar-rig");
 

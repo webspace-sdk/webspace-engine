@@ -1,4 +1,4 @@
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { almostEqual, almostEqualVec3, almostEqualQuaternion } from "../utils/three-utils";
 import { findAncestorWithComponent } from "../utils/scene-graph";
 import { isMine } from "../../jel/utils/ownership-utils";
@@ -154,7 +154,7 @@ AFRAME.registerComponent("ik-controller", {
     this.isInView = true;
     this.hasConvergedHips = false;
     this.lastCameraTransform = new THREE.Matrix4();
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.playerCamera = DOM_ROOT.getElementById("viewing-camera").getObject3D("camera");
       this.audioFeedbackScale = 1.0;
     });

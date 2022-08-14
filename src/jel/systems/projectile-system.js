@@ -2,7 +2,7 @@ import { imageUrlForEmoji } from "../../hubs/utils/media-url-utils";
 import { offsetRelativeTo } from "../../hubs/components/offset-relative-to";
 import { SHAPE, FIT, ACTIVATION_STATE, TYPE } from "three-ammo/constants";
 import { COLLISION_LAYERS } from "../../hubs/constants";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { getNetworkedEntitySync, getNetworkOwner } from "../utils/ownership-utils";
 import {
   SOUND_LAUNCHER_1,
@@ -157,7 +157,7 @@ export class ProjectileSystem {
     this.maxIndex = -1;
     this.avatarPovEl = null;
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.avatarPovEl = DOM_ROOT.querySelector("#avatar-pov-node");
     });
   }

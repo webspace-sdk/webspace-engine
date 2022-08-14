@@ -6,7 +6,7 @@ import spritesheetNotice from "../../assets/hubs/images/spritesheets/sprite-syst
 import { createImageTexture } from "../utils/media-utils";
 import spritesheetActionPng from "../../assets/hubs/images/spritesheets/sprite-system-action-spritesheet.png";
 import spritesheetNoticePng from "../../assets/hubs/images/spritesheets/sprite-system-notice-spritesheet.png";
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import vert from "./sprites/sprite.vert";
 import frag from "./sprites/sprite.frag";
 import { getThemeColorShifter } from "../utils/theme-sprites";
@@ -232,11 +232,11 @@ export class SpriteSystem {
       frag
     );
 
-    const domReady = waitForDOMContentLoaded();
+    const domReady = waitForShadowDOMContentLoaded();
 
     Promise.all([domReady]).then(() => {
       for (const [spritesheetPng, type] of [[spritesheetActionPng, "action"], [spritesheetNoticePng, "notice"]]) {
-        Promise.all([createImageTexture(spritesheetPng, getThemeColorShifter(type)), waitForDOMContentLoaded()]).then(
+        Promise.all([createImageTexture(spritesheetPng, getThemeColorShifter(type)), waitForShadowDOMContentLoaded()]).then(
           ([[spritesheetTexture]]) => {
             const material = new THREE.RawShaderMaterial({
               uniforms: {

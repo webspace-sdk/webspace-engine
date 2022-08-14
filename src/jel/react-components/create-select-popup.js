@@ -2,10 +2,10 @@ import PropTypes from "prop-types";
 import React, { forwardRef } from "react";
 import ReactDOM from "react-dom";
 import CreateSelect from "./create-select";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 // Note that we can't use slide-down-when-popped transition
 // since it causes positioning artifacts in rc-select

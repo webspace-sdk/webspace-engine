@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupPanelMenu from "./popup-panel-menu";
 import PanelSectionHeader from "./panel-section-header";
 import NotificationRequestPanel from "./notification-request-panel";
@@ -10,7 +10,7 @@ import { PanelWrap, checkboxControlFor } from "./form-components";
 import { hubSettingsForHubId } from "../utils/membership-utils";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 const HubNotificationsPopup = ({ setPopperElement, styles, attributes, subscriptions, hubSettings, hub, children }) => {
   const { accountChannel } = window.APP;

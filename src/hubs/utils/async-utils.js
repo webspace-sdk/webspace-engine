@@ -4,7 +4,7 @@ export const waitForEvent = function(eventName, eventObj) {
   });
 };
 
-export const waitForDOMContentLoaded = function() {
+export const waitForShadowDOMContentLoaded = function() {
   if (window.DOM_ROOT?._ready) {
     return Promise.resolve(null);
   } else {

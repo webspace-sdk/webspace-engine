@@ -1,4 +1,4 @@
-import { waitForDOMContentLoaded } from "./async-utils";
+import { waitForShadowDOMContentLoaded } from "./async-utils";
 import "./configs";
 
 // Node these should be synchronized with the top of shared.scss
@@ -24,7 +24,7 @@ function getThemeColor(name) {
   return DEFAULT_COLORS[name];
 }
 
-waitForDOMContentLoaded().then(() => {
+waitForShadowDOMContentLoaded().then(() => {
   const actionColor = getThemeColor("action-color");
   const actionHoverColor = getThemeColor("action-color-highlight");
 

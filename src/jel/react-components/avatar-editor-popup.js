@@ -3,11 +3,11 @@ import ReactDOM from "react-dom";
 import styled from "styled-components";
 import PropTypes from "prop-types";
 import ColorPicker, { rgbToPickerValue } from "./color-picker";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupPanelMenu from "./popup-panel-menu";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 const PickerWrap = styled.div`
   width: 128px;

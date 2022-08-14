@@ -2,7 +2,7 @@ import Pako from "pako";
 import { CONSTANTS } from "three-ammo";
 import { protocol } from "../protocol/protocol";
 import { createVoxelMaterial, Terrain, updateWorldColors, VOXEL_PALETTE_GRASS } from "../objects/terrain";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { VOXLoader } from "../objects/VOXLoader";
 import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
@@ -147,7 +147,7 @@ const decodeChunks = buffer => {
 
 export class TerrainSystem {
   constructor(scene, atmosphereSystem, cameraSystem) {
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.avatarPovEl = DOM_ROOT.getElementById("avatar-pov-node");
       this.viewingCameraEl = DOM_ROOT.getElementById("viewing-camera");
     });

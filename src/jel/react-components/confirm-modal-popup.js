@@ -3,10 +3,10 @@ import React, { forwardRef } from "react";
 import styled from "styled-components";
 import ReactDOM from "react-dom";
 import ConfirmModalPanel from "./confirm-modal-panel";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 // Extremely hacky modal overlay background
 // Modal is not centered so need 2x spillover

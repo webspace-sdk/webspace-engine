@@ -8,10 +8,10 @@ import PopupPanelMenu, {
   PopupPanelMenuSectionHeader,
   PopupPanelMenuMessage
 } from "./popup-panel-menu";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 const DeviceSelectorPopup = ({ scene, setPopperElement, styles, attributes, children, micDevices }) => {
   const [activeMicDeviceId, setSelectedMicDeviceId] = useState(null);

@@ -1,6 +1,6 @@
 import { getNetworkId, getNetworkedEntity } from "../utils/ownership-utils";
 import { MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { normalizeCoord, denormalizeCoord } from "./wrapped-entity-system";
 
 export const MAX_MEDIA_LAYER = 7;
@@ -30,7 +30,7 @@ export class MediaPresenceSystem {
     // far away, to minimize initial hitching when joining a world.
     this.distanceDelayedNetworkIds = new Set();
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.avatarPovEl = DOM_ROOT.querySelector("#avatar-pov-node");
     });
   }

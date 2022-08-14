@@ -25,7 +25,7 @@ import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
 import inviteIcon from "../../assets/jel/images/icons/invite.svgi";
 import trashIcon from "../../assets/jel/images/icons/trash.svgi";
 import { getMessages } from "../../hubs/utils/i18n";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import ReactDOM from "react-dom";
 import PopupPanel from "./popup-panel";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
@@ -231,7 +231,7 @@ const TrashSpill = styled.div`
 `;
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 function TrashMenu({ styles, attributes, setPopperElement, children }) {
   if (!popupRoot) return null;

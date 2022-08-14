@@ -19,7 +19,7 @@ import { InteractionSfxSystem } from "./interaction-sfx-system";
 import { SpriteSystem } from "./sprites";
 import { CameraSystem } from "./camera-system";
 import { CharacterControllerSystem } from "./character-controller-system";
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { CursorPoseTrackingSystem } from "./cursor-pose-tracking";
 import { ScaleInScreenSpaceSystem } from "./scale-in-screen-space";
 import { AudioSettingsSystem } from "./audio-settings-system";
@@ -51,7 +51,7 @@ import { UndoSystem } from "../../jel/systems/undo-system";
 
 AFRAME.registerSystem("hubs-systems", {
   init() {
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.DOMContentDidLoad = true;
     });
     this.cursorTogglingSystem = new CursorTogglingSystem();

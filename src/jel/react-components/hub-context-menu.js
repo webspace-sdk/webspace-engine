@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupMenu, { PopupMenuItem } from "./popup-menu";
 import trashIcon from "../../assets/jel/images/icons/trash.svgi";
 import WorldExporter from "../utils/world-exporter";
@@ -15,7 +15,7 @@ import { homeHubForSpaceId } from "../utils/membership-utils";
 const showPublishObjects = qsTruthy("show_publish");
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 function HubContextMenu({
   scene,

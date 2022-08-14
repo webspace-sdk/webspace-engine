@@ -1,4 +1,4 @@
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 
 export const offsetRelativeTo = (() => {
   const y = new THREE.Vector3(0, 1, 0);
@@ -152,7 +152,7 @@ AFRAME.registerComponent("offset-relative-to", {
   init() {
     this.updateOffset = this.updateOffset.bind(this);
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       if (this.data.on) {
         this.el.sceneEl.addEventListener(this.data.on, this.updateOffset);
       } else {

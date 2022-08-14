@@ -1,4 +1,4 @@
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { isMine } from "../../jel/utils/ownership-utils";
 
 const CAMERA_UPDATE_FRAME_DELAY = 10; // Update one camera every N'th frame
@@ -11,7 +11,7 @@ AFRAME.registerSystem("camera-tools", {
     this.ticks = 0;
     this.updateMyCamera = this.updateMyCamera.bind(this);
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       const playerModelEl = DOM_ROOT.querySelector("#avatar-rig .model");
       playerModelEl.addEventListener("model-loading", () => (this.playerHead = null));
       playerModelEl.addEventListener("model-loaded", this.updatePlayerHead.bind(this));

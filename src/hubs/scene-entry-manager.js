@@ -3,7 +3,7 @@ import nextTick from "./utils/next-tick";
 import { hackyMobileSafariTest } from "./utils/detect-touchscreen";
 import { ensureOwnership } from "./../jel/utils/ownership-utils";
 import { MEDIA_TEXT_COLOR_PRESETS } from "../jel/components/media-text";
-import { waitForDOMContentLoaded } from "./utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "./utils/async-utils";
 import { createVox } from "./utils/phoenix-utils";
 import WorldExporter from "../jel/utils/world-exporter";
 import { switchCurrentHubToWorldTemplate } from "../jel/utils/template-utils";
@@ -49,7 +49,7 @@ export default class SceneEntryManager {
     this.performConditionalSignIn = () => {};
     this.history = history;
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.scene = DOM_ROOT.querySelector("a-scene");
       this.rightCursorController = DOM_ROOT.getElementById("right-cursor-controller");
       this.leftCursorController = DOM_ROOT.getElementById("left-cursor-controller");
@@ -91,7 +91,7 @@ export default class SceneEntryManager {
     this.scene.classList.remove("hand-cursor");
     this.scene.classList.add("no-cursor");
 
-    await waitForDOMContentLoaded();
+    await waitForShadowDOMContentLoaded();
     this._entered = true;
 
     // Delay sending entry event telemetry until VR display is presenting.

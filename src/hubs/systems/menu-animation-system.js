@@ -1,4 +1,4 @@
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { elasticOut } from "../utils/easing";
 const MENU_ANIMATION_DURATION_MS = 750;
 export class MenuAnimationSystem {
@@ -6,7 +6,7 @@ export class MenuAnimationSystem {
     this.components = [];
     this.data = new Map();
     this.tick = this.tick.bind(this);
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.viewingCameraEl = DOM_ROOT.getElementById("viewing-camera");
     });
   }

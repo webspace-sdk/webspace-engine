@@ -1,14 +1,14 @@
 import React, { useState, useCallback, useEffect } from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupPanelMenu from "./popup-panel-menu";
 import PanelSectionHeader from "./panel-section-header";
 import { FormattedMessage } from "react-intl";
 import { PanelWrap, checkboxControlFor } from "./form-components";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 const HubPermissionsPopup = ({ setPopperElement, styles, attributes, hubMetadata, hub, children }) => {
   const [allowEditing, setAllowEditing] = useState(false);

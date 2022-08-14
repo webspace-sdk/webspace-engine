@@ -1,5 +1,5 @@
 import { paths } from "./userinput/paths";
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { canMove, canCloneOrSnapshot } from "../utils/permissions-utils";
 import { isTagged } from "../components/tags";
 import { isSynchronized, isMine } from "../../jel/utils/ownership-utils";
@@ -237,7 +237,7 @@ AFRAME.registerSystem("interaction", {
       this.previousState.rightRemote
     ];
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.options.leftHand.entity = DOM_ROOT.getElementById("player-left-controller");
       this.options.rightHand.entity = DOM_ROOT.getElementById("player-right-controller");
       this.options.rightRemote.entity = DOM_ROOT.getElementById("right-cursor");

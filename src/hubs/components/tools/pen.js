@@ -7,7 +7,7 @@ import {
   SOUND_PEN_UNDO_DRAW,
   SOUND_PEN_CHANGE_COLOR
 } from "../../systems/sound-effects-system";
-import { waitForDOMContentLoaded } from "../../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../utils/async-utils";
 import MobileStandardMaterial from "../../materials/MobileStandardMaterial";
 
 const pathsMap = {
@@ -159,7 +159,7 @@ AFRAME.registerComponent("pen", {
     // TODO: Use the MutationRecords passed into the callback function to determine added/removed nodes!
     this.observer = new MutationObserver(this.setDirty);
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       const scene = DOM_ROOT.querySelector("a-scene");
       this.observer.observe(scene, { childList: true, attributes: true, subtree: true });
       scene.addEventListener("object3dset", this.setDirty);

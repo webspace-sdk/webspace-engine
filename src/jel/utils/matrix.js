@@ -1,5 +1,5 @@
 import { EventTarget } from "event-target-shim";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { getReticulumFetchUrl } from "../../hubs/utils/phoenix-utils";
 import { ATOM_NOTIFICATION_TYPES } from "./atom-metadata";
 import { getMessages } from "../../hubs/utils/i18n";
@@ -134,7 +134,7 @@ export default class Matrix extends EventTarget {
     console.log("Logged into matrix as", userId);
 
     // Set up neon in iframe
-    await waitForDOMContentLoaded();
+    await waitForShadowDOMContentLoaded();
 
     this.neon = DOM_ROOT.getElementById("neon");
 
@@ -145,7 +145,7 @@ export default class Matrix extends EventTarget {
       neon.setAttribute("src", "/neon");
     });
 
-    await waitForDOMContentLoaded(neon.contentDocument, neon.contentWindow);
+    await waitForShadowDOMContentLoaded(neon.contentDocument, neon.contentWindow);
 
     const res = new Promise((res, rej) => {
       // Inner client calls this and passes matrix client.

@@ -1,7 +1,7 @@
 import React, { useRef, useState, useCallback } from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupPanelMenu from "./popup-panel-menu";
 import editIcon from "../../assets/jel/images/icons/edit.svgi";
 import checkIcon from "../../assets/jel/images/icons/check-big.svgi";
@@ -22,7 +22,7 @@ import {
 } from "./form-components";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 const ProfileEditorPopup = ({ setPopperElement, styles, attributes, children, onNameEditSaved, scene, sessionId }) => {
   const messages = getMessages();

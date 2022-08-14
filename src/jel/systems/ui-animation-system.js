@@ -1,5 +1,5 @@
 import BezierEasing from "bezier-easing";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import qsTruthy from "../../hubs/utils/qs_truthy";
 
 const skipPanels = qsTruthy("skip_panels");
@@ -24,7 +24,7 @@ const panelExpandStep = BezierEasing(0.12, 0.98, 0.18, 0.98);
 export class UIAnimationSystem {
   constructor(sceneEl) {
     this.sceneEl = sceneEl;
-    waitForDOMContentLoaded().then(() => (this.neon = DOM_ROOT.querySelector("#neon")));
+    waitForShadowDOMContentLoaded().then(() => (this.neon = DOM_ROOT.querySelector("#neon")));
 
     this.lastTickT = 0;
     this.panelExpansionState = PANEL_EXPANSION_STATES.EXPANDING;
@@ -56,7 +56,7 @@ export class UIAnimationSystem {
 
     document.addEventListener("visibilitychange", layoutOnFocus);
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       // Initialize nav and presence width CSS vars to stored state.
       UI.style.setProperty("--nav-width", `${this.targetSceneLeft}px`);
       UI.style.setProperty("--presence-width", `${this.targetSceneRight}px`);

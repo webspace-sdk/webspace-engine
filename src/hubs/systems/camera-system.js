@@ -1,4 +1,4 @@
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { childMatch, setMatrixWorld, calculateViewingDistance } from "../utils/three-utils";
 import { shouldOrbitOnInspect } from "../utils/media-utils";
 import { paths } from "./userinput/paths";
@@ -137,7 +137,7 @@ export class CameraSystem extends EventTarget {
     this.inspectingWithEphemeralBuildEnabled = false;
     this.snapshot = { audioTransform: new THREE.Matrix4(), matrixWorld: new THREE.Matrix4(), mask: null, mode: null };
     this.audioListenerTargetTransform = new THREE.Matrix4();
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.avatarPOV = DOM_ROOT.getElementById("avatar-pov-node");
       this.avatarRig = DOM_ROOT.getElementById("avatar-rig");
       this.viewingCamera = DOM_ROOT.getElementById("viewing-camera");

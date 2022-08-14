@@ -3,10 +3,10 @@ import React, { forwardRef, useCallback } from "react";
 import { ATOM_TYPES } from "../utils/atom-metadata";
 import ReactDOM from "react-dom";
 import NameInputPanel from "./name-input-panel";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 const RenamePopup = forwardRef(({ styles, attributes, atomMetadata, setPopperElement, atomId }, ref) => {
   const { spaceChannel, accountChannel, dynaChannel } = window.APP;

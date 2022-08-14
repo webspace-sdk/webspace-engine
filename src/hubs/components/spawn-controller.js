@@ -1,5 +1,5 @@
 import { getLastWorldPosition } from "../utils/three-utils";
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 
 /**
  * Used on a avatar-rig to move the avatar to a random spawn point on entry.
@@ -16,7 +16,7 @@ AFRAME.registerComponent("spawn-controller", {
   init() {
     this.moveToSpawnPoint = this.moveToSpawnPoint.bind(this);
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.data.target.addEventListener(this.data.loadedEvent, this.moveToSpawnPoint);
     });
   },

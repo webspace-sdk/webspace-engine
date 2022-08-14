@@ -2,7 +2,7 @@ import React, { useState, forwardRef } from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import styled from "styled-components";
 import PopupPanelMenu from "./popup-panel-menu";
 import SmallActionButton from "./small-action-button";
@@ -13,7 +13,7 @@ import { getMessages } from "../../hubs/utils/i18n";
 import { PanelWrap, Info, Tip, Label, TextInputWrap, InputWrap, Input, Checkbox } from "./form-components";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 const Footer = styled.div`
   width: 100%;

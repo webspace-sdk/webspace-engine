@@ -1,5 +1,5 @@
 import { paths } from "./userinput/paths";
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { isTagged } from "../components/tags";
 import { hackyMobileSafariTest } from "../utils/detect-touchscreen";
 
@@ -14,7 +14,7 @@ export class CursorTogglingSystem {
     this.wakeLeft = false;
     this.wakeRight = false;
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.domContentLoadedButComponentsMayNotHave = true;
     });
   }

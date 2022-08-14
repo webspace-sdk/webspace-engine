@@ -1,10 +1,10 @@
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import CubeSSAOPass from "../effects/cube-ssao";
 
 AFRAME.registerSystem("effects", {
   init: function() {
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.viewingCameraEl = DOM_ROOT.getElementById("viewing-camera");
     });
 

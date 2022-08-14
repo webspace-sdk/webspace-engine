@@ -192,7 +192,7 @@ const waitForEvent = function(eventName, eventObj) {
   });
 };
 
-const waitForDOMContentLoaded = function() {
+const waitForShadowDOMContentLoaded = function() {
   if (document.readyState === "complete" || document.readyState === "loaded" || document.readyState === "interactive") {
     return Promise.resolve(null);
   } else {
@@ -200,7 +200,7 @@ const waitForDOMContentLoaded = function() {
   }
 };
 
-waitForDOMContentLoaded().then(() => {
+waitForShadowDOMContentLoaded().then(() => {
   ZoomMtg.setZoomJSLib("https://assets.jel.app/static/zoomsdk");
   ZoomMtg.preLoadWasm();
   ZoomMtg.prepareJssdk();

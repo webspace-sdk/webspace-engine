@@ -3,7 +3,7 @@ import { sets } from "../systems/userinput/sets";
 import { almostEqualVec3, getLastWorldPosition } from "../utils/three-utils";
 import { RENDER_ORDER } from "../constants";
 import { isLockedMedia } from "../utils/media-utils";
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 
 const HIGHLIGHT = new THREE.Color(0, 0xec / 255, 0xff / 255);
 const NO_HIGHLIGHT = new THREE.Color(0.15, 0.15, 0.15);
@@ -40,7 +40,7 @@ AFRAME.registerComponent("cursor-controller", {
     this.distance = this.data.far;
     this.color = new THREE.Color(0, 0, 0);
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.cssGazeCursor = DOM_ROOT.querySelector("#gaze-cursor .cursor");
       this.lastCssGazeCursorOffset = Infinity;
       this.lastCssGazeCursorScale = Infinity;

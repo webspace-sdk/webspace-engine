@@ -2,10 +2,10 @@ import PropTypes from "prop-types";
 import React, { forwardRef } from "react";
 import ReactDOM from "react-dom";
 import ChatInputPanel from "./chat-input-panel";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 const ChatInputPopup = forwardRef(
   ({ styles, attributes, setPopperElement, onMessageEntered, onEntryComplete }, ref) => {

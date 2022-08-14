@@ -1,6 +1,6 @@
 import { paths } from "../../hubs/systems/userinput/paths";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "../../jel/utils/dom-utils";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { SOUND_EMOJI_EQUIP } from "../../hubs/systems/sound-effects-system";
 import { sets } from "../../hubs/systems/userinput/sets";
 import { EventTarget } from "event-target-shim";
@@ -32,7 +32,7 @@ export class LauncherSystem extends EventTarget {
     this.deltaWheel = 0.0;
     this.sawLeftButtonUpWithShift = false;
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.avatarPovEl = DOM_ROOT.querySelector("#avatar-pov-node");
     });
 

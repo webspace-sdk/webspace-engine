@@ -1,4 +1,4 @@
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { almostEqualVec3 } from "../../hubs/utils/three-utils";
 
 const tmpAvatarPos = new THREE.Vector3();
@@ -11,7 +11,7 @@ AFRAME.registerComponent("pinned-to-self", {
     this.avatarPovNode = null;
     this.previousBodyType = null;
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.avatarPovNode = DOM_ROOT.querySelector("#avatar-pov-node");
     });
   },

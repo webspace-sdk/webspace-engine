@@ -1,9 +1,9 @@
 import { ScenePreviewCameraSystem } from "./scene-preview-camera-system";
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 
 AFRAME.registerSystem("scene-systems", {
   init() {
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.DOMContentDidLoad = true;
     });
     this.scenePreviewCameraSystem = new ScenePreviewCameraSystem();

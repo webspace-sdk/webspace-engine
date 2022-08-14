@@ -2,7 +2,7 @@
 import { WORLD_SIZE, WORLD_MIN_COORD, WORLD_MAX_COORD } from "./terrain-system";
 import { Terrain } from "../objects/terrain";
 const MAX_AVATAR_DISTANCE_TO_ALLOW_SCHEDULED_WRAP = 5;
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 // This code is used to wrap objects around in world space, to simulate the experience of walking
 // around a planet.
@@ -91,7 +91,7 @@ export class WrappedEntitySystem {
     this.forceWrapNextFrameObjs = [];
     this.handleOwnershipChanged = this.handleOwnershipChanged.bind(this);
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.avatarPovEl = DOM_ROOT.getElementById("avatar-pov-node");
       this.avatarRigEl = DOM_ROOT.getElementById("avatar-rig");
     });

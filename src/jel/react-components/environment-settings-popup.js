@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupPanelMenu from "./popup-panel-menu";
 import PanelSectionHeader from "./panel-section-header";
 import Tooltip from "./tooltip";
@@ -27,7 +27,7 @@ const metadata = new AtomMetadata(ATOM_TYPES.HUB);
 metadata._metadata.set("abc123", { roles: { space: "viewer" } });
 
 let popupRoot = null;
-waitForDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 const Swatch = styled.button`
   width: 32px;

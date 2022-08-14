@@ -1,5 +1,5 @@
 import { getLastWorldPosition } from "../utils/three-utils";
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { isMine } from "../../jel/utils/ownership-utils";
 
 const isMobile = AFRAME.utils.device.isMobile();
@@ -24,7 +24,7 @@ AFRAME.registerComponent("visibility-while-frozen", {
     this.camWorldPos = new THREE.Vector3();
     this.objWorldPos = new THREE.Vector3();
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.cameraEl = DOM_ROOT.getElementById("viewing-camera");
       this.updateVisibility();
     });

@@ -1,4 +1,4 @@
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import Sky from "../objects/sky";
 import Water from "../objects/water";
 import { Layers } from "../../hubs/components/layers";
@@ -21,7 +21,7 @@ export class AtmosphereSystem {
     this.effectsSystem = sceneEl.systems["effects"];
     this.soundEffectsSystem = soundEffectsSystem;
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.avatarPovEl = DOM_ROOT.getElementById("avatar-pov-node");
       this.viewingCameraEl = DOM_ROOT.getElementById("viewing-camera");
     });

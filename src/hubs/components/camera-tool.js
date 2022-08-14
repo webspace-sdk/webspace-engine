@@ -7,11 +7,11 @@ import { SOUND_CAMERA_TOOL_TOOK_SNAPSHOT, SOUND_CAMERA_TOOL_COUNTDOWN } from "..
 import { getAudioFeedbackScale } from "./audio-feedback";
 import { cloneObject3D } from "../utils/three-utils";
 import { loadModel } from "./gltf-model-plus";
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import cameraModelSrc from "../../assets/hubs/camera_tool.glb";
 import anime from "animejs";
 
-const cameraModelPromise = waitForDOMContentLoaded().then(() => loadModel(cameraModelSrc));
+const cameraModelPromise = waitForShadowDOMContentLoaded().then(() => loadModel(cameraModelSrc));
 
 const pathsMap = {
   "player-right-controller": {
@@ -239,7 +239,7 @@ AFRAME.registerComponent("camera-tool", {
       this.cameraSystem = this.el.sceneEl.systems["camera-tools"];
       this.cameraSystem.register(this.el);
 
-      waitForDOMContentLoaded().then(() => {
+      waitForShadowDOMContentLoaded().then(() => {
         this.playerCamera = DOM_ROOT.getElementById("viewing-camera").getObject3D("camera");
       });
     });

@@ -1,4 +1,4 @@
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 
 const noop = function() {};
 AFRAME.registerComponent("overwrite-raycast-as-noop", {
@@ -28,7 +28,7 @@ export class CursorTargettingSystem {
     // TODO: Use the MutationRecords passed into the callback function to determine added/removed nodes!
     this.observer = new MutationObserver(this.setDirty);
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       const scene = DOM_ROOT.querySelector("a-scene");
       this.rightRemote = DOM_ROOT.getElementById("right-cursor-controller");
       this.leftRemote = DOM_ROOT.getElementById("left-cursor-controller");

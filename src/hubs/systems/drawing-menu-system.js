@@ -1,4 +1,4 @@
-import { waitForDOMContentLoaded } from "../utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { SOUND_PEN_UNDO_DRAW } from "./sound-effects-system";
 import { isMine, takeOwnership } from "../../jel/utils/ownership-utils";
 
@@ -22,7 +22,7 @@ export class DrawingMenuSystem {
     this.drawingMenus = [];
     this.buttonMap = {};
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.cursorControllers = DOM_ROOT.querySelectorAll("[cursor-controller]");
       this.camera = this.sceneEl.querySelector("#avatar-pov-node");
     });

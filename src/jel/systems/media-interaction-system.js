@@ -11,7 +11,7 @@ import {
 import { GUIDE_PLANE_MODES } from "./helpers-system";
 import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
 import { canCloneOrSnapshot } from "../../hubs/utils/permissions-utils";
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { ensureOwnership, getNetworkedEntitySync, isSynchronized } from "../../jel/utils/ownership-utils";
 import { getSpawnInFrontZOffsetForEntity } from "../../hubs/utils/three-utils";
 import { cursorIsVisible } from "../utils/dom-utils";
@@ -32,7 +32,7 @@ export class MediaInteractionSystem {
     this.lastRemoveActionTarget = null;
     this.soundEffectsSystem = soundEffectsSystem;
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.rightHand = DOM_ROOT.getElementById("player-right-controller");
     });
   }

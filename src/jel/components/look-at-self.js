@@ -1,4 +1,4 @@
-import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { almostEqualQuaternion } from "../../hubs/utils/three-utils";
 
 const fromQuaternion = new THREE.Quaternion();
@@ -15,7 +15,7 @@ AFRAME.registerComponent("look-at-self", {
     this.bodyHelper = null;
     this.avatarPovNode = null;
 
-    waitForDOMContentLoaded().then(() => {
+    waitForShadowDOMContentLoaded().then(() => {
       this.avatarPovNode = DOM_ROOT.querySelector("#avatar-pov-node");
     });
   },
