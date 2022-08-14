@@ -160,7 +160,6 @@ import "./jel/systems/wrapped-entity-system";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
 import { getIsWindowAtScreenEdges, isInEditableField } from "./jel/utils/dom-utils";
 import { resetTemplate } from "./jel/utils/template-utils";
-import retargetShadowEvents from "react-shadow-dom-retarget-events";
 
 import "./hubs/gltf-component-mappings";
 
@@ -1083,14 +1082,10 @@ async function start() {
 
   const sceneReady = new Promise(r => tmp.children[0].addEventListener("nodeready", r, { once: true }));
   DOM_ROOT.appendChild(tmp.children[0]);
+  window.UI = DOM_ROOT.getElementById("jel-ui");
 
   await sceneReady;
   DOM_ROOT._ready = true;
-  window.UI = DOM_ROOT.getElementById("jel-ui");
-
-  // Jel assumes the userinput keyboard system consumes key events first,
-  // so wire up the retargeting after in case it cancels.
-  retargetShadowEvents(DOM_ROOT);
 
   document.dispatchEvent(new CustomEvent("shadow-root-ready"));
 
