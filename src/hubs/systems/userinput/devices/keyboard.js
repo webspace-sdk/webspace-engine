@@ -16,7 +16,9 @@ export class KeyboardDevice {
     this.events = [];
 
     ["keydown", "keyup"].forEach(x =>
-      [DOM_ROOT, UI].forEach(dom => {
+      // React handles events at UI dom node, so capture there
+      // Otherwise capture at root
+      [document, UI].forEach(dom => {
         dom.addEventListener(x, e => {
           if (!e.key) return;
           let pushEvent = true;
@@ -85,39 +87,11 @@ export class KeyboardDevice {
             if (isInEditableField()) {
               canvas.focus();
               e.preventDefault();
+              e.stopPropagation(); // To prevent double prcess
             } else {
               // On ESC, show panels if necessary when in unlocked cursor mode.
               if (getCursorLockState() === CURSOR_LOCK_STATES.UNLOCKED_PERSISTENT) {
                 SYSTEMS.uiAnimationSystem.expandSidePanels();
-              }
-            }
-          }
-
-          // Handle spacebar widen here since input system can't differentiate with and without modifier key held, and deal with repeats
-          if (e.type === "keydown" && e.key === " " && !e.repeat) {
-            if (!e.altKey && !e.metaKey) {
-              if (e.ctrlKey && !isInEditableField()) {
-                const interaction = AFRAME.scenes[0].systems.interaction;
-
-                // Ignore widen when holding, since this is used for snapping.
-                const held =
-                  interaction.state.leftHand.held ||
-                  interaction.state.rightHand.held ||
-                  interaction.state.rightRemote.held ||
-                  interaction.state.leftRemote.held;
-
-                if (!held) {
-                  const cursorLockState = getCursorLockState();
-
-                  // Shift+Space widen
-                  if (cursorLockState !== CURSOR_LOCK_STATES.LOCKED_PERSISTENT) {
-                    beginPersistentCursorLock();
-                  } else {
-                    endCursorLock();
-                  }
-
-                  e.preventDefault();
-                }
               }
             }
           }
@@ -131,12 +105,16 @@ export class KeyboardDevice {
                 store.handleActivityFlag("chat");
                 e.preventDefault();
               } else {
-                // If space is entered while inside of chat message entry input, and it's empty, blur it.
+                // If enter is entered while inside of chat message entry input, and it's empty, blur it.
                 const el = DOM_ROOT.activeElement;
 
                 if (el.classList.contains("blur-on-empty-space") && el.value === "") {
                   canvas.focus();
+                  console.log(document.activeElement, DOM_ROOT.activeElement);
                   e.preventDefault();
+
+                  // This is needed to prevent enter being proceseed twice and toggling.
+                  e.stopPropagation();
                 }
               }
             }
@@ -153,11 +131,12 @@ export class KeyboardDevice {
               canvas.focus();
               pushEvent = false; // Prevent primary action this tick if cursor still over 3d text page
               e.preventDefault();
+              e.stopPropagation(); // Prevent double process
             } else if (SYSTEMS.cameraSystem.isInspecting() && !isInEditableField()) {
               // HACK if we uninspect this tick the media interaction system will run thinking
               // inspection wasn't happening, and will re-trigger.
               setTimeout(() => SYSTEMS.cameraSystem.uninspect(), 25);
-            } else if (getCursorLockState() === CURSOR_LOCK_STATES.UNLOCKED_PERSISTENT) {
+            } else if (!isInEditableField() && getCursorLockState() === CURSOR_LOCK_STATES.UNLOCKED_PERSISTENT) {
               const interaction = AFRAME.scenes[0].systems.interaction;
 
               const hovered =
@@ -190,6 +169,7 @@ export class KeyboardDevice {
             canvas.focus();
             pushEvent = false; // Prevent primary action this tick if cursor still over 3d text page
             e.preventDefault();
+            e.stopPropagation(); // Preven double process
           }
 
           // Block browser hotkeys for chat command, media browser and freeze

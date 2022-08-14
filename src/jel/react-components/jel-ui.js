@@ -111,7 +111,7 @@ const LeftExpandTrigger = styled.div`
   font-size: var(--panel-text-size);
   color: var(--panel-banner-text-color);
   font-weight: var(--panel-text-weight);
-  z-index: 3;
+  z-index: 4;
   cursor: pointer;
   display: none;
 
@@ -131,7 +131,7 @@ const RightExpandTrigger = styled.div`
   font-size: var(--panel-text-size);
   color: var(--panel-banner-text-color);
   font-weight: var(--panel-text-weight);
-  z-index: 3;
+  z-index: 4;
   cursor: pointer;
   display: none;
 
@@ -151,7 +151,7 @@ const BottomExpandTrigger = styled.div`
   font-size: var(--panel-text-size);
   color: var(--panel-banner-text-color);
   font-weight: var(--panel-text-weight);
-  z-index: 3;
+  z-index: 4;
   cursor: pointer;
   display: none;
 `;
