@@ -180,7 +180,7 @@ function RightPanel({
         builderSystem.toggle();
       }
 
-      document.activeElement.blur(); // Focuses canvas
+      DOM_ROOT.activeElement?.blur(); // Focuses canvas
     },
     [builderSystem, launcherSystem]
   );

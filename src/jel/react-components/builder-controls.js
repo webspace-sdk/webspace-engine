@@ -122,21 +122,21 @@ const BuilderControls = forwardRef((props, ref) => {
   const onToolChanged = useCallback(
     (id, idx) => {
       builderSystem.setBrushType(idx);
-      document.activeElement.blur(); // focuses canvas
+      DOM_ROOT.activeElement?.blur(); // focuses canvas
     },
     [builderSystem]
   );
   const onModeChanged = useCallback(
     (id, idx) => {
       builderSystem.setBrushMode(idx);
-      document.activeElement.blur(); // focuses canvas
+      DOM_ROOT.activeElement?.blur(); // focuses canvas
     },
     [builderSystem]
   );
   const onShapeChanged = useCallback(
     (id, idx) => {
       builderSystem.setBrushShape(idx);
-      document.activeElement.blur(); // focuses canvas
+      DOM_ROOT.activeElement?.blur(); // focuses canvas
     },
     [builderSystem]
   );
@@ -149,28 +149,28 @@ const BuilderControls = forwardRef((props, ref) => {
       } else if (idx === 2) {
         builderSystem.toggleMirrorZ();
       }
-      document.activeElement.blur();
+      DOM_ROOT.activeElement?.blur();
     },
     [builderSystem]
   );
   const onCrawlTypeChanged = useCallback(
     (id, idx) => {
       builderSystem.setBrushCrawlType(idx);
-      document.activeElement.blur(); // focuses canvas
+      DOM_ROOT.activeElement?.blur(); // focuses canvas
     },
     [builderSystem]
   );
   const onCrawlExtentsChanged = useCallback(
     (id, idx) => {
       builderSystem.setBrushCrawlExtents(idx);
-      document.activeElement.blur(); // focuses canvas
+      DOM_ROOT.activeElement?.blur(); // focuses canvas
     },
     [builderSystem]
   );
   const onColorFillModeChanged = useCallback(
     (id, idx) => {
       builderSystem.setBrushColorFillMode(idx);
-      document.activeElement.blur(); // focuses canvas
+      DOM_ROOT.activeElement?.blur(); // focuses canvas
     },
     [builderSystem]
   );

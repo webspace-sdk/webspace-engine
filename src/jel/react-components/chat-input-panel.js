@@ -18,7 +18,7 @@ const ChatInputPanel = forwardRef((props, ref) => {
           onSubmit={e => {
             e.preventDefault();
             e.stopPropagation();
-            document.activeElement.blur(); // This causes this element to hide via CSS
+            DOM_ROOT.activeElement?.blur(); // This causes this element to hide via CSS
             if (message !== "") {
               onMessageEntered(message);
               onEntryComplete();

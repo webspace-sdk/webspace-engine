@@ -13,12 +13,12 @@ export class PasteSystem {
     if (
       target &&
       (target.matches("input, textarea") || target.contentEditable === "true") &&
-      document.activeElement === target
+      DOM_ROOT.activeElement === target
     )
       return;
 
     // Quill editor
-    if (document.activeElement && document.activeElement.classList.contains("ql-clipboard")) return;
+    if (DOM_ROOT.activeElement && DOM_ROOT.activeElement?.classList.contains("ql-clipboard")) return;
 
     const html = clipboardData.getData("text/html");
     const text = clipboardData.getData("text/plain");

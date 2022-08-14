@@ -557,7 +557,7 @@ function LeftPanel({
 
               // Blur so tree hides. This is important because we will re-load
               // the trash tree next time user clicks.
-              document.activeElement.blur();
+              DOM_ROOT.activeElement?.blur();
             },
             [history, hubMetadata, spaceChannel]
           )}

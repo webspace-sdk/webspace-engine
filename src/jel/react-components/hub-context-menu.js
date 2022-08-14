@@ -195,7 +195,7 @@ function HubContextMenu({
 
           spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
           // Blur button so menu hides
-          document.activeElement.blur();
+          DOM_ROOT.activeElement?.blur();
           e.preventDefault();
           e.stopPropagation();
         }}

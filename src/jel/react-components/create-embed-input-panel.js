@@ -118,7 +118,7 @@ const CreateEmbedInputPanel = forwardRef((props, ref) => {
         onURLEntered(url);
       }
 
-      document.activeElement.blur(); // This causes this element to hide via CSS
+      DOM_ROOT.activeElement?.blur(); // This causes this element to hide via CSS
     },
     [url, onURLEntered]
   );

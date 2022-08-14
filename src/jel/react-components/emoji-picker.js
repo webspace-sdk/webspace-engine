@@ -374,7 +374,7 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
               onSubmit={e => {
                 e.preventDefault();
                 e.stopPropagation();
-                document.activeElement.blur(); // This causes this element to hide via CSS
+                DOM_ROOT.activeElement?.blur(); // This causes this element to hide via CSS
 
                 if (currentEmoji) {
                   onEmojiSelected(currentEmoji);
@@ -445,7 +445,7 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
               className={`emoji-map ${item ? `emoji-${item.name}` : ""}`}
               onClick={() => {
                 onEmojiSelected(item);
-                document.activeElement.blur();
+                DOM_ROOT.activeElement?.blur();
               }}
               onMouseEnter={() => {
                 setPlaceholder(item.shortname);

@@ -327,7 +327,7 @@ const EmojiEquip = forwardRef(({ scene, centerPopupRef }, ref) => {
                   onMouseUp={() => setIsClicking(false)}
                   onClick={() => {
                     store.update({ equips: { launcher: emojis[idx].emoji } });
-                    document.activeElement.blur(); // Focuses canvas
+                    DOM_ROOT.activeElement?.blur(); // Focuses canvas
                   }}
                 >
                   <img crossOrigin="anonymous" src={emojis[idx].imageUrl} />

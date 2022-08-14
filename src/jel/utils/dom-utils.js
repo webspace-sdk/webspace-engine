@@ -2,19 +2,21 @@ const editableTagNames = ["TEXTAREA", "INPUT"];
 import { paths } from "../../hubs/systems/userinput/paths";
 
 export const isInEditableField = () =>
-  editableTagNames.includes(document.activeElement && document.activeElement.nodeName) ||
-  (document.activeElement &&
-    (document.activeElement.contentEditable === "true" ||
+  editableTagNames.includes(DOM_ROOT.activeElement && DOM_ROOT.activeElement.nodeName) ||
+  !!(
+    DOM_ROOT.activeElement &&
+    (DOM_ROOT.activeElement.contentEditable === "true" ||
       // Hacky, include emoji selector
-      (document.activeElement.parentElement &&
-        document.activeElement.parentElement.parentElement &&
-        document.activeElement.parentElement.parentElement.classList.contains("emoji_completions"))));
+      (DOM_ROOT.activeElement.parentElement &&
+        DOM_ROOT.activeElement.parentElement.parentElement &&
+        DOM_ROOT.activeElement.parentElement.parentElement.classList.contains("emoji_completions")))
+  );
 
 export const isFocusedWithin = el => {
   let isFocusedWithin = false;
-  let focusedEl = document.activeElement;
+  let focusedEl = DOM_ROOT.activeElement;
 
-  while (focusedEl && focusedEl !== document.body) {
+  while (focusedEl && focusedEl !== null) {
     if (focusedEl === el) {
       isFocusedWithin = true;
       break;
@@ -28,7 +30,7 @@ export const isFocusedWithin = el => {
 
 export const toggleFocus = el => {
   if (isFocusedWithin(el)) {
-    document.activeElement.blur();
+    DOM_ROOT.activeElement?.blur();
   } else {
     el.focus();
   }

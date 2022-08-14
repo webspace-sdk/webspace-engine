@@ -623,7 +623,7 @@ const ColorEquip = () => {
 
                     setHoverSlots([]);
                     setClickStartSlot(null);
-                    document.activeElement.blur(); // focuses canvas
+                    DOM_ROOT.activeElement?.blur(); // focuses canvas
                   }}
                 />
               </Tooltip>

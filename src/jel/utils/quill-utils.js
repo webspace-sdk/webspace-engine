@@ -198,8 +198,7 @@ export function renderQuillToImg(
   img.src = `data:image/svg+xml;base64,${b64}`;
 }
 
-export const isInQuillEditor = () =>
-  !!(document.activeElement && document.activeElement.classList.contains("ql-editor"));
+export const isInQuillEditor = () => !!DOM_ROOT.activeElement?.classList.contains("ql-editor");
 
 export function computeQuillContectRect(quill) {
   const els = quill.container.querySelector(".ql-editor").children;

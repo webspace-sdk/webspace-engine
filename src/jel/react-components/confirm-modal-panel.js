@@ -132,7 +132,7 @@ const ConfirmModalPanel = forwardRef(({ atomId, atomMetadata }, ref) => {
         <ConfirmModalInfo>This action cannot be undone.</ConfirmModalInfo>
       </ConfirmModalBody>
       <ConfirmModalFooter>
-        <CancelLink onClick={useCallback(() => document.activeElement.blur(), [])} ref={ref}>
+        <CancelLink onClick={useCallback(() => DOM_ROOT.activeElement?.blur(), [])} ref={ref}>
           <FormattedMessage id="confirm-modal.cancel" />
         </CancelLink>
         <SmallActionButton
@@ -140,7 +140,7 @@ const ConfirmModalPanel = forwardRef(({ atomId, atomMetadata }, ref) => {
             () => {
               const roomId = window.APP.matrix.getChannelRoomId(atomId);
               window.APP.accountChannel.deleteChannelMatrixRoom(roomId);
-              document.activeElement.blur();
+              DOM_ROOT.activeElement?.blur();
             },
             [atomId]
           )}

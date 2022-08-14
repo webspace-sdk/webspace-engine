@@ -23,7 +23,7 @@ const NameInputPanel = forwardRef((props, ref) => {
 
   // If text field isn't focused, keep it up to date with metadata
   useNameUpdateFromMetadata(atomId, atomMetadata, null, rawName => {
-    if (ref && document.activeElement !== ref.current) {
+    if (ref && DOM_ROOT.activeElement !== ref.current) {
       setName(rawName || "");
     }
   });
@@ -37,7 +37,7 @@ const NameInputPanel = forwardRef((props, ref) => {
           onSubmit={e => {
             e.preventDefault();
             e.stopPropagation();
-            document.activeElement.blur(); // This causes this element to hide via CSS
+            DOM_ROOT.activeElement?.blur(); // This causes this element to hide via CSS
           }}
         >
           <FloatingTextElement

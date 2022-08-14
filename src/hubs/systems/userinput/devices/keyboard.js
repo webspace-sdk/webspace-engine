@@ -16,7 +16,7 @@ export class KeyboardDevice {
     this.events = [];
 
     ["keydown", "keyup"].map(x =>
-      document.addEventListener(x, e => {
+      DOM_ROOT.addEventListener(x, e => {
         if (!e.key) return;
         let pushEvent = true;
         if (!AFRAME.scenes[0]) return;
@@ -24,7 +24,7 @@ export class KeyboardDevice {
         const scene = AFRAME.scenes[0];
         const canvas = scene.canvas;
         const store = window.APP.store;
-        const isGameFocused = document.activeElement === canvas || document.activeElement === document.body;
+        const isGameFocused = DOM_ROOT.activeElement === canvas || DOM_ROOT.activeElement === null;
 
         // Prevent default on control key press *after* R to prevent reload during rotation/roll
         if (e.ctrlKey && e.type === "keydown" && this.codes.get("keyr")) {
@@ -131,7 +131,7 @@ export class KeyboardDevice {
               e.preventDefault();
             } else {
               // If space is entered while inside of chat message entry input, and it's empty, blur it.
-              const el = document.activeElement;
+              const el = DOM_ROOT.activeElement;
 
               if (el.classList.contains("blur-on-empty-space") && el.value === "") {
                 canvas.focus();
@@ -148,7 +148,7 @@ export class KeyboardDevice {
           if (isInQuillEditor()) {
             window.APP.store.handleActivityFlag("mediaTextEditClose");
             // Without this, quill grabs focus when others types
-            document.activeElement.parentElement.__quill.blur();
+            DOM_ROOT.activeElement.parentElement.__quill.blur();
             canvas.focus();
             pushEvent = false; // Prevent primary action this tick if cursor still over 3d text page
             e.preventDefault();
@@ -184,8 +184,7 @@ export class KeyboardDevice {
         if (
           e.type === "keydown" &&
           e.key === "/" &&
-          document.activeElement &&
-          document.activeElement.classList.contains("create-select-selection-search-input")
+          DOM_ROOT.activeElement?.classList.contains("create-select-selection-search-input")
         ) {
           canvas.focus();
           pushEvent = false; // Prevent primary action this tick if cursor still over 3d text page

@@ -784,7 +784,7 @@ function setupGameEnginePausing(scene) {
       if (SYSTEMS.videoBridgeSystem.isSettingUpBridge) return;
 
       // May be an iframe, don't pause in that case
-      if (document.activeElement.contentWindow && document.activeElement.contentWindow.document.hasFocus()) {
+      if (DOM_ROOT.activeElement?.contentWindow && DOM_ROOT.activeElement?.contentWindow.document.hasFocus()) {
         return;
       }
 
@@ -1044,7 +1044,6 @@ async function start() {
   mixpanel.track("Startup Start", {});
 
   window.DOM_ROOT = document.body.attachShadow({ mode: "open" });
-  retargetShadowEvents(DOM_ROOT);
   AFRAME.selectorRoot = window.DOM_ROOT;
   window.DOM_ROOT._ready = false;
 
@@ -1088,6 +1087,10 @@ async function start() {
   await sceneReady;
   DOM_ROOT._ready = true;
   window.UI = DOM_ROOT.getElementById("jel-ui");
+
+  // Jel assumes the userinput keyboard system consumes key events first,
+  // so wire up the retargeting after in case it cancels.
+  retargetShadowEvents(DOM_ROOT);
 
   document.dispatchEvent(new CustomEvent("shadow-root-ready"));
 
@@ -1156,7 +1159,7 @@ async function start() {
         if (!isInEditableField()) {
           canvas.focus();
         }
-      }, document.activeElement === document.body ? 0 : 3000);
+      }, DOM_ROOT.activeElement === null ? 0 : 3000);
     }
   });
 
@@ -1183,7 +1186,7 @@ async function start() {
 
     if (
       buttons === 0 && // No buttons
-      document.activeElement === canvas && // Over canvas
+      DOM_ROOT.activeElement === canvas && // Over canvas
       !held && // Not holding
       !SYSTEMS.cameraSystem.isInspecting() // Not Inspecting
     ) {

@@ -205,7 +205,7 @@ const CameraProjectionButton = forwardRef(() => {
         onClick={useCallback(
           () => {
             cameraSystem.toggleOrthoCamera();
-            document.activeElement.blur();
+            DOM_ROOT.activeElement?.blur();
           },
           [cameraSystem]
         )}
@@ -238,7 +238,7 @@ const ToggleWorldButton = forwardRef(() => {
         onClick={useCallback(
           () => {
             cameraSystem.toggleShowWorldWithCursor();
-            document.activeElement.blur();
+            DOM_ROOT.activeElement?.blur();
           },
           [cameraSystem]
         )}
@@ -271,7 +271,7 @@ const ToggleFloorButton = forwardRef(() => {
         onClick={useCallback(
           () => {
             cameraSystem.toggleShowFloor();
-            document.activeElement.blur();
+            DOM_ROOT.activeElement?.blur();
           },
           [cameraSystem]
         )}

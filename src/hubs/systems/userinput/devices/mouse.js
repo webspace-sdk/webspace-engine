@@ -48,7 +48,7 @@ export class MouseDevice {
       "wheel",
       e => {
         // Only capture wheel events if canvas is focused
-        if (document.activeElement.classList.contains("a-canvas")) {
+        if (DOM_ROOT.activeElement?.classList.contains("a-canvas")) {
           e.preventDefault();
         }
       },
