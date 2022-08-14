@@ -315,7 +315,7 @@ export default function ChatLog({ scene, hub, store, leftOffset }) {
   }
 
   return (
-    <ChatLogElement id="chat-log" ref={ref} style={leftOffset !== undefined ? { left: `${leftOffset}px` } : null}>
+    <ChatLogElement ref={ref} style={leftOffset !== undefined ? { left: `${leftOffset}px` } : null}>
       <TransitionGroup>{entryComponents}</TransitionGroup>
 
       <ChatLogLine id="chat-message-measure" style={{ visibility: "hidden" }} />
