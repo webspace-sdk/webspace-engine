@@ -3,7 +3,6 @@ import { ArrayBackedSet } from "../array-backed-set";
 import { isInEditableField } from "../../../../jel/utils/dom-utils";
 import { isInQuillEditor } from "../../../../jel/utils/quill-utils";
 import { isLockedMedia } from "../../../../hubs/utils/media-utils";
-import { beginPersistentCursorLock, endCursorLock } from "../../../../jel/utils/dom-utils";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "../../../../jel/utils/dom-utils";
 import { BRUSH_TYPES, BRUSH_MODES } from "../../../../jel/constants";
 
@@ -126,7 +125,7 @@ export class KeyboardDevice {
             if (isInQuillEditor()) {
               window.APP.store.handleActivityFlag("mediaTextEditClose");
               // Without this, quill grabs focus when others types
-              DOM_ROOT.activeElement.parentElement.__quill.blur();
+              DOM_ROOT.activeElement.parentElement.__quill.quill.blur();
               canvas.focus();
               pushEvent = false; // Prevent primary action this tick if cursor still over 3d text page
               e.preventDefault();

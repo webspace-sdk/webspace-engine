@@ -75,25 +75,28 @@ export function getQuill(networkId) {
   DOM_ROOT.querySelector("#jel-ui-wrap").appendChild(el);
   const messages = getMessages();
 
-  quills[networkId] = {
+  const quill = (quills[networkId] = {
     quill: new Quill(`#${id}-editor`, {
       modules: {
         /*
          * TODO highlighting - need to inline CSS
          * syntax: { highlight: c => hljs.highlightAuto(c).value }, */
-        toolbar,
-        "emoji-textarea": true,
-        "emoji-shortname": true
+        toolbar //,
+        //"emoji-textarea": true,
+        //"emoji-shortname": true
       },
       theme: "bubble",
       placeholder: messages["text-editor.placeholder"],
       container
     }),
     lastUpdated: performance.now()
-  };
+  });
 
   // Prevent cycling via tab
-  DOM_ROOT.querySelector(`#${id}-editor [contenteditable=true]`).tabIndex = -1;
+  const editor = DOM_ROOT.querySelector(`#${id}-editor [contenteditable=true]`);
+  editor.tabIndex = -1;
+
+  container.__quill = quill;
 
   return getQuill(networkId);
 }
