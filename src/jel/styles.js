@@ -24,10 +24,7 @@ import {
   LabelFontCSS
 } from "./fonts/quill-fonts";
 
-export const ROOT_DOM_STYLES = ROOT_STYLES;
-
-export const SHADOW_DOM_STYLES = `
-  ${AFRAME_CSS}
+export const ROOT_DOM_STYLES = `
   ${SansSerifFontCSS}
   ${SerifFontCSS}
   ${MonoFontCSS}
@@ -36,6 +33,11 @@ export const SHADOW_DOM_STYLES = `
   ${WritingFontCSS}
   ${WritingFont2CSS}
   ${LabelFontCSS}
+  ${ROOT_STYLES};
+`;
+
+export const SHADOW_DOM_STYLES = `
+  ${AFRAME_CSS}
   ${JEL_THEME}
   ${NORMALIZE_CSS}
   ${GLOBAL_CSS}

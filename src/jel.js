@@ -22,7 +22,6 @@ import "networked-aframe/src/index";
 import "naf-janus-adapter";
 import "aframe-rounded";
 import "aframe-slice9-component";
-import configs from "./hubs/utils/configs";
 import "./hubs/utils/threejs-positional-audio-updatematrixworld";
 import "./hubs/utils/threejs-world-update";
 import patchThreeAllocations from "./hubs/utils/threejs-allocation-patches";
@@ -1059,6 +1058,10 @@ async function start() {
 
   await sceneReady;
   DOM_ROOT._ready = true;
+
+  // The styled-components library adds a bunch of empty style tags when processing templates
+  // in the 'master' stylesheet.
+  [...document.querySelectorAll("style[data-styled]")].forEach(x => x.remove());
 
   document.dispatchEvent(new CustomEvent("shadow-root-ready"));
 
