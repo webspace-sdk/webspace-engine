@@ -5,7 +5,6 @@ import SPACE_TREE from "../assets/jel/stylesheets/space-tree.scss";
 import CREATE_SELECT from "../assets/jel/stylesheets/create-select.scss";
 import EMOJIS from "../assets/jel/stylesheets/emojis.scss";
 import JEL_THEME from "../assets/jel/stylesheets/jel-theme.scss";
-import ROOT_STYLES from "../assets/jel/stylesheets/root.scss";
 import AFRAME_CSS from "aframe/src/style/aframe.css";
 import TIPPY_CSS from "tippy.js/dist/tippy.css";
 import QUILL_PRE from "../assets/jel/stylesheets/quill-pre.scss";
@@ -13,28 +12,6 @@ import QUILL_CORE from "quill/dist/quill.core.css";
 import QUILL_BUBBLE from "quill/dist/quill.bubble.css";
 import QUILL_EMOJI from "quill-emoji/dist/quill-emoji.css";
 import QUILL_HIGHLIGHT from "highlight.js/scss/github.scss";
-import {
-  SansSerifFontCSS,
-  SerifFontCSS,
-  MonoFontCSS,
-  ComicFontCSS,
-  ComicFont2CSS,
-  WritingFontCSS,
-  WritingFont2CSS,
-  LabelFontCSS
-} from "./fonts/quill-fonts";
-
-export const ROOT_DOM_STYLES = `
-  ${SansSerifFontCSS}
-  ${SerifFontCSS}
-  ${MonoFontCSS}
-  ${ComicFontCSS}
-  ${ComicFont2CSS}
-  ${WritingFontCSS}
-  ${WritingFont2CSS}
-  ${LabelFontCSS}
-  ${ROOT_STYLES};
-`;
 
 export const SHADOW_DOM_STYLES = `
   ${AFRAME_CSS}

@@ -2,7 +2,7 @@ import "./hubs/webxr-bypass-hacks";
 import "./hubs/utils/theme";
 import "@babel/polyfill";
 import "./hubs/utils/debug-log";
-import { ROOT_DOM_STYLES, SHADOW_DOM_STYLES } from "./jel/styles";
+import { SHADOW_DOM_STYLES } from "./jel/styles";
 import AFRAME_DOM from "./jel/aframe-dom";
 import { isInQuillEditor } from "./jel/utils/quill-utils";
 import { homeHubForSpaceId } from "./jel/utils/membership-utils";
@@ -154,6 +154,16 @@ import "./hubs/systems/linked-media";
 import "./hubs/systems/camera-rotator-system";
 import "./jel/systems/media-presence-system";
 import "./jel/systems/wrapped-entity-system";
+import {
+  SansSerifFontCSS,
+  SerifFontCSS,
+  MonoFontCSS,
+  ComicFontCSS,
+  ComicFont2CSS,
+  WritingFontCSS,
+  WritingFont2CSS,
+  LabelFontCSS
+} from "./jel/fonts/quill-fonts";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
 import { getIsWindowAtScreenEdges, isInEditableField } from "./jel/utils/dom-utils";
 import { resetTemplate } from "./jel/utils/template-utils";
@@ -1017,11 +1027,6 @@ async function start() {
   AFRAME.selectorRoot = window.DOM_ROOT;
   window.DOM_ROOT._ready = false;
 
-  const rootStyles = document.createElement("style");
-  rootStyles.type = "text/css";
-  rootStyles.appendChild(document.createTextNode(ROOT_DOM_STYLES));
-  document.head.appendChild(rootStyles);
-
   const shadowStyles = document.createElement("style");
   shadowStyles.type = "text/css";
   shadowStyles.appendChild(document.createTextNode(SHADOW_DOM_STYLES));
@@ -1058,6 +1063,37 @@ async function start() {
 
   await sceneReady;
   DOM_ROOT._ready = true;
+
+  // Load the fonts
+
+  const fontDoc = document.implementation.createHTMLDocument(""),
+    fontStyles = document.createElement("style");
+
+  fontStyles.textContent = `
+    ${SansSerifFontCSS}
+    ${SerifFontCSS}
+    ${MonoFontCSS}
+    ${ComicFontCSS}
+    ${ComicFont2CSS}
+    ${WritingFontCSS}
+    ${WritingFont2CSS}
+    ${LabelFontCSS}
+  `;
+  // the style will only be parsed once it is added to a document
+  fontDoc.body.appendChild(fontStyles);
+
+  console.log(fontStyles.sheet.cssRules);
+  for (const {
+    style: { src, fontDisplay, fontFamily, fontWeight, fontStyle }
+  } of fontStyles.sheet.cssRules) {
+    const url = src.substring(5, src.indexOf('"', 6));
+    const buf = await (await (await fetch(url)).blob()).arrayBuffer();
+    const font = new FontFace(fontFamily, buf, { style: fontStyle, weight: fontWeight });
+    font.display = fontDisplay;
+    await font.load();
+
+    document.fonts.add(font);
+  }
 
   // The styled-components library adds a bunch of empty style tags when processing templates
   // in the 'master' stylesheet.
