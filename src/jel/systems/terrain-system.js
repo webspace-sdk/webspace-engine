@@ -254,66 +254,58 @@ export class TerrainSystem {
       loadingChunks.set(key, chunk);
     }
 
-    // 3 Retries, sometimes lambda times out.
-    for (let i = 0; i < 3; i++) {
+    await new Promise((resolve, reject) => {
       try {
-        await new Promise((resolve, reject) => {
-          try {
-            fetch(
-              // cache: reload not working, use a hack for now
-              // to force avoiding cache
-              //
-              // hack for now, use plains geo for flat, need to regen
-              `https://${configs.TERRA_SERVER}/${
-                worldType == WORLD_TYPES.FLAT ? WORLD_TYPES.PLAINS : worldType
-              }/${worldSeed}/${chunk.x}/${chunk.z}/1${i === 0 ? "" : `?r=${Math.floor(Math.random() * 10000)}`}`
-            )
-              .then(async res => {
-                // Decode + spawn at most one terrain per frame
-                while (this.lastLoadedChunkFrame === this.frame) {
-                  await nextTick();
-                }
+        fetch(
+          // cache: reload not working, use a hack for now
+          // to force avoiding cache
+          //
+          // hack for now, use plains geo for flat, need to regen
+          `https://${configs.TERRA_SERVER}/${
+            worldType == WORLD_TYPES.FLAT ? WORLD_TYPES.PLAINS : worldType
+          }/${worldSeed}/${chunk.x}/${chunk.z}/1`
+        )
+          .then(async res => {
+            // Decode + spawn at most one terrain per frame
+            while (this.lastLoadedChunkFrame === this.frame) {
+              await nextTick();
+            }
 
-                this.lastLoadedChunkFrame = this.frame;
+            this.lastLoadedChunkFrame = this.frame;
 
-                if (!heightMapOnly) {
-                  if (!loadingChunks.has(key)) return;
-                  loadingChunks.delete(key);
-                }
+            if (!heightMapOnly) {
+              if (!loadingChunks.has(key)) return;
+              loadingChunks.delete(key);
+            }
 
-                if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
-                const arr = await res.arrayBuffer();
-                const decompressor = new DecompressionStream("gzip");
-                const stream = new Blob([arr]).stream().pipeThrough(decompressor);
-                const rawBlob = await new Response(stream).blob();
-                const encoded = new Uint8Array(await rawBlob.arrayBuffer());
+            if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
+            const arr = await res.arrayBuffer();
+            const decompressor = new DecompressionStream("gzip");
+            const stream = new Blob([arr]).stream().pipeThrough(decompressor);
+            const rawBlob = await new Response(stream).blob();
+            const encoded = new Uint8Array(await rawBlob.arrayBuffer());
 
-                if (heightMapOnly) {
-                  const chunks = decodeChunks(encoded);
+            if (heightMapOnly) {
+              const chunks = decodeChunks(encoded);
 
-                  chunks.forEach(({ x, meshes, heightmap, z }) => {
-                    meshes.forEach((geometries, subchunk) => {
-                      const key = `${x}:${z}:${subchunk}`;
-                      chunkHeightMaps.set(key, heightmap);
-                    });
-                  });
-                } else {
-                  spawningChunks.set(key, encoded);
-                }
-                resolve();
-              })
-              .catch(() => {
-                reject();
+              chunks.forEach(({ x, meshes, heightmap, z }) => {
+                meshes.forEach((geometries, subchunk) => {
+                  const key = `${x}:${z}:${subchunk}`;
+                  chunkHeightMaps.set(key, heightmap);
+                });
               });
-          } catch (e) {
+            } else {
+              spawningChunks.set(key, encoded);
+            }
+            resolve();
+          })
+          .catch(() => {
             reject();
-          }
-        });
-        break;
+          });
       } catch (e) {
-        // Retry loop
+        reject();
       }
-    }
+    });
   }
 
   spawnChunk = encoded => {

@@ -9,6 +9,7 @@ import WorldExporter from "../jel/utils/world-exporter";
 import { switchCurrentHubToWorldTemplate } from "../jel/utils/template-utils";
 import { screenshotAndUploadSceneCanvas } from "./utils/three-utils";
 import { retainPdf, releasePdf } from "../jel/utils/pdf-pool";
+import defaultAvatar from "!!url-loader!../assets/hubs/models/DefaultAvatar.glb";
 
 const { detect } = require("detect-browser");
 
@@ -32,7 +33,7 @@ import {
   forceExitFrom2DInterstitial
 } from "./utils/vr-interstitial";
 import { ObjectContentOrigins } from "./object-types";
-import { getAvatarSrc, getAvatarType } from "./utils/avatar-utils";
+import { getAvatarType } from "./utils/avatar-utils";
 import { pushHistoryState } from "./utils/history";
 import { proxiedUrlFor } from "./utils/media-url-utils";
 
@@ -155,9 +156,8 @@ export default class SceneEntryManager {
     if (!force && this._lastFetchedAvatarId === avatarId) return; // Avoid continually refetching based upon state changing
 
     this._lastFetchedAvatarId = avatarId;
-    const avatarSrc = await getAvatarSrc(avatarId);
 
-    this.avatarRig.setAttribute("player-info", { avatarSrc, avatarType: getAvatarType(avatarId) });
+    this.avatarRig.setAttribute("player-info", { avatarSrc: defaultAvatar, avatarType: getAvatarType(avatarId) });
   };
 
   _setupKicking = () => {

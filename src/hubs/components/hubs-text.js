@@ -1,4 +1,6 @@
 import createTextGeometry from "three-bmfont-text";
+import ROBOTO_MSDF_JSON from "!!url-loader!../../assets/jel/fonts/Roboto-msdf.rawjson";
+import ROBOTO_MSDF_PNG from "!!url-loader!../../assets/jel/fonts/Roboto-msdf.png";
 
 // 1 to match other A-Frame default widths.
 const DEFAULT_WIDTH = 1;
@@ -54,7 +56,7 @@ function loadFont(src) {
     .then(resp => resp.json())
     .then(font => {
       // Fix negative Y offsets for Roboto MSDF font from tool. Experimentally determined.
-      if (src.indexOf("/Roboto-msdf.json") >= 0) {
+      if (src === ROBOTO_MSDF_JSON) {
         for (const ch of font.chars) {
           ch.yoffset += 30;
         }
@@ -86,8 +88,8 @@ function loadTexture(src) {
 
 const FONTS = {
   roboto: {
-    json: loadFont("https://cdn.aframe.io/fonts/Roboto-msdf.json"),
-    texture: loadTexture("https://cdn.aframe.io/fonts/Roboto-msdf.png")
+    json: loadFont(ROBOTO_MSDF_JSON),
+    texture: loadTexture(ROBOTO_MSDF_PNG)
   }
 };
 

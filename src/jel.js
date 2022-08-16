@@ -130,7 +130,6 @@ import { connectToReticulum } from "./hubs/utils/phoenix-utils";
 import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
 import { getHubIdFromHistory, getSpaceIdFromHistory, navigateToHubUrl } from "./jel/utils/jel-url-utils";
 import { handleExitTo2DInterstitial, exit2DInterstitialAndEnterVR } from "./hubs/utils/vr-interstitial";
-import { getAvatarSrc } from "./hubs/utils/avatar-utils.js";
 import SceneEntryManager from "./hubs/scene-entry-manager";
 
 import "./hubs/systems/nav";
@@ -423,16 +422,6 @@ function initPhysicsThreeAndCursor(scene) {
 
   patchThreeAllocations(renderer);
   patchThreeNoProgramDispose(renderer);
-}
-
-async function initAvatar() {
-  // If the stored avatar doesn't have a valid src, reset to a legacy avatar.
-  const avatarSrc = await getAvatarSrc(store.state.profile.avatarId);
-  if (!avatarSrc) {
-    await store.resetToRandomDefaultAvatar();
-  }
-
-  return avatarSrc;
 }
 
 async function checkPrerequisites() {
@@ -1283,8 +1272,6 @@ async function start() {
   } else {
     scene.addEventListener("loaded", () => initPhysicsThreeAndCursor(scene), { once: true });
   }
-
-  await initAvatar();
 
   addGlobalEventListeners(scene, entryManager, matrix);
   setupSidePanelLayout(scene);
