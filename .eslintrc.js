@@ -11,6 +11,7 @@ module.exports = {
     AFRAME: true,
     NAF: true,
     SAF: true,
+    DecompressionStream: true,
     TransformStream: true,
     SYSTEMS: true,
     DOM_ROOT: true,

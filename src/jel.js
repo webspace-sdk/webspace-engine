@@ -1082,7 +1082,6 @@ async function start() {
   // the style will only be parsed once it is added to a document
   fontDoc.body.appendChild(fontStyles);
 
-  console.log(fontStyles.sheet.cssRules);
   for (const {
     style: { src, fontDisplay, fontFamily, fontWeight, fontStyle }
   } of fontStyles.sheet.cssRules) {

@@ -46,12 +46,6 @@ export default `
               process.env.BASE_ASSETS_PATH
             }assets/hubs/video-overlay/pause-hover.png">
 
-            <a-asset-item id="drawing-pen" response-type="arraybuffer" src="${
-              process.env.BASE_ASSETS_PATH
-            }assets/hubs/models/DrawingPen.glb"></a-asset-item>
-            <a-asset-item id="spawn-point" response-type="arraybuffer" src="${
-              process.env.BASE_ASSETS_PATH
-            }assets/hubs/models/spawn-point.glb"></a-asset-item>
 
             <template id="remote-avatar">
                 <a-entity networked-avatar ik-root player-info wrapped-entity visible="false">

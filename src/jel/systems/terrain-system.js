@@ -264,7 +264,7 @@ export class TerrainSystem {
               // to force avoiding cache
               //
               // hack for now, use plains geo for flat, need to regen
-              `https://${configs.TERRA_SERVER}/chunks/${
+              `https://${configs.TERRA_SERVER}/${
                 worldType == WORLD_TYPES.FLAT ? WORLD_TYPES.PLAINS : worldType
               }/${worldSeed}/${chunk.x}/${chunk.z}/1${i === 0 ? "" : `?r=${Math.floor(Math.random() * 10000)}`}`
             )
@@ -283,7 +283,10 @@ export class TerrainSystem {
 
                 if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
                 const arr = await res.arrayBuffer();
-                const encoded = new Uint8Array(arr);
+                const decompressor = new DecompressionStream("gzip");
+                const stream = new Blob([arr]).stream().pipeThrough(decompressor);
+                const rawBlob = await new Response(stream).blob();
+                const encoded = new Uint8Array(await rawBlob.arrayBuffer());
 
                 if (heightMapOnly) {
                   const chunks = decodeChunks(encoded);

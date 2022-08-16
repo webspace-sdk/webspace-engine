@@ -8,7 +8,7 @@ import { getAudioFeedbackScale } from "./audio-feedback";
 import { cloneObject3D } from "../utils/three-utils";
 import { loadModel } from "./gltf-model-plus";
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
-import cameraModelSrc from "../../assets/hubs/camera_tool.glb";
+import cameraModelSrc from "!!url-loader!../../assets/hubs/camera_tool.glb";
 import anime from "animejs";
 
 const cameraModelPromise = waitForShadowDOMContentLoaded().then(() => loadModel(cameraModelSrc));
