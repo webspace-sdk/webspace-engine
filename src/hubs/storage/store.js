@@ -1,5 +1,4 @@
 import { Validator } from "jsonschema";
-import mixpanel from "mixpanel-browser";
 import merge from "deepmerge";
 import Cookies from "js-cookie";
 import jwtDecode from "jwt-decode";
@@ -121,8 +120,6 @@ export const DEFAULT_COLORS = [
   rgbToStoredColor({ r: 225, g: 225, b: 225 }),
   rgbToStoredColor({ r: 255, g: 255, b: 255 })
 ];
-
-const capitalize = str => str[0].toUpperCase() + str.slice(1);
 
 function randomString(len) {
   const p = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -779,7 +776,6 @@ export default class Store extends EventTarget {
 
     if (val === undefined) {
       this.update({ activity: { [flag]: true } });
-      mixpanel.track(`First ${capitalize(flag)}`, {});
       this.dispatchEvent(new CustomEvent("activityflagged"));
     }
   }

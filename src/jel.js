@@ -7,7 +7,6 @@ import AFRAME_DOM from "./jel/aframe-dom";
 import { isInQuillEditor } from "./jel/utils/quill-utils";
 import { homeHubForSpaceId } from "./jel/utils/membership-utils";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
-import mixpanel from "mixpanel-browser";
 
 console.log(`App version: ${process.env.BUILD_VERSION || "?"}`);
 
@@ -270,29 +269,6 @@ if (isBotMode) {
 
 if (!isBotMode && !isTelemetryDisabled) {
   registerTelemetry();
-
-  // Can't do this in the other file otherwise get a mixpanel error
-  if (configs.MIXPANEL_TOKEN) {
-    mixpanel.init(configs.MIXPANEL_TOKEN, { batch_requests: true });
-
-    if (store.credentialsAccountId) {
-      // Perform a simple hash to track the account in mixpanel to increase user privacy
-      const accountId = store.credentialsAccountId;
-
-      let hash = 0;
-
-      for (let i = 0; i < accountId.length; i++) {
-        const chr = accountId.charCodeAt(i);
-        hash = (hash << 5) - hash + chr;
-        hash |= 0;
-      }
-
-      hash = Math.abs(hash);
-      mixpanel.identify(`${hash}`);
-    }
-  }
-} else {
-  mixpanel.track = function() {};
 }
 
 registerWrappedEntityPositionNormalizers();
@@ -685,8 +661,6 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
         scene.renderer.setPixelRatio(isSoftware ? 1.0 : window.devicePixelRatio);
         scene.systems.effects.updateComposer = true;
       }
-
-      mixpanel.track("Event First World Load Complete", {});
     }
 
     SYSTEMS.atmosphereSystem.enableAmbience();
@@ -1039,7 +1013,6 @@ async function createSocket(entryManager) {
 
 async function start() {
   if (!(await checkPrerequisites())) return;
-  mixpanel.track("Startup Start", {});
 
   window.DOM_ROOT = document.body.attachShadow({ mode: "open" });
   AFRAME.selectorRoot = window.DOM_ROOT;
@@ -1431,9 +1404,7 @@ async function start() {
   };
 
   history.listen(performJoin);
-  mixpanel.track("Startup Joining", {});
   await performJoin();
-  mixpanel.track("Startup Joined", {});
 
   entryManager.enterScene(false);
 }

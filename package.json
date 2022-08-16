@@ -87,7 +87,6 @@
     "jwt-decode": "^2.2.0",
     "lib-hubs": "github:jel-app/lib-hubs#master",
     "meyda": "github:jel-app/meyda#master",
-    "mixpanel-browser": "^2.39.0",
     "moving-average": "^1.0.0",
     "naf-janus-adapter": "^4.0.1",
     "networked-aframe": "github:jel-app/networked-aframe#jel/master",
