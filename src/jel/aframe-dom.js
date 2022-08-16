@@ -1,3 +1,11 @@
+import PRESENCE_COUNT_URL from "!!url-loader!../assets/hubs/hud/presence-count.png";
+import ACTION_BUTTON_9_URL from "!!url-loader!../assets/hubs/hud/action_button.9.png";
+import BUTTON_9_URL from "!!url-loader!../assets/hubs/hud/button.9.png";
+import PLAY_URL from "!!url-loader!../assets/hubs/video-overlay/play.png";
+import PLAY_HOVER_URL from "!!url-loader!../assets/hubs/video-overlay/play-hover.png";
+import PAUSE_URL from "!!url-loader!../assets/hubs/video-overlay/pause.png";
+import PAUSE_HOVER_URL from "!!url-loader!../assets/hubs/video-overlay/pause-hover.png";
+
 export default `
     <a-scene
         embedded
@@ -24,28 +32,13 @@ export default `
         light="defaultLightsEnabled: false"
     >
         <a-assets>
-            <img style="display: none;" id="presence-count" crossorigin="anonymous" src="${
-              process.env.BASE_ASSETS_PATH
-            }assets/hubs/hud/presence-count.png">
-            <img style="display: none;" id="action-button" crossorigin="anonymous" src="${
-              process.env.BASE_ASSETS_PATH
-            }assets/hubs/hud/action_button.9.png">
-            <img style="display: none;" id="button" crossorigin="anonymous" src="${
-              process.env.BASE_ASSETS_PATH
-            }assets/hubs/hud/button.9.png">
-            <img style="display: none;" id="video-play" crossorigin="anonymous" src="${
-              process.env.BASE_ASSETS_PATH
-            }assets/hubs/video-overlay/play.png">
-            <img style="display: none;" id="video-play-hover" crossorigin="anonymous" src="${
-              process.env.BASE_ASSETS_PATH
-            }assets/hubs/video-overlay/play-hover.png">
-            <img style="display: none;" id="video-pause" crossorigin="anonymous" src="${
-              process.env.BASE_ASSETS_PATH
-            }assets/hubs/video-overlay/pause.png">
-            <img style="display: none;" id="video-pause-hover" crossorigin="anonymous" src="${
-              process.env.BASE_ASSETS_PATH
-            }assets/hubs/video-overlay/pause-hover.png">
-
+            <img style="display: none;" id="presence-count" crossorigin="anonymous" src="${PRESENCE_COUNT_URL}">
+            <img style="display: none;" id="action-button" crossorigin="anonymous" src="${ACTION_BUTTON_9_URL}">
+            <img style="display: none;" id="button" crossorigin="anonymous" src="${BUTTON_9_URL}">
+            <img style="display: none;" id="video-play" crossorigin="anonymous" src="${PLAY_URL}">
+            <img style="display: none;" id="video-play-hover" crossorigin="anonymous" src="${PLAY_HOVER_URL}">
+            <img style="display: none;" id="video-pause" crossorigin="anonymous" src="${PAUSE_URL}">
+            <img style="display: none;" id="video-pause-hover" crossorigin="anonymous" src="${PAUSE_HOVER_URL}">
 
             <template id="remote-avatar">
                 <a-entity networked-avatar ik-root player-info wrapped-entity visible="false">

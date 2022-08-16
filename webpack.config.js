@@ -274,14 +274,6 @@ module.exports = async (env, argv) => {
     module: {
       rules: [
         {
-          test: /\.html$/,
-          loader: "html-loader",
-          options: {
-            // <a-asset-item>'s src property is overwritten with the correct transformed asset url.
-            attrs: ["img:src", "a-asset-item:src", "audio:src", "source:src"]
-          }
-        },
-        {
           test: /\.worker\.js$/,
           loader: "worker-loader",
           options: {
@@ -370,17 +362,6 @@ module.exports = async (env, argv) => {
       new HTMLWebpackPlugin({
         filename: "jel.html",
         template: path.join(__dirname, "src", "jel.html"),
-        chunks: ["support", "jel"],
-        chunksSortMode: "manual",
-        inject: "head",
-        minify: {
-          removeComments: false
-        }
-      }),
-      // TODO SHARED remove this, its used to force the a-assets in
-      new HTMLWebpackPlugin({
-        filename: "assets.html",
-        template: path.join(__dirname, "src", "assets.html"),
         chunks: ["support", "jel"],
         chunksSortMode: "manual",
         inject: "head",
