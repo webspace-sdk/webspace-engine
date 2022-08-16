@@ -13,11 +13,29 @@ import QUILL_CORE from "quill/dist/quill.core.css";
 import QUILL_BUBBLE from "quill/dist/quill.bubble.css";
 import QUILL_EMOJI from "quill-emoji/dist/quill-emoji.css";
 import QUILL_HIGHLIGHT from "highlight.js/scss/github.scss";
+import {
+  SansSerifFontCSS,
+  SerifFontCSS,
+  MonoFontCSS,
+  ComicFontCSS,
+  ComicFont2CSS,
+  WritingFontCSS,
+  WritingFont2CSS,
+  LabelFontCSS
+} from "./fonts/quill-fonts";
 
 export const ROOT_DOM_STYLES = ROOT_STYLES;
 
 export const SHADOW_DOM_STYLES = `
   ${AFRAME_CSS}
+  ${SansSerifFontCSS}
+  ${SerifFontCSS}
+  ${MonoFontCSS}
+  ${ComicFontCSS}
+  ${ComicFont2CSS}
+  ${WritingFontCSS}
+  ${WritingFont2CSS}
+  ${LabelFontCSS}
   ${JEL_THEME}
   ${NORMALIZE_CSS}
   ${GLOBAL_CSS}
