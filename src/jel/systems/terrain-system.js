@@ -1,4 +1,3 @@
-import Pako from "pako";
 import { CONSTANTS } from "three-ammo";
 import { protocol } from "../protocol/protocol";
 import { createVoxelMaterial, Terrain, updateWorldColors, VOXEL_PALETTE_GRASS } from "../objects/terrain";
@@ -138,9 +137,6 @@ featureMeshMaterial.transparent = true;
 const keyForChunk = ({ x, z }) => `${x}:${z}`;
 
 const decodeChunks = buffer => {
-  if (buffer[0] === 0x78 && buffer[1] === 0x9c) {
-    buffer = Pako.inflate(buffer);
-  }
   const chunks = protocol.Chunks.decode(buffer);
   return chunks.chunks;
 };

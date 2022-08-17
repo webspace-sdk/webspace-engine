@@ -4,8 +4,7 @@ import debug from "debug";
 import qsTruthy from "./qs_truthy";
 
 const qs = new URLSearchParams(location.search);
-const isDebug = qsTruthy("debug");
-const logFilter = qs.get("log_filter") || (isDebug && "naf-janus-adapter:*,naf-dialog-adapter:*,mediasoup*");
+const logFilter = qs.get("log_filter");
 
 if (logFilter) {
   debug.enable(logFilter);

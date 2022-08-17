@@ -1,6 +1,5 @@
 import "./hubs/webxr-bypass-hacks";
 import "./hubs/utils/theme";
-import "@babel/polyfill";
 import "./hubs/utils/debug-log";
 import { SHADOW_DOM_STYLES } from "./jel/styles";
 import AFRAME_DOM from "./jel/aframe-dom";
@@ -19,7 +18,6 @@ patchWebGLRenderingContext();
 
 import "three/examples/js/loaders/GLTFLoader";
 import "networked-aframe/src/index";
-import "naf-janus-adapter";
 import "aframe-rounded";
 import "aframe-slice9-component";
 import "./hubs/utils/threejs-positional-audio-updatematrixworld";
@@ -107,7 +105,7 @@ import "./jel/components/look-at-self";
 import Subscriptions from "./hubs/subscriptions";
 
 import { SOUND_QUACK, SOUND_SPECIAL_QUACK, SOUND_NOTIFICATION } from "./hubs/systems/sound-effects-system";
-import ducky from "./assets/hubs/models/DuckyMesh.glb";
+import ducky from "!!url-loader!./assets/hubs/models/DuckyMesh.glb";
 import { getAbsoluteHref } from "./hubs/utils/media-url-utils";
 import { hasActiveScreenShare } from "./hubs/utils/media-utils";
 

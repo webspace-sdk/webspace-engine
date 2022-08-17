@@ -5,7 +5,6 @@ const selfsigned = require("selfsigned");
 const webpack = require("webpack");
 const cors = require("cors");
 const HTMLWebpackPlugin = require("html-webpack-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 const TOML = require("@iarna/toml");
@@ -311,12 +310,15 @@ module.exports = async (env, argv) => {
           // p2pcf assumes es2020
           loader: "babel-loader"
         },
+
         {
           test: /\.js$/,
           include: [path.resolve(__dirname, "src")],
           // Exclude JS assets in node_modules because they are already transformed and often big.
           exclude: [path.resolve(__dirname, "node_modules")],
-          loader: "babel-loader"
+          use: {
+            loader: "babel-loader"
+          }
         },
         {
           test: /\.(scss|css)$/,
@@ -383,12 +385,6 @@ module.exports = async (env, argv) => {
           to: "jel.service.js"
         }
       ]),
-      // Extract required css and add a content hash.
-      new MiniCssExtractPlugin({
-        filename: "assets/stylesheets/[name]-[contenthash].css",
-        insert: linkTag => document.body.querySelector("template").appendChild(linkTag),
-        disable: argv.mode !== "production"
-      }),
       // Define process.env variables in the browser context.
       new webpack.DefinePlugin({
         "process.env": JSON.stringify({

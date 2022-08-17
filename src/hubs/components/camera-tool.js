@@ -4,14 +4,14 @@ import { ensureOwnership } from "../../jel/utils/ownership-utils";
 import { ObjectTypes } from "../object-types";
 import { paths } from "../systems/userinput/paths";
 import { SOUND_CAMERA_TOOL_TOOK_SNAPSHOT, SOUND_CAMERA_TOOL_COUNTDOWN } from "../systems/sound-effects-system";
-import { getAudioFeedbackScale } from "./audio-feedback";
 import { cloneObject3D } from "../utils/three-utils";
-import { loadModel } from "./gltf-model-plus";
+//import { loadModel } from "./gltf-model-plus";
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
-import cameraModelSrc from "!!url-loader!../../assets/hubs/camera_tool.glb";
+//import cameraModelSrc from "!!url-loader!../../assets/hubs/camera_tool.glb";
 import anime from "animejs";
 
-const cameraModelPromise = waitForShadowDOMContentLoaded().then(() => loadModel(cameraModelSrc));
+// Don't include camera model since unused for now
+const cameraModelPromise = Promise.resolve(); // waitForShadowDOMContentLoaded().then(() => loadModel(cameraModelSrc));
 
 const pathsMap = {
   "player-right-controller": {
