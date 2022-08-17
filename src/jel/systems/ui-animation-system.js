@@ -34,6 +34,8 @@ export class UIAnimationSystem {
     this.panelExpandStartT = 0;
     this.setTargetSceneSizes();
     this.store = window.APP.store;
+    this.navDragTarget = DOM_ROOT.getElementById("nav-drag-target");
+    this.presenceDragTarget = DOM_ROOT.getElementById("presence-drag-target");
 
     // Hacky, need to apply continuously until react renders DOM.
     const initialUIApplyInterval = setInterval(() => {
@@ -240,8 +242,12 @@ export class UIAnimationSystem {
 
       if (left === 0) {
         UI.classList.add("panels-collapsed");
+        this.navDragTarget.classList.add("panels-collapsed");
+        this.presenceDragTarget.classList.add("panels-collapsed");
       } else {
         UI.classList.remove("panels-collapsed");
+        this.navDragTarget.classList.remove("panels-collapsed");
+        this.presenceDragTarget.classList.remove("panels-collapsed");
       }
 
       return true;

@@ -299,14 +299,12 @@ a-scene.visible {
   display: block;
 }
 
-#jel-ui.panels-collapsed {
-  #presence-drag-target {
-    display: none;
-  }
+#presence-drag-target.panels-collapsed {
+  display: none;
+}
 
-  #nav-drag-target {
-    display: none;
-  }
+#nav-drag-target.panels-collapsed {
+  display: none;
 }
 
 .quill-editor-wrap {
