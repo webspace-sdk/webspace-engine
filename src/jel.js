@@ -1030,13 +1030,16 @@ async function start() {
   // the style will only be parsed once it is added to a document
   fontDoc.body.appendChild(fontStyles);
 
-  for (const {
-    style: { src, fontDisplay, fontFamily, fontWeight, fontStyle }
-  } of fontStyles.sheet.cssRules) {
+  for (const { style } of fontStyles.sheet.cssRules) {
+    const src = style.getPropertyValue("src");
+    const fontDisplay = style.getPropertyValue("font-display");
+    const fontFamily = style.getPropertyValue("font-family");
+    const fontWeight = style.getPropertyValue("font-weight");
+    const fontStyle = style.getPropertyValue("font-style");
     const url = src.substring(5, src.indexOf('"', 6));
     const buf = await (await (await fetch(url)).blob()).arrayBuffer();
     const font = new FontFace(fontFamily, buf, { style: fontStyle, weight: fontWeight });
-    font.display = fontDisplay;
+    font.display = fontDisplay || "swap";
     await font.load();
 
     document.fonts.add(font);

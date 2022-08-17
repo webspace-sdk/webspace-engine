@@ -62,6 +62,7 @@
     "@mozillareality/easing-functions": "^0.1.1",
     "@mozillareality/three-batch-manager": "github:mozillareality/three-batch-manager#master",
     "@popperjs/core": "^2.5.3",
+    "@stardazed/streams-compression": "^1.0.0",
     "@tippyjs/react": "^4.2.0",
     "aframe": "github:jel-app/aframe#jel/master",
     "aframe-rounded": "^1.0.3",

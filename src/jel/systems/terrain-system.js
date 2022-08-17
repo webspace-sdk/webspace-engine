@@ -11,6 +11,7 @@ import configs from "../../hubs/utils/configs";
 import { Layers } from "../../hubs/components/layers";
 import qsTruthy from "../../hubs/utils/qs_truthy";
 import nextTick from "../../hubs/utils/next-tick";
+import { DecompressionStream as DecompressionStreamImpl } from "@stardazed/streams-compression";
 
 export const WORLD_TYPES = {
   ISLANDS: 1,
@@ -276,7 +277,7 @@ export class TerrainSystem {
 
             if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
             const arr = await res.arrayBuffer();
-            const decompressor = new DecompressionStream("gzip");
+            const decompressor = new (window.DecompressionStream || DecompressionStreamImpl)("gzip");
             const stream = new Blob([arr]).stream().pipeThrough(decompressor);
             const rawBlob = await new Response(stream).blob();
             const encoded = new Uint8Array(await rawBlob.arrayBuffer());
