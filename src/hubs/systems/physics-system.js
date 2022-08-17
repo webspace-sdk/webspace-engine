@@ -3,7 +3,7 @@ import { AmmoDebugConstants, DefaultBufferSize } from "ammo-debug-drawer";
 import { RENDER_ORDER } from "../constants";
 import { WORLD_MATRIX_CONSUMERS } from "../utils/threejs-world-update";
 import configs from "../utils/configs";
-import * as ammoWasmUrl from "ammo.js/builds/ammo.wasm.wasm";
+import ammoWasmUrl from "!!url-loader!ammo.js/builds/ammo.wasm.wasm";
 
 const MESSAGE_TYPES = CONSTANTS.MESSAGE_TYPES,
   TYPE = CONSTANTS.TYPE,

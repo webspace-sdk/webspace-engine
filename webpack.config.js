@@ -283,9 +283,9 @@ module.exports = async (env, argv) => {
           test: /\.worker\.js$/,
           loader: "worker-loader",
           options: {
-            name: "assets/js/[name].js",
+            filename: "assets/js/[name].js",
             publicPath: "/",
-            inline: true
+            inline: "fallback"
           }
         },
         {

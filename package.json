@@ -132,7 +132,6 @@
     "three-to-ammo": "github:infinitelee/three-to-ammo#a15da9afc16b834f6c1906ab94e0ab3071e9ff09",
     "transform-parser": "^1.0.1",
     "uuid": "^3.2.1",
-    "worklet-loader": "^1.0.0",
     "y-protocols": "^1.0.5",
     "yjs": "^13.5.41",
     "zip-loader": "^1.1.0"
@@ -206,7 +205,8 @@
     "webpack-bundle-analyzer": "^3.9.0",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.10.0",
-    "worker-loader": "^2.0.0"
+    "worker-loader": "^3.0.8",
+    "worklet-loader": "^2.0.0"
   },
   "optionalDependencies": {
     "fsevents": "^2.1.3"
