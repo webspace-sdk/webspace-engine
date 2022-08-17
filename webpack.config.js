@@ -189,17 +189,17 @@ module.exports = async (env, argv) => {
 
   const host = process.env.HOST_IP || env.localDev || env.remoteDev ? "hubs.local" : "hubs.local";
 
-  const legacyBabelConfig = {
-    presets: ["@babel/react", ["@babel/preset-env", { useBuiltIns: false }]],
-    plugins: []
-  };
-
   return {
-    node: {
-      // need to specify this manually because some random lodash code will try to access
-      // Buffer on the global object if it exists, so webpack will polyfill on its behalf
-      Buffer: true,
-      fs: "empty"
+    stats: {
+      children: true
+    },
+    resolve: {
+      fallback: {
+        buffer: require.resolve("buffer/"),
+        stream: require.resolve("stream-browserify"),
+        path: require.resolve("path-browserify"),
+        crypto: require.resolve("crypto-browserify")
+      }
     },
     entry: {
       jel: path.join(__dirname, "src", "jel.js")
@@ -211,15 +211,18 @@ module.exports = async (env, argv) => {
     devtool: argv.mode === "production" ? "source-map" : "inline-source-map",
     devServer: {
       https: createHTTPSConfig(),
-      host: "0.0.0.0",
-      public: `${host}:8080`,
-      useLocalIp: true,
+      client: {
+        webSocketURL: {
+          hostname: "0.0.0.0",
+          port: 8080
+        }
+      },
+      // host: "local-ip", NOTE: probably need this for LAN
       allowedHosts: [host, "hubs.local"],
       headers: {
         "Access-Control-Allow-Origin": "*"
       },
-      inline: !env.bundleAnalyzer,
-      before: function(app) {
+      onBeforeSetupMiddleware: function({ app }) {
         // Local CORS proxy
         app.all("/cors-proxy/*", (req, res) => {
           res.header("Access-Control-Allow-Origin", "*");
@@ -274,11 +277,7 @@ module.exports = async (env, argv) => {
       rules: [
         {
           test: /\.html$/,
-          loader: "html-loader",
-          options: {
-            // <a-asset-item>'s src property is overwritten with the correct transformed asset url.
-            attrs: ["img:src", "a-asset-item:src", "audio:src", "source:src"]
-          }
+          loader: "html-loader"
         },
         {
           test: /\.worker\.js$/,
@@ -297,24 +296,7 @@ module.exports = async (env, argv) => {
           }
         },
         {
-          test: [
-            path.resolve(__dirname, "src", "hubs", "utils", "configs.js"),
-            path.resolve(__dirname, "src", "hubs", "utils", "i18n.js"),
-            path.resolve(__dirname, "src", "hubs", "support.js")
-          ],
-          loader: "babel-loader",
-          options: legacyBabelConfig
-        },
-        {
-          test: /p2pcf\.js$/,
-          // p2pcf assumes es2020
-          loader: "babel-loader"
-        },
-
-        {
           test: /\.js$/,
-          include: [path.resolve(__dirname, "src")],
-          // Exclude JS assets in node_modules because they are already transformed and often big.
           exclude: [path.resolve(__dirname, "node_modules")],
           use: {
             loader: "babel-loader"
@@ -366,6 +348,12 @@ module.exports = async (env, argv) => {
     },
 
     plugins: [
+      new webpack.ProvidePlugin({
+        Buffer: ["buffer", "Buffer"]
+      }),
+      new webpack.ProvidePlugin({
+        process: "process/browser"
+      }),
       new BundleAnalyzerPlugin({
         analyzerMode: env && env.bundleAnalyzer ? "server" : "disabled"
       }),

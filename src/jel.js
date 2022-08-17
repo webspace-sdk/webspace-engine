@@ -282,7 +282,6 @@ registerWrappedEntityPositionNormalizers();
 disableiOSZoom();
 detectConcurrentLoad();
 
-let uiProps = {};
 let jelUIProps = {};
 
 // when loading the client as a "default room" on the homepage, use MemoryHistory since exposing all the client paths at the root is undesirable
@@ -291,45 +290,8 @@ const qsVREntryType = qs.get("vr_entry_type");
 
 let performConditionalSignIn;
 
-function mountUI(/*props = {}*/) {
-  //const scene = DOM_ROOT.querySelector("a-scene");
-  //const disableAutoExitOnIdle =
-  //  qsTruthy("allow_idle") || (process.env.NODE_ENV === "development" && !qs.get("idle_timeout"));
-  //const isCursorHoldingPen =
-  //  scene &&
-  //  (scene.systems.userinput.activeSets.includes(userinputSets.rightCursorHoldingPen) ||
-  //    scene.systems.userinput.activeSets.includes(userinputSets.leftCursorHoldingPen));
-  //const hasActiveCamera = scene && !!scene.systems["camera-tools"].getMyCamera();
-  //const forcedVREntryType = qsVREntryType;
-  //ReactDOM.render(
-  //  <Router history={history}>
-  //    <Route
-  //      render={routeProps => (
-  //        <UIRoot
-  //          {...{
-  //            scene,
-  //            isBotMode,
-  //            disableAutoExitOnIdle,
-  //            forcedVREntryType,
-  //            store,
-  //            mediaSearchStore,
-  //            isCursorHoldingPen,
-  //            hasActiveCamera,
-  //            performConditionalSignIn,
-  //            ...props,
-  //            ...routeProps
-  //          }}
-  //        />
-  //      )}
-  //    />
-  //  </Router>,
-  //  DOM_ROOT.getElementById("ui-root")
-  //);
-}
-
-function remountUI(props) {
-  uiProps = { ...uiProps, ...props };
-  mountUI(uiProps);
+function remountUI() {
+  // no-op
 }
 
 function mountJelUI(props = {}) {
@@ -1027,7 +989,6 @@ async function start() {
 
       <div id="support-root"></div>
 
-      <div id="ui-root"></div>
       <div id="nav-drag-target"></div>
       <div id="presence-drag-target"></div>
       <div id="quill-container"></div>
