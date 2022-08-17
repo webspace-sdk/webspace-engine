@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-import transcoderWasmFile from "./basis_transcoder.wasm";
+import transcoderWasmFile from "!!url-loader!./basis_transcoder.wasm";
 import BasisWorker from "./basis_transcoder.worker.js";
 
 /**

@@ -972,7 +972,7 @@ async function createSocket(entryManager) {
 async function start() {
   if (!(await checkPrerequisites())) return;
 
-  window.DOM_ROOT = document.body.attachShadow({ mode: "open" });
+  window.DOM_ROOT = document.body.attachShadow({ mode: "closed" });
   AFRAME.selectorRoot = window.DOM_ROOT;
   window.DOM_ROOT._ready = false;
 
