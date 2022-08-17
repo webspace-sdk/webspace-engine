@@ -274,6 +274,14 @@ module.exports = async (env, argv) => {
     module: {
       rules: [
         {
+          test: /\.html$/,
+          loader: "html-loader",
+          options: {
+            // <a-asset-item>'s src property is overwritten with the correct transformed asset url.
+            attrs: ["img:src", "a-asset-item:src", "audio:src", "source:src"]
+          }
+        },
+        {
           test: /\.worker\.js$/,
           loader: "worker-loader",
           options: {
