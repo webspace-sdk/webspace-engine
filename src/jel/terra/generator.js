@@ -76,8 +76,8 @@ const paletteGround = VOXEL_PALETTE_GROUND;
 const paletteEdge = VOXEL_PALETTE_EDGE;
 const blackColor = { r: 0, g: 0, b: 0 };
 
-const COS_TABLE = Array(1024);
-const SIN_TABLE = Array(1024);
+const COS_TABLE = new Float32Array(1024);
+const SIN_TABLE = new Float32Array(1024);
 
 const oneOverWorldSizeTimesTwoPi = oneOverWorldSize * twoPi;
 for (let x = -512; x < 512; x++) {
