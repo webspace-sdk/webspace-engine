@@ -11,7 +11,7 @@ class World {
     if (!window.world) {
       window.world = new World({
         blockTypes,
-        generator: "islands",
+        generator: "hilly",
         seed
       });
     }

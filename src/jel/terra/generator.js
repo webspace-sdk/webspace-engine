@@ -76,6 +76,15 @@ const paletteGround = VOXEL_PALETTE_GROUND;
 const paletteEdge = VOXEL_PALETTE_EDGE;
 const blackColor = { r: 0, g: 0, b: 0 };
 
+const COS_TABLE = Array(1024);
+const SIN_TABLE = Array(1024);
+
+const oneOverWorldSizeTimesTwoPi = oneOverWorldSize * twoPi;
+for (let x = -512; x < 512; x++) {
+  SIN_TABLE[x + 512] = Math.sin(x * oneOverWorldSizeTimesTwoPi);
+  COS_TABLE[x + 512] = Math.cos(x * oneOverWorldSizeTimesTwoPi);
+}
+
 const Generators = {
   islands({ seed, palettes, types }) {
     const thCache = new Float32Array(64 * 64 * 64 * 2);
@@ -87,12 +96,10 @@ const Generators = {
     const tiledSimplex = (x, z, x1, x2, z1, z2) => {
       const dx = x2 - x1;
       const dz = z2 - z1;
-      const s = x * oneOverWorldSize;
-      const t = z * oneOverWorldSize;
-      const nx = x1 + Math.cos(s * twoPi) * dx * oneOverTwoPi;
-      const nz = z1 + Math.cos(t * twoPi) * dz * oneOverTwoPi;
-      const na = x1 + Math.sin(s * twoPi) * dx * oneOverTwoPi;
-      const nb = z1 + Math.sin(t * twoPi) * dz * oneOverTwoPi;
+      const nx = x1 + COS_TABLE[x + 512] * dx * oneOverTwoPi;
+      const nz = z1 + COS_TABLE[z + 512] * dz * oneOverTwoPi;
+      const na = x1 + SIN_TABLE[x + 512] * dx * oneOverTwoPi;
+      const nb = z1 + SIN_TABLE[z + 512] * dz * oneOverTwoPi;
       const v = noise.simplex4D(nx, nz, na, nb);
       return v < 0 ? -v : v;
     };
@@ -289,12 +296,10 @@ const Generators = {
     const tiledSimplex = (x, z, x1, x2, z1, z2) => {
       const dx = x2 - x1;
       const dz = z2 - z1;
-      const s = x * oneOverWorldSize;
-      const t = z * oneOverWorldSize;
-      const nx = x1 + Math.cos(s * twoPi) * dx * oneOverTwoPi;
-      const nz = z1 + Math.cos(t * twoPi) * dz * oneOverTwoPi;
-      const na = x1 + Math.sin(s * twoPi) * dx * oneOverTwoPi;
-      const nb = z1 + Math.sin(t * twoPi) * dz * oneOverTwoPi;
+      const nx = x1 + COS_TABLE[x + 512] * dx * oneOverTwoPi;
+      const nz = z1 + COS_TABLE[z + 512] * dz * oneOverTwoPi;
+      const na = x1 + SIN_TABLE[x + 512] * dx * oneOverTwoPi;
+      const nb = z1 + SIN_TABLE[z + 512] * dz * oneOverTwoPi;
       const v = noise.simplex4D(nx, nz, na, nb);
       return v < 0 ? -v : v;
     };
