@@ -60,7 +60,6 @@ const getComputeColor = seed => {
 const { maxHeight } = Chunk;
 const oneOverWorldSize = 1.0 / WORLD_SIZE;
 const twoPi = 2 * Math.PI;
-const cosToSinShift = Math.PI / 2;
 const oneOverTwoPi = 1.0 / twoPi;
 const peakOffset = Math.floor(WORLD_SIZE * 0.33);
 const plateauD = Math.floor(WORLD_SIZE * 0.15);
@@ -75,6 +74,7 @@ const waterLevelOverThree = WATER_LEVEL / 3;
 const paletteNone = VOXEL_PALETTE_NONE;
 const paletteGround = VOXEL_PALETTE_GROUND;
 const paletteEdge = VOXEL_PALETTE_EDGE;
+const blackColor = { r: 0, g: 0, b: 0 };
 
 const Generators = {
   islands({ seed, palettes, types }) {
@@ -89,12 +89,10 @@ const Generators = {
       const dz = z2 - z1;
       const s = x * oneOverWorldSize;
       const t = z * oneOverWorldSize;
-      const cosS = Math.cos(s * twoPi) * dx;
-      const cosT = Math.cos(t * twoPi) * dz;
-      const nx = x1 + cosS * oneOverTwoPi;
-      const nz = z1 + cosT * oneOverTwoPi;
-      const na = x1 + (cosS + cosToSinShift) * oneOverTwoPi;
-      const nb = z1 + (cosT + cosToSinShift) * oneOverTwoPi;
+      const nx = x1 + Math.cos(s * twoPi) * dx * oneOverTwoPi;
+      const nz = z1 + Math.cos(t * twoPi) * dz * oneOverTwoPi;
+      const na = x1 + Math.sin(s * twoPi) * dx * oneOverTwoPi;
+      const nb = z1 + Math.sin(t * twoPi) * dz * oneOverTwoPi;
       const v = noise.simplex4D(nx, nz, na, nb);
       return v < 0 ? -v : v;
     };
@@ -239,8 +237,8 @@ const Generators = {
 
       const voxel = {
         type: types.air,
-        color: { r: 0, g: 0, b: 0 },
-        low_lod_color: { r: 0, g: 0, b: 0 }, // Color for lower LODs
+        color: blackColor,
+        low_lod_color: blackColor, // Color for lower LODs
         palette: paletteNone
       };
 
@@ -271,7 +269,7 @@ const Generators = {
 
     return {
       feature: (x, y, z, type) => {
-        if (y <= WATER_LEVEL) return false;
+        if (y <= waterLevel) return false;
         if (type !== types.air) return false;
 
         const fieldSetKey = x * 512 * 512 + y * 512 + z;
@@ -293,12 +291,10 @@ const Generators = {
       const dz = z2 - z1;
       const s = x * oneOverWorldSize;
       const t = z * oneOverWorldSize;
-      const cosS = Math.cos(s * twoPi) * dx;
-      const cosT = Math.cos(t * twoPi) * dz;
-      const nx = x1 + cosS * oneOverTwoPi;
-      const nz = z1 + cosT * oneOverTwoPi;
-      const na = x1 + (cosS + cosToSinShift) * oneOverTwoPi;
-      const nb = z1 + (cosT + cosToSinShift) * oneOverTwoPi;
+      const nx = x1 + Math.cos(s * twoPi) * dx * oneOverTwoPi;
+      const nz = z1 + Math.cos(t * twoPi) * dz * oneOverTwoPi;
+      const na = x1 + Math.sin(s * twoPi) * dx * oneOverTwoPi;
+      const nb = z1 + Math.sin(t * twoPi) * dz * oneOverTwoPi;
       const v = noise.simplex4D(nx, nz, na, nb);
       return v < 0 ? -v : v;
     };
@@ -308,7 +304,10 @@ const Generators = {
       const cacheKey = (x + 256 + 64 + 2) * (2 * (256 + 64 + 2)) + (z + 256 + 64 + 2);
       const v = thCache[cacheKey];
       if (v !== 0) return v;
-      const h = Math.min(tiledSimplex(x, z, 0, bridgeOffsetD, 0, bridgeOffsetD) * 2.0 * maxHeight, maxHeight);
+      const h =
+        waterLevel +
+        1 +
+        Math.min(Math.abs(tiledSimplex(x, z, 0, bridgeOffsetD, 0, bridgeOffsetD)) * 2.0 * maxHeight, maxHeight);
       thCache[cacheKey] = h;
       return h;
     };
@@ -321,8 +320,8 @@ const Generators = {
 
       const voxel = {
         type: types.air,
-        color: { r: 0, g: 0, b: 0 },
-        low_lod_color: { r: 0, g: 0, b: 0 }, // Color for lower LODs
+        color: blackColor,
+        low_lod_color: blackColor, // Color for lower LODs
         palette: paletteNone
       };
 
@@ -390,7 +389,7 @@ const Generators = {
   flat({ seed, palettes, types }) {
     const computeColor = getFixedColor();
     const noise = new FastNoise(seed);
-    const worldHeight = WATER_LEVEL + 1;
+    const worldHeight = waterLevel + 1;
     const terrain = (x, y, z) => {
       const isBlock = y <= worldHeight;
       return {
@@ -403,7 +402,7 @@ const Generators = {
     return {
       terrain,
       feature: (x, y, z, type) => {
-        if (y <= WATER_LEVEL) return false;
+        if (y <= waterLevel) return false;
         if (type !== types.air) return false;
         const { type: belowVoxelType } = terrain(x, y - 1, z);
 
