@@ -284,33 +284,32 @@ const Generators = {
   hilly({ seed, palettes, types }) {
     const noise = new FastNoise(seed);
     const computeColor = getComputeColor(seed);
-    const thCache = new Map();
+    const thCache = new Float32Array(64 * 64 * 64 * 2);
 
     const maxHeight = Chunk.maxHeight - 35;
 
     const tiledSimplex = (x, z, x1, x2, z1, z2) => {
       const dx = x2 - x1;
       const dz = z2 - z1;
-      const s = x / WORLD_SIZE;
-      const t = z / WORLD_SIZE;
-      const nx = x1 + (Math.cos(s * 2 * Math.PI) * dx) / (2 * Math.PI);
-      const nz = z1 + (Math.cos(t * 2 * Math.PI) * dz) / (2 * Math.PI);
-      const na = x1 + (Math.sin(s * 2 * Math.PI) * dx) / (2 * Math.PI);
-      const nb = z1 + (Math.sin(t * 2 * Math.PI) * dz) / (2 * Math.PI);
-      const val = Math.abs(noise.simplex4D(nx, nz, na, nb));
-      return val;
+      const s = x * oneOverWorldSize;
+      const t = z * oneOverWorldSize;
+      const cosS = Math.cos(s * twoPi) * dx;
+      const cosT = Math.cos(t * twoPi) * dz;
+      const nx = x1 + cosS * oneOverTwoPi;
+      const nz = z1 + cosT * oneOverTwoPi;
+      const na = x1 + (cosS + cosToSinShift) * oneOverTwoPi;
+      const nb = z1 + (cosT + cosToSinShift) * oneOverTwoPi;
+      const v = noise.simplex4D(nx, nz, na, nb);
+      return v < 0 ? -v : v;
     };
 
     const getTerrainHeight = (x, z) => {
-      const cacheKey = Math.floor(x) * 10000 + Math.floor(z);
-      if (thCache.has(cacheKey)) {
-        return thCache.get(cacheKey);
-      }
-      const h = Math.min(
-        Math.abs(tiledSimplex(x, z, 0, WORLD_SIZE * 0.5, 0, WORLD_SIZE * 0.5)) * 2.0 * maxHeight,
-        maxHeight
-      );
-      thCache.set(cacheKey, h);
+      // Terrain can reach past edge of chunkspace
+      const cacheKey = (x + 256 + 64 + 2) * (2 * (256 + 64 + 2)) + (z + 256 + 64 + 2);
+      const v = thCache[cacheKey];
+      if (v !== 0) return v;
+      const h = Math.min(tiledSimplex(x, z, 0, bridgeOffsetD, 0, bridgeOffsetD) * 2.0 * maxHeight, maxHeight);
+      thCache[cacheKey] = h;
       return h;
     };
 
@@ -324,7 +323,7 @@ const Generators = {
         type: types.air,
         color: { r: 0, g: 0, b: 0 },
         low_lod_color: { r: 0, g: 0, b: 0 }, // Color for lower LODs
-        palette: VOXEL_PALETTE_NONE
+        palette: paletteNone
       };
 
       if (isLandBlock) {
@@ -334,7 +333,7 @@ const Generators = {
 
         voxel.color = computeColor(noise, x, y, z, palette);
         voxel.low_lod_color = computeColor(noise, x, y, z, palette, true);
-        voxel.palette = VOXEL_PALETTE_GROUND;
+        voxel.palette = paletteGround;
       }
 
       return [voxel];
@@ -369,7 +368,7 @@ const Generators = {
 
     return {
       feature: (x, y, z, type) => {
-        if (y <= WATER_LEVEL) return false;
+        if (y <= waterLevel) return false;
         if (type !== types.air) return false;
         const [{ type: belowVoxelType }] = terrain(x, y - 1, z);
 
