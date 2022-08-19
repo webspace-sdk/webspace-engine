@@ -57,94 +57,83 @@ const getComputeColor = seed => {
   };
 };
 
+const { maxHeight } = Chunk;
+const oneOverWorldSize = 1.0 / WORLD_SIZE;
+const twoPi = 2 * Math.PI;
+const cosToSinShift = Math.PI / 2;
+const oneOverTwoPi = 1.0 / twoPi;
+const peakOffset = Math.floor(WORLD_SIZE * 0.33);
+const plateauD = Math.floor(WORLD_SIZE * 0.15);
+const terrainD = Math.floor(WORLD_SIZE * 0.25);
+const bridgeOffsetXZ = Math.floor(WORLD_SIZE * 0.2);
+const bridgeOffsetD = Math.floor(WORLD_SIZE * 0.5);
+const plateauStepSize = 0.3;
+const oneOverPlateauStepSize = 1.0 / plateauStepSize;
+const oneOverTwoMaxHeight = 1.0 / (Chunk.maxHeight * 2.0);
+const waterLevel = WATER_LEVEL;
+const waterLevelOverThree = WATER_LEVEL / 3;
+const paletteNone = VOXEL_PALETTE_NONE;
+const paletteGround = VOXEL_PALETTE_GROUND;
+const paletteEdge = VOXEL_PALETTE_EDGE;
+
 const Generators = {
   islands({ seed, palettes, types }) {
-    const thCache = new Map();
-    const phCache = new Map();
-    const sphCache = new Map();
-    const bCache = new Map();
-    const fieldCache = new Uint8Array(64 * 64 * 64);
+    const thCache = new Float32Array(64 * 64 * 64 * 2);
+    const fieldSet = new Set();
 
     const noise = new FastNoise(seed);
     const computeColor = getComputeColor(seed);
 
-    const { maxHeight } = Chunk;
-
     const tiledSimplex = (x, z, x1, x2, z1, z2) => {
       const dx = x2 - x1;
       const dz = z2 - z1;
-      const s = x / WORLD_SIZE;
-      const t = z / WORLD_SIZE;
-      const nx = x1 + (Math.cos(s * 2 * Math.PI) * dx) / (2 * Math.PI);
-      const nz = z1 + (Math.cos(t * 2 * Math.PI) * dz) / (2 * Math.PI);
-      const na = x1 + (Math.sin(s * 2 * Math.PI) * dx) / (2 * Math.PI);
-      const nb = z1 + (Math.sin(t * 2 * Math.PI) * dz) / (2 * Math.PI);
-      const val = Math.abs(noise.simplex4D(nx, nz, na, nb));
-      return val;
+      const s = x * oneOverWorldSize;
+      const t = z * oneOverWorldSize;
+      const cosS = Math.cos(s * twoPi) * dx;
+      const cosT = Math.cos(t * twoPi) * dz;
+      const nx = x1 + cosS * oneOverTwoPi;
+      const nz = z1 + cosT * oneOverTwoPi;
+      const na = x1 + (cosS + cosToSinShift) * oneOverTwoPi;
+      const nb = z1 + (cosT + cosToSinShift) * oneOverTwoPi;
+      const v = noise.simplex4D(nx, nz, na, nb);
+      return v < 0 ? -v : v;
     };
 
     const getPlateauHeight = (x, z) => {
-      const cacheKey = Math.floor(x) * 10000 + Math.floor(z);
-      if (phCache.has(cacheKey)) return phCache.get(cacheKey);
-
-      const plateauStepSize = 0.3;
-
-      const h =
-        Math.floor(Math.abs(tiledSimplex(x, z, 0, 0.15 * WORLD_SIZE, 0, 0.15 * WORLD_SIZE)) * (1.0 / plateauStepSize)) *
-        maxHeight *
-        plateauStepSize;
-
-      phCache.set(cacheKey, h);
-      return h;
+      return (
+        Math.floor(tiledSimplex(x, z, 0, plateauD, 0, plateauD) * oneOverPlateauStepSize) * maxHeight * plateauStepSize
+      );
     };
 
     const getSmoothedPlateauHeight = (x, z) => {
-      const cacheKey = Math.floor(x) * 10000 + Math.floor(z);
-      if (sphCache.has(cacheKey)) {
-        return sphCache.get(cacheKey);
-      }
-      const h = Math.abs(tiledSimplex(x, z, 0, 0.15 * WORLD_SIZE, 0, 0.15 * WORLD_SIZE)) * maxHeight * 0.66;
-      sphCache.set(cacheKey, h);
-      return h;
+      return Math.abs(tiledSimplex(x, z, 0, plateauD, 0, plateauD)) * maxHeight * 0.66;
     };
 
     const getTerrainHeight = (x, z) => {
-      const cacheKey = Math.floor(x) * 10000 + Math.floor(z);
-      if (thCache.has(cacheKey)) {
-        return thCache.get(cacheKey);
-      }
-      const h = Math.min(
-        Math.abs(tiledSimplex(x, z, 0, WORLD_SIZE * 0.5, 0, WORLD_SIZE * 0.5)) * 2.0 * maxHeight,
-        maxHeight
-      );
-      thCache.set(cacheKey, h);
+      // Terrain can reach past edge of chunkspace
+      const cacheKey = (x + 256 + 64 + 2) * (2 * (256 + 64 + 2)) + (z + 256 + 64 + 2);
+      const v = thCache[cacheKey];
+      if (v !== 0) return v;
+      const h = Math.min(tiledSimplex(x, z, 0, bridgeOffsetD, 0, bridgeOffsetD) * 2.0 * maxHeight, maxHeight);
+      thCache[cacheKey] = h;
       return h;
     };
 
     const getPeakHeight = (x, z) => {
-      const h = getTerrainHeight(x + WORLD_SIZE * 0.33, z + WORLD_SIZE * 0.33) / (maxHeight * 2.0) + 0.8;
-      const v = Math.min(h ** 8 * maxHeight * 0.25, maxHeight * 0.75);
-      return v;
+      const h = getTerrainHeight(x + peakOffset, z + peakOffset) * oneOverTwoMaxHeight + 0.8;
+      return Math.min(h * h * h * h * h * h * h * h * maxHeight * 0.25, maxHeight * 0.75);
     };
 
     const getBridgeHeight = (x, z) => {
-      const cacheKey = Math.floor(x) * 10000 + Math.floor(z);
-      if (bCache.has(cacheKey)) {
-        return bCache.get(cacheKey);
-      }
-      let h = Math.min(
-        Math.abs(tiledSimplex(x + WORLD_SIZE * 0.2, z + WORLD_SIZE * 0.2, 0, WORLD_SIZE * 0.5, 0, WORLD_SIZE * 0.5)) *
-          maxHeight *
-          0.2,
+      const h = Math.min(
+        tiledSimplex(x + bridgeOffsetXZ, z + bridgeOffsetXZ, 0, bridgeOffsetD, 0, bridgeOffsetD) * maxHeight * 0.2,
         maxHeight * 0.2
       );
-      h = Math.max(h, WATER_LEVEL) + 3;
-      bCache.set(cacheKey, h);
-      return h;
+      return Math.max(h, waterLevel) + 3;
     };
 
     const getLandHeight = (terrainHeight, plateauHeight) =>
-      Math.min(Math.min(terrainHeight, plateauHeight) + WATER_LEVEL / 3, maxHeight);
+      Math.min(Math.min(terrainHeight, plateauHeight) + waterLevelOverThree, maxHeight);
 
     const minEdgeDropoff = 3;
 
@@ -175,14 +164,14 @@ const Generators = {
       const peakHeight = getPeakHeight(x, z);
       const minTerrainHeightForPeaks = maxHeight * 0.25;
 
-      const bridgeRegionNoise = Math.abs(tiledSimplex(z * 2, x * 2, 0, 0.25 * WORLD_SIZE, 0, 0.25 * WORLD_SIZE));
+      const bridgeRegionNoise = Math.abs(tiledSimplex(z * 2, x * 2, 0, terrainD, 0, terrainD));
 
       let isBridgeBlock = false;
 
       const landHeight = getLandHeight(terrainHeight, plateauHeight);
       const isPlateau = plateauHeight < terrainHeight;
 
-      const isOverWater = landHeight < WATER_LEVEL + 1;
+      const isOverWater = landHeight < waterLevel + 1;
       const isPeak =
         hasPeaks &&
         !isPlateau &&
@@ -252,7 +241,7 @@ const Generators = {
         type: types.air,
         color: { r: 0, g: 0, b: 0 },
         low_lod_color: { r: 0, g: 0, b: 0 }, // Color for lower LODs
-        palette: VOXEL_PALETTE_NONE
+        palette: paletteNone
       };
 
       if (isLandBlock || isBridgeBlock || isPeak) {
@@ -267,15 +256,14 @@ const Generators = {
         }
         voxel.color = computeColor(noise, x, cy, z, palette);
         voxel.low_lod_color = computeColor(noise, x, cy, z, palette, true);
-        voxel.palette = palette == palettes.terrain ? VOXEL_PALETTE_GROUND : VOXEL_PALETTE_EDGE;
+        voxel.palette = palette == palettes.terrain ? paletteGround : paletteEdge;
       }
 
       const aboveIsField = voxel.type === types.dirt && isPlateau && Math.abs(noise.whiteNoise2D(x, z)) < 0.05;
-      if ((y + 256) % 64 < 63) {
-        // mod 64 because we presume generator is just doing one chunk, plus 4 to deal with negatives
-        // assume the world is 8x8 chunks
-        const fieldCacheKey = ((x + 256) % 64) * 64 * 64 + (((y + 256) % 64) + 1) * 64 + ((z + 256) % 64);
-        fieldCache[fieldCacheKey] = aboveIsField ? 1 : 0;
+
+      if (aboveIsField) {
+        const fieldSetKey = x * 512 * 512 + (y + 1) * 512 + z;
+        fieldSet.add(fieldSetKey);
       }
 
       return [voxel, terrainHeight, plateauHeight];
@@ -286,8 +274,8 @@ const Generators = {
         if (y <= WATER_LEVEL) return false;
         if (type !== types.air) return false;
 
-        const fieldCacheKey = ((x + 256) % 64) * 64 * 64 + ((y + 256) % 64) * 64 + ((z + 256) % 64);
-        return fieldCache[fieldCacheKey] === 1 ? features.field : false;
+        const fieldSetKey = x * 512 * 512 + y * 512 + z;
+        return fieldSet.has(fieldSetKey) ? features.field : false;
       },
 
       terrain: (x, y, z) => terrain(x, y, z)[0]

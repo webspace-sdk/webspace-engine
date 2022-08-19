@@ -8,11 +8,14 @@ const Chunks = protocol.Chunks;
 
 class World {
   static generateChunk(x, z, seed) {
-    return new World({
-      blockTypes,
-      generator: "islands",
-      seed
-    }).getEncodedChunk(x, z);
+    if (!window.world) {
+      window.world = new World({
+        blockTypes,
+        generator: "islands",
+        seed
+      });
+    }
+    return window.world.getEncodedChunk(x, z);
   }
 
   constructor({ blockTypes, generator, seed, storage }) {
