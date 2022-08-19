@@ -1,7 +1,7 @@
 import dirt from "./models/dirt";
 import glass from "./models/glass";
 import water from "./models/water";
-import feature from "./models/water";
+import feature from "./models/feature";
 import blockTexture from "./textures/block";
 
 const blockTypes = {

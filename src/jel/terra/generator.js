@@ -1,7 +1,16 @@
-import { createNoise2D, createNoise4D } from "simplex-noise";
 import seedrandom from "seedrandom";
 import random from "random";
 import Chunk from "./chunk";
+import loadFastNoiseModule from "./FastNoise";
+import fastnoiseWasm from "../wasm/fastnoise-wasm.js";
+
+let FastNoise;
+
+loadFastNoiseModule({
+  instantiateWasm: (imports, cb) => WebAssembly.instantiate(fastnoiseWasm, imports).then(({ instance }) => cb(instance))
+}).then(module => {
+  FastNoise = module.FastNoise;
+});
 
 import { WORLD_SIZE, WATER_LEVEL, VOXEL_PALETTE_NONE, VOXEL_PALETTE_GROUND, VOXEL_PALETTE_EDGE } from "./constants";
 
@@ -10,7 +19,7 @@ const { features } = Chunk;
 random.use(seedrandom("base"));
 
 const getFixedColor = () => {
-  return (y, map) => {
+  return (noise, x, y, z, map) => {
     const colorHeight = map.height - 1;
 
     const ha = Math.floor(colorHeight);
@@ -28,7 +37,7 @@ const getComputeColor = seed => {
   const colorRng = random.clone(seed).normal(0, 0.02);
   const belowWaterRng = random.clone(seed).normal(0, 0.005);
 
-  return (y, map, disableNoise = false) => {
+  return (noise, x, y, z, map, disableNoise = false) => {
     const { maxHeight } = Chunk;
     const colorHeight = map.height - 1;
 
@@ -56,8 +65,7 @@ const Generators = {
     const bCache = new Map();
     const fieldCache = new Uint8Array(64 * 64 * 64);
 
-    const simplex2DNoise = createNoise2D(random.clone(seed).uniform());
-    const simplex4DNoise = createNoise4D(random.clone(seed).uniform());
+    const noise = new FastNoise(seed);
     const computeColor = getComputeColor(seed);
 
     const { maxHeight } = Chunk;
@@ -71,7 +79,7 @@ const Generators = {
       const nz = z1 + (Math.cos(t * 2 * Math.PI) * dz) / (2 * Math.PI);
       const na = x1 + (Math.sin(s * 2 * Math.PI) * dx) / (2 * Math.PI);
       const nb = z1 + (Math.sin(t * 2 * Math.PI) * dz) / (2 * Math.PI);
-      const val = Math.abs(simplex4DNoise(nx, nz, na, nb));
+      const val = Math.abs(noise.simplex4D(nx, nz, na, nb));
       return val;
     };
 
@@ -257,12 +265,12 @@ const Generators = {
           palette = palettes.terrain;
           cy = Math.min(maxHeight, y * 1.25);
         }
-        voxel.color = computeColor(cy, palette);
-        voxel.low_lod_color = computeColor(cy, palette, true);
+        voxel.color = computeColor(noise, x, cy, z, palette);
+        voxel.low_lod_color = computeColor(noise, x, cy, z, palette, true);
         voxel.palette = palette == palettes.terrain ? VOXEL_PALETTE_GROUND : VOXEL_PALETTE_EDGE;
       }
 
-      const aboveIsField = voxel.type === types.dirt && isPlateau && Math.abs(simplex2DNoise(x, z)) < 0.05;
+      const aboveIsField = voxel.type === types.dirt && isPlateau && Math.abs(noise.whiteNoise2D(x, z)) < 0.05;
       if ((y + 256) % 64 < 63) {
         // mod 64 because we presume generator is just doing one chunk, plus 4 to deal with negatives
         // assume the world is 8x8 chunks
@@ -286,8 +294,7 @@ const Generators = {
     };
   },
   hilly({ seed, palettes, types }) {
-    const simplex4DNoise = createNoise4D(random.clone(seed).uniform());
-    const simplex2DNoise = createNoise2D(random.clone(seed).uniform());
+    const noise = new FastNoise(seed);
     const computeColor = getComputeColor(seed);
     const thCache = new Map();
 
@@ -302,7 +309,7 @@ const Generators = {
       const nz = z1 + (Math.cos(t * 2 * Math.PI) * dz) / (2 * Math.PI);
       const na = x1 + (Math.sin(s * 2 * Math.PI) * dx) / (2 * Math.PI);
       const nb = z1 + (Math.sin(t * 2 * Math.PI) * dz) / (2 * Math.PI);
-      const val = Math.abs(simplex4DNoise(nx, nz, na, nb));
+      const val = Math.abs(noise.simplex4D(nx, nz, na, nb));
       return val;
     };
 
@@ -337,8 +344,8 @@ const Generators = {
 
         const palette = palettes.terrain;
 
-        voxel.color = computeColor(y, palette);
-        voxel.low_lod_color = computeColor(y, palette, true);
+        voxel.color = computeColor(noise, x, y, z, palette);
+        voxel.low_lod_color = computeColor(noise, x, y, z, palette, true);
         voxel.palette = VOXEL_PALETTE_GROUND;
       }
 
@@ -382,7 +389,7 @@ const Generators = {
 
         // Field element (grass, etc)
         // Rendered on client via instancing
-        const w = Math.abs(simplex2DNoise(x, z));
+        const w = Math.abs(noise.whiteNoise2D(x, z));
         if (w < 0.05 && isFlat(x, y, z, 3)) {
           return features.field;
         }
@@ -395,15 +402,14 @@ const Generators = {
   },
   flat({ seed, palettes, types }) {
     const computeColor = getFixedColor();
+    const noise = new FastNoise(seed);
     const worldHeight = WATER_LEVEL + 1;
-    const simplex2DNoise = createNoise2D(random.clone(seed).uniform());
-
-    const terrain = (x, y) => {
+    const terrain = (x, y, z) => {
       const isBlock = y <= worldHeight;
       return {
         type: isBlock ? types.dirt : types.air,
-        color: isBlock ? computeColor(y, palettes.terrain) : { r: 0, g: 0, b: 0 },
-        low_lod_color: isBlock ? computeColor(y, palettes.terrain) : { r: 0, g: 0, b: 0 },
+        color: isBlock ? computeColor(noise, x, y, z, palettes.terrain) : { r: 0, g: 0, b: 0 },
+        low_lod_color: isBlock ? computeColor(noise, x, y, z, palettes.terrain) : { r: 0, g: 0, b: 0 },
         palette: isBlock ? VOXEL_PALETTE_GROUND : VOXEL_PALETTE_NONE
       };
     };
@@ -418,7 +424,7 @@ const Generators = {
 
         // Field element (grass, etc)
         // Rendered on client via instancing
-        const w = Math.abs(simplex2DNoise(x, z));
+        const w = Math.abs(noise.whiteNoise2D(x, z));
         if (w < 0.05) {
           return features.field;
         }

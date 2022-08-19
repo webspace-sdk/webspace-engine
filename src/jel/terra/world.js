@@ -10,7 +10,7 @@ class World {
   static generateChunk(x, z, seed) {
     return new World({
       blockTypes,
-      generator: "hilly",
+      generator: "islands",
       seed
     }).getEncodedChunk(x, z);
   }

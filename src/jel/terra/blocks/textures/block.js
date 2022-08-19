@@ -1,10 +1,10 @@
-import { PNG } from "pngjs/browser";
-
-const block = new PNG({
+// TODO this seems like dead code
+const block = {
   width: 16,
   height: 16,
-  colorType: 6 // RGBA
-});
+  colorType: 6,
+  data: Array(16 * 16 * 4) // RGBA
+};
 
 for (let y = 0; y < block.height; y += 1) {
   for (let x = 0; x < block.width; x += 1) {
