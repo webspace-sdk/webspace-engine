@@ -1,5 +1,6 @@
 import { CONSTANTS } from "three-ammo";
 import { protocol } from "../protocol/protocol";
+import World from "../terra/world";
 import { createVoxelMaterial, Terrain, updateWorldColors, VOXEL_PALETTE_GRASS } from "../objects/terrain";
 import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { VOXLoader } from "../objects/VOXLoader";
@@ -7,11 +8,9 @@ import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import grassVoxSrc from "!!url-loader!../../assets/jel/models/grass1.vox";
 import { RENDER_ORDER, WORLD_COLOR_TYPES, COLLISION_LAYERS } from "../../hubs/constants";
-import configs from "../../hubs/utils/configs";
 import { Layers } from "../../hubs/components/layers";
 import qsTruthy from "../../hubs/utils/qs_truthy";
 import nextTick from "../../hubs/utils/next-tick";
-import { DecompressionStream as DecompressionStreamImpl } from "@stardazed/streams-compression";
 
 export const WORLD_TYPES = {
   ISLANDS: 1,
@@ -87,10 +86,10 @@ export const addVertexCurvingToMaterial = material => {
   }
 };
 
-const LOAD_RADIUS = qsTruthy("director") ? 6 : 3;
+const LOAD_RADIUS = qsTruthy("director") ? 1 : 1;
 const FIELD_FEATURE_RADIUS = 1;
-const BODY_RADIUS = 2;
-const REFLECT_RADIUS = 2;
+const BODY_RADIUS = 1;
+const REFLECT_RADIUS = 1;
 
 const LOAD_GRID = [];
 const FIELD_FEATURE_GRID = [];
@@ -251,58 +250,34 @@ export class TerrainSystem {
       loadingChunks.set(key, chunk);
     }
 
-    await new Promise((resolve, reject) => {
-      try {
-        fetch(
-          // cache: reload not working, use a hack for now
-          // to force avoiding cache
-          //
-          // hack for now, use plains geo for flat, need to regen
-          `https://${configs.TERRA_SERVER}/${
-            worldType == WORLD_TYPES.FLAT ? WORLD_TYPES.PLAINS : worldType
-          }/${worldSeed}/${chunk.x}/${chunk.z}/1`
-        )
-          .then(async res => {
-            // Decode + spawn at most one terrain per frame
-            while (this.lastLoadedChunkFrame === this.frame) {
-              await nextTick();
-            }
+    // Decode + spawn at most one terrain per frame
+    while (this.lastLoadedChunkFrame === this.frame) {
+      await nextTick();
+    }
 
-            this.lastLoadedChunkFrame = this.frame;
+    this.lastLoadedChunkFrame = this.frame;
 
-            if (!heightMapOnly) {
-              if (!loadingChunks.has(key)) return;
-              loadingChunks.delete(key);
-            }
+    if (!heightMapOnly) {
+      if (!loadingChunks.has(key)) return;
+      loadingChunks.delete(key);
+    }
 
-            if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
-            const arr = await res.arrayBuffer();
-            const decompressor = new (window.DecompressionStream || DecompressionStreamImpl)("gzip");
-            const stream = new Blob([arr]).stream().pipeThrough(decompressor);
-            const rawBlob = await new Response(stream).blob();
-            const encoded = new Uint8Array(await rawBlob.arrayBuffer());
+    if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
+    const encoded = World.generateChunk(chunk.x, chunk.z, worldSeed);
+    console.log("gen", chunk.x, chunk.z, encoded);
 
-            if (heightMapOnly) {
-              const chunks = decodeChunks(encoded);
+    if (heightMapOnly) {
+      const chunks = decodeChunks(encoded);
 
-              chunks.forEach(({ x, meshes, heightmap, z }) => {
-                meshes.forEach((geometries, subchunk) => {
-                  const key = `${x}:${z}:${subchunk}`;
-                  chunkHeightMaps.set(key, heightmap);
-                });
-              });
-            } else {
-              spawningChunks.set(key, encoded);
-            }
-            resolve();
-          })
-          .catch(() => {
-            reject();
-          });
-      } catch (e) {
-        reject();
-      }
-    });
+      chunks.forEach(({ x, meshes, heightmap, z }) => {
+        meshes.forEach((geometries, subchunk) => {
+          const key = `${x}:${z}:${subchunk}`;
+          chunkHeightMaps.set(key, heightmap);
+        });
+      });
+    } else {
+      spawningChunks.set(key, encoded);
+    }
   }
 
   spawnChunk = encoded => {
@@ -396,7 +371,7 @@ export class TerrainSystem {
     this.atmosphereSystem.maximizeFog();
     this.cameraSystem.updateCameraSettings();
 
-    this.worldType = type;
+    this.worldType = 1;
     this.worldSeed = seed;
     this.unloadWorld();
 
