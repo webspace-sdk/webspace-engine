@@ -31,8 +31,7 @@ import URL_FART_4 from "!!url-loader!../../assets/jel/sfx/fart4.mp3";
 import URL_FART_5 from "!!url-loader!../../assets/jel/sfx/fart5.mp3";
 import URL_FART_BIG from "!!url-loader!../../assets/jel/sfx/fart-big.mp3";
 import URL_WATER from "!!url-loader!../../assets/jel/sfx/water.mp3";
-
-const URL_OUTDOORS = "https://arweave.net/2jfYuJErbfhblUabZZDUlnBNKwtFc4m5lTzcqTF8KAg";
+import URL_OUTDOORS from "!!url-loader!../../assets/jel/sfx/outdoors.mp3";
 
 import { setMatrixWorld } from "../utils/three-utils";
 
