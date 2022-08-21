@@ -22,7 +22,7 @@
   "scripts": {
     "start": "webpack-dev-server --mode=development --env loadAppConfig",
     "dev": "webpack-dev-server --mode=development --env remoteDev",
-    "local": "webpack-dev-server --mode=development --env localDev",
+    "local": "webpack-dev-server --mode=development --env localDev --host 0.0.0.0",
     "build": "rimraf ./dist && webpack --mode=production",
     "bundle-analyzer": "webpack-dev-server --mode=production --env dev --env.bundleAnalyzer",
     "doc": "node ./scripts/doc/build.js",
