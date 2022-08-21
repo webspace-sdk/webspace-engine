@@ -18,7 +18,7 @@ class World {
     return window.world.getEncodedChunk(x, z);
   }
 
-  constructor({ blockTypes, generator, seed, storage }) {
+  constructor({ blockTypes, generatorType, seed, storage }) {
     if (storage && !seed) {
       console.error("Must provide a SEED if you want STORAGE.\n");
       process.exit(1);
@@ -29,7 +29,8 @@ class World {
     this.chunks = new Map();
     this.seed = seed && !Number.isNaN(seed) ? seed % 65536 : Math.floor(Math.random() * 65536);
     this.storage = storage;
-    this.generator = Generators({ blockTypes, generator, palettes: PALETTES, seed });
+    this.generatorType = generatorType;
+    this.generator = Generators({ blockTypes, generator: generatorType, palettes: PALETTES, seed });
   }
 
   getChunk({ x, z }) {

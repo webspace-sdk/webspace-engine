@@ -29,7 +29,6 @@ import { proxiedUrlFor, getCorsProxyServer } from "../utils/media-url-utils";
 import { buildAbsoluteURL } from "url-toolkit";
 import { SOUND_CAMERA_TOOL_TOOK_SNAPSHOT } from "../systems/sound-effects-system";
 import { promisifyWorker } from "../utils/promisify-worker.js";
-import { applyPersistentSync } from "../utils/permissions-utils";
 import { refreshMediaMirror, getCurrentMirroredMedia } from "../utils/mirror-utils";
 import { MEDIA_PRESENCE } from "../utils/media-utils";
 import { disposeExistingMesh, disposeTexture, disposeTextureImage } from "../utils/three-utils";

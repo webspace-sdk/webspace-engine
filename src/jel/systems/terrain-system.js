@@ -1,6 +1,7 @@
 import { CONSTANTS } from "three-ammo";
 import { protocol } from "../protocol/protocol";
-import World from "../terra/world";
+import { promisifyWorker } from "../../hubs/utils/promisify-worker.js";
+import TerraWorker from "../workers/terra.worker.js";
 import { createVoxelMaterial, Terrain, updateWorldColors, VOXEL_PALETTE_GRASS } from "../objects/terrain";
 import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { VOXLoader } from "../objects/VOXLoader";
@@ -11,6 +12,8 @@ import { RENDER_ORDER, WORLD_COLOR_TYPES, COLLISION_LAYERS } from "../../hubs/co
 import { Layers } from "../../hubs/components/layers";
 import qsTruthy from "../../hubs/utils/qs_truthy";
 import nextTick from "../../hubs/utils/next-tick";
+
+const runTerraWorker = promisifyWorker(new TerraWorker());
 
 export const WORLD_TYPES = {
   ISLANDS: 1,
@@ -86,10 +89,10 @@ export const addVertexCurvingToMaterial = material => {
   }
 };
 
-const LOAD_RADIUS = qsTruthy("director") ? 1 : 1;
+const LOAD_RADIUS = qsTruthy("director") ? 6 : 3;
 const FIELD_FEATURE_RADIUS = 1;
-const BODY_RADIUS = 1;
-const REFLECT_RADIUS = 1;
+const BODY_RADIUS = 2;
+const REFLECT_RADIUS = 2;
 
 const LOAD_GRID = [];
 const FIELD_FEATURE_GRID = [];
@@ -263,8 +266,7 @@ export class TerrainSystem {
     }
 
     if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
-    const encoded = World.generateChunk(chunk.x, chunk.z, worldSeed);
-    console.log("gen", chunk.x, chunk.z, encoded);
+    const encoded = await runTerraWorker({ x: chunk.x, z: chunk.z, type: this.worldType, seed: this.worldSeed });
 
     if (heightMapOnly) {
       const chunks = decodeChunks(encoded);
