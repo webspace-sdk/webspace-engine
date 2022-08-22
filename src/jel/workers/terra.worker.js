@@ -56,7 +56,7 @@ self.onmessage = ({
         });
       }
 
-      // TODO fetch from origin
+      // TODO try fetch from origin
 
       while (true) { // eslint-disable-line
         let nextChunk;
@@ -73,6 +73,8 @@ self.onmessage = ({
 
         await nextTick();
       }
+
+      // TODO try fetch from origin again before doing compute
 
       const chunk = world.getEncodedChunk(x, z);
       chunkPriorities.delete(chunkId);
