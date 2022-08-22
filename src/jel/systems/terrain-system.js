@@ -243,7 +243,7 @@ export class TerrainSystem {
     return Promise.all(promises);
   }
 
-  async loadChunk(chunk, heightMapOnly = false) {
+  async loadChunk(chunk, heightMapOnly = false, priority = 0) {
     if (this.worldType === null) return;
     const { loadedChunks, loadingChunks, chunkHeightMaps, spawningChunks, worldType, worldSeed } = this;
     const key = keyForChunk(chunk);
@@ -266,7 +266,13 @@ export class TerrainSystem {
     }
 
     if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
-    const encoded = await runTerraWorker({ x: chunk.x, z: chunk.z, type: this.worldType, seed: this.worldSeed });
+    const encoded = await runTerraWorker({
+      x: chunk.x,
+      z: chunk.z,
+      type: this.worldType,
+      seed: this.worldSeed,
+      priority
+    });
 
     if (heightMapOnly) {
       const chunks = decodeChunks(encoded);
@@ -373,7 +379,6 @@ export class TerrainSystem {
     this.atmosphereSystem.maximizeFog();
     this.cameraSystem.updateCameraSettings();
 
-    this.worldType = 1;
     this.worldSeed = seed;
     this.unloadWorld();
 
@@ -752,7 +757,7 @@ export class TerrainSystem {
               const cz = normalizeChunkCoord(avatarChunk.z + z);
               const newChunk = { x: cx, z: cz };
               newChunks.push(newChunk);
-              this.loadChunk(newChunk);
+              this.loadChunk(newChunk, false, Math.abs(x) + Math.abs(z) + Math.random()); // Prioritize closest chunks
             });
           } else {
             for (let cx = MIN_CHUNK_COORD; cx <= MAX_CHUNK_COORD; cx++) {

@@ -1,6 +1,7 @@
 let world = null;
 import blockTypes from "../terra/blocks";
 import World from "../terra/world";
+import nextTick from "../../hubs/utils/next-tick";
 
 const CHUNK_VERSION = 1;
 
@@ -13,6 +14,7 @@ const WORLD_TYPE_GENERATORS = {
 
 let db;
 const req = indexedDB.open("terra", 1);
+const chunkPriorities = new Map();
 
 req.addEventListener("success", ({ target: { result } }) => {
   db = result;
@@ -25,7 +27,7 @@ req.addEventListener("upgradeneeded", ({ target: { result: db } }) => {
 self.onmessage = ({
   data: {
     id,
-    payload: { x, z, seed, type }
+    payload: { x, z, seed, type, priority }
   }
 }) => {
   const generatorType = WORLD_TYPE_GENERATORS[type];
@@ -35,13 +37,14 @@ self.onmessage = ({
   }
 
   const chunkId = `${type}/${seed}/${x}/${z}/${CHUNK_VERSION}`;
+  chunkPriorities.set(chunkId, priority || 0);
 
   const txn = db
     .transaction("chunks")
     .objectStore("chunks")
     .get(chunkId);
 
-  txn.addEventListener("success", ({ target }) => {
+  txn.addEventListener("success", async ({ target }) => {
     if (target.result) {
       self.postMessage({ id, result: target.result.chunk });
     } else {
@@ -53,7 +56,29 @@ self.onmessage = ({
         });
       }
 
+      // TODO fetch from origin
+
+      while (true) { // eslint-disable-line
+        let nextChunk;
+        let nextPriority = Infinity;
+
+        for (const [chunkKey, priority] of chunkPriorities.entries()) {
+          if (priority < nextPriority) {
+            nextPriority = priority;
+            nextChunk = chunkKey;
+          }
+        }
+
+        if (nextChunk == chunkId) break;
+
+        await nextTick();
+      }
+
       const chunk = world.getEncodedChunk(x, z);
+      chunkPriorities.delete(chunkId);
+
+      // TODO post to origin if writeback enabled
+
       self.postMessage({
         id,
         result: chunk

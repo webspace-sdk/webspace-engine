@@ -87,7 +87,7 @@ for (let x = -512; x < 512; x++) {
 
 const Generators = {
   islands({ seed, palettes, types }) {
-    const thCache = new Float32Array(64 * 64 * 64 * 2);
+    const thCache = new Float32Array(1024 * 1024);
     const fieldSet = new Set();
 
     const noise = new FastNoise(seed);
@@ -116,8 +116,9 @@ const Generators = {
 
     const getTerrainHeight = (x, z) => {
       // Terrain can reach past edge of chunkspace
-      const cacheKey = (x + 256 + 64 + 2) * (2 * (256 + 64 + 2)) + (z + 256 + 64 + 2);
+      const cacheKey = ((x + 512) << 10) | (z + 512);
       const v = thCache[cacheKey];
+
       if (v !== 0) return v;
       const h = Math.min(tiledSimplex(x, z, 0, bridgeOffsetD, 0, bridgeOffsetD) * 2.0 * maxHeight, maxHeight);
       thCache[cacheKey] = h;
@@ -289,7 +290,7 @@ const Generators = {
   hilly({ seed, palettes, types }) {
     const noise = new FastNoise(seed);
     const computeColor = getComputeColor(seed);
-    const thCache = new Float32Array(64 * 64 * 64 * 2);
+    const thCache = new Float32Array(1024 * 1024);
 
     const maxHeight = Chunk.maxHeight - 35;
 
@@ -306,8 +307,9 @@ const Generators = {
 
     const getTerrainHeight = (x, z) => {
       // Terrain can reach past edge of chunkspace
-      const cacheKey = (x + 256 + 64 + 2) * (2 * (256 + 64 + 2)) + (z + 256 + 64 + 2);
+      const cacheKey = ((x + 512) << 10) | (z + 512);
       const v = thCache[cacheKey];
+
       if (v !== 0) return v;
       const h =
         waterLevel +
