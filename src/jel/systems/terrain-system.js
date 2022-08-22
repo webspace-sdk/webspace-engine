@@ -379,6 +379,7 @@ export class TerrainSystem {
     this.atmosphereSystem.maximizeFog();
     this.cameraSystem.updateCameraSettings();
 
+    this.worldType = type;
     this.worldSeed = seed;
     this.unloadWorld();
 
