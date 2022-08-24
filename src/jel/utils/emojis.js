@@ -10792,15 +10792,42 @@ export const EmojiList = [
   }
 ];
 
-export const buildEmojiMap = async () => {
+export const EmojiSvgs = new Map();
+export const EmojiBlobs = new Map();
+
+const ensureEmojiMap = async () => {
+  if (EmojiSvgs.size > 0) return;
+
   const blob = await (await fetch(EmojiTar)).blob();
+  if (EmojiSvgs.size > 0) return;
+
   const buf = await blob.arrayBuffer();
 
-  console.log(blob);
-
-  const t0 = performance.now();
   untar(buf).then(files => {
-    console.log(performance.now() - t0);
-    console.log(files);
+    if (EmojiSvgs.size > 0) return;
+
+    for (const { name, buffer } of files) {
+      EmojiSvgs.set(name, buffer);
+    }
   });
+};
+
+export function emojiUnicode(characters, prefix = "") {
+  return [...characters]
+    .reduce((accumulator, character) => {
+      const unicode = character.codePointAt(undefined).toString(16);
+      accumulator.push(`${prefix}${unicode}`);
+      return accumulator;
+    }, [])
+    .join("-")
+    .toUpperCase();
+}
+
+export const getBlobForEmojiImage = async (emoji, resolution) => {
+  await ensureEmojiMap();
+  const unicode = emojiUnicode(emoji).toUpperCase();
+  const buf = EmojiSvgs.get(`${unicode}.svg`);
+
+  if (!buf) return null;
+  console.log(buf);
 };

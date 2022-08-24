@@ -279,7 +279,6 @@ if (!isBotMode && !isTelemetryDisabled) {
 }
 
 registerWrappedEntityPositionNormalizers();
-buildEmojiMap();
 
 disableiOSZoom();
 detectConcurrentLoad();

@@ -1,5 +1,6 @@
 import { hasReticulumServer } from "./phoenix-utils";
 import configs from "./configs";
+import { getBlobForEmojiImage } from "../../jel/utils/emojis";
 
 const nonCorsProxyDomains = (configs.NON_CORS_PROXY_DOMAINS || "").split(",");
 if (configs.CORS_PROXY_SERVER) {
@@ -213,5 +214,6 @@ const EMOJI_IMAGE_URL = "https://assets.jel.app/static/emoji";
 
 export async function imageUrlForEmoji(emoji, resolution) {
   const unicode = emojiUnicode(emoji).toUpperCase();
+  const blob = getBlobForEmojiImage(emoji, resolution);
   return `${EMOJI_IMAGE_URL}/${unicode}-${resolution}.png`;
 }
