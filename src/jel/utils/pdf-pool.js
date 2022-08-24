@@ -1,19 +1,7 @@
-import pdfjs from "pdfjs-dist";
+import * as pdfjs from "pdfjs-dist";
+const pdfjsWorker = require("pdfjs-dist/build/pdf.worker.js");
+pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfjsWorker], { type: "text/javascript" }));
 
-/**
- * Warning! This require statement is fragile!
- *
- * How it works:
- * require -> require the file after all import statements have been called, particularly the configs.js import which modifies __webpack_public_path__
- * !! -> don't run any other loaders
- * file-loader -> make webpack move the file into the dist directory and return the file path
- * outputPath -> where to put the file
- * name -> how to name the file
- * Then the path to the worker script
- */
-pdfjs.GlobalWorkerOptions.workerSrc = require("!!file-loader?outputPath=assets/js&name=[name]-[hash].js!pdfjs-dist/build/pdf.worker.min.js");
-
-// Entries { getPdfPromise, src, refs } where refs is a ref count.
 const pdfs = [];
 
 export async function retainPdf(src) {

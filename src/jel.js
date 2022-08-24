@@ -237,6 +237,7 @@ import "./hubs/components/tools/drawing-manager";
 
 import "./hubs/components/body-helper";
 import "./hubs/components/shape-helper";
+import { buildEmojiMap } from "./jel/utils/emojis";
 
 import registerNetworkSchemas from "./hubs/network-schemas";
 import registerTelemetry from "./hubs/telemetry";
@@ -278,6 +279,7 @@ if (!isBotMode && !isTelemetryDisabled) {
 }
 
 registerWrappedEntityPositionNormalizers();
+buildEmojiMap();
 
 disableiOSZoom();
 detectConcurrentLoad();

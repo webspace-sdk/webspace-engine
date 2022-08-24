@@ -280,12 +280,23 @@ module.exports = async (env, argv) => {
           loader: "html-loader"
         },
         {
+          test: /pdf\.worker\.js$/,
+          type: "asset/inline",
+          generator: {
+            dataUrl: content => {
+              return content.toString();
+            }
+          }
+        },
+        {
           test: /\.worker\.js$/,
-          loader: "worker-loader",
-          options: {
-            filename: "assets/js/[name].js",
-            publicPath: "/",
-            inline: "fallback"
+          exclude: /pdf\.worker\.js/,
+          use: {
+            loader: "worker-loader",
+            options: {
+              publicPath: "/",
+              inline: "fallback"
+            }
           }
         },
         {

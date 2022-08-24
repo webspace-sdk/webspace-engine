@@ -1,3 +1,5 @@
+import EmojiTar from "!!url-loader!../../assets/jel/emojis.tar";
+
 export const EmojiList = [
   {
     name: "100",
@@ -10788,3 +10790,8 @@ export const EmojiList = [
     emoji_order: "1"
   }
 ];
+
+export const buildEmojiMap = async () => {
+  const blob = await (await fetch(EmojiTar)).blob();
+  console.log(blob);
+};
