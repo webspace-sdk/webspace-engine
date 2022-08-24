@@ -254,7 +254,6 @@ export class VoxmojiSystem extends EventTarget {
 
     const width = image.width;
     const height = image.height;
-    console.log(image.width, image.height);
 
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");

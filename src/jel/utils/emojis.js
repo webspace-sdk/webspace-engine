@@ -8101,7 +8101,7 @@ export const EmojiList = [
   },
   {
     name: "hash",
-    unicode: "0023-20e3",
+    unicode: "0023-fe0f-20e3",
     shortname: ":hash:",
     code: "#&#8419;",
     category: "s",
@@ -8109,7 +8109,7 @@ export const EmojiList = [
   },
   {
     name: "keycap_star",
-    unicode: "002a-20e3",
+    unicode: "002a-fe0f-20e3",
     shortname: ":asterisk:",
     code: "*&#8419;",
     category: "s",
@@ -8117,7 +8117,7 @@ export const EmojiList = [
   },
   {
     name: "zero",
-    unicode: "0030-20e3",
+    unicode: "0030-fe0f-20e3",
     shortname: ":zero:",
     code: "0&#8419;",
     category: "s",
@@ -8125,7 +8125,7 @@ export const EmojiList = [
   },
   {
     name: "one",
-    unicode: "0031-20e3",
+    unicode: "0031-fe0f-20e3",
     shortname: ":one:",
     code: "1&#8419;",
     category: "s",
@@ -8133,7 +8133,7 @@ export const EmojiList = [
   },
   {
     name: "two",
-    unicode: "0032-20e3",
+    unicode: "0032-fe0f-20e3",
     shortname: ":two:",
     code: "2&#8419;",
     category: "s",
@@ -8141,7 +8141,7 @@ export const EmojiList = [
   },
   {
     name: "three",
-    unicode: "0033-20e3",
+    unicode: "0033-fe0f-20e3",
     shortname: ":three:",
     code: "3&#8419;",
     category: "s",
@@ -8149,7 +8149,7 @@ export const EmojiList = [
   },
   {
     name: "four",
-    unicode: "0034-20e3",
+    unicode: "0034-fe0f-20e3",
     shortname: ":four:",
     code: "4&#8419;",
     category: "s",
@@ -8157,7 +8157,7 @@ export const EmojiList = [
   },
   {
     name: "five",
-    unicode: "0035-20e3",
+    unicode: "0035-fe0f-20e3",
     shortname: ":five:",
     code: "5&#8419;",
     category: "s",
@@ -8165,7 +8165,7 @@ export const EmojiList = [
   },
   {
     name: "six",
-    unicode: "0036-20e3",
+    unicode: "0036-fe0f-20e3",
     shortname: ":six:",
     code: "6&#8419;",
     category: "s",
@@ -8173,7 +8173,7 @@ export const EmojiList = [
   },
   {
     name: "seven",
-    unicode: "0037-20e3",
+    unicode: "0037-fe0f-20e3",
     shortname: ":seven:",
     code: "7&#8419;",
     category: "s",
@@ -8181,7 +8181,7 @@ export const EmojiList = [
   },
   {
     name: "eight",
-    unicode: "0038-20e3",
+    unicode: "0038-fe0f-20e3",
     shortname: ":eight:",
     code: "8&#8419;",
     category: "s",
@@ -8189,7 +8189,7 @@ export const EmojiList = [
   },
   {
     name: "nine",
-    unicode: "0039-20e3",
+    unicode: "0039-fe0f-20e3",
     shortname: ":nine:",
     code: "9&#8419;",
     category: "s",
@@ -10803,22 +10803,11 @@ export const loadEmojis = async () => {
   }
 };
 
-export function emojiUnicode(characters, prefix = "") {
-  return [...characters]
-    .reduce((accumulator, character) => {
-      const unicode = character.codePointAt(undefined).toString(16);
-      accumulator.push(`${prefix}${unicode}`);
-      return accumulator;
-    }, [])
-    .join("-")
-    .toUpperCase();
-}
-
-export const getBlobForEmojiImage = emoji => {
-  const unicode = emojiUnicode(emoji).toUpperCase();
+export const getBlobForEmojiImage = unicode => {
   const buf = emojiSvgs.get(`${unicode}.svg`);
 
   if (!buf) {
+    console.log("failed for", unicode);
     return null;
   }
 

@@ -7,6 +7,7 @@ import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focu
 import { FloatingTextWrap, FloatingTextElement } from "./floating-text-input";
 import { getMessages } from "../../hubs/utils/i18n";
 import { useRefFocusResetter } from "../utils/shared-effects";
+import { imageUrlForUnicodeEmoji } from "../../hubs/utils/media-url-utils";
 
 import { EmojiList } from "../utils/emojis";
 
@@ -267,7 +268,7 @@ const EmojiContainer = styled.button`
   }
 `;
 
-const Emoji = styled.div`
+const Emoji = styled.img`
   width: 26px;
   height: 26px;
   overflow: hidden;
@@ -286,7 +287,7 @@ const Footer = styled.div`
   border-radius: 0 0 6px 6px;
 `;
 
-const FooterEmoji = styled.div`
+const FooterEmoji = styled.img`
   width: 26px;
   height: 26px;
   margin: 2px;
@@ -451,7 +452,7 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
             className={currentEmoji && currentEmoji.name === item.name ? "active" : ""}
           >
             <Emoji
-              className={`emoji-map ${item ? `emoji-${item.name}` : ""}`}
+              src={imageUrlForUnicodeEmoji(item.unicode)}
               onClick={() => {
                 onEmojiSelected(item);
                 DOM_ROOT.activeElement?.blur();
@@ -469,7 +470,7 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
         ))}
       </Emojis>
       <Footer>
-        {currentEmoji && <FooterEmoji className={`${currentEmoji && `emoji-map emoji-${currentEmoji.name}`}`} />}
+        {currentEmoji && <FooterEmoji src={imageUrlForUnicodeEmoji(currentEmoji.unicode)} />}
         <FooterLabel className={currentEmoji && `.emoji-${currentEmoji.name}`}>
           {currentEmoji && currentEmoji.shortname}
           {!currentEmoji && (

@@ -206,16 +206,21 @@ export function emojiUnicode(characters, prefix = "") {
       accumulator.push(`${prefix}${unicode}`);
       return accumulator;
     }, [])
-    .join("-")
-    .toUpperCase();
+    .join("-");
 }
 
 const emojiBlobUrls = new Map();
-export function imageUrlForEmoji(emoji) {
-  if (emojiBlobUrls.has(emoji)) return emojiBlobUrls.get(emoji);
 
-  const blob = getBlobForEmojiImage(emoji);
+export function imageUrlForUnicodeEmoji(unicode) {
+  if (emojiBlobUrls.has(unicode)) return emojiBlobUrls.get(unicode);
+
+  const blob = getBlobForEmojiImage(unicode);
   const url = URL.createObjectURL(blob).toString();
-  emojiBlobUrls.set(emoji, url);
+  emojiBlobUrls.set(unicode, url);
   return url;
+}
+
+export function imageUrlForEmoji(emoji) {
+  const unicode = emojiUnicode(emoji);
+  return imageUrlForUnicodeEmoji(unicode);
 }
