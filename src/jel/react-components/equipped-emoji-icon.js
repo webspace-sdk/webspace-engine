@@ -14,19 +14,7 @@ const EquippedEmojiImage = styled.img`
 export default function EquippedEmojiIcon() {
   const { store } = window.APP;
   const [equippedEmoji, setEquippedEmoji] = useState(store.state.equips.launcher);
-  const [equippedEmojiImageUrl, setEquippedEmojiImageUrl] = useState(null);
-
-  useEffect(
-    () => {
-      const oldEquippedEmoji = equippedEmoji;
-
-      imageUrlForEmoji(equippedEmoji, 64).then(url => {
-        if (oldEquippedEmoji !== equippedEmoji) return;
-        setEquippedEmojiImageUrl(url);
-      });
-    },
-    [equippedEmoji]
-  );
+  const equippedEmojiImageUrl = imageUrlForEmoji(equippedEmoji);
 
   // Equipped emoji
   useEffect(

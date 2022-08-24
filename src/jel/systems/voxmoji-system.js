@@ -246,9 +246,6 @@ export class VoxmojiSystem extends EventTarget {
     const image = await new Promise((res, rej) => loader.load(imageUrl, res, undefined, rej));
     image.setAttribute("width", size);
     image.setAttribute("height", size);
-    console.log(image);
-    console.log(image.width);
-    console.log(image.height);
 
     if (this.imageUrlToType.has(imageUrl)) {
       // Just in case another caller ran while this was loading.

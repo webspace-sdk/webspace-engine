@@ -210,7 +210,7 @@ export function emojiUnicode(characters, prefix = "") {
     .toUpperCase();
 }
 
-export async function imageUrlForEmoji(emoji, resolution) {
-  const blob = await getBlobForEmojiImage(emoji, resolution);
+export function imageUrlForEmoji(emoji) {
+  const blob = getBlobForEmojiImage(emoji);
   return URL.createObjectURL(blob).toString();
 }
