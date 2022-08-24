@@ -237,7 +237,7 @@ import "./hubs/components/tools/drawing-manager";
 
 import "./hubs/components/body-helper";
 import "./hubs/components/shape-helper";
-import { buildEmojiMap } from "./jel/utils/emojis";
+import { loadEmojis } from "./jel/utils/emojis";
 
 import registerNetworkSchemas from "./hubs/network-schemas";
 import registerTelemetry from "./hubs/telemetry";
@@ -981,6 +981,7 @@ async function start() {
   shadowStyles.type = "text/css";
   shadowStyles.appendChild(document.createTextNode(SHADOW_DOM_STYLES));
   DOM_ROOT.appendChild(shadowStyles);
+  const emojiLoadPromise = loadEmojis();
 
   DOM_ROOT.innerHTML += `
       <div id="jel-ui">
@@ -1239,6 +1240,7 @@ async function start() {
   addGlobalEventListeners(scene, entryManager, matrix);
   setupSidePanelLayout(scene);
   setupGameEnginePausing(scene);
+  await emojiLoadPromise;
 
   window.dispatchEvent(new CustomEvent("hub_channel_ready"));
 

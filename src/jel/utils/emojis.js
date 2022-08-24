@@ -10796,17 +10796,10 @@ export const EmojiList = [
 export const EmojiSvgs = new Map();
 export const EmojiBlobs = new Map();
 
-const ensureEmojiMap = async () => {
-  if (EmojiSvgs.size > 0) return;
-
+export const loadEmojis = async () => {
   const blob = await (await fetch(EmojiTar)).blob();
-  if (EmojiSvgs.size > 0) return;
-
   const buf = await blob.arrayBuffer();
-
   const files = await untar(buf);
-  if (EmojiSvgs.size > 0) return;
-
   for (const { name, buffer } of files) {
     EmojiSvgs.set(name, buffer);
   }
@@ -10825,10 +10818,9 @@ export function emojiUnicode(characters, prefix = "") {
 
 const emojiImageBlobs = new Map();
 
-export const getBlobForEmojiImage = async (emoji, resolution) => {
+export const getBlobForEmojiImage = async emoji => {
   if (emojiImageBlobs.has(emoji)) return emojiImageBlobs.get(emoji);
 
-  await ensureEmojiMap();
   const unicode = emojiUnicode(emoji).toUpperCase();
   const buf = EmojiSvgs.get(`${unicode}.svg`);
 
