@@ -211,7 +211,7 @@ export function emojiUnicode(characters, prefix = "") {
 
 const EMOJI_IMAGE_URL = "https://assets.jel.app/static/emoji";
 
-export function imageUrlForEmoji(emoji, resolution) {
+export async function imageUrlForEmoji(emoji, resolution) {
   const unicode = emojiUnicode(emoji).toUpperCase();
   return `${EMOJI_IMAGE_URL}/${unicode}-${resolution}.png`;
 }

@@ -349,9 +349,8 @@ const TIP_DATA = {
 };
 
 const KEY_TIP_TYPES = Object.keys(TIP_DATA);
-let equippedEmojiUrl;
 
-const itemForData = ([label, keys, flag], triggerMode) => {
+const itemForData = ([label, keys, flag], triggerMode, equippedEmojiUrl) => {
   let tipLabel;
 
   if (label === "jump" || label === "shoot") {
@@ -371,9 +370,6 @@ const itemForData = ([label, keys, flag], triggerMode) => {
         </TipLabel>
       );
     } else {
-      const emoji = window.APP.store.state.equips.launcher;
-      equippedEmojiUrl = imageUrlForEmoji(emoji, 64);
-
       tipLabel = (
         <TipLabel key={label}>
           <img className="equipped-emoji" src={equippedEmojiUrl} crossOrigin="anonymous" />
@@ -643,10 +639,10 @@ const itemForData = ([label, keys, flag], triggerMode) => {
   return React.createElement(component, { key: label, style: style, className }, [keyLabels, tipLabel]);
 };
 
-const genTips = (tips, triggerMode) => {
+const genTips = (tips, triggerMode, equippedEmojiUrl) => {
   return (
     <KeyTipsElement key={tips} className={tips}>
-      {TIP_DATA[tips].map(tip => itemForData(tip, triggerMode))}
+      {TIP_DATA[tips].map(tip => itemForData(tip, triggerMode, equippedEmojiUrl))}
     </KeyTipsElement>
   );
 };
@@ -669,6 +665,7 @@ const KeyTipChooser = styled.div`
 const KeyTips = forwardRef((props, ref) => {
   const { builderSystem, launcherSystem } = SYSTEMS;
   const [flagVersion, setFlagVersion] = useState(0);
+  const [equippedEmojiUrl, setEquippedEmojiUrl] = useState(0);
   const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const store = window.APP.store;
 
@@ -713,17 +710,23 @@ const KeyTips = forwardRef((props, ref) => {
         const cssRgb = objRgbToCssRgb({ r: r / 255.0, g: g / 255.0, b: b / 255.0 });
         const emojiEls = DOM_ROOT.querySelectorAll("#key-tips .equipped-emoji");
         const colorEls = DOM_ROOT.querySelectorAll("#key-tips .equipped-color");
-        const emoji = store.state.equips.launcher;
-        equippedEmojiUrl = imageUrlForEmoji(emoji, 64);
+        const equippedEmoji = store.state.equips.launcher;
 
-        for (let i = 0; i < emojiEls.length; i++) {
-          emojiEls[i].setAttribute("src", equippedEmojiUrl);
-        }
+        imageUrlForEmoji(equippedEmoji, 64).then(url => {
+          if (store.state.equips.launcher !== equippedEmoji) return;
+
+          setEquippedEmojiUrl(url);
+
+          for (let i = 0; i < emojiEls.length; i++) {
+            emojiEls[i].setAttribute("src", url);
+          }
+        });
 
         for (let i = 0; i < colorEls.length; i++) {
           colorEls[i].setAttribute("style", `background-color: ${cssRgb}`);
         }
       };
+
       store.addEventListener("statechanged-equips", handler);
       return () => store.removeEventListener("statechanged-equips", handler);
     },
@@ -732,7 +735,7 @@ const KeyTips = forwardRef((props, ref) => {
 
   return (
     <KeyTipChooser {...props} ref={ref}>
-      {[...Object.keys(TIP_DATA)].map(tip => genTips(tip, triggerMode))}
+      {[...Object.keys(TIP_DATA)].map(tip => genTips(tip, triggerMode, equippedEmojiUrl))}
     </KeyTipChooser>
   );
 });

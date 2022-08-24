@@ -367,7 +367,7 @@ export class ProjectileSystem {
     } = this;
     if (!avatarPovEl) return;
 
-    const imageUrl = imageUrlForEmoji(emoji, 64);
+    const imageUrl = await imageUrlForEmoji(emoji, 64);
 
     // Find the index of a free mesh or a new index for a new mesh.
     let idx = -1;

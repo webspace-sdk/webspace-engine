@@ -1,4 +1,5 @@
 import EmojiTar from "!!url-loader!../../assets/jel/emojis.tar";
+import untar from "js-untar";
 
 export const EmojiList = [
   {
@@ -10793,5 +10794,13 @@ export const EmojiList = [
 
 export const buildEmojiMap = async () => {
   const blob = await (await fetch(EmojiTar)).blob();
+  const buf = await blob.arrayBuffer();
+
   console.log(blob);
+
+  const t0 = performance.now();
+  untar(buf).then(files => {
+    console.log(performance.now() - t0);
+    console.log(files);
+  });
 };

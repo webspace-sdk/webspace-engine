@@ -233,9 +233,7 @@ const buildEmojisFromStore = store => {
     storeState.launcherSlot8,
     storeState.launcherSlot9,
     storeState.launcherSlot10
-  ].map(emoji => {
-    return { emoji, imageUrl: imageUrlForEmoji(emoji, 64) };
-  });
+  ];
 };
 
 const EmojiEquip = forwardRef(({ scene, centerPopupRef }, ref) => {
@@ -248,13 +246,47 @@ const EmojiEquip = forwardRef(({ scene, centerPopupRef }, ref) => {
   const [hoverSlot, setHoverSlot] = useState(null);
   const [isClicking, setIsClicking] = useState(false);
   const [emojis, setEmojis] = useState(buildEmojisFromStore(store));
+  const [emojiImages, setEmojiImages] = useState({});
+  const [selectedEmojiImageUrl, setSelectedEmojiImageUrl] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(
     emojis.indexOf(emojis.find(({ emoji }) => emoji === store.state.equips.launcher))
   );
   const [tipSource, tipTarget] = useSingleton();
 
   const selectedEmoji = store.state.equips.launcher;
-  const selectedEmojiImageUrl = imageUrlForEmoji(selectedEmoji, 128);
+
+  useEffect(
+    () => {
+      const newImages = { ...emojiImages };
+
+      const ps = [];
+      for (const emoji of emojis) {
+        if (newImages[emoji]) continue;
+        const p = imageUrlForEmoji(emoji, 64);
+        p.then(url => (newImages[emoji] = url));
+        ps.push(newImages[emoji]);
+      }
+
+      if (ps.length > 0) {
+        Promise.all(ps).then(() => {
+          setEmojiImages({ ...newImages, ...emojiImages });
+        });
+      }
+    },
+    [emojis, setEmojiImages, emojiImages]
+  );
+
+  useEffect(
+    () => {
+      const oldSelectedEmoji = selectedEmoji;
+      imageUrlForEmoji(selectedEmoji, 128).then(url => {
+        if (selectedEmoji === oldSelectedEmoji) {
+          setSelectedEmojiImageUrl(url);
+        }
+      });
+    },
+    [selectedEmoji]
+  );
 
   const {
     styles: emojiPopupStyles,
@@ -313,7 +345,7 @@ const EmojiEquip = forwardRef(({ scene, centerPopupRef }, ref) => {
           {emojis.length > 0 &&
             SLOT_BUTTON_OFFSETS.map(([left, top], idx) => (
               <Tooltip
-                content={messages[`emoji-equip.slot-${idx}-tip`].replaceAll("EMOJI", emojis[idx].emoji)}
+                content={messages[`emoji-equip.slot-${idx}-tip`].replaceAll("EMOJI", emojis[idx])}
                 placement="left"
                 key={`slot-${idx}-tip`}
                 singleton={tipTarget}
@@ -326,11 +358,11 @@ const EmojiEquip = forwardRef(({ scene, centerPopupRef }, ref) => {
                   onMouseDown={() => setIsClicking(true)}
                   onMouseUp={() => setIsClicking(false)}
                   onClick={() => {
-                    store.update({ equips: { launcher: emojis[idx].emoji } });
+                    store.update({ equips: { launcher: emojis[idx] } });
                     DOM_ROOT.activeElement?.blur(); // Focuses canvas
                   }}
                 >
-                  <img crossOrigin="anonymous" src={emojis[idx].imageUrl} />
+                  <img crossOrigin="anonymous" src={emojiImages[emojis[idx]]} />
                 </SlotButton>
               </Tooltip>
             ))}

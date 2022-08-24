@@ -91,6 +91,7 @@
     "history": "^4.7.2",
     "hls.js": "^0.13.2",
     "js-cookie": "^2.2.0",
+    "js-untar": "^2.0.0",
     "jsonschema": "^1.2.2",
     "jwt-decode": "^2.2.0",
     "lib-hubs": "github:jel-app/lib-hubs#master",
