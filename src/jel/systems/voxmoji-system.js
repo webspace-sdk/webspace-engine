@@ -123,7 +123,7 @@ export class VoxmojiSystem extends EventTarget {
     this.meshes = new Map();
     this.sourceToType = new Map();
     this.sourceToLastCullPassFrame = new Map();
-    this.imageUrlToType = new Map();
+    this.imageUrlAndSizeToType = new Map();
     this.frame = 0;
   }
 
@@ -167,12 +167,12 @@ export class VoxmojiSystem extends EventTarget {
   }
 
   async register(imageUrl, source, size) {
-    const { imageUrlToType, types, meshes, sourceToType } = this;
+    const { imageUrlAndSizeToType, types, meshes, sourceToType } = this;
 
     let typeKey;
 
-    if (this.imageUrlToType.has(imageUrl)) {
-      typeKey = imageUrlToType.get(imageUrl);
+    if (this.imageUrlAndSizeToType.has(imageUrl + size)) {
+      typeKey = imageUrlAndSizeToType.get(imageUrl + size);
     } else {
       try {
         typeKey = await this.registerType(imageUrl, size);
@@ -180,7 +180,7 @@ export class VoxmojiSystem extends EventTarget {
         return; // Registration failed.
       }
 
-      imageUrlToType.set(imageUrl, typeKey);
+      imageUrlAndSizeToType.set(imageUrl + size, typeKey);
     }
 
     // This uses a custom patched three.js handler which is fired whenever the object
@@ -247,9 +247,9 @@ export class VoxmojiSystem extends EventTarget {
     image.setAttribute("width", size);
     image.setAttribute("height", size);
 
-    if (this.imageUrlToType.has(imageUrl)) {
+    if (this.imageUrlAndSizeToType.has(imageUrl + size)) {
       // Just in case another caller ran while this was loading.
-      return this.imageUrlToType.get(imageUrl);
+      return this.imageUrlAndSizeToType.get(imageUrl + size);
     }
 
     const width = image.width;
@@ -316,18 +316,18 @@ export class VoxmojiSystem extends EventTarget {
   }
 
   unregisterType(typeKey) {
-    const { sourceToType, imageUrlToType, types } = this;
+    const { sourceToType, imageUrlAndSizeToType, types } = this;
     if (!types.has(typeKey)) return;
 
     // Unregister all image urls for this type.
-    const imageUrls = [];
+    const imageUrlAndSizes = [];
 
-    for (const [imageUrl, imageUrlType] of imageUrlToType.entries()) {
+    for (const [imageUrl, imageUrlType] of imageUrlAndSizeToType.entries()) {
       if (typeKey !== imageUrlType) continue;
-      imageUrls.push(imageUrl);
+      imageUrlAndSizes.push(imageUrl);
     }
 
-    imageUrls.forEach(imageUrl => imageUrlToType.delete(imageUrl));
+    imageUrlAndSizes.forEach(imageUrlAndSize => imageUrlAndSizeToType.delete(imageUrlAndSize));
 
     // Unregister all the sources for this type.
     const sources = [];

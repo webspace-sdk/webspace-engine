@@ -1000,8 +1000,6 @@ async function start() {
       <div id="gaze-cursor">
           <div class="cursor"></div>
       </div>
-
-      <img src="https://assets.jel.app/static/emoji/emoji-map-64.png" style="display: none" width="0" height="0"/>
   `;
 
   const tmp = document.createElement("div");

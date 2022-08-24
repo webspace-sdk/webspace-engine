@@ -10793,7 +10793,6 @@ export const EmojiList = [
 ];
 
 const emojiSvgs = new Map();
-const emojiBlobs = new Map();
 
 export const loadEmojis = async () => {
   const blob = await (await fetch(EmojiTar)).blob();
@@ -10816,8 +10815,6 @@ export function emojiUnicode(characters, prefix = "") {
 }
 
 export const getBlobForEmojiImage = emoji => {
-  if (emojiBlobs.has(emoji)) return emojiBlobs.get(emoji);
-
   const unicode = emojiUnicode(emoji).toUpperCase();
   const buf = emojiSvgs.get(`${unicode}.svg`);
 
@@ -10825,7 +10822,5 @@ export const getBlobForEmojiImage = emoji => {
     return null;
   }
 
-  const blob = new Blob([buf], { type: "image/svg+xml" });
-  emojiBlobs.set(emoji, blob);
-  return blob;
+  return new Blob([buf], { type: "image/svg+xml" });
 };
