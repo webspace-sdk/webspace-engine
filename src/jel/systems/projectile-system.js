@@ -551,7 +551,7 @@ export class ProjectileSystem {
           // Images are set *after* the initial scale, since the body needs to start
           // out scaled at 1.0 to not break collisions.
           if (pendingImageUrls[i] !== null) {
-            voxmojiSystem.register(pendingImageUrls[i], meshes[i]);
+            voxmojiSystem.register(pendingImageUrls[i], meshes[i], 64);
             pendingImageUrls[i] = null;
           }
 
@@ -596,7 +596,7 @@ export class ProjectileSystem {
         // Images are set *after* the initial scale, since the body needs to start
         // out scaled at 1.0 to not break collisions.
         if (pendingImageUrls[i] !== null) {
-          voxmojiSystem.register(pendingImageUrls[i], meshes[i]);
+          voxmojiSystem.register(pendingImageUrls[i], meshes[i], 64);
           pendingImageUrls[i] = null;
         }
 

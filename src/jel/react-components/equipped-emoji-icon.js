@@ -40,7 +40,7 @@ export default function EquippedEmojiIcon() {
 
   return (
     <BigIconButton tabIndex={-1}>
-      <EquippedEmojiImage src={equippedEmojiImageUrl} crossOrigin="anonymous" />
+      <EquippedEmojiImage src={equippedEmojiImageUrl} />
     </BigIconButton>
   );
 }

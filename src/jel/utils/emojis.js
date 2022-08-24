@@ -1,4 +1,5 @@
 import EmojiTar from "!!url-loader!../../assets/jel/emojis.tar";
+import { fromByteArray } from "base64-js";
 import untar from "js-untar";
 
 export const EmojiList = [
@@ -10803,13 +10804,12 @@ const ensureEmojiMap = async () => {
 
   const buf = await blob.arrayBuffer();
 
-  untar(buf).then(files => {
-    if (EmojiSvgs.size > 0) return;
+  const files = await untar(buf);
+  if (EmojiSvgs.size > 0) return;
 
-    for (const { name, buffer } of files) {
-      EmojiSvgs.set(name, buffer);
-    }
-  });
+  for (const { name, buffer } of files) {
+    EmojiSvgs.set(name, buffer);
+  }
 };
 
 export function emojiUnicode(characters, prefix = "") {
@@ -10823,11 +10823,20 @@ export function emojiUnicode(characters, prefix = "") {
     .toUpperCase();
 }
 
+const emojiImageBlobs = new Map();
+
 export const getBlobForEmojiImage = async (emoji, resolution) => {
+  if (emojiImageBlobs.has(emoji)) return emojiImageBlobs.get(emoji);
+
   await ensureEmojiMap();
   const unicode = emojiUnicode(emoji).toUpperCase();
   const buf = EmojiSvgs.get(`${unicode}.svg`);
 
-  if (!buf) return null;
-  console.log(buf);
+  if (!buf) {
+    return null;
+  }
+
+  const blob = new Blob([buf], { type: "image/svg+xml" });
+  emojiImageBlobs.set(emoji, blob);
+  return blob;
 };

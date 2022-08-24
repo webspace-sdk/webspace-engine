@@ -257,19 +257,32 @@ const EmojiEquip = forwardRef(({ scene, centerPopupRef }, ref) => {
 
   useEffect(
     () => {
+      console.log("run");
       const newImages = { ...emojiImages };
 
+      console.log("new", newImages);
       const ps = [];
+      let shouldSet = false;
+
       for (const emoji of emojis) {
-        if (newImages[emoji]) continue;
         const p = imageUrlForEmoji(emoji, 64);
-        p.then(url => (newImages[emoji] = url));
-        ps.push(newImages[emoji]);
+        p.then(url => {
+          console.log("check");
+          if (newImages[emoji]) return;
+          console.log("set", emoji, url);
+          shouldSet = true;
+          newImages[emoji] = url;
+        });
+
+        ps.push(p);
       }
 
       if (ps.length > 0) {
+        console.log("await)");
         Promise.all(ps).then(() => {
-          setEmojiImages({ ...newImages, ...emojiImages });
+          if (shouldSet) {
+            setEmojiImages({ ...newImages, ...emojiImages });
+          }
         });
       }
     },
@@ -362,7 +375,7 @@ const EmojiEquip = forwardRef(({ scene, centerPopupRef }, ref) => {
                     DOM_ROOT.activeElement?.blur(); // Focuses canvas
                   }}
                 >
-                  <img crossOrigin="anonymous" src={emojiImages[emojis[idx]]} />
+                  <img src={emojiImages[emojis[idx]]} />
                 </SlotButton>
               </Tooltip>
             ))}
@@ -373,7 +386,7 @@ const EmojiEquip = forwardRef(({ scene, centerPopupRef }, ref) => {
                 showEmojiPopup(emojiEquipRef, "top-end", [0, 12], { equip: true });
               }}
             >
-              <img crossOrigin="anonymous" src={selectedEmojiImageUrl} />
+              <img src={selectedEmojiImageUrl} />
             </SelectedButton>
           </Tooltip>
 

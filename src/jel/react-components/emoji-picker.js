@@ -310,6 +310,15 @@ const FooterLabel = styled.div`
   text-overflow: ellipsis;
 `;
 
+const FooterAttribution = styled.div`
+  font-size: calc(var(--panel-header-text-size) - 4px);
+
+  a {
+    text-decoration: underline;
+    font-weight: bold;
+  }
+`;
+
 const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
   const defaultPlaceholder = getMessages()["emoji.placeholder"];
 
@@ -460,9 +469,21 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
         ))}
       </Emojis>
       <Footer>
-        <FooterEmoji className={`${currentEmoji && `emoji-map emoji-${currentEmoji.name}`}`} />
+        {currentEmoji && <FooterEmoji className={`${currentEmoji && `emoji-map emoji-${currentEmoji.name}`}`} />}
         <FooterLabel className={currentEmoji && `.emoji-${currentEmoji.name}`}>
           {currentEmoji && currentEmoji.shortname}
+          {!currentEmoji && (
+            <FooterAttribution>
+              Emojis by{" "}
+              <a href="https://mutant.tech/" rel="noreferrer" target="_blank">
+                Dzuk
+              </a>{" "}
+              &amp;{" "}
+              <a href="https://twemoji.twitter.com/" rel="noreferrer" target="_blank">
+                Twitter
+              </a>
+            </FooterAttribution>
+          )}
         </FooterLabel>
       </Footer>
     </Panel>

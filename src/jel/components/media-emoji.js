@@ -86,7 +86,7 @@ AFRAME.registerComponent("media-emoji", {
         this.el.object3D.matrixNeedsUpdate = true;
         this.el.setObject3D("mesh", this.mesh);
         const imageUrl = await imageUrlForEmoji(this.data.emoji, 128);
-        await SYSTEMS.voxmojiSystem.register(imageUrl, this.mesh);
+        await SYSTEMS.voxmojiSystem.register(imageUrl, this.mesh, 128);
 
         this.el.emit("model-loaded", { format: "emoji", model: this.mesh });
       }

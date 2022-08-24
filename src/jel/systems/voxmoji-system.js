@@ -166,7 +166,7 @@ export class VoxmojiSystem extends EventTarget {
     }
   }
 
-  async register(imageUrl, source) {
+  async register(imageUrl, source, size) {
     const { imageUrlToType, types, meshes, sourceToType } = this;
 
     let typeKey;
@@ -175,7 +175,7 @@ export class VoxmojiSystem extends EventTarget {
       typeKey = imageUrlToType.get(imageUrl);
     } else {
       try {
-        typeKey = await this.registerType(imageUrl);
+        typeKey = await this.registerType(imageUrl, size);
       } catch (e) {
         return; // Registration failed.
       }
@@ -240,10 +240,15 @@ export class VoxmojiSystem extends EventTarget {
     [...this.types.keys()].forEach(typeKey => this.unregisterType(typeKey));
   }
 
-  async registerType(imageUrl) {
+  async registerType(imageUrl, size) {
     const loader = new ImageLoader();
     loader.setCrossOrigin("anonymous");
     const image = await new Promise((res, rej) => loader.load(imageUrl, res, undefined, rej));
+    image.setAttribute("width", size);
+    image.setAttribute("height", size);
+    console.log(image);
+    console.log(image.width);
+    console.log(image.height);
 
     if (this.imageUrlToType.has(imageUrl)) {
       // Just in case another caller ran while this was loading.
@@ -252,6 +257,7 @@ export class VoxmojiSystem extends EventTarget {
 
     const width = image.width;
     const height = image.height;
+    console.log(image.width, image.height);
 
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
