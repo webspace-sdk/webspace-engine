@@ -320,7 +320,7 @@ const FooterAttribution = styled.div`
   }
 `;
 
-const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
+const EmojiPicker = forwardRef(({ onEmojiSelected, loadEmojiGrid }, ref) => {
   const defaultPlaceholder = getMessages()["emoji.placeholder"];
 
   const [query, setQuery] = useState("");
@@ -445,30 +445,32 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
           ))}
         </Tabs>
       </Toolbar>
-      <Emojis ref={emojisRef}>
-        {emojis.map(({ item }, index) => (
-          <EmojiContainer
-            key={item.shortname}
-            className={currentEmoji && currentEmoji.name === item.name ? "active" : ""}
-          >
-            <Emoji
-              src={imageUrlForUnicodeEmoji(item.unicode)}
-              onClick={() => {
-                onEmojiSelected(item);
-                DOM_ROOT.activeElement?.blur();
-              }}
-              onMouseEnter={() => {
-                setPlaceholder(item.shortname);
-                setCurrentEmoji({ ...item, index });
-              }}
-              onMouseLeave={() => {
-                setPlaceholder(defaultPlaceholder);
-                setCurrentEmoji(null);
-              }}
-            />
-          </EmojiContainer>
-        ))}
-      </Emojis>
+      {loadEmojiGrid && (
+        <Emojis ref={emojisRef}>
+          {emojis.map(({ item }, index) => (
+            <EmojiContainer
+              key={item.shortname}
+              className={currentEmoji && currentEmoji.name === item.name ? "active" : ""}
+            >
+              <Emoji
+                src={imageUrlForUnicodeEmoji(item.unicode)}
+                onClick={() => {
+                  onEmojiSelected(item);
+                  DOM_ROOT.activeElement?.blur();
+                }}
+                onMouseEnter={() => {
+                  setPlaceholder(item.shortname);
+                  setCurrentEmoji({ ...item, index });
+                }}
+                onMouseLeave={() => {
+                  setPlaceholder(defaultPlaceholder);
+                  setCurrentEmoji(null);
+                }}
+              />
+            </EmojiContainer>
+          ))}
+        </Emojis>
+      )}
       <Footer>
         {currentEmoji && <FooterEmoji src={imageUrlForUnicodeEmoji(currentEmoji.unicode)} />}
         <FooterLabel className={currentEmoji && `.emoji-${currentEmoji.name}`}>
@@ -494,7 +496,8 @@ const EmojiPicker = forwardRef(({ onEmojiSelected }, ref) => {
 EmojiPicker.displayName = "EmojiPicker";
 
 EmojiPicker.propTypes = {
-  onEmojiSelected: PropTypes.func
+  onEmojiSelected: PropTypes.func,
+  loadEmojiGrid: PropTypes.bool
 };
 
 export default EmojiPicker;

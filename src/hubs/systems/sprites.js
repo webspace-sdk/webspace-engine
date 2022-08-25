@@ -234,32 +234,32 @@ export class SpriteSystem {
 
     const domReady = waitForShadowDOMContentLoaded();
 
-    Promise.all([domReady]).then(() => {
-      for (const [spritesheetPng, type] of [[spritesheetActionPng, "action"], [spritesheetNoticePng, "notice"]]) {
-        Promise.all([createImageTexture(spritesheetPng, getThemeColorShifter(type)), waitForShadowDOMContentLoaded()]).then(
-          ([[spritesheetTexture]]) => {
-            const material = new THREE.RawShaderMaterial({
-              uniforms: {
-                u_spritesheet: { value: spritesheetTexture },
-                hubs_Time: { value: 0 }
-              },
-              vertexShader,
-              fragmentShader,
-              side: THREE.DoubleSide,
-              transparent: true
-            });
-            const mesh = (this.meshes[type] = new THREE.Mesh(createGeometry(this.maxSprites), material));
-            const el = document.createElement("a-entity");
-            el.classList.add("ui");
-            scene.appendChild(el);
-            el.setObject3D("mesh", mesh);
-            mesh.frustumCulled = false;
-            mesh.renderOrder = RENDER_ORDER.HUD_ICONS;
-            mesh.raycast = this.raycast.bind(this);
-          }
-        );
-      }
-    });
+    //Promise.all([domReady]).then(() => {
+    //  for (const [spritesheetPng, type] of [[spritesheetActionPng, "action"], [spritesheetNoticePng, "notice"]]) {
+    //    Promise.all([createImageTexture(spritesheetPng, getThemeColorShifter(type)), waitForShadowDOMContentLoaded()]).then(
+    //      ([[spritesheetTexture]]) => {
+    //        const material = new THREE.RawShaderMaterial({
+    //          uniforms: {
+    //            u_spritesheet: { value: spritesheetTexture },
+    //            hubs_Time: { value: 0 }
+    //          },
+    //          vertexShader,
+    //          fragmentShader,
+    //          side: THREE.DoubleSide,
+    //          transparent: true
+    //        });
+    //        const mesh = (this.meshes[type] = new THREE.Mesh(createGeometry(this.maxSprites), material));
+    //        const el = document.createElement("a-entity");
+    //        el.classList.add("ui");
+    //        scene.appendChild(el);
+    //        el.setObject3D("mesh", mesh);
+    //        mesh.frustumCulled = false;
+    //        mesh.renderOrder = RENDER_ORDER.HUD_ICONS;
+    //        mesh.raycast = this.raycast.bind(this);
+    //      }
+    //    );
+    //  }
+    //});
   }
 
   tick(t) {

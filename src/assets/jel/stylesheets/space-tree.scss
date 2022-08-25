@@ -107,15 +107,15 @@ $treeNodePrefixCls: space-tree-treenode;
           cursor: auto;
         }
         &.#{$treePrefixCls}-switcher_open {
-          mask: url('../images/icons/switcher.svg') 0 0/15px 15px;
-          -webkit-mask: url('../images/icons/switcher.svg') 0 0/15px 15px;
+          mask: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwKSI+CjxwYXRoIGQ9Ik0yNS40NjYzIDE0LjIxNDlDMjYuOTMwNiAxNC45NTQ2IDI2LjkzMDYgMTcuMDQ1NCAyNS40NjYzIDE3Ljc4NTFMNy45MDE4MiAyNi42NTg0QzYuNTcxNTUgMjcuMzMwNCA1IDI2LjM2MzcgNSAyNC44NzMzTDUgNy4xMjY3M0M1IDUuNjM2MzUgNi41NzE1NSA0LjY2OTU2IDcuOTAxODIgNS4zNDE1OUwyNS40NjYzIDE0LjIxNDlaIiBmaWxsPSJibGFjayIvPgo8L2c+CjxkZWZzPgo8Y2xpcFBhdGggaWQ9ImNsaXAwIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo=') 0 0/15px 15px;
+          -webkit-mask: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwKSI+CjxwYXRoIGQ9Ik0yNS40NjYzIDE0LjIxNDlDMjYuOTMwNiAxNC45NTQ2IDI2LjkzMDYgMTcuMDQ1NCAyNS40NjYzIDE3Ljc4NTFMNy45MDE4MiAyNi42NTg0QzYuNTcxNTUgMjcuMzMwNCA1IDI2LjM2MzcgNSAyNC44NzMzTDUgNy4xMjY3M0M1IDUuNjM2MzUgNi41NzE1NSA0LjY2OTU2IDcuOTAxODIgNS4zNDE1OUwyNS40NjYzIDE0LjIxNDlaIiBmaWxsPSJibGFjayIvPgo8L2c+CjxkZWZzPgo8Y2xpcFBhdGggaWQ9ImNsaXAwIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo=') 0 0/15px 15px;
           background-color: var(--panel-text-color);
           transform: rotate(90deg);
           transition: transform 0.25s;
         }
         &.#{$treePrefixCls}-switcher_close {
-          mask: url('../images/icons/switcher.svg') 0 0/15px 15px;
-          -webkit-mask: url('../images/icons/switcher.svg') 0 0/15px 15px;
+          mask: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwKSI+CjxwYXRoIGQ9Ik0yNS40NjYzIDE0LjIxNDlDMjYuOTMwNiAxNC45NTQ2IDI2LjkzMDYgMTcuMDQ1NCAyNS40NjYzIDE3Ljc4NTFMNy45MDE4MiAyNi42NTg0QzYuNTcxNTUgMjcuMzMwNCA1IDI2LjM2MzcgNSAyNC44NzMzTDUgNy4xMjY3M0M1IDUuNjM2MzUgNi41NzE1NSA0LjY2OTU2IDcuOTAxODIgNS4zNDE1OUwyNS40NjYzIDE0LjIxNDlaIiBmaWxsPSJibGFjayIvPgo8L2c+CjxkZWZzPgo8Y2xpcFBhdGggaWQ9ImNsaXAwIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo=') 0 0/15px 15px;
+          -webkit-mask: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwKSI+CjxwYXRoIGQ9Ik0yNS40NjYzIDE0LjIxNDlDMjYuOTMwNiAxNC45NTQ2IDI2LjkzMDYgMTcuMDQ1NCAyNS40NjYzIDE3Ljc4NTFMNy45MDE4MiAyNi42NTg0QzYuNTcxNTUgMjcuMzMwNCA1IDI2LjM2MzcgNSAyNC44NzMzTDUgNy4xMjY3M0M1IDUuNjM2MzUgNi41NzE1NSA0LjY2OTU2IDcuOTAxODIgNS4zNDE1OUwyNS40NjYzIDE0LjIxNDlaIiBmaWxsPSJibGFjayIvPgo8L2c+CjxkZWZzPgo8Y2xpcFBhdGggaWQ9ImNsaXAwIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo=') 0 0/15px 15px;
           background-color: var(--panel-text-color);
           transform: rotate(0deg);
           transition: transform 0.25s;

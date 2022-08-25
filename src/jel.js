@@ -9,7 +9,7 @@ import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
 
 console.log(`App version: ${process.env.BUILD_VERSION || "?"}`);
 
-import initialBatchImage from "./assets/hubs/images/warning_icon.png";
+import initialBatchImage from "!!url-loader!./assets/hubs/images/warning_icon.png";
 
 import "aframe";
 import "./hubs/utils/logging";
