@@ -201,8 +201,6 @@ window.APP.spaceMetadata = spaceMetadata;
 window.APP.voxMetadata = voxMetadata;
 window.APP.matrix = matrix;
 
-store.addEventListener("profilechanged", spaceChannel.sendProfileUpdate.bind(hubChannel));
-
 const qs = new URLSearchParams(location.search);
 
 const isMobile = AFRAME.utils.device.isMobile();
@@ -1010,6 +1008,25 @@ async function start() {
   window.UI = DOM_ROOT.getElementById("jel-ui");
 
   await sceneReady;
+
+  // Patch the scene resize handler to update the camera properly, since the
+  // camera system manages the projection matrix.
+  const scene = DOM_ROOT.querySelector("a-scene");
+  const sceneResize = scene.resize.bind(scene);
+  const resize = function() {
+    sceneResize();
+    SYSTEMS.cameraSystem.updateCameraSettings();
+  };
+  scene.resize = resize.bind(scene);
+
+  // A-frame already wired up this event handler but we do this again since it doesn't seem to be working without this
+  // since we moved to shadow DOM.
+  window.addEventListener("resize", () => {
+    setTimeout(() => {
+      scene.resize();
+    });
+  });
+
   DOM_ROOT._ready = true;
 
   // Load the fonts
@@ -1052,16 +1069,6 @@ async function start() {
   document.dispatchEvent(new CustomEvent("shadow-root-ready"));
 
   registerNetworkSchemas();
-
-  // Patch the scene resize handler to update the camera properly, since the
-  // camera system manages the projection matrix.
-  const scene = DOM_ROOT.querySelector("a-scene");
-  const sceneResize = scene.resize.bind(scene);
-  const resize = function() {
-    sceneResize();
-    SYSTEMS.cameraSystem.updateCameraSettings();
-  };
-  scene.resize = resize.bind(scene);
 
   const canvas = DOM_ROOT.querySelector(".a-canvas");
   scene.renderer.setPixelRatio(1); // Start with low pixel ratio, quality adjustment system will raise
