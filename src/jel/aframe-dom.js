@@ -1,4 +1,3 @@
-import PRESENCE_COUNT_URL from "!!url-loader!../assets/hubs/hud/presence-count.png";
 import ACTION_BUTTON_9_URL from "!!url-loader!../assets/hubs/hud/action_button.9.png";
 import BUTTON_9_URL from "!!url-loader!../assets/hubs/hud/button.9.png";
 import PLAY_URL from "!!url-loader!../assets/hubs/video-overlay/play.png";
@@ -32,7 +31,6 @@ export default `
         light="defaultLightsEnabled: false"
     >
         <a-assets>
-            <img style="display: none;" id="presence-count" crossorigin="anonymous" src="${PRESENCE_COUNT_URL}">
             <img style="display: none;" id="action-button" crossorigin="anonymous" src="${ACTION_BUTTON_9_URL}">
             <img style="display: none;" id="button" crossorigin="anonymous" src="${BUTTON_9_URL}">
             <img style="display: none;" id="video-play" crossorigin="anonymous" src="${PLAY_URL}">
