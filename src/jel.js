@@ -122,7 +122,7 @@ import SpaceChannel from "./hubs/utils/space-channel";
 import HubChannel from "./hubs/utils/hub-channel";
 import Matrix from "./jel/utils/matrix";
 import AtomMetadata, { ATOM_TYPES } from "./jel/utils/atom-metadata";
-import { joinSpace, joinHub } from "./hubs/utils/jel-init";
+import { setupTreeManagers, joinHub } from "./hubs/utils/jel-init";
 import { connectToReticulum } from "./hubs/utils/phoenix-utils";
 import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
 import { getHubIdFromHistory, getSpaceIdFromHistory, navigateToHubUrl } from "./jel/utils/jel-url-utils";
@@ -1173,7 +1173,6 @@ async function start() {
 
   let nextSpaceToJoin;
   let nextHubToJoin;
-  let joinSpacePromise;
   let joinHubPromise;
 
   const { token } = store.state.credentials;
@@ -1196,15 +1195,12 @@ async function start() {
     nextSpaceToJoin = spaceId;
     nextHubToJoin = hubId;
 
-    if (joinSpacePromise) await joinSpacePromise;
-    joinSpacePromise = null;
-
     if (joinHubPromise) await joinHubPromise;
     joinHubPromise = null;
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
-      joinSpacePromise = joinSpace(socket, history, subscriptions, entryManager, remountJelUI);
-      await joinSpacePromise;
+      store.update({ context: { spaceId } });
+      setupTreeManagers(socket, history, subscriptions, entryManager, remountJelUI);
     }
 
     if (joinHubPromise) await joinHubPromise;
