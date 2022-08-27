@@ -13,7 +13,7 @@ self.addEventListener("activate", function(e) {
   return e.waitUntil(self.clients.claim());
 });
 
-const addCoepHeaders = (response) => {
+const addCoepHeaders = response => {
   const headers = new Headers(response.headers);
   headers.set("Cross-Origin-Embedder-Policy", "credentialless");
   headers.set("Cross-Origin-Opener-Policy", "same-origin");
@@ -21,7 +21,7 @@ const addCoepHeaders = (response) => {
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
-    headers,
+    headers
   });
 };
 

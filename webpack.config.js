@@ -362,7 +362,7 @@ module.exports = async (env, argv) => {
     plugins: [
       new RemoveUnusedFilesWebpackPlugin({
         patterns: ["src/**"],
-        removeUnused: true, // whether to delete, default is: false
+        removeUnused: false, // whether to delete, default is: false
         removeInquiry: false // find unused files, before deleting prompt, default: true
       }),
       new webpack.ProvidePlugin({
