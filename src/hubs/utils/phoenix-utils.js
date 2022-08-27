@@ -15,8 +15,6 @@ export function isLocalClient() {
 }
 
 const resolverLink = document.createElement("a");
-let reticulumMeta = null;
-let invalidatedReticulumMetaThisSession = false;
 
 export function getReticulumFetchUrl(path, absolute = false, host = null, port = null) {
   if (host || hasReticulumServer()) {
@@ -29,39 +27,12 @@ export function getReticulumFetchUrl(path, absolute = false, host = null, port =
   }
 }
 
-export async function getReticulumMeta() {
-  if (!reticulumMeta) {
-    // Initially look up version based upon page, avoiding round-trip, otherwise fetch.
-    if (!invalidatedReticulumMetaThisSession && document.querySelector("meta[name='ret:version']")) {
-      reticulumMeta = {
-        version: document.querySelector("meta[name='ret:version']").getAttribute("value"),
-        pool: document.querySelector("meta[name='ret:pool']").getAttribute("value"),
-        phx_host: document.querySelector("meta[name='ret:phx_host']").getAttribute("value")
-      };
-    } else {
-      await fetch(getReticulumFetchUrl("/api/v1/meta")).then(async res => {
-        reticulumMeta = await res.json();
-      });
-    }
-  }
-
-  const qs = new URLSearchParams(location.search);
-  const phxHostOverride = qs.get("phx_host");
-
-  if (phxHostOverride) {
-    reticulumMeta.phx_host = phxHostOverride;
-  }
-
-  return reticulumMeta;
-}
-
 let directReticulumHostAndPort;
 
 async function refreshDirectReticulumHostAndPort() {
   const qs = new URLSearchParams(location.search);
   let host = qs.get("phx_host");
-  const reticulumMeta = await getReticulumMeta();
-  host = host || configs.RETICULUM_SOCKET_SERVER || reticulumMeta.phx_host;
+  host = host || configs.RETICULUM_SOCKET_SERVER;
   const port =
     qs.get("phx_port") ||
     (hasReticulumServer() ? new URL(`${document.location.protocol}//${configs.RETICULUM_SERVER}`).port : "443");
@@ -76,11 +47,6 @@ export function getDirectReticulumFetchUrl(path, absolute = false) {
 
   const { host, port } = directReticulumHostAndPort;
   return getReticulumFetchUrl(path, absolute, host, port);
-}
-
-export async function invalidateReticulumMeta() {
-  invalidatedReticulumMetaThisSession = true;
-  reticulumMeta = null;
 }
 
 export async function connectToReticulum(debug = false, params = null, socketClass = Socket, existingSocket = null) {
@@ -118,10 +84,6 @@ export async function connectToReticulum(debug = false, params = null, socketCla
     socket = new socketClass(`${socketUrl}/socket`, socketSettings);
 
     socket.onError(async () => {
-      // On error, underlying reticulum node may have died, so rebalance by
-      // fetching a new healthy node to connect to.
-      invalidateReticulumMeta();
-
       const endPointPath = new URL(socket.endPoint).pathname;
       const newSocketUrl = await getNewSocketUrl();
       const newEndPoint = `${newSocketUrl}${endPointPath}`;

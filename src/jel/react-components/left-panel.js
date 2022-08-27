@@ -290,8 +290,7 @@ function LeftPanel({
   worldTree,
   channelTree,
   worldTreeData,
-  channelTreeData,
-  roomForHubCan
+  channelTreeData
 }) {
   const { matrix, store } = window.APP;
   const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
@@ -590,7 +589,6 @@ function LeftPanel({
         hubId={hubContextMenuHubId}
         spaceCan={spaceCan}
         hubCan={hubCan}
-        roomForHubCan={roomForHubCan}
         scene={scene}
         channelTree={channelTree}
         worldTreeData={worldTreeData}
@@ -648,8 +646,7 @@ LeftPanel.propTypes = {
   worldTreeData: PropTypes.array,
   channelTreeData: PropTypes.array,
   worldTree: PropTypes.object,
-  channelTree: PropTypes.object,
-  roomForHubCan: PropTypes.func
+  channelTree: PropTypes.object
 };
 
 export default LeftPanel;

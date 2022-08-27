@@ -26,7 +26,6 @@ import "./hubs/utils/threejs-world-update";
 import patchThreeAllocations from "./hubs/utils/threejs-allocation-patches";
 import patchThreeNoProgramDispose from "./jel/utils/threejs-avoid-disposing-programs";
 import { detectOS, detect } from "detect-browser";
-import { getReticulumMeta } from "./hubs/utils/phoenix-utils";
 
 import "./hubs/components/scene-components";
 import "./hubs/components/scale-in-screen-space";
@@ -248,7 +247,6 @@ const isBotMode = qsTruthy("bot");
 const isTelemetryDisabled = qsTruthy("disable_telemetry");
 const isDebug = qsTruthy("debug");
 const disablePausing = qsTruthy("no_pause") || isBotMode;
-const skipNeon = qsTruthy("skip_neon");
 const skipPanels = qsTruthy("skip_panels");
 
 const browser = detect();
@@ -352,19 +350,6 @@ async function checkPrerequisites() {
       return false;
     }
   }
-
-  getReticulumMeta().then(reticulumMeta => {
-    console.log(`Reticulum @ ${reticulumMeta.phx_host}: v${reticulumMeta.version} on ${reticulumMeta.pool}`);
-
-    if (
-      qs.get("required_ret_version") &&
-      (qs.get("required_ret_version") !== reticulumMeta.version || qs.get("required_ret_pool") !== reticulumMeta.pool)
-    ) {
-      // remountUI({ roomUnavailableReason: "version_mismatch" });
-      setTimeout(() => document.location.reload(), 5000);
-      return false;
-    }
-  });
 
   return true;
 }
@@ -1189,56 +1174,15 @@ async function start() {
 
   const { token } = store.state.credentials;
   let membershipsPromise;
-  let isInitialAccountChannelJoin = true;
 
   if (token) {
     console.log(`Logged into account ${store.credentialsAccountId}`);
 
-    const accountPhxChannel = socket.channel(`account:${store.credentialsAccountId}`, { auth_token: token });
+    // TODO SHARED figure out what to do about notifications. hubSettings here is the settings for notify joins
+    remountJelUI({ hubSettings: [] }); // Settings for hub if they ever materialize go here.
 
-    membershipsPromise = new Promise((res, rej) => {
-      accountPhxChannel
-        .join()
-        .receive("ok", async accountInfo => {
-          const { session_id: sessionId, subscriptions: existingSubscriptions } = accountInfo;
-          accountChannel.syncAccountInfo(accountInfo);
-
-          remountJelUI({
-            hubSettings: accountChannel.hubSettings
-          });
-
-          if (isInitialAccountChannelJoin) {
-            voxMetadata.bind(accountChannel);
-
-            if (!skipNeon) {
-              // Initialize connection to matrix homeserver.
-              await matrix.init(
-                scene,
-                subscriptions,
-                sessionId,
-                accountInfo.matrix_homeserver,
-                accountInfo.matrix_token,
-                accountInfo.matrix_user_id
-              );
-              remountJelUI({ roomForHubCan: matrix.roomForHubCan.bind(matrix) });
-            } else {
-              remountJelUI({ roomForHubCan: () => true });
-            }
-
-            isInitialAccountChannelJoin = false;
-          }
-
-          subscriptions.handleExistingSubscriptions(existingSubscriptions);
-
-          res(accountChannel.memberships);
-        })
-        .receive("error", res => {
-          console.error(res);
-          rej();
-        });
-    });
-    accountChannel.bind(accountPhxChannel);
-  } else {
+    // TODO SHARED
+    // voxMetadata.bind(accountChannel);
     membershipsPromise = Promise.resolve([]);
   }
 

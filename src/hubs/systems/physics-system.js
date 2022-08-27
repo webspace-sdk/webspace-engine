@@ -2,7 +2,6 @@ import { AmmoWorker, WorkerHelpers, CONSTANTS } from "three-ammo";
 import { AmmoDebugConstants, DefaultBufferSize } from "ammo-debug-drawer";
 import { RENDER_ORDER } from "../constants";
 import { WORLD_MATRIX_CONSUMERS } from "../utils/threejs-world-update";
-import configs from "../utils/configs";
 import ammoWasmUrl from "!!url-loader!ammo.js/builds/ammo.wasm.wasm";
 
 const MESSAGE_TYPES = CONSTANTS.MESSAGE_TYPES,
@@ -53,7 +52,7 @@ export class PhysicsSystem {
         worldConfig: WORLD_CONFIG,
         arrayBuffer,
         maxBodies: MAX_BODIES,
-        wasmUrl: new URL(ammoWasmUrl, configs.BASE_ASSETS_PATH || window.location).href,
+        wasmUrl: ammoWasmUrl,
         simulationRate: this.simulationRate
       },
       [arrayBuffer]

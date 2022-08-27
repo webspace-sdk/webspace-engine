@@ -252,7 +252,7 @@ function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, invi
 
               const { space_id } = await createSpace();
               store.update({
-                context: { spaceId: space_id, isSpaceCreator: true, isFirstVisitToSpace: true }
+                context: { spaceId: space_id, isSpaceCreator: true }
               });
               redirectedToLoggedInRoot();
             }}

@@ -29,7 +29,6 @@ import SelfPanel from "./self-panel";
 import { ASSET_PANEL_HEIGHT_EXPANDED, ASSET_PANEL_HEIGHT_COLLAPSED } from "../systems/ui-animation-system";
 
 const skipSidePanels = qsTruthy("skip_panels");
-const skipNeon = qsTruthy("skip_neon");
 
 const Root = styled.div`
   & #jel-ui-wrap {
@@ -412,7 +411,6 @@ function JelUI(props) {
   const [channelTreeDataVersion, setChannelTreeDataVersion] = useState(0);
   const [isMatrixLoading, setIsMatrixLoading] = useState(!matrix || !matrix.isInitialSyncFinished);
   const [hasFetchedInitialHubMetadata, setHasFetchedInitialHubMetadata] = useState(false);
-  const [isInitializingSpace, setIsInitializingSpace] = useState(store.state.context.isFirstVisitToSpace);
   const [showingExternalCamera /*, setShowingExternalCamera*/] = useState(false);
   const [showNotificationBanner, setShowNotificationBanner] = useState(
     subscriptions &&
@@ -491,22 +489,6 @@ function JelUI(props) {
     [matrix]
   );
 
-  useEffect(
-    () => {
-      if (!isInitializingSpace) return;
-
-      const handler = () => {
-        // Slight delay so room will switch before loader
-        setTimeout(() => {
-          setIsInitializingSpace(store.state.context.isFirstVisitToSpace);
-        }, 2000);
-      };
-      store.addEventListener("statechanged-context", handler);
-      return () => store.removeEventListener("statechanged-context", handler);
-    },
-    [store, setIsInitializingSpace, isInitializingSpace]
-  );
-
   // Handle external camera toggle
   //
   // Disabled for now, this was used for Zoom integration.
@@ -576,7 +558,6 @@ function JelUI(props) {
   const onClickExternalCameraRotate = useCallback(() => externalCameraSystem.toggleCamera(), [externalCameraSystem]);
 
   const isWorld = hub && hub.type === "world";
-  const waitingForMatrix = isMatrixLoading && !skipNeon;
 
   const onExpandTriggerClick = useCallback(() => {
     if (!isInEditableField()) {
@@ -592,10 +573,7 @@ function JelUI(props) {
     <StyleSheetManager target={DOM_ROOT}>
       <WrappedIntlProvider>
         <Root className="expand-asset-panel">
-          <LoadingPanel
-            isLoading={waitingForMatrix || isInitializingSpace || !hasFetchedInitialHubMetadata}
-            unavailableReason={unavailableReason}
-          />
+          <LoadingPanel isLoading={!hasFetchedInitialHubMetadata} unavailableReason={unavailableReason} />
           <Snackbar />
           <Wrap id="jel-ui-wrap">
             {showNotificationBanner &&
@@ -763,7 +741,6 @@ JelUI.propTypes = {
   hub: PropTypes.object,
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,
-  roomForHubCan: PropTypes.func,
   scene: PropTypes.object,
   subscriptions: PropTypes.object,
   hubSettings: PropTypes.array,

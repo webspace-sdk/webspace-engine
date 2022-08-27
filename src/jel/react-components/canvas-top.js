@@ -295,7 +295,6 @@ function CanvasTop(props) {
     channelTree,
     scene,
     spaceCan,
-    roomForHubCan,
     memberships,
     worldTreeData,
     channelTreeData,
@@ -573,7 +572,6 @@ function CanvasTop(props) {
         hubId={hubContextMenuHubId}
         spaceCan={spaceCan}
         hubCan={hubCan}
-        roomForHubCan={roomForHubCan}
         scene={scene}
         channelTree={channelTree}
         worldTreeData={worldTreeData}
@@ -642,7 +640,6 @@ CanvasTop.propTypes = {
   channelTreeData: PropTypes.array,
   spaceCan: PropTypes.func,
   memberships: PropTypes.array,
-  roomForHubCan: PropTypes.func,
   hubSettings: PropTypes.array,
   subscriptions: PropTypes.object,
   createSelectPopupRef: PropTypes.object

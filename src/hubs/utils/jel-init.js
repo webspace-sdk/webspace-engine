@@ -2,18 +2,15 @@ import TreeManager from "../../jel/utils/tree-manager";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "../../jel/utils/jel-url-utils";
 import nextTick from "./next-tick";
 import { isSetEqual } from "../../jel/utils/set-utils";
-import { homeHubForSpaceId, getInitialHubForSpaceId } from "../../jel/utils/membership-utils";
+import { getInitialHubForSpaceId } from "../../jel/utils/membership-utils";
 import { clearResolveUrlCache } from "./media-utils";
-import { addNewHubToTree } from "../../jel/utils/tree-utils";
 import { getMessages } from "./i18n";
 import { SOUND_CHAT_MESSAGE } from "../systems/sound-effects-system";
-import { navigateToHubUrl } from "../../jel/utils/jel-url-utils";
 import qsTruthy from "./qs_truthy";
-import { getReticulumMeta, invalidateReticulumMeta, connectToReticulum } from "./phoenix-utils";
+import { connectToReticulum } from "./phoenix-utils";
 import HubStore from "../storage/hub-store";
 import MediaTree from "../../jel/utils/media-tree";
-import WorldImporter from "../../jel/utils/world-importer";
-import { getHtmlForTemplate, applyTemplate } from "../../jel/utils/template-utils";
+import { applyTemplate } from "../../jel/utils/template-utils";
 import { clearVoxAttributePools } from "../../jel/objects/JelVoxBufferGeometry";
 import { restartPeriodicSyncs } from "../components/periodic-full-syncs";
 
@@ -24,10 +21,8 @@ const isBotMode = qsTruthy("bot");
 const isMobile = AFRAME.utils.device.isMobile();
 const isMobileVR = AFRAME.utils.device.isMobileVR();
 
-let dynaDeployReconnectInterval;
 let positionTrackerInterval = null;
 
-const dynaReconnectMaxDelayMs = 15000;
 const stopTrackingPosition = () => clearInterval(positionTrackerInterval);
 
 const startTrackingPosition = (() => {
@@ -166,39 +161,6 @@ const createHubChannelParams = () => {
   }
 
   return params;
-};
-
-const migrateToNewDynaServer = async deployNotification => {
-  const { dynaChannel } = window.APP;
-
-  // On Reticulum deploys, reconnect after a random delay until pool + version match deployed version/pool
-  console.log(`Dyna deploy detected on ${deployNotification.dyna_pool}`);
-  clearInterval(dynaDeployReconnectInterval);
-
-  await new Promise(res => {
-    setTimeout(() => {
-      const tryReconnect = async () => {
-        invalidateReticulumMeta();
-        const reticulumMeta = await getReticulumMeta();
-
-        if (
-          reticulumMeta.pool === deployNotification.dyna_pool &&
-          reticulumMeta.version === deployNotification.dyna_version
-        ) {
-          console.log("Dyna reconnecting.");
-          clearInterval(dynaDeployReconnectInterval);
-          const socket = dynaChannel.channel.socket;
-          await new Promise(res => socket.disconnect(res));
-          await connectToReticulum(isDebug, socket.params(), null, socket);
-
-          res();
-        }
-      };
-
-      dynaDeployReconnectInterval = setInterval(tryReconnect, 5000);
-      tryReconnect();
-    }, Math.floor(Math.random() * dynaReconnectMaxDelayMs));
-  });
 };
 
 function updateUIForHub(isTransition, hub, hubChannel, remountJelUI) {
@@ -745,12 +707,6 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountJ
     .receive("ok", async data => subscriptions.setVapidPublicKey(data.vapid_public_key))
     .receive("error", res => console.error(res));
 
-  dynaPhxChannel.on("notice", async data => {
-    // On dyna deploys, reconnect after a random delay until pool + version match deployed version/pool
-    if (data.event === "dyna-deploy") {
-      await migrateToNewDynaServer(data);
-    }
-  });
   dynaChannel.bind(dynaPhxChannel);
 
   spaceMetadata.bind(dynaChannel);
@@ -775,48 +731,6 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountJ
 
       const memberships = await membershipsPromise;
       await treeManager.init(connection, memberships);
-      const homeHub = homeHubForSpaceId(spaceId, memberships);
-      hubMetadata.ensureMetadataForIds([homeHub.hub_id]);
-
-      if (store.state.context.isFirstVisitToSpace) {
-        const hubs = {};
-
-        // First time space setup, create initial public channels + worlds. TODO do this server-side.
-        await addNewHubToTree(treeManager, spaceId, "channel", null, "General Discussion");
-        await addNewHubToTree(treeManager, spaceId, "channel", null, "Random");
-
-        for (const world of ["first"]) {
-          const name = getMessages()[`space.${world}-world-name`];
-          const templateName = world;
-          const html = getHtmlForTemplate(templateName);
-          const [
-            worldType,
-            worldSeed,
-            worldColors,
-            spawnPosition,
-            spawnRotation,
-            spawnRadius
-          ] = new WorldImporter().getWorldMetadataFromHtml(html);
-
-          hubs[world] = await addNewHubToTree(
-            treeManager,
-            spaceId,
-            "world",
-            null,
-            name,
-            world,
-            worldType,
-            worldSeed,
-            worldColors,
-            spawnPosition,
-            spawnRotation,
-            spawnRadius
-          );
-        }
-
-        navigateToHubUrl(history, hubs.first.url);
-        store.update({ context: { isFirstVisitToSpace: false } });
-      }
 
       remountJelUI({ history, treeManager, voxTree, sceneTree });
     },
