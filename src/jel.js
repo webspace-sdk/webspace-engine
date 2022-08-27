@@ -1140,6 +1140,9 @@ async function start() {
   setupGameEnginePausing(scene);
   await emojiLoadPromise;
 
+  const sessionId = crypto.randomBytes(12).toString("hex");
+  remountJelUI({ sessionId });
+
   window.dispatchEvent(new CustomEvent("hub_channel_ready"));
 
   const availableVREntryTypesPromise = getAvailableVREntryTypes();
@@ -1166,8 +1169,6 @@ async function start() {
     }
   });
 
-  const sessionId = crypto.randomBytes(12).toString("hex");
-  remountJelUI({ sessionId });
   scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(sessionId));
 
   let nextSpaceToJoin;
@@ -1203,9 +1204,7 @@ async function start() {
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
       joinSpacePromise = joinSpace(socket, history, subscriptions, entryManager, remountJelUI);
-      console.log("C");
       await joinSpacePromise;
-      console.log("D");
     }
 
     if (joinHubPromise) await joinHubPromise;
@@ -1213,18 +1212,16 @@ async function start() {
 
     if (hubChannel.hubId !== hubId && nextHubToJoin === hubId) {
       joinHubPromise = joinHub(scene, socket, history, entryManager, remountJelUI);
-      console.log("E");
       await joinHubPromise;
-      console.log("F");
     }
   };
 
   history.listen(performJoin);
-  console.log("A");
   await performJoin();
-  console.log("B");
 
-  entryManager.enterScene(false);
+  entryManager.enterScene(false).then(() => {
+    remountJelUI({ isDoneLoading: true });
+  });
 }
 
 document.addEventListener("DOMContentLoaded", start);

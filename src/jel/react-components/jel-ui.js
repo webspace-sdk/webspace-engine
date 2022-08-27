@@ -392,14 +392,25 @@ const DeviceStatuses = styled.div`
 `;
 
 function JelUI(props) {
-  const { scene, treeManager, hub, unavailableReason, subscriptions, voxTree, sceneTree, sessionId, hide } = props;
+  const {
+    scene,
+    treeManager,
+    hub,
+    unavailableReason,
+    subscriptions,
+    voxTree,
+    sceneTree,
+    sessionId,
+    hide,
+    isDoneLoading
+  } = props;
 
   const { launcherSystem, cameraSystem, builderSystem, externalCameraSystem } = SYSTEMS;
 
   const worldTree = treeManager && treeManager.worldNav;
   const channelTree = treeManager && treeManager.channelNav;
   const spaceTree = treeManager && treeManager.privateSpace;
-  const { spaceChannel, store, matrix } = window.APP;
+  const { spaceChannel, store } = window.APP;
   const spaceMetadata = spaceTree && spaceTree.atomMetadata;
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
@@ -409,8 +420,6 @@ function JelUI(props) {
   const [worldTreeDataVersion, setWorldTreeDataVersion] = useState(0);
   const [channelTreeData, setChannelTreeData] = useState([]);
   const [channelTreeDataVersion, setChannelTreeDataVersion] = useState(0);
-  const [isMatrixLoading, setIsMatrixLoading] = useState(!matrix || !matrix.isInitialSyncFinished);
-  const [hasFetchedInitialHubMetadata, setHasFetchedInitialHubMetadata] = useState(false);
   const [showingExternalCamera /*, setShowingExternalCamera*/] = useState(false);
   const [showNotificationBanner, setShowNotificationBanner] = useState(
     subscriptions &&
@@ -455,39 +464,11 @@ function JelUI(props) {
     [builderSystem, launcherSystem]
   );
 
-  useEffect(
-    () => {
-      if (hasFetchedInitialHubMetadata) return;
-      if (!hub || !hubMetadata) return;
-
-      const hubId = hub.hub_id;
-
-      if (hubMetadata.hasMetadata(hubId)) {
-        setHasFetchedInitialHubMetadata(true);
-      } else {
-        const handler = () => setHasFetchedInitialHubMetadata(true);
-
-        hubMetadata.subscribeToMetadata(hub.hub_id, handler);
-        return () => hubMetadata.unsubscribeFromMetadata(hub.hub_id);
-      }
-    },
-    [hubMetadata, hub, hasFetchedInitialHubMetadata, setHasFetchedInitialHubMetadata]
-  );
-
   useSceneMuteState(scene, setUnmuted);
 
   // Consume tree updates so redraws if user manipulates tree
   useTreeData(worldTree, worldTreeDataVersion, setWorldTreeData, setWorldTreeDataVersion);
   useTreeData(channelTree, channelTreeDataVersion, setChannelTreeData, setChannelTreeDataVersion);
-
-  useEffect(
-    () => {
-      const handler = () => setIsMatrixLoading(false);
-      matrix && matrix.addEventListener("initial_sync_finished", handler);
-      () => matrix && matrix.removeEventListener("initial_sync_finished", handler);
-    },
-    [matrix]
-  );
 
   // Handle external camera toggle
   //
@@ -573,7 +554,7 @@ function JelUI(props) {
     <StyleSheetManager target={DOM_ROOT}>
       <WrappedIntlProvider>
         <Root className="expand-asset-panel">
-          <LoadingPanel isLoading={!hasFetchedInitialHubMetadata} unavailableReason={unavailableReason} />
+          <LoadingPanel isLoading={!isDoneLoading} unavailableReason={unavailableReason} />
           <Snackbar />
           <Wrap id="jel-ui-wrap">
             {showNotificationBanner &&
@@ -748,7 +729,8 @@ JelUI.propTypes = {
   voxTree: PropTypes.object,
   sceneTree: PropTypes.object,
   sessionId: PropTypes.string,
-  hide: PropTypes.bool
+  hide: PropTypes.bool,
+  isDoneLoading: PropTypes.bool
 };
 
 export default JelUI;
