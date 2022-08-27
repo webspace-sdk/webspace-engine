@@ -305,7 +305,7 @@ export class AvatarSystem {
     }
 
     if (!avatarMaterial.uniforms.decalMap.value) return;
-    if (!window.APP.spaceChannel.presence) return;
+    if (!NAF.connection?.presence) return;
 
     avatarMaterial.uniforms.time.value = t;
 
@@ -337,8 +337,8 @@ export class AvatarSystem {
       avatarIkControllers
     } = this;
 
-    const presenceState = window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state;
-    if (!presenceState) return;
+    const presenceStates = NAF.connection?.presence?.states;
+    if (!presenceStates) return;
 
     const nafAdapter = NAF.connection.adapter;
     let duvNeedsUpdate = false,

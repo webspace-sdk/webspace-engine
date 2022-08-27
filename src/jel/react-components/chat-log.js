@@ -161,18 +161,15 @@ export default function ChatLog({ scene, hub, store, leftOffset }) {
 
       const handler = () => {
         const newHasOtherOccupants =
-          hubChannel &&
-          hubChannel.presence &&
-          hubChannel.presence.state &&
-          Object.entries(hubChannel.presence.state).length > 1;
+          NAF.connection.presence && NAF.connection.presence.states && NAF.connection.presence.states.size > 1;
 
         if (newHasOtherOccupants !== hasOtherOccupants) {
           setHasOtherOccupants(newHasOtherOccupants);
         }
       };
 
-      scene.addEventListener("hub-presence-synced", handler);
-      return () => scene.removeEventListener("hub-presence-synced", handler);
+      scene.addEventListener("presence-synced", handler);
+      return () => scene.removeEventListener("presence-synced", handler);
     },
     [scene, hubChannel, hasOtherOccupants]
   );

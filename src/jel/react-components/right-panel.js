@@ -130,18 +130,7 @@ const SpaceTreeSpill = styled.div`
   }
 `;
 
-function RightPanel({
-  history,
-  hub,
-  hubCan,
-  hubMetadata,
-  sessionId,
-  scene,
-  centerPopupRef,
-  spaceId,
-  memberships,
-  treeManager
-}) {
+function RightPanel({ history, hub, hubCan, sessionId, scene, centerPopupRef, spaceId, memberships, treeManager }) {
   const { builderSystem, launcherSystem, cameraSystem } = SYSTEMS;
 
   const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");

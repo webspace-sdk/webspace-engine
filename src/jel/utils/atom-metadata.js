@@ -187,15 +187,18 @@ class AtomMetadata {
     return this._counts.has(id);
   }
 
-  can(permission, atomId) {
+  can(permission /*, atomId*/) {
     if (!VALID_PERMISSIONS[this._atomType].includes(permission))
       throw new Error(`Invalid permission name: ${permission}`);
 
-    if (!this.hasMetadata(atomId)) {
-      return false; // This used to throw an error, should it still?
-    }
+    // TODO SHARED permissions
+    return true;
 
-    return !!this.getMetadata(atomId).permissions[permission];
+    //if (!this.hasMetadata(atomId)) {
+    //  return false; // This used to throw an error, should it still?
+    //}
+
+    //return !!this.getMetadata(atomId).permissions[permission];
   }
 
   ensureMetadataForIds(ids, force = false) {

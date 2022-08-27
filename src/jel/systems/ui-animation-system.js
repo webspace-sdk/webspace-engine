@@ -90,10 +90,6 @@ export class UIAnimationSystem {
   collapseSidePanels(animate = true) {
     if (this.panelExpansionState === PANEL_EXPANSION_STATES.COLLAPSED) return;
 
-    const metadata = window.APP.hubMetadata.getMetadata(window.APP.hubChannel.hubId);
-    const isWorld = metadata.type === "world";
-    if (!isWorld) return;
-
     this.performPanelExpansion(PANEL_EXPANSION_STATES.COLLAPSING, animate);
     this.sceneEl.emit("side_panel_resize_started");
     this.store.handleActivityFlag("narrow");

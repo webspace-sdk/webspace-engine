@@ -243,10 +243,10 @@ const setupDataChannelMessageHandlers = () => {
 };
 
 const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountJelUI) => {
-  let isInitialJoin = true;
-  const { hubChannel, matrix } = window.APP;
+  const isInitialJoin = true;
+  const { hubChannel } = window.APP;
 
-  /*const hubRaw = {
+  const hub = {
     description: null,
     embed_token: null,
     entry_code: 268661,
@@ -295,124 +295,84 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountJelUI) => 
       water_color_r: 0
     },
     world_template_id: null
-  };*/
+  };
 
   return new Promise(joinFinished => {
-    hubPhxChannel.join().receive("ok", async data => {
-      const hub = data.hubs[0];
-      const isWorld = hub.type === "world";
+    // TODO shared, deal with perms
+    //hubChannel.setPermissionsFromToken(permsToken);
+    hubChannel.dispatchEvent(new CustomEvent("permissions_updated", {}));
 
-      const presence = hubChannel.presence;
-      const permsToken = data.perms_token;
-      hubChannel.setPermissionsFromToken(permsToken);
+    if (!isInitialJoin) {
+      // Send complete sync on phoenix re-join.
+      NAF.connection.entities.completeSync(null, true);
+    }
 
-      if (isInitialJoin) {
-        await initHubPresence(presence);
-      } else {
-        if (isWorld) {
-          // Send complete sync on phoenix re-join.
-          NAF.connection.entities.completeSync(null, true);
-        }
-      }
+    const scene = DOM_ROOT.querySelector("a-scene");
 
-      const scene = DOM_ROOT.querySelector("a-scene");
+    // Wait for scene objects to load before connecting, so there is no race condition on network state.
+    document.title = `${hub.name}`;
 
-      // Wait for scene objects to load before connecting, so there is no race condition on network state.
-      await new Promise(res => {
-        document.title = `${hub.name}`;
+    // Note that scene state needs to be updated before UI because focus handler will often fire
+    // which assumes scene state is set already to "off" for channels.
+    updateSceneStateForHub(hub);
 
-        // Note that scene state needs to be updated before UI because focus handler will often fire
-        // which assumes scene state is set already to "off" for channels.
-        updateSceneStateForHub(hub);
+    updateUIForHub(true, hub, hubChannel, remountJelUI);
+    updateEnvironmentForHub(hub);
 
-        updateUIForHub(true, hub, hubChannel, remountJelUI);
-        updateEnvironmentForHub(hub);
+    // Reset inspect if we switched while inspecting
+    SYSTEMS.cameraSystem.uninspect();
 
-        if (hub.type === "world") {
-          // Worlds don't show neon so we should mark all events as read as needed.
-          matrix.markRoomForHubIdAsFullyRead(hub.hub_id);
-        }
+    THREE.Cache.clear();
 
-        if (isInitialJoin) {
-          // Reset inspect if we switched while inspecting
-          SYSTEMS.cameraSystem.uninspect();
+    // Clear voxmojis from prior world
+    SYSTEMS.voxmojiSystem.clear();
 
-          THREE.Cache.clear();
+    SYSTEMS.atmosphereSystem.restartAmbience();
 
-          // Clear voxmojis from prior world
-          SYSTEMS.voxmojiSystem.clear();
+    // Free memory from voxel editing undo stacks.
+    SYSTEMS.builderSystem.clearUndoStacks();
+    SYSTEMS.undoSystem.clearUndoStacks();
 
-          SYSTEMS.atmosphereSystem.restartAmbience();
+    clearVoxAttributePools();
 
-          // Free memory from voxel editing undo stacks.
-          SYSTEMS.builderSystem.clearUndoStacks();
-          SYSTEMS.undoSystem.clearUndoStacks();
+    clearResolveUrlCache();
 
-          clearVoxAttributePools();
+    moveToInitialHubLocationAndBeginPeriodicSyncs(hub, hubStore);
 
-          clearResolveUrlCache();
+    const joinPromise = new Promise(res => document.body.addEventListener("connected", res, { once: true }));
 
-          // If this is not a world, skip connecting to NAF
-          if (!isWorld) {
-            res();
-            return;
-          }
+    if (!isInitialJoin) {
+      // TODO disconnect
+    }
 
-          moveToInitialHubLocationAndBeginPeriodicSyncs(hub, hubStore);
+    const handle = evt => {
+      if (evt.detail.name !== "networked-scene");
+      scene.removeEventListener("componentinitialized", handle);
+      scene.components["networked-scene"].connect();
+    };
 
-          const joinPromise = new Promise(res => document.body.addEventListener("connected", res, { once: true }));
+    setupDataChannelMessageHandlers();
 
-          if (isInitialJoin) {
-            const handle = evt => {
-              if (evt.detail.name !== "networked-scene");
-              scene.removeEventListener("componentinitialized", handle);
-              scene.components["networked-scene"].connect();
-            };
+    scene.addEventListener("componentinitialized", handle);
 
-            setupDataChannelMessageHandlers();
+    scene.setAttribute("networked-scene", {
+      audio: true,
+      connectOnLoad: false,
+      room: hub.hub_id,
+      adapter: "p2pcf",
+      app: "jel",
+      debug: !!isDebug
+    });
 
-            scene.addEventListener("componentinitialized", handle);
+    const connectionErrorTimeout = setTimeout(() => {
+      console.error("Unknown error occurred while attempting to connect to networked scene.");
+      remountJelUI({ unavailableReason: "connect_error" });
+      entryManager.exitScene();
+    }, 90000);
 
-            scene.setAttribute("networked-scene", {
-              audio: true,
-              connectOnLoad: false,
-              room: hub.hub_id,
-              adapter: "p2pcf",
-              app: "jel",
-              debug: !!isDebug
-            });
-          } else {
-            NAF.connection.adapter.joinRoom(hub.hub_id);
-          }
-
-          const connectionErrorTimeout = setTimeout(() => {
-            console.error("Unknown error occurred while attempting to connect to networked scene.");
-            remountJelUI({ unavailableReason: "connect_error" });
-            entryManager.exitScene();
-          }, 90000);
-
-          joinPromise
-            .then(() => {
-              if (isInitialJoin) {
-                if (hub.template && hub.template.name) {
-                  const { name, synced_at, hash } = hub.template;
-                  return applyTemplate(name, synced_at, hash);
-                } else {
-                  return Promise.resolve();
-                }
-              } else {
-                return Promise.resolve();
-              }
-            })
-            .then(() => {
-              clearTimeout(connectionErrorTimeout);
-              scene.emit("didConnectToNetworkedScene");
-            })
-            .then(res);
-        }
-      });
-
-      isInitialJoin = false;
+    joinPromise.then(() => {
+      clearTimeout(connectionErrorTimeout);
+      scene.emit("didConnectToNetworkedScene");
       joinFinished(true);
     });
   });
@@ -603,8 +563,6 @@ export async function joinHub(scene, socket, history, entryManager, remountJelUI
   const hubStore = new HubStore(hubId);
   const params = createHubChannelParams();
 
-  const isWorld = true;
-
   const hubPhxChannel = socket.channel(`hub:${hubId}`, params);
 
   stopTrackingPosition();
@@ -613,11 +571,7 @@ export async function joinHub(scene, socket, history, entryManager, remountJelUI
   hubChannel.bind(hubPhxChannel, hubId);
 
   if (NAF.connection.adapter) {
-    // Sending an exit message is only needed if we're not about to immediately
-    // join another hub over NAF.
-    const sendExitMessage = !isWorld;
-
-    NAF.connection.adapter.leaveRoom(sendExitMessage);
+    NAF.connection.adapter.leaveRoom(true);
   }
 
   const joinSuccessful = await joinHubChannel(hubPhxChannel, hubStore, entryManager, remountJelUI);

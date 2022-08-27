@@ -193,7 +193,7 @@ const VALIDATORS = {
     if (userinput.activeSets.includes(sets.leftCursorHoldingPen)) return INVALID;
     if (userinput.activeSets.includes(sets.leftCursorHoldingCamera)) return INVALID;
     if (userinput.activeSets.includes(sets.leftCursorHoldingInteractable)) return INVALID;
-    return scene.is("copresent") ? FINISH : VALID;
+    return FINISH;
   },
   object_grab: function(userinput, scene, mediaCounter) {
     if (scene.is("frozen")) return INVALID;
