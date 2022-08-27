@@ -1140,7 +1140,7 @@ async function start() {
   setupGameEnginePausing(scene);
   await emojiLoadPromise;
 
-  const sessionId = crypto.randomBytes(12).toString("hex");
+  const sessionId = crypto.randomBytes(20).toString("hex");
   remountJelUI({ sessionId });
 
   window.dispatchEvent(new CustomEvent("hub_channel_ready"));

@@ -174,30 +174,6 @@ const updateSceneStateForHub = (() => {
   };
 })();
 
-const initHubPresence = async presence => {
-  const scene = DOM_ROOT.querySelector("a-scene");
-  const { hubChannel } = window.APP;
-
-  await new Promise(res => {
-    presence.onSync(() => {
-      const presence = hubChannel.presence;
-
-      const sessionIds = Object.getOwnPropertyNames(presence.state);
-      const occupantCount = sessionIds.length;
-
-      if (occupantCount > 1) {
-        scene.addState("copresent");
-      } else {
-        scene.removeState("copresent");
-      }
-
-      scene.emit("hub-presence-synced");
-
-      res();
-    });
-  });
-};
-
 const setupDataChannelMessageHandlers = () => {
   const scene = DOM_ROOT.querySelector("a-scene");
   const projectileSystem = scene.systems["hubs-systems"].projectileSystem;
