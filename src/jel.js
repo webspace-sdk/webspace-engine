@@ -116,11 +116,9 @@ import { createBrowserHistory } from "history";
 import { clearHistoryState } from "./hubs/utils/history";
 import JelUI from "./jel/react-components/jel-ui";
 import AccountChannel from "./jel/utils/account-channel";
-import AuthChannel from "./hubs/utils/auth-channel";
 import DynaChannel from "./jel/utils/dyna-channel";
 import SpaceChannel from "./hubs/utils/space-channel";
 import HubChannel from "./hubs/utils/hub-channel";
-import LinkChannel from "./hubs/utils/link-channel";
 import Matrix from "./jel/utils/matrix";
 import AtomMetadata, { ATOM_TYPES } from "./jel/utils/atom-metadata";
 import { joinSpace, joinHub } from "./hubs/utils/jel-init";
@@ -179,11 +177,9 @@ store.update({ preferences: { shouldPromptForRefresh: undefined } });
 
 const history = createBrowserHistory();
 const accountChannel = new AccountChannel(store);
-const authChannel = new AuthChannel(store);
 const dynaChannel = new DynaChannel(store);
 const spaceChannel = new SpaceChannel(store);
 const hubChannel = new HubChannel(store);
-const linkChannel = new LinkChannel(store);
 const spaceMetadata = new AtomMetadata(ATOM_TYPES.SPACE);
 const hubMetadata = new AtomMetadata(ATOM_TYPES.HUB);
 const voxMetadata = new AtomMetadata(ATOM_TYPES.VOX);
@@ -194,8 +190,6 @@ window.APP.accountChannel = accountChannel;
 window.APP.dynaChannel = dynaChannel;
 window.APP.spaceChannel = spaceChannel;
 window.APP.hubChannel = hubChannel;
-window.APP.authChannel = authChannel;
-window.APP.linkChannel = linkChannel;
 window.APP.hubMetadata = hubMetadata;
 window.APP.spaceMetadata = spaceMetadata;
 window.APP.voxMetadata = voxMetadata;
@@ -1099,7 +1093,7 @@ async function start() {
     subscriptions.setRegistrationFailed();
   }
 
-  const entryManager = new SceneEntryManager(spaceChannel, hubChannel, authChannel, history);
+  const entryManager = new SceneEntryManager(spaceChannel, hubChannel, history);
 
   hideCanvas();
 
@@ -1253,10 +1247,8 @@ async function start() {
   const availableVREntryTypesPromise = getAvailableVREntryTypes();
 
   remountUI({
-    authChannel,
     spaceChannel,
     hubChannel,
-    linkChannel,
     exitScene: reason => {
       entryManager.exitScene();
 
@@ -1291,8 +1283,6 @@ async function start() {
   });
 
   scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(socket.params().session_id));
-
-  authChannel.setSocket(socket);
 
   remountUI({
     onLoaded: () => store.executeOnLoadActions(scene),

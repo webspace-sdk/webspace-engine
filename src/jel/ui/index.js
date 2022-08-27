@@ -4,11 +4,9 @@ import styled from "styled-components";
 import "../../assets/jel/stylesheets/index.scss";
 import Store from "../../hubs/storage/store";
 import { createBrowserHistory } from "history";
-import { connectToReticulum, fetchReticulumAuthenticated } from "../../hubs/utils/phoenix-utils";
-import AuthChannel from "../../hubs/utils/auth-channel";
+import { fetchReticulumAuthenticated } from "../../hubs/utils/phoenix-utils";
 import { FormattedMessage } from "react-intl";
 import InviteUI from "../react-components/invite-ui";
-import LoginUI from "../react-components/login-ui";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { createSpace } from "../../hubs/utils/phoenix-utils";
 import grassSrc from "../../assets/jel/images/landing-grass.svg";
@@ -20,7 +18,6 @@ import registerTelemetry from "../../hubs/telemetry";
 const store = new Store();
 const qs = new URLSearchParams(location.search);
 const history = createBrowserHistory();
-const authChannel = new AuthChannel(store);
 
 registerTelemetry();
 
@@ -135,28 +132,6 @@ const Footer = styled.div`
 `;
 
 async function authenticate() {
-  const authToken = qs.get("auth_token");
-  if (!authToken) return false;
-
-  const authTopic = qs.get("auth_topic");
-  const authPayload = qs.get("auth_payload");
-
-  const authChannel = new AuthChannel(store);
-  authChannel.setSocket(await connectToReticulum());
-  let decryptedPayload;
-
-  try {
-    decryptedPayload = await authChannel.verifyAuthentication(authTopic, authToken, authPayload);
-  } catch {
-    return AUTH_RESULT.FAILED;
-  }
-
-  if (decryptedPayload.post_auth_url) {
-    // Original auth request included a URL to redirect to after logging in. (Eg invites.)
-    document.location = decryptedPayload.post_auth_url;
-    return AUTH_RESULT.REDIRECTED;
-  }
-
   return AUTH_RESULT.OK;
 }
 
@@ -220,8 +195,6 @@ function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, invi
     });
   });
 
-  const signInUI = <LoginUI authChannel={authChannel} postAuthUrl={"/"} />;
-
   const inviteUI = (
     <InviteUI
       store={store}
@@ -256,8 +229,6 @@ function JelIndexUI({ authResult, inviteId, inviteIsExpired, inviteSpaceId, invi
         </SignedIn>
       );
     }
-  } else if (path.startsWith("/signin")) {
-    return <InfoPanel>{signInUI}</InfoPanel>;
   } else if (path.startsWith("/i/")) {
     return inviteUI;
   } else {
