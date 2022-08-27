@@ -1,6 +1,7 @@
 const dotenv = require("dotenv");
 const fs = require("fs");
 const path = require("path");
+const RemoveUnusedFilesWebpackPlugin = require("remove-unused-files-webpack-plugin").default;
 const selfsigned = require("selfsigned");
 const webpack = require("webpack");
 const cors = require("cors");
@@ -359,6 +360,11 @@ module.exports = async (env, argv) => {
     },
 
     plugins: [
+      new RemoveUnusedFilesWebpackPlugin({
+        patterns: ["src/**"],
+        removeUnused: true, // whether to delete, default is: false
+        removeInquiry: false // find unused files, before deleting prompt, default: true
+      }),
       new webpack.ProvidePlugin({
         Buffer: ["buffer", "Buffer"]
       }),

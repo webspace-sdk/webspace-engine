@@ -187,6 +187,7 @@
     "process": "^0.11.10",
     "raw-loader": "^4.0.2",
     "react-is": "^16.13.1",
+    "remove-unused-files-webpack-plugin": "^1.0.3",
     "request": "^2.88.2",
     "rimraf": "^2.6.2",
     "sass": "^1.54.4",
