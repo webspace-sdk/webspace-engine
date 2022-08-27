@@ -26,12 +26,7 @@ import {
   addAndArrangeRoundtableMedia,
   upload
 } from "./utils/media-utils";
-import {
-  isIn2DInterstitial,
-  handleExitTo2DInterstitial,
-  exit2DInterstitialAndEnterVR,
-  forceExitFrom2DInterstitial
-} from "./utils/vr-interstitial";
+import { isIn2DInterstitial, handleExitTo2DInterstitial, exit2DInterstitialAndEnterVR } from "./utils/vr-interstitial";
 import { ObjectContentOrigins } from "./object-types";
 import { getAvatarType } from "./utils/avatar-utils";
 import { pushHistoryState } from "./utils/history";
@@ -302,8 +297,6 @@ export default class SceneEntryManager {
         "mute-user"
       );
     });
-
-    this.scene.addEventListener("action_vr_notice_closed", () => forceExitFrom2DInterstitial());
 
     this.scene.addEventListener("action_publish_template", ({ detail: { collection } }) => {
       new WorldExporter().currentWorldToHtml().then(async body => {

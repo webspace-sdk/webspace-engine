@@ -16,7 +16,6 @@ import { SoundEffectsSystem } from "./sound-effects-system";
 import { BatchManagerSystem } from "./render-manager-system";
 import { ScenePreviewCameraSystem } from "./scene-preview-camera-system";
 import { InteractionSfxSystem } from "./interaction-sfx-system";
-import { SpriteSystem } from "./sprites";
 import { CameraSystem } from "./camera-system";
 import { CharacterControllerSystem } from "./character-controller-system";
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
@@ -75,7 +74,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.hoverMenuSystem = new HoverMenuSystem();
     this.hapticFeedbackSystem = new HapticFeedbackSystem();
     this.scenePreviewCameraSystem = new ScenePreviewCameraSystem();
-    this.spriteSystem = new SpriteSystem(this.el);
     this.batchManagerSystem = new BatchManagerSystem(this.el.object3D, this.el.renderer);
     this.drawingMenuSystem = new DrawingMenuSystem(this.el);
     this.cursorPoseTrackingSystem = new CursorPoseTrackingSystem();
@@ -181,7 +179,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.scenePreviewCameraSystem.tick();
     this.physicsSystem.tick(dt);
     this.batchManagerSystem.tick(t);
-    this.spriteSystem.tick(t, dt);
     this.enterVRButtonSystem.tick();
     this.uvScrollSystem.tick(dt);
     this.terrainSystem.tick();

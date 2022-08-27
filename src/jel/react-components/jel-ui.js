@@ -393,7 +393,7 @@ const DeviceStatuses = styled.div`
 `;
 
 function JelUI(props) {
-  const { scene, treeManager, hub, unavailableReason, subscriptions, voxTree, sceneTree, sessionId } = props;
+  const { scene, treeManager, hub, unavailableReason, subscriptions, voxTree, sceneTree, sessionId, hide } = props;
 
   const { launcherSystem, cameraSystem, builderSystem, externalCameraSystem } = SYSTEMS;
 
@@ -584,6 +584,10 @@ function JelUI(props) {
     }
   }, []);
 
+  if (hide) {
+    return <div />;
+  }
+
   return (
     <StyleSheetManager target={DOM_ROOT}>
       <WrappedIntlProvider>
@@ -766,7 +770,8 @@ JelUI.propTypes = {
   unavailableReason: PropTypes.string,
   voxTree: PropTypes.object,
   sceneTree: PropTypes.object,
-  sessionId: PropTypes.string
+  sessionId: PropTypes.string,
+  hide: PropTypes.bool
 };
 
 export default JelUI;

@@ -201,7 +201,7 @@ const migrateToNewDynaServer = async deployNotification => {
   });
 };
 
-function updateUIForHub(isTransition, hub, hubChannel, remountUI, remountJelUI) {
+function updateUIForHub(isTransition, hub, hubChannel, remountJelUI) {
   if (isTransition) {
     const neon = DOM_ROOT.querySelector("#neon");
     const canvas = DOM_ROOT.querySelector(".a-canvas");
@@ -221,7 +221,6 @@ function updateUIForHub(isTransition, hub, hubChannel, remountUI, remountJelUI) 
     window.APP.matrix.switchToHub(hub);
   }
 
-  remountUI({ hub, entryDisallowed: !hubChannel.canEnterRoom(hub) });
   remountJelUI({ hub });
 }
 
@@ -256,7 +255,7 @@ const updateSceneStateForHub = (() => {
   };
 })();
 
-const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI) => {
+const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remountJelUI) => {
   const scene = DOM_ROOT.querySelector("a-scene");
   const { store, spaceChannel, hubMetadata } = window.APP;
 
@@ -272,7 +271,6 @@ const joinSpaceChannel = async (spacePhxChannel, entryManager, treeManager, remo
 
         socket.params().session_token = data.session_token;
 
-        remountUI({ sessionId });
         remountJelUI({ sessionId });
 
         if (isInitialJoin) {
@@ -393,7 +391,7 @@ const setupDataChannelMessageHandlers = () => {
   });
 };
 
-const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI) => {
+const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountJelUI) => {
   let isInitialJoin = true;
   const { spaceChannel, hubChannel, spaceMetadata, hubMetadata, matrix } = window.APP;
 
@@ -452,7 +450,7 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountUI, remoun
           // which assumes scene state is set already to "off" for channels.
           updateSceneStateForHub(hub);
 
-          updateUIForHub(true, hub, hubChannel, remountUI, remountJelUI);
+          updateUIForHub(true, hub, hubChannel, remountJelUI);
           updateEnvironmentForHub(hub);
 
           if (hub.type === "world") {
@@ -584,7 +582,7 @@ const setupSpaceChannelMessageHandlers = spacePhxChannel => {
   });
 };
 
-const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, history, remountUI, remountJelUI) => {
+const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, history, remountJelUI) => {
   const scene = DOM_ROOT.querySelector("a-scene");
   const { hubChannel, spaceChannel } = window.APP;
 
@@ -599,7 +597,7 @@ const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, h
     const isJustLabel = isSetEqual(new Set(["name"]), new Set(stale_fields));
 
     if (!isJustLabel) {
-      updateUIForHub(false, hub, hubChannel, remountUI, remountJelUI);
+      updateUIForHub(false, hub, hubChannel, remountJelUI);
 
       if (stale_fields.includes("roles")) {
         hubChannel.fetchPermissions();
@@ -736,7 +734,7 @@ const initPresence = (function() {
   };
 })();
 
-export function joinSpace(socket, history, subscriptions, entryManager, remountUI, remountJelUI, membershipsPromise) {
+export function joinSpace(socket, history, subscriptions, entryManager, remountJelUI, membershipsPromise) {
   const spaceId = getSpaceIdFromHistory(history);
   const { dynaChannel, spaceChannel, spaceMetadata, hubMetadata, store } = window.APP;
   console.log(`Space ID: ${spaceId}`);
@@ -829,10 +827,10 @@ export function joinSpace(socket, history, subscriptions, entryManager, remountU
 
   store.update({ context: { spaceId } });
 
-  return joinSpaceChannel(spacePhxChannel, entryManager, treeManager, remountUI, remountJelUI);
+  return joinSpaceChannel(spacePhxChannel, entryManager, treeManager, remountJelUI);
 }
 
-export async function joinHub(scene, socket, history, entryManager, remountUI, remountJelUI) {
+export async function joinHub(scene, socket, history, entryManager, remountJelUI) {
   const { store, hubChannel, hubMetadata } = window.APP;
 
   const spaceId = getSpaceIdFromHistory(history);
@@ -856,7 +854,7 @@ export async function joinHub(scene, socket, history, entryManager, remountUI, r
   const hubPhxChannel = socket.channel(`hub:${hubId}`, params);
 
   stopTrackingPosition();
-  setupHubChannelMessageHandlers(hubPhxChannel, hubStore, entryManager, history, remountUI, remountJelUI);
+  setupHubChannelMessageHandlers(hubPhxChannel, hubStore, entryManager, history, remountJelUI);
 
   hubChannel.bind(hubPhxChannel, hubId);
 
@@ -868,7 +866,7 @@ export async function joinHub(scene, socket, history, entryManager, remountUI, r
     NAF.connection.adapter.leaveRoom(sendExitMessage);
   }
 
-  const joinSuccessful = await joinHubChannel(hubPhxChannel, hubStore, entryManager, remountUI, remountJelUI);
+  const joinSuccessful = await joinHubChannel(hubPhxChannel, hubStore, entryManager, remountJelUI);
 
   if (joinSuccessful) {
     store.setLastJoinedHubId(spaceId, hubId);

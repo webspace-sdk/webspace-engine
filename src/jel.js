@@ -126,7 +126,6 @@ import { joinSpace, joinHub } from "./hubs/utils/jel-init";
 import { connectToReticulum } from "./hubs/utils/phoenix-utils";
 import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
 import { getHubIdFromHistory, getSpaceIdFromHistory, navigateToHubUrl } from "./jel/utils/jel-url-utils";
-import { handleExitTo2DInterstitial, exit2DInterstitialAndEnterVR } from "./hubs/utils/vr-interstitial";
 import SceneEntryManager from "./hubs/scene-entry-manager";
 
 import "./hubs/systems/nav";
@@ -236,7 +235,7 @@ import registerNetworkSchemas from "./hubs/network-schemas";
 import registerTelemetry from "./hubs/telemetry";
 import { warmSerializeElement } from "./hubs/utils/serialize-element";
 
-import { getAvailableVREntryTypes, VR_DEVICE_AVAILABILITY, ONLY_SCREEN_AVAILABLE } from "./hubs/utils/vr-caps-detect";
+import { getAvailableVREntryTypes, VR_DEVICE_AVAILABILITY } from "./hubs/utils/vr-caps-detect";
 import detectConcurrentLoad from "./hubs/utils/concurrent-load-detector";
 
 import qsTruthy from "./hubs/utils/qs_truthy";
@@ -277,16 +276,7 @@ disableiOSZoom();
 detectConcurrentLoad();
 
 let jelUIProps = {};
-
-// when loading the client as a "default room" on the homepage, use MemoryHistory since exposing all the client paths at the root is undesirable
-
-const qsVREntryType = qs.get("vr_entry_type");
-
 let performConditionalSignIn;
-
-function remountUI() {
-  // no-op
-}
 
 function mountJelUI(props = {}) {
   if (isBotMode) return;
@@ -320,47 +310,6 @@ function remountJelUI(props) {
 
 window.remountJelUI = remountJelUI;
 
-function setupPerformConditionalSignin(entryManager) {
-  entryManager.performConditionalSignIn = performConditionalSignIn = async (
-    predicate,
-    action,
-    messageId,
-    onFailure
-  ) => {
-    if (predicate()) return action();
-
-    const scene = DOM_ROOT.querySelector("a-scene");
-    const signInContinueTextId = scene.is("vr-mode") ? "entry.return-to-vr" : "dialog.close";
-
-    await handleExitTo2DInterstitial(true, () => remountUI({ showSignInDialog: false }));
-
-    remountUI({
-      showSignInDialog: true,
-      signInMessageId: `sign-in.${messageId}`,
-      signInCompleteMessageId: `sign-in.${messageId}-complete`,
-      signInContinueTextId,
-      onContinueAfterSignIn: async () => {
-        remountUI({ showSignInDialog: false });
-        let actionError = null;
-        if (predicate()) {
-          try {
-            await action();
-          } catch (e) {
-            actionError = e;
-          }
-        } else {
-          actionError = new Error("Predicate failed post sign-in");
-        }
-
-        if (actionError && onFailure) onFailure(actionError);
-        exit2DInterstitialAndEnterVR();
-      }
-    });
-  };
-
-  remountUI({ performConditionalSignIn });
-}
-
 async function runBotMode(scene, entryManager) {
   const noop = () => {};
   scene.renderer = { setAnimationLoop: noop, render: noop };
@@ -389,7 +338,7 @@ async function checkPrerequisites() {
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (e) {
-      remountUI({ showSafariMicDialog: true });
+      // remountUI({ showSafariMicDialog: true });
       return;
     }
   }
@@ -398,7 +347,7 @@ async function checkPrerequisites() {
     const buildNumber = process.env.BUILD_VERSION.split(" ", 1)[0]; // e.g. "123 (abcd5678)"
 
     if (qs.get("required_version") !== buildNumber) {
-      remountUI({ roomUnavailableReason: "version_mismatch" });
+      // remountUI({ roomUnavailableReason: "version_mismatch" });
       setTimeout(() => document.location.reload(), 5000);
       return false;
     }
@@ -411,7 +360,7 @@ async function checkPrerequisites() {
       qs.get("required_ret_version") &&
       (qs.get("required_ret_version") !== reticulumMeta.version || qs.get("required_ret_pool") !== reticulumMeta.pool)
     ) {
-      remountUI({ roomUnavailableReason: "version_mismatch" });
+      // remountUI({ roomUnavailableReason: "version_mismatch" });
       setTimeout(() => document.location.reload(), 5000);
       return false;
     }
@@ -534,23 +483,14 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
     chatFocusTarget && chatFocusTarget.focus();
   });
 
-  scene.addEventListener("tips_changed", e => {
-    remountUI({ activeTips: e.detail });
-  });
-
   scene.addEventListener("leave_room_requested", () => {
     entryManager.exitScene("left");
-    remountUI({ roomUnavailableReason: "left" });
   });
-
-  scene.addEventListener("camera_toggled", () => remountUI({}));
-
-  scene.addEventListener("camera_removed", () => remountUI({}));
 
   scene.addEventListener("hub_closed", () => {
     scene.exitVR();
     entryManager.exitScene("closed");
-    remountUI({ roomUnavailableReason: "closed" });
+    // remountUI({ roomUnavailableReason: "closed" });
   });
 
   scene.addEventListener("action_camera_recording_started", () => spaceChannel.beginRecording());
@@ -562,17 +502,6 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
     if (!hubChannel.can("update_hub_meta")) return;
 
     hubChannel.updateScene(entry.url);
-  });
-
-  // Handle request for user gesture
-  scene.addEventListener("2d-interstitial-gesture-required", () => {
-    remountUI({
-      showInterstitialPrompt: true,
-      onInterstitialPromptClicked: () => {
-        remountUI({ showInterstitialPrompt: false, onInterstitialPromptClicked: null });
-        scene.emit("2d-interstitial-gesture-complete");
-      }
-    });
   });
 
   ["#jel-react-root", "#jel-popup-root"].forEach(selector => {
@@ -837,7 +766,7 @@ function setupVREventHandlers(scene, availableVREntryTypesPromise) {
 
     if (isMobileVR) {
       // Optimization, stop drawing UI if not visible
-      remountUI({ hide: true });
+      remountJelUI({ hide: true });
     }
 
     UI.classList.add("vr-mode");
@@ -876,7 +805,7 @@ function setupVREventHandlers(scene, availableVREntryTypesPromise) {
     UI.classList.remove("vr-mode");
     UI.classList.remove("vr-mode-stretch");
 
-    remountUI({ hide: false });
+    remountJelUI({ hide: false });
 
     // HACK: Oculus browser pauses videos when exiting VR mode, so we need to resume them after a timeout.
     if (/OculusBrowser/i.test(window.navigator.userAgent)) {
@@ -901,12 +830,8 @@ function setupVREventHandlers(scene, availableVREntryTypesPromise) {
   });
 }
 
-async function setupUIBasedUponVRTypes(availableVREntryTypesPromise) {
-  const availableVREntryTypes = await availableVREntryTypesPromise;
-
+async function setupUIBasedUponVRTypes() {
   if (isMobileVR) {
-    remountUI({ availableVREntryTypes, forcedVREntryType: "vr", checkingForDeviceAvailability: false });
-
     if (/Oculus/.test(navigator.userAgent) && "getVRDisplays" in navigator) {
       // HACK - The polyfill reports Cardboard as the primary VR display on startup out ahead of
       // Oculus Go on Oculus Browser 5.5.0 beta. This display is cached by A-Frame,
@@ -915,17 +840,6 @@ async function setupUIBasedUponVRTypes(availableVREntryTypesPromise) {
       const vrDisplay = displays.length && displays[0];
       AFRAME.utils.device.getVRDisplay = () => vrDisplay;
     }
-  } else {
-    const hasVREntryDevice =
-      availableVREntryTypes.cardboard !== VR_DEVICE_AVAILABILITY.no ||
-      availableVREntryTypes.generic !== VR_DEVICE_AVAILABILITY.no ||
-      availableVREntryTypes.daydream !== VR_DEVICE_AVAILABILITY.no;
-
-    remountUI({
-      availableVREntryTypes,
-      forcedVREntryType: qsVREntryType || (!hasVREntryDevice ? "2d" : null),
-      checkingForDeviceAvailability: false
-    });
   }
 }
 
@@ -956,7 +870,6 @@ async function createSocket(entryManager) {
 
     if (e.code === NORMAL_CLOSURE && !isReloading) {
       entryManager.exitScene();
-      remountUI({ roomUnavailableReason: "disconnected" });
     }
   });
 
@@ -1098,7 +1011,6 @@ async function start() {
 
   hideCanvas();
 
-  setupPerformConditionalSignin(entryManager);
   await store.initDefaults();
 
   warmSerializeElement();
@@ -1244,25 +1156,10 @@ async function start() {
 
   window.dispatchEvent(new CustomEvent("hub_channel_ready"));
 
-  remountUI({ availableVREntryTypes: ONLY_SCREEN_AVAILABLE, checkingForDeviceAvailability: true });
   const availableVREntryTypesPromise = getAvailableVREntryTypes();
 
-  remountUI({
-    spaceChannel,
-    hubChannel,
-    exitScene: reason => {
-      entryManager.exitScene();
-
-      if (reason) {
-        remountUI({ roomUnavailableReason: reason });
-      }
-    },
-    initialIsSubscribed: false,
-    activeTips: scene.systems.tips.activeTips
-  });
-
   setupVREventHandlers(scene, availableVREntryTypesPromise);
-  setupUIBasedUponVRTypes(availableVREntryTypesPromise); // Note no await here, to avoid blocking
+  setupUIBasedUponVRTypes(); // Note no await here, to avoid blocking
   startBotModeIfNecessary(scene, entryManager);
   clearHistoryState(history);
 
@@ -1284,14 +1181,6 @@ async function start() {
   });
 
   scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(socket.params().session_id));
-
-  remountUI({
-    onLoaded: () => store.executeOnLoadActions(scene),
-    onMediaSearchResultEntrySelected: (entry, selectAction) =>
-      scene.emit("action_selected_media_result_entry", { entry, selectAction }),
-    onMediaSearchCancelled: entry => scene.emit("action_media_search_cancelled", entry),
-    onAvatarSaved: entry => scene.emit("action_avatar_saved", entry)
-  });
 
   let nextSpaceToJoin;
   let nextHubToJoin;
@@ -1368,15 +1257,7 @@ async function start() {
     joinHubPromise = null;
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
-      joinSpacePromise = joinSpace(
-        socket,
-        history,
-        subscriptions,
-        entryManager,
-        remountUI,
-        remountJelUI,
-        membershipsPromise
-      );
+      joinSpacePromise = joinSpace(socket, history, subscriptions, entryManager, remountJelUI, membershipsPromise);
       await joinSpacePromise;
     }
 
@@ -1384,7 +1265,7 @@ async function start() {
     joinHubPromise = null;
 
     if (hubChannel.hubId !== hubId && nextHubToJoin === hubId) {
-      joinHubPromise = joinHub(scene, socket, history, entryManager, remountUI, remountJelUI);
+      joinHubPromise = joinHub(scene, socket, history, entryManager, remountJelUI);
       await joinHubPromise;
     }
   };
