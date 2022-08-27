@@ -123,7 +123,6 @@ import HubChannel from "./hubs/utils/hub-channel";
 import Matrix from "./jel/utils/matrix";
 import AtomMetadata, { ATOM_TYPES } from "./jel/utils/atom-metadata";
 import { setupTreeManagers, joinHub } from "./hubs/utils/jel-init";
-import { connectToReticulum } from "./hubs/utils/phoenix-utils";
 import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
 import { getHubIdFromHistory, getSpaceIdFromHistory, navigateToHubUrl } from "./jel/utils/jel-url-utils";
 import SceneEntryManager from "./hubs/scene-entry-manager";
@@ -842,26 +841,6 @@ function startBotModeIfNecessary(scene, entryManager) {
   }
 }
 
-async function createSocket(entryManager) {
-  let isReloading = false;
-  window.addEventListener("beforeunload", () => (isReloading = true));
-
-  const socket = await connectToReticulum(isDebug);
-
-  socket.onClose(e => {
-    // We don't currently have an easy way to distinguish between being kicked (server closes socket)
-    // and a variety of other network issues that seem to produce the 1000 closure code, but the
-    // latter are probably more common. Either way, we just tell the user they got disconnected.
-    const NORMAL_CLOSURE = 1000;
-
-    if (e.code === NORMAL_CLOSURE && !isReloading) {
-      entryManager.exitScene();
-    }
-  });
-
-  return socket;
-}
-
 async function start() {
   if (!(await checkPrerequisites())) return;
 
@@ -1152,8 +1131,6 @@ async function start() {
   startBotModeIfNecessary(scene, entryManager);
   clearHistoryState(history);
 
-  const socket = await createSocket(entryManager);
-
   hubChannel.addEventListener("permissions_updated", () => {
     const hubCan = hubMetadata.can.bind(hubMetadata);
     const voxCan = voxMetadata.can.bind(voxMetadata);
@@ -1200,14 +1177,14 @@ async function start() {
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
       store.update({ context: { spaceId } });
-      setupTreeManagers(socket, history, subscriptions, entryManager, remountJelUI);
+      setupTreeManagers(history, subscriptions, entryManager, remountJelUI);
     }
 
     if (joinHubPromise) await joinHubPromise;
     joinHubPromise = null;
 
     if (hubChannel.hubId !== hubId && nextHubToJoin === hubId) {
-      joinHubPromise = joinHub(scene, socket, history, entryManager, remountJelUI);
+      joinHubPromise = joinHub(scene, history, entryManager, remountJelUI);
       await joinHubPromise;
     }
   };

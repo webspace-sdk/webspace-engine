@@ -33,10 +33,8 @@ export default class HubChannel extends EventTarget {
     return roomEntrySlotCount < (hub.room_size !== undefined ? hub.room_size : DEFAULT_ROOM_SIZE);*/
   }
 
-  bind = (channel, hubId) => {
+  bind = hubId => {
     this.leave();
-    this.channel = channel;
-    this.presence = new Presence(channel);
     this.hubId = hubId;
   };
 

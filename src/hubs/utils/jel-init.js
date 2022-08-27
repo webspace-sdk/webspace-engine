@@ -1,6 +1,5 @@
 import TreeManager from "../../jel/utils/tree-manager";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "../../jel/utils/jel-url-utils";
-import { isSetEqual } from "../../jel/utils/set-utils";
 import { getInitialHubForSpaceId } from "../../jel/utils/membership-utils";
 import { clearResolveUrlCache } from "./media-utils";
 import { getMessages } from "./i18n";
@@ -8,7 +7,6 @@ import { SOUND_CHAT_MESSAGE } from "../systems/sound-effects-system";
 import qsTruthy from "./qs_truthy";
 import HubStore from "../storage/hub-store";
 import MediaTree from "../../jel/utils/media-tree";
-import { applyTemplate } from "../../jel/utils/template-utils";
 import { clearVoxAttributePools } from "../../jel/objects/JelVoxBufferGeometry";
 import { restartPeriodicSyncs } from "../components/periodic-full-syncs";
 
@@ -104,21 +102,6 @@ async function moveToInitialHubLocationAndBeginPeriodicSyncs(hub, hubStore) {
 
   restartPeriodicSyncs();
 }
-
-const createHubChannelParams = () => {
-  const params = {
-    auth_token: null,
-    perms_token: null,
-    is_first_shared_world: false
-  };
-
-  const { token } = window.APP.store.state.credentials;
-  if (token) {
-    params.auth_token = token;
-  }
-
-  return params;
-};
 
 function updateUIForHub(isTransition, hub, hubChannel, remountJelUI) {
   if (isTransition) {
@@ -218,7 +201,7 @@ const setupDataChannelMessageHandlers = () => {
   });
 };
 
-const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountJelUI) => {
+const joinHubChannel = (hubStore, entryManager, remountJelUI) => {
   const isInitialJoin = true;
   const { hubChannel } = window.APP;
 
@@ -240,7 +223,7 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountJelUI) => 
     spawn_point: { position: { x: 0, y: 0, z: 0 }, radius: 10, rotation: { w: 1, x: 0, y: 0, z: 0 } },
     template: { hash: null, name: null, synced_at: null },
     type: "world",
-    url: "https://hubs.local:4000/conference-props-tKod5fU8ox2d",
+    url: "https://hubs.local:4000/jel.html",
     user_data: null,
     world: {
       bark_color_b: 0.12156862745098039,
@@ -354,60 +337,6 @@ const joinHubChannel = (hubPhxChannel, hubStore, entryManager, remountJelUI) => 
   });
 };
 
-const setupHubChannelMessageHandlers = (hubPhxChannel, hubStore, entryManager, history, remountJelUI) => {
-  const scene = DOM_ROOT.querySelector("a-scene");
-  const { hubChannel, spaceChannel } = window.APP;
-
-  // Avoid updating the history frequently, as users type new hub names
-  let historyReplaceTimeout = null;
-
-  hubPhxChannel.on("hub_refresh", ({ hubs, stale_fields }) => {
-    const hub = hubs[0];
-
-    // Special case: don't do anything, we rely upon the metadata subscriptions to quickly update
-    // references to hub names + icon in-place.
-    const isJustLabel = isSetEqual(new Set(["name"]), new Set(stale_fields));
-
-    if (!isJustLabel) {
-      updateUIForHub(false, hub, hubChannel, remountJelUI);
-
-      if (stale_fields.includes("roles")) {
-        hubChannel.fetchPermissions();
-        spaceChannel.fetchPermissions();
-      }
-
-      if (hub.entry_mode === "deny") {
-        scene.emit("hub_closed");
-      }
-    }
-
-    if (stale_fields.includes("name")) {
-      const titleParts = document.title.split(" | "); // Assumes title has | trailing site name
-      titleParts[0] = hub.name;
-      document.title = titleParts.join(" | ");
-
-      const pathParts = history.location.pathname.split("/");
-      const { search, state } = history.location;
-      const pathname = history.location.pathname.replace(
-        `/${pathParts[1]}`,
-        `/${hub.slug}-${hub.space_id}${hub.hub_id}`
-      );
-
-      if (historyReplaceTimeout) {
-        clearTimeout(historyReplaceTimeout);
-      }
-
-      historyReplaceTimeout = setTimeout(() => history.replace({ pathname, search, state }), 1000);
-    }
-  });
-
-  hubPhxChannel.on("mute", ({ session_id }) => {
-    if (session_id === NAF.clientId && scene.is("unmuted")) {
-      scene.emit("action_mute");
-    }
-  });
-};
-
 const initPresence = (function() {
   const lastPostedDisplayNames = new Map();
   const presenceIdToClientId = new Map();
@@ -502,7 +431,7 @@ const initPresence = (function() {
   };
 })();
 
-export function setupTreeManagers(socket, history, subscriptions, entryManager, remountJelUI) {
+export function setupTreeManagers(history, subscriptions, entryManager, remountJelUI) {
   const spaceId = getSpaceIdFromHistory(history);
   const { spaceMetadata, hubMetadata } = window.APP;
   console.log(`Space ID: ${spaceId}`);
@@ -529,7 +458,7 @@ export function setupTreeManagers(socket, history, subscriptions, entryManager, 
   treeManager.setSpaceCollectionId(spaceId);
 }
 
-export async function joinHub(scene, socket, history, entryManager, remountJelUI) {
+export async function joinHub(scene, history, entryManager, remountJelUI) {
   const { store, hubChannel } = window.APP;
 
   const spaceId = getSpaceIdFromHistory(history);
@@ -537,20 +466,16 @@ export async function joinHub(scene, socket, history, entryManager, remountJelUI
   console.log(`Hub ID: ${hubId}`);
 
   const hubStore = new HubStore(hubId);
-  const params = createHubChannelParams();
-
-  const hubPhxChannel = socket.channel(`hub:${hubId}`, params);
 
   stopTrackingPosition();
-  setupHubChannelMessageHandlers(hubPhxChannel, hubStore, entryManager, history, remountJelUI);
 
-  hubChannel.bind(hubPhxChannel, hubId);
+  hubChannel.bind(hubId);
 
   if (NAF.connection.adapter) {
     NAF.connection.adapter.leaveRoom(true);
   }
 
-  const joinSuccessful = await joinHubChannel(hubPhxChannel, hubStore, entryManager, remountJelUI);
+  const joinSuccessful = await joinHubChannel(hubStore, entryManager, remountJelUI);
 
   if (joinSuccessful) {
     store.setLastJoinedHubId(spaceId, hubId);
