@@ -32,10 +32,8 @@ let directReticulumHostAndPort;
 async function refreshDirectReticulumHostAndPort() {
   const qs = new URLSearchParams(location.search);
   let host = qs.get("phx_host");
-  host = host || configs.RETICULUM_SOCKET_SERVER;
-  const port =
-    qs.get("phx_port") ||
-    (hasReticulumServer() ? new URL(`${document.location.protocol}//${configs.RETICULUM_SERVER}`).port : "443");
+  host = "hubs.local";
+  const port = "4000";
   directReticulumHostAndPort = { host, port };
 }
 

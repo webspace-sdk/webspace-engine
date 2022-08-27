@@ -190,7 +190,7 @@ const EnvironmentSettingsPopup = ({
     () => {
       if (!hub || !hubMetadata) return;
 
-      const world = hubMetadata.getMetadata(hub.hub_id).world;
+      const { world } = hub;
       if (!world) return;
 
       const fieldList = [

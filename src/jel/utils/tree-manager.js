@@ -71,7 +71,6 @@ class TreeManager extends EventTarget {
       TREE_PROJECTION_TYPE.NESTED,
       () => true
     );
-    this.hasPrivateSpaceTree = false;
 
     const filterAtomIdByMetadata = filter => atomId => {
       if (!hubMetadata.hasMetadata(atomId)) return false;
@@ -118,7 +117,7 @@ class TreeManager extends EventTarget {
     );
   }
 
-  async init(connection, memberships) {
+  async init(connection) {
     await Promise.all([
       await this.privateSpace.init(connection),
       await this.worldNav.init(connection),
@@ -126,8 +125,6 @@ class TreeManager extends EventTarget {
       await this.trashNav.init(connection),
       await this.trashNested.init(connection)
     ]);
-
-    await this.syncMembershipsToPrivateSpaceTree(memberships);
   }
 
   setNavTitleControl(titleControl) {
@@ -137,11 +134,6 @@ class TreeManager extends EventTarget {
 
   setTrashNavTitleControl(titleControl) {
     this.trashNav.setTitleControl(titleControl);
-  }
-
-  setAccountCollectionId(collectionId) {
-    this.hasPrivateSpaceTree = true;
-    this.privateSpace.setCollectionId(collectionId);
   }
 
   setSpaceCollectionId(collectionId) {
@@ -180,47 +172,6 @@ class TreeManager extends EventTarget {
 
   navExpandedNodeIds() {
     return this.navExpandedTreeNodes.expandedNodeIds();
-  }
-
-  async syncMembershipsToPrivateSpaceTree(memberships) {
-    if (!this.hasPrivateSpaceTree) return;
-
-    const tree = this.privateSpace;
-    tree.rebuildFilteredTreeData();
-
-    [...memberships].sort(m => m.joined_at).forEach(({ space: { space_id } }) => {
-      tree.addToRootIfNotExists(space_id);
-    });
-
-    // Remove memberships no longer value.
-    const spaceIdsToRemove = new Set();
-
-    const walk = nodes => {
-      for (const { atomId, children } of nodes) {
-        const membership = memberships.find(m => m.space.space_id === atomId);
-
-        if (!membership) {
-          spaceIdsToRemove.add(atomId);
-        }
-
-        if (children) {
-          const childAtomId = walk(children);
-          if (childAtomId) return childAtomId;
-        }
-      }
-
-      return null;
-    };
-
-    walk(tree.filteredTreeData);
-
-    for (const spaceId of spaceIdsToRemove) {
-      const nodeId = tree.getNodeIdForAtomId(spaceId);
-
-      if (nodeId) {
-        tree.remove(nodeId);
-      }
-    }
   }
 
   async syncMatrixRoomOrdersFromTree({ filteredTreeData }) {

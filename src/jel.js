@@ -7,6 +7,7 @@ import AFRAME_DOM from "./jel/aframe-dom";
 import { isInQuillEditor } from "./jel/utils/quill-utils";
 import { homeHubForSpaceId } from "./jel/utils/membership-utils";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
+import crypto from "crypto";
 
 console.log(`App version: ${process.env.BUILD_VERSION || "?"}`);
 
@@ -1165,7 +1166,9 @@ async function start() {
     }
   });
 
-  scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(socket.params().session_id));
+  const sessionId = crypto.randomBytes(12).toString("hex");
+  remountJelUI({ sessionId });
+  scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(sessionId));
 
   let nextSpaceToJoin;
   let nextHubToJoin;
@@ -1173,7 +1176,6 @@ async function start() {
   let joinHubPromise;
 
   const { token } = store.state.credentials;
-  let membershipsPromise;
 
   if (token) {
     console.log(`Logged into account ${store.credentialsAccountId}`);
@@ -1183,7 +1185,6 @@ async function start() {
 
     // TODO SHARED
     // voxMetadata.bind(accountChannel);
-    membershipsPromise = Promise.resolve([]);
   }
 
   const performJoin = async () => {
@@ -1201,8 +1202,10 @@ async function start() {
     joinHubPromise = null;
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
-      joinSpacePromise = joinSpace(socket, history, subscriptions, entryManager, remountJelUI, membershipsPromise);
+      joinSpacePromise = joinSpace(socket, history, subscriptions, entryManager, remountJelUI);
+      console.log("C");
       await joinSpacePromise;
+      console.log("D");
     }
 
     if (joinHubPromise) await joinHubPromise;
@@ -1210,12 +1213,16 @@ async function start() {
 
     if (hubChannel.hubId !== hubId && nextHubToJoin === hubId) {
       joinHubPromise = joinHub(scene, socket, history, entryManager, remountJelUI);
+      console.log("E");
       await joinHubPromise;
+      console.log("F");
     }
   };
 
   history.listen(performJoin);
+  console.log("A");
   await performJoin();
+  console.log("B");
 
   entryManager.enterScene(false);
 }

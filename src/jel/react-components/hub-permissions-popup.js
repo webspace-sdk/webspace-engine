@@ -18,7 +18,8 @@ const HubPermissionsPopup = ({ setPopperElement, styles, attributes, hubMetadata
       if (!hubMetadata || !hub) return () => {};
 
       const updatePermissions = () => {
-        const spaceRole = hubMetadata.getMetadata(hub.hub_id).roles.space;
+        // TODO SHARED
+        const spaceRole = "member";
         setAllowEditing(spaceRole === "editor");
       };
 
