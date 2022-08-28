@@ -440,8 +440,9 @@ export function setupTreeManagers(history, subscriptions, entryManager, remountJ
   const voxTree = new MediaTree("vox");
   const sceneTree = new MediaTree("world_templates");
 
-  voxTree.build();
-  sceneTree.build();
+  // TODO SHARED
+  // voxTree.build();
+  // sceneTree.build();
 
   document.body.addEventListener(
     "connected",

@@ -46,6 +46,7 @@ self.onmessage = ({
 
   txn.addEventListener("success", async ({ target }) => {
     if (target.result) {
+      chunkPriorities.delete(chunkId);
       self.postMessage({ id, result: target.result.chunk });
     } else {
       if (world === null || world.seed !== seed || world.generatorType !== generatorType) {
@@ -69,7 +70,7 @@ self.onmessage = ({
           }
         }
 
-        if (nextChunk == chunkId) break;
+        if (nextChunk === chunkId) break;
 
         await nextTick();
       }

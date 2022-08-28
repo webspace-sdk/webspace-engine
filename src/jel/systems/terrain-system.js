@@ -260,12 +260,11 @@ export class TerrainSystem {
 
     this.lastLoadedChunkFrame = this.frame;
 
-    if (!heightMapOnly) {
-      if (!loadingChunks.has(key)) return;
+    if (this.worldType !== worldType || this.worldSeed !== worldSeed) {
       loadingChunks.delete(key);
+      return;
     }
 
-    if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
     const encoded = await runTerraWorker({
       x: chunk.x,
       z: chunk.z,
@@ -273,6 +272,11 @@ export class TerrainSystem {
       seed: this.worldSeed,
       priority
     });
+
+    if (!heightMapOnly) {
+      if (!loadingChunks.has(key)) return;
+      loadingChunks.delete(key);
+    }
 
     if (heightMapOnly) {
       const chunks = decodeChunks(encoded);
