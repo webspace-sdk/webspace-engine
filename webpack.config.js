@@ -1,8 +1,7 @@
 const dotenv = require("dotenv");
 const fs = require("fs");
 const path = require("path");
-const RemoveUnusedFilesWebpackPlugin = require("remove-unused-files-webpack-plugin").default;
-const selfsigned = require("selfsigned");
+//const RemoveUnusedFilesWebpackPlugin = require("remove-unused-files-webpack-plugin").default;
 const webpack = require("webpack");
 const cors = require("cors");
 const HTMLWebpackPlugin = require("html-webpack-plugin");
@@ -11,54 +10,6 @@ const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPl
 const TOML = require("@iarna/toml");
 const fetch = require("node-fetch");
 const request = require("request");
-
-function createHTTPSConfig() {
-  // Generate certs for the local webpack-dev-server.
-  if (fs.existsSync(path.join(__dirname, "certs"))) {
-    const key = fs.readFileSync(path.join(__dirname, "certs", "key.pem"));
-    const cert = fs.readFileSync(path.join(__dirname, "certs", "cert.pem"));
-
-    return { key, cert };
-  } else {
-    const pems = selfsigned.generate(
-      [
-        {
-          name: "commonName",
-          value: "hubs.local"
-        }
-      ],
-      {
-        days: 365,
-        keySize: 2048,
-        algorithm: "sha256",
-        extensions: [
-          {
-            name: "subjectAltName",
-            altNames: [
-              {
-                type: 2,
-                value: "hubs.local"
-              },
-              {
-                type: 2,
-                value: "hubs.local"
-              }
-            ]
-          }
-        ]
-      }
-    );
-
-    fs.mkdirSync(path.join(__dirname, "certs"));
-    fs.writeFileSync(path.join(__dirname, "certs", "cert.pem"), pems.cert);
-    fs.writeFileSync(path.join(__dirname, "certs", "key.pem"), pems.private);
-
-    return {
-      key: pems.private,
-      cert: pems.cert
-    };
-  }
-}
 
 function createDefaultAppConfig() {
   const schemaPath = path.join(__dirname, "src", "schema.toml");
@@ -177,7 +128,7 @@ module.exports = async (env, argv) => {
         RETICULUM_SOCKET_SERVER: "hubs.local",
         CORS_PROXY_SERVER: "cors-proxy.jel.app",
         NON_CORS_PROXY_DOMAINS: "hubs.local,jel.dev",
-        BASE_ASSETS_PATH: "https://hubs.local:8080/",
+        BASE_ASSETS_PATH: "http://localhost:8000/",
         RETICULUM_SERVER: "hubs.local:4000",
         POSTGREST_SERVER: "",
         ITA_SERVER: ""
@@ -187,8 +138,6 @@ module.exports = async (env, argv) => {
 
   // In production, the environment variables are defined in CI or loaded from ita and
   // the app config is injected into the head of the page by Reticulum.
-
-  const host = process.env.HOST_IP || env.localDev || env.remoteDev ? "hubs.local" : "hubs.local";
 
   return {
     stats: {
@@ -211,7 +160,7 @@ module.exports = async (env, argv) => {
     },
     devtool: argv.mode === "production" ? "source-map" : "inline-source-map",
     devServer: {
-      https: createHTTPSConfig(),
+      compress: false,
       client: {
         webSocketURL: {
           hostname: "0.0.0.0",
@@ -219,9 +168,10 @@ module.exports = async (env, argv) => {
         }
       },
       // host: "local-ip", NOTE: probably need this for LAN
-      allowedHosts: [host, "hubs.local"],
+      allowedHosts: "all",
       headers: {
-        "Access-Control-Allow-Origin": "*"
+        "Access-Control-Allow-Origin": "*",
+        "Cache-Control": "no-store"
       },
       onBeforeSetupMiddleware: function({ app }) {
         // Local CORS proxy
