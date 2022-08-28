@@ -868,6 +868,10 @@ function addMissingDefaultHtml() {
     headStyleTagBody += "margin: 0; ";
   }
 
+  if (bodyStyle.overflow !== "hidden") {
+    headStyleTagBody += "overflow: hidden; ";
+  }
+
   const bgColor = parseCSSColor(bodyStyle.backgroundColor);
   if (bgColor.alpha === 0) {
     headStyleTagBody += "background-color: #333; ";
@@ -1166,7 +1170,9 @@ async function start() {
   await emojiLoadPromise;
 
   const sessionId = crypto.randomBytes(20).toString("hex");
-  remountJelUI({ sessionId });
+
+  // TODO SHARED figure out what to do about notifications. hubSettings here is the settings for notify joins
+  remountJelUI({ sessionId, hubSettings: [] });
 
   window.dispatchEvent(new CustomEvent("hub_channel_ready"));
 
@@ -1202,9 +1208,6 @@ async function start() {
 
   if (token) {
     console.log(`Logged into account ${store.credentialsAccountId}`);
-
-    // TODO SHARED figure out what to do about notifications. hubSettings here is the settings for notify joins
-    remountJelUI({ hubSettings: [] }); // Settings for hub if they ever materialize go here.
 
     // TODO SHARED
     // voxMetadata.bind(accountChannel);
