@@ -1,33 +1,18 @@
-import "./hubs/webxr-bypass-hacks";
-import "./hubs/utils/theme";
-
-import "./hubs/utils/debug-log";
-import { SHADOW_DOM_STYLES } from "./jel/styles";
-import AFRAME_DOM from "./jel/aframe-dom";
-import { isInQuillEditor } from "./jel/utils/quill-utils";
-import { homeHubForSpaceId } from "./jel/utils/membership-utils";
-import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
 import crypto from "crypto";
-
-console.log(`App version: ${process.env.BUILD_VERSION || "?"}`);
-
-import initialBatchImage from "!!url-loader!./assets/hubs/images/warning_icon.png";
-
 import "aframe";
-import "./hubs/utils/logging";
-import { patchWebGLRenderingContext, isSoftwareRenderer } from "./hubs/utils/webgl";
-patchWebGLRenderingContext();
-
-import "three/examples/js/loaders/GLTFLoader";
-import "networked-aframe/src/index";
 import "aframe-rounded";
 import "aframe-slice9-component";
+import "networked-aframe/src/index";
+import { detectOS, detect } from "detect-browser";
+import parseCSSColor from "parse-css-color";
+
+import "./hubs/webxr-bypass-hacks";
+import "./hubs/utils/theme";
+import "./hubs/utils/debug-log";
+import "./hubs/utils/logging";
+import "three/examples/js/loaders/GLTFLoader";
 import "./hubs/utils/threejs-positional-audio-updatematrixworld";
 import "./hubs/utils/threejs-world-update";
-import patchThreeAllocations from "./hubs/utils/threejs-allocation-patches";
-import patchThreeNoProgramDispose from "./jel/utils/threejs-avoid-disposing-programs";
-import { detectOS, detect } from "detect-browser";
-
 import "./hubs/components/scene-components";
 import "./hubs/components/scale-in-screen-space";
 import "./hubs/components/mute-mic";
@@ -62,7 +47,6 @@ import "./jel/components/media-vox";
 import "./jel/components/media-text";
 import "./jel/components/media-emoji";
 import "./jel/components/media-stream";
-import nextTick from "./hubs/utils/next-tick";
 import "./hubs/components/avatar-volume-controls";
 import "./hubs/components/pinch-to-move";
 import "./hubs/components/position-at-border";
@@ -103,30 +87,6 @@ import "./hubs/components/set-max-resolution";
 import "./hubs/components/avatar-audio-source";
 import "./jel/components/pinned-to-self";
 import "./jel/components/look-at-self";
-import Subscriptions from "./hubs/subscriptions";
-
-import { SOUND_QUACK, SOUND_SPECIAL_QUACK, SOUND_NOTIFICATION } from "./hubs/systems/sound-effects-system";
-import ducky from "!!url-loader!./assets/hubs/models/DuckyMesh.glb";
-import { getAbsoluteHref } from "./hubs/utils/media-url-utils";
-import { hasActiveScreenShare } from "./hubs/utils/media-utils";
-
-import ReactDOM from "react-dom";
-import React from "react";
-import { Router, Route } from "react-router-dom";
-import { createBrowserHistory } from "history";
-import { clearHistoryState } from "./hubs/utils/history";
-import JelUI from "./jel/react-components/jel-ui";
-import AccountChannel from "./jel/utils/account-channel";
-import DynaChannel from "./jel/utils/dyna-channel";
-import SpaceChannel from "./hubs/utils/space-channel";
-import HubChannel from "./hubs/utils/hub-channel";
-import Matrix from "./jel/utils/matrix";
-import AtomMetadata, { ATOM_TYPES } from "./jel/utils/atom-metadata";
-import { setupTreeManagers, joinHub } from "./hubs/utils/jel-init";
-import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
-import { getHubIdFromHistory, getSpaceIdFromHistory, navigateToHubUrl } from "./jel/utils/jel-url-utils";
-import SceneEntryManager from "./hubs/scene-entry-manager";
-
 import "./hubs/systems/nav";
 import "./hubs/systems/frame-scheduler";
 import "./hubs/systems/personal-space-bubble";
@@ -148,6 +108,54 @@ import "./hubs/systems/linked-media";
 import "./hubs/systems/camera-rotator-system";
 import "./jel/systems/media-presence-system";
 import "./jel/systems/wrapped-entity-system";
+import "./hubs/gltf-component-mappings";
+import "./hubs/components/owned-object-limiter";
+import "./hubs/components/owned-object-cleanup-timeout";
+import "./hubs/components/set-unowned-body-kinematic";
+import "./hubs/components/scalable-when-grabbed";
+import "./hubs/components/networked-counter";
+import "./hubs/components/event-repeater";
+import "./hubs/components/set-yxz-order";
+import "./hubs/components/cursor-controller";
+import "./hubs/components/nav-mesh-helper";
+import "./hubs/components/tools/pen";
+import "./hubs/components/tools/pen-laser";
+import "./hubs/components/tools/networked-drawing";
+import "./hubs/components/tools/drawing-manager";
+import "./hubs/components/body-helper";
+import "./hubs/components/shape-helper";
+
+import { SHADOW_DOM_STYLES } from "./jel/styles";
+import AFRAME_DOM from "./jel/aframe-dom";
+import { isInQuillEditor } from "./jel/utils/quill-utils";
+import { homeHubForSpaceId } from "./jel/utils/membership-utils";
+import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
+import initialBatchImage from "!!url-loader!./assets/hubs/images/warning_icon.png";
+import { patchWebGLRenderingContext, isSoftwareRenderer } from "./hubs/utils/webgl";
+import patchThreeAllocations from "./hubs/utils/threejs-allocation-patches";
+import patchThreeNoProgramDispose from "./jel/utils/threejs-avoid-disposing-programs";
+import nextTick from "./hubs/utils/next-tick";
+import Subscriptions from "./hubs/subscriptions";
+import { SOUND_QUACK, SOUND_SPECIAL_QUACK, SOUND_NOTIFICATION } from "./hubs/systems/sound-effects-system";
+import ducky from "!!url-loader!./assets/hubs/models/DuckyMesh.glb";
+import { getAbsoluteHref } from "./hubs/utils/media-url-utils";
+import { hasActiveScreenShare } from "./hubs/utils/media-utils";
+import ReactDOM from "react-dom";
+import React from "react";
+import { Router, Route } from "react-router-dom";
+import { createBrowserHistory } from "history";
+import { clearHistoryState } from "./hubs/utils/history";
+import JelUI from "./jel/react-components/jel-ui";
+import AccountChannel from "./jel/utils/account-channel";
+import DynaChannel from "./jel/utils/dyna-channel";
+import SpaceChannel from "./hubs/utils/space-channel";
+import HubChannel from "./hubs/utils/hub-channel";
+import Matrix from "./jel/utils/matrix";
+import AtomMetadata, { ATOM_TYPES } from "./jel/utils/atom-metadata";
+import { setupTreeManagers, joinHub } from "./hubs/utils/jel-init";
+import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
+import { getHubIdFromHistory, getSpaceIdFromHistory, navigateToHubUrl } from "./jel/utils/jel-url-utils";
+import SceneEntryManager from "./hubs/scene-entry-manager";
 import {
   SansSerifFontCSS,
   SerifFontCSS,
@@ -161,11 +169,19 @@ import {
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
 import { getIsWindowAtScreenEdges, isInEditableField } from "./jel/utils/dom-utils";
 import { resetTemplate } from "./jel/utils/template-utils";
-
-import "./hubs/gltf-component-mappings";
-
 import { App } from "./App";
 import { platformUnsupported } from "./hubs/support";
+import { loadEmojis } from "./jel/utils/emojis";
+import registerNetworkSchemas from "./hubs/network-schemas";
+import registerTelemetry from "./hubs/telemetry";
+import { warmSerializeElement } from "./hubs/utils/serialize-element";
+import { getAvailableVREntryTypes, VR_DEVICE_AVAILABILITY } from "./hubs/utils/vr-caps-detect";
+import detectConcurrentLoad from "./hubs/utils/concurrent-load-detector";
+import qsTruthy from "./hubs/utils/qs_truthy";
+
+console.log(`App version: ${process.env.BUILD_VERSION || "?"}`);
+
+patchWebGLRenderingContext();
 
 window.APP = new App();
 const store = window.APP.store;
@@ -208,36 +224,6 @@ window.APP.materialQuality =
       : isMobile || isMobileVR
         ? "low"
         : "high";
-
-import "./hubs/components/owned-object-limiter";
-import "./hubs/components/owned-object-cleanup-timeout";
-import "./hubs/components/set-unowned-body-kinematic";
-import "./hubs/components/scalable-when-grabbed";
-import "./hubs/components/networked-counter";
-import "./hubs/components/event-repeater";
-import "./hubs/components/set-yxz-order";
-
-import "./hubs/components/cursor-controller";
-
-import "./hubs/components/nav-mesh-helper";
-
-import "./hubs/components/tools/pen";
-import "./hubs/components/tools/pen-laser";
-import "./hubs/components/tools/networked-drawing";
-import "./hubs/components/tools/drawing-manager";
-
-import "./hubs/components/body-helper";
-import "./hubs/components/shape-helper";
-import { loadEmojis } from "./jel/utils/emojis";
-
-import registerNetworkSchemas from "./hubs/network-schemas";
-import registerTelemetry from "./hubs/telemetry";
-import { warmSerializeElement } from "./hubs/utils/serialize-element";
-
-import { getAvailableVREntryTypes, VR_DEVICE_AVAILABILITY } from "./hubs/utils/vr-caps-detect";
-import detectConcurrentLoad from "./hubs/utils/concurrent-load-detector";
-
-import qsTruthy from "./hubs/utils/qs_truthy";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
 NAF.options.firstSyncSource = PHOENIX_RELIABLE_NAF;
@@ -841,8 +827,68 @@ function startBotModeIfNecessary(scene, entryManager) {
   }
 }
 
+function addMissingDefaultHtml() {
+  const bodyStyle = window.getComputedStyle(document.body);
+  let headStyleTagBody = "";
+
+  if (!document.doctype) {
+    const nodeDoctype = document.implementation.createDocumentType("html", "", "");
+
+    document.insertBefore(nodeDoctype, document.childNodes[0]);
+  }
+
+  if (!document.head.querySelector("meta[charset]")) {
+    const metaTag = document.createElement("meta");
+    metaTag.setAttribute("charset", "utf-8");
+    document.head.appendChild(metaTag);
+  }
+
+  if (!document.head.querySelector("meta[name='viewport']")) {
+    const metaTag = document.createElement("meta");
+    metaTag.setAttribute("name", "viewport");
+    metaTag.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+    document.head.appendChild(metaTag);
+  }
+
+  if (!document.head.querySelector("meta[name='mobile-web-app-capable']")) {
+    const metaTag = document.createElement("meta");
+    metaTag.setAttribute("name", "mobile-web-app-capable");
+    metaTag.setAttribute("content", "yes");
+    document.head.appendChild(metaTag);
+  }
+
+  if (!document.head.querySelector("meta[name='theme-color']")) {
+    const metaTag = document.createElement("meta");
+    metaTag.setAttribute("name", "theme-color");
+    metaTag.setAttribute("content", "black");
+    document.head.appendChild(metaTag);
+  }
+
+  if (bodyStyle.margin !== "0px") {
+    headStyleTagBody += "margin: 0; ";
+  }
+
+  const bgColor = parseCSSColor(bodyStyle.backgroundColor);
+  if (bgColor.alpha === 0) {
+    headStyleTagBody += "background-color: #333; ";
+  }
+
+  if (headStyleTagBody) {
+    const styleTag = document.createElement("style");
+    styleTag.innerText = `body { ${headStyleTagBody.trim()} }`;
+    document.head.appendChild(styleTag);
+  }
+
+  if (!document.head.querySelector("title")) {
+    const titleTag = document.createElement("title");
+    titleTag.innerText = "Unnamed World";
+    document.head.appendChild(titleTag);
+  }
+}
+
 async function start() {
   if (!(await checkPrerequisites())) return;
+  addMissingDefaultHtml();
 
   window.DOM_ROOT = document.body.attachShadow({ mode: "closed" });
   AFRAME.selectorRoot = window.DOM_ROOT;
