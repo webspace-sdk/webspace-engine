@@ -4,7 +4,7 @@ export function canMove(el) {
   const isHoldableButton = el.components.tags && el.components.tags.data.holdableButton;
   const mediaLoader = el.components["media-loader"];
   const isMedia = !!mediaLoader;
-  const canMove = window.APP.hubChannel.can("spawn_and_move_media");
+  const canMove = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
   const isLocked = mediaLoader && mediaLoader.data.locked;
   return isHoldableButton || (isMedia && canMove && !isLocked);
 }
@@ -13,7 +13,7 @@ export function canCloneOrSnapshot(el) {
   const isHoldableButton = el.components.tags && el.components.tags.data.holdableButton;
   const mediaLoader = el.components["media-loader"];
   const isMedia = !!mediaLoader;
-  const canSpawn = window.APP.hubChannel.can("spawn_and_move_media");
+  const canSpawn = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
   return isHoldableButton || (isMedia && canSpawn);
 }
 

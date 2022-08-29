@@ -103,16 +103,14 @@ async function moveToInitialHubLocationAndBeginPeriodicSyncs(hub, hubStore) {
   restartPeriodicSyncs();
 }
 
-function updateUIForHub(isTransition, hub, hubChannel, remountJelUI) {
-  if (isTransition) {
-    const neon = DOM_ROOT.querySelector("#neon");
-    const canvas = DOM_ROOT.querySelector(".a-canvas");
+function updateUIForHub(hub, remountJelUI) {
+  const neon = DOM_ROOT.querySelector("#neon");
+  const canvas = DOM_ROOT.querySelector(".a-canvas");
 
-    neon.classList.remove("visible");
-    canvas.focus();
+  neon.classList.remove("visible");
+  canvas.focus();
 
-    window.APP.matrix.switchToHub(hub);
-  }
+  window.APP.matrix.switchToHub(hub);
 
   remountJelUI({ hub });
 }
@@ -163,7 +161,7 @@ const setupDataChannelMessageHandlers = () => {
 
 const joinHubChannel = (hubId, spaceId, hubStore, entryManager, remountJelUI) => {
   const isInitialJoin = true;
-  const { hubChannel } = window.APP;
+  const { atomAccessManager } = window.APP;
 
   const hub = {
     hub_id: hubId,
@@ -205,9 +203,7 @@ const joinHubChannel = (hubId, spaceId, hubStore, entryManager, remountJelUI) =>
   };
 
   return new Promise(joinFinished => {
-    // TODO shared, deal with perms
-    //hubChannel.setPermissionsFromToken(permsToken);
-    hubChannel.dispatchEvent(new CustomEvent("permissions_updated", {}));
+    atomAccessManager.dispatchEvent(new CustomEvent("permissions_updated", {}));
 
     if (!isInitialJoin) {
       // Send complete sync on phoenix re-join.
@@ -224,7 +220,7 @@ const joinHubChannel = (hubId, spaceId, hubStore, entryManager, remountJelUI) =>
     scene.removeState("off");
     scene.classList.add("visible");
 
-    updateUIForHub(true, hub, hubChannel, remountJelUI);
+    updateUIForHub(hub, remountJelUI);
     updateEnvironmentForHub(hub);
 
     // Reset inspect if we switched while inspecting
@@ -409,7 +405,7 @@ export async function setupTreeManagers(history, subscriptions, entryManager, re
 }
 
 export async function joinHub(scene, history, entryManager, remountJelUI) {
-  const { store, hubChannel } = window.APP;
+  const { store, hubChannel, atomAccessManager } = window.APP;
 
   const spaceId = await getSpaceIdFromHistory(history);
   const hubId = await getHubIdFromHistory(history);
@@ -420,6 +416,7 @@ export async function joinHub(scene, history, entryManager, remountJelUI) {
   stopTrackingPosition();
 
   hubChannel.bind(hubId);
+  atomAccessManager.setCurrentHubId(hubId);
 
   if (NAF.connection.adapter) {
     NAF.connection.adapter.leaveRoom(true);

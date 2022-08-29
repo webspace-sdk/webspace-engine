@@ -250,19 +250,11 @@ export class AudioSystem {
     try {
       this.audioContext = THREE.AudioContext.getContext();
       if (this.audioContext.state !== "running") return;
-      if (!window.APP.hubChannel || !window.APP.hubChannel.presence || !window.APP.hubChannel.presence.state) return;
-
-      // Hacky but efficient way to check if 2 or more keys in presence
-      let maxTwoOccupantCount = 0;
-      // eslint-disable-next-line no-unused-vars
-      for (const k in window.APP.hubChannel.presence.state) {
-        maxTwoOccupantCount++;
-        if (maxTwoOccupantCount === 2) break;
-      }
+      if (!NAF.connection?.presence?.states) return;
 
       // We need the AEC + media stream source hack if the user is unmuted
       // or there are other avatars.
-      const hackNeeded = this.scene.is("unmuted") || maxTwoOccupantCount > 1;
+      const hackNeeded = this.scene.is("unmuted") || NAF.connection.presence.states.size > 1;
 
       const now = performance.now();
 

@@ -9,6 +9,7 @@ import restoreIcon from "../../assets/jel/images/icons/restore.svgi";
 import { FormattedMessage } from "react-intl";
 import qsTruthy from "../../hubs/utils/qs_truthy";
 import { findChildrenAtomsInTreeData } from "../utils/tree-utils";
+import { getHubIdFromHistory } from "../utils/jel-url-utils";
 
 const showPublishObjects = qsTruthy("show_publish");
 
@@ -90,8 +91,7 @@ function HubContextMenu({
       <PopupMenuItem
         key={`publish-${hubId}`}
         onClick={async e => {
-          const { hubChannel, hubMetadata } = window.APP;
-          const { hubId } = hubChannel;
+          const hubId = await getHubIdFromHistory();
 
           e.preventDefault();
           e.stopPropagation();
@@ -129,8 +129,8 @@ function HubContextMenu({
           e.preventDefault();
           e.stopPropagation();
 
-          const { hubChannel, hubMetadata } = window.APP;
-          const { hubId } = hubChannel;
+          const { hubMetadata } = window.APP;
+          const hubId = await getHubIdFromHistory();
 
           const hubNodeId = worldTree.getNodeIdForAtomId(hubId);
           const parentNodeId = worldTree.getParentNodeId(hubNodeId);

@@ -847,7 +847,7 @@ AFRAME.registerComponent("media-pager", {
     getNetworkedEntity(this.el)
       .then(networkedEl => {
         this.networkedEl = networkedEl;
-        window.APP.hubChannel.addEventListener("permissions_updated", this.update);
+        window.APP.atomAccessManager.addEventListener("permissions_updated", this.update);
       })
       .catch(() => {}); //ignore exception, entity might not be networked
 

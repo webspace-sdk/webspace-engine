@@ -1,4 +1,3 @@
-import jwtDecode from "jwt-decode";
 import { EventTarget } from "event-target-shim";
 
 export default class HubChannel extends EventTarget {
@@ -9,43 +8,9 @@ export default class HubChannel extends EventTarget {
     this._blockedSessionIds = new Set();
   }
 
-  // Returns true if this current session has the given permission for the currently connected hub.
-  can(permission) {
-    if (!this.hubId) return false;
-    return window.APP.hubMetadata.can(permission, this.hubId);
-  }
-
-  canEnterRoom(hub) {
-    if (!hub) return false;
-    return true;
-    // TODO JEL figure out limits
-
-    /*if (this.can("update_hub_meta")) return true;
-    const roomEntrySlotCount = Object.values(this.presence.state).reduce((acc, { metas }) => {
-      const meta = metas[metas.length - 1];
-      const usingSlot = meta.presence === "room" || (meta.context && meta.context.entering);
-      return acc + (usingSlot ? 1 : 0);
-    }, 0);
-
-    // This now exists in room settings but a default is left here to support old reticulum servers
-    const DEFAULT_ROOM_SIZE = 24;
-    return roomEntrySlotCount < (hub.room_size !== undefined ? hub.room_size : DEFAULT_ROOM_SIZE);*/
-  }
-
   bind = hubId => {
     this.leave();
     this.hubId = hubId;
-  };
-
-  setPermissionsFromToken = token => {
-    // Note: token is not verified.
-    this._permissions = jwtDecode(token);
-    this.dispatchEvent(new CustomEvent("permissions_updated", { detail: { permsToken: token } }));
-
-    // Refresh the token 1 minute before it expires. Refresh at most every 60s.
-    if (this._refreshTimeout) clearTimeout(this._refreshTimeout);
-    const nextRefresh = new Date(this._permissions.exp * 1000 - 60 * 1000) - new Date();
-    this._refreshTimeout = setTimeout(async () => await this.fetchPermissions(), Math.max(nextRefresh, 60000));
   };
 
   sendObjectSpawnedEvent = objectType => {
@@ -90,6 +55,7 @@ export default class HubChannel extends EventTarget {
   };
 
   sendMessage = (body, type = "chat", toSessionId) => {
+    // TODO SHARED refactor
     if (!body) return;
     const payload = { body };
     if (toSessionId) {
@@ -97,24 +63,6 @@ export default class HubChannel extends EventTarget {
     }
 
     NAF.connection.broadcastCustomData(type, payload);
-  };
-
-  templateSynced = template_hash => {
-    this.channel.push("hub_template_synced", { template_hash });
-  };
-
-  fetchPermissions = () => {
-    if (!this.channel) return;
-
-    return new Promise((resolve, reject) => {
-      this.channel
-        .push("refresh_perms_token")
-        .receive("ok", res => {
-          this.setPermissionsFromToken(res.perms_token);
-          resolve({ permsToken: res.perms_token, permissions: this._permissions });
-        })
-        .receive("error", reject);
-    });
   };
 
   mute = sessionId => this.channel.push("mute", { session_id: sessionId });
@@ -185,11 +133,8 @@ export default class HubChannel extends EventTarget {
 
   isHidden = sessionId => this._blockedSessionIds.has(sessionId);
 
-  kick = async sessionId => {
-    if (!this.channel) return;
-    const permsToken = await this.fetchPermissions();
-    NAF.connection.adapter.kick(sessionId, permsToken);
-    this.channel.push("kick", { session_id: sessionId });
+  kick = async (/*sessionId*/) => {
+    // TODO SHARED
   };
 
   requestSupport = () => this.channel.push("events:request_support", {});
@@ -201,21 +146,6 @@ export default class HubChannel extends EventTarget {
     }
 
     this.channel = null;
-  };
-
-  publishWorldTemplate = (name, collection, body, thumbFileId) => {
-    return new Promise(res => {
-      this.channel
-        .push("publish_world_template", {
-          name,
-          collection,
-          body,
-          thumb_file_id: thumbFileId
-        })
-        .receive("ok", async ({ published_to_vox_id: publishedWorldTemplateId }) => {
-          res(publishedWorldTemplateId);
-        });
-    });
   };
 
   disconnect = () => {

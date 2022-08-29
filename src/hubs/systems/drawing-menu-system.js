@@ -31,7 +31,7 @@ export class DrawingMenuSystem {
   tick() {
     if (!this.cursorControllers || this.cursorControllers.length === 0 || !this.camera) return;
 
-    if (this.sceneEl.is("frozen") && window.APP.hubChannel.can("spawn_drawing")) {
+    if (this.sceneEl.is("frozen") && window.APP.atomAccessManager.hubCan("spawn_drawing")) {
       const hovered = this.getHovered();
       if (hovered) {
         for (let i = 0; i < this.cursorControllers.length; i++) {
@@ -149,7 +149,7 @@ export class DrawingMenuSystem {
         const hoveredIsMine = isMine(hovered);
         menu.querySelector(".undo-drawing").object3D.visible = hoveredIsMine;
         menu.querySelector(".serialize-drawing").object3D.visible =
-          hoveredIsMine && window.APP.hubChannel.can("spawn_and_move_media");
+          hoveredIsMine && window.APP.atomAccessManager.hubCan("spawn_and_move_media");
 
         const dist = cameraWorldPos.distanceTo(menu.object3D.position);
         const finalScale = this.getMenuScale(dist);

@@ -5,8 +5,6 @@ import CreateEmbedPopup from "./create-embed-popup";
 import ChatInputPopup from "./chat-input-popup";
 
 function RootPopups({ scene, centerPopupRef }) {
-  const { hubChannel } = window.APP;
-
   const chatInputFocusRef = useRef();
   const createEmbedFocusRef = useRef();
   const [createEmbedType, setCreateEmbedType] = useState("image");
@@ -57,7 +55,7 @@ function RootPopups({ scene, centerPopupRef }) {
         styles={chatInputPopupStyles}
         attributes={chatInputPopupAttributes}
         ref={chatInputFocusRef}
-        onMessageEntered={useCallback(message => hubChannel.sendMessage(message), [hubChannel])}
+        onMessageEntered={useCallback(message => window.APP.hubChannel.sendMessage(message), [])}
         onEntryComplete={useCallback(() => scene.emit("chat_entry_complete"), [scene])}
       />
       <CreateEmbedPopup

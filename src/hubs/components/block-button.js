@@ -23,7 +23,8 @@ AFRAME.registerComponent("block-button", {
     this.el.object3D.removeEventListener("interact", this.onClick);
   },
 
-  block(clientId) {
-    window.APP.hubChannel.hide(clientId);
+  block(/* clientId */) {
+    // TODO SHARED
+    // window.APP.hubChannel.hide(clientId);
   }
 });

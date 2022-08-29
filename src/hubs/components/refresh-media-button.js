@@ -72,7 +72,7 @@ AFRAME.registerComponent("refresh-media-button", {
     getNetworkedEntity(this.el).then(networkedEl => {
       this.targetEl = networkedEl;
 
-      window.APP.hubChannel.addEventListener("permissions_updated", this.updateVisibility);
+      window.APP.atomAccessManager.addEventListener("permissions_updated", this.updateVisibility);
 
       this.updateVisibility();
     });
@@ -81,7 +81,7 @@ AFRAME.registerComponent("refresh-media-button", {
   updateVisibility() {
     if (!this.targetEl) return;
 
-    this.el.object3D.visible = window.APP.hubChannel.can("spawn_and_move_media");
+    this.el.object3D.visible = window.APP.atomAccessManager.can("spawn_and_move_media");
   },
 
   play() {
@@ -93,6 +93,6 @@ AFRAME.registerComponent("refresh-media-button", {
   },
 
   remove() {
-    window.APP.hubChannel.removeEventListener("permissions_updated", this.updateVisibility);
+    window.APP.atomAccessManager.removeEventListener("permissions_updated", this.updateVisibility);
   }
 });

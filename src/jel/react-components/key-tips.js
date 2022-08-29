@@ -630,11 +630,8 @@ const itemForData = ([label, keys, flag], triggerMode) => {
   if (flag && !window.APP.store.state.activity[flag]) {
     if (flag === "chat") {
       // Special case: highlight chat when others are co-present
-      const hubChannel = window.APP.hubChannel;
-
-      const hasOtherOccupants =
-        hubChannel.presence && hubChannel.presence.state && Object.entries(hubChannel.presence.state).length > 1;
-      className = hasOtherOccupants ? "highlight" : "";
+      const isByMyself = NAF.connection?.presence?.states?.size === 1;
+      className = isByMyself ? "" : "highlight";
     } else {
       className = "highlight";
     }

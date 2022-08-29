@@ -128,7 +128,6 @@ import "./hubs/components/shape-helper";
 import { SHADOW_DOM_STYLES } from "./jel/styles";
 import AFRAME_DOM from "./jel/aframe-dom";
 import { isInQuillEditor } from "./jel/utils/quill-utils";
-import { homeHubForSpaceId } from "./jel/utils/membership-utils";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
 import initialBatchImage from "!!url-loader!./assets/hubs/images/warning_icon.png";
 import { patchWebGLRenderingContext, isSoftwareRenderer } from "./hubs/utils/webgl";
@@ -154,8 +153,10 @@ import Matrix from "./jel/utils/matrix";
 import AtomMetadata, { ATOM_TYPES } from "./jel/utils/atom-metadata";
 import { setupTreeManagers, joinHub } from "./hubs/utils/jel-init";
 import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
-import { getHubIdFromHistory, getSpaceIdFromHistory, navigateToHubUrl } from "./jel/utils/jel-url-utils";
+import { getHubIdFromHistory, getSpaceIdFromHistory } from "./jel/utils/jel-url-utils";
 import SceneEntryManager from "./hubs/scene-entry-manager";
+import AtomAccessManager from "./jel/utils/atom-access-manager";
+
 import {
   SansSerifFontCSS,
   SerifFontCSS,
@@ -198,6 +199,7 @@ const hubChannel = new HubChannel(store);
 const spaceMetadata = new AtomMetadata(ATOM_TYPES.SPACE);
 const hubMetadata = new AtomMetadata(ATOM_TYPES.HUB);
 const voxMetadata = new AtomMetadata(ATOM_TYPES.VOX);
+const atomAccessManager = new AtomAccessManager();
 const matrix = new Matrix(store, spaceMetadata, hubMetadata);
 
 window.APP.history = history;
@@ -209,6 +211,7 @@ window.APP.hubMetadata = hubMetadata;
 window.APP.spaceMetadata = spaceMetadata;
 window.APP.voxMetadata = voxMetadata;
 window.APP.matrix = matrix;
+window.APP.atomAccessManager = atomAccessManager;
 
 const qs = new URLSearchParams(location.search);
 
@@ -351,7 +354,7 @@ function initBatching() {
     .setAttribute("media-image", { batch: true, src: initialBatchImage, contentType: "image/png" });
 }
 
-function addGlobalEventListeners(scene, entryManager, matrix) {
+function addGlobalEventListeners(scene, entryManager) {
   scene.addEventListener("preferred_mic_changed", e => {
     const deviceId = e.detail;
     scene.systems["hubs-systems"].mediaStreamSystem.updatePreferredMicDevice(deviceId);
@@ -456,14 +459,6 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
   scene.addEventListener("action_camera_recording_started", () => spaceChannel.beginRecording());
   scene.addEventListener("action_camera_recording_ended", () => spaceChannel.endRecording());
 
-  scene.addEventListener("action_selected_media_result_entry", e => {
-    const { entry, selectAction } = e.detail;
-    if ((entry.type !== "scene_listing" && entry.type !== "scene") || selectAction !== "use") return;
-    if (!hubChannel.can("update_hub_meta")) return;
-
-    hubChannel.updateScene(entry.url);
-  });
-
   ["#jel-react-root", "#jel-popup-root"].forEach(selector => {
     const el = DOM_ROOT.querySelector(selector);
     el.addEventListener("mouseover", () => scene.addState("pointer-exited"));
@@ -510,7 +505,7 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
 
   scene.addEventListener("action_reset_objects", () => {
     // TOOD SHARED drop this
-    const hubId = hubChannel.hubId;
+    const hubId = atomAccessManager.currentHubId;
     const metadata = hubMetadata.getMetadata(hubId);
     if (!metadata || !metadata.template || !metadata.template.name) return;
 
@@ -1002,7 +997,7 @@ async function start() {
     subscriptions.setRegistrationFailed();
   }
 
-  const entryManager = new SceneEntryManager(spaceChannel, hubChannel, history);
+  const entryManager = new SceneEntryManager();
 
   hideCanvas();
 
@@ -1144,7 +1139,7 @@ async function start() {
     scene.addEventListener("loaded", () => initPhysicsThreeAndCursor(scene), { once: true });
   }
 
-  addGlobalEventListeners(scene, entryManager, matrix);
+  addGlobalEventListeners(scene, entryManager);
   setupSidePanelLayout(scene);
   setupGameEnginePausing(scene);
   await emojiLoadPromise;
@@ -1163,14 +1158,14 @@ async function start() {
   startBotModeIfNecessary(scene, entryManager);
   clearHistoryState(history);
 
-  hubChannel.addEventListener("permissions_updated", () => {
-    const hubCan = hubMetadata.can.bind(hubMetadata);
-    const voxCan = voxMetadata.can.bind(voxMetadata);
+  atomAccessManager.addEventListener("permissions_updated", () => {
+    const hubCan = atomAccessManager.hubCan.bind(atomAccessManager);
+    const voxCan = atomAccessManager.voxCan.bind(atomAccessManager);
 
     remountJelUI({ hubCan, voxCan });
 
     // Switch off building mode if we cannot spawn media
-    if (!hubCan("spawn_and_move_media", hubChannel.hubId)) {
+    if (!hubCan("spawn_and_move_media")) {
       if (SYSTEMS.builderSystem.enabled) {
         SYSTEMS.builderSystem.toggle();
         SYSTEMS.launcherSystem.toggle();

@@ -5,18 +5,16 @@ import { ensureOwnership } from "./../jel/utils/ownership-utils";
 import { MEDIA_TEXT_COLOR_PRESETS } from "../jel/components/media-text";
 import { waitForShadowDOMContentLoaded } from "./utils/async-utils";
 import { createVox } from "./utils/phoenix-utils";
-import WorldExporter from "../jel/utils/world-exporter";
 import { switchCurrentHubToWorldTemplate } from "../jel/utils/template-utils";
-import { screenshotAndUploadSceneCanvas } from "./utils/three-utils";
 import { retainPdf, releasePdf } from "../jel/utils/pdf-pool";
 import defaultAvatar from "!!url-loader!../assets/hubs/models/DefaultAvatar.glb";
+import { getHubIdFromHistory, getSpaceIdFromHistory } from "../jel/utils/jel-url-utils";
 
 const { detect } = require("detect-browser");
 
 const isBotMode = qsTruthy("bot");
 const isMobile = AFRAME.utils.device.isMobile();
 const forceEnableTouchscreen = hackyMobileSafariTest();
-const isMobileVR = AFRAME.utils.device.isMobileVR();
 const qs = new URLSearchParams(location.search);
 
 import {
@@ -26,7 +24,7 @@ import {
   addAndArrangeRoundtableMedia,
   upload
 } from "./utils/media-utils";
-import { isIn2DInterstitial, handleExitTo2DInterstitial, exit2DInterstitialAndEnterVR } from "./utils/vr-interstitial";
+import { handleExitTo2DInterstitial, exit2DInterstitialAndEnterVR } from "./utils/vr-interstitial";
 import { ObjectContentOrigins } from "./object-types";
 import { getAvatarType } from "./utils/avatar-utils";
 import { pushHistoryState } from "./utils/history";
@@ -35,10 +33,11 @@ import { proxiedUrlFor } from "./utils/media-url-utils";
 const isIOS = AFRAME.utils.device.isIOS();
 
 export default class SceneEntryManager {
-  constructor(spaceChannel, hubChannel, authChannel, history) {
+  constructor() {
+    const { hubChannel, spaceChannel, atomAccessManager, history } = window.APP;
     this.spaceChannel = spaceChannel;
     this.hubChannel = hubChannel;
-    this.authChannel = authChannel;
+    this.atomAccessManager = atomAccessManager;
     this.store = window.APP.store;
     this.mediaSearchStore = window.APP.mediaSearchStore;
     this._entered = false;
@@ -118,9 +117,6 @@ export default class SceneEntryManager {
     if (NAF.connection.adapter && NAF.connection.adapter.localMediaStream) {
       NAF.connection.adapter.localMediaStream.getTracks().forEach(t => t.stop());
     }
-    if (this.hubChannel) {
-      this.hubChannel.disconnect();
-    }
     if (this.scene.renderer) {
       this.scene.renderer.setAnimationLoop(null); // Stop animation loop, TODO A-Frame should do this
     }
@@ -196,8 +192,8 @@ export default class SceneEntryManager {
     });
 
     this.scene.addEventListener("add_media_vox", async () => {
-      const spaceId = window.APP.spaceChannel.spaceId;
-      const hubId = window.APP.hubChannel.hubId;
+      const spaceId = await getSpaceIdFromHistory(history);
+      const hubId = await getHubIdFromHistory(history);
       const { voxSystem, builderSystem } = SYSTEMS;
 
       const {
@@ -221,15 +217,16 @@ export default class SceneEntryManager {
       const endPhi = e.detail.endPhi || Math.PI;
       const width = e.detail.width || 3;
       const margin = e.detail.margin || 0.75;
+      const hubId = await getHubIdFromHistory(history);
 
       // This is going to generate an array of media, get the URL first.
       if (fileOrUrl instanceof File) {
-        if (!window.APP.hubChannel.can("upload_files")) return;
+        if (!window.APP.atomAccessManager.canHub("upload_files")) return;
 
         const {
           origin,
           meta: { access_token }
-        } = await upload(fileOrUrl, "application/pdf", window.APP.hubChannel.hubId);
+        } = await upload(fileOrUrl, "application/pdf", hubId);
 
         const url = new URL(proxiedUrlFor(origin));
         url.searchParams.set("token", access_token);
@@ -264,10 +261,6 @@ export default class SceneEntryManager {
       releasePdf(pdf);
     });
 
-    this.scene.addEventListener("object_spawned", e => {
-      this.hubChannel.sendObjectSpawnedEvent(e.detail.objectType);
-    });
-
     this.scene.addEventListener("action_spawn", () => {
       handleExitTo2DInterstitial(false, () => window.APP.mediaSearchStore.pushExitMediaBrowserHistory());
       window.APP.mediaSearchStore.sourceNavigateToDefaultSource();
@@ -279,31 +272,13 @@ export default class SceneEntryManager {
     });
 
     this.scene.addEventListener("action_kick_client", ({ detail: { clientId } }) => {
-      this.performConditionalSignIn(
-        () => this.hubChannel.can("kick_users"),
-        async () => await window.APP.hubChannel.kick(clientId),
-        "kick-user"
-      );
+      console.log("kick", clientId);
+      // TODO SHARED
     });
 
     this.scene.addEventListener("action_mute_client", ({ detail: { clientId } }) => {
-      this.performConditionalSignIn(
-        () => this.hubChannel.can("mute_users"),
-        () => window.APP.hubChannel.mute(clientId),
-        "mute-user"
-      );
-    });
-
-    this.scene.addEventListener("action_publish_template", ({ detail: { collection } }) => {
-      new WorldExporter().currentWorldToHtml().then(async body => {
-        const { hubChannel, hubMetadata } = window.APP;
-        const { hubId } = hubChannel;
-
-        const { name } = await hubMetadata.getOrFetchMetadata(hubId);
-        const { file_id: thumbFileId } = await screenshotAndUploadSceneCanvas(this.scene, 256, 256);
-
-        hubChannel.publishWorldTemplate(name, collection, body, thumbFileId);
-      });
+      console.log("kick", clientId);
+      // TODO SHARED
     });
 
     this.scene.addEventListener("action_switch_template", ({ detail: { worldTemplateId } }) => {
@@ -463,24 +438,6 @@ export default class SceneEntryManager {
       await mediaStreamSystem.stopVideoTracks();
     });
 
-    this.scene.addEventListener("action_selected_media_result_entry", async e => {
-      // TODO spawn in space when no rights
-      const { entry, selectAction } = e.detail;
-      if (selectAction !== "spawn") return;
-
-      const delaySpawn = isIn2DInterstitial() && !isMobileVR;
-      await exit2DInterstitialAndEnterVR();
-
-      // If user has HMD lifted up or gone through interstitial, delay spawning for now. eventually show a modal
-      if (delaySpawn) {
-        setTimeout(() => {
-          spawnMediaInfrontOfPlayer(entry.url, null, ObjectContentOrigins.URL);
-        }, 3000);
-      } else {
-        spawnMediaInfrontOfPlayer(entry.url, null, ObjectContentOrigins.URL);
-      }
-    });
-
     this.mediaSearchStore.addEventListener("media-exit", () => {
       exit2DInterstitialAndEnterVR();
     });
@@ -488,7 +445,7 @@ export default class SceneEntryManager {
 
   _setupCamera = () => {
     this.scene.addEventListener("action_toggle_camera", () => {
-      if (!this.hubChannel.can("spawn_camera")) return;
+      if (!this.atomAccessManager.hubCan("spawn_camera")) return;
       const myCamera = this.scene.systems["camera-tools"].getMyCamera();
 
       if (myCamera) {

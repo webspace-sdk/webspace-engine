@@ -12,6 +12,7 @@ import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
 import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
 import { expandByEntityObjectSpaceBoundingBox } from "./three-utils";
 import { stackTargetAt, NON_FLAT_STACK_AXES } from "../systems/transform-selected-object";
+import { getHubIdFromHistory } from "../../jel/utils/jel-url-utils";
 import anime from "animejs";
 
 // We use the legacy 'text' regex since it matches some items like beach_umbrella
@@ -347,18 +348,18 @@ export const addMedia = (
     // Video camera videos are converted to mp4 for compatibility
     const desiredContentType = contentSubtype === "video-camera" ? "video/mp4" : src.type || guessContentType(src.name);
 
-    const hubId = window.APP.hubChannel.hubId;
-
-    upload(src, desiredContentType, hubId)
-      .then(response => {
-        const srcUrl = new URL(proxiedUrlFor(response.origin));
-        srcUrl.searchParams.set("token", response.meta.access_token);
-        entity.setAttribute("media-loader", { resolve: false, src: srcUrl.href, fileId: response.file_id });
-      })
-      .catch(e => {
-        console.error("Media upload failed", e);
-        entity.setAttribute("media-loader", { src: "error" });
-      });
+    getHubIdFromHistory().then(hubId => {
+      upload(src, desiredContentType, hubId)
+        .then(response => {
+          const srcUrl = new URL(proxiedUrlFor(response.origin));
+          srcUrl.searchParams.set("token", response.meta.access_token);
+          entity.setAttribute("media-loader", { resolve: false, src: srcUrl.href, fileId: response.file_id });
+        })
+        .catch(e => {
+          console.error("Media upload failed", e);
+          entity.setAttribute("media-loader", { src: "error" });
+        });
+    });
   } else if (isVideoShare) {
     const selfVideoShareUrl = `jel://clients/${NAF.clientId}/video`;
     entity.setAttribute("media-loader", { src: selfVideoShareUrl });
@@ -990,7 +991,8 @@ export function removeMediaElement(el) {
   const fileId = el.components["media-loader"].data.fileId;
 
   if (fileId) {
-    window.APP.hubChannel.setFileInactive(fileId);
+    // TODO SHARED (remove?)
+    // window.APP.hubChannel.setFileInactive(fileId);
   }
 
   if (el.parentNode) {
@@ -1053,8 +1055,8 @@ export const spawnMediaInfrontOfPlayer = (
   stackSnapPosition = false,
   stackSnapScale = false
 ) => {
-  if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
-  if (src instanceof File && !window.APP.hubChannel.can("upload_files")) return;
+  if (!window.APP.atomAccessManager.hubCan("spawn_and_move_media")) return;
+  if (src instanceof File && !window.APP.atomAccessManager.hubCan("upload_files")) return;
 
   const { entity, orientation } = addMedia(
     src,

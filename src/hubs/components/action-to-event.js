@@ -10,8 +10,8 @@ AFRAME.registerComponent("action-to-event", {
   init() {
     this.needsPermission = !!this.data.withPermission;
     this.updatePermissions = () => {
-      if (!this.needsPermission || !window.APP.hubChannel) return;
-      this.hasPermission = window.APP.hubChannel.can(this.data.withPermission);
+      if (!this.needsPermission || !window.APP.atomAccessManager) return;
+      this.hasPermission = window.APP.atomAccessManager.hubCan(this.data.withPermission);
     };
   },
 
@@ -21,7 +21,7 @@ AFRAME.registerComponent("action-to-event", {
   },
 
   pause() {
-    window.APP.hubChannel.removeEventListener("permissions_updated", this.updatePermissions);
+    window.APP.atomAccessManager.removeEventListener("permissions_updated", this.updatePermissions);
   },
 
   tick() {

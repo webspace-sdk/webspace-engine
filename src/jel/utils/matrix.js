@@ -4,6 +4,7 @@ import { getReticulumFetchUrl } from "../../hubs/utils/phoenix-utils";
 import { ATOM_NOTIFICATION_TYPES } from "./atom-metadata";
 import { getMessages } from "../../hubs/utils/i18n";
 import { renderAvatarToPng } from "./avatar-utils";
+import { getSpaceIdFromHistory, getHubIdFromHistory } from "../utils/jel-url-utils";
 
 // Delay we wait before flushing a room rename since the user
 // can keep typing in the UI.
@@ -996,8 +997,8 @@ export default class Matrix extends EventTarget {
         this._subscribeToNotificationState(room);
 
         // If we just joined a room, the user may be waiting on the UI to update.
-        const spaceId = window.APP.spaceChannel.spaceId;
-        const hubId = window.APP.hubChannel.hubId;
+        const spaceId = await getHubIdFromHistory();
+        const hubId = await getSpaceIdFromHistory();
         const desiredRoomId = this.hubIdToRoomId.get(hubId);
 
         if (hubId && desiredRoomId === roomId) {

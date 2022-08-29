@@ -15,6 +15,7 @@ import { addMedia, isLockedMedia, upload, spawnMediaInfrontOfPlayer } from "../.
 import { type as vox0, Vox, VoxChunk, rgbtForVoxColor } from "ot-vox";
 import { ensureOwnership } from "../utils/ownership-utils";
 import { dataURItoBlob } from "../utils/dom-utils";
+import { getSpaceIdFromHistory, getHubIdFromHistory } from "../utils/jel-url-utils";
 import VoxSync from "../utils/vox-sync";
 import FastVixel from "fast-vixel";
 
@@ -1651,8 +1652,8 @@ export class VoxSystem extends EventTarget {
 
     return async function(collection, category) {
       const { voxMap } = this;
-      const { accountChannel, hubChannel } = window.APP;
-      const hubId = hubChannel.hubId;
+      const { accountChannel } = window.APP;
+      const hubId = await getHubIdFromHistory();
 
       for (const [voxId, { sources }] of voxMap.entries()) {
         let stackAxis = 0;
@@ -1721,8 +1722,8 @@ export class VoxSystem extends EventTarget {
   // Returns null if not creating a new vox, or the vox id and url if a new vox
   // is created.
   async copyVoxContent(fromVoxId, toVoxId = null) {
-    const spaceId = window.APP.spaceChannel.spaceId;
-    const hubId = window.APP.hubChannel.hubId;
+    const spaceId = await getSpaceIdFromHistory();
+    const hubId = await getHubIdFromHistory();
 
     let sync;
     let disposeSync = false;
@@ -1890,8 +1891,8 @@ export class VoxSystem extends EventTarget {
   // to determine if there is already an existing, unmodified, baked vox based on this published vox. If not,
 
   async resolveBakedOrInstantiatedVox(voxSrc) {
-    const { voxMetadata, hubChannel, accountChannel } = window.APP;
-    const hubId = hubChannel.hubId;
+    const { voxMetadata, accountChannel } = window.APP;
+    const hubId = await getHubIdFromHistory();
 
     const voxId = voxIdForVoxUrl(voxSrc);
     const metadata = await voxMetadata.getOrFetchMetadata(voxId);

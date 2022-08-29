@@ -148,12 +148,7 @@ export default function ChatLog({ scene, hub, store, leftOffset }) {
   const { hubChannel } = window.APP;
   const [entries, setEntries] = useState([]);
   const [hasChatted, setHasChatted] = useState(store.state.activity.chat);
-  const [hasOtherOccupants, setHasOtherOccupants] = useState(
-    hubChannel &&
-      hubChannel.presence &&
-      hubChannel.presence.state &&
-      Object.entries(hubChannel.presence.state).length > 1
-  );
+  const [hasOtherOccupants, setHasOtherOccupants] = useState(NAF.connection?.presence?.states?.size > 1);
 
   useEffect(
     () => {

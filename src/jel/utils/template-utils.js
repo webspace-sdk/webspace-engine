@@ -5,6 +5,7 @@ import faqTemplateSrc from "../templates/faq.html";
 import WorldImporter from "./world-importer";
 import { toHexDigest } from "./crypto-utils";
 import { fetchReticulumAuthenticated } from "../../hubs/utils/phoenix-utils";
+import { getHubIdFromHistory } from "../utils/jel-url-utils";
 
 export function getHtmlForTemplate(name) {
   let data = null;
@@ -28,9 +29,9 @@ export function getHtmlForTemplate(name) {
 }
 
 export async function applyTemplate(name, synced_at = null, hash = null, force = false) {
-  const { hubChannel } = window.APP;
+  const { atomAccessManager } = window.APP;
 
-  if (!hubChannel.can("spawn_and_move_media")) return;
+  if (!atomAccessManager.hubCan("spawn_and_move_media")) return;
   const html = getHtmlForTemplate(name);
   if (!html) return;
 
@@ -41,14 +42,12 @@ export async function applyTemplate(name, synced_at = null, hash = null, force =
   const newHash = await toHexDigest(html);
 
   // Don't sync templates when others are here.
-  const isByMyself =
-    hubChannel.presence && hubChannel.presence.state && Object.keys(hubChannel.presence.state).length == 1;
+  const isByMyself = NAF.connection?.presence?.states?.size === 1;
 
   const shouldSync = isByMyself && name && hash !== newHash;
   if (!force && !shouldSync) return;
 
   await new WorldImporter().importHtmlToCurrentWorld(html, true, force);
-  window.APP.hubChannel.templateSynced(newHash);
 }
 
 export async function resetTemplate(name) {
@@ -60,8 +59,8 @@ async function fetchWorldTemplate(worldTemplateId) {
 }
 
 export async function switchCurrentHubToWorldTemplate(worldTemplateId) {
-  const { hubMetadata, hubChannel, spaceChannel } = window.APP;
-  const { hubId } = hubChannel;
+  const { hubMetadata, spaceChannel } = window.APP;
+  const hubId = await getHubIdFromHistory();
   const { world_template_id: currentWorldTemplateId } = await hubMetadata.getOrFetchMetadata(hubId);
   const importer = new WorldImporter();
 

@@ -42,7 +42,7 @@ export class MediaInteractionSystem {
     const { voxSystem } = SYSTEMS;
 
     if (!rightHand) return;
-    if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
+    if (!window.APP.atomAccessManager.hubCan("spawn_and_move_media")) return;
     if (!SYSTEMS.cameraSystem.cameraViewAllowsManipulation()) return;
 
     this.userinput = this.userinput || scene.systems.userinput;

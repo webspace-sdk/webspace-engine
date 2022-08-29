@@ -4,6 +4,7 @@ import { ObjectContentOrigins } from "../../hubs/object-types";
 import { ensureOwnership } from "./ownership-utils";
 import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { FONT_FACES } from "./quill-utils";
+import { getHubIdFromHistory } from "./jel-url-utils";
 
 const transformUnitToMeters = s => {
   if (!s) return 0.0;
@@ -50,9 +51,9 @@ export default class WorldImporter {
     }
   }
 
-  applyWorldMetadataFromHtml(html) {
-    const { hubChannel, spaceChannel } = window.APP;
-    const { hubId } = hubChannel;
+  async applyWorldMetadataFromHtml(html) {
+    const { spaceChannel } = window.APP;
+    const hubId = await getHubIdFromHistory();
 
     const [
       worldType,

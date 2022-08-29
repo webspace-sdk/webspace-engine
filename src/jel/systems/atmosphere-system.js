@@ -4,6 +4,7 @@ import Water from "../objects/water";
 import { Layers } from "../../hubs/components/layers";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { SOUND_OUTDOORS, SOUND_WATER } from "../../hubs/systems/sound-effects-system";
+import { getHubIdFromHistory } from "../utils/jel-url-utils";
 
 const FOG_NEAR = 20.5;
 const FOG_SPAN = 1.5;
@@ -247,18 +248,16 @@ export class AtmosphereSystem {
     }
   }
 
-  updateAmbienceSounds() {
-    const { store, hubChannel, hubMetadata } = window.APP;
-    if (!hubChannel || !hubMetadata) return;
+  async updateAmbienceSounds() {
+    const { store, hubMetadata } = window.APP;
+    if (!hubMetadata) return;
 
-    const hubId = hubChannel.hubId;
-    if (!hubId) return;
+    const hubId = await getHubIdFromHistory();
 
     const metadata = hubMetadata.getMetadata(hubId);
     if (!metadata) return;
 
     const worldType = metadata.world && metadata.world.type;
-    const hubType = metadata.type;
 
     const now = performance.now();
 
@@ -270,7 +269,7 @@ export class AtmosphereSystem {
     const dt = now - this.lastSoundProcessTime;
     this.lastSoundProcessTime = now;
 
-    const ambienceEnabled = !store.state.preferences.disableAudioAmbience && hubType === "world";
+    const ambienceEnabled = !store.state.preferences.disableAudioAmbience;
 
     const desiredWaterGain =
       ambienceEnabled && WORLD_TYPES_WITH_WATER.includes(worldType) ? this.waterSoundTargetGain : 0.0;

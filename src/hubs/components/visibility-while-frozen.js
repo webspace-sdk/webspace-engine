@@ -101,8 +101,8 @@ AFRAME.registerComponent("visibility-while-frozen", {
 
     const allowed = !!(
       (!this.data.withPermission && !this.data.withoutPermission) ||
-      (this.data.withPermission && window.APP.hubChannel && window.APP.hubChannel.can(this.data.withPermission)) ||
-      (this.data.withoutPermission && window.APP.hubChannel && !window.APP.hubChannel.can(this.data.withoutPermission))
+      (this.data.withPermission && window.APP.atomAccessManager?.hubCah(this.data.withPermission)) ||
+      (this.data.withoutPermission && window.APP.atomAccessManager?.hubCan(this.data.withoutPermission))
     );
 
     let shouldBeVisible =

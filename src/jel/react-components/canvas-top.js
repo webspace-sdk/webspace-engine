@@ -72,10 +72,6 @@ const CornerButtons = styled.div`
   width: 50%;
   padding: 12px 0;
   display: flex;
-
-  &.opaque {
-    background-color: var(--channel-header-background-color);
-  }
 `;
 
 const CornerButton = styled.button`
@@ -295,7 +291,6 @@ function CanvasTop(props) {
     channelTree,
     scene,
     spaceCan,
-    memberships,
     worldTreeData,
     channelTreeData,
     createSelectPopupRef,
@@ -303,7 +298,7 @@ function CanvasTop(props) {
   } = props;
 
   const { cameraSystem, terrainSystem, atmosphereSystem } = SYSTEMS;
-  const { store, hubChannel, spaceChannel } = window.APP;
+  const { store, spaceChannel, atomAccessManager } = window.APP;
 
   const {
     styles: hubContextMenuStyles,
@@ -466,17 +461,17 @@ function CanvasTop(props) {
     () => {
       const handler = () => setCanSpawnAndMoveMedia(hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id));
       setCanSpawnAndMoveMedia(hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id));
-      hubChannel && hubChannel.addEventListener("permissions_updated", handler);
-      return () => hubChannel && hubChannel.removeEventListener("permissions_updated", handler);
+      atomAccessManager && atomAccessManager.addEventListener("permissions_updated", handler);
+      return () => atomAccessManager && atomAccessManager.removeEventListener("permissions_updated", handler);
     },
-    [hub, hubCan, hubChannel]
+    [hub, hubCan, atomAccessManager]
   );
 
   let cornerButtons;
 
   if (!isInspecting) {
     cornerButtons = (
-      <CornerButtons className={hub && hub.type === "world" ? "" : "opaque"}>
+      <CornerButtons>
         {pwaAvailable && (
           <CornerButton onClick={installPWA}>
             <FormattedMessage id="install.desktop" />
@@ -523,7 +518,7 @@ function CanvasTop(props) {
             showHubContextMenuPopup(hub.hub_id, hubMetadata, hubContextButtonRef, "bottom-end", [0, 8], {
               hideRename: true,
               showExport: isWorld,
-              isCurrentWorld: hub.hub_id === hubChannel.hubId,
+              isCurrentWorld: hub.hub_id === atomAccessManager.currentHubId,
               showReset: !!hub.template.name
             });
           }}
@@ -550,7 +545,6 @@ function CanvasTop(props) {
           can={atomType === ATOM_TYPES.VOX ? voxCan : hubCan}
           viewPermission={atomType === ATOM_TYPES.VOX ? "view_vox" : "join_hub"}
           editPermission={atomType === ATOM_TYPES.VOX ? "edit_vox" : "update_hub_meta"} // TODO bug need to check matrix room permissions
-          opaque={!isWorld}
           renamePopupElement={atomRenamePopupElement}
           showRenamePopup={showAtomRenamePopup}
         />

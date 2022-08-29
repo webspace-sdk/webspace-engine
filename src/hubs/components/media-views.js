@@ -306,7 +306,7 @@ AFRAME.registerComponent("media-video", {
         this.networkedEl = networkedEl;
         this.updatePlaybackState();
 
-        window.APP.hubChannel.addEventListener("permissions_updated", this.updateHoverMenu);
+        window.APP.atomAccessManager.addEventListener("permissions_updated", this.updateHoverMenu);
 
         // For videos, take ownership after a random delay if nobody
         // else has so there is a timekeeper. Do not due this on iOS because iOS has an
@@ -546,7 +546,7 @@ AFRAME.registerComponent("media-video", {
       isPresent = mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT;
     }
 
-    if (!occupants[owner] && isPresent && window.APP.hubChannel.can("spawn_and_move_media")) {
+    if (!occupants[owner] && isPresent && window.APP.atomAccessManager.can("spawn_and_move_media")) {
       console.log(`Video ${getNetworkId(this.networkedEl)} has non-present owner, taking ownership.`);
       takeOwnership(this.networkedEl);
     }
@@ -1108,7 +1108,7 @@ AFRAME.registerComponent("media-video", {
 
     this.el.sceneEl.removeEventListener("camera-set-active", this.onCameraSetActive);
 
-    window.APP.hubChannel.removeEventListener("permissions_updated", this.updateHoverMenu);
+    window.APP.atomAccessManager.removeEventListener("permissions_updated", this.updateHoverMenu);
 
     if (this.video) {
       this.video.removeEventListener("pause", this.onPauseStateChange);
@@ -1132,7 +1132,7 @@ AFRAME.registerComponent("media-video", {
   },
 
   mayModifyPlayHead() {
-    return !!this.video && !this.videoIsLive && window.APP.hubChannel.can("spawn_and_move_media");
+    return !!this.video && !this.videoIsLive && window.APP.atomAccessManager.hubCan("spawn_and_move_media");
   },
 
   handleMediaInteraction(type) {

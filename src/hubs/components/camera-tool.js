@@ -543,7 +543,7 @@ AFRAME.registerComponent("camera-tool", {
     }
 
     const isHoldingTrigger = this.isHoldingSnapshotTrigger();
-    const isPermittedToUse = window.APP.hubChannel.can("spawn_camera");
+    const isPermittedToUse = window.APP.atomAccessManager.hubCan("spawn_camera");
 
     if (isPermittedToUse) {
       // If the user lets go of the trigger before 500ms, take a picture, otherwise record until they let go.

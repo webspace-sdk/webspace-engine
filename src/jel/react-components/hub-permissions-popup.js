@@ -32,13 +32,16 @@ const HubPermissionsPopup = ({ setPopperElement, styles, attributes, hubMetadata
   );
 
   const allowEditingOnChange = useCallback(
-    value => {
-      const allowEditing = value;
-      const newSpaceRole = allowEditing ? "editor" : "viewer";
-      window.APP.hubChannel.updateSpaceMemberRole(newSpaceRole);
-      setAllowEditing(allowEditing);
+    (/*value*/) => {
+      // TODO SHARED
+      // const allowEditing = value;
+      // const newSpaceRole = allowEditing ? "editor" : "viewer";
+      // //window.APP.hubChannel.updateSpaceMemberRole(newSpaceRole);
+      // setAllowEditing(allowEditing);
     },
-    [setAllowEditing]
+    [
+      /*setAllowEditing*/
+    ]
   );
 
   const popupInput = (

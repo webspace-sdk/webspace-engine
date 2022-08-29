@@ -2,6 +2,7 @@ import { MeshBVH } from "three-mesh-bvh";
 import nextTick from "./next-tick";
 import { upload } from "./media-utils";
 import { dataURItoBlob } from "../../jel/utils/dom-utils";
+import { getHubIdFromHistory } from "../..//jel/utils/jel-url-utils";
 
 const tempVector3 = new THREE.Vector3();
 const tempQuaternion = new THREE.Quaternion();
@@ -549,9 +550,7 @@ export function screenshotSceneCanvas(scene, width, height) {
 }
 
 export async function screenshotAndUploadSceneCanvas(scene, width, height) {
-  const { hubChannel } = window.APP;
-
   const data = await screenshotSceneCanvas(scene, width, height);
   const blob = dataURItoBlob(data);
-  return await upload(blob, "image/png", hubChannel.hubId);
+  return await upload(blob, "image/png", await getHubIdFromHistory());
 }

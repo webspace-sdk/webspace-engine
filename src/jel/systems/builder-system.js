@@ -7,6 +7,7 @@ import { EventTarget } from "event-target-shim";
 import { storedColorToRgb } from "../../hubs/storage/store";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { rgbtForVoxColor } from "ot-vox";
+import { getHubIdFromHistory, getSpaceIdFromHistory } from "../utils/jel-url-utils";
 import {
   BRUSH_TYPES,
   BRUSH_MODES,
@@ -598,8 +599,9 @@ export class BuilderSystem extends EventTarget {
   }
 
   async createVoxAt(point) {
-    const spaceId = window.APP.spaceChannel.spaceId;
-    const hubId = window.APP.hubChannel.spaceId;
+    const spaceId = await getSpaceIdFromHistory(history);
+    const hubId = await getHubIdFromHistory(history);
+
     const { voxSystem } = SYSTEMS;
 
     const {

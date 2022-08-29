@@ -17,10 +17,14 @@ AFRAME.registerComponent("in-world-hud", {
       this.mic.setAttribute("mic-button", "active", !this.el.sceneEl.is("unmuted"));
       this.pen.setAttribute("icon-button", "active", this.el.sceneEl.is("pen"));
       this.cameraBtn.setAttribute("icon-button", "active", this.el.sceneEl.is("camera"));
-      if (window.APP.hubChannel) {
-        this.spawn.setAttribute("icon-button", "disabled", !window.APP.hubChannel.can("spawn_and_move_media"));
-        this.pen.setAttribute("icon-button", "disabled", !window.APP.hubChannel.can("spawn_drawing"));
-        this.cameraBtn.setAttribute("icon-button", "disabled", !window.APP.hubChannel.can("spawn_camera"));
+      if (window.APP.atomAccessManager) {
+        this.spawn.setAttribute(
+          "icon-button",
+          "disabled",
+          !window.APP.atomAccessManager.hubCan("spawn_and_move_media")
+        );
+        this.pen.setAttribute("icon-button", "disabled", !window.APP.atomAccessManager.hubCan("spawn_drawing"));
+        this.cameraBtn.setAttribute("icon-button", "disabled", !window.APP.atomAccessManager.hubCan("spawn_camera"));
       }
     };
 
@@ -35,18 +39,18 @@ AFRAME.registerComponent("in-world-hud", {
     };
 
     this.onSpawnClick = () => {
-      if (!window.APP.hubChannel.can("spawn_and_move_media")) return;
+      if (!window.APP.atomAccessManager.hubCan("spawn_and_move_media")) return;
       this.el.emit("action_spawn");
     };
 
     this.onPenClick = e => {
-      if (!window.APP.hubChannel.can("spawn_drawing")) return;
+      if (!window.APP.atomAccessManager.hubCan("spawn_drawing")) return;
       this.el.emit("spawn_pen", { object3D: e.object3D });
       this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_SPAWN_PEN);
     };
 
     this.onCameraClick = () => {
-      if (!window.APP.hubChannel.can("spawn_camera")) return;
+      if (!window.APP.atomAccessManager.hubCan("spawn_camera")) return;
       this.el.emit("action_toggle_camera");
     };
 
@@ -71,7 +75,7 @@ AFRAME.registerComponent("in-world-hud", {
   pause() {
     this.el.sceneEl.removeEventListener("stateadded", this.onStateChange);
     this.el.sceneEl.removeEventListener("stateremoved", this.onStateChange);
-    window.APP.hubChannel.removeEventListener("permissions_updated", this.updateButtonStates);
+    window.APP.atomAccessManager.removeEventListener("permissions_updated", this.updateButtonStates);
 
     this.mic.object3D.removeEventListener("interact", this.onMicClick);
     this.spawn.object3D.removeEventListener("interact", this.onSpawnClick);

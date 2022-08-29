@@ -862,7 +862,7 @@ AFRAME.registerComponent("deserialize-drawing-button", {
 
   _updateUI() {
     if (this.networkedDrawingBuffer) {
-      this.el.object3D.visible = window.APP.hubChannel.can("spawn_drawing");
+      this.el.object3D.visible = window.APP.atomAccessManager.hubCan("spawn_drawing");
     } else {
       this.el.object3D.visible = false;
     }

@@ -81,7 +81,6 @@ export default function AtomTrail({
   viewPermission,
   editPermission,
   metadata,
-  opaque,
   history,
   renamePopupElement,
   showRenamePopup
@@ -149,7 +148,7 @@ export default function AtomTrail({
     </AtomTrailAtomItem>
   );
 
-  return <AtomTrailElement className={opaque ? "opaque" : ""}>{items}</AtomTrailElement>;
+  return <AtomTrailElement>{items}</AtomTrailElement>;
 }
 
 AtomTrail.propTypes = {

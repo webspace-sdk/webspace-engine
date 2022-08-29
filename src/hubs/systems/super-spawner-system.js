@@ -2,10 +2,10 @@ import { addMedia } from "../utils/media-utils";
 import { ObjectContentOrigins } from "../object-types";
 
 const isPermitted = superSpawner =>
-  window.APP.hubChannel &&
+  window.APP.atomAccessManager &&
   (superSpawner && superSpawner.data.template === "#interactable-emoji"
-    ? window.APP.hubChannel.can("spawn_emoji")
-    : window.APP.hubChannel.can("spawn_and_move_media"));
+    ? window.APP.atomAccessManager.hubCan("spawn_emoji")
+    : window.APP.atomAccessManager.hubCan("spawn_and_move_media"));
 
 // WARNING: This system mutates interaction system state!
 export class SuperSpawnerSystem {

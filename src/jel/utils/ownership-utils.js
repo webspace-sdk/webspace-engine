@@ -2,7 +2,7 @@ export function ensureOwnership(el) {
   if (!el.components.networked) return false;
 
   // TODO SHARED
-  // if (!window.APP.hubChannel.can("spawn_and_move_media")) return false;
+  // if (!window.APP.atomAccessManager.hubCan("spawn_and_move_media")) return false;
 
   return NAF.utils.isMine(el) || NAF.utils.takeOwnership(el);
 }
@@ -11,7 +11,7 @@ export function takeOwnership(el) {
   if (!el.components.networked) return false;
 
   // TODO SHARED
-  // if (!window.APP.hubChannel.can("spawn_and_move_media")) return false;
+  // if (!window.APP.atomAccessManager.hubCan("spawn_and_move_media")) return false;
 
   return NAF.utils.takeOwnership(el);
 }

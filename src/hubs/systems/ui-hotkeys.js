@@ -9,7 +9,7 @@ AFRAME.registerSystem("ui-hotkeys", {
   },
 
   tick: function() {
-    const canSpawnMedia = window.APP.hubChannel.can("spawn_and_move_media");
+    const canSpawnMedia = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
     const isInspecting = SYSTEMS.cameraSystem.isInspecting();
 
     if (!this.userinput) {

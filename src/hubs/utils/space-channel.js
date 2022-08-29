@@ -27,17 +27,6 @@ export default class SpaceChannel extends EventTarget {
     this.spaceId = spaceId;
   };
 
-  setPermissionsFromToken = token => {
-    // Note: token is not verified.
-    this._permissions = jwtDecode(token);
-    this.dispatchEvent(new CustomEvent("permissions_updated", { detail: { permsToken: token } }));
-
-    // Refresh the token 1 minute before it expires. Refresh at most every 60s.
-    if (this._refreshTimeout) clearTimeout(this._refreshTimeout);
-    const nextRefresh = new Date(this._permissions.exp * 1000 - 60 * 1000) - new Date();
-    this._refreshTimeout = setTimeout(async () => await this.fetchPermissions(), Math.max(nextRefresh, 60000));
-  };
-
   sendJoinedHubEvent = hub_id => {
     this.channel.push("events:joined_hub", { hub_id });
   };
@@ -183,18 +172,6 @@ export default class SpaceChannel extends EventTarget {
         .push("get_hosts")
         .receive("ok", res => {
           resolve(res);
-        })
-        .receive("error", reject);
-    });
-  };
-
-  fetchPermissions = () => {
-    return new Promise((resolve, reject) => {
-      this.channel
-        .push("refresh_perms_token")
-        .receive("ok", res => {
-          this.setPermissionsFromToken(res.perms_token);
-          resolve({ permsToken: res.perms_token, permissions: this._permissions });
         })
         .receive("error", reject);
     });
