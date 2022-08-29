@@ -285,25 +285,6 @@ const PausedInfoLabel = styled.div`
   }
 `;
 
-const UnpausedInfoLabel = styled.div`
-  position: absolute;
-  bottom: 0px;
-  left: 0px;
-  display: block;
-  color: var(--canvas-overlay-text-color);
-  text-shadow: 0px 0px 4px var(--menu-shadow-color);
-  line-height: calc(var(--canvas-overlay-tertiary-text-size) + 2px);
-  font-weight: var(--canvas-overlay-item-tertiary-weight);
-  font-size: var(--canvas-overlay-tertiary-text-size);
-  margin: 11px 0 42px 8px;
-  padding: 6px 10px;
-  white-space: pre;
-
-  .paused & {
-    display: none;
-  }
-`;
-
 const ExternalCameraCanvas = styled.canvas`
   width: 300px;
   height: 168px;
@@ -493,8 +474,6 @@ function JelUI(props) {
   //   [scene]
   // );
 
-  const isHomeHub = hub && hub.is_home;
-
   const onTurnOnNotificationClicked = useCallback(() => subscriptions.subscribe(), [subscriptions]);
 
   // Handle subscriptions changed
@@ -537,8 +516,6 @@ function JelUI(props) {
   const onNotifyBannerClose = useCallback(() => setShowNotificationBannerWarning(true), []);
 
   const onClickExternalCameraRotate = useCallback(() => externalCameraSystem.toggleCamera(), [externalCameraSystem]);
-
-  const isWorld = hub && hub.type === "world";
 
   const onExpandTriggerClick = useCallback(() => {
     if (!isInEditableField()) {
@@ -591,7 +568,7 @@ function JelUI(props) {
                   </NotifyBannerClose>
                 </NotifyBanner>
               )}
-            {isWorld && <FadeEdges />}
+            <FadeEdges />
             <CreateSelectPopupRef ref={createSelectPopupRef} />
             <ModalPopupRef ref={modalPopupRef} />
             <CenterPopupRef ref={centerPopupRef} />
@@ -604,45 +581,29 @@ function JelUI(props) {
               environmentSettingsButtonRef={environmentSettingsButtonRef}
               createSelectPopupRef={createSelectPopupRef}
             />
-            <KeyTipsWrap
-              style={{ visibility: isWorld ? "visible" : "hidden" }}
-              onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}
-            >
+            <KeyTipsWrap onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}>
               <KeyTips id="key-tips" />
             </KeyTipsWrap>
-            {isWorld && (
-              <DeviceStatuses id="device-statuses">
-                {triggerMode === "builder" && <EqippedBrushIcon />}
-                {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
-              </DeviceStatuses>
-            )}
-            {isWorld && (
-              <BottomLeftPanels className={`${showingExternalCamera ? "external-camera-on" : ""}`}>
-                <ExternalCameraCanvas id="external-camera-canvas" />
-                {showingExternalCamera && (
-                  <ExternalCameraRotateButton
-                    tabIndex={-1}
-                    iconSrc={unmuted ? unmutedIcon : mutedIcon}
-                    onClick={onClickExternalCameraRotate}
-                  >
-                    <ExternalCameraRotateButtonIcon dangerouslySetInnerHTML={{ __html: rotateIcon }} />
-                  </ExternalCameraRotateButton>
-                )}
-                <PausedInfoLabel>
-                  <FormattedMessage id="paused.info" />
-                </PausedInfoLabel>
-                {isHomeHub &&
-                  !showingExternalCamera && (
-                    <UnpausedInfoLabel>
-                      <FormattedMessage id="home-hub.info" />
-                    </UnpausedInfoLabel>
-                  )}
-
-                {!isHomeHub && (
-                  <ChatLog leftOffset={showingExternalCamera ? 300 : 0} hub={hub} scene={scene} store={store} />
-                )}
-              </BottomLeftPanels>
-            )}
+            <DeviceStatuses id="device-statuses">
+              {triggerMode === "builder" && <EqippedBrushIcon />}
+              {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
+            </DeviceStatuses>
+            <BottomLeftPanels className={`${showingExternalCamera ? "external-camera-on" : ""}`}>
+              <ExternalCameraCanvas id="external-camera-canvas" />
+              {showingExternalCamera && (
+                <ExternalCameraRotateButton
+                  tabIndex={-1}
+                  iconSrc={unmuted ? unmutedIcon : mutedIcon}
+                  onClick={onClickExternalCameraRotate}
+                >
+                  <ExternalCameraRotateButtonIcon dangerouslySetInnerHTML={{ __html: rotateIcon }} />
+                </ExternalCameraRotateButton>
+              )}
+              <PausedInfoLabel>
+                <FormattedMessage id="paused.info" />
+              </PausedInfoLabel>
+              <ChatLog leftOffset={showingExternalCamera ? 300 : 0} hub={hub} scene={scene} store={store} />
+            </BottomLeftPanels>
           </Wrap>
           {!isInspecting && (
             <AssetPanelWrap id="asset-panel">
@@ -671,7 +632,6 @@ function JelUI(props) {
         <SelfPanel
           spaceChannel={spaceChannel}
           scene={scene}
-          showDeviceControls={isWorld}
           sessionId={sessionId}
           onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {
             const { store } = window.APP;

@@ -30,7 +30,7 @@ const Top = styled.div`
   width: 100%;
   align-items: flex-start;
 
-  .paused #jel-ui.hub-type-world & {
+  .paused #jel-ui & {
     opacity: 0.4;
   }
 `;
@@ -432,8 +432,6 @@ function CanvasTop(props) {
   );
   const [isInspecting, setIsInspecting] = useState(cameraSystem.isInspecting());
 
-  const treeForCurrentHub = hub && hub.type === "world" ? worldTree : channelTree;
-
   const atomId = isInspecting ? cameraSystem.getInspectedAtomId() : hub && hub.hub_id;
   const atomType = isInspecting ? cameraSystem.getInspectedAtomType() : ATOM_TYPES.HUB;
 
@@ -442,8 +440,7 @@ function CanvasTop(props) {
   if (isInspecting && atomId) {
     atomTrailAtomIds = [atomId];
   } else if (!isInspecting) {
-    atomTrailAtomIds =
-      (treeForCurrentHub && hub && treeForCurrentHub.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
+    atomTrailAtomIds = (worldTree && hub && worldTree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
   }
 
   const hubMetadata = worldTree && worldTree.atomMetadata;
@@ -576,9 +573,6 @@ function CanvasTop(props) {
         channelTree={channelTree}
         worldTreeData={worldTreeData}
         channelTreeData={channelTreeData}
-        memberships={memberships}
-        hub={hub}
-        history={history}
       />
       <RenamePopup
         setPopperElement={setAtomRenamePopupElement}

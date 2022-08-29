@@ -113,7 +113,7 @@ const useMicDevices = (unmuted, setMicDevices) => {
   );
 };
 
-const SelfPanel = ({ scene, spaceChannel, showDeviceControls, sessionId, onAvatarColorChangeComplete }) => {
+const SelfPanel = ({ scene, spaceChannel, sessionId, onAvatarColorChangeComplete }) => {
   const [tipSource, tipTarget] = useSingleton();
   const [deviceSelectorReferenceElement, setDeviceSelectorReferenceElement] = useState(null);
   const [deviceSelectorElement, setDeviceSelectorElement] = useState(null);
@@ -239,37 +239,35 @@ const SelfPanel = ({ scene, spaceChannel, showDeviceControls, sessionId, onAvata
         {displayName && <DisplayName>{displayName}</DisplayName>}
         {identityName && <IdentityName>{identityName}</IdentityName>}
       </SelfName>
-      {showDeviceControls && (
-        <DeviceControls>
-          <Tooltip content={messages["self.select-tip"]} placement="top" key="mute" singleton={tipTarget}>
-            <BigIconButton
-              style={{ margin: 0 }}
-              iconSrc={verticalDotsIcon}
-              onMouseDown={e => cancelEventIfFocusedWithin(e, deviceSelectorElement)}
-              onClick={() => {
-                updateDeviceSelectorPopper();
-                toggleFocus(deviceSelectorElement);
-              }}
-              ref={setDeviceSelectorReferenceElement}
-            />
-          </Tooltip>
-          <Tooltip
-            content={messages[unmuted ? "self.mute-tip" : "self.unmute-tip"]}
-            placement="top"
-            key="select"
-            singleton={tipTarget}
-          >
-            <BigIconButton
-              style={{ margin: 0 }}
-              iconSrc={unmuted ? unmutedIcon : mutedIcon}
-              onClick={() => {
-                scene.emit("action_mute");
-                SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_TOGGLE_MIC);
-              }}
-            />
-          </Tooltip>
-        </DeviceControls>
-      )}
+      <DeviceControls>
+        <Tooltip content={messages["self.select-tip"]} placement="top" key="mute" singleton={tipTarget}>
+          <BigIconButton
+            style={{ margin: 0 }}
+            iconSrc={verticalDotsIcon}
+            onMouseDown={e => cancelEventIfFocusedWithin(e, deviceSelectorElement)}
+            onClick={() => {
+              updateDeviceSelectorPopper();
+              toggleFocus(deviceSelectorElement);
+            }}
+            ref={setDeviceSelectorReferenceElement}
+          />
+        </Tooltip>
+        <Tooltip
+          content={messages[unmuted ? "self.mute-tip" : "self.unmute-tip"]}
+          placement="top"
+          key="select"
+          singleton={tipTarget}
+        >
+          <BigIconButton
+            style={{ margin: 0 }}
+            iconSrc={unmuted ? unmutedIcon : mutedIcon}
+            onClick={() => {
+              scene.emit("action_mute");
+              SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_TOGGLE_MIC);
+            }}
+          />
+        </Tooltip>
+      </DeviceControls>
       <DeviceSelectorPopup
         scene={scene}
         setPopperElement={setDeviceSelectorElement}
@@ -322,7 +320,6 @@ SelfPanel.propTypes = {
   scene: PropTypes.object,
   spaceChannel: PropTypes.object,
   sessionId: PropTypes.string,
-  showDeviceControls: PropTypes.bool,
   onAvatarColorChangeComplete: PropTypes.func
 };
 

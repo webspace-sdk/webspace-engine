@@ -44,7 +44,6 @@ import { LauncherSystem } from "../../jel/systems/launcher-system";
 import { BuilderSystem } from "../../jel/systems/builder-system";
 import { PasteSystem } from "../../hubs/systems/paste-system";
 import { ExternalCameraSystem } from "../../jel/systems/external-camera-system";
-import { VideoBridgeSystem } from "../../jel/systems/video-bridge-system";
 import { DirectorSystem } from "../../jel/systems/director-system";
 import { UndoSystem } from "../../jel/systems/undo-system";
 
@@ -129,12 +128,6 @@ AFRAME.registerSystem("hubs-systems", {
       this.avatarSystem,
       this.wrappedEntitySystem
     );
-    this.videoBridgeSystem = new VideoBridgeSystem(
-      this.el,
-      this.audioSystem,
-      this.externalCameraSystem,
-      this.autoQualitySystem
-    );
     this.directorSystem = new DirectorSystem();
     this.undoSystem = new UndoSystem();
 
@@ -195,7 +188,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.helpersSystem.tick(t, dt);
     this.launcherSystem.tick(t, dt);
     this.builderSystem.tick(t, dt);
-    this.videoBridgeSystem.tick();
     this.directorSystem.tick(t, dt);
     this.undoSystem.tick(t, dt);
 

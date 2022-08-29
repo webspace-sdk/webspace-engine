@@ -34,8 +34,6 @@ AFRAME.registerComponent("open-media-button", {
     };
 
     this.onClick = async () => {
-      const mayChangeScene = this.el.sceneEl.systems.permissions.can("update_hub_meta");
-
       const exitImmersive = async () => await handleExitTo2DInterstitial(false, () => {}, true);
 
       if (this.data.onlyOpenLink) {
@@ -45,8 +43,6 @@ AFRAME.registerComponent("open-media-button", {
         const avatarId = new URL(this.src).pathname.split("/").pop();
         window.APP.store.update({ profile: { avatarId } });
         this.el.sceneEl.emit("avatar_updated");
-      } else if ((await isLocalHubsSceneUrl(this.src)) && mayChangeScene) {
-        this.el.sceneEl.emit("scene_media_selected", this.src);
       } else if (await isHubsRoomUrl(this.src)) {
         await exitImmersive();
         location.href = this.src;

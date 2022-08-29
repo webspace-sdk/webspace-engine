@@ -593,9 +593,6 @@ function LeftPanel({
         channelTree={channelTree}
         worldTreeData={worldTreeData}
         channelTreeData={channelTreeData}
-        memberships={memberships}
-        hub={hub}
-        history={history}
       />
       <RenamePopup
         setPopperElement={setAtomRenamePopupElement}

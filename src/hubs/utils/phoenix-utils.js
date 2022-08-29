@@ -153,7 +153,6 @@ export async function createSpace(name) {
 
 export async function createHub(
   spaceId,
-  type,
   name,
   template,
   worldType = null,
@@ -165,7 +164,7 @@ export async function createHub(
 ) {
   const store = window.APP.store;
   const createUrl = getReticulumFetchUrl("/api/v1/hubs");
-  const payload = { hub: { name, type: type, space_id: spaceId } };
+  const payload = { hub: { name, space_id: spaceId } };
 
   if (template) {
     payload.hub.template = template;

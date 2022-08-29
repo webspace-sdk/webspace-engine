@@ -175,7 +175,6 @@ function RightPanel({ history, hub, hubCan, sessionId, scene, centerPopupRef, sp
   );
 
   const messages = getMessages();
-  const isWorld = hub && hub.type === "world";
 
   return (
     <Right>
@@ -193,23 +192,21 @@ function RightPanel({ history, hub, hubCan, sessionId, scene, centerPopupRef, sp
             }}
           />
         </PresenceContent>
-        {isWorld &&
-          triggerMode === "launcher" && (
-            <BlasterContent>
-              <PanelSectionHeader style={{ height: "16px" }}>
-                <FormattedMessage id="blaster.header" />
-              </PanelSectionHeader>
-              <EmojiEquip centerPopupRef={centerPopupRef} scene={scene} />
-            </BlasterContent>
-          )}
-        {isWorld &&
-          triggerMode === "builder" && (
-            <BuilderContent style={isInEditorView ? { marginTop: "8px" } : {}}>
-              <BuilderControls />
-            </BuilderContent>
-          )}
-        {isWorld &&
-          !isInEditorView &&
+        {triggerMode === "launcher" && (
+          <BlasterContent>
+            <PanelSectionHeader style={{ height: "16px" }}>
+              <FormattedMessage id="blaster.header" />
+            </PanelSectionHeader>
+            <EmojiEquip centerPopupRef={centerPopupRef} scene={scene} />
+          </BlasterContent>
+        )}
+        {triggerMode === "builder" && (
+          <BuilderContent style={isInEditorView ? { marginTop: "8px" } : {}}>
+            <BuilderControls />
+          </BuilderContent>
+        )}
+        {!isInEditorView &&
+          hub &&
           hubCan("spawn_and_move_media", hub.hub_id) && (
             <TriggerModePanel>
               <SegmentControl

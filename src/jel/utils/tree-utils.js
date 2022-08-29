@@ -126,7 +126,6 @@ export function isAtomInSubtree(tree, subtreeAtomId, targetAtomId) {
 export async function addNewHubToTree(
   treeManager,
   spaceId,
-  type,
   insertUnderAtomId,
   name = null,
   template = null,
@@ -137,10 +136,9 @@ export async function addNewHubToTree(
   spawnRotation = null,
   spawnRadius = null
 ) {
-  const tree = type === "world" ? treeManager.worldNav : treeManager.channelNav;
+  const tree = treeManager.worldNav;
   const hub = await createHub(
     spaceId,
-    type,
     name,
     template,
     worldType,

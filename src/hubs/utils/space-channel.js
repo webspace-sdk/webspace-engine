@@ -79,6 +79,7 @@ export default class SpaceChannel extends EventTarget {
   }
 
   updateHub = (hubId, newHubFields) => {
+    // TODO SHARED
     if (!this.channel) return;
     const { hubMetadata, matrix } = window.APP;
     const canUpdateHubMeta = hubMetadata.can("update_hub_meta", hubId);

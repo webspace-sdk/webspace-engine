@@ -1,6 +1,5 @@
 import jwtDecode from "jwt-decode";
 import { EventTarget } from "event-target-shim";
-import { Presence } from "phoenix";
 
 export default class HubChannel extends EventTarget {
   constructor(store) {

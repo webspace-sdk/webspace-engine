@@ -260,7 +260,6 @@ disableiOSZoom();
 detectConcurrentLoad();
 
 let jelUIProps = {};
-let performConditionalSignIn;
 
 function mountJelUI(props = {}) {
   if (isBotMode) return;
@@ -356,16 +355,6 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
   scene.addEventListener("preferred_mic_changed", e => {
     const deviceId = e.detail;
     scene.systems["hubs-systems"].mediaStreamSystem.updatePreferredMicDevice(deviceId);
-  });
-
-  scene.addEventListener("scene_media_selected", e => {
-    const sceneInfo = e.detail;
-
-    performConditionalSignIn(
-      () => hubChannel.can("update_hub_meta"),
-      () => hubChannel.updateScene(sceneInfo),
-      "change-scene"
-    );
   });
 
   // Fired when the user chooses a create action from the create action menu
@@ -520,21 +509,12 @@ function addGlobalEventListeners(scene, entryManager, matrix) {
   });
 
   scene.addEventListener("action_reset_objects", () => {
+    // TOOD SHARED drop this
     const hubId = hubChannel.hubId;
     const metadata = hubMetadata.getMetadata(hubId);
     if (!metadata || !metadata.template || !metadata.template.name) return;
 
     resetTemplate(metadata.template.name);
-  });
-
-  matrix.addEventListener("left_room_for_hub", ({ detail: { hubId } }) => {
-    // If the matrix server kicked us from a room for the current hub, navigate
-    // to the home hub for now.
-    if (hubChannel.hubId === hubId) {
-      const spaceId = spaceChannel.spaceId;
-      const homeHub = homeHubForSpaceId(spaceId, accountChannel.memberships);
-      navigateToHubUrl(history, homeHub.url);
-    }
   });
 }
 

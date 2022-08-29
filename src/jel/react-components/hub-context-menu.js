@@ -4,13 +4,11 @@ import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupMenu, { PopupMenuItem } from "./popup-menu";
 import trashIcon from "../../assets/jel/images/icons/trash.svgi";
 import WorldExporter from "../utils/world-exporter";
-import restoreIcon from "../../assets/jel/images/icons/restore.svgi";
 import cubeIcon from "../../assets/jel/images/icons/cube.svgi";
+import restoreIcon from "../../assets/jel/images/icons/restore.svgi";
 import { FormattedMessage } from "react-intl";
 import qsTruthy from "../../hubs/utils/qs_truthy";
-import { navigateToHubUrl } from "../utils/jel-url-utils";
-import { isAtomInSubtree, findChildrenAtomsInTreeData } from "../utils/tree-utils";
-import { homeHubForSpaceId } from "../utils/membership-utils";
+import { findChildrenAtomsInTreeData } from "../utils/tree-utils";
 
 const showPublishObjects = qsTruthy("show_publish");
 
@@ -27,16 +25,13 @@ function HubContextMenu({
   hubCan,
   worldTree,
   hideRename,
-  showReset,
   showExport,
+  showReset,
   isCurrentWorld,
   showAtomRenamePopup,
   channelTree,
-  hub,
-  memberships,
   worldTreeData,
-  channelTreeData,
-  history
+  channelTreeData
 }) {
   if (!popupRoot || !spaceCan || !hubCan) return null;
 
@@ -90,21 +85,6 @@ function HubContextMenu({
     );
   }
 
-  if (hubId && showReset && hubCan("spawn_and_move_media", hubId)) {
-    items.push(
-      <PopupMenuItem
-        key={`reset-${hubId}`}
-        onClick={e => {
-          scene.emit("action_reset_objects");
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-        iconSrc={restoreIcon}
-      >
-        <FormattedMessage id="hub-context.reset-objects" />
-      </PopupMenuItem>
-    );
-  }
   if (hubId && isCurrentWorld && showPublishObjects && hubCan("spawn_and_move_media", hubId)) {
     items.push(
       <PopupMenuItem
@@ -180,11 +160,8 @@ function HubContextMenu({
         onClick={e => {
           if (!worldTree.getNodeIdForAtomId(hubId) && !channelTree.getNodeIdForAtomId(hubId)) return;
 
-          // If this hub or any of its parents were deleted, go home.
-          if (isAtomInSubtree(worldTree, hubId, hub.hub_id) || isAtomInSubtree(channelTree, hubId, hub.hub_id)) {
-            const homeHub = homeHubForSpaceId(hub.space_id, memberships);
-            navigateToHubUrl(history, homeHub.url);
-          }
+          // TODO SHARED
+          // If this hub or any of its parents were deleted, go to any other hub.
 
           // All trashable children are trashed too.
           const trashableChildrenHubIds = [
@@ -201,6 +178,22 @@ function HubContextMenu({
         iconSrc={trashIcon}
       >
         <FormattedMessage id="hub-context.move-to-trash" />
+      </PopupMenuItem>
+    );
+  }
+
+  if (hubId && showReset && hubCan("spawn_and_move_media", hubId)) {
+    items.push(
+      <PopupMenuItem
+        key={`reset-${hubId}`}
+        onClick={e => {
+          scene.emit("action_reset_objects");
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        iconSrc={restoreIcon}
+      >
+        <FormattedMessage id="hub-context.reset-objects" />
       </PopupMenuItem>
     );
   }

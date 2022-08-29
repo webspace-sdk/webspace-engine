@@ -32,6 +32,7 @@ export default class DynaChannel extends EventTarget {
   }
 
   updateSpace = (spaceId, newSpaceFields) => {
+    // TODO SHARED
     if (!this.channel) return;
     const spaceMetadata = window.APP.spaceMetadata;
     const canUpdateSpaceMeta = spaceMetadata.can("update_space_meta", spaceId);

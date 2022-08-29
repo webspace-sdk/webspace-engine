@@ -55,7 +55,7 @@ function HubTree({
           hubMetadata={atomMetadata}
           onAddClick={async e => {
             e.stopPropagation(); // Otherwise this will perform a tree node click event
-            const newHub = await addNewHubToTree(treeManager, hub.space_id, hub.type, data.atomId);
+            const newHub = await addNewHubToTree(treeManager, hub.space_id, data.atomId);
             await atomMetadata.ensureMetadataForIds([newHub.hub_id]);
             const metadata = atomMetadata.getMetadata(newHub.hub_id);
             navigateToHubUrl(history, metadata.url);

@@ -108,54 +108,14 @@ function updateUIForHub(isTransition, hub, hubChannel, remountJelUI) {
     const neon = DOM_ROOT.querySelector("#neon");
     const canvas = DOM_ROOT.querySelector(".a-canvas");
 
-    if (hub.type === "world") {
-      neon.classList.remove("visible");
-      UI.classList.add("hub-type-world");
-      UI.classList.remove("hub-type-channel");
-      canvas.focus();
-    } else {
-      neon.classList.add("visible");
-      UI.classList.add("hub-type-channel");
-      UI.classList.remove("hub-type-world");
-      neon.focus();
-    }
+    neon.classList.remove("visible");
+    canvas.focus();
 
     window.APP.matrix.switchToHub(hub);
   }
 
   remountJelUI({ hub });
 }
-
-const updateSceneStateForHub = (() => {
-  // When we switch to a channel from a world, we mute the mic,
-  // and for convenience restore it to being unmuted the next
-  // time we go into a world.
-  let wasMutedOnLastChannelEntry = true;
-
-  return hub => {
-    const scene = DOM_ROOT.querySelector("a-scene");
-
-    if (hub.type === "world") {
-      scene.removeState("off");
-      scene.classList.add("visible");
-
-      if (wasMutedOnLastChannelEntry) {
-        wasMutedOnLastChannelEntry = false;
-        scene.emit("action_mute");
-      }
-    } else {
-      if (scene.is("unmuted")) {
-        wasMutedOnLastChannelEntry = true;
-        scene.emit("action_mute");
-      }
-
-      scene.classList.remove("visible");
-      scene.addState("off");
-
-      SYSTEMS.videoBridgeSystem.exitBridge();
-    }
-  };
-})();
 
 const setupDataChannelMessageHandlers = () => {
   const scene = DOM_ROOT.querySelector("a-scene");
@@ -201,30 +161,16 @@ const setupDataChannelMessageHandlers = () => {
   });
 };
 
-const joinHubChannel = (hubStore, entryManager, remountJelUI) => {
+const joinHubChannel = (hubId, spaceId, hubStore, entryManager, remountJelUI) => {
   const isInitialJoin = true;
   const { hubChannel } = window.APP;
 
   const hub = {
-    description: null,
-    embed_token: null,
-    entry_code: 268661,
-    entry_mode: "allow",
-    hub_id: "fU8ox2d",
-    is_home: false,
-    lobby_count: 0,
-    member_count: 0,
-    name: "Conference Props",
-    roles: { space: "editor" },
-    room_size: 24,
-    scene: null,
-    slug: "conference-props",
-    space_id: "tKod5",
+    hub_id: hubId,
+    name: document.title,
+    space_id: spaceId,
     spawn_point: { position: { x: 0, y: 0, z: 0 }, radius: 10, rotation: { w: 1, x: 0, y: 0, z: 0 } },
-    template: { hash: null, name: null, synced_at: null },
-    type: "world",
-    url: "https://hubs.local:4000/jel.html",
-    user_data: null,
+    url: document.location.href,
     world: {
       bark_color_b: 0.12156862745098039,
       bark_color_g: 0.20784313725490197,
@@ -253,6 +199,8 @@ const joinHubChannel = (hubStore, entryManager, remountJelUI) => {
       water_color_g: 0.22745098039215686,
       water_color_r: 0
     },
+    // TODO SHARED templates
+    template: { hash: null, name: null, synced_at: null },
     world_template_id: null
   };
 
@@ -273,7 +221,8 @@ const joinHubChannel = (hubStore, entryManager, remountJelUI) => {
 
     // Note that scene state needs to be updated before UI because focus handler will often fire
     // which assumes scene state is set already to "off" for channels.
-    updateSceneStateForHub(hub);
+    scene.removeState("off");
+    scene.classList.add("visible");
 
     updateUIForHub(true, hub, hubChannel, remountJelUI);
     updateEnvironmentForHub(hub);
@@ -476,7 +425,7 @@ export async function joinHub(scene, history, entryManager, remountJelUI) {
     NAF.connection.adapter.leaveRoom(true);
   }
 
-  const joinSuccessful = await joinHubChannel(hubStore, entryManager, remountJelUI);
+  const joinSuccessful = await joinHubChannel(hubId, spaceId, hubStore, entryManager, remountJelUI);
 
   if (joinSuccessful) {
     store.setLastJoinedHubId(spaceId, hubId);
