@@ -71,6 +71,7 @@
     "ammo.js": "github:jel-app/ammo.js#jel/master",
     "animejs": "github:mozillareality/anime#hubs/master",
     "bezier-easing": "^2.1.0",
+    "bs58": "^5.0.0",
     "classnames": "^2.2.5",
     "clean-html": "^1.5.0",
     "color": "^3.1.2",

@@ -998,7 +998,7 @@ async function start() {
 
   canvas.setAttribute("tabindex", 0); // Make it so canvas can be focused
 
-  if (navigator.serviceWorker) {
+  if (navigator.serviceWorker && document.location.protocol !== "file:") {
     try {
       navigator.serviceWorker
         .register("/jel.service.js")
@@ -1215,8 +1215,8 @@ async function start() {
 
   const performJoin = async () => {
     // Handle rapid history changes, only join last one.
-    const spaceId = getSpaceIdFromHistory(history);
-    const hubId = getHubIdFromHistory(history);
+    const spaceId = await getSpaceIdFromHistory(history);
+    const hubId = await getHubIdFromHistory(history);
 
     nextSpaceToJoin = spaceId;
     nextHubToJoin = hubId;
@@ -1226,7 +1226,7 @@ async function start() {
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
       store.update({ context: { spaceId } });
-      setupTreeManagers(history, subscriptions, entryManager, remountJelUI);
+      await setupTreeManagers(history, subscriptions, entryManager, remountJelUI);
     }
 
     if (joinHubPromise) await joinHubPromise;

@@ -431,8 +431,8 @@ const initPresence = (function() {
   };
 })();
 
-export function setupTreeManagers(history, subscriptions, entryManager, remountJelUI) {
-  const spaceId = getSpaceIdFromHistory(history);
+export async function setupTreeManagers(history, subscriptions, entryManager, remountJelUI) {
+  const spaceId = await getSpaceIdFromHistory(history);
   const { spaceMetadata, hubMetadata } = window.APP;
   console.log(`Space ID: ${spaceId}`);
 
@@ -462,8 +462,8 @@ export function setupTreeManagers(history, subscriptions, entryManager, remountJ
 export async function joinHub(scene, history, entryManager, remountJelUI) {
   const { store, hubChannel } = window.APP;
 
-  const spaceId = getSpaceIdFromHistory(history);
-  const hubId = getHubIdFromHistory(history);
+  const spaceId = await getSpaceIdFromHistory(history);
+  const hubId = await getHubIdFromHistory(history);
   console.log(`Hub ID: ${hubId}`);
 
   const hubStore = new HubStore(hubId);

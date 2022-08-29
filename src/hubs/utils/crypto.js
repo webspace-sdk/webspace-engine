@@ -1,3 +1,5 @@
+import bs58 from "bs58";
+
 // NOTE: We do not use an IV since we generate a new keypair each time we use these routines.
 
 async function deriveKey(privateKey, publicKey) {
@@ -73,4 +75,8 @@ export async function decryptObject(publicKeyString, privateKey, base64value) {
   const ciphertext = stringToArrayBuffer(atob(base64value));
   const data = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, secret, ciphertext);
   return JSON.parse(arrayBufferToString(data));
+}
+
+export async function b58Hash(s) {
+  return bs58.encode(new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(stringToArrayBuffer(s)))));
 }

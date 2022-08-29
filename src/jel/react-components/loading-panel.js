@@ -1,9 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import jelLoadingSrc from "!!url-loader!../../assets/jel/images/jel-loading.svg";
 import { getMessages } from "../../hubs/utils/i18n";
-import jelLoadingShadowSrc from "!!url-loader!../../assets/jel/images/jel-loading-shadow.svg";
 
 const LoadingPanelElement = styled.div`
   position: absolute;
@@ -23,30 +21,6 @@ const LoadingPanelElement = styled.div`
     opacity: 1;
     pointer-events: auto;
     visibility: visible;
-  }
-`;
-
-const LogoElement = styled.img`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 128px;
-  height: 128px;
-
-  .loading & {
-    animation: 1.25s ease-in-out 0s infinite alternate float_logo;
-  }
-`;
-
-const LogoShadowElement = styled.img`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 128px;
-  height: 128px;
-
-  .loading & {
-    animation: 1.25s ease-in-out 0s infinite alternate float_logo_shadow;
   }
 `;
 
@@ -97,8 +71,6 @@ const LoadingPanel = ({ isLoading, unsupportedMessage, unavailableReason }) => {
   return (
     <LoadingPanelElement className={isLoading || unsupportedMessage || unavailableReason ? "loading" : ""}>
       <SplashWrap>
-        <LogoShadowElement src={jelLoadingShadowSrc} />
-        <LogoElement src={jelLoadingSrc} />
         {tipMessage && <Tip>{tipMessage}</Tip>}
         {backLink}
       </SplashWrap>
