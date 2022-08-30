@@ -42,8 +42,9 @@ export class MediaInteractionSystem {
     const { voxSystem } = SYSTEMS;
 
     if (!rightHand) return;
-    if (!window.APP.atomAccessManager.hubCan("spawn_and_move_media")) return;
     if (!SYSTEMS.cameraSystem.cameraViewAllowsManipulation()) return;
+
+    const canSpawnAndMove = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
 
     this.userinput = this.userinput || scene.systems.userinput;
     this.transformSystem = this.transformSystem || this.scene.systems["transform-selected-object"];
@@ -53,13 +54,13 @@ export class MediaInteractionSystem {
     const hoverEl = interaction.state.rightRemote.hovered || interaction.state.leftRemote.hovered;
     const heldEl = interaction.state.rightRemote.held || interaction.state.leftRemote.held;
 
-    if (this.userinput.get(paths.actions.mediaTransformReleaseAction)) {
+    if (this.userinput.get(paths.actions.mediaTransformReleaseAction) && canSpawnAndMove) {
       this.transformSystem.stopTransform();
       releaseEphemeralCursorLock();
       return;
     }
 
-    if (this.userinput.get(paths.actions.mediaScaleReleaseAction)) {
+    if (this.userinput.get(paths.actions.mediaScaleReleaseAction) && canSpawnAndMove) {
       this.scaleSystem = this.scaleSystem || this.scene.systems["scale-object"];
       this.scaleSystem.endScaling();
       releaseEphemeralCursorLock();
@@ -78,7 +79,8 @@ export class MediaInteractionSystem {
         this.transformSystem.mode === TRANSFORM_MODE.LIFT ||
         this.transformSystem.mode === TRANSFORM_MODE.STACK) &&
         this.transformSystem.transforming &&
-        (!rightHeld && !voxSystem.assetPanelDraggingVoxId))
+        (!rightHeld && !voxSystem.assetPanelDraggingVoxId) &&
+        canSpawnAndMove)
     ) {
       this.transformSystem.stopTransform();
       releaseEphemeralCursorLock();
@@ -101,6 +103,8 @@ export class MediaInteractionSystem {
     let interactionType = null;
     const isSynced = isSynchronized(hoverEl);
     const targetEl = isSynced ? getNetworkedEntitySync(hoverEl) : hoverEl;
+
+    const { atomAccessManager } = window.APP;
 
     if (this.userinput.get(paths.actions.mediaPrimaryAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.PRIMARY;
@@ -165,6 +169,16 @@ export class MediaInteractionSystem {
     }
 
     if (interactionType !== null) {
+      const canSpawnAndMove = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
+
+      if (!canSpawnAndMove) {
+        if (atomAccessManager.isEditingAvailable) {
+          this.scene.emit("action_setup_writeback");
+        }
+
+        return;
+      }
+
       const component = getMediaViewComponent(hoverEl);
       const isLocked = isLockedMedia(hoverEl);
       const lockAllows = !isLocked || !LOCKED_MEDIA_DISALLOWED_INTERACTIONS.includes(interactionType);
@@ -216,6 +230,7 @@ export class MediaInteractionSystem {
     const interaction = this.interaction;
     const isSynced = isSynchronized(heldEl);
     const targetEl = isSynced ? getNetworkedEntitySync(heldEl) : heldEl;
+    const { atomAccessManager } = window.APP;
 
     if (this.userinput.get(paths.actions.mediaSlideAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.SLIDE;
@@ -230,6 +245,16 @@ export class MediaInteractionSystem {
     }
 
     if (interactionType !== null) {
+      const canSpawnAndMove = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
+
+      if (!canSpawnAndMove) {
+        if (atomAccessManager.isEditingAvailable) {
+          this.scene.emit("action_setup_writeback");
+        }
+
+        return;
+      }
+
       const component = getMediaViewComponent(heldEl);
 
       if (component) {

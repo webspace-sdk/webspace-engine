@@ -424,16 +424,6 @@ function CanvasTop(props) {
     [saveCurrentEnvironmentColors, temporarilyUpdateEnvironmentColors]
   );
 
-  // Handle create hotkey (typically /)
-  useEffect(
-    () => {
-      const handleCreateHotkey = () => showCreateSelectPopup(createSelectPopupRef);
-      scene && scene.addEventListener("action_create", handleCreateHotkey);
-      return () => scene && scene.removeEventListener("action_create", handleCreateHotkey);
-    },
-    [scene, createSelectPopupRef, showCreateSelectPopup]
-  );
-
   const [canSpawnAndMoveMedia, setCanSpawnAndMoveMedia] = useState(
     hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id)
   );
@@ -452,7 +442,7 @@ function CanvasTop(props) {
 
   const hubMetadata = worldTree && worldTree.atomMetadata;
   const metadata = atomType === ATOM_TYPES.VOX ? window.APP.voxMetadata : hubMetadata;
-  const [editingAvailable, setIsEditingAvailable] = useState(atomAccessManager.isEditingAvailable());
+  const [editingAvailable, setIsEditingAvailable] = useState(atomAccessManager.isEditingAvailable);
   const [pwaAvailable, installPWA] = useInstallPWA();
   const environmentSettingsButtonRef = useRef();
   const hubNotificationButtonRef = useRef();
@@ -460,6 +450,26 @@ function CanvasTop(props) {
   const hubEditButtonRef = useRef();
   const hubCreateButtonRef = useRef();
   const hubContextButtonRef = useRef();
+
+  // Handle create hotkey (typically /)
+  // fires action_create or action_setup_writeback
+  useEffect(
+    () => {
+      const handleCreateHotkey = () => showCreateSelectPopup(createSelectPopupRef);
+      scene && scene.addEventListener("action_create", handleCreateHotkey);
+      return () => scene && scene.removeEventListener("action_create", handleCreateHotkey);
+    },
+    [scene, createSelectPopupRef, showCreateSelectPopup]
+  );
+
+  useEffect(
+    () => {
+      const handleCreateHotkey = () => showWritebackSetupPopup(hubEditButtonRef);
+      scene && scene.addEventListener("action_setup_writeback", handleCreateHotkey);
+      return () => scene && scene.removeEventListener("action_setup_writeback", handleCreateHotkey);
+    },
+    [scene, hubEditButtonRef, showWritebackSetupPopup]
+  );
 
   useEffect(
     () => {
@@ -474,7 +484,7 @@ function CanvasTop(props) {
     () => {
       const handler = () => {
         setCanSpawnAndMoveMedia(hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id));
-        setIsEditingAvailable(atomAccessManager.isEditingAvailable());
+        setIsEditingAvailable(atomAccessManager.isEditingAvailable);
       };
 
       handler();

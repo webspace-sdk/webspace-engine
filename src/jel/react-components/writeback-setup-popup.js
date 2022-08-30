@@ -8,9 +8,7 @@ import FolderAccessRequestPanel from "./folder-access-request-panel";
 let popupRoot = null;
 waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
-const WritebackSetupPopup = ({ setPopperElement, styles, attributes, hub, children }) => {
-  console.log(hub);
-
+const WritebackSetupPopup = ({ setPopperElement, styles, attributes, children }) => {
   const onChooseFolderClicked = useCallback(e => {
     e.preventDefault();
   }, []);
@@ -40,7 +38,7 @@ const WritebackSetupPopup = ({ setPopperElement, styles, attributes, hub, childr
 };
 
 WritebackSetupPopup.propTypes = {
-  hub: PropTypes.object
+  scene: PropTypes.object
 };
 
 export { WritebackSetupPopup as default };

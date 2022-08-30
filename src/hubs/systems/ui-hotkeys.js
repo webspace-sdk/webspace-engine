@@ -9,7 +9,8 @@ AFRAME.registerSystem("ui-hotkeys", {
   },
 
   tick: function() {
-    const canSpawnMedia = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
+    const { atomAccessManager } = window.APP;
+    const canSpawnMedia = atomAccessManager.hubCan("spawn_and_move_media");
     const isInspecting = SYSTEMS.cameraSystem.isInspecting();
 
     if (!this.userinput) {
@@ -20,10 +21,14 @@ AFRAME.registerSystem("ui-hotkeys", {
       this.store.update({ settings: { hideKeyTips: !this.store.state.settings.hideKeyTips } });
     }
 
-    if (this.userinput.get(paths.actions.create) && canSpawnMedia && !isInspecting) {
+    if (this.userinput.get(paths.actions.create) && !isInspecting) {
       if (this.el.sceneEl.is("entered")) {
-        this.el.emit("action_create");
-        this.store.handleActivityFlag("createMenu");
+        if (canSpawnMedia) {
+          this.el.emit("action_create");
+          this.store.handleActivityFlag("createMenu");
+        } else if (atomAccessManager.isEditingAvailable) {
+          this.el.emit("action_setup_writeback");
+        }
       }
     }
 

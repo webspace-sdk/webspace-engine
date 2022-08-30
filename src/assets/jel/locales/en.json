@@ -401,7 +401,7 @@
   "asset-panel.title": "Library",
   "asset-panel.objects": "Objects",
   "asset-panel.scenes": "Scenes",
-  "folder-access-request.notice": "Grant folder access to add objects and edit in this world.",
+  "folder-access-request.notice": "Grant folder access to add objects and edit this world.",
   "folder-access-request.tip": "Be sure to choose the folder this world's HTML file is located in.",
-  "folder-access-request.choose-folder": "Choose Folder"
+  "folder-access-request.choose-folder": "Choose folder"
 }

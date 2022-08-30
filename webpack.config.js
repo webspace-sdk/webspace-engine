@@ -163,7 +163,7 @@ module.exports = async (env, argv) => {
       compress: false,
       client: {
         webSocketURL: {
-          hostname: "0.0.0.0",
+          hostname: "127.0.0.1",
           port: 8080
         }
       },
