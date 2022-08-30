@@ -1,5 +1,6 @@
 import { EventTarget } from "event-target-shim";
 import { getSpaceIdFromHistory } from "./jel-url-utils";
+import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 const ATOM_TYPES = {
   HUB: 0,
@@ -82,7 +83,43 @@ class FileWriteback {
 
     return true;
   }
+
+  async write(content) {
+    if (this.handle === null);
+
+    const writable = await this.handle.createWritable();
+    writable.write(content);
+    writable.close();
+  }
 }
+
+const prettifyXml = sourceXml => {
+  const xmlDoc = new DOMParser().parseFromString(sourceXml, "application/xml");
+  const xsltDoc = new DOMParser().parseFromString(
+    [
+      // describes how we want to modify the XML - indent everything
+      '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
+      '  <xsl:strip-space elements="*"/>',
+      '  <xsl:template match="para[content-style][not(text())]">', // change to just text() to strip space in text nodes
+      '    <xsl:value-of select="normalize-space(.)"/>',
+      "  </xsl:template>",
+      '  <xsl:template match="node()|@*">',
+      '    <xsl:copy><xsl:apply-templates select="node()|@*"/></xsl:copy>',
+      "  </xsl:template>",
+      '  <xsl:output indent="yes"/>',
+      "</xsl:stylesheet>"
+    ].join("\n"),
+    "application/xml"
+  );
+
+  const xsltProcessor = new XSLTProcessor();
+  xsltProcessor.importStylesheet(xsltDoc);
+  const resultDoc = xsltProcessor.transformToDocument(xmlDoc);
+  const resultXml = new XMLSerializer().serializeToString(resultDoc);
+  return resultXml;
+};
+
+const MAX_WRITE_RATE_MS = 1000;
 
 export default class AtomAccessManager extends EventTarget {
   constructor() {
@@ -92,6 +129,8 @@ export default class AtomAccessManager extends EventTarget {
     this.init();
 
     this.writeback = null;
+    this.lastWriteTime = null;
+    this.writeTimeout = null;
   }
 
   init() {
@@ -102,6 +141,38 @@ export default class AtomAccessManager extends EventTarget {
       // Editing available should be false if this isn't "our" file, and was
       // spawned via an invite.
     }
+
+    this.mutationObserver = new MutationObserver(() => {
+      if (!this.writeback) return;
+
+      const write = () => {
+        const html = prettifyXml(new XMLSerializer().serializeToString(document));
+        this.writeback.write(html);
+        this.lastWriteTime = Date.now();
+
+        if (this.writeTimeout) {
+          clearTimeout(this.writeTimeout);
+          this.writeTimeout = null;
+        }
+      };
+
+      if (this.lastWriteTime && Date.now() - this.lastWriteTime < MAX_WRITE_RATE_MS) {
+        if (!this.writeTimeout) {
+          this.writeTimeout = setTimeout(write, MAX_WRITE_RATE_MS);
+        }
+      } else if (!this.writeTimeout) {
+        write();
+      }
+    });
+
+    waitForDOMContentLoaded().then(() => {
+      this.mutationObserver.observe(document.body, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        characterData: true
+      });
+    });
   }
 
   async configure() {

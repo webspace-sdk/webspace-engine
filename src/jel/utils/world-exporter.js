@@ -3,7 +3,7 @@ import cleaner from "clean-html";
 import { FONT_FACES } from "./quill-utils";
 import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { normalizeCoord } from "../systems/wrapped-entity-system";
-import { voxIdForVoxUrl } from "../systems/vox-system";
+//import { voxIdForVoxUrl } from "../systems/vox-system";
 
 const tmpPos = new THREE.Vector3();
 const tmpQuat = new THREE.Quaternion();
@@ -103,10 +103,10 @@ export default class WorldExporter {
     });
   }
 
-  async elToExportEl(doc, el) {
+  elToExportEl(doc, el) {
     const { terrainSystem } = AFRAME.scenes[0].systems["hubs-systems"];
-    const { accountChannel } = window.APP;
-    const { voxSystem } = SYSTEMS;
+    //const { accountChannel } = window.APP;
+    //const { voxSystem } = SYSTEMS;
 
     let { src, contentSubtype } = el.components["media-loader"].data;
 
@@ -135,24 +135,24 @@ export default class WorldExporter {
       exportEl.setAttribute("data-index", index);
     }
 
-    if (el.components["media-vox"]) {
-      exportEl = doc.createElement("embed");
-      exportEl.setAttribute("type", "model/vnd.jel-vox");
+    // if (el.components["media-vox"]) {
+    //   exportEl = doc.createElement("embed");
+    //   exportEl.setAttribute("type", "model/vnd.jel-vox");
 
-      // Look up export vox id
-      const voxId = voxIdForVoxUrl(src);
-      let exportableVoxId = await accountChannel.getExportableVox(voxId);
+    //   // Look up export vox id
+    //   const voxId = voxIdForVoxUrl(src);
+    //   let exportableVoxId = await accountChannel.getExportableVox(voxId);
 
-      if (!exportableVoxId) {
-        // No exportable vox, publish one.
-        const tmpVec = new THREE.Vector3();
-        el.object3D.getWorldScale(tmpVec);
-        exportableVoxId = await accountChannel.publishVox(voxId, "", "", 0, false, false, tmpVec.x, null, null);
-        await voxSystem.copyVoxContent(voxId, exportableVoxId);
-      }
+    //   if (!exportableVoxId) {
+    //     // No exportable vox, publish one.
+    //     const tmpVec = new THREE.Vector3();
+    //     el.object3D.getWorldScale(tmpVec);
+    //     exportableVoxId = await accountChannel.publishVox(voxId, "", "", 0, false, false, tmpVec.x, null, null);
+    //     await voxSystem.copyVoxContent(voxId, exportableVoxId);
+    //   }
 
-      src = src.replaceAll(voxId, exportableVoxId);
-    }
+    //   src = src.replaceAll(voxId, exportableVoxId);
+    // }
 
     if (el.components["gltf-model-plus"]) {
       exportEl = doc.createElement("embed");

@@ -132,6 +132,7 @@ export default `
                     listed-media
                     use-audio-system-settings
                     wrapped-entity
+                    dom-serialized-entity
                 >
                 </a-entity>
             </template>

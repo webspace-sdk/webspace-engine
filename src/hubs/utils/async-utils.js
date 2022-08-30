@@ -11,3 +11,11 @@ export const waitForShadowDOMContentLoaded = function() {
     return waitForEvent("shadow-root-ready", document);
   }
 };
+
+export const waitForDOMContentLoaded = function(doc = document, win = window) {
+  if (doc.readyState === "complete" || doc.readyState === "loaded" || doc.readyState === "interactive") {
+    return Promise.resolve(null);
+  } else {
+    return waitForEvent("DOMContentLoaded", win);
+  }
+};

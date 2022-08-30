@@ -27,6 +27,7 @@ import { MediaPresenceSystem } from "../../jel/systems/media-presence-system";
 import { AudioSystem } from "./audio-system";
 import { MediaStreamSystem } from "./media-stream-system";
 import { WrappedEntitySystem } from "../../jel/systems/wrapped-entity-system";
+import { DomSerializeSystem } from "../../jel/systems/dom-serialize-system";
 import { TerrainSystem } from "../../jel/systems/terrain-system";
 import { AtmosphereSystem } from "../../jel/systems/atmosphere-system";
 import { UIAnimationSystem } from "../../jel/systems/ui-animation-system";
@@ -92,6 +93,7 @@ AFRAME.registerSystem("hubs-systems", {
       this.skyBeamSystem,
       this.terrainSystem
     );
+    this.domSerializeSystem = new DomSerializeSystem(this.el);
     this.projectileSystem = new ProjectileSystem(
       this.el,
       this.voxmojiSystem,
@@ -147,6 +149,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.cameraRotatorSystem.tick();
     this.characterController.tick(t, dt);
     this.wrappedEntitySystem.tick();
+    this.domSerializeSystem.tick();
     this.cursorTogglingSystem.tick(systems.interaction, systems.userinput, this.el);
     this.interactionSfxSystem.tick(systems.interaction, systems.userinput, this.soundEffectsSystem);
     this.superSpawnerSystem.tick();
