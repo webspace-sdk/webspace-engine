@@ -138,10 +138,12 @@ export class AppAwareMouseDevice {
     }
 
     // Handle ephemeral mouse locking for look key/button
-    if (isMouseLookingGesture) {
-      beginEphemeralCursorLock();
-    } else if (!isNonGrabTransforming) {
-      releaseEphemeralCursorLock();
+    if (document.hasFocus()) {
+      if (isMouseLookingGesture) {
+        beginEphemeralCursorLock();
+      } else if (!isNonGrabTransforming) {
+        releaseEphemeralCursorLock();
+      }
     }
 
     const lockState = getCursorLockState();
