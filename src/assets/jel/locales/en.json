@@ -245,6 +245,7 @@
   "unavailable.go_home": "Go back to Jel Home",
   "unavailable.full": "Unable to join, world is full.",
   "install.desktop": "Install App",
+  "writeback.edit-world": "Edit World",
   "paused.info": "Jel is in audio-only mode.\nFocus to resume.",
   "chat.info": "Others are here. Press enter to chat.",
   "chat-log.join": "joined this World.",
@@ -399,5 +400,8 @@
   "toggle-floor.hide-floor": "Floor On",
   "asset-panel.title": "Library",
   "asset-panel.objects": "Objects",
-  "asset-panel.scenes": "Scenes"
+  "asset-panel.scenes": "Scenes",
+  "folder-access-request.notice": "Grant folder access to add objects and edit in this world.",
+  "folder-access-request.tip": "Be sure to choose the folder this world's HTML file is located in.",
+  "folder-access-request.choose-folder": "Choose Folder"
 }

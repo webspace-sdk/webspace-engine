@@ -12,6 +12,7 @@ import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
 import notificationsIcon from "../../assets/jel/images/icons/notifications-shadow.svgi";
 import securityIcon from "../../assets/jel/images/icons/security-shadow.svgi";
 import sunIcon from "../../assets/jel/images/icons/sun-shadow.svgi";
+import editIcon from "../../assets/jel/images/icons/edit-shadow.svgi";
 import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { getMessages } from "../../hubs/utils/i18n";
 import Tooltip from "./tooltip";
@@ -20,6 +21,7 @@ import { ATOM_TYPES } from "../utils/atom-metadata";
 import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { getPresetAsColorTuples } from "../utils/world-color-presets";
 import HubPermissionsPopup from "./hub-permissions-popup";
+import WritebackSetupPopup from "./writeback-setup-popup";
 import HubNotificationsPopup from "./hub-notifications-popup";
 import EnvironmentSettingsPopup from "./environment-settings-popup";
 
@@ -78,6 +80,7 @@ const CornerButton = styled.button`
   position: relative;
   color: var(--canvas-overlay-text-color);
   width: content-width;
+  display: flex;
   margin: 0 12px 0 0;
   white-space: nowrap;
   overflow: hidden;
@@ -85,7 +88,7 @@ const CornerButton = styled.button`
   border-radius: 4px;
   cursor: pointer;
   pointer-events: auto;
-  padding: 6px 10px;
+  padding: 6px 12px 6px 10px;
   border: 2px solid rgba(255, 255, 255, 0.4);
   appearance: none;
   -moz-appearance: none;
@@ -96,6 +99,7 @@ const CornerButton = styled.button`
   text-align: left;
   max-width: fit-content;
   text-shadow: 0px 0px 4px var(--menu-shadow-color);
+  line-height: 22px;
 
   &:hover {
     background-color: var(--canvas-overlay-item-hover-background-color);
@@ -105,8 +109,8 @@ const CornerButton = styled.button`
     background-color: var(--canvas-overlay-item-active-background-color);
   }
 
-  .panels-collapsed & {
-    display: none;
+  & div {
+    margin-right: 8px;
   }
 `;
 
@@ -355,6 +359,14 @@ function CanvasTop(props) {
     popupElement: hubPermissionsPopupElement
   } = usePopupPopper(null, "bottom-end", [0, 8]);
 
+  const {
+    styles: writebackSetupPopupStyles,
+    attributes: writebackSetupPopupAttributes,
+    show: showWritebackSetupPopup,
+    setPopup: setWritebackSetupPopupElement,
+    popupElement: writebackSetupPopupElement
+  } = usePopupPopper(null, "bottom-end", [0, 8]);
+
   const updateWorldType = useCallback(
     worldType => {
       spaceChannel.updateHub(hub.hub_id, { world_type: worldType });
@@ -440,11 +452,12 @@ function CanvasTop(props) {
 
   const hubMetadata = worldTree && worldTree.atomMetadata;
   const metadata = atomType === ATOM_TYPES.VOX ? window.APP.voxMetadata : hubMetadata;
-  const isWorld = hub && hub.type === "world";
+  const [editingAvailable, setIsEditingAvailable] = useState(atomAccessManager.isEditingAvailable());
   const [pwaAvailable, installPWA] = useInstallPWA();
   const environmentSettingsButtonRef = useRef();
   const hubNotificationButtonRef = useRef();
   const hubPermissionsButtonRef = useRef();
+  const hubEditButtonRef = useRef();
   const hubCreateButtonRef = useRef();
   const hubContextButtonRef = useRef();
 
@@ -459,8 +472,13 @@ function CanvasTop(props) {
 
   useEffect(
     () => {
-      const handler = () => setCanSpawnAndMoveMedia(hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id));
-      setCanSpawnAndMoveMedia(hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id));
+      const handler = () => {
+        setCanSpawnAndMoveMedia(hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id));
+        setIsEditingAvailable(atomAccessManager.isEditingAvailable());
+      };
+
+      handler();
+
       atomAccessManager && atomAccessManager.addEventListener("permissions_updated", handler);
       return () => atomAccessManager && atomAccessManager.removeEventListener("permissions_updated", handler);
     },
@@ -477,15 +495,24 @@ function CanvasTop(props) {
             <FormattedMessage id="install.desktop" />
           </CornerButton>
         )}
-        {isWorld && (
+        {editingAvailable && (
+          <CornerButton
+            ref={hubEditButtonRef}
+            onMouseDown={e => cancelEventIfFocusedWithin(e, writebackSetupPopupElement)}
+            onClick={() => showWritebackSetupPopup(hubEditButtonRef)}
+          >
+            <CornerButtonIcon dangerouslySetInnerHTML={{ __html: editIcon }} />
+            <FormattedMessage id="writeback.edit-world" />
+          </CornerButton>
+        )}
+        {
           <EnvironmentSettingsButton
             ref={environmentSettingsButtonRef}
             onMouseDown={e => cancelEventIfFocusedWithin(e, environmentSettingsPopupElement)}
             onClick={() => showEnvironmentSettingsPopup(environmentSettingsButtonRef)}
           />
-        )}
-        {isWorld &&
-          hubCan &&
+        }
+        {hubCan &&
           hubCan("update_hub_roles", hub && hub.hub_id) && (
             <HubPermissionsButton
               ref={hubPermissionsButtonRef}
@@ -493,31 +520,30 @@ function CanvasTop(props) {
               onClick={() => showHubPermissionsPopup(hubPermissionsButtonRef)}
             />
           )}
-        {isWorld && (
+        {
           <HubNotificationButton
             ref={hubNotificationButtonRef}
             onMouseDown={e => cancelEventIfFocusedWithin(e, hubNotificationPopupElement)}
             onClick={() => showHubNotificationPopup(hubNotificationButtonRef)}
           />
+        }
+        {canSpawnAndMoveMedia && (
+          <HubCreateButton
+            ref={hubCreateButtonRef}
+            onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
+            onClick={() => {
+              store.handleActivityFlag("createMenu");
+              showCreateSelectPopup(hubCreateButtonRef, "bottom-end");
+            }}
+          />
         )}
-        {isWorld &&
-          canSpawnAndMoveMedia && (
-            <HubCreateButton
-              ref={hubCreateButtonRef}
-              onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
-              onClick={() => {
-                store.handleActivityFlag("createMenu");
-                showCreateSelectPopup(hubCreateButtonRef, "bottom-end");
-              }}
-            />
-          )}
         <HubContextButton
           ref={hubContextButtonRef}
           onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
           onClick={() => {
             showHubContextMenuPopup(hub.hub_id, hubMetadata, hubContextButtonRef, "bottom-end", [0, 8], {
               hideRename: true,
-              showExport: isWorld,
+              showExport: true,
               isCurrentWorld: hub.hub_id === atomAccessManager.currentHubId,
               showReset: !!hub.template.name
             });
@@ -590,6 +616,11 @@ function CanvasTop(props) {
         attributes={hubPermissionsPopupAttributes}
         hubMetadata={hubMetadata}
         hub={hub}
+      />
+      <WritebackSetupPopup
+        setPopperElement={setWritebackSetupPopupElement}
+        styles={writebackSetupPopupStyles}
+        attributes={writebackSetupPopupAttributes}
       />
       <HubNotificationsPopup
         setPopperElement={setHubNotificationPopupElement}
