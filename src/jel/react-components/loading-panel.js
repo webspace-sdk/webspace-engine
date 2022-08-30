@@ -49,6 +49,14 @@ const LogoElement = styled.img`
   left: 0;
   width: 128px;
   height: 128px;
+  @keyframes float_logo {
+    from {
+      top: -18px;
+    }
+    to {
+      top: -5px;
+    }
+  }
 
   .loading & {
     animation: 1.25s ease-in-out 0s infinite alternate float_logo;
@@ -61,6 +69,15 @@ const LogoShadowElement = styled.img`
   left: 0;
   width: 128px;
   height: 128px;
+
+  @keyframes float_logo_shadow {
+    from {
+      transform: scaleX(1.2);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
 
   .loading & {
     animation: 1.25s ease-in-out 0s infinite alternate float_logo_shadow;
@@ -79,8 +96,9 @@ const LoadingPanel = ({ isLoading, unsupportedMessage, unavailableReason }) => {
   return (
     <LoadingPanelElement className={isLoading || unsupportedMessage || unavailableReason ? "loading" : ""}>
       <SplashWrap>
-        {unavailableReason && <LogoShadowElement src={jelLoadingShadowSrc} />}
-        {unavailableReason && <LogoElement src={jelLoadingSrc} />}
+        <LogoShadowElement src={jelLoadingShadowSrc} />
+        <LogoElement src={jelLoadingSrc} />
+
         {tipMessage && <Tip>{tipMessage}</Tip>}
       </SplashWrap>
     </LoadingPanelElement>
