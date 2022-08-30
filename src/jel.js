@@ -164,7 +164,6 @@ import {
   ComicFontCSS,
   ComicFont2CSS,
   WritingFontCSS,
-  WritingFont2CSS,
   LabelFontCSS
 } from "./jel/fonts/quill-fonts";
 import { registerWrappedEntityPositionNormalizers } from "./jel/systems/wrapped-entity-system";
@@ -949,7 +948,6 @@ async function start() {
     ${ComicFontCSS}
     ${ComicFont2CSS}
     ${WritingFontCSS}
-    ${WritingFont2CSS}
     ${LabelFontCSS}
   `;
   // the style will only be parsed once it is added to a document

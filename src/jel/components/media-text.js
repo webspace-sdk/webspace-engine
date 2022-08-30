@@ -482,7 +482,6 @@ AFRAME.registerComponent("media-text", {
     classList.remove("font-comic");
     classList.remove("font-comic2");
     classList.remove("font-writing");
-    classList.remove("font-writing2");
 
     if (font === FONT_FACES.SANS_SERIF) {
       classList.add("font-sans-serif");
@@ -496,8 +495,6 @@ AFRAME.registerComponent("media-text", {
       classList.add("font-comic2");
     } else if (font === FONT_FACES.WRITING) {
       classList.add("font-writing");
-    } else if (font === FONT_FACES.WRITING2) {
-      classList.add("font-writing2");
     }
 
     this.rerenderQuill();

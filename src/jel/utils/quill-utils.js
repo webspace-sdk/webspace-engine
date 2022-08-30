@@ -7,8 +7,7 @@ import {
   SansSerifFontCSS,
   MonoFontCSS,
   ComicFont2CSS,
-  WritingFontCSS,
-  WritingFont2CSS
+  WritingFontCSS
 } from "../fonts/quill-fonts";
 
 import QUILL_PRE from "../../assets/jel/stylesheets/quill-pre.scss";
@@ -31,13 +30,12 @@ export const FONT_FACES = {
   MONO: 2,
   COMIC: 3,
   COMIC2: 4,
-  WRITING: 5,
-  WRITING2: 6
+  WRITING: 5
 };
 
 export const MAX_FONT_FACE = 6;
 
-const { SANS_SERIF, MONO, COMIC, COMIC2, WRITING, WRITING2 } = FONT_FACES;
+const { SANS_SERIF, MONO, COMIC, COMIC2, WRITING } = FONT_FACES;
 
 export function renderQuillToImg(
   quill,
@@ -152,9 +150,6 @@ export function renderQuillToImg(
       break;
     case WRITING:
       fontCSS = WritingFontCSS;
-      break;
-    case WRITING2:
-      fontCSS = WritingFont2CSS;
       break;
     default:
       fontCSS = SerifFontCSS;
