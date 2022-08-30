@@ -6,7 +6,8 @@ let currentHubId = null;
 let currentSpaceId = null;
 
 const update = async () => {
-  if (currentHref === document.location.href) return;
+  if (currentHref === document.location.href && currentHubId && currentSpaceId) return;
+
   currentHref = document.location.href;
   currentHubId = (await b58Hash(document.location.href)).substring(0, 16);
 

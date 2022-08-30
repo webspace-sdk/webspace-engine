@@ -81,6 +81,9 @@ class FileWriteback {
       .objectStore("space-file-handles")
       .put({ space_id: spaceId, handle: this.handle });
 
+    const writable = await this.handle.createWritable();
+    writable.close();
+
     return true;
   }
 

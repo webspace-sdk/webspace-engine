@@ -5,19 +5,33 @@ import ActionButton from "./action-button";
 import PropTypes from "prop-types";
 
 const FolderAccessRequestPanel = ({ showErrorTip, onAccessClicked }) => {
+  const supported = !!window.showDirectoryPicker;
+
   return (
     <PanelWrap>
       {!showErrorTip && (
         <Info>
-          <FormattedMessage id="folder-access-request.notice" />
+          <FormattedMessage
+            id={supported ? "folder-access-request.notice" : "folder-access-request.unsupported-notice"}
+          />
         </Info>
       )}
       <Tip>
-        <FormattedMessage id={showErrorTip ? "folder-access-request.error-tip" : "folder-access-request.tip"} />
+        <FormattedMessage
+          id={
+            supported
+              ? showErrorTip
+                ? "folder-access-request.error-tip"
+                : "folder-access-request.tip"
+              : "folder-access-request.unsupported-tip"
+          }
+        />
       </Tip>
-      <ActionButton style={{ minWidth: "calc(100% - 24px)" }} onClick={onAccessClicked}>
-        <FormattedMessage id="folder-access-request.choose-folder" />
-      </ActionButton>
+      {supported && (
+        <ActionButton style={{ minWidth: "calc(100% - 24px)" }} onClick={onAccessClicked}>
+          <FormattedMessage id="folder-access-request.choose-folder" />
+        </ActionButton>
+      )}
     </PanelWrap>
   );
 };

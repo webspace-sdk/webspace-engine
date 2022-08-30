@@ -17,9 +17,10 @@ const WritebackSetupPopup = ({ setPopperElement, styles, attributes, children })
     async e => {
       e.preventDefault();
       const result = await atomAccessManager.configure();
+      setShowErrorTip(!result);
 
-      if (!result) {
-        setShowErrorTip(true);
+      if (result) {
+        DOM_ROOT.activeElement.blur();
       }
     },
     [atomAccessManager]
