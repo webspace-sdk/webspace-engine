@@ -1765,10 +1765,6 @@ AFRAME.registerComponent("media-canvas", {
     if (hasMediaLayer(this.el)) {
       this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
     }
-
-    if (this.data.src.startsWith("jel://bridge")) {
-      SYSTEMS.videoBridgeSystem.exitBridge();
-    }
   },
 
   setMediaPresence(presence, refresh = false) {
@@ -1810,12 +1806,6 @@ AFRAME.registerComponent("media-canvas", {
       let canvas;
 
       this.el.emit("canvas-loading");
-
-      if (src === "jel://bridge/video") {
-        canvas = SYSTEMS.videoBridgeSystem.bridgeVideoCanvas;
-      } else if (src === "jel://bridge/share") {
-        canvas = SYSTEMS.videoBridgeSystem.bridgeShareCanvas;
-      }
 
       if (!canvas) {
         disposeExistingMesh(this.el);

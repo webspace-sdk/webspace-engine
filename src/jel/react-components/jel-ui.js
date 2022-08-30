@@ -531,7 +531,7 @@ function JelUI(props) {
     <StyleSheetManager target={DOM_ROOT}>
       <WrappedIntlProvider>
         <Root className="expand-asset-panel">
-          <LoadingPanel isLoading={!isDoneLoading} unavailableReason={unavailableReason} />
+          <LoadingPanel isLoading={!isDoneLoading || !!unavailableReason} unavailableReason={unavailableReason} />
           <Snackbar />
           <Wrap id="jel-ui-wrap">
             {showNotificationBanner &&

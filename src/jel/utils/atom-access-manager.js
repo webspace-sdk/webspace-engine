@@ -39,12 +39,48 @@ const VALID_PERMISSIONS = {
 };
 
 class FileWriteback {
-  constructor(handle = null) {
+  constructor(db, handle = null) {
     this.handle = handle;
+    this.db = db;
   }
 
   get ready() {
     return this.handle !== null;
+  }
+
+  async configure() {
+    const fileParts = document.location.pathname.split("/");
+
+    const containingDir = fileParts[fileParts.length - 2];
+    const file = fileParts[fileParts.length - 1];
+
+    const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+
+    if (dirHandle.name !== containingDir) {
+      return false;
+    }
+
+    this.handle = null;
+
+    for await (const [key, value] of dirHandle.entries()) {
+      if (key === file) {
+        this.handle = value;
+        break;
+      }
+    }
+
+    if (this.handle === null) {
+      return false;
+    }
+
+    const spaceId = await getSpaceIdFromHistory();
+
+    await this.db
+      .transaction("space-file-handles", "readwrite")
+      .objectStore("space-file-handles")
+      .put({ space_id: spaceId, handle: this.handle });
+
+    return true;
   }
 }
 
@@ -68,12 +104,17 @@ export default class AtomAccessManager extends EventTarget {
     }
   }
 
-  initFileWriteback() {
-    const dirPath = document.location.pathname.substring(0, document.location.pathname.lastIndexOf("/"));
-    const fileParts = document.location.pathname.split("/");
+  async configure() {
+    const result = await this.writeback.configure();
 
-    const containingDir = fileParts[fileParts.length - 2];
-    const file = fileParts[fileParts.length - 1];
+    if (result) {
+      this.dispatchEvent(new CustomEvent("permissions_updated", {}));
+    }
+
+    return result;
+  }
+
+  initFileWriteback() {
     const req = indexedDB.open("file-handles", 1);
 
     req.addEventListener("success", ({ target: { result } }) => {
@@ -86,15 +127,33 @@ export default class AtomAccessManager extends EventTarget {
           .addEventListener("success", async ({ target: { result } }) => {
             if (result) {
               const handle = result.handle;
-              if (handle.queryPermission({ mode: "readwrite" }).state === "granted") {
-                await handle.requestPermission({ mode: "readwrite" });
-                this.writeback = new FileWriteback(handle);
+              const currentPerm = await handle.queryPermission({ mode: "readwrite" });
+
+              if (currentPerm !== "denied") {
+                this.isEditingAvailable = false;
+                this.dispatchEvent(new CustomEvent("permissions_updated", {}));
+
+                if (currentPerm === "prompt") {
+                  try {
+                    await handle.requestPermission({ mode: "readwrite" });
+                  } catch (e) {
+                    // Wait for user activation
+                    await new Promise(res => window.addEventListener("mousedown", res, { once: true }));
+                    await handle.requestPermission({ mode: "readwrite" });
+                  }
+
+                  // Degrade this session, use a new session to keep filehandle open.
+                  window.open(document.location, "_blank");
+                  this.dispatchEvent(new CustomEvent("secondary_session_opened"));
+                }
+
+                this.writeback = new FileWriteback(db, handle);
                 this.dispatchEvent(new CustomEvent("permissions_updated", {}));
               }
             }
 
             if (this.writeback === null) {
-              this.writeback = new FileWriteback();
+              this.writeback = new FileWriteback(db);
             }
           });
       });
@@ -107,10 +166,6 @@ export default class AtomAccessManager extends EventTarget {
 
   setCurrentHubId(hubId) {
     this.currentHubId = hubId;
-  }
-
-  isEditingAvailable() {
-    return true;
   }
 
   hubCan(permission, hubId = null) {

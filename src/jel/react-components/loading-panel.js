@@ -2,6 +2,8 @@ import React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import { getMessages } from "../../hubs/utils/i18n";
+import jelLoadingSrc from "!!url-loader!../../assets/jel/images/jel-loading.svg";
+import jelLoadingShadowSrc from "!!url-loader!../../assets/jel/images/jel-loading-shadow.svg";
 
 const LoadingPanelElement = styled.div`
   position: absolute;
@@ -41,16 +43,28 @@ const Tip = styled.div`
   color: var(--tooltip-text-color);
 `;
 
-const BackLink = styled.a`
+const LogoElement = styled.img`
   position: absolute;
-  top: 208px;
-  left: -110px;
-  white-space: pre;
-  width: 352px;
-  line-height: 24px;
-  text-align: center;
-  color: var(--tooltip-text-color);
-  text-decoration: underline;
+  top: 0;
+  left: 0;
+  width: 128px;
+  height: 128px;
+
+  .loading & {
+    animation: 1.25s ease-in-out 0s infinite alternate float_logo;
+  }
+`;
+
+const LogoShadowElement = styled.img`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 128px;
+  height: 128px;
+
+  .loading & {
+    animation: 1.25s ease-in-out 0s infinite alternate float_logo_shadow;
+  }
 `;
 
 const LoadingPanel = ({ isLoading, unsupportedMessage, unavailableReason }) => {
@@ -62,17 +76,12 @@ const LoadingPanel = ({ isLoading, unsupportedMessage, unavailableReason }) => {
     tipMessage = messages[`unavailable.${unavailableReason}`];
   }
 
-  let backLink = null;
-
-  if (unavailableReason) {
-    backLink = <BackLink href="/">{messages["unavailable.go_home"]}</BackLink>;
-  }
-
   return (
     <LoadingPanelElement className={isLoading || unsupportedMessage || unavailableReason ? "loading" : ""}>
       <SplashWrap>
+        {unavailableReason && <LogoShadowElement src={jelLoadingShadowSrc} />}
+        {unavailableReason && <LogoElement src={jelLoadingSrc} />}
         {tipMessage && <Tip>{tipMessage}</Tip>}
-        {backLink}
       </SplashWrap>
     </LoadingPanelElement>
   );

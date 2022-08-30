@@ -242,8 +242,9 @@
   "unavailable.denied": "You don't have access to this world.\nYou must be a space member or an allowed guest.",
   "unavailable.closed": "This world is no longer available",
   "unavailable.connect_error": "Unable to connect.\nCheck your Internet connection.",
-  "unavailable.go_home": "Go back to Jel Home",
+  "unavailable.go_home": "Unknown error. Check the log.",
   "unavailable.full": "Unable to join, world is full.",
+  "unavailable.secondary_session": "Keep this tab open while you're editing your world.\nThis will avoid more prompting for file permissions.",
   "install.desktop": "Install App",
   "writeback.edit-world": "Edit World",
   "paused.info": "Jel is in audio-only mode.\nFocus to resume.",
@@ -403,5 +404,6 @@
   "asset-panel.scenes": "Scenes",
   "folder-access-request.notice": "Grant folder access to add objects and edit this world.",
   "folder-access-request.tip": "Be sure to choose the folder this world's HTML file is located in.",
+  "folder-access-request.error-tip": "This HTML file was not found in the specified folder, choose another.",
   "folder-access-request.choose-folder": "Choose folder"
 }

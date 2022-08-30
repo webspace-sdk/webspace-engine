@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
 import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
@@ -9,11 +9,23 @@ let popupRoot = null;
 waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 const WritebackSetupPopup = ({ setPopperElement, styles, attributes, children }) => {
-  const onChooseFolderClicked = useCallback(e => {
-    e.preventDefault();
-  }, []);
+  const { atomAccessManager } = window.APP;
 
-  const contents = <FolderAccessRequestPanel onAccessClicked={onChooseFolderClicked} />;
+  const [showErrorTip, setShowErrorTip] = useState(false);
+
+  const onConfigureClicked = useCallback(
+    async e => {
+      e.preventDefault();
+      const result = await atomAccessManager.configure();
+
+      if (!result) {
+        setShowErrorTip(true);
+      }
+    },
+    [atomAccessManager]
+  );
+
+  const contents = <FolderAccessRequestPanel showErrorTip={showErrorTip} onAccessClicked={onConfigureClicked} />;
 
   const popupInput = (
     <div

@@ -497,15 +497,18 @@ function CanvasTop(props) {
 
   let cornerButtons;
 
+  const showEditButton = editingAvailable && !canSpawnAndMoveMedia;
+  const showInstallButton = !showEditButton && pwaAvailable;
+
   if (!isInspecting) {
     cornerButtons = (
       <CornerButtons>
-        {pwaAvailable && (
+        {showInstallButton && (
           <CornerButton onClick={installPWA}>
             <FormattedMessage id="install.desktop" />
           </CornerButton>
         )}
-        {editingAvailable && (
+        {showEditButton && (
           <CornerButton
             ref={hubEditButtonRef}
             onMouseDown={e => cancelEventIfFocusedWithin(e, writebackSetupPopupElement)}

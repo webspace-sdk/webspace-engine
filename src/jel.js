@@ -354,7 +354,13 @@ function initBatching() {
     .setAttribute("media-image", { batch: true, src: initialBatchImage, contentType: "image/png" });
 }
 
-function addGlobalEventListeners(scene, entryManager) {
+function addGlobalEventListeners(scene, entryManager, atomAccessManager) {
+  atomAccessManager.addEventListener("secondary_session_opened", () => {
+    document.title = `World Helper Tab`;
+    entryManager.exitScene();
+    remountJelUI({ unavailableReason: "secondary_session" });
+  });
+
   scene.addEventListener("preferred_mic_changed", e => {
     const deviceId = e.detail;
     scene.systems["hubs-systems"].mediaStreamSystem.updatePreferredMicDevice(deviceId);
@@ -579,9 +585,6 @@ function setupGameEnginePausing(scene) {
     document.addEventListener("visibilitychange", () => apply());
 
     window.addEventListener("blur", () => {
-      // When setting up bridge, bridge iframe can steal focus
-      if (SYSTEMS.videoBridgeSystem.isSettingUpBridge) return;
-
       // May be an iframe, don't pause in that case
       if (DOM_ROOT.activeElement?.contentWindow && DOM_ROOT.activeElement?.contentWindow.document.hasFocus()) {
         return;
@@ -1139,7 +1142,7 @@ async function start() {
     scene.addEventListener("loaded", () => initPhysicsThreeAndCursor(scene), { once: true });
   }
 
-  addGlobalEventListeners(scene, entryManager);
+  addGlobalEventListeners(scene, entryManager, atomAccessManager);
   setupSidePanelLayout(scene);
   setupGameEnginePausing(scene);
   await emojiLoadPromise;
