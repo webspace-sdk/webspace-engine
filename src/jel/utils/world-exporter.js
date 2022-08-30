@@ -194,16 +194,13 @@ export default class WorldExporter {
           fontFamily = "monospaced";
           break;
         case FONT_FACES.COMIC:
-          fontFamily = "comic";
+          fontFamily = "fantasy";
           break;
         case FONT_FACES.COMIC2:
-          fontFamily = "comic-2";
+          fontFamily = "ui-rounded";
           break;
         case FONT_FACES.WRITING:
           fontFamily = "cursive";
-          break;
-        case FONT_FACES.WRITING2:
-          fontFamily = "cursive-2";
           break;
       }
 

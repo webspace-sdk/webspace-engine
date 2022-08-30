@@ -363,17 +363,14 @@ export default class WorldImporter {
           case "monospaced":
             font = FONT_FACES.MONO;
             break;
-          case "comic":
+          case "fantasy":
             font = FONT_FACES.COMIC;
             break;
-          case "comic-2":
+          case "ui-rounded":
             font = FONT_FACES.COMIC2;
             break;
           case "cursive":
             font = FONT_FACES.WRITING;
-            break;
-          case "cursive-2":
-            font = FONT_FACES.WRITING2;
             break;
         }
 
