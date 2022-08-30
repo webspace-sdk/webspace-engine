@@ -359,6 +359,13 @@ function addGlobalEventListeners(scene, entryManager, atomAccessManager) {
     document.title = `World Helper Tab`;
     entryManager.exitScene();
     remountJelUI({ unavailableReason: "secondary_session" });
+
+    if (process.env.NODE_ENV === "development") {
+      // Prevent webpack dev server from reloading this
+      window.onbeforeunload = function() {
+        return false;
+      };
+    }
   });
 
   scene.addEventListener("preferred_mic_changed", e => {
