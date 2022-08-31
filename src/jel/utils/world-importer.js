@@ -374,6 +374,8 @@ export default class WorldImporter {
         mediaOptions.backgroundColor = mediaBackgroundColor;
       }
 
+      const isLocked = el.getAttribute("draggable") === null;
+
       const entity = addMedia(
         src,
         contents,
@@ -390,7 +392,7 @@ export default class WorldImporter {
         id,
         true,
         type,
-        true
+        isLocked
       ).entity;
 
       const object3D = entity.object3D;

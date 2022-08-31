@@ -429,6 +429,12 @@ AFRAME.registerComponent("media-text", {
     return quill;
   },
 
+  getQuill() {
+    const networkId = getNetworkId(this.el);
+    if (!hasQuill(networkId)) return null;
+    return getQuill(networkId);
+  },
+
   unbindAndRemoveQuill() {
     const networkId = getNetworkId(this.el);
     if (!hasQuill(networkId)) return;

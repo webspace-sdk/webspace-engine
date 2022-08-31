@@ -6,14 +6,15 @@ let currentHubId = null;
 let currentSpaceId = null;
 
 const update = async () => {
-  if (currentHref === document.location.href && currentHubId && currentSpaceId) return;
+  const { origin, pathname } = document.location;
+  if (currentHref === origin + pathname && currentHubId && currentSpaceId) return;
 
-  currentHref = document.location.href;
-  currentHubId = (await b58Hash(document.location.href)).substring(0, 16);
+  currentHref = origin + pathname;
+  currentHubId = (await b58Hash(currentHref)).substring(0, 16);
 
   // Space id is the path the world is in.
-  const pathParts = document.location.pathname.split("/");
-  let toHash = document.location.href;
+  const pathParts = pathname.split("/");
+  let toHash = origin + pathname;
 
   if (pathParts.length > 1) {
     toHash = toHash.replace(new RegExp(`/${pathParts[pathParts.length - 1]}$`), "");

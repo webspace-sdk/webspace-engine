@@ -355,8 +355,10 @@ function initBatching() {
 }
 
 function addGlobalEventListeners(scene, entryManager, atomAccessManager) {
-  atomAccessManager.addEventListener("secondary_session_opened", () => {
+  atomAccessManager.addEventListener("secondary_session_opened", async () => {
+    await window.APP.atomAccessManager.closeWriteback();
     document.title = `World Helper Tab`;
+
     entryManager.exitScene();
     remountJelUI({ unavailableReason: "secondary_session" });
 

@@ -168,7 +168,7 @@ const joinHubChannel = (hubId, spaceId, hubStore, entryManager, remountJelUI) =>
     name: document.title,
     space_id: spaceId,
     spawn_point: { position: { x: 0, y: 0, z: 0 }, radius: 10, rotation: { w: 1, x: 0, y: 0, z: 0 } },
-    url: document.location.href,
+    url: document.location.origin + document.location.pathname,
     world: {
       bark_color_b: 0.12156862745098039,
       bark_color_g: 0.20784313725490197,

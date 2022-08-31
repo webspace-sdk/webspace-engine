@@ -43,6 +43,7 @@ class FileWriteback {
   constructor(db, handle = null) {
     this.handle = handle;
     this.db = db;
+    this.isWriting = false;
   }
 
   get ready() {
@@ -88,11 +89,29 @@ class FileWriteback {
   }
 
   async write(content) {
-    if (this.handle === null);
+    if (this.handle === null) return;
 
-    const writable = await this.handle.createWritable();
-    writable.write(content);
-    writable.close();
+    while (this.isWriting) {
+      await new Promise(res => setTimeout(res, 100));
+    }
+
+    this.isWriting = true;
+
+    try {
+      const writable = await this.handle.createWritable();
+      writable.write(content);
+      writable.close();
+    } finally {
+      this.isWriting = false;
+    }
+  }
+
+  async close() {
+    while (this.isWriting) {
+      await new Promise(res => setTimeout(res, 100));
+    }
+
+    this.handle = null;
   }
 }
 
@@ -119,6 +138,7 @@ const prettifyXml = sourceXml => {
   xsltProcessor.importStylesheet(xsltDoc);
   const resultDoc = xsltProcessor.transformToDocument(xmlDoc);
   const resultXml = new XMLSerializer().serializeToString(resultDoc);
+
   return resultXml;
 };
 
@@ -150,7 +170,13 @@ export default class AtomAccessManager extends EventTarget {
 
       const write = () => {
         const html = prettifyXml(new XMLSerializer().serializeToString(document));
-        this.writeback.write(html);
+
+        if (html && html.length > 0) {
+          this.writeback.write(html);
+        } else {
+          console.warn("Tried to write empty html");
+        }
+
         this.lastWriteTime = Date.now();
 
         if (this.writeTimeout) {
@@ -202,6 +228,7 @@ export default class AtomAccessManager extends EventTarget {
             if (result) {
               const handle = result.handle;
               const currentPerm = await handle.queryPermission({ mode: "readwrite" });
+              console.log("current perm", currentPerm);
 
               if (currentPerm !== "denied") {
                 this.isEditingAvailable = false;
@@ -264,5 +291,10 @@ export default class AtomAccessManager extends EventTarget {
       throw new Error(`Invalid permission name: ${permission}`);
 
     return false;
+  }
+
+  async closeWriteback() {
+    await this.writeback?.close();
+    this.writeback = null;
   }
 }

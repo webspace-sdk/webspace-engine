@@ -1,4 +1,5 @@
 import { vecRgbToCssRgb } from "../utils/dom-utils";
+import { isLockedMedia } from "../../hubs/utils/media-utils";
 import { FONT_FACES } from "../utils/quill-utils";
 import { normalizeCoord } from "../systems/wrapped-entity-system";
 
@@ -48,7 +49,7 @@ const tagTypeForEl = el => {
 
 const updateDomElForEl = (domEl, el) => {
   const { terrainSystem } = AFRAME.scenes[0].systems["hubs-systems"];
-  let { src, contentSubtype } = el.components["media-loader"].data;
+  let { src } = el.components["media-loader"].data;
 
   let style = "";
   let srcTargetAttribute = "src";
@@ -146,8 +147,9 @@ const updateDomElForEl = (domEl, el) => {
       domEl.querySelectorAll("[data-contents]").forEach(el => el.removeAttribute("data-contents"));
     }
 
+    domEl.setAttribute("contenteditable", "");
+
     src = null;
-    contentSubtype = null;
   }
 
   if (el.components["media-emoji"]) {
@@ -190,12 +192,13 @@ const updateDomElForEl = (domEl, el) => {
       domEl.setAttribute(srcTargetAttribute, src);
     }
 
-    domEl.id = id.replaceAll("naf-", "");
-
-    if (contentSubtype) {
-      domEl.setAttribute("data-content-subtype", contentSubtype);
+    if (!isLockedMedia(el)) {
+      domEl.setAttribute("draggable", "");
+    } else {
+      domEl.removeAttribute("draggable");
     }
 
+    domEl.id = id.replaceAll("naf-", "");
     object3D.updateMatrices();
     object3D.matrix.decompose(tmpPos, tmpQuat, tmpScale);
 
@@ -224,6 +227,7 @@ export class DomSerializeSystem {
     this.els = [];
     this.pending = [];
     this.onComponentChanged = this.onComponentChanged.bind(this);
+    this.onQuillTextChanges = new Map();
     this.onMediaLoaded = this.onMediaLoaded.bind(this);
     this.nextFlushAt = null;
   }
@@ -236,6 +240,12 @@ export class DomSerializeSystem {
   unregister(el) {
     el.removeEventListener("componentchanged", this.onComponentChanged);
     el.removeEventListener("media-loaded", this.onMediaLoaded);
+
+    if (el.components["media-text"]) {
+      const quill = el.components["media-text"].getQuill();
+      quill.off("text-change", this.onQuillTextChanges.get(quill));
+      this.onQuillTextChanges.delete(quill);
+    }
 
     // Ensure not in pending
     this.flush();
@@ -253,13 +263,24 @@ export class DomSerializeSystem {
     if (!this.els.includes(target)) return;
     this.pending.push(target);
     target.addEventListener("componentchanged", this.onComponentChanged);
+
+    if (target.components["media-text"]) {
+      const quill = target.components["media-text"].getQuill();
+      const handler = () => this.enqueueFlushOf(target);
+      this.onQuillTextChanges.set(quill, handler);
+      quill.on("text-change", handler);
+    }
   }
 
   onComponentChanged({ target }) {
-    if (!this.els.includes(target)) return;
-    if (this.pending.includes(target)) return;
+    this.enqueueFlushOf(target);
+  }
 
-    this.pending.push(target);
+  enqueueFlushOf(el) {
+    if (!this.els.includes(el)) return;
+    if (this.pending.includes(el)) return;
+
+    this.pending.push(el);
 
     if (this.nextFlushAt === null) {
       this.nextFlushAt = Date.now() + FLUSH_DELAY;
