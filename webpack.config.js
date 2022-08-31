@@ -128,7 +128,7 @@ module.exports = async (env, argv) => {
         RETICULUM_SOCKET_SERVER: "hubs.local",
         CORS_PROXY_SERVER: "cors-proxy.jel.app",
         NON_CORS_PROXY_DOMAINS: "hubs.local,jel.dev",
-        BASE_ASSETS_PATH: "http://localhost:8000/",
+        BASE_ASSETS_PATH: "http://localhost:8001/",
         RETICULUM_SERVER: "hubs.local:4000",
         POSTGREST_SERVER: "",
         ITA_SERVER: ""

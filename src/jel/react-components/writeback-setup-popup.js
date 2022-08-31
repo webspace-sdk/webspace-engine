@@ -16,7 +16,7 @@ const WritebackSetupPopup = ({ setPopperElement, styles, attributes, children })
   const onConfigureClicked = useCallback(
     async e => {
       e.preventDefault();
-      const result = await atomAccessManager.configure();
+      const result = await atomAccessManager.openWriteback();
       setShowErrorTip(!result);
 
       if (result) {

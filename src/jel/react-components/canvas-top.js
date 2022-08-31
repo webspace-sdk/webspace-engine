@@ -452,7 +452,7 @@ function CanvasTop(props) {
   const hubContextButtonRef = useRef();
 
   // Handle create hotkey (typically /)
-  // fires action_create or action_setup_writeback
+  // fires action_create or action_open_writeback
   useEffect(
     () => {
       const handleCreateHotkey = () => showCreateSelectPopup(createSelectPopupRef);
@@ -464,11 +464,18 @@ function CanvasTop(props) {
 
   useEffect(
     () => {
-      const handleCreateHotkey = () => showWritebackSetupPopup(hubEditButtonRef);
-      scene && scene.addEventListener("action_setup_writeback", handleCreateHotkey);
-      return () => scene && scene.removeEventListener("action_setup_writeback", handleCreateHotkey);
+      const handleWritebackSetup = () => {
+        if (atomAccessManager.writebackRequiresSetup) {
+          showWritebackSetupPopup(hubEditButtonRef);
+        } else {
+          atomAccessManager.openWriteback();
+        }
+      };
+
+      scene && scene.addEventListener("action_open_writeback", handleWritebackSetup);
+      return () => scene && scene.removeEventListener("action_open_writeback", handleWritebackSetup);
     },
-    [scene, hubEditButtonRef, showWritebackSetupPopup]
+    [scene, hubEditButtonRef, atomAccessManager, showWritebackSetupPopup]
   );
 
   useEffect(
@@ -512,7 +519,7 @@ function CanvasTop(props) {
           <CornerButton
             ref={hubEditButtonRef}
             onMouseDown={e => cancelEventIfFocusedWithin(e, writebackSetupPopupElement)}
-            onClick={() => showWritebackSetupPopup(hubEditButtonRef)}
+            onClick={() => scene.emit("action_open_writeback")}
           >
             <CornerButtonIcon dangerouslySetInnerHTML={{ __html: editIcon }} />
             <FormattedMessage id="writeback.edit-world" />

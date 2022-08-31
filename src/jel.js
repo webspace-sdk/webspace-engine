@@ -355,21 +355,6 @@ function initBatching() {
 }
 
 function addGlobalEventListeners(scene, entryManager, atomAccessManager) {
-  atomAccessManager.addEventListener("secondary_session_opened", async () => {
-    await window.APP.atomAccessManager.closeWriteback();
-    document.title = `World Helper Tab`;
-
-    entryManager.exitScene();
-    remountJelUI({ unavailableReason: "secondary_session" });
-
-    if (process.env.NODE_ENV === "development") {
-      // Prevent webpack dev server from reloading this
-      window.onbeforeunload = function() {
-        return false;
-      };
-    }
-  });
-
   scene.addEventListener("preferred_mic_changed", e => {
     const deviceId = e.detail;
     scene.systems["hubs-systems"].mediaStreamSystem.updatePreferredMicDevice(deviceId);

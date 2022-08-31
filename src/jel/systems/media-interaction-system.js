@@ -173,7 +173,7 @@ export class MediaInteractionSystem {
 
       if (!canSpawnAndMove) {
         if (atomAccessManager.isEditingAvailable) {
-          this.scene.emit("action_setup_writeback");
+          this.scene.emit("action_open_writeback");
         }
 
         return;
@@ -249,7 +249,7 @@ export class MediaInteractionSystem {
 
       if (!canSpawnAndMove) {
         if (atomAccessManager.isEditingAvailable) {
-          this.scene.emit("action_setup_writeback");
+          this.scene.emit("action_open_writeback");
         }
 
         return;
