@@ -37,18 +37,12 @@ const transformUnitToRadians = s => {
 export default class WorldImporter {
   importHtmlToCurrentWorld(html, replaceExisting = true, removeEntitiesNotInTemplate = false) {
     const doc = new DOMParser().parseFromString(html, "text/html");
-
-    if (doc.body && doc.querySelector(`meta[name='jel-schema']`)) {
-      return this.importJelDocument(doc, replaceExisting, removeEntitiesNotInTemplate);
-    }
+    return this.importJelDocument(doc, replaceExisting, removeEntitiesNotInTemplate);
   }
 
   removeEntitiesFromHtmlFromCurrentWorld(html) {
     const doc = new DOMParser().parseFromString(html, "text/html");
-
-    if (doc.body && doc.querySelector(`meta[name='jel-schema']`)) {
-      return this.removeEntitiesFromJelDocument(doc);
-    }
+    return this.removeEntitiesFromJelDocument(doc);
   }
 
   async applyWorldMetadataFromHtml(html) {
@@ -276,7 +270,7 @@ export default class WorldImporter {
         // PDF
         src = el.getAttribute("src");
         mediaOptions.index = el.getAttribute("data-index");
-      } else if (tagName === "EMBED") {
+      } else if (tagName === "MODEL") {
         // VOX or glTF
         src = el.getAttribute("src");
         resolve = true;

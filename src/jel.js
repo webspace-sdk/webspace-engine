@@ -146,6 +146,7 @@ import { createBrowserHistory } from "history";
 import { clearHistoryState } from "./hubs/utils/history";
 import JelUI from "./jel/react-components/jel-ui";
 import AccountChannel from "./jel/utils/account-channel";
+import WorldImporter from "./jel/utils/world-importer";
 import DynaChannel from "./jel/utils/dyna-channel";
 import SpaceChannel from "./hubs/utils/space-channel";
 import HubChannel from "./hubs/utils/hub-channel";
@@ -878,6 +879,9 @@ async function start() {
   if (!(await checkPrerequisites())) return;
   addMissingDefaultHtml();
 
+  // TODO SHARED head
+  const initialWorldHTML = `<!DOCTYPE html>\n<html><body>${document.body.innerHTML}</body></html>`;
+
   window.DOM_ROOT = document.body.attachShadow({ mode: "closed" });
   AFRAME.selectorRoot = window.DOM_ROOT;
   window.DOM_ROOT._ready = false;
@@ -919,6 +923,7 @@ async function start() {
   // Patch the scene resize handler to update the camera properly, since the
   // camera system manages the projection matrix.
   const scene = DOM_ROOT.querySelector("a-scene");
+
   const sceneResize = scene.resize.bind(scene);
   const resize = function() {
     sceneResize();
@@ -1157,8 +1162,6 @@ async function start() {
   // TODO SHARED figure out what to do about notifications. hubSettings here is the settings for notify joins
   remountJelUI({ sessionId, hubSettings: [] });
 
-  window.dispatchEvent(new CustomEvent("hub_channel_ready"));
-
   const availableVREntryTypesPromise = getAvailableVREntryTypes();
 
   setupVREventHandlers(scene, availableVREntryTypesPromise);
@@ -1222,6 +1225,8 @@ async function start() {
   };
 
   history.listen(performJoin);
+
+  await new WorldImporter().importHtmlToCurrentWorld(initialWorldHTML, true, true);
   await performJoin();
 
   entryManager.enterScene(false).then(() => {

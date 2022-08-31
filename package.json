@@ -143,7 +143,7 @@
     "zip-loader": "^1.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.18.9",
+    "@babel/core": "^7.18.13",
     "@babel/polyfill": "^7.4.4",
     "@babel/preset-env": "^7.18.9",
     "@babel/preset-react": "^7.0.0",
