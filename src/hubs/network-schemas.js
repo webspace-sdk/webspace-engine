@@ -143,10 +143,6 @@ function registerNetworkSchemas() {
         property: "index"
       },
       {
-        component: "media-loader",
-        property: "mediaLayer"
-      },
-      {
         component: "media-text",
         property: "fitContent"
       },

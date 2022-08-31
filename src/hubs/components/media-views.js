@@ -20,7 +20,6 @@ import {
   createImageTexture,
   createBasisTexture,
   meetsBatchingCriteria,
-  hasMediaLayer,
   scaleToAspectRatio,
   resetMediaRotation,
   MEDIA_INTERACTION_TYPES
@@ -296,9 +295,7 @@ AFRAME.registerComponent("media-video", {
       this.updateHoverMenu();
       this.updatePlaybackState();
 
-      if (hasMediaLayer(this.el)) {
-        this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
-      }
+      SYSTEMS.mediaPresenceSystem.registerMediaComponent(this);
     });
 
     getNetworkedEntity(this.el)
@@ -314,8 +311,7 @@ AFRAME.registerComponent("media-video", {
         // at once, which will pause the videos for everyone in the room if owned.
         if (!isIOS) {
           this.ensurePresentOwnerInterval = setInterval(() => {
-            const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-            if (mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT) {
+            if (SYSTEMS.mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT) {
               this.ensurePresentOwner();
             }
           }, 10000 + Math.floor(Math.random() * 2000));
@@ -388,7 +384,7 @@ AFRAME.registerComponent("media-video", {
   async snap() {
     if (this.isSnapping) return;
     this.isSnapping = true;
-    this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CAMERA_TOOL_TOOK_SNAPSHOT);
+    SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_CAMERA_TOOL_TOOK_SNAPSHOT);
 
     const canvas = document.createElement("canvas");
     canvas.width = this.video.videoWidth;
@@ -497,22 +493,12 @@ AFRAME.registerComponent("media-video", {
 
     const shouldUpdateSrc = this.data.src && this.data.src !== oldData.src;
 
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-    if (mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT) {
+    if (SYSTEMS.mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT) {
       this.updatePlaybackState();
     }
 
-    const hasLayer = hasMediaLayer(this.el);
-
-    if (!hasLayer || shouldUpdateSrc) {
-      const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-      const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
-      const currentPresence = mediaPresenceSystem.getMediaPresence(this);
-
-      if (currentPresence !== newMediaPresence || shouldUpdateSrc) {
-        this.setMediaPresence(newMediaPresence, shouldUpdateSrc);
-      }
-
+    if (shouldUpdateSrc) {
+      this.setMediaPresence(SYSTEMS.mediaPresenceSystem.getMediaPresence(this), true);
       return;
     }
 
@@ -539,12 +525,7 @@ AFRAME.registerComponent("media-video", {
     const owner = getNetworkOwner(this.networkedEl);
     const occupants = NAF.connection.getConnectedClients();
 
-    let isPresent = true;
-
-    if (hasMediaLayer(this.networkedEl)) {
-      const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-      isPresent = mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT;
-    }
+    const isPresent = SYSTEMS.mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT;
 
     if (!occupants[owner] && isPresent && window.APP.atomAccessManager.can("spawn_and_move_media")) {
       console.log(`Video ${getNetworkId(this.networkedEl)} has non-present owner, taking ownership.`);
@@ -593,7 +574,7 @@ AFRAME.registerComponent("media-video", {
   },
 
   async setMediaToHidden() {
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+    const mediaPresenceSystem = SYSTEMS.mediaPresenceSystem;
 
     if (this.mesh) {
       this.mesh.visible = false;
@@ -617,11 +598,9 @@ AFRAME.registerComponent("media-video", {
   },
 
   async setMediaToPresent(refresh) {
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-
     try {
       if (
-        mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
+        SYSTEMS.mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
         this.mesh &&
         !this.mesh.visible &&
         !refresh
@@ -638,7 +617,7 @@ AFRAME.registerComponent("media-video", {
         return;
       }
 
-      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
+      SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
 
       const { src, linkedVideoTexture, linkedAudioSource, linkedMediaElementAudioSource } = this.data;
       if (!src) return;
@@ -784,7 +763,7 @@ AFRAME.registerComponent("media-video", {
 
       this.el.emit("video-loaded", { projection: projection });
     } finally {
-      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
+      SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
     }
   },
 
@@ -1008,8 +987,7 @@ AFRAME.registerComponent("media-video", {
     return function() {
       if (!this.video) return;
 
-      const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-      if (mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN) return;
+      if (SYSTEMS.mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN) return;
 
       const userinput = this.el.sceneEl.systems.userinput;
       const interaction = this.el.sceneEl.systems.interaction;
@@ -1126,9 +1104,7 @@ AFRAME.registerComponent("media-video", {
 
     window.APP.store.removeEventListener("statechanged", this.onPreferenceChanged);
 
-    if (hasMediaLayer(this.el)) {
-      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
-    }
+    SYSTEMS.mediaPresenceSystem.unregisterMediaComponent(this);
   },
 
   mayModifyPlayHead() {
@@ -1171,9 +1147,7 @@ AFRAME.registerComponent("media-image", {
     this.setMediaPresence = this.setMediaPresence.bind(this);
     this.isBatched = false;
 
-    if (hasMediaLayer(this.el)) {
-      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
-    }
+    SYSTEMS.mediaPresenceSystem.registerMediaComponent(this);
   },
 
   remove() {
@@ -1194,13 +1168,12 @@ AFRAME.registerComponent("media-image", {
 
     if (this.mesh) {
       if (this.isBatched) {
-        this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.removeObject(this.mesh);
+        SYSTEMS.batchManagerSystem.removeObject(this.mesh);
         this.isBatched = false;
       }
     }
-    if (hasMediaLayer(this.el)) {
-      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
-    }
+
+    SYSTEMS.mediaPresenceSystem.unregisterMediaComponent(this);
   },
 
   setMediaPresence(presence, refresh = false) {
@@ -1213,21 +1186,17 @@ AFRAME.registerComponent("media-image", {
   },
 
   async setMediaToHidden() {
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-
     if (this.mesh) {
       this.mesh.visible = false;
     }
 
-    mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
+    SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
   },
 
   async setMediaToPresent(refresh = false) {
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-
     try {
       if (
-        mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
+        SYSTEMS.mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
         this.mesh &&
         !this.mesh.visible &&
         !refresh
@@ -1236,14 +1205,13 @@ AFRAME.registerComponent("media-image", {
         return;
       }
 
-      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
+      SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
 
       const { src, version, contentType } = this.data;
 
       let texture, textureInfo;
       let ratio = 1;
 
-      const batchManagerSystem = this.el.sceneEl.systems["hubs-systems"].batchManagerSystem;
       const isDataUrl = src.startsWith("data:");
 
       try {
@@ -1345,7 +1313,7 @@ AFRAME.registerComponent("media-image", {
       if (this.mesh && this.data.batch) {
         // This is a no-op if the mesh was just created.
         // Otherwise we want to ensure the texture gets updated.
-        batchManagerSystem.removeObject(this.mesh);
+        SYSTEMS.batchManagerSystem.removeObject(this.mesh);
       }
 
       if (!this.mesh || refresh) {
@@ -1425,7 +1393,7 @@ AFRAME.registerComponent("media-image", {
         !texture.isCompressedTexture &&
         meetsBatchingCriteria(textureInfo)
       ) {
-        batchManagerSystem.addObject(this.mesh);
+        SYSTEMS.batchManagerSystem.addObject(this.mesh);
         this.isBatched = true;
 
         // Texture will never be used, dispose it.
@@ -1437,7 +1405,7 @@ AFRAME.registerComponent("media-image", {
       this.el.emit("image-error", { src: this.data.src });
       throw e;
     } finally {
-      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
+      SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
     }
   },
 
@@ -1446,18 +1414,15 @@ AFRAME.registerComponent("media-image", {
     if (!src) return;
 
     const refresh = oldData.src !== src || oldData.version !== version || oldData.projection !== projection;
-    const hasLayer = hasMediaLayer(this.el);
 
-    if (!hasLayer || refresh) {
+    if (refresh) {
       // Release any existing texture on a refresh
       if (this.currentSrcIsRetained) {
         textureCache.release(oldData.src, oldData.version);
         this.currentSrcIsRetained = false;
       }
 
-      const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-      const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
-      this.setMediaPresence(newMediaPresence, refresh);
+      this.setMediaPresence(SYSTEMS.mediaPresenceSystem.getMediaPresence(this), refresh);
     }
   },
 
@@ -1494,15 +1459,13 @@ AFRAME.registerComponent("media-pdf", {
 
     this.texture.encoding = THREE.sRGBEncoding;
 
-    if (hasMediaLayer(this.el)) {
-      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
-    }
+    SYSTEMS.mediaPresenceSystem.registerMediaComponent(this);
   },
 
   async snap() {
     if (this.isSnapping) return;
     this.isSnapping = true;
-    this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CAMERA_TOOL_TOOK_SNAPSHOT);
+    SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_CAMERA_TOOL_TOOK_SNAPSHOT);
 
     const blob = await new Promise(resolve => this.canvas.toBlob(resolve));
     const file = new File([blob], "snap.png", TYPE_IMG_PNG);
@@ -1522,9 +1485,7 @@ AFRAME.registerComponent("media-pdf", {
 
     this.disposePdfEngine();
 
-    if (hasMediaLayer(this.el)) {
-      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
-    }
+    SYSTEMS.mediaPresenceSystem.unregisterMediaComponent(this);
   },
 
   async update(oldData) {
@@ -1532,12 +1493,9 @@ AFRAME.registerComponent("media-pdf", {
     if (!src) return;
 
     const refresh = oldData.src !== src || oldData.version !== version || oldData.index !== index;
-    const hasLayer = hasMediaLayer(this.el);
 
-    if (!hasLayer || refresh) {
-      const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-      const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
-      this.setMediaPresence(newMediaPresence, refresh);
+    if (refresh) {
+      this.setMediaPresence(SYSTEMS.mediaPresenceSystem.getMediaPresence(this), refresh);
     }
   },
 
@@ -1551,21 +1509,18 @@ AFRAME.registerComponent("media-pdf", {
   },
 
   async setMediaToHidden() {
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-    mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
+    SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
 
     try {
       if (this.mesh) {
         this.mesh.visible = false;
       }
     } finally {
-      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
+      SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
     }
   },
 
   async setMediaToPresent(refresh = false) {
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-
     try {
       let texture;
       let ratio = 1;
@@ -1574,7 +1529,7 @@ AFRAME.registerComponent("media-pdf", {
       if (!src) return;
 
       if (
-        mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
+        SYSTEMS.mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
         this.mesh &&
         !this.mesh.visible &&
         !refresh
@@ -1584,7 +1539,7 @@ AFRAME.registerComponent("media-pdf", {
         return;
       }
 
-      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
+      SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
 
       try {
         if (this.renderTask) {
@@ -1672,7 +1627,7 @@ AFRAME.registerComponent("media-pdf", {
       scaleToAspectRatio(this.el, ratio);
 
       if (texture !== errorTexture && this.data.batch) {
-        this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.addObject(this.mesh);
+        SYSTEMS.batchManagerSystem.addObject(this.mesh);
       }
 
       if (this.el.components["media-pager"] && this.el.components["media-pager"].data.index !== this.data.index) {
@@ -1684,7 +1639,7 @@ AFRAME.registerComponent("media-pdf", {
       this.el.emit("pdf-error", { src: this.data.src });
       throw e;
     } finally {
-      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
+      SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
     }
   },
 
@@ -1750,9 +1705,7 @@ AFRAME.registerComponent("media-canvas", {
     this.localSnapCount = 0;
     this.onSnapImageLoaded = () => (this.isSnapping = false);
 
-    if (hasMediaLayer(this.el)) {
-      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
-    }
+    SYSTEMS.mediaPresenceSystem.registerMediaComponent(this);
   },
 
   remove() {
@@ -1762,9 +1715,7 @@ AFRAME.registerComponent("media-canvas", {
       disposeTexture(this.texture);
     }
 
-    if (hasMediaLayer(this.el)) {
-      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
-    }
+    SYSTEMS.mediaPresenceSystem.unregisterMediaComponent(this);
   },
 
   setMediaPresence(presence, refresh = false) {
@@ -1777,21 +1728,17 @@ AFRAME.registerComponent("media-canvas", {
   },
 
   async setMediaToHidden() {
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-
     if (this.mesh) {
       this.mesh.visible = false;
     }
 
-    mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
+    SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
   },
 
   async setMediaToPresent(refresh = false) {
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-
     try {
       if (
-        mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
+        SYSTEMS.mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
         this.mesh &&
         !this.mesh.visible &&
         !refresh
@@ -1800,7 +1747,7 @@ AFRAME.registerComponent("media-canvas", {
         return;
       }
 
-      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
+      SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
 
       const { src } = this.data;
       let canvas;
@@ -1863,7 +1810,7 @@ AFRAME.registerComponent("media-canvas", {
       this.el.emit("canvas-error", { src: this.data.src });
       throw e;
     } finally {
-      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
+      SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
     }
   },
 
@@ -1881,7 +1828,7 @@ AFRAME.registerComponent("media-canvas", {
   async snap() {
     if (this.isSnapping) return;
     this.isSnapping = true;
-    this.el.sceneEl.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_CAMERA_TOOL_TOOK_SNAPSHOT);
+    SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_CAMERA_TOOL_TOOK_SNAPSHOT);
 
     const canvas = this.texture.image;
     const blob = await new Promise(resolve => canvas.toBlob(resolve));
@@ -1897,18 +1844,15 @@ AFRAME.registerComponent("media-canvas", {
     if (!src) return;
 
     const refresh = oldData.src !== src;
-    const hasLayer = hasMediaLayer(this.el);
 
-    if (!hasLayer || refresh) {
+    if (refresh) {
       // Release any existing texture on a refresh
       if (this.currentSrcIsRetained) {
         textureCache.release(oldData.src, oldData.version);
         this.currentSrcIsRetained = false;
       }
 
-      const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-      const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
-      this.setMediaPresence(newMediaPresence, refresh);
+      this.setMediaPresence(SYSTEMS.mediaPresenceSystem.getMediaPresence(this), refresh);
     }
   }
 });

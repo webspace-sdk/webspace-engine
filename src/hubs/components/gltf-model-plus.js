@@ -3,7 +3,7 @@ import { mapMaterials } from "../utils/material-utils";
 import SketchfabZipWorker from "../workers/sketchfab-zip.worker.js";
 import MobileStandardMaterial from "../materials/MobileStandardMaterial";
 import { getCustomGLTFParserURLResolver } from "../utils/media-url-utils";
-import { hasMediaLayer, MEDIA_INTERACTION_TYPES } from "../utils/media-utils";
+import { MEDIA_INTERACTION_TYPES } from "../utils/media-utils";
 import { promisifyWorker } from "../utils/promisify-worker.js";
 import { acceleratedRaycast } from "three-mesh-bvh";
 import { generateMeshBVH } from "../utils/three-utils";
@@ -587,9 +587,7 @@ AFRAME.registerComponent("gltf-model-plus", {
 
     this.loadTemplates();
 
-    if (hasMediaLayer(this.el)) {
-      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
-    }
+    SYSTEMS.mediaPresenceSystem.registerMediaComponent(this);
   },
 
   update(oldData) {
@@ -598,7 +596,7 @@ AFRAME.registerComponent("gltf-model-plus", {
 
     const refresh = oldData.src !== src;
 
-    if (!hasMediaLayer(this.el) || refresh) {
+    if (refresh) {
       this.setMediaPresence(MEDIA_PRESENCE.PRESENT, refresh);
     }
   },
@@ -619,9 +617,7 @@ AFRAME.registerComponent("gltf-model-plus", {
       this.el.removeObject3D("mesh");
     }
 
-    if (hasMediaLayer(this.el)) {
-      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
-    }
+    SYSTEMS.mediaPresenceSystem.unregisterMediaComponent(this);
   },
 
   setMediaPresence(presence, refresh = false) {

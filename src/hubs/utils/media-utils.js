@@ -318,7 +318,6 @@ export const addMedia = (
     version,
     contentSubtype,
     linkedEl,
-    mediaLayer: 0,
     mediaOptions,
     contentType,
     locked,
@@ -966,13 +965,6 @@ export function meetsBatchingCriteria(textureInfo) {
     ratio >= MIN_ASPECT_RATIO_TO_BATCH && ratio <= MAX_ASPECT_RATIO_TO_BATCH && pixels <= MAX_PIXELS_TO_BATCH;
 
   return batch;
-}
-
-export function hasMediaLayer(el) {
-  const mediaLoader = el.components["media-loader"];
-  if (!mediaLoader) return false;
-
-  return !!(mediaLoader.data && typeof mediaLoader.data.mediaLayer === "number");
 }
 
 export function scaleToAspectRatio(el, ratio) {

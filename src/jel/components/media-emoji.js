@@ -1,4 +1,4 @@
-import { hasMediaLayer, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
+import { MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
 import { resetMediaRotation, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
 import { imageUrlForEmoji } from "../../hubs/utils/media-url-utils";
@@ -10,9 +10,7 @@ AFRAME.registerComponent("media-emoji", {
   },
 
   async init() {
-    if (hasMediaLayer(this.el)) {
-      SYSTEMS.mediaPresenceSystem.registerMediaComponent(this);
-    }
+    SYSTEMS.mediaPresenceSystem.registerMediaComponent(this);
 
     // Add class indicating the mesh is an instanced mesh, which will
     // cause cursor raycasting to be deferred to the instanced mesh.
@@ -21,12 +19,10 @@ AFRAME.registerComponent("media-emoji", {
   },
 
   async update(oldData) {
-    const { src } = this.data;
+    const { src, emoji } = this.data;
     if (!src) return;
 
-    const refresh = src !== oldData.src;
-
-    const hasLayer = hasMediaLayer(this.el);
+    const refresh = src !== oldData.src || emoji !== oldData.emoji;
 
     const initialContents = this.el.components["media-loader"].consumeInitialContents();
 
@@ -34,9 +30,8 @@ AFRAME.registerComponent("media-emoji", {
       this.el.setAttribute("media-emoji", { emoji: initialContents });
     }
 
-    if (!hasLayer || refresh) {
-      const newMediaPresence = hasLayer ? SYSTEMS.mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
-      this.setMediaPresence(newMediaPresence, refresh);
+    if (refresh) {
+      this.setMediaPresence(SYSTEMS.mediaPresenceSystem.getMediaPresence(this), refresh);
     }
   },
 
@@ -70,10 +65,10 @@ AFRAME.registerComponent("media-emoji", {
 
       SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
 
-      const { src } = this.data;
-      if (!src) return;
+      const { src, emoji } = this.data;
+      if (!src || !emoji) return;
 
-      if (!this.mesh) {
+      if (!this.mesh || refresh) {
         disposeExistingMesh(this.el);
 
         this.el.emit("model-loading");
@@ -107,9 +102,7 @@ AFRAME.registerComponent("media-emoji", {
   remove() {
     disposeExistingMesh(this.el);
 
-    if (hasMediaLayer(this.el)) {
-      SYSTEMS.mediaPresenceSystem.unregisterMediaComponent(this);
-    }
+    SYSTEMS.mediaPresenceSystem.unregisterMediaComponent(this);
 
     if (this.mesh) {
       SYSTEMS.voxmojiSystem.unregister(this.mesh);

@@ -1,4 +1,4 @@
-import { hasMediaLayer, MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
+import { MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
 import { resetMediaRotation, MEDIA_INTERACTION_TYPES, isLockedMedia } from "../../hubs/utils/media-utils";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
@@ -15,9 +15,7 @@ AFRAME.registerComponent("media-vox", {
   },
 
   async init() {
-    if (hasMediaLayer(this.el)) {
-      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
-    }
+    SYSTEMS.mediaPresenceSystem.registerMediaComponent(this);
 
     getNetworkedEntity(this.el).then(networkedEl => {
       this.networkedEl = networkedEl;
@@ -34,13 +32,8 @@ AFRAME.registerComponent("media-vox", {
 
     const refresh = src !== oldData.src;
 
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-
-    const hasLayer = hasMediaLayer(this.el);
-
-    if (!hasLayer || refresh) {
-      const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
-      this.setMediaPresence(newMediaPresence, refresh);
+    if (refresh) {
+      this.setMediaPresence(SYSTEMS.mediaPresenceSystem.getMediaPresence(this), refresh);
     }
   },
 
@@ -54,13 +47,11 @@ AFRAME.registerComponent("media-vox", {
   },
 
   async setMediaToHidden() {
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-
     if (this.mesh) {
       this.mesh.visible = false;
     }
 
-    mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
+    SYSTEMS.mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
   },
 
   async setMediaToPresent(refresh) {
@@ -191,8 +182,6 @@ AFRAME.registerComponent("media-vox", {
 
     disposeExistingMesh(this.el);
 
-    if (hasMediaLayer(this.el)) {
-      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
-    }
+    this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
   }
 });

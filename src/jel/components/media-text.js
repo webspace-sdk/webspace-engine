@@ -10,12 +10,7 @@ import {
 } from "../utils/quill-pool";
 import { getNetworkId } from "../utils/ownership-utils";
 import { temporarilyReleaseCanvasCursorLock } from "../utils/dom-utils";
-import {
-  hasMediaLayer,
-  addAndArrangeRadialMedia,
-  MEDIA_PRESENCE,
-  MEDIA_INTERACTION_TYPES
-} from "../../hubs/utils/media-utils";
+import { addAndArrangeRadialMedia, MEDIA_PRESENCE, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh, disposeTexture, almostEqualVec3 } from "../../hubs/utils/three-utils";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
@@ -107,10 +102,7 @@ AFRAME.registerComponent("media-text", {
     this.renderCount = 0;
     this.handleDetailLevelChanged = this.handleDetailLevelChanged.bind(this);
 
-    if (hasMediaLayer(this.el)) {
-      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.registerMediaComponent(this);
-    }
-
+    SYSTEMS.mediaPresenceSystem.registerMediaComponent(this);
     this.el.sceneEl.addEventListener("detail-level-changed", this.handleDetailLevelChanged);
   },
 
@@ -119,10 +111,6 @@ AFRAME.registerComponent("media-text", {
     if (!src) return;
 
     const refresh = src !== oldData.src;
-
-    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
-
-    const hasLayer = hasMediaLayer(this.el);
 
     const initialContents = this.el.components["media-loader"].consumeInitialContents();
 
@@ -147,12 +135,11 @@ AFRAME.registerComponent("media-text", {
       //});
     }
 
-    if (!hasLayer || refresh) {
-      const newMediaPresence = hasLayer ? mediaPresenceSystem.getMediaPresence(this) : MEDIA_PRESENCE.PRESENT;
-      this.setMediaPresence(newMediaPresence, refresh);
+    if (refresh) {
+      this.setMediaPresence(SYSTEMS.mediaPresenceSystem.getMediaPresence(this), refresh);
     }
 
-    if (mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT) {
+    if (SYSTEMS.mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT) {
       if (
         !almostEqualVec3(oldData.foregroundColor, foregroundColor) ||
         !almostEqualVec3(oldData.backgroundColor, backgroundColor)
@@ -470,9 +457,7 @@ AFRAME.registerComponent("media-text", {
       disposeTexture(this.texture);
     }
 
-    if (hasMediaLayer(this.el)) {
-      this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem.unregisterMediaComponent(this);
-    }
+    SYSTEMS.mediaPresenceSystem.unregisterMediaComponent(this);
 
     this.el.sceneEl.removeEventListener("detail-level-changed", this.handleDetailLevelChanged);
   },

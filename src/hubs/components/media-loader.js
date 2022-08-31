@@ -54,7 +54,6 @@ AFRAME.registerComponent("media-loader", {
     resolve: { default: true },
     contentType: { default: null },
     contentSubtype: { default: null },
-    mediaLayer: { default: null },
     addedLocally: { default: false },
     skipLoader: { default: false },
     animate: { default: true },
@@ -89,10 +88,6 @@ AFRAME.registerComponent("media-loader", {
     if (isSynchronized(this.el)) {
       getNetworkedEntity(this.el).then(networkedEl => {
         this.networkedEl = networkedEl;
-
-        if (typeof this.data.mediaLayer === "number") {
-          SYSTEMS.mediaPresenceSystem.updateDesiredMediaPresence(this.el);
-        }
       });
     }
   },

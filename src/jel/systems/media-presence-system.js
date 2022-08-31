@@ -3,12 +3,11 @@ import { MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { normalizeCoord, denormalizeCoord } from "./wrapped-entity-system";
 
-export const MAX_MEDIA_LAYER = 7;
 const MAX_CONCURRENT_TRANSITIONS = 4;
 const tmpVec3 = new THREE.Vector3();
 const SQ_DISTANCE_TO_DELAY_PRESENCE = 300.0;
 
-// System which manages media presence based upon media layers and eventually other contexts.
+// System which manages media presence based upon distance.
 //
 // The general contract for this is we publish "desired" media presence state for each network id,
 // and this system will eventually let each relevant media component transition itself. Transitions
@@ -88,35 +87,6 @@ export class MediaPresenceSystem {
     }
   }
 
-  getActiveMediaLayers() {
-    return 1;
-  }
-
-  getSelectedMediaLayer() {
-    return 0;
-  }
-
-  setActiveLayer() {
-    // No longer implemented
-  }
-
-  selectNextMediaLayer() {
-    const currentSelectedMediaLayer = this.getSelectedMediaLayer();
-    if (currentSelectedMediaLayer >= MAX_MEDIA_LAYER) return;
-    this.setActiveLayer(currentSelectedMediaLayer + 1);
-  }
-
-  selectPreviousMediaLayer() {
-    const currentSelectedMediaLayer = this.getSelectedMediaLayer();
-    if (currentSelectedMediaLayer <= 0) return;
-    this.setActiveLayer(currentSelectedMediaLayer - 1);
-  }
-
-  isMediaLayerActive(mediaLayer) {
-    const activeMediaLayers = this.getActiveMediaLayers();
-    return !!((0x1 << mediaLayer) & activeMediaLayers);
-  }
-
   // This will return a promise that will resolve once all the media that is HIDDEN due to being out
   // of range has been instantiated (or failed) once made PRESENT regardless of range.
   instantiateAllDelayedMedia() {
@@ -144,13 +114,12 @@ export class MediaPresenceSystem {
     return Promise.all(promises);
   }
 
-  // Updates the current presence to PRESENT if it is in the current layer, and is
-  // within the right range unless it's component is not limited by distance.
+  // Updates the current presence to PRESENT if it is in  within the right
+  // range unless it's component is not limited by distance.
   //
   // If the presence is updated, returns the new value.
   updateDesiredMediaPresence(el) {
     const networkId = getNetworkId(el);
-    const mediaLayer = el.components["media-loader"].data.mediaLayer;
 
     let shouldDelay = false;
 
@@ -174,8 +143,7 @@ export class MediaPresenceSystem {
       }
     }
 
-    const presence =
-      !shouldDelay && this.isMediaLayerActive(mediaLayer) ? MEDIA_PRESENCE.PRESENT : MEDIA_PRESENCE.HIDDEN;
+    const presence = !shouldDelay ? MEDIA_PRESENCE.PRESENT : MEDIA_PRESENCE.HIDDEN;
 
     if (presence === MEDIA_PRESENCE.PRESENT && this.distanceDelayedNetworkIds.has(networkId)) {
       this.distanceDelayedNetworkIds.delete(networkId);
