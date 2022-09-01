@@ -466,8 +466,8 @@ export default class SceneEntryManager {
       setTimeout(() => this.scene.emit("camera_toggled"));
     });
 
-    this.scene.addEventListener("photo_taken", e => this.hubChannel.sendMessage({ src: e.detail }, "photo"));
-    this.scene.addEventListener("video_taken", e => this.hubChannel.sendMessage({ src: e.detail }, "video"));
+    this.scene.addEventListener("photo_taken", e => this.hubChannel.broadcastMessage({ src: e.detail }, "photo"));
+    this.scene.addEventListener("video_taken", e => this.hubChannel.broadcastMessage({ src: e.detail }, "video"));
   };
 
   _spawnAvatar = () => {

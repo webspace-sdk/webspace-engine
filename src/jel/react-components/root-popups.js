@@ -55,7 +55,7 @@ function RootPopups({ scene, centerPopupRef }) {
         styles={chatInputPopupStyles}
         attributes={chatInputPopupAttributes}
         ref={chatInputFocusRef}
-        onMessageEntered={useCallback(message => window.APP.hubChannel.sendMessage(message), [])}
+        onMessageEntered={useCallback(message => window.APP.hubChannel.broadcastMessage(message), [])}
         onEntryComplete={useCallback(() => scene.emit("chat_entry_complete"), [scene])}
       />
       <CreateEmbedPopup

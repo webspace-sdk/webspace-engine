@@ -9,6 +9,8 @@ import HubStore from "../storage/hub-store";
 import MediaTree from "../../jel/utils/media-tree";
 import { clearVoxAttributePools } from "../../jel/objects/JelVoxBufferGeometry";
 import { restartPeriodicSyncs } from "../components/periodic-full-syncs";
+import { toByteArray as base64ToByteArray } from "base64-js";
+
 import crypto from "crypto";
 
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
@@ -162,28 +164,33 @@ const setupDataChannelMessageHandlers = () => {
   const clientIdChallenges = new Map();
 
   // When a client connects, send the challenge to verify their public key
-  document.body.addEventListener("clientConnected", ({ detail: clientId }) => {
+  document.body.addEventListener("clientConnected", ({ detail: { clientId } }) => {
     const challenge = crypto.randomBytes(20).toString("hex");
     clientIdChallenges.set(clientId, challenge);
-    console.log("send challenge", challenge, clientId);
     window.APP.hubChannel.sendMessage(challenge, "challenge", clientId);
   });
 
   NAF.connection.subscribeToDataChannel("challenge", async (_type, { body: challenge }, fromSessionId) => {
-    const response = await atomAccessManager.getChallengeResponse(challenge);
-    console.log("received challenge", challenge);
+    const signature = await atomAccessManager.getChallengeSignature(challenge);
+    const response = { public_key: window.APP.store.state.credentials.public_key, signature };
     window.APP.hubChannel.sendMessage(response, "challenge_response", fromSessionId);
   });
 
-  NAF.connection.subscribeToDataChannel("challenge_response", async (_type, { body: response }, fromSessionId) => {
-    const challenge = clientIdChallenges.get(fromSessionId);
-    console.log("received challenge reponse", response, challenge);
+  NAF.connection.subscribeToDataChannel(
+    "challenge_response",
+    async (_type, { body: { public_key: publicKey, signature: signatureBase64 } }, fromSessionId) => {
+      const challenge = clientIdChallenges.get(fromSessionId);
+      if (!challenge) return;
 
-    if (challenge) {
-      const verified = await atomAccessManager.verifyChallengeResponse(challenge, response);
-      console.log(verified);
+      const signature = base64ToByteArray(signatureBase64);
+      atomAccessManager.verifyChallengeResponse(
+        new TextEncoder().encode(challenge),
+        publicKey,
+        signature,
+        fromSessionId
+      );
     }
-  });
+  );
 };
 
 const joinHubChannel = (hubId, spaceId, hubStore, entryManager, remountJelUI) => {

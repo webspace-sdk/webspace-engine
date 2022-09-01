@@ -1,6 +1,8 @@
 import { EventTarget } from "event-target-shim";
 import { getSpaceIdFromHistory, getHubIdFromHistory } from "./jel-url-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { signString, verifyString } from "../../hubs/utils/crypto";
+import { fromByteArray } from "base64-js";
 
 const ATOM_TYPES = {
   HUB: 0,
@@ -167,6 +169,7 @@ export default class AtomAccessManager extends EventTarget {
   constructor() {
     super();
 
+    this.publicKeys = new Map();
     this.isEditingAvailable = false;
     this.init();
 
@@ -362,11 +365,16 @@ export default class AtomAccessManager extends EventTarget {
     this.writeback = null;
   }
 
-  async getChallengeResponse(challenge) {
-    return "response: " + challenge;
+  async getChallengeSignature(challenge) {
+    const { store } = window.APP;
+    const privateKeyJwk = store.state.credentials.private_key;
+    const signed = await signString(challenge, privateKeyJwk);
+    return fromByteArray(new Uint8Array(signed));
   }
 
-  async verifyChallengeResponse(challenge, response) {
-    return false;
+  async verifyChallengeResponse(challenge, publicKey, signature, fromSessionId) {
+    if (!(await verifyString(challenge, publicKey, signature))) return;
+    this.publicKeys.set(fromSessionId, publicKey);
+    this.dispatchEvent(new CustomEvent("permissions_updated", {}));
   }
 }

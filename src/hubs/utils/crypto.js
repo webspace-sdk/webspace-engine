@@ -1,82 +1,40 @@
 import bs58 from "bs58";
 
-// NOTE: We do not use an IV since we generate a new keypair each time we use these routines.
-
-async function deriveKey(privateKey, publicKey) {
-  return crypto.subtle.deriveKey(
-    { name: "ECDH", public: publicKey },
-    privateKey,
-    { name: "AES-CBC", length: 256 },
-    true,
-    ["encrypt", "decrypt"]
-  );
+export async function keyToJwk(key) {
+  return await crypto.subtle.exportKey("jwk", key);
 }
 
 export async function keyToString(key) {
-  return JSON.stringify(await crypto.subtle.exportKey("jwk", key));
+  return JSON.stringify(keyToJwk(key));
 }
 
-export async function stringToKey(s) {
-  return await crypto.subtle.importKey("jwk", JSON.parse(s), { name: "ECDH", namedCurve: "P-256" }, true, []);
+export async function jwkToKey(jwk, usages) {
+  return await crypto.subtle.importKey("jwk", jwk, { name: "ECDSA", namedCurve: "P-256" }, true, usages);
 }
 
-function stringToArrayBuffer(s) {
-  const buf = new Uint8Array(s.length);
-
-  for (let i = 0; i < s.length; i++) {
-    buf[i] = s.charCodeAt(i);
-  }
-
-  return buf;
+export async function stringToKey(s, usages) {
+  return await jwkToKey(JSON.parse(s), usages);
 }
 
-function arrayBufferToString(b) {
-  const buf = new Uint8Array(b);
-  let s = "";
+export async function signString(s, jwk) {
+  const cryptoKey = await jwkToKey(jwk, ["sign"]);
+  const data = new TextEncoder().encode(s);
+  return await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-512" }, cryptoKey, data);
+}
 
-  for (let i = 0; i < buf.byteLength; i++) {
-    s += String.fromCharCode(buf[i]);
-  }
-
-  return s;
+export async function verifyString(s, jwk, signature) {
+  const cryptoKey = await jwkToKey(jwk, ["verify"]);
+  return await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-512" }, cryptoKey, signature, s);
 }
 
 // This allows a single object to be passed encrypted from a receiver in a req -> response flow
 
 // Requestor generates a public key and private key, and should send the public key to receiver.
 export async function generateKeys() {
-  const keyPair = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveKey"]);
-  const publicKeyString = await keyToString(keyPair.publicKey);
-  return { publicKeyString, privateKey: keyPair.privateKey };
-}
-
-// Receiver takes the public key from requestor and passes obj to get a response public key and the encrypted data to return.
-export async function generatePublicKeyAndEncryptedObject(incomingPublicKeyString, obj) {
-  const iv = new Uint8Array(16);
-  const incomingPublicKey = await stringToKey(incomingPublicKeyString);
-  const keyPair = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveKey"]);
-  const publicKeyString = await keyToString(keyPair.publicKey);
-  const secret = await deriveKey(keyPair.privateKey, incomingPublicKey);
-
-  const encryptedData = btoa(
-    arrayBufferToString(
-      await crypto.subtle.encrypt({ name: "AES-CBC", iv }, secret, stringToArrayBuffer(JSON.stringify(obj)))
-    )
-  );
-
-  return { publicKeyString, encryptedData };
-}
-
-// Requestor then takes the receiver's public key, the private key (returned from generateKeys()), and the data from the receiver.
-export async function decryptObject(publicKeyString, privateKey, base64value) {
-  const iv = new Uint8Array(16);
-  const publicKey = await stringToKey(publicKeyString);
-  const secret = await deriveKey(privateKey, publicKey);
-  const ciphertext = stringToArrayBuffer(atob(base64value));
-  const data = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, secret, ciphertext);
-  return JSON.parse(arrayBufferToString(data));
+  const keyPair = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["verify", "sign"]);
+  return { publicKeyJwk: await keyToJwk(keyPair.publicKey), privateKeyJwk: await keyToJwk(keyPair.privateKey) };
 }
 
 export async function b58Hash(s) {
-  return bs58.encode(new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(stringToArrayBuffer(s)))));
+  return bs58.encode(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s))));
 }

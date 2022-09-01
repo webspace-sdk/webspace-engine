@@ -54,7 +54,7 @@ export default class HubChannel extends EventTarget {
     return new Promise(resolve => this.channel.push("unsubscribe", { subscription }).receive("ok", resolve));
   };
 
-  sendMessage = (body, type = "chat", toSessionId) => {
+  broadcastMessage = (body, type = "chat", toSessionId) => {
     // TODO SHARED refactor
     if (!body) return;
     const payload = { body };
@@ -62,7 +62,14 @@ export default class HubChannel extends EventTarget {
       payload.to_session_id = toSessionId;
     }
 
-    NAF.connection.broadcastCustomData(type, payload);
+    NAF.connection.broadcastCustomDataGuaranteed(type, payload);
+  };
+
+  sendMessage = (body, type = "chat", toSessionId) => {
+    // TODO SHARED refactor
+    if (!body) return;
+    const payload = { body };
+    NAF.connection.sendCustomDataGuaranteed(type, payload, toSessionId);
   };
 
   mute = sessionId => this.channel.push("mute", { session_id: sessionId });

@@ -1,6 +1,6 @@
 import { Validator } from "jsonschema";
 import merge from "deepmerge";
-import { generateKeys, keyToString } from "../utils/crypto";
+import { generateKeys, keyToJwk } from "../utils/crypto";
 
 const LOCAL_STORE_KEY = "___jel_store";
 const STORE_STATE_CACHE_KEY = Symbol();
@@ -512,11 +512,11 @@ export default class Store extends EventTarget {
 
     // Generate our public/private keypair for authorization
     if (!this.state.credentials.public_key) {
-      const { publicKeyString, privateKey } = await generateKeys();
-      const privateKeyString = await keyToString(privateKey);
+      const { publicKeyJwk, privateKeyJwk } = await generateKeys();
+
       const credentials = {
-        public_key: JSON.parse(publicKeyString),
-        private_key: JSON.parse(privateKeyString)
+        public_key: publicKeyJwk,
+        private_key: privateKeyJwk
       };
 
       this.update({ credentials });

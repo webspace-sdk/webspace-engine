@@ -498,7 +498,7 @@ export class ProjectileSystem {
             const now = performance.now();
 
             if (now > lastReactjiSendTime + REACTJI_SEND_RATE_LIMIT) {
-              window.APP.hubChannel.sendMessage(emojis[i], "reactji", hitAvatarSessionId);
+              window.APP.hubChannel.broadcastMessage(emojis[i], "reactji", hitAvatarSessionId);
               lastReactjiSendTime = now;
             }
           }

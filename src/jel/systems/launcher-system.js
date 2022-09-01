@@ -109,7 +109,7 @@ export class LauncherSystem extends EventTarget {
     // No burst while holding object due to snap use of space. Can't use action bindings for this since when set changes it will trigger a rising.
     if (mashed && !isHoldingObject) {
       const payload = projectileSystem.fireEmojiBurst(window.APP.store.state.equips.launcher);
-      window.APP.hubChannel.sendMessage(payload, "emoji_burst");
+      window.APP.hubChannel.broadcastMessage(payload, "emoji_burst");
     }
 
     // Launch a single emoji if:
@@ -194,6 +194,6 @@ export class LauncherSystem extends EventTarget {
       tmpVec3.z * magnitude
     );
 
-    window.APP.hubChannel.sendMessage(payload, "emoji_launch");
+    window.APP.hubChannel.broadcastMessage(payload, "emoji_launch");
   }
 }
