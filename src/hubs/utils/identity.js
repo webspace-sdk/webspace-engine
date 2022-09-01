@@ -98,7 +98,5 @@ export function generateRandomName() {
 }
 
 export async function fetchRandomDefaultAvatarId() {
-  // If reticulum doesn't return any default avatars, just default to the duck model. This should only happen
-  // when running against a fresh reticulum server, e.g. a local ret instance.
   return new URL(defaultAvatar, location.href).href;
 }

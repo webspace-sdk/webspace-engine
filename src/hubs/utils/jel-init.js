@@ -9,6 +9,7 @@ import HubStore from "../storage/hub-store";
 import MediaTree from "../../jel/utils/media-tree";
 import { clearVoxAttributePools } from "../../jel/objects/JelVoxBufferGeometry";
 import { restartPeriodicSyncs } from "../components/periodic-full-syncs";
+import crypto from "crypto";
 
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
 
@@ -104,13 +105,9 @@ async function moveToInitialHubLocationAndBeginPeriodicSyncs(hub, hubStore) {
 }
 
 function updateUIForHub(hub, remountJelUI) {
-  const neon = DOM_ROOT.querySelector("#neon");
   const canvas = DOM_ROOT.querySelector(".a-canvas");
 
-  neon.classList.remove("visible");
   canvas.focus();
-
-  window.APP.matrix.switchToHub(hub);
 
   remountJelUI({ hub });
 }
@@ -129,6 +126,8 @@ const setupDataChannelMessageHandlers = () => {
       return messages["chat.default-name"];
     }
   };
+
+  const { atomAccessManager } = window.APP;
 
   NAF.connection.subscribeToDataChannel("chat", (_type, { body }, fromSessionId) => {
     const name = getName(fromSessionId);
@@ -156,6 +155,34 @@ const setupDataChannelMessageHandlers = () => {
     if (!scene.isPlaying) return;
     if (fromSessionId === NAF.clientId) return;
     projectileSystem.replayEmojiBurst(body);
+  });
+
+  // Public key verification
+  //
+  const clientIdChallenges = new Map();
+
+  // When a client connects, send the challenge to verify their public key
+  document.body.addEventListener("clientConnected", ({ detail: clientId }) => {
+    const challenge = crypto.randomBytes(20).toString("hex");
+    clientIdChallenges.set(clientId, challenge);
+    console.log("send challenge", challenge, clientId);
+    window.APP.hubChannel.sendMessage(challenge, "challenge", clientId);
+  });
+
+  NAF.connection.subscribeToDataChannel("challenge", async (_type, { body: challenge }, fromSessionId) => {
+    const response = await atomAccessManager.getChallengeResponse(challenge);
+    console.log("received challenge", challenge);
+    window.APP.hubChannel.sendMessage(response, "challenge_response", fromSessionId);
+  });
+
+  NAF.connection.subscribeToDataChannel("challenge_response", async (_type, { body: response }, fromSessionId) => {
+    const challenge = clientIdChallenges.get(fromSessionId);
+    console.log("received challenge reponse", response, challenge);
+
+    if (challenge) {
+      const verified = await atomAccessManager.verifyChallengeResponse(challenge, response);
+      console.log(verified);
+    }
   });
 };
 

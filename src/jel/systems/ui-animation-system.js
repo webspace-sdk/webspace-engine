@@ -24,7 +24,6 @@ const panelExpandStep = BezierEasing(0.12, 0.98, 0.18, 0.98);
 export class UIAnimationSystem {
   constructor(sceneEl) {
     this.sceneEl = sceneEl;
-    waitForShadowDOMContentLoaded().then(() => (this.neon = DOM_ROOT.querySelector("#neon")));
 
     this.lastTickT = 0;
     this.panelExpansionState = PANEL_EXPANSION_STATES.EXPANDING;
@@ -206,10 +205,6 @@ export class UIAnimationSystem {
     const width = UI.clientWidth - this.sceneLeft - this.sceneRight;
     if (this.sceneEl) {
       this.sceneEl.style.cssText = `left: ${this.sceneLeft}px; width: ${width}px;`;
-    }
-
-    if (this.neon) {
-      this.neon.style.cssText = `left: ${this.sceneLeft}px; width: ${width}px;`;
     }
 
     if (includeUI) {

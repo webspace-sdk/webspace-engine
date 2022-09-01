@@ -94,11 +94,7 @@ export default class MediaSearchStore extends EventTarget {
 
     if (source === "avatars" || source === "scenes" || source === "favorites") {
       if (isMy) {
-        if (window.APP.store.credentialsAccountId) {
-          searchParams.set("user", window.APP.store.credentialsAccountId);
-        } else {
-          fetch = false; // Don't fetch my-* if not signed in
-        }
+        fetch = false;
       }
     }
 
@@ -271,15 +267,7 @@ export default class MediaSearchStore extends EventTarget {
   };
 
   _hasAccountWithAvatars = async () => {
-    const { credentialsAccountId } = window.APP.store;
-    if (!credentialsAccountId) return false;
-
-    const searchParams = new URLSearchParams();
-    const source = "avatars";
-    searchParams.set("source", source);
-    searchParams.set("user", credentialsAccountId);
-    const result = await fetchReticulumAuthenticated(`/api/v1/media/search?${searchParams.toString()}`);
-    return !!(result && result.entries) && result.entries.length > 0;
+    return false;
   };
 
   getUrlMediaSource = location => {

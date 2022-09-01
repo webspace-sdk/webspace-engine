@@ -1,5 +1,5 @@
 import { EventTarget } from "event-target-shim";
-import { getSpaceIdFromHistory } from "./jel-url-utils";
+import { getSpaceIdFromHistory, getHubIdFromHistory } from "./jel-url-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 
 const ATOM_TYPES = {
@@ -214,7 +214,7 @@ export default class AtomAccessManager extends EventTarget {
     });
 
     waitForDOMContentLoaded().then(() => {
-      this.mutationObserver.observe(document.body, {
+      this.mutationObserver.observe(document.documentElement, {
         subtree: true,
         childList: true,
         attributes: true,
@@ -232,9 +232,45 @@ export default class AtomAccessManager extends EventTarget {
 
     if (result) {
       this.dispatchEvent(new CustomEvent("permissions_updated", {}));
+      this.ensurePublicKeyInMetaTags();
     }
 
     return result;
+  }
+
+  async ensurePublicKeyInMetaTags() {
+    const metaTagName = "webspace-owner-public-key";
+    const publicKey = JSON.parse(JSON.stringify(window.APP.store.state.credentials.public_key));
+    const hubId = await getHubIdFromHistory();
+    publicKey.hub_id = hubId;
+
+    const metaTagContent = btoa(JSON.stringify(publicKey));
+    let found = false;
+
+    for (const el of [...document.querySelectorAll(`meta[name='${metaTagName}']`)]) {
+      const content = el.getAttribute("content");
+
+      try {
+        // This routine also clears out meta tags from other hub ids if this page was copied from elsewhere.
+        if (hubId !== JSON.parse(atob(content))?.hub_id) {
+          el.remove();
+        }
+      } catch (e) {
+        // Can't parse, remove it
+        el.remove();
+      }
+
+      if (content === metaTagContent) {
+        found = true;
+      }
+    }
+
+    if (!found) {
+      const el = document.createElement("meta");
+      el.setAttribute("name", metaTagName);
+      el.setAttribute("content", metaTagContent);
+      document.head.appendChild(el);
+    }
   }
 
   initFileWriteback() {
@@ -324,5 +360,13 @@ export default class AtomAccessManager extends EventTarget {
   async closeWriteback() {
     await this.writeback?.close();
     this.writeback = null;
+  }
+
+  async getChallengeResponse(challenge) {
+    return "response: " + challenge;
+  }
+
+  async verifyChallengeResponse(challenge, response) {
+    return false;
   }
 }

@@ -154,7 +154,7 @@ export default class SpaceChannel extends EventTarget {
   signOut = () => {
     return new Promise((resolve, reject) => {
       this.channel
-        .push("sign_out", { device_id: this.store.state.credentials.deviceId })
+        .push("sign_out", {})
         .receive("ok", async () => {
           this._signedIn = false;
           const params = this.channel.params();

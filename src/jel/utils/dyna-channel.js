@@ -6,7 +6,7 @@ export default class DynaChannel extends EventTarget {
   constructor(store) {
     super();
     this.store = store;
-    this._signedIn = !!this.store.state.credentials.token;
+    this._signedIn = false;
     this._permissions = {};
   }
 

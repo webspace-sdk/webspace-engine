@@ -1450,18 +1450,15 @@ export class VoxSystem extends EventTarget {
     return vox.frames[targettingMeshFrame].getTotalNonEmptyVoxels();
   }
 
-  async fetchVoxFrameChunks(voxUrl) {
-    const store = window.APP.store;
-
-    const res = await fetch(voxUrl, {
-      headers: { authorization: `bearer ${store.state.credentials.token}` }
-    });
-
-    const {
-      vox: [{ frames }]
-    } = await res.json();
-
-    return frames.map(f => VoxChunk.deserialize(f));
+  async fetchVoxFrameChunks(/*voxUrl*/) {
+    //const store = window.APP.store;
+    //const res = await fetch(voxUrl, {
+    //  headers: { authorization: `bearer ${store.state.credentials.token}` }
+    //});
+    //const {
+    //  vox: [{ frames }]
+    //} = await res.json();
+    //return frames.map(f => VoxChunk.deserialize(f));
   }
 
   async getOrFetchVoxFrameChunks(voxId) {

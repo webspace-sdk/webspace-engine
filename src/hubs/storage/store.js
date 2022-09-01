@@ -1,11 +1,9 @@
 import { Validator } from "jsonschema";
 import merge from "deepmerge";
-import Cookies from "js-cookie";
-import jwtDecode from "jwt-decode";
+import { generateKeys, keyToString } from "../utils/crypto";
 
 const LOCAL_STORE_KEY = "___jel_store";
 const STORE_STATE_CACHE_KEY = Symbol();
-const OAUTH_FLOW_CREDENTIALS_KEY = "ret-oauth-flow-account-credentials";
 const validator = new Validator();
 import { EventTarget } from "event-target-shim";
 import { fetchRandomDefaultAvatarId, generateRandomName } from "../utils/identity.js";
@@ -121,11 +119,6 @@ export const DEFAULT_COLORS = [
   rgbToStoredColor({ r: 255, g: 255, b: 255 })
 ];
 
-function randomString(len) {
-  const p = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  return [...Array(len)].reduce(a => a + p[~~(Math.random() * p.length)], "");
-}
-
 // Durable (via local-storage) schema-enforced state that is meant to be consumed via forward data flow.
 // (Think flux but with way less incidental complexity, at least for now :))
 export const SCHEMA = {
@@ -141,6 +134,20 @@ export const SCHEMA = {
         lastJoinedHubIds: { type: "object" },
         isFirstVisitToSpace: { type: "boolean" }, // true the very first time a space is visited, for initial setup
         isSpaceCreator: { type: "boolean" } // true if this user ever created a space on this device
+      }
+    },
+
+    jwk: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        crv: { type: "string" },
+        d: { type: "string" },
+        ext: { type: "boolean" },
+        key_ops: { type: "array" },
+        kty: { type: "string" },
+        x: { type: "string" },
+        y: { type: "string" }
       }
     },
 
@@ -184,10 +191,8 @@ export const SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
-        token: { type: ["null", "string"] },
-        matrixAccessToken: { type: ["null", "string"] },
-        deviceId: { type: ["null", "string"] },
-        email: { type: ["null", "string"] }
+        public_key: { $ref: "#/definitions/jwk" },
+        private_key: { $ref: "#/definitions/jwk" }
       }
     },
 
@@ -489,42 +494,32 @@ export default class Store extends EventTarget {
     });
 
     this._shouldResetAvatarOnInit = false;
-
-    const oauthFlowCredentials = Cookies.getJSON(OAUTH_FLOW_CREDENTIALS_KEY);
-    if (oauthFlowCredentials) {
-      this.update({ credentials: oauthFlowCredentials });
-      this._shouldResetAvatarOnInit = true;
-      Cookies.remove(OAUTH_FLOW_CREDENTIALS_KEY);
-    }
-
-    this._signOutOnExpiredAuthToken();
   }
 
-  _signOutOnExpiredAuthToken = () => {
-    if (!this.state.credentials.token) return;
-
-    const expiry = jwtDecode(this.state.credentials.token).exp * 1000;
-    if (expiry <= Date.now()) {
-      this.clearCredentials();
-    }
-  };
-
   clearCredentials() {
-    this.update({ credentials: { token: null, matrixAccessToken: null, deviceId: null, email: null } });
+    this.update({ credentials: { public_key: null, private_key: null } });
   }
 
   initDefaults = async () => {
-    if (this._shouldResetAvatarOnInit) {
-      await this.resetToRandomDefaultAvatar();
-    } else {
-      this.update({
-        profile: { avatarId: await fetchRandomDefaultAvatarId(), ...(this.state.profile || {}) }
-      });
-    }
+    this.update({
+      profile: { avatarId: await fetchRandomDefaultAvatarId(), ...(this.state.profile || {}) }
+    });
 
     // Regenerate name to encourage users to change it.
     if (!this.state.profile.displayName) {
       this.update({ profile: { displayName: generateRandomName() } });
+    }
+
+    // Generate our public/private keypair for authorization
+    if (!this.state.credentials.public_key) {
+      const { publicKeyString, privateKey } = await generateKeys();
+      const privateKeyString = await keyToString(privateKey);
+      const credentials = {
+        public_key: JSON.parse(publicKeyString),
+        private_key: JSON.parse(privateKeyString)
+      };
+
+      this.update({ credentials });
     }
 
     if (!this.state.profile.persona) {
@@ -665,10 +660,6 @@ export default class Store extends EventTarget {
         }
       });
     }
-
-    if (!this.state.credentials.deviceId) {
-      this.update({ credentials: { deviceId: randomString(32) } });
-    }
   };
 
   resetToRandomDefaultAvatar = async () => {
@@ -683,14 +674,6 @@ export default class Store extends EventTarget {
     }
 
     return this[STORE_STATE_CACHE_KEY];
-  }
-
-  get credentialsAccountId() {
-    if (this.state.credentials.token) {
-      return jwtDecode(this.state.credentials.token).sub;
-    } else {
-      return null;
-    }
   }
 
   bumpEntryCount() {

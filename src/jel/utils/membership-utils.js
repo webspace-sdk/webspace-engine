@@ -49,27 +49,4 @@ export function spaceForSpaceId(spaceId, memberships) {
   return m ? m.space : null;
 }
 
-export async function getInitialHubForSpaceId(spaceId) {
-  const { store } = window.APP;
-
-  const lastJoinedHubId =
-    store.state &&
-    store.state.context &&
-    store.state.context.lastJoinedHubIds &&
-    store.state.context.lastJoinedHubIds[spaceId];
-
-  if (lastJoinedHubId) {
-    const lastHubRes = await fetchReticulumAuthenticated(`/api/v1/hubs/${lastJoinedHubId}`);
-
-    if (lastHubRes && !lastHubRes.error) {
-      if (lastHubRes.hubs && lastHubRes.hubs.length > 0) {
-        return lastHubRes.hubs[0];
-      }
-    }
-  }
-
-  const accountId = store.credentialsAccountId;
-  const res = await fetchReticulumAuthenticated(`/api/v1/accounts/${accountId}`);
-  const membership = (res.memberships || []).filter(m => m.space.space_id === spaceId)[0];
-  return (membership && membership.default_hub) || null;
-}
+export async function getInitialHubForSpaceId(/*spaceId*/) {}

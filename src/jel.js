@@ -150,7 +150,6 @@ import WorldImporter from "./jel/utils/world-importer";
 import DynaChannel from "./jel/utils/dyna-channel";
 import SpaceChannel from "./hubs/utils/space-channel";
 import HubChannel from "./hubs/utils/hub-channel";
-import Matrix from "./jel/utils/matrix";
 import AtomMetadata, { ATOM_TYPES } from "./jel/utils/atom-metadata";
 import { setupTreeManagers, joinHub } from "./hubs/utils/jel-init";
 import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
@@ -200,7 +199,6 @@ const spaceMetadata = new AtomMetadata(ATOM_TYPES.SPACE);
 const hubMetadata = new AtomMetadata(ATOM_TYPES.HUB);
 const voxMetadata = new AtomMetadata(ATOM_TYPES.VOX);
 const atomAccessManager = new AtomAccessManager();
-const matrix = new Matrix(store, spaceMetadata, hubMetadata);
 
 window.APP.history = history;
 window.APP.accountChannel = accountChannel;
@@ -210,7 +208,6 @@ window.APP.hubChannel = hubChannel;
 window.APP.hubMetadata = hubMetadata;
 window.APP.spaceMetadata = spaceMetadata;
 window.APP.voxMetadata = voxMetadata;
-window.APP.matrix = matrix;
 window.APP.atomAccessManager = atomAccessManager;
 
 const qs = new URLSearchParams(location.search);
@@ -891,8 +888,6 @@ async function start() {
       <div id="presence-drag-target"></div>
       <div id="quill-container"></div>
 
-      <iframe id="neon" src="about:blank"></iframe>
-
       <div id="gaze-cursor">
           <div class="cursor"></div>
       </div>
@@ -1177,14 +1172,7 @@ async function start() {
   let nextHubToJoin;
   let joinHubPromise;
 
-  const { token } = store.state.credentials;
-
-  if (token) {
-    console.log(`Logged into account ${store.credentialsAccountId}`);
-
-    // TODO SHARED
-    // voxMetadata.bind(accountChannel);
-  }
+  console.log(`Logged into account ${store.state.credentials.public_key}`);
 
   const performJoin = async () => {
     // Handle rapid history changes, only join last one.

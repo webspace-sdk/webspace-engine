@@ -45,9 +45,7 @@ export default class AccountChannel extends EventTarget {
     }
   };
 
-  subscribe = subscription => {
-    this.channel.push("subscribe", { device_id: this.store.state.credentials.deviceId, subscription });
-  };
+  subscribe = () => {};
 
   joinMatrixRoom = roomId => {
     this.channel.push("join_matrix_room", { matrix_room_id: roomId });

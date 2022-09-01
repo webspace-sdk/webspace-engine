@@ -12,11 +12,11 @@ async function deriveKey(privateKey, publicKey) {
   );
 }
 
-async function publicKeyToString(key) {
+export async function keyToString(key) {
   return JSON.stringify(await crypto.subtle.exportKey("jwk", key));
 }
 
-async function stringToPublicKey(s) {
+export async function stringToKey(s) {
   return await crypto.subtle.importKey("jwk", JSON.parse(s), { name: "ECDH", namedCurve: "P-256" }, true, []);
 }
 
@@ -46,16 +46,16 @@ function arrayBufferToString(b) {
 // Requestor generates a public key and private key, and should send the public key to receiver.
 export async function generateKeys() {
   const keyPair = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveKey"]);
-  const publicKeyString = await publicKeyToString(keyPair.publicKey);
+  const publicKeyString = await keyToString(keyPair.publicKey);
   return { publicKeyString, privateKey: keyPair.privateKey };
 }
 
 // Receiver takes the public key from requestor and passes obj to get a response public key and the encrypted data to return.
 export async function generatePublicKeyAndEncryptedObject(incomingPublicKeyString, obj) {
   const iv = new Uint8Array(16);
-  const incomingPublicKey = await stringToPublicKey(incomingPublicKeyString);
+  const incomingPublicKey = await stringToKey(incomingPublicKeyString);
   const keyPair = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveKey"]);
-  const publicKeyString = await publicKeyToString(keyPair.publicKey);
+  const publicKeyString = await keyToString(keyPair.publicKey);
   const secret = await deriveKey(keyPair.privateKey, incomingPublicKey);
 
   const encryptedData = btoa(
@@ -70,7 +70,7 @@ export async function generatePublicKeyAndEncryptedObject(incomingPublicKeyStrin
 // Requestor then takes the receiver's public key, the private key (returned from generateKeys()), and the data from the receiver.
 export async function decryptObject(publicKeyString, privateKey, base64value) {
   const iv = new Uint8Array(16);
-  const publicKey = await stringToPublicKey(publicKeyString);
+  const publicKey = await stringToKey(publicKeyString);
   const secret = await deriveKey(privateKey, publicKey);
   const ciphertext = stringToArrayBuffer(atob(base64value));
   const data = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, secret, ciphertext);

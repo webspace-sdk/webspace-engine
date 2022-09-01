@@ -136,14 +136,9 @@ const ConfirmModalPanel = forwardRef(({ atomId, atomMetadata }, ref) => {
           <FormattedMessage id="confirm-modal.cancel" />
         </CancelLink>
         <SmallActionButton
-          onClick={useCallback(
-            () => {
-              const roomId = window.APP.matrix.getChannelRoomId(atomId);
-              window.APP.accountChannel.deleteChannelMatrixRoom(roomId);
-              DOM_ROOT.activeElement?.blur();
-            },
-            [atomId]
-          )}
+          onClick={useCallback(() => {
+            DOM_ROOT.activeElement?.blur();
+          }, [])}
           className="destructive"
         >
           <FormattedMessage id="confirm-modal.delete-channel-confirm" />

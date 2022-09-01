@@ -58,11 +58,7 @@ export default class Subscriptions extends EventTarget {
     const hasRegisteredEndpoint =
       currentEndpoint && this.existingSubscriptions.find(({ endpoint }) => currentEndpoint === endpoint);
 
-    const hasRegisteredDeviceWithEndpoint =
-      currentEndpoint &&
-      this.existingSubscriptions.find(
-        ({ device_id, endpoint }) => currentEndpoint === endpoint && device_id === this.store.state.credentials.deviceId
-      );
+    const hasRegisteredDeviceWithEndpoint = true;
 
     // If this endpoint is already registered with the server but this device isn't,
     // we can just subscribe immediately since permission was already granted.
