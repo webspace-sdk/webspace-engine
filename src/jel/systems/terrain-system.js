@@ -365,12 +365,7 @@ export class TerrainSystem {
     if (hubType === "channel") return;
 
     // Update colors
-    const colors = WORLD_COLOR_TYPES.map(type => {
-      const r = world[`${type}_color_r`];
-      const g = world[`${type}_color_g`];
-      const b = world[`${type}_color_b`];
-      return { r, g, b };
-    });
+    const colors = WORLD_COLOR_TYPES.map(type => world[`${type}_color`]);
 
     this.updateWorldColors(...colors);
 
@@ -384,7 +379,7 @@ export class TerrainSystem {
     this.cameraSystem.updateCameraSettings();
 
     this.worldType = type;
-    this.worldSeed = seed;
+    this.worldSeed = seed; // TODO SHARED, if zero, use hub id
     this.unloadWorld();
 
     this.performFullTerrainWorkOnNextTick = true;

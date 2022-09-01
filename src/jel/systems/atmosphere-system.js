@@ -346,17 +346,8 @@ export class AtmosphereSystem {
   updateAtmosphereForHub({ world }) {
     if (!world) return;
 
-    const {
-      water_color_r: wr,
-      water_color_g: wg,
-      water_color_b: wb,
-      sky_color_r: sr,
-      sky_color_g: sg,
-      sky_color_b: sb
-    } = world;
-
-    this.updateWaterColor({ r: wr, g: wg, b: wb });
-    this.updateSkyColor({ r: sr, g: sg, b: sb });
+    this.updateWaterColor(world.water_color);
+    this.updateSkyColor(world.sky_color);
   }
 
   updateWaterColor({ r, g, b }) {

@@ -210,125 +210,89 @@ const setupDataChannelMessageHandlers = () => {
   );
 };
 
-const joinHubChannel = (hubId, spaceId, hubStore, entryManager, remountJelUI) => {
+const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, remountJelUI) => {
   const isInitialJoin = true;
   const { atomAccessManager } = window.APP;
 
-  const hub = {
-    hub_id: hubId,
-    name: document.title,
-    space_id: spaceId,
-    spawn_point: { position: { x: 0, y: 0, z: 0 }, radius: 10, rotation: { w: 1, x: 0, y: 0, z: 0 } },
-    url: document.location.origin + document.location.pathname,
-    world: {
-      bark_color_b: 0.12156862745098039,
-      bark_color_g: 0.20784313725490197,
-      bark_color_r: 0.3333333333333333,
-      edge_color_b: 0.07450980392156863,
-      edge_color_g: 0.11372549019607843,
-      edge_color_r: 0.1568627450980392,
-      grass_color_b: 0.10588235294117647,
-      grass_color_g: 0.5450980392156862,
-      grass_color_r: 0.7254901960784313,
-      ground_color_b: 0.14901960784313725,
-      ground_color_g: 0.2823529411764706,
-      ground_color_r: 0.35294117647058826,
-      leaves_color_b: 0.6,
-      leaves_color_g: 0.22745098039215686,
-      leaves_color_r: 0.7254901960784313,
-      rock_color_b: 0.47843137254901963,
-      rock_color_g: 0.47843137254901963,
-      rock_color_r: 0.47843137254901963,
-      seed: 64,
-      sky_color_b: 0.8117647058823529,
-      sky_color_g: 0.6392156862745098,
-      sky_color_r: 0.5411764705882353,
-      type: 3,
-      water_color_b: 0.47843137254901963,
-      water_color_g: 0.22745098039215686,
-      water_color_r: 0
-    },
-    // TODO SHARED templates
-    template: { hash: null, name: null, synced_at: null },
-    world_template_id: null
-  };
-
   return new Promise(joinFinished => {
-    atomAccessManager.dispatchEvent(new CustomEvent("permissions_updated", {}));
+    hubMetadata.getOrFetchMetadata(hubId).then(hub => {
+      atomAccessManager.dispatchEvent(new CustomEvent("permissions_updated", {}));
 
-    if (!isInitialJoin) {
-      // Send complete sync on phoenix re-join.
-      NAF.connection.entities.completeSync(null, true);
-    }
+      if (!isInitialJoin) {
+        // Send complete sync on phoenix re-join.
+        NAF.connection.entities.completeSync(null, true);
+      }
 
-    const scene = DOM_ROOT.querySelector("a-scene");
+      const scene = DOM_ROOT.querySelector("a-scene");
 
-    // Wait for scene objects to load before connecting, so there is no race condition on network state.
-    document.title = `${hub.name}`;
+      // Wait for scene objects to load before connecting, so there is no race condition on network state.
+      document.title = `${hub.name}`;
 
-    // Note that scene state needs to be updated before UI because focus handler will often fire
-    // which assumes scene state is set already to "off" for channels.
-    scene.removeState("off");
-    scene.classList.add("visible");
+      // Note that scene state needs to be updated before UI because focus handler will often fire
+      // which assumes scene state is set already to "off" for channels.
+      scene.removeState("off");
+      scene.classList.add("visible");
 
-    updateUIForHub(hub, remountJelUI);
-    updateEnvironmentForHub(hub);
+      // TODO SHARED need to subscribe to metadata here
+      updateUIForHub(hub, remountJelUI);
+      updateEnvironmentForHub(hub);
 
-    // Reset inspect if we switched while inspecting
-    SYSTEMS.cameraSystem.uninspect();
+      // Reset inspect if we switched while inspecting
+      SYSTEMS.cameraSystem.uninspect();
 
-    THREE.Cache.clear();
+      THREE.Cache.clear();
 
-    // Clear voxmojis from prior world
-    SYSTEMS.voxmojiSystem.clear();
+      // Clear voxmojis from prior world
+      SYSTEMS.voxmojiSystem.clear();
 
-    SYSTEMS.atmosphereSystem.restartAmbience();
+      SYSTEMS.atmosphereSystem.restartAmbience();
 
-    // Free memory from voxel editing undo stacks.
-    SYSTEMS.builderSystem.clearUndoStacks();
-    SYSTEMS.undoSystem.clearUndoStacks();
+      // Free memory from voxel editing undo stacks.
+      SYSTEMS.builderSystem.clearUndoStacks();
+      SYSTEMS.undoSystem.clearUndoStacks();
 
-    clearVoxAttributePools();
+      clearVoxAttributePools();
 
-    clearResolveUrlCache();
+      clearResolveUrlCache();
 
-    moveToInitialHubLocationAndBeginPeriodicSyncs(hub, hubStore);
+      moveToInitialHubLocationAndBeginPeriodicSyncs(hub, hubStore);
 
-    const joinPromise = new Promise(res => document.body.addEventListener("connected", res, { once: true }));
+      const joinPromise = new Promise(res => document.body.addEventListener("connected", res, { once: true }));
 
-    if (!isInitialJoin) {
-      // TODO disconnect
-    }
+      if (!isInitialJoin) {
+        // TODO disconnect
+      }
 
-    const handle = evt => {
-      if (evt.detail.name !== "networked-scene");
-      scene.removeEventListener("componentinitialized", handle);
-      scene.components["networked-scene"].connect();
-    };
+      const handle = evt => {
+        if (evt.detail.name !== "networked-scene");
+        scene.removeEventListener("componentinitialized", handle);
+        scene.components["networked-scene"].connect();
+      };
 
-    setupDataChannelMessageHandlers();
+      setupDataChannelMessageHandlers();
 
-    scene.addEventListener("componentinitialized", handle);
+      scene.addEventListener("componentinitialized", handle);
 
-    scene.setAttribute("networked-scene", {
-      audio: true,
-      connectOnLoad: false,
-      room: hub.hub_id,
-      adapter: "p2pcf",
-      app: "jel",
-      debug: !!isDebug
-    });
+      scene.setAttribute("networked-scene", {
+        audio: true,
+        connectOnLoad: false,
+        room: hub.hub_id,
+        adapter: "p2pcf",
+        app: "jel",
+        debug: !!isDebug
+      });
 
-    const connectionErrorTimeout = setTimeout(() => {
-      console.error("Unknown error occurred while attempting to connect to networked scene.");
-      remountJelUI({ unavailableReason: "connect_error" });
-      entryManager.exitScene();
-    }, 90000);
+      const connectionErrorTimeout = setTimeout(() => {
+        console.error("Unknown error occurred while attempting to connect to networked scene.");
+        remountJelUI({ unavailableReason: "connect_error" });
+        entryManager.exitScene();
+      }, 90000);
 
-    joinPromise.then(() => {
-      clearTimeout(connectionErrorTimeout);
-      scene.emit("didConnectToNetworkedScene");
-      joinFinished(true);
+      joinPromise.then(() => {
+        clearTimeout(connectionErrorTimeout);
+        scene.emit("didConnectToNetworkedScene");
+        joinFinished(true);
+      });
     });
   });
 };
@@ -456,7 +420,7 @@ export async function setupTreeManagers(history, subscriptions, entryManager, re
 }
 
 export async function joinHub(scene, history, entryManager, remountJelUI) {
-  const { store, hubChannel, atomAccessManager } = window.APP;
+  const { store, hubChannel, hubMetadata, atomAccessManager } = window.APP;
 
   const spaceId = await getSpaceIdFromHistory(history);
   const hubId = await getHubIdFromHistory(history);
@@ -473,7 +437,7 @@ export async function joinHub(scene, history, entryManager, remountJelUI) {
     NAF.connection.adapter.leaveRoom(true);
   }
 
-  const joinSuccessful = await joinHubChannel(hubId, spaceId, hubStore, entryManager, remountJelUI);
+  const joinSuccessful = await joinHubChannel(hubId, spaceId, hubStore, hubMetadata, entryManager, remountJelUI);
 
   if (joinSuccessful) {
     store.setLastJoinedHubId(spaceId, hubId);

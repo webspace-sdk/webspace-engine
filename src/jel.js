@@ -150,7 +150,7 @@ import WorldImporter from "./jel/utils/world-importer";
 import DynaChannel from "./jel/utils/dyna-channel";
 import SpaceChannel from "./hubs/utils/space-channel";
 import HubChannel from "./hubs/utils/hub-channel";
-import AtomMetadata, { ATOM_TYPES } from "./jel/utils/atom-metadata";
+import AtomMetadata, { ATOM_TYPES, DOMAndOwnerHubMetadataSource } from "./jel/utils/atom-metadata";
 import { setupTreeManagers, joinHub } from "./hubs/utils/jel-init";
 import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "./jel/utils/jel-url-utils";
@@ -1184,6 +1184,9 @@ async function start() {
 
     if (joinHubPromise) await joinHubPromise;
     joinHubPromise = null;
+
+    const metadataSource = new DOMAndOwnerHubMetadataSource();
+    hubMetadata.bind(metadataSource);
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
       store.update({ context: { spaceId } });

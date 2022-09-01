@@ -2,6 +2,8 @@ import { hasIntersection } from "./set-utils";
 import fastDeepEqual from "fast-deep-equal";
 import { getMessages } from "../../hubs/utils/i18n";
 import { useEffect } from "react";
+import { EventTarget } from "event-target-shim";
+import { getHubIdFromHistory, getSpaceIdFromHistory } from "./jel-url-utils";
 
 const ATOM_TYPES = {
   HUB: 0,
@@ -52,9 +54,199 @@ const VALID_PERMISSIONS = {
   [ATOM_TYPES.VOX]: ["view_vox", "edit_vox"]
 };
 
+const META_TAG_PREFIX = "webspace:";
+
 // This value is placed in the metadata lookup table while a fetch is
 // in-flight, to debounce the function that enqueues fetching.
 const pendingMetadataValue = Symbol("pending");
+
+const VEC_ZERO = { x: 0, y: 0, z: 0 };
+const QUAT_IDENTITY = { x: 0, y: 0, z: 0, w: 1 };
+const COLOR_BLACK = { r: 0, g: 0, b: 0 };
+
+function getIntFromMeta(name, defaultValue = 0) {
+  try {
+    return (
+      parseInt(document.head.querySelector(`meta[name='${META_TAG_PREFIX}${name}']`)?.getAttribute("content")) ||
+      defaultValue
+    );
+  } catch {
+    return defaultValue;
+  }
+}
+
+function getFloatFromMeta(name, defaultValue = 0) {
+  try {
+    return (
+      parseFloat(document.head.querySelector(`meta[name='${META_TAG_PREFIX}${name}']`)?.getAttribute("content")) ||
+      defaultValue
+    );
+  } catch {
+    return defaultValue;
+  }
+}
+
+function getVectorFromMeta(name, defaultValue = VEC_ZERO) {
+  try {
+    const content = document.head
+      .querySelector(`meta[name='${META_TAG_PREFIX}${name}']`)
+      ?.getAttribute("content")
+      ?.split(" ");
+
+    if (content && content.length === 3) {
+      return {
+        x: parseFloat(content[0]),
+        y: parseFloat(content[1]),
+        z: parseFloat(content[2])
+      };
+    } else {
+      return defaultValue;
+    }
+  } catch {
+    return defaultValue;
+  }
+}
+
+function getColorFromMeta(name, defaultValue = COLOR_BLACK) {
+  try {
+    const content = document.head
+      .querySelector(`meta[name='${META_TAG_PREFIX}${name}']`)
+      ?.getAttribute("content")
+      ?.split(" ");
+
+    if (content && content.length === 3) {
+      return {
+        r: parseFloat(content[0]),
+        g: parseFloat(content[1]),
+        b: parseFloat(content[2])
+      };
+    } else {
+      return defaultValue;
+    }
+  } catch {
+    return defaultValue;
+  }
+}
+
+function getQuaternionFromMeta(name, defaultValue = QUAT_IDENTITY) {
+  try {
+    const content = document.head
+      .querySelector(`meta[name='${META_TAG_PREFIX}${name}']`)
+      ?.getAttribute("content")
+      ?.split(" ");
+
+    if (content && content.length === 4) {
+      return {
+        x: parseFloat(content[0]),
+        y: parseFloat(content[1]),
+        z: parseFloat(content[2]),
+        w: parseFloat(content[3])
+      };
+    } else {
+      return defaultValue;
+    }
+  } catch {
+    return defaultValue;
+  }
+}
+
+// This source will fetch the metadata for the current hub id from the initial
+// DOM, and then listen to the network for requests of metadata updates.
+//
+// If the current context is not a file protocol, it will also fetch the metadata
+// for all the hubs sitting in index.html.
+//
+// When a metadata update comes in, we check if they're an owner and if so we apply.
+export class DOMAndOwnerHubMetadataSource extends EventTarget {
+  constructor() {
+    super();
+
+    this.patchedMetadata = new Map();
+  }
+
+  async getHubMetas(hubIds) {
+    const currentHubId = await getHubIdFromHistory();
+    const currentSpaceId = await getSpaceIdFromHistory();
+
+    const hubs = [];
+
+    for (const hubId of hubIds) {
+      let hub = null;
+
+      if (hubId === currentHubId) {
+        hub = {
+          hub_id: currentHubId,
+          space_id: currentSpaceId,
+          name: document.title,
+          url: document.origin + document.location.pathname,
+          spawn_point: {
+            position: getVectorFromMeta("environment:spawn_point:position"),
+            rotation: getQuaternionFromMeta("environment:spawn_point:rotation"),
+            radius: getFloatFromMeta("environment:spawn_point:radius", 10)
+          },
+          world: {
+            seed: getIntFromMeta("environment:terrain:seed"),
+            type: getIntFromMeta("environment:terrain:type", 3),
+            bark_color: getColorFromMeta("environment:colors:bark", {
+              r: 0.1450980392156863,
+              g: 0.07058823529411765,
+              b: 0
+            }),
+            edge_color: getColorFromMeta("environment:colors:edge", {
+              r: 0.5764705882352941,
+              g: 0.3411764705882353,
+              b: 0.20784313725490197
+            }),
+            grass_color: getColorFromMeta("environment:colors:grass", {
+              r: 0,
+              g: 0.8509803921568627,
+              b: 0.050980392156862744
+            }),
+            ground_color: getColorFromMeta("environment:colors:ground", {
+              r: 0,
+              g: 0.266666666,
+              b: 0.0196078431372549
+            }),
+            leaves_color: getColorFromMeta("environment:colors:leaves", {
+              r: 0,
+              g: 0.39215686274509803,
+              b: 0.07058823529411765
+            }),
+            rock_color: getColorFromMeta("environment:colors:rock", {
+              r: 1,
+              g: 1,
+              b: 1
+            }),
+            sky_color: getColorFromMeta("environment:colors:sky", {
+              r: 0.29411764705882354,
+              g: 0.4392156862745098,
+              b: 0.6549019607843137
+            }),
+            water_color: getColorFromMeta("environment:colors:water", {
+              r: 0,
+              g: 0.26666666666666666,
+              b: 0.6352941176470588
+            })
+          }
+        };
+      } else {
+        if (document.location.protocol === "http:" || document.location.protocol === "https:") {
+          // TODO SHARED fetch others
+        }
+      }
+
+      if (hub !== null) {
+        if (this.patchedMetadata.has(hubId)) {
+          hub = { ...this.patchedMetadata.get(hubId), hub };
+        }
+
+        hubs.push(hub);
+      }
+    }
+
+    return hubs;
+  }
+}
 
 // Class which is used to track realtime updates to metadata for hubs and spaces.
 // Used for filling into the tree controls.
@@ -234,18 +426,10 @@ class AtomMetadata {
 
     // Others are pending, create a promise to fetch them.
     if (idsToFetch.size > 0) {
-      const phxChannel = source.channel;
-
       // Push a promise that waits on fetching the pending ids
       promises.push(
         new Promise(res => {
           source[this._sourceGetMethod](ids).then(atoms => {
-            // Edge case: if phoenix channel is re-bound, discard, the rebind will
-            // re-fetch the pending items.
-            if (phxChannel && phxChannel !== source.channel) {
-              res();
-            }
-
             for (const metadata of atoms) {
               this._setDisplayNameOnMetadata(metadata);
               this._metadata.set(metadata[this._idColumn], metadata);
@@ -335,26 +519,12 @@ class AtomMetadata {
 
   _subscribeToSource(event, handler) {
     const source = this._source;
-
-    if (source.channel) {
-      // Phoenix channel source
-      source.channel.on(event, handler);
-    } else {
-      // Matrix (or other EventTarget) source
-      source.addEventListener(event, handler);
-    }
+    source.addEventListener(event, handler);
   }
 
   _unsubscribeFromSource(event, handler) {
     const source = this._source;
-
-    if (source.channel) {
-      // Phoenix channel source
-      source.channel.off(event, handler);
-    } else {
-      // Matrix (or other EventTarget) source
-      source.removeEventListener(event, handler);
-    }
+    source.removeEventListener(event, handler);
   }
 }
 

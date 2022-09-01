@@ -4,7 +4,7 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { signString, verifyString } from "../../hubs/utils/crypto";
 import { fromByteArray } from "base64-js";
 
-const OWNER_PUBLIC_KEY_META_TAG_NAME = "webspace:owner-public-key";
+const OWNER_PUBLIC_KEY_META_TAG_NAME = "webspace:keys:owner-public-key";
 
 const ATOM_TYPES = {
   HUB: 0,
