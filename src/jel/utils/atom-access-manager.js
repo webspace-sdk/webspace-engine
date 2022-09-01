@@ -365,16 +365,25 @@ export default class AtomAccessManager extends EventTarget {
     this.writeback = null;
   }
 
-  async getChallengeSignature(challenge) {
+  async getChallengeResponse(challenge) {
     const { store } = window.APP;
     const privateKeyJwk = store.state.credentials.private_key;
-    const signed = await signString(challenge, privateKeyJwk);
-    return fromByteArray(new Uint8Array(signed));
+    const challengeSignature = await signString(challenge, privateKeyJwk);
+    const clientIdSignature = await signString(NAF.clientId, privateKeyJwk);
+    return {
+      challengeSignature: fromByteArray(new Uint8Array(challengeSignature)),
+      clientIdSignature: fromByteArray(new Uint8Array(clientIdSignature))
+    };
   }
 
-  async verifyChallengeResponse(challenge, publicKey, signature, fromSessionId) {
-    if (!(await verifyString(challenge, publicKey, signature))) return;
-    this.publicKeys.set(fromSessionId, publicKey);
+  async verifyChallengeResponse(challenge, publicKey, challengeSignature, clientIdSignature, fromClientId) {
+    if (!(await verifyString(challenge, publicKey, challengeSignature))) return;
+    if (!(await verifyString(fromClientId, publicKey, clientIdSignature))) return;
+
+    this.publicKeys.set(fromClientId, publicKey);
+    this.updateRoles();
     this.dispatchEvent(new CustomEvent("permissions_updated", {}));
   }
+
+  updateRoles() {}
 }

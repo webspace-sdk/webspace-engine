@@ -170,24 +170,41 @@ const setupDataChannelMessageHandlers = () => {
     window.APP.hubChannel.sendMessage(challenge, "challenge", clientId);
   });
 
-  NAF.connection.subscribeToDataChannel("challenge", async (_type, { body: challenge }, fromSessionId) => {
-    const signature = await atomAccessManager.getChallengeSignature(challenge);
-    const response = { public_key: window.APP.store.state.credentials.public_key, signature };
-    window.APP.hubChannel.sendMessage(response, "challenge_response", fromSessionId);
+  NAF.connection.subscribeToDataChannel("challenge", async (_type, { body: challenge }, fromClientId) => {
+    const { challengeSignature, clientIdSignature } = await atomAccessManager.getChallengeResponse(challenge);
+    const response = {
+      publicKey: window.APP.store.state.credentials.public_key,
+      challengeSignature,
+      clientIdSignature
+    };
+    window.APP.hubChannel.sendMessage(response, "challenge_response", fromClientId);
   });
 
   NAF.connection.subscribeToDataChannel(
     "challenge_response",
-    async (_type, { body: { public_key: publicKey, signature: signatureBase64 } }, fromSessionId) => {
-      const challenge = clientIdChallenges.get(fromSessionId);
+    async (
+      _type,
+      {
+        body: {
+          publicKey: publicKey,
+          challengeSignature: challengeSignatureBase64,
+          clientIdSignature: clientIdSignatureBase64
+        }
+      },
+      fromClientId
+    ) => {
+      const challenge = clientIdChallenges.get(fromClientId);
       if (!challenge) return;
 
-      const signature = base64ToByteArray(signatureBase64);
+      const challengeSignature = base64ToByteArray(challengeSignatureBase64);
+      const clientIdSignature = base64ToByteArray(clientIdSignatureBase64);
+
       atomAccessManager.verifyChallengeResponse(
         new TextEncoder().encode(challenge),
         publicKey,
-        signature,
-        fromSessionId
+        challengeSignature,
+        clientIdSignature,
+        new TextEncoder().encode(fromClientId)
       );
     }
   );
