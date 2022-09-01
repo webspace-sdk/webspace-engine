@@ -4,10 +4,17 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { signString, verifyString } from "../../hubs/utils/crypto";
 import { fromByteArray } from "base64-js";
 
+const OWNER_PUBLIC_KEY_META_TAG_NAME = "webspace:owner-public-key";
+
 const ATOM_TYPES = {
   HUB: 0,
   SPACE: 1,
   VOX: 2
+};
+
+const ROLES = {
+  NONE: 0,
+  OWNER: 0x80
 };
 
 const VALID_PERMISSIONS = {
@@ -170,6 +177,8 @@ export default class AtomAccessManager extends EventTarget {
     super();
 
     this.publicKeys = new Map();
+    this.roles = new Map();
+
     this.isEditingAvailable = false;
     this.init();
 
@@ -216,12 +225,23 @@ export default class AtomAccessManager extends EventTarget {
       }
     });
 
+    this.updateRoles();
+
     waitForDOMContentLoaded().then(() => {
       this.mutationObserver.observe(document.documentElement, {
         subtree: true,
         childList: true,
         attributes: true,
         characterData: true
+      });
+
+      // Set my role after client id is set, other roles are set after public keys updated from challenges
+      document.body.addEventListener("connected", () => this.updateRoles());
+
+      document.body.addEventListener("clientDisconnected", ({ detail: { clientId } }) => {
+        this.roles.delete(clientId);
+        this.publicKeys.delete(clientId);
+        this.dispatchEvent(new CustomEvent("permissions_updated", {}));
       });
     });
   }
@@ -242,7 +262,6 @@ export default class AtomAccessManager extends EventTarget {
   }
 
   async ensurePublicKeyInMetaTags() {
-    const metaTagName = "webspace-owner-public-key";
     const publicKey = JSON.parse(JSON.stringify(window.APP.store.state.credentials.public_key));
     const hubId = await getHubIdFromHistory();
     publicKey.hub_id = hubId;
@@ -250,7 +269,7 @@ export default class AtomAccessManager extends EventTarget {
     const metaTagContent = btoa(JSON.stringify(publicKey));
     let found = false;
 
-    for (const el of [...document.querySelectorAll(`meta[name='${metaTagName}']`)]) {
+    for (const el of [...document.querySelectorAll(`meta[name='${OWNER_PUBLIC_KEY_META_TAG_NAME}']`)]) {
       const content = el.getAttribute("content");
 
       try {
@@ -270,10 +289,12 @@ export default class AtomAccessManager extends EventTarget {
 
     if (!found) {
       const el = document.createElement("meta");
-      el.setAttribute("name", metaTagName);
+      el.setAttribute("name", OWNER_PUBLIC_KEY_META_TAG_NAME);
       el.setAttribute("content", metaTagContent);
       document.head.appendChild(el);
     }
+
+    await this.updateRoles();
   }
 
   initFileWriteback() {
@@ -380,10 +401,53 @@ export default class AtomAccessManager extends EventTarget {
     if (!(await verifyString(challenge, publicKey, challengeSignature))) return;
     if (!(await verifyString(fromClientId, publicKey, clientIdSignature))) return;
 
-    this.publicKeys.set(fromClientId, publicKey);
-    this.updateRoles();
+    this.publicKeys.set(new TextDecoder().decode(fromClientId), publicKey);
+    await this.updateRoles();
     this.dispatchEvent(new CustomEvent("permissions_updated", {}));
   }
 
-  updateRoles() {}
+  async updateRoles() {
+    const ownerPublicKeys = new Set();
+    const hubId = await getHubIdFromHistory();
+
+    for (const metaTag of [...document.head.querySelectorAll(`meta[name='${OWNER_PUBLIC_KEY_META_TAG_NAME}']`)]) {
+      const content = JSON.parse(atob(metaTag.getAttribute("content")));
+      if (content.hub_id !== hubId) continue;
+      ownerPublicKeys.add(`${content.x}${content.y}`);
+    }
+
+    if (NAF.clientId && !this.publicKeys.has(NAF.clientId)) {
+      const myPublicKey = window.APP.store.state.credentials.public_key;
+      if (myPublicKey) {
+        this.publicKeys.set(NAF.clientId, myPublicKey);
+      }
+    }
+
+    const newRoles = new Map();
+
+    for (const [clientId, publicKey] of this.publicKeys) {
+      const role = ownerPublicKeys.has(`${publicKey.x}${publicKey.y}`) ? ROLES.OWNER : ROLES.NONE;
+      newRoles.set(clientId, role);
+    }
+
+    let changed = false;
+
+    if (newRoles.size !== this.roles.size) {
+      changed = true;
+    } else {
+      loop: for (const [clientIdX, roleX] of this.roles) {
+        for (const [clientIdY, roleY] of newRoles) {
+          if (clientIdX === clientIdY && roleX !== roleY) {
+            changed = true;
+            break loop;
+          }
+        }
+      }
+    }
+
+    if (changed) {
+      this.roles = newRoles;
+      this.dispatchEvent(new CustomEvent("permissions_updated", {}));
+    }
+  }
 }

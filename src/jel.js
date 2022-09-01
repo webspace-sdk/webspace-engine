@@ -1172,7 +1172,7 @@ async function start() {
   let nextHubToJoin;
   let joinHubPromise;
 
-  console.log(`Logged into account ${store.state.credentials.public_key}`);
+  console.log(`Logged into account ${store.state.credentials.public_key.x} ${store.state.credentials.public_key.y}`);
 
   const performJoin = async () => {
     // Handle rapid history changes, only join last one.
