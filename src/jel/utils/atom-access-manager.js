@@ -40,69 +40,88 @@ const VALID_PERMISSIONS = {
   [ATOM_TYPES.VOX]: ["view_vox", "edit_vox"]
 };
 
+// Have to rewrite this :/
 class FileWriteback {
-  constructor(db, handle = null) {
-    this.handle = handle;
+  constructor(db, dirHandle = null, pageHandle = null) {
     this.db = db;
+    this.dirHandle = dirHandle;
+    this.pageHandle = pageHandle;
     this.isWriting = false;
   }
 
   async init() {
-    if (this.handle) {
-      this.handlePerm = await this.handle.queryPermission({ mode: "readwrite" });
+    if (this.dirHandle) {
+      this.dirHandlePerm = await this.dirHandle.queryPermission({ mode: "readwrite" });
+    }
+
+    if (this.pageHandle) {
+      this.pageHandlePerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
     }
   }
 
   get isOpen() {
-    return this.handle && this.handlePerm === "granted";
+    return this.dirHandle && this.pageHandle && this.pageHandlePerm === "granted";
   }
 
   get requiresSetup() {
-    return this.handle === null;
+    return this.pageHandle === null && this.dirHandle === null;
   }
 
   async open() {
     if (this.isOpen) return;
 
-    if (this.handle && this.handlePerm === "prompt") {
-      await this.handle.requestPermission({ mode: "readwrite" });
-      this.handlePerm = await this.handle.queryPermission({ mode: "readwrite" });
+    if (this.pageHandle) {
+      if (this.pageHandlePerm === "prompt") {
+        await this.pageHandle.requestPermission({ mode: "readwrite" });
+        this.pageHandlePerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
+      }
     } else {
       const fileParts = document.location.pathname.split("/");
 
       const containingDir = fileParts[fileParts.length - 2];
       const file = fileParts[fileParts.length - 1];
 
-      const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+      if (!this.dirHandle) {
+        const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+        if (dirHandle.name !== containingDir) return;
+        this.dirHandle = dirHandle;
+        this.dirHandlePerm = await this.dirHandle.queryPermission({ mode: "readwrite" });
+      }
 
-      if (dirHandle.name === containingDir) {
-        this.handle = null;
+      if (this.dirHandlePerm === "prompt") {
+        await this.dirHandle.requestPermission({ mode: "readwrite" });
+        this.dirHandlePerm = await this.dirHandle.queryPermission({ mode: "readwrite" });
+      }
 
-        for await (const [key, value] of dirHandle.entries()) {
-          if (key === file) {
-            this.handle = value;
+      this.pageHandle = null;
 
-            const writable = await this.handle.createWritable();
-            writable.close();
+      for await (const [key, value] of this.dirHandle.entries()) {
+        if (key !== file) continue;
 
-            this.handlePerm = await this.handle.queryPermission({ mode: "readwrite" });
-            break;
-          }
-        }
+        this.pageHandle = value;
+
+        const writable = await this.pageHandle.createWritable();
+        writable.close();
+
+        this.pageHandlePerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
       }
     }
 
-    const spaceId = await getSpaceIdFromHistory();
+    if (this.dirHandle) {
+      const spaceId = await getSpaceIdFromHistory();
 
-    await this.db
-      .transaction("space-file-handles", "readwrite")
-      .objectStore("space-file-handles")
-      .put({ space_id: spaceId, handle: this.handle });
+      await this.db
+        .transaction("space-file-handles", "readwrite")
+        .objectStore("space-file-handles")
+        .put({ space_id: spaceId, dirHandle: this.dirHandle });
 
-    await this.db
-      .transaction("url-file-handles", "readwrite")
-      .objectStore("url-file-handles")
-      .put({ url: document.location.href, handle: this.handle });
+      if (this.pageHandle) {
+        await this.db
+          .transaction("url-file-handles", "readwrite")
+          .objectStore("url-file-handles")
+          .put({ url: document.location.href, dirHandle: this.dirHandle, pageHandle: this.pageHandle });
+      }
+    }
 
     return this.isOpen;
   }
@@ -117,7 +136,7 @@ class FileWriteback {
     this.isWriting = true;
 
     try {
-      const writable = await this.handle.createWritable();
+      const writable = await this.pageHandle.createWritable();
       writable.write(content);
       writable.close();
     } finally {
@@ -130,7 +149,8 @@ class FileWriteback {
       await new Promise(res => setTimeout(res, 100));
     }
 
-    this.handle = null;
+    this.dirHandle = null;
+    this.pageHandle = null;
     this.open = false;
   }
 }
@@ -299,15 +319,30 @@ export default class AtomAccessManager extends EventTarget {
         .objectStore("url-file-handles")
         .get(document.location.href)
         .addEventListener("success", async ({ target: { result } }) => {
-          const fallthroughToSpaceHandle = () => {
+          if (result) {
+            const { dirHandle, pageHandle } = result;
+            const currentPerm = await pageHandle.queryPermission({ mode: "readwrite" });
+
+            if (currentPerm === "granted") {
+              this.isEditingAvailable = false;
+            }
+
+            this.writeback = new FileWriteback(db, dirHandle, pageHandle);
+            await this.writeback.init();
+
+            if (currentPerm !== "denied") {
+              this.dispatchEvent(new CustomEvent("permissions_updated", {}));
+            }
+          } else {
+            // No file handle in db, try to get the dir at least.
             getSpaceIdFromHistory().then(spaceId => {
               db.transaction("space-file-handles")
                 .objectStore("space-file-handles")
                 .get(spaceId)
                 .addEventListener("success", async ({ target: { result } }) => {
                   if (result) {
-                    const handle = result.handle;
-                    this.writeback = new FileWriteback(db, handle);
+                    const dirHandle = result.dirHandle;
+                    this.writeback = new FileWriteback(db, dirHandle);
                   } else {
                     this.writeback = new FileWriteback(db);
                   }
@@ -315,26 +350,6 @@ export default class AtomAccessManager extends EventTarget {
                   await this.writeback.init();
                 });
             });
-          };
-
-          if (result) {
-            const handle = result.handle;
-            const currentPerm = await handle.queryPermission({ mode: "readwrite" });
-
-            if (currentPerm === "granted") {
-              this.isEditingAvailable = false;
-            }
-
-            this.writeback = new FileWriteback(db, handle);
-            await this.writeback.init();
-
-            if (currentPerm !== "denied") {
-              this.dispatchEvent(new CustomEvent("permissions_updated", {}));
-            } else {
-              fallthroughToSpaceHandle();
-            }
-          } else {
-            fallthroughToSpaceHandle();
           }
         });
     });
