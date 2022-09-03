@@ -419,34 +419,6 @@ function LeftPanel({
         </NavHead>
         <NavSpill>
           <PanelSectionHeader>
-            <FormattedMessage id="nav.channels" />
-            {spaceCan("create_channel_hub") && (
-              <TinyOutlineIconButton
-                disabled={isCreating}
-                style={{ marginLeft: "10px" }}
-                className="show-on-hover"
-                iconSrc={addIcon}
-                onClick={async () => {
-                  store.handleActivityFlag("createChannel");
-                  setIsCreating(true);
-                  const hub = await addNewHubToTree(treeManager, spaceId, "channel");
-                  setIsCreating(false);
-                  navigateToHubUrl(history, hub.url);
-                }}
-              />
-            )}
-          </PanelSectionHeader>
-          <HubTree
-            treeManager={treeManager}
-            type="channel"
-            hub={hub}
-            history={history}
-            spaceCan={spaceCan}
-            hubCan={hubCan}
-            showHubContextMenuPopup={showHubContextMenuPopup}
-            setAtomRenameReferenceElement={setAtomRenameReferenceElement}
-          />
-          <PanelSectionHeader>
             <FormattedMessage id="nav.space-worlds" />
             {spaceCan("create_world_hub") && (
               <TinyOutlineIconButton

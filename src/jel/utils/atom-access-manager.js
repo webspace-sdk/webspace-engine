@@ -36,16 +36,7 @@ const VALID_PERMISSIONS = {
     "fly",
     "upload_files"
   ],
-  [ATOM_TYPES.SPACE]: [
-    "create_world_hub",
-    "create_channel_hub",
-    "view_nav",
-    "edit_nav",
-    "update_space_meta",
-    "create_invite",
-    "go_home",
-    "publish_world_template"
-  ],
+  [ATOM_TYPES.SPACE]: ["create_world_hub", "view_nav", "edit_nav", "update_space_meta", "create_invite"],
   [ATOM_TYPES.VOX]: ["view_vox", "edit_vox"]
 };
 
@@ -369,6 +360,13 @@ export default class AtomAccessManager extends EventTarget {
     } else {
       return this.writeback?.isOpen;
     }
+  }
+
+  spaceCan(permission) {
+    if (!VALID_PERMISSIONS[ATOM_TYPES.SPACE].includes(permission))
+      throw new Error(`Invalid permission name: ${permission}`);
+
+    return this.writeback?.isOpen;
   }
 
   voxCan(permission) {

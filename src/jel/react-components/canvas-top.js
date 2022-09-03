@@ -572,7 +572,7 @@ function CanvasTop(props) {
               hideRename: true,
               showExport: true,
               isCurrentWorld: hub.hub_id === atomAccessManager.currentHubId,
-              showReset: !!hub.template.name
+              showReset: false // TODO SHARED, template
             });
           }}
         />

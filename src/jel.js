@@ -1153,9 +1153,10 @@ async function start() {
 
   atomAccessManager.addEventListener("permissions_updated", () => {
     const hubCan = atomAccessManager.hubCan.bind(atomAccessManager);
+    const spaceCan = atomAccessManager.spaceCan.bind(atomAccessManager);
     const voxCan = atomAccessManager.voxCan.bind(atomAccessManager);
 
-    remountJelUI({ hubCan, voxCan });
+    remountJelUI({ hubCan, spaceCan, voxCan });
 
     // Switch off building mode if we cannot spawn media
     if (!hubCan("spawn_and_move_media")) {
