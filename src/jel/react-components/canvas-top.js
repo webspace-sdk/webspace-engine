@@ -348,7 +348,8 @@ function CanvasTop(props) {
     attributes: environmentSettingsPopupAttributes,
     show: showEnvironmentSettingsPopup,
     setPopup: setEnvironmentSettingsPopupElement,
-    popupElement: environmentSettingsPopupElement
+    popupElement: environmentSettingsPopupElement,
+    update: updateEnvironmentSettingsPopup
   } = usePopupPopper(null, "bottom-end", [0, 8]);
 
   const {
@@ -494,6 +495,10 @@ function CanvasTop(props) {
       const handler = () => {
         setCanSpawnAndMoveMedia(hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id));
         setIsEditingAvailable(atomAccessManager.isEditingAvailable);
+
+        if (updateEnvironmentSettingsPopup) {
+          updateEnvironmentSettingsPopup(); // The size of this changes depending on permissions, reposition
+        }
       };
 
       handler();
@@ -501,7 +506,7 @@ function CanvasTop(props) {
       atomAccessManager && atomAccessManager.addEventListener("permissions_updated", handler);
       return () => atomAccessManager && atomAccessManager.removeEventListener("permissions_updated", handler);
     },
-    [hub, hubCan, atomAccessManager]
+    [hub, hubCan, atomAccessManager, updateEnvironmentSettingsPopup]
   );
 
   let cornerButtons;

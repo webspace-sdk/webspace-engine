@@ -1,7 +1,7 @@
 const editableTagNames = ["TEXTAREA", "INPUT"];
 import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { paths } from "../../hubs/systems/userinput/paths";
-import { WORLD_TYPES, MAX_WORLD_TYPE } from "../systems/terrain-system";
+import { MAX_WORLD_TYPE } from "../systems/terrain-system";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "./jel-url-utils";
 import { WORLD_COLOR_PRESETS } from "./world-color-presets";
 
@@ -442,7 +442,7 @@ export function getQuaternionFromMetaTags(name, defaultValue = QUAT_IDENTITY) {
 export async function getHubMetaFromDOM() {
   const currentHubId = await getHubIdFromHistory();
   const currentSpaceId = await getSpaceIdFromHistory();
-  const defaultColors = WORLD_COLOR_PRESETS[4];
+  const defaultColors = WORLD_COLOR_PRESETS[2];
 
   return {
     hub_id: currentHubId,
@@ -456,7 +456,7 @@ export async function getHubMetaFromDOM() {
     },
     world: {
       seed: getIntFromMetaTags("environment.terrain.seed"),
-      type: META_TAG_TERRAIN_TYPE_NAMES.indexOf(getStringFromMetaTags("environment.terrain.type", "flat")),
+      type: META_TAG_TERRAIN_TYPE_NAMES.indexOf(getStringFromMetaTags("environment.terrain.type", "hills")),
       bark_color: getColorFromMetaTags("environment.colors.bark", defaultColors.bark_color),
       edge_color: getColorFromMetaTags("environment.colors.edge", defaultColors.edge_color),
       grass_color: getColorFromMetaTags("environment.colors.grass", defaultColors.grass_color),
