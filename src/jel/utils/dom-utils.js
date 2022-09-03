@@ -2,7 +2,7 @@ const editableTagNames = ["TEXTAREA", "INPUT"];
 import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { paths } from "../../hubs/systems/userinput/paths";
 import { MAX_WORLD_TYPE } from "../systems/terrain-system";
-import { getHubIdFromHistory, getSpaceIdFromHistory } from "./jel-url-utils";
+import { getHubIdFromHistory, getSpaceIdFromHistory, getSeedForHubIdFromHistory } from "./jel-url-utils";
 import { WORLD_COLOR_PRESETS } from "./world-color-presets";
 
 export const META_TAG_PREFIX = "webspace";
@@ -314,7 +314,20 @@ const upsertMetaTag = (name, content) => {
   }
 };
 
-export const pushHubMetaUpdateIntoDOM = hub => {
+const initMetaTag = (name, content) => {
+  const el = document.head.querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`);
+
+  if (el) return;
+
+  const newEl = document.createElement("meta");
+  newEl.setAttribute("name", `${META_TAG_PREFIX}.${name}`);
+  newEl.setAttribute("content", content);
+  document.head.appendChild(newEl);
+};
+
+export const pushHubMetaUpdateIntoDOM = async hub => {
+  const currentHubSeed = await getSeedForHubIdFromHistory();
+
   for (const type of WORLD_COLOR_TYPES) {
     const color = hub.world && hub.world[`${type}_color`];
 
@@ -331,6 +344,10 @@ export const pushHubMetaUpdateIntoDOM = hub => {
       color.b <= 1.0
     ) {
       upsertMetaTag(`environment.colors.${type}`, `${color.r} ${color.g} ${color.b}`);
+    } else {
+      const defaultColors = WORLD_COLOR_PRESETS[currentHubSeed % WORLD_COLOR_PRESETS.length];
+      const color = defaultColors[`${type}_color`];
+      initMetaTag(`environment.colors.${type}`, `${color.r} ${color.g} ${color.b}`);
     }
   }
 
@@ -338,12 +355,18 @@ export const pushHubMetaUpdateIntoDOM = hub => {
 
   if (typeof worldType === "number" && worldType >= 0 && worldType <= MAX_WORLD_TYPE) {
     upsertMetaTag("environment.terrain.type", `${META_TAG_TERRAIN_TYPE_NAMES[worldType]}`);
+  } else {
+    const worldType = currentHubSeed % 2 === 0 ? "flat" : "hills";
+    initMetaTag("environment.terrain.type", worldType);
   }
 
   const worldSeed = hub.world?.seed;
 
-  if (typeof worldSeed === "number" && worldSeed >= 0 && worldSeed <= 127) {
+  if (typeof worldSeed === "number" && worldSeed > 0 && worldSeed <= 127) {
     upsertMetaTag("environment.terrain.seed", `${worldSeed}`);
+  } else {
+    const worldSeed = Math.floor(currentHubSeed / 2);
+    initMetaTag("environment.terrain.seed", `${worldSeed}`);
   }
 
   const spawnPointPosition = hub.world?.spawn_point?.position;
@@ -475,7 +498,9 @@ export function getQuaternionFromMetaTags(name, defaultValue = QUAT_IDENTITY) {
 export async function getHubMetaFromDOM() {
   const currentHubId = await getHubIdFromHistory();
   const currentSpaceId = await getSpaceIdFromHistory();
-  const defaultColors = WORLD_COLOR_PRESETS[2];
+  const currentHubSeed = await getSeedForHubIdFromHistory();
+
+  const defaultColors = WORLD_COLOR_PRESETS[currentHubSeed % WORLD_COLOR_PRESETS.length];
 
   return {
     hub_id: currentHubId,
@@ -489,7 +514,9 @@ export async function getHubMetaFromDOM() {
     },
     world: {
       seed: getIntFromMetaTags("environment.terrain.seed"),
-      type: META_TAG_TERRAIN_TYPE_NAMES.indexOf(getStringFromMetaTags("environment.terrain.type", "hills")),
+      type: META_TAG_TERRAIN_TYPE_NAMES.indexOf(
+        getStringFromMetaTags("environment.terrain.type", currentHubSeed % 2 === 0 ? "flat" : "hills")
+      ),
       bark_color: getColorFromMetaTags("environment.colors.bark", defaultColors.bark_color),
       edge_color: getColorFromMetaTags("environment.colors.edge", defaultColors.edge_color),
       grass_color: getColorFromMetaTags("environment.colors.grass", defaultColors.grass_color),

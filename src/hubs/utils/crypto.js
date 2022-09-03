@@ -35,6 +35,6 @@ export async function generateKeys() {
   return { publicKeyJwk: await keyToJwk(keyPair.publicKey), privateKeyJwk: await keyToJwk(keyPair.privateKey) };
 }
 
-export async function b58Hash(s) {
-  return bs58.encode(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s))));
+export async function hashString(s) {
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)));
 }

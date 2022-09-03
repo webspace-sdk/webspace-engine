@@ -153,7 +153,7 @@ import HubChannel from "./hubs/utils/hub-channel";
 import AtomMetadata, { ATOM_TYPES, DOMHubMetadataSource } from "./jel/utils/atom-metadata";
 import { setupTreeManagers, joinHub } from "./hubs/utils/jel-init";
 import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
-import { getHubIdFromHistory, getSpaceIdFromHistory } from "./jel/utils/jel-url-utils";
+import { getHubIdFromHistory, getSpaceIdFromHistory, getSeedForHubIdFromHistory } from "./jel/utils/jel-url-utils";
 import SceneEntryManager from "./hubs/scene-entry-manager";
 import AtomAccessManager from "./jel/utils/atom-access-manager";
 

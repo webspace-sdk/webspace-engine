@@ -370,7 +370,7 @@ export class TerrainSystem {
     });
   };
 
-  updateWorldForHub({ world }) {
+  async updateWorldForHub({ world }) {
     // Update colors
     const colors = WORLD_COLOR_TYPES.map(type => world[`${type}_color`]);
 
@@ -386,7 +386,8 @@ export class TerrainSystem {
     this.cameraSystem.updateCameraSettings();
 
     this.worldType = type;
-    this.worldSeed = seed; // TODO SHARED, if zero, use hub id
+    this.worldSeed = seed;
+
     this.unloadWorld();
 
     this.performFullTerrainWorkOnNextTick = true;

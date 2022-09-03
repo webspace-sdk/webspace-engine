@@ -1,8 +1,13 @@
 import { pushHistoryPath, replaceHistoryPath } from "../../hubs/utils/history";
-import { b58Hash } from "../../hubs/utils/crypto";
+import { hashString } from "../../hubs/utils/crypto";
+import bs58 from "bs58";
+import random from "random";
+import seedrandom from "seedrandom";
+random.use(seedrandom("base"));
 
 let currentHref = null;
 let currentHubId = null;
+let currentHubSeed = null;
 let currentSpaceId = null;
 
 const update = async () => {
@@ -10,7 +15,10 @@ const update = async () => {
   if (currentHref === origin + pathname && currentHubId && currentSpaceId) return;
 
   currentHref = origin + pathname;
-  currentHubId = (await b58Hash(currentHref)).substring(0, 16);
+
+  const hubHash = await hashString(currentHref);
+  currentHubId = bs58.encode(hubHash).substring(0, 16);
+  currentHubSeed = hubHash[0];
 
   // Space id is the path the world is in.
   const pathParts = pathname.split("/");
@@ -20,7 +28,7 @@ const update = async () => {
     toHash = toHash.replace(new RegExp(`/${pathParts[pathParts.length - 1]}$`), "");
   }
 
-  currentSpaceId = (await b58Hash(toHash)).substring(0, 16);
+  currentSpaceId = bs58.encode(await hashString(toHash)).substring(0, 16);
 };
 
 export async function getHubIdFromHistory() {
@@ -37,4 +45,9 @@ export function navigateToHubUrl(history, url, replace = false) {
   const search = history.location.search;
   const path = new URL(url, document.location.origin).pathname;
   (replace ? replaceHistoryPath : pushHistoryPath)(history, path, search);
+}
+
+export async function getSeedForHubIdFromHistory() {
+  await update();
+  return currentHubSeed;
 }
