@@ -345,6 +345,39 @@ export const pushHubMetaUpdateIntoDOM = hub => {
   if (typeof worldSeed === "number" && worldSeed >= 0 && worldSeed <= 127) {
     upsertMetaTag("environment.terrain.seed", `${worldSeed}`);
   }
+
+  const spawnPointPosition = hub.world?.spawn_point?.position;
+  if (
+    spawnPointPosition &&
+    typeof spawnPointPosition.x === "number" &&
+    typeof spawnPointPosition.y === "number" &&
+    typeof spawnPointPosition.z === "number"
+  ) {
+    upsertMetaTag(
+      "environment.spawn_point.position",
+      `${spawnPointPosition.x} ${spawnPointPosition.y} ${spawnPointPosition.z}`
+    );
+  }
+
+  const spawnPointRotation = hub.world?.spawn_point?.rotation;
+  if (
+    spawnPointRotation &&
+    typeof spawnPointRotation.x === "number" &&
+    typeof spawnPointRotation.y === "number" &&
+    typeof spawnPointRotation.z === "number" &&
+    typeof spawnPointRotation.w === "number"
+  ) {
+    upsertMetaTag(
+      "environment.spawn_point.rotation",
+      `${spawnPointRotation.x} ${spawnPointRotation.y} ${spawnPointRotation.z} ${spawnPointRotation.w}`
+    );
+  }
+
+  const spawnPointRadius = hub.world?.spawn_point?.radius;
+
+  if (typeof spawnPointRadius === "number") {
+    upsertMetaTag("environment.spawn_point.radius", `${spawnPointRadius}`);
+  }
 };
 
 export function getStringFromMetaTags(name, defaultValue = "") {

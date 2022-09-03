@@ -551,7 +551,6 @@ function LeftPanel({
       <HubContextMenu
         setPopperElement={setHubContextMenuElement}
         hideRename={!!hubContextMenuOpenOptions.hideRename}
-        showExport={!!hubContextMenuOpenOptions.showExport}
         showReset={!!hubContextMenuOpenOptions.showReset}
         isCurrentWorld={!!hubContextMenuOpenOptions.isCurrentWorld}
         showAtomRenamePopup={showAtomRenamePopup}

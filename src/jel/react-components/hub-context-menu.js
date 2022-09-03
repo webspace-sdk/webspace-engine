@@ -3,7 +3,6 @@ import ReactDOM from "react-dom";
 import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupMenu, { PopupMenuItem } from "./popup-menu";
 import trashIcon from "../../assets/jel/images/icons/trash.svgi";
-import WorldExporter from "../utils/world-exporter";
 import cubeIcon from "../../assets/jel/images/icons/cube.svgi";
 import restoreIcon from "../../assets/jel/images/icons/restore.svgi";
 import { FormattedMessage } from "react-intl";
@@ -26,7 +25,6 @@ function HubContextMenu({
   hubCan,
   worldTree,
   hideRename,
-  showExport,
   showReset,
   isCurrentWorld,
   showAtomRenamePopup,
@@ -36,7 +34,7 @@ function HubContextMenu({
 }) {
   if (!popupRoot || !spaceCan || !hubCan) return null;
 
-  const { spaceChannel, hubMetadata } = window.APP;
+  const { spaceChannel, hubChannel, hubMetadata } = window.APP;
   const items = [];
 
   if (hubId && hubCan("update_hub_meta", hubId) && !hideRename) {
@@ -54,34 +52,34 @@ function HubContextMenu({
     );
   }
 
-  if (hubId && showExport) {
-    if (hubCan("spawn_and_move_media", hubId)) {
-      items.push(
-        <PopupMenuItem
-          key={`import-${hubId}`}
-          onClick={e => {
-            DOM_ROOT.querySelector("#import-upload-input").click();
-            scene.canvas.focus();
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          <FormattedMessage id="hub-context.import" />
-        </PopupMenuItem>
-      );
-    }
-
+  if (hubId && hubCan("update_hub_meta", hubId)) {
     items.push(
       <PopupMenuItem
-        key={`export-${hubId}`}
+        key={`set-spawn-point-${hubId}`}
         onClick={e => {
-          new WorldExporter().downloadCurrentWorldHtml();
-          scene.canvas.focus();
           e.preventDefault();
           e.stopPropagation();
+
+          const position = new THREE.Vector3();
+          const rotation = new THREE.Quaternion();
+          const avatarRig = DOM_ROOT.getElementById("avatar-rig");
+          const avatarPov = DOM_ROOT.getElementById("avatar-pov-node");
+
+          avatarRig.object3D.getWorldPosition(position);
+          avatarPov.object3D.getWorldQuaternion(rotation);
+
+          hubChannel.updateHubMeta(hubId, {
+            world: {
+              spawn_point: {
+                position: { x: position.x, y: position.y, z: position.z },
+                rotation: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w },
+                radius: 10
+              }
+            }
+          });
         }}
       >
-        <FormattedMessage id="hub-context.export" />
+        <FormattedMessage id="hub-context.set-spawn-point" />
       </PopupMenuItem>
     );
   }

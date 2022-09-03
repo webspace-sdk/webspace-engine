@@ -570,7 +570,6 @@ function CanvasTop(props) {
           onClick={() => {
             showHubContextMenuPopup(hub.hub_id, hubMetadata, hubContextButtonRef, "bottom-end", [0, 8], {
               hideRename: true,
-              showExport: true,
               isCurrentWorld: hub.hub_id === atomAccessManager.currentHubId,
               showReset: false // TODO SHARED, template
             });
@@ -606,7 +605,6 @@ function CanvasTop(props) {
       <HubContextMenu
         setPopperElement={setHubContextMenuElement}
         hideRename={!!hubContextMenuOpenOptions.hideRename}
-        showExport={!!hubContextMenuOpenOptions.showExport}
         showReset={!!hubContextMenuOpenOptions.showReset}
         isCurrentWorld={!!hubContextMenuOpenOptions.isCurrentWorld}
         showAtomRenamePopup={showAtomRenamePopup}

@@ -645,20 +645,6 @@ function JelUI(props) {
           }}
         />
         <input
-          id="import-upload-input"
-          type="file"
-          accept="text/html"
-          style={{ display: "none" }}
-          onChange={async e => {
-            const files = [...e.target.files];
-            e.target.value = null;
-
-            for (const file of files) {
-              new WorldImporter().importHtmlToCurrentWorld(await file.text());
-            }
-          }}
-        />
-        <input
           id="file-upload-input"
           type="file"
           style={{ display: "none" }}
