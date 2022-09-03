@@ -3,8 +3,9 @@ import { getSpaceIdFromHistory, getHubIdFromHistory } from "./jel-url-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { signString, verifyString } from "../../hubs/utils/crypto";
 import { fromByteArray } from "base64-js";
+import { META_TAG_PREFIX } from "./dom-utils";
 
-const OWNER_PUBLIC_KEY_META_TAG_NAME = "webspace:keys:owner-public-key";
+const OWNER_PUBLIC_KEY_META_TAG_NAME = `${META_TAG_PREFIX}.keys.owner`;
 
 const ATOM_TYPES = {
   HUB: 0,
@@ -357,21 +358,17 @@ export default class AtomAccessManager extends EventTarget {
     this.currentHubId = hubId;
   }
 
-  hubCan(permission, hubId = null) {
+  hubCan(permission, hubId = null, sessionId = null) {
     if (!VALID_PERMISSIONS[ATOM_TYPES.HUB].includes(permission))
       throw new Error(`Invalid permission name: ${permission}`);
 
-    if (hubId === null) {
-      hubId = this.currentHubId;
-    }
-
     if (hubId !== null && this.currentHubId !== hubId) return false;
 
-    if (this.writeback?.isOpen) {
-      return true;
+    if (sessionId !== null && sessionId !== NAF.clientId) {
+      return this.roles.get(sessionId) === ROLES.OWNER;
+    } else {
+      return this.writeback?.isOpen;
     }
-
-    return false;
   }
 
   voxCan(permission) {

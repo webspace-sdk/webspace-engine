@@ -1,5 +1,16 @@
 const editableTagNames = ["TEXTAREA", "INPUT"];
+import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { paths } from "../../hubs/systems/userinput/paths";
+import { WORLD_TYPES, MAX_WORLD_TYPE } from "../systems/terrain-system";
+import { getHubIdFromHistory, getSpaceIdFromHistory } from "./jel-url-utils";
+import { WORLD_COLOR_PRESETS } from "./world-color-presets";
+
+export const META_TAG_PREFIX = "webspace";
+
+const VEC_ZERO = { x: 0, y: 0, z: 0 };
+const QUAT_IDENTITY = { x: 0, y: 0, z: 0, w: 1 };
+const COLOR_BLACK = { r: 0, g: 0, b: 0 };
+const META_TAG_TERRAIN_TYPE_NAMES = ["unknown", "islands", "hills", "plains", "flat"];
 
 export const isInEditableField = () =>
   editableTagNames.includes(DOM_ROOT.activeElement && DOM_ROOT.activeElement.nodeName) ||
@@ -288,4 +299,172 @@ export async function getIsWindowAtMultimonitorEdges() {
   }
 
   return [atTopWindowEdge, atRightWindowEdge, atBottomWindowEdge, atLeftWindowEdge];
+}
+
+const upsertMetaTag = (name, content) => {
+  const el = document.head.querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`);
+
+  if (el) {
+    el.setAttribute("content", content);
+  } else {
+    const newEl = document.createElement("meta");
+    newEl.setAttribute("name", `${META_TAG_PREFIX}.${name}`);
+    newEl.setAttribute("content", content);
+    document.head.appendChild(newEl);
+  }
+};
+
+export const pushHubMetaUpdateIntoDOM = hub => {
+  for (const type of WORLD_COLOR_TYPES) {
+    const color = hub.world && hub.world[`${type}_color`];
+
+    if (
+      color &&
+      typeof color.r === "number" &&
+      typeof color.g === "number" &&
+      typeof color.b === "number" &&
+      color.r >= 0.0 &&
+      color.r <= 1.0 &&
+      color.g >= 0.0 &&
+      color.g <= 1.0 &&
+      color.b >= 0.0 &&
+      color.b <= 1.0
+    ) {
+      upsertMetaTag(`environment.colors.${type}`, `${color.r} ${color.g} ${color.b}`);
+    }
+  }
+
+  const worldType = hub.world?.type;
+
+  if (typeof worldType === "number" && worldType >= 0 && worldType <= MAX_WORLD_TYPE) {
+    upsertMetaTag("environment.terrain.type", `${META_TAG_TERRAIN_TYPE_NAMES[worldType]}`);
+  }
+
+  const worldSeed = hub.world?.seed;
+
+  if (typeof worldSeed === "number" && worldSeed >= 0 && worldSeed <= 127) {
+    upsertMetaTag("environment.terrain.seed", `${worldSeed}`);
+  }
+};
+
+export function getStringFromMetaTags(name, defaultValue = "") {
+  return (
+    document.head.querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`)?.getAttribute("content") || defaultValue
+  );
+}
+
+export function getIntFromMetaTags(name, defaultValue = 0) {
+  try {
+    return (
+      parseInt(document.head.querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`)?.getAttribute("content")) ||
+      defaultValue
+    );
+  } catch {
+    return defaultValue;
+  }
+}
+
+export function getFloatFromMetaTags(name, defaultValue = 0) {
+  try {
+    return (
+      parseFloat(document.head.querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`)?.getAttribute("content")) ||
+      defaultValue
+    );
+  } catch {
+    return defaultValue;
+  }
+}
+
+export function getVectorFromMetaTags(name, defaultValue = VEC_ZERO) {
+  try {
+    const content = document.head
+      .querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`)
+      ?.getAttribute("content")
+      ?.split(" ");
+
+    if (content && content.length === 3) {
+      return {
+        x: parseFloat(content[0]),
+        y: parseFloat(content[1]),
+        z: parseFloat(content[2])
+      };
+    } else {
+      return defaultValue;
+    }
+  } catch {
+    return defaultValue;
+  }
+}
+
+export function getColorFromMetaTags(name, defaultValue = COLOR_BLACK) {
+  try {
+    const content = document.head
+      .querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`)
+      ?.getAttribute("content")
+      ?.split(" ");
+
+    if (content && content.length === 3) {
+      return {
+        r: parseFloat(content[0]),
+        g: parseFloat(content[1]),
+        b: parseFloat(content[2])
+      };
+    } else {
+      return defaultValue;
+    }
+  } catch {
+    return defaultValue;
+  }
+}
+
+export function getQuaternionFromMetaTags(name, defaultValue = QUAT_IDENTITY) {
+  try {
+    const content = document.head
+      .querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`)
+      ?.getAttribute("content")
+      ?.split(" ");
+
+    if (content && content.length === 4) {
+      return {
+        x: parseFloat(content[0]),
+        y: parseFloat(content[1]),
+        z: parseFloat(content[2]),
+        w: parseFloat(content[3])
+      };
+    } else {
+      return defaultValue;
+    }
+  } catch {
+    return defaultValue;
+  }
+}
+
+export async function getHubMetaFromDOM() {
+  const currentHubId = await getHubIdFromHistory();
+  const currentSpaceId = await getSpaceIdFromHistory();
+  const defaultColors = WORLD_COLOR_PRESETS[4];
+
+  return {
+    hub_id: currentHubId,
+    space_id: currentSpaceId,
+    name: document.title,
+    url: document.location.origin + document.location.pathname,
+    spawn_point: {
+      position: getVectorFromMetaTags("environment.spawn_point.position"),
+      rotation: getQuaternionFromMetaTags("environment.spawn_point.rotation"),
+      radius: getFloatFromMetaTags("environment.spawn_point.radius", 10)
+    },
+    world: {
+      seed: getIntFromMetaTags("environment.terrain.seed"),
+      type: META_TAG_TERRAIN_TYPE_NAMES.indexOf(getStringFromMetaTags("environment.terrain.type", "flat")),
+      bark_color: getColorFromMetaTags("environment.colors.bark", defaultColors.bark_color),
+      edge_color: getColorFromMetaTags("environment.colors.edge", defaultColors.edge_color),
+      grass_color: getColorFromMetaTags("environment.colors.grass", defaultColors.grass_color),
+      ground_color: getColorFromMetaTags("environment.colors.ground", defaultColors.ground_color),
+      leaves_color: getColorFromMetaTags("environment.colors.leaves", defaultColors.leaves_color),
+      rock_color: getColorFromMetaTags("environment.colors.rock", defaultColors.rock_color),
+      sky_color: getColorFromMetaTags("environment.colors.sky", defaultColors.sky_color),
+      water_color: getColorFromMetaTags("environment.colors.water", defaultColors.water_color)
+    }
+  };
 }

@@ -10,6 +10,7 @@ import MediaTree from "../../jel/utils/media-tree";
 import { clearVoxAttributePools } from "../../jel/objects/JelVoxBufferGeometry";
 import { restartPeriodicSyncs } from "../components/periodic-full-syncs";
 import { toByteArray as base64ToByteArray } from "base64-js";
+import { pushHubMetaUpdateIntoDOM } from "../../jel/utils/dom-utils";
 
 import crypto from "crypto";
 
@@ -159,6 +160,14 @@ const setupDataChannelMessageHandlers = () => {
     projectileSystem.replayEmojiBurst(body);
   });
 
+  NAF.connection.subscribeToDataChannel("update_hub_meta", (_type, { body: hub }, fromSessionId) => {
+    const { atomAccessManager } = window.APP;
+    if (!atomAccessManager.hubCan("update_hub_meta", null /* hubId */, fromSessionId)) return;
+
+    // When hub is updated, update meta tags
+    pushHubMetaUpdateIntoDOM(hub);
+  });
+
   // Public key verification
   //
   const clientIdChallenges = new Map();
@@ -225,15 +234,20 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
 
       const scene = DOM_ROOT.querySelector("a-scene");
 
-      // Wait for scene objects to load before connecting, so there is no race condition on network state.
-      document.title = `${hub.name}`;
-
       // Note that scene state needs to be updated before UI because focus handler will often fire
       // which assumes scene state is set already to "off" for channels.
       scene.removeState("off");
       scene.classList.add("visible");
 
-      // TODO SHARED need to subscribe to metadata here
+      const hubId = hub.hub_id;
+
+      hubMetadata.subscribeToMetadata(hubId, () => {
+        const hub = hubMetadata?.getMetadata(hubId);
+        // TODO SHARED - handle special case here when just name is changed, to avoid remounting whole UI
+        updateUIForHub(hub, remountJelUI);
+        updateEnvironmentForHub(hub);
+      });
+
       updateUIForHub(hub, remountJelUI);
       updateEnvironmentForHub(hub);
 

@@ -246,7 +246,7 @@
   "unavailable.full": "Unable to join, world is full.",
   "install.desktop": "Install App",
   "writeback.edit-world": "Edit World",
-  "paused.info": "Jel is in audio-only mode.\nFocus to resume.",
+  "paused.info": "Audio-only mode.\nFocus to resume.",
   "chat.info": "Others are here. Press enter to chat.",
   "chat-log.join": "joined this World.",
   "chat-log.leave": "left this World.",

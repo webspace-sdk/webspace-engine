@@ -161,6 +161,7 @@ module.exports = async (env, argv) => {
     devtool: argv.mode === "production" ? "source-map" : "inline-source-map",
     devServer: {
       compress: false,
+      hot: false,
       client: {
         webSocketURL: {
           hostname: "127.0.0.1",

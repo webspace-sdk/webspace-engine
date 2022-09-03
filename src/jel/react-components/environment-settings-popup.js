@@ -205,9 +205,9 @@ const EnvironmentSettingsPopup = ({
       ];
 
       fieldList.forEach(([name, value, setter]) => {
-        const r = world[`${name}_color_r`] || 0;
-        const g = world[`${name}_color_g`] || 0;
-        const b = world[`${name}_color_b`] || 0;
+        const r = world[`${name}_color`].r || 0;
+        const g = world[`${name}_color`].g || 0;
+        const b = world[`${name}_color`].b || 0;
 
         if (!value || (!almostEqual(r, value.r) || !almostEqual(g, value.g) || !almostEqual(b, value.b))) {
           setter({ r, g, b });
@@ -464,39 +464,35 @@ const EnvironmentSettingsPopup = ({
       </PickerWrap>
       <PresetsWrap ref={presetPickerWrapRef} tabIndex={-1}>
         <Presets>
-          {WORLD_COLOR_PRESETS.map(
-            ({ ground_color_r, ground_color_g, ground_color_b, leaves_color_r, leaves_color_g, leaves_color_b }, i) => {
-              const color = { r: ground_color_r, g: ground_color_g, b: ground_color_b };
-              const innerColor = { r: leaves_color_r, g: leaves_color_g, b: leaves_color_b };
-              const innerBorderColor = {
-                r: Math.max(0.0, innerColor.r - 0.4),
-                g: Math.max(0.0, innerColor.g - 0.4),
-                b: Math.max(0.0, innerColor.b - 0.4)
-              };
-              return (
-                <Swatch
-                  onMouseOver={() => onPresetColorsHovered(i)}
-                  onMouseOut={() => onPresetColorsLeft(i)}
-                  onClick={() => {
-                    onPresetColorsClicked(i);
-                    presetPickerWrapRef.current.parentElement.focus();
-                  }}
-                  className="preset"
-                  key={`preset_${i}`}
+          {WORLD_COLOR_PRESETS.map(({ ground_color: presetGroundColor, leaves_color: presetLeavesColor }, i) => {
+            const innerBorderColor = {
+              r: Math.max(0.0, presetLeavesColor.r - 0.4),
+              g: Math.max(0.0, presetLeavesColor.g - 0.4),
+              b: Math.max(0.0, presetLeavesColor.b - 0.4)
+            };
+            return (
+              <Swatch
+                onMouseOver={() => onPresetColorsHovered(i)}
+                onMouseOut={() => onPresetColorsLeft(i)}
+                onClick={() => {
+                  onPresetColorsClicked(i);
+                  presetPickerWrapRef.current.parentElement.focus();
+                }}
+                className="preset"
+                key={`preset_${i}`}
+                style={{
+                  backgroundColor: objRgbToCssRgb(presetGroundColor)
+                }}
+              >
+                <SwatchInner
                   style={{
-                    backgroundColor: objRgbToCssRgb(color)
+                    borderColor: objRgbToCssRgb(innerBorderColor),
+                    backgroundColor: objRgbToCssRgb(presetLeavesColor)
                   }}
-                >
-                  <SwatchInner
-                    style={{
-                      borderColor: objRgbToCssRgb(innerBorderColor),
-                      backgroundColor: objRgbToCssRgb(innerColor)
-                    }}
-                  />
-                </Swatch>
-              );
-            }
-          )}
+                />
+              </Swatch>
+            );
+          })}
         </Presets>
       </PresetsWrap>
       <PopupPanelMenu

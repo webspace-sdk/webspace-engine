@@ -46,7 +46,7 @@ export default class WorldImporter {
   }
 
   async applyWorldMetadataFromHtml(html) {
-    const { spaceChannel } = window.APP;
+    const { hubChannel } = window.APP;
     const hubId = await getHubIdFromHistory();
 
     const [
@@ -75,7 +75,7 @@ export default class WorldImporter {
       hubWorldColors[`world_${k}`] = parseFloat(v);
     }
 
-    spaceChannel.updateHub(hubId, {
+    hubChannel.updateHubMeta(hubId, {
       ...hubWorldColors,
       world_type: worldType,
       world_seed: worldSeed,

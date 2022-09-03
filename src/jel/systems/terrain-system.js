@@ -22,6 +22,8 @@ export const WORLD_TYPES = {
   FLAT: 4
 };
 
+export const MAX_WORLD_TYPE = WORLD_TYPES.FLAT;
+
 const { SHAPE, TYPE, FIT } = CONSTANTS;
 
 const { Vector3, Vector4, Matrix4, Object3D, Group } = THREE;
@@ -265,13 +267,20 @@ export class TerrainSystem {
       return;
     }
 
-    const encoded = await runTerraWorker({
+    const { chunk: encoded, cached } = await runTerraWorker({
       x: chunk.x,
       z: chunk.z,
-      type: this.worldType,
-      seed: this.worldSeed,
+      type: worldType,
+      seed: worldSeed,
       priority
     });
+
+    if (!cached) {
+      this.scene.emit("terrain_chunk_cpu_spike_over");
+    }
+
+    // Type or seed changed, abort
+    if (this.worldType !== worldType || this.worldSeed !== worldSeed) return;
 
     if (!heightMapOnly) {
       if (!loadingChunks.has(key)) return;
@@ -352,6 +361,7 @@ export class TerrainSystem {
       this.scene.emit("terrain_chunk_loaded");
 
       if (spawningChunks.size === 0 && loadingChunks.size === 0) {
+        this.scene.emit("terrain_chunk_cpu_spike_over");
         this.scene.emit("terrain_chunk_loading_complete");
       }
 
@@ -360,10 +370,7 @@ export class TerrainSystem {
     });
   };
 
-  updateWorldForHub({ type: hubType, world }) {
-    // Keep the previous hub world loaded to more nicely handle tabbing to and from
-    if (hubType === "channel") return;
-
+  updateWorldForHub({ world }) {
     // Update colors
     const colors = WORLD_COLOR_TYPES.map(type => world[`${type}_color`]);
 

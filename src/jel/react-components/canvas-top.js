@@ -302,7 +302,7 @@ function CanvasTop(props) {
   } = props;
 
   const { cameraSystem, terrainSystem, atmosphereSystem } = SYSTEMS;
-  const { store, spaceChannel, atomAccessManager } = window.APP;
+  const { store, hubChannel, atomAccessManager } = window.APP;
 
   const {
     styles: hubContextMenuStyles,
@@ -369,9 +369,9 @@ function CanvasTop(props) {
 
   const updateWorldType = useCallback(
     worldType => {
-      spaceChannel.updateHub(hub.hub_id, { world_type: worldType });
+      hubChannel.updateHubMeta(hub.hub_id, { world: { type: worldType } });
     },
-    [hub, spaceChannel]
+    [hub, hubChannel]
   );
 
   const temporarilyUpdateEnvironmentColors = useCallback(
@@ -389,14 +389,16 @@ function CanvasTop(props) {
       const hubWorldColors = {};
 
       WORLD_COLOR_TYPES.forEach((type, idx) => {
-        hubWorldColors[`world_${type}_color_r`] = (colors[idx] && colors[idx].r) || 0;
-        hubWorldColors[`world_${type}_color_g`] = (colors[idx] && colors[idx].g) || 0;
-        hubWorldColors[`world_${type}_color_b`] = (colors[idx] && colors[idx].b) || 0;
+        hubWorldColors[`${type}_color`] = {
+          r: (colors[idx] && colors[idx].r) || 0,
+          g: (colors[idx] && colors[idx].g) || 0,
+          b: (colors[idx] && colors[idx].b) || 0
+        };
       });
 
-      spaceChannel.updateHub(hub.hub_id, hubWorldColors);
+      hubChannel.updateHubMeta(hub.hub_id, { world: hubWorldColors });
     },
-    [terrainSystem.worldColors, hub, spaceChannel]
+    [terrainSystem.worldColors, hub, hubChannel]
   );
 
   const onEnvironmentPresetColorsHovered = useCallback(

@@ -47,7 +47,7 @@ self.onmessage = ({
   txn.addEventListener("success", async ({ target }) => {
     if (target.result) {
       chunkPriorities.delete(chunkId);
-      self.postMessage({ id, result: target.result.chunk });
+      self.postMessage({ id, result: { chunk: target.result.chunk, cached: true } });
     } else {
       if (world === null || world.seed !== seed || world.generatorType !== generatorType) {
         world = new World({
@@ -56,6 +56,8 @@ self.onmessage = ({
           seed
         });
       }
+
+      const currentWorld = world;
 
       // TODO try fetch from origin
 
@@ -76,15 +78,14 @@ self.onmessage = ({
       }
 
       // TODO try fetch from origin again before doing compute
-
-      const chunk = world.getEncodedChunk(x, z);
+      const chunk = currentWorld.getEncodedChunk(x, z);
       chunkPriorities.delete(chunkId);
 
       // TODO post to origin if writeback enabled
 
       self.postMessage({
         id,
-        result: chunk
+        result: { chunk, cached: false }
       });
 
       db.transaction("chunks", "readwrite")

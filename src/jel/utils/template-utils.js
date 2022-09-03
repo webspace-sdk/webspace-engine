@@ -59,7 +59,7 @@ async function fetchWorldTemplate(worldTemplateId) {
 }
 
 export async function switchCurrentHubToWorldTemplate(worldTemplateId) {
-  const { hubMetadata, spaceChannel } = window.APP;
+  const { hubMetadata, hubChannel } = window.APP;
   const hubId = await getHubIdFromHistory();
   const { world_template_id: currentWorldTemplateId } = await hubMetadata.getOrFetchMetadata(hubId);
   const importer = new WorldImporter();
@@ -83,5 +83,5 @@ export async function switchCurrentHubToWorldTemplate(worldTemplateId) {
   await metadataReady;
   hubMetadata.unsubscribeFromMetadata(hubId, metadataReadyHandler);
   await importer.importHtmlToCurrentWorld(newTemplate, false, false);
-  await spaceChannel.updateHub(hubId, { world_template_id: worldTemplateId });
+  await hubChannel.updateHubMeta(hubId, { world_template_id: worldTemplateId });
 }

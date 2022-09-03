@@ -150,7 +150,7 @@ import WorldImporter from "./jel/utils/world-importer";
 import DynaChannel from "./jel/utils/dyna-channel";
 import SpaceChannel from "./hubs/utils/space-channel";
 import HubChannel from "./hubs/utils/hub-channel";
-import AtomMetadata, { ATOM_TYPES, DOMAndOwnerHubMetadataSource } from "./jel/utils/atom-metadata";
+import AtomMetadata, { ATOM_TYPES, DOMHubMetadataSource } from "./jel/utils/atom-metadata";
 import { setupTreeManagers, joinHub } from "./hubs/utils/jel-init";
 import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "./jel/utils/jel-url-utils";
@@ -466,7 +466,7 @@ function addGlobalEventListeners(scene, entryManager, atomAccessManager) {
   // The auto detail system will then lower the quality again if needed.
   let performedInitialQualityBoost = false;
 
-  scene.addEventListener("terrain_chunk_loading_complete", () => {
+  scene.addEventListener("terrain_chunk_cpu_spike_over", () => {
     if (!performedInitialQualityBoost && !isBotMode) {
       performedInitialQualityBoost = true;
 
@@ -1185,7 +1185,7 @@ async function start() {
     if (joinHubPromise) await joinHubPromise;
     joinHubPromise = null;
 
-    const metadataSource = new DOMAndOwnerHubMetadataSource();
+    const metadataSource = new DOMHubMetadataSource();
     hubMetadata.bind(metadataSource);
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
