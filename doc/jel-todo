@@ -1,0 +1,47 @@
+- drop all references to document.body
+- unplug hub channel
+- get rid of a-assets, see how mozilla does it
+- deal with hub store
+- name generator
+- default hub at index.html
+- search for TODO SHARED
+- unplug space channel
+- collaborative text
+- load scene from DOM
+- multiplayer load scene from DOM
+- bring in avatar audio system
+- split custom message types
+- strip mixpanel and GA
+- clean up webpack configs
+- drop zoom + video stuf
+- drop config system (maybe keep some meta tags)
+- drop envs in webpack config
+- sessionId -> clientId
+- move ascene into shadow DOM
+- sound effect rights
+- remove matrix
+- bring over muted ring
+- spike loading from file
+  - if works, move to nginx + webdav for writeback?
+- unplug atom channels + nav tree
+  - nav tree not there anymore
+  - title is just the title
+- authorize + sanitize in NAF adapter
+- unplug space channel
+- delete snackbar
+- new emoji map
+- media resolution + worker
+- cut down dead code and deps
+- pack all assets into JS
+- re-add curvature (but retain flat mode)
+- update GLTF importer
+- nuke hub-type-world vs channel, grep for channel
+- drop push notif
+- make voxmoji float
+- grep for "channel"
+
+name not updating in self panel when updated by another peer
+not flushing on scale
+not starting editing on clone
+should change button to "unlock world" when others are in room
+should flush initial terrain info on first edit

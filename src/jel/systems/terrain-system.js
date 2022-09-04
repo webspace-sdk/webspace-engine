@@ -245,6 +245,14 @@ export class TerrainSystem {
     return Promise.all(promises);
   }
 
+  async loadHeightMapAtWorldCoord(worldX, worldZ) {
+    if (this.hasLoadedHeightMapAtWorldCoord(worldX, worldZ)) return;
+    const x = normalizeChunkCoord(entityWorldCoordToChunkCoord(worldX));
+    const z = normalizeChunkCoord(entityWorldCoordToChunkCoord(worldZ));
+    console.log("LOAD CHUNK", worldX, worldZ, x, z);
+    await this.loadChunk({ x, z }, true);
+  }
+
   async loadChunk(chunk, heightMapOnly = false, priority = 0) {
     if (this.worldType === null) return;
     const { loadedChunks, loadingChunks, chunkHeightMaps, spawningChunks, worldType, worldSeed } = this;
@@ -684,11 +692,19 @@ export class TerrainSystem {
     this.avatarZone = null;
   }
 
+  hasLoadedHeightMapAtWorldCoord(worldX, worldZ) {
+    const x = normalizeChunkCoord(entityWorldCoordToChunkCoord(worldX));
+    const z = normalizeChunkCoord(entityWorldCoordToChunkCoord(worldZ));
+    const heightKey = `${keyForChunk({ x: x, z: z })}:0`;
+    return this.chunkHeightMaps.has(heightKey);
+  }
+
   getTerrainHeightAtWorldCoord(worldX, worldZ) {
     const x = normalizeChunkCoord(entityWorldCoordToChunkCoord(worldX));
     const z = normalizeChunkCoord(entityWorldCoordToChunkCoord(worldZ));
     const heightKey = `${keyForChunk({ x: x, z: z })}:0`;
     const heightMap = this.chunkHeightMaps.get(heightKey);
+    console.log("look up", worldX, worldZ, x, z, heightMap);
 
     if (!heightMap) {
       return 1.0;

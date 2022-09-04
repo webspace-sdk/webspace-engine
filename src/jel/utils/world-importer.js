@@ -4,6 +4,7 @@ import { ObjectContentOrigins } from "../../hubs/object-types";
 import { ensureOwnership } from "./ownership-utils";
 import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { FONT_FACES } from "./quill-utils";
+import { CHUNK_WORLD_SIZE } from "../systems/terrain-system";
 import { getHubIdFromHistory } from "./jel-url-utils";
 
 const transformUnitToMeters = s => {
@@ -227,9 +228,35 @@ export default class WorldImporter {
       }
     }
 
+    const getStyle = el => {
+      const style = `:root { ${el.getAttribute("style") || ""}`;
+      const styleEl = doc.createElement("style");
+      styleEl.textContent = style;
+      doc.body.appendChild(styleEl);
+
+      if (styleEl.sheet.cssRules.length === 0) return null;
+      const rule = styleEl.sheet.cssRules[0];
+      const ret = rule.style;
+      styleEl.remove();
+      return ret;
+    };
+
+    // First we need to load all the heightmaps for entites.
+    for (const el of doc.body.childNodes) {
+      const id = el.id;
+      if (!id || id.length !== 7) continue; // Sanity check
+      if (DOM_ROOT.getElementById(`naf-${id}`)) continue;
+
+      const style = getStyle(el);
+      if (!style || !style.transform) continue;
+      const { translate3d } = transformParse(style.transform);
+      const x = transformUnitToMeters(translate3d[0]);
+      const z = transformUnitToMeters(translate3d[2]);
+      await terrainSystem.loadHeightMapAtWorldCoord(x, z);
+    }
+
     // Terrain system needs to pre-cache all the heightmaps, since this routine
     // will need to globally reference the terrain heights to place the new media properly in Y.
-    await terrainSystem.loadAllHeightMaps();
 
     let pendingCount = 0;
 
@@ -238,14 +265,9 @@ export default class WorldImporter {
       if (!id || id.length !== 7) continue; // Sanity check
       if (DOM_ROOT.getElementById(`naf-${id}`)) continue;
 
-      const style = `:root { ${el.getAttribute("style") || ""}`;
-      const styleEl = doc.createElement("style");
-      styleEl.textContent = style;
-      doc.body.appendChild(styleEl);
-
-      if (styleEl.sheet.cssRules.length === 0) continue;
-      const rule = styleEl.sheet.cssRules[0];
-      const { fontFamily, transform, color, width, height, backgroundColor, textStroke } = rule.style;
+      const style = getStyle(el);
+      if (!style) continue;
+      const { fontFamily, transform, color, width, height, backgroundColor, textStroke } = style;
 
       let contentSubtype = null;
       const tagName = el.tagName;
@@ -452,8 +474,6 @@ export default class WorldImporter {
           { once: true }
         );
       }
-
-      doc.body.removeChild(styleEl);
     }
 
     // Wait until all new media is loaded before we begin tracking

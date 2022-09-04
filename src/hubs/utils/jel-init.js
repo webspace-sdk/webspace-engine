@@ -11,6 +11,7 @@ import { clearVoxAttributePools } from "../../jel/objects/JelVoxBufferGeometry";
 import { restartPeriodicSyncs } from "../components/periodic-full-syncs";
 import { toByteArray as base64ToByteArray } from "base64-js";
 import { pushHubMetaUpdateIntoDOM } from "../../jel/utils/dom-utils";
+import WorldImporter from "../../jel/utils/world-importer";
 
 import crypto from "crypto";
 
@@ -219,12 +220,12 @@ const setupDataChannelMessageHandlers = () => {
   );
 };
 
-const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, remountJelUI) => {
+const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, remountJelUI, initialWorldHTML) => {
   const isInitialJoin = true;
   const { atomAccessManager } = window.APP;
 
   return new Promise(joinFinished => {
-    hubMetadata.getOrFetchMetadata(hubId).then(hub => {
+    hubMetadata.getOrFetchMetadata(hubId).then(async hub => {
       atomAccessManager.dispatchEvent(new CustomEvent("permissions_updated", {}));
 
       if (!isInitialJoin) {
@@ -250,6 +251,11 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
 
       updateUIForHub(hub, remountJelUI);
       updateEnvironmentForHub(hub);
+
+      console.log("initial", initialWorldHTML);
+      if (initialWorldHTML) {
+        await new WorldImporter().importHtmlToCurrentWorld(initialWorldHTML, true, true);
+      }
 
       // Reset inspect if we switched while inspecting
       SYSTEMS.cameraSystem.uninspect();
@@ -433,7 +439,7 @@ export async function setupTreeManagers(history, subscriptions, entryManager, re
   treeManager.setSpaceCollectionId(spaceId);
 }
 
-export async function joinHub(scene, history, entryManager, remountJelUI) {
+export async function joinHub(scene, history, entryManager, remountJelUI, initialWorldHTML) {
   const { store, hubChannel, hubMetadata, atomAccessManager } = window.APP;
 
   const spaceId = await getSpaceIdFromHistory(history);
@@ -451,7 +457,15 @@ export async function joinHub(scene, history, entryManager, remountJelUI) {
     NAF.connection.adapter.leaveRoom(true);
   }
 
-  const joinSuccessful = await joinHubChannel(hubId, spaceId, hubStore, hubMetadata, entryManager, remountJelUI);
+  const joinSuccessful = await joinHubChannel(
+    hubId,
+    spaceId,
+    hubStore,
+    hubMetadata,
+    entryManager,
+    remountJelUI,
+    initialWorldHTML
+  );
 
   if (joinSuccessful) {
     store.setLastJoinedHubId(spaceId, hubId);

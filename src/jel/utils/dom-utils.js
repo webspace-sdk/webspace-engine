@@ -328,6 +328,8 @@ const initMetaTag = (name, content) => {
 export const pushHubMetaUpdateIntoDOM = async hub => {
   const currentHubSeed = await getSeedForHubIdFromHistory();
 
+  initMetaTag(`environment.type`, "terrain");
+
   for (const type of WORLD_COLOR_TYPES) {
     const color = hub.world && hub.world[`${type}_color`];
 
@@ -343,11 +345,11 @@ export const pushHubMetaUpdateIntoDOM = async hub => {
       color.b >= 0.0 &&
       color.b <= 1.0
     ) {
-      upsertMetaTag(`environment.colors.${type}`, `${color.r} ${color.g} ${color.b}`);
+      upsertMetaTag(`environment.terrain.colors.${type}`, `${color.r} ${color.g} ${color.b}`);
     } else {
       const defaultColors = WORLD_COLOR_PRESETS[currentHubSeed % WORLD_COLOR_PRESETS.length];
       const color = defaultColors[`${type}_color`];
-      initMetaTag(`environment.colors.${type}`, `${color.r} ${color.g} ${color.b}`);
+      initMetaTag(`environment.terrain.colors.${type}`, `${color.r} ${color.g} ${color.b}`);
     }
   }
 
@@ -517,14 +519,14 @@ export async function getHubMetaFromDOM() {
       type: META_TAG_TERRAIN_TYPE_NAMES.indexOf(
         getStringFromMetaTags("environment.terrain.type", currentHubSeed % 2 === 0 ? "flat" : "hills")
       ),
-      bark_color: getColorFromMetaTags("environment.colors.bark", defaultColors.bark_color),
-      edge_color: getColorFromMetaTags("environment.colors.edge", defaultColors.edge_color),
-      grass_color: getColorFromMetaTags("environment.colors.grass", defaultColors.grass_color),
-      ground_color: getColorFromMetaTags("environment.colors.ground", defaultColors.ground_color),
-      leaves_color: getColorFromMetaTags("environment.colors.leaves", defaultColors.leaves_color),
-      rock_color: getColorFromMetaTags("environment.colors.rock", defaultColors.rock_color),
-      sky_color: getColorFromMetaTags("environment.colors.sky", defaultColors.sky_color),
-      water_color: getColorFromMetaTags("environment.colors.water", defaultColors.water_color)
+      bark_color: getColorFromMetaTags("environment.terrain.colors.bark", defaultColors.bark_color),
+      edge_color: getColorFromMetaTags("environment.terrain.colors.edge", defaultColors.edge_color),
+      grass_color: getColorFromMetaTags("environment.terrain.colors.grass", defaultColors.grass_color),
+      ground_color: getColorFromMetaTags("environment.terrain.colors.ground", defaultColors.ground_color),
+      leaves_color: getColorFromMetaTags("environment.terrain.colors.leaves", defaultColors.leaves_color),
+      rock_color: getColorFromMetaTags("environment.terrain.colors.rock", defaultColors.rock_color),
+      sky_color: getColorFromMetaTags("environment.terrain.colors.sky", defaultColors.sky_color),
+      water_color: getColorFromMetaTags("environment.terrain.colors.water", defaultColors.water_color)
     }
   };
 }
