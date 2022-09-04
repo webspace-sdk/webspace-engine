@@ -252,7 +252,6 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
       updateUIForHub(hub, remountJelUI);
       updateEnvironmentForHub(hub);
 
-      console.log("initial", initialWorldHTML);
       if (initialWorldHTML) {
         await new WorldImporter().importHtmlToCurrentWorld(initialWorldHTML, true, true);
       }
