@@ -160,6 +160,7 @@ export class TerrainSystem {
     this.pool = [...Array(LOAD_GRID.length)].map(() => new Terrain());
     this.activeTerrains = [];
     this.frame = 0;
+    this.autoLoadingChunks = false;
     this.lastLoadedChunkFrame = 0;
     this.loadedChunks = new Map();
     this.loadingChunks = new Map();
@@ -750,7 +751,7 @@ export class TerrainSystem {
         }
       }
 
-      const { terrains, loadedChunks, loadingChunks, spawningChunks, avatarChunk } = this;
+      const { terrains, loadedChunks, loadingChunks, spawningChunks, avatarChunk, autoLoadingChunks } = this;
       const avatar = this.avatarPovEl.object3D;
 
       avatar.getWorldPosition(avatarPos);
@@ -763,7 +764,7 @@ export class TerrainSystem {
 
       chunk.y = 0;
 
-      if (!chunk.equals(avatarChunk)) {
+      if (!chunk.equals(avatarChunk) && autoLoadingChunks) {
         const hasCrossedBorder = avatarChunk.x !== chunk.x || avatarChunk.z !== chunk.z;
 
         if (hasCrossedBorder) {
@@ -833,6 +834,10 @@ export class TerrainSystem {
       }
     };
   })();
+
+  startAutoLoadingChunks() {
+    this.autoLoadingChunks = true;
+  }
 
   worldTypeHasWater() {
     return this.worldType === WORLD_TYPES.ISLANDS;

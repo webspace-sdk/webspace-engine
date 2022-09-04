@@ -256,6 +256,8 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
         await new WorldImporter().importHtmlToCurrentWorld(initialWorldHTML, true, true);
       }
 
+      SYSTEMS.terrainSystem.startAutoLoadingChunks();
+
       // Reset inspect if we switched while inspecting
       SYSTEMS.cameraSystem.uninspect();
 
