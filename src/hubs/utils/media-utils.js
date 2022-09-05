@@ -243,27 +243,51 @@ export function coerceToUrl(urlOrText) {
 }
 
 // Adds media. this function signature is out of control and should be refactored to take an object.
-export const addMedia = (
-  src,
-  contents,
-  template,
-  contentOrigin,
-  contentSubtype = null,
-  resolve = false,
-  fitToBox = false,
-  animate = true,
-  mediaOptions = {},
-  networked = true,
-  parentEl = null,
-  linkedEl = null,
-  networkId = null,
-  skipLoader = false,
-  contentType = null,
-  locked = false,
-  stackAxis = 0,
-  stackSnapPosition = false,
-  stackSnapScale = false
-) => {
+export const addMedia = options => {
+  const defaults = {
+    src: null,
+    contents: null,
+    contentOrigin: null,
+    contentSubtype: null,
+    template: "#interactable-media",
+    resolve: false,
+    fitToBox: false,
+    animate: true,
+    mediaOptions: {},
+    networked: true,
+    parentEl: null,
+    linkedEl: null,
+    networkId: null,
+    skipLoader: false,
+    contentType: null,
+    locked: false,
+    stackAxis: 0,
+    stackSnapPosition: false,
+    stackSnapScale: false
+  };
+
+  const {
+    src,
+    contents,
+    template,
+    contentOrigin,
+    contentSubtype,
+    resolve,
+    fitToBox,
+    animate,
+    mediaOptions,
+    networked,
+    parentEl,
+    linkedEl,
+    networkId,
+    skipLoader,
+    contentType,
+    locked,
+    stackAxis,
+    stackSnapPosition,
+    stackSnapScale
+  } = { ...defaults, ...options };
+
   const scene = AFRAME.scenes[0];
 
   const entity = document.createElement("a-entity");

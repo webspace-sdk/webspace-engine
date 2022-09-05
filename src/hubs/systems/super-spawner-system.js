@@ -27,17 +27,15 @@ export class SuperSpawnerSystem {
   performSpawn(state, grabPath, userinput, superSpawner) {
     const data = superSpawner.data;
 
-    const { entity: spawnedEntity } = addMedia(
-      data.src,
-      null,
-      data.template,
-      ObjectContentOrigins.SPAWNER,
-      null,
-      data.resolve,
-      true,
-      false,
-      data.mediaOptions
-    ).entity;
+    const { entity: spawnedEntity } = addMedia({
+      src: data.src,
+      template: data.template,
+      contentOrigin: ObjectContentOrigins.SPAWNER,
+      resolve: data.resolve,
+      fitToBox: true,
+      animate: false,
+      mediaOptions: data.mediaOptions
+    }).entity;
 
     superSpawner.el.object3D.getWorldPosition(spawnedEntity.object3D.position);
     superSpawner.el.object3D.getWorldQuaternion(spawnedEntity.object3D.quaternion);

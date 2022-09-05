@@ -12,7 +12,7 @@ import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { addMedia, isLockedMedia, upload, spawnMediaInfrontOfPlayer } from "../../hubs/utils/media-utils";
-import { type as vox0, Vox, VoxChunk, rgbtForVoxColor } from "ot-vox";
+import { type as vox0, Vox, /*VoxChunk, */ rgbtForVoxColor } from "ot-vox";
 import { ensureOwnership } from "../utils/ownership-utils";
 import { dataURItoBlob } from "../utils/dom-utils";
 import { getSpaceIdFromHistory, getHubIdFromHistory } from "../utils/jel-url-utils";
@@ -1815,27 +1815,14 @@ export class VoxSystem extends EventTarget {
       published_scale
     } = metadata;
 
-    const { entity } = addMedia(
-      url,
-      null,
-      "#interactable-media",
-      ObjectContentOrigins.URL,
-      null,
-      false,
-      false,
-      true,
-      {},
-      true,
-      null,
-      null,
-      null,
-      false,
-      "model/vnd.jel-vox",
-      false,
-      published_stack_axis,
-      published_stack_snap_position,
-      published_stack_snap_scale
-    );
+    const { entity } = addMedia({
+      src: url,
+      contentOrigin: ObjectContentOrigins.URL,
+      contentType: "model/vnd.jel-vox",
+      stackAxis: published_stack_axis,
+      stackSnapPosition: published_stack_snap_position,
+      stackSnapScale: published_stack_snap_scale
+    });
 
     entity.object3D.scale.setScalar(published_scale);
     entity.object3D.matrixNeedsUpdate = true;

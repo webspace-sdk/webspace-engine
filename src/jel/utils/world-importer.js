@@ -4,7 +4,6 @@ import { ObjectContentOrigins } from "../../hubs/object-types";
 import { ensureOwnership } from "./ownership-utils";
 import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { FONT_FACES } from "./quill-utils";
-import { CHUNK_WORLD_SIZE } from "../systems/terrain-system";
 import { getHubIdFromHistory } from "./jel-url-utils";
 
 const transformUnitToMeters = s => {
@@ -397,24 +396,19 @@ export default class WorldImporter {
 
       const isLocked = el.getAttribute("draggable") === null;
 
-      const entity = addMedia(
+      const entity = addMedia({
         src,
         contents,
-        "#interactable-media",
-        ObjectContentOrigins.URL,
+        contentOrigin: ObjectContentOrigins.URL,
         contentSubtype,
         resolve,
-        false,
-        false,
+        animate: false,
         mediaOptions,
-        true,
-        null,
-        null,
-        id,
-        true,
-        type,
-        isLocked
-      ).entity;
+        networkId: id,
+        skipLoader: true,
+        contentType: type,
+        locked: isLocked
+      }).entity;
 
       const object3D = entity.object3D;
 

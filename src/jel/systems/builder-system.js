@@ -612,23 +612,11 @@ export class BuilderSystem extends EventTarget {
     await sync.setVoxel(0, 0, 0, this.brushVoxColor);
 
     // Skip resolving these URLs since they're from dyna.
-    const { entity } = addMedia(
-      url,
-      null,
-      "#interactable-media",
-      ObjectContentOrigins.URL,
-      null,
-      false,
-      false,
-      true,
-      {},
-      true,
-      null,
-      null,
-      null,
-      false,
-      "model/vnd.jel-vox"
-    );
+    const { entity } = addMedia({
+      src: url,
+      contentOrigin: ObjectContentOrigins.URL,
+      contentType: "model/vnd.jel-vox"
+    });
 
     entity.addEventListener(
       "model-loaded",
