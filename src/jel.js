@@ -68,7 +68,6 @@ import "./hubs/components/matrix-auto-update";
 import "./hubs/components/clone-media-button";
 import "./hubs/components/open-media-button";
 import "./hubs/components/refresh-media-button";
-import "./hubs/components/remix-avatar-button";
 import "./hubs/systems/transform-selected-object";
 import "./hubs/systems/scale-object";
 import "./hubs/components/hover-menu";

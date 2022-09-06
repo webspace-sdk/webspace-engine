@@ -1,5 +1,5 @@
 import { ParticleEmitter } from "lib-hubs/packages/three-particle-emitter/lib/esm/index";
-import { textureLoader, resolveUrl } from "../utils/media-utils";
+import { textureLoader } from "../utils/media-utils";
 import { proxiedUrlFor } from "../utils/media-url-utils";
 import defaultSrcImage from "../../assets/hubs/images/warning_icon.png";
 
@@ -7,7 +7,6 @@ const defaultSrcUrl = new URL(defaultSrcImage, window.location.href).href;
 
 AFRAME.registerComponent("particle-emitter", {
   schema: {
-    resolve: { type: "boolean", default: true },
     src: { type: "string", default: defaultSrcUrl },
     startColor: { type: "color" },
     middleColor: { type: "color" },
@@ -40,21 +39,8 @@ AFRAME.registerComponent("particle-emitter", {
     }
   },
 
-  async setTexture(src, resolve) {
-    let accessibleUrl = src;
-
-    if (resolve) {
-      const result = await resolveUrl(src);
-      let canonicalUrl = result.origin;
-
-      // handle protocol relative urls
-      if (canonicalUrl.startsWith("//")) {
-        canonicalUrl = location.protocol + canonicalUrl;
-      }
-
-      // todo: we don't need to proxy for many things if the canonical URL has permissive CORS headers
-      accessibleUrl = proxiedUrlFor(canonicalUrl);
-    }
+  async setTexture(src) {
+    const accessibleUrl = await proxiedUrlFor(src);
 
     const texture = new THREE.Texture();
 
@@ -75,7 +61,7 @@ AFRAME.registerComponent("particle-emitter", {
     const particleEmitter = this.particleEmitter;
 
     if (prevData.src !== data.src) {
-      this.setTexture(data.src, data.resolve).catch(console.error);
+      this.setTexture(data.src).catch(console.error);
     }
 
     if (

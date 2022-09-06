@@ -28,11 +28,6 @@ AFRAME.registerComponent("super-spawner", {
     src: { default: "" },
 
     /**
-     * Whether to use the Reticulum media resolution API to interpret the src URL (e.g. find a video URL for Youtube videos.)
-     */
-    resolve: { default: false },
-
-    /**
      * The template to use for this object
      */
     template: { default: "" },

@@ -128,6 +128,7 @@ class FileWriteback {
 
   async write(content) {
     if (!this.isOpen) return;
+    if (!content || content.length === 0) return;
 
     while (this.isWriting) {
       await new Promise(res => setTimeout(res, 100));

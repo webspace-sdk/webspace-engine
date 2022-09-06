@@ -1,18 +1,17 @@
 import { objectTypeForOriginAndContentType } from "../object-types";
-import { getReticulumFetchUrl, getDirectReticulumFetchUrl } from "./phoenix-utils";
+import { getDirectReticulumFetchUrl } from "./phoenix-utils";
 import { ObjectContentOrigins } from "../object-types";
 import mediaHighlightFrag from "./media-highlight-frag.glsl";
 import { mapMaterials } from "./material-utils";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import { validMaterials } from "../components/hoverable-visuals";
 import { offsetRelativeTo } from "../components/offset-relative-to";
-import { proxiedUrlFor, guessContentType } from "../utils/media-url-utils";
+import { guessContentType, isAllowedCorsProxyContentType } from "../utils/media-url-utils";
 import { getNetworkedEntity, getNetworkId, ensureOwnership, isSynchronized } from "../../jel/utils/ownership-utils";
 import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
 import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
 import { expandByEntityObjectSpaceBoundingBox } from "./three-utils";
 import { stackTargetAt, NON_FLAT_STACK_AXES } from "../systems/transform-selected-object";
-import { getHubIdFromHistory } from "../../jel/utils/jel-url-utils";
 import anime from "animejs";
 
 // We use the legacy 'text' regex since it matches some items like beach_umbrella
@@ -113,44 +112,59 @@ export const isFlatMedia = function(obj) {
 const linkify = Linkify();
 linkify.tlds(tlds);
 
-const mediaAPIEndpoint = getReticulumFetchUrl("/api/v1/media");
 const getDirectMediaAPIEndpoint = () => getDirectReticulumFetchUrl("/api/v1/media");
 
 const isMobile = AFRAME.utils.device.isMobile();
 const isMobileVR = AFRAME.utils.device.isMobile();
 
 // Map<String, Promise<Object>
-const resolveUrlCache = new Map();
+const preflightUrlCache = new Map();
 export const getDefaultResolveQuality = (is360 = false) => {
   const useLowerQuality = isMobile || isMobileVR;
   return !is360 ? (useLowerQuality ? "low" : "high") : useLowerQuality ? "low_360" : "high_360";
 };
 
-export const clearResolveUrlCache = () => resolveUrlCache.clear();
+export const preflightUrl = async parsedUrl => {
+  const url = parsedUrl.toString();
 
-export const resolveUrl = async (url, quality = null, version = 1, bustCache) => {
-  const key = `${url}_${version}`;
-  if (!bustCache && resolveUrlCache.has(key)) return resolveUrlCache.get(key);
+  if (parsedUrl.origin === document.location.origin) {
+    // No need to proxy, file extensions should be set
+    return {
+      contentType: guessContentType(url),
+      contentUrl: url,
+      accessibleContentUrl: url
+    };
+  }
 
-  const resultPromise = fetch(mediaAPIEndpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ media: { url, quality: quality || getDefaultResolveQuality() }, version })
-  }).then(async response => {
-    if (!response.ok) {
-      const message = `Error resolving url "${url}":`;
-      try {
-        const body = await response.text();
-        throw new Error(message + " " + body);
-      } catch (e) {
-        throw new Error(message + " " + response.statusText);
-      }
-    }
-    return response.json();
-  });
+  let metaJson;
 
-  resolveUrlCache.set(key, resultPromise);
-  return resultPromise;
+  if (preflightUrlCache.has(url)) {
+    metaJson = preflightUrlCache.get(url);
+  } else {
+    metaJson = await (await fetch(`${window.APP.workerUrl}/meta/${url}`)).json();
+  }
+
+  preflightUrlCache.set(url, metaJson);
+
+  // Fetch metadata for URL from worker
+  const { content_type: contentType, get_allowed: getAllowed } = metaJson;
+
+  // Return
+  // the content type
+  // the content url (unproxed)
+  // the accessible url (potentially proxied)
+
+  let contentUrl = url;
+  let accessibleContentUrl = contentUrl;
+
+  if (contentType.startsWith("text/html")) {
+    // Generate a thumbnail for websites
+    contentUrl = accessibleContentUrl = `${window.APP.workerUrl}/thumbnail/${contentUrl}`;
+  } else if (isAllowedCorsProxyContentType(contentType) && !getAllowed) {
+    accessibleContentUrl = `${window.APP.workerUrl}/${contentUrl}`;
+  }
+
+  return { contentType, contentUrl, accessibleContentUrl };
 };
 
 export const upload = (fileOrBlob, desiredContentType, hubId) => {
@@ -250,7 +264,6 @@ export const addMedia = options => {
     contentOrigin: null,
     contentSubtype: null,
     template: "#interactable-media",
-    resolve: false,
     fitToBox: false,
     animate: true,
     mediaOptions: {},
@@ -272,7 +285,6 @@ export const addMedia = options => {
     template,
     contentOrigin,
     contentSubtype,
-    resolve,
     fitToBox,
     animate,
     mediaOptions,
@@ -332,7 +344,6 @@ export const addMedia = options => {
 
   entity.setAttribute("media-loader", {
     fitToBox,
-    resolve,
     animate,
     src: typeof src === "string" && contents === null ? coerceToUrl(src) || src : "",
     initialContents: contents != null ? contents : null,
@@ -369,20 +380,20 @@ export const addMedia = options => {
   });
   if (needsToBeUploaded) {
     // Video camera videos are converted to mp4 for compatibility
-    const desiredContentType = contentSubtype === "video-camera" ? "video/mp4" : src.type || guessContentType(src.name);
-
-    getHubIdFromHistory().then(hubId => {
-      upload(src, desiredContentType, hubId)
-        .then(response => {
-          const srcUrl = new URL(proxiedUrlFor(response.origin));
-          srcUrl.searchParams.set("token", response.meta.access_token);
-          entity.setAttribute("media-loader", { resolve: false, src: srcUrl.href, fileId: response.file_id });
-        })
-        .catch(e => {
-          console.error("Media upload failed", e);
-          entity.setAttribute("media-loader", { src: "error" });
-        });
-    });
+    //const desiredContentType = contentSubtype === "video-camera" ? "video/mp4" : src.type || guessContentType(src.name);
+    // TODO SHARED
+    //getHubIdFromHistory().then(hubId => {
+    //  upload(src, desiredContentType, hubId)
+    //    .then(response => {
+    //      const srcUrl = new URL(proxiedUrlFor(response.origin));
+    //      srcUrl.searchParams.set("token", response.meta.access_token);
+    //      entity.setAttribute("media-loader", { src: srcUrl.href, fileId: response.file_id });
+    //    })
+    //    .catch(e => {
+    //      console.error("Media upload failed", e);
+    //      entity.setAttribute("media-loader", { src: "error" });
+    //    });
+    //});
   } else if (isVideoShare) {
     const selfVideoShareUrl = `jel://clients/${NAF.clientId}/video`;
     entity.setAttribute("media-loader", { src: selfVideoShareUrl });
@@ -784,24 +795,13 @@ export function addAndArrangeRoundtableMedia(
   for (let phi = phiEnd, i = 0; phi >= phiStart; phi -= phiSpan / numItems, i++) {
     if (i !== itemIndex) continue;
 
-    const { entity, orientation } = addMedia(
-      media, // src
-      null, // contents
-      "#interactable-media", // template
-      undefined, // contentOrigin
-      null, // contentSubtype
-      true, // resolve
-      true, // fitToBox
-      false, // animate
-      mediaOptions, // mediaOptions
-      true, // networked
-      null, // parentEl
-      null, // linkedEl
-      null, // networkId
-      true, // skipLoader
-      null, // contentType
-      true // locked
-    );
+    const { entity, orientation } = addMedia({
+      src: media,
+      animate: false,
+      mediaOptions,
+      skipLoader: true,
+      locked: true
+    });
 
     entity.addEventListener(
       "media-loaded",
@@ -1060,25 +1060,20 @@ export const spawnMediaInfrontOfPlayer = options => {
   const defaults = {
     zOffset: -2.5,
     yOffset: 0,
-    fitToBox: true,
-    resolve:
-      !options.skipResolve &&
-      !!(
-        options.src &&
-        !(options.src instanceof MediaStream) &&
-        (typeof options.src !== "string" || !options.src.startsWith("jel://"))
-      )
+    fitToBox: true
   };
 
   if (!window.APP.atomAccessManager.hubCan("spawn_and_move_media")) return;
   if (options.src instanceof File && !window.APP.atomAccessManager.hubCan("upload_files")) return;
 
-  const { entity, orientation } = addMedia({ ...defaults, ...options });
+  const addOptions = { ...defaults, ...options };
+
+  const { entity, orientation } = addMedia(addOptions);
 
   orientation.then(or => {
     entity.setAttribute("offset-relative-to", {
       target: "#avatar-pov-node",
-      offset: { x: 0, y: options.yOffset, z: options.zOffset },
+      offset: { x: 0, y: addOptions.yOffset, z: addOptions.zOffset },
       orientation: or
     });
   });

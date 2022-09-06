@@ -232,14 +232,14 @@ export default class SceneEntryManager {
           meta: { access_token }
         } = await upload(fileOrUrl, "application/pdf", hubId);
 
-        const url = new URL(proxiedUrlFor(origin));
+        const url = new URL(await proxiedUrlFor(origin));
         url.searchParams.set("token", access_token);
         pdfUrl = url.ref;
       } else {
         pdfUrl = fileOrUrl;
       }
 
-      const pdf = await retainPdf(proxiedUrlFor(pdfUrl));
+      const pdf = await retainPdf(await proxiedUrlFor(pdfUrl));
       const numPages = pdf.numPages;
 
       const centerMatrixWorld = new THREE.Matrix4();

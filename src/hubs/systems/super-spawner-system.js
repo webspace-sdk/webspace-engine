@@ -31,7 +31,6 @@ export class SuperSpawnerSystem {
       src: data.src,
       template: data.template,
       contentOrigin: ObjectContentOrigins.SPAWNER,
-      resolve: data.resolve,
       fitToBox: true,
       animate: false,
       mediaOptions: data.mediaOptions

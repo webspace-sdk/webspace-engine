@@ -5,21 +5,13 @@ import loadingParticleSrc from "!!url-loader!../../assets/jel/images/loading-par
 import { VOXLoader } from "../../jel/objects/VOXLoader";
 import { createVox } from "../../hubs/utils/phoenix-utils";
 import {
-  resolveUrl,
-  getDefaultResolveQuality,
   injectCustomShaderChunks,
   addMeshScaleAnimation,
   closeExistingMediaMirror,
+  preflightUrl,
   MEDIA_VIEW_COMPONENTS
 } from "../utils/media-utils";
-import {
-  isNonCorsProxyDomain,
-  guessContentType,
-  proxiedUrlFor,
-  isHubsRoomUrl,
-  isLocalHubsSceneUrl,
-  isLocalHubsAvatarUrl
-} from "../utils/media-url-utils";
+import { guessContentType, isWebspaceUrl } from "../utils/media-url-utils";
 import { addAnimationComponents } from "../utils/animation";
 import qsTruthy from "../utils/qs_truthy";
 import { xyzRangeForSize, shiftForSize, MAX_SIZE as MAX_VOX_SIZE, VoxChunk } from "ot-vox";
@@ -29,10 +21,6 @@ import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effect
 import { disposeExistingMesh, disposeNode } from "../utils/three-utils";
 
 import { SHAPE } from "three-ammo/constants";
-
-const fetchContentType = url => {
-  return fetch(url, { method: "HEAD" }).then(r => r.headers.get("content-type"));
-};
 
 const forceMeshBatching = qsTruthy("batchMeshes");
 const forceImageBatching = true; //qsTruthy("batchImages");
@@ -51,7 +39,6 @@ AFRAME.registerComponent("media-loader", {
     initialContents: { type: "string" },
     version: { type: "number", default: 1 }, // Used to force a re-resolution
     fitToBox: { default: false },
-    resolve: { default: true },
     contentType: { default: null },
     contentSubtype: { default: null },
     addedLocally: { default: false },
@@ -377,55 +364,36 @@ AFRAME.registerComponent("media-loader", {
         this.showLoaderTimeout = setTimeout(this.showLoader, 100);
       }
 
-      let canonicalUrl = src;
-      let canonicalAudioUrl = src;
-      let accessibleUrl = src;
+      let contentUrl = src;
+      // let contentAudioUrl = src;
+      let accessibleContentUrl = src;
       let contentType = this.data.contentType;
-      let thumbnail;
 
       const parsedUrl = new URL(src);
 
-      // We want to resolve and proxy some hubs urls, like rooms and scene links,
-      // but want to avoid proxying assets in order for this to work in dev environments
-      const isLocalModelAsset =
-        isNonCorsProxyDomain(parsedUrl.hostname) && (guessContentType(src) || "").startsWith("model/gltf");
-
       if (
-        this.data.resolve &&
+        typeof src === "string" &&
         !src.startsWith("data:") &&
         !src.startsWith("jel:") &&
-        contentType !== "model/vnd.jel-vox" &&
-        !isLocalModelAsset
+        contentType !== "model/vnd.jel-vox"
       ) {
-        const is360 = !!(this.data.mediaOptions.projection && this.data.mediaOptions.projection.startsWith("360"));
-        const quality = getDefaultResolveQuality(is360);
-        const result = await resolveUrl(src, quality, version, forceLocalRefresh);
-        canonicalUrl = result.origin;
-
-        // handle protocol relative urls
-        if (canonicalUrl.startsWith("//")) {
-          canonicalUrl = location.protocol + canonicalUrl;
+        try {
+          const preflightResponse = await preflightUrl(parsedUrl);
+          contentType = preflightResponse.contentType;
+          contentUrl = preflightResponse.contentUrl;
+          accessibleContentUrl = preflightResponse.accessibleContentUrl;
+          //const is360 = !!(this.data.mediaOptions.projection && this.data.mediaOptions.projection.startsWith("360"));
+          //const quality = getDefaultResolveQuality(is360);
+          // TODO audio content URL, video resolving
+        } catch (e) { // eslint-disable-line
         }
-
-        canonicalAudioUrl = result.origin_audio;
-        if (canonicalAudioUrl && canonicalAudioUrl.startsWith("//")) {
-          canonicalAudioUrl = location.protocol + canonicalAudioUrl;
-        }
-
-        contentType = (result.meta && result.meta.expected_content_type) || contentType;
-        thumbnail = result.meta && result.meta.thumbnail && proxiedUrlFor(result.meta.thumbnail);
+      } else {
+        contentType = guessContentType(src);
       }
-
-      // todo: we don't need to proxy for many things if the canonical URL has permissive CORS headers
-      accessibleUrl = proxiedUrlFor(canonicalUrl);
-
-      // if the component creator didn't know the content type, we didn't get it from reticulum, and
-      // we don't think we can infer it from the extension, we need to make a HEAD request to find it out
-      contentType = contentType || guessContentType(canonicalUrl) || (await fetchContentType(accessibleUrl));
 
       // TODO we should probably just never return "application/octet-stream" as expectedContentType, since its not really useful
       if (contentType === "application/octet-stream") {
-        contentType = guessContentType(canonicalUrl) || contentType;
+        contentType = guessContentType(contentUrl) || contentType;
       }
 
       // Some servers treat m3u8 playlists as "audio/x-mpegurl", we always want to treat them as HLS videos
@@ -445,9 +413,9 @@ AFRAME.registerComponent("media-loader", {
 
       // We don't want to emit media_resolved for index updates.
       if (forceLocalRefresh || mediaSrcChanged) {
-        this.el.emit("media_resolved", { src, raw: accessibleUrl, contentType });
+        this.el.emit("media_resolved", { src, raw: accessibleContentUrl, contentType });
       } else {
-        this.el.emit("media_refreshed", { src, raw: accessibleUrl, contentType });
+        this.el.emit("media_refreshed", { src, raw: accessibleContentUrl, contentType });
       }
 
       this.el.addEventListener("media-load-error", () => this.cleanupLoader());
@@ -457,7 +425,7 @@ AFRAME.registerComponent("media-loader", {
 
         const fitContent = contentSubtype !== "page";
         const transparent = contentSubtype === "banner";
-        const properties = { src: accessibleUrl, fitContent, transparent };
+        const properties = { src: accessibleContentUrl, fitContent, transparent };
         const mediaOptions = this.data.mediaOptions;
 
         if (mediaOptions.foregroundColor) {
@@ -476,7 +444,7 @@ AFRAME.registerComponent("media-loader", {
       } else if (src.startsWith("jel://entities/") && src.includes("/components/media-emoji")) {
         this.el.addEventListener("model-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
 
-        this.setToSingletonMediaComponent("media-emoji", { src: accessibleUrl }, mediaSrcChanged);
+        this.setToSingletonMediaComponent("media-emoji", { src: accessibleContentUrl }, mediaSrcChanged);
       } else if (contentType === "video/vnd.jel-bridge") {
         this.el.setAttribute("floaty-object", {
           autoLockOnRelease: true, // Needed so object becomes kinematic on release for repositioning
@@ -492,7 +460,7 @@ AFRAME.registerComponent("media-loader", {
         );
 
         const canvasAttributes = Object.assign({}, this.data.mediaOptions, {
-          src: accessibleUrl,
+          src: accessibleContentUrl,
           contentType
         });
 
@@ -507,7 +475,7 @@ AFRAME.registerComponent("media-loader", {
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||
         contentType.startsWith("application/dash") ||
-        AFRAME.utils.material.isHLS(canonicalUrl, contentType)
+        AFRAME.utils.material.isHLS(contentUrl, contentType)
       ) {
         let linkedVideoTexture, linkedAudioSource, linkedMediaElementAudioSource;
         if (this.data.linkedEl) {
@@ -537,8 +505,8 @@ AFRAME.registerComponent("media-loader", {
         );
 
         const videoAttributes = Object.assign({}, this.data.mediaOptions, {
-          src: accessibleUrl,
-          audioSrc: canonicalAudioUrl ? proxiedUrlFor(canonicalAudioUrl) : null,
+          src: accessibleContentUrl,
+          // TODO SHARED audioSrc: canonicalAudioUrl ? proxiedUrlFor(canonicalAudioUrl) : null,
           contentType,
           linkedVideoTexture,
           linkedAudioSource,
@@ -578,7 +546,7 @@ AFRAME.registerComponent("media-loader", {
         this.setToSingletonMediaComponent(
           "media-image",
           Object.assign({}, this.data.mediaOptions, {
-            src: accessibleUrl,
+            src: accessibleContentUrl,
             version,
             contentType,
             batch
@@ -589,7 +557,7 @@ AFRAME.registerComponent("media-loader", {
         this.setToSingletonMediaComponent(
           "media-pdf",
           Object.assign({}, this.data.mediaOptions, {
-            src: accessibleUrl,
+            src: accessibleContentUrl,
             contentType,
             batch: false // Batching disabled until atlas is updated properly
           }),
@@ -631,7 +599,7 @@ AFRAME.registerComponent("media-loader", {
         this.setToSingletonMediaComponent(
           "gltf-model-plus",
           Object.assign({}, this.data.mediaOptions, {
-            src: accessibleUrl,
+            src: accessibleContentUrl,
             contentType: contentType,
             inflate: true,
             toon: false,
@@ -647,7 +615,7 @@ AFRAME.registerComponent("media-loader", {
         this.setToSingletonMediaComponent(
           "media-vox",
           Object.assign({}, this.data.mediaOptions, {
-            src: accessibleUrl
+            src: accessibleContentUrl
           }),
           mediaSrcChanged
         );
@@ -655,14 +623,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.addEventListener(
           "image-loaded",
           async () => {
-            const mayChangeScene = this.el.sceneEl.systems.permissions.can("update_hub_meta");
-
-            if (await isLocalHubsAvatarUrl(src)) {
-              this.el.setAttribute("hover-menu__hubs-item", {
-                template: "#avatar-link-hover-menu",
-                isFlat: true
-              });
-            } else if ((await isHubsRoomUrl(src)) || ((await isLocalHubsSceneUrl(src)) && mayChangeScene)) {
+            if (await isWebspaceUrl(src)) {
               this.el.setAttribute("hover-menu__hubs-item", {
                 template: "#hubs-destination-hover-menu",
                 isFlat: true
@@ -682,17 +643,17 @@ AFRAME.registerComponent("media-loader", {
         this.setToSingletonMediaComponent(
           "media-image",
           Object.assign({}, this.data.mediaOptions, {
-            src: thumbnail,
+            src: contentUrl,
             version,
-            contentType: guessContentType(thumbnail) || "image/png",
+            contentType: guessContentType(contentUrl) || "image/png",
             batch
           }),
           mediaSrcChanged
         );
       } else if (contentType.startsWith("model/vox-binary")) {
-        const voxSrc = await this.importVoxFromUrl(canonicalUrl);
+        const voxSrc = await this.importVoxFromUrl(contentUrl);
 
-        this.el.setAttribute("media-loader", { src: voxSrc, resolve: false, contentType: "model/vnd.jel-vox" });
+        this.el.setAttribute("media-loader", { src: voxSrc, contentType: "model/vnd.jel-vox" });
         this.el.addEventListener("model-loaded", () => this.onMediaLoaded(null, false), { once: true });
         this.el.addEventListener("model-error", this.onError, { once: true });
         this.el.setAttribute("floaty-object", { gravitySpeedLimit: 1.85 });

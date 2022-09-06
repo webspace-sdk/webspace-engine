@@ -244,17 +244,6 @@ export default `
                 </a-entity>
             </template>
 
-            <template id="avatar-link-hover-menu">
-                <a-entity class="ui interactable-ui hover-container" visible="false">
-                    <a-entity mixin="rounded-text-action-button ui" is-remote-hover-target tags="singleActionButton: true; isHoverMenuChild: true;" open-media-button position="0 -0.125 0.001">
-                        <a-entity text="width:1.5; align:center;" text-raycast-hack position="0 0 0.02"></a-entity>
-                    </a-entity>
-                    <a-entity mixin="rounded-text-action-button ui" is-remote-hover-target tags="singleActionButton: true; isHoverMenuChild: true;" remix-avatar-button position="0 -0.35 0.001" visible="false">
-                        <a-entity text="width:1.5; align:center;" text-raycast-hack position="0 0 0.02"></a-entity>
-                    </a-entity>
-                </a-entity>
-            </template>
-
             <template id="link-hover-menu">
                 <a-entity class="ui interactable-ui hover-container" visible="false">
                 </a-entity>

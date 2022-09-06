@@ -1,7 +1,6 @@
 import TreeManager from "../../jel/utils/tree-manager";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "../../jel/utils/jel-url-utils";
 import { getInitialHubForSpaceId } from "../../jel/utils/membership-utils";
-import { clearResolveUrlCache } from "./media-utils";
 import { getMessages } from "./i18n";
 import { SOUND_CHAT_MESSAGE } from "../systems/sound-effects-system";
 import qsTruthy from "./qs_truthy";
@@ -274,8 +273,6 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
 
       clearVoxAttributePools();
 
-      clearResolveUrlCache();
-
       moveToInitialHubLocationAndBeginPeriodicSyncs(hub, hubStore);
 
       const joinPromise = new Promise(res => document.body.addEventListener("connected", res, { once: true }));
@@ -293,6 +290,9 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
       setupDataChannelMessageHandlers();
 
       scene.addEventListener("componentinitialized", handle);
+
+      // Hacky for now, put the worker URL into a global
+      window.APP.workerUrl = hub.worker_url;
 
       scene.setAttribute("networked-scene", {
         audio: true,

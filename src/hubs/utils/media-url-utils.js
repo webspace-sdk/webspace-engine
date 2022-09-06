@@ -2,12 +2,6 @@ import { hasReticulumServer } from "./phoenix-utils";
 import configs from "./configs";
 import { getBlobForEmojiImage } from "../../jel/utils/emojis";
 
-const nonCorsProxyDomains = (configs.NON_CORS_PROXY_DOMAINS || "").split(",");
-if (configs.CORS_PROXY_SERVER) {
-  nonCorsProxyDomains.push(configs.CORS_PROXY_SERVER);
-}
-nonCorsProxyDomains.push(document.location.hostname);
-
 const commonKnownContentTypes = {
   gltf: "model/gltf",
   glb: "model/gltf-binary",
@@ -74,30 +68,53 @@ export const scaledThumbnailUrlFor = (url, width, height) => {
   return thumbnailUrl;
 };
 
-export const isNonCorsProxyDomain = hostname => {
-  return nonCorsProxyDomains.find(domain => hostname.endsWith(domain));
+export const isAllowedCorsProxyContentType = contentType => {
+  // Disallow cors proxying of video through cloudflare
+  // TODO SHARED allow an override here if you are running your own CORS anywhere
+  return (
+    !contentType.startsWith("video/") &&
+    contentType.indexOf(".m3u8") === -1 &&
+    contentType.indexOf(".mpegurl") === -1 &&
+    contentType !== "application/dash"
+  );
 };
 
-let currentCorsServerIndex = 0;
-
-export const getCorsProxyServer = () => {
-  const servers = configs.CORS_PROXY_SERVER.split(",");
-  currentCorsServerIndex++;
-  return servers[currentCorsServerIndex % servers.length];
-};
-
-export const proxiedUrlFor = url => {
+// Synchronous version that doesn't actually use OPTIONS to determine if cors proxying is necessary
+// Use rarely to minimize cors proxying.
+export const proxiedUrlForSync = url => {
   if (!(url.startsWith("http:") || url.startsWith("https:"))) return url;
 
   // Skip known domains that do not require CORS proxying.
   try {
     const parsedUrl = new URL(url);
-    if (isNonCorsProxyDomain(parsedUrl.hostname)) return url;
+    if (document.location.origin === parsedUrl.origin) return url;
   } catch (e) {
     // Ignore
   }
 
-  return `https://${getCorsProxyServer()}/${url}`;
+  return `https://${window.APP.workerUrl}/${url}`;
+};
+
+export const proxiedUrlFor = async url => {
+  if (!(url.startsWith("http:") || url.startsWith("https:"))) return url;
+
+  // Skip known domains that do not require CORS proxying.
+  try {
+    const parsedUrl = new URL(url);
+    if (document.location.origin === parsedUrl.origin) return url; // Same origin
+
+    const { content_type: contentType, get_allowed: getAllowed } = await (await fetch(
+      `${window.APP.workerUrl}/meta/${parsedUrl.toString()}`
+    )).json();
+
+    if (isAllowedCorsProxyContentType(contentType) && getAllowed) {
+      return url;
+    }
+  } catch (e) {
+    // Ignore
+  }
+
+  return `https://${window.APP.workerUrl}/${url}`;
 };
 
 export function getAbsoluteUrl(baseUrl, relativeUrl) {
@@ -151,54 +168,8 @@ export const guessContentType = url => {
   return commonKnownContentTypes[extension];
 };
 
-const originIsHubsServer = new Map();
-async function isHubsServer(url) {
-  if (!url) return false;
-  if (!url.startsWith("http")) {
-    url = "https://" + url;
-  }
-  const { origin } = new URL(url);
-
-  if (originIsHubsServer.has(origin)) {
-    return originIsHubsServer.get(origin);
-  }
-
-  let isHubsServer;
-  try {
-    isHubsServer = (await fetch(proxiedUrlFor(origin), { method: "HEAD" })).headers.has("hub-name");
-  } catch (e) {
-    isHubsServer = false;
-  }
-  originIsHubsServer.set(origin, isHubsServer);
-  return isHubsServer;
-}
-
-const hubsSceneRegex = /https?:\/\/[^/]+\/scenes\/(\w+)\/?\S*/;
-const hubsAvatarRegex = /https?:\/\/[^/]+\/avatars\/(?<id>\w+)\/?\S*/;
-const hubsRoomRegex = /(https?:\/\/)?[^/]+\/([a-zA-Z0-9]{7})\/?\S*/;
-
-export const isLocalHubsUrl = async url =>
-  (await isHubsServer(url)) && new URL(url).origin === document.location.origin;
-
-export const isHubsSceneUrl = async url => (await isHubsServer(url)) && hubsSceneRegex.test(url);
-export const isLocalHubsSceneUrl = async url => (await isHubsSceneUrl(url)) && (await isLocalHubsUrl(url));
-
-export const isHubsAvatarUrl = async url => (await isHubsServer(url)) && hubsAvatarRegex.test(url);
-export const isLocalHubsAvatarUrl = async url => (await isHubsAvatarUrl(url)) && (await isLocalHubsUrl(url));
-
-export const isHubsRoomUrl = async url =>
-  (await isHubsServer(url)) && !(await isHubsAvatarUrl(url)) && !(await isHubsSceneUrl(url)) && hubsRoomRegex.test(url);
-
-export const isHubsDestinationUrl = async url =>
-  (await isHubsServer(url)) && ((await isHubsSceneUrl(url)) || (await isHubsRoomUrl(url)));
-
-export const idForAvatarUrl = url => {
-  const match = url.match(hubsAvatarRegex);
-  if (match) {
-    return match.groups.id;
-  }
-  return null;
-};
+// TODO SHARED
+export const isWebspaceUrl = async (/*url*/) => false;
 
 export function emojiUnicode(characters, prefix = "") {
   return [...characters]

@@ -1,5 +1,5 @@
 import { getNetworkedEntity } from "../../jel/utils/ownership-utils";
-import { isLocalHubsSceneUrl, isHubsRoomUrl, isLocalHubsAvatarUrl } from "../utils/media-url-utils";
+import { isWebspaceUrl } from "../utils/media-url-utils";
 import { guessContentType } from "../utils/media-url-utils";
 import { handleExitTo2DInterstitial } from "../utils/vr-interstitial";
 
@@ -14,19 +14,14 @@ AFRAME.registerComponent("open-media-button", {
       if (!this.targetEl.parentNode) return; // If removed
       const src = (this.src = this.targetEl.components["media-loader"].data.src);
       const visible = src && guessContentType(src) !== "video/vnd.hubs-webrtc";
-      const mayChangeScene = this.el.sceneEl.systems.permissions.can("update_hub_meta");
 
       this.el.object3D.visible = !!visible;
 
       if (visible) {
         let label = "open link";
         if (!this.data.onlyOpenLink) {
-          if (await isLocalHubsAvatarUrl(src)) {
-            label = "use avatar";
-          } else if ((await isLocalHubsSceneUrl(src)) && mayChangeScene) {
-            label = "use scene";
-          } else if (await isHubsRoomUrl(src)) {
-            label = "visit room";
+          if (await isWebspaceUrl(src)) {
+            label = "visit webspace";
           }
         }
         this.label.setAttribute("text", "value", label);

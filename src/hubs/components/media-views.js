@@ -24,7 +24,7 @@ import {
   resetMediaRotation,
   MEDIA_INTERACTION_TYPES
 } from "../utils/media-utils";
-import { proxiedUrlFor, getCorsProxyServer } from "../utils/media-url-utils";
+import { proxiedUrlFor, proxiedUrlForSync, isAllowedCorsProxyContentType } from "../utils/media-url-utils";
 import { buildAbsoluteURL } from "url-toolkit";
 import { SOUND_CAMERA_TOOL_TOOK_SNAPSHOT } from "../systems/sound-effects-system";
 import { promisifyWorker } from "../utils/promisify-worker.js";
@@ -825,9 +825,13 @@ AFRAME.registerComponent("media-video", {
         // If hls.js is supported we always use it as it gives us better events
       } else if (contentType.startsWith("application/dash")) {
         const dashPlayer = MediaPlayer().create();
-        dashPlayer.extend("RequestModifier", function() {
-          return { modifyRequestHeader: xhr => xhr, modifyRequestURL: proxiedUrlFor };
-        });
+
+        if (isAllowedCorsProxyContentType(contentType)) {
+          dashPlayer.extend("RequestModifier", function() {
+            return { modifyRequestHeader: xhr => xhr, modifyRequestURL: proxiedUrlForSync };
+          });
+        }
+
         dashPlayer.on(MediaPlayer.events.ERROR, failLoad);
         dashPlayer.initialize(videoEl, url);
         dashPlayer.setTextDefaultEnabled(false);
@@ -836,7 +840,7 @@ AFRAME.registerComponent("media-video", {
         dashPlayer.clearDefaultUTCTimingSources();
         dashPlayer.addUTCTimingSource(
           "urn:mpeg:dash:utc:http-xsdate:2014",
-          proxiedUrlFor("https://time.akamai.com/?iso")
+          proxiedUrlForSync("https://time.akamai.com/?iso")
         );
         // We can also use our own HEAD request method like we use to sync NAF
         // dashPlayer.addUTCTimingSource("urn:mpeg:dash:utc:http-head:2014", location.href);
@@ -844,7 +848,7 @@ AFRAME.registerComponent("media-video", {
         texture.dash = dashPlayer;
       } else if (AFRAME.utils.material.isHLS(url, contentType)) {
         if (HLS.isSupported()) {
-          const corsProxyPrefix = `https://${getCorsProxyServer()}/`;
+          const corsProxyPrefix = isAllowedCorsProxyContentType(contentType) ? `https://${window.APP.workerUrl}/` : "";
           const baseUrl = url.startsWith(corsProxyPrefix) ? url.substring(corsProxyPrefix.length) : url;
           const setupHls = () => {
             if (texture.hls) {
