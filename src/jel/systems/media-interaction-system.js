@@ -143,6 +143,12 @@ export class MediaInteractionSystem {
     } else if (this.userinput.get(paths.actions.mediaSnapshotAction)) {
       if (canCloneOrSnapshot(hoverEl)) {
         interactionType = MEDIA_INTERACTION_TYPES.SNAPSHOT;
+      } else {
+        const canSpawnAndMove = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
+
+        if (!canSpawnAndMove && atomAccessManager.isEditingAvailable) {
+          this.scene.emit("action_open_writeback");
+        }
       }
     } else if (this.userinput.get(paths.actions.mediaRotateAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.ROTATE;
@@ -151,6 +157,12 @@ export class MediaInteractionSystem {
     } else if (this.userinput.get(paths.actions.mediaCloneAction)) {
       if (canCloneOrSnapshot(hoverEl)) {
         interactionType = MEDIA_INTERACTION_TYPES.CLONE;
+      } else {
+        const canSpawnAndMove = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
+
+        if (!canSpawnAndMove && atomAccessManager.isEditingAvailable) {
+          this.scene.emit("action_open_writeback");
+        }
       }
     } else if (this.userinput.get(paths.actions.mediaEditAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.EDIT;
@@ -186,7 +198,7 @@ export class MediaInteractionSystem {
       if (component && lockAllows) {
         if (interactionType === MEDIA_INTERACTION_TYPES.CLONE) {
           const sourceEntity = component.el;
-          const { entity } = cloneMedia(sourceEntity, "#interactable-media");
+          const { entity } = cloneMedia(sourceEntity);
           const sourceScale = sourceEntity.object3D.scale;
 
           entity.object3D.scale.copy(sourceScale);

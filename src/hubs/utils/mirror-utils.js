@@ -14,14 +14,13 @@ export async function refreshMediaMirror() {
     return;
   }
   await closeExistingMediaMirror();
-  const { entity } = cloneMedia(
-    linkedEl,
-    "#linked-media",
-    linkedEl.components["media-loader"].data.src,
-    false,
-    true,
+  const { entity } = cloneMedia(linkedEl, {
+    link: true,
+    parentEl: mirrorTarget,
+    template: "#linked-media",
+    src: linkedEl.components["media-loader"].data.src,
     mirrorTarget
-  );
+  });
 
   entity.object3D.scale.set(0.75, 0.75, 0.75);
   entity.object3D.matrixNeedsUpdate = true;

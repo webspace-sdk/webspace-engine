@@ -547,15 +547,12 @@ export const resetMediaRotation = sourceEl => {
   });
 };
 
-export const cloneMedia = (
-  sourceEl,
-  template,
-  src = null,
-  networked = true,
-  link = false,
-  parentEl = null,
-  animate = true
-) => {
+export const cloneMedia = (sourceEl, options = {}) => {
+  const { link } = options;
+  let { src } = options;
+  delete options.src;
+  delete options.link;
+
   let contents = null;
   const extraMediaOptions = {};
 
@@ -586,27 +583,22 @@ export const cloneMedia = (
     stackSnapScale
   } = sourceEl.components["media-loader"].data;
 
-  return addMedia(
-    src,
-    contents,
-    template,
-    ObjectContentOrigins.URL,
-    contentSubtype,
-    true,
-    fitToBox,
-    animate,
-    { ...mediaOptions, ...extraMediaOptions },
-    networked,
-    parentEl,
-    link ? sourceEl : null,
-    null,
-    false,
-    contentType,
-    false,
-    stackAxis,
-    stackSnapPosition,
-    stackSnapScale
-  );
+  return addMedia({
+    ...{
+      src,
+      contents,
+      linkedEl: link ? sourceEl : null,
+      fitToBox,
+      contentOrigin: ObjectContentOrigins.URL,
+      contentType,
+      contentSubtype,
+      stackAxis,
+      stackSnapPosition,
+      stackSnapScale,
+      mediaOptions: { ...mediaOptions, ...extraMediaOptions }
+    },
+    ...options
+  });
 };
 
 function onInjectedMaterialDispose(evt) {

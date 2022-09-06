@@ -289,7 +289,15 @@ export default class SceneEntryManager {
       switchCurrentHubToWorldTemplate(worldTemplateId);
     });
 
-    document.addEventListener("paste", e => AFRAME.scenes[0].systems["hubs-systems"].pasteSystem.enqueuePaste(e));
+    document.addEventListener("paste", e => {
+      const canSpawnAndMove = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
+
+      if (!canSpawnAndMove && window.APP.atomAccessManager.isEditingAvailable) {
+        return this.scene.emit("action_open_writeback");
+      }
+
+      SYSTEMS.pasteSystem.enqueuePaste(e);
+    });
 
     document.addEventListener("dragover", e => e.preventDefault());
 
@@ -303,6 +311,14 @@ export default class SceneEntryManager {
     });
 
     document.addEventListener("drop", e => {
+      const canSpawnAndMoveAndUpload =
+        window.APP.atomAccessManager.hubCan("spawn_and_move_media") &&
+        window.APP.atomAccessManager.hubCan("upload_files");
+
+      if (!canSpawnAndMoveAndUpload && window.APP.atomAccessManager.isEditingAvailable) {
+        return this.scene.emit("action_open_writeback");
+      }
+
       e.preventDefault();
 
       let url = e.dataTransfer.getData("url");

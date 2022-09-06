@@ -287,7 +287,7 @@ AFRAME.registerSystem("interaction", {
           let entityToGrab = entity;
 
           if (shouldDuplicate) {
-            entityToGrab = cloneMedia(entity, "#interactable-media", null, true, false, null, false).entity;
+            entityToGrab = cloneMedia(entity, { animate: false }).entity;
             entityToGrab.object3D.setMatrix(entity.object3D.matrix);
             entityToGrab.object3D.updateMatrices();
             entityToGrab.addEventListener(

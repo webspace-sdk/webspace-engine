@@ -42,6 +42,6 @@
 
 name not updating in self panel when updated by another peer
 not flushing on scale
-not starting editing on clone
 should change button to "unlock world" when others are in room
-should flush initial terrain info on first edit
+pasting text not working, and causing cursor to act funny (not hoverable)
+should push terrain chunks to origin on first edit
