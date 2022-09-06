@@ -59,12 +59,12 @@ export class PasteSystem {
 
     if (files && files.length > 0) {
       for (const file of files) {
-        spawnMediaInfrontOfPlayer(file, null, ObjectContentOrigins.CLIPBOARD);
+        spawnMediaInfrontOfPlayer({ src: file, contentOrigin: ObjectContentOrigins.CLIPBOARD });
       }
     } else if (url) {
-      spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL);
+      spawnMediaInfrontOfPlayer({ src: url, contentOrigin: ObjectContentOrigins.URL });
     } else if (contents) {
-      spawnMediaInfrontOfPlayer(null, contents, ObjectContentOrigins.CLIPBOARD);
+      spawnMediaInfrontOfPlayer({ contents, contentOrigin: ObjectContentOrigins.CLIPBOARD });
     }
   }
 }

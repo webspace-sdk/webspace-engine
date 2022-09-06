@@ -1056,50 +1056,29 @@ export function isNextPrevMedia(el) {
   return NEXT_PREV_MEDIA_VIEW_COMPONENTS.includes(component?.name);
 }
 
-export const spawnMediaInfrontOfPlayer = (
-  src,
-  contents,
-  contentOrigin,
-  contentSubtype = null,
-  mediaOptions = null,
-  networked = true,
-  skipResolve = false,
-  contentType = null,
-  zOffset = -2.5,
-  yOffset = 0,
-  stackAxis = 0,
-  stackSnapPosition = false,
-  stackSnapScale = false
-) => {
-  if (!window.APP.atomAccessManager.hubCan("spawn_and_move_media")) return;
-  if (src instanceof File && !window.APP.atomAccessManager.hubCan("upload_files")) return;
+export const spawnMediaInfrontOfPlayer = options => {
+  const defaults = {
+    zOffset: -2.5,
+    yOffset: 0,
+    fitToBox: true,
+    resolve:
+      !options.skipResolve &&
+      !!(
+        options.src &&
+        !(options.src instanceof MediaStream) &&
+        (typeof options.src !== "string" || !options.src.startsWith("jel://"))
+      )
+  };
 
-  const { entity, orientation } = addMedia(
-    src,
-    contents,
-    "#interactable-media",
-    contentOrigin,
-    contentSubtype,
-    !skipResolve && !!(src && !(src instanceof MediaStream) && (typeof src !== "string" || !src.startsWith("jel://"))),
-    true,
-    true,
-    mediaOptions,
-    networked,
-    null,
-    null,
-    null,
-    false,
-    contentType,
-    false,
-    stackAxis,
-    stackSnapPosition,
-    stackSnapScale
-  );
+  if (!window.APP.atomAccessManager.hubCan("spawn_and_move_media")) return;
+  if (options.src instanceof File && !window.APP.atomAccessManager.hubCan("upload_files")) return;
+
+  const { entity, orientation } = addMedia({ ...defaults, ...options });
 
   orientation.then(or => {
     entity.setAttribute("offset-relative-to", {
       target: "#avatar-pov-node",
-      offset: { x: 0, y: yOffset, z: zOffset },
+      offset: { x: 0, y: options.yOffset, z: options.zOffset },
       orientation: or
     });
   });

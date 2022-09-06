@@ -180,7 +180,7 @@ export default class SceneEntryManager {
     this.scene.addEventListener("add_media", e => {
       const contentOrigin = e.detail instanceof File ? ObjectContentOrigins.FILE : ObjectContentOrigins.URL;
 
-      spawnMediaInfrontOfPlayer(e.detail, null, contentOrigin);
+      spawnMediaInfrontOfPlayer({ src: e.detail, contentOrigin });
     });
 
     this.scene.addEventListener("add_media_text", e => {
@@ -188,7 +188,11 @@ export default class SceneEntryManager {
         window.APP.store.state.uiState.mediaTextColorPresetIndex || 0
       ];
 
-      spawnMediaInfrontOfPlayer(null, "", null, e.detail, { backgroundColor, foregroundColor });
+      spawnMediaInfrontOfPlayer({
+        contents: "",
+        contentSubtype: e.detail,
+        mediaOptions: { backgroundColor, foregroundColor }
+      });
     });
 
     this.scene.addEventListener("add_media_vox", async () => {
@@ -206,7 +210,7 @@ export default class SceneEntryManager {
     });
 
     this.scene.addEventListener("add_media_emoji", ({ detail: emoji }) => {
-      spawnMediaInfrontOfPlayer(null, emoji);
+      spawnMediaInfrontOfPlayer({ contents: emoji });
     });
 
     this.scene.addEventListener("add_media_exploded_pdf", async e => {
@@ -315,10 +319,10 @@ export default class SceneEntryManager {
       const files = e.dataTransfer.files;
 
       if (url) {
-        spawnMediaInfrontOfPlayer(url, null, ObjectContentOrigins.URL);
+        spawnMediaInfrontOfPlayer({ src: url, contentOrigin: ObjectContentOrigins.URL });
       } else {
         for (const file of files) {
-          spawnMediaInfrontOfPlayer(file, null, ObjectContentOrigins.FILE);
+          spawnMediaInfrontOfPlayer({ src: file, contentOrigin: ObjectContentOrigins.FILE });
         }
       }
     });
@@ -386,7 +390,7 @@ export default class SceneEntryManager {
           audioSystem.addStreamToOutboundAudio("screenshare", newStream);
         }
 
-        const entity = spawnMediaInfrontOfPlayer(mediaStreamSystem.mediaStream);
+        const entity = spawnMediaInfrontOfPlayer({ src: mediaStreamSystem.mediaStream });
 
         // Snap screen share to screen
         entity.addEventListener(

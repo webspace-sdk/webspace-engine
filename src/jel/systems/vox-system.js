@@ -1775,21 +1775,17 @@ export class VoxSystem extends EventTarget {
       published_scale
     } = metadata;
 
-    const entity = spawnMediaInfrontOfPlayer(
-      url,
-      null,
-      ObjectContentOrigins.URL,
-      null,
-      {},
-      true,
-      true,
-      "model/vnd.jel-vox",
-      -2.5,
-      0,
-      published_stack_axis,
-      published_stack_snap_position,
-      published_stack_snap_scale
-    );
+    const entity = spawnMediaInfrontOfPlayer({
+      src: url,
+      contentOrigin: ObjectContentOrigins.URL,
+      skipResolve: true,
+      contentType: "model/vnd.jel-vox",
+      zOffset: -2.5,
+      yOffset: 0,
+      stackAxis: published_stack_axis,
+      stackSnapPosition: published_stack_snap_position,
+      stackSnapScale: published_stack_snap_scale
+    });
 
     entity.object3D.scale.setScalar(published_scale);
     entity.object3D.matrixNeedsUpdate = true;
