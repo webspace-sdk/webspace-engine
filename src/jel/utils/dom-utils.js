@@ -510,6 +510,7 @@ export async function getHubMetaFromDOM() {
     name: document.title,
     url: document.location.origin + document.location.pathname,
     worker_url: getStringFromMetaTags("networking.worker_url", "https://webspace-worker.minddrop.workers.dev"),
+    cors_anywhere_url: getStringFromMetaTags("networking.cors_anywhere_url", ""),
     spawn_point: {
       position: getVectorFromMetaTags("environment.spawn_point.position"),
       rotation: getQuaternionFromMetaTags("environment.spawn_point.rotation"),

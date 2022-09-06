@@ -9,7 +9,8 @@ import {
   addMeshScaleAnimation,
   closeExistingMediaMirror,
   preflightUrl,
-  MEDIA_VIEW_COMPONENTS
+  MEDIA_VIEW_COMPONENTS,
+  getDefaultResolveQuality
 } from "../utils/media-utils";
 import { guessContentType, isWebspaceUrl } from "../utils/media-url-utils";
 import { addAnimationComponents } from "../utils/animation";
@@ -365,8 +366,8 @@ AFRAME.registerComponent("media-loader", {
       }
 
       let contentUrl = src;
-      // let contentAudioUrl = src;
       let accessibleContentUrl = src;
+      let accessibleContentAudioUrl = src;
       let contentType = this.data.contentType;
 
       const parsedUrl = new URL(src);
@@ -378,13 +379,15 @@ AFRAME.registerComponent("media-loader", {
         contentType !== "model/vnd.jel-vox"
       ) {
         try {
-          const preflightResponse = await preflightUrl(parsedUrl);
+          const is360 = !!(this.data.mediaOptions.projection && this.data.mediaOptions.projection.startsWith("360"));
+          const quality = getDefaultResolveQuality(is360);
+
+          const preflightResponse = await preflightUrl(parsedUrl, quality);
           contentType = preflightResponse.contentType;
           contentUrl = preflightResponse.contentUrl;
           accessibleContentUrl = preflightResponse.accessibleContentUrl;
-          //const is360 = !!(this.data.mediaOptions.projection && this.data.mediaOptions.projection.startsWith("360"));
-          //const quality = getDefaultResolveQuality(is360);
-          // TODO audio content URL, video resolving
+          accessibleContentAudioUrl = preflightResponse.accessibleContentAudioUrl;
+          console.log("Preflight", contentType, contentUrl, accessibleContentUrl, accessibleContentAudioUrl);
         } catch (e) { // eslint-disable-line
         }
       } else {
@@ -506,7 +509,7 @@ AFRAME.registerComponent("media-loader", {
 
         const videoAttributes = Object.assign({}, this.data.mediaOptions, {
           src: accessibleContentUrl,
-          // TODO SHARED audioSrc: canonicalAudioUrl ? proxiedUrlFor(canonicalAudioUrl) : null,
+          audioSrc: accessibleContentAudioUrl || null,
           contentType,
           linkedVideoTexture,
           linkedAudioSource,

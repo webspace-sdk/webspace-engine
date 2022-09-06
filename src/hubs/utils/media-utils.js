@@ -1,4 +1,5 @@
 import { objectTypeForOriginAndContentType } from "../object-types";
+import { hackyMobileSafariTest } from "./detect-touchscreen";
 import { getDirectReticulumFetchUrl } from "./phoenix-utils";
 import { ObjectContentOrigins } from "../object-types";
 import mediaHighlightFrag from "./media-highlight-frag.glsl";
@@ -6,7 +7,7 @@ import { mapMaterials } from "./material-utils";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import { validMaterials } from "../components/hoverable-visuals";
 import { offsetRelativeTo } from "../components/offset-relative-to";
-import { guessContentType, isAllowedCorsProxyContentType } from "../utils/media-url-utils";
+import { getCorsProxyUrl, guessContentType, isAllowedCorsProxyContentType } from "../utils/media-url-utils";
 import { getNetworkedEntity, getNetworkId, ensureOwnership, isSynchronized } from "../../jel/utils/ownership-utils";
 import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
 import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
@@ -124,7 +125,9 @@ export const getDefaultResolveQuality = (is360 = false) => {
   return !is360 ? (useLowerQuality ? "low" : "high") : useLowerQuality ? "low_360" : "high_360";
 };
 
-export const preflightUrl = async parsedUrl => {
+let ytdl;
+
+export const preflightUrl = async (parsedUrl, quality = "high") => {
   const url = parsedUrl.toString();
 
   if (parsedUrl.origin === document.location.origin) {
@@ -147,7 +150,7 @@ export const preflightUrl = async parsedUrl => {
   preflightUrlCache.set(url, metaJson);
 
   // Fetch metadata for URL from worker
-  const { content_type: contentType, get_allowed: getAllowed } = metaJson;
+  const { get_allowed: getAllowed } = metaJson;
 
   // Return
   // the content type
@@ -155,16 +158,111 @@ export const preflightUrl = async parsedUrl => {
   // the accessible url (potentially proxied)
 
   let contentUrl = url;
+  let contentType = metaJson.content_type;
   let accessibleContentUrl = contentUrl;
+  let accessibleContentAudioUrl = contentUrl;
 
   if (contentType.startsWith("text/html")) {
-    // Generate a thumbnail for websites
-    contentUrl = accessibleContentUrl = `${window.APP.workerUrl}/thumbnail/${contentUrl}`;
+    if (parsedUrl.origin.endsWith("youtube.com")) {
+      if (isAllowedCorsProxyContentType("video/mp4")) {
+        // Generate a thumbnail for websites
+        if (!ytdl) {
+          const ytdlUrl = "https://cdn.jsdelivr.net/npm/ytdl-browser@latest/dist/ytdl.min.js";
+          const scriptEl = document.createElement("script");
+          scriptEl.setAttribute("type", "text/javascript");
+          scriptEl.setAttribute("src", ytdlUrl);
+          const waitForScript = new Promise(res => scriptEl.addEventListener("load", res));
+          DOM_ROOT.append(scriptEl);
+          await waitForScript;
+
+          try {
+            ytdl = window.require("ytdl-core-browser")({
+              proxyUrl: getCorsProxyUrl() + "/"
+            });
+          } catch (e) {
+            console.log("error loading ytdl", e);
+          }
+        }
+
+        let resolvedYtdl = false;
+
+        if (ytdl) {
+          try {
+            const ytdlInfo = await ytdl.getInfo(contentUrl);
+            let chosenFormatVideo = null;
+            let maxHeight = 720;
+
+            switch (quality) {
+              case "low":
+                maxHeight = 480;
+                break;
+              case "low_360":
+                maxHeight = 1440;
+                break;
+              case "high_360":
+                maxHeight = 2160;
+                break;
+              default:
+            }
+
+            const supportsWebM = !hackyMobileSafariTest();
+
+            for (const format of ytdlInfo.formats) {
+              if (format.container !== (supportsWebM ? "webm" : "mp4")) continue;
+              if (format.height > maxHeight) continue;
+              if (format.codecs.indexOf("vp9") === -1) continue; // TODO check codecs
+
+              if (!chosenFormatVideo || chosenFormatVideo.height < format.height) {
+                chosenFormatVideo = format;
+              }
+            }
+
+            if (chosenFormatVideo) {
+              if (chosenFormatVideo.audioBitrate === null) {
+                let chosenFormatAudio = null;
+
+                for (const format of ytdlInfo.formats) {
+                  if (format.audioCodec !== "opus") continue;
+                  if (format.hasVideo) continue;
+
+                  if (!chosenFormatAudio || chosenFormatAudio.audioSampleRate < format.audioSampleRate) {
+                    chosenFormatAudio = format;
+                  }
+                }
+
+                if (chosenFormatAudio) {
+                  resolvedYtdl = true;
+                  contentUrl = chosenFormatVideo.url;
+                  accessibleContentUrl = `${getCorsProxyUrl()}/${contentUrl}`;
+                  contentType = chosenFormatVideo.mimeType.split(";")[0];
+                  accessibleContentAudioUrl = `${getCorsProxyUrl()}/${chosenFormatAudio.url}`;
+                }
+              } else {
+                resolvedYtdl = true;
+                contentUrl = chosenFormatVideo.url;
+                accessibleContentUrl = `${getCorsProxyUrl()}/${contentUrl}`;
+                contentType = chosenFormatVideo.mimeType.split(";")[0];
+              }
+            }
+          } catch (e) {} // eslint-disable-line
+        }
+
+        if (!resolvedYtdl) {
+          contentUrl = accessibleContentUrl = `${window.APP.workerUrl}/thumbnail/${contentUrl}`;
+        }
+      } else {
+        console.warn(
+          'To play videos, you need to configure a self hosted CORS Anywhere server by adding a meta tag like <met a name="webspace.networking.cors_anywhere_url" content="https://mycorsanywhere.com">. See: https://github.com/Rob--W/cors-anywhere'
+        );
+      }
+    } else {
+      contentUrl = accessibleContentUrl = `${window.APP.workerUrl}/thumbnail/${contentUrl}`;
+    }
   } else if (isAllowedCorsProxyContentType(contentType) && !getAllowed) {
-    accessibleContentUrl = `${window.APP.workerUrl}/${contentUrl}`;
+    accessibleContentUrl = `${getCorsProxyUrl()}/${contentUrl}`;
   }
 
-  return { contentType, contentUrl, accessibleContentUrl };
+  return { contentType, contentUrl, accessibleContentUrl, accessibleContentAudioUrl };
 };
 
 export const upload = (fileOrBlob, desiredContentType, hubId) => {

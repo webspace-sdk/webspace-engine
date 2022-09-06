@@ -294,6 +294,10 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
       // Hacky for now, put the worker URL into a global
       window.APP.workerUrl = hub.worker_url;
 
+      if (hub.cors_anywhere_url) {
+        window.APP.corsAnywhereUrl = hub.cors_anywhere_url;
+      }
+
       scene.setAttribute("networked-scene", {
         audio: true,
         connectOnLoad: false,

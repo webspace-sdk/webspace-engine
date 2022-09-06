@@ -1,4 +1,3 @@
-import { hasReticulumServer } from "./phoenix-utils";
 import configs from "./configs";
 import { getBlobForEmojiImage } from "../../jel/utils/emojis";
 
@@ -17,58 +16,13 @@ const commonKnownContentTypes = {
   mpd: "application/dash+xml"
 };
 
-// thanks to https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding
-function b64EncodeUnicode(str) {
-  // first we use encodeURIComponent to get percent-encoded UTF-8, then we convert the percent-encodings
-  // into raw bytes which can be fed into btoa.
-  const CHAR_RE = /%([0-9A-F]{2})/g;
-  return btoa(encodeURIComponent(str).replace(CHAR_RE, (_, p1) => String.fromCharCode("0x" + p1)));
-}
-
-const farsparkEncodeUrl = url => {
-  // farspark doesn't know how to read '=' base64 padding characters
-  // translate base64 + to - and / to _ for URL safety
-  return b64EncodeUnicode(url)
-    .replace(/=+$/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
-};
-
-export const scaledThumbnailUrlFor = (url, width, height) => {
-  let extension = "";
-  try {
-    const pathParts = new URL(url).pathname.split(".");
-
-    if (pathParts.length > 1) {
-      const extensionCandidate = pathParts.pop();
-      if (commonKnownContentTypes[extensionCandidate]) {
-        extension = `.${extensionCandidate}`;
-      }
-    }
-  } catch (e) {
-    extension = ".png";
-  }
-
-  // HACK: the extension is needed to ensure CDN caching on Cloudflare
-  const thumbnailUrl = `https://${configs.THUMBNAIL_SERVER}/thumbnail/${farsparkEncodeUrl(
-    url
-  )}${extension}?w=${width}&h=${height}`;
-
-  try {
-    const urlHostname = new URL(url).hostname;
-
-    if (hasReticulumServer()) {
-      const retHostname = new URL(`https://${configs.RETICULUM_SERVER}`).hostname;
-      if (retHostname === urlHostname) return url;
-    }
-  } catch (e) {
-    return thumbnailUrl;
-  }
-
-  return thumbnailUrl;
+export const getCorsProxyUrl = () => {
+  return window.APP.corsAnywhereUrl || window.APP.workerUrl;
 };
 
 export const isAllowedCorsProxyContentType = contentType => {
+  if (window.APP.corsAnywhereUrl) return true; // If a CORS anywhere endpoint has been configured, use it
+
   // Disallow cors proxying of video through cloudflare
   // TODO SHARED allow an override here if you are running your own CORS anywhere
   return (
@@ -92,7 +46,7 @@ export const proxiedUrlForSync = url => {
     // Ignore
   }
 
-  return `https://${window.APP.workerUrl}/${url}`;
+  return `${getCorsProxyUrl()}/${url}`;
 };
 
 export const proxiedUrlFor = async url => {
@@ -114,7 +68,7 @@ export const proxiedUrlFor = async url => {
     // Ignore
   }
 
-  return `https://${window.APP.workerUrl}/${url}`;
+  return `${getCorsProxyUrl()}/${url}`;
 };
 
 export function getAbsoluteUrl(baseUrl, relativeUrl) {
