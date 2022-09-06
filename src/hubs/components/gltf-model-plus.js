@@ -12,6 +12,7 @@ import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import HubsBasisTextureLoader from "../loaders/HubsBasisTextureLoader";
 import { resetMediaRotation, MEDIA_PRESENCE } from "../utils/media-utils";
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
+import { gatePermission } from "../../hubs/utils/permissions-utils";
 import { RENDER_ORDER } from "../constants";
 
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
@@ -820,6 +821,8 @@ AFRAME.registerComponent("gltf-model-plus", {
     if (type === MEDIA_INTERACTION_TYPES.OPEN) {
       window.open(this.data.src);
     }
+
+    if (!gatePermission("spawn_and_move_media")) return;
 
     if (type === MEDIA_INTERACTION_TYPES.RESET) {
       resetMediaRotation(this.el);

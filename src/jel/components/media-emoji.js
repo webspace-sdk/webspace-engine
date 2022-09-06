@@ -2,6 +2,7 @@ import { MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
 import { resetMediaRotation, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
 import { imageUrlForEmoji } from "../../hubs/utils/media-url-utils";
+import { gatePermission } from "../../hubs/utils/permissions-utils";
 
 AFRAME.registerComponent("media-emoji", {
   schema: {
@@ -94,6 +95,8 @@ AFRAME.registerComponent("media-emoji", {
   },
 
   handleMediaInteraction(type) {
+    if (!gatePermission("spawn_and_move_media")) return;
+
     if (type === MEDIA_INTERACTION_TYPES.RESET) {
       resetMediaRotation(this.el);
     }

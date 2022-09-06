@@ -11,6 +11,7 @@ import {
 import { getNetworkId } from "../utils/ownership-utils";
 import { temporarilyReleaseCanvasCursorLock } from "../utils/dom-utils";
 import { addAndArrangeRadialMedia, MEDIA_PRESENCE, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
+import { gatePermission } from "../../hubs/utils/permissions-utils";
 import { disposeExistingMesh, disposeTexture, almostEqualVec3 } from "../../hubs/utils/three-utils";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
@@ -501,6 +502,7 @@ AFRAME.registerComponent("media-text", {
 
   handleMediaInteraction(type) {
     if (!this.quill) return;
+    if (!gatePermission("spawn_and_move_media")) return;
 
     if (type === MEDIA_INTERACTION_TYPES.EDIT) {
       window.APP.store.handleActivityFlag("mediaTextEdit");

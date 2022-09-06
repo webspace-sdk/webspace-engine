@@ -5,6 +5,7 @@ import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { getNetworkedEntity } from "../../jel/utils/ownership-utils";
 import { endCursorLock } from "../utils/dom-utils";
 import { spawnMediaInfrontOfPlayer } from "../../hubs/utils/media-utils";
+import { gatePermission } from "../../hubs/utils/permissions-utils";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { getSpawnInFrontZOffsetForEntity } from "../../hubs/utils/three-utils";
 import "../utils/vox-sync";
@@ -100,6 +101,8 @@ AFRAME.registerComponent("media-vox", {
   },
 
   async handleMediaInteraction(type) {
+    if (!gatePermission("spawn_and_move_media")) return;
+
     if (type === MEDIA_INTERACTION_TYPES.RESET) {
       const bbox = SYSTEMS.voxSystem.getBoundingBoxForSource(this.mesh, true);
       const center = new THREE.Vector3();

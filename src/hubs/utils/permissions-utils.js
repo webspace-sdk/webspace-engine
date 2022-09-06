@@ -21,3 +21,18 @@ export function showHoverEffect(el) {
   const isMedia = !!el.components["media-loader"];
   return isMedia && canMove(el);
 }
+
+export function gatePermissionPredicate(predicate) {
+  if (predicate) return true;
+
+  if (window.APP.atomAccessManager.isEditingAvailable) {
+    AFRAME.scenes[0].emit("action_open_writeback");
+  }
+
+  return false;
+}
+
+export function gatePermission(permission) {
+  const hasPerm = window.APP.atomAccessManager.hubCan(permission);
+  return gatePermissionPredicate(hasPerm);
+}

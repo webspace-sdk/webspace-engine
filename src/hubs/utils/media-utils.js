@@ -125,7 +125,164 @@ export const getDefaultResolveQuality = (is360 = false) => {
   return !is360 ? (useLowerQuality ? "low" : "high") : useLowerQuality ? "low_360" : "high_360";
 };
 
-let ytdl;
+const runYtdl = (function() {
+  let ytdl = null;
+  let db;
+  const req = indexedDB.open("ytdl", 1);
+
+  const openPromise = new Promise(res => {
+    req.addEventListener("success", ({ target: { result } }) => {
+      db = result;
+      res();
+    });
+
+    req.addEventListener("upgradeneeded", ({ target: { result: db } }) => {
+      db.createObjectStore("results", { keyPath: "url" });
+    });
+  });
+
+  return async (url, quality) => {
+    await openPromise;
+    const now = Date.now();
+
+    let resolvedYtdl = false;
+    let expiresAt = now + 24 * 60 * 60 * 1000;
+    let contentUrl = null;
+    let contentType = null;
+    let accessibleContentUrl = null;
+    let accessibleContentAudioUrl = null;
+
+    const txn = db
+      .transaction("results")
+      .objectStore("results")
+      .get(url);
+
+    const { target } = await new Promise(res => txn.addEventListener("success", res));
+
+    if (target.result) {
+      if (target.result.expires_at > now - 60 * 60 * 1000) {
+        return target.result.result;
+      }
+    }
+
+    if (!ytdl) {
+      const ytdlUrl = "https://cdn.jsdelivr.net/npm/ytdl-browser@latest/dist/ytdl.min.js";
+      const scriptEl = document.createElement("script");
+      scriptEl.setAttribute("type", "text/javascript");
+      scriptEl.setAttribute("src", ytdlUrl);
+      const waitForScript = new Promise(res => scriptEl.addEventListener("load", res));
+      DOM_ROOT.append(scriptEl);
+      await waitForScript;
+
+      try {
+        ytdl = window.require("ytdl-core-browser")({
+          proxyUrl: getCorsProxyUrl() + "/"
+        });
+      } catch (e) {
+        console.log("error loading ytdl", e);
+      }
+    }
+
+    if (ytdl) {
+      try {
+        const ytdlInfo = await ytdl.getInfo(url);
+        let chosenFormatVideo = null;
+        let maxHeight = 720;
+
+        switch (quality) {
+          case "low":
+            maxHeight = 480;
+            break;
+          case "low_360":
+            maxHeight = 1440;
+            break;
+          case "high_360":
+            maxHeight = 2160;
+            break;
+          default:
+        }
+
+        const supportsWebM = !hackyMobileSafariTest();
+
+        for (const format of ytdlInfo.formats) {
+          if (format.container !== (supportsWebM ? "webm" : "mp4")) continue;
+          if (format.height > maxHeight) continue;
+          if (format.codecs.indexOf("vp9") === -1) continue; // TODO check codecs
+
+          if (!chosenFormatVideo || chosenFormatVideo.height < format.height) {
+            chosenFormatVideo = format;
+          }
+        }
+
+        if (chosenFormatVideo) {
+          const parsedVideoUrl = new URL(chosenFormatVideo.url);
+          const parsedVideoParams = new URLSearchParams(parsedVideoUrl.search);
+
+          if (parsedVideoParams.get("expire")) {
+            try {
+              const videoExpires = parseInt(parsedVideoParams.get("expire")) * 1000;
+              if (expiresAt > videoExpires) {
+                expiresAt = videoExpires;
+              }
+            } catch(e) {  } // eslint-disable-line
+          }
+
+          if (chosenFormatVideo.audioBitrate === null) {
+            let chosenFormatAudio = null;
+
+            for (const format of ytdlInfo.formats) {
+              if (format.audioCodec !== "opus") continue;
+              if (format.hasVideo) continue;
+
+              if (!chosenFormatAudio || chosenFormatAudio.audioSampleRate < format.audioSampleRate) {
+                chosenFormatAudio = format;
+              }
+            }
+
+            if (chosenFormatAudio) {
+              const parsedAudioUrl = new URL(chosenFormatAudio.url);
+              const parsedAudioParams = new URLSearchParams(parsedAudioUrl.search);
+
+              if (parsedAudioParams.get("expire")) {
+                try {
+                  const audioExpires = parseInt(parsedAudioParams.get("expire")) * 1000;
+                  if (expiresAt > audioExpires) {
+                    expiresAt = audioExpires;
+                  }
+              } catch(e) {  } // eslint-disable-line
+              }
+
+              resolvedYtdl = true;
+              contentUrl = chosenFormatVideo.url;
+              accessibleContentUrl = `${getCorsProxyUrl()}/${contentUrl}`;
+              contentType = chosenFormatVideo.mimeType.split(";")[0];
+              accessibleContentAudioUrl = `${getCorsProxyUrl()}/${chosenFormatAudio.url}`;
+            }
+          } else {
+            resolvedYtdl = true;
+            contentUrl = chosenFormatVideo.url;
+            accessibleContentUrl = `${getCorsProxyUrl()}/${contentUrl}`;
+            contentType = chosenFormatVideo.mimeType.split(";")[0];
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    if (resolvedYtdl) {
+      const result = { contentUrl, accessibleContentUrl, contentType, accessibleContentAudioUrl };
+
+      db.transaction("results", "readwrite")
+        .objectStore("results")
+        .put({ url, result, expires_at: expiresAt });
+
+      return result;
+    } else {
+      return null;
+    }
+  };
+})();
 
 export const preflightUrl = async (parsedUrl, quality = "high") => {
   const url = parsedUrl.toString();
@@ -165,97 +322,23 @@ export const preflightUrl = async (parsedUrl, quality = "high") => {
   if (contentType.startsWith("text/html")) {
     if (parsedUrl.origin.endsWith("youtube.com")) {
       if (isAllowedCorsProxyContentType("video/mp4")) {
-        // Generate a thumbnail for websites
-        if (!ytdl) {
-          const ytdlUrl = "https://cdn.jsdelivr.net/npm/ytdl-browser@latest/dist/ytdl.min.js";
-          const scriptEl = document.createElement("script");
-          scriptEl.setAttribute("type", "text/javascript");
-          scriptEl.setAttribute("src", ytdlUrl);
-          const waitForScript = new Promise(res => scriptEl.addEventListener("load", res));
-          DOM_ROOT.append(scriptEl);
-          await waitForScript;
+        const ytdlResult = await runYtdl(url, quality);
 
-          try {
-            ytdl = window.require("ytdl-core-browser")({
-              proxyUrl: getCorsProxyUrl() + "/"
-            });
-          } catch (e) {
-            console.log("error loading ytdl", e);
-          }
-        }
-
-        let resolvedYtdl = false;
-
-        if (ytdl) {
-          try {
-            const ytdlInfo = await ytdl.getInfo(contentUrl);
-            let chosenFormatVideo = null;
-            let maxHeight = 720;
-
-            switch (quality) {
-              case "low":
-                maxHeight = 480;
-                break;
-              case "low_360":
-                maxHeight = 1440;
-                break;
-              case "high_360":
-                maxHeight = 2160;
-                break;
-              default:
-            }
-
-            const supportsWebM = !hackyMobileSafariTest();
-
-            for (const format of ytdlInfo.formats) {
-              if (format.container !== (supportsWebM ? "webm" : "mp4")) continue;
-              if (format.height > maxHeight) continue;
-              if (format.codecs.indexOf("vp9") === -1) continue; // TODO check codecs
-
-              if (!chosenFormatVideo || chosenFormatVideo.height < format.height) {
-                chosenFormatVideo = format;
-              }
-            }
-
-            if (chosenFormatVideo) {
-              if (chosenFormatVideo.audioBitrate === null) {
-                let chosenFormatAudio = null;
-
-                for (const format of ytdlInfo.formats) {
-                  if (format.audioCodec !== "opus") continue;
-                  if (format.hasVideo) continue;
-
-                  if (!chosenFormatAudio || chosenFormatAudio.audioSampleRate < format.audioSampleRate) {
-                    chosenFormatAudio = format;
-                  }
-                }
-
-                if (chosenFormatAudio) {
-                  resolvedYtdl = true;
-                  contentUrl = chosenFormatVideo.url;
-                  accessibleContentUrl = `${getCorsProxyUrl()}/${contentUrl}`;
-                  contentType = chosenFormatVideo.mimeType.split(";")[0];
-                  accessibleContentAudioUrl = `${getCorsProxyUrl()}/${chosenFormatAudio.url}`;
-                }
-              } else {
-                resolvedYtdl = true;
-                contentUrl = chosenFormatVideo.url;
-                accessibleContentUrl = `${getCorsProxyUrl()}/${contentUrl}`;
-                contentType = chosenFormatVideo.mimeType.split(";")[0];
-              }
-            }
-          } catch (e) {} // eslint-disable-line
-        }
-
-        if (!resolvedYtdl) {
+        if (ytdlResult) {
+          contentUrl = ytdlResult.contentUrl;
+          accessibleContentUrl = ytdlResult.accessibleContentUrl;
+          accessibleContentAudioUrl = ytdlResult.accessibleContentAudioUrl;
+          contentType = ytdlResult.contentType;
+        } else {
           contentUrl = accessibleContentUrl = `${window.APP.workerUrl}/thumbnail/${contentUrl}`;
         }
       } else {
         console.warn(
-          'To play videos, you need to configure a self hosted CORS Anywhere server by adding a meta tag like <met a name="webspace.networking.cors_anywhere_url" content="https://mycorsanywhere.com">. See: https://github.com/Rob--W/cors-anywhere'
+          'To play YouTube videos, you need to configure a self hosted CORS Anywhere server by adding a meta tag like <met a name="webspace.networking.cors_anywhere_url" content="https://mycorsanywhere.com">. See: https://github.com/Rob--W/cors-anywhere'
         );
       }
     } else {
+      // Generate a thumbnail for websites
       contentUrl = accessibleContentUrl = `${window.APP.workerUrl}/thumbnail/${contentUrl}`;
     }
   } else if (isAllowedCorsProxyContentType(contentType) && !getAllowed) {

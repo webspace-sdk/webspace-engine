@@ -9,6 +9,7 @@ import { switchCurrentHubToWorldTemplate } from "../jel/utils/template-utils";
 import { retainPdf, releasePdf } from "../jel/utils/pdf-pool";
 import defaultAvatar from "!!url-loader!../assets/hubs/models/DefaultAvatar.glb";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "../jel/utils/jel-url-utils";
+import { gatePermission } from "./utils/permissions-utils";
 
 const { detect } = require("detect-browser");
 
@@ -290,12 +291,7 @@ export default class SceneEntryManager {
     });
 
     document.addEventListener("paste", e => {
-      const canSpawnAndMove = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
-
-      if (!canSpawnAndMove && window.APP.atomAccessManager.isEditingAvailable) {
-        return this.scene.emit("action_open_writeback");
-      }
-
+      if (!gatePermission("spawn_and_move_media")) return;
       SYSTEMS.pasteSystem.enqueuePaste(e);
     });
 
@@ -311,13 +307,7 @@ export default class SceneEntryManager {
     });
 
     document.addEventListener("drop", e => {
-      const canSpawnAndMoveAndUpload =
-        window.APP.atomAccessManager.hubCan("spawn_and_move_media") &&
-        window.APP.atomAccessManager.hubCan("upload_files");
-
-      if (!canSpawnAndMoveAndUpload && window.APP.atomAccessManager.isEditingAvailable) {
-        return this.scene.emit("action_open_writeback");
-      }
+      if (!gatePermission("spawn_and_move_media")) return;
 
       e.preventDefault();
 

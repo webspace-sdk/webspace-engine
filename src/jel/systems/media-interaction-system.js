@@ -8,6 +8,7 @@ import {
   cloneMedia,
   isLockedMedia
 } from "../../hubs/utils/media-utils";
+import { gatePermission } from "../../hubs/utils/permissions-utils";
 import { GUIDE_PLANE_MODES } from "./helpers-system";
 import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
 import { canCloneOrSnapshot } from "../../hubs/utils/permissions-utils";
@@ -144,11 +145,7 @@ export class MediaInteractionSystem {
       if (canCloneOrSnapshot(hoverEl)) {
         interactionType = MEDIA_INTERACTION_TYPES.SNAPSHOT;
       } else {
-        const canSpawnAndMove = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
-
-        if (!canSpawnAndMove && atomAccessManager.isEditingAvailable) {
-          this.scene.emit("action_open_writeback");
-        }
+        if (!gatePermission("spawn_and_move_media")) return;
       }
     } else if (this.userinput.get(paths.actions.mediaRotateAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.ROTATE;
@@ -158,11 +155,7 @@ export class MediaInteractionSystem {
       if (canCloneOrSnapshot(hoverEl)) {
         interactionType = MEDIA_INTERACTION_TYPES.CLONE;
       } else {
-        const canSpawnAndMove = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
-
-        if (!canSpawnAndMove && atomAccessManager.isEditingAvailable) {
-          this.scene.emit("action_open_writeback");
-        }
+        if (!gatePermission("spawn_and_move_media")) return;
       }
     } else if (this.userinput.get(paths.actions.mediaEditAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.EDIT;
@@ -181,22 +174,13 @@ export class MediaInteractionSystem {
     }
 
     if (interactionType !== null) {
-      const canSpawnAndMove = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
-
-      if (!canSpawnAndMove) {
-        if (atomAccessManager.isEditingAvailable) {
-          this.scene.emit("action_open_writeback");
-        }
-
-        return;
-      }
-
       const component = getMediaViewComponent(hoverEl);
       const isLocked = isLockedMedia(hoverEl);
       const lockAllows = !isLocked || !LOCKED_MEDIA_DISALLOWED_INTERACTIONS.includes(interactionType);
 
       if (component && lockAllows) {
         if (interactionType === MEDIA_INTERACTION_TYPES.CLONE) {
+          if (!gatePermission("spawn_and_move_media")) return;
           const sourceEntity = component.el;
           const { entity } = cloneMedia(sourceEntity);
           const sourceScale = sourceEntity.object3D.scale;
@@ -214,19 +198,23 @@ export class MediaInteractionSystem {
           if (isSynced && !ensureOwnership(targetEl)) return;
 
           if (interactionType === MEDIA_INTERACTION_TYPES.ROTATE) {
+            if (!gatePermission("spawn_and_move_media")) return;
             beginEphemeralCursorLock();
 
             this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
               mode: TRANSFORM_MODE.AXIS
             });
           } else if (interactionType === MEDIA_INTERACTION_TYPES.SCALE) {
+            if (!gatePermission("spawn_and_move_media")) return;
             beginEphemeralCursorLock();
 
             this.scaleSystem = this.scaleSystem || this.scene.systems["scale-object"];
             this.scaleSystem.startScaling(targetEl.object3D, this.rightHand.object3D);
           } else if (interactionType === MEDIA_INTERACTION_TYPES.REMOVE) {
+            if (!gatePermission("spawn_and_move_media")) return;
             performAnimatedRemove(targetEl);
           } else if (interactionType === MEDIA_INTERACTION_TYPES.TOGGLE_LOCK) {
+            if (!gatePermission("spawn_and_move_media")) return;
             this.soundEffectsSystem.playSoundOneShot(isLocked ? SOUND_UNLOCK : SOUND_LOCK);
             hoverEl.setAttribute("media-loader", { locked: !isLocked });
           } else {
@@ -257,16 +245,6 @@ export class MediaInteractionSystem {
     }
 
     if (interactionType !== null) {
-      const canSpawnAndMove = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
-
-      if (!canSpawnAndMove) {
-        if (atomAccessManager.isEditingAvailable) {
-          this.scene.emit("action_open_writeback");
-        }
-
-        return;
-      }
-
       const component = getMediaViewComponent(heldEl);
 
       if (component) {

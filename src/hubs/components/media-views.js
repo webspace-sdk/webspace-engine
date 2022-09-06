@@ -15,6 +15,7 @@ import { paths } from "../systems/userinput/paths";
 import HLS from "hls.js";
 import { RENDER_ORDER } from "../constants";
 import { MediaPlayer } from "dashjs";
+import { gatePermission, gatePermissionPredicate } from "../utils/permissions-utils";
 import {
   addAndArrangeRadialMedia,
   createImageTexture,
@@ -1123,12 +1124,24 @@ AFRAME.registerComponent("media-video", {
   handleMediaInteraction(type) {
     const mayModifyPlayHead = this.mayModifyPlayHead();
 
-    if (type === MEDIA_INTERACTION_TYPES.PRIMARY && mayModifyPlayHead) {
-      this.togglePlaying();
-    } else if (type === MEDIA_INTERACTION_TYPES.NEXT && mayModifyPlayHead) {
-      this.seekForward();
-    } else if (type === MEDIA_INTERACTION_TYPES.BACK && mayModifyPlayHead) {
-      this.seekBack();
+    if (type === MEDIA_INTERACTION_TYPES.PRIMARY) {
+      if (mayModifyPlayHead) {
+        this.togglePlaying();
+      } else {
+        if (!gatePermissionPredicate(mayModifyPlayHead)) return;
+      }
+    } else if (type === MEDIA_INTERACTION_TYPES.NEXT) {
+      if (mayModifyPlayHead) {
+        this.seekForward();
+      } else {
+        if (!gatePermissionPredicate(mayModifyPlayHead)) return;
+      }
+    } else if (type === MEDIA_INTERACTION_TYPES.BACK) {
+      if (mayModifyPlayHead) {
+        this.seekBack();
+      } else {
+        if (!gatePermissionPredicate(mayModifyPlayHead)) return;
+      }
     } else if (type === MEDIA_INTERACTION_TYPES.UP) {
       this.volumeUp();
     } else if (type === MEDIA_INTERACTION_TYPES.DOWN) {
@@ -1440,6 +1453,8 @@ AFRAME.registerComponent("media-image", {
       window.open(this.el.components["media-loader"].data.src);
     }
 
+    if (!gatePermission("spawn_and_move_media")) return;
+
     if (type === MEDIA_INTERACTION_TYPES.RESET) {
       resetMediaRotation(this.el);
     }
@@ -1671,18 +1686,8 @@ AFRAME.registerComponent("media-pdf", {
     if (!this.pdf) return;
     if (this.networkedEl && !ensureOwnership(this.networkedEl)) return;
 
-    if (type === MEDIA_INTERACTION_TYPES.SNAPSHOT) {
-      this.snap();
-      return;
-    }
-
     if (type === MEDIA_INTERACTION_TYPES.OPEN) {
       window.open(this.el.components["media-loader"].data.src);
-      return;
-    }
-
-    if (type === MEDIA_INTERACTION_TYPES.RESET) {
-      resetMediaRotation(this.el);
       return;
     }
 
@@ -1697,6 +1702,18 @@ AFRAME.registerComponent("media-pdf", {
       }
 
       this.el.setAttribute("media-pdf", "index", newIndex);
+    }
+
+    if (!gatePermission("spawn_and_move_media")) return;
+
+    if (type === MEDIA_INTERACTION_TYPES.SNAPSHOT) {
+      this.snap();
+      return;
+    }
+
+    if (type === MEDIA_INTERACTION_TYPES.RESET) {
+      resetMediaRotation(this.el);
+      return;
     }
   }
 });
@@ -1829,6 +1846,8 @@ AFRAME.registerComponent("media-canvas", {
   },
 
   handleMediaInteraction(type) {
+    if (!gatePermission("spawn_and_move_media")) return;
+
     if (type === MEDIA_INTERACTION_TYPES.SNAPSHOT) {
       this.snap();
     }
