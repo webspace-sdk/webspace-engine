@@ -299,7 +299,8 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
         connectOnLoad: false,
         room: hub.hub_id,
         adapter: "p2pcf",
-        app: "jel",
+        app: "webspace",
+        adapterOptions: { workerUrl: hub.worker_url },
         debug: !!isDebug
       });
 

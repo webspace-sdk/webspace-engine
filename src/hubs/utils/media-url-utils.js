@@ -11,6 +11,7 @@ nonCorsProxyDomains.push(document.location.hostname);
 const commonKnownContentTypes = {
   gltf: "model/gltf",
   glb: "model/gltf-binary",
+  gif: "image/gif",
   png: "image/png",
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
