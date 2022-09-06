@@ -305,6 +305,10 @@ export default class WorldImporter {
 
         const autoplayAttr = el.getAttribute("autoplay");
 
+        if (autoplayAttr) {
+          el.pause(); // Just in case, pause this video tag
+        }
+
         // autoplay="hover" will enable play-on-hover
         mediaOptions.videoPaused = autoplayAttr === null || autoplayAttr === "hover";
         mediaOptions.playOnHover = autoplayAttr === "hover";

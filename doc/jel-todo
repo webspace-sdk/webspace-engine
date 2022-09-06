@@ -45,3 +45,8 @@ not flushing on scale
 should change button to "unlock world" when others are in room
 pasting text not working, and causing cursor to act funny (not hoverable)
 should push terrain chunks to origin on first edit
+prompting for edit when just changing volume
+need to writeback index change on pdf iff its locked
+video playback stopping when tabbing away
+video play button missing
+messing around with cursor, video, and console can cause 3d cursor to disappear (but highlight remain, so show 3d cursor prob false)

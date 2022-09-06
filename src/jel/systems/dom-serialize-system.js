@@ -47,6 +47,18 @@ const tagTypeForEl = el => {
   return "unknown";
 };
 
+const setAttributeIfChanged = (el, attribute, value) => {
+  if (el.getAttribute(attribute) !== value) {
+    el.setAttribute(attribute, value);
+  }
+};
+
+const removeAttributeIfPresent = (el, attribute) => {
+  if (el.getAttribute(attribute) !== null) {
+    el.removeAttribute(attribute);
+  }
+};
+
 const updateDomElForEl = (domEl, el) => {
   const { terrainSystem } = AFRAME.scenes[0].systems["hubs-systems"];
   let { src } = el.components["media-loader"].data;
@@ -60,20 +72,24 @@ const updateDomElForEl = (domEl, el) => {
     // If image and content are different URLs, this is a link.
     if (imageSrc !== src) {
       srcTargetAttribute = "href";
+      removeAttributeIfPresent(domEl, "crossorigin");
     } else {
-      domEl.setAttribute("crossorigin", "anonymous");
+      setAttributeIfChanged(domEl, "crossorigin", "anonymous");
     }
+
+    // This avoids loading the image as part of having the tag inline.
+    setAttributeIfChanged(domEl, "loading", "lazy");
   }
 
   if (el.components["media-pdf"]) {
     const { index } = el.components["media-pdf"].data;
 
-    domEl.setAttribute("type", "application/pdf");
-    domEl.setAttribute("data-index", index);
+    setAttributeIfChanged(domEl, "type", "application/pdf");
+    setAttributeIfChanged(domEl, "data-index", index);
   }
 
   if (el.components["media-vox"]) {
-    domEl.setAttribute("type", "model/vnd.jel-vox");
+    setAttributeIfChanged(domEl, "type", "model/vnd.jel-vox");
 
     // Look up export vox id
     /*const voxId = voxIdForVoxUrl(src);
@@ -91,7 +107,7 @@ const updateDomElForEl = (domEl, el) => {
   }
 
   if (el.components["gltf-model-plus"]) {
-    domEl.setAttribute("type", "model/gltf-binary");
+    setAttributeIfChanged(domEl, "type", "model/gltf-binary");
   }
 
   if (el.components["media-text"]) {
@@ -147,7 +163,7 @@ const updateDomElForEl = (domEl, el) => {
       domEl.querySelectorAll("[data-contents]").forEach(el => el.removeAttribute("data-contents"));
     }
 
-    domEl.setAttribute("contenteditable", "");
+    setAttributeIfChanged(domEl, "contenteditable", "");
 
     src = null;
   }
@@ -161,27 +177,30 @@ const updateDomElForEl = (domEl, el) => {
   }
 
   if (el.components["media-video"]) {
-    const { audioSrc, volume, loop, time, videoPaused } = el.components["media-video"].data;
+    const { volume, loop, time, videoPaused } = el.components["media-video"].data;
 
-    domEl.setAttribute("crossorigin", "anonymous");
-    domEl.setAttribute("controls", "");
+    setAttributeIfChanged(domEl, "crossorigin", "anonymous");
+    setAttributeIfChanged(domEl, "controls", "");
+    setAttributeIfChanged(domEl, "preload", "none");
 
     if (videoPaused) {
-      domEl.setAttribute("currenttime", time);
+      setAttributeIfChanged(domEl, "currenttime", time);
+      removeAttributeIfPresent(domEl, "autoplay");
     } else {
-      domEl.setAttribute("autoplay", "");
+      setAttributeIfChanged(domEl, "autoplay", "");
+      removeAttributeIfPresent(domEl, "currenttime");
     }
 
     if (loop) {
-      domEl.setAttribute("loop", "");
+      setAttributeIfChanged(domEl, "loop", "");
+    } else {
+      removeAttributeIfPresent(domEl, "loop", "");
     }
 
     if (volume <= 0) {
-      domEl.setAttribute("muted", "");
-    }
-
-    if (audioSrc && audioSrc !== src) {
-      domEl.setAttribute("data-audio-src", audioSrc);
+      setAttributeIfChanged(domEl, "muted", "");
+    } else {
+      removeAttributeIfPresent(domEl, "muted", "");
     }
   }
 
@@ -189,13 +208,15 @@ const updateDomElForEl = (domEl, el) => {
     const { object3D, id } = el;
 
     if (src) {
-      domEl.setAttribute(srcTargetAttribute, src);
+      setAttributeIfChanged(domEl, srcTargetAttribute, src);
+    } else {
+      removeAttributeIfPresent(domEl, srcTargetAttribute);
     }
 
     if (!isLockedMedia(el)) {
-      domEl.setAttribute("draggable", "");
+      setAttributeIfChanged(domEl, "draggable", "");
     } else {
-      domEl.removeAttribute("draggable");
+      removeAttributeIfPresent(domEl, "draggable");
     }
 
     domEl.id = id.replaceAll("naf-", "");
@@ -217,7 +238,7 @@ const updateDomElForEl = (domEl, el) => {
       4
     )}rad) scale3D(${tmpScale.x.toFixed(4)}, ${tmpScale.y.toFixed(4)}, ${tmpScale.z.toFixed(4)});`;
 
-    domEl.setAttribute("style", style);
+    setAttributeIfChanged(domEl, "style", style);
   }
 };
 

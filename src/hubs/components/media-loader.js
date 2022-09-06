@@ -387,7 +387,6 @@ AFRAME.registerComponent("media-loader", {
           contentUrl = preflightResponse.contentUrl;
           accessibleContentUrl = preflightResponse.accessibleContentUrl;
           accessibleContentAudioUrl = preflightResponse.accessibleContentAudioUrl;
-          console.log("Preflight", contentType, contentUrl, accessibleContentUrl, accessibleContentAudioUrl);
         } catch (e) { // eslint-disable-line
         }
       } else {
