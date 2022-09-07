@@ -35,8 +35,8 @@ export class CursorTargettingSystem {
       this.observer.observe(scene, { childList: true, attributes: true, subtree: true });
       scene.addEventListener("object3dset", this.setDirty);
       scene.addEventListener("object3dremove", this.setDirty);
-      scene.addEventListener("transform_started", this.setDirty);
-      scene.addEventListener("transform_stopped", this.setDirty);
+      scene.addEventListener("transform-object-started", this.setDirty);
+      scene.addEventListener("transform-object-ended", this.setDirty);
       SYSTEMS.voxSystem.addEventListener("mesh_added", this.setDirty);
       SYSTEMS.voxSystem.addEventListener("mesh_removed", this.setDirty);
       SYSTEMS.voxmojiSystem.addEventListener("mesh_added", this.setDirty);

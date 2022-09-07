@@ -31,7 +31,7 @@ export class MouseDevice {
 
     // The input system swallows the very first mouse down, since this can often trigger
     // permission popups and such due to activation checks and we don't want to lock cursor.
-    this.swalloedFirstMouseDown = false;
+    this.swallowedFirstMouseDown = false;
 
     const queueEvent = this.events.push.bind(this.events);
     const canvas = DOM_ROOT.querySelector("canvas");
@@ -80,11 +80,11 @@ export class MouseDevice {
     this.metaKey = event.metaKey;
     this.shiftKey = event.shiftKey;
     if (event.type === "mousedown" && left) {
-      if (this.swalloedFirstMouseDown) {
+      if (this.swallowedFirstMouseDown) {
         this.mouseDownLeftThisFrame = true;
         this.buttonLeft = true;
       } else {
-        this.swalloedFirstMouseDown = true;
+        this.swallowedFirstMouseDown = true;
       }
     } else if (event.type === "mousedown" && right) {
       this.mouseDownRightThisFrame = true;

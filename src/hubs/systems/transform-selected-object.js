@@ -334,6 +334,7 @@ AFRAME.registerSystem("transform-selected-object", {
       if (this.target && this.target.el) {
         this.target.updateMatrices();
         SYSTEMS.undoSystem.pushMatrixUpdateUndo(this.target.el, this.targetInitialMatrix, this.target.matrix);
+        this.target.el.emit("transform-object-ended", { detail: { target: this.target.el } }, false);
       }
 
       this.mode = null;
@@ -342,7 +343,7 @@ AFRAME.registerSystem("transform-selected-object", {
       this.hitNormalObject = null;
       this.dWheelApplied = 0;
 
-      this.el.emit("transform_stopped");
+      this.el.emit("transform-object-ended");
     };
   })(),
 
@@ -522,7 +523,8 @@ AFRAME.registerSystem("transform-selected-object", {
       this.startPlaneCasting();
     }
 
-    this.el.emit("transform_started");
+    this.target.el.emit("transform-object-started", { detail: { target: this.target.el } }, false);
+    this.el.emit("transform-object-started");
   },
 
   puppetingTick() {

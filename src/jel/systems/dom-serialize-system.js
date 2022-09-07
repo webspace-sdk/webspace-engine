@@ -258,7 +258,7 @@ export class DomSerializeSystem {
     this.scene = scene;
     this.els = [];
     this.pending = [];
-    this.onComponentChangedOrScaled = this.onComponentChangedOrScaled.bind(this);
+    this.onComponentChangedOrTransformed = this.onComponentChangedOrTransformed.bind(this);
     this.onQuillTextChanges = new Map();
     this.onMediaLoaded = this.onMediaLoaded.bind(this);
     this.nextFlushAt = null;
@@ -270,8 +270,9 @@ export class DomSerializeSystem {
   }
 
   unregister(el) {
-    el.removeEventListener("componentchanged", this.onComponentChangedOrScaled);
-    el.removeEventListener("scale-object-ended", this.onComponentChangedOrScaled);
+    el.removeEventListener("componentchanged", this.onComponentChangedOrTransformed);
+    el.removeEventListener("scale-object-ended", this.onComponentChangedOrTransformed);
+    el.removeEventListener("transform-object-stopped", this.onComponentChangedOrTransformed);
     el.removeEventListener("media-loaded", this.onMediaLoaded);
 
     if (el.components["media-text"]) {
@@ -295,8 +296,9 @@ export class DomSerializeSystem {
   onMediaLoaded({ target }) {
     if (!this.els.includes(target)) return;
     this.pending.push(target);
-    target.addEventListener("componentchanged", this.onComponentChangedOrScaled);
-    target.addEventListener("scale-object-ended", this.onComponentChangedOrScaled);
+    target.addEventListener("componentchanged", this.onComponentChangedOrTransformed);
+    target.addEventListener("scale-object-ended", this.onComponentChangedOrTransformed);
+    target.addEventListener("transform-object-ended", this.onComponentChangedOrTransformed);
 
     if (target.components["media-text"]) {
       const quill = target.components["media-text"].getQuill();
@@ -306,7 +308,7 @@ export class DomSerializeSystem {
     }
   }
 
-  onComponentChangedOrScaled({ target }) {
+  onComponentChangedOrTransformed({ target }) {
     this.enqueueFlushOf(target);
   }
 

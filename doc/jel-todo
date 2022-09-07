@@ -8,6 +8,7 @@
 - drop config system (maybe keep some meta tags)
 - drop envs in webpack config
 - sessionId -> clientId
+- refactor all event names to be dash-cased
 - move ascene into shadow DOM
 - sound effect rights
 - remove matrix
