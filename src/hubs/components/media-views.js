@@ -533,7 +533,7 @@ AFRAME.registerComponent("media-video", {
 
     const isPresent = SYSTEMS.mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT;
 
-    if (!occupants[owner] && isPresent && window.APP.atomAccessManager.can("spawn_and_move_media")) {
+    if (!occupants[owner] && isPresent && window.APP.atomAccessManager.hubCan("spawn_and_move_media")) {
       console.log(`Video ${getNetworkId(this.networkedEl)} has non-present owner, taking ownership.`);
       takeOwnership(this.networkedEl);
     }
@@ -939,6 +939,9 @@ AFRAME.registerComponent("media-video", {
           audioEl.onerror = failLoad;
 
           this._audioSyncInterval = setInterval(() => {
+            // If we tabbed away, don't do this since tick isn't running and maintaining current time.
+            if (Date.now() - this.lastTickAt > 1000) return;
+
             if (Math.abs(audioEl.currentTime - videoEl.currentTime) >= 0.33) {
               // In Chrome, drift of a few frames seems persistent
               audioEl.currentTime = videoEl.currentTime;
@@ -996,6 +999,7 @@ AFRAME.registerComponent("media-video", {
     const positionB = new THREE.Vector3();
     return function() {
       if (!this.video) return;
+      this.lastTickAt = Date.now();
 
       if (SYSTEMS.mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN) return;
 

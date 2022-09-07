@@ -2,6 +2,7 @@ import { vecRgbToCssRgb } from "../utils/dom-utils";
 import { isLockedMedia } from "../../hubs/utils/media-utils";
 import { FONT_FACES } from "../utils/quill-utils";
 import { normalizeCoord } from "../systems/wrapped-entity-system";
+import { getCorsProxyUrl } from "../../hubs/utils/media-url-utils";
 
 const tmpPos = new THREE.Vector3();
 const tmpQuat = new THREE.Quaternion();
@@ -25,7 +26,12 @@ const tagTypeForEl = el => {
 
   if (el.components["media-image"]) {
     const imageSrc = el.components["media-image"].data.src;
-    return imageSrc !== src ? "a" : "img";
+
+    if (imageSrc !== src && imageSrc.replace(`${getCorsProxyUrl()}/`, "") !== src) {
+      return "a";
+    } else {
+      return "img";
+    }
   }
 
   if (el.components["media-pdf"]) {
@@ -70,7 +76,7 @@ const updateDomElForEl = (domEl, el) => {
     const imageSrc = el.components["media-image"].data.src;
 
     // If image and content are different URLs, this is a link.
-    if (imageSrc !== src) {
+    if (imageSrc !== src && imageSrc.replace(`${getCorsProxyUrl()}/`, "") !== src) {
       srcTargetAttribute = "href";
       removeAttributeIfPresent(domEl, "crossorigin");
     } else {
@@ -219,7 +225,12 @@ const updateDomElForEl = (domEl, el) => {
       removeAttributeIfPresent(domEl, "draggable");
     }
 
-    domEl.id = id.replaceAll("naf-", "");
+    const newId = id.replaceAll("naf-", "");
+
+    if (domEl.id !== newId) {
+      domEl.id = newId;
+    }
+
     object3D.updateMatrices();
     object3D.matrix.decompose(tmpPos, tmpQuat, tmpScale);
 
@@ -247,7 +258,7 @@ export class DomSerializeSystem {
     this.scene = scene;
     this.els = [];
     this.pending = [];
-    this.onComponentChanged = this.onComponentChanged.bind(this);
+    this.onComponentChangedOrScaled = this.onComponentChangedOrScaled.bind(this);
     this.onQuillTextChanges = new Map();
     this.onMediaLoaded = this.onMediaLoaded.bind(this);
     this.nextFlushAt = null;
@@ -259,7 +270,8 @@ export class DomSerializeSystem {
   }
 
   unregister(el) {
-    el.removeEventListener("componentchanged", this.onComponentChanged);
+    el.removeEventListener("componentchanged", this.onComponentChangedOrScaled);
+    el.removeEventListener("scale-object-ended", this.onComponentChangedOrScaled);
     el.removeEventListener("media-loaded", this.onMediaLoaded);
 
     if (el.components["media-text"]) {
@@ -283,7 +295,8 @@ export class DomSerializeSystem {
   onMediaLoaded({ target }) {
     if (!this.els.includes(target)) return;
     this.pending.push(target);
-    target.addEventListener("componentchanged", this.onComponentChanged);
+    target.addEventListener("componentchanged", this.onComponentChangedOrScaled);
+    target.addEventListener("scale-object-ended", this.onComponentChangedOrScaled);
 
     if (target.components["media-text"]) {
       const quill = target.components["media-text"].getQuill();
@@ -293,7 +306,7 @@ export class DomSerializeSystem {
     }
   }
 
-  onComponentChanged({ target }) {
+  onComponentChangedOrScaled({ target }) {
     this.enqueueFlushOf(target);
   }
 

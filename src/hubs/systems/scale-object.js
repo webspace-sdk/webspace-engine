@@ -140,6 +140,7 @@ AFRAME.registerSystem("scale-object", {
           );
         }
         this.isScaling = false;
+        this.objectToScale.el.emit("scale-object-ended", { detail: { target: this.objectToScale.el } }, false);
         this.objectToScale = null;
         this.transformSelectedObjectSystem =
           this.transformSelectedObjectSystem || this.el.systems["transform-selected-object"];
