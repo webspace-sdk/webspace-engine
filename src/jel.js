@@ -794,6 +794,7 @@ function startBotModeIfNecessary(scene, entryManager) {
 
 function addMissingDefaultHtml() {
   const bodyStyle = window.getComputedStyle(document.body);
+
   let headStyleTagBody = "";
 
   if (!document.doctype) {
@@ -843,8 +844,9 @@ function addMissingDefaultHtml() {
   }
 
   if (headStyleTagBody) {
+    // img's are hidden too, to avoid browser fetch with loading="lazy"
     const styleTag = document.createElement("style");
-    styleTag.innerText = `body { ${headStyleTagBody.trim()} }`;
+    styleTag.innerText = `body { ${headStyleTagBody.trim()} } img { display: none; }`;
     document.head.appendChild(styleTag);
   }
 

@@ -187,7 +187,7 @@ const updateDomElForEl = (domEl, el) => {
 
     setAttributeIfChanged(domEl, "crossorigin", "anonymous");
     setAttributeIfChanged(domEl, "controls", "");
-    setAttributeIfChanged(domEl, "preload", "none");
+    setAttributeIfChanged(domEl, "preload", "none"); // Prevents browser fetching
 
     if (videoPaused) {
       setAttributeIfChanged(domEl, "currenttime", time);
