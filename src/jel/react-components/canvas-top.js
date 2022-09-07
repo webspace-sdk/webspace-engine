@@ -467,9 +467,9 @@ function CanvasTop(props) {
 
   useEffect(
     () => {
-      const handleWritebackSetup = () => {
+      const handleWritebackSetup = ({ detail: { showInCenter } }) => {
         if (atomAccessManager.writebackRequiresSetup) {
-          showWritebackSetupPopup(hubEditButtonRef);
+          showWritebackSetupPopup(showInCenter ? createSelectPopupRef : hubEditButtonRef);
         } else {
           atomAccessManager.openWriteback();
         }
@@ -478,7 +478,7 @@ function CanvasTop(props) {
       scene && scene.addEventListener("action_open_writeback", handleWritebackSetup);
       return () => scene && scene.removeEventListener("action_open_writeback", handleWritebackSetup);
     },
-    [scene, hubEditButtonRef, atomAccessManager, showWritebackSetupPopup]
+    [scene, hubEditButtonRef, atomAccessManager, showWritebackSetupPopup, createSelectPopupRef]
   );
 
   useEffect(

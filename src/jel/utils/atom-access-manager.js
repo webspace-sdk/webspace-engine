@@ -40,13 +40,14 @@ const VALID_PERMISSIONS = {
   [ATOM_TYPES.VOX]: ["view_vox", "edit_vox"]
 };
 
-// Have to rewrite this :/
 class FileWriteback {
   constructor(db, dirHandle = null, pageHandle = null) {
     this.db = db;
     this.dirHandle = dirHandle;
     this.pageHandle = pageHandle;
     this.isWriting = false;
+    this.isOpening = false;
+    this.blobCache = new Map();
   }
 
   async init() {
@@ -70,60 +71,66 @@ class FileWriteback {
   async open() {
     if (this.isOpen) return;
 
-    if (this.pageHandle) {
-      if (this.pageHandlePerm === "prompt") {
-        await this.pageHandle.requestPermission({ mode: "readwrite" });
-        this.pageHandlePerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
-      }
-    } else {
-      const fileParts = document.location.pathname.split("/");
-
-      const containingDir = fileParts[fileParts.length - 2];
-      const file = fileParts[fileParts.length - 1];
-
-      if (!this.dirHandle) {
-        const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-        if (dirHandle.name !== containingDir) return;
-        this.dirHandle = dirHandle;
-        this.dirHandlePerm = await this.dirHandle.queryPermission({ mode: "readwrite" });
-      }
-
-      if (this.dirHandlePerm === "prompt") {
-        await this.dirHandle.requestPermission({ mode: "readwrite" });
-        this.dirHandlePerm = await this.dirHandle.queryPermission({ mode: "readwrite" });
-      }
-
-      this.pageHandle = null;
-
-      for await (const [key, value] of this.dirHandle.entries()) {
-        if (key !== file) continue;
-
-        this.pageHandle = value;
-
-        const writable = await this.pageHandle.createWritable();
-        writable.close();
-
-        this.pageHandlePerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
-      }
+    while (this.isOpening) {
+      await new Promise(res => setTimeout(res, 250));
     }
 
-    if (this.dirHandle) {
-      const spaceId = await getSpaceIdFromHistory();
+    this.isOpening = true;
 
-      await this.db
-        .transaction("space-file-handles", "readwrite")
-        .objectStore("space-file-handles")
-        .put({ space_id: spaceId, dirHandle: this.dirHandle });
-
+    try {
       if (this.pageHandle) {
-        await this.db
-          .transaction("url-file-handles", "readwrite")
-          .objectStore("url-file-handles")
-          .put({ url: document.location.href, dirHandle: this.dirHandle, pageHandle: this.pageHandle });
-      }
-    }
+        if (this.pageHandlePerm === "prompt") {
+          await this.pageHandle.requestPermission({ mode: "readwrite" });
+          this.pageHandlePerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
+        }
+      } else {
+        const fileParts = document.location.pathname.split("/");
 
-    return this.isOpen;
+        const containingDir = fileParts[fileParts.length - 2];
+        const file = fileParts[fileParts.length - 1];
+
+        if (!this.dirHandle) {
+          const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+          if (dirHandle.name !== containingDir) return;
+          this.dirHandle = dirHandle;
+          this.dirHandlePerm = await this.dirHandle.queryPermission({ mode: "readwrite" });
+        }
+
+        if (this.dirHandlePerm === "prompt") {
+          await this.dirHandle.requestPermission({ mode: "readwrite" });
+          this.dirHandlePerm = await this.dirHandle.queryPermission({ mode: "readwrite" });
+        }
+
+        this.pageHandle = null;
+
+        for await (const [key, value] of this.dirHandle.entries()) {
+          if (key !== file) continue;
+
+          this.pageHandle = value;
+          this.pageHandlePerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
+        }
+      }
+
+      if (this.dirHandle) {
+        const spaceId = await getSpaceIdFromHistory();
+
+        await this.db
+          .transaction("space-file-handles", "readwrite")
+          .objectStore("space-file-handles")
+          .put({ space_id: spaceId, dirHandle: this.dirHandle });
+
+        if (this.pageHandle) {
+          await this.db
+            .transaction("url-file-handles", "readwrite")
+            .objectStore("url-file-handles")
+            .put({ url: document.location.href, dirHandle: this.dirHandle, pageHandle: this.pageHandle });
+        }
+      }
+
+      return this.isOpen;
+    } finally {
+      this.isOpening = false;
+    }
   }
 
   async write(content) {
@@ -153,6 +160,39 @@ class FileWriteback {
     this.dirHandle = null;
     this.pageHandle = null;
     this.open = false;
+  }
+
+  async blobUrlForRelativePathContents(path) {
+    if (this.blobCache.has(path)) {
+      return this.blobCache.get(path);
+    }
+
+    const pathParts = path.split("/");
+    let handle = this.dirHandle;
+
+    while (pathParts.length > 0) {
+      const oldHandle = handle;
+
+      for await (const [key, value] of handle.entries()) {
+        if (key !== pathParts[0]) continue;
+        pathParts.shift();
+        handle = value;
+        break;
+      }
+
+      if (oldHandle === handle) {
+        console.warn("Missing file", path);
+        break;
+      }
+    }
+
+    if (handle) {
+      const blobUrl = URL.createObjectURL(await handle.getFile());
+      this.blobCache.set(path, blobUrl);
+      return blobUrl;
+    } else {
+      return null;
+    }
   }
 }
 
@@ -198,6 +238,8 @@ export default class AtomAccessManager extends EventTarget {
     this.writeback = null;
     this.lastWriteTime = null;
     this.writeTimeout = null;
+
+    this.refreshOnWritebackOpen = false;
   }
 
   init() {
@@ -269,6 +311,10 @@ export default class AtomAccessManager extends EventTarget {
     if (result) {
       this.dispatchEvent(new CustomEvent("permissions_updated", {}));
       this.ensurePublicKeyInMetaTags();
+
+      if (this.refreshOnWritebackOpen) {
+        document.location.reload();
+      }
     }
 
     return result;
@@ -359,6 +405,26 @@ export default class AtomAccessManager extends EventTarget {
       db.createObjectStore("space-file-handles", { keyPath: "space_id" });
       db.createObjectStore("url-file-handles", { keyPath: "url" });
     });
+  }
+
+  async blobUrlForRelativePathContents(path) {
+    if (this.writebackRequiresSetup) {
+      AFRAME.scenes[0].emit("action_open_writeback", { showInCenter: true });
+      // If we need to read files and don't have writeback access,
+      // just reload the page
+      this.refreshOnWritebackOpen = true;
+      return;
+    }
+
+    try {
+      await this.openWriteback();
+    } catch (e) {
+      // User activation may be needed, try one more time
+      await new Promise(res => document.addEventListener("mousedown", res));
+      await this.openWriteback();
+    }
+
+    return await this.writeback.blobUrlForRelativePathContents(path);
   }
 
   setCurrentHubId(hubId) {

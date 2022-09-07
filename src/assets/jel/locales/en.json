@@ -401,10 +401,10 @@
   "asset-panel.title": "Library",
   "asset-panel.objects": "Objects",
   "asset-panel.scenes": "Scenes",
-  "folder-access-request.notice": "Grant folder access to add objects and edit this world.",
-  "folder-access-request.tip": "Be sure to choose the folder this world's HTML file is located in.",
+  "folder-access-request.notice": "Please open the folder that contains this HTML file.",
+  "folder-access-request.tip": "To read and edit this webspace you'll need to grant access to the folder.",
   "folder-access-request.error-tip": "This HTML file was not found in the specified folder, choose another.",
-  "folder-access-request.choose-folder": "Choose folder",
+  "folder-access-request.choose-folder": "Open Folder Picker",
   "folder-access-request.unsupported-notice": "Your browser doesn't support the Local File System API.",
   "folder-access-request.unsupported-tip": "To edit this world locally, try Chrome or Edge."
 }

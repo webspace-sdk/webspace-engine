@@ -370,13 +370,25 @@ AFRAME.registerComponent("media-loader", {
       let accessibleContentAudioUrl = src;
       let contentType = this.data.contentType;
 
-      const parsedUrl = new URL(src);
+      let parsedUrl = null;
+      let isLocalFileUrl = false;
+
+      try {
+        parsedUrl = new URL(src);
+      } catch (e) {
+        try {
+          parsedUrl = new URL(src, document.location.href);
+          isLocalFileUrl = document.location.protocol === "file:";
+        } catch (e) { // eslint-disable-line
+        }
+      }
 
       if (
         typeof src === "string" &&
         !src.startsWith("data:") &&
         !src.startsWith("jel:") &&
-        contentType !== "model/vnd.jel-vox"
+        contentType !== "model/vnd.jel-vox" &&
+        !isLocalFileUrl
       ) {
         try {
           const is360 = !!(this.data.mediaOptions.projection && this.data.mediaOptions.projection.startsWith("360"));
@@ -391,6 +403,11 @@ AFRAME.registerComponent("media-loader", {
         }
       } else {
         contentType = guessContentType(src);
+      }
+
+      if (isLocalFileUrl) {
+        const { atomAccessManager } = window.APP;
+        contentUrl = accessibleContentUrl = await atomAccessManager.blobUrlForRelativePathContents(src, contentType);
       }
 
       // TODO we should probably just never return "application/octet-stream" as expectedContentType, since its not really useful
