@@ -1,19 +1,10 @@
-- drop all references to document.body
-- unplug hub channel
 - get rid of a-assets, see how mozilla does it
 - deal with hub store
 - name generator
 - default hub at index.html
 - search for TODO SHARED
-- unplug space channel
 - collaborative text
-- load scene from DOM
-- multiplayer load scene from DOM
 - bring in avatar audio system
-- split custom message types
-- strip mixpanel and GA
-- clean up webpack configs
-- drop zoom + video stuf
 - drop config system (maybe keep some meta tags)
 - drop envs in webpack config
 - sessionId -> clientId
@@ -39,6 +30,7 @@
 - drop push notif
 - make voxmoji float
 - grep for "channel"
+- browser compat, show message if trying to edit file:// in non-chrome
 
 name not updating in self panel when updated by another peer
 should change button to "unlock world" when others are in room

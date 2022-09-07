@@ -10,7 +10,6 @@ ita_server = ""
 base_assets_path = "/"
 sentry_dsn = ""
 ga_tracking_id = ""
-mixpanel_token = ""
 
 [deploy]
 type = "none"

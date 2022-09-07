@@ -206,7 +206,6 @@ export class ExternalCameraSystem {
     } = this;
     if (!renderer) return;
 
-    const { videoBridgeSystem } = SYSTEMS;
     const { playerHead } = cameraSystem;
     const head = playerHead && playerHead.object3D;
     const ikController = playerHead && playerHead.parentEl.parentEl.parentEl.parentEl.components["ik-controller"];
@@ -216,7 +215,6 @@ export class ExternalCameraSystem {
     let didRevealHead = false;
 
     terrainSystem.cullChunksAndFeatureGroups(camera);
-    videoBridgeSystem.hidePreview();
 
     if ((viewingCameraSelected || forceViewingCamera) && viewingCamera) {
       viewingCamera.getWorldPosition(camera.position);
@@ -271,7 +269,6 @@ export class ExternalCameraSystem {
     // Restore state + lights
     atmosphereSystem.water.needsUpdate = waterNeededUpdate;
     atmosphereSystem.moveSunlightAndWaterSound();
-    videoBridgeSystem.showPreview();
     renderer.shadowMap.needsUpdate = true;
 
     if (didRevealHead) {

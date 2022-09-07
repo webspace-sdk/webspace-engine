@@ -3,13 +3,11 @@ const fs = require("fs");
 const path = require("path");
 //const RemoveUnusedFilesWebpackPlugin = require("remove-unused-files-webpack-plugin").default;
 const webpack = require("webpack");
-const cors = require("cors");
 const HTMLWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 const TOML = require("@iarna/toml");
 const fetch = require("node-fetch");
-const request = require("request");
 
 function createDefaultAppConfig() {
   const schemaPath = path.join(__dirname, "src", "schema.toml");

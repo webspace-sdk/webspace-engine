@@ -169,7 +169,6 @@ import { App } from "./App";
 import { platformUnsupported } from "./hubs/support";
 import { loadEmojis } from "./jel/utils/emojis";
 import registerNetworkSchemas from "./hubs/network-schemas";
-import registerTelemetry from "./hubs/telemetry";
 import { warmSerializeElement } from "./hubs/utils/serialize-element";
 import { getAvailableVREntryTypes, VR_DEVICE_AVAILABILITY } from "./hubs/utils/vr-caps-detect";
 import detectConcurrentLoad from "./hubs/utils/concurrent-load-detector";
@@ -244,10 +243,6 @@ if (isBotMode) {
   if (token) {
     store.update({ credentials: { token, email } });
   }
-}
-
-if (!isBotMode && !isTelemetryDisabled) {
-  registerTelemetry();
 }
 
 registerWrappedEntityPositionNormalizers();
