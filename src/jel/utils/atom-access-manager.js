@@ -108,22 +108,29 @@ class FileWriteback {
 
           this.pageHandle = value;
           this.pageHandlePerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
+          break;
         }
       }
 
       if (this.dirHandle) {
         const spaceId = await getSpaceIdFromHistory();
 
-        await this.db
-          .transaction("space-file-handles", "readwrite")
-          .objectStore("space-file-handles")
-          .put({ space_id: spaceId, dirHandle: this.dirHandle });
+        await new Promise(res => {
+          this.db
+            .transaction("space-file-handles", "readwrite")
+            .objectStore("space-file-handles")
+            .put({ space_id: spaceId, dirHandle: this.dirHandle })
+            .addEventListener("success", res);
+        });
 
         if (this.pageHandle) {
-          await this.db
-            .transaction("url-file-handles", "readwrite")
-            .objectStore("url-file-handles")
-            .put({ url: document.location.href, dirHandle: this.dirHandle, pageHandle: this.pageHandle });
+          await new Promise(res => {
+            this.db
+              .transaction("url-file-handles", "readwrite")
+              .objectStore("url-file-handles")
+              .put({ url: document.location.href, dirHandle: this.dirHandle, pageHandle: this.pageHandle })
+              .addEventListener("success", res);
+          });
         }
       }
 
@@ -145,8 +152,8 @@ class FileWriteback {
 
     try {
       const writable = await this.pageHandle.createWritable();
-      writable.write(content);
-      writable.close();
+      await writable.write(content);
+      await writable.close();
     } finally {
       this.isWriting = false;
     }

@@ -1,6 +1,6 @@
 import { TRANSFORM_MODE } from "../systems/transform-selected-object";
 import { paths } from "./userinput/paths";
-const shiftKeyPath = paths.device.keyboard.key("shift");
+//const shiftKeyPath = paths.device.keyboard.key("shift");
 
 //const calculatePlaneMatrix = (function() {
 //  const planeMatrix = new THREE.Matrix4();
