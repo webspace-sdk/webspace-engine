@@ -11,7 +11,7 @@ import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
-import { addMedia, isLockedMedia, upload, spawnMediaInfrontOfPlayer } from "../../hubs/utils/media-utils";
+import { addMedia, isLockedMedia, spawnMediaInfrontOfPlayer } from "../../hubs/utils/media-utils";
 import { type as vox0, Vox, /*VoxChunk, */ rgbtForVoxColor } from "ot-vox";
 import { ensureOwnership } from "../utils/ownership-utils";
 import { dataURItoBlob } from "../utils/dom-utils";
@@ -1688,21 +1688,22 @@ export class VoxSystem extends EventTarget {
         console.log(`Generated image for ${voxId}.`);
         const thumbBlob = dataURItoBlob(thumbData);
         const previewBlob = dataURItoBlob(previewData);
-        const { file_id: thumbFileId } = await upload(thumbBlob, "image/png", hubId);
-        const { file_id: previewFileId } = await upload(previewBlob, "image/png", hubId);
+        // TODO SHAREd
+        //const { file_id: thumbFileId } = await upload(thumbBlob, "image/png", hubId);
+        //const { file_id: previewFileId } = await upload(previewBlob, "image/png", hubId);
 
-        console.log(`Uploaded images for ${voxId}.`);
-        const publishedVoxId = await accountChannel.publishVox(
-          voxId,
-          collection,
-          category,
-          stackAxis,
-          stackSnapPosition,
-          stackSnapScale,
-          scale,
-          thumbFileId,
-          previewFileId
-        );
+        //console.log(`Uploaded images for ${voxId}.`);
+        //const publishedVoxId = await accountChannel.publishVox(
+        //  voxId,
+        //  collection,
+        //  category,
+        //  stackAxis,
+        //  stackSnapPosition,
+        //  stackSnapScale,
+        //  scale,
+        //  thumbFileId,
+        //  previewFileId
+        //);
         console.log(`Updated published vox for ${voxId}: ${publishedVoxId}.`);
 
         this.copyVoxContent(voxId, publishedVoxId);

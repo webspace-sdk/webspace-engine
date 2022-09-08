@@ -69,7 +69,7 @@ class FileWriteback {
   }
 
   async open() {
-    if (this.isOpen) return;
+    if (this.isOpen) return true;
 
     while (this.isOpening) {
       await new Promise(res => setTimeout(res, 250));
@@ -169,29 +169,46 @@ class FileWriteback {
     this.open = false;
   }
 
+  async getHandleForPath(path) {
+    const pathParts = path.split("/");
+    let handle = this.dirHandle;
+
+    while (pathParts.length > 0) {
+      const nextPart = pathParts[0];
+      pathParts.shift();
+
+      if (pathParts.length === 0) {
+        handle = await handle.getFileHandle(nextPart);
+      } else {
+        handle = await handle.getDirectoryHandle(nextPart);
+      }
+
+      if (!handle) return null;
+    }
+
+    return handle;
+  }
+
+  async directoryExists(path) {
+    const pathParts = path.split("/");
+    let handle = this.dirHandle;
+
+    while (pathParts.length > 0) {
+      const nextPart = pathParts[0];
+      pathParts.shift();
+      handle = await handle.getDirectoryHandle(nextPart);
+      if (!handle) return false;
+    }
+
+    return true;
+  }
+
   async blobUrlForRelativePathContents(path) {
     if (this.blobCache.has(path)) {
       return this.blobCache.get(path);
     }
 
-    const pathParts = path.split("/");
-    let handle = this.dirHandle;
-
-    while (pathParts.length > 0) {
-      const oldHandle = handle;
-
-      for await (const [key, value] of handle.entries()) {
-        if (key !== pathParts[0]) continue;
-        pathParts.shift();
-        handle = value;
-        break;
-      }
-
-      if (oldHandle === handle) {
-        console.warn("Missing file", path);
-        break;
-      }
-    }
+    const handle = await this.getHandleForPath(path);
 
     if (handle) {
       const blobUrl = URL.createObjectURL(await handle.getFile());
@@ -200,6 +217,31 @@ class FileWriteback {
     } else {
       return null;
     }
+  }
+
+  async uploadAsset(fileOrBlob) {
+    const assetsHandle = await this.dirHandle.getDirectoryHandle("assets", { create: true });
+
+    let fileName = null;
+    const contentType = fileOrBlob.type || "application/octet-stream";
+
+    if (fileOrBlob instanceof File) {
+      fileName = fileOrBlob.name;
+    } else {
+      const fileExtension = fileOrBlob.type.split("/")[1];
+
+      // choose a filename with a random string
+      fileName = `${Math.random()
+        .toString(36)
+        .substring(2, 15)}.${fileExtension}`;
+    }
+
+    const fileHandle = await assetsHandle.getFileHandle(fileName, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(fileOrBlob);
+    await writable.close();
+
+    return { url: `assets/${fileName}`, contentType };
   }
 }
 
@@ -414,24 +456,34 @@ export default class AtomAccessManager extends EventTarget {
     });
   }
 
-  async blobUrlForRelativePathContents(path) {
+  async ensureWritebackOpen(refreshAfterOpen = false) {
+    if (this.writeback?.isOpen) return true;
+
     if (this.writebackRequiresSetup) {
       AFRAME.scenes[0].emit("action_open_writeback", { showInCenter: true });
       // If we need to read files and don't have writeback access,
       // just reload the page
-      this.refreshOnWritebackOpen = true;
-      return;
+      this.refreshOnWritebackOpen = refreshAfterOpen;
+      return false;
     }
 
     try {
-      await this.openWriteback();
+      return await this.openWriteback();
     } catch (e) {
       // User activation may be needed, try one more time
       await new Promise(res => document.addEventListener("mousedown", res));
-      await this.openWriteback();
+      return await this.openWriteback();
     }
+  }
 
+  async blobUrlForRelativePathContents(path) {
+    if (!(await this.ensureWritebackOpen(true))) return;
     return await this.writeback.blobUrlForRelativePathContents(path);
+  }
+
+  async uploadAsset(fileOrBlob) {
+    if (!(await this.ensureWritebackOpen())) return;
+    return await this.writeback.uploadAsset(fileOrBlob);
   }
 
   setCurrentHubId(hubId) {

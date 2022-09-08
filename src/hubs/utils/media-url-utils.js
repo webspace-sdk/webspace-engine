@@ -8,6 +8,7 @@ const commonKnownContentTypes = {
   png: "image/png",
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
+  jfif: "image/jpeg",
   pdf: "application/pdf",
   mp4: "video/mp4",
   mp3: "audio/mpeg",

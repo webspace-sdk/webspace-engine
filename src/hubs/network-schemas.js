@@ -116,10 +116,6 @@ function registerNetworkSchemas() {
       },
       {
         component: "media-loader",
-        property: "fileId"
-      },
-      {
-        component: "media-loader",
         property: "contentType"
       },
       {

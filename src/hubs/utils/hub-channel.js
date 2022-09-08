@@ -24,10 +24,6 @@ export default class HubChannel extends EventTarget {
     this.broadcastMessage(hub, "update_hub_meta");
   };
 
-  setFileInactive = fileId => {
-    this.channel.push("set_file_inactive", { file_id: fileId });
-  };
-
   unsubscribe = subscription => {
     return new Promise(resolve => this.channel.push("unsubscribe", { subscription }).receive("ok", resolve));
   };

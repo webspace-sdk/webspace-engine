@@ -34,7 +34,6 @@ loadingParticleImage.onload = () => (loadingParticleTexture.needsUpdate = true);
 
 AFRAME.registerComponent("media-loader", {
   schema: {
-    fileId: { type: "string" },
     src: { type: "string" },
     createdAt: { default: 0 },
     initialContents: { type: "string" },
@@ -367,7 +366,7 @@ AFRAME.registerComponent("media-loader", {
 
       let contentUrl = src;
       let accessibleContentUrl = src;
-      let accessibleContentAudioUrl = src;
+      let accessibleContentAudioUrl = null;
       let contentType = this.data.contentType;
 
       let parsedUrl = null;
@@ -402,7 +401,7 @@ AFRAME.registerComponent("media-loader", {
         } catch (e) { // eslint-disable-line
         }
       } else {
-        contentType = guessContentType(src);
+        contentType = guessContentType(src) || contentType;
       }
 
       if (isLocalFileUrl) {

@@ -1,6 +1,5 @@
 import { objectTypeForOriginAndContentType } from "../object-types";
 import { hackyMobileSafariTest } from "./detect-touchscreen";
-import { getDirectReticulumFetchUrl } from "./phoenix-utils";
 import { ObjectContentOrigins } from "../object-types";
 import mediaHighlightFrag from "./media-highlight-frag.glsl";
 import { mapMaterials } from "./material-utils";
@@ -112,8 +111,6 @@ export const isFlatMedia = function(obj) {
 
 const linkify = Linkify();
 linkify.tlds(tlds);
-
-const getDirectMediaAPIEndpoint = () => getDirectReticulumFetchUrl("/api/v1/media");
 
 const isMobile = AFRAME.utils.device.isMobile();
 const isMobileVR = AFRAME.utils.device.isMobile();
@@ -348,32 +345,9 @@ export const preflightUrl = async (parsedUrl, quality = "high") => {
   return { contentType, contentUrl, accessibleContentUrl, accessibleContentAudioUrl };
 };
 
-export const upload = (fileOrBlob, desiredContentType, hubId) => {
-  const formData = new FormData();
-  formData.append("media", fileOrBlob);
-
-  if (hubId) {
-    formData.append("hub_id", hubId);
-  }
-
-  if (desiredContentType) {
-    formData.append("desired_content_type", desiredContentType);
-  }
-
-  const headers = {};
-  const { token } = window.APP.store.state.credentials;
-
-  if (token) {
-    headers.authorization = `bearer ${token}`;
-  }
-
-  // To eliminate the extra hop and avoid proxy timeouts, upload files directly
-  // to a reticulum host.
-  return fetch(getDirectMediaAPIEndpoint(), {
-    method: "POST",
-    body: formData,
-    headers
-  }).then(r => r.json());
+export const upload = fileOrBlob => {
+  const { atomAccessManager } = window.APP;
+  return atomAccessManager.uploadAsset(fileOrBlob);
 };
 
 // https://stackoverflow.com/questions/7584794/accessing-jpeg-exif-rotation-data-in-javascript-on-the-client-side/32490603#32490603
@@ -567,21 +541,14 @@ export const addMedia = options => {
     }
   });
   if (needsToBeUploaded) {
-    // Video camera videos are converted to mp4 for compatibility
-    //const desiredContentType = contentSubtype === "video-camera" ? "video/mp4" : src.type || guessContentType(src.name);
-    // TODO SHARED
-    //getHubIdFromHistory().then(hubId => {
-    //  upload(src, desiredContentType, hubId)
-    //    .then(response => {
-    //      const srcUrl = new URL(proxiedUrlFor(response.origin));
-    //      srcUrl.searchParams.set("token", response.meta.access_token);
-    //      entity.setAttribute("media-loader", { src: srcUrl.href, fileId: response.file_id });
-    //    })
-    //    .catch(e => {
-    //      console.error("Media upload failed", e);
-    //      entity.setAttribute("media-loader", { src: "error" });
-    //    });
-    //});
+    upload(src)
+      .then(({ url, contentType }) => {
+        entity.setAttribute("media-loader", { src: url, contentType });
+      })
+      .catch(e => {
+        console.error("Media upload failed", e);
+        entity.setAttribute("media-loader", { src: "error" });
+      });
   } else if (isVideoShare) {
     const selfVideoShareUrl = `jel://clients/${NAF.clientId}/video`;
     entity.setAttribute("media-loader", { src: selfVideoShareUrl });
@@ -1182,13 +1149,6 @@ export function removeMediaElement(el) {
   if (isSynchronized(el) && !ensureOwnership(el)) {
     console.warn("Cannot remove element because unable to become owner.");
     return;
-  }
-
-  const fileId = el.components["media-loader"].data.fileId;
-
-  if (fileId) {
-    // TODO SHARED (remove?)
-    // window.APP.hubChannel.setFileInactive(fileId);
   }
 
   if (el.parentNode) {

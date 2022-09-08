@@ -27,7 +27,12 @@ const tagTypeForEl = el => {
   if (el.components["media-image"]) {
     const imageSrc = el.components["media-image"].data.src;
 
-    if (imageSrc !== src && imageSrc.replace(`${getCorsProxyUrl()}/`, "") !== src) {
+    if (
+      !imageSrc.startsWith("data:") &&
+      !imageSrc.startsWith("blob:") &&
+      imageSrc !== src &&
+      imageSrc.replace(`${getCorsProxyUrl()}/`, "") !== src
+    ) {
       return "a";
     } else {
       return "img";

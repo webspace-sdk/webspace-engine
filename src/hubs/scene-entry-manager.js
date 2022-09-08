@@ -222,20 +222,11 @@ export default class SceneEntryManager {
       const endPhi = e.detail.endPhi || Math.PI;
       const width = e.detail.width || 3;
       const margin = e.detail.margin || 0.75;
-      const hubId = await getHubIdFromHistory(history);
 
       // This is going to generate an array of media, get the URL first.
       if (fileOrUrl instanceof File) {
         if (!window.APP.atomAccessManager.canHub("upload_files")) return;
-
-        const {
-          origin,
-          meta: { access_token }
-        } = await upload(fileOrUrl, "application/pdf", hubId);
-
-        const url = new URL(await proxiedUrlFor(origin));
-        url.searchParams.set("token", access_token);
-        pdfUrl = url.ref;
+        pdfUrl = (await upload(fileOrUrl)).url;
       } else {
         pdfUrl = fileOrUrl;
       }

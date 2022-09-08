@@ -33,6 +33,11 @@
 - grep for "channel"
 - browser compat, show message if trying to edit file:// in non-chrome
 - allow networking settings to be changed via qs
+- file uploads
+- detecting relay member in presence to unlock editing for unprivileged users
+- deal with filtering networking based on roles + hub setting for allowing edits
+- Y.js syncing of text boxes
+- only flush from one writeback host in presence, to avoid collisions
 
 name not updating in self panel when updated by another peer
 should change button to "unlock world" when others are in room
