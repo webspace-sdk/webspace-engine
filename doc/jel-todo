@@ -32,6 +32,7 @@
 - make voxmoji float
 - grep for "channel"
 - browser compat, show message if trying to edit file:// in non-chrome
+- allow networking settings to be changed via qs
 
 name not updating in self panel when updated by another peer
 should change button to "unlock world" when others are in room
@@ -46,3 +47,6 @@ video reset to beginning when anotehr person joins (delay video ownership until 
 make sure removing CORS anywhere tag disalbed youtube
 test HLS and dash
 some rotations are not being restored right
+
+
+tippy root getting into dom

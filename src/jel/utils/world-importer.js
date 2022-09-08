@@ -409,6 +409,8 @@ export default class WorldImporter {
         animate: false,
         mediaOptions,
         networkId: id,
+        // Set the owner to 'world', which allows in-flight modifications from other clients that join to win
+        networkedOwner: "world",
         skipLoader: true,
         contentType: type,
         locked: isLocked
@@ -473,18 +475,22 @@ export default class WorldImporter {
       }
     }
 
-    // Wait until all new media is loaded before we begin tracking
-    // framerate again.
-    const interval = setInterval(() => {
-      if (pendingCount === 0) {
-        clearInterval(interval);
+    await new Promise(res => {
+      // Wait until all new media is loaded before we begin tracking
+      // framerate again.
+      const interval = setInterval(() => {
+        if (pendingCount === 0) {
+          clearInterval(interval);
 
-        // Hacky, other place where tracking is stopped is in jel.js
-        // when doucment is blurred.
-        if (!document.body.classList.contains("paused")) {
-          autoQualitySystem.startTracking();
+          // Hacky, other place where tracking is stopped is in jel.js
+          // when doucment is blurred.
+          if (!document.body.classList.contains("paused")) {
+            autoQualitySystem.startTracking();
+          }
+
+          res();
         }
-      }
-    }, 1000);
+      }, 250);
+    });
   }
 }

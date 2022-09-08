@@ -228,7 +228,6 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
       atomAccessManager.dispatchEvent(new CustomEvent("permissions_updated", {}));
 
       if (!isInitialJoin) {
-        // Send complete sync on phoenix re-join.
         NAF.connection.entities.completeSync(null, true);
       }
 
@@ -252,7 +251,13 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
       updateEnvironmentForHub(hub);
 
       if (initialWorldHTML) {
-        await new WorldImporter().importHtmlToCurrentWorld(initialWorldHTML, true, true);
+        // Careful - don't begin processing networking packets until the world has imported to avoid
+        // race conditions on objects that were updated by peers
+        scene.systems.networked.pause();
+
+        new WorldImporter().importHtmlToCurrentWorld(initialWorldHTML, true, true).then(() => {
+          scene.systems.networked.play();
+        });
       }
 
       SYSTEMS.terrainSystem.startAutoLoadingChunks();
@@ -278,6 +283,7 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
       const joinPromise = new Promise(res => document.body.addEventListener("connected", res, { once: true }));
 
       if (!isInitialJoin) {
+        // TODO unplug writeback first, so DOM doesn't get written during teardown
         // TODO disconnect
       }
 
@@ -288,7 +294,6 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
       };
 
       setupDataChannelMessageHandlers();
-
       scene.addEventListener("componentinitialized", handle);
 
       // Hacky for now, put the worker URL into a global

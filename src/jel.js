@@ -225,7 +225,6 @@ NAF.options.firstSyncSource = PHOENIX_RELIABLE_NAF;
 NAF.options.syncSource = PHOENIX_RELIABLE_NAF;
 
 const isBotMode = qsTruthy("bot");
-const isTelemetryDisabled = qsTruthy("disable_telemetry");
 const isDebug = qsTruthy("debug");
 const disablePausing = qsTruthy("no_pause") || isBotMode;
 const skipPanels = qsTruthy("skip_panels");

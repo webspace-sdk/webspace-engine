@@ -449,6 +449,7 @@ export const addMedia = options => {
     animate: true,
     mediaOptions: {},
     networked: true,
+    networkedOwner: "",
     parentEl: null,
     linkedEl: null,
     networkId: null,
@@ -470,6 +471,7 @@ export const addMedia = options => {
     animate,
     mediaOptions,
     networked,
+    networkedOwner,
     parentEl,
     linkedEl,
     networkId,
@@ -487,7 +489,12 @@ export const addMedia = options => {
   const isVideoShare = src instanceof MediaStream;
 
   if (networked) {
-    entity.setAttribute("networked", { template, networkId });
+    const networkAttributes = { template, networkId };
+    if (networkedOwner) {
+      networkAttributes.owner = networkedOwner;
+    }
+
+    entity.setAttribute("networked", networkAttributes);
   } else {
     const templateBody = document
       .importNode(DOM_ROOT.querySelector(template).content, true)
@@ -1185,6 +1192,7 @@ export function removeMediaElement(el) {
   }
 
   if (el.parentNode) {
+    SYSTEMS.domSerializeSystem.removeFromDOM(el);
     el.parentNode.removeChild(el);
   }
 }

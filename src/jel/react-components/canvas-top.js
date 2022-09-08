@@ -467,9 +467,9 @@ function CanvasTop(props) {
 
   useEffect(
     () => {
-      const handleWritebackSetup = ({ detail: { showInCenter } }) => {
+      const handleWritebackSetup = ({ detail }) => {
         if (atomAccessManager.writebackRequiresSetup) {
-          showWritebackSetupPopup(showInCenter ? createSelectPopupRef : hubEditButtonRef);
+          showWritebackSetupPopup(detail.showInCenter ? createSelectPopupRef : hubEditButtonRef);
         } else {
           atomAccessManager.openWriteback();
         }

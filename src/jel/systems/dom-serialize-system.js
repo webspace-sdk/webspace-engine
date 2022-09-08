@@ -270,6 +270,8 @@ export class DomSerializeSystem {
   }
 
   unregister(el) {
+    this.removeFromDOM(el);
+
     el.removeEventListener("componentchanged", this.onComponentChangedOrTransformed);
     el.removeEventListener("scale-object-ended", this.onComponentChangedOrTransformed);
     el.removeEventListener("transform-object-stopped", this.onComponentChangedOrTransformed);
@@ -289,8 +291,6 @@ export class DomSerializeSystem {
     if (i >= 0) {
       this.els.splice(i, 1);
     }
-
-    this.removeMissingElementsFromDOM();
   }
 
   onMediaLoaded({ target }) {
@@ -334,8 +334,6 @@ export class DomSerializeSystem {
     while (this.pending.length > 0) {
       this.flushEl(this.pending.pop());
     }
-
-    this.removeMissingElementsFromDOM();
   }
 
   flushEl(el) {
@@ -356,15 +354,12 @@ export class DomSerializeSystem {
     }
   }
 
-  removeMissingElementsFromDOM() {
-    loop: for (const domEl of document.body.children) {
-      for (const el of this.els) {
-        if (el.id.endsWith(domEl.id)) {
-          continue loop;
-        }
+  removeFromDOM(el) {
+    for (const domEl of document.body.children) {
+      if (el.id.endsWith(domEl.id)) {
+        domEl.remove();
+        break;
       }
-
-      domEl.remove();
     }
   }
 }
