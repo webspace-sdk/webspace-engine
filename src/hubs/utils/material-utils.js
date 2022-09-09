@@ -231,40 +231,40 @@ class HubsMeshPhongMaterial extends THREE.MeshPhongMaterial {
   };
 }
 
-export function convertStandardMaterial(source /*, quality*/) {
+export function convertStandardMaterial(source, quality) {
   if (!source.isMeshStandardMaterial) {
     return source;
   }
-
-  //if (quality === "medium") {
-  //  mat = HubsMeshPhongMaterial.fromMeshStandardMaterial(source);
-  //  console.log(mat);
-  //} else if (quality === "low") {
-  //  mat = HubsMeshBasicMaterial.fromMeshStandardMaterial(source);
-  //}
-
   let mat = source;
-  mat = new THREE.MeshToonMaterial({
-    alphaMap: source.alphaMap,
-    color: source.color,
-    displacementMap: source.displacementMap,
-    displacementScale: source.displacementScale,
-    displacementBias: source.displacementBias,
-    emissive: source.emissive,
-    emissiveMap: source.emissiveMap,
-    emissiveIntensity: source.emissiveIntensity,
-    map: source.map,
-    morphNormals: source.morphNormals,
-    morphTargets: source.morphTargets,
-    refractionRatio: source.refractionRatio,
-    skinning: source.skinning,
-    wireframe: source.wireframe,
-    wireframeLinecap: source.wireframeLinecap,
-    wireframeLinejoin: source.wireframeLinejoin,
-    wireframeLinewidth: source.wireframeLinewidth
-  });
-  mat.gradientMap = toonGradientMap;
-  mat.shininess = 0;
+
+  if (quality === "medium") {
+    mat = HubsMeshPhongMaterial.fromMeshStandardMaterial(source);
+  } else if (quality === "low") {
+    mat = HubsMeshBasicMaterial.fromMeshStandardMaterial(source);
+  }
+
+  //let mat = source;
+  //mat = new THREE.MeshToonMaterial({
+  //  alphaMap: source.alphaMap,
+  //  color: source.color,
+  //  displacementMap: source.displacementMap,
+  //  displacementScale: source.displacementScale,
+  //  displacementBias: source.displacementBias,
+  //  emissive: source.emissive,
+  //  emissiveMap: source.emissiveMap,
+  //  emissiveIntensity: source.emissiveIntensity,
+  //  map: source.map,
+  //  morphNormals: source.morphNormals,
+  //  morphTargets: source.morphTargets,
+  //  refractionRatio: source.refractionRatio,
+  //  skinning: source.skinning,
+  //  wireframe: source.wireframe,
+  //  wireframeLinecap: source.wireframeLinecap,
+  //  wireframeLinejoin: source.wireframeLinejoin,
+  //  wireframeLinewidth: source.wireframeLinewidth
+  //});
+  //mat.gradientMap = toonGradientMap;
+  //mat.shininess = 0;
 
   mat.stencilWrite = true;
   mat.stencilFunc = THREE.AlwaysStencilFunc;

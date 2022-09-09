@@ -844,7 +844,7 @@ async function start() {
   // TODO SHARED head
   let initialWorldHTML = `<!DOCTYPE html>\n<html><body>${document.body.innerHTML}</body></html>`;
 
-  const useShadowDom = false;
+  const useShadowDom = true;
 
   if (useShadowDom) {
     window.DOM_ROOT = document.body.attachShadow({ mode: "closed" });

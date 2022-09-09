@@ -50,7 +50,7 @@ export class AtmosphereSystem {
     this.disableExtraPasses = false;
     this.disableWaterPass = false;
 
-    this.ambientLight = new THREE.AmbientLight(0x808080);
+    this.ambientLight = new THREE.AmbientLight(0xa0a0a0);
     this.ambientLight.layers.enable(Layers.reflection);
 
     this.sunLight = new THREE.DirectionalLight(0xa0a0a0, 10);
