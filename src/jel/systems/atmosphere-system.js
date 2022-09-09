@@ -58,7 +58,7 @@ export class AtmosphereSystem {
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.x = 1024 * 4;
     this.sunLight.shadow.mapSize.y = 1024 * 4;
-    this.sunLight.shadow.bias = -0.0006;
+    this.sunLight.shadow.bias = 0.0006;
     this.sunLight.shadow.camera.left = 15;
     this.sunLight.shadow.camera.right = -15;
     this.sunLight.shadow.camera.top = 15;
@@ -188,7 +188,7 @@ export class AtmosphereSystem {
         this.sunLight.shadow.mapSize.x = 1024 * 4;
         this.sunLight.shadow.mapSize.y = 1024 * 4;
         this.sunLight.shadow.camera.far = 20;
-        this.sunLight.shadow.bias = -0.0006;
+        this.sunLight.shadow.bias = 0.0006;
 
         if (this.sunLight.shadow.map) {
           this.sunLight.shadow.map.dispose();
@@ -201,7 +201,7 @@ export class AtmosphereSystem {
         this.sunLight.shadow.mapSize.x = 1024;
         this.sunLight.shadow.mapSize.y = 1024;
         this.sunLight.shadow.camera.far = 16;
-        this.sunLight.shadow.bias = -0.0017;
+        this.sunLight.shadow.bias = 0.0017;
 
         if (this.sunLight.shadow.map) {
           this.sunLight.shadow.map.dispose();
