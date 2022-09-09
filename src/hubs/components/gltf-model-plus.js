@@ -9,6 +9,7 @@ import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader";
 import { resetMediaRotation, MEDIA_PRESENCE, MEDIA_INTERACTION_TYPES } from "../utils/media-utils";
 import { gatePermission } from "../utils/permissions-utils";
+import { RENDER_ORDER } from "../constants";
 
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
 
@@ -398,6 +399,7 @@ class GLTFHubsPlugin {
       // @TODO: Should this be fixed in the gltf loader?
       object.matrixAutoUpdate = THREE.Object3D.DefaultMatrixAutoUpdate;
       const materialQuality = "medium";
+      object.renderOrder = RENDER_ORDER.TOON;
       object.material = mapMaterials(object, material => convertStandardMaterial(material, materialQuality));
     });
 

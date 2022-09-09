@@ -51,7 +51,7 @@ video tick should keep running when tabbed away
 video reset to beginning when anotehr person joins (delay video ownership until joins?)
 make sure removing CORS anywhere tag disalbed youtube
 test HLS and dash
-some rotations are not being restored right
+make cursor more visible
 
 
 tippy root getting into dom

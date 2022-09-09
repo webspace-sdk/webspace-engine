@@ -53,7 +53,7 @@ export class AtmosphereSystem {
     this.ambientLight = new THREE.AmbientLight(0xa0a0a0);
     this.ambientLight.layers.enable(Layers.reflection);
 
-    this.sunLight = new THREE.DirectionalLight(0xa0a0a0, 10);
+    this.sunLight = new THREE.DirectionalLight(0xa0a0a0, 5);
     this.sunLight.position.set(10.25, 10, 10.25);
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.x = 1024 * 4;
