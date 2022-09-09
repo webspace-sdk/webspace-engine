@@ -267,7 +267,7 @@ export class CharacterControllerSystem {
 
         // Hacky, can't mask out hovering on Q/E'able objects via binding, so do so here.
         if (!hoverEl || !isNextPrevMedia(hoverEl)) {
-          m.getInverse(this.avatarPOV.object3D.matrixWorld);
+          m.copy(this.avatarPOV.object3D.matrixWorld).invert();
           m.decompose(v2, q, v2);
           v.set(0, characterLift, 0);
           v.applyQuaternion(q);

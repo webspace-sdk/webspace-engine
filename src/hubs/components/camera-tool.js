@@ -3,6 +3,7 @@ import { createImageBitmap } from "../utils/image-bitmap-utils";
 import { ensureOwnership } from "../../jel/utils/ownership-utils";
 import { ObjectTypes } from "../object-types";
 import { paths } from "../systems/userinput/paths";
+import { createPlaneBufferGeometry } from "../utils/three-utils";
 import { SOUND_CAMERA_TOOL_TOOK_SNAPSHOT, SOUND_CAMERA_TOOL_COUNTDOWN } from "../systems/sound-effects-system";
 import { cloneObject3D } from "../utils/three-utils";
 //import { loadModel } from "./gltf-model-plus";
@@ -182,7 +183,7 @@ AFRAME.registerComponent("camera-tool", {
       anime(config);
 
       const width = 0.28;
-      const geometry = new THREE.PlaneBufferGeometry(width, width / this.camera.aspect);
+      const geometry = createPlaneBufferGeometry(width, width / this.camera.aspect);
 
       const environmentMapComponent = this.el.sceneEl.components["environment-map"];
       if (environmentMapComponent) {
@@ -638,10 +639,10 @@ AFRAME.registerComponent("camera-tool", {
           boneVisibilitySystem.tick();
         }
 
-        const tmpVRFlag = renderer.vr.enabled;
+        const tmpVRFlag = renderer.xr.enabled;
         const tmpOnAfterRender = sceneEl.object3D.onAfterRender;
         delete sceneEl.object3D.onAfterRender;
-        renderer.vr.enabled = false;
+        renderer.xr.enabled = false;
 
         if (allowVideo && this.videoRecorder && !this.videoRenderTarget) {
           // Create a separate render target for video becuase we need to flip and (sometimes) downscale it before
@@ -663,7 +664,7 @@ AFRAME.registerComponent("camera-tool", {
         renderer.render(sceneEl.object3D, this.camera);
         renderer.setRenderTarget(null);
 
-        renderer.vr.enabled = tmpVRFlag;
+        renderer.xr.enabled = tmpVRFlag;
         sceneEl.object3D.onAfterRender = tmpOnAfterRender;
         if (playerHead) {
           playerHead.visible = false;

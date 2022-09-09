@@ -1296,7 +1296,7 @@ export class VoxSystem extends EventTarget {
 
     if (hasDirtyWorldToObjectMatrices[idx] && meshes[frame] !== null) {
       meshes[frame].getMatrixAt(instanceId, tmpMatrix);
-      inverse.getInverse(tmpMatrix);
+      inverse.copy(tmpMatrix).invert();
       hasDirtyWorldToObjectMatrices[idx] = false;
     }
 

@@ -197,7 +197,7 @@ export class PhysicsSystem {
               // Skip inversion if child of scene (since there is no transform) or if parent has been removed
               if (object3D.parent && object3D.parent.parent) {
                 object3D.parent.updateMatrices();
-                inverse.getInverse(object3D.parent.matrixWorld);
+                inverse.copy(object3D.parent.matrixWorld).invert();
                 transform.multiplyMatrices(inverse, matrix);
                 transform.decompose(object3D.position, object3D.quaternion, scale);
               } else {

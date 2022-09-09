@@ -119,7 +119,7 @@ export class DirectorSystem {
       lookAtMatrix.lookAt(obj.position, tmpVec3, obj.up);
       obj.quaternion.setFromRotationMatrix(lookAtMatrix);
     } else {
-      THREE.Quaternion.slerp(this.startRot, this.endRot, obj.quaternion, 1 - y);
+      obj.quaternion.slerpQuaternions(this.startRot, this.endRot, 1 - y);
     }
 
     obj.matrixNeedsUpdate = true;

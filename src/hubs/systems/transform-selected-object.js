@@ -1,6 +1,7 @@
 import { paths } from "../systems/userinput/paths";
 import { almostEqual, isChildOf, expandByEntityObjectSpaceBoundingBox } from "../utils/three-utils";
 import { isFlatMedia } from "../utils/media-utils";
+import { createPlaneBufferGeometry } from "../utils/three-utils";
 import { VOXEL_SIZE } from "../../jel/systems/terrain-system";
 
 const MAX_SLIDE_DISTANCE = 20.0;
@@ -170,7 +171,7 @@ export function stackTargetAt(
     v.applyMatrix4(normalObject.matrixWorld);
     targetPoint.set(v.x, v.y, v.z).add(offset);
   } else {
-    tmpMatrix.getInverse(normalObject.matrixWorld);
+    tmpMatrix.copy(normalObject.matrixWorld).invert();
     v3.copy(point);
     v3.add(offset);
     v3.applyMatrix4(tmpMatrix);
@@ -305,7 +306,7 @@ AFRAME.registerSystem("transform-selected-object", {
 
     this.planarInfo = {
       plane: new THREE.Mesh(
-        new THREE.PlaneBufferGeometry(100000, 100000, 2, 2),
+        createPlaneBufferGeometry(100000, 100000, 2, 2),
         new THREE.MeshBasicMaterial({
           visible: false,
           wireframe: false,
@@ -515,7 +516,7 @@ AFRAME.registerSystem("transform-selected-object", {
     if (this.mode === TRANSFORM_MODE.PUPPET) {
       this.target.getWorldQuaternion(this.puppet.initialObjectOrientation);
       this.hand.getWorldQuaternion(this.puppet.initialControllerOrientation);
-      this.puppet.initialControllerOrientation_inverse.copy(this.puppet.initialControllerOrientation).inverse();
+      this.puppet.initialControllerOrientation_inverse.copy(this.puppet.initialControllerOrientation).invert();
       return;
     }
 
@@ -581,7 +582,7 @@ AFRAME.registerSystem("transform-selected-object", {
     finalProjectedVec
       .copy(deltaOnPlane)
       .projectOnPlane(normal)
-      .applyQuaternion(q.copy(plane.quaternion).inverse())
+      .applyQuaternion(q.copy(plane.quaternion).invert())
       .multiplyScalar(SENSITIVITY / cameraToPlaneDistance);
 
     const userinput = this.el.systems.userinput;

@@ -44,16 +44,18 @@ export default class HubsTextureLoader {
 
     const image = await loadAsync(imageLoader, resolvedUrl, onProgress);
     const pixels = image.width * image.height;
-    const frameScheduler = AFRAME.scenes[0].systems["frame-scheduler"];
+    const frameScheduler = window.SYSTEMS?.frameScheduler;
 
-    if (preload) {
-      // Rate limit texture loading
-      if (totalPixelsUploaded + pixels >= MAX_TEXTURE_UPLOAD_PIXELS_PER_FRAME) {
-        while (nextUploadFrame > frameScheduler.frameIndex) await nextTick();
-        nextUploadFrame = frameScheduler.frameIndex + MIN_FRAMES_BETWEEN_TEXTURE_UPLOADS;
-        totalPixelsUploaded = 0;
-      } else {
-        totalPixelsUploaded += pixels;
+    if (frameScheduler) {
+      if (preload) {
+        // Rate limit texture loading
+        if (totalPixelsUploaded + pixels >= MAX_TEXTURE_UPLOAD_PIXELS_PER_FRAME) {
+          while (nextUploadFrame > frameScheduler.frameIndex) await nextTick();
+          nextUploadFrame = frameScheduler.frameIndex + MIN_FRAMES_BETWEEN_TEXTURE_UPLOADS;
+          totalPixelsUploaded = 0;
+        } else {
+          totalPixelsUploaded += pixels;
+        }
       }
     }
 

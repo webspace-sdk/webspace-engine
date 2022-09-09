@@ -14,7 +14,7 @@ const {
   Vector2
 } = THREE;
 
-import { Pass } from "three/examples/jsm/postprocessing/Pass.js";
+const { Pass, FullScreenQuad } = require("three/examples/jsm/postprocessing/Pass.js");
 import { FXAAFunc } from "./fxaa-shader";
 import { disposeNode } from "../../hubs/utils/three-utils";
 
@@ -345,71 +345,69 @@ const CubeSSAOShader = {
   ].join("\n")
 };
 
-const CubeSSAOPass = function CubeSSAOPass(scene, camera, width, height) {
-  Pass.call(this);
+class CubeSSAOPass extends Pass {
+  constructor(scene, camera, width, height) {
+    super();
 
-  this.width = width !== undefined ? width : 512;
-  this.height = height !== undefined ? height : 512;
+    this.width = width !== undefined ? width : 512;
+    this.height = height !== undefined ? height : 512;
 
-  this.clear = true;
+    this.clear = true;
 
-  this.camera = camera;
-  this.scene = scene;
-  this.enableFXAA = true;
+    this.camera = camera;
+    this.scene = scene;
+    this.enableFXAA = true;
 
-  // scene render target with depth + stencil buffer
+    // scene render target with depth + stencil buffer
 
-  const depthTexture = new DepthTexture(
-    this.width,
-    this.height,
-    UnsignedInt248Type,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    DepthStencilFormat
-  );
+    const depthTexture = new DepthTexture(
+      this.width,
+      this.height,
+      UnsignedInt248Type,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      DepthStencilFormat
+    );
 
-  this.sceneRenderTarget = new WebGLRenderTarget(this.width, this.height, {
-    minFilter: LinearFilter,
-    magFilter: LinearFilter,
-    format: RGBAFormat,
-    depthTexture,
-    depthBuffer: true,
-    stencilBuffer: true
-  });
+    this.sceneRenderTarget = new WebGLRenderTarget(this.width, this.height, {
+      minFilter: LinearFilter,
+      magFilter: LinearFilter,
+      format: RGBAFormat,
+      depthTexture,
+      depthBuffer: true,
+      stencilBuffer: true
+    });
 
-  // ssao render target
-  this.ssaoRenderTarget = new WebGLRenderTarget(this.width, this.height, {
-    minFilter: LinearFilter,
-    magFilter: LinearFilter,
-    format: RGBAFormat
-  });
+    // ssao render target
+    this.ssaoRenderTarget = new WebGLRenderTarget(this.width, this.height, {
+      minFilter: LinearFilter,
+      magFilter: LinearFilter,
+      format: RGBAFormat
+    });
 
-  this.material = new ShaderMaterial({
-    defines: { ...CubeSSAOShader.defines },
-    uniforms: UniformsUtils.clone(CubeSSAOShader.uniforms),
-    vertexShader: CubeSSAOShader.vertexShader,
-    fragmentShader: CubeSSAOShader.fragmentShader,
-    stencilWrite: false,
-    stencilFunc: NotEqualStencilFunc,
-    stencilRef: 1,
-    blending: NoBlending
-  });
+    this.material = new ShaderMaterial({
+      defines: { ...CubeSSAOShader.defines },
+      uniforms: UniformsUtils.clone(CubeSSAOShader.uniforms),
+      vertexShader: CubeSSAOShader.vertexShader,
+      fragmentShader: CubeSSAOShader.fragmentShader,
+      stencilWrite: false,
+      stencilFunc: NotEqualStencilFunc,
+      stencilRef: 1,
+      blending: NoBlending
+    });
 
-  this.material.uniforms.cameraNear.value = this.camera.near;
-  this.material.uniforms.cameraFar.value = FAR_PLANE_FOR_SSAO;
-  this.material.uniforms.resolution.value.set(this.width, this.height);
+    this.material.uniforms.cameraNear.value = this.camera.near;
+    this.material.uniforms.cameraFar.value = FAR_PLANE_FOR_SSAO;
+    this.material.uniforms.resolution.value.set(this.width, this.height);
 
-  this.fsQuad = new Pass.FullScreenQuad(null);
+    this.fsQuad = new FullScreenQuad(null);
 
-  this.originalClearColor = new Color();
-};
-
-CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
-  constructor: CubeSSAOPass,
+    this.originalClearColor = new Color();
+  }
 
   dispose() {
     // dispose render targets
@@ -421,7 +419,7 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
 
     // dispose materials
     this.material.dispose();
-  },
+  }
 
   render(renderer, writeBuffer /* , readBuffer, deltaTime, maskActive */) {
     // render scene and depth
@@ -538,11 +536,11 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
       renderer.clear();
       renderer.render(this.scene, this.camera);
     }
-  },
+  }
 
   renderPass(renderer, passMaterial, renderTarget, clearColor, clearAlpha) {
     // save original state
-    this.originalClearColor.copy(renderer.getClearColor());
+    renderer.getClearColor(this.originalClearColor);
     const originalClearAlpha = renderer.getClearAlpha();
     const originalAutoClear = renderer.autoClear;
 
@@ -563,12 +561,12 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
     renderer.autoClear = originalAutoClear;
     renderer.setClearColor(this.originalClearColor);
     renderer.setClearAlpha(originalClearAlpha);
-  },
+  }
 
   setAORadius(aoRadius) {
     this.material.uniforms.aoRadius.value = aoRadius;
     this.material.uniformsNeedUpdate = true;
-  },
+  }
 
   setSize(width, height) {
     this.width = width;
@@ -583,6 +581,6 @@ CubeSSAOPass.prototype = Object.assign(Object.create(Pass.prototype), {
 
     this.material.uniforms.resolution.value.set(this.width, this.height);
   }
-});
+}
 
 export default CubeSSAOPass;

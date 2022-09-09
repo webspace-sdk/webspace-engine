@@ -1,4 +1,5 @@
 const THREE = AFRAME.THREE;
+import { createPlaneBufferGeometry } from "./three-utils";
 
 function checkFloatTextureSupport() {
   const renderer = new THREE.WebGLRenderer({ forceWebVR: true });
@@ -7,7 +8,7 @@ function checkFloatTextureSupport() {
   const size = 2;
   const data = new Float32Array(size * size * 4);
   const dataTexture = new THREE.DataTexture(data, size, size, THREE.RGBAFormat, THREE.FloatType);
-  const box = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1), new THREE.MeshBasicMaterial({ map: dataTexture }));
+  const box = new THREE.Mesh(createPlaneBufferGeometry(1, 1), new THREE.MeshBasicMaterial({ map: dataTexture }));
   box.material.map.needsUpdate = true;
   scene.add(box);
 

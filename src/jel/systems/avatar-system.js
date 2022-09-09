@@ -64,15 +64,15 @@ const AVATAR_RADIUS = 0.4;
 const avatarMaterial = new ShaderMaterial({
   name: "avatar",
   fog: true,
-  fragmentShader: ShaderLib.phong.fragmentShader,
-  vertexShader: ShaderLib.phong.vertexShader,
+  fragmentShader: ShaderLib.toon.fragmentShader,
+  vertexShader: ShaderLib.toon.vertexShader,
   lights: true,
   defines: {
     ...new MeshToonMaterial().defines,
     TWOPI: 3.1415926538
   },
   uniforms: {
-    ...UniformsUtils.clone(ShaderLib.phong.uniforms),
+    ...UniformsUtils.clone(ShaderLib.toon.uniforms),
     ...{
       decalMap: {
         type: "t",
@@ -84,7 +84,6 @@ const avatarMaterial = new ShaderMaterial({
 });
 
 avatarMaterial.uniforms.gradientMap.value = toonGradientMap;
-avatarMaterial.uniforms.shininess.value = 0.0001;
 avatarMaterial.uniforms.diffuse.value = new Color(0.5, 0.5, 0.5);
 
 avatarMaterial.stencilWrite = true; // Avoid SSAO
@@ -230,7 +229,7 @@ export class AvatarSystem {
     if (USE_BASIS) {
       decalMap = (await createBasisTexture(avatarSheetBasisSrc))[0];
     } else {
-      decalMap = await new HubsTextureLoader().load(avatarSheetImgSrc);
+      decalMap = (await new HubsTextureLoader().loadTextureAsync(avatarSheetImgSrc))[0];
     }
 
     decalMap.magFilter = LinearFilter;

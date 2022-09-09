@@ -1,4 +1,5 @@
 import { TRANSFORM_MODE } from "../systems/transform-selected-object";
+import { createPlaneBufferGeometry } from "../utils/three-utils";
 import { paths } from "./userinput/paths";
 //const shiftKeyPath = paths.device.keyboard.key("shift");
 
@@ -29,7 +30,7 @@ import { paths } from "./userinput/paths";
 //})();
 
 const planeForLeftCursor = new THREE.Mesh(
-  new THREE.PlaneBufferGeometry(100000, 100000, 2, 2),
+  createPlaneBufferGeometry(100000, 100000, 2, 2),
   new THREE.MeshBasicMaterial({
     visible: true,
     wireframe: false,
@@ -39,7 +40,7 @@ const planeForLeftCursor = new THREE.Mesh(
   })
 );
 const planeForRightCursor = new THREE.Mesh(
-  new THREE.PlaneBufferGeometry(100000, 100000, 2, 2),
+  createPlaneBufferGeometry(100000, 100000, 2, 2),
   new THREE.MeshBasicMaterial({
     visible: true,
     wireframe: false,

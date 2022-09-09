@@ -1,17 +1,14 @@
 import crypto from "crypto";
 import "aframe";
-import "aframe-rounded";
 import "aframe-slice9-component";
 import "networked-aframe/src/index";
 import { detectOS, detect } from "detect-browser";
 import parseCSSColor from "parse-css-color";
 
-import "./hubs/webxr-bypass-hacks";
 import "./hubs/utils/theme";
 import "./hubs/utils/debug-log";
 import "./hubs/utils/logging";
-import "three/examples/js/loaders/GLTFLoader";
-import "./hubs/utils/threejs-positional-audio-updatematrixworld";
+require("three/examples/js/loaders/GLTFLoader");
 import "./hubs/utils/threejs-world-update";
 import "./hubs/components/scene-components";
 import "./hubs/components/scale-in-screen-space";
@@ -84,7 +81,6 @@ import "./hubs/components/set-max-resolution";
 import "./hubs/components/avatar-audio-source";
 import "./jel/components/pinned-to-self";
 import "./jel/components/look-at-self";
-import "./hubs/systems/nav";
 import "./hubs/systems/frame-scheduler";
 import "./hubs/systems/personal-space-bubble";
 import "./hubs/systems/app-mode";
@@ -128,7 +124,6 @@ import { isInQuillEditor } from "./jel/utils/quill-utils";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
 import initialBatchImage from "!!url-loader!./assets/hubs/images/warning_icon.png";
 import { patchWebGLRenderingContext, isSoftwareRenderer } from "./hubs/utils/webgl";
-import patchThreeAllocations from "./hubs/utils/threejs-allocation-patches";
 import patchThreeNoProgramDispose from "./jel/utils/threejs-avoid-disposing-programs";
 import nextTick from "./hubs/utils/next-tick";
 import Subscriptions from "./hubs/subscriptions";
@@ -296,7 +291,6 @@ function initPhysicsThreeAndCursor(scene) {
   physicsSystem.setDebug(isDebug || physicsSystem.debug);
   const renderer = AFRAME.scenes[0].renderer;
 
-  patchThreeAllocations(renderer);
   patchThreeNoProgramDispose(renderer);
 }
 

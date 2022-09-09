@@ -13,14 +13,13 @@ import errorImageSrc from "!!url-loader!../../assets/hubs/images/media-error.gif
 import audioIcon from "!!url-loader!../../assets/hubs/images/audio.png";
 import { paths } from "../systems/userinput/paths";
 import HLS from "hls.js";
+import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import { RENDER_ORDER } from "../constants";
 import { MediaPlayer } from "dashjs";
 import { gatePermission, gatePermissionPredicate } from "../utils/permissions-utils";
 import {
   addAndArrangeRadialMedia,
   createImageTexture,
-  createBasisTexture,
-  meetsBatchingCriteria,
   scaleToAspectRatio,
   resetMediaRotation,
   MEDIA_INTERACTION_TYPES
@@ -36,7 +35,7 @@ import { SOUND_CAMERA_TOOL_TOOK_SNAPSHOT } from "../systems/sound-effects-system
 import { promisifyWorker } from "../utils/promisify-worker.js";
 import { refreshMediaMirror, getCurrentMirroredMedia } from "../utils/mirror-utils";
 import { MEDIA_PRESENCE } from "../utils/media-utils";
-import { disposeExistingMesh, disposeTexture, disposeTextureImage } from "../utils/three-utils";
+import { disposeExistingMesh, disposeTexture } from "../utils/three-utils";
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
 import { chicletGeometry, chicletGeometryFlipped } from "../../jel/objects/chiclet-geometry.js";
 import { retainPdf, releasePdf } from "../../jel/utils/pdf-pool";
@@ -49,7 +48,8 @@ const isIOS = AFRAME.utils.device.isIOS();
 const isMobileVR = AFRAME.utils.device.isMobileVR();
 const isFirefoxReality = isMobileVR && navigator.userAgent.match(/Firefox/);
 const HLS_TIMEOUT = 10000; // HLS can sometimes fail, we re-try after this duration
-const audioIconTexture = new THREE.TextureLoader().load(audioIcon);
+const audioIconTexture = new THREE.Texture();
+new HubsTextureLoader().loadTextureAsync(audioIconTexture, audioIcon);
 
 export const VOLUME_LABELS = [];
 for (let i = 0; i <= 20; i++) {
@@ -60,6 +60,7 @@ for (let i = 0; i <= 20; i++) {
   s += "]";
   VOLUME_LABELS[i] = s;
 }
+import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader";
 
 class GIFTexture extends THREE.Texture {
   constructor(frames, delays, disposals) {
@@ -1164,14 +1165,12 @@ AFRAME.registerComponent("media-image", {
     version: { type: "number" },
     projection: { type: "string", default: "flat" },
     contentType: { type: "string" },
-    batch: { default: false },
     alphaMode: { type: "string", default: undefined },
     alphaCutoff: { type: "number" }
   },
 
   init() {
     this.setMediaPresence = this.setMediaPresence.bind(this);
-    this.isBatched = false;
 
     SYSTEMS.mediaPresenceSystem.registerMediaComponent(this);
   },
@@ -1191,13 +1190,6 @@ AFRAME.registerComponent("media-image", {
     }
 
     disposeExistingMesh(this.el);
-
-    if (this.mesh) {
-      if (this.isBatched) {
-        SYSTEMS.batchManagerSystem.removeObject(this.mesh);
-        this.isBatched = false;
-      }
-    }
 
     SYSTEMS.mediaPresenceSystem.unregisterMediaComponent(this);
   },
@@ -1272,12 +1264,8 @@ AFRAME.registerComponent("media-image", {
             let promise;
             if (contentType.includes("image/gif")) {
               promise = createGIFTexture(src);
-              this.data.batch = false;
-            } else if (contentType.includes("image/basis")) {
-              promise = createBasisTexture(src);
-              this.data.batch = false;
             } else if (contentType.startsWith("image/")) {
-              promise = createImageTexture(src, null, !this.data.batch);
+              promise = createImageTexture(src, null, true);
             } else {
               throw new Error(`Unknown image content type: ${contentType}`);
             }
@@ -1336,12 +1324,6 @@ AFRAME.registerComponent("media-image", {
 
       const projection = this.data.projection;
 
-      if (this.mesh && this.data.batch) {
-        // This is a no-op if the mesh was just created.
-        // Otherwise we want to ensure the texture gets updated.
-        SYSTEMS.batchManagerSystem.removeObject(this.mesh);
-      }
-
       if (!this.mesh || refresh) {
         disposeExistingMesh(this.el);
 
@@ -1383,7 +1365,7 @@ AFRAME.registerComponent("media-image", {
       if (texture == errorTexture) {
         this.mesh.material.transparent = true;
       } else {
-        // if transparency setting isnt explicitly defined, default to on for all non batched things, gifs, and basis textures with alpha
+        // if transparency setting isnt explicitly defined, default to on for all non things, gifs, and basis textures with alpha
         switch (this.data.alphaMode) {
           case "opaque":
             this.mesh.material.transparent = false;
@@ -1398,9 +1380,7 @@ AFRAME.registerComponent("media-image", {
             break;
           default:
             this.mesh.material.transparent =
-              !this.data.batch ||
-              this.data.contentType.includes("image/gif") ||
-              !!(texture.image && texture.image.hasAlpha);
+              this.data.contentType.includes("image/gif") || !!(texture.image && texture.image.hasAlpha);
             this.mesh.material.alphaTest = 0;
         }
       }
@@ -1411,19 +1391,6 @@ AFRAME.registerComponent("media-image", {
 
       if (projection === "flat") {
         scaleToAspectRatio(this.el, ratio);
-      }
-
-      if (
-        texture !== errorTexture &&
-        this.data.batch &&
-        !texture.isCompressedTexture &&
-        meetsBatchingCriteria(textureInfo)
-      ) {
-        SYSTEMS.batchManagerSystem.addObject(this.mesh);
-        this.isBatched = true;
-
-        // Texture will never be used, dispose it.
-        disposeTextureImage(texture);
       }
 
       this.el.emit("image-loaded", { src: this.data.src, projection: projection });
@@ -1471,7 +1438,6 @@ AFRAME.registerComponent("media-pdf", {
     projection: { type: "string", default: "flat" },
     contentType: { type: "string" },
     index: { default: 0 },
-    batch: { default: false },
     pagable: { default: true }
   },
 
@@ -1654,10 +1620,6 @@ AFRAME.registerComponent("media-pdf", {
 
       scaleToAspectRatio(this.el, ratio);
 
-      if (texture !== errorTexture && this.data.batch) {
-        SYSTEMS.batchManagerSystem.addObject(this.mesh);
-      }
-
       if (this.el.components["media-pager"] && this.el.components["media-pager"].data.index !== this.data.index) {
         this.el.setAttribute("media-pager", { index: this.data.index });
       }
@@ -1731,7 +1693,6 @@ AFRAME.registerComponent("media-canvas", {
 
   init() {
     this.setMediaPresence = this.setMediaPresence.bind(this);
-    this.isBatched = false;
     this.localSnapCount = 0;
     this.onSnapImageLoaded = () => (this.isSnapping = false);
 
@@ -1808,7 +1769,7 @@ AFRAME.registerComponent("media-canvas", {
         this.el.setObject3D("mesh", this.mesh);
       }
 
-      // if transparency setting isnt explicitly defined, default to on for all non batched things, gifs, and basis textures with alpha
+      // if transparency setting isnt explicitly defined, default to on for all non things, gifs, and basis textures with alpha
       switch (this.data.alphaMode) {
         case "opaque":
           this.mesh.material.transparent = false;
@@ -1823,9 +1784,7 @@ AFRAME.registerComponent("media-canvas", {
           break;
         default:
           this.mesh.material.transparent =
-            !this.data.batch ||
-            this.data.contentType.includes("image/gif") ||
-            !!(this.texture.image && this.texture.image.hasAlpha);
+            this.data.contentType.includes("image/gif") || !!(this.texture.image && this.texture.image.hasAlpha);
           this.mesh.material.alphaTest = 0;
       }
 

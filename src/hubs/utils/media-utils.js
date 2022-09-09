@@ -1010,9 +1010,8 @@ export async function createImageTexture(url, filter, preload = true) {
     info = { width: image.width, height: image.height, hasAlpha: image.hasAlpha };
   } else {
     texture = new THREE.Texture();
-
     try {
-      info = await textureLoader.loadTextureAsync(texture, url, preload);
+      [texture, info] = await textureLoader.loadTextureAsync(texture, url, preload);
     } catch (e) {
       throw new Error(`'${url}' could not be fetched (Error code: ${e.status}; Response: ${e.statusText})`);
     }
@@ -1121,22 +1120,6 @@ export const MEDIA_PRESENCE = {
   PRESENT: 2,
   HIDDEN: 8
 };
-
-// Don't batch thin images or narrow images to reduce layer busting.
-const MIN_ASPECT_RATIO_TO_BATCH = 1.0 / 8.0;
-const MAX_ASPECT_RATIO_TO_BATCH = 1.0 / MIN_ASPECT_RATIO_TO_BATCH;
-const MAX_PIXELS_TO_BATCH = 1024 * 1024 * 4;
-
-export function meetsBatchingCriteria(textureInfo) {
-  if (!textureInfo.width || !textureInfo.height) return false;
-
-  const ratio = textureInfo.height / textureInfo.width;
-  const pixels = textureInfo.height * textureInfo.width;
-  const batch =
-    ratio >= MIN_ASPECT_RATIO_TO_BATCH && ratio <= MAX_ASPECT_RATIO_TO_BATCH && pixels <= MAX_PIXELS_TO_BATCH;
-
-  return batch;
-}
 
 export function scaleToAspectRatio(el, ratio) {
   const width = Math.min(1.0, 1.0 / ratio);

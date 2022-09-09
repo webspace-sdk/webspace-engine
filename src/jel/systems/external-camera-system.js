@@ -1,4 +1,3 @@
-import patchThreeAllocations from "../..//hubs/utils/threejs-allocation-patches";
 import patchThreeNoProgramDispose from "../../jel/utils/threejs-avoid-disposing-programs";
 
 const tmpVec3 = new THREE.Vector3();
@@ -106,7 +105,6 @@ export class ExternalCameraSystem {
     renderer.shadowMap.soft = true;
     renderer.setPixelRatio(sceneEl.renderer.getPixelRatio());
 
-    patchThreeAllocations(renderer);
     patchThreeNoProgramDispose(renderer);
 
     if (enablePostprocessing) {

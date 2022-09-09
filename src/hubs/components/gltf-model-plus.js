@@ -9,7 +9,6 @@ import { acceleratedRaycast } from "three-mesh-bvh";
 import { generateMeshBVH } from "../utils/three-utils";
 import { disposeNode, disposeExistingMesh, cloneObject3D } from "../utils/three-utils";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
-import HubsBasisTextureLoader from "../loaders/HubsBasisTextureLoader";
 import { resetMediaRotation, MEDIA_PRESENCE } from "../utils/media-utils";
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
 import { gatePermission } from "../../hubs/utils/permissions-utils";
@@ -365,7 +364,6 @@ export async function loadGLTF(src, contentType, preferredTechnique, onProgress,
   const loadingManager = new THREE.LoadingManager();
   loadingManager.setURLModifier(getCustomGLTFParserURLResolver(gltfUrl));
   const gltfLoader = new THREE.GLTFLoader(loadingManager);
-  gltfLoader.setBasisTextureLoader(new HubsBasisTextureLoader(loadingManager));
 
   const parser = await new Promise((resolve, reject) => gltfLoader.createParser(gltfUrl, resolve, onProgress, reject));
 
@@ -577,7 +575,6 @@ AFRAME.registerComponent("gltf-model-plus", {
     contentType: { type: "string" },
     useCache: { default: true },
     inflate: { default: false },
-    batch: { default: false },
     toon: { default: false },
     modelToWorldScale: { type: "number", default: 1 }
   },
@@ -603,9 +600,6 @@ AFRAME.registerComponent("gltf-model-plus", {
   },
 
   remove() {
-    if (this.data.batch && this.model) {
-      this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.removeObject(this.el.object3DMap.mesh);
-    }
     const src = resolveAsset(this.data.src);
     if (src) {
       gltfCache.release(src);
@@ -686,10 +680,6 @@ AFRAME.registerComponent("gltf-model-plus", {
       disposeExistingMesh(this.el);
 
       this.model = gltf.scene || gltf.scenes[0];
-
-      if (this.data.batch) {
-        this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.addObject(this.model);
-      }
 
       if (gltf.animations.length > 0) {
         // Skip BVH if animated to ensure raycaster is accurate - most likely larger models

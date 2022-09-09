@@ -112,14 +112,17 @@ export function setMatrixWorld(object3D, m) {
   if (object3D.matrixWorld.equals(m)) return;
 
   if (!object3D.matrixIsModified) {
-    object3D.applyMatrix(IDENTITY); // hack around our matrix optimizations
+    object3D.applyMatrix4(IDENTITY); // hack around our matrix optimizations
   }
   object3D.matrixWorld.copy(m);
 
   // Deal with parent transform unless it is the scene
   if (object3D.parent && object3D.parent.parent !== null) {
     object3D.parent.updateMatrices();
-    object3D.matrix = object3D.matrix.getInverse(object3D.parent.matrixWorld).multiply(object3D.matrixWorld);
+    object3D.matrix = object3D.matrix
+      .copy(object3D.parent.matrixWorld)
+      .invert()
+      .multiply(object3D.matrixWorld);
   } else {
     object3D.matrix.copy(object3D.matrixWorld);
   }
@@ -303,7 +306,7 @@ export const interpolateAffine = (function() {
   return function(startMat4, endMat4, progress, outMat4) {
     start.quaternion.setFromRotationMatrix(mat4.extractRotation(startMat4));
     end.quaternion.setFromRotationMatrix(mat4.extractRotation(endMat4));
-    THREE.Quaternion.slerp(start.quaternion, end.quaternion, interpolated.quaternion, progress);
+    interpolated.quaternion.slerpQuaternions(start.quaternion, end.quaternion, progress);
     interpolated.position.lerpVectors(
       start.position.setFromMatrixColumn(startMat4, 3),
       end.position.setFromMatrixColumn(endMat4, 3),
@@ -411,10 +414,10 @@ export const childMatch = (function() {
   // transform the parent such that its child matches the target
   return function childMatch(parent, child, target) {
     parent.updateMatrices();
-    inverseParentWorld.getInverse(parent.matrixWorld);
+    inverseParentWorld.copy(parent.matrixWorld).invert();
     child.updateMatrices();
     childRelativeToParent.multiplyMatrices(inverseParentWorld, child.matrixWorld);
-    childInverse.getInverse(childRelativeToParent);
+    childInverse.copy(childRelativeToParent).invert();
     newParentMatrix.multiplyMatrices(target, childInverse);
     setMatrixWorld(parent, newParentMatrix);
   };
@@ -544,4 +547,18 @@ export function screenshotSceneCanvas(scene, width, height) {
     externalCameraSystem.enableForcedViewingCamera();
     externalCameraSystem.addExternalCamera(width, height, true, { preserveDrawingBuffer: true });
   });
+}
+
+export function createPlaneBufferGeometry(width, height, widthSegments, heightSegments, flipY = true) {
+  const geometry = new THREE.PlaneBufferGeometry(width, height, widthSegments, heightSegments);
+  // Three.js seems to assume texture flipY is true for all its built in geometry
+  //   // but we turn this off on our texture loader since createImageBitmap in Firefox
+  // does not support flipping. Then we flip the uv for flipY = false texture.
+  if (flipY === false) {
+    const uv = geometry.getAttribute("uv");
+    for (let i = 0; i < uv.count; i++) {
+      uv.setY(i, 1.0 - uv.getY(i));
+    }
+  }
+  return geometry;
 }

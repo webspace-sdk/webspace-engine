@@ -47,8 +47,6 @@ export const CAMERA_MODE_INSPECT = 3;
 export const CAMERA_MODE_SCENE_PREVIEW = 4;
 
 const CAMERA_LAYER_INSPECT = 4;
-// This layer is never actually rendered by a camera but lets the batching system know it should be rendered if inspecting
-export const CAMERA_LAYER_BATCH_INSPECT = 5;
 
 const ensureLightsAreSeenByCamera = function(o) {
   if (o.isLight) {
@@ -56,52 +54,38 @@ const ensureLightsAreSeenByCamera = function(o) {
   }
 };
 const enableInspectLayer = function(o) {
-  const { batchManagerSystem } = SYSTEMS;
-  const batch = batchManagerSystem.batchingEnabled && batchManagerSystem.batchManager.batchForMesh.get(o);
-  if (batch) {
-    batch.layers.enable(CAMERA_LAYER_INSPECT);
-    o.layers.enable(CAMERA_LAYER_BATCH_INSPECT);
-  } else {
-    o.layers.enable(CAMERA_LAYER_INSPECT);
+  o.layers.enable(CAMERA_LAYER_INSPECT);
 
-    // Check for vox/voxmoji
-    const sourceMesh = o.el.getObject3D("mesh");
+  // Check for vox/voxmoji
+  const sourceMesh = o.el.getObject3D("mesh");
 
-    if (sourceMesh) {
-      for (const mesh of SYSTEMS.voxSystem.getMeshesForSource(sourceMesh)) {
-        mesh.layers.enable(CAMERA_LAYER_INSPECT);
-      }
+  if (sourceMesh) {
+    for (const mesh of SYSTEMS.voxSystem.getMeshesForSource(sourceMesh)) {
+      mesh.layers.enable(CAMERA_LAYER_INSPECT);
+    }
 
-      const mesh = SYSTEMS.voxmojiSystem.getMeshForSource(sourceMesh);
+    const mesh = SYSTEMS.voxmojiSystem.getMeshForSource(sourceMesh);
 
-      if (mesh) {
-        mesh.layers.enable(CAMERA_LAYER_INSPECT);
-      }
+    if (mesh) {
+      mesh.layers.enable(CAMERA_LAYER_INSPECT);
     }
   }
 };
 const disableInspectLayer = function(o) {
-  const { batchManagerSystem } = SYSTEMS;
-  const batch = batchManagerSystem.batchingEnabled && batchManagerSystem.batchManager.batchForMesh.get(o);
-  if (batch) {
-    batch.layers.disable(CAMERA_LAYER_INSPECT);
-    o.layers.disable(CAMERA_LAYER_BATCH_INSPECT);
-  } else {
-    o.layers.disable(CAMERA_LAYER_INSPECT);
+  o.layers.disable(CAMERA_LAYER_INSPECT);
 
-    // Check for vox/voxmoji
-    const sourceMesh = o.el && o.el.getObject3D("mesh");
+  // Check for vox/voxmoji
+  const sourceMesh = o.el && o.el.getObject3D("mesh");
 
-    if (sourceMesh) {
-      for (const mesh of SYSTEMS.voxSystem.getMeshesForSource(sourceMesh)) {
-        mesh.layers.disable(CAMERA_LAYER_INSPECT);
-      }
+  if (sourceMesh) {
+    for (const mesh of SYSTEMS.voxSystem.getMeshesForSource(sourceMesh)) {
+      mesh.layers.disable(CAMERA_LAYER_INSPECT);
+    }
 
-      const mesh = SYSTEMS.voxmojiSystem.getMeshForSource(sourceMesh);
+    const mesh = SYSTEMS.voxmojiSystem.getMeshForSource(sourceMesh);
 
-      if (mesh) {
-        mesh.layers.disable(CAMERA_LAYER_INSPECT);
-      }
+    if (mesh) {
+      mesh.layers.disable(CAMERA_LAYER_INSPECT);
     }
   }
 };
@@ -335,7 +319,7 @@ export class CameraSystem extends EventTarget {
 
     const scene = AFRAME.scenes[0];
     const vrMode = scene.is("vr-mode");
-    const camera = vrMode ? scene.renderer.vr.getCamera(scene.camera) : scene.camera;
+    const camera = vrMode ? scene.renderer.xr.getCamera(scene.camera) : scene.camera;
     camera.layers.mask = this.snapshot.mask;
     if (vrMode) {
       camera.cameras[0].layers.mask = this.snapshot.mask0;
@@ -354,7 +338,7 @@ export class CameraSystem extends EventTarget {
 
     const scene = AFRAME.scenes[0];
     const vrMode = scene.is("vr-mode");
-    const camera = vrMode ? scene.renderer.vr.getCamera(scene.camera) : scene.camera;
+    const camera = vrMode ? scene.renderer.xr.getCamera(scene.camera) : scene.camera;
     camera.layers.set(CAMERA_LAYER_INSPECT);
     if (vrMode) {
       camera.cameras[0].layers.set(CAMERA_LAYER_INSPECT);
@@ -413,7 +397,7 @@ export class CameraSystem extends EventTarget {
   updateCameraSettings() {
     const scene = AFRAME.scenes[0];
     const vrMode = scene.is("vr-mode");
-    const camera = vrMode ? scene.renderer.vr.getCamera(scene.camera) : scene.camera;
+    const camera = vrMode ? scene.renderer.xr.getCamera(scene.camera) : scene.camera;
 
     const canvasWidth = this.sceneEl.canvas.parentElement.offsetWidth;
     const canvasHeight = this.sceneEl.canvas.parentElement.offsetHeight;
@@ -651,7 +635,7 @@ export class CameraSystem extends EventTarget {
       if (!target.parent) {
         // add dummy object to the scene, if this is the first time we call this function
         AFRAME.scenes[0].object3D.add(target);
-        target.applyMatrix(IDENTITY); // make sure target gets updated at least once for our matrix optimizations
+        target.applyMatrix4(IDENTITY); // make sure target gets updated at least once for our matrix optimizations
       }
       object.updateMatrices();
       decompose(object.matrixWorld, owp, owq);
@@ -746,7 +730,7 @@ export class CameraSystem extends EventTarget {
       if (!target.parent) {
         // add dummy object to the scene, if this is the first time we call this function
         AFRAME.scenes[0].object3D.add(target);
-        target.applyMatrix(IDENTITY); // make sure target gets updated at least once for our matrix optimizations
+        target.applyMatrix4(IDENTITY); // make sure target gets updated at least once for our matrix optimizations
       }
 
       object.updateMatrices();

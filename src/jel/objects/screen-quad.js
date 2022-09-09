@@ -1,6 +1,7 @@
 import { RENDER_ORDER } from "../../hubs/constants";
+import { createPlaneBufferGeometry } from "../../hubs/utils/three-utils";
 
-const defaultQuad = new THREE.PlaneBufferGeometry(2, 2, 1, 1);
+const defaultQuad = createPlaneBufferGeometry(2, 2, 1, 1);
 
 const defaultVertexShader = [
   "uniform vec4 uSize;",

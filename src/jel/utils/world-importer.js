@@ -459,7 +459,7 @@ export default class WorldImporter {
         entity.addEventListener(
           "media-view-added",
           () => {
-            object3D.applyMatrix(matrix);
+            object3D.applyMatrix4(matrix);
             pendingCount--;
           },
           { once: true }

@@ -1,11 +1,9 @@
 const { FileLoader, Loader } = THREE;
 
-function VOXLoader(manager) {
-  Loader.call(this, manager);
-}
-
-VOXLoader.prototype = Object.assign(Object.create(Loader.prototype), {
-  constructor: VOXLoader,
+class VOXLoader extends Loader {
+  constructor(manager) {
+    super(manager);
+  }
 
   load(url, onLoad, onProgress, onError) {
     const scope = this;
@@ -32,7 +30,7 @@ VOXLoader.prototype = Object.assign(Object.create(Loader.prototype), {
       onProgress,
       onError
     );
-  },
+  }
 
   parse(buffer) {
     const data = new DataView(buffer);
@@ -364,6 +362,6 @@ VOXLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
     return chunks;
   }
-});
+}
 
 export { VOXLoader };
