@@ -441,12 +441,23 @@ export function generateMeshBVH(object3D, force = true) {
     const hasBoundsTree = hasBufferGeometry && obj.geometry.boundsTree;
     if (hasBufferGeometry && (!hasBoundsTree || force) && obj.geometry.attributes.position) {
       const geo = obj.geometry;
+
+      if (
+        geo.attributes.position.isInterleavedBufferAttribute ||
+        (geo.index && geo.index.isInterleavedBufferAttribute)
+      ) {
+        console.warn("Skipping generaton of MeshBVH for interleaved geoemtry as it is not supported");
+        return;
+      }
+
       const triCount = geo.index ? geo.index.count / 3 : geo.attributes.position.count / 3;
+
       if (triCount === 0) {
         geo.boundsTree = null;
       } else {
         // only bother using memory and time making a BVH if there are a reasonable number of tris,
-        // and if there are too many it's too painful and large to tolerate doing it (at least until we put this in a web worker)
+        // and if there are too many it's too painful and large to tolerate doing it (at least until
+        // we put this in a web worker)
         if (force || (triCount > 1000 && triCount < 1000000)) {
           // note that bounds tree construction creates an index as a side effect if one doesn't already exist
           geo.boundsTree = new MeshBVH(obj.geometry, { strategy: 0, maxDepth: 30 });

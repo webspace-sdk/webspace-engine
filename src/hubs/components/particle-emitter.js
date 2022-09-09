@@ -41,8 +41,9 @@ AFRAME.registerComponent("particle-emitter", {
 
   async setTexture(src) {
     const accessibleUrl = await proxiedUrlFor(src);
+    const texture = new THREE.Texture();
 
-    const [texture] = await textureLoader.loadTextureAsync(accessibleUrl);
+    await textureLoader.loadTextureAsync(texture, accessibleUrl);
 
     // Guard against src changing while request was in flight
     if (this.data.src !== src) {

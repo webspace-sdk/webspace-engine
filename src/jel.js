@@ -122,7 +122,6 @@ import { SHADOW_DOM_STYLES } from "./jel/styles";
 import AFRAME_DOM from "./jel/aframe-dom";
 import { isInQuillEditor } from "./jel/utils/quill-utils";
 import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
-import initialBatchImage from "!!url-loader!./assets/hubs/images/warning_icon.png";
 import { patchWebGLRenderingContext, isSoftwareRenderer } from "./hubs/utils/webgl";
 import patchThreeNoProgramDispose from "./jel/utils/threejs-avoid-disposing-programs";
 import nextTick from "./hubs/utils/next-tick";
@@ -328,13 +327,6 @@ function hideCanvas() {
   canvas.classList.add("a-hidden");
 }
 
-function initBatching() {
-  // HACK - Trigger initial batch preparation with an invisible object
-  DOM_ROOT.querySelector("a-scene")
-    .querySelector("#batch-prep")
-    .setAttribute("media-image", { batch: true, src: initialBatchImage, contentType: "image/png" });
-}
-
 function addGlobalEventListeners(scene, entryManager, atomAccessManager) {
   scene.addEventListener("preferred_mic_changed", e => {
     const deviceId = e.detail;
@@ -348,7 +340,7 @@ function addGlobalEventListeners(scene, entryManager, atomAccessManager) {
 
     switch (createAction) {
       case "duck":
-        scene.emit("add_media", getAbsoluteHref(location.href, ducky));
+        scene.emit("add_media", { src: getAbsoluteHref(location.href, ducky), contentType: "model/gltf-binary" });
 
         if (Math.random() < 0.01) {
           scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_SPECIAL_QUACK);
@@ -852,7 +844,17 @@ async function start() {
   // TODO SHARED head
   let initialWorldHTML = `<!DOCTYPE html>\n<html><body>${document.body.innerHTML}</body></html>`;
 
-  window.DOM_ROOT = document.body.attachShadow({ mode: "closed" });
+  const useShadowDom = false;
+
+  if (useShadowDom) {
+    window.DOM_ROOT = document.body.attachShadow({ mode: "closed" });
+  } else {
+    const el = document.createElement("main");
+    document.body.appendChild(el);
+    el.getElementById = id => document.getElementById(id);
+    window.DOM_ROOT = el;
+  }
+
   AFRAME.selectorRoot = window.DOM_ROOT;
   window.DOM_ROOT._ready = false;
 
@@ -1111,8 +1113,6 @@ async function start() {
   canvas.focus();
 
   scene.renderer.debug.checkShaderErrors = false;
-
-  initBatching();
 
   if (scene.hasLoaded) {
     initPhysicsThreeAndCursor(scene);

@@ -13,6 +13,17 @@ import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
 import { expandByEntityObjectSpaceBoundingBox } from "./three-utils";
 import { stackTargetAt, NON_FLAT_STACK_AXES } from "../systems/transform-selected-object";
 import anime from "animejs";
+import basisTranscoderUrl from "!!url-loader!three/examples/js/libs/basis/basis_transcoder.js";
+import basisTranscoderWasmUrl from "!!url-loader!three/examples/js/libs/basis/basis_transcoder.wasm";
+
+const { KTX2Loader } = require("three/examples/jsm/loaders/KTX2Loader");
+const ktxLoadingManager = new THREE.LoadingManager();
+
+ktxLoadingManager.setURLModifier(url => {
+  if (url === "basis_transcoder.js") return basisTranscoderUrl;
+  if (url === "basis_transcoder.wasm") return basisTranscoderWasmUrl;
+  return url;
+});
 
 // We use the legacy 'text' regex since it matches some items like beach_umbrella
 // and thermometer which seem to not work with the default/standard regex
@@ -1011,7 +1022,7 @@ export async function createImageTexture(url, filter, preload = true) {
   } else {
     texture = new THREE.Texture();
     try {
-      [texture, info] = await textureLoader.loadTextureAsync(texture, url, preload);
+      info = await textureLoader.loadTextureAsync(texture, url, preload);
     } catch (e) {
       throw new Error(`'${url}' could not be fetched (Error code: ${e.status}; Response: ${e.statusText})`);
     }
@@ -1023,17 +1034,23 @@ export async function createImageTexture(url, filter, preload = true) {
   return [texture, info];
 }
 
-import HubsBasisTextureLoader from "../loaders/HubsBasisTextureLoader";
-export const basisTextureLoader = new HubsBasisTextureLoader();
+let ktxLoader;
 
 export function createBasisTexture(url) {
+  if (!ktxLoader) {
+    ktxLoader = new KTX2Loader(ktxLoadingManager).detectSupport(AFRAME.scenes[0].renderer);
+  }
   return new Promise((resolve, reject) => {
-    basisTextureLoader.load(
+    ktxLoader.basisLoader.load(
       url,
-      function(texture, textureInfo) {
+      function(texture) {
         texture.encoding = THREE.sRGBEncoding;
+        texture.onUpdate = function() {
+          // Delete texture data once it has been uploaded to the GPU
+          texture.mipmaps.length = 0;
+        };
         // texture.anisotropy = 4;
-        resolve([texture, textureInfo]);
+        resolve(texture);
       },
       undefined,
       function(error) {

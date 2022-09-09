@@ -11,8 +11,8 @@ const _instanceIntersects = [];
 const _mesh = new THREE.Mesh();
 
 class DynamicInstancedMesh extends InstancedMesh {
-  constructor(geometry, material, count, maxCount) {
-    super(geometry, material, count, maxCount);
+  constructor(geometry, material, maxCount) {
+    super(geometry, material, maxCount);
 
     this.count = 0;
     this.nextIndex = 0;

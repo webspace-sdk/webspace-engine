@@ -14,7 +14,6 @@ import {
 } from "../utils/media-utils";
 import { guessContentType, isWebspaceUrl } from "../utils/media-url-utils";
 import { addAnimationComponents } from "../utils/animation";
-import qsTruthy from "../utils/qs_truthy";
 import { xyzRangeForSize, shiftForSize, MAX_SIZE as MAX_VOX_SIZE, VoxChunk } from "ot-vox";
 import { voxColorForRGBT } from "ot-vox";
 
@@ -22,10 +21,6 @@ import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effect
 import { disposeExistingMesh, disposeNode } from "../utils/three-utils";
 
 import { SHAPE } from "three-ammo/constants";
-
-const forceMeshBatching = qsTruthy("batchMeshes");
-const forceImageBatching = true; //qsTruthy("batchImages");
-const disableBatching = qsTruthy("disableBatching");
 
 const loadingParticleImage = new Image();
 loadingParticleImage.src = loadingParticleSrc;
@@ -557,17 +552,12 @@ AFRAME.registerComponent("media-loader", {
           { once: true }
         );
         this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
-        let batch = !disableBatching && forceImageBatching;
-        if (typeof this.data.mediaOptions.batch !== "undefined" && !this.data.mediaOptions.batch) {
-          batch = false;
-        }
         this.setToSingletonMediaComponent(
           "media-image",
           Object.assign({}, this.data.mediaOptions, {
             src: accessibleContentUrl,
             version,
-            contentType,
-            batch
+            contentType
           }),
           mediaSrcChanged
         );
@@ -576,8 +566,7 @@ AFRAME.registerComponent("media-loader", {
           "media-pdf",
           Object.assign({}, this.data.mediaOptions, {
             src: accessibleContentUrl,
-            contentType,
-            batch: false // Batching disabled until atlas is updated properly
+            contentType
           }),
           mediaSrcChanged
         );
@@ -609,10 +598,6 @@ AFRAME.registerComponent("media-loader", {
           { once: true }
         );
         this.el.addEventListener("model-error", this.onError, { once: true });
-        let batch = !disableBatching && forceMeshBatching;
-        if (typeof this.data.mediaOptions.batch !== "undefined" && !this.data.mediaOptions.batch) {
-          batch = false;
-        }
         this.el.setAttribute("floaty-object", { gravitySpeedLimit: 1.85 });
         this.setToSingletonMediaComponent(
           "gltf-model-plus",
@@ -620,8 +605,6 @@ AFRAME.registerComponent("media-loader", {
             src: accessibleContentUrl,
             contentType: contentType,
             inflate: true,
-            toon: false,
-            batch,
             modelToWorldScale: this.data.fitToBox ? 0.0001 : 1.0
           }),
           mediaSrcChanged
@@ -654,17 +637,12 @@ AFRAME.registerComponent("media-loader", {
           { once: true }
         );
         this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
-        let batch = !disableBatching && forceImageBatching;
-        if (typeof this.data.mediaOptions.batch !== "undefined" && !this.data.mediaOptions.batch) {
-          batch = false;
-        }
         this.setToSingletonMediaComponent(
           "media-image",
           Object.assign({}, this.data.mediaOptions, {
             src: contentUrl,
             version,
-            contentType: guessContentType(contentUrl) || "image/png",
-            batch
+            contentType: guessContentType(contentUrl) || "image/png"
           }),
           mediaSrcChanged
         );

@@ -1,3 +1,20 @@
+import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
+
+let toonGradientMap;
+
+(() => {
+  const colors = new Uint8Array(3);
+
+  for (let c = 0; c <= colors.length; c++) {
+    colors[c] = (c / colors.length) * 256;
+  }
+
+  toonGradientMap = new THREE.DataTexture(colors, colors.length, 1, THREE.LuminanceFormat);
+  toonGradientMap.minFilter = THREE.NearestFilter;
+  toonGradientMap.magFilter = THREE.NearestFilter;
+  toonGradientMap.generateMipmaps = false;
+})();
+
 export function forEachMaterial(object3D, fn) {
   if (!object3D.material) return;
 
@@ -167,6 +184,10 @@ class HubsMeshPhongMaterial extends THREE.MeshPhongMaterial {
     material.skinning = source.skinning;
     material.morphTargets = source.morphTargets;
     material.morphNormals = source.morphNormals;
+    material.stencilWrite = true;
+    material.stencilFunc = THREE.AlwaysStencilFunc;
+    material.stencilRef = 2;
+    material.stencilZPass = THREE.ReplaceStencilOp;
 
     return material;
   }
@@ -210,18 +231,51 @@ class HubsMeshPhongMaterial extends THREE.MeshPhongMaterial {
   };
 }
 
-export function convertStandardMaterial(source, quality) {
+export function convertStandardMaterial(source /*, quality*/) {
   if (!source.isMeshStandardMaterial) {
     return source;
   }
 
-  if (quality === "medium") {
-    return HubsMeshPhongMaterial.fromMeshStandardMaterial(source);
-  } else if (quality === "low") {
-    return HubsMeshBasicMaterial.fromMeshStandardMaterial(source);
+  //if (quality === "medium") {
+  //  mat = HubsMeshPhongMaterial.fromMeshStandardMaterial(source);
+  //  console.log(mat);
+  //} else if (quality === "low") {
+  //  mat = HubsMeshBasicMaterial.fromMeshStandardMaterial(source);
+  //}
+
+  let mat = source;
+  mat = new THREE.MeshToonMaterial({
+    alphaMap: source.alphaMap,
+    color: source.color,
+    displacementMap: source.displacementMap,
+    displacementScale: source.displacementScale,
+    displacementBias: source.displacementBias,
+    emissive: source.emissive,
+    emissiveMap: source.emissiveMap,
+    emissiveIntensity: source.emissiveIntensity,
+    map: source.map,
+    morphNormals: source.morphNormals,
+    morphTargets: source.morphTargets,
+    refractionRatio: source.refractionRatio,
+    skinning: source.skinning,
+    wireframe: source.wireframe,
+    wireframeLinecap: source.wireframeLinecap,
+    wireframeLinejoin: source.wireframeLinejoin,
+    wireframeLinewidth: source.wireframeLinewidth
+  });
+  mat.gradientMap = toonGradientMap;
+  mat.shininess = 0;
+
+  mat.stencilWrite = true;
+  mat.stencilFunc = THREE.AlwaysStencilFunc;
+  mat.stencilRef = 2;
+  mat.stencilZPass = THREE.ReplaceStencilOp;
+
+  if (mat !== source) {
+    addVertexCurvingToMaterial(mat);
   }
 
-  return source;
+  return mat;
 }
 
 export function disposeTexture(texture) {

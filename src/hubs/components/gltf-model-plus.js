@@ -397,7 +397,7 @@ class GLTFHubsPlugin {
       // GLTFLoader sets matrixAutoUpdate on animated objects, we want to keep the defaults
       // @TODO: Should this be fixed in the gltf loader?
       object.matrixAutoUpdate = THREE.Object3D.DefaultMatrixAutoUpdate;
-      const materialQuality = window.APP.store.materialQualitySetting;
+      const materialQuality = "medium";
       object.material = mapMaterials(object, material => convertStandardMaterial(material, materialQuality));
     });
 
@@ -793,6 +793,27 @@ AFRAME.registerComponent("gltf-model-plus", {
       delete this.inflatedEl;
 
       this.el.removeAttribute("animation-mixer");
+    }
+  },
+
+  startAnimations() {
+    const mixerComponent = this.el.components["animation-mixer"];
+    if (mixerComponent) {
+      mixerComponent.play();
+    } else {
+      this.el.setAttribute("animation-mixer", {});
+
+      if (this.model.animations) {
+        this.el.components["animation-mixer"].initMixer(this.model.animations);
+      }
+    }
+  },
+
+  stopAnimations() {
+    const mixerComponent = this.el.components["animation-mixer"];
+
+    if (mixerComponent) {
+      mixerComponent.pause();
     }
   }
 });

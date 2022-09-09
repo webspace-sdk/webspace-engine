@@ -179,9 +179,11 @@ export default class SceneEntryManager {
 
   _setupMedia = () => {
     this.scene.addEventListener("add_media", e => {
-      const contentOrigin = e.detail instanceof File ? ObjectContentOrigins.FILE : ObjectContentOrigins.URL;
+      const src = e.detail.src ? e.detail.src : e.detail;
+      const contentOrigin = src instanceof File ? ObjectContentOrigins.FILE : ObjectContentOrigins.URL;
+      const contentType = e.detail.contentType || null;
 
-      spawnMediaInfrontOfPlayer({ src: e.detail, contentOrigin });
+      spawnMediaInfrontOfPlayer({ src, contentType, contentOrigin });
     });
 
     this.scene.addEventListener("add_media_text", e => {

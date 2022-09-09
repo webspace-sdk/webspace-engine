@@ -177,6 +177,7 @@ export class VoxmojiSystem extends EventTarget {
       try {
         typeKey = await this.registerType(imageUrl, size);
       } catch (e) {
+        console.warn("Failed to register voxmoji type", e);
         return; // Registration failed.
       }
 
@@ -403,9 +404,9 @@ export class VoxmojiSystem extends EventTarget {
     // Abuse the VOX Buffer geometry generation algorithm to generate a mesh
     // for the extruded rim of the image, and then cap it and uv map the caps.
     const geometry = new VOXBufferGeometry(chunk, [1]);
-    const positionArray = geometry.getAttribute("position")._array;
-    const normalArray = geometry.getAttribute("normal")._array;
-    const indexArray = geometry.index._array;
+    const positionArray = geometry.getAttribute("position").array;
+    const normalArray = geometry.getAttribute("normal").array;
+    const indexArray = geometry.index.array;
 
     const uvs = [];
     const rims = [];
