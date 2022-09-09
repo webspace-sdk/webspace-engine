@@ -3,10 +3,12 @@ import { mapMaterials, convertStandardMaterial } from "../utils/material-utils";
 import SketchfabZipWorker from "../workers/sketchfab-zip.worker.js";
 import { getCustomGLTFParserURLResolver } from "../utils/media-url-utils";
 import { promisifyWorker } from "../utils/promisify-worker.js";
-import { MeshBVH, acceleratedRaycast } from "three-mesh-bvh";
-import { disposeNode, cloneObject3D } from "../utils/three-utils";
+import { acceleratedRaycast } from "three-mesh-bvh";
+import { generateMeshBVH, disposeNode, cloneObject3D } from "../utils/three-utils";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader";
+import { resetMediaRotation, MEDIA_PRESENCE, MEDIA_INTERACTION_TYPES } from "../utils/media-utils";
+import { gatePermission } from "../utils/permissions-utils";
 
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
 
@@ -77,35 +79,6 @@ AFRAME.GLTFModelPlus = {
   }
 };
 
-function generateMeshBVH(object3D) {
-  object3D.traverse(obj => {
-    // note that we might already have a bounds tree if this was a clone of an object with one
-    const hasBufferGeometry = obj.isMesh && obj.geometry.isBufferGeometry;
-    const hasBoundsTree = hasBufferGeometry && obj.geometry.boundsTree;
-    if (hasBufferGeometry && !hasBoundsTree && obj.geometry.attributes.position) {
-      const geo = obj.geometry;
-
-      if (
-        geo.attributes.position.isInterleavedBufferAttribute ||
-        (geo.index && geo.index.isInterleavedBufferAttribute)
-      ) {
-        console.warn("Skipping generaton of MeshBVH for interleaved geoemtry as it is not supported");
-        return;
-      }
-
-      const triCount = geo.index ? geo.index.count / 3 : geo.attributes.position.count / 3;
-      // only bother using memory and time making a BVH if there are a reasonable number of tris,
-      // and if there are too many it's too painful and large to tolerate doing it (at least until
-      // we put this in a web worker)
-
-      if (triCount > 1000 && triCount < 1000000) {
-        // note that bounds tree construction creates an index as a side effect if one doesn't already exist
-        geo.boundsTree = new MeshBVH(obj.geometry, { strategy: 0, maxDepth: 30 });
-      }
-    }
-  });
-}
-
 function cloneGltf(gltf) {
   return {
     animations: gltf.scene.animations,
@@ -151,6 +124,26 @@ const inflateEntities = function(indexToEntityMap, node, templates, isRoot, mode
     node.name = "AvatarMesh";
   }
 
+  const entityComponents = getHubsComponents(node);
+  const materialComponents = getHubsComponentsFromMaterial(node);
+
+  // Skip legacy hubs nav meshes
+  if (
+    entityComponents &&
+    ("nav-mesh" in entityComponents ||
+      "heightfield" in entityComponents ||
+      "image" in entityComponents ||
+      "skybox" in entityComponents ||
+      "media-frame" in entityComponents ||
+      "networked" in entityComponents ||
+      "spawn-point" in entityComponents ||
+      "scene-preview-camera" in entityComponents)
+  ) {
+    node.parent.remove(node);
+
+    return;
+  }
+
   // inflate subtrees first so that we can determine whether or not this node needs to be inflated
   const childEntities = [];
   const children = node.children.slice(0); // setObject3D mutates the node's parent, so we have to copy
@@ -161,9 +154,6 @@ const inflateEntities = function(indexToEntityMap, node, templates, isRoot, mode
     }
   }
 
-  const entityComponents = getHubsComponents(node);
-  const materialComponents = getHubsComponentsFromMaterial(node);
-
   const nodeHasBehavior = !!entityComponents || !!materialComponents || node.name in templates;
   if (!nodeHasBehavior && !childEntities.length && !isRoot) {
     return null; // we don't need an entity for this node
@@ -171,6 +161,11 @@ const inflateEntities = function(indexToEntityMap, node, templates, isRoot, mode
 
   const el = document.createElement("a-entity");
   el.append.apply(el, childEntities);
+
+  // hubs components removed, so deal with visibility here
+  if (entityComponents && entityComponents.visible && !entityComponents.visible.visible) {
+    el.object3D.visible = false;
+  }
 
   // Remove invalid CSS class name characters.
   const className = (node.name || node.uuid).replace(/[^\w-]/g, "");
@@ -193,9 +188,6 @@ const inflateEntities = function(indexToEntityMap, node, templates, isRoot, mode
   node.matrix.decompose(node.position, node.rotation, node.scale);
 
   el.setObject3D(node.type.toLowerCase(), node);
-  if (entityComponents && "nav-mesh" in entityComponents) {
-    el.setObject3D("mesh", node);
-  }
 
   // Set the name of the `THREE.Group` to match the name of the node,
   // so that templates can be attached to the correct AFrame entity.
@@ -586,7 +578,6 @@ AFRAME.registerComponent("gltf-model-plus", {
     contentType: { type: "string" },
     useCache: { default: true },
     inflate: { default: false },
-    batch: { default: false },
     modelToWorldScale: { type: "number", default: 1 }
   },
 
@@ -595,16 +586,22 @@ AFRAME.registerComponent("gltf-model-plus", {
     this.jsonPreprocessor = null;
 
     this.loadTemplates();
+    SYSTEMS.mediaPresenceSystem.registerMediaComponent(this);
   },
 
-  update() {
-    this.applySrc(resolveAsset(this.data.src), this.data.contentType);
+  update(oldData) {
+    const { src } = this.data;
+    if (!src) return;
+
+    const refresh = oldData.src !== src;
+
+    if (refresh) {
+      this.setMediaPresence(MEDIA_PRESENCE.PRESENT, refresh);
+    }
   },
 
   remove() {
-    if (this.data.batch && this.model) {
-      this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.removeObject(this.el.object3DMap.mesh);
-    }
+    SYSTEMS.mediaPresenceSystem.unregisterMediaComponent(this);
     const src = resolveAsset(this.data.src);
     if (src) {
       gltfCache.release(src);
@@ -644,11 +641,7 @@ AFRAME.registerComponent("gltf-model-plus", {
       // If we had inflated something already before, clean that up
       this.disposeLastInflatedEl();
 
-      this.model = gltf.scene;
-
-      if (this.data.batch) {
-        this.el.sceneEl.systems["hubs-systems"].batchManagerSystem.addObject(this.model);
-      }
+      this.model = await gltf.scene;
 
       if (gltf.animations.length > 0) {
         this.el.setAttribute("animation-mixer", {});
@@ -713,13 +706,69 @@ AFRAME.registerComponent("gltf-model-plus", {
       this.el.setObject3D("mesh", object3DToSet);
 
       rewires.forEach(f => f());
-
+      object3DToSet.matrixNeedsUpdate = true;
       object3DToSet.visible = true;
+      object3DToSet.traverse(o => (o.castShadow = true));
       this.el.emit("model-loaded", { format: "gltf", model: object3DToSet });
     } catch (e) {
       gltfCache.release(src);
       console.error("Failed to load glTF model", e, this);
       this.el.emit("model-error", { format: "gltf", src });
+    }
+  },
+
+  setMediaPresence(presence, refresh = false) {
+    switch (presence) {
+      case MEDIA_PRESENCE.PRESENT:
+        return this.setMediaToPresent(refresh);
+      case MEDIA_PRESENCE.HIDDEN:
+        return this.setMediaToHidden(refresh);
+    }
+  },
+
+  async setMediaToPresent() {
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+
+    try {
+      if (
+        mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.HIDDEN &&
+        this.model &&
+        this.el.object3DMap.mesh &&
+        !this.el.object3DMap.mesh.visible
+      ) {
+        this.el.object3DMap.mesh.visible = true;
+        this.startAnimations();
+        return;
+      }
+
+      const src = resolveAsset(this.data.src);
+      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PENDING);
+      this.applySrc(src, this.data.contentType);
+    } finally {
+      mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.PRESENT);
+    }
+  },
+
+  async setMediaToHidden() {
+    const mediaPresenceSystem = this.el.sceneEl.systems["hubs-systems"].mediaPresenceSystem;
+
+    if (this.model && this.el.object3DMap.mesh) {
+      this.el.object3DMap.mesh.visible = false;
+      this.stopAnimations();
+    }
+
+    mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
+  },
+
+  handleMediaInteraction(type) {
+    if (type === MEDIA_INTERACTION_TYPES.OPEN) {
+      window.open(this.data.src);
+    }
+
+    if (!gatePermission("spawn_and_move_media")) return;
+
+    if (type === MEDIA_INTERACTION_TYPES.RESET) {
+      resetMediaRotation(this.el);
     }
   },
 
