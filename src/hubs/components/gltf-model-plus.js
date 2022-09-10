@@ -10,6 +10,8 @@ import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader";
 import { resetMediaRotation, MEDIA_PRESENCE, MEDIA_INTERACTION_TYPES } from "../utils/media-utils";
 import { gatePermission } from "../utils/permissions-utils";
 import { RENDER_ORDER } from "../constants";
+import { BasisTextureLoader } from "three/examples/jsm/loaders/BasisTextureLoader";
+import { BasisLoadingManager } from "../utils/media-utils";
 
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
 
@@ -140,7 +142,7 @@ const inflateEntities = function(indexToEntityMap, node, templates, isRoot, mode
       "spawn-point" in entityComponents ||
       "scene-preview-camera" in entityComponents)
   ) {
-    node.parent.remove(node);
+    node.removeFromParent();
 
     return;
   }
@@ -469,6 +471,7 @@ class GLTFHubsTextureBasisExtension {
   constructor(parser) {
     this.parser = parser;
     this.name = "MOZ_HUBS_texture_basis";
+    this.basisLoader = new BasisTextureLoader(BasisLoadingManager).detectSupport(AFRAME.scenes[0].renderer);
   }
 
   loadTexture(textureIndex) {
@@ -480,7 +483,7 @@ class GLTFHubsTextureBasisExtension {
       return null;
     }
 
-    if (!parser.options.ktx2Loader) {
+    if (!this.basisLoader) {
       // @TODO: Display warning (only if the extension is in extensionsRequired)?
       return null;
     }
@@ -489,7 +492,7 @@ class GLTFHubsTextureBasisExtension {
 
     const extensionDef = textureDef.extensions[this.name];
     const source = json.images[extensionDef.source];
-    const loader = parser.options.ktx2Loader.basisLoader;
+    const loader = this.basisLoader;
 
     return parser.loadTextureImage(textureIndex, source, loader);
   }

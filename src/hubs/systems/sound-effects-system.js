@@ -314,7 +314,7 @@ export class SoundEffectsSystem {
       }
 
       if (inPositionalAudio.parent) {
-        inPositionalAudio.parent.remove(inPositionalAudio);
+        inPositionalAudio.removeFromParent();
       }
     }
     this.positionalAudiosStationary = this.positionalAudiosStationary.filter(

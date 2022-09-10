@@ -52,7 +52,8 @@ class HubsMeshBasicMaterial extends THREE.MeshBasicMaterial {
     material.map = source.map;
 
     material.lightMap = source.lightMap;
-    material.lightMapIntensity = source.lightMapIntensity;
+    // See https://github.com/mrdoob/three.js/pull/23613 for "* Math.PI"
+    material.lightMapIntensity = source.lightMapIntensity * Math.PI;
 
     material.aoMap = source.aoMap;
     material.aoMapIntensity = source.aoMapIntensity;
@@ -63,9 +64,6 @@ class HubsMeshBasicMaterial extends THREE.MeshBasicMaterial {
     material.wireframeLinewidth = source.wireframeLinewidth;
     material.wireframeLinecap = source.wireframeLinecap;
     material.wireframeLinejoin = source.wireframeLinejoin;
-
-    material.skinning = source.skinning;
-    material.morphTargets = source.morphTargets;
 
     return material;
   }
@@ -181,9 +179,6 @@ class HubsMeshPhongMaterial extends THREE.MeshPhongMaterial {
     material.wireframeLinecap = source.wireframeLinecap;
     material.wireframeLinejoin = source.wireframeLinejoin;
 
-    material.skinning = source.skinning;
-    material.morphTargets = source.morphTargets;
-    material.morphNormals = source.morphNormals;
     material.stencilWrite = true;
     material.stencilFunc = THREE.AlwaysStencilFunc;
     material.stencilRef = 2;
@@ -254,8 +249,6 @@ export function convertStandardMaterial(source, quality) {
   //  emissiveMap: source.emissiveMap,
   //  emissiveIntensity: source.emissiveIntensity,
   //  map: source.map,
-  //  morphNormals: source.morphNormals,
-  //  morphTargets: source.morphTargets,
   //  refractionRatio: source.refractionRatio,
   //  skinning: source.skinning,
   //  wireframe: source.wireframe,
