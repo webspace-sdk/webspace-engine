@@ -19,7 +19,7 @@ import { BasisTextureLoader } from "three/examples/jsm/loaders/BasisTextureLoade
 
 export const BasisLoadingManager = new THREE.LoadingManager();
 
-basisLoadingManager.setURLModifier(url => {
+BasisLoadingManager.setURLModifier(url => {
   if (url === "basis_transcoder.js") return basisTranscoderUrl;
   if (url === "basis_transcoder.wasm") return basisTranscoderWasmUrl;
   return url;
