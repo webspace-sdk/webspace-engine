@@ -38,6 +38,7 @@
 - deal with filtering networking based on roles + hub setting for allowing edits
 - Y.js syncing of text boxes
 - only flush from one writeback host in presence, to avoid collisions
+- drop flat world
 
 name not updating in self panel when updated by another peer
 should change button to "unlock world" when others are in room
