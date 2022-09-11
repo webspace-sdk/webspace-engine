@@ -22,7 +22,7 @@ AFRAME.registerComponent("avatar-volume-controls", {
   },
 
   changeVolumeBy(v) {
-    this.el.setAttribute("avatar-volume-controls", "volume", THREE.Math.clamp(this.data.volume + v, 0, MAX_VOLUME));
+    this.el.setAttribute("avatar-volume-controls", "volume", THREE.MathUtils.clamp(this.data.volume + v, 0, MAX_VOLUME));
   },
 
   mute() {

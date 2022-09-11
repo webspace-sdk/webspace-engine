@@ -187,7 +187,7 @@ class Water extends Mesh {
 
     this.renderTarget = new WebGLRenderTarget(textureWidth, textureHeight, parameters);
 
-    if (!THREE.Math.isPowerOfTwo(textureWidth) || !THREE.Math.isPowerOfTwo(textureHeight)) {
+    if (!THREE.MathUtils.isPowerOfTwo(textureWidth) || !THREE.MathUtils.isPowerOfTwo(textureHeight)) {
       this.renderTarget.texture.generateMipmaps = false;
     }
 

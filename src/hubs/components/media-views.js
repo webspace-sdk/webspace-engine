@@ -376,7 +376,7 @@ AFRAME.registerComponent("media-video", {
   },
 
   changeVolumeBy(v) {
-    this.el.setAttribute("media-video", "volume", THREE.Math.clamp(this.data.volume + v, 0, 1));
+    this.el.setAttribute("media-video", "volume", THREE.MathUtils.clamp(this.data.volume + v, 0, 1));
     this.updateVolumeLabel();
   },
 

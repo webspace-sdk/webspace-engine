@@ -37,7 +37,7 @@ export function getAudioFeedbackScale(fromObject, toObject, minDistance, minScal
 function updateVolume(component) {
   const newRawVolume = calculateVolume(component.analyser, component.levels);
 
-  const newPerceivedVolume = Math.log(THREE.Math.mapLinear(newRawVolume, 0, 1, 1, Math.E));
+  const newPerceivedVolume = Math.log(THREE.MathUtils.mapLinear(newRawVolume, 0, 1, 1, Math.E));
 
   component.volume = newPerceivedVolume < MIN_VOLUME_THRESHOLD ? 0 : newPerceivedVolume;
 
@@ -165,7 +165,7 @@ const SPRITE_NAMES = {
 };
 
 export function micLevelForVolume(volume) {
-  return THREE.Math.clamp(Math.ceil(THREE.Math.mapLinear(volume - 0.05, 0, 1, 0, 7)), 0, 7);
+  return THREE.MathUtils.clamp(Math.ceil(THREE.MathUtils.mapLinear(volume - 0.05, 0, 1, 0, 7)), 0, 7);
 }
 
 AFRAME.registerComponent("mic-button", {

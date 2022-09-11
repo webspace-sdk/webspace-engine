@@ -8,7 +8,7 @@ import parseCSSColor from "parse-css-color";
 import "./hubs/utils/theme";
 import "./hubs/utils/debug-log";
 import "./hubs/utils/logging";
-require("three/examples/js/loaders/GLTFLoader");
+require("three/examples/jsm/loaders/GLTFLoader");
 import "./hubs/utils/threejs-world-update";
 import "./hubs/components/scene-components";
 import "./hubs/components/scale-in-screen-space";
@@ -1112,7 +1112,7 @@ async function start() {
 
   canvas.focus();
 
-  scene.renderer.debug.checkShaderErrors = false;
+  scene.renderer.debug.checkShaderErrors = true;
 
   if (scene.hasLoaded) {
     initPhysicsThreeAndCursor(scene);

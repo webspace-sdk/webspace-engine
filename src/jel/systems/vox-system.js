@@ -19,7 +19,7 @@ import { getSpaceIdFromHistory, getHubIdFromHistory } from "../utils/jel-url-uti
 import VoxSync from "../utils/vox-sync";
 import FastVixel from "fast-vixel";
 
-const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, VertexColors, Matrix4, Mesh } = THREE;
+const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, Matrix4, Mesh } = THREE;
 import { EventTarget } from "event-target-shim";
 
 export const MAX_FRAMES_PER_VOX = 32;
@@ -34,7 +34,7 @@ targettingMaterial.visible = false;
 
 const voxMaterial = new ShaderMaterial({
   name: "vox",
-  vertexColors: VertexColors,
+  vertexColors: true,
   fog: true,
   fragmentShader: ShaderLib.standard.fragmentShader,
   vertexShader: ShaderLib.standard.vertexShader,

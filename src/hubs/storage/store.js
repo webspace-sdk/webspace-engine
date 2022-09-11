@@ -1,6 +1,6 @@
 import { Validator } from "jsonschema";
 import merge from "deepmerge";
-import { generateKeys, keyToJwk } from "../utils/crypto";
+import { generateKeys } from "../utils/crypto";
 
 const LOCAL_STORE_KEY = "___jel_store";
 const STORE_STATE_CACHE_KEY = Symbol();
@@ -141,6 +141,7 @@ export const SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
+        alg: { type: "string" },
         crv: { type: "string" },
         d: { type: "string" },
         ext: { type: "boolean" },
@@ -669,7 +670,7 @@ export default class Store extends EventTarget {
   };
 
   get state() {
-    if (!this.hasOwnProperty(STORE_STATE_CACHE_KEY)) {
+    if (!this.hasOwnProperty(STORE_STATE_CACHE_KEY)) { // eslint-disable-line
       this[STORE_STATE_CACHE_KEY] = JSON.parse(localStorage.getItem(LOCAL_STORE_KEY));
     }
 

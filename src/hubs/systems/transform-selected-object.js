@@ -40,7 +40,7 @@ const offset = new THREE.Vector3();
 const objectSnapAlong = new THREE.Vector3();
 const targetPoint = new THREE.Vector3();
 const axis = new THREE.Vector3();
-const { DEG2RAD } = THREE.Math;
+const { DEG2RAD } = THREE.MathUtils;
 const SNAP_DEGREES = 22.5;
 const SNAP_RADIANS = SNAP_DEGREES * DEG2RAD;
 

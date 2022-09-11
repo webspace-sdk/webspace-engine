@@ -53,7 +53,7 @@ AFRAME.registerComponent("networked-drawing", {
     this.networkBufferInitialized = false;
 
     const options = {
-      vertexColors: THREE.VertexColors
+      vertexColors: true
     };
 
     this.color = new THREE.Color();
@@ -179,7 +179,7 @@ AFRAME.registerComponent("networked-drawing", {
     const exporter = new GLTFExporter();
 
     const material = new THREE.MeshStandardMaterial({
-      vertexColors: THREE.VertexColors
+      vertexColors: true
     });
     const geometry = this.convertToTriangles(this.sharedBuffer.current);
     const mesh = new THREE.Mesh(geometry, material);
@@ -191,8 +191,8 @@ AFRAME.registerComponent("networked-drawing", {
       }
     };
 
-    const glb = await new Promise(resolve => {
-      exporter.parse(mesh, resolve, {
+    const glb = await new Promise((resolve, reject) => {
+      exporter.parse(mesh, resolve, reject, {
         binary: true,
         includeCustomExtensions: true
       });

@@ -117,7 +117,7 @@ function parabolicCurve(p0, v0, t, out) {
 
 function isValidNormalsAngle(collisionNormal, referenceNormal, landingMaxAngle) {
   const angleNormals = referenceNormal.angleTo(collisionNormal);
-  return THREE.Math.RAD2DEG * angleNormals <= landingMaxAngle;
+  return THREE.MathUtils.RAD2DEG * angleNormals <= landingMaxAngle;
 }
 
 const checkLineIntersection = (function() {

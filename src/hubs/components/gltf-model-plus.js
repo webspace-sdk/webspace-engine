@@ -201,7 +201,7 @@ const inflateEntities = function(indexToEntityMap, node, templates, isRoot, mode
   // the group. See `PropertyBinding.findNode`:
   // https://github.com/mrdoob/three.js/blob/dev/src/animation/PropertyBinding.js#L211
   el.object3D.uuid = node.uuid;
-  node.uuid = THREE.Math.generateUUID();
+  node.uuid = THREE.MathUtils.generateUUID();
 
   if (node.animations) {
     // Pass animations up to the group object so that when we can pass the group as
@@ -491,7 +491,7 @@ class GLTFHubsTextureBasisExtension {
     console.warn(`The ${this.name} extension is deprecated, you should use KHR_texture_basisu instead.`);
 
     const extensionDef = textureDef.extensions[this.name];
-    const source = json.images[extensionDef.source];
+    const source = extensionDef.source;
     const loader = this.basisLoader;
 
     return parser.loadTextureImage(textureIndex, source, loader);

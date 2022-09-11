@@ -5,7 +5,6 @@ import { generateMeshBVH } from "../../hubs/utils/three-utils";
 const {
   ShaderMaterial,
   MeshStandardMaterial,
-  VertexColors,
   BufferGeometry,
   BufferAttribute,
   Object3D,
@@ -77,7 +76,7 @@ export const getWorldColor = index => {
 const createVoxelMaterial = () => {
   const voxelMaterial = new ShaderMaterial({
     name: "voxels",
-    vertexColors: VertexColors,
+    vertexColors: true,
     fog: true,
     fragmentShader: ShaderLib.standard.fragmentShader,
     vertexShader: ShaderLib.standard.vertexShader,

@@ -37,7 +37,7 @@ const calculateDisplacementToDesiredPOV = (function() {
  * The controller accounts for playspace offset and orientation and depends on the nav mesh system for translation.
  * @namespace avatar
  */
-const SNAP_ROTATION_RADIAN = THREE.Math.DEG2RAD * 45;
+const SNAP_ROTATION_RADIAN = THREE.MathUtils.DEG2RAD * 45;
 const BASE_SPEED = 3.2; //TODO: in what units?
 const JUMP_GRAVITY = -16.0;
 const INITIAL_JUMP_VELOCITY = 5.0;
