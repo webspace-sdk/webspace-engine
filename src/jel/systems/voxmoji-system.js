@@ -76,6 +76,7 @@ const voxmojiMaterialOnBeforeCompile = shader => {
     "#include <common>",
     "#include <uv_pars_fragment>",
     "#include <map_pars_fragment>",
+    "#include <alphatest_pars_fragment>",
     "#include <clipping_planes_pars_fragment>",
     "",
     "void main() {",
@@ -83,7 +84,7 @@ const voxmojiMaterialOnBeforeCompile = shader => {
     "	#include <clipping_planes_fragment>",
     " gl_FragColor = texture2D(map, vUv);",
     " gl_FragColor.a = mix(step(0.6, gl_FragColor.a), 1.0, vRim);",
-    " if ( gl_FragColor.a < ALPHATEST ) discard;",
+    " if ( gl_FragColor.a < 0.01 ) discard;",
     "}"
   ].join("\n");
 };
@@ -92,7 +93,6 @@ voxmojiMaterial.stencilWrite = true;
 voxmojiMaterial.stencilFunc = THREE.AlwaysStencilFunc;
 voxmojiMaterial.stencilRef = 0;
 voxmojiMaterial.stencilZPass = THREE.ReplaceStencilOp;
-voxmojiMaterial.alphaTest = 0.01;
 voxmojiMaterial.uniforms.diffuse.value = new Color(0.5, 0.5, 0.5);
 
 // This system manages instanced voxmoji, which are simple meshes that appear as blocky extruded objects.

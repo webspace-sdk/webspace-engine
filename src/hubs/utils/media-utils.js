@@ -1038,7 +1038,7 @@ let basisLoader;
 
 export function createBasisTexture(url) {
   if (!basisLoader) {
-    basisLoader = new BasisTextureLoader(BasisLoadingManager);
+    basisLoader = new BasisTextureLoader(BasisLoadingManager).detectSupport(AFRAME.scenes[0].renderer);
   }
   return new Promise((resolve, reject) => {
     basisLoader.load(
