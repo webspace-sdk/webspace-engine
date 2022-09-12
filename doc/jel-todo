@@ -8,6 +8,7 @@
 - collaborative text
 - bring in avatar audio system
 - drop config system (maybe keep some meta tags)
+- add tag types to create dropdown
 - drop envs in webpack config
 - sessionId -> clientId
 - refactor all event names to be dash-cased

@@ -59,88 +59,24 @@ class ExpandedTreeNodes {
 class TreeManager extends EventTarget {
   constructor(spaceMetadata, hubMetadata) {
     super();
-    this.privateExpandedTreeNodes = new ExpandedTreeNodes();
     this.navExpandedTreeNodes = new ExpandedTreeNodes();
 
-    // Private space tree
-    this.privateSpace = new TreeSync(
-      "space",
-      this.privateExpandedTreeNodes,
-      spaceMetadata,
-      () => true,
-      TREE_PROJECTION_TYPE.NESTED,
-      () => true
-    );
+    this.worldNav = new TreeSync("index.html", this.navExpandedTreeNodes, hubMetadata, TREE_PROJECTION_TYPE.NESTED);
 
-    const filterAtomIdByMetadata = filter => atomId => {
-      if (!hubMetadata.hasMetadata(atomId)) return false;
-      return filter(hubMetadata.getMetadata(atomId));
-    };
-
-    const filterNodeByMetadata = filter => node => {
-      if (!hubMetadata.hasMetadata(node.h)) return false;
-      return filter(hubMetadata.getMetadata(node.h));
-    };
-
-    const isWorld = filterAtomIdByMetadata(m => m.type === "world");
-    const isChannel = filterAtomIdByMetadata(m => m.type === "channel");
-    const isActiveWorld = filterNodeByMetadata(
-      m => m.state === "active" && m.type === "world" && m.permissions.join_hub
-    );
-    const isActiveChannel = filterNodeByMetadata(
-      m => m.state === "active" && m.type === "channel" && m.permissions.join_hub
-    );
-    const isTrashed = filterNodeByMetadata(m => m.state === "trashed" && m.permissions.join_hub);
-
-    this.worldNav = new TreeSync(
-      "nav",
-      this.navExpandedTreeNodes,
-      hubMetadata,
-      isActiveWorld,
-      TREE_PROJECTION_TYPE.NESTED,
-      isWorld
-    );
-    this.channelNav = new TreeSync(
-      "nav",
-      this.navExpandedTreeNodes,
-      hubMetadata,
-      isActiveChannel,
-      TREE_PROJECTION_TYPE.NESTED,
-      isChannel
-    );
-    this.trashNav = new TreeSync("nav", null, hubMetadata, isTrashed, TREE_PROJECTION_TYPE.FLAT);
-    this.trashNested = new TreeSync("nav", null, hubMetadata, isTrashed, TREE_PROJECTION_TYPE.NESTED);
-
-    this.worldNav.addEventListener("filtered_treedata_updated", () => this.syncMatrixRoomOrdersFromTree(this.worldNav));
-    this.channelNav.addEventListener("filtered_treedata_updated", () =>
-      this.syncMatrixRoomOrdersFromTree(this.channelNav)
-    );
+    this.trashNav = new TreeSync("trash.html", null, hubMetadata, TREE_PROJECTION_TYPE.FLAT);
+    this.trashNested = new TreeSync("trash.html", null, hubMetadata, TREE_PROJECTION_TYPE.NESTED);
   }
 
-  async init(connection) {
-    await Promise.all([
-      await this.privateSpace.init(connection),
-      await this.worldNav.init(connection),
-      await this.channelNav.init(connection),
-      await this.trashNav.init(connection),
-      await this.trashNested.init(connection)
-    ]);
+  async init() {
+    await Promise.all([await this.worldNav.init(), await this.trashNav.init(), await this.trashNested.init()]);
   }
 
   setNavTitleControl(titleControl) {
     this.worldNav.setTitleControl(titleControl);
-    this.channelNav.setTitleControl(titleControl);
   }
 
   setTrashNavTitleControl(titleControl) {
     this.trashNav.setTitleControl(titleControl);
-  }
-
-  setSpaceCollectionId(collectionId) {
-    this.worldNav.setCollectionId(collectionId);
-    this.channelNav.setCollectionId(collectionId);
-    this.trashNav.setCollectionId(collectionId);
-    this.trashNested.setCollectionId(collectionId);
   }
 
   rebuildSharedTrashTree() {
@@ -172,26 +108,6 @@ class TreeManager extends EventTarget {
 
   navExpandedNodeIds() {
     return this.navExpandedTreeNodes.expandedNodeIds();
-  }
-
-  async syncMatrixRoomOrdersFromTree({ filteredTreeData }) {
-    const { matrix } = window.APP;
-    let order = 0;
-
-    const walk = nodes => {
-      for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i];
-
-        matrix.updateRoomOrderForHubId(node.atomId, order);
-        order++;
-
-        if (node.children && node.children.length > 0) {
-          walk(node.children);
-        }
-      }
-    };
-
-    walk(filteredTreeData);
   }
 }
 

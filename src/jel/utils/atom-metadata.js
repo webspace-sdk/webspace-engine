@@ -6,6 +6,7 @@ import { EventTarget } from "event-target-shim";
 import { getHubIdFromHistory } from "./jel-url-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { META_TAG_PREFIX, getHubMetaFromDOM } from "./dom-utils";
+import { getSpaceIdFromUrl, getHubIdFromUrl } from "./jel-url-utils";
 
 const ATOM_TYPES = {
   HUB: 0,
@@ -133,12 +134,14 @@ class AtomMetadata {
         this._sourceGetMethod = "getHubMetas";
         this._defaultNames.set("world", messages["hub.unnamed-world-title"]);
         this._defaultNames.set("channel", messages["hub.unnamed-channel-title"]);
+        this._atomIdToUrl = getHubIdFromUrl;
         break;
       case ATOM_TYPES.SPACE:
         this._refreshMessage = "space_meta_refresh";
         this._idColumn = "space_id";
         this._sourceGetMethod = "getSpaceMetas";
         this._defaultNames.set("space", messages["space.unnamed-title"]);
+        this._atomIdToUrl = getSpaceIdFromUrl;
         break;
       case ATOM_TYPES.VOX:
         this._refreshMessage = "vox_meta_refresh";
@@ -212,14 +215,19 @@ class AtomMetadata {
   };
 
   // Performs a local optimistic update + fires events
+  //
+  // This is used to set the name + url of items fetched from trees, to avoid having to go to the origin HTML file.
   localUpdate = (id, metadata) => {
-    if (!this.hasMetadata(id)) return;
+    if (!this.hasMetadata(id)) {
+      this._metadata.set(id, {});
+    }
+
     const existing = this.getMetadata(id);
 
     let newMetadata = null;
 
-    // For now can only locally update name
-    for (const field of ["name"]) {
+    // For now can only locally update name + rul
+    for (const field of ["name", "url"]) {
       if (metadata[field] === undefined) continue;
       newMetadata = { ...(newMetadata || existing), [field]: metadata[field] };
     }
@@ -321,6 +329,10 @@ class AtomMetadata {
 
   get atomType() {
     return this._atomType;
+  }
+
+  async getAtomIdFromUrl(url) {
+    return await this._atomIdToUrl(url);
   }
 
   async getOrFetchMetadata(id) {

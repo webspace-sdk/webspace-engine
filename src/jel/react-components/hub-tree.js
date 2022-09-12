@@ -44,14 +44,12 @@ function HubTree({
 
   const navTitleControl = useCallback(
     data => {
-      const metadata = atomMetadata.getMetadata(data.atomId);
-      const showAdd = !!(spaceCan("create_world_hub") && metadata && metadata.type === "world");
+      const showAdd = !!spaceCan("create_world_hub");
 
       return (
         <HubNodeTitle
           hubId={data.atomId}
           showAdd={showAdd}
-          showDots={true}
           hubMetadata={atomMetadata}
           onAddClick={async e => {
             e.stopPropagation(); // Otherwise this will perform a tree node click event

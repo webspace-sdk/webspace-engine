@@ -437,17 +437,15 @@ export async function setupTreeManagers(history, entryManager, remountJelUI) {
 
   document.body.addEventListener(
     "connected",
-    async ({ detail: { connection, presence } }) => {
+    async ({ detail: { presence } }) => {
       initPresence(presence);
 
-      await treeManager.init(connection);
+      await treeManager.init();
 
       remountJelUI({ history, treeManager, voxTree, sceneTree });
     },
     { once: true }
   );
-
-  treeManager.setSpaceCollectionId(spaceId);
 }
 
 export async function joinHub(scene, history, entryManager, remountJelUI, initialWorldHTML) {

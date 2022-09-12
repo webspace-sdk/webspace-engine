@@ -203,7 +203,7 @@ class FileWriteback {
     return true;
   }
 
-  async blobUrlForRelativePathContents(path) {
+  async contentUrlForRelativePath(path) {
     if (this.blobCache.has(path)) {
       return this.blobCache.get(path);
     }
@@ -476,9 +476,9 @@ export default class AtomAccessManager extends EventTarget {
     }
   }
 
-  async blobUrlForRelativePathContents(path) {
+  async contentUrlForRelativePath(path) {
     if (!(await this.ensureWritebackOpen(true))) return;
-    return await this.writeback.blobUrlForRelativePathContents(path);
+    return await this.writeback.contentUrlForRelativePath(path);
   }
 
   async uploadAsset(fileOrBlob) {

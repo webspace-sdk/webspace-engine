@@ -3,7 +3,6 @@ import React, { useRef, useState } from "react";
 import styled from "styled-components";
 import IconButton from "./icon-button";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal.svgi";
-import addIcon from "../../assets/jel/images/icons/add.svgi";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 
 const HubNodeElement = styled.div`
@@ -52,7 +51,7 @@ const PopupRef = styled.div`
   top: 12px;
 `;
 
-const HubNodeTitle = ({ hubId, onDotsClick, showAdd, showDots, onAddClick, hubMetadata }) => {
+const HubNodeTitle = ({ hubId, onDotsClick, showDots, hubMetadata }) => {
   const [name, setName] = useState("");
 
   const popupRef = useRef();
@@ -65,7 +64,6 @@ const HubNodeTitle = ({ hubId, onDotsClick, showAdd, showDots, onAddClick, hubMe
       <HubControls className="controls">
         {showDots && <IconButton iconSrc={dotsIcon} onClick={e => onDotsClick(e, popupRef)} />}
         <PopupRef ref={popupRef} />
-        {showAdd && <IconButton iconSrc={addIcon} onClick={onAddClick} />}
       </HubControls>
     </HubNodeElement>
   );

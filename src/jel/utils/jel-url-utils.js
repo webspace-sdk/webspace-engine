@@ -10,15 +10,13 @@ let currentHubId = null;
 let currentHubSeed = null;
 let currentSpaceId = null;
 
-const update = async () => {
-  const { origin, pathname } = document.location;
-  if (currentHref === origin + pathname && currentHubId && currentSpaceId) return;
+export async function getHubIdFromUrl(url) {
+  const hubHash = await hashString(url);
+  return bs58.encode(hubHash).substring(0, 16);
+}
 
-  currentHref = origin + pathname;
-
-  const hubHash = await hashString(currentHref);
-  currentHubId = bs58.encode(hubHash).substring(0, 16);
-  currentHubSeed = hubHash[0];
+export async function getSpaceIdFromUrl(url) {
+  const { origin, pathname } = new URL(url);
 
   // Space id is the path the world is in.
   const pathParts = pathname.split("/");
@@ -28,7 +26,19 @@ const update = async () => {
     toHash = toHash.replace(new RegExp(`/${pathParts[pathParts.length - 1]}$`), "");
   }
 
-  currentSpaceId = bs58.encode(await hashString(toHash)).substring(0, 16);
+  return bs58.encode(await hashString(toHash)).substring(0, 16);
+}
+
+const update = async () => {
+  const { origin, pathname } = document.location;
+  if (currentHref === origin + pathname && currentHubId && currentSpaceId) return;
+
+  currentHref = origin + pathname;
+
+  currentHubId = await getHubIdFromUrl(currentHref);
+  const hubHash = await hashString(currentHref);
+  currentHubSeed = hubHash[0];
+  currentSpaceId = await getSpaceIdFromUrl(document.location.toString());
 };
 
 export async function getHubIdFromHistory() {
@@ -41,10 +51,8 @@ export async function getSpaceIdFromHistory() {
   return currentSpaceId;
 }
 
-export function navigateToHubUrl(history, url, replace = false) {
-  const search = history.location.search;
-  const path = new URL(url, document.location.origin).pathname;
-  (replace ? replaceHistoryPath : pushHistoryPath)(history, path, search);
+export function navigateToHubUrl(history, url) {
+  document.location = url;
 }
 
 export async function getSeedForHubIdFromHistory() {
