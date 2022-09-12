@@ -38,6 +38,12 @@
 - only flush from one writeback host in presence, to avoid collisions
 - drop flat world
 - left click to drag objects, right click to edit objects
+- for nav:
+  - do not rename files, do not remove worlds from nav
+  - rename world changes document title, flushes nav
+  - add existing url to end of nav if missing, or replace title if wrong
+  - add 'remove from nav' menu option, to let user deal with dead links if they rename a file
+  - create world popup prompts for title and derives html filename. does not overwrite
 
 name not updating in self panel when updated by another peer
 should change button to "unlock world" when others are in room
