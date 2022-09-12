@@ -1,6 +1,5 @@
 import crypto from "crypto";
 import "aframe";
-import "aframe-slice9-component";
 import "networked-aframe/src/index";
 import { detectOS, detect } from "detect-browser";
 import parseCSSColor from "parse-css-color";

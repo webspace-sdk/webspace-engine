@@ -2,6 +2,8 @@
 - deal with hub store
 - name generator
 - default hub at index.html
+- jel.js -> index.js
+- jel -> ws
 - search for TODO SHARED
 - collaborative text
 - bring in avatar audio system
@@ -9,29 +11,25 @@
 - drop envs in webpack config
 - sessionId -> clientId
 - refactor all event names to be dash-cased
-- move ascene into shadow DOM
-- sound effect rights
-- remove matrix
 - bring over muted ring
-- spike loading from file
-  - if works, move to nginx + webdav for writeback?
+- if works, move to nginx + webdav for writeback?
 - unplug atom channels + nav tree
   - nav tree not there anymore
   - title is just the title
+- index.html setup
+  - add networking config
+- deno cors proxying split + ytdl enable
 - authorize + sanitize in NAF adapter
 - unplug space channel
 - delete snackbar
-- new emoji map
-- media resolution + worker
-- cut down dead code and deps
-- pack all assets into JS
-- re-add curvature (but retain flat mode)
+- cut down dead code
+- review all deps
 - update GLTF importer
 - nuke hub-type-world vs channel, grep for channel
 - drop push notif
 - make voxmoji float
-- grep for "channel"
 - browser compat, show message if trying to edit file:// in non-chrome
+- test ff + safari
 - allow networking settings to be changed via qs
 - file uploads
 - detecting relay member in presence to unlock editing for unprivileged users

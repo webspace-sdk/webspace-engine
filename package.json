@@ -65,7 +65,6 @@
     "@stardazed/streams-compression": "^1.0.0",
     "@tippyjs/react": "^4.2.0",
     "aframe": "github:jel-app/aframe#hubs-141-upgrade",
-    "aframe-slice9-component": "github:jel-app/aframe-slice9-component#master",
     "ammo-debug-drawer": "github:infinitelee/ammo-debug-drawer",
     "ammo.js": "github:jel-app/ammo.js#jel/master",
     "animejs": "github:mozillareality/anime#hubs/master",
