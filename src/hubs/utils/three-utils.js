@@ -63,6 +63,10 @@ export function disposeMaterial(mtrl) {
   if (mtrl.normalMap) disposeTexture(mtrl.normalMap);
   if (mtrl.specularMap) disposeTexture(mtrl.specularMap);
   if (mtrl.envMap) disposeTexture(mtrl.envMap);
+  if (mtrl.aoMap) mtrl.aoMap.dispose();
+  if (mtrl.metalnessMap) mtrl.metalnessMap.dispose();
+  if (mtrl.roughnessMap) mtrl.roughnessMap.dispose();
+  if (mtrl.emissiveMap) mtrl.emissiveMap.dispose();
   mtrl.dispose();
 }
 
