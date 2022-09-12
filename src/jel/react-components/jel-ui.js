@@ -1,9 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import { FormattedMessage } from "react-intl";
-import cancelIcon from "../../assets/jel/images/icons/cancel.svgi";
-import { FieldEditButton } from "./form-components";
 import PropTypes from "prop-types";
-import WorldImporter from "../utils/world-importer";
 import styled, { StyleSheetManager } from "styled-components";
 import mutedIcon from "../../assets/jel/images/icons/mic-muted.svgi";
 import unmutedIcon from "../../assets/jel/images/icons/mic-unmuted.svgi";
@@ -153,68 +150,6 @@ const BottomExpandTrigger = styled.div`
   z-index: 4;
   cursor: pointer;
   display: none;
-`;
-
-const NotifyBanner = styled.div`
-  width: 100%;
-  height: 42px;
-  background-color: var(--notify-banner-background-color);
-  color: var(--notify-banner-text-color);
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  z-index: 6;
-  pointer-events: auto;
-  user-select: none;
-`;
-
-const NotifyBannerButton = styled.button`
-  position: relative;
-  color: var(--canvas-overlay-text-color);
-  width: content-width;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border-radius: 4px;
-  padding: 4px 8px;
-  margin: 0 12px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  appearance: none;
-  -moz-appearance: none;
-  -webkit-appearance: none;
-  outline-style: none;
-  background-color: transparent;
-  font-weight: var(--canvas-overlay-item-text-weight);
-  text-align: left;
-  max-width: fit-content;
-  text-shadow: 0px 0px 4px var(--menu-shadow-color);
-
-  &:hover {
-    background-color: var(--canvas-overlay-item-hover-background-color);
-  }
-
-  &:active {
-    background-color: var(--canvas-overlay-item-active-background-color);
-  }
-`;
-
-const NotifyBannerClose = styled.button`
-  display: flex;
-  color: var(--notify-banner-close-color);
-  border: 0;
-  justify-content: center;
-  align-items: center;
-  appearance: none;
-  -moz-appearance: none;
-  -webkit-appearance: none;
-  outline-style: none;
-  background-color: transparent;
-  margin-right: 12px;
-
-  &:hover {
-    text-decoration: underline;
-  }
 `;
 
 const FadeEdges = styled.div`
@@ -373,18 +308,7 @@ const DeviceStatuses = styled.div`
 `;
 
 function JelUI(props) {
-  const {
-    scene,
-    treeManager,
-    hub,
-    unavailableReason,
-    subscriptions,
-    voxTree,
-    sceneTree,
-    sessionId,
-    hide,
-    isDoneLoading
-  } = props;
+  const { scene, treeManager, hub, unavailableReason, voxTree, sceneTree, sessionId, hide, isDoneLoading } = props;
 
   const { launcherSystem, cameraSystem, builderSystem, externalCameraSystem } = SYSTEMS;
 
@@ -402,14 +326,6 @@ function JelUI(props) {
   const [channelTreeData, setChannelTreeData] = useState([]);
   const [channelTreeDataVersion, setChannelTreeDataVersion] = useState(0);
   const [showingExternalCamera /*, setShowingExternalCamera*/] = useState(false);
-  const [showNotificationBanner, setShowNotificationBanner] = useState(
-    subscriptions &&
-      !subscriptions.subscribed &&
-      store &&
-      (!store.state.settings.hideNotificationBannerUntilSeconds ||
-        Math.floor(new Date() / 1000.0) > store.state.settings.hideNotificationBannerUntilSeconds)
-  );
-  const [showNotificationBannerWarning, setShowNotificationBannerWarning] = useState(false);
 
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const [isInspecting, setIsInspecting] = useState(cameraSystem.isInspecting());
@@ -451,70 +367,6 @@ function JelUI(props) {
   useTreeData(worldTree, worldTreeDataVersion, setWorldTreeData, setWorldTreeDataVersion);
   useTreeData(channelTree, channelTreeDataVersion, setChannelTreeData, setChannelTreeDataVersion);
 
-  // Handle external camera toggle
-  //
-  // Disabled for now, this was used for Zoom integration.
-  //
-  // Note the external camera is now used to generate thumbnails of
-  // published world templates.
-  //
-  // useEffect(
-  //   () => {
-  //     const handleOn = () => setShowingExternalCamera(true);
-  //     const handleOff = () => setShowingExternalCamera(false);
-
-  //     scene && scene.addEventListener("external_camera_added", handleOn);
-  //     scene && scene.addEventListener("external_camera_removed", handleOff);
-
-  //     return () => {
-  //       scene && scene.removeEventListener("external_camera_added", handleOn);
-  //       scene && scene.removeEventListener("external_camera_removed", handleOff);
-  //     };
-  //   },
-  //   [scene]
-  // );
-
-  const onTurnOnNotificationClicked = useCallback(() => subscriptions.subscribe(), [subscriptions]);
-
-  // Handle subscriptions changed
-
-  useEffect(
-    () => {
-      const handler = () => {
-        if (subscriptions.subscribed) {
-          setShowNotificationBanner(false);
-        }
-      };
-
-      subscriptions.addEventListener("subscriptions_updated", handler);
-      return () => subscriptions.removeEventListener("subscriptions_updated", handler);
-    },
-    [subscriptions, setShowNotificationBanner]
-  );
-
-  const onNotifyBannerLater = useCallback(
-    // Delay notifications banner by a day
-    () => {
-      store.update({
-        settings: { hideNotificationBannerUntilSeconds: Math.floor(new Date() / 1000.0 + 24 * 60 * 60) }
-      });
-      setShowNotificationBanner(false);
-    },
-    [store]
-  );
-
-  const onNotifyBannerNever = useCallback(
-    () => {
-      store.update({
-        settings: { hideNotificationBannerUntilSeconds: Math.floor(new Date() / 1000.0 + 10000 * 60 * 60) }
-      });
-      setShowNotificationBanner(false);
-    },
-    [store]
-  );
-
-  const onNotifyBannerClose = useCallback(() => setShowNotificationBannerWarning(true), []);
-
   const onClickExternalCameraRotate = useCallback(() => externalCameraSystem.toggleCamera(), [externalCameraSystem]);
 
   const onExpandTriggerClick = useCallback(() => {
@@ -534,40 +386,6 @@ function JelUI(props) {
           <LoadingPanel isLoading={!isDoneLoading || !!unavailableReason} unavailableReason={unavailableReason} />
           <Snackbar />
           <Wrap id="jel-ui-wrap">
-            {showNotificationBanner &&
-              !showInviteTip &&
-              !showNotificationBannerWarning && (
-                <NotifyBanner>
-                  <FieldEditButton
-                    style={{ position: "absolute", left: "2px", top: "6px" }}
-                    onClick={onNotifyBannerClose}
-                    iconSrc={cancelIcon}
-                  />
-                  <div>
-                    <FormattedMessage id="notification-banner.info" />
-                  </div>
-                  <NotifyBannerButton onClick={onTurnOnNotificationClicked}>
-                    <FormattedMessage id="notification-banner.notify-on" />
-                  </NotifyBannerButton>
-                </NotifyBanner>
-              )}
-            {showNotificationBanner &&
-              showNotificationBannerWarning && (
-                <NotifyBanner>
-                  <div>
-                    <FormattedMessage id="notification-banner.info-warning" />
-                  </div>
-                  <NotifyBannerButton onClick={onTurnOnNotificationClicked}>
-                    <FormattedMessage id="notification-banner.notify-on" />
-                  </NotifyBannerButton>
-                  <NotifyBannerClose onClick={onNotifyBannerLater}>
-                    <FormattedMessage id="notification-banner.close-later" />
-                  </NotifyBannerClose>
-                  <NotifyBannerClose onClick={onNotifyBannerNever}>
-                    <FormattedMessage id="notification-banner.close-never" />
-                  </NotifyBannerClose>
-                </NotifyBanner>
-              )}
             <FadeEdges />
             <CreateSelectPopupRef ref={createSelectPopupRef} />
             <ModalPopupRef ref={modalPopupRef} />
@@ -669,7 +487,6 @@ JelUI.propTypes = {
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,
   scene: PropTypes.object,
-  subscriptions: PropTypes.object,
   hubSettings: PropTypes.array,
   unavailableReason: PropTypes.string,
   voxTree: PropTypes.object,

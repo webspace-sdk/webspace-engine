@@ -124,8 +124,7 @@ import { CURSOR_LOCK_STATES, getCursorLockState } from "./jel/utils/dom-utils";
 import { patchWebGLRenderingContext, isSoftwareRenderer } from "./hubs/utils/webgl";
 import patchThreeNoProgramDispose from "./jel/utils/threejs-avoid-disposing-programs";
 import nextTick from "./hubs/utils/next-tick";
-import Subscriptions from "./hubs/subscriptions";
-import { SOUND_QUACK, SOUND_SPECIAL_QUACK, SOUND_NOTIFICATION } from "./hubs/systems/sound-effects-system";
+import { SOUND_QUACK, SOUND_SPECIAL_QUACK } from "./hubs/systems/sound-effects-system";
 import ducky from "!!url-loader!./assets/hubs/models/DuckyMesh.glb";
 import { getAbsoluteHref } from "./hubs/utils/media-url-utils";
 import { hasActiveScreenShare } from "./hubs/utils/media-utils";
@@ -173,8 +172,6 @@ patchWebGLRenderingContext();
 
 window.APP = new App();
 const store = window.APP.store;
-const subscriptions = new Subscriptions(store);
-window.APP.subscriptions = subscriptions;
 
 store.update({ preferences: { shouldPromptForRefresh: undefined } });
 
@@ -257,7 +254,6 @@ function mountJelUI(props = {}) {
             {...{
               scene,
               store,
-              subscriptions,
               history: routeProps.history,
               ...props
             }}
@@ -654,8 +650,8 @@ function setupSidePanelLayout(scene) {
       "#presence-drag-target",
       ["presence-width"],
       false,
-      310,
-      400,
+      222,
+      312,
       x => window.innerWidth - x,
       w => store.update({ uiState: { presencePanelWidthPx: w } })
     );
@@ -957,26 +953,9 @@ async function start() {
 
   if (navigator.serviceWorker && document.location.protocol !== "file:") {
     try {
-      navigator.serviceWorker
-        .register("/jel.service.js")
-        .then(() => {
-          navigator.serviceWorker.ready
-            .then(registration => {
-              subscriptions.setRegistration(registration);
-              navigator.serviceWorker.addEventListener("message", event => {
-                if (event.data.action === "play_notification_sound") {
-                  SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_NOTIFICATION);
-                }
-              });
-            })
-            .catch(e => console.error(e));
-        })
-        .catch(e => console.error(e));
-    } catch (e) {
-      subscriptions.setRegistrationFailed();
+      navigator.serviceWorker.register("/jel.service.js");
+    } catch (e) { // eslint-disable-line
     }
-  } else {
-    subscriptions.setRegistrationFailed();
   }
 
   const entryManager = new SceneEntryManager();
@@ -1126,8 +1105,7 @@ async function start() {
 
   const sessionId = crypto.randomBytes(20).toString("hex");
 
-  // TODO SHARED figure out what to do about notifications. hubSettings here is the settings for notify joins
-  remountJelUI({ sessionId, hubSettings: [] });
+  remountJelUI({ sessionId });
 
   const availableVREntryTypesPromise = getAvailableVREntryTypes();
 
@@ -1176,7 +1154,7 @@ async function start() {
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
       store.update({ context: { spaceId } });
-      await setupTreeManagers(history, subscriptions, entryManager, remountJelUI);
+      await setupTreeManagers(history, entryManager, remountJelUI);
     }
 
     if (joinHubPromise) await joinHubPromise;

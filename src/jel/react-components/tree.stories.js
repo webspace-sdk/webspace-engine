@@ -110,9 +110,7 @@ const trashTreeData = [
 const fill = (metadata, children) => {
   for (let i = 0; i < children.length; i++) {
     metadata._metadata.set(children[i].hubId || children[i].channelId, {
-      displayName: "Unnamed Atom",
-      notification_count: i,
-      notification_type: i === 0 ? 1 : i === 1 ? 2 : i === 2 ? 3 : 0
+      displayName: "Unnamed Atom"
     });
 
     fill(metadata, children[i].children || []);

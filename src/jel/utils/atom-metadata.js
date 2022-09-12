@@ -13,18 +13,6 @@ const ATOM_TYPES = {
   VOX: 2
 };
 
-export const ATOM_NOTIFICATION_TYPES = {
-  NONE: 0,
-  UNREAD: 1,
-  NOTIFICATIONS: 2,
-  PING_NOTIFICATIONS: 3
-};
-
-const NO_COUNTS = {
-  notification_count: 0,
-  notification_type: 0
-};
-
 const VALID_PERMISSIONS = {
   [ATOM_TYPES.HUB]: [
     "update_hub_meta",
@@ -132,7 +120,6 @@ class AtomMetadata {
   constructor(atomType) {
     this._metadata = new Map();
     this._metadataSubscribers = new Map();
-    this._counts = new Map();
     this._atomType = atomType;
     this._source = null;
     this._defaultNames = new Map();
@@ -243,19 +230,6 @@ class AtomMetadata {
     this._metadata.set(id, newMetadata);
     this._fireHandlerForSubscribersForUpdatedIds([id]);
   };
-
-  setCounts(id, counts) {
-    this._counts.set(id, counts);
-    this._fireHandlerForSubscribersForUpdatedIds([id]);
-  }
-
-  getCounts(id) {
-    return this._counts.get(id) || NO_COUNTS;
-  }
-
-  hasCounts(id) {
-    return this._counts.has(id);
-  }
 
   can(permission /*, atomId*/) {
     if (!VALID_PERMISSIONS[this._atomType].includes(permission))
@@ -443,41 +417,4 @@ function useNameUpdateFromMetadata(atomId, metadata, setDisplayName, setRawName)
   );
 }
 
-function useNotificationCountUpdatesFromMetadata(atomId, metadata, setNotificationCount, setNotificationType) {
-  useEffect(
-    () => {
-      if (!metadata) return () => {};
-
-      const updateCounts = () => {
-        let count = null;
-        let type = null;
-
-        if (atomId) {
-          const { notification_count: c, notification_type: t } = metadata.getCounts(atomId);
-          count = c;
-          type = t;
-        }
-
-        if (count !== undefined && count !== null && setNotificationCount) {
-          setNotificationCount(count);
-        }
-
-        if (type !== undefined && type !== null && setNotificationType) {
-          setNotificationType(type);
-        }
-      };
-
-      updateCounts();
-
-      if (atomId) {
-        metadata.ensureMetadataForIds([atomId]);
-        metadata.subscribeToMetadata(atomId, updateCounts);
-      }
-
-      return () => metadata.unsubscribeFromMetadata(updateCounts);
-    },
-    [atomId, metadata, setNotificationCount, setNotificationType]
-  );
-}
-
-export { AtomMetadata as default, useNameUpdateFromMetadata, useNotificationCountUpdatesFromMetadata, ATOM_TYPES };
+export { AtomMetadata as default, useNameUpdateFromMetadata, ATOM_TYPES };

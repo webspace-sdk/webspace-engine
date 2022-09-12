@@ -422,7 +422,7 @@ const initPresence = (function() {
   };
 })();
 
-export async function setupTreeManagers(history, subscriptions, entryManager, remountJelUI) {
+export async function setupTreeManagers(history, entryManager, remountJelUI) {
   const spaceId = await getSpaceIdFromHistory(history);
   const { spaceMetadata, hubMetadata } = window.APP;
   console.log(`Space ID: ${spaceId}`);

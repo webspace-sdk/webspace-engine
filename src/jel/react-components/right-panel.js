@@ -9,10 +9,8 @@ import launcherOnIcon from "../../assets/jel/images/icons/launcher-on.svgi";
 import launcherOffIcon from "../../assets/jel/images/icons/launcher-off.svgi";
 import builderOnIcon from "../../assets/jel/images/icons/builder-on.svgi";
 import builderOffIcon from "../../assets/jel/images/icons/builder-off.svgi";
-import { spaceForSpaceId } from "../utils/membership-utils";
 import PresenceList from "./presence-list";
 import EmojiEquip from "./emoji-equip";
-import SpaceTree from "./space-tree";
 import { getMessages } from "../../hubs/utils/i18n";
 import { SOUND_TELEPORT_END } from "../../hubs/systems/sound-effects-system";
 
@@ -26,7 +24,7 @@ const Right = styled.div`
 
 const Presence = styled.div`
   pointer-events: auto;
-  width: calc(var(--presence-width) - 88px);
+  width: calc(var(--presence-width));
   display: flex;
   flex-direction: column;
 `;
@@ -81,62 +79,11 @@ const TriggerModePanel = styled.div`
   z-index: 10;
 `;
 
-const SpaceTreeSpill = styled.div`
-  overflow-x: hidden;
-  overflow-y: scroll;
-
-  scrollbar-color: transparent transparent;
-  scrollbar-width: thin;
-  background-color: var(--tertiary-panel-background-color);
-  width: 88px;
-  height: 100%;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-
-  &::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-    visibility: hidden;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-clip: padding-box;
-    border: 2px solid transparent;
-    border-radius: 4px;
-    background-color: transparent;
-    transition: background-color 0.25s;
-    min-height: 40px;
-  }
-
-  &::-webkit-scrollbar-corner {
-    background-color: transparent;
-  }
-
-  &::-webkit-scrollbar-track {
-    border-color: transparent;
-    background-color: transparent;
-    border: 2px solid transparent;
-    visibility: hidden;
-  }
-
-  &:hover {
-    scrollbar-color: var(--secondary-scroll-thumb-color) transparent;
-
-    &::-webkit-scrollbar-thumb {
-      background-color: var(--secondary-scroll-thumb-color);
-      transition: background-color 0.25s;
-    }
-  }
-`;
-
-function RightPanel({ history, hub, hubCan, sessionId, scene, centerPopupRef, spaceId, memberships, treeManager }) {
+function RightPanel({ hub, hubCan, sessionId, scene, centerPopupRef }) {
   const { builderSystem, launcherSystem, cameraSystem } = SYSTEMS;
 
   const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const [isInEditorView, setIsInEditorView] = useState(cameraSystem.isInspecting() && cameraSystem.allowCursor);
-
-  const space = spaceForSpaceId(spaceId, memberships);
 
   useEffect(
     () => {
@@ -233,9 +180,6 @@ function RightPanel({ history, hub, hubCan, sessionId, scene, centerPopupRef, sp
             </TriggerModePanel>
           )}
       </Presence>
-      <SpaceTreeSpill>
-        <SpaceTree treeManager={treeManager} space={space} history={history} memberships={memberships} />
-      </SpaceTreeSpill>
     </Right>
   );
 }

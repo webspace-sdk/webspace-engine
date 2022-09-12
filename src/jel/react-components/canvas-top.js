@@ -9,7 +9,6 @@ import HubContextMenu from "./hub-context-menu";
 import CreateSelectPopup from "./create-select-popup";
 import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shadow.svgi";
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
-import notificationsIcon from "../../assets/jel/images/icons/notifications-shadow.svgi";
 import securityIcon from "../../assets/jel/images/icons/security-shadow.svgi";
 import sunIcon from "../../assets/jel/images/icons/sun-shadow.svgi";
 import editIcon from "../../assets/jel/images/icons/edit-shadow.svgi";
@@ -22,7 +21,6 @@ import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { getPresetAsColorTuples } from "../utils/world-color-presets";
 import HubPermissionsPopup from "./hub-permissions-popup";
 import WritebackSetupPopup from "./writeback-setup-popup";
-import HubNotificationsPopup from "./hub-notifications-popup";
 import EnvironmentSettingsPopup from "./environment-settings-popup";
 
 const Top = styled.div`
@@ -171,20 +169,6 @@ const HubPermissionsButton = forwardRef((props, ref) => {
 
 HubPermissionsButton.displayName = "HubPermissionsButton";
 
-const HubNotificationButton = forwardRef((props, ref) => {
-  const messages = getMessages();
-
-  return (
-    <Tooltip content={messages["hub-notifications.tip"]} placement="top" key="hub-notifications" delay={500}>
-      <CornerButtonElement {...props} ref={ref}>
-        <CornerButtonIcon dangerouslySetInnerHTML={{ __html: notificationsIcon }} />
-      </CornerButtonElement>
-    </Tooltip>
-  );
-});
-
-HubNotificationButton.displayName = "HubNotificationButton";
-
 const CameraProjectionButton = forwardRef(() => {
   const { cameraSystem } = SYSTEMS;
   const messages = getMessages();
@@ -288,7 +272,6 @@ function CanvasTop(props) {
   const {
     history,
     hubCan,
-    hubSettings,
     voxCan,
     hub,
     worldTree,
@@ -297,8 +280,7 @@ function CanvasTop(props) {
     spaceCan,
     worldTreeData,
     channelTreeData,
-    createSelectPopupRef,
-    subscriptions
+    createSelectPopupRef
   } = props;
 
   const { cameraSystem, terrainSystem, atmosphereSystem } = SYSTEMS;
@@ -334,14 +316,6 @@ function CanvasTop(props) {
     setPopup: setCreateSelectPopupElement,
     popupElement: createSelectPopupElement
   } = usePopupPopper(".create-select-selection-search-input", "bottom-end", [0, 8]);
-
-  const {
-    styles: hubNotificationPopupStyles,
-    attributes: hubNotificationPopupAttributes,
-    show: showHubNotificationPopup,
-    setPopup: setHubNotificationPopupElement,
-    popupElement: hubNotificationPopupElement
-  } = usePopupPopper(null, "bottom-end", [0, 8]);
 
   const {
     styles: environmentSettingsPopupStyles,
@@ -448,7 +422,6 @@ function CanvasTop(props) {
   const [editingAvailable, setIsEditingAvailable] = useState(atomAccessManager.isEditingAvailable);
   const [pwaAvailable, installPWA] = useInstallPWA();
   const environmentSettingsButtonRef = useRef();
-  const hubNotificationButtonRef = useRef();
   const hubPermissionsButtonRef = useRef();
   const hubEditButtonRef = useRef();
   const hubCreateButtonRef = useRef();
@@ -547,13 +520,6 @@ function CanvasTop(props) {
               onClick={() => showHubPermissionsPopup(hubPermissionsButtonRef)}
             />
           )}
-        {
-          <HubNotificationButton
-            ref={hubNotificationButtonRef}
-            onMouseDown={e => cancelEventIfFocusedWithin(e, hubNotificationPopupElement)}
-            onClick={() => showHubNotificationPopup(hubNotificationButtonRef)}
-          />
-        }
         {canSpawnAndMoveMedia && (
           <HubCreateButton
             ref={hubCreateButtonRef}
@@ -646,14 +612,6 @@ function CanvasTop(props) {
         setPopperElement={setWritebackSetupPopupElement}
         styles={writebackSetupPopupStyles}
         attributes={writebackSetupPopupAttributes}
-      />
-      <HubNotificationsPopup
-        setPopperElement={setHubNotificationPopupElement}
-        styles={hubNotificationPopupStyles}
-        attributes={hubNotificationPopupAttributes}
-        subscriptions={subscriptions}
-        hub={hub}
-        hubSettings={hubSettings}
       />
       <EnvironmentSettingsPopup
         setPopperElement={setEnvironmentSettingsPopupElement}

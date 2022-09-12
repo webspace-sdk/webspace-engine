@@ -1,11 +1,7 @@
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 import styled from "styled-components";
-import {
-  ATOM_NOTIFICATION_TYPES,
-  useNameUpdateFromMetadata,
-  useNotificationCountUpdatesFromMetadata
-} from "../utils/atom-metadata";
+import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 import BigTooltip from "./big-tooltip";
 import { getMessages } from "../../hubs/utils/i18n";
 import discordSpaceIcon from "../../assets/jel/images/icons/discord-space-icon.svgi";
@@ -59,71 +55,19 @@ const SpaceNodeIconImage = styled.div`
   height: 42px;
 `;
 
-const SpaceNodeNotification = styled.div`
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  background-color: var(--notification-ping-color);
-  color: var(--notification-text-color);
-  font: var(--notification-count-font);
-  line-height: 18px;
-  padding-top: 1px;
-  padding-right: 1px;
-  width: 19px;
-  height: 19px;
-  border-radius: 12px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
-const SpaceNodeUnread = styled.div`
-  position: absolute;
-  bottom: 3px;
-  right: 3px;
-  background-color: var(--notification-unread-color);
-  color: var(--notification-text-color);
-  font: var(--notification-count-font);
-  line-height: 18px;
-  padding-top: 1px;
-  padding-right: 1px;
-  width: 10px;
-  height: 10px;
-  border-radius: 12px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
 export default function SpaceNodeIcon({ spaceId, spaceMetadata }) {
   const [name, setName] = useState("");
-  const [notificationCount, setNotificationCount] = useState(0);
-  const [notificationType, setNotificationType] = useState(ATOM_NOTIFICATION_TYPES.NONE);
   const icon = null; // TODO
 
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setName);
-  useNotificationCountUpdatesFromMetadata(spaceId, spaceMetadata, setNotificationCount, setNotificationType);
 
   let el;
   if (icon) {
-    el = (
-      <SpaceNodeIconElement className="spaceNodeIcon" style={{ backgroundImage: `url(${icon})` }}>
-        {notificationType === ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS && (
-          <SpaceNodeNotification>{notificationCount > 9 ? " " : notificationCount}</SpaceNodeNotification>
-        )}
-        {notificationType !== ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS &&
-          notificationType !== ATOM_NOTIFICATION_TYPES.NONE && <SpaceNodeUnread />}
-      </SpaceNodeIconElement>
-    );
+    el = <SpaceNodeIconElement className="spaceNodeIcon" style={{ backgroundImage: `url(${icon})` }} />;
   } else {
     el = (
       <SpaceNodeIconElement className="spaceNodeIcon">
         <SpaceNodeIconNonImage>{name.substring(0, 1)}</SpaceNodeIconNonImage>
-        {notificationType === ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS && (
-          <SpaceNodeNotification>{notificationCount > 9 ? " " : notificationCount}</SpaceNodeNotification>
-        )}
-        {notificationType !== ATOM_NOTIFICATION_TYPES.PING_NOTIFICATIONS &&
-          notificationType !== ATOM_NOTIFICATION_TYPES.NONE && <SpaceNodeUnread />}
       </SpaceNodeIconElement>
     );
   }

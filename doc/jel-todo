@@ -44,6 +44,8 @@
   - add existing url to end of nav if missing, or replace title if wrong
   - add 'remove from nav' menu option, to let user deal with dead links if they rename a file
   - create world popup prompts for title and derives html filename. does not overwrite
+- add service to register spaces
+- upload + register service worker
 
 name not updating in self panel when updated by another peer
 should change button to "unlock world" when others are in room

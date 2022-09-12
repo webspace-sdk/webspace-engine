@@ -7,12 +7,9 @@ import styled from "styled-components";
 import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
 import TinyOutlineIconButton from "./tiny-outline-icon-button";
-import { usePopupPopper } from "../utils/popup-utils";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
 import HubContextMenu from "./hub-context-menu";
-import SpaceNotificationsPopup from "./space-notifications-popup";
 import RenamePopup from "./rename-popup";
-import notificationsIcon from "../../assets/jel/images/icons/notifications.svgi";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { homeHubForSpaceId } from "../utils/membership-utils";
 import { addNewHubToTree } from "../utils/tree-utils";
@@ -302,7 +299,6 @@ function LeftPanel({
   const [isCreating, setIsCreating] = useState(false);
   const invitePanelFieldElement = useRef();
   const spaceBannerRef = useRef();
-  const showSpaceNotificationsButtonRef = useRef();
   const inviteLinkType = metadata ? metadata.invite_link_type : "invite";
 
   const { spaceChannel } = window.APP;
@@ -354,13 +350,6 @@ function LeftPanel({
     popupElement: spaceRenamePopupElement
   } = useAtomBoundPopupPopper(spaceRenameFocusRef, "bottom-start", [0, 16]);
 
-  const {
-    styles: spaceNotificationPopupStyles,
-    attributes: spaceNotificationPopupAttributes,
-    show: showSpaceNotificationPopup,
-    setPopup: setSpaceNotificationPopupElement
-  } = usePopupPopper(null, "bottom", [0, 8]);
-
   useNameUpdateFromMetadata(spaceId, spaceMetadata, setSpaceName);
 
   const hubId = hub && hub.hub_id;
@@ -381,12 +370,6 @@ function LeftPanel({
               </SpaceNameButton>
             )}
             {!spaceCan("update_space_meta") && <SpaceBanner>{spaceName}</SpaceBanner>}
-            <NavTopButton
-              ref={showSpaceNotificationsButtonRef}
-              onClick={() => showSpaceNotificationPopup(showSpaceNotificationsButtonRef)}
-            >
-              <NavTopButtonIcon dangerouslySetInnerHTML={{ __html: notificationsIcon }} />
-            </NavTopButton>
           </NavTop>
           {spaceCan("create_invite") && (
             <PanelItemButtonSection>
@@ -580,15 +563,6 @@ function LeftPanel({
         atomId={spaceRenameSpaceId}
         atomMetadata={spaceRenameMetadata}
         ref={spaceRenameFocusRef}
-      />
-      <SpaceNotificationsPopup
-        matrix={matrix}
-        setPopperElement={setSpaceNotificationPopupElement}
-        styles={spaceNotificationPopupStyles}
-        attributes={spaceNotificationPopupAttributes}
-        subscriptions={subscriptions}
-        spaceId={spaceId}
-        memberships={memberships}
       />
     </Left>
   );
