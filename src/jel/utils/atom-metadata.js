@@ -163,6 +163,10 @@ export class IndexDOMSpaceMetadataSource extends EventTarget {
 
     return spaces;
   }
+
+  async flushLocalUpdates() {
+    await this.navTree.writeTree();
+  }
 }
 
 // Class which is used to track realtime updates to metadata for hubs and spaces.
@@ -234,6 +238,12 @@ class AtomMetadata {
     this._subscribeToSource(this._refreshMessage, this._handleSourceRefreshEvent);
 
     this.ensureMetadataForIds(inFlightMetadataIds, true);
+  }
+
+  flushLocalUpdates() {
+    if (this._source.flushLocalUpdates) {
+      this._source.flushLocalUpdates();
+    }
   }
 
   defaultNameForType(type = null) {

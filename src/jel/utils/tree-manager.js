@@ -1,4 +1,5 @@
 import TreeSync, { TREE_PROJECTION_TYPE } from "./tree-sync";
+import { getSpaceIdFromHistory } from "./jel-url-utils";
 
 const EXPANDED_TREE_NODE_STORE_KEY = "__JelExpandedTreeNodes";
 
@@ -152,7 +153,16 @@ class TreeManager extends EventTarget {
   }
 
   // Run before saving the index.html doc
-  modifyIndexNavDoc(doc) {
+  async modifyIndexNavDoc(doc) {
+    // Set the title based on the current known metadata, which may have been changed on rename
+    const { spaceMetadata } = window.APP;
+    const spaceId = await getSpaceIdFromHistory();
+    const metadata = spaceMetadata.getMetadata(spaceId);
+
+    if (metadata.name) {
+      doc.title = metadata.name;
+    }
+
     // Remove all existing script tags
     for (const scriptTag of doc.querySelectorAll("script")) {
       scriptTag.remove();

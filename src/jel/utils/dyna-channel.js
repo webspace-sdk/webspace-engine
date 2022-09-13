@@ -1,13 +1,10 @@
 import { EventTarget } from "event-target-shim";
 
 export default class DynaChannel extends EventTarget {
-  constructor(store) {
+  constructor(store, navTree) {
     super();
     this.store = store;
-  }
-
-  get signedIn() {
-    return this._signedIn;
+    this.flushSpaceMetaTimeout = null;
   }
 
   getSpaceMetas(/*spaceIds*/) {
@@ -19,12 +16,15 @@ export default class DynaChannel extends EventTarget {
 
   updateSpace = (spaceId, newSpaceFields) => {
     // TODO SHARED
-    if (!this.channel) return;
     const spaceMetadata = window.APP.spaceMetadata;
     const canUpdateSpaceMeta = spaceMetadata.can("update_space_meta", spaceId);
     if (!canUpdateSpaceMeta) return "unauthorized";
-    if (newSpaceFields.roles && !canUpdateSpaceMeta) return "unauthorized";
-    this.channel.push("update_space", { ...newSpaceFields, space_id: spaceId });
     spaceMetadata.localUpdate(spaceId, newSpaceFields);
+
+    if (this.flushSpaceMetatimeout) clearTimeout(this.flushSpaceMetatimeout);
+
+    this.flushSpaceMetaTimeout = setTimeout(() => {
+      spaceMetadata.flushLocalUpdates();
+    }, 3000);
   };
 }

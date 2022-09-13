@@ -85,7 +85,7 @@ class TreeSync extends EventTarget {
     if (!docPath || !doc || !docUrl) return;
     const { atomAccessManager, hubChannel } = window.APP;
 
-    this.docWriteModifier(doc);
+    await this.docWriteModifier(doc);
 
     hubChannel.broadcastMessage({ docPath, docUrl, body: new XMLSerializer().serializeToString(doc) }, "update_nav");
     await atomAccessManager.writeDocument(doc, docPath);
