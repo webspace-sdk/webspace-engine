@@ -6,7 +6,7 @@ import { EventTarget } from "event-target-shim";
 import { getHubIdFromHistory } from "./jel-url-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { META_TAG_PREFIX, getHubMetaFromDOM } from "./dom-utils";
-import { getSpaceIdFromUrl, getHubIdFromUrl } from "./jel-url-utils";
+import { getSpaceIdFromUrl, getHubIdFromUrl, getSpaceIdFromHistory } from "./jel-url-utils";
 
 const ATOM_TYPES = {
   HUB: 0,
@@ -56,9 +56,11 @@ const pendingMetadataValue = Symbol("pending");
 // for all the hubs sitting in index.html.
 //
 // When a metadata update comes in, we check if they're an owner and if so we apply.
-export class DOMHubMetadataSource extends EventTarget {
-  constructor() {
+export class LocalDOMHubMetadataSource extends EventTarget {
+  constructor(navTree) {
     super();
+
+    this.navTree = navTree;
 
     // Use a timeout here since there may be multiple mutations happening in the same call stack, and we only
     // want to fire the refresh event once.
@@ -101,9 +103,7 @@ export class DOMHubMetadataSource extends EventTarget {
       if (hubId === currentHubId) {
         hub = await getHubMetaFromDOM();
       } else {
-        if (document.location.protocol === "http:" || document.location.protocol === "https:") {
-          // TODO SHARED fetch others
-        }
+        hub = { ...{ hub_id: hubId }, ...this.navTree.getAtomMetadataFromDOM(hubId) };
       }
 
       if (hub !== null) {
@@ -112,6 +112,55 @@ export class DOMHubMetadataSource extends EventTarget {
     }
 
     return hubs;
+  }
+}
+
+// This source will fetch the metadata for the current space from the DOM stored on;
+// the tree sync for the index.html file.
+export class IndexDOMSpaceMetadataSource extends EventTarget {
+  constructor(navTree) {
+    super();
+
+    this.navTree = navTree;
+
+    navTree.addEventListener("treedata_updated", async () => {
+      this.dispatchEvent(
+        new CustomEvent("space_meta_refresh", { detail: { metas: [await this.getSpaceMetaFromIndexDOM()] } })
+      );
+    });
+  }
+
+  async getSpaceMetaFromIndexDOM() {
+    const { navTree } = this;
+
+    const spaceName = navTree.doc.title;
+    const indexUrl = navTree.docUrl;
+    const spaceUrl = navTree.docUrl.replace(/\/index\.html$/, "");
+    const spaceId = await getSpaceIdFromUrl(indexUrl);
+
+    return { space_id: spaceId, name: spaceName, url: spaceUrl };
+  }
+
+  async getSpaceMetas(spaceIds) {
+    const currentSpaceId = await getSpaceIdFromHistory();
+
+    const spaces = [];
+
+    for (const spaceId of spaceIds) {
+      let space = null;
+
+      if (spaceId === currentSpaceId) {
+        space = await this.getSpaceMetaFromIndexDOM();
+      } else {
+        /* Eventually this should fetch from some webspaces.network registry */
+      }
+
+      if (space !== null) {
+        spaces.push(space);
+      }
+    }
+
+    return spaces;
   }
 }
 

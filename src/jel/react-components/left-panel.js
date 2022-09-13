@@ -94,35 +94,35 @@ const SpaceNameButton = styled.button`
   }
 `;
 
-const NavTopButton = styled.button`
-  flex: 0 0 42px;
-  color: var(--panel-banner-text-color);
-  margin: 12px 16px;
-  overflow: hidden;
-  border-radius: 4px;
-  padding: 6px 10px;
-  border: 0;
-  appearance: none;
-  -moz-appearance: none;
-  -webkit-appearance: none;
-  outline-style: none;
-  background-color: transparent;
-  max-width: fit-content;
-  pointer-events: auto;
+// const NavTopButton = styled.button`
+//   flex: 0 0 42px;
+//   color: var(--panel-banner-text-color);
+//   margin: 12px 16px;
+//   overflow: hidden;
+//   border-radius: 4px;
+//   padding: 6px 10px;
+//   border: 0;
+//   appearance: none;
+//   -moz-appearance: none;
+//   -webkit-appearance: none;
+//   outline-style: none;
+//   background-color: transparent;
+//   max-width: fit-content;
+//   pointer-events: auto;
+//
+//   &:hover {
+//     background-color: var(--panel-item-hover-background-color);
+//   }
+//
+//   &:active {
+//     background-color: var(--panel-item-active-background-color);
+//   }
+// `;
 
-  &:hover {
-    background-color: var(--panel-item-hover-background-color);
-  }
-
-  &:active {
-    background-color: var(--panel-item-active-background-color);
-  }
-`;
-
-const NavTopButtonIcon = styled.div`
-  width: 22px;
-  height: 22px;
-`;
+// const NavTopButtonIcon = styled.div`
+//   width: 22px;
+//   height: 22px;
+// `;
 
 const NavFoot = styled.div`
   flex: 0 0 auto;
@@ -278,7 +278,6 @@ function LeftPanel({
   spaceMetadata,
   hubMetadata,
   memberships,
-  subscriptions,
   spaceId,
   scene,
   showInviteTip,
@@ -288,7 +287,7 @@ function LeftPanel({
   worldTreeData,
   channelTreeData
 }) {
-  const { matrix, store } = window.APP;
+  const { store } = window.APP;
   const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
   const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
   const [trashMenuElement, setTrashMenuElement] = useState(null);

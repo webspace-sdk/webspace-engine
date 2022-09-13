@@ -8,16 +8,16 @@ export function useTreeData(tree, treeDataVersion, setTreeData, setTreeDataVersi
       if (!tree) return () => {};
 
       const handleTreeData = () => {
-        setTreeData(tree.filteredTreeData);
-        setTreeDataVersion(tree.filteredTreeDataVersion);
+        setTreeData(tree.treeData);
+        setTreeDataVersion(tree.treeData);
       };
 
       // Tree itself changed because effect was fired
-      setTreeData(tree.filteredTreeData);
+      setTreeData(tree.treeData);
 
       // Tree internal state changed
-      tree.addEventListener("filtered_treedata_updated", handleTreeData);
-      return () => tree.removeEventListener("filtered_treedata_updated", handleTreeData);
+      tree.addEventListener("treedata_updated", handleTreeData);
+      return () => tree.removeEventListener("treedata_updated", handleTreeData);
     },
     [tree, setTreeData, treeDataVersion, setTreeDataVersion]
   );
@@ -28,7 +28,7 @@ export function useExpandableTree(treeManager, tree) {
     () => {
       if (!treeManager) return () => {};
 
-      const handleExpandedNodeIdsChanged = () => tree.rebuildFilteredTreeData();
+      const handleExpandedNodeIdsChanged = () => tree.rebuildTreeData();
 
       treeManager.addEventListener("expanded_nodes_updated", handleExpandedNodeIdsChanged);
 

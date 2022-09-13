@@ -22,19 +22,21 @@ class TreeSync extends EventTarget {
     this.atomMetadata = atomMetadata;
     this.titleControl = null;
     this.projectionType = projectionType;
-    this.filteredTreeData = [];
-    this.filteredTreeDataVersion = 0;
+    this.treeData = [];
+    this.treeDataVersion = 0;
     this.subscribedAtomIds = new Set();
-    this.atomIdToFilteredTreeDataItem = new Map();
+    this.atomIdToTreeDataItem = new Map();
     this.atomIdToDocEl = new Map();
     this.parentNodeIds = new Map();
 
     this.docInitializer = docInitializer;
     this.docWriteModifier = docWriteModifier;
+
+    this.rebuildTreeData = this.rebuildTreeData.bind(this);
   }
 
   setTitleControl(titleControl) {
-    if (!this.filteredTreeData || this.filteredTreeData.length === 0) return;
+    if (!this.treeData || this.treeData.length === 0) return;
 
     this.titleControl = titleControl;
 
@@ -49,7 +51,7 @@ class TreeSync extends EventTarget {
       }
     };
 
-    walk(this.filteredTreeData);
+    walk(this.treeData);
   }
 
   async init() {
@@ -79,13 +81,13 @@ class TreeSync extends EventTarget {
   }
 
   async writeTree() {
-    const { docPath, doc } = this;
-    if (!docPath || !doc) return;
+    const { docPath, docUrl, doc } = this;
+    if (!docPath || !doc || !docUrl) return;
     const { atomAccessManager, hubChannel } = window.APP;
 
     this.docWriteModifier(doc);
 
-    hubChannel.broadcastMessage({ docPath, body: new XMLSerializer().serializeToString(doc) }, "update_nav");
+    hubChannel.broadcastMessage({ docPath, docUrl, body: new XMLSerializer().serializeToString(doc) }, "update_nav");
     await atomAccessManager.writeDocument(doc, docPath);
   }
 
@@ -98,6 +100,14 @@ class TreeSync extends EventTarget {
       console.warn("Error getting url to ", this.docPath, " file might be missing.");
     }
 
+    let docUrl = this.docPath;
+
+    try {
+      docUrl = new URL(docUrl).toString();
+    } catch (e) {
+      docUrl = new URL(docUrl, document.location.href).toString();
+    }
+
     let body = null;
     try {
       const response = await fetch(url);
@@ -107,7 +117,7 @@ class TreeSync extends EventTarget {
     }
 
     const doc = new DOMParser().parseFromString(body, "text/html");
-    await this.updateTreeDocument(doc);
+    await this.updateTreeDocument(doc, docUrl);
   }
 
   addToRoot(atomId) {
@@ -138,6 +148,16 @@ class TreeSync extends EventTarget {
 
   getAtomTrailForAtomId(/*atomId*/) {
     return [];
+  }
+
+  getAtomMetadataFromDOM(atomId) {
+    const aEl = this.atomIdToDocEl.get(atomId)?.querySelector("a");
+
+    if (aEl) {
+      return { name: aEl.innerText, url: aEl.getAttribute("href") };
+    }
+
+    return {};
   }
 
   moveInto(/*nodeId, withinNodeId*/) {
@@ -195,10 +215,8 @@ class TreeSync extends EventTarget {
         const url = aEl.getAttribute("href");
         if (!url) continue;
 
-        const name = aEl.textContent;
         const atomId = await atomMetadata.getAtomIdFromUrl(url);
 
-        atomMetadata.localUpdate(atomId, { name, url });
         atomIdToDocEl.set(atomId, el);
 
         const subList = el.querySelector("ul");
@@ -234,10 +252,10 @@ class TreeSync extends EventTarget {
     return treeData;
   }
 
-  async rebuildFilteredTreeData() {
+  async rebuildTreeData() {
     const { atomMetadata, subscribedAtomIds } = this;
 
-    this.filteredTreeDataVersion++;
+    this.treeDataVersion++;
 
     const isExpanded = nodeId => !this.expandedTreeNodes || this.expandedTreeNodes.isExpanded(nodeId);
 
@@ -249,21 +267,21 @@ class TreeSync extends EventTarget {
       // properly. The map of atom ids to items is updated, and the event is fired
       // to refresh the UI.
       for (const atomId of subscribedAtomIds) {
-        atomMetadata.unsubscribeFromMetadata(atomId, this.rebuildFilteredTreeData);
+        atomMetadata.unsubscribeFromMetadata(atomId, this.rebuildTreeData);
       }
 
       subscribedAtomIds.clear();
 
-      // for (const node of Object.values(this.doc.data)) {
-      //   subscribedAtomIds.add(node.h);
-      // }
+      for (const atomId of this.atomIdToDocEl.keys()) {
+        subscribedAtomIds.add(atomId);
+      }
 
-      this.atomIdToFilteredTreeDataItem.clear();
+      this.atomIdToTreeDataItem.clear();
 
       const walk = children => {
         for (let i = 0; i < children.length; i++) {
           const item = children[i];
-          this.atomIdToFilteredTreeDataItem.set(item.atomId, item);
+          this.atomIdToTreeDataItem.set(item.atomId, item);
 
           if (item.children) {
             walk(item.children);
@@ -273,12 +291,12 @@ class TreeSync extends EventTarget {
 
       walk(newTreeData);
 
-      this.filteredTreeData = newTreeData;
-      this.dispatchEvent(new CustomEvent("filtered_treedata_updated"));
+      this.treeData = newTreeData;
+      this.dispatchEvent(new CustomEvent("treedata_updated"));
     }
 
     for (const atomId of subscribedAtomIds) {
-      atomMetadata.subscribeToMetadata(atomId, this.rebuildFilteredTreeData);
+      atomMetadata.subscribeToMetadata(atomId, this.rebuildTreeData);
     }
 
     atomMetadata.ensureMetadataForIds(subscribedAtomIds);
@@ -288,9 +306,11 @@ class TreeSync extends EventTarget {
     return atomId;
   }
 
-  updateTreeDocument(doc) {
+  updateTreeDocument(doc, docUrl) {
     this.doc = doc;
-    return this.rebuildFilteredTreeData();
+    this.docUrl = docUrl;
+
+    return this.rebuildTreeData();
   }
 }
 

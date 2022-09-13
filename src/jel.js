@@ -7,7 +7,6 @@ import parseCSSColor from "parse-css-color";
 import "./hubs/utils/theme";
 import "./hubs/utils/debug-log";
 import "./hubs/utils/logging";
-require("three/examples/jsm/loaders/GLTFLoader");
 import "./hubs/utils/threejs-world-update";
 import "./hubs/components/scene-components";
 import "./hubs/components/scale-in-screen-space";
@@ -138,7 +137,11 @@ import AccountChannel from "./jel/utils/account-channel";
 import DynaChannel from "./jel/utils/dyna-channel";
 import SpaceChannel from "./hubs/utils/space-channel";
 import HubChannel from "./hubs/utils/hub-channel";
-import AtomMetadata, { ATOM_TYPES, DOMHubMetadataSource } from "./jel/utils/atom-metadata";
+import AtomMetadata, {
+  ATOM_TYPES,
+  LocalDOMHubMetadataSource,
+  IndexDOMSpaceMetadataSource
+} from "./jel/utils/atom-metadata";
 import { setupTreeManagers, joinHub } from "./hubs/utils/jel-init";
 import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "./jel/utils/jel-url-utils";
@@ -1149,12 +1152,14 @@ async function start() {
     if (joinHubPromise) await joinHubPromise;
     joinHubPromise = null;
 
-    const metadataSource = new DOMHubMetadataSource();
-    hubMetadata.bind(metadataSource);
-
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
       store.update({ context: { spaceId } });
-      await setupTreeManagers(history, entryManager, remountJelUI);
+      const [treeManager] = await setupTreeManagers(history, entryManager, remountJelUI);
+      const spaceMetadataSource = new IndexDOMSpaceMetadataSource(treeManager.worldNav);
+      spaceMetadata.bind(spaceMetadataSource);
+
+      const hubMetadataSource = new LocalDOMHubMetadataSource(treeManager.worldNav);
+      hubMetadata.bind(hubMetadataSource);
     }
 
     if (joinHubPromise) await joinHubPromise;

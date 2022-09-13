@@ -34,6 +34,7 @@
 - allow networking settings to be changed via qs
 - remove all unused translations
 - file uploads
+- invite popout
 - detecting relay member in presence to unlock editing for unprivileged users
 - deal with filtering networking based on roles + hub setting for allowing edits
 - Y.js syncing of text boxes

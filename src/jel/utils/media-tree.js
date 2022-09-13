@@ -4,7 +4,7 @@ export default class MediaTree extends EventTarget {
   constructor(source) {
     super();
 
-    this.filteredTreeData = [];
+    this.treeData = [];
     this.metasForCategoryKey = new Map();
     this.data = null;
     this.source = source;
@@ -16,21 +16,21 @@ export default class MediaTree extends EventTarget {
   }
 
   async build(data = null) {
-    const { filteredTreeData, metasForCategoryKey, source, idKey } = this;
+    const { treeData, metasForCategoryKey, source, idKey } = this;
 
     if (data === null) {
       data = (await fetchReticulumAuthenticated(`/api/v1/media/search?source=${source}&filter=featured`)).entries;
     }
 
     this.data = data;
-    this.filteredTreeData.length = 0;
+    this.treeData.length = 0;
 
     for (const entry of this.data) {
       const { url, name, thumb_url, preview_url, collection, category } = entry;
 
       const id = entry[idKey];
 
-      let collectionNode = filteredTreeData.find(({ key }) => key === collection);
+      let collectionNode = treeData.find(({ key }) => key === collection);
 
       if (!collectionNode) {
         collectionNode = {
@@ -39,7 +39,7 @@ export default class MediaTree extends EventTarget {
           children: [],
           isLeaf: this.source === "world_templates"
         };
-        filteredTreeData.push(collectionNode);
+        treeData.push(collectionNode);
       }
 
       let categoryKey;
@@ -72,9 +72,9 @@ export default class MediaTree extends EventTarget {
     }
 
     const comparer = (x, y) => (x.title < y.title ? -1 : 1);
-    filteredTreeData.sort(comparer);
+    treeData.sort(comparer);
 
-    for (const { children: categories } of filteredTreeData) {
+    for (const { children: categories } of treeData) {
       categories.sort(comparer);
     }
 
@@ -82,6 +82,6 @@ export default class MediaTree extends EventTarget {
       metas.sort(comparer);
     }
 
-    this.dispatchEvent(new CustomEvent("filtered_treedata_updated"));
+    this.dispatchEvent(new CustomEvent("treedata_updated"));
   }
 }

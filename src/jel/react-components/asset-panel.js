@@ -216,7 +216,7 @@ export default function AssetPanel(props) {
   const tilesRef = useRef();
 
   const tree = showObjects ? voxTree : sceneTree;
-  const treeData = tree && tree.filteredTreeData;
+  const treeData = tree && tree.treeData;
 
   useEffect(
     () => {

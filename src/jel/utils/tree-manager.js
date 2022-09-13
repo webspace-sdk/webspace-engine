@@ -89,13 +89,13 @@ class TreeManager extends EventTarget {
   }
 
   rebuildSharedTrashTree() {
-    this.trashNav.rebuildFilteredTreeData();
+    this.trashNav.rebuildTreeData();
   }
 
   // Returns a nested representation of the trash
   getNestedTrashTreeData() {
-    this.trashNested.rebuildFilteredTreeData();
-    return this.trashNested.filteredTreeData;
+    this.trashNested.rebuildTreeData();
+    return this.trashNested.treeData;
   }
 
   setNodeIsExpanded(nodeId, expanded, tree) {
@@ -172,12 +172,12 @@ class TreeManager extends EventTarget {
     }
   }
 
-  async updateTree(docPath, body) {
+  async updateTree(docPath, docUrl, body) {
     const doc = new DOMParser().parseFromString(body, "text/html");
 
     for (const treeSync of this.treeSyncs) {
       if (treeSync.docPath === docPath) {
-        await treeSync.updateTreeDocument(doc);
+        await treeSync.updateTreeDocument(doc, docUrl);
       }
     }
   }
