@@ -140,7 +140,7 @@ class FileWriteback {
     }
   }
 
-  async write(content) {
+  async write(content, path = null) {
     if (!this.isOpen) return;
     if (!content || content.length === 0) return;
 
@@ -151,7 +151,14 @@ class FileWriteback {
     this.isWriting = true;
 
     try {
-      const writable = await this.pageHandle.createWritable();
+      let writable;
+
+      if (path) {
+        writable = await this.dirHandle.getFileHandle(path, { create: true });
+      } else {
+        writable = await this.pageHandle.createWritable();
+      }
+
       await writable.write(content);
       await writable.close();
     } finally {
@@ -281,7 +288,6 @@ export default class AtomAccessManager extends EventTarget {
     this.publicKeys = new Map();
     this.roles = new Map();
 
-    this.isEditingAvailable = false;
     this.init();
 
     this.writeback = null;
@@ -291,10 +297,15 @@ export default class AtomAccessManager extends EventTarget {
     this.refreshOnWritebackOpen = false;
   }
 
+  get isEditingAvailable() {
+    if (this.writeback?.isOpen) return false;
+    if (document.location.protocol === "file:") return true;
+    return false;
+  }
+
   init() {
     if (document.location.protocol === "file:") {
       this.initFileWriteback();
-      this.isEditingAvailable = true;
 
       // Editing available should be false if this isn't "our" file, and was
       // spawned via an invite.
@@ -304,13 +315,7 @@ export default class AtomAccessManager extends EventTarget {
       if (!this.writeback) return;
 
       const write = () => {
-        const html = prettifyXml(new XMLSerializer().serializeToString(document));
-
-        if (html && html.length > 0) {
-          this.writeback.write(html);
-        } else {
-          console.warn("Tried to write empty html");
-        }
+        this.writeDocument(document);
 
         this.lastWriteTime = Date.now();
 
@@ -419,10 +424,6 @@ export default class AtomAccessManager extends EventTarget {
             const { dirHandle, pageHandle } = result;
             const currentPerm = await pageHandle.queryPermission({ mode: "readwrite" });
 
-            if (currentPerm === "granted") {
-              this.isEditingAvailable = false;
-            }
-
             this.writeback = new FileWriteback(db, dirHandle, pageHandle);
             await this.writeback.init();
 
@@ -479,6 +480,16 @@ export default class AtomAccessManager extends EventTarget {
   async contentUrlForRelativePath(path) {
     if (!(await this.ensureWritebackOpen(true))) return;
     return await this.writeback.contentUrlForRelativePath(path);
+  }
+
+  async writeDocument(document, path = null) {
+    const html = prettifyXml(new XMLSerializer().serializeToString(document));
+
+    if (html && html.length > 0) {
+      this.writeback.write(html, path);
+    } else {
+      console.warn("Tried to write empty html");
+    }
   }
 
   async uploadAsset(fileOrBlob) {

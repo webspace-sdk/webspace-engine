@@ -19,6 +19,7 @@ class TreeSync extends EventTarget {
     this.filteredTreeDataVersion = 0;
     this.subscribedAtomIds = new Set();
     this.atomIdToFilteredTreeDataItem = new Map();
+    this.parentNodeIds = new Map();
   }
 
   setTitleControl(titleControl) {
@@ -89,11 +90,11 @@ class TreeSync extends EventTarget {
   }
 
   getParentNodeId(nodeId) {
-    return (this.doc.data[nodeId] || {}).p;
+    return this.parentNodeIds.get(nodeId);
   }
 
   getAtomIdForNodeId(nodeId) {
-    return (this.doc.data[nodeId] || {}).h;
+    return nodeId;
   }
 
   getAtomTrailForAtomId(atomId) {
@@ -134,13 +135,14 @@ class TreeSync extends EventTarget {
   async computeTree() {
     if (!this.doc) return [];
 
-    const { atomMetadata, doc } = this;
+    const { atomMetadata, doc, parentNodeIds } = this;
+    parentNodeIds.clear();
 
     const treeData = [];
 
     const isFlatProjection = this.projectionType === TREE_PROJECTION_TYPE.FLAT;
 
-    const walk = async (domNode, items) => {
+    const walk = async (domNode, items, parentAtomId) => {
       for (const el of domNode.children) {
         const url = el.getAttribute("href");
         if (!url) continue;
@@ -161,7 +163,7 @@ class TreeSync extends EventTarget {
             isLeaf: isFlatProjection
           });
 
-          await walk(el, isFlatProjection ? children : items);
+          await walk(el, isFlatProjection ? children : items, parentAtomId);
         } else {
           items.push({
             key: atomId,
@@ -170,6 +172,8 @@ class TreeSync extends EventTarget {
             isLeaf: true
           });
         }
+
+        parentNodeIds.set(atomId, parentAtomId);
       }
     };
 
