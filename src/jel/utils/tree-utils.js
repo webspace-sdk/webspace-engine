@@ -151,7 +151,7 @@ export async function addNewHubToTree(
   const insertUnderNodeId = insertUnderAtomId ? tree.getNodeIdForAtomId(insertUnderAtomId) : null;
 
   if (insertUnderNodeId) {
-    tree.insertUnder(hub.hub_id, insertUnderNodeId);
+    await tree.insertUnder(hub.name, hub.url, insertUnderNodeId);
     treeManager.setNodeIsExpanded(insertUnderNodeId, true, tree);
   } else {
     tree.addToRoot(hub.hub_id);

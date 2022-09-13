@@ -1,5 +1,3 @@
-import bs58 from "bs58";
-
 export async function keyToJwk(key) {
   return await crypto.subtle.exportKey("jwk", key);
 }

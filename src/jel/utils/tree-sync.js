@@ -26,6 +26,7 @@ class TreeSync extends EventTarget {
     this.filteredTreeDataVersion = 0;
     this.subscribedAtomIds = new Set();
     this.atomIdToFilteredTreeDataItem = new Map();
+    this.atomIdToDocEl = new Map();
     this.parentNodeIds = new Map();
 
     this.docInitializer = docInitializer;
@@ -84,9 +85,8 @@ class TreeSync extends EventTarget {
 
     this.docWriteModifier(doc);
 
-    await atomAccessManager.writeDocument(doc, docPath);
-
     hubChannel.broadcastMessage({ docPath, body: new XMLSerializer().serializeToString(doc) }, "update_nav");
+    await atomAccessManager.writeDocument(doc, docPath);
   }
 
   async fetchAndRebuildTree() {
@@ -106,11 +106,19 @@ class TreeSync extends EventTarget {
       body = "<html><body></body></html>";
     }
 
-    this.doc = new DOMParser().parseFromString(body, "text/html");
-    await this.rebuildFilteredTreeData();
+    const doc = new DOMParser().parseFromString(body, "text/html");
+    await this.updateTreeDocument(doc);
   }
 
-  addToRoot(atomId) {}
+  addToRoot(atomId) {
+    const { name, url } = this.atomMetadata.get(atomId);
+    const el = this.doc.createElement("a");
+    el.setAttribute("href", url);
+    el.innerText = name;
+
+    const nav = this.doc.querySelector("nav");
+    nav.appendChild(el);
+  }
 
   addToRootIfNotExists(atomId) {
     const nodeId = this.getNodeIdForAtomId(atomId);
@@ -128,45 +136,52 @@ class TreeSync extends EventTarget {
     return nodeId;
   }
 
-  getAtomTrailForAtomId(atomId) {
+  getAtomTrailForAtomId(/*atomId*/) {
     return [];
-    // const atomTrail = [];
-
-    // let nid = this.getNodeIdForAtomId(atomId);
-
-    // do {
-    //   const node = this.doc.data[nid];
-
-    //   if (node) {
-    //     atomTrail.unshift(node.h);
-    //     nid = node && node.p;
-    //   } else {
-    //     break;
-    //   }
-    // } while (nid);
-
-    // return atomTrail.length === 0 ? null : atomTrail;
   }
 
-  moveInto(nodeId, withinNodeId) {}
+  moveInto(/*nodeId, withinNodeId*/) {
+    console.warn("Unimplemented drop into");
+  }
 
-  moveAbove(nodeId, aboveNodeId) {}
+  moveAbove(nodeId, aboveNodeId) {
+    const el = this.atomIdToDocEl.get(this.getAtomIdForNodeId(nodeId));
+    const aboveEl = this.atomIdToDocEl.get(this.getAtomIdForNodeId(aboveNodeId));
+    el.remove();
+    aboveEl.parentNode.insertBefore(el, aboveEl);
 
-  moveBelowRoot(nodeId) {}
+    this.writeTree();
+  }
 
-  moveBelow(nodeId, belowNodeId) {}
+  moveBelowRoot(/*nodeId*/) {
+    console.warn("Unimplmented move below root");
+  }
 
-  insertBelow(atomId, belowNodeId) {}
+  moveBelow(nodeId, belowNodeId) {
+    const el = this.atomIdToDocEl.get(this.getAtomIdForNodeId(nodeId));
+    const belowEl = this.atomIdToDocEl.get(this.getAtomIdForNodeId(belowNodeId));
+    el.remove();
+    belowEl.parentNode.insertAfter(el, belowEl);
+
+    this.writeTree();
+  }
 
   // Inserts a new node for atomId as the first child of underNodeId
-  insertUnder(atomId, underNodeId) {}
+  async insertUnder(/*atomName, atomUrl, underNodeId*/) {
+    console.warn("Insert under unimplemented");
+  }
 
-  async remove(nodeId) {}
+  async remove(nodeId) {
+    const el = this.atomIdToDocEl.get(this.getAtomIdForNodeId(nodeId));
+    el.remove();
+    await this.writeTree();
+  }
 
   async computeTree() {
     if (!this.doc) return [];
 
-    const { atomMetadata, doc, parentNodeIds } = this;
+    const { atomMetadata, doc, parentNodeIds, atomIdToDocEl } = this;
+    atomIdToDocEl.clear();
     parentNodeIds.clear();
 
     const treeData = [];
@@ -182,6 +197,7 @@ class TreeSync extends EventTarget {
         const atomId = await atomMetadata.getAtomIdFromUrl(url);
 
         atomMetadata.localUpdate(atomId, { name, url });
+        atomIdToDocEl.set(atomId, el);
 
         if (el.children.length > 0) {
           const children = [];

@@ -403,21 +403,6 @@ function LeftPanel({
         <NavSpill>
           <PanelSectionHeader>
             <FormattedMessage id="nav.space-worlds" />
-            {spaceCan("create_world_hub") && (
-              <TinyOutlineIconButton
-                disabled={isCreating}
-                style={{ marginLeft: "10px" }}
-                className="show-on-hover"
-                iconSrc={addIcon}
-                onClick={async () => {
-                  store.handleActivityFlag("createWorld");
-                  setIsCreating(true);
-                  const hub = await addNewHubToTree(treeManager, spaceId, "world");
-                  setIsCreating(false);
-                  navigateToHubUrl(history, hub.url);
-                }}
-              />
-            )}
           </PanelSectionHeader>
           <HubTree
             treeManager={treeManager}

@@ -76,7 +76,7 @@ function HubTree({
     treeManager,
     tree
   ]);
-  const onDrop = useTreeDropHandler(treeManager, tree, type === "world");
+  const onDrop = useTreeDropHandler(treeManager, tree, false);
   const onSelect = useCallback(
     (selectedKeys, { node: { atomId } }) => {
       const metadata = tree.atomMetadata.getMetadata(atomId);
@@ -92,7 +92,6 @@ function HubTree({
     [treeManager, tree]
   );
 
-  const allowDrop = useCallback(() => type === "world", [type]);
   const navSelectedKeys = useMemo(() => (hub && tree ? [tree.getNodeIdForAtomId(hub.hub_id)] : []), [hub, tree]);
 
   if (!treeManager || !hub) return null;
@@ -114,7 +113,7 @@ function HubTree({
         draggable={draggable}
         onDragEnter={onDragEnter}
         onDrop={onDrop}
-        allowDrop={allowDrop}
+        allowDrop={true}
         onSelect={onSelect}
         expandedKeys={treeManager.navExpandedNodeIds()}
         onExpand={onExpand}
