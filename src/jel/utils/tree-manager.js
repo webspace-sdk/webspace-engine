@@ -72,6 +72,8 @@ class TreeManager extends EventTarget {
 
     this.trashNav = new TreeSync("trash.html", null, hubMetadata, TREE_PROJECTION_TYPE.FLAT);
     this.trashNested = new TreeSync("trash.html", null, hubMetadata, TREE_PROJECTION_TYPE.NESTED);
+
+    this.treeSyncs = [this.worldNav, this.trashNav, this.trashNested];
   }
 
   async init() {
@@ -170,8 +172,14 @@ class TreeManager extends EventTarget {
     }
   }
 
-  updateTree(docPath, body) {
-    console.log("updating remote tree", docPath, body);
+  async updateTree(docPath, body) {
+    const doc = new DOMParser().parseFromString(body, "text/html");
+
+    for (const treeSync of this.treeSyncs) {
+      if (treeSync.docPath === docPath) {
+        await treeSync.updateTreeDocument(doc);
+      }
+    }
   }
 }
 

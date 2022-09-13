@@ -274,6 +274,11 @@ class TreeSync extends EventTarget {
   getNodeIdForAtomId(atomId) {
     return atomId;
   }
+
+  updateTreeDocument(doc) {
+    this.doc = doc;
+    return this.rebuildFilteredTreeData();
+  }
 }
 
 export { TreeSync as default, TREE_PROJECTION_TYPE };
