@@ -1154,12 +1154,15 @@ async function start() {
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
       store.update({ context: { spaceId } });
+
       const [treeManager] = await setupTreeManagers(history, entryManager, remountJelUI);
       const spaceMetadataSource = new IndexDOMSpaceMetadataSource(treeManager.worldNav);
       spaceMetadata.bind(spaceMetadataSource);
 
       const hubMetadataSource = new LocalDOMHubMetadataSource(treeManager.worldNav);
       hubMetadata.bind(hubMetadataSource);
+
+      remountJelUI({ spaceId });
     }
 
     if (joinHubPromise) await joinHubPromise;

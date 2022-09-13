@@ -46,6 +46,7 @@ function HubContextMenu({
         onClick={e => {
           const hubNodeId = worldTree.getNodeIdForAtomId(hubId);
           worldTree.remove(hubNodeId);
+          DOM_ROOT.activeElement?.blur();
           e.preventDefault();
           e.stopPropagation();
         }}

@@ -55,14 +55,6 @@ const InviteInfo = styled.div`
   margin-top: 6px;
 `;
 
-const InviteTip = styled.div`
-  color: var(--dialog-tip-text-color);
-  font-size: var(--dialog-tip-text-size);
-  font-weight: var(--dialog-tip-text-weight);
-  margin-top: 6px;
-  margin-bottom: 8px;
-`;
-
 const InviteElement = styled.input`
   width: 100%;
   border: 0;
@@ -138,7 +130,6 @@ const InvitePanel = forwardRef((props, ref) => {
       <InviteInfo>
         <FormattedMessage id={`invite-panel.info`} />
       </InviteInfo>
-      <InviteTip>{inviteLinkType !== "hub" && <FormattedMessage id={`invite-panel.expires-info`} />}</InviteTip>
     </InvitePanelElement>
   );
 });

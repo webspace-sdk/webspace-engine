@@ -132,8 +132,9 @@ export class IndexDOMSpaceMetadataSource extends EventTarget {
 
   async getSpaceMetaFromIndexDOM() {
     const { navTree } = this;
+    if (!navTree.doc || !navTree.docUrl) return {};
 
-    const spaceName = navTree.doc.title;
+    const spaceName = navTree.doc.title || null;
     const indexUrl = navTree.docUrl;
     const spaceUrl = navTree.docUrl.replace(/\/index\.html$/, "");
     const spaceId = await getSpaceIdFromUrl(indexUrl);
@@ -335,6 +336,7 @@ class AtomMetadata {
 
     // Others are pending, create a promise to fetch them.
     if (idsToFetch.size > 0) {
+      if (source === null) console.trace();
       // Push a promise that waits on fetching the pending ids
       promises.push(
         new Promise(res => {

@@ -313,18 +313,13 @@ function JelUI(props) {
   const { launcherSystem, cameraSystem, builderSystem, externalCameraSystem } = SYSTEMS;
 
   const worldTree = treeManager && treeManager.worldNav;
-  const channelTree = treeManager && treeManager.channelNav;
-  const spaceTree = treeManager && treeManager.privateSpace;
-  const { spaceChannel, store } = window.APP;
-  const spaceMetadata = spaceTree && spaceTree.atomMetadata;
+  const { spaceMetadata, spaceChannel, store } = window.APP;
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
   const [unmuted, setUnmuted] = useState(false);
   const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const [worldTreeData, setWorldTreeData] = useState([]);
   const [worldTreeDataVersion, setWorldTreeDataVersion] = useState(0);
-  const [channelTreeData, setChannelTreeData] = useState([]);
-  const [channelTreeDataVersion, setChannelTreeDataVersion] = useState(0);
   const [showingExternalCamera /*, setShowingExternalCamera*/] = useState(false);
 
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
@@ -365,7 +360,6 @@ function JelUI(props) {
 
   // Consume tree updates so redraws if user manipulates tree
   useTreeData(worldTree, worldTreeDataVersion, setWorldTreeData, setWorldTreeDataVersion);
-  useTreeData(channelTree, channelTreeDataVersion, setChannelTreeData, setChannelTreeDataVersion);
 
   const onClickExternalCameraRotate = useCallback(() => externalCameraSystem.toggleCamera(), [externalCameraSystem]);
 
@@ -393,9 +387,7 @@ function JelUI(props) {
             <CanvasTop
               {...props}
               worldTree={worldTree}
-              channelTree={channelTree}
               worldTreeData={worldTreeData}
-              channelTreeData={channelTreeData}
               environmentSettingsButtonRef={environmentSettingsButtonRef}
               createSelectPopupRef={createSelectPopupRef}
             />
@@ -434,9 +426,7 @@ function JelUI(props) {
               spaceMetadata={spaceMetadata}
               hubMetadata={hubMetadata}
               worldTree={worldTree}
-              channelTree={channelTree}
               worldTreeData={worldTreeData}
-              channelTreeData={channelTreeData}
               centerPopupRef={centerPopupRef}
               showInviteTip={showInviteTip}
               setHasShownInvite={setHasShownInvite}

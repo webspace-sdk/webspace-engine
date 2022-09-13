@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { FormattedMessage } from "react-intl";
 import { useAtomBoundPopupPopper } from "../utils/popup-utils";
 import { usePopper } from "react-popper";
@@ -288,18 +288,36 @@ function LeftPanel({
   channelTreeData
 }) {
   const { store } = window.APP;
-  const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
   const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
   const [trashMenuElement, setTrashMenuElement] = useState(null);
   const [inviteReferenceElement, setInviteReferenceElement] = useState(null);
   const [inviteElement, setInviteElement] = useState(null);
-  const [spaceName, setSpaceName] = useState((metadata && metadata.name) || "");
+  const [spaceName, setSpaceName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const invitePanelFieldElement = useRef();
   const spaceBannerRef = useRef();
-  const inviteLinkType = metadata ? metadata.invite_link_type : "invite";
 
   const { spaceChannel } = window.APP;
+
+  useEffect(
+    () => {
+      if (!spaceMetadata) return () => {};
+
+      const updateSpaceName = () => {
+        const metadata = spaceMetadata && spaceMetadata.getMetadata(spaceId);
+
+        if (metadata) {
+          setSpaceName(metadata && metadata.name);
+        }
+      };
+
+      updateSpaceName();
+
+      spaceMetadata.subscribeToMetadata(spaceId, updateSpaceName);
+      return () => spaceMetadata.unsubscribeFromMetadata(updateSpaceName);
+    },
+    [spaceMetadata, spaceId]
+  );
 
   const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: updateTrashPopper } = usePopper(
     trashMenuReferenceElement,
@@ -369,34 +387,35 @@ function LeftPanel({
             )}
             {!spaceCan("update_space_meta") && <SpaceBanner>{spaceName}</SpaceBanner>}
           </NavTop>
-          {spaceCan("create_invite") && (
-            <PanelItemButtonSection>
-              <Tooltip
-                visible={showInviteTip}
-                disabled={!showInviteTip}
-                content={messages["invite.tip"]}
-                placement="right"
-                className="hide-when-expanded"
-                key="invite"
-              >
-                <PanelItemButton
-                  iconSrc={inviteIcon}
-                  ref={setInviteReferenceElement}
-                  onMouseDown={e => cancelEventIfFocusedWithin(e, inviteElement)}
-                  onClick={() => {
-                    if (updateInvitePopper) {
-                      updateInvitePopper();
-                    }
-                    setHasShownInvite(true);
-                    store.handleActivityFlag("showInvite");
-                    toggleFocus(invitePanelFieldElement.current);
-                  }}
+          {spaceCan("create_invite") &&
+            document.location.protocol !== "file:" && (
+              <PanelItemButtonSection>
+                <Tooltip
+                  visible={showInviteTip}
+                  disabled={!showInviteTip}
+                  content={messages["invite.tip"]}
+                  placement="right"
+                  className="hide-when-expanded"
+                  key="invite"
                 >
-                  <FormattedMessage id="nav.invite" />
-                </PanelItemButton>
-              </Tooltip>
-            </PanelItemButtonSection>
-          )}
+                  <PanelItemButton
+                    iconSrc={inviteIcon}
+                    ref={setInviteReferenceElement}
+                    onMouseDown={e => cancelEventIfFocusedWithin(e, inviteElement)}
+                    onClick={() => {
+                      if (updateInvitePopper) {
+                        updateInvitePopper();
+                      }
+                      setHasShownInvite(true);
+                      store.handleActivityFlag("showInvite");
+                      toggleFocus(invitePanelFieldElement.current);
+                    }}
+                  >
+                    <FormattedMessage id="nav.invite" />
+                  </PanelItemButton>
+                </Tooltip>
+              </PanelItemButtonSection>
+            )}
         </NavHead>
         <NavSpill>
           <PanelSectionHeader>
@@ -455,15 +474,11 @@ function LeftPanel({
       <Invite setPopperElement={setInviteElement} styles={inviteStyles} attributes={inviteAttributes}>
         <InvitePanel
           spaceId={spaceId}
-          inviteLinkType={inviteLinkType}
+          inviteLinkType={"invite"}
           ref={invitePanelFieldElement}
           fetchInviteUrl={async () => {
-            if (inviteLinkType === "hub") {
-              const metadata = hubMetadata.getMetadata(hubId);
-              return metadata && metadata.url;
-            } else {
-              return await spaceChannel.createInvite();
-            }
+            const metadata = hubMetadata.getMetadata(hubId);
+            return metadata && metadata.url;
           }}
         />
       </Invite>

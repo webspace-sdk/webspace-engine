@@ -123,10 +123,6 @@ class TreeManager extends EventTarget {
   // so it is saved
   initializeIndexNavDoc(doc) {
     let modified = false;
-    if (!doc.title) {
-      doc.title = "Untitled Webspace";
-      modified = true;
-    }
     const filename = document.location.pathname.split("/").pop();
     let navEl = doc.querySelector("nav");
     if (!navEl) {
