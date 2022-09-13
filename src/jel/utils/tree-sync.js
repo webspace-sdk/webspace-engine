@@ -112,12 +112,12 @@ class TreeSync extends EventTarget {
 
   addToRoot(atomId) {
     const { name, url } = this.atomMetadata.get(atomId);
-    const el = this.doc.createElement("a");
-    el.setAttribute("href", url);
-    el.innerText = name;
-
-    const nav = this.doc.querySelector("nav");
-    nav.appendChild(el);
+    const liEl = this.doc.createElement("li");
+    const linkEl = this.doc.createElement("a");
+    linkEl.setAttribute("href", url);
+    linkEl.innerText = name;
+    liEl.appendChild(linkEl);
+    this.doc.querySelector("nav").appendChild(liEl);
   }
 
   addToRootIfNotExists(atomId) {
@@ -160,8 +160,9 @@ class TreeSync extends EventTarget {
   moveBelow(nodeId, belowNodeId) {
     const el = this.atomIdToDocEl.get(this.getAtomIdForNodeId(nodeId));
     const belowEl = this.atomIdToDocEl.get(this.getAtomIdForNodeId(belowNodeId));
+    console.log(el, belowEl);
     el.remove();
-    belowEl.parentNode.insertAfter(el, belowEl);
+    belowEl.parentNode.insertBefore(el, belowEl.nextSibling);
 
     this.writeTree();
   }
@@ -190,16 +191,19 @@ class TreeSync extends EventTarget {
 
     const walk = async (domNode, items, parentAtomId) => {
       for (const el of domNode.children) {
-        const url = el.getAttribute("href");
+        const aEl = el.querySelector("a");
+        const url = aEl.getAttribute("href");
         if (!url) continue;
 
-        const name = el.textContent;
+        const name = aEl.textContent;
         const atomId = await atomMetadata.getAtomIdFromUrl(url);
 
         atomMetadata.localUpdate(atomId, { name, url });
         atomIdToDocEl.set(atomId, el);
 
-        if (el.children.length > 0) {
+        const subList = el.querySelector("ul");
+
+        if (subList) {
           const children = [];
 
           items.push({
@@ -210,7 +214,7 @@ class TreeSync extends EventTarget {
             isLeaf: isFlatProjection
           });
 
-          await walk(el, isFlatProjection ? children : items, parentAtomId);
+          await walk(subList, isFlatProjection ? children : items, parentAtomId);
         } else {
           items.push({
             key: atomId,
@@ -224,17 +228,10 @@ class TreeSync extends EventTarget {
       }
     };
 
-    const navEl = doc.querySelector("nav");
-    if (navEl) await walk(navEl, treeData);
+    const listEl = doc.querySelector("nav ul");
+    if (listEl) await walk(listEl, treeData);
 
     return treeData;
-  }
-
-  isAtomIdFiltered(atomId) {
-    const nodeId = this.getNodeIdForAtomId(atomId);
-    if (!nodeId) return false;
-    const node = this.doc.data[nodeId];
-    return !this.nodeFilter(node);
   }
 
   async rebuildFilteredTreeData() {

@@ -42,6 +42,7 @@ function HubTree({ treeManager, history, hub, spaceCan, setAtomRenameReferenceEl
         <HubNodeTitle
           hubId={data.atomId}
           showAdd={showAdd}
+          showDots={spaceCan("edit_nav")}
           hubMetadata={atomMetadata}
           onAddClick={async e => {
             e.stopPropagation(); // Otherwise this will perform a tree node click event
@@ -53,7 +54,9 @@ function HubTree({ treeManager, history, hub, spaceCan, setAtomRenameReferenceEl
           onDotsClick={(e, ref) => {
             e.stopPropagation(); // Otherwise this will perform a tree node click event
             showHubContextMenuPopup(data.atomId, atomMetadata, ref, "bottom-start", [0, 0], {
-              hideRename: false,
+              hideRename: hub.hub_id !== data.atomId,
+              hideSetSpawnPoint: true,
+              showRemoveFromNav: true,
               isCurrentWorld: false
             });
             setAtomRenameReferenceElement(ref);

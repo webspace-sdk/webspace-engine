@@ -123,35 +123,35 @@ class TreeManager extends EventTarget {
   // so it is saved
   initializeIndexNavDoc(doc) {
     let modified = false;
-
     if (!doc.title) {
       doc.title = "Untitled Webspace";
       modified = true;
     }
-
     const filename = document.location.pathname.split("/").pop();
     let navEl = doc.querySelector("nav");
-
     if (!navEl) {
       navEl = doc.createElement("nav");
       doc.body.appendChild(navEl);
       modified = true;
     }
-
-    let aEl = navEl.querySelector(`a[href="${filename}"]`);
-
+    let listEl = navEl.querySelector("ul");
+    if (!listEl) {
+      listEl = doc.createElement("ul");
+      navEl.appendChild(listEl);
+      modified = true;
+    }
+    let aEl = listEl.querySelector(`a[href="${filename}"]`);
     if (!aEl || aEl.innerText !== document.title) {
       if (!aEl) {
         aEl = doc.createElement("a");
       }
-
       aEl.href = filename;
       aEl.innerText = document.title;
-
-      navEl.appendChild(aEl);
+      const liEl = doc.createElement("li");
+      liEl.appendChild(aEl);
+      listEl.appendChild(liEl);
       modified = true;
     }
-
     return modified;
   }
 
@@ -162,7 +162,7 @@ class TreeManager extends EventTarget {
       scriptTag.remove();
     }
 
-    const aEl = doc.querySelector("nav a");
+    const aEl = doc.querySelector("nav ul li a");
 
     // Index should redirect to first world.
     if (aEl) {

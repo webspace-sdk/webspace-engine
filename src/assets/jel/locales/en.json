@@ -18,6 +18,7 @@
   "vox.unnamed-title": "Unnamed Object",
   "hub-context.empty": "No Actions",
   "hub-context.rename": "Rename",
+  "hub-context.remove-from-nav": "Remove from list",
   "hub-context.set-spawn-point": "Set spawn point",
   "hub-context.move-to-trash": "Move to Trash",
   "hub-context.export": "Export to HTML",

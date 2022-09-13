@@ -25,6 +25,8 @@ function HubContextMenu({
   hubCan,
   worldTree,
   hideRename,
+  hideSetSpawnPoint,
+  showRemoveFromNav,
   showReset,
   isCurrentWorld,
   showAtomRenamePopup,
@@ -36,6 +38,22 @@ function HubContextMenu({
 
   const { spaceChannel, hubChannel, hubMetadata } = window.APP;
   const items = [];
+
+  if (spaceCan("edit_nav") && showRemoveFromNav) {
+    items.push(
+      <PopupMenuItem
+        key={`remove-from-nav-${hubId}`}
+        onClick={e => {
+          const hubNodeId = worldTree.getNodeIdForAtomId(hubId);
+          worldTree.remove(hubNodeId);
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+      >
+        <FormattedMessage id="hub-context.remove-from-nav" />
+      </PopupMenuItem>
+    );
+  }
 
   if (hubId && hubCan("update_hub_meta", hubId) && !hideRename) {
     items.push(
@@ -52,7 +70,7 @@ function HubContextMenu({
     );
   }
 
-  if (hubId && hubCan("update_hub_meta", hubId)) {
+  if (hubId && hubCan("update_hub_meta", hubId) && !hideSetSpawnPoint) {
     items.push(
       <PopupMenuItem
         key={`set-spawn-point-${hubId}`}

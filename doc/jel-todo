@@ -32,6 +32,7 @@
 - browser compat, show message if trying to edit file:// in non-chrome
 - test ff + safari
 - allow networking settings to be changed via qs
+- remove all unused translations
 - file uploads
 - detecting relay member in presence to unlock editing for unprivileged users
 - deal with filtering networking based on roles + hub setting for allowing edits

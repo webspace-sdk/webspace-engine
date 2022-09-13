@@ -517,6 +517,8 @@ function LeftPanel({
       <HubContextMenu
         setPopperElement={setHubContextMenuElement}
         hideRename={!!hubContextMenuOpenOptions.hideRename}
+        showRemoveFromNav={!!hubContextMenuOpenOptions.showRemoveFromNav}
+        hideSetSpawnPoint={!!hubContextMenuOpenOptions.hideSetSpawnPoint}
         showReset={!!hubContextMenuOpenOptions.showReset}
         isCurrentWorld={!!hubContextMenuOpenOptions.isCurrentWorld}
         showAtomRenamePopup={showAtomRenamePopup}
