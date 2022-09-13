@@ -21,19 +21,11 @@ const EmptyMessage = styled.div`
   white-space: pre;
 `;
 
-function HubTree({
-  treeManager,
-  type,
-  history,
-  hub,
-  spaceCan,
-  setAtomRenameReferenceElement,
-  showHubContextMenuPopup
-}) {
+function HubTree({ treeManager, history, hub, spaceCan, setAtomRenameReferenceElement, showHubContextMenuPopup }) {
   const [navTreeData, setNavTreeData] = useState([]);
   const [navTreeDataVersion, setNavTreeDataVersion] = useState(0);
 
-  const tree = treeManager && (type === "world" ? treeManager.worldNav : treeManager.channelNav);
+  const tree = treeManager && treeManager.worldNav;
   const atomMetadata = tree && tree.atomMetadata;
 
   useTreeData(tree, navTreeDataVersion, setNavTreeData, setNavTreeDataVersion);
@@ -98,10 +90,7 @@ function HubTree({
 
   treeManager.setNavTitleControl(navTitleControl);
 
-  // HACK - this is security through obscurity for the channel case, since
-  // the edit_nav permission theoretically allows anyone to modify the entire
-  // nav tree, not just the world nav.
-  const draggable = type === "world" ? spaceCan("create_world_hub") : spaceCan("create_channel_hub");
+  const draggable = spaceCan("create_world_hub");
 
   return (
     <div>
@@ -120,7 +109,7 @@ function HubTree({
       />
       {navTreeData.length === 0 && (
         <EmptyMessage>
-          <FormattedMessage id={type === "world" ? "nav.worlds-empty" : "nav.channels-empty"} />
+          <FormattedMessage id="nav.worlds-empty" />
         </EmptyMessage>
       )}
     </div>

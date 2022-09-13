@@ -6,7 +6,6 @@ import PropTypes from "prop-types";
 import styled from "styled-components";
 import PanelSectionHeader from "./panel-section-header";
 import ActionButton from "./action-button";
-import TinyOutlineIconButton from "./tiny-outline-icon-button";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
 import HubContextMenu from "./hub-context-menu";
 import RenamePopup from "./rename-popup";
@@ -406,7 +405,6 @@ function LeftPanel({
           </PanelSectionHeader>
           <HubTree
             treeManager={treeManager}
-            type="world"
             hub={hub}
             history={history}
             spaceCan={spaceCan}

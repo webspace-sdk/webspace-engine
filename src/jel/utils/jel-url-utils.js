@@ -1,4 +1,3 @@
-import { pushHistoryPath, replaceHistoryPath } from "../../hubs/utils/history";
 import { hashString } from "../../hubs/utils/crypto";
 import bs58 from "bs58";
 import random from "random";
@@ -11,7 +10,15 @@ let currentHubSeed = null;
 let currentSpaceId = null;
 
 export async function getHubIdFromUrl(url) {
-  const hubHash = await hashString(url);
+  let parsedUrl;
+
+  try {
+    parsedUrl = new URL(url);
+  } catch (e) {
+    parsedUrl = new URL(url, document.location.href); // Relative path
+  }
+
+  const hubHash = await hashString(parsedUrl.toString());
   return bs58.encode(hubHash).substring(0, 16);
 }
 
