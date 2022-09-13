@@ -61,7 +61,14 @@ class TreeManager extends EventTarget {
     super();
     this.navExpandedTreeNodes = new ExpandedTreeNodes();
 
-    this.worldNav = new TreeSync("index.html", this.navExpandedTreeNodes, hubMetadata, TREE_PROJECTION_TYPE.NESTED);
+    this.worldNav = new TreeSync(
+      "index.html",
+      this.navExpandedTreeNodes,
+      hubMetadata,
+      TREE_PROJECTION_TYPE.NESTED,
+      this.initializeIndexNavDoc.bind(this),
+      this.modifyIndexNavDoc.bind(this)
+    );
 
     this.trashNav = new TreeSync("trash.html", null, hubMetadata, TREE_PROJECTION_TYPE.FLAT);
     this.trashNested = new TreeSync("trash.html", null, hubMetadata, TREE_PROJECTION_TYPE.NESTED);
@@ -108,6 +115,63 @@ class TreeManager extends EventTarget {
 
   navExpandedNodeIds() {
     return this.navExpandedTreeNodes.expandedNodeIds();
+  }
+
+  // Run when initializing index.html nav doc, return true if modified
+  // so it is saved
+  initializeIndexNavDoc(doc) {
+    let modified = false;
+
+    if (!doc.title) {
+      doc.title = "Untitled Webspace";
+      modified = true;
+    }
+
+    const filename = document.location.pathname.split("/").pop();
+    let navEl = doc.querySelector("nav");
+
+    if (!navEl) {
+      navEl = doc.createElement("nav");
+      doc.body.appendChild(navEl);
+      modified = true;
+    }
+
+    let aEl = navEl.querySelector(`a[href="${filename}"]`);
+
+    if (!aEl || aEl.innerText !== document.title) {
+      if (!aEl) {
+        aEl = doc.createElement("a");
+      }
+
+      aEl.href = filename;
+      aEl.innerText = document.title;
+
+      navEl.appendChild(aEl);
+      modified = true;
+    }
+
+    return modified;
+  }
+
+  // Run before saving the index.html doc
+  modifyIndexNavDoc(doc) {
+    // Remove all existing script tags
+    for (const scriptTag of doc.querySelectorAll("script")) {
+      scriptTag.remove();
+    }
+
+    const aEl = doc.querySelector("nav a");
+
+    // Index should redirect to first world.
+    if (aEl) {
+      const scriptTag = doc.createElement("script");
+      scriptTag.innerText = `document.location.href = "${aEl.href}";`;
+      doc.head.appendChild(scriptTag);
+    }
+  }
+
+  updateTree(docPath, body) {
+    console.log("updating remote tree", docPath, body);
   }
 }
 

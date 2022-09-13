@@ -440,6 +440,12 @@ export async function setupTreeManagers(history, entryManager, remountJelUI) {
     async ({ detail: { presence } }) => {
       initPresence(presence);
 
+      NAF.connection.subscribeToDataChannel("update_nav", (_type, { body: { docPath, body } }, fromSessionId) => {
+        const { atomAccessManager } = window.APP;
+        if (!atomAccessManager.spaceCan("edit_nav", null /* hubId */, fromSessionId)) return;
+        treeManager.updateTree(docPath, body);
+      });
+
       await treeManager.init();
 
       remountJelUI({ history, treeManager, voxTree, sceneTree });

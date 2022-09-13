@@ -153,8 +153,10 @@ class FileWriteback {
     try {
       let writable;
 
+      // TODO store additional handles for index and trash
       if (path) {
-        writable = await this.dirHandle.getFileHandle(path, { create: true });
+        const handle = await this.dirHandle.getFileHandle(path, { create: true });
+        writable = await handle.createWritable();
       } else {
         writable = await this.pageHandle.createWritable();
       }
@@ -313,9 +315,14 @@ export default class AtomAccessManager extends EventTarget {
 
     this.mutationObserver = new MutationObserver(() => {
       if (!this.writeback) return;
+      let isWriting = false;
 
-      const write = () => {
+      const write = async () => {
+        if (isWriting) return;
+
+        isWriting = true;
         this.writeDocument(document);
+        isWriting = false;
 
         this.lastWriteTime = Date.now();
 
@@ -360,10 +367,12 @@ export default class AtomAccessManager extends EventTarget {
   }
 
   async openWriteback() {
+    if (this.writeback.isOpen) return;
     const result = await this.writeback.open();
 
     if (result) {
       this.dispatchEvent(new CustomEvent("permissions_updated", {}));
+
       this.ensurePublicKeyInMetaTags();
 
       if (this.refreshOnWritebackOpen) {
@@ -478,6 +487,7 @@ export default class AtomAccessManager extends EventTarget {
   }
 
   async contentUrlForRelativePath(path) {
+    if (document.location.protocol !== "file:") return path;
     if (!(await this.ensureWritebackOpen(true))) return;
     return await this.writeback.contentUrlForRelativePath(path);
   }
@@ -486,7 +496,7 @@ export default class AtomAccessManager extends EventTarget {
     const html = prettifyXml(new XMLSerializer().serializeToString(document));
 
     if (html && html.length > 0) {
-      this.writeback.write(html, path);
+      return await this.writeback.write(html, path);
     } else {
       console.warn("Tried to write empty html");
     }
@@ -514,9 +524,13 @@ export default class AtomAccessManager extends EventTarget {
     }
   }
 
-  spaceCan(permission) {
+  spaceCan(permission, sessionId = null) {
     if (!VALID_PERMISSIONS[ATOM_TYPES.SPACE].includes(permission))
       throw new Error(`Invalid permission name: ${permission}`);
+
+    if (sessionId !== null && sessionId !== NAF.clientId) {
+      return this.roles.get(sessionId) === ROLES.OWNER;
+    }
 
     return this.writeback?.isOpen;
   }

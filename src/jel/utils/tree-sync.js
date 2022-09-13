@@ -8,7 +8,14 @@ const TREE_PROJECTION_TYPE = {
 };
 
 class TreeSync extends EventTarget {
-  constructor(docPath, expandedTreeNodes, atomMetadata, projectionType = TREE_PROJECTION_TYPE.NESTED) {
+  constructor(
+    docPath,
+    expandedTreeNodes,
+    atomMetadata,
+    projectionType = TREE_PROJECTION_TYPE.NESTED,
+    docInitializer = () => false,
+    docWriteModifier = () => {}
+  ) {
     super();
     this.docPath = docPath;
     this.expandedTreeNodes = expandedTreeNodes;
@@ -20,6 +27,9 @@ class TreeSync extends EventTarget {
     this.subscribedAtomIds = new Set();
     this.atomIdToFilteredTreeDataItem = new Map();
     this.parentNodeIds = new Map();
+
+    this.docInitializer = docInitializer;
+    this.docWriteModifier = docWriteModifier;
   }
 
   setTitleControl(titleControl) {
@@ -44,22 +54,42 @@ class TreeSync extends EventTarget {
   async init() {
     if (!this.docPath) return;
 
-    await this.fetchDoc();
-    await this.rebuildFilteredTreeData();
+    const { atomAccessManager } = window.APP;
 
-    //const doc = connection.get(this.collectionId, this.docPath);
-    //this.doc = doc;
+    await this.fetchAndRebuildTree();
 
-    //return new Promise(res => {
-    //  doc.subscribe(async () => {
-    //    doc.on("op", () => this.rebuildFilteredTreeData());
-    //    this.rebuildFilteredTreeData();
-    //    res();
-    //  });
-    //});
+    const shouldWrite = this.docInitializer(this.doc);
+
+    if (shouldWrite) {
+      if (atomAccessManager.spaceCan("edit_nav")) {
+        await this.writeTree();
+      } else {
+        atomAccessManager.addEventListener(
+          "permissions_updated",
+          async () => {
+            if (atomAccessManager.spaceCan("edit_nav")) {
+              await this.writeTree();
+            }
+          },
+          { once: true }
+        );
+      }
+    }
   }
 
-  async fetchDoc() {
+  async writeTree() {
+    const { docPath, doc } = this;
+    if (!docPath || !doc) return;
+    const { atomAccessManager, hubChannel } = window.APP;
+
+    this.docWriteModifier(doc);
+
+    await atomAccessManager.writeDocument(doc, docPath);
+
+    hubChannel.broadcastMessage({ docPath, body: new XMLSerializer().serializeToString(doc) }, "update_nav");
+  }
+
+  async fetchAndRebuildTree() {
     const { atomAccessManager } = window.APP;
     let url = this.docPath;
     try {
@@ -77,6 +107,7 @@ class TreeSync extends EventTarget {
     }
 
     this.doc = new DOMParser().parseFromString(body, "text/html");
+    await this.rebuildFilteredTreeData();
   }
 
   addToRoot(atomId) {}
