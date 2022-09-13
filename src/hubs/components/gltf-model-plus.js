@@ -11,6 +11,7 @@ import { resetMediaRotation, MEDIA_PRESENCE, MEDIA_INTERACTION_TYPES } from "../
 import { gatePermission } from "../utils/permissions-utils";
 import { RENDER_ORDER } from "../constants";
 import { BasisTextureLoader } from "three/examples/jsm/loaders/BasisTextureLoader";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { BasisLoadingManager } from "../utils/media-utils";
 
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
@@ -509,7 +510,7 @@ export async function loadGLTF(src, contentType, onProgress, jsonPreprocessor) {
 
   const loadingManager = new THREE.LoadingManager();
   loadingManager.setURLModifier(getCustomGLTFParserURLResolver(gltfUrl));
-  const gltfLoader = new THREE.GLTFLoader(loadingManager);
+  const gltfLoader = new GLTFLoader(loadingManager);
   gltfLoader
     .register(parser => new GLTFHubsPlugin(parser, jsonPreprocessor))
     .register(parser => new GLTFHubsLightMapExtension(parser))
