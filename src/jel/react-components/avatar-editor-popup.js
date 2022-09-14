@@ -14,19 +14,11 @@ const PickerWrap = styled.div`
   height: 128px;
 `;
 
-const AvatarEditorPopup = ({
-  setPopperElement,
-  styles,
-  scene,
-  spaceChannel,
-  attributes,
-  onColorChangeComplete,
-  children
-}) => {
+const AvatarEditorPopup = ({ setPopperElement, styles, scene, attributes, onColorChangeComplete, children }) => {
   const [pickerColorValue, setPickerColorValue] = useState({ r: 0, g: 0, b: 0 });
   useEffect(
     () => {
-      if (!scene || !spaceChannel || !NAF.connection.presence) return;
+      if (!scene || !NAF.connection.presence) return;
 
       const handler = () => {
         const sessionId = NAF.clientId;
@@ -42,7 +34,7 @@ const AvatarEditorPopup = ({
       return () => scene.removeEventListener("presence-synced", handler);
     },
 
-    [scene, spaceChannel, pickerColorValue, setPickerColorValue]
+    [scene, pickerColorValue, setPickerColorValue]
   );
 
   const popupInput = (
@@ -71,7 +63,6 @@ const AvatarEditorPopup = ({
 
 AvatarEditorPopup.propTypes = {
   scene: PropTypes.object,
-  spaceChannel: PropTypes.object,
   onColorChangeComplete: PropTypes.func
 };
 

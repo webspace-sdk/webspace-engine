@@ -269,19 +269,7 @@ const ToggleFloorButton = forwardRef(() => {
 ToggleFloorButton.displayName = "ToggleFloorButton";
 
 function CanvasTop(props) {
-  const {
-    history,
-    hubCan,
-    voxCan,
-    hub,
-    worldTree,
-    channelTree,
-    scene,
-    spaceCan,
-    worldTreeData,
-    channelTreeData,
-    createSelectPopupRef
-  } = props;
+  const { history, hubCan, voxCan, hub, worldTree, scene, spaceCan, worldTreeData, createSelectPopupRef } = props;
 
   const { cameraSystem, terrainSystem, atmosphereSystem } = SYSTEMS;
   const { store, hubChannel, atomAccessManager } = window.APP;
@@ -581,9 +569,7 @@ function CanvasTop(props) {
         spaceCan={spaceCan}
         hubCan={hubCan}
         scene={scene}
-        channelTree={channelTree}
         worldTreeData={worldTreeData}
-        channelTreeData={channelTreeData}
       />
       <RenamePopup
         setPopperElement={setAtomRenamePopupElement}
@@ -637,9 +623,7 @@ CanvasTop.propTypes = {
   voxCan: PropTypes.func,
   scene: PropTypes.object,
   worldTree: PropTypes.object,
-  channelTree: PropTypes.object,
   worldTreeData: PropTypes.array,
-  channelTreeData: PropTypes.array,
   spaceCan: PropTypes.func,
   memberships: PropTypes.array,
   hubSettings: PropTypes.array,

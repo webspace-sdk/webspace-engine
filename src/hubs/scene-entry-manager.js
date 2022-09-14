@@ -35,8 +35,7 @@ const isIOS = AFRAME.utils.device.isIOS();
 
 export default class SceneEntryManager {
   constructor() {
-    const { hubChannel, spaceChannel, atomAccessManager, history } = window.APP;
-    this.spaceChannel = spaceChannel;
+    const { hubChannel, atomAccessManager, history } = window.APP;
     this.hubChannel = hubChannel;
     this.atomAccessManager = atomAccessManager;
     this.store = window.APP.store;

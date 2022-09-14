@@ -146,8 +146,8 @@ class TreeSync extends EventTarget {
     return nodeId;
   }
 
-  getAtomTrailForAtomId(/*atomId*/) {
-    return [];
+  getAtomTrailForAtomId(atomId) {
+    return [atomId];
   }
 
   getAtomMetadataFromDOM(atomId) {

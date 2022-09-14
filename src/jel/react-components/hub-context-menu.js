@@ -30,9 +30,7 @@ function HubContextMenu({
   showReset,
   isCurrentWorld,
   showAtomRenamePopup,
-  channelTree,
-  worldTreeData,
-  channelTreeData
+  worldTreeData
 }) {
   if (!popupRoot || !spaceCan || !hubCan) return null;
 
@@ -175,16 +173,15 @@ function HubContextMenu({
       <PopupMenuItem
         key={`trash-${hubId}`}
         onClick={e => {
-          if (!worldTree.getNodeIdForAtomId(hubId) && !channelTree.getNodeIdForAtomId(hubId)) return;
+          if (!worldTree.getNodeIdForAtomId(hubId)) return;
 
           // TODO SHARED
           // If this hub or any of its parents were deleted, go to any other hub.
 
           // All trashable children are trashed too.
-          const trashableChildrenHubIds = [
-            ...findChildrenAtomsInTreeData(worldTreeData, hubId),
-            ...findChildrenAtomsInTreeData(channelTreeData, hubId)
-          ].filter(hubId => hubCan("trash_hub", hubId));
+          const trashableChildrenHubIds = [...findChildrenAtomsInTreeData(worldTreeData, hubId)].filter(hubId =>
+            hubCan("trash_hub", hubId)
+          );
 
           spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
           // Blur button so menu hides

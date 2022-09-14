@@ -27,6 +27,7 @@
 - review all deps
 - update GLTF importer
 - nuke hub-type-world vs channel, grep for channel
+- consolidate channel classes
 - drop push notif
 - make voxmoji float
 - browser compat, show message if trying to edit file:// in non-chrome
@@ -49,6 +50,7 @@
   - create world popup prompts for title and derives html filename. does not overwrite
 - add service to register spaces
 - upload + register service worker
+- ctrl Z after rename bug
 
 name not updating in self panel when updated by another peer
 should change button to "unlock world" when others are in room

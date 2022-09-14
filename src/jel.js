@@ -427,9 +427,6 @@ function addGlobalEventListeners(scene, entryManager, atomAccessManager) {
     // remountUI({ roomUnavailableReason: "closed" });
   });
 
-  scene.addEventListener("action_camera_recording_started", () => spaceChannel.beginRecording());
-  scene.addEventListener("action_camera_recording_ended", () => spaceChannel.endRecording());
-
   ["#jel-react-root", "#jel-popup-root"].forEach(selector => {
     const el = DOM_ROOT.querySelector(selector);
     el.addEventListener("mouseover", () => scene.addState("pointer-exited"));

@@ -12,7 +12,6 @@ import { useTreeData } from "../utils/tree-utils";
 import RootPopups from "./root-popups";
 import JelSidePanels from "./jel-side-panels";
 import ChatLog from "./chat-log";
-import Snackbar from "./snackbar";
 import { WrappedIntlProvider } from "../../hubs/react-components/wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
 import KeyTips from "./key-tips";
@@ -313,7 +312,7 @@ function JelUI(props) {
   const { launcherSystem, cameraSystem, builderSystem, externalCameraSystem } = SYSTEMS;
 
   const worldTree = treeManager && treeManager.worldNav;
-  const { spaceMetadata, spaceChannel, store } = window.APP;
+  const { spaceMetadata, store } = window.APP;
   const hubMetadata = worldTree && worldTree.atomMetadata;
 
   const [unmuted, setUnmuted] = useState(false);
@@ -378,7 +377,6 @@ function JelUI(props) {
       <WrappedIntlProvider>
         <Root className="expand-asset-panel">
           <LoadingPanel isLoading={!isDoneLoading || !!unavailableReason} unavailableReason={unavailableReason} />
-          <Snackbar />
           <Wrap id="jel-ui-wrap">
             <FadeEdges />
             <CreateSelectPopupRef ref={createSelectPopupRef} />
@@ -438,7 +436,6 @@ function JelUI(props) {
         <RightExpandTrigger id="right-expand-trigger" onClick={onExpandTriggerClick} />
         <BottomExpandTrigger id="bottom-expand-trigger" onClick={onExpandTriggerClick} />
         <SelfPanel
-          spaceChannel={spaceChannel}
           scene={scene}
           sessionId={sessionId}
           onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {

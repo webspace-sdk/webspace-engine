@@ -283,7 +283,6 @@ const SelfPanel = ({ scene, spaceChannel, sessionId, onAvatarColorChangeComplete
       </DeviceSelectorPopup>
       <AvatarEditorPopup
         scene={scene}
-        spaceChannel={spaceChannel}
         setPopperElement={setAvatarEditorElement}
         styles={avatarEditorStyles}
         attributes={avatarEditorAttributes}
@@ -318,7 +317,6 @@ const SelfPanel = ({ scene, spaceChannel, sessionId, onAvatarColorChangeComplete
 
 SelfPanel.propTypes = {
   scene: PropTypes.object,
-  spaceChannel: PropTypes.object,
   sessionId: PropTypes.string,
   onAvatarColorChangeComplete: PropTypes.func
 };

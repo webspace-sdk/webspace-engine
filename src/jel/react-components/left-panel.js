@@ -283,9 +283,7 @@ function LeftPanel({
   showInviteTip,
   setHasShownInvite,
   worldTree,
-  channelTree,
-  worldTreeData,
-  channelTreeData
+  worldTreeData
 }) {
   const { store } = window.APP;
   const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
@@ -543,9 +541,7 @@ function LeftPanel({
         spaceCan={spaceCan}
         hubCan={hubCan}
         scene={scene}
-        channelTree={channelTree}
         worldTreeData={worldTreeData}
-        channelTreeData={channelTreeData}
       />
       <RenamePopup
         setPopperElement={setAtomRenamePopupElement}
@@ -585,9 +581,7 @@ LeftPanel.propTypes = {
   showHubContextMenuPopup: PropTypes.func,
   setAtomRenameReferenceElement: PropTypes.func,
   worldTreeData: PropTypes.array,
-  channelTreeData: PropTypes.array,
-  worldTree: PropTypes.object,
-  channelTree: PropTypes.object
+  worldTree: PropTypes.object
 };
 
 export default LeftPanel;

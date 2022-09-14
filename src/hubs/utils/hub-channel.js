@@ -29,7 +29,6 @@ export default class HubChannel extends EventTarget {
   };
 
   broadcastMessage = (body, type = "chat", toSessionId) => {
-    // TODO SHARED refactor
     if (!body) return;
     const payload = { body };
     if (toSessionId) {
@@ -40,28 +39,31 @@ export default class HubChannel extends EventTarget {
   };
 
   sendMessage = (body, type = "chat", toSessionId) => {
-    // TODO SHARED refactor
     if (!body) return;
     const payload = { body };
     NAF.connection.sendCustomDataGuaranteed(type, payload, toSessionId);
   };
 
-  mute = sessionId => this.channel.push("mute", { session_id: sessionId });
-
-  hide = sessionId => {
-    if (!this.channel) return;
-    NAF.connection.adapter.block(sessionId);
-    this.channel.push("block", { session_id: sessionId });
-    this._blockedSessionIds.add(sessionId);
+  mute = (/*sessionId*/) => {
+    // TODO SHARED
+    //this.channel.push("mute", { session_id: sessionId });
   };
 
-  unhide = sessionId => {
-    if (!this.channel) return;
-    if (!this._blockedSessionIds.has(sessionId)) return;
-    NAF.connection.adapter.unblock(sessionId);
-    NAF.connection.entities.completeSync(sessionId);
-    this.channel.push("unblock", { session_id: sessionId });
-    this._blockedSessionIds.delete(sessionId);
+  hide = (/*sessionId*/) => {
+    // TODO SHARED
+    // if (!this.channel) return;
+    // NAF.connection.adapter.block(sessionId);
+    // this.channel.push("block", { session_id: sessionId });
+    // this._blockedSessionIds.add(sessionId);
+  };
+
+  unhide = (/*sessionId*/) => {
+    // TODO SHARED
+    // if (!this._blockedSessionIds.has(sessionId)) return;
+    // NAF.connection.adapter.unblock(sessionId);
+    // NAF.connection.entities.completeSync(sessionId);
+    // this.channel.push("unblock", { session_id: sessionId });
+    // this._blockedSessionIds.delete(sessionId);
   };
 
   updateSpaceMemberRole = role => {

@@ -1,6 +1,7 @@
 import { getBox, getScaleCoefficient } from "../utils/auto-box-collider";
 import { ensureOwnership, getNetworkedEntity, isSynchronized } from "../../jel/utils/ownership-utils";
 import { ParticleEmitter } from "lib-hubs/packages/three-particle-emitter/lib/esm/index";
+import { getSpaceIdFromHistory } from "../../jel/utils/jel-url-utils";
 import loadingParticleSrc from "!!url-loader!../../assets/jel/images/loading-particle.png";
 import { VOXLoader } from "../../jel/objects/VOXLoader";
 import { createVox } from "../../hubs/utils/phoenix-utils";
@@ -705,7 +706,7 @@ AFRAME.registerComponent("media-loader", {
   },
 
   async importVoxFromUrl(importUrl) {
-    const spaceId = window.APP.spaceChannel.spaceId;
+    const spaceId = await getSpaceIdFromHistory();
     const { voxSystem } = SYSTEMS;
 
     const {
