@@ -269,7 +269,8 @@ const ToggleFloorButton = forwardRef(() => {
 ToggleFloorButton.displayName = "ToggleFloorButton";
 
 function CanvasTop(props) {
-  const { history, hubCan, voxCan, hub, worldTree, scene, spaceCan, worldTreeData, createSelectPopupRef } = props;
+  const { history, hubCan, voxCan, worldTree, scene, spaceCan, worldTreeData, createSelectPopupRef } = props;
+  const hubId = props.hub?.hub_id;
 
   const { cameraSystem, terrainSystem, atmosphereSystem } = SYSTEMS;
   const { store, hubChannel, atomAccessManager } = window.APP;
@@ -332,9 +333,9 @@ function CanvasTop(props) {
 
   const updateWorldType = useCallback(
     worldType => {
-      hubChannel.updateHubMeta(hub.hub_id, { world: { type: worldType } });
+      hubChannel.updateHubMeta(hubId, { world: { type: worldType } });
     },
-    [hub, hubChannel]
+    [hubId, hubChannel]
   );
 
   const temporarilyUpdateEnvironmentColors = useCallback(
@@ -359,9 +360,9 @@ function CanvasTop(props) {
         };
       });
 
-      hubChannel.updateHubMeta(hub.hub_id, { world: hubWorldColors });
+      hubChannel.updateHubMeta(hubId, { world: hubWorldColors });
     },
-    [terrainSystem.worldColors, hub, hubChannel]
+    [terrainSystem.worldColors, hubId, hubChannel]
   );
 
   const onEnvironmentPresetColorsHovered = useCallback(
@@ -370,14 +371,6 @@ function CanvasTop(props) {
       temporarilyUpdateEnvironmentColors(...colors);
     },
     [temporarilyUpdateEnvironmentColors]
-  );
-
-  const onEnvironmentPresetColorsLeft = useCallback(
-    () => {
-      terrainSystem.updateWorldForHub(hub);
-      atmosphereSystem.updateAtmosphereForHub(hub);
-    },
-    [hub, terrainSystem, atmosphereSystem]
   );
 
   const onEnvironmentPresetColorsClicked = useCallback(
@@ -390,11 +383,11 @@ function CanvasTop(props) {
   );
 
   const [canSpawnAndMoveMedia, setCanSpawnAndMoveMedia] = useState(
-    hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id)
+    hubCan && hubId && hubCan("spawn_and_move_media", hubId)
   );
   const [isInspecting, setIsInspecting] = useState(cameraSystem.isInspecting());
 
-  const atomId = isInspecting ? cameraSystem.getInspectedAtomId() : hub && hub.hub_id;
+  const atomId = isInspecting ? cameraSystem.getInspectedAtomId() : hubId;
   const atomType = isInspecting ? cameraSystem.getInspectedAtomType() : ATOM_TYPES.HUB;
 
   let atomTrailAtomIds = null;
@@ -402,7 +395,7 @@ function CanvasTop(props) {
   if (isInspecting && atomId) {
     atomTrailAtomIds = [atomId];
   } else if (!isInspecting) {
-    atomTrailAtomIds = (worldTree && hub && worldTree.getAtomTrailForAtomId(hub.hub_id)) || (hub && [hub.hub_id]) || [];
+    atomTrailAtomIds = (worldTree && hubId && worldTree.getAtomTrailForAtomId(hubId)) || (hubId && [hubId]) || [];
   }
 
   const hubMetadata = worldTree && worldTree.atomMetadata;
@@ -454,7 +447,7 @@ function CanvasTop(props) {
   useEffect(
     () => {
       const handler = () => {
-        setCanSpawnAndMoveMedia(hubCan && hub && hubCan("spawn_and_move_media", hub.hub_id));
+        setCanSpawnAndMoveMedia(hubCan && hubId && hubCan("spawn_and_move_media", hubId));
         setIsEditingAvailable(atomAccessManager.isEditingAvailable);
 
         if (updateEnvironmentSettingsPopup) {
@@ -467,7 +460,7 @@ function CanvasTop(props) {
       atomAccessManager && atomAccessManager.addEventListener("permissions_updated", handler);
       return () => atomAccessManager && atomAccessManager.removeEventListener("permissions_updated", handler);
     },
-    [hub, hubCan, atomAccessManager, updateEnvironmentSettingsPopup]
+    [hubId, hubCan, atomAccessManager, updateEnvironmentSettingsPopup]
   );
 
   let cornerButtons;
@@ -501,7 +494,7 @@ function CanvasTop(props) {
           />
         }
         {hubCan &&
-          hubCan("update_hub_roles", hub && hub.hub_id) && (
+          hubCan("update_hub_roles", hubId) && (
             <HubPermissionsButton
               ref={hubPermissionsButtonRef}
               onMouseDown={e => cancelEventIfFocusedWithin(e, hubPermissionsPopupElement)}
@@ -522,9 +515,9 @@ function CanvasTop(props) {
           ref={hubContextButtonRef}
           onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
           onClick={() => {
-            showHubContextMenuPopup(hub.hub_id, hubMetadata, hubContextButtonRef, "bottom-end", [0, 8], {
+            showHubContextMenuPopup(hubId, hubMetadata, hubContextButtonRef, "bottom-end", [0, 8], {
               hideRename: true,
-              isCurrentWorld: hub.hub_id === atomAccessManager.currentHubId,
+              isCurrentWorld: hubId === atomAccessManager.currentHubId,
               showReset: false // TODO SHARED, template
             });
           }}
@@ -592,7 +585,7 @@ function CanvasTop(props) {
         styles={hubPermissionsPopupStyles}
         attributes={hubPermissionsPopupAttributes}
         hubMetadata={hubMetadata}
-        hub={hub}
+        hubId={hubId}
       />
       <WritebackSetupPopup
         setPopperElement={setWritebackSetupPopupElement}
@@ -603,14 +596,13 @@ function CanvasTop(props) {
         setPopperElement={setEnvironmentSettingsPopupElement}
         styles={environmentSettingsPopupStyles}
         attributes={environmentSettingsPopupAttributes}
-        hub={hub}
+        hubId={hubId}
         hubMetadata={hubMetadata}
         hubCan={hubCan}
         onColorsChanged={temporarilyUpdateEnvironmentColors}
         onColorChangeComplete={saveCurrentEnvironmentColors}
         onTypeChanged={updateWorldType}
         onPresetColorsHovered={onEnvironmentPresetColorsHovered}
-        onPresetColorsLeft={onEnvironmentPresetColorsLeft}
         onPresetColorsClicked={onEnvironmentPresetColorsClicked}
       />
     </Top>

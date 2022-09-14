@@ -10,12 +10,12 @@ import { PanelWrap, checkboxControlFor } from "./form-components";
 let popupRoot = null;
 waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
-const HubPermissionsPopup = ({ setPopperElement, styles, attributes, hubMetadata, hub, children }) => {
+const HubPermissionsPopup = ({ setPopperElement, styles, attributes, hubMetadata, hubId, children }) => {
   const [allowEditing, setAllowEditing] = useState(false);
 
   useEffect(
     () => {
-      if (!hubMetadata || !hub) return () => {};
+      if (!hubMetadata || !hubId) return () => {};
 
       const updatePermissions = () => {
         // TODO SHARED
@@ -25,10 +25,10 @@ const HubPermissionsPopup = ({ setPopperElement, styles, attributes, hubMetadata
 
       updatePermissions();
 
-      hubMetadata.subscribeToMetadata(hub.hub_id, updatePermissions);
+      hubMetadata.subscribeToMetadata(hubId, updatePermissions);
       return () => hubMetadata.unsubscribeFromMetadata(updatePermissions);
     },
-    [setAllowEditing, hub, hubMetadata]
+    [setAllowEditing, hubId, hubMetadata]
   );
 
   const allowEditingOnChange = useCallback(
@@ -78,7 +78,7 @@ const HubPermissionsPopup = ({ setPopperElement, styles, attributes, hubMetadata
 };
 
 HubPermissionsPopup.propTypes = {
-  hub: PropTypes.object,
+  hubId: PropTypes.string,
   hubMetadata: PropTypes.object
 };
 

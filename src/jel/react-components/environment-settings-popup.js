@@ -153,9 +153,8 @@ const EnvironmentSettingsPopup = ({
   onColorChangeComplete,
   onTypeChanged,
   onPresetColorsHovered,
-  onPresetColorsLeft,
   onPresetColorsClicked,
-  hub,
+  hubId,
   hubMetadata,
   hubCan
 }) => {
@@ -188,9 +187,9 @@ const EnvironmentSettingsPopup = ({
 
   const updateFromWorldMetadata = useCallback(
     () => {
-      if (!hub || !hubMetadata) return;
+      if (!hubId || !hubMetadata) return;
 
-      const { world } = hub;
+      const { world } = hubMetadata.getMetadata(hubId);
       if (!world) return;
 
       const fieldList = [
@@ -216,7 +215,7 @@ const EnvironmentSettingsPopup = ({
 
       setWorldType(world.type);
     },
-    [hub, hubMetadata, groundColor, edgeColor, leavesColor, barkColor, rockColor, grassColor, skyColor, waterColor]
+    [hubMetadata, groundColor, edgeColor, leavesColor, barkColor, rockColor, grassColor, skyColor, waterColor]
   );
 
   useEffect(
@@ -233,14 +232,14 @@ const EnvironmentSettingsPopup = ({
   // Update from the world metadata every time the hub changes.
   useEffect(
     () => {
-      if (!hub || !hubMetadata) return;
+      if (!hubId || !hubMetadata) return;
 
       updateFromWorldMetadata();
 
-      hubMetadata.subscribeToMetadata(hub.hub_id, updateFromWorldMetadata);
+      hubMetadata.subscribeToMetadata(hubId, updateFromWorldMetadata);
       return () => hubMetadata.unsubscribeFromMetadata(updateFromWorldMetadata);
     },
-    [hub, hubMetadata, updateFromWorldMetadata]
+    [hubId, hubMetadata, updateFromWorldMetadata]
   );
 
   const showPresetPicker = useCallback(
@@ -342,7 +341,7 @@ const EnvironmentSettingsPopup = ({
 
   const messages = getMessages();
 
-  const showAllSettings = hubCan && hubCan("update_hub_meta", hub && hub.hub_id);
+  const showAllSettings = hubCan && hubCan("update_hub_meta", hubId);
   const groundSwatchClick = useCallback(
     () => {
       setPickerColorValue(rgbToPickerValue(groundColor));
@@ -464,7 +463,11 @@ const EnvironmentSettingsPopup = ({
             return (
               <Swatch
                 onMouseOver={() => onPresetColorsHovered(i)}
-                onMouseOut={() => onPresetColorsLeft(i)}
+                onMouseOut={() => {
+                  const hub = hubMetadata.getMetadata(hubId);
+                  SYSTEMS.terrainSystem.updateWorldForHub(hub);
+                  SYSTEMS.atmosphereSystem.updateAtmosphereForHub(hub);
+                }}
                 onClick={() => {
                   onPresetColorsClicked(i);
                   presetPickerWrapRef.current.parentElement.focus();
@@ -697,7 +700,7 @@ EnvironmentSettingsPopup.propTypes = {
   onPresetColorsHovered: PropTypes.func,
   onPresetColorsLeft: PropTypes.func,
   onPresetColorsClicked: PropTypes.func,
-  hub: PropTypes.object,
+  hubId: PropTypes.string,
   hubMetadata: PropTypes.object,
   hubCan: PropTypes.func
 };
