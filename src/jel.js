@@ -794,6 +794,13 @@ function addMissingDefaultHtml() {
     document.head.appendChild(metaTag);
   }
 
+  if (!document.head.querySelector("meta[http-equiv='content-security-policy']")) {
+    const metaTag = document.createElement("meta");
+    metaTag.setAttribute("http-equiv", "content-security-policy");
+    metaTag.setAttribute("content", "script-src * blob: 'wasm-unsafe-eval';");
+    document.head.appendChild(metaTag);
+  }
+
   if (!document.head.querySelector("meta[name='mobile-web-app-capable']")) {
     const metaTag = document.createElement("meta");
     metaTag.setAttribute("name", "mobile-web-app-capable");
