@@ -328,6 +328,14 @@ const initMetaTag = (name, content) => {
 export const pushHubMetaUpdateIntoDOM = async hub => {
   const currentHubSeed = await getSeedForHubIdFromHistory();
 
+  if (hub.name !== undefined && document.title !== hub.name) {
+    if (hub.name) {
+      document.title = hub.name;
+    } else {
+      document.querySelector("title")?.remove();
+    }
+  }
+
   initMetaTag(`environment.type`, "terrain");
 
   for (const type of WORLD_COLOR_TYPES) {
@@ -507,7 +515,7 @@ export async function getHubMetaFromDOM() {
   return {
     hub_id: currentHubId,
     space_id: currentSpaceId,
-    name: document.title,
+    name: document.title || null,
     url: document.location.origin + document.location.pathname,
     worker_url: getStringFromMetaTags("networking.worker_url", "https://webspace-worker.minddrop.workers.dev"),
     cors_anywhere_url: getStringFromMetaTags("networking.cors_anywhere_url", ""),

@@ -243,7 +243,7 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
       hubMetadata.subscribeToMetadata(hubId, () => {
         const hub = hubMetadata?.getMetadata(hubId);
         // TODO SHARED - handle special case here when just name is changed, to avoid remounting whole UI
-        updateUIForHub(hub, remountJelUI);
+        //updateUIForHub(hub, remountJelUI);
         updateEnvironmentForHub(hub);
       });
 

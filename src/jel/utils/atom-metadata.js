@@ -68,7 +68,13 @@ export class LocalDOMHubMetadataSource extends EventTarget {
 
     this.mutationObserver = new MutationObserver(async mutationList => {
       for (const mutation of mutationList) {
-        if (mutation.target.tagName === "META" && mutation.target.getAttribute("name")?.startsWith(META_TAG_PREFIX)) {
+        const modifiedMetatag =
+          mutation.target.tagName === "META" && mutation.target.getAttribute("name")?.startsWith(META_TAG_PREFIX);
+        const modifiedTitle =
+          mutation.target.tagName === "TITLE" ||
+          (mutation.removedNodes.length > 0 && mutation.removedNodes[0].tagName === "TITLE");
+
+        if (modifiedMetatag || modifiedTitle) {
           if (domHubMetaRefreshTimeout) {
             clearTimeout(domHubMetaRefreshTimeout);
           }
@@ -186,8 +192,7 @@ class AtomMetadata {
         this._refreshMessage = "hub_meta_refresh";
         this._idColumn = "hub_id";
         this._sourceGetMethod = "getHubMetas";
-        this._defaultNames.set("world", messages["hub.unnamed-world-title"]);
-        this._defaultNames.set("channel", messages["hub.unnamed-channel-title"]);
+        this._defaultNames.set("hub", messages["hub.unnamed-world-title"]);
         this._atomIdToUrl = getHubIdFromUrl;
         break;
       case ATOM_TYPES.SPACE:
@@ -240,19 +245,13 @@ class AtomMetadata {
     this.ensureMetadataForIds(inFlightMetadataIds, true);
   }
 
-  flushLocalUpdates() {
-    if (this._source.flushLocalUpdates) {
-      this._source.flushLocalUpdates();
-    }
-  }
-
-  defaultNameForType(type = null) {
+  defaultNameForType() {
     if (this._atomType === ATOM_TYPES.SPACE) {
       return this._defaultNames.get("space");
     } else if (this._atomType === ATOM_TYPES.VOX) {
       return this._defaultNames.get("vox");
     } else {
-      return this._defaultNames.get(type);
+      return this._defaultNames.get("hub");
     }
   }
 
@@ -437,9 +436,15 @@ class AtomMetadata {
     }
   };
 
+  flushLocalUpdates() {
+    if (this._source.flushLocalUpdates) {
+      this._source.flushLocalUpdates();
+    }
+  }
+
   _setDisplayNameOnMetadata = metadata => {
-    if (metadata.name === undefined && metadata.type === undefined) return;
-    metadata.displayName = metadata.name || this.defaultNameForType(metadata.type);
+    if (metadata.name === undefined) return;
+    metadata.displayName = metadata.name || this.defaultNameForType();
   };
 
   _subscribeToSource(event, handler) {

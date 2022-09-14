@@ -10,6 +10,7 @@ const CHAT_HIDE_TIMEOUT = 15000;
 
 const ChatLogElement = styled.div`
   height: 250px;
+  pointer-events: none;
   position: absolute;
   left: 0;
   bottom: 0;

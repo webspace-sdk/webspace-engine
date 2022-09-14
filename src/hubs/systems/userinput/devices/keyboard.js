@@ -28,6 +28,11 @@ export class KeyboardDevice {
           const store = window.APP.store;
           const isGameFocused = DOM_ROOT.activeElement === canvas || DOM_ROOT.activeElement === null;
 
+          // Do not allow ctrl-Z when game focused
+          if (e.key === "z" && (e.ctrlKey || e.altKey) && isGameFocused) {
+            e.preventDefault();
+          }
+
           // Prevent default on control key press *after* R to prevent reload during rotation/roll
           if (e.ctrlKey && e.type === "keydown" && this.codes.get("keyr")) {
             e.preventDefault();

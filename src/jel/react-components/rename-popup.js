@@ -28,11 +28,11 @@ const RenamePopup = forwardRef(({ styles, attributes, atomMetadata, setPopperEle
             const { atomType } = atomMetadata;
 
             if (atomType === ATOM_TYPES.HUB) {
-              hubChannel.updateHubMeta(atomId, { name });
+              hubChannel.updateHubMeta(atomId, { name: name.trim() });
             } else if (atomType === ATOM_TYPES.VOX) {
-              accountChannel.updateVox(atomId, { name });
+              accountChannel.updateVox(atomId, { name: name.trim() });
             } else if (atomType === ATOM_TYPES.SPACE) {
-              dynaChannel.updateSpace(atomId, { name });
+              dynaChannel.updateSpace(atomId, { name: name.trim() });
             }
           },
           [hubChannel, accountChannel, dynaChannel, atomId, atomMetadata]

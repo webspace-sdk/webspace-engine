@@ -6,6 +6,7 @@ export default class HubChannel extends EventTarget {
     this.store = store;
     this._permissions = {};
     this._blockedSessionIds = new Set();
+    this.flushHubMetaTimeout = null;
   }
 
   bind = hubId => {
@@ -20,7 +21,6 @@ export default class HubChannel extends EventTarget {
 
     const { atomAccessManager } = window.APP;
     if (!atomAccessManager.hubCan("update_hub_meta")) return;
-
     this.broadcastMessage(hub, "update_hub_meta");
   };
 
@@ -66,16 +66,16 @@ export default class HubChannel extends EventTarget {
     // this._blockedSessionIds.delete(sessionId);
   };
 
+  kick = async (/*sessionId*/) => {
+    // TODO SHARED
+  };
+
   updateSpaceMemberRole = role => {
     if (!this.channel) return;
     this.channel.push("update_space_member_role", { role });
   };
 
   isHidden = sessionId => this._blockedSessionIds.has(sessionId);
-
-  kick = async (/*sessionId*/) => {
-    // TODO SHARED
-  };
 
   requestSupport = () => this.channel.push("events:request_support", {});
   favorite = () => this.channel.push("favorite", {});

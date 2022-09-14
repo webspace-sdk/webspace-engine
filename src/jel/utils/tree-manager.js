@@ -141,12 +141,15 @@ class TreeManager extends EventTarget {
     if (!aEl || aEl.innerText !== document.title) {
       if (!aEl) {
         aEl = doc.createElement("a");
+
+        const liEl = doc.createElement("li");
+        liEl.appendChild(aEl);
+        listEl.appendChild(liEl);
       }
+
       aEl.href = filename;
       aEl.innerText = document.title;
-      const liEl = doc.createElement("li");
-      liEl.appendChild(aEl);
-      listEl.appendChild(liEl);
+
       modified = true;
     }
     return modified;
