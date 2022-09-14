@@ -11,26 +11,10 @@ import LoadingPanel from "../jel/react-components/loading-panel";
 import { WrappedIntlProvider } from "./react-components/wrapped-intl-provider";
 import { waitForShadowDOMContentLoaded } from "./utils/async-utils";
 
-const SHORTHAND_INITIALIZER = "var foo = 'bar'; var baz = { foo };";
-const SPREAD_SYNTAX = "var foo = {}; var baz = { ...foo };";
-const CATCH_SYNTAX = "try { foo(); } catch {}";
-
-function syntaxSupported(syntax) {
-  try {
-    eval(syntax);
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
 function getPlatformSupport() {
   return [
     { name: "Web Assembly", supported: !!window.WebAssembly },
     { name: "Media Devices", supported: !!navigator.mediaDevices },
-    { name: "Shorthand initializer syntax", supported: syntaxSupported(SHORTHAND_INITIALIZER) },
-    { name: "Spread syntax", supported: syntaxSupported(SPREAD_SYNTAX) },
-    { name: "Optional catch syntax", supported: syntaxSupported(CATCH_SYNTAX) },
     { name: "WebGL2", supported: !!window.WebGL2RenderingContext },
     { name: "Mobile App", supported: () => typeof AFRAME !== "undefined" && !AFRAME.utils.device.isMobile() }
   ];

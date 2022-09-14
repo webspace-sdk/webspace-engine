@@ -39,8 +39,8 @@
 - deal with filtering networking based on roles + hub setting for allowing edits
 - Y.js syncing of text boxes
 - only flush from one writeback host in presence, to avoid collisions
-- drop flat world
 - left click to drag objects, right click to edit objects
+- build mode still showing presence list
 - for nav:
   - do not rename files, do not remove worlds from nav
   - rename world changes document title, flushes nav

@@ -154,27 +154,28 @@ class TreeManager extends EventTarget {
 
   // Run before saving the index.html doc
   async modifyIndexNavDoc(doc) {
-    // Set the title based on the current known metadata, which may have been changed on rename
     const { spaceMetadata } = window.APP;
     const spaceId = await getSpaceIdFromHistory();
-    const metadata = spaceMetadata.getMetadata(spaceId);
+    const metadata = await spaceMetadata.getOrFetchMetadata(spaceId);
 
-    if (metadata.name) {
+    // Set the title based on the current known metadata, which may have been changed on rename
+    if (metadata && metadata.name) {
       doc.title = metadata.name;
-    }
-
-    // Remove all existing script tags
-    for (const scriptTag of doc.querySelectorAll("script")) {
-      scriptTag.remove();
     }
 
     const aEl = doc.querySelector("nav ul li a");
 
     // Index should redirect to first world.
     if (aEl) {
-      const scriptTag = doc.createElement("script");
-      scriptTag.innerText = `document.location.href = "${aEl.href}";`;
-      doc.head.appendChild(scriptTag);
+      let refreshTag = doc.querySelector('meta[http-equiv="refresh"]');
+
+      if (!refreshTag) {
+        refreshTag = doc.createElement("meta");
+      }
+
+      refreshTag.setAttribute("http-equiv", "refresh");
+      refreshTag.setAttribute("content", `0;url=${aEl.href}`);
+      doc.head.appendChild(refreshTag);
     }
   }
 
