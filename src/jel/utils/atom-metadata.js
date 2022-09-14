@@ -96,6 +96,20 @@ export class LocalDOMHubMetadataSource extends EventTarget {
         characterData: false
       });
     });
+
+    this.navTree.addEventListener("treedata_updated", async () => {
+      const currentHubId = await getHubIdFromHistory();
+      const metas = [];
+      for (const hubId of this.navTree.atomIdToDocEl.keys()) {
+        if (hubId === currentHubId) continue;
+
+        metas.push({ ...{ hub_id: hubId }, ...this.navTree.getAtomMetadataFromDOM(hubId) });
+      }
+
+      if (metas.length > 0) {
+        this.dispatchEvent(new CustomEvent("hub_meta_refresh", { detail: { metas } }));
+      }
+    });
   }
 
   async getHubMetas(hubIds) {

@@ -13,15 +13,26 @@ export default class HubChannel extends EventTarget {
     this.hubId = hubId;
   };
 
-  updateHubMeta = (hubId, hub) => {
+  updateHubMeta = (hubId, hub, localFirst = false) => {
     if (this.hubId !== hubId) {
       console.warn("Cannot update hub other than this one");
       return;
     }
 
-    const { atomAccessManager } = window.APP;
+    const { hubMetadata, atomAccessManager } = window.APP;
     if (!atomAccessManager.hubCan("update_hub_meta")) return;
-    this.broadcastMessage(hub, "update_hub_meta");
+
+    if (localFirst) {
+      // Update metadata locally and flush after delay
+      hubMetadata.localUpdate(hubId, hub);
+      clearTimeout(this.flushHubMetaTimeout);
+
+      this.flushHubMetaTimeout = setTimeout(() => {
+        this.broadcastMessage(hub, "update_hub_meta");
+      }, 3000);
+    } else {
+      this.broadcastMessage(hub, "update_hub_meta");
+    }
   };
 
   unsubscribe = subscription => {

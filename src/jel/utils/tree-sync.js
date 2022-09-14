@@ -262,14 +262,6 @@ class TreeSync extends EventTarget {
     const newTreeData = await this.computeTree(isExpanded);
 
     if (newTreeData) {
-      // If the tree data has changed, we need to subscribe to all the nodes
-      // in the underlying document so that the tree will reflect the visibliity
-      // properly. The map of atom ids to items is updated, and the event is fired
-      // to refresh the UI.
-      for (const atomId of subscribedAtomIds) {
-        atomMetadata.unsubscribeFromMetadata(atomId, this.rebuildTreeData);
-      }
-
       subscribedAtomIds.clear();
 
       for (const atomId of this.atomIdToDocEl.keys()) {
@@ -293,10 +285,6 @@ class TreeSync extends EventTarget {
 
       this.treeData = newTreeData;
       this.dispatchEvent(new CustomEvent("treedata_updated"));
-    }
-
-    for (const atomId of subscribedAtomIds) {
-      atomMetadata.subscribeToMetadata(atomId, this.rebuildTreeData);
     }
 
     atomMetadata.ensureMetadataForIds(subscribedAtomIds);
