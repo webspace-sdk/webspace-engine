@@ -86,7 +86,7 @@ AFRAME.registerComponent("media-text", {
     this.isSnapping = false;
     this.firedTextLoadedEvent = false;
     this.zoom = 1.0;
-    this.textureWidth = 1024;
+    this.textureWidth = 1024; // This used to be able to be dynamic, but no longer works without artifacts.
     this.renderCount = 0;
     this.markDirty = this.markDirty.bind(this);
     this.handleDetailLevelChanged = this.handleDetailLevelChanged.bind(this);
@@ -257,19 +257,14 @@ AFRAME.registerComponent("media-text", {
     if (isEmpty) {
       // No text, show placeholder
       this.zoom = 1.0;
-      this.textureWidth = 1024;
     } else if (contentWidth < EDITOR_WIDTH / 4.1 && contentHeight < EDITOR_HEIGHT / 4.1) {
       this.zoom = 4.0;
-      this.textureWidth = 768;
     } else if (contentWidth < EDITOR_WIDTH / 3.1 && contentHeight < EDITOR_HEIGHT / 3.1) {
       this.zoom = 3.0;
-      this.textureWidth = 768;
     } else if (contentWidth < EDITOR_WIDTH / 2.1 && contentHeight < EDITOR_HEIGHT / 2.1) {
       this.zoom = 2.0;
-      this.textureWidth = 1024;
     } else {
       this.zoom = 1.0;
-      this.textureWidth = 1024;
     }
 
     // Compute texture repeat and scale based upon content

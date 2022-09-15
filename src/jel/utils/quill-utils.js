@@ -179,6 +179,8 @@ export function renderQuillToImg(
       color: ${fgCss} !important;
       width: ${EDITOR_WIDTH}px !important;
       height: ${EDITOR_HEIGHT}px !important;
+      min-width: ${EDITOR_WIDTH}px !important;
+      min-height: ${EDITOR_HEIGHT}px !important;
     }
 
     .ql-blank::before {
