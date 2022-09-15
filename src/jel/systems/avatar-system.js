@@ -200,7 +200,7 @@ export class AvatarSystem {
     this.createMesh();
 
     setInterval(() => {
-      // When scene is off (since we're in a channel or paused) we need to keep updating the self avatar in the UI.
+      // When scene is off (since we're paused) we need to keep updating the self avatar in the UI.
       if (sceneEl.is("off") || !sceneEl.object3D.isPlaying) {
         this.beginUpdatingSelfAsync();
       }

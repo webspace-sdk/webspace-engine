@@ -23,10 +23,6 @@ const AtomTrailElement = styled.div`
   padding: 14px 0 14px 8px;
   user-select: none;
   width: 50%;
-
-  &.opaque {
-    background-color: var(--channel-header-background-color);
-  }
 `;
 
 const AtomTrailAtomItem = styled.button`
@@ -159,6 +155,5 @@ AtomTrail.propTypes = {
   viewPermission: PropTypes.string,
   editPermission: PropTypes.string,
   renamePopupElement: PropTypes.object,
-  showRenamePopup: PropTypes.func,
-  opaque: PropTypes.bool
+  showRenamePopup: PropTypes.func
 };

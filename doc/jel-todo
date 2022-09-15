@@ -1,7 +1,6 @@
 - get rid of a-assets, see how mozilla does it
 - deal with hub store
 - name generator
-- default hub at index.html
 - jel.js -> index.js
 - jel -> ws
 - search for TODO SHARED
@@ -28,13 +27,12 @@
 - update GLTF importer
 - nuke hub-type-world vs channel, grep for channel
 - consolidate channel classes
-- drop push notif
 - make voxmoji float
 - browser compat, show message if trying to edit file:// in non-chrome
 - test ff + safari
 - allow networking settings to be changed via qs
 - remove all unused translations
-- file uploads
+- file uploads from remotes
 - invite popout
 - detecting relay member in presence to unlock editing for unprivileged users
 - deal with filtering networking based on roles + hub setting for allowing edits
@@ -42,15 +40,10 @@
 - only flush from one writeback host in presence, to avoid collisions
 - left click to drag objects, right click to edit objects
 - build mode still showing presence list
-- for nav:
-  - do not rename files, do not remove worlds from nav
-  - rename world changes document title, flushes nav
-  - add existing url to end of nav if missing, or replace title if wrong
-  - add 'remove from nav' menu option, to let user deal with dead links if they rename a file
-  - create world popup prompts for title and derives html filename. does not overwrite
 - add service to register spaces
 - upload + register service worker
 - unsaved changes warning
+- remove trash
 
 name not updating in self panel when updated by another peer
 should change button to "unlock world" when others are in room

@@ -34,7 +34,6 @@ const VALID_PERMISSIONS = {
   ],
   [ATOM_TYPES.SPACE]: [
     "create_world_hub",
-    "create_channel_hub",
     "view_nav",
     "edit_nav",
     "update_space_meta",
@@ -237,8 +236,7 @@ class AtomMetadata {
       // - Remove any entries that had 'null' as value, since those may now
       //   be accessible
       //
-      // - Re-fetch any in-flight metadata (the fetch routing will abort if the
-      //   channel changes)
+      // - Re-fetch any in-flight metadata
       const previouslyInaccessibleMetadataIds = new Set();
       for (const [id, value] of this._metadata.entries()) {
         if (value === null) {
