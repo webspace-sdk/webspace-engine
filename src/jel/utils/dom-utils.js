@@ -366,7 +366,7 @@ export const pushHubMetaUpdateIntoDOM = async hub => {
   if (typeof worldType === "number" && worldType >= 0 && worldType <= MAX_WORLD_TYPE) {
     upsertMetaTag("environment.terrain.type", `${META_TAG_TERRAIN_TYPE_NAMES[worldType]}`);
   } else {
-    const worldType = currentHubSeed % 2 === 0 ? "flat" : "hills";
+    const worldType = currentHubSeed % 2 === 0 ? "plains" : "hills";
     initMetaTag("environment.terrain.type", worldType);
   }
 
@@ -527,7 +527,7 @@ export async function getHubMetaFromDOM() {
     world: {
       seed: getIntFromMetaTags("environment.terrain.seed", currentHubSeed),
       type: META_TAG_TERRAIN_TYPE_NAMES.indexOf(
-        getStringFromMetaTags("environment.terrain.type", currentHubSeed % 2 === 0 ? "flat" : "hills")
+        getStringFromMetaTags("environment.terrain.type", currentHubSeed % 2 === 0 ? "plains" : "hills")
       ),
       bark_color: getColorFromMetaTags("environment.terrain.colors.bark", defaultColors.bark_color),
       edge_color: getColorFromMetaTags("environment.terrain.colors.edge", defaultColors.edge_color),

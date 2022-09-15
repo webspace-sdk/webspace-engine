@@ -1,23 +1,11 @@
 import Chunk from "./chunk";
 import { protocol } from "../protocol/protocol";
-import blockTypes from "./blocks";
 import Generators from "./generator";
 import PALETTES from "./palettes";
 
 const Chunks = protocol.Chunks;
 
 class World {
-  static generateChunk(x, z, seed) {
-    if (!window.world) {
-      window.world = new World({
-        blockTypes,
-        generator: "hilly",
-        seed
-      });
-    }
-    return window.world.getEncodedChunk(x, z);
-  }
-
   constructor({ blockTypes, generatorType, seed }) {
     this.models = {};
 
