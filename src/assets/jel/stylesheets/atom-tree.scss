@@ -236,13 +236,3 @@ $treeNodePrefixCls: atom-tree-treenode;
     padding-left: 18px;
   }
 }
-
- .hub-trash-tree .atom-tree-switcher, .hub-trash-tree .atom-tree-iconEle {
-   display: none !important;
-}
- .hub-trash-tree .atom-tree-treenode {
-   border-radius: 2px;
-}
- .hub-trash-tree .atom-tree-node-content-wrapper {
-   padding-left: 8px !important;
-}

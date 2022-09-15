@@ -21,13 +21,11 @@
 - deno cors proxying split + ytdl enable + move configs into index.html
 - authorize + sanitize in NAF adapter
 - unplug space channel
-- delete snackbar
 - cut down dead code
 - review all deps
-- update GLTF importer
-- nuke hub-type-world vs channel, grep for channel
 - consolidate channel classes
 - make voxmoji float
+- change loading background color to match
 - browser compat, show message if trying to edit file:// in non-chrome
 - test ff + safari
 - allow networking settings to be changed via qs
@@ -44,6 +42,7 @@
 - upload + register service worker
 - unsaved changes warning
 - remove trash
+- duck should upload glb
 
 name not updating in self panel when updated by another peer
 should change button to "unlock world" when others are in room

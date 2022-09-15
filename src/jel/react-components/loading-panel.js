@@ -10,7 +10,7 @@ const LoadingPanelElement = styled.div`
   width: 100%;
   height: 100%;
   z-index: 10000;
-  background-color: #333;
+  background-color: var(--secondary-panel-background-color);
   justify-content: center;
   align-items: center;
   pointer-events: none;
@@ -43,46 +43,46 @@ const Tip = styled.div`
   color: var(--tooltip-text-color);
 `;
 
-const LogoElement = styled.img`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 128px;
-  height: 128px;
-  @keyframes float_logo {
-    from {
-      top: -18px;
-    }
-    to {
-      top: -5px;
-    }
-  }
-
-  .loading & {
-    animation: 1.25s ease-in-out 0s infinite alternate float_logo;
-  }
-`;
-
-const LogoShadowElement = styled.img`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 128px;
-  height: 128px;
-
-  @keyframes float_logo_shadow {
-    from {
-      transform: scaleX(1.2);
-    }
-    to {
-      transform: scaleX(1);
-    }
-  }
-
-  .loading & {
-    animation: 1.25s ease-in-out 0s infinite alternate float_logo_shadow;
-  }
-`;
+// const LogoElement = styled.img`
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   width: 128px;
+//   height: 128px;
+//   @keyframes float_logo {
+//     from {
+//       top: -18px;
+//     }
+//     to {
+//       top: -5px;
+//     }
+//   }
+//
+//   .loading & {
+//     animation: 1.25s ease-in-out 0s infinite alternate float_logo;
+//   }
+// `;
+//
+// const LogoShadowElement = styled.img`
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   width: 128px;
+//   height: 128px;
+//
+//   @keyframes float_logo_shadow {
+//     from {
+//       transform: scaleX(1.2);
+//     }
+//     to {
+//       transform: scaleX(1);
+//     }
+//   }
+//
+//   .loading & {
+//     animation: 1.25s ease-in-out 0s infinite alternate float_logo_shadow;
+//   }
+// `;
 
 const LoadingPanel = ({ isLoading, unsupportedMessage, unavailableReason }) => {
   let tipMessage = null;
@@ -95,12 +95,7 @@ const LoadingPanel = ({ isLoading, unsupportedMessage, unavailableReason }) => {
 
   return (
     <LoadingPanelElement className={isLoading || unsupportedMessage || unavailableReason ? "loading" : ""}>
-      <SplashWrap>
-        <LogoShadowElement src={jelLoadingShadowSrc} />
-        <LogoElement src={jelLoadingSrc} />
-
-        {tipMessage && <Tip>{tipMessage}</Tip>}
-      </SplashWrap>
+      <SplashWrap>{tipMessage && <Tip>{tipMessage}</Tip>}</SplashWrap>
     </LoadingPanelElement>
   );
 };

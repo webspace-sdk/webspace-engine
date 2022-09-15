@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { FormattedMessage } from "react-intl";
 import { usePopupPopper, useAtomBoundPopupPopper } from "../utils/popup-utils";
 import { usePopper } from "react-popper";
@@ -10,16 +10,12 @@ import addIcon from "../../assets/jel/images/icons/add.svgi";
 import HubContextMenu from "./hub-context-menu";
 import RenamePopup from "./rename-popup";
 import CreateHubPopup from "./create-hub-popup";
-import { navigateToHubUrl } from "../utils/jel-url-utils";
-import { homeHubForSpaceId } from "../utils/membership-utils";
 import { createNewHubDocument, cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
 import HubTree from "./hub-tree";
 import InvitePanel from "./invite-panel";
-import HubTrashTree from "./hub-trash-tree";
 import Tooltip from "./tooltip";
 import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
 import inviteIcon from "../../assets/jel/images/icons/invite.svgi";
-import trashIcon from "../../assets/jel/images/icons/trash.svgi";
 import { getMessages } from "../../hubs/utils/i18n";
 import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import ReactDOM from "react-dom";
@@ -179,75 +175,8 @@ const NavSpill = styled.div`
   }
 `;
 
-const TrashSpill = styled.div`
-  overflow-x: hidden;
-  overflow-y: auto;
-
-  scrollbar-color: transparent transparent;
-  scrollbar-width: thin;
-
-  max-height: 256px;
-  width: 400px;
-  padding: 8px 16px;
-
-  &::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-    visibility: hidden;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-clip: padding-box;
-    border: 2px solid transparent;
-    border-radius: 4px;
-    background-color: transparent;
-    transition: background-color 0.25s;
-    min-height: 40px;
-  }
-
-  &::-webkit-scrollbar-corner {
-    background-color: transparent;
-  }
-
-  &::-webkit-scrollbar-track {
-    border-color: transparent;
-    background-color: transparent;
-    border: 2px solid transparent;
-    visibility: hidden;
-  }
-
-  &:hover {
-    scrollbar-color: var(--scroll-thumb-color) transparent;
-
-    &::-webkit-scrollbar-thumb {
-      background-color: var(--scroll-thumb-color);
-      transition: background-color 0.25s;
-    }
-  }
-`;
-
 let popupRoot = null;
 waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
-
-function TrashMenu({ styles, attributes, setPopperElement, children }) {
-  if (!popupRoot) return null;
-  const popupMenu = (
-    <PopupPanel
-      tabIndex={-1} // Ensures can be focused
-      className="show-when-popped"
-      ref={setPopperElement}
-      style={styles.popper}
-      {...attributes.popper}
-    >
-      <PanelSectionHeader>
-        <FormattedMessage id="nav.trash" />
-      </PanelSectionHeader>
-      <TrashSpill>{children}</TrashSpill>
-    </PopupPanel>
-  );
-
-  return ReactDOM.createPortal(popupMenu, popupRoot);
-}
 
 function Invite({ styles, attributes, setPopperElement, children }) {
   if (!popupRoot) return null;
@@ -286,8 +215,6 @@ function LeftPanel({
   worldTreeData
 }) {
   const { store } = window.APP;
-  const [trashMenuReferenceElement, setTrashMenuReferenceElement] = useState(null);
-  const [trashMenuElement, setTrashMenuElement] = useState(null);
   const [inviteReferenceElement, setInviteReferenceElement] = useState(null);
   const [inviteElement, setInviteElement] = useState(null);
   const [spaceName, setSpaceName] = useState("");
@@ -317,14 +244,6 @@ function LeftPanel({
       return () => spaceMetadata.unsubscribeFromMetadata(updateSpaceName);
     },
     [spaceMetadata, spaceId]
-  );
-
-  const { styles: trashMenuStyles, attributes: trashMenuAttributes, update: updateTrashPopper } = usePopper(
-    trashMenuReferenceElement,
-    trashMenuElement,
-    {
-      placement: "right"
-    }
   );
 
   const { styles: inviteStyles, attributes: inviteAttributes, update: updateInvitePopper } = usePopper(
@@ -441,26 +360,6 @@ function LeftPanel({
           />
         </NavSpill>
         <NavFoot>
-          <PanelItemButtonSection>
-            <PanelItemButton
-              iconSrc={trashIcon}
-              ref={setTrashMenuReferenceElement}
-              onMouseDown={e => cancelEventIfFocusedWithin(e, trashMenuElement)}
-              onClick={() => {
-                if (!treeManager) return;
-
-                treeManager.rebuildSharedTrashTree();
-
-                if (updateTrashPopper) {
-                  updateTrashPopper();
-                }
-
-                toggleFocus(trashMenuElement);
-              }}
-            >
-              <FormattedMessage id="nav.trash" />
-            </PanelItemButton>
-          </PanelItemButtonSection>
           {spaceCan("create_world_hub") && (
             <ActionButton
               disabled={isCreating}
@@ -485,52 +384,6 @@ function LeftPanel({
           }}
         />
       </Invite>
-      <TrashMenu setPopperElement={setTrashMenuElement} styles={trashMenuStyles} attributes={trashMenuAttributes}>
-        <HubTrashTree
-          treeManager={treeManager}
-          tree={treeManager && treeManager.trashNav}
-          hub={hub}
-          hubMetadata={hubMetadata}
-          history={history}
-          hubCan={hubCan}
-          onRestore={useCallback(
-            (hubId, hubIdsToRestore) => {
-              const navigateToRestoredHub = () => {
-                // Navigate to restored node.
-                const metadata = hubMetadata.getMetadata(hubId);
-
-                if (metadata) {
-                  navigateToHubUrl(history, metadata.url);
-                }
-
-                hubMetadata.unsubscribeFromMetadata(navigateToRestoredHub);
-              };
-
-              hubMetadata.subscribeToMetadata(hubId, navigateToRestoredHub);
-              spaceChannel.restoreHubs(hubIdsToRestore);
-
-              // Blur so tree hides. This is important because we will re-load
-              // the trash tree next time user clicks.
-              DOM_ROOT.activeElement?.blur();
-            },
-            [history, hubMetadata, spaceChannel]
-          )}
-          onRemove={useCallback(
-            hubIdToRemove => {
-              // Focus trash menu so it stays open.
-              trashMenuElement.focus();
-
-              if (hubId === hubIdToRemove) {
-                const homeHub = homeHubForSpaceId(spaceId, memberships);
-                navigateToHubUrl(history, homeHub.url);
-              }
-
-              spaceChannel.removeHubs([hubIdToRemove]);
-            },
-            [history, hubId, spaceId, spaceChannel, memberships, trashMenuElement]
-          )}
-        />
-      </TrashMenu>
       <HubContextMenu
         setPopperElement={setHubContextMenuElement}
         hideRename={!!hubContextMenuOpenOptions.hideRename}
@@ -546,7 +399,6 @@ function LeftPanel({
         spaceCan={spaceCan}
         hubCan={hubCan}
         scene={scene}
-        worldTreeData={worldTreeData}
       />
       <RenamePopup
         setPopperElement={setAtomRenamePopupElement}

@@ -822,7 +822,7 @@ function addMissingDefaultHtml() {
 
   const bgColor = parseCSSColor(bodyStyle.backgroundColor);
   if (bgColor.alpha === 0) {
-    headStyleTagBody += "background-color: #333; ";
+    headStyleTagBody += "background-color: #061139; ";
   }
 
   if (headStyleTagBody) {

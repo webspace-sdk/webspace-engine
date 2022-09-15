@@ -71,32 +71,15 @@ class TreeManager extends EventTarget {
       this.modifyIndexNavDoc.bind(this)
     );
 
-    this.trashNav = new TreeSync("trash.html", null, hubMetadata, TREE_PROJECTION_TYPE.FLAT);
-    this.trashNested = new TreeSync("trash.html", null, hubMetadata, TREE_PROJECTION_TYPE.NESTED);
-
-    this.treeSyncs = [this.worldNav, this.trashNav, this.trashNested];
+    this.treeSyncs = [this.worldNav];
   }
 
   async init() {
-    await Promise.all([await this.worldNav.init(), await this.trashNav.init(), await this.trashNested.init()]);
+    await Promise.all([await this.worldNav.init()]);
   }
 
   setNavTitleControl(titleControl) {
     this.worldNav.setTitleControl(titleControl);
-  }
-
-  setTrashNavTitleControl(titleControl) {
-    this.trashNav.setTitleControl(titleControl);
-  }
-
-  rebuildSharedTrashTree() {
-    this.trashNav.rebuildTreeData();
-  }
-
-  // Returns a nested representation of the trash
-  getNestedTrashTreeData() {
-    this.trashNested.rebuildTreeData();
-    return this.trashNested.treeData;
   }
 
   setNodeIsExpanded(nodeId, expanded, tree) {

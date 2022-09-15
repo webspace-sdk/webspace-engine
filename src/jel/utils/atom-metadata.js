@@ -20,7 +20,6 @@ const VALID_PERMISSIONS = {
     "update_hub_roles",
     "join_hub",
     "close_hub",
-    "trash_hub",
     "remove_hub",
     "mute_users",
     "kick_users",

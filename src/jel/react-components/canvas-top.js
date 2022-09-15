@@ -562,7 +562,6 @@ function CanvasTop(props) {
         spaceCan={spaceCan}
         hubCan={hubCan}
         scene={scene}
-        worldTreeData={worldTreeData}
       />
       <RenamePopup
         setPopperElement={setAtomRenamePopupElement}

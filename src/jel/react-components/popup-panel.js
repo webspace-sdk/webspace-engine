@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-// Note we only use this for trash and invite popouts from left panel so border radii assume left side.
+// Note we only use this for invite popout from left panel so border radii assume left side.
 
 const PopupPanel = styled.div`
   color: var(--panel-text-color);

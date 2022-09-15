@@ -4,7 +4,6 @@ import PopupPanelMenu, { PopupPanelMenuItem, PopupPanelMenuSectionHeader } from 
 import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import classNames from "classnames";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
-import trashIcon from "../../assets/jel/images/icons/trash.svgi";
 import checkIcon from "../../assets/jel/images/icons/check.svgi";
 
 export const Normal = () => (
@@ -13,7 +12,6 @@ export const Normal = () => (
       <PopupMenu>
         <PopupMenuItem iconSrc={addIcon}>Add Duplicate</PopupMenuItem>
         <PopupMenuItem>Export...</PopupMenuItem>
-        <PopupMenuItem iconSrc={trashIcon}>Move to Trash</PopupMenuItem>
       </PopupMenu>
     </div>
   </div>

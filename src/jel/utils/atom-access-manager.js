@@ -24,7 +24,6 @@ const VALID_PERMISSIONS = {
     "update_hub_roles",
     "join_hub",
     "close_hub",
-    "trash_hub",
     "remove_hub",
     "mute_users",
     "kick_users",
@@ -153,7 +152,7 @@ class FileWriteback {
     try {
       let writable;
 
-      // TODO store additional handles for index and trash
+      // TODO store additional handles for index
       if (path) {
         const handle = await this.dirHandle.getFileHandle(path, { create: true });
         writable = await handle.createWritable();

@@ -2,12 +2,10 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupMenu, { PopupMenuItem } from "./popup-menu";
-import trashIcon from "../../assets/jel/images/icons/trash.svgi";
 import cubeIcon from "../../assets/jel/images/icons/cube.svgi";
 import restoreIcon from "../../assets/jel/images/icons/restore.svgi";
 import { FormattedMessage } from "react-intl";
 import qsTruthy from "../../hubs/utils/qs_truthy";
-import { findChildrenAtomsInTreeData } from "../utils/tree-utils";
 import { getHubIdFromHistory } from "../utils/jel-url-utils";
 
 const showPublishObjects = qsTruthy("show_publish");
@@ -29,12 +27,11 @@ function HubContextMenu({
   showRemoveFromNav,
   showReset,
   isCurrentWorld,
-  showAtomRenamePopup,
-  worldTreeData
+  showAtomRenamePopup
 }) {
   if (!popupRoot || !spaceCan || !hubCan) return null;
 
-  const { spaceChannel, hubChannel, hubMetadata } = window.APP;
+  const { hubChannel, hubMetadata } = window.APP;
   const items = [];
 
   if (spaceCan("edit_nav") && showRemoveFromNav) {
@@ -165,33 +162,6 @@ function HubContextMenu({
         iconSrc={cubeIcon}
       >
         <FormattedMessage id="hub-context.publish-template" />
-      </PopupMenuItem>
-    );
-  }
-  if (spaceCan("edit_nav") && hubId && hubCan("trash_hub", hubId)) {
-    items.push(
-      <PopupMenuItem
-        key={`trash-${hubId}`}
-        onClick={e => {
-          if (!worldTree.getNodeIdForAtomId(hubId)) return;
-
-          // TODO SHARED
-          // If this hub or any of its parents were deleted, go to any other hub.
-
-          // All trashable children are trashed too.
-          const trashableChildrenHubIds = [...findChildrenAtomsInTreeData(worldTreeData, hubId)].filter(hubId =>
-            hubCan("trash_hub", hubId)
-          );
-
-          spaceChannel.trashHubs([...trashableChildrenHubIds, hubId]);
-          // Blur button so menu hides
-          DOM_ROOT.activeElement?.blur();
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-        iconSrc={trashIcon}
-      >
-        <FormattedMessage id="hub-context.move-to-trash" />
       </PopupMenuItem>
     );
   }
