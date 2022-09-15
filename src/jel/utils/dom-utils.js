@@ -525,7 +525,7 @@ export async function getHubMetaFromDOM() {
       radius: getFloatFromMetaTags("environment.spawn_point.radius", 10)
     },
     world: {
-      seed: getIntFromMetaTags("environment.terrain.seed"),
+      seed: getIntFromMetaTags("environment.terrain.seed", currentHubSeed),
       type: META_TAG_TERRAIN_TYPE_NAMES.indexOf(
         getStringFromMetaTags("environment.terrain.type", currentHubSeed % 2 === 0 ? "flat" : "hills")
       ),
