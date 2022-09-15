@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React from "react";
+import React, { forwardRef } from "react";
 
 import styled from "styled-components";
 
@@ -55,13 +55,13 @@ const TextContainer = styled.div`
   line-height: calc(var(--action-button-text-size) + 2px);
 `;
 
-export default function ActionButton(props) {
+const ActionButton = forwardRef((props, ref) => {
   if (props.iconSrc) {
     const filteredProps = { ...props };
     delete filteredProps.iconSrc;
     delete filteredProps.children;
     return (
-      <ActionButtonElement {...filteredProps}>
+      <ActionButtonElement {...filteredProps} ref={ref}>
         <ActionButtonIconHolder>
           <ActionButtonIcon dangerouslySetInnerHTML={{ __html: props.iconSrc }} />
         </ActionButtonIconHolder>
@@ -77,8 +77,13 @@ export default function ActionButton(props) {
       </ActionButtonElement>
     );
   }
-}
+});
+
+ActionButton.displayName = "ActionButton";
 
 ActionButton.propTypes = {
-  iconSrc: PropTypes.string
+  iconSrc: PropTypes.string,
+  children: PropTypes.node
 };
+
+export default ActionButton;

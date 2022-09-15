@@ -198,6 +198,31 @@ class FileWriteback {
     return handle;
   }
 
+  async fileExists(path) {
+    const pathParts = path.split("/");
+    let handle = this.dirHandle;
+
+    while (pathParts.length > 0) {
+      const nextPart = pathParts[0];
+      pathParts.shift();
+
+      if (pathParts.length === 0) {
+        try {
+          await handle.getFileHandle(nextPart);
+          return true;
+        } catch (e) {
+          return false;
+        }
+      } else {
+        handle = await handle.getDirectoryHandle(nextPart);
+      }
+
+      if (!handle) return false;
+    }
+
+    return false;
+  }
+
   async directoryExists(path) {
     const pathParts = path.split("/");
     let handle = this.dirHandle;
@@ -500,6 +525,14 @@ export default class AtomAccessManager extends EventTarget {
     } else {
       console.warn("Tried to write empty html");
     }
+  }
+
+  async fileExists(path) {
+    if (!(await this.ensureWritebackOpen(true))) {
+      throw new Error("Writeback not open");
+    }
+
+    return await this.writeback.fileExists(path);
   }
 
   async uploadAsset(fileOrBlob) {

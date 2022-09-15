@@ -19,7 +19,7 @@
   - title is just the title
 - index.html setup
   - add networking config
-- deno cors proxying split + ytdl enable
+- deno cors proxying split + ytdl enable + move configs into index.html
 - authorize + sanitize in NAF adapter
 - unplug space channel
 - delete snackbar
@@ -50,7 +50,7 @@
   - create world popup prompts for title and derives html filename. does not overwrite
 - add service to register spaces
 - upload + register service worker
-- ctrl Z after rename bug
+- unsaved changes warning
 
 name not updating in self panel when updated by another peer
 should change button to "unlock world" when others are in room

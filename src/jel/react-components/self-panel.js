@@ -113,7 +113,7 @@ const useMicDevices = (unmuted, setMicDevices) => {
   );
 };
 
-const SelfPanel = ({ scene, spaceChannel, sessionId, onAvatarColorChangeComplete }) => {
+const SelfPanel = ({ scene, sessionId, onAvatarColorChangeComplete }) => {
   const [tipSource, tipTarget] = useSingleton();
   const [deviceSelectorReferenceElement, setDeviceSelectorReferenceElement] = useState(null);
   const [deviceSelectorElement, setDeviceSelectorElement] = useState(null);

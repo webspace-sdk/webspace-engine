@@ -540,3 +540,15 @@ export async function getHubMetaFromDOM() {
     }
   };
 }
+
+export function createNewHubDocument(title) {
+  const doc = new DOMParser().parseFromString(`<html><head><title></title></head><body></body></html>`, "text/html");
+  doc.title = title;
+
+  // Add existing script tags to ensure loading
+  for (const script of document.head.querySelectorAll("script")) {
+    doc.head.appendChild(script.cloneNode(true));
+  }
+
+  return doc;
+}

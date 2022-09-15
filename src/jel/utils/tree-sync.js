@@ -180,7 +180,6 @@ class TreeSync extends EventTarget {
   moveBelow(nodeId, belowNodeId) {
     const el = this.atomIdToDocEl.get(this.getAtomIdForNodeId(nodeId));
     const belowEl = this.atomIdToDocEl.get(this.getAtomIdForNodeId(belowNodeId));
-    console.log(el, belowEl);
     el.remove();
     belowEl.parentNode.insertBefore(el, belowEl.nextSibling);
 

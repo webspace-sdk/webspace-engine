@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { FormattedMessage } from "react-intl";
-import { useAtomBoundPopupPopper } from "../utils/popup-utils";
+import { usePopupPopper, useAtomBoundPopupPopper } from "../utils/popup-utils";
 import { usePopper } from "react-popper";
 import PropTypes from "prop-types";
 import styled from "styled-components";
@@ -9,10 +9,10 @@ import ActionButton from "./action-button";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
 import HubContextMenu from "./hub-context-menu";
 import RenamePopup from "./rename-popup";
+import CreateHubPopup from "./create-hub-popup";
 import { navigateToHubUrl } from "../utils/jel-url-utils";
 import { homeHubForSpaceId } from "../utils/membership-utils";
-import { addNewHubToTree } from "../utils/tree-utils";
-import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
+import { createNewHubDocument, cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
 import HubTree from "./hub-tree";
 import InvitePanel from "./invite-panel";
 import HubTrashTree from "./hub-trash-tree";
@@ -291,9 +291,11 @@ function LeftPanel({
   const [inviteReferenceElement, setInviteReferenceElement] = useState(null);
   const [inviteElement, setInviteElement] = useState(null);
   const [spaceName, setSpaceName] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
+  const [isCreating /*, setIsCreating*/] = useState(false);
   const invitePanelFieldElement = useRef();
   const spaceBannerRef = useRef();
+  const createHubButtonRef = useRef();
+  const createHubFocusRef = useRef();
 
   const { spaceChannel } = window.APP;
 
@@ -332,6 +334,15 @@ function LeftPanel({
       placement: "right-end"
     }
   );
+
+  const {
+    styles: createHubStyles,
+    attributes: createHubAttributes,
+    show: showCreateHubPopup,
+    setPopup: setCreateHubPopupElement,
+    popupElement: createHubPopupElement
+  } = usePopupPopper(createHubFocusRef, "top-end", [0, 8]);
+
   const spaceRenameFocusRef = useRef();
 
   const {
@@ -454,14 +465,8 @@ function LeftPanel({
             <ActionButton
               disabled={isCreating}
               iconSrc={addIcon}
-              onClick={async () => {
-                store.handleActivityFlag("createWorld");
-                setIsCreating(true);
-                const hub = await addNewHubToTree(treeManager, spaceId, "world");
-                setIsCreating(false);
-                navigateToHubUrl(history, hub.url);
-                scene.emit("created_world");
-              }}
+              ref={createHubButtonRef}
+              onClick={() => showCreateHubPopup(createHubButtonRef)}
               style={{ width: "60%" }}
             >
               <FormattedMessage id="nav.create-world" />
@@ -558,6 +563,22 @@ function LeftPanel({
         atomId={spaceRenameSpaceId}
         atomMetadata={spaceRenameMetadata}
         ref={spaceRenameFocusRef}
+      />
+      <CreateHubPopup
+        ref={createHubFocusRef}
+        popperElement={createHubPopupElement}
+        setPopperElement={setCreateHubPopupElement}
+        styles={createHubStyles}
+        attributes={createHubAttributes}
+        onCreate={async (name, filename) => {
+          const doc = createNewHubDocument(name);
+          await window.APP.atomAccessManager.writeDocument(doc, filename);
+          const url = new URL(window.location.href);
+          const pathParts = url.pathname.split("/");
+          pathParts[pathParts.length - 1] = filename;
+          url.pathname = pathParts.join("/");
+          document.location = url.toString();
+        }}
       />
     </Left>
   );
