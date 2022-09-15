@@ -23,6 +23,7 @@ import { ScaleInScreenSpaceSystem } from "./scale-in-screen-space";
 import { AudioSettingsSystem } from "./audio-settings-system";
 import { EnterVRButtonSystem } from "./enter-vr-button-system";
 import { MediaPresenceSystem } from "../../jel/systems/media-presence-system";
+import { MediaTextSystem } from "../../jel/systems/media-text-system";
 import { AudioSystem } from "./audio-system";
 import { MediaStreamSystem } from "./media-stream-system";
 import { WrappedEntitySystem } from "../../jel/systems/wrapped-entity-system";
@@ -107,6 +108,7 @@ AFRAME.registerSystem("hubs-systems", {
     );
     this.characterController = new CharacterControllerSystem(this.el, this.terrainSystem, this.builderSystem);
     this.mediaPresenceSystem = new MediaPresenceSystem(this.el, this.characterController, this.terrainSystem);
+    this.mediaTextSystem = new MediaTextSystem(this.el);
     this.uiAnimationSystem = new UIAnimationSystem(this.el, this.atmosphereSystem);
     this.avatarSystem = new AvatarSystem(this.el, this.atmosphereSystem);
     this.cameraRotatorSystem = new CameraRotatorSystem(this.el);
@@ -178,6 +180,7 @@ AFRAME.registerSystem("hubs-systems", {
     this.atmosphereSystem.tick(dt);
     this.mediaInteractionSystem.tick(t, dt);
     this.mediaPresenceSystem.tick();
+    this.mediaTextSystem.tick();
     this.uiAnimationSystem.tick(t, dt);
     this.avatarSystem.tick(t, dt);
     this.skyBeamSystem.tick(t, dt);

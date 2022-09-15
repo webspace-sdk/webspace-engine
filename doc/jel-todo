@@ -43,6 +43,7 @@
 - unsaved changes warning
 - remove trash
 - duck should upload glb
+- verify FXAA not running on white text panes
 
 name not updating in self panel when updated by another peer
 should change button to "unlock world" when others are in room

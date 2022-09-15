@@ -166,8 +166,10 @@ const updateDomElForEl = (domEl, el) => {
 
     style += `font-family: ${fontFamily}; `;
 
-    if (mediaText.quill) {
-      const html = mediaText.quill.container.querySelector(".ql-editor").innerHTML;
+    const quill = SYSTEMS.mediaTextSystem.getQuill(mediaText);
+
+    if (quill) {
+      const html = quill.container.querySelector(".ql-editor").innerHTML;
       domEl.innerHTML = html;
 
       // Clean contents cache used for outlining
@@ -283,7 +285,7 @@ export class DomSerializeSystem {
     el.removeEventListener("media-loaded", this.onMediaLoaded);
 
     if (el.components["media-text"]) {
-      const quill = el.components["media-text"].getQuill();
+      const quill = SYSTEMS.mediaTextSystem.getQuill(el.components["media-text"]);
       quill.off("text-change", this.onQuillTextChanges.get(quill));
       this.onQuillTextChanges.delete(quill);
     }
@@ -306,7 +308,7 @@ export class DomSerializeSystem {
     target.addEventListener("transform-object-ended", this.onComponentChangedOrTransformed);
 
     if (target.components["media-text"]) {
-      const quill = target.components["media-text"].getQuill();
+      const quill = SYSTEMS.mediaTextSystem.getQuill(target.components["media-text"]);
       const handler = () => this.enqueueFlushOf(target);
       this.onQuillTextChanges.set(quill, handler);
       quill.on("text-change", handler);

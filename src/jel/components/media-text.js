@@ -1,14 +1,4 @@
-import {
-  getQuill,
-  hasQuill,
-  htmlToDelta,
-  destroyQuill,
-  EDITOR_PADDING_X,
-  EDITOR_PADDING_Y,
-  EDITOR_WIDTH,
-  EDITOR_HEIGHT
-} from "../utils/quill-pool";
-import { getNetworkId } from "../utils/ownership-utils";
+import { htmlToDelta, EDITOR_PADDING_X, EDITOR_PADDING_Y, EDITOR_WIDTH, EDITOR_HEIGHT } from "../utils/quill-pool";
 import { temporarilyReleaseCanvasCursorLock } from "../utils/dom-utils";
 import { addAndArrangeRadialMedia, MEDIA_PRESENCE, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
 import { gatePermission } from "../../hubs/utils/permissions-utils";
@@ -18,9 +8,8 @@ import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
 import { renderQuillToImg, computeQuillContectRect } from "../utils/quill-utils";
 import { paths } from "../../hubs/systems/userinput/paths";
 import { chicletGeometry } from "../objects/chiclet-geometry.js";
-import { FONT_FACES, MAX_FONT_FACE } from "../utils/quill-utils";
+import { MAX_FONT_FACE } from "../utils/quill-utils";
 
-const SCROLL_SENSITIVITY = 500.0;
 const FIT_CONTENT_EXTRA_SCALE = 1.5;
 
 export const MEDIA_TEXT_COLOR_PRESETS = [
@@ -93,17 +82,17 @@ AFRAME.registerComponent("media-text", {
   },
 
   init() {
-    this.renderNextFrame = false;
-    this.rerenderQuill = this.rerenderQuill.bind(this);
     this.localSnapCount = 0;
     this.isSnapping = false;
     this.firedTextLoadedEvent = false;
     this.zoom = 1.0;
     this.textureWidth = 1024;
     this.renderCount = 0;
+    this.markDirty = this.markDirty.bind(this);
     this.handleDetailLevelChanged = this.handleDetailLevelChanged.bind(this);
 
     SYSTEMS.mediaPresenceSystem.registerMediaComponent(this);
+    SYSTEMS.mediaTextSystem.registerMediaTextComponent(this);
     this.el.sceneEl.addEventListener("detail-level-changed", this.handleDetailLevelChanged);
   },
 
@@ -146,11 +135,11 @@ AFRAME.registerComponent("media-text", {
         !almostEqualVec3(oldData.backgroundColor, backgroundColor)
       ) {
         this.applyProperMaterialToMesh();
-        this.rerenderQuill();
+        this.markDirty();
       }
 
       if (oldData.font !== font) {
-        this.applyFont();
+        SYSTEMS.mediaTextSystem.applyFont(this, font);
       }
     }
   },
@@ -171,8 +160,7 @@ AFRAME.registerComponent("media-text", {
       this.mesh.visible = false;
     }
 
-    this.unbindAndRemoveQuill();
-    this.quill = null;
+    SYSTEMS.mediaTextSystem.unbindQuill(this);
 
     mediaPresenceSystem.setMediaPresence(this, MEDIA_PRESENCE.HIDDEN);
   },
@@ -235,19 +223,12 @@ AFRAME.registerComponent("media-text", {
         this.mesh.castShadow = !transparent;
         this.applyProperMaterialToMesh();
         this.el.setObject3D("mesh", this.mesh);
-        this.rerenderQuill();
+        this.markDirty();
       }
 
       this.el.emit("text-loading");
 
-      if (!this.quill || refresh) {
-        this.unbindAndRemoveQuill();
-        //const networked = this.el.components.networked;
-        //await networked.whenReadyForBinding();
-        this.quill = this.bindQuill();
-
-        this.applyFont();
-      }
+      SYSTEMS.mediaTextSystem.initializeTextEditor(this, refresh);
     } catch (e) {
       this.el.emit("text-error", { src: this.data.src });
       throw e;
@@ -262,21 +243,11 @@ AFRAME.registerComponent("media-text", {
 
     const volumeModRight = userinput.get(paths.actions.cursor.right.mediaScroll);
     if (interaction.state.rightRemote.hovered === this.el && volumeModRight) {
-      this.scrollBy(volumeModRight);
+      SYSTEMS.mediaTextSystem.scrollBy(this, volumeModRight);
     }
     const volumeModLeft = userinput.get(paths.actions.cursor.left.mediaScroll);
     if (interaction.state.leftRemote.hovered === this.el && volumeModLeft) {
-      this.scrollBy(volumeModLeft);
-    }
-
-    if (this.renderNextFrame && this.quill) {
-      this.renderNextFrame = false;
-      this.render();
-
-      if (!this.firedTextLoadedEvent) {
-        this.firedTextLoadedEvent = true;
-        this.el.emit("text-loaded", { src: this.data.src });
-      }
+      SYSTEMS.mediaTextSystem.scrollBy(this, volumeModLeft);
     }
   },
 
@@ -284,15 +255,10 @@ AFRAME.registerComponent("media-text", {
     this.applyProperMaterialToMesh();
   },
 
-  scrollBy(amount) {
-    if (!amount || !this.quill) return;
-    const scrollDistance = Math.floor(-amount * SCROLL_SENSITIVITY);
-    this.quill.container.querySelector(".ql-editor").scrollBy(0, scrollDistance);
-
-    this.rerenderQuill();
-  },
-
   render() {
+    const quill = SYSTEMS.mediaTextSystem.getQuill(this);
+    if (!quill) return;
+
     const img = document.createElement("img");
 
     this.renderCount++;
@@ -304,7 +270,7 @@ AFRAME.registerComponent("media-text", {
       meshScaleY = (2.0 * 9.0) / 16.0;
 
     // Compute a dynamic zoom + textureWidth based upon the amount of content.
-    const [w, h] = computeQuillContectRect(this.quill);
+    const [w, h] = computeQuillContectRect(quill);
     const isEmpty = w <= EDITOR_PADDING_X + 4.0;
 
     const contentWidth = this.data.fitContent ? (isEmpty ? EDITOR_WIDTH / 2 : w) : EDITOR_WIDTH;
@@ -368,7 +334,7 @@ AFRAME.registerComponent("media-text", {
     };
 
     renderQuillToImg(
-      this.quill,
+      quill,
       img,
       this.data.foregroundColor,
       this.data.backgroundColor,
@@ -377,11 +343,15 @@ AFRAME.registerComponent("media-text", {
       this.data.transparent,
       this.data.font
     );
+
+    if (!this.firedTextLoadedEvent) {
+      this.firedTextLoadedEvent = true;
+      this.el.emit("text-loaded", { src: this.data.src });
+    }
   },
 
-  rerenderQuill() {
-    this.renderNextFrame = true;
-    // TODO priority queue in a system
+  markDirty() {
+    SYSTEMS.mediaTextSystem.markDirty(this);
   },
 
   applyProperMaterialToMesh() {
@@ -405,43 +375,13 @@ AFRAME.registerComponent("media-text", {
     }
   },
 
-  bindQuill() {
-    const networkId = getNetworkId(this.el);
-    if (hasQuill(networkId)) return;
-
-    const quill = getQuill(networkId);
-    quill.on("text-change", this.rerenderQuill);
-    quill.container.querySelector(".ql-editor").addEventListener("scroll", this.rerenderQuill);
-
-    // this.el.components.networked.bindRichTextEditor(quill, this.name, "deltaOps");
-    return quill;
-  },
-
-  getQuill() {
-    const networkId = getNetworkId(this.el);
-    if (!hasQuill(networkId)) return null;
-    return getQuill(networkId);
-  },
-
-  unbindAndRemoveQuill() {
-    const networkId = getNetworkId(this.el);
-    if (!hasQuill(networkId)) return;
-
-    const quill = getQuill(networkId);
-    quill.off("text-change", this.rerenderQuill);
-    quill.container.querySelector(".ql-editor").removeEventListener("scroll", this.rerenderQuill);
-    // this.el.components.networked.unbindRichTextEditor(this.name, "deltaOps");
-    destroyQuill(networkId);
-    this.quill = null;
-  },
-
   getContents() {
-    if (!this.quill) return "";
-    return this.quill.container.querySelector(".ql-editor").innerHTML;
+    const quill = SYSTEMS.mediaTextSystem.getQuill(this);
+    if (!quill) return;
+    return quill.container.querySelector(".ql-editor").innerHTML;
   },
 
   remove() {
-    this.unbindAndRemoveQuill();
     let nonUsedMaterial;
 
     if (this.mesh) {
@@ -459,54 +399,20 @@ AFRAME.registerComponent("media-text", {
     }
 
     SYSTEMS.mediaPresenceSystem.unregisterMediaComponent(this);
+    SYSTEMS.mediaTextSystem.unregisterMediaTextComponent(this);
 
     this.el.sceneEl.removeEventListener("detail-level-changed", this.handleDetailLevelChanged);
   },
 
-  applyFont() {
-    if (!this.quill) return;
-    const { font } = this.data;
-    const classList = this.quill.container.querySelector(".ql-editor").classList;
-
-    classList.remove("font-sans-serif");
-    classList.remove("font-serif");
-    classList.remove("font-mono");
-    classList.remove("font-comic");
-    classList.remove("font-comic2");
-    classList.remove("font-writing");
-
-    if (font === FONT_FACES.SANS_SERIF) {
-      classList.add("font-sans-serif");
-    } else if (font === FONT_FACES.SERIF) {
-      classList.add("font-serif");
-    } else if (font === FONT_FACES.MONO) {
-      classList.add("font-mono");
-    } else if (font === FONT_FACES.COMIC) {
-      classList.add("font-comic");
-    } else if (font === FONT_FACES.COMIC2) {
-      classList.add("font-comic2");
-    } else if (font === FONT_FACES.WRITING) {
-      classList.add("font-writing");
-    }
-
-    this.rerenderQuill();
-
-    // Hack, quill needs to be re-rendered after a slight delay to deal with
-    // cases where CSS relayout may not immediately occur (likely when concurrent
-    // work is occuring.)
-    //
-    // Otherwise text will be clipped when changing fonts since the clientWidth/Height
-    // of the inner elements is stale.
-    setTimeout(() => this.rerenderQuill(), 500);
-  },
-
   handleMediaInteraction(type) {
-    if (!this.quill) return;
+    const quill = SYSTEMS.mediaTextSystem.getQuill(this);
+    if (!quill) return;
+
     if (!gatePermission("spawn_and_move_media")) return;
 
     if (type === MEDIA_INTERACTION_TYPES.EDIT) {
       window.APP.store.handleActivityFlag("mediaTextEdit");
-      this.quill.focus();
+      quill.focus();
 
       temporarilyReleaseCanvasCursorLock();
     } else if (type === MEDIA_INTERACTION_TYPES.SNAPSHOT) {
@@ -532,7 +438,7 @@ AFRAME.registerComponent("media-text", {
       };
 
       renderQuillToImg(
-        this.quill,
+        quill,
         img,
         this.data.foregroundColor,
         this.data.backgroundColor,
