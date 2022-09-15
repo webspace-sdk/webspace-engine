@@ -1,15 +1,6 @@
 import TextSync from "../utils/text-sync";
-import {
-  getQuill,
-  hasQuill,
-  htmlToDelta,
-  destroyQuill,
-  EDITOR_PADDING_X,
-  EDITOR_PADDING_Y,
-  EDITOR_WIDTH,
-  EDITOR_HEIGHT
-} from "../utils/quill-pool";
-import { FONT_FACES, MAX_FONT_FACE } from "../utils/quill-utils";
+import { getQuill, destroyQuill } from "../utils/quill-pool";
+import { FONT_FACES } from "../utils/quill-utils";
 import { getNetworkId } from "../utils/ownership-utils";
 
 const MAX_COMPONENTS = 128;
