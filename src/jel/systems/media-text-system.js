@@ -58,7 +58,7 @@ export class MediaTextSystem extends EventTarget {
     this.components[++this.maxIndex] = component;
   }
 
-  initializeTextEditor(component, initialContent, force = true, initialContents = null) {
+  initializeTextEditor(component, force = true, initialContents = null) {
     const index = this.components.indexOf(component);
     if (index === -1) return;
     const networkId = getNetworkId(component.el);
@@ -76,23 +76,6 @@ export class MediaTextSystem extends EventTarget {
     const ydoc = new Y.Doc();
     const type = ydoc.getText("quill");
     this.yjsTypes[index] = type;
-
-    if (initialContents) {
-      const delta = htmlToDelta(initialContents);
-
-      if (delta.ops.length > 1) {
-        // Conversion will add trailing newline, which we don't want.
-        const op = delta.ops[delta.ops.length - 1];
-
-        // This doesn't fix all trailing newlines, for example a one-line label will
-        // have a newline when cloned
-        if (op.insert === "\n" && !op.attributes) {
-          delta.ops.pop();
-        }
-
-        type.applyDelta(delta.ops);
-      }
-    }
 
     const negatedFormats = {};
 
@@ -134,12 +117,29 @@ export class MediaTextSystem extends EventTarget {
       }
     };
 
+    if (initialContents) {
+      const delta = htmlToDelta(initialContents);
+
+      if (delta.ops.length > 1) {
+        // Conversion will add trailing newline, which we don't want.
+        const op = delta.ops[delta.ops.length - 1];
+
+        // This doesn't fix all trailing newlines, for example a one-line label will
+        // have a newline when cloned
+        if (op.insert === "\n" && !op.attributes) {
+          delta.ops.pop();
+        }
+      }
+
+      type.applyDelta(delta.ops);
+    }
+
+    quill.setContents(type.toDelta(), this);
+
     type.observe(this.typeObserverFns[index]);
     quill.on("editor-change", this.quillObserverFns[index]);
     quill.on("text-change", this.markComponentDirtyFns[index]);
     quill.container.querySelector(".ql-editor").addEventListener("scroll", this.markComponentDirtyFns[index]);
-
-    quill.setContents(type.toDelta(), this);
 
     this.applyFont(component);
   }
