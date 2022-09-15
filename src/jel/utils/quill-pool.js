@@ -55,7 +55,7 @@ export function getQuill(networkId) {
   container.setAttribute("id", `${id}-editor`);
   container.setAttribute(
     "style",
-    `border-radius: 6px 6px 0 0; box-shadow: 0px 12px 28px #111749cc; z-index: 10; min-width: ${EDITOR_WIDTH}px; min-height: ${EDITOR_HEIGHT}px; background-color: white`
+    `border-radius: 6px 6px 0 0; box-shadow: 0px 12px 28px #111749cc; z-index: 10; width: ${EDITOR_WIDTH}px; min-width: ${EDITOR_WIDTH}px; height: ${EDITOR_HEIGHT}px; min-height: ${EDITOR_HEIGHT}px; background-color: white`
   ); // TODO JEL styling based upon colors
   el.prepend(container);
 

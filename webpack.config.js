@@ -295,7 +295,7 @@ module.exports = async (env, argv) => {
         Buffer: ["buffer", "Buffer"]
       }),
       new webpack.ProvidePlugin({
-        process: "process/browser"
+        process: "process/browser.js"
       }),
       new BundleAnalyzerPlugin({
         analyzerMode: env && env.bundleAnalyzer ? "server" : "disabled"

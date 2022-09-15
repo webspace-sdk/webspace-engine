@@ -1,5 +1,6 @@
+import * as Y from "yjs";
 import TextSync from "../utils/text-sync";
-import { getQuill, destroyQuill } from "../utils/quill-pool";
+import { htmlToDelta, getQuill, destroyQuill } from "../utils/quill-pool";
 import { FONT_FACES } from "../utils/quill-utils";
 import { getNetworkId } from "../utils/ownership-utils";
 
@@ -13,10 +14,12 @@ export class MediaTextSystem extends EventTarget {
     this.syncs = Array(MAX_COMPONENTS).fill(null);
     this.components = Array(MAX_COMPONENTS).fill(null);
     this.quills = Array(MAX_COMPONENTS).fill(null);
-    this.docs = Array(MAX_COMPONENTS).fill(null);
+    this.yjsTypes = Array(MAX_COMPONENTS).fill(null);
     this.dirty = Array(MAX_COMPONENTS).fill(false);
     this.textChangeHandlers = Array(MAX_COMPONENTS).fill(null);
     this.markComponentDirtyFns = Array(MAX_COMPONENTS).fill(null);
+    this.quillObserverFns = Array(MAX_COMPONENTS).fill(null);
+    this.typeObserverFns = Array(MAX_COMPONENTS).fill(null);
     this.maxIndex = -1;
   }
 
@@ -55,7 +58,7 @@ export class MediaTextSystem extends EventTarget {
     this.components[++this.maxIndex] = component;
   }
 
-  initializeTextEditor(component, force = true) {
+  initializeTextEditor(component, initialContent, force = true, initialContents = null) {
     const index = this.components.indexOf(component);
     if (index === -1) return;
     const networkId = getNetworkId(component.el);
@@ -69,8 +72,74 @@ export class MediaTextSystem extends EventTarget {
 
     this.markComponentDirtyFns[index] = () => this.markDirty(component);
     quill = this.quills[index] = getQuill(networkId);
+
+    const ydoc = new Y.Doc();
+    const type = ydoc.getText("quill");
+    this.yjsTypes[index] = type;
+
+    if (initialContents) {
+      const delta = htmlToDelta(initialContents);
+
+      if (delta.ops.length > 1) {
+        // Conversion will add trailing newline, which we don't want.
+        const op = delta.ops[delta.ops.length - 1];
+
+        // This doesn't fix all trailing newlines, for example a one-line label will
+        // have a newline when cloned
+        if (op.insert === "\n" && !op.attributes) {
+          delta.ops.pop();
+        }
+
+        type.applyDelta(delta.ops);
+      }
+    }
+
+    const negatedFormats = {};
+
+    this.typeObserverFns[index] = event => {
+      if (event.transaction.origin === this) return;
+
+      const delta = [];
+      for (const d of event.delta) {
+        if (d.insert !== undefined) {
+          // We always explicitly set attributes, otherwise concurrent edits may
+          // result in quill assuming that a text insertion shall inherit existing
+          // attributes.
+          delta.push(Object.assign({}, d, { attributes: Object.assign({}, this.negatedFormats, d.attributes || {}) }));
+        } else {
+          delta.push(d);
+        }
+      }
+
+      quill.updateContents(delta, this);
+    };
+
+    this.quillObserverFns[index] = (eventType, delta, state, origin) => {
+      if (delta && delta.ops) {
+        for (const op of delta.ops) {
+          if (op.attributes) {
+            for (const key in op.attributes) {
+              if (negatedFormats[key] === undefined) {
+                negatedFormats[key] = false;
+              }
+            }
+          }
+        }
+
+        if (origin !== this) {
+          ydoc.transact(() => {
+            type.applyDelta(delta.ops);
+          }, this);
+        }
+      }
+    };
+
+    type.observe(this.typeObserverFns[index]);
+    quill.on("editor-change", this.quillObserverFns[index]);
     quill.on("text-change", this.markComponentDirtyFns[index]);
     quill.container.querySelector(".ql-editor").addEventListener("scroll", this.markComponentDirtyFns[index]);
+
+    quill.setContents(type.toDelta(), this);
 
     this.applyFont(component);
   }
@@ -133,13 +202,19 @@ export class MediaTextSystem extends EventTarget {
     if (index === -1) return;
     const quill = this.quills[index];
     if (!quill) return;
+    const type = this.yjsTypes[index];
     const networkId = getNetworkId(component.el);
 
     quill.off("text-change", this.markComponentDirtyFns[index]);
+    quill.off("editor-change", this.quillObserverFns[index]);
     quill.container.querySelector(".ql-editor").removeEventListener("scroll", this.markComponentDirtyFns[index]);
+    type.unobserve(this.typeObserverFns[index]);
     this.textChangeHandlers[index] = null;
     this.markComponentDirtyFns[index] = null;
+    this.quillObserverFns[index] = null;
     this.quills[index] = null;
+    this.yjsTypes[index] = null;
+
     destroyQuill(networkId);
   }
 

@@ -1,4 +1,4 @@
-import { htmlToDelta, EDITOR_PADDING_X, EDITOR_PADDING_Y, EDITOR_WIDTH, EDITOR_HEIGHT } from "../utils/quill-pool";
+import { EDITOR_PADDING_X, EDITOR_PADDING_Y, EDITOR_WIDTH, EDITOR_HEIGHT } from "../utils/quill-pool";
 import { temporarilyReleaseCanvasCursorLock } from "../utils/dom-utils";
 import { addAndArrangeRadialMedia, MEDIA_PRESENCE, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
 import { gatePermission } from "../../hubs/utils/permissions-utils";
@@ -101,29 +101,6 @@ AFRAME.registerComponent("media-text", {
     if (!src) return;
 
     const refresh = src !== oldData.src;
-
-    const initialContents = this.el.components["media-loader"].consumeInitialContents();
-
-    if (initialContents) {
-      const delta = htmlToDelta(initialContents);
-
-      if (delta.ops.length > 1) {
-        // Conversion will add trailing newline, which we don't want.
-        const op = delta.ops[delta.ops.length - 1];
-
-        // This doesn't fix all trailing newlines, for example a one-line label will
-        // have a newline when cloned
-        if (op.insert === "\n" && !op.attributes) {
-          delta.ops.pop();
-        }
-      }
-
-      // const networked = this.el.components.networked;
-
-      //shared.whenReadyForBinding().then(() => {
-      //  shared.initializeRichTextContents(delta, this.name, "deltaOps");
-      //});
-    }
 
     if (refresh) {
       this.setMediaPresence(SYSTEMS.mediaPresenceSystem.getMediaPresence(this), refresh);
@@ -228,7 +205,8 @@ AFRAME.registerComponent("media-text", {
 
       this.el.emit("text-loading");
 
-      SYSTEMS.mediaTextSystem.initializeTextEditor(this, refresh);
+      const initialContents = this.el.components["media-loader"].consumeInitialContents() || null;
+      SYSTEMS.mediaTextSystem.initializeTextEditor(this, refresh, initialContents);
     } catch (e) {
       this.el.emit("text-error", { src: this.data.src });
       throw e;
