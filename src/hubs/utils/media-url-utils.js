@@ -116,7 +116,7 @@ export const guessContentType = url => {
   if (url.startsWith("data:")) {
     const matches = dataUrlRegex.exec(url);
     if (matches.length > 0) {
-      matches[1];
+      return matches[1];
     }
   }
   const extension = new URL(url, window.location).pathname.split(".").pop();
