@@ -2,6 +2,7 @@ import * as Y from "yjs";
 import { htmlToDelta, getQuill, destroyQuill } from "../utils/quill-pool";
 import { FONT_FACES } from "../utils/quill-utils";
 import { getNetworkId } from "../utils/ownership-utils";
+import { getCurrentPresence } from "../utils/presence-utils";
 
 const MAX_COMPONENTS = 128;
 const SCROLL_SENSITIVITY = 500.0;
@@ -113,6 +114,15 @@ export class MediaTextSystem extends EventTarget {
     };
 
     this.quillObserverFns[index] = (eventType, delta, state, origin) => {
+      if (origin === "user") {
+        const syncState = this.getSyncState(networkId);
+
+        if (syncState === SYNC_STATES.UNSYNCED && this.isSyncRingEmpty(networkId, "text")) {
+          // We're the first person to edit this media text, so we need to join the ring ourselves.
+          this.joinSyncRing(networkId, "text");
+        }
+      }
+
       if (delta && delta.ops) {
         for (const op of delta.ops) {
           if (op.attributes) {
@@ -124,11 +134,9 @@ export class MediaTextSystem extends EventTarget {
           }
         }
 
-        if (origin !== this) {
-          ydoc.transact(() => {
-            type.applyDelta(delta.ops);
-          }, this);
-        }
+        ydoc.transact(() => {
+          type.applyDelta(delta.ops);
+        }, this);
       }
     };
 
@@ -157,6 +165,38 @@ export class MediaTextSystem extends EventTarget {
     quill.container.querySelector(".ql-editor").addEventListener("scroll", this.markComponentDirtyFns[index]);
 
     this.applyFont(component);
+  }
+
+  joinSyncRing(networkId, type) {
+    const currentPresence = getCurrentPresence();
+
+    const syncRingMemberships = currentPresence.sync_ring_memberships || [];
+
+    if (!syncRingMemberships.find(m => m.network_id === networkId && m.type === type)) {
+      syncRingMemberships.push({ network_id: networkId, type });
+    }
+
+    NAF.connection.presence.setLocalStateField("sync_ring_memberships", syncRingMemberships);
+    this.networkIdToSyncState.set(networkId, SYNC_STATES.SYNCING);
+  }
+
+  getSyncRingMembers(networkId, type) {
+    const members = new Set();
+
+    for (const state of NAF.connection.presence.states.values()) {
+      const clientId = state.client_id;
+      if (!clientId) continue;
+
+      const syncRingMemberships = state.sync_ring_memberships;
+
+      if (syncRingMemberships) {
+        if (syncRingMemberships.find(m => m.network_id === networkId && m.type === type)) {
+          members.add(clientId);
+        }
+      }
+    }
+
+    return members;
   }
 
   applyFont(component) {
@@ -238,7 +278,7 @@ export class MediaTextSystem extends EventTarget {
     if (index === -1) return;
 
     const networkId = getNetworkId(component.el);
-    this.networkIdToComponentIndex.delete(networkId);
+    this.networkIdToComponent.delete(networkId);
     this.networkIdToSyncState.delete(networkId);
 
     this.unbindQuill(component);
@@ -276,29 +316,30 @@ export class MediaTextSystem extends EventTarget {
     return this.quills[index];
   }
 
-  handleTextMediaMessage({ type, payload }) {}
+  handleTextMediaMessage({ type, network_id }, fromClientId) {
+    console.log("media message", type, network_id, fromClientId);
+  }
 
   // Sends a request for the ydoc from members of the ring syncing it
-  requestSync(networkIdToRequest) {
-    if (this.networkIdToSyncState.get(networkIdToRequest) === SYNC_STATES.SYNCED) return;
+  requestInitialSyncDoc(networkId) {
+    if (this.getSyncState(networkId) === SYNC_STATES.SYNCED) return;
 
     const maxRequests = 3;
     let numRequests = 0;
 
-    for (const state of NAF.connection.presence.states.values()) {
-      const clientId = state.client_id;
-      if (!clientId || NAF.clientId === clientId) continue;
+    for (const clientId of this.getSyncRingMembers(networkId, "text")) {
+      if (NAF.clientId === clientId) continue;
 
-      for (const { type, networkId } of state.values()) {
-        if (type !== "text") continue;
-        if (networkIdToRequest !== networkId) continue;
+      numRequests++;
+      if (numRequests > maxRequests) return; // Only send a few requests into the ring.
 
-        numRequests++;
-        if (numRequests > maxRequests) return; // Only send a few requests into the ring.
+      window.APP.hubChannel.sendMessage(
+        { type: "request_full_text_ydoc", network_id: networkId },
+        "text_media_message",
+        clientId
+      );
 
-        window.APP.hubChannel.sendMessage({ type: "request_full", networkId }, "text_media_message", clientId);
-        this.networkIdToSyncState.set(networkId, SYNC_STATES.PENDING);
-      }
+      this.networkIdToSyncState.set(networkId, SYNC_STATES.PENDING);
     }
   }
 
@@ -309,13 +350,13 @@ export class MediaTextSystem extends EventTarget {
     for (const state of NAF.connection.presence.states.values()) {
       const clientId = state.client_id;
       if (!clientId || NAF.clientId === clientId) continue;
-      if (!state.syncedObjects) continue;
+      if (!state.sync_ring_memberships) continue;
 
-      for (const { type, networkId } of state.syncedObjects) {
+      for (const { type, network_id: networkId } of state.sync_ring_memberships) {
         if (type !== "text") continue;
-        if (!this.networkIdToComponentIndex.has(networkId)) continue;
+        if (!this.networkIdToComponent.has(networkId)) continue;
 
-        const syncState = this.networkIdToSyncState.get(networkId) || SYNC_STATES.UNSYNCED;
+        const syncState = this.getSyncState(networkId);
 
         if (syncState !== SYNC_STATES.UNSYNCED) continue;
         if (networkIdsToRequestSync === null) networkIdsToRequestSync = new Set();
@@ -326,7 +367,15 @@ export class MediaTextSystem extends EventTarget {
     if (networkIdsToRequestSync === null) return;
 
     for (const networkId of networkIdsToRequestSync) {
-      this.requestSync(networkId);
+      this.requestInitialSyncDoc(networkId);
     }
+  }
+
+  getSyncState(networkId) {
+    return this.networkIdToSyncState.has(networkId) ? this.networkIdToSyncState.get(networkId) : SYNC_STATES.UNSYNCED;
+  }
+
+  isSyncRingEmpty(networkId) {
+    return this.getSyncRingMembers(networkId, "text").size === 0;
   }
 }
