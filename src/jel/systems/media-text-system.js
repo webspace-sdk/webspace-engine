@@ -47,6 +47,7 @@ export class MediaTextSystem extends EventTarget {
     this.markComponentDirtyFns = Array(MAX_COMPONENTS).fill(null);
     this.quillObserverFns = Array(MAX_COMPONENTS).fill(null);
     this.typeObserverFns = Array(MAX_COMPONENTS).fill(null);
+    this.pendingDeltas = new Map();
 
     this.networkIdToComponent = new Map();
     this.networkIdToSyncState = new Map();
@@ -75,7 +76,7 @@ export class MediaTextSystem extends EventTarget {
     this.sendInitialDocRequestsForPresence();
   }
 
-  initializeTextEditor(component, force = true, initialContents = null) {
+  initializeTextEditor(component, force = true, initialContents = null, beginSyncing = false) {
     const index = this.components.indexOf(component);
     if (index === -1) return;
     const networkId = getNetworkId(component.el);
@@ -136,16 +137,22 @@ export class MediaTextSystem extends EventTarget {
     };
 
     this.quillObserverFns[index] = (eventType, delta, state, origin) => {
-      if (origin === "user") {
-        const syncState = this.getSyncState(networkId);
-
-        if (syncState === SYNC_STATES.UNSYNCED && this.isSyncRingEmpty(networkId, "text")) {
-          // We're the first person to edit this media text, so we need to join the ring ourselves.
-          this.joinSyncRing(networkId, "text");
-        }
-      }
-
       if (delta && delta.ops) {
+        if (origin === "user") {
+          const syncState = this.getSyncState(networkId);
+
+          if (syncState === SYNC_STATES.UNSYNCED && this.isSyncRingEmpty(networkId, "text")) {
+            // We're the first person to edit this media text, so we need to join the ring ourselves.
+            this.joinSyncRing(networkId, "text");
+          } else if (syncState === SYNC_STATES.SYNCING) {
+            // Broadcast the delta
+            window.APP.hubChannel.broadcastMessage(
+              { type: "delta", delta, network_id: networkId },
+              "text_media_message"
+            );
+          }
+        }
+
         for (const op of delta.ops) {
           if (op.attributes) {
             for (const key in op.attributes) {
@@ -158,9 +165,12 @@ export class MediaTextSystem extends EventTarget {
 
         const type = this.yTextTypes[index];
 
-        type.doc.transact(() => {
-          type.applyDelta(delta.ops);
-        }, this);
+        if (origin !== this) {
+          // Prevent currence when setting contents from type
+          type.doc.transact(() => {
+            type.applyDelta(delta.ops);
+          }, this);
+        }
       }
     };
 
@@ -172,6 +182,10 @@ export class MediaTextSystem extends EventTarget {
     quill.container.querySelector(".ql-editor").addEventListener("scroll", this.markComponentDirtyFns[index]);
 
     this.applyFont(component);
+
+    if (beginSyncing) {
+      this.joinSyncRing(networkId, "text");
+    }
   }
 
   replaceYTextType(component, ydoc) {
@@ -337,6 +351,20 @@ export class MediaTextSystem extends EventTarget {
     for (let i = 0; i <= this.maxIndex; i++) {
       const component = this.components[i];
       if (component === null) continue;
+      const yjsType = this.yTextTypes[i];
+
+      if (yjsType !== null) {
+        const networkId = getNetworkId(component.el);
+        if (this.pendingDeltas.has(networkId) && this.getSyncState(networkId) === SYNC_STATES.SYNCING) {
+          const deltas = this.pendingDeltas.get(networkId);
+
+          for (const { ops } of deltas) {
+            yjsType.applyDelta(ops);
+          }
+
+          this.pendingDeltas.delete(networkId);
+        }
+      }
 
       if (this.dirty[i]) {
         component.render();
@@ -352,7 +380,6 @@ export class MediaTextSystem extends EventTarget {
   }
 
   handleTextMediaMessage(payload, fromClientId) {
-    console.log("got media message", payload, fromClientId);
     const { type, network_id } = payload;
     const component = this.networkIdToComponent.get(network_id);
     if (!component) return;
@@ -374,12 +401,24 @@ export class MediaTextSystem extends EventTarget {
       const ydoc = new Y.Doc();
       Y.applyUpdate(ydoc, new Uint8Array(update));
       this.replaceYTextType(component, ydoc);
+      this.networkIdToSyncState.set(network_id, SYNC_STATES.SYNCING);
+    } else if (type === "delta") {
+      if (fromClientId === NAF.clientId) return;
+
+      let deltas = this.pendingDeltas.get(network_id);
+
+      if (!deltas) {
+        deltas = [];
+        this.pendingDeltas.set(network_id, deltas);
+      }
+
+      deltas.push(payload.delta);
     }
   }
 
   // Sends a request for the ydoc from members of the ring syncing it
   requestInitialSyncDoc(networkId) {
-    if (this.getSyncState(networkId) === SYNC_STATES.SYNCED) return;
+    if (this.getSyncState(networkId) === SYNC_STATES.SYNCING) return;
 
     const maxRequests = 3;
     let numRequests = 0;

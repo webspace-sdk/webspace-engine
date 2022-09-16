@@ -205,8 +205,17 @@ AFRAME.registerComponent("media-text", {
 
       this.el.emit("text-loading");
 
-      const initialContents = this.el.components["media-loader"].consumeInitialContents() || null;
-      SYSTEMS.mediaTextSystem.initializeTextEditor(this, refresh, initialContents);
+      const mediaLoader = this.el.components["media-loader"];
+      const networked = this.el.components.networked;
+
+      const initialContents = mediaLoader.consumeInitialContents() || null;
+
+      // If this was created by us and starts out with contents,
+      // we need to begin syncing so others will received the initial contents.
+      const beginSyncing =
+        initialContents && networked.data.creator === NAF.clientId && networked.data.owner === NAF.clientId;
+
+      SYSTEMS.mediaTextSystem.initializeTextEditor(this, refresh, initialContents, beginSyncing);
     } catch (e) {
       this.el.emit("text-error", { src: this.data.src });
       throw e;
