@@ -1,6 +1,7 @@
 import { getCreator, getNetworkedEntity } from "../../jel/utils/ownership-utils";
 import { injectCustomShaderChunks } from "../utils/media-utils";
 import { AVATAR_TYPES } from "../utils/avatar-utils";
+import defaultAvatar from "!!url-loader!../../assets/hubs/models/DefaultAvatar.glb";
 
 function ensureAvatarNodes(json) {
   const { nodes } = json;
@@ -33,8 +34,7 @@ function ensureAvatarNodes(json) {
  */
 AFRAME.registerComponent("player-info", {
   schema: {
-    avatarSrc: { type: "string" },
-    avatarType: { type: "string", default: AVATAR_TYPES.SKINNABLE }
+    avatarSrc: { type: "string" }
   },
   init() {
     this.displayName = null;
@@ -137,7 +137,7 @@ AFRAME.registerComponent("player-info", {
     const modelEl = this.el.querySelector(".model");
     if (this.data.avatarSrc && modelEl) {
       modelEl.components["gltf-model-plus"].jsonPreprocessor = ensureAvatarNodes;
-      modelEl.setAttribute("gltf-model-plus", "src", this.data.avatarSrc);
+      modelEl.setAttribute("gltf-model-plus", "src", defaultAvatar);
     }
 
     if (!e || e.target === modelEl) {

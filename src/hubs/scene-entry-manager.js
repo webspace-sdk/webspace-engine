@@ -7,7 +7,6 @@ import { waitForShadowDOMContentLoaded } from "./utils/async-utils";
 import { createVox } from "./utils/phoenix-utils";
 import { switchCurrentHubToWorldTemplate } from "../jel/utils/template-utils";
 import { retainPdf, releasePdf } from "../jel/utils/pdf-pool";
-import defaultAvatar from "!!url-loader!../assets/hubs/models/DefaultAvatar.glb";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "../jel/utils/jel-url-utils";
 import { gatePermission } from "./utils/permissions-utils";
 
@@ -27,7 +26,6 @@ import {
 } from "./utils/media-utils";
 import { handleExitTo2DInterstitial, exit2DInterstitialAndEnterVR } from "./utils/vr-interstitial";
 import { ObjectContentOrigins } from "./object-types";
-import { getAvatarType } from "./utils/avatar-utils";
 import { pushHistoryState } from "./utils/history";
 import { proxiedUrlFor } from "./utils/media-url-utils";
 
@@ -144,7 +142,7 @@ export default class SceneEntryManager {
 
     this._lastFetchedAvatarId = avatarId;
 
-    this.avatarRig.setAttribute("player-info", { avatarSrc: defaultAvatar, avatarType: getAvatarType(avatarId) });
+    this.avatarRig.setAttribute("player-info", { avatarSrc: "default" });
   };
 
   _setupKicking = () => {
