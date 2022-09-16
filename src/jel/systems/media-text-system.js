@@ -23,7 +23,7 @@ const SYNC_STATES = {
 //
 // Basic algorithm:
 //   - In presence, keep a list of network ids of media texts that you are actively part of
-//     the gossip ring for it.
+//     the gossip ring for.
 //
 //   - If you start editing a media text, check if anyone else is in the ring in presence for it.
 //     - If not, your ydoc is the one everyone will start from. Register yourself into presence
@@ -32,7 +32,7 @@ const SYNC_STATES = {
 //     - If so, request the ydoc from anyone in the ring. Once you get it, register yourself in presence,
 //       replace your ydoc (clobbering any local changes made since then, sadly) and re-render.
 //
-// You should always be listening for messages to get the ydoc, and if a message comes in you need to
+// You should always be listening for messages to get the ydoc, and if an op message comes in you need to
 // either queue it if you haven't joined the ring yet, or apply it if you have. When you have an op to
 // contribute broadcast it to the ring.
 export class MediaTextSystem extends EventTarget {
@@ -41,7 +41,7 @@ export class MediaTextSystem extends EventTarget {
     this.sceneEl = sceneEl;
     this.components = Array(MAX_COMPONENTS).fill(null);
     this.quills = Array(MAX_COMPONENTS).fill(null);
-    this.yjsTypes = Array(MAX_COMPONENTS).fill(null);
+    this.yTextTypes = Array(MAX_COMPONENTS).fill(null);
     this.dirty = Array(MAX_COMPONENTS).fill(false);
     this.textChangeHandlers = Array(MAX_COMPONENTS).fill(null);
     this.markComponentDirtyFns = Array(MAX_COMPONENTS).fill(null);
@@ -53,7 +53,7 @@ export class MediaTextSystem extends EventTarget {
 
     this.maxIndex = -1;
 
-    this.sceneEl.addEventListener("presence-synced", this.onPresenceSynced.bind(this));
+    this.sceneEl.addEventListener("presence-synced", this.sendInitialDocRequestsForPresence.bind(this));
   }
 
   registerMediaTextComponent(component) {
@@ -72,6 +72,7 @@ export class MediaTextSystem extends EventTarget {
     }
 
     this.components[++this.maxIndex] = component;
+    this.sendInitialDocRequestsForPresence();
   }
 
   initializeTextEditor(component, force = true, initialContents = null) {
@@ -88,10 +89,31 @@ export class MediaTextSystem extends EventTarget {
 
     this.markComponentDirtyFns[index] = () => this.markDirty(component);
     quill = this.quills[index] = getQuill(networkId);
+    let type = this.yTextTypes[index];
 
-    const ydoc = new Y.Doc();
-    const type = ydoc.getText("quill");
-    this.yjsTypes[index] = type;
+    // Type may already exist, if we are syncing it
+    if (!type) {
+      const ydoc = new Y.Doc();
+      type = ydoc.getText("quill");
+      this.yTextTypes[index] = type;
+
+      if (initialContents) {
+        const delta = htmlToDelta(initialContents);
+
+        if (delta.ops.length > 1) {
+          // Conversion will add trailing newline, which we don't want.
+          const op = delta.ops[delta.ops.length - 1];
+
+          // This doesn't fix all trailing newlines, for example a one-line label will
+          // have a newline when cloned
+          if (op.insert === "\n" && !op.attributes) {
+            delta.ops.pop();
+          }
+        }
+
+        type.applyDelta(delta.ops);
+      }
+    }
 
     const negatedFormats = {};
 
@@ -134,28 +156,13 @@ export class MediaTextSystem extends EventTarget {
           }
         }
 
-        ydoc.transact(() => {
+        const type = this.yTextTypes[index];
+
+        type.doc.transact(() => {
           type.applyDelta(delta.ops);
         }, this);
       }
     };
-
-    if (initialContents) {
-      const delta = htmlToDelta(initialContents);
-
-      if (delta.ops.length > 1) {
-        // Conversion will add trailing newline, which we don't want.
-        const op = delta.ops[delta.ops.length - 1];
-
-        // This doesn't fix all trailing newlines, for example a one-line label will
-        // have a newline when cloned
-        if (op.insert === "\n" && !op.attributes) {
-          delta.ops.pop();
-        }
-      }
-
-      type.applyDelta(delta.ops);
-    }
 
     quill.setContents(type.toDelta(), this);
 
@@ -165,6 +172,34 @@ export class MediaTextSystem extends EventTarget {
     quill.container.querySelector(".ql-editor").addEventListener("scroll", this.markComponentDirtyFns[index]);
 
     this.applyFont(component);
+  }
+
+  replaceYTextType(component, ydoc) {
+    const type = ydoc.getText("quill");
+
+    if (!type) {
+      console.warn("Missing quill type in remote ydoc");
+      return;
+    }
+
+    const index = this.components.indexOf(component);
+    if (index === -1) return;
+
+    const oldType = this.yTextTypes[index];
+    if (oldType && this.typeObserverFns[index]) {
+      oldType.unobserve(this.typeObserverFns[index]);
+    }
+
+    this.yTextTypes[index] = type;
+
+    const quill = this.quills[index];
+    if (quill) {
+      quill.setContents(type.toDelta(), this);
+    }
+
+    if (this.typeObserverFns[index]) {
+      type.observe(this.typeObserverFns[index]);
+    }
   }
 
   joinSyncRing(networkId, type) {
@@ -257,7 +292,7 @@ export class MediaTextSystem extends EventTarget {
     if (index === -1) return;
     const quill = this.quills[index];
     if (!quill) return;
-    const type = this.yjsTypes[index];
+    const type = this.yTextTypes[index];
     const networkId = getNetworkId(component.el);
 
     quill.off("text-change", this.markComponentDirtyFns[index]);
@@ -268,7 +303,7 @@ export class MediaTextSystem extends EventTarget {
     this.markComponentDirtyFns[index] = null;
     this.quillObserverFns[index] = null;
     this.quills[index] = null;
-    this.yjsTypes[index] = null;
+    this.yTextTypes[index] = null;
 
     destroyQuill(networkId);
   }
@@ -316,8 +351,30 @@ export class MediaTextSystem extends EventTarget {
     return this.quills[index];
   }
 
-  handleTextMediaMessage({ type, network_id }, fromClientId) {
-    console.log("media message", type, network_id, fromClientId);
+  handleTextMediaMessage(payload, fromClientId) {
+    console.log("got media message", payload, fromClientId);
+    const { type, network_id } = payload;
+    const component = this.networkIdToComponent.get(network_id);
+    if (!component) return;
+
+    const index = this.components.indexOf(component);
+    const yTextType = this.yTextTypes[index];
+
+    if (type === "request_full_text_ydoc") {
+      const ydoc = yTextType.doc;
+      const update = Y.encodeStateAsUpdate(ydoc);
+
+      window.APP.hubChannel.sendMessage(
+        { type: "full_text_ydoc", network_id, update },
+        "text_media_message",
+        fromClientId
+      );
+    } else if (type === "full_text_ydoc") {
+      const update = payload.update;
+      const ydoc = new Y.Doc();
+      Y.applyUpdate(ydoc, new Uint8Array(update));
+      this.replaceYTextType(component, ydoc);
+    }
   }
 
   // Sends a request for the ydoc from members of the ring syncing it
@@ -343,7 +400,7 @@ export class MediaTextSystem extends EventTarget {
     }
   }
 
-  onPresenceSynced() {
+  sendInitialDocRequestsForPresence() {
     let networkIdsToRequestSync = null;
 
     // Search for any new components that need to be synced - ones that have ring members

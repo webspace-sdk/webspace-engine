@@ -423,7 +423,7 @@ function CanvasTop(props) {
     () => {
       const handleWritebackSetup = ({ detail }) => {
         if (atomAccessManager.writebackRequiresSetup) {
-          showWritebackSetupPopup(detail.showInCenter ? createSelectPopupRef : hubEditButtonRef);
+          showWritebackSetupPopup(detail?.showInCenter ? createSelectPopupRef : hubEditButtonRef);
         } else {
           atomAccessManager.openWriteback();
         }
