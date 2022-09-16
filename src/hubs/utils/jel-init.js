@@ -168,6 +168,10 @@ const setupDataChannelMessageHandlers = () => {
     pushHubMetaUpdateIntoDOM(hub);
   });
 
+  NAF.connection.subscribeToDataChannel("text_media_message", (_type, { body }, fromSessionId) => {
+    SYSTEMS.mediaTextSystem.handleTextMediaMessage(body, fromSessionId);
+  });
+
   // Public key verification
   //
   const clientIdChallenges = new Map();

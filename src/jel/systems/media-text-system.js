@@ -276,10 +276,36 @@ export class MediaTextSystem extends EventTarget {
     return this.quills[index];
   }
 
+  handleTextMediaMessage({ type, payload }) {}
+
+  // Sends a request for the ydoc from members of the ring syncing it
+  requestSync(networkIdToRequest) {
+    if (this.networkIdToSyncState.get(networkIdToRequest) === SYNC_STATES.SYNCED) return;
+
+    const maxRequests = 3;
+    let numRequests = 0;
+
+    for (const state of NAF.connection.presence.states.values()) {
+      const clientId = state.client_id;
+      if (!clientId || NAF.clientId === clientId) continue;
+
+      for (const { type, networkId } of state.values()) {
+        if (type !== "text") continue;
+        if (networkIdToRequest !== networkId) continue;
+
+        numRequests++;
+        if (numRequests > maxRequests) return; // Only send a few requests into the ring.
+
+        window.APP.hubChannel.sendMessage({ type: "request_full", networkId }, "text_media_message", clientId);
+        this.networkIdToSyncState.set(networkId, SYNC_STATES.PENDING);
+      }
+    }
+  }
+
   onPresenceSynced() {
     let networkIdsToRequestSync = null;
 
-    // Search for any new components that need to be synced
+    // Search for any new components that need to be synced - ones that have ring members
     for (const state of NAF.connection.presence.states.values()) {
       const clientId = state.client_id;
       if (!clientId || NAF.clientId === clientId) continue;
@@ -301,7 +327,6 @@ export class MediaTextSystem extends EventTarget {
 
     for (const networkId of networkIdsToRequestSync) {
       this.requestSync(networkId);
-      this.networkIdToSyncState.set(networkId, SYNC_STATES.PENDING);
     }
   }
 }
