@@ -760,10 +760,10 @@ function startBotModeIfNecessary(scene, entryManager) {
       // Replace renderer with a noop renderer to reduce bot resource usage.
       runBotMode(scene, entryManager);
 
-      scene.addEventListener("terrain_chunk_loading_complete", onTerrainLoaded);
+      scene.addEventListener("terrain_chunk_cpu_spike_over", onTerrainLoaded);
     };
 
-    scene.addEventListener("terrain_chunk_loading_complete", onTerrainLoaded);
+    scene.addEventListener("terrain_chunk_cpu_spike_over", onTerrainLoaded);
   }
 }
 

@@ -243,6 +243,8 @@ export default class WorldImporter {
     // Terrain system needs to pre-cache all the heightmaps, since this routine
     // will need to globally reference the terrain heights to place the new media properly in Y.
 
+    const heightMaps = [];
+
     for (const el of doc.body.childNodes) {
       const id = el.id;
       if (!id || id.length !== 7) continue; // Sanity check
@@ -253,8 +255,10 @@ export default class WorldImporter {
       const { translate3d } = transformParse(style.transform);
       const x = transformUnitToMeters(translate3d[0]);
       const z = transformUnitToMeters(translate3d[2]);
-      await terrainSystem.loadHeightMapAtWorldCoord(x, z);
+      heightMaps.push(terrainSystem.loadHeightMapAtWorldCoord(x, z));
     }
+
+    await Promise.all(heightMaps);
 
     let pendingCount = 0;
 

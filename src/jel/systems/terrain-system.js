@@ -250,7 +250,7 @@ export class TerrainSystem {
     if (this.hasLoadedHeightMapAtWorldCoord(worldX, worldZ)) return;
     const x = normalizeChunkCoord(entityWorldCoordToChunkCoord(worldX));
     const z = normalizeChunkCoord(entityWorldCoordToChunkCoord(worldZ));
-    await this.loadChunk({ x, z }, true);
+    await this.loadChunk({ x, z }, true, 0);
   }
 
   async loadChunk(chunk, heightMapOnly = false, priority = 0) {
@@ -370,7 +370,6 @@ export class TerrainSystem {
 
       if (spawningChunks.size === 0 && loadingChunks.size === 0) {
         this.scene.emit("terrain_chunk_cpu_spike_over");
-        this.scene.emit("terrain_chunk_loading_complete");
       }
 
       this.atmosphereSystem.updateShadows();

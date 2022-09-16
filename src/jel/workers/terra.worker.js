@@ -14,7 +14,8 @@ const WORLD_TYPE_GENERATORS = {
 
 let db;
 const req = indexedDB.open("terra", 1);
-const chunkPriorities = new Map();
+const jobPriorities = new Map();
+const intraSessionSavedChunkIds = new Set();
 
 req.addEventListener("success", ({ target: { result } }) => {
   db = result;
@@ -37,7 +38,7 @@ self.onmessage = ({
   }
 
   const chunkId = `${type}/${seed}/${x}/${z}/${CHUNK_VERSION}`;
-  chunkPriorities.set(chunkId, priority || 0);
+  jobPriorities.set(id, (priority || 0) + Math.random());
 
   const txn = db
     .transaction("chunks")
@@ -46,7 +47,8 @@ self.onmessage = ({
 
   txn.addEventListener("success", async ({ target }) => {
     if (target.result) {
-      chunkPriorities.delete(chunkId);
+      jobPriorities.delete(id);
+
       self.postMessage({ id, result: { chunk: target.result.chunk, cached: true } });
     } else {
       if (world === null || world.seed !== seed || world.generatorType !== generatorType) {
@@ -62,35 +64,52 @@ self.onmessage = ({
       // TODO try fetch from origin
 
       while (true) { // eslint-disable-line
-        let nextChunk;
+        let nextJob;
         let nextPriority = Infinity;
 
-        for (const [chunkKey, priority] of chunkPriorities.entries()) {
+        for (const [jobId, priority] of jobPriorities.entries()) {
           if (priority < nextPriority) {
             nextPriority = priority;
-            nextChunk = chunkKey;
+            nextJob = jobId;
           }
         }
 
-        if (nextChunk === chunkId) break;
+        if (id === nextJob) break;
 
         await nextTick();
       }
 
-      // TODO try fetch from origin again before doing compute
-      const chunk = currentWorld.getEncodedChunk(x, z);
-      chunkPriorities.delete(chunkId);
+      if (intraSessionSavedChunkIds.has(chunkId)) {
+        // Another run just saved this one.
+        const txn = db
+          .transaction("chunks")
+          .objectStore("chunks")
+          .get(chunkId);
 
-      // TODO post to origin if writeback enabled
+        txn.addEventListener("success", async ({ target }) => {
+          jobPriorities.delete(id);
 
-      self.postMessage({
-        id,
-        result: { chunk, cached: false }
-      });
+          self.postMessage({ id, result: { chunk: target.result.chunk, cached: true } });
+        });
+      } else {
+        // TODO try fetch from origin again before doing compute
+        const chunk = currentWorld.getEncodedChunk(x, z);
 
-      db.transaction("chunks", "readwrite")
-        .objectStore("chunks")
-        .put({ id: chunkId, chunk });
+        // TODO post to origin if writeback enabled
+
+        db.transaction("chunks", "readwrite")
+          .objectStore("chunks")
+          .put({ id: chunkId, chunk })
+          .addEventListener("success", () => {
+            self.postMessage({
+              id,
+              result: { chunk, cached: false }
+            });
+
+            intraSessionSavedChunkIds.add(chunkId);
+            jobPriorities.delete(id);
+          });
+      }
     }
   });
 };
