@@ -20,7 +20,6 @@
   - add networking config
 - deno cors proxying split + ytdl enable + move configs into index.html
 - authorize + sanitize in NAF adapter
-- unplug space channel
 - cut down dead code
 - review all deps
 - consolidate channel classes
@@ -44,6 +43,13 @@
 - remove trash
 - duck should upload glb
 - verify FXAA not running on white text panes
+- paste into quill is spawning
+- convert quill html <-> webspace html
+- img tags need to become data urls on the way in
+  - replace src's in webspaceHtmlToQuillHtml, and run this on paste and load
+- add div with no styles, should inject in front of player
+- text netowrking
+  - if you are the first to start editing in presence, broadcast the doc
 
 name not updating in self panel when updated by another peer
 should change button to "unlock world" when others are in room

@@ -1,5 +1,4 @@
 import * as Y from "yjs";
-import TextSync from "../utils/text-sync";
 import { htmlToDelta, getQuill, destroyQuill } from "../utils/quill-pool";
 import { FONT_FACES } from "../utils/quill-utils";
 import { getNetworkId } from "../utils/ownership-utils";
@@ -7,11 +6,38 @@ import { getNetworkId } from "../utils/ownership-utils";
 const MAX_COMPONENTS = 128;
 const SCROLL_SENSITIVITY = 500.0;
 
+const SYNC_STATES = {
+  UNSYNCED: 0, // Not synced at all
+  PENDING: 1, // Doc requested, but not synced
+  SYNCED: 2 // Actively synced
+};
+
+// Notes on syncing:
+//
+// We can't just use the ydoc that we construct from the DOM since if people are editing
+// then the DOM-constructed ydoc and the dynamically updated ydoc will be incompatible.
+//
+// So the ydocs in this system start out as 'candidate' ydocs, and then when the first person
+// enters presence as an editor their ydoc is the defaco genesis ydoc.
+//
+// Basic algorithm:
+//   - In presence, keep a list of network ids of media texts that you are actively part of
+//     the gossip ring for it.
+//
+//   - If you start editing a media text, check if anyone else is in the ring in presence for it.
+//     - If not, your ydoc is the one everyone will start from. Register yourself into presence
+//       and proceed as normal. Others will now start sending requests for you to sync up.
+//
+//     - If so, request the ydoc from anyone in the ring. Once you get it, register yourself in presence,
+//       replace your ydoc (clobbering any local changes made since then, sadly) and re-render.
+//
+// You should always be listening for messages to get the ydoc, and if a message comes in you need to
+// either queue it if you haven't joined the ring yet, or apply it if you have. When you have an op to
+// contribute broadcast it to the ring.
 export class MediaTextSystem extends EventTarget {
   constructor(sceneEl) {
     super();
     this.sceneEl = sceneEl;
-    this.syncs = Array(MAX_COMPONENTS).fill(null);
     this.components = Array(MAX_COMPONENTS).fill(null);
     this.quills = Array(MAX_COMPONENTS).fill(null);
     this.yjsTypes = Array(MAX_COMPONENTS).fill(null);
@@ -20,33 +46,22 @@ export class MediaTextSystem extends EventTarget {
     this.markComponentDirtyFns = Array(MAX_COMPONENTS).fill(null);
     this.quillObserverFns = Array(MAX_COMPONENTS).fill(null);
     this.typeObserverFns = Array(MAX_COMPONENTS).fill(null);
+
+    this.networkIdToComponent = new Map();
+    this.networkIdToSyncState = new Map();
+
     this.maxIndex = -1;
-  }
 
-  hasSync(component) {
-    const index = this.components.indexOf(component);
-    if (index === -1) return false;
-    return this.syncs[index] !== null;
-  }
-
-  async getSync(component) {
-    const index = this.components.indexOf(component);
-    if (index === -1) return null;
-    let sync = this.syncs[index];
-
-    if (sync) {
-      // await sync.whenReady();
-      return sync;
-    }
-
-    sync = new TextSync(component);
-    this.syncs[index] = sync;
-    // await sync.init();
-
-    return sync;
+    this.sceneEl.addEventListener("presence-synced", this.onPresenceSynced.bind(this));
   }
 
   registerMediaTextComponent(component) {
+    const networkId = getNetworkId(component.el);
+    if (!networkId) return;
+
+    this.networkIdToComponent.set(networkId, component);
+    this.networkIdToSyncState.set(networkId, SYNC_STATES.UNSYNCED);
+
     for (let i = 0; i <= this.maxIndex; i++) {
       if (this.components[i] === null) {
         this.components[i] = component;
@@ -222,12 +237,11 @@ export class MediaTextSystem extends EventTarget {
     const index = this.components.indexOf(component);
     if (index === -1) return;
 
-    this.unbindQuill(component);
+    const networkId = getNetworkId(component.el);
+    this.networkIdToComponentIndex.delete(networkId);
+    this.networkIdToSyncState.delete(networkId);
 
-    const sync = this.syncs[index];
-    if (sync) {
-      sync.dispose();
-    }
+    this.unbindQuill(component);
 
     this.components[index] = null;
 
@@ -260,5 +274,34 @@ export class MediaTextSystem extends EventTarget {
     const index = this.components.indexOf(component);
     if (index === -1) return null;
     return this.quills[index];
+  }
+
+  onPresenceSynced() {
+    let networkIdsToRequestSync = null;
+
+    // Search for any new components that need to be synced
+    for (const state of NAF.connection.presence.states.values()) {
+      const clientId = state.client_id;
+      if (!clientId || NAF.clientId === clientId) continue;
+      if (!state.syncedObjects) continue;
+
+      for (const { type, networkId } of state.syncedObjects) {
+        if (type !== "text") continue;
+        if (!this.networkIdToComponentIndex.has(networkId)) continue;
+
+        const syncState = this.networkIdToSyncState.get(networkId) || SYNC_STATES.UNSYNCED;
+
+        if (syncState !== SYNC_STATES.UNSYNCED) continue;
+        if (networkIdsToRequestSync === null) networkIdsToRequestSync = new Set();
+        networkIdsToRequestSync.add(networkId);
+      }
+    }
+
+    if (networkIdsToRequestSync === null) return;
+
+    for (const networkId of networkIdsToRequestSync) {
+      this.requestSync(networkId);
+      this.networkIdToSyncState.set(networkId, SYNC_STATES.PENDING);
+    }
   }
 }
