@@ -501,7 +501,7 @@ export default class Store extends EventTarget {
 
   initDefaults = async () => {
     this.update({
-      profile: { avatarId: await fetchRandomDefaultAvatarId(), ...(this.state.profile || {}) }
+      profile: { avatarId: "default", ...(this.state.profile || {}) }
     });
 
     // Regenerate name to encourage users to change it.
