@@ -143,6 +143,8 @@ module.exports = async (env, argv) => {
     },
     resolve: {
       alias: {
+        // aframe and networked-aframe are still using commonjs modules. this will resolve yjs
+        yjs$: path.resolve(__dirname, "./node_modules/yjs/dist/yjs.mjs"),
         // aframe and networked-aframe are still using commonjs modules. three and bitecs are peer dependanciees
         // but they are "smart" and have builds for both ESM and CJS depending on if import or require is used.
         // This forces the ESM version to be used otherwise we end up with multiple instances of the libraries,
