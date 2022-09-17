@@ -397,11 +397,13 @@ export class MediaTextSystem extends EventTarget {
         fromClientId
       );
     } else if (type === "full_text_ydoc") {
-      const update = payload.update;
-      const ydoc = new Y.Doc();
-      Y.applyUpdate(ydoc, new Uint8Array(update));
-      this.replaceYTextType(component, ydoc);
-      this.networkIdToSyncState.set(network_id, SYNC_STATES.SYNCING);
+      if (this.getSyncState(network_id) === SYNC_STATES.PENDING) {
+        const update = payload.update;
+        const ydoc = new Y.Doc();
+        Y.applyUpdate(ydoc, new Uint8Array(update));
+        this.replaceYTextType(component, ydoc);
+        this.networkIdToSyncState.set(network_id, SYNC_STATES.SYNCING);
+      }
     } else if (type === "delta") {
       if (fromClientId === NAF.clientId) return;
 
