@@ -5,6 +5,7 @@ import { ensureOwnership } from "./ownership-utils";
 import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { FONT_FACES } from "./quill-utils";
 import { getHubIdFromHistory } from "./jel-url-utils";
+import { webspaceHtmlToQuillHtml } from "./dom-utils";
 
 const transformUnitToMeters = s => {
   if (!s) return 0.0;
@@ -327,7 +328,7 @@ export default class WorldImporter {
         }
       } else if (tagName === "DIV") {
         // Text
-        contents = el.innerHTML;
+        contents = webspaceHtmlToQuillHtml(el.innerHTML);
         let font = FONT_FACES.SANS_SERIF;
         let fitContent = false;
         let mediaForegroundColor = null;

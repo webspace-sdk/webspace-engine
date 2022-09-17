@@ -4,6 +4,7 @@ import { paths } from "../../hubs/systems/userinput/paths";
 import { MAX_WORLD_TYPE } from "../systems/terrain-system";
 import { getHubIdFromHistory, getSpaceIdFromHistory, getSeedForHubIdFromHistory } from "./jel-url-utils";
 import { WORLD_COLOR_PRESETS } from "./world-color-presets";
+import { EmojiToShortname } from "./emojis";
 
 export const META_TAG_PREFIX = "webspace";
 
@@ -551,4 +552,17 @@ export function createNewHubDocument(title) {
   }
 
   return doc;
+}
+
+export function webspaceHtmlToQuillHtml(html) {
+  // Wrap emoji
+  html = html.replaceAll(/\p{Emoji_Presentation}/gu, function(match) {
+    return `<span class="ql-emojiblot" data-name="${EmojiToShortname.get(
+      match
+    )}">﻿<span contenteditable="false"><span class="ap">${match}</span></span>﻿<</span>`; // eslint-disable-line
+  });
+
+  console.log(html);
+
+  return html;
 }

@@ -8,7 +8,8 @@ export const EmojiList = [
     shortname: ":100:",
     code: "&#128175;",
     category: "s",
-    emoji_order: "2119"
+    emoji_order: "2119",
+    char: "💯"
   },
   {
     name: "1234",
@@ -16,7 +17,8 @@ export const EmojiList = [
     shortname: ":1234:",
     code: "&#128290;",
     category: "s",
-    emoji_order: "2122"
+    emoji_order: "2122",
+    char: "🔢"
   },
   {
     name: "grinning",
@@ -24,7 +26,8 @@ export const EmojiList = [
     shortname: ":grinning:",
     code: "&#128512;",
     category: "p",
-    emoji_order: "1"
+    emoji_order: "1",
+    char: "😀"
   },
   {
     name: "grin",
@@ -32,23 +35,18 @@ export const EmojiList = [
     shortname: ":grin:",
     code: "&#128513;",
     category: "p",
-    emoji_order: "2"
+    emoji_order: "2",
+    char: "😁"
   },
-  {
-    name: "joy",
-    unicode: "1f602",
-    shortname: ":joy:",
-    code: "&#128514;",
-    category: "p",
-    emoji_order: "3"
-  },
+  { name: "joy", unicode: "1f602", shortname: ":joy:", code: "&#128514;", category: "p", emoji_order: "3", char: "😂" },
   {
     name: "rolling_on_the_floor_laughing",
     unicode: "1f923",
     shortname: ":rofl:",
     code: "&#129315;",
     category: "p",
-    emoji_order: "4"
+    emoji_order: "4",
+    char: "🤣"
   },
   {
     name: "smiley",
@@ -56,7 +54,8 @@ export const EmojiList = [
     shortname: ":smiley:",
     code: "&#128515;",
     category: "p",
-    emoji_order: "5"
+    emoji_order: "5",
+    char: "😃"
   },
   {
     name: "smile",
@@ -64,7 +63,8 @@ export const EmojiList = [
     shortname: ":smile:",
     code: "&#128516;",
     category: "p",
-    emoji_order: "6"
+    emoji_order: "6",
+    char: "😄"
   },
   {
     name: "sweat_smile",
@@ -72,7 +72,8 @@ export const EmojiList = [
     shortname: ":sweat_smile:",
     code: "&#128517;",
     category: "p",
-    emoji_order: "7"
+    emoji_order: "7",
+    char: "😅"
   },
   {
     name: "laughing",
@@ -80,7 +81,8 @@ export const EmojiList = [
     shortname: ":laughing:",
     code: "&#128518;",
     category: "p",
-    emoji_order: "8"
+    emoji_order: "8",
+    char: "😆"
   },
   {
     name: "wink",
@@ -88,7 +90,8 @@ export const EmojiList = [
     shortname: ":wink:",
     code: "&#128521;",
     category: "p",
-    emoji_order: "9"
+    emoji_order: "9",
+    char: "😉"
   },
   {
     name: "blush",
@@ -96,7 +99,8 @@ export const EmojiList = [
     shortname: ":blush:",
     code: "&#128522;",
     category: "p",
-    emoji_order: "10"
+    emoji_order: "10",
+    char: "😊"
   },
   {
     name: "yum",
@@ -104,7 +108,8 @@ export const EmojiList = [
     shortname: ":yum:",
     code: "&#128523;",
     category: "p",
-    emoji_order: "11"
+    emoji_order: "11",
+    char: "😋"
   },
   {
     name: "sunglasses",
@@ -112,7 +117,8 @@ export const EmojiList = [
     shortname: ":sunglasses:",
     code: "&#128526;",
     category: "p",
-    emoji_order: "12"
+    emoji_order: "12",
+    char: "😎"
   },
   {
     name: "heart_eyes",
@@ -120,7 +126,8 @@ export const EmojiList = [
     shortname: ":heart_eyes:",
     code: "&#128525;",
     category: "p",
-    emoji_order: "13"
+    emoji_order: "13",
+    char: "😍"
   },
   {
     name: "kissing_heart",
@@ -128,7 +135,8 @@ export const EmojiList = [
     shortname: ":kissing_heart:",
     code: "&#128536;",
     category: "p",
-    emoji_order: "14"
+    emoji_order: "14",
+    char: "😘"
   },
   {
     name: "kissing",
@@ -136,7 +144,8 @@ export const EmojiList = [
     shortname: ":kissing:",
     code: "&#128535;",
     category: "p",
-    emoji_order: "15"
+    emoji_order: "15",
+    char: "😗"
   },
   {
     name: "kissing_smiling_eyes",
@@ -144,7 +153,8 @@ export const EmojiList = [
     shortname: ":kissing_smiling_eyes:",
     code: "&#128537;",
     category: "p",
-    emoji_order: "16"
+    emoji_order: "16",
+    char: "😙"
   },
   {
     name: "kissing_closed_eyes",
@@ -152,7 +162,8 @@ export const EmojiList = [
     shortname: ":kissing_closed_eyes:",
     code: "&#128538;",
     category: "p",
-    emoji_order: "17"
+    emoji_order: "17",
+    char: "😚"
   },
   {
     name: "slightly_smiling_face",
@@ -160,7 +171,8 @@ export const EmojiList = [
     shortname: ":slight_smile:",
     code: "&#128578;",
     category: "p",
-    emoji_order: "19"
+    emoji_order: "19",
+    char: "🙂"
   },
   {
     name: "hugging_face",
@@ -168,7 +180,8 @@ export const EmojiList = [
     shortname: ":hugging:",
     code: "&#129303;",
     category: "p",
-    emoji_order: "20"
+    emoji_order: "20",
+    char: "🤗"
   },
   {
     name: "thinking_face",
@@ -176,7 +189,8 @@ export const EmojiList = [
     shortname: ":thinking:",
     code: "&#129300;",
     category: "p",
-    emoji_order: "21"
+    emoji_order: "21",
+    char: "🤔"
   },
   {
     name: "neutral_face",
@@ -184,7 +198,8 @@ export const EmojiList = [
     shortname: ":neutral_face:",
     code: "&#128528;",
     category: "p",
-    emoji_order: "22"
+    emoji_order: "22",
+    char: "😐"
   },
   {
     name: "expressionless",
@@ -192,7 +207,8 @@ export const EmojiList = [
     shortname: ":expressionless:",
     code: "&#128529;",
     category: "p",
-    emoji_order: "23"
+    emoji_order: "23",
+    char: "😑"
   },
   {
     name: "no_mouth",
@@ -200,7 +216,8 @@ export const EmojiList = [
     shortname: ":no_mouth:",
     code: "&#128566;",
     category: "p",
-    emoji_order: "24"
+    emoji_order: "24",
+    char: "😶"
   },
   {
     name: "face_with_rolling_eyes",
@@ -208,7 +225,8 @@ export const EmojiList = [
     shortname: ":rolling_eyes:",
     code: "&#128580;",
     category: "p",
-    emoji_order: "25"
+    emoji_order: "25",
+    char: "🙄"
   },
   {
     name: "smirk",
@@ -216,7 +234,8 @@ export const EmojiList = [
     shortname: ":smirk:",
     code: "&#128527;",
     category: "p",
-    emoji_order: "26"
+    emoji_order: "26",
+    char: "😏"
   },
   {
     name: "persevere",
@@ -224,7 +243,8 @@ export const EmojiList = [
     shortname: ":persevere:",
     code: "&#128547;",
     category: "p",
-    emoji_order: "27"
+    emoji_order: "27",
+    char: "😣"
   },
   {
     name: "disappointed_relieved",
@@ -232,7 +252,8 @@ export const EmojiList = [
     shortname: ":disappointed_relieved:",
     code: "&#128549;",
     category: "p",
-    emoji_order: "28"
+    emoji_order: "28",
+    char: "😥"
   },
   {
     name: "open_mouth",
@@ -240,7 +261,8 @@ export const EmojiList = [
     shortname: ":open_mouth:",
     code: "&#128558;",
     category: "p",
-    emoji_order: "29"
+    emoji_order: "29",
+    char: "😮"
   },
   {
     name: "zipper_mouth_face",
@@ -248,7 +270,8 @@ export const EmojiList = [
     shortname: ":zipper_mouth:",
     code: "&#129296;",
     category: "p",
-    emoji_order: "30"
+    emoji_order: "30",
+    char: "🤐"
   },
   {
     name: "hushed",
@@ -256,7 +279,8 @@ export const EmojiList = [
     shortname: ":hushed:",
     code: "&#128559;",
     category: "p",
-    emoji_order: "31"
+    emoji_order: "31",
+    char: "😯"
   },
   {
     name: "sleepy",
@@ -264,7 +288,8 @@ export const EmojiList = [
     shortname: ":sleepy:",
     code: "&#128554;",
     category: "p",
-    emoji_order: "32"
+    emoji_order: "32",
+    char: "😪"
   },
   {
     name: "tired_face",
@@ -272,7 +297,8 @@ export const EmojiList = [
     shortname: ":tired_face:",
     code: "&#128555;",
     category: "p",
-    emoji_order: "33"
+    emoji_order: "33",
+    char: "😫"
   },
   {
     name: "sleeping",
@@ -280,7 +306,8 @@ export const EmojiList = [
     shortname: ":sleeping:",
     code: "&#128564;",
     category: "p",
-    emoji_order: "34"
+    emoji_order: "34",
+    char: "😴"
   },
   {
     name: "relieved",
@@ -288,7 +315,8 @@ export const EmojiList = [
     shortname: ":relieved:",
     code: "&#128524;",
     category: "p",
-    emoji_order: "35"
+    emoji_order: "35",
+    char: "😌"
   },
   {
     name: "nerd_face",
@@ -296,7 +324,8 @@ export const EmojiList = [
     shortname: ":nerd:",
     code: "&#129299;",
     category: "p",
-    emoji_order: "36"
+    emoji_order: "36",
+    char: "🤓"
   },
   {
     name: "stuck_out_tongue",
@@ -304,7 +333,8 @@ export const EmojiList = [
     shortname: ":stuck_out_tongue:",
     code: "&#128539;",
     category: "p",
-    emoji_order: "37"
+    emoji_order: "37",
+    char: "😛"
   },
   {
     name: "stuck_out_tongue_winking_eye",
@@ -312,7 +342,8 @@ export const EmojiList = [
     shortname: ":stuck_out_tongue_winking_eye:",
     code: "&#128540;",
     category: "p",
-    emoji_order: "38"
+    emoji_order: "38",
+    char: "😜"
   },
   {
     name: "stuck_out_tongue_closed_eyes",
@@ -320,7 +351,8 @@ export const EmojiList = [
     shortname: ":stuck_out_tongue_closed_eyes:",
     code: "&#128541;",
     category: "p",
-    emoji_order: "39"
+    emoji_order: "39",
+    char: "😝"
   },
   {
     name: "drooling_face",
@@ -328,7 +360,8 @@ export const EmojiList = [
     shortname: ":drooling_face:",
     code: "&#129316;",
     category: "p",
-    emoji_order: "40"
+    emoji_order: "40",
+    char: "🤤"
   },
   {
     name: "unamused",
@@ -336,7 +369,8 @@ export const EmojiList = [
     shortname: ":unamused:",
     code: "&#128530;",
     category: "p",
-    emoji_order: "41"
+    emoji_order: "41",
+    char: "😒"
   },
   {
     name: "sweat",
@@ -344,7 +378,8 @@ export const EmojiList = [
     shortname: ":sweat:",
     code: "&#128531;",
     category: "p",
-    emoji_order: "42"
+    emoji_order: "42",
+    char: "😓"
   },
   {
     name: "pensive",
@@ -352,7 +387,8 @@ export const EmojiList = [
     shortname: ":pensive:",
     code: "&#128532;",
     category: "p",
-    emoji_order: "43"
+    emoji_order: "43",
+    char: "😔"
   },
   {
     name: "confused",
@@ -360,7 +396,8 @@ export const EmojiList = [
     shortname: ":confused:",
     code: "&#128533;",
     category: "p",
-    emoji_order: "44"
+    emoji_order: "44",
+    char: "😕"
   },
   {
     name: "upside_down_face",
@@ -368,7 +405,8 @@ export const EmojiList = [
     shortname: ":upside_down:",
     code: "&#128579;",
     category: "p",
-    emoji_order: "45"
+    emoji_order: "45",
+    char: "🙃"
   },
   {
     name: "money_mouth_face",
@@ -376,7 +414,8 @@ export const EmojiList = [
     shortname: ":money_mouth:",
     code: "&#129297;",
     category: "p",
-    emoji_order: "46"
+    emoji_order: "46",
+    char: "🤑"
   },
   {
     name: "astonished",
@@ -384,7 +423,8 @@ export const EmojiList = [
     shortname: ":astonished:",
     code: "&#128562;",
     category: "p",
-    emoji_order: "47"
+    emoji_order: "47",
+    char: "😲"
   },
   {
     name: "slightly_frowning_face",
@@ -392,7 +432,8 @@ export const EmojiList = [
     shortname: ":slight_frown:",
     code: "&#128577;",
     category: "p",
-    emoji_order: "49"
+    emoji_order: "49",
+    char: "🙁"
   },
   {
     name: "confounded",
@@ -400,7 +441,8 @@ export const EmojiList = [
     shortname: ":confounded:",
     code: "&#128534;",
     category: "p",
-    emoji_order: "50"
+    emoji_order: "50",
+    char: "😖"
   },
   {
     name: "disappointed",
@@ -408,7 +450,8 @@ export const EmojiList = [
     shortname: ":disappointed:",
     code: "&#128542;",
     category: "p",
-    emoji_order: "51"
+    emoji_order: "51",
+    char: "😞"
   },
   {
     name: "worried",
@@ -416,7 +459,8 @@ export const EmojiList = [
     shortname: ":worried:",
     code: "&#128543;",
     category: "p",
-    emoji_order: "52"
+    emoji_order: "52",
+    char: "😟"
   },
   {
     name: "triumph",
@@ -424,7 +468,8 @@ export const EmojiList = [
     shortname: ":triumph:",
     code: "&#128548;",
     category: "p",
-    emoji_order: "53"
+    emoji_order: "53",
+    char: "😤"
   },
   {
     name: "cry",
@@ -432,7 +477,8 @@ export const EmojiList = [
     shortname: ":cry:",
     code: "&#128546;",
     category: "p",
-    emoji_order: "54"
+    emoji_order: "54",
+    char: "😢"
   },
   {
     name: "sob",
@@ -440,7 +486,8 @@ export const EmojiList = [
     shortname: ":sob:",
     code: "&#128557;",
     category: "p",
-    emoji_order: "55"
+    emoji_order: "55",
+    char: "😭"
   },
   {
     name: "frowning",
@@ -448,7 +495,8 @@ export const EmojiList = [
     shortname: ":frowning:",
     code: "&#128550;",
     category: "p",
-    emoji_order: "56"
+    emoji_order: "56",
+    char: "😦"
   },
   {
     name: "anguished",
@@ -456,7 +504,8 @@ export const EmojiList = [
     shortname: ":anguished:",
     code: "&#128551;",
     category: "p",
-    emoji_order: "57"
+    emoji_order: "57",
+    char: "😧"
   },
   {
     name: "fearful",
@@ -464,7 +513,8 @@ export const EmojiList = [
     shortname: ":fearful:",
     code: "&#128552;",
     category: "p",
-    emoji_order: "58"
+    emoji_order: "58",
+    char: "😨"
   },
   {
     name: "weary",
@@ -472,7 +522,8 @@ export const EmojiList = [
     shortname: ":weary:",
     code: "&#128553;",
     category: "p",
-    emoji_order: "59"
+    emoji_order: "59",
+    char: "😩"
   },
   {
     name: "grimacing",
@@ -480,7 +531,8 @@ export const EmojiList = [
     shortname: ":grimacing:",
     code: "&#128556;",
     category: "p",
-    emoji_order: "60"
+    emoji_order: "60",
+    char: "😬"
   },
   {
     name: "cold_sweat",
@@ -488,7 +540,8 @@ export const EmojiList = [
     shortname: ":cold_sweat:",
     code: "&#128560;",
     category: "p",
-    emoji_order: "61"
+    emoji_order: "61",
+    char: "😰"
   },
   {
     name: "scream",
@@ -496,7 +549,8 @@ export const EmojiList = [
     shortname: ":scream:",
     code: "&#128561;",
     category: "p",
-    emoji_order: "62"
+    emoji_order: "62",
+    char: "😱"
   },
   {
     name: "flushed",
@@ -504,7 +558,8 @@ export const EmojiList = [
     shortname: ":flushed:",
     code: "&#128563;",
     category: "p",
-    emoji_order: "63"
+    emoji_order: "63",
+    char: "😳"
   },
   {
     name: "dizzy_face",
@@ -512,7 +567,8 @@ export const EmojiList = [
     shortname: ":dizzy_face:",
     code: "&#128565;",
     category: "p",
-    emoji_order: "64"
+    emoji_order: "64",
+    char: "😵"
   },
   {
     name: "rage",
@@ -520,7 +576,8 @@ export const EmojiList = [
     shortname: ":rage:",
     code: "&#128545;",
     category: "p",
-    emoji_order: "65"
+    emoji_order: "65",
+    char: "😡"
   },
   {
     name: "angry",
@@ -528,7 +585,8 @@ export const EmojiList = [
     shortname: ":angry:",
     code: "&#128544;",
     category: "p",
-    emoji_order: "66"
+    emoji_order: "66",
+    char: "😠"
   },
   {
     name: "innocent",
@@ -536,7 +594,8 @@ export const EmojiList = [
     shortname: ":innocent:",
     code: "&#128519;",
     category: "p",
-    emoji_order: "67"
+    emoji_order: "67",
+    char: "😇"
   },
   {
     name: "face_with_cowboy_hat",
@@ -544,7 +603,8 @@ export const EmojiList = [
     shortname: ":cowboy:",
     code: "&#129312;",
     category: "p",
-    emoji_order: "68"
+    emoji_order: "68",
+    char: "🤠"
   },
   {
     name: "clown_face",
@@ -552,7 +612,8 @@ export const EmojiList = [
     shortname: ":clown:",
     code: "&#129313;",
     category: "p",
-    emoji_order: "69"
+    emoji_order: "69",
+    char: "🤡"
   },
   {
     name: "lying_face",
@@ -560,7 +621,8 @@ export const EmojiList = [
     shortname: ":lying_face:",
     code: "&#129317;",
     category: "p",
-    emoji_order: "70"
+    emoji_order: "70",
+    char: "🤥"
   },
   {
     name: "mask",
@@ -568,7 +630,8 @@ export const EmojiList = [
     shortname: ":mask:",
     code: "&#128567;",
     category: "p",
-    emoji_order: "71"
+    emoji_order: "71",
+    char: "😷"
   },
   {
     name: "face_with_thermometer",
@@ -576,7 +639,8 @@ export const EmojiList = [
     shortname: ":thermometer_face:",
     code: "&#129298;",
     category: "p",
-    emoji_order: "72"
+    emoji_order: "72",
+    char: "🤒"
   },
   {
     name: "face_with_head_bandage",
@@ -584,7 +648,8 @@ export const EmojiList = [
     shortname: ":head_bandage:",
     code: "&#129301;",
     category: "p",
-    emoji_order: "73"
+    emoji_order: "73",
+    char: "🤕"
   },
   {
     name: "nauseated_face",
@@ -592,7 +657,8 @@ export const EmojiList = [
     shortname: ":nauseated_face:",
     code: "&#129314;",
     category: "p",
-    emoji_order: "74"
+    emoji_order: "74",
+    char: "🤢"
   },
   {
     name: "sneezing_face",
@@ -600,7 +666,8 @@ export const EmojiList = [
     shortname: ":sneezing_face:",
     code: "&#129319;",
     category: "p",
-    emoji_order: "75"
+    emoji_order: "75",
+    char: "🤧"
   },
   {
     name: "smiling_imp",
@@ -608,7 +675,8 @@ export const EmojiList = [
     shortname: ":smiling_imp:",
     code: "&#128520;",
     category: "p",
-    emoji_order: "76"
+    emoji_order: "76",
+    char: "😈"
   },
   {
     name: "imp",
@@ -616,7 +684,8 @@ export const EmojiList = [
     shortname: ":imp:",
     code: "&#128127;",
     category: "p",
-    emoji_order: "77"
+    emoji_order: "77",
+    char: "👿"
   },
   {
     name: "japanese_ogre",
@@ -624,7 +693,8 @@ export const EmojiList = [
     shortname: ":japanese_ogre:",
     code: "&#128121;",
     category: "p",
-    emoji_order: "78"
+    emoji_order: "78",
+    char: "👹"
   },
   {
     name: "japanese_goblin",
@@ -632,7 +702,8 @@ export const EmojiList = [
     shortname: ":japanese_goblin:",
     code: "&#128122;",
     category: "p",
-    emoji_order: "79"
+    emoji_order: "79",
+    char: "👺"
   },
   {
     name: "skull",
@@ -640,7 +711,8 @@ export const EmojiList = [
     shortname: ":skull:",
     code: "&#128128;",
     category: "p",
-    emoji_order: "80"
+    emoji_order: "80",
+    char: "💀"
   },
   {
     name: "skull_and_crossbones",
@@ -648,7 +720,8 @@ export const EmojiList = [
     shortname: ":skull_crossbones:",
     code: "&#9760;",
     category: "o",
-    emoji_order: "81"
+    emoji_order: "81",
+    char: "☠"
   },
   {
     name: "ghost",
@@ -656,7 +729,8 @@ export const EmojiList = [
     shortname: ":ghost:",
     code: "&#128123;",
     category: "p",
-    emoji_order: "82"
+    emoji_order: "82",
+    char: "👻"
   },
   {
     name: "alien",
@@ -664,7 +738,8 @@ export const EmojiList = [
     shortname: ":alien:",
     code: "&#128125;",
     category: "p",
-    emoji_order: "83"
+    emoji_order: "83",
+    char: "👽"
   },
   {
     name: "space_invader",
@@ -672,7 +747,8 @@ export const EmojiList = [
     shortname: ":space_invader:",
     code: "&#128126;",
     category: "a",
-    emoji_order: "84"
+    emoji_order: "84",
+    char: "👾"
   },
   {
     name: "robot_face",
@@ -680,7 +756,8 @@ export const EmojiList = [
     shortname: ":robot:",
     code: "&#129302;",
     category: "p",
-    emoji_order: "85"
+    emoji_order: "85",
+    char: "🤖"
   },
   {
     name: "hankey",
@@ -688,7 +765,8 @@ export const EmojiList = [
     shortname: ":poop:",
     code: "&#128169;",
     category: "p",
-    emoji_order: "86"
+    emoji_order: "86",
+    char: "💩"
   },
   {
     name: "smiley_cat",
@@ -696,7 +774,8 @@ export const EmojiList = [
     shortname: ":smiley_cat:",
     code: "&#128570;",
     category: "p",
-    emoji_order: "87"
+    emoji_order: "87",
+    char: "😺"
   },
   {
     name: "smile_cat",
@@ -704,7 +783,8 @@ export const EmojiList = [
     shortname: ":smile_cat:",
     code: "&#128568;",
     category: "p",
-    emoji_order: "88"
+    emoji_order: "88",
+    char: "😸"
   },
   {
     name: "joy_cat",
@@ -712,7 +792,8 @@ export const EmojiList = [
     shortname: ":joy_cat:",
     code: "&#128569;",
     category: "p",
-    emoji_order: "89"
+    emoji_order: "89",
+    char: "😹"
   },
   {
     name: "heart_eyes_cat",
@@ -720,7 +801,8 @@ export const EmojiList = [
     shortname: ":heart_eyes_cat:",
     code: "&#128571;",
     category: "p",
-    emoji_order: "90"
+    emoji_order: "90",
+    char: "😻"
   },
   {
     name: "smirk_cat",
@@ -728,7 +810,8 @@ export const EmojiList = [
     shortname: ":smirk_cat:",
     code: "&#128572;",
     category: "p",
-    emoji_order: "91"
+    emoji_order: "91",
+    char: "😼"
   },
   {
     name: "kissing_cat",
@@ -736,7 +819,8 @@ export const EmojiList = [
     shortname: ":kissing_cat:",
     code: "&#128573;",
     category: "p",
-    emoji_order: "92"
+    emoji_order: "92",
+    char: "😽"
   },
   {
     name: "scream_cat",
@@ -744,7 +828,8 @@ export const EmojiList = [
     shortname: ":scream_cat:",
     code: "&#128576;",
     category: "p",
-    emoji_order: "93"
+    emoji_order: "93",
+    char: "🙀"
   },
   {
     name: "crying_cat_face",
@@ -752,7 +837,8 @@ export const EmojiList = [
     shortname: ":crying_cat_face:",
     code: "&#128575;",
     category: "p",
-    emoji_order: "94"
+    emoji_order: "94",
+    char: "😿"
   },
   {
     name: "pouting_cat",
@@ -760,7 +846,8 @@ export const EmojiList = [
     shortname: ":pouting_cat:",
     code: "&#128574;",
     category: "p",
-    emoji_order: "95"
+    emoji_order: "95",
+    char: "😾"
   },
   {
     name: "see_no_evil",
@@ -768,7 +855,8 @@ export const EmojiList = [
     shortname: ":see_no_evil:",
     code: "&#128584;",
     category: "n",
-    emoji_order: "96"
+    emoji_order: "96",
+    char: "🙈"
   },
   {
     name: "hear_no_evil",
@@ -776,7 +864,8 @@ export const EmojiList = [
     shortname: ":hear_no_evil:",
     code: "&#128585;",
     category: "n",
-    emoji_order: "97"
+    emoji_order: "97",
+    char: "🙉"
   },
   {
     name: "speak_no_evil",
@@ -784,7 +873,8 @@ export const EmojiList = [
     shortname: ":speak_no_evil:",
     code: "&#128586;",
     category: "n",
-    emoji_order: "98"
+    emoji_order: "98",
+    char: "🙊"
   },
   {
     name: "boy",
@@ -792,7 +882,8 @@ export const EmojiList = [
     shortname: ":boy:",
     code: "&#128102;",
     category: "p",
-    emoji_order: "99"
+    emoji_order: "99",
+    char: "👦"
   },
   {
     name: "pleading",
@@ -800,7 +891,8 @@ export const EmojiList = [
     shortname: ":pleading:",
     code: "&#129402;",
     category: "p",
-    emoji_order: "100"
+    emoji_order: "100",
+    char: "🥺"
   },
   {
     name: "girl",
@@ -808,7 +900,8 @@ export const EmojiList = [
     shortname: ":girl:",
     code: "&#128103;",
     category: "p",
-    emoji_order: "105"
+    emoji_order: "105",
+    char: "👧"
   },
   {
     name: "man",
@@ -816,7 +909,8 @@ export const EmojiList = [
     shortname: ":man:",
     code: "&#128104;",
     category: "p",
-    emoji_order: "111"
+    emoji_order: "111",
+    char: "👨"
   },
   {
     name: "woman",
@@ -824,7 +918,8 @@ export const EmojiList = [
     shortname: ":woman:",
     code: "&#128105;",
     category: "p",
-    emoji_order: "117"
+    emoji_order: "117",
+    char: "👩"
   },
   {
     name: "older_man",
@@ -832,7 +927,8 @@ export const EmojiList = [
     shortname: ":older_man:",
     code: "&#128116;",
     category: "p",
-    emoji_order: "123"
+    emoji_order: "123",
+    char: "👴"
   },
   {
     name: "older_woman",
@@ -840,7 +936,8 @@ export const EmojiList = [
     shortname: ":older_woman:",
     code: "&#128117;",
     category: "p",
-    emoji_order: "129"
+    emoji_order: "129",
+    char: "👵"
   },
   {
     name: "baby",
@@ -848,7 +945,8 @@ export const EmojiList = [
     shortname: ":baby:",
     code: "&#128118;",
     category: "p",
-    emoji_order: "135"
+    emoji_order: "135",
+    char: "👶"
   },
   {
     name: "angel",
@@ -856,7 +954,8 @@ export const EmojiList = [
     shortname: ":angel:",
     code: "&#128124;",
     category: "p",
-    emoji_order: "141"
+    emoji_order: "141",
+    char: "👼"
   },
   {
     name: "cop",
@@ -864,7 +963,8 @@ export const EmojiList = [
     shortname: ":cop:",
     code: "&#128110;",
     category: "p",
-    emoji_order: "339"
+    emoji_order: "339",
+    char: "👮"
   },
   {
     name: "sleuth_or_spy",
@@ -872,7 +972,8 @@ export const EmojiList = [
     shortname: ":spy:",
     code: "&#128373;",
     category: "p",
-    emoji_order: "357"
+    emoji_order: "357",
+    char: "🕵"
   },
   {
     name: "guardsman",
@@ -880,7 +981,8 @@ export const EmojiList = [
     shortname: ":guardsman:",
     code: "&#128130;",
     category: "p",
-    emoji_order: "375"
+    emoji_order: "375",
+    char: "💂"
   },
   {
     name: "construction_worker",
@@ -888,7 +990,8 @@ export const EmojiList = [
     shortname: ":construction_worker:",
     code: "&#128119;",
     category: "p",
-    emoji_order: "393"
+    emoji_order: "393",
+    char: "👷"
   },
   {
     name: "man_with_turban",
@@ -896,7 +999,8 @@ export const EmojiList = [
     shortname: ":man_with_turban:",
     code: "&#128115;",
     category: "p",
-    emoji_order: "411"
+    emoji_order: "411",
+    char: "👳"
   },
   {
     name: "person_with_blond_hair",
@@ -904,7 +1008,8 @@ export const EmojiList = [
     shortname: ":person_with_blond_hair:",
     code: "&#128113;",
     category: "p",
-    emoji_order: "429"
+    emoji_order: "429",
+    char: "👱"
   },
   {
     name: "santa",
@@ -912,7 +1017,8 @@ export const EmojiList = [
     shortname: ":santa:",
     code: "&#127877;",
     category: "p",
-    emoji_order: "447"
+    emoji_order: "447",
+    char: "🎅"
   },
   {
     name: "mrs_claus",
@@ -920,7 +1026,8 @@ export const EmojiList = [
     shortname: ":mrs_claus:",
     code: "&#129334;",
     category: "p",
-    emoji_order: "453"
+    emoji_order: "453",
+    char: "🤶"
   },
   {
     name: "princess",
@@ -928,7 +1035,8 @@ export const EmojiList = [
     shortname: ":princess:",
     code: "&#128120;",
     category: "p",
-    emoji_order: "459"
+    emoji_order: "459",
+    char: "👸"
   },
   {
     name: "prince",
@@ -936,7 +1044,8 @@ export const EmojiList = [
     shortname: ":prince:",
     code: "&#129332;",
     category: "p",
-    emoji_order: "465"
+    emoji_order: "465",
+    char: "🤴"
   },
   {
     name: "bride_with_veil",
@@ -944,7 +1053,8 @@ export const EmojiList = [
     shortname: ":bride_with_veil:",
     code: "&#128112;",
     category: "p",
-    emoji_order: "471"
+    emoji_order: "471",
+    char: "👰"
   },
   {
     name: "man_in_tuxedo",
@@ -952,7 +1062,8 @@ export const EmojiList = [
     shortname: ":man_in_tuxedo:",
     code: "&#129333;",
     category: "p",
-    emoji_order: "477"
+    emoji_order: "477",
+    char: "🤵"
   },
   {
     name: "pregnant_woman",
@@ -960,7 +1071,8 @@ export const EmojiList = [
     shortname: ":pregnant_woman:",
     code: "&#129328;",
     category: "p",
-    emoji_order: "483"
+    emoji_order: "483",
+    char: "🤰"
   },
   {
     name: "man_with_gua_pi_mao",
@@ -968,7 +1080,8 @@ export const EmojiList = [
     shortname: ":man_with_gua_pi_mao:",
     code: "&#128114;",
     category: "p",
-    emoji_order: "489"
+    emoji_order: "489",
+    char: "👲"
   },
   {
     name: "person_frowning",
@@ -976,7 +1089,8 @@ export const EmojiList = [
     shortname: ":person_frowning:",
     code: "&#128589;",
     category: "p",
-    emoji_order: "495"
+    emoji_order: "495",
+    char: "🙍"
   },
   {
     name: "person_with_pouting_face",
@@ -984,7 +1098,8 @@ export const EmojiList = [
     shortname: ":person_with_pouting_face:",
     code: "&#128590;",
     category: "p",
-    emoji_order: "513"
+    emoji_order: "513",
+    char: "🙎"
   },
   {
     name: "no_good",
@@ -992,7 +1107,8 @@ export const EmojiList = [
     shortname: ":no_good:",
     code: "&#128581;",
     category: "p",
-    emoji_order: "531"
+    emoji_order: "531",
+    char: "🙅"
   },
   {
     name: "ok_woman",
@@ -1000,7 +1116,8 @@ export const EmojiList = [
     shortname: ":ok_woman:",
     code: "&#128582;",
     category: "p",
-    emoji_order: "549"
+    emoji_order: "549",
+    char: "🙆"
   },
   {
     name: "information_desk_person",
@@ -1008,7 +1125,8 @@ export const EmojiList = [
     shortname: ":information_desk_person:",
     code: "&#128129;",
     category: "p",
-    emoji_order: "567"
+    emoji_order: "567",
+    char: "💁"
   },
   {
     name: "raising_hand",
@@ -1016,7 +1134,8 @@ export const EmojiList = [
     shortname: ":raising_hand:",
     code: "&#128587;",
     category: "p",
-    emoji_order: "585"
+    emoji_order: "585",
+    char: "🙋"
   },
   {
     name: "bow",
@@ -1024,7 +1143,8 @@ export const EmojiList = [
     shortname: ":bow:",
     code: "&#128583;",
     category: "p",
-    emoji_order: "603"
+    emoji_order: "603",
+    char: "🙇"
   },
   {
     name: "face_palm",
@@ -1032,7 +1152,8 @@ export const EmojiList = [
     shortname: ":face_palm:",
     code: "&#129318;",
     category: "p",
-    emoji_order: "621"
+    emoji_order: "621",
+    char: "🤦"
   },
   {
     name: "shrug",
@@ -1040,7 +1161,8 @@ export const EmojiList = [
     shortname: ":shrug:",
     code: "&#129335;",
     category: "p",
-    emoji_order: "639"
+    emoji_order: "639",
+    char: "🤷"
   },
   {
     name: "massage",
@@ -1048,7 +1170,8 @@ export const EmojiList = [
     shortname: ":massage:",
     code: "&#128134;",
     category: "p",
-    emoji_order: "657"
+    emoji_order: "657",
+    char: "💆"
   },
   {
     name: "haircut",
@@ -1056,7 +1179,8 @@ export const EmojiList = [
     shortname: ":haircut:",
     code: "&#128135;",
     category: "p",
-    emoji_order: "675"
+    emoji_order: "675",
+    char: "💇"
   },
   {
     name: "walking",
@@ -1064,7 +1188,8 @@ export const EmojiList = [
     shortname: ":walking:",
     code: "&#128694;",
     category: "p",
-    emoji_order: "693"
+    emoji_order: "693",
+    char: "🚶"
   },
   {
     name: "runner",
@@ -1072,7 +1197,8 @@ export const EmojiList = [
     shortname: ":runner:",
     code: "&#127939;",
     category: "p",
-    emoji_order: "711"
+    emoji_order: "711",
+    char: "🏃"
   },
   {
     name: "dancer",
@@ -1080,7 +1206,8 @@ export const EmojiList = [
     shortname: ":dancer:",
     code: "&#128131;",
     category: "p",
-    emoji_order: "729"
+    emoji_order: "729",
+    char: "💃"
   },
   {
     name: "man_dancing",
@@ -1088,7 +1215,8 @@ export const EmojiList = [
     shortname: ":man_dancing:",
     code: "&#128378;",
     category: "p",
-    emoji_order: "735"
+    emoji_order: "735",
+    char: "🕺"
   },
   {
     name: "dancers",
@@ -1096,7 +1224,8 @@ export const EmojiList = [
     shortname: ":dancers:",
     code: "&#128111;",
     category: "p",
-    emoji_order: "741"
+    emoji_order: "741",
+    char: "👯"
   },
   {
     name: "man_in_business_suit_levitating",
@@ -1104,7 +1233,8 @@ export const EmojiList = [
     shortname: ":levitate:",
     code: "&#128372;",
     category: "a",
-    emoji_order: "759"
+    emoji_order: "759",
+    char: "🕴"
   },
   {
     name: "speaking_head_in_silhouette",
@@ -1112,7 +1242,8 @@ export const EmojiList = [
     shortname: ":speaking_head:",
     code: "&#128483;",
     category: "p",
-    emoji_order: "765"
+    emoji_order: "765",
+    char: "🗣"
   },
   {
     name: "bust_in_silhouette",
@@ -1120,7 +1251,8 @@ export const EmojiList = [
     shortname: ":bust_in_silhouette:",
     code: "&#128100;",
     category: "p",
-    emoji_order: "766"
+    emoji_order: "766",
+    char: "👤"
   },
   {
     name: "busts_in_silhouette",
@@ -1128,7 +1260,8 @@ export const EmojiList = [
     shortname: ":busts_in_silhouette:",
     code: "&#128101;",
     category: "p",
-    emoji_order: "767"
+    emoji_order: "767",
+    char: "👥"
   },
   {
     name: "fencer",
@@ -1136,7 +1269,8 @@ export const EmojiList = [
     shortname: ":fencer:",
     code: "&#129338;",
     category: "a",
-    emoji_order: "768"
+    emoji_order: "768",
+    char: "🤺"
   },
   {
     name: "horse_racing",
@@ -1144,7 +1278,8 @@ export const EmojiList = [
     shortname: ":horse_racing:",
     code: "&#127943;",
     category: "a",
-    emoji_order: "769"
+    emoji_order: "769",
+    char: "🏇"
   },
   {
     name: "skier",
@@ -1152,7 +1287,8 @@ export const EmojiList = [
     shortname: ":skier:",
     code: "&#9975;",
     category: "a",
-    emoji_order: "775"
+    emoji_order: "775",
+    char: "⛷"
   },
   {
     name: "snowboarder",
@@ -1160,7 +1296,8 @@ export const EmojiList = [
     shortname: ":snowboarder:",
     code: "&#127938;",
     category: "a",
-    emoji_order: "776"
+    emoji_order: "776",
+    char: "🏂"
   },
   {
     name: "golfer",
@@ -1168,7 +1305,8 @@ export const EmojiList = [
     shortname: ":golfer:",
     code: "&#127948;",
     category: "a",
-    emoji_order: "782"
+    emoji_order: "782",
+    char: "🏌"
   },
   {
     name: "surfer",
@@ -1176,7 +1314,8 @@ export const EmojiList = [
     shortname: ":surfer:",
     code: "&#127940;",
     category: "a",
-    emoji_order: "800"
+    emoji_order: "800",
+    char: "🏄"
   },
   {
     name: "rowboat",
@@ -1184,7 +1323,8 @@ export const EmojiList = [
     shortname: ":rowboat:",
     code: "&#128675;",
     category: "a",
-    emoji_order: "818"
+    emoji_order: "818",
+    char: "🚣"
   },
   {
     name: "swimmer",
@@ -1192,7 +1332,8 @@ export const EmojiList = [
     shortname: ":swimmer:",
     code: "&#127946;",
     category: "a",
-    emoji_order: "836"
+    emoji_order: "836",
+    char: "🏊"
   },
   {
     name: "person_with_ball",
@@ -1200,7 +1341,8 @@ export const EmojiList = [
     shortname: ":basketball_player:",
     code: "&#9977;",
     category: "a",
-    emoji_order: "854"
+    emoji_order: "854",
+    char: "⛹"
   },
   {
     name: "weight_lifter",
@@ -1208,7 +1350,8 @@ export const EmojiList = [
     shortname: ":lifter:",
     code: "&#127947;",
     category: "a",
-    emoji_order: "872"
+    emoji_order: "872",
+    char: "🏋"
   },
   {
     name: "bicyclist",
@@ -1216,7 +1359,8 @@ export const EmojiList = [
     shortname: ":bicyclist:",
     code: "&#128692;",
     category: "a",
-    emoji_order: "890"
+    emoji_order: "890",
+    char: "🚴"
   },
   {
     name: "mountain_bicyclist",
@@ -1224,7 +1368,8 @@ export const EmojiList = [
     shortname: ":mountain_bicyclist:",
     code: "&#128693;",
     category: "a",
-    emoji_order: "908"
+    emoji_order: "908",
+    char: "🚵"
   },
   {
     name: "racing_car",
@@ -1232,7 +1377,8 @@ export const EmojiList = [
     shortname: ":race_car:",
     code: "&#127950;",
     category: "t",
-    emoji_order: "926"
+    emoji_order: "926",
+    char: "🏎"
   },
   {
     name: "racing_motorcycle",
@@ -1240,7 +1386,8 @@ export const EmojiList = [
     shortname: ":motorcycle:",
     code: "&#127949;",
     category: "t",
-    emoji_order: "927"
+    emoji_order: "927",
+    char: "🏍"
   },
   {
     name: "cartwheel",
@@ -1248,7 +1395,8 @@ export const EmojiList = [
     shortname: ":cartwheel:",
     code: "&#129336;",
     category: "a",
-    emoji_order: "928"
+    emoji_order: "928",
+    char: "🤸"
   },
   {
     name: "wrestlers",
@@ -1256,7 +1404,8 @@ export const EmojiList = [
     shortname: ":wrestlers:",
     code: "&#129340;",
     category: "a",
-    emoji_order: "946"
+    emoji_order: "946",
+    char: "🤼"
   },
   {
     name: "water_polo",
@@ -1264,7 +1413,8 @@ export const EmojiList = [
     shortname: ":water_polo:",
     code: "&#129341;",
     category: "a",
-    emoji_order: "964"
+    emoji_order: "964",
+    char: "🤽"
   },
   {
     name: "handball",
@@ -1272,7 +1422,8 @@ export const EmojiList = [
     shortname: ":handball:",
     code: "&#129342;",
     category: "a",
-    emoji_order: "982"
+    emoji_order: "982",
+    char: "🤾"
   },
   {
     name: "juggling",
@@ -1280,7 +1431,8 @@ export const EmojiList = [
     shortname: ":juggling:",
     code: "&#129337;",
     category: "a",
-    emoji_order: "1000"
+    emoji_order: "1000",
+    char: "🤹"
   },
   {
     name: "couple",
@@ -1288,7 +1440,8 @@ export const EmojiList = [
     shortname: ":couple:",
     code: "&#128107;",
     category: "p",
-    emoji_order: "1018"
+    emoji_order: "1018",
+    char: "👫"
   },
   {
     name: "two_men_holding_hands",
@@ -1296,7 +1449,8 @@ export const EmojiList = [
     shortname: ":two_men_holding_hands:",
     code: "&#128108;",
     category: "p",
-    emoji_order: "1024"
+    emoji_order: "1024",
+    char: "👬"
   },
   {
     name: "two_women_holding_hands",
@@ -1304,7 +1458,8 @@ export const EmojiList = [
     shortname: ":two_women_holding_hands:",
     code: "&#128109;",
     category: "p",
-    emoji_order: "1030"
+    emoji_order: "1030",
+    char: "👭"
   },
   {
     name: "couplekiss",
@@ -1312,16 +1467,17 @@ export const EmojiList = [
     shortname: ":couplekiss:",
     code: "&#128143;",
     category: "p",
-    emoji_order: "1036"
+    emoji_order: "1036",
+    char: "💏"
   },
-
   {
     name: "couple_with_heart",
     unicode: "1f491",
     shortname: ":couple_with_heart:",
     code: "&#128145;",
     category: "p",
-    emoji_order: "1040"
+    emoji_order: "1040",
+    char: "💑"
   },
   {
     name: "family",
@@ -1329,7 +1485,8 @@ export const EmojiList = [
     shortname: ":family:",
     code: "&#128106;",
     category: "p",
-    emoji_order: "1044"
+    emoji_order: "1044",
+    char: "👪"
   },
   {
     name: "muscle",
@@ -1337,7 +1494,8 @@ export const EmojiList = [
     shortname: ":muscle:",
     code: "&#128170;",
     category: "p",
-    emoji_order: "1080"
+    emoji_order: "1080",
+    char: "💪"
   },
   {
     name: "selfie",
@@ -1345,7 +1503,8 @@ export const EmojiList = [
     shortname: ":selfie:",
     code: "&#129331;",
     category: "p",
-    emoji_order: "1086"
+    emoji_order: "1086",
+    char: "🤳"
   },
   {
     name: "point_left",
@@ -1353,7 +1512,8 @@ export const EmojiList = [
     shortname: ":point_left:",
     code: "&#128072;",
     category: "p",
-    emoji_order: "1092"
+    emoji_order: "1092",
+    char: "👈"
   },
   {
     name: "point_right",
@@ -1361,7 +1521,8 @@ export const EmojiList = [
     shortname: ":point_right:",
     code: "&#128073;",
     category: "p",
-    emoji_order: "1098"
+    emoji_order: "1098",
+    char: "👉"
   },
   {
     name: "point_up",
@@ -1369,7 +1530,8 @@ export const EmojiList = [
     shortname: ":point_up:",
     code: "&#9757;",
     category: "p",
-    emoji_order: "1104"
+    emoji_order: "1104",
+    char: "☝"
   },
   {
     name: "point_up_2",
@@ -1377,7 +1539,8 @@ export const EmojiList = [
     shortname: ":point_up_2:",
     code: "&#128070;",
     category: "p",
-    emoji_order: "1110"
+    emoji_order: "1110",
+    char: "👆"
   },
   {
     name: "middle_finger",
@@ -1385,7 +1548,8 @@ export const EmojiList = [
     shortname: ":middle_finger:",
     code: "&#128405;",
     category: "p",
-    emoji_order: "1116"
+    emoji_order: "1116",
+    char: "🖕"
   },
   {
     name: "point_down",
@@ -1393,23 +1557,18 @@ export const EmojiList = [
     shortname: ":point_down:",
     code: "&#128071;",
     category: "p",
-    emoji_order: "1122"
+    emoji_order: "1122",
+    char: "👇"
   },
-  {
-    name: "v",
-    unicode: "270c",
-    shortname: ":v:",
-    code: "&#9996;",
-    category: "p",
-    emoji_order: "1128"
-  },
+  { name: "v", unicode: "270c", shortname: ":v:", code: "&#9996;", category: "p", emoji_order: "1128", char: "✌" },
   {
     name: "fingers_crossed",
     unicode: "1f91e",
     shortname: ":fingers_crossed:",
     code: "&#129310;",
     category: "p",
-    emoji_order: "1134"
+    emoji_order: "1134",
+    char: "🤞"
   },
   {
     name: "vulcan",
@@ -1417,7 +1576,8 @@ export const EmojiList = [
     shortname: ":vulcan:",
     code: "&#128406;",
     category: "p",
-    emoji_order: "1140"
+    emoji_order: "1140",
+    char: "🖖"
   },
   {
     name: "the_horns",
@@ -1425,7 +1585,8 @@ export const EmojiList = [
     shortname: ":metal_tone2:",
     code: "&#129304;",
     category: "p",
-    emoji_order: "1146"
+    emoji_order: "1146",
+    char: "🤘"
   },
   {
     name: "call_me",
@@ -1433,7 +1594,8 @@ export const EmojiList = [
     shortname: ":call_me:",
     code: "&#129305;",
     category: "p",
-    emoji_order: "1152"
+    emoji_order: "1152",
+    char: "🤙"
   },
   {
     name: "raised_hand_with_fingers_splayed",
@@ -1441,7 +1603,8 @@ export const EmojiList = [
     shortname: ":hand_splayed:",
     code: "&#128400;",
     category: "p",
-    emoji_order: "1158"
+    emoji_order: "1158",
+    char: "🖐"
   },
   {
     name: "raised_hand",
@@ -1449,7 +1612,8 @@ export const EmojiList = [
     shortname: ":raised_hand:",
     code: "&#9995;",
     category: "p",
-    emoji_order: "1164"
+    emoji_order: "1164",
+    char: "✋"
   },
   {
     name: "ok_hand",
@@ -1457,7 +1621,8 @@ export const EmojiList = [
     shortname: ":ok_hand:",
     code: "&#128076;",
     category: "p",
-    emoji_order: "1170"
+    emoji_order: "1170",
+    char: "👌"
   },
   {
     name: "thumbsup",
@@ -1465,7 +1630,8 @@ export const EmojiList = [
     shortname: ":thumbsup:",
     code: "&#128077;",
     category: "p",
-    emoji_order: "1176"
+    emoji_order: "1176",
+    char: "👍"
   },
   {
     name: "thumbsdown",
@@ -1473,7 +1639,8 @@ export const EmojiList = [
     shortname: ":thumbsdown:",
     code: "&#128078;",
     category: "p",
-    emoji_order: "1182"
+    emoji_order: "1182",
+    char: "👎"
   },
   {
     name: "fist",
@@ -1481,7 +1648,8 @@ export const EmojiList = [
     shortname: ":fist:",
     code: "&#9994;",
     category: "p",
-    emoji_order: "1188"
+    emoji_order: "1188",
+    char: "✊"
   },
   {
     name: "facepunch",
@@ -1489,7 +1657,8 @@ export const EmojiList = [
     shortname: ":punch:",
     code: "&#128074;",
     category: "p",
-    emoji_order: "1194"
+    emoji_order: "1194",
+    char: "👊"
   },
   {
     name: "left_facing_fist",
@@ -1497,7 +1666,8 @@ export const EmojiList = [
     shortname: ":left_facing_fist:",
     code: "&#129307;",
     category: "p",
-    emoji_order: "1200"
+    emoji_order: "1200",
+    char: "🤛"
   },
   {
     name: "right_facing_fist",
@@ -1505,7 +1675,8 @@ export const EmojiList = [
     shortname: ":right_facing_fist:",
     code: "&#129308;",
     category: "p",
-    emoji_order: "1206"
+    emoji_order: "1206",
+    char: "🤜"
   },
   {
     name: "raised_back_of_hand",
@@ -1513,7 +1684,8 @@ export const EmojiList = [
     shortname: ":raised_back_of_hand:",
     code: "&#129306;",
     category: "p",
-    emoji_order: "1212"
+    emoji_order: "1212",
+    char: "🤚"
   },
   {
     name: "wave",
@@ -1521,7 +1693,8 @@ export const EmojiList = [
     shortname: ":wave:",
     code: "&#128075;",
     category: "p",
-    emoji_order: "1218"
+    emoji_order: "1218",
+    char: "👋"
   },
   {
     name: "clap",
@@ -1529,7 +1702,8 @@ export const EmojiList = [
     shortname: ":clap:",
     code: "&#128079;",
     category: "p",
-    emoji_order: "1224"
+    emoji_order: "1224",
+    char: "👏"
   },
   {
     name: "writing_hand",
@@ -1537,7 +1711,8 @@ export const EmojiList = [
     shortname: ":writing_hand:",
     code: "&#9997;",
     category: "p",
-    emoji_order: "1230"
+    emoji_order: "1230",
+    char: "✍"
   },
   {
     name: "open_hands",
@@ -1545,7 +1720,8 @@ export const EmojiList = [
     shortname: ":open_hands:",
     code: "&#128080;",
     category: "p",
-    emoji_order: "1236"
+    emoji_order: "1236",
+    char: "👐"
   },
   {
     name: "raised_hands",
@@ -1553,7 +1729,8 @@ export const EmojiList = [
     shortname: ":raised_hands:",
     code: "&#128588;",
     category: "p",
-    emoji_order: "1242"
+    emoji_order: "1242",
+    char: "🙌"
   },
   {
     name: "pray",
@@ -1561,7 +1738,8 @@ export const EmojiList = [
     shortname: ":pray:",
     code: "&#128591;",
     category: "p",
-    emoji_order: "1248"
+    emoji_order: "1248",
+    char: "🙏"
   },
   {
     name: "handshake",
@@ -1569,7 +1747,8 @@ export const EmojiList = [
     shortname: ":handshake:",
     code: "&#129309;",
     category: "p",
-    emoji_order: "1254"
+    emoji_order: "1254",
+    char: "🤝"
   },
   {
     name: "nail_care",
@@ -1577,7 +1756,8 @@ export const EmojiList = [
     shortname: ":nail_care:",
     code: "&#128133;",
     category: "p",
-    emoji_order: "1260"
+    emoji_order: "1260",
+    char: "💅"
   },
   {
     name: "ear",
@@ -1585,7 +1765,8 @@ export const EmojiList = [
     shortname: ":ear:",
     code: "&#128066;",
     category: "p",
-    emoji_order: "1266"
+    emoji_order: "1266",
+    char: "👂"
   },
   {
     name: "nose",
@@ -1593,7 +1774,8 @@ export const EmojiList = [
     shortname: ":nose:",
     code: "&#128067;",
     category: "p",
-    emoji_order: "1272"
+    emoji_order: "1272",
+    char: "👃"
   },
   {
     name: "footprints",
@@ -1601,7 +1783,8 @@ export const EmojiList = [
     shortname: ":footprints:",
     code: "&#128099;",
     category: "p",
-    emoji_order: "1278"
+    emoji_order: "1278",
+    char: "👣"
   },
   {
     name: "eyes",
@@ -1609,7 +1792,8 @@ export const EmojiList = [
     shortname: ":eyes:",
     code: "&#128064;",
     category: "p",
-    emoji_order: "1279"
+    emoji_order: "1279",
+    char: "👀"
   },
   {
     name: "eye",
@@ -1617,7 +1801,8 @@ export const EmojiList = [
     shortname: ":eye:",
     code: "&#128065;",
     category: "p",
-    emoji_order: "1280"
+    emoji_order: "1280",
+    char: "👁"
   },
   {
     name: "tongue",
@@ -1625,7 +1810,8 @@ export const EmojiList = [
     shortname: ":tongue:",
     code: "&#128069;",
     category: "p",
-    emoji_order: "1282"
+    emoji_order: "1282",
+    char: "👅"
   },
   {
     name: "lips",
@@ -1633,7 +1819,8 @@ export const EmojiList = [
     shortname: ":lips:",
     code: "&#128068;",
     category: "p",
-    emoji_order: "1283"
+    emoji_order: "1283",
+    char: "👄"
   },
   {
     name: "kiss",
@@ -1641,7 +1828,8 @@ export const EmojiList = [
     shortname: ":kiss:",
     code: "&#128139;",
     category: "p",
-    emoji_order: "1284"
+    emoji_order: "1284",
+    char: "💋"
   },
   {
     name: "cupid",
@@ -1649,7 +1837,8 @@ export const EmojiList = [
     shortname: ":cupid:",
     code: "&#128152;",
     category: "s",
-    emoji_order: "1285"
+    emoji_order: "1285",
+    char: "💘"
   },
   {
     name: "heart",
@@ -1657,7 +1846,8 @@ export const EmojiList = [
     shortname: ":heart:",
     code: "&#10084;",
     category: "s",
-    emoji_order: "1286"
+    emoji_order: "1286",
+    char: "❤"
   },
   {
     name: "heartbeat",
@@ -1665,7 +1855,8 @@ export const EmojiList = [
     shortname: ":heartbeat:",
     code: "&#128147;",
     category: "s",
-    emoji_order: "1287"
+    emoji_order: "1287",
+    char: "💓"
   },
   {
     name: "broken_heart",
@@ -1673,7 +1864,8 @@ export const EmojiList = [
     shortname: ":broken_heart:",
     code: "&#128148;",
     category: "s",
-    emoji_order: "1288"
+    emoji_order: "1288",
+    char: "💔"
   },
   {
     name: "two_hearts",
@@ -1681,7 +1873,8 @@ export const EmojiList = [
     shortname: ":two_hearts:",
     code: "&#128149;",
     category: "s",
-    emoji_order: "1289"
+    emoji_order: "1289",
+    char: "💕"
   },
   {
     name: "sparkling_heart",
@@ -1689,7 +1882,8 @@ export const EmojiList = [
     shortname: ":sparkling_heart:",
     code: "&#128150;",
     category: "s",
-    emoji_order: "1290"
+    emoji_order: "1290",
+    char: "💖"
   },
   {
     name: "heartpulse",
@@ -1697,7 +1891,8 @@ export const EmojiList = [
     shortname: ":heartpulse:",
     code: "&#128151;",
     category: "s",
-    emoji_order: "1291"
+    emoji_order: "1291",
+    char: "💗"
   },
   {
     name: "blue_heart",
@@ -1705,7 +1900,8 @@ export const EmojiList = [
     shortname: ":blue_heart:",
     code: "&#128153;",
     category: "s",
-    emoji_order: "1292"
+    emoji_order: "1292",
+    char: "💙"
   },
   {
     name: "green_heart",
@@ -1713,7 +1909,8 @@ export const EmojiList = [
     shortname: ":green_heart:",
     code: "&#128154;",
     category: "s",
-    emoji_order: "1293"
+    emoji_order: "1293",
+    char: "💚"
   },
   {
     name: "yellow_heart",
@@ -1721,7 +1918,8 @@ export const EmojiList = [
     shortname: ":yellow_heart:",
     code: "&#128155;",
     category: "s",
-    emoji_order: "1294"
+    emoji_order: "1294",
+    char: "💛"
   },
   {
     name: "purple_heart",
@@ -1729,7 +1927,8 @@ export const EmojiList = [
     shortname: ":purple_heart:",
     code: "&#128156;",
     category: "s",
-    emoji_order: "1295"
+    emoji_order: "1295",
+    char: "💜"
   },
   {
     name: "black_heart",
@@ -1737,7 +1936,8 @@ export const EmojiList = [
     shortname: ":black_heart:",
     code: "&#128420;",
     category: "s",
-    emoji_order: "1296"
+    emoji_order: "1296",
+    char: "🖤"
   },
   {
     name: "gift_heart",
@@ -1745,7 +1945,8 @@ export const EmojiList = [
     shortname: ":gift_heart:",
     code: "&#128157;",
     category: "s",
-    emoji_order: "1297"
+    emoji_order: "1297",
+    char: "💝"
   },
   {
     name: "revolving_hearts",
@@ -1753,7 +1954,8 @@ export const EmojiList = [
     shortname: ":revolving_hearts:",
     code: "&#128158;",
     category: "s",
-    emoji_order: "1298"
+    emoji_order: "1298",
+    char: "💞"
   },
   {
     name: "heart_decoration",
@@ -1761,7 +1963,8 @@ export const EmojiList = [
     shortname: ":heart_decoration:",
     code: "&#128159;",
     category: "s",
-    emoji_order: "1299"
+    emoji_order: "1299",
+    char: "💟"
   },
   {
     name: "heart_exclamation",
@@ -1769,7 +1972,8 @@ export const EmojiList = [
     shortname: ":heart_exclamation:",
     code: "&#10083;",
     category: "s",
-    emoji_order: "1300"
+    emoji_order: "1300",
+    char: "❣"
   },
   {
     name: "love_letter",
@@ -1777,7 +1981,8 @@ export const EmojiList = [
     shortname: ":love_letter:",
     code: "&#128140;",
     category: "o",
-    emoji_order: "1301"
+    emoji_order: "1301",
+    char: "💌"
   },
   {
     name: "zzz",
@@ -1785,7 +1990,8 @@ export const EmojiList = [
     shortname: ":zzz:",
     code: "&#128164;",
     category: "p",
-    emoji_order: "1302"
+    emoji_order: "1302",
+    char: "💤"
   },
   {
     name: "anger",
@@ -1793,7 +1999,8 @@ export const EmojiList = [
     shortname: ":anger:",
     code: "&#128162;",
     category: "s",
-    emoji_order: "1303"
+    emoji_order: "1303",
+    char: "💢"
   },
   {
     name: "bomb",
@@ -1801,7 +2008,8 @@ export const EmojiList = [
     shortname: ":bomb:",
     code: "&#128163;",
     category: "o",
-    emoji_order: "1304"
+    emoji_order: "1304",
+    char: "💣"
   },
   {
     name: "boom",
@@ -1809,7 +2017,8 @@ export const EmojiList = [
     shortname: ":boom:",
     code: "&#128165;",
     category: "s",
-    emoji_order: "1305"
+    emoji_order: "1305",
+    char: "💥"
   },
   {
     name: "sweat_drops",
@@ -1817,7 +2026,8 @@ export const EmojiList = [
     shortname: ":sweat_drops:",
     code: "&#128166;",
     category: "n",
-    emoji_order: "1306"
+    emoji_order: "1306",
+    char: "💦"
   },
   {
     name: "dash",
@@ -1825,7 +2035,8 @@ export const EmojiList = [
     shortname: ":dash:",
     code: "&#128168;",
     category: "n",
-    emoji_order: "1307"
+    emoji_order: "1307",
+    char: "💨"
   },
   {
     name: "dizzy",
@@ -1833,7 +2044,8 @@ export const EmojiList = [
     shortname: ":dizzy:",
     code: "&#128171;",
     category: "s",
-    emoji_order: "1308"
+    emoji_order: "1308",
+    char: "💫"
   },
   {
     name: "speech_balloon",
@@ -1841,7 +2053,8 @@ export const EmojiList = [
     shortname: ":speech_balloon:",
     code: "&#128172;",
     category: "s",
-    emoji_order: "1309"
+    emoji_order: "1309",
+    char: "💬"
   },
   {
     name: "left_speech_bubble",
@@ -1849,7 +2062,8 @@ export const EmojiList = [
     shortname: ":speech_left:",
     code: "&#128488;",
     category: "s",
-    emoji_order: "1310"
+    emoji_order: "1310",
+    char: "🗨"
   },
   {
     name: "right_anger_bubble",
@@ -1857,7 +2071,8 @@ export const EmojiList = [
     shortname: ":anger_right:",
     code: "&#128495;",
     category: "s",
-    emoji_order: "1311"
+    emoji_order: "1311",
+    char: "🗯"
   },
   {
     name: "thought_balloon",
@@ -1865,7 +2080,8 @@ export const EmojiList = [
     shortname: ":thought_balloon:",
     code: "&#128173;",
     category: "s",
-    emoji_order: "1312"
+    emoji_order: "1312",
+    char: "💭"
   },
   {
     name: "hole",
@@ -1873,7 +2089,8 @@ export const EmojiList = [
     shortname: ":hole:",
     code: "&#128371;",
     category: "o",
-    emoji_order: "1313"
+    emoji_order: "1313",
+    char: "🕳"
   },
   {
     name: "eyeglasses",
@@ -1881,7 +2098,8 @@ export const EmojiList = [
     shortname: ":eyeglasses:",
     code: "&#128083;",
     category: "p",
-    emoji_order: "1314"
+    emoji_order: "1314",
+    char: "👓"
   },
   {
     name: "dark_sunglasses",
@@ -1889,7 +2107,8 @@ export const EmojiList = [
     shortname: ":dark_sunglasses:",
     code: "&#128374;",
     category: "p",
-    emoji_order: "1315"
+    emoji_order: "1315",
+    char: "🕶"
   },
   {
     name: "necktie",
@@ -1897,7 +2116,8 @@ export const EmojiList = [
     shortname: ":necktie:",
     code: "&#128084;",
     category: "p",
-    emoji_order: "1316"
+    emoji_order: "1316",
+    char: "👔"
   },
   {
     name: "shirt",
@@ -1905,7 +2125,8 @@ export const EmojiList = [
     shortname: ":shirt:",
     code: "&#128085;",
     category: "p",
-    emoji_order: "1317"
+    emoji_order: "1317",
+    char: "👕"
   },
   {
     name: "jeans",
@@ -1913,7 +2134,8 @@ export const EmojiList = [
     shortname: ":jeans:",
     code: "&#128086;",
     category: "p",
-    emoji_order: "1318"
+    emoji_order: "1318",
+    char: "👖"
   },
   {
     name: "dress",
@@ -1921,7 +2143,8 @@ export const EmojiList = [
     shortname: ":dress:",
     code: "&#128087;",
     category: "p",
-    emoji_order: "1319"
+    emoji_order: "1319",
+    char: "👗"
   },
   {
     name: "kimono",
@@ -1929,7 +2152,8 @@ export const EmojiList = [
     shortname: ":kimono:",
     code: "&#128088;",
     category: "p",
-    emoji_order: "1320"
+    emoji_order: "1320",
+    char: "👘"
   },
   {
     name: "bikini",
@@ -1937,7 +2161,8 @@ export const EmojiList = [
     shortname: ":bikini:",
     code: "&#128089;",
     category: "p",
-    emoji_order: "1321"
+    emoji_order: "1321",
+    char: "👙"
   },
   {
     name: "womans_clothes",
@@ -1945,7 +2170,8 @@ export const EmojiList = [
     shortname: ":womans_clothes:",
     code: "&#128090;",
     category: "p",
-    emoji_order: "1322"
+    emoji_order: "1322",
+    char: "👚"
   },
   {
     name: "purse",
@@ -1953,7 +2179,8 @@ export const EmojiList = [
     shortname: ":purse:",
     code: "&#128091;",
     category: "p",
-    emoji_order: "1323"
+    emoji_order: "1323",
+    char: "👛"
   },
   {
     name: "handbag",
@@ -1961,7 +2188,8 @@ export const EmojiList = [
     shortname: ":handbag:",
     code: "&#128092;",
     category: "p",
-    emoji_order: "1324"
+    emoji_order: "1324",
+    char: "👜"
   },
   {
     name: "pouch",
@@ -1969,7 +2197,8 @@ export const EmojiList = [
     shortname: ":pouch:",
     code: "&#128093;",
     category: "p",
-    emoji_order: "1325"
+    emoji_order: "1325",
+    char: "👝"
   },
   {
     name: "shopping_bags",
@@ -1977,7 +2206,8 @@ export const EmojiList = [
     shortname: ":shopping_bags:",
     code: "&#128717;",
     category: "o",
-    emoji_order: "1326"
+    emoji_order: "1326",
+    char: "🛍"
   },
   {
     name: "school_satchel",
@@ -1985,7 +2215,8 @@ export const EmojiList = [
     shortname: ":school_satchel:",
     code: "&#127890;",
     category: "p",
-    emoji_order: "1327"
+    emoji_order: "1327",
+    char: "🎒"
   },
   {
     name: "mans_shoe",
@@ -1993,7 +2224,8 @@ export const EmojiList = [
     shortname: ":mans_shoe:",
     code: "&#128094;",
     category: "p",
-    emoji_order: "1328"
+    emoji_order: "1328",
+    char: "👞"
   },
   {
     name: "athletic_shoe",
@@ -2001,7 +2233,8 @@ export const EmojiList = [
     shortname: ":athletic_shoe:",
     code: "&#128095;",
     category: "p",
-    emoji_order: "1329"
+    emoji_order: "1329",
+    char: "👟"
   },
   {
     name: "high_heel",
@@ -2009,7 +2242,8 @@ export const EmojiList = [
     shortname: ":high_heel:",
     code: "&#128096;",
     category: "p",
-    emoji_order: "1330"
+    emoji_order: "1330",
+    char: "👠"
   },
   {
     name: "sandal",
@@ -2017,7 +2251,8 @@ export const EmojiList = [
     shortname: ":sandal:",
     code: "&#128097;",
     category: "p",
-    emoji_order: "1331"
+    emoji_order: "1331",
+    char: "👡"
   },
   {
     name: "boot",
@@ -2025,7 +2260,8 @@ export const EmojiList = [
     shortname: ":boot:",
     code: "&#128098;",
     category: "p",
-    emoji_order: "1332"
+    emoji_order: "1332",
+    char: "👢"
   },
   {
     name: "crown",
@@ -2033,7 +2269,8 @@ export const EmojiList = [
     shortname: ":crown:",
     code: "&#128081;",
     category: "p",
-    emoji_order: "1333"
+    emoji_order: "1333",
+    char: "👑"
   },
   {
     name: "womans_hat",
@@ -2041,7 +2278,8 @@ export const EmojiList = [
     shortname: ":womans_hat:",
     code: "&#128082;",
     category: "p",
-    emoji_order: "1334"
+    emoji_order: "1334",
+    char: "👒"
   },
   {
     name: "tophat",
@@ -2049,7 +2287,8 @@ export const EmojiList = [
     shortname: ":tophat:",
     code: "&#127913;",
     category: "p",
-    emoji_order: "1335"
+    emoji_order: "1335",
+    char: "🎩"
   },
   {
     name: "mortar_board",
@@ -2057,7 +2296,8 @@ export const EmojiList = [
     shortname: ":mortar_board:",
     code: "&#127891;",
     category: "p",
-    emoji_order: "1336"
+    emoji_order: "1336",
+    char: "🎓"
   },
   {
     name: "helmet_with_white_cross",
@@ -2065,7 +2305,8 @@ export const EmojiList = [
     shortname: ":helmet_with_cross:",
     code: "&#9937;",
     category: "p",
-    emoji_order: "1337"
+    emoji_order: "1337",
+    char: "⛑"
   },
   {
     name: "prayer_beads",
@@ -2073,7 +2314,8 @@ export const EmojiList = [
     shortname: ":prayer_beads:",
     code: "&#128255;",
     category: "o",
-    emoji_order: "1338"
+    emoji_order: "1338",
+    char: "📿"
   },
   {
     name: "lipstick",
@@ -2081,7 +2323,8 @@ export const EmojiList = [
     shortname: ":lipstick:",
     code: "&#128132;",
     category: "p",
-    emoji_order: "1339"
+    emoji_order: "1339",
+    char: "💄"
   },
   {
     name: "ring",
@@ -2089,7 +2332,8 @@ export const EmojiList = [
     shortname: ":ring:",
     code: "&#128141;",
     category: "p",
-    emoji_order: "1340"
+    emoji_order: "1340",
+    char: "💍"
   },
   {
     name: "gem",
@@ -2097,7 +2341,8 @@ export const EmojiList = [
     shortname: ":gem:",
     code: "&#128142;",
     category: "o",
-    emoji_order: "1341"
+    emoji_order: "1341",
+    char: "💎"
   },
   {
     name: "monkey_face",
@@ -2105,7 +2350,8 @@ export const EmojiList = [
     shortname: ":monkey_face:",
     code: "&#128053;",
     category: "n",
-    emoji_order: "1342"
+    emoji_order: "1342",
+    char: "🐵"
   },
   {
     name: "monkey",
@@ -2113,7 +2359,8 @@ export const EmojiList = [
     shortname: ":monkey:",
     code: "&#128018;",
     category: "n",
-    emoji_order: "1343"
+    emoji_order: "1343",
+    char: "🐒"
   },
   {
     name: "gorilla",
@@ -2121,7 +2368,8 @@ export const EmojiList = [
     shortname: ":gorilla:",
     code: "&#129421;",
     category: "n",
-    emoji_order: "1344"
+    emoji_order: "1344",
+    char: "🦍"
   },
   {
     name: "dog",
@@ -2129,7 +2377,8 @@ export const EmojiList = [
     shortname: ":dog:",
     code: "&#128054;",
     category: "n",
-    emoji_order: "1345"
+    emoji_order: "1345",
+    char: "🐶"
   },
   {
     name: "dog2",
@@ -2137,7 +2386,8 @@ export const EmojiList = [
     shortname: ":dog2:",
     code: "&#128021;",
     category: "n",
-    emoji_order: "1346"
+    emoji_order: "1346",
+    char: "🐕"
   },
   {
     name: "poodle",
@@ -2145,7 +2395,8 @@ export const EmojiList = [
     shortname: ":poodle:",
     code: "&#128041;",
     category: "n",
-    emoji_order: "1347"
+    emoji_order: "1347",
+    char: "🐩"
   },
   {
     name: "wolf",
@@ -2153,7 +2404,8 @@ export const EmojiList = [
     shortname: ":wolf:",
     code: "&#128058;",
     category: "n",
-    emoji_order: "1348"
+    emoji_order: "1348",
+    char: "🐺"
   },
   {
     name: "fox",
@@ -2161,7 +2413,8 @@ export const EmojiList = [
     shortname: ":fox:",
     code: "&#129418;",
     category: "n",
-    emoji_order: "1349"
+    emoji_order: "1349",
+    char: "🦊"
   },
   {
     name: "cat",
@@ -2169,7 +2422,8 @@ export const EmojiList = [
     shortname: ":cat:",
     code: "&#128049;",
     category: "n",
-    emoji_order: "1350"
+    emoji_order: "1350",
+    char: "🐱"
   },
   {
     name: "cat2",
@@ -2177,7 +2431,8 @@ export const EmojiList = [
     shortname: ":cat2:",
     code: "&#128008;",
     category: "n",
-    emoji_order: "1351"
+    emoji_order: "1351",
+    char: "🐈"
   },
   {
     name: "lion_face",
@@ -2185,7 +2440,8 @@ export const EmojiList = [
     shortname: ":lion_face:",
     code: "&#129409;",
     category: "n",
-    emoji_order: "1352"
+    emoji_order: "1352",
+    char: "🦁"
   },
   {
     name: "tiger",
@@ -2193,7 +2449,8 @@ export const EmojiList = [
     shortname: ":tiger:",
     code: "&#128047;",
     category: "n",
-    emoji_order: "1353"
+    emoji_order: "1353",
+    char: "🐯"
   },
   {
     name: "tiger2",
@@ -2201,7 +2458,8 @@ export const EmojiList = [
     shortname: ":tiger2:",
     code: "&#128005;",
     category: "n",
-    emoji_order: "1354"
+    emoji_order: "1354",
+    char: "🐅"
   },
   {
     name: "leopard",
@@ -2209,7 +2467,8 @@ export const EmojiList = [
     shortname: ":leopard:",
     code: "&#128006;",
     category: "n",
-    emoji_order: "1355"
+    emoji_order: "1355",
+    char: "🐆"
   },
   {
     name: "horse",
@@ -2217,7 +2476,8 @@ export const EmojiList = [
     shortname: ":horse:",
     code: "&#128052;",
     category: "n",
-    emoji_order: "1356"
+    emoji_order: "1356",
+    char: "🐴"
   },
   {
     name: "racehorse",
@@ -2225,7 +2485,8 @@ export const EmojiList = [
     shortname: ":racehorse:",
     code: "&#128014;",
     category: "n",
-    emoji_order: "1357"
+    emoji_order: "1357",
+    char: "🐎"
   },
   {
     name: "deer",
@@ -2233,7 +2494,8 @@ export const EmojiList = [
     shortname: ":deer:",
     code: "&#129420;",
     category: "n",
-    emoji_order: "1358"
+    emoji_order: "1358",
+    char: "🦌"
   },
   {
     name: "unicorn_face",
@@ -2241,7 +2503,8 @@ export const EmojiList = [
     shortname: ":unicorn:",
     code: "&#129412;",
     category: "n",
-    emoji_order: "1359"
+    emoji_order: "1359",
+    char: "🦄"
   },
   {
     name: "cow",
@@ -2249,7 +2512,8 @@ export const EmojiList = [
     shortname: ":cow:",
     code: "&#128046;",
     category: "n",
-    emoji_order: "1360"
+    emoji_order: "1360",
+    char: "🐮"
   },
   {
     name: "ox",
@@ -2257,7 +2521,8 @@ export const EmojiList = [
     shortname: ":ox:",
     code: "&#128002;",
     category: "n",
-    emoji_order: "1361"
+    emoji_order: "1361",
+    char: "🐂"
   },
   {
     name: "water_buffalo",
@@ -2265,7 +2530,8 @@ export const EmojiList = [
     shortname: ":water_buffalo:",
     code: "&#128003;",
     category: "n",
-    emoji_order: "1362"
+    emoji_order: "1362",
+    char: "🐃"
   },
   {
     name: "cow2",
@@ -2273,7 +2539,8 @@ export const EmojiList = [
     shortname: ":cow2:",
     code: "&#128004;",
     category: "n",
-    emoji_order: "1363"
+    emoji_order: "1363",
+    char: "🐄"
   },
   {
     name: "pig",
@@ -2281,7 +2548,8 @@ export const EmojiList = [
     shortname: ":pig:",
     code: "&#128055;",
     category: "n",
-    emoji_order: "1364"
+    emoji_order: "1364",
+    char: "🐷"
   },
   {
     name: "pig2",
@@ -2289,7 +2557,8 @@ export const EmojiList = [
     shortname: ":pig2:",
     code: "&#128022;",
     category: "n",
-    emoji_order: "1365"
+    emoji_order: "1365",
+    char: "🐖"
   },
   {
     name: "boar",
@@ -2297,7 +2566,8 @@ export const EmojiList = [
     shortname: ":boar:",
     code: "&#128023;",
     category: "n",
-    emoji_order: "1366"
+    emoji_order: "1366",
+    char: "🐗"
   },
   {
     name: "pig_nose",
@@ -2305,7 +2575,8 @@ export const EmojiList = [
     shortname: ":pig_nose:",
     code: "&#128061;",
     category: "n",
-    emoji_order: "1367"
+    emoji_order: "1367",
+    char: "🐽"
   },
   {
     name: "ram",
@@ -2313,7 +2584,8 @@ export const EmojiList = [
     shortname: ":ram:",
     code: "&#128015;",
     category: "n",
-    emoji_order: "1368"
+    emoji_order: "1368",
+    char: "🐏"
   },
   {
     name: "sheep",
@@ -2321,7 +2593,8 @@ export const EmojiList = [
     shortname: ":sheep:",
     code: "&#128017;",
     category: "n",
-    emoji_order: "1369"
+    emoji_order: "1369",
+    char: "🐑"
   },
   {
     name: "goat",
@@ -2329,7 +2602,8 @@ export const EmojiList = [
     shortname: ":goat:",
     code: "&#128016;",
     category: "n",
-    emoji_order: "1370"
+    emoji_order: "1370",
+    char: "🐐"
   },
   {
     name: "dromedary_camel",
@@ -2337,7 +2611,8 @@ export const EmojiList = [
     shortname: ":dromedary_camel:",
     code: "&#128042;",
     category: "n",
-    emoji_order: "1371"
+    emoji_order: "1371",
+    char: "🐪"
   },
   {
     name: "camel",
@@ -2345,7 +2620,8 @@ export const EmojiList = [
     shortname: ":camel:",
     code: "&#128043;",
     category: "n",
-    emoji_order: "1372"
+    emoji_order: "1372",
+    char: "🐫"
   },
   {
     name: "elephant",
@@ -2353,7 +2629,8 @@ export const EmojiList = [
     shortname: ":elephant:",
     code: "&#128024;",
     category: "n",
-    emoji_order: "1373"
+    emoji_order: "1373",
+    char: "🐘"
   },
   {
     name: "rhino",
@@ -2361,7 +2638,8 @@ export const EmojiList = [
     shortname: ":rhino:",
     code: "&#129423;",
     category: "n",
-    emoji_order: "1374"
+    emoji_order: "1374",
+    char: "🦏"
   },
   {
     name: "mouse",
@@ -2369,7 +2647,8 @@ export const EmojiList = [
     shortname: ":mouse:",
     code: "&#128045;",
     category: "n",
-    emoji_order: "1375"
+    emoji_order: "1375",
+    char: "🐭"
   },
   {
     name: "mouse2",
@@ -2377,7 +2656,8 @@ export const EmojiList = [
     shortname: ":mouse2:",
     code: "&#128001;",
     category: "n",
-    emoji_order: "1376"
+    emoji_order: "1376",
+    char: "🐁"
   },
   {
     name: "rat",
@@ -2385,7 +2665,8 @@ export const EmojiList = [
     shortname: ":rat:",
     code: "&#128000;",
     category: "n",
-    emoji_order: "1377"
+    emoji_order: "1377",
+    char: "🐀"
   },
   {
     name: "hamster",
@@ -2393,7 +2674,8 @@ export const EmojiList = [
     shortname: ":hamster:",
     code: "&#128057;",
     category: "n",
-    emoji_order: "1378"
+    emoji_order: "1378",
+    char: "🐹"
   },
   {
     name: "rabbit",
@@ -2401,7 +2683,8 @@ export const EmojiList = [
     shortname: ":rabbit:",
     code: "&#128048;",
     category: "n",
-    emoji_order: "1379"
+    emoji_order: "1379",
+    char: "🐰"
   },
   {
     name: "rabbit2",
@@ -2409,7 +2692,8 @@ export const EmojiList = [
     shortname: ":rabbit2:",
     code: "&#128007;",
     category: "n",
-    emoji_order: "1380"
+    emoji_order: "1380",
+    char: "🐇"
   },
   {
     name: "chipmunk",
@@ -2417,7 +2701,8 @@ export const EmojiList = [
     shortname: ":chipmunk:",
     code: "&#128063;",
     category: "n",
-    emoji_order: "1381"
+    emoji_order: "1381",
+    char: "🐿"
   },
   {
     name: "bat",
@@ -2425,7 +2710,8 @@ export const EmojiList = [
     shortname: ":bat:",
     code: "&#129415;",
     category: "n",
-    emoji_order: "1382"
+    emoji_order: "1382",
+    char: "🦇"
   },
   {
     name: "bear",
@@ -2433,7 +2719,8 @@ export const EmojiList = [
     shortname: ":bear:",
     code: "&#128059;",
     category: "n",
-    emoji_order: "1383"
+    emoji_order: "1383",
+    char: "🐻"
   },
   {
     name: "koala",
@@ -2441,7 +2728,8 @@ export const EmojiList = [
     shortname: ":koala:",
     code: "&#128040;",
     category: "n",
-    emoji_order: "1384"
+    emoji_order: "1384",
+    char: "🐨"
   },
   {
     name: "panda_face",
@@ -2449,7 +2737,8 @@ export const EmojiList = [
     shortname: ":panda_face:",
     code: "&#128060;",
     category: "n",
-    emoji_order: "1385"
+    emoji_order: "1385",
+    char: "🐼"
   },
   {
     name: "feet",
@@ -2457,7 +2746,8 @@ export const EmojiList = [
     shortname: ":feet:",
     code: "&#128062;",
     category: "n",
-    emoji_order: "1386"
+    emoji_order: "1386",
+    char: "🐾"
   },
   {
     name: "turkey",
@@ -2465,7 +2755,8 @@ export const EmojiList = [
     shortname: ":turkey:",
     code: "&#129411;",
     category: "n",
-    emoji_order: "1387"
+    emoji_order: "1387",
+    char: "🦃"
   },
   {
     name: "chicken",
@@ -2473,7 +2764,8 @@ export const EmojiList = [
     shortname: ":chicken:",
     code: "&#128020;",
     category: "n",
-    emoji_order: "1388"
+    emoji_order: "1388",
+    char: "🐔"
   },
   {
     name: "rooster",
@@ -2481,7 +2773,8 @@ export const EmojiList = [
     shortname: ":rooster:",
     code: "&#128019;",
     category: "n",
-    emoji_order: "1389"
+    emoji_order: "1389",
+    char: "🐓"
   },
   {
     name: "hatching_chick",
@@ -2489,7 +2782,8 @@ export const EmojiList = [
     shortname: ":hatching_chick:",
     code: "&#128035;",
     category: "n",
-    emoji_order: "1390"
+    emoji_order: "1390",
+    char: "🐣"
   },
   {
     name: "baby_chick",
@@ -2497,7 +2791,8 @@ export const EmojiList = [
     shortname: ":baby_chick:",
     code: "&#128036;",
     category: "n",
-    emoji_order: "1391"
+    emoji_order: "1391",
+    char: "🐤"
   },
   {
     name: "hatched_chick",
@@ -2505,7 +2800,8 @@ export const EmojiList = [
     shortname: ":hatched_chick:",
     code: "&#128037;",
     category: "n",
-    emoji_order: "1392"
+    emoji_order: "1392",
+    char: "🐥"
   },
   {
     name: "bird",
@@ -2513,7 +2809,8 @@ export const EmojiList = [
     shortname: ":bird:",
     code: "&#128038;",
     category: "n",
-    emoji_order: "1393"
+    emoji_order: "1393",
+    char: "🐦"
   },
   {
     name: "penguin",
@@ -2521,7 +2818,8 @@ export const EmojiList = [
     shortname: ":penguin:",
     code: "&#128039;",
     category: "n",
-    emoji_order: "1394"
+    emoji_order: "1394",
+    char: "🐧"
   },
   {
     name: "dove_of_peace",
@@ -2529,7 +2827,8 @@ export const EmojiList = [
     shortname: ":dove:",
     code: "&#128330;",
     category: "n",
-    emoji_order: "1395"
+    emoji_order: "1395",
+    char: "🕊"
   },
   {
     name: "eagle",
@@ -2537,7 +2836,8 @@ export const EmojiList = [
     shortname: ":eagle:",
     code: "&#129413;",
     category: "n",
-    emoji_order: "1396"
+    emoji_order: "1396",
+    char: "🦅"
   },
   {
     name: "duck",
@@ -2545,7 +2845,8 @@ export const EmojiList = [
     shortname: ":duck:",
     code: "&#129414;",
     category: "n",
-    emoji_order: "1397"
+    emoji_order: "1397",
+    char: "🦆"
   },
   {
     name: "owl",
@@ -2553,7 +2854,8 @@ export const EmojiList = [
     shortname: ":owl:",
     code: "&#129417;",
     category: "n",
-    emoji_order: "1398"
+    emoji_order: "1398",
+    char: "🦉"
   },
   {
     name: "frog",
@@ -2561,7 +2863,8 @@ export const EmojiList = [
     shortname: ":frog:",
     code: "&#128056;",
     category: "n",
-    emoji_order: "1399"
+    emoji_order: "1399",
+    char: "🐸"
   },
   {
     name: "crocodile",
@@ -2569,7 +2872,8 @@ export const EmojiList = [
     shortname: ":crocodile:",
     code: "&#128010;",
     category: "n",
-    emoji_order: "1400"
+    emoji_order: "1400",
+    char: "🐊"
   },
   {
     name: "turtle",
@@ -2577,7 +2881,8 @@ export const EmojiList = [
     shortname: ":turtle:",
     code: "&#128034;",
     category: "n",
-    emoji_order: "1401"
+    emoji_order: "1401",
+    char: "🐢"
   },
   {
     name: "lizard",
@@ -2585,7 +2890,8 @@ export const EmojiList = [
     shortname: ":lizard:",
     code: "&#129422;",
     category: "n",
-    emoji_order: "1402"
+    emoji_order: "1402",
+    char: "🦎"
   },
   {
     name: "snake",
@@ -2593,7 +2899,8 @@ export const EmojiList = [
     shortname: ":snake:",
     code: "&#128013;",
     category: "n",
-    emoji_order: "1403"
+    emoji_order: "1403",
+    char: "🐍"
   },
   {
     name: "dragon_face",
@@ -2601,7 +2908,8 @@ export const EmojiList = [
     shortname: ":dragon_face:",
     code: "&#128050;",
     category: "n",
-    emoji_order: "1404"
+    emoji_order: "1404",
+    char: "🐲"
   },
   {
     name: "dragon",
@@ -2609,7 +2917,8 @@ export const EmojiList = [
     shortname: ":dragon:",
     code: "&#128009;",
     category: "n",
-    emoji_order: "1405"
+    emoji_order: "1405",
+    char: "🐉"
   },
   {
     name: "whale",
@@ -2617,7 +2926,8 @@ export const EmojiList = [
     shortname: ":whale:",
     code: "&#128051;",
     category: "n",
-    emoji_order: "1406"
+    emoji_order: "1406",
+    char: "🐳"
   },
   {
     name: "whale2",
@@ -2625,7 +2935,8 @@ export const EmojiList = [
     shortname: ":whale2:",
     code: "&#128011;",
     category: "n",
-    emoji_order: "1407"
+    emoji_order: "1407",
+    char: "🐋"
   },
   {
     name: "dolphin",
@@ -2633,7 +2944,8 @@ export const EmojiList = [
     shortname: ":dolphin:",
     code: "&#128044;",
     category: "n",
-    emoji_order: "1408"
+    emoji_order: "1408",
+    char: "🐬"
   },
   {
     name: "fish",
@@ -2641,7 +2953,8 @@ export const EmojiList = [
     shortname: ":fish:",
     code: "&#128031;",
     category: "n",
-    emoji_order: "1409"
+    emoji_order: "1409",
+    char: "🐟"
   },
   {
     name: "tropical_fish",
@@ -2649,7 +2962,8 @@ export const EmojiList = [
     shortname: ":tropical_fish:",
     code: "&#128032;",
     category: "n",
-    emoji_order: "1410"
+    emoji_order: "1410",
+    char: "🐠"
   },
   {
     name: "blowfish",
@@ -2657,7 +2971,8 @@ export const EmojiList = [
     shortname: ":blowfish:",
     code: "&#128033;",
     category: "n",
-    emoji_order: "1411"
+    emoji_order: "1411",
+    char: "🐡"
   },
   {
     name: "shark",
@@ -2665,7 +2980,8 @@ export const EmojiList = [
     shortname: ":shark:",
     code: "&#129416;",
     category: "n",
-    emoji_order: "1412"
+    emoji_order: "1412",
+    char: "🦈"
   },
   {
     name: "octopus",
@@ -2673,7 +2989,8 @@ export const EmojiList = [
     shortname: ":octopus:",
     code: "&#128025;",
     category: "n",
-    emoji_order: "1413"
+    emoji_order: "1413",
+    char: "🐙"
   },
   {
     name: "shell",
@@ -2681,7 +2998,8 @@ export const EmojiList = [
     shortname: ":shell:",
     code: "&#128026;",
     category: "n",
-    emoji_order: "1414"
+    emoji_order: "1414",
+    char: "🐚"
   },
   {
     name: "crab",
@@ -2689,7 +3007,8 @@ export const EmojiList = [
     shortname: ":crab:",
     code: "&#129408;",
     category: "n",
-    emoji_order: "1415"
+    emoji_order: "1415",
+    char: "🦀"
   },
   {
     name: "shrimp",
@@ -2697,7 +3016,8 @@ export const EmojiList = [
     shortname: ":shrimp:",
     code: "&#129424;",
     category: "n",
-    emoji_order: "1416"
+    emoji_order: "1416",
+    char: "🦐"
   },
   {
     name: "squid",
@@ -2705,7 +3025,8 @@ export const EmojiList = [
     shortname: ":squid:",
     code: "&#129425;",
     category: "n",
-    emoji_order: "1417"
+    emoji_order: "1417",
+    char: "🦑"
   },
   {
     name: "butterfly",
@@ -2713,7 +3034,8 @@ export const EmojiList = [
     shortname: ":butterfly:",
     code: "&#129419;",
     category: "n",
-    emoji_order: "1418"
+    emoji_order: "1418",
+    char: "🦋"
   },
   {
     name: "snail",
@@ -2721,7 +3043,8 @@ export const EmojiList = [
     shortname: ":snail:",
     code: "&#128012;",
     category: "n",
-    emoji_order: "1419"
+    emoji_order: "1419",
+    char: "🐌"
   },
   {
     name: "bug",
@@ -2729,7 +3052,8 @@ export const EmojiList = [
     shortname: ":bug:",
     code: "&#128027;",
     category: "n",
-    emoji_order: "1420"
+    emoji_order: "1420",
+    char: "🐛"
   },
   {
     name: "ant",
@@ -2737,7 +3061,8 @@ export const EmojiList = [
     shortname: ":ant:",
     code: "&#128028;",
     category: "n",
-    emoji_order: "1421"
+    emoji_order: "1421",
+    char: "🐜"
   },
   {
     name: "bee",
@@ -2745,7 +3070,8 @@ export const EmojiList = [
     shortname: ":bee:",
     code: "&#128029;",
     category: "n",
-    emoji_order: "1422"
+    emoji_order: "1422",
+    char: "🐝"
   },
   {
     name: "beetle",
@@ -2753,7 +3079,8 @@ export const EmojiList = [
     shortname: ":beetle:",
     code: "&#128030;",
     category: "n",
-    emoji_order: "1423"
+    emoji_order: "1423",
+    char: "🐞"
   },
   {
     name: "spider",
@@ -2761,7 +3088,8 @@ export const EmojiList = [
     shortname: ":spider:",
     code: "&#128375;",
     category: "n",
-    emoji_order: "1424"
+    emoji_order: "1424",
+    char: "🕷"
   },
   {
     name: "spider_web",
@@ -2769,7 +3097,8 @@ export const EmojiList = [
     shortname: ":spider_web:",
     code: "&#128376;",
     category: "n",
-    emoji_order: "1425"
+    emoji_order: "1425",
+    char: "🕸"
   },
   {
     name: "scorpion",
@@ -2777,7 +3106,8 @@ export const EmojiList = [
     shortname: ":scorpion:",
     code: "&#129410;",
     category: "n",
-    emoji_order: "1426"
+    emoji_order: "1426",
+    char: "🦂"
   },
   {
     name: "bouquet",
@@ -2785,7 +3115,8 @@ export const EmojiList = [
     shortname: ":bouquet:",
     code: "&#128144;",
     category: "n",
-    emoji_order: "1427"
+    emoji_order: "1427",
+    char: "💐"
   },
   {
     name: "cherry_blossom",
@@ -2793,7 +3124,8 @@ export const EmojiList = [
     shortname: ":cherry_blossom:",
     code: "&#127800;",
     category: "n",
-    emoji_order: "1428"
+    emoji_order: "1428",
+    char: "🌸"
   },
   {
     name: "white_flower",
@@ -2801,7 +3133,8 @@ export const EmojiList = [
     shortname: ":white_flower:",
     code: "&#128174;",
     category: "s",
-    emoji_order: "1429"
+    emoji_order: "1429",
+    char: "💮"
   },
   {
     name: "rosette",
@@ -2809,7 +3142,8 @@ export const EmojiList = [
     shortname: ":rosette:",
     code: "&#127989;",
     category: "n",
-    emoji_order: "1430"
+    emoji_order: "1430",
+    char: "🏵"
   },
   {
     name: "rose",
@@ -2817,7 +3151,8 @@ export const EmojiList = [
     shortname: ":rose:",
     code: "&#127801;",
     category: "n",
-    emoji_order: "1431"
+    emoji_order: "1431",
+    char: "🌹"
   },
   {
     name: "wilted_rose",
@@ -2825,7 +3160,8 @@ export const EmojiList = [
     shortname: ":wilted_rose:",
     code: "&#129344;",
     category: "n",
-    emoji_order: "1432"
+    emoji_order: "1432",
+    char: "🥀"
   },
   {
     name: "hibiscus",
@@ -2833,7 +3169,8 @@ export const EmojiList = [
     shortname: ":hibiscus:",
     code: "&#127802;",
     category: "n",
-    emoji_order: "1433"
+    emoji_order: "1433",
+    char: "🌺"
   },
   {
     name: "sunflower",
@@ -2841,7 +3178,8 @@ export const EmojiList = [
     shortname: ":sunflower:",
     code: "&#127803;",
     category: "n",
-    emoji_order: "1434"
+    emoji_order: "1434",
+    char: "🌻"
   },
   {
     name: "blossom",
@@ -2849,7 +3187,8 @@ export const EmojiList = [
     shortname: ":blossom:",
     code: "&#127804;",
     category: "n",
-    emoji_order: "1435"
+    emoji_order: "1435",
+    char: "🌼"
   },
   {
     name: "tulip",
@@ -2857,7 +3196,8 @@ export const EmojiList = [
     shortname: ":tulip:",
     code: "&#127799;",
     category: "n",
-    emoji_order: "1436"
+    emoji_order: "1436",
+    char: "🌷"
   },
   {
     name: "seedling",
@@ -2865,7 +3205,8 @@ export const EmojiList = [
     shortname: ":seedling:",
     code: "&#127793;",
     category: "n",
-    emoji_order: "1437"
+    emoji_order: "1437",
+    char: "🌱"
   },
   {
     name: "evergreen_tree",
@@ -2873,7 +3214,8 @@ export const EmojiList = [
     shortname: ":evergreen_tree:",
     code: "&#127794;",
     category: "n",
-    emoji_order: "1438"
+    emoji_order: "1438",
+    char: "🌲"
   },
   {
     name: "deciduous_tree",
@@ -2881,7 +3223,8 @@ export const EmojiList = [
     shortname: ":deciduous_tree:",
     code: "&#127795;",
     category: "n",
-    emoji_order: "1439"
+    emoji_order: "1439",
+    char: "🌳"
   },
   {
     name: "palm_tree",
@@ -2889,7 +3232,8 @@ export const EmojiList = [
     shortname: ":palm_tree:",
     code: "&#127796;",
     category: "n",
-    emoji_order: "1440"
+    emoji_order: "1440",
+    char: "🌴"
   },
   {
     name: "cactus",
@@ -2897,7 +3241,8 @@ export const EmojiList = [
     shortname: ":cactus:",
     code: "&#127797;",
     category: "n",
-    emoji_order: "1441"
+    emoji_order: "1441",
+    char: "🌵"
   },
   {
     name: "ear_of_rice",
@@ -2905,7 +3250,8 @@ export const EmojiList = [
     shortname: ":ear_of_rice:",
     code: "&#127806;",
     category: "n",
-    emoji_order: "1442"
+    emoji_order: "1442",
+    char: "🌾"
   },
   {
     name: "herb",
@@ -2913,7 +3259,8 @@ export const EmojiList = [
     shortname: ":herb:",
     code: "&#127807;",
     category: "n",
-    emoji_order: "1443"
+    emoji_order: "1443",
+    char: "🌿"
   },
   {
     name: "shamrock",
@@ -2921,7 +3268,8 @@ export const EmojiList = [
     shortname: ":shamrock:",
     code: "&#9752;",
     category: "n",
-    emoji_order: "1444"
+    emoji_order: "1444",
+    char: "☘"
   },
   {
     name: "four_leaf_clover",
@@ -2929,7 +3277,8 @@ export const EmojiList = [
     shortname: ":four_leaf_clover:",
     code: "&#127808;",
     category: "n",
-    emoji_order: "1445"
+    emoji_order: "1445",
+    char: "🍀"
   },
   {
     name: "maple_leaf",
@@ -2937,7 +3286,8 @@ export const EmojiList = [
     shortname: ":maple_leaf:",
     code: "&#127809;",
     category: "n",
-    emoji_order: "1446"
+    emoji_order: "1446",
+    char: "🍁"
   },
   {
     name: "fallen_leaf",
@@ -2945,7 +3295,8 @@ export const EmojiList = [
     shortname: ":fallen_leaf:",
     code: "&#127810;",
     category: "n",
-    emoji_order: "1447"
+    emoji_order: "1447",
+    char: "🍂"
   },
   {
     name: "leaves",
@@ -2953,7 +3304,8 @@ export const EmojiList = [
     shortname: ":leaves:",
     code: "&#127811;",
     category: "n",
-    emoji_order: "1448"
+    emoji_order: "1448",
+    char: "🍃"
   },
   {
     name: "grapes",
@@ -2961,7 +3313,8 @@ export const EmojiList = [
     shortname: ":grapes:",
     code: "&#127815;",
     category: "d",
-    emoji_order: "1449"
+    emoji_order: "1449",
+    char: "🍇"
   },
   {
     name: "melon",
@@ -2969,7 +3322,8 @@ export const EmojiList = [
     shortname: ":melon:",
     code: "&#127816;",
     category: "d",
-    emoji_order: "1450"
+    emoji_order: "1450",
+    char: "🍈"
   },
   {
     name: "watermelon",
@@ -2977,7 +3331,8 @@ export const EmojiList = [
     shortname: ":watermelon:",
     code: "&#127817;",
     category: "d",
-    emoji_order: "1451"
+    emoji_order: "1451",
+    char: "🍉"
   },
   {
     name: "tangerine",
@@ -2985,7 +3340,8 @@ export const EmojiList = [
     shortname: ":tangerine:",
     code: "&#127818;",
     category: "d",
-    emoji_order: "1452"
+    emoji_order: "1452",
+    char: "🍊"
   },
   {
     name: "lemon",
@@ -2993,7 +3349,8 @@ export const EmojiList = [
     shortname: ":lemon:",
     code: "&#127819;",
     category: "d",
-    emoji_order: "1453"
+    emoji_order: "1453",
+    char: "🍋"
   },
   {
     name: "banana",
@@ -3001,7 +3358,8 @@ export const EmojiList = [
     shortname: ":banana:",
     code: "&#127820;",
     category: "d",
-    emoji_order: "1454"
+    emoji_order: "1454",
+    char: "🍌"
   },
   {
     name: "pineapple",
@@ -3009,7 +3367,8 @@ export const EmojiList = [
     shortname: ":pineapple:",
     code: "&#127821;",
     category: "d",
-    emoji_order: "1455"
+    emoji_order: "1455",
+    char: "🍍"
   },
   {
     name: "apple",
@@ -3017,7 +3376,8 @@ export const EmojiList = [
     shortname: ":apple:",
     code: "&#127822;",
     category: "d",
-    emoji_order: "1456"
+    emoji_order: "1456",
+    char: "🍎"
   },
   {
     name: "green_apple",
@@ -3025,7 +3385,8 @@ export const EmojiList = [
     shortname: ":green_apple:",
     code: "&#127823;",
     category: "d",
-    emoji_order: "1457"
+    emoji_order: "1457",
+    char: "🍏"
   },
   {
     name: "pear",
@@ -3033,7 +3394,8 @@ export const EmojiList = [
     shortname: ":pear:",
     code: "&#127824;",
     category: "d",
-    emoji_order: "1458"
+    emoji_order: "1458",
+    char: "🍐"
   },
   {
     name: "peach",
@@ -3041,7 +3403,8 @@ export const EmojiList = [
     shortname: ":peach:",
     code: "&#127825;",
     category: "d",
-    emoji_order: "1459"
+    emoji_order: "1459",
+    char: "🍑"
   },
   {
     name: "cherries",
@@ -3049,7 +3412,8 @@ export const EmojiList = [
     shortname: ":cherries:",
     code: "&#127826;",
     category: "d",
-    emoji_order: "1460"
+    emoji_order: "1460",
+    char: "🍒"
   },
   {
     name: "strawberry",
@@ -3057,7 +3421,8 @@ export const EmojiList = [
     shortname: ":strawberry:",
     code: "&#127827;",
     category: "d",
-    emoji_order: "1461"
+    emoji_order: "1461",
+    char: "🍓"
   },
   {
     name: "kiwi",
@@ -3065,7 +3430,8 @@ export const EmojiList = [
     shortname: ":kiwi:",
     code: "&#129373;",
     category: "d",
-    emoji_order: "1462"
+    emoji_order: "1462",
+    char: "🥝"
   },
   {
     name: "tomato",
@@ -3073,7 +3439,8 @@ export const EmojiList = [
     shortname: ":tomato:",
     code: "&#127813;",
     category: "d",
-    emoji_order: "1463"
+    emoji_order: "1463",
+    char: "🍅"
   },
   {
     name: "avocado",
@@ -3081,7 +3448,8 @@ export const EmojiList = [
     shortname: ":avocado:",
     code: "&#129361;",
     category: "d",
-    emoji_order: "1464"
+    emoji_order: "1464",
+    char: "🥑"
   },
   {
     name: "eggplant",
@@ -3089,7 +3457,8 @@ export const EmojiList = [
     shortname: ":eggplant:",
     code: "&#127814;",
     category: "d",
-    emoji_order: "1465"
+    emoji_order: "1465",
+    char: "🍆"
   },
   {
     name: "potato",
@@ -3097,7 +3466,8 @@ export const EmojiList = [
     shortname: ":potato:",
     code: "&#129364;",
     category: "d",
-    emoji_order: "1466"
+    emoji_order: "1466",
+    char: "🥔"
   },
   {
     name: "carrot",
@@ -3105,7 +3475,8 @@ export const EmojiList = [
     shortname: ":carrot:",
     code: "&#129365;",
     category: "d",
-    emoji_order: "1467"
+    emoji_order: "1467",
+    char: "🥕"
   },
   {
     name: "corn",
@@ -3113,7 +3484,8 @@ export const EmojiList = [
     shortname: ":corn:",
     code: "&#127805;",
     category: "d",
-    emoji_order: "1468"
+    emoji_order: "1468",
+    char: "🌽"
   },
   {
     name: "hot_pepper",
@@ -3121,7 +3493,8 @@ export const EmojiList = [
     shortname: ":hot_pepper:",
     code: "&#127798;",
     category: "d",
-    emoji_order: "1469"
+    emoji_order: "1469",
+    char: "🌶"
   },
   {
     name: "cucumber",
@@ -3129,7 +3502,8 @@ export const EmojiList = [
     shortname: ":cucumber:",
     code: "&#129362;",
     category: "d",
-    emoji_order: "1470"
+    emoji_order: "1470",
+    char: "🥒"
   },
   {
     name: "mushroom",
@@ -3137,7 +3511,8 @@ export const EmojiList = [
     shortname: ":mushroom:",
     code: "&#127812;",
     category: "n",
-    emoji_order: "1471"
+    emoji_order: "1471",
+    char: "🍄"
   },
   {
     name: "peanuts",
@@ -3145,7 +3520,8 @@ export const EmojiList = [
     shortname: ":peanuts:",
     code: "&#129372;",
     category: "d",
-    emoji_order: "1472"
+    emoji_order: "1472",
+    char: "🥜"
   },
   {
     name: "chestnut",
@@ -3153,7 +3529,8 @@ export const EmojiList = [
     shortname: ":chestnut:",
     code: "&#127792;",
     category: "n",
-    emoji_order: "1473"
+    emoji_order: "1473",
+    char: "🌰"
   },
   {
     name: "bread",
@@ -3161,7 +3538,8 @@ export const EmojiList = [
     shortname: ":bread:",
     code: "&#127838;",
     category: "d",
-    emoji_order: "1474"
+    emoji_order: "1474",
+    char: "🍞"
   },
   {
     name: "croissant",
@@ -3169,7 +3547,8 @@ export const EmojiList = [
     shortname: ":croissant:",
     code: "&#129360;",
     category: "d",
-    emoji_order: "1475"
+    emoji_order: "1475",
+    char: "🥐"
   },
   {
     name: "french_bread",
@@ -3177,7 +3556,8 @@ export const EmojiList = [
     shortname: ":french_bread:",
     code: "&#129366;",
     category: "d",
-    emoji_order: "1476"
+    emoji_order: "1476",
+    char: "🥖"
   },
   {
     name: "pancakes",
@@ -3185,7 +3565,8 @@ export const EmojiList = [
     shortname: ":pancakes:",
     code: "&#129374;",
     category: "d",
-    emoji_order: "1477"
+    emoji_order: "1477",
+    char: "🥞"
   },
   {
     name: "cheese_wedge",
@@ -3193,7 +3574,8 @@ export const EmojiList = [
     shortname: ":cheese:",
     code: "&#129472;",
     category: "d",
-    emoji_order: "1478"
+    emoji_order: "1478",
+    char: "🧀"
   },
   {
     name: "meat_on_bone",
@@ -3201,7 +3583,8 @@ export const EmojiList = [
     shortname: ":meat_on_bone:",
     code: "&#127830;",
     category: "d",
-    emoji_order: "1479"
+    emoji_order: "1479",
+    char: "🍖"
   },
   {
     name: "poultry_leg",
@@ -3209,7 +3592,8 @@ export const EmojiList = [
     shortname: ":poultry_leg:",
     code: "&#127831;",
     category: "d",
-    emoji_order: "1480"
+    emoji_order: "1480",
+    char: "🍗"
   },
   {
     name: "bacon",
@@ -3217,7 +3601,8 @@ export const EmojiList = [
     shortname: ":bacon:",
     code: "&#129363;",
     category: "d",
-    emoji_order: "1481"
+    emoji_order: "1481",
+    char: "🥓"
   },
   {
     name: "hamburger",
@@ -3225,7 +3610,8 @@ export const EmojiList = [
     shortname: ":hamburger:",
     code: "&#127828;",
     category: "d",
-    emoji_order: "1482"
+    emoji_order: "1482",
+    char: "🍔"
   },
   {
     name: "fries",
@@ -3233,7 +3619,8 @@ export const EmojiList = [
     shortname: ":fries:",
     code: "&#127839;",
     category: "d",
-    emoji_order: "1483"
+    emoji_order: "1483",
+    char: "🍟"
   },
   {
     name: "pizza",
@@ -3241,7 +3628,8 @@ export const EmojiList = [
     shortname: ":pizza:",
     code: "&#127829;",
     category: "d",
-    emoji_order: "1484"
+    emoji_order: "1484",
+    char: "🍕"
   },
   {
     name: "hotdog",
@@ -3249,7 +3637,8 @@ export const EmojiList = [
     shortname: ":hotdog:",
     code: "&#127789;",
     category: "d",
-    emoji_order: "1485"
+    emoji_order: "1485",
+    char: "🌭"
   },
   {
     name: "taco",
@@ -3257,7 +3646,8 @@ export const EmojiList = [
     shortname: ":taco:",
     code: "&#127790;",
     category: "d",
-    emoji_order: "1486"
+    emoji_order: "1486",
+    char: "🌮"
   },
   {
     name: "burrito",
@@ -3265,7 +3655,8 @@ export const EmojiList = [
     shortname: ":burrito:",
     code: "&#127791;",
     category: "d",
-    emoji_order: "1487"
+    emoji_order: "1487",
+    char: "🌯"
   },
   {
     name: "stuffed_flatbread",
@@ -3273,7 +3664,8 @@ export const EmojiList = [
     shortname: ":stuffed_flatbread:",
     code: "&#129369;",
     category: "d",
-    emoji_order: "1488"
+    emoji_order: "1488",
+    char: "🥙"
   },
   {
     name: "egg",
@@ -3281,7 +3673,8 @@ export const EmojiList = [
     shortname: ":egg:",
     code: "&#129370;",
     category: "d",
-    emoji_order: "1489"
+    emoji_order: "1489",
+    char: "🥚"
   },
   {
     name: "cooking",
@@ -3289,7 +3682,8 @@ export const EmojiList = [
     shortname: ":cooking:",
     code: "&#127859;",
     category: "d",
-    emoji_order: "1490"
+    emoji_order: "1490",
+    char: "🍳"
   },
   {
     name: "shallow_pan_of_f",
@@ -3297,7 +3691,8 @@ export const EmojiList = [
     shortname: ":shallow_pan_of_f:",
     code: "&#129368;",
     category: "d",
-    emoji_order: "1491"
+    emoji_order: "1491",
+    char: "🥘"
   },
   {
     name: "stew",
@@ -3305,7 +3700,8 @@ export const EmojiList = [
     shortname: ":stew:",
     code: "&#127858;",
     category: "d",
-    emoji_order: "1492"
+    emoji_order: "1492",
+    char: "🍲"
   },
   {
     name: "salad",
@@ -3313,7 +3709,8 @@ export const EmojiList = [
     shortname: ":salad:",
     code: "&#129367;",
     category: "d",
-    emoji_order: "1493"
+    emoji_order: "1493",
+    char: "🥗"
   },
   {
     name: "popcorn",
@@ -3321,7 +3718,8 @@ export const EmojiList = [
     shortname: ":popcorn:",
     code: "&#127871;",
     category: "d",
-    emoji_order: "1494"
+    emoji_order: "1494",
+    char: "🍿"
   },
   {
     name: "bento",
@@ -3329,7 +3727,8 @@ export const EmojiList = [
     shortname: ":bento:",
     code: "&#127857;",
     category: "d",
-    emoji_order: "1495"
+    emoji_order: "1495",
+    char: "🍱"
   },
   {
     name: "rice_cracker",
@@ -3337,7 +3736,8 @@ export const EmojiList = [
     shortname: ":rice_cracker:",
     code: "&#127832;",
     category: "d",
-    emoji_order: "1496"
+    emoji_order: "1496",
+    char: "🍘"
   },
   {
     name: "rice_ball",
@@ -3345,7 +3745,8 @@ export const EmojiList = [
     shortname: ":rice_ball:",
     code: "&#127833;",
     category: "d",
-    emoji_order: "1497"
+    emoji_order: "1497",
+    char: "🍙"
   },
   {
     name: "rice",
@@ -3353,7 +3754,8 @@ export const EmojiList = [
     shortname: ":rice:",
     code: "&#127834;",
     category: "d",
-    emoji_order: "1498"
+    emoji_order: "1498",
+    char: "🍚"
   },
   {
     name: "curry",
@@ -3361,7 +3763,8 @@ export const EmojiList = [
     shortname: ":curry:",
     code: "&#127835;",
     category: "d",
-    emoji_order: "1499"
+    emoji_order: "1499",
+    char: "🍛"
   },
   {
     name: "ramen",
@@ -3369,7 +3772,8 @@ export const EmojiList = [
     shortname: ":ramen:",
     code: "&#127836;",
     category: "d",
-    emoji_order: "1500"
+    emoji_order: "1500",
+    char: "🍜"
   },
   {
     name: "spaghetti",
@@ -3377,7 +3781,8 @@ export const EmojiList = [
     shortname: ":spaghetti:",
     code: "&#127837;",
     category: "d",
-    emoji_order: "1501"
+    emoji_order: "1501",
+    char: "🍝"
   },
   {
     name: "sweet_potato",
@@ -3385,7 +3790,8 @@ export const EmojiList = [
     shortname: ":sweet_potato:",
     code: "&#127840;",
     category: "d",
-    emoji_order: "1502"
+    emoji_order: "1502",
+    char: "🍠"
   },
   {
     name: "oden",
@@ -3393,7 +3799,8 @@ export const EmojiList = [
     shortname: ":oden:",
     code: "&#127842;",
     category: "d",
-    emoji_order: "1503"
+    emoji_order: "1503",
+    char: "🍢"
   },
   {
     name: "sushi",
@@ -3401,7 +3808,8 @@ export const EmojiList = [
     shortname: ":sushi:",
     code: "&#127843;",
     category: "d",
-    emoji_order: "1504"
+    emoji_order: "1504",
+    char: "🍣"
   },
   {
     name: "fried_shrimp",
@@ -3409,7 +3817,8 @@ export const EmojiList = [
     shortname: ":fried_shrimp:",
     code: "&#127844;",
     category: "d",
-    emoji_order: "1505"
+    emoji_order: "1505",
+    char: "🍤"
   },
   {
     name: "fish_cake",
@@ -3417,7 +3826,8 @@ export const EmojiList = [
     shortname: ":fish_cake:",
     code: "&#127845;",
     category: "d",
-    emoji_order: "1506"
+    emoji_order: "1506",
+    char: "🍥"
   },
   {
     name: "dango",
@@ -3425,7 +3835,8 @@ export const EmojiList = [
     shortname: ":dango:",
     code: "&#127841;",
     category: "d",
-    emoji_order: "1507"
+    emoji_order: "1507",
+    char: "🍡"
   },
   {
     name: "icecream",
@@ -3433,7 +3844,8 @@ export const EmojiList = [
     shortname: ":icecream:",
     code: "&#127846;",
     category: "d",
-    emoji_order: "1508"
+    emoji_order: "1508",
+    char: "🍦"
   },
   {
     name: "shaved_ice",
@@ -3441,7 +3853,8 @@ export const EmojiList = [
     shortname: ":shaved_ice:",
     code: "&#127847;",
     category: "d",
-    emoji_order: "1509"
+    emoji_order: "1509",
+    char: "🍧"
   },
   {
     name: "ice_cream",
@@ -3449,7 +3862,8 @@ export const EmojiList = [
     shortname: ":ice_cream:",
     code: "&#127848;",
     category: "d",
-    emoji_order: "1510"
+    emoji_order: "1510",
+    char: "🍨"
   },
   {
     name: "doughnut",
@@ -3457,7 +3871,8 @@ export const EmojiList = [
     shortname: ":doughnut:",
     code: "&#127849;",
     category: "d",
-    emoji_order: "1511"
+    emoji_order: "1511",
+    char: "🍩"
   },
   {
     name: "cookie",
@@ -3465,7 +3880,8 @@ export const EmojiList = [
     shortname: ":cookie:",
     code: "&#127850;",
     category: "d",
-    emoji_order: "1512"
+    emoji_order: "1512",
+    char: "🍪"
   },
   {
     name: "birthday",
@@ -3473,7 +3889,8 @@ export const EmojiList = [
     shortname: ":birthday:",
     code: "&#127874;",
     category: "d",
-    emoji_order: "1513"
+    emoji_order: "1513",
+    char: "🎂"
   },
   {
     name: "cake",
@@ -3481,7 +3898,8 @@ export const EmojiList = [
     shortname: ":cake:",
     code: "&#127856;",
     category: "d",
-    emoji_order: "1514"
+    emoji_order: "1514",
+    char: "🍰"
   },
   {
     name: "chocolate_bar",
@@ -3489,7 +3907,8 @@ export const EmojiList = [
     shortname: ":chocolate_bar:",
     code: "&#127851;",
     category: "d",
-    emoji_order: "1515"
+    emoji_order: "1515",
+    char: "🍫"
   },
   {
     name: "candy",
@@ -3497,7 +3916,8 @@ export const EmojiList = [
     shortname: ":candy:",
     code: "&#127852;",
     category: "d",
-    emoji_order: "1516"
+    emoji_order: "1516",
+    char: "🍬"
   },
   {
     name: "lollipop",
@@ -3505,7 +3925,8 @@ export const EmojiList = [
     shortname: ":lollipop:",
     code: "&#127853;",
     category: "d",
-    emoji_order: "1517"
+    emoji_order: "1517",
+    char: "🍭"
   },
   {
     name: "custard",
@@ -3513,7 +3934,8 @@ export const EmojiList = [
     shortname: ":custard:",
     code: "&#127854;",
     category: "d",
-    emoji_order: "1518"
+    emoji_order: "1518",
+    char: "🍮"
   },
   {
     name: "honey_pot",
@@ -3521,7 +3943,8 @@ export const EmojiList = [
     shortname: ":honey_pot:",
     code: "&#127855;",
     category: "d",
-    emoji_order: "1519"
+    emoji_order: "1519",
+    char: "🍯"
   },
   {
     name: "baby_bottle",
@@ -3529,7 +3952,8 @@ export const EmojiList = [
     shortname: ":baby_bottle:",
     code: "&#127868;",
     category: "d",
-    emoji_order: "1520"
+    emoji_order: "1520",
+    char: "🍼"
   },
   {
     name: "milk",
@@ -3537,7 +3961,8 @@ export const EmojiList = [
     shortname: ":milk:",
     code: "&#129371;",
     category: "d",
-    emoji_order: "1521"
+    emoji_order: "1521",
+    char: "🥛"
   },
   {
     name: "coffee",
@@ -3545,7 +3970,8 @@ export const EmojiList = [
     shortname: ":coffee:",
     code: "&#9749;",
     category: "d",
-    emoji_order: "1522"
+    emoji_order: "1522",
+    char: "☕"
   },
   {
     name: "tea",
@@ -3553,7 +3979,8 @@ export const EmojiList = [
     shortname: ":tea:",
     code: "&#127861;",
     category: "d",
-    emoji_order: "1523"
+    emoji_order: "1523",
+    char: "🍵"
   },
   {
     name: "sake",
@@ -3561,7 +3988,8 @@ export const EmojiList = [
     shortname: ":sake:",
     code: "&#127862;",
     category: "d",
-    emoji_order: "1524"
+    emoji_order: "1524",
+    char: "🍶"
   },
   {
     name: "champagne",
@@ -3569,7 +3997,8 @@ export const EmojiList = [
     shortname: ":champagne:",
     code: "&#127870;",
     category: "d",
-    emoji_order: "1525"
+    emoji_order: "1525",
+    char: "🍾"
   },
   {
     name: "wine_glass",
@@ -3577,7 +4006,8 @@ export const EmojiList = [
     shortname: ":wine_glass:",
     code: "&#127863;",
     category: "d",
-    emoji_order: "1526"
+    emoji_order: "1526",
+    char: "🍷"
   },
   {
     name: "cocktail",
@@ -3585,7 +4015,8 @@ export const EmojiList = [
     shortname: ":cocktail:",
     code: "&#127864;",
     category: "d",
-    emoji_order: "1527"
+    emoji_order: "1527",
+    char: "🍸"
   },
   {
     name: "tropical_drink",
@@ -3593,7 +4024,8 @@ export const EmojiList = [
     shortname: ":tropical_drink:",
     code: "&#127865;",
     category: "d",
-    emoji_order: "1528"
+    emoji_order: "1528",
+    char: "🍹"
   },
   {
     name: "beer",
@@ -3601,7 +4033,8 @@ export const EmojiList = [
     shortname: ":beer:",
     code: "&#127866;",
     category: "d",
-    emoji_order: "1529"
+    emoji_order: "1529",
+    char: "🍺"
   },
   {
     name: "beers",
@@ -3609,7 +4042,8 @@ export const EmojiList = [
     shortname: ":beers:",
     code: "&#127867;",
     category: "d",
-    emoji_order: "1530"
+    emoji_order: "1530",
+    char: "🍻"
   },
   {
     name: "champagne_glass",
@@ -3617,7 +4051,8 @@ export const EmojiList = [
     shortname: ":champagne_glass:",
     code: "&#129346;",
     category: "d",
-    emoji_order: "1531"
+    emoji_order: "1531",
+    char: "🥂"
   },
   {
     name: "tumbler_glass",
@@ -3625,7 +4060,8 @@ export const EmojiList = [
     shortname: ":tumbler_glass:",
     code: "&#129347;",
     category: "d",
-    emoji_order: "1532"
+    emoji_order: "1532",
+    char: "🥃"
   },
   {
     name: "knife_fork_plate",
@@ -3633,7 +4069,8 @@ export const EmojiList = [
     shortname: ":fork_knife_plate:",
     code: "&#127869;",
     category: "d",
-    emoji_order: "1533"
+    emoji_order: "1533",
+    char: "🍽"
   },
   {
     name: "fork_and_knife",
@@ -3641,7 +4078,8 @@ export const EmojiList = [
     shortname: ":fork_and_knife:",
     code: "&#127860;",
     category: "d",
-    emoji_order: "1534"
+    emoji_order: "1534",
+    char: "🍴"
   },
   {
     name: "spoon",
@@ -3649,7 +4087,8 @@ export const EmojiList = [
     shortname: ":spoon:",
     code: "&#129348;",
     category: "d",
-    emoji_order: "1535"
+    emoji_order: "1535",
+    char: "🥄"
   },
   {
     name: "knife",
@@ -3657,7 +4096,8 @@ export const EmojiList = [
     shortname: ":knife:",
     code: "&#128298;",
     category: "o",
-    emoji_order: "1536"
+    emoji_order: "1536",
+    char: "🔪"
   },
   {
     name: "amphora",
@@ -3665,7 +4105,8 @@ export const EmojiList = [
     shortname: ":amphora:",
     code: "&#127994;",
     category: "o",
-    emoji_order: "1537"
+    emoji_order: "1537",
+    char: "🏺"
   },
   {
     name: "earth_africa",
@@ -3673,7 +4114,8 @@ export const EmojiList = [
     shortname: ":earth_africa:",
     code: "&#127757;",
     category: "n",
-    emoji_order: "1538"
+    emoji_order: "1538",
+    char: "🌍"
   },
   {
     name: "earth_americas",
@@ -3681,7 +4123,8 @@ export const EmojiList = [
     shortname: ":earth_americas:",
     code: "&#127758;",
     category: "n",
-    emoji_order: "1539"
+    emoji_order: "1539",
+    char: "🌎"
   },
   {
     name: "earth_asia",
@@ -3689,7 +4132,8 @@ export const EmojiList = [
     shortname: ":earth_asia:",
     code: "&#127759;",
     category: "n",
-    emoji_order: "1540"
+    emoji_order: "1540",
+    char: "🌏"
   },
   {
     name: "globe_with_meridians",
@@ -3697,7 +4141,8 @@ export const EmojiList = [
     shortname: ":globe_with_meridians:",
     code: "&#127760;",
     category: "s",
-    emoji_order: "1541"
+    emoji_order: "1541",
+    char: "🌐"
   },
   {
     name: "world_map",
@@ -3705,7 +4150,8 @@ export const EmojiList = [
     shortname: ":map:",
     code: "&#128506;",
     category: "o",
-    emoji_order: "1542"
+    emoji_order: "1542",
+    char: "🗺"
   },
   {
     name: "japan",
@@ -3713,7 +4159,8 @@ export const EmojiList = [
     shortname: ":japan:",
     code: "&#128510;",
     category: "t",
-    emoji_order: "1543"
+    emoji_order: "1543",
+    char: "🗾"
   },
   {
     name: "snow_capped_mountain",
@@ -3721,7 +4168,8 @@ export const EmojiList = [
     shortname: ":mountain_snow:",
     code: "&#127956;",
     category: "t",
-    emoji_order: "1544"
+    emoji_order: "1544",
+    char: "🏔"
   },
   {
     name: "mountain",
@@ -3729,7 +4177,8 @@ export const EmojiList = [
     shortname: ":mountain:",
     code: "&#9968;",
     category: "t",
-    emoji_order: "1545"
+    emoji_order: "1545",
+    char: "⛰"
   },
   {
     name: "volcano",
@@ -3737,7 +4186,8 @@ export const EmojiList = [
     shortname: ":volcano:",
     code: "&#127755;",
     category: "t",
-    emoji_order: "1546"
+    emoji_order: "1546",
+    char: "🌋"
   },
   {
     name: "mount_fuji",
@@ -3745,7 +4195,8 @@ export const EmojiList = [
     shortname: ":mount_fuji:",
     code: "&#128507;",
     category: "t",
-    emoji_order: "1547"
+    emoji_order: "1547",
+    char: "🗻"
   },
   {
     name: "camping",
@@ -3753,7 +4204,8 @@ export const EmojiList = [
     shortname: ":camping:",
     code: "&#127957;",
     category: "t",
-    emoji_order: "1548"
+    emoji_order: "1548",
+    char: "🏕"
   },
   {
     name: "beach_with_umbrella",
@@ -3761,7 +4213,8 @@ export const EmojiList = [
     shortname: ":beach:",
     code: "&#127958;",
     category: "t",
-    emoji_order: "1549"
+    emoji_order: "1549",
+    char: "🏖"
   },
   {
     name: "desert",
@@ -3769,7 +4222,8 @@ export const EmojiList = [
     shortname: ":desert:",
     code: "&#127964;",
     category: "t",
-    emoji_order: "1550"
+    emoji_order: "1550",
+    char: "🏜"
   },
   {
     name: "desert_island",
@@ -3777,7 +4231,8 @@ export const EmojiList = [
     shortname: ":island:",
     code: "&#127965;",
     category: "t",
-    emoji_order: "1551"
+    emoji_order: "1551",
+    char: "🏝"
   },
   {
     name: "national_park",
@@ -3785,7 +4240,8 @@ export const EmojiList = [
     shortname: ":park:",
     code: "&#127966;",
     category: "t",
-    emoji_order: "1552"
+    emoji_order: "1552",
+    char: "🏞"
   },
   {
     name: "stadium",
@@ -3793,7 +4249,8 @@ export const EmojiList = [
     shortname: ":stadium:",
     code: "&#127967;",
     category: "t",
-    emoji_order: "1553"
+    emoji_order: "1553",
+    char: "🏟"
   },
   {
     name: "classical_building",
@@ -3801,7 +4258,8 @@ export const EmojiList = [
     shortname: ":classical_building:",
     code: "&#127963;",
     category: "t",
-    emoji_order: "1554"
+    emoji_order: "1554",
+    char: "🏛"
   },
   {
     name: "building_construction",
@@ -3809,7 +4267,8 @@ export const EmojiList = [
     shortname: ":construction_site:",
     code: "&#127959;",
     category: "t",
-    emoji_order: "1555"
+    emoji_order: "1555",
+    char: "🏗"
   },
   {
     name: "house_buildings",
@@ -3817,7 +4276,8 @@ export const EmojiList = [
     shortname: ":homes:",
     code: "&#127960;",
     category: "t",
-    emoji_order: "1556"
+    emoji_order: "1556",
+    char: "🏘"
   },
   {
     name: "cityscape",
@@ -3825,7 +4285,8 @@ export const EmojiList = [
     shortname: ":cityscape:",
     code: "&#127961;",
     category: "t",
-    emoji_order: "1557"
+    emoji_order: "1557",
+    char: "🏙"
   },
   {
     name: "derelict_house_building",
@@ -3833,7 +4294,8 @@ export const EmojiList = [
     shortname: ":house_abandoned:",
     code: "&#127962;",
     category: "t",
-    emoji_order: "1558"
+    emoji_order: "1558",
+    char: "🏚"
   },
   {
     name: "house",
@@ -3841,7 +4303,8 @@ export const EmojiList = [
     shortname: ":house:",
     code: "&#127968;",
     category: "t",
-    emoji_order: "1559"
+    emoji_order: "1559",
+    char: "🏠"
   },
   {
     name: "house_with_garden",
@@ -3849,7 +4312,8 @@ export const EmojiList = [
     shortname: ":house_with_garden:",
     code: "&#127969;",
     category: "t",
-    emoji_order: "1560"
+    emoji_order: "1560",
+    char: "🏡"
   },
   {
     name: "office",
@@ -3857,7 +4321,8 @@ export const EmojiList = [
     shortname: ":office:",
     code: "&#127970;",
     category: "t",
-    emoji_order: "1561"
+    emoji_order: "1561",
+    char: "🏢"
   },
   {
     name: "post_office",
@@ -3865,7 +4330,8 @@ export const EmojiList = [
     shortname: ":post_office:",
     code: "&#127971;",
     category: "t",
-    emoji_order: "1562"
+    emoji_order: "1562",
+    char: "🏣"
   },
   {
     name: "european_post_office",
@@ -3873,7 +4339,8 @@ export const EmojiList = [
     shortname: ":european_post_office:",
     code: "&#127972;",
     category: "t",
-    emoji_order: "1563"
+    emoji_order: "1563",
+    char: "🏤"
   },
   {
     name: "hospital",
@@ -3881,7 +4348,8 @@ export const EmojiList = [
     shortname: ":hospital:",
     code: "&#127973;",
     category: "t",
-    emoji_order: "1564"
+    emoji_order: "1564",
+    char: "🏥"
   },
   {
     name: "bank",
@@ -3889,7 +4357,8 @@ export const EmojiList = [
     shortname: ":bank:",
     code: "&#127974;",
     category: "t",
-    emoji_order: "1565"
+    emoji_order: "1565",
+    char: "🏦"
   },
   {
     name: "hotel",
@@ -3897,7 +4366,8 @@ export const EmojiList = [
     shortname: ":hotel:",
     code: "&#127976;",
     category: "t",
-    emoji_order: "1566"
+    emoji_order: "1566",
+    char: "🏨"
   },
   {
     name: "love_hotel",
@@ -3905,7 +4375,8 @@ export const EmojiList = [
     shortname: ":love_hotel:",
     code: "&#127977;",
     category: "t",
-    emoji_order: "1567"
+    emoji_order: "1567",
+    char: "🏩"
   },
   {
     name: "convenience_store",
@@ -3913,7 +4384,8 @@ export const EmojiList = [
     shortname: ":convenience_store:",
     code: "&#127978;",
     category: "t",
-    emoji_order: "1568"
+    emoji_order: "1568",
+    char: "🏪"
   },
   {
     name: "school",
@@ -3921,7 +4393,8 @@ export const EmojiList = [
     shortname: ":school:",
     code: "&#127979;",
     category: "t",
-    emoji_order: "1569"
+    emoji_order: "1569",
+    char: "🏫"
   },
   {
     name: "department_store",
@@ -3929,7 +4402,8 @@ export const EmojiList = [
     shortname: ":department_store:",
     code: "&#127980;",
     category: "t",
-    emoji_order: "1570"
+    emoji_order: "1570",
+    char: "🏬"
   },
   {
     name: "factory",
@@ -3937,7 +4411,8 @@ export const EmojiList = [
     shortname: ":factory:",
     code: "&#127981;",
     category: "t",
-    emoji_order: "1571"
+    emoji_order: "1571",
+    char: "🏭"
   },
   {
     name: "japanese_castle",
@@ -3945,7 +4420,8 @@ export const EmojiList = [
     shortname: ":japanese_castle:",
     code: "&#127983;",
     category: "t",
-    emoji_order: "1572"
+    emoji_order: "1572",
+    char: "🏯"
   },
   {
     name: "european_castle",
@@ -3953,7 +4429,8 @@ export const EmojiList = [
     shortname: ":european_castle:",
     code: "&#127984;",
     category: "t",
-    emoji_order: "1573"
+    emoji_order: "1573",
+    char: "🏰"
   },
   {
     name: "wedding",
@@ -3961,7 +4438,8 @@ export const EmojiList = [
     shortname: ":wedding:",
     code: "&#128146;",
     category: "t",
-    emoji_order: "1574"
+    emoji_order: "1574",
+    char: "💒"
   },
   {
     name: "tokyo_tower",
@@ -3969,7 +4447,8 @@ export const EmojiList = [
     shortname: ":tokyo_tower:",
     code: "&#128508;",
     category: "t",
-    emoji_order: "1575"
+    emoji_order: "1575",
+    char: "🗼"
   },
   {
     name: "statue_of_liberty",
@@ -3977,7 +4456,8 @@ export const EmojiList = [
     shortname: ":statue_of_liberty:",
     code: "&#128509;",
     category: "t",
-    emoji_order: "1576"
+    emoji_order: "1576",
+    char: "🗽"
   },
   {
     name: "church",
@@ -3985,7 +4465,8 @@ export const EmojiList = [
     shortname: ":church:",
     code: "&#9962;",
     category: "t",
-    emoji_order: "1577"
+    emoji_order: "1577",
+    char: "⛪"
   },
   {
     name: "mosque",
@@ -3993,7 +4474,8 @@ export const EmojiList = [
     shortname: ":mosque:",
     code: "&#128332;",
     category: "t",
-    emoji_order: "1578"
+    emoji_order: "1578",
+    char: "🕌"
   },
   {
     name: "synagogue",
@@ -4001,7 +4483,8 @@ export const EmojiList = [
     shortname: ":synagogue:",
     code: "&#128333;",
     category: "t",
-    emoji_order: "1579"
+    emoji_order: "1579",
+    char: "🕍"
   },
   {
     name: "shinto_shrine",
@@ -4009,7 +4492,8 @@ export const EmojiList = [
     shortname: ":shinto_shrine:",
     code: "&#9961;",
     category: "t",
-    emoji_order: "1580"
+    emoji_order: "1580",
+    char: "⛩"
   },
   {
     name: "kaaba",
@@ -4017,7 +4501,8 @@ export const EmojiList = [
     shortname: ":kaaba:",
     code: "&#128331;",
     category: "t",
-    emoji_order: "1581"
+    emoji_order: "1581",
+    char: "🕋"
   },
   {
     name: "fountain",
@@ -4025,7 +4510,8 @@ export const EmojiList = [
     shortname: ":fountain:",
     code: "&#9970;",
     category: "t",
-    emoji_order: "1582"
+    emoji_order: "1582",
+    char: "⛲"
   },
   {
     name: "tent",
@@ -4033,7 +4519,8 @@ export const EmojiList = [
     shortname: ":tent:",
     code: "&#9978;",
     category: "t",
-    emoji_order: "1583"
+    emoji_order: "1583",
+    char: "⛺"
   },
   {
     name: "foggy",
@@ -4041,7 +4528,8 @@ export const EmojiList = [
     shortname: ":foggy:",
     code: "&#127745;",
     category: "t",
-    emoji_order: "1584"
+    emoji_order: "1584",
+    char: "🌁"
   },
   {
     name: "night_with_stars",
@@ -4049,7 +4537,8 @@ export const EmojiList = [
     shortname: ":night_with_stars:",
     code: "&#127747;",
     category: "t",
-    emoji_order: "1585"
+    emoji_order: "1585",
+    char: "🌃"
   },
   {
     name: "sunrise_over_mountains",
@@ -4057,7 +4546,8 @@ export const EmojiList = [
     shortname: ":sunrise_over_mountains:",
     code: "&#127748;",
     category: "t",
-    emoji_order: "1586"
+    emoji_order: "1586",
+    char: "🌄"
   },
   {
     name: "sunrise",
@@ -4065,7 +4555,8 @@ export const EmojiList = [
     shortname: ":sunrise:",
     code: "&#127749;",
     category: "t",
-    emoji_order: "1587"
+    emoji_order: "1587",
+    char: "🌅"
   },
   {
     name: "city_dusk",
@@ -4073,7 +4564,8 @@ export const EmojiList = [
     shortname: ":city_dusk:",
     code: "&#127750;",
     category: "t",
-    emoji_order: "1588"
+    emoji_order: "1588",
+    char: "🌆"
   },
   {
     name: "city_sunset",
@@ -4081,7 +4573,8 @@ export const EmojiList = [
     shortname: ":city_sunset:",
     code: "&#127751;",
     category: "t",
-    emoji_order: "1589"
+    emoji_order: "1589",
+    char: "🌇"
   },
   {
     name: "bridge_at_night",
@@ -4089,7 +4582,8 @@ export const EmojiList = [
     shortname: ":bridge_at_night:",
     code: "&#127753;",
     category: "t",
-    emoji_order: "1590"
+    emoji_order: "1590",
+    char: "🌉"
   },
   {
     name: "hotsprings",
@@ -4097,7 +4591,8 @@ export const EmojiList = [
     shortname: ":hotsprings:",
     code: "&#9832;",
     category: "s",
-    emoji_order: "1591"
+    emoji_order: "1591",
+    char: "♨"
   },
   {
     name: "milky_way",
@@ -4105,7 +4600,8 @@ export const EmojiList = [
     shortname: ":milky_way:",
     code: "&#127756;",
     category: "t",
-    emoji_order: "1592"
+    emoji_order: "1592",
+    char: "🌌"
   },
   {
     name: "carousel_horse",
@@ -4113,7 +4609,8 @@ export const EmojiList = [
     shortname: ":carousel_horse:",
     code: "&#127904;",
     category: "t",
-    emoji_order: "1593"
+    emoji_order: "1593",
+    char: "🎠"
   },
   {
     name: "ferris_wheel",
@@ -4121,7 +4618,8 @@ export const EmojiList = [
     shortname: ":ferris_wheel:",
     code: "&#127905;",
     category: "t",
-    emoji_order: "1594"
+    emoji_order: "1594",
+    char: "🎡"
   },
   {
     name: "roller_coaster",
@@ -4129,7 +4627,8 @@ export const EmojiList = [
     shortname: ":roller_coaster:",
     code: "&#127906;",
     category: "t",
-    emoji_order: "1595"
+    emoji_order: "1595",
+    char: "🎢"
   },
   {
     name: "barber",
@@ -4137,7 +4636,8 @@ export const EmojiList = [
     shortname: ":barber:",
     code: "&#128136;",
     category: "o",
-    emoji_order: "1596"
+    emoji_order: "1596",
+    char: "💈"
   },
   {
     name: "circus_tent",
@@ -4145,7 +4645,8 @@ export const EmojiList = [
     shortname: ":circus_tent:",
     code: "&#127914;",
     category: "a",
-    emoji_order: "1597"
+    emoji_order: "1597",
+    char: "🎪"
   },
   {
     name: "performing_arts",
@@ -4153,7 +4654,8 @@ export const EmojiList = [
     shortname: ":performing_arts:",
     code: "&#127917;",
     category: "a",
-    emoji_order: "1598"
+    emoji_order: "1598",
+    char: "🎭"
   },
   {
     name: "frame_with_picture",
@@ -4161,7 +4663,8 @@ export const EmojiList = [
     shortname: ":frame_photo:",
     code: "&#128444;",
     category: "o",
-    emoji_order: "1599"
+    emoji_order: "1599",
+    char: "🖼"
   },
   {
     name: "art",
@@ -4169,7 +4672,8 @@ export const EmojiList = [
     shortname: ":art:",
     code: "&#127912;",
     category: "a",
-    emoji_order: "1600"
+    emoji_order: "1600",
+    char: "🎨"
   },
   {
     name: "slot_machine",
@@ -4177,7 +4681,8 @@ export const EmojiList = [
     shortname: ":slot_machine:",
     code: "&#127920;",
     category: "a",
-    emoji_order: "1601"
+    emoji_order: "1601",
+    char: "🎰"
   },
   {
     name: "steam_locomotive",
@@ -4185,7 +4690,8 @@ export const EmojiList = [
     shortname: ":steam_locomotive:",
     code: "&#128642;",
     category: "t",
-    emoji_order: "1602"
+    emoji_order: "1602",
+    char: "🚂"
   },
   {
     name: "railway_car",
@@ -4193,7 +4699,8 @@ export const EmojiList = [
     shortname: ":railway_car:",
     code: "&#128643;",
     category: "t",
-    emoji_order: "1603"
+    emoji_order: "1603",
+    char: "🚃"
   },
   {
     name: "bullettrain_side",
@@ -4201,7 +4708,8 @@ export const EmojiList = [
     shortname: ":bullettrain_side:",
     code: "&#128644;",
     category: "t",
-    emoji_order: "1604"
+    emoji_order: "1604",
+    char: "🚄"
   },
   {
     name: "bullettrain_front",
@@ -4209,7 +4717,8 @@ export const EmojiList = [
     shortname: ":bullettrain_front:",
     code: "&#128645;",
     category: "t",
-    emoji_order: "1605"
+    emoji_order: "1605",
+    char: "🚅"
   },
   {
     name: "train2",
@@ -4217,7 +4726,8 @@ export const EmojiList = [
     shortname: ":train2:",
     code: "&#128646;",
     category: "t",
-    emoji_order: "1606"
+    emoji_order: "1606",
+    char: "🚆"
   },
   {
     name: "metro",
@@ -4225,7 +4735,8 @@ export const EmojiList = [
     shortname: ":metro:",
     code: "&#128647;",
     category: "t",
-    emoji_order: "1607"
+    emoji_order: "1607",
+    char: "🚇"
   },
   {
     name: "light_rail",
@@ -4233,7 +4744,8 @@ export const EmojiList = [
     shortname: ":light_rail:",
     code: "&#128648;",
     category: "t",
-    emoji_order: "1608"
+    emoji_order: "1608",
+    char: "🚈"
   },
   {
     name: "station",
@@ -4241,7 +4753,8 @@ export const EmojiList = [
     shortname: ":station:",
     code: "&#128649;",
     category: "t",
-    emoji_order: "1609"
+    emoji_order: "1609",
+    char: "🚉"
   },
   {
     name: "tram",
@@ -4249,7 +4762,8 @@ export const EmojiList = [
     shortname: ":tram:",
     code: "&#128650;",
     category: "t",
-    emoji_order: "1610"
+    emoji_order: "1610",
+    char: "🚊"
   },
   {
     name: "monorail",
@@ -4257,7 +4771,8 @@ export const EmojiList = [
     shortname: ":monorail:",
     code: "&#128669;",
     category: "t",
-    emoji_order: "1611"
+    emoji_order: "1611",
+    char: "🚝"
   },
   {
     name: "mountain_railway",
@@ -4265,7 +4780,8 @@ export const EmojiList = [
     shortname: ":mountain_railway:",
     code: "&#128670;",
     category: "t",
-    emoji_order: "1612"
+    emoji_order: "1612",
+    char: "🚞"
   },
   {
     name: "train",
@@ -4273,7 +4789,8 @@ export const EmojiList = [
     shortname: ":train:",
     code: "&#128651;",
     category: "t",
-    emoji_order: "1613"
+    emoji_order: "1613",
+    char: "🚋"
   },
   {
     name: "bus",
@@ -4281,7 +4798,8 @@ export const EmojiList = [
     shortname: ":bus:",
     code: "&#128652;",
     category: "t",
-    emoji_order: "1614"
+    emoji_order: "1614",
+    char: "🚌"
   },
   {
     name: "oncoming_bus",
@@ -4289,7 +4807,8 @@ export const EmojiList = [
     shortname: ":oncoming_bus:",
     code: "&#128653;",
     category: "t",
-    emoji_order: "1615"
+    emoji_order: "1615",
+    char: "🚍"
   },
   {
     name: "trolleybus",
@@ -4297,7 +4816,8 @@ export const EmojiList = [
     shortname: ":trolleybus:",
     code: "&#128654;",
     category: "t",
-    emoji_order: "1616"
+    emoji_order: "1616",
+    char: "🚎"
   },
   {
     name: "minibus",
@@ -4305,7 +4825,8 @@ export const EmojiList = [
     shortname: ":minibus:",
     code: "&#128656;",
     category: "t",
-    emoji_order: "1617"
+    emoji_order: "1617",
+    char: "🚐"
   },
   {
     name: "ambulance",
@@ -4313,7 +4834,8 @@ export const EmojiList = [
     shortname: ":ambulance:",
     code: "&#128657;",
     category: "t",
-    emoji_order: "1618"
+    emoji_order: "1618",
+    char: "🚑"
   },
   {
     name: "fire_engine",
@@ -4321,7 +4843,8 @@ export const EmojiList = [
     shortname: ":fire_engine:",
     code: "&#128658;",
     category: "t",
-    emoji_order: "1619"
+    emoji_order: "1619",
+    char: "🚒"
   },
   {
     name: "police_car",
@@ -4329,7 +4852,8 @@ export const EmojiList = [
     shortname: ":police_car:",
     code: "&#128659;",
     category: "t",
-    emoji_order: "1620"
+    emoji_order: "1620",
+    char: "🚓"
   },
   {
     name: "oncoming_police_car",
@@ -4337,7 +4861,8 @@ export const EmojiList = [
     shortname: ":oncoming_police_car:",
     code: "&#128660;",
     category: "t",
-    emoji_order: "1621"
+    emoji_order: "1621",
+    char: "🚔"
   },
   {
     name: "taxi",
@@ -4345,7 +4870,8 @@ export const EmojiList = [
     shortname: ":taxi:",
     code: "&#128661;",
     category: "t",
-    emoji_order: "1622"
+    emoji_order: "1622",
+    char: "🚕"
   },
   {
     name: "oncoming_taxi",
@@ -4353,7 +4879,8 @@ export const EmojiList = [
     shortname: ":oncoming_taxi:",
     code: "&#128662;",
     category: "t",
-    emoji_order: "1623"
+    emoji_order: "1623",
+    char: "🚖"
   },
   {
     name: "car",
@@ -4361,7 +4888,8 @@ export const EmojiList = [
     shortname: ":red_car:",
     code: "&#128663;",
     category: "t",
-    emoji_order: "1624"
+    emoji_order: "1624",
+    char: "🚗"
   },
   {
     name: "oncoming_automobile",
@@ -4369,7 +4897,8 @@ export const EmojiList = [
     shortname: ":oncoming_automobile:",
     code: "&#128664;",
     category: "t",
-    emoji_order: "1625"
+    emoji_order: "1625",
+    char: "🚘"
   },
   {
     name: "blue_car",
@@ -4377,7 +4906,8 @@ export const EmojiList = [
     shortname: ":blue_car:",
     code: "&#128665;",
     category: "t",
-    emoji_order: "1626"
+    emoji_order: "1626",
+    char: "🚙"
   },
   {
     name: "truck",
@@ -4385,7 +4915,8 @@ export const EmojiList = [
     shortname: ":truck:",
     code: "&#128666;",
     category: "t",
-    emoji_order: "1627"
+    emoji_order: "1627",
+    char: "🚚"
   },
   {
     name: "articulated_lorry",
@@ -4393,7 +4924,8 @@ export const EmojiList = [
     shortname: ":articulated_lorry:",
     code: "&#128667;",
     category: "t",
-    emoji_order: "1628"
+    emoji_order: "1628",
+    char: "🚛"
   },
   {
     name: "tractor",
@@ -4401,7 +4933,8 @@ export const EmojiList = [
     shortname: ":tractor:",
     code: "&#128668;",
     category: "t",
-    emoji_order: "1629"
+    emoji_order: "1629",
+    char: "🚜"
   },
   {
     name: "bike",
@@ -4409,7 +4942,8 @@ export const EmojiList = [
     shortname: ":bike:",
     code: "&#128690;",
     category: "t",
-    emoji_order: "1630"
+    emoji_order: "1630",
+    char: "🚲"
   },
   {
     name: "scooter",
@@ -4417,7 +4951,8 @@ export const EmojiList = [
     shortname: ":scooter:",
     code: "&#128756;",
     category: "t",
-    emoji_order: "1631"
+    emoji_order: "1631",
+    char: "🛴"
   },
   {
     name: "motor_scooter",
@@ -4425,7 +4960,8 @@ export const EmojiList = [
     shortname: ":motor_scooter:",
     code: "&#128757;",
     category: "t",
-    emoji_order: "1632"
+    emoji_order: "1632",
+    char: "🛵"
   },
   {
     name: "busstop",
@@ -4433,7 +4969,8 @@ export const EmojiList = [
     shortname: ":busstop:",
     code: "&#128655;",
     category: "t",
-    emoji_order: "1633"
+    emoji_order: "1633",
+    char: "🚏"
   },
   {
     name: "motorway",
@@ -4441,7 +4978,8 @@ export const EmojiList = [
     shortname: ":motorway:",
     code: "&#128739;",
     category: "t",
-    emoji_order: "1634"
+    emoji_order: "1634",
+    char: "🛣"
   },
   {
     name: "railway_track",
@@ -4449,7 +4987,8 @@ export const EmojiList = [
     shortname: ":railway_track:",
     code: "&#128740;",
     category: "t",
-    emoji_order: "1635"
+    emoji_order: "1635",
+    char: "🛤"
   },
   {
     name: "fuelpump",
@@ -4457,7 +4996,8 @@ export const EmojiList = [
     shortname: ":fuelpump:",
     code: "&#9981;",
     category: "t",
-    emoji_order: "1636"
+    emoji_order: "1636",
+    char: "⛽"
   },
   {
     name: "rotating_light",
@@ -4465,7 +5005,8 @@ export const EmojiList = [
     shortname: ":rotating_light:",
     code: "&#128680;",
     category: "t",
-    emoji_order: "1637"
+    emoji_order: "1637",
+    char: "🚨"
   },
   {
     name: "traffic_light",
@@ -4473,7 +5014,8 @@ export const EmojiList = [
     shortname: ":traffic_light:",
     code: "&#128677;",
     category: "t",
-    emoji_order: "1638"
+    emoji_order: "1638",
+    char: "🚥"
   },
   {
     name: "vertical_traffic_light",
@@ -4481,7 +5023,8 @@ export const EmojiList = [
     shortname: ":vertical_traffic_light:",
     code: "&#128678;",
     category: "t",
-    emoji_order: "1639"
+    emoji_order: "1639",
+    char: "🚦"
   },
   {
     name: "construction",
@@ -4489,7 +5032,8 @@ export const EmojiList = [
     shortname: ":construction:",
     code: "&#128679;",
     category: "t",
-    emoji_order: "1640"
+    emoji_order: "1640",
+    char: "🚧"
   },
   {
     name: "octagonal_sign",
@@ -4497,7 +5041,8 @@ export const EmojiList = [
     shortname: ":octagonal_sign:",
     code: "&#128721;",
     category: "s",
-    emoji_order: "1641"
+    emoji_order: "1641",
+    char: "🛑"
   },
   {
     name: "anchor",
@@ -4505,7 +5050,8 @@ export const EmojiList = [
     shortname: ":anchor:",
     code: "&#9875;",
     category: "t",
-    emoji_order: "1642"
+    emoji_order: "1642",
+    char: "⚓"
   },
   {
     name: "boat",
@@ -4513,7 +5059,8 @@ export const EmojiList = [
     shortname: ":sailboat:",
     code: "&#9973;",
     category: "t",
-    emoji_order: "1643"
+    emoji_order: "1643",
+    char: "⛵"
   },
   {
     name: "canoe",
@@ -4521,7 +5068,8 @@ export const EmojiList = [
     shortname: ":canoe:",
     code: "&#128758;",
     category: "t",
-    emoji_order: "1644"
+    emoji_order: "1644",
+    char: "🛶"
   },
   {
     name: "speedboat",
@@ -4529,7 +5077,8 @@ export const EmojiList = [
     shortname: ":speedboat:",
     code: "&#128676;",
     category: "t",
-    emoji_order: "1645"
+    emoji_order: "1645",
+    char: "🚤"
   },
   {
     name: "passenger_ship",
@@ -4537,7 +5086,8 @@ export const EmojiList = [
     shortname: ":cruise_ship:",
     code: "&#128755;",
     category: "t",
-    emoji_order: "1646"
+    emoji_order: "1646",
+    char: "🛳"
   },
   {
     name: "ferry",
@@ -4545,7 +5095,8 @@ export const EmojiList = [
     shortname: ":ferry:",
     code: "&#9972;",
     category: "t",
-    emoji_order: "1647"
+    emoji_order: "1647",
+    char: "⛴"
   },
   {
     name: "motor_boat",
@@ -4553,7 +5104,8 @@ export const EmojiList = [
     shortname: ":motorboat:",
     code: "&#128741;",
     category: "t",
-    emoji_order: "1648"
+    emoji_order: "1648",
+    char: "🛥"
   },
   {
     name: "ship",
@@ -4561,7 +5113,8 @@ export const EmojiList = [
     shortname: ":ship:",
     code: "&#128674;",
     category: "t",
-    emoji_order: "1649"
+    emoji_order: "1649",
+    char: "🚢"
   },
   {
     name: "airplane",
@@ -4569,7 +5122,8 @@ export const EmojiList = [
     shortname: ":airplane:",
     code: "&#9992;",
     category: "t",
-    emoji_order: "1650"
+    emoji_order: "1650",
+    char: "✈"
   },
   {
     name: "small_airplane",
@@ -4577,7 +5131,8 @@ export const EmojiList = [
     shortname: ":airplane_small:",
     code: "&#128745;",
     category: "t",
-    emoji_order: "1651"
+    emoji_order: "1651",
+    char: "🛩"
   },
   {
     name: "airplane_departure",
@@ -4585,7 +5140,8 @@ export const EmojiList = [
     shortname: ":airplane_departure:",
     code: "&#128747;",
     category: "t",
-    emoji_order: "1652"
+    emoji_order: "1652",
+    char: "🛫"
   },
   {
     name: "airplane_arriving",
@@ -4593,7 +5149,8 @@ export const EmojiList = [
     shortname: ":airplane_arriving:",
     code: "&#128748;",
     category: "t",
-    emoji_order: "1653"
+    emoji_order: "1653",
+    char: "🛬"
   },
   {
     name: "seat",
@@ -4601,7 +5158,8 @@ export const EmojiList = [
     shortname: ":seat:",
     code: "&#128186;",
     category: "t",
-    emoji_order: "1654"
+    emoji_order: "1654",
+    char: "💺"
   },
   {
     name: "helicopter",
@@ -4609,7 +5167,8 @@ export const EmojiList = [
     shortname: ":helicopter:",
     code: "&#128641;",
     category: "t",
-    emoji_order: "1655"
+    emoji_order: "1655",
+    char: "🚁"
   },
   {
     name: "suspension_railway",
@@ -4617,7 +5176,8 @@ export const EmojiList = [
     shortname: ":suspension_railway:",
     code: "&#128671;",
     category: "t",
-    emoji_order: "1656"
+    emoji_order: "1656",
+    char: "🚟"
   },
   {
     name: "mountain_cableway",
@@ -4625,7 +5185,8 @@ export const EmojiList = [
     shortname: ":mountain_cableway:",
     code: "&#128672;",
     category: "t",
-    emoji_order: "1657"
+    emoji_order: "1657",
+    char: "🚠"
   },
   {
     name: "aerial_tramway",
@@ -4633,7 +5194,8 @@ export const EmojiList = [
     shortname: ":aerial_tramway:",
     code: "&#128673;",
     category: "t",
-    emoji_order: "1658"
+    emoji_order: "1658",
+    char: "🚡"
   },
   {
     name: "rocket",
@@ -4641,7 +5203,8 @@ export const EmojiList = [
     shortname: ":rocket:",
     code: "&#128640;",
     category: "t",
-    emoji_order: "1659"
+    emoji_order: "1659",
+    char: "🚀"
   },
   {
     name: "satellite",
@@ -4649,7 +5212,8 @@ export const EmojiList = [
     shortname: ":satellite_orbital:",
     code: "&#128752;",
     category: "t",
-    emoji_order: "1660"
+    emoji_order: "1660",
+    char: "🛰"
   },
   {
     name: "bellhop_bell",
@@ -4657,7 +5221,8 @@ export const EmojiList = [
     shortname: ":bellhop:",
     code: "&#128718;",
     category: "o",
-    emoji_order: "1661"
+    emoji_order: "1661",
+    char: "🛎"
   },
   {
     name: "door",
@@ -4665,7 +5230,8 @@ export const EmojiList = [
     shortname: ":door:",
     code: "&#128682;",
     category: "o",
-    emoji_order: "1662"
+    emoji_order: "1662",
+    char: "🚪"
   },
   {
     name: "sleeping_accommodation",
@@ -4673,7 +5239,8 @@ export const EmojiList = [
     shortname: ":sleeping_accommodation:",
     code: "&#128716;",
     category: "o",
-    emoji_order: "1663"
+    emoji_order: "1663",
+    char: "🛌"
   },
   {
     name: "bed",
@@ -4681,7 +5248,8 @@ export const EmojiList = [
     shortname: ":bed:",
     code: "&#128719;",
     category: "o",
-    emoji_order: "1669"
+    emoji_order: "1669",
+    char: "🛏"
   },
   {
     name: "couch_and_lamp",
@@ -4689,7 +5257,8 @@ export const EmojiList = [
     shortname: ":couch:",
     code: "&#128715;",
     category: "o",
-    emoji_order: "1670"
+    emoji_order: "1670",
+    char: "🛋"
   },
   {
     name: "toilet",
@@ -4697,7 +5266,8 @@ export const EmojiList = [
     shortname: ":toilet:",
     code: "&#128701;",
     category: "o",
-    emoji_order: "1671"
+    emoji_order: "1671",
+    char: "🚽"
   },
   {
     name: "shower",
@@ -4705,7 +5275,8 @@ export const EmojiList = [
     shortname: ":shower:",
     code: "&#128703;",
     category: "o",
-    emoji_order: "1672"
+    emoji_order: "1672",
+    char: "🚿"
   },
   {
     name: "bath",
@@ -4713,7 +5284,8 @@ export const EmojiList = [
     shortname: ":bath:",
     code: "&#128704;",
     category: "a",
-    emoji_order: "1673"
+    emoji_order: "1673",
+    char: "🛀"
   },
   {
     name: "bathtub",
@@ -4721,7 +5293,8 @@ export const EmojiList = [
     shortname: ":bathtub:",
     code: "&#128705;",
     category: "o",
-    emoji_order: "1679"
+    emoji_order: "1679",
+    char: "🛁"
   },
   {
     name: "hourglass",
@@ -4729,7 +5302,8 @@ export const EmojiList = [
     shortname: ":hourglass:",
     code: "&#8987;",
     category: "o",
-    emoji_order: "1680"
+    emoji_order: "1680",
+    char: "⌛"
   },
   {
     name: "hourglass_flowing_sand",
@@ -4737,7 +5311,8 @@ export const EmojiList = [
     shortname: ":hourglass_flowing_sand:",
     code: "&#9203;",
     category: "o",
-    emoji_order: "1681"
+    emoji_order: "1681",
+    char: "⏳"
   },
   {
     name: "watch",
@@ -4745,7 +5320,8 @@ export const EmojiList = [
     shortname: ":watch:",
     code: "&#8986;",
     category: "o",
-    emoji_order: "1682"
+    emoji_order: "1682",
+    char: "⌚"
   },
   {
     name: "alarm_clock",
@@ -4753,7 +5329,8 @@ export const EmojiList = [
     shortname: ":alarm_clock:",
     code: "&#9200;",
     category: "o",
-    emoji_order: "1683"
+    emoji_order: "1683",
+    char: "⏰"
   },
   {
     name: "stopwatch",
@@ -4761,7 +5338,8 @@ export const EmojiList = [
     shortname: ":stopwatch:",
     code: "&#9201;",
     category: "o",
-    emoji_order: "1684"
+    emoji_order: "1684",
+    char: "⏱"
   },
   {
     name: "timer_clock",
@@ -4769,7 +5347,8 @@ export const EmojiList = [
     shortname: ":timer:",
     code: "&#9202;",
     category: "o",
-    emoji_order: "1685"
+    emoji_order: "1685",
+    char: "⏲"
   },
   {
     name: "mantelpiece_clock",
@@ -4777,7 +5356,8 @@ export const EmojiList = [
     shortname: ":clock:",
     code: "&#128368;",
     category: "o",
-    emoji_order: "1686"
+    emoji_order: "1686",
+    char: "🕰"
   },
   {
     name: "clock12",
@@ -4785,7 +5365,8 @@ export const EmojiList = [
     shortname: ":clock12:",
     code: "&#128347;",
     category: "s",
-    emoji_order: "1687"
+    emoji_order: "1687",
+    char: "🕛"
   },
   {
     name: "clock1230",
@@ -4793,7 +5374,8 @@ export const EmojiList = [
     shortname: ":clock1230:",
     code: "&#128359;",
     category: "s",
-    emoji_order: "1688"
+    emoji_order: "1688",
+    char: "🕧"
   },
   {
     name: "clock1",
@@ -4801,7 +5383,8 @@ export const EmojiList = [
     shortname: ":clock1:",
     code: "&#128336;",
     category: "s",
-    emoji_order: "1689"
+    emoji_order: "1689",
+    char: "🕐"
   },
   {
     name: "clock130",
@@ -4809,7 +5392,8 @@ export const EmojiList = [
     shortname: ":clock130:",
     code: "&#128348;",
     category: "s",
-    emoji_order: "1690"
+    emoji_order: "1690",
+    char: "🕜"
   },
   {
     name: "clock2",
@@ -4817,7 +5401,8 @@ export const EmojiList = [
     shortname: ":clock2:",
     code: "&#128337;",
     category: "s",
-    emoji_order: "1691"
+    emoji_order: "1691",
+    char: "🕑"
   },
   {
     name: "clock230",
@@ -4825,7 +5410,8 @@ export const EmojiList = [
     shortname: ":clock230:",
     code: "&#128349;",
     category: "s",
-    emoji_order: "1692"
+    emoji_order: "1692",
+    char: "🕝"
   },
   {
     name: "clock3",
@@ -4833,7 +5419,8 @@ export const EmojiList = [
     shortname: ":clock3:",
     code: "&#128338;",
     category: "s",
-    emoji_order: "1693"
+    emoji_order: "1693",
+    char: "🕒"
   },
   {
     name: "clock330",
@@ -4841,7 +5428,8 @@ export const EmojiList = [
     shortname: ":clock330:",
     code: "&#128350;",
     category: "s",
-    emoji_order: "1694"
+    emoji_order: "1694",
+    char: "🕞"
   },
   {
     name: "clock4",
@@ -4849,7 +5437,8 @@ export const EmojiList = [
     shortname: ":clock4:",
     code: "&#128339;",
     category: "s",
-    emoji_order: "1695"
+    emoji_order: "1695",
+    char: "🕓"
   },
   {
     name: "clock430",
@@ -4857,7 +5446,8 @@ export const EmojiList = [
     shortname: ":clock430:",
     code: "&#128351;",
     category: "s",
-    emoji_order: "1696"
+    emoji_order: "1696",
+    char: "🕟"
   },
   {
     name: "clock5",
@@ -4865,7 +5455,8 @@ export const EmojiList = [
     shortname: ":clock5:",
     code: "&#128340;",
     category: "s",
-    emoji_order: "1697"
+    emoji_order: "1697",
+    char: "🕔"
   },
   {
     name: "clock530",
@@ -4873,7 +5464,8 @@ export const EmojiList = [
     shortname: ":clock530:",
     code: "&#128352;",
     category: "s",
-    emoji_order: "1698"
+    emoji_order: "1698",
+    char: "🕠"
   },
   {
     name: "clock6",
@@ -4881,7 +5473,8 @@ export const EmojiList = [
     shortname: ":clock6:",
     code: "&#128341;",
     category: "s",
-    emoji_order: "1699"
+    emoji_order: "1699",
+    char: "🕕"
   },
   {
     name: "clock630",
@@ -4889,7 +5482,8 @@ export const EmojiList = [
     shortname: ":clock630:",
     code: "&#128353;",
     category: "s",
-    emoji_order: "1700"
+    emoji_order: "1700",
+    char: "🕡"
   },
   {
     name: "clock7",
@@ -4897,7 +5491,8 @@ export const EmojiList = [
     shortname: ":clock7:",
     code: "&#128342;",
     category: "s",
-    emoji_order: "1701"
+    emoji_order: "1701",
+    char: "🕖"
   },
   {
     name: "clock730",
@@ -4905,7 +5500,8 @@ export const EmojiList = [
     shortname: ":clock730:",
     code: "&#128354;",
     category: "s",
-    emoji_order: "1702"
+    emoji_order: "1702",
+    char: "🕢"
   },
   {
     name: "clock8",
@@ -4913,7 +5509,8 @@ export const EmojiList = [
     shortname: ":clock8:",
     code: "&#128343;",
     category: "s",
-    emoji_order: "1703"
+    emoji_order: "1703",
+    char: "🕗"
   },
   {
     name: "clock830",
@@ -4921,7 +5518,8 @@ export const EmojiList = [
     shortname: ":clock830:",
     code: "&#128355;",
     category: "s",
-    emoji_order: "1704"
+    emoji_order: "1704",
+    char: "🕣"
   },
   {
     name: "clock9",
@@ -4929,7 +5527,8 @@ export const EmojiList = [
     shortname: ":clock9:",
     code: "&#128344;",
     category: "s",
-    emoji_order: "1705"
+    emoji_order: "1705",
+    char: "🕘"
   },
   {
     name: "clock930",
@@ -4937,7 +5536,8 @@ export const EmojiList = [
     shortname: ":clock930:",
     code: "&#128356;",
     category: "s",
-    emoji_order: "1706"
+    emoji_order: "1706",
+    char: "🕤"
   },
   {
     name: "clock10",
@@ -4945,7 +5545,8 @@ export const EmojiList = [
     shortname: ":clock10:",
     code: "&#128345;",
     category: "s",
-    emoji_order: "1707"
+    emoji_order: "1707",
+    char: "🕙"
   },
   {
     name: "clock1030",
@@ -4953,7 +5554,8 @@ export const EmojiList = [
     shortname: ":clock1030:",
     code: "&#128357;",
     category: "s",
-    emoji_order: "1708"
+    emoji_order: "1708",
+    char: "🕥"
   },
   {
     name: "clock11",
@@ -4961,7 +5563,8 @@ export const EmojiList = [
     shortname: ":clock11:",
     code: "&#128346;",
     category: "s",
-    emoji_order: "1709"
+    emoji_order: "1709",
+    char: "🕚"
   },
   {
     name: "clock1130",
@@ -4969,7 +5572,8 @@ export const EmojiList = [
     shortname: ":clock1130:",
     code: "&#128358;",
     category: "s",
-    emoji_order: "1710"
+    emoji_order: "1710",
+    char: "🕦"
   },
   {
     name: "new_moon",
@@ -4977,7 +5581,8 @@ export const EmojiList = [
     shortname: ":new_moon:",
     code: "&#127761;",
     category: "n",
-    emoji_order: "1711"
+    emoji_order: "1711",
+    char: "🌑"
   },
   {
     name: "waxing_crescent_moon",
@@ -4985,7 +5590,8 @@ export const EmojiList = [
     shortname: ":waxing_crescent_moon:",
     code: "&#127762;",
     category: "n",
-    emoji_order: "1712"
+    emoji_order: "1712",
+    char: "🌒"
   },
   {
     name: "first_quarter_moon",
@@ -4993,7 +5599,8 @@ export const EmojiList = [
     shortname: ":first_quarter_moon:",
     code: "&#127763;",
     category: "n",
-    emoji_order: "1713"
+    emoji_order: "1713",
+    char: "🌓"
   },
   {
     name: "waxing_gibbous_moon",
@@ -5001,7 +5608,8 @@ export const EmojiList = [
     shortname: ":waxing_gibbous_moon:",
     code: "&#127764;",
     category: "n",
-    emoji_order: "1714"
+    emoji_order: "1714",
+    char: "🌔"
   },
   {
     name: "full_moon",
@@ -5009,7 +5617,8 @@ export const EmojiList = [
     shortname: ":full_moon:",
     code: "&#127765;",
     category: "n",
-    emoji_order: "1715"
+    emoji_order: "1715",
+    char: "🌕"
   },
   {
     name: "waning_gibbous_moon",
@@ -5017,7 +5626,8 @@ export const EmojiList = [
     shortname: ":waning_gibbous_moon:",
     code: "&#127766;",
     category: "n",
-    emoji_order: "1716"
+    emoji_order: "1716",
+    char: "🌖"
   },
   {
     name: "last_quarter_moon",
@@ -5025,7 +5635,8 @@ export const EmojiList = [
     shortname: ":last_quarter_moon:",
     code: "&#127767;",
     category: "n",
-    emoji_order: "1717"
+    emoji_order: "1717",
+    char: "🌗"
   },
   {
     name: "waning_crescent_moon",
@@ -5033,7 +5644,8 @@ export const EmojiList = [
     shortname: ":waning_crescent_moon:",
     code: "&#127768;",
     category: "n",
-    emoji_order: "1718"
+    emoji_order: "1718",
+    char: "🌘"
   },
   {
     name: "crescent_moon",
@@ -5041,7 +5653,8 @@ export const EmojiList = [
     shortname: ":crescent_moon:",
     code: "&#127769;",
     category: "n",
-    emoji_order: "1719"
+    emoji_order: "1719",
+    char: "🌙"
   },
   {
     name: "new_moon_with_face",
@@ -5049,7 +5662,8 @@ export const EmojiList = [
     shortname: ":new_moon_with_face:",
     code: "&#127770;",
     category: "n",
-    emoji_order: "1720"
+    emoji_order: "1720",
+    char: "🌚"
   },
   {
     name: "first_quarter_moon_with_face",
@@ -5057,7 +5671,8 @@ export const EmojiList = [
     shortname: ":first_quarter_moon_with_face:",
     code: "&#127771;",
     category: "n",
-    emoji_order: "1721"
+    emoji_order: "1721",
+    char: "🌛"
   },
   {
     name: "last_quarter_moon_with_face",
@@ -5065,7 +5680,8 @@ export const EmojiList = [
     shortname: ":last_quarter_moon_with_face:",
     code: "&#127772;",
     category: "n",
-    emoji_order: "1722"
+    emoji_order: "1722",
+    char: "🌜"
   },
   {
     name: "thermometer",
@@ -5073,7 +5689,8 @@ export const EmojiList = [
     shortname: ":thermometer:",
     code: "&#127777;",
     category: "o",
-    emoji_order: "1723"
+    emoji_order: "1723",
+    char: "🌡"
   },
   {
     name: "sunny",
@@ -5081,7 +5698,8 @@ export const EmojiList = [
     shortname: ":sunny:",
     code: "&#9728;",
     category: "n",
-    emoji_order: "1724"
+    emoji_order: "1724",
+    char: "☀"
   },
   {
     name: "full_moon_with_face",
@@ -5089,7 +5707,8 @@ export const EmojiList = [
     shortname: ":full_moon_with_face:",
     code: "&#127773;",
     category: "n",
-    emoji_order: "1725"
+    emoji_order: "1725",
+    char: "🌝"
   },
   {
     name: "sun_with_face",
@@ -5097,7 +5716,8 @@ export const EmojiList = [
     shortname: ":sun_with_face:",
     code: "&#127774;",
     category: "n",
-    emoji_order: "1726"
+    emoji_order: "1726",
+    char: "🌞"
   },
   {
     name: "star",
@@ -5105,7 +5725,8 @@ export const EmojiList = [
     shortname: ":star:",
     code: "&#11088;",
     category: "n",
-    emoji_order: "1727"
+    emoji_order: "1727",
+    char: "⭐"
   },
   {
     name: "star2",
@@ -5113,7 +5734,8 @@ export const EmojiList = [
     shortname: ":star2:",
     code: "&#127775;",
     category: "n",
-    emoji_order: "1728"
+    emoji_order: "1728",
+    char: "🌟"
   },
   {
     name: "stars",
@@ -5121,7 +5743,8 @@ export const EmojiList = [
     shortname: ":stars:",
     code: "&#127776;",
     category: "t",
-    emoji_order: "1729"
+    emoji_order: "1729",
+    char: "🌠"
   },
   {
     name: "cloud",
@@ -5129,7 +5752,8 @@ export const EmojiList = [
     shortname: ":cloud:",
     code: "&#9729;",
     category: "n",
-    emoji_order: "1730"
+    emoji_order: "1730",
+    char: "☁"
   },
   {
     name: "partly_sunny",
@@ -5137,7 +5761,8 @@ export const EmojiList = [
     shortname: ":partly_sunny:",
     code: "&#9925;",
     category: "n",
-    emoji_order: "1731"
+    emoji_order: "1731",
+    char: "⛅"
   },
   {
     name: "thunder_cloud_and_rain",
@@ -5145,7 +5770,8 @@ export const EmojiList = [
     shortname: ":thunder_cloud_rain:",
     code: "&#9928;",
     category: "n",
-    emoji_order: "1732"
+    emoji_order: "1732",
+    char: "⛈"
   },
   {
     name: "white_sun_small_cloud",
@@ -5153,7 +5779,8 @@ export const EmojiList = [
     shortname: ":white_sun_small_cloud:",
     code: "&#127780;",
     category: "n",
-    emoji_order: "1733"
+    emoji_order: "1733",
+    char: "🌤"
   },
   {
     name: "white_sun_cloud",
@@ -5161,7 +5788,8 @@ export const EmojiList = [
     shortname: ":white_sun_cloud:",
     code: "&#127781;",
     category: "n",
-    emoji_order: "1734"
+    emoji_order: "1734",
+    char: "🌥"
   },
   {
     name: "white_sun_rain_cloud",
@@ -5169,7 +5797,8 @@ export const EmojiList = [
     shortname: ":white_sun_rain_cloud:",
     code: "&#127782;",
     category: "n",
-    emoji_order: "1735"
+    emoji_order: "1735",
+    char: "🌦"
   },
   {
     name: "rain_cloud",
@@ -5177,7 +5806,8 @@ export const EmojiList = [
     shortname: ":cloud_rain:",
     code: "&#127783;",
     category: "n",
-    emoji_order: "1736"
+    emoji_order: "1736",
+    char: "🌧"
   },
   {
     name: "snow_cloud",
@@ -5185,7 +5815,8 @@ export const EmojiList = [
     shortname: ":cloud_snow:",
     code: "&#127784;",
     category: "n",
-    emoji_order: "1737"
+    emoji_order: "1737",
+    char: "🌨"
   },
   {
     name: "cloud_lightning",
@@ -5193,7 +5824,8 @@ export const EmojiList = [
     shortname: ":cloud_lightning:",
     code: "&#127785;",
     category: "n",
-    emoji_order: "1738"
+    emoji_order: "1738",
+    char: "🌩"
   },
   {
     name: "cloud_tornado",
@@ -5201,7 +5833,8 @@ export const EmojiList = [
     shortname: ":cloud_tornado:",
     code: "&#127786;",
     category: "n",
-    emoji_order: "1739"
+    emoji_order: "1739",
+    char: "🌪"
   },
   {
     name: "fog",
@@ -5209,7 +5842,8 @@ export const EmojiList = [
     shortname: ":fog:",
     code: "&#127787;",
     category: "n",
-    emoji_order: "1740"
+    emoji_order: "1740",
+    char: "🌫"
   },
   {
     name: "wind_blowing_face",
@@ -5217,7 +5851,8 @@ export const EmojiList = [
     shortname: ":wind_blowing_face:",
     code: "&#127788;",
     category: "n",
-    emoji_order: "1741"
+    emoji_order: "1741",
+    char: "🌬"
   },
   {
     name: "cyclone",
@@ -5225,7 +5860,8 @@ export const EmojiList = [
     shortname: ":cyclone:",
     code: "&#127744;",
     category: "s",
-    emoji_order: "1742"
+    emoji_order: "1742",
+    char: "🌀"
   },
   {
     name: "rainbow",
@@ -5233,7 +5869,8 @@ export const EmojiList = [
     shortname: ":rainbow:",
     code: "&#127752;",
     category: "t",
-    emoji_order: "1743"
+    emoji_order: "1743",
+    char: "🌈"
   },
   {
     name: "closed_umbrella",
@@ -5241,7 +5878,8 @@ export const EmojiList = [
     shortname: ":closed_umbrella:",
     code: "&#127746;",
     category: "p",
-    emoji_order: "1744"
+    emoji_order: "1744",
+    char: "🌂"
   },
   {
     name: "umbrella",
@@ -5249,7 +5887,8 @@ export const EmojiList = [
     shortname: ":umbrella2:",
     code: "&#9730;",
     category: "n",
-    emoji_order: "1745"
+    emoji_order: "1745",
+    char: "☂"
   },
   {
     name: "umbrella_with_rain_drops",
@@ -5257,7 +5896,8 @@ export const EmojiList = [
     shortname: ":umbrella:",
     code: "&#9748;",
     category: "n",
-    emoji_order: "1746"
+    emoji_order: "1746",
+    char: "☔"
   },
   {
     name: "beach_umbrella",
@@ -5265,23 +5905,18 @@ export const EmojiList = [
     shortname: ":beach_umbrella:",
     code: "&#9969;",
     category: "o",
-    emoji_order: "1747"
+    emoji_order: "1747",
+    char: "⛱"
   },
-  {
-    name: "zap",
-    unicode: "26a1",
-    shortname: ":zap:",
-    code: "&#9889;",
-    category: "n",
-    emoji_order: "1748"
-  },
+  { name: "zap", unicode: "26a1", shortname: ":zap:", code: "&#9889;", category: "n", emoji_order: "1748", char: "⚡" },
   {
     name: "snowflake",
     unicode: "2744",
     shortname: ":snowflake:",
     code: "&#10052;",
     category: "n",
-    emoji_order: "1749"
+    emoji_order: "1749",
+    char: "❄"
   },
   {
     name: "snowman",
@@ -5289,7 +5924,8 @@ export const EmojiList = [
     shortname: ":snowman2:",
     code: "&#9731;",
     category: "n",
-    emoji_order: "1750"
+    emoji_order: "1750",
+    char: "☃"
   },
   {
     name: "snowman_without_snow",
@@ -5297,7 +5933,8 @@ export const EmojiList = [
     shortname: ":snowman:",
     code: "&#9924;",
     category: "n",
-    emoji_order: "1751"
+    emoji_order: "1751",
+    char: "⛄"
   },
   {
     name: "comet",
@@ -5305,7 +5942,8 @@ export const EmojiList = [
     shortname: ":comet:",
     code: "&#9732;",
     category: "n",
-    emoji_order: "1752"
+    emoji_order: "1752",
+    char: "☄"
   },
   {
     name: "fire",
@@ -5313,7 +5951,8 @@ export const EmojiList = [
     shortname: ":fire:",
     code: "&#128293;",
     category: "n",
-    emoji_order: "1753"
+    emoji_order: "1753",
+    char: "🔥"
   },
   {
     name: "droplet",
@@ -5321,7 +5960,8 @@ export const EmojiList = [
     shortname: ":droplet:",
     code: "&#128167;",
     category: "n",
-    emoji_order: "1754"
+    emoji_order: "1754",
+    char: "💧"
   },
   {
     name: "ocean",
@@ -5329,7 +5969,8 @@ export const EmojiList = [
     shortname: ":ocean:",
     code: "&#127754;",
     category: "n",
-    emoji_order: "1755"
+    emoji_order: "1755",
+    char: "🌊"
   },
   {
     name: "jack_o_lantern",
@@ -5337,7 +5978,8 @@ export const EmojiList = [
     shortname: ":jack_o_lantern:",
     code: "&#127875;",
     category: "n",
-    emoji_order: "1756"
+    emoji_order: "1756",
+    char: "🎃"
   },
   {
     name: "christmas_tree",
@@ -5345,7 +5987,8 @@ export const EmojiList = [
     shortname: ":christmas_tree:",
     code: "&#127876;",
     category: "n",
-    emoji_order: "1757"
+    emoji_order: "1757",
+    char: "🎄"
   },
   {
     name: "fireworks",
@@ -5353,7 +5996,8 @@ export const EmojiList = [
     shortname: ":fireworks:",
     code: "&#127878;",
     category: "t",
-    emoji_order: "1758"
+    emoji_order: "1758",
+    char: "🎆"
   },
   {
     name: "sparkler",
@@ -5361,7 +6005,8 @@ export const EmojiList = [
     shortname: ":sparkler:",
     code: "&#127879;",
     category: "t",
-    emoji_order: "1759"
+    emoji_order: "1759",
+    char: "🎇"
   },
   {
     name: "sparkles",
@@ -5369,7 +6014,8 @@ export const EmojiList = [
     shortname: ":sparkles:",
     code: "&#10024;",
     category: "n",
-    emoji_order: "1760"
+    emoji_order: "1760",
+    char: "✨"
   },
   {
     name: "balloon",
@@ -5377,7 +6023,8 @@ export const EmojiList = [
     shortname: ":balloon:",
     code: "&#127880;",
     category: "o",
-    emoji_order: "1761"
+    emoji_order: "1761",
+    char: "🎈"
   },
   {
     name: "tada",
@@ -5385,7 +6032,8 @@ export const EmojiList = [
     shortname: ":tada:",
     code: "&#127881;",
     category: "o",
-    emoji_order: "1762"
+    emoji_order: "1762",
+    char: "🎉"
   },
   {
     name: "confetti_ball",
@@ -5393,7 +6041,8 @@ export const EmojiList = [
     shortname: ":confetti_ball:",
     code: "&#127882;",
     category: "o",
-    emoji_order: "1763"
+    emoji_order: "1763",
+    char: "🎊"
   },
   {
     name: "tanabata_tree",
@@ -5401,7 +6050,8 @@ export const EmojiList = [
     shortname: ":tanabata_tree:",
     code: "&#127883;",
     category: "n",
-    emoji_order: "1764"
+    emoji_order: "1764",
+    char: "🎋"
   },
   {
     name: "bamboo",
@@ -5409,7 +6059,8 @@ export const EmojiList = [
     shortname: ":bamboo:",
     code: "&#127885;",
     category: "n",
-    emoji_order: "1765"
+    emoji_order: "1765",
+    char: "🎍"
   },
   {
     name: "dolls",
@@ -5417,7 +6068,8 @@ export const EmojiList = [
     shortname: ":dolls:",
     code: "&#127886;",
     category: "o",
-    emoji_order: "1766"
+    emoji_order: "1766",
+    char: "🎎"
   },
   {
     name: "f",
@@ -5425,7 +6077,8 @@ export const EmojiList = [
     shortname: ":flags:",
     code: "&#127887;",
     category: "o",
-    emoji_order: "1767"
+    emoji_order: "1767",
+    char: "🎏"
   },
   {
     name: "wind_chime",
@@ -5433,7 +6086,8 @@ export const EmojiList = [
     shortname: ":wind_chime:",
     code: "&#127888;",
     category: "o",
-    emoji_order: "1768"
+    emoji_order: "1768",
+    char: "🎐"
   },
   {
     name: "rice_scene",
@@ -5441,7 +6095,8 @@ export const EmojiList = [
     shortname: ":rice_scene:",
     code: "&#127889;",
     category: "t",
-    emoji_order: "1769"
+    emoji_order: "1769",
+    char: "🎑"
   },
   {
     name: "ribbon",
@@ -5449,7 +6104,8 @@ export const EmojiList = [
     shortname: ":ribbon:",
     code: "&#127872;",
     category: "o",
-    emoji_order: "1770"
+    emoji_order: "1770",
+    char: "🎀"
   },
   {
     name: "gift",
@@ -5457,7 +6113,8 @@ export const EmojiList = [
     shortname: ":gift:",
     code: "&#127873;",
     category: "o",
-    emoji_order: "1771"
+    emoji_order: "1771",
+    char: "🎁"
   },
   {
     name: "reminder_ribbon",
@@ -5465,7 +6122,8 @@ export const EmojiList = [
     shortname: ":reminder_ribbon:",
     code: "&#127895;",
     category: "a",
-    emoji_order: "1772"
+    emoji_order: "1772",
+    char: "🎗"
   },
   {
     name: "admission_tickets",
@@ -5473,7 +6131,8 @@ export const EmojiList = [
     shortname: ":tickets:",
     code: "&#127903;",
     category: "a",
-    emoji_order: "1773"
+    emoji_order: "1773",
+    char: "🎟"
   },
   {
     name: "ticket",
@@ -5481,7 +6140,8 @@ export const EmojiList = [
     shortname: ":ticket:",
     code: "&#127915;",
     category: "a",
-    emoji_order: "1774"
+    emoji_order: "1774",
+    char: "🎫"
   },
   {
     name: "medal",
@@ -5489,7 +6149,8 @@ export const EmojiList = [
     shortname: ":military_medal:",
     code: "&#127894;",
     category: "a",
-    emoji_order: "1775"
+    emoji_order: "1775",
+    char: "🎖"
   },
   {
     name: "trophy",
@@ -5497,7 +6158,8 @@ export const EmojiList = [
     shortname: ":trophy:",
     code: "&#127942;",
     category: "a",
-    emoji_order: "1776"
+    emoji_order: "1776",
+    char: "🏆"
   },
   {
     name: "sports_medal",
@@ -5505,7 +6167,8 @@ export const EmojiList = [
     shortname: ":medal:",
     code: "&#127941;",
     category: "a",
-    emoji_order: "1777"
+    emoji_order: "1777",
+    char: "🏅"
   },
   {
     name: "first_place",
@@ -5513,7 +6176,8 @@ export const EmojiList = [
     shortname: ":first_place:",
     code: "&#129351;",
     category: "a",
-    emoji_order: "1778"
+    emoji_order: "1778",
+    char: "🥇"
   },
   {
     name: "second_place",
@@ -5521,7 +6185,8 @@ export const EmojiList = [
     shortname: ":second_place:",
     code: "&#129352;",
     category: "a",
-    emoji_order: "1779"
+    emoji_order: "1779",
+    char: "🥈"
   },
   {
     name: "third_place",
@@ -5529,7 +6194,8 @@ export const EmojiList = [
     shortname: ":third_place:",
     code: "&#129353;",
     category: "a",
-    emoji_order: "1780"
+    emoji_order: "1780",
+    char: "🥉"
   },
   {
     name: "soccer",
@@ -5537,7 +6203,8 @@ export const EmojiList = [
     shortname: ":soccer:",
     code: "&#9917;",
     category: "a",
-    emoji_order: "1781"
+    emoji_order: "1781",
+    char: "⚽"
   },
   {
     name: "baseball",
@@ -5545,7 +6212,8 @@ export const EmojiList = [
     shortname: ":baseball:",
     code: "&#9918;",
     category: "a",
-    emoji_order: "1782"
+    emoji_order: "1782",
+    char: "⚾"
   },
   {
     name: "basketball",
@@ -5553,7 +6221,8 @@ export const EmojiList = [
     shortname: ":basketball:",
     code: "&#127936;",
     category: "a",
-    emoji_order: "1783"
+    emoji_order: "1783",
+    char: "🏀"
   },
   {
     name: "volleyball",
@@ -5561,7 +6230,8 @@ export const EmojiList = [
     shortname: ":volleyball:",
     code: "&#127952;",
     category: "a",
-    emoji_order: "1784"
+    emoji_order: "1784",
+    char: "🏐"
   },
   {
     name: "football",
@@ -5569,7 +6239,8 @@ export const EmojiList = [
     shortname: ":football:",
     code: "&#127944;",
     category: "a",
-    emoji_order: "1785"
+    emoji_order: "1785",
+    char: "🏈"
   },
   {
     name: "rugby_football",
@@ -5577,7 +6248,8 @@ export const EmojiList = [
     shortname: ":rugby_football:",
     code: "&#127945;",
     category: "a",
-    emoji_order: "1786"
+    emoji_order: "1786",
+    char: "🏉"
   },
   {
     name: "tennis",
@@ -5585,7 +6257,8 @@ export const EmojiList = [
     shortname: ":tennis:",
     code: "&#127934;",
     category: "a",
-    emoji_order: "1787"
+    emoji_order: "1787",
+    char: "🎾"
   },
   {
     name: "8ball",
@@ -5593,7 +6266,8 @@ export const EmojiList = [
     shortname: ":8ball:",
     code: "&#127921;",
     category: "a",
-    emoji_order: "1788"
+    emoji_order: "1788",
+    char: "🎱"
   },
   {
     name: "bowling",
@@ -5601,7 +6275,8 @@ export const EmojiList = [
     shortname: ":bowling:",
     code: "&#127923;",
     category: "a",
-    emoji_order: "1789"
+    emoji_order: "1789",
+    char: "🎳"
   },
   {
     name: "cricket_bat_and_ball",
@@ -5609,7 +6284,8 @@ export const EmojiList = [
     shortname: ":cricket_game:",
     code: "&#127951;",
     category: "a",
-    emoji_order: "1790"
+    emoji_order: "1790",
+    char: "🏏"
   },
   {
     name: "field_hockey_stick_and_ball",
@@ -5617,7 +6293,8 @@ export const EmojiList = [
     shortname: ":field_hockey:",
     code: "&#127953;",
     category: "a",
-    emoji_order: "1791"
+    emoji_order: "1791",
+    char: "🏑"
   },
   {
     name: "ice_hockey_stick_and_puck",
@@ -5625,7 +6302,8 @@ export const EmojiList = [
     shortname: ":hockey:",
     code: "&#127954;",
     category: "a",
-    emoji_order: "1792"
+    emoji_order: "1792",
+    char: "🏒"
   },
   {
     name: "table_tennis_paddle_and_ball",
@@ -5633,7 +6311,8 @@ export const EmojiList = [
     shortname: ":ping_pong:",
     code: "&#127955;",
     category: "a",
-    emoji_order: "1793"
+    emoji_order: "1793",
+    char: "🏓"
   },
   {
     name: "badminton_racquet_and_shuttlecock",
@@ -5641,7 +6320,8 @@ export const EmojiList = [
     shortname: ":badminton:",
     code: "&#127992;",
     category: "a",
-    emoji_order: "1794"
+    emoji_order: "1794",
+    char: "🏸"
   },
   {
     name: "boxing_glove",
@@ -5649,7 +6329,8 @@ export const EmojiList = [
     shortname: ":boxing_glove:",
     code: "&#129354;",
     category: "a",
-    emoji_order: "1795"
+    emoji_order: "1795",
+    char: "🥊"
   },
   {
     name: "martial_arts_uniform",
@@ -5657,7 +6338,8 @@ export const EmojiList = [
     shortname: ":martial_arts_uniform:",
     code: "&#129355;",
     category: "a",
-    emoji_order: "1796"
+    emoji_order: "1796",
+    char: "🥋"
   },
   {
     name: "goal",
@@ -5665,7 +6347,8 @@ export const EmojiList = [
     shortname: ":goal:",
     code: "&#129349;",
     category: "a",
-    emoji_order: "1797"
+    emoji_order: "1797",
+    char: "🥅"
   },
   {
     name: "dart",
@@ -5673,7 +6356,8 @@ export const EmojiList = [
     shortname: ":dart:",
     code: "&#127919;",
     category: "a",
-    emoji_order: "1798"
+    emoji_order: "1798",
+    char: "🎯"
   },
   {
     name: "golf",
@@ -5681,7 +6365,8 @@ export const EmojiList = [
     shortname: ":golf:",
     code: "&#9971;",
     category: "a",
-    emoji_order: "1799"
+    emoji_order: "1799",
+    char: "⛳"
   },
   {
     name: "ice_skate",
@@ -5689,7 +6374,8 @@ export const EmojiList = [
     shortname: ":ice_skate:",
     code: "&#9976;",
     category: "a",
-    emoji_order: "1800"
+    emoji_order: "1800",
+    char: "⛸"
   },
   {
     name: "fishing_pole_and_fish",
@@ -5697,7 +6383,8 @@ export const EmojiList = [
     shortname: ":fishing_pole_and_fish:",
     code: "&#127907;",
     category: "a",
-    emoji_order: "1801"
+    emoji_order: "1801",
+    char: "🎣"
   },
   {
     name: "running_shirt_with_sash",
@@ -5705,7 +6392,8 @@ export const EmojiList = [
     shortname: ":running_shirt_with_sash:",
     code: "&#127933;",
     category: "a",
-    emoji_order: "1802"
+    emoji_order: "1802",
+    char: "🎽"
   },
   {
     name: "ski",
@@ -5713,7 +6401,8 @@ export const EmojiList = [
     shortname: ":ski:",
     code: "&#127935;",
     category: "a",
-    emoji_order: "1803"
+    emoji_order: "1803",
+    char: "🎿"
   },
   {
     name: "video_game",
@@ -5721,7 +6410,8 @@ export const EmojiList = [
     shortname: ":video_game:",
     code: "&#127918;",
     category: "a",
-    emoji_order: "1804"
+    emoji_order: "1804",
+    char: "🎮"
   },
   {
     name: "joystick",
@@ -5729,7 +6419,8 @@ export const EmojiList = [
     shortname: ":joystick:",
     code: "&#128377;",
     category: "o",
-    emoji_order: "1805"
+    emoji_order: "1805",
+    char: "🕹"
   },
   {
     name: "game_die",
@@ -5737,7 +6428,8 @@ export const EmojiList = [
     shortname: ":game_die:",
     code: "&#127922;",
     category: "a",
-    emoji_order: "1806"
+    emoji_order: "1806",
+    char: "🎲"
   },
   {
     name: "spades",
@@ -5745,7 +6437,8 @@ export const EmojiList = [
     shortname: ":spades:",
     code: "&spades;",
     category: "s",
-    emoji_order: "1807"
+    emoji_order: "1807",
+    char: "&spades;"
   },
   {
     name: "hearts",
@@ -5753,7 +6446,8 @@ export const EmojiList = [
     shortname: ":hearts:",
     code: "&hearts;",
     category: "s",
-    emoji_order: "1808"
+    emoji_order: "1808",
+    char: "&hearts;"
   },
   {
     name: "diamonds",
@@ -5761,7 +6455,8 @@ export const EmojiList = [
     shortname: ":diamonds:",
     code: "&diams;",
     category: "s",
-    emoji_order: "1809"
+    emoji_order: "1809",
+    char: "&diams;"
   },
   {
     name: "clubs",
@@ -5769,7 +6464,8 @@ export const EmojiList = [
     shortname: ":clubs:",
     code: "&clubs;",
     category: "s",
-    emoji_order: "1810"
+    emoji_order: "1810",
+    char: "&clubs;"
   },
   {
     name: "black_joker",
@@ -5777,7 +6473,8 @@ export const EmojiList = [
     shortname: ":black_joker:",
     code: "&#127183;",
     category: "s",
-    emoji_order: "1811"
+    emoji_order: "1811",
+    char: "🃏"
   },
   {
     name: "mahjong",
@@ -5785,7 +6482,8 @@ export const EmojiList = [
     shortname: ":mahjong:",
     code: "&#126980;",
     category: "s",
-    emoji_order: "1812"
+    emoji_order: "1812",
+    char: "🀄"
   },
   {
     name: "flower_playing_cards",
@@ -5793,7 +6491,8 @@ export const EmojiList = [
     shortname: ":flower_playing_cards:",
     code: "&#127924;",
     category: "s",
-    emoji_order: "1813"
+    emoji_order: "1813",
+    char: "🎴"
   },
   {
     name: "mute",
@@ -5801,7 +6500,8 @@ export const EmojiList = [
     shortname: ":mute:",
     code: "&#128263;",
     category: "s",
-    emoji_order: "1814"
+    emoji_order: "1814",
+    char: "🔇"
   },
   {
     name: "speaker",
@@ -5809,7 +6509,8 @@ export const EmojiList = [
     shortname: ":speaker:",
     code: "&#128264;",
     category: "s",
-    emoji_order: "1815"
+    emoji_order: "1815",
+    char: "🔈"
   },
   {
     name: "sound",
@@ -5817,7 +6518,8 @@ export const EmojiList = [
     shortname: ":sound:",
     code: "&#128265;",
     category: "s",
-    emoji_order: "1816"
+    emoji_order: "1816",
+    char: "🔉"
   },
   {
     name: "loud_sound",
@@ -5825,7 +6527,8 @@ export const EmojiList = [
     shortname: ":loud_sound:",
     code: "&#128266;",
     category: "s",
-    emoji_order: "1817"
+    emoji_order: "1817",
+    char: "🔊"
   },
   {
     name: "loudspeaker",
@@ -5833,7 +6536,8 @@ export const EmojiList = [
     shortname: ":loudspeaker:",
     code: "&#128226;",
     category: "s",
-    emoji_order: "1818"
+    emoji_order: "1818",
+    char: "📢"
   },
   {
     name: "mega",
@@ -5841,7 +6545,8 @@ export const EmojiList = [
     shortname: ":mega:",
     code: "&#128227;",
     category: "s",
-    emoji_order: "1819"
+    emoji_order: "1819",
+    char: "📣"
   },
   {
     name: "postal_horn",
@@ -5849,7 +6554,8 @@ export const EmojiList = [
     shortname: ":postal_horn:",
     code: "&#128239;",
     category: "o",
-    emoji_order: "1820"
+    emoji_order: "1820",
+    char: "📯"
   },
   {
     name: "bell",
@@ -5857,7 +6563,8 @@ export const EmojiList = [
     shortname: ":bell:",
     code: "&#128276;",
     category: "s",
-    emoji_order: "1821"
+    emoji_order: "1821",
+    char: "🔔"
   },
   {
     name: "no_bell",
@@ -5865,7 +6572,8 @@ export const EmojiList = [
     shortname: ":no_bell:",
     code: "&#128277;",
     category: "s",
-    emoji_order: "1822"
+    emoji_order: "1822",
+    char: "🔕"
   },
   {
     name: "musical_score",
@@ -5873,7 +6581,8 @@ export const EmojiList = [
     shortname: ":musical_score:",
     code: "&#127932;",
     category: "a",
-    emoji_order: "1823"
+    emoji_order: "1823",
+    char: "🎼"
   },
   {
     name: "musical_note",
@@ -5881,7 +6590,8 @@ export const EmojiList = [
     shortname: ":musical_note:",
     code: "&#127925;",
     category: "s",
-    emoji_order: "1824"
+    emoji_order: "1824",
+    char: "🎵"
   },
   {
     name: "notes",
@@ -5889,7 +6599,8 @@ export const EmojiList = [
     shortname: ":notes:",
     code: "&#127926;",
     category: "s",
-    emoji_order: "1825"
+    emoji_order: "1825",
+    char: "🎶"
   },
   {
     name: "studio_microphone",
@@ -5897,7 +6608,8 @@ export const EmojiList = [
     shortname: ":microphone2:",
     code: "&#127897;",
     category: "o",
-    emoji_order: "1826"
+    emoji_order: "1826",
+    char: "🎙"
   },
   {
     name: "level_slider",
@@ -5905,7 +6617,8 @@ export const EmojiList = [
     shortname: ":level_slider:",
     code: "&#127898;",
     category: "o",
-    emoji_order: "1827"
+    emoji_order: "1827",
+    char: "🎚"
   },
   {
     name: "control_knobs",
@@ -5913,7 +6626,8 @@ export const EmojiList = [
     shortname: ":control_knobs:",
     code: "&#127899;",
     category: "o",
-    emoji_order: "1828"
+    emoji_order: "1828",
+    char: "🎛"
   },
   {
     name: "microphone",
@@ -5921,7 +6635,8 @@ export const EmojiList = [
     shortname: ":microphone:",
     code: "&#127908;",
     category: "a",
-    emoji_order: "1829"
+    emoji_order: "1829",
+    char: "🎤"
   },
   {
     name: "headphones",
@@ -5929,7 +6644,8 @@ export const EmojiList = [
     shortname: ":headphones:",
     code: "&#127911;",
     category: "a",
-    emoji_order: "1830"
+    emoji_order: "1830",
+    char: "🎧"
   },
   {
     name: "radio",
@@ -5937,7 +6653,8 @@ export const EmojiList = [
     shortname: ":radio:",
     code: "&#128251;",
     category: "o",
-    emoji_order: "1831"
+    emoji_order: "1831",
+    char: "📻"
   },
   {
     name: "saxophone",
@@ -5945,7 +6662,8 @@ export const EmojiList = [
     shortname: ":saxophone:",
     code: "&#127927;",
     category: "a",
-    emoji_order: "1832"
+    emoji_order: "1832",
+    char: "🎷"
   },
   {
     name: "guitar",
@@ -5953,7 +6671,8 @@ export const EmojiList = [
     shortname: ":guitar:",
     code: "&#127928;",
     category: "a",
-    emoji_order: "1833"
+    emoji_order: "1833",
+    char: "🎸"
   },
   {
     name: "musical_keyboard",
@@ -5961,7 +6680,8 @@ export const EmojiList = [
     shortname: ":musical_keyboard:",
     code: "&#127929;",
     category: "a",
-    emoji_order: "1834"
+    emoji_order: "1834",
+    char: "🎹"
   },
   {
     name: "trumpet",
@@ -5969,7 +6689,8 @@ export const EmojiList = [
     shortname: ":trumpet:",
     code: "&#127930;",
     category: "a",
-    emoji_order: "1835"
+    emoji_order: "1835",
+    char: "🎺"
   },
   {
     name: "violin",
@@ -5977,7 +6698,8 @@ export const EmojiList = [
     shortname: ":violin:",
     code: "&#127931;",
     category: "a",
-    emoji_order: "1836"
+    emoji_order: "1836",
+    char: "🎻"
   },
   {
     name: "drum",
@@ -5985,7 +6707,8 @@ export const EmojiList = [
     shortname: ":drum:",
     code: "&#129345;",
     category: "a",
-    emoji_order: "1837"
+    emoji_order: "1837",
+    char: "🥁"
   },
   {
     name: "iphone",
@@ -5993,7 +6716,8 @@ export const EmojiList = [
     shortname: ":iphone:",
     code: "&#128241;",
     category: "o",
-    emoji_order: "1838"
+    emoji_order: "1838",
+    char: "📱"
   },
   {
     name: "calling",
@@ -6001,7 +6725,8 @@ export const EmojiList = [
     shortname: ":calling:",
     code: "&#128242;",
     category: "o",
-    emoji_order: "1839"
+    emoji_order: "1839",
+    char: "📲"
   },
   {
     name: "telephone",
@@ -6009,7 +6734,8 @@ export const EmojiList = [
     shortname: ":telephone:",
     code: "&#9742;",
     category: "o",
-    emoji_order: "1840"
+    emoji_order: "1840",
+    char: "☎"
   },
   {
     name: "telephone_receiver",
@@ -6017,7 +6743,8 @@ export const EmojiList = [
     shortname: ":telephone_receiver:",
     code: "&#128222;",
     category: "o",
-    emoji_order: "1841"
+    emoji_order: "1841",
+    char: "📞"
   },
   {
     name: "pager",
@@ -6025,7 +6752,8 @@ export const EmojiList = [
     shortname: ":pager:",
     code: "&#128223;",
     category: "o",
-    emoji_order: "1842"
+    emoji_order: "1842",
+    char: "📟"
   },
   {
     name: "fax",
@@ -6033,7 +6761,8 @@ export const EmojiList = [
     shortname: ":fax:",
     code: "&#128224;",
     category: "o",
-    emoji_order: "1843"
+    emoji_order: "1843",
+    char: "📠"
   },
   {
     name: "battery",
@@ -6041,7 +6770,8 @@ export const EmojiList = [
     shortname: ":battery:",
     code: "&#128267;",
     category: "o",
-    emoji_order: "1844"
+    emoji_order: "1844",
+    char: "🔋"
   },
   {
     name: "electric_plug",
@@ -6049,7 +6779,8 @@ export const EmojiList = [
     shortname: ":electric_plug:",
     code: "&#128268;",
     category: "o",
-    emoji_order: "1845"
+    emoji_order: "1845",
+    char: "🔌"
   },
   {
     name: "computer",
@@ -6057,7 +6788,8 @@ export const EmojiList = [
     shortname: ":computer:",
     code: "&#128187;",
     category: "o",
-    emoji_order: "1846"
+    emoji_order: "1846",
+    char: "💻"
   },
   {
     name: "desktop_computer",
@@ -6065,7 +6797,8 @@ export const EmojiList = [
     shortname: ":desktop:",
     code: "&#128421;",
     category: "o",
-    emoji_order: "1847"
+    emoji_order: "1847",
+    char: "🖥"
   },
   {
     name: "printer",
@@ -6073,7 +6806,8 @@ export const EmojiList = [
     shortname: ":printer:",
     code: "&#128424;",
     category: "o",
-    emoji_order: "1848"
+    emoji_order: "1848",
+    char: "🖨"
   },
   {
     name: "keyboard",
@@ -6081,7 +6815,8 @@ export const EmojiList = [
     shortname: ":keyboard:",
     code: "&#9000;",
     category: "o",
-    emoji_order: "1849"
+    emoji_order: "1849",
+    char: "⌨"
   },
   {
     name: "three_button_mouse",
@@ -6089,7 +6824,8 @@ export const EmojiList = [
     shortname: ":mouse_three_button:",
     code: "&#128433;",
     category: "o",
-    emoji_order: "1850"
+    emoji_order: "1850",
+    char: "🖱"
   },
   {
     name: "trackball",
@@ -6097,7 +6833,8 @@ export const EmojiList = [
     shortname: ":trackball:",
     code: "&#128434;",
     category: "o",
-    emoji_order: "1851"
+    emoji_order: "1851",
+    char: "🖲"
   },
   {
     name: "minidisc",
@@ -6105,7 +6842,8 @@ export const EmojiList = [
     shortname: ":minidisc:",
     code: "&#128189;",
     category: "o",
-    emoji_order: "1852"
+    emoji_order: "1852",
+    char: "💽"
   },
   {
     name: "floppy_disk",
@@ -6113,7 +6851,8 @@ export const EmojiList = [
     shortname: ":floppy_disk:",
     code: "&#128190;",
     category: "o",
-    emoji_order: "1853"
+    emoji_order: "1853",
+    char: "💾"
   },
   {
     name: "cd",
@@ -6121,7 +6860,8 @@ export const EmojiList = [
     shortname: ":cd:",
     code: "&#128191;",
     category: "o",
-    emoji_order: "1854"
+    emoji_order: "1854",
+    char: "💿"
   },
   {
     name: "dvd",
@@ -6129,7 +6869,8 @@ export const EmojiList = [
     shortname: ":dvd:",
     code: "&#128192;",
     category: "o",
-    emoji_order: "1855"
+    emoji_order: "1855",
+    char: "📀"
   },
   {
     name: "movie_camera",
@@ -6137,7 +6878,8 @@ export const EmojiList = [
     shortname: ":movie_camera:",
     code: "&#127909;",
     category: "o",
-    emoji_order: "1856"
+    emoji_order: "1856",
+    char: "🎥"
   },
   {
     name: "film_frames",
@@ -6145,7 +6887,8 @@ export const EmojiList = [
     shortname: ":film_frames:",
     code: "&#127902;",
     category: "o",
-    emoji_order: "1857"
+    emoji_order: "1857",
+    char: "🎞"
   },
   {
     name: "film_projector",
@@ -6153,7 +6896,8 @@ export const EmojiList = [
     shortname: ":projector:",
     code: "&#128253;",
     category: "o",
-    emoji_order: "1858"
+    emoji_order: "1858",
+    char: "📽"
   },
   {
     name: "clapper",
@@ -6161,7 +6905,8 @@ export const EmojiList = [
     shortname: ":clapper:",
     code: "&#127916;",
     category: "a",
-    emoji_order: "1859"
+    emoji_order: "1859",
+    char: "🎬"
   },
   {
     name: "tv",
@@ -6169,7 +6914,8 @@ export const EmojiList = [
     shortname: ":tv:",
     code: "&#128250;",
     category: "o",
-    emoji_order: "1860"
+    emoji_order: "1860",
+    char: "📺"
   },
   {
     name: "camera",
@@ -6177,7 +6923,8 @@ export const EmojiList = [
     shortname: ":camera:",
     code: "&#128247;",
     category: "o",
-    emoji_order: "1861"
+    emoji_order: "1861",
+    char: "📷"
   },
   {
     name: "camera_with_flash",
@@ -6185,7 +6932,8 @@ export const EmojiList = [
     shortname: ":camera_with_flash:",
     code: "&#128248;",
     category: "o",
-    emoji_order: "1862"
+    emoji_order: "1862",
+    char: "📸"
   },
   {
     name: "video_camera",
@@ -6193,7 +6941,8 @@ export const EmojiList = [
     shortname: ":video_camera:",
     code: "&#128249;",
     category: "o",
-    emoji_order: "1863"
+    emoji_order: "1863",
+    char: "📹"
   },
   {
     name: "vhs",
@@ -6201,7 +6950,8 @@ export const EmojiList = [
     shortname: ":vhs:",
     code: "&#128252;",
     category: "o",
-    emoji_order: "1864"
+    emoji_order: "1864",
+    char: "📼"
   },
   {
     name: "mag",
@@ -6209,7 +6959,8 @@ export const EmojiList = [
     shortname: ":mag:",
     code: "&#128269;",
     category: "o",
-    emoji_order: "1865"
+    emoji_order: "1865",
+    char: "🔍"
   },
   {
     name: "mag_right",
@@ -6217,7 +6968,8 @@ export const EmojiList = [
     shortname: ":mag_right:",
     code: "&#128270;",
     category: "o",
-    emoji_order: "1866"
+    emoji_order: "1866",
+    char: "🔎"
   },
   {
     name: "microscope",
@@ -6225,7 +6977,8 @@ export const EmojiList = [
     shortname: ":microscope:",
     code: "&#128300;",
     category: "o",
-    emoji_order: "1867"
+    emoji_order: "1867",
+    char: "🔬"
   },
   {
     name: "telescope",
@@ -6233,7 +6986,8 @@ export const EmojiList = [
     shortname: ":telescope:",
     code: "&#128301;",
     category: "o",
-    emoji_order: "1868"
+    emoji_order: "1868",
+    char: "🔭"
   },
   {
     name: "satellite_antenna",
@@ -6241,7 +6995,8 @@ export const EmojiList = [
     shortname: ":satellite:",
     code: "&#128225;",
     category: "o",
-    emoji_order: "1869"
+    emoji_order: "1869",
+    char: "📡"
   },
   {
     name: "candle",
@@ -6249,7 +7004,8 @@ export const EmojiList = [
     shortname: ":candle:",
     code: "&#128367;",
     category: "o",
-    emoji_order: "1870"
+    emoji_order: "1870",
+    char: "🕯"
   },
   {
     name: "bulb",
@@ -6257,7 +7013,8 @@ export const EmojiList = [
     shortname: ":bulb:",
     code: "&#128161;",
     category: "o",
-    emoji_order: "1871"
+    emoji_order: "1871",
+    char: "💡"
   },
   {
     name: "flashlight",
@@ -6265,7 +7022,8 @@ export const EmojiList = [
     shortname: ":flashlight:",
     code: "&#128294;",
     category: "o",
-    emoji_order: "1872"
+    emoji_order: "1872",
+    char: "🔦"
   },
   {
     name: "izakaya_lantern",
@@ -6273,7 +7031,8 @@ export const EmojiList = [
     shortname: ":izakaya_lantern:",
     code: "&#127982;",
     category: "o",
-    emoji_order: "1873"
+    emoji_order: "1873",
+    char: "🏮"
   },
   {
     name: "notebook_with_decorative_cover",
@@ -6281,7 +7040,8 @@ export const EmojiList = [
     shortname: ":notebook_with_decorative_cover:",
     code: "&#128212;",
     category: "o",
-    emoji_order: "1874"
+    emoji_order: "1874",
+    char: "📔"
   },
   {
     name: "closed_book",
@@ -6289,7 +7049,8 @@ export const EmojiList = [
     shortname: ":closed_book:",
     code: "&#128213;",
     category: "o",
-    emoji_order: "1875"
+    emoji_order: "1875",
+    char: "📕"
   },
   {
     name: "book",
@@ -6297,7 +7058,8 @@ export const EmojiList = [
     shortname: ":book:",
     code: "&#128214;",
     category: "o",
-    emoji_order: "1876"
+    emoji_order: "1876",
+    char: "📖"
   },
   {
     name: "green_book",
@@ -6305,7 +7067,8 @@ export const EmojiList = [
     shortname: ":green_book:",
     code: "&#128215;",
     category: "o",
-    emoji_order: "1877"
+    emoji_order: "1877",
+    char: "📗"
   },
   {
     name: "blue_book",
@@ -6313,7 +7076,8 @@ export const EmojiList = [
     shortname: ":blue_book:",
     code: "&#128216;",
     category: "o",
-    emoji_order: "1878"
+    emoji_order: "1878",
+    char: "📘"
   },
   {
     name: "orange_book",
@@ -6321,7 +7085,8 @@ export const EmojiList = [
     shortname: ":orange_book:",
     code: "&#128217;",
     category: "o",
-    emoji_order: "1879"
+    emoji_order: "1879",
+    char: "📙"
   },
   {
     name: "books",
@@ -6329,7 +7094,8 @@ export const EmojiList = [
     shortname: ":books:",
     code: "&#128218;",
     category: "o",
-    emoji_order: "1880"
+    emoji_order: "1880",
+    char: "📚"
   },
   {
     name: "notebook",
@@ -6337,7 +7103,8 @@ export const EmojiList = [
     shortname: ":notebook:",
     code: "&#128211;",
     category: "o",
-    emoji_order: "1881"
+    emoji_order: "1881",
+    char: "📓"
   },
   {
     name: "ledger",
@@ -6345,7 +7112,8 @@ export const EmojiList = [
     shortname: ":ledger:",
     code: "&#128210;",
     category: "o",
-    emoji_order: "1882"
+    emoji_order: "1882",
+    char: "📒"
   },
   {
     name: "page_with_curl",
@@ -6353,7 +7121,8 @@ export const EmojiList = [
     shortname: ":page_with_curl:",
     code: "&#128195;",
     category: "o",
-    emoji_order: "1883"
+    emoji_order: "1883",
+    char: "📃"
   },
   {
     name: "scroll",
@@ -6361,7 +7130,8 @@ export const EmojiList = [
     shortname: ":scroll:",
     code: "&#128220;",
     category: "o",
-    emoji_order: "1884"
+    emoji_order: "1884",
+    char: "📜"
   },
   {
     name: "page_facing_up",
@@ -6369,7 +7139,8 @@ export const EmojiList = [
     shortname: ":page_facing_up:",
     code: "&#128196;",
     category: "o",
-    emoji_order: "1885"
+    emoji_order: "1885",
+    char: "📄"
   },
   {
     name: "newspaper",
@@ -6377,7 +7148,8 @@ export const EmojiList = [
     shortname: ":newspaper:",
     code: "&#128240;",
     category: "o",
-    emoji_order: "1886"
+    emoji_order: "1886",
+    char: "📰"
   },
   {
     name: "rolled_up_newspaper",
@@ -6385,7 +7157,8 @@ export const EmojiList = [
     shortname: ":newspaper2:",
     code: "&#128478;",
     category: "o",
-    emoji_order: "1887"
+    emoji_order: "1887",
+    char: "🗞"
   },
   {
     name: "bookmark_tabs",
@@ -6393,7 +7166,8 @@ export const EmojiList = [
     shortname: ":bookmark_tabs:",
     code: "&#128209;",
     category: "o",
-    emoji_order: "1888"
+    emoji_order: "1888",
+    char: "📑"
   },
   {
     name: "bookmark",
@@ -6401,7 +7175,8 @@ export const EmojiList = [
     shortname: ":bookmark:",
     code: "&#128278;",
     category: "o",
-    emoji_order: "1889"
+    emoji_order: "1889",
+    char: "🔖"
   },
   {
     name: "label",
@@ -6409,7 +7184,8 @@ export const EmojiList = [
     shortname: ":label:",
     code: "&#127991;",
     category: "o",
-    emoji_order: "1890"
+    emoji_order: "1890",
+    char: "🏷"
   },
   {
     name: "moneybag",
@@ -6417,7 +7193,8 @@ export const EmojiList = [
     shortname: ":moneybag:",
     code: "&#128176;",
     category: "o",
-    emoji_order: "1891"
+    emoji_order: "1891",
+    char: "💰"
   },
   {
     name: "yen",
@@ -6425,7 +7202,8 @@ export const EmojiList = [
     shortname: ":yen:",
     code: "&#128180;",
     category: "o",
-    emoji_order: "1892"
+    emoji_order: "1892",
+    char: "💴"
   },
   {
     name: "dollar",
@@ -6433,7 +7211,8 @@ export const EmojiList = [
     shortname: ":dollar:",
     code: "&#128181;",
     category: "o",
-    emoji_order: "1893"
+    emoji_order: "1893",
+    char: "💵"
   },
   {
     name: "euro",
@@ -6441,7 +7220,8 @@ export const EmojiList = [
     shortname: ":euro:",
     code: "&#128182;",
     category: "o",
-    emoji_order: "1894"
+    emoji_order: "1894",
+    char: "💶"
   },
   {
     name: "pound",
@@ -6449,7 +7229,8 @@ export const EmojiList = [
     shortname: ":pound:",
     code: "&#128183;",
     category: "o",
-    emoji_order: "1895"
+    emoji_order: "1895",
+    char: "💷"
   },
   {
     name: "money_with_wings",
@@ -6457,7 +7238,8 @@ export const EmojiList = [
     shortname: ":money_with_wings:",
     code: "&#128184;",
     category: "o",
-    emoji_order: "1896"
+    emoji_order: "1896",
+    char: "💸"
   },
   {
     name: "credit_card",
@@ -6465,7 +7247,8 @@ export const EmojiList = [
     shortname: ":credit_card:",
     code: "&#128179;",
     category: "o",
-    emoji_order: "1897"
+    emoji_order: "1897",
+    char: "💳"
   },
   {
     name: "chart",
@@ -6473,7 +7256,8 @@ export const EmojiList = [
     shortname: ":chart:",
     code: "&#128185;",
     category: "s",
-    emoji_order: "1898"
+    emoji_order: "1898",
+    char: "💹"
   },
   {
     name: "currency_exchange",
@@ -6481,7 +7265,8 @@ export const EmojiList = [
     shortname: ":currency_exchange:",
     code: "&#128177;",
     category: "s",
-    emoji_order: "1899"
+    emoji_order: "1899",
+    char: "💱"
   },
   {
     name: "heavy_dollar_sign",
@@ -6489,7 +7274,8 @@ export const EmojiList = [
     shortname: ":heavy_dollar_sign:",
     code: "&#128178;",
     category: "s",
-    emoji_order: "1900"
+    emoji_order: "1900",
+    char: "💲"
   },
   {
     name: "envelope",
@@ -6497,7 +7283,8 @@ export const EmojiList = [
     shortname: ":envelope:",
     code: "&#9993;",
     category: "o",
-    emoji_order: "1901"
+    emoji_order: "1901",
+    char: "✉"
   },
   {
     name: "e-mail",
@@ -6505,7 +7292,8 @@ export const EmojiList = [
     shortname: ":e-mail:",
     code: "&#128231;",
     category: "o",
-    emoji_order: "1902"
+    emoji_order: "1902",
+    char: "📧"
   },
   {
     name: "incoming_envelope",
@@ -6513,7 +7301,8 @@ export const EmojiList = [
     shortname: ":incoming_envelope:",
     code: "&#128232;",
     category: "o",
-    emoji_order: "1903"
+    emoji_order: "1903",
+    char: "📨"
   },
   {
     name: "envelope_with_arrow",
@@ -6521,7 +7310,8 @@ export const EmojiList = [
     shortname: ":envelope_with_arrow:",
     code: "&#128233;",
     category: "o",
-    emoji_order: "1904"
+    emoji_order: "1904",
+    char: "📩"
   },
   {
     name: "outbox_tray",
@@ -6529,7 +7319,8 @@ export const EmojiList = [
     shortname: ":outbox_tray:",
     code: "&#128228;",
     category: "o",
-    emoji_order: "1905"
+    emoji_order: "1905",
+    char: "📤"
   },
   {
     name: "inbox_tray",
@@ -6537,7 +7328,8 @@ export const EmojiList = [
     shortname: ":inbox_tray:",
     code: "&#128229;",
     category: "o",
-    emoji_order: "1906"
+    emoji_order: "1906",
+    char: "📥"
   },
   {
     name: "package",
@@ -6545,7 +7337,8 @@ export const EmojiList = [
     shortname: ":package:",
     code: "&#128230;",
     category: "o",
-    emoji_order: "1907"
+    emoji_order: "1907",
+    char: "📦"
   },
   {
     name: "mailbox",
@@ -6553,7 +7346,8 @@ export const EmojiList = [
     shortname: ":mailbox:",
     code: "&#128235;",
     category: "o",
-    emoji_order: "1908"
+    emoji_order: "1908",
+    char: "📫"
   },
   {
     name: "mailbox_closed",
@@ -6561,7 +7355,8 @@ export const EmojiList = [
     shortname: ":mailbox_closed:",
     code: "&#128234;",
     category: "o",
-    emoji_order: "1909"
+    emoji_order: "1909",
+    char: "📪"
   },
   {
     name: "mailbox_with_mail",
@@ -6569,7 +7364,8 @@ export const EmojiList = [
     shortname: ":mailbox_with_mail:",
     code: "&#128236;",
     category: "o",
-    emoji_order: "1910"
+    emoji_order: "1910",
+    char: "📬"
   },
   {
     name: "mailbox_with_no_mail",
@@ -6577,7 +7373,8 @@ export const EmojiList = [
     shortname: ":mailbox_with_no_mail:",
     code: "&#128237;",
     category: "o",
-    emoji_order: "1911"
+    emoji_order: "1911",
+    char: "📭"
   },
   {
     name: "postbox",
@@ -6585,7 +7382,8 @@ export const EmojiList = [
     shortname: ":postbox:",
     code: "&#128238;",
     category: "o",
-    emoji_order: "1912"
+    emoji_order: "1912",
+    char: "📮"
   },
   {
     name: "ballot_box_with_ballot",
@@ -6593,7 +7391,8 @@ export const EmojiList = [
     shortname: ":ballot_box:",
     code: "&#128499;",
     category: "o",
-    emoji_order: "1913"
+    emoji_order: "1913",
+    char: "🗳"
   },
   {
     name: "pencil2",
@@ -6601,7 +7400,8 @@ export const EmojiList = [
     shortname: ":pencil2:",
     code: "&#9999;",
     category: "o",
-    emoji_order: "1914"
+    emoji_order: "1914",
+    char: "✏"
   },
   {
     name: "black_nib",
@@ -6609,7 +7409,8 @@ export const EmojiList = [
     shortname: ":black_nib:",
     code: "&#10002;",
     category: "o",
-    emoji_order: "1915"
+    emoji_order: "1915",
+    char: "✒"
   },
   {
     name: "lower_left_fountain_pen",
@@ -6617,7 +7418,8 @@ export const EmojiList = [
     shortname: ":pen_fountain:",
     code: "&#128395;",
     category: "o",
-    emoji_order: "1916"
+    emoji_order: "1916",
+    char: "🖋"
   },
   {
     name: "lower_left_ballpoint_pen",
@@ -6625,7 +7427,8 @@ export const EmojiList = [
     shortname: ":pen_ballpoint:",
     code: "&#128394;",
     category: "o",
-    emoji_order: "1917"
+    emoji_order: "1917",
+    char: "🖊"
   },
   {
     name: "lower_left_paintbrush",
@@ -6633,7 +7436,8 @@ export const EmojiList = [
     shortname: ":paintbrush:",
     code: "&#128396;",
     category: "o",
-    emoji_order: "1918"
+    emoji_order: "1918",
+    char: "🖌"
   },
   {
     name: "lower_left_crayon",
@@ -6641,7 +7445,8 @@ export const EmojiList = [
     shortname: ":crayon:",
     code: "&#128397;",
     category: "o",
-    emoji_order: "1919"
+    emoji_order: "1919",
+    char: "🖍"
   },
   {
     name: "memo",
@@ -6649,7 +7454,8 @@ export const EmojiList = [
     shortname: ":pencil:",
     code: "&#128221;",
     category: "o",
-    emoji_order: "1920"
+    emoji_order: "1920",
+    char: "📝"
   },
   {
     name: "briefcase",
@@ -6657,7 +7463,8 @@ export const EmojiList = [
     shortname: ":briefcase:",
     code: "&#128188;",
     category: "p",
-    emoji_order: "1921"
+    emoji_order: "1921",
+    char: "💼"
   },
   {
     name: "file_folder",
@@ -6665,7 +7472,8 @@ export const EmojiList = [
     shortname: ":file_folder:",
     code: "&#128193;",
     category: "o",
-    emoji_order: "1922"
+    emoji_order: "1922",
+    char: "📁"
   },
   {
     name: "open_file_folder",
@@ -6673,7 +7481,8 @@ export const EmojiList = [
     shortname: ":open_file_folder:",
     code: "&#128194;",
     category: "o",
-    emoji_order: "1923"
+    emoji_order: "1923",
+    char: "📂"
   },
   {
     name: "card_index_dividers",
@@ -6681,7 +7490,8 @@ export const EmojiList = [
     shortname: ":dividers:",
     code: "&#128450;",
     category: "o",
-    emoji_order: "1924"
+    emoji_order: "1924",
+    char: "🗂"
   },
   {
     name: "date",
@@ -6689,7 +7499,8 @@ export const EmojiList = [
     shortname: ":date:",
     code: "&#128197;",
     category: "o",
-    emoji_order: "1925"
+    emoji_order: "1925",
+    char: "📅"
   },
   {
     name: "calendar",
@@ -6697,7 +7508,8 @@ export const EmojiList = [
     shortname: ":calendar:",
     code: "&#128198;",
     category: "o",
-    emoji_order: "1926"
+    emoji_order: "1926",
+    char: "📆"
   },
   {
     name: "spiral_note_pad",
@@ -6705,7 +7517,8 @@ export const EmojiList = [
     shortname: ":notepad_spiral:",
     code: "&#128466;",
     category: "o",
-    emoji_order: "1927"
+    emoji_order: "1927",
+    char: "🗒"
   },
   {
     name: "spiral_calendar_pad",
@@ -6713,7 +7526,8 @@ export const EmojiList = [
     shortname: ":calendar_spiral:",
     code: "&#128467;",
     category: "o",
-    emoji_order: "1928"
+    emoji_order: "1928",
+    char: "🗓"
   },
   {
     name: "card_index",
@@ -6721,7 +7535,8 @@ export const EmojiList = [
     shortname: ":card_index:",
     code: "&#128199;",
     category: "o",
-    emoji_order: "1929"
+    emoji_order: "1929",
+    char: "📇"
   },
   {
     name: "chart_with_upwards_trend",
@@ -6729,7 +7544,8 @@ export const EmojiList = [
     shortname: ":chart_with_upwards_trend:",
     code: "&#128200;",
     category: "o",
-    emoji_order: "1930"
+    emoji_order: "1930",
+    char: "📈"
   },
   {
     name: "chart_with_downwards_trend",
@@ -6737,7 +7553,8 @@ export const EmojiList = [
     shortname: ":chart_with_downwards_trend:",
     code: "&#128201;",
     category: "o",
-    emoji_order: "1931"
+    emoji_order: "1931",
+    char: "📉"
   },
   {
     name: "bar_chart",
@@ -6745,7 +7562,8 @@ export const EmojiList = [
     shortname: ":bar_chart:",
     code: "&#128202;",
     category: "o",
-    emoji_order: "1932"
+    emoji_order: "1932",
+    char: "📊"
   },
   {
     name: "clipboard",
@@ -6753,7 +7571,8 @@ export const EmojiList = [
     shortname: ":clipboard:",
     code: "&#128203;",
     category: "o",
-    emoji_order: "1933"
+    emoji_order: "1933",
+    char: "📋"
   },
   {
     name: "pushpin",
@@ -6761,7 +7580,8 @@ export const EmojiList = [
     shortname: ":pushpin:",
     code: "&#128204;",
     category: "o",
-    emoji_order: "1934"
+    emoji_order: "1934",
+    char: "📌"
   },
   {
     name: "round_pushpin",
@@ -6769,7 +7589,8 @@ export const EmojiList = [
     shortname: ":round_pushpin:",
     code: "&#128205;",
     category: "o",
-    emoji_order: "1935"
+    emoji_order: "1935",
+    char: "📍"
   },
   {
     name: "paperclip",
@@ -6777,7 +7598,8 @@ export const EmojiList = [
     shortname: ":paperclip:",
     code: "&#128206;",
     category: "o",
-    emoji_order: "1936"
+    emoji_order: "1936",
+    char: "📎"
   },
   {
     name: "linked_paperclips",
@@ -6785,7 +7607,8 @@ export const EmojiList = [
     shortname: ":paperclips:",
     code: "&#128391;",
     category: "o",
-    emoji_order: "1937"
+    emoji_order: "1937",
+    char: "🖇"
   },
   {
     name: "straight_ruler",
@@ -6793,7 +7616,8 @@ export const EmojiList = [
     shortname: ":straight_ruler:",
     code: "&#128207;",
     category: "o",
-    emoji_order: "1938"
+    emoji_order: "1938",
+    char: "📏"
   },
   {
     name: "triangular_ruler",
@@ -6801,7 +7625,8 @@ export const EmojiList = [
     shortname: ":triangular_ruler:",
     code: "&#128208;",
     category: "o",
-    emoji_order: "1939"
+    emoji_order: "1939",
+    char: "📐"
   },
   {
     name: "scissors",
@@ -6809,7 +7634,8 @@ export const EmojiList = [
     shortname: ":scissors:",
     code: "&#9986;",
     category: "o",
-    emoji_order: "1940"
+    emoji_order: "1940",
+    char: "✂"
   },
   {
     name: "card_file_box",
@@ -6817,7 +7643,8 @@ export const EmojiList = [
     shortname: ":card_box:",
     code: "&#128451;",
     category: "o",
-    emoji_order: "1941"
+    emoji_order: "1941",
+    char: "🗃"
   },
   {
     name: "file_cabinet",
@@ -6825,7 +7652,8 @@ export const EmojiList = [
     shortname: ":file_cabinet:",
     code: "&#128452;",
     category: "o",
-    emoji_order: "1942"
+    emoji_order: "1942",
+    char: "🗄"
   },
   {
     name: "wastebasket",
@@ -6833,7 +7661,8 @@ export const EmojiList = [
     shortname: ":wastebasket:",
     code: "&#128465;",
     category: "o",
-    emoji_order: "1943"
+    emoji_order: "1943",
+    char: "🗑"
   },
   {
     name: "lock",
@@ -6841,7 +7670,8 @@ export const EmojiList = [
     shortname: ":lock:",
     code: "&#128274;",
     category: "o",
-    emoji_order: "1944"
+    emoji_order: "1944",
+    char: "🔒"
   },
   {
     name: "unlock",
@@ -6849,7 +7679,8 @@ export const EmojiList = [
     shortname: ":unlock:",
     code: "&#128275;",
     category: "o",
-    emoji_order: "1945"
+    emoji_order: "1945",
+    char: "🔓"
   },
   {
     name: "lock_with_ink_pen",
@@ -6857,7 +7688,8 @@ export const EmojiList = [
     shortname: ":lock_with_ink_pen:",
     code: "&#128271;",
     category: "o",
-    emoji_order: "1946"
+    emoji_order: "1946",
+    char: "🔏"
   },
   {
     name: "closed_lock_with_key",
@@ -6865,7 +7697,8 @@ export const EmojiList = [
     shortname: ":closed_lock_with_key:",
     code: "&#128272;",
     category: "o",
-    emoji_order: "1947"
+    emoji_order: "1947",
+    char: "🔐"
   },
   {
     name: "key",
@@ -6873,7 +7706,8 @@ export const EmojiList = [
     shortname: ":key:",
     code: "&#128273;",
     category: "o",
-    emoji_order: "1948"
+    emoji_order: "1948",
+    char: "🔑"
   },
   {
     name: "old_key",
@@ -6881,7 +7715,8 @@ export const EmojiList = [
     shortname: ":key2:",
     code: "&#128477;",
     category: "o",
-    emoji_order: "1949"
+    emoji_order: "1949",
+    char: "🗝"
   },
   {
     name: "hammer",
@@ -6889,7 +7724,8 @@ export const EmojiList = [
     shortname: ":hammer:",
     code: "&#128296;",
     category: "o",
-    emoji_order: "1950"
+    emoji_order: "1950",
+    char: "🔨"
   },
   {
     name: "pick",
@@ -6897,7 +7733,8 @@ export const EmojiList = [
     shortname: ":pick:",
     code: "&#9935;",
     category: "o",
-    emoji_order: "1951"
+    emoji_order: "1951",
+    char: "⛏"
   },
   {
     name: "hammer_and_pick",
@@ -6905,7 +7742,8 @@ export const EmojiList = [
     shortname: ":hammer_pick:",
     code: "&#9874;",
     category: "o",
-    emoji_order: "1952"
+    emoji_order: "1952",
+    char: "⚒"
   },
   {
     name: "hammer_and_wrench",
@@ -6913,7 +7751,8 @@ export const EmojiList = [
     shortname: ":tools:",
     code: "&#128736;",
     category: "o",
-    emoji_order: "1953"
+    emoji_order: "1953",
+    char: "🛠"
   },
   {
     name: "dagger_knife",
@@ -6921,7 +7760,8 @@ export const EmojiList = [
     shortname: ":dagger:",
     code: "&#128481;",
     category: "o",
-    emoji_order: "1954"
+    emoji_order: "1954",
+    char: "🗡"
   },
   {
     name: "crossed_swords",
@@ -6929,7 +7769,8 @@ export const EmojiList = [
     shortname: ":crossed_swords:",
     code: "&#9876;",
     category: "o",
-    emoji_order: "1955"
+    emoji_order: "1955",
+    char: "⚔"
   },
   {
     name: "gun",
@@ -6937,7 +7778,8 @@ export const EmojiList = [
     shortname: ":gun:",
     code: "&#128299;",
     category: "o",
-    emoji_order: "1956"
+    emoji_order: "1956",
+    char: "🔫"
   },
   {
     name: "bow_and_arrow",
@@ -6945,7 +7787,8 @@ export const EmojiList = [
     shortname: ":bow_and_arrow:",
     code: "&#127993;",
     category: "a",
-    emoji_order: "1957"
+    emoji_order: "1957",
+    char: "🏹"
   },
   {
     name: "shield",
@@ -6953,7 +7796,8 @@ export const EmojiList = [
     shortname: ":shield:",
     code: "&#128737;",
     category: "o",
-    emoji_order: "1958"
+    emoji_order: "1958",
+    char: "🛡"
   },
   {
     name: "wrench",
@@ -6961,7 +7805,8 @@ export const EmojiList = [
     shortname: ":wrench:",
     code: "&#128295;",
     category: "o",
-    emoji_order: "1959"
+    emoji_order: "1959",
+    char: "🔧"
   },
   {
     name: "nut_and_bolt",
@@ -6969,7 +7814,8 @@ export const EmojiList = [
     shortname: ":nut_and_bolt:",
     code: "&#128297;",
     category: "o",
-    emoji_order: "1960"
+    emoji_order: "1960",
+    char: "🔩"
   },
   {
     name: "gear",
@@ -6977,7 +7823,8 @@ export const EmojiList = [
     shortname: ":gear:",
     code: "&#9881;",
     category: "o",
-    emoji_order: "1961"
+    emoji_order: "1961",
+    char: "⚙"
   },
   {
     name: "compression",
@@ -6985,7 +7832,8 @@ export const EmojiList = [
     shortname: ":compression:",
     code: "&#128476;",
     category: "o",
-    emoji_order: "1962"
+    emoji_order: "1962",
+    char: "🗜"
   },
   {
     name: "alembic",
@@ -6993,7 +7841,8 @@ export const EmojiList = [
     shortname: ":alembic:",
     code: "&#9879;",
     category: "o",
-    emoji_order: "1963"
+    emoji_order: "1963",
+    char: "⚗"
   },
   {
     name: "scales",
@@ -7001,7 +7850,8 @@ export const EmojiList = [
     shortname: ":scales:",
     code: "&#9878;",
     category: "o",
-    emoji_order: "1964"
+    emoji_order: "1964",
+    char: "⚖"
   },
   {
     name: "link",
@@ -7009,7 +7859,8 @@ export const EmojiList = [
     shortname: ":link:",
     code: "&#128279;",
     category: "o",
-    emoji_order: "1965"
+    emoji_order: "1965",
+    char: "🔗"
   },
   {
     name: "chains",
@@ -7017,7 +7868,8 @@ export const EmojiList = [
     shortname: ":chains:",
     code: "&#9939;",
     category: "o",
-    emoji_order: "1966"
+    emoji_order: "1966",
+    char: "⛓"
   },
   {
     name: "syringe",
@@ -7025,7 +7877,8 @@ export const EmojiList = [
     shortname: ":syringe:",
     code: "&#128137;",
     category: "o",
-    emoji_order: "1967"
+    emoji_order: "1967",
+    char: "💉"
   },
   {
     name: "pill",
@@ -7033,7 +7886,8 @@ export const EmojiList = [
     shortname: ":pill:",
     code: "&#128138;",
     category: "o",
-    emoji_order: "1968"
+    emoji_order: "1968",
+    char: "💊"
   },
   {
     name: "smoking",
@@ -7041,7 +7895,8 @@ export const EmojiList = [
     shortname: ":smoking:",
     code: "&#128684;",
     category: "o",
-    emoji_order: "1969"
+    emoji_order: "1969",
+    char: "🚬"
   },
   {
     name: "coffin",
@@ -7049,7 +7904,8 @@ export const EmojiList = [
     shortname: ":coffin:",
     code: "&#9904;",
     category: "o",
-    emoji_order: "1970"
+    emoji_order: "1970",
+    char: "⚰"
   },
   {
     name: "funeral_urn",
@@ -7057,7 +7913,8 @@ export const EmojiList = [
     shortname: ":urn:",
     code: "&#9905;",
     category: "o",
-    emoji_order: "1971"
+    emoji_order: "1971",
+    char: "⚱"
   },
   {
     name: "moyai",
@@ -7065,7 +7922,8 @@ export const EmojiList = [
     shortname: ":moyai:",
     code: "&#128511;",
     category: "o",
-    emoji_order: "1972"
+    emoji_order: "1972",
+    char: "🗿"
   },
   {
     name: "oil_drum",
@@ -7073,7 +7931,8 @@ export const EmojiList = [
     shortname: ":oil:",
     code: "&#128738;",
     category: "o",
-    emoji_order: "1973"
+    emoji_order: "1973",
+    char: "🛢"
   },
   {
     name: "crystal_ball",
@@ -7081,7 +7940,8 @@ export const EmojiList = [
     shortname: ":crystal_ball:",
     code: "&#128302;",
     category: "o",
-    emoji_order: "1974"
+    emoji_order: "1974",
+    char: "🔮"
   },
   {
     name: "shopping_cart",
@@ -7089,7 +7949,8 @@ export const EmojiList = [
     shortname: ":shopping_cart:",
     code: "&#128722;",
     category: "o",
-    emoji_order: "1975"
+    emoji_order: "1975",
+    char: "🛒"
   },
   {
     name: "atm",
@@ -7097,7 +7958,8 @@ export const EmojiList = [
     shortname: ":atm:",
     code: "&#127975;",
     category: "s",
-    emoji_order: "1976"
+    emoji_order: "1976",
+    char: "🏧"
   },
   {
     name: "put_litter_in_its_place",
@@ -7105,7 +7967,8 @@ export const EmojiList = [
     shortname: ":put_litter_in_its_place:",
     code: "&#128686;",
     category: "s",
-    emoji_order: "1977"
+    emoji_order: "1977",
+    char: "🚮"
   },
   {
     name: "potable_water",
@@ -7113,7 +7976,8 @@ export const EmojiList = [
     shortname: ":potable_water:",
     code: "&#128688;",
     category: "s",
-    emoji_order: "1978"
+    emoji_order: "1978",
+    char: "🚰"
   },
   {
     name: "wheelchair",
@@ -7121,7 +7985,8 @@ export const EmojiList = [
     shortname: ":wheelchair:",
     code: "&#9855;",
     category: "s",
-    emoji_order: "1979"
+    emoji_order: "1979",
+    char: "♿"
   },
   {
     name: "mens",
@@ -7129,7 +7994,8 @@ export const EmojiList = [
     shortname: ":mens:",
     code: "&#128697;",
     category: "s",
-    emoji_order: "1980"
+    emoji_order: "1980",
+    char: "🚹"
   },
   {
     name: "womens",
@@ -7137,7 +8003,8 @@ export const EmojiList = [
     shortname: ":womens:",
     code: "&#128698;",
     category: "s",
-    emoji_order: "1981"
+    emoji_order: "1981",
+    char: "🚺"
   },
   {
     name: "restroom",
@@ -7145,7 +8012,8 @@ export const EmojiList = [
     shortname: ":restroom:",
     code: "&#128699;",
     category: "s",
-    emoji_order: "1982"
+    emoji_order: "1982",
+    char: "🚻"
   },
   {
     name: "baby_symbol",
@@ -7153,7 +8021,8 @@ export const EmojiList = [
     shortname: ":baby_symbol:",
     code: "&#128700;",
     category: "s",
-    emoji_order: "1983"
+    emoji_order: "1983",
+    char: "🚼"
   },
   {
     name: "wc",
@@ -7161,7 +8030,8 @@ export const EmojiList = [
     shortname: ":wc:",
     code: "&#128702;",
     category: "s",
-    emoji_order: "1984"
+    emoji_order: "1984",
+    char: "🚾"
   },
   {
     name: "passport_control",
@@ -7169,7 +8039,8 @@ export const EmojiList = [
     shortname: ":passport_control:",
     code: "&#128706;",
     category: "s",
-    emoji_order: "1985"
+    emoji_order: "1985",
+    char: "🛂"
   },
   {
     name: "customs",
@@ -7177,7 +8048,8 @@ export const EmojiList = [
     shortname: ":customs:",
     code: "&#128707;",
     category: "s",
-    emoji_order: "1986"
+    emoji_order: "1986",
+    char: "🛃"
   },
   {
     name: "baggage_claim",
@@ -7185,7 +8057,8 @@ export const EmojiList = [
     shortname: ":baggage_claim:",
     code: "&#128708;",
     category: "s",
-    emoji_order: "1987"
+    emoji_order: "1987",
+    char: "🛄"
   },
   {
     name: "left_luggage",
@@ -7193,7 +8066,8 @@ export const EmojiList = [
     shortname: ":left_luggage:",
     code: "&#128709;",
     category: "s",
-    emoji_order: "1988"
+    emoji_order: "1988",
+    char: "🛅"
   },
   {
     name: "warning",
@@ -7201,7 +8075,8 @@ export const EmojiList = [
     shortname: ":warning:",
     code: "&#9888;",
     category: "s",
-    emoji_order: "1989"
+    emoji_order: "1989",
+    char: "⚠"
   },
   {
     name: "children_crossing",
@@ -7209,7 +8084,8 @@ export const EmojiList = [
     shortname: ":children_crossing:",
     code: "&#128696;",
     category: "s",
-    emoji_order: "1990"
+    emoji_order: "1990",
+    char: "🚸"
   },
   {
     name: "no_entry",
@@ -7217,7 +8093,8 @@ export const EmojiList = [
     shortname: ":no_entry:",
     code: "&#9940;",
     category: "s",
-    emoji_order: "1991"
+    emoji_order: "1991",
+    char: "⛔"
   },
   {
     name: "no_entry_sign",
@@ -7225,7 +8102,8 @@ export const EmojiList = [
     shortname: ":no_entry_sign:",
     code: "&#128683;",
     category: "s",
-    emoji_order: "1992"
+    emoji_order: "1992",
+    char: "🚫"
   },
   {
     name: "no_bicycles",
@@ -7233,7 +8111,8 @@ export const EmojiList = [
     shortname: ":no_bicycles:",
     code: "&#128691;",
     category: "s",
-    emoji_order: "1993"
+    emoji_order: "1993",
+    char: "🚳"
   },
   {
     name: "no_smoking",
@@ -7241,7 +8120,8 @@ export const EmojiList = [
     shortname: ":no_smoking:",
     code: "&#128685;",
     category: "s",
-    emoji_order: "1994"
+    emoji_order: "1994",
+    char: "🚭"
   },
   {
     name: "do_not_litter",
@@ -7249,7 +8129,8 @@ export const EmojiList = [
     shortname: ":do_not_litter:",
     code: "&#128687;",
     category: "s",
-    emoji_order: "1995"
+    emoji_order: "1995",
+    char: "🚯"
   },
   {
     name: "non-potable_water",
@@ -7257,7 +8138,8 @@ export const EmojiList = [
     shortname: ":non-potable_water:",
     code: "&#128689;",
     category: "s",
-    emoji_order: "1996"
+    emoji_order: "1996",
+    char: "🚱"
   },
   {
     name: "no_pedestrians",
@@ -7265,7 +8147,8 @@ export const EmojiList = [
     shortname: ":no_pedestrians:",
     code: "&#128695;",
     category: "s",
-    emoji_order: "1997"
+    emoji_order: "1997",
+    char: "🚷"
   },
   {
     name: "no_mobile_phones",
@@ -7273,7 +8156,8 @@ export const EmojiList = [
     shortname: ":no_mobile_phones:",
     code: "&#128245;",
     category: "s",
-    emoji_order: "1998"
+    emoji_order: "1998",
+    char: "📵"
   },
   {
     name: "underage",
@@ -7281,7 +8165,8 @@ export const EmojiList = [
     shortname: ":underage:",
     code: "&#128286;",
     category: "s",
-    emoji_order: "1999"
+    emoji_order: "1999",
+    char: "🔞"
   },
   {
     name: "radioactive",
@@ -7289,7 +8174,8 @@ export const EmojiList = [
     shortname: ":radioactive:",
     code: "&#9762;",
     category: "s",
-    emoji_order: "2000"
+    emoji_order: "2000",
+    char: "☢"
   },
   {
     name: "biohazard",
@@ -7297,7 +8183,8 @@ export const EmojiList = [
     shortname: ":biohazard:",
     code: "&#9763;",
     category: "s",
-    emoji_order: "2001"
+    emoji_order: "2001",
+    char: "☣"
   },
   {
     name: "arrow_up",
@@ -7305,7 +8192,8 @@ export const EmojiList = [
     shortname: ":arrow_up:",
     code: "&#11014;",
     category: "s",
-    emoji_order: "2002"
+    emoji_order: "2002",
+    char: "⬆"
   },
   {
     name: "arrow_upper_right",
@@ -7313,7 +8201,8 @@ export const EmojiList = [
     shortname: ":arrow_upper_right:",
     code: "&#8599;",
     category: "s",
-    emoji_order: "2003"
+    emoji_order: "2003",
+    char: "↗"
   },
   {
     name: "arrow_right",
@@ -7321,7 +8210,8 @@ export const EmojiList = [
     shortname: ":arrow_right:",
     code: "&#10145;",
     category: "s",
-    emoji_order: "2004"
+    emoji_order: "2004",
+    char: "➡"
   },
   {
     name: "arrow_lower_right",
@@ -7329,7 +8219,8 @@ export const EmojiList = [
     shortname: ":arrow_lower_right:",
     code: "&#8600;",
     category: "s",
-    emoji_order: "2005"
+    emoji_order: "2005",
+    char: "↘"
   },
   {
     name: "arrow_down",
@@ -7337,7 +8228,8 @@ export const EmojiList = [
     shortname: ":arrow_down:",
     code: "&#11015;",
     category: "s",
-    emoji_order: "2006"
+    emoji_order: "2006",
+    char: "⬇"
   },
   {
     name: "arrow_lower_left",
@@ -7345,7 +8237,8 @@ export const EmojiList = [
     shortname: ":arrow_lower_left:",
     code: "&#8601;",
     category: "s",
-    emoji_order: "2007"
+    emoji_order: "2007",
+    char: "↙"
   },
   {
     name: "arrow_left",
@@ -7353,7 +8246,8 @@ export const EmojiList = [
     shortname: ":arrow_left:",
     code: "&#11013;",
     category: "s",
-    emoji_order: "2008"
+    emoji_order: "2008",
+    char: "⬅"
   },
   {
     name: "arrow_upper_left",
@@ -7361,7 +8255,8 @@ export const EmojiList = [
     shortname: ":arrow_upper_left:",
     code: "&#8598;",
     category: "s",
-    emoji_order: "2009"
+    emoji_order: "2009",
+    char: "↖"
   },
   {
     name: "arrow_up_down",
@@ -7369,7 +8264,8 @@ export const EmojiList = [
     shortname: ":arrow_up_down:",
     code: "&#8597;",
     category: "s",
-    emoji_order: "2010"
+    emoji_order: "2010",
+    char: "↕"
   },
   {
     name: "left_right_arrow",
@@ -7377,7 +8273,8 @@ export const EmojiList = [
     shortname: ":left_right_arrow:",
     code: "&harr;",
     category: "s",
-    emoji_order: "2011"
+    emoji_order: "2011",
+    char: "&harr;"
   },
   {
     name: "leftwards_arrow_with_hook",
@@ -7385,7 +8282,8 @@ export const EmojiList = [
     shortname: ":leftwards_arrow_with_hook:",
     code: "&#8617;",
     category: "s",
-    emoji_order: "2012"
+    emoji_order: "2012",
+    char: "↩"
   },
   {
     name: "arrow_right_hook",
@@ -7393,7 +8291,8 @@ export const EmojiList = [
     shortname: ":arrow_right_hook:",
     code: "&#8618;",
     category: "s",
-    emoji_order: "2013"
+    emoji_order: "2013",
+    char: "↪"
   },
   {
     name: "arrow_heading_up",
@@ -7401,7 +8300,8 @@ export const EmojiList = [
     shortname: ":arrow_heading_up:",
     code: "&#10548;",
     category: "s",
-    emoji_order: "2014"
+    emoji_order: "2014",
+    char: "⤴"
   },
   {
     name: "arrow_heading_down",
@@ -7409,7 +8309,8 @@ export const EmojiList = [
     shortname: ":arrow_heading_down:",
     code: "&#10549;",
     category: "s",
-    emoji_order: "2015"
+    emoji_order: "2015",
+    char: "⤵"
   },
   {
     name: "arrows_clockwise",
@@ -7417,7 +8318,8 @@ export const EmojiList = [
     shortname: ":arrows_clockwise:",
     code: "&#128259;",
     category: "s",
-    emoji_order: "2016"
+    emoji_order: "2016",
+    char: "🔃"
   },
   {
     name: "arrows_counterclockwise",
@@ -7425,7 +8327,8 @@ export const EmojiList = [
     shortname: ":arrows_counterclockwise:",
     code: "&#128260;",
     category: "s",
-    emoji_order: "2017"
+    emoji_order: "2017",
+    char: "🔄"
   },
   {
     name: "back",
@@ -7433,7 +8336,8 @@ export const EmojiList = [
     shortname: ":back:",
     code: "&#128281;",
     category: "s",
-    emoji_order: "2018"
+    emoji_order: "2018",
+    char: "🔙"
   },
   {
     name: "end",
@@ -7441,7 +8345,8 @@ export const EmojiList = [
     shortname: ":end:",
     code: "&#128282;",
     category: "s",
-    emoji_order: "2019"
+    emoji_order: "2019",
+    char: "🔚"
   },
   {
     name: "on",
@@ -7449,7 +8354,8 @@ export const EmojiList = [
     shortname: ":on:",
     code: "&#128283;",
     category: "s",
-    emoji_order: "2020"
+    emoji_order: "2020",
+    char: "🔛"
   },
   {
     name: "soon",
@@ -7457,7 +8363,8 @@ export const EmojiList = [
     shortname: ":soon:",
     code: "&#128284;",
     category: "s",
-    emoji_order: "2021"
+    emoji_order: "2021",
+    char: "🔜"
   },
   {
     name: "top",
@@ -7465,7 +8372,8 @@ export const EmojiList = [
     shortname: ":top:",
     code: "&#128285;",
     category: "s",
-    emoji_order: "2022"
+    emoji_order: "2022",
+    char: "🔝"
   },
   {
     name: "place_of_worship",
@@ -7473,7 +8381,8 @@ export const EmojiList = [
     shortname: ":place_of_worship:",
     code: "&#128720;",
     category: "s",
-    emoji_order: "2023"
+    emoji_order: "2023",
+    char: "🛐"
   },
   {
     name: "atom_symbol",
@@ -7481,7 +8390,8 @@ export const EmojiList = [
     shortname: ":atom:",
     code: "&#9883;",
     category: "s",
-    emoji_order: "2024"
+    emoji_order: "2024",
+    char: "⚛"
   },
   {
     name: "om_symbol",
@@ -7489,7 +8399,8 @@ export const EmojiList = [
     shortname: ":om_symbol:",
     code: "&#128329;",
     category: "s",
-    emoji_order: "2025"
+    emoji_order: "2025",
+    char: "🕉"
   },
   {
     name: "star_of_david",
@@ -7497,7 +8408,8 @@ export const EmojiList = [
     shortname: ":star_of_david:",
     code: "&#10017;",
     category: "s",
-    emoji_order: "2026"
+    emoji_order: "2026",
+    char: "✡"
   },
   {
     name: "wheel_of_dharma",
@@ -7505,7 +8417,8 @@ export const EmojiList = [
     shortname: ":wheel_of_dharma:",
     code: "&#9784;",
     category: "s",
-    emoji_order: "2027"
+    emoji_order: "2027",
+    char: "☸"
   },
   {
     name: "yin_yang",
@@ -7513,7 +8426,8 @@ export const EmojiList = [
     shortname: ":yin_yang:",
     code: "&#9775;",
     category: "s",
-    emoji_order: "2028"
+    emoji_order: "2028",
+    char: "☯"
   },
   {
     name: "latin_cross",
@@ -7521,7 +8435,8 @@ export const EmojiList = [
     shortname: ":cross:",
     code: "&#10013;",
     category: "s",
-    emoji_order: "2029"
+    emoji_order: "2029",
+    char: "✝"
   },
   {
     name: "orthodox_cross",
@@ -7529,7 +8444,8 @@ export const EmojiList = [
     shortname: ":orthodox_cross:",
     code: "&#9766;",
     category: "s",
-    emoji_order: "2030"
+    emoji_order: "2030",
+    char: "☦"
   },
   {
     name: "star_and_crescent",
@@ -7537,7 +8453,8 @@ export const EmojiList = [
     shortname: ":star_and_crescent:",
     code: "&#9770;",
     category: "s",
-    emoji_order: "2031"
+    emoji_order: "2031",
+    char: "☪"
   },
   {
     name: "peace_symbol",
@@ -7545,7 +8462,8 @@ export const EmojiList = [
     shortname: ":peace:",
     code: "&#9774;",
     category: "s",
-    emoji_order: "2032"
+    emoji_order: "2032",
+    char: "☮"
   },
   {
     name: "menorah_with_nine_branches",
@@ -7553,7 +8471,8 @@ export const EmojiList = [
     shortname: ":menorah:",
     code: "&#128334;",
     category: "s",
-    emoji_order: "2033"
+    emoji_order: "2033",
+    char: "🕎"
   },
   {
     name: "six_pointed_star",
@@ -7561,7 +8480,8 @@ export const EmojiList = [
     shortname: ":six_pointed_star:",
     code: "&#128303;",
     category: "s",
-    emoji_order: "2034"
+    emoji_order: "2034",
+    char: "🔯"
   },
   {
     name: "aries",
@@ -7569,7 +8489,8 @@ export const EmojiList = [
     shortname: ":aries:",
     code: "&#9800;",
     category: "s",
-    emoji_order: "2035"
+    emoji_order: "2035",
+    char: "♈"
   },
   {
     name: "taurus",
@@ -7577,7 +8498,8 @@ export const EmojiList = [
     shortname: ":taurus:",
     code: "&#9801;",
     category: "s",
-    emoji_order: "2036"
+    emoji_order: "2036",
+    char: "♉"
   },
   {
     name: "gemini",
@@ -7585,7 +8507,8 @@ export const EmojiList = [
     shortname: ":gemini:",
     code: "&#9802;",
     category: "s",
-    emoji_order: "2037"
+    emoji_order: "2037",
+    char: "♊"
   },
   {
     name: "cancer",
@@ -7593,23 +8516,18 @@ export const EmojiList = [
     shortname: ":cancer:",
     code: "&#9803;",
     category: "s",
-    emoji_order: "2038"
+    emoji_order: "2038",
+    char: "♋"
   },
-  {
-    name: "leo",
-    unicode: "264c",
-    shortname: ":leo:",
-    code: "&#9804;",
-    category: "s",
-    emoji_order: "2039"
-  },
+  { name: "leo", unicode: "264c", shortname: ":leo:", code: "&#9804;", category: "s", emoji_order: "2039", char: "♌" },
   {
     name: "virgo",
     unicode: "264d",
     shortname: ":virgo:",
     code: "&#9805;",
     category: "s",
-    emoji_order: "2040"
+    emoji_order: "2040",
+    char: "♍"
   },
   {
     name: "libra",
@@ -7617,7 +8535,8 @@ export const EmojiList = [
     shortname: ":libra:",
     code: "&#9806;",
     category: "s",
-    emoji_order: "2041"
+    emoji_order: "2041",
+    char: "♎"
   },
   {
     name: "scorpius",
@@ -7625,7 +8544,8 @@ export const EmojiList = [
     shortname: ":scorpius:",
     code: "&#9807;",
     category: "s",
-    emoji_order: "2042"
+    emoji_order: "2042",
+    char: "♏"
   },
   {
     name: "sagittarius",
@@ -7633,7 +8553,8 @@ export const EmojiList = [
     shortname: ":sagittarius:",
     code: "&#9808;",
     category: "s",
-    emoji_order: "2043"
+    emoji_order: "2043",
+    char: "♐"
   },
   {
     name: "capricorn",
@@ -7641,7 +8562,8 @@ export const EmojiList = [
     shortname: ":capricorn:",
     code: "&#9809;",
     category: "s",
-    emoji_order: "2044"
+    emoji_order: "2044",
+    char: "♑"
   },
   {
     name: "aquarius",
@@ -7649,7 +8571,8 @@ export const EmojiList = [
     shortname: ":aquarius:",
     code: "&#9810;",
     category: "s",
-    emoji_order: "2045"
+    emoji_order: "2045",
+    char: "♒"
   },
   {
     name: "pisces",
@@ -7657,7 +8580,8 @@ export const EmojiList = [
     shortname: ":pisces:",
     code: "&#9811;",
     category: "s",
-    emoji_order: "2046"
+    emoji_order: "2046",
+    char: "♓"
   },
   {
     name: "ophiuchus",
@@ -7665,7 +8589,8 @@ export const EmojiList = [
     shortname: ":ophiuchus:",
     code: "&#9934;",
     category: "s",
-    emoji_order: "2047"
+    emoji_order: "2047",
+    char: "⛎"
   },
   {
     name: "twisted_rightwards_arrows",
@@ -7673,7 +8598,8 @@ export const EmojiList = [
     shortname: ":twisted_rightwards_arrows:",
     code: "&#128256;",
     category: "s",
-    emoji_order: "2048"
+    emoji_order: "2048",
+    char: "🔀"
   },
   {
     name: "repeat",
@@ -7681,7 +8607,8 @@ export const EmojiList = [
     shortname: ":repeat:",
     code: "&#128257;",
     category: "s",
-    emoji_order: "2049"
+    emoji_order: "2049",
+    char: "🔁"
   },
   {
     name: "repeat_one",
@@ -7689,7 +8616,8 @@ export const EmojiList = [
     shortname: ":repeat_one:",
     code: "&#128258;",
     category: "s",
-    emoji_order: "2050"
+    emoji_order: "2050",
+    char: "🔂"
   },
   {
     name: "arrow_forward",
@@ -7697,7 +8625,8 @@ export const EmojiList = [
     shortname: ":arrow_forward:",
     code: "&#9654;",
     category: "s",
-    emoji_order: "2051"
+    emoji_order: "2051",
+    char: "▶"
   },
   {
     name: "fast_forward",
@@ -7705,7 +8634,8 @@ export const EmojiList = [
     shortname: ":fast_forward:",
     code: "&#9193;",
     category: "s",
-    emoji_order: "2052"
+    emoji_order: "2052",
+    char: "⏩"
   },
   {
     name: "black_right_pointing_double_triangle_with_vertical_bar",
@@ -7713,7 +8643,8 @@ export const EmojiList = [
     shortname: ":track_next:",
     code: "&#9197;",
     category: "s",
-    emoji_order: "2053"
+    emoji_order: "2053",
+    char: "⏭"
   },
   {
     name: "black_right_pointing_triangle_with_double_vertical_bar",
@@ -7721,7 +8652,8 @@ export const EmojiList = [
     shortname: ":play_pause:",
     code: "&#9199;",
     category: "s",
-    emoji_order: "2054"
+    emoji_order: "2054",
+    char: "⏯"
   },
   {
     name: "arrow_backward",
@@ -7729,7 +8661,8 @@ export const EmojiList = [
     shortname: ":arrow_backward:",
     code: "&#9664;",
     category: "s",
-    emoji_order: "2055"
+    emoji_order: "2055",
+    char: "◀"
   },
   {
     name: "rewind",
@@ -7737,7 +8670,8 @@ export const EmojiList = [
     shortname: ":rewind:",
     code: "&#9194;",
     category: "s",
-    emoji_order: "2056"
+    emoji_order: "2056",
+    char: "⏪"
   },
   {
     name: "black_left_pointing_double_triangle_with_vertical_bar",
@@ -7745,7 +8679,8 @@ export const EmojiList = [
     shortname: ":track_previous:",
     code: "&#9198;",
     category: "s",
-    emoji_order: "2057"
+    emoji_order: "2057",
+    char: "⏮"
   },
   {
     name: "arrow_up_small",
@@ -7753,7 +8688,8 @@ export const EmojiList = [
     shortname: ":arrow_up_small:",
     code: "&#128316;",
     category: "s",
-    emoji_order: "2058"
+    emoji_order: "2058",
+    char: "🔼"
   },
   {
     name: "arrow_double_up",
@@ -7761,7 +8697,8 @@ export const EmojiList = [
     shortname: ":arrow_double_up:",
     code: "&#9195;",
     category: "s",
-    emoji_order: "2059"
+    emoji_order: "2059",
+    char: "⏫"
   },
   {
     name: "arrow_down_small",
@@ -7769,7 +8706,8 @@ export const EmojiList = [
     shortname: ":arrow_down_small:",
     code: "&#128317;",
     category: "s",
-    emoji_order: "2060"
+    emoji_order: "2060",
+    char: "🔽"
   },
   {
     name: "arrow_double_down",
@@ -7777,7 +8715,8 @@ export const EmojiList = [
     shortname: ":arrow_double_down:",
     code: "&#9196;",
     category: "s",
-    emoji_order: "2061"
+    emoji_order: "2061",
+    char: "⏬"
   },
   {
     name: "double_vertical_bar",
@@ -7785,7 +8724,8 @@ export const EmojiList = [
     shortname: ":pause_button:",
     code: "&#9208;",
     category: "s",
-    emoji_order: "2062"
+    emoji_order: "2062",
+    char: "⏸"
   },
   {
     name: "black_square_for_stop",
@@ -7793,7 +8733,8 @@ export const EmojiList = [
     shortname: ":stop_button:",
     code: "&#9209;",
     category: "s",
-    emoji_order: "2063"
+    emoji_order: "2063",
+    char: "⏹"
   },
   {
     name: "black_circle_for_record",
@@ -7801,7 +8742,8 @@ export const EmojiList = [
     shortname: ":record_button:",
     code: "&#9210;",
     category: "s",
-    emoji_order: "2064"
+    emoji_order: "2064",
+    char: "⏺"
   },
   {
     name: "eject",
@@ -7809,7 +8751,8 @@ export const EmojiList = [
     shortname: ":eject:",
     code: "&#9167;",
     category: "s",
-    emoji_order: "2065"
+    emoji_order: "2065",
+    char: "⏏"
   },
   {
     name: "cinema",
@@ -7817,7 +8760,8 @@ export const EmojiList = [
     shortname: ":cinema:",
     code: "&#127910;",
     category: "s",
-    emoji_order: "2066"
+    emoji_order: "2066",
+    char: "🎦"
   },
   {
     name: "low_brightness",
@@ -7825,7 +8769,8 @@ export const EmojiList = [
     shortname: ":low_brightness:",
     code: "&#128261;",
     category: "s",
-    emoji_order: "2067"
+    emoji_order: "2067",
+    char: "🔅"
   },
   {
     name: "high_brightness",
@@ -7833,7 +8778,8 @@ export const EmojiList = [
     shortname: ":high_brightness:",
     code: "&#128262;",
     category: "s",
-    emoji_order: "2068"
+    emoji_order: "2068",
+    char: "🔆"
   },
   {
     name: "signal_strength",
@@ -7841,7 +8787,8 @@ export const EmojiList = [
     shortname: ":signal_strength:",
     code: "&#128246;",
     category: "s",
-    emoji_order: "2069"
+    emoji_order: "2069",
+    char: "📶"
   },
   {
     name: "vibration_mode",
@@ -7849,7 +8796,8 @@ export const EmojiList = [
     shortname: ":vibration_mode:",
     code: "&#128243;",
     category: "s",
-    emoji_order: "2070"
+    emoji_order: "2070",
+    char: "📳"
   },
   {
     name: "mobile_phone_off",
@@ -7857,7 +8805,8 @@ export const EmojiList = [
     shortname: ":mobile_phone_off:",
     code: "&#128244;",
     category: "s",
-    emoji_order: "2071"
+    emoji_order: "2071",
+    char: "📴"
   },
   {
     name: "recycle",
@@ -7865,7 +8814,8 @@ export const EmojiList = [
     shortname: ":recycle:",
     code: "&#9851;",
     category: "s",
-    emoji_order: "2072"
+    emoji_order: "2072",
+    char: "♻"
   },
   {
     name: "name_badge",
@@ -7873,7 +8823,8 @@ export const EmojiList = [
     shortname: ":name_badge:",
     code: "&#128219;",
     category: "s",
-    emoji_order: "2073"
+    emoji_order: "2073",
+    char: "📛"
   },
   {
     name: "fleur_de_lis",
@@ -7881,7 +8832,8 @@ export const EmojiList = [
     shortname: ":fleur-de-lis:",
     code: "&#9884;",
     category: "s",
-    emoji_order: "2074"
+    emoji_order: "2074",
+    char: "⚜"
   },
   {
     name: "beginner",
@@ -7889,7 +8841,8 @@ export const EmojiList = [
     shortname: ":beginner:",
     code: "&#128304;",
     category: "s",
-    emoji_order: "2075"
+    emoji_order: "2075",
+    char: "🔰"
   },
   {
     name: "trident",
@@ -7897,23 +8850,18 @@ export const EmojiList = [
     shortname: ":trident:",
     code: "&#128305;",
     category: "s",
-    emoji_order: "2076"
+    emoji_order: "2076",
+    char: "🔱"
   },
-  {
-    name: "o",
-    unicode: "2b55",
-    shortname: ":o:",
-    code: "&#11093;",
-    category: "s",
-    emoji_order: "2077"
-  },
+  { name: "o", unicode: "2b55", shortname: ":o:", code: "&#11093;", category: "s", emoji_order: "2077", char: "⭕" },
   {
     name: "white_check_mark",
     unicode: "2705",
     shortname: ":white_check_mark:",
     code: "&#9989;",
     category: "s",
-    emoji_order: "2078"
+    emoji_order: "2078",
+    char: "✅"
   },
   {
     name: "ballot_box_with_check",
@@ -7921,7 +8869,8 @@ export const EmojiList = [
     shortname: ":ballot_box_with_check:",
     code: "&#9745;",
     category: "s",
-    emoji_order: "2079"
+    emoji_order: "2079",
+    char: "☑"
   },
   {
     name: "heavy_check_mark",
@@ -7929,7 +8878,8 @@ export const EmojiList = [
     shortname: ":heavy_check_mark:",
     code: "&#10004;",
     category: "s",
-    emoji_order: "2080"
+    emoji_order: "2080",
+    char: "✔"
   },
   {
     name: "heavy_multiplication_x",
@@ -7937,23 +8887,18 @@ export const EmojiList = [
     shortname: ":heavy_multiplication_x:",
     code: "&#10006;",
     category: "s",
-    emoji_order: "2081"
+    emoji_order: "2081",
+    char: "✖"
   },
-  {
-    name: "x",
-    unicode: "274c",
-    shortname: ":x:",
-    code: "&#10060;",
-    category: "s",
-    emoji_order: "2082"
-  },
+  { name: "x", unicode: "274c", shortname: ":x:", code: "&#10060;", category: "s", emoji_order: "2082", char: "❌" },
   {
     name: "negative_squared_cross_mark",
     unicode: "274e",
     shortname: ":negative_squared_cross_mark:",
     code: "&#10062;",
     category: "s",
-    emoji_order: "2083"
+    emoji_order: "2083",
+    char: "❎"
   },
   {
     name: "heavy_plus_sign",
@@ -7961,7 +8906,8 @@ export const EmojiList = [
     shortname: ":heavy_plus_sign:",
     code: "&#10133;",
     category: "s",
-    emoji_order: "2084"
+    emoji_order: "2084",
+    char: "➕"
   },
   {
     name: "heavy_minus_sign",
@@ -7969,7 +8915,8 @@ export const EmojiList = [
     shortname: ":heavy_minus_sign:",
     code: "&#10134;",
     category: "s",
-    emoji_order: "2088"
+    emoji_order: "2088",
+    char: "➖"
   },
   {
     name: "heavy_division_sign",
@@ -7977,7 +8924,8 @@ export const EmojiList = [
     shortname: ":heavy_division_sign:",
     code: "&#10135;",
     category: "s",
-    emoji_order: "2089"
+    emoji_order: "2089",
+    char: "➗"
   },
   {
     name: "curly_loop",
@@ -7985,7 +8933,8 @@ export const EmojiList = [
     shortname: ":curly_loop:",
     code: "&#10160;",
     category: "s",
-    emoji_order: "2090"
+    emoji_order: "2090",
+    char: "➰"
   },
   {
     name: "loop",
@@ -7993,7 +8942,8 @@ export const EmojiList = [
     shortname: ":loop:",
     code: "&#10175;",
     category: "s",
-    emoji_order: "2091"
+    emoji_order: "2091",
+    char: "➿"
   },
   {
     name: "part_alternation_mark",
@@ -8001,7 +8951,8 @@ export const EmojiList = [
     shortname: ":part_alternation_mark:",
     code: "&#12349;",
     category: "s",
-    emoji_order: "2092"
+    emoji_order: "2092",
+    char: "〽"
   },
   {
     name: "eight_spoked_asterisk",
@@ -8009,7 +8960,8 @@ export const EmojiList = [
     shortname: ":eight_spoked_asterisk:",
     code: "&#10035;",
     category: "s",
-    emoji_order: "2093"
+    emoji_order: "2093",
+    char: "✳"
   },
   {
     name: "eight_pointed_black_star",
@@ -8017,7 +8969,8 @@ export const EmojiList = [
     shortname: ":eight_pointed_black_star:",
     code: "&#10036;",
     category: "s",
-    emoji_order: "2094"
+    emoji_order: "2094",
+    char: "✴"
   },
   {
     name: "sparkle",
@@ -8025,7 +8978,8 @@ export const EmojiList = [
     shortname: ":sparkle:",
     code: "&#10055;",
     category: "s",
-    emoji_order: "2095"
+    emoji_order: "2095",
+    char: "❇"
   },
   {
     name: "bangbang",
@@ -8033,7 +8987,8 @@ export const EmojiList = [
     shortname: ":bangbang:",
     code: "&#8252;",
     category: "s",
-    emoji_order: "2096"
+    emoji_order: "2096",
+    char: "‼"
   },
   {
     name: "interrobang",
@@ -8041,7 +8996,8 @@ export const EmojiList = [
     shortname: ":interrobang:",
     code: "&#8265;",
     category: "s",
-    emoji_order: "2097"
+    emoji_order: "2097",
+    char: "⁉"
   },
   {
     name: "question",
@@ -8049,7 +9005,8 @@ export const EmojiList = [
     shortname: ":question:",
     code: "&#10067;",
     category: "s",
-    emoji_order: "2098"
+    emoji_order: "2098",
+    char: "❓"
   },
   {
     name: "grey_question",
@@ -8057,7 +9014,8 @@ export const EmojiList = [
     shortname: ":grey_question:",
     code: "&#10068;",
     category: "s",
-    emoji_order: "2099"
+    emoji_order: "2099",
+    char: "❔"
   },
   {
     name: "grey_exclamation",
@@ -8065,7 +9023,8 @@ export const EmojiList = [
     shortname: ":grey_exclamation:",
     code: "&#10069;",
     category: "s",
-    emoji_order: "2100"
+    emoji_order: "2100",
+    char: "❕"
   },
   {
     name: "exclamation",
@@ -8073,7 +9032,8 @@ export const EmojiList = [
     shortname: ":exclamation:",
     code: "&#10071;",
     category: "s",
-    emoji_order: "2101"
+    emoji_order: "2101",
+    char: "❗"
   },
   {
     name: "wavy_dash",
@@ -8081,7 +9041,8 @@ export const EmojiList = [
     shortname: ":wavy_dash:",
     code: "&#12336;",
     category: "s",
-    emoji_order: "2102"
+    emoji_order: "2102",
+    char: "〰"
   },
   {
     name: "copyright",
@@ -8089,7 +9050,8 @@ export const EmojiList = [
     shortname: ":copyright:",
     code: "&copy;",
     category: "s",
-    emoji_order: "2103"
+    emoji_order: "2103",
+    char: "&copy;"
   },
   {
     name: "registered",
@@ -8097,7 +9059,8 @@ export const EmojiList = [
     shortname: ":registered:",
     code: "&reg;",
     category: "s",
-    emoji_order: "2104"
+    emoji_order: "2104",
+    char: "&reg;"
   },
   {
     name: "tm",
@@ -8105,7 +9068,8 @@ export const EmojiList = [
     shortname: ":tm:",
     code: "&trade;",
     category: "s",
-    emoji_order: "2105"
+    emoji_order: "2105",
+    char: "&trade;"
   },
   {
     name: "hash",
@@ -8113,7 +9077,8 @@ export const EmojiList = [
     shortname: ":hash:",
     code: "#&#8419;",
     category: "s",
-    emoji_order: "2106"
+    emoji_order: "2106",
+    char: "#⃣"
   },
   {
     name: "keycap_star",
@@ -8121,7 +9086,8 @@ export const EmojiList = [
     shortname: ":asterisk:",
     code: "*&#8419;",
     category: "s",
-    emoji_order: "2107"
+    emoji_order: "2107",
+    char: "*⃣"
   },
   {
     name: "zero",
@@ -8129,7 +9095,8 @@ export const EmojiList = [
     shortname: ":zero:",
     code: "0&#8419;",
     category: "s",
-    emoji_order: "2108"
+    emoji_order: "2108",
+    char: "0⃣"
   },
   {
     name: "one",
@@ -8137,7 +9104,8 @@ export const EmojiList = [
     shortname: ":one:",
     code: "1&#8419;",
     category: "s",
-    emoji_order: "2109"
+    emoji_order: "2109",
+    char: "1⃣"
   },
   {
     name: "two",
@@ -8145,7 +9113,8 @@ export const EmojiList = [
     shortname: ":two:",
     code: "2&#8419;",
     category: "s",
-    emoji_order: "2110"
+    emoji_order: "2110",
+    char: "2⃣"
   },
   {
     name: "three",
@@ -8153,7 +9122,8 @@ export const EmojiList = [
     shortname: ":three:",
     code: "3&#8419;",
     category: "s",
-    emoji_order: "2111"
+    emoji_order: "2111",
+    char: "3⃣"
   },
   {
     name: "four",
@@ -8161,7 +9131,8 @@ export const EmojiList = [
     shortname: ":four:",
     code: "4&#8419;",
     category: "s",
-    emoji_order: "2112"
+    emoji_order: "2112",
+    char: "4⃣"
   },
   {
     name: "five",
@@ -8169,7 +9140,8 @@ export const EmojiList = [
     shortname: ":five:",
     code: "5&#8419;",
     category: "s",
-    emoji_order: "2113"
+    emoji_order: "2113",
+    char: "5⃣"
   },
   {
     name: "six",
@@ -8177,7 +9149,8 @@ export const EmojiList = [
     shortname: ":six:",
     code: "6&#8419;",
     category: "s",
-    emoji_order: "2114"
+    emoji_order: "2114",
+    char: "6⃣"
   },
   {
     name: "seven",
@@ -8185,7 +9158,8 @@ export const EmojiList = [
     shortname: ":seven:",
     code: "7&#8419;",
     category: "s",
-    emoji_order: "2115"
+    emoji_order: "2115",
+    char: "7⃣"
   },
   {
     name: "eight",
@@ -8193,7 +9167,8 @@ export const EmojiList = [
     shortname: ":eight:",
     code: "8&#8419;",
     category: "s",
-    emoji_order: "2116"
+    emoji_order: "2116",
+    char: "8⃣"
   },
   {
     name: "nine",
@@ -8201,7 +9176,8 @@ export const EmojiList = [
     shortname: ":nine:",
     code: "9&#8419;",
     category: "s",
-    emoji_order: "2117"
+    emoji_order: "2117",
+    char: "9⃣"
   },
   {
     name: "keycap_ten",
@@ -8209,7 +9185,8 @@ export const EmojiList = [
     shortname: ":keycap_ten:",
     code: "&#128287;",
     category: "s",
-    emoji_order: "2118"
+    emoji_order: "2118",
+    char: "🔟"
   },
   {
     name: "capital_abcd",
@@ -8217,7 +9194,8 @@ export const EmojiList = [
     shortname: ":capital_abcd:",
     code: "&#128288;",
     category: "s",
-    emoji_order: "2120"
+    emoji_order: "2120",
+    char: "🔠"
   },
   {
     name: "abcd",
@@ -8225,55 +9203,38 @@ export const EmojiList = [
     shortname: ":abcd:",
     code: "&#128289;",
     category: "s",
-    emoji_order: "2121"
+    emoji_order: "2121",
+    char: "🔡"
   },
-  {
-    name: "s",
-    unicode: "1f523",
-    shortname: ":s:",
-    code: "&#128291;",
-    category: "s",
-    emoji_order: "2123"
-  },
+  { name: "s", unicode: "1f523", shortname: ":s:", code: "&#128291;", category: "s", emoji_order: "2123", char: "🔣" },
   {
     name: "abc",
     unicode: "1f524",
     shortname: ":abc:",
     code: "&#128292;",
     category: "s",
-    emoji_order: "2124"
+    emoji_order: "2124",
+    char: "🔤"
   },
-  {
-    name: "a",
-    unicode: "1f170",
-    shortname: ":a:",
-    code: "&#127344;",
-    category: "s",
-    emoji_order: "2125"
-  },
+  { name: "a", unicode: "1f170", shortname: ":a:", code: "&#127344;", category: "s", emoji_order: "2125", char: "🅰" },
   {
     name: "ab",
     unicode: "1f18e",
     shortname: ":ab:",
     code: "&#127374;",
     category: "s",
-    emoji_order: "2126"
+    emoji_order: "2126",
+    char: "🆎"
   },
-  {
-    name: "b",
-    unicode: "1f171",
-    shortname: ":b:",
-    code: "&#127345;",
-    category: "s",
-    emoji_order: "2127"
-  },
+  { name: "b", unicode: "1f171", shortname: ":b:", code: "&#127345;", category: "s", emoji_order: "2127", char: "🅱" },
   {
     name: "cl",
     unicode: "1f191",
     shortname: ":cl:",
     code: "&#127377;",
     category: "s",
-    emoji_order: "2128"
+    emoji_order: "2128",
+    char: "🆑"
   },
   {
     name: "cool",
@@ -8281,7 +9242,8 @@ export const EmojiList = [
     shortname: ":cool:",
     code: "&#127378;",
     category: "s",
-    emoji_order: "2129"
+    emoji_order: "2129",
+    char: "🆒"
   },
   {
     name: "free",
@@ -8289,7 +9251,8 @@ export const EmojiList = [
     shortname: ":free:",
     code: "&#127379;",
     category: "s",
-    emoji_order: "2130"
+    emoji_order: "2130",
+    char: "🆓"
   },
   {
     name: "information_source",
@@ -8297,7 +9260,8 @@ export const EmojiList = [
     shortname: ":information_source:",
     code: "&#8505;",
     category: "s",
-    emoji_order: "2131"
+    emoji_order: "2131",
+    char: "ℹ"
   },
   {
     name: "id",
@@ -8305,23 +9269,18 @@ export const EmojiList = [
     shortname: ":id:",
     code: "&#127380;",
     category: "s",
-    emoji_order: "2132"
+    emoji_order: "2132",
+    char: "🆔"
   },
-  {
-    name: "m",
-    unicode: "24c2",
-    shortname: ":m:",
-    code: "&#9410;",
-    category: "s",
-    emoji_order: "2133"
-  },
+  { name: "m", unicode: "24c2", shortname: ":m:", code: "&#9410;", category: "s", emoji_order: "2133", char: "Ⓜ" },
   {
     name: "new",
     unicode: "1f195",
     shortname: ":new:",
     code: "&#127381;",
     category: "s",
-    emoji_order: "2134"
+    emoji_order: "2134",
+    char: "🆕"
   },
   {
     name: "ng",
@@ -8329,23 +9288,18 @@ export const EmojiList = [
     shortname: ":ng:",
     code: "&#127382;",
     category: "s",
-    emoji_order: "2135"
+    emoji_order: "2135",
+    char: "🆖"
   },
-  {
-    name: "o2",
-    unicode: "1f17e",
-    shortname: ":o2:",
-    code: "&#127358;",
-    category: "s",
-    emoji_order: "2136"
-  },
+  { name: "o2", unicode: "1f17e", shortname: ":o2:", code: "&#127358;", category: "s", emoji_order: "2136", char: "🅾" },
   {
     name: "ok",
     unicode: "1f197",
     shortname: ":ok:",
     code: "&#127383;",
     category: "s",
-    emoji_order: "2137"
+    emoji_order: "2137",
+    char: "🆗"
   },
   {
     name: "parking",
@@ -8353,7 +9307,8 @@ export const EmojiList = [
     shortname: ":parking:",
     code: "&#127359;",
     category: "s",
-    emoji_order: "2138"
+    emoji_order: "2138",
+    char: "🅿"
   },
   {
     name: "sos",
@@ -8361,7 +9316,8 @@ export const EmojiList = [
     shortname: ":sos:",
     code: "&#127384;",
     category: "s",
-    emoji_order: "2139"
+    emoji_order: "2139",
+    char: "🆘"
   },
   {
     name: "up",
@@ -8369,7 +9325,8 @@ export const EmojiList = [
     shortname: ":up:",
     code: "&#127385;",
     category: "s",
-    emoji_order: "2140"
+    emoji_order: "2140",
+    char: "🆙"
   },
   {
     name: "vs",
@@ -8377,7 +9334,8 @@ export const EmojiList = [
     shortname: ":vs:",
     code: "&#127386;",
     category: "s",
-    emoji_order: "2141"
+    emoji_order: "2141",
+    char: "🆚"
   },
   {
     name: "koko",
@@ -8385,7 +9343,8 @@ export const EmojiList = [
     shortname: ":koko:",
     code: "&#127489;",
     category: "s",
-    emoji_order: "2142"
+    emoji_order: "2142",
+    char: "🈁"
   },
   {
     name: "sa",
@@ -8393,7 +9352,8 @@ export const EmojiList = [
     shortname: ":sa:",
     code: "&#127490;",
     category: "s",
-    emoji_order: "2143"
+    emoji_order: "2143",
+    char: "🈂"
   },
   {
     name: "u6708",
@@ -8401,7 +9361,8 @@ export const EmojiList = [
     shortname: ":u6708:",
     code: "&#127543;",
     category: "s",
-    emoji_order: "2144"
+    emoji_order: "2144",
+    char: "🈷"
   },
   {
     name: "u6709",
@@ -8409,7 +9370,8 @@ export const EmojiList = [
     shortname: ":u6709:",
     code: "&#127542;",
     category: "s",
-    emoji_order: "2145"
+    emoji_order: "2145",
+    char: "🈶"
   },
   {
     name: "u6307",
@@ -8417,7 +9379,8 @@ export const EmojiList = [
     shortname: ":u6307:",
     code: "&#127535;",
     category: "s",
-    emoji_order: "2146"
+    emoji_order: "2146",
+    char: "🈯"
   },
   {
     name: "ideograph_advantage",
@@ -8425,7 +9388,8 @@ export const EmojiList = [
     shortname: ":ideograph_advantage:",
     code: "&#127568;",
     category: "s",
-    emoji_order: "2147"
+    emoji_order: "2147",
+    char: "🉐"
   },
   {
     name: "u5272",
@@ -8433,7 +9397,8 @@ export const EmojiList = [
     shortname: ":u5272:",
     code: "&#127545;",
     category: "s",
-    emoji_order: "2148"
+    emoji_order: "2148",
+    char: "🈹"
   },
   {
     name: "u7121",
@@ -8441,7 +9406,8 @@ export const EmojiList = [
     shortname: ":u7121:",
     code: "&#127514;",
     category: "s",
-    emoji_order: "2149"
+    emoji_order: "2149",
+    char: "🈚"
   },
   {
     name: "u7981",
@@ -8449,7 +9415,8 @@ export const EmojiList = [
     shortname: ":u7981:",
     code: "&#127538;",
     category: "s",
-    emoji_order: "2150"
+    emoji_order: "2150",
+    char: "🈲"
   },
   {
     name: "accept",
@@ -8457,7 +9424,8 @@ export const EmojiList = [
     shortname: ":accept:",
     code: "&#127569;",
     category: "s",
-    emoji_order: "2151"
+    emoji_order: "2151",
+    char: "🉑"
   },
   {
     name: "u7533",
@@ -8465,7 +9433,8 @@ export const EmojiList = [
     shortname: ":u7533:",
     code: "&#127544;",
     category: "s",
-    emoji_order: "2152"
+    emoji_order: "2152",
+    char: "🈸"
   },
   {
     name: "u5408",
@@ -8473,7 +9442,8 @@ export const EmojiList = [
     shortname: ":u5408:",
     code: "&#127540;",
     category: "s",
-    emoji_order: "2153"
+    emoji_order: "2153",
+    char: "🈴"
   },
   {
     name: "u7a7a",
@@ -8481,7 +9451,8 @@ export const EmojiList = [
     shortname: ":u7a7a:",
     code: "&#127539;",
     category: "s",
-    emoji_order: "2154"
+    emoji_order: "2154",
+    char: "🈳"
   },
   {
     name: "congratulations",
@@ -8489,7 +9460,8 @@ export const EmojiList = [
     shortname: ":congratulations:",
     code: "&#12951;",
     category: "s",
-    emoji_order: "2155"
+    emoji_order: "2155",
+    char: "㊗"
   },
   {
     name: "secret",
@@ -8497,7 +9469,8 @@ export const EmojiList = [
     shortname: ":secret:",
     code: "&#12953;",
     category: "s",
-    emoji_order: "2156"
+    emoji_order: "2156",
+    char: "㊙"
   },
   {
     name: "u55b6",
@@ -8505,7 +9478,8 @@ export const EmojiList = [
     shortname: ":u55b6:",
     code: "&#127546;",
     category: "s",
-    emoji_order: "2157"
+    emoji_order: "2157",
+    char: "🈺"
   },
   {
     name: "u6e80",
@@ -8513,7 +9487,8 @@ export const EmojiList = [
     shortname: ":u6e80:",
     code: "&#127541;",
     category: "s",
-    emoji_order: "2158"
+    emoji_order: "2158",
+    char: "🈵"
   },
   {
     name: "black_small_square",
@@ -8521,7 +9496,8 @@ export const EmojiList = [
     shortname: ":black_small_square:",
     code: "&#9642;",
     category: "s",
-    emoji_order: "2159"
+    emoji_order: "2159",
+    char: "▪"
   },
   {
     name: "white_small_square",
@@ -8529,7 +9505,8 @@ export const EmojiList = [
     shortname: ":white_small_square:",
     code: "&#9643;",
     category: "s",
-    emoji_order: "2160"
+    emoji_order: "2160",
+    char: "▫"
   },
   {
     name: "white_medium_square",
@@ -8537,7 +9514,8 @@ export const EmojiList = [
     shortname: ":white_medium_square:",
     code: "&#9723;",
     category: "s",
-    emoji_order: "2161"
+    emoji_order: "2161",
+    char: "◻"
   },
   {
     name: "black_medium_square",
@@ -8545,7 +9523,8 @@ export const EmojiList = [
     shortname: ":black_medium_square:",
     code: "&#9724;",
     category: "s",
-    emoji_order: "2162"
+    emoji_order: "2162",
+    char: "◼"
   },
   {
     name: "white_medium_small_square",
@@ -8553,7 +9532,8 @@ export const EmojiList = [
     shortname: ":white_medium_small_square:",
     code: "&#9725;",
     category: "s",
-    emoji_order: "2163"
+    emoji_order: "2163",
+    char: "◽"
   },
   {
     name: "black_medium_small_square",
@@ -8561,7 +9541,8 @@ export const EmojiList = [
     shortname: ":black_medium_small_square:",
     code: "&#9726;",
     category: "s",
-    emoji_order: "2164"
+    emoji_order: "2164",
+    char: "◾"
   },
   {
     name: "black_large_square",
@@ -8569,7 +9550,8 @@ export const EmojiList = [
     shortname: ":black_large_square:",
     code: "&#11035;",
     category: "s",
-    emoji_order: "2165"
+    emoji_order: "2165",
+    char: "⬛"
   },
   {
     name: "white_large_square",
@@ -8577,7 +9559,8 @@ export const EmojiList = [
     shortname: ":white_large_square:",
     code: "&#11036;",
     category: "s",
-    emoji_order: "2166"
+    emoji_order: "2166",
+    char: "⬜"
   },
   {
     name: "large_orange_diamond",
@@ -8585,7 +9568,8 @@ export const EmojiList = [
     shortname: ":large_orange_diamond:",
     code: "&#128310;",
     category: "s",
-    emoji_order: "2167"
+    emoji_order: "2167",
+    char: "🔶"
   },
   {
     name: "large_blue_diamond",
@@ -8593,7 +9577,8 @@ export const EmojiList = [
     shortname: ":large_blue_diamond:",
     code: "&#128311;",
     category: "s",
-    emoji_order: "2168"
+    emoji_order: "2168",
+    char: "🔷"
   },
   {
     name: "small_orange_diamond",
@@ -8601,7 +9586,8 @@ export const EmojiList = [
     shortname: ":small_orange_diamond:",
     code: "&#128312;",
     category: "s",
-    emoji_order: "2169"
+    emoji_order: "2169",
+    char: "🔸"
   },
   {
     name: "small_blue_diamond",
@@ -8609,7 +9595,8 @@ export const EmojiList = [
     shortname: ":small_blue_diamond:",
     code: "&#128313;",
     category: "s",
-    emoji_order: "2170"
+    emoji_order: "2170",
+    char: "🔹"
   },
   {
     name: "small_red_triangle",
@@ -8617,7 +9604,8 @@ export const EmojiList = [
     shortname: ":small_red_triangle:",
     code: "&#128314;",
     category: "s",
-    emoji_order: "2171"
+    emoji_order: "2171",
+    char: "🔺"
   },
   {
     name: "small_red_triangle_down",
@@ -8625,7 +9613,8 @@ export const EmojiList = [
     shortname: ":small_red_triangle_down:",
     code: "&#128315;",
     category: "s",
-    emoji_order: "2172"
+    emoji_order: "2172",
+    char: "🔻"
   },
   {
     name: "diamond_shape_with_a_dot_inside",
@@ -8633,7 +9622,8 @@ export const EmojiList = [
     shortname: ":diamond_shape_with_a_dot_inside:",
     code: "&#128160;",
     category: "s",
-    emoji_order: "2173"
+    emoji_order: "2173",
+    char: "💠"
   },
   {
     name: "radio_button",
@@ -8641,7 +9631,8 @@ export const EmojiList = [
     shortname: ":radio_button:",
     code: "&#128280;",
     category: "s",
-    emoji_order: "2174"
+    emoji_order: "2174",
+    char: "🔘"
   },
   {
     name: "black_square_button",
@@ -8649,7 +9640,8 @@ export const EmojiList = [
     shortname: ":black_square_button:",
     code: "&#128306;",
     category: "s",
-    emoji_order: "2175"
+    emoji_order: "2175",
+    char: "🔲"
   },
   {
     name: "white_square_button",
@@ -8657,7 +9649,8 @@ export const EmojiList = [
     shortname: ":white_square_button:",
     code: "&#128307;",
     category: "s",
-    emoji_order: "2176"
+    emoji_order: "2176",
+    char: "🔳"
   },
   {
     name: "white_circle",
@@ -8665,7 +9658,8 @@ export const EmojiList = [
     shortname: ":white_circle:",
     code: "&#9898;",
     category: "s",
-    emoji_order: "2177"
+    emoji_order: "2177",
+    char: "⚪"
   },
   {
     name: "black_circle",
@@ -8673,7 +9667,8 @@ export const EmojiList = [
     shortname: ":black_circle:",
     code: "&#9899;",
     category: "s",
-    emoji_order: "2178"
+    emoji_order: "2178",
+    char: "⚫"
   },
   {
     name: "red_circle",
@@ -8681,7 +9676,8 @@ export const EmojiList = [
     shortname: ":red_circle:",
     code: "&#128308;",
     category: "s",
-    emoji_order: "2179"
+    emoji_order: "2179",
+    char: "🔴"
   },
   {
     name: "large_blue_circle",
@@ -8689,7 +9685,8 @@ export const EmojiList = [
     shortname: ":blue_circle:",
     code: "&#128309;",
     category: "s",
-    emoji_order: "2180"
+    emoji_order: "2180",
+    char: "🔵"
   },
   {
     name: "checkered_flag",
@@ -8697,7 +9694,8 @@ export const EmojiList = [
     shortname: ":checkered_flag:",
     code: "&#127937;",
     category: "t",
-    emoji_order: "2181"
+    emoji_order: "2181",
+    char: "🏁"
   },
   {
     name: "triangular_flag_on_post",
@@ -8705,7 +9703,8 @@ export const EmojiList = [
     shortname: ":triangular_flag_on_post:",
     code: "&#128681;",
     category: "o",
-    emoji_order: "2182"
+    emoji_order: "2182",
+    char: "🚩"
   },
   {
     name: "crossed_flags",
@@ -8713,7 +9712,8 @@ export const EmojiList = [
     shortname: ":crossed_flags:",
     code: "&#127884;",
     category: "o",
-    emoji_order: "2183"
+    emoji_order: "2183",
+    char: "🎌"
   },
   {
     name: "waving_black_flag",
@@ -8721,7 +9721,8 @@ export const EmojiList = [
     shortname: ":flag_black:",
     code: "&#127988;",
     category: "o",
-    emoji_order: "2184"
+    emoji_order: "2184",
+    char: "🏴"
   },
   {
     name: "waving_white_flag",
@@ -8729,7 +9730,8 @@ export const EmojiList = [
     shortname: ":flag_white:",
     code: "&#127987;",
     category: "o",
-    emoji_order: "2185"
+    emoji_order: "2185",
+    char: "🏳"
   },
   {
     name: "flag-ac",
@@ -8737,7 +9739,8 @@ export const EmojiList = [
     shortname: ":flag_ac:",
     code: "&#127462;&#127464;",
     category: "f",
-    emoji_order: "2187"
+    emoji_order: "2187",
+    char: "🇦🇨"
   },
   {
     name: "flag-ad",
@@ -8745,7 +9748,8 @@ export const EmojiList = [
     shortname: ":flag_ad:",
     code: "&#127462;&#127465;",
     category: "f",
-    emoji_order: "2188"
+    emoji_order: "2188",
+    char: "🇦🇩"
   },
   {
     name: "flag-ae",
@@ -8753,7 +9757,8 @@ export const EmojiList = [
     shortname: ":flag_ae:",
     code: "&#127462;&#127466;",
     category: "f",
-    emoji_order: "2189"
+    emoji_order: "2189",
+    char: "🇦🇪"
   },
   {
     name: "flag-af",
@@ -8761,7 +9766,8 @@ export const EmojiList = [
     shortname: ":flag_af:",
     code: "&#127462;&#127467;",
     category: "f",
-    emoji_order: "2190"
+    emoji_order: "2190",
+    char: "🇦🇫"
   },
   {
     name: "flag-ag",
@@ -8769,7 +9775,8 @@ export const EmojiList = [
     shortname: ":flag_ag:",
     code: "&#127462;&#127468;",
     category: "f",
-    emoji_order: "2191"
+    emoji_order: "2191",
+    char: "🇦🇬"
   },
   {
     name: "flag-ai",
@@ -8777,7 +9784,8 @@ export const EmojiList = [
     shortname: ":flag_ai:",
     code: "&#127462;&#127470;",
     category: "f",
-    emoji_order: "2192"
+    emoji_order: "2192",
+    char: "🇦🇮"
   },
   {
     name: "flag-al",
@@ -8785,7 +9793,8 @@ export const EmojiList = [
     shortname: ":flag_al:",
     code: "&#127462;&#127473;",
     category: "f",
-    emoji_order: "2193"
+    emoji_order: "2193",
+    char: "🇦🇱"
   },
   {
     name: "flag-am",
@@ -8793,7 +9802,8 @@ export const EmojiList = [
     shortname: ":flag_am:",
     code: "&#127462;&#127474;",
     category: "f",
-    emoji_order: "2194"
+    emoji_order: "2194",
+    char: "🇦🇲"
   },
   {
     name: "flag-ao",
@@ -8801,7 +9811,8 @@ export const EmojiList = [
     shortname: ":flag-ao:",
     code: "&#127462;&#127476;",
     category: "f",
-    emoji_order: "2195"
+    emoji_order: "2195",
+    char: "🇦🇴"
   },
   {
     name: "flag-aq",
@@ -8809,7 +9820,8 @@ export const EmojiList = [
     shortname: ":flag-aq:",
     code: "&#127462;&#127478;",
     category: "f",
-    emoji_order: "2196"
+    emoji_order: "2196",
+    char: "🇦🇶"
   },
   {
     name: "flag-ar",
@@ -8817,7 +9829,8 @@ export const EmojiList = [
     shortname: ":flag-ar:",
     code: "&#127462;&#127479;",
     category: "f",
-    emoji_order: "2197"
+    emoji_order: "2197",
+    char: "🇦🇷"
   },
   {
     name: "flag-as",
@@ -8825,7 +9838,8 @@ export const EmojiList = [
     shortname: ":flag-as:",
     code: "&#127462;&#127480;",
     category: "f",
-    emoji_order: "2198"
+    emoji_order: "2198",
+    char: "🇦🇸"
   },
   {
     name: "flag-at",
@@ -8833,7 +9847,8 @@ export const EmojiList = [
     shortname: ":flag-at:",
     code: "&#127462;&#127481;",
     category: "f",
-    emoji_order: "2199"
+    emoji_order: "2199",
+    char: "🇦🇹"
   },
   {
     name: "flag-au",
@@ -8841,7 +9856,8 @@ export const EmojiList = [
     shortname: ":flag-au:",
     code: "&#127462;&#127482;",
     category: "f",
-    emoji_order: "2200"
+    emoji_order: "2200",
+    char: "🇦🇺"
   },
   {
     name: "flag-aw",
@@ -8849,7 +9865,8 @@ export const EmojiList = [
     shortname: ":flag-aw:",
     code: "&#127462;&#127484;",
     category: "f",
-    emoji_order: "2201"
+    emoji_order: "2201",
+    char: "🇦🇼"
   },
   {
     name: "flag-ax",
@@ -8857,7 +9874,8 @@ export const EmojiList = [
     shortname: ":flag-ax:",
     code: "&#127462;&#127485;",
     category: "f",
-    emoji_order: "2202"
+    emoji_order: "2202",
+    char: "🇦🇽"
   },
   {
     name: "flag-az",
@@ -8865,7 +9883,8 @@ export const EmojiList = [
     shortname: ":flag-az:",
     code: "&#127462;&#127487;",
     category: "f",
-    emoji_order: "2203"
+    emoji_order: "2203",
+    char: "🇦🇿"
   },
   {
     name: "flag-ba",
@@ -8873,7 +9892,8 @@ export const EmojiList = [
     shortname: ":flag-ba:",
     code: "&#127463;&#127462;",
     category: "f",
-    emoji_order: "2204"
+    emoji_order: "2204",
+    char: "🇧🇦"
   },
   {
     name: "flag-bb",
@@ -8881,7 +9901,8 @@ export const EmojiList = [
     shortname: ":flag-bb:",
     code: "&#127463;&#127463;",
     category: "f",
-    emoji_order: "2205"
+    emoji_order: "2205",
+    char: "🇧🇧"
   },
   {
     name: "flag-bd",
@@ -8889,7 +9910,8 @@ export const EmojiList = [
     shortname: ":flag-bd:",
     code: "&#127463;&#127465;",
     category: "f",
-    emoji_order: "2206"
+    emoji_order: "2206",
+    char: "🇧🇩"
   },
   {
     name: "flag-be",
@@ -8897,7 +9919,8 @@ export const EmojiList = [
     shortname: ":flag-be:",
     code: "&#127463;&#127466;",
     category: "f",
-    emoji_order: "2207"
+    emoji_order: "2207",
+    char: "🇧🇪"
   },
   {
     name: "flag-bf",
@@ -8905,7 +9928,8 @@ export const EmojiList = [
     shortname: ":flag-bf:",
     code: "&#127463;&#127467;",
     category: "f",
-    emoji_order: "2208"
+    emoji_order: "2208",
+    char: "🇧🇫"
   },
   {
     name: "flag-bg",
@@ -8913,7 +9937,8 @@ export const EmojiList = [
     shortname: ":flag-bg:",
     code: "&#127463;&#127468;",
     category: "f",
-    emoji_order: "2209"
+    emoji_order: "2209",
+    char: "🇧🇬"
   },
   {
     name: "flag-bh",
@@ -8921,7 +9946,8 @@ export const EmojiList = [
     shortname: ":flag-bh:",
     code: "&#127463;&#127469;",
     category: "f",
-    emoji_order: "2210"
+    emoji_order: "2210",
+    char: "🇧🇭"
   },
   {
     name: "flag-bi",
@@ -8929,7 +9955,8 @@ export const EmojiList = [
     shortname: ":flag-bi:",
     code: "&#127463;&#127470;",
     category: "f",
-    emoji_order: "2211"
+    emoji_order: "2211",
+    char: "🇧🇮"
   },
   {
     name: "flag-bj",
@@ -8937,7 +9964,8 @@ export const EmojiList = [
     shortname: ":flag-bj:",
     code: "&#127463;&#127471;",
     category: "f",
-    emoji_order: "2212"
+    emoji_order: "2212",
+    char: "🇧🇯"
   },
   {
     name: "flag-bl",
@@ -8945,7 +9973,8 @@ export const EmojiList = [
     shortname: ":flag-bl:",
     code: "&#127463;&#127473;",
     category: "f",
-    emoji_order: "2213"
+    emoji_order: "2213",
+    char: "🇧🇱"
   },
   {
     name: "flag-bm",
@@ -8953,7 +9982,8 @@ export const EmojiList = [
     shortname: ":flag-bm:",
     code: "&#127463;&#127474;",
     category: "f",
-    emoji_order: "2214"
+    emoji_order: "2214",
+    char: "🇧🇲"
   },
   {
     name: "flag-bn",
@@ -8961,7 +9991,8 @@ export const EmojiList = [
     shortname: ":flag-bn:",
     code: "&#127463;&#127475;",
     category: "f",
-    emoji_order: "2215"
+    emoji_order: "2215",
+    char: "🇧🇳"
   },
   {
     name: "flag-bo",
@@ -8969,7 +10000,8 @@ export const EmojiList = [
     shortname: ":flag-bo:",
     code: "&#127463;&#127476;",
     category: "f",
-    emoji_order: "2216"
+    emoji_order: "2216",
+    char: "🇧🇴"
   },
   {
     name: "flag-bq",
@@ -8977,7 +10009,8 @@ export const EmojiList = [
     shortname: ":flag-bq:",
     code: "&#127463;&#127478;",
     category: "f",
-    emoji_order: "2217"
+    emoji_order: "2217",
+    char: "🇧🇶"
   },
   {
     name: "flag-br",
@@ -8985,7 +10018,8 @@ export const EmojiList = [
     shortname: ":flag-br:",
     code: "&#127463;&#127479;",
     category: "f",
-    emoji_order: "2218"
+    emoji_order: "2218",
+    char: "🇧🇷"
   },
   {
     name: "flag-bs",
@@ -8993,7 +10027,8 @@ export const EmojiList = [
     shortname: ":flag-bs:",
     code: "&#127463;&#127480;",
     category: "f",
-    emoji_order: "2219"
+    emoji_order: "2219",
+    char: "🇧🇸"
   },
   {
     name: "flag-bt",
@@ -9001,7 +10036,8 @@ export const EmojiList = [
     shortname: ":flag-bt:",
     code: "&#127463;&#127481;",
     category: "f",
-    emoji_order: "2220"
+    emoji_order: "2220",
+    char: "🇧🇹"
   },
   {
     name: "flag-bv",
@@ -9009,7 +10045,8 @@ export const EmojiList = [
     shortname: ":flag-bv:",
     code: "&#127463;&#127483;",
     category: "f",
-    emoji_order: "2221"
+    emoji_order: "2221",
+    char: "🇧🇻"
   },
   {
     name: "flag-bw",
@@ -9017,7 +10054,8 @@ export const EmojiList = [
     shortname: ":flag-bw:",
     code: "&#127463;&#127484;",
     category: "f",
-    emoji_order: "2222"
+    emoji_order: "2222",
+    char: "🇧🇼"
   },
   {
     name: "flag-by",
@@ -9025,7 +10063,8 @@ export const EmojiList = [
     shortname: ":flag-by:",
     code: "&#127463;&#127486;",
     category: "f",
-    emoji_order: "2223"
+    emoji_order: "2223",
+    char: "🇧🇾"
   },
   {
     name: "flag-bz",
@@ -9033,7 +10072,8 @@ export const EmojiList = [
     shortname: ":flag-bz:",
     code: "&#127463;&#127487;",
     category: "f",
-    emoji_order: "2224"
+    emoji_order: "2224",
+    char: "🇧🇿"
   },
   {
     name: "flag-ca",
@@ -9041,7 +10081,8 @@ export const EmojiList = [
     shortname: ":flag-ca:",
     code: "&#127464;&#127462;",
     category: "f",
-    emoji_order: "2225"
+    emoji_order: "2225",
+    char: "🇨🇦"
   },
   {
     name: "flag-cc",
@@ -9049,7 +10090,8 @@ export const EmojiList = [
     shortname: ":flag-cc:",
     code: "&#127464;&#127464;",
     category: "f",
-    emoji_order: "2226"
+    emoji_order: "2226",
+    char: "🇨🇨"
   },
   {
     name: "flag-cd",
@@ -9057,7 +10099,8 @@ export const EmojiList = [
     shortname: ":flag-cd:",
     code: "&#127464;&#127465;",
     category: "f",
-    emoji_order: "2227"
+    emoji_order: "2227",
+    char: "🇨🇩"
   },
   {
     name: "flag-cf",
@@ -9065,7 +10108,8 @@ export const EmojiList = [
     shortname: ":flag-cf:",
     code: "&#127464;&#127467;",
     category: "f",
-    emoji_order: "2228"
+    emoji_order: "2228",
+    char: "🇨🇫"
   },
   {
     name: "flag-cg",
@@ -9073,7 +10117,8 @@ export const EmojiList = [
     shortname: ":flag-cg:",
     code: "&#127464;&#127468;",
     category: "f",
-    emoji_order: "2229"
+    emoji_order: "2229",
+    char: "🇨🇬"
   },
   {
     name: "flag-ch",
@@ -9081,7 +10126,8 @@ export const EmojiList = [
     shortname: ":flag-ch:",
     code: "&#127464;&#127469;",
     category: "f",
-    emoji_order: "2230"
+    emoji_order: "2230",
+    char: "🇨🇭"
   },
   {
     name: "flag-ci",
@@ -9089,7 +10135,8 @@ export const EmojiList = [
     shortname: ":flag-ci:",
     code: "&#127464;&#127470;",
     category: "f",
-    emoji_order: "2231"
+    emoji_order: "2231",
+    char: "🇨🇮"
   },
   {
     name: "flag-ck",
@@ -9097,7 +10144,8 @@ export const EmojiList = [
     shortname: ":flag-ck:",
     code: "&#127464;&#127472;",
     category: "f",
-    emoji_order: "2232"
+    emoji_order: "2232",
+    char: "🇨🇰"
   },
   {
     name: "flag-cl",
@@ -9105,7 +10153,8 @@ export const EmojiList = [
     shortname: ":flag-cl:",
     code: "&#127464;&#127473;",
     category: "f",
-    emoji_order: "2233"
+    emoji_order: "2233",
+    char: "🇨🇱"
   },
   {
     name: "flag-cm",
@@ -9113,7 +10162,8 @@ export const EmojiList = [
     shortname: ":flag-cm:",
     code: "&#127464;&#127474;",
     category: "f",
-    emoji_order: "2234"
+    emoji_order: "2234",
+    char: "🇨🇲"
   },
   {
     name: "flag-cn",
@@ -9121,7 +10171,8 @@ export const EmojiList = [
     shortname: ":flag-cn:",
     code: "&#127464;&#127475;",
     category: "f",
-    emoji_order: "2235"
+    emoji_order: "2235",
+    char: "🇨🇳"
   },
   {
     name: "flag-co",
@@ -9129,7 +10180,8 @@ export const EmojiList = [
     shortname: ":flag-co:",
     code: "&#127464;&#127476;",
     category: "f",
-    emoji_order: "2236"
+    emoji_order: "2236",
+    char: "🇨🇴"
   },
   {
     name: "flag-cp",
@@ -9137,7 +10189,8 @@ export const EmojiList = [
     shortname: ":flag-cp:",
     code: "&#127464;&#127477;",
     category: "f",
-    emoji_order: "2237"
+    emoji_order: "2237",
+    char: "🇨🇵"
   },
   {
     name: "flag-cr",
@@ -9145,7 +10198,8 @@ export const EmojiList = [
     shortname: ":flag-cr:",
     code: "&#127464;&#127479;",
     category: "f",
-    emoji_order: "2238"
+    emoji_order: "2238",
+    char: "🇨🇷"
   },
   {
     name: "flag-cu",
@@ -9153,7 +10207,8 @@ export const EmojiList = [
     shortname: ":flag-cu:",
     code: "&#127464;&#127482;",
     category: "f",
-    emoji_order: "2239"
+    emoji_order: "2239",
+    char: "🇨🇺"
   },
   {
     name: "flag-cv",
@@ -9161,7 +10216,8 @@ export const EmojiList = [
     shortname: ":flag-cv:",
     code: "&#127464;&#127483;",
     category: "f",
-    emoji_order: "2240"
+    emoji_order: "2240",
+    char: "🇨🇻"
   },
   {
     name: "flag-cw",
@@ -9169,7 +10225,8 @@ export const EmojiList = [
     shortname: ":flag-cw:",
     code: "&#127464;&#127484;",
     category: "f",
-    emoji_order: "2241"
+    emoji_order: "2241",
+    char: "🇨🇼"
   },
   {
     name: "flag-cx",
@@ -9177,7 +10234,8 @@ export const EmojiList = [
     shortname: ":flag-cx:",
     code: "&#127464;&#127485;",
     category: "f",
-    emoji_order: "2242"
+    emoji_order: "2242",
+    char: "🇨🇽"
   },
   {
     name: "flag-cy",
@@ -9185,7 +10243,8 @@ export const EmojiList = [
     shortname: ":flag-cy:",
     code: "&#127464;&#127486;",
     category: "f",
-    emoji_order: "2243"
+    emoji_order: "2243",
+    char: "🇨🇾"
   },
   {
     name: "flag-cz",
@@ -9193,7 +10252,8 @@ export const EmojiList = [
     shortname: ":flag-cz:",
     code: "&#127464;&#127487;",
     category: "f",
-    emoji_order: "2244"
+    emoji_order: "2244",
+    char: "🇨🇿"
   },
   {
     name: "flag-de",
@@ -9201,7 +10261,8 @@ export const EmojiList = [
     shortname: ":flag-de:",
     code: "&#127465;&#127466;",
     category: "f",
-    emoji_order: "2245"
+    emoji_order: "2245",
+    char: "🇩🇪"
   },
   {
     name: "flag-dg",
@@ -9209,7 +10270,8 @@ export const EmojiList = [
     shortname: ":flag-dg:",
     code: "&#127465;&#127468;",
     category: "f",
-    emoji_order: "2246"
+    emoji_order: "2246",
+    char: "🇩🇬"
   },
   {
     name: "flag-dj",
@@ -9217,7 +10279,8 @@ export const EmojiList = [
     shortname: ":flag-dj:",
     code: "&#127465;&#127471;",
     category: "f",
-    emoji_order: "2247"
+    emoji_order: "2247",
+    char: "🇩🇯"
   },
   {
     name: "flag-dk",
@@ -9225,7 +10288,8 @@ export const EmojiList = [
     shortname: ":flag-dk:",
     code: "&#127465;&#127472;",
     category: "f",
-    emoji_order: "2248"
+    emoji_order: "2248",
+    char: "🇩🇰"
   },
   {
     name: "flag-dm",
@@ -9233,7 +10297,8 @@ export const EmojiList = [
     shortname: ":flag-dm:",
     code: "&#127465;&#127474;",
     category: "f",
-    emoji_order: "2249"
+    emoji_order: "2249",
+    char: "🇩🇲"
   },
   {
     name: "flag-do",
@@ -9241,7 +10306,8 @@ export const EmojiList = [
     shortname: ":flag-do:",
     code: "&#127465;&#127476;",
     category: "f",
-    emoji_order: "2250"
+    emoji_order: "2250",
+    char: "🇩🇴"
   },
   {
     name: "flag-dz",
@@ -9249,7 +10315,8 @@ export const EmojiList = [
     shortname: ":flag-dz:",
     code: "&#127465;&#127487;",
     category: "f",
-    emoji_order: "2251"
+    emoji_order: "2251",
+    char: "🇩🇿"
   },
   {
     name: "flag-ea",
@@ -9257,7 +10324,8 @@ export const EmojiList = [
     shortname: ":flag-ea:",
     code: "&#127466;&#127462;",
     category: "f",
-    emoji_order: "2252"
+    emoji_order: "2252",
+    char: "🇪🇦"
   },
   {
     name: "flag-ec",
@@ -9265,7 +10333,8 @@ export const EmojiList = [
     shortname: ":flag-ec:",
     code: "&#127466;&#127464;",
     category: "f",
-    emoji_order: "2253"
+    emoji_order: "2253",
+    char: "🇪🇨"
   },
   {
     name: "flag-ee",
@@ -9273,7 +10342,8 @@ export const EmojiList = [
     shortname: ":flag-ee:",
     code: "&#127466;&#127466;",
     category: "f",
-    emoji_order: "2254"
+    emoji_order: "2254",
+    char: "🇪🇪"
   },
   {
     name: "flag-eg",
@@ -9281,7 +10351,8 @@ export const EmojiList = [
     shortname: ":flag-eg:",
     code: "&#127466;&#127468;",
     category: "f",
-    emoji_order: "2255"
+    emoji_order: "2255",
+    char: "🇪🇬"
   },
   {
     name: "flag-eh",
@@ -9289,7 +10360,8 @@ export const EmojiList = [
     shortname: ":flag-eh:",
     code: "&#127466;&#127469;",
     category: "f",
-    emoji_order: "2256"
+    emoji_order: "2256",
+    char: "🇪🇭"
   },
   {
     name: "flag-er",
@@ -9297,7 +10369,8 @@ export const EmojiList = [
     shortname: ":flag-er:",
     code: "&#127466;&#127479;",
     category: "f",
-    emoji_order: "2257"
+    emoji_order: "2257",
+    char: "🇪🇷"
   },
   {
     name: "flag-es",
@@ -9305,7 +10378,8 @@ export const EmojiList = [
     shortname: ":flag-es:",
     code: "&#127466;&#127480;",
     category: "f",
-    emoji_order: "2258"
+    emoji_order: "2258",
+    char: "🇪🇸"
   },
   {
     name: "flag-et",
@@ -9313,7 +10387,8 @@ export const EmojiList = [
     shortname: ":flag-et:",
     code: "&#127466;&#127481;",
     category: "f",
-    emoji_order: "2259"
+    emoji_order: "2259",
+    char: "🇪🇹"
   },
   {
     name: "flag-eu",
@@ -9321,7 +10396,8 @@ export const EmojiList = [
     shortname: ":flag-eu:",
     code: "&#127466;&#127482;",
     category: "f",
-    emoji_order: "2260"
+    emoji_order: "2260",
+    char: "🇪🇺"
   },
   {
     name: "flag-fi",
@@ -9329,7 +10405,8 @@ export const EmojiList = [
     shortname: ":flag-fi:",
     code: "&#127467;&#127470;",
     category: "f",
-    emoji_order: "2261"
+    emoji_order: "2261",
+    char: "🇫🇮"
   },
   {
     name: "flag-fj",
@@ -9337,7 +10414,8 @@ export const EmojiList = [
     shortname: ":flag-fj:",
     code: "&#127467;&#127471;",
     category: "f",
-    emoji_order: "2262"
+    emoji_order: "2262",
+    char: "🇫🇯"
   },
   {
     name: "flag-fk",
@@ -9345,7 +10423,8 @@ export const EmojiList = [
     shortname: ":flag-fk:",
     code: "&#127467;&#127472;",
     category: "f",
-    emoji_order: "2263"
+    emoji_order: "2263",
+    char: "🇫🇰"
   },
   {
     name: "flag-fm",
@@ -9353,7 +10432,8 @@ export const EmojiList = [
     shortname: ":flag-fm:",
     code: "&#127467;&#127474;",
     category: "f",
-    emoji_order: "2264"
+    emoji_order: "2264",
+    char: "🇫🇲"
   },
   {
     name: "flag-fo",
@@ -9361,7 +10441,8 @@ export const EmojiList = [
     shortname: ":flag-fo:",
     code: "&#127467;&#127476;",
     category: "f",
-    emoji_order: "2265"
+    emoji_order: "2265",
+    char: "🇫🇴"
   },
   {
     name: "flag-fr",
@@ -9369,7 +10450,8 @@ export const EmojiList = [
     shortname: ":flag-fr:",
     code: "&#127467;&#127479;",
     category: "f",
-    emoji_order: "2266"
+    emoji_order: "2266",
+    char: "🇫🇷"
   },
   {
     name: "flag-ga",
@@ -9377,7 +10459,8 @@ export const EmojiList = [
     shortname: ":flag-ga:",
     code: "&#127468;&#127462;",
     category: "f",
-    emoji_order: "2267"
+    emoji_order: "2267",
+    char: "🇬🇦"
   },
   {
     name: "flag-gb",
@@ -9385,7 +10468,8 @@ export const EmojiList = [
     shortname: ":flag-gb:",
     code: "&#127468;&#127463;",
     category: "f",
-    emoji_order: "2268"
+    emoji_order: "2268",
+    char: "🇬🇧"
   },
   {
     name: "flag-gd",
@@ -9393,7 +10477,8 @@ export const EmojiList = [
     shortname: ":flag-gd:",
     code: "&#127468;&#127465;",
     category: "f",
-    emoji_order: "2269"
+    emoji_order: "2269",
+    char: "🇬🇩"
   },
   {
     name: "flag-ge",
@@ -9401,7 +10486,8 @@ export const EmojiList = [
     shortname: ":flag-ge:",
     code: "&#127468;&#127466;",
     category: "f",
-    emoji_order: "2270"
+    emoji_order: "2270",
+    char: "🇬🇪"
   },
   {
     name: "flag-gf",
@@ -9409,7 +10495,8 @@ export const EmojiList = [
     shortname: ":flag-gf:",
     code: "&#127468;&#127467;",
     category: "f",
-    emoji_order: "2271"
+    emoji_order: "2271",
+    char: "🇬🇫"
   },
   {
     name: "flag-gg",
@@ -9417,7 +10504,8 @@ export const EmojiList = [
     shortname: ":flag-gg:",
     code: "&#127468;&#127468;",
     category: "f",
-    emoji_order: "2272"
+    emoji_order: "2272",
+    char: "🇬🇬"
   },
   {
     name: "flag-gh",
@@ -9425,7 +10513,8 @@ export const EmojiList = [
     shortname: ":flag-gh:",
     code: "&#127468;&#127469;",
     category: "f",
-    emoji_order: "2273"
+    emoji_order: "2273",
+    char: "🇬🇭"
   },
   {
     name: "flag-gi",
@@ -9433,7 +10522,8 @@ export const EmojiList = [
     shortname: ":flag-gi:",
     code: "&#127468;&#127470;",
     category: "f",
-    emoji_order: "2274"
+    emoji_order: "2274",
+    char: "🇬🇮"
   },
   {
     name: "flag-gl",
@@ -9441,7 +10531,8 @@ export const EmojiList = [
     shortname: ":flag-gl:",
     code: "&#127468;&#127473;",
     category: "f",
-    emoji_order: "2275"
+    emoji_order: "2275",
+    char: "🇬🇱"
   },
   {
     name: "flag-gm",
@@ -9449,7 +10540,8 @@ export const EmojiList = [
     shortname: ":flag-gm:",
     code: "&#127468;&#127474;",
     category: "f",
-    emoji_order: "2276"
+    emoji_order: "2276",
+    char: "🇬🇲"
   },
   {
     name: "flag-gn",
@@ -9457,7 +10549,8 @@ export const EmojiList = [
     shortname: ":flag-gn:",
     code: "&#127468;&#127475;",
     category: "f",
-    emoji_order: "2277"
+    emoji_order: "2277",
+    char: "🇬🇳"
   },
   {
     name: "flag-gp",
@@ -9465,7 +10558,8 @@ export const EmojiList = [
     shortname: ":flag-gp:",
     code: "&#127468;&#127477;",
     category: "f",
-    emoji_order: "2278"
+    emoji_order: "2278",
+    char: "🇬🇵"
   },
   {
     name: "flag-gq",
@@ -9473,7 +10567,8 @@ export const EmojiList = [
     shortname: ":flag-gq:",
     code: "&#127468;&#127478;",
     category: "f",
-    emoji_order: "2279"
+    emoji_order: "2279",
+    char: "🇬🇶"
   },
   {
     name: "flag-gr",
@@ -9481,7 +10576,8 @@ export const EmojiList = [
     shortname: ":flag-gr:",
     code: "&#127468;&#127479;",
     category: "f",
-    emoji_order: "2280"
+    emoji_order: "2280",
+    char: "🇬🇷"
   },
   {
     name: "flag-gs",
@@ -9489,7 +10585,8 @@ export const EmojiList = [
     shortname: ":flag-gs:",
     code: "&#127468;&#127480;",
     category: "f",
-    emoji_order: "2281"
+    emoji_order: "2281",
+    char: "🇬🇸"
   },
   {
     name: "flag-gt",
@@ -9497,7 +10594,8 @@ export const EmojiList = [
     shortname: ":flag-gt:",
     code: "&#127468;&#127481;",
     category: "f",
-    emoji_order: "2282"
+    emoji_order: "2282",
+    char: "🇬🇹"
   },
   {
     name: "flag-gu",
@@ -9505,7 +10603,8 @@ export const EmojiList = [
     shortname: ":flag-gu:",
     code: "&#127468;&#127482;",
     category: "f",
-    emoji_order: "2283"
+    emoji_order: "2283",
+    char: "🇬🇺"
   },
   {
     name: "flag-gw",
@@ -9513,7 +10612,8 @@ export const EmojiList = [
     shortname: ":flag-gw:",
     code: "&#127468;&#127484;",
     category: "f",
-    emoji_order: "2284"
+    emoji_order: "2284",
+    char: "🇬🇼"
   },
   {
     name: "flag-gy",
@@ -9521,7 +10621,8 @@ export const EmojiList = [
     shortname: ":flag-gy:",
     code: "&#127468;&#127486;",
     category: "f",
-    emoji_order: "2285"
+    emoji_order: "2285",
+    char: "🇬🇾"
   },
   {
     name: "flag-hk",
@@ -9529,7 +10630,8 @@ export const EmojiList = [
     shortname: ":flag-hk:",
     code: "&#127469;&#127472;",
     category: "f",
-    emoji_order: "2286"
+    emoji_order: "2286",
+    char: "🇭🇰"
   },
   {
     name: "flag-hm",
@@ -9537,7 +10639,8 @@ export const EmojiList = [
     shortname: ":flag-hm:",
     code: "&#127469;&#127474;",
     category: "f",
-    emoji_order: "2287"
+    emoji_order: "2287",
+    char: "🇭🇲"
   },
   {
     name: "flag-hn",
@@ -9545,7 +10648,8 @@ export const EmojiList = [
     shortname: ":flag-hn:",
     code: "&#127469;&#127475;",
     category: "f",
-    emoji_order: "2288"
+    emoji_order: "2288",
+    char: "🇭🇳"
   },
   {
     name: "flag-hr",
@@ -9553,7 +10657,8 @@ export const EmojiList = [
     shortname: ":flag-hr:",
     code: "&#127469;&#127479;",
     category: "f",
-    emoji_order: "2289"
+    emoji_order: "2289",
+    char: "🇭🇷"
   },
   {
     name: "flag-ht",
@@ -9561,7 +10666,8 @@ export const EmojiList = [
     shortname: ":flag-ht:",
     code: "&#127469;&#127481;",
     category: "f",
-    emoji_order: "2290"
+    emoji_order: "2290",
+    char: "🇭🇹"
   },
   {
     name: "flag-hu",
@@ -9569,7 +10675,8 @@ export const EmojiList = [
     shortname: ":flag-hu:",
     code: "&#127469;&#127482;",
     category: "f",
-    emoji_order: "2291"
+    emoji_order: "2291",
+    char: "🇭🇺"
   },
   {
     name: "flag-ic",
@@ -9577,7 +10684,8 @@ export const EmojiList = [
     shortname: ":flag-ic:",
     code: "&#127470;&#127464;",
     category: "f",
-    emoji_order: "2292"
+    emoji_order: "2292",
+    char: "🇮🇨"
   },
   {
     name: "flag-id",
@@ -9585,7 +10693,8 @@ export const EmojiList = [
     shortname: ":flag-id:",
     code: "&#127470;&#127465;",
     category: "f",
-    emoji_order: "2293"
+    emoji_order: "2293",
+    char: "🇮🇩"
   },
   {
     name: "flag-ie",
@@ -9593,7 +10702,8 @@ export const EmojiList = [
     shortname: ":flag-ie:",
     code: "&#127470;&#127466;",
     category: "f",
-    emoji_order: "2294"
+    emoji_order: "2294",
+    char: "🇮🇪"
   },
   {
     name: "flag-il",
@@ -9601,16 +10711,17 @@ export const EmojiList = [
     shortname: ":flag-il:",
     code: "&#127470;&#127473;",
     category: "f",
-    emoji_order: "2295"
+    emoji_order: "2295",
+    char: "🇮🇱"
   },
-
   {
     name: "flag-im",
     unicode: "1f1ee-1f1f2",
     shortname: ":flag-im:",
     code: "&#127470;&#127474;",
     category: "f",
-    emoji_order: "2296"
+    emoji_order: "2296",
+    char: "🇮🇲"
   },
   {
     name: "flag-in",
@@ -9618,7 +10729,8 @@ export const EmojiList = [
     shortname: ":flag-in:",
     code: "&#127470;&#127475;",
     category: "f",
-    emoji_order: "2297"
+    emoji_order: "2297",
+    char: "🇮🇳"
   },
   {
     name: "flag-io",
@@ -9626,7 +10738,8 @@ export const EmojiList = [
     shortname: ":flag-io:",
     code: "&#127470;&#127476;",
     category: "f",
-    emoji_order: "2298"
+    emoji_order: "2298",
+    char: "🇮🇴"
   },
   {
     name: "flag-iq",
@@ -9634,7 +10747,8 @@ export const EmojiList = [
     shortname: ":flag-iq:",
     code: "&#127470;&#127478;",
     category: "f",
-    emoji_order: "2299"
+    emoji_order: "2299",
+    char: "🇮🇶"
   },
   {
     name: "flag-ir",
@@ -9642,7 +10756,8 @@ export const EmojiList = [
     shortname: ":flag-ir:",
     code: "&#127470;&#127479;",
     category: "f",
-    emoji_order: "2300"
+    emoji_order: "2300",
+    char: "🇮🇷"
   },
   {
     name: "flag-is",
@@ -9650,7 +10765,8 @@ export const EmojiList = [
     shortname: ":flag-is:",
     code: "&#127470;&#127480;",
     category: "f",
-    emoji_order: "2301"
+    emoji_order: "2301",
+    char: "🇮🇸"
   },
   {
     name: "flag-it",
@@ -9658,7 +10774,8 @@ export const EmojiList = [
     shortname: ":flag-it:",
     code: "&#127470;&#127481;",
     category: "f",
-    emoji_order: "2302"
+    emoji_order: "2302",
+    char: "🇮🇹"
   },
   {
     name: "flag-je",
@@ -9666,7 +10783,8 @@ export const EmojiList = [
     shortname: ":flag-je:",
     code: "&#127471;&#127466;",
     category: "f",
-    emoji_order: "2303"
+    emoji_order: "2303",
+    char: "🇯🇪"
   },
   {
     name: "flag-jm",
@@ -9674,7 +10792,8 @@ export const EmojiList = [
     shortname: ":flag-jm:",
     code: "&#127471;&#127474;",
     category: "f",
-    emoji_order: "2304"
+    emoji_order: "2304",
+    char: "🇯🇲"
   },
   {
     name: "flag-jo",
@@ -9682,7 +10801,8 @@ export const EmojiList = [
     shortname: ":flag-jo:",
     code: "&#127471;&#127476;",
     category: "f",
-    emoji_order: "2305"
+    emoji_order: "2305",
+    char: "🇯🇴"
   },
   {
     name: "flag-jp",
@@ -9690,7 +10810,8 @@ export const EmojiList = [
     shortname: ":flag-jp:",
     code: "&#127471;&#127477;",
     category: "f",
-    emoji_order: "2306"
+    emoji_order: "2306",
+    char: "🇯🇵"
   },
   {
     name: "flag-ke",
@@ -9698,7 +10819,8 @@ export const EmojiList = [
     shortname: ":flag-ke:",
     code: "&#127472;&#127466;",
     category: "f",
-    emoji_order: "2307"
+    emoji_order: "2307",
+    char: "🇰🇪"
   },
   {
     name: "flag-kg",
@@ -9706,7 +10828,8 @@ export const EmojiList = [
     shortname: ":flag-kg:",
     code: "&#127472;&#127468;",
     category: "f",
-    emoji_order: "2308"
+    emoji_order: "2308",
+    char: "🇰🇬"
   },
   {
     name: "flag-kh",
@@ -9714,7 +10837,8 @@ export const EmojiList = [
     shortname: ":flag-kh:",
     code: "&#127472;&#127469;",
     category: "f",
-    emoji_order: "2309"
+    emoji_order: "2309",
+    char: "🇰🇭"
   },
   {
     name: "flag-ki",
@@ -9722,7 +10846,8 @@ export const EmojiList = [
     shortname: ":flag-ki:",
     code: "&#127472;&#127470;",
     category: "f",
-    emoji_order: "2310"
+    emoji_order: "2310",
+    char: "🇰🇮"
   },
   {
     name: "flag-km",
@@ -9730,7 +10855,8 @@ export const EmojiList = [
     shortname: ":flag-km:",
     code: "&#127472;&#127474;",
     category: "f",
-    emoji_order: "2311"
+    emoji_order: "2311",
+    char: "🇰🇲"
   },
   {
     name: "flag-kn",
@@ -9738,7 +10864,8 @@ export const EmojiList = [
     shortname: ":flag-kn:",
     code: "&#127472;&#127475;",
     category: "f",
-    emoji_order: "2312"
+    emoji_order: "2312",
+    char: "🇰🇳"
   },
   {
     name: "flag-kp",
@@ -9746,7 +10873,8 @@ export const EmojiList = [
     shortname: ":flag-kp:",
     code: "&#127472;&#127477;",
     category: "f",
-    emoji_order: "2313"
+    emoji_order: "2313",
+    char: "🇰🇵"
   },
   {
     name: "flag-kr",
@@ -9754,7 +10882,8 @@ export const EmojiList = [
     shortname: ":flag-kr:",
     code: "&#127472;&#127479;",
     category: "f",
-    emoji_order: "2314"
+    emoji_order: "2314",
+    char: "🇰🇷"
   },
   {
     name: "flag-kw",
@@ -9762,7 +10891,8 @@ export const EmojiList = [
     shortname: ":flag-kw:",
     code: "&#127472;&#127484;",
     category: "f",
-    emoji_order: "2315"
+    emoji_order: "2315",
+    char: "🇰🇼"
   },
   {
     name: "flag-ky",
@@ -9770,7 +10900,8 @@ export const EmojiList = [
     shortname: ":flag-ky:",
     code: "&#127472;&#127486;",
     category: "f",
-    emoji_order: "2316"
+    emoji_order: "2316",
+    char: "🇰🇾"
   },
   {
     name: "flag-kz",
@@ -9778,7 +10909,8 @@ export const EmojiList = [
     shortname: ":flag-kz:",
     code: "&#127472;&#127487;",
     category: "f",
-    emoji_order: "2317"
+    emoji_order: "2317",
+    char: "🇰🇿"
   },
   {
     name: "flag-la",
@@ -9786,7 +10918,8 @@ export const EmojiList = [
     shortname: ":flag-la:",
     code: "&#127473;&#127462;",
     category: "f",
-    emoji_order: "2318"
+    emoji_order: "2318",
+    char: "🇱🇦"
   },
   {
     name: "flag-lb",
@@ -9794,7 +10927,8 @@ export const EmojiList = [
     shortname: ":flag-lb:",
     code: "&#127473;&#127463;",
     category: "f",
-    emoji_order: "2319"
+    emoji_order: "2319",
+    char: "🇱🇧"
   },
   {
     name: "flag-lc",
@@ -9802,7 +10936,8 @@ export const EmojiList = [
     shortname: ":flag-lc:",
     code: "&#127473;&#127464;",
     category: "f",
-    emoji_order: "2320"
+    emoji_order: "2320",
+    char: "🇱🇨"
   },
   {
     name: "flag-li",
@@ -9810,7 +10945,8 @@ export const EmojiList = [
     shortname: ":flag-li:",
     code: "&#127473;&#127470;",
     category: "f",
-    emoji_order: "2321"
+    emoji_order: "2321",
+    char: "🇱🇮"
   },
   {
     name: "flag-lk",
@@ -9818,7 +10954,8 @@ export const EmojiList = [
     shortname: ":flag-lk:",
     code: "&#127473;&#127472;",
     category: "f",
-    emoji_order: "2322"
+    emoji_order: "2322",
+    char: "🇱🇰"
   },
   {
     name: "flag-lr",
@@ -9826,7 +10963,8 @@ export const EmojiList = [
     shortname: ":flag-lr:",
     code: "&#127473;&#127479;",
     category: "f",
-    emoji_order: "2323"
+    emoji_order: "2323",
+    char: "🇱🇷"
   },
   {
     name: "flag-ls",
@@ -9834,7 +10972,8 @@ export const EmojiList = [
     shortname: ":flag-ls:",
     code: "&#127473;&#127480;",
     category: "f",
-    emoji_order: "2324"
+    emoji_order: "2324",
+    char: "🇱🇸"
   },
   {
     name: "flag-lt",
@@ -9842,7 +10981,8 @@ export const EmojiList = [
     shortname: ":flag-lt:",
     code: "&#127473;&#127481;",
     category: "f",
-    emoji_order: "2325"
+    emoji_order: "2325",
+    char: "🇱🇹"
   },
   {
     name: "flag-lu",
@@ -9850,7 +10990,8 @@ export const EmojiList = [
     shortname: ":flag-lu:",
     code: "&#127473;&#127482;",
     category: "f",
-    emoji_order: "2326"
+    emoji_order: "2326",
+    char: "🇱🇺"
   },
   {
     name: "flag-lv",
@@ -9858,7 +10999,8 @@ export const EmojiList = [
     shortname: ":flag-lv:",
     code: "&#127473;&#127483;",
     category: "f",
-    emoji_order: "2327"
+    emoji_order: "2327",
+    char: "🇱🇻"
   },
   {
     name: "flag-ly",
@@ -9866,7 +11008,8 @@ export const EmojiList = [
     shortname: ":flag-ly:",
     code: "&#127473;&#127486;",
     category: "f",
-    emoji_order: "2328"
+    emoji_order: "2328",
+    char: "🇱🇾"
   },
   {
     name: "flag-ma",
@@ -9874,7 +11017,8 @@ export const EmojiList = [
     shortname: ":flag-ma:",
     code: "&#127474;&#127462;",
     category: "f",
-    emoji_order: "2329"
+    emoji_order: "2329",
+    char: "🇲🇦"
   },
   {
     name: "flag-mc",
@@ -9882,7 +11026,8 @@ export const EmojiList = [
     shortname: ":flag-mc:",
     code: "&#127474;&#127464;",
     category: "f",
-    emoji_order: "2330"
+    emoji_order: "2330",
+    char: "🇲🇨"
   },
   {
     name: "flag-md",
@@ -9890,7 +11035,8 @@ export const EmojiList = [
     shortname: ":flag-md:",
     code: "&#127474;&#127465;",
     category: "f",
-    emoji_order: "2331"
+    emoji_order: "2331",
+    char: "🇲🇩"
   },
   {
     name: "flag-me",
@@ -9898,7 +11044,8 @@ export const EmojiList = [
     shortname: ":flag-me:",
     code: "&#127474;&#127466;",
     category: "f",
-    emoji_order: "2332"
+    emoji_order: "2332",
+    char: "🇲🇪"
   },
   {
     name: "flag-mf",
@@ -9906,7 +11053,8 @@ export const EmojiList = [
     shortname: ":flag-mf:",
     code: "&#127474;&#127467;",
     category: "f",
-    emoji_order: "2333"
+    emoji_order: "2333",
+    char: "🇲🇫"
   },
   {
     name: "flag-mg",
@@ -9914,7 +11062,8 @@ export const EmojiList = [
     shortname: ":flag-mg:",
     code: "&#127474;&#127468;",
     category: "f",
-    emoji_order: "2334"
+    emoji_order: "2334",
+    char: "🇲🇬"
   },
   {
     name: "flag-mh",
@@ -9922,7 +11071,8 @@ export const EmojiList = [
     shortname: ":flag-mh:",
     code: "&#127474;&#127469;",
     category: "f",
-    emoji_order: "2335"
+    emoji_order: "2335",
+    char: "🇲🇭"
   },
   {
     name: "flag-mk",
@@ -9930,7 +11080,8 @@ export const EmojiList = [
     shortname: ":flag-mk:",
     code: "&#127474;&#127472;",
     category: "f",
-    emoji_order: "2336"
+    emoji_order: "2336",
+    char: "🇲🇰"
   },
   {
     name: "flag-ml",
@@ -9938,7 +11089,8 @@ export const EmojiList = [
     shortname: ":flag-ml:",
     code: "&#127474;&#127473;",
     category: "f",
-    emoji_order: "2337"
+    emoji_order: "2337",
+    char: "🇲🇱"
   },
   {
     name: "flag-mm",
@@ -9946,7 +11098,8 @@ export const EmojiList = [
     shortname: ":flag-mm:",
     code: "&#127474;&#127474;",
     category: "f",
-    emoji_order: "2338"
+    emoji_order: "2338",
+    char: "🇲🇲"
   },
   {
     name: "flag-mn",
@@ -9954,7 +11107,8 @@ export const EmojiList = [
     shortname: ":flag-mn:",
     code: "&#127474;&#127475;",
     category: "f",
-    emoji_order: "2339"
+    emoji_order: "2339",
+    char: "🇲🇳"
   },
   {
     name: "flag-mo",
@@ -9962,7 +11116,8 @@ export const EmojiList = [
     shortname: ":flag-mo:",
     code: "&#127474;&#127476;",
     category: "f",
-    emoji_order: "2340"
+    emoji_order: "2340",
+    char: "🇲🇴"
   },
   {
     name: "flag-mp",
@@ -9970,7 +11125,8 @@ export const EmojiList = [
     shortname: ":flag-mp:",
     code: "&#127474;&#127477;",
     category: "f",
-    emoji_order: "2341"
+    emoji_order: "2341",
+    char: "🇲🇵"
   },
   {
     name: "flag-mq",
@@ -9978,7 +11134,8 @@ export const EmojiList = [
     shortname: ":flag-mq:",
     code: "&#127474;&#127478;",
     category: "f",
-    emoji_order: "2342"
+    emoji_order: "2342",
+    char: "🇲🇶"
   },
   {
     name: "flag-mr",
@@ -9986,7 +11143,8 @@ export const EmojiList = [
     shortname: ":flag-mr:",
     code: "&#127474;&#127479;",
     category: "f",
-    emoji_order: "2343"
+    emoji_order: "2343",
+    char: "🇲🇷"
   },
   {
     name: "flag-ms",
@@ -9994,7 +11152,8 @@ export const EmojiList = [
     shortname: ":flag-ms:",
     code: "&#127474;&#127480;",
     category: "f",
-    emoji_order: "2344"
+    emoji_order: "2344",
+    char: "🇲🇸"
   },
   {
     name: "flag-mt",
@@ -10002,7 +11161,8 @@ export const EmojiList = [
     shortname: ":flag-mt:",
     code: "&#127474;&#127481;",
     category: "f",
-    emoji_order: "2345"
+    emoji_order: "2345",
+    char: "🇲🇹"
   },
   {
     name: "flag-mu",
@@ -10010,7 +11170,8 @@ export const EmojiList = [
     shortname: ":flag-mu:",
     code: "&#127474;&#127482;",
     category: "f",
-    emoji_order: "2346"
+    emoji_order: "2346",
+    char: "🇲🇺"
   },
   {
     name: "flag-mv",
@@ -10018,7 +11179,8 @@ export const EmojiList = [
     shortname: ":flag-mv:",
     code: "&#127474;&#127483;",
     category: "f",
-    emoji_order: "2347"
+    emoji_order: "2347",
+    char: "🇲🇻"
   },
   {
     name: "flag-mw",
@@ -10026,7 +11188,8 @@ export const EmojiList = [
     shortname: ":flag-mw:",
     code: "&#127474;&#127484;",
     category: "f",
-    emoji_order: "2348"
+    emoji_order: "2348",
+    char: "🇲🇼"
   },
   {
     name: "flag-mx",
@@ -10034,7 +11197,8 @@ export const EmojiList = [
     shortname: ":flag-mx:",
     code: "&#127474;&#127485;",
     category: "f",
-    emoji_order: "2349"
+    emoji_order: "2349",
+    char: "🇲🇽"
   },
   {
     name: "flag-my",
@@ -10042,7 +11206,8 @@ export const EmojiList = [
     shortname: ":flag-my:",
     code: "&#127474;&#127486;",
     category: "f",
-    emoji_order: "2350"
+    emoji_order: "2350",
+    char: "🇲🇾"
   },
   {
     name: "flag-mz",
@@ -10050,7 +11215,8 @@ export const EmojiList = [
     shortname: ":flag-mz:",
     code: "&#127474;&#127487;",
     category: "f",
-    emoji_order: "2351"
+    emoji_order: "2351",
+    char: "🇲🇿"
   },
   {
     name: "flag-na",
@@ -10058,7 +11224,8 @@ export const EmojiList = [
     shortname: ":flag-na:",
     code: "&#127475;&#127462;",
     category: "f",
-    emoji_order: "2352"
+    emoji_order: "2352",
+    char: "🇳🇦"
   },
   {
     name: "flag-nc",
@@ -10066,7 +11233,8 @@ export const EmojiList = [
     shortname: ":flag-nc:",
     code: "&#127475;&#127464;",
     category: "f",
-    emoji_order: "2353"
+    emoji_order: "2353",
+    char: "🇳🇨"
   },
   {
     name: "flag-ne",
@@ -10074,7 +11242,8 @@ export const EmojiList = [
     shortname: ":flag-ne:",
     code: "&#127475;&#127466;",
     category: "f",
-    emoji_order: "2354"
+    emoji_order: "2354",
+    char: "🇳🇪"
   },
   {
     name: "flag-nf",
@@ -10082,7 +11251,8 @@ export const EmojiList = [
     shortname: ":flag-nf:",
     code: "&#127475;&#127467;",
     category: "f",
-    emoji_order: "2355"
+    emoji_order: "2355",
+    char: "🇳🇫"
   },
   {
     name: "flag-ng",
@@ -10090,7 +11260,8 @@ export const EmojiList = [
     shortname: ":flag-ng:",
     code: "&#127475;&#127468;",
     category: "f",
-    emoji_order: "2356"
+    emoji_order: "2356",
+    char: "🇳🇬"
   },
   {
     name: "flag-ni",
@@ -10098,7 +11269,8 @@ export const EmojiList = [
     shortname: ":flag-ni:",
     code: "&#127475;&#127470;",
     category: "f",
-    emoji_order: "2357"
+    emoji_order: "2357",
+    char: "🇳🇮"
   },
   {
     name: "flag-nl",
@@ -10106,7 +11278,8 @@ export const EmojiList = [
     shortname: ":flag-nl:",
     code: "&#127475;&#127473;",
     category: "f",
-    emoji_order: "2358"
+    emoji_order: "2358",
+    char: "🇳🇱"
   },
   {
     name: "flag-no",
@@ -10114,7 +11287,8 @@ export const EmojiList = [
     shortname: ":flag-no:",
     code: "&#127475;&#127476;",
     category: "f",
-    emoji_order: "2359"
+    emoji_order: "2359",
+    char: "🇳🇴"
   },
   {
     name: "flag-np",
@@ -10122,7 +11296,8 @@ export const EmojiList = [
     shortname: ":flag-np:",
     code: "&#127475;&#127477;",
     category: "f",
-    emoji_order: "2360"
+    emoji_order: "2360",
+    char: "🇳🇵"
   },
   {
     name: "flag-nr",
@@ -10130,7 +11305,8 @@ export const EmojiList = [
     shortname: ":flag-nr:",
     code: "&#127475;&#127479;",
     category: "f",
-    emoji_order: "2361"
+    emoji_order: "2361",
+    char: "🇳🇷"
   },
   {
     name: "flag-nu",
@@ -10138,7 +11314,8 @@ export const EmojiList = [
     shortname: ":flag-nu:",
     code: "&#127475;&#127482;",
     category: "f",
-    emoji_order: "2362"
+    emoji_order: "2362",
+    char: "🇳🇺"
   },
   {
     name: "flag-nz",
@@ -10146,7 +11323,8 @@ export const EmojiList = [
     shortname: ":flag-nz:",
     code: "&#127475;&#127487;",
     category: "f",
-    emoji_order: "2363"
+    emoji_order: "2363",
+    char: "🇳🇿"
   },
   {
     name: "flag-om",
@@ -10154,7 +11332,8 @@ export const EmojiList = [
     shortname: ":flag-om:",
     code: "&#127476;&#127474;",
     category: "f",
-    emoji_order: "2364"
+    emoji_order: "2364",
+    char: "🇴🇲"
   },
   {
     name: "flag-pa",
@@ -10162,7 +11341,8 @@ export const EmojiList = [
     shortname: ":flag-pa:",
     code: "&#127477;&#127462;",
     category: "f",
-    emoji_order: "2365"
+    emoji_order: "2365",
+    char: "🇵🇦"
   },
   {
     name: "flag-pe",
@@ -10170,7 +11350,8 @@ export const EmojiList = [
     shortname: ":flag-pe:",
     code: "&#127477;&#127466;",
     category: "f",
-    emoji_order: "2366"
+    emoji_order: "2366",
+    char: "🇵🇪"
   },
   {
     name: "flag-pf",
@@ -10178,7 +11359,8 @@ export const EmojiList = [
     shortname: ":flag-pf:",
     code: "&#127477;&#127467;",
     category: "f",
-    emoji_order: "2367"
+    emoji_order: "2367",
+    char: "🇵🇫"
   },
   {
     name: "flag-pg",
@@ -10186,7 +11368,8 @@ export const EmojiList = [
     shortname: ":flag-pg:",
     code: "&#127477;&#127468;",
     category: "f",
-    emoji_order: "2368"
+    emoji_order: "2368",
+    char: "🇵🇬"
   },
   {
     name: "flag-ph",
@@ -10194,7 +11377,8 @@ export const EmojiList = [
     shortname: ":flag-ph:",
     code: "&#127477;&#127469;",
     category: "f",
-    emoji_order: "2369"
+    emoji_order: "2369",
+    char: "🇵🇭"
   },
   {
     name: "flag-pk",
@@ -10202,7 +11386,8 @@ export const EmojiList = [
     shortname: ":flag-pk:",
     code: "&#127477;&#127472;",
     category: "f",
-    emoji_order: "2370"
+    emoji_order: "2370",
+    char: "🇵🇰"
   },
   {
     name: "flag-pl",
@@ -10210,7 +11395,8 @@ export const EmojiList = [
     shortname: ":flag-pl:",
     code: "&#127477;&#127473;",
     category: "f",
-    emoji_order: "2371"
+    emoji_order: "2371",
+    char: "🇵🇱"
   },
   {
     name: "flag-pm",
@@ -10218,7 +11404,8 @@ export const EmojiList = [
     shortname: ":flag-pm:",
     code: "&#127477;&#127474;",
     category: "f",
-    emoji_order: "2372"
+    emoji_order: "2372",
+    char: "🇵🇲"
   },
   {
     name: "flag-pn",
@@ -10226,7 +11413,8 @@ export const EmojiList = [
     shortname: ":flag-pn:",
     code: "&#127477;&#127475;",
     category: "f",
-    emoji_order: "2373"
+    emoji_order: "2373",
+    char: "🇵🇳"
   },
   {
     name: "flag-pr",
@@ -10234,7 +11422,8 @@ export const EmojiList = [
     shortname: ":flag-pr:",
     code: "&#127477;&#127479;",
     category: "f",
-    emoji_order: "2374"
+    emoji_order: "2374",
+    char: "🇵🇷"
   },
   {
     name: "flag-ps",
@@ -10242,7 +11431,8 @@ export const EmojiList = [
     shortname: ":flag-ps:",
     code: "&#127477;&#127480;",
     category: "f",
-    emoji_order: "2375"
+    emoji_order: "2375",
+    char: "🇵🇸"
   },
   {
     name: "flag-pt",
@@ -10250,7 +11440,8 @@ export const EmojiList = [
     shortname: ":flag-pt:",
     code: "&#127477;&#127481;",
     category: "f",
-    emoji_order: "2376"
+    emoji_order: "2376",
+    char: "🇵🇹"
   },
   {
     name: "flag-pw",
@@ -10258,7 +11449,8 @@ export const EmojiList = [
     shortname: ":flag-pw:",
     code: "&#127477;&#127484;",
     category: "f",
-    emoji_order: "2377"
+    emoji_order: "2377",
+    char: "🇵🇼"
   },
   {
     name: "flag-py",
@@ -10266,7 +11458,8 @@ export const EmojiList = [
     shortname: ":flag-py:",
     code: "&#127477;&#127486;",
     category: "f",
-    emoji_order: "2378"
+    emoji_order: "2378",
+    char: "🇵🇾"
   },
   {
     name: "flag-qa",
@@ -10274,7 +11467,8 @@ export const EmojiList = [
     shortname: ":flag-qa:",
     code: "&#127478;&#127462;",
     category: "f",
-    emoji_order: "2379"
+    emoji_order: "2379",
+    char: "🇶🇦"
   },
   {
     name: "flag-re",
@@ -10282,7 +11476,8 @@ export const EmojiList = [
     shortname: ":flag-re:",
     code: "&#127479;&#127466;",
     category: "f",
-    emoji_order: "2380"
+    emoji_order: "2380",
+    char: "🇷🇪"
   },
   {
     name: "flag-ro",
@@ -10290,7 +11485,8 @@ export const EmojiList = [
     shortname: ":flag-ro:",
     code: "&#127479;&#127476;",
     category: "f",
-    emoji_order: "2381"
+    emoji_order: "2381",
+    char: "🇷🇴"
   },
   {
     name: "flag-rs",
@@ -10298,7 +11494,8 @@ export const EmojiList = [
     shortname: ":flag-rs:",
     code: "&#127479;&#127480;",
     category: "f",
-    emoji_order: "2382"
+    emoji_order: "2382",
+    char: "🇷🇸"
   },
   {
     name: "flag-ru",
@@ -10306,7 +11503,8 @@ export const EmojiList = [
     shortname: ":flag-ru:",
     code: "&#127479;&#127482;",
     category: "f",
-    emoji_order: "2383"
+    emoji_order: "2383",
+    char: "🇷🇺"
   },
   {
     name: "flag-rw",
@@ -10314,7 +11512,8 @@ export const EmojiList = [
     shortname: ":flag-rw:",
     code: "&#127479;&#127484;",
     category: "f",
-    emoji_order: "2384"
+    emoji_order: "2384",
+    char: "🇷🇼"
   },
   {
     name: "flag-sa",
@@ -10322,16 +11521,17 @@ export const EmojiList = [
     shortname: ":flag-sa:",
     code: "&#127480;&#127462;",
     category: "f",
-    emoji_order: "2385"
+    emoji_order: "2385",
+    char: "🇸🇦"
   },
-
   {
     name: "flag-sb",
     unicode: "1f1f8-1f1e7",
     shortname: ":flag-sb:",
     code: "&#127480;&#127463;",
     category: "f",
-    emoji_order: "2386"
+    emoji_order: "2386",
+    char: "🇸🇧"
   },
   {
     name: "flag-sc",
@@ -10339,7 +11539,8 @@ export const EmojiList = [
     shortname: ":flag-sc:",
     code: "&#127480;&#127464;",
     category: "f",
-    emoji_order: "2387"
+    emoji_order: "2387",
+    char: "🇸🇨"
   },
   {
     name: "flag-sd",
@@ -10347,7 +11548,8 @@ export const EmojiList = [
     shortname: ":flag-sd:",
     code: "&#127480;&#127465;",
     category: "f",
-    emoji_order: "2388"
+    emoji_order: "2388",
+    char: "🇸🇩"
   },
   {
     name: "flag-se",
@@ -10355,7 +11557,8 @@ export const EmojiList = [
     shortname: ":flag-se:",
     code: "&#127480;&#127466;",
     category: "f",
-    emoji_order: "2389"
+    emoji_order: "2389",
+    char: "🇸🇪"
   },
   {
     name: "flag-sg",
@@ -10363,7 +11566,8 @@ export const EmojiList = [
     shortname: ":flag-sg:",
     code: "&#127480;&#127468;",
     category: "f",
-    emoji_order: "2390"
+    emoji_order: "2390",
+    char: "🇸🇬"
   },
   {
     name: "flag-sh",
@@ -10371,7 +11575,8 @@ export const EmojiList = [
     shortname: ":flag-sh:",
     code: "&#127480;&#127469;",
     category: "f",
-    emoji_order: "2391"
+    emoji_order: "2391",
+    char: "🇸🇭"
   },
   {
     name: "flag-si",
@@ -10379,7 +11584,8 @@ export const EmojiList = [
     shortname: ":flag-si:",
     code: "&#127480;&#127470;",
     category: "f",
-    emoji_order: "2392"
+    emoji_order: "2392",
+    char: "🇸🇮"
   },
   {
     name: "flag-sj",
@@ -10387,7 +11593,8 @@ export const EmojiList = [
     shortname: ":flag-sj:",
     code: "&#127480;&#127471;",
     category: "f",
-    emoji_order: "2393"
+    emoji_order: "2393",
+    char: "🇸🇯"
   },
   {
     name: "flag-sk",
@@ -10395,7 +11602,8 @@ export const EmojiList = [
     shortname: ":flag-sk:",
     code: "&#127480;&#127472;",
     category: "f",
-    emoji_order: "2394"
+    emoji_order: "2394",
+    char: "🇸🇰"
   },
   {
     name: "flag-sl",
@@ -10403,7 +11611,8 @@ export const EmojiList = [
     shortname: ":flag-sl:",
     code: "&#127480;&#127473;",
     category: "f",
-    emoji_order: "2395"
+    emoji_order: "2395",
+    char: "🇸🇱"
   },
   {
     name: "flag-sm",
@@ -10411,7 +11620,8 @@ export const EmojiList = [
     shortname: ":flag-sm:",
     code: "&#127480;&#127474;",
     category: "f",
-    emoji_order: "2396"
+    emoji_order: "2396",
+    char: "🇸🇲"
   },
   {
     name: "flag-sn",
@@ -10419,7 +11629,8 @@ export const EmojiList = [
     shortname: ":flag-sn:",
     code: "&#127480;&#127475;",
     category: "f",
-    emoji_order: "2397"
+    emoji_order: "2397",
+    char: "🇸🇳"
   },
   {
     name: "flag-so",
@@ -10427,7 +11638,8 @@ export const EmojiList = [
     shortname: ":flag-so:",
     code: "&#127480;&#127476;",
     category: "f",
-    emoji_order: "2398"
+    emoji_order: "2398",
+    char: "🇸🇴"
   },
   {
     name: "flag-sr",
@@ -10435,7 +11647,8 @@ export const EmojiList = [
     shortname: ":flag-sr:",
     code: "&#127480;&#127479;",
     category: "f",
-    emoji_order: "2399"
+    emoji_order: "2399",
+    char: "🇸🇷"
   },
   {
     name: "flag-ss",
@@ -10443,7 +11656,8 @@ export const EmojiList = [
     shortname: ":flag-ss:",
     code: "&#127480;&#127480;",
     category: "f",
-    emoji_order: "2400"
+    emoji_order: "2400",
+    char: "🇸🇸"
   },
   {
     name: "flag-st",
@@ -10451,7 +11665,8 @@ export const EmojiList = [
     shortname: ":flag-st:",
     code: "&#127480;&#127481;",
     category: "f",
-    emoji_order: "2401"
+    emoji_order: "2401",
+    char: "🇸🇹"
   },
   {
     name: "flag-sv",
@@ -10459,7 +11674,8 @@ export const EmojiList = [
     shortname: ":flag-sv:",
     code: "&#127480;&#127483;",
     category: "f",
-    emoji_order: "2402"
+    emoji_order: "2402",
+    char: "🇸🇻"
   },
   {
     name: "flag-sx",
@@ -10467,7 +11683,8 @@ export const EmojiList = [
     shortname: ":flag-sx:",
     code: "&#127480;&#127485;",
     category: "f",
-    emoji_order: "2403"
+    emoji_order: "2403",
+    char: "🇸🇽"
   },
   {
     name: "flag-sy",
@@ -10475,7 +11692,8 @@ export const EmojiList = [
     shortname: ":flag-sy:",
     code: "&#127480;&#127486;",
     category: "f",
-    emoji_order: "2404"
+    emoji_order: "2404",
+    char: "🇸🇾"
   },
   {
     name: "flag-sz",
@@ -10483,7 +11701,8 @@ export const EmojiList = [
     shortname: ":flag-sz:",
     code: "&#127480;&#127487;",
     category: "f",
-    emoji_order: "2405"
+    emoji_order: "2405",
+    char: "🇸🇿"
   },
   {
     name: "flag-ta",
@@ -10491,7 +11710,8 @@ export const EmojiList = [
     shortname: ":flag-ta:",
     code: "&#127481;&#127462;",
     category: "f",
-    emoji_order: "2406"
+    emoji_order: "2406",
+    char: "🇹🇦"
   },
   {
     name: "flag-tc",
@@ -10499,7 +11719,8 @@ export const EmojiList = [
     shortname: ":flag-tc:",
     code: "&#127481;&#127464;",
     category: "f",
-    emoji_order: "2407"
+    emoji_order: "2407",
+    char: "🇹🇨"
   },
   {
     name: "flag-td",
@@ -10507,7 +11728,8 @@ export const EmojiList = [
     shortname: ":flag-td:",
     code: "&#127481;&#127465;",
     category: "f",
-    emoji_order: "2408"
+    emoji_order: "2408",
+    char: "🇹🇩"
   },
   {
     name: "flag-tf",
@@ -10515,7 +11737,8 @@ export const EmojiList = [
     shortname: ":flag-tf:",
     code: "&#127481;&#127467;",
     category: "f",
-    emoji_order: "2409"
+    emoji_order: "2409",
+    char: "🇹🇫"
   },
   {
     name: "flag-tg",
@@ -10523,7 +11746,8 @@ export const EmojiList = [
     shortname: ":flag-tg:",
     code: "&#127481;&#127468;",
     category: "f",
-    emoji_order: "2410"
+    emoji_order: "2410",
+    char: "🇹🇬"
   },
   {
     name: "flag-th",
@@ -10531,7 +11755,8 @@ export const EmojiList = [
     shortname: ":flag-th:",
     code: "&#127481;&#127469;",
     category: "f",
-    emoji_order: "2411"
+    emoji_order: "2411",
+    char: "🇹🇭"
   },
   {
     name: "flag-tj",
@@ -10539,7 +11764,8 @@ export const EmojiList = [
     shortname: ":flag-tj:",
     code: "&#127481;&#127471;",
     category: "f",
-    emoji_order: "2412"
+    emoji_order: "2412",
+    char: "🇹🇯"
   },
   {
     name: "flag-tk",
@@ -10547,7 +11773,8 @@ export const EmojiList = [
     shortname: ":flag-tk:",
     code: "&#127481;&#127472;",
     category: "f",
-    emoji_order: "2413"
+    emoji_order: "2413",
+    char: "🇹🇰"
   },
   {
     name: "flag-tl",
@@ -10555,7 +11782,8 @@ export const EmojiList = [
     shortname: ":flag-tl:",
     code: "&#127481;&#127473;",
     category: "f",
-    emoji_order: "2414"
+    emoji_order: "2414",
+    char: "🇹🇱"
   },
   {
     name: "flag-tm",
@@ -10563,7 +11791,8 @@ export const EmojiList = [
     shortname: ":flag-tm:",
     code: "&#127481;&#127474;",
     category: "f",
-    emoji_order: "2415"
+    emoji_order: "2415",
+    char: "🇹🇲"
   },
   {
     name: "flag-tn",
@@ -10571,7 +11800,8 @@ export const EmojiList = [
     shortname: ":flag-tn:",
     code: "&#127481;&#127475;",
     category: "f",
-    emoji_order: "2416"
+    emoji_order: "2416",
+    char: "🇹🇳"
   },
   {
     name: "flag-to",
@@ -10579,7 +11809,8 @@ export const EmojiList = [
     shortname: ":flag-to:",
     code: "&#127481;&#127476;",
     category: "f",
-    emoji_order: "2417"
+    emoji_order: "2417",
+    char: "🇹🇴"
   },
   {
     name: "flag-tr",
@@ -10587,7 +11818,8 @@ export const EmojiList = [
     shortname: ":flag-tr:",
     code: "&#127481;&#127479;",
     category: "f",
-    emoji_order: "2418"
+    emoji_order: "2418",
+    char: "🇹🇷"
   },
   {
     name: "flag-tt",
@@ -10595,7 +11827,8 @@ export const EmojiList = [
     shortname: ":flag-tt:",
     code: "&#127481;&#127481;",
     category: "f",
-    emoji_order: "2419"
+    emoji_order: "2419",
+    char: "🇹🇹"
   },
   {
     name: "flag-tv",
@@ -10603,7 +11836,8 @@ export const EmojiList = [
     shortname: ":flag-tv:",
     code: "&#127481;&#127483;",
     category: "f",
-    emoji_order: "2420"
+    emoji_order: "2420",
+    char: "🇹🇻"
   },
   {
     name: "flag-tw",
@@ -10611,7 +11845,8 @@ export const EmojiList = [
     shortname: ":flag-tw:",
     code: "&#127481;&#127484;",
     category: "f",
-    emoji_order: "2421"
+    emoji_order: "2421",
+    char: "🇹🇼"
   },
   {
     name: "flag-tz",
@@ -10619,7 +11854,8 @@ export const EmojiList = [
     shortname: ":flag-tz:",
     code: "&#127481;&#127487;",
     category: "f",
-    emoji_order: "2422"
+    emoji_order: "2422",
+    char: "🇹🇿"
   },
   {
     name: "flag-ua",
@@ -10627,7 +11863,8 @@ export const EmojiList = [
     shortname: ":flag-ua:",
     code: "&#127482;&#127462;",
     category: "f",
-    emoji_order: "2423"
+    emoji_order: "2423",
+    char: "🇺🇦"
   },
   {
     name: "flag-ug",
@@ -10635,7 +11872,8 @@ export const EmojiList = [
     shortname: ":flag-ug:",
     code: "&#127482;&#127468;",
     category: "f",
-    emoji_order: "2424"
+    emoji_order: "2424",
+    char: "🇺🇬"
   },
   {
     name: "flag-um",
@@ -10643,7 +11881,8 @@ export const EmojiList = [
     shortname: ":flag-um:",
     code: "&#127482;&#127474;",
     category: "f",
-    emoji_order: "2425"
+    emoji_order: "2425",
+    char: "🇺🇲"
   },
   {
     name: "flag-us",
@@ -10651,7 +11890,8 @@ export const EmojiList = [
     shortname: ":flag-us:",
     code: "&#127482;&#127480;",
     category: "f",
-    emoji_order: "2427"
+    emoji_order: "2427",
+    char: "🇺🇸"
   },
   {
     name: "flag-uy",
@@ -10659,7 +11899,8 @@ export const EmojiList = [
     shortname: ":flag-uy:",
     code: "&#127482;&#127486;",
     category: "f",
-    emoji_order: "2428"
+    emoji_order: "2428",
+    char: "🇺🇾"
   },
   {
     name: "flag-uz",
@@ -10667,7 +11908,8 @@ export const EmojiList = [
     shortname: ":flag-uz:",
     code: "&#127482;&#127487;",
     category: "f",
-    emoji_order: "2429"
+    emoji_order: "2429",
+    char: "🇺🇿"
   },
   {
     name: "flag-va",
@@ -10675,7 +11917,8 @@ export const EmojiList = [
     shortname: ":flag-va:",
     code: "&#127483;&#127462;",
     category: "f",
-    emoji_order: "2430"
+    emoji_order: "2430",
+    char: "🇻🇦"
   },
   {
     name: "flag-vc",
@@ -10683,7 +11926,8 @@ export const EmojiList = [
     shortname: ":flag-vc:",
     code: "&#127483;&#127464;",
     category: "f",
-    emoji_order: "2431"
+    emoji_order: "2431",
+    char: "🇻🇨"
   },
   {
     name: "flag-ve",
@@ -10691,7 +11935,8 @@ export const EmojiList = [
     shortname: ":flag-ve:",
     code: "&#127483;&#127466;",
     category: "f",
-    emoji_order: "2432"
+    emoji_order: "2432",
+    char: "🇻🇪"
   },
   {
     name: "flag-vg",
@@ -10699,7 +11944,8 @@ export const EmojiList = [
     shortname: ":flag-vg:",
     code: "&#127483;&#127468;",
     category: "f",
-    emoji_order: "2433"
+    emoji_order: "2433",
+    char: "🇻🇬"
   },
   {
     name: "flag-vi",
@@ -10707,7 +11953,8 @@ export const EmojiList = [
     shortname: ":flag-vi:",
     code: "&#127483;&#127470;",
     category: "f",
-    emoji_order: "2434"
+    emoji_order: "2434",
+    char: "🇻🇮"
   },
   {
     name: "flag-vn",
@@ -10715,16 +11962,17 @@ export const EmojiList = [
     shortname: ":flag-vn:",
     code: "&#127483;&#127475;",
     category: "f",
-    emoji_order: "2435"
+    emoji_order: "2435",
+    char: "🇻🇳"
   },
-
   {
     name: "flag-vu",
     unicode: "1f1fb-1f1fa",
     shortname: ":flag_vu:",
     code: "&#127483;&#127482;",
     category: "f",
-    emoji_order: "2436"
+    emoji_order: "2436",
+    char: "🇻🇺"
   },
   {
     name: "flag-wf",
@@ -10732,7 +11980,8 @@ export const EmojiList = [
     shortname: ":flag_wf:",
     code: "&#127484;&#127467;",
     category: "f",
-    emoji_order: "2437"
+    emoji_order: "2437",
+    char: "🇼🇫"
   },
   {
     name: "flag-ws",
@@ -10740,7 +11989,8 @@ export const EmojiList = [
     shortname: ":flag_ws:",
     code: "&#127484;&#127480;",
     category: "f",
-    emoji_order: "2438"
+    emoji_order: "2438",
+    char: "🇼🇸"
   },
   {
     name: "flag-xk",
@@ -10748,7 +11998,8 @@ export const EmojiList = [
     shortname: ":flag_xk:",
     code: "&#127485;&#127472;",
     category: "f",
-    emoji_order: "2439"
+    emoji_order: "2439",
+    char: "🇽🇰"
   },
   {
     name: "flag-ye",
@@ -10756,7 +12007,8 @@ export const EmojiList = [
     shortname: ":flag_ye:",
     code: "&#127486;&#127466;",
     category: "f",
-    emoji_order: "2440"
+    emoji_order: "2440",
+    char: "🇾🇪"
   },
   {
     name: "flag-yt",
@@ -10764,7 +12016,8 @@ export const EmojiList = [
     shortname: ":flag_yt:",
     code: "&#127486;&#127481;",
     category: "f",
-    emoji_order: "2441"
+    emoji_order: "2441",
+    char: "🇾🇹"
   },
   {
     name: "flag-za",
@@ -10772,7 +12025,8 @@ export const EmojiList = [
     shortname: ":flag_za:",
     code: "&#127487;&#127462;",
     category: "f",
-    emoji_order: "2442"
+    emoji_order: "2442",
+    char: "🇿🇦"
   },
   {
     name: "flag-zm",
@@ -10780,7 +12034,8 @@ export const EmojiList = [
     shortname: ":flag_zm:",
     code: "&#127487;&#127474;",
     category: "f",
-    emoji_order: "2443"
+    emoji_order: "2443",
+    char: "🇿🇲"
   },
   {
     name: "flag-zw",
@@ -10788,7 +12043,8 @@ export const EmojiList = [
     shortname: ":flag_zw:",
     code: "&#127487;&#127484;",
     category: "f",
-    emoji_order: "2444"
+    emoji_order: "2444",
+    char: "🇿🇼"
   },
   {
     name: "speech",
@@ -10796,9 +12052,16 @@ export const EmojiList = [
     shortname: ":speech:",
     code: "&#128172;",
     category: "p",
-    emoji_order: "1"
+    emoji_order: "1",
+    char: "💬"
   }
 ];
+
+export const EmojiToShortname = new Map();
+
+for (const entry of EmojiList) {
+  EmojiToShortname.set(entry.char, entry.shortname.substring(1, entry.shortname.length - 1));
+}
 
 const emojiSvgs = new Map();
 
