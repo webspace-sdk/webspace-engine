@@ -406,15 +406,16 @@ export class MediaTextSystem extends EventTarget {
       }
     } else if (type === "delta") {
       if (fromClientId === NAF.clientId) return;
+      if (this.getSyncState(network_id) === SYNC_STATES.SYNCING) {
+        let deltas = this.pendingDeltas.get(network_id);
 
-      let deltas = this.pendingDeltas.get(network_id);
+        if (!deltas) {
+          deltas = [];
+          this.pendingDeltas.set(network_id, deltas);
+        }
 
-      if (!deltas) {
-        deltas = [];
-        this.pendingDeltas.set(network_id, deltas);
+        deltas.push(payload.delta);
       }
-
-      deltas.push(payload.delta);
     }
   }
 
