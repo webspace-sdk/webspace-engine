@@ -35,6 +35,15 @@ const SYNC_STATES = {
 // You should always be listening for messages to get the ydoc, and if an op message comes in you need to
 // either queue it if you haven't joined the ring yet, or apply it if you have. When you have an op to
 // contribute broadcast it to the ring.
+//
+// There is an additional edge case: if there are already people editing in presence, but you start
+// editing before presence has sync, then you will think you were the first person to edit and not pull.
+// What we want though is for you to discard your changes. (We can't merge, because of the DOM load problem.)
+//
+// To deal with this, we tie break based on client id. We keep track of if the ydoc is 'known good', meaning
+// we either sent it to someone else or received it (so odds are it's part of the sync ring.)
+//
+// If not, then we defer to higher client ids we see for the first time.
 export class MediaTextSystem extends EventTarget {
   constructor(sceneEl) {
     super();
@@ -49,12 +58,23 @@ export class MediaTextSystem extends EventTarget {
     this.typeObserverFns = Array(MAX_COMPONENTS).fill(null);
     this.pendingDeltas = new Map();
 
+    // We have a "known-good" ydoc if we:
+    // - Received the ydoc from someone else
+    // - Sent the ydoc to at least one other person
+    //
+    // Otherwise, if we see someone else syncing it and we are too, then we defer to them if they have a higher client id.
+    this.hasKnownGoodYdocNetworkIds = new Set();
+    this.seenClientIdsInPresence = new Set();
+
     this.networkIdToComponent = new Map();
     this.networkIdToSyncState = new Map();
 
     this.maxIndex = -1;
 
     this.sceneEl.addEventListener("presence-synced", this.sendInitialDocRequestsForPresence.bind(this));
+
+    // Presence can contain unconnected clients, so we need to run the pass over presence whenver a new client connects as well.
+    document.body.addEventListener("clientConnected", this.sendInitialDocRequestsForPresence.bind(this));
   }
 
   registerMediaTextComponent(component) {
@@ -208,6 +228,13 @@ export class MediaTextSystem extends EventTarget {
 
     const quill = this.quills[index];
     if (quill) {
+      // Need to blur quill editor if active, otherwise contents won't update
+      const qlEditor = quill.container.querySelector(".ql-editor");
+
+      if (qlEditor && DOM_ROOT.activeElement === qlEditor) {
+        quill.blur();
+      }
+
       quill.setContents(type.toDelta(), this);
     }
 
@@ -391,6 +418,8 @@ export class MediaTextSystem extends EventTarget {
       const ydoc = yTextType.doc;
       const update = Y.encodeStateAsUpdate(ydoc);
 
+      this.hasKnownGoodYdocNetworkIds.add(network_id);
+
       window.APP.hubChannel.sendMessage(
         { type: "full_text_ydoc", network_id, update },
         "text_media_message",
@@ -398,11 +427,12 @@ export class MediaTextSystem extends EventTarget {
       );
     } else if (type === "full_text_ydoc") {
       if (this.getSyncState(network_id) === SYNC_STATES.PENDING) {
+        this.hasKnownGoodYdocNetworkIds.add(network_id);
         const update = payload.update;
         const ydoc = new Y.Doc();
         Y.applyUpdate(ydoc, new Uint8Array(update));
         this.replaceYTextType(component, ydoc);
-        this.networkIdToSyncState.set(network_id, SYNC_STATES.SYNCING);
+        this.joinSyncRing(network_id, "text");
       }
     } else if (type === "delta") {
       if (fromClientId === NAF.clientId) return;
@@ -421,8 +451,6 @@ export class MediaTextSystem extends EventTarget {
 
   // Sends a request for the ydoc from members of the ring syncing it
   requestInitialSyncDoc(networkId) {
-    if (this.getSyncState(networkId) === SYNC_STATES.SYNCING) return;
-
     const maxRequests = 3;
     let numRequests = 0;
 
@@ -443,7 +471,7 @@ export class MediaTextSystem extends EventTarget {
   }
 
   sendInitialDocRequestsForPresence() {
-    let networkIdsToRequestSync = null;
+    const requestedNetworkIds = new Set();
 
     // Search for any new components that need to be synced - ones that have ring members
     for (const state of NAF.connection.presence.states.values()) {
@@ -451,22 +479,45 @@ export class MediaTextSystem extends EventTarget {
       if (!clientId || NAF.clientId === clientId) continue;
       if (!state.sync_ring_memberships) continue;
 
+      // Presence can contain clients we're not connected to
+      if (!NAF.connection.hasActiveDataChannel(clientId)) continue;
+
       for (const { type, network_id: networkId } of state.sync_ring_memberships) {
         if (type !== "text") continue;
         if (!this.networkIdToComponent.has(networkId)) continue;
+        if (requestedNetworkIds.has(networkId)) continue;
 
         const syncState = this.getSyncState(networkId);
+        if (syncState === SYNC_STATES.PENDING) continue;
 
-        if (syncState !== SYNC_STATES.UNSYNCED) continue;
-        if (networkIdsToRequestSync === null) networkIdsToRequestSync = new Set();
-        networkIdsToRequestSync.add(networkId);
+        // Deal with the edge case of two clients editing and *then* connecting. (See end of comment at top of file.)
+        let shouldRequestYdoc = false;
+
+        if (syncState === SYNC_STATES.UNSYNCED) {
+          shouldRequestYdoc = true;
+        } else if (
+          syncState === SYNC_STATES.SYNCING &&
+          !this.seenClientIdsInPresence.has(clientId) &&
+          !this.hasKnownGoodYdocNetworkIds.has(networkId)
+        ) {
+          // If we're syncing, did not receive the ydoc we're syncing, and another client with a higher client id than us is syncing,
+          // we are going to defer to them (see comment at top of file.)
+          shouldRequestYdoc = clientId > NAF.clientId;
+        }
+
+        if (shouldRequestYdoc) {
+          window.APP.hubChannel.sendMessage(
+            { type: "request_full_text_ydoc", network_id: networkId },
+            "text_media_message",
+            clientId
+          );
+
+          this.networkIdToSyncState.set(networkId, SYNC_STATES.PENDING);
+          requestedNetworkIds.add(networkId);
+        }
       }
-    }
 
-    if (networkIdsToRequestSync === null) return;
-
-    for (const networkId of networkIdsToRequestSync) {
-      this.requestInitialSyncDoc(networkId);
+      this.seenClientIdsInPresence.add(clientId);
     }
   }
 
