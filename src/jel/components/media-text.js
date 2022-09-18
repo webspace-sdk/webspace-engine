@@ -260,8 +260,8 @@ AFRAME.registerComponent("media-text", {
     const [w, h] = computeQuillContectRect(quill);
     const isEmpty = w <= EDITOR_PADDING_X + 4.0;
 
-    const contentWidth = this.data.fitContent ? (isEmpty ? EDITOR_WIDTH / 2 : w) : EDITOR_WIDTH;
-    const contentHeight = this.data.fitContent ? (isEmpty ? EDITOR_HEIGHT / 2 : h) : EDITOR_HEIGHT;
+    const contentWidth = this.data.fitContent && !isEmpty ? w : EDITOR_WIDTH;
+    const contentHeight = this.data.fitContent && !isEmpty ? h : EDITOR_HEIGHT;
 
     if (isEmpty) {
       // No text, show placeholder
@@ -395,6 +395,13 @@ AFRAME.registerComponent("media-text", {
     if (type === MEDIA_INTERACTION_TYPES.EDIT) {
       window.APP.store.handleActivityFlag("mediaTextEdit");
       quill.focus();
+
+      // Start off labels and banners as H1s.
+      if (this.el.components["media-loader"].data.contentSubtype !== "page") {
+        if (quill.getLength() === 1) {
+          quill.format("header", "1", "api");
+        }
+      }
 
       temporarilyReleaseCanvasCursorLock();
     } else if (type === MEDIA_INTERACTION_TYPES.SNAPSHOT) {

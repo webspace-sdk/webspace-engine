@@ -85,6 +85,7 @@ const CreateSelectItemTitle = styled.div`
   height: 20px;
   text-overflow: ellipsis;
   color: var(--panel-banner-text-color);
+  width: 100%;
 `;
 const CreateSelectItemTitleIcon = styled.div`
   width: 22px;
@@ -110,14 +111,22 @@ const CreateSelectItemDescription = styled.div`
   font-size: var(--panel-subheader-text-size);
   margin-top: 4px;
 `;
+const CreateSelectItemTag = styled.div`
+  color: var(--panel-subheader-text-color);
+  font-size: var(--panel-subheader-text-size);
+  font-weight: var(--panel-subheader-text-weight);
+  text-align: right;
+  margin-left: 4px;
+`;
 
-const CreateSelectItem = ({ title, description, iconSrc, thumbSrc }) => (
+const CreateSelectItem = ({ title, description, tag, iconSrc, thumbSrc }) => (
   <CreateSelectItemElement>
     <CreateSelectItemThumb src={thumbSrc} />
     <CreateSelectItemBody>
       <CreateSelectItemTitle>
         {iconSrc && <CreateSelectItemTitleIcon dangerouslySetInnerHTML={{ __html: iconSrc }} />}
         <CreateSelectItemTitleText>{title}</CreateSelectItemTitleText>
+        {tag && <CreateSelectItemTag>&lt;{tag}&gt;</CreateSelectItemTag>}
       </CreateSelectItemTitle>
       <CreateSelectItemDescription>{description}</CreateSelectItemDescription>
     </CreateSelectItemBody>
@@ -126,6 +135,7 @@ const CreateSelectItem = ({ title, description, iconSrc, thumbSrc }) => (
 
 CreateSelectItem.propTypes = {
   title: PropTypes.string,
+  tag: PropTypes.string,
   description: PropTypes.string,
   iconSrc: PropTypes.string,
   thumbSrc: PropTypes.string
@@ -205,6 +215,7 @@ const CreateSelect = forwardRef((props, ref) => {
               <CreateSelectItem
                 title={messages[`create-select.${id}.title`]}
                 description={messages[`create-select.${id}.description`]}
+                tag={messages[`create-select.${id}.tag`]}
                 iconSrc={iconSrc}
                 thumbSrc={thumbSrc}
               />
