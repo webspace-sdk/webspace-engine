@@ -1,6 +1,7 @@
 import { ObjectContentOrigins } from "../object-types";
 import { paths } from "./userinput/paths";
 import { spawnMediaInfrontOfPlayer } from "../utils/media-utils";
+import { webspaceHtmlToQuillHtml } from "../../jel/utils/dom-utils";
 
 export class PasteSystem {
   constructor(sceneEl) {
@@ -55,7 +56,7 @@ export class PasteSystem {
           .startsWith("data:"))
         ? text
         : null;
-    const contents = (!url && (html || text)) || null;
+    const hasContents = (!url && (html || text)) || null;
 
     if (files && files.length > 0) {
       for (const file of files) {
@@ -63,8 +64,14 @@ export class PasteSystem {
       }
     } else if (url) {
       spawnMediaInfrontOfPlayer({ src: url, contentOrigin: ObjectContentOrigins.URL });
-    } else if (contents) {
-      spawnMediaInfrontOfPlayer({ contents, contentOrigin: ObjectContentOrigins.CLIPBOARD });
+    } else if (hasContents) {
+      if (html) {
+        webspaceHtmlToQuillHtml(html).then(quillHtml => {
+          spawnMediaInfrontOfPlayer({ contents: quillHtml, contentOrigin: ObjectContentOrigins.CLIPBOARD });
+        });
+      } else if (text) {
+        spawnMediaInfrontOfPlayer({ contents: text, contentOrigin: ObjectContentOrigins.CLIPBOARD });
+      }
     }
   }
 }

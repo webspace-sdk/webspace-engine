@@ -328,7 +328,7 @@ export default class WorldImporter {
         }
       } else if (tagName === "DIV") {
         // Text
-        contents = webspaceHtmlToQuillHtml(el.innerHTML);
+        contents = await webspaceHtmlToQuillHtml(el.innerHTML);
         let font = FONT_FACES.SANS_SERIF;
         let fitContent = false;
         let mediaForegroundColor = null;
