@@ -556,13 +556,154 @@ export function createNewHubDocument(title) {
 
 export function webspaceHtmlToQuillHtml(html) {
   // Wrap emoji
-  html = html.replaceAll(/\p{Emoji_Presentation}/gu, function(match) {
-    return `<span class="ql-emojiblot" data-name="${EmojiToShortname.get(
-      match
-    )}">﻿<span contenteditable="false"><span class="ap">${match}</span></span>﻿<</span>`; // eslint-disable-line
-  });
+  //html = html.replaceAll(/\p{Emoji_Presentation}/gu, function(match) {
+  //  return `<span class="ql-emojiblot" data-name="${EmojiToShortname.get(
+  //    match
+  //  )}">﻿<span contenteditable="false"><span class="ap">${match}</span></span>﻿<</span>`; // eslint-disable-line
+  //});
 
-  console.log(html);
+  const doc = new DOMParser().parseFromString(`<html><body>${html}</body></html>`, "text/html");
 
+  for (const el of doc.children) {
+    console.log(el);
+    //  for (const align of ["center", "right", "justify"]) {
+    //    if (el.style.textAlign === align) {
+    //      el.style.textAlign = null;
+    //      el.classList.add(`ql-align-${align}`);
+    //    }
+    //  }
+
+    //  if (!el.style) {
+    //    el.removeAttribute("style");
+    //  }
+  }
+
+  //console.log(html);
+
+  //return doc.body.innerHTML;
   return html;
+}
+
+export function quillHtmlToWebspaceHtml(html) {
+  const doc = new DOMParser().parseFromString(`<html><body>${html}</body></html>`, "text/html");
+
+  for (const elOl of doc.querySelectorAll("ol")) {
+    // Build nested lists
+    let list = elOl;
+    let currentIndent = 0;
+
+    for (const li of [...list.children]) {
+      let thisIndent = 0;
+      let foundIndent = false;
+
+      li.remove();
+
+      for (const liClass of li.classList) {
+        if (liClass.startsWith("ql-indent-")) {
+          try {
+            thisIndent = parseInt(liClass.substring(10));
+          } catch (e) {} // eslint-disable-line
+
+          if (thisIndent > currentIndent) {
+            const newOl = document.createElement("ol");
+            list.appendChild(newOl);
+            list = newOl;
+            currentIndent = thisIndent;
+          } else if (thisIndent < currentIndent) {
+            list = list.parentElement;
+            currentIndent = thisIndent;
+          }
+
+          foundIndent = true;
+        }
+      }
+
+      if (!foundIndent && currentIndent > 0) {
+        list = list.parentElement;
+        currentIndent = 0;
+      }
+
+      const newLi = document.createElement("li");
+      newLi.innerHTML = li.innerHTML;
+      for (const attribute of li.attributes) {
+        if (attribute.name === "data-list") continue;
+        newLi.setAttribute(attribute.name, attribute.value);
+      }
+
+      for (const liClass of li.classList) {
+        newLi.classList.remove(liClass);
+      }
+
+      if (newLi.classList.length === 0) {
+        newLi.removeAttribute("class");
+      }
+
+      if (li.getAttribute("data-list") === "bullet") {
+        newLi.style.listStyleType = null;
+      } else if (li.getAttribute("data-list") === "ordered") {
+        newLi.style.listStyleType =
+          currentIndent === 0 ? "decimal" : currentIndent === 1 ? "lower-alpha" : "lower-roman";
+      }
+
+      list.appendChild(newLi);
+    }
+  }
+
+  // Replace any span with ql-code-block-element with a <code> tag with the same contents
+  for (const el of doc.querySelectorAll(".ql-code-block")) {
+    const code = document.createElement("code");
+    code.innerHTML = el.innerHTML;
+    el.parentNode.replaceWith(code);
+  }
+
+  //// Emoji
+  for (const emojiEl of doc.body.querySelectorAll("span.ql-emojiblot span span.ap")) {
+    const wrapEl = emojiEl.parentNode.parentNode;
+    wrapEl.replaceWith(emojiEl.innerText);
+  }
+
+  // Alignment
+  for (const align of ["center", "right", "justify"]) {
+    for (const el of doc.body.querySelectorAll(`.ql-align-${align}`)) {
+      if (el.classList.item(1) === null) {
+        el.removeAttribute("class");
+      } else {
+        el.classList.remove(`ql-align-${align}`);
+      }
+
+      if (el.classList.length === 0) {
+        el.removeAttribute("class");
+      }
+
+      el.style.textAlign = align;
+    }
+  }
+
+  // Remove all ql- classes
+  const visit = el => {
+    for (const className of el.classList) {
+      if (className.startsWith("ql-")) {
+        el.classList.remove(className);
+      }
+    }
+
+    for (const child of el.children) {
+      visit(child);
+    }
+  };
+
+  // Known quill classes not handled:
+  // ql-direction-rtl
+  // ql-video
+  // ql-bg-*
+  // ql-color-*
+  // ql-font-serif
+  // ql-font-monospace
+  // ql-size-small
+  // ql-size-large
+  // ql-size-huge
+
+  visit(doc.body);
+
+  return doc.body.innerHTML;
 }

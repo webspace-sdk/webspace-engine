@@ -1,4 +1,4 @@
-import { vecRgbToCssRgb } from "../utils/dom-utils";
+import { quillHtmlToWebspaceHtml, vecRgbToCssRgb } from "../utils/dom-utils";
 import { isLockedMedia } from "../../hubs/utils/media-utils";
 import { FONT_FACES } from "../utils/quill-utils";
 import { normalizeCoord } from "../systems/wrapped-entity-system";
@@ -170,7 +170,7 @@ const updateDomElForEl = (domEl, el) => {
 
     if (quill) {
       const html = quill.container.querySelector(".ql-editor").innerHTML;
-      domEl.innerHTML = html;
+      domEl.innerHTML = quillHtmlToWebspaceHtml(html);
 
       // Clean contents cache used for outlining
       domEl.querySelectorAll("[data-contents]").forEach(el => el.removeAttribute("data-contents"));
