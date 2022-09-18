@@ -47,8 +47,19 @@ const tagTypeForEl = el => {
     return "model";
   }
 
-  if (el.components["media-text"] || el.components["media-emoji"]) {
+  if (el.components["media-emoji"]) {
     return "div";
+  }
+
+  if (el.components["media-text"]) {
+    switch (el.components["media-loader"].data.contentSubtype) {
+      case "label":
+        return "label";
+      case "banner":
+        return "marquee";
+      default:
+        return "div";
+    }
   }
 
   if (el.components["media-video"]) {

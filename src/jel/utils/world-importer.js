@@ -326,7 +326,7 @@ export default class WorldImporter {
         if (el.getAttribute("data-audio-src") !== null) {
           mediaOptions.audioSrc = el.getAttribute("data-audio-src");
         }
-      } else if (tagName === "DIV") {
+      } else if (tagName === "DIV" || tagName === "LABEL" || tagName === "MARQUEE") {
         // Text
         contents = await webspaceHtmlToQuillHtml(el.innerHTML);
         let font = FONT_FACES.SANS_SERIF;
