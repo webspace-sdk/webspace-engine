@@ -167,7 +167,7 @@
   "create-select.image_embed.description": "Link to an image on the web.",
   "create-select.image_embed.tokens": "image pic link url embed jpg jpeg gif png svg",
   "create-select.video_upload.title": "Upload Video",
-  "create-select.video_upload.img": "video",
+  "create-select.video_upload.tag": "video",
   "create-select.video_upload.description": "Upload a video.",
   "create-select.video_upload.tokens": "video upload mp4 mov avi",
   "create-select.video_embed.title": "Embed Video",
