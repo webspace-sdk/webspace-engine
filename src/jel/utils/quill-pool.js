@@ -64,12 +64,21 @@ export function getQuill(networkId) {
       [{ header: 1 }, { header: 2 }], // custom button values
       ["bold", "italic", "underline", "strike"], // toggled buttons
       ["emoji"],
-      ["code-block"],
-
+      ["code-block", "blockquote"],
+      ["image"],
       [{ list: "ordered" }, { list: "bullet" }],
       [{ align: [] }]
     ],
-    handlers: { emoji: function() {} }
+    handlers: {
+      emoji: function() {},
+      image: function() {
+        const range = this.quill.getSelection();
+        const value = prompt("please copy paste the image url here.");
+        if (value) {
+          this.quill.insertEmbed(range.index, "image", value, Quill.sources.USER);
+        }
+      }
+    }
   };
 
   DOM_ROOT.querySelector("#jel-ui-wrap").appendChild(el);

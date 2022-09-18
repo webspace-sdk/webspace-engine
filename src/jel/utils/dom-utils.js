@@ -555,8 +555,6 @@ export function createNewHubDocument(title) {
   return doc;
 }
 
-const htmlImageUrlToDataUrlCache = new Map();
-
 export async function webspaceHtmlToQuillHtml(html) {
   // Wrap emoji
   html = html.replaceAll(/\p{Emoji_Presentation}/gu, function(match) {
@@ -634,50 +632,6 @@ export async function webspaceHtmlToQuillHtml(html) {
 
   // Insert all ql class names
   const visit = async el => {
-    if (el.tagName === "IMG") {
-      const src = el.getAttribute("src");
-
-      // HACK: we put the original src into the alt tag in the editor for replacing
-      // when we save back out, to avoid data urls.
-      el.removeAttribute("alt");
-
-      // Check the htmlImageUrlToDataUrlCache
-      if (htmlImageUrlToDataUrlCache.has(src)) {
-        el.setAttribute("src", htmlImageUrlToDataUrlCache.get(src));
-        el.setAttribute("alt", src);
-      } else {
-        if (src.startsWith("http")) {
-          let parsedUrl = null;
-          try {
-            parsedUrl = new URL(src);
-          } catch (e) { } // eslint-disable-line
-
-          if (parsedUrl) {
-            const preflightResponse = await preflightUrl(parsedUrl);
-            const accessibleContentUrl = preflightResponse.accessibleContentUrl;
-
-            // Fetch the accessible content URL into a data url
-            const response = await fetch(accessibleContentUrl);
-
-            // Create base64 encoded data url
-            const blob = await response.blob();
-            const reader = new FileReader();
-            reader.readAsDataURL(blob);
-
-            const dataUrl = await new Promise(resolve => {
-              reader.onloadend = () => {
-                resolve(reader.result);
-              };
-            });
-
-            htmlImageUrlToDataUrlCache.set(src, dataUrl);
-            el.setAttribute("src", dataUrl);
-            el.setAttribute("alt", src);
-          }
-        }
-      }
-    }
-
     switch (el.style.textAlign) {
       case "center":
         el.classList.add("ql-align-center");

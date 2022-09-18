@@ -324,12 +324,12 @@ AFRAME.registerComponent("media-text", {
       this.textureWidth,
       this.data.transparent,
       this.data.font
-    );
-
-    if (!this.firedTextLoadedEvent) {
-      this.firedTextLoadedEvent = true;
-      this.el.emit("text-loaded", { src: this.data.src });
-    }
+    ).then(() => {
+      if (!this.firedTextLoadedEvent) {
+        this.firedTextLoadedEvent = true;
+        this.el.emit("text-loaded", { src: this.data.src });
+      }
+    });
   },
 
   markDirty() {

@@ -8,6 +8,7 @@ import { createVox } from "./utils/phoenix-utils";
 import { switchCurrentHubToWorldTemplate } from "../jel/utils/template-utils";
 import { retainPdf, releasePdf } from "../jel/utils/pdf-pool";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "../jel/utils/jel-url-utils";
+import { isInQuillEditor } from "../jel/utils/quill-utils";
 import { gatePermission } from "./utils/permissions-utils";
 
 const { detect } = require("detect-browser");
@@ -282,6 +283,7 @@ export default class SceneEntryManager {
 
     document.addEventListener("paste", e => {
       if (!gatePermission("spawn_and_move_media")) return;
+      if (isInQuillEditor()) return;
       SYSTEMS.pasteSystem.enqueuePaste(e);
     });
 

@@ -1,6 +1,7 @@
 import { fromByteArray } from "base64-js";
 import { rgbToCssRgb } from "./dom-utils";
 import { EDITOR_WIDTH, EDITOR_HEIGHT } from "./quill-pool";
+import nextTick from "../../hubs/utils/next-tick";
 import {
   ComicFontCSS,
   SerifFontCSS,
@@ -9,12 +10,15 @@ import {
   ComicFont2CSS,
   WritingFontCSS
 } from "../fonts/quill-fonts";
+import { preflightUrl } from "../../hubs/utils/media-utils";
 
 import QUILL_PRE from "../../assets/jel/stylesheets/quill-pre.scss";
 import QUILL_CORE from "quill/dist/quill.core.css";
 import QUILL_BUBBLE from "quill/dist/quill.bubble.css";
 import QUILL_EMOJI from "quill-emoji/dist/quill-emoji.css";
 import QUILL_HIGHLIGHT from "highlight.js/scss/github.scss";
+
+const htmlImageUrlToDataUrlCache = new Map();
 
 export const QUILL_STYLES = `
   ${QUILL_PRE}
@@ -37,7 +41,7 @@ export const MAX_FONT_FACE = 6;
 
 const { SANS_SERIF, MONO, COMIC, COMIC2, WRITING } = FONT_FACES;
 
-export function renderQuillToImg(
+export async function renderQuillToImg(
   quill,
   img,
   foregroundColor,
@@ -47,21 +51,26 @@ export function renderQuillToImg(
   transparent = false,
   font = SANS_SERIF
 ) {
-  const el = quill.container;
-  const editor = quill.container.querySelector(".ql-editor");
+  while (quill._isRendering) await nextTick();
 
-  if (transparent) {
-    // Copy contents into attributes to perform outlining trick for transparent renders.
-    const contentEls = editor.querySelectorAll("p, h1, h2, li");
+  quill._isRendering = true;
 
-    for (const contentEl of contentEls) {
-      contentEl.setAttribute("data-contents", contentEl.innerText);
+  try {
+    const el = quill.container;
+    const editor = quill.container.querySelector(".ql-editor");
+
+    if (transparent) {
+      // Copy contents into attributes to perform outlining trick for transparent renders.
+      const contentEls = editor.querySelectorAll("p, h1, h2, li");
+
+      for (const contentEl of contentEls) {
+        contentEl.setAttribute("data-contents", contentEl.innerText);
+      }
     }
-  }
 
-  const editorXml = new XMLSerializer().serializeToString(editor);
+    const editorXml = new XMLSerializer().serializeToString(editor);
 
-  let xml = `
+    let xml = `
     <div xmlns="http://www.w3.org/1999/xhtml" class="ql-container ql-bubble">
     <style xmlns="http://www.w3.org/1999/xhtml">
       ${QUILL_STYLES}
@@ -70,18 +79,18 @@ export function renderQuillToImg(
     </div>
   `;
 
-  const ratio = el.offsetHeight / el.offsetWidth;
-  const scale = (textureWidth * Math.min(1.0, 1.0 / ratio)) / el.offsetWidth;
+    const ratio = el.offsetHeight / el.offsetWidth;
+    const scale = (textureWidth * Math.min(1.0, 1.0 / ratio)) / el.offsetWidth;
 
-  const fgCss = `rgba(${rgbToCssRgb(foregroundColor.x)}, ${rgbToCssRgb(foregroundColor.y)}, ${rgbToCssRgb(
-    foregroundColor.z
-  )}, 1.0)`;
-  const bgCss = `rgba(${rgbToCssRgb(backgroundColor.x)}, ${rgbToCssRgb(backgroundColor.y)}, ${rgbToCssRgb(
-    backgroundColor.z
-  )}, 1.0)`;
+    const fgCss = `rgba(${rgbToCssRgb(foregroundColor.x)}, ${rgbToCssRgb(foregroundColor.y)}, ${rgbToCssRgb(
+      foregroundColor.z
+    )}, 1.0)`;
+    const bgCss = `rgba(${rgbToCssRgb(backgroundColor.x)}, ${rgbToCssRgb(backgroundColor.y)}, ${rgbToCssRgb(
+      backgroundColor.z
+    )}, 1.0)`;
 
-  const transparentStyles = transparent
-    ? `
+    const transparentStyles = transparent
+      ? `
     .ql-emojiblot {
       vertical-align: inherit !important;
       margin: inherit !important;
@@ -129,38 +138,38 @@ export function renderQuillToImg(
       background-color: rgba(64, 64, 64, 0.2);
     }
   `
-    : "";
+      : "";
 
-  // NOTE - We have to inject the current font as a data URL otherwise the browser can sometimes
-  // render the wrong font or mis-render it. (Perhaps a browser bug.)
-  let fontCSS;
+    // NOTE - We have to inject the current font as a data URL otherwise the browser can sometimes
+    // render the wrong font or mis-render it. (Perhaps a browser bug.)
+    let fontCSS;
 
-  switch (font) {
-    case SANS_SERIF:
-      fontCSS = SansSerifFontCSS;
-      break;
-    case MONO:
-      fontCSS = MonoFontCSS;
-      break;
-    case COMIC:
-      fontCSS = ComicFontCSS;
-      break;
-    case COMIC2:
-      fontCSS = ComicFont2CSS;
-      break;
-    case WRITING:
-      fontCSS = WritingFontCSS;
-      break;
-    default:
-      fontCSS = SerifFontCSS;
-      break;
-  }
+    switch (font) {
+      case SANS_SERIF:
+        fontCSS = SansSerifFontCSS;
+        break;
+      case MONO:
+        fontCSS = MonoFontCSS;
+        break;
+      case COMIC:
+        fontCSS = ComicFontCSS;
+        break;
+      case COMIC2:
+        fontCSS = ComicFont2CSS;
+        break;
+      case WRITING:
+        fontCSS = WritingFontCSS;
+        break;
+      default:
+        fontCSS = SerifFontCSS;
+        break;
+    }
 
-  // Disable other bits only relevant to on-screen UI
-  // NOTE - not sure why global h1, h2 bits needed here, but otherwise font is always bold in headers.
-  xml = xml.replace(
-    "</style>",
-    `
+    // Disable other bits only relevant to on-screen UI
+    // NOTE - not sure why global h1, h2 bits needed here, but otherwise font is always bold in headers.
+    xml = xml.replace(
+      "</style>",
+      `
 
     ${fontCSS}
 
@@ -194,10 +203,53 @@ export function renderQuillToImg(
 
     ${transparentStyles}
   </style>`
-  );
+    );
 
-  // Hide the tooltip for the editor in the rendering
-  const svg = `
+    // Find all the src attributes in the xml and replace their value with data urls
+    const srcRegex = /src="(http[^"]+)"/g;
+    let match;
+
+    while ((match = srcRegex.exec(xml))) {
+      const src = match[1];
+
+      console.log("replace ", src);
+      const dataUrl = htmlImageUrlToDataUrlCache.get(src);
+
+      if (dataUrl) {
+        xml = xml.replaceAll(src, dataUrl);
+      } else {
+        let parsedUrl = null;
+        try {
+          parsedUrl = new URL(src);
+        } catch (e) {
+          break; // Kind of hacky, but if we have a bad URL just bail so loop end
+        }
+
+        const preflightResponse = await preflightUrl(parsedUrl);
+        const accessibleContentUrl = preflightResponse.accessibleContentUrl;
+
+        // Fetch the accessible content URL into a data url
+        const response = await fetch(accessibleContentUrl);
+
+        // Create base64 encoded data url
+        const blob = await response.blob();
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+
+        const dataUrl = await new Promise(resolve => {
+          reader.onloadend = () => {
+            resolve(reader.result);
+          };
+        });
+
+        htmlImageUrlToDataUrlCache.set(src, dataUrl);
+        console.log("replacing", src, dataUrl);
+        xml = xml.replaceAll(src, dataUrl);
+      }
+    }
+
+    // Hide the tooltip for the editor in the rendering
+    const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${el.offsetWidth * scale}px" height="${el.offsetHeight * scale}px">
         <foreignObject width="100%" height="100%" style="transform: scale(${scale * zoom});">
           ${xml}
@@ -205,8 +257,11 @@ export function renderQuillToImg(
       </svg>
     `;
 
-  const b64 = fromByteArray(new TextEncoder().encode(svg));
-  img.src = `data:image/svg+xml;base64,${b64}`;
+    const b64 = fromByteArray(new TextEncoder().encode(svg));
+    img.src = `data:image/svg+xml;base64,${b64}`;
+  } finally {
+    quill._isRendering = false;
+  }
 }
 
 export const isInQuillEditor = () => !!DOM_ROOT.activeElement?.classList.contains("ql-editor");
