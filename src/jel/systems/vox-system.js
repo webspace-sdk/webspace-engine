@@ -11,7 +11,7 @@ import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
-import { addMedia, isLockedMedia, spawnMediaInfrontOfPlayer } from "../../hubs/utils/media-utils";
+import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../../hubs/utils/media-utils";
 import { type as vox0, Vox, /*VoxChunk, */ rgbtForVoxColor } from "ot-vox";
 import { ensureOwnership } from "../utils/ownership-utils";
 import { dataURItoBlob } from "../utils/dom-utils";
@@ -1776,7 +1776,7 @@ export class VoxSystem extends EventTarget {
       published_scale
     } = metadata;
 
-    const entity = spawnMediaInfrontOfPlayer({
+    const entity = addMediaInFrontOfPlayerIfPermitted({
       src: url,
       contentOrigin: ObjectContentOrigins.URL,
       skipResolve: true,
@@ -1786,7 +1786,7 @@ export class VoxSystem extends EventTarget {
       stackAxis: published_stack_axis,
       stackSnapPosition: published_stack_snap_position,
       stackSnapScale: published_stack_snap_scale
-    });
+    }).entity;
 
     entity.object3D.scale.setScalar(published_scale);
     entity.object3D.matrixNeedsUpdate = true;

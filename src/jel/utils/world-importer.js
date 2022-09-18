@@ -1,4 +1,4 @@
-import { addMedia } from "../../hubs/utils/media-utils";
+import { addMedia, addMediaInFrontOfPlayer } from "../../hubs/utils/media-utils";
 import { parse as transformParse } from "transform-parser";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { ensureOwnership } from "./ownership-utils";
@@ -268,8 +268,7 @@ export default class WorldImporter {
       if (!id || id.length !== 7) continue; // Sanity check
       if (DOM_ROOT.getElementById(`naf-${id}`)) continue;
 
-      const style = getStyle(el);
-      if (!style) continue;
+      const style = getStyle(el) || {};
       const { fontFamily, transform, color, width, height, backgroundColor, textStroke } = style;
 
       let contentSubtype = null;
@@ -336,8 +335,8 @@ export default class WorldImporter {
 
         contentSubtype = "page";
 
-        if (width === "min-content" && height === "min-content") {
-          contentSubtype = backgroundColor === "transparent" ? "banner" : "label";
+        if ((width === "min-content" && height === "min-content") || tagName === "MARQUEE" || tagName === "LABEL") {
+          contentSubtype = backgroundColor === "transparent" || tagName === "MARQUEE" ? "banner" : "label";
           fitContent = true;
         }
 
@@ -404,14 +403,14 @@ export default class WorldImporter {
       }
 
       const isLocked = el.getAttribute("draggable") === null;
-
-      const entity = addMedia({
+      const addMediaOptions = {
         src,
         contents,
         contentOrigin: ObjectContentOrigins.URL,
         contentSubtype,
         resolve,
         animate: false,
+        fitToBox: false,
         mediaOptions,
         networkId: id,
         // Set the owner to 'world', which allows in-flight modifications from other clients that join to win
@@ -419,7 +418,9 @@ export default class WorldImporter {
         skipLoader: true,
         contentType: type,
         locked: isLocked
-      }).entity;
+      };
+
+      const { entity } = (transform ? addMedia : addMediaInFrontOfPlayer)(addMediaOptions);
 
       const object3D = entity.object3D;
 
@@ -477,6 +478,7 @@ export default class WorldImporter {
           },
           { once: true }
         );
+      } else {
       }
     }
 

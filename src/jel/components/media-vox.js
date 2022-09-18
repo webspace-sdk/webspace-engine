@@ -4,7 +4,7 @@ import { resetMediaRotation, MEDIA_INTERACTION_TYPES, isLockedMedia } from "../.
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { getNetworkedEntity } from "../../jel/utils/ownership-utils";
 import { endCursorLock } from "../utils/dom-utils";
-import { spawnMediaInfrontOfPlayer } from "../../hubs/utils/media-utils";
+import { addMediaInFrontOfPlayerIfPermitted } from "../../hubs/utils/media-utils";
 import { gatePermission } from "../../hubs/utils/permissions-utils";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { getSpawnInFrontZOffsetForEntity } from "../../hubs/utils/three-utils";
@@ -153,7 +153,7 @@ AFRAME.registerComponent("media-vox", {
     const { stackAxis, stackSnapPosition, stackSnapScale } = this.el.components["media-loader"].data;
 
     // Skip resolving these URLs since they're from dyna.
-    const entity = spawnMediaInfrontOfPlayer(
+    const entity = addMediaInFrontOfPlayerIfPermitted(
       url,
       null,
       ObjectContentOrigins.URL,
@@ -167,7 +167,7 @@ AFRAME.registerComponent("media-vox", {
       stackAxis,
       stackSnapPosition,
       stackSnapScale
-    );
+    ).entity;
 
     entity.object3D.scale.copy(sourceScale);
     entity.object3D.matrixNeedsUpdate = true;

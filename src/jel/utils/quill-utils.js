@@ -212,7 +212,6 @@ export async function renderQuillToImg(
     while ((match = srcRegex.exec(xml))) {
       const src = match[1];
 
-      console.log("replace ", src);
       const dataUrl = htmlImageUrlToDataUrlCache.get(src);
 
       if (dataUrl) {
@@ -243,7 +242,6 @@ export async function renderQuillToImg(
         });
 
         htmlImageUrlToDataUrlCache.set(src, dataUrl);
-        console.log("replacing", src, dataUrl);
         xml = xml.replaceAll(src, dataUrl);
       }
     }

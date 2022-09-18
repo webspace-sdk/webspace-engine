@@ -1197,29 +1197,34 @@ export function isNextPrevMedia(el) {
   return NEXT_PREV_MEDIA_VIEW_COMPONENTS.includes(component?.name);
 }
 
-export const spawnMediaInfrontOfPlayer = options => {
+export const addMediaInFrontOfPlayer = options => {
   const defaults = {
     zOffset: -2.5,
     yOffset: 0,
     fitToBox: true
   };
 
-  if (!window.APP.atomAccessManager.hubCan("spawn_and_move_media")) return;
-  if (options.src instanceof File && !window.APP.atomAccessManager.hubCan("upload_files")) return;
-
   const addOptions = { ...defaults, ...options };
 
-  const { entity, orientation } = addMedia(addOptions);
+  const media = addMedia(addOptions);
 
-  orientation.then(or => {
-    entity.setAttribute("offset-relative-to", {
+  media.orientation.then(or => {
+    media.entity.setAttribute("offset-relative-to", {
       target: "#avatar-pov-node",
       offset: { x: 0, y: addOptions.yOffset, z: addOptions.zOffset },
       orientation: or
     });
   });
 
-  return entity;
+  return media;
+};
+
+export const addMediaInFrontOfPlayerIfPermitted = options => {
+  if (!window.APP.atomAccessManager.hubCan("spawn_and_move_media")) return { entity: null, orientation: null };
+  if (options.src instanceof File && !window.APP.atomAccessManager.hubCan("upload_files"))
+    return { entity: null, orientation: null };
+
+  return addMediaInFrontOfPlayer(options);
 };
 
 export const hasActiveScreenShare = () => {

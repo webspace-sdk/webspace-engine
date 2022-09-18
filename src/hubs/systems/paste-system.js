@@ -1,6 +1,6 @@
 import { ObjectContentOrigins } from "../object-types";
 import { paths } from "./userinput/paths";
-import { spawnMediaInfrontOfPlayer } from "../utils/media-utils";
+import { addMediaInFrontOfPlayerIfPermitted } from "../utils/media-utils";
 import { webspaceHtmlToQuillHtml } from "../../jel/utils/dom-utils";
 
 export class PasteSystem {
@@ -60,17 +60,17 @@ export class PasteSystem {
 
     if (files && files.length > 0) {
       for (const file of files) {
-        spawnMediaInfrontOfPlayer({ src: file, contentOrigin: ObjectContentOrigins.CLIPBOARD });
+        addMediaInFrontOfPlayerIfPermitted({ src: file, contentOrigin: ObjectContentOrigins.CLIPBOARD });
       }
     } else if (url) {
-      spawnMediaInfrontOfPlayer({ src: url, contentOrigin: ObjectContentOrigins.URL });
+      addMediaInFrontOfPlayerIfPermitted({ src: url, contentOrigin: ObjectContentOrigins.URL });
     } else if (hasContents) {
       if (html) {
         webspaceHtmlToQuillHtml(html).then(quillHtml => {
-          spawnMediaInfrontOfPlayer({ contents: quillHtml, contentOrigin: ObjectContentOrigins.CLIPBOARD });
+          addMediaInFrontOfPlayerIfPermitted({ contents: quillHtml, contentOrigin: ObjectContentOrigins.CLIPBOARD });
         });
       } else if (text) {
-        spawnMediaInfrontOfPlayer({ contents: text, contentOrigin: ObjectContentOrigins.CLIPBOARD });
+        addMediaInFrontOfPlayerIfPermitted({ contents: text, contentOrigin: ObjectContentOrigins.CLIPBOARD });
       }
     }
   }

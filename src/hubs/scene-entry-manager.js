@@ -19,7 +19,7 @@ const forceEnableTouchscreen = hackyMobileSafariTest();
 const qs = new URLSearchParams(location.search);
 
 import {
-  spawnMediaInfrontOfPlayer,
+  addMediaInFrontOfPlayerIfPermitted,
   performAnimatedRemove,
   snapEntityToBiggestNearbyScreen,
   addAndArrangeRoundtableMedia,
@@ -181,7 +181,7 @@ export default class SceneEntryManager {
       const contentOrigin = src instanceof File ? ObjectContentOrigins.FILE : ObjectContentOrigins.URL;
       const contentType = e.detail.contentType || null;
 
-      spawnMediaInfrontOfPlayer({ src, contentType, contentOrigin });
+      addMediaInFrontOfPlayerIfPermitted({ src, contentType, contentOrigin });
     });
 
     this.scene.addEventListener("add_media_text", e => {
@@ -189,7 +189,7 @@ export default class SceneEntryManager {
         window.APP.store.state.uiState.mediaTextColorPresetIndex || 0
       ];
 
-      spawnMediaInfrontOfPlayer({
+      addMediaInFrontOfPlayerIfPermitted({
         contents: "",
         contentSubtype: e.detail,
         mediaOptions: { backgroundColor, foregroundColor }
@@ -211,7 +211,7 @@ export default class SceneEntryManager {
     });
 
     this.scene.addEventListener("add_media_emoji", ({ detail: emoji }) => {
-      spawnMediaInfrontOfPlayer({ contents: emoji });
+      addMediaInFrontOfPlayerIfPermitted({ contents: emoji });
     });
 
     this.scene.addEventListener("add_media_exploded_pdf", async e => {
@@ -317,10 +317,10 @@ export default class SceneEntryManager {
       const files = e.dataTransfer.files;
 
       if (url) {
-        spawnMediaInfrontOfPlayer({ src: url, contentOrigin: ObjectContentOrigins.URL });
+        addMediaInFrontOfPlayerIfPermitted({ src: url, contentOrigin: ObjectContentOrigins.URL });
       } else {
         for (const file of files) {
-          spawnMediaInfrontOfPlayer({ src: file, contentOrigin: ObjectContentOrigins.FILE });
+          addMediaInFrontOfPlayerIfPermitted({ src: file, contentOrigin: ObjectContentOrigins.FILE });
         }
       }
     });
@@ -388,7 +388,7 @@ export default class SceneEntryManager {
           audioSystem.addStreamToOutboundAudio("screenshare", newStream);
         }
 
-        const entity = spawnMediaInfrontOfPlayer({ src: mediaStreamSystem.mediaStream });
+        const entity = addMediaInFrontOfPlayerIfPermitted({ src: mediaStreamSystem.mediaStream }).entity;
 
         // Snap screen share to screen
         entity.addEventListener(
