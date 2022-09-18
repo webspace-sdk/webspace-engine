@@ -556,32 +556,112 @@ export function createNewHubDocument(title) {
 
 export function webspaceHtmlToQuillHtml(html) {
   // Wrap emoji
-  //html = html.replaceAll(/\p{Emoji_Presentation}/gu, function(match) {
-  //  return `<span class="ql-emojiblot" data-name="${EmojiToShortname.get(
-  //    match
-  //  )}">﻿<span contenteditable="false"><span class="ap">${match}</span></span>﻿<</span>`; // eslint-disable-line
-  //});
+  html = html.replaceAll(/\p{Emoji_Presentation}/gu, function(match) {
+    return `<span class="ql-emojiblot" data-name="${EmojiToShortname.get(
+      match
+    )}">﻿<span contenteditable="false"><span class="ap">${match}</span></span>﻿<</span>`; // eslint-disable-line
+  });
 
   const doc = new DOMParser().parseFromString(`<html><body>${html}</body></html>`, "text/html");
 
-  for (const el of doc.children) {
-    console.log(el);
-    //  for (const align of ["center", "right", "justify"]) {
-    //    if (el.style.textAlign === align) {
-    //      el.style.textAlign = null;
-    //      el.classList.add(`ql-align-${align}`);
-    //    }
-    //  }
+  for (const el of [...doc.body.children]) {
+    // Wrap code
+    if (el.tagName === "CODE") {
+      const codeBlockContainer = document.createElement("div");
+      codeBlockContainer.classList.add("ql-code-block-container");
+      codeBlockContainer.setAttribute("spellcheck", "false");
+      const codeBlock = document.createElement("div");
+      codeBlock.classList.add("ql-code-block");
+      codeBlock.innerHTML = el.innerHTML;
+      codeBlockContainer.appendChild(codeBlock);
+      el.replaceWith(codeBlockContainer);
+    }
 
-    //  if (!el.style) {
-    //    el.removeAttribute("style");
-    //  }
+    // Flatten lists
+    if (el.tagName === "OL") {
+      const flattenedOl = document.createElement("ol");
+
+      for (const attribute of el.attributes) {
+        flattenedOl.setAttribute(attribute.name, attribute.value);
+      }
+
+      const flattenedLis = [];
+
+      const visitOl = (ol, depth) => {
+        for (const child of ol.children) {
+          if (child.tagName === "LI") {
+            // Add the indent class to the li
+            flattenedLis.push(child);
+
+            if (
+              child.style.listStyleType === "decimal" ||
+              child.style.listStyleType === "upper-alpha" ||
+              child.style.listStyleType === "upper-roman"
+            ) {
+              child.setAttribute("data-list", "ordered");
+            } else {
+              child.setAttribute("data-list", "bullet");
+            }
+
+            child.style.listStyleType = "";
+
+            if (child.getAttribute("style") === "") {
+              child.removeAttribute("style");
+            }
+
+            if (depth > 0) {
+              child.classList.add(`ql-indent-${depth}`);
+            }
+          } else if (child.tagName === "OL") {
+            visitOl(child, depth + 1);
+          }
+        }
+      };
+
+      visitOl(el, 0);
+
+      for (const li of flattenedLis) {
+        li.remove();
+        flattenedOl.appendChild(li);
+      }
+
+      el.replaceWith(flattenedOl);
+    }
   }
 
-  //console.log(html);
+  // Insert all ql class names
+  const visit = el => {
+    switch (el.style.textAlign) {
+      case "center":
+        el.classList.add("ql-align-center");
+        break;
+      case "right":
+        el.classList.add("ql-align-right");
+        break;
+      case "justify":
+        el.classList.add("ql-align-justify");
+        break;
+    }
 
-  //return doc.body.innerHTML;
-  return html;
+    if (el.dir === "rtl") {
+      el.classList.add("ql-direction-rtl");
+      el.dir = "auto";
+    }
+
+    el.style.textAlign = "";
+
+    if (el.getAttribute("style") === "") {
+      el.removeAttribute("style");
+    }
+
+    for (const child of el.children) {
+      visit(child);
+    }
+  };
+
+  visit(doc.body);
+
+  return doc.body.innerHTML;
 }
 
 export function quillHtmlToWebspaceHtml(html) {
@@ -642,7 +722,7 @@ export function quillHtmlToWebspaceHtml(html) {
         newLi.style.listStyleType = null;
       } else if (li.getAttribute("data-list") === "ordered") {
         newLi.style.listStyleType =
-          currentIndent === 0 ? "decimal" : currentIndent === 1 ? "lower-alpha" : "lower-roman";
+          currentIndent === 0 ? "decimal" : currentIndent === 1 ? "upper-alpha" : "upper-roman";
       }
 
       list.appendChild(newLi);
@@ -662,27 +742,20 @@ export function quillHtmlToWebspaceHtml(html) {
     wrapEl.replaceWith(emojiEl.innerText);
   }
 
-  // Alignment
-  for (const align of ["center", "right", "justify"]) {
-    for (const el of doc.body.querySelectorAll(`.ql-align-${align}`)) {
-      if (el.classList.item(1) === null) {
-        el.removeAttribute("class");
-      } else {
-        el.classList.remove(`ql-align-${align}`);
-      }
-
-      if (el.classList.length === 0) {
-        el.removeAttribute("class");
-      }
-
-      el.style.textAlign = align;
-    }
-  }
-
-  // Remove all ql- classes
+  // Remove and apply all ql- classes
   const visit = el => {
     for (const className of el.classList) {
       if (className.startsWith("ql-")) {
+        for (const align of ["ql-center", "ql-right", "ql-justify"]) {
+          if (className === align) {
+            el.style.textAlign = align.substring(3);
+          }
+        }
+
+        if (className === "ql-direction-rtl") {
+          el.dir = "rtl";
+        }
+
         el.classList.remove(className);
       }
     }
@@ -693,7 +766,6 @@ export function quillHtmlToWebspaceHtml(html) {
   };
 
   // Known quill classes not handled:
-  // ql-direction-rtl
   // ql-video
   // ql-bg-*
   // ql-color-*
