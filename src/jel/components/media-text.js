@@ -2,7 +2,7 @@ import { EDITOR_PADDING_X, EDITOR_PADDING_Y, EDITOR_WIDTH, EDITOR_HEIGHT } from 
 import { temporarilyReleaseCanvasCursorLock } from "../utils/dom-utils";
 import { addAndArrangeRadialMedia, MEDIA_PRESENCE, MEDIA_INTERACTION_TYPES } from "../../hubs/utils/media-utils";
 import { gatePermission } from "../../hubs/utils/permissions-utils";
-import { disposeExistingMesh, disposeTexture, almostEqualVec3 } from "../../hubs/utils/three-utils";
+import { disposeExistingMesh, disposeTexture } from "../../hubs/utils/three-utils";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
 import { renderQuillToImg, computeQuillContectRect } from "../utils/quill-utils";
@@ -13,41 +13,35 @@ import { MAX_FONT_FACE } from "../utils/quill-utils";
 const FIT_CONTENT_EXTRA_SCALE = 1.5;
 
 export const MEDIA_TEXT_COLOR_PRESETS = [
-  [0xffffff, 0x000000],
-  [0x000000, 0xffffff],
-  [0x656565, 0xf0f0f0],
-  [0xfff8df, 0x666666],
-  [0x111749, 0x98aeeb],
-  [0x4c63b6, 0xbed0f7],
-  [0xccffe7, 0x477946],
-  [0x134412, 0xb7ffdd],
-  [0xffbbbb, 0xb65050],
-  [0x732727, 0xeca3a3],
-  [0x004770, 0xffcc9d],
-  [0x530070, 0xc2d7ff],
-  [0x3a1c00, 0xffa471]
-].map(([bg, fg]) => [
-  new THREE.Vector3(((bg >> 16) & 255) / 255, ((bg >> 8) & 255) / 255, (bg & 255) / 255),
-  new THREE.Vector3(((fg >> 16) & 255) / 255, ((fg >> 8) & 255) / 255, (fg & 255) / 255)
-]);
+  ["#ffffff", "#000000"],
+  ["#000000", "#ffffff"],
+  ["#656565", "#f0f0f0"],
+  ["#fff8df", "#666666"],
+  ["#111749", "#98aeeb"],
+  ["#4c63b6", "#bed0f7"],
+  ["#ccffe7", "#477946"],
+  ["#134412", "#b7ffdd"],
+  ["#ffbbbb", "#b65050"],
+  ["#732727", "#eca3a3"],
+  ["#004770", "#ffcc9d"],
+  ["#530070", "#c2d7ff"],
+  ["#3a1c00", "#ffa471"]
+];
 
 export const MEDIA_TEXT_TRANSPARENT_COLOR_PRESETS = [
-  [0x000000, 0x000000],
-  [0x000000, 0xffffff],
-  [0x000000, 0x9446ed],
-  [0x000000, 0x3a66db],
-  [0x000000, 0x2186eb],
-  [0x000000, 0x40c3f7],
-  [0x000000, 0x3ae7e1],
-  [0x000000, 0x3ebd93],
-  [0x000000, 0x8ded2d],
-  [0x000000, 0xfadb5f],
-  [0x000000, 0xf9703e],
-  [0x000000, 0xef4e4e]
-].map(([bg, fg]) => [
-  new THREE.Vector3(((bg >> 16) & 255) / 255, ((bg >> 8) & 255) / 255, (bg & 255) / 255),
-  new THREE.Vector3(((fg >> 16) & 255) / 255, ((fg >> 8) & 255) / 255, (fg & 255) / 255)
-]);
+  ["#000000", "#000000"],
+  ["#000000", "#ffffff"],
+  ["#000000", "#9446ed"],
+  ["#000000", "#3a66db"],
+  ["#000000", "#2186eb"],
+  ["#000000", "#40c3f7"],
+  ["#000000", "#3ae7e1"],
+  ["#000000", "#3ebd93"],
+  ["#000000", "#8ded2d"],
+  ["#000000", "#fadb5f"],
+  ["#000000", "#f9703e"],
+  ["#000000", "#ef4e4e"]
+];
 
 const getCycledColorPreset = ({ data: { transparent, foregroundColor, backgroundColor } }, direction) => {
   let index = 0;
@@ -56,7 +50,7 @@ const getCycledColorPreset = ({ data: { transparent, foregroundColor, background
   for (let i = 0; i < presets.length; i++) {
     const [bg, fg] = presets[i];
 
-    if (almostEqualVec3(foregroundColor, fg) && almostEqualVec3(backgroundColor, bg)) {
+    if (foregroundColor === fg && backgroundColor === bg) {
       index = i;
       break;
     }
@@ -75,8 +69,8 @@ AFRAME.registerComponent("media-text", {
     src: { type: "string" },
     deltaOps: { default: null },
     fitContent: { default: false },
-    foregroundColor: { type: "vec3", default: { x: 0, y: 0, z: 0 } },
-    backgroundColor: { type: "vec3", default: { x: 1, y: 1, z: 1 } },
+    foregroundColor: { default: null },
+    backgroundColor: { default: null },
     transparent: { default: false },
     font: { default: 0 }
   },
@@ -107,10 +101,7 @@ AFRAME.registerComponent("media-text", {
     }
 
     if (SYSTEMS.mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT) {
-      if (
-        !almostEqualVec3(oldData.foregroundColor, foregroundColor) ||
-        !almostEqualVec3(oldData.backgroundColor, backgroundColor)
-      ) {
+      if (foregroundColor !== oldData.foregroundColor || backgroundColor !== oldData.backgroundColor) {
         this.applyProperMaterialToMesh();
         this.markDirty();
       }
@@ -345,8 +336,8 @@ AFRAME.registerComponent("media-text", {
     // Use unlit material for black on white or white on black to maximize legibility or improve perf.
     if (
       this.data.transparent ||
-      almostEqualVec3(this.data.backgroundColor, presets[0][0]) ||
-      almostEqualVec3(this.data.backgroundColor, presets[1][0]) ||
+      this.data.backgroundColor === presets[0][0] ||
+      this.data.backgroundColor === presets[1][0] ||
       window.APP.detailLevel >= 2
     ) {
       this.mesh.material = this.unlitMat;

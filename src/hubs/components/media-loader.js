@@ -390,7 +390,7 @@ AFRAME.registerComponent("media-loader", {
           const quality = getDefaultResolveQuality(is360);
 
           const preflightResponse = await preflightUrl(parsedUrl, quality);
-          contentType = preflightResponse.contentType;
+          contentType = preflightResponse.contentType || guessContentType(src) || contentType;
           contentUrl = preflightResponse.contentUrl;
           accessibleContentUrl = preflightResponse.accessibleContentUrl;
           accessibleContentAudioUrl = preflightResponse.accessibleContentAudioUrl;

@@ -1,5 +1,5 @@
 import { fromByteArray } from "base64-js";
-import { rgbToCssRgb } from "./dom-utils";
+import Color from "color";
 import { EDITOR_WIDTH, EDITOR_HEIGHT } from "./quill-pool";
 import nextTick from "../../hubs/utils/next-tick";
 import {
@@ -68,6 +68,24 @@ export async function renderQuillToImg(
       }
     }
 
+    if (foregroundColor) {
+      try {
+        Color(foregroundColor);
+      } catch (e) {
+        foregroundColor = "black";
+        console.warn("Invalid foreground color for rendering ", foregroundColor);
+      }
+    }
+
+    if (backgroundColor) {
+      try {
+        Color(backgroundColor);
+      } catch (e) {
+        backgroundColor = "white";
+        console.warn("Invalid background color for rendering ", foregroundColor);
+      }
+    }
+
     const editorXml = new XMLSerializer().serializeToString(editor);
 
     let xml = `
@@ -81,13 +99,6 @@ export async function renderQuillToImg(
 
     const ratio = el.offsetHeight / el.offsetWidth;
     const scale = (textureWidth * Math.min(1.0, 1.0 / ratio)) / el.offsetWidth;
-
-    const fgCss = `rgba(${rgbToCssRgb(foregroundColor.x)}, ${rgbToCssRgb(foregroundColor.y)}, ${rgbToCssRgb(
-      foregroundColor.z
-    )}, 1.0)`;
-    const bgCss = `rgba(${rgbToCssRgb(backgroundColor.x)}, ${rgbToCssRgb(backgroundColor.y)}, ${rgbToCssRgb(
-      backgroundColor.z
-    )}, 1.0)`;
 
     const transparentStyles = transparent
       ? `
@@ -174,7 +185,7 @@ export async function renderQuillToImg(
     ${fontCSS}
 
     :root {
-      background-color: ${bgCss} !important;
+      background-color: ${backgroundColor} !important;
     }
 
     .ql-container {
@@ -185,7 +196,7 @@ export async function renderQuillToImg(
       position: absolute;
       overflow: visible !important;
       top: -${editor.scrollTop}px;
-      color: ${fgCss} !important;
+      color: ${foregroundColor} !important;
       width: ${EDITOR_WIDTH}px !important;
       height: ${EDITOR_HEIGHT}px !important;
       min-width: ${EDITOR_WIDTH}px !important;
@@ -194,7 +205,7 @@ export async function renderQuillToImg(
 
     .ql-blank::before {
       display: flex !important;
-      color: ${fgCss} !important;
+      color: ${foregroundColor} !important;
     }
 
     h1, h2 {

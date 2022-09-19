@@ -259,40 +259,16 @@ export default class WorldImporter {
 
         if (contentSubtype == "banner") {
           if (textStroke) {
-            const textStrokeParsed = transformParse(textStroke);
-
-            if (textStrokeParsed.rgb) {
-              mediaBackgroundColor = {
-                x: textStrokeParsed.rgb[0] / 255.0,
-                y: textStrokeParsed.rgb[1] / 255.0,
-                z: textStrokeParsed.rgb[2] / 255.0
-              };
-            }
+            mediaBackgroundColor = textStroke;
           }
         } else {
           if (backgroundColor) {
-            const backgroundParsed = transformParse(backgroundColor);
-
-            if (backgroundParsed.rgb) {
-              mediaBackgroundColor = {
-                x: backgroundParsed.rgb[0] / 255.0,
-                y: backgroundParsed.rgb[1] / 255.0,
-                z: backgroundParsed.rgb[2] / 255.0
-              };
-            }
+            mediaBackgroundColor = backgroundColor;
           }
         }
 
         if (color) {
-          const colorParsed = transformParse(color);
-
-          if (colorParsed.rgb) {
-            mediaForegroundColor = {
-              x: colorParsed.rgb[0] / 255.0,
-              y: colorParsed.rgb[1] / 255.0,
-              z: colorParsed.rgb[2] / 255.0
-            };
-          }
+          mediaForegroundColor = color;
         }
 
         switch (fontFamily) {
@@ -315,8 +291,14 @@ export default class WorldImporter {
 
         mediaOptions.font = font;
         mediaOptions.fitContent = fitContent;
-        mediaOptions.foregroundColor = mediaForegroundColor;
-        mediaOptions.backgroundColor = mediaBackgroundColor;
+
+        if (mediaForegroundColor) {
+          mediaOptions.foregroundColor = mediaForegroundColor;
+        }
+
+        if (mediaBackgroundColor) {
+          mediaOptions.backgroundColor = mediaBackgroundColor;
+        }
       }
 
       const isLocked = el.getAttribute("draggable") === null;

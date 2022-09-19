@@ -1,13 +1,13 @@
-import { quillHtmlToWebspaceHtml, vecRgbToCssRgb } from "../utils/dom-utils";
+import { quillHtmlToWebspaceHtml } from "../utils/dom-utils";
 import { isLockedMedia } from "../../hubs/utils/media-utils";
 import { FONT_FACES } from "../utils/quill-utils";
 import { normalizeCoord } from "../systems/wrapped-entity-system";
 import { getCorsProxyUrl } from "../../hubs/utils/media-url-utils";
+import Color from "color";
 
 const tmpPos = new THREE.Vector3();
 const tmpQuat = new THREE.Quaternion();
 const tmpScale = new THREE.Vector3();
-const tmpVec4 = new THREE.Vector4();
 
 AFRAME.registerComponent("dom-serialized-entity", {
   init() {
@@ -161,7 +161,12 @@ const updateDomElForEl = (domEl, el) => {
 
     let fontFamily;
 
-    style += `color: ${vecRgbToCssRgb(foregroundColor)}; `;
+    if (foregroundColor) {
+      try {
+        Color(foregroundColor);
+        style += `color: ${foregroundColor}; `;
+      } catch (e) {} // eslint-disable-line no-empty
+    }
 
     if (fitContent) {
       style += `width: min-content; height: min-content; `;
@@ -172,9 +177,22 @@ const updateDomElForEl = (domEl, el) => {
     }
 
     if (transparent) {
-      style += `background-color: transparent; text-stoke: 4px ${vecRgbToCssRgb(backgroundColor)}; `;
+      style += `background-color: transparent; text-stroke: 4px`;
+      if (backgroundColor) {
+        try {
+          Color(backgroundColor);
+          style += ` ${backgroundColor} `;
+        } catch (e) {} // eslint-disable-line no-empty
+      }
+
+      style += `; `;
     } else {
-      style += `background-color: ${vecRgbToCssRgb(backgroundColor)}; `;
+      if (backgroundColor) {
+        try {
+          Color(backgroundColor);
+          style += `background-color: ${backgroundColor}; `;
+        } catch (e) { } // eslint-disable-line
+      }
     }
 
     switch (font) {
@@ -198,7 +216,9 @@ const updateDomElForEl = (domEl, el) => {
         break;
     }
 
-    style += `font-family: ${fontFamily}; `;
+    if (fontFamily) {
+      style += `font-family: ${fontFamily}; `;
+    }
 
     const quill = SYSTEMS.mediaTextSystem.getQuill(mediaText);
 

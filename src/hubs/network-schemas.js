@@ -144,13 +144,11 @@ function registerNetworkSchemas() {
       },
       {
         component: "media-text",
-        property: "foregroundColor",
-        requiresNetworkUpdate: vectorRequiresUpdate(0.01)
+        property: "foregroundColor"
       },
       {
         component: "media-text",
-        property: "backgroundColor",
-        requiresNetworkUpdate: vectorRequiresUpdate(0.01)
+        property: "backgroundColor"
       },
       {
         component: "media-text",

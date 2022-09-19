@@ -327,7 +327,7 @@ export const preflightUrl = async (parsedUrl, quality = "high") => {
   let accessibleContentUrl = contentUrl;
   let accessibleContentAudioUrl = contentUrl;
 
-  if (contentType.startsWith("text/html")) {
+  if (contentType && contentType.startsWith("text/html")) {
     if (parsedUrl.origin.endsWith("youtube.com")) {
       if (isAllowedCorsProxyContentType("video/mp4")) {
         const ytdlResult = await runYtdl(url, quality);
@@ -349,7 +349,7 @@ export const preflightUrl = async (parsedUrl, quality = "high") => {
       // Generate a thumbnail for websites
       contentUrl = accessibleContentUrl = `${window.APP.workerUrl}/thumbnail/${contentUrl}`;
     }
-  } else if (isAllowedCorsProxyContentType(contentType) && !getAllowed) {
+  } else if ((!contentType || isAllowedCorsProxyContentType(contentType)) && !getAllowed) {
     accessibleContentUrl = `${getCorsProxyUrl()}/${contentUrl}`;
   }
 
