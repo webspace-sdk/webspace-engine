@@ -472,9 +472,7 @@ export async function getHubMetaFromDOM() {
     },
     world: {
       seed: getIntFromMetaTags("environment.terrain.seed", currentHubSeed),
-      type: META_TAG_TERRAIN_TYPE_NAMES.indexOf(
-        getStringFromMetaTags("environment.terrain.type", currentHubSeed % 2 === 0 ? "plains" : "hills")
-      ),
+      type: META_TAG_TERRAIN_TYPE_NAMES.indexOf(getStringFromMetaTags("environment.terrain.type", "plains")),
       bark_color: getColorFromMetaTags("environment.terrain.colors.bark", defaultColors.bark_color),
       edge_color: getColorFromMetaTags("environment.terrain.colors.edge", defaultColors.edge_color),
       grass_color: getColorFromMetaTags("environment.terrain.colors.grass", defaultColors.grass_color),
