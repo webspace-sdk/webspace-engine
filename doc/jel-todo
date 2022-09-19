@@ -28,26 +28,19 @@
 - invite popout
 - detecting relay member in presence to unlock editing for unprivileged users
 - deal with filtering networking based on roles + hub setting for allowing edits
-- Y.js syncing of text boxes
 - only flush from one writeback host in presence, to avoid collisions
 - left click to drag objects, right click to edit objects
 - build mode still showing presence list
 - add service to register spaces
 - upload + register service worker
 - unsaved changes warning
-- remove trash
 - duck should upload glb
-- verify FXAA not running on white text panes
-- paste into quill is spawning
-- convert quill html <-> webspace html
-- img tags need to become data urls on the way in
-  - replace src's in webspaceHtmlToQuillHtml, and run this on paste and load
-- add div with no styles, should inject in front of player
-- text netowrking
-  - if you are the first to start editing in presence, broadcast the doc
+- edit world button should be 'save changes' button
+- deal with colliding ids
+- labels not working and are clipped
+- folders with spaces
 
 name not updating in self panel when updated by another peer
-should change button to "unlock world" when others are in room
 pasting text not working, and causing cursor to act funny (not hoverable)
 should push terrain chunks to origin on first edit
 need to writeback page change on pdf iff its locked
