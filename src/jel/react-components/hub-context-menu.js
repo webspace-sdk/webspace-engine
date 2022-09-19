@@ -86,8 +86,7 @@ function HubContextMenu({
             world: {
               spawn_point: {
                 position: { x: position.x, y: position.y, z: position.z },
-                rotation: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w },
-                radius: 10
+                rotation: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w }
               }
             }
           });

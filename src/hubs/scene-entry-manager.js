@@ -5,7 +5,6 @@ import { ensureOwnership } from "./../jel/utils/ownership-utils";
 import { MEDIA_TEXT_COLOR_PRESETS } from "../jel/components/media-text";
 import { waitForShadowDOMContentLoaded } from "./utils/async-utils";
 import { createVox } from "./utils/phoenix-utils";
-import { switchCurrentHubToWorldTemplate } from "../jel/utils/template-utils";
 import { retainPdf, releasePdf } from "../jel/utils/pdf-pool";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "../jel/utils/jel-url-utils";
 import { isInQuillEditor } from "../jel/utils/quill-utils";
@@ -275,10 +274,6 @@ export default class SceneEntryManager {
     this.scene.addEventListener("action_mute_client", ({ detail: { clientId } }) => {
       console.log("kick", clientId);
       // TODO SHARED
-    });
-
-    this.scene.addEventListener("action_switch_template", ({ detail: { worldTemplateId } }) => {
-      switchCurrentHubToWorldTemplate(worldTemplateId);
     });
 
     document.addEventListener("paste", e => {

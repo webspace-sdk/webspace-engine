@@ -37,7 +37,8 @@ self.onmessage = ({
     return;
   }
 
-  const chunkId = `${type}/${seed}/${x}/${z}/${CHUNK_VERSION}`;
+  const mesher = 0;
+  const chunkId = `${type}/${mesher}/${seed}/${x}/${z}/${CHUNK_VERSION}`;
   jobPriorities.set(id, (priority || 0) + Math.random());
 
   const txn = db

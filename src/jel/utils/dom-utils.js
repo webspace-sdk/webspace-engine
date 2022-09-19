@@ -5,12 +5,12 @@ import { MAX_WORLD_TYPE } from "../systems/terrain-system";
 import { getHubIdFromHistory, getSpaceIdFromHistory, getSeedForHubIdFromHistory } from "./jel-url-utils";
 import { WORLD_COLOR_PRESETS } from "./world-color-presets";
 import { EmojiToShortname } from "./emojis";
-import { preflightUrl } from "../../hubs/utils/media-utils";
+import { parseTransformIntoThree } from "./world-importer";
+import { posRotScaleToCssTransform } from "../systems/dom-serialize-system";
+import Color from "color";
 
 export const META_TAG_PREFIX = "webspace";
 
-const VEC_ZERO = { x: 0, y: 0, z: 0 };
-const QUAT_IDENTITY = { x: 0, y: 0, z: 0, w: 1 };
 const COLOR_BLACK = { r: 0, g: 0, b: 0 };
 const META_TAG_TERRAIN_TYPE_NAMES = ["unknown", "islands", "hills", "plains", "flat"];
 
@@ -355,7 +355,10 @@ export const pushHubMetaUpdateIntoDOM = async hub => {
       color.b >= 0.0 &&
       color.b <= 1.0
     ) {
-      upsertMetaTag(`environment.terrain.colors.${type}`, `${color.r} ${color.g} ${color.b}`);
+      upsertMetaTag(
+        `environment.terrain.colors.${type}`,
+        Color({ r: Math.floor(color.r * 255), g: Math.floor(color.g * 255), b: Math.floor(color.b * 255) }).hex()
+      );
     } else {
       const defaultColors = WORLD_COLOR_PRESETS[currentHubSeed % WORLD_COLOR_PRESETS.length];
       const color = defaultColors[`${type}_color`];
@@ -381,37 +384,17 @@ export const pushHubMetaUpdateIntoDOM = async hub => {
     initMetaTag("environment.terrain.seed", `${worldSeed}`);
   }
 
-  const spawnPointPosition = hub.world?.spawn_point?.position;
-  if (
-    spawnPointPosition &&
-    typeof spawnPointPosition.x === "number" &&
-    typeof spawnPointPosition.y === "number" &&
-    typeof spawnPointPosition.z === "number"
-  ) {
+  let spawnPointPosition = hub.world?.spawn_point?.position;
+  let spawnPointRotation = hub.world?.spawn_point?.rotation;
+
+  if (spawnPointPosition || spawnPointRotation) {
+    spawnPointPosition = spawnPointPosition || new THREE.Vector3(0, 0, 0);
+    spawnPointRotation = spawnPointRotation || new THREE.Quaternion(0, 0, 0, 1);
+
     upsertMetaTag(
-      "environment.spawn_point.position",
-      `${spawnPointPosition.x} ${spawnPointPosition.y} ${spawnPointPosition.z}`
+      "environment.spawn_point.transform",
+      posRotScaleToCssTransform(spawnPointPosition, spawnPointRotation)
     );
-  }
-
-  const spawnPointRotation = hub.world?.spawn_point?.rotation;
-  if (
-    spawnPointRotation &&
-    typeof spawnPointRotation.x === "number" &&
-    typeof spawnPointRotation.y === "number" &&
-    typeof spawnPointRotation.z === "number" &&
-    typeof spawnPointRotation.w === "number"
-  ) {
-    upsertMetaTag(
-      "environment.spawn_point.rotation",
-      `${spawnPointRotation.x} ${spawnPointRotation.y} ${spawnPointRotation.z} ${spawnPointRotation.w}`
-    );
-  }
-
-  const spawnPointRadius = hub.world?.spawn_point?.radius;
-
-  if (typeof spawnPointRadius === "number") {
-    upsertMetaTag("environment.spawn_point.radius", `${spawnPointRadius}`);
   }
 };
 
@@ -443,62 +426,22 @@ export function getFloatFromMetaTags(name, defaultValue = 0) {
   }
 }
 
-export function getVectorFromMetaTags(name, defaultValue = VEC_ZERO) {
-  try {
-    const content = document.head
-      .querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`)
-      ?.getAttribute("content")
-      ?.split(" ");
-
-    if (content && content.length === 3) {
-      return {
-        x: parseFloat(content[0]),
-        y: parseFloat(content[1]),
-        z: parseFloat(content[2])
-      };
-    } else {
-      return defaultValue;
-    }
-  } catch {
-    return defaultValue;
-  }
-}
-
 export function getColorFromMetaTags(name, defaultValue = COLOR_BLACK) {
   try {
-    const content = document.head
-      .querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`)
-      ?.getAttribute("content")
-      ?.split(" ");
+    const content = document.head.querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`)?.getAttribute("content");
 
-    if (content && content.length === 3) {
-      return {
-        r: parseFloat(content[0]),
-        g: parseFloat(content[1]),
-        b: parseFloat(content[2])
-      };
-    } else {
-      return defaultValue;
-    }
-  } catch {
-    return defaultValue;
-  }
-}
+    if (content) {
+      try {
+        const color = Color(content).rgb();
 
-export function getQuaternionFromMetaTags(name, defaultValue = QUAT_IDENTITY) {
-  try {
-    const content = document.head
-      .querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`)
-      ?.getAttribute("content")
-      ?.split(" ");
-
-    if (content && content.length === 4) {
-      return {
-        x: parseFloat(content[0]),
-        y: parseFloat(content[1]),
-        z: parseFloat(content[2]),
-        w: parseFloat(content[3])
-      };
+        return {
+          r: color.red() / 255.0,
+          g: color.green() / 255.0,
+          b: color.blue() / 255.0
+        };
+      } catch (e) {
+        console.warn("Problem parsing color from meta tag", name, content);
+      }
     } else {
       return defaultValue;
     }
@@ -514,6 +457,7 @@ export async function getHubMetaFromDOM() {
 
   const defaultColors = WORLD_COLOR_PRESETS[currentHubSeed % WORLD_COLOR_PRESETS.length];
 
+  const [spawnPos, spawnRot] = parseTransformIntoThree(getStringFromMetaTags("environment.spawn_point.transform", ""));
   return {
     hub_id: currentHubId,
     space_id: currentSpaceId,
@@ -522,8 +466,8 @@ export async function getHubMetaFromDOM() {
     worker_url: getStringFromMetaTags("networking.worker_url", "https://webspace-worker.minddrop.workers.dev"),
     cors_anywhere_url: getStringFromMetaTags("networking.cors_anywhere_url", ""),
     spawn_point: {
-      position: getVectorFromMetaTags("environment.spawn_point.position"),
-      rotation: getQuaternionFromMetaTags("environment.spawn_point.rotation"),
+      position: spawnPos,
+      rotation: spawnRot,
       radius: getFloatFromMetaTags("environment.spawn_point.radius", 10)
     },
     world: {

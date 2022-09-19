@@ -54,34 +54,34 @@ export async function resetTemplate(name) {
   applyTemplate(name, null, null, true);
 }
 
-async function fetchWorldTemplate(worldTemplateId) {
-  return await fetchReticulumAuthenticated(`/api/v1/world_templates/${worldTemplateId}`);
-}
+//async function fetchWorldTemplate(worldTemplateId) {
+//  return await fetchReticulumAuthenticated(`/api/v1/world_templates/${worldTemplateId}`);
+//}
 
-export async function switchCurrentHubToWorldTemplate(worldTemplateId) {
-  const { hubMetadata, hubChannel } = window.APP;
-  const hubId = await getHubIdFromHistory();
-  const { world_template_id: currentWorldTemplateId } = await hubMetadata.getOrFetchMetadata(hubId);
-  const importer = new WorldImporter();
-
-  if (currentWorldTemplateId) {
-    const oldTemplate = await fetchWorldTemplate(currentWorldTemplateId);
-    await importer.removeEntitiesFromHtmlFromCurrentWorld(oldTemplate);
-  }
-
-  const newTemplate = await fetchWorldTemplate(worldTemplateId);
-
-  let metadataReadyHandler;
-  // Ensure metadata for world has been updated before performing import
-  const metadataReady = new Promise(res => (metadataReadyHandler = res));
-
-  hubMetadata.subscribeToMetadata(hubId, metadataReadyHandler);
-  await importer.applyWorldMetadataFromHtml(newTemplate);
-  const [, , , spawnPosition, spawnRotation] = importer.getWorldMetadataFromHtml(newTemplate);
-
-  SYSTEMS.characterController.teleportTo(spawnPosition, spawnRotation);
-  await metadataReady;
-  hubMetadata.unsubscribeFromMetadata(hubId, metadataReadyHandler);
-  await importer.importHtmlToCurrentWorld(newTemplate, false, false);
-  await hubChannel.updateHubMeta(hubId, { world_template_id: worldTemplateId });
-}
+//export async function switchCurrentHubToWorldTemplate(worldTemplateId) {
+//  const { hubMetadata, hubChannel } = window.APP;
+//  const hubId = await getHubIdFromHistory();
+//  const { world_template_id: currentWorldTemplateId } = await hubMetadata.getOrFetchMetadata(hubId);
+//  const importer = new WorldImporter();
+//
+//  if (currentWorldTemplateId) {
+//    const oldTemplate = await fetchWorldTemplate(currentWorldTemplateId);
+//    await importer.removeEntitiesFromHtmlFromCurrentWorld(oldTemplate);
+//  }
+//
+//  const newTemplate = await fetchWorldTemplate(worldTemplateId);
+//
+//  let metadataReadyHandler;
+//  // Ensure metadata for world has been updated before performing import
+//  const metadataReady = new Promise(res => (metadataReadyHandler = res));
+//
+//  hubMetadata.subscribeToMetadata(hubId, metadataReadyHandler);
+//  await importer.applyWorldMetadataFromHtml(newTemplate);
+//  const [, , , spawnPosition, spawnRotation] = importer.getWorldMetadataFromHtml(newTemplate);
+//
+//  SYSTEMS.characterController.teleportTo(spawnPosition, spawnRotation);
+//  await metadataReady;
+//  hubMetadata.unsubscribeFromMetadata(hubId, metadataReadyHandler);
+//  await importer.importHtmlToCurrentWorld(newTemplate, false, false);
+//  await hubChannel.updateHubMeta(hubId, { world_template_id: worldTemplateId });
+//}

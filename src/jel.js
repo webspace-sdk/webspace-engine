@@ -2,7 +2,7 @@ import crypto from "crypto";
 import "aframe";
 import "networked-aframe/src/index";
 import { detectOS, detect } from "detect-browser";
-import parseCSSColor from "parse-css-color";
+import Color from "color";
 
 import "./hubs/utils/theme";
 import "./hubs/utils/debug-log";
@@ -820,8 +820,8 @@ function addMissingDefaultHtml() {
     headStyleTagBody += "overflow: hidden; ";
   }
 
-  const bgColor = parseCSSColor(bodyStyle.backgroundColor);
-  if (bgColor.alpha === 0) {
+  const bgColor = Color(bodyStyle.backgroundColor || "rgba(0,0,0,0.0)");
+  if (bgColor.alpha() === 0) {
     headStyleTagBody += "background-color: #061139; ";
   }
 

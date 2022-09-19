@@ -81,6 +81,29 @@ const removeAttributeIfPresent = (el, attribute) => {
   }
 };
 
+const tmpRotConvert = new THREE.Vector4();
+export const posRotScaleToCssTransform = (pos, rot, scale) => {
+  let transform = "";
+  if (pos) {
+    transform += `translate3d(${(pos.x * 100).toFixed(0)}cm, ${(pos.y * 100).toFixed(0)}cm, ${(pos.z * 100).toFixed(
+      0
+    )}cm) `;
+  }
+
+  if (rot) {
+    tmpRotConvert.setAxisAngleFromQuaternion(rot);
+    transform += `rotate3d(${tmpRotConvert.x.toFixed(4)}, ${tmpRotConvert.y.toFixed(4)}, ${tmpRotConvert.z.toFixed(
+      4
+    )}, ${tmpRotConvert.w.toFixed(4)}rad) `;
+  }
+
+  if (scale) {
+    transform += ` scale3D(${scale.x.toFixed(4)}, ${scale.y.toFixed(4)}, ${scale.z.toFixed(4)})`;
+  }
+
+  return transform.trim();
+};
+
 const updateDomElForEl = (domEl, el) => {
   const { terrainSystem } = AFRAME.scenes[0].systems["hubs-systems"];
   let { src } = el.components["media-loader"].data;
@@ -254,18 +277,11 @@ const updateDomElForEl = (domEl, el) => {
 
     // Normalize Y to be terrain-agnostic
     const height = terrainSystem.getTerrainHeightAtWorldCoord(tmpPos.x, tmpPos.z);
-    const x = normalizeCoord(tmpPos.x);
-    const y = normalizeCoord(tmpPos.y - height);
-    const z = normalizeCoord(tmpPos.z);
+    tmpPos.x = normalizeCoord(tmpPos.x);
+    tmpPos.y = normalizeCoord(tmpPos.y - height);
+    tmpPos.z = normalizeCoord(tmpPos.z);
 
-    // Axis angle
-    tmpVec4.setAxisAngleFromQuaternion(tmpQuat);
-
-    style += `transform: translate3d(${(x * 100).toFixed(0)}cm, ${(y * 100).toFixed(0)}cm, ${(z * 100).toFixed(
-      0
-    )}cm) rotate3d(${tmpVec4.x.toFixed(4)}, ${tmpVec4.y.toFixed(4)}, ${tmpVec4.z.toFixed(4)}, ${tmpVec4.w.toFixed(
-      4
-    )}rad) scale3D(${tmpScale.x.toFixed(4)}, ${tmpScale.y.toFixed(4)}, ${tmpScale.z.toFixed(4)});`;
+    style += `transform: ${posRotScaleToCssTransform(tmpPos, tmpQuat, tmpScale)}; `;
 
     setAttributeIfChanged(domEl, "style", style);
   }

@@ -2,9 +2,7 @@ import { addMedia, addMediaInFrontOfPlayer } from "../../hubs/utils/media-utils"
 import { parse as transformParse } from "transform-parser";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { ensureOwnership } from "./ownership-utils";
-import { WORLD_COLOR_TYPES } from "../../hubs/constants";
 import { FONT_FACES } from "./quill-utils";
-import { getHubIdFromHistory } from "./jel-url-utils";
 import { webspaceHtmlToQuillHtml } from "./dom-utils";
 
 const transformUnitToMeters = s => {
@@ -35,6 +33,38 @@ const transformUnitToRadians = s => {
   return 0.0;
 };
 
+export const parseTransformIntoThree = transform => {
+  const pos = new THREE.Vector3(0, 0, 0);
+  const rot = new THREE.Quaternion(0, 0, 0, 1);
+  const scale = new THREE.Vector3(1, 1, 1);
+
+  const { translate3d, rotate3d, scale3d } = transformParse(transform);
+
+  if (translate3d) {
+    const x = transformUnitToMeters(translate3d[0]);
+    const z = transformUnitToMeters(translate3d[2]);
+    const y = transformUnitToMeters(translate3d[1]);
+    pos.set(x, y, z);
+  }
+
+  if (rotate3d) {
+    const rx = parseFloat(rotate3d[0]);
+    const ry = parseFloat(rotate3d[1]);
+    const rz = parseFloat(rotate3d[2]);
+    const rr = transformUnitToRadians(rotate3d[3]);
+    rot.setFromAxisAngle(new THREE.Vector3(rx, ry, rz), rr);
+  }
+
+  if (scale3d) {
+    const x = scale3d[0];
+    const y = scale3d[1];
+    const z = scale3d[2];
+    scale.set(x, y, z);
+  }
+
+  return [pos, rot, scale];
+};
+
 export default class WorldImporter {
   importHtmlToCurrentWorld(html, replaceExisting = true, removeEntitiesNotInTemplate = false) {
     const doc = new DOMParser().parseFromString(html, "text/html");
@@ -44,119 +74,6 @@ export default class WorldImporter {
   removeEntitiesFromHtmlFromCurrentWorld(html) {
     const doc = new DOMParser().parseFromString(html, "text/html");
     return this.removeEntitiesFromJelDocument(doc);
-  }
-
-  async applyWorldMetadataFromHtml(html) {
-    const { hubChannel } = window.APP;
-    const hubId = await getHubIdFromHistory();
-
-    const [
-      worldType,
-      worldSeed,
-      worldColors,
-      spawnPosition,
-      spawnRotation,
-      spawnRadius
-    ] = this.getWorldMetadataFromHtml(html);
-
-    const toRgb = type => {
-      return {
-        r: parseFloat(worldColors[`${type}_color_r`]),
-        g: parseFloat(worldColors[`${type}_color_g`]),
-        b: parseFloat(worldColors[`${type}_color_b`])
-      };
-    };
-
-    SYSTEMS.terrainSystem.updateWorldColors(...WORLD_COLOR_TYPES.map(toRgb));
-    SYSTEMS.atmosphereSystem.updateWaterColor(toRgb("water"));
-    SYSTEMS.atmosphereSystem.updateSkyColor(toRgb("sky"));
-
-    const hubWorldColors = {};
-    for (const [k, v] of Object.entries(worldColors)) {
-      hubWorldColors[`world_${k}`] = parseFloat(v);
-    }
-
-    hubChannel.updateHubMeta(hubId, {
-      ...hubWorldColors,
-      world_type: worldType,
-      world_seed: worldSeed,
-      spawn_position_x: spawnPosition.x,
-      spawn_position_y: spawnPosition.y,
-      spawn_position_z: spawnPosition.z,
-      spawn_rotation_x: spawnRotation.x,
-      spawn_rotation_y: spawnRotation.y,
-      spawn_rotation_z: spawnRotation.z,
-      spawn_rotation_w: spawnRotation.w,
-      spawn_radius: spawnRadius
-    });
-  }
-
-  getWorldMetadataFromHtml(html) {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-
-    if (doc.body && doc.querySelector(`meta[name='jel-schema']`)) {
-      const getMeta = key => {
-        const el = doc.querySelector(`meta[name='${key}']`);
-
-        if (el) {
-          return el.getAttribute("content");
-        } else {
-          return null;
-        }
-      };
-
-      let spawnPosition = null,
-        spawnRotation = null,
-        spawnRadius = null;
-
-      const worldType = getMeta("jel-world-type");
-      const worldSeed = getMeta("jel-world-seed");
-      let worldColors = {};
-
-      WORLD_COLOR_TYPES.forEach(type => {
-        const r = getMeta(`jel-world-${type}-color-r`);
-        const g = getMeta(`jel-world-${type}-color-g`);
-        const b = getMeta(`jel-world-${type}-color-b`);
-
-        if (r !== null && g !== null && b !== null) {
-          worldColors[`${type}_color_r`] = r;
-          worldColors[`${type}_color_g`] = g;
-          worldColors[`${type}_color_b`] = b;
-        }
-      });
-
-      if ([...Object.keys(worldColors)].length === 0) {
-        // No colors in meta tags, so don't return any which will cause a preset to be used.
-        worldColors = null;
-      }
-
-      const px = getMeta("jel-spawn-position-x");
-      const py = getMeta("jel-spawn-position-y");
-      const pz = getMeta("jel-spawn-position-z");
-
-      const rx = getMeta("jel-spawn-rotation-x");
-      const ry = getMeta("jel-spawn-rotation-y");
-      const rz = getMeta("jel-spawn-rotation-z");
-      const rw = getMeta("jel-spawn-rotation-w");
-
-      const rad = getMeta("jel-spawn-radius");
-
-      if (px !== null && py !== null && pz !== null) {
-        spawnPosition = new THREE.Vector3(parseFloat(px), parseFloat(py), parseFloat(pz));
-      }
-
-      if (rx !== null && ry !== null && rz !== null && rw !== null) {
-        spawnRotation = new THREE.Quaternion(parseFloat(rx), parseFloat(ry), parseFloat(rz), parseFloat(rw));
-      }
-
-      if (rad !== null) {
-        spawnRadius = parseFloat(rad);
-      }
-
-      return [worldType, worldSeed, worldColors, spawnPosition, spawnRotation, spawnRadius];
-    }
-
-    return [null, null, null, null, null];
   }
 
   async removeEntitiesFromJelDocument(doc) {
@@ -425,33 +342,9 @@ export default class WorldImporter {
       const object3D = entity.object3D;
 
       if (transform) {
-        const { translate3d, rotate3d, scale3d } = transformParse(transform);
-        const pos = new THREE.Vector3(0, 0, 0);
-        const rot = new THREE.Quaternion(0, 0, 0, 1);
-        const scale = new THREE.Vector3(1, 1, 1);
-
-        if (translate3d) {
-          const x = transformUnitToMeters(translate3d[0]);
-          const z = transformUnitToMeters(translate3d[2]);
-          const height = terrainSystem.getTerrainHeightAtWorldCoord(x, z);
-          const y = transformUnitToMeters(translate3d[1]) + height;
-          pos.set(x, y, z);
-        }
-
-        if (rotate3d) {
-          const rx = parseFloat(rotate3d[0]);
-          const ry = parseFloat(rotate3d[1]);
-          const rz = parseFloat(rotate3d[2]);
-          const rr = transformUnitToRadians(rotate3d[3]);
-          rot.setFromAxisAngle(new THREE.Vector3(rx, ry, rz), rr);
-        }
-
-        if (scale3d) {
-          const x = scale3d[0];
-          const y = scale3d[1];
-          const z = scale3d[2];
-          scale.set(x, y, z);
-        }
+        const [pos, rot, scale] = parseTransformIntoThree(transform);
+        const height = terrainSystem.getTerrainHeightAtWorldCoord(pos.x, pos.z);
+        pos.y += height;
 
         const matrix = new THREE.Matrix4();
         matrix.compose(
@@ -478,7 +371,6 @@ export default class WorldImporter {
           },
           { once: true }
         );
-      } else {
       }
     }
 
