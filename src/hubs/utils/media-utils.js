@@ -12,6 +12,7 @@ import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
 import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
 import { expandByEntityObjectSpaceBoundingBox } from "./three-utils";
 import { stackTargetAt, NON_FLAT_STACK_AXES } from "../systems/transform-selected-object";
+import nextTick from "./next-tick";
 import anime from "animejs";
 import basisTranscoderUrl from "!!url-loader!three/examples/js/libs/basis/basis_transcoder.js";
 import basisTranscoderWasmUrl from "!!url-loader!three/examples/js/libs/basis/basis_transcoder.wasm";
@@ -1208,7 +1209,11 @@ export const addMediaInFrontOfPlayer = options => {
 
   const media = addMedia(addOptions);
 
-  media.orientation.then(or => {
+  media.orientation.then(async or => {
+    while (!media.entity.sceneEl.is("entered")) {
+      await nextTick();
+    }
+
     media.entity.setAttribute("offset-relative-to", {
       target: "#avatar-pov-node",
       offset: { x: 0, y: addOptions.yOffset, z: addOptions.zOffset },
