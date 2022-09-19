@@ -121,7 +121,12 @@ const updateDomElForEl = (domEl, el) => {
     const imageSrc = el.components["media-image"].data.src;
 
     // If image and content are different URLs, this is a link.
-    if (imageSrc !== src && imageSrc.replace(`${getCorsProxyUrl()}/`, "") !== src) {
+    if (
+      !imageSrc.startsWith("data:") &&
+      !imageSrc.startsWith("blob:") &&
+      imageSrc !== src &&
+      imageSrc.replace(`${getCorsProxyUrl()}/`, "") !== src
+    ) {
       srcTargetAttribute = "href";
       removeAttributeIfPresent(domEl, "crossorigin");
     } else {
