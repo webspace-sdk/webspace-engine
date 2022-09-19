@@ -9,12 +9,13 @@ import { renderQuillToImg, computeQuillContectRect } from "../utils/quill-utils"
 import { paths } from "../../hubs/systems/userinput/paths";
 import { chicletGeometry } from "../objects/chiclet-geometry.js";
 import { MAX_FONT_FACE } from "../utils/quill-utils";
+import Color from "color";
 
 const FIT_CONTENT_EXTRA_SCALE = 1.5;
 
 export const MEDIA_TEXT_COLOR_PRESETS = [
-  ["#ffffff", "#000000"],
-  ["#000000", "#ffffff"],
+  ["white", "black"],
+  ["black", "white"],
   ["#656565", "#f0f0f0"],
   ["#fff8df", "#666666"],
   ["#111749", "#98aeeb"],
@@ -29,18 +30,18 @@ export const MEDIA_TEXT_COLOR_PRESETS = [
 ];
 
 export const MEDIA_TEXT_TRANSPARENT_COLOR_PRESETS = [
-  ["#000000", "#000000"],
-  ["#000000", "#ffffff"],
-  ["#000000", "#9446ed"],
-  ["#000000", "#3a66db"],
-  ["#000000", "#2186eb"],
-  ["#000000", "#40c3f7"],
-  ["#000000", "#3ae7e1"],
-  ["#000000", "#3ebd93"],
-  ["#000000", "#8ded2d"],
-  ["#000000", "#fadb5f"],
-  ["#000000", "#f9703e"],
-  ["#000000", "#ef4e4e"]
+  ["black", "black"],
+  ["black", "white"],
+  ["black", "#9446ed"],
+  ["black", "#3a66db"],
+  ["black", "#2186eb"],
+  ["black", "#40c3f7"],
+  ["black", "#3ae7e1"],
+  ["black", "#3ebd93"],
+  ["black", "#8ded2d"],
+  ["black", "#fadb5f"],
+  ["black", "#f9703e"],
+  ["black", "#ef4e4e"]
 ];
 
 const getCycledColorPreset = ({ data: { transparent, foregroundColor, backgroundColor } }, direction) => {
@@ -330,16 +331,19 @@ AFRAME.registerComponent("media-text", {
   applyProperMaterialToMesh() {
     if (!this.mesh) return;
 
-    const transparent = this.data.transparent;
-    const presets = transparent ? MEDIA_TEXT_TRANSPARENT_COLOR_PRESETS : MEDIA_TEXT_COLOR_PRESETS;
+    let isHighContrastBackground = this.data.backgroundColor === null;
+
+    if (!isHighContrastBackground) {
+      try {
+        const color = Color(this.data.backgroundColor).rgb();
+        isHighContrastBackground =
+          (color.red() === 0 && color.green() === 0 && color.blue() === 0) ||
+          (color.red() === 255 || color.green() === 255 || color.blue() === 255);
+      } catch(e) { } // eslint-disable-line
+    }
 
     // Use unlit material for black on white or white on black to maximize legibility or improve perf.
-    if (
-      this.data.transparent ||
-      this.data.backgroundColor === presets[0][0] ||
-      this.data.backgroundColor === presets[1][0] ||
-      window.APP.detailLevel >= 2
-    ) {
+    if (this.data.transparent || isHighContrastBackground || window.APP.detailLevel >= 2) {
       this.mesh.material = this.unlitMat;
       this.mesh.renderOrder = this.data.transparent ? RENDER_ORDER.MEDIA : RENDER_ORDER.MEDIA_NO_FXAA;
     } else {

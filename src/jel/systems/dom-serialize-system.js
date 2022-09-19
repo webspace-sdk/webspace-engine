@@ -3,11 +3,17 @@ import { isLockedMedia } from "../../hubs/utils/media-utils";
 import { FONT_FACES } from "../utils/quill-utils";
 import { normalizeCoord } from "../systems/wrapped-entity-system";
 import { getCorsProxyUrl } from "../../hubs/utils/media-url-utils";
+import { almostEqualVec3, almostEqualQuaternion } from "../../hubs/utils/three-utils";
+
 import Color from "color";
 
 const tmpPos = new THREE.Vector3();
 const tmpQuat = new THREE.Quaternion();
 const tmpScale = new THREE.Vector3();
+
+const ZERO_POS = new THREE.Vector3(0, 0, 0);
+const ZERO_ROT = new THREE.Quaternion(0, 0, 0, 1);
+const ONE_SCALE = new THREE.Vector3(1, 1, 1);
 
 AFRAME.registerComponent("dom-serialized-entity", {
   init() {
@@ -84,20 +90,20 @@ const removeAttributeIfPresent = (el, attribute) => {
 const tmpRotConvert = new THREE.Vector4();
 export const posRotScaleToCssTransform = (pos, rot, scale) => {
   let transform = "";
-  if (pos) {
+  if (pos && !almostEqualVec3(pos, ZERO_POS, 0.0001)) {
     transform += `translate3d(${(pos.x * 100).toFixed(0)}cm, ${(pos.y * 100).toFixed(0)}cm, ${(pos.z * 100).toFixed(
       0
     )}cm) `;
   }
 
-  if (rot) {
+  if (rot && !almostEqualQuaternion(rot, ZERO_ROT, 0.0001)) {
     tmpRotConvert.setAxisAngleFromQuaternion(rot);
     transform += `rotate3d(${tmpRotConvert.x.toFixed(4)}, ${tmpRotConvert.y.toFixed(4)}, ${tmpRotConvert.z.toFixed(
       4
     )}, ${tmpRotConvert.w.toFixed(4)}rad) `;
   }
 
-  if (scale) {
+  if (scale && !almostEqualVec3(scale, ONE_SCALE, 0.0001)) {
     transform += ` scale3D(${scale.x.toFixed(4)}, ${scale.y.toFixed(4)}, ${scale.z.toFixed(4)})`;
   }
 
@@ -301,7 +307,11 @@ const updateDomElForEl = (domEl, el) => {
     tmpPos.y = normalizeCoord(tmpPos.y - height);
     tmpPos.z = normalizeCoord(tmpPos.z);
 
-    style += `transform: ${posRotScaleToCssTransform(tmpPos, tmpQuat, tmpScale)}; `;
+    const transform = posRotScaleToCssTransform(tmpPos, tmpQuat, tmpScale);
+
+    if (transform) {
+      style += `transform: ${transform}; `;
+    }
 
     setAttributeIfChanged(domEl, "style", style);
   }

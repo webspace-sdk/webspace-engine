@@ -34,8 +34,8 @@ const getFixedColor = () => {
 
 const getComputeColor = seed => {
   // TODO these rngs need to be pushed to chunk level seeding
-  const colorRng = random.clone(seed).normal(0, 0.02);
-  const belowWaterRng = random.clone(seed).normal(0, 0.005);
+  const colorRng = random.clone(seedrandom(seed)).normal(0, 0.02);
+  const belowWaterRng = random.clone(seedrandom(seed)).normal(0, 0.005);
 
   return (noise, x, y, z, map, disableNoise = false) => {
     const { maxHeight } = Chunk;

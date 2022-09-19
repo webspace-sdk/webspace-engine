@@ -75,6 +75,8 @@ export async function renderQuillToImg(
         foregroundColor = "black";
         console.warn("Invalid foreground color for rendering ", foregroundColor);
       }
+    } else {
+      foregroundColor = "black";
     }
 
     if (backgroundColor) {
@@ -84,6 +86,8 @@ export async function renderQuillToImg(
         backgroundColor = "white";
         console.warn("Invalid background color for rendering ", foregroundColor);
       }
+    } else {
+      backgroundColor = "white";
     }
 
     const editorXml = new XMLSerializer().serializeToString(editor);

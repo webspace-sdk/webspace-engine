@@ -1,8 +1,12 @@
-import crypto from "crypto";
+import nodeCrypto from "crypto";
 import "aframe";
 import "networked-aframe/src/index";
 import { detectOS, detect } from "detect-browser";
 import Color from "color";
+import random from "random";
+import seedrandom from "seedrandom";
+
+random.use(seedrandom("base"));
 
 import "./hubs/utils/theme";
 import "./hubs/utils/debug-log";
@@ -839,9 +843,52 @@ function addMissingDefaultHtml() {
   }
 }
 
+// Need to add networking compatible ids to each element under the document root
+async function patchUpManuallyAddedHtmlTags() {
+  let rng = null;
+
+  // Generator for new ids. Use random number generator based on doc contents
+  // so it generates the same on each load across clients.
+  const getRandomId = async () => {
+    if (!rng) {
+      const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(document.body.innerHTML));
+      rng = random.clone(seedrandom(hash));
+    }
+
+    // Generate a string of 7 random alphanumerics
+    let s = "";
+    for (let i = 0; i < 7; i++) {
+      s += String.fromCharCode(rng.float() < 0.2 ? rng.int(48, 57) : rng.int(97, 122));
+    }
+    return s;
+  };
+
+  for (const el of document.body.children) {
+    const id = el.id;
+
+    // Manually added tags are assumed to be the ones with bad ids
+    if (!id || !id.match(/^[a-zA-Z]{7}$/)) {
+      el.id = await getRandomId();
+
+      // Start out manually added tags as draggable
+      el.setAttribute("draggable", "");
+
+      // Turn label and marquee into h1s
+      if (el.tagName === "MARQUEE" || el.tagName === "LABEL") {
+        if (el.children.length === 0) {
+          const h1 = document.createElement("h1");
+          h1.innerText = el.innerText;
+          el.innerHTML = h1.outerHTML;
+        }
+      }
+    }
+  }
+}
+
 async function start() {
   if (!(await checkPrerequisites())) return;
   addMissingDefaultHtml();
+  await patchUpManuallyAddedHtmlTags();
 
   // TODO SHARED head
   let initialWorldHTML = `<!DOCTYPE html>\n<html><body>${document.body.innerHTML}</body></html>`;
@@ -1110,7 +1157,7 @@ async function start() {
   setupGameEnginePausing(scene);
   await emojiLoadPromise;
 
-  const sessionId = crypto.randomBytes(20).toString("hex");
+  const sessionId = nodeCrypto.randomBytes(20).toString("hex");
 
   remountJelUI({ sessionId });
 
