@@ -85,8 +85,8 @@ class FileWriteback {
       } else {
         const fileParts = document.location.pathname.split("/");
 
-        const containingDir = fileParts[fileParts.length - 2];
-        const file = fileParts[fileParts.length - 1];
+        const containingDir = decodeURIComponent(fileParts[fileParts.length - 2]);
+        const file = decodeURIComponent(fileParts[fileParts.length - 1]);
 
         if (!this.dirHandle) {
           const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
@@ -274,7 +274,7 @@ class FileWriteback {
     await writable.write(fileOrBlob);
     await writable.close();
 
-    return { url: `assets/${fileName}`, contentType };
+    return { url: `assets/${encodeURIComponent(fileName)}`, contentType };
   }
 }
 

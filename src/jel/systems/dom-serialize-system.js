@@ -103,7 +103,7 @@ export const posRotScaleToCssTransform = (pos, rot, scale) => {
     )}, ${tmpRotConvert.w.toFixed(4)}rad) `;
   }
 
-  if (scale && !almostEqualVec3(scale, ONE_SCALE, 0.0001)) {
+  if (scale && !almostEqualVec3(scale, ONE_SCALE, 0.001)) {
     transform += ` scale3D(${scale.x.toFixed(4)}, ${scale.y.toFixed(4)}, ${scale.z.toFixed(4)})`;
   }
 

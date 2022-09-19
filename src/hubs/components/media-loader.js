@@ -402,7 +402,10 @@ AFRAME.registerComponent("media-loader", {
 
       if (isRelativeUrl) {
         const { atomAccessManager } = window.APP;
-        contentUrl = accessibleContentUrl = await atomAccessManager.contentUrlForRelativePath(src, contentType);
+        contentUrl = accessibleContentUrl = await atomAccessManager.contentUrlForRelativePath(
+          decodeURIComponent(src),
+          contentType
+        );
       }
 
       // TODO we should probably just never return "application/octet-stream" as expectedContentType, since its not really useful
