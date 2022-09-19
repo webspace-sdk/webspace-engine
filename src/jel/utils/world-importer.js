@@ -4,6 +4,7 @@ import { ObjectContentOrigins } from "../../hubs/object-types";
 import { ensureOwnership } from "./ownership-utils";
 import { FONT_FACES } from "./quill-utils";
 import { webspaceHtmlToQuillHtml } from "./dom-utils";
+import { STACK_AXIS_CSS_NAMES } from "../../hubs/systems/transform-selected-object";
 
 const transformUnitToMeters = s => {
   if (!s) return 0.0;
@@ -302,6 +303,7 @@ export default class WorldImporter {
       }
 
       const isLocked = el.getAttribute("draggable") === null;
+
       const addMediaOptions = {
         src,
         contents,
@@ -318,6 +320,18 @@ export default class WorldImporter {
         contentType: type,
         locked: isLocked
       };
+
+      const stackAxis = el.getAttribute("data-stack-axis");
+
+      if (stackAxis) {
+        const stackAxisIndex = STACK_AXIS_CSS_NAMES.indexOf(stackAxis);
+
+        if (stackAxisIndex !== -1) {
+          addMediaOptions.stackAxis = stackAxisIndex;
+        } else {
+          console.warn(`Invalid stack axis: ${stackAxis}`, el);
+        }
+      }
 
       const { entity } = (transform ? addMedia : addMediaInFrontOfPlayer)(addMediaOptions);
 

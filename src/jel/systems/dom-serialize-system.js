@@ -4,6 +4,7 @@ import { FONT_FACES } from "../utils/quill-utils";
 import { normalizeCoord } from "../systems/wrapped-entity-system";
 import { getCorsProxyUrl } from "../../hubs/utils/media-url-utils";
 import { almostEqualVec3, almostEqualQuaternion } from "../../hubs/utils/three-utils";
+import { STACK_AXIS_CSS_NAMES } from "../../hubs/systems/transform-selected-object";
 
 import Color from "color";
 
@@ -112,6 +113,7 @@ export const posRotScaleToCssTransform = (pos, rot, scale) => {
 
 const updateDomElForEl = (domEl, el) => {
   const { terrainSystem } = AFRAME.scenes[0].systems["hubs-systems"];
+  const { stackAxis } = el.components["media-loader"].data;
   let { src } = el.components["media-loader"].data;
 
   let style = "";
@@ -289,6 +291,12 @@ const updateDomElForEl = (domEl, el) => {
       setAttributeIfChanged(domEl, srcTargetAttribute, src);
     } else {
       removeAttributeIfPresent(domEl, srcTargetAttribute);
+    }
+
+    if (stackAxis && STACK_AXIS_CSS_NAMES[stackAxis]) {
+      setAttributeIfChanged(domEl, "data-stack-axis", STACK_AXIS_CSS_NAMES[stackAxis]);
+    } else {
+      removeAttributeIfPresent(domEl, "data-stack-axis");
     }
 
     if (!isLockedMedia(el)) {

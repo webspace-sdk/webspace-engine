@@ -34,8 +34,11 @@ const ALONG = new THREE.Vector3(1, 0, 0);
 const DOWN = new THREE.Vector3(0, -1, 0);
 const BACKWARD = new THREE.Vector3(0, 0, -1);
 const AGAINST = new THREE.Vector3(-1, 0, 0);
-const FLAT_STACK_AXES = [FORWARD, FORWARD, FORWARD, FORWARD, FORWARD, FORWARD];
+const FLAT_STACK_AXES = [FORWARD, BACKWARD, UP, DOWN, ALONG, AGAINST];
 export const NON_FLAT_STACK_AXES = [UP, DOWN, FORWARD, BACKWARD, ALONG, AGAINST];
+
+export const STACK_AXIS_CSS_NAMES = ["up", "down", "forward", "backward", "along", "against"];
+
 const offset = new THREE.Vector3();
 const objectSnapAlong = new THREE.Vector3();
 const targetPoint = new THREE.Vector3();
