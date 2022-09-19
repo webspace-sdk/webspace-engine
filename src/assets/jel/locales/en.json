@@ -146,7 +146,7 @@
   "create-select.banner.title": "Banner",
   "create-select.banner.tag": "marquee",
   "create-select.banner.description": "Create a transparent text banner.",
-  "create-select.banner.tokens": "text banner transparent",
+  "create-select.banner.tokens": "text banner transparent marquee",
   "create-select.voxmoji.title": "Voxmoji",
   "create-select.voxmoji.tag": "div",
   "create-select.voxmoji.description": "Create a floating 3D Emoji.",
