@@ -328,7 +328,9 @@ const updateDomElForEl = (domEl, el) => {
     const transform = posRotScaleToCssTransform(tmpPos, tmpQuat, tmpScale);
 
     if (transform) {
-      const existingTransform = domEl.style.transform;
+      // Hacky, need to use a regex to extract transform from style attribute, since the browser can change it reading from styles.transform (eg rounding to 1)
+      const transformMatch = domEl.getAttribute("style")?.match(/transform: ([^;]*);/);
+      const existingTransform = transformMatch ? transformMatch[1] : null;
 
       if (existingTransform) {
         // Check for epsilon difference to avoid DOM churn

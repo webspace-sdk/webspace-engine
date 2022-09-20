@@ -3,7 +3,9 @@ import { getSpaceIdFromHistory, getHubIdFromHistory } from "./jel-url-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { signString, verifyString } from "../../hubs/utils/crypto";
 import { fromByteArray } from "base64-js";
+import FileWriteback from "../writeback/file-writeback";
 import { META_TAG_PREFIX } from "./dom-utils";
+import Octokat from "octokat";
 
 const OWNER_PUBLIC_KEY_META_TAG_NAME = `${META_TAG_PREFIX}.keys.owner`;
 
@@ -39,284 +41,6 @@ const VALID_PERMISSIONS = {
   [ATOM_TYPES.VOX]: ["view_vox", "edit_vox"]
 };
 
-class GitHubWriteback {
-  constructor(user, repo, token, filename, root = "") {
-    this.user = user;
-    this.repo = repo;
-    this.token = token;
-    this.filename = filename;
-    this.root = root;
-    //58141         const html = prettifyXml(new XMLSerializer().serializeToString(document));
-    //58142         const github = new import_octokat.default({ token: localStorage.getItem("token") });
-    //58143         const repoUser = "gfodor";
-    //58144         const repoName = "gfodor.github.io";
-    //58145         console.log(repoUser, repoName);
-    //58146         const repo = await github.repos(repoUser, repoName);
-    //58147         console.log(repo);
-    //58148         const blob = await repo.git.blobs.create({ content: gBase64.encode(html), encoding: "base64" });
-    //58149         console.log(blob);
-    //58150         const main = await repo.git.refs("heads/master").fetch();
-    //58151         console.log(main);
-    //58152         const tree = await repo.git.trees.create({
-    //  58153           tree: [{ path: "index.html", sha: blob.sha, mode: "100644", type: "blob" }],
-    //  58154           base_tree: main.object.sha
-    //  58155         });
-    //58156         const commit = await repo.git.commits.create({ message: `Update`, tree: tree.sha, parents: [main.object.sha] });
-    //58157         main.update({ sha: commit.sha });
-    //58158         console.log("posted");
-  }
-
-  async write(content, path) {
-    console.log("git write", content, path);
-  }
-}
-
-class FileWriteback {
-  constructor(db, dirHandle = null, pageHandle = null) {
-    this.db = db;
-    this.dirHandle = dirHandle;
-    this.pageHandle = pageHandle;
-    this.isWriting = false;
-    this.isOpening = false;
-    this.blobCache = new Map();
-    this.gitWriteback = new GitHubWriteback(
-      "gfodor",
-      "gfodor.github.io",
-      localStorage.getItem("github-token"),
-      "webspace"
-    );
-  }
-
-  async init() {
-    if (this.dirHandle) {
-      this.dirHandlePerm = await this.dirHandle.queryPermission({ mode: "readwrite" });
-    }
-
-    if (this.pageHandle) {
-      this.pageHandlePerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
-    }
-  }
-
-  get isOpen() {
-    return this.dirHandle && this.pageHandle && this.pageHandlePerm === "granted";
-  }
-
-  get requiresSetup() {
-    return this.pageHandle === null && this.dirHandle === null;
-  }
-
-  async open() {
-    if (this.isOpen) return true;
-
-    while (this.isOpening) {
-      await new Promise(res => setTimeout(res, 250));
-    }
-
-    this.isOpening = true;
-
-    try {
-      if (this.pageHandle) {
-        if (this.pageHandlePerm === "prompt") {
-          await this.pageHandle.requestPermission({ mode: "readwrite" });
-          this.pageHandlePerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
-        }
-      } else {
-        const fileParts = document.location.pathname.split("/");
-
-        const containingDir = decodeURIComponent(fileParts[fileParts.length - 2]);
-        const file = decodeURIComponent(fileParts[fileParts.length - 1]);
-
-        if (!this.dirHandle) {
-          const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-          if (dirHandle.name !== containingDir) return;
-          this.dirHandle = dirHandle;
-          this.dirHandlePerm = await this.dirHandle.queryPermission({ mode: "readwrite" });
-        }
-
-        if (this.dirHandlePerm === "prompt") {
-          await this.dirHandle.requestPermission({ mode: "readwrite" });
-          this.dirHandlePerm = await this.dirHandle.queryPermission({ mode: "readwrite" });
-        }
-
-        this.pageHandle = null;
-
-        for await (const [key, value] of this.dirHandle.entries()) {
-          if (key !== file) continue;
-
-          this.pageHandle = value;
-          this.pageHandlePerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
-          break;
-        }
-      }
-
-      if (this.dirHandle) {
-        const spaceId = await getSpaceIdFromHistory();
-
-        await new Promise(res => {
-          this.db
-            .transaction("space-file-handles", "readwrite")
-            .objectStore("space-file-handles")
-            .put({ space_id: spaceId, dirHandle: this.dirHandle })
-            .addEventListener("success", res);
-        });
-
-        if (this.pageHandle) {
-          await new Promise(res => {
-            this.db
-              .transaction("url-file-handles", "readwrite")
-              .objectStore("url-file-handles")
-              .put({ url: document.location.href, dirHandle: this.dirHandle, pageHandle: this.pageHandle })
-              .addEventListener("success", res);
-          });
-        }
-      }
-
-      return this.isOpen;
-    } finally {
-      this.isOpening = false;
-    }
-  }
-
-  async write(content, path = null) {
-    if (!this.isOpen) return;
-    if (!content || content.length === 0) return;
-
-    while (this.isWriting) {
-      await new Promise(res => setTimeout(res, 100));
-    }
-
-    this.isWriting = true;
-
-    try {
-      let writable;
-
-      // TODO store additional handles for index
-      if (path) {
-        const handle = await this.dirHandle.getFileHandle(path, { create: true });
-        writable = await handle.createWritable();
-      } else {
-        writable = await this.pageHandle.createWritable();
-      }
-
-      await writable.write(content);
-      await writable.close();
-      await this.gitWriteback.write(content, path);
-    } finally {
-      this.isWriting = false;
-    }
-  }
-
-  async close() {
-    while (this.isWriting) {
-      await new Promise(res => setTimeout(res, 100));
-    }
-
-    this.dirHandle = null;
-    this.pageHandle = null;
-    this.open = false;
-  }
-
-  async getHandleForPath(path) {
-    const pathParts = path.split("/");
-    let handle = this.dirHandle;
-
-    while (pathParts.length > 0) {
-      const nextPart = pathParts[0];
-      pathParts.shift();
-
-      if (pathParts.length === 0) {
-        handle = await handle.getFileHandle(nextPart);
-      } else {
-        handle = await handle.getDirectoryHandle(nextPart);
-      }
-
-      if (!handle) return null;
-    }
-
-    return handle;
-  }
-
-  async fileExists(path) {
-    const pathParts = path.split("/");
-    let handle = this.dirHandle;
-
-    while (pathParts.length > 0) {
-      const nextPart = pathParts[0];
-      pathParts.shift();
-
-      if (pathParts.length === 0) {
-        try {
-          await handle.getFileHandle(nextPart);
-          return true;
-        } catch (e) {
-          return false;
-        }
-      } else {
-        handle = await handle.getDirectoryHandle(nextPart);
-      }
-
-      if (!handle) return false;
-    }
-
-    return false;
-  }
-
-  async directoryExists(path) {
-    const pathParts = path.split("/");
-    let handle = this.dirHandle;
-
-    while (pathParts.length > 0) {
-      const nextPart = pathParts[0];
-      pathParts.shift();
-      handle = await handle.getDirectoryHandle(nextPart);
-      if (!handle) return false;
-    }
-
-    return true;
-  }
-
-  async contentUrlForRelativePath(path) {
-    if (this.blobCache.has(path)) {
-      return this.blobCache.get(path);
-    }
-
-    const handle = await this.getHandleForPath(path);
-
-    if (handle) {
-      const blobUrl = URL.createObjectURL(await handle.getFile());
-      this.blobCache.set(path, blobUrl);
-      return blobUrl;
-    } else {
-      return null;
-    }
-  }
-
-  async uploadAsset(fileOrBlob) {
-    const assetsHandle = await this.dirHandle.getDirectoryHandle("assets", { create: true });
-
-    let fileName = null;
-    const contentType = fileOrBlob.type || "application/octet-stream";
-
-    if (fileOrBlob instanceof File) {
-      fileName = fileOrBlob.name;
-    } else {
-      const fileExtension = fileOrBlob.type.split("/")[1];
-
-      // choose a filename with a random string
-      fileName = `${Math.random()
-        .toString(36)
-        .substring(2, 15)}.${fileExtension}`;
-    }
-
-    const fileHandle = await assetsHandle.getFileHandle(fileName, { create: true });
-    const writable = await fileHandle.createWritable();
-    await writable.write(fileOrBlob);
-    await writable.close();
-
-    return { url: `assets/${encodeURIComponent(fileName)}`, contentType };
-  }
-}
-
 const prettifyXml = sourceXml => {
   const xmlDoc = new DOMParser().parseFromString(sourceXml, "application/xml");
   const xsltDoc = new DOMParser().parseFromString(
@@ -344,7 +68,7 @@ const prettifyXml = sourceXml => {
   return resultXml;
 };
 
-const MAX_WRITE_RATE_MS = 1000;
+const MAX_WRITE_RATE_MS = 10000;
 
 export default class AtomAccessManager extends EventTarget {
   constructor() {
@@ -376,30 +100,79 @@ export default class AtomAccessManager extends EventTarget {
       // spawned via an invite.
     }
 
-    this.mutationObserver = new MutationObserver(arr => {
-      if (!this.writeback) return;
-      let isWriting = false;
+    let isWriting = false;
 
-      const write = async () => {
-        if (isWriting) return;
-
-        isWriting = true;
-        this.writeDocument(document);
-        isWriting = false;
-
-        this.lastWriteTime = Date.now();
-
-        if (this.writeTimeout) {
-          clearTimeout(this.writeTimeout);
-          this.writeTimeout = null;
-        }
-      };
-
-      if (this.lastWriteTime && Date.now() - this.lastWriteTime < MAX_WRITE_RATE_MS) {
-        if (!this.writeTimeout) {
+    const write = async () => {
+      if (isWriting) {
+        if (this.writeTimeout === null) {
           this.writeTimeout = setTimeout(write, MAX_WRITE_RATE_MS);
         }
-      } else if (!this.writeTimeout) {
+
+        return;
+      }
+
+      isWriting = true;
+      try {
+        await this.writeDocument(document);
+      } finally {
+        isWriting = false;
+      }
+
+      this.lastWriteTime = Date.now();
+
+      if (this.writeTimeout) {
+        clearTimeout(this.writeTimeout);
+        this.writeTimeout = null;
+      }
+    };
+
+    this.mutationObserver = new MutationObserver(arr => {
+      // Deal with mutations we ignore. <style> tags from styled-components is one.
+      let sawUnignoredRecord = false;
+
+      for (const record of arr) {
+        if (record.type === "attributes" || record.type === "characterData" || record.addedNodes.length > 0) {
+          sawUnignoredRecord = true;
+          break;
+        }
+
+        let ignoredStyleCount = 0;
+
+        for (const node of record.removedNodes) {
+          if (
+            node.nodeType === Node.ELEMENT_NODE &&
+            node.tagName === "STYLE" &&
+            typeof node.getAttribute("data-styled") === "string"
+          ) {
+            ignoredStyleCount++;
+          }
+        }
+
+        if (ignoredStyleCount !== record.removedNodes.length) {
+          sawUnignoredRecord = true;
+          break;
+        }
+      }
+
+      if (!sawUnignoredRecord) return;
+
+      if (!this.writeback) return;
+
+      if (this.writeTimeout) {
+        clearTimeout(this.writeTimeout);
+      }
+
+      this.writeTimeout = setTimeout(write, MAX_WRITE_RATE_MS);
+    });
+
+    window.addEventListener("beforeunload", e => {
+      if (!this.writeback?.isOpen) return;
+      if (!isWriting && !this.writeTimeout) return;
+
+      e.preventDefault();
+      e.returnValue = "Unsaved changes are still being written. Do you want to leave and lose these changes?";
+
+      if (!isWriting) {
         write();
       }
     });
