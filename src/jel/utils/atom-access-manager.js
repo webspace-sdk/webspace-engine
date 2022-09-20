@@ -4,8 +4,8 @@ import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { signString, verifyString } from "../../hubs/utils/crypto";
 import { fromByteArray } from "base64-js";
 import FileWriteback from "../writeback/file-writeback";
+import GitHubWriteback from "../writeback/github-writeback";
 import { META_TAG_PREFIX } from "./dom-utils";
-import Octokat from "octokat";
 
 const OWNER_PUBLIC_KEY_META_TAG_NAME = `${META_TAG_PREFIX}.keys.owner`;
 
@@ -76,10 +76,10 @@ export default class AtomAccessManager extends EventTarget {
 
     this.publicKeys = new Map();
     this.roles = new Map();
+    this.writeback = null;
 
     this.init();
 
-    this.writeback = null;
     this.lastWriteTime = null;
     this.writeTimeout = null;
 
@@ -88,8 +88,7 @@ export default class AtomAccessManager extends EventTarget {
 
   get isEditingAvailable() {
     if (this.writeback?.isOpen) return false;
-    if (document.location.protocol === "file:") return true;
-    return false;
+    return true;
   }
 
   init() {
@@ -98,6 +97,17 @@ export default class AtomAccessManager extends EventTarget {
 
       // Editing available should be false if this isn't "our" file, and was
       // spawned via an invite.
+    } else {
+      this.writeback = new GitHubWriteback(
+        "gfodor",
+        "gfodor.github.io",
+        localStorage.getItem("github-token"),
+        decodeURIComponent(document.location.pathname.split("/").pop()),
+        "master",
+        "webspace"
+      );
+
+      this.writeback.init();
     }
 
     let isWriting = false;
@@ -348,7 +358,21 @@ export default class AtomAccessManager extends EventTarget {
 
   async uploadAsset(fileOrBlob) {
     if (!(await this.ensureWritebackOpen())) return;
-    return await this.writeback.uploadAsset(fileOrBlob);
+
+    let fileName = null;
+
+    if (fileOrBlob instanceof File) {
+      fileName = fileOrBlob.name;
+    } else {
+      const fileExtension = fileOrBlob.type.split("/")[1];
+
+      // choose a filename with a random string
+      fileName = `${Math.random()
+        .toString(36)
+        .substring(2, 15)}.${fileExtension}`;
+    }
+
+    return await this.writeback.uploadAsset(fileOrBlob, fileName);
   }
 
   setCurrentHubId(hubId) {

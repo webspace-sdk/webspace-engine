@@ -1,5 +1,4 @@
 import { getSpaceIdFromHistory } from "../utils/jel-url-utils";
-import GitHubWriteback from "./github-writeback";
 
 export default class FileWriteback {
   constructor(db, dirHandle = null, pageHandle = null) {
@@ -9,13 +8,6 @@ export default class FileWriteback {
     this.isWriting = false;
     this.isOpening = false;
     this.blobCache = new Map();
-    this.gitWriteback = new GitHubWriteback(
-      "gfodor",
-      "gfodor.github.io",
-      localStorage.getItem("github-token"),
-      decodeURIComponent(document.location.pathname.split("/").pop()),
-      "webspace"
-    );
   }
 
   async init() {
@@ -42,6 +34,8 @@ export default class FileWriteback {
     while (this.isOpening) {
       await new Promise(res => setTimeout(res, 250));
     }
+
+    if (this.isOpen) return true;
 
     this.isOpening = true;
 
@@ -131,7 +125,6 @@ export default class FileWriteback {
 
       await writable.write(content);
       await writable.close();
-      await this.gitWriteback.write(content, path);
     } finally {
       this.isWriting = false;
     }
@@ -145,26 +138,6 @@ export default class FileWriteback {
     this.dirHandle = null;
     this.pageHandle = null;
     this.open = false;
-  }
-
-  async getHandleForPath(path) {
-    const pathParts = path.split("/");
-    let handle = this.dirHandle;
-
-    while (pathParts.length > 0) {
-      const nextPart = pathParts[0];
-      pathParts.shift();
-
-      if (pathParts.length === 0) {
-        handle = await handle.getFileHandle(nextPart);
-      } else {
-        handle = await handle.getDirectoryHandle(nextPart);
-      }
-
-      if (!handle) return null;
-    }
-
-    return handle;
   }
 
   async fileExists(path) {
@@ -192,26 +165,12 @@ export default class FileWriteback {
     return false;
   }
 
-  async directoryExists(path) {
-    const pathParts = path.split("/");
-    let handle = this.dirHandle;
-
-    while (pathParts.length > 0) {
-      const nextPart = pathParts[0];
-      pathParts.shift();
-      handle = await handle.getDirectoryHandle(nextPart);
-      if (!handle) return false;
-    }
-
-    return true;
-  }
-
   async contentUrlForRelativePath(path) {
     if (this.blobCache.has(path)) {
       return this.blobCache.get(path);
     }
 
-    const handle = await this.getHandleForPath(path);
+    const handle = await this._getHandleForPath(path);
 
     if (handle) {
       const blobUrl = URL.createObjectURL(await handle.getFile());
@@ -222,28 +181,35 @@ export default class FileWriteback {
     }
   }
 
-  async uploadAsset(fileOrBlob) {
+  async uploadAsset(fileOrBlob, fileName) {
     const assetsHandle = await this.dirHandle.getDirectoryHandle("assets", { create: true });
 
-    let fileName = null;
     const contentType = fileOrBlob.type || "application/octet-stream";
-
-    if (fileOrBlob instanceof File) {
-      fileName = fileOrBlob.name;
-    } else {
-      const fileExtension = fileOrBlob.type.split("/")[1];
-
-      // choose a filename with a random string
-      fileName = `${Math.random()
-        .toString(36)
-        .substring(2, 15)}.${fileExtension}`;
-    }
-
     const fileHandle = await assetsHandle.getFileHandle(fileName, { create: true });
     const writable = await fileHandle.createWritable();
     await writable.write(fileOrBlob);
     await writable.close();
 
     return { url: `assets/${encodeURIComponent(fileName)}`, contentType };
+  }
+
+  async _getHandleForPath(path) {
+    const pathParts = path.split("/");
+    let handle = this.dirHandle;
+
+    while (pathParts.length > 0) {
+      const nextPart = pathParts[0];
+      pathParts.shift();
+
+      if (pathParts.length === 0) {
+        handle = await handle.getFileHandle(nextPart);
+      } else {
+        handle = await handle.getDirectoryHandle(nextPart);
+      }
+
+      if (!handle) return null;
+    }
+
+    return handle;
   }
 }

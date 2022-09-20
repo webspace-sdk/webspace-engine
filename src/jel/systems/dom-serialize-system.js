@@ -242,7 +242,11 @@ const updateDomElForEl = (domEl, el) => {
 
     if (quill) {
       const html = quill.container.querySelector(".ql-editor").innerHTML;
-      domEl.innerHTML = quillHtmlToWebspaceHtml(html);
+      const newHtml = quillHtmlToWebspaceHtml(html);
+
+      if (domEl.innerHTML.trim() !== newHtml.trim()) {
+        domEl.innerHTML = newHtml;
+      }
 
       // Clean contents cache used for outlining
       domEl.querySelectorAll("[data-contents]").forEach(el => el.removeAttribute("data-contents"));

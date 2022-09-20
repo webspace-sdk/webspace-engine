@@ -111,7 +111,12 @@ class TreeSync extends EventTarget {
     let body = null;
     try {
       const response = await fetch(url);
-      body = await response.text();
+
+      if (response.status === 200) {
+        body = await response.text();
+      } else {
+        body = "<html><body></body></html>";
+      }
     } catch (e) {
       body = "<html><body></body></html>";
     }
