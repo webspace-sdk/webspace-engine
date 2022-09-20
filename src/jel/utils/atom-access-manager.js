@@ -39,6 +39,38 @@ const VALID_PERMISSIONS = {
   [ATOM_TYPES.VOX]: ["view_vox", "edit_vox"]
 };
 
+class GitHubWriteback {
+  constructor(user, repo, token, filename, root = "") {
+    this.user = user;
+    this.repo = repo;
+    this.token = token;
+    this.filename = filename;
+    this.root = root;
+    //58141         const html = prettifyXml(new XMLSerializer().serializeToString(document));
+    //58142         const github = new import_octokat.default({ token: localStorage.getItem("token") });
+    //58143         const repoUser = "gfodor";
+    //58144         const repoName = "gfodor.github.io";
+    //58145         console.log(repoUser, repoName);
+    //58146         const repo = await github.repos(repoUser, repoName);
+    //58147         console.log(repo);
+    //58148         const blob = await repo.git.blobs.create({ content: gBase64.encode(html), encoding: "base64" });
+    //58149         console.log(blob);
+    //58150         const main = await repo.git.refs("heads/master").fetch();
+    //58151         console.log(main);
+    //58152         const tree = await repo.git.trees.create({
+    //  58153           tree: [{ path: "index.html", sha: blob.sha, mode: "100644", type: "blob" }],
+    //  58154           base_tree: main.object.sha
+    //  58155         });
+    //58156         const commit = await repo.git.commits.create({ message: `Update`, tree: tree.sha, parents: [main.object.sha] });
+    //58157         main.update({ sha: commit.sha });
+    //58158         console.log("posted");
+  }
+
+  async write(content, path) {
+    console.log("git write", content, path);
+  }
+}
+
 class FileWriteback {
   constructor(db, dirHandle = null, pageHandle = null) {
     this.db = db;
@@ -47,6 +79,12 @@ class FileWriteback {
     this.isWriting = false;
     this.isOpening = false;
     this.blobCache = new Map();
+    this.gitWriteback = new GitHubWriteback(
+      "gfodor",
+      "gfodor.github.io",
+      localStorage.getItem("github-token"),
+      "webspace"
+    );
   }
 
   async init() {
@@ -162,6 +200,7 @@ class FileWriteback {
 
       await writable.write(content);
       await writable.close();
+      await this.gitWriteback.write(content, path);
     } finally {
       this.isWriting = false;
     }
@@ -337,7 +376,7 @@ export default class AtomAccessManager extends EventTarget {
       // spawned via an invite.
     }
 
-    this.mutationObserver = new MutationObserver(() => {
+    this.mutationObserver = new MutationObserver(arr => {
       if (!this.writeback) return;
       let isWriting = false;
 

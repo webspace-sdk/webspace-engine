@@ -344,8 +344,8 @@ export function almostEqual(a, b, epsilon = 0.01) {
 export function almostEqualVec3(a, b, epsilon = 0.01) {
   return almostEqual(a.x, b.x, epsilon) && almostEqual(a.y, b.y, epsilon) && almostEqual(a.z, b.z, epsilon);
 }
-export function almostEqualQuaternion(a, b) {
-  return Math.abs(a.dot(b) - 1.0) < 0.000001;
+export function almostEqualQuaternion(a, b, dotEpsilon = 0.000001) {
+  return Math.abs(a.dot(b) - 1.0) < dotEpsilon;
 }
 
 export const affixToWorldUp = (function() {

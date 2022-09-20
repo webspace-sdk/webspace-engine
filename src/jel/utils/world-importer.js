@@ -34,36 +34,42 @@ const transformUnitToRadians = s => {
   return 0.0;
 };
 
-export const parseTransformIntoThree = transform => {
-  const pos = new THREE.Vector3(0, 0, 0);
-  const rot = new THREE.Quaternion(0, 0, 0, 1);
-  const scale = new THREE.Vector3(1, 1, 1);
-
+export const parseTransformIntoThree = (transform, pos = null, rot = null, scale = null) => {
   const { translate3d, rotate3d, scale3d } = transformParse(transform);
 
-  if (translate3d) {
-    const x = transformUnitToMeters(translate3d[0]);
-    const z = transformUnitToMeters(translate3d[2]);
-    const y = transformUnitToMeters(translate3d[1]);
-    pos.set(x, y, z);
+  if (pos !== null) {
+    if (translate3d) {
+      const x = transformUnitToMeters(translate3d[0]);
+      const z = transformUnitToMeters(translate3d[2]);
+      const y = transformUnitToMeters(translate3d[1]);
+      pos.set(x, y, z);
+    } else {
+      pos.set(0, 0, 0);
+    }
   }
 
-  if (rotate3d) {
-    const rx = parseFloat(rotate3d[0]);
-    const ry = parseFloat(rotate3d[1]);
-    const rz = parseFloat(rotate3d[2]);
-    const rr = transformUnitToRadians(rotate3d[3]);
-    rot.setFromAxisAngle(new THREE.Vector3(rx, ry, rz), rr);
+  if (rot !== null) {
+    if (rotate3d) {
+      const rx = parseFloat(rotate3d[0]);
+      const ry = parseFloat(rotate3d[1]);
+      const rz = parseFloat(rotate3d[2]);
+      const rr = transformUnitToRadians(rotate3d[3]);
+      rot.setFromAxisAngle(new THREE.Vector3(rx, ry, rz), rr);
+    } else {
+      rot.identity();
+    }
   }
 
-  if (scale3d) {
-    const x = scale3d[0];
-    const y = scale3d[1];
-    const z = scale3d[2];
-    scale.set(x, y, z);
+  if (scale !== null) {
+    if (scale3d) {
+      const x = scale3d[0];
+      const y = scale3d[1];
+      const z = scale3d[2];
+      scale.set(x, y, z);
+    } else {
+      scale.set(1, 1, 1);
+    }
   }
-
-  return [pos, rot, scale];
 };
 
 export default class WorldImporter {
@@ -338,7 +344,10 @@ export default class WorldImporter {
       const object3D = entity.object3D;
 
       if (transform) {
-        const [pos, rot, scale] = parseTransformIntoThree(transform);
+        const pos = new THREE.Vector3();
+        const rot = new THREE.Quaternion();
+        const scale = new THREE.Vector3();
+        parseTransformIntoThree(transform, pos, rot, scale);
         const height = terrainSystem.getTerrainHeightAtWorldCoord(pos.x, pos.z);
         pos.y += height;
 

@@ -457,7 +457,11 @@ export async function getHubMetaFromDOM() {
 
   const defaultColors = WORLD_COLOR_PRESETS[currentHubSeed % WORLD_COLOR_PRESETS.length];
 
-  const [spawnPos, spawnRot] = parseTransformIntoThree(getStringFromMetaTags("environment.spawn_point.transform", ""));
+  const spawnPos = new THREE.Vector3();
+  const spawnRot = new THREE.Quaternion();
+
+  parseTransformIntoThree(getStringFromMetaTags("environment.spawn_point.transform", ""), spawnPos, spawnRot);
+
   return {
     hub_id: currentHubId,
     space_id: currentSpaceId,

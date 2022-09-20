@@ -4,6 +4,7 @@ import { FONT_FACES } from "../utils/quill-utils";
 import { normalizeCoord } from "../systems/wrapped-entity-system";
 import { getCorsProxyUrl } from "../../hubs/utils/media-url-utils";
 import { almostEqualVec3, almostEqualQuaternion } from "../../hubs/utils/three-utils";
+import { parseTransformIntoThree } from "../utils/world-importer";
 import { STACK_AXIS_CSS_NAMES } from "../../hubs/systems/transform-selected-object";
 
 import Color from "color";
@@ -11,6 +12,10 @@ import Color from "color";
 const tmpPos = new THREE.Vector3();
 const tmpQuat = new THREE.Quaternion();
 const tmpScale = new THREE.Vector3();
+
+const tmpPos2 = new THREE.Vector3();
+const tmpQuat2 = new THREE.Quaternion();
+const tmpScale2 = new THREE.Vector3();
 
 const ZERO_POS = new THREE.Vector3(0, 0, 0);
 const ZERO_ROT = new THREE.Quaternion(0, 0, 0, 1);
@@ -99,13 +104,13 @@ export const posRotScaleToCssTransform = (pos, rot, scale) => {
 
   if (rot && !almostEqualQuaternion(rot, ZERO_ROT, 0.0001)) {
     tmpRotConvert.setAxisAngleFromQuaternion(rot);
-    transform += `rotate3d(${tmpRotConvert.x.toFixed(4)}, ${tmpRotConvert.y.toFixed(4)}, ${tmpRotConvert.z.toFixed(
-      4
-    )}, ${tmpRotConvert.w.toFixed(4)}rad) `;
+    transform += `rotate3d(${tmpRotConvert.x.toFixed(3)}, ${tmpRotConvert.y.toFixed(3)}, ${tmpRotConvert.z.toFixed(
+      3
+    )}, ${tmpRotConvert.w.toFixed(3)}rad) `;
   }
 
   if (scale && !almostEqualVec3(scale, ONE_SCALE, 0.001)) {
-    transform += ` scale3D(${scale.x.toFixed(4)}, ${scale.y.toFixed(4)}, ${scale.z.toFixed(4)})`;
+    transform += ` scale3D(${scale.x.toFixed(2)}, ${scale.y.toFixed(2)}, ${scale.z.toFixed(2)})`;
   }
 
   return transform.trim();
@@ -323,7 +328,24 @@ const updateDomElForEl = (domEl, el) => {
     const transform = posRotScaleToCssTransform(tmpPos, tmpQuat, tmpScale);
 
     if (transform) {
-      style += `transform: ${transform}; `;
+      const existingTransform = domEl.style.transform;
+
+      if (existingTransform) {
+        // Check for epsilon difference to avoid DOM churn
+        parseTransformIntoThree(existingTransform, tmpPos2, tmpQuat2, tmpScale2);
+
+        if (
+          !almostEqualVec3(tmpPos, tmpPos2) ||
+          !almostEqualQuaternion(tmpQuat, tmpQuat2, 0.001) ||
+          !almostEqualVec3(tmpScale, tmpScale2)
+        ) {
+          style += `transform: ${transform}; `;
+        } else {
+          style += `transform: ${existingTransform}; `;
+        }
+      } else {
+        style += `transform: ${transform}; `;
+      }
     }
 
     setAttributeIfChanged(domEl, "style", style);
