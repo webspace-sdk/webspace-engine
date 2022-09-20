@@ -356,10 +356,12 @@ export default class AtomAccessManager extends EventTarget {
     return await this.writeback.fileExists(path);
   }
 
-  async uploadAsset(fileOrBlob) {
+  async uploadAsset(fileOrBlob, waitUntilReadable = false) {
     if (!(await this.ensureWritebackOpen())) return;
 
     let fileName = null;
+
+    console.log("start upload");
 
     if (fileOrBlob instanceof File) {
       fileName = fileOrBlob.name;
@@ -372,7 +374,32 @@ export default class AtomAccessManager extends EventTarget {
         .substring(2, 15)}.${fileExtension}`;
     }
 
-    return await this.writeback.uploadAsset(fileOrBlob, fileName);
+    try {
+      console.log("go");
+      const res = await this.writeback.uploadAsset(fileOrBlob, fileName);
+      console.log("wait");
+
+      if (waitUntilReadable) {
+        for (let i = 0; i < 30; i++) {
+          // Try fetching the asset, if it succeeds, we're done.
+          try {
+            const res = await fetch(await this.contentUrlForRelativePath(`assets/${fileName}`));
+
+            if (res.status === 200) {
+              break;
+            }
+          } catch (e) {
+            // Keep trying
+          }
+
+          await new Promise(res => setTimeout(res, 2500));
+        }
+      }
+
+      return res;
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   setCurrentHubId(hubId) {

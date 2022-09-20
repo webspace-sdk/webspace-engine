@@ -166,6 +166,7 @@ export default class GitHubWriteback {
     const commit = await repo.git.commits.create({ message: `Update`, tree: tree.sha, parents: [main.object.sha] });
     console.log("Created commit");
     main.update({ sha: commit.sha });
+    return true;
   }
 
   async close() {}
@@ -183,7 +184,8 @@ export default class GitHubWriteback {
   }
 
   async uploadAsset(fileOrBlob, fileName) {
-    this.write(fileOrBlob, `assets/${fileName}`);
+    await this.write(fileOrBlob, `assets/${fileName}`);
+    return { url: await this.contentUrlForRelativePath(`assets/${fileName}`), contentType: fileOrBlob.type };
   }
 
   async _getTreeForPath(path) {

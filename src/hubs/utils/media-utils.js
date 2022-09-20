@@ -359,7 +359,7 @@ export const preflightUrl = async (parsedUrl, quality = "high") => {
 
 export const upload = fileOrBlob => {
   const { atomAccessManager } = window.APP;
-  return atomAccessManager.uploadAsset(fileOrBlob);
+  return atomAccessManager.uploadAsset(fileOrBlob, true);
 };
 
 // https://stackoverflow.com/questions/7584794/accessing-jpeg-exif-rotation-data-in-javascript-on-the-client-side/32490603#32490603
