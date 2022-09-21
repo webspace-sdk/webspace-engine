@@ -1,5 +1,5 @@
 import { EventTarget } from "event-target-shim";
-import { getSpaceIdFromHistory, getHubIdFromHistory } from "./jel-url-utils";
+import { getHubIdFromHistory } from "./jel-url-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { signString, verifyString } from "../../hubs/utils/crypto";
 import { fromByteArray } from "base64-js";
@@ -8,6 +8,14 @@ import GitHubWriteback from "../writeback/github-writeback";
 import { META_TAG_PREFIX } from "./dom-utils";
 
 const OWNER_PUBLIC_KEY_META_TAG_NAME = `${META_TAG_PREFIX}.keys.owner`;
+
+export const WRITEBACK_ORIGIN_STATE = {
+  UNINITIALIZED: 1,
+  INVALID_CREDENTIALS: 2,
+  INVALID_REPO: 3,
+  INVALID_PATH: 4,
+  VALID: 5
+};
 
 const ATOM_TYPES = {
   HUB: 0,
@@ -107,7 +115,9 @@ export default class AtomAccessManager extends EventTarget {
     }
 
     if (this.writeback) {
-      this.writeback.init();
+      this.writeback.init().then(() => {
+        this.dispatchEvent(new CustomEvent("permissions_updated", {}));
+      });
     }
 
     let isWriting = false;
@@ -235,6 +245,10 @@ export default class AtomAccessManager extends EventTarget {
     }
 
     return result;
+  }
+
+  writebackOriginState() {
+    return this.writeback?.originState || WRITEBACK_ORIGIN_STATE.UNINITIALIZED;
   }
 
   async ensurePublicKeyInMetaTags() {

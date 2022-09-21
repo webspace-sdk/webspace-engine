@@ -1,4 +1,5 @@
 import { getSpaceIdFromHistory } from "../utils/jel-url-utils";
+import { WRITEBACK_ORIGIN_STATE } from "../utils/atom-access-manager";
 
 export default class FileWriteback {
   constructor() {
@@ -7,6 +8,7 @@ export default class FileWriteback {
     this.pageHandle = null;
     this.dirHandle = null;
     this.blobCache = new Map();
+    this.originState = WRITEBACK_ORIGIN_STATE.UNINITIALIZED;
   }
 
   init() {
@@ -18,6 +20,8 @@ export default class FileWriteback {
       if (this.pageHandle) {
         this.pageHandlePerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
       }
+
+      this.originState = this.isOpen ? WRITEBACK_ORIGIN_STATE.VALID : WRITEBACK_ORIGIN_STATE.INVALID_PATH;
     };
 
     return new Promise(res => {
@@ -35,13 +39,7 @@ export default class FileWriteback {
               this.dirHandle = result.dirHandle;
               this.pageHandle = result.pageHandle;
 
-              const currentPerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
-
               await updatePerms();
-
-              if (currentPerm !== "denied") {
-                this.dispatchEvent(new CustomEvent("permissions_updated", {}));
-              }
 
               res();
             } else {
@@ -104,7 +102,11 @@ export default class FileWriteback {
 
         if (!this.dirHandle) {
           const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-          if (dirHandle.name !== containingDir) return;
+          if (dirHandle.name !== containingDir) {
+            this.originState = WRITEBACK_ORIGIN_STATE.INVALID_PATH;
+            return;
+          }
+
           this.dirHandle = dirHandle;
           this.dirHandlePerm = await this.dirHandle.queryPermission({ mode: "readwrite" });
         }
@@ -146,6 +148,8 @@ export default class FileWriteback {
           });
         }
       }
+
+      this.originState = this.isOpen ? WRITEBACK_ORIGIN_STATE.VALID : WRITEBACK_ORIGIN_STATE.INVALID_PATH;
 
       return this.isOpen;
     } finally {

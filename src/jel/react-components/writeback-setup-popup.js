@@ -12,13 +12,18 @@ waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById(
 const WritebackSetupPopup = ({ setPopperElement, styles, attributes, children }) => {
   const { atomAccessManager } = window.APP;
 
-  const [showErrorTip, setShowErrorTip] = useState(false);
+  const [failedOriginState, setFailedOriginState] = useState(null);
 
   const onConfigureClicked = useCallback(
     async e => {
       e.preventDefault();
       const result = await atomAccessManager.openWriteback();
-      setShowErrorTip(!result);
+
+      if (result) {
+        setFailedOriginState(null);
+      } else {
+        setFailedOriginState(atomAccessManager.writebackOriginState());
+      }
 
       if (result) {
         DOM_ROOT.activeElement.blur();
@@ -30,9 +35,11 @@ const WritebackSetupPopup = ({ setPopperElement, styles, attributes, children })
   let contents;
 
   if (document.location.protocol === "file:") {
-    contents = <FolderAccessRequestPanel showErrorTip={showErrorTip} onAccessClicked={onConfigureClicked} />;
+    contents = <FolderAccessRequestPanel failedOriginState={failedOriginState} onAccessClicked={onConfigureClicked} />;
   } else {
-    contents = <OriginAccessConfigurationPanel />;
+    contents = (
+      <OriginAccessConfigurationPanel failedOriginState={failedOriginState} onConnectClick={onConfigureClicked} />
+    );
   }
 
   const popupInput = (

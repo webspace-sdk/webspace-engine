@@ -277,8 +277,11 @@ export default class SceneEntryManager {
     });
 
     document.addEventListener("paste", e => {
-      if (!gatePermission("spawn_and_move_media")) return;
+      if (DOM_ROOT.activeElement?.tagName === "INPUT") return;
       if (isInQuillEditor()) return;
+      e.preventDefault();
+
+      if (!gatePermission("spawn_and_move_media")) return;
       SYSTEMS.pasteSystem.enqueuePaste(e);
     });
 

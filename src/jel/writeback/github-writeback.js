@@ -1,20 +1,13 @@
 import Octokat from "octokat";
 import { fromByteArray } from "base64-js";
-
-const ORIGIN_STATE = {
-  UNINITIALIZED: 1,
-  INVALID_SECRET: 2,
-  INVALID_REPO: 3,
-  INVALID_PATH: 4,
-  VALID: 5
-};
+import { WRITEBACK_ORIGIN_STATE } from "../utils/atom-access-manager";
 
 export default class GitHubWriteback {
   constructor(options = {}) {
     const pathParts = document.location.pathname.split("/");
     this.fileName = pathParts.pop();
     this.root = pathParts.join("/").substring(1);
-    this.originState = ORIGIN_STATE.UNINITIALIZED;
+    this.originState = WRITEBACK_ORIGIN_STATE.UNINITIALIZED;
 
     this.isOpening = false;
     this.isWriting = false;
@@ -39,10 +32,14 @@ export default class GitHubWriteback {
     this.githubRepo = null;
   }
 
-  async init() {}
+  async init() {
+    if (this.secret) {
+      await this.open();
+    }
+  }
 
   get isOpen() {
-    return this.originState === ORIGIN_STATE.VALID;
+    return this.originState === WRITEBACK_ORIGIN_STATE.VALID;
   }
 
   async open() {
@@ -57,7 +54,7 @@ export default class GitHubWriteback {
 
     try {
       if (!this.secret) {
-        this.originState = ORIGIN_STATE.INVALID_SECRET;
+        this.originState = WRITEBACK_ORIGIN_STATE.INVALID_CREDENTIALS;
         return false;
       }
 
@@ -69,9 +66,9 @@ export default class GitHubWriteback {
         await repo.git.refs(`heads/${this.branch}`).fetch();
       } catch (e) {
         if (e.message.indexOf("Bad credentials") !== -1) {
-          this.originState = ORIGIN_STATE.INVALID_SECRET;
+          this.originState = WRITEBACK_ORIGIN_STATE.INVALID_CREDENTIALS;
         } else {
-          this.originState = ORIGIN_STATE.INVALID_REPO;
+          this.originState = WRITEBACK_ORIGIN_STATE.INVALID_REPO;
         }
         return false;
       }
@@ -80,7 +77,7 @@ export default class GitHubWriteback {
       const file = await this._fileForPath(this.filename);
 
       if (!file) {
-        this.originState = ORIGIN_STATE.INVALID_PATH;
+        this.originState = WRITEBACK_ORIGIN_STATE.INVALID_PATH;
         return false;
       }
 
@@ -99,7 +96,7 @@ export default class GitHubWriteback {
       }
 
       if (ids.size === 0) {
-        this.originState = ORIGIN_STATE.VALID;
+        this.originState = WRITEBACK_ORIGIN_STATE.VALID;
         return true;
       }
 
@@ -112,14 +109,14 @@ export default class GitHubWriteback {
       }
 
       if (found) {
-        this.originState = ORIGIN_STATE.VALID;
+        this.originState = WRITEBACK_ORIGIN_STATE.VALID;
         return true;
       } else {
-        this.originState = ORIGIN_STATE.INVALID_PATH;
+        this.originState = WRITEBACK_ORIGIN_STATE.INVALID_PATH;
         return false;
       }
     } catch (e) {
-      this.originState = ORIGIN_STATE.INVALID_SECRET;
+      this.originState = WRITEBACK_ORIGIN_STATE.INVALID_CREDENTIALS;
       return false;
     } finally {
       this.isOpening = false;
@@ -128,7 +125,9 @@ export default class GitHubWriteback {
 
   get requiresSetup() {
     return (
-      !this.secret || this.originState === ORIGIN_STATE.INVALID_SECRET || this.originState === ORIGIN_STATE.INVALID_REPO
+      !this.secret ||
+      this.originState === WRITEBACK_ORIGIN_STATE.INVALID_SECRET ||
+      this.originState === WRITEBACK_ORIGIN_STATE.INVALID_REPO
     );
   }
 

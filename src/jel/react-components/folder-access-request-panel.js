@@ -4,12 +4,12 @@ import { FormattedMessage } from "react-intl";
 import ActionButton from "./action-button";
 import PropTypes from "prop-types";
 
-const FolderAccessRequestPanel = ({ showErrorTip, onAccessClicked }) => {
+const FolderAccessRequestPanel = ({ failedOriginState, onAccessClicked }) => {
   const supported = !!window.showDirectoryPicker;
 
   return (
     <PanelWrap>
-      {!showErrorTip && (
+      {!failedOriginState && (
         <Info>
           <FormattedMessage
             id={supported ? "folder-access-request.notice" : "folder-access-request.unsupported-notice"}
@@ -20,7 +20,7 @@ const FolderAccessRequestPanel = ({ showErrorTip, onAccessClicked }) => {
         <FormattedMessage
           id={
             supported
-              ? showErrorTip
+              ? failedOriginState
                 ? "folder-access-request.error-tip"
                 : "folder-access-request.tip"
               : "folder-access-request.unsupported-tip"
@@ -38,7 +38,7 @@ const FolderAccessRequestPanel = ({ showErrorTip, onAccessClicked }) => {
 
 FolderAccessRequestPanel.propTypes = {
   onAccessClicked: PropTypes.func,
-  showErrorTip: PropTypes.bool
+  failedOriginState: PropTypes.number
 };
 
 export { FolderAccessRequestPanel as default };
