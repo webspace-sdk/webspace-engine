@@ -98,16 +98,24 @@ export default class AtomAccessManager extends EventTarget {
       // Editing available should be false if this isn't "our" file, and was
       // spawned via an invite.
     } else {
+      const pathParts = document.location.pathname.split("/");
+      const fileName = pathParts.pop();
+      const rootPath = pathParts.join("/").substring(1);
+
       this.writeback = new GitHubWriteback(
         "gfodor",
         "gfodor.github.io",
         localStorage.getItem("github-token"),
-        decodeURIComponent(document.location.pathname.split("/").pop()),
+        decodeURIComponent(fileName),
         "master",
-        "webspace"
+        decodeURIComponent(rootPath)
       );
 
-      this.writeback.init();
+      this.writeback.init().then(() => {
+        if (this.writeback.isOpen) {
+          this.dispatchEvent(new CustomEvent("permissions_updated", {}));
+        }
+      });
     }
 
     let isWriting = false;
@@ -273,6 +281,7 @@ export default class AtomAccessManager extends EventTarget {
   }
 
   initFileWriteback() {
+    // TODO move this into file write back init
     const req = indexedDB.open("file-handles", 1);
 
     req.addEventListener("success", ({ target: { result } }) => {

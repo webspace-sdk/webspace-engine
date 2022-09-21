@@ -9,6 +9,8 @@ import { getMessages } from "../../hubs/utils/i18n";
 import { PanelWrap, Tip, TextInputWrap, Input, Info } from "./form-components";
 import SmallActionButton from "./small-action-button";
 
+import LoadingSpinner from "./loading-spinner";
+
 let popupRoot = null;
 waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
@@ -17,6 +19,7 @@ const CreateHubPopup = forwardRef(({ setPopperElement, styles, attributes, onCre
   const [name, setName] = useState("");
   const [filename, setFilename] = useState("");
   const [exists, setExists] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   const popupInput = (
     <div
@@ -35,16 +38,24 @@ const CreateHubPopup = forwardRef(({ setPopperElement, styles, attributes, onCre
             <FormattedMessage id="create-hub-popup.tip" />&nbsp;
           </Tip>
           <form
+            autoComplete="off"
             onSubmit={async e => {
               e.preventDefault();
               e.stopPropagation();
               const { atomAccessManager } = window.APP;
               if (!filename) return;
 
+              setCreating(true);
               const exists = await atomAccessManager.fileExists(filename);
               setExists(exists);
-              if (exists) return;
-              onCreate(name, filename);
+
+              if (exists) {
+                setCreating(false);
+                ref.current.focus();
+                return;
+              }
+
+              await onCreate(name, filename);
             }}
           >
             <TextInputWrap>
@@ -61,6 +72,11 @@ const CreateHubPopup = forwardRef(({ setPopperElement, styles, attributes, onCre
                 onFocus={e => handleTextFieldFocus(e.target)}
                 onBlur={e => handleTextFieldBlur(e.target)}
                 onChange={e => {
+                  if (creating) {
+                    e.preventDefault();
+                    return;
+                  }
+
                   const name = e.target.value;
                   setExists(false);
                   setName(name);
@@ -73,25 +89,35 @@ const CreateHubPopup = forwardRef(({ setPopperElement, styles, attributes, onCre
                 }}
               />
             </TextInputWrap>
-            {exists && (
-              <Tip>
-                <FormattedMessage id="create-hub-popup.exists" />&nbsp;
+            {exists &&
+              !creating && (
+                <Tip style={{ lineHeight: "24px" }}>
+                  <FormattedMessage id="create-hub-popup.exists" />&nbsp;
+                </Tip>
+              )}
+            {!exists &&
+              !creating && (
+                <Tip style={{ lineHeight: "24px" }}>
+                  {name && filename ? (
+                    <span>
+                      <FormattedMessage id="create-hub-popup.dest-prefix" />&nbsp;{filename}
+                    </span>
+                  ) : (
+                    <span>
+                      <FormattedMessage id="create-hub-popup.dest-empty" />
+                    </span>
+                  )}
+                </Tip>
+              )}
+            {creating && (
+              <Tip style={{ lineHeight: "24px" }}>
+                <LoadingSpinner style={{ marginRight: "8px" }} />
+                <span>
+                  <FormattedMessage id="create-hub-popup.waiting-for-deploy" />
+                </span>
               </Tip>
             )}
-            {!exists && (
-              <Tip>
-                {filename ? (
-                  <span>
-                    <FormattedMessage id="create-hub-popup.dest-prefix" />&nbsp;{filename}
-                  </span>
-                ) : (
-                  <span>
-                    <FormattedMessage id="create-hub-popup.dest-empty" />
-                  </span>
-                )}
-              </Tip>
-            )}
-            <SmallActionButton disabled={!filename || !!exists} type="submit">
+            <SmallActionButton disabled={!filename || !!exists || creating} type="submit">
               <FormattedMessage id="create-hub-popup.create-world" />
             </SmallActionButton>
           </form>

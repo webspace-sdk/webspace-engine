@@ -161,7 +161,11 @@ export default class GitHubWriteback {
       tree: [{ path: destPath, sha: blob.sha, mode: "100644", type: "blob" }],
       base_tree: branch.object.sha
     });
-    const commit = await repo.git.commits.create({ message: `Update`, tree: tree.sha, parents: [branch.object.sha] });
+    const commit = await repo.git.commits.create({
+      message: `Update Webspace world ${document.title}`,
+      tree: tree.sha,
+      parents: [branch.object.sha]
+    });
     await branch.update({ sha: commit.sha });
     return true;
   }

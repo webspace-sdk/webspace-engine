@@ -309,6 +309,8 @@
   "create-hub-popup.exists": "A world with this filename already exists.\nTry another name.",
   "create-hub-popup.dest-prefix": "Your world will be created in",
   "create-hub-popup.dest-empty": "Your world will be created in a new HTML file.",
+  "create-hub-popup.dest-prefix": "Your world will be created in",
+  "create-hub-popup.waiting-for-deploy": "Deploying world...",
   "create-hub-popup.create-world": "Create",
   "create-hub-popup.name-validation-warning": "Must be between 3 and 64 characters",
   "bridge.end-call": "Hang up",

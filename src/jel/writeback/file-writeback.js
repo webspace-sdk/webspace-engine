@@ -31,6 +31,8 @@ export default class FileWriteback {
   async open() {
     if (this.isOpen) return true;
 
+    console.trace();
+
     while (this.isOpening) {
       await new Promise(res => setTimeout(res, 250));
     }

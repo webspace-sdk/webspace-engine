@@ -23,6 +23,8 @@ export const Info = styled.div`
 `;
 
 export const Tip = styled.div`
+  display: flex;
+  flex-direction: row;
   color: var(--dialog-tip-text-color);
   font-size: var(--dialog-tip-text-size);
   font-weight: var(--dialog-tip-text-weight);

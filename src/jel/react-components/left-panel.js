@@ -206,13 +206,11 @@ function LeftPanel({
   spaceCan = () => false,
   spaceMetadata,
   hubMetadata,
-  memberships,
   spaceId,
   scene,
   showInviteTip,
   setHasShownInvite,
-  worldTree,
-  worldTreeData
+  worldTree
 }) {
   const { store } = window.APP;
   const [inviteReferenceElement, setInviteReferenceElement] = useState(null);
@@ -223,8 +221,6 @@ function LeftPanel({
   const spaceBannerRef = useRef();
   const createHubButtonRef = useRef();
   const createHubFocusRef = useRef();
-
-  const { spaceChannel } = window.APP;
 
   useEffect(
     () => {
@@ -429,6 +425,14 @@ function LeftPanel({
           const pathParts = url.pathname.split("/");
           pathParts[pathParts.length - 1] = filename;
           url.pathname = pathParts.join("/");
+
+          // Wait until 404 stops before navigating.
+          let res;
+          do {
+            res = await fetch(url.toString());
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          } while (res.status === 404);
+
           document.location = url.toString();
         }}
       />
