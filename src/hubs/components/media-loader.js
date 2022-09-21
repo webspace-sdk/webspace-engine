@@ -329,9 +329,7 @@ AFRAME.registerComponent("media-loader", {
 
   async update(oldData, forceLocalRefresh) {
     const { src, version, contentSubtype, locked, retryIfMissing } = this.data;
-    console.log(this.data, oldData);
     if (!src) return;
-    console.log("retry", retryIfMissing);
 
     const mediaSrcChanged = oldData.src !== src && !!oldData.src;
     const versionChanged = !!(oldData.version && oldData.version !== version);
@@ -395,7 +393,7 @@ AFRAME.registerComponent("media-loader", {
           let preflightResponse;
 
           // Retry for up to a minute
-          for (let i = 0; i < 30; i++) {
+          for (let i = 0; i < 60; i++) {
             try {
               preflightResponse = await preflightUrl(parsedUrl, quality);
 
@@ -421,23 +419,18 @@ AFRAME.registerComponent("media-loader", {
         contentType = guessContentType(src) || contentType;
       }
 
-      console.log("is relative url", isRelativeUrl);
       if (isRelativeUrl) {
-        console.log("in");
         const { atomAccessManager } = window.APP;
         contentUrl = accessibleContentUrl = await atomAccessManager.contentUrlForRelativePath(
           decodeURIComponent(src),
           contentType
         );
 
-        console.log("content url is", contentUrl, accessibleContentUrl, retryIfMissing);
         if (retryIfMissing) {
-          console.log("retrying");
-          // Retry for up to a minute
-          for (let i = 0; i < 30; i++) {
+          // Retry for up to 2 mintues
+          for (let i = 0; i < 60; i++) {
             try {
               const res = await fetch(contentUrl);
-              console.log("got", res.status);
               if (res.status === 200) break;
             } catch (e) {
               // Keep trying

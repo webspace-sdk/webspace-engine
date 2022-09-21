@@ -127,21 +127,23 @@ const updateDomElForEl = (domEl, el) => {
   if (el.components["media-image"]) {
     const imageSrc = el.components["media-image"].data.src;
 
-    // If image and content are different URLs, this is a link.
-    if (
-      !imageSrc.startsWith("data:") &&
-      !imageSrc.startsWith("blob:") &&
-      imageSrc !== src &&
-      imageSrc.replace(`${getCorsProxyUrl()}/`, "") !== src
-    ) {
+    if (domEl.tagName === "A") {
       srcTargetAttribute = "href";
-      removeAttributeIfPresent(domEl, "crossorigin");
     } else {
-      setAttributeIfChanged(domEl, "crossorigin", "anonymous");
-    }
+      if (
+        !imageSrc.startsWith("data:") &&
+        !imageSrc.startsWith("blob:") &&
+        imageSrc !== src &&
+        imageSrc.replace(`${getCorsProxyUrl()}/`, "") !== src
+      ) {
+        removeAttributeIfPresent(domEl, "crossorigin");
+      } else {
+        setAttributeIfChanged(domEl, "crossorigin", "anonymous");
+      }
 
-    // This avoids loading the image as part of having the tag inline.
-    setAttributeIfChanged(domEl, "loading", "lazy");
+      // This avoids loading the image as part of having the tag inline.
+      setAttributeIfChanged(domEl, "loading", "lazy");
+    }
   }
 
   if (el.components["media-pdf"]) {

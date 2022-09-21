@@ -112,28 +112,36 @@ export default class AtomAccessManager extends EventTarget {
 
     let isWriting = false;
 
-    const write = async () => {
-      if (isWriting) {
-        if (this.writeTimeout === null) {
-          this.writeTimeout = setTimeout(write, MAX_WRITE_RATE_MS);
-        }
+    const write = async (immediately = false) => {
+      if (this.writeTimeout) {
+        clearTimeout(this.writeTimeout);
+        this.writeTimeout = null;
+      }
 
-        return;
+      if (isWriting || !this.writeback) {
+        if (immediately) {
+          if (this.writeback) {
+            while (isWriting) {
+              await new Promise(res => setTimeout(res, 100));
+            }
+          } else {
+            return;
+          }
+        } else {
+          this.writeTimeout = setTimeout(write, MAX_WRITE_RATE_MS);
+          return;
+        }
       }
 
       isWriting = true;
       try {
+        console.log("write");
         await this.writeDocument(document);
       } finally {
         isWriting = false;
       }
 
       this.lastWriteTime = Date.now();
-
-      if (this.writeTimeout) {
-        clearTimeout(this.writeTimeout);
-        this.writeTimeout = null;
-      }
     };
 
     this.mutationObserver = new MutationObserver(arr => {
@@ -166,12 +174,11 @@ export default class AtomAccessManager extends EventTarget {
 
       if (!sawUnignoredRecord) return;
 
-      if (!this.writeback) return;
-
       if (this.writeTimeout) {
         clearTimeout(this.writeTimeout);
       }
 
+      console.log("saw change", arr);
       this.writeTimeout = setTimeout(write, MAX_WRITE_RATE_MS);
     });
 
@@ -183,7 +190,7 @@ export default class AtomAccessManager extends EventTarget {
       e.returnValue = "Unsaved changes are still being written. Do you want to leave and lose these changes?";
 
       if (!isWriting) {
-        write();
+        write(true);
       }
     });
 
@@ -366,8 +373,6 @@ export default class AtomAccessManager extends EventTarget {
     if (!(await this.ensureWritebackOpen())) return;
 
     let fileName = null;
-
-    console.log("start upload");
 
     if (fileOrBlob instanceof File) {
       fileName = fileOrBlob.name;

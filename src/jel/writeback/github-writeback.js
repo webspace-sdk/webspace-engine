@@ -44,7 +44,6 @@ export default class GitHubWriteback {
 
     if (this.isOpen) return true;
     this.isOpening = true;
-    console.log("Opening github repo");
 
     try {
       if (!this.token) {
@@ -89,7 +88,7 @@ export default class GitHubWriteback {
         }
       }
 
-      if (ids.length === 0) {
+      if (ids.size === 0) {
         this.originState = ORIGIN_STATE.VALID;
         return true;
       }
@@ -133,8 +132,6 @@ export default class GitHubWriteback {
     while (this.isWriting) {
       await new Promise(res => setTimeout(res, 100));
     }
-    console.log("performing write to github", path);
-
     const repo = this.githubRepo;
 
     let b64 = null;
@@ -154,19 +151,18 @@ export default class GitHubWriteback {
       throw new Error("Invalid content type");
     }
 
-    const blob = await repo.git.blobs.create({ content: b64, encoding: "base64" });
+    const blobPromise = repo.git.blobs.create({ content: b64, encoding: "base64" });
     const destPath = this.getFullTreePathToFile(path || this.filename);
-    console.log("Created blob");
-    const main = await repo.git.refs(`heads/${this.branch || "master"}`).fetch();
-    console.log("Fetched branch");
+    const branch = await repo.git.refs(`heads/${this.branch || "master"}`).fetch();
+
+    const blob = await blobPromise;
+
     const tree = await repo.git.trees.create({
       tree: [{ path: destPath, sha: blob.sha, mode: "100644", type: "blob" }],
-      base_tree: main.object.sha
+      base_tree: branch.object.sha
     });
-    console.log("Created tree");
-    const commit = await repo.git.commits.create({ message: `Update`, tree: tree.sha, parents: [main.object.sha] });
-    console.log("Created commit");
-    main.update({ sha: commit.sha });
+    const commit = await repo.git.commits.create({ message: `Update`, tree: tree.sha, parents: [branch.object.sha] });
+    await branch.update({ sha: commit.sha });
     return true;
   }
 
@@ -193,7 +189,7 @@ export default class GitHubWriteback {
     const blobUrl = URL.createObjectURL(fileOrBlob);
     this.assetBlobCache.set(`assets/${fileName}`, blobUrl);
 
-    return { url: encodeURIComponent(`assets/${fileName}`), contentType: fileOrBlob.type };
+    return { url: `assets/${encodeURIComponent(fileName)}`, contentType: fileOrBlob.type };
   }
 
   async _getTreeForPath(path) {
