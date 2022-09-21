@@ -59,7 +59,9 @@ export async function getSpaceIdFromHistory() {
 }
 
 export function navigateToHubUrl(history, url) {
-  document.location = url;
+  // Performs a dissolve of the UI before navigation.
+  AFRAME.scenes[0].emit("navigating-away");
+  setTimeout(() => (document.location = url), 300);
 }
 
 export async function getSeedForHubIdFromHistory() {

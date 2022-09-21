@@ -323,6 +323,7 @@ function JelUI(props) {
 
   const [hasShownInvite, setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const [isInspecting, setIsInspecting] = useState(cameraSystem.isInspecting());
+  const [isNavigatingAway, setIsNavigatingAway] = useState(false);
 
   const showInviteTip = !!store.state.context.isSpaceCreator && !hasShownInvite;
 
@@ -355,6 +356,14 @@ function JelUI(props) {
     [builderSystem, launcherSystem]
   );
 
+  useEffect(
+    () => {
+      const handler = () => setIsNavigatingAway(true);
+      scene.addEventListener("navigating-away", handler);
+    },
+    [scene]
+  );
+
   useSceneMuteState(scene, setUnmuted);
 
   // Consume tree updates so redraws if user manipulates tree
@@ -376,7 +385,10 @@ function JelUI(props) {
     <StyleSheetManager target={DOM_ROOT}>
       <WrappedIntlProvider>
         <Root className="expand-asset-panel">
-          <LoadingPanel isLoading={!isDoneLoading || !!unavailableReason} unavailableReason={unavailableReason} />
+          <LoadingPanel
+            isLoading={!isDoneLoading || !!unavailableReason || isNavigatingAway}
+            unavailableReason={unavailableReason}
+          />
           <Wrap id="jel-ui-wrap">
             <FadeEdges />
             <CreateSelectPopupRef ref={createSelectPopupRef} />
