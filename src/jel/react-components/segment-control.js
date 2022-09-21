@@ -114,6 +114,15 @@ const SegmentButtonIcon = styled.div`
 
 const SegmentControl = forwardRef((props, ref) => {
   const { small, items, rows, cols, selectedIndices, onChange, hideTips } = props;
+  const filteredProps = { ...props };
+  delete filteredProps.small;
+  delete filteredProps.items;
+  delete filteredProps.rows;
+  delete filteredProps.cols;
+  delete filteredProps.selectedIndices;
+  delete filteredProps.onChange;
+  delete filteredProps.hideTips;
+
   const [tipSource, tipTarget] = useSingleton();
 
   const cssRows = new Array(rows).fill(small ? "20px" : "32px").join(" ");
@@ -153,8 +162,9 @@ const SegmentControl = forwardRef((props, ref) => {
 
   return (
     <SegmentControlElement
+      {...filteredProps}
       ref={ref}
-      style={{ gridTemplateRows: cssRows, gridTemplateColumns: cssCols }}
+      style={{ ...(filteredProps.style || {}), ...{ gridTemplateRows: cssRows, gridTemplateColumns: cssCols } }}
       className={small ? "small" : ""}
     >
       <Tooltip singleton={tipSource} delay={750} />

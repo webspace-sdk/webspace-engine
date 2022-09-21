@@ -398,5 +398,17 @@
   "folder-access-request.error-tip": "This HTML file was not found in the specified folder, choose another.",
   "folder-access-request.choose-folder": "Open Folder Picker",
   "folder-access-request.unsupported-notice": "Your browser doesn't support the Local File System API.",
-  "folder-access-request.unsupported-tip": "To edit this world locally, try Chrome or Edge."
+  "folder-access-request.unsupported-tip": "To edit this world locally, try Chrome or Edge.",
+  "origin-access-config.title": "Web Origin Access",
+  "origin-access-config.info": "Enter credentials to save your changes back to the origin.",
+  "origin-access-config.tip": "These settings are stored locally on your device and won't be shared.",
+  "origin-access-config.github": "GitHub",
+  "origin-access-config.github-tip": "Commit changes to the GitHub repo from where this site is deployed (such as GitHub Pages.)",
+  "origin-access-config.github-user-placeholder": "GitHub Username",
+  "origin-access-config.github-repo-placeholder": "Repo Name",
+  "origin-access-config.github-secret-placeholder": "Personal Access Token",
+  "origin-access-config.github-branch-placeholder": "Branch (Optional)",
+  "origin-access-config.webdav": "WebDAV",
+  "origin-access-config.webdav-tip": "Submit changes via HTTP WebDAV verbs. (POST, PUT, DELETE)",
+  "origin-access-config.save-github": "Connect to GitHub"
 }

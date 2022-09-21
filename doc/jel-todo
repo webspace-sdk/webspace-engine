@@ -4,6 +4,7 @@
 - jel.js -> index.js
 - jel -> ws
 - search for TODO SHARED
+- powered by link
 - bring in avatar audio system
 - ambient sound meta tag
 - drop config system (maybe keep some meta tags)
@@ -37,6 +38,13 @@
 - unsaved changes warning
 - duck should upload glb
 - edit world button should be 'save changes' button
+  - allow spawning and doing stuff and just avoid navigation if unchanged
+  - dirty bit needs to exist on all clients, and flushes broadcast
+  - allow spawning permissions always unless non-owner and explicitly disabled
+  - hide the save button if nothing is dirty
+  - two settings:
+    - allow others to edit and create objects
+    - disable live HTML updates
 - deal with colliding ids
 - labels not working and are clipped
 - folders with spaces

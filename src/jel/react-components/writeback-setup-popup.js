@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import PopupPanelMenu from "./popup-panel-menu";
 import FolderAccessRequestPanel from "./folder-access-request-panel";
+import OriginAccessConfigurationPanel from "./origin-access-configuration-panel";
 
 let popupRoot = null;
 waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
@@ -26,7 +27,13 @@ const WritebackSetupPopup = ({ setPopperElement, styles, attributes, children })
     [atomAccessManager]
   );
 
-  const contents = <FolderAccessRequestPanel showErrorTip={showErrorTip} onAccessClicked={onConfigureClicked} />;
+  let contents;
+
+  if (document.location.protocol === "file:") {
+    contents = <FolderAccessRequestPanel showErrorTip={showErrorTip} onAccessClicked={onConfigureClicked} />;
+  } else {
+    contents = <OriginAccessConfigurationPanel />;
+  }
 
   const popupInput = (
     <div
