@@ -13,14 +13,13 @@ import webdavOnIcon from "../../assets/jel/images/icons/webdav-on.svgi";
 import webdavOffIcon from "../../assets/jel/images/icons/webdav-off.svgi";
 import LoadingSpinner from "./loading-spinner";
 
-const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked }, ref) => {
+const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked, failedOriginState }, ref) => {
   const messages = getMessages();
   const [originType, setOriginType] = useState("github");
   const [user, setUser] = useState("");
   const [repo, setRepo] = useState("");
   const [secret, setSecret] = useState("");
   const [branch, setBranch] = useState("");
-  const [error, setError] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
   const rootRef = useRef();
@@ -69,15 +68,17 @@ const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked }, ref) =>
             <FormattedMessage id="origin-access-config.info" />
           </Info>
           <Tip style={{ lineHeight: "24px" }}>
-            {!confirming && !error && <FormattedMessage id="origin-access-config.tip" />}
-            {confirming &&
-              !error && (
-                <>
-                  <LoadingSpinner style={{ marginRight: "8px" }} />
-                  <FormattedMessage id="origin-access-config.confirming" />
-                </>
+            {!confirming && !failedOriginState && <FormattedMessage id="origin-access-config.tip" />}
+            {confirming && (
+              <>
+                <LoadingSpinner style={{ marginRight: "8px" }} />
+                <FormattedMessage id="origin-access-config.confirming" />
+              </>
+            )}
+            {!confirming &&
+              failedOriginState && (
+                <FormattedMessage id={`origin-access-config.error-${originType}-${failedOriginState}`} />
               )}
-            {!confirming && error && <FormattedMessage id={`origin-access-config.error-${error}`} />}
           </Tip>
           <form
             autoComplete="off"
@@ -86,6 +87,8 @@ const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked }, ref) =>
               e.stopPropagation();
               setConfirming(true);
               rootRef.current.parentNode.parentNode.focus();
+              await onConnectClicked({ type: originType, user, repo, secret, branch });
+              setConfirming(false);
             }}
           >
             <TextInputWrap>
@@ -202,7 +205,8 @@ const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked }, ref) =>
 
 OriginAccessConfigurationPanel.displayName = "OriginAccessConfigurationPanel";
 OriginAccessConfigurationPanel.propTypes = {
-  onConnectclicked: PropTypes.func
+  onConnectClicked: PropTypes.func,
+  failedOriginState: PropTypes.number
 };
 
 export { OriginAccessConfigurationPanel as default };

@@ -5,13 +5,17 @@ import { WRITEBACK_ORIGIN_STATE } from "../utils/atom-access-manager";
 export default class GitHubWriteback {
   constructor(options = {}) {
     const pathParts = document.location.pathname.split("/");
-    this.fileName = pathParts.pop();
-    this.root = pathParts.join("/").substring(1);
+    this.filename = decodeURIComponent(pathParts.pop());
+    this.root = pathParts
+      .map(decodeURIComponent)
+      .join("/")
+      .substring(1);
     this.originState = WRITEBACK_ORIGIN_STATE.UNINITIALIZED;
 
     this.isOpening = false;
     this.isWriting = false;
     this.assetBlobCache = new Map();
+    this.originType = "github";
 
     if (options.user) {
       this.user = options.user;
@@ -42,8 +46,13 @@ export default class GitHubWriteback {
     return this.originState === WRITEBACK_ORIGIN_STATE.VALID;
   }
 
-  async open() {
+  async open(options = {}) {
     if (this.isOpen) return true;
+
+    this.user = options.user || this.user;
+    this.secret = options.secret || this.secret;
+    this.repo = options.repo || this.repo;
+    this.branch = options.branch || this.branch;
 
     while (this.isOpening) {
       await new Promise(res => setTimeout(res, 250));
@@ -61,6 +70,10 @@ export default class GitHubWriteback {
       const github = new Octokat({ token: this.secret });
 
       const repo = await github.repos(this.user, this.repo);
+
+      if (!this.branch) {
+        this.branch = (await repo.fetch()).defaultBranch;
+      }
 
       try {
         await repo.git.refs(`heads/${this.branch}`).fetch();

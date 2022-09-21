@@ -28,7 +28,7 @@ const FolderAccessRequestPanel = ({ failedOriginState, onAccessClicked }) => {
         />
       </Tip>
       {supported && (
-        <ActionButton style={{ minWidth: "calc(100% - 24px)" }} onClick={onAccessClicked}>
+        <ActionButton style={{ minWidth: "calc(100% - 24px)" }} onClick={() => onAccessClicked()}>
           <FormattedMessage id="folder-access-request.choose-folder" />
         </ActionButton>
       )}

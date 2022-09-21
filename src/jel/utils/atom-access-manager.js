@@ -100,24 +100,24 @@ export default class AtomAccessManager extends EventTarget {
   }
 
   init() {
+    let writeback = null;
+
     const { store } = window.APP;
 
     if (document.location.protocol === "file:") {
-      this.writeback = new FileWriteback();
+      writeback = new FileWriteback();
     } else {
       if (store.state.writeback) {
         switch (store.state.writeback.type) {
           case "github":
-            this.writeback = new GitHubWriteback(store.state.writeback);
+            writeback = new GitHubWriteback(store.state.writeback);
             break;
         }
       }
     }
 
-    if (this.writeback) {
-      this.writeback.init().then(() => {
-        this.dispatchEvent(new CustomEvent("permissions_updated", {}));
-      });
+    if (writeback) {
+      this.setAndInitWriteback(writeback);
     }
 
     let isWriting = false;
@@ -223,6 +223,20 @@ export default class AtomAccessManager extends EventTarget {
         this.dispatchEvent(new CustomEvent("permissions_updated", {}));
       });
     });
+  }
+
+  setAndInitWriteback(writeback) {
+    this.writeback = writeback;
+
+    if (this.writeback) {
+      this.writeback.init().then(() => {
+        this.dispatchEvent(new CustomEvent("permissions_updated", {}));
+      });
+    }
+  }
+
+  get writebackOriginType() {
+    return this.writeback?.originType || "none";
   }
 
   get writebackRequiresSetup() {

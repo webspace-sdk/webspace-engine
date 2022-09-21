@@ -9,6 +9,7 @@ export default class FileWriteback {
     this.dirHandle = null;
     this.blobCache = new Map();
     this.originState = WRITEBACK_ORIGIN_STATE.UNINITIALIZED;
+    this.originType = "file";
   }
 
   init() {

@@ -462,6 +462,7 @@ export const SCHEMA = {
     context: { $ref: "#/definitions/context" },
     profile: { $ref: "#/definitions/profile" },
     credentials: { $ref: "#/definitions/credentials" },
+    writeback: { $ref: "#/definitions/writeback" },
     activity: { $ref: "#/definitions/activity" },
     settings: { $ref: "#/definitions/settings" },
     equips: { $ref: "#/definitions/equips" },
