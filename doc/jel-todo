@@ -5,6 +5,7 @@
 - jel -> ws
 - search for TODO SHARED
 - bring in avatar audio system
+- ambient sound meta tag
 - drop config system (maybe keep some meta tags)
 - drop envs in webpack config
 - sessionId -> clientId

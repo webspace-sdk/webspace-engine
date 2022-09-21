@@ -24,8 +24,6 @@ export const getCorsProxyUrl = () => {
 export const isAllowedCorsProxyContentType = contentType => {
   if (window.APP.corsAnywhereUrl) return true; // If a CORS anywhere endpoint has been configured, use it
 
-  // Disallow cors proxying of video through cloudflare
-  // TODO SHARED allow an override here if you are running your own CORS anywhere
   return (
     !contentType.startsWith("video/") &&
     contentType.indexOf(".m3u8") === -1 &&
