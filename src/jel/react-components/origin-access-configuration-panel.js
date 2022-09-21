@@ -1,4 +1,4 @@
-import React, { useState, useCallback, forwardRef } from "react";
+import React, { useState, useCallback, forwardRef, useRef } from "react";
 import { PanelWrap, Info, Tip, TextInputWrap, Input } from "./form-components";
 import PanelSectionHeader from "./panel-section-header";
 import { FormattedMessage } from "react-intl";
@@ -11,103 +11,19 @@ import githubOnIcon from "../../assets/jel/images/icons/github-on.svgi";
 import githubOffIcon from "../../assets/jel/images/icons/github-off.svgi";
 import webdavOnIcon from "../../assets/jel/images/icons/webdav-on.svgi";
 import webdavOffIcon from "../../assets/jel/images/icons/webdav-off.svgi";
+import LoadingSpinner from "./loading-spinner";
 
-//  <Tip>
-//    <FormattedMessage id="create-hub-popup.tip" />&nbsp;
-//  </Tip>
-//  <form
-//    autoComplete="off"
-//    onSubmit={async e => {
-//      e.preventDefault();
-//      e.stopPropagation();
-//      const { atomAccessManager } = window.APP;
-//      if (!filename) return;
-
-//      setCreating(true);
-//      const exists = await atomAccessManager.fileExists(filename);
-//      setExists(exists);
-
-//      if (exists) {
-//        setCreating(false);
-//        ref.current.focus();
-//        return;
-//      }
-
-//      await onCreate(name, filename);
-//    }}
-//  >
-//    <TextInputWrap>
-//      <Input
-//        ref={ref}
-//        type="text"
-//        name="name"
-//        value={name}
-//        required
-//        placeholder={messages["create-hub-popup.name-placeholder"]}
-//        min="3"
-//        max="64"
-//        title={messages["create-hub-popup.name-validation-warning"]}
-//        onFocus={e => handleTextFieldFocus(e.target)}
-//        onBlur={e => handleTextFieldBlur(e.target)}
-//        onChange={e => {
-//          if (creating) {
-//            e.preventDefault();
-//            return;
-//          }
-
-//          const name = e.target.value;
-//          setExists(false);
-//          setName(name);
-//          setFilename(
-//            name
-//              .replace(/ +/g, "-")
-//              .replace(/[^a-z0-9-]/gi, "")
-//              .toLowerCase() + ".html"
-//          );
-//        }}
-//      />
-//    </TextInputWrap>
-//    {exists &&
-//      !creating && (
-//        <Tip style={{ lineHeight: "24px" }}>
-//          <FormattedMessage id="create-hub-popup.exists" />&nbsp;
-//        </Tip>
-//      )}
-//    {!exists &&
-//      !creating && (
-//        <Tip style={{ lineHeight: "24px" }}>
-//          {name && filename ? (
-//            <span>
-//              <FormattedMessage id="create-hub-popup.dest-prefix" />&nbsp;{filename}
-//            </span>
-//          ) : (
-//            <span>
-//              <FormattedMessage id="create-hub-popup.dest-empty" />
-//            </span>
-//          )}
-//        </Tip>
-//      )}
-//    {creating && (
-//      <Tip style={{ lineHeight: "24px" }}>
-//        <LoadingSpinner style={{ marginRight: "8px" }} />
-//        <span>
-//          <FormattedMessage id="create-hub-popup.waiting-for-deploy" />
-//        </span>
-//      </Tip>
-//    )}
-//    <SmallActionButton disabled={!filename || !!exists || creating} type="submit">
-//      <FormattedMessage id="create-hub-popup.create-world" />
-//    </SmallActionButton>
-//  </form>
-
-const OriginAccessConfigurationPanel = forwardRef(({}, ref) => {
+const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked }, ref) => {
   const messages = getMessages();
   const [originType, setOriginType] = useState("github");
   const [user, setUser] = useState("");
   const [repo, setRepo] = useState("");
   const [secret, setSecret] = useState("");
   const [branch, setBranch] = useState("");
+  const [error, setError] = useState(false);
   const [confirming, setConfirming] = useState(false);
+
+  const rootRef = useRef();
 
   const typeToggleOnChange = useCallback(
     () => {
@@ -121,7 +37,7 @@ const OriginAccessConfigurationPanel = forwardRef(({}, ref) => {
   );
 
   return (
-    <PanelWrap>
+    <PanelWrap ref={rootRef}>
       <PanelSectionHeader style={{ whiteSpace: "nowrap", justifyContent: "space-between", width: "100%" }}>
         <div style={{ whiteSpace: "nowrap", marginRight: "24px" }}>
           <FormattedMessage id="origin-access-config.title" />
@@ -152,14 +68,24 @@ const OriginAccessConfigurationPanel = forwardRef(({}, ref) => {
           <Info>
             <FormattedMessage id="origin-access-config.info" />
           </Info>
-          <Tip>
-            <FormattedMessage id="origin-access-config.tip" />
+          <Tip style={{ lineHeight: "24px" }}>
+            {!confirming && !error && <FormattedMessage id="origin-access-config.tip" />}
+            {confirming &&
+              !error && (
+                <>
+                  <LoadingSpinner style={{ marginRight: "8px" }} />
+                  <FormattedMessage id="origin-access-config.confirming" />
+                </>
+              )}
+            {!confirming && error && <FormattedMessage id={`origin-access-config.error-${error}`} />}
           </Tip>
           <form
             autoComplete="off"
             onSubmit={async e => {
               e.preventDefault();
               e.stopPropagation();
+              setConfirming(true);
+              rootRef.current.parentNode.parentNode.focus();
             }}
           >
             <TextInputWrap>
@@ -188,7 +114,7 @@ const OriginAccessConfigurationPanel = forwardRef(({}, ref) => {
               <TextInputWrap>
                 <Input
                   ref={ref}
-                  type="password"
+                  type="hidden"
                   name="secret"
                   value={secret}
                   required
@@ -214,7 +140,7 @@ const OriginAccessConfigurationPanel = forwardRef(({}, ref) => {
                   ref={ref}
                   type="text"
                   name="repo"
-                  value={branch}
+                  value={repo}
                   required
                   placeholder={messages[`origin-access-config.${originType}-repo-placeholder`]}
                   min="3"
@@ -238,8 +164,7 @@ const OriginAccessConfigurationPanel = forwardRef(({}, ref) => {
                   ref={ref}
                   type="text"
                   name="branch"
-                  value={user}
-                  required
+                  value={branch}
                   placeholder={messages[`origin-access-config.${originType}-branch-placeholder`]}
                   min="3"
                   max="64"
@@ -257,7 +182,7 @@ const OriginAccessConfigurationPanel = forwardRef(({}, ref) => {
               </TextInputWrap>
             )}
             <SmallActionButton
-              disabled={!confirming || (originType === "github" && (!user || !repo || !secret))}
+              disabled={confirming || (originType === "github" && (!user || !repo || !secret))}
               type="submit"
             >
               <FormattedMessage id={`origin-access-config.save-${originType}`} />
@@ -275,6 +200,8 @@ const OriginAccessConfigurationPanel = forwardRef(({}, ref) => {
 });
 
 OriginAccessConfigurationPanel.displayName = "OriginAccessConfigurationPanel";
-OriginAccessConfigurationPanel.propTypes = {};
+OriginAccessConfigurationPanel.propTypes = {
+  onConnectclicked: PropTypes.func
+};
 
 export { OriginAccessConfigurationPanel as default };

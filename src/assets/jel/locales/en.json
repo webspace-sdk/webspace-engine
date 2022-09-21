@@ -403,6 +403,7 @@
   "origin-access-config.info": "Enter credentials to save your changes back to the origin.",
   "origin-access-config.tip": "These settings are stored locally on your device and won't be shared.",
   "origin-access-config.github": "GitHub",
+  "origin-access-config.confirming": "Checking credentials...",
   "origin-access-config.github-tip": "Commit changes to the GitHub repo from where this site is deployed (such as GitHub Pages.)",
   "origin-access-config.github-user-placeholder": "GitHub Username",
   "origin-access-config.github-repo-placeholder": "Repo Name",
