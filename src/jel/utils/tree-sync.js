@@ -110,7 +110,7 @@ class TreeSync extends EventTarget {
 
     let body = null;
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { cache: "no-store" });
 
       if (response.status === 200) {
         body = await response.text();
