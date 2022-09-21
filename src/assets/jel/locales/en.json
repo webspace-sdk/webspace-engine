@@ -409,6 +409,7 @@
   "origin-access-config.github-secret-placeholder": "Personal Access Token",
   "origin-access-config.github-branch-placeholder": "Branch (Optional)",
   "origin-access-config.webdav": "WebDAV",
+  "origin-access-config.webdav-soon": "WebDAV support coming soon.",
   "origin-access-config.webdav-tip": "Submit changes via HTTP WebDAV verbs. (POST, PUT, DELETE)",
   "origin-access-config.save-github": "Connect to GitHub"
 }

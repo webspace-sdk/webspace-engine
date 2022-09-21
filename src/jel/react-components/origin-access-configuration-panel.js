@@ -9,8 +9,8 @@ import PropTypes from "prop-types";
 import { getMessages } from "../../hubs/utils/i18n";
 import githubOnIcon from "../../assets/jel/images/icons/github-on.svgi";
 import githubOffIcon from "../../assets/jel/images/icons/github-off.svgi";
-import objectsOnIcon from "../../assets/jel/images/icons/builder-on.svgi";
-import objectsOffIcon from "../../assets/jel/images/icons/builder-off.svgi";
+import webdavOnIcon from "../../assets/jel/images/icons/webdav-on.svgi";
+import webdavOffIcon from "../../assets/jel/images/icons/webdav-off.svgi";
 
 //  <Tip>
 //    <FormattedMessage id="create-hub-popup.tip" />&nbsp;
@@ -139,128 +139,137 @@ const OriginAccessConfigurationPanel = forwardRef(({}, ref) => {
             {
               id: "origin-access-config.webdav",
               text: messages["origin-access-config.webdav"],
-              iconSrc: objectsOnIcon,
-              offIconSrc: objectsOffIcon
+              iconSrc: webdavOnIcon,
+              offIconSrc: webdavOffIcon
             }
           ]}
           selectedIndices={originType === "github" ? [0] : [1]}
           onChange={typeToggleOnChange}
         />
       </PanelSectionHeader>
-      <Info>
-        <FormattedMessage id="origin-access-config.info" />
-      </Info>
-      <Tip>
-        <FormattedMessage id="origin-access-config.tip" />
-      </Tip>
-      <form
-        autoComplete="off"
-        onSubmit={async e => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-      >
-        <TextInputWrap>
-          <Input
-            ref={ref}
-            type="text"
-            name="user"
-            value={user}
-            required
-            placeholder={messages[`origin-access-config.${originType}-user-placeholder`]}
-            min="3"
-            max="64"
-            onFocus={e => handleTextFieldFocus(e.target)}
-            onBlur={e => handleTextFieldBlur(e.target)}
-            onChange={e => {
-              if (confirming) {
-                e.preventDefault();
-                return;
-              }
-
-              setUser(e.target.value);
+      {originType === "github" && (
+        <>
+          <Info>
+            <FormattedMessage id="origin-access-config.info" />
+          </Info>
+          <Tip>
+            <FormattedMessage id="origin-access-config.tip" />
+          </Tip>
+          <form
+            autoComplete="off"
+            onSubmit={async e => {
+              e.preventDefault();
+              e.stopPropagation();
             }}
-          />
-        </TextInputWrap>
-        {originType === "github" && (
-          <TextInputWrap>
-            <Input
-              ref={ref}
-              type="text"
-              name="repo"
-              value={branch}
-              required
-              placeholder={messages[`origin-access-config.${originType}-repo-placeholder`]}
-              min="3"
-              max="64"
-              onFocus={e => handleTextFieldFocus(e.target)}
-              onBlur={e => handleTextFieldBlur(e.target)}
-              onChange={e => {
-                if (confirming) {
-                  e.preventDefault();
-                  return;
-                }
+          >
+            <TextInputWrap>
+              <Input
+                ref={ref}
+                type="text"
+                name="user"
+                value={user}
+                required
+                placeholder={messages[`origin-access-config.${originType}-user-placeholder`]}
+                min="3"
+                max="64"
+                onFocus={e => handleTextFieldFocus(e.target)}
+                onBlur={e => handleTextFieldBlur(e.target)}
+                onChange={e => {
+                  if (confirming) {
+                    e.preventDefault();
+                    return;
+                  }
 
-                setRepo(e.target.value);
-              }}
-            />
-          </TextInputWrap>
-        )}
-        {originType === "github" && (
-          <TextInputWrap>
-            <Input
-              ref={ref}
-              type="password"
-              name="secret"
-              value={secret}
-              required
-              placeholder={messages[`origin-access-config.${originType}-secret-placeholder`]}
-              min="3"
-              max="64"
-              onFocus={e => handleTextFieldFocus(e.target)}
-              onBlur={e => handleTextFieldBlur(e.target)}
-              onChange={e => {
-                if (confirming) {
-                  e.preventDefault();
-                  return;
-                }
+                  setUser(e.target.value);
+                }}
+              />
+            </TextInputWrap>
+            {originType === "github" && (
+              <TextInputWrap>
+                <Input
+                  ref={ref}
+                  type="password"
+                  name="secret"
+                  value={secret}
+                  required
+                  placeholder={messages[`origin-access-config.${originType}-secret-placeholder`]}
+                  min="3"
+                  max="64"
+                  onFocus={e => handleTextFieldFocus(e.target)}
+                  onBlur={e => handleTextFieldBlur(e.target)}
+                  onChange={e => {
+                    if (confirming) {
+                      e.preventDefault();
+                      return;
+                    }
 
-                setSecret(e.target.value);
-              }}
-            />
-          </TextInputWrap>
-        )}
-        {originType === "github" && (
-          <TextInputWrap>
-            <Input
-              ref={ref}
-              type="text"
-              name="branch"
-              value={user}
-              required
-              placeholder={messages[`origin-access-config.${originType}-branch-placeholder`]}
-              min="3"
-              max="64"
-              onFocus={e => handleTextFieldFocus(e.target)}
-              onBlur={e => handleTextFieldBlur(e.target)}
-              onChange={e => {
-                if (confirming) {
-                  e.preventDefault();
-                  return;
-                }
+                    setSecret(e.target.value);
+                  }}
+                />
+              </TextInputWrap>
+            )}
+            {originType === "github" && (
+              <TextInputWrap>
+                <Input
+                  ref={ref}
+                  type="text"
+                  name="repo"
+                  value={branch}
+                  required
+                  placeholder={messages[`origin-access-config.${originType}-repo-placeholder`]}
+                  min="3"
+                  max="64"
+                  onFocus={e => handleTextFieldFocus(e.target)}
+                  onBlur={e => handleTextFieldBlur(e.target)}
+                  onChange={e => {
+                    if (confirming) {
+                      e.preventDefault();
+                      return;
+                    }
 
-                setBranch(e.target.value);
-              }}
-            />
-          </TextInputWrap>
-        )}
-        <SmallActionButton
-          disabled={!confirming || (originType === "github" && (!user || !repo || !secret))}
-          type="submit"
-        >
-          <FormattedMessage id={`origin-access-config.save-${originType}`} />
-        </SmallActionButton>
-      </form>
+                    setRepo(e.target.value);
+                  }}
+                />
+              </TextInputWrap>
+            )}
+            {originType === "github" && (
+              <TextInputWrap>
+                <Input
+                  ref={ref}
+                  type="text"
+                  name="branch"
+                  value={user}
+                  required
+                  placeholder={messages[`origin-access-config.${originType}-branch-placeholder`]}
+                  min="3"
+                  max="64"
+                  onFocus={e => handleTextFieldFocus(e.target)}
+                  onBlur={e => handleTextFieldBlur(e.target)}
+                  onChange={e => {
+                    if (confirming) {
+                      e.preventDefault();
+                      return;
+                    }
+
+                    setBranch(e.target.value);
+                  }}
+                />
+              </TextInputWrap>
+            )}
+            <SmallActionButton
+              disabled={!confirming || (originType === "github" && (!user || !repo || !secret))}
+              type="submit"
+            >
+              <FormattedMessage id={`origin-access-config.save-${originType}`} />
+            </SmallActionButton>
+          </form>
+        </>
+      )}
+      {originType === "webdav" && (
+        <Info>
+          <FormattedMessage id="origin-access-config.webdav-soon" />
+        </Info>
+      )}
     </PanelWrap>
   );
 });
