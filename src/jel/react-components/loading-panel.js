@@ -94,7 +94,9 @@ const LoadingPanel = ({ isLoading, unsupportedMessage, unavailableReason }) => {
   }
 
   return (
-    <LoadingPanelElement className={isLoading || unsupportedMessage || unavailableReason ? "loading" : ""}>
+    <LoadingPanelElement
+      className={isLoading || unsupportedMessage || unavailableReason ? "loading" : "loading-complete"}
+    >
       <SplashWrap>{tipMessage && <Tip>{tipMessage}</Tip>}</SplashWrap>
     </LoadingPanelElement>
   );

@@ -60,8 +60,8 @@ export async function getSpaceIdFromHistory() {
 
 export function navigateToHubUrl(history, url) {
   // Performs a dissolve of the UI before navigation.
-  AFRAME.scenes[0].emit("navigating-away");
-  setTimeout(() => (document.location = url), 300);
+  DOM_ROOT.querySelector(".loading-complete").classList.add("loading");
+  setTimeout(() => (document.location = url), 400);
 }
 
 export async function getSeedForHubIdFromHistory() {
