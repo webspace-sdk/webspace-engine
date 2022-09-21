@@ -174,20 +174,15 @@ export default class GitHubWriteback {
 
   async contentUrlForRelativePath(path) {
     if (this.assetBlobCache.has(path)) {
-      return this.assetBlobCache.get(path);
+      return URL.createObjectURL(this.assetBlobCache.get(path));
     }
 
-    // Get path to the current file in the location
-    const currentPath = document.location.pathname;
-    const currentPathParts = currentPath.split("/");
-    const currentDir = currentPathParts.slice(0, currentPathParts.length - 1).join("/");
-    return `${document.location.origin}${currentDir}/${path}`;
+    return path;
   }
 
   async uploadAsset(fileOrBlob, fileName) {
     await this.write(fileOrBlob, `assets/${fileName}`);
-    const blobUrl = URL.createObjectURL(fileOrBlob);
-    this.assetBlobCache.set(`assets/${fileName}`, blobUrl);
+    this.assetBlobCache.set(`assets/${fileName}`, fileOrBlob);
 
     return { url: `assets/${encodeURIComponent(fileName)}`, contentType: fileOrBlob.type };
   }

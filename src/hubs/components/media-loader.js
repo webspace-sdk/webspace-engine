@@ -44,7 +44,6 @@ AFRAME.registerComponent("media-loader", {
     stackAxis: { default: 0 },
     stackSnapPosition: { default: false },
     stackSnapScale: { default: false },
-    retryIfMissing: { default: false },
     mediaOptions: {
       default: {},
       parse: v => (typeof v === "object" ? v : JSON.parse(v)),
@@ -328,7 +327,7 @@ AFRAME.registerComponent("media-loader", {
   },
 
   async update(oldData, forceLocalRefresh) {
-    const { src, version, contentSubtype, locked, retryIfMissing } = this.data;
+    const { src, version, contentSubtype, locked } = this.data;
     if (!src) return;
 
     const mediaSrcChanged = oldData.src !== src && !!oldData.src;
@@ -389,25 +388,7 @@ AFRAME.registerComponent("media-loader", {
         try {
           const is360 = !!(this.data.mediaOptions.projection && this.data.mediaOptions.projection.startsWith("360"));
           const quality = getDefaultResolveQuality(is360);
-
-          let preflightResponse;
-
-          // Retry for up to a minute
-          for (let i = 0; i < 60; i++) {
-            try {
-              preflightResponse = await preflightUrl(parsedUrl, quality);
-
-              if (preflightResponse.status === 200) {
-                break;
-              }
-            } catch (e) {
-              // Keep trying
-            }
-
-            if (!retryIfMissing) break;
-
-            await new Promise(res => setTimeout(res, 2500));
-          }
+          const preflightResponse = await preflightUrl(parsedUrl, quality);
 
           contentType = preflightResponse.contentType || guessContentType(src) || contentType;
           contentUrl = preflightResponse.contentUrl;
@@ -426,18 +407,16 @@ AFRAME.registerComponent("media-loader", {
           contentType
         );
 
-        if (retryIfMissing) {
-          // Retry for up to 2 mintues
-          for (let i = 0; i < 60; i++) {
-            try {
-              const res = await fetch(contentUrl);
-              if (res.status === 200) break;
-            } catch (e) {
-              // Keep trying
-            }
-
-            await new Promise(res => setTimeout(res, 2500));
+        // Retry if 404 for up to 2 mintues, since origin can have delay in deploying relative assets
+        for (let i = 0; i < 90; i++) {
+          try {
+            const res = await fetch(accessibleContentUrl);
+            if (res.status !== 404) break;
+          } catch (e) {
+            // Keep trying
           }
+
+          await new Promise(res => setTimeout(res, 2500));
         }
       }
 

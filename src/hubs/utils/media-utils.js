@@ -444,8 +444,7 @@ export const addMedia = options => {
     locked: false,
     stackAxis: 0,
     stackSnapPosition: false,
-    stackSnapScale: false,
-    retryIfMissing: false
+    stackSnapScale: false
   };
 
   const {
@@ -467,8 +466,7 @@ export const addMedia = options => {
     locked,
     stackAxis,
     stackSnapPosition,
-    stackSnapScale,
-    retryIfMissing
+    stackSnapScale
   } = { ...defaults, ...options };
 
   const scene = AFRAME.scenes[0];
@@ -534,8 +532,7 @@ export const addMedia = options => {
     locked,
     stackAxis,
     stackSnapPosition,
-    stackSnapScale,
-    retryIfMissing: retryIfMissing || needsToBeUploaded
+    stackSnapScale
   });
 
   if (contents && !isEmoji) {
@@ -750,8 +747,7 @@ export const cloneMedia = (sourceEl, options = {}) => {
     mediaOptions,
     stackAxis,
     stackSnapPosition,
-    stackSnapScale,
-    retryIfMissing
+    stackSnapScale
   } = sourceEl.components["media-loader"].data;
 
   return addMedia({
@@ -766,7 +762,6 @@ export const cloneMedia = (sourceEl, options = {}) => {
       stackAxis,
       stackSnapPosition,
       stackSnapScale,
-      retryIfMissing,
       mediaOptions: { ...mediaOptions, ...extraMediaOptions }
     },
     ...options
