@@ -1,23 +1,74 @@
 import { getSpaceIdFromHistory } from "../utils/jel-url-utils";
 
 export default class FileWriteback {
-  constructor(db, dirHandle = null, pageHandle = null) {
-    this.db = db;
-    this.dirHandle = dirHandle;
-    this.pageHandle = pageHandle;
+  constructor() {
     this.isWriting = false;
     this.isOpening = false;
+    this.pageHandle = null;
+    this.dirHandle = null;
     this.blobCache = new Map();
   }
 
-  async init() {
-    if (this.dirHandle) {
-      this.dirHandlePerm = await this.dirHandle.queryPermission({ mode: "readwrite" });
-    }
+  init() {
+    const updatePerms = async () => {
+      if (this.dirHandle) {
+        this.dirHandlePerm = await this.dirHandle.queryPermission({ mode: "readwrite" });
+      }
 
-    if (this.pageHandle) {
-      this.pageHandlePerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
-    }
+      if (this.pageHandle) {
+        this.pageHandlePerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
+      }
+    };
+
+    return new Promise(res => {
+      const req = indexedDB.open("file-handles", 1);
+
+      req.addEventListener("success", ({ target: { result } }) => {
+        const db = result;
+        this.db = db;
+
+        db.transaction("url-file-handles")
+          .objectStore("url-file-handles")
+          .get(document.location.href)
+          .addEventListener("success", async ({ target: { result } }) => {
+            if (result) {
+              this.dirHandle = result.dirHandle;
+              this.pageHandle = result.pageHandle;
+
+              const currentPerm = await this.pageHandle.queryPermission({ mode: "readwrite" });
+
+              await updatePerms();
+
+              if (currentPerm !== "denied") {
+                this.dispatchEvent(new CustomEvent("permissions_updated", {}));
+              }
+
+              res();
+            } else {
+              // No file handle in db, try to get the dir at least.
+              getSpaceIdFromHistory().then(spaceId => {
+                db.transaction("space-file-handles")
+                  .objectStore("space-file-handles")
+                  .get(spaceId)
+                  .addEventListener("success", async ({ target: { result } }) => {
+                    if (result) {
+                      this.dirHandle = result.dirHandle;
+                    }
+
+                    await updatePerms();
+
+                    res();
+                  });
+              });
+            }
+          });
+      });
+
+      req.addEventListener("upgradeneeded", ({ target: { result: db } }) => {
+        db.createObjectStore("space-file-handles", { keyPath: "space_id" });
+        db.createObjectStore("url-file-handles", { keyPath: "url" });
+      });
+    });
   }
 
   get isOpen() {
@@ -30,8 +81,6 @@ export default class FileWriteback {
 
   async open() {
     if (this.isOpen) return true;
-
-    console.trace();
 
     while (this.isOpening) {
       await new Promise(res => setTimeout(res, 250));

@@ -92,30 +92,22 @@ export default class AtomAccessManager extends EventTarget {
   }
 
   init() {
+    const { store } = window.APP;
+
     if (document.location.protocol === "file:") {
-      this.initFileWriteback();
-
-      // Editing available should be false if this isn't "our" file, and was
-      // spawned via an invite.
+      this.writeback = new FileWriteback();
     } else {
-      const pathParts = document.location.pathname.split("/");
-      const fileName = pathParts.pop();
-      const rootPath = pathParts.join("/").substring(1);
-
-      this.writeback = new GitHubWriteback(
-        "gfodor",
-        "gfodor.github.io",
-        localStorage.getItem("github-token"),
-        decodeURIComponent(fileName),
-        "master",
-        decodeURIComponent(rootPath)
-      );
-
-      this.writeback.init().then(() => {
-        if (this.writeback.isOpen) {
-          this.dispatchEvent(new CustomEvent("permissions_updated", {}));
+      if (store.state.writeback) {
+        switch (store.state.writeback.type) {
+          case "github":
+            this.writeback = new GitHubWriteback(store.state.writeback);
+            break;
         }
-      });
+      }
+    }
+
+    if (this.writeback) {
+      this.writeback.init();
     }
 
     let isWriting = false;
@@ -227,9 +219,10 @@ export default class AtomAccessManager extends EventTarget {
     return !this.writeback || this.writeback.requiresSetup;
   }
 
-  async openWriteback() {
-    if (this.writeback.isOpen) return;
-    const result = await this.writeback.open();
+  async openWriteback(options = {}) {
+    if (this.writeback?.isOpen) return true;
+
+    const result = await this.writeback.open(options);
 
     if (result) {
       this.dispatchEvent(new CustomEvent("permissions_updated", {}));
@@ -278,54 +271,6 @@ export default class AtomAccessManager extends EventTarget {
     }
 
     await this.updateRoles();
-  }
-
-  initFileWriteback() {
-    // TODO move this into file write back init
-    const req = indexedDB.open("file-handles", 1);
-
-    req.addEventListener("success", ({ target: { result } }) => {
-      const db = result;
-
-      db.transaction("url-file-handles")
-        .objectStore("url-file-handles")
-        .get(document.location.href)
-        .addEventListener("success", async ({ target: { result } }) => {
-          if (result) {
-            const { dirHandle, pageHandle } = result;
-            const currentPerm = await pageHandle.queryPermission({ mode: "readwrite" });
-
-            this.writeback = new FileWriteback(db, dirHandle, pageHandle);
-            await this.writeback.init();
-
-            if (currentPerm !== "denied") {
-              this.dispatchEvent(new CustomEvent("permissions_updated", {}));
-            }
-          } else {
-            // No file handle in db, try to get the dir at least.
-            getSpaceIdFromHistory().then(spaceId => {
-              db.transaction("space-file-handles")
-                .objectStore("space-file-handles")
-                .get(spaceId)
-                .addEventListener("success", async ({ target: { result } }) => {
-                  if (result) {
-                    const dirHandle = result.dirHandle;
-                    this.writeback = new FileWriteback(db, dirHandle);
-                  } else {
-                    this.writeback = new FileWriteback(db);
-                  }
-
-                  await this.writeback.init();
-                });
-            });
-          }
-        });
-    });
-
-    req.addEventListener("upgradeneeded", ({ target: { result: db } }) => {
-      db.createObjectStore("space-file-handles", { keyPath: "space_id" });
-      db.createObjectStore("url-file-handles", { keyPath: "url" });
-    });
   }
 
   async ensureWritebackOpen(refreshAfterOpen = false) {

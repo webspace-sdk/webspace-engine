@@ -114,7 +114,8 @@ const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked }, ref) =>
               <TextInputWrap>
                 <Input
                   ref={ref}
-                  type="hidden"
+                  autocomplete="off"
+                  type="password"
                   name="secret"
                   value={secret}
                   required

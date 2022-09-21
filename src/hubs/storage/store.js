@@ -197,6 +197,18 @@ export const SCHEMA = {
       }
     },
 
+    writeback: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        type: { type: "string" },
+        user: { type: "string" },
+        secret: { type: "string" },
+        repo: { type: "string" },
+        branch: { type: "string" }
+      }
+    },
+
     activity: {
       type: "object",
       additionalProperties: false,

@@ -3,33 +3,43 @@ import { fromByteArray } from "base64-js";
 
 const ORIGIN_STATE = {
   UNINITIALIZED: 1,
-  INVALID_TOKEN: 2,
+  INVALID_SECRET: 2,
   INVALID_REPO: 3,
   INVALID_PATH: 4,
   VALID: 5
 };
 
 export default class GitHubWriteback {
-  constructor(user, repo, token, filename, branch = "master", root = "") {
-    this.user = user;
-    this.repo = repo;
-    this.token = token;
-    this.filename = filename;
-    this.branch = branch;
-    this.root = root;
+  constructor(options = {}) {
+    const pathParts = document.location.pathname.split("/");
+    this.fileName = pathParts.pop();
+    this.root = pathParts.join("/").substring(1);
     this.originState = ORIGIN_STATE.UNINITIALIZED;
+
     this.isOpening = false;
     this.isWriting = false;
     this.assetBlobCache = new Map();
 
+    if (options.user) {
+      this.user = options.user;
+    }
+
+    if (options.repo) {
+      this.repo = options.repo;
+    }
+
+    if (options.secret) {
+      this.secret = options.secret;
+    }
+
+    if (options.branch) {
+      this.branch = options.branch;
+    }
+
     this.githubRepo = null;
   }
 
-  async init() {
-    if (this.token) {
-      await this.open();
-    }
-  }
+  async init() {}
 
   get isOpen() {
     return this.originState === ORIGIN_STATE.VALID;
@@ -46,12 +56,12 @@ export default class GitHubWriteback {
     this.isOpening = true;
 
     try {
-      if (!this.token) {
-        this.originState = ORIGIN_STATE.INVALID_TOKEN;
+      if (!this.secret) {
+        this.originState = ORIGIN_STATE.INVALID_SECRET;
         return false;
       }
 
-      const github = new Octokat({ token: this.token });
+      const github = new Octokat({ token: this.secret });
 
       const repo = await github.repos(this.user, this.repo);
 
@@ -59,7 +69,7 @@ export default class GitHubWriteback {
         await repo.git.refs(`heads/${this.branch}`).fetch();
       } catch (e) {
         if (e.message.indexOf("Bad credentials") !== -1) {
-          this.originState = ORIGIN_STATE.INVALID_TOKEN;
+          this.originState = ORIGIN_STATE.INVALID_SECRET;
         } else {
           this.originState = ORIGIN_STATE.INVALID_REPO;
         }
@@ -109,7 +119,7 @@ export default class GitHubWriteback {
         return false;
       }
     } catch (e) {
-      this.originState = ORIGIN_STATE.INVALID_TOKEN;
+      this.originState = ORIGIN_STATE.INVALID_SECRET;
       return false;
     } finally {
       this.isOpening = false;
@@ -118,7 +128,7 @@ export default class GitHubWriteback {
 
   get requiresSetup() {
     return (
-      !this.token || this.originState === ORIGIN_STATE.INVALID_TOKEN || this.originState === ORIGIN_STATE.INVALID_REPO
+      !this.secret || this.originState === ORIGIN_STATE.INVALID_SECRET || this.originState === ORIGIN_STATE.INVALID_REPO
     );
   }
 
