@@ -333,9 +333,15 @@ export default class AtomAccessManager extends EventTarget {
   }
 
   async contentUrlForRelativePath(path) {
-    if (document.location.protocol !== "file:") return path;
-    if (!(await this.ensureWritebackOpen(true))) return;
-    return await this.writeback.contentUrlForRelativePath(path);
+    if (document.location.protocol === "file:") {
+      if (!(await this.ensureWritebackOpen(true))) return;
+    }
+
+    if (this.writeback?.isOpen) {
+      return await this.writeback.contentUrlForRelativePath(path);
+    } else {
+      return path;
+    }
   }
 
   async writeDocument(document, path = null) {
@@ -356,7 +362,7 @@ export default class AtomAccessManager extends EventTarget {
     return await this.writeback.fileExists(path);
   }
 
-  async uploadAsset(fileOrBlob, waitUntilReadable = false) {
+  async uploadAsset(fileOrBlob) {
     if (!(await this.ensureWritebackOpen())) return;
 
     let fileName = null;
@@ -374,32 +380,7 @@ export default class AtomAccessManager extends EventTarget {
         .substring(2, 15)}.${fileExtension}`;
     }
 
-    try {
-      console.log("go");
-      const res = await this.writeback.uploadAsset(fileOrBlob, fileName);
-      console.log("wait");
-
-      if (waitUntilReadable) {
-        for (let i = 0; i < 30; i++) {
-          // Try fetching the asset, if it succeeds, we're done.
-          try {
-            const res = await fetch(await this.contentUrlForRelativePath(`assets/${fileName}`));
-
-            if (res.status === 200) {
-              break;
-            }
-          } catch (e) {
-            // Keep trying
-          }
-
-          await new Promise(res => setTimeout(res, 2500));
-        }
-      }
-
-      return res;
-    } catch (e) {
-      console.error(e);
-    }
+    return await this.writeback.uploadAsset(fileOrBlob, fileName);
   }
 
   setCurrentHubId(hubId) {

@@ -20,6 +20,7 @@ export default class GitHubWriteback {
     this.originState = ORIGIN_STATE.UNINITIALIZED;
     this.isOpening = false;
     this.isWriting = false;
+    this.assetBlobCache = new Map();
 
     this.githubRepo = null;
   }
@@ -176,16 +177,23 @@ export default class GitHubWriteback {
   }
 
   async contentUrlForRelativePath(path) {
+    if (this.assetBlobCache.has(path)) {
+      return this.assetBlobCache.get(path);
+    }
+
     // Get path to the current file in the location
     const currentPath = document.location.pathname;
     const currentPathParts = currentPath.split("/");
     const currentDir = currentPathParts.slice(0, currentPathParts.length - 1).join("/");
-    return `${document.location.origin}${currentDir ? `/${currentDir}` : ""}/${path}`;
+    return `${document.location.origin}${currentDir}/${path}`;
   }
 
   async uploadAsset(fileOrBlob, fileName) {
     await this.write(fileOrBlob, `assets/${fileName}`);
-    return { url: await this.contentUrlForRelativePath(`assets/${fileName}`), contentType: fileOrBlob.type };
+    const blobUrl = URL.createObjectURL(fileOrBlob);
+    this.assetBlobCache.set(`assets/${fileName}`, blobUrl);
+
+    return { url: encodeURIComponent(`assets/${fileName}`), contentType: fileOrBlob.type };
   }
 
   async _getTreeForPath(path) {

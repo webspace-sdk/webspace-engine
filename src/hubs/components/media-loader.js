@@ -44,6 +44,7 @@ AFRAME.registerComponent("media-loader", {
     stackAxis: { default: 0 },
     stackSnapPosition: { default: false },
     stackSnapScale: { default: false },
+    retryIfMissing: { default: false },
     mediaOptions: {
       default: {},
       parse: v => (typeof v === "object" ? v : JSON.parse(v)),
@@ -327,8 +328,10 @@ AFRAME.registerComponent("media-loader", {
   },
 
   async update(oldData, forceLocalRefresh) {
-    const { src, version, contentSubtype, locked } = this.data;
+    const { src, version, contentSubtype, locked, retryIfMissing } = this.data;
+    console.log(this.data, oldData);
     if (!src) return;
+    console.log("retry", retryIfMissing);
 
     const mediaSrcChanged = oldData.src !== src && !!oldData.src;
     const versionChanged = !!(oldData.version && oldData.version !== version);
@@ -389,7 +392,25 @@ AFRAME.registerComponent("media-loader", {
           const is360 = !!(this.data.mediaOptions.projection && this.data.mediaOptions.projection.startsWith("360"));
           const quality = getDefaultResolveQuality(is360);
 
-          const preflightResponse = await preflightUrl(parsedUrl, quality);
+          let preflightResponse;
+
+          // Retry for up to a minute
+          for (let i = 0; i < 30; i++) {
+            try {
+              preflightResponse = await preflightUrl(parsedUrl, quality);
+
+              if (preflightResponse.status === 200) {
+                break;
+              }
+            } catch (e) {
+              // Keep trying
+            }
+
+            if (!retryIfMissing) break;
+
+            await new Promise(res => setTimeout(res, 2500));
+          }
+
           contentType = preflightResponse.contentType || guessContentType(src) || contentType;
           contentUrl = preflightResponse.contentUrl;
           accessibleContentUrl = preflightResponse.accessibleContentUrl;
@@ -400,12 +421,31 @@ AFRAME.registerComponent("media-loader", {
         contentType = guessContentType(src) || contentType;
       }
 
+      console.log("is relative url", isRelativeUrl);
       if (isRelativeUrl) {
+        console.log("in");
         const { atomAccessManager } = window.APP;
         contentUrl = accessibleContentUrl = await atomAccessManager.contentUrlForRelativePath(
           decodeURIComponent(src),
           contentType
         );
+
+        console.log("content url is", contentUrl, accessibleContentUrl, retryIfMissing);
+        if (retryIfMissing) {
+          console.log("retrying");
+          // Retry for up to a minute
+          for (let i = 0; i < 30; i++) {
+            try {
+              const res = await fetch(contentUrl);
+              console.log("got", res.status);
+              if (res.status === 200) break;
+            } catch (e) {
+              // Keep trying
+            }
+
+            await new Promise(res => setTimeout(res, 2500));
+          }
+        }
       }
 
       // TODO we should probably just never return "application/octet-stream" as expectedContentType, since its not really useful

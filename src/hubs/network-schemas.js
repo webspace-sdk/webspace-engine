@@ -193,6 +193,10 @@ function registerNetworkSchemas() {
       {
         component: "media-pdf",
         property: "pagable"
+      },
+      {
+        component: "media-loader",
+        property: "retryIfMissing"
       }
     ],
     nonAuthorizedComponents: [
