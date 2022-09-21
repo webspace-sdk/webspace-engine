@@ -833,7 +833,7 @@ function addMissingDefaultHtml() {
   if (headStyleTagBody) {
     // img's are hidden too, to avoid browser fetch with loading="lazy"
     const styleTag = document.createElement("style");
-    styleTag.innerText = `body { ${headStyleTagBody.trim()} } img { display: none; }`;
+    styleTag.innerText = `body * { display: none; } body { ${headStyleTagBody.trim()} }`;
     document.head.appendChild(styleTag);
   }
 
