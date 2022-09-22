@@ -148,8 +148,10 @@ export class SkyBeamSystem {
     this.sourceToIndex.delete(source);
     source.matrixNeedsUpdate = true; // Ensure matrix dirty
 
-    if (i === this.maxRegisteredIndex) {
-      this.maxRegisteredIndex--;
+    if (this.maxRegisteredIndex === i) {
+      do {
+        this.maxRegisteredIndex--;
+      } while (this.maxRegisteredIndex >= 0 && this.beamSources[this.maxRegisteredIndex] === null);
     }
   }
 

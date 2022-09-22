@@ -149,6 +149,7 @@ export default class AtomAccessManager extends EventTarget {
       isWriting = true;
       try {
         if (this.isMasterWriter()) {
+          console.log("write");
           await this.writeDocument(document);
         }
       } finally {
@@ -522,6 +523,8 @@ export default class AtomAccessManager extends EventTarget {
 
   // Returns true if there's another peer in presence that we know is writing.
   hasAnotherWriterInPresence() {
+    if (!NAF.connection.presence?.states) return false;
+
     for (const [, presence] of NAF.connection.presence.states) {
       const clientId = presence.client_id;
       if (clientId !== NAF.clientId && presence.writer && this.roles.get(clientId) === ROLES.OWNER) {

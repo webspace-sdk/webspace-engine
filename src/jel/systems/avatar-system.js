@@ -269,7 +269,9 @@ export class AvatarSystem {
     }
 
     if (this.maxRegisteredIndex === i) {
-      this.maxRegisteredIndex--;
+      do {
+        this.maxRegisteredIndex--;
+      } while (this.maxRegisteredIndex >= 0 && this.avatarEls[this.maxRegisteredIndex] === null);
     }
   }
 

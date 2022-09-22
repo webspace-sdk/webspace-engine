@@ -38,11 +38,12 @@
 - unsaved changes warning
 - duck should upload glb
 - edit world button should be 'save changes' button
-  - dirty bit needs to exist on all clients, and flushes broadcast
   - two settings:
     - allow others to edit and create objects
     - disable live HTML updates
-  - todo: broadcast dirty bit, don't show save button if someone else is in the room writing, check if master writer, remote client upload
+- remote client upload
+- bug: object in scene modified by client b who refreshes doesn't get updated to what they left behind in the hands of client a (client a not sending a full sync for non-owned objects, and saved HTML is behind)
+  - when someone leaves, everyone's objects need to get a new owner (?)
 - deal with colliding ids
 - cull permissions (in atom manager)
 - labels not working and are clipped

@@ -233,7 +233,9 @@ export class VoxmojiSystem extends EventTarget {
     mesh.freeInstance(instanceIndex);
 
     if (instanceIndex === maxRegisteredIndex) {
-      meshEntry.maxRegisteredIndex--;
+      do {
+        meshEntry.maxRegisteredIndex--;
+      } while (meshEntry.maxRegisteredIndex >= 0 && sources[meshEntry.maxRegisteredIndex] === null);
     }
   }
 

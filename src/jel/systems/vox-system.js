@@ -563,8 +563,10 @@ export class VoxSystem extends EventTarget {
       }
     }
 
-    if (instanceIndex === maxRegisteredIndex) {
-      voxEntry.maxRegisteredIndex--;
+    if (instanceIndex === voxEntry.maxRegisteredIndex) {
+      do {
+        voxEntry.maxRegisteredIndex--;
+      } while (voxEntry.maxRegisteredIndex >= 0 && sources[voxEntry.maxRegisteredIndex] === null);
     }
 
     if (sourceToIndex.size === 0) {

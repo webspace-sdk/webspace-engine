@@ -6,6 +6,7 @@ import { getCorsProxyUrl } from "../../hubs/utils/media-url-utils";
 import { almostEqualVec3, almostEqualQuaternion } from "../../hubs/utils/three-utils";
 import { parseTransformIntoThree } from "../utils/world-importer";
 import { STACK_AXIS_CSS_NAMES } from "../../hubs/systems/transform-selected-object";
+import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 
 import Color from "color";
 
@@ -31,7 +32,7 @@ AFRAME.registerComponent("dom-serialized-entity", {
   }
 });
 
-const FLUSH_DELAY = 100;
+const FLUSH_DELAY = 1000;
 
 const tagTypeForEl = el => {
   const { src } = el.components["media-loader"].data;
@@ -360,11 +361,15 @@ const updateDomElForEl = (domEl, el) => {
   }
 };
 
+const MAX_ELS = 256;
+
 export class DomSerializeSystem {
   constructor(scene) {
     this.scene = scene;
-    this.els = [];
-    this.pending = [];
+    this.els = Array(MAX_ELS).fill(null);
+    this.maxRegisteredIndex = -1;
+
+    this.pending = new Set();
     this.onComponentChangedOrTransformed = this.onComponentChangedOrTransformed.bind(this);
     this.onQuillTextChanges = new Map();
     this.onMediaLoaded = this.onMediaLoaded.bind(this);
@@ -372,11 +377,28 @@ export class DomSerializeSystem {
   }
 
   register(el) {
-    this.els.push(el);
-    el.addEventListener("media-loaded", this.onMediaLoaded, { once: true });
+    for (let i = 0; i < this.els.length; i++) {
+      if (this.els[i] === null) {
+        this.els[i] = el;
+        el.addEventListener("media-loaded", this.onMediaLoaded, { once: true });
+        this.maxRegisteredIndex = Math.max(this.maxRegisteredIndex, i);
+        return;
+      }
+    }
   }
 
   unregister(el) {
+    const i = this.els.indexOf(el);
+    if (i === -1) return;
+
+    this.els[i] = null;
+
+    if (this.maxRegisteredIndex === i) {
+      do {
+        this.maxRegisteredIndex--;
+      } while (this.maxRegisteredIndex >= 0 && this.els[this.maxRegisteredIndex] === null);
+    }
+
     this.removeFromDOM(el);
 
     el.removeEventListener("componentchanged", this.onComponentChangedOrTransformed);
@@ -392,17 +414,12 @@ export class DomSerializeSystem {
 
     // Ensure not in pending
     this.flush();
-
-    const i = this.els.indexOf(el);
-
-    if (i >= 0) {
-      this.els.splice(i, 1);
-    }
   }
 
   onMediaLoaded({ target }) {
     if (!this.els.includes(target)) return;
-    this.pending.push(target);
+    this.enqueueFlushOf(target);
+
     target.addEventListener("componentchanged", this.onComponentChangedOrTransformed);
     target.addEventListener("scale-object-ended", this.onComponentChangedOrTransformed);
     target.addEventListener("transform-object-ended", this.onComponentChangedOrTransformed);
@@ -421,9 +438,9 @@ export class DomSerializeSystem {
 
   enqueueFlushOf(el) {
     if (!this.els.includes(el)) return;
-    if (this.pending.includes(el)) return;
+    if (this.pending.has(el)) return;
 
-    this.pending.push(el);
+    this.pending.add(el);
 
     if (this.nextFlushAt === null) {
       this.nextFlushAt = Date.now() + FLUSH_DELAY;
@@ -431,6 +448,18 @@ export class DomSerializeSystem {
   }
 
   tick() {
+    for (let i = 0; i <= this.maxRegisteredIndex; i++) {
+      const el = this.els[i];
+      if (el === null) continue;
+
+      const object3D = el.object3D;
+      const hasDirtyMatrix = object3D.consumeIfDirtyWorldMatrix(WORLD_MATRIX_CONSUMERS.DOM_SERIALIZER);
+
+      if (hasDirtyMatrix) {
+        this.enqueueFlushOf(el);
+      }
+    }
+
     if (Date.now() > this.nextFlushAt) {
       this.nextFlushAt = null;
       this.flush();
@@ -438,9 +467,11 @@ export class DomSerializeSystem {
   }
 
   flush() {
-    while (this.pending.length > 0) {
-      this.flushEl(this.pending.pop());
+    for (const el of this.pending) {
+      this.flushEl(el);
     }
+
+    this.pending.clear();
   }
 
   flushEl(el) {

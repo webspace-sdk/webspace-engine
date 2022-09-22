@@ -438,7 +438,10 @@ function CanvasTop(props) {
 
   useEffect(
     () => {
-      const handler = () => setDocumentIsDirty(atomAccessManager.documentIsDirty);
+      const handler = () => {
+        setDocumentIsDirty(atomAccessManager.documentIsDirty);
+        setIsEditingAvailable(atomAccessManager.isEditingAvailable);
+      };
 
       atomAccessManager && atomAccessManager.addEventListener("document-dirty-state-changed", handler);
       return () => atomAccessManager && atomAccessManager.removeEventListener("document-dirty-state-changed", handler);
@@ -478,7 +481,10 @@ function CanvasTop(props) {
 
   const allowUnsavedObjects = window.APP.allowUnsavedObjects;
 
-  const showEditButton = editingAvailable && (!canSpawnAndMoveMedia || (allowUnsavedObjects && documentIsDirty));
+  const showEditButton =
+    editingAvailable &&
+    (!canSpawnAndMoveMedia || (allowUnsavedObjects && documentIsDirty)) &&
+    !atomAccessManager.hasAnotherWriterInPresence();
   const showInstallButton = !showEditButton && pwaAvailable;
 
   if (!isInspecting) {

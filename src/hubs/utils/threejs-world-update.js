@@ -4,7 +4,8 @@ export const WORLD_MATRIX_CONSUMERS = {
   PHYSICS: 0,
   BEAMS: 1,
   VOX: 2,
-  AVATARS: 3
+  AVATARS: 3,
+  DOM_SERIALIZER: 4
 };
 
 // New function to set the matrix properly
