@@ -42,7 +42,7 @@
   - two settings:
     - allow others to edit and create objects
     - disable live HTML updates
-  - todo: broadcast dirty bit, don't show save button if someone else is in the room writing, check if master writer
+  - todo: broadcast dirty bit, don't show save button if someone else is in the room writing, check if master writer, remote client upload
 - deal with colliding ids
 - cull permissions (in atom manager)
 - labels not working and are clipped

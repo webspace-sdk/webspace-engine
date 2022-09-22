@@ -148,8 +148,9 @@ export default class AtomAccessManager extends EventTarget {
 
       isWriting = true;
       try {
-        console.log("write");
-        await this.writeDocument(document);
+        if (this.isMasterWriter()) {
+          await this.writeDocument(document);
+        }
       } finally {
         isWriting = false;
       }
@@ -204,6 +205,7 @@ export default class AtomAccessManager extends EventTarget {
 
     window.addEventListener("beforeunload", e => {
       if (!this.documentIsDirty) return;
+      if (this.hasAnotherWriterInPresence()) return;
 
       e.preventDefault();
       e.returnValue = "Unsaved changes are still being written. Do you want to leave and lose these changes?";
@@ -224,7 +226,10 @@ export default class AtomAccessManager extends EventTarget {
       });
 
       // Set my role after client id is set, other roles are set after public keys updated from challenges
-      document.body.addEventListener("connected", () => this.updateRoles());
+      document.body.addEventListener("connected", () => {
+        this.updateRoles();
+        this.updatePresenceWithWriterStatus();
+      });
 
       document.body.addEventListener("clientDisconnected", ({ detail: { clientId } }) => {
         this.roles.delete(clientId);
@@ -239,7 +244,9 @@ export default class AtomAccessManager extends EventTarget {
 
     if (this.writeback) {
       this.writeback.init().then(() => {
-        this.dispatchEvent(new CustomEvent("permissions_updated", {}));
+        if (this.writeback.isOpen) {
+          this.handleWritebackOpened();
+        }
       });
     }
   }
@@ -258,9 +265,7 @@ export default class AtomAccessManager extends EventTarget {
     const result = await this.writeback.open(options);
 
     if (result) {
-      this.dispatchEvent(new CustomEvent("permissions_updated", {}));
-
-      this.ensurePublicKeyInMetaTags();
+      this.handleWritebackOpened();
 
       if (this.refreshOnWritebackOpen) {
         document.location.reload();
@@ -444,6 +449,12 @@ export default class AtomAccessManager extends EventTarget {
     this.dispatchEvent(new CustomEvent("permissions_updated", {}));
   }
 
+  updatePresenceWithWriterStatus() {
+    if (!NAF.connection.presence) return;
+    if (!this.writeback?.isOpen) return;
+    NAF.connection.presence.setLocalStateField("writer", true);
+  }
+
   async updateRoles() {
     const ownerPublicKeys = new Set();
     const hubId = await getHubIdFromHistory();
@@ -487,5 +498,43 @@ export default class AtomAccessManager extends EventTarget {
       this.roles = newRoles;
       this.dispatchEvent(new CustomEvent("permissions_updated", {}));
     }
+  }
+
+  // The "Master writer" is the client id in presence with the lowest client id also registered as a writer and a known owner.
+  //
+  // This concept is needed to try to reduce the amount of writes going back to origin concurrently.
+  isMasterWriter() {
+    if (!this.writeback?.isOpen) return false;
+    let masterWriterClientId = null;
+
+    for (const [, presence] of NAF.connection.presence.states) {
+      const clientId = presence.client_id;
+
+      if (presence.writer && this.roles.get(clientId) === ROLES.OWNER) {
+        if (!masterWriterClientId || clientId < masterWriterClientId) {
+          masterWriterClientId = clientId;
+        }
+      }
+    }
+
+    return masterWriterClientId === NAF.clientId || masterWriterClientId === null;
+  }
+
+  // Returns true if there's another peer in presence that we know is writing.
+  hasAnotherWriterInPresence() {
+    for (const [, presence] of NAF.connection.presence.states) {
+      const clientId = presence.client_id;
+      if (clientId !== NAF.clientId && presence.writer && this.roles.get(clientId) === ROLES.OWNER) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  handleWritebackOpened() {
+    this.dispatchEvent(new CustomEvent("permissions_updated", {}));
+    this.ensurePublicKeyInMetaTags();
+    this.updatePresenceWithWriterStatus();
   }
 }
