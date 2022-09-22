@@ -445,6 +445,9 @@ export class DomSerializeSystem {
 
   flushEl(el) {
     const elId = el.id.replace("naf-", "");
+
+    if (!this.shouldIncludeMediaElInDom(el)) return;
+
     let domEl = document.getElementById(elId);
     let shouldAppend = false;
 
@@ -468,5 +471,13 @@ export class DomSerializeSystem {
         break;
       }
     }
+  }
+
+  shouldIncludeMediaElInDom(el) {
+    if (!el.components["media-loader"]) return false;
+    if (el.components["media-loader"].data.src.startsWith("blob:")) return false;
+    if (el.components["media-loader"].data.src.startsWith("jel://clients")) return false;
+
+    return true;
   }
 }

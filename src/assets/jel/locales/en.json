@@ -251,6 +251,7 @@
   "unavailable.full": "Unable to join, world is full.",
   "install.desktop": "Install App",
   "writeback.edit-world": "Edit World",
+  "writeback.save-changes": "Save Changes",
   "paused.info": "Audio-only mode.\nFocus to resume.",
   "chat.info": "Others are here. Press enter to chat.",
   "chat-log.join": "joined this World.",
@@ -414,6 +415,6 @@
   "origin-access-config.webdav-tip": "Submit changes via HTTP WebDAV verbs. (POST, PUT, DELETE)",
   "origin-access-config.save-github": "Connect to GitHub",
   "origin-access-config.error-github-2": "Invalid username or access token.",
-  "origin-access-config.error-github-3": "Repository not found.",
+  "origin-access-config.error-github-3": "Repository or branch not found.",
   "origin-access-config.error-github-4": "This HTML file was not found in the repository."
 }

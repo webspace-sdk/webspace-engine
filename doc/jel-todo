@@ -38,14 +38,13 @@
 - unsaved changes warning
 - duck should upload glb
 - edit world button should be 'save changes' button
-  - allow spawning and doing stuff and just avoid navigation if unchanged
   - dirty bit needs to exist on all clients, and flushes broadcast
-  - allow spawning permissions always unless non-owner and explicitly disabled
-  - hide the save button if nothing is dirty
   - two settings:
     - allow others to edit and create objects
     - disable live HTML updates
+  - todo: broadcast dirty bit, don't show save button if someone else is in the room writing, check if master writer
 - deal with colliding ids
+- cull permissions (in atom manager)
 - labels not working and are clipped
 - folders with spaces
 

@@ -11,7 +11,6 @@ import dotsIcon from "../../assets/jel/images/icons/dots-horizontal-overlay-shad
 import addIcon from "../../assets/jel/images/icons/add-shadow.svgi";
 import securityIcon from "../../assets/jel/images/icons/security-shadow.svgi";
 import sunIcon from "../../assets/jel/images/icons/sun-shadow.svgi";
-import editIcon from "../../assets/jel/images/icons/edit-shadow.svgi";
 import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { getMessages } from "../../hubs/utils/i18n";
 import Tooltip from "./tooltip";
@@ -72,6 +71,7 @@ const CornerButtons = styled.div`
   width: 50%;
   padding: 12px 0;
   display: flex;
+  min-height: 64px;
 `;
 
 const CornerButton = styled.button`
@@ -86,7 +86,7 @@ const CornerButton = styled.button`
   border-radius: 4px;
   cursor: pointer;
   pointer-events: auto;
-  padding: 6px 12px 6px 10px;
+  padding: 6px 12px 6px 12px;
   border: 2px solid rgba(255, 255, 255, 0.4);
   appearance: none;
   -moz-appearance: none;
@@ -269,7 +269,7 @@ const ToggleFloorButton = forwardRef(() => {
 ToggleFloorButton.displayName = "ToggleFloorButton";
 
 function CanvasTop(props) {
-  const { history, hubCan, voxCan, worldTree, scene, spaceCan, worldTreeData, createSelectPopupRef } = props;
+  const { history, hubCan, voxCan, worldTree, scene, spaceCan, createSelectPopupRef } = props;
   const hubId = props.hub?.hub_id;
 
   const { cameraSystem, terrainSystem, atmosphereSystem } = SYSTEMS;
@@ -386,6 +386,7 @@ function CanvasTop(props) {
     hubCan && hubId && hubCan("spawn_and_move_media", hubId)
   );
   const [isInspecting, setIsInspecting] = useState(cameraSystem.isInspecting());
+  const [documentIsDirty, setDocumentIsDirty] = useState(false);
 
   const atomId = isInspecting ? cameraSystem.getInspectedAtomId() : hubId;
   const atomType = isInspecting ? cameraSystem.getInspectedAtomType() : ATOM_TYPES.HUB;
@@ -437,6 +438,16 @@ function CanvasTop(props) {
 
   useEffect(
     () => {
+      const handler = () => setDocumentIsDirty(atomAccessManager.documentIsDirty);
+
+      atomAccessManager && atomAccessManager.addEventListener("document-dirty-state-changed", handler);
+      return () => atomAccessManager && atomAccessManager.removeEventListener("document-dirty-state-changed", handler);
+    },
+    [scene, hubEditButtonRef, atomAccessManager, showWritebackSetupPopup, createSelectPopupRef]
+  );
+
+  useEffect(
+    () => {
       const handler = () => setIsInspecting(SYSTEMS.cameraSystem.isInspecting());
       cameraSystem.addEventListener("mode_changed", handler);
       return () => cameraSystem.removeEventListener("mode_changed", handler);
@@ -465,7 +476,9 @@ function CanvasTop(props) {
 
   let cornerButtons;
 
-  const showEditButton = editingAvailable && !canSpawnAndMoveMedia;
+  const allowUnsavedObjects = window.APP.allowUnsavedObjects;
+
+  const showEditButton = editingAvailable && (!canSpawnAndMoveMedia || (allowUnsavedObjects && documentIsDirty));
   const showInstallButton = !showEditButton && pwaAvailable;
 
   if (!isInspecting) {
@@ -482,8 +495,7 @@ function CanvasTop(props) {
             onMouseDown={e => cancelEventIfFocusedWithin(e, writebackSetupPopupElement)}
             onClick={() => scene.emit("action_open_writeback")}
           >
-            <CornerButtonIcon dangerouslySetInnerHTML={{ __html: editIcon }} />
-            <FormattedMessage id="writeback.edit-world" />
+            <FormattedMessage id={allowUnsavedObjects ? "writeback.save-changes" : "writeback.edit-world"} />
           </CornerButton>
         )}
         {

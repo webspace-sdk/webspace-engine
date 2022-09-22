@@ -1,5 +1,6 @@
 import Store from "./hubs/storage/store";
 import MediaSearchStore from "./hubs/storage/media-search-store";
+import { ROLES } from "./jel/utils/atom-access-manager";
 
 export class App {
   constructor() {
@@ -7,6 +8,10 @@ export class App {
     this.quality = "low";
     this.store = new Store();
     this.mediaSearchStore = new MediaSearchStore();
+
+    // TODO SHARED, these should be settings
+    this.allowUnsavedObjects = true;
+    this.createAndEditRole = ROLES.MEMBER;
 
     // Detail levels
     // 0 - Full

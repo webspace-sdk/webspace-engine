@@ -23,9 +23,10 @@ const ATOM_TYPES = {
   VOX: 2
 };
 
-const ROLES = {
+export const ROLES = {
   NONE: 0,
-  OWNER: 0x80
+  OWNER: 0x80,
+  MEMBER: 0x01
 };
 
 const VALID_PERMISSIONS = {
@@ -92,6 +93,8 @@ export default class AtomAccessManager extends EventTarget {
     this.writeTimeout = null;
 
     this.refreshOnWritebackOpen = false;
+
+    this.documentIsDirty = false;
   }
 
   get isEditingAvailable() {
@@ -151,6 +154,11 @@ export default class AtomAccessManager extends EventTarget {
         isWriting = false;
       }
 
+      if (this.writeTimeout === null) {
+        this.documentIsDirty = false;
+        this.dispatchEvent(new CustomEvent("document-dirty-state-changed"));
+      }
+
       this.lastWriteTime = Date.now();
     };
 
@@ -188,13 +196,14 @@ export default class AtomAccessManager extends EventTarget {
         clearTimeout(this.writeTimeout);
       }
 
+      this.documentIsDirty = true;
+      this.dispatchEvent(new CustomEvent("document-dirty-state-changed"));
       console.log("saw change", arr);
       this.writeTimeout = setTimeout(write, MAX_WRITE_RATE_MS);
     });
 
     window.addEventListener("beforeunload", e => {
-      if (!this.writeback?.isOpen) return;
-      if (!isWriting && !this.writeTimeout) return;
+      if (!this.documentIsDirty) return;
 
       e.preventDefault();
       e.returnValue = "Unsaved changes are still being written. Do you want to leave and lose these changes?";
@@ -380,8 +389,13 @@ export default class AtomAccessManager extends EventTarget {
 
     if (hubId !== null && this.currentHubId !== hubId) return false;
 
+    const allowUnsavedObjects = window.APP.allowUnsavedObjects;
+    const createAndEditRole = window.APP.createAndEditRole;
+
+    if (allowUnsavedObjects) return true;
+
     if (sessionId !== null && sessionId !== NAF.clientId) {
-      return this.roles.get(sessionId) === ROLES.OWNER;
+      return this.roles.get(sessionId) === ROLES.OWNER || createAndEditRole === ROLES.MEMBER;
     } else {
       return this.writeback?.isOpen;
     }
