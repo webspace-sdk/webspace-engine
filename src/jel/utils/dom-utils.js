@@ -362,7 +362,10 @@ export const pushHubMetaUpdateIntoDOM = async hub => {
     } else {
       const defaultColors = WORLD_COLOR_PRESETS[currentHubSeed % WORLD_COLOR_PRESETS.length];
       const color = defaultColors[`${type}_color`];
-      initMetaTag(`environment.terrain.colors.${type}`, `${color.r} ${color.g} ${color.b}`);
+      initMetaTag(
+        `environment.terrain.colors.${type}`,
+        Color({ r: Math.floor(color.r * 255), g: Math.floor(color.g * 255), b: Math.floor(color.b * 255) }).hex()
+      );
     }
   }
 
