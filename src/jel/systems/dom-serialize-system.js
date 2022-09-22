@@ -24,7 +24,14 @@ const ONE_SCALE = new THREE.Vector3(1, 1, 1);
 
 AFRAME.registerComponent("dom-serialized-entity", {
   init() {
-    this.el.sceneEl.systems["hubs-systems"].domSerializeSystem.register(this.el);
+    // Avoid serializing errors into the DOM.
+    this.el.addEventListener(
+      "media-loaded",
+      () => {
+        this.el.sceneEl.systems["hubs-systems"].domSerializeSystem.register(this.el);
+      },
+      { once: true }
+    );
   },
 
   remove() {
@@ -111,7 +118,7 @@ export const posRotScaleToCssTransform = (pos, rot, scale) => {
   }
 
   if (scale && !almostEqualVec3(scale, ONE_SCALE, 0.001)) {
-    transform += ` scale3D(${scale.x.toFixed(2)}, ${scale.y.toFixed(2)}, ${scale.z.toFixed(2)})`;
+    transform += `scale3D(${scale.x.toFixed(2)}, ${scale.y.toFixed(2)}, ${scale.z.toFixed(2)})`;
   }
 
   return transform.trim();
