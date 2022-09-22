@@ -154,6 +154,7 @@ function RightPanel({ hub, hubCan, sessionId, scene, centerPopupRef }) {
         )}
         {!isInEditorView &&
           hub &&
+          false &&
           hubCan("spawn_and_move_media", hub.hub_id) && (
             <TriggerModePanel>
               <SegmentControl

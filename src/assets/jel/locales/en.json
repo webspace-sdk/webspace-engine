@@ -213,7 +213,7 @@
   "create-embed.model-info": "Embed 3D models from Sketchfab, Google Poly, or any GLB.",
   "create-embed.model-placeholder": "Paste the link to the model or GLB...",
   "create-embed.embed": "Embed",
-  "invite-panel.info": "This link lets others join your webspace.",
+  "invite-panel.info": "Share this URL to invite others to this world.",
   "invite-panel.expires-info": "It will expire in 30 days.",
   "invite-panel.copy": "Copy",
   "invite-panel.copied": "Copied!",

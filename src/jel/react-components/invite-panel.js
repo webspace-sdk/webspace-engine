@@ -48,10 +48,10 @@ const InviteWrap = styled.div`
   box-shadow: inset 0px 0px 2px var(--menu-background-color);
 `;
 
-const InviteInfo = styled.div`
-  color: var(--dialog-info-text-color);
-  font-size: var(--dialog-info-text-size);
-  font-weight: var(--dialog-info-text-weight);
+const InviteTip = styled.div`
+  color: var(--dialog-tip-text-color);
+  font-size: var(--dialog-tip-text-size);
+  font-weight: var(--dialog-tip-text-weight);
   margin-top: 6px;
 `;
 
@@ -127,9 +127,9 @@ const InvitePanel = forwardRef((props, ref) => {
           <FormattedMessage id={isCopied ? "invite-panel.copied" : "invite-panel.copy"} />
         </SmallActionButton>
       </InviteFormRow>
-      <InviteInfo>
+      <InviteTip>
         <FormattedMessage id={`invite-panel.info`} />
-      </InviteInfo>
+      </InviteTip>
     </InvitePanelElement>
   );
 });
