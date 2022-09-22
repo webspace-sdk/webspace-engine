@@ -425,11 +425,12 @@ function JelUI(props) {
               <ChatLog leftOffset={showingExternalCamera ? 300 : 0} hub={hub} scene={scene} store={store} />
             </BottomLeftPanels>
           </Wrap>
-          {!isInspecting && (
-            <AssetPanelWrap id="asset-panel">
-              <AssetPanel voxTree={voxTree} sceneTree={sceneTree} expanded={true} scene={scene} />
-            </AssetPanelWrap>
-          )}
+          {!isInspecting &&
+            false && (
+              <AssetPanelWrap id="asset-panel">
+                <AssetPanel voxTree={voxTree} sceneTree={sceneTree} expanded={true} scene={scene} />
+              </AssetPanelWrap>
+            )}
           {!skipSidePanels && (
             <JelSidePanels
               {...props}

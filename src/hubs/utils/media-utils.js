@@ -473,9 +473,10 @@ export const addMedia = options => {
 
   const entity = document.createElement("a-entity");
   const isVideoShare = src instanceof MediaStream;
+  const persistent = !isVideoShare;
 
   if (networked) {
-    const networkAttributes = { template, networkId };
+    const networkAttributes = { template, networkId, persistent };
     if (networkedOwner) {
       networkAttributes.owner = networkedOwner;
     }

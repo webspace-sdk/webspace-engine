@@ -512,6 +512,7 @@ function CanvasTop(props) {
           />
         }
         {hubCan &&
+          false &&
           hubCan("update_hub_roles", hubId) && (
             <HubPermissionsButton
               ref={hubPermissionsButtonRef}
