@@ -272,7 +272,10 @@ const updateDomElForEl = (domEl, el) => {
 
     src = null;
     style += `font-family: emoji; `;
-    domEl.innerHTML = emoji;
+
+    if (domEl.innerHTML !== emoji) {
+      domEl.innerHTML = emoji;
+    }
   }
 
   if (el.components["media-video"]) {
