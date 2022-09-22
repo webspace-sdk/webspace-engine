@@ -118,7 +118,7 @@ export const posRotScaleToCssTransform = (pos, rot, scale) => {
   }
 
   if (scale && !almostEqualVec3(scale, ONE_SCALE, 0.001)) {
-    transform += `scale3D(${scale.x.toFixed(2)}, ${scale.y.toFixed(2)}, ${scale.z.toFixed(2)})`;
+    transform += `scale3d(${scale.x.toFixed(2)}, ${scale.y.toFixed(2)}, ${scale.z.toFixed(2)})`;
   }
 
   return transform.trim();
