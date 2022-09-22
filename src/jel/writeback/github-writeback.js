@@ -156,24 +156,28 @@ export default class GitHubWriteback {
     }
     const repo = this.githubRepo;
 
-    let b64 = null;
+    let sendContent = null;
+    let sendEncoding = null;
 
     if (typeof content === "string") {
-      b64 = btoa(content);
+      sendContent = content;
+      sendEncoding = "utf-8";
     } else if (content instanceof Blob || content instanceof File) {
-      b64 = await new Promise((res, rej) => {
+      sendContent = await new Promise((res, rej) => {
         const reader = new FileReader();
         reader.onload = () => res(fromByteArray(new Uint8Array(reader.result)));
         reader.onerror = rej;
         reader.readAsArrayBuffer(content);
       });
+      sendEncoding = "base64";
     } else if (content instanceof ArrayBuffer) {
-      b64 = fromByteArray(new Uint8Array(content));
+      sendContent = fromByteArray(new Uint8Array(content));
+      sendEncoding = "base64";
     } else {
       throw new Error("Invalid content type");
     }
 
-    const blobPromise = repo.git.blobs.create({ content: b64, encoding: "base64" });
+    const blobPromise = repo.git.blobs.create({ content: sendContent, encoding: sendEncoding });
     const destPath = this.getFullTreePathToFile(path || this.filename);
     const branch = await repo.git.refs(`heads/${this.branch || "master"}`).fetch();
 
