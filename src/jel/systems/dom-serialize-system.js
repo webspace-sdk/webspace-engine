@@ -437,8 +437,8 @@ export class DomSerializeSystem {
   }
 
   enqueueFlushOf(el) {
-    if (!this.els.includes(el)) return;
     if (this.pending.has(el)) return;
+    if (!this.els.includes(el)) return;
 
     this.pending.add(el);
 
