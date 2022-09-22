@@ -94,40 +94,46 @@ export default class GitHubWriteback {
         return false;
       }
 
-      const blob = await repo.git.blobs(file.sha).fetch();
-      const content = atob(blob.content);
+      //const blob = await repo.git.blobs(file.sha).fetch();
+      //const content = atob(blob.content);
 
       // Sanity check, look for at least one id that matches in the content
       // This is conservative enough to deal with slower deploys, but still
       // better than nothing.
-      const ids = new Set();
+      //
+      // NOTE: Taken out for now since if you create an object on a blank page, this
+      // will fail. Should be a simpler check like script tag matching.
+      // const ids = new Set();
 
-      for (const el of document.body.children) {
-        if (el.id) {
-          ids.add(el.id);
-        }
-      }
+      // for (const el of document.body.children) {
+      //   if (el.id) {
+      //     ids.add(el.id);
+      //   }
+      // }
 
-      if (ids.size === 0) {
-        this.originState = WRITEBACK_ORIGIN_STATE.VALID;
-        return true;
-      }
+      // if (ids.size === 0) {
+      //   this.originState = WRITEBACK_ORIGIN_STATE.VALID;
+      //   return true;
+      // }
 
-      let found = false;
-      for (const id of ids) {
-        if (content.indexOf(id) !== -1) {
-          found = true;
-          break;
-        }
-      }
+      // let found = false;
+      // for (const id of ids) {
+      //   if (content.indexOf(id) !== -1) {
+      //     found = true;
+      //     break;
+      //   }
+      // }
 
-      if (found) {
-        this.originState = WRITEBACK_ORIGIN_STATE.VALID;
-        return true;
-      } else {
-        this.originState = WRITEBACK_ORIGIN_STATE.INVALID_PATH;
-        return false;
-      }
+      // if (found) {
+      //   this.originState = WRITEBACK_ORIGIN_STATE.VALID;
+      //   return true;
+      // } else {
+      //   this.originState = WRITEBACK_ORIGIN_STATE.INVALID_PATH;
+      //   return false;
+      // }
+
+      this.originState = WRITEBACK_ORIGIN_STATE.VALID;
+      return true;
     } catch (e) {
       this.originState = WRITEBACK_ORIGIN_STATE.INVALID_CREDENTIALS;
       return false;

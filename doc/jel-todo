@@ -33,6 +33,7 @@
 - add service to register spaces
 - upload + register service worker
 - duck should upload glb
+- can't change enviornment on github page on first click when no credentials
 - edit world button should be 'save changes' button
   - two settings:
     - allow others to edit and create objects
