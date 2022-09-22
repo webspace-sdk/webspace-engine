@@ -24,14 +24,7 @@ const ONE_SCALE = new THREE.Vector3(1, 1, 1);
 
 AFRAME.registerComponent("dom-serialized-entity", {
   init() {
-    // Avoid serializing errors into the DOM.
-    this.el.addEventListener(
-      "media-loaded",
-      () => {
-        this.el.sceneEl.systems["hubs-systems"].domSerializeSystem.register(this.el);
-      },
-      { once: true }
-    );
+    this.el.sceneEl.systems["hubs-systems"].domSerializeSystem.register(this.el);
   },
 
   remove() {

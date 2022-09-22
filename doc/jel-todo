@@ -7,35 +7,31 @@
 - powered by link
 - bring in avatar audio system
 - ambient sound meta tag
+- skybox in meta tag
 - drop config system (maybe keep some meta tags)
 - drop envs in webpack config
 - sessionId -> clientId
 - refactor all event names to be dash-cased
 - bring over muted ring
 - if works, move to nginx + webdav for writeback?
-- index.html setup
-  - add networking config
+- index.html add networking config
 - deno cors proxying split + ytdl enable + move configs into index.html
 - authorize + sanitize in NAF adapter
 - cut down dead code
 - review all deps
 - consolidate channel classes
 - make voxmoji float
-- change loading background color to match
 - browser compat, show message if trying to edit file:// in non-chrome
 - test ff + safari
 - allow networking settings to be changed via qs
 - remove all unused translations
 - file uploads from remotes
 - invite popout
-- detecting relay member in presence to unlock editing for unprivileged users
 - deal with filtering networking based on roles + hub setting for allowing edits
-- only flush from one writeback host in presence, to avoid collisions
 - left click to drag objects, right click to edit objects
 - build mode still showing presence list
 - add service to register spaces
 - upload + register service worker
-- unsaved changes warning
 - duck should upload glb
 - edit world button should be 'save changes' button
   - two settings:
@@ -44,10 +40,9 @@
 - remote client upload
 - bug: object in scene modified by client b who refreshes doesn't get updated to what they left behind in the hands of client a (client a not sending a full sync for non-owned objects, and saved HTML is behind)
   - when someone leaves, everyone's objects need to get a new owner (?)
-- deal with colliding ids
 - cull permissions (in atom manager)
-- labels not working and are clipped
-- folders with spaces
+- labels clipped somehow
+- environment syncing back to origin not working in p2p
 
 name not updating in self panel when updated by another peer
 pasting text not working, and causing cursor to act funny (not hoverable)
