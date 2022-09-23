@@ -9,7 +9,7 @@ import { useTreeDropHandler, useTreeData, useScrollToSelectedTreeNode } from "..
 const addSpaceIconTreeItem = { key: "add", children: null, isLeaf: true };
 const joinDiscordSpaceIconTreeItem = { key: "discord", children: null, isLeaf: true };
 
-function SpaceTree({ treeManager, history, space, memberships }) {
+function SpaceTree({ treeManager, space, memberships }) {
   const [spaceTreeData, setSpaceTreeData] = useState([]);
   const [spaceTreeDataVersion, setSpaceTreeDataVersion] = useState(0);
   const tree = treeManager && treeManager.privateSpace;
@@ -36,9 +36,9 @@ function SpaceTree({ treeManager, history, space, memberships }) {
   const onSelect = useCallback(
     async (selectedKeys, { node: { atomId } }) => {
       const targetHub = (await getInitialHubForSpaceId(atomId)) || homeHubForSpaceId(atomId, memberships);
-      navigateToHubUrl(history, targetHub.url);
+      navigateToHubUrl(targetHub.url);
     },
-    [history, memberships]
+    [memberships]
   );
 
   return (
@@ -59,7 +59,6 @@ function SpaceTree({ treeManager, history, space, memberships }) {
 
 SpaceTree.propTypes = {
   treeManager: PropTypes.object,
-  history: PropTypes.object,
   space: PropTypes.object,
   memberships: PropTypes.array
 };

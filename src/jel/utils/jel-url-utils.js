@@ -58,8 +58,9 @@ export async function getSpaceIdFromHistory() {
   return currentSpaceId;
 }
 
-export function navigateToHubUrl(history, url) {
+export async function navigateToHubUrl(url) {
   // Performs a dissolve of the UI before navigation.
+  await window.APP.atomAccessManager.ensureWritingComplete();
   DOM_ROOT.querySelector(".loading-complete").classList.add("loading");
   setTimeout(() => (document.location = url), 400);
 }

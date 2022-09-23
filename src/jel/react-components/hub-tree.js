@@ -21,7 +21,7 @@ const EmptyMessage = styled.div`
   white-space: pre;
 `;
 
-function HubTree({ treeManager, history, hub, spaceCan, setAtomRenameReferenceElement, showHubContextMenuPopup }) {
+function HubTree({ treeManager, hub, spaceCan, setAtomRenameReferenceElement, showHubContextMenuPopup }) {
   const [navTreeData, setNavTreeData] = useState([]);
   const [navTreeDataVersion, setNavTreeDataVersion] = useState(0);
 
@@ -49,7 +49,7 @@ function HubTree({ treeManager, history, hub, spaceCan, setAtomRenameReferenceEl
             const newHub = await addNewHubToTree(treeManager, hub.space_id, data.atomId);
             await atomMetadata.ensureMetadataForIds([newHub.hub_id]);
             const metadata = atomMetadata.getMetadata(newHub.hub_id);
-            navigateToHubUrl(history, metadata.url);
+            navigateToHubUrl(metadata.url);
           }}
           onDotsClick={(e, ref) => {
             e.stopPropagation(); // Otherwise this will perform a tree node click event
@@ -64,7 +64,7 @@ function HubTree({ treeManager, history, hub, spaceCan, setAtomRenameReferenceEl
         />
       );
     },
-    [history, hub, treeManager, atomMetadata, showHubContextMenuPopup, setAtomRenameReferenceElement, spaceCan]
+    [hub, treeManager, atomMetadata, showHubContextMenuPopup, setAtomRenameReferenceElement, spaceCan]
   );
 
   const onDragEnter = useCallback(({ node }) => treeManager.setNodeIsExpanded(node.key, true, tree), [
@@ -77,10 +77,10 @@ function HubTree({ treeManager, history, hub, spaceCan, setAtomRenameReferenceEl
       const metadata = tree.atomMetadata.getMetadata(atomId);
 
       if (metadata) {
-        navigateToHubUrl(history, metadata.url);
+        navigateToHubUrl(metadata.url);
       }
     },
-    [tree, history]
+    [tree]
   );
   const onExpand = useCallback(
     (expandedKeys, { expanded, node: { key } }) => treeManager.setNodeIsExpanded(key, expanded, tree),
@@ -122,7 +122,6 @@ function HubTree({ treeManager, history, hub, spaceCan, setAtomRenameReferenceEl
 HubTree.propTypes = {
   treeManager: PropTypes.object,
   type: PropTypes.string,
-  history: PropTypes.object,
   hub: PropTypes.object,
   spaceCan: PropTypes.func,
   hubCan: PropTypes.func,

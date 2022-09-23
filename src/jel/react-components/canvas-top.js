@@ -558,7 +558,6 @@ function CanvasTop(props) {
       {atomTrailAtomIds && (
         <AtomTrail
           atomIds={atomTrailAtomIds}
-          history={history}
           metadata={metadata}
           can={atomType === ATOM_TYPES.VOX ? voxCan : hubCan}
           viewPermission={atomType === ATOM_TYPES.VOX ? "view_vox" : "join_hub"}

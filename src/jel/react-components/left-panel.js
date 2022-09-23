@@ -21,6 +21,7 @@ import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import ReactDOM from "react-dom";
 import PopupPanel from "./popup-panel";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
+import { navigateToHubUrl } from "../utils/jel-url-utils";
 
 const Left = styled.div`
   pointer-events: auto;
@@ -348,7 +349,6 @@ function LeftPanel({
           <HubTree
             treeManager={treeManager}
             hub={hub}
-            history={history}
             spaceCan={spaceCan}
             hubCan={hubCan}
             showHubContextMenuPopup={showHubContextMenuPopup}
@@ -426,14 +426,16 @@ function LeftPanel({
           pathParts[pathParts.length - 1] = filename;
           url.pathname = pathParts.join("/");
 
-          // Wait until 404 stops before navigating.
-          let res;
-          do {
-            res = await fetch(url.toString());
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          } while (res.status === 404);
+          if (document.location.protocol !== "file:") {
+            // Wait until 404 stops before navigating.
+            let res;
+            do {
+              res = await fetch(url.toString());
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            } while (res.status === 404);
+          }
 
-          document.location = url.toString();
+          navigateToHubUrl(url.toString());
         }}
       />
     </Left>

@@ -252,6 +252,12 @@ export default class AtomAccessManager extends EventTarget {
     }
   }
 
+  async ensureWritingComplete() {
+    while (this.documentIsDirty && this.isMasterWriter()) {
+      await new Promise(res => setTimeout(res, 100));
+    }
+  }
+
   get writebackOriginType() {
     return this.writeback?.originType || "none";
   }

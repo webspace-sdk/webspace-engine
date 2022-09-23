@@ -77,7 +77,6 @@ export default function AtomTrail({
   viewPermission,
   editPermission,
   metadata,
-  history,
   renamePopupElement,
   showRenamePopup
 }) {
@@ -112,7 +111,7 @@ export default function AtomTrail({
           <AtomTrailAtomItem
             key={`item-${i}`}
             className="short"
-            onClick={() => navigateToHubUrl(history, metadata.getMetadata(atomId).url)}
+            onClick={() => navigateToHubUrl(metadata.getMetadata(atomId).url)}
           >
             {names[i]}
           </AtomTrailAtomItem>
@@ -148,7 +147,6 @@ export default function AtomTrail({
 }
 
 AtomTrail.propTypes = {
-  history: PropTypes.object,
   atomIds: PropTypes.array,
   metadata: PropTypes.object,
   can: PropTypes.func,
