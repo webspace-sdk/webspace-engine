@@ -382,7 +382,7 @@ export const pushHubMetaUpdateIntoDOM = async hub => {
   if (typeof worldSeed === "number" && worldSeed > 0 && worldSeed <= 127) {
     upsertMetaTag("environment.terrain.seed", `${worldSeed}`);
   } else {
-    const worldSeed = Math.floor(currentHubSeed / 2);
+    const worldSeed = currentHubSeed;
     initMetaTag("environment.terrain.seed", `${worldSeed}`);
   }
 

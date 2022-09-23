@@ -44,7 +44,7 @@ const update = async () => {
 
   currentHubId = await getHubIdFromUrl(currentHref);
   const hubHash = await hashString(currentHref);
-  currentHubSeed = hubHash[0];
+  currentHubSeed = Math.floor(hubHash[0] / 2); // 0-127
   currentSpaceId = await getSpaceIdFromUrl(document.location.toString());
 };
 
