@@ -374,8 +374,7 @@ export const pushHubMetaUpdateIntoDOM = async hub => {
   if (typeof worldType === "number" && worldType >= 0 && worldType <= MAX_WORLD_TYPE) {
     upsertMetaTag("environment.terrain.type", `${META_TAG_TERRAIN_TYPE_NAMES[worldType]}`);
   } else {
-    const worldType = currentHubSeed % 2 === 0 ? "plains" : "hills";
-    initMetaTag("environment.terrain.type", worldType);
+    initMetaTag("environment.terrain.type", "plains");
   }
 
   const worldSeed = hub.world?.seed;
