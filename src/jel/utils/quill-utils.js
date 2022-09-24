@@ -13,10 +13,10 @@ import {
 import { preflightUrl } from "../../hubs/utils/media-utils";
 
 import QUILL_PRE from "../../assets/jel/stylesheets/quill-pre.scss";
-import QUILL_CORE from "quill/dist/quill.core.css";
-import QUILL_BUBBLE from "quill/dist/quill.bubble.css";
-import QUILL_EMOJI from "quill-emoji/dist/quill-emoji.css";
-import QUILL_HIGHLIGHT from "highlight.js/scss/github.scss";
+import QUILL_CORE from "!!raw-loader!quill/dist/quill.core.css";
+import QUILL_BUBBLE from "!!raw-loader!quill/dist/quill.bubble.css";
+import QUILL_EMOJI from "!!raw-loader!quill-emoji/dist/quill-emoji.css";
+import QUILL_HIGHLIGHT from "!!raw-loader!highlight.js/scss/github.scss";
 
 const htmlImageUrlToDataUrlCache = new Map();
 
@@ -279,7 +279,7 @@ export async function renderQuillToImg(
 
 export const isInQuillEditor = () => !!DOM_ROOT.activeElement?.classList.contains("ql-editor");
 
-export function computeQuillContectRect(quill) {
+export function computeQuillContentRect(quill) {
   const els = quill.container.querySelector(".ql-editor").children;
   let w = 0,
     h = 0;

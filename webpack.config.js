@@ -243,11 +243,11 @@ module.exports = async (env, argv) => {
           }
         },
         {
-          test: /\.(scss|css)$/,
+          test: /\.(css|scss)$/i,
           use: [
-            {
-              loader: "raw-loader"
-            },
+            // Translates CSS into CommonJS
+            "css-loader",
+            // Compiles Sass to CSS
             "sass-loader"
           ]
         },
