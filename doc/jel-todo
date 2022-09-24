@@ -40,17 +40,13 @@
     - allow others to edit and create objects
     - disable live HTML updates
 - remote client upload
-- bug: object in scene modified by client b who refreshes doesn't get updated to what they left behind in the hands of client a (client a not sending a full sync for non-owned objects, and saved HTML is behind)
-  - when someone leaves, everyone's objects need to get a new owner (?)
 - cull permissions (in atom manager)
-- labels clipped somehow
-- environment syncing back to origin not working in p2p
-- make sure changing environment without git access shows save properly etc
-- toolbar is in wrong spot
-- labels aren't labels
-- avatar bar in bottom left is clipped low?
 - spawn around origin
-- hotkeys wrong vertical position
+- hotkeys and editor wrong vertical position
+
+- save changes button not working if github token expires
+- first change of environment on fresh github page doesn't work
+- make sure changing environment without git access shows save properly etc
 
 name not updating in self panel when updated by another peer
 pasting text not working, and causing cursor to act funny (not hoverable)
