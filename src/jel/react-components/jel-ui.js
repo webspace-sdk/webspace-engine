@@ -384,7 +384,7 @@ function JelUI(props) {
   return (
     <StyleSheetManager target={DOM_ROOT}>
       <WrappedIntlProvider>
-        <Root className="expand-asset-panel">
+        <Root /*className={"expand-asset-panel"}*/>
           <LoadingPanel
             isLoading={!isDoneLoading || !!unavailableReason || isNavigatingAway}
             unavailableReason={unavailableReason}

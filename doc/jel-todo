@@ -1,6 +1,7 @@
 - get rid of a-assets, see how mozilla does it
 - deal with hub store
 - name generator
+- remove hubs cloud stuff from webpack
 - jel.js -> index.js
 - jel -> ws
 - search for TODO SHARED
@@ -44,6 +45,12 @@
 - cull permissions (in atom manager)
 - labels clipped somehow
 - environment syncing back to origin not working in p2p
+- make sure changing environment without git access shows save properly etc
+- toolbar is in wrong spot
+- labels aren't labels
+- avatar bar in bottom left is clipped low?
+- spawn around origin
+- hotkeys wrong vertical position
 
 name not updating in self panel when updated by another peer
 pasting text not working, and causing cursor to act funny (not hoverable)

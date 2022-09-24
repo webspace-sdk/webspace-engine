@@ -5,7 +5,7 @@ import { gatePermission } from "../../hubs/utils/permissions-utils";
 import { disposeExistingMesh, disposeTexture } from "../../hubs/utils/three-utils";
 import { RENDER_ORDER } from "../../hubs/constants";
 import { addVertexCurvingToMaterial } from "../../jel/systems/terrain-system";
-import { renderQuillToImg, computeQuillContectRect } from "../utils/quill-utils";
+import { renderQuillToImg, computeQuillContentRect } from "../utils/quill-utils";
 import { paths } from "../../hubs/systems/userinput/paths";
 import { chicletGeometry } from "../objects/chiclet-geometry.js";
 import { MAX_FONT_FACE } from "../utils/quill-utils";
@@ -249,7 +249,7 @@ AFRAME.registerComponent("media-text", {
       meshScaleY = (2.0 * 9.0) / 16.0;
 
     // Compute a dynamic zoom + textureWidth based upon the amount of content.
-    const [w, h] = computeQuillContectRect(quill);
+    const [w, h] = computeQuillContentRect(quill);
     const isEmpty = w <= EDITOR_PADDING_X + 4.0;
 
     const contentWidth = this.data.fitContent && !isEmpty ? w : EDITOR_WIDTH;
