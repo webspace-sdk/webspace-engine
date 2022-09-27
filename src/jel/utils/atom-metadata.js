@@ -67,9 +67,17 @@ export class LocalDOMHubMetadataSource extends EventTarget {
     this.mutationObserver = new MutationObserver(async mutationList => {
       for (const mutation of mutationList) {
         const modifiedMetatag =
-          mutation.target.tagName === "META" && mutation.target.getAttribute("name")?.startsWith(META_TAG_PREFIX);
+          (mutation.target.tagName === "META" && mutation.target.getAttribute("name")?.startsWith(META_TAG_PREFIX)) ||
+          (mutation.addedNodes.length > 0 &&
+            mutation.addedNodes[0].tagName === "META" &&
+            mutation.addedNodes[0].getAttribute("name")?.startsWith(META_TAG_PREFIX)) ||
+          (mutation.removedNodes.length > 0 &&
+            mutation.removedNodes[0].tagName === "META" &&
+            mutation.removedNodes[0].getAttribute("name")?.startsWith(META_TAG_PREFIX));
+
         const modifiedTitle =
           mutation.target.tagName === "TITLE" ||
+          (mutation.addedNodes.length > 0 && mutation.addedNodes[0].tagName === "TITLE") ||
           (mutation.removedNodes.length > 0 && mutation.removedNodes[0].tagName === "TITLE");
 
         if (modifiedMetatag || modifiedTitle) {
