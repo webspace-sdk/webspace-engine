@@ -145,7 +145,7 @@ export default class GitHubWriteback {
   get requiresSetup() {
     return (
       !this.secret ||
-      this.originState === WRITEBACK_ORIGIN_STATE.INVALID_SECRET ||
+      this.originState === WRITEBACK_ORIGIN_STATE.INVALID_CREDENTIALS ||
       this.originState === WRITEBACK_ORIGIN_STATE.INVALID_REPO
     );
   }
