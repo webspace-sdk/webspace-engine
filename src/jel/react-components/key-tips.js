@@ -9,7 +9,6 @@ const KeyTipsElement = styled.div`
   position: absolute;
   right: 0;
   bottom: 0;
-  display: flex;
   flex-direction: column;
   align-items: flex-end;
   justify-content: flex-end;
@@ -19,9 +18,10 @@ const KeyTipsElement = styled.div`
   margin: 6px 0;
   user-select: none;
   pointer-events: none;
+  display: none;
 
   .panels-collapsed & {
-    display: none;
+    display: flex;
   }
 `;
 

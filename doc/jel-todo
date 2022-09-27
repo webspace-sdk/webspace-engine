@@ -44,10 +44,6 @@
 - spawn around origin
 - hotkeys and editor wrong vertical position
 
-- save changes button not working if github token expires
-- first change of environment on fresh github page doesn't work
-- make sure changing environment without git access shows save properly etc
-
 name not updating in self panel when updated by another peer
 pasting text not working, and causing cursor to act funny (not hoverable)
 should push terrain chunks to origin on first edit
