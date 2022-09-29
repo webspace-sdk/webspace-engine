@@ -1,6 +1,7 @@
 import { EventTarget } from "event-target-shim";
 import { getHubIdFromHistory } from "./jel-url-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
+import { docToPrettifiedHtml } from "./dom-utils";
 import { signString, verifyString } from "../../hubs/utils/crypto";
 import { fromByteArray } from "base64-js";
 import FileWriteback from "../writeback/file-writeback";
@@ -48,33 +49,6 @@ const VALID_PERMISSIONS = {
   ],
   [ATOM_TYPES.SPACE]: ["create_world_hub", "view_nav", "edit_nav", "update_space_meta", "create_invite"],
   [ATOM_TYPES.VOX]: ["view_vox", "edit_vox"]
-};
-
-const prettifyXml = sourceXml => {
-  const xmlDoc = new DOMParser().parseFromString(sourceXml, "application/xml");
-  const xsltDoc = new DOMParser().parseFromString(
-    [
-      // describes how we want to modify the XML - indent everything
-      '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
-      '  <xsl:strip-space elements="*"/>',
-      '  <xsl:template match="para[content-style][not(text())]">', // change to just text() to strip space in text nodes
-      '    <xsl:value-of select="normalize-space(.)"/>',
-      "  </xsl:template>",
-      '  <xsl:template match="node()|@*">',
-      '    <xsl:copy><xsl:apply-templates select="node()|@*"/></xsl:copy>',
-      "  </xsl:template>",
-      '  <xsl:output indent="yes"/>',
-      "</xsl:stylesheet>"
-    ].join("\n"),
-    "application/xml"
-  );
-
-  const xsltProcessor = new XSLTProcessor();
-  xsltProcessor.importStylesheet(xsltDoc);
-  const resultDoc = xsltProcessor.transformToDocument(xmlDoc);
-  const resultXml = new XMLSerializer().serializeToString(resultDoc);
-
-  return resultXml;
 };
 
 const MAX_WRITE_RATE_MS = 10000;
@@ -354,8 +328,8 @@ export default class AtomAccessManager extends EventTarget {
     }
   }
 
-  async writeDocument(document, path = null) {
-    const html = prettifyXml(new XMLSerializer().serializeToString(document));
+  async writeDocument(doc, path = null) {
+    const html = docToPrettifiedHtml(doc);
 
     if (html && html.length > 0) {
       return await this.writeback.write(html, path);

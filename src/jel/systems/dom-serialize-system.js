@@ -1,4 +1,4 @@
-import { quillHtmlToWebspaceHtml } from "../utils/dom-utils";
+import { prettifyHtml, quillHtmlToWebspaceHtml } from "../utils/dom-utils";
 import { isLockedMedia } from "../../hubs/utils/media-utils";
 import { FONT_FACES } from "../utils/quill-utils";
 import { normalizeCoord } from "../systems/wrapped-entity-system";
@@ -248,7 +248,10 @@ const updateDomElForEl = (domEl, el) => {
       const html = quill.container.querySelector(".ql-editor").innerHTML;
       const newHtml = quillHtmlToWebspaceHtml(html);
 
-      if (domEl.innerHTML.trim() !== newHtml.trim()) {
+      if (
+        prettifyHtml(`<html><body>${domEl.innerHTML}</body></html>`) !==
+        prettifyHtml(`<html><body>${newHtml}</body></html>`)
+      ) {
         domEl.innerHTML = newHtml;
       }
 
