@@ -844,6 +844,18 @@ function addMissingDefaultHtml() {
   }
 }
 
+function pauseAllPlayableElements() {
+  // Find all the video + audio tags in the dom, pause them if they're playing, and then add an event listener
+  // when the play state changes to pause them again if they're played.
+  for (const el of document.querySelectorAll("video, audio")) {
+    el.pause();
+
+    el.addEventListener("play", () => {
+      el.pause();
+    });
+  }
+}
+
 // Need to add networking compatible ids to each element under the document root
 async function patchUpManuallyAddedHtmlTags() {
   // Generator for new ids. Use random number generator based on doc contents
@@ -890,6 +902,8 @@ async function patchUpManuallyAddedHtmlTags() {
 async function start() {
   if (!(await checkPrerequisites())) return;
   addMissingDefaultHtml();
+  pauseAllPlayableElements();
+
   await patchUpManuallyAddedHtmlTags();
 
   // TODO SHARED head
