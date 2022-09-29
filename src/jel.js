@@ -845,15 +845,21 @@ function addMissingDefaultHtml() {
 }
 
 function pauseAllPlayableElements() {
-  // Find all the video + audio tags in the dom, pause them if they're playing, and then add an event listener
-  // when the play state changes to pause them again if they're played.
-  for (const el of document.querySelectorAll("video, audio")) {
-    el.pause();
-
-    el.addEventListener("play", () => {
+  const pauseAll = () => {
+    // Find all the video + audio tags in the dom, pause them if they're playing, and then add an event listener
+    // when the play state changes to pause them again if they're played.
+    for (const el of document.querySelectorAll("video, audio")) {
       el.pause();
-    });
-  }
+
+      el.addEventListener("play", () => {
+        el.pause();
+      });
+    }
+  };
+
+  new MutationObserver(pauseAll).observe(document.body, { subtree: false, childList: true });
+
+  pauseAll();
 }
 
 // Need to add networking compatible ids to each element under the document root

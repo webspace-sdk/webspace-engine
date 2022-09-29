@@ -43,6 +43,8 @@
 - cull permissions (in atom manager)
 - spawn around origin
 
+- particles not showing for uploaded video via webrtc
+
 name not updating in self panel when updated by another peer
 pasting text not working, and causing cursor to act funny (not hoverable)
 should push terrain chunks to origin on first edit
