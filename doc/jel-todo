@@ -27,7 +27,7 @@
 - test ff + safari
 - allow networking settings to be changed via qs
 - remove all unused translations
-- file uploads from remotes
+- upload progress
 - invite popout
 - deal with filtering networking based on roles + hub setting for allowing edits
 - left click to drag objects, right click to edit objects
@@ -35,15 +35,11 @@
 - add service to register spaces
 - upload + register service worker
 - duck should upload glb
-- can't change enviornment on github page on first click when no credentials
 - two settings:
   - allow others to edit and create objects
   - disable live HTML updates
-- remote client upload
 - cull permissions (in atom manager)
 - spawn around origin
-
-- particles not showing for uploaded video via webrtc
 
 name not updating in self panel when updated by another peer
 pasting text not working, and causing cursor to act funny (not hoverable)

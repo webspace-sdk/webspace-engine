@@ -216,9 +216,12 @@ export default class GitHubWriteback {
     return path;
   }
 
-  async uploadAsset(fileOrBlob, fileName) {
+  async uploadAsset(fileOrBlob, fileName, doNotCache = false) {
     await this.write(fileOrBlob, `assets/${fileName}`);
-    this.assetBlobCache.set(`assets/${fileName}`, fileOrBlob);
+
+    if (!doNotCache) {
+      this.assetBlobCache.set(`assets/${fileName}`, fileOrBlob);
+    }
 
     return { url: `assets/${encodeURIComponent(fileName)}`, contentType: fileOrBlob.type };
   }

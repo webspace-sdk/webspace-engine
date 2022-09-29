@@ -346,13 +346,13 @@ export default class AtomAccessManager extends EventTarget {
     return await this.writeback.fileExists(path);
   }
 
-  async uploadAsset(fileOrBlob, fileName = null) {
+  async uploadAsset(fileOrBlob, fileName = null, doNotCache = false) {
     if (!this.writeback?.isOpen && this.hasAnotherWriterInPresence()) {
       // Upload via webrtc
       return await this.uploadAssetToWriterInPresence(fileOrBlob);
     }
 
-    return await this.tryUploadAssetDirectly(fileOrBlob, fileName);
+    return await this.tryUploadAssetDirectly(fileOrBlob, fileName, doNotCache);
   }
 
   async uploadAssetToWriterInPresence(fileOrBlob) {
@@ -386,11 +386,11 @@ export default class AtomAccessManager extends EventTarget {
     return await promise;
   }
 
-  async tryUploadAssetDirectly(fileOrBlob, fileName = null) {
+  async tryUploadAssetDirectly(fileOrBlob, fileName = null, doNotCache = false) {
     if (!(await this.ensureWritebackOpen())) return;
 
     fileName = fileName || this.getFilenameForFileOrBlob(fileOrBlob);
-    return await this.writeback.uploadAsset(fileOrBlob, fileName);
+    return await this.writeback.uploadAsset(fileOrBlob, fileName, doNotCache);
   }
 
   getFilenameForFileOrBlob(fileOrBlob) {

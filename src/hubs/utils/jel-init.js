@@ -196,7 +196,10 @@ const setupDataChannelMessageHandlers = () => {
       // Create a blob from the base64 encoded contents and contentType
       const bytes = base64ToByteArray(contents);
       const blob = new Blob([bytes], { type: contentType });
-      const uploadResult = await atomAccessManager.uploadAsset(blob, name);
+
+      // Do not cache the asset since if a remote is about to spawn a media object
+      // we do not want to load the asset from cache before they do.
+      const uploadResult = await atomAccessManager.uploadAsset(blob, name, true);
       window.APP.hubChannel.sendMessage({ ...uploadResult, id }, "upload_asset_complete", fromSessionId);
     }
   );
