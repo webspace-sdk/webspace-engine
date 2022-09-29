@@ -306,6 +306,15 @@ export default class WorldImporter {
         if (mediaBackgroundColor) {
           mediaOptions.backgroundColor = mediaBackgroundColor;
         }
+      } else {
+        // Unknown
+        console.warn(`Unknown tag ${tagName} in webspace ${el.outerHTML}`);
+        continue;
+      }
+
+      if (!src && !contents) {
+        console.warn(`No src or contents for webspace element ${el.outerHTML}`);
+        continue;
       }
 
       const isLocked = el.getAttribute("draggable") === null;
@@ -324,7 +333,8 @@ export default class WorldImporter {
         networkedOwner: "world",
         skipLoader: true,
         contentType: type,
-        locked: isLocked
+        locked: isLocked,
+        retryFetchFromSameOrigin: false
       };
 
       const stackAxis = el.getAttribute("data-stack-axis");

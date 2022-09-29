@@ -40,6 +40,9 @@ const tagTypeForEl = el => {
   if (el.components["media-image"]) {
     const imageSrc = el.components["media-image"].data.src;
 
+    // Don't serialize broken images
+    if (imageSrc === "error") return null;
+
     if (
       !imageSrc.startsWith("data:") &&
       !imageSrc.startsWith("blob:") &&
@@ -79,7 +82,7 @@ const tagTypeForEl = el => {
     return "video";
   }
 
-  return "unknown";
+  return null;
 };
 
 const setAttributeIfChanged = (el, attribute, value) => {
@@ -484,7 +487,10 @@ export class DomSerializeSystem {
     let shouldAppend = false;
 
     if (!domEl) {
-      domEl = document.createElement(tagTypeForEl(el));
+      const tagType = tagTypeForEl(el);
+      if (tagType === null) return;
+
+      domEl = document.createElement(tagType);
       domEl.id = elId;
       shouldAppend = true;
     }

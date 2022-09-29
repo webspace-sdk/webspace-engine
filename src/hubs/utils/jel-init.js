@@ -172,6 +172,10 @@ const setupDataChannelMessageHandlers = () => {
     SYSTEMS.mediaTextSystem.handleTextMediaMessage(body, fromSessionId);
   });
 
+  NAF.connection.subscribeToDataChannel("file_upload", (_type, { body }, fromSessionId) => {
+    SYSTEMS.mediaTextSystem.handleTextMediaMessage(body, fromSessionId);
+  });
+
   // Public key verification
   //
   const clientIdChallenges = new Map();
@@ -182,6 +186,20 @@ const setupDataChannelMessageHandlers = () => {
     clientIdChallenges.set(clientId, challenge);
     window.APP.hubChannel.sendMessage(challenge, "challenge", clientId);
   });
+
+  NAF.connection.subscribeToDataChannel(
+    "upload_asset_request",
+    async (_type, { body: { id, contents, contentType, name } }, fromSessionId) => {
+      if (!atomAccessManager.hubCan("spawn_and_move_media", null /* hubId */, fromSessionId)) return;
+      if (!atomAccessManager.hubCan("upload_files", null /* hubId */, fromSessionId)) return;
+
+      // Create a blob from the base64 encoded contents and contentType
+      const bytes = base64ToByteArray(contents);
+      const blob = new Blob([bytes], { type: contentType });
+      const uploadResult = await atomAccessManager.uploadAsset(blob, name);
+      window.APP.hubChannel.sendMessage({ ...uploadResult, id }, "upload_asset_complete", fromSessionId);
+    }
+  );
 
   NAF.connection.subscribeToDataChannel("challenge", async (_type, { body: challenge }, fromClientId) => {
     const { challengeSignature, clientIdSignature } = await atomAccessManager.getChallengeResponse(challenge);

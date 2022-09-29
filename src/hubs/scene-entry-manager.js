@@ -225,7 +225,7 @@ export default class SceneEntryManager {
       // This is going to generate an array of media, get the URL first.
       if (fileOrUrl instanceof File) {
         if (!window.APP.atomAccessManager.canHub("upload_files")) return;
-        pdfUrl = (await upload(fileOrUrl)).url;
+        pdfUrl = (await window.APP.atomAccessManager.uploadAsset(fileOrUrl)).url;
       } else {
         pdfUrl = fileOrUrl;
       }

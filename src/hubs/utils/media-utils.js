@@ -357,11 +357,6 @@ export const preflightUrl = async (parsedUrl, quality = "high") => {
   return { contentType, contentUrl, accessibleContentUrl, accessibleContentAudioUrl };
 };
 
-export const upload = fileOrBlob => {
-  const { atomAccessManager } = window.APP;
-  return atomAccessManager.uploadAsset(fileOrBlob);
-};
-
 // https://stackoverflow.com/questions/7584794/accessing-jpeg-exif-rotation-data-in-javascript-on-the-client-side/32490603#32490603
 function getOrientation(file, callback) {
   const reader = new FileReader();
@@ -444,7 +439,8 @@ export const addMedia = options => {
     locked: false,
     stackAxis: 0,
     stackSnapPosition: false,
-    stackSnapScale: false
+    stackSnapScale: false,
+    retryFetchFromSameOrigin: true
   };
 
   const {
@@ -466,7 +462,8 @@ export const addMedia = options => {
     locked,
     stackAxis,
     stackSnapPosition,
-    stackSnapScale
+    stackSnapScale,
+    retryFetchFromSameOrigin
   } = { ...defaults, ...options };
 
   const scene = AFRAME.scenes[0];
@@ -533,7 +530,8 @@ export const addMedia = options => {
     locked,
     stackAxis,
     stackSnapPosition,
-    stackSnapScale
+    stackSnapScale,
+    retryFetchFromSameOrigin
   });
 
   if (contents && !isEmoji) {
@@ -554,7 +552,8 @@ export const addMedia = options => {
     }
   });
   if (needsToBeUploaded) {
-    upload(src)
+    window.APP.atomAccessManager
+      .uploadAsset(src)
       .then(({ url, contentType }) => {
         entity.setAttribute("media-loader", { src: url, contentType });
       })

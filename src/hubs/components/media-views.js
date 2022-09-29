@@ -530,11 +530,17 @@ AFRAME.registerComponent("media-video", {
     if (isMine(this.networkedEl)) return;
 
     const owner = getNetworkOwner(this.networkedEl);
-    const occupants = NAF.connection.getConnectedClients();
+    let ownerIsPresent = false;
+    for (const [, presence] of NAF.connection.presence.states) {
+      if (presence.client_id === owner) {
+        ownerIsPresent = true;
+        break;
+      }
+    }
 
-    const isPresent = SYSTEMS.mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT;
+    const mediaIsPresent = SYSTEMS.mediaPresenceSystem.getMediaPresence(this) === MEDIA_PRESENCE.PRESENT;
 
-    if (!occupants[owner] && isPresent && window.APP.atomAccessManager.hubCan("spawn_and_move_media")) {
+    if (!ownerIsPresent && mediaIsPresent && window.APP.atomAccessManager.hubCan("spawn_and_move_media")) {
       console.log(`Video ${getNetworkId(this.networkedEl)} has non-present owner, taking ownership.`);
       takeOwnership(this.networkedEl);
     }

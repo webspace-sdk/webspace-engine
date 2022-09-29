@@ -44,6 +44,7 @@ AFRAME.registerComponent("media-loader", {
     stackAxis: { default: 0 },
     stackSnapPosition: { default: false },
     stackSnapScale: { default: false },
+    retryFetchFromSameOrigin: { default: true },
     mediaOptions: {
       default: {},
       parse: v => (typeof v === "object" ? v : JSON.parse(v)),
@@ -407,16 +408,36 @@ AFRAME.registerComponent("media-loader", {
           contentType
         );
 
-        // Retry if 404 for up to 2 mintues, since origin can have delay in deploying relative assets
-        for (let i = 0; i < 90; i++) {
+        // Retry if 404 for up to 2 mintues, since origin asset uploads can have delay in deploying relative assets
+        if (
+          this.data.retryFetchFromSameOrigin &&
+          !accessibleContentUrl.startsWith("data:") &&
+          !accessibleContentUrl.startsWith("blob:")
+        ) {
+          // Check if accessibleContentUrl has the same origin as the current page
+          let parsedAccessibleContentUrl = null;
+
           try {
-            const res = await fetch(accessibleContentUrl);
-            if (res.status !== 404) break;
+            parsedAccessibleContentUrl = new URL(accessibleContentUrl);
           } catch (e) {
-            // Keep trying
+            try {
+              parsedAccessibleContentUrl = new URL(accessibleContentUrl, document.location.href);
+            } catch (e) { // eslint-disable-line
+            }
           }
 
-          await new Promise(res => setTimeout(res, 2500));
+          if (parsedAccessibleContentUrl && parsedAccessibleContentUrl.origin === document.location.origin) {
+            for (let i = 0; i < 90; i++) {
+              try {
+                const res = await fetch(accessibleContentUrl);
+                if (res.status !== 404) break;
+              } catch (e) {
+                // Keep trying
+              }
+
+              await new Promise(res => setTimeout(res, 2500));
+            }
+          }
         }
       }
 
@@ -448,6 +469,11 @@ AFRAME.registerComponent("media-loader", {
       }
 
       this.el.addEventListener("media-load-error", () => this.cleanupLoader());
+
+      if (!src.startsWith("jel://") && !contentType) {
+        // Unknown content type, fail
+        throw new Error(`No content type for ` + src);
+      }
 
       if (src.startsWith("jel://entities/") && src.includes("/components/media-text")) {
         this.el.addEventListener("text-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });

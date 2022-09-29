@@ -7,6 +7,7 @@
 - search for TODO SHARED
 - powered by link
 - bring in avatar audio system
+- remove unused local storage fields
 - ambient sound meta tag
 - skybox in meta tag
 - drop config system (maybe keep some meta tags)
@@ -35,14 +36,12 @@
 - upload + register service worker
 - duck should upload glb
 - can't change enviornment on github page on first click when no credentials
-- edit world button should be 'save changes' button
-  - two settings:
-    - allow others to edit and create objects
-    - disable live HTML updates
+- two settings:
+  - allow others to edit and create objects
+  - disable live HTML updates
 - remote client upload
 - cull permissions (in atom manager)
 - spawn around origin
-- hotkeys and editor wrong vertical position
 
 name not updating in self panel when updated by another peer
 pasting text not working, and causing cursor to act funny (not hoverable)

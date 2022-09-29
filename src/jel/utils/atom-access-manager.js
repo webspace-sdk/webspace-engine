@@ -95,6 +95,7 @@ export default class AtomAccessManager extends EventTarget {
     this.refreshOnWritebackOpen = false;
 
     this.documentIsDirty = false;
+    this.remoteUploadResolvers = new Map();
   }
 
   get isEditingAvailable() {
@@ -149,7 +150,6 @@ export default class AtomAccessManager extends EventTarget {
       isWriting = true;
       try {
         if (this.isMasterWriter()) {
-          console.log("write");
           await this.writeDocument(document);
         }
       } finally {
@@ -200,7 +200,6 @@ export default class AtomAccessManager extends EventTarget {
 
       this.documentIsDirty = true;
       this.dispatchEvent(new CustomEvent("document-dirty-state-changed"));
-      console.log("saw change", arr);
       this.writeTimeout = setTimeout(write, MAX_WRITE_RATE_MS);
     });
 
@@ -230,6 +229,7 @@ export default class AtomAccessManager extends EventTarget {
       document.body.addEventListener("connected", () => {
         this.updateRoles();
         this.updatePresenceWithWriterStatus();
+        this.subscribeToUploadCompleteMessages();
       });
 
       document.body.addEventListener("clientDisconnected", ({ detail: { clientId } }) => {
@@ -372,9 +372,54 @@ export default class AtomAccessManager extends EventTarget {
     return await this.writeback.fileExists(path);
   }
 
-  async uploadAsset(fileOrBlob) {
+  async uploadAsset(fileOrBlob, fileName = null) {
+    if (!this.writeback?.isOpen && this.hasAnotherWriterInPresence()) {
+      // Upload via webrtc
+      return await this.uploadAssetToWriterInPresence(fileOrBlob);
+    }
+
+    return await this.tryUploadAssetDirectly(fileOrBlob, fileName);
+  }
+
+  async uploadAssetToWriterInPresence(fileOrBlob) {
+    const clientIds = new Set();
+
+    for (const [, presence] of NAF.connection.presence.states) {
+      const clientId = presence.client_id;
+      if (clientId !== NAF.clientId && presence.writer && this.roles.get(clientId) === ROLES.OWNER) {
+        clientIds.add(clientId);
+      }
+    }
+
+    // Choose a random client id to try
+    const clientId = [...clientIds][Math.floor(Math.random() * clientIds.size)];
+
+    const reader = new FileReader();
+    reader.readAsDataURL(fileOrBlob);
+
+    const contents = (await new Promise(res => (reader.onloadend = () => res(reader.result)))).split(",")[1];
+    const contentType = fileOrBlob.type || "application/octet-stream";
+
+    const name = this.getFilenameForFileOrBlob(fileOrBlob);
+    const id = Math.random()
+      .toString(36)
+      .substring(2, 7);
+
+    const promise = new Promise(res => this.remoteUploadResolvers.set(id, res));
+
+    window.APP.hubChannel.sendMessage({ id, contents, contentType, name }, "upload_asset_request", clientId);
+
+    return await promise;
+  }
+
+  async tryUploadAssetDirectly(fileOrBlob, fileName = null) {
     if (!(await this.ensureWritebackOpen())) return;
 
+    fileName = fileName || this.getFilenameForFileOrBlob(fileOrBlob);
+    return await this.writeback.uploadAsset(fileOrBlob, fileName);
+  }
+
+  getFilenameForFileOrBlob(fileOrBlob) {
     let fileName = null;
 
     if (fileOrBlob instanceof File) {
@@ -388,7 +433,7 @@ export default class AtomAccessManager extends EventTarget {
         .substring(2, 15)}.${fileExtension}`;
     }
 
-    return await this.writeback.uploadAsset(fileOrBlob, fileName);
+    return fileName;
   }
 
   setCurrentHubId(hubId) {
@@ -505,6 +550,18 @@ export default class AtomAccessManager extends EventTarget {
       this.roles = newRoles;
       this.dispatchEvent(new CustomEvent("permissions_updated", {}));
     }
+  }
+
+  subscribeToUploadCompleteMessages() {
+    NAF.connection.subscribeToDataChannel(
+      "upload_asset_complete",
+      (_type, { body: { url, contentType, id } }, fromSessionId) => {
+        if (this.remoteUploadResolvers.has(id)) {
+          this.remoteUploadResolvers.get(id)({ url, contentType });
+          this.remoteUploadResolvers.delete(id);
+        }
+      }
+    );
   }
 
   // The "Master writer" is the client id in presence with the lowest client id also registered as a writer and a known owner.
