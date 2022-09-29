@@ -214,10 +214,25 @@ export default class WorldImporter {
         // Link
         src = el.getAttribute("href");
         resolve = true;
-      } else if (tagName === "EMBED" && el.getAttribute("data-index") !== null) {
+      } else if (tagName === "EMBED" && (src.indexOf("#page") >= 0 || src.endsWith(".pdf") >= 0)) {
         // PDF
         src = el.getAttribute("src");
-        mediaOptions.index = el.getAttribute("data-index");
+
+        let page = 1;
+
+        if (src.indexOf("#page") >= 0) {
+          // Parse page out of anchor
+          try {
+            page = parseInt(src.substring(src.indexOf("#page=") + 6), 10);
+          } catch (e) {
+            console.warn("Invalid PDF page", src.substring(src.indexOf("#page=") + 6));
+          }
+        }
+
+        mediaOptions.index = page - 1;
+
+        // Remove page anchor from src
+        src = src.substring(0, src.indexOf("#page="));
       } else if (tagName === "MODEL") {
         // VOX or glTF
         src = el.getAttribute("src");

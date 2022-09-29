@@ -154,7 +154,7 @@ const updateDomElForEl = (domEl, el) => {
     const { index } = el.components["media-pdf"].data;
 
     setAttributeIfChanged(domEl, "type", "application/pdf");
-    setAttributeIfChanged(domEl, "data-index", index);
+    src = src.replace(/#.*$/, "") + `#page=${index + 1}`;
   }
 
   if (el.components["media-vox"]) {
