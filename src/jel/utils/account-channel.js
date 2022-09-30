@@ -8,14 +8,6 @@ export default class AccountChannel extends EventTarget {
     this.store = store;
   }
 
-  setActive = () => {
-    // TODO SHARED
-  };
-
-  setInactive = () => {
-    // TODO SHARED
-  };
-
   fetchVoxPermsToken = voxId => {
     return new Promise((resolve, reject) => {
       this.channel
@@ -97,8 +89,8 @@ export default class AccountChannel extends EventTarget {
 
   updateVox = (voxId, newVoxFields) => {
     if (!this.channel) return;
-    const { voxMetadata } = window.APP;
-    const canUpdateVoxMeta = voxMetadata.can("edit_vox", voxId);
+    const { atomAccessManager, voxMetadata } = window.APP;
+    const canUpdateVoxMeta = atomAccessManager.voxCan("edit_vox", voxId);
     if (!canUpdateVoxMeta) return "unauthorized";
     this.channel.push("update_vox", { ...newVoxFields, vox_id: voxId });
     voxMetadata.localUpdate(voxId, newVoxFields);

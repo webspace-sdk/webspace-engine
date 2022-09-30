@@ -8,8 +8,8 @@ export default class DynaChannel extends EventTarget {
   }
 
   updateSpace = (spaceId, newSpaceFields) => {
-    const spaceMetadata = window.APP.spaceMetadata;
-    const canUpdateSpaceMeta = spaceMetadata.can("update_space_meta", spaceId);
+    const { spaceMetadata, atomAccessManager } = window.APP;
+    const canUpdateSpaceMeta = atomAccessManager.spaceCan("update_space_meta");
     if (!canUpdateSpaceMeta) return "unauthorized";
     spaceMetadata.localUpdate(spaceId, newSpaceFields);
 

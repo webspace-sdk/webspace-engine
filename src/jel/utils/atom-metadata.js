@@ -317,20 +317,6 @@ class AtomMetadata {
     this._fireHandlerForSubscribersForUpdatedIds([id]);
   };
 
-  can(permission /*, atomId*/) {
-    if (!VALID_PERMISSIONS[this._atomType].includes(permission))
-      throw new Error(`Invalid permission name: ${permission}`);
-
-    // TODO SHARED permissions
-    return true;
-
-    //if (!this.hasMetadata(atomId)) {
-    //  return false; // This used to throw an error, should it still?
-    //}
-
-    //return !!this.getMetadata(atomId).permissions[permission];
-  }
-
   ensureMetadataForIds(ids, force = false) {
     const idsToFetch = new Set();
     const source = this._source;

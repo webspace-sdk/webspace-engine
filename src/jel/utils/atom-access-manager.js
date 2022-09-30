@@ -452,7 +452,7 @@ export default class AtomAccessManager extends EventTarget {
     return this.writeback?.isOpen;
   }
 
-  voxCan(permission) {
+  voxCan(permission /*, voxId = null, sessionId = null*/) {
     if (!VALID_PERMISSIONS[ATOM_TYPES.VOX].includes(permission))
       throw new Error(`Invalid permission name: ${permission}`);
 

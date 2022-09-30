@@ -508,7 +508,7 @@ function setupGameEnginePausing(scene) {
 
       UI.classList.add("paused");
       physics.updateSimulationRate(1000.0 / 15.0);
-      accountChannel.setInactive();
+      // TODO presence.setInactive();
       clearTimeout(disableAmbienceTimeout);
 
       disableAmbienceTimeout = setTimeout(() => {
@@ -535,7 +535,7 @@ function setupGameEnginePausing(scene) {
         clearTimeout(disableAmbienceTimeout);
         UI.classList.remove("paused");
         physics.updateSimulationRate(1000.0 / 90.0);
-        accountChannel.setActive();
+        // TODO presence.setActive();
         SYSTEMS.atmosphereSystem.enableAmbience();
       }
 
@@ -912,7 +912,6 @@ async function start() {
 
   await patchUpManuallyAddedHtmlTags();
 
-  // TODO SHARED head
   let initialWorldHTML = `<!DOCTYPE html>\n<html><body>${document.body.innerHTML}</body></html>`;
 
   const useShadowDom = true;
