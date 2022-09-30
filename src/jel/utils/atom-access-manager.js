@@ -62,8 +62,6 @@ export default class AtomAccessManager extends EventTarget {
     this.roles = new Map();
     this.writeback = null;
 
-    this.init();
-
     this.lastWriteTime = null;
     this.writeTimeout = null;
 
@@ -536,15 +534,12 @@ export default class AtomAccessManager extends EventTarget {
   }
 
   subscribeToUploadCompleteMessages() {
-    NAF.connection.subscribeToDataChannel(
-      "upload_asset_complete",
-      (_type, { body: { url, contentType, id } }, fromSessionId) => {
-        if (this.remoteUploadResolvers.has(id)) {
-          this.remoteUploadResolvers.get(id)({ url, contentType });
-          this.remoteUploadResolvers.delete(id);
-        }
+    NAF.connection.subscribeToDataChannel("upload_asset_complete", (_type, { body: { url, contentType, id } }) => {
+      if (this.remoteUploadResolvers.has(id)) {
+        this.remoteUploadResolvers.get(id)({ url, contentType });
+        this.remoteUploadResolvers.delete(id);
       }
-    );
+    });
   }
 
   // The "Master writer" is the client id in presence with the lowest client id also registered as a writer and a known owner.

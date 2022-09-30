@@ -168,8 +168,8 @@ const setupDataChannelMessageHandlers = () => {
     pushHubMetaUpdateIntoDOM(hub);
   });
 
-  NAF.connection.subscribeToDataChannel("text_media_message", (_type, { body }, fromSessionId) => {
-    SYSTEMS.mediaTextSystem.handleTextMediaMessage(body, fromSessionId);
+  NAF.connection.subscribeToDataChannel("edit_ring_message", (_type, { body }, fromSessionId) => {
+    window.APP.editRingManager.handleEditRingMessage(body, fromSessionId);
   });
 
   NAF.connection.subscribeToDataChannel("file_upload", (_type, { body }, fromSessionId) => {

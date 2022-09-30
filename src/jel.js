@@ -152,6 +152,7 @@ import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "./jel/utils/jel-url-utils";
 import SceneEntryManager from "./hubs/scene-entry-manager";
 import AtomAccessManager from "./jel/utils/atom-access-manager";
+import EditRingManager from "./jel/utils/edit-ring-manager";
 
 import {
   SansSerifFontCSS,
@@ -192,6 +193,9 @@ const spaceMetadata = new AtomMetadata(ATOM_TYPES.SPACE);
 const hubMetadata = new AtomMetadata(ATOM_TYPES.HUB);
 const voxMetadata = new AtomMetadata(ATOM_TYPES.VOX);
 const atomAccessManager = new AtomAccessManager();
+const editRingManager = new EditRingManager();
+
+atomAccessManager.init();
 
 window.APP.history = history;
 window.APP.accountChannel = accountChannel;
@@ -202,6 +206,7 @@ window.APP.hubMetadata = hubMetadata;
 window.APP.spaceMetadata = spaceMetadata;
 window.APP.voxMetadata = voxMetadata;
 window.APP.atomAccessManager = atomAccessManager;
+window.APP.editRingManager = editRingManager;
 
 const qs = new URLSearchParams(location.search);
 
@@ -963,6 +968,8 @@ async function start() {
   // Patch the scene resize handler to update the camera properly, since the
   // camera system manages the projection matrix.
   const scene = DOM_ROOT.querySelector("a-scene");
+
+  editRingManager.init(scene);
 
   const sceneResize = scene.resize.bind(scene);
   const resize = function() {
