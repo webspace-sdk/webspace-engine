@@ -7,6 +7,7 @@ import { fromByteArray } from "base64-js";
 import FileWriteback from "../writeback/file-writeback";
 import GitHubWriteback from "../writeback/github-writeback";
 import { META_TAG_PREFIX } from "./dom-utils";
+import SERVICE_WORKER_JS from "!!raw-loader!../../webspace.service.js";
 
 const OWNER_PUBLIC_KEY_META_TAG_NAME = `${META_TAG_PREFIX}.keys.owner`;
 
@@ -296,6 +297,14 @@ export default class AtomAccessManager extends EventTarget {
     await this.updateRoles();
   }
 
+  async ensureServiceWorker() {
+    if (!this.writeback?.isOpen) return;
+
+    if (!(await this.fileExists("webspace.service.js"))) {
+      this.writeback.write(SERVICE_WORKER_JS, "webspace.service.js");
+    }
+  }
+
   async ensureWritebackOpen(refreshAfterOpen = false) {
     if (this.writeback?.isOpen) return true;
 
@@ -575,6 +584,7 @@ export default class AtomAccessManager extends EventTarget {
   handleWritebackOpened() {
     this.dispatchEvent(new CustomEvent("permissions_updated", {}));
     this.ensurePublicKeyInMetaTags();
+    this.ensureServiceWorker();
     this.updatePresenceWithWriterStatus();
   }
 }

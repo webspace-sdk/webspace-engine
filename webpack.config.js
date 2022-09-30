@@ -312,12 +312,6 @@ module.exports = async (env, argv) => {
           removeComments: false
         }
       }),
-      new CopyWebpackPlugin([
-        {
-          from: "src/jel.service.js",
-          to: "jel.service.js"
-        }
-      ]),
       // Define process.env variables in the browser context.
       new webpack.DefinePlugin({
         "process.env": JSON.stringify({

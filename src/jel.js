@@ -1029,7 +1029,7 @@ async function start() {
 
   if (navigator.serviceWorker && document.location.protocol !== "file:") {
     try {
-      navigator.serviceWorker.register("/jel.service.js");
+      navigator.serviceWorker.register("/webspace.service.js");
     } catch (e) { // eslint-disable-line
     }
   }
