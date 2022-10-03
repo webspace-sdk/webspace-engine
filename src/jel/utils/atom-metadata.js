@@ -24,17 +24,30 @@ export class VoxMetadataSource extends EventTarget {
   }
 
   async getVoxMetas(voxIds) {
-    return [
-      {
-        vox_id: voxIds[0],
-        url: "assets/123.pvox",
-        name: "My Vox",
-        published_scale: 1.0,
-        published_stack_axis: 0,
-        published_stack_snap_position: false,
-        published_stack_snap_scale: false
-      }
-    ];
+    const promises = voxIds.map(voxId => this.getVoxMeta(voxId));
+
+    await Promise.all(promises);
+
+    const vox = [];
+
+    for (let i = 0; i < voxIds.length; i++) {
+      vox.push(await promises[i]);
+    }
+
+    return vox;
+  }
+
+  async getVoxMeta(voxId) {
+    // TODO fetch
+    return {
+      vox_id: voxId,
+      url: atob(voxId),
+      name: null,
+      published_scale: 1.0,
+      published_stack_axis: 0,
+      published_stack_snap_position: false,
+      published_stack_snap_scale: false
+    };
   }
 }
 

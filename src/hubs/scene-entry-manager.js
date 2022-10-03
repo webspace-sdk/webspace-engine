@@ -195,10 +195,14 @@ export default class SceneEntryManager {
 
     this.scene.addEventListener("add_media_vox", async () => {
       const { voxSystem, builderSystem } = SYSTEMS;
+      const voxName = "my-vox-object";
+      const voxFilename = `${voxName}.pvox`;
+      const voxPath = `assets/${voxFilename}`;
 
-      const {
-        vox: [{ vox_id: voxId }]
-      } = await createVox();
+      const baseUrl = new URL(document.location.href);
+      baseUrl.pathname = baseUrl.pathname.replace(/\/[^/]*$/, "/");
+      const voxUrl = new URL(voxPath, baseUrl).href;
+      const voxId = btoa(voxUrl); // Vox id is base64 encoded url
 
       const sync = await voxSystem.getSync(voxId);
       await sync.setVoxel(0, 0, 0, builderSystem.brushVoxColor);
