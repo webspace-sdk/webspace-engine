@@ -33,7 +33,7 @@ class VoxDoc {
   unsubscribe() {}
 
   submitOp(op) {
-    vox0.apply(this.data, [op]);
+    vox0.apply(this.data, op);
     this.handlers.get("op") && this.handlers.get("op")(op);
   }
 
@@ -167,7 +167,7 @@ export default class VoxSync extends EventTarget {
       // SYSTEMS.voxSystem.updateOpenVoxIdsInPresence();
     }
 
-    this._doc.submitOp(op);
+    this._doc.submitOp([op]);
   }
 
   // Ensures the vox document has the given frame, creating it if not.

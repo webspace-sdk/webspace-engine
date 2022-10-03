@@ -26,15 +26,15 @@ export default class AccountChannel extends EventTarget {
   }
 
   subscribeToVox = voxId => {
-    this.channel.push("subscribe_to_vox", { vox_id: voxId });
+    // TODO VOX
   };
 
   unsubscribeFromVox = voxId => {
-    this.channel.push("unsubscribe_from_vox", { vox_id: voxId });
+    // TODO VOX
   };
 
   markVoxEdited = voxId => {
-    this.channel.push("mark_vox_edited", { vox_id: voxId });
+    // TODO VOX
   };
 
   publishVox = (
@@ -48,6 +48,7 @@ export default class AccountChannel extends EventTarget {
     thumbFileId,
     previewFileId
   ) => {
+    // TODO VOX
     return new Promise(res => {
       this.channel
         .push("publish_vox", {
