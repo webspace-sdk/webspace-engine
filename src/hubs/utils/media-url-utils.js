@@ -14,7 +14,8 @@ const commonKnownContentTypes = {
   mp3: "audio/mpeg",
   basis: "image/basis",
   m3u8: "application/vnd.apple.mpegurl",
-  mpd: "application/dash+xml"
+  mpd: "application/dash+xml",
+  pvox: "model/vnd.packed-vox"
 };
 
 export const getCorsProxyUrl = () => {

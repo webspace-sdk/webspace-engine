@@ -145,7 +145,8 @@ import HubChannel from "./hubs/utils/hub-channel";
 import AtomMetadata, {
   ATOM_TYPES,
   LocalDOMHubMetadataSource,
-  IndexDOMSpaceMetadataSource
+  IndexDOMSpaceMetadataSource,
+  VoxMetadataSource
 } from "./jel/utils/atom-metadata";
 import { setupTreeManagers, joinHub } from "./hubs/utils/jel-init";
 import { disableiOSZoom } from "./hubs/utils/disable-ios-zoom";
@@ -1240,6 +1241,9 @@ async function start() {
 
       const hubMetadataSource = new LocalDOMHubMetadataSource(treeManager.worldNav);
       hubMetadata.bind(hubMetadataSource);
+
+      const voxMetadataSource = new VoxMetadataSource();
+      voxMetadata.bind(voxMetadataSource);
 
       remountJelUI({ spaceId });
     }

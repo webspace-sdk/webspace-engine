@@ -6,7 +6,6 @@ import { MEDIA_TEXT_COLOR_PRESETS } from "../jel/components/media-text";
 import { waitForShadowDOMContentLoaded } from "./utils/async-utils";
 import { createVox } from "./utils/phoenix-utils";
 import { retainPdf, releasePdf } from "../jel/utils/pdf-pool";
-import { getHubIdFromHistory, getSpaceIdFromHistory } from "../jel/utils/jel-url-utils";
 import { isInQuillEditor } from "../jel/utils/quill-utils";
 import { gatePermission } from "./utils/permissions-utils";
 
@@ -21,8 +20,7 @@ import {
   addMediaInFrontOfPlayerIfPermitted,
   performAnimatedRemove,
   snapEntityToBiggestNearbyScreen,
-  addAndArrangeRoundtableMedia,
-  upload
+  addAndArrangeRoundtableMedia
 } from "./utils/media-utils";
 import { handleExitTo2DInterstitial, exit2DInterstitialAndEnterVR } from "./utils/vr-interstitial";
 import { ObjectContentOrigins } from "./object-types";
@@ -196,13 +194,11 @@ export default class SceneEntryManager {
     });
 
     this.scene.addEventListener("add_media_vox", async () => {
-      const spaceId = await getSpaceIdFromHistory(history);
-      const hubId = await getHubIdFromHistory(history);
       const { voxSystem, builderSystem } = SYSTEMS;
 
       const {
         vox: [{ vox_id: voxId }]
-      } = await createVox(spaceId, hubId);
+      } = await createVox();
 
       const sync = await voxSystem.getSync(voxId);
       await sync.setVoxel(0, 0, 0, builderSystem.brushVoxColor);

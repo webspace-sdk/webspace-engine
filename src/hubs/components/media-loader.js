@@ -383,7 +383,7 @@ AFRAME.registerComponent("media-loader", {
         typeof src === "string" &&
         !src.startsWith("data:") &&
         !src.startsWith("jel:") &&
-        contentType !== "model/vnd.jel-vox" &&
+        contentType !== "model/vnd.packed-vox" &&
         !isRelativeUrl
       ) {
         try {
@@ -401,7 +401,10 @@ AFRAME.registerComponent("media-loader", {
         contentType = guessContentType(src) || contentType;
       }
 
-      if (isRelativeUrl) {
+      // Fetching voxel data from origin or webrtc is handled by vox system.
+      const isPackedVoxel = contentType && contentType.startsWith("model/vnd.packed-vox");
+
+      if (isRelativeUrl && !isPackedVoxel) {
         const { atomAccessManager } = window.APP;
         contentUrl = accessibleContentUrl = await atomAccessManager.contentUrlForRelativePath(
           decodeURIComponent(src),
@@ -651,7 +654,7 @@ AFRAME.registerComponent("media-loader", {
           }),
           mediaSrcChanged
         );
-      } else if (contentType.startsWith("model/vnd.jel-vox")) {
+      } else if (isPackedVoxel) {
         this.el.addEventListener("model-loaded", () => this.onMediaLoaded(null, false), { once: true });
         this.el.addEventListener("model-error", this.onError, { once: true });
         this.el.setAttribute("floaty-object", { gravitySpeedLimit: 1.85 });
@@ -691,7 +694,7 @@ AFRAME.registerComponent("media-loader", {
       } else if (contentType.startsWith("model/vox-binary")) {
         const voxSrc = await this.importVoxFromUrl(contentUrl);
 
-        this.el.setAttribute("media-loader", { src: voxSrc, contentType: "model/vnd.jel-vox" });
+        this.el.setAttribute("media-loader", { src: voxSrc, contentType: "model/vnd.packed-vox" });
         this.el.addEventListener("model-loaded", () => this.onMediaLoaded(null, false), { once: true });
         this.el.addEventListener("model-error", this.onError, { once: true });
         this.el.setAttribute("floaty-object", { gravitySpeedLimit: 1.85 });

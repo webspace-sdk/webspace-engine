@@ -158,7 +158,7 @@ const updateDomElForEl = (domEl, el) => {
   }
 
   if (el.components["media-vox"]) {
-    setAttributeIfChanged(domEl, "type", "model/vnd.jel-vox");
+    setAttributeIfChanged(domEl, "type", "model/vnd.packed-vox");
 
     // Look up export vox id
     /*const voxId = voxIdForVoxUrl(src);

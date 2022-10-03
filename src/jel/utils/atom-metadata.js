@@ -14,38 +14,29 @@ const ATOM_TYPES = {
   VOX: 2
 };
 
-const VALID_PERMISSIONS = {
-  [ATOM_TYPES.HUB]: [
-    "update_hub_meta",
-    "update_hub_roles",
-    "join_hub",
-    "close_hub",
-    "remove_hub",
-    "mute_users",
-    "kick_users",
-    "tweet",
-    "spawn_camera",
-    "spawn_drawing",
-    "spawn_and_move_media",
-    "spawn_emoji",
-    "fly",
-    "upload_files"
-  ],
-  [ATOM_TYPES.SPACE]: [
-    "create_world_hub",
-    "view_nav",
-    "edit_nav",
-    "update_space_meta",
-    "create_invite",
-    "go_home",
-    "publish_world_template"
-  ],
-  [ATOM_TYPES.VOX]: ["view_vox", "edit_vox"]
-};
-
 // This value is placed in the metadata lookup table while a fetch is
 // in-flight, to debounce the function that enqueues fetching.
 const pendingMetadataValue = Symbol("pending");
+
+export class VoxMetadataSource extends EventTarget {
+  constructor() {
+    super();
+  }
+
+  async getVoxMetas(voxIds) {
+    return [
+      {
+        vox_id: voxIds[0],
+        url: "assets/123.pvox",
+        name: "My Vox",
+        published_scale: 1.0,
+        published_stack_axis: 0,
+        published_stack_snap_position: false,
+        published_stack_snap_scale: false
+      }
+    ];
+  }
+}
 
 // This source will fetch the metadata for the current hub id from the DOM,
 // and then observe meta tag changes for updates.
@@ -213,20 +204,29 @@ class AtomMetadata {
         this._idColumn = "hub_id";
         this._sourceGetMethod = "getHubMetas";
         this._defaultNames.set("hub", messages["hub.unnamed-world-title"]);
-        this._atomIdToUrl = getHubIdFromUrl;
+        this._atomIdFromUrl = getHubIdFromUrl;
         break;
       case ATOM_TYPES.SPACE:
         this._refreshMessage = "space_meta_refresh";
         this._idColumn = "space_id";
         this._sourceGetMethod = "getSpaceMetas";
         this._defaultNames.set("space", messages["space.unnamed-title"]);
-        this._atomIdToUrl = getSpaceIdFromUrl;
+        this._atomIdFromUrl = getSpaceIdFromUrl;
         break;
       case ATOM_TYPES.VOX:
         this._refreshMessage = "vox_meta_refresh";
         this._idColumn = "vox_id";
         this._sourceGetMethod = "getVoxMetas";
         this._defaultNames.set("vox", messages["vox.unnamed-title"]);
+        this._atomIdFromUrl = voxUrl => {
+          // TODO VOX
+          for (const { vox_id, url } of this._metadata.values()) {
+            if (url === voxUrl) return vox_id;
+          }
+
+          return null;
+        };
+
         break;
     }
   }
@@ -350,7 +350,6 @@ class AtomMetadata {
 
     // Others are pending, create a promise to fetch them.
     if (idsToFetch.size > 0) {
-      if (source === null) console.trace();
       // Push a promise that waits on fetching the pending ids
       promises.push(
         new Promise(res => {
@@ -397,7 +396,7 @@ class AtomMetadata {
   }
 
   async getAtomIdFromUrl(url) {
-    return await this._atomIdToUrl(url);
+    return await this._atomIdFromUrl(url);
   }
 
   async getOrFetchMetadata(id) {

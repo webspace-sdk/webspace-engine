@@ -218,22 +218,9 @@ export async function createHub(
   }).then(r => r.json());
 }
 
-export async function createVox(spaceId, hubId = null, bakedFromVoxId = null) {
-  const store = window.APP.store;
-  const createUrl = getReticulumFetchUrl("/api/v1/vox");
-  const payload = { vox: { space_id: spaceId, hub_id: hubId, baked_from_vox_id: bakedFromVoxId } };
-
-  const headers = { "content-type": "application/json" };
-
-  if (store.state && store.state.credentials.token) {
-    headers.authorization = `bearer ${store.state.credentials.token}`;
-  }
-
-  return await fetch(createUrl, {
-    body: JSON.stringify(payload),
-    headers,
-    method: "POST"
-  }).then(r => r.json());
+export async function createVox() {
+  // TODO VOX
+  return { vox: [{ vox_id: "123" }] };
 }
 
 export function getPresenceEntryForSession(presences, sessionId) {

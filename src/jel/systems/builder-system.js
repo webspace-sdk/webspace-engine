@@ -615,7 +615,7 @@ export class BuilderSystem extends EventTarget {
     const { entity } = addMedia({
       src: url,
       contentOrigin: ObjectContentOrigins.URL,
-      contentType: "model/vnd.jel-vox"
+      contentType: "model/vnd.packed-vox"
     });
 
     entity.addEventListener(

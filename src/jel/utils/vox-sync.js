@@ -1,5 +1,5 @@
-import jwtDecode from "jwt-decode";
 import { EventTarget } from "event-target-shim";
+import { type as vox0, Vox } from "ot-vox";
 import { VoxChunk, REMOVE_VOXEL_COLOR } from "ot-vox";
 
 const MAX_FRAMES = 32;
@@ -20,6 +20,32 @@ export const DEFAULT_VOX_FRAME_SIZE = 2;
 // Number of ms before a sync that has been writing voxels expires.
 const EXPIRATION_TIME_MS = 30000;
 
+class VoxDoc {
+  constructor() {
+    this.handlers = new Map();
+    this.data = new Vox([]);
+  }
+
+  subscribe(fn) {
+    fn();
+  }
+
+  unsubscribe() {}
+
+  submitOp(op) {
+    vox0.apply(this.data, [op]);
+    this.handlers.get("op") && this.handlers.get("op")(op);
+  }
+
+  on(event, fn) {
+    this.handlers.set(event, fn);
+  }
+
+  off(event) {
+    this.handlers.delete(event);
+  }
+}
+
 export default class VoxSync extends EventTarget {
   constructor(voxId) {
     super();
@@ -32,33 +58,28 @@ export default class VoxSync extends EventTarget {
   }
 
   async init(scene) {
-    console.warn("VOX sync is disabled due to shared aframe no longer being set up");
-    return;
+    if (!NAF.connection.adapter) {
+      await new Promise(res => scene.addEventListener("adapter-ready", res, { once: true }));
+    }
 
-    // if (!NAF.connection.adapter) {
-    //   await new Promise(res => scene.addEventListener("adapter-ready", res, { once: true }));
-    // }
+    this._connection = NAF.connection.adapter.connection;
 
-    // this._connection = NAF.connection.adapter.connection;
+    let finish;
+    this._whenReady = new Promise(res => (finish = res));
 
-    // let finish;
-    // this._whenReady = new Promise(res => (finish = res));
+    const doc = new VoxDoc();
+    this._doc = doc;
 
-    // const doc = this._connection.get("vox", this._voxId);
-    // this._doc = doc;
+    await new Promise(res => {
+      doc.subscribe(() => {
+        doc.on("op", this._fireVoxUpdated);
+        this._fireVoxUpdated(); // Initialize mesh
 
-    // await this._refreshPermissions();
+        res();
+      });
+    });
 
-    // await new Promise(res => {
-    //   doc.subscribe(() => {
-    //     doc.on("op", this._fireVoxUpdated);
-    //     this._fireVoxUpdated(); // Initialize mesh
-
-    //     res();
-    //   });
-    // });
-
-    // finish();
+    finish();
   }
 
   async dispose() {
@@ -73,8 +94,6 @@ export default class VoxSync extends EventTarget {
       this._doc = null;
       this._connection = null;
     }
-
-    if (this._refreshPermsTimeout) clearTimeout(this._refreshPermsTimeout);
   }
 
   async applyChunk(chunk, frame, offset) {
@@ -112,25 +131,9 @@ export default class VoxSync extends EventTarget {
     }
   }
 
-  async _refreshPermissions() {
-    const { accountChannel } = window.APP;
-    const { permsToken: token } = await accountChannel.fetchVoxPermsToken(this._voxId);
-
-    // Note: token is not verified.
-    this._permissions = jwtDecode(token);
-
-    // Refresh the token 1 minute before it expires. Refresh at most every 60s.
-    if (this._refreshPermsTimeout) clearTimeout(this._refreshPermsTimeout);
-    const nextRefresh = new Date(this._permissions.exp * 1000 - 60 * 1000) - new Date();
-    this._refreshTimeout = setTimeout(async () => await this._refreshPermissions(), Math.max(nextRefresh, 60000));
-
-    if (this._connection) {
-      this._connection.send({ a: "refresh_authorization", token });
-    }
-  }
-
   get permissions() {
-    return this._permissions;
+    // TODO VOX
+    return { edit_vox: true };
   }
 
   // Attempts to expire this sync, returns true if the sync was transitioned to being expired.
@@ -160,7 +163,8 @@ export default class VoxSync extends EventTarget {
     this._lastWriteTime = performance.now();
 
     if (shouldUpdateVoxIdsInPresence) {
-      SYSTEMS.voxSystem.updateOpenVoxIdsInPresence();
+      // TODO VOX
+      // SYSTEMS.voxSystem.updateOpenVoxIdsInPresence();
     }
 
     this._doc.submitOp(op);

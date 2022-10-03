@@ -81,9 +81,8 @@ voxMaterial.onBeforeCompile = shader => {
 };
 
 export function voxIdForVoxUrl(url) {
-  // Parse vox id from URL
-  const pathParts = new URL(url).pathname.split("/");
-  return pathParts[pathParts.length - 1];
+  // TODO VOX
+  return window.APP.voxMetadata.getAtomIdFromUrl(url);
 }
 
 function createMesh() {
@@ -467,7 +466,7 @@ export class VoxSystem extends EventTarget {
 
     this.unregister(source);
 
-    const voxId = voxIdForVoxUrl(voxUrl);
+    const voxId = await voxIdForVoxUrl(voxUrl);
 
     if (!voxMap.has(voxId)) {
       await this.registerVox(voxUrl);
@@ -535,7 +534,7 @@ export class VoxSystem extends EventTarget {
     const voxEntry = voxMap.get(voxId);
     if (!voxEntry) return;
 
-    const { maxRegisteredIndex, sourceToIndex, sources, meshes, shapesUuid, walkableSources } = voxEntry;
+    const { sourceToIndex, sources, meshes, shapesUuid, walkableSources } = voxEntry;
 
     if (!sourceToIndex.has(source)) return;
     const instanceIndex = sourceToIndex.get(source);
@@ -577,7 +576,7 @@ export class VoxSystem extends EventTarget {
   async registerVox(voxUrl) {
     const { voxMap } = this;
 
-    const voxId = voxIdForVoxUrl(voxUrl);
+    const voxId = await voxIdForVoxUrl(voxUrl);
 
     let voxRegisteredResolve;
     const voxRegistered = new Promise(res => (voxRegisteredResolve = res));
@@ -1453,6 +1452,7 @@ export class VoxSystem extends EventTarget {
   }
 
   async fetchVoxFrameChunks(/*voxUrl*/) {
+    // TODO VOX need to retry
     //const store = window.APP.store;
     //const res = await fetch(voxUrl, {
     //  headers: { authorization: `bearer ${store.state.credentials.token}` }
@@ -1647,73 +1647,58 @@ export class VoxSystem extends EventTarget {
   })();
 
   publishAllInCurrentWorld = (function() {
-    const tmpVec = new THREE.Vector3();
+    //const tmpVec = new THREE.Vector3();
 
-    return async function(collection, category) {
-      const { voxMap } = this;
-      const { accountChannel } = window.APP;
-      const hubId = await getHubIdFromHistory();
-
-      for (const [voxId, { sources }] of voxMap.entries()) {
-        let stackAxis = 0;
-        let stackSnapPosition = false;
-        let stackSnapScale = false;
-
-        let scale = 1.0;
-        let hasLockedMedia = false;
-
-        for (let i = 0; i < sources.length; i++) {
-          const source = sources[i];
-          if (source === null) continue;
-
-          hasLockedMedia = hasLockedMedia || isLockedMedia(source.el);
-
-          source.el.object3D.getWorldScale(tmpVec);
-
-          const mediaLoader = source.el.components["media-loader"];
-
-          if (mediaLoader) {
-            stackAxis = mediaLoader.data.stackAxis;
-            stackSnapPosition = mediaLoader.data.stackSnapPosition;
-            stackSnapScale = mediaLoader.data.stackSnapScale;
-          }
-
-          scale = tmpVec.x;
-          break;
-        }
-
-        if (!hasLockedMedia) continue;
-
-        console.log(`Publishing ${voxId} with scale ${scale}.`);
-        const { thumbData, previewData } = await this.renderVoxToImage(voxId);
-
-        console.log(`Generated image for ${voxId}.`);
-        const thumbBlob = dataURItoBlob(thumbData);
-        const previewBlob = dataURItoBlob(previewData);
-        // TODO SHAREd
-        //const { file_id: thumbFileId } = await upload(thumbBlob, "image/png", hubId);
-        //const { file_id: previewFileId } = await upload(previewBlob, "image/png", hubId);
-
-        //console.log(`Uploaded images for ${voxId}.`);
-        //const publishedVoxId = await accountChannel.publishVox(
-        //  voxId,
-        //  collection,
-        //  category,
-        //  stackAxis,
-        //  stackSnapPosition,
-        //  stackSnapScale,
-        //  scale,
-        //  thumbFileId,
-        //  previewFileId
-        //);
-        console.log(`Updated published vox for ${voxId}: ${publishedVoxId}.`);
-
-        this.copyVoxContent(voxId, publishedVoxId);
-
-        console.log(`Synced voxels to ${publishedVoxId}.`);
-      }
-
-      console.log("Done publishing.");
+    return async function(/*collection, category*/) {
+      //const { voxMap } = this;
+      //const { accountChannel } = window.APP;
+      //const hubId = await getHubIdFromHistory();
+      //for (const [voxId, { sources }] of voxMap.entries()) {
+      //  let stackAxis = 0;
+      //  let stackSnapPosition = false;
+      //  let stackSnapScale = false;
+      //  let scale = 1.0;
+      //  let hasLockedMedia = false;
+      //  for (let i = 0; i < sources.length; i++) {
+      //    const source = sources[i];
+      //    if (source === null) continue;
+      //    hasLockedMedia = hasLockedMedia || isLockedMedia(source.el);
+      //    source.el.object3D.getWorldScale(tmpVec);
+      //    const mediaLoader = source.el.components["media-loader"];
+      //    if (mediaLoader) {
+      //      stackAxis = mediaLoader.data.stackAxis;
+      //      stackSnapPosition = mediaLoader.data.stackSnapPosition;
+      //      stackSnapScale = mediaLoader.data.stackSnapScale;
+      //    }
+      //    scale = tmpVec.x;
+      //    break;
+      //  }
+      //  if (!hasLockedMedia) continue;
+      //  console.log(`Publishing ${voxId} with scale ${scale}.`);
+      //  const { thumbData, previewData } = await this.renderVoxToImage(voxId);
+      //  console.log(`Generated image for ${voxId}.`);
+      //  const thumbBlob = dataURItoBlob(thumbData);
+      //  const previewBlob = dataURItoBlob(previewData);
+      //  // TODO SHAREd
+      //  //const { file_id: thumbFileId } = await upload(thumbBlob, "image/png", hubId);
+      //  //const { file_id: previewFileId } = await upload(previewBlob, "image/png", hubId);
+      //  //console.log(`Uploaded images for ${voxId}.`);
+      //  //const publishedVoxId = await accountChannel.publishVox(
+      //  //  voxId,
+      //  //  collection,
+      //  //  category,
+      //  //  stackAxis,
+      //  //  stackSnapPosition,
+      //  //  stackSnapScale,
+      //  //  scale,
+      //  //  thumbFileId,
+      //  //  previewFileId
+      //  //);
+      //  console.log(`Updated published vox for ${voxId}: ${publishedVoxId}.`);
+      //  this.copyVoxContent(voxId, publishedVoxId);
+      //  console.log(`Synced voxels to ${publishedVoxId}.`);
+      //}
+      //console.log("Done publishing.");
     };
   })();
 
@@ -1782,7 +1767,7 @@ export class VoxSystem extends EventTarget {
       src: url,
       contentOrigin: ObjectContentOrigins.URL,
       skipResolve: true,
-      contentType: "model/vnd.jel-vox",
+      contentType: "model/vnd.packed-vox",
       zOffset: -2.5,
       yOffset: 0,
       stackAxis: published_stack_axis,
@@ -1817,7 +1802,7 @@ export class VoxSystem extends EventTarget {
     const { entity } = addMedia({
       src: url,
       contentOrigin: ObjectContentOrigins.URL,
-      contentType: "model/vnd.jel-vox",
+      contentType: "model/vnd.packed-vox",
       stackAxis: published_stack_axis,
       stackSnapPosition: published_stack_snap_position,
       stackSnapScale: published_stack_snap_scale
@@ -1877,7 +1862,7 @@ export class VoxSystem extends EventTarget {
     const { voxMetadata, accountChannel } = window.APP;
     const hubId = await getHubIdFromHistory();
 
-    const voxId = voxIdForVoxUrl(voxSrc);
+    const voxId = await voxIdForVoxUrl(voxSrc);
     const metadata = await voxMetadata.getOrFetchMetadata(voxId);
 
     if (!metadata.is_published) return voxSrc;

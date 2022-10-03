@@ -122,7 +122,8 @@ export default class AtomAccessManager extends EventTarget {
 
       isWriting = true;
       try {
-        if (this.isMasterWriter()) {
+        // TODO VOX
+        if (false && this.isMasterWriter()) {
           await this.writeDocument(document);
         }
       } finally {

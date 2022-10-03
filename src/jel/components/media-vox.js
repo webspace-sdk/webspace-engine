@@ -161,7 +161,7 @@ AFRAME.registerComponent("media-vox", {
       {},
       true,
       true,
-      "model/vnd.jel-vox",
+      "model/vnd.packed-vox",
       zOffset,
       0, // yOffset
       stackAxis,
