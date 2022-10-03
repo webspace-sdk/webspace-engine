@@ -43,10 +43,10 @@ export class VoxMetadataSource extends EventTarget {
       vox_id: voxId,
       url: atob(voxId),
       name: null,
-      published_scale: 1.0,
-      published_stack_axis: 0,
-      published_stack_snap_position: false,
-      published_stack_snap_scale: false
+      scale: 1.0,
+      stack_axis: 0,
+      stack_snap_position: false,
+      stack_snap_scale: false
     };
   }
 }

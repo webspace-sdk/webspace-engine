@@ -4,7 +4,6 @@ import { hackyMobileSafariTest } from "./utils/detect-touchscreen";
 import { ensureOwnership } from "./../jel/utils/ownership-utils";
 import { MEDIA_TEXT_COLOR_PRESETS } from "../jel/components/media-text";
 import { waitForShadowDOMContentLoaded } from "./utils/async-utils";
-import { createVox } from "./utils/phoenix-utils";
 import { retainPdf, releasePdf } from "../jel/utils/pdf-pool";
 import { isInQuillEditor } from "../jel/utils/quill-utils";
 import { gatePermission } from "./utils/permissions-utils";

@@ -1,5 +1,7 @@
-import { JelVoxBufferGeometry } from "../objects/JelVoxBufferGeometry";
 import jwtDecode from "jwt-decode";
+import { Builder } from "flatbuffers/js/builder";
+
+import { JelVoxBufferGeometry } from "../objects/JelVoxBufferGeometry";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { createVox } from "../../hubs/utils/phoenix-utils";
 import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
@@ -14,13 +16,19 @@ import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../../hubs/utils/media-utils";
 import { type as vox0, Vox, /*VoxChunk, */ rgbtForVoxColor } from "ot-vox";
 import { ensureOwnership } from "../utils/ownership-utils";
-import { dataURItoBlob } from "../utils/dom-utils";
 import { getSpaceIdFromHistory, getHubIdFromHistory } from "../utils/jel-url-utils";
 import VoxSync from "../utils/vox-sync";
 import FastVixel from "fast-vixel";
 
+import { PVox } from "../pvox/pvox";
+import { VoxChunk } from "../pvox/vox-chunk";
+
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, Matrix4, Mesh } = THREE;
 import { EventTarget } from "event-target-shim";
+
+const flatbuilder = new Builder(1024 * 1024 * 4);
+
+const PVOX_HEADER = [80, 86, 79, 88];
 
 export const MAX_FRAMES_PER_VOX = 32;
 const MAX_INSTANCES_PER_VOX_ID = 255;
@@ -28,6 +36,7 @@ const IDENTITY = new Matrix4();
 const tmpMatrix = new Matrix4();
 const tmpVec = new THREE.Vector3();
 const RESHAPE_DELAY_MS = 5000;
+const WRITEBACK_DELAY_MS = 1000; // TODO VOX
 
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
 targettingMaterial.visible = false;
@@ -115,6 +124,7 @@ export class VoxSystem extends EventTarget {
     this.voxMap = new Map();
     this.sourceToVoxId = new Map();
     this.assetPanelDraggingVoxId = null;
+    this.nextWritebackTime = null;
 
     // Maps meshes to vox ids, this will include an entry for an active targeting mesh.
     this.meshToVoxId = new Map();
@@ -298,6 +308,10 @@ export class VoxSystem extends EventTarget {
       }
     }
 
+    if (this.nextWritebackTime !== null && performance.now() > this.nextWritebackTime) {
+      this.performWriteback();
+    }
+
     let expiredSync = false;
 
     // Check for expiring syncs
@@ -426,8 +440,21 @@ export class VoxSystem extends EventTarget {
       }
     }
 
+    this.markDirtyForWriteback(voxId);
     entry.vox = vox;
     entry.regenerateDirtyMeshesOnNextFrame = true;
+  }
+
+  markDirtyForWriteback(voxId) {
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return;
+    entry.shouldWritebackToOrigin = true;
+
+    if (this.nextWritebackTime === null) {
+      console.log("next writeback", this.nextWritebackTime);
+      this.nextWritebackTime = performance.now() + WRITEBACK_DELAY_MS;
+    }
   }
 
   async onSpacePresenceSynced() {
@@ -655,6 +682,9 @@ export class VoxSystem extends EventTarget {
 
       // Flag used to force a write of the source world matrices to the instanced mesh.
       hasDirtyMatrices: false,
+
+      // True if the entry needs to be flushed back to origin
+      shouldWritebackToOrigin: false,
 
       // Current animation frame
       currentFrame: 0,
@@ -1755,13 +1785,7 @@ export class VoxSystem extends EventTarget {
 
     const metadata = await voxMetadata.getOrFetchMetadata(voxId);
 
-    const {
-      url,
-      published_stack_axis,
-      published_stack_snap_position,
-      published_stack_snap_scale,
-      published_scale
-    } = metadata;
+    const { url, stack_axis, stack_snap_position, stack_snap_scale, scale } = metadata;
 
     const entity = addMediaInFrontOfPlayerIfPermitted({
       src: url,
@@ -1770,18 +1794,22 @@ export class VoxSystem extends EventTarget {
       contentType: "model/vnd.packed-vox",
       zOffset: -2.5,
       yOffset: 0,
-      stackAxis: published_stack_axis,
-      stackSnapPosition: published_stack_snap_position,
-      stackSnapScale: published_stack_snap_scale
+      stackAxis: stack_axis,
+      stackSnapPosition: stack_snap_position,
+      stackSnapScale: stack_snap_scale
     }).entity;
 
-    entity.object3D.scale.setScalar(published_scale);
+    entity.object3D.scale.setScalar(scale);
     entity.object3D.matrixNeedsUpdate = true;
 
     if (!builderSystem.enabled) {
       builderSystem.toggle();
       launcherSystem.toggle();
     }
+
+    entity.addEventListener("model-loaded", () => this.markDirtyForWriteback(voxId), { once: true });
+
+    return entity;
   }
 
   async beginPlacingDraggedVox() {
@@ -1791,24 +1819,18 @@ export class VoxSystem extends EventTarget {
 
     const metadata = await voxMetadata.getOrFetchMetadata(assetPanelDraggingVoxId);
 
-    const {
-      url,
-      published_stack_axis,
-      published_stack_snap_position,
-      published_stack_snap_scale,
-      published_scale
-    } = metadata;
+    const { url, stack_axis, stack_snap_position, stack_snap_scale, scale } = metadata;
 
     const { entity } = addMedia({
       src: url,
       contentOrigin: ObjectContentOrigins.URL,
       contentType: "model/vnd.packed-vox",
-      stackAxis: published_stack_axis,
-      stackSnapPosition: published_stack_snap_position,
-      stackSnapScale: published_stack_snap_scale
+      stackAxis: stack_axis,
+      stackSnapPosition: stack_snap_position,
+      stackSnapScale: stack_snap_scale
     });
 
-    entity.object3D.scale.setScalar(published_scale);
+    entity.object3D.scale.setScalar(scale);
     entity.object3D.matrixNeedsUpdate = true;
 
     // Needed to ensure media presence is triggered
@@ -2018,5 +2040,65 @@ export class VoxSystem extends EventTarget {
     DOM_ROOT.removeChild(canvas);
 
     return { previewData, thumbData };
+  }
+
+  async performWriteback() {
+    this.nextWritebackTime = null;
+
+    const { atomAccessManager, voxMetadata } = window.APP;
+    const { voxMap } = this;
+
+    for (const [voxId, entry] of voxMap.entries()) {
+      const { shouldWritebackToOrigin } = entry;
+
+      if (shouldWritebackToOrigin) {
+        entry.shouldWritebackToOrigin = false;
+
+        if (atomAccessManager.isMasterWriter()) {
+          const pvoxRef = new PVox();
+          const vox = entry.vox;
+          const metadata = await voxMetadata.getOrFetchMetadata(voxId);
+
+          flatbuilder.clear();
+
+          PVox.startFramesVector(flatbuilder, vox.frames.length);
+
+          for (let i = 0; i < vox.frames.length; i++) {
+            const frame = vox.frames[i];
+
+            flatbuilder.addOffset(
+              VoxChunk.createVoxChunk(
+                flatbuilder,
+                frame.size[0],
+                frame.size[1],
+                frame.size[2],
+                frame.bitsPerIndex,
+                VoxChunk.createPaletteVector(flatbuilder, frame.palette),
+                VoxChunk.createIndicesVector(flatbuilder, frame.indices.view)
+              )
+            );
+          }
+
+          const framesOffset = flatbuilder.endVector(flatbuilder);
+
+          flatbuilder.finish(
+            PVox.createPVox(
+              flatbuilder,
+              PVox.createHeaderVector(flatbuilder, PVOX_HEADER),
+              flatbuilder.createSharedString(metadata.name || ""),
+              0 /* version */,
+              0 /* revision */,
+              metadata.scale || 1.0,
+              metadata.stack_axis || 0,
+              metadata.stack_snap_position || false,
+              metadata.stack_snap_scale || false,
+              framesOffset
+            )
+          );
+
+          console.log("flush to origin", voxId, metadata, pvoxRef, flatbuilder.asUint8Array());
+        }
+      }
+    }
   }
 }
