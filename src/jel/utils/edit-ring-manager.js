@@ -6,8 +6,6 @@ const SYNC_STATES = {
   SYNCED: 2 // Actively synced
 };
 
-const MAX_COMPONENTS = 256;
-
 // Notes on syncing:
 //
 // We can't just use the doc that we construct from the DOM or asset folder since if people are editing
@@ -42,9 +40,6 @@ const MAX_COMPONENTS = 256;
 // For syncing there are two kinds of docs, voxes, or ydocs for text editing.
 export default class EditRingManager {
   constructor() {
-    this.maxIndex = -1;
-    this.components = Array(MAX_COMPONENTS).fill(null);
-    this.componentToDocId = new Map();
     this.docIdToSyncState = new Map();
     this.docIdToSyncHandler = new Map();
     this.seenClientIdsInPresence = new Set();
@@ -64,46 +59,18 @@ export default class EditRingManager {
     document.body.addEventListener("clientConnected", this.sendInitialDocRequestsForPresence.bind(this));
   }
 
-  registerRingEditableComponent(component, docId, syncHandler) {
-    this.componentToDocId.set(component, docId);
-
+  registerRingEditableDocument(docId, syncHandler) {
     this.docIdToSyncState.set(docId, SYNC_STATES.UNSYNCED);
     this.docIdToSyncHandler.set(docId, syncHandler);
-
-    for (let i = 0; i <= this.maxIndex; i++) {
-      if (this.components[i] === null) {
-        this.components[i] = component;
-        this.maxIndex = Math.max(this.maxIndex, i);
-        return;
-      }
-    }
-
-    this.components[++this.maxIndex] = component;
     this.sendInitialDocRequestsForPresence();
   }
 
-  unregisterRingEditableComponent(component) {
-    const index = this.components.indexOf(component);
-    if (index === -1) return;
-
-    this.components[index] = null;
-
-    const docId = this.componentToDocId.get(component);
-    this.componentToDocId.delete(docId);
+  unregisterRingEditableDocument(docId) {
     this.docIdToSyncState.delete(docId);
     this.docIdToSyncHandler.delete(docId);
-
-    for (let i = 0; i < this.components.length; i++) {
-      if (this.components[i] === null) continue;
-      this.maxIndex = Math.max(this.maxIndex, i);
-    }
   }
 
-  sendDeltaSync(component, delta) {
-    const index = this.components.indexOf(component);
-    if (index === -1) return;
-    const docId = this.componentToDocId.get(component);
-
+  sendDeltaSync(docId, delta) {
     const syncState = this.getSyncState(docId);
 
     if (syncState === SYNC_STATES.UNSYNCED && this.isSyncRingEmpty(docId)) {
@@ -128,7 +95,7 @@ export default class EditRingManager {
       if (!NAF.connection.hasActiveDataChannel(clientId)) continue;
 
       for (const { doc_type, doc_id: docId } of state.sync_ring_memberships) {
-        if (!this.docIdToSyncState.has(docId)) continue;
+        if (!this.docIdToSyncHandler.has(docId)) continue;
         if (requestedDocIds.has(docId)) continue;
 
         const syncState = this.getSyncState(docId);
@@ -228,7 +195,6 @@ export default class EditRingManager {
     if (!syncRingMemberships.find(m => m.doc_id === docId)) {
       syncRingMemberships.push({ doc_id: docId });
     }
-    console.log(syncRingMemberships);
 
     NAF.connection.presence.setLocalStateField("sync_ring_memberships", syncRingMemberships);
     this.docIdToSyncState.set(docId, SYNC_STATES.SYNCING);

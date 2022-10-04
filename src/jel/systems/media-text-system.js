@@ -42,7 +42,7 @@ export class MediaTextSystem extends EventTarget {
     this.components[++this.maxIndex] = component;
 
     // Text panels use network id as the doc id, since these are unique in the DOM
-    editRingManager.registerRingEditableComponent(component, networkId, this);
+    editRingManager.registerRingEditableDocument(networkId, this);
   }
 
   unregisterMediaTextComponent(component) {
@@ -62,7 +62,7 @@ export class MediaTextSystem extends EventTarget {
       this.maxIndex = Math.max(this.maxIndex, i);
     }
 
-    editRingManager.unregisterRingEditableComponent(component, this);
+    editRingManager.unregisterRingEditableDocument(networkId, this);
   }
 
   initializeTextEditor(component, force = true, initialContents = null, beginSyncing = false) {
@@ -129,7 +129,7 @@ export class MediaTextSystem extends EventTarget {
     this.quillObserverFns[index] = (eventType, delta, state, origin) => {
       if (delta && delta.ops) {
         if (origin === "user") {
-          editRingManager.sendDeltaSync(component, delta);
+          editRingManager.sendDeltaSync(networkId, delta);
         }
 
         for (const op of delta.ops) {
