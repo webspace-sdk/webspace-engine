@@ -13,10 +13,11 @@ import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../../hubs/utils/media-utils";
-import { type as vox0, Vox, VoxChunk, rgbtForVoxColor } from "ot-vox";
+import { type as vox0, Vox, VoxChunk, rgbtForVoxColor, REMOVE_VOXEL_COLOR } from "ot-vox";
 import { ensureOwnership } from "../utils/ownership-utils";
 import { getSpaceIdFromHistory, getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/jel-url-utils";
 import { fetchPVoxFromUrl } from "../utils/vox-utils";
+import { ByteBuffer } from "flatbuffers";
 import VoxSync from "../utils/vox-sync";
 import FastVixel from "fast-vixel";
 
@@ -37,6 +38,8 @@ const tmpMatrix = new Matrix4();
 const tmpVec = new THREE.Vector3();
 const RESHAPE_DELAY_MS = 5000;
 const WRITEBACK_DELAY_MS = 1000; // TODO VOX
+const MAX_FRAMES = 32;
+const DEFAULT_VOX_FRAME_SIZE = 2;
 
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
 targettingMaterial.visible = false;
@@ -132,8 +135,6 @@ export class VoxSystem extends EventTarget {
     this.sourceToLastCullPassFrame = new Map();
     this.cursorSystem = cursorTargettingSystem;
     this.physicsSystem = physicsSystem;
-    this.onSyncedVoxUpdated = this.onSyncedVoxUpdated.bind(this);
-    this.onSpacePresenceSynced = this.onSpacePresenceSynced.bind(this);
     this.frame = 0;
 
     // TODO SHARED
@@ -161,7 +162,7 @@ export class VoxSystem extends EventTarget {
   }
 
   tick() {
-    const { voxMap, syncs } = this;
+    const { voxMap } = this;
 
     this.frame++;
 
@@ -312,16 +313,13 @@ export class VoxSystem extends EventTarget {
       this.performWriteback();
     }
 
-    let expiredSync = false;
+    //let expiredSync = false;
 
     // Check for expiring syncs
-    for (const sync of syncs.values()) {
-      expiredSync = expiredSync || sync.tryExpire();
-    }
-  }
-
-  async ensureSync(voxId) {
-    this.getSync(voxId); // Side effect :P
+    // TODO VOX
+    // for (const sync of syncs.values()) {
+    //   expiredSync = expiredSync || sync.tryExpire();
+    // }
   }
 
   hasSync(voxId) {
@@ -339,43 +337,9 @@ export class VoxSystem extends EventTarget {
     return this.canEdit(voxId);
   }
 
-  async getSync(voxId) {
-    const { sceneEl, syncs, voxMap } = this;
-    if (syncs.has(voxId)) {
-      const sync = syncs.get(voxId);
-      return sync;
-    }
-
-    let vox = null;
-
-    if (voxMap.has(voxId)) {
-      // Pass forward the existing vox data if we have it.
-      vox = voxMap.get(voxId).vox;
-    }
-
-    const sync = new VoxSync(voxId);
-    syncs.set(voxId, sync);
-    console.log("Start syncing vox", voxId);
-    await sync.init(sceneEl, vox);
-
-    sync.addEventListener("vox_updated", this.onSyncedVoxUpdated);
-
-    return sync;
-  }
-
-  endSyncing(voxId) {
-    const { syncs } = this;
-    const sync = syncs.get(voxId);
-    if (!sync) return;
-
-    sync.dispose();
-    syncs.delete(voxId);
-    console.log("Stop syncing vox", voxId);
-  }
-
-  onSyncedVoxUpdated({ detail: { voxId, vox, frame } }) {
-    console.log("update", voxId, vox, frame);
+  onSyncedVoxUpdated(voxId, frame) {
     const { voxMap } = this;
+
     const entry = voxMap.get(voxId);
     if (!entry) return;
 
@@ -388,7 +352,6 @@ export class VoxSystem extends EventTarget {
     }
 
     this.markDirtyForWriteback(voxId);
-    entry.vox = vox;
     entry.regenerateDirtyMeshesOnNextFrame = true;
   }
 
@@ -400,37 +363,6 @@ export class VoxSystem extends EventTarget {
 
     if (this.nextWritebackTime === null) {
       this.nextWritebackTime = performance.now() + WRITEBACK_DELAY_MS;
-    }
-  }
-
-  async onSpacePresenceSynced() {
-    const { syncs } = this;
-
-    // On a presence update, look at the vox ids being edited and ensure
-    // we have an open sync for all of them, and dispose the ones we don't need.
-    const spacePresences = (window.APP.spaceChannel.presence && window.APP.spaceChannel.presence.state) || {};
-
-    const openVoxIds = new Set();
-
-    for (const presence of Object.values(spacePresences)) {
-      const meta = presence.metas[presence.metas.length - 1];
-
-      for (const voxId of meta.open_vox_ids || []) {
-        openVoxIds.add(voxId);
-      }
-    }
-
-    // Open missing syncs
-    for (const voxId of openVoxIds) {
-      if (syncs.has(voxId)) continue;
-      await this.ensureSync(voxId);
-    }
-
-    for (const [voxId, sync] of syncs.entries()) {
-      if (!syncs.has(voxId)) continue; // Due to await
-      if (openVoxIds.has(voxId)) continue;
-      if (!sync.isExpired()) continue; // If the sync is actively being used, skip
-      await this.endSyncing(voxId);
     }
   }
 
@@ -548,6 +480,7 @@ export class VoxSystem extends EventTarget {
 
   async registerVox(voxUrl) {
     const { voxMap } = this;
+    const { editRingManager } = window.APP;
 
     const voxId = await voxIdForVoxUrl(voxUrl);
 
@@ -658,10 +591,7 @@ export class VoxSystem extends EventTarget {
 
     // If the sync is already available and open, use it.
     // Otherwise fetch frame data when first registering.
-    if (this.hasSync(voxId)) {
-      const sync = await this.getSync(voxId);
-      entry.vox = sync.getVox();
-    } else {
+    if (!editRingManager.isSyncing(voxId)) {
       const frames = await this.fetchVoxFrameChunks(voxUrl);
       const vox = new Vox(frames);
       entry.vox = vox;
@@ -699,7 +629,8 @@ export class VoxSystem extends EventTarget {
     }
 
     voxMap.delete(voxId);
-    this.endSyncing(voxId);
+    // TODO VOX
+    // this.endSyncing(voxId);
   }
 
   getInspectedEditingVoxId() {
@@ -1363,7 +1294,6 @@ export class VoxSystem extends EventTarget {
 
   applyPendingAndUnfreezeMesh(voxId) {
     const { voxMap } = this;
-    const { accountChannel } = window.APP;
 
     const entry = voxMap.get(voxId);
     if (!entry) return;
@@ -1375,19 +1305,28 @@ export class VoxSystem extends EventTarget {
     const offset = [...pendingVoxChunkOffset];
 
     // Don't mark dirty flag on meshes since doc will update.
-    this.getSync(voxId).then(sync => {
-      sync.applyChunk(pendingVoxChunk, targettingMeshFrame, offset);
+    this.applyChunk(voxId, pendingVoxChunk, targettingMeshFrame, offset);
 
-      // Clear pending chunk after apply is done
-      if (entry.pendingVoxChunk === pendingVoxChunk) {
-        entry.pendingVoxChunk = null;
-      }
+    // Clear pending chunk after apply is done
+    if (entry.pendingVoxChunk === pendingVoxChunk) {
+      entry.pendingVoxChunk = null;
+    }
 
-      if (!entry.hasAppliedAnyChunk) {
-        accountChannel.markVoxEdited(voxId);
-        entry.hasAppliedAnyChunk = true;
-      }
-    });
+    if (!entry.hasAppliedAnyChunk) {
+      entry.hasAppliedAnyChunk = true;
+    }
+  }
+
+  async setVoxel(voxId, x, y, z, color, frame = 0) {
+    this.ensureFrame(voxId, frame);
+    const delta = VoxChunk.fromJSON({ size: [1, 1, 1], palette: [color], indices: [1] });
+    await this.applyChunk(voxId, delta, frame, [x, y, z]);
+  }
+
+  async removeVoxel(voxId, x, y, z, frame = 0) {
+    this.ensureFrame(voxId, frame);
+    const delta = VoxChunk.fromJSON({ size: [1, 1, 1], palette: [REMOVE_VOXEL_COLOR], indices: [1] });
+    await this.applyChunk(voxId, delta, frame, [x, y, z]);
   }
 
   getVoxSize(voxId, frame) {
@@ -2069,5 +2008,117 @@ export class VoxSystem extends EventTarget {
 
   hasPendingWritebackFlush() {
     return this.nextWritebackTime !== null;
+  }
+
+  async applyChunk(voxId, chunk, frame, offset, beginSyncing = true) {
+    const { editRingManager } = window.APP;
+
+    editRingManager.registerRingEditableDocument(voxId, this);
+
+    flatbuilder.clear();
+
+    flatbuilder.finish(
+      PVoxChunk.createVoxChunk(
+        flatbuilder,
+        chunk.size[0],
+        chunk.size[1],
+        chunk.size[2],
+        chunk.bitsPerIndex,
+        PVoxChunk.createPaletteVector(
+          flatbuilder,
+          new Uint8Array(chunk.palette.buffer, chunk.palette.byteOffset, chunk.palette.byteLength)
+        ),
+        PVoxChunk.createIndicesVector(flatbuilder, chunk.indices.view)
+      )
+    );
+
+    const delta = [frame, flatbuilder.asUint8Array(), offset];
+    console.log("send delta", delta);
+
+    editRingManager.sendDeltaSync(voxId, delta);
+    this.applyDeltaSync(voxId, delta);
+
+    if (beginSyncing) {
+      editRingManager.joinSyncRing(voxId);
+    }
+  }
+
+  getFullSync(voxId) {
+    // TODO VOX
+    this.onSyncedVoxUpdated(voxId);
+  }
+
+  applyFullSync(voxId /*, data*/) {
+    // TODO VOX
+    this.onSyncedVoxUpdated(voxId);
+  }
+
+  applyDeltaSync(voxId, [frame, chunkData, offset]) {
+    const { voxMap } = this;
+
+    const entry = voxMap.get(voxId);
+    if (!entry) return;
+    if (typeof frame !== "number") return null;
+
+    console.log("got chunk", chunkData);
+    const voxChunkRef = new PVoxChunk();
+    PVoxChunk.getRootAsVoxChunk(new ByteBuffer(chunkData), voxChunkRef);
+    const paletteArray = voxChunkRef.paletteArray();
+    const indicesArray = voxChunkRef.indicesArray();
+    const size = [voxChunkRef.sizeX(), voxChunkRef.sizeY(), voxChunkRef.sizeZ()];
+    console.log(size);
+
+    const voxChunk = new VoxChunk(
+      size,
+      paletteArray.buffer,
+      indicesArray.buffer,
+      voxChunkRef.bitsPerIndex(),
+      paletteArray.byteOffset,
+      paletteArray.byteLength,
+      indicesArray.byteOffset,
+      indicesArray.byteLength
+    );
+
+    entry.vox = entry.vox || new Vox([]);
+    const vox = entry.vox;
+
+    if (!vox.frames[frame]) {
+      while (vox.frames.length < frame + 1) {
+        vox.frames.push(null);
+      }
+
+      vox.frames[frame] = voxChunk;
+    } else {
+      vox0.applyToChunk(voxChunk, vox.frames[frame], offset[0] || 0, offset[1] || 0, offset[2] || 0);
+    }
+
+    this.onSyncedVoxUpdated(voxId, frame);
+  }
+
+  ensureFrame(voxId, idxFrame) {
+    if (idxFrame > MAX_FRAMES - 1) return;
+
+    const { voxMap } = this;
+    const entry = voxMap.get(voxId);
+    if (!entry) return;
+
+    entry.vox = entry.vox || new Vox([]);
+    const vox = entry.vox;
+
+    if (vox.frames[idxFrame]) return;
+
+    const { editRingManager } = window.APP;
+
+    const indices = new Array(DEFAULT_VOX_FRAME_SIZE ** 3);
+    indices.fill(0);
+
+    const delta = VoxChunk.fromJSON({
+      size: [DEFAULT_VOX_FRAME_SIZE, DEFAULT_VOX_FRAME_SIZE, DEFAULT_VOX_FRAME_SIZE],
+      palette: [],
+      indices
+    });
+
+    this.applyDeltaSync(voxId, delta);
+    editRingManager.sendDeltaSync(voxId, delta);
   }
 }

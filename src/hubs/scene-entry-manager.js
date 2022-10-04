@@ -207,15 +207,20 @@ export default class SceneEntryManager {
       window.APP.spaceChannel.updateVoxMeta(voxId, {
         vox_id: voxId,
         name: voxName,
-        scale: 1.1,
-        stack_axis: 2,
-        stack_snap_position: true,
-        stack_snap_scale: true
+        scale: 1.0,
+        stack_axis: 0,
+        stack_snap_position: false,
+        stack_snap_scale: false
       });
 
-      const sync = await voxSystem.getSync(voxId);
-      await sync.setVoxel(0, 0, 0, builderSystem.brushVoxColor);
-      await voxSystem.spawnVoxInFrontOfPlayer(voxId);
+      const entity = await voxSystem.spawnVoxInFrontOfPlayer(voxId);
+
+      entity.addEventListener("model-loaded", () => {
+        console.log("loaded", voxId);
+        voxSystem.setVoxel(voxId, 0, 0, 0, builderSystem.brushVoxColor)
+      }, {
+        once: true
+      });
     });
 
     this.scene.addEventListener("add_media_emoji", ({ detail: emoji }) => {
@@ -301,6 +306,7 @@ export default class SceneEntryManager {
       const transformSystem = this.scene.systems["transform-selected-object"];
 
       if (types.length === 1 && types[0] === "jel/vox" && !transformSystem.transforming) {
+        // TODO VOX
         SYSTEMS.voxSystem.beginPlacingDraggedVox();
       }
     });

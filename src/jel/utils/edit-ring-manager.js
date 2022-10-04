@@ -60,6 +60,8 @@ export default class EditRingManager {
   }
 
   registerRingEditableDocument(docId, syncHandler) {
+    if (this.docIdToSyncState.has(docId)) return;
+
     this.docIdToSyncState.set(docId, SYNC_STATES.UNSYNCED);
     this.docIdToSyncHandler.set(docId, syncHandler);
     this.sendInitialDocRequestsForPresence();

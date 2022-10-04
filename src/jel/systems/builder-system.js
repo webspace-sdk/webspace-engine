@@ -608,8 +608,7 @@ export class BuilderSystem extends EventTarget {
       vox: [{ vox_id: voxId, url }]
     } = await createVox(spaceId, hubId);
 
-    const sync = await voxSystem.getSync(voxId);
-    await sync.setVoxel(0, 0, 0, this.brushVoxColor);
+    await SYSTEMS.voxSystem.setVoxel(voxId, 0, 0, 0, this.brushVoxColor);
 
     // Skip resolving these URLs since they're from dyna.
     const { entity } = addMedia({
@@ -621,8 +620,7 @@ export class BuilderSystem extends EventTarget {
     entity.addEventListener(
       "model-loaded",
       async () => {
-        const sync = await SYSTEMS.voxSystem.getSync(voxId);
-        await sync.setVoxel(0, 0, 0, this.brushVoxColor);
+        await SYSTEMS.sync.setVoxel(voxId, 0, 0, 0, this.brushVoxColor);
       },
       { once: true }
     );
@@ -1072,9 +1070,8 @@ export class BuilderSystem extends EventTarget {
     this.hasInFlightOperation = true;
     const [pending, offset] = backward[position];
 
-    const sync = await SYSTEMS.voxSystem.getSync(voxId);
     stack.position--;
-    sync.applyChunk(pending, frame, offset);
+    SYSTEMS.voxSystem.applyChunk(voxId, pending, frame, offset);
     this.hasInFlightOperation = false;
   }
 
@@ -1092,9 +1089,8 @@ export class BuilderSystem extends EventTarget {
     this.hasInFlightOperation = true;
     const [pending, offset] = forward[position];
 
-    const sync = await SYSTEMS.voxSystem.getSync(voxId);
     stack.position++;
-    sync.applyChunk(pending, frame, offset);
+    SYSTEMS.voxSystem.applyChunk(voxId, pending, frame, offset);
     this.hasInFlightOperation = false;
   }
 
