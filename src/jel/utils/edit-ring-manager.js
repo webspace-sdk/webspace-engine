@@ -1,4 +1,3 @@
-import { getNetworkId } from "./ownership-utils";
 import { getCurrentPresence } from "./presence-utils";
 
 const SYNC_STATES = {
@@ -7,7 +6,7 @@ const SYNC_STATES = {
   SYNCED: 2 // Actively synced
 };
 
-const MAX_COMPONENTS = 128;
+const MAX_COMPONENTS = 256;
 
 // Notes on syncing:
 //
@@ -18,7 +17,7 @@ const MAX_COMPONENTS = 128;
 // enters presence as an editor their ydoc is the defaco genesis doc.
 //
 // Basic algorithm:
-//   - In presence, keep a list of network ids of docs that you are actively part of the gossip ring for.
+//   - In presence, keep a list of document ids of docs that you are actively part of the gossip ring for.
 //
 //   - If you start editing a doc, check if anyone else is in the ring in presence for it.
 //     - If not, your doc is the one everyone will start from. Register yourself into presence
@@ -45,9 +44,9 @@ export default class EditRingManager {
   constructor() {
     this.maxIndex = -1;
     this.components = Array(MAX_COMPONENTS).fill(null);
-    this.networkIdToComponent = new Map();
-    this.networkIdToSyncState = new Map();
-    this.networkIdToSyncHandler = new Map();
+    this.componentToDocId = new Map();
+    this.docIdToSyncState = new Map();
+    this.docIdToSyncHandler = new Map();
     this.seenClientIdsInPresence = new Set();
 
     // We have a "known-good" doc if we:
@@ -55,7 +54,7 @@ export default class EditRingManager {
     // - Sent the doc to at least one other person
     //
     // Otherwise, if we see someone else syncing it and we are too, then we defer to them if they have a higher client id.
-    this.hasKnownGoodDocNetworkIds = new Set();
+    this.hasKnownGoodDocIds = new Set();
   }
 
   init(scene) {
@@ -65,13 +64,11 @@ export default class EditRingManager {
     document.body.addEventListener("clientConnected", this.sendInitialDocRequestsForPresence.bind(this));
   }
 
-  registerRingEditableComponent(component, syncHandler) {
-    const networkId = getNetworkId(component.el);
-    if (!networkId) return;
+  registerRingEditableComponent(component, docId, syncHandler) {
+    this.componentToDocId.set(component, docId);
 
-    this.networkIdToComponent.set(networkId, component);
-    this.networkIdToSyncState.set(networkId, SYNC_STATES.UNSYNCED);
-    this.networkIdToSyncHandler.set(networkId, syncHandler);
+    this.docIdToSyncState.set(docId, SYNC_STATES.UNSYNCED);
+    this.docIdToSyncHandler.set(docId, syncHandler);
 
     for (let i = 0; i <= this.maxIndex; i++) {
       if (this.components[i] === null) {
@@ -89,12 +86,12 @@ export default class EditRingManager {
     const index = this.components.indexOf(component);
     if (index === -1) return;
 
-    const networkId = getNetworkId(component.el);
-    this.networkIdToComponent.delete(networkId);
-    this.networkIdToSyncState.delete(networkId);
-    this.networkIdToSyncHandler.delete(networkId);
-
     this.components[index] = null;
+
+    const docId = this.componentToDocId.get(component);
+    this.componentToDocId.delete(docId);
+    this.docIdToSyncState.delete(docId);
+    this.docIdToSyncHandler.delete(docId);
 
     for (let i = 0; i < this.components.length; i++) {
       if (this.components[i] === null) continue;
@@ -105,21 +102,21 @@ export default class EditRingManager {
   sendDeltaSync(component, delta) {
     const index = this.components.indexOf(component);
     if (index === -1) return;
-    const networkId = getNetworkId(component.el);
+    const docId = this.componentToDocId.get(component);
 
-    const syncState = this.getSyncState(networkId);
+    const syncState = this.getSyncState(docId);
 
-    if (syncState === SYNC_STATES.UNSYNCED && this.isSyncRingEmpty(networkId)) {
+    if (syncState === SYNC_STATES.UNSYNCED && this.isSyncRingEmpty(docId)) {
       // We're the first person to edit this media text, so we need to join the ring ourselves.
-      this.joinSyncRing(networkId);
+      this.joinSyncRing(docId);
     } else if (syncState === SYNC_STATES.SYNCING) {
       // Broadcast the delta
-      window.APP.hubChannel.broadcastMessage({ type: "delta", delta, network_id: networkId }, "edit_ring_message");
+      window.APP.hubChannel.broadcastMessage({ type: "delta", delta, doc_id: docId }, "edit_ring_message");
     }
   }
 
   sendInitialDocRequestsForPresence() {
-    const requestedNetworkIds = new Set();
+    const requestedDocIds = new Set();
 
     // Search for any new components that need to be synced - ones that have ring members
     for (const state of NAF.connection.presence.states.values()) {
@@ -130,11 +127,11 @@ export default class EditRingManager {
       // Presence can contain clients we're not connected to
       if (!NAF.connection.hasActiveDataChannel(clientId)) continue;
 
-      for (const { doc_type, network_id: networkId } of state.sync_ring_memberships) {
-        if (!this.networkIdToComponent.has(networkId)) continue;
-        if (requestedNetworkIds.has(networkId)) continue;
+      for (const { doc_type, doc_id: docId } of state.sync_ring_memberships) {
+        if (!this.docIdToSyncState.has(docId)) continue;
+        if (requestedDocIds.has(docId)) continue;
 
-        const syncState = this.getSyncState(networkId);
+        const syncState = this.getSyncState(docId);
         if (syncState === SYNC_STATES.PENDING) continue;
 
         // Deal with the edge case of two clients editing and *then* connecting. (See end of comment at top of file.)
@@ -145,7 +142,7 @@ export default class EditRingManager {
         } else if (
           syncState === SYNC_STATES.SYNCING &&
           !this.seenClientIdsInPresence.has(clientId) &&
-          !this.hasKnownGoodDocNetworkIds.has(networkId)
+          !this.hasKnownGoodDocIds.has(docId)
         ) {
           // If we're syncing, did not receive the ydoc we're syncing, and another client with a higher client id than us is syncing,
           // we are going to defer to them (see comment at top of file.)
@@ -154,13 +151,13 @@ export default class EditRingManager {
 
         if (shouldRequestFull) {
           window.APP.hubChannel.sendMessage(
-            { type: "request_full_doc", network_id: networkId, doc_type },
+            { type: "request_full_doc", doc_id: docId, doc_type },
             "edit_ring_message",
             clientId
           );
 
-          this.networkIdToSyncState.set(networkId, SYNC_STATES.PENDING);
-          requestedNetworkIds.add(networkId);
+          this.docIdToSyncState.set(docId, SYNC_STATES.PENDING);
+          requestedDocIds.add(docId);
         }
       }
 
@@ -168,45 +165,43 @@ export default class EditRingManager {
     }
   }
 
-  getSyncState(networkId) {
-    return this.networkIdToSyncState.has(networkId) ? this.networkIdToSyncState.get(networkId) : SYNC_STATES.UNSYNCED;
+  getSyncState(docId) {
+    return this.docIdToSyncState.has(docId) ? this.docIdToSyncState.get(docId) : SYNC_STATES.UNSYNCED;
   }
 
   handleEditRingMessage(payload, fromClientId) {
-    const { type, network_id } = payload;
-    const component = this.networkIdToComponent.get(network_id);
-    if (!component) return;
+    const { type, doc_id } = payload;
 
-    const syncHandler = this.networkIdToSyncHandler.get(network_id);
+    const syncHandler = this.docIdToSyncHandler.get(doc_id);
     if (!syncHandler) return;
 
     if (type === "request_full_doc") {
-      this.hasKnownGoodDocNetworkIds.add(network_id);
+      this.hasKnownGoodDocIds.add(doc_id);
 
-      const content = syncHandler.getFullSync(network_id);
+      const content = syncHandler.getFullSync(doc_id);
 
       if (content) {
         window.APP.hubChannel.sendMessage(
-          { type: "receive_full_doc", network_id, content },
+          { type: "receive_full_doc", doc_id, content },
           "edit_ring_message",
           fromClientId
         );
       }
     } else if (type === "receive_full_doc") {
-      if (this.getSyncState(network_id) === SYNC_STATES.PENDING) {
-        this.hasKnownGoodDocNetworkIds.add(network_id);
-        syncHandler.applyFullSync(network_id, payload.content);
-        this.joinSyncRing(network_id);
+      if (this.getSyncState(doc_id) === SYNC_STATES.PENDING) {
+        this.hasKnownGoodDocIds.add(doc_id);
+        syncHandler.applyFullSync(doc_id, payload.content);
+        this.joinSyncRing(doc_id);
       }
     } else if (type === "delta") {
       if (fromClientId === NAF.clientId) return;
-      if (this.getSyncState(network_id) === SYNC_STATES.SYNCING) {
-        syncHandler.applyDeltaSync(network_id, payload.delta);
+      if (this.getSyncState(doc_id) === SYNC_STATES.SYNCING) {
+        syncHandler.applyDeltaSync(doc_id, payload.delta);
       }
     }
   }
 
-  getSyncRingMembers(networkId) {
+  getSyncRingMembers(docId) {
     const members = new Set();
 
     for (const state of NAF.connection.presence.states.values()) {
@@ -216,7 +211,7 @@ export default class EditRingManager {
       const syncRingMemberships = state.sync_ring_memberships;
 
       if (syncRingMemberships) {
-        if (syncRingMemberships.find(m => m.network_id === networkId)) {
+        if (syncRingMemberships.find(m => m.doc_id === docId)) {
           members.add(clientId);
         }
       }
@@ -225,24 +220,25 @@ export default class EditRingManager {
     return members;
   }
 
-  joinSyncRing(networkId) {
+  joinSyncRing(docId) {
     const currentPresence = getCurrentPresence();
 
     const syncRingMemberships = currentPresence.sync_ring_memberships || [];
 
-    if (!syncRingMemberships.find(m => m.network_id === networkId)) {
-      syncRingMemberships.push({ network_id: networkId });
+    if (!syncRingMemberships.find(m => m.doc_id === docId)) {
+      syncRingMemberships.push({ doc_id: docId });
     }
+    console.log(syncRingMemberships);
 
     NAF.connection.presence.setLocalStateField("sync_ring_memberships", syncRingMemberships);
-    this.networkIdToSyncState.set(networkId, SYNC_STATES.SYNCING);
+    this.docIdToSyncState.set(docId, SYNC_STATES.SYNCING);
   }
 
-  isSyncing(networkId) {
-    return this.networkIdToSyncState.get(networkId) === SYNC_STATES.SYNCING;
+  isSyncing(docId) {
+    return this.docIdToSyncState.get(docId) === SYNC_STATES.SYNCING;
   }
 
-  isSyncRingEmpty(networkId) {
-    return this.getSyncRingMembers(networkId).size === 0;
+  isSyncRingEmpty(docId) {
+    return this.getSyncRingMembers(docId).size === 0;
   }
 }

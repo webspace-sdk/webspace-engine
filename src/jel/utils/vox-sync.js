@@ -131,11 +131,6 @@ export default class VoxSync extends EventTarget {
     }
   }
 
-  get permissions() {
-    // TODO VOX
-    return { edit_vox: true };
-  }
-
   // Attempts to expire this sync, returns true if the sync was transitioned to being expired.
   tryExpire() {
     if (this.isExpired()) return false;

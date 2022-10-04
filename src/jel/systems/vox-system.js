@@ -441,6 +441,7 @@ export class VoxSystem extends EventTarget {
   }
 
   async register(voxUrl, source) {
+    const { editRingManager } = window.APP;
     const { physicsSystem, voxMap, sourceToVoxId } = this;
 
     this.unregister(source);

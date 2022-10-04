@@ -49,6 +49,14 @@
     - can bake into new asset if writeback enabled
   - spawning a new vox remotely should register into presence and cause others
     to fetch full doc for vox data
+  - clone local
+  - clone remote
+  - rename local
+  - rename remote
+  - spawn local
+  - spawn remote
+  - spawn remote, edit, other master
+  - spawn from master, remote edit
 
 name not updating in self panel when updated by another peer
 pasting text not working, and causing cursor to act funny (not hoverable)

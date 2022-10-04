@@ -40,7 +40,9 @@ export class MediaTextSystem extends EventTarget {
     }
 
     this.components[++this.maxIndex] = component;
-    editRingManager.registerRingEditableComponent(component, this);
+
+    // Text panels use network id as the doc id, since these are unique in the DOM
+    editRingManager.registerRingEditableComponent(component, networkId, this);
   }
 
   unregisterMediaTextComponent(component) {
