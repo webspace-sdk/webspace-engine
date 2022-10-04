@@ -8,17 +8,6 @@ export default class AccountChannel extends EventTarget {
     this.store = store;
   }
 
-  fetchVoxPermsToken = voxId => {
-    return new Promise((resolve, reject) => {
-      this.channel
-        .push("refresh_vox_perms_token", { vox_id: voxId })
-        .receive("ok", res => {
-          resolve({ permsToken: res.perms_token });
-        })
-        .receive("error", reject);
-    });
-  };
-
   getVoxMetas(voxIds) {
     return new Promise(res => {
       this.channel.push("get_vox_metas", { vox_ids: [...voxIds] }).receive("ok", ({ vox }) => res(vox));

@@ -6,6 +6,7 @@ import { EventTarget } from "event-target-shim";
 import { getHubIdFromHistory } from "./jel-url-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { META_TAG_PREFIX, getHubMetaFromDOM } from "./dom-utils";
+import { fetchPVoxFromUrl } from "./vox-utils";
 import { getSpaceIdFromUrl, getHubIdFromUrl, getSpaceIdFromHistory } from "./jel-url-utils";
 
 const ATOM_TYPES = {
@@ -38,15 +39,27 @@ export class VoxMetadataSource extends EventTarget {
   }
 
   async getVoxMeta(voxId) {
-    // TODO fetch
+    const voxUrl = atob(voxId);
+    const pvoxRef = await fetchPVoxFromUrl(voxUrl);
+
+    console.log({
+      vox_id: voxId,
+      url: voxUrl,
+      name: pvoxRef.name(),
+      scale: pvoxRef.scale(),
+      stack_axis: pvoxRef.stackAxis(),
+      stack_snap_position: pvoxRef.stackSnapPosition(),
+      stack_snap_scale: pvoxRef.stackSnapScale()
+    });
+
     return {
       vox_id: voxId,
-      url: atob(voxId),
-      name: null,
-      scale: 1.0,
-      stack_axis: 0,
-      stack_snap_position: false,
-      stack_snap_scale: false
+      url: voxUrl,
+      name: pvoxRef.name(),
+      scale: pvoxRef.scale(),
+      stack_axis: pvoxRef.stackAxis(),
+      stack_snap_position: pvoxRef.stackSnapPosition(),
+      stack_snap_scale: pvoxRef.stackSnapScale()
     };
   }
 }
@@ -232,12 +245,9 @@ class AtomMetadata {
         this._sourceGetMethod = "getVoxMetas";
         this._defaultNames.set("vox", messages["vox.unnamed-title"]);
         this._atomIdFromUrl = voxUrl => {
-          // TODO VOX
-          for (const { vox_id, url } of this._metadata.values()) {
-            if (url === voxUrl) return vox_id;
-          }
-
-          return null;
+          // The vox id of the url is the base64 encoding of the URL. If the URL is a relative URL,
+          // then we need to prepend the current URL to it.
+          return btoa(new URL(voxUrl, document.location.href));
         };
 
         break;

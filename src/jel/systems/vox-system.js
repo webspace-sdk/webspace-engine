@@ -1,4 +1,3 @@
-import jwtDecode from "jwt-decode";
 import { Builder } from "flatbuffers/js/builder";
 
 import { JelVoxBufferGeometry } from "../objects/JelVoxBufferGeometry";
@@ -14,14 +13,15 @@ import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../../hubs/utils/media-utils";
-import { type as vox0, Vox, /*VoxChunk, */ rgbtForVoxColor } from "ot-vox";
+import { type as vox0, Vox, VoxChunk, rgbtForVoxColor } from "ot-vox";
 import { ensureOwnership } from "../utils/ownership-utils";
-import { getSpaceIdFromHistory, getHubIdFromHistory } from "../utils/jel-url-utils";
+import { getSpaceIdFromHistory, getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/jel-url-utils";
+import { fetchPVoxFromUrl } from "../utils/vox-utils";
 import VoxSync from "../utils/vox-sync";
 import FastVixel from "fast-vixel";
 
 import { PVox } from "../pvox/pvox";
-import { VoxChunk } from "../pvox/vox-chunk";
+import { VoxChunk as PVoxChunk } from "../pvox/vox-chunk";
 
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, Matrix4, Mesh } = THREE;
 import { EventTarget } from "event-target-shim";
@@ -333,68 +333,14 @@ export class VoxSystem extends EventTarget {
     return syncs.has(voxId);
   }
 
-  async ensurePermissionsCached(voxId) {
-    const { voxMap } = this;
-    const entry = voxMap.get(voxId);
-    if (!entry) return;
-
-    const { cachedPermissions } = entry;
-    const exp = cachedPermissions && new Date(cachedPermissions.exp * 1000 - 60 * 1000);
-
-    const now = new Date();
-    const shouldFetch = !cachedPermissions || now > exp;
-    if (!shouldFetch) return;
-
-    const { permsToken } = await window.APP.accountChannel.fetchVoxPermsToken(voxId);
-    entry.cachedPermissions = jwtDecode(permsToken);
-  }
-
-  // Synchronous, returns null and fetches permissions if missing.
-  getPermissions(voxId) {
-    const { voxMap, syncs } = this;
-    const entry = voxMap.get(voxId);
-    if (!entry) return null;
-
-    let perms;
-
-    // Use sync permissions if sync is available. Otherwise
-    // use a cache in this system.
-    if (this.hasSync(voxId)) {
-      const sync = syncs.get(voxId);
-      perms = sync.permissions;
-    }
-
-    if (!perms) {
-      perms = entry.cachedPermissions;
-
-      // If no permissions found here, ensure they're fetched for next round trip.
-      if (!perms) {
-        this.ensurePermissionsCached(voxId);
-      }
-    }
-
-    return perms;
-  }
-
   canEdit(voxId) {
-    const perms = this.getPermissions(voxId);
-
-    if (perms) {
-      return perms.edit_vox;
-    } else {
-      return false;
-    }
+    return window.APP.atomAccessManager.voxCan("edit_vox", voxId);
   }
 
   async canEditAsync(voxId) {
-    const perms = this.getPermissions(voxId);
-
-    if (perms) {
-      return perms.edit_vox;
-    } else {
-      await this.ensurePermissionsCached(voxId);
-      return this.canEdit(voxId);
-    }
+    const { voxMetadata } = window.APP;
+    await voxMetadata.ensureMetadataForIds([voxId]);
+    return this.canEdit(voxId);
   }
 
   async getSync(voxId) {
@@ -604,6 +550,7 @@ export class VoxSystem extends EventTarget {
     const { voxMap } = this;
 
     const voxId = await voxIdForVoxUrl(voxUrl);
+    console.log("got id", voxId, voxUrl);
 
     let voxRegisteredResolve;
     const voxRegistered = new Promise(res => (voxRegisteredResolve = res));
@@ -644,7 +591,6 @@ export class VoxSystem extends EventTarget {
       hasDirtyShapes: false,
       delayedReshapeTimeout: null,
       shapeOffset: [0, 0, 0],
-      cachedPermissions: null,
 
       // True if the vox's current mesh is a big HACD shape, and so should
       // not collide with environment, etc.
@@ -708,6 +654,8 @@ export class VoxSystem extends EventTarget {
       // Flag to determine when to send first_apply event to dyna which marks vox as edited
       hasAppliedAnyChunk: false
     };
+
+    console.log("set", voxId);
 
     voxMap.set(voxId, entry);
 
@@ -779,6 +727,7 @@ export class VoxSystem extends EventTarget {
   }
 
   regenerateDirtyMeshesForVoxId(voxId) {
+    console.log("regen", voxId);
     const { sceneEl, meshToVoxId, voxMap } = this;
     const scene = sceneEl.object3D;
 
@@ -1481,16 +1430,39 @@ export class VoxSystem extends EventTarget {
     return vox.frames[targettingMeshFrame].getTotalNonEmptyVoxels();
   }
 
-  async fetchVoxFrameChunks(/*voxUrl*/) {
-    // TODO VOX need to retry
-    //const store = window.APP.store;
-    //const res = await fetch(voxUrl, {
-    //  headers: { authorization: `bearer ${store.state.credentials.token}` }
-    //});
-    //const {
-    //  vox: [{ frames }]
-    //} = await res.json();
-    //return frames.map(f => VoxChunk.deserialize(f));
+  async fetchVoxFrameChunks(voxUrl) {
+    const pvoxRef = await fetchPVoxFromUrl(voxUrl);
+    const frames = [];
+
+    for (let i = 0; i < pvoxRef.framesLength(); i++) {
+      const voxChunkRef = pvoxRef.frames(i);
+      const paletteArray = voxChunkRef.paletteArray();
+      const indicesArray = voxChunkRef.indicesArray();
+      const size = [voxChunkRef.sizeX(), voxChunkRef.sizeY(), voxChunkRef.sizeZ()];
+      console.log(
+        paletteArray,
+        indicesArray,
+        paletteArray.byteOffset,
+        paletteArray.byteLength,
+        indicesArray.byteOffset,
+        indicesArray.byteLength
+      );
+
+      const voxChunk = new VoxChunk(
+        size,
+        paletteArray.buffer,
+        indicesArray.buffer,
+        voxChunkRef.bitsPerIndex(),
+        paletteArray.byteOffset,
+        paletteArray.byteLength,
+        indicesArray.byteOffset,
+        indicesArray.byteLength
+      );
+
+      frames.push(voxChunk);
+    }
+
+    return frames;
   }
 
   async getOrFetchVoxFrameChunks(voxId) {
@@ -2055,31 +2027,31 @@ export class VoxSystem extends EventTarget {
         entry.shouldWritebackToOrigin = false;
 
         if (atomAccessManager.isMasterWriter()) {
-          const pvoxRef = new PVox();
           const vox = entry.vox;
           const metadata = await voxMetadata.getOrFetchMetadata(voxId);
 
           flatbuilder.clear();
 
-          PVox.startFramesVector(flatbuilder, vox.frames.length);
+          const frameOffsets = [];
 
           for (let i = 0; i < vox.frames.length; i++) {
+            console.log("add frame", i);
             const frame = vox.frames[i];
-
-            flatbuilder.addOffset(
-              VoxChunk.createVoxChunk(
+            frameOffsets.push(
+              PVoxChunk.createVoxChunk(
                 flatbuilder,
                 frame.size[0],
                 frame.size[1],
                 frame.size[2],
                 frame.bitsPerIndex,
-                VoxChunk.createPaletteVector(flatbuilder, frame.palette),
-                VoxChunk.createIndicesVector(flatbuilder, frame.indices.view)
+                PVoxChunk.createPaletteVector(
+                  flatbuilder,
+                  new Uint8Array(frame.palette.buffer, frame.palette.byteOffset, frame.palette.byteLength)
+                ),
+                PVoxChunk.createIndicesVector(flatbuilder, frame.indices.view)
               )
             );
           }
-
-          const framesOffset = flatbuilder.endVector(flatbuilder);
 
           flatbuilder.finish(
             PVox.createPVox(
@@ -2092,13 +2064,36 @@ export class VoxSystem extends EventTarget {
               metadata.stack_axis || 0,
               metadata.stack_snap_position || false,
               metadata.stack_snap_scale || false,
-              framesOffset
+              PVox.createFramesVector(flatbuilder, frameOffsets)
             )
           );
 
-          console.log("flush to origin", voxId, metadata, pvoxRef, flatbuilder.asUint8Array());
+          const bytes = flatbuilder.asUint8Array();
+
+          let filename = null;
+
+          if (metadata.url.startsWith("file://") || metadata.url.startsWith("http:")) {
+            const relativePath = getLocalRelativePathFromUrl(new URL(metadata.url));
+
+            if (!relativePath || !relativePath.startsWith("assets/")) {
+              console.warn("Cannot writeback vox to non-assets url", metadata.url);
+              continue;
+            }
+
+            filename = relativePath.substring("assets/".length);
+          } else {
+            filename = metadata.url.substring("assets/".length);
+          }
+
+          console.log("write to", filename);
+          const blob = new Blob([bytes], { type: "model/vnd.packed-vox" });
+          atomAccessManager.uploadAsset(blob, filename);
         }
       }
     }
+  }
+
+  hasPendingWritebackFlush() {
+    return this.nextWritebackTime !== null;
   }
 }

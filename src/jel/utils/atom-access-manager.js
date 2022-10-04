@@ -122,8 +122,7 @@ export default class AtomAccessManager extends EventTarget {
 
       isWriting = true;
       try {
-        // TODO VOX
-        if (false && this.isMasterWriter()) {
+        if (this.isMasterWriter()) {
           await this.writeDocument(document);
         }
       } finally {
@@ -178,7 +177,7 @@ export default class AtomAccessManager extends EventTarget {
     });
 
     window.addEventListener("beforeunload", e => {
-      if (!this.documentIsDirty) return;
+      if (!this.documentIsDirty && !SYSTEMS.voxSystem.hasPendingWritebackFlush()) return;
       if (this.hasAnotherWriterInPresence()) return;
 
       e.preventDefault();
@@ -451,11 +450,31 @@ export default class AtomAccessManager extends EventTarget {
     return this.writeback?.isOpen;
   }
 
-  voxCan(permission /*, voxId = null, sessionId = null*/) {
+  voxCan(permission, voxId = null, sessionId = null) {
     if (!VALID_PERMISSIONS[ATOM_TYPES.VOX].includes(permission))
       throw new Error(`Invalid permission name: ${permission}`);
 
-    return false;
+    if (permission === "view_vox") return true;
+
+    const metadata = window.APP.voxMetadata.getMetadata(voxId);
+    if (!metadata) {
+      console.error("Checking permission for vox before vox metadata fetched", voxId);
+      return;
+    }
+
+    const voxUrl = metadata.url;
+
+    if (new URL(voxUrl, document.location.href).origin !== document.location.origin) {
+      return false;
+    }
+
+    const createAndEditRole = window.APP.createAndEditRole;
+
+    if (sessionId !== null && sessionId !== NAF.clientId) {
+      return this.roles.get(sessionId) === ROLES.OWNER || createAndEditRole === ROLES.MEMBER;
+    } else {
+      return this.writeback?.isOpen;
+    }
   }
 
   async closeWriteback() {

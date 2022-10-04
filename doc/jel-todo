@@ -40,6 +40,15 @@
   - disable live HTML updates
 - cull permissions (in atom manager)
 - spawn around origin
+- vox
+  - vox name changes update asset on disk
+  - publish vox, should burn the axis, snap settings, scale
+  - test cases where pvox file is on internet, ie published
+    - cannot edit name
+    - instantiated with scale, axis settings
+    - can bake into new asset if writeback enabled
+  - spawning a new vox remotely should register into presence and cause others
+    to fetch full doc for vox data
 
 name not updating in self panel when updated by another peer
 pasting text not working, and causing cursor to act funny (not hoverable)
