@@ -6,13 +6,6 @@ export default class SpaceChannel extends EventTarget {
     this.store = store;
   }
 
-  updateOpenVoxIds = voxIds => {
-    // TODO VOX
-    //if (this.channel) {
-    //  this.channel.push("update_open_vox_ids", { vox_ids: voxIds });
-    //}
-  };
-
   updateVoxMeta = (voxId, vox) => {
     const { atomAccessManager } = window.APP;
     if (!atomAccessManager.voxCan("edit_vox", voxId)) return;

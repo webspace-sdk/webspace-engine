@@ -318,10 +318,6 @@ export class VoxSystem extends EventTarget {
     for (const sync of syncs.values()) {
       expiredSync = expiredSync || sync.tryExpire();
     }
-
-    if (expiredSync) {
-      this.updateOpenVoxIdsInPresence();
-    }
   }
 
   async ensureSync(voxId) {
@@ -347,7 +343,6 @@ export class VoxSystem extends EventTarget {
     const { sceneEl, syncs, voxMap } = this;
     if (syncs.has(voxId)) {
       const sync = syncs.get(voxId);
-      await sync.whenReady();
       return sync;
     }
 
@@ -378,19 +373,18 @@ export class VoxSystem extends EventTarget {
     console.log("Stop syncing vox", voxId);
   }
 
-  onSyncedVoxUpdated({ detail: { voxId, vox, op } }) {
+  onSyncedVoxUpdated({ detail: { voxId, vox, frame } }) {
+    console.log("update", voxId, vox, frame);
     const { voxMap } = this;
     const entry = voxMap.get(voxId);
     if (!entry) return;
 
     const { dirtyFrameMeshes } = entry;
 
-    for (const { f: frame } of op) {
-      dirtyFrameMeshes[frame] = true;
+    dirtyFrameMeshes[frame] = true;
 
-      if (frame === 0) {
-        this.markShapesDirtyAfterDelay(voxId);
-      }
+    if (frame === 0) {
+      this.markShapesDirtyAfterDelay(voxId);
     }
 
     this.markDirtyForWriteback(voxId);
@@ -441,7 +435,6 @@ export class VoxSystem extends EventTarget {
   }
 
   async register(voxUrl, source) {
-    const { editRingManager } = window.APP;
     const { physicsSystem, voxMap, sourceToVoxId } = this;
 
     this.unregister(source);
@@ -1044,19 +1037,6 @@ export class VoxSystem extends EventTarget {
     if (floatyObject && floatyObject.data.gravitySpeedLimit !== gravitySpeedLimit) {
       source.el.setAttribute("floaty-object", { gravitySpeedLimit });
     }
-  }
-
-  updateOpenVoxIdsInPresence() {
-    const { syncs } = this;
-    const openVoxIds = [];
-
-    // Registers the vox ids into presence of VoxSyncs that have recent edits.
-    for (const [voxId, sync] of syncs.entries()) {
-      if (!sync.hasRecentWrites()) continue;
-      openVoxIds.push(voxId);
-    }
-
-    window.APP.spaceChannel.updateOpenVoxIds(openVoxIds);
   }
 
   getVoxHitFromIntersection(intersection, hitCell, hitNormal, adjacentCell) {

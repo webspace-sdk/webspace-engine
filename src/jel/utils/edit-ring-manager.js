@@ -200,6 +200,10 @@ export default class EditRingManager {
     this.docIdToSyncState.set(docId, SYNC_STATES.SYNCING);
   }
 
+  leaveSyncRing(docId) {
+    // TODO VOX
+  }
+
   isSyncing(docId) {
     return this.docIdToSyncState.get(docId) === SYNC_STATES.SYNCING;
   }
