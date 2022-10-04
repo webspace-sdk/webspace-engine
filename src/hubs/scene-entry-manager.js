@@ -213,14 +213,8 @@ export default class SceneEntryManager {
         stack_snap_scale: false
       });
 
-      const entity = await voxSystem.spawnVoxInFrontOfPlayer(voxId);
-
-      entity.addEventListener("model-loaded", () => {
-        console.log("loaded", voxId);
-        voxSystem.setVoxel(voxId, 0, 0, 0, builderSystem.brushVoxColor)
-      }, {
-        once: true
-      });
+      await voxSystem.setVoxel(voxId, 0, 0, 0, builderSystem.brushVoxColor);
+      await voxSystem.spawnVoxInFrontOfPlayer(voxId);
     });
 
     this.scene.addEventListener("add_media_emoji", ({ detail: emoji }) => {

@@ -124,7 +124,7 @@ export default class AtomAccessManager extends EventTarget {
       isWriting = true;
       try {
         if (this.isMasterWriter()) {
-          //await this.writeDocument(document);
+          await this.writeDocument(document);
         }
       } finally {
         isWriting = false;

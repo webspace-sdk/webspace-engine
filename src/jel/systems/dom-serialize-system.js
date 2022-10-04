@@ -398,6 +398,8 @@ export class DomSerializeSystem {
     const i = this.els.indexOf(el);
     if (i === -1) return;
 
+    this.flush();
+
     this.els[i] = null;
 
     if (this.maxRegisteredIndex === i) {
@@ -418,9 +420,6 @@ export class DomSerializeSystem {
       quill.off("text-change", this.onQuillTextChanges.get(quill));
       this.onQuillTextChanges.delete(quill);
     }
-
-    // Ensure not in pending
-    this.flush();
   }
 
   onMediaLoaded({ target }) {

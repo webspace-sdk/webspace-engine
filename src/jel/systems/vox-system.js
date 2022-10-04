@@ -124,7 +124,10 @@ export class VoxSystem extends EventTarget {
     super();
     this.sceneEl = sceneEl;
     this.syncs = new Map();
-    this.voxMap = new Map();
+
+    this.voxIdToEntry = new Map();
+    this.voxIdToVox = new Map(); // Separate vox map, since vox data can be loaded before entities are registered
+
     this.sourceToVoxId = new Map();
     this.assetPanelDraggingVoxId = null;
     this.nextWritebackTime = null;
@@ -136,9 +139,6 @@ export class VoxSystem extends EventTarget {
     this.cursorSystem = cursorTargettingSystem;
     this.physicsSystem = physicsSystem;
     this.frame = 0;
-
-    // TODO SHARED
-    // this.sceneEl.addEventListener("space-oldpresence-synced", this.onSpacePresenceSynced);
 
     this.sceneEl.addEventListener("media_locked_changed", ({ target }) => {
       const mediaVox = target && target.components["media-vox"];
@@ -154,7 +154,7 @@ export class VoxSystem extends EventTarget {
         const voxId = this.getInspectedEditingVoxId();
         if (voxId === null) return;
 
-        const entry = this.voxMap.get(voxId);
+        const entry = this.voxIdToEntry.get(voxId);
         entry.dirtyFrameMeshes.fill(true);
         entry.regenerateDirtyMeshesOnNextFrame = true;
       });
@@ -162,11 +162,11 @@ export class VoxSystem extends EventTarget {
   }
 
   tick() {
-    const { voxMap } = this;
+    const { voxIdToEntry, voxIdToVox } = this;
 
     this.frame++;
 
-    for (const [voxId, entry] of voxMap.entries()) {
+    for (const [voxId, entry] of voxIdToEntry.entries()) {
       const {
         meshes,
         maxMeshIndex,
@@ -178,11 +178,10 @@ export class VoxSystem extends EventTarget {
         hasDirtyMatrices,
         hasDirtyWorldToObjectMatrices,
         regenerateDirtyMeshesOnNextFrame,
-        sources,
-        vox
+        sources
       } = entry;
 
-      if (regenerateDirtyMeshesOnNextFrame && vox) {
+      if (regenerateDirtyMeshesOnNextFrame && voxIdToVox.has(voxId)) {
         this.regenerateDirtyMeshesForVoxId(voxId);
         entry.regenerateDirtyMeshesOnNextFrame = false;
 
@@ -338,9 +337,9 @@ export class VoxSystem extends EventTarget {
   }
 
   onSyncedVoxUpdated(voxId, frame) {
-    const { voxMap } = this;
+    const { voxIdToEntry } = this;
 
-    const entry = voxMap.get(voxId);
+    const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
 
     const { dirtyFrameMeshes } = entry;
@@ -356,8 +355,8 @@ export class VoxSystem extends EventTarget {
   }
 
   markDirtyForWriteback(voxId) {
-    const { voxMap } = this;
-    const entry = voxMap.get(voxId);
+    const { voxIdToEntry } = this;
+    const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
     entry.shouldWritebackToOrigin = true;
 
@@ -367,19 +366,19 @@ export class VoxSystem extends EventTarget {
   }
 
   async register(voxUrl, source) {
-    const { physicsSystem, voxMap, sourceToVoxId } = this;
+    const { physicsSystem, voxIdToEntry, sourceToVoxId } = this;
 
     this.unregister(source);
 
     const voxId = await voxIdForVoxUrl(voxUrl);
 
-    if (!voxMap.has(voxId)) {
+    if (!voxIdToEntry.has(voxId)) {
       await this.registerVox(voxUrl);
     }
 
     // Wait until meshes are generated if many sources registered concurrently.
-    await voxMap.get(voxId).voxRegistered;
-    const voxEntry = voxMap.get(voxId);
+    await voxIdToEntry.get(voxId).voxRegistered;
+    const voxEntry = voxIdToEntry.get(voxId);
     const { meshes, sizeBoxGeometry, maxMeshIndex, sources, sourceToIndex, shapesUuid } = voxEntry;
 
     // This uses a custom patched three.js handler which is fired whenever the object
@@ -413,8 +412,8 @@ export class VoxSystem extends EventTarget {
     if (shapesUuid !== null) {
       this.getBodyUuidForSource(source).then(bodyUuid => {
         if (bodyUuid === null) return;
-        if (!voxMap.has(voxId)) return;
-        const entry = voxMap.get(voxId);
+        if (!voxIdToEntry.has(voxId)) return;
+        const entry = voxIdToEntry.get(voxId);
 
         this.updatePhysicsComponentsForSource(voxId, source);
 
@@ -430,13 +429,13 @@ export class VoxSystem extends EventTarget {
   }
 
   unregister(source) {
-    const { voxMap, physicsSystem, sourceToLastCullPassFrame, sourceToVoxId } = this;
+    const { voxIdToEntry, physicsSystem, sourceToLastCullPassFrame, sourceToVoxId } = this;
     if (!sourceToVoxId.has(source)) return;
 
     const voxId = sourceToVoxId.get(source);
     sourceToVoxId.delete(source);
 
-    const voxEntry = voxMap.get(voxId);
+    const voxEntry = voxIdToEntry.get(voxId);
     if (!voxEntry) return;
 
     const { sourceToIndex, sources, meshes, shapesUuid, walkableSources } = voxEntry;
@@ -479,7 +478,7 @@ export class VoxSystem extends EventTarget {
   }
 
   async registerVox(voxUrl) {
-    const { voxMap } = this;
+    const { voxIdToEntry, voxIdToVox } = this;
     const { editRingManager } = window.APP;
 
     const voxId = await voxIdForVoxUrl(voxUrl);
@@ -587,23 +586,24 @@ export class VoxSystem extends EventTarget {
       hasAppliedAnyChunk: false
     };
 
-    voxMap.set(voxId, entry);
+    voxIdToEntry.set(voxId, entry);
 
     // If the sync is already available and open, use it.
     // Otherwise fetch frame data when first registering.
-    if (!editRingManager.isSyncing(voxId)) {
+    if (!voxIdToVox.has(voxId)) {
       const frames = await this.fetchVoxFrameChunks(voxUrl);
+      console.log("Frames", frames);
       const vox = new Vox(frames);
-      entry.vox = vox;
+      voxIdToVox.set(voxId, vox);
     }
 
     entry.regenerateDirtyMeshesOnNextFrame = true;
   }
 
   unregisterVox(voxId) {
-    const { sceneEl, voxMap, meshToVoxId } = this;
+    const { sceneEl, voxIdToEntry, meshToVoxId } = this;
     const scene = sceneEl.object3D;
-    const voxEntry = voxMap.get(voxId);
+    const voxEntry = voxIdToEntry.get(voxId);
     const { targettingMesh, sizeBoxGeometry, maxMeshIndex, walkGeometry } = voxEntry;
 
     for (let i = 0; i <= maxMeshIndex; i++) {
@@ -628,7 +628,7 @@ export class VoxSystem extends EventTarget {
       meshToVoxId.delete(targettingMesh);
     }
 
-    voxMap.delete(voxId);
+    voxIdToEntry.delete(voxId);
     // TODO VOX
     // this.endSyncing(voxId);
   }
@@ -638,9 +638,9 @@ export class VoxSystem extends EventTarget {
     if (!cameraSystem.isInspecting()) return null;
     if (!cameraSystem.allowCursor) return null;
 
-    const { voxMap } = this;
+    const { voxIdToEntry } = this;
 
-    for (const [voxId, { sources }] of voxMap) {
+    for (const [voxId, { sources }] of voxIdToEntry) {
       for (let i = 0; i < sources.length; i++) {
         const source = sources[i];
         if (source === null) continue;
@@ -655,18 +655,20 @@ export class VoxSystem extends EventTarget {
   }
 
   regenerateDirtyMeshesForVoxId(voxId) {
-    const { sceneEl, meshToVoxId, voxMap } = this;
+    const { sceneEl, meshToVoxId, voxIdToEntry, voxIdToVox } = this;
     const scene = sceneEl.object3D;
 
-    const entry = voxMap.get(voxId);
+    const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
+
+    const vox = voxIdToVox.get(voxId);
+    if (!vox) return;
 
     const { cameraSystem } = SYSTEMS;
 
     const inspectedVoxId = this.getInspectedEditingVoxId();
 
     const {
-      vox,
       sources,
       dirtyFrameMeshes,
       dirtyFrameBoundingBoxes,
@@ -679,7 +681,6 @@ export class VoxSystem extends EventTarget {
       pendingVoxChunkOffset,
       hasWalkableSources
     } = entry;
-    if (!vox) return;
 
     let regenerateSizeBox = false;
 
@@ -824,14 +825,16 @@ export class VoxSystem extends EventTarget {
   }
 
   regenerateShapesForVoxId(voxId) {
-    const { physicsSystem, voxMap } = this;
+    const { physicsSystem, voxIdToEntry, voxIdToVox } = this;
 
-    const entry = voxMap.get(voxId);
+    const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
 
-    const { vox, sources, mesherQuadSize, physicsMeshes, maxRegisteredIndex, shapeOffset } = entry;
-    if (!vox) return;
-    if (vox.frames.length === 0) return;
+    const { sources, mesherQuadSize, physicsMeshes, maxRegisteredIndex, shapeOffset } = entry;
+
+    const vox = voxIdToVox.get(voxId);
+    if (!vox || vox.frames.length === 0) return;
+
     const chunk = vox.frames[0];
 
     const physicsMesh = physicsMeshes[0];
@@ -906,7 +909,7 @@ export class VoxSystem extends EventTarget {
   }
 
   getMeshesForSource(source) {
-    for (const entry of this.voxMap.values()) {
+    for (const entry of this.voxIdToEntry.values()) {
       if (entry.sources.includes(source)) {
         return entry.meshes.filter(m => m !== null);
       }
@@ -918,10 +921,10 @@ export class VoxSystem extends EventTarget {
   // Returns true if the specified source is the passed mesh's instance
   isMeshInstanceForSource(mesh, instanceId, source) {
     if (instanceId === undefined || instanceId === null || !mesh) return false;
-    const { sourceToVoxId, voxMap } = this;
+    const { sourceToVoxId, voxIdToEntry } = this;
     const voxId = sourceToVoxId.get(source);
     if (!voxId) return false;
-    const { sources, meshes, targettingMesh, targettingMeshInstanceId } = voxMap.get(voxId);
+    const { sources, meshes, targettingMesh, targettingMeshInstanceId } = voxIdToEntry.get(voxId);
 
     return (
       (sources.indexOf(source) === instanceId || targettingMeshInstanceId === instanceId) &&
@@ -934,13 +937,13 @@ export class VoxSystem extends EventTarget {
   }
 
   getSourceForVoxId(voxId, instanceId) {
-    return this.voxMap.get(voxId).sources[instanceId];
+    return this.voxIdToEntry.get(voxId).sources[instanceId];
   }
 
   updatePhysicsComponentsForSource(voxId, source) {
-    const { voxMap } = this;
-    if (!voxMap.has(voxId)) return;
-    const { shapeIsEnvironmental } = voxMap.get(voxId);
+    const { voxIdToEntry } = this;
+    if (!voxIdToEntry.has(voxId)) return;
+    const { shapeIsEnvironmental } = voxIdToEntry.get(voxId);
 
     // The HACD environment shapes should *not* collide with each other or the  environment, to reduce physics lag.
     const collisionFilterGroup = shapeIsEnvironmental ? COLLISION_LAYERS.ENVIRONMENT : COLLISION_LAYERS.INTERACTABLES;
@@ -971,13 +974,13 @@ export class VoxSystem extends EventTarget {
   }
 
   getVoxHitFromIntersection(intersection, hitCell, hitNormal, adjacentCell) {
-    const { meshToVoxId, voxMap } = this;
+    const { meshToVoxId, voxIdToEntry } = this;
 
     const hitObject = intersection && intersection.object;
     const voxId = meshToVoxId.get(hitObject);
     if (!voxId || !hitObject) return null;
 
-    const { targettingMesh, targettingMeshFrame, targettingMeshInstanceId, meshes } = voxMap.get(voxId);
+    const { targettingMesh, targettingMeshFrame, targettingMeshInstanceId, meshes } = voxIdToEntry.get(voxId);
     const frame = hitObject === targettingMesh ? targettingMeshFrame : meshes.indexOf(hitObject);
     const instanceId = hitObject === targettingMesh ? targettingMeshInstanceId : intersection.instanceId;
     const inv = this.getWorldToObjectMatrix(voxId, frame, instanceId);
@@ -1021,9 +1024,9 @@ export class VoxSystem extends EventTarget {
 
   // Returns the frame that was frozen
   freezeMeshForTargetting(voxId, instanceId) {
-    const { sceneEl, voxMap, meshToVoxId } = this;
+    const { sceneEl, voxIdToEntry, meshToVoxId } = this;
     const scene = sceneEl.object3D;
-    const entry = voxMap.get(voxId);
+    const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
 
     const { meshes, sources } = entry;
@@ -1060,9 +1063,9 @@ export class VoxSystem extends EventTarget {
   }
 
   unfreezeMeshForTargetting(voxId) {
-    const { sceneEl, voxMap, meshToVoxId } = this;
+    const { sceneEl, voxIdToEntry, meshToVoxId } = this;
     const scene = sceneEl.object3D;
-    const entry = voxMap.get(voxId);
+    const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
     const { targettingMesh } = entry;
     if (!targettingMesh) return;
@@ -1078,11 +1081,11 @@ export class VoxSystem extends EventTarget {
   }
 
   getTargettableMeshes() {
-    const { voxMap } = this;
+    const { voxIdToEntry } = this;
 
     const targetableMeshes = [];
 
-    for (const { meshes, targettingMesh } of voxMap.values()) {
+    for (const { meshes, targettingMesh } of voxIdToEntry.values()) {
       const mesh = targettingMesh || meshes[0];
 
       if (mesh) {
@@ -1096,9 +1099,9 @@ export class VoxSystem extends EventTarget {
   isTargettingMesh(mesh) {
     if (!mesh) return false;
 
-    const { voxMap } = this;
+    const { voxIdToEntry } = this;
 
-    for (const { targettingMesh } of voxMap.values()) {
+    for (const { targettingMesh } of voxIdToEntry.values()) {
       if (targettingMesh === mesh) return true;
     }
 
@@ -1106,9 +1109,9 @@ export class VoxSystem extends EventTarget {
   }
 
   getTargettableMeshForSource(source) {
-    const { voxMap } = this;
+    const { voxIdToEntry } = this;
 
-    for (const { sources, meshes, targettingMesh } of voxMap.values()) {
+    for (const { sources, meshes, targettingMesh } of voxIdToEntry.values()) {
       if (sources.includes(source)) {
         return targettingMesh || meshes[0];
       }
@@ -1120,11 +1123,13 @@ export class VoxSystem extends EventTarget {
   getBoundingBoxForSource = (function() {
     const matrix = new THREE.Matrix4();
     return function(source, worldSpace = false) {
-      const { sourceToVoxId, voxMap } = this;
+      const { sourceToVoxId, voxIdToEntry } = this;
       if (!sourceToVoxId.has(source)) return null;
 
       const voxId = sourceToVoxId.get(source);
-      const { sources, meshes, meshBoundingBoxes, sourceBoundingBoxes, dirtyFrameBoundingBoxes } = voxMap.get(voxId);
+      const { sources, meshes, meshBoundingBoxes, sourceBoundingBoxes, dirtyFrameBoundingBoxes } = voxIdToEntry.get(
+        voxId
+      );
       if (meshes.length === 0) return null;
 
       const mesh = meshes[0];
@@ -1155,12 +1160,12 @@ export class VoxSystem extends EventTarget {
   })();
 
   getSourceForMeshAndInstance(targetMesh, instanceId) {
-    const { voxMap, meshToVoxId } = this;
+    const { voxIdToEntry, meshToVoxId } = this;
 
     const voxId = meshToVoxId.get(targetMesh);
     if (!voxId) return null;
 
-    const entry = voxMap.get(voxId);
+    const entry = voxIdToEntry.get(voxId);
 
     if (entry.targettingMesh === targetMesh) {
       const source = entry.sources[entry.targettingMeshInstanceId];
@@ -1174,8 +1179,8 @@ export class VoxSystem extends EventTarget {
   }
 
   getWorldToObjectMatrix(voxId, frame, instanceId) {
-    const { voxMap } = this;
-    const entry = voxMap.get(voxId);
+    const { voxIdToEntry } = this;
+    const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
 
     const { meshes, worldToObjectMatrices, hasDirtyWorldToObjectMatrices } = entry;
@@ -1198,9 +1203,9 @@ export class VoxSystem extends EventTarget {
   }
 
   removeMeshForIndex(voxId, i) {
-    const { voxMap, meshToVoxId, sceneEl, physicsSystem } = this;
+    const { voxIdToEntry, meshToVoxId, sceneEl, physicsSystem } = this;
     const scene = sceneEl.object3D;
-    const entry = voxMap.get(voxId);
+    const entry = voxIdToEntry.get(voxId);
     const { meshes, physicsMeshes, shapesUuid, dirtyFrameMeshes } = entry;
 
     const mesh = meshes[i];
@@ -1255,8 +1260,8 @@ export class VoxSystem extends EventTarget {
   }
 
   setPendingVoxChunk(voxId, chunk, offsetX, offsetY, offsetZ) {
-    const { voxMap } = this;
-    const entry = voxMap.get(voxId);
+    const { voxIdToEntry } = this;
+    const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
     const { dirtyFrameMeshes } = entry;
     dirtyFrameMeshes.fill(true);
@@ -1275,8 +1280,8 @@ export class VoxSystem extends EventTarget {
   }
 
   clearPendingAndUnfreezeMesh(voxId) {
-    const { voxMap } = this;
-    const entry = voxMap.get(voxId);
+    const { voxIdToEntry } = this;
+    const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
     const { targettingMesh, dirtyFrameMeshes, targettingMeshFrame } = entry;
 
@@ -1293,9 +1298,9 @@ export class VoxSystem extends EventTarget {
   }
 
   applyPendingAndUnfreezeMesh(voxId) {
-    const { voxMap } = this;
+    const { voxIdToEntry } = this;
 
-    const entry = voxMap.get(voxId);
+    const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
     const { pendingVoxChunk, targettingMeshFrame, pendingVoxChunkOffset } = entry;
 
@@ -1343,10 +1348,14 @@ export class VoxSystem extends EventTarget {
   }
 
   getTotalNonEmptyVoxelsOfTargettedFrame(voxId) {
-    const { voxMap } = this;
-    const entry = voxMap.get(voxId);
+    const { voxIdToEntry, voxIdToVox } = this;
+    const entry = voxIdToEntry.get(voxId);
     if (!entry) return null;
-    const { vox, targettingMeshFrame, targettingMesh } = entry;
+
+    const vox = voxIdToVox.get(voxId);
+    if (!vox) return null;
+
+    const { targettingMeshFrame, targettingMesh } = entry;
     if (!targettingMesh) return null;
 
     return vox.frames[targettingMeshFrame].getTotalNonEmptyVoxels();
@@ -1380,17 +1389,16 @@ export class VoxSystem extends EventTarget {
   }
 
   async getOrFetchVoxFrameChunks(voxId) {
-    const { voxMap } = this;
+    const { voxIdToVox } = this;
     const { voxMetadata } = window.APP;
-    const entry = voxMap.get(voxId);
-    if (entry && entry.vox) return entry.vox.frames;
+    if (voxIdToVox.has(voxId)) return voxIdToVox.get(voxId).frames;
     const { url } = await voxMetadata.getOrFetchMetadata(voxId);
     return await this.fetchVoxFrameChunks(url);
   }
 
   getChunkFrameOfVox(voxId, frame) {
-    const { voxMap } = this;
-    const entry = voxMap.get(voxId);
+    const { voxIdToEntry } = this;
+    const entry = voxIdToEntry.get(voxId);
     if (!entry) return null;
     const { vox } = entry;
     if (!vox) return null;
@@ -1401,8 +1409,8 @@ export class VoxSystem extends EventTarget {
   }
 
   updateSourceWalkability(voxId, source) {
-    const { voxMap } = this;
-    const entry = voxMap.get(voxId);
+    const { voxIdToEntry } = this;
+    const entry = voxIdToEntry.get(voxId);
     if (!entry) return null;
 
     const { sources } = entry;
@@ -1421,8 +1429,8 @@ export class VoxSystem extends EventTarget {
   }
 
   markShapesDirtyAfterDelay(voxId) {
-    const { voxMap } = this;
-    const entry = voxMap.get(voxId);
+    const { voxIdToEntry } = this;
+    const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
 
     const { delayedReshapeTimeout } = entry;
@@ -1444,8 +1452,8 @@ export class VoxSystem extends EventTarget {
   }
 
   shouldBurstProjectileOnImpact(voxId) {
-    const { voxMap } = this;
-    const entry = voxMap.get(voxId);
+    const { voxIdToEntry } = this;
+    const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
 
     // Environment VOX should have projectiles bounce off.
@@ -1467,7 +1475,7 @@ export class VoxSystem extends EventTarget {
     raycaster.ray.direction.set(0, 1, 0);
 
     return function(origin, up = true, backSide = false) {
-      const { voxMap } = this;
+      const { voxIdToEntry } = this;
 
       const { side } = voxMaterial;
       let intersection = null;
@@ -1479,7 +1487,7 @@ export class VoxSystem extends EventTarget {
       raycaster.ray.origin.copy(origin);
       raycaster.ray.direction.y = up ? 1 : -1;
 
-      for (const entry of voxMap.values()) {
+      for (const entry of voxIdToEntry.values()) {
         if (!entry.hasWalkableSources) continue;
         const voxMesh = entry.meshes[0];
         if (voxMesh === null) continue;
@@ -1535,7 +1543,7 @@ export class VoxSystem extends EventTarget {
     const intersections = [];
 
     return function(origin, direction, source) {
-      const { voxMap } = this;
+      const { voxIdToEntry } = this;
 
       raycaster.ray.origin = origin;
       raycaster.ray.direction = direction;
@@ -1544,7 +1552,7 @@ export class VoxSystem extends EventTarget {
       if (!targettableMesh) return null;
 
       let instanceId = -1;
-      for (const { sources } of voxMap.values()) {
+      for (const { sources } of voxIdToEntry.values()) {
         instanceId = sources.indexOf(source);
         if (instanceId >= 0) break;
       }
@@ -1566,10 +1574,10 @@ export class VoxSystem extends EventTarget {
     //const tmpVec = new THREE.Vector3();
 
     return async function(/*collection, category*/) {
-      //const { voxMap } = this;
+      //const { voxIdToEntry } = this;
       //const { accountChannel } = window.APP;
       //const hubId = await getHubIdFromHistory();
-      //for (const [voxId, { sources }] of voxMap.entries()) {
+      //for (const [voxId, { sources }] of voxIdToEntry.entries()) {
       //  let stackAxis = 0;
       //  let stackSnapPosition = false;
       //  let stackSnapScale = false;
@@ -1933,16 +1941,18 @@ export class VoxSystem extends EventTarget {
     this.nextWritebackTime = null;
 
     const { atomAccessManager, voxMetadata } = window.APP;
-    const { voxMap } = this;
+    const { voxIdToEntry, voxIdToVox } = this;
 
-    for (const [voxId, entry] of voxMap.entries()) {
+    for (const [voxId, entry] of voxIdToEntry.entries()) {
       const { shouldWritebackToOrigin } = entry;
 
       if (shouldWritebackToOrigin) {
         entry.shouldWritebackToOrigin = false;
 
         if (atomAccessManager.isMasterWriter()) {
-          const vox = entry.vox;
+          const vox = voxIdToVox.get(voxId);
+          if (!vox) continue;
+
           const metadata = await voxMetadata.getOrFetchMetadata(voxId);
 
           flatbuilder.clear();
@@ -2054,11 +2064,8 @@ export class VoxSystem extends EventTarget {
   }
 
   applyDeltaSync(voxId, [frame, chunkData, offset]) {
-    const { voxMap } = this;
-
-    const entry = voxMap.get(voxId);
-    if (!entry) return;
     if (typeof frame !== "number") return null;
+    const { voxIdToVox } = this;
 
     console.log("got chunk", chunkData);
     const voxChunkRef = new PVoxChunk();
@@ -2079,8 +2086,11 @@ export class VoxSystem extends EventTarget {
       indicesArray.byteLength
     );
 
-    entry.vox = entry.vox || new Vox([]);
-    const vox = entry.vox;
+    if (!voxIdToVox.has(voxId)) {
+      voxIdToVox.set(voxId, new Vox([]));
+    }
+
+    const vox = voxIdToVox.get(voxId);
 
     if (!vox.frames[frame]) {
       while (vox.frames.length < frame + 1) {
@@ -2097,28 +2107,29 @@ export class VoxSystem extends EventTarget {
 
   ensureFrame(voxId, idxFrame) {
     if (idxFrame > MAX_FRAMES - 1) return;
+    const { voxIdToVox } = this;
 
-    const { voxMap } = this;
-    const entry = voxMap.get(voxId);
-    if (!entry) return;
+    if (!voxIdToVox.has(voxId)) {
+      voxIdToVox.set(voxId, new Vox([]));
+    }
 
-    entry.vox = entry.vox || new Vox([]);
-    const vox = entry.vox;
+    const vox = voxIdToVox.get(voxId);
 
     if (vox.frames[idxFrame]) return;
-
-    const { editRingManager } = window.APP;
 
     const indices = new Array(DEFAULT_VOX_FRAME_SIZE ** 3);
     indices.fill(0);
 
-    const delta = VoxChunk.fromJSON({
+    const chunk = VoxChunk.fromJSON({
       size: [DEFAULT_VOX_FRAME_SIZE, DEFAULT_VOX_FRAME_SIZE, DEFAULT_VOX_FRAME_SIZE],
       palette: [],
       indices
     });
 
-    this.applyDeltaSync(voxId, delta);
-    editRingManager.sendDeltaSync(voxId, delta);
+    while (vox.frames.length < idxFrame + 1) {
+      vox.frames.push(null);
+    }
+
+    vox.frames[idxFrame] = chunk;
   }
 }
