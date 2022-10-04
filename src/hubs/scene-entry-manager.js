@@ -194,14 +194,24 @@ export default class SceneEntryManager {
 
     this.scene.addEventListener("add_media_vox", async () => {
       const { voxSystem, builderSystem } = SYSTEMS;
-      const voxName = "my-vox-object";
-      const voxFilename = `${voxName}.pvox`;
+      const voxFilename = `my-vox-object.pvox`;
       const voxPath = `assets/${voxFilename}`;
+      const voxName = "My New Vox";
 
       const baseUrl = new URL(document.location.href);
       baseUrl.pathname = baseUrl.pathname.replace(/\/[^/]*$/, "/");
       const voxUrl = new URL(voxPath, baseUrl).href;
       const voxId = btoa(voxUrl); // Vox id is base64 encoded url
+
+      // Pro-actively push metadata to self and peers
+      window.APP.spaceChannel.updateVoxMeta(voxId, {
+        vox_id: voxId,
+        name: voxName,
+        scale: 1.1,
+        stack_axis: 2,
+        stack_snap_position: true,
+        stack_snap_scale: true
+      });
 
       const sync = await voxSystem.getSync(voxId);
       await sync.setVoxel(0, 0, 0, builderSystem.brushVoxColor);

@@ -21,9 +21,9 @@ export const DEFAULT_VOX_FRAME_SIZE = 2;
 const EXPIRATION_TIME_MS = 30000;
 
 class VoxDoc {
-  constructor() {
+  constructor(data = null) {
     this.handlers = new Map();
-    this.data = new Vox([]);
+    this.data = data || new Vox([]);
   }
 
   subscribe(fn) {
@@ -57,7 +57,7 @@ export default class VoxSync extends EventTarget {
     this._fireVoxUpdated = this._fireVoxUpdated.bind(this);
   }
 
-  async init(scene) {
+  async init(scene, vox = null) {
     if (!NAF.connection.adapter) {
       await new Promise(res => scene.addEventListener("adapter-ready", res, { once: true }));
     }
@@ -67,7 +67,7 @@ export default class VoxSync extends EventTarget {
     let finish;
     this._whenReady = new Promise(res => (finish = res));
 
-    const doc = new VoxDoc();
+    const doc = new VoxDoc(vox);
     this._doc = doc;
 
     await new Promise(res => {

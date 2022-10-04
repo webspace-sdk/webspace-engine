@@ -10,6 +10,7 @@ import { clearVoxAttributePools } from "../../jel/objects/JelVoxBufferGeometry";
 import { restartPeriodicSyncs } from "../components/periodic-full-syncs";
 import { toByteArray as base64ToByteArray } from "base64-js";
 import { pushHubMetaUpdateIntoDOM } from "../../jel/utils/dom-utils";
+import { getUrlFromVoxId } from "../../jel/utils/vox-utils";
 import WorldImporter from "../../jel/utils/world-importer";
 
 import crypto from "crypto";
@@ -166,6 +167,16 @@ const setupDataChannelMessageHandlers = () => {
 
     // When hub is updated, update meta tags
     pushHubMetaUpdateIntoDOM(hub);
+  });
+
+  NAF.connection.subscribeToDataChannel("update_vox_meta", (_type, { body: vox }, fromSessionId) => {
+    if (!vox.vox_id) return;
+
+    const { voxMetadata, atomAccessManager } = window.APP;
+    if (!atomAccessManager.voxCan("edit_vox", vox.vox_id, fromSessionId)) return;
+
+    console.log("update metadata for ", vox);
+    voxMetadata.localUpdate(vox.vox_id, { url: getUrlFromVoxId(vox.vox_id), ...vox });
   });
 
   NAF.connection.subscribeToDataChannel("edit_ring_message", (_type, { body }, fromSessionId) => {

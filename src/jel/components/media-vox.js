@@ -87,6 +87,7 @@ AFRAME.registerComponent("media-vox", {
         this.el.object3D.matrixNeedsUpdate = true;
         this.el.setObject3D("mesh", this.mesh);
 
+        console.log("Register", src);
         // Register returns vox id
         this.voxId = await SYSTEMS.voxSystem.register(src, this.mesh);
 

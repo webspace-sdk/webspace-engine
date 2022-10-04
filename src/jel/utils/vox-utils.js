@@ -7,8 +7,6 @@ export async function fetchPVoxFromUrl(voxUrl) {
   let contentUrl = voxUrl;
   let cache = "default";
 
-  console.log("fetchVoxFrameChunks", voxUrl);
-
   if (voxUrl.startsWith("file:") || voxUrl.startsWith("http:")) {
     const relativePath = getLocalRelativePathFromUrl(new URL(voxUrl));
 
@@ -18,17 +16,20 @@ export async function fetchPVoxFromUrl(voxUrl) {
       contentUrl = await atomAccessManager.contentUrlForRelativePath(relativePath);
     }
   }
-  console.log("fetching", contentUrl);
 
   const res = await fetch(contentUrl, { cache });
-  console.log("got", res);
   const bytes = await res.arrayBuffer();
-  console.log("got bytes", bytes);
   const pvoxRef = new PVox();
   PVox.getRootAsPVox(new ByteBuffer(new Uint8Array(bytes)), pvoxRef);
-  console.log("got pvox", pvoxRef);
-
-  console.log(bytes);
-  console.log("pvoxRef.framesLength()", pvoxRef.framesLength());
   return pvoxRef;
+}
+
+export function getUrlFromVoxId(voxId) {
+  return atob(voxId);
+}
+
+export function getVoxIdFromUrl(voxUrl) {
+  // The vox id of the url is the base64 encoding of the URL. If the URL is a relative URL,
+  // then we need to prepend the current URL to it.
+  return btoa(new URL(voxUrl, document.location.href));
 }

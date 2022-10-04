@@ -7,6 +7,7 @@ import { fromByteArray } from "base64-js";
 import FileWriteback from "../writeback/file-writeback";
 import GitHubWriteback from "../writeback/github-writeback";
 import { META_TAG_PREFIX } from "./dom-utils";
+import { getUrlFromVoxId } from "./vox-utils";
 import SERVICE_WORKER_JS from "!!raw-loader!../../webspace.service.js";
 
 const OWNER_PUBLIC_KEY_META_TAG_NAME = `${META_TAG_PREFIX}.keys.owner`;
@@ -456,13 +457,7 @@ export default class AtomAccessManager extends EventTarget {
 
     if (permission === "view_vox") return true;
 
-    const metadata = window.APP.voxMetadata.getMetadata(voxId);
-    if (!metadata) {
-      console.error("Checking permission for vox before vox metadata fetched", voxId);
-      return;
-    }
-
-    const voxUrl = metadata.url;
+    const voxUrl = getUrlFromVoxId(voxId);
 
     if (new URL(voxUrl, document.location.href).origin !== document.location.origin) {
       return false;

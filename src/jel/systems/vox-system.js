@@ -344,17 +344,24 @@ export class VoxSystem extends EventTarget {
   }
 
   async getSync(voxId) {
-    const { sceneEl, syncs } = this;
+    const { sceneEl, syncs, voxMap } = this;
     if (syncs.has(voxId)) {
       const sync = syncs.get(voxId);
       await sync.whenReady();
       return sync;
     }
 
+    let vox = null;
+
+    if (voxMap.has(voxId)) {
+      // Pass forward the existing vox data if we have it.
+      vox = voxMap.get(voxId).vox;
+    }
+
     const sync = new VoxSync(voxId);
     syncs.set(voxId, sync);
     console.log("Start syncing vox", voxId);
-    await sync.init(sceneEl);
+    await sync.init(sceneEl, vox);
 
     sync.addEventListener("vox_updated", this.onSyncedVoxUpdated);
 
@@ -398,7 +405,6 @@ export class VoxSystem extends EventTarget {
     entry.shouldWritebackToOrigin = true;
 
     if (this.nextWritebackTime === null) {
-      console.log("next writeback", this.nextWritebackTime);
       this.nextWritebackTime = performance.now() + WRITEBACK_DELAY_MS;
     }
   }
@@ -550,7 +556,6 @@ export class VoxSystem extends EventTarget {
     const { voxMap } = this;
 
     const voxId = await voxIdForVoxUrl(voxUrl);
-    console.log("got id", voxId, voxUrl);
 
     let voxRegisteredResolve;
     const voxRegistered = new Promise(res => (voxRegisteredResolve = res));
@@ -655,8 +660,6 @@ export class VoxSystem extends EventTarget {
       hasAppliedAnyChunk: false
     };
 
-    console.log("set", voxId);
-
     voxMap.set(voxId, entry);
 
     // If the sync is already available and open, use it.
@@ -727,7 +730,6 @@ export class VoxSystem extends EventTarget {
   }
 
   regenerateDirtyMeshesForVoxId(voxId) {
-    console.log("regen", voxId);
     const { sceneEl, meshToVoxId, voxMap } = this;
     const scene = sceneEl.object3D;
 
@@ -1439,14 +1441,6 @@ export class VoxSystem extends EventTarget {
       const paletteArray = voxChunkRef.paletteArray();
       const indicesArray = voxChunkRef.indicesArray();
       const size = [voxChunkRef.sizeX(), voxChunkRef.sizeY(), voxChunkRef.sizeZ()];
-      console.log(
-        paletteArray,
-        indicesArray,
-        paletteArray.byteOffset,
-        paletteArray.byteLength,
-        indicesArray.byteOffset,
-        indicesArray.byteLength
-      );
 
       const voxChunk = new VoxChunk(
         size,
@@ -1712,6 +1706,7 @@ export class VoxSystem extends EventTarget {
     const spaceId = await getSpaceIdFromHistory();
     const hubId = await getHubIdFromHistory();
 
+    // TODO VOX
     let sync;
     let disposeSync = false;
     let returnValue = null;
@@ -2035,7 +2030,6 @@ export class VoxSystem extends EventTarget {
           const frameOffsets = [];
 
           for (let i = 0; i < vox.frames.length; i++) {
-            console.log("add frame", i);
             const frame = vox.frames[i];
             frameOffsets.push(
               PVoxChunk.createVoxChunk(
@@ -2085,7 +2079,6 @@ export class VoxSystem extends EventTarget {
             filename = metadata.url.substring("assets/".length);
           }
 
-          console.log("write to", filename);
           const blob = new Blob([bytes], { type: "model/vnd.packed-vox" });
           atomAccessManager.uploadAsset(blob, filename);
         }

@@ -6,7 +6,7 @@ import { EventTarget } from "event-target-shim";
 import { getHubIdFromHistory } from "./jel-url-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { META_TAG_PREFIX, getHubMetaFromDOM } from "./dom-utils";
-import { fetchPVoxFromUrl } from "./vox-utils";
+import { fetchPVoxFromUrl, getVoxIdFromUrl, getUrlFromVoxId } from "./vox-utils";
 import { getSpaceIdFromUrl, getHubIdFromUrl, getSpaceIdFromHistory } from "./jel-url-utils";
 
 const ATOM_TYPES = {
@@ -39,18 +39,8 @@ export class VoxMetadataSource extends EventTarget {
   }
 
   async getVoxMeta(voxId) {
-    const voxUrl = atob(voxId);
+    const voxUrl = getUrlFromVoxId(voxId);
     const pvoxRef = await fetchPVoxFromUrl(voxUrl);
-
-    console.log({
-      vox_id: voxId,
-      url: voxUrl,
-      name: pvoxRef.name(),
-      scale: pvoxRef.scale(),
-      stack_axis: pvoxRef.stackAxis(),
-      stack_snap_position: pvoxRef.stackSnapPosition(),
-      stack_snap_scale: pvoxRef.stackSnapScale()
-    });
 
     return {
       vox_id: voxId,
@@ -244,12 +234,7 @@ class AtomMetadata {
         this._idColumn = "vox_id";
         this._sourceGetMethod = "getVoxMetas";
         this._defaultNames.set("vox", messages["vox.unnamed-title"]);
-        this._atomIdFromUrl = voxUrl => {
-          // The vox id of the url is the base64 encoding of the URL. If the URL is a relative URL,
-          // then we need to prepend the current URL to it.
-          return btoa(new URL(voxUrl, document.location.href));
-        };
-
+        this._atomIdFromUrl = getVoxIdFromUrl;
         break;
     }
   }
@@ -327,10 +312,14 @@ class AtomMetadata {
 
     let newMetadata = null;
 
-    // For now can only locally update name + rul
-    for (const field of ["name", "url"]) {
-      if (metadata[field] === undefined) continue;
-      newMetadata = { ...(newMetadata || existing), [field]: metadata[field] };
+    // For now can only locally update name + url on hub + space
+    if (this._atomType === ATOM_TYPES.HUB || this._atomType === ATOM_TYPES.SPACE) {
+      for (const field of ["name", "url"]) {
+        if (metadata[field] === undefined) continue;
+        newMetadata = { ...(newMetadata || existing), [field]: metadata[field] };
+      }
+    } else {
+      newMetadata = { ...existing, ...metadata };
     }
 
     if (newMetadata === null) return;
