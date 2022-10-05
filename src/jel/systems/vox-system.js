@@ -15,7 +15,7 @@ import { Vox } from "../vox/vox";
 import { VoxChunk, rgbtForVoxColor, REMOVE_VOXEL_COLOR } from "../vox/vox_chunk";
 import { ensureOwnership } from "../utils/ownership-utils";
 import { getSpaceIdFromHistory, getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/jel-url-utils";
-import { voxToPVoxBytes, voxChunkToPVoxChunkBytes, fetchPVoxFromUrl } from "../utils/vox-utils";
+import { voxToPVoxBytes, voxChunkToPVoxChunkBytes, fetchPVoxFromUrl, ensureVoxFrame } from "../utils/vox-utils";
 import { ByteBuffer } from "flatbuffers";
 import VoxSync from "../utils/vox-sync";
 import FastVixel from "fast-vixel";
@@ -32,8 +32,6 @@ const tmpMatrix = new Matrix4();
 const tmpVec = new THREE.Vector3();
 const RESHAPE_DELAY_MS = 5000;
 const WRITEBACK_DELAY_MS = 1000; // TODO VOX
-const MAX_FRAMES = 32;
-const DEFAULT_VOX_FRAME_SIZE = 2;
 
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
 targettingMaterial.visible = false;
@@ -1310,13 +1308,13 @@ export class VoxSystem extends EventTarget {
   }
 
   async setVoxel(voxId, x, y, z, color, frame = 0) {
-    this.ensureFrame(voxId, frame);
+    ensureVoxFrame(voxId, frame);
     const delta = VoxChunk.fromJSON({ size: [1, 1, 1], palette: [color], indices: [1] });
     await this.applyChunk(voxId, delta, frame, [x, y, z]);
   }
 
   async removeVoxel(voxId, x, y, z, frame = 0) {
-    this.ensureFrame(voxId, frame);
+    ensureVoxFrame(voxId, frame);
     const delta = VoxChunk.fromJSON({ size: [1, 1, 1], palette: [REMOVE_VOXEL_COLOR], indices: [1] });
     await this.applyChunk(voxId, delta, frame, [x, y, z]);
   }
@@ -1384,10 +1382,8 @@ export class VoxSystem extends EventTarget {
   }
 
   getChunkFrameOfVox(voxId, frame) {
-    const { voxIdToEntry } = this;
-    const entry = voxIdToEntry.get(voxId);
-    if (!entry) return null;
-    const { vox } = entry;
+    const { voxIdToVox } = this;
+    const vox = voxIdToVox.get(voxId);
     if (!vox) return null;
 
     const chunk = vox.frames[frame];
@@ -2034,33 +2030,5 @@ export class VoxSystem extends EventTarget {
     }
 
     this.onSyncedVoxUpdated(voxId, frame);
-  }
-
-  ensureFrame(voxId, idxFrame) {
-    if (idxFrame > MAX_FRAMES - 1) return;
-    const { voxIdToVox } = this;
-
-    if (!voxIdToVox.has(voxId)) {
-      voxIdToVox.set(voxId, new Vox([]));
-    }
-
-    const vox = voxIdToVox.get(voxId);
-
-    if (vox.frames[idxFrame]) return;
-
-    const indices = new Array(DEFAULT_VOX_FRAME_SIZE ** 3);
-    indices.fill(0);
-
-    const chunk = VoxChunk.fromJSON({
-      size: [DEFAULT_VOX_FRAME_SIZE, DEFAULT_VOX_FRAME_SIZE, DEFAULT_VOX_FRAME_SIZE],
-      palette: [],
-      indices
-    });
-
-    while (vox.frames.length < idxFrame + 1) {
-      vox.frames.push(null);
-    }
-
-    vox.frames[idxFrame] = chunk;
   }
 }

@@ -3,10 +3,14 @@ import { Builder } from "flatbuffers/js/builder";
 import { getLocalRelativePathFromUrl } from "./jel-url-utils";
 import { PVox } from "../pvox/pvox";
 import { VoxChunk as PVoxChunk } from "../pvox/vox-chunk";
+import { VoxChunk } from "../vox/vox_chunk";
+import { Vox } from "../vox/vox";
 
 const flatbuilder = new Builder(1024 * 1024 * 4);
 
 const PVOX_HEADER = [80, 86, 79, 88];
+const MAX_FRAMES = 32;
+const DEFAULT_VOX_FRAME_SIZE = 2;
 
 export async function fetchPVoxFromUrl(voxUrl) {
   const { atomAccessManager } = window.APP;
@@ -103,4 +107,32 @@ export function getVoxIdFromUrl(voxUrl) {
   // The vox id of the url is the base64 encoding of the URL. If the URL is a relative URL,
   // then we need to prepend the current URL to it.
   return btoa(new URL(voxUrl, document.location.href));
+}
+
+export function ensureVoxFrame(voxId, idxFrame) {
+  if (idxFrame > MAX_FRAMES - 1) return;
+  const { voxIdToVox } = this;
+
+  if (!voxIdToVox.has(voxId)) {
+    voxIdToVox.set(voxId, new Vox([]));
+  }
+
+  const vox = voxIdToVox.get(voxId);
+
+  if (vox.frames[idxFrame]) return;
+
+  const indices = new Array(DEFAULT_VOX_FRAME_SIZE ** 3);
+  indices.fill(0);
+
+  const chunk = VoxChunk.fromJSON({
+    size: [DEFAULT_VOX_FRAME_SIZE, DEFAULT_VOX_FRAME_SIZE, DEFAULT_VOX_FRAME_SIZE],
+    palette: [],
+    indices
+  });
+
+  while (vox.frames.length < idxFrame + 1) {
+    vox.frames.push(null);
+  }
+
+  vox.frames[idxFrame] = chunk;
 }
