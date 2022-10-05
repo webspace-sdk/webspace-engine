@@ -8,6 +8,7 @@ import { addMediaInFrontOfPlayerIfPermitted } from "../../hubs/utils/media-utils
 import { gatePermission } from "../../hubs/utils/permissions-utils";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { getSpawnInFrontZOffsetForEntity } from "../../hubs/utils/three-utils";
+import { VOX_CONTENT_TYPE } from "../utils/vox-utils";
 import "../utils/vox-sync";
 
 AFRAME.registerComponent("media-vox", {
@@ -161,7 +162,7 @@ AFRAME.registerComponent("media-vox", {
       {},
       true,
       true,
-      "model/vnd.packed-vox",
+      VOX_CONTENT_TYPE,
       zOffset,
       0, // yOffset
       stackAxis,

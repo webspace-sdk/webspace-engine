@@ -5,6 +5,8 @@ import { SVox } from "../vox/svox";
 import { SVoxChunk } from "../vox/svox-chunk";
 import { VoxChunk } from "../vox/vox-chunk";
 
+export const VOX_CONTENT_TYPE = "model/vnd.svox";
+
 const flatbuilder = new Builder(1024 * 1024 * 4);
 
 const SVOX_HEADER = [80, 86, 79, 88];

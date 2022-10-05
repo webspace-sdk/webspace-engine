@@ -15,7 +15,13 @@ import { Vox } from "../vox/vox";
 import { VoxChunk, rgbtForVoxColor, REMOVE_VOXEL_COLOR } from "../vox/vox-chunk";
 import { ensureOwnership } from "../utils/ownership-utils";
 import { getSpaceIdFromHistory, getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/jel-url-utils";
-import { voxToSVoxBytes, voxChunkToSVoxChunkBytes, fetchSVoxFromUrl, ensureVoxFrame } from "../utils/vox-utils";
+import {
+  voxToSVoxBytes,
+  voxChunkToSVoxChunkBytes,
+  fetchSVoxFromUrl,
+  ensureVoxFrame,
+  VOX_CONTENT_TYPE
+} from "../utils/vox-utils";
 import { ByteBuffer } from "flatbuffers";
 import VoxSync from "../utils/vox-sync";
 import FastVixel from "fast-vixel";
@@ -1684,7 +1690,7 @@ export class VoxSystem extends EventTarget {
       src: url,
       contentOrigin: ObjectContentOrigins.URL,
       skipResolve: true,
-      contentType: "model/vnd.packed-vox",
+      contentType: VOX_CONTENT_TYPE,
       zOffset: -2.5,
       yOffset: 0,
       stackAxis: stack_axis,
@@ -1717,7 +1723,7 @@ export class VoxSystem extends EventTarget {
     const { entity } = addMedia({
       src: url,
       contentOrigin: ObjectContentOrigins.URL,
-      contentType: "model/vnd.packed-vox",
+      contentType: VOX_CONTENT_TYPE,
       stackAxis: stack_axis,
       stackSnapPosition: stack_snap_position,
       stackSnapScale: stack_snap_scale
@@ -1969,7 +1975,7 @@ export class VoxSystem extends EventTarget {
             filename = metadata.url.substring("assets/".length);
           }
 
-          const blob = new Blob([svoxBytes], { type: "model/vnd.packed-vox" });
+          const blob = new Blob([svoxBytes], { type: VOX_CONTENT_TYPE });
           atomAccessManager.uploadAsset(blob, filename);
         }
       }

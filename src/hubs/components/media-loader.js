@@ -5,6 +5,7 @@ import { getSpaceIdFromHistory } from "../../jel/utils/jel-url-utils";
 import loadingParticleSrc from "!!url-loader!../../assets/jel/images/loading-particle.png";
 import { VOXLoader } from "../../jel/objects/VOXLoader";
 import { createVox } from "../../hubs/utils/phoenix-utils";
+import { VOX_CONTENT_TYPE } from "../../jel/utils/vox-utils";
 import {
   injectCustomShaderChunks,
   addMeshScaleAnimation,
@@ -388,7 +389,7 @@ AFRAME.registerComponent("media-loader", {
         typeof src === "string" &&
         !src.startsWith("data:") &&
         !src.startsWith("jel:") &&
-        contentType !== "model/vnd.packed-vox" &&
+        contentType !== VOX_CONTENT_TYPE &&
         !isRelativeUrl
       ) {
         try {
@@ -407,7 +408,7 @@ AFRAME.registerComponent("media-loader", {
       }
 
       // Fetching voxel data from origin or webrtc is handled by vox system.
-      const isPackedVoxel = contentType && contentType.startsWith("model/vnd.packed-vox");
+      const isPackedVoxel = contentType && contentType.startsWith(VOX_CONTENT_TYPE);
 
       if (isRelativeUrl && !isPackedVoxel) {
         const { atomAccessManager } = window.APP;
@@ -699,7 +700,7 @@ AFRAME.registerComponent("media-loader", {
       } else if (contentType.startsWith("model/vox-binary")) {
         const voxSrc = await this.importVoxFromUrl(contentUrl);
 
-        this.el.setAttribute("media-loader", { src: voxSrc, contentType: "model/vnd.packed-vox" });
+        this.el.setAttribute("media-loader", { src: voxSrc, contentType: VOX_CONTENT_TYPE });
         this.el.addEventListener("model-loaded", () => this.onMediaLoaded(null, false), { once: true });
         this.el.addEventListener("model-error", this.onError, { once: true });
         this.el.setAttribute("floaty-object", { gravitySpeedLimit: 1.85 });

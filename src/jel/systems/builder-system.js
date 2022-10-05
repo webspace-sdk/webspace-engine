@@ -6,6 +6,7 @@ import { getWorldColor } from "../objects/terrain";
 import { EventTarget } from "event-target-shim";
 import { storedColorToRgb } from "../../hubs/storage/store";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
+import { VOX_CONTENT_TYPE } from "../utils/vox-utils";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "../utils/jel-url-utils";
 import {
   BRUSH_TYPES,
@@ -602,8 +603,6 @@ export class BuilderSystem extends EventTarget {
     const spaceId = await getSpaceIdFromHistory(history);
     const hubId = await getHubIdFromHistory(history);
 
-    const { voxSystem } = SYSTEMS;
-
     const {
       vox: [{ vox_id: voxId, url }]
     } = await createVox(spaceId, hubId);
@@ -614,7 +613,7 @@ export class BuilderSystem extends EventTarget {
     const { entity } = addMedia({
       src: url,
       contentOrigin: ObjectContentOrigins.URL,
-      contentType: "model/vnd.packed-vox"
+      contentType: VOX_CONTENT_TYPE
     });
 
     entity.addEventListener(

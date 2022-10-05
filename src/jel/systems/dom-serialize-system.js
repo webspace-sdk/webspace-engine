@@ -6,6 +6,7 @@ import { getCorsProxyUrl } from "../../hubs/utils/media-url-utils";
 import { almostEqualVec3, almostEqualQuaternion } from "../../hubs/utils/three-utils";
 import { parseTransformIntoThree } from "../utils/world-importer";
 import { STACK_AXIS_CSS_NAMES } from "../../hubs/systems/transform-selected-object";
+import { VOX_CONTENT_TYPE } from "../utils/vox-utils";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 
 import Color from "color";
@@ -158,7 +159,7 @@ const updateDomElForEl = (domEl, el) => {
   }
 
   if (el.components["media-vox"]) {
-    setAttributeIfChanged(domEl, "type", "model/vnd.packed-vox");
+    setAttributeIfChanged(domEl, "type", VOX_CONTENT_TYPE);
 
     // Look up export vox id
     /*const voxId = voxIdForVoxUrl(src);

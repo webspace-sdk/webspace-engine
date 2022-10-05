@@ -1,5 +1,6 @@
 import configs from "./configs";
 import { getBlobForEmojiImage } from "../../jel/utils/emojis";
+import { VOX_CONTENT_TYPE } from "../../jel/utils/vox-utils";
 
 const commonKnownContentTypes = {
   gltf: "model/gltf",
@@ -15,7 +16,7 @@ const commonKnownContentTypes = {
   basis: "image/basis",
   m3u8: "application/vnd.apple.mpegurl",
   mpd: "application/dash+xml",
-  pvox: "model/vnd.packed-vox"
+  svox: VOX_CONTENT_TYPE
 };
 
 export const getCorsProxyUrl = () => {
