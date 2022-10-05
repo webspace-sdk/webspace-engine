@@ -1,5 +1,3 @@
-import { Builder } from "flatbuffers/js/builder";
-
 import { JelVoxBufferGeometry } from "../objects/JelVoxBufferGeometry";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { createVox } from "../../hubs/utils/phoenix-utils";
@@ -16,20 +14,15 @@ import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../
 import { type as vox0, Vox, VoxChunk, rgbtForVoxColor, REMOVE_VOXEL_COLOR } from "ot-vox";
 import { ensureOwnership } from "../utils/ownership-utils";
 import { getSpaceIdFromHistory, getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/jel-url-utils";
-import { fetchPVoxFromUrl } from "../utils/vox-utils";
+import { voxToPVoxBytes, voxChunkToPVoxChunkBytes, fetchPVoxFromUrl } from "../utils/vox-utils";
 import { ByteBuffer } from "flatbuffers";
 import VoxSync from "../utils/vox-sync";
 import FastVixel from "fast-vixel";
 
-import { PVox } from "../pvox/pvox";
 import { VoxChunk as PVoxChunk } from "../pvox/vox-chunk";
 
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, Matrix4, Mesh } = THREE;
 import { EventTarget } from "event-target-shim";
-
-const flatbuilder = new Builder(1024 * 1024 * 4);
-
-const PVOX_HEADER = [80, 86, 79, 88];
 
 export const MAX_FRAMES_PER_VOX = 32;
 const MAX_INSTANCES_PER_VOX_ID = 255;
@@ -312,13 +305,8 @@ export class VoxSystem extends EventTarget {
       this.performWriteback();
     }
 
-    //let expiredSync = false;
-
+    // TODO
     // Check for expiring syncs
-    // TODO VOX
-    // for (const sync of syncs.values()) {
-    //   expiredSync = expiredSync || sync.tryExpire();
-    // }
   }
 
   hasSync(voxId) {
@@ -479,7 +467,6 @@ export class VoxSystem extends EventTarget {
 
   async registerVox(voxUrl) {
     const { voxIdToEntry, voxIdToVox } = this;
-    const { editRingManager } = window.APP;
 
     const voxId = await voxIdForVoxUrl(voxUrl);
 
@@ -601,6 +588,7 @@ export class VoxSystem extends EventTarget {
   }
 
   unregisterVox(voxId) {
+    const { editRingManager } = window.APP;
     const { sceneEl, voxIdToEntry, meshToVoxId } = this;
     const scene = sceneEl.object3D;
     const voxEntry = voxIdToEntry.get(voxId);
@@ -629,8 +617,7 @@ export class VoxSystem extends EventTarget {
     }
 
     voxIdToEntry.delete(voxId);
-    // TODO VOX
-    // this.endSyncing(voxId);
+    editRingManager.leaveSyncRing(voxId);
   }
 
   getInspectedEditingVoxId() {
@@ -1953,46 +1940,8 @@ export class VoxSystem extends EventTarget {
           const vox = voxIdToVox.get(voxId);
           if (!vox) continue;
 
+          const pvoxBytes = await voxToPVoxBytes(voxId, vox);
           const metadata = await voxMetadata.getOrFetchMetadata(voxId);
-
-          flatbuilder.clear();
-
-          const frameOffsets = [];
-
-          for (let i = 0; i < vox.frames.length; i++) {
-            const frame = vox.frames[i];
-            frameOffsets.push(
-              PVoxChunk.createVoxChunk(
-                flatbuilder,
-                frame.size[0],
-                frame.size[1],
-                frame.size[2],
-                frame.bitsPerIndex,
-                PVoxChunk.createPaletteVector(
-                  flatbuilder,
-                  new Uint8Array(frame.palette.buffer, frame.palette.byteOffset, frame.palette.byteLength)
-                ),
-                PVoxChunk.createIndicesVector(flatbuilder, frame.indices.view)
-              )
-            );
-          }
-
-          flatbuilder.finish(
-            PVox.createPVox(
-              flatbuilder,
-              PVox.createHeaderVector(flatbuilder, PVOX_HEADER),
-              flatbuilder.createSharedString(metadata.name || ""),
-              0 /* version */,
-              0 /* revision */,
-              metadata.scale || 1.0,
-              metadata.stack_axis || 0,
-              metadata.stack_snap_position || false,
-              metadata.stack_snap_scale || false,
-              PVox.createFramesVector(flatbuilder, frameOffsets)
-            )
-          );
-
-          const bytes = flatbuilder.asUint8Array();
 
           let filename = null;
 
@@ -2009,7 +1958,7 @@ export class VoxSystem extends EventTarget {
             filename = metadata.url.substring("assets/".length);
           }
 
-          const blob = new Blob([bytes], { type: "model/vnd.packed-vox" });
+          const blob = new Blob([pvoxBytes], { type: "model/vnd.packed-vox" });
           atomAccessManager.uploadAsset(blob, filename);
         }
       }
@@ -2025,24 +1974,7 @@ export class VoxSystem extends EventTarget {
 
     editRingManager.registerRingEditableDocument(voxId, this);
 
-    flatbuilder.clear();
-
-    flatbuilder.finish(
-      PVoxChunk.createVoxChunk(
-        flatbuilder,
-        chunk.size[0],
-        chunk.size[1],
-        chunk.size[2],
-        chunk.bitsPerIndex,
-        PVoxChunk.createPaletteVector(
-          flatbuilder,
-          new Uint8Array(chunk.palette.buffer, chunk.palette.byteOffset, chunk.palette.byteLength)
-        ),
-        PVoxChunk.createIndicesVector(flatbuilder, chunk.indices.view)
-      )
-    );
-
-    const delta = [frame, flatbuilder.asUint8Array(), offset];
+    const delta = [frame, voxChunkToPVoxChunkBytes(chunk), offset];
     console.log("send delta", delta);
 
     editRingManager.sendDeltaSync(voxId, delta);
@@ -2055,7 +1987,6 @@ export class VoxSystem extends EventTarget {
 
   getFullSync(voxId) {
     // TODO VOX
-    this.onSyncedVoxUpdated(voxId);
   }
 
   applyFullSync(voxId /*, data*/) {

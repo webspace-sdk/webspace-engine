@@ -203,7 +203,14 @@ export default class EditRingManager {
   }
 
   leaveSyncRing(docId) {
-    // TODO VOX
+    const currentPresence = getCurrentPresence();
+
+    const syncRingMemberships = currentPresence.sync_ring_memberships || [];
+    // remove the membership with the doc id
+    const newSyncRingMemberships = syncRingMemberships.filter(m => m.doc_id !== docId);
+
+    NAF.connection.presence.setLocalStateField("sync_ring_memberships", newSyncRingMemberships);
+    this.docIdToSyncState.delete(docId);
   }
 
   isSyncing(docId) {
