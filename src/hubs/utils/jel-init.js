@@ -6,7 +6,7 @@ import { SOUND_CHAT_MESSAGE } from "../systems/sound-effects-system";
 import qsTruthy from "./qs_truthy";
 import HubStore from "../storage/hub-store";
 import MediaTree from "../../jel/utils/media-tree";
-import { clearVoxAttributePools } from "../../jel/objects/JelVoxBufferGeometry";
+import { clearVoxAttributePools } from "../../jel/objects/vox-chunk-buffer-geometry";
 import { restartPeriodicSyncs } from "../components/periodic-full-syncs";
 import { toByteArray as base64ToByteArray } from "base64-js";
 import { pushHubMetaUpdateIntoDOM } from "../../jel/utils/dom-utils";

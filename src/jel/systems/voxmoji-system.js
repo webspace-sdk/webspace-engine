@@ -1,4 +1,4 @@
-import { VOXBufferGeometry } from "../objects/VOXBufferGeometry.js";
+import { VOXBufferGeometry } from "../objects/vox-buffer-geometry.js";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { disposeNode } from "../../hubs/utils/three-utils";
 import { addVertexCurvingToShader } from "./terrain-system";

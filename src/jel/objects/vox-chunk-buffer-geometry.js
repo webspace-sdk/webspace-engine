@@ -361,10 +361,10 @@ function GreedyMeshFlat(chunk, maxQuadSize = Infinity, lod = 1, getLodVoxelCoord
   return quadData;
 }
 
-class JelVoxBufferGeometry extends BufferGeometry {
+class VoxChunkBufferGeometry extends BufferGeometry {
   constructor(chunk) {
     super();
-    this.type = "JelVoxBufferGeometry";
+    this.type = "VoxChunkBufferGeometry";
 
     if (chunk) {
       this.update(chunk);
@@ -904,4 +904,4 @@ class JelVoxBufferGeometry extends BufferGeometry {
   }
 }
 
-export { JelVoxBufferGeometry };
+export { VoxChunkBufferGeometry };

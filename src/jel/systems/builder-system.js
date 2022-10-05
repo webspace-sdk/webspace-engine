@@ -5,7 +5,7 @@ import { ObjectContentOrigins } from "../../hubs/object-types";
 import { getWorldColor } from "../objects/terrain";
 import { EventTarget } from "event-target-shim";
 import { storedColorToRgb } from "../../hubs/storage/store";
-import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
+import { VOXEL_SIZE } from "../objects/vox-chunk-buffer-geometry";
 import { VOX_CONTENT_TYPE } from "../utils/vox-utils";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "../utils/jel-url-utils";
 import {

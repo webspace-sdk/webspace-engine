@@ -5,7 +5,7 @@ import TerraWorker from "../workers/terra.worker.js";
 import { createVoxelMaterial, Terrain, updateWorldColors, VOXEL_PALETTE_GRASS } from "../objects/terrain";
 import { waitForShadowDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { VOXLoader } from "../objects/VOXLoader";
-import { VOXBufferGeometry } from "../objects/VOXBufferGeometry";
+import { VOXBufferGeometry } from "../objects/vox-buffer-geometry";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import grassVoxSrc from "!!url-loader!../../assets/jel/models/grass1.vox";
 import { RENDER_ORDER, WORLD_COLOR_TYPES, COLLISION_LAYERS } from "../../hubs/constants";

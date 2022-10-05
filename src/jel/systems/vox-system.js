@@ -1,4 +1,4 @@
-import { JelVoxBufferGeometry } from "../objects/JelVoxBufferGeometry";
+import { VoxChunkBufferGeometry } from "../objects/vox-chunk-buffer-geometry";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { createVox } from "../../hubs/utils/phoenix-utils";
 import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
@@ -9,7 +9,7 @@ import { setMatrixWorld, generateMeshBVH, disposeNode } from "../../hubs/utils/t
 import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
-import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
+import { VOXEL_SIZE } from "../objects/vox-chunk-buffer-geometry";
 import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../../hubs/utils/media-utils";
 import { Vox } from "../vox/vox";
 import { VoxChunk, rgbtForVoxColor, REMOVE_VOXEL_COLOR } from "../vox/vox-chunk";
@@ -103,7 +103,7 @@ export function voxIdForVoxUrl(url) {
 }
 
 function createMesh() {
-  const geometry = new JelVoxBufferGeometry();
+  const geometry = new VoxChunkBufferGeometry();
   geometry.instanceAttributes = []; // For DynamicInstancedMesh
 
   const material = voxMaterial;
@@ -117,7 +117,7 @@ function createMesh() {
 }
 
 function createPhysicsMesh() {
-  const geometry = new JelVoxBufferGeometry();
+  const geometry = new VoxChunkBufferGeometry();
   const material = voxMaterial;
   const mesh = new Mesh(geometry, material);
   return mesh;
@@ -591,8 +591,7 @@ export class VoxSystem extends EventTarget {
 
     voxIdToEntry.set(voxId, entry);
 
-    // If the sync is already available and open, use it.
-    // Otherwise fetch frame data when first registering.
+    // If the vox is already available, use it, otherwise fetch frame data when first registering.
     if (!voxIdToVox.has(voxId)) {
       const svoxRef = await fetchSVoxFromUrl(voxUrl, () => voxIdToVox.has(voxId));
       const frames = voxFramesFromSVoxRef(svoxRef);
@@ -745,7 +744,7 @@ export class VoxSystem extends EventTarget {
           let walkGeometry = entry.walkGeometry;
 
           if (walkGeometry === null) {
-            walkGeometry = entry.walkGeometry = new JelVoxBufferGeometry();
+            walkGeometry = entry.walkGeometry = new VoxChunkBufferGeometry();
             walkGeometry.instanceAttributes = []; // For DynamicInstancedMesh
           }
 

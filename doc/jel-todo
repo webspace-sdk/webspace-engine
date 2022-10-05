@@ -41,6 +41,7 @@
 - spawn around origin
 - make sure dropping same file from assets folder works
 - vox
+  - create vox dialog
   - vox name changes update asset on disk
   - publish vox, should burn the axis, snap settings, scale
   - test cases where pvox file is on internet, ie published
@@ -48,15 +49,17 @@
     - instantiated with scale, axis settings
     - can bake into new asset if writeback enabled
   - spawning a new vox remotely should register into presence and cause others
-    to fetch full doc for vox data
-  - clone local
-  - clone remote
+    to fetch full doc for vox data X
+  - clone local X
+  - clone remote X
   - rename local
   - rename remote
-  - spawn local
-  - spawn remote
-  - spawn remote, edit, other master
-  - spawn from master, remote edit
+  - bake local
+  - bake remote
+  - spawn local X
+  - spawn remote X
+  - spawn remote, edit, other master X
+  - spawn from master, remote edit X
   - local import .vox
   - remote import .vox
 

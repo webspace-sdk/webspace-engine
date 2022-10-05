@@ -1,7 +1,7 @@
 import { MEDIA_PRESENCE } from "../../hubs/utils/media-utils";
 import { disposeExistingMesh } from "../../hubs/utils/three-utils";
 import { resetMediaRotation, MEDIA_INTERACTION_TYPES, isLockedMedia } from "../../hubs/utils/media-utils";
-import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
+import { VOXEL_SIZE } from "../objects/vox-chunk-buffer-geometry";
 import { getNetworkedEntity } from "../../jel/utils/ownership-utils";
 import { endCursorLock } from "../utils/dom-utils";
 import { addMediaInFrontOfPlayerIfPermitted } from "../../hubs/utils/media-utils";
