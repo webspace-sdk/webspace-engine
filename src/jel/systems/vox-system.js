@@ -471,9 +471,11 @@ export class VoxSystem extends EventTarget {
   }
 
   async registerVox(voxUrl) {
+    const { editRingManager } = window.APP;
     const { voxIdToEntry, voxIdToVox } = this;
 
     const voxId = await voxIdForVoxUrl(voxUrl);
+    editRingManager.registerRingEditableDocument(voxId, this);
 
     let voxRegisteredResolve;
     const voxRegistered = new Promise(res => (voxRegisteredResolve = res));
@@ -621,7 +623,7 @@ export class VoxSystem extends EventTarget {
     }
 
     voxIdToEntry.delete(voxId);
-    editRingManager.leaveSyncRing(voxId);
+    editRingManager.unregisterRingEditableDocument(voxId);
   }
 
   getInspectedEditingVoxId() {
@@ -1989,8 +1991,6 @@ export class VoxSystem extends EventTarget {
   async applyChunk(voxId, chunk, frame, offset, beginSyncing = true) {
     const { editRingManager } = window.APP;
 
-    editRingManager.registerRingEditableDocument(voxId, this);
-
     const delta = [frame, voxChunkToSVoxChunkBytes(chunk), offset];
     console.log("send delta", delta);
 
@@ -2004,18 +2004,20 @@ export class VoxSystem extends EventTarget {
 
   getFullSync(voxId) {
     // TODO VOX
+    console.log("get full sync");
+    return { hello: "world" };
   }
 
-  applyFullSync(voxId /*, data*/) {
+  applyFullSync(voxId, data) {
     // TODO VOX
     this.onSyncedVoxUpdated(voxId);
+    console.log("apply", data);
   }
 
   applyDeltaSync(voxId, [frame, chunkData, offset]) {
     if (typeof frame !== "number") return null;
     const { voxIdToVox } = this;
 
-    console.log("got chunk", chunkData);
     const voxChunkRef = new SVoxChunk();
     SVoxChunk.getRootAsSVoxChunk(new ByteBuffer(chunkData), voxChunkRef);
     const paletteArray = voxChunkRef.paletteArray();

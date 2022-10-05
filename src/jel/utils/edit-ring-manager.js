@@ -60,15 +60,16 @@ export default class EditRingManager {
   }
 
   registerRingEditableDocument(docId, syncHandler) {
-    if (this.docIdToSyncState.has(docId)) return;
+    if (this.docIdToSyncHandler.has(docId)) return;
 
-    this.docIdToSyncState.set(docId, SYNC_STATES.UNSYNCED);
     this.docIdToSyncHandler.set(docId, syncHandler);
     this.sendInitialDocRequestsForPresence();
   }
 
   unregisterRingEditableDocument(docId) {
-    this.docIdToSyncState.delete(docId);
+    if (!this.docIdToSyncHandler.has(docId)) return;
+
+    this.leaveSyncRing(docId);
     this.docIdToSyncHandler.delete(docId);
   }
 
@@ -96,7 +97,7 @@ export default class EditRingManager {
       // Presence can contain clients we're not connected to
       if (!NAF.connection.hasActiveDataChannel(clientId)) continue;
 
-      for (const { doc_type, doc_id: docId } of state.sync_ring_memberships) {
+      for (const { doc_id: docId } of state.sync_ring_memberships) {
         if (!this.docIdToSyncHandler.has(docId)) continue;
         if (requestedDocIds.has(docId)) continue;
 
@@ -119,11 +120,7 @@ export default class EditRingManager {
         }
 
         if (shouldRequestFull) {
-          window.APP.hubChannel.sendMessage(
-            { type: "request_full_doc", doc_id: docId, doc_type },
-            "edit_ring_message",
-            clientId
-          );
+          window.APP.hubChannel.sendMessage({ type: "request_full_doc", doc_id: docId }, "edit_ring_message", clientId);
 
           this.docIdToSyncState.set(docId, SYNC_STATES.PENDING);
           requestedDocIds.add(docId);
