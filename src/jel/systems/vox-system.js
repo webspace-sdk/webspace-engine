@@ -2107,10 +2107,11 @@ export class VoxSystem extends EventTarget {
   // is communative.
   performChunkConflictResolution(voxId, delta) {
     const { voxIdToEntry } = this;
-    const entry = voxIdToEntry.get(voxId);
-    if (!entry) return; // Can happen when spawning new voxes, since media isn't in world yet, but should be rare.
-
     const [frame, voxChunk, offset, revision] = delta;
+
+    const entry = voxIdToEntry.get(voxId);
+    if (!entry) return voxChunk; // Can happen when spawning new voxes, since media isn't in world yet, but should be rare.
+
     const { deltaRing, deltaRingIndex } = entry;
 
     // Loop through all the deltas in the ring buffer, starting with the earliest.

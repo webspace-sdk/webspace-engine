@@ -431,12 +431,17 @@ export default class AtomAccessManager extends EventTarget {
     const allowUnsavedObjects = window.APP.allowUnsavedObjects;
     const createAndEditRole = window.APP.createAndEditRole;
 
-    if (allowUnsavedObjects) return true;
+    if (permission.startsWith("spawn_") && allowUnsavedObjects) return true;
+
+    const { atomAccessManager } = window.APP;
+
+    const writesPossible = this.writeback?.isOpen || atomAccessManager.hasAnotherWriterInPresence();
+    if (!writesPossible) return false;
 
     if (sessionId !== null && sessionId !== NAF.clientId) {
       return this.roles.get(sessionId) === ROLES.OWNER || createAndEditRole === ROLES.MEMBER;
     } else {
-      return this.writeback?.isOpen;
+      return true;
     }
   }
 
@@ -444,11 +449,16 @@ export default class AtomAccessManager extends EventTarget {
     if (!VALID_PERMISSIONS[ATOM_TYPES.SPACE].includes(permission))
       throw new Error(`Invalid permission name: ${permission}`);
 
+    const { atomAccessManager } = window.APP;
+
+    const writesPossible = this.writeback?.isOpen || atomAccessManager.hasAnotherWriterInPresence();
+    if (!writesPossible) return false;
+
     if (sessionId !== null && sessionId !== NAF.clientId) {
       return this.roles.get(sessionId) === ROLES.OWNER;
     }
 
-    return this.writeback?.isOpen;
+    return true;
   }
 
   voxCan(permission, voxId = null, sessionId = null) {
@@ -457,18 +467,27 @@ export default class AtomAccessManager extends EventTarget {
 
     if (permission === "view_vox") return true;
 
+    // edit_vox
     const voxUrl = getUrlFromVoxId(voxId);
 
     if (new URL(voxUrl, document.location.href).origin !== document.location.origin) {
       return false;
     }
 
+    const { atomAccessManager } = window.APP;
+
+    const allowUnsavedObjects = window.APP.allowUnsavedObjects;
+    if (allowUnsavedObjects) return true;
+
+    const writesPossible = this.writeback?.isOpen || atomAccessManager.hasAnotherWriterInPresence();
+    if (!writesPossible) return false;
+
     const createAndEditRole = window.APP.createAndEditRole;
 
     if (sessionId !== null && sessionId !== NAF.clientId) {
       return this.roles.get(sessionId) === ROLES.OWNER || createAndEditRole === ROLES.MEMBER;
     } else {
-      return this.writeback?.isOpen;
+      return true;
     }
   }
 
