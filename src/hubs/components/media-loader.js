@@ -15,8 +15,13 @@ import {
 } from "../utils/media-utils";
 import { guessContentType, isWebspaceUrl } from "../utils/media-url-utils";
 import { addAnimationComponents } from "../utils/animation";
-import { xyzRangeForSize, shiftForSize, MAX_SIZE as MAX_VOX_SIZE, VoxChunk } from "ot-vox";
-import { voxColorForRGBT } from "ot-vox";
+import {
+  xyzRangeForSize,
+  shiftForSize,
+  MAX_SIZE as MAX_VOX_SIZE,
+  VoxChunk,
+  voxColorForRGBT
+} from "../../jel/vox/vox_chunk";
 
 import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
 import { disposeExistingMesh, disposeNode } from "../utils/three-utils";

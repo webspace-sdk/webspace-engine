@@ -1,6 +1,6 @@
 import { EventTarget } from "event-target-shim";
-import { type as vox0, Vox } from "ot-vox";
-import { VoxChunk, REMOVE_VOXEL_COLOR } from "ot-vox";
+import { Vox } from "../vox/vox";
+import { VoxChunk, REMOVE_VOXEL_COLOR } from "../vox/vox_chunk";
 
 import { Builder } from "flatbuffers/js/builder";
 import { VoxChunk as PVoxChunk } from "../pvox/vox-chunk";
@@ -136,7 +136,7 @@ export default class VoxSync extends EventTarget {
 
       vox.frames[frame] = voxChunk;
     } else {
-      vox0.applyToChunk(voxChunk, vox.frames[frame], offset[0] || 0, offset[1] || 0, offset[2] || 0);
+      voxChunk.applyToChunk(vox.frames[frame], offset[0] || 0, offset[1] || 0, offset[2] || 0);
     }
 
     this._fireVoxUpdated(frame);

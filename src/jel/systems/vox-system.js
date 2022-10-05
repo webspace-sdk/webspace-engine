@@ -11,7 +11,8 @@ import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../../hubs/utils/media-utils";
-import { type as vox0, Vox, VoxChunk, rgbtForVoxColor, REMOVE_VOXEL_COLOR } from "ot-vox";
+import { Vox } from "../vox/vox";
+import { VoxChunk, rgbtForVoxColor, REMOVE_VOXEL_COLOR } from "../vox/vox_chunk";
 import { ensureOwnership } from "../utils/ownership-utils";
 import { getSpaceIdFromHistory, getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/jel-url-utils";
 import { voxToPVoxBytes, voxChunkToPVoxChunkBytes, fetchPVoxFromUrl } from "../utils/vox-utils";
@@ -737,8 +738,7 @@ export class VoxSystem extends EventTarget {
         if (pendingVoxChunk) {
           chunk = chunk.clone();
 
-          vox0.applyToChunk(
-            pendingVoxChunk,
+          pendingVoxChunk.applyToChunk(
             chunk,
             pendingVoxChunkOffset[0],
             pendingVoxChunkOffset[1],
@@ -1006,7 +1006,7 @@ export class VoxSystem extends EventTarget {
     const chunk = this.getChunkFrameOfVox(voxId, frame);
     if (!chunk) return null;
 
-    return vox0.createInverse(patch, chunk, offset);
+    return patch.createInverse(chunk, offset);
   }
 
   // Returns the frame that was frozen
@@ -2030,7 +2030,7 @@ export class VoxSystem extends EventTarget {
 
       vox.frames[frame] = voxChunk;
     } else {
-      vox0.applyToChunk(voxChunk, vox.frames[frame], offset[0] || 0, offset[1] || 0, offset[2] || 0);
+      voxChunk.applyToChunk(vox.frames[frame], offset[0] || 0, offset[1] || 0, offset[2] || 0);
     }
 
     this.onSyncedVoxUpdated(voxId, frame);
