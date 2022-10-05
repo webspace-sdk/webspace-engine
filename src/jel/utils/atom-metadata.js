@@ -35,12 +35,13 @@ export class VoxMetadataSource extends EventTarget {
       vox.push(await promises[i]);
     }
 
-    return vox;
+    return vox.filter(v => !!v);
   }
 
   async getVoxMeta(voxId) {
     const voxUrl = getUrlFromVoxId(voxId);
     const svoxRef = await fetchSVoxFromUrl(voxUrl);
+    if (!svoxRef) return null;
 
     return {
       vox_id: voxId,

@@ -142,6 +142,10 @@ class VoxChunk {
     return this.getPaletteIndexAt(x, y, z) !== 0;
   }
 
+  removeVoxelAt(x, y, z) {
+    return this.setPaletteIndexAt(x, y, z, 0);
+  }
+
   getTotalNonEmptyVoxels() {
     let sum = 0;
 
@@ -610,6 +614,67 @@ class VoxChunk {
 
     return inverse;
   };
+
+  // Given the target chunk, merge this chunk with it, where the merge operation resolves cell-level
+  // conflicts by removing voxels of this patch. If targetAlwaysWins is true, then any voxel in the target
+  // chunk will be removed from this patch, otherwise it will be removed if the target has a higher value.
+  mergeWith(targetChunk, offset, targetOffset, targetAlwaysWins = false) {
+    iPalOpToIPalSnap.clear();
+
+    // Cache of palette index -> palette index tie breaking
+    const thisPalIndexToWinPalIndex = iPalOpToIPalSnap;
+
+    const offsetX = targetOffset[0] - offset[0];
+    const offsetY = targetOffset[1] - offset[1];
+    const offsetZ = targetOffset[2] - offset[2];
+
+    const targetSize = targetChunk.size;
+    const [targetMinX, targetMaxX, targetMinY, targetMaxY, targetMinZ, targetMaxZ] = xyzRangeForSize(targetSize);
+
+    const { size } = this;
+
+    const [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(size);
+
+    for (let x = minX; x <= maxX; x += 1) {
+      for (let y = minY; y <= maxY; y += 1) {
+        for (let z = minZ; z <= maxZ; z += 1) {
+          const thisPaletteIndex = this.getPaletteIndexAt(x, y, z);
+          if (thisPaletteIndex === 0) continue;
+
+          const targetX = x + offsetX;
+          const targetY = y + offsetY;
+          const targetZ = z + offsetZ;
+
+          const targetOutOfRange =
+            targetX > targetMaxX ||
+            targetX < targetMinX ||
+            targetY > targetMaxY ||
+            targetY < targetMinY ||
+            targetZ > targetMaxZ ||
+            targetZ < targetMinZ;
+
+          const targetHasVoxel = !targetOutOfRange && targetChunk.hasVoxelAt(targetX, targetY, targetZ);
+
+          // If the target doesn't have a voxel here, no chance of a conflict
+          if (!targetHasVoxel) continue;
+
+          // Conflict, take the higher cell, checking the cache if we already have a winner.
+          if (thisPalIndexToWinPalIndex.has(thisPaletteIndex)) {
+            this.setPaletteIndexAt(x, y, z, thisPalIndexToWinPalIndex.get(thisPaletteIndex));
+          } else {
+            // We tie break on the highest color between the two. If the other one has a higher color, then
+            // just remove this voxel from this patch.
+            if (targetAlwaysWins || targetChunk.getColorAt(targetX, targetY, targetZ) > this.getColorAt(x, y, z)) {
+              this.removeVoxelAt(x, y, z);
+            }
+
+            const newPalIndex = this.getPaletteIndexAt(x, y, z);
+            thisPalIndexToWinPalIndex.set(thisPaletteIndex, newPalIndex);
+          }
+        }
+      }
+    }
+  }
 }
 
 function voxColorForRGBT(r, g, b, t = VOXEL_TYPE_DIFFUSE) {

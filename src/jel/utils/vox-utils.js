@@ -19,24 +19,33 @@ export function sVoxRefFromBytes(bytes) {
   return svoxRef;
 }
 
-export async function fetchSVoxFromUrl(voxUrl) {
-  const { atomAccessManager } = window.APP;
-  let contentUrl = voxUrl;
-  let cache = "default";
+export async function fetchSVoxFromUrl(voxUrl, shouldSkipRetry = () => false) {
+  for (let i = 0; i < 10; i++) {
+    try {
+      if (shouldSkipRetry()) return null;
 
-  if (voxUrl.startsWith("file:") || voxUrl.startsWith("http:")) {
-    const relativePath = getLocalRelativePathFromUrl(new URL(voxUrl));
+      const { atomAccessManager } = window.APP;
+      let contentUrl = voxUrl;
+      let cache = "default";
 
-    if (relativePath) {
-      // Use no-cache, which will do a conditional request since underlying file may have changed.
-      cache = "no-cache";
-      contentUrl = await atomAccessManager.contentUrlForRelativePath(relativePath);
+      if (voxUrl.startsWith("file:") || voxUrl.startsWith("http:")) {
+        const relativePath = getLocalRelativePathFromUrl(new URL(voxUrl));
+
+        if (relativePath) {
+          // Use no-cache, which will do a conditional request since underlying file may have changed.
+          cache = "no-cache";
+          contentUrl = await atomAccessManager.contentUrlForRelativePath(relativePath);
+        }
+      }
+
+      const response = await fetch(contentUrl, { cache });
+      const bytes = await response.arrayBuffer();
+      return sVoxRefFromBytes(bytes);
+    } catch (e) {
+      console.warn("Failed to fetch vox", e);
+      await new Promise(res => setTimeout(res, 1000));
     }
   }
-
-  const res = await fetch(contentUrl, { cache });
-  const bytes = await res.arrayBuffer();
-  return sVoxRefFromBytes(bytes);
 }
 
 export function voxFramesFromSVoxRef(svoxRef) {

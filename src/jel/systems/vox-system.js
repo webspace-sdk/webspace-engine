@@ -44,6 +44,7 @@ const tmpMatrix = new Matrix4();
 const tmpVec = new THREE.Vector3();
 const RESHAPE_DELAY_MS = 5000;
 const WRITEBACK_DELAY_MS = 1000; // TODO VOX
+const DELTA_RING_BUFFER_LENGTH = 32;
 
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
 targettingMaterial.visible = false;
@@ -514,7 +515,7 @@ export class VoxSystem extends EventTarget {
 
       // If non-null, this chunk will be ephemerally applied to the current snapshot during remeshing.
       //
-      // This is used in building model to display the in-process voxel brush.
+      // This is used in building mode to display the in-process voxel brush.
       pendingVoxChunk: null,
       pendingVoxChunkOffset: [0, 0, 0],
 
@@ -583,8 +584,9 @@ export class VoxSystem extends EventTarget {
       // Geometry to use for raycast for walking.
       walkGeometry: null,
 
-      // Flag to determine when to send first_apply event to dyna which marks vox as edited
-      hasAppliedAnyChunk: false
+      // Ring buffer of received and applied deltas, used for conflict resolution.
+      deltaRing: Array(DELTA_RING_BUFFER_LENGTH).fill(null),
+      deltaRingIndex: 0
     };
 
     voxIdToEntry.set(voxId, entry);
@@ -592,10 +594,14 @@ export class VoxSystem extends EventTarget {
     // If the sync is already available and open, use it.
     // Otherwise fetch frame data when first registering.
     if (!voxIdToVox.has(voxId)) {
-      const svoxRef = await fetchSVoxFromUrl(voxUrl);
+      const svoxRef = await fetchSVoxFromUrl(voxUrl, () => voxIdToVox.has(voxId));
       const frames = voxFramesFromSVoxRef(svoxRef);
       const vox = new Vox(frames, svoxRef.revision());
-      voxIdToVox.set(voxId, vox);
+
+      // Vox may have been set over p2p by this point, this is why we also stop retries above
+      if (!voxIdToVox.has(voxId)) {
+        voxIdToVox.set(voxId, vox);
+      }
     }
 
     entry.regenerateDirtyMeshesOnNextFrame = true;
@@ -1316,10 +1322,6 @@ export class VoxSystem extends EventTarget {
     if (entry.pendingVoxChunk === pendingVoxChunk) {
       entry.pendingVoxChunk = null;
     }
-
-    if (!entry.hasAppliedAnyChunk) {
-      entry.hasAppliedAnyChunk = true;
-    }
   }
 
   async setVoxel(voxId, x, y, z, color, frame = 0) {
@@ -1983,7 +1985,6 @@ export class VoxSystem extends EventTarget {
     }
 
     const delta = [frame, voxChunkToSVoxChunkBytes(chunk), offset, revision];
-    console.log("send delta", delta);
 
     editRingManager.sendDeltaSync(voxId, delta);
     this.applyDeltaSync(voxId, delta);
@@ -2036,14 +2037,21 @@ export class VoxSystem extends EventTarget {
     if (typeof frame !== "number") return null;
     const { voxIdToVox } = this;
 
-    // TODO conflict resolution
-    console.log("vox rev", revision);
-
     const voxChunkRef = new SVoxChunk();
+
+    // chunkData can be an array buffer coming in from the wire
+    if (chunkData instanceof ArrayBuffer) {
+      chunkData = new Uint8Array(chunkData);
+    }
+
     SVoxChunk.getRootAsSVoxChunk(new ByteBuffer(chunkData), voxChunkRef);
     const paletteArray = voxChunkRef.paletteArray();
     const indicesArray = voxChunkRef.indicesArray();
     const size = [voxChunkRef.sizeX(), voxChunkRef.sizeY(), voxChunkRef.sizeZ()];
+
+    if (typeof offset[0] !== "number") {
+      offset = [0, 0, 0];
+    }
 
     const voxChunk = new VoxChunk(
       size,
@@ -2056,6 +2064,8 @@ export class VoxSystem extends EventTarget {
       indicesArray.byteLength
     );
 
+    const resolvedVoxChunk = this.performChunkConflictResolution(voxId, [frame, voxChunk, offset, revision]);
+
     if (!voxIdToVox.has(voxId)) {
       voxIdToVox.set(voxId, new Vox([]));
     }
@@ -2067,13 +2077,63 @@ export class VoxSystem extends EventTarget {
         vox.frames.push(null);
       }
 
-      vox.frames[frame] = voxChunk;
+      vox.frames[frame] = resolvedVoxChunk;
     } else {
-      voxChunk.applyToChunk(vox.frames[frame], offset[0] || 0, offset[1] || 0, offset[2] || 0);
+      resolvedVoxChunk.applyToChunk(vox.frames[frame], offset[0], offset[1], offset[2]);
     }
 
     vox.revision = Math.max(vox.revision, revision);
 
     this.onSyncedVoxUpdated(voxId, frame);
+  }
+
+  // Conflict resolution algorithm:
+  //
+  // We keep a small ring buffer of all the recently received deltas. A conflict arises in two cases:
+  //
+  // - We receive a delta for the same revision as one we already have in the ring buffer.
+  //   In this scenario, we merge this chunk with that one performing cell-level conflict resolution.
+  //   (See VoxChunk.mergeWith)
+  //
+  // - We receive a delta for a revision that is lower than the revision of the chunk we already have.
+  //   In this scenario, we defer to all the newer deltas entirely, only applying changes in this delta
+  //   when no other deltas have information about that cell. (See VoxChunk.maskBy)
+  //
+  // Upon updating the chunk, we add the *finalized* chunk into the ring buffer since we don't want to have
+  // to re-run this algorithm over all chunks in the ring each time.
+  //
+  // The net is that both sides will converge on the same voxel grid. Each side will prefer changes from later
+  // revisions, and if both sides have changes for the same revision, then the merge algorithm decides, which
+  // is communative.
+  performChunkConflictResolution(voxId, delta) {
+    const { voxIdToEntry } = this;
+    const entry = voxIdToEntry.get(voxId);
+    if (!entry) return; // Can happen when spawning new voxes, since media isn't in world yet, but should be rare.
+
+    const [frame, voxChunk, offset, revision] = delta;
+    const { deltaRing, deltaRingIndex } = entry;
+
+    // Loop through all the deltas in the ring buffer, starting with the earliest.
+    let i = (deltaRingIndex + 1) % deltaRing.length;
+
+    while (i !== deltaRingIndex) {
+      if (deltaRing[i] !== null) {
+        const [ringFrame, ringVoxChunk, ringOffset, ringRevision] = deltaRing[i];
+
+        if (ringFrame === frame && ringRevision >= revision) {
+          // Merge the vox chunks. If the ring's revision is higher, we defer entirely to it.
+          const targetAlwaysWins = ringRevision > revision;
+          voxChunk.mergeWith(ringVoxChunk, offset, ringOffset, targetAlwaysWins);
+        }
+      }
+
+      i = (i + 1) % deltaRing.length;
+    }
+
+    // Add the finalized chunk to the ring buffer.
+    deltaRing[deltaRingIndex] = delta;
+    entry.deltaRingIndex = (deltaRingIndex + 1) % deltaRing.length;
+
+    return voxChunk;
   }
 }
