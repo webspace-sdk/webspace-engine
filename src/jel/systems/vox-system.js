@@ -578,7 +578,6 @@ export class VoxSystem extends EventTarget {
     // Otherwise fetch frame data when first registering.
     if (!voxIdToVox.has(voxId)) {
       const frames = await this.fetchVoxFrameChunks(voxUrl);
-      console.log("Frames", frames);
       const vox = new Vox(frames);
       voxIdToVox.set(voxId, vox);
     }
@@ -1308,13 +1307,29 @@ export class VoxSystem extends EventTarget {
   }
 
   async setVoxel(voxId, x, y, z, color, frame = 0) {
-    ensureVoxFrame(voxId, frame);
+    const { voxIdToVox } = this;
+
+    if (!voxIdToVox.has(voxId)) {
+      voxIdToVox.set(voxId, new Vox([]));
+    }
+
+    const vox = voxIdToVox.get(voxId);
+    ensureVoxFrame(vox, frame);
+
     const delta = VoxChunk.fromJSON({ size: [1, 1, 1], palette: [color], indices: [1] });
     await this.applyChunk(voxId, delta, frame, [x, y, z]);
   }
 
   async removeVoxel(voxId, x, y, z, frame = 0) {
-    ensureVoxFrame(voxId, frame);
+    const { voxIdToVox } = this;
+
+    if (!voxIdToVox.has(voxId)) {
+      voxIdToVox.set(voxId, new Vox([]));
+    }
+
+    const vox = voxIdToVox.get(voxId);
+    ensureVoxFrame(vox, frame);
+
     const delta = VoxChunk.fromJSON({ size: [1, 1, 1], palette: [REMOVE_VOXEL_COLOR], indices: [1] });
     await this.applyChunk(voxId, delta, frame, [x, y, z]);
   }
@@ -1996,7 +2011,7 @@ export class VoxSystem extends EventTarget {
 
     console.log("got chunk", chunkData);
     const voxChunkRef = new SVoxChunk();
-    SVoxChunk.getRootAsVoxChunk(new ByteBuffer(chunkData), voxChunkRef);
+    SVoxChunk.getRootAsSVoxChunk(new ByteBuffer(chunkData), voxChunkRef);
     const paletteArray = voxChunkRef.paletteArray();
     const indicesArray = voxChunkRef.indicesArray();
     const size = [voxChunkRef.sizeX(), voxChunkRef.sizeY(), voxChunkRef.sizeZ()];

@@ -3,7 +3,7 @@ import { Vox } from "../vox/vox";
 import { VoxChunk, REMOVE_VOXEL_COLOR } from "../vox/vox-chunk";
 
 import { Builder } from "flatbuffers/js/builder";
-import { VoxChunk as SVoxChunk } from "../pvox/vox-chunk";
+import { VoxChunk as SVoxChunk } from "../vox/vox-chunk";
 import { ByteBuffer } from "flatbuffers";
 const flatbuilder = new Builder(1024 * 1024 * 4);
 

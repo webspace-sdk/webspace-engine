@@ -4,7 +4,6 @@ import { getLocalRelativePathFromUrl } from "./jel-url-utils";
 import { SVox } from "../vox/svox";
 import { SVoxChunk } from "../vox/svox-chunk";
 import { VoxChunk } from "../vox/vox-chunk";
-import { Vox } from "../vox/vox";
 
 const flatbuilder = new Builder(1024 * 1024 * 4);
 
@@ -38,7 +37,7 @@ export function voxChunkToSVoxChunkBytes(chunk) {
   flatbuilder.clear();
 
   flatbuilder.finish(
-    SVoxChunk.createVoxChunk(
+    SVoxChunk.createSVoxChunk(
       flatbuilder,
       chunk.size[0],
       chunk.size[1],
@@ -66,7 +65,7 @@ export async function voxToSVoxBytes(voxId, vox) {
   for (let i = 0; i < vox.frames.length; i++) {
     const frame = vox.frames[i];
     frameOffsets.push(
-      SVoxChunk.createVoxChunk(
+      SVoxChunk.createSVoxChunk(
         flatbuilder,
         frame.size[0],
         frame.size[1],
@@ -109,15 +108,8 @@ export function getVoxIdFromUrl(voxUrl) {
   return btoa(new URL(voxUrl, document.location.href));
 }
 
-export function ensureVoxFrame(voxId, idxFrame) {
+export function ensureVoxFrame(vox, idxFrame) {
   if (idxFrame > MAX_FRAMES - 1) return;
-  const { voxIdToVox } = this;
-
-  if (!voxIdToVox.has(voxId)) {
-    voxIdToVox.set(voxId, new Vox([]));
-  }
-
-  const vox = voxIdToVox.get(voxId);
 
   if (vox.frames[idxFrame]) return;
 
