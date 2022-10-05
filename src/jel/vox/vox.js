@@ -1,4 +1,4 @@
-const { VoxChunk } = require("./vox_chunk");
+const { VoxChunk } = require("./vox-chunk");
 
 class Vox {
   constructor(frames) {

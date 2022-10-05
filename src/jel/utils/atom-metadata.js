@@ -6,7 +6,7 @@ import { EventTarget } from "event-target-shim";
 import { getHubIdFromHistory } from "./jel-url-utils";
 import { waitForDOMContentLoaded } from "../../hubs/utils/async-utils";
 import { META_TAG_PREFIX, getHubMetaFromDOM } from "./dom-utils";
-import { fetchPVoxFromUrl, getVoxIdFromUrl, getUrlFromVoxId } from "./vox-utils";
+import { fetchSVoxFromUrl, getVoxIdFromUrl, getUrlFromVoxId } from "./vox-utils";
 import { getSpaceIdFromUrl, getHubIdFromUrl, getSpaceIdFromHistory } from "./jel-url-utils";
 
 const ATOM_TYPES = {
@@ -40,16 +40,16 @@ export class VoxMetadataSource extends EventTarget {
 
   async getVoxMeta(voxId) {
     const voxUrl = getUrlFromVoxId(voxId);
-    const pvoxRef = await fetchPVoxFromUrl(voxUrl);
+    const svoxRef = await fetchSVoxFromUrl(voxUrl);
 
     return {
       vox_id: voxId,
       url: voxUrl,
-      name: pvoxRef.name(),
-      scale: pvoxRef.scale(),
-      stack_axis: pvoxRef.stackAxis(),
-      stack_snap_position: pvoxRef.stackSnapPosition(),
-      stack_snap_scale: pvoxRef.stackSnapScale()
+      name: svoxRef.name(),
+      scale: svoxRef.scale(),
+      stack_axis: svoxRef.stackAxis(),
+      stack_snap_position: svoxRef.stackSnapPosition(),
+      stack_snap_scale: svoxRef.stackSnapScale()
     };
   }
 }

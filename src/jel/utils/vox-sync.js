@@ -1,9 +1,9 @@
 import { EventTarget } from "event-target-shim";
 import { Vox } from "../vox/vox";
-import { VoxChunk, REMOVE_VOXEL_COLOR } from "../vox/vox_chunk";
+import { VoxChunk, REMOVE_VOXEL_COLOR } from "../vox/vox-chunk";
 
 import { Builder } from "flatbuffers/js/builder";
-import { VoxChunk as PVoxChunk } from "../pvox/vox-chunk";
+import { VoxChunk as SVoxChunk } from "../pvox/vox-chunk";
 import { ByteBuffer } from "flatbuffers";
 const flatbuilder = new Builder(1024 * 1024 * 4);
 
@@ -61,17 +61,17 @@ export default class VoxSync extends EventTarget {
     flatbuilder.clear();
 
     flatbuilder.finish(
-      PVoxChunk.createVoxChunk(
+      SVoxChunk.createVoxChunk(
         flatbuilder,
         chunk.size[0],
         chunk.size[1],
         chunk.size[2],
         chunk.bitsPerIndex,
-        PVoxChunk.createPaletteVector(
+        SVoxChunk.createPaletteVector(
           flatbuilder,
           new Uint8Array(chunk.palette.buffer, chunk.palette.byteOffset, chunk.palette.byteLength)
         ),
-        PVoxChunk.createIndicesVector(flatbuilder, chunk.indices.view)
+        SVoxChunk.createIndicesVector(flatbuilder, chunk.indices.view)
       )
     );
 
@@ -109,8 +109,8 @@ export default class VoxSync extends EventTarget {
     if (typeof frame !== "number") return null;
 
     console.log("got chunk", chunkData);
-    const voxChunkRef = new PVoxChunk();
-    PVoxChunk.getRootAsVoxChunk(new ByteBuffer(chunkData), voxChunkRef);
+    const voxChunkRef = new SVoxChunk();
+    SVoxChunk.getRootAsSVoxChunk(new ByteBuffer(chunkData), voxChunkRef);
     const paletteArray = voxChunkRef.paletteArray();
     const indicesArray = voxChunkRef.indicesArray();
     const size = [voxChunkRef.sizeX(), voxChunkRef.sizeY(), voxChunkRef.sizeZ()];

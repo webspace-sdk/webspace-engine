@@ -12,15 +12,15 @@ import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
 import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../../hubs/utils/media-utils";
 import { Vox } from "../vox/vox";
-import { VoxChunk, rgbtForVoxColor, REMOVE_VOXEL_COLOR } from "../vox/vox_chunk";
+import { VoxChunk, rgbtForVoxColor, REMOVE_VOXEL_COLOR } from "../vox/vox-chunk";
 import { ensureOwnership } from "../utils/ownership-utils";
 import { getSpaceIdFromHistory, getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/jel-url-utils";
-import { voxToPVoxBytes, voxChunkToPVoxChunkBytes, fetchPVoxFromUrl, ensureVoxFrame } from "../utils/vox-utils";
+import { voxToSVoxBytes, voxChunkToSVoxChunkBytes, fetchSVoxFromUrl, ensureVoxFrame } from "../utils/vox-utils";
 import { ByteBuffer } from "flatbuffers";
 import VoxSync from "../utils/vox-sync";
 import FastVixel from "fast-vixel";
 
-import { VoxChunk as PVoxChunk } from "../pvox/vox-chunk";
+import { SVoxChunk } from "../vox/svox-chunk";
 
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, Matrix4, Mesh } = THREE;
 import { EventTarget } from "event-target-shim";
@@ -1347,11 +1347,11 @@ export class VoxSystem extends EventTarget {
   }
 
   async fetchVoxFrameChunks(voxUrl) {
-    const pvoxRef = await fetchPVoxFromUrl(voxUrl);
+    const svoxRef = await fetchSVoxFromUrl(voxUrl);
     const frames = [];
 
-    for (let i = 0; i < pvoxRef.framesLength(); i++) {
-      const voxChunkRef = pvoxRef.frames(i);
+    for (let i = 0; i < svoxRef.framesLength(); i++) {
+      const voxChunkRef = svoxRef.frames(i);
       const paletteArray = voxChunkRef.paletteArray();
       const indicesArray = voxChunkRef.indicesArray();
       const size = [voxChunkRef.sizeX(), voxChunkRef.sizeY(), voxChunkRef.sizeZ()];
@@ -1936,7 +1936,7 @@ export class VoxSystem extends EventTarget {
           const vox = voxIdToVox.get(voxId);
           if (!vox) continue;
 
-          const pvoxBytes = await voxToPVoxBytes(voxId, vox);
+          const svoxBytes = await voxToSVoxBytes(voxId, vox);
           const metadata = await voxMetadata.getOrFetchMetadata(voxId);
 
           let filename = null;
@@ -1954,7 +1954,7 @@ export class VoxSystem extends EventTarget {
             filename = metadata.url.substring("assets/".length);
           }
 
-          const blob = new Blob([pvoxBytes], { type: "model/vnd.packed-vox" });
+          const blob = new Blob([svoxBytes], { type: "model/vnd.packed-vox" });
           atomAccessManager.uploadAsset(blob, filename);
         }
       }
@@ -1970,7 +1970,7 @@ export class VoxSystem extends EventTarget {
 
     editRingManager.registerRingEditableDocument(voxId, this);
 
-    const delta = [frame, voxChunkToPVoxChunkBytes(chunk), offset];
+    const delta = [frame, voxChunkToSVoxChunkBytes(chunk), offset];
     console.log("send delta", delta);
 
     editRingManager.sendDeltaSync(voxId, delta);
@@ -1995,8 +1995,8 @@ export class VoxSystem extends EventTarget {
     const { voxIdToVox } = this;
 
     console.log("got chunk", chunkData);
-    const voxChunkRef = new PVoxChunk();
-    PVoxChunk.getRootAsVoxChunk(new ByteBuffer(chunkData), voxChunkRef);
+    const voxChunkRef = new SVoxChunk();
+    SVoxChunk.getRootAsVoxChunk(new ByteBuffer(chunkData), voxChunkRef);
     const paletteArray = voxChunkRef.paletteArray();
     const indicesArray = voxChunkRef.indicesArray();
     const size = [voxChunkRef.sizeX(), voxChunkRef.sizeY(), voxChunkRef.sizeZ()];

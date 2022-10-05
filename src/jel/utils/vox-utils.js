@@ -1,18 +1,18 @@
 import { ByteBuffer } from "flatbuffers";
 import { Builder } from "flatbuffers/js/builder";
 import { getLocalRelativePathFromUrl } from "./jel-url-utils";
-import { PVox } from "../pvox/pvox";
-import { VoxChunk as PVoxChunk } from "../pvox/vox-chunk";
-import { VoxChunk } from "../vox/vox_chunk";
+import { SVox } from "../vox/svox";
+import { SVoxChunk } from "../vox/svox-chunk";
+import { VoxChunk } from "../vox/vox-chunk";
 import { Vox } from "../vox/vox";
 
 const flatbuilder = new Builder(1024 * 1024 * 4);
 
-const PVOX_HEADER = [80, 86, 79, 88];
+const SVOX_HEADER = [80, 86, 79, 88];
 const MAX_FRAMES = 32;
 const DEFAULT_VOX_FRAME_SIZE = 2;
 
-export async function fetchPVoxFromUrl(voxUrl) {
+export async function fetchSVoxFromUrl(voxUrl) {
   const { atomAccessManager } = window.APP;
   let contentUrl = voxUrl;
   let cache = "default";
@@ -29,33 +29,33 @@ export async function fetchPVoxFromUrl(voxUrl) {
 
   const res = await fetch(contentUrl, { cache });
   const bytes = await res.arrayBuffer();
-  const pvoxRef = new PVox();
-  PVox.getRootAsPVox(new ByteBuffer(new Uint8Array(bytes)), pvoxRef);
-  return pvoxRef;
+  const svoxRef = new SVox();
+  SVox.getRootAsSVox(new ByteBuffer(new Uint8Array(bytes)), svoxRef);
+  return svoxRef;
 }
 
-export function voxChunkToPVoxChunkBytes(chunk) {
+export function voxChunkToSVoxChunkBytes(chunk) {
   flatbuilder.clear();
 
   flatbuilder.finish(
-    PVoxChunk.createVoxChunk(
+    SVoxChunk.createVoxChunk(
       flatbuilder,
       chunk.size[0],
       chunk.size[1],
       chunk.size[2],
       chunk.bitsPerIndex,
-      PVoxChunk.createPaletteVector(
+      SVoxChunk.createPaletteVector(
         flatbuilder,
         new Uint8Array(chunk.palette.buffer, chunk.palette.byteOffset, chunk.palette.byteLength)
       ),
-      PVoxChunk.createIndicesVector(flatbuilder, chunk.indices.view)
+      SVoxChunk.createIndicesVector(flatbuilder, chunk.indices.view)
     )
   );
 
   return flatbuilder.asUint8Array().slice(0);
 }
 
-export async function voxToPVoxBytes(voxId, vox) {
+export async function voxToSVoxBytes(voxId, vox) {
   const { voxMetadata } = window.APP;
   const metadata = await voxMetadata.getOrFetchMetadata(voxId);
 
@@ -66,25 +66,25 @@ export async function voxToPVoxBytes(voxId, vox) {
   for (let i = 0; i < vox.frames.length; i++) {
     const frame = vox.frames[i];
     frameOffsets.push(
-      PVoxChunk.createVoxChunk(
+      SVoxChunk.createVoxChunk(
         flatbuilder,
         frame.size[0],
         frame.size[1],
         frame.size[2],
         frame.bitsPerIndex,
-        PVoxChunk.createPaletteVector(
+        SVoxChunk.createPaletteVector(
           flatbuilder,
           new Uint8Array(frame.palette.buffer, frame.palette.byteOffset, frame.palette.byteLength)
         ),
-        PVoxChunk.createIndicesVector(flatbuilder, frame.indices.view)
+        SVoxChunk.createIndicesVector(flatbuilder, frame.indices.view)
       )
     );
   }
 
   flatbuilder.finish(
-    PVox.createPVox(
+    SVox.createSVox(
       flatbuilder,
-      PVox.createHeaderVector(flatbuilder, PVOX_HEADER),
+      SVox.createHeaderVector(flatbuilder, SVOX_HEADER),
       flatbuilder.createSharedString(metadata.name || ""),
       0 /* version */,
       0 /* revision */,
@@ -92,7 +92,7 @@ export async function voxToPVoxBytes(voxId, vox) {
       metadata.stack_axis || 0,
       metadata.stack_snap_position || false,
       metadata.stack_snap_scale || false,
-      PVox.createFramesVector(flatbuilder, frameOffsets)
+      SVox.createFramesVector(flatbuilder, frameOffsets)
     )
   );
 

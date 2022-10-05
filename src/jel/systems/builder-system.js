@@ -6,7 +6,6 @@ import { getWorldColor } from "../objects/terrain";
 import { EventTarget } from "event-target-shim";
 import { storedColorToRgb } from "../../hubs/storage/store";
 import { VOXEL_SIZE } from "../objects/JelVoxBufferGeometry";
-import { rgbtForVoxColor } from "../vox/vox_chunk";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "../utils/jel-url-utils";
 import {
   BRUSH_TYPES,
@@ -17,13 +16,14 @@ import {
   BRUSH_COLOR_FILL_MODE
 } from "../constants";
 import {
+  rgbtForVoxColor,
   VoxChunk,
   xyzRangeForSize,
   voxColorForRGBT,
   REMOVE_VOXEL_COLOR,
   VOX_CHUNK_FILTERS,
   MAX_SIZE as MAX_VOX_SIZE
-} from "../vox/vox_chunk";
+} from "../vox/vox-chunk";
 
 import { SOUND_EMOJI_EQUIP } from "../../hubs/systems/sound-effects-system";
 

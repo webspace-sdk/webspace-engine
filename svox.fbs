@@ -1,8 +1,8 @@
-namespace PVOX;
+namespace VOX;
 
 enum StackAxis : byte { UP = 0, DOWN = 1, FORWARD = 2, BACKWARD = 3, ALONG = 4, AGAINST = 5 }
 
-table VoxChunk {
+table SVoxChunk {
   size_x:byte;
   size_y:byte;
   size_z:byte;
@@ -11,7 +11,7 @@ table VoxChunk {
   indices:[ubyte] (required);
 }
 
-table PVox {
+table SVox {
   header:[ubyte] (required);
   name:string;
   version:int = 0;
@@ -20,7 +20,7 @@ table PVox {
   stack_axis:StackAxis = UP;
   stack_snap_position:bool = false;
   stack_snap_scale:bool = false;
-  frames:[VoxChunk] (required);
+  frames:[SVoxChunk] (required);
 }
 
-root_type PVox;
+root_type SVox;

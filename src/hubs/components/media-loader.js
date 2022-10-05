@@ -21,7 +21,7 @@ import {
   MAX_SIZE as MAX_VOX_SIZE,
   VoxChunk,
   voxColorForRGBT
-} from "../../jel/vox/vox_chunk";
+} from "../../jel/vox/vox-chunk";
 
 import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
 import { disposeExistingMesh, disposeNode } from "../utils/three-utils";

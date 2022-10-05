@@ -194,7 +194,7 @@ export default class SceneEntryManager {
 
     this.scene.addEventListener("add_media_vox", async () => {
       const { voxSystem, builderSystem } = SYSTEMS;
-      const voxFilename = `my-vox-object.pvox`;
+      const voxFilename = `my-vox-object.svox`;
       const voxPath = `assets/${voxFilename}`;
       const voxName = "My New Vox";
 
