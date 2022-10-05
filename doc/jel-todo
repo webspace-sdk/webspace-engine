@@ -39,6 +39,7 @@
   - disable live HTML updates
 - cull permissions (in atom manager)
 - spawn around origin
+- make sure dropping same file from assets folder works
 - vox
   - vox name changes update asset on disk
   - publish vox, should burn the axis, snap settings, scale

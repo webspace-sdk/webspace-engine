@@ -135,7 +135,7 @@ export default class EditRingManager {
     return this.docIdToSyncState.has(docId) ? this.docIdToSyncState.get(docId) : SYNC_STATES.UNSYNCED;
   }
 
-  handleEditRingMessage(payload, fromClientId) {
+  async handleEditRingMessage(payload, fromClientId) {
     const { type, doc_id } = payload;
 
     const syncHandler = this.docIdToSyncHandler.get(doc_id);
@@ -144,7 +144,7 @@ export default class EditRingManager {
     if (type === "request_full_doc") {
       this.hasKnownGoodDocIds.add(doc_id);
 
-      const content = syncHandler.getFullSync(doc_id);
+      const content = await syncHandler.getFullSync(doc_id);
 
       if (content) {
         window.APP.hubChannel.sendMessage(

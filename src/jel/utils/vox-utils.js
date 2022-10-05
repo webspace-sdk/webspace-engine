@@ -13,6 +13,12 @@ const SVOX_HEADER = [80, 86, 79, 88];
 const MAX_FRAMES = 32;
 const DEFAULT_VOX_FRAME_SIZE = 2;
 
+export function sVoxRefFromBytes(bytes) {
+  const svoxRef = new SVox();
+  SVox.getRootAsSVox(new ByteBuffer(new Uint8Array(bytes)), svoxRef);
+  return svoxRef;
+}
+
 export async function fetchSVoxFromUrl(voxUrl) {
   const { atomAccessManager } = window.APP;
   let contentUrl = voxUrl;
@@ -30,9 +36,33 @@ export async function fetchSVoxFromUrl(voxUrl) {
 
   const res = await fetch(contentUrl, { cache });
   const bytes = await res.arrayBuffer();
-  const svoxRef = new SVox();
-  SVox.getRootAsSVox(new ByteBuffer(new Uint8Array(bytes)), svoxRef);
-  return svoxRef;
+  return sVoxRefFromBytes(bytes);
+}
+
+export function voxFramesFromSVoxRef(svoxRef) {
+  const frames = [];
+
+  for (let i = 0; i < svoxRef.framesLength(); i++) {
+    const voxChunkRef = svoxRef.frames(i);
+    const paletteArray = voxChunkRef.paletteArray();
+    const indicesArray = voxChunkRef.indicesArray();
+    const size = [voxChunkRef.sizeX(), voxChunkRef.sizeY(), voxChunkRef.sizeZ()];
+
+    const voxChunk = new VoxChunk(
+      size,
+      paletteArray.buffer,
+      indicesArray.buffer,
+      voxChunkRef.bitsPerIndex(),
+      paletteArray.byteOffset,
+      paletteArray.byteLength,
+      indicesArray.byteOffset,
+      indicesArray.byteLength
+    );
+
+    frames.push(voxChunk);
+  }
+
+  return frames;
 }
 
 export function voxChunkToSVoxChunkBytes(chunk) {

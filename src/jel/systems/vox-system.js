@@ -14,13 +14,19 @@ import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../
 import { Vox } from "../vox/vox";
 import { VoxChunk, rgbtForVoxColor, REMOVE_VOXEL_COLOR } from "../vox/vox-chunk";
 import { ensureOwnership } from "../utils/ownership-utils";
+import {
+  CompressionStream as CompressionStreamImpl,
+  DecompressionStream as DecompressionStreamImpl
+} from "@stardazed/streams-compression";
 import { getSpaceIdFromHistory, getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/jel-url-utils";
 import {
   voxToSVoxBytes,
   voxChunkToSVoxChunkBytes,
   fetchSVoxFromUrl,
+  voxFramesFromSVoxRef,
   ensureVoxFrame,
-  VOX_CONTENT_TYPE
+  VOX_CONTENT_TYPE,
+  sVoxRefFromBytes
 } from "../utils/vox-utils";
 import { ByteBuffer } from "flatbuffers";
 import VoxSync from "../utils/vox-sync";
@@ -315,6 +321,7 @@ export class VoxSystem extends EventTarget {
   }
 
   hasSync(voxId) {
+    // TODO VOX this needs to go, remove syncs
     const { syncs } = this;
     return syncs.has(voxId);
   }
@@ -585,7 +592,7 @@ export class VoxSystem extends EventTarget {
     // If the sync is already available and open, use it.
     // Otherwise fetch frame data when first registering.
     if (!voxIdToVox.has(voxId)) {
-      const frames = await this.fetchVoxFrameChunks(voxUrl);
+      const frames = voxFramesFromSVoxRef(await fetchSVoxFromUrl(voxUrl));
       const vox = new Vox(frames);
       voxIdToVox.set(voxId, vox);
     }
@@ -1369,39 +1376,12 @@ export class VoxSystem extends EventTarget {
     return vox.frames[targettingMeshFrame].getTotalNonEmptyVoxels();
   }
 
-  async fetchVoxFrameChunks(voxUrl) {
-    const svoxRef = await fetchSVoxFromUrl(voxUrl);
-    const frames = [];
-
-    for (let i = 0; i < svoxRef.framesLength(); i++) {
-      const voxChunkRef = svoxRef.frames(i);
-      const paletteArray = voxChunkRef.paletteArray();
-      const indicesArray = voxChunkRef.indicesArray();
-      const size = [voxChunkRef.sizeX(), voxChunkRef.sizeY(), voxChunkRef.sizeZ()];
-
-      const voxChunk = new VoxChunk(
-        size,
-        paletteArray.buffer,
-        indicesArray.buffer,
-        voxChunkRef.bitsPerIndex(),
-        paletteArray.byteOffset,
-        paletteArray.byteLength,
-        indicesArray.byteOffset,
-        indicesArray.byteLength
-      );
-
-      frames.push(voxChunk);
-    }
-
-    return frames;
-  }
-
   async getOrFetchVoxFrameChunks(voxId) {
     const { voxIdToVox } = this;
     const { voxMetadata } = window.APP;
     if (voxIdToVox.has(voxId)) return voxIdToVox.get(voxId).frames;
     const { url } = await voxMetadata.getOrFetchMetadata(voxId);
-    return await this.fetchVoxFrameChunks(url);
+    return voxFramesFromSVoxRef(await fetchSVoxFromUrl(url));
   }
 
   getChunkFrameOfVox(voxId, frame) {
@@ -2002,16 +1982,43 @@ export class VoxSystem extends EventTarget {
     }
   }
 
-  getFullSync(voxId) {
-    // TODO VOX
-    console.log("get full sync");
-    return { hello: "world" };
+  async getFullSync(voxId) {
+    const { voxMetadata } = window.APP;
+    const { voxIdToVox } = this;
+    const vox = voxIdToVox.get(voxId);
+    if (!vox) return null;
+
+    const svoxBytes = await voxToSVoxBytes(voxId, vox);
+    const blob = new Blob([svoxBytes]);
+    const compressor = new (CompressionStream || CompressionStreamImpl)("gzip"); // eslint-disable-line
+    const stream = blob.stream().pipeThrough(compressor);
+    const compressedSVoxBytes = await new Response(stream).arrayBuffer();
+
+    const metadata = await voxMetadata.getOrFetchMetadata(voxId);
+
+    return { bytes: compressedSVoxBytes, metadata };
   }
 
-  applyFullSync(voxId, data) {
+  applyFullSync(voxId, { bytes, metadata }) {
     // TODO VOX
-    this.onSyncedVoxUpdated(voxId);
-    console.log("apply", data);
+    const { voxMetadata } = window.APP;
+    const { voxIdToVox } = this;
+
+    voxMetadata.localUpdate(voxId, metadata);
+
+    const blob = new Blob([bytes]);
+    const decompressor = new (DecompressionStream || DecompressionStreamImpl)("gzip");
+    const stream = blob.stream().pipeThrough(decompressor);
+
+    new Response(stream).arrayBuffer().then(async svoxBytes => {
+      const svoxRef = sVoxRefFromBytes(svoxBytes);
+      const frames = await voxFramesFromSVoxRef(svoxRef);
+      voxIdToVox.set(voxId, new Vox(frames));
+
+      for (let i = 0; i < frames.length; i++) {
+        this.onSyncedVoxUpdated(voxId, i);
+      }
+    });
   }
 
   applyDeltaSync(voxId, [frame, chunkData, offset]) {

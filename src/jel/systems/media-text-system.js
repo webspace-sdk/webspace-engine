@@ -317,7 +317,7 @@ export class MediaTextSystem extends EventTarget {
     return this.quills[index];
   }
 
-  getFullSync(networkId) {
+  async getFullSync(networkId) {
     const component = this.networkIdToComponent.get(networkId);
     if (!component) return null;
 
