@@ -1333,8 +1333,8 @@ export class VoxSystem extends EventTarget {
     const vox = voxIdToVox.get(voxId);
     ensureVoxFrame(vox, frame);
 
-    const delta = VoxChunk.fromJSON({ size: [1, 1, 1], palette: [color], indices: [1] });
-    await this.applyChunk(voxId, delta, frame, [x, y, z]);
+    const chunk = VoxChunk.fromJSON({ size: [1, 1, 1], palette: [color], indices: [1] });
+    await this.applyChunk(voxId, chunk, frame, [x, y, z]);
   }
 
   async removeVoxel(voxId, x, y, z, frame = 0) {
@@ -1347,8 +1347,8 @@ export class VoxSystem extends EventTarget {
     const vox = voxIdToVox.get(voxId);
     ensureVoxFrame(vox, frame);
 
-    const delta = VoxChunk.fromJSON({ size: [1, 1, 1], palette: [REMOVE_VOXEL_COLOR], indices: [1] });
-    await this.applyChunk(voxId, delta, frame, [x, y, z]);
+    const chunk = VoxChunk.fromJSON({ size: [1, 1, 1], palette: [REMOVE_VOXEL_COLOR], indices: [1] });
+    await this.applyChunk(voxId, chunk, frame, [x, y, z]);
   }
 
   getVoxSize(voxId, frame) {
@@ -1618,48 +1618,39 @@ export class VoxSystem extends EventTarget {
   //
   // Returns null if not creating a new vox, or the vox id and url if a new vox
   // is created.
-  async copyVoxContent(fromVoxId, toVoxId = null) {
-    const spaceId = await getSpaceIdFromHistory();
-    const hubId = await getHubIdFromHistory();
+  async copyVoxContent(fromVoxId) {
+    const { voxIdToVox } = this;
+    const fromVox = voxIdToVox.get(fromVoxId);
+    if (!fromVox) return null;
 
-    // TODO VOX
-    let sync;
-    let disposeSync = false;
-    let returnValue = null;
+    const voxFilename = `my-vox-object-2.svox`;
+    const voxPath = `assets/${voxFilename}`;
+    const voxName = "My New Vox 2";
 
-    if (toVoxId === null) {
-      const {
-        vox: [{ vox_id: voxId, url }]
-      } = await createVox(spaceId, hubId, fromVoxId);
+    const baseUrl = new URL(document.location.href);
+    baseUrl.pathname = baseUrl.pathname.replace(/\/[^/]*$/, "/");
+    const voxUrl = new URL(voxPath, baseUrl).href;
+    const voxId = btoa(voxUrl); // Vox id is base64 encoded url
 
-      toVoxId = voxId;
-      returnValue = { voxId, url };
+    // Pro-actively push metadata to self and peers
+    window.APP.spaceChannel.updateVoxMeta(voxId, {
+      vox_id: voxId,
+      name: voxName,
+      scale: 1.0,
+      stack_axis: 0,
+      stack_snap_position: false,
+      stack_snap_scale: false
+    });
 
-      sync = await this.getSync(voxId);
-    } else {
-      // Re-use existing sync if possible.
-      if (this.hasSync(toVoxId)) {
-        sync = await this.getSync(toVoxId);
-      } else {
-        sync = new VoxSync(toVoxId);
-        await sync.init(this.sceneEl);
-        disposeSync = true;
-      }
+    const vox = new Vox([]);
+    voxIdToVox.set(voxId, vox);
+
+    for (let i = 0; i < fromVox.frames.length; i++) {
+      await this.applyChunk(voxId, fromVox.frames[i], i, [0, 0, 0]);
     }
 
-    const frames = await this.getOrFetchVoxFrameChunks(fromVoxId);
-
-    for (let i = 0; i < MAX_FRAMES_PER_VOX; i++) {
-      const chunk = frames[i];
-      if (!chunk) continue;
-      await sync.applyChunk(chunk, i, [0, 0, 0]);
-    }
-
-    if (disposeSync) {
-      sync.dispose();
-    }
-
-    return returnValue;
+    await this.spawnVoxInFrontOfPlayer(voxId);
+    return { voxId, url: voxUrl };
   }
 
   async spawnVoxInFrontOfPlayer(voxId) {

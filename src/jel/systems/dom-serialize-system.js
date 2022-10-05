@@ -160,20 +160,6 @@ const updateDomElForEl = (domEl, el) => {
 
   if (el.components["media-vox"]) {
     setAttributeIfChanged(domEl, "type", VOX_CONTENT_TYPE);
-
-    // Look up export vox id
-    /*const voxId = voxIdForVoxUrl(src);
-       let exportableVoxId = await accountChannel.getExportableVox(voxId);
-
-       if (!exportableVoxId) {
-         // No exportable vox, publish one.
-         const tmpVec = new THREE.Vector3();
-         el.object3D.getWorldScale(tmpVec);
-         exportableVoxId = await accountChannel.publishVox(voxId, "", "", 0, false, false, tmpVec.x, null, null);
-         await voxSystem.copyVoxContent(voxId, exportableVoxId);
-       }
-
-       src = src.replaceAll(voxId, exportableVoxId);*/
   }
 
   if (el.components["gltf-model-plus"]) {

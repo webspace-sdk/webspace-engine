@@ -170,8 +170,10 @@ AFRAME.registerComponent("media-vox", {
       stackSnapScale
     ).entity;
 
-    entity.object3D.scale.copy(sourceScale);
-    entity.object3D.matrixNeedsUpdate = true;
+    if (entity) {
+      entity.object3D.scale.copy(sourceScale);
+      entity.object3D.matrixNeedsUpdate = true;
+    }
   },
 
   shouldBurstProjectileOnImpact() {
