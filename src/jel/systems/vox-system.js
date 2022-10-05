@@ -592,8 +592,9 @@ export class VoxSystem extends EventTarget {
     // If the sync is already available and open, use it.
     // Otherwise fetch frame data when first registering.
     if (!voxIdToVox.has(voxId)) {
-      const frames = voxFramesFromSVoxRef(await fetchSVoxFromUrl(voxUrl));
-      const vox = new Vox(frames);
+      const svoxRef = await fetchSVoxFromUrl(voxUrl);
+      const frames = voxFramesFromSVoxRef(svoxRef);
+      const vox = new Vox(frames, svoxRef.revision());
       voxIdToVox.set(voxId, vox);
     }
 
@@ -1971,7 +1972,17 @@ export class VoxSystem extends EventTarget {
   async applyChunk(voxId, chunk, frame, offset, beginSyncing = true) {
     const { editRingManager } = window.APP;
 
-    const delta = [frame, voxChunkToSVoxChunkBytes(chunk), offset];
+    let revision = 1;
+
+    const { voxIdToVox } = this;
+    const vox = voxIdToVox.get(voxId);
+
+    if (vox) {
+      vox.revision++;
+      revision = vox.revision;
+    }
+
+    const delta = [frame, voxChunkToSVoxChunkBytes(chunk), offset, revision];
     console.log("send delta", delta);
 
     editRingManager.sendDeltaSync(voxId, delta);
@@ -2013,7 +2024,7 @@ export class VoxSystem extends EventTarget {
     new Response(stream).arrayBuffer().then(async svoxBytes => {
       const svoxRef = sVoxRefFromBytes(svoxBytes);
       const frames = await voxFramesFromSVoxRef(svoxRef);
-      voxIdToVox.set(voxId, new Vox(frames));
+      voxIdToVox.set(voxId, new Vox(frames, svoxRef.revision()));
 
       for (let i = 0; i < frames.length; i++) {
         this.onSyncedVoxUpdated(voxId, i);
@@ -2021,16 +2032,18 @@ export class VoxSystem extends EventTarget {
     });
   }
 
-  applyDeltaSync(voxId, [frame, chunkData, offset]) {
+  applyDeltaSync(voxId, [frame, chunkData, offset, revision]) {
     if (typeof frame !== "number") return null;
     const { voxIdToVox } = this;
+
+    // TODO conflict resolution
+    console.log("vox rev", revision);
 
     const voxChunkRef = new SVoxChunk();
     SVoxChunk.getRootAsSVoxChunk(new ByteBuffer(chunkData), voxChunkRef);
     const paletteArray = voxChunkRef.paletteArray();
     const indicesArray = voxChunkRef.indicesArray();
     const size = [voxChunkRef.sizeX(), voxChunkRef.sizeY(), voxChunkRef.sizeZ()];
-    console.log(size);
 
     const voxChunk = new VoxChunk(
       size,
@@ -2058,6 +2071,8 @@ export class VoxSystem extends EventTarget {
     } else {
       voxChunk.applyToChunk(vox.frames[frame], offset[0] || 0, offset[1] || 0, offset[2] || 0);
     }
+
+    vox.revision = Math.max(vox.revision, revision);
 
     this.onSyncedVoxUpdated(voxId, frame);
   }

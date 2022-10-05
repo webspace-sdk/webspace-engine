@@ -118,7 +118,7 @@ export async function voxToSVoxBytes(voxId, vox) {
       SVox.createHeaderVector(flatbuilder, SVOX_HEADER),
       flatbuilder.createSharedString(metadata.name || ""),
       0 /* version */,
-      0 /* revision */,
+      vox.revision,
       metadata.scale || 1.0,
       metadata.stack_axis || 0,
       metadata.stack_snap_position || false,

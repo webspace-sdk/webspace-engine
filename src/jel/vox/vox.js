@@ -1,8 +1,9 @@
 const { VoxChunk } = require("./vox-chunk");
 
 class Vox {
-  constructor(frames) {
+  constructor(frames, revision = 1) {
     this.frames = frames;
+    this.revision = revision;
   }
 
   static fromJSON(s) {
