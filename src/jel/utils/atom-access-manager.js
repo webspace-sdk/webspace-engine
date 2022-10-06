@@ -187,6 +187,8 @@ export default class AtomAccessManager extends EventTarget {
       if (!isWriting) {
         write(true);
       }
+
+      SYSTEMS.voxSystem.performWriteback();
     });
 
     this.updateRoles();
