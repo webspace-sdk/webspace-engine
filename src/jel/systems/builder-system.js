@@ -32,7 +32,6 @@ const WHEEL_THRESHOLD = 0.15;
 const MAX_UNDO_STEPS = 32;
 
 const { Vector3, Matrix4, Raycaster, MeshBasicMaterial, Mesh, PlaneBufferGeometry } = THREE;
-import { createVox } from "../../hubs/utils/phoenix-utils";
 
 const HALF_MAX_VOX_SIZE = Math.floor(MAX_VOX_SIZE / 2);
 
@@ -600,37 +599,33 @@ export class BuilderSystem extends EventTarget {
   }
 
   async createVoxAt(point) {
-    const spaceId = await getSpaceIdFromHistory(history);
-    const hubId = await getHubIdFromHistory(history);
-
-    const {
-      vox: [{ vox_id: voxId, url }]
-    } = await createVox(spaceId, hubId);
-
-    await SYSTEMS.voxSystem.setVoxel(voxId, 0, 0, 0, this.brushVoxColor);
-
-    // Skip resolving these URLs since they're from dyna.
-    const { entity } = addMedia({
-      src: url,
-      contentOrigin: ObjectContentOrigins.URL,
-      contentType: VOX_CONTENT_TYPE
-    });
-
-    entity.addEventListener(
-      "model-loaded",
-      async () => {
-        await SYSTEMS.sync.setVoxel(voxId, 0, 0, 0, this.brushVoxColor);
-      },
-      { once: true }
-    );
-
-    const { object3D } = entity;
-    object3D.position.copy(point);
-    object3D.position.x -= VOXEL_SIZE / 2;
-    object3D.position.z -= VOXEL_SIZE / 2;
-    object3D.rotation.x = object3D.rotation.y = object3D.rotation.z = 0.0;
-    object3D.scale.x = object3D.scale.y = object3D.scale.z = 1.0;
-    object3D.matrixNeedsUpdate = true;
+    // TODO VOX
+    // const spaceId = await getSpaceIdFromHistory(history);
+    // const hubId = await getHubIdFromHistory(history);
+    // const {
+    //   vox: [{ vox_id: voxId, url }]
+    // } = await createVox(spaceId, hubId);
+    // await SYSTEMS.voxSystem.setVoxel(voxId, 0, 0, 0, this.brushVoxColor);
+    // // Skip resolving these URLs since they're from dyna.
+    // const { entity } = addMedia({
+    //   src: url,
+    //   contentOrigin: ObjectContentOrigins.URL,
+    //   contentType: VOX_CONTENT_TYPE
+    // });
+    // entity.addEventListener(
+    //   "model-loaded",
+    //   async () => {
+    //     await SYSTEMS.sync.setVoxel(voxId, 0, 0, 0, this.brushVoxColor);
+    //   },
+    //   { once: true }
+    // );
+    // const { object3D } = entity;
+    // object3D.position.copy(point);
+    // object3D.position.x -= VOXEL_SIZE / 2;
+    // object3D.position.z -= VOXEL_SIZE / 2;
+    // object3D.rotation.x = object3D.rotation.y = object3D.rotation.z = 0.0;
+    // object3D.scale.x = object3D.scale.y = object3D.scale.z = 1.0;
+    // object3D.matrixNeedsUpdate = true;
   }
 
   applyCurrentBrushToPendingChunk(voxId) {

@@ -4,7 +4,6 @@ import { ParticleEmitter } from "lib-hubs/packages/three-particle-emitter/lib/es
 import { getSpaceIdFromHistory } from "../../jel/utils/jel-url-utils";
 import loadingParticleSrc from "!!url-loader!../../assets/jel/images/loading-particle.png";
 import { VOXLoader } from "../../jel/objects/VOXLoader";
-import { createVox } from "../../hubs/utils/phoenix-utils";
 import { VOX_CONTENT_TYPE } from "../../jel/utils/vox-utils";
 import {
   injectCustomShaderChunks,
@@ -756,73 +755,61 @@ AFRAME.registerComponent("media-loader", {
   },
 
   async importVoxFromUrl(importUrl) {
-    const spaceId = await getSpaceIdFromHistory();
-    const { voxSystem } = SYSTEMS;
-
-    const {
-      vox: [{ vox_id: voxId, url }]
-    } = await createVox(spaceId);
-
-    const sync = await voxSystem.getSync(voxId);
-
-    // A VOX being loaded should be imported and then the src changed to the appropriate URL.
-    await new Promise(res => {
-      new VOXLoader().load(importUrl, async voxFileChunks => {
-        for (let frame = 0; frame < voxFileChunks.length; frame++) {
-          if (frame > 0) continue; // TODO multiple frames. Breaks physics, etc.
-          const { palette, data } = voxFileChunks[frame];
-
-          let vsx = 0;
-          let vsy = 0;
-          let vsz = 0;
-
-          for (let i = 0; i < data.length; i += 4) {
-            vsx = Math.max(data[i + 0] + 1, vsx);
-            vsz = Math.max(data[i + 1] + 1, vsz);
-            vsy = Math.max(data[i + 2] + 1, vsy);
-          }
-
-          const size = [Math.min(vsx, MAX_VOX_SIZE), Math.min(vsy, MAX_VOX_SIZE), Math.min(vsz, MAX_VOX_SIZE)];
-          const iPalToVoxColor = i => {
-            const rgba = palette[i];
-            const r = 0x000000ff & rgba;
-            const g = (0x0000ff00 & rgba) >>> 8;
-            const b = (0x00ff0000 & rgba) >>> 16;
-            return voxColorForRGBT(r, g, b);
-          };
-          const [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(size);
-
-          const shiftX = shiftForSize(size[0]);
-          const shiftY = shiftForSize(size[1]);
-          const shiftZ = shiftForSize(size[2]);
-
-          const voxChunk = new VoxChunk(size);
-
-          for (let i = 0; i < data.length; i += 4) {
-            const x = data[i + 0];
-            const z = data[i + 1];
-            const y = data[i + 2];
-            const c = data[i + 3];
-
-            const voxX = x - shiftX;
-            const voxY = y - shiftY;
-            let voxZ = z - shiftZ;
-            // ?? not sure why this is needed but objects come in mirrored
-            voxZ = voxZ == 0 ? 0 : voxZ < 0 ? -voxZ : -voxZ + 1;
-
-            if (voxX >= minX && voxX <= maxX && voxY >= minY && voxY <= maxY && voxZ >= minZ && voxZ <= maxZ) {
-              const voxColor = iPalToVoxColor(c);
-              voxChunk.setColorAt(voxX, voxY, voxZ, voxColor);
-            }
-          }
-
-          await sync.applyChunk(voxChunk, frame, [0, 0, 0]);
-          res();
-        }
-      });
-    });
-
-    return url;
+    // TODO VOX
+    //const spaceId = await getSpaceIdFromHistory();
+    //const { voxSystem } = SYSTEMS;
+    //const {
+    //  vox: [{ vox_id: voxId, url }]
+    //} = await createVox(spaceId);
+    //const sync = await voxSystem.getSync(voxId);
+    //// A VOX being loaded should be imported and then the src changed to the appropriate URL.
+    //await new Promise(res => {
+    //  new VOXLoader().load(importUrl, async voxFileChunks => {
+    //    for (let frame = 0; frame < voxFileChunks.length; frame++) {
+    //      if (frame > 0) continue; // TODO multiple frames. Breaks physics, etc.
+    //      const { palette, data } = voxFileChunks[frame];
+    //      let vsx = 0;
+    //      let vsy = 0;
+    //      let vsz = 0;
+    //      for (let i = 0; i < data.length; i += 4) {
+    //        vsx = Math.max(data[i + 0] + 1, vsx);
+    //        vsz = Math.max(data[i + 1] + 1, vsz);
+    //        vsy = Math.max(data[i + 2] + 1, vsy);
+    //      }
+    //      const size = [Math.min(vsx, MAX_VOX_SIZE), Math.min(vsy, MAX_VOX_SIZE), Math.min(vsz, MAX_VOX_SIZE)];
+    //      const iPalToVoxColor = i => {
+    //        const rgba = palette[i];
+    //        const r = 0x000000ff & rgba;
+    //        const g = (0x0000ff00 & rgba) >>> 8;
+    //        const b = (0x00ff0000 & rgba) >>> 16;
+    //        return voxColorForRGBT(r, g, b);
+    //      };
+    //      const [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(size);
+    //      const shiftX = shiftForSize(size[0]);
+    //      const shiftY = shiftForSize(size[1]);
+    //      const shiftZ = shiftForSize(size[2]);
+    //      const voxChunk = new VoxChunk(size);
+    //      for (let i = 0; i < data.length; i += 4) {
+    //        const x = data[i + 0];
+    //        const z = data[i + 1];
+    //        const y = data[i + 2];
+    //        const c = data[i + 3];
+    //        const voxX = x - shiftX;
+    //        const voxY = y - shiftY;
+    //        let voxZ = z - shiftZ;
+    //        // ?? not sure why this is needed but objects come in mirrored
+    //        voxZ = voxZ == 0 ? 0 : voxZ < 0 ? -voxZ : -voxZ + 1;
+    //        if (voxX >= minX && voxX <= maxX && voxY >= minY && voxY <= maxY && voxZ >= minZ && voxZ <= maxZ) {
+    //          const voxColor = iPalToVoxColor(c);
+    //          voxChunk.setColorAt(voxX, voxY, voxZ, voxColor);
+    //        }
+    //      }
+    //      await sync.applyChunk(voxChunk, frame, [0, 0, 0]);
+    //      res();
+    //    }
+    //  });
+    //});
+    //return url;
   }
 });
 

@@ -218,11 +218,6 @@ export async function createHub(
   }).then(r => r.json());
 }
 
-export async function createVox() {
-  // TODO VOX
-  return { vox: [{ vox_id: "123" }] };
-}
-
 export function getPresenceEntryForSession(presences, sessionId) {
   const entry = Object.entries(presences || {}).find(([k]) => k === sessionId) || [];
   const presence = entry[1];

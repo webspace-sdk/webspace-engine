@@ -1,6 +1,5 @@
 import { VoxChunkBufferGeometry } from "../objects/vox-chunk-buffer-geometry";
 import { ObjectContentOrigins } from "../../hubs/object-types";
-import { createVox } from "../../hubs/utils/phoenix-utils";
 import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { MeshBVH } from "three-mesh-bvh";
@@ -18,7 +17,7 @@ import {
   CompressionStream as CompressionStreamImpl,
   DecompressionStream as DecompressionStreamImpl
 } from "@stardazed/streams-compression";
-import { getSpaceIdFromHistory, getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/jel-url-utils";
+import { getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/jel-url-utils";
 import {
   voxToSVoxBytes,
   voxChunkToSVoxChunkBytes,
@@ -29,7 +28,6 @@ import {
   sVoxRefFromBytes
 } from "../utils/vox-utils";
 import { ByteBuffer } from "flatbuffers";
-import VoxSync from "../utils/vox-sync";
 import FastVixel from "fast-vixel";
 
 import { SVoxChunk } from "../vox/svox-chunk";
@@ -1614,43 +1612,58 @@ export class VoxSystem extends EventTarget {
     };
   })();
 
-  // If toVoxId is null, create a new vox.
-  //
-  // Returns null if not creating a new vox, or the vox id and url if a new vox
-  // is created.
-  async copyVoxContent(fromVoxId) {
+  async createVoxInFrontOfPlayer(voxName, voxFilename, fromVoxId = null) {
+    // TODO VOX permission check
+    const { voxSystem, builderSystem } = SYSTEMS;
+    const { voxMetadata } = window.APP;
     const { voxIdToVox } = this;
-    const fromVox = voxIdToVox.get(fromVoxId);
-    if (!fromVox) return null;
-
-    const voxFilename = `my-vox-object-2.svox`;
     const voxPath = `assets/${voxFilename}`;
-    const voxName = "My New Vox 2";
 
     const baseUrl = new URL(document.location.href);
     baseUrl.pathname = baseUrl.pathname.replace(/\/[^/]*$/, "/");
     const voxUrl = new URL(voxPath, baseUrl).href;
     const voxId = btoa(voxUrl); // Vox id is base64 encoded url
 
+    let fromVox;
+
+    if (fromVoxId) {
+      fromVox = voxIdToVox.get(fromVoxId);
+    }
+
+    let scale = 1.0;
+    let stack_axis = 0;
+    let stack_snap_position = false;
+    let stack_snap_scale = false;
+
+    if (fromVox) {
+      const fromMetadata = await voxMetadata.getOrFetchMetadata(fromVoxId);
+
+      if (fromMetadata) {
+        scale = fromMetadata.scale || 1.0;
+        stack_axis = fromMetadata.stack_axis || 0;
+        stack_snap_position = fromMetadata.stack_snap_position || false;
+        stack_snap_scale = fromMetadata.stack_snap_scale || false;
+      }
+
+      for (let i = 0; i < fromVox.frames.length; i++) {
+        await this.applyChunk(voxId, fromVox.frames[i], i, [0, 0, 0]);
+      }
+    } else {
+      await voxSystem.setVoxel(voxId, 0, 0, 0, builderSystem.brushVoxColor);
+    }
+
     // Pro-actively push metadata to self and peers
     window.APP.spaceChannel.updateVoxMeta(voxId, {
       vox_id: voxId,
       name: voxName,
-      scale: 1.0,
-      stack_axis: 0,
-      stack_snap_position: false,
-      stack_snap_scale: false
+      scale,
+      stack_axis,
+      stack_snap_position,
+      stack_snap_scale
     });
 
-    const vox = new Vox([]);
-    voxIdToVox.set(voxId, vox);
-
-    for (let i = 0; i < fromVox.frames.length; i++) {
-      await this.applyChunk(voxId, fromVox.frames[i], i, [0, 0, 0]);
-    }
-
-    await this.spawnVoxInFrontOfPlayer(voxId);
-    return { voxId, url: voxUrl };
+    const entity = await voxSystem.spawnVoxInFrontOfPlayer(voxId);
+    return { entity, url: voxUrl };
   }
 
   async spawnVoxInFrontOfPlayer(voxId) {
@@ -1728,6 +1741,7 @@ export class VoxSystem extends EventTarget {
   }
 
   async bakeOrInstantiatePublishedVoxEntities(voxId) {
+    // TODO VOX
     const { voxMetadata } = window.APP;
     const { url, is_published } = await voxMetadata.getOrFetchMetadata(voxId);
 
@@ -1755,6 +1769,7 @@ export class VoxSystem extends EventTarget {
   // to determine if there is already an existing, unmodified, baked vox based on this published vox. If not,
 
   async resolveBakedOrInstantiatedVox(voxSrc) {
+    // TODO VOX
     const { voxMetadata, accountChannel } = window.APP;
     const hubId = await getHubIdFromHistory();
 

@@ -9,7 +9,6 @@ import { gatePermission } from "../../hubs/utils/permissions-utils";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { getSpawnInFrontZOffsetForEntity } from "../../hubs/utils/three-utils";
 import { VOX_CONTENT_TYPE } from "../utils/vox-utils";
-import "../utils/vox-sync";
 
 AFRAME.registerComponent("media-vox", {
   schema: {
@@ -148,7 +147,10 @@ AFRAME.registerComponent("media-vox", {
 
   async snapshotNewVox() {
     const { voxSystem } = SYSTEMS;
-    const { url } = await voxSystem.copyVoxContent(this.voxId);
+    const voxFilename = `my-vox-object-2.svox`;
+    const voxName = "My New Vox 2";
+    const { url } = await voxSystem.createVoxInFrontOfPlayer(voxName, voxFilename, this.voxId);
+
     const zOffset = getSpawnInFrontZOffsetForEntity(this.el);
     const sourceScale = this.el.object3D.scale;
     const { stackAxis, stackSnapPosition, stackSnapScale } = this.el.components["media-loader"].data;
