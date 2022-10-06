@@ -40,8 +40,11 @@
 - cull permissions (in atom manager)
 - spawn around origin
 - make sure dropping same file from assets folder works
+- close button in vox editor, drop left panel
 - vox
+  - close out TODOs
   - create vox dialog
+  - bake vox dialog
   - vox name changes update asset on disk
   - publish vox, should burn the axis, snap settings, scale
   - test cases where pvox file is on internet, ie published

@@ -10,7 +10,7 @@ export default class SpaceChannel extends EventTarget {
     const { atomAccessManager } = window.APP;
     if (!atomAccessManager.voxCan("edit_vox", voxId)) return;
 
-    this.broadcastMessage(vox, "update_vox_meta");
+    this.broadcastMessage({ vox_id: voxId, ...vox }, "update_vox_meta");
   };
 
   broadcastMessage = (body, type, toSessionId) => {

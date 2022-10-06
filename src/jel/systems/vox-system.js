@@ -25,7 +25,8 @@ import {
   voxFramesFromSVoxRef,
   ensureVoxFrame,
   VOX_CONTENT_TYPE,
-  sVoxRefFromBytes
+  sVoxRefFromBytes,
+  getVoxIdFromUrl
 } from "../utils/vox-utils";
 import { ByteBuffer } from "flatbuffers";
 import FastVixel from "fast-vixel";
@@ -41,7 +42,7 @@ const IDENTITY = new Matrix4();
 const tmpMatrix = new Matrix4();
 const tmpVec = new THREE.Vector3();
 const RESHAPE_DELAY_MS = 5000;
-const WRITEBACK_DELAY_MS = 1000; // TODO VOX
+const WRITEBACK_DELAY_MS = 10000;
 const DELTA_RING_BUFFER_LENGTH = 32;
 
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
@@ -95,11 +96,6 @@ voxMaterial.onBeforeCompile = shader => {
   );
 };
 
-export function voxIdForVoxUrl(url) {
-  // TODO VOX
-  return window.APP.voxMetadata.getAtomIdFromUrl(url);
-}
-
 function createMesh() {
   const geometry = new VoxChunkBufferGeometry();
   geometry.instanceAttributes = []; // For DynamicInstancedMesh
@@ -125,8 +121,10 @@ function createPhysicsMesh() {
 export class VoxSystem extends EventTarget {
   constructor(sceneEl, cursorTargettingSystem, physicsSystem, cameraSystem) {
     super();
+
+    this.onVoxMetadataUpdated = this.onVoxMetadataUpdated.bind(this);
+
     this.sceneEl = sceneEl;
-    this.syncs = new Map();
 
     this.voxIdToEntry = new Map();
     this.voxIdToVox = new Map(); // Separate vox map, since vox data can be loaded before entities are registered
@@ -319,12 +317,6 @@ export class VoxSystem extends EventTarget {
     // Check for expiring syncs
   }
 
-  hasSync(voxId) {
-    // TODO VOX this needs to go, remove syncs
-    const { syncs } = this;
-    return syncs.has(voxId);
-  }
-
   canEdit(voxId) {
     return window.APP.atomAccessManager.voxCan("edit_vox", voxId);
   }
@@ -364,12 +356,18 @@ export class VoxSystem extends EventTarget {
     }
   }
 
+  onVoxMetadataUpdated(voxIds) {
+    for (const voxId of voxIds) {
+      this.markDirtyForWriteback(voxId);
+    }
+  }
+
   async register(voxUrl, source) {
     const { physicsSystem, voxIdToEntry, sourceToVoxId } = this;
 
     this.unregister(source);
 
-    const voxId = await voxIdForVoxUrl(voxUrl);
+    const voxId = await getVoxIdFromUrl(voxUrl);
 
     if (!voxIdToEntry.has(voxId)) {
       await this.registerVox(voxUrl);
@@ -477,10 +475,11 @@ export class VoxSystem extends EventTarget {
   }
 
   async registerVox(voxUrl) {
-    const { editRingManager } = window.APP;
+    const { voxMetadata, editRingManager } = window.APP;
     const { voxIdToEntry, voxIdToVox } = this;
 
-    const voxId = await voxIdForVoxUrl(voxUrl);
+    const voxId = await getVoxIdFromUrl(voxUrl);
+    voxMetadata.subscribeToMetadata(voxId, this.onVoxMetadataUpdated);
     editRingManager.registerRingEditableDocument(voxId, this);
 
     let voxRegisteredResolve;
@@ -605,7 +604,7 @@ export class VoxSystem extends EventTarget {
   }
 
   unregisterVox(voxId) {
-    const { editRingManager } = window.APP;
+    const { voxMetadata, editRingManager } = window.APP;
     const { sceneEl, voxIdToEntry, meshToVoxId } = this;
     const scene = sceneEl.object3D;
     const voxEntry = voxIdToEntry.get(voxId);
@@ -635,6 +634,10 @@ export class VoxSystem extends EventTarget {
 
     voxIdToEntry.delete(voxId);
     editRingManager.unregisterRingEditableDocument(voxId);
+
+    if (voxIdToEntry.size === 0) {
+      voxMetadata.unsubscribeFromMetadata(this.onVoxMetadataUpdated);
+    }
   }
 
   getInspectedEditingVoxId() {
@@ -1613,7 +1616,6 @@ export class VoxSystem extends EventTarget {
   })();
 
   async createVoxInFrontOfPlayer(voxName, voxFilename, fromVoxId = null) {
-    // TODO VOX permission check
     const { voxSystem, builderSystem } = SYSTEMS;
     const { voxMetadata } = window.APP;
     const { voxIdToVox } = this;
@@ -1741,7 +1743,6 @@ export class VoxSystem extends EventTarget {
   }
 
   async bakeOrInstantiatePublishedVoxEntities(voxId) {
-    // TODO VOX
     const { voxMetadata } = window.APP;
     const { url, is_published } = await voxMetadata.getOrFetchMetadata(voxId);
 
@@ -1769,11 +1770,10 @@ export class VoxSystem extends EventTarget {
   // to determine if there is already an existing, unmodified, baked vox based on this published vox. If not,
 
   async resolveBakedOrInstantiatedVox(voxSrc) {
-    // TODO VOX
     const { voxMetadata, accountChannel } = window.APP;
     const hubId = await getHubIdFromHistory();
 
-    const voxId = await voxIdForVoxUrl(voxSrc);
+    const voxId = await getVoxIdFromUrl(voxSrc);
     const metadata = await voxMetadata.getOrFetchMetadata(voxId);
 
     if (!metadata.is_published) return voxSrc;
@@ -2017,7 +2017,6 @@ export class VoxSystem extends EventTarget {
   }
 
   applyFullSync(voxId, { bytes, metadata }) {
-    // TODO VOX
     const { voxMetadata } = window.APP;
     const { voxIdToVox } = this;
 

@@ -9,7 +9,7 @@ let popupRoot = null;
 waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
 const RenamePopup = forwardRef(({ styles, attributes, atomMetadata, setPopperElement, atomId }, ref) => {
-  const { hubChannel, accountChannel, dynaChannel } = window.APP;
+  const { hubChannel, dynaChannel, spaceChannel } = window.APP;
 
   const popupInput = (
     <div
@@ -30,12 +30,12 @@ const RenamePopup = forwardRef(({ styles, attributes, atomMetadata, setPopperEle
             if (atomType === ATOM_TYPES.HUB) {
               hubChannel.updateHubMeta(atomId, { name: name.trim() }, true /* localFirst */);
             } else if (atomType === ATOM_TYPES.VOX) {
-              accountChannel.updateVox(atomId, { name: name.trim() });
+              spaceChannel.updateVoxMeta(atomId, { name: name.trim() });
             } else if (atomType === ATOM_TYPES.SPACE) {
               dynaChannel.updateSpace(atomId, { name: name.trim() });
             }
           },
-          [hubChannel, accountChannel, dynaChannel, atomId, atomMetadata]
+          [hubChannel, spaceChannel, dynaChannel, atomId, atomMetadata]
         )}
         ref={ref}
       />

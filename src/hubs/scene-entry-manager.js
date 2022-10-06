@@ -193,28 +193,13 @@ export default class SceneEntryManager {
     });
 
     this.scene.addEventListener("add_media_vox", async () => {
-      const { voxSystem, builderSystem } = SYSTEMS;
+      if (!window.APP.atomAccessManager.hubCan("spawn_and_move_media")) return;
+      const { voxSystem } = SYSTEMS;
+
       const voxFilename = `my-vox-object.svox`;
-      const voxPath = `assets/${voxFilename}`;
       const voxName = "My New Vox";
 
-      const baseUrl = new URL(document.location.href);
-      baseUrl.pathname = baseUrl.pathname.replace(/\/[^/]*$/, "/");
-      const voxUrl = new URL(voxPath, baseUrl).href;
-      const voxId = btoa(voxUrl); // Vox id is base64 encoded url
-
-      // Pro-actively push metadata to self and peers
-      window.APP.spaceChannel.updateVoxMeta(voxId, {
-        vox_id: voxId,
-        name: voxName,
-        scale: 1.0,
-        stack_axis: 0,
-        stack_snap_position: false,
-        stack_snap_scale: false
-      });
-
-      await voxSystem.setVoxel(voxId, 0, 0, 0, builderSystem.brushVoxColor);
-      await voxSystem.spawnVoxInFrontOfPlayer(voxId);
+      voxSystem.createVoxInFrontOfPlayer(voxName, voxFilename);
     });
 
     this.scene.addEventListener("add_media_emoji", ({ detail: emoji }) => {
@@ -295,15 +280,14 @@ export default class SceneEntryManager {
 
     document.addEventListener("dragover", e => e.preventDefault());
 
-    this.scene.addEventListener("dragenter", e => {
-      const { types } = e.dataTransfer;
-      const transformSystem = this.scene.systems["transform-selected-object"];
+    // this.scene.addEventListener("dragenter", e => {
+    //   const { types } = e.dataTransfer;
+    //   const transformSystem = this.scene.systems["transform-selected-object"];
 
-      if (types.length === 1 && types[0] === "jel/vox" && !transformSystem.transforming) {
-        // TODO VOX
-        SYSTEMS.voxSystem.beginPlacingDraggedVox();
-      }
-    });
+    //   if (types.length === 1 && types[0] === "jel/vox" && !transformSystem.transforming) {
+    //     SYSTEMS.voxSystem.beginPlacingDraggedVox();
+    //   }
+    // });
 
     document.addEventListener("drop", e => {
       if (!gatePermission("spawn_and_move_media")) return;

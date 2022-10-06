@@ -598,36 +598,6 @@ export class BuilderSystem extends EventTarget {
     this.dispatchEvent(new CustomEvent("picked_color", { detail: rgbt }));
   }
 
-  async createVoxAt(point) {
-    // TODO VOX
-    // const spaceId = await getSpaceIdFromHistory(history);
-    // const hubId = await getHubIdFromHistory(history);
-    // const {
-    //   vox: [{ vox_id: voxId, url }]
-    // } = await createVox(spaceId, hubId);
-    // await SYSTEMS.voxSystem.setVoxel(voxId, 0, 0, 0, this.brushVoxColor);
-    // // Skip resolving these URLs since they're from dyna.
-    // const { entity } = addMedia({
-    //   src: url,
-    //   contentOrigin: ObjectContentOrigins.URL,
-    //   contentType: VOX_CONTENT_TYPE
-    // });
-    // entity.addEventListener(
-    //   "model-loaded",
-    //   async () => {
-    //     await SYSTEMS.sync.setVoxel(voxId, 0, 0, 0, this.brushVoxColor);
-    //   },
-    //   { once: true }
-    // );
-    // const { object3D } = entity;
-    // object3D.position.copy(point);
-    // object3D.position.x -= VOXEL_SIZE / 2;
-    // object3D.position.z -= VOXEL_SIZE / 2;
-    // object3D.rotation.x = object3D.rotation.y = object3D.rotation.z = 0.0;
-    // object3D.scale.x = object3D.scale.y = object3D.scale.z = 1.0;
-    // object3D.matrixNeedsUpdate = true;
-  }
-
   applyCurrentBrushToPendingChunk(voxId) {
     const {
       pendingChunk,

@@ -175,7 +175,6 @@ const setupDataChannelMessageHandlers = () => {
     const { voxMetadata, atomAccessManager } = window.APP;
     if (!atomAccessManager.voxCan("edit_vox", vox.vox_id, fromSessionId)) return;
 
-    console.log("update metadata for ", vox);
     voxMetadata.localUpdate(vox.vox_id, { url: getUrlFromVoxId(vox.vox_id), ...vox });
   });
 
