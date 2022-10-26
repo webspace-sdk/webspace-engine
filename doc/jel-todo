@@ -31,6 +31,7 @@
 - deal with filtering networking based on roles + hub setting for allowing edits
 - left click to drag objects, right click to edit objects
   - left click to add voxels in build mode?
+- add a ui toggle button in top left due to docks on side of screen
 - build mode still showing presence list
 - add service to register spaces
 - duck should upload glb
@@ -45,7 +46,7 @@
   - close out TODOs
   - create vox dialog
   - bake vox dialog
-  - vox name changes update asset on disk
+  - vox name changes update asset on disk X
   - publish vox, should burn the axis, snap settings, scale
   - test cases where pvox file is on internet, ie published
     - cannot edit name
@@ -55,7 +56,7 @@
     to fetch full doc for vox data X
   - clone local X
   - clone remote X
-  - rename local
+  - rename local X
   - rename remote
   - bake local
   - bake remote
@@ -65,6 +66,7 @@
   - spawn from master, remote edit X
   - local import .vox
   - remote import .vox
+  - smooth voxel materials on left, text editor in middle
 
 name not updating in self panel when updated by another peer
 pasting text not working, and causing cursor to act funny (not hoverable)

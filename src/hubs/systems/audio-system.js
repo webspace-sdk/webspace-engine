@@ -1,5 +1,5 @@
-import audioForwardWorkletSrc from "../../jel/worklets/audio-forward.worklet.js";
-import vadWorkletSrc from "../../jel/worklets/vad.worklet.js";
+import audioForwardWorkletSrc from "!!raw-loader!../../jel/worklets/audio-forward.worklet.js";
+import vadWorkletSrc from "!!raw-loader!../../jel/worklets/vad.worklet.js";
 import lipSyncWorker from "../../jel/workers/lipsync.worker.js";
 import sdpTransform from "sdp-transform";
 
@@ -132,8 +132,13 @@ export class AudioSystem {
     this.lipSyncVadDestination = this.audioContext.createMediaStreamDestination();
     this.lipSyncForwardingDestination = this.audioContext.createMediaStreamDestination();
 
-    this.audioContext.audioWorklet.addModule(audioForwardWorkletSrc).then(() => {
-      this.audioContext.audioWorklet.addModule(vadWorkletSrc).then(() => {
+    const audioForwardWorkletBlob = new Blob([audioForwardWorkletSrc], { type: "text/javascript" });
+    const audioForwardWorkletBlobUrl = URL.createObjectURL(audioForwardWorkletBlob);
+    const vadWorkletBlob = new Blob([vadWorkletSrc], { type: "text/javascript" });
+    const vadWorkletBlobUrl = URL.createObjectURL(vadWorkletBlob);
+
+    this.audioContext.audioWorklet.addModule(audioForwardWorkletBlobUrl).then(() => {
+      this.audioContext.audioWorklet.addModule(vadWorkletBlobUrl).then(() => {
         this.lipSyncForwardingNode = new AudioWorkletNode(this.audioContext, "audio-forwarder", {
           processorOptions: {
             audioFrameBuffer1: this.lipSyncAudioFrameBuffer1,
