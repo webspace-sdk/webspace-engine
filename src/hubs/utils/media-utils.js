@@ -293,7 +293,7 @@ const runYtdl = (function() {
   };
 })();
 
-export const preflightUrl = async (parsedUrl, quality = "high") => {
+export const preflightUrl = async (parsedUrl, quality = "high", forceLink = false) => {
   const url = parsedUrl.toString();
 
   if (parsedUrl.origin === document.location.origin) {
@@ -328,8 +328,8 @@ export const preflightUrl = async (parsedUrl, quality = "high") => {
   let accessibleContentUrl = contentUrl;
   let accessibleContentAudioUrl = contentUrl;
 
-  if (contentType && contentType.startsWith("text/html")) {
-    if (parsedUrl.origin.endsWith("youtube.com") || parsedUrl.origin.endsWith("youtu.be")) {
+  if ((contentType && contentType.startsWith("text/html")) || forceLink) {
+    if (!forceLink && (parsedUrl.origin.endsWith("youtube.com") || parsedUrl.origin.endsWith("youtu.be"))) {
       if (isAllowedCorsProxyContentType("video/mp4")) {
         const ytdlResult = await runYtdl(url, quality);
 
@@ -345,6 +345,8 @@ export const preflightUrl = async (parsedUrl, quality = "high") => {
         console.warn(
           'To play YouTube videos, you need to configure a self hosted CORS Anywhere server by adding a meta tag like <met a name="webspace.networking.cors_anywhere_url" content="https://mycorsanywhere.com">. See: https://github.com/Rob--W/cors-anywhere'
         );
+
+        contentUrl = accessibleContentUrl = `${window.APP.workerUrl}/thumbnail/${contentUrl}`;
       }
     } else {
       // Generate a thumbnail for websites

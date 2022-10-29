@@ -394,7 +394,8 @@ AFRAME.registerComponent("media-loader", {
         try {
           const is360 = !!(this.data.mediaOptions.projection && this.data.mediaOptions.projection.startsWith("360"));
           const quality = getDefaultResolveQuality(is360);
-          const preflightResponse = await preflightUrl(parsedUrl, quality);
+          const forceLink = !!this.data.mediaOptions.forceLink
+          const preflightResponse = await preflightUrl(parsedUrl, quality, forceLink);
 
           contentType = preflightResponse.contentType || guessContentType(src) || contentType;
           contentUrl = preflightResponse.contentUrl;

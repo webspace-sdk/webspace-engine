@@ -201,7 +201,6 @@ export default class WorldImporter {
 
       let src = null;
       let contents = null;
-      let resolve = false;
       const type = el.getAttribute("type");
 
       if (tagName === "DIV" && fontFamily === "emoji") {
@@ -213,7 +212,7 @@ export default class WorldImporter {
       } else if (tagName === "A") {
         // Link
         src = el.getAttribute("href");
-        resolve = true;
+        mediaOptions.forceLink = true;
       } else if (tagName === "EMBED") {
         src = el.getAttribute("src");
 
@@ -238,11 +237,9 @@ export default class WorldImporter {
       } else if (tagName === "MODEL") {
         // VOX or glTF
         src = el.getAttribute("src");
-        resolve = true;
       } else if (tagName === "VIDEO") {
         // Video
         src = el.getAttribute("src");
-        resolve = true;
 
         if (el.getAttribute("currenttime") !== null) {
           mediaOptions.time = el.getAttribute("currenttime");
@@ -337,7 +334,6 @@ export default class WorldImporter {
         contents,
         contentOrigin: ObjectContentOrigins.URL,
         contentSubtype,
-        resolve,
         animate: false,
         fitToBox: false,
         mediaOptions,
