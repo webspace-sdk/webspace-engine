@@ -616,6 +616,10 @@ export async function webspaceHtmlToQuillHtml(html) {
 export function quillHtmlToWebspaceHtml(html) {
   const doc = new DOMParser().parseFromString(`<html><body>${html}</body></html>`, "text/html");
 
+  for (const el of [...doc.body.children]) {
+    el.removeAttribute("data-contents");
+  }
+
   for (const elOl of doc.querySelectorAll("ol")) {
     // Build nested lists
     let list = elOl;

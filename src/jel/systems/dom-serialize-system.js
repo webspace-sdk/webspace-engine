@@ -135,17 +135,6 @@ const updateDomElForEl = (domEl, el) => {
     if (domEl.tagName === "A") {
       srcTargetAttribute = "href";
     } else {
-      if (
-        !imageSrc.startsWith("data:") &&
-        !imageSrc.startsWith("blob:") &&
-        imageSrc !== src &&
-        imageSrc.replace(`${getCorsProxyUrl()}/`, "") !== src
-      ) {
-        removeAttributeIfPresent(domEl, "crossorigin");
-      } else {
-        setAttributeIfChanged(domEl, "crossorigin", "anonymous");
-      }
-
       // This avoids loading the image as part of having the tag inline.
       setAttributeIfChanged(domEl, "loading", "lazy");
     }
@@ -241,9 +230,6 @@ const updateDomElForEl = (domEl, el) => {
       ) {
         domEl.innerHTML = newHtml;
       }
-
-      // Clean contents cache used for outlining
-      domEl.querySelectorAll("[data-contents]").forEach(el => el.removeAttribute("data-contents"));
     }
 
     setAttributeIfChanged(domEl, "contenteditable", "");
@@ -265,7 +251,6 @@ const updateDomElForEl = (domEl, el) => {
   if (el.components["media-video"]) {
     const { volume, loop, time, videoPaused } = el.components["media-video"].data;
 
-    setAttributeIfChanged(domEl, "crossorigin", "anonymous");
     setAttributeIfChanged(domEl, "controls", "");
     setAttributeIfChanged(domEl, "preload", "none"); // Prevents browser fetching
 
