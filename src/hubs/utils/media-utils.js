@@ -329,7 +329,7 @@ export const preflightUrl = async (parsedUrl, quality = "high") => {
   let accessibleContentAudioUrl = contentUrl;
 
   if (contentType && contentType.startsWith("text/html")) {
-    if (parsedUrl.origin.endsWith("youtube.com")) {
+    if (parsedUrl.origin.endsWith("youtube.com") || parsedUrl.origin.endsWith("youtu.be")) {
       if (isAllowedCorsProxyContentType("video/mp4")) {
         const ytdlResult = await runYtdl(url, quality);
 

@@ -805,7 +805,7 @@ function addMissingDefaultHtml() {
   if (!document.head.querySelector("meta[http-equiv='content-security-policy']")) {
     const metaTag = document.createElement("meta");
     metaTag.setAttribute("http-equiv", "content-security-policy");
-    metaTag.setAttribute("content", "script-src * blob: 'wasm-unsafe-eval';");
+    metaTag.setAttribute("content", "script-src * blob: 'unsafe-eval';");
     document.head.appendChild(metaTag);
   }
 
