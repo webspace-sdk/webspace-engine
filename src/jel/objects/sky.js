@@ -553,6 +553,11 @@ class Sky extends Mesh {
     const tmp2 = {};
     color.getHSL(tmp2);
 
+    // Kludge for white colors, keep sky blue
+    if (tmp2.s === 0 && tmp2.h === 0) {
+      tmp2.h = 0.5;
+    }
+
     // Hacky, eyeballed this one.
     const hue = tmp2.h + 1.4;
 
