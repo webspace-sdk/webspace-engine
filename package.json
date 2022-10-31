@@ -119,6 +119,7 @@
     "scroll-into-view-if-needed": "^2.2.26",
     "sdp-transform": "^2.14.1",
     "seedrandom": "^3.0.5",
+    "smoothvoxels": "^1.2.4",
     "three": "github:jel-app/three.js#webspaces-patches-141-2",
     "three-ammo": "github:jel-app/three-ammo#jel/master",
     "three-bmfont-text": "github:mozillareality/three-bmfont-text#hubs/master",

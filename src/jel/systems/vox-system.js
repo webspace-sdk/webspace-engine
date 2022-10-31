@@ -13,6 +13,7 @@ import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../
 import { Vox } from "../vox/vox";
 import { VoxChunk, rgbtForVoxColor, REMOVE_VOXEL_COLOR } from "../vox/vox-chunk";
 import { ensureOwnership } from "../utils/ownership-utils";
+import { Model, SvoxMeshGenerator } from "smoothvoxels";
 import {
   CompressionStream as CompressionStreamImpl,
   DecompressionStream as DecompressionStreamImpl
@@ -496,6 +497,7 @@ export class VoxSystem extends EventTarget {
 
       // List of DynamicInstanceMeshes, one per vox frame
       meshes: Array(MAX_FRAMES_PER_VOX).fill(null),
+      models: Array(MAX_FRAMES_PER_VOX).fill(null),
       meshBoundingBoxes: Array(MAX_FRAMES_PER_VOX).fill(null),
       sourceBoundingBoxes: Array(MAX_INSTANCES_PER_VOX_ID).fill(null),
 
@@ -1952,7 +1954,7 @@ export class VoxSystem extends EventTarget {
 
           let filename = null;
 
-          if (metadata.url.startsWith("file://") || metadata.url.startsWith("http:")) {
+          if (metadata.url.startsWith("file://") || metadata.url.startsWith("http")) {
             const relativePath = getLocalRelativePathFromUrl(new URL(metadata.url));
 
             if (!relativePath || !relativePath.startsWith("assets/")) {
