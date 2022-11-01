@@ -819,27 +819,11 @@ export class VoxSystem extends EventTarget {
         model.clamp = null;
         model.tile = null;
         model.voxels = chunk;
-        console.log("voxels", model.voxels.indices.view, model.voxels.size);
         model.scale = { x: 1.0 / 8.0, y: 1.0 / 8.0, z: 1.0 / 8.0 };
-        console.log(model);
-        const [xSize, ySize, zSize] = chunk.size;
-        const xShift = shiftForSize(xSize);
-        const yShift = shiftForSize(ySize);
-        const zShift = shiftForSize(zSize);
-        // 1.0, 0.5
-        //model.position = { x: window.XX / 8.0, y: 0, z: window.ZZ / 8.0 };
-        //model.scale = { x: 1.0 / 8.0, y: 1.0 / 8.0, z: 1.0 / 8.0 };
-        console.log(xShift, yShift, zShift);
         let xMin, yMin, zMin, xMax, yMax, zMax;
-
-        console.log(chunk.size);
-        // Works for size [4, 2, 4]
-        //model.position = { x: xShift / 8.0, y: yShift / 8.0, z: zShift / 8.0 + 1.0 / 16.0 };
-        //model.scale = { x: 1.0 / 8.0, y: 1.0 / 8.0, z: 1.0 / 8.0 };
 
         if (USE_SVOX) {
           const svoxMesh = SvoxMeshGenerator.generate(model, svoxBuffers);
-          console.log(svoxMesh);
           const bounds = svoxMesh.bounds;
           xMin = bounds.minX;
           yMin = bounds.minY;
@@ -851,8 +835,6 @@ export class VoxSystem extends EventTarget {
         } else {
           [xMin, yMin, zMin, xMax, yMax, zMax] = mesh.geometry.update(chunk, mesherQuadSize, false, showXZPlane);
         }
-
-        console.log("bounds", xMin, yMin, zMin, xMax, yMax, zMax);
 
         // TODO show XZ plane
 
@@ -876,10 +858,10 @@ export class VoxSystem extends EventTarget {
         }
 
         dirtyFrameMeshes[i] = false;
+
+        this.updateTargettingMeshIfNeeded(voxId);
       }
     }
-
-    this.updateTargettingMeshIfNeeded(voxId);
 
     // Frame(s) were removed, free the meshes
     for (let i = vox.frames.length; i <= entry.maxMeshIndex; i++) {
@@ -1110,7 +1092,6 @@ export class VoxSystem extends EventTarget {
     adjacentCell.y = hy + ny;
     adjacentCell.z = hz + nz;
 
-    console.log("hit", hx, hy, hz);
     // Returns vox id
     return voxId;
   }
@@ -1133,6 +1114,9 @@ export class VoxSystem extends EventTarget {
     entry.targettingMeshInstanceId = instanceId;
     const currentAnimationFrame = this.getCurrentAnimationFrame(voxId);
     entry.targettingMeshFrame = currentAnimationFrame;
+
+    entry.dirtyFrameMeshes[currentAnimationFrame] = true;
+    entry.regenerateDirtyMeshesOnNextFrame = true;
 
     return currentAnimationFrame;
   }
@@ -1393,10 +1377,10 @@ export class VoxSystem extends EventTarget {
     const { voxIdToEntry } = this;
     const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
-    const { targettingMesh, dirtyFrameMeshes, targettingMeshFrame } = entry;
+    const { targettingMeshInstanceId, dirtyFrameMeshes, targettingMeshFrame } = entry;
 
     // Mark dirty flags to regenerate meshes without pending applied
-    if (targettingMesh) {
+    if (targettingMeshInstanceId !== -1) {
       this.unfreezeMeshForTargetting(voxId);
       dirtyFrameMeshes[targettingMeshFrame] = true;
     } else {
