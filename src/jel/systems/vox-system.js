@@ -13,12 +13,13 @@ import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../
 import { Vox } from "../vox/vox";
 import { VoxChunk, rgbtForVoxColor, REMOVE_VOXEL_COLOR } from "../vox/vox-chunk";
 import { ensureOwnership } from "../utils/ownership-utils";
-import { Model, SvoxMeshGenerator } from "smoothvoxels";
+import { Model as SvoxModel, Buffers as SvoxBuffers, SvoxBufferGeometry, SvoxMeshGenerator } from "smoothvoxels";
 import {
   CompressionStream as CompressionStreamImpl,
   DecompressionStream as DecompressionStreamImpl
 } from "@stardazed/streams-compression";
 import { getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/jel-url-utils";
+const shiftForSize = size => Math.floor(size % 2 === 0 ? size / 2 - 1 : size / 2);
 import {
   voxToSVoxBytes,
   voxChunkToSVoxChunkBytes,
@@ -37,6 +38,7 @@ import { SVoxChunk } from "../vox/svox-chunk";
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, Matrix4, Mesh } = THREE;
 import { EventTarget } from "event-target-shim";
 
+const svoxBuffers = new SvoxBuffers(1024 * 768 * 2);
 export const MAX_FRAMES_PER_VOX = 32;
 const MAX_INSTANCES_PER_VOX_ID = 255;
 const IDENTITY = new Matrix4();
@@ -45,6 +47,7 @@ const tmpVec = new THREE.Vector3();
 const RESHAPE_DELAY_MS = 5000;
 const WRITEBACK_DELAY_MS = 10000;
 const DELTA_RING_BUFFER_LENGTH = 32;
+const USE_SVOX = true;
 
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
 targettingMaterial.visible = false;
@@ -98,7 +101,7 @@ voxMaterial.onBeforeCompile = shader => {
 };
 
 function createMesh() {
-  const geometry = new VoxChunkBufferGeometry();
+  const geometry = USE_SVOX ? new SvoxBufferGeometry() : new VoxChunkBufferGeometry();
   geometry.instanceAttributes = []; // For DynamicInstancedMesh
 
   const material = voxMaterial;
@@ -508,9 +511,11 @@ export class VoxSystem extends EventTarget {
       //
       // This is used in building mode to target the previous mesh while
       // painting with a voxel brush.
+      //
+      // The instance id being set triggers the mesh freeze on the next frame
+      targettingMeshInstanceId: -1,
       targettingMesh: null,
       targettingMeshFrame: -1,
-      targettingMeshInstanceId: -1,
 
       // If non-null, this chunk will be ephemerally applied to the current snapshot during remeshing.
       //
@@ -688,6 +693,8 @@ export class VoxSystem extends EventTarget {
       maxRegisteredIndex,
       pendingVoxChunk,
       pendingVoxChunkOffset,
+      targettingMeshInstanceId,
+      targettingMeshFrame,
       hasWalkableSources
     } = entry;
 
@@ -769,7 +776,85 @@ export class VoxSystem extends EventTarget {
 
         const showXZPlane = inspectedVoxId === voxId && cameraSystem.showFloor;
 
-        const [xMin, yMin, zMin, xMax, yMax, zMax] = mesh.geometry.update(chunk, mesherQuadSize, false, showXZPlane);
+        const model = new SvoxModel();
+        model.materials.createMaterial(
+          "toon", // type
+          "smooth", // lighting
+          0.0, // roughness
+          0.0, // shininess
+          false, // fade
+          true, // simplify
+          1.0, // opacity
+          0, // alphatest
+          false, // transparent
+          1.0, // refraction ration
+          false, // wireframe
+          "front", // side,
+          null, // emissive false
+          null, // emissive intensity
+          true, // fog
+          null, // map
+          null, // normaj map
+          null, // roughness map
+          null, // metalness map
+          null, // emissive map
+          null, // matcap
+          null, // reflection map
+          null, // refaction map
+          -1.0, // uscale (in voxels,  -1 = cover model)
+          -1.0, // vscale (in voxels,  -1 = cover model)
+          0.0, // uoffset
+          0.0, // voffset
+          0.0
+        ); // rotation in degrees
+
+        if (targettingMeshInstanceId !== -1 && targettingMeshFrame === i) {
+          model.materials.materials[0].setDeform(0);
+        } else {
+          model.materials.materials[0].setDeform(1);
+        }
+
+        model.origin = "-y";
+        model.flatten = null;
+        model.clamp = null;
+        model.tile = null;
+        model.voxels = chunk;
+        console.log("voxels", model.voxels.indices.view, model.voxels.size);
+        model.scale = { x: 1.0 / 8.0, y: 1.0 / 8.0, z: 1.0 / 8.0 };
+        console.log(model);
+        const [xSize, ySize, zSize] = chunk.size;
+        const xShift = shiftForSize(xSize);
+        const yShift = shiftForSize(ySize);
+        const zShift = shiftForSize(zSize);
+        // 1.0, 0.5
+        //model.position = { x: window.XX / 8.0, y: 0, z: window.ZZ / 8.0 };
+        //model.scale = { x: 1.0 / 8.0, y: 1.0 / 8.0, z: 1.0 / 8.0 };
+        console.log(xShift, yShift, zShift);
+        let xMin, yMin, zMin, xMax, yMax, zMax;
+
+        console.log(chunk.size);
+        // Works for size [4, 2, 4]
+        //model.position = { x: xShift / 8.0, y: yShift / 8.0, z: zShift / 8.0 + 1.0 / 16.0 };
+        //model.scale = { x: 1.0 / 8.0, y: 1.0 / 8.0, z: 1.0 / 8.0 };
+
+        if (USE_SVOX) {
+          const svoxMesh = SvoxMeshGenerator.generate(model, svoxBuffers);
+          console.log(svoxMesh);
+          const bounds = svoxMesh.bounds;
+          xMin = bounds.minX;
+          yMin = bounds.minY;
+          zMin = bounds.minZ;
+          xMax = bounds.maxX;
+          yMax = bounds.maxY;
+          zMax = bounds.maxZ;
+          mesh.geometry.update(svoxMesh, false);
+        } else {
+          [xMin, yMin, zMin, xMax, yMax, zMax] = mesh.geometry.update(chunk, mesherQuadSize, false, showXZPlane);
+        }
+
+        console.log("bounds", xMin, yMin, zMin, xMax, yMax, zMax);
+
+        // TODO show XZ plane
 
         const xExtent = xMax - xMin;
         const yExtent = yMax - yMin;
@@ -793,6 +878,8 @@ export class VoxSystem extends EventTarget {
         dirtyFrameMeshes[i] = false;
       }
     }
+
+    this.updateTargettingMeshIfNeeded(voxId);
 
     // Frame(s) were removed, free the meshes
     for (let i = vox.frames.length; i <= entry.maxMeshIndex; i++) {
@@ -989,8 +1076,12 @@ export class VoxSystem extends EventTarget {
     if (!voxId || !hitObject) return null;
 
     const { targettingMesh, targettingMeshFrame, targettingMeshInstanceId, meshes } = voxIdToEntry.get(voxId);
-    const frame = hitObject === targettingMesh ? targettingMeshFrame : meshes.indexOf(hitObject);
-    const instanceId = hitObject === targettingMesh ? targettingMeshInstanceId : intersection.instanceId;
+    const hitTargettingMesh = hitObject === targettingMesh && targettingMeshInstanceId !== -1;
+    const frame = hitTargettingMesh ? targettingMeshFrame : meshes.indexOf(hitObject);
+    const instanceId = hitTargettingMesh ? targettingMeshInstanceId : intersection.instanceId;
+
+    if (instanceId === undefined || instanceId === null) return null;
+
     const inv = this.getWorldToObjectMatrix(voxId, frame, instanceId);
     tmpVec.copy(intersection.point);
     tmpVec.applyMatrix4(inv);
@@ -1019,6 +1110,7 @@ export class VoxSystem extends EventTarget {
     adjacentCell.y = hy + ny;
     adjacentCell.z = hz + nz;
 
+    console.log("hit", hx, hy, hz);
     // Returns vox id
     return voxId;
   }
@@ -1032,60 +1124,70 @@ export class VoxSystem extends EventTarget {
 
   // Returns the frame that was frozen
   freezeMeshForTargetting(voxId, instanceId) {
+    const { voxIdToEntry } = this;
+    const entry = voxIdToEntry.get(voxId);
+    if (!entry) return;
+    if (entry.targettingMeshInstanceId === instanceId) return;
+    this.unfreezeMeshForTargetting(voxId);
+
+    entry.targettingMeshInstanceId = instanceId;
+    const currentAnimationFrame = this.getCurrentAnimationFrame(voxId);
+    entry.targettingMeshFrame = currentAnimationFrame;
+
+    return currentAnimationFrame;
+  }
+
+  updateTargettingMeshIfNeeded(voxId) {
     const { sceneEl, voxIdToEntry, meshToVoxId } = this;
     const scene = sceneEl.object3D;
     const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
 
-    const { meshes, sources } = entry;
-    const source = sources[instanceId];
-    if (!source) return;
-
-    const currentAnimationFrame = this.getCurrentAnimationFrame(voxId);
-    const mesh = meshes[currentAnimationFrame];
-    if (!mesh) return;
-
-    if (entry.targettingMesh) {
-      const existingMesh = entry.targettingMesh;
+    if (entry.targettingMeshInstanceId === -1 && entry.targettingMesh !== null) {
+      const targettingMesh = entry.targettingMesh;
       entry.targettingMesh = null; // Do this first since removal will re-compute cursor targets
-      scene.remove(existingMesh);
-      existingMesh.material = null;
-      disposeNode(existingMesh);
+      scene.remove(targettingMesh);
+      targettingMesh.geometry.boundsTree = null;
+      targettingMesh.material = null;
+      disposeNode(targettingMesh);
+      meshToVoxId.delete(targettingMesh);
+
+      this.dispatchEvent(new CustomEvent("mesh_removed"));
+    } else if (entry.targettingMeshInstanceId !== -1 && entry.targettingMesh === null) {
+      const instanceId = entry.targettingMeshInstanceId;
+
+      const { meshes, sources } = entry;
+      const source = sources[instanceId];
+      if (!source) return;
+
+      const currentAnimationFrame = this.getCurrentAnimationFrame(voxId);
+      const mesh = meshes[currentAnimationFrame];
+      if (!mesh) return;
+
+      const geo = mesh.geometry.clone();
+      geo.boundsTree = mesh.geometry.boundsTree;
+
+      const targettingMesh = new Mesh(mesh.geometry.clone(), targettingMaterial);
+
+      source.updateMatrices();
+      setMatrixWorld(targettingMesh, source.matrixWorld);
+      entry.targettingMesh = targettingMesh;
+      scene.add(targettingMesh);
+      meshToVoxId.set(targettingMesh, voxId);
+
+      this.dispatchEvent(new CustomEvent("mesh_added"));
     }
-
-    const geo = mesh.geometry.clone();
-    geo.boundsTree = mesh.geometry.boundsTree;
-
-    const targettingMesh = new Mesh(mesh.geometry.clone(), targettingMaterial);
-
-    source.updateMatrices();
-    setMatrixWorld(targettingMesh, source.matrixWorld);
-    entry.targettingMesh = targettingMesh;
-    entry.targettingMeshFrame = currentAnimationFrame;
-    entry.targettingMeshInstanceId = instanceId;
-    scene.add(targettingMesh);
-    meshToVoxId.set(targettingMesh, voxId);
-
-    this.dispatchEvent(new CustomEvent("mesh_added"));
-    return currentAnimationFrame;
   }
 
   unfreezeMeshForTargetting(voxId) {
-    const { sceneEl, voxIdToEntry, meshToVoxId } = this;
-    const scene = sceneEl.object3D;
+    const { voxIdToEntry } = this;
     const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
     const { targettingMesh } = entry;
     if (!targettingMesh) return;
 
-    entry.targettingMesh = null; // Do this first since removal will re-compute cursor targets
-    scene.remove(targettingMesh);
-    targettingMesh.geometry.boundsTree = null;
-    targettingMesh.material = null;
-    disposeNode(targettingMesh);
-    meshToVoxId.delete(targettingMesh);
-
-    this.dispatchEvent(new CustomEvent("mesh_removed"));
+    entry.targettingMeshInstanceId = -1;
+    entry.targettingMeshFrame = -1;
   }
 
   getTargettableMeshes() {
