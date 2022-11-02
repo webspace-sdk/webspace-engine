@@ -93,6 +93,7 @@
     "node-ensure": "0.0.0",
     "normalize.css": "^8.0.1",
     "octokat": "^0.10.0",
+    "p2pcf": "^1.3.9",
     "pdfjs-dist": "^2.15.349",
     "phoenix": "github:gfodor/phoenix-js#master",
     "protobufjs": "^6.10.1",
