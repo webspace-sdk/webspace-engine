@@ -19,7 +19,6 @@ import {
   DecompressionStream as DecompressionStreamImpl
 } from "@stardazed/streams-compression";
 import { getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/jel-url-utils";
-const shiftForSize = size => Math.floor(size % 2 === 0 ? size / 2 - 1 : size / 2);
 import {
   voxToSVoxBytes,
   voxChunkToSVoxChunkBytes,
@@ -1122,7 +1121,7 @@ export class VoxSystem extends EventTarget {
   }
 
   updateTargettingMeshIfNeeded(voxId) {
-    const { sceneEl, voxIdToEntry, meshToVoxId } = this;
+    const { sceneEl, voxIdToEntry, voxIdToVox, meshToVoxId } = this;
     const scene = sceneEl.object3D;
     const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
@@ -1151,7 +1150,15 @@ export class VoxSystem extends EventTarget {
       const geo = mesh.geometry.clone();
       geo.boundsTree = mesh.geometry.boundsTree;
 
-      const targettingMesh = new Mesh(mesh.geometry.clone(), targettingMaterial);
+      const vox = voxIdToVox.get(voxId);
+
+      const inspectedVoxId = this.getInspectedEditingVoxId();
+      const showXZPlane = inspectedVoxId === voxId && SYSTEMS.cameraSystem.showFloor;
+
+      const geometry = new VoxChunkBufferGeometry();
+      geometry.update(vox.frames[currentAnimationFrame], entry.mesherQuadSize, true, showXZPlane);
+
+      const targettingMesh = new Mesh(geometry, targettingMaterial);
 
       source.updateMatrices();
       setMatrixWorld(targettingMesh, source.matrixWorld);
