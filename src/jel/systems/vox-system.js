@@ -99,10 +99,7 @@ voxMaterial.onBeforeCompile = shader => {
   );
 };
 
-function createMesh() {
-  const geometry = USE_SVOX ? new SvoxBufferGeometry() : new VoxChunkBufferGeometry();
-  geometry.instanceAttributes = []; // For DynamicInstancedMesh
-
+function createMesh(geometry) {
   const material = voxMaterial;
   const mesh = new DynamicInstancedMesh(geometry, material, MAX_INSTANCES_PER_VOX_ID);
   mesh.castShadow = true;
@@ -499,7 +496,9 @@ export class VoxSystem extends EventTarget {
 
       // List of DynamicInstanceMeshes, one per vox frame
       meshes: Array(MAX_FRAMES_PER_VOX).fill(null),
-      showVoxMesh: false, // If true, show the vox mesh, otherwise show the svox mesh
+      showVoxGeometry: false, // If true, show the vox mesh, otherwise show the svox mesh
+      voxGeometries: Array(MAX_FRAMES_PER_VOX).fill(null), // Vox geometries for blockly look, one per frame
+      svoxGeometries: Array(MAX_FRAMES_PER_VOX).fill(null), // Vox geometries for smooth look, one per frame
       models: Array(MAX_FRAMES_PER_VOX).fill(null),
       meshBoundingBoxes: Array(MAX_FRAMES_PER_VOX).fill(null),
       sourceBoundingBoxes: Array(MAX_INSTANCES_PER_VOX_ID).fill(null),
@@ -687,13 +686,15 @@ export class VoxSystem extends EventTarget {
       dirtyFrameMeshes,
       dirtyFrameBoundingBoxes,
       meshes,
+      voxGeometries,
+      svoxGeometries,
       meshBoundingBoxes,
       physicsMeshes,
       mesherQuadSize,
       maxRegisteredIndex,
       pendingVoxChunk,
       pendingVoxChunkOffset,
-      showVoxMesh,
+      showVoxGeometry,
       hasWalkableSources
     } = entry;
 
@@ -705,7 +706,15 @@ export class VoxSystem extends EventTarget {
       let remesh = dirtyFrameMeshes[i];
 
       if (!mesh) {
-        mesh = createMesh();
+        const voxGeometry = new VoxChunkBufferGeometry();
+        const svoxGeometry = new SvoxBufferGeometry();
+        voxGeometry.instanceAttributes = []; // For DynamicInstancedMesh
+        svoxGeometry.instanceAttributes = []; // For DynamicInstancedMesh
+
+        voxGeometries[i] = voxGeometry;
+        svoxGeometries[i] = svoxGeometry;
+
+        mesh = createMesh(showVoxGeometry ? voxGeometry : svoxGeometry);
         meshes[i] = mesh;
 
         // Only compute bounding box for frame zero
@@ -747,6 +756,8 @@ export class VoxSystem extends EventTarget {
 
       if (remesh) {
         let chunk = vox.frames[i];
+        const voxGeometry = entry.voxGeometries[i];
+        const svoxGeometry = entry.svoxGeometries[i];
 
         // If no pending + walkable update the walk geometry to match the first frame.
         if (!pendingVoxChunk && i === 0 && hasWalkableSources) {
@@ -775,53 +786,51 @@ export class VoxSystem extends EventTarget {
 
         const showXZPlane = inspectedVoxId === voxId && cameraSystem.showFloor;
 
-        const model = new SvoxModel();
-        model.materials.createMaterial(
-          "toon", // type
-          "smooth", // lighting
-          0.0, // roughness
-          0.0, // shininess
-          false, // fade
-          true, // simplify
-          1.0, // opacity
-          0, // alphatest
-          false, // transparent
-          1.0, // refraction ration
-          false, // wireframe
-          "front", // side,
-          null, // emissive false
-          null, // emissive intensity
-          true, // fog
-          null, // map
-          null, // normaj map
-          null, // roughness map
-          null, // metalness map
-          null, // emissive map
-          null, // matcap
-          null, // reflection map
-          null, // refaction map
-          -1.0, // uscale (in voxels,  -1 = cover model)
-          -1.0, // vscale (in voxels,  -1 = cover model)
-          0.0, // uoffset
-          0.0, // voffset
-          0.0
-        ); // rotation in degrees
-
-        if (showVoxMesh) {
-          model.materials.materials[0].setDeform(0);
-        } else {
-          model.materials.materials[0].setDeform(1);
-        }
-
-        model.origin = "-y";
-        model.flatten = null;
-        model.clamp = null;
-        model.tile = null;
-        model.voxels = chunk;
-        model.scale = { x: 1.0 / 8.0, y: 1.0 / 8.0, z: 1.0 / 8.0 };
         let xMin, yMin, zMin, xMax, yMax, zMax;
 
-        if (USE_SVOX) {
+        if (showVoxGeometry) {
+          [xMin, yMin, zMin, xMax, yMax, zMax] = voxGeometry.update(chunk, mesherQuadSize, false, showXZPlane);
+          mesh.geometry = voxGeometry;
+        } else {
+          const model = new SvoxModel();
+          model.materials.createMaterial(
+            "toon", // type
+            "smooth", // lighting
+            0.0, // roughness
+            0.0, // shininess
+            false, // fade
+            true, // simplify
+            1.0, // opacity
+            0, // alphatest
+            false, // transparent
+            1.0, // refraction ration
+            false, // wireframe
+            "front", // side,
+            null, // emissive false
+            null, // emissive intensity
+            true, // fog
+            null, // map
+            null, // normaj map
+            null, // roughness map
+            null, // metalness map
+            null, // emissive map
+            null, // matcap
+            null, // reflection map
+            null, // refaction map
+            -1.0, // uscale (in voxels,  -1 = cover model)
+            -1.0, // vscale (in voxels,  -1 = cover model)
+            0.0, // uoffset
+            0.0, // voffset
+            0.0
+          ); // rotation in degrees
+
+          model.materials.materials[0].setDeform(1);
+          model.origin = "-y";
+          model.flatten = null;
+          model.clamp = null;
+          model.tile = null;
+          model.voxels = chunk;
+          model.scale = { x: 1.0 / 8.0, y: 1.0 / 8.0, z: 1.0 / 8.0 };
           const svoxMesh = SvoxMeshGenerator.generate(model, svoxBuffers);
           const bounds = svoxMesh.bounds;
           xMin = bounds.minX;
@@ -830,9 +839,8 @@ export class VoxSystem extends EventTarget {
           xMax = bounds.maxX;
           yMax = bounds.maxY;
           zMax = bounds.maxZ;
-          mesh.geometry.update(svoxMesh, false);
-        } else {
-          [xMin, yMin, zMin, xMax, yMax, zMax] = mesh.geometry.update(chunk, mesherQuadSize, false, showXZPlane);
+          svoxGeometry.update(svoxMesh, false);
+          mesh.geometry = svoxGeometry;
         }
 
         // TODO show XZ plane
@@ -1380,11 +1388,15 @@ export class VoxSystem extends EventTarget {
     chunk.filterByChunk(targetChunk, offsetX, offsetY, offsetZ, filter);
   }
 
-  setShowVoxMesh(voxId, show) {
+  setShowVoxGeometry(voxId, show) {
     const { voxIdToEntry } = this;
     const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
-    entry.showVoxMesh = show;
+    if (entry.showVoxGeometry === show) return;
+
+    entry.showVoxGeometry = show;
+    entry.dirtyFrameMeshes.fill(true);
+    entry.regenerateDirtyMeshesOnNextFrame = true;
   }
 
   clearPendingAndUnfreezeMesh(voxId) {
