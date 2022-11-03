@@ -500,6 +500,7 @@ export class VoxSystem extends EventTarget {
 
       // List of DynamicInstanceMeshes, one per vox frame
       meshes: Array(MAX_FRAMES_PER_VOX).fill(null),
+      showVoxMesh: false, // If true, show the vox mesh, otherwise show the svox mesh
       models: Array(MAX_FRAMES_PER_VOX).fill(null),
       meshBoundingBoxes: Array(MAX_FRAMES_PER_VOX).fill(null),
       sourceBoundingBoxes: Array(MAX_INSTANCES_PER_VOX_ID).fill(null),
@@ -693,8 +694,7 @@ export class VoxSystem extends EventTarget {
       maxRegisteredIndex,
       pendingVoxChunk,
       pendingVoxChunkOffset,
-      targettingMeshInstanceId,
-      targettingMeshFrame,
+      showVoxMesh,
       hasWalkableSources
     } = entry;
 
@@ -808,7 +808,7 @@ export class VoxSystem extends EventTarget {
           0.0
         ); // rotation in degrees
 
-        if (targettingMeshInstanceId !== -1 && targettingMeshFrame === i) {
+        if (showVoxMesh) {
           model.materials.materials[0].setDeform(0);
         } else {
           model.materials.materials[0].setDeform(1);
@@ -1371,6 +1371,13 @@ export class VoxSystem extends EventTarget {
     if (!targetChunk) return null;
 
     chunk.filterByChunk(targetChunk, offsetX, offsetY, offsetZ, filter);
+  }
+
+  setShowVoxMesh(voxId, show) {
+    const { voxIdToEntry } = this;
+    const entry = voxIdToEntry.get(voxId);
+    if (!entry) return;
+    entry.showVoxMesh = show;
   }
 
   clearPendingAndUnfreezeMesh(voxId) {

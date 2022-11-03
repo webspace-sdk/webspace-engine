@@ -437,6 +437,7 @@ export class BuilderSystem extends EventTarget {
               if (this.targetVoxId) {
                 // Direct hover from one vox to another, clear old pending.
                 SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
+                SYSTEMS.voxSystem.setShowVoxMesh(hitVoxId, false);
                 this.pendingChunk = null;
                 this.targetVoxId = null;
                 this.targetVoxFrame = null;
@@ -447,6 +448,8 @@ export class BuilderSystem extends EventTarget {
               if (!isHittingFrozenMesh) {
                 this.targetVoxId = hitVoxId;
                 this.targetVoxFrame = SYSTEMS.voxSystem.freezeMeshForTargetting(hitVoxId, intersection.instanceId);
+                SYSTEMS.voxSystem.setShowVoxMesh(hitVoxId, true);
+
                 voxMetadata.ensureMetadataForIds([this.targetVoxId]);
 
                 if (typeof hitInstanceId === "number") {
@@ -539,6 +542,7 @@ export class BuilderSystem extends EventTarget {
         // exited from hover so clear the pending.
         if (this.targetVoxId !== null && !this.isBrushing) {
           this.cancelPending();
+          SYSTEMS.voxSystem.setShowVoxMesh(this.targetVoxId, false);
           this.brushEndCell.set(Infinity, Infinity, Infinity);
         }
       }
@@ -1272,6 +1276,7 @@ export class BuilderSystem extends EventTarget {
 
   cancelPending() {
     if (!this.targetVoxId) return;
+    SYSTEMS.voxSystem.setShowVoxMesh(this.targetVoxId, false);
     SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
     this.pendingChunk = null;
     this.targetVoxId = null;
