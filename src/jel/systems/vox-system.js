@@ -99,11 +99,52 @@ voxMaterial.onBeforeCompile = shader => {
   );
 };
 
-function createMesh(geometry) {
-  const material = voxMaterial;
+let toonGradientMap;
+
+(() => {
+  const colors = new Uint8Array(3);
+
+  for (let c = 0; c <= colors.length; c++) {
+    colors[c] = (c / colors.length) * 256;
+  }
+
+  toonGradientMap = new THREE.DataTexture(colors, colors.length, 1, THREE.LuminanceFormat);
+  toonGradientMap.minFilter = THREE.NearestFilter;
+  toonGradientMap.magFilter = THREE.NearestFilter;
+  toonGradientMap.generateMipmaps = false;
+})();
+
+const svoxMaterial = new ShaderMaterial({
+  name: "svox",
+  vertexColors: true,
+  fog: true,
+  fragmentShader: ShaderLib.toon.fragmentShader,
+  vertexShader: ShaderLib.toon.vertexShader,
+  lights: true,
+  defines: {
+    ...new THREE.MeshToonMaterial().defines,
+    TWOPI: 3.1415926538
+  },
+  uniforms: {
+    ...UniformsUtils.clone(ShaderLib.toon.uniforms)
+  }
+});
+
+svoxMaterial.uniforms.gradientMap.value = toonGradientMap;
+svoxMaterial.uniforms.diffuse.value = new THREE.Color(0.5, 0.5, 0.5);
+
+svoxMaterial.stencilWrite = true; // Avoid SSAO
+svoxMaterial.stencilFunc = THREE.AlwaysStencilFunc;
+svoxMaterial.stencilRef = 2;
+svoxMaterial.stencilZPass = THREE.ReplaceStencilOp;
+
+svoxMaterial.onBeforeCompile = shader => {
+  addVertexCurvingToShader(shader);
+};
+
+function createMesh(geometry, material) {
   const mesh = new DynamicInstancedMesh(geometry, material, MAX_INSTANCES_PER_VOX_ID);
   mesh.castShadow = true;
-  mesh.receiveShadow = true;
   mesh.frustumCulled = false;
   mesh.renderOrder = RENDER_ORDER.VOX;
 
@@ -714,7 +755,8 @@ export class VoxSystem extends EventTarget {
         voxGeometries[i] = voxGeometry;
         svoxGeometries[i] = svoxGeometry;
 
-        mesh = createMesh(showVoxGeometry ? voxGeometry : svoxGeometry);
+        mesh = createMesh(showVoxGeometry ? voxGeometry : svoxGeometry, showVoxGeometry ? voxMaterial : svoxMaterial);
+        mesh.receiveShadow = showVoxGeometry;
         meshes[i] = mesh;
 
         // Only compute bounding box for frame zero
@@ -791,6 +833,8 @@ export class VoxSystem extends EventTarget {
         if (showVoxGeometry) {
           [xMin, yMin, zMin, xMax, yMax, zMax] = voxGeometry.update(chunk, mesherQuadSize, false, showXZPlane);
           mesh.geometry = voxGeometry;
+          mesh.material = voxMaterial;
+          mesh.receiveShadow = true;
         } else {
           const model = new SvoxModel();
           model.materials.createMaterial(
@@ -798,7 +842,7 @@ export class VoxSystem extends EventTarget {
             "smooth", // lighting
             0.0, // roughness
             0.0, // shininess
-            false, // fade
+            true, // fade
             true, // simplify
             1.0, // opacity
             0, // alphatest
@@ -823,14 +867,45 @@ export class VoxSystem extends EventTarget {
             0.0, // voffset
             0.0
           ); // rotation in degrees
+          model.materials.createMaterial(
+            "basic", // type
+            "smooth", // lighting
+            0.0, // roughness
+            0.0, // shininess
+            false, // fade
+            true, // simplify
+            1.0, // opacity
+            0, // alphatest
+            false, // transparent
+            1.0, // refraction ration
+            false, // wireframe
+            "back", // side,
+            null, // emissive false
+            null, // emissive intensity
+            true, // fog
+            null, // map
+            null, // normaj map
+            null, // roughness map
+            null, // metalness map
+            null, // emissive map
+            null, // matcap
+            null, // reflection map
+            null, // refaction map
+            -1.0, // uscale (in voxels,  -1 = cover model)
+            -1.0, // vscale (in voxels,  -1 = cover model)
+            0.0, // uoffset
+            0.0, // voffset
+            0.0
+          ); // rotation in degrees
 
-          model.materials.materials[0].setDeform(1);
+          model.materials.materials[0].setDeform(2);
           model.origin = "-y";
           model.flatten = null;
           model.clamp = null;
           model.tile = null;
           model.voxels = chunk;
           model.scale = { x: 1.0 / 8.0, y: 1.0 / 8.0, z: 1.0 / 8.0 };
+          model.shell = [{ voxBgr: 0, materialIndex: 1, distance: 0.25 }];
           const svoxMesh = SvoxMeshGenerator.generate(model, svoxBuffers);
           const bounds = svoxMesh.bounds;
           xMin = bounds.minX;
@@ -841,6 +916,8 @@ export class VoxSystem extends EventTarget {
           zMax = bounds.maxZ;
           svoxGeometry.update(svoxMesh, false);
           mesh.geometry = svoxGeometry;
+          mesh.material = svoxMaterial;
+          mesh.receiveShadow = false;
         }
 
         // TODO show XZ plane
