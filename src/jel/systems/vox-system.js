@@ -46,7 +46,6 @@ const tmpVec = new THREE.Vector3();
 const RESHAPE_DELAY_MS = 5000;
 const WRITEBACK_DELAY_MS = 10000;
 const DELTA_RING_BUFFER_LENGTH = 32;
-const USE_SVOX = true;
 
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
 targettingMaterial.visible = false;
@@ -131,7 +130,7 @@ const svoxMaterial = new ShaderMaterial({
 });
 
 svoxMaterial.uniforms.gradientMap.value = toonGradientMap;
-svoxMaterial.uniforms.diffuse.value = new THREE.Color(0.5, 0.5, 0.5);
+svoxMaterial.uniforms.diffuse.value = new THREE.Color(0.8, 0.8, 0.8);
 
 svoxMaterial.stencilWrite = true; // Avoid SSAO
 svoxMaterial.stencilFunc = THREE.AlwaysStencilFunc;
@@ -898,7 +897,7 @@ export class VoxSystem extends EventTarget {
             0.0
           ); // rotation in degrees
 
-          model.materials.materials[0].setDeform(2);
+          model.materials.materials[0].setDeform(1);
           model.origin = "-y";
           model.flatten = null;
           model.clamp = null;
