@@ -897,7 +897,7 @@ export class VoxSystem extends EventTarget {
             0.0
           ); // rotation in degrees
 
-          model.materials.materials[0].setDeform(1);
+          model.materials.materials[0].setDeform(3);
           model.origin = "-y";
           model.flatten = null;
           model.clamp = null;
