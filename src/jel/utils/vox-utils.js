@@ -1,22 +1,26 @@
-import { ByteBuffer } from "flatbuffers";
-import { Builder } from "flatbuffers/js/builder";
 import { getLocalRelativePathFromUrl } from "./jel-url-utils";
-import { SVox } from "../vox/svox";
-import { SVoxChunk } from "../vox/svox-chunk";
-import { VoxChunk } from "../vox/vox-chunk";
+import { Voxels, ModelReader, ModelWriter } from "smoothvoxels";
 
 export const VOX_CONTENT_TYPE = "model/vnd.svox";
 
-const flatbuilder = new Builder(1024 * 1024 * 4);
-
-const SVOX_HEADER = [80, 86, 79, 88];
 const MAX_FRAMES = 32;
 const DEFAULT_VOX_FRAME_SIZE = 2;
+const CUSTOM_MODEL_FIELDS = {
+  name: "string",
+  stack_axis: "string",
+  stack_snap_position: "boolean",
+  stack_snap_scale: "boolean",
+  revision: "int"
+};
 
-export function sVoxRefFromBytes(bytes) {
-  const svoxRef = new SVox();
-  SVox.getRootAsSVox(new ByteBuffer(new Uint8Array(bytes)), svoxRef);
-  return svoxRef;
+export async function modelFromString(string) {
+  return ModelReader.readFromString(string, CUSTOM_MODEL_FIELDS);
+}
+
+export async function modelToString(model) {
+  // TODO compression
+  // TODO additiona lfiedls
+  return ModelWriter.writeToString(model, false);
 }
 
 export async function fetchSVoxFromUrl(voxUrl, shouldSkipRetry = () => false) {
@@ -39,8 +43,7 @@ export async function fetchSVoxFromUrl(voxUrl, shouldSkipRetry = () => false) {
       }
 
       const response = await fetch(contentUrl, { cache });
-      const bytes = await response.arrayBuffer();
-      return sVoxRefFromBytes(bytes);
+      return modelFromString(await response.text());
     } catch (e) {
       console.warn("Failed to fetch vox", e);
       await new Promise(res => setTimeout(res, 1000));
@@ -48,96 +51,9 @@ export async function fetchSVoxFromUrl(voxUrl, shouldSkipRetry = () => false) {
   }
 }
 
-export function voxFramesFromSVoxRef(svoxRef) {
-  const frames = [];
+export function voxFramesFromSVoxRef(svoxRef) {}
 
-  for (let i = 0; i < svoxRef.framesLength(); i++) {
-    const voxChunkRef = svoxRef.frames(i);
-    const paletteArray = voxChunkRef.paletteArray();
-    const indicesArray = voxChunkRef.indicesArray();
-    const size = [voxChunkRef.sizeX(), voxChunkRef.sizeY(), voxChunkRef.sizeZ()];
-
-    const voxChunk = new VoxChunk(
-      size,
-      paletteArray.buffer,
-      indicesArray.buffer,
-      voxChunkRef.bitsPerIndex(),
-      paletteArray.byteOffset,
-      paletteArray.byteLength,
-      indicesArray.byteOffset,
-      indicesArray.byteLength
-    );
-
-    frames.push(voxChunk);
-  }
-
-  return frames;
-}
-
-export function voxChunkToSVoxChunkBytes(chunk) {
-  flatbuilder.clear();
-
-  flatbuilder.finish(
-    SVoxChunk.createSVoxChunk(
-      flatbuilder,
-      chunk.size[0],
-      chunk.size[1],
-      chunk.size[2],
-      chunk.bitsPerIndex,
-      SVoxChunk.createPaletteVector(
-        flatbuilder,
-        new Uint8Array(chunk.palette.buffer, chunk.palette.byteOffset, chunk.palette.byteLength)
-      ),
-      SVoxChunk.createIndicesVector(flatbuilder, chunk.indices.view)
-    )
-  );
-
-  return flatbuilder.asUint8Array().slice(0);
-}
-
-export async function voxToSVoxBytes(voxId, vox) {
-  const { voxMetadata } = window.APP;
-  const metadata = await voxMetadata.getOrFetchMetadata(voxId);
-
-  flatbuilder.clear();
-
-  const frameOffsets = [];
-
-  for (let i = 0; i < vox.frames.length; i++) {
-    const frame = vox.frames[i];
-    frameOffsets.push(
-      SVoxChunk.createSVoxChunk(
-        flatbuilder,
-        frame.size[0],
-        frame.size[1],
-        frame.size[2],
-        frame.bitsPerIndex,
-        SVoxChunk.createPaletteVector(
-          flatbuilder,
-          new Uint8Array(frame.palette.buffer, frame.palette.byteOffset, frame.palette.byteLength)
-        ),
-        SVoxChunk.createIndicesVector(flatbuilder, frame.indices.view)
-      )
-    );
-  }
-
-  flatbuilder.finish(
-    SVox.createSVox(
-      flatbuilder,
-      SVox.createHeaderVector(flatbuilder, SVOX_HEADER),
-      flatbuilder.createSharedString(metadata.name || ""),
-      0 /* version */,
-      vox.revision,
-      metadata.scale || 1.0,
-      metadata.stack_axis || 0,
-      metadata.stack_snap_position || false,
-      metadata.stack_snap_scale || false,
-      SVox.createFramesVector(flatbuilder, frameOffsets)
-    )
-  );
-
-  return flatbuilder.asUint8Array().slice(0);
-}
+export function voxChunkToSVoxChunkBytes(chunk) {}
 
 export function getUrlFromVoxId(voxId) {
   return atob(voxId);
@@ -149,23 +65,23 @@ export function getVoxIdFromUrl(voxUrl) {
   return btoa(new URL(voxUrl, document.location.href));
 }
 
-export function ensureVoxFrame(vox, idxFrame) {
+export function ensureModelVoxelFrame(model, idxFrame) {
   if (idxFrame > MAX_FRAMES - 1) return;
 
-  if (vox.frames[idxFrame]) return;
+  if (model.frames[idxFrame]) return;
 
   const indices = new Array(DEFAULT_VOX_FRAME_SIZE ** 3);
   indices.fill(0);
 
-  const chunk = VoxChunk.fromJSON({
+  const voxels = Voxels.fromJSON({
     size: [DEFAULT_VOX_FRAME_SIZE, DEFAULT_VOX_FRAME_SIZE, DEFAULT_VOX_FRAME_SIZE],
     palette: [],
     indices
   });
 
-  while (vox.frames.length < idxFrame + 1) {
-    vox.frames.push(null);
+  while (model.frames.length < idxFrame + 1) {
+    model.frames.push(null);
   }
 
-  vox.frames[idxFrame] = chunk;
+  model.frames[idxFrame] = voxels;
 }
