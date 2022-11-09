@@ -8,6 +8,7 @@ import { setMatrixWorld, generateMeshBVH, disposeNode } from "../../hubs/utils/t
 import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
+import { SerializedVoxels } from "../utils/svox-chunk";
 import { VOXEL_SIZE } from "../objects/vox-chunk-buffer-geometry";
 import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../../hubs/utils/media-utils";
 import { ensureOwnership } from "../utils/ownership-utils";
@@ -27,7 +28,7 @@ import {
 import { getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/jel-url-utils";
 import {
   modelToString,
-  voxChunkToSVoxChunkBytes,
+  voxChunkToSerializedVoxelsBytes,
   fetchSVoxFromUrl,
   voxFramesFromSVoxRef,
   ensureModelVoxelFrame,
@@ -839,76 +840,76 @@ export class VoxSystem extends EventTarget {
           mesh.material = voxMaterial;
           mesh.receiveShadow = true;
         } else {
-          const model = new SvoxModel();
-          model.materials.createMaterial(
-            "toon", // type
-            "smooth", // lighting
-            0.0, // roughness
-            0.0, // shininess
-            true, // fade
-            true, // simplify
-            1.0, // opacity
-            0, // alphatest
-            false, // transparent
-            1.0, // refraction ration
-            false, // wireframe
-            "front", // side,
-            null, // emissive false
-            null, // emissive intensity
-            true, // fog
-            null, // map
-            null, // normaj map
-            null, // roughness map
-            null, // metalness map
-            null, // emissive map
-            null, // matcap
-            null, // reflection map
-            null, // refaction map
-            -1.0, // uscale (in voxels,  -1 = cover model)
-            -1.0, // vscale (in voxels,  -1 = cover model)
-            0.0, // uoffset
-            0.0, // voffset
-            0.0
-          ); // rotation in degrees
-          model.materials.createMaterial(
-            "basic", // type
-            "smooth", // lighting
-            0.0, // roughness
-            0.0, // shininess
-            false, // fade
-            true, // simplify
-            1.0, // opacity
-            0, // alphatest
-            false, // transparent
-            1.0, // refraction ration
-            false, // wireframe
-            "back", // side,
-            null, // emissive false
-            null, // emissive intensity
-            true, // fog
-            null, // map
-            null, // normaj map
-            null, // roughness map
-            null, // metalness map
-            null, // emissive map
-            null, // matcap
-            null, // reflection map
-            null, // refaction map
-            -1.0, // uscale (in voxels,  -1 = cover model)
-            -1.0, // vscale (in voxels,  -1 = cover model)
-            0.0, // uoffset
-            0.0, // voffset
-            0.0
-          ); // rotation in degrees
+          //const model = new SvoxModel();
+          //model.materials.createMaterial(
+          //  "toon", // type
+          //  "smooth", // lighting
+          //  0.0, // roughness
+          //  0.0, // shininess
+          //  true, // fade
+          //  true, // simplify
+          //  1.0, // opacity
+          //  0, // alphatest
+          //  false, // transparent
+          //  1.0, // refraction ration
+          //  false, // wireframe
+          //  "front", // side,
+          //  null, // emissive false
+          //  null, // emissive intensity
+          //  true, // fog
+          //  null, // map
+          //  null, // normaj map
+          //  null, // roughness map
+          //  null, // metalness map
+          //  null, // emissive map
+          //  null, // matcap
+          //  null, // reflection map
+          //  null, // refaction map
+          //  -1.0, // uscale (in voxels,  -1 = cover model)
+          //  -1.0, // vscale (in voxels,  -1 = cover model)
+          //  0.0, // uoffset
+          //  0.0, // voffset
+          //  0.0
+          //); // rotation in degrees
+          //model.materials.createMaterial(
+          //  "basic", // type
+          //  "smooth", // lighting
+          //  0.0, // roughness
+          //  0.0, // shininess
+          //  false, // fade
+          //  true, // simplify
+          //  1.0, // opacity
+          //  0, // alphatest
+          //  false, // transparent
+          //  1.0, // refraction ration
+          //  false, // wireframe
+          //  "back", // side,
+          //  null, // emissive false
+          //  null, // emissive intensity
+          //  true, // fog
+          //  null, // map
+          //  null, // normaj map
+          //  null, // roughness map
+          //  null, // metalness map
+          //  null, // emissive map
+          //  null, // matcap
+          //  null, // reflection map
+          //  null, // refaction map
+          //  -1.0, // uscale (in voxels,  -1 = cover model)
+          //  -1.0, // vscale (in voxels,  -1 = cover model)
+          //  0.0, // uoffset
+          //  0.0, // voffset
+          //  0.0
+          //); // rotation in degrees
 
-          model.materials.materials[0].setDeform(3);
-          model.origin = "-y";
-          model.flatten = null;
-          model.clamp = null;
-          model.tile = null;
-          model.voxels = chunk;
-          model.scale = { x: 1.0 / 8.0, y: 1.0 / 8.0, z: 1.0 / 8.0 };
-          model.shell = [{ voxBgr: 0, materialIndex: 1, distance: 0.25 }];
+          //model.materials.materials[0].setDeform(3);
+          //model.origin = "-y";
+          //model.flatten = null;
+          //model.clamp = null;
+          //model.tile = null;
+          //model.voxels = chunk;
+          //model.scale = { x: 1.0 / 8.0, y: 1.0 / 8.0, z: 1.0 / 8.0 };
+          //model.shell = [{ voxBgr: 0, materialIndex: 1, distance: 0.25 }];
           const svoxMesh = SvoxMeshGenerator.generate(model, svoxBuffers);
           const bounds = svoxMesh.bounds;
           xMin = bounds.minX;
@@ -1244,7 +1245,7 @@ export class VoxSystem extends EventTarget {
       const showXZPlane = inspectedVoxId === voxId && SYSTEMS.cameraSystem.showFloor;
 
       const geometry = new VoxChunkBufferGeometry();
-      geometry.update(vox.frames[currentAnimationFrame], entry.mesherQuadSize, true, showXZPlane);
+      geometry.update(model.frames[currentAnimationFrame], entry.mesherQuadSize, true, showXZPlane);
 
       const targettingMesh = new Mesh(geometry, targettingMaterial);
 
@@ -1520,36 +1521,82 @@ export class VoxSystem extends EventTarget {
 
   async setVoxel(voxId, x, y, z, color, frame = 0) {
     const { voxIdToModel } = this;
+    const voxels = Voxels.fromJSON({ size: [1, 1, 1], palette: [color], indices: [1] });
 
     if (!voxIdToModel.has(voxId)) {
-      const model = new SvoxModel();
-      // For now, create empty frames
-      model.frames = [];
+      const model = VoxSystem.createDefaultSvoxModel();
       voxIdToModel.set(voxId, model);
     }
 
     const model = voxIdToModel.get(voxId);
     ensureModelVoxelFrame(model, frame);
 
-    const chunk = Voxels.fromJSON({ size: [1, 1, 1], palette: [color], indices: [1] });
-    await this.applyChunk(voxId, chunk, frame, [x, y, z]);
+    await this.applyChunk(voxId, voxels, frame, [x, y, z]);
   }
 
   async removeVoxel(voxId, x, y, z, frame = 0) {
     const { voxIdToModel } = this;
+    const voxels = Voxels.fromJSON({ size: [1, 1, 1], palette: [REMOVE_VOXEL_COLOR], indices: [1] });
 
     if (!voxIdToModel.has(voxId)) {
-      const model = new SvoxModel();
-      // For now, create empty frames
-      model.frames = [];
+      const model = VoxSystem.createDefaultSvoxModel();
       voxIdToModel.set(voxId, model);
     }
 
     const model = voxIdToModel.get(voxId);
     ensureModelVoxelFrame(model, frame);
 
-    const chunk = Voxels.fromJSON({ size: [1, 1, 1], palette: [REMOVE_VOXEL_COLOR], indices: [1] });
-    await this.applyChunk(voxId, chunk, frame, [x, y, z]);
+    await this.applyChunk(voxId, voxels, frame, [x, y, z]);
+  }
+
+  static createDefaultSvoxModel() {
+    const model = new SvoxModel();
+    model.name = "Untitled";
+    model.revision = 0;
+
+    const voxels = Voxels.fromJSON({ size: [1, 1, 1], palette: [0], indices: [1] });
+
+    model.materials.createMaterial(
+      "toon", // type
+      "smooth", // lighting
+      0.0, // roughness
+      0.0, // shininess
+      true, // fade
+      true, // simplify
+      1.0, // opacity
+      0, // alphatest
+      false, // transparent
+      1.0, // refraction ration
+      false, // wireframe
+      "front", // side,
+      null, // emissive false
+      null, // emissive intensity
+      true, // fog
+      null, // map
+      null, // normaj map
+      null, // roughness map
+      null, // metalness map
+      null, // emissive map
+      null, // matcap
+      null, // reflection map
+      null, // refaction map
+      -1.0, // uscale (in voxels,  -1 = cover model)
+      -1.0, // vscale (in voxels,  -1 = cover model)
+      0.0, // uoffset
+      0.0, // voffset
+      0.0
+    ); // rotation in degrees
+    model.materials.materials[0].setDeform(3);
+    model.origin = "-y";
+    model.flatten = null;
+    model.clamp = null;
+    model.tile = null;
+    model.scale = { x: 1.0 / 8.0, y: 1.0 / 8.0, z: 1.0 / 8.0 };
+    model.shell = [{ voxBgr: 0, materialIndex: 1, distance: 0.25 }];
+    model.voxels = voxels;
+
+    // For now, create empty frames
+    model.frames = [voxels];
   }
 
   getVoxSize(voxId, frame) {
@@ -2189,7 +2236,7 @@ export class VoxSystem extends EventTarget {
       revision = model.revision;
     }
 
-    const delta = [frame, voxChunkToSVoxChunkBytes(chunk), offset, revision];
+    const delta = [frame, voxChunkToSerializedVoxelsBytes(chunk), offset, revision];
 
     editRingManager.sendDeltaSync(voxId, delta);
     this.applyDeltaSync(voxId, delta);
@@ -2240,14 +2287,14 @@ export class VoxSystem extends EventTarget {
     if (typeof frame !== "number") return null;
     const { voxIdToModel } = this;
 
-    const voxChunkRef = new SVoxChunk();
+    const voxChunkRef = new SerializedVoxels();
 
     // chunkData can be an array buffer coming in from the wire
     if (chunkData instanceof ArrayBuffer) {
       chunkData = new Uint8Array(chunkData);
     }
 
-    SVoxChunk.getRootAsSVoxChunk(new ByteBuffer(chunkData), voxChunkRef);
+    SerializedVoxels.getRootAsSVoxChunk(new ByteBuffer(chunkData), voxChunkRef);
     const paletteArray = voxChunkRef.paletteArray();
     const indicesArray = voxChunkRef.indicesArray();
     const size = [voxChunkRef.sizeX(), voxChunkRef.sizeY(), voxChunkRef.sizeZ()];
@@ -2256,7 +2303,7 @@ export class VoxSystem extends EventTarget {
       offset = [0, 0, 0];
     }
 
-    const voxChunk = new VoxChunk(
+    const voxels = new Voxels(
       size,
       paletteArray.buffer,
       indicesArray.buffer,
@@ -2267,12 +2314,10 @@ export class VoxSystem extends EventTarget {
       indicesArray.byteLength
     );
 
-    const resolvedVoxChunk = this.performChunkConflictResolution(voxId, [frame, voxChunk, offset, revision]);
+    const resolvedVoxChunk = this.performChunkConflictResolution(voxId, [frame, voxels, offset, revision]);
 
     if (!voxIdToModel.has(voxId)) {
-      const model = new SvoxModel();
-      // for now, inject a fake frames array
-      model.frames = [];
+      const model = VoxSystem.createDefaultSvoxModel();
       voxIdToModel.set(voxId, model);
     }
 

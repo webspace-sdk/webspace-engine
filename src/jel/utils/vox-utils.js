@@ -1,6 +1,9 @@
 import { getLocalRelativePathFromUrl } from "./jel-url-utils";
 import { Voxels, ModelReader, ModelWriter } from "smoothvoxels";
+import { SerializedVoxels } from "./svox-chunk";
+import { Builder } from "flatbuffers/js/builder";
 
+const flatbuilder = new Builder(1024 * 1024 * 4);
 export const VOX_CONTENT_TYPE = "model/vnd.svox";
 
 const MAX_FRAMES = 32;
@@ -51,9 +54,26 @@ export async function fetchSVoxFromUrl(voxUrl, shouldSkipRetry = () => false) {
   }
 }
 
-export function voxFramesFromSVoxRef(svoxRef) {}
+export function voxelsToSerializedVoxelsBytes(voxels) {
+  flatbuilder.clear();
 
-export function voxChunkToSVoxChunkBytes(chunk) {}
+  flatbuilder.finish(
+    SerializedVoxels.createSVoxChunk(
+      flatbuilder,
+      voxels.size[0],
+      voxels.size[1],
+      voxels.size[2],
+      voxels.bitsPerIndex,
+      SerializedVoxels.createPaletteVector(
+        flatbuilder,
+        new Uint8Array(voxels.palette.buffer, voxels.palette.byteOffset, voxels.palette.byteLength)
+      ),
+      SerializedVoxels.createIndicesVector(flatbuilder, voxels.indices.view)
+    )
+  );
+
+  return flatbuilder.asUint8Array().slice(0);
+}
 
 export function getUrlFromVoxId(voxId) {
   return atob(voxId);
