@@ -41,7 +41,7 @@ export class VoxMetadataSource extends EventTarget {
 
   async getVoxMeta(voxId) {
     const voxUrl = getUrlFromVoxId(voxId);
-    const svoxModel = await fetchSVoxFromUrl(voxUrl);
+    const svoxModel = await fetchSVoxFromUrl(voxUrl, true /* skip voxels */);
     if (!svoxModel) return null;
 
     return {

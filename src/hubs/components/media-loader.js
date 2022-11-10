@@ -1,9 +1,7 @@
 import { getBox, getScaleCoefficient } from "../utils/auto-box-collider";
 import { ensureOwnership, getNetworkedEntity, isSynchronized } from "../../jel/utils/ownership-utils";
 import { ParticleEmitter } from "lib-hubs/packages/three-particle-emitter/lib/esm/index";
-import { getSpaceIdFromHistory } from "../../jel/utils/jel-url-utils";
 import loadingParticleSrc from "!!url-loader!../../assets/jel/images/loading-particle.png";
-import { VOXLoader } from "../../jel/objects/VOXLoader";
 import { VOX_CONTENT_TYPE } from "../../jel/utils/vox-utils";
 import {
   injectCustomShaderChunks,
@@ -15,13 +13,6 @@ import {
 } from "../utils/media-utils";
 import { guessContentType, isWebspaceUrl } from "../utils/media-url-utils";
 import { addAnimationComponents } from "../utils/animation";
-import {
-  xyzRangeForSize,
-  shiftForSize,
-  MAX_SIZE as MAX_VOX_SIZE,
-  VoxChunk,
-  voxColorForRGBT
-} from "../../jel/vox/vox-chunk";
 
 import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
 import { disposeExistingMesh, disposeNode } from "../utils/three-utils";
@@ -394,7 +385,7 @@ AFRAME.registerComponent("media-loader", {
         try {
           const is360 = !!(this.data.mediaOptions.projection && this.data.mediaOptions.projection.startsWith("360"));
           const quality = getDefaultResolveQuality(is360);
-          const forceLink = !!this.data.mediaOptions.forceLink
+          const forceLink = !!this.data.mediaOptions.forceLink;
           const preflightResponse = await preflightUrl(parsedUrl, quality, forceLink);
 
           contentType = preflightResponse.contentType || guessContentType(src) || contentType;

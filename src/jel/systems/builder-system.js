@@ -15,13 +15,13 @@ import {
 } from "../constants";
 import {
   rgbtForVoxColor,
-  VoxChunk,
+  Voxels,
   xyzRangeForSize,
   voxColorForRGBT,
   REMOVE_VOXEL_COLOR,
-  VOX_CHUNK_FILTERS,
+  VOXEL_FILTERS,
   MAX_SIZE as MAX_VOX_SIZE
-} from "../vox/vox-chunk";
+} from "smoothvoxels";
 
 import { SOUND_EMOJI_EQUIP } from "../../hubs/systems/sound-effects-system";
 
@@ -550,7 +550,7 @@ export class BuilderSystem extends EventTarget {
       if (this.targetVoxId && updatePending && (!isDenied || isPublished)) {
         if (!this.pendingChunk) {
           // Create a new pending, pending will grow as needed.
-          this.pendingChunk = new VoxChunk([1, 1, 1]);
+          this.pendingChunk = new Voxels([1, 1, 1]);
         }
 
         this.applyCurrentBrushToPendingChunk(this.targetVoxId);
@@ -661,7 +661,7 @@ export class BuilderSystem extends EventTarget {
       dz,
       boxU,
       boxV,
-      filter = VOX_CHUNK_FILTERS.NONE;
+      filter = VOXEL_FILTERS.NONE;
 
     if (
       !this.isBrushing ||
@@ -741,10 +741,10 @@ export class BuilderSystem extends EventTarget {
 
               filter =
                 brushMode === BRUSH_MODES.ADD
-                  ? VOX_CHUNK_FILTERS.NONE
+                  ? VOXEL_FILTERS.NONE
                   : brushMode === BRUSH_MODES.PAINT
-                    ? VOX_CHUNK_FILTERS.PAINT
-                    : VOX_CHUNK_FILTERS.NONE;
+                    ? VOXEL_FILTERS.PAINT
+                    : VOXEL_FILTERS.NONE;
 
               break;
             case BRUSH_TYPES.FACE:
@@ -805,10 +805,10 @@ export class BuilderSystem extends EventTarget {
 
               filter =
                 brushMode === BRUSH_MODES.ADD
-                  ? VOX_CHUNK_FILTERS.KEEP
+                  ? VOXEL_FILTERS.KEEP
                   : brushMode === BRUSH_MODES.PAINT
-                    ? VOX_CHUNK_FILTERS.PAINT
-                    : VOX_CHUNK_FILTERS.NONE;
+                    ? VOXEL_FILTERS.PAINT
+                    : VOXEL_FILTERS.NONE;
 
               break;
             case BRUSH_TYPES.CENTER:
@@ -897,10 +897,10 @@ export class BuilderSystem extends EventTarget {
 
               filter =
                 brushMode === BRUSH_MODES.ADD
-                  ? VOX_CHUNK_FILTERS.NONE
+                  ? VOXEL_FILTERS.NONE
                   : brushMode === BRUSH_MODES.PAINT
-                    ? VOX_CHUNK_FILTERS.PAINT
-                    : VOX_CHUNK_FILTERS.NONE;
+                    ? VOXEL_FILTERS.PAINT
+                    : VOXEL_FILTERS.NONE;
 
               break;
             case BRUSH_TYPES.BOX:
@@ -951,10 +951,10 @@ export class BuilderSystem extends EventTarget {
 
               filter =
                 brushMode === BRUSH_MODES.ADD
-                  ? VOX_CHUNK_FILTERS.KEEP
+                  ? VOXEL_FILTERS.KEEP
                   : brushMode === BRUSH_MODES.PAINT
-                    ? VOX_CHUNK_FILTERS.PAINT
-                    : VOX_CHUNK_FILTERS.NONE;
+                    ? VOXEL_FILTERS.PAINT
+                    : VOXEL_FILTERS.NONE;
               break;
           }
         }
@@ -966,7 +966,7 @@ export class BuilderSystem extends EventTarget {
     // In ADD mode, maintain existing voxel colors in BOX mode.
     // In PAINT mode, don't add new voxels.
 
-    if (filter !== VOX_CHUNK_FILTERS.NONE) {
+    if (filter !== VOXEL_FILTERS.NONE) {
       SYSTEMS.voxSystem.filterChunkByVoxFrame(pendingChunk, offsetX, offsetY, offsetZ, voxId, targetVoxFrame, filter);
     }
 

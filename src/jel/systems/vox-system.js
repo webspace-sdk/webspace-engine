@@ -8,7 +8,7 @@ import { setMatrixWorld, generateMeshBVH, disposeNode } from "../../hubs/utils/t
 import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
-import { SerializedVoxels } from "../utils/svox-chunk";
+import { SVoxChunk as SerializedVoxels } from "../utils/svox-chunk";
 import { VOXEL_SIZE } from "../objects/vox-chunk-buffer-geometry";
 import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../../hubs/utils/media-utils";
 import { ensureOwnership } from "../utils/ownership-utils";
@@ -16,7 +16,6 @@ import {
   Voxels,
   rgbtForVoxColor,
   REMOVE_VOXEL_COLOR,
-  Model as SvoxModel,
   Buffers as SvoxBuffers,
   SvoxBufferGeometry,
   SvoxMeshGenerator
@@ -28,9 +27,8 @@ import {
 import { getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/jel-url-utils";
 import {
   modelToString,
-  voxChunkToSerializedVoxelsBytes,
+  voxelsToSerializedVoxelsBytes,
   fetchSVoxFromUrl,
-  voxFramesFromSVoxRef,
   ensureModelVoxelFrame,
   VOX_CONTENT_TYPE,
   modelFromString,
@@ -51,6 +49,8 @@ const tmpVec = new THREE.Vector3();
 const RESHAPE_DELAY_MS = 5000;
 const WRITEBACK_DELAY_MS = 10000;
 const DELTA_RING_BUFFER_LENGTH = 32;
+const SVOX_ZERO_VECTOR = { x: 0, y: 0, z: 0 };
+const SVOX_DEFAULT_SCALE = { x: 0.125, y: 0.125, z: 0.125 };
 
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
 targettingMaterial.visible = false;
@@ -641,12 +641,11 @@ export class VoxSystem extends EventTarget {
 
     // If the vox is already available, use it, otherwise fetch frame data when first registering.
     if (!voxIdToModel.has(voxId)) {
-      const model = await fetchSVoxFromUrl(voxUrl, () => voxIdToModel.has(voxId));
+      const model = await fetchSVoxFromUrl(voxUrl, false, () => voxIdToModel.has(voxId));
 
       // Vox may have been set over p2p by this point, this is why we also stop retries above
       if (!voxIdToModel.has(voxId)) {
         // For now, insert a fake frames field for backwards compat with old vox object
-        model.frames = [model.voxels];
         voxIdToModel.set(voxId, model);
       }
     }
@@ -822,7 +821,7 @@ export class VoxSystem extends EventTarget {
         if (pendingVoxChunk) {
           chunk = chunk.clone();
 
-          pendingVoxChunk.applyToChunk(
+          pendingVoxChunk.applyToVoxels(
             chunk,
             pendingVoxChunkOffset[0],
             pendingVoxChunkOffset[1],
@@ -840,77 +839,23 @@ export class VoxSystem extends EventTarget {
           mesh.material = voxMaterial;
           mesh.receiveShadow = true;
         } else {
-          //const model = new SvoxModel();
-          //model.materials.createMaterial(
-          //  "toon", // type
-          //  "smooth", // lighting
-          //  0.0, // roughness
-          //  0.0, // shininess
-          //  true, // fade
-          //  true, // simplify
-          //  1.0, // opacity
-          //  0, // alphatest
-          //  false, // transparent
-          //  1.0, // refraction ration
-          //  false, // wireframe
-          //  "front", // side,
-          //  null, // emissive false
-          //  null, // emissive intensity
-          //  true, // fog
-          //  null, // map
-          //  null, // normaj map
-          //  null, // roughness map
-          //  null, // metalness map
-          //  null, // emissive map
-          //  null, // matcap
-          //  null, // reflection map
-          //  null, // refaction map
-          //  -1.0, // uscale (in voxels,  -1 = cover model)
-          //  -1.0, // vscale (in voxels,  -1 = cover model)
-          //  0.0, // uoffset
-          //  0.0, // voffset
-          //  0.0
-          //); // rotation in degrees
-          //model.materials.createMaterial(
-          //  "basic", // type
-          //  "smooth", // lighting
-          //  0.0, // roughness
-          //  0.0, // shininess
-          //  false, // fade
-          //  true, // simplify
-          //  1.0, // opacity
-          //  0, // alphatest
-          //  false, // transparent
-          //  1.0, // refraction ration
-          //  false, // wireframe
-          //  "back", // side,
-          //  null, // emissive false
-          //  null, // emissive intensity
-          //  true, // fog
-          //  null, // map
-          //  null, // normaj map
-          //  null, // roughness map
-          //  null, // metalness map
-          //  null, // emissive map
-          //  null, // matcap
-          //  null, // reflection map
-          //  null, // refaction map
-          //  -1.0, // uscale (in voxels,  -1 = cover model)
-          //  -1.0, // vscale (in voxels,  -1 = cover model)
-          //  0.0, // uoffset
-          //  0.0, // voffset
-          //  0.0
-          //); // rotation in degrees
-
-          //model.materials.materials[0].setDeform(3);
-          //model.origin = "-y";
-          //model.flatten = null;
-          //model.clamp = null;
-          //model.tile = null;
-          //model.voxels = chunk;
-          //model.scale = { x: 1.0 / 8.0, y: 1.0 / 8.0, z: 1.0 / 8.0 };
-          //model.shell = [{ voxBgr: 0, materialIndex: 1, distance: 0.25 }];
+          const modelScale = model.scale;
+          const modelRotation = model.rotation;
+          const modelPosition = model.position;
+          const modelOrigin = model.origin;
+          const modelResize = model.resize;
+          model.scale = SVOX_DEFAULT_SCALE;
+          model.rotation = SVOX_ZERO_VECTOR;
+          model.position = SVOX_ZERO_VECTOR;
+          model.resize = false;
+          model.origin = "-y";
           const svoxMesh = SvoxMeshGenerator.generate(model, svoxBuffers);
+          model.scale = modelScale;
+          model.rotation = modelRotation;
+          model.position = modelPosition;
+          model.origin = modelOrigin;
+          model.resize = modelResize;
+
           const bounds = svoxMesh.bounds;
           xMin = bounds.minX;
           yMin = bounds.minY;
@@ -1524,8 +1469,7 @@ export class VoxSystem extends EventTarget {
     const voxels = Voxels.fromJSON({ size: [1, 1, 1], palette: [color], indices: [1] });
 
     if (!voxIdToModel.has(voxId)) {
-      const model = VoxSystem.createDefaultSvoxModel();
-      voxIdToModel.set(voxId, model);
+      voxIdToModel.set(voxId, VoxSystem.createDefaultSvoxModel());
     }
 
     const model = voxIdToModel.get(voxId);
@@ -1539,8 +1483,7 @@ export class VoxSystem extends EventTarget {
     const voxels = Voxels.fromJSON({ size: [1, 1, 1], palette: [REMOVE_VOXEL_COLOR], indices: [1] });
 
     if (!voxIdToModel.has(voxId)) {
-      const model = VoxSystem.createDefaultSvoxModel();
-      voxIdToModel.set(voxId, model);
+      voxIdToModel.set(voxId, VoxSystem.createDefaultSvoxModel());
     }
 
     const model = voxIdToModel.get(voxId);
@@ -1550,53 +1493,17 @@ export class VoxSystem extends EventTarget {
   }
 
   static createDefaultSvoxModel() {
-    const model = new SvoxModel();
-    model.name = "Untitled";
-    model.revision = 0;
-
-    const voxels = Voxels.fromJSON({ size: [1, 1, 1], palette: [0], indices: [1] });
-
-    model.materials.createMaterial(
-      "toon", // type
-      "smooth", // lighting
-      0.0, // roughness
-      0.0, // shininess
-      true, // fade
-      true, // simplify
-      1.0, // opacity
-      0, // alphatest
-      false, // transparent
-      1.0, // refraction ration
-      false, // wireframe
-      "front", // side,
-      null, // emissive false
-      null, // emissive intensity
-      true, // fog
-      null, // map
-      null, // normaj map
-      null, // roughness map
-      null, // metalness map
-      null, // emissive map
-      null, // matcap
-      null, // reflection map
-      null, // refaction map
-      -1.0, // uscale (in voxels,  -1 = cover model)
-      -1.0, // vscale (in voxels,  -1 = cover model)
-      0.0, // uoffset
-      0.0, // voffset
-      0.0
-    ); // rotation in degrees
-    model.materials.materials[0].setDeform(3);
-    model.origin = "-y";
-    model.flatten = null;
-    model.clamp = null;
-    model.tile = null;
-    model.scale = { x: 1.0 / 8.0, y: 1.0 / 8.0, z: 1.0 / 8.0 };
-    model.shell = [{ voxBgr: 0, materialIndex: 1, distance: 0.25 }];
-    model.voxels = voxels;
-
-    // For now, create empty frames
-    model.frames = [voxels];
+    return modelFromString(
+      ```
+      name = "Untitled"
+      revision = 0
+      size = 1 1 1
+      origin = -y
+      material type = toon, lighting = smooth, deform = 3 1
+      voxels
+      -
+    ```
+    );
   }
 
   getVoxSize(voxId, frame) {
@@ -1631,7 +1538,7 @@ export class VoxSystem extends EventTarget {
     const { voxMetadata } = window.APP;
     if (voxIdToModel.has(voxId)) return voxIdToModel.get(voxId).frames;
     const { url } = await voxMetadata.getOrFetchMetadata(voxId);
-    return voxFramesFromSVoxRef(await fetchSVoxFromUrl(url));
+    return [await fetchSVoxFromUrl(url).voxels];
   }
 
   getChunkFrameOfVox(voxId, frame) {
@@ -2194,7 +2101,7 @@ export class VoxSystem extends EventTarget {
           const model = voxIdToModel.get(voxId);
           if (!model) continue;
 
-          const svoxBytes = await modelToString(voxId, model);
+          const svoxBytes = modelToString(model);
           const metadata = await voxMetadata.getOrFetchMetadata(voxId);
 
           let filename = null;
@@ -2236,7 +2143,7 @@ export class VoxSystem extends EventTarget {
       revision = model.revision;
     }
 
-    const delta = [frame, voxChunkToSerializedVoxelsBytes(chunk), offset, revision];
+    const delta = [frame, voxelsToSerializedVoxelsBytes(chunk), offset, revision];
 
     editRingManager.sendDeltaSync(voxId, delta);
     this.applyDeltaSync(voxId, delta);
@@ -2330,7 +2237,7 @@ export class VoxSystem extends EventTarget {
 
       model.frames[frame] = resolvedVoxChunk;
     } else {
-      resolvedVoxChunk.applyToChunk(model.frames[frame], offset[0], offset[1], offset[2]);
+      resolvedVoxChunk.applyToVoxels(model.frames[frame], offset[0], offset[1], offset[2]);
     }
 
     model.revision = Math.max(model.revision, revision);

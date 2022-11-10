@@ -1,6 +1,6 @@
 import { getLocalRelativePathFromUrl } from "./jel-url-utils";
-import { Voxels, ModelReader, ModelWriter } from "smoothvoxels";
-import { SerializedVoxels } from "./svox-chunk";
+import { ModelReader, ModelWriter } from "smoothvoxels";
+import { SVoxChunk as SerializedVoxels } from "./svox-chunk";
 import { Builder } from "flatbuffers/js/builder";
 
 const flatbuilder = new Builder(1024 * 1024 * 4);
@@ -16,17 +16,59 @@ const CUSTOM_MODEL_FIELDS = {
   revision: "int"
 };
 
-export async function modelFromString(string) {
-  return ModelReader.readFromString(string, CUSTOM_MODEL_FIELDS);
+export async function modelFromString(string, skipVoxels = false) {
+  const model = ModelReader.readFromString(string, CUSTOM_MODEL_FIELDS, skipVoxels);
+  // Copy in frames for now
+  model.frames = [model.voxels];
+
+  // Ensure model has a shell
+
+  if (!model.shell) {
+    // Create shell material
+    model.materials.createMaterial(
+      "basic", // type
+      "smooth", // lighting
+      0.0, // roughness
+      0.0, // shininess
+      false, // fade
+      true, // simplify
+      1.0, // opacity
+      0, // alphatest
+      false, // transparent
+      1.0, // refraction ration
+      false, // wireframe
+      "back", // side,
+      null, // emissive false
+      null, // emissive intensity
+      true, // fog
+      null, // map
+      null, // normaj map
+      null, // roughness map
+      null, // metalness map
+      null, // emissive map
+      null, // matcap
+      null, // reflection map
+      null, // refaction map
+      -1.0, // uscale (in voxels,  -1 = cover model)
+      -1.0, // vscale (in voxels,  -1 = cover model)
+      0.0, // uoffset
+      0.0, // voffset
+      0.0
+    ); // rotation in degrees
+
+    model.shell = [{ voxBgr: 0, materialIndex: model.materials.materials.length - 1, distance: 0.25 }];
+  }
+
+  return model;
 }
 
-export async function modelToString(model) {
+export function modelToString(model) {
   // TODO compression
   // TODO additiona lfiedls
   return ModelWriter.writeToString(model, false);
 }
 
-export async function fetchSVoxFromUrl(voxUrl, shouldSkipRetry = () => false) {
+export async function fetchSVoxFromUrl(voxUrl, skipVoxels = false, shouldSkipRetry = () => false) {
   for (let i = 0; i < 10; i++) {
     try {
       if (shouldSkipRetry()) return null;
@@ -46,7 +88,7 @@ export async function fetchSVoxFromUrl(voxUrl, shouldSkipRetry = () => false) {
       }
 
       const response = await fetch(contentUrl, { cache });
-      return modelFromString(await response.text());
+      return modelFromString(await response.text(), skipVoxels);
     } catch (e) {
       console.warn("Failed to fetch vox", e);
       await new Promise(res => setTimeout(res, 1000));
@@ -93,11 +135,14 @@ export function ensureModelVoxelFrame(model, idxFrame) {
   const indices = new Array(DEFAULT_VOX_FRAME_SIZE ** 3);
   indices.fill(0);
 
-  const voxels = Voxels.fromJSON({
-    size: [DEFAULT_VOX_FRAME_SIZE, DEFAULT_VOX_FRAME_SIZE, DEFAULT_VOX_FRAME_SIZE],
-    palette: [],
-    indices
-  });
+  const { voxels } = modelFromString(
+    ```
+    origin = -y
+    material type = basic, colors = A:#F00
+    voxels
+    -
+  ```
+  );
 
   while (model.frames.length < idxFrame + 1) {
     model.frames.push(null);

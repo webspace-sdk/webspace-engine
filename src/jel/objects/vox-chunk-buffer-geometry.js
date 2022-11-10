@@ -1,4 +1,4 @@
-import { shiftForSize, MAX_SIZE as MAX_VOX_SIZE } from "../vox/vox-chunk";
+import { shiftForSize, MAX_SIZE as MAX_VOX_SIZE } from "smoothvoxels";
 const { BufferGeometry, BufferAttribute, Uint16BufferAttribute, Uint32BufferAttribute } = THREE;
 
 export const VOXEL_SIZE = 1 / 8;
