@@ -51,6 +51,7 @@ const WRITEBACK_DELAY_MS = 10000;
 const DELTA_RING_BUFFER_LENGTH = 32;
 const SVOX_ZERO_VECTOR = { x: 0, y: 0, z: 0 };
 const SVOX_DEFAULT_SCALE = { x: 0.125, y: 0.125, z: 0.125 };
+const SVOX_DEFAULT_POSITION = { x: 0.125 / 2, y: 0.125 / 2, z: 0.125 / 2 };
 
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
 targettingMaterial.visible = false;
@@ -846,9 +847,9 @@ export class VoxSystem extends EventTarget {
           const modelResize = model.resize;
           model.scale = SVOX_DEFAULT_SCALE;
           model.rotation = SVOX_ZERO_VECTOR;
-          model.position = SVOX_ZERO_VECTOR;
+          model.position = SVOX_DEFAULT_POSITION;
           model.resize = false;
-          model.origin = "-y";
+          model.origin = "x y z";
           const svoxMesh = SvoxMeshGenerator.generate(model, svoxBuffers);
           model.scale = modelScale;
           model.rotation = modelRotation;
