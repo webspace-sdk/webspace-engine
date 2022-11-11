@@ -63,9 +63,17 @@ export async function modelFromString(string, skipVoxels = false) {
 }
 
 export function modelToString(model) {
-  // TODO compression
+  const compressed = Math.max(...model.voxels.size) >= 32;
+
   // TODO additiona lfiedls
-  return ModelWriter.writeToString(model, false);
+  return ModelWriter.writeToString(
+    model,
+    compressed,
+    1,
+    null /* modelLine */,
+    null /* materialLine */,
+    CUSTOM_MODEL_FIELDS
+  );
 }
 
 export async function fetchSVoxFromUrl(voxUrl, skipVoxels = false, shouldSkipRetry = () => false) {
