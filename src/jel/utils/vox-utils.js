@@ -16,7 +16,7 @@ const CUSTOM_MODEL_FIELDS = {
   revision: "int"
 };
 
-export async function modelFromString(string, skipVoxels = false) {
+export function modelFromString(string, skipVoxels = false) {
   const model = ModelReader.readFromString(string, CUSTOM_MODEL_FIELDS, skipVoxels);
   // Copy in frames for now
   model.frames = [model.voxels];

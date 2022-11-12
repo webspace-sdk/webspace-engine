@@ -1139,7 +1139,7 @@ export class BuilderSystem extends EventTarget {
       const { targetVoxId, targetVoxFrame, brushCrawlType, brushCrawlExtents } = this;
       const color = SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, origin.x, origin.y, origin.z);
 
-      const chunk = new VoxChunk([1, 1, 1]);
+      const chunk = new Voxels([1, 1, 1]);
       const colorMatch = brushCrawlType === BRUSH_CRAWL_TYPES.COLOR;
 
       // No voxel at crawl origin cell, shouldn't happen.

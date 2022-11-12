@@ -848,7 +848,7 @@ export class VoxSystem extends EventTarget {
           model.scale = SVOX_DEFAULT_SCALE;
           model.rotation = SVOX_ZERO_VECTOR;
           model.position = SVOX_DEFAULT_POSITION;
-          model.resize = false;
+          model.resize = "skip";
           model.origin = "x y z";
           const svoxMesh = SvoxMeshGenerator.generate(model, svoxBuffers);
           model.scale = modelScale;
@@ -1412,7 +1412,7 @@ export class VoxSystem extends EventTarget {
     const targetChunk = this.getChunkFrameOfVox(voxId, frame);
     if (!targetChunk) return null;
 
-    chunk.filterByChunk(targetChunk, offsetX, offsetY, offsetZ, filter);
+    chunk.filterByVoxels(targetChunk, offsetX, offsetY, offsetZ, filter);
   }
 
   setShowVoxGeometry(voxId, show) {
@@ -2182,7 +2182,8 @@ export class VoxSystem extends EventTarget {
     const stream = blob.stream().pipeThrough(decompressor);
 
     new Response(stream).arrayBuffer().then(async svoxBytes => {
-      const svoxModel = modelFromString(svoxBytes);
+      const svoxString = new TextDecoder("utf-8").decode(svoxBytes);
+      const svoxModel = modelFromString(svoxString);
       voxIdToModel.set(voxId, svoxModel);
 
       for (let i = 0; i < frames.length; i++) {
