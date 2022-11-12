@@ -1497,7 +1497,7 @@ export class VoxSystem extends EventTarget {
     return modelFromString(
       ```
       name = "Untitled"
-      revision = 0
+      revision = 1
       size = 1 1 1
       origin = -y
       material type = toon, lighting = smooth, deform = 3 1
@@ -2213,9 +2213,9 @@ export class VoxSystem extends EventTarget {
 
     const voxels = new Voxels(
       size,
+      voxChunkRef.bitsPerIndex(),
       paletteArray.buffer,
       indicesArray.buffer,
-      voxChunkRef.bitsPerIndex(),
       paletteArray.byteOffset,
       paletteArray.byteLength,
       indicesArray.byteOffset,
