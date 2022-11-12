@@ -1,5 +1,5 @@
 import { getLocalRelativePathFromUrl } from "./jel-url-utils";
-import { ModelReader, ModelWriter } from "smoothvoxels";
+import { ModelReader, ModelWriter, voxColorForRGBT } from "smoothvoxels";
 import { SVoxChunk as SerializedVoxels } from "./svox-chunk";
 import { Builder } from "flatbuffers/js/builder";
 
@@ -56,7 +56,14 @@ export async function modelFromString(string, skipVoxels = false) {
       0.0
     ); // rotation in degrees
 
-    model.shell = [{ voxBgr: 0, materialIndex: model.materials.materials.length - 1, distance: 0.25 }];
+    const materialIndex = model.materials.materials.length - 1;
+    const voxColor = voxColorForRGBT(0, 0, 0, materialIndex);
+    model.voxColorToColorId.set(voxColor, "Outline");
+    model.shell = [{ colorId: "Outline", voxBgr: 0, materialIndex, distance: 0.25 }];
+  }
+
+  if (!model.revision) {
+    model.revision = 0;
   }
 
   return model;
