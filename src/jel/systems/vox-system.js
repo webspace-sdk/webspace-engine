@@ -1,4 +1,4 @@
-import { VoxChunkBufferGeometry } from "../objects/vox-chunk-buffer-geometry";
+import { VoxelsBufferGeometry } from "../objects/voxels-buffer-geometry";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { TRANSFORM_MODE } from "../../hubs/systems/transform-selected-object";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
@@ -9,7 +9,7 @@ import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../../hubs/utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../../hubs/constants";
 import { SVoxChunk as SerializedVoxels } from "../utils/svox-chunk";
-import { VOXEL_SIZE } from "../objects/vox-chunk-buffer-geometry";
+import { VOXEL_SIZE } from "../objects/voxels-buffer-geometry";
 import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../../hubs/utils/media-utils";
 import { ensureOwnership } from "../utils/ownership-utils";
 import {
@@ -157,7 +157,7 @@ function createMesh(geometry, material) {
 }
 
 function createPhysicsMesh() {
-  const geometry = new VoxChunkBufferGeometry();
+  const geometry = new VoxelsBufferGeometry();
   const material = voxMaterial;
   const mesh = new Mesh(geometry, material);
   return mesh;
@@ -327,7 +327,7 @@ export class VoxSystem extends EventTarget {
         clearTimeout(delayedRemeshTimeout);
         entry.delayedRemeshTimeout = setTimeout(() => (entry.regenerateDirtyMeshesOnNextFrame = true), 1000);
 
-        if (!entry.pendingVoxChunk) {
+        if (!entry.pendingVoxels) {
           // The desired quad size may alter the algorithm used to generate shapes, so reshape.
           this.markShapesDirtyAfterDelay(voxId);
         }
@@ -562,11 +562,11 @@ export class VoxSystem extends EventTarget {
       targettingMesh: null,
       targettingMeshFrame: -1,
 
-      // If non-null, this chunk will be ephemerally applied to the current snapshot during remeshing.
+      // If non-null, these voxels will be ephemerally applied to the current snapshot during remeshing.
       //
       // This is used in building mode to display the in-process voxel brush.
-      pendingVoxChunk: null,
-      pendingVoxChunkOffset: [0, 0, 0],
+      pendingVoxels: null,
+      pendingVoxelsOffset: [0, 0, 0],
 
       // UUID of the physics shape for this vox (derived from the first vox frame)
       shapesUuid: null,
@@ -737,8 +737,8 @@ export class VoxSystem extends EventTarget {
       physicsMeshes,
       mesherQuadSize,
       maxRegisteredIndex,
-      pendingVoxChunk,
-      pendingVoxChunkOffset,
+      pendingVoxels,
+      pendingVoxelsOffset,
       showVoxGeometry,
       hasWalkableSources
     } = entry;
@@ -751,7 +751,7 @@ export class VoxSystem extends EventTarget {
       let remesh = dirtyFrameMeshes[i];
 
       if (!mesh) {
-        const voxGeometry = new VoxChunkBufferGeometry();
+        const voxGeometry = new VoxelsBufferGeometry();
         const svoxGeometry = new SvoxBufferGeometry();
         voxGeometry.instanceAttributes = []; // For DynamicInstancedMesh
         svoxGeometry.instanceAttributes = []; // For DynamicInstancedMesh
@@ -801,33 +801,28 @@ export class VoxSystem extends EventTarget {
       }
 
       if (remesh) {
-        let chunk = model.frames[i];
+        let voxels = model.frames[i];
         const voxGeometry = entry.voxGeometries[i];
         const svoxGeometry = entry.svoxGeometries[i];
 
         // If no pending + walkable update the walk geometry to match the first frame.
-        if (!pendingVoxChunk && i === 0 && hasWalkableSources) {
+        if (!pendingVoxels && i === 0 && hasWalkableSources) {
           let walkGeometry = entry.walkGeometry;
 
           if (walkGeometry === null) {
-            walkGeometry = entry.walkGeometry = new VoxChunkBufferGeometry();
+            walkGeometry = entry.walkGeometry = new VoxelsBufferGeometry();
             walkGeometry.instanceAttributes = []; // For DynamicInstancedMesh
           }
 
-          walkGeometry.update(chunk, 32, true, false);
+          walkGeometry.update(voxels, 32, true, false);
           walkGeometry.boundsTree = new MeshBVH(walkGeometry, { strategy: 0, maxDepth: 30 });
         }
 
         // Apply any ephemeral pending (eg from voxel brushes.)
-        if (pendingVoxChunk) {
-          chunk = chunk.clone();
+        if (pendingVoxels) {
+          voxels = voxels.clone();
 
-          pendingVoxChunk.applyToVoxels(
-            chunk,
-            pendingVoxChunkOffset[0],
-            pendingVoxChunkOffset[1],
-            pendingVoxChunkOffset[2]
-          );
+          pendingVoxels.applyToVoxels(voxels, pendingVoxelsOffset[0], pendingVoxelsOffset[1], pendingVoxelsOffset[2]);
         }
 
         const showXZPlane = inspectedVoxId === voxId && cameraSystem.showFloor;
@@ -835,7 +830,7 @@ export class VoxSystem extends EventTarget {
         let xMin, yMin, zMin, xMax, yMax, zMax;
 
         if (showVoxGeometry) {
-          [xMin, yMin, zMin, xMax, yMax, zMax] = voxGeometry.update(chunk, mesherQuadSize, false, showXZPlane);
+          [xMin, yMin, zMin, xMax, yMax, zMax] = voxGeometry.update(voxels, mesherQuadSize, false, showXZPlane);
           mesh.geometry = voxGeometry;
           mesh.material = voxMaterial;
           mesh.receiveShadow = true;
@@ -885,7 +880,7 @@ export class VoxSystem extends EventTarget {
         entry.shapeOffset[1] = dy;
         entry.shapeOffset[2] = dz;
 
-        if (!pendingVoxChunk) {
+        if (!pendingVoxels) {
           generateMeshBVH(mesh, true);
           dirtyFrameBoundingBoxes[i] = true;
           regenerateSizeBox = true;
@@ -946,7 +941,7 @@ export class VoxSystem extends EventTarget {
     const model = voxIdToModel.get(voxId);
     if (!model || model.frames.length === 0) return;
 
-    const chunk = model.frames[0];
+    const voxels = model.frames[0];
 
     const physicsMesh = physicsMeshes[0];
     if (physicsMesh === null) return;
@@ -963,10 +958,10 @@ export class VoxSystem extends EventTarget {
     //
     // Generate a LOD (which has less accuracy but will ensure HACD
     // generation isn't terribly slow.)
-    const totalVoxels = chunk.getTotalNonEmptyVoxels();
+    const totalVoxels = voxels.getTotalNonEmptyVoxels();
     const lod = totalVoxels > 12500 ? 3 : totalVoxels > 3500 ? 2 : 1;
 
-    physicsMesh.geometry.update(chunk, 32, true, false, lod);
+    physicsMesh.geometry.update(voxels, 32, true, false, lod);
 
     // Physics shape is based upon the first mesh.
     const shapesUuid = physicsSystem.createShapes(physicsMesh, {
@@ -1131,10 +1126,10 @@ export class VoxSystem extends EventTarget {
   }
 
   createPendingInverse(voxId, frame, patch, offset) {
-    const chunk = this.getChunkFrameOfVox(voxId, frame);
-    if (!chunk) return null;
+    const voxels = this.getVoxelsFrameOfVox(voxId, frame);
+    if (!voxels) return null;
 
-    return patch.createInverse(chunk, offset);
+    return patch.createInverse(voxels, offset);
   }
 
   // Returns the frame that was frozen
@@ -1190,7 +1185,7 @@ export class VoxSystem extends EventTarget {
       const inspectedVoxId = this.getInspectedEditingVoxId();
       const showXZPlane = inspectedVoxId === voxId && SYSTEMS.cameraSystem.showFloor;
 
-      const geometry = new VoxChunkBufferGeometry();
+      const geometry = new VoxelsBufferGeometry();
       geometry.update(model.frames[currentAnimationFrame], entry.mesherQuadSize, true, showXZPlane);
 
       const targettingMesh = new Mesh(geometry, targettingMaterial);
@@ -1395,24 +1390,24 @@ export class VoxSystem extends EventTarget {
     return el.parentNode ? el.components["body-helper"].uuid : null;
   }
 
-  setPendingVoxChunk(voxId, chunk, offsetX, offsetY, offsetZ) {
+  setPendingVoxels(voxId, voxels, offsetX, offsetY, offsetZ) {
     const { voxIdToEntry } = this;
     const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
     const { dirtyFrameMeshes } = entry;
     dirtyFrameMeshes.fill(true);
     entry.regenerateDirtyMeshesOnNextFrame = true;
-    entry.pendingVoxChunk = chunk;
-    entry.pendingVoxChunkOffset[0] = offsetX;
-    entry.pendingVoxChunkOffset[1] = offsetY;
-    entry.pendingVoxChunkOffset[2] = offsetZ;
+    entry.pendingVoxels = voxels;
+    entry.pendingVoxelsOffset[0] = offsetX;
+    entry.pendingVoxelsOffset[1] = offsetY;
+    entry.pendingVoxelsOffset[2] = offsetZ;
   }
 
-  filterChunkByVoxFrame(chunk, offsetX, offsetY, offsetZ, voxId, frame, filter) {
-    const targetChunk = this.getChunkFrameOfVox(voxId, frame);
-    if (!targetChunk) return null;
+  filterVoxelsByModelFrame(voxels, offsetX, offsetY, offsetZ, voxId, frame, filter) {
+    const targetVoxels = this.getVoxelsFrameOfVox(voxId, frame);
+    if (!targetVoxels) return null;
 
-    chunk.filterByVoxels(targetChunk, offsetX, offsetY, offsetZ, filter);
+    voxels.filterByVoxels(targetVoxels, offsetX, offsetY, offsetZ, filter);
   }
 
   setShowVoxGeometry(voxId, show) {
@@ -1441,7 +1436,7 @@ export class VoxSystem extends EventTarget {
     }
 
     entry.regenerateDirtyMeshesOnNextFrame = true;
-    entry.pendingVoxChunk = null;
+    entry.pendingVoxels = null;
   }
 
   applyPendingAndUnfreezeMesh(voxId) {
@@ -1449,19 +1444,19 @@ export class VoxSystem extends EventTarget {
 
     const entry = voxIdToEntry.get(voxId);
     if (!entry) return;
-    const { pendingVoxChunk, targettingMeshFrame, pendingVoxChunkOffset } = entry;
+    const { pendingVoxels, targettingMeshFrame, pendingVoxelsOffset } = entry;
 
     this.unfreezeMeshForTargetting(voxId);
 
-    if (!pendingVoxChunk) return;
-    const offset = [...pendingVoxChunkOffset];
+    if (!pendingVoxels) return;
+    const offset = [...pendingVoxelsOffset];
 
     // Don't mark dirty flag on meshes since doc will update.
-    this.applyChunk(voxId, pendingVoxChunk, targettingMeshFrame, offset);
+    this.applyVoxels(voxId, pendingVoxels, targettingMeshFrame, offset);
 
-    // Clear pending chunk after apply is done
-    if (entry.pendingVoxChunk === pendingVoxChunk) {
-      entry.pendingVoxChunk = null;
+    // Clear pending voxels after apply is done
+    if (entry.pendingVoxels === pendingVoxels) {
+      entry.pendingVoxels = null;
     }
   }
 
@@ -1476,7 +1471,7 @@ export class VoxSystem extends EventTarget {
     const model = voxIdToModel.get(voxId);
     ensureModelVoxelFrame(model, frame);
 
-    await this.applyChunk(voxId, voxels, frame, [x, y, z]);
+    await this.applyVoxels(voxId, voxels, frame, [x, y, z]);
   }
 
   async removeVoxel(voxId, x, y, z, frame = 0) {
@@ -1490,7 +1485,7 @@ export class VoxSystem extends EventTarget {
     const model = voxIdToModel.get(voxId);
     ensureModelVoxelFrame(model, frame);
 
-    await this.applyChunk(voxId, voxels, frame, [x, y, z]);
+    await this.applyVoxels(voxId, voxels, frame, [x, y, z]);
   }
 
   static createDefaultSvoxModel() {
@@ -1508,16 +1503,16 @@ export class VoxSystem extends EventTarget {
   }
 
   getVoxSize(voxId, frame) {
-    const chunk = this.getChunkFrameOfVox(voxId, frame);
-    if (!chunk) return null;
-    return chunk.size;
+    const voxels = this.getVoxelsFrameOfVox(voxId, frame);
+    if (!voxels) return null;
+    return voxels.size;
   }
 
   getVoxColorAt(voxId, frame, x, y, z) {
-    const chunk = this.getChunkFrameOfVox(voxId, frame);
-    if (!chunk) return null;
-    if (!chunk.hasVoxelAt(x, y, z)) return null;
-    return chunk.getColorAt(x, y, z);
+    const voxels = this.getVoxelsFrameOfVox(voxId, frame);
+    if (!voxels) return null;
+    if (!voxels.hasVoxelAt(x, y, z)) return null;
+    return voxels.getColorAt(x, y, z);
   }
 
   getTotalNonEmptyVoxelsOfTargettedFrame(voxId) {
@@ -1534,7 +1529,7 @@ export class VoxSystem extends EventTarget {
     return model.frames[targettingMeshFrame].getTotalNonEmptyVoxels();
   }
 
-  async getOrFetchVoxFrameChunks(voxId) {
+  async getOrFetchModelFrameVoxels(voxId) {
     const { voxIdToModel } = this;
     const { voxMetadata } = window.APP;
     if (voxIdToModel.has(voxId)) return voxIdToModel.get(voxId).frames;
@@ -1542,14 +1537,14 @@ export class VoxSystem extends EventTarget {
     return [await fetchSVoxFromUrl(url).voxels];
   }
 
-  getChunkFrameOfVox(voxId, frame) {
+  getVoxelsFrameOfVox(voxId, frame) {
     const { voxIdToModel } = this;
     const model = voxIdToModel.get(voxId);
     if (!model) return null;
 
-    const chunk = model.frames[frame];
-    if (!chunk) return null;
-    return chunk;
+    const voxels = model.frames[frame];
+    if (!voxels) return null;
+    return voxels;
   }
 
   updateSourceWalkability(voxId, source) {
@@ -1803,7 +1798,7 @@ export class VoxSystem extends EventTarget {
       }
 
       for (let i = 0; i < fromModel.frames.length; i++) {
-        await this.applyChunk(voxId, fromModel.frames[i], i, [0, 0, 0]);
+        await this.applyVoxels(voxId, fromModel.frames[i], i, [0, 0, 0]);
       }
     } else {
       await voxSystem.setVoxel(voxId, 0, 0, 0, builderSystem.brushVoxColor);
@@ -1941,7 +1936,7 @@ export class VoxSystem extends EventTarget {
   }
 
   async renderVoxToImage(voxId) {
-    const frames = await this.getOrFetchVoxFrameChunks(voxId);
+    const frames = await this.getOrFetchModelFrameVoxels(voxId);
     const canvas = document.createElement("canvas");
     canvas.width = 256;
     canvas.height = 256;
@@ -1959,14 +1954,14 @@ export class VoxSystem extends EventTarget {
 
     DOM_ROOT.appendChild(canvas);
 
-    const chunk = frames[0];
-    const fvixel = new FastVixel({ canvas: canvas, size: chunk.size });
+    const voxels = frames[0];
+    const fvixel = new FastVixel({ canvas: canvas, size: voxels.size });
     fvixel.setGround({ color: [17 / 255.0, 23.0 / 255.0, 71.0 / 255.0] });
 
     const shiftForSize = size => Math.floor(size % 2 === 0 ? size / 2 - 1 : size / 2);
-    const xShift = shiftForSize(chunk.size[0]);
-    const yShift = shiftForSize(chunk.size[1]);
-    const zShift = shiftForSize(chunk.size[2]);
+    const xShift = shiftForSize(voxels.size[0]);
+    const yShift = shiftForSize(voxels.size[1]);
+    const zShift = shiftForSize(voxels.size[2]);
     const colorMap = new Map();
 
     let maxX = -Infinity;
@@ -1978,10 +1973,10 @@ export class VoxSystem extends EventTarget {
     let minZ = Infinity;
 
     // Fill vixel voxels
-    for (let x = 0, lx = chunk.size[0]; x < lx; x++) {
-      for (let y = 0, ly = chunk.size[1]; y < ly; y++) {
-        for (let z = 0, lz = chunk.size[2]; z < lz; z++) {
-          const idx = chunk.getPaletteIndexAt(x - xShift, y - yShift, z - zShift);
+    for (let x = 0, lx = voxels.size[0]; x < lx; x++) {
+      for (let y = 0, ly = voxels.size[1]; y < ly; y++) {
+        for (let z = 0, lz = voxels.size[2]; z < lz; z++) {
+          const idx = voxels.getPaletteIndexAt(x - xShift, y - yShift, z - zShift);
           if (idx === 0) continue;
 
           maxX = Math.max(x, maxX);
@@ -1995,7 +1990,7 @@ export class VoxSystem extends EventTarget {
           let color = colorMap.get(idx);
 
           if (!color) {
-            const rgbt = rgbtForVoxColor(chunk.colorForPaletteIndex(idx));
+            const rgbt = rgbtForVoxColor(voxels.colorForPaletteIndex(idx));
             color = {
               red: rgbt.r / 255.0,
               green: rgbt.g / 255.0,
@@ -2131,7 +2126,7 @@ export class VoxSystem extends EventTarget {
     return this.nextWritebackTime !== null;
   }
 
-  async applyChunk(voxId, chunk, frame, offset, beginSyncing = true) {
+  async applyVoxels(voxId, voxels, frame, offset, beginSyncing = true) {
     const { editRingManager } = window.APP;
 
     let revision = 1;
@@ -2144,7 +2139,7 @@ export class VoxSystem extends EventTarget {
       revision = model.revision;
     }
 
-    const delta = [frame, voxelsToSerializedVoxelsBytes(chunk), offset, revision];
+    const delta = [frame, voxelsToSerializedVoxelsBytes(voxels), offset, revision];
 
     editRingManager.sendDeltaSync(voxId, delta);
     this.applyDeltaSync(voxId, delta);
@@ -2192,21 +2187,21 @@ export class VoxSystem extends EventTarget {
     });
   }
 
-  applyDeltaSync(voxId, [frame, chunkData, offset, revision]) {
+  applyDeltaSync(voxId, [frame, voxelData, offset, revision]) {
     if (typeof frame !== "number") return null;
     const { voxIdToModel } = this;
 
-    const voxChunkRef = new SerializedVoxels();
+    const serializedVoxelsRef = new SerializedVoxels();
 
-    // chunkData can be an array buffer coming in from the wire
-    if (chunkData instanceof ArrayBuffer) {
-      chunkData = new Uint8Array(chunkData);
+    // voxelData can be an array buffer coming in from the wire
+    if (voxelData instanceof ArrayBuffer) {
+      voxelData = new Uint8Array(voxelData);
     }
 
-    SerializedVoxels.getRootAsSVoxChunk(new ByteBuffer(chunkData), voxChunkRef);
-    const paletteArray = voxChunkRef.paletteArray();
-    const indicesArray = voxChunkRef.indicesArray();
-    const size = [voxChunkRef.sizeX(), voxChunkRef.sizeY(), voxChunkRef.sizeZ()];
+    SerializedVoxels.getRootAsSVoxChunk(new ByteBuffer(voxelData), serializedVoxelsRef);
+    const paletteArray = serializedVoxelsRef.paletteArray();
+    const indicesArray = serializedVoxelsRef.indicesArray();
+    const size = [serializedVoxelsRef.sizeX(), serializedVoxelsRef.sizeY(), serializedVoxelsRef.sizeZ()];
 
     if (typeof offset[0] !== "number") {
       offset = [0, 0, 0];
@@ -2214,7 +2209,7 @@ export class VoxSystem extends EventTarget {
 
     const voxels = new Voxels(
       size,
-      voxChunkRef.bitsPerIndex(),
+      serializedVoxelsRef.bitsPerIndex(),
       paletteArray.buffer,
       indicesArray.buffer,
       paletteArray.byteOffset,
@@ -2223,7 +2218,7 @@ export class VoxSystem extends EventTarget {
       indicesArray.byteLength
     );
 
-    const resolvedVoxChunk = this.performChunkConflictResolution(voxId, [frame, voxels, offset, revision]);
+    const resolvedVoxels = this.performVoxelsConflictResolution(voxId, [frame, voxels, offset, revision]);
 
     if (!voxIdToModel.has(voxId)) {
       const model = VoxSystem.createDefaultSvoxModel();
@@ -2237,9 +2232,9 @@ export class VoxSystem extends EventTarget {
         model.frames.push(null);
       }
 
-      model.frames[frame] = resolvedVoxChunk;
+      model.frames[frame] = resolvedVoxels;
     } else {
-      resolvedVoxChunk.applyToVoxels(model.frames[frame], offset[0], offset[1], offset[2]);
+      resolvedVoxels.applyToVoxels(model.frames[frame], offset[0], offset[1], offset[2]);
     }
 
     model.revision = Math.max(model.revision, revision);
@@ -2252,25 +2247,25 @@ export class VoxSystem extends EventTarget {
   // We keep a small ring buffer of all the recently received deltas. A conflict arises in two cases:
   //
   // - We receive a delta for the same revision as one we already have in the ring buffer.
-  //   In this scenario, we merge this chunk with that one performing cell-level conflict resolution.
-  //   (See VoxChunk.mergeWith)
+  //   In this scenario, we merge these voxels with that one performing cell-level conflict resolution.
+  //   (See Voxels.mergeWith)
   //
-  // - We receive a delta for a revision that is lower than the revision of the chunk we already have.
+  // - We receive a delta for a revision that is lower than the revision of the voxels we already have.
   //   In this scenario, we defer to all the newer deltas entirely, only applying changes in this delta
-  //   when no other deltas have information about that cell. (See VoxChunk.maskBy)
+  //   when no other deltas have information about that cell. (See Voxels.maskBy)
   //
-  // Upon updating the chunk, we add the *finalized* chunk into the ring buffer since we don't want to have
-  // to re-run this algorithm over all chunks in the ring each time.
+  // Upon updating the voxels, we add the *finalized* voxels into the ring buffer since we don't want to have
+  // to re-run this algorithm over all voxels in the ring each time.
   //
   // The net is that both sides will converge on the same voxel grid. Each side will prefer changes from later
   // revisions, and if both sides have changes for the same revision, then the merge algorithm decides, which
   // is communative.
-  performChunkConflictResolution(voxId, delta) {
+  performVoxelsConflictResolution(voxId, delta) {
     const { voxIdToEntry } = this;
-    const [frame, voxChunk, offset, revision] = delta;
+    const [frame, voxels, offset, revision] = delta;
 
     const entry = voxIdToEntry.get(voxId);
-    if (!entry) return voxChunk; // Can happen when spawning new voxes, since media isn't in world yet, but should be rare.
+    if (!entry) return voxels; // Can happen when spawning new voxes, since media isn't in world yet, but should be rare.
 
     const { deltaRing, deltaRingIndex } = entry;
 
@@ -2279,22 +2274,22 @@ export class VoxSystem extends EventTarget {
 
     while (i !== deltaRingIndex) {
       if (deltaRing[i] !== null) {
-        const [ringFrame, ringVoxChunk, ringOffset, ringRevision] = deltaRing[i];
+        const [ringFrame, ringVoxels, ringOffset, ringRevision] = deltaRing[i];
 
         if (ringFrame === frame && ringRevision >= revision) {
-          // Merge the vox chunks. If the ring's revision is higher, we defer entirely to it.
+          // Merge the voxels. If the ring's revision is higher, we defer entirely to it.
           const targetAlwaysWins = ringRevision > revision;
-          voxChunk.mergeWith(ringVoxChunk, offset, ringOffset, targetAlwaysWins);
+          voxels.mergeWith(ringVoxels, offset, ringOffset, targetAlwaysWins);
         }
       }
 
       i = (i + 1) % deltaRing.length;
     }
 
-    // Add the finalized chunk to the ring buffer.
+    // Add the finalized voxels to the ring buffer.
     deltaRing[deltaRingIndex] = delta;
     entry.deltaRingIndex = (deltaRingIndex + 1) % deltaRing.length;
 
-    return voxChunk;
+    return voxels;
   }
 }

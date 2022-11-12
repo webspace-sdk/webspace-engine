@@ -57,9 +57,9 @@ export function clearVoxAttributePools() {
 // LOD is commented out because we don't need to use it in GreedyMesh
 // (its only used in GreedyMeshFlat) but left to keep the update process
 // of GreedyMeshFlat easy.
-function GreedyMesh(chunk, maxQuadSize = Infinity /*, lod = 1, getLodVoxelCoord*/) {
+function GreedyMesh(voxels, maxQuadSize = Infinity /*, lod = 1, getLodVoxelCoord*/) {
   quadData.length = 0;
-  const { size } = chunk;
+  const { size } = voxels;
 
   const xShift = shiftForSize(size[0]);
   const yShift = shiftForSize(size[1]);
@@ -130,8 +130,8 @@ function GreedyMesh(chunk, maxQuadSize = Infinity /*, lod = 1, getLodVoxelCoord*
           const cqz = cz + q2;
           //}
 
-          const vFrom = mulFrom * chunk.getPaletteIndexAt(cx - xShift, cy - yShift, cz - zShift);
-          const vTo = mulTo * chunk.getPaletteIndexAt(cqx - xShift, cqy - yShift, cqz - zShift);
+          const vFrom = mulFrom * voxels.getPaletteIndexAt(cx - xShift, cy - yShift, cz - zShift);
+          const vTo = mulTo * voxels.getPaletteIndexAt(cqx - xShift, cqy - yShift, cqz - zShift);
           mask[n] = (vFrom !== 0) !== (vTo !== 0);
           norms[n] = vFrom; // Non-zero means up
           // Need to split on side so negate key to break face up.
@@ -210,9 +210,9 @@ function GreedyMesh(chunk, maxQuadSize = Infinity /*, lod = 1, getLodVoxelCoord*
 // Copy + paste of function above, except hotspot. For performance reasons we avoid extra branches in the inner loop for this version, which ignores colors.
 //
 // This is used for generating efficient physics meshes.
-function GreedyMeshFlat(chunk, maxQuadSize = Infinity, lod = 1, getLodVoxelCoord) {
+function GreedyMeshFlat(voxels, maxQuadSize = Infinity, lod = 1, getLodVoxelCoord) {
   quadData.length = 0;
-  const { size } = chunk;
+  const { size } = voxels;
 
   const xShift = shiftForSize(size[0]);
   const yShift = shiftForSize(size[1]);
@@ -283,8 +283,8 @@ function GreedyMeshFlat(chunk, maxQuadSize = Infinity, lod = 1, getLodVoxelCoord
             cqz = cz + q2;
           }
 
-          const vFrom = mulFrom * chunk.getPaletteIndexAt(cx - xShift, cy - yShift, cz - zShift);
-          const vTo = mulTo * chunk.getPaletteIndexAt(cqx - xShift, cqy - yShift, cqz - zShift);
+          const vFrom = mulFrom * voxels.getPaletteIndexAt(cx - xShift, cy - yShift, cz - zShift);
+          const vTo = mulTo * voxels.getPaletteIndexAt(cqx - xShift, cqy - yShift, cqz - zShift);
           mask[n] = (vFrom !== 0) !== (vTo !== 0);
           norms[n] = vFrom; // Non-zero means up
           // Need to split on side so negate key to break face up.
@@ -361,13 +361,13 @@ function GreedyMeshFlat(chunk, maxQuadSize = Infinity, lod = 1, getLodVoxelCoord
   return quadData;
 }
 
-class VoxChunkBufferGeometry extends BufferGeometry {
-  constructor(chunk) {
+class VoxelsBufferGeometry extends BufferGeometry {
+  constructor(voxels) {
     super();
-    this.type = "VoxChunkBufferGeometry";
+    this.type = "VoxelsBufferGeometry";
 
-    if (chunk) {
-      this.update(chunk);
+    if (voxels) {
+      this.update(voxels);
     }
   }
 
@@ -382,16 +382,16 @@ class VoxChunkBufferGeometry extends BufferGeometry {
     super.dispose();
   }
 
-  // Updates the geometry with the specified vox chunk, returning the extents of the mesh.
+  // Updates the geometry with the specified vox voxels, returning the extents of the mesh.
   // If false, generates a mesh without regard to color
-  update(chunk, maxQuadSize = 1, flat = false, addXZPlane = true, lod = 1) {
+  update(voxels, maxQuadSize = 1, flat = false, addXZPlane = true, lod = 1) {
     this.freeAttributeMemory();
 
     const palette = [];
-    const { size } = chunk;
+    const { size } = voxels;
 
-    for (let i = 0; i < chunk.palette.length; i++) {
-      const rgbt = chunk.palette[i];
+    for (let i = 0; i < voxels.palette.length; i++) {
+      const rgbt = voxels.palette[i];
 
       const r = (0x000000ff & rgbt) / 255.0;
       const g = ((0x0000ff00 & rgbt) >>> 8) / 255.0;
@@ -448,13 +448,13 @@ class VoxChunkBufferGeometry extends BufferGeometry {
       getLodVoxelCoord = (x, y, z) => {
         let vx, vy, vz;
 
-        // For LOD, always take non-air voxel in LOD chunk to avoid gaps
+        // For LOD, always take non-air voxel in LOD voxels to avoid gaps
         for (const [i, j, k] of lodIndices) {
           vx = Math.max(0, Math.min(x * lod + i, size[0]));
           vy = Math.max(0, Math.min(y * lod + j, size[1]));
           vz = Math.max(0, Math.min(z * lod + k, size[2]));
 
-          if (chunk.hasVoxelAt(vx - xShift, vy - yShift, vz - zShift)) break;
+          if (voxels.hasVoxelAt(vx - xShift, vy - yShift, vz - zShift)) break;
         }
 
         return (vx << 16) | (vy << 8) | vz;
@@ -463,8 +463,8 @@ class VoxChunkBufferGeometry extends BufferGeometry {
 
     // Generate quadData via greedy mesher.
     const quadData = flat
-      ? GreedyMeshFlat(chunk, maxQuadSize, lod, getLodVoxelCoord)
-      : GreedyMesh(chunk, maxQuadSize, lod, getLodVoxelCoord);
+      ? GreedyMeshFlat(voxels, maxQuadSize, lod, getLodVoxelCoord)
+      : GreedyMesh(voxels, maxQuadSize, lod, getLodVoxelCoord);
 
     const numQuads = quadData.length / 14 + (addXZPlane ? 1 : 0);
     const vertices = float32Pool.get(12 * numQuads);
@@ -622,7 +622,7 @@ class VoxChunkBufferGeometry extends BufferGeometry {
         vz = z;
       }
 
-      const c = chunk.getPaletteIndexAt(vx - xShift, vy - yShift, vz - zShift) - 1;
+      const c = voxels.getPaletteIndexAt(vx - xShift, vy - yShift, vz - zShift) - 1;
 
       if (c === -1) continue;
       const [r, g, b] = palette[c];
@@ -904,4 +904,4 @@ class VoxChunkBufferGeometry extends BufferGeometry {
   }
 }
 
-export { VoxChunkBufferGeometry };
+export { VoxelsBufferGeometry };

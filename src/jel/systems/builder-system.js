@@ -4,7 +4,7 @@ import { isLockedMedia } from "../../hubs/utils/media-utils";
 import { getWorldColor } from "../objects/terrain";
 import { EventTarget } from "event-target-shim";
 import { storedColorToRgb } from "../../hubs/storage/store";
-import { VOXEL_SIZE } from "../objects/vox-chunk-buffer-geometry";
+import { VOXEL_SIZE } from "../objects/voxels-buffer-geometry";
 import {
   BRUSH_TYPES,
   BRUSH_MODES,
@@ -86,7 +86,7 @@ export class BuilderSystem extends EventTarget {
     this.mirrorY = false;
     this.mirrorZ = false;
     this.brushVoxColor = null;
-    this.pendingChunk = null;
+    this.pendingVoxels = null;
     this.hasInFlightOperation = false;
     this.ignoreRestOfStroke = false;
     this.performingUndoOperation = false;
@@ -287,7 +287,7 @@ export class BuilderSystem extends EventTarget {
       this.performBrushStep(brushDown, intersection, isLocked);
     }
 
-    if (isLocked && this.pendingChunk && !this.isBrushing) {
+    if (isLocked && this.pendingVoxels && !this.isBrushing) {
       this.cancelPending();
     }
 
@@ -345,7 +345,7 @@ export class BuilderSystem extends EventTarget {
       // Skip updating pending this tick if we're ready to apply it.
       const readyToApplyPendingThisTick = this.isBrushing && !brushDown;
 
-      // True when the pending chunk need to be updated/rebuilt.
+      // True when the pending voxels need to be updated/rebuilt.
       let updatePending = false;
 
       // Do raycast to sweep plane if it's active.
@@ -412,9 +412,9 @@ export class BuilderSystem extends EventTarget {
         voxMetadata.hasMetadata(this.targetVoxId) &&
         voxMetadata.getMetadata(this.targetVoxId).is_published;
 
-      if (isDenied && this.pendingChunk) {
+      if (isDenied && this.pendingVoxels) {
         SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
-        this.pendingChunk = null;
+        this.pendingVoxels = null;
       }
 
       if (hitVoxId && !readyToApplyPendingThisTick && (!isDenied || isPublished)) {
@@ -438,7 +438,7 @@ export class BuilderSystem extends EventTarget {
                 // Direct hover from one vox to another, clear old pending.
                 SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
                 SYSTEMS.voxSystem.setShowVoxGeometry(hitVoxId, false);
-                this.pendingChunk = null;
+                this.pendingVoxels = null;
                 this.targetVoxId = null;
                 this.targetVoxFrame = null;
               }
@@ -488,13 +488,13 @@ export class BuilderSystem extends EventTarget {
                   this.startFaceBrushStroke(hitCell, hitNormal, hitWorldPoint, hitObject, hitInstanceId);
                 } else if (this.brushType === BRUSH_TYPES.FILL) {
                   // For fill crawl the whole thing.
-                  [, this.pendingChunk] = this.crawlIntoChunkAt(hitCell, 0, this.brushVoxColor);
+                  [, this.pendingVoxels] = this.crawlIntoVoxelsAt(hitCell, 0, this.brushVoxColor);
 
-                  // Update the pending chunk + apply it immediately
-                  SYSTEMS.voxSystem.setPendingVoxChunk(this.targetVoxId, this.pendingChunk, 0, 0, 0);
-                  this.pushToUndoStack(this.targetVoxId, this.targetVoxFrame, this.pendingChunk, [0, 0, 0]);
+                  // Update the pending voxels + apply it immediately
+                  SYSTEMS.voxSystem.setPendingVoxels(this.targetVoxId, this.pendingVoxels, 0, 0, 0);
+                  this.pushToUndoStack(this.targetVoxId, this.targetVoxFrame, this.pendingVoxels, [0, 0, 0]);
                   SYSTEMS.voxSystem.applyPendingAndUnfreezeMesh(this.targetVoxId);
-                  this.pendingChunk = null;
+                  this.pendingVoxels = null;
 
                   // Fill is one-and-done, and ignores mode
                   updatePending = false;
@@ -548,12 +548,12 @@ export class BuilderSystem extends EventTarget {
       }
 
       if (this.targetVoxId && updatePending && (!isDenied || isPublished)) {
-        if (!this.pendingChunk) {
+        if (!this.pendingVoxels) {
           // Create a new pending, pending will grow as needed.
-          this.pendingChunk = new Voxels([1, 1, 1]);
+          this.pendingVoxels = new Voxels([1, 1, 1]);
         }
 
-        this.applyCurrentBrushToPendingChunk(this.targetVoxId);
+        this.applyCurrentBrushToPendingVoxels(this.targetVoxId);
       }
 
       if (!brushDown && !isDenied) {
@@ -562,8 +562,8 @@ export class BuilderSystem extends EventTarget {
 
         // When brush is lifted, apply the pending
         if (this.isBrushing) {
-          if (this.pendingChunk) {
-            this.pushToUndoStack(this.targetVoxId, this.targetVoxFrame, this.pendingChunk, [
+          if (this.pendingVoxels) {
+            this.pushToUndoStack(this.targetVoxId, this.targetVoxFrame, this.pendingVoxels, [
               brushStartCell.x,
               brushStartCell.y,
               brushStartCell.z
@@ -574,7 +574,7 @@ export class BuilderSystem extends EventTarget {
             // Uncomment below to stop applying changes to help with reproducing bugs with brushes.
             // SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
 
-            this.pendingChunk = null;
+            this.pendingVoxels = null;
           } else {
             SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
           }
@@ -599,9 +599,9 @@ export class BuilderSystem extends EventTarget {
     this.dispatchEvent(new CustomEvent("picked_color", { detail: rgbt }));
   }
 
-  applyCurrentBrushToPendingChunk(voxId) {
+  applyCurrentBrushToPendingVoxels(voxId) {
     const {
-      pendingChunk,
+      pendingVoxels,
       brushType,
       brushMode,
       brushSize,
@@ -670,7 +670,7 @@ export class BuilderSystem extends EventTarget {
       brushType === BRUSH_TYPES.CENTER
     ) {
       // Box and face slides are materialized in full here, whereas VOXEL is built-up
-      pendingChunk.clear();
+      pendingVoxels.clear();
     }
 
     const voxNumVoxels = SYSTEMS.voxSystem.getTotalNonEmptyVoxelsOfTargettedFrame(voxId);
@@ -678,7 +678,7 @@ export class BuilderSystem extends EventTarget {
     // Axis of the normal for start of the brush
     const axis = brushFaceNormal.x !== 0 ? 1 : brushFaceNormal.y !== 0 ? 2 : 3;
 
-    // Perform up to 8 updates to the pending pending chunk based upon mirroring
+    // Perform up to 8 updates to the pending pending voxels based upon mirroring
     for (const mx of mirrors) {
       if (mx === -1 && !mirrorX) continue;
 
@@ -706,10 +706,10 @@ export class BuilderSystem extends EventTarget {
               // Add a bit to the radius based upon visual tuning
               rSq = ((boxMaxX - boxMinX) * (boxMaxX - boxMinX)) / 4 + (brushSize > 4 ? 1.0 : 0);
 
-              pendingChunk.resizeToFit(boxMinX, boxMinY, boxMinZ);
-              pendingChunk.resizeToFit(boxMaxX, boxMaxY, boxMaxZ);
+              pendingVoxels.resizeToFit(boxMinX, boxMinY, boxMinZ);
+              pendingVoxels.resizeToFit(boxMaxX, boxMaxY, boxMaxZ);
 
-              [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(pendingChunk.size);
+              [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(pendingVoxels.size);
 
               // Update pending to have a cell iff its in the box
               loop: for (let x = minX; x <= maxX; x += 1) {
@@ -717,7 +717,10 @@ export class BuilderSystem extends EventTarget {
                   for (let z = minZ; z <= maxZ; z += 1) {
                     if (x >= boxMinX && x <= boxMaxX && y >= boxMinY && y <= boxMaxY && z >= boxMinZ && z <= boxMaxZ) {
                       // Avoid removing last voxel
-                      if (brushMode === BRUSH_MODES.REMOVE && pendingChunk.getTotalNonEmptyVoxels() >= voxNumVoxels - 1)
+                      if (
+                        brushMode === BRUSH_MODES.REMOVE &&
+                        pendingVoxels.getTotalNonEmptyVoxels() >= voxNumVoxels - 1
+                      )
                         break loop;
 
                       if (brushShape === BRUSH_SHAPES.SPHERE) {
@@ -728,7 +731,7 @@ export class BuilderSystem extends EventTarget {
                         if (distSq > rSq) continue;
                       }
 
-                      pendingChunk.setColorAt(
+                      pendingVoxels.setColorAt(
                         x,
                         y,
                         z,
@@ -783,12 +786,15 @@ export class BuilderSystem extends EventTarget {
                           : z * mz - offsetZ;
 
                       // Do not allow removing last voxel
-                      if (brushMode === BRUSH_MODES.REMOVE && pendingChunk.getTotalNonEmptyVoxels() >= voxNumVoxels - 1)
+                      if (
+                        brushMode === BRUSH_MODES.REMOVE &&
+                        pendingVoxels.getTotalNonEmptyVoxels() >= voxNumVoxels - 1
+                      )
                         continue;
 
-                      pendingChunk.resizeToFit(px, py, pz);
+                      pendingVoxels.resizeToFit(px, py, pz);
 
-                      pendingChunk.setColorAt(
+                      pendingVoxels.setColorAt(
                         px,
                         py,
                         pz,
@@ -864,10 +870,10 @@ export class BuilderSystem extends EventTarget {
                 boxMaxZ = qz + boxU;
               }
 
-              pendingChunk.resizeToFit(boxMinX, boxMinY, boxMinZ);
-              pendingChunk.resizeToFit(boxMaxX, boxMaxY, boxMaxZ);
+              pendingVoxels.resizeToFit(boxMinX, boxMinY, boxMinZ);
+              pendingVoxels.resizeToFit(boxMaxX, boxMaxY, boxMaxZ);
 
-              [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(pendingChunk.size);
+              [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(pendingVoxels.size);
 
               // Update pending to have a cell iff its in the box
               loop: for (let x = minX; x <= maxX; x += 1) {
@@ -875,7 +881,10 @@ export class BuilderSystem extends EventTarget {
                   for (let z = minZ; z <= maxZ; z += 1) {
                     if (x >= boxMinX && x <= boxMaxX && y >= boxMinY && y <= boxMaxY && z >= boxMinZ && z <= boxMaxZ) {
                       // Avoid removing last voxel
-                      if (brushMode === BRUSH_MODES.REMOVE && pendingChunk.getTotalNonEmptyVoxels() >= voxNumVoxels - 1)
+                      if (
+                        brushMode === BRUSH_MODES.REMOVE &&
+                        pendingVoxels.getTotalNonEmptyVoxels() >= voxNumVoxels - 1
+                      )
                         break loop;
 
                       // With offset, brush is centered at zero.
@@ -884,7 +893,7 @@ export class BuilderSystem extends EventTarget {
 
                       if (distSq > rSq) continue;
 
-                      pendingChunk.setColorAt(
+                      pendingVoxels.setColorAt(
                         x,
                         y,
                         z,
@@ -909,14 +918,14 @@ export class BuilderSystem extends EventTarget {
               py = brushEndCell.y * my - offsetY;
               pz = brushEndCell.z * mz - offsetZ;
 
-              pendingChunk.resizeToFit(px, py, pz);
+              pendingVoxels.resizeToFit(px, py, pz);
 
               // Box corner 2 (origin is at start cell)
               qx = brushStartCell.x * mx - offsetX;
               qy = brushStartCell.y * my - offsetY;
               qz = brushStartCell.z * mz - offsetZ;
 
-              pendingChunk.resizeToFit(qx, qy, qz);
+              pendingVoxels.resizeToFit(qx, qy, qz);
 
               // Compute box
               boxMinX = Math.min(px, qx);
@@ -927,7 +936,7 @@ export class BuilderSystem extends EventTarget {
               boxMaxY = Math.max(py, qy);
               boxMaxZ = Math.max(pz, qz);
 
-              [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(pendingChunk.size);
+              [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(pendingVoxels.size);
 
               // Update pending to have a cell iff its in the box
               loop: for (let x = minX; x <= maxX; x += 1) {
@@ -935,10 +944,13 @@ export class BuilderSystem extends EventTarget {
                   for (let z = minZ; z <= maxZ; z += 1) {
                     if (x >= boxMinX && x <= boxMaxX && y >= boxMinY && y <= boxMaxY && z >= boxMinZ && z <= boxMaxZ) {
                       // Avoid removing last voxel
-                      if (brushMode === BRUSH_MODES.REMOVE && pendingChunk.getTotalNonEmptyVoxels() >= voxNumVoxels - 1)
+                      if (
+                        brushMode === BRUSH_MODES.REMOVE &&
+                        pendingVoxels.getTotalNonEmptyVoxels() >= voxNumVoxels - 1
+                      )
                         break loop;
 
-                      pendingChunk.setColorAt(
+                      pendingVoxels.setColorAt(
                         x,
                         y,
                         z,
@@ -967,11 +979,19 @@ export class BuilderSystem extends EventTarget {
     // In PAINT mode, don't add new voxels.
 
     if (filter !== VOXEL_FILTERS.NONE) {
-      SYSTEMS.voxSystem.filterChunkByVoxFrame(pendingChunk, offsetX, offsetY, offsetZ, voxId, targetVoxFrame, filter);
+      SYSTEMS.voxSystem.filterVoxelsByModelFrame(
+        pendingVoxels,
+        offsetX,
+        offsetY,
+        offsetZ,
+        voxId,
+        targetVoxFrame,
+        filter
+      );
     }
 
-    // Update the pending chunk
-    SYSTEMS.voxSystem.setPendingVoxChunk(voxId, pendingChunk, offsetX, offsetY, offsetZ);
+    // Update the pending voxels
+    SYSTEMS.voxSystem.setPendingVoxels(voxId, pendingVoxels, offsetX, offsetY, offsetZ);
   }
 
   pushToUndoStack(voxId, frame, pending, offset) {
@@ -1036,7 +1056,7 @@ export class BuilderSystem extends EventTarget {
     const [pending, offset] = backward[position];
 
     stack.position--;
-    SYSTEMS.voxSystem.applyChunk(voxId, pending, frame, offset);
+    SYSTEMS.voxSystem.applyVoxels(voxId, pending, frame, offset);
     this.hasInFlightOperation = false;
   }
 
@@ -1055,7 +1075,7 @@ export class BuilderSystem extends EventTarget {
     const [pending, offset] = forward[position];
 
     stack.position++;
-    SYSTEMS.voxSystem.applyChunk(voxId, pending, frame, offset);
+    SYSTEMS.voxSystem.applyVoxels(voxId, pending, frame, offset);
     this.hasInFlightOperation = false;
   }
 
@@ -1075,7 +1095,7 @@ export class BuilderSystem extends EventTarget {
         Math.abs(hitNormal.x) !== 0 ? hitNormal.x * 1 : Math.abs(hitNormal.y) !== 0 ? hitNormal.y * 2 : hitNormal.z * 3;
 
       // Crawl the face to find the mask to use for this stroke
-      [this.brushFaceColor, this.brushFace] = this.crawlIntoChunkAt(hitCell, omitAxis);
+      [this.brushFaceColor, this.brushFace] = this.crawlIntoVoxelsAt(hitCell, omitAxis);
       this.brushFaceSweep = 1;
 
       // The plane to use for dragging is the one which is most
@@ -1128,7 +1148,7 @@ export class BuilderSystem extends EventTarget {
   //
   // omitAxis: 1 - x, 2 - y, 3 - z
   //   axis to not crawl along, positive or negative direction
-  crawlIntoChunkAt = (() => {
+  crawlIntoVoxelsAt = (() => {
     // Set of already crawled cells.
     const crawled = new Set();
 
@@ -1139,11 +1159,11 @@ export class BuilderSystem extends EventTarget {
       const { targetVoxId, targetVoxFrame, brushCrawlType, brushCrawlExtents } = this;
       const color = SYSTEMS.voxSystem.getVoxColorAt(targetVoxId, targetVoxFrame, origin.x, origin.y, origin.z);
 
-      const chunk = new Voxels([1, 1, 1]);
+      const voxels = new Voxels([1, 1, 1]);
       const colorMatch = brushCrawlType === BRUSH_CRAWL_TYPES.COLOR;
 
       // No voxel at crawl origin cell, shouldn't happen.
-      if (color === null) return [null, chunk];
+      if (color === null) return [null, voxels];
 
       const maxSize = SYSTEMS.voxSystem.getVoxSize(targetVoxId, targetVoxFrame);
       const [minX, maxX, minY, maxY, minZ, maxZ] = xyzRangeForSize(maxSize);
@@ -1170,13 +1190,13 @@ export class BuilderSystem extends EventTarget {
         const match = (colorMatch && c === color) || (!colorMatch && c !== null);
         if (!match) continue;
 
-        // Mask out omit axis coord in chunk, since we don't need that dimension
+        // Mask out omit axis coord in voxels, since we don't need that dimension
         const wx = omitX ? 0 : x;
         const wy = omitY ? 0 : y;
         const wz = omitZ ? 0 : z;
 
-        chunk.resizeToFit(wx, wy, wz);
-        chunk.setColorAt(wx, wy, wz, fillColor !== null ? fillColor : c);
+        voxels.resizeToFit(wx, wy, wz);
+        voxels.setColorAt(wx, wy, wz, fillColor !== null ? fillColor : c);
 
         for (let dx = -1; dx <= 1; dx++) {
           for (let dy = -1; dy <= 1; dy++) {
@@ -1230,7 +1250,7 @@ export class BuilderSystem extends EventTarget {
         }
       }
 
-      return [color, chunk];
+      return [color, voxels];
     };
   })();
 
@@ -1278,7 +1298,7 @@ export class BuilderSystem extends EventTarget {
     if (!this.targetVoxId) return;
     SYSTEMS.voxSystem.setShowVoxGeometry(this.targetVoxId, false);
     SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
-    this.pendingChunk = null;
+    this.pendingVoxels = null;
     this.targetVoxId = null;
     this.targetVoxFrame = null;
   }
