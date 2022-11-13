@@ -46,9 +46,10 @@
   - close out TODOs
   - create vox dialog
   - bake vox dialog
+    - make sure baking .vox works
   - vox name changes update asset on disk X
   - publish vox, should burn the axis, snap settings, scale
-  - test cases where pvox file is on internet, ie published
+  - test cases where svox file is on internet, ie published
     - cannot edit name
     - instantiated with scale, axis settings
     - can bake into new asset if writeback enabled
@@ -66,7 +67,17 @@
   - spawn from master, remote edit X
   - local import .vox
   - remote import .vox
+  - .vox linked (immutable)
+  - .vox upload (convert to svox)
   - smooth voxel materials on left, text editor in middle
+    - color swatches on left, sorted by hue
+    - mouse over each swatch shows the voxels
+    - group numbers, hover over each to see group
+    - modelwriter custom fields
+    - test compression base64
+    - move meshing to worker?
+    - builder mode should force side panels
+    - read .svox file and sync svox file format
 
 name not updating in self panel when updated by another peer
 pasting text not working, and causing cursor to act funny (not hoverable)
