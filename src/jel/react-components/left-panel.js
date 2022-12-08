@@ -9,7 +9,7 @@ import ActionButton from "./action-button";
 import addIcon from "../../assets/jel/images/icons/add.svgi";
 import HubContextMenu from "./hub-context-menu";
 import RenamePopup from "./rename-popup";
-import CreateHubPopup from "./create-hub-popup";
+import CreateFileObjectPopup from "./create-file-object-popup";
 import { createNewHubDocument, cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
 import HubTree from "./hub-tree";
 import InvitePanel from "./invite-panel";
@@ -201,7 +201,6 @@ function Invite({ styles, attributes, setPopperElement, children }) {
 
 function LeftPanel({
   treeManager,
-  history,
   hub,
   hubCan = () => false,
   spaceCan = () => false,
@@ -412,8 +411,9 @@ function LeftPanel({
         atomMetadata={spaceRenameMetadata}
         ref={spaceRenameFocusRef}
       />
-      <CreateHubPopup
+      <CreateFileObjectPopup
         ref={createHubFocusRef}
+        objectType="hub"
         popperElement={createHubPopupElement}
         setPopperElement={setCreateHubPopupElement}
         styles={createHubStyles}

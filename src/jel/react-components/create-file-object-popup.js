@@ -14,7 +14,7 @@ import LoadingSpinner from "./loading-spinner";
 let popupRoot = null;
 waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
 
-const CreateHubPopup = forwardRef(({ setPopperElement, styles, attributes, onCreate }, ref) => {
+const CreateFileObjectPopup = forwardRef(({ setPopperElement, styles, attributes, onCreate, objectType }, ref) => {
   const messages = getMessages();
   const [name, setName] = useState("");
   const [filename, setFilename] = useState("");
@@ -32,10 +32,10 @@ const CreateHubPopup = forwardRef(({ setPopperElement, styles, attributes, onCre
       <PopupPanelMenu style={{ padding: "12px", borderRadius: "12px" }} className="slide-up-when-popped">
         <PanelWrap>
           <Info>
-            <FormattedMessage id="create-hub-popup.info" />
+            <FormattedMessage id={`create-${objectType}-popup.info`} />
           </Info>
           <Tip>
-            <FormattedMessage id="create-hub-popup.tip" />&nbsp;
+            <FormattedMessage id={`create-${objectType}-popup.tip`} />&nbsp;
           </Tip>
           <form
             autoComplete="off"
@@ -65,10 +65,10 @@ const CreateHubPopup = forwardRef(({ setPopperElement, styles, attributes, onCre
                 name="name"
                 value={name}
                 required
-                placeholder={messages["create-hub-popup.name-placeholder"]}
+                placeholder={messages[`create-${objectType}-popup.name-placeholder`]}
                 min="3"
                 max="64"
-                title={messages["create-hub-popup.name-validation-warning"]}
+                title={messages[`create-${objectType}-popup.name-validation-warning`]}
                 onFocus={e => handleTextFieldFocus(e.target)}
                 onBlur={e => handleTextFieldBlur(e.target)}
                 onChange={e => {
@@ -92,7 +92,7 @@ const CreateHubPopup = forwardRef(({ setPopperElement, styles, attributes, onCre
             {exists &&
               !creating && (
                 <Tip style={{ lineHeight: "24px" }}>
-                  <FormattedMessage id="create-hub-popup.exists" />&nbsp;
+                  <FormattedMessage id={`create-${objectType}-popup.exists`} />&nbsp;
                 </Tip>
               )}
             {!exists &&
@@ -100,11 +100,11 @@ const CreateHubPopup = forwardRef(({ setPopperElement, styles, attributes, onCre
                 <Tip style={{ lineHeight: "24px" }}>
                   {name && filename ? (
                     <span>
-                      <FormattedMessage id="create-hub-popup.dest-prefix" />&nbsp;{filename}
+                      <FormattedMessage id={`create-${objectType}-popup.dest-prefix`} />&nbsp;{filename}
                     </span>
                   ) : (
                     <span>
-                      <FormattedMessage id="create-hub-popup.dest-empty" />
+                      <FormattedMessage id={`create-${objectType}-popup.dest-empty`} />
                     </span>
                   )}
                 </Tip>
@@ -113,12 +113,12 @@ const CreateHubPopup = forwardRef(({ setPopperElement, styles, attributes, onCre
               <Tip style={{ lineHeight: "24px" }}>
                 <LoadingSpinner style={{ marginRight: "8px" }} />
                 <span>
-                  <FormattedMessage id="create-hub-popup.waiting-for-deploy" />
+                  <FormattedMessage id={`create-${objectType}-popup.waiting-for-deploy`} />
                 </span>
               </Tip>
             )}
             <SmallActionButton disabled={!filename || !!exists || creating} type="submit">
-              <FormattedMessage id="create-hub-popup.create-world" />
+              <FormattedMessage id={`create-${objectType}-popup.create-world`} />
             </SmallActionButton>
           </form>
         </PanelWrap>
@@ -133,13 +133,14 @@ const CreateHubPopup = forwardRef(({ setPopperElement, styles, attributes, onCre
   }
 });
 
-CreateHubPopup.displayName = "CreateHubPopup";
+CreateFileObjectPopup.displayName = "CreateFileObjectPopup";
 
-CreateHubPopup.propTypes = {
+CreateFileObjectPopup.propTypes = {
   styles: PropTypes.object,
   attributes: PropTypes.object,
   setPopperElement: PropTypes.func,
-  onCreate: PropTypes.func
+  onCreate: PropTypes.func,
+  objectType: PropTypes.string
 };
 
-export { CreateHubPopup as default };
+export { CreateFileObjectPopup as default };
