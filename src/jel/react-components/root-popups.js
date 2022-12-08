@@ -95,9 +95,9 @@ function RootPopups({ scene, centerPopupRef }) {
         fileExtension="svox"
         filePath="assets"
         attributes={createVoxAttributes}
-        onCreate={async (name, filename, path) => {
-          SYSTEMS.voxSystem.createVoxInFrontOfPlayer(name, filename, path);
-        }}
+        onCreate={async (name, filename, path) =>
+          SYSTEMS.voxSystem.createVoxInFrontOfPlayer(name, `${path ? `${path}/` : ``}${filename}`)
+        }
       />
     </div>
   );

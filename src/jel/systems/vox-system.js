@@ -51,7 +51,7 @@ const WRITEBACK_DELAY_MS = 10000;
 const DELTA_RING_BUFFER_LENGTH = 32;
 const SVOX_ZERO_VECTOR = { x: 0, y: 0, z: 0 };
 const SVOX_DEFAULT_SCALE = { x: 0.125, y: 0.125, z: 0.125 };
-const SVOX_DEFAULT_POSITION = { x: 0.125 / 2, y: 0.125 / 2, z: 0.125 / 2 };
+const SVOX_DEFAULT_POSITION = { x: 0, y: 0, z: 0 };
 
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
 targettingMaterial.visible = false;
@@ -136,7 +136,7 @@ const svoxMaterial = new ShaderMaterial({
 });
 
 svoxMaterial.uniforms.gradientMap.value = toonGradientMap;
-svoxMaterial.uniforms.diffuse.value = new THREE.Color(0.8, 0.8, 0.8);
+svoxMaterial.uniforms.diffuse.value = new THREE.Color(1.0, 1.0, 1.0);
 
 svoxMaterial.stencilWrite = true; // Avoid SSAO
 svoxMaterial.stencilFunc = THREE.AlwaysStencilFunc;
@@ -145,6 +145,32 @@ svoxMaterial.stencilZPass = THREE.ReplaceStencilOp;
 
 svoxMaterial.onBeforeCompile = shader => {
   addVertexCurvingToShader(shader);
+
+  // This shader is fairly weird. Since the user is placing these voxels with explicit
+  // colors, we want the on-screen rendering color to match the palette fairly closely.
+  //
+  // Typical lighting will not really work: it ends up looking darker and less saturated.
+  //
+  // However, we have to compensate for shadows. So the material is a white diffuse which
+  // ends up generating the shadows into outgoingLight. We then scale + pow the shadows
+  // so they are high contrast (with regions in-light being white), and then mix the vertex
+  // color. The vertex color decoding earlier in the shader is discarded to avoid it getting
+  // applied in the lighting calculations.
+  //
+  // Note that if the shadow part is tuned too aggressively to show shadows then the shadow
+  // acne can get quite bad on smaller voxels.
+  //
+  // We also special case black, so the cel shaded border is not washed out.
+  shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", "");
+
+  shader.fragmentShader = shader.fragmentShader.replace(
+    "#include <fog_fragment>",
+    [
+      "vec3 shadows = clamp(vec3(pow(outgoingLight.r * 4.5, 5.0), pow(outgoingLight.g * 4.5, 5.0), pow(outgoingLight.b * 4.5, 5.0)), 0.0, 1.0);",
+      "gl_FragColor = vec4(mix(vec3(0.0, 0.0, 0.0), mix(shadows, vColor.rgb * reflectedLight.directDiffuse.rgb, 0.8), step(0.0001, vColor.r + vColor.g + vColor.b)), diffuseColor.a);",
+      "#include <fog_fragment>"
+    ].join("\n")
+  );
 };
 
 function createMesh(geometry, material) {
@@ -1488,18 +1514,17 @@ export class VoxSystem extends EventTarget {
   }
 
   static createDefaultSvoxModel(name = "Untitled") {
-    return modelFromString(
-      `
-      name = "${name.replace(/"/g, '\\"')}"
+    const cleanName = name.replace(/"/g, '\\"');
+
+    return modelFromString(`
+      name = "${cleanName}"
       revision = 1
       size = 1 1 1
       origin = -y
-      material type = toon, lighting = smooth, deform = 3 1
-        colors #000:A
+      material type = toon, lighting = flat
+        colors = A:#000
       voxels
-      A
-    `
-    );
+      -`);
   }
 
   getVoxSize(voxId, frame) {
