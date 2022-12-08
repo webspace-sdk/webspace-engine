@@ -417,6 +417,8 @@ function LeftPanel({
         popperElement={createHubPopupElement}
         setPopperElement={setCreateHubPopupElement}
         styles={createHubStyles}
+        fileExtension="html"
+        filePath=""
         attributes={createHubAttributes}
         onCreate={async (name, filename) => {
           const doc = createNewHubDocument(name);

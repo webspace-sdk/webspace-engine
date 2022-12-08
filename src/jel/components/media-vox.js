@@ -140,7 +140,7 @@ AFRAME.registerComponent("media-vox", {
     const { voxSystem } = SYSTEMS;
     const voxFilename = `my-vox-object-2.svox`;
     const voxName = "My New Vox 2";
-    const { url } = await voxSystem.createVoxInFrontOfPlayer(voxName, voxFilename, this.voxId);
+    const { url } = await voxSystem.createVoxInFrontOfPlayer(voxName, `assets/${voxFilename}`, this.voxId);
 
     const zOffset = getSpawnInFrontZOffsetForEntity(this.el);
     const sourceScale = this.el.object3D.scale;

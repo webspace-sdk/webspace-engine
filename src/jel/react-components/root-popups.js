@@ -2,11 +2,14 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import { usePopupPopper } from "../utils/popup-utils";
 import PropTypes from "prop-types";
 import CreateEmbedPopup from "./create-embed-popup";
+import CreateFileObjectPopup from "./create-file-object-popup";
 import ChatInputPopup from "./chat-input-popup";
 
 function RootPopups({ scene, centerPopupRef }) {
   const chatInputFocusRef = useRef();
   const createEmbedFocusRef = useRef();
+  const createVoxFocusRef = useRef();
+
   const [createEmbedType, setCreateEmbedType] = useState("image");
 
   const {
@@ -22,6 +25,14 @@ function RootPopups({ scene, centerPopupRef }) {
     show: showCreateEmbedPopup,
     setPopup: setCreateEmbedPopupElement
   } = usePopupPopper(createEmbedFocusRef, "bottom", [0, 8]);
+
+  const {
+    styles: createVoxStyles,
+    attributes: createVoxAttributes,
+    show: showCreateVoxPopup,
+    setPopup: setCreateVoxPopupElement,
+    popupElement: createVoxPopupElement
+  } = usePopupPopper(createVoxFocusRef, "bottom", [0, 8]);
 
   // Handle embed popup trigger
   useEffect(
@@ -48,6 +59,15 @@ function RootPopups({ scene, centerPopupRef }) {
     [scene, centerPopupRef, showChatInputPopup]
   );
 
+  useEffect(
+    () => {
+      const handleCreateVox = () => showCreateVoxPopup(centerPopupRef);
+      scene && scene.addEventListener("add_media_vox", handleCreateVox);
+      return () => scene && scene.removeEventListener("action_chat_entry", handleCreateVox);
+    },
+    [scene, centerPopupRef, showCreateVoxPopup]
+  );
+
   return (
     <div>
       <ChatInputPopup
@@ -65,6 +85,19 @@ function RootPopups({ scene, centerPopupRef }) {
         embedType={createEmbedType}
         ref={createEmbedFocusRef}
         onURLEntered={useCallback(url => scene.emit("add_media", url), [scene])}
+      />
+      <CreateFileObjectPopup
+        ref={createVoxFocusRef}
+        objectType="vox"
+        popperElement={createVoxPopupElement}
+        setPopperElement={setCreateVoxPopupElement}
+        styles={createVoxStyles}
+        fileExtension="svox"
+        filePath="assets"
+        attributes={createVoxAttributes}
+        onCreate={async (name, filename, path) => {
+          SYSTEMS.voxSystem.createVoxInFrontOfPlayer(name, filename, path);
+        }}
       />
     </div>
   );

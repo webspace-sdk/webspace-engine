@@ -192,16 +192,6 @@ export default class SceneEntryManager {
       });
     });
 
-    this.scene.addEventListener("add_media_vox", async () => {
-      if (!window.APP.atomAccessManager.hubCan("spawn_and_move_media")) return;
-      const { voxSystem } = SYSTEMS;
-
-      const voxFilename = `my-vox-object.svox`;
-      const voxName = "My New Vox";
-
-      voxSystem.createVoxInFrontOfPlayer(voxName, voxFilename);
-    });
-
     this.scene.addEventListener("add_media_emoji", ({ detail: emoji }) => {
       addMediaInFrontOfPlayerIfPermitted({ contents: emoji });
     });

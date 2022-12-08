@@ -585,11 +585,11 @@ export class VoxSystem extends EventTarget {
       // Current quad size for the mesher for this vox, based upon the scale. Start out big.
       mesherQuadSize: 16,
 
-      // For every instance and every vox frame, compute the inverse world to object matrix
+      // For every instance and every model frame, compute the inverse world to object matrix
       // for converting raycasts to cell coordinates.
       worldToObjectMatrices: Array(MAX_FRAMES_PER_VOX * MAX_INSTANCES_PER_VOX_ID).fill(null),
 
-      // For evrey instance and every vox frame, keep a dirty bit to determine when we need to
+      // For evrey instance and every model frame, keep a dirty bit to determine when we need to
       // compute the inverse for converting raycasts to cell coordinates.
       hasDirtyWorldToObjectMatrices: Array(MAX_FRAMES_PER_VOX * MAX_INSTANCES_PER_VOX_ID).fill(false),
       // Timeout for remeshing due to quad size changes to prevent repaid remeshing
@@ -640,13 +640,12 @@ export class VoxSystem extends EventTarget {
 
     voxIdToEntry.set(voxId, entry);
 
-    // If the vox is already available, use it, otherwise fetch frame data when first registering.
+    // If the model is already available, use it, otherwise fetch frame data when first registering.
     if (!voxIdToModel.has(voxId)) {
       const model = await fetchSVoxFromUrl(voxUrl, false, () => voxIdToModel.has(voxId));
 
       // Vox may have been set over p2p by this point, this is why we also stop retries above
       if (!voxIdToModel.has(voxId)) {
-        // For now, insert a fake frames field for backwards compat with old vox object
         voxIdToModel.set(voxId, model);
       }
     }
@@ -1488,17 +1487,18 @@ export class VoxSystem extends EventTarget {
     await this.applyVoxels(voxId, voxels, frame, [x, y, z]);
   }
 
-  static createDefaultSvoxModel() {
+  static createDefaultSvoxModel(name = "Untitled") {
     return modelFromString(
-      ```
-      name = "Untitled"
+      `
+      name = "${name.replace(/"/g, '\\"')}"
       revision = 1
       size = 1 1 1
       origin = -y
       material type = toon, lighting = smooth, deform = 3 1
+        colors #000:A
       voxels
-      -
-    ```
+      A
+    `
     );
   }
 
@@ -1765,11 +1765,10 @@ export class VoxSystem extends EventTarget {
     };
   })();
 
-  async createVoxInFrontOfPlayer(voxName, voxFilename, fromVoxId = null) {
+  async createVoxInFrontOfPlayer(voxName, voxPath, fromVoxId = null) {
     const { voxSystem, builderSystem } = SYSTEMS;
     const { voxMetadata } = window.APP;
     const { voxIdToModel } = this;
-    const voxPath = `assets/${voxFilename}`;
 
     const baseUrl = new URL(document.location.href);
     baseUrl.pathname = baseUrl.pathname.replace(/\/[^/]*$/, "/");
@@ -2103,7 +2102,7 @@ export class VoxSystem extends EventTarget {
           let filename = null;
 
           if (metadata.url.startsWith("file://") || metadata.url.startsWith("http")) {
-            const relativePath = getLocalRelativePathFromUrl(metadata.url);
+            const relativePath = getLocalRelativePathFromUrl(new URL(metadata.url));
 
             if (!relativePath || !relativePath.startsWith("assets/")) {
               console.warn("Cannot writeback vox to non-assets url", metadata.url);
