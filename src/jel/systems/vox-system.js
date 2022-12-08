@@ -2103,7 +2103,7 @@ export class VoxSystem extends EventTarget {
           let filename = null;
 
           if (metadata.url.startsWith("file://") || metadata.url.startsWith("http")) {
-            const relativePath = getLocalRelativePathFromUrl(new URL(metadata.url));
+            const relativePath = getLocalRelativePathFromUrl(metadata.url);
 
             if (!relativePath || !relativePath.startsWith("assets/")) {
               console.warn("Cannot writeback vox to non-assets url", metadata.url);

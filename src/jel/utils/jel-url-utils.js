@@ -72,7 +72,14 @@ export async function getSeedForHubIdFromHistory() {
 
 // Get the local relative path to the url from the specified URL
 // Returns null if the toURL is not from the local origin
-export function getLocalRelativePathFromUrl(toUrl) {
+export function getLocalRelativePathFromUrl(toUrlString) {
+  let toUrl;
+  try {
+    toUrl = new URL(toUrlString);
+  } catch (e) {
+    toUrl = new URL(toUrlString, document.location.href); // Relative path
+  }
+
   const fromUrl = document.location;
 
   if (toUrl.origin !== fromUrl.origin) return null;

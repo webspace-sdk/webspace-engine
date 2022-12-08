@@ -92,14 +92,12 @@ export async function fetchSVoxFromUrl(voxUrl, skipVoxels = false, shouldSkipRet
       let contentUrl = voxUrl;
       let cache = "default";
 
-      if (voxUrl.startsWith("file:") || voxUrl.startsWith("http:")) {
-        const relativePath = getLocalRelativePathFromUrl(new URL(voxUrl));
+      const relativePath = getLocalRelativePathFromUrl(voxUrl);
 
-        if (relativePath) {
-          // Use no-cache, which will do a conditional request since underlying file may have changed.
-          cache = "no-cache";
-          contentUrl = await atomAccessManager.contentUrlForRelativePath(relativePath);
-        }
+      if (relativePath) {
+        // Use no-cache, which will do a conditional request since underlying file may have changed.
+        cache = "no-cache";
+        contentUrl = await atomAccessManager.contentUrlForRelativePath(relativePath);
       }
 
       const response = await fetch(contentUrl, { cache });
