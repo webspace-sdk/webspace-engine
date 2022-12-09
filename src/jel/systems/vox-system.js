@@ -1790,7 +1790,7 @@ export class VoxSystem extends EventTarget {
     };
   })();
 
-  async createVoxInFrontOfPlayer(voxName, voxPath, fromVoxId = null) {
+  async createVoxInFrontOfPlayer(voxName, voxPath, fromVoxId = null, animate = true) {
     const { voxSystem, builderSystem } = SYSTEMS;
     const { voxMetadata } = window.APP;
     const { voxIdToModel } = this;
@@ -1825,7 +1825,13 @@ export class VoxSystem extends EventTarget {
         await this.applyVoxels(voxId, fromModel.frames[i], i, [0, 0, 0]);
       }
     } else {
-      await voxSystem.setVoxel(voxId, 0, 0, 0, builderSystem.brushVoxColor);
+      for (let x = -1; x <= 1; x++) {
+        for (let y = 0; y <= 2; y++) {
+          for (let z = -1; z <= 1; z++) {
+            await voxSystem.setVoxel(voxId, x, y, z, builderSystem.brushVoxColor);
+          }
+        }
+      }
     }
 
     // Pro-actively push metadata to self and peers
@@ -1838,11 +1844,11 @@ export class VoxSystem extends EventTarget {
       stack_snap_scale
     });
 
-    const entity = await voxSystem.spawnVoxInFrontOfPlayer(voxId);
+    const entity = await voxSystem.spawnVoxInFrontOfPlayer(voxId, animate);
     return { entity, url: voxUrl };
   }
 
-  async spawnVoxInFrontOfPlayer(voxId) {
+  async spawnVoxInFrontOfPlayer(voxId, animate = true) {
     const { builderSystem, launcherSystem } = SYSTEMS;
     const { voxMetadata } = window.APP;
 
@@ -1859,7 +1865,8 @@ export class VoxSystem extends EventTarget {
       yOffset: 0,
       stackAxis: stack_axis,
       stackSnapPosition: stack_snap_position,
-      stackSnapScale: stack_snap_scale
+      stackSnapScale: stack_snap_scale,
+      animate
     }).entity;
 
     entity.object3D.scale.setScalar(scale);

@@ -4,6 +4,8 @@ import PropTypes from "prop-types";
 import CreateEmbedPopup from "./create-embed-popup";
 import CreateFileObjectPopup from "./create-file-object-popup";
 import ChatInputPopup from "./chat-input-popup";
+import { SOUND_MEDIA_LOADED } from "../../hubs/systems/sound-effects-system";
+import { endCursorLock } from "../utils/dom-utils";
 
 function RootPopups({ scene, centerPopupRef }) {
   const chatInputFocusRef = useRef();
@@ -95,9 +97,24 @@ function RootPopups({ scene, centerPopupRef }) {
         fileExtension="svox"
         filePath="assets"
         attributes={createVoxAttributes}
-        onCreate={async (name, filename, path) =>
-          SYSTEMS.voxSystem.createVoxInFrontOfPlayer(name, `${path ? `${path}/` : ``}${filename}`)
-        }
+        onCreate={async (name, filename, path) => {
+          const { entity } = await SYSTEMS.voxSystem.createVoxInFrontOfPlayer(
+            name,
+            `${path ? `${path}/` : ``}${filename}`,
+            null, // fromVoxId
+            false // animate
+          );
+
+          await new Promise(res => entity.addEventListener("model-loaded", res, { once: true }));
+
+          SYSTEMS.cameraSystem.inspect(entity.object3D, 3.0, false, true, true);
+
+          // Play sound here, since animated is false
+          SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_MEDIA_LOADED);
+
+          // Show panels
+          endCursorLock();
+        }}
       />
     </div>
   );

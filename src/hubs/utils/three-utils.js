@@ -382,6 +382,7 @@ export const calculateViewingDistance = (function() {
     const length2 = Math.abs((halfXExtents * margin) / Math.tan(halfHorFOV));
     const length3 = Math.abs(box.max.z - center.z) + Math.max(length1, length2);
     const length = vrMode ? Math.max(0.25, length3) : length3;
+    console.log("Length", length);
     return length || 1.25;
   };
 })();
