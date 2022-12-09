@@ -437,7 +437,7 @@ export class BuilderSystem extends EventTarget {
               if (this.targetVoxId) {
                 // Direct hover from one vox to another, clear old pending.
                 SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
-                SYSTEMS.voxSystem.setShowVoxGeometry(hitVoxId, false);
+                SYSTEMS.voxSystem.setShowVoxGeometry(this.targetVoxId, false);
                 this.pendingVoxels = null;
                 this.targetVoxId = null;
                 this.targetVoxFrame = null;

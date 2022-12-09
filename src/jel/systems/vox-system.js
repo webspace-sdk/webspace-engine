@@ -1521,7 +1521,7 @@ export class VoxSystem extends EventTarget {
       revision = 1
       size = 1 1 1
       origin = -y
-      material type = toon, lighting = flat
+      material type = toon, lighting = smooth, deform = 1 1
         colors = A:#000
       voxels
       -`);
