@@ -1,8 +1,26 @@
 import { MeshBVH } from "three-mesh-bvh";
 import nextTick from "./next-tick";
+const { Raycaster, Vector2, Vector3, Plane } = THREE;
 
 const tempVector3 = new THREE.Vector3();
 const tempQuaternion = new THREE.Quaternion();
+const ORIGIN_VECTOR2 = new Vector2();
+
+const tempPlane = new Plane(new Vector3(1, 0, 0), 0);
+
+const raycaster = new Raycaster();
+raycaster.firstHitOnly = true;
+
+export function getCameraOrbitFocalPoint(camera, object, bbox, target) {
+  // Focal plane is the intersection point of the object-local Y plane with the camera ray
+  tempVector3
+    .set(0, 1, 0)
+    .applyQuaternion(object.quaternion)
+    .normalize();
+  tempPlane.setFromNormalAndCoplanarPoint(tempVector3, object.position);
+  raycaster.setFromCamera(ORIGIN_VECTOR2, camera);
+  raycaster.ray.intersectPlane(tempPlane, target);
+}
 
 export function getLastWorldPosition(src, target) {
   src.updateMatrices();
@@ -382,7 +400,6 @@ export const calculateViewingDistance = (function() {
     const length2 = Math.abs((halfXExtents * margin) / Math.tan(halfHorFOV));
     const length3 = Math.abs(box.max.z - center.z) + Math.max(length1, length2);
     const length = vrMode ? Math.max(0.25, length3) : length3;
-    console.log("Length", length);
     return length || 1.25;
   };
 })();

@@ -1,5 +1,5 @@
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
-import { childMatch, setMatrixWorld, calculateViewingDistance } from "../utils/three-utils";
+import { childMatch, setMatrixWorld, calculateViewingDistance, getCameraOrbitFocalPoint } from "../utils/three-utils";
 import { shouldOrbitOnInspect } from "../utils/media-utils";
 import { paths } from "./userinput/paths";
 import { getBox } from "../utils/auto-box-collider";
@@ -100,7 +100,7 @@ function getAudio(o) {
   return audio;
 }
 
-const FALLOFF = 0.9;
+const ZOOM_FALLOFF = 0.33;
 
 export class CameraSystem extends EventTarget {
   constructor(scene) {
@@ -567,7 +567,7 @@ export class CameraSystem extends EventTarget {
         if (inspectZoom) {
           this.inspectZoom = inspectZoom + (5 * this.inspectZoom) / 6;
         } else if (Math.abs(this.inspectZoom) > 0.0001) {
-          this.inspectZoom = FALLOFF * this.inspectZoom;
+          this.inspectZoom = ZOOM_FALLOFF * this.inspectZoom;
         } else {
           this.inspectZoom = 0;
         }
@@ -625,6 +625,7 @@ export class CameraSystem extends EventTarget {
     const dhQ = new THREE.Quaternion();
     const dvQ = new THREE.Quaternion();
     const center = new THREE.Vector3();
+    const focalPoint = new THREE.Vector3();
     return function orbit(dt, panX, panY) {
       const object = this.inspected;
       const rig = this.viewingRig.object3D;
@@ -638,17 +639,26 @@ export class CameraSystem extends EventTarget {
         target.applyMatrix4(IDENTITY); // make sure target gets updated at least once for our matrix optimizations
       }
       object.updateMatrices();
+
+      const box = getEntityBox(object);
+      box.getCenter(center);
+
       decompose(object.matrixWorld, owp, owq);
       decompose(camera.matrixWorld, cwp, cwq);
+
+      getCameraOrbitFocalPoint(camera, object, box, focalPoint);
+
       rig.getWorldQuaternion(rwq);
 
       dhQ.setFromAxisAngle(UP.set(0, 1, 0).applyQuaternion(owq), 0.1 * dh * dt);
       target.quaternion.copy(cwq).premultiply(dhQ);
-      const dPos = new THREE.Vector3().subVectors(cwp, owp);
+
+      dvQ.setFromAxisAngle(RIGHT.set(1, 0, 0).applyQuaternion(target.quaternion), 0.1 * dv * dt);
+      target.quaternion.premultiply(dvQ);
+
+      const dPos = new THREE.Vector3().subVectors(cwp, focalPoint);
       const zoom = 1 - dz * dt;
       const newLength = dPos.length() * (this.isRenderingOrthographic() ? 1 : zoom);
-      const box = getEntityBox(object);
-      box.getCenter(center);
       const vrMode = object.el.sceneEl.is("vr-mode");
       const dist =
         calculateViewingDistance(
@@ -668,13 +678,10 @@ export class CameraSystem extends EventTarget {
         dPos.multiplyScalar(zoom);
       }
 
-      dvQ.setFromAxisAngle(RIGHT.set(1, 0, 0).applyQuaternion(target.quaternion), 0.1 * dv * dt);
-      target.quaternion.premultiply(dvQ);
-
       // Note that for orthographic camera, the length is irrelevant when panning
       // since there is no perspective transform.
       target.position
-        .addVectors(owp, dPos.applyQuaternion(dhQ).applyQuaternion(dvQ))
+        .addVectors(focalPoint, dPos.applyQuaternion(dhQ).applyQuaternion(dvQ))
         .add(
           RIGHT.set(1, 0, 0)
             .applyQuaternion(cwq)
@@ -770,7 +777,6 @@ export class CameraSystem extends EventTarget {
         vv.copy(target.position);
         vv.sub(object.position);
         vv.normalize();
-        console.log(dist);
         vv.multiplyScalar(Math.max(1.5, dist));
         target.position.copy(object.position).add(vv);
         target.matrixNeedsUpdate = true;

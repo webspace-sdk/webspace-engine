@@ -21,7 +21,7 @@ const editViaKeyboard2 = "/vars/mouse-and-keyboard/editViaKeyboard2";
 const notControlSpace = "/vars/mouse-and-keyboard/notControlSpace";
 
 const qs = new URLSearchParams(location.search);
-const inspectZoomSpeed = parseFloat(qs.get("izs")) || -10.0;
+const inspectZoomSpeed = parseFloat(qs.get("izs")) || -20.0;
 const controlM = "/var/control+m";
 const movementX = "/var/movementX";
 const movementY = "/var/movementY";
