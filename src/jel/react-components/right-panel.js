@@ -33,14 +33,7 @@ const PresenceContent = styled.div`
   flex: 1 1 auto;
   width: 100%;
   padding: 16px 0;
-
-  &.build {
-    height: calc(100% - 740px);
-  }
-
-  &.launch {
-    height: calc(100% - 330px);
-  }
+  height: calc(100% - 330px);
 `;
 
 const BlasterContent = styled.div`
@@ -126,10 +119,7 @@ function RightPanel({ hub, hubCan, sessionId, scene, centerPopupRef }) {
   return (
     <Right>
       <Presence>
-        <PresenceContent
-          style={isInEditorView ? { display: "none" } : {}}
-          className={triggerMode === "launcher" ? "launch" : "build"}
-        >
+        <PresenceContent style={triggerMode === "builder" ? { display: "none" } : {}}>
           <PresenceList
             scene={scene}
             sessionId={sessionId}
@@ -148,13 +138,12 @@ function RightPanel({ hub, hubCan, sessionId, scene, centerPopupRef }) {
           </BlasterContent>
         )}
         {triggerMode === "builder" && (
-          <BuilderContent style={isInEditorView ? { marginTop: "8px" } : {}}>
+          <BuilderContent style={{ marginTop: "8px" }}>
             <BuilderControls />
           </BuilderContent>
         )}
         {!isInEditorView &&
           hub &&
-          false &&
           hubCan("spawn_and_move_media", hub.hub_id) && (
             <TriggerModePanel>
               <SegmentControl

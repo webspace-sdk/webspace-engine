@@ -402,27 +402,6 @@ function addGlobalEventListeners(scene, entryManager, atomAccessManager) {
     }
   });
 
-  scene.addEventListener("cursor-lock-state-changed", () => {
-    const uiAnimationSystem = scene.systems["hubs-systems"].uiAnimationSystem;
-
-    const cursorLockState = getCursorLockState();
-    const panelsCollapsed = uiAnimationSystem.isCollapsingOrCollapsed();
-
-    // Do not affect panels when in ephemeral locking states
-    const locked = cursorLockState === CURSOR_LOCK_STATES.LOCKED_PERSISTENT;
-    const unlocked = cursorLockState === CURSOR_LOCK_STATES.UNLOCKED_PERSISTENT;
-    if (
-      !isInQuillEditor() &&
-      !isInEditableField() &&
-      ((panelsCollapsed && unlocked) || (!panelsCollapsed && locked)) &&
-      !SYSTEMS.cameraSystem.isInspecting()
-    ) {
-      if (panelsCollapsed) {
-        uiAnimationSystem.collapseSidePanels();
-      }
-    }
-  });
-
   scene.addEventListener("action_focus_chat", () => {
     const chatFocusTarget = DOM_ROOT.querySelector(".chat-focus-target");
     chatFocusTarget && chatFocusTarget.focus();
@@ -1061,7 +1040,7 @@ async function start() {
   });
 
   canvas.addEventListener("mousedown", () => {
-    if (!isInEditableField() && !SYSTEMS.cameraSystem.isEditing()) {
+    if (!isInEditableField() && !SYSTEMS.cameraSystem.isEditing() && !SYSTEMS.builderSystem.enabled) {
       SYSTEMS.uiAnimationSystem.collapseSidePanels();
     }
   });

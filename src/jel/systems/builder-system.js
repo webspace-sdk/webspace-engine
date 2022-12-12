@@ -119,6 +119,8 @@ export class BuilderSystem extends EventTarget {
 
     if (!this.enabled) {
       this.cancelPending();
+    } else {
+      SYSTEMS.uiAnimationSystem.expandSidePanels();
     }
   }
 

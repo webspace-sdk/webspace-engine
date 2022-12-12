@@ -16,6 +16,7 @@ import styled from "styled-components";
 const BuilderControlsElement = styled.div`
   display: flex;
   flex-direction: column;
+  height: 100%;
 `;
 
 const NumericInput = styled.input`
@@ -61,6 +62,7 @@ const ToolWrap = styled.div`
 
 const OptionsWrap = styled.div`
   display: flex;
+  flex: 10;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
@@ -95,7 +97,6 @@ const BuilderControls = forwardRef((props, ref) => {
   const showCrawlType = tool === BRUSH_TYPES.FACE || tool === BRUSH_TYPES.FILL;
   const showCrawlExtents = tool === BRUSH_TYPES.FACE || tool === BRUSH_TYPES.FILL;
   const showColorFillMode = tool === BRUSH_TYPES.FACE;
-  const showMirror = tool !== BRUSH_TYPES.FILL && tool !== BRUSH_TYPES.PICK;
   const messages = getMessages();
 
   useEffect(
@@ -306,7 +307,7 @@ const BuilderControls = forwardRef((props, ref) => {
         )}
       </OptionsWrap>
       <PanelSectionHeader style={{ height: "16px" }}>
-        <FormattedMessage id="build.material.header" />
+        <FormattedMessage id="build.palette.header" />
       </PanelSectionHeader>
       <ColorEquip onSelectedColorClicked={onSelectedColorClicked} />
     </BuilderControlsElement>

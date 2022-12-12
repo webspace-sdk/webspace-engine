@@ -71,7 +71,7 @@ const ColorEquipElement = styled.div`
   position: relative;
   display: flex;
   width: 100%;
-  height: 280px;
+  height: 240px;
   margin-bottom: 12px;
 `;
 
