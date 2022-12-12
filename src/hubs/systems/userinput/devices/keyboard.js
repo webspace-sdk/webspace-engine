@@ -38,6 +38,12 @@ export class KeyboardDevice {
             e.preventDefault();
           }
 
+          // In builder mode or in the vox editor, we allow you to hold alt to get an eye dropper
+          // Not preventing default here will cause the browser menu to be focused on windows
+          if (e.code === "AltLeft" || e.code === "AltRight") {
+            e.preventDefault();
+          }
+
           // Alt Keybindings are needed here, because user input system for hotkeys doesn't work for modifier conflicts. :P
           if (SYSTEMS.builderSystem.enabled && e.type === "keydown") {
             if (e.altKey) {

@@ -43,7 +43,7 @@
   - .vox upload local (convert to svox)
   - .vox upload remote (convert to svox)
   - editor UX
-    - initial name has quotes
+    - initial name has quotes X
     - eyedropper is breaking brushes
     - close button in vox editor, drop left panel
     - show panels during build mode

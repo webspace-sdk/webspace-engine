@@ -216,18 +216,21 @@ export class BuilderSystem extends EventTarget {
     const holdingShift = userinput.get(shiftPath);
     const wheel = userinput.get(paths.actions.equipScroll);
 
-    if (holdingAlt) {
-      if (!this.setPickForAlt) {
-        this.setPickForAlt = true;
-        this.cancelPending();
+    // Check alt key for auto-pick when in editor
+    if (SYSTEMS.cameraSystem.isInspecting()) {
+      if (holdingAlt) {
+        if (!this.setPickForAlt) {
+          this.setPickForAlt = true;
+          this.cancelPending();
 
-        this.setBrushType(BRUSH_TYPES.PICK);
+          this.setBrushType(BRUSH_TYPES.PICK);
+        }
+      } else {
+        if (this.setPickForAlt && this.prePickBrushType !== null) {
+          this.setBrushType(this.prePickBrushType);
+        }
+        this.setPickForAlt = false;
       }
-    } else {
-      if (this.setPickForAlt && this.prePickBrushType !== null) {
-        this.setBrushType(this.prePickBrushType);
-      }
-      this.setPickForAlt = false;
     }
 
     if (holdingShift && !holdingLeft) {
