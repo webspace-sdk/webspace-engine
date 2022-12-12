@@ -393,7 +393,7 @@ const Generators = {
       terrain: (x, y, z) => terrain(x, y, z)[0]
     };
   },
-  flat({ seed, palettes, types }) {
+  plains({ seed, palettes, types }) {
     const computeColor = getFixedColor();
     const noise = new FastNoise(seed);
     const worldHeight = waterLevel + 1;
@@ -424,6 +424,24 @@ const Generators = {
 
         return false;
       }
+    };
+  },
+  flat({ seed, palettes, types }) {
+    const computeColor = getFixedColor();
+    const noise = new FastNoise(seed);
+    const worldHeight = waterLevel + 1;
+    const terrain = (x, y, z) => {
+      const isBlock = y <= worldHeight;
+      return {
+        type: isBlock ? types.dirt : types.air,
+        color: isBlock ? computeColor(noise, x, y, z, palettes.terrain) : { r: 0, g: 0, b: 0 },
+        low_lod_color: isBlock ? computeColor(noise, x, y, z, palettes.terrain) : { r: 0, g: 0, b: 0 },
+        palette: isBlock ? VOXEL_PALETTE_GROUND : VOXEL_PALETTE_NONE
+      };
+    };
+    return {
+      terrain,
+      feature: () => false
     };
   }
 };

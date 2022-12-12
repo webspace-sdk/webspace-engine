@@ -40,10 +40,11 @@ export const WORLD_SIZE = WORLD_MAX_COORD - WORLD_MIN_COORD;
 
 // Radius is artificial, want to have a specific curve effect not accurancy
 // TODO adjust based on world type, note also changed in unlit-batch.vert.
-export const WORLD_RADIUS = 256.0;
+export const WORLD_RADIUS = 128.0;
 
 export const addVertexCurvingToShader = (shader, postCurveShader = "") => {
-  shader.vertexShader = shader.vertexShader.replace(
+  return;
+  /*shader.vertexShader = shader.vertexShader.replace(
     "#include <project_vertex>",
     [
       "#define cplx vec2",
@@ -75,7 +76,7 @@ export const addVertexCurvingToShader = (shader, postCurveShader = "") => {
       "gl_Position = projectionMatrix * viewMatrix * pos;",
       postCurveShader
     ].join("\n")
-  );
+  );*/
 };
 
 export const addVertexCurvingToMaterial = material => {

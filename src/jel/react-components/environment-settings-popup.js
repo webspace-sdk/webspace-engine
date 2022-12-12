@@ -412,6 +412,15 @@ const EnvironmentSettingsPopup = ({
     [showPickerAtRef, rockColor]
   );
 
+  const flatRadioChange = useCallback(
+    e => {
+      if (e.target.checked) {
+        onTypeChanged(WORLD_TYPES.FLAT);
+      }
+    },
+    [onTypeChanged]
+  );
+
   const plainsRadioChange = useCallback(
     e => {
       if (e.target.checked) {
@@ -625,6 +634,19 @@ const EnvironmentSettingsPopup = ({
           )}
           {showAllSettings && (
             <InputWrap style={{ minHeight: "48px", marginLeft: "24px" }}>
+              <RadioWrap>
+                <Radio
+                  type="radio"
+                  id={"world_type_flat"}
+                  name={"world_type"}
+                  checked={worldType === WORLD_TYPES.FLAT}
+                  value={WORLD_TYPES.FLAT}
+                  onChange={flatRadioChange}
+                />
+                <Label htmlFor="world_type_flat" style={{ cursor: "pointer" }}>
+                  <FormattedMessage id="environment-settings-popup.world-type-flat" />
+                </Label>
+              </RadioWrap>
               <RadioWrap>
                 <Radio
                   type="radio"

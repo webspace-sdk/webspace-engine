@@ -1861,7 +1861,6 @@ export class VoxSystem extends EventTarget {
   }
 
   async spawnVoxInFrontOfPlayer(voxId, animate = true) {
-    const { builderSystem, launcherSystem } = SYSTEMS;
     const { voxMetadata } = window.APP;
 
     const metadata = await voxMetadata.getOrFetchMetadata(voxId);

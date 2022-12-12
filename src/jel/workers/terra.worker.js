@@ -8,7 +8,7 @@ const CHUNK_VERSION = 1;
 const WORLD_TYPE_GENERATORS = {
   1: "islands",
   2: "hilly",
-  3: "flat",
+  3: "plains",
   4: "flat"
 };
 
