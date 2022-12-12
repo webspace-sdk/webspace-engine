@@ -221,9 +221,8 @@ export class BuilderSystem extends EventTarget {
       if (holdingAlt) {
         if (!this.setPickForAlt) {
           this.setPickForAlt = true;
-          this.cancelPending();
-
           this.setBrushType(BRUSH_TYPES.PICK);
+          this.cancelPending();
         }
       } else {
         if (this.setPickForAlt && this.prePickBrushType !== null) {
@@ -518,6 +517,7 @@ export class BuilderSystem extends EventTarget {
 
                   updatePending = false;
                   this.ignoreRestOfStroke = true;
+                  this.isBrushing = false;
                 }
               } else {
                 // Started brushing on a published vox.
@@ -545,7 +545,6 @@ export class BuilderSystem extends EventTarget {
         // exited from hover so clear the pending.
         if (this.targetVoxId !== null && !this.isBrushing) {
           this.cancelPending();
-          SYSTEMS.voxSystem.setShowVoxGeometry(this.targetVoxId, false);
           this.brushEndCell.set(Infinity, Infinity, Infinity);
         }
       }
@@ -1299,7 +1298,13 @@ export class BuilderSystem extends EventTarget {
 
   cancelPending() {
     if (!this.targetVoxId) return;
-    SYSTEMS.voxSystem.setShowVoxGeometry(this.targetVoxId, false);
+    if (!this.pendingVoxels) return;
+
+    if (this.brushType !== BRUSH_TYPES.PICK) {
+      // Avoid flicker when using picker
+      SYSTEMS.voxSystem.setShowVoxGeometry(this.targetVoxId, false);
+    }
+
     SYSTEMS.voxSystem.clearPendingAndUnfreezeMesh(this.targetVoxId);
     this.pendingVoxels = null;
     this.targetVoxId = null;
