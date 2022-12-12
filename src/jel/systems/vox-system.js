@@ -1853,6 +1853,10 @@ export class VoxSystem extends EventTarget {
     });
 
     const entity = await voxSystem.spawnVoxInFrontOfPlayer(voxId, animate);
+
+    // This will flush the metadata into the model object locally
+    this.onVoxMetadataUpdated([voxId]);
+
     return { entity, url: voxUrl };
   }
 
