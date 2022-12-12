@@ -1,49 +1,22 @@
-- get rid of a-assets, see how mozilla does it
 - deal with hub store
-- name generator
-- remove hubs cloud stuff from webpack
 - jel.js -> index.js
 - jel -> ws
-- search for TODO SHARED
-- powered by link
-- bring in avatar audio system
 - remove unused local storage fields
-- ambient sound meta tag
-- skybox in meta tag
-- drop config system (maybe keep some meta tags)
-- drop envs in webpack config
-- sessionId -> clientId
-- refactor all event names to be dash-cased
-- bring over muted ring
-- if works, move to nginx + webdav for writeback?
-- index.html add networking config
 - deno cors proxying split + ytdl enable + move configs into index.html
-- authorize + sanitize in NAF adapter
-- cut down dead code
-- review all deps
-- consolidate channel classes
-- make voxmoji float
-- browser compat, show message if trying to edit file:// in non-chrome
 - test ff + safari
-- allow networking settings to be changed via qs
-- remove all unused translations
+- take a stab at mobile view
 - upload progress
-- deal with filtering networking based on roles + hub setting for allowing edits
 - left click to drag objects, right click to edit objects
   - left click to add voxels in build mode?
 - add a ui toggle button in top left due to docks on side of screen
-- build mode still showing presence list
-- add service to register spaces
+  - this can be back button out of editor too
 - duck should upload glb
 - two settings:
   - allow others to edit and create objects
   - disable live HTML updates
-- cull permissions (in atom manager)
-- spawn around origin
-- make sure dropping same file from assets folder works
 - vox
   - close out TODOs
-  - create vox dialog
+  - create vox dialog X
   - bake vox dialog
     - make sure baking .vox works
   - vox name changes update asset on disk X
@@ -67,8 +40,11 @@
   - local import .vox
   - remote import .vox
   - .vox linked (immutable)
-  - .vox upload (convert to svox)
+  - .vox upload local (convert to svox)
+  - .vox upload remote (convert to svox)
   - editor UX
+    - initial name has quotes
+    - eyedropper is breaking brushes
     - close button in vox editor, drop left panel
     - show panels during build mode
     - undo/redo buttons
@@ -85,6 +61,41 @@
 
 name not updating in self panel when updated by another peer
 pasting text not working, and causing cursor to act funny (not hoverable)
+make cursor more visible
+tippy root getting into dom
+drop AO?
+
+---
+
+- get rid of a-assets, see how mozilla does it
+- name generator
+- remove hubs cloud stuff from webpack
+- search for TODO SHARED
+- powered by link
+- bring in avatar audio system
+- ambient sound meta tag
+- skybox in meta tag
+- drop config system (maybe keep some meta tags)
+- drop envs in webpack config
+- sessionId -> clientId
+- refactor all event names to be dash-cased
+- bring over muted ring
+- index.html add networking config
+- authorize + sanitize in NAF adapter
+- cut down dead code
+- review all deps
+- consolidate channel classes
+- make voxmoji float
+- browser compat, show message if trying to edit file:// in non-chrome
+- allow networking settings to be changed via qs
+- remove all unused translations
+- deal with filtering networking based on roles + hub setting for allowing edits
+- build mode still showing presence list
+- add service to register spaces
+- cull permissions (in atom manager)
+- spawn around origin
+- make sure dropping same file from assets folder works
+
 should push terrain chunks to origin on first edit
 need to writeback page change on pdf iff its locked
 video playback stopping when tabbing away
@@ -94,7 +105,5 @@ video tick should keep running when tabbed away
 video reset to beginning when anotehr person joins (delay video ownership until joins?)
 make sure removing CORS anywhere tag disalbed youtube
 test HLS and dash
-make cursor more visible
 
 
-tippy root getting into dom

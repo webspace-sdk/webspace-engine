@@ -429,8 +429,18 @@ export class VoxSystem extends EventTarget {
   }
 
   onVoxMetadataUpdated(voxIds) {
+    const { voxMetadata } = window.APP;
+    const { voxIdToModel } = this;
+
     for (const voxId of voxIds) {
       this.markDirtyForWriteback(voxId);
+
+      const model = voxIdToModel.get(voxId);
+      if (!model) continue;
+
+      if (voxMetadata.hasMetadata(voxId)) {
+        model.name = voxMetadata.getMetadata(voxId).name;
+      }
     }
   }
 
@@ -1514,10 +1524,8 @@ export class VoxSystem extends EventTarget {
   }
 
   static createDefaultSvoxModel(name = "Untitled") {
-    const cleanName = name.replace(/"/g, '\\"');
-
     return modelFromString(`
-      name = "${cleanName}"
+      name = ${name}
       revision = 1
       size = 1 1 1
       origin = -y

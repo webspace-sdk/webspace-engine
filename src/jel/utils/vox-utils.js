@@ -18,6 +18,7 @@ const CUSTOM_MODEL_FIELDS = {
 
 export function modelFromString(string, skipVoxels = false) {
   const model = ModelReader.readFromString(string, CUSTOM_MODEL_FIELDS, skipVoxels);
+
   // Copy in frames for now
   model.frames = [model.voxels];
 
