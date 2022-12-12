@@ -1884,11 +1884,6 @@ export class VoxSystem extends EventTarget {
     entity.object3D.scale.setScalar(scale);
     entity.object3D.matrixNeedsUpdate = true;
 
-    if (!builderSystem.enabled) {
-      builderSystem.toggle();
-      launcherSystem.toggle();
-    }
-
     entity.addEventListener("model-loaded", () => this.markDirtyForWriteback(voxId), { once: true });
 
     return entity;

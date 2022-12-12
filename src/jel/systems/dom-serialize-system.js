@@ -130,8 +130,6 @@ const updateDomElForEl = (domEl, el) => {
   let srcTargetAttribute = "src";
 
   if (el.components["media-image"]) {
-    const imageSrc = el.components["media-image"].data.src;
-
     if (domEl.tagName === "A") {
       srcTargetAttribute = "href";
     } else {

@@ -39,17 +39,17 @@
   - spawn from master, remote edit X
   - local import .vox
   - remote import .vox
-  - .vox linked (immutable)
+  - .svox linked (immutable)
   - .vox upload local (convert to svox)
   - .vox upload remote (convert to svox)
   - editor UX
     - initial name has quotes X
-    - eyedropper is breaking brushes
+    - eyedropper is breaking brushes X
     - close button in vox editor, drop left panel
-    - show panels during build mode
+    - show panels during build mode X
     - undo/redo buttons
     - show origin with ray
-    - open into editor immediately
+    - open into editor immediately X
   - smooth voxel materials on left, text editor in middle
     - color swatches on left, sorted by hue
     - mouse over each swatch shows the voxels
@@ -57,7 +57,6 @@
     - modelwriter custom fields
     - test compression base64
     - move meshing to worker?
-    - builder mode should force side panels
 
 name not updating in self panel when updated by another peer
 pasting text not working, and causing cursor to act funny (not hoverable)
@@ -95,6 +94,9 @@ drop AO?
 - cull permissions (in atom manager)
 - spawn around origin
 - make sure dropping same file from assets folder works
+- need to figure out stack axis. it is stored in the DOM, but also can be in the file.
+  - suggestion: take it out of metadata, and during writeback look it up on the media loaders
+                when spawning, initialize the media loader with what's in the file
 
 should push terrain chunks to origin on first edit
 need to writeback page change on pdf iff its locked

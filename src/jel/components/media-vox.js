@@ -138,8 +138,11 @@ AFRAME.registerComponent("media-vox", {
 
   async snapshotNewVox() {
     const { voxSystem } = SYSTEMS;
-    const voxFilename = `my-vox-object-2.svox`;
-    const voxName = "My New Vox 2";
+    const { voxMetadata } = window.APP;
+
+    const voxName = voxMetadata.hasMetadata(this.voxId) ? voxMetadata.getMetadata(this.voxId).name : "Untitled";
+    const voxFilename = `${voxName.replace(/\s/g, "_")}-${Math.floor(Math.random() * 999999) + 1}.svox`;
+
     const { url } = await voxSystem.createVoxInFrontOfPlayer(voxName, `assets/${voxFilename}`, this.voxId);
 
     const zOffset = getSpawnInFrontZOffsetForEntity(this.el);

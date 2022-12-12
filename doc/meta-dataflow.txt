@@ -3,3 +3,4 @@ channel.updateHubMeta -> broadcasts message -> pushes to DOM -> mutate observer 
 
 space metadata update
 dynachannel.updateSpace -> flush local updates -> writes tree (to filesystem) *and* broadcasts full HTML to peers via update_nav -> listens for update_nav -> updates local tree document -> rebuilds tree data -> fires treedata_updated event -> space metadata source -> fetch from tree index DOM (now updated to new document) -> fires space_meta_refresh -> updates UI
+
