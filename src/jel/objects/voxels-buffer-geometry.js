@@ -798,10 +798,10 @@ class VoxelsBufferGeometry extends BufferGeometry {
       }
     }
 
-    const gridMinX = xMin - 3;
-    const gridMaxX = xMax + 3;
-    const gridMinZ = zMin - 3;
-    const gridMaxZ = zMax + 3;
+    const gridMinX = xMin - 5;
+    const gridMaxX = xMax + 5;
+    const gridMinZ = zMin - 5;
+    const gridMaxZ = zMax + 5;
 
     if (addXZPlane) {
       pushFace(

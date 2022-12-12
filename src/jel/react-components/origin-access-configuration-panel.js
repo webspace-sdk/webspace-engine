@@ -41,7 +41,7 @@ const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked, failedOri
         <div style={{ whiteSpace: "nowrap", marginRight: "24px" }}>
           <FormattedMessage id="origin-access-config.title" />
         </div>
-        <SegmentControl
+        {/*<SegmentControl
           rows={1}
           cols={2}
           items={[
@@ -60,7 +60,7 @@ const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked, failedOri
           ]}
           selectedIndices={originType === "github" ? [0] : [1]}
           onChange={typeToggleOnChange}
-        />
+        />*/}
       </PanelSectionHeader>
       {originType === "github" && (
         <>
