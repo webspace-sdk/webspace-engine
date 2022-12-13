@@ -301,7 +301,7 @@ export default function AssetPanel(props) {
       e.dataTransfer.dropEffect = "move";
       const id = e.target.getAttribute("data-item-id");
       const canvas = document.createElement("canvas");
-      e.dataTransfer.setData(`jel/vox`, id);
+      e.dataTransfer.setData(`webspaces/vox`, id);
       canvas.width = canvas.height = 1;
       e.dataTransfer.setDragImage(canvas, 0, 0);
       e.target.classList.remove("active");

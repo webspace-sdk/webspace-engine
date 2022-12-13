@@ -486,7 +486,7 @@ export class DomSerializeSystem {
   shouldIncludeMediaElInDom(el) {
     if (!el.components["media-loader"]) return false;
     if (el.components["media-loader"].data.src.startsWith("blob:")) return false;
-    if (el.components["media-loader"].data.src.startsWith("jel://clients")) return false;
+    if (el.components["media-loader"].data.src.startsWith("webspace://clients")) return false;
 
     return true;
   }

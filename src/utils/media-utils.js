@@ -599,12 +599,12 @@ export const addMedia = options => {
         entity.setAttribute("media-loader", { src: "error" });
       });
   } else if (isVideoShare) {
-    const selfVideoShareUrl = `jel://clients/${NAF.clientId}/video`;
+    const selfVideoShareUrl = `webspace://clients/${NAF.clientId}/video`;
     entity.setAttribute("media-loader", { src: selfVideoShareUrl });
   } else if (contents !== null) {
     // If contents were set, update the src to reflect the media-text property that is bound.
     getNetworkedEntity(entity).then(el => {
-      const src = `jel://entities/${getNetworkId(el)}/components/${
+      const src = `webspace://entities/${getNetworkId(el)}/components/${
         isEmoji ? "media-emoji/properties/emoji" : "media-text/properties/deltaOps/contents"
       }`;
       entity.setAttribute("media-loader", { src });
@@ -1275,7 +1275,7 @@ export const hasActiveScreenShare = () => {
   for (const videoEl of videoEls) {
     const component = videoEl.components["media-video"];
 
-    if (component.data.contentType === "video/vnd.jel-webrtc") {
+    if (component.data.contentType === "video/vnd.webspaces-webrtc") {
       return true;
     }
   }

@@ -378,7 +378,7 @@ AFRAME.registerComponent("media-loader", {
       if (
         typeof src === "string" &&
         !src.startsWith("data:") &&
-        !src.startsWith("jel:") &&
+        !src.startsWith("webspaces:") &&
         contentType !== VOX_CONTENT_TYPE &&
         !isRelativeUrl
       ) {
@@ -476,12 +476,12 @@ AFRAME.registerComponent("media-loader", {
 
       this.el.addEventListener("media-load-error", () => this.cleanupLoader());
 
-      if (!src.startsWith("jel://") && !contentType) {
+      if (!src.startsWith("webspace://") && !contentType) {
         // Unknown content type, fail
         throw new Error(`No content type for ` + src);
       }
 
-      if (src.startsWith("jel://entities/") && src.includes("/components/media-text")) {
+      if (src.startsWith("webspace://entities/") && src.includes("/components/media-text")) {
         this.el.addEventListener("text-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
 
         const fitContent = contentSubtype !== "page";
@@ -502,11 +502,11 @@ AFRAME.registerComponent("media-loader", {
         }
 
         this.setToSingletonMediaComponent("media-text", properties, mediaSrcChanged);
-      } else if (src.startsWith("jel://entities/") && src.includes("/components/media-emoji")) {
+      } else if (src.startsWith("webspace://entities/") && src.includes("/components/media-emoji")) {
         this.el.addEventListener("model-loaded", () => this.onMediaLoaded(SHAPE.BOX), { once: true });
 
         this.setToSingletonMediaComponent("media-emoji", { src: accessibleContentUrl }, mediaSrcChanged);
-      } else if (contentType === "video/vnd.jel-bridge") {
+      } else if (contentType === "video/vnd.webspaces-bridge") {
         this.el.setAttribute("floaty-object", {
           autoLockOnRelease: true, // Needed so object becomes kinematic on release for repositioning
           reduceAngularFloat: true,
@@ -581,7 +581,7 @@ AFRAME.registerComponent("media-loader", {
         this.setToSingletonMediaComponent("media-video", videoAttributes, mediaSrcChanged);
 
         // Add the media-stream component to any entity that is streaming this client's video stream.
-        if (contentType === "video/vnd.jel-webrtc" && src.indexOf(NAF.clientId)) {
+        if (contentType === "video/vnd.webspaces-webrtc" && src.indexOf(NAF.clientId)) {
           this.el.setAttribute("media-stream", {});
         }
       } else if (contentType.startsWith("image/")) {
