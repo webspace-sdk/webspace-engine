@@ -1,6 +1,6 @@
 {
-  "name": "webspaces",
-  "version": "0.0.1",
+  "name": "webspace-engine",
+  "version": "0.9.0",
   "description": "",
   "browser": {
     "fs": false
