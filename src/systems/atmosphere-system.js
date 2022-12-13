@@ -4,7 +4,7 @@ import Water from "../objects/water";
 import { Layers } from "../components/layers";
 import { RENDER_ORDER } from "../constants";
 import { SOUND_OUTDOORS, SOUND_WATER } from "./sound-effects-system";
-import { getHubIdFromHistory } from "../utils/jel-url-utils";
+import { getHubIdFromHistory } from "../utils/url-utils";
 
 const FOG_NEAR = 20.5;
 const FOG_SPAN = 1.5;

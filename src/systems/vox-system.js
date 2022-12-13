@@ -23,7 +23,7 @@ import {
   CompressionStream as CompressionStreamImpl,
   DecompressionStream as DecompressionStreamImpl
 } from "@stardazed/streams-compression";
-import { getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/jel-url-utils";
+import { getHubIdFromHistory, getLocalRelativePathFromUrl } from "../utils/url-utils";
 import {
   modelToString,
   voxelsToSerializedVoxelsBytes,

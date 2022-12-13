@@ -12,7 +12,7 @@ import { endCursorLock } from "../utils/dom-utils";
 import { gatePermission } from "../utils/permissions-utils";
 import { ObjectContentOrigins } from "../object-types";
 import { VOX_CONTENT_TYPE } from "../utils/vox-utils";
-import { assetFileNameForName } from "../utils/jel-url-utils";
+import { assetFileNameForName } from "../utils/url-utils";
 
 AFRAME.registerComponent("media-vox", {
   schema: {

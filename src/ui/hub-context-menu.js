@@ -6,7 +6,7 @@ import cubeIcon from "../assets/images/icons/cube.svgi";
 import restoreIcon from "../assets/images/icons/restore.svgi";
 import { FormattedMessage } from "react-intl";
 import qsTruthy from "../utils/qs_truthy";
-import { getHubIdFromHistory } from "../utils/jel-url-utils";
+import { getHubIdFromHistory } from "../utils/url-utils";
 
 const showPublishObjects = qsTruthy("show_publish");
 

@@ -306,7 +306,7 @@ const DeviceStatuses = styled.div`
   }
 `;
 
-function JelUI(props) {
+function UIRoot(props) {
   const { scene, treeManager, hub, unavailableReason, voxTree, sceneTree, sessionId, hide, isDoneLoading } = props;
 
   const { launcherSystem, cameraSystem, builderSystem, externalCameraSystem } = SYSTEMS;
@@ -480,7 +480,7 @@ function JelUI(props) {
   );
 }
 
-JelUI.propTypes = {
+UIRoot.propTypes = {
   treeManager: PropTypes.object,
   history: PropTypes.object,
   hub: PropTypes.object,
@@ -496,4 +496,4 @@ JelUI.propTypes = {
   isDoneLoading: PropTypes.bool
 };
 
-export default JelUI;
+export default UIRoot;

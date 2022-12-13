@@ -1,5 +1,5 @@
 import TreeSync, { TREE_PROJECTION_TYPE } from "./tree-sync";
-import { getSpaceIdFromHistory } from "./jel-url-utils";
+import { getSpaceIdFromHistory } from "./url-utils";
 
 const EXPANDED_TREE_NODE_STORE_KEY = "__JelExpandedTreeNodes";
 

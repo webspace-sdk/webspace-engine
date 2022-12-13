@@ -11,7 +11,7 @@ import {
   useScrollToSelectedTreeNode
 } from "../utils/tree-utils";
 import HubNodeTitle from "./hub-node-title";
-import { navigateToHubUrl } from "../utils/jel-url-utils";
+import { navigateToHubUrl } from "../utils/url-utils";
 
 const EmptyMessage = styled.div`
   margin-left: 16px;

@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import React, { useState, useCallback, useMemo } from "react";
 import Tree from "rc-tree";
 import SpaceNodeIcon, { AddSpaceIcon, JoinDiscordIcon } from "./space-node-icon";
-import { navigateToHubUrl } from "../utils/jel-url-utils";
+import { navigateToHubUrl } from "../utils/url-utils";
 import { getInitialHubForSpaceId, homeHubForSpaceId } from "../utils/membership-utils";
 import { useTreeDropHandler, useTreeData, useScrollToSelectedTreeNode } from "../utils/tree-utils";
 

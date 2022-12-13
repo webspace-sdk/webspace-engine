@@ -1,17 +1,17 @@
-import TreeManager from "./tree-manager";
-import { getHubIdFromHistory, getSpaceIdFromHistory } from "./jel-url-utils";
-import { getInitialHubForSpaceId } from "./membership-utils";
-import { getMessages } from "./i18n";
-import { SOUND_CHAT_MESSAGE } from "../systems/sound-effects-system";
-import qsTruthy from "./qs_truthy";
-import HubStore from "../storage/hub-store";
-import MediaTree from "./media-tree";
-import { clearVoxAttributePools } from "../objects/voxels-buffer-geometry";
-import { restartPeriodicSyncs } from "../components/periodic-full-syncs";
+import TreeManager from "./utils/tree-manager";
+import { getHubIdFromHistory, getSpaceIdFromHistory } from "./utils/url-utils";
+import { getInitialHubForSpaceId } from "./utils/membership-utils";
+import { getMessages } from "./utils/i18n";
+import { SOUND_CHAT_MESSAGE } from "./systems/sound-effects-system";
+import qsTruthy from "./utils/qs_truthy";
+import HubStore from "./storage/hub-store";
+import MediaTree from "./utils/media-tree";
+import { clearVoxAttributePools } from "./objects/voxels-buffer-geometry";
+import { restartPeriodicSyncs } from "./components/periodic-full-syncs";
 import { toByteArray as base64ToByteArray } from "base64-js";
-import { pushHubMetaUpdateIntoDOM } from "./dom-utils";
-import { getUrlFromVoxId } from "./vox-utils";
-import WorldImporter from "./world-importer";
+import { pushHubMetaUpdateIntoDOM } from "./utils/dom-utils";
+import { getUrlFromVoxId } from "./utils/vox-utils";
+import WorldImporter from "./utils/world-importer";
 
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
 

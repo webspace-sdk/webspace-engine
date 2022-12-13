@@ -1,5 +1,5 @@
 import { EventTarget } from "event-target-shim";
-import { getHubIdFromHistory } from "./jel-url-utils";
+import { getHubIdFromHistory } from "./url-utils";
 import { waitForDOMContentLoaded } from "./async-utils";
 import { docToPrettifiedHtml, META_TAG_PREFIX } from "./dom-utils";
 import { signString, verifyString } from "./crypto";

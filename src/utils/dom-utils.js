@@ -2,7 +2,7 @@ const editableTagNames = ["TEXTAREA", "INPUT"];
 import { WORLD_COLOR_TYPES } from "../constants";
 import { paths } from "../systems/userinput/paths";
 import { MAX_WORLD_TYPE } from "../systems/terrain-system";
-import { getHubIdFromHistory, getSpaceIdFromHistory, getSeedForHubIdFromHistory } from "./jel-url-utils";
+import { getHubIdFromHistory, getSpaceIdFromHistory, getSeedForHubIdFromHistory } from "./url-utils";
 import { WORLD_COLOR_PRESETS } from "./world-color-presets";
 import { EmojiToShortname } from "./emojis";
 import { parseTransformIntoThree } from "./world-importer";

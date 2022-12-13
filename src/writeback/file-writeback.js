@@ -1,4 +1,4 @@
-import { getSpaceIdFromHistory } from "../utils/jel-url-utils";
+import { getSpaceIdFromHistory } from "../utils/url-utils";
 import { WRITEBACK_ORIGIN_STATE } from "../utils/atom-access-manager";
 
 export default class FileWriteback {

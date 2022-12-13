@@ -21,7 +21,7 @@ import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import ReactDOM from "react-dom";
 import PopupPanel from "./popup-panel";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
-import { navigateToHubUrl } from "../utils/jel-url-utils";
+import { navigateToHubUrl } from "../utils/url-utils";
 
 const Left = styled.div`
   pointer-events: auto;

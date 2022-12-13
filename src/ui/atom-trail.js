@@ -2,7 +2,7 @@ import React, { useCallback, useState, useRef } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
-import { navigateToHubUrl } from "../utils/jel-url-utils";
+import { navigateToHubUrl } from "../utils/url-utils";
 import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 
 const MAX_ITEMS_IN_TRAIL = 3;

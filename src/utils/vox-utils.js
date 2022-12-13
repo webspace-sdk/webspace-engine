@@ -1,4 +1,4 @@
-import { getLocalRelativePathFromUrl } from "./jel-url-utils";
+import { getLocalRelativePathFromUrl } from "./url-utils";
 import { ModelReader, ModelWriter, voxColorForRGBT } from "smoothvoxels";
 import { SVoxChunk as SerializedVoxels } from "./svox-chunk";
 import { Builder } from "flatbuffers/js/builder";

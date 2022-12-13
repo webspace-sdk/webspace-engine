@@ -7,7 +7,7 @@ import { validMaterials } from "../components/hoverable-visuals";
 import { offsetRelativeTo } from "../components/offset-relative-to";
 import { getCorsProxyUrl, guessContentType, isAllowedCorsProxyContentType } from "./media-url-utils";
 import { getNetworkedEntity, getNetworkId, ensureOwnership, isSynchronized } from "./ownership-utils";
-import { assetFileNameForName } from "./jel-url-utils";
+import { assetFileNameForName } from "./url-utils";
 import { addVertexCurvingToShader } from "../systems/terrain-system";
 import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
 import { expandByEntityObjectSpaceBoundingBox } from "./three-utils";

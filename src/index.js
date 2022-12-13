@@ -134,7 +134,7 @@ import React from "react";
 import { Router, Route } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import { clearHistoryState } from "./utils/history";
-import JelUI from "./ui/jel-ui";
+import UIRoot from "./ui/ui-root";
 import AccountChannel from "./utils/account-channel";
 import DynaChannel from "./utils/dyna-channel";
 import SpaceChannel from "./utils/space-channel";
@@ -145,9 +145,9 @@ import AtomMetadata, {
   IndexDOMSpaceMetadataSource,
   VoxMetadataSource
 } from "./utils/atom-metadata";
-import { setupTreeManagers, joinHub } from "./utils/jel-init";
+import { setupTreeManagers, joinHub } from "./init";
 import { disableiOSZoom } from "./utils/disable-ios-zoom";
-import { getHubIdFromHistory, getSpaceIdFromHistory } from "./utils/jel-url-utils";
+import { getHubIdFromHistory, getSpaceIdFromHistory } from "./utils/url-utils";
 import SceneEntryManager from "./scene-entry-manager";
 import AtomAccessManager from "./utils/atom-access-manager";
 import EditRingManager from "./utils/edit-ring-manager";
@@ -252,7 +252,7 @@ detectConcurrentLoad();
 
 let jelUIProps = {};
 
-function mountJelUI(props = {}) {
+function mountUIRoot(props = {}) {
   if (isBotMode) return;
 
   const scene = DOM_ROOT.querySelector("a-scene");
@@ -261,7 +261,7 @@ function mountJelUI(props = {}) {
     <Router history={history}>
       <Route
         render={routeProps => (
-          <JelUI
+          <UIRoot
             {...{
               scene,
               store,
@@ -276,12 +276,12 @@ function mountJelUI(props = {}) {
   );
 }
 
-function remountJelUI(props) {
+function remountUIRoot(props) {
   jelUIProps = { ...jelUIProps, ...props };
-  mountJelUI(jelUIProps);
+  mountUIRoot(jelUIProps);
 }
 
-window.remountJelUI = remountJelUI;
+window.remountUIRoot = remountUIRoot;
 
 async function runBotMode(scene, entryManager) {
   const noop = () => {};
@@ -663,7 +663,7 @@ function setupVREventHandlers(scene, availableVREntryTypesPromise) {
 
     if (isMobileVR) {
       // Optimization, stop drawing UI if not visible
-      remountJelUI({ hide: true });
+      remountUIRoot({ hide: true });
     }
 
     UI.classList.add("vr-mode");
@@ -702,7 +702,7 @@ function setupVREventHandlers(scene, availableVREntryTypesPromise) {
     UI.classList.remove("vr-mode");
     UI.classList.remove("vr-mode-stretch");
 
-    remountJelUI({ hide: false });
+    remountUIRoot({ hide: false });
 
     // HACK: Oculus browser pauses videos when exiting VR mode, so we need to resume them after a timeout.
     if (/OculusBrowser/i.test(window.navigator.userAgent)) {
@@ -1156,7 +1156,7 @@ async function start() {
 
   const sessionId = nodeCrypto.randomBytes(20).toString("hex");
 
-  remountJelUI({ sessionId });
+  remountUIRoot({ sessionId });
 
   const availableVREntryTypesPromise = getAvailableVREntryTypes();
 
@@ -1170,7 +1170,7 @@ async function start() {
     const spaceCan = atomAccessManager.spaceCan.bind(atomAccessManager);
     const voxCan = atomAccessManager.voxCan.bind(atomAccessManager);
 
-    remountJelUI({ hubCan, spaceCan, voxCan });
+    remountUIRoot({ hubCan, spaceCan, voxCan });
 
     // Switch off building mode if we cannot spawn media
     if (!hubCan("spawn_and_move_media")) {
@@ -1203,7 +1203,7 @@ async function start() {
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
       store.update({ context: { spaceId } });
 
-      const [treeManager] = await setupTreeManagers(history, entryManager, remountJelUI);
+      const [treeManager] = await setupTreeManagers(history, entryManager, remountUIRoot);
       const spaceMetadataSource = new IndexDOMSpaceMetadataSource(treeManager.worldNav);
       spaceMetadata.bind(spaceMetadataSource);
 
@@ -1213,14 +1213,14 @@ async function start() {
       const voxMetadataSource = new VoxMetadataSource();
       voxMetadata.bind(voxMetadataSource);
 
-      remountJelUI({ spaceId });
+      remountUIRoot({ spaceId });
     }
 
     if (joinHubPromise) await joinHubPromise;
     joinHubPromise = null;
 
     if (hubChannel.hubId !== hubId && nextHubToJoin === hubId) {
-      joinHubPromise = joinHub(scene, history, entryManager, remountJelUI, initialWorldHTML);
+      joinHubPromise = joinHub(scene, history, entryManager, remountUIRoot, initialWorldHTML);
       initialWorldHTML = null;
 
       await joinHubPromise;
@@ -1232,7 +1232,7 @@ async function start() {
   await performJoin();
 
   entryManager.enterScene(false).then(() => {
-    remountJelUI({ isDoneLoading: true });
+    remountUIRoot({ isDoneLoading: true });
   });
 }
 
