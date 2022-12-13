@@ -2,14 +2,14 @@ import { Validator } from "jsonschema";
 import merge from "deepmerge";
 import { EventTarget } from "event-target-shim";
 
-const LOCAL_STORE_KEY_PREFIX = "___jel_hub_store_";
+const LOCAL_STORE_KEY_PREFIX = "___webspace_world_store_";
 const STORE_STATE_CACHE_KEY = Symbol();
 const validator = new Validator();
 
 // Durable (via local-storage) schema-enforced state that is meant to be consumed via forward data flow.
 // Bound to a specific hub.
 export const SCHEMA = {
-  id: "/JelHubStore",
+  id: "/WebspaceWorldStore",
 
   definitions: {
     lastPosition: {

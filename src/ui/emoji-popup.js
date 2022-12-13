@@ -5,7 +5,7 @@ import EmojiPicker from "./emoji-picker";
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 
 let popupRoot = null;
-waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("popup-root")));
 
 const EmojiPopup = forwardRef(({ styles, attributes, setPopperElement, onEmojiSelected }, ref) => {
   const [hasBeenFocused, setHasBeenFocused] = useState(false);

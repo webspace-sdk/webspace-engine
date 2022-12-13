@@ -177,7 +177,7 @@ const NavSpill = styled.div`
 `;
 
 let popupRoot = null;
-waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("popup-root")));
 
 function Invite({ styles, attributes, setPopperElement, children }) {
   if (!popupRoot) return null;

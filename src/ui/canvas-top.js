@@ -29,7 +29,7 @@ const Top = styled.div`
   width: 100%;
   align-items: flex-start;
 
-  .paused #jel-ui & {
+  .paused #webspace-ui & {
     opacity: 0.4;
   }
 `;

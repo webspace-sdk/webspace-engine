@@ -34,7 +34,7 @@ export const QuillBasic = () => {
   return (
     <div
       style={{ backgroundColor: "#444444", position: "absolute", width: "100%", height: "100%", top: 0, left: 0 }}
-      id="jel-ui-wrap"
+      id="webspace-ui-wrap"
     >
       <img width={EDITOR_WIDTH} height={EDITOR_HEIGHT} id="editor-image" />
       <button

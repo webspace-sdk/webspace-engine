@@ -10,7 +10,7 @@ import EqippedColorIcon from "./equipped-color-icon";
 import EquippedEmojiIcon from "./equipped-emoji-icon";
 import { useTreeData } from "../utils/tree-utils";
 import RootPopups from "./root-popups";
-import JelSidePanels from "./jel-side-panels";
+import SidePanels from "./side-panels";
 import ChatLog from "./chat-log";
 import { WrappedIntlProvider } from "./wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
@@ -27,7 +27,7 @@ import { ASSET_PANEL_HEIGHT_EXPANDED, ASSET_PANEL_HEIGHT_COLLAPSED } from "../sy
 const skipSidePanels = qsTruthy("skip_panels");
 
 const Root = styled.div`
-  & #jel-ui-wrap {
+  & #webspace-ui-wrap {
     height: calc(100% - ${ASSET_PANEL_HEIGHT_COLLAPSED}px);
   }
 
@@ -36,12 +36,12 @@ const Root = styled.div`
     height: ${ASSET_PANEL_HEIGHT_COLLAPSED}px;
   }
 
-  &.expand-asset-panel #jel-ui-wrap {
+  &.expand-asset-panel #webspace-ui-wrap {
     height: calc(100% - ${ASSET_PANEL_HEIGHT_EXPANDED}px);
   }
 
-  .panels-collapsed & #jel-ui-wrap,
-  .paused & #jel-ui-wrap {
+  .panels-collapsed & #webspace-ui-wrap,
+  .paused & #webspace-ui-wrap {
     height: 100%;
   }
 
@@ -62,7 +62,7 @@ const Wrap = styled.div`
   display: flex;
   flex-direction: column;
 
-  #jel-ui:focus-within & {
+  #webspace-ui:focus-within & {
     pointer-events: auto;
   }
 
@@ -86,7 +86,7 @@ const AssetPanelWrap = styled.div`
   flex-direction: column;
   padding-top: 8px;
 
-  #jel-ui:focus-within & {
+  #webspace-ui:focus-within & {
     pointer-events: auto;
   }
 
@@ -389,7 +389,7 @@ function UIRoot(props) {
             isLoading={!isDoneLoading || !!unavailableReason || isNavigatingAway}
             unavailableReason={unavailableReason}
           />
-          <Wrap id="jel-ui-wrap">
+          <Wrap id="webspace-ui-wrap">
             <FadeEdges />
             <CreateSelectPopupRef ref={createSelectPopupRef} />
             <ModalPopupRef ref={modalPopupRef} />
@@ -432,7 +432,7 @@ function UIRoot(props) {
               </AssetPanelWrap>
             )}
           {!skipSidePanels && (
-            <JelSidePanels
+            <SidePanels
               {...props}
               spaceMetadata={spaceMetadata}
               hubMetadata={hubMetadata}

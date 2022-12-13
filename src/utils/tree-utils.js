@@ -53,7 +53,7 @@ export function useScrollToSelectedTreeNode(treeData, atom) {
         }
 
         // Undo the scroll this algorithm can induce on the outer wrap, which is undesired.
-        DOM_ROOT.querySelector("#jel-side-panels-wrap").scrollTop = 0;
+        DOM_ROOT.querySelector("#side-panels-wrap").scrollTop = 0;
       }
       return () => {};
     },

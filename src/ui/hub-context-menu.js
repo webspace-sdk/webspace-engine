@@ -11,7 +11,7 @@ import { getHubIdFromHistory } from "../utils/url-utils";
 const showPublishObjects = qsTruthy("show_publish");
 
 let popupRoot = null;
-waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("popup-root")));
 
 function HubContextMenu({
   scene,

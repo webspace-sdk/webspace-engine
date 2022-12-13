@@ -8,7 +8,7 @@ import { FormattedMessage } from "react-intl";
 import { PanelWrap, checkboxControlFor } from "./form-components";
 
 let popupRoot = null;
-waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("popup-root")));
 
 const HubPermissionsPopup = ({ setPopperElement, styles, attributes, hubMetadata, hubId, children }) => {
   const [allowEditing, setAllowEditing] = useState(false);

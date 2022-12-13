@@ -9,7 +9,7 @@ import FileWriteback from "../writeback/file-writeback";
 import GitHubWriteback from "../writeback/github-writeback";
 
 let popupRoot = null;
-waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("popup-root")));
 
 const WritebackSetupPopup = ({ setPopperElement, styles, attributes, children }) => {
   const { atomAccessManager } = window.APP;

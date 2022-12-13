@@ -80,7 +80,7 @@ export function getQuill(networkId) {
     }
   };
 
-  DOM_ROOT.querySelector("#jel-ui-wrap").appendChild(el);
+  DOM_ROOT.querySelector("#webspace-ui-wrap").appendChild(el);
   const messages = getMessages();
 
   const quill = (quills[networkId] = {

@@ -134,7 +134,7 @@ a {
     color: var(--action-pressed-color);
   }
 }
-#jel-ui {
+#webspace-ui {
   --nav-width: 300px;
   --presence-width: 222px;
 
@@ -232,7 +232,7 @@ a-scene.visible {
   visibility: visible;
 }
 
-#jel-ui.vr-mode-stretch {
+#webspace-ui.vr-mode-stretch {
   .a-canvas {
     width: 200% !important;
   }
@@ -262,7 +262,7 @@ a-scene.visible {
   visibility: visible;
 }
 
-#jel-popup-root {
+#popup-root {
   position: absolute;
   pointer-events: none;
   width: 100%;

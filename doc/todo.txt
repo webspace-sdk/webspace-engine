@@ -1,6 +1,4 @@
 - deal with hub store
-- jel.js -> index.js
-- jel -> ws
 - remove unused local storage fields
 - deno cors proxying split + ytdl enable + move configs into index.html
 - test ff + safari

@@ -250,7 +250,7 @@ registerWrappedEntityPositionNormalizers();
 disableiOSZoom();
 detectConcurrentLoad();
 
-let jelUIProps = {};
+let uiProps = {};
 
 function mountUIRoot(props = {}) {
   if (isBotMode) return;
@@ -272,13 +272,13 @@ function mountUIRoot(props = {}) {
         )}
       />
     </Router>,
-    DOM_ROOT.getElementById("jel-react-root")
+    DOM_ROOT.getElementById("react-root")
   );
 }
 
 function remountUIRoot(props) {
-  jelUIProps = { ...jelUIProps, ...props };
-  mountUIRoot(jelUIProps);
+  uiProps = { ...uiProps, ...props };
+  mountUIRoot(uiProps);
 }
 
 window.remountUIRoot = remountUIRoot;
@@ -414,7 +414,7 @@ function addGlobalEventListeners(scene, entryManager, atomAccessManager) {
     // remountUI({ roomUnavailableReason: "closed" });
   });
 
-  ["#jel-react-root", "#jel-popup-root"].forEach(selector => {
+  ["#react-root", "#popup-root"].forEach(selector => {
     const el = DOM_ROOT.querySelector(selector);
     el.addEventListener("mouseover", () => scene.addState("pointer-exited"));
     el.addEventListener("mouseout", () => scene.removeState("pointer-exited"));
@@ -909,9 +909,9 @@ async function start() {
   const emojiLoadPromise = loadEmojis();
 
   DOM_ROOT.innerHTML += `
-      <div id="jel-ui">
-          <div id="jel-popup-root"></div>
-          <div id="jel-react-root"></div>
+      <div id="webspace-ui">
+          <div id="popup-root"></div>
+          <div id="react-root"></div>
       </div>
 
       <div id="support-root"></div>
@@ -930,7 +930,7 @@ async function start() {
 
   const sceneReady = new Promise(r => tmp.children[0].addEventListener("nodeready", r, { once: true }));
   DOM_ROOT.appendChild(tmp.children[0]);
-  window.UI = DOM_ROOT.getElementById("jel-ui");
+  window.UI = DOM_ROOT.getElementById("webspace-ui");
 
   await sceneReady;
 

@@ -5,7 +5,7 @@ import ChatInputPanel from "./chat-input-panel";
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 
 let popupRoot = null;
-waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("popup-root")));
 
 const ChatInputPopup = forwardRef(
   ({ styles, attributes, setPopperElement, onMessageEntered, onEntryComplete }, ref) => {

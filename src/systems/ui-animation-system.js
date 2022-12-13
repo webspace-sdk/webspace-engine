@@ -227,7 +227,7 @@ export class UIAnimationSystem {
       gazeCursor.style.cssText = `left: ${center - 3}px; top: 50vh;`;
     }
 
-    const wrap = DOM_ROOT.getElementById("jel-ui-wrap");
+    const wrap = DOM_ROOT.getElementById("webspace-ui-wrap");
     if (wrap) {
       wrap.style.cssText = `left: ${left}px; width: ${width}px;`;
 

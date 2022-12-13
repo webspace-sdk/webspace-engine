@@ -12,7 +12,7 @@ import SmallActionButton from "./small-action-button";
 import LoadingSpinner from "./loading-spinner";
 
 let popupRoot = null;
-waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("popup-root")));
 
 const CreateFileObjectPopup = forwardRef(
   ({ setPopperElement, styles, attributes, onCreate, objectType, fileExtension, filePath }, ref) => {

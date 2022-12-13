@@ -7,7 +7,7 @@ import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import PopupPanelMenu from "./popup-panel-menu";
 
 let popupRoot = null;
-waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("popup-root")));
 
 const PickerWrap = styled.div`
   width: 128px;

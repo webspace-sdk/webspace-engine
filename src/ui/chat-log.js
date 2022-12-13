@@ -77,7 +77,7 @@ const ChatLogLine = styled.div`
   }
 `;
 
-// Hacky copy+paste from jel-ui
+// Hacky copy+paste from webspace-ui
 const UnpausedInfoLabel = styled.div`
   position: absolute;
   bottom: 0px;

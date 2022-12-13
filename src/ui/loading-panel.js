@@ -2,8 +2,8 @@ import React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import { getMessages } from "../utils/i18n";
-// import jelLoadingSrc from "!!url-loader!../../assets/images/jel-loading.svg";
-// import jelLoadingShadowSrc from "!!url-loader!../../assets/images/jel-loading-shadow.svg";
+// import jelLoadingSrc from "!!url-loader!../../assets/images/webspace-loading.svg";
+// import jelLoadingShadowSrc from "!!url-loader!../../assets/images/webspace-loading-shadow.svg";
 
 const LoadingPanelElement = styled.div`
   position: absolute;

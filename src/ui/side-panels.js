@@ -20,20 +20,20 @@ const Wrap = styled.div`
   overflow: hidden;
   user-select: none;
 
-  #jel-ui:focus-within & {
+  #webspace-ui:focus-within & {
     pointer-events: auto;
   }
 `;
 
-function JelSidePanels(props) {
+function SidePanels(props) {
   return (
-    <Wrap id="jel-side-panels-wrap">
+    <Wrap id="side-panels-wrap">
       <LeftPanel {...props} />
       <RightPanel {...props} />
     </Wrap>
   );
 }
 
-JelSidePanels.propTypes = {};
+SidePanels.propTypes = {};
 
-export default JelSidePanels;
+export default SidePanels;

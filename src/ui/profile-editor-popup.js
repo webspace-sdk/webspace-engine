@@ -22,7 +22,7 @@ import {
 } from "./form-components";
 
 let popupRoot = null;
-waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("jel-popup-root")));
+waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("popup-root")));
 
 const ProfileEditorPopup = ({ setPopperElement, styles, attributes, children, onNameEditSaved, scene, sessionId }) => {
   const messages = getMessages();

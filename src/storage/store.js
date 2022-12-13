@@ -4,7 +4,7 @@ import { generateKeys } from "../utils/crypto";
 import { EventTarget } from "event-target-shim";
 import { fetchRandomDefaultAvatarId, generateRandomName } from "../utils/identity.js";
 
-const LOCAL_STORE_KEY = "___jel_store";
+const LOCAL_STORE_KEY = "___webspace_store";
 const STORE_STATE_CACHE_KEY = Symbol();
 const validator = new Validator();
 
@@ -122,7 +122,7 @@ export const DEFAULT_COLORS = [
 // Durable (via local-storage) schema-enforced state that is meant to be consumed via forward data flow.
 // (Think flux but with way less incidental complexity, at least for now :))
 export const SCHEMA = {
-  id: "/JelStore",
+  id: "/WebspaceStore",
 
   definitions: {
     context: {
