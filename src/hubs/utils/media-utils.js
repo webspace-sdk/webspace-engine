@@ -8,6 +8,7 @@ import { validMaterials } from "../components/hoverable-visuals";
 import { offsetRelativeTo } from "../components/offset-relative-to";
 import { getCorsProxyUrl, guessContentType, isAllowedCorsProxyContentType } from "../utils/media-url-utils";
 import { getNetworkedEntity, getNetworkId, ensureOwnership, isSynchronized } from "../../jel/utils/ownership-utils";
+import { assetFileNameForName } from "../../jel/utils/jel-url-utils";
 import { addVertexCurvingToShader } from "../../jel/systems/terrain-system";
 import { SOUND_MEDIA_REMOVED } from "../systems/sound-effects-system";
 import { expandByEntityObjectSpaceBoundingBox } from "./three-utils";
@@ -17,6 +18,8 @@ import anime from "animejs";
 import basisTranscoderUrl from "!!url-loader!three/examples/js/libs/basis/basis_transcoder.js";
 import basisTranscoderWasmUrl from "!!url-loader!three/examples/js/libs/basis/basis_transcoder.wasm";
 import { BasisTextureLoader } from "three/examples/jsm/loaders/BasisTextureLoader";
+import { modelFromString, modelToString } from "../../jel/utils/vox-utils";
+import { voxToSvox } from "smoothvoxels";
 
 export const BasisLoadingManager = new THREE.LoadingManager();
 
@@ -446,8 +449,6 @@ export const addMedia = options => {
   };
 
   const {
-    src,
-    contents,
     template,
     contentOrigin,
     contentSubtype,
@@ -467,6 +468,8 @@ export const addMedia = options => {
     stackSnapScale,
     retryFetchFromSameOrigin
   } = { ...defaults, ...options };
+
+  let { src, contents } = { ...defaults, ...options };
 
   const scene = AFRAME.scenes[0];
 
@@ -498,9 +501,8 @@ export const addMedia = options => {
     }
   }
 
-  const needsToBeUploaded = src instanceof File;
-
-  // TODO JEL deal with text files dropped or uploaded
+  let needsToBeUploaded = src instanceof File;
+  let uploadAsFilename = null;
 
   // If we're re-pasting an existing src in the scene, we should use the latest version
   // seen across any other entities. Otherwise, start with version 1.
@@ -508,10 +510,45 @@ export const addMedia = options => {
 
   let isEmoji = false;
 
+  // Check for VOX. If it's a vox, convert it to SVOX
+  if (src instanceof File && src.name.toLowerCase().endsWith(".vox")) {
+    // TODO need to use ranodm filename
+    uploadAsFilename = src.name.replace(/\.vox$/i, ".svox");
+
+    // uploadAsset can take a promise
+    src = src.arrayBuffer().then(buffer => {
+      const svox = voxToSvox(buffer);
+      const svoxString = modelToString(svox).replace(
+        "material",
+        "material type = toon, lighting = smooth, deform = 1 1"
+      );
+      return new Blob([svoxString], { type: "model/vnd.svox" });
+    });
+
+    needsToBeUploaded = true;
+  }
+
   if (contents) {
     const trimmed = contents.trim();
     const match = trimmed.match(emojiRegex);
     isEmoji = match && match[0] === trimmed;
+
+    // Special case, detect svox if there's a line that starts with "size", and a line that contains the string "vxoels
+    const lines = trimmed.split("\n");
+    const isSvox = lines.find(line => line.startsWith("size ")) && lines.find(line => line.trim() === "voxels");
+    if (isSvox) {
+      const model = modelFromString(contents, true /* skip voxels */);
+
+      if (model.name) {
+        uploadAsFilename = assetFileNameForName(model.name, "svox");
+      }
+
+      needsToBeUploaded = true;
+      contents = null;
+
+      // Set src to be a new Blob with the contents of the svox file
+      src = new Blob([trimmed], { type: "model/vnd.svox" });
+    }
   }
 
   const createdAt = Math.floor(NAF.connection.getServerTime() / 1000);
@@ -545,7 +582,7 @@ export const addMedia = options => {
   (parentEl || scene).appendChild(entity);
 
   const orientation = new Promise(function(resolve) {
-    if (needsToBeUploaded) {
+    if (needsToBeUploaded && src instanceof File) {
       getOrientation(src, x => {
         resolve(x);
       });
@@ -555,7 +592,7 @@ export const addMedia = options => {
   });
   if (needsToBeUploaded) {
     window.APP.atomAccessManager
-      .uploadAsset(src)
+      .uploadAsset(src, uploadAsFilename)
       .then(({ url, contentType }) => {
         entity.setAttribute("media-loader", { src: url, contentType });
       })

@@ -67,9 +67,9 @@ export class BuilderSystem extends EventTarget {
     this.brushFaceNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushFaceWorldNormal = new Vector3(Infinity, Infinity, Infinity);
     this.brushEndCell = new Vector3(Infinity, Infinity, Infinity);
-    this.brushType = BRUSH_TYPES.VOXEL;
+    this.brushType = BRUSH_TYPES.BOX;
     this.prePickBrushType = null;
-    this.brushMode = BRUSH_MODES.ADD;
+    this.brushMode = BRUSH_MODES.REMOVE;
     this.brushColorFillMode = BRUSH_COLOR_FILL_MODE.SELECTED;
     this.brushShape = BRUSH_SHAPES.BOX;
     this.brushCrawlType = BRUSH_CRAWL_TYPES.GEO;

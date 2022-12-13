@@ -9,6 +9,7 @@ import { gatePermission } from "../../hubs/utils/permissions-utils";
 import { ObjectContentOrigins } from "../../hubs/object-types";
 import { getSpawnInFrontZOffsetForEntity } from "../../hubs/utils/three-utils";
 import { VOX_CONTENT_TYPE } from "../utils/vox-utils";
+import { assetFileNameForName } from "../utils/jel-url-utils";
 
 AFRAME.registerComponent("media-vox", {
   schema: {
@@ -141,7 +142,7 @@ AFRAME.registerComponent("media-vox", {
     const { voxMetadata } = window.APP;
 
     const voxName = voxMetadata.hasMetadata(this.voxId) ? voxMetadata.getMetadata(this.voxId).name : "Untitled";
-    const voxFilename = `${voxName.replace(/\s/g, "_")}-${Math.floor(Math.random() * 999999) + 1}.svox`;
+    const voxFilename = assetFileNameForName(voxName, "svox");
 
     const { url } = await voxSystem.createVoxInFrontOfPlayer(voxName, `assets/${voxFilename}`, this.voxId);
 

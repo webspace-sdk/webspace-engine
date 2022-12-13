@@ -119,7 +119,10 @@ export const guessContentType = url => {
       return matches[1];
     }
   }
-  const extension = new URL(url, window.location).pathname.split(".").pop().toLowerCase();
+  const extension = new URL(url, window.location).pathname
+    .split(".")
+    .pop()
+    .toLowerCase();
   return commonKnownContentTypes[extension];
 };
 

@@ -1,21 +1,21 @@
-import React, { useState, useCallback, forwardRef, useRef } from "react";
+import React, { useState, /* useCallback, */ forwardRef, useRef } from "react";
 import { PanelWrap, Info, Tip, TextInputWrap, Input } from "./form-components";
 import PanelSectionHeader from "./panel-section-header";
 import { FormattedMessage } from "react-intl";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../../hubs/utils/focus-utils";
-import SegmentControl from "./segment-control";
+//import SegmentControl from "./segment-control";
 import SmallActionButton from "./small-action-button";
 import PropTypes from "prop-types";
 import { getMessages } from "../../hubs/utils/i18n";
-import githubOnIcon from "../../assets/jel/images/icons/github-on.svgi";
-import githubOffIcon from "../../assets/jel/images/icons/github-off.svgi";
-import webdavOnIcon from "../../assets/jel/images/icons/webdav-on.svgi";
-import webdavOffIcon from "../../assets/jel/images/icons/webdav-off.svgi";
+//import githubOnIcon from "../../assets/jel/images/icons/github-on.svgi";
+//import githubOffIcon from "../../assets/jel/images/icons/github-off.svgi";
+//import webdavOnIcon from "../../assets/jel/images/icons/webdav-on.svgi";
+//import webdavOffIcon from "../../assets/jel/images/icons/webdav-off.svgi";
 import LoadingSpinner from "./loading-spinner";
 
 const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked, failedOriginState }, ref) => {
   const messages = getMessages();
-  const [originType, setOriginType] = useState("github");
+  const [originType /*, setOriginType*/] = useState("github");
   const [user, setUser] = useState("");
   const [repo, setRepo] = useState("");
   const [secret, setSecret] = useState("");
@@ -24,16 +24,16 @@ const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked, failedOri
 
   const rootRef = useRef();
 
-  const typeToggleOnChange = useCallback(
-    () => {
-      if (originType === "github") {
-        setOriginType("webdav");
-      } else {
-        setOriginType("github");
-      }
-    },
-    [setOriginType, originType]
-  );
+  //const typeToggleOnChange = useCallback(
+  //  () => {
+  //    if (originType === "github") {
+  //      setOriginType("webdav");
+  //    } else {
+  //      setOriginType("github");
+  //    }
+  //  },
+  //  [setOriginType, originType]
+  //);
 
   return (
     <PanelWrap ref={rootRef}>

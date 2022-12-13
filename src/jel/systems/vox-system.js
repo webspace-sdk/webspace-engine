@@ -1833,9 +1833,9 @@ export class VoxSystem extends EventTarget {
         await this.applyVoxels(voxId, fromModel.frames[i], i, [0, 0, 0]);
       }
     } else {
-      for (let x = -1; x <= 1; x++) {
-        for (let y = 0; y <= 2; y++) {
-          for (let z = -1; z <= 1; z++) {
+      for (let x = -9; x <= 10; x++) {
+        for (let y = 0; y <= 20; y++) {
+          for (let z = -9; z <= 10; z++) {
             await voxSystem.setVoxel(voxId, x, y, z, builderSystem.brushVoxColor);
           }
         }

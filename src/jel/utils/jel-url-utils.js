@@ -89,3 +89,7 @@ export function getLocalRelativePathFromUrl(toUrlString) {
   currentPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
   return relativePath.replace(currentPath, "").replace(/^\//, "");
 }
+
+export function assetFileNameForName(name, extension) {
+  return `${name.toLowerCase().replace(/\s/g, "_")}-${Math.floor(Math.random() * 999999) + 1}.${extension}`;
+}

@@ -356,7 +356,14 @@ export default class AtomAccessManager extends EventTarget {
     return await this.writeback.fileExists(path);
   }
 
-  async uploadAsset(fileOrBlob, fileName = null, doNotCache = false) {
+  async uploadAsset(fileOrBlobOrPromiseToFileOrBlob, fileName = null, doNotCache = false) {
+    let fileOrBlob = fileOrBlobOrPromiseToFileOrBlob;
+
+    // Check if the first argument is a promise, if so, resolve it
+    if (fileOrBlobOrPromiseToFileOrBlob instanceof Promise) {
+      fileOrBlob = await fileOrBlobOrPromiseToFileOrBlob;
+    }
+
     if (!this.writeback?.isOpen && this.hasAnotherWriterInPresence()) {
       // Upload via webrtc
       return await this.uploadAssetToWriterInPresence(fileOrBlob);
