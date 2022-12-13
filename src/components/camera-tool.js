@@ -603,7 +603,7 @@ AFRAME.registerComponent("camera-tool", {
           // has the networked media stream instead.
           const analyser = this.el.sceneEl.systems["local-audio-analyser"];
 
-          // TODO JEL
+          // TODO WEBSPACES
           //if (analyser && playerHead.el.components["scale-audio-feedback"]) {
           //  scale = getAudioFeedbackScale(this.el.object3D, playerHead, 0.3, 1, 2, analyser.volume);
           //}

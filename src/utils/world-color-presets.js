@@ -684,7 +684,7 @@ export const getPresetAsColorTuples = i => {
   }));
 };
 
-// Old Jel world colors are at index 2
+// Old Webspaces world colors are at index 2
 export const getDefaultWorldColorPreset = () => {
   return WORLD_COLOR_PRESETS[Math.floor(Math.random() * WORLD_COLOR_PRESETS.length)];
 };

@@ -90,7 +90,7 @@ export default class SceneEntryManager {
     this.scene.addState("entered");
 
     if (isBotMode) {
-      //this._runBot(); // TODO JEL bots
+      //this._runBot(); // TODO WEBSPACES bots
     }
   };
 

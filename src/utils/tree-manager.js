@@ -1,7 +1,7 @@
 import TreeSync, { TREE_PROJECTION_TYPE } from "./tree-sync";
 import { getSpaceIdFromHistory } from "./url-utils";
 
-const EXPANDED_TREE_NODE_STORE_KEY = "__JelExpandedTreeNodes";
+const EXPANDED_TREE_NODE_STORE_KEY = "__WebspacesExpandedTreeNodes";
 
 class ExpandedTreeNodes {
   constructor() {

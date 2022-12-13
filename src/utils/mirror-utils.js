@@ -2,7 +2,7 @@ import { cloneMedia, closeExistingMediaMirror } from "./media-utils";
 
 let mirrorTarget;
 export function getCurrentMirroredMedia() {
-  // TODO JEL
+  // TODO WEBSPACES
   return null;
   /*mirrorTarget = mirrorTarget || DOM_ROOT.querySelector("#media-mirror-target");
   const mirrorEl = mirrorTarget.firstChild;

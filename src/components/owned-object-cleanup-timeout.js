@@ -12,7 +12,7 @@ AFRAME.registerComponent("owned-object-cleanup-timeout", {
   },
 
   tick() {
-    // TODO JEL remove this component if emojis are abandoned
+    // TODO WEBSPACES remove this component if emojis are abandoned
     if (isSynchronized(this.el) && isMine(this.el)) {
       if (isMine(this.el) && performance.now() >= this.timeout) {
         this.el.parentNode.removeChild(this.el);

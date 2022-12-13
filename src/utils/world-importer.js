@@ -75,15 +75,15 @@ export const parseTransformIntoThree = (transform, pos = null, rot = null, scale
 export default class WorldImporter {
   importHtmlToCurrentWorld(html, replaceExisting = true, removeEntitiesNotInTemplate = false) {
     const doc = new DOMParser().parseFromString(html, "text/html");
-    return this.importJelDocument(doc, replaceExisting, removeEntitiesNotInTemplate);
+    return this.importWebspacesDocument(doc, replaceExisting, removeEntitiesNotInTemplate);
   }
 
   removeEntitiesFromHtmlFromCurrentWorld(html) {
     const doc = new DOMParser().parseFromString(html, "text/html");
-    return this.removeEntitiesFromJelDocument(doc);
+    return this.removeEntitiesFromWebspacesDocument(doc);
   }
 
-  async removeEntitiesFromJelDocument(doc) {
+  async removeEntitiesFromWebspacesDocument(doc) {
     const promises = [];
 
     for (const el of doc.body.childNodes) {
@@ -122,12 +122,12 @@ export default class WorldImporter {
     await Promise.all(promises);
   }
 
-  async importJelDocument(doc, replaceExisting = true, removeEntitiesNotInTemplate = false) {
+  async importWebspacesDocument(doc, replaceExisting = true, removeEntitiesNotInTemplate = false) {
     const { terrainSystem, autoQualitySystem } = AFRAME.scenes[0].systems["hubs-systems"];
     autoQualitySystem.stopTracking();
 
     if (replaceExisting) {
-      await this.removeEntitiesFromJelDocument(doc);
+      await this.removeEntitiesFromWebspacesDocument(doc);
     }
 
     const docEntityIds = new Set();

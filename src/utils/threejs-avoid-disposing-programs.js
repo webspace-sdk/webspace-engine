@@ -1,4 +1,4 @@
-// For Jel, we do not want to dispose any programs, to avoid complilation mid-session.
+// For Webspaces, we do not want to dispose any programs, to avoid complilation mid-session.
 export default function patchThreeNoProgramDispose(renderer) {
   const programs = renderer.info.programs;
 

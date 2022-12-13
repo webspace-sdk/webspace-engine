@@ -106,12 +106,12 @@ async function moveToInitialHubLocationAndBeginPeriodicSyncs(hub, hubStore) {
   restartPeriodicSyncs();
 }
 
-function updateUIForHub(hub, remountJelUI) {
+function updateUIForHub(hub, remountUI) {
   const canvas = DOM_ROOT.querySelector(".a-canvas");
 
   canvas.focus();
 
-  remountJelUI({ hub });
+  remountUI({ hub });
 }
 
 const setupDataChannelMessageHandlers = () => {
@@ -246,7 +246,7 @@ const setupDataChannelMessageHandlers = () => {
   );
 };
 
-const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, remountJelUI, initialWorldHTML) => {
+const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, remountUI, initialWorldHTML) => {
   const isInitialJoin = true;
   const { atomAccessManager } = window.APP;
 
@@ -272,7 +272,7 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
         updateEnvironmentForHub(hub);
       });
 
-      updateUIForHub(hub, remountJelUI);
+      updateUIForHub(hub, remountUI);
       updateEnvironmentForHub(hub);
 
       if (initialWorldHTML) {
@@ -340,7 +340,7 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
 
       const connectionErrorTimeout = setTimeout(() => {
         console.error("Unknown error occurred while attempting to connect to networked scene.");
-        remountJelUI({ unavailableReason: "connect_error" });
+        remountUI({ unavailableReason: "connect_error" });
         entryManager.exitScene();
       }, 90000);
 
@@ -447,7 +447,7 @@ const initPresence = (function() {
   };
 })();
 
-export async function setupTreeManagers(history, entryManager, remountJelUI) {
+export async function setupTreeManagers(history, entryManager, remountUI) {
   const spaceId = await getSpaceIdFromHistory(history);
   const { spaceMetadata, hubMetadata } = window.APP;
   console.log(`Space ID: ${spaceId}`);
@@ -476,7 +476,7 @@ export async function setupTreeManagers(history, entryManager, remountJelUI) {
 
       await treeManager.init();
 
-      remountJelUI({ history, treeManager, voxTree, sceneTree });
+      remountUI({ history, treeManager, voxTree, sceneTree });
     },
     { once: true }
   );
@@ -484,7 +484,7 @@ export async function setupTreeManagers(history, entryManager, remountJelUI) {
   return [treeManager, voxTree, sceneTree];
 }
 
-export async function joinHub(scene, history, entryManager, remountJelUI, initialWorldHTML) {
+export async function joinHub(scene, history, entryManager, remountUI, initialWorldHTML) {
   const { store, hubChannel, hubMetadata, atomAccessManager } = window.APP;
 
   const spaceId = await getSpaceIdFromHistory(history);
@@ -508,7 +508,7 @@ export async function joinHub(scene, history, entryManager, remountJelUI, initia
     hubStore,
     hubMetadata,
     entryManager,
-    remountJelUI,
+    remountUI,
     initialWorldHTML
   );
 
