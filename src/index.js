@@ -123,6 +123,7 @@ import AFRAME_DOM from "./aframe-dom";
 import { getIsWindowAtScreenEdges, isInEditableField } from "./utils/dom-utils";
 import { patchWebGLRenderingContext, isSoftwareRenderer } from "./utils/webgl";
 import patchThreeNoProgramDispose from "./utils/threejs-avoid-disposing-programs";
+import "./utils/threejs-video-texture-pause";
 import nextTick from "./utils/next-tick";
 import { SOUND_QUACK, SOUND_SPECIAL_QUACK } from "./systems/sound-effects-system";
 import ducky from "!!url-loader!./assets/hubs/models/DuckyMesh.glb";
@@ -161,7 +162,6 @@ import {
   LabelFontCSS
 } from "./fonts/quill-fonts";
 import { registerWrappedEntityPositionNormalizers } from "./systems/wrapped-entity-system";
-import { resetTemplate } from "./utils/template-utils";
 import { App } from "./App";
 import { platformUnsupported } from "./support";
 import { loadEmojis } from "./utils/emojis";
@@ -460,11 +460,10 @@ function addGlobalEventListeners(scene, entryManager, atomAccessManager) {
 
   scene.addEventListener("action_reset_objects", () => {
     // TOOD SHARED drop this
-    const hubId = atomAccessManager.currentHubId;
-    const metadata = hubMetadata.getMetadata(hubId);
-    if (!metadata || !metadata.template || !metadata.template.name) return;
-
-    resetTemplate(metadata.template.name);
+    // const hubId = atomAccessManager.currentHubId;
+    // const metadata = hubMetadata.getMetadata(hubId);
+    // if (!metadata || !metadata.template || !metadata.template.name) return;
+    // resetTemplate(metadata.template.name);
   });
 }
 
