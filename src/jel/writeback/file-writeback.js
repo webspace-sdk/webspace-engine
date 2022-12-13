@@ -268,4 +268,6 @@ export default class FileWriteback {
 
     return handle;
   }
+
+  updatePresenceWithOriginInfo() {}
 }

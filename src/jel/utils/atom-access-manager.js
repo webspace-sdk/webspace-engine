@@ -331,6 +331,17 @@ export default class AtomAccessManager extends EventTarget {
       if (!(await this.ensureWritebackOpen(true))) return;
     }
 
+    // First, check presence for origin information (which may include us), and fetch directly from
+    // a raw origin URL if possible, since site deployment may cause lag.
+    for (const writerPresence of this.getWriterPresenceStates()) {
+      if (!writerPresence.origin) continue;
+
+      switch (writerPresence.origin.type) {
+        case "github":
+          return GitHubWriteback.rawOriginUrlForRelativePath(writerPresence.origin, path);
+      }
+    }
+
     if (this.writeback?.isOpen) {
       return await this.writeback.contentUrlForRelativePath(path);
     } else {
@@ -356,7 +367,7 @@ export default class AtomAccessManager extends EventTarget {
     return await this.writeback.fileExists(path);
   }
 
-  async uploadAsset(fileOrBlobOrPromiseToFileOrBlob, fileName = null, doNotCache = false) {
+  async uploadAsset(fileOrBlobOrPromiseToFileOrBlob, fileName = null) {
     let fileOrBlob = fileOrBlobOrPromiseToFileOrBlob;
 
     // Check if the first argument is a promise, if so, resolve it
@@ -369,7 +380,7 @@ export default class AtomAccessManager extends EventTarget {
       return await this.uploadAssetToWriterInPresence(fileOrBlob);
     }
 
-    return await this.tryUploadAssetDirectly(fileOrBlob, fileName, doNotCache);
+    return await this.tryUploadAssetDirectly(fileOrBlob, fileName);
   }
 
   async uploadAssetToWriterInPresence(fileOrBlob) {
@@ -529,6 +540,7 @@ export default class AtomAccessManager extends EventTarget {
     if (!NAF.connection.presence) return;
     if (!this.writeback?.isOpen) return;
     NAF.connection.presence.setLocalStateField("writer", true);
+    this.writeback.updatePresenceWithOriginInfo();
   }
 
   async updateRoles() {
@@ -607,16 +619,23 @@ export default class AtomAccessManager extends EventTarget {
 
   // Returns true if there's another peer in presence that we know is writing.
   hasAnotherWriterInPresence() {
-    if (!NAF.connection.presence?.states) return false;
+    const presences = this.getWriterPresenceStates();
+    return presences.length > 0 && !presences.find(p => p.client_id === NAF.clientId);
+  }
 
-    for (const [, presence] of NAF.connection.presence.states) {
-      const clientId = presence.client_id;
-      if (clientId !== NAF.clientId && presence.writer && this.roles.get(clientId) === ROLES.OWNER) {
-        return true;
+  getWriterPresenceStates() {
+    const states = [];
+
+    if (NAF.connection.presence?.states) {
+      for (const [, presence] of NAF.connection.presence.states) {
+        const clientId = presence.client_id;
+        if (presence.writer && this.roles.get(clientId) === ROLES.OWNER) {
+          states.push(presence);
+        }
       }
     }
 
-    return false;
+    return states;
   }
 
   handleWritebackOpened() {

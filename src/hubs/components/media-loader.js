@@ -432,7 +432,13 @@ AFRAME.registerComponent("media-loader", {
                 const res = await fetch(accessibleContentUrl);
                 if (res.status !== 404) break;
               } catch (e) {
-                // Keep trying
+              } finally {
+                // Re-fetch accessible content URL because presence may actually have origin information which
+                // would allow a direct fetch.
+                contentUrl = accessibleContentUrl = await atomAccessManager.contentUrlForRelativePath(
+                  decodeURIComponent(src),
+                  contentType
+                );
               }
 
               await new Promise(res => setTimeout(res, 2500));

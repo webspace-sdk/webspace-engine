@@ -14,7 +14,6 @@ export default class GitHubWriteback {
 
     this.isOpening = false;
     this.isWriting = false;
-    this.assetBlobCache = new Map();
     this.originType = "github";
 
     if (options.user) {
@@ -38,6 +37,12 @@ export default class GitHubWriteback {
     }
 
     this.githubRepo = null;
+    this.repoIsPrivate = false;
+  }
+
+  static rawOriginUrlForRelativePath({ owner, repo, branch }, path) {
+    // Thankfully, this has CORS headers
+    return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`;
   }
 
   async init() {
@@ -75,9 +80,12 @@ export default class GitHubWriteback {
       const github = new Octokat({ token: this.secret });
 
       const repo = await github.repos(this.org || this.user, this.repo);
+      const repoInfo = await repo.fetch();
+
+      this.repoIsPrivate = repoInfo.private;
 
       if (!this.branch) {
-        this.branch = (await repo.fetch()).defaultBranch;
+        this.branch = repoInfo.defaultBranch;
       }
 
       try {
@@ -214,19 +222,11 @@ export default class GitHubWriteback {
   }
 
   async contentUrlForRelativePath(path) {
-    if (this.assetBlobCache.has(path)) {
-      return URL.createObjectURL(this.assetBlobCache.get(path));
-    }
-
     return path;
   }
 
-  async uploadAsset(fileOrBlob, fileName, doNotCache = false) {
+  async uploadAsset(fileOrBlob, fileName) {
     await this.write(fileOrBlob, `assets/${fileName}`);
-
-    if (!doNotCache) {
-      this.assetBlobCache.set(`assets/${fileName}`, fileOrBlob);
-    }
 
     return { url: `assets/${encodeURIComponent(fileName)}`, contentType: fileOrBlob.type };
   }
@@ -260,5 +260,16 @@ export default class GitHubWriteback {
 
     // See if the file exists in the tree
     return tree.tree.find(f => f.path === filename && f.type === "blob");
+  }
+
+  updatePresenceWithOriginInfo() {
+    if (this.repoIsPrivate) return;
+
+    NAF.connection.presence.setLocalStateField("origin", {
+      type: "github",
+      owner: this.org || this.user,
+      repo: this.repo,
+      branch: this.branch
+    });
   }
 }
