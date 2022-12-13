@@ -1,10 +1,10 @@
 import React from "react";
-import { useAccessibleOutlineStyle } from "../src/hubs/react-components/input/useAccessibleOutlineStyle";
-import { WrappedIntlProvider } from "../src/hubs/react-components/wrapped-intl-provider";
+import { useAccessibleOutlineStyle } from "../src/react-components/input/useAccessibleOutlineStyle";
+import { WrappedIntlProvider } from "../src/react-components/wrapped-intl-provider";
 import "../src/hubs/react-components/styles/global.scss";
-import Store from "../src/hubs/storage/store";
-import AccountChannel from "../src/jel/utils/account-channel";
-import SpaceChannel from "../src/hubs/utils/space-channel";
+import Store from "../src/storage/store";
+import AccountChannel from "../src/utils/account-channel";
+import SpaceChannel from "../src/utils/space-channel";
 import { EventTarget } from "event-target-shim";
 
 class Scene extends EventTarget {
