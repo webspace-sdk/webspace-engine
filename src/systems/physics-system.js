@@ -1,6 +1,6 @@
 import { AmmoWorker, WorkerHelpers, CONSTANTS } from "three-ammo";
 import { AmmoDebugConstants, DefaultBufferSize } from "ammo-debug-drawer";
-import { RENDER_ORDER } from "../constants-2";
+import { RENDER_ORDER } from "../constants";
 import { WORLD_MATRIX_CONSUMERS } from "../utils/threejs-world-update";
 import ammoWasmUrl from "!!url-loader!ammo.js/builds/ammo.wasm.wasm";
 

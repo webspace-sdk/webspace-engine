@@ -1,4 +1,4 @@
-import { RENDER_ORDER } from "../constants-2";
+import { RENDER_ORDER } from "../constants";
 import { createPlaneBufferGeometry } from "../utils/three-utils";
 
 const defaultQuad = createPlaneBufferGeometry(2, 2, 1, 1);

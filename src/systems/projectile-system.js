@@ -1,7 +1,7 @@
 import { imageUrlForEmoji } from "../utils/media-url-utils";
 import { offsetRelativeTo } from "../components/offset-relative-to";
 import { SHAPE, FIT, ACTIVATION_STATE, TYPE } from "three-ammo/constants";
-import { COLLISION_LAYERS } from "../constants-2";
+import { COLLISION_LAYERS } from "../constants";
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { getNetworkedEntitySync, getNetworkOwner } from "../utils/ownership-utils";
 import {

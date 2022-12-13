@@ -5,7 +5,7 @@ import { ObjectContentOrigins } from "../object-types";
 import { paths } from "../systems/userinput/paths";
 import { getBox, getScaleCoefficient } from "../utils/auto-box-collider";
 
-const COLLISION_LAYERS = require("../constants-2").COLLISION_LAYERS;
+const COLLISION_LAYERS = require("../constants").COLLISION_LAYERS;
 
 function setNonNullVec3Components(target, values) {
   target.set(

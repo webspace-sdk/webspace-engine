@@ -14,7 +14,7 @@ import audioIcon from "!!url-loader!../assets/hubs/images/audio.png";
 import { paths } from "../systems/userinput/paths";
 import HLS from "hls.js";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
-import { RENDER_ORDER } from "../constants-2";
+import { RENDER_ORDER } from "../constants";
 import { MediaPlayer } from "dashjs";
 import { gatePermission, gatePermissionPredicate } from "../utils/permissions-utils";
 import {

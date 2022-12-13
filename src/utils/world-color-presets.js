@@ -1,4 +1,4 @@
-import { WORLD_COLOR_TYPES } from "../constants-2";
+import { WORLD_COLOR_TYPES } from "../constants";
 
 export const WORLD_COLOR_PRESETS = [
   {

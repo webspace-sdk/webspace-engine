@@ -1,7 +1,7 @@
 import { paths } from "../systems/userinput/paths";
 import { sets } from "../systems/userinput/sets";
 import { almostEqualVec3, getLastWorldPosition } from "../utils/three-utils";
-import { RENDER_ORDER } from "../constants-2";
+import { RENDER_ORDER } from "../constants";
 import { isLockedMedia } from "../utils/media-utils";
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { addVertexCurvingToMaterial } from "../systems/terrain-system";

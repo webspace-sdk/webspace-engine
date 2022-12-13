@@ -1,5 +1,5 @@
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
-import { RENDER_ORDER } from "../constants-2";
+import { RENDER_ORDER } from "../constants";
 import { SkyBeamBufferGeometry, BEAM_HEIGHT } from "../objects/sky-beam-buffer-geometry";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { getCreator, getNetworkedEntity } from "../utils/ownership-utils";

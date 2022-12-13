@@ -16,7 +16,7 @@ import { getMessages } from "../utils/i18n";
 import Tooltip from "./tooltip";
 import { useInstallPWA } from "./input/useInstallPWA";
 import { ATOM_TYPES } from "../utils/atom-metadata";
-import { WORLD_COLOR_TYPES } from "../constants-2";
+import { WORLD_COLOR_TYPES } from "../constants";
 import { getPresetAsColorTuples } from "../utils/world-color-presets";
 import HubPermissionsPopup from "./hub-permissions-popup";
 import WritebackSetupPopup from "./writeback-setup-popup";

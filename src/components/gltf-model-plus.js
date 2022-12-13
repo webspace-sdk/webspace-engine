@@ -9,7 +9,7 @@ import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader";
 import { resetMediaRotation, MEDIA_PRESENCE, MEDIA_INTERACTION_TYPES, BasisLoadingManager } from "../utils/media-utils";
 import { gatePermission } from "../utils/permissions-utils";
-import { RENDER_ORDER } from "../constants-2";
+import { RENDER_ORDER } from "../constants";
 import { BasisTextureLoader } from "three/examples/jsm/loaders/BasisTextureLoader";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 

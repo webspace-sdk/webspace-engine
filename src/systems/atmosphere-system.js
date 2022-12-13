@@ -2,7 +2,7 @@ import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import Sky from "../objects/sky";
 import Water from "../objects/water";
 import { Layers } from "../components/layers";
-import { RENDER_ORDER } from "../constants-2";
+import { RENDER_ORDER } from "../constants";
 import { SOUND_OUTDOORS, SOUND_WATER } from "./sound-effects-system";
 import { getHubIdFromHistory } from "../utils/jel-url-utils";
 

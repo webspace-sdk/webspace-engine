@@ -4,7 +4,7 @@ import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import { createBasisTexture } from "../utils/media-utils";
 import { getCreator, getNetworkedEntity } from "../utils/ownership-utils";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
-import { RENDER_ORDER } from "../constants-2";
+import { RENDER_ORDER } from "../constants";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { AvatarSphereBufferGeometry } from "../objects/avatar-sphere-buffer-geometry";
 import { rgbToCssRgb } from "../utils/dom-utils";

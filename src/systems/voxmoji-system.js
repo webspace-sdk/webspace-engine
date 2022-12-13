@@ -3,7 +3,7 @@ import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
 import { disposeNode, generateMeshBVH } from "../utils/three-utils";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../utils/threejs-world-update";
-import { RENDER_ORDER } from "../constants-2";
+import { RENDER_ORDER } from "../constants";
 import { EventTarget } from "event-target-shim";
 
 const {

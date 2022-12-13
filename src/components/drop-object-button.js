@@ -1,6 +1,6 @@
 import { ensureOwnership, getNetworkedEntity } from "../utils/ownership-utils";
 
-const COLLISION_LAYERS = require("../constants-2").COLLISION_LAYERS;
+const COLLISION_LAYERS = require("../constants").COLLISION_LAYERS;
 
 AFRAME.registerComponent("drop-object-button", {
   init() {

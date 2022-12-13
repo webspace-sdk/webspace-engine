@@ -2,7 +2,7 @@ import waterImageSrc from "!!url-loader!../assets/jel/images/water.png";
 import { almostEqualVec3 } from "../utils/three-utils";
 import { Layers } from "../components/layers";
 import { WORLD_SIZE, WORLD_RADIUS } from "../systems/terrain-system";
-import { RENDER_ORDER } from "../constants-2";
+import { RENDER_ORDER } from "../constants";
 
 /**
  * Zelda-style water shader from https://medium.com/@gordonnl/the-ocean-170fdfd659f1

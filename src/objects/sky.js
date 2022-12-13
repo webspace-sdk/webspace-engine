@@ -1,4 +1,4 @@
-import { RENDER_ORDER } from "../constants-2";
+import { RENDER_ORDER } from "../constants";
 import SkyboxBufferGeometry from "./skybox-buffer-geometry";
 
 /**

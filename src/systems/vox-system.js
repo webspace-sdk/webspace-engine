@@ -7,7 +7,7 @@ import { SHAPE, FIT } from "three-ammo/constants";
 import { setMatrixWorld, generateMeshBVH, disposeNode } from "../utils/three-utils";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../utils/threejs-world-update";
-import { RENDER_ORDER, COLLISION_LAYERS } from "../constants-2";
+import { RENDER_ORDER, COLLISION_LAYERS } from "../constants";
 import { SVoxChunk as SerializedVoxels } from "../utils/svox-chunk";
 import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../utils/media-utils";
 import { ensureOwnership } from "../utils/ownership-utils";

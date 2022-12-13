@@ -1,5 +1,5 @@
 const editableTagNames = ["TEXTAREA", "INPUT"];
-import { WORLD_COLOR_TYPES } from "../constants-2";
+import { WORLD_COLOR_TYPES } from "../constants";
 import { paths } from "../systems/userinput/paths";
 import { MAX_WORLD_TYPE } from "../systems/terrain-system";
 import { getHubIdFromHistory, getSpaceIdFromHistory, getSeedForHubIdFromHistory } from "./jel-url-utils";

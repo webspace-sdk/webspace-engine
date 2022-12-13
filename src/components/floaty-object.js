@@ -1,4 +1,4 @@
-const COLLISION_LAYERS = require("../constants-2").COLLISION_LAYERS;
+const COLLISION_LAYERS = require("../constants").COLLISION_LAYERS;
 import { isSynchronized, isMine } from "../utils/ownership-utils";
 
 AFRAME.registerComponent("floaty-object", {

@@ -3,7 +3,7 @@ import { temporarilyReleaseCanvasCursorLock } from "../utils/dom-utils";
 import { addAndArrangeRadialMedia, MEDIA_PRESENCE, MEDIA_INTERACTION_TYPES } from "../utils/media-utils";
 import { gatePermission } from "../utils/permissions-utils";
 import { disposeExistingMesh, disposeTexture } from "../utils/three-utils";
-import { RENDER_ORDER } from "../constants-2";
+import { RENDER_ORDER } from "../constants";
 import { addVertexCurvingToMaterial } from "../systems/terrain-system";
 import { renderQuillToImg, computeQuillContentRect, MAX_FONT_FACE } from "../utils/quill-utils";
 import { paths } from "../systems/userinput/paths";
