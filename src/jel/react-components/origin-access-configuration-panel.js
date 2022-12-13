@@ -17,6 +17,7 @@ const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked, failedOri
   const messages = getMessages();
   const [originType /*, setOriginType*/] = useState("github");
   const [user, setUser] = useState("");
+  const [org, setOrg] = useState("");
   const [repo, setRepo] = useState("");
   const [secret, setSecret] = useState("");
   const [branch, setBranch] = useState("");
@@ -87,7 +88,7 @@ const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked, failedOri
               e.stopPropagation();
               setConfirming(true);
               rootRef.current.parentNode.parentNode.focus();
-              await onConnectClicked({ type: originType, user, repo, secret, branch });
+              await onConnectClicked({ type: originType, user, org, repo, secret, branch });
               setConfirming(false);
             }}
           >
@@ -181,6 +182,29 @@ const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked, failedOri
                     }
 
                     setBranch(e.target.value);
+                  }}
+                />
+              </TextInputWrap>
+            )}
+            {originType === "github" && (
+              <TextInputWrap>
+                <Input
+                  ref={ref}
+                  type="text"
+                  name="org"
+                  value={org}
+                  placeholder={messages[`origin-access-config.${originType}-org-placeholder`]}
+                  min="3"
+                  max="64"
+                  onFocus={e => handleTextFieldFocus(e.target)}
+                  onBlur={e => handleTextFieldBlur(e.target)}
+                  onChange={e => {
+                    if (confirming) {
+                      e.preventDefault();
+                      return;
+                    }
+
+                    setOrg(e.target.value);
                   }}
                 />
               </TextInputWrap>

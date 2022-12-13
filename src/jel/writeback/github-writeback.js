@@ -21,6 +21,10 @@ export default class GitHubWriteback {
       this.user = options.user;
     }
 
+    if (options.org) {
+      this.org = options.org;
+    }
+
     if (options.repo) {
       this.repo = options.repo;
     }
@@ -50,6 +54,7 @@ export default class GitHubWriteback {
     if (this.isOpen) return true;
 
     this.user = options.user || this.user;
+    this.org = options.org || this.org;
     this.secret = options.secret || this.secret;
     this.repo = options.repo || this.repo;
     this.branch = options.branch || this.branch;
@@ -69,7 +74,7 @@ export default class GitHubWriteback {
 
       const github = new Octokat({ token: this.secret });
 
-      const repo = await github.repos(this.user, this.repo);
+      const repo = await github.repos(this.org || this.user, this.repo);
 
       if (!this.branch) {
         this.branch = (await repo.fetch()).defaultBranch;

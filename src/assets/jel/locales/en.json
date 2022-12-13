@@ -411,12 +411,13 @@
   "folder-access-request.unsupported-notice": "Your browser doesn't support the Local File System API.",
   "folder-access-request.unsupported-tip": "To edit this world locally, try Chrome or Edge.",
   "origin-access-config.title": "Web Origin Access",
-  "origin-access-config.info": "Enter Github credentials to save changes to a Github origin.",
+  "origin-access-config.info": "Enter credentials to save changes to a Github origin.",
   "origin-access-config.tip": "These settings are stored locally on your device and won't be shared.",
   "origin-access-config.github": "GitHub",
   "origin-access-config.confirming": "Checking credentials...",
   "origin-access-config.github-tip": "Commit changes to the GitHub repo from where this site is deployed (such as GitHub Pages.)",
   "origin-access-config.github-user-placeholder": "GitHub Username",
+  "origin-access-config.github-org-placeholder": "GitHub Organization (Optional)",
   "origin-access-config.github-repo-placeholder": "Repo Name",
   "origin-access-config.github-secret-placeholder": "Personal Access Token",
   "origin-access-config.github-branch-placeholder": "Branch (Optional)",
@@ -424,7 +425,7 @@
   "origin-access-config.webdav-soon": "WebDAV support coming soon.",
   "origin-access-config.webdav-tip": "Submit changes via HTTP WebDAV verbs. (POST, PUT, DELETE)",
   "origin-access-config.save-github": "Connect to GitHub",
-  "origin-access-config.error-github-2": "Invalid username or access token.",
+  "origin-access-config.error-github-2": "Invalid username, organization, or access token.",
   "origin-access-config.error-github-3": "Repository or branch not found.",
   "origin-access-config.error-github-4": "This HTML file was not found in the repository."
 }

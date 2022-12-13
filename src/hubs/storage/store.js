@@ -203,6 +203,7 @@ export const SCHEMA = {
       properties: {
         type: { type: "string" },
         user: { type: "string" },
+        org: { type: "string" },
         secret: { type: "string" },
         repo: { type: "string" },
         branch: { type: "string" }
