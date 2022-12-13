@@ -1,6 +1,6 @@
 import React from "react";
 import CreateEmbedInputPanel from "./create-embed-input-panel";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
+import sharedStyles from "../../assets/stylesheets/shared.scss";
 import classNames from "classnames";
 
 export const Normal = () => (

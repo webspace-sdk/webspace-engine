@@ -1,10 +1,10 @@
 import React from "react";
 import PopupMenu, { PopupMenuItem } from "./popup-menu";
 import PopupPanelMenu, { PopupPanelMenuItem, PopupPanelMenuSectionHeader } from "./popup-panel-menu";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
+import sharedStyles from "../../assets/stylesheets/shared.scss";
 import classNames from "classnames";
-import addIcon from "../assets/jel/images/icons/add.svgi";
-import checkIcon from "../assets/jel/images/icons/check.svgi";
+import addIcon from "../assets/images/icons/add.svgi";
+import checkIcon from "../assets/images/icons/check.svgi";
 
 export const Normal = () => (
   <div className={classNames(sharedStyles.basePanel)} style={{ display: "flex", width: "400px", height: "400px" }}>

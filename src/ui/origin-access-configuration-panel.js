@@ -7,10 +7,10 @@ import { handleTextFieldFocus, handleTextFieldBlur } from "../utils/focus-utils"
 import SmallActionButton from "./small-action-button";
 import PropTypes from "prop-types";
 import { getMessages } from "../utils/i18n";
-//import githubOnIcon from "../../assets/jel/images/icons/github-on.svgi";
-//import githubOffIcon from "../../assets/jel/images/icons/github-off.svgi";
-//import webdavOnIcon from "../../assets/jel/images/icons/webdav-on.svgi";
-//import webdavOffIcon from "../../assets/jel/images/icons/webdav-off.svgi";
+//import githubOnIcon from "../../assets/images/icons/github-on.svgi";
+//import githubOffIcon from "../../assets/images/icons/github-off.svgi";
+//import webdavOnIcon from "../../assets/images/icons/webdav-on.svgi";
+//import webdavOffIcon from "../../assets/images/icons/webdav-off.svgi";
 import LoadingSpinner from "./loading-spinner";
 
 const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked, failedOriginState }, ref) => {

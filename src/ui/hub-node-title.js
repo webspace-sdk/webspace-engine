@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import React, { useRef, useState } from "react";
 import styled from "styled-components";
 import IconButton from "./icon-button";
-import dotsIcon from "../assets/jel/images/icons/dots-horizontal.svgi";
+import dotsIcon from "../assets/images/icons/dots-horizontal.svgi";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 
 const HubNodeElement = styled.div`

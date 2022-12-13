@@ -126,7 +126,7 @@ import patchThreeNoProgramDispose from "./utils/threejs-avoid-disposing-programs
 import "./utils/threejs-video-texture-pause";
 import nextTick from "./utils/next-tick";
 import { SOUND_QUACK, SOUND_SPECIAL_QUACK } from "./systems/sound-effects-system";
-import ducky from "!!url-loader!./assets/hubs/models/DuckyMesh.glb";
+import ducky from "!!url-loader!./assets/models/DuckyMesh.glb";
 import { getAbsoluteHref } from "./utils/media-url-utils";
 import { hasActiveScreenShare } from "./utils/media-utils";
 import ReactDOM from "react-dom";

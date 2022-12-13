@@ -1,4 +1,4 @@
-import waterImageSrc from "!!url-loader!../assets/jel/images/water.png";
+import waterImageSrc from "!!url-loader!../assets/images/water.png";
 import { almostEqualVec3 } from "../utils/three-utils";
 import { Layers } from "../components/layers";
 import { WORLD_SIZE, WORLD_RADIUS } from "../systems/terrain-system";

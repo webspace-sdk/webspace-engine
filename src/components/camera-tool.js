@@ -7,7 +7,7 @@ import { createPlaneBufferGeometry, cloneObject3D } from "../utils/three-utils";
 import { SOUND_CAMERA_TOOL_TOOK_SNAPSHOT, SOUND_CAMERA_TOOL_COUNTDOWN } from "../systems/sound-effects-system";
 //import { loadModel } from "./gltf-model-plus";
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
-//import cameraModelSrc from "!!url-loader!../../assets/hubs/camera_tool.glb";
+//import cameraModelSrc from "!!url-loader!../../assets/camera_tool.glb";
 import anime from "animejs";
 
 // Don't include camera model since unused for now

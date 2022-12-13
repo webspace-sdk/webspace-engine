@@ -1,7 +1,7 @@
 import React from "react";
 import Tree from "rc-tree";
-import "../assets/jel/stylesheets/atom-tree.scss";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
+import "../assets/stylesheets/atom-tree.scss";
+import sharedStyles from "../../assets/stylesheets/shared.scss";
 import HubNodeTitle from "./hub-node-title";
 import classNames from "classnames";
 import PanelSectionHeader from "./panel-section-header";

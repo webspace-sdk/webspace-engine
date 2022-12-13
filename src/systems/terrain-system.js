@@ -7,7 +7,7 @@ import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { VOXLoader } from "../objects/VOXLoader";
 import { VOXBufferGeometry } from "../objects/vox-buffer-geometry";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
-import grassVoxSrc from "!!url-loader!../assets/jel/models/grass1.vox";
+import grassVoxSrc from "!!url-loader!../assets/models/grass1.vox";
 import { RENDER_ORDER, WORLD_COLOR_TYPES, COLLISION_LAYERS } from "../constants";
 import { Layers } from "../components/layers";
 import qsTruthy from "../utils/qs_truthy";

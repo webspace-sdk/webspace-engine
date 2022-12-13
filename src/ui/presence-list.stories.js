@@ -1,5 +1,5 @@
 import React from "react";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
+import sharedStyles from "../../assets/stylesheets/shared.scss";
 import classNames from "classnames";
 import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
 import PresenceList from "./presence-list";

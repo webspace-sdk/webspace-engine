@@ -4,7 +4,7 @@ import styled from "styled-components";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 import BigTooltip from "./big-tooltip";
 import { getMessages } from "../utils/i18n";
-import discordSpaceIcon from "../assets/jel/images/icons/discord-space-icon.svgi";
+import discordSpaceIcon from "../assets/images/icons/discord-space-icon.svgi";
 
 const SpaceNodeIconElement = styled.div`
   width: 64px;

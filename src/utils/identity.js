@@ -1,4 +1,4 @@
-import defaultAvatar from "!!url-loader!../assets/hubs/models/DefaultAvatar.glb";
+import defaultAvatar from "!!url-loader!../assets/models/DefaultAvatar.glb";
 
 const names = [
   "Baers-Pochard",

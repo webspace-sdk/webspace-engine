@@ -12,7 +12,7 @@ import {
 } from "../fonts/quill-fonts";
 import { preflightUrl } from "./media-utils";
 
-import QUILL_PRE from "../assets/jel/stylesheets/quill-pre.scss";
+import QUILL_PRE from "../assets/stylesheets/quill-pre.scss";
 import QUILL_CORE from "!!raw-loader!quill/dist/quill.core.css";
 import QUILL_BUBBLE from "!!raw-loader!quill/dist/quill.bubble.css";
 import QUILL_EMOJI from "!!raw-loader!quill-emoji/dist/quill-emoji.css";

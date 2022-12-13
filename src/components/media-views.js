@@ -9,8 +9,8 @@ import {
   getNetworkedEntity
 } from "../utils/ownership-utils";
 import GIFWorker from "../workers/gifparsing.worker.js";
-import errorImageSrc from "!!url-loader!../assets/hubs/images/media-error.gif";
-import audioIcon from "!!url-loader!../assets/hubs/images/audio.png";
+import errorImageSrc from "!!url-loader!../assets/images/media-error.gif";
+import audioIcon from "!!url-loader!../assets/images/audio.png";
 import { paths } from "../systems/userinput/paths";
 import HLS from "hls.js";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";

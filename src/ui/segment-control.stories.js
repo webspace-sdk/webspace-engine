@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import addIcon from "../assets/jel/images/icons/add.svgi";
+import addIcon from "../assets/images/icons/add.svgi";
 import SegmentControl from "./segment-control";
 
 export const WithIcons = () => {

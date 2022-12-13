@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import HubPermissionsPopup from "./hub-permissions-popup";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
+import sharedStyles from "../../assets/stylesheets/shared.scss";
 import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
 
 const metadata = new AtomMetadata(ATOM_TYPES.HUB);

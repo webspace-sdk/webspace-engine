@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import verticalDotsIcon from "../assets/jel/images/icons/dots-vertical.svgi";
-import mutedIcon from "../assets/jel/images/icons/mic-muted.svgi";
-import unmutedIcon from "../assets/jel/images/icons/mic-unmuted.svgi";
+import verticalDotsIcon from "../assets/images/icons/dots-vertical.svgi";
+import mutedIcon from "../assets/images/icons/mic-muted.svgi";
+import unmutedIcon from "../assets/images/icons/mic-unmuted.svgi";
 import AvatarSwatch from "./avatar-swatch";
 import { PopupPanelMenuArrow } from "./popup-panel-menu";
 import DeviceSelectorPopup from "./device-selector-popup";

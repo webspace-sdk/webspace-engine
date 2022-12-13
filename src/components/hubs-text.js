@@ -1,6 +1,6 @@
 import createTextGeometry from "three-bmfont-text";
-import ROBOTO_MSDF_JSON from "!!url-loader!../assets/jel/fonts/Roboto-msdf.rawjson";
-import ROBOTO_MSDF_PNG from "!!url-loader!../assets/jel/fonts/Roboto-msdf.png";
+import ROBOTO_MSDF_JSON from "!!url-loader!../assets/fonts/Roboto-msdf.rawjson";
+import ROBOTO_MSDF_PNG from "!!url-loader!../assets/fonts/Roboto-msdf.png";
 
 // 1 to match other A-Frame default widths.
 const DEFAULT_WIDTH = 1;

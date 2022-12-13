@@ -1,9 +1,9 @@
-import ACTION_BUTTON_9_URL from "!!url-loader!./assets/hubs/hud/action_button.9.png";
-import BUTTON_9_URL from "!!url-loader!./assets/hubs/hud/button.9.png";
-import PLAY_URL from "!!url-loader!./assets/hubs/video-overlay/play.png";
-import PLAY_HOVER_URL from "!!url-loader!./assets/hubs/video-overlay/play-hover.png";
-import PAUSE_URL from "!!url-loader!./assets/hubs/video-overlay/pause.png";
-import PAUSE_HOVER_URL from "!!url-loader!./assets/hubs/video-overlay/pause-hover.png";
+import ACTION_BUTTON_9_URL from "!!url-loader!./assets/hud/action_button.9.png";
+import BUTTON_9_URL from "!!url-loader!./assets/hud/button.9.png";
+import PLAY_URL from "!!url-loader!./assets/video-overlay/play.png";
+import PLAY_HOVER_URL from "!!url-loader!./assets/video-overlay/play-hover.png";
+import PAUSE_URL from "!!url-loader!./assets/video-overlay/pause.png";
+import PAUSE_HOVER_URL from "!!url-loader!./assets/video-overlay/pause-hover.png";
 
 export default `
     <a-scene

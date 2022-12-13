@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import { FormattedMessage } from "react-intl";
-import verticalDotsIcon from "../assets/jel/images/icons/dots-vertical.svgi";
+import verticalDotsIcon from "../assets/images/icons/dots-vertical.svgi";
 import React, { useCallback, useRef, useState, useEffect, forwardRef } from "react";
 import List from "rc-virtual-list";
 import PanelSectionHeader from "./panel-section-header";

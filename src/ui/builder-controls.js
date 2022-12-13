@@ -1,10 +1,10 @@
 //import PropTypes from "prop-types";
 import PanelSectionHeader from "./panel-section-header";
 import SegmentControl from "./segment-control";
-import pickIcon from "../assets/jel/images/icons/pick.svgi";
-import fillIcon from "../assets/jel/images/icons/fill.svgi";
-import boxIcon from "../assets/jel/images/icons/box.svgi";
-import sphereIcon from "../assets/jel/images/icons/sphere.svgi";
+import pickIcon from "../assets/images/icons/pick.svgi";
+import fillIcon from "../assets/images/icons/fill.svgi";
+import boxIcon from "../assets/images/icons/box.svgi";
+import sphereIcon from "../assets/images/icons/sphere.svgi";
 import Tooltip from "./tooltip";
 import ColorEquip from "./color-equip";
 import { FormattedMessage } from "react-intl";

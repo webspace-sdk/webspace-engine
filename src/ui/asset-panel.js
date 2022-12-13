@@ -5,10 +5,10 @@ import styled from "styled-components";
 import Tree from "rc-tree";
 import PanelSectionHeader from "./panel-section-header";
 import SegmentControl from "./segment-control";
-import scenesOnIcon from "../assets/jel/images/icons/scenes-on.svgi";
-import scenesOffIcon from "../assets/jel/images/icons/scenes-off.svgi";
-import objectsOnIcon from "../assets/jel/images/icons/builder-on.svgi";
-import objectsOffIcon from "../assets/jel/images/icons/builder-off.svgi";
+import scenesOnIcon from "../assets/images/icons/scenes-on.svgi";
+import scenesOffIcon from "../assets/images/icons/scenes-off.svgi";
+import objectsOnIcon from "../assets/images/icons/builder-on.svgi";
+import objectsOffIcon from "../assets/images/icons/builder-off.svgi";
 import { getMessages } from "../utils/i18n";
 
 const AssetPanelElement = styled.div`

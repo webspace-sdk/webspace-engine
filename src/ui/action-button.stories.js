@@ -1,7 +1,7 @@
 import React from "react";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
+import sharedStyles from "../../assets/stylesheets/shared.scss";
 import classNames from "classnames";
-import addIcon from "../assets/jel/images/icons/add.svgi";
+import addIcon from "../assets/images/icons/add.svgi";
 
 import ActionButton from "./action-button";
 import SmallActionButton from "./small-action-button";

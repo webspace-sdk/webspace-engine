@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import ProfileEditorPopup, { PROFILE_EDITOR_MODES } from "./profile-editor-popup";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
+import sharedStyles from "../../assets/stylesheets/shared.scss";
 
 export const Unverified = () => {
   useEffect(() => document.querySelector(`.${sharedStyles.showWhenPopped}`).focus());

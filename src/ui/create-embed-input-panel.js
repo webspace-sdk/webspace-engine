@@ -5,7 +5,7 @@ import { FormattedMessage } from "react-intl";
 import { getMessages } from "../utils/i18n";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../utils/focus-utils";
 import SmallActionButton from "./small-action-button";
-import linkIconSrc from "../assets/jel/images/icons/link.svgi";
+import linkIconSrc from "../assets/images/icons/link.svgi";
 
 const CreateEmbedInputPanelElement = styled.div`
   background-color: var(--dialog-background-color);

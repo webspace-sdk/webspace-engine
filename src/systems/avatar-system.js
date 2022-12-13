@@ -1,5 +1,5 @@
-import avatarSheetImgSrc from "!!url-loader!../assets/jel/images/avatar-sheet.png";
-import avatarSheetBasisSrc from "!!url-loader!../assets/jel/images/avatar-sheet.basis";
+import avatarSheetImgSrc from "!!url-loader!../assets/images/avatar-sheet.png";
+import avatarSheetBasisSrc from "!!url-loader!../assets/images/avatar-sheet.basis";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
 import { createBasisTexture } from "../utils/media-utils";
 import { getCreator, getNetworkedEntity } from "../utils/ownership-utils";

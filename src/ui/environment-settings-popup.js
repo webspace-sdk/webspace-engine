@@ -15,7 +15,7 @@ import { objRgbToCssRgb } from "../utils/dom-utils";
 import { WORLD_COLOR_PRESETS } from "../utils/world-color-presets";
 import AtomMetadata, { ATOM_TYPES } from "../utils/atom-metadata";
 import BigIconButton from "./icon-button";
-import presetsIcon from "../assets/jel/images/icons/presets.svgi";
+import presetsIcon from "../assets/images/icons/presets.svgi";
 import { showTargetBelowElement } from "../utils/popup-utils";
 import { WORLD_TYPES } from "../systems/terrain-system";
 

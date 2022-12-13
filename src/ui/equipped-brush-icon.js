@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { BigIconButton } from "./icon-button";
-import pickIcon from "../assets/jel/images/icons/pick.svgi";
-import fillIcon from "../assets/jel/images/icons/fill.svgi";
+import pickIcon from "../assets/images/icons/pick.svgi";
+import fillIcon from "../assets/images/icons/fill.svgi";
 import { BRUSH_TYPES } from "../constants";
 
 const EquippedBrushDiv = styled.div`

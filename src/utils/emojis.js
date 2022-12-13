@@ -1,4 +1,4 @@
-import EmojiTar from "!!url-loader!../assets/jel/emojis.tar";
+import EmojiTar from "!!url-loader!../assets/emojis.tar";
 import untar from "js-untar";
 
 export const EmojiList = [

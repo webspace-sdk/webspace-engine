@@ -1,6 +1,6 @@
 import React from "react";
 import AssetPanel from "./asset-panel";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
+import sharedStyles from "../../assets/stylesheets/shared.scss";
 import classNames from "classnames";
 import MediaTree from "../utils/media-tree";
 

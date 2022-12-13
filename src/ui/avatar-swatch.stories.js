@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
+import sharedStyles from "../../assets/stylesheets/shared.scss";
 import classNames from "classnames";
 
 import AvatarSwatch from "./avatar-swatch";
