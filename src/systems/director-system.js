@@ -1,6 +1,7 @@
 import { ensureOwnership } from "../utils/ownership-utils";
 import { setMatrixWorld } from "../utils/three-utils";
 import BezierEasing from "bezier-easing";
+
 const easeInOut = BezierEasing(0.42, 0, 0.58, 1);
 const tmpVec3 = new THREE.Vector3();
 const lookAtMatrix = new THREE.Matrix4();

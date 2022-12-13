@@ -35,15 +35,15 @@ import { daydreamUserBindings } from "./bindings/daydream-user";
 import { cardboardUserBindings } from "./bindings/cardboard-user";
 
 import generate3DOFTriggerBindings from "./bindings/oculus-go-user";
-const oculusGoUserBindings = generate3DOFTriggerBindings(paths.device.oculusgo);
-const gearVRControllerUserBindings = generate3DOFTriggerBindings(paths.device.gearVRController);
-
 import { resolveActionSets } from "./resolve-action-sets";
 import { GamepadDevice } from "./devices/gamepad";
 import { gamepadBindings } from "./bindings/generic-gamepad";
 import { getAvailableVREntryTypes, VR_DEVICE_AVAILABILITY } from "../../utils/vr-caps-detect";
 import { hackyMobileSafariTest } from "../../utils/detect-touchscreen";
 import { ArrayBackedSet } from "./array-backed-set";
+
+const oculusGoUserBindings = generate3DOFTriggerBindings(paths.device.oculusgo);
+const gearVRControllerUserBindings = generate3DOFTriggerBindings(paths.device.gearVRController);
 
 function arrayContentsDiffer(a, b) {
   if (a.length !== b.length) return true;

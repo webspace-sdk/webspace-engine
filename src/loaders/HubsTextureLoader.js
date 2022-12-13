@@ -1,4 +1,5 @@
 import nextTick from "../utils/next-tick";
+
 const MIN_FRAMES_BETWEEN_TEXTURE_UPLOADS = 10;
 const MAX_TEXTURE_UPLOAD_PIXELS_PER_FRAME = 1024 * 1024 + 1;
 

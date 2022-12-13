@@ -1,8 +1,9 @@
 // TODO deal with thrown physics object disappearing - wait for rest
 import { WORLD_SIZE, WORLD_MIN_COORD, WORLD_MAX_COORD } from "./terrain-system";
 import { Terrain } from "../objects/terrain";
-const MAX_AVATAR_DISTANCE_TO_ALLOW_SCHEDULED_WRAP = 5;
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
+
+const MAX_AVATAR_DISTANCE_TO_ALLOW_SCHEDULED_WRAP = 5;
 
 // This code is used to wrap objects around in world space, to simulate the experience of walking
 // around a planet.

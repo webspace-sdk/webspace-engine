@@ -1,10 +1,10 @@
 import { Validator } from "jsonschema";
 import merge from "deepmerge";
+import { EventTarget } from "event-target-shim";
 
 const LOCAL_STORE_KEY_PREFIX = "___jel_hub_store_";
 const STORE_STATE_CACHE_KEY = Symbol();
 const validator = new Validator();
-import { EventTarget } from "event-target-shim";
 
 // Durable (via local-storage) schema-enforced state that is meant to be consumed via forward data flow.
 // Bound to a specific hub.

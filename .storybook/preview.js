@@ -1,6 +1,6 @@
 import React from "react";
-import { useAccessibleOutlineStyle } from "../src/react-components/input/useAccessibleOutlineStyle";
-import { WrappedIntlProvider } from "../src/react-components/wrapped-intl-provider";
+import { useAccessibleOutlineStyle } from "../src/ui/input/useAccessibleOutlineStyle";
+import { WrappedIntlProvider } from "../src/ui/wrapped-intl-provider";
 import "../src/hubs/react-components/styles/global.scss";
 import Store from "../src/storage/store";
 import AccountChannel from "../src/utils/account-channel";

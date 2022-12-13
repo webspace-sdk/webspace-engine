@@ -7,14 +7,6 @@ import { waitForShadowDOMContentLoaded } from "./utils/async-utils";
 import { retainPdf, releasePdf } from "./utils/pdf-pool";
 import { isInQuillEditor } from "./utils/quill-utils";
 import { gatePermission } from "./utils/permissions-utils";
-
-const { detect } = require("detect-browser");
-
-const isBotMode = qsTruthy("bot");
-const isMobile = AFRAME.utils.device.isMobile();
-const forceEnableTouchscreen = hackyMobileSafariTest();
-const qs = new URLSearchParams(location.search);
-
 import {
   addMediaInFrontOfPlayerIfPermitted,
   performAnimatedRemove,
@@ -25,6 +17,13 @@ import { handleExitTo2DInterstitial, exit2DInterstitialAndEnterVR } from "./util
 import { ObjectContentOrigins } from "./object-types";
 import { pushHistoryState } from "./utils/history";
 import { proxiedUrlFor } from "./utils/media-url-utils";
+
+const { detect } = require("detect-browser");
+
+const isBotMode = qsTruthy("bot");
+const isMobile = AFRAME.utils.device.isMobile();
+const forceEnableTouchscreen = hackyMobileSafariTest();
+const qs = new URLSearchParams(location.search);
 
 const isIOS = AFRAME.utils.device.isIOS();
 

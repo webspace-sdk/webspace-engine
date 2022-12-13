@@ -1,4 +1,6 @@
 import { EventTarget } from "event-target-shim";
+import qsTruthy from "../utils/qs_truthy";
+
 const SAMPLING_DURATION_MS = 1000.0 * 4.0;
 const LOWER_QUALITY_FRAME_LENGTH = 1000.0 / 50; // Ensure at least 50 FPS
 const MIN_SAMPLES_NEEDED = 15;
@@ -16,7 +18,6 @@ const CROSS_SESSION_DETAIL_LOWER_DURATION_S = 60 * 60 * 24;
 // Note these need to be descending due to how algorithm runs.
 const STARTUP_SLOW_FRAME_THRESHOLDS = [[1500.0, 3], [750.0, 5], [350.0, 10]];
 
-import qsTruthy from "../utils/qs_truthy";
 const debugAutoQuality = qsTruthy("debug_auto_quality");
 
 // Conservative quality adjuster, take frames during a SAMPLING_DURATION_MS

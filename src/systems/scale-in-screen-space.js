@@ -1,4 +1,5 @@
 import { almostEqual, squareDistanceBetween } from "../utils/three-utils";
+
 const MIN_DISTANCE = 0.2;
 export class ScaleInScreenSpaceSystem {
   constructor() {

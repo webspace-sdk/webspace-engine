@@ -1,5 +1,6 @@
 import { MeshBVH } from "three-mesh-bvh";
 import nextTick from "./next-tick";
+
 const { Raycaster, Vector2, Vector3, Plane } = THREE;
 
 const tempVector3 = new THREE.Vector3();

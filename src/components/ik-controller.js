@@ -2,8 +2,9 @@ import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { almostEqual, almostEqualVec3, almostEqualQuaternion } from "../utils/three-utils";
 import { findAncestorWithComponent } from "../utils/scene-graph";
 import { isMine } from "../utils/ownership-utils";
-const { Vector3, Quaternion, Matrix4, Euler } = THREE;
 import BezierEasing from "bezier-easing";
+
+const { Vector3, Quaternion, Matrix4, Euler } = THREE;
 
 const squeezeSpringStep = BezierEasing(0.47, -0.07, 0.44, 1.65);
 const jumpSpringStep = BezierEasing(0.47, 0.0, 0.44, 2.35);

@@ -1,6 +1,5 @@
 import { getNetworkedEntity } from "../utils/ownership-utils";
-import { isWebspaceUrl } from "../utils/media-url-utils";
-import { guessContentType } from "../utils/media-url-utils";
+import { isWebspaceUrl, guessContentType } from "../utils/media-url-utils";
 import { handleExitTo2DInterstitial } from "../utils/vr-interstitial";
 
 AFRAME.registerComponent("open-media-button", {

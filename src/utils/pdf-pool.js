@@ -1,4 +1,5 @@
 import * as pdfjs from "pdfjs-dist";
+
 const pdfjsWorker = require("pdfjs-dist/build/pdf.worker.js");
 pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfjsWorker], { type: "text/javascript" }));
 

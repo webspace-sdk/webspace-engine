@@ -1,4 +1,5 @@
 import { CONSTANTS } from "three-ammo";
+
 const ACTIVATION_STATE = CONSTANTS.ACTIVATION_STATE,
   TYPE = CONSTANTS.TYPE;
 

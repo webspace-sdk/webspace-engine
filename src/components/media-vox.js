@@ -1,13 +1,16 @@
-import { MEDIA_PRESENCE } from "../utils/media-utils";
-import { disposeExistingMesh } from "../utils/three-utils";
-import { resetMediaRotation, MEDIA_INTERACTION_TYPES, isLockedMedia } from "../utils/media-utils";
+import {
+  MEDIA_PRESENCE,
+  resetMediaRotation,
+  MEDIA_INTERACTION_TYPES,
+  isLockedMedia,
+  addMediaInFrontOfPlayerIfPermitted
+} from "../utils/media-utils";
+import { disposeExistingMesh, getSpawnInFrontZOffsetForEntity } from "../utils/three-utils";
 import { VOXEL_SIZE } from "../objects/voxels-buffer-geometry";
 import { getNetworkedEntity } from "../utils/ownership-utils";
 import { endCursorLock } from "../utils/dom-utils";
-import { addMediaInFrontOfPlayerIfPermitted } from "../utils/media-utils";
 import { gatePermission } from "../utils/permissions-utils";
 import { ObjectContentOrigins } from "../object-types";
-import { getSpawnInFrontZOffsetForEntity } from "../utils/three-utils";
 import { VOX_CONTENT_TYPE } from "../utils/vox-utils";
 import { assetFileNameForName } from "../utils/jel-url-utils";
 

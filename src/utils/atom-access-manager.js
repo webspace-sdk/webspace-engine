@@ -1,12 +1,11 @@
 import { EventTarget } from "event-target-shim";
 import { getHubIdFromHistory } from "./jel-url-utils";
 import { waitForDOMContentLoaded } from "./async-utils";
-import { docToPrettifiedHtml } from "./dom-utils";
+import { docToPrettifiedHtml, META_TAG_PREFIX } from "./dom-utils";
 import { signString, verifyString } from "./crypto";
 import { fromByteArray } from "base64-js";
 import FileWriteback from "../writeback/file-writeback";
 import GitHubWriteback from "../writeback/github-writeback";
-import { META_TAG_PREFIX } from "./dom-utils";
 import { getUrlFromVoxId } from "./vox-utils";
 import SERVICE_WORKER_JS from "!!raw-loader!../webspace.service.js";
 

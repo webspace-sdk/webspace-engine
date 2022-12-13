@@ -1,4 +1,5 @@
 import { CAMERA_MODE_FIRST_PERSON } from "../systems/camera-system";
+
 const TWOPI = Math.PI * 2;
 function deltaAngle(a, b) {
   const p = Math.abs(b - a) % TWOPI;

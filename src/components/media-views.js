@@ -22,7 +22,8 @@ import {
   createImageTexture,
   scaleToAspectRatio,
   resetMediaRotation,
-  MEDIA_INTERACTION_TYPES
+  MEDIA_INTERACTION_TYPES,
+  MEDIA_PRESENCE
 } from "../utils/media-utils";
 import {
   getCorsProxyUrl,
@@ -34,7 +35,6 @@ import { buildAbsoluteURL } from "url-toolkit";
 import { SOUND_CAMERA_TOOL_TOOK_SNAPSHOT } from "../systems/sound-effects-system";
 import { promisifyWorker } from "../utils/promisify-worker.js";
 import { refreshMediaMirror, getCurrentMirroredMedia } from "../utils/mirror-utils";
-import { MEDIA_PRESENCE } from "../utils/media-utils";
 import { disposeExistingMesh, disposeTexture } from "../utils/three-utils";
 import { addVertexCurvingToMaterial } from "../systems/terrain-system";
 import { chicletGeometry, chicletGeometryFlipped } from "../objects/chiclet-geometry.js";
@@ -60,7 +60,6 @@ for (let i = 0; i <= 20; i++) {
   s += "]";
   VOLUME_LABELS[i] = s;
 }
-import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader";
 
 class GIFTexture extends THREE.Texture {
   constructor(frames, delays, disposals) {

@@ -5,10 +5,9 @@ import { gatePermission } from "../utils/permissions-utils";
 import { disposeExistingMesh, disposeTexture } from "../utils/three-utils";
 import { RENDER_ORDER } from "../constants-2";
 import { addVertexCurvingToMaterial } from "../systems/terrain-system";
-import { renderQuillToImg, computeQuillContentRect } from "../utils/quill-utils";
+import { renderQuillToImg, computeQuillContentRect, MAX_FONT_FACE } from "../utils/quill-utils";
 import { paths } from "../systems/userinput/paths";
 import { chicletGeometry } from "../objects/chiclet-geometry.js";
-import { MAX_FONT_FACE } from "../utils/quill-utils";
 import Color from "color";
 
 const FIT_CONTENT_EXTRA_SCALE = 1.5;

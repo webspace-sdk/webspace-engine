@@ -2,6 +2,7 @@ import { hashString } from "./crypto";
 import bs58 from "bs58";
 import random from "random";
 import seedrandom from "seedrandom";
+
 random.use(seedrandom("base"));
 
 let currentHref = null;

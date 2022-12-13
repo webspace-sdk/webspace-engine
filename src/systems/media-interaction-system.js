@@ -8,15 +8,13 @@ import {
   cloneMedia,
   isLockedMedia
 } from "../utils/media-utils";
-import { gatePermission } from "../utils/permissions-utils";
+import { gatePermission, canCloneOrSnapshot } from "../utils/permissions-utils";
 import { GUIDE_PLANE_MODES } from "./helpers-system";
 import { TRANSFORM_MODE } from "./transform-selected-object";
-import { canCloneOrSnapshot } from "../utils/permissions-utils";
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { ensureOwnership, getNetworkedEntitySync, isSynchronized } from "../utils/ownership-utils";
 import { getSpawnInFrontZOffsetForEntity } from "../utils/three-utils";
-import { cursorIsVisible } from "../utils/dom-utils";
-import { releaseEphemeralCursorLock, beginEphemeralCursorLock } from "../utils/dom-utils";
+import { cursorIsVisible, releaseEphemeralCursorLock, beginEphemeralCursorLock } from "../utils/dom-utils";
 import qsTruthy from "../utils/qs_truthy";
 import { SOUND_LOCK, SOUND_UNLOCK } from "./sound-effects-system";
 

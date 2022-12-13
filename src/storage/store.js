@@ -1,12 +1,12 @@
 import { Validator } from "jsonschema";
 import merge from "deepmerge";
 import { generateKeys } from "../utils/crypto";
+import { EventTarget } from "event-target-shim";
+import { fetchRandomDefaultAvatarId, generateRandomName } from "../utils/identity.js";
 
 const LOCAL_STORE_KEY = "___jel_store";
 const STORE_STATE_CACHE_KEY = Symbol();
 const validator = new Validator();
-import { EventTarget } from "event-target-shim";
-import { fetchRandomDefaultAvatarId, generateRandomName } from "../utils/identity.js";
 
 export const rgbToStoredColor = ({ r, g, b }) => {
   return (r | (g << 8) | (b << 16)) >>> 0;

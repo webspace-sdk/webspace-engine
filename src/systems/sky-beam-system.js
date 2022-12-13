@@ -4,6 +4,7 @@ import { SkyBeamBufferGeometry, BEAM_HEIGHT } from "../objects/sky-beam-buffer-g
 import { addVertexCurvingToShader } from "./terrain-system";
 import { getCreator, getNetworkedEntity } from "../utils/ownership-utils";
 import { WORLD_MATRIX_CONSUMERS } from "../utils/threejs-world-update";
+
 const BEAM_Y_OFFSET = BEAM_HEIGHT / 2;
 
 const { Color, ShaderMaterial, MeshBasicMaterial, Matrix4, ShaderLib, UniformsUtils, Vector3 } = THREE;

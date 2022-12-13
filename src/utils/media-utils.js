@@ -1,6 +1,5 @@
-import { objectTypeForOriginAndContentType } from "../object-types";
+import { objectTypeForOriginAndContentType, ObjectContentOrigins } from "../object-types";
 import { hackyMobileSafariTest } from "./detect-touchscreen";
-import { ObjectContentOrigins } from "../object-types";
 import mediaHighlightFrag from "./media-highlight-frag.glsl";
 import { mapMaterials } from "./material-utils";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
@@ -20,6 +19,12 @@ import basisTranscoderWasmUrl from "!!url-loader!three/examples/js/libs/basis/ba
 import { BasisTextureLoader } from "three/examples/jsm/loaders/BasisTextureLoader";
 import { modelFromString, modelToString } from "./vox-utils";
 import { voxToSvox } from "smoothvoxels";
+// We use the legacy 'text' regex since it matches some items like beach_umbrella
+// and thermometer which seem to not work with the default/standard regex
+import createEmojiRegex from "emoji-regex/text.js";
+
+import Linkify from "linkify-it";
+import tlds from "tlds";
 
 export const BasisLoadingManager = new THREE.LoadingManager();
 
@@ -28,13 +33,6 @@ BasisLoadingManager.setURLModifier(url => {
   if (url === "basis_transcoder.wasm") return basisTranscoderWasmUrl;
   return url;
 });
-
-// We use the legacy 'text' regex since it matches some items like beach_umbrella
-// and thermometer which seem to not work with the default/standard regex
-import createEmojiRegex from "emoji-regex/text.js";
-
-import Linkify from "linkify-it";
-import tlds from "tlds";
 
 const emojiRegex = createEmojiRegex();
 

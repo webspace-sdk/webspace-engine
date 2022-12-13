@@ -1,7 +1,11 @@
 import { paths } from "./userinput/paths";
-import { almostEqual, isChildOf, expandByEntityObjectSpaceBoundingBox } from "../utils/three-utils";
+import {
+  almostEqual,
+  isChildOf,
+  expandByEntityObjectSpaceBoundingBox,
+  createPlaneBufferGeometry
+} from "../utils/three-utils";
 import { isFlatMedia } from "../utils/media-utils";
-import { createPlaneBufferGeometry } from "../utils/three-utils";
 import { VOXEL_SIZE } from "./terrain-system";
 
 const MAX_SLIDE_DISTANCE = 20.0;

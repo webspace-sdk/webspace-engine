@@ -1,7 +1,8 @@
 import screenfull from "screenfull";
 import { showFullScreenIfWasFullScreen } from "./fullscreen";
-const { detect } = require("detect-browser");
 import { temporarilyReleaseCanvasCursorLock } from "./dom-utils";
+
+const { detect } = require("detect-browser");
 
 const browser = detect();
 let isExitingFullscreenDueToFocus = false;

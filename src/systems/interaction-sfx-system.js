@@ -1,6 +1,5 @@
 import { paths } from "./userinput/paths";
 import { SOUND_HOVER_OR_GRAB, SOUND_RELEASE } from "./sound-effects-system";
-import { isUI } from "./interactions";
 
 export class InteractionSfxSystem {
   constructor() {}

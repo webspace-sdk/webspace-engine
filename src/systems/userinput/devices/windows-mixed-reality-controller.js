@@ -1,6 +1,7 @@
 import { paths } from "../paths";
 import { Pose } from "../pose";
 import { copySittingToStandingTransform } from "./copy-sitting-to-standing-transform";
+
 const ONES = new THREE.Vector3(1, 1, 1);
 const HAND_OFFSET = new THREE.Matrix4().compose(
   new THREE.Vector3(0, -0.017, 0.13),

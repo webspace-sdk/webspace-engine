@@ -1,6 +1,7 @@
 import { getNetworkedEntity } from "../utils/ownership-utils";
 
 import { findComponentsInNearestAncestor } from "../utils/scene-graph";
+
 AFRAME.registerComponent("camera-focus-button", {
   schema: {
     track: { default: false },

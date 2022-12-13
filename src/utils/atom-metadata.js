@@ -3,12 +3,11 @@ import fastDeepEqual from "fast-deep-equal";
 import { getMessages } from "./i18n";
 import { useEffect } from "react";
 import { EventTarget } from "event-target-shim";
-import { getHubIdFromHistory } from "./jel-url-utils";
+import { getHubIdFromHistory, getSpaceIdFromUrl, getHubIdFromUrl, getSpaceIdFromHistory } from "./jel-url-utils";
 import { waitForDOMContentLoaded } from "./async-utils";
 import { META_TAG_PREFIX, getHubMetaFromDOM } from "./dom-utils";
 import { fetchSVoxFromUrl, getVoxIdFromUrl, getUrlFromVoxId } from "./vox-utils";
 import { STACK_AXIS_CSS_NAMES } from "../systems/transform-selected-object";
-import { getSpaceIdFromUrl, getHubIdFromUrl, getSpaceIdFromHistory } from "./jel-url-utils";
 
 const ATOM_TYPES = {
   HUB: 0,

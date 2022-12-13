@@ -1,9 +1,9 @@
 import patchThreeNoProgramDispose from "../utils/threejs-avoid-disposing-programs";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import CubeSSAOPass from "../effects/cube-ssao";
 
 const tmpVec3 = new THREE.Vector3();
 const lookAtMatrix = new THREE.Matrix4();
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-import CubeSSAOPass from "../effects/cube-ssao";
 
 export class ExternalCameraSystem {
   constructor(sceneEl, atmosphereSystem, terrainSystem, cameraSystem, avatarSystem, wrappedEntitySystem) {

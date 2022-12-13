@@ -1,4 +1,4 @@
-import { VoxelsBufferGeometry } from "../objects/voxels-buffer-geometry";
+import { VoxelsBufferGeometry, VOXEL_SIZE } from "../objects/voxels-buffer-geometry";
 import { ObjectContentOrigins } from "../object-types";
 import { TRANSFORM_MODE } from "./transform-selected-object";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
@@ -9,7 +9,6 @@ import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../utils/threejs-world-update";
 import { RENDER_ORDER, COLLISION_LAYERS } from "../constants-2";
 import { SVoxChunk as SerializedVoxels } from "../utils/svox-chunk";
-import { VOXEL_SIZE } from "../objects/voxels-buffer-geometry";
 import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../utils/media-utils";
 import { ensureOwnership } from "../utils/ownership-utils";
 import {
@@ -36,9 +35,9 @@ import {
 } from "../utils/vox-utils";
 import { ByteBuffer } from "flatbuffers";
 import FastVixel from "fast-vixel";
+import { EventTarget } from "event-target-shim";
 
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, Matrix4, Mesh } = THREE;
-import { EventTarget } from "event-target-shim";
 
 const svoxBuffers = new SvoxBuffers(1024 * 768 * 2);
 export const MAX_FRAMES_PER_VOX = 32;

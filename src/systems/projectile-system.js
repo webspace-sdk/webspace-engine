@@ -21,6 +21,7 @@ import {
 } from "./sound-effects-system";
 
 import BezierEasing from "bezier-easing";
+
 const REACTJI_SEND_RATE_LIMIT = 5000;
 let lastReactjiSendTime = 0;
 

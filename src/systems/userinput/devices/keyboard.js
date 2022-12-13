@@ -1,9 +1,8 @@
 import { paths } from "../paths";
 import { ArrayBackedSet } from "../array-backed-set";
-import { isInEditableField } from "../../../utils/dom-utils";
+import { isInEditableField, CURSOR_LOCK_STATES, getCursorLockState } from "../../../utils/dom-utils";
 import { isInQuillEditor } from "../../../utils/quill-utils";
 import { isLockedMedia } from "../../../utils/media-utils";
-import { CURSOR_LOCK_STATES, getCursorLockState } from "../../../utils/dom-utils";
 import { BRUSH_TYPES, BRUSH_MODES } from "../../../constants";
 
 export class KeyboardDevice {

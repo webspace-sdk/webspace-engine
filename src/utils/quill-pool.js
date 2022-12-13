@@ -1,15 +1,14 @@
 import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";
+import { getMessages } from "./i18n";
+import "quill-emoji";
+import Quill from "quill";
 
 hljs.registerLanguage("javascript", javascript);
-import { getMessages } from "./i18n";
 
 hljs.configure({
   languages: ["javascript"]
 });
-
-import "quill-emoji";
-import Quill from "quill";
 
 export const EDITOR_WIDTH = 600;
 export const EDITOR_HEIGHT = Math.floor(EDITOR_WIDTH * 0.5625);

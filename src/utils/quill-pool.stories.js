@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 //import Quill from "quill";
 import { EDITOR_WIDTH, EDITOR_HEIGHT, initQuillPool, getQuill, destroyQuill } from "./quill-pool";
-import { computeQuillContectRect } from "./quill-utils";
 import { renderQuillToImg } from "./quill-utils";
 
 const networkId = "abc";

@@ -1,6 +1,5 @@
-import { MEDIA_PRESENCE } from "../utils/media-utils";
+import { MEDIA_PRESENCE, resetMediaRotation, MEDIA_INTERACTION_TYPES } from "../utils/media-utils";
 import { disposeExistingMesh } from "../utils/three-utils";
-import { resetMediaRotation, MEDIA_INTERACTION_TYPES } from "../utils/media-utils";
 import { imageUrlForEmoji } from "../utils/media-url-utils";
 import { gatePermission } from "../utils/permissions-utils";
 

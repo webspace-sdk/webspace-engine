@@ -1,4 +1,4 @@
-import React, { useState, /* useCallback, */ forwardRef, useRef } from "react";
+import React, { useState, forwardRef, useRef } from "react";
 import { PanelWrap, Info, Tip, TextInputWrap, Input } from "./form-components";
 import PanelSectionHeader from "./panel-section-header";
 import { FormattedMessage } from "react-intl";

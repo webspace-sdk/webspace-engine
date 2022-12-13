@@ -3,6 +3,7 @@ import { isUI } from "../interactions";
 import { CAMERA_MODE_INSPECT } from "../camera-system";
 import { isInEditableField } from "../../utils/dom-utils";
 import qsTruthy from "../../utils/qs_truthy";
+
 const debugUserInput = qsTruthy("dui");
 
 let leftTeleporter, rightTeleporter, transformSystem, scalingSystem;

@@ -1,10 +1,9 @@
 import { VOXBufferGeometry } from "../objects/vox-buffer-geometry.js";
 import { DynamicInstancedMesh } from "../objects/DynamicInstancedMesh";
-import { disposeNode } from "../utils/three-utils";
+import { disposeNode, generateMeshBVH } from "../utils/three-utils";
 import { addVertexCurvingToShader } from "./terrain-system";
 import { WORLD_MATRIX_CONSUMERS } from "../utils/threejs-world-update";
 import { RENDER_ORDER } from "../constants-2";
-import { generateMeshBVH } from "../utils/three-utils";
 import { EventTarget } from "event-target-shim";
 
 const {

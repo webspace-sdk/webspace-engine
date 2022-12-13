@@ -1,4 +1,5 @@
 import { cloneMedia, closeExistingMediaMirror } from "./media-utils";
+
 let mirrorTarget;
 export function getCurrentMirroredMedia() {
   // TODO JEL

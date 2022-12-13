@@ -6,9 +6,6 @@ import Color from "color";
 import random from "random";
 import seedrandom from "seedrandom";
 import { fromByteArray } from "base64-js";
-
-random.use(seedrandom("base"));
-
 import "./utils/theme";
 import "./utils/debug-log";
 import "./utils/logging";
@@ -123,8 +120,7 @@ import "./components/shape-helper";
 
 import { SHADOW_DOM_STYLES } from "./styles";
 import AFRAME_DOM from "./aframe-dom";
-import { isInQuillEditor } from "./utils/quill-utils";
-import { CURSOR_LOCK_STATES, getCursorLockState } from "./utils/dom-utils";
+import { getIsWindowAtScreenEdges, isInEditableField } from "./utils/dom-utils";
 import { patchWebGLRenderingContext, isSoftwareRenderer } from "./utils/webgl";
 import patchThreeNoProgramDispose from "./utils/threejs-avoid-disposing-programs";
 import nextTick from "./utils/next-tick";
@@ -137,7 +133,7 @@ import React from "react";
 import { Router, Route } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import { clearHistoryState } from "./utils/history";
-import JelUI from "./react-components/jel-ui";
+import JelUI from "./ui/jel-ui";
 import AccountChannel from "./utils/account-channel";
 import DynaChannel from "./utils/dyna-channel";
 import SpaceChannel from "./utils/space-channel";
@@ -165,7 +161,6 @@ import {
   LabelFontCSS
 } from "./fonts/quill-fonts";
 import { registerWrappedEntityPositionNormalizers } from "./systems/wrapped-entity-system";
-import { getIsWindowAtScreenEdges, isInEditableField } from "./utils/dom-utils";
 import { resetTemplate } from "./utils/template-utils";
 import { App } from "./App";
 import { platformUnsupported } from "./support";
@@ -175,6 +170,8 @@ import { warmSerializeElement } from "./utils/serialize-element";
 import { getAvailableVREntryTypes, VR_DEVICE_AVAILABILITY } from "./utils/vr-caps-detect";
 import detectConcurrentLoad from "./utils/concurrent-load-detector";
 import qsTruthy from "./utils/qs_truthy";
+
+random.use(seedrandom("base"));
 
 console.log(`App version: ${process.env.BUILD_VERSION || "?"}`);
 

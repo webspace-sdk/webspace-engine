@@ -7,6 +7,7 @@ import qsTruthy from "../utils/qs_truthy";
 
 // Built via https://github.com/sipavlovic/wasm2js to load in worklet
 import rnnWasm from "../wasm/rnnoise-vad-wasm.js";
+
 const supportsInsertableStreams = !!(window.RTCRtpSender && !!RTCRtpSender.prototype.createEncodedStreams);
 
 const skipLipsync = qsTruthy("skip_lipsync");

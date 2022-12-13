@@ -1,5 +1,4 @@
-import { Socket } from "phoenix";
-import { Presence } from "phoenix";
+import { Socket, Presence } from "phoenix";
 import configs from "./configs";
 import { getDefaultWorldColorPreset } from "./world-color-presets";
 

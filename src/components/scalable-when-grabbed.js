@@ -1,4 +1,5 @@
 import { paths } from "../systems/userinput/paths";
+
 const SENSITIVITY = 2.5;
 
 AFRAME.registerComponent("scalable-when-grabbed", {

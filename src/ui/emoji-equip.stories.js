@@ -3,6 +3,7 @@ import sharedStyles from "../../assets/jel/stylesheets/shared.scss";
 import classNames from "classnames";
 
 import EmojiEquip from "./emoji-equip";
+
 window.APP.store.update({
   equips: {
     launcher: "😀",

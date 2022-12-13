@@ -7,9 +7,8 @@ import { getMessages } from "../utils/i18n";
 import ColorPicker from "./color-picker";
 import SegmentControl from "./segment-control";
 import { showTargetAboveElement } from "../utils/popup-utils";
-import { rgbToStoredColor, storedColorToRgb } from "../storage/store";
+import { rgbToStoredColor, storedColorToRgb, DEFAULT_COLORS } from "../storage/store";
 import restoreIcon from "../assets/jel/images/icons/restore.svgi";
-import { DEFAULT_COLORS } from "../storage/store";
 
 const NUM_SLOTS = 10;
 const PAGE_ITEMS = [

@@ -1,5 +1,3 @@
-import { fetchReticulumAuthenticated } from "./phoenix-utils";
-
 export function membershipForSpaceId(spaceId, memberships) {
   if (!memberships) return null;
 

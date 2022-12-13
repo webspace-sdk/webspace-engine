@@ -4,12 +4,12 @@ import { almostEqualVec3, getLastWorldPosition } from "../utils/three-utils";
 import { RENDER_ORDER } from "../constants-2";
 import { isLockedMedia } from "../utils/media-utils";
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
+import { addVertexCurvingToMaterial } from "../systems/terrain-system";
 
 const HIGHLIGHT = new THREE.Color(0, 0xec / 255, 0xff / 255);
 const NO_HIGHLIGHT = new THREE.Color(0.15, 0.15, 0.15);
 const TRANSFORM_COLOR_1 = new THREE.Color(150 / 255, 80 / 255, 150 / 255);
 const TRANSFORM_COLOR_2 = new THREE.Color(23 / 255, 64 / 255, 118 / 255);
-import { addVertexCurvingToMaterial } from "../systems/terrain-system";
 
 AFRAME.registerComponent("cursor-controller", {
   schema: {

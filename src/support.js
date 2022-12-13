@@ -7,8 +7,8 @@ that might break the support UI in legacy browsers.
 import React from "react";
 import ReactDOM from "react-dom";
 import { detectOS } from "detect-browser";
-import LoadingPanel from "./react-components/loading-panel";
-import { WrappedIntlProvider } from "./react-components/wrapped-intl-provider";
+import LoadingPanel from "./ui/loading-panel";
+import { WrappedIntlProvider } from "./ui/wrapped-intl-provider";
 import { waitForShadowDOMContentLoaded } from "./utils/async-utils";
 
 function getPlatformSupport() {

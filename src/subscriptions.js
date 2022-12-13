@@ -1,5 +1,6 @@
 import nextTick from "./utils/next-tick.js";
 import { EventTarget } from "event-target-shim";
+
 const INIT_TIMEOUT_MS = 5000;
 
 // Manages web push subscriptions

@@ -12,11 +12,10 @@ import AvatarEditorPopup from "./avatar-editor-popup";
 import { BigIconButton } from "./icon-button";
 import Tooltip from "./tooltip";
 import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
-import { useClientPresenceState } from "../utils/shared-effects";
+import { useClientPresenceState, useSceneMuteState } from "../utils/shared-effects";
 import { usePopper } from "react-popper";
 import { useSingleton } from "@tippyjs/react";
 import { getMessages } from "../utils/i18n";
-import { useSceneMuteState } from "../utils/shared-effects";
 import { SOUND_TOGGLE_MIC } from "../systems/sound-effects-system";
 
 const SelfPanelElement = styled.div`

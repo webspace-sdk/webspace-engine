@@ -1,6 +1,7 @@
 import { isMine } from "../../utils/ownership-utils";
-const InterpolationBuffer = require("buffered-interpolation");
 import MobileStandardMaterial from "../../materials/MobileStandardMaterial";
+
+const InterpolationBuffer = require("buffered-interpolation");
 
 function almostEquals(epsilon, u, v) {
   return Math.abs(u.x - v.x) < epsilon && Math.abs(u.y - v.y) < epsilon && Math.abs(u.z - v.z) < epsilon;

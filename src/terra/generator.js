@@ -3,6 +3,7 @@ import random from "random";
 import Chunk from "./chunk";
 import loadFastNoiseModule from "./FastNoise";
 import fastnoiseWasm from "../wasm/fastnoise-wasm.js";
+import { WORLD_SIZE, WATER_LEVEL, VOXEL_PALETTE_NONE, VOXEL_PALETTE_GROUND, VOXEL_PALETTE_EDGE } from "./constants";
 
 let FastNoise;
 
@@ -11,8 +12,6 @@ loadFastNoiseModule({
 }).then(module => {
   FastNoise = module.FastNoise;
 });
-
-import { WORLD_SIZE, WATER_LEVEL, VOXEL_PALETTE_NONE, VOXEL_PALETTE_GROUND, VOXEL_PALETTE_EDGE } from "./constants";
 
 const { features } = Chunk;
 

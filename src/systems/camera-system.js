@@ -5,9 +5,10 @@ import { paths } from "./userinput/paths";
 import { getBox } from "../utils/auto-box-collider";
 import { qsGet } from "../utils/qs_truthy";
 import SkyboxBufferGeometry from "../objects/skybox-buffer-geometry";
-const customFOV = qsGet("fov");
 import { EventTarget } from "event-target-shim";
 import { ATOM_TYPES } from "../utils/atom-metadata";
+
+const customFOV = qsGet("fov");
 
 // In inspect mode we extend the far plane and disable the fog, so we can observe big objects.
 const FAR_PLANE_FOR_INSPECT = 100;

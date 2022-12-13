@@ -4,8 +4,6 @@ import whatsNewTemplateSrc from "../templates/whats-new.html";
 import faqTemplateSrc from "../templates/faq.html";
 import WorldImporter from "./world-importer";
 import { toHexDigest } from "./crypto-utils";
-import { fetchReticulumAuthenticated } from "./phoenix-utils";
-import { getHubIdFromHistory } from "./jel-url-utils";
 
 export function getHtmlForTemplate(name) {
   let data = null;

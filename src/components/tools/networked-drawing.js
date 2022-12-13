@@ -7,7 +7,6 @@ import { ensureOwnership, getNetworkedEntity } from "../../utils/ownership-utils
  * @namespace drawing
  * @component networked-drawing
  */
-
 import SharedBufferGeometryManager from "../../utils/sharedbuffergeometrymanager";
 import MobileStandardMaterial from "../../materials/MobileStandardMaterial";
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter";

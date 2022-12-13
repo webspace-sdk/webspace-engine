@@ -1,4 +1,5 @@
 import { VOLUME_LABELS } from "./media-views";
+
 const MAX_VOLUME = 8;
 const SMALL_STEP = 1 / (VOLUME_LABELS.length / 2);
 const BIG_STEP = (MAX_VOLUME - 1) / (VOLUME_LABELS.length / 2);

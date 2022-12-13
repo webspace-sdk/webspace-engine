@@ -1,6 +1,5 @@
 import { getCreator, getNetworkedEntity } from "../utils/ownership-utils";
 import { injectCustomShaderChunks } from "../utils/media-utils";
-import { AVATAR_TYPES } from "../utils/avatar-utils-2";
 import defaultAvatar from "!!url-loader!../assets/hubs/models/DefaultAvatar.glb";
 
 function ensureAvatarNodes(json) {
