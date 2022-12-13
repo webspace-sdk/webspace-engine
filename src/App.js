@@ -1,6 +1,6 @@
-import Store from "./hubs/storage/store";
-import MediaSearchStore from "./hubs/storage/media-search-store";
-import { ROLES } from "./jel/utils/atom-access-manager";
+import Store from "./storage/store";
+import MediaSearchStore from "./storage/media-search-store";
+import {ROLES} from "./utils/atom-access-manager";
 
 export class App {
   constructor() {
