@@ -1,5 +1,5 @@
-import glb from "!!url-loader!../assets/jel/models/chiclet.glb";
-import glbFlipped from "!!url-loader!../assets/jel/models/chiclet-flip.glb";
+import glb from "!!url-loader!../assets/models/chiclet.glb";
+import glbFlipped from "!!url-loader!../assets/models/chiclet-flip.glb";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 export const chicletGeometry = new Promise(res => {

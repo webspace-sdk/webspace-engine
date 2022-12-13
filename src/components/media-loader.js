@@ -1,7 +1,7 @@
 import { getBox, getScaleCoefficient } from "../utils/auto-box-collider";
 import { ensureOwnership, getNetworkedEntity, isSynchronized } from "../utils/ownership-utils";
 import { ParticleEmitter } from "lib-hubs/packages/three-particle-emitter/lib/esm/index";
-import loadingParticleSrc from "!!url-loader!../assets/jel/images/loading-particle.png";
+import loadingParticleSrc from "!!url-loader!../assets/images/loading-particle.png";
 import { VOX_CONTENT_TYPE } from "../utils/vox-utils";
 import {
   injectCustomShaderChunks,
