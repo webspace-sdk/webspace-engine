@@ -182,10 +182,6 @@ const setupDataChannelMessageHandlers = () => {
     window.APP.editRingManager.handleEditRingMessage(body, fromSessionId);
   });
 
-  NAF.connection.subscribeToDataChannel("file_upload", (_type, { body }, fromSessionId) => {
-    SYSTEMS.mediaTextSystem.handleTextMediaMessage(body, fromSessionId);
-  });
-
   // Public key verification
   //
   const clientIdChallenges = new Map();

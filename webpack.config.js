@@ -3,8 +3,6 @@ const fs = require("fs");
 const path = require("path");
 //const RemoveUnusedFilesWebpackPlugin = require("remove-unused-files-webpack-plugin").default;
 const webpack = require("webpack");
-const HTMLWebpackPlugin = require("html-webpack-plugin");
-const CopyWebpackPlugin = require("copy-webpack-plugin");
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 const TOML = require("@iarna/toml");
 const fetch = require("node-fetch");
@@ -162,7 +160,7 @@ module.exports = async (env, argv) => {
       }
     },
     entry: {
-      jel: path.join(__dirname, "src", "jel.js")
+      index: path.join(__dirname, "src", "index.js")
     },
     output: {
       filename: "assets/js/[name].js",
@@ -301,16 +299,6 @@ module.exports = async (env, argv) => {
       }),
       new BundleAnalyzerPlugin({
         analyzerMode: env && env.bundleAnalyzer ? "server" : "disabled"
-      }),
-      new HTMLWebpackPlugin({
-        filename: "jel.html",
-        template: path.join(__dirname, "src", "jel.html"),
-        chunks: ["support", "jel"],
-        chunksSortMode: "manual",
-        inject: "head",
-        minify: {
-          removeComments: false
-        }
       }),
       // Define process.env variables in the browser context.
       new webpack.DefinePlugin({
