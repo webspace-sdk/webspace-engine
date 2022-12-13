@@ -13,8 +13,6 @@ import { pushHubMetaUpdateIntoDOM } from "./dom-utils";
 import { getUrlFromVoxId } from "./vox-utils";
 import WorldImporter from "./world-importer";
 
-import crypto from "src/utils/crypto";
-
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
 
 const isDebug = qsTruthy("debug");

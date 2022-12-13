@@ -56,7 +56,7 @@ function updateLocale() {
       _locale = locale;
       DOM_ROOT.dispatchEvent(new CustomEvent("locale-updated"));
     } else {
-      import(`../../assets/hubs/locales/${locale}.json`).then(({ default: localeData }) => {
+      import(`../assets/hubs/locales/${locale}.json`).then(({ default: localeData }) => {
         _locale = locale;
         _localeData = localeData;
         DOM_ROOT.dispatchEvent(new CustomEvent("locale-updated"));
