@@ -1,5 +1,5 @@
 import Chunk from "./chunk";
-import { protocol } from "../protocol/protocol";
+import { protocol } from "./protocol";
 import Generators from "./generator";
 import PALETTES from "./palettes";
 

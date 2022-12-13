@@ -1,5 +1,5 @@
 import { CONSTANTS } from "three-ammo";
-import { protocol } from "../protocol/protocol";
+import { protocol } from "../terra/protocol";
 import { promisifyWorker } from "../utils/promisify-worker.js";
 import TerraWorker from "../workers/terra.worker.js";
 import { createVoxelMaterial, Terrain, updateWorldColors, VOXEL_PALETTE_GRASS } from "../objects/terrain";
