@@ -718,6 +718,42 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       dest: { value: paths.actions.mediaLiftReleaseAction },
       xform: xforms.falling,
       priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("key1") },
+      dest: { value: paths.actions.mediaMoveXAction },
+      xform: xforms.copy,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("key1") },
+      dest: { value: paths.actions.mediaMoveXReleaseAction },
+      xform: xforms.falling,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("key2") },
+      dest: { value: paths.actions.mediaMoveYAction },
+      xform: xforms.copy,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("key2") },
+      dest: { value: paths.actions.mediaMoveYReleaseAction },
+      xform: xforms.falling,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("key3") },
+      dest: { value: paths.actions.mediaMoveZAction },
+      xform: xforms.copy,
+      priority: 201
+    },
+    {
+      src: { value: paths.device.keyboard.code("key3") },
+      dest: { value: paths.actions.mediaMoveZReleaseAction },
+      xform: xforms.falling,
+      priority: 201
     }
   ],
   [sets.rightCursorHoldingUI]: [
