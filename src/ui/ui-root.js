@@ -321,7 +321,7 @@ function UIRoot(props) {
   const [worldTreeDataVersion, setWorldTreeDataVersion] = useState(0);
   const [showingExternalCamera /*, setShowingExternalCamera*/] = useState(false);
 
-  const [/*hasShownInvite, */ setHasShownInvite] = useState(!!store.state.activity.showInvite);
+  const [, /*hasShownInvite*/ setHasShownInvite] = useState(!!store.state.activity.showInvite);
   const [isInspecting, setIsInspecting] = useState(cameraSystem.isInspecting());
   const [isNavigatingAway, setIsNavigatingAway] = useState(false);
 
