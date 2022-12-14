@@ -14,35 +14,16 @@
   - disable live HTML updates
 - vox
   - close out TODOs
-  - create vox dialog X
-  - vox name changes update asset on disk X
   - publish vox, should burn the axis, snap settings, scale
   - spawning a new vox remotely should register into presence and cause others
-    to fetch full doc for vox data X
-  - clone local X
-  - clone remote X
-  - rename local X
-  - rename remote
-  - bake local X
-  - bake remote X
-  - spawn local X
-  - spawn remote X
-  - spawn remote, edit, other master X
-  - spawn from master, remote edit X
-  - local import .vox
-  - remote import .vox
   - .svox linked (immutable)
     - cannot edit name
     - instantiated with scale, axis settings
     - can bake into new asset if writeback enabled
   - editor UX
-    - initial name has quotes X
-    - eyedropper is breaking brushes X
     - close button in vox editor, drop left panel
-    - show panels during build mode X
     - undo/redo buttons
     - show origin with ray
-    - open into editor immediately X
   - smooth voxel materials on left, text editor in middle
     - color swatches on left, sorted by hue
     - mouse over each swatch shows the voxels
@@ -55,7 +36,6 @@ name not updating in self panel when updated by another peer
 pasting text not working, and causing cursor to act funny (not hoverable)
 make cursor more visible
 tippy root getting into dom
-drop AO?
 
 ---
 
