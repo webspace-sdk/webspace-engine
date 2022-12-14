@@ -1,6 +1,5 @@
 import TreeManager from "./utils/tree-manager";
 import { getHubIdFromHistory, getSpaceIdFromHistory } from "./utils/url-utils";
-import { getInitialHubForSpaceId } from "./utils/membership-utils";
 import { getMessages } from "./utils/i18n";
 import { SOUND_CHAT_MESSAGE } from "./systems/sound-effects-system";
 import qsTruthy from "./utils/qs_truthy";

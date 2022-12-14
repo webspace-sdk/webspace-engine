@@ -1,3 +1,5 @@
+- uploading VOX not working
+- test text syncing
 - deno cors proxying split + ytdl enable + move configs into index.html
 - test ff + safari
 - take a stab at mobile view
@@ -79,6 +81,6 @@ messing around with cursor, video, and console can cause 3d cursor to disappear 
 video tick should keep running when tabbed away
 video reset to beginning when anotehr person joins (delay video ownership until joins?)
 make sure removing CORS anywhere tag disalbed youtube
-test HLS and dash
+gest HLS and dash
 
 
