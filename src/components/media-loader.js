@@ -378,7 +378,7 @@ AFRAME.registerComponent("media-loader", {
       if (
         typeof src === "string" &&
         !src.startsWith("data:") &&
-        !src.startsWith("webspaces:") &&
+        !src.startsWith("webspace:") &&
         contentType !== VOX_CONTENT_TYPE &&
         !isRelativeUrl
       ) {
