@@ -36,9 +36,12 @@ name not updating in self panel when updated by another peer
 pasting text not working, and causing cursor to act funny (not hoverable)
 make cursor more visible
 tippy root getting into dom
+if space is held first, then object grabbed, enable snap
 
 ---
-
+- disable LOD on flat + plains
+- smooth voxel mesher is randomized
+- lock is re-generating smooth mesh, not strictly necessary
 - get rid of a-assets, see how mozilla does it
 - name generator
 - remove hubs cloud stuff from webpack
