@@ -91,7 +91,6 @@ import "./systems/camera-tools";
 import "./systems/userinput/userinput";
 import "./systems/userinput/userinput-debug";
 import "./systems/ui-hotkeys";
-import "./systems/tips";
 import "./systems/interactions";
 import "./systems/effects-system";
 import "./systems/hubs-systems";
@@ -179,8 +178,6 @@ patchWebGLRenderingContext();
 
 window.APP = new App();
 const store = window.APP.store;
-
-store.update({ preferences: { shouldPromptForRefresh: undefined } });
 
 const history = createBrowserHistory();
 const accountChannel = new AccountChannel(store);
@@ -1201,8 +1198,6 @@ async function start() {
     joinHubPromise = null;
 
     if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
-      store.update({ context: { spaceId } });
-
       const [treeManager] = await setupTreeManagers(history, entryManager, remountUIRoot);
       const spaceMetadataSource = new IndexDOMSpaceMetadataSource(treeManager.worldNav);
       spaceMetadata.bind(spaceMetadataSource);

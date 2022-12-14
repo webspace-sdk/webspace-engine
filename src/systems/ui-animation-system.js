@@ -83,7 +83,6 @@ export class UIAnimationSystem {
     if (this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDED) return;
     this.performPanelExpansion(PANEL_EXPANSION_STATES.EXPANDING, animate);
     this.sceneEl.emit("side_panel_resize_started");
-    this.store.handleActivityFlag("widen");
   }
 
   collapseSidePanels(animate = true) {
@@ -91,7 +90,6 @@ export class UIAnimationSystem {
 
     this.performPanelExpansion(PANEL_EXPANSION_STATES.COLLAPSING, animate);
     this.sceneEl.emit("side_panel_resize_started");
-    this.store.handleActivityFlag("narrow");
 
     // Hide triggers upon collapse
     const triggerSizePx = DOM_ROOT.getElementById("left-expand-trigger").offsetWidth;

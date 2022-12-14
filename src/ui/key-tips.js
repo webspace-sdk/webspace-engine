@@ -207,15 +207,15 @@ const lockedVoxCommonTips = [
 const idleTips = [
   ["move", "w a s d"],
   ["fly", "q e"],
-  ["look", "H;G", "narrowMouseLook"],
+  ["look", "H;G"],
   ["run", "H"],
   ["jump", "S"],
   ["shoot", "_S|D"],
-  ["mute", "L+m", "toggleMuteKey"],
-  ["create", "/", "createMenu"],
+  ["mute", "L+m"],
+  ["create", "/"],
   ["paste", "L+v"],
   ["undo", "L+z,y"],
-  ["chat", "E", "chat"],
+  ["chat", "E"],
   ["unlock", "l"],
   ["ui", "~|@"],
   ["look_lock", "L+S"],
@@ -629,19 +629,7 @@ const itemForData = ([label, keys, flag], triggerMode) => {
   const style = label === "help" || label === "hide" ? { pointerEvents: "auto" } : null;
   const component = label === "help" || label === "hide" ? KeyTipButton : KeyTipItem;
 
-  let className = "";
-
-  if (flag && !window.APP.store.state.activity[flag]) {
-    if (flag === "chat") {
-      // Special case: highlight chat when others are co-present
-      const isByMyself = NAF.connection?.presence?.states?.size === 1;
-      className = isByMyself ? "" : "highlight";
-    } else {
-      className = "highlight";
-    }
-  }
-
-  return React.createElement(component, { key: label, style: style, className }, [keyLabels, tipLabel]);
+  return React.createElement(component, { key: label, style: style }, [keyLabels, tipLabel]);
 };
 
 const genTips = (tips, triggerMode) => {

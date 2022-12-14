@@ -2,7 +2,7 @@ import { Validator } from "jsonschema";
 import merge from "deepmerge";
 import { generateKeys } from "../utils/crypto";
 import { EventTarget } from "event-target-shim";
-import { fetchRandomDefaultAvatarId, generateRandomName } from "../utils/identity.js";
+import { generateRandomName } from "../utils/identity.js";
 
 const LOCAL_STORE_KEY = "___webspace_store";
 const STORE_STATE_CACHE_KEY = Symbol();
@@ -125,18 +125,6 @@ export const SCHEMA = {
   id: "/WebspaceStore",
 
   definitions: {
-    context: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        spaceId: { type: "string" },
-        lastJoinedHubId: { type: "string" }, // Deprecated
-        lastJoinedHubIds: { type: "object" },
-        isFirstVisitToSpace: { type: "boolean" }, // true the very first time a space is visited, for initial setup
-        isSpaceCreator: { type: "boolean" } // true if this user ever created a space on this device
-      }
-    },
-
     jwk: {
       type: "object",
       additionalProperties: false,
@@ -183,7 +171,6 @@ export const SCHEMA = {
       additionalProperties: false,
       properties: {
         displayName: { type: "string", pattern: "^[A-Za-z0-9 -]{3,32}$" },
-        avatarId: { type: "string" },
         persona: { $ref: "#/definitions/persona" }
       }
     },
@@ -214,23 +201,14 @@ export const SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
-        hasRotated: { type: "boolean" }, // Legacy
-        hasScaled: { type: "boolean" }, // Legacy
-        hasFoundWiden: { type: "boolean" }, // Legacy
         lastEnteredAt: { type: "string" },
         entryCount: { type: "number" },
-        narrow: { type: "boolean" },
-        widen: { type: "boolean" },
         unmute: { type: "boolean" },
         toggleMuteKey: { type: "boolean" },
         wasd: { type: "boolean" },
         createMenu: { type: "boolean" },
-        createWorld: { type: "boolean" },
-        createChannel: { type: "boolean" },
         avatarEdit: { type: "boolean" },
         showInvite: { type: "boolean" },
-        rightDrag: { type: "boolean" },
-        narrowMouseLook: { type: "boolean" },
         rotated: { type: "boolean" },
         scaled: { type: "boolean" },
         mediaTextEdit: { type: "boolean" },
@@ -238,8 +216,7 @@ export const SCHEMA = {
         mediaTextCreate: { type: "boolean" },
         mediaRemove: { type: "boolean" },
         chat: { type: "boolean" },
-        hasShownJumpedToMember: { type: "boolean" },
-        hasChangedName: { type: "boolean" }
+        hasShownJumpedToMember: { type: "boolean" }
       }
     },
 
@@ -378,16 +355,11 @@ export const SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
-        shouldPromptForRefresh: { type: "bool" },
-        muteMicOnEntry: { type: "bool" },
         audioOutputMode: { type: "string" },
         invertTouchscreenCameraMove: { type: "bool" },
         enableOnScreenJoystickLeft: { type: "bool" },
         enableOnScreenJoystickRight: { type: "bool" },
-        onlyShowNametagsInFreeze: { type: "bool" },
-        allowMultipleHubsInstances: { type: "bool" },
         disableIdleDetection: { type: "bool" },
-        preferMobileObjectInfoPanel: { type: "bool" },
         maxResolutionWidth: { type: "number" },
         maxResolutionHeight: { type: "number" },
         globalVoiceVolume: { type: "number" },
@@ -399,36 +371,11 @@ export const SCHEMA = {
         disableBackwardsMovement: { type: "bool" },
         disableStrafing: { type: "bool" },
         disableTeleporter: { type: "bool" },
-        disableAutoPixelRatio: { type: "bool" },
         movementSpeedModifier: { type: "number" },
         disableEchoCancellation: { type: "bool" },
         disableNoiseSuppression: { type: "bool" },
         disableAutoGainControl: { type: "bool" },
         disableAudioAmbience: { type: "bool" }
-      }
-    },
-
-    embedTokens: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        properties: {
-          hubId: { type: "string" },
-          embedToken: { type: "string" }
-        }
-      }
-    },
-
-    onLoadActions: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        properties: {
-          action: { type: "string" },
-          args: { type: "object" }
-        }
       }
     },
 
@@ -460,7 +407,6 @@ export const SCHEMA = {
   type: "object",
 
   properties: {
-    context: { $ref: "#/definitions/context" },
     profile: { $ref: "#/definitions/profile" },
     credentials: { $ref: "#/definitions/credentials" },
     writeback: { $ref: "#/definitions/writeback" },
@@ -469,8 +415,6 @@ export const SCHEMA = {
     equips: { $ref: "#/definitions/equips" },
     preferences: { $ref: "#/definitions/preferences" },
     uiState: { $ref: "#/definitions/uiState" },
-    embedTokens: { $ref: "#/definitions/embedTokens" },
-    onLoadActions: { $ref: "#/definitions/onLoadActions" },
     expandedTreeNodes: { $ref: "#/definitions/expandedTreeNodes" }
   },
 
@@ -493,14 +437,11 @@ export default class Store extends EventTarget {
     });
 
     this.update({
-      context: {},
       activity: {},
       settings: {},
       equips: {},
       credentials: {},
       profile: {},
-      embedTokens: [],
-      onLoadActions: [],
       expandedTreeNodes: [],
       preferences: {},
       uiState: {}
@@ -515,7 +456,7 @@ export default class Store extends EventTarget {
 
   initDefaults = async () => {
     this.update({
-      profile: { avatarId: "default", ...(this.state.profile || {}) }
+      profile: { ...(this.state.profile || {}) }
     });
 
     // Regenerate name to encourage users to change it.
@@ -677,7 +618,7 @@ export default class Store extends EventTarget {
 
   resetToRandomDefaultAvatar = async () => {
     this.update({
-      profile: { ...(this.state.profile || {}), avatarId: await fetchRandomDefaultAvatarId() }
+      profile: { ...(this.state.profile || {}) }
     });
   };
 
@@ -692,42 +633,6 @@ export default class Store extends EventTarget {
   bumpEntryCount() {
     const currentEntryCount = this.state.activity.entryCount || 0;
     this.update({ activity: { entryCount: currentEntryCount + 1 } });
-  }
-
-  // Sets a one-time action to perform the next time the page loads
-  enqueueOnLoadAction(action, args) {
-    this.update({ onLoadActions: [{ action, args }] });
-  }
-
-  executeOnLoadActions(sceneEl) {
-    for (let i = 0; i < this.state.onLoadActions.length; i++) {
-      const { action, args } = this.state.onLoadActions[i];
-
-      if (action === "emit_scene_event") {
-        sceneEl.emit(args.event, args.detail);
-      }
-    }
-
-    this.clearOnLoadActions();
-  }
-
-  setLastJoinedHubId(spaceId, hubId) {
-    const lastJoinedHubIds = this.state.context.lastJoinedHubIds || {};
-    lastJoinedHubIds[spaceId] = hubId;
-    this.update({ context: { lastJoinedHubIds } });
-  }
-
-  clearLastJoinedHubId(spaceId) {
-    const lastJoinedHubIds = this.state.context.lastJoinedHubIds || {};
-
-    if (lastJoinedHubIds[spaceId]) {
-      delete lastJoinedHubIds[spaceId];
-      this.update({ context: { lastJoinedHubIds } });
-    }
-  }
-
-  clearOnLoadActions() {
-    this.clearStoredArray("onLoadActions");
   }
 
   clearStoredArray(key) {

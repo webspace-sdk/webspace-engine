@@ -266,9 +266,6 @@ export class AppAwareMouseDevice {
             movementYScreen * ((2 * Math.PI) / 3)
           );
         } else {
-          if (buttonRight || mouseLookKey) {
-            window.APP.store.handleActivityFlag("narrowMouseLook");
-          }
           frame.setVector2(paths.actions.cameraDelta, dCoordX * -Math.PI, dCoordY * ((2 * Math.PI) / 3));
         }
       }

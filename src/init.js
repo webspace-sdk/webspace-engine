@@ -485,7 +485,7 @@ export async function setupTreeManagers(history, entryManager, remountUI) {
 }
 
 export async function joinHub(scene, history, entryManager, remountUI, initialWorldHTML) {
-  const { store, hubChannel, hubMetadata, atomAccessManager } = window.APP;
+  const { hubChannel, hubMetadata, atomAccessManager } = window.APP;
 
   const spaceId = await getSpaceIdFromHistory(history);
   const hubId = await getHubIdFromHistory(history);
@@ -502,24 +502,5 @@ export async function joinHub(scene, history, entryManager, remountUI, initialWo
     NAF.connection.adapter.leaveRoom(true);
   }
 
-  const joinSuccessful = await joinHubChannel(
-    hubId,
-    spaceId,
-    hubStore,
-    hubMetadata,
-    entryManager,
-    remountUI,
-    initialWorldHTML
-  );
-
-  if (joinSuccessful) {
-    store.setLastJoinedHubId(spaceId, hubId);
-  } else {
-    const initialHubForSpaceId = getInitialHubForSpaceId(spaceId);
-
-    // Failed to join initial hub, remove this entry so we don't end up trying to go here again.
-    if (hubId === initialHubForSpaceId) {
-      store.clearLastJoinedHubId(spaceId);
-    }
-  }
+  await joinHubChannel(hubId, spaceId, hubStore, hubMetadata, entryManager, remountUI, initialWorldHTML);
 }

@@ -43,7 +43,6 @@ if space is held first, then object grabbed, enable snap
 - smooth voxel mesher is randomized
 - lock is re-generating smooth mesh, not strictly necessary
 - get rid of a-assets, see how mozilla does it
-- name generator
 - remove hubs cloud stuff from webpack
 - search for TODO SHARED
 - powered by link
