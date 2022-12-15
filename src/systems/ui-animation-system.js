@@ -17,7 +17,7 @@ const DEFAULT_NAV_PANEL_WIDTH = 320;
 const DEFAULT_PRESENCE_PANEL_WIDTH = 222;
 export const PANEL_EXPAND_DURATION_MS = 250;
 export const ASSET_PANEL_HEIGHT_EXPANDED = 290;
-export const ASSET_PANEL_HEIGHT_COLLAPSED = 64;
+export const ASSET_PANEL_HEIGHT_COLLAPSED = 0; // TODO
 
 const panelExpandStep = BezierEasing(0.12, 0.98, 0.18, 0.98);
 

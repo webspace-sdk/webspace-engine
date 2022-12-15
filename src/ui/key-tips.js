@@ -18,11 +18,7 @@ const KeyTipsElement = styled.div`
   margin: 6px 0;
   user-select: none;
   pointer-events: none;
-  display: none;
-
-  .panels-collapsed & {
-    display: flex;
-  }
+  display: flex;
 `;
 
 const KeyTipItem = styled.div`
