@@ -809,8 +809,6 @@ AFRAME.registerSystem("transform-selected-object", {
       tmpMatrix.copy(this.targetInitialMatrix);
 
       const shouldSnap = !userinput.get(shiftKeyPath);
-      const scale = v.set(elements[0], elements[1], elements[2]).length();
-      const snapScale = isFlatMedia(this.target) ? 1.0 : scale;
 
       const isX = this.mode === TRANSFORM_MODE.MOVEX;
       const isY = this.mode === TRANSFORM_MODE.MOVEY;
@@ -823,11 +821,18 @@ AFRAME.registerSystem("transform-selected-object", {
       const dy1 = direction.y * dist;
       const dz1 = direction.z * dist;
 
-      tmpMatrix.setPosition(
-        isX ? withGridSnap(shouldSnap, initialX + dx1, snapScale) : initialX + dx1,
-        isY ? withGridSnap(shouldSnap, initialY + dy1, snapScale) : initialY + dy1,
-        isZ ? withGridSnap(shouldSnap, initialZ + dz1, snapScale) : initialZ + dz1
-      );
+      const worldPosition = new THREE.Vector3(initialX + dx1, initialY + dy1, initialZ + dz1);
+      const targetWorldToLocal = new THREE.Matrix4();
+      targetWorldToLocal.copy(this.targetInitialMatrix).invert();
+
+      // Snap in local coordinates
+      worldPosition.applyMatrix4(targetWorldToLocal);
+      worldPosition.x = withGridSnap(shouldSnap && isX, worldPosition.x, 1.0);
+      worldPosition.y = withGridSnap(shouldSnap && isY, worldPosition.y, 1.0);
+      worldPosition.z = withGridSnap(shouldSnap && isZ, worldPosition.z, 1.0);
+      worldPosition.applyMatrix4(this.targetInitialMatrix);
+
+      tmpMatrix.setPosition(worldPosition);
 
       this.target.setMatrix(tmpMatrix);
     }
