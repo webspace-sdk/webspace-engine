@@ -11,7 +11,7 @@ import { toByteArray as base64ToByteArray } from "base64-js";
 import { pushHubMetaUpdateIntoDOM } from "./utils/dom-utils";
 import { getUrlFromVoxId } from "./utils/vox-utils";
 import WorldImporter from "./utils/world-importer";
-import "crypto";
+import crypto from "crypto";
 
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
 
