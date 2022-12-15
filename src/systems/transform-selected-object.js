@@ -33,6 +33,8 @@ const q2 = new THREE.Quaternion();
 const tmpMatrix = new THREE.Matrix4();
 const WHEEL_SENSITIVITY = 2.0;
 const XAXIS = new THREE.Vector3(1, 0, 0);
+const YAXIS = new THREE.Vector3(0, 1, 0);
+const ZAXIS = new THREE.Vector3(0, 0, 1);
 const shiftKeyPath = paths.device.keyboard.key("shift");
 const UP = new THREE.Vector3(0, 1, 0);
 const FORWARD = new THREE.Vector3(0, 0, 1);
@@ -289,6 +291,7 @@ AFRAME.registerSystem("transform-selected-object", {
   init() {
     this.target = null;
     this.targetInitialMatrix = new THREE.Matrix4();
+    this.targetInitialMatrixInverse = new THREE.Matrix4();
     this.targetBoundingBox = new THREE.Box3();
     this.hitNormalObject = null;
     this.hitNormalObjectBoundingBox = new THREE.Box3();
@@ -329,6 +332,7 @@ AFRAME.registerSystem("transform-selected-object", {
       ),
       normal: new THREE.Vector3(),
       intersections: [],
+      planeWorldToLocal: new THREE.Matrix4(),
       initialPointOnPlane: new THREE.Vector3(),
       previousPointOnPlane: new THREE.Vector3(),
       currentPointOnPlane: new THREE.Vector3(),
@@ -390,20 +394,27 @@ AFRAME.registerSystem("transform-selected-object", {
       } else {
         plane.quaternion.copy(CAMERA_WORLD_QUATERNION);
       }
+
+      plane.matrixNeedsUpdate = true;
+      plane.updateMatrixWorld();
+      this.planarInfo.planeWorldToLocal.copy(plane.matrixWorld).invert();
     } else if (
       this.mode === TRANSFORM_MODE.MOVEX ||
       this.mode === TRANSFORM_MODE.MOVEY ||
       this.mode === TRANSFORM_MODE.MOVEZ
     ) {
-      // Find the normal for the plane we are going to cast on.
-      // We consider the two planes centered at the target on the other axes
-
       const isX = this.mode === TRANSFORM_MODE.MOVEX;
       const isY = this.mode === TRANSFORM_MODE.MOVEY;
 
-      const n1 = isX ? new THREE.Vector3(0, 1, 0) : isY ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(1, 0, 0);
-      const n2 = isX ? new THREE.Vector3(0, 0, 1) : isY ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0);
+      // Find the normal for the plane we are going to cast on.
+      // We consider the two planes centered at the target on the other axes
+      const n1 = v;
+      const n2 = v2;
 
+      n1.copy(isX ? YAXIS : isY ? XAXIS : XAXIS);
+      n2.copy(isX ? ZAXIS : isY ? ZAXIS : YAXIS);
+
+      this.target.updateMatrices();
       n1.transformDirection(this.target.matrixWorld);
       n2.transformDirection(this.target.matrixWorld);
 
@@ -419,30 +430,25 @@ AFRAME.registerSystem("transform-selected-object", {
         n2.multiplyScalar(-1);
       }
 
-      this.target.updateMatrices();
-
-      // Take the plane that is more perpendicular to the camera
+      // Take the plane that is more perpendicular to the camera, which provides more surface area to scroll across.
       this.target.getWorldPosition(plane.position);
-      plane.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), Math.abs(dot1) > Math.abs(dot2) ? n1 : n2);
+      plane.quaternion.setFromUnitVectors(ZAXIS, Math.abs(dot1) > Math.abs(dot2) ? n1 : n2);
 
       plane.matrixNeedsUpdate = true;
       plane.updateMatrices();
+      this.planarInfo.planeWorldToLocal.copy(plane.matrixWorld).invert();
 
       // Find the plane coordinate to slide along by taking the vector we're moving along and projecting it into plane space
-      // and seeing which component moves along the axis we're moving
-      const slideDirection = isX
-        ? new THREE.Vector3(1, 0, 0)
-        : isY
-          ? new THREE.Vector3(0, 1, 0)
-          : new THREE.Vector3(0, 0, 1);
+      // and seeing which component moves along the same axis we're moving
+      const slideDirection = v;
+      v.copy(isX ? XAXIS : isY ? YAXIS : ZAXIS);
       slideDirection.transformDirection(this.target.matrixWorld);
       slideDirection.normalize();
 
-      const worldToPlaneLocal = new THREE.Matrix4();
-      worldToPlaneLocal.copy(plane.matrixWorld).invert();
-      const slidePlaneLocalDirection = new THREE.Vector3();
-      slidePlaneLocalDirection.copy(slideDirection).transformDirection(worldToPlaneLocal);
+      const slidePlaneLocalDirection = v2;
+      slidePlaneLocalDirection.copy(slideDirection).transformDirection(this.planarInfo.planeWorldToLocal);
 
+      // Set to true if we are tracking motion along the X axis of the plane, otherwise the Y
       const planeMoveAlongX = (this.planarInfo.planeMoveAlongX =
         Math.abs(slidePlaneLocalDirection.x) > Math.abs(slidePlaneLocalDirection.y));
 
@@ -454,10 +460,10 @@ AFRAME.registerSystem("transform-selected-object", {
     } else {
       this.target.getWorldPosition(plane.position);
       plane.quaternion.copy(CAMERA_WORLD_QUATERNION);
+      plane.matrixNeedsUpdate = true;
+      plane.updateMatrixWorld();
+      this.planarInfo.planeWorldToLocal.copy(plane.matrixWorld).invert();
     }
-
-    plane.matrixNeedsUpdate = true;
-    plane.updateMatrices();
 
     intersections.length = 0;
     this.raycasters.right = this.raycasters.right || rightCursor.raycaster;
@@ -581,6 +587,7 @@ AFRAME.registerSystem("transform-selected-object", {
     this.target = target;
     this.target.updateMatrices();
     this.targetInitialMatrix.copy(this.target.matrix);
+    this.targetInitialMatrixInverse.copy(this.targetInitialMatrix).invert();
     this.stackAlongAxis = 0;
     this.stackRotationAmount = 0;
 
@@ -639,7 +646,10 @@ AFRAME.registerSystem("transform-selected-object", {
       currentPointOnPlane,
       deltaOnPlane,
       planeCastObjectOffset,
-      finalProjectedVec
+      planeWorldToLocal,
+      finalProjectedVec,
+      planeMoveAlongX,
+      planeMoveFlipDelta
     } = this.planarInfo;
 
     if (
@@ -768,37 +778,20 @@ AFRAME.registerSystem("transform-selected-object", {
       this.mode === TRANSFORM_MODE.MOVEY ||
       this.mode === TRANSFORM_MODE.MOVEZ
     ) {
-      const currentPointOnPlaneLocal = new THREE.Vector3();
-      const initialPointOnPlaneLocal = new THREE.Vector3();
-      const cameraPositionPlaneLocal = new THREE.Vector3();
-      const inverseMatrixWorld = new THREE.Matrix4();
+      const currentPointOnPlaneLocal = v;
+      const initialPointOnPlaneLocal = v2;
+      const cameraPositionPlaneLocal = v3;
+
       plane.updateMatrices();
-      inverseMatrixWorld.copy(plane.matrixWorld).invert();
 
-      currentPointOnPlaneLocal.copy(currentPointOnPlane).applyMatrix4(inverseMatrixWorld);
-      initialPointOnPlaneLocal.copy(initialPointOnPlane).applyMatrix4(inverseMatrixWorld);
-      cameraPositionPlaneLocal.copy(this.el.camera.position).applyMatrix4(inverseMatrixWorld);
-      //console.log(currentPointOnPlaneLocal, initialPointOnPlaneLocal);
+      currentPointOnPlaneLocal.copy(currentPointOnPlane).applyMatrix4(planeWorldToLocal);
+      initialPointOnPlaneLocal.copy(initialPointOnPlane).applyMatrix4(planeWorldToLocal);
+      cameraPositionPlaneLocal.copy(this.el.camera.position).applyMatrix4(planeWorldToLocal);
 
-      const planeNormal = new THREE.Vector3(0, 0, 1);
-      planeNormal.applyQuaternion(plane.quaternion);
-
-      const currentOffsetPlaneLocal = this.planarInfo.planeMoveAlongX
-        ? currentPointOnPlaneLocal.x
-        : currentPointOnPlaneLocal.y;
-      const initialOffsetPlaneLocal = this.planarInfo.planeMoveAlongX
-        ? initialPointOnPlaneLocal.x
-        : initialPointOnPlaneLocal.y;
-
-      const localDelta =
-        (currentOffsetPlaneLocal - initialOffsetPlaneLocal) * (this.planarInfo.planeMoveFlipDelta ? -1 : 1);
-
-      const dist =
-        localDelta < 0 && localDelta < -MAX_MOVE_DISTANCE
-          ? -MAX_MOVE_DISTANCE
-          : localDelta > 0 && localDelta > MAX_MOVE_DISTANCE
-            ? MAX_MOVE_DISTANCE
-            : localDelta;
+      const currentOffsetPlaneLocal = planeMoveAlongX ? currentPointOnPlaneLocal.x : currentPointOnPlaneLocal.y;
+      const initialOffsetPlaneLocal = planeMoveAlongX ? initialPointOnPlaneLocal.x : initialPointOnPlaneLocal.y;
+      const localDelta = (currentOffsetPlaneLocal - initialOffsetPlaneLocal) * (planeMoveFlipDelta ? -1 : 1);
+      const dist = Math.max(-MAX_MOVE_DISTANCE, Math.min(MAX_MOVE_DISTANCE, localDelta));
 
       const { elements } = this.targetInitialMatrix;
       const initialX = elements[12];
@@ -814,19 +807,20 @@ AFRAME.registerSystem("transform-selected-object", {
       const isY = this.mode === TRANSFORM_MODE.MOVEY;
       const isZ = this.mode === TRANSFORM_MODE.MOVEZ;
 
-      const direction = new THREE.Vector3(isX ? 1 : 0, isY ? 1 : 0, isZ ? 1 : 0);
+      // Determine the new position by moving along the distance in world space
+      const direction = v;
+      direction.set(isX ? 1 : 0, isY ? 1 : 0, isZ ? 1 : 0);
       direction.transformDirection(this.target.matrixWorld);
 
       const dx1 = direction.x * dist;
       const dy1 = direction.y * dist;
       const dz1 = direction.z * dist;
 
-      const worldPosition = new THREE.Vector3(initialX + dx1, initialY + dy1, initialZ + dz1);
-      const targetWorldToLocal = new THREE.Matrix4();
-      targetWorldToLocal.copy(this.targetInitialMatrix).invert();
+      const worldPosition = v;
+      worldPosition.set(initialX + dx1, initialY + dy1, initialZ + dz1);
 
       // Snap in local coordinates
-      worldPosition.applyMatrix4(targetWorldToLocal);
+      worldPosition.applyMatrix4(this.targetInitialMatrixInverse);
       worldPosition.x = withGridSnap(shouldSnap && isX, worldPosition.x, 1.0);
       worldPosition.y = withGridSnap(shouldSnap && isY, worldPosition.y, 1.0);
       worldPosition.z = withGridSnap(shouldSnap && isZ, worldPosition.z, 1.0);
