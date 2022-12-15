@@ -186,7 +186,7 @@ const setupDataChannelMessageHandlers = () => {
   // When a client connects, send the challenge to verify their public key
   document.body.addEventListener("clientConnected", ({ detail: { clientId } }) => {
     const buf = new Uint8Array(20);
-    crypto.getRandomBytes(buf);
+    crypto.getRandomValues(buf);
     const challenge = [...buf].map(b => b.toString(16).padStart(2, "0")).join("");
     clientIdChallenges.set(clientId, challenge);
     window.APP.hubChannel.sendMessage(challenge, "challenge", clientId);
