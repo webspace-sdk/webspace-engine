@@ -122,7 +122,6 @@ export const posRotScaleToCssTransform = (pos, rot, scale) => {
 };
 
 const updateDomElForEl = (domEl, el) => {
-  const { terrainSystem } = AFRAME.scenes[0].systems["hubs-systems"];
   const { stackAxis } = el.components["media-loader"].data;
   let { src } = el.components["media-loader"].data;
 
@@ -304,9 +303,8 @@ const updateDomElForEl = (domEl, el) => {
     object3D.matrix.decompose(tmpPos, tmpQuat, tmpScale);
 
     // Normalize Y to be terrain-agnostic
-    const height = terrainSystem.getTerrainHeightAtWorldCoord(tmpPos.x, tmpPos.z);
     tmpPos.x = normalizeCoord(tmpPos.x);
-    tmpPos.y = normalizeCoord(tmpPos.y - height);
+    tmpPos.y = normalizeCoord(tmpPos.y);
     tmpPos.z = normalizeCoord(tmpPos.z);
 
     const transform = posRotScaleToCssTransform(tmpPos, tmpQuat, tmpScale);

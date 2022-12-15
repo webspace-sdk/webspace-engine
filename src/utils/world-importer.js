@@ -123,7 +123,7 @@ export default class WorldImporter {
   }
 
   async importWebspacesDocument(doc, replaceExisting = true, removeEntitiesNotInTemplate = false) {
-    const { terrainSystem, autoQualitySystem } = AFRAME.scenes[0].systems["hubs-systems"];
+    const { autoQualitySystem } = AFRAME.scenes[0].systems["hubs-systems"];
     autoQualitySystem.stopTracking();
 
     if (replaceExisting) {
@@ -164,26 +164,6 @@ export default class WorldImporter {
       styleEl.remove();
       return ret;
     };
-
-    // Terrain system needs to pre-cache all the heightmaps, since this routine
-    // will need to globally reference the terrain heights to place the new media properly in Y.
-
-    const heightMaps = [];
-
-    for (const el of doc.body.childNodes) {
-      const id = el.id;
-      if (!id || id.length !== 7) continue; // Sanity check
-      if (DOM_ROOT.getElementById(`naf-${id}`)) continue;
-
-      const style = getStyle(el);
-      if (!style || !style.transform) continue;
-      const { translate3d } = transformParse(style.transform);
-      const x = transformUnitToMeters(translate3d[0]);
-      const z = transformUnitToMeters(translate3d[2]);
-      heightMaps.push(terrainSystem.loadHeightMapAtWorldCoord(x, z));
-    }
-
-    await Promise.all(heightMaps);
 
     let pendingCount = 0;
 
@@ -367,8 +347,6 @@ export default class WorldImporter {
         const rot = new THREE.Quaternion();
         const scale = new THREE.Vector3();
         parseTransformIntoThree(transform, pos, rot, scale);
-        const height = terrainSystem.getTerrainHeightAtWorldCoord(pos.x, pos.z);
-        pos.y += height;
 
         const matrix = new THREE.Matrix4();
         matrix.compose(
