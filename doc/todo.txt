@@ -1,4 +1,3 @@
-- test text syncing
 - zoom stops zooming on big tower after a pan
 - fix up banner colors
 - custom ambient audio?
@@ -28,11 +27,6 @@
     - undo/redo buttons
 - make cursor more visible
 - if space is held first, then object grabbed, enable snap
-
-three-utils.js:367 Uncaught (in promise) TypeError: a.dot is not a function when setting spawn point
-    at almostEqualQuaternion (three-utils.js:367:21)
-    at posRotScaleToCssTransform (dom-serialize-system.js:110:36)
-    at pushHubMetaUpdateIntoDOM (dom-utils.js:398:32)
 
 ---
 - drop non-used environment colors

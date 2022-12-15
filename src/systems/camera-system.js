@@ -634,6 +634,9 @@ export class CameraSystem extends EventTarget {
       const dh = this.horizontalDelta;
       const dv = this.verticalDelta;
       const dz = this.inspectZoom;
+      // hacky, avoid bugs when frame hitches
+      dt = Math.min(dt, 1000.0 / 30.0);
+
       if (!target.parent) {
         // add dummy object to the scene, if this is the first time we call this function
         AFRAME.scenes[0].object3D.add(target);
