@@ -112,8 +112,6 @@ export class MediaInteractionSystem {
     const isSynced = isSynchronized(hoverEl);
     const targetEl = isSynced ? getNetworkedEntitySync(hoverEl) : hoverEl;
 
-    const { atomAccessManager } = window.APP;
-
     if (this.userinput.get(paths.actions.mediaPrimaryAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.PRIMARY;
     } else if (this.userinput.get(paths.actions.mediaNextAction)) {

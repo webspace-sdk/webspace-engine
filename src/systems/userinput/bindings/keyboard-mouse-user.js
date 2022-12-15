@@ -403,6 +403,21 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
+      src: { value: paths.device.keyboard.code("digit1") },
+      dest: { value: "/var/rising+1" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("control"),
+        value: "/var/rising+1"
+      },
+      dest: { value: "/var/naked+1" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
       src: {
         bool: paths.device.keyboard.key("control"),
         value: paths.device.keyboard.code("digit1")
@@ -417,6 +432,21 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       xform: xforms.rising
     },
     {
+      src: { value: paths.device.keyboard.code("digit2") },
+      dest: { value: "/var/rising+2" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("control"),
+        value: "/var/rising+2"
+      },
+      dest: { value: "/var/naked+2" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
+    },
+    {
       src: {
         bool: paths.device.keyboard.key("control"),
         value: paths.device.keyboard.code("digit2")
@@ -429,6 +459,21 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       src: { value: "/var/control+2" },
       dest: { value: paths.actions.equip2 },
       xform: xforms.rising
+    },
+    {
+      src: { value: paths.device.keyboard.code("digit3") },
+      dest: { value: "/var/rising+3" },
+      xform: xforms.rising,
+      priority: 1001
+    },
+    {
+      src: {
+        bool: paths.device.keyboard.key("control"),
+        value: "/var/rising+3"
+      },
+      dest: { value: "/var/naked+3" },
+      xform: xforms.copyIfFalse,
+      priority: 1001
     },
     {
       src: {
@@ -720,39 +765,21 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 201
     },
     {
-      src: { value: paths.device.keyboard.code("key1") },
+      src: { value: "/var/naked+1" },
       dest: { value: paths.actions.mediaMoveXAction },
       xform: xforms.copy,
       priority: 201
     },
     {
-      src: { value: paths.device.keyboard.code("key1") },
-      dest: { value: paths.actions.mediaMoveXReleaseAction },
-      xform: xforms.falling,
-      priority: 201
-    },
-    {
-      src: { value: paths.device.keyboard.code("key2") },
+      src: { value: "/var/naked+2" },
       dest: { value: paths.actions.mediaMoveYAction },
       xform: xforms.copy,
       priority: 201
     },
     {
-      src: { value: paths.device.keyboard.code("key2") },
-      dest: { value: paths.actions.mediaMoveYReleaseAction },
-      xform: xforms.falling,
-      priority: 201
-    },
-    {
-      src: { value: paths.device.keyboard.code("key3") },
+      src: { value: "/var/naked+3" },
       dest: { value: paths.actions.mediaMoveZAction },
       xform: xforms.copy,
-      priority: 201
-    },
-    {
-      src: { value: paths.device.keyboard.code("key3") },
-      dest: { value: paths.actions.mediaMoveZReleaseAction },
-      xform: xforms.falling,
       priority: 201
     }
   ],
