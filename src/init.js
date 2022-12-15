@@ -11,7 +11,6 @@ import { toByteArray as base64ToByteArray } from "base64-js";
 import { pushHubMetaUpdateIntoDOM } from "./utils/dom-utils";
 import { getUrlFromVoxId } from "./utils/vox-utils";
 import WorldImporter from "./utils/world-importer";
-import crypto from "crypto";
 
 const NOISY_OCCUPANT_COUNT = 12; // Above this # of occupants, we stop posting join/leaves/renames
 
@@ -186,7 +185,9 @@ const setupDataChannelMessageHandlers = () => {
 
   // When a client connects, send the challenge to verify their public key
   document.body.addEventListener("clientConnected", ({ detail: { clientId } }) => {
-    const challenge = crypto.randomBytes(20).toString("hex");
+    const buf = new Uint8Array(20);
+    crypto.getRandomBytes(buf);
+    const challenge = [...buf].map(b => b.toString(16).padStart(2, "0")).join("");
     clientIdChallenges.set(clientId, challenge);
     window.APP.hubChannel.sendMessage(challenge, "challenge", clientId);
   });
