@@ -29,7 +29,13 @@
 - make cursor more visible
 - if space is held first, then object grabbed, enable snap
 
+three-utils.js:367 Uncaught (in promise) TypeError: a.dot is not a function when setting spawn point
+    at almostEqualQuaternion (three-utils.js:367:21)
+    at posRotScaleToCssTransform (dom-serialize-system.js:110:36)
+    at pushHubMetaUpdateIntoDOM (dom-utils.js:398:32)
+
 ---
+- drop non-used environment colors
 - hide other instances in voxel editor
 - consider non-cursor locked mouse panning + orbiting in editor
 - Reset (G) is not going onto undo stack?
@@ -71,6 +77,7 @@
                 when spawning, initialize the media loader with what's in the file
 - vox
   - close out TODOs
+  - add shape, deform, other settings?
   - publish vox, should burn the axis, snap settings, scale
   - .svox linked (immutable)
     - cannot edit name
