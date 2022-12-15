@@ -270,7 +270,15 @@ const TIP_DATA = {
   locked_video_playing: [["seek", "q\\e"], ["volume", "R;t\\g"], ...lockedObjectCommonTips],
   locked_video_paused: [["seek", "q\\e"], ["volume", "R;t\\g"], ...lockedObjectCommonTips],
   locked_pdf: [["next", "L+S"], ["page", "q\\e"], ...lockedObjectCommonTips],
-  holding_interactable: [["pull", "R"], ["stack", "_S"], ["movexz", "_q"], ["movey", "_e"]],
+  holding_interactable: [
+    ["pull", "R"],
+    ["stack", "_S"],
+    ["slide", "q"],
+    ["lift", "e"],
+    ["movex", "1"],
+    ["movey", "2"],
+    ["movez", "3"]
+  ],
   hover_interactable: objectCommonTips.filter(x => x[0] !== "bake" && x[0] !== "ground"),
   hover_bakable_interactable: dropTip(objectCommonTips, "reset"),
   hover_resetable_interactable: dropTip(objectCommonTips, "bake"),
@@ -338,7 +346,10 @@ const TIP_DATA = {
   ],
   rotate: [["yawpitch", "G"], ["roll", "L+G"], ["nosnap", "_H"]],
   scale: [["scale", "G,R"]],
-  slide: [["movexz", "G"], ["movey", "R"], ["nosnap", "_H"]],
+  slide: [["slide", "G"], ["lift", "R"], ["nosnap", "_H"]],
+  movex: [["movex", "G"], ["nosnap", "_H"]],
+  movey: [["movey", "G"], ["nosnap", "_H"]],
+  movez: [["movez", "G"], ["nosnap", "_H"]],
   stack: [["stack", "G"], ["spin", "q\\e"], ["flip", "t\\g"], ["nosnap", "_H"]],
   lift: [["movey", "G"], ["nosnap", "_H"]],
   focus: [["orbit", "I"], ["zoom", "R"], ["exit", "f|Z"]],
@@ -355,7 +366,7 @@ const TIP_DATA = {
 const KEY_TIP_TYPES = Object.keys(TIP_DATA);
 let equippedEmojiUrl;
 
-const itemForData = ([label, keys, flag], triggerMode) => {
+const itemForData = ([label, keys], triggerMode) => {
   let tipLabel;
 
   if (label === "jump" || label === "shoot") {

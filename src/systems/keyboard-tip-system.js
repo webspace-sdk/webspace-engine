@@ -60,6 +60,12 @@ export class KeyboardTipSystem {
             showTips = "rotate";
           } else if (this.transformSystem.mode === TRANSFORM_MODE.SLIDE) {
             showTips = "slide";
+          } else if (this.transformSystem.mode === TRANSFORM_MODE.MOVEX) {
+            showTips = "movex";
+          } else if (this.transformSystem.mode === TRANSFORM_MODE.MOVEY) {
+            showTips = "movey";
+          } else if (this.transformSystem.mode === TRANSFORM_MODE.MOVEZ) {
+            showTips = "movez";
           } else if (this.transformSystem.mode === TRANSFORM_MODE.LIFT) {
             showTips = "lift";
           } else if (this.transformSystem.mode === TRANSFORM_MODE.STACK) {
