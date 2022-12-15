@@ -2,15 +2,17 @@
 - zoom stops zooming on big tower after a pan
 - fix up banner colors
 - custom ambient audio?
-- clone in place
-- move along local x, z
+- orbit is still wonky
 - set name on model properly when dragging and dropping vox
 - make sure when dropping vox, it updates if its changed
 - deno cors proxying split + ytdl enable + move configs into index.html
 - test ff + safari
 - take a stab at mobile view
 - upload progress
-- left click to drag objects, right click to edit objects
+- UX updates
+  - left click to drag objects
+  - left click on empty space to rotate camera
+  - right click to shoot, or use brush
   - left click to add voxels in build mode?
 - add a ui toggle button in top left due to docks on side of screen
   - this can be back button out of editor too
@@ -21,31 +23,20 @@
 - vox
   - close out TODOs
   - publish vox, should burn the axis, snap settings, scale
-  - spawning a new vox remotely should register into presence and cause others
-  - .svox linked (immutable)
-    - cannot edit name
-    - instantiated with scale, axis settings
-    - can bake into new asset if writeback enabled
   - editor UX
     - close button in vox editor, drop left panel
     - undo/redo buttons
-    - show origin with ray
-  - smooth voxel materials on left, text editor in middle
-    - color swatches on left, sorted by hue
-    - mouse over each swatch shows the voxels
-    - group numbers, hover over each to see group
-    - modelwriter custom fields
-    - test compression base64
-    - move meshing to worker?
-
-name not updating in self panel when updated by another peer
-pasting text not working, and causing cursor to act funny (not hoverable)
-make cursor more visible
-tippy root getting into dom
-if space is held first, then object grabbed, enable snap
+- make cursor more visible
+- if space is held first, then object grabbed, enable snap
 
 ---
+- hide other instances in voxel editor
+- consider non-cursor locked mouse panning + orbiting in editor
+- Reset (G) is not going onto undo stack?
+- tippy root getting into dom
+- preview color wheel on pages
 - disable LOD on flat + plains
+- pasting text not working, and causing cursor to act funny (not hoverable)
 - smooth voxel mesher is randomized
 - lock is re-generating smooth mesh, not strictly necessary
 - get rid of a-assets, see how mozilla does it
@@ -78,6 +69,22 @@ if space is held first, then object grabbed, enable snap
 - need to figure out stack axis. it is stored in the DOM, but also can be in the file.
   - suggestion: take it out of metadata, and during writeback look it up on the media loaders
                 when spawning, initialize the media loader with what's in the file
+- vox
+  - close out TODOs
+  - publish vox, should burn the axis, snap settings, scale
+  - .svox linked (immutable)
+    - cannot edit name
+    - instantiated with scale, axis settings
+    - can bake into new asset if writeback enabled
+  - editor UX
+    - show origin with ray
+  - smooth voxel materials on left, text editor in middle
+    - color swatches on left, sorted by hue
+    - mouse over each swatch shows the voxels
+    - group numbers, hover over each to see group
+    - modelwriter custom fields
+    - test compression base64
+    - move meshing to worker?
 
 should push terrain chunks to origin on first edit
 need to writeback page change on pdf iff its locked

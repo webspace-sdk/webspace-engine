@@ -214,7 +214,6 @@ const idleTips = [
   ["chat", "E"],
   ["unlock", "l"],
   ["ui", "~|@"],
-  ["look_lock", "L+S"],
   ["hide", "?"]
 ];
 
@@ -238,12 +237,7 @@ const TIP_DATA = {
   ),
   idle_full_muted: dropTip(
     dropTip(
-      replaceTip(
-        replaceTip(replaceTip(idleTips, "shoot", "shoot", "_S|K"), "mute", "unmute", "L+m"),
-        "look_lock",
-        "look_unlock",
-        "L+S"
-      ),
+      replaceTip(replaceTip(replaceTip(idleTips, "shoot", "shoot", "_S|K"), "mute", "unmute", "L+m"), "L+S"),
       "look"
     ),
     "fly"
