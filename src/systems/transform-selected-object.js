@@ -320,7 +320,7 @@ AFRAME.registerSystem("transform-selected-object", {
       plane: new THREE.Mesh(
         createPlaneBufferGeometry(100, 100, 2, 2),
         new THREE.MeshBasicMaterial({
-          visible: true,
+          visible: false,
           wireframe: false,
           side: THREE.DoubleSide,
           transparent: true,
@@ -335,8 +335,8 @@ AFRAME.registerSystem("transform-selected-object", {
       deltaOnPlane: new THREE.Vector3(),
       finalProjectedVec: new THREE.Vector3(),
       planeCastObjectOffset: new THREE.Vector3(),
-      planeMoveDeltaCoordinate: null,
-      planeMoveFlipDelta: null
+      planeMoveAlongX: null,
+      planeMoveFlipDelta: false
     };
 
     this.el.object3D.add(this.planarInfo.plane);
@@ -423,19 +423,13 @@ AFRAME.registerSystem("transform-selected-object", {
 
       // Take the plane that is more perpendicular to the camera
       this.target.getWorldPosition(plane.position);
-
-      if (Math.abs(dot1) > Math.abs(dot2)) {
-        //console.log("Took n1, delta coordinate is " + this.planarInfo.planeMoveDeltaCoordinate);
-        plane.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n1);
-      } else {
-        //console.log("Took n2, delta coordinate is " + this.planarInfo.planeMoveDeltaCoordinate);
-        plane.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n2);
-      }
+      plane.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), Math.abs(dot1) > Math.abs(dot2) ? n1 : n2);
 
       plane.matrixNeedsUpdate = true;
       plane.updateMatrices();
 
       // Find the plane coordinate to slide along by taking the vector we're moving along and projecting it into plane space
+      // and seeing which component moves along the axis we're moving
       const slideDirection = isX
         ? new THREE.Vector3(1, 0, 0)
         : isY
@@ -444,15 +438,19 @@ AFRAME.registerSystem("transform-selected-object", {
       slideDirection.transformDirection(this.target.matrixWorld);
       slideDirection.normalize();
 
-      const inverseMatrixWorld = new THREE.Matrix4();
-      inverseMatrixWorld.copy(plane.matrixWorld).invert();
-      const slideLocalDirection = new THREE.Vector3();
-      slideLocalDirection.copy(slideDirection).transformDirection(inverseMatrixWorld);
+      const worldToPlaneLocal = new THREE.Matrix4();
+      worldToPlaneLocal.copy(plane.matrixWorld).invert();
+      const slidePlaneLocalDirection = new THREE.Vector3();
+      slidePlaneLocalDirection.copy(slideDirection).transformDirection(worldToPlaneLocal);
 
-      console.log("slide world", slideDirection);
-      console.log("slide plane local", slideLocalDirection);
-      this.planarInfo.planeMoveDeltaCoordinate = Math.abs(slideLocalDirection.x) > Math.abs(slideLocalDirection.y) ? "x" : "y";
-      console.log("delta coordinate is " + this.planarInfo.planeMoveDeltaCoordinate);
+      const planeMoveAlongX = (this.planarInfo.planeMoveAlongX =
+        Math.abs(slidePlaneLocalDirection.x) > Math.abs(slidePlaneLocalDirection.y));
+
+      // Now check if we need to flip the sign of the distance, which is the case if the plane-projected movement direction
+      // runs opposite to the + direction of the coordinate we're moving along
+      this.planarInfo.planeMoveFlipDelta = planeMoveAlongX
+        ? slidePlaneLocalDirection.x < 0
+        : slidePlaneLocalDirection.y < 0;
     } else {
       this.target.getWorldPosition(plane.position);
       plane.quaternion.copy(CAMERA_WORLD_QUATERNION);
@@ -785,22 +783,16 @@ AFRAME.registerSystem("transform-selected-object", {
       const planeNormal = new THREE.Vector3(0, 0, 1);
       planeNormal.applyQuaternion(plane.quaternion);
 
-      const planeMoveDeltaCoordinate = this.planarInfo.planeMoveDeltaCoordinate;
+      const currentOffsetPlaneLocal = this.planarInfo.planeMoveAlongX
+        ? currentPointOnPlaneLocal.x
+        : currentPointOnPlaneLocal.y;
+      const initialOffsetPlaneLocal = this.planarInfo.planeMoveAlongX
+        ? initialPointOnPlaneLocal.x
+        : initialPointOnPlaneLocal.y;
+
       const localDelta =
-        currentPointOnPlaneLocal[planeMoveDeltaCoordinate] - initialPointOnPlaneLocal[planeMoveDeltaCoordinate];
+        (currentOffsetPlaneLocal - initialOffsetPlaneLocal) * (this.planarInfo.planeMoveFlipDelta ? -1 : 1);
 
-      //console.log(
-      //  initialPointOnPlane,
-      //  initialPointOnPlaneLocal,
-      //  planeMoveDeltaCoordinate,
-      //  initialPointOnPlaneLocal[planeMoveDeltaCoordinate]
-      //);
-
-      if (cameraPositionPlaneLocal[planeMoveDeltaCoordinate] > 0) {
-        //localDelta *= -1;
-      }
-
-      //console.log("localDelta", localDelta, planeMoveDeltaCoordinate, this.planarInfo.planeMoveFlipDelta);
       const dist =
         localDelta < 0 && localDelta < -MAX_MOVE_DISTANCE
           ? -MAX_MOVE_DISTANCE
@@ -812,25 +804,30 @@ AFRAME.registerSystem("transform-selected-object", {
       const initialX = elements[12];
       const initialY = elements[13];
       const initialZ = elements[14];
-      //const scale = v.set(elements[0], elements[1], elements[2]).length();
-      //this.target.updateMatrices();
-      //tmpMatrix.copy(this.targetInitialMatrix);
-      //const shouldSnap = !userinput.get(shiftKeyPath);
-      //const snapScale = isFlatMedia(this.target) ? 1.0 : scale;
-      const direction = new THREE.Vector3(
-        this.mode === TRANSFORM_MODE.MOVEX ? 1 : 0,
-        this.mode === TRANSFORM_MODE.MOVEY ? 1 : 0,
-        this.mode === TRANSFORM_MODE.MOVEZ ? 1 : 0
-      );
 
+      this.target.updateMatrices();
+      tmpMatrix.copy(this.targetInitialMatrix);
+
+      const shouldSnap = !userinput.get(shiftKeyPath);
+      const scale = v.set(elements[0], elements[1], elements[2]).length();
+      const snapScale = isFlatMedia(this.target) ? 1.0 : scale;
+
+      const isX = this.mode === TRANSFORM_MODE.MOVEX;
+      const isY = this.mode === TRANSFORM_MODE.MOVEY;
+      const isZ = this.mode === TRANSFORM_MODE.MOVEZ;
+
+      const direction = new THREE.Vector3(isX ? 1 : 0, isY ? 1 : 0, isZ ? 1 : 0);
       direction.transformDirection(this.target.matrixWorld);
 
       const dx1 = direction.x * dist;
       const dy1 = direction.y * dist;
       const dz1 = direction.z * dist;
 
-      tmpMatrix.extractRotation(this.targetInitialMatrix);
-      tmpMatrix.setPosition(initialX + dx1, initialY + dy1, initialZ + dz1);
+      tmpMatrix.setPosition(
+        isX ? withGridSnap(shouldSnap, initialX + dx1, snapScale) : initialX + dx1,
+        isY ? withGridSnap(shouldSnap, initialY + dy1, snapScale) : initialY + dy1,
+        isZ ? withGridSnap(shouldSnap, initialZ + dz1, snapScale) : initialZ + dz1
+      );
 
       this.target.setMatrix(tmpMatrix);
     }
