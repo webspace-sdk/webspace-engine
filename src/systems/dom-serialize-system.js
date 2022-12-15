@@ -172,11 +172,11 @@ const updateDomElForEl = (domEl, el) => {
     }
 
     if (transparent) {
-      style += `background-color: transparent; text-stroke: 4px`;
+      style += `background-color: transparent; -webkit-text-stroke: 4px`;
       if (backgroundColor) {
         try {
           Color(backgroundColor);
-          style += ` ${backgroundColor} `;
+          style += `; -webkit-text-stroke-color: ${backgroundColor}`;
         } catch (e) {} // eslint-disable-line no-empty
       }
 

@@ -1,7 +1,4 @@
-- zoom stops zooming on big tower after a pan
-- fix up banner colors
 - custom ambient audio?
-- orbit is still wonky
 - set name on model properly when dragging and dropping vox
 - make sure when dropping vox, it updates if its changed
 - deno cors proxying split + ytdl enable + move configs into index.html

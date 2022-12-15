@@ -29,8 +29,20 @@ export const MEDIA_TEXT_COLOR_PRESETS = [
 ];
 
 export const MEDIA_TEXT_TRANSPARENT_COLOR_PRESETS = [
-  ["black", "black"],
+  ["white", "black"],
   ["black", "white"],
+  ["transparent", "black"],
+  ["transparent", "white"],
+  ["transparent", "#9446ed"],
+  ["transparent", "#3a66db"],
+  ["transparent", "#2186eb"],
+  ["transparent", "#40c3f7"],
+  ["transparent", "#3ae7e1"],
+  ["transparent", "#3ebd93"],
+  ["transparent", "#8ded2d"],
+  ["transparent", "#fadb5f"],
+  ["transparent", "#f9703e"],
+  ["transparent", "#ef4e4e"],
   ["black", "#9446ed"],
   ["black", "#3a66db"],
   ["black", "#2186eb"],
@@ -40,7 +52,17 @@ export const MEDIA_TEXT_TRANSPARENT_COLOR_PRESETS = [
   ["black", "#8ded2d"],
   ["black", "#fadb5f"],
   ["black", "#f9703e"],
-  ["black", "#ef4e4e"]
+  ["black", "#ef4e4e"],
+  ["white", "#9446ed"],
+  ["white", "#3a66db"],
+  ["white", "#2186eb"],
+  ["white", "#40c3f7"],
+  ["white", "#3ae7e1"],
+  ["white", "#3ebd93"],
+  ["white", "#8ded2d"],
+  ["white", "#fadb5f"],
+  ["white", "#f9703e"],
+  ["white", "#ef4e4e"]
 ];
 
 const getCycledColorPreset = ({ data: { transparent, foregroundColor, backgroundColor } }, direction) => {

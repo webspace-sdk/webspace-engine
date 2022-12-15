@@ -173,7 +173,7 @@ export default class WorldImporter {
       if (DOM_ROOT.getElementById(`naf-${id}`)) continue;
 
       const style = getStyle(el) || {};
-      const { fontFamily, transform, color, width, height, backgroundColor, textStroke } = style;
+      const { fontFamily, transform, color, width, height, backgroundColor, webkitTextStrokeColor } = style;
 
       let contentSubtype = null;
       const tagName = el.tagName;
@@ -255,8 +255,8 @@ export default class WorldImporter {
         }
 
         if (contentSubtype == "banner") {
-          if (textStroke) {
-            mediaBackgroundColor = textStroke;
+          if (webkitTextStrokeColor) {
+            mediaBackgroundColor = webkitTextStrokeColor;
           }
         } else {
           if (backgroundColor) {
