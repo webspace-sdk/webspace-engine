@@ -126,7 +126,45 @@ export default ({
     transparent: transparents
   };
 
-  for (let lodLevel = 0; lodLevel < 3; lodLevel++) {
+  const enclosedMap = new Map();
+
+  // TODO this is a hotspot and probably can be optimized using a recursive algorithm
+  const isFullyEnclosed = (x, y, z) => {
+    // inline: const enclosedMapKeyFor = (x, y, z) => x + 1 + (y + 1) * 10000 + (z + 1) * 10000000;
+    const keyBase = x + 1 + (z + 1) * 10000000;
+    const mapKeyUp = keyBase + (y + 2) * 10000;
+    const mapKey = keyBase + (y + 1) * 10000;
+
+    if (enclosedMap.has(mapKey)) return enclosedMap.get(mapKey);
+
+    if (enclosedMap.get(mapKeyUp)) {
+      const mapKeyDown = keyBase + y * 10000;
+
+      if (enclosedMap.get(mapKeyDown)) {
+        enclosedMap.set(mapKey, true);
+        return true;
+      }
+    }
+
+    for (let i = -1; i <= 1; i += 1) {
+      for (let j = -1; j <= 1; j += 1) {
+        for (let k = -1; k <= 1; k += 1) {
+          if (i !== 0 || j !== 0 || k !== 0) {
+            const type = getType(x + i, y + j, z + k);
+
+            if (type === types.air || type === types.water) {
+              enclosedMap.set(mapKey, false);
+              return false;
+            }
+          }
+        }
+      }
+    }
+
+    return true;
+  };
+
+  for (let lodLevel = 0; lodLevel < 1; lodLevel++) {
     const lod = Math.pow(2, lodLevel);
     const opaque = { color: [], position: [], uv: [], normal: [], palette: [] };
     const transparent = { color: [], position: [], uv: [], normal: [], palette: [] };
@@ -148,44 +186,8 @@ export default ({
       vertices.forEach(vertex => mesh.position.push(...vertex));
     };
 
-    const enclosedMap = new Map();
-    const enclosedMapKeyFor = (x, y, z) => x + 1 + (y + 1) * 10000 + (z + 1) * 10000000;
-
     for (let iTransparent = 0; iTransparent <= 1; iTransparent += 1) {
       const transparent = iTransparent === 1;
-
-      // TODO this is a hotspot and probably can be optimized using a recursive algorithm
-      const isFullyEnclosed = (x, y, z) => {
-        const mapKeyUp = enclosedMapKeyFor(x, y + 1, z);
-        const mapKey = enclosedMapKeyFor(x, y, z);
-
-        if (enclosedMap.get(mapKeyUp)) {
-          const mapKeyDown = enclosedMapKeyFor(x, y - 1, z);
-
-          if (enclosedMap.get(mapKeyDown)) {
-            enclosedMap.set(mapKey, true);
-            return true;
-          }
-        }
-
-        for (let i = -1; i <= 1; i += 1) {
-          for (let j = -1; j <= 1; j += 1) {
-            for (let k = -1; k <= 1; k += 1) {
-              if (i !== 0 || j !== 0 || k !== 0) {
-                const type = getType(x + i, y + j, z + k);
-
-                if (type === types.air || type === types.water) {
-                  enclosedMap.set(mapKey, false);
-                  return false;
-                }
-              }
-            }
-          }
-        }
-
-        enclosedMap.set(mapKey, true);
-        return true;
-      };
 
       const lodIndices = [];
 
@@ -219,11 +221,15 @@ export default ({
           vz = z;
           voxelType = getType(vx, vy, vz);
         } else {
-          // For LOD, always take non-air voxel in LOD chunk to avoid gaps
-          for (const [i, j, k] of lodIndices) {
-            vx = Math.max(0, Math.min(from.x + x * lod + i, maxX));
-            vy = Math.max(0, Math.min(from.y + y * lod + j, maxY));
-            vz = Math.max(0, Math.min(from.z + z * lod + k, maxZ));
+          for (let ii = 0, l = lodIndices.length; ii < l; ii++) {
+            const indices = lodIndices[ii];
+            const i = indices[0];
+            const j = indices[1];
+            const k = indices[2];
+
+            vx = Math.min(from.x + x * lod + i, maxX);
+            vy = Math.min(from.y + y * lod + j, maxY);
+            vz = Math.min(from.z + z * lod + k, maxZ);
 
             voxelType = getType(vx, vy, vz);
             if (voxelType !== types.air) break;
