@@ -291,7 +291,7 @@ const BottomLeftPanels = styled.div`
 const DeviceStatuses = styled.div`
   position: absolute;
   bottom: 17px;
-  right: 138px;
+  right: 184px;
 
   flex-direction: row;
   margin: 11px 0 0 12px;
