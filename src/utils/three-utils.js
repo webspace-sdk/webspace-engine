@@ -8,17 +8,22 @@ const tempQuaternion = new THREE.Quaternion();
 const ORIGIN_VECTOR2 = new Vector2();
 
 const tempPlane = new Plane(new Vector3(1, 0, 0), 0);
+const tempPoint = new Vector3();
 
 const raycaster = new Raycaster();
 raycaster.firstHitOnly = true;
 
-export function getCameraOrbitFocalPoint(camera, object, bbox, target) {
+export function getCameraOrbitFocalPoint(camera, object, localBox, target) {
   // Focal plane is the intersection point of the object-local Y plane with the camera ray
   tempVector3
     .set(0, 1, 0)
     .applyQuaternion(object.quaternion)
     .normalize();
-  tempPlane.setFromNormalAndCoplanarPoint(tempVector3, object.position);
+  localBox.getCenter(tempPoint);
+  tempPoint.y = localBox.min.y;
+  object.updateMatrices();
+  tempPoint.applyMatrix4(object.matrixWorld);
+  tempPlane.setFromNormalAndCoplanarPoint(tempVector3, tempPoint);
   raycaster.setFromCamera(ORIGIN_VECTOR2, camera);
   raycaster.ray.intersectPlane(tempPlane, target);
 }

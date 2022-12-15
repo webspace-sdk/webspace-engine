@@ -37,8 +37,12 @@ const IDENTITY = new THREE.Matrix4().identity();
 
 // Given an object 3d, gets the bounding box for the vox, if it's a
 // vox entity, or the box for the underlying mesh.
-const getEntityBox = object => {
+const getEntityWorldBox = object => {
   return getBox(object.el, object.el.getObject3D("mesh") || object, true);
+};
+
+const getEntityLocalBox = object => {
+  return getBox(object.el, object.el.getObject3D("mesh") || object, false);
 };
 
 export const CAMERA_MODE_FIRST_PERSON = 0;
@@ -643,14 +647,16 @@ export class CameraSystem extends EventTarget {
         target.applyMatrix4(IDENTITY); // make sure target gets updated at least once for our matrix optimizations
       }
       object.updateMatrices();
+      camera.updateMatrices();
 
-      const box = getEntityBox(object);
-      box.getCenter(center);
+      const worldBox = getEntityWorldBox(object);
+      const localBox = getEntityLocalBox(object);
+      worldBox.getCenter(center);
 
       decompose(object.matrixWorld, owp, owq);
       decompose(camera.matrixWorld, cwp, cwq);
 
-      getCameraOrbitFocalPoint(camera, object, box, focalPoint);
+      getCameraOrbitFocalPoint(camera, object, localBox, focalPoint);
 
       rig.getWorldQuaternion(rwq);
 
@@ -662,14 +668,15 @@ export class CameraSystem extends EventTarget {
 
       const dPos = new THREE.Vector3().subVectors(cwp, focalPoint);
       const zoom = 1 - dz * dt;
-      const newLength = dPos.length() * (this.isRenderingOrthographic() ? 1 : zoom);
+      const zoomedLength = dPos.length() * (this.isRenderingOrthographic() ? 1 : zoom);
+
       const vrMode = object.el.sceneEl.is("vr-mode");
       const dist =
         calculateViewingDistance(
           object.el.sceneEl.camera.fov,
           object.el.sceneEl.camera.aspect,
           object,
-          box,
+          worldBox,
           center,
           vrMode
         ) * this.distanceMod;
@@ -677,7 +684,7 @@ export class CameraSystem extends EventTarget {
       // TODO: These limits should be calculated based on the calculated view distance.
       if (
         !this.isRenderingOrthographic() &&
-        ((newLength > 0.1 || dz < 0.0) && (newLength < MAX_INSPECT_CAMERA_DISTANCE || dz > 0.0))
+        ((zoomedLength > 0.001 || dz < 0.0) && (zoomedLength < MAX_INSPECT_CAMERA_DISTANCE || dz > 0.0))
       ) {
         dPos.multiplyScalar(zoom);
       }
@@ -689,12 +696,12 @@ export class CameraSystem extends EventTarget {
         .add(
           RIGHT.set(1, 0, 0)
             .applyQuaternion(cwq)
-            .multiplyScalar(panX * newLength)
+            .multiplyScalar(panX * zoomedLength)
         )
         .add(
           UP.set(0, 1, 0)
             .applyQuaternion(cwq)
-            .multiplyScalar(panY * newLength)
+            .multiplyScalar(panY * zoomedLength)
         );
 
       // When rendering orthographic, push the target position
@@ -749,7 +756,7 @@ export class CameraSystem extends EventTarget {
       decompose(camera.matrixWorld, cwp, cwq);
       rig.getWorldQuaternion(cwq);
 
-      const box = getEntityBox(object);
+      const box = getEntityWorldBox(object);
       box.getCenter(center);
       const vrMode = object.el.sceneEl.is("vr-mode");
       const dist =
