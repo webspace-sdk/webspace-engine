@@ -72,9 +72,18 @@ export class MediaInteractionSystem {
     if (
       (this.userinput.get(paths.actions.mediaSlideReleaseAction) &&
         this.transformSystem.mode === TRANSFORM_MODE.SLIDE) ||
+      (this.userinput.get(paths.actions.mediaMoveXReleaseAction) &&
+        this.transformSystem.mode === TRANSFORM_MODE.MOVEX) ||
+      (this.userinput.get(paths.actions.mediaMoveYReleaseAction) &&
+        this.transformSystem.mode === TRANSFORM_MODE.MOVEY) ||
+      (this.userinput.get(paths.actions.mediaMoveZReleaseAction) &&
+        this.transformSystem.mode === TRANSFORM_MODE.MOVEZ) ||
       (this.transformSystem.mode === TRANSFORM_MODE.LIFT && this.userinput.get(paths.actions.mediaLiftReleaseAction)) ||
       this.userinput.get(paths.actions.mashRelease) ||
       ((this.transformSystem.mode === TRANSFORM_MODE.SLIDE ||
+        this.transformSystem.mode === TRANSFORM_MODE.MOVEX ||
+        this.transformSystem.mode === TRANSFORM_MODE.MOVEY ||
+        this.transformSystem.mode === TRANSFORM_MODE.MOVEZ ||
         this.transformSystem.mode === TRANSFORM_MODE.LIFT ||
         this.transformSystem.mode === TRANSFORM_MODE.STACK) &&
         this.transformSystem.transforming &&
@@ -102,8 +111,6 @@ export class MediaInteractionSystem {
     let interactionType = null;
     const isSynced = isSynchronized(hoverEl);
     const targetEl = isSynced ? getNetworkedEntitySync(hoverEl) : hoverEl;
-
-    const { atomAccessManager } = window.APP;
 
     if (this.userinput.get(paths.actions.mediaPrimaryAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.PRIMARY;
@@ -228,7 +235,6 @@ export class MediaInteractionSystem {
     const interaction = this.interaction;
     const isSynced = isSynchronized(heldEl);
     const targetEl = isSynced ? getNetworkedEntitySync(heldEl) : heldEl;
-    const { atomAccessManager } = window.APP;
 
     if (this.userinput.get(paths.actions.mediaSlideAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.SLIDE;
@@ -236,6 +242,18 @@ export class MediaInteractionSystem {
 
     if (this.userinput.get(paths.actions.mediaLiftAction)) {
       interactionType = MEDIA_INTERACTION_TYPES.LIFT;
+    }
+
+    if (this.userinput.get(paths.actions.mediaMoveXAction)) {
+      interactionType = MEDIA_INTERACTION_TYPES.MOVEX;
+    }
+
+    if (this.userinput.get(paths.actions.mediaMoveYAction)) {
+      interactionType = MEDIA_INTERACTION_TYPES.MOVEY;
+    }
+
+    if (this.userinput.get(paths.actions.mediaMoveZAction)) {
+      interactionType = MEDIA_INTERACTION_TYPES.MOVEZ;
     }
 
     if (this.userinput.get(paths.actions.mash)) {
@@ -262,17 +280,37 @@ export class MediaInteractionSystem {
 
             rightRemote.constraining = false;
 
-            const mode =
-              interactionType === MEDIA_INTERACTION_TYPES.SLIDE
-                ? TRANSFORM_MODE.SLIDE
-                : interactionType === MEDIA_INTERACTION_TYPES.STACK
-                  ? TRANSFORM_MODE.STACK
-                  : TRANSFORM_MODE.LIFT;
+            let mode;
+            switch (interactionType) {
+              case MEDIA_INTERACTION_TYPES.SLIDE:
+                mode = TRANSFORM_MODE.SLIDE;
+                break;
+              case MEDIA_INTERACTION_TYPES.LIFT:
+                mode = TRANSFORM_MODE.LIFT;
+                break;
+              case MEDIA_INTERACTION_TYPES.MOVEX:
+                mode = TRANSFORM_MODE.MOVEX;
+                break;
+              case MEDIA_INTERACTION_TYPES.MOVEY:
+                mode = TRANSFORM_MODE.MOVEY;
+                break;
+              case MEDIA_INTERACTION_TYPES.MOVEZ:
+                mode = TRANSFORM_MODE.MOVEZ;
+                break;
+              case MEDIA_INTERACTION_TYPES.STACK:
+                mode = TRANSFORM_MODE.STACK;
+                break;
+            }
 
             this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, { mode });
 
             // Show guide plane during slide or lift
-            if (interactionType !== MEDIA_INTERACTION_TYPES.STACK) {
+            if (
+              interactionType !== MEDIA_INTERACTION_TYPES.STACK &&
+              interactionType !== MEDIA_INTERACTION_TYPES.MOVEX &&
+              interactionType !== MEDIA_INTERACTION_TYPES.MOVEY &&
+              interactionType !== MEDIA_INTERACTION_TYPES.MOVEZ
+            ) {
               SYSTEMS.helpersSystem.setGuidePlaneMode(
                 interactionType === MEDIA_INTERACTION_TYPES.SLIDE ? GUIDE_PLANE_MODES.CAMERA : GUIDE_PLANE_MODES.WORLDY
               );
