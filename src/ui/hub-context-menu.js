@@ -67,34 +67,37 @@ function HubContextMenu({
   }
 
   if (hubId && hubCan("update_hub_meta", hubId) && !hideSetSpawnPoint) {
-    items.push(
-      <PopupMenuItem
-        key={`set-spawn-point-${hubId}`}
-        onClick={e => {
-          e.preventDefault();
-          e.stopPropagation();
+    for (const [kind, radius] of [["point", 0], ["region", 10]]) {
+      items.push(
+        <PopupMenuItem
+          key={`set-spawn-${kind}-${hubId}`}
+          onClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
 
-          const position = new THREE.Vector3();
-          const rotation = new THREE.Quaternion();
-          const avatarRig = DOM_ROOT.getElementById("avatar-rig");
-          const avatarPov = DOM_ROOT.getElementById("avatar-pov-node");
+            const position = new THREE.Vector3();
+            const rotation = new THREE.Quaternion();
+            const avatarRig = DOM_ROOT.getElementById("avatar-rig");
+            const avatarPov = DOM_ROOT.getElementById("avatar-pov-node");
 
-          avatarRig.object3D.getWorldPosition(position);
-          avatarPov.object3D.getWorldQuaternion(rotation);
+            avatarRig.object3D.getWorldPosition(position);
+            avatarPov.object3D.getWorldQuaternion(rotation);
 
-          hubChannel.updateHubMeta(hubId, {
-            world: {
-              spawn_point: {
-                position: { x: position.x, y: position.y, z: position.z },
-                rotation: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w }
+            hubChannel.updateHubMeta(hubId, {
+              world: {
+                spawn_point: {
+                  position: { x: position.x, y: position.y, z: position.z },
+                  rotation: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w },
+                  radius
+                }
               }
-            }
-          });
-        }}
-      >
-        <FormattedMessage id="hub-context.set-spawn-point" />
-      </PopupMenuItem>
-    );
+            });
+          }}
+        >
+          <FormattedMessage id={`hub-context.set-spawn-${kind}`} />
+        </PopupMenuItem>
+      );
+    }
   }
 
   if (hubId && isCurrentWorld && showPublishObjects && hubCan("spawn_and_move_media", hubId)) {

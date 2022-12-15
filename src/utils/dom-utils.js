@@ -390,13 +390,23 @@ export const pushHubMetaUpdateIntoDOM = async hub => {
   let spawnPointRotation = hub.world?.spawn_point?.rotation;
 
   if (spawnPointPosition || spawnPointRotation) {
-    spawnPointPosition = spawnPointPosition || new THREE.Vector3(0, 0, 0);
-    spawnPointRotation = spawnPointRotation || new THREE.Quaternion(0, 0, 0, 1);
+    spawnPointPosition = spawnPointPosition || { x: 0, y: 0, z: 0 };
+    spawnPointRotation = spawnPointRotation || { x: 0, y: 0, z: 0, w: 1 };
 
     upsertMetaTag(
       "environment.spawn_point.transform",
-      posRotScaleToCssTransform(spawnPointPosition, spawnPointRotation)
+      posRotScaleToCssTransform(
+        new THREE.Vector3(spawnPointPosition.x, spawnPointPosition.y, spawnPointPosition.z),
+        new THREE.Quaternion(spawnPointRotation.x, spawnPointRotation.y, spawnPointRotation.z, spawnPointRotation.w),
+        new THREE.Vector3(1, 1, 1)
+      )
     );
+  }
+
+  const spawnRadius = hub.world?.spawn_point?.radius;
+
+  if (typeof spawnRadius === "number" && spawnRadius >= 0 && spawnRadius <= 64) {
+    upsertMetaTag("environment.spawn_point.radius", `${spawnRadius}`);
   }
 };
 
@@ -408,10 +418,10 @@ export function getStringFromMetaTags(name, defaultValue = "") {
 
 export function getIntFromMetaTags(name, defaultValue = 0) {
   try {
-    return (
-      parseInt(document.head.querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`)?.getAttribute("content")) ||
-      defaultValue
+    const value = parseInt(
+      document.head.querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`)?.getAttribute("content")
     );
+    return isNaN(value) ? defaultValue : value;
   } catch {
     return defaultValue;
   }
@@ -419,10 +429,10 @@ export function getIntFromMetaTags(name, defaultValue = 0) {
 
 export function getFloatFromMetaTags(name, defaultValue = 0) {
   try {
-    return (
-      parseFloat(document.head.querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`)?.getAttribute("content")) ||
-      defaultValue
+    const value = parseFloat(
+      document.head.querySelector(`meta[name='${META_TAG_PREFIX}.${name}']`)?.getAttribute("content")
     );
+    return isNaN(value) ? defaultValue : value;
   } catch {
     return defaultValue;
   }
