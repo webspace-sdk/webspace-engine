@@ -12,6 +12,7 @@ import {
   getDefaultResolveQuality
 } from "../utils/media-utils";
 import { guessContentType, isWebspaceUrl } from "../utils/media-url-utils";
+import { parseUrlAndCheckRelative } from "../utils/url-utils";
 import { addAnimationComponents } from "../utils/animation";
 
 import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
@@ -362,18 +363,7 @@ AFRAME.registerComponent("media-loader", {
       let accessibleContentAudioUrl = null;
       let contentType = this.data.contentType;
 
-      let parsedUrl = null;
-      let isRelativeUrl = false;
-
-      try {
-        parsedUrl = new URL(src);
-      } catch (e) {
-        try {
-          parsedUrl = new URL(src, document.location.href);
-          isRelativeUrl = true;
-        } catch (e) { // eslint-disable-line
-        }
-      }
+      const [parsedUrl, isRelativeUrl] = parseUrlAndCheckRelative(src);
 
       if (
         typeof src === "string" &&
@@ -432,6 +422,7 @@ AFRAME.registerComponent("media-loader", {
                 const res = await fetch(accessibleContentUrl);
                 if (res.status !== 404) break;
               } catch (e) {
+                // Empty
               } finally {
                 // Re-fetch accessible content URL because presence may actually have origin information which
                 // would allow a direct fetch.

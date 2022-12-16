@@ -94,3 +94,20 @@ export function getLocalRelativePathFromUrl(toUrlString) {
 export function assetFileNameForName(name, extension) {
   return `${name.toLowerCase().replace(/\s/g, "_")}-${Math.floor(Math.random() * 999999) + 1}.${extension}`;
 }
+
+export function parseUrlAndCheckRelative(src) {
+  let parsedUrl,
+    isRelativeUrl = false;
+
+  try {
+    parsedUrl = new URL(src);
+  } catch (e) {
+    try {
+      parsedUrl = new URL(src, document.location.href);
+      isRelativeUrl = true;
+    } catch (e) { // eslint-disable-line
+    }
+  }
+
+  return [parsedUrl, isRelativeUrl];
+}

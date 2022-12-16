@@ -72,8 +72,8 @@ export async function renderQuillToImg(
       try {
         Color(foregroundColor);
       } catch (e) {
-        foregroundColor = "black";
         console.warn("Invalid foreground color for rendering ", foregroundColor);
+        foregroundColor = "black";
       }
     } else {
       foregroundColor = "black";
@@ -83,8 +83,8 @@ export async function renderQuillToImg(
       try {
         Color(backgroundColor);
       } catch (e) {
+        console.warn("Invalid background color for rendering ", backgroundColor);
         backgroundColor = "white";
-        console.warn("Invalid background color for rendering ", foregroundColor);
       }
     } else {
       backgroundColor = "white";

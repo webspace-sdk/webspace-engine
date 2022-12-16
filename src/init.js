@@ -320,7 +320,6 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
       };
 
       setupDataChannelMessageHandlers();
-      scene.addEventListener("componentinitialized", handle);
 
       // Hacky for now, put the worker URL into a global
       window.APP.workerUrl = hub.worker_url;
@@ -328,6 +327,8 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
       if (hub.cors_anywhere_url) {
         window.APP.corsAnywhereUrl = hub.cors_anywhere_url;
       }
+
+      scene.addEventListener("componentinitialized", handle);
 
       scene.setAttribute("networked-scene", {
         audio: true,

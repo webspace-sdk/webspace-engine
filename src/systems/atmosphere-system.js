@@ -3,8 +3,8 @@ import Sky from "../objects/sky";
 import Water from "../objects/water";
 import { Layers } from "../components/layers";
 import { RENDER_ORDER } from "../constants";
-import { SOUND_OUTDOORS } from "./sound-effects-system";
 import { getHubIdFromHistory } from "../utils/url-utils";
+import { SOUND_AMBIENCE } from "./sound-effects-system";
 
 const FOG_NEAR = 20.5;
 const FOG_SPAN = 1.5;
@@ -67,11 +67,11 @@ export class AtmosphereSystem {
     this.sunLight.layers.enable(Layers.reflection);
     this.sunLight.renderOrder = RENDER_ORDER.LIGHTS;
 
-    this.outdoorsSoundSourceNode = null;
-    this.outdoorsSoundGainNode = null;
-    this.outdoorsSoundSource = null;
-    this.outdoorsSoundTargetGain = 0.0;
-    this.outdoorsSoundSilencedAt = 0;
+    this.ambienceSoundSourceNode = null;
+    this.ambienceSoundGainNode = null;
+    this.ambienceSoundSource = null;
+    this.ambienceSoundTargetGain = 0.0;
+    this.ambienceSoundSilencedAt = 0;
 
     this.sky = new Sky();
     this.sky.position.y = 0;
@@ -131,16 +131,16 @@ export class AtmosphereSystem {
   }
 
   enableAmbience() {
-    this.outdoorsSoundTargetGain = 2.0;
+    this.ambienceSoundTargetGain = 2.0;
   }
 
   restartAmbience() {
-    this.outdoorsSoundTargetGain = 2.0;
-    this.stopOutdoorsSoundNode(); // Restart happens automatically
+    this.ambienceSoundTargetGain = 2.0;
+    this.stopAmbienceSoundNode(); // Restart happens automatically
   }
 
   disableAmbience() {
-    this.outdoorsSoundTargetGain = 0.0;
+    this.ambienceSoundTargetGain = 0.0;
   }
 
   tick(dt) {
@@ -259,55 +259,55 @@ export class AtmosphereSystem {
 
     const ambienceEnabled = !store.state.preferences.disableAudioAmbience;
 
-    const desiredOutdoorsGain = ambienceEnabled ? this.outdoorsSoundTargetGain : 0.0;
+    const desiredAmbienceGain = ambienceEnabled ? this.ambienceSoundTargetGain : 0.0;
 
-    if (!this.outdoorsSoundGainNode && desiredOutdoorsGain > 0.0) {
-      if (this.soundEffectsSystem.hasLoadedSound(SOUND_OUTDOORS)) {
-        const soundDuration = this.soundEffectsSystem.getSoundDuration(SOUND_OUTDOORS);
+    if (!this.ambienceSoundGainNode && desiredAmbienceGain > 0.0) {
+      if (this.soundEffectsSystem.hasLoadedSound(SOUND_AMBIENCE)) {
+        const soundDuration = this.soundEffectsSystem.getSoundDuration(SOUND_AMBIENCE);
         const { source, gain } = this.soundEffectsSystem.playSoundLoopedWithGain(
-          SOUND_OUTDOORS,
+          SOUND_AMBIENCE,
           Math.floor(Math.random() * soundDuration * 0.8)
         );
 
-        this.outdoorsSoundSourceNode = source;
-        this.outdoorsSoundGainNode = gain;
-        this.outdoorsSoundGainNode.gain.setValueAtTime(
-          desiredOutdoorsGain,
+        this.ambienceSoundSourceNode = source;
+        this.ambienceSoundGainNode = gain;
+        this.ambienceSoundGainNode.gain.setValueAtTime(
+          desiredAmbienceGain,
           SYSTEMS.audioSystem.audioContext.currentTime
         );
       }
-    } else if (this.outdoorsSoundGainNode) {
-      const currentGain = this.outdoorsSoundGainNode.gain.value;
+    } else if (this.ambienceSoundGainNode) {
+      const currentGain = this.ambienceSoundGainNode.gain.value;
 
-      if (Math.abs(currentGain - desiredOutdoorsGain) > 0.001) {
-        const direction = currentGain > desiredOutdoorsGain ? -1 : 1;
+      if (Math.abs(currentGain - desiredAmbienceGain) > 0.001) {
+        const direction = currentGain > desiredAmbienceGain ? -1 : 1;
         const newGain = Math.min(1.0, Math.max(0.0, currentGain + direction * 0.001 * dt));
-        this.outdoorsSoundGainNode.gain.setValueAtTime(newGain, SYSTEMS.audioSystem.audioContext.currentTime);
+        this.ambienceSoundGainNode.gain.setValueAtTime(newGain, SYSTEMS.audioSystem.audioContext.currentTime);
 
         if (newGain === 0.0) {
-          this.outdoorsSoundSilencedAt = now;
+          this.ambienceSoundSilencedAt = now;
         }
       } else if (
         currentGain === 0.0 &&
-        this.outdoorsSoundSilencedAt !== null &&
-        now - this.outdoorsSoundSilencedAt > STOP_AMBIENCE_AFTER_SILENCE_MS
+        this.ambienceSoundSilencedAt !== null &&
+        now - this.ambienceSoundSilencedAt > STOP_AMBIENCE_AFTER_SILENCE_MS
       ) {
-        this.stopOutdoorsSoundNode();
+        this.stopAmbienceSoundNode();
       }
     }
   }
 
-  stopOutdoorsSoundNode() {
-    if (!this.outdoorsSoundSourceNode) return;
+  stopAmbienceSoundNode() {
+    if (!this.ambienceSoundSourceNode) return;
 
-    SYSTEMS.soundEffectsSystem.stopSoundNode(this.outdoorsSoundSourceNode);
+    SYSTEMS.soundEffectsSystem.stopSoundNode(this.ambienceSoundSourceNode);
 
     // This is not currently handled by the sound effects system:
-    this.outdoorsSoundGainNode.disconnect();
+    this.ambienceSoundGainNode.disconnect();
 
-    this.outdoorsSoundSilencedAt = null;
-    this.outdoorsSoundSourceNode = null;
-    this.outdoorsSoundGainNode = null;
+    this.ambienceSoundSilencedAt = null;
+    this.ambienceSoundSourceNode = null;
+    this.ambienceSoundGainNode = null;
   }
 
   updateAtmosphereForHub({ world }) {

@@ -1,3 +1,7 @@
+import { parseUrlAndCheckRelative } from "../utils/url-utils";
+import { setMatrixWorld } from "../utils/three-utils";
+import { preflightUrl } from "../utils/media-utils";
+
 import URL_TICK from "!!url-loader!../assets/sfx/click.wav";
 import URL_TICK_DOWN from "!!url-loader!../assets/sfx/click-down.wav";
 import URL_TICK_ALT from "!!url-loader!../assets/sfx/click-alt.wav";
@@ -30,8 +34,6 @@ import URL_FART_3 from "!!url-loader!../assets/sfx/fart3.mp3";
 import URL_FART_4 from "!!url-loader!../assets/sfx/fart4.mp3";
 import URL_FART_5 from "!!url-loader!../assets/sfx/fart5.mp3";
 import URL_FART_BIG from "!!url-loader!../assets/sfx/fart-big.mp3";
-
-import { setMatrixWorld } from "../utils/three-utils";
 
 let soundEnum = 0;
 export const SOUND_HOVER_OR_GRAB = soundEnum++;
@@ -78,12 +80,33 @@ export const SOUND_EMOJI_EQUIP = soundEnum++;
 export const SOUND_NOTIFICATION = soundEnum++;
 export const SOUND_LOCK = soundEnum++;
 export const SOUND_UNLOCK = soundEnum++;
+export const SOUND_AMBIENCE = soundEnum++;
 
 // Safari doesn't support the promise form of decodeAudioData, so we polyfill it.
 function decodeAudioData(audioContext, arrayBuffer) {
   return new Promise((resolve, reject) => {
     audioContext.decodeAudioData(arrayBuffer, resolve, reject);
   });
+}
+
+async function fetchAudioFromUrl(url, audioContext) {
+  const [, isRelativeUrl] = parseUrlAndCheckRelative(url);
+  let accessibleContentUrl;
+
+  if (url.startsWith("data:")) {
+    accessibleContentUrl = url;
+  } else {
+    if (isRelativeUrl) {
+      accessibleContentUrl = await window.APP.atomAccessManager.contentUrlForRelativePath(decodeURIComponent(url));
+    } else {
+      const preflightResponse = await preflightUrl(url);
+      accessibleContentUrl = preflightResponse.accessibleContentUrl;
+    }
+  }
+
+  const response = await fetch(accessibleContentUrl);
+  const arrayBuffer = await response.arrayBuffer();
+  return await decodeAudioData(audioContext, arrayBuffer);
 }
 
 export class SoundEffectsSystem {
@@ -101,69 +124,7 @@ export class SoundEffectsSystem {
     this.audioContext = THREE.AudioContext.getContext();
     this.scene = scene;
 
-    const soundsAndUrls = [
-      [SOUND_HOVER_OR_GRAB, URL_TICK],
-      [SOUND_RELEASE, URL_TICK_DOWN],
-      [SOUND_THAW, URL_TICK],
-      [SOUND_PEN_STOP_DRAW, URL_TICK],
-      [SOUND_PEN_UNDO_DRAW, URL_TICK],
-      [SOUND_PEN_CHANGE_COLOR, URL_TICK],
-      [SOUND_TOGGLE_MIC, URL_TOGGLE_TICK],
-      [SOUND_CAMERA_TOOL_COUNTDOWN, URL_TICK],
-      [SOUND_TELEPORT_START, URL_TELEPORT_LOOP],
-      [SOUND_TELEPORT_END, URL_QUICK_TURN],
-      [SOUND_WAYPOINT_START, URL_QUICK_TURN],
-      [SOUND_WAYPOINT_END, URL_TICK],
-      [SOUND_SNAP_ROTATE, URL_TAP_MELLOW],
-      [SOUND_SPAWN_PEN, URL_PEN_SPAWN],
-      [SOUND_PEN_START_DRAW, URL_PEN_DRAW],
-      [SOUND_CAMERA_TOOL_TOOK_SNAPSHOT, URL_CAMERA_SNAPSHOT],
-      [SOUND_ENTER_SCENE, URL_WELCOME],
-      [SOUND_QUACK, URL_QUACK],
-      [SOUND_SPECIAL_QUACK, URL_SPECIAL_QUACK],
-      [SOUND_CHAT_MESSAGE, URL_POP],
-      [SOUND_FREEZE, URL_FREEZE],
-      [SOUND_PIN, URL_TACK],
-      [SOUND_MEDIA_LOADING, URL_PARTICLES],
-      [SOUND_MEDIA_LOADED, URL_QUIET_POP],
-      [SOUND_MEDIA_REMOVED, URL_VACUUM],
-      [SOUND_PREFERENCE_MENU_HOVER, URL_FREEZE],
-      [SOUND_SPAWN_EMOJI, URL_SPAWN_EMOJI],
-      [SOUND_LAUNCHER_1, URL_LAUNCHER_1],
-      [SOUND_LAUNCHER_2, URL_LAUNCHER_2],
-      [SOUND_LAUNCHER_3, URL_LAUNCHER_3],
-      [SOUND_LAUNCHER_4, URL_LAUNCHER_4],
-      [SOUND_LAUNCHER_5, URL_LAUNCHER_5],
-      [SOUND_LAUNCHER_BIG, URL_LAUNCHER_BIG],
-      [SOUND_FART_1, URL_FART_1],
-      [SOUND_FART_2, URL_FART_2],
-      [SOUND_FART_3, URL_FART_3],
-      [SOUND_FART_4, URL_FART_4],
-      [SOUND_FART_5, URL_FART_5],
-      [SOUND_FART_BIG, URL_FART_BIG],
-      [SOUND_EMOJI_BURST, URL_QUIET_POP],
-      [SOUND_EMOJI_EQUIP, URL_TICK_ALT],
-      [SOUND_NOTIFICATION, URL_QUIET_POP],
-      [SOUND_LOCK, URL_TACK],
-      [SOUND_UNLOCK, URL_TICK_ALT]
-    ];
-    const loading = new Map();
-    const load = url => {
-      let audioBufferPromise = loading.get(url);
-      if (!audioBufferPromise) {
-        audioBufferPromise = fetch(url)
-          .then(r => r.arrayBuffer())
-          .then(arrayBuffer => decodeAudioData(this.audioContext, arrayBuffer));
-        loading.set(url, audioBufferPromise);
-      }
-      return audioBufferPromise;
-    };
     this.sounds = new Map();
-    soundsAndUrls.map(([sound, url]) => {
-      load(url).then(audioBuffer => {
-        this.sounds.set(sound, audioBuffer);
-      });
-    });
 
     this.isDisabled = window.APP.store.state.preferences.disableSoundEffects;
     window.APP.store.addEventListener("statechanged", () => {
@@ -185,6 +146,91 @@ export class SoundEffectsSystem {
         this.playPendingSounds();
       }
     }, 250);
+
+    this.scene.addEventListener(
+      "didConnectToNetworkedScene",
+      () => {
+        const soundsAndUrls = [
+          [SOUND_HOVER_OR_GRAB, URL_TICK],
+          [SOUND_RELEASE, URL_TICK_DOWN],
+          [SOUND_THAW, URL_TICK],
+          [SOUND_PEN_STOP_DRAW, URL_TICK],
+          [SOUND_PEN_UNDO_DRAW, URL_TICK],
+          [SOUND_PEN_CHANGE_COLOR, URL_TICK],
+          [SOUND_TOGGLE_MIC, URL_TOGGLE_TICK],
+          [SOUND_CAMERA_TOOL_COUNTDOWN, URL_TICK],
+          [SOUND_TELEPORT_START, URL_TELEPORT_LOOP],
+          [SOUND_TELEPORT_END, URL_QUICK_TURN],
+          [SOUND_WAYPOINT_START, URL_QUICK_TURN],
+          [SOUND_WAYPOINT_END, URL_TICK],
+          [SOUND_SNAP_ROTATE, URL_TAP_MELLOW],
+          [SOUND_SPAWN_PEN, URL_PEN_SPAWN],
+          [SOUND_PEN_START_DRAW, URL_PEN_DRAW],
+          [SOUND_CAMERA_TOOL_TOOK_SNAPSHOT, URL_CAMERA_SNAPSHOT],
+          [SOUND_ENTER_SCENE, URL_WELCOME],
+          [SOUND_QUACK, URL_QUACK],
+          [SOUND_SPECIAL_QUACK, URL_SPECIAL_QUACK],
+          [SOUND_CHAT_MESSAGE, URL_POP],
+          [SOUND_FREEZE, URL_FREEZE],
+          [SOUND_PIN, URL_TACK],
+          [SOUND_MEDIA_LOADING, URL_PARTICLES],
+          [SOUND_MEDIA_LOADED, URL_QUIET_POP],
+          [SOUND_MEDIA_REMOVED, URL_VACUUM],
+          [SOUND_PREFERENCE_MENU_HOVER, URL_FREEZE],
+          [SOUND_SPAWN_EMOJI, URL_SPAWN_EMOJI],
+          [SOUND_LAUNCHER_1, URL_LAUNCHER_1],
+          [SOUND_LAUNCHER_2, URL_LAUNCHER_2],
+          [SOUND_LAUNCHER_3, URL_LAUNCHER_3],
+          [SOUND_LAUNCHER_4, URL_LAUNCHER_4],
+          [SOUND_LAUNCHER_5, URL_LAUNCHER_5],
+          [SOUND_LAUNCHER_BIG, URL_LAUNCHER_BIG],
+          [SOUND_FART_1, URL_FART_1],
+          [SOUND_FART_2, URL_FART_2],
+          [SOUND_FART_3, URL_FART_3],
+          [SOUND_FART_4, URL_FART_4],
+          [SOUND_FART_5, URL_FART_5],
+          [SOUND_FART_BIG, URL_FART_BIG],
+          [SOUND_EMOJI_BURST, URL_QUIET_POP],
+          [SOUND_EMOJI_EQUIP, URL_TICK_ALT],
+          [SOUND_NOTIFICATION, URL_QUIET_POP],
+          [SOUND_LOCK, URL_TACK],
+          [SOUND_UNLOCK, URL_TICK_ALT]
+        ];
+
+        console.log("GO", window.APP.workerUrl);
+
+        // Fetch the ambient audio URL from the meta tags
+        const ambientAudioUrl = document
+          .querySelector("meta[name='webspace.environment.ambience']")
+          ?.getAttribute("content");
+
+        if (ambientAudioUrl) {
+          soundsAndUrls.push([SOUND_AMBIENCE, ambientAudioUrl]);
+        }
+        const loading = new Map();
+        const load = url => {
+          let audioBufferPromise = loading.get(url);
+
+          if (!audioBufferPromise) {
+            audioBufferPromise = fetchAudioFromUrl(url, this.audioContext);
+            loading.set(url, audioBufferPromise);
+          }
+
+          return audioBufferPromise;
+        };
+
+        soundsAndUrls.map(([sound, url]) => {
+          load(url)
+            .then(audioBuffer => {
+              this.sounds.set(sound, audioBuffer);
+            })
+            .catch(e => {
+              console.warn("Error loading sound", e);
+            });
+        });
+      },
+      { once: true }
+    );
   }
 
   hasLoadedSound(sound) {
