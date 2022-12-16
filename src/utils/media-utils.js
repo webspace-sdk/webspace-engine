@@ -522,10 +522,13 @@ export const addMedia = options => {
     // uploadAsset can take a promise
     src = src.arrayBuffer().then(buffer => {
       const svox = voxToSvox(buffer);
-      const svoxString = modelToString(svox).replace(
-        "material",
-        "material type = toon, lighting = smooth, deform = 1 1"
-      );
+      let svoxString = modelToString(svox).replace("material", "material type = toon, lighting = smooth, deform = 1 1");
+
+      // Special case, the default object name in magicavoxel is name, so just replace it with the filename
+      if (svoxString.indexOf("name = main") !== -1) {
+        svoxString = svoxString.replace("name = main", `name = ${uploadAsFilename.replace(/\.svox$/i, "")}`);
+      }
+
       return new Blob([svoxString], { type: "model/vnd.svox" });
     });
 
