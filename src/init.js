@@ -458,10 +458,6 @@ export async function setupTreeManagers(history, entryManager, remountUI) {
   const voxTree = new MediaTree("vox");
   const sceneTree = new MediaTree("world_templates");
 
-  // TODO SHARED
-  // voxTree.build();
-  // sceneTree.build();
-
   document.body.addEventListener(
     "connected",
     async ({ detail: { presence } }) => {

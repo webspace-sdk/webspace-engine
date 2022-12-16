@@ -1,6 +1,7 @@
 - need to test flow when creating voxel without git permission
 - deno cors proxying split + ytdl enable + move configs into index.html
 - test ff + safari
+- index.html add networking config (TURN, CORSAnywhere)
 - take a stab at mobile view
 - upload progress
 - UX updates
@@ -11,15 +12,16 @@
 - add a ui toggle button in top left due to docks on side of screen
   - this can be back button out of editor too
 - duck should upload glb
-- two settings:
-  - allow others to edit and create objects
-  - disable live HTML updates
+- disable live HTML update option (search for allowUnsavedObjects)
+- save HTML to back to origin option
 - vox
   - editor UX
     - close button in vox editor, drop left panel
     - undo/redo buttons
 - make cursor more visible
 - if space is held first, then object grabbed, enable snap
+- video play button missing
+- make sure removing CORS anywhere tag disalbed youtube
 
 
 firefox bugs:
@@ -35,29 +37,26 @@ firefox bugs:
 ---
 - drop non-used environment colors
 - hide other instances in voxel editor
-- consider non-cursor locked mouse panning + orbiting in editor
 - Reset (G) is not going onto undo stack?
 - tippy root getting into dom
 - avoid adding viseme to outgoing streams that can't decode it
-- preview color wheel on pages
+- preview color wheel on swatch pages
 - disable LOD on flat + plains
 - pasting text not working, and causing cursor to act funny (not hoverable)
 - smooth voxel mesher is randomized
 - lock is re-generating smooth mesh, not strictly necessary
 - get rid of a-assets, see how mozilla does it
-- clicking in nav when there are unsaved changes causes view to go indigo
+- clicking in nav when there are unsaved changes causes dialog to pop up and view to go indigo
 - remove hubs cloud stuff from webpack
 - search for TODO SHARED
 - powered by link
 - bring in avatar audio system
-- ambient sound meta tag
 - skybox in meta tag
 - drop config system (maybe keep some meta tags)
 - drop envs in webpack config
 - sessionId -> clientId
 - refactor all event names to be dash-cased
 - bring over muted ring
-- index.html add networking config
 - authorize + sanitize in NAF adapter
 - cut down dead code
 - review all deps
@@ -67,11 +66,10 @@ firefox bugs:
 - allow networking settings to be changed via qs
 - remove all unused translations
 - deal with filtering networking based on roles + hub setting for allowing edits
-- build mode still showing presence list
 - add service to register spaces
 - cull permissions (in atom manager)
 - spawn around origin
-- make sure dropping same file from assets folder works
+- disable other users from editing
 - need to figure out stack axis. it is stored in the DOM, but also can be in the file.
   - suggestion: take it out of metadata, and during writeback look it up on the media loaders
                 when spawning, initialize the media loader with what's in the file
@@ -96,11 +94,9 @@ firefox bugs:
 should push terrain chunks to origin on first edit
 need to writeback page change on pdf iff its locked
 video playback stopping when tabbing away
-video play button missing
 messing around with cursor, video, and console can cause 3d cursor to disappear (but highlight remain, so show 3d cursor prob false)
 video tick should keep running when tabbed away
 video reset to beginning when anotehr person joins (delay video ownership until joins?)
-make sure removing CORS anywhere tag disalbed youtube
 gest HLS and dash
 
 
