@@ -30,8 +30,6 @@ import URL_FART_3 from "!!url-loader!../assets/sfx/fart3.mp3";
 import URL_FART_4 from "!!url-loader!../assets/sfx/fart4.mp3";
 import URL_FART_5 from "!!url-loader!../assets/sfx/fart5.mp3";
 import URL_FART_BIG from "!!url-loader!../assets/sfx/fart-big.mp3";
-import URL_WATER from "!!url-loader!../assets/sfx/water.mp3";
-import URL_OUTDOORS from "!!url-loader!../assets/sfx/outdoors1.mp3";
 
 import { setMatrixWorld } from "../utils/three-utils";
 
@@ -78,8 +76,6 @@ export const SOUND_FART_BIG = soundEnum++;
 export const SOUND_EMOJI_BURST = soundEnum++;
 export const SOUND_EMOJI_EQUIP = soundEnum++;
 export const SOUND_NOTIFICATION = soundEnum++;
-export const SOUND_OUTDOORS = soundEnum++;
-export const SOUND_WATER = soundEnum++;
 export const SOUND_LOCK = soundEnum++;
 export const SOUND_UNLOCK = soundEnum++;
 
@@ -148,8 +144,6 @@ export class SoundEffectsSystem {
       [SOUND_EMOJI_BURST, URL_QUIET_POP],
       [SOUND_EMOJI_EQUIP, URL_TICK_ALT],
       [SOUND_NOTIFICATION, URL_QUIET_POP],
-      [SOUND_OUTDOORS, URL_OUTDOORS],
-      [SOUND_WATER, URL_WATER],
       [SOUND_LOCK, URL_TACK],
       [SOUND_UNLOCK, URL_TICK_ALT]
     ];

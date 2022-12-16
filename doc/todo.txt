@@ -1,6 +1,4 @@
 - custom ambient audio?
-- set name on model properly when dragging and dropping vox
-- make sure when dropping vox, it updates if its changed
 - deno cors proxying split + ytdl enable + move configs into index.html
 - test ff + safari
 - take a stab at mobile view

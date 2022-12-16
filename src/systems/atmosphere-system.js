@@ -3,7 +3,7 @@ import Sky from "../objects/sky";
 import Water from "../objects/water";
 import { Layers } from "../components/layers";
 import { RENDER_ORDER } from "../constants";
-import { SOUND_OUTDOORS, SOUND_WATER } from "./sound-effects-system";
+import { SOUND_OUTDOORS } from "./sound-effects-system";
 import { getHubIdFromHistory } from "../utils/url-utils";
 
 const FOG_NEAR = 20.5;
@@ -11,8 +11,6 @@ const FOG_SPAN = 1.5;
 const FOG_SPEED = 0.01;
 const INITIAL_FOG_NEAR = 1.5;
 const STOP_AMBIENCE_AFTER_SILENCE_MS = 5000.0;
-
-const WORLD_TYPES_WITH_WATER = [0, 1];
 
 // Responsible for managing shadows, environmental lighting, sky, and environment map.
 export class AtmosphereSystem {
@@ -75,10 +73,6 @@ export class AtmosphereSystem {
     this.outdoorsSoundTargetGain = 0.0;
     this.outdoorsSoundSilencedAt = 0;
 
-    this.waterSoundSource = new THREE.Object3D();
-    this.waterSoundTargetGain = 0.0;
-    this.waterSoundPositionalNode = null;
-
     this.sky = new Sky();
     this.sky.position.y = 0;
     this.sky.scale.setScalar(100000);
@@ -109,7 +103,6 @@ export class AtmosphereSystem {
     scene.add(this.sunLight);
     scene.add(this.sky);
     scene.add(this.water); // TODO water needs to become a wrapped entity
-    scene.add(this.waterSoundSource);
     scene.fog = this.fog;
 
     this.lastSoundProcessTime = 0.0;
@@ -139,18 +132,15 @@ export class AtmosphereSystem {
 
   enableAmbience() {
     this.outdoorsSoundTargetGain = 2.0;
-    this.waterSoundTargetGain = 1.0;
   }
 
   restartAmbience() {
     this.outdoorsSoundTargetGain = 2.0;
-    this.waterSoundTargetGain = 1.0;
     this.stopOutdoorsSoundNode(); // Restart happens automatically
   }
 
   disableAmbience() {
     this.outdoorsSoundTargetGain = 0.0;
-    this.waterSoundTargetGain = 0.0;
   }
 
   tick(dt) {
@@ -173,7 +163,7 @@ export class AtmosphereSystem {
       this.water.camera = this.playerCamera;
     }
 
-    this.moveSunlightAndWaterSound();
+    this.moveSunlight();
 
     // Disable effects for subrenders to water and/or sky
     this.effectsSystem.disableEffects = true;
@@ -257,8 +247,6 @@ export class AtmosphereSystem {
     const metadata = hubMetadata.getMetadata(hubId);
     if (!metadata) return;
 
-    const worldType = metadata.world && metadata.world.type;
-
     const now = performance.now();
 
     if (this.lastSoundProcessTime === 0) {
@@ -271,28 +259,7 @@ export class AtmosphereSystem {
 
     const ambienceEnabled = !store.state.preferences.disableAudioAmbience;
 
-    const desiredWaterGain =
-      ambienceEnabled && WORLD_TYPES_WITH_WATER.includes(worldType) ? this.waterSoundTargetGain : 0.0;
     const desiredOutdoorsGain = ambienceEnabled ? this.outdoorsSoundTargetGain : 0.0;
-
-    if (!this.waterSoundPositionalNode) {
-      if (this.soundEffectsSystem.hasLoadedSound(SOUND_WATER)) {
-        this.waterSoundPositionalNode = this.soundEffectsSystem.playPositionalSoundFollowing(
-          SOUND_WATER,
-          this.waterSoundSource,
-          true
-        );
-
-        this.waterSoundPositionalNode.panner.panningModel = "equalpower";
-        this.waterSoundPositionalNode.setVolume(desiredWaterGain);
-      }
-    } else {
-      const currentGain = this.waterSoundPositionalNode.getVolume();
-
-      if (Math.abs(currentGain - desiredWaterGain) > 0.001) {
-        this.waterSoundPositionalNode.setVolume(desiredWaterGain);
-      }
-    }
 
     if (!this.outdoorsSoundGainNode && desiredOutdoorsGain > 0.0) {
       if (this.soundEffectsSystem.hasLoadedSound(SOUND_OUTDOORS)) {
@@ -366,10 +333,10 @@ export class AtmosphereSystem {
     }
   }
 
-  moveSunlightAndWaterSound = (() => {
+  moveSunlight = (() => {
     const pos = new THREE.Vector3();
 
-    return (target, includeWater = true) => {
+    return target => {
       if (!target) {
         if (!this.avatarPovEl) return;
         target = this.avatarPovEl.object3D;
@@ -412,21 +379,6 @@ export class AtmosphereSystem {
       pos.x += 4;
       pos.y = -1.5;
       pos.z += 4;
-
-      const waterPos = this.waterSoundSource.position;
-
-      const moveWater =
-        includeWater &&
-        (Math.abs(waterPos.x - pos.x) > 0.5 ||
-          Math.abs(waterPos.y - pos.y) > 0.5 ||
-          Math.abs(waterPos.z - pos.z) > 0.5);
-
-      if (moveWater) {
-        this.waterSoundSource.position.x = pos.x;
-        this.waterSoundSource.position.y = pos.y;
-        this.waterSoundSource.position.z = pos.z;
-        this.waterSoundSource.matrixNeedsUpdate = true;
-      }
     };
   })();
 }
