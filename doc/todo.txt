@@ -78,6 +78,7 @@ safari bugs:
 - add service to register spaces
 - cull permissions (in atom manager)
 - spawn around origin
+- don't show unload nag if writeback isn't enabled
 - disable other users from editing
 - need to figure out stack axis. it is stored in the DOM, but also can be in the file.
   - suggestion: take it out of metadata, and during writeback look it up on the media loaders

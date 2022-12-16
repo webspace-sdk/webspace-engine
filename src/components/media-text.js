@@ -1,5 +1,5 @@
 import { EDITOR_PADDING_X, EDITOR_PADDING_Y, EDITOR_WIDTH, EDITOR_HEIGHT } from "../utils/quill-pool";
-import { temporarilyReleaseCanvasCursorLock } from "../utils/dom-utils";
+import { temporarilyReleaseCanvasCursorLock, endCursorLock } from "../utils/dom-utils";
 import { addAndArrangeRadialMedia, MEDIA_PRESENCE, MEDIA_INTERACTION_TYPES } from "../utils/media-utils";
 import { gatePermission } from "../utils/permissions-utils";
 import { disposeExistingMesh, disposeTexture } from "../utils/three-utils";
@@ -410,6 +410,7 @@ AFRAME.registerComponent("media-text", {
 
     if (type === MEDIA_INTERACTION_TYPES.EDIT) {
       window.APP.store.handleActivityFlag("mediaTextEdit");
+      endCursorLock();
       quill.focus();
 
       // Start off labels and banners as H1s.
