@@ -269,7 +269,7 @@ const ToggleFloorButton = forwardRef(() => {
 ToggleFloorButton.displayName = "ToggleFloorButton";
 
 function CanvasTop(props) {
-  const { history, hubCan, voxCan, worldTree, scene, spaceCan, createSelectPopupRef } = props;
+  const { hubCan, voxCan, worldTree, scene, spaceCan, createSelectPopupRef } = props;
   const hubId = props.hub?.hub_id;
 
   const { cameraSystem, terrainSystem, atmosphereSystem } = SYSTEMS;

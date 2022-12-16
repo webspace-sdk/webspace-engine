@@ -1,3 +1,4 @@
+- need to test flow when creating voxel without git permission
 - deno cors proxying split + ytdl enable + move configs into index.html
 - test ff + safari
 - take a stab at mobile view
@@ -20,18 +21,31 @@
 - make cursor more visible
 - if space is held first, then object grabbed, enable snap
 
+
+firefox bugs:
+- prettifyXml crashes
+- ctrl-B opens bookmarks
+- typing is backwards
+- screen sharing doesn't work
+- voxmoji not spawning
+  - physics is working, but not rendering
+- emoji gun not working
+- avatar was in the floor when chrome joined and firefox was in background
+
 ---
 - drop non-used environment colors
 - hide other instances in voxel editor
 - consider non-cursor locked mouse panning + orbiting in editor
 - Reset (G) is not going onto undo stack?
 - tippy root getting into dom
+- avoid adding viseme to outgoing streams that can't decode it
 - preview color wheel on pages
 - disable LOD on flat + plains
 - pasting text not working, and causing cursor to act funny (not hoverable)
 - smooth voxel mesher is randomized
 - lock is re-generating smooth mesh, not strictly necessary
 - get rid of a-assets, see how mozilla does it
+- clicking in nav when there are unsaved changes causes view to go indigo
 - remove hubs cloud stuff from webpack
 - search for TODO SHARED
 - powered by link

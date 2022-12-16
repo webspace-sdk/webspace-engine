@@ -195,8 +195,6 @@ export class SoundEffectsSystem {
           [SOUND_UNLOCK, URL_TICK_ALT]
         ];
 
-        console.log("GO", window.APP.workerUrl);
-
         // Fetch the ambient audio URL from the meta tags
         const ambientAudioUrl = document
           .querySelector("meta[name='webspace.environment.ambience']")
