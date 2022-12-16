@@ -1,4 +1,3 @@
-- custom ambient audio?
 - deno cors proxying split + ytdl enable + move configs into index.html
 - test ff + safari
 - take a stab at mobile view
@@ -15,8 +14,6 @@
   - allow others to edit and create objects
   - disable live HTML updates
 - vox
-  - close out TODOs
-  - publish vox, should burn the axis, snap settings, scale
   - editor UX
     - close button in vox editor, drop left panel
     - undo/redo buttons

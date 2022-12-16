@@ -6,7 +6,6 @@ import URL_TICK from "!!url-loader!../assets/sfx/click.wav";
 import URL_TICK_DOWN from "!!url-loader!../assets/sfx/click-down.wav";
 import URL_TICK_ALT from "!!url-loader!../assets/sfx/click-alt.wav";
 import URL_TOGGLE_TICK from "!!url-loader!../assets/sfx/tick.mp3";
-import URL_TELEPORT_LOOP from "!!url-loader!../assets/sfx/teleport-loop.mp3";
 import URL_QUICK_TURN from "!!url-loader!../assets/sfx/quick-turn.mp3";
 import URL_TAP_MELLOW from "!!url-loader!../assets/sfx/tap-mellow.mp3";
 import URL_PEN_SPAWN from "!!url-loader!../assets/sfx/pen-spawn.mp3";
@@ -159,7 +158,6 @@ export class SoundEffectsSystem {
           [SOUND_PEN_CHANGE_COLOR, URL_TICK],
           [SOUND_TOGGLE_MIC, URL_TOGGLE_TICK],
           [SOUND_CAMERA_TOOL_COUNTDOWN, URL_TICK],
-          [SOUND_TELEPORT_START, URL_TELEPORT_LOOP],
           [SOUND_TELEPORT_END, URL_QUICK_TURN],
           [SOUND_WAYPOINT_START, URL_QUICK_TURN],
           [SOUND_WAYPOINT_END, URL_TICK],
