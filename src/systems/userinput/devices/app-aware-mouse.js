@@ -6,9 +6,11 @@ import { getNetworkedTemplate } from "../../../utils/ownership-utils";
 import { canMove } from "../../../utils/permissions-utils";
 import {
   CURSOR_LOCK_STATES,
+  HAS_ANNOYING_CURSOR_LOCK_POPUP,
   getCursorLockState,
   getLastKnownUnlockedCursorCoords,
   beginEphemeralCursorLock,
+  beginPersistentCursorLock,
   releaseEphemeralCursorLock,
   isCursorLocked,
   isInEditableField
@@ -140,7 +142,11 @@ export class AppAwareMouseDevice {
     // Handle ephemeral mouse locking for look key/button
     if (document.hasFocus()) {
       if (isMouseLookingGesture) {
-        beginEphemeralCursorLock();
+        if (HAS_ANNOYING_CURSOR_LOCK_POPUP) {
+          beginPersistentCursorLock();
+        } else {
+          beginEphemeralCursorLock();
+        }
       } else if (!isNonGrabTransforming) {
         releaseEphemeralCursorLock();
       }

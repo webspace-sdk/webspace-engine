@@ -14,7 +14,13 @@ import { TRANSFORM_MODE } from "./transform-selected-object";
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { ensureOwnership, getNetworkedEntitySync, isSynchronized } from "../utils/ownership-utils";
 import { getSpawnInFrontZOffsetForEntity } from "../utils/three-utils";
-import { cursorIsVisible, releaseEphemeralCursorLock, beginEphemeralCursorLock } from "../utils/dom-utils";
+import {
+  cursorIsVisible,
+  releaseEphemeralCursorLock,
+  beginEphemeralCursorLock,
+  beginPersistentCursorLock,
+  HAS_ANNOYING_CURSOR_LOCK_POPUP
+} from "../utils/dom-utils";
 import qsTruthy from "../utils/qs_truthy";
 import { SOUND_LOCK, SOUND_UNLOCK } from "./sound-effects-system";
 
@@ -204,14 +210,24 @@ export class MediaInteractionSystem {
 
           if (interactionType === MEDIA_INTERACTION_TYPES.ROTATE) {
             if (!gatePermission("spawn_and_move_media")) return;
-            beginEphemeralCursorLock();
+
+            if (HAS_ANNOYING_CURSOR_LOCK_POPUP) {
+              beginPersistentCursorLock();
+            } else {
+              beginEphemeralCursorLock();
+            }
 
             this.transformSystem.startTransform(targetEl.object3D, this.rightHand.object3D, {
               mode: TRANSFORM_MODE.AXIS
             });
           } else if (interactionType === MEDIA_INTERACTION_TYPES.SCALE) {
             if (!gatePermission("spawn_and_move_media")) return;
-            beginEphemeralCursorLock();
+
+            if (HAS_ANNOYING_CURSOR_LOCK_POPUP) {
+              beginPersistentCursorLock();
+            } else {
+              beginEphemeralCursorLock();
+            }
 
             this.scaleSystem = this.scaleSystem || this.scene.systems["scale-object"];
             this.scaleSystem.startScaling(targetEl.object3D, this.rightHand.object3D);

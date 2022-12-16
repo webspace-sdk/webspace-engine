@@ -36,11 +36,10 @@ firefox bugs:
 - need to test git uploading etc
 
 safari bugs:
-- text panels busted
+- text panel emoji button not working
 - lock mouse look broken
 - screen sharing busted
 - paste image not working
-- banner spawn point off to the side
 - need to test uploading once other things are fixed
 - need to test git sync of DOM once other things are fixed
 

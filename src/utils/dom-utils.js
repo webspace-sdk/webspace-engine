@@ -7,8 +7,12 @@ import { WORLD_COLOR_PRESETS } from "./world-color-presets";
 import { EmojiToShortname } from "./emojis";
 import { parseTransformIntoThree } from "./world-importer";
 import { posRotScaleToCssTransform } from "../systems/dom-serialize-system";
+const { detect } = require("detect-browser");
+
+const browser = detect();
 import Color from "color";
 
+export const HAS_ANNOYING_CURSOR_LOCK_POPUP = browser && (browser.name === "firefox" || browser.name === "safari");
 export const META_TAG_PREFIX = "webspace";
 
 const COLOR_BLACK = { r: 0, g: 0, b: 0 };
@@ -101,10 +105,33 @@ const lockCursor = (ephemeral = false) => {
   const userinput = scene.systems.userinput;
   lastKnownCursorCoords = userinput.get(paths.device.mouse.coords);
 
+  const lockErrorHandler = () => {
+    // Workaround for safari, which requires the user activate the canvas first by clicking on it
+    if (browser.name === "safari" && !canvas.__addedSafariClickHandler) {
+      canvas.__addedSafariClickHandler = true;
+      canvas.addEventListener("click", () => canvas.requestPointerLock(), { once: true });
+    }
+
+    if (retryLockTimeout) {
+      clearTimeout(retryLockTimeout);
+    }
+
+    if (browser.name !== "safari") {
+      retryLockTimeout = setTimeout(() => canvas.requestPointerLock(), 500);
+      document.addEventListener("pointerlockerror", lockErrorHandler, { once: true });
+    }
+  };
+
+  document.addEventListener("pointerlockerror", lockErrorHandler, { once: true });
+
   // Emit the event after the pointer lock happens
   document.addEventListener(
     "pointerlockchange",
     () => {
+      if (browser.name === "safari") {
+        canvas.__addedSafariClickHandler = false;
+      }
+
       lockedCursorLockState = newLockedCursorLockState;
 
       if (retryLockTimeout) {
@@ -116,19 +143,13 @@ const lockCursor = (ephemeral = false) => {
         const oldCursorLockState = lockedCursorLockState;
         AFRAME.scenes[0].emit("cursor-lock-state-changed", { oldCursorLockState });
       }
+
+      document.removeEventListener("pointerlockerror", lockErrorHandler);
     },
     { once: true }
   );
 
   // Retry pointer lock on error, this can happen during screen sharing dialog for example.
-  document.addEventListener("pointerlockerror", () => {
-    if (retryLockTimeout) {
-      clearTimeout(retryLockTimeout);
-    }
-
-    retryLockTimeout = setTimeout(() => canvas.requestPointerLock(), 500);
-  });
-
   canvas.requestPointerLock();
 };
 
