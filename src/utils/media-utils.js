@@ -508,6 +508,29 @@ export const addMedia = options => {
   let needsToBeUploaded = src instanceof File;
   let uploadAsFilename = null;
 
+  if (src instanceof File) {
+    const extension = src.name.split(".").pop();
+    const name = src.name.substring(0, src.name.length - extension.length - 1);
+    const newAssetFileName = assetFileNameForName(name, extension);
+
+    // Always upload unique versions of each file
+    //
+    // The exception here is if we are working locally, and the file was a re-upload of the existing asset from the asset folder
+    if (document.location.protocol === "file:") {
+      uploadAsFilename = new Promise(res => {
+        window.APP.atomAccessManager.fileExists(`assets/${src.name}`).then(exists => {
+          if (exists) {
+            res(src.name);
+          } else {
+            res(newAssetFileName);
+          }
+        });
+      });
+    } else {
+      uploadAsFilename = newAssetFileName;
+    }
+  }
+
   // If we're re-pasting an existing src in the scene, we should use the latest version
   // seen across any other entities. Otherwise, start with version 1.
   const version = getLatestMediaVersionOfSrc(src);
@@ -516,8 +539,7 @@ export const addMedia = options => {
 
   // Check for VOX. If it's a vox, convert it to SVOX
   if (src instanceof File && src.name.toLowerCase().endsWith(".vox")) {
-    // TODO need to use ranodm filename
-    uploadAsFilename = src.name.replace(/\.vox$/i, ".svox");
+    uploadAsFilename = uploadAsFilename.replace(".vox", ".svox");
 
     // uploadAsset can take a promise
     src = src.arrayBuffer().then(buffer => {

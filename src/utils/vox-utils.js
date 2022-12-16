@@ -85,12 +85,14 @@ export function modelToString(model) {
 }
 
 export async function fetchSVoxFromUrl(voxUrl, skipVoxels = false, shouldSkipRetry = () => false) {
+  let contentUrl;
+
   for (let i = 0; i < 10; i++) {
     try {
       if (shouldSkipRetry()) return null;
 
       const { atomAccessManager } = window.APP;
-      let contentUrl = voxUrl;
+      contentUrl = voxUrl;
       let cache = "default";
 
       const relativePath = getLocalRelativePathFromUrl(voxUrl);
@@ -104,7 +106,7 @@ export async function fetchSVoxFromUrl(voxUrl, skipVoxels = false, shouldSkipRet
       const response = await fetch(contentUrl, { cache });
       return modelFromString(await response.text(), skipVoxels);
     } catch (e) {
-      console.warn("Failed to fetch vox", e);
+      console.warn(`Failed to fetch vox at ${voxUrl} ${contentUrl}`, e);
       await new Promise(res => setTimeout(res, 1000));
     }
   }

@@ -223,7 +223,15 @@ export default class FileWriteback {
 
   async contentUrlForRelativePath(path) {
     if (this.blobCache.has(path)) {
-      return this.blobCache.get(path);
+      const url = this.blobCache.get(path);
+      try {
+        await fetch(url);
+        return url;
+      } catch (e) {
+        // Blob is no longer valid, remove it from the cache.
+        URL.revokeObjectURL(url);
+        this.blobCache.delete(path);
+      }
     }
 
     const handle = await this._getHandleForPath(path);

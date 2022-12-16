@@ -366,12 +366,17 @@ export default class AtomAccessManager extends EventTarget {
     return await this.writeback.fileExists(path);
   }
 
-  async uploadAsset(fileOrBlobOrPromiseToFileOrBlob, fileName = null) {
+  async uploadAsset(fileOrBlobOrPromiseToFileOrBlob, fileNameOrPromiseToFileName = null) {
     let fileOrBlob = fileOrBlobOrPromiseToFileOrBlob;
+    let fileName = fileNameOrPromiseToFileName;
 
     // Check if the first argument is a promise, if so, resolve it
     if (fileOrBlobOrPromiseToFileOrBlob instanceof Promise) {
       fileOrBlob = await fileOrBlobOrPromiseToFileOrBlob;
+    }
+
+    if (fileNameOrPromiseToFileName instanceof Promise) {
+      fileName = await fileNameOrPromiseToFileName;
     }
 
     if (!this.writeback?.isOpen && this.hasAnotherWriterInPresence()) {
