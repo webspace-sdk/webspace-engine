@@ -197,13 +197,15 @@ export async function renderQuillToImg(
 
     .ql-editor {
       position: absolute;
-      overflow: visible !important;
       top: -${editor.scrollTop}px;
+      overflow: visible !important;
       color: ${foregroundColor} !important;
       width: ${EDITOR_WIDTH}px !important;
       height: ${EDITOR_HEIGHT}px !important;
       min-width: ${EDITOR_WIDTH}px !important;
       min-height: ${EDITOR_HEIGHT}px !important;
+      transform-origin: top left;
+      transform: scale(${zoom * scale});
     }
 
     .ql-blank::before {
@@ -263,7 +265,7 @@ export async function renderQuillToImg(
     // Hide the tooltip for the editor in the rendering
     const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${el.offsetWidth * scale}px" height="${el.offsetHeight * scale}px">
-        <foreignObject width="100%" height="100%" style="transform: scale(${scale * zoom});">
+        <foreignObject width="100%" height="100%">
           ${xml}
         </foreignObject>
       </svg>

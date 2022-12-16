@@ -97,7 +97,7 @@
     "phoenix": "github:gfodor/phoenix-js#master",
     "prop-types": "^15.8.1",
     "protobufjs": "^6.10.1",
-    "quill": "github:webspace-sdk/quill#jel/master",
+    "quill": "github:webspace-sdk/quill#webspaces/master",
     "quill-emoji": "github:webspace-sdk/quill-emoji#jel-master",
     "random": "^2.2.0",
     "raven-js": "^3.20.1",
