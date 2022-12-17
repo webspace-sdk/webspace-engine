@@ -27,7 +27,6 @@
 firefox bugs:
 - prettifyXml crashes
 - ctrl-B opens bookmarks
-- typing is backwards
 - screen sharing doesn't work
 - voxmoji not spawning
   - physics is working, but not rendering
@@ -36,12 +35,12 @@ firefox bugs:
 - need to test git uploading etc
 
 safari bugs:
-- text panel emoji button not working
-- lock mouse look broken
+- fastnoise not working
 - screen sharing busted
 - paste image not working
 - need to test uploading once other things are fixed
 - need to test git sync of DOM once other things are fixed
+- toolbar elements etc are not clickable in quill
 
 ---
 - drop non-used environment colors

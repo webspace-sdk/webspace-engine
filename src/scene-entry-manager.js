@@ -176,7 +176,7 @@ export default class SceneEntryManager {
 
     this.scene.addEventListener("add_media_text", e => {
       const [backgroundColor, foregroundColor] = MEDIA_TEXT_COLOR_PRESETS[
-        window.APP.store.state.uiState.mediaTextColorPresetIndex || 0
+        (window.APP.store.state.uiState.mediaTextColorPresetIndex || 0) % MEDIA_TEXT_COLOR_PRESETS.length
       ];
 
       addMediaInFrontOfPlayerIfPermitted({
