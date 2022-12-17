@@ -133,7 +133,7 @@ class Chunk {
     const bottom = { type: types.dirt };
     const top = { type: types.air };
     const black = { r: 0, g: 0, b: 0 };
-
+    const chunkMaxY = this.height + 1;
     this.meshes[subchunk] = Mesher({
       models,
       chunkSize: size,
@@ -187,7 +187,11 @@ class Chunk {
         };
       },
       from: { x: 0, y: subchunk * size, z: 0 },
-      to: { x: size, y: (subchunk + 1) * size, z: size },
+      to: {
+        x: size,
+        y: Math.min(maxHeight, Math.min((subchunk + 1) * size, subchunk * size + chunkMaxY)),
+        z: size
+      },
       types
     });
   }
