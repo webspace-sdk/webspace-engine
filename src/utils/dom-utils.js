@@ -778,7 +778,8 @@ const prettifyXml = sourceXml => {
   const xsltDoc = new DOMParser().parseFromString(
     [
       // describes how we want to modify the XML - indent everything
-      '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
+      '<?xml version="1.0"?>',
+      '<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
       '  <xsl:strip-space elements="*"/>',
       '  <xsl:template match="para[content-style][not(text())]">', // change to just text() to strip space in text nodes
       '    <xsl:value-of select="normalize-space(.)"/>',
@@ -789,7 +790,7 @@ const prettifyXml = sourceXml => {
       '  <xsl:output indent="yes"/>',
       "</xsl:stylesheet>"
     ].join("\n"),
-    "application/xml"
+    "text/xml"
   );
 
   const xsltProcessor = new XSLTProcessor();
