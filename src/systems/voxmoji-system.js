@@ -245,7 +245,17 @@ export class VoxmojiSystem extends EventTarget {
   async registerType(imageUrl, size) {
     const loader = new ImageLoader();
     loader.setCrossOrigin("anonymous");
-    const image = await new Promise((res, rej) => loader.load(imageUrl, res, undefined, rej));
+    // Need to work around a firefox bug: https://stackoverflow.com/questions/28690643/firefox-error-rendering-an-svg-image-to-html5-canvas-with-drawimage
+    const svg = await (await fetch(imageUrl)).text();
+    const parser = new DOMParser();
+    const result = parser.parseFromString(svg, "text/xml");
+    const svgTag = result.getElementsByTagName("svg")[0];
+    svgTag.setAttribute("width", `${size}px`);
+    svgTag.setAttribute("height", `${size}px`);
+
+    const image = new Image();
+    const imageLoad = new Promise(res => (image.onload = res));
+    image.src = "data:image/svg+xml;base64," + btoa(new XMLSerializer().serializeToString(svgTag));
     image.setAttribute("width", size);
     image.setAttribute("height", size);
 
@@ -257,6 +267,7 @@ export class VoxmojiSystem extends EventTarget {
     const width = image.width;
     const height = image.height;
 
+    await imageLoad;
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     canvas.width = image.width;
