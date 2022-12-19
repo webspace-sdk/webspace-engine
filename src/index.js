@@ -888,7 +888,7 @@ async function start() {
   const useShadowDom = true;
 
   if (useShadowDom) {
-    window.DOM_ROOT = document.body.attachShadow({ mode: "closed" });
+    window.DOM_ROOT = document.body.attachShadow({ mode: "open" });
   } else {
     const el = document.createElement("main");
     document.body.appendChild(el);
