@@ -97,10 +97,12 @@ export class UIAnimationSystem {
     this.sceneEl.emit("side_panel_resize_started");
 
     // Hide triggers upon collapse
-    const triggerSizePx = DOM_ROOT.getElementById("left-expand-trigger").offsetWidth;
-    DOM_ROOT.getElementById("left-expand-trigger").setAttribute("style", `left: ${-triggerSizePx}px`);
-    DOM_ROOT.getElementById("right-expand-trigger").setAttribute("style", `right: ${-triggerSizePx}px`);
-    DOM_ROOT.getElementById("bottom-expand-trigger").setAttribute("style", `bottom: ${-triggerSizePx}px`);
+    if (DOM_ROOT.getElementById("left-expand-trigger")) {
+      const triggerSizePx = DOM_ROOT.getElementById("left-expand-trigger").offsetWidth;
+      DOM_ROOT.getElementById("left-expand-trigger").setAttribute("style", `left: ${-triggerSizePx}px`);
+      DOM_ROOT.getElementById("right-expand-trigger").setAttribute("style", `right: ${-triggerSizePx}px`);
+      DOM_ROOT.getElementById("bottom-expand-trigger").setAttribute("style", `bottom: ${-triggerSizePx}px`);
+    }
   }
 
   isCollapsingOrCollapsed() {

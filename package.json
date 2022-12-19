@@ -23,7 +23,7 @@
     "local": "webpack-dev-server --mode=development --env localDev --host 0.0.0.0",
     "build": "rimraf ./dist && webpack --mode=production",
     "bundle-analyzer": "webpack-dev-server --mode=production --env dev --env bundleAnalyzer",
-    "deploy": "npm run build && aws s3 cp --acl public-read --cache-control \"public, must-revalidate\" --content-type \"text/javascript; charset=UTF-8\" dist/assets/js/index.js s3://webspace.run/webspace-latest.js",
+    "deploy": "npm run build && aws s3 cp --acl public-read --cache-control \"max-age=0, public, must-revalidate\" --content-type \"text/javascript; charset=UTF-8\" dist/assets/js/index.js s3://webspace.run/webspace-latest.js",
     "undeploy": "node -r @babel/register -r esm -r ./scripts/shim scripts/undeploy.js",
     "test": "npm run lint && npm run test:unit && npm run build",
     "test:unit": "ava",
