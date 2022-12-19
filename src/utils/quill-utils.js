@@ -1,6 +1,8 @@
 import { fromByteArray } from "base64-js";
 import Color from "color";
 import { EDITOR_WIDTH, EDITOR_HEIGHT } from "./quill-pool";
+import { detect } from "detect-browser";
+const browser = detect();
 import nextTick from "./next-tick";
 import {
   ComicFontCSS,
@@ -302,4 +304,24 @@ export function deltaEndsWith(delta, text) {
     endText = op.insert + endText;
   }
   return endText.slice(-1 * text.length) === text;
+}
+
+// HACK for safari - this captures the mousedown event when we are in the quill editor, because this causes the element to blur, causing it to disappear.
+if (browser.name === "safari") {
+  window.addEventListener("mousedown", e => {
+    if (!isInQuillEditor()) return;
+
+    const activeElement = DOM_ROOT.activeElement;
+
+    if (activeElement) {
+      // Check if the event happened within the client rect of the active element
+      const rect = activeElement.getBoundingClientRect();
+      const x = e.clientX;
+      const y = e.clientY;
+
+      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+        setTimeout(() => activeElement.focus());
+      }
+    }
+  });
 }
