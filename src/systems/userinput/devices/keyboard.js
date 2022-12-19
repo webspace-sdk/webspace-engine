@@ -27,8 +27,8 @@ export class KeyboardDevice {
           const store = window.APP.store;
           const isGameFocused = DOM_ROOT.activeElement === canvas || DOM_ROOT.activeElement === null;
 
-          // Do not allow ctrl-Z when game focused
-          if (e.key === "z" && (e.ctrlKey || e.altKey) && isGameFocused) {
+          // Do not allow ctrl-Z, ctrl-B (bookmarks) when game focused
+          if ((e.key === "z" || e.key === "b") && (e.ctrlKey || e.altKey) && isGameFocused) {
             e.preventDefault();
           }
 
