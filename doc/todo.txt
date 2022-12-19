@@ -22,6 +22,7 @@
 - if space is held first, then object grabbed, enable snap
 - video play button missing
 - make sure removing CORS anywhere tag disalbed youtube
+- show cursor when create menu is opened via hotkey (any others?) - for ff/safari locking
 
 
 firefox bugs:

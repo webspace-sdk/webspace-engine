@@ -1,5 +1,5 @@
 const SYNC_DURATION_MS = 3000;
-const NUM_EXTRA_SYNCS = 3;
+const NUM_EXTRA_SYNCS = Infinity;
 
 // HACK this is a hacky component that is used to mitigate the situation where a first sync is missed on critical
 // networked elements. (At the time of this writing, specifically just the user's avatar.) The motivation
